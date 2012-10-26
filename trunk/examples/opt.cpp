@@ -79,15 +79,15 @@ Vector line_intersect(Point pin, Vector l, Polytope P, double err){
   Vector vin=pin-CGAL::Origin();
   //first compute a point outside P along the line
   Point pout=pin;
-  std::cout<<"Starting inside point: ";
-  round_print(pin);
+  //std::cout<<"Starting inside point: ";
+  //round_print(pin);
   
   Vector aug(l);
   while(Sep_Oracle(P,pout).get_is_in() == true){
     aug*=2;
     pout+=aug;
-    std::cout<<"Outside point: ";
-    round_print(pout);
+    //std::cout<<"Outside point: ";
+    //round_print(pout);
   }
   Vector vout=pout-CGAL::Origin();
   
@@ -104,8 +104,8 @@ Vector line_intersect(Point pin, Vector l, Polytope P, double err){
 		//std::cout<<"len="<<bool(len<err)<<std::endl;
 	}while(len > err);
   
-  std::cout<<"Intersection point: ";
-  round_print(vmid);
+  //std::cout<<"Intersection point: ";
+  //round_print(vmid);
   return vmid; 
 }
 
@@ -171,55 +171,48 @@ int main(const int argc, const char** argv)
 	
 	
   /*-------- MULTIPOINT RANDOM WALK -------*/
-
-  Point v=*V.begin();
-
-  /* Choose a direction */
-	RNGType rng((double)time(NULL));
-	boost::normal_distribution<> rdist(0,1); /**< standard normal distribution 
-												 with mean of 0 and standard deviation of 1 */
-
-	boost::variate_generator< RNGType, boost::normal_distribution<> >
-									get_rand(rng, rdist);  
-
-	std::vector<double> a(m);
-	generate(a.begin(),a.end(),get_rand);
-
-  std::vector<Point>::iterator Vit=V.begin();
-	Vector l(n,CGAL::NULL_VECTOR);
-	for(std::vector<double>::iterator ait=a.begin(); ait!=a.end(); ++ait){
-	  //*Vit*=*ait;
-	  //std::cout<<*ait<<"*"<<(*Vit)<<"= "<<NT(*ait)*(*Vit)<<std::endl;
-	  std::cout<<*ait<<std::endl;
-	  l+=NT(*ait)*((*Vit)-(CGAL::Origin()));
-	  ++Vit;
-	}
-	std::cout<<l<<std::endl;
-	for(Vector::Cartesian_const_iterator cit=l.cartesian_begin(); cit!=l.cartesian_end();
-	       ++cit)
-		std::cout<<CGAL::to_double(*cit)<<" "; 
-  std::cout<<std::endl;
-  
-  /* Compute the line */
-  Line line(v,l.direction());
-  std::cout<<line<<std::endl;
-  
-  /* Compute the 2 points that the line and P intersect */
-  Vector b1=line_intersect(v,l,cube,err);
-  Vector b2=line_intersect(v,-l,cube,err);
-  
-  /* Move the point to a random point in P along the constructed line */
-  
-  boost::random::uniform_real_distribution<>(urdist); // uniform distribution 
-  
-  //boost::variate_generator< RNGType, boost::random::uniform_real_distribution<> >
-	//								get_uni_rand(rng, urdist);
-  //urdist.reset();
-  double lambda = urdist(rng);
-  
-  v = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
-  std::cout<<v<<std::endl;
-  round_print(v);
-  
+	
+	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
+		Point v=*vit;
+		
+		/* Choose a direction */
+		RNGType rng((double)time(NULL));
+		boost::normal_distribution<> rdist(0,1); /**< standard normal distribution 
+													 with mean of 0 and standard deviation of 1 */
+		
+		boost::variate_generator< RNGType, boost::normal_distribution<> >
+										get_rand(rng, rdist);  
+		
+		std::vector<double> a(m);
+		generate(a.begin(),a.end(),get_rand);
+		
+		std::vector<Point>::iterator Vit=V.begin();
+		Vector l(n,CGAL::NULL_VECTOR);
+		for(std::vector<double>::iterator ait=a.begin(); ait!=a.end(); ++ait){
+		  //*Vit*=*ait;
+		  //std::cout<<*ait<<"*"<<(*Vit)<<"= "<<NT(*ait)*(*Vit)<<std::endl;
+		  //std::cout<<*ait<<std::endl;
+		  l+=NT(*ait)*((*Vit)-(CGAL::Origin()));
+		  ++Vit;
+		}
+		
+		/* Compute the line */
+		Line line(v,l.direction());
+		//std::cout<<line<<std::endl;
+		
+		/* Compute the 2 points that the line and P intersect */
+		Vector b1=line_intersect(v,l,cube,err);
+		Vector b2=line_intersect(v,-l,cube,err);
+		
+		/* Move the point to a random point in P along the constructed line */
+		
+		boost::random::uniform_real_distribution<>(urdist); // uniform distribution 
+		
+		double lambda = urdist(rng);
+		
+		v = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
+		//std::cout<<v<<std::endl;
+		round_print(v);
+  }
   return 0;
 }
