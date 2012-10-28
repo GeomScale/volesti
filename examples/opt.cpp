@@ -168,8 +168,15 @@ int main(const int argc, const char** argv)
 	}
 	
 	
-	
-	
+	//compute the average
+	Vector z0(n,CGAL::NULL_VECTOR);
+	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
+		z0 = z0 + (*vit - CGAL::Origin());
+	}	
+	z0=z0/m;
+	std::cout<<"z=";
+	round_print(z0);
+
   /*-------- MULTIPOINT RANDOM WALK -------*/
 	
 	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
@@ -179,10 +186,8 @@ int main(const int argc, const char** argv)
 		RNGType rng((double)time(NULL));
 		boost::normal_distribution<> rdist(0,1); /**< standard normal distribution 
 													 with mean of 0 and standard deviation of 1 */
-		
 		boost::variate_generator< RNGType, boost::normal_distribution<> >
-										get_rand(rng, rdist);  
-		
+										get_rand(rng, rdist); 
 		std::vector<double> a(m);
 		generate(a.begin(),a.end(),get_rand);
 		
@@ -196,23 +201,30 @@ int main(const int argc, const char** argv)
 		  ++Vit;
 		}
 		
-		/* Compute the line */
+		// Compute the line 
 		Line line(v,l.direction());
 		//std::cout<<line<<std::endl;
 		
-		/* Compute the 2 points that the line and P intersect */
+		// Compute the 2 points that the line and P intersect 
 		Vector b1=line_intersect(v,l,cube,err);
 		Vector b2=line_intersect(v,-l,cube,err);
 		
-		/* Move the point to a random point in P along the constructed line */
-		
+		// Move the point to a random (uniform) point in P along the constructed line 
 		boost::random::uniform_real_distribution<>(urdist); // uniform distribution 
-		
-		double lambda = urdist(rng);
-		
+		double lambda = urdist(rng);		
 		v = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
 		//std::cout<<v<<std::endl;
 		round_print(v);
+		*vit=v;
   }
+  //compute the average
+	Vector z(n,CGAL::NULL_VECTOR);
+	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
+		z = z + (*vit - CGAL::Origin());
+	}
+	z=z/m;	
+	std::cout<<"z=";
+	round_print(z);
+  
   return 0;
 }
