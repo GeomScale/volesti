@@ -26,6 +26,7 @@ if ( CGAL_FOUND )
   #create_single_source_cgal_program("headache.cpp")
   #create_single_source_cgal_program("eigen_adjoint.cpp")
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11 ")
+  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++0x")
   #link_libraries("proc")
   create_single_source_cgal_program("opt.cpp")
 
