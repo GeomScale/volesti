@@ -62,6 +62,37 @@ struct sep{
 		Hyperplane 	H_sep;
 };
 
+
+/* Construct a n-CUBE */
+Polytope cube(const int n, const int lw, const int up){	
+	Polytope cube;
+	std::vector<NT> origin(n,NT(lw));
+	for(int i=0; i<n; ++i){
+		std::vector<NT> normal;
+		for(int j=0; j<n; ++j){
+			if(i==j) 
+				normal.push_back(NT(1));
+			else normal.push_back(NT(0));
+		}
+		Hyperplane h(Point(n,origin.begin(),origin.end()),
+	           Direction(n,normal.begin(),normal.end()));
+	  cube.push_back(h);
+	}
+	std::vector<NT> apex(n,NT(up));
+	for(int i=0; i<n; ++i){
+		std::vector<NT> normal;
+		for(int j=0; j<n; ++j){
+			if(i==j) 
+				normal.push_back(NT(-1));
+			else normal.push_back(NT(0));
+		}
+		Hyperplane h(Point(n,apex.begin(),apex.end()),
+	           Direction(n,normal.begin(),normal.end()));
+	  cube.push_back(h);
+	}
+	return cube;
+}
+
 //function that implements the separation oracle 
 template<typename Polytope> sep Sep_Oracle(Polytope P, Point v)
 {
@@ -109,6 +140,53 @@ Vector line_intersect(Point pin, Vector l, Polytope P, double err){
   return vmid; 
 }
 
+/*-------- MULTIPOINT RANDOM WALK -------*/
+int multipoint_random_walk(Polytope &P,
+													 std::vector<Point> &V,
+													 const int n,
+													 const int walk_steps,
+													 const double err,
+													 RNGType &rng,
+													 boost::variate_generator< RNGType, boost::normal_distribution<> >
+													 &get_snd_rand,
+													 boost::random::uniform_real_distribution<> &urdist){
+													
+													 
+	for(int mk=0; mk<walk_steps; ++mk){
+		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
+			Point v=*vit;
+			
+			/* Choose a direction */
+			std::vector<double> a(V.size());
+			generate(a.begin(),a.end(),get_snd_rand);
+			
+			std::vector<Point>::iterator Vit=V.begin();
+			Vector l(n,CGAL::NULL_VECTOR);
+			for(std::vector<double>::iterator ait=a.begin(); ait!=a.end(); ++ait){
+			  //*Vit*=*ait;
+			  //std::cout<<*ait<<"*"<<(*Vit)<<"= "<<NT(*ait)*(*Vit)<<std::endl;
+			  //std::cout<<*ait<<std::endl;
+			  l+=NT(*ait)*((*Vit)-(CGAL::Origin()));
+			  ++Vit;
+			}
+			
+			// Compute the line 
+			Line line(v,l.direction());
+			//std::cout<<line<<std::endl;
+			
+			// Compute the 2 points that the line and P intersect 
+			Vector b1=line_intersect(v,l,P,err);
+			Vector b2=line_intersect(v,-l,P,err);
+			
+			// Move the point to a random (uniform) point in P along the constructed line 
+			double lambda = urdist(rng);		
+			v = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
+			//std::cout<<v<<std::endl;
+			round_print(v);
+			*vit=v;
+	  }
+	}
+}
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -126,9 +204,13 @@ int main(const int argc, const char** argv)
   //dimension
   const size_t n=3; 
   //number of random points
-  const int m=10;
-  const int lw=0, up=100;
+  const int m=100;
+  //number of walk steps
+  const int walk_steps=1000;
+  //error in hit-and-run bisection of P
   const double err=0.000001;
+  //bounds for the cube
+  const int lw=0, up=1000;
   
   /* INITIALIZE POINTS */ 
   CGAL::Random CGALrng;
@@ -141,34 +223,9 @@ int main(const int argc, const char** argv)
 		V.push_back(v);
 		std::cout<<v<<std::endl;
 	}
-	
-	/* Construct a n-CUBE */
-	Polytope cube;
-	std::vector<NT> origin(n,NT(lw));
-	for(int i=0; i<n; ++i){
-		std::vector<NT> normal;
-		for(int j=0; j<n; ++j){
-			if(i==j) 
-				normal.push_back(NT(1));
-			else normal.push_back(NT(0));
-		}
-		Hyperplane h(Point(n,origin.begin(),origin.end()),
-	           Direction(n,normal.begin(),normal.end()));
-	  cube.push_back(h);
-	}
-	std::vector<NT> apex(n,NT(up));
-	for(int i=0; i<n; ++i){
-		std::vector<NT> normal;
-		for(int j=0; j<n; ++j){
-			if(i==j) 
-				normal.push_back(NT(-1));
-			else normal.push_back(NT(0));
-		}
-		Hyperplane h(Point(n,apex.begin(),apex.end()),
-	           Direction(n,normal.begin(),normal.end()));
-	  cube.push_back(h);
-	}
-	
+		
+	Polytope P=cube(n,lw,up);
+	Polytope KP=cube(n,lw,10);
 	
 	//compute the average
 	Vector z0(n,CGAL::NULL_VECTOR);
@@ -179,61 +236,27 @@ int main(const int argc, const char** argv)
 	std::cout<<"z=";
 	round_print(z0);
 
+  // RANDOM NUMBERS
   // the random engine with time as a seed
   RNGType rng((double)time(NULL));
-  
   // standard normal distribution with mean of 0 and standard deviation of 1 
 	boost::normal_distribution<> rdist(0,1); 
 	boost::variate_generator< RNGType, boost::normal_distribution<> >
-											get_rand(rng, rdist); 
-  
+											get_snd_rand(rng, rdist); 
   // uniform distribution
   boost::random::uniform_real_distribution<>(urdist); 
   
-  /*-------- MULTIPOINT RANDOM WALK -------*/
-	for(int mk=0; mk<10000; ++mk){
-		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
-			Point v=*vit;
-			
-			/* Choose a direction */
-			
-			std::vector<double> a(m);
-			generate(a.begin(),a.end(),get_rand);
-			
-			std::vector<Point>::iterator Vit=V.begin();
-			Vector l(n,CGAL::NULL_VECTOR);
-			for(std::vector<double>::iterator ait=a.begin(); ait!=a.end(); ++ait){
-			  //*Vit*=*ait;
-			  //std::cout<<*ait<<"*"<<(*Vit)<<"= "<<NT(*ait)*(*Vit)<<std::endl;
-			  //std::cout<<*ait<<std::endl;
-			  l+=NT(*ait)*((*Vit)-(CGAL::Origin()));
-			  ++Vit;
-			}
-			
-			// Compute the line 
-			Line line(v,l.direction());
-			//std::cout<<line<<std::endl;
-			
-			// Compute the 2 points that the line and P intersect 
-			Vector b1=line_intersect(v,l,cube,err);
-			Vector b2=line_intersect(v,-l,cube,err);
-			
-			// Move the point to a random (uniform) point in P along the constructed line 
-			double lambda = urdist(rng);		
-			v = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
-			//std::cout<<v<<std::endl;
-			//round_print(v);
-			*vit=v;
-	  }
-	  //compute the average
-		Vector z(n,CGAL::NULL_VECTOR);
-		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
-			z = z + (*vit - CGAL::Origin());
-		}
-		z=z/m;	
-		std::cout<<"z=";
-		round_print(z);
+  // compute m random points in P stored in V 
+  multipoint_random_walk(P,V,n,walk_steps,err,rng,get_snd_rand,urdist);
+	
+  //compute the average
+	Vector z(n,CGAL::NULL_VECTOR);
+	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
+		z = z + (*vit - CGAL::Origin());
 	}
+	z=z/m;	
+	std::cout<<"z=";
+	round_print(z);
 	  
 	std::cout<<"z0=";
 	round_print(z0);

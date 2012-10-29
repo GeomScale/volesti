@@ -25,7 +25,7 @@ if ( CGAL_FOUND )
   #include_directories (BEFORE ../patches/include)
   #create_single_source_cgal_program("headache.cpp")
   #create_single_source_cgal_program("eigen_adjoint.cpp")
-  #add_definitions(${CMAKE_CXX_FLAGS} "-DLOG_MEMORY")
+  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11 ")
   #link_libraries("proc")
   create_single_source_cgal_program("opt.cpp")
 
