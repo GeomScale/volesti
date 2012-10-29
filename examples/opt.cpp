@@ -246,20 +246,32 @@ int main(const int argc, const char** argv)
   // uniform distribution
   boost::random::uniform_real_distribution<>(urdist); 
   
-  // compute m random points in P stored in V 
-  multipoint_random_walk(P,V,n,walk_steps,err,rng,get_snd_rand,urdist);
-	
-  //compute the average
-	Vector z(n,CGAL::NULL_VECTOR);
-	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
-		z = z + (*vit - CGAL::Origin());
+  int step=0;
+  int L=100;
+  bool found=false;
+  
+  while(step<2*n*L && !found){
+	  // compute m random points in P stored in V 
+	  multipoint_random_walk(P,V,n,walk_steps,err,rng,get_snd_rand,urdist);
+		
+	  // use half random points to compute the average
+		Vector z(n,CGAL::NULL_VECTOR);
+		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
+			z = z + (*vit - CGAL::Origin());
+		}
+		z=z/m;
+		std::cout<<"z=";
+		round_print(z);
+		
+		// check if z \in KK
+		sep sep_return = Sep_Oracle(KK,CGAL::Origin()+vmid);
+		if(sep_return.get_is_in() == true){
+			found=true;
+		} 
+		// otherwise check which random points fall in P\cup H 
+		else {
+			P.push_back();
+		}
 	}
-	z=z/m;	
-	std::cout<<"z=";
-	round_print(z);
-	  
-	std::cout<<"z0=";
-	round_print(z0);
-	
   return 0;
 }
