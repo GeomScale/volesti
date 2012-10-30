@@ -24,15 +24,15 @@ typedef double                NT;
 //typedef CGAL::Gmpz                NT;
 
 
-typedef CGAL::Cartesian_d<NT> 	  K; 
-//typedef CGAL::Triangulation<K> 	T;
-typedef K::Point_d								Point;
-typedef K::Vector_d								Vector;
-typedef K::Line_d								  Line;
-typedef K::Hyperplane_d						Hyperplane;
-typedef K::Direction_d						Direction;
-typedef std::vector<Hyperplane>   H_polytope;
-typedef H_polytope 								Polytope;
+typedef CGAL::Cartesian_d<NT> 	      Kernel; 
+//typedef CGAL::Triangulation<Kernel> T;
+typedef Kernel::Point_d								Point;
+typedef Kernel::Vector_d							Vector;
+typedef Kernel::Line_d								Line;
+typedef Kernel::Hyperplane_d					Hyperplane;
+typedef Kernel::Direction_d						Direction;
+typedef std::vector<Hyperplane>       H_polytope;
+typedef H_polytope 								    Polytope;
 
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
 
@@ -140,9 +140,11 @@ Vector line_intersect(Point pin, Vector l, Polytope P, double err){
   return vmid; 
 }
 
-/*-------- MULTIPOINT RANDOM WALK -------*/
+/*---------------- MULTIPOINT RANDOM WALK -----------------*/
+// generate m random points uniformly distributed in P
 int multipoint_random_walk(Polytope &P,
 													 std::vector<Point> &V,
+													 const int m,
 													 const int n,
 													 const int walk_steps,
 													 const double err,
@@ -151,7 +153,26 @@ int multipoint_random_walk(Polytope &P,
 													 &get_snd_rand,
 													 boost::random::uniform_real_distribution<> &urdist){
 													
-													 
+	//generate more points (using points in V) in order to have m in total
+	std::vector<Point> U;
+	for(int mk=0; mk<m-V.size(); ++mk){
+		// Compute a point as a random uniform convex combination of V 
+		std::vector<double> a;
+		double suma=0;
+		for(int ai=0; ai<V.size(); ++ai){
+			a.push_back(urdist(rng));
+			suma+=a[a.size()-1];
+		}		
+		std::vector<Point>::iterator Vit=V.begin();
+		Vector p(n,CGAL::NULL_VECTOR);
+		for(std::vector<double>::iterator ait=a.begin(); ait!=a.end(); ++ait){
+		  p+=NT(*ait)/NT(suma)*((*Vit)-(CGAL::Origin()));
+		  ++Vit;
+		}
+		U.push_back(CGAL::Origin()+p);
+	}
+	//append U to V
+	V.insert(V.end(),U.begin(),U.end());											 
 	for(int mk=0; mk<walk_steps; ++mk){
 		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
 			Point v=*vit;
@@ -182,10 +203,70 @@ int multipoint_random_walk(Polytope &P,
 			double lambda = urdist(rng);		
 			v = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
 			//std::cout<<v<<std::endl;
-			round_print(v);
+			//round_print(v);
 			*vit=v;
 	  }
 	}
+}
+
+// return 1 if P is feasible and fp a point in P
+// otherwise return 0 and fp has no meaning
+int feasibility(Polytope &KK,
+                std::vector<Point> &V,
+							  const int m,
+							  const int n,
+							  const int walk_steps,
+							  const double err,
+							  const int lw,
+							  const int up,
+							  const int L,
+							  RNGType &rng,
+							  boost::variate_generator< RNGType, boost::normal_distribution<> >
+							  &get_snd_rand,
+							  boost::random::uniform_real_distribution<> &urdist,
+							  Point &fp){
+	
+	//this is the large cube contains the polytope
+	Polytope P=cube(n,lw,up);								
+  int step=0;
+  while(step < 2*n*L){
+	  // compute m random points in P stored in V 
+	  multipoint_random_walk(P,V,m,n,walk_steps,err,rng,get_snd_rand,urdist);
+		
+	  //compute the average using the half of the random points
+		Vector z(n,CGAL::NULL_VECTOR);
+		int i=0;
+		std::vector<Point>::iterator vit=V.begin();
+		for(; i<m/2; ++i,++vit){
+			CGAL:assert(vit!=V.end());
+			z = z + (*vit - CGAL::Origin());
+		}
+		z=z/m;	
+		std::cout<<"step "<<step<<": "<<"z=";
+		round_print(z);
+		
+		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z);
+		if(sep_result.get_is_in()){
+			std::cout<<"Feasible point found!"<<std::endl;
+			fp = CGAL::Origin() + z;
+			return 1;
+		}
+		else {
+			//update P with the hyperplane passing through z
+			Hyperplane H(CGAL::Origin()+z,sep_result.get_H_sep().orthogonal_direction());
+			P.push_back(H);
+			//check for the rest rand points which fall in new P
+			std::vector<Point> newV;
+			for(;vit!=V.end();++vit){
+				if(Sep_Oracle(P,*vit).get_is_in())
+					newV.push_back(*vit);
+			}
+			V=newV;
+			++step;
+		}
+	}
+	std::cout<<"No feasible point found!"<<std::endl;
+	return 0;
 }
 
 //////////////////////////////////////////////////////////
@@ -204,15 +285,16 @@ int main(const int argc, const char** argv)
   //dimension
   const size_t n=3; 
   //number of random points
-  const int m=100;
+  const int m=2*30;
   //number of walk steps
-  const int walk_steps=1000;
+  const int walk_steps=100;
   //error in hit-and-run bisection of P
   const double err=0.000001;
+  const double err_opt=0.000001;  
   //bounds for the cube
-  const int lw=0, up=1000;
+  const int lw=0, up=10000, R=up-lw;
   
-  /* INITIALIZE POINTS */ 
+  /* INITIALIZE POINTS IN CUBE*/ 
   CGAL::Random CGALrng;
   std::vector<Point> V;
   for(size_t i=0; i<m; ++i){
@@ -221,11 +303,12 @@ int main(const int argc, const char** argv)
 			t.push_back(NT(CGALrng.get_int(lw,up)));
 		Point v(n,t.begin(),t.end());
 		V.push_back(v);
-		std::cout<<v<<std::endl;
+		//std::cout<<v<<std::endl;
 	}
 		
-	Polytope P=cube(n,lw,up);
-	Polytope KP=cube(n,lw,10);
+	
+	//this is the polytope
+	Polytope K=cube(n,lw,10);
 	
 	//compute the average
 	Vector z0(n,CGAL::NULL_VECTOR);
@@ -246,32 +329,51 @@ int main(const int argc, const char** argv)
   // uniform distribution
   boost::random::uniform_real_distribution<>(urdist); 
   
-  int step=0;
-  int L=100;
-  bool found=false;
+  /* OPTIMIZATION */
+  //given a direction w compute a vertex v of K that maximize w*v 
+  Vector w(*(V.begin())-CGAL::Origin());
+  std::cout<<"w=";
+	round_print(w);
+	
+  const int L=10;
+  //first compute a feasible point in K (if K is non empty) 
+  Point fp;
+  feasibility(K,V,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,fp);	  
+	
+	//then compute a point outside K along the line (fp,w)
+  Point pout=fp;
+  Point pin=fp;
   
-  while(step<2*n*L && !found){
-	  // compute m random points in P stored in V 
-	  multipoint_random_walk(P,V,n,walk_steps,err,rng,get_snd_rand,urdist);
+  Vector aug(w);
+  while(Sep_Oracle(K,pout).get_is_in() == true){
+    aug*=2;
+    pout+=aug;
+    //std::cout<<"Outside point: ";
+    //round_print(pout);
+  }
+  
+  //binary search for optimization
+  double len;
+  Point pmid;
+  do{
+		pmid=CGAL::Origin()+(((pin-CGAL::Origin())+(pout-CGAL::Origin()))/2);
+		Hyperplane H(pmid,w);
+		K.push_back(H);
+		round_print(pmid);
 		
-	  // use half random points to compute the average
-		Vector z(n,CGAL::NULL_VECTOR);
-		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
-			z = z + (*vit - CGAL::Origin());
-		}
-		z=z/m;
-		std::cout<<"z=";
-		round_print(z);
-		
-		// check if z \in KK
-		sep sep_return = Sep_Oracle(KK,CGAL::Origin()+vmid);
-		if(sep_return.get_is_in() == true){
-			found=true;
-		} 
-		// otherwise check which random points fall in P\cup H 
-		else {
-			P.push_back();
-		}
-	}
+		if(feasibility(K,V,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,fp) == 1)
+			pin=pmid;
+		else
+			pout=pmid;
+		K.pop_back();
+		len=CGAL::to_double(((pin-CGAL::Origin())+(pout-CGAL::Origin())).squared_length());
+		std::cout<<"len="<<len<<std::endl;
+	}while(len > err_opt);
+	std::cout<<"fp=";
+	round_print(fp);
+	std::cout<<"w=";
+	round_print(w);
+	
+	
   return 0;
 }
