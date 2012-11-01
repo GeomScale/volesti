@@ -175,7 +175,9 @@ int multipoint_random_walk(Polytope &P,
 													 &get_snd_rand,
 													 boost::random::uniform_real_distribution<> &urdist,
 													 boost::random::uniform_real_distribution<> &urdist1){
-													
+	//remove half of the old points
+	//V.erase(V.end()-(V.size()/2),V.end());										
+	
 	//generate more points (using points in V) in order to have m in total
 	std::vector<Point> U;
 	std::vector<Point>::iterator Vit=V.begin();
@@ -199,14 +201,14 @@ int multipoint_random_walk(Polytope &P,
 	}
 	//append U to V
 	V.insert(V.end(),U.begin(),U.end());
-	std::cout<<"--------------------------"<<std::endl;
-	std::cout<<"Random points before walk"<<std::endl;
+	//std::cout<<"--------------------------"<<std::endl;
+	//std::cout<<"Random points before walk"<<std::endl;
 	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
 		Point v=*vit;
 		hit_and_run(v,P,n,err,rng,urdist,urdist1);
 		//std::cout<<*vit<<"---->"<<v<<std::endl;
 	}
-	std::cout<<"WALKING......"<<std::endl;											 
+	//std::cout<<"WALKING......"<<std::endl;											 
 	for(int mk=0; mk<walk_steps; ++mk){
 		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
 			Point v=*vit;
@@ -242,19 +244,24 @@ int multipoint_random_walk(Polytope &P,
 			*vit=v;
 	  }
 	}
+	/*
 	std::cout<<"Random points after walk"<<std::endl;
 	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit)
 		std::cout<<*vit<<std::endl;											 
 	std::cout<<"--------------------------"<<std::endl;
+	*/
 	for(Polytope::iterator polyit=P.begin(); polyit!=P.end(); ++polyit)
 		std::cout<<*polyit<<std::endl;
 	
+	if(m!=V.size()){
+		std::cout<<"Careful m!=V.size()!!"<<std::endl;
+		exit(1);
+	}
 }
 
 // return 1 if P is feasible and fp a point in P
 // otherwise return 0 and fp has no meaning
 int feasibility(Polytope &KK,
-                std::vector<Point> &V,
 							  const int m,
 							  const int n,
 							  const int walk_steps,
@@ -271,7 +278,21 @@ int feasibility(Polytope &KK,
 	
 	//this is the large cube contains the polytope
 	Polytope P=cube(n,lw,up);								
-  int step=0;
+	
+	/* Initialize points in cube */
+  CGAL::Random CGALrng;
+  // create a vector V with the random points
+  std::vector<Point> V;
+  for(size_t i=0; i<m; ++i){
+		std::vector<NT> t;
+		for(size_t j=0; j<n; ++j)
+			t.push_back(NT(CGALrng.get_int(lw,up)));
+		Point v(n,t.begin(),t.end());
+		V.push_back(v);
+		//std::cout<<v<<std::endl;
+	}
+	
+	int step=0;
   while(step < 2*n*L){
 	  // compute m random points in P stored in V 
 	  multipoint_random_walk(P,V,m,n,walk_steps,err,rng,get_snd_rand,urdist,urdist1);
@@ -280,19 +301,19 @@ int feasibility(Polytope &KK,
 		Vector z(n,CGAL::NULL_VECTOR);
 		int i=0;
 		std::vector<Point>::iterator vit=V.begin();
-		std::cout<<"RANDOM POINTS"<<std::endl;
+		//std::cout<<"RANDOM POINTS"<<std::endl;
 		for(; i<m/2; ++i,++vit){
 			CGAL:assert(vit!=V.end());
 			z = z + (*vit - CGAL::Origin());
-			std::cout<<*vit<<std::endl;
+			//std::cout<<*vit<<std::endl;
 		}
-		z=z/m;	
+		z=z/(m/2);	
 		std::cout<<"step "<<step<<": "<<"z=";
 		round_print(z);
 		
 		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z);
 		if(sep_result.get_is_in()){
-			std::cout<<"Feasible point found!"<<std::endl;
+			std::cout<<"Feasible point found! "<<z<<std::endl;
 			fp = CGAL::Origin() + z;
 			return 1;
 		}
@@ -300,6 +321,10 @@ int feasibility(Polytope &KK,
 			//update P with the hyperplane passing through z
 			Hyperplane H(CGAL::Origin()+z,sep_result.get_H_sep().orthogonal_direction());
 			P.push_back(H);
+			//GREEDY alternative: Update P with the original separating hyperplane
+			//Hyperplane H(sep_result.get_H_sep());
+			//P.push_back(H);
+			
 			//check for the rest rand points which fall in new P
 			std::vector<Point> newV;
 			for(;vit!=V.end();++vit){
@@ -308,12 +333,113 @@ int feasibility(Polytope &KK,
 			}
 			V=newV;
 			++step;
-			std::cout<<"Cutting hyperplane direction="<<H.orthogonal_direction()<<std::endl;
+			std::cout<<"Cutting hyperplane direction="
+			         <<sep_result.get_H_sep().orthogonal_direction()<<std::endl;
 			std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
-			
+			if(V.empty()){
+				std::cout<<"No random points left. ASSUME that there is no feasible point!"<<std::endl;
+				//fp = CGAL::Origin() + z;
+				return 0;
+			}
 		}
 	}
 	std::cout<<"No feasible point found!"<<std::endl;
+	return 0;
+}
+
+// return 1 if P is feasible and fp a point in P
+// otherwise return 0 and fp has no meaning
+int opt_interior(Polytope &K,
+							  const int m,
+							  const int n,
+							  const int walk_steps,
+							  const double err,
+							  const double err_opt,
+							  const int lw,
+							  const int up,
+							  const int L,
+							  RNGType &rng,
+							  boost::variate_generator< RNGType, boost::normal_distribution<> >
+							  &get_snd_rand,
+							  boost::random::uniform_real_distribution<> urdist,
+							  boost::random::uniform_real_distribution<> urdist1,
+							  Vector &z,
+							  Vector &w){
+	
+	//first compute a feasible point in K
+	Point fp;
+  if (feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp)==0){
+	  std::cout<<"The input polytope is not feasible!"<<std::endl;
+	  return 1;
+	}
+	z = fp - CGAL::Origin();
+	// Initialization
+	Hyperplane H(fp,w);
+	K.push_back(H);
+	
+	// create a vector V with the random points
+	std::vector<Point> V;
+	//initialize V !!!! This is a case without theoretical guarantees 
+	for(int i=0; i<m; ++i){
+		Point newv = CGAL::Origin() + z;
+		hit_and_run(newv,K,n,err,rng,urdist,urdist1);
+	  V.push_back(newv);
+	}
+	//
+	int step=0;
+	double len;	
+	do{
+		
+		// compute m random points in K stored in V 
+	  multipoint_random_walk(K,V,m,n,walk_steps,err,rng,get_snd_rand,urdist,urdist1);
+			
+	  //compute the average (new z) using the half of the random points
+		Vector newz(n,CGAL::NULL_VECTOR);
+		int i=0;
+		std::vector<Point>::iterator vit=V.begin();
+		//std::cout<<"RANDOM POINTS"<<std::endl;
+		for(; i<m/2; ++i,++vit){
+			CGAL:assert(vit!=V.end());
+			newz = newz + (*vit - CGAL::Origin());
+			//std::cout<<*vit<<std::endl;
+		}
+		newz=newz/(m/2);	
+		len = std::abs(w*newz - w*z);
+		std::cout<<"step "<<step<<": "<<"z="<<z<<" "
+		         "newz="<<newz<<" "
+		         <<"w*z="<<w*z<<" "
+		         <<"w*newz="<<w*newz<<" "
+		         <<"len="<<len<<std::endl;
+		
+		//Update z
+		z=newz;
+		
+		//update P with the hyperplane passing through z	
+		Hyperplane H(CGAL::Origin()+z,w);
+		K.pop_back();
+		K.push_back(H);
+		
+		//check for the rest rand points which fall in new P
+		std::vector<Point> newV;
+		for(;vit!=V.end();++vit){
+			if(Sep_Oracle(K,*vit).get_is_in())
+				newV.push_back(*vit);
+		}
+		V=newV;
+		++step;
+		
+	  std::cout<<"Cutting hyperplane direction="
+			         <<H.orthogonal_direction()<<std::endl;
+		std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
+		
+		if(V.empty()){
+			std::cout<<"No random points left. Current OPT ="<<z<<std::endl;
+			return 0;
+		}
+		
+	}while(len>err_opt);
+	
+	std::cout<<"OPT = "<<z<<std::endl;
 	return 0;
 }
 
@@ -333,51 +459,36 @@ int main(const int argc, const char** argv)
   //dimension
   const size_t n=2; 
   //number of random points
-  const int m=2*30;
+  //const int m = 2*n*std::pow(std::log(n),2);
+  const int m = 10*n;
   //number of walk steps
-  const int walk_steps=100;
+  //const int walk_steps=m*std::pow(n,3)/100;
+  const int walk_steps=500;
   //error in hit-and-run bisection of P
   const double err=0.000001;
-  const double err_opt=0.000001;  
+  const double err_opt=0.01;  
   //bounds for the cube
   const int lw=0, up=10000, R=up-lw;
   
-  /* INITIALIZE POINTS IN CUBE*/ 
-  CGAL::Random CGALrng;
-  std::vector<Point> V;
-  for(size_t i=0; i<m; ++i){
-		std::vector<NT> t;
-		for(size_t j=0; j<n; ++j)
-			t.push_back(NT(CGALrng.get_int(lw,up)));
-		Point v(n,t.begin(),t.end());
-		V.push_back(v);
-		//std::cout<<v<<std::endl;
-	}
-		
+  std::cout<<"m="<<m<<"\n"<<"walk_steps="<<walk_steps<<std::endl;
+ 
+	std::vector<Point> V;	
 	
 	//this is the polytope
 	Polytope K=cube(n,lw,10);
 	
-	Point ptest(NT(9),NT(2)); 
-  Vector wtest(NT(1),NT(0)); 
-  Hyperplane Htest(ptest,wtest);
-  K.push_back(Htest);
-  std::cout<<"hyperplane="<<Htest<<std::endl;
+	//Point ptest(NT(5),NT(2)); 
+  //Vector wtest(NT(1),NT(0)); 
+  //Hyperplane Htest(ptest,wtest);
+  //K.push_back(Htest);
+  //std::cout<<"hyperplane="<<Htest<<std::endl;
 	
-	Point ptest2(NT(9.5),NT(2)); 
+	//Point ptest2(NT(9.5),NT(2)); 
   
-	std::cout<<"Intersection: "<< line_intersect(ptest2,wtest,K,err)
-	         <<","<<line_intersect(ptest2,-wtest,K,err)<<std::endl;
+	//std::cout<<"Intersection: "<< line_intersect(ptest2,wtest,K,err)
+	//         <<","<<line_intersect(ptest2,-wtest,K,err)<<std::endl;
 	
-	//compute the average
-	Vector z0(n,CGAL::NULL_VECTOR);
-	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
-		z0 = z0 + (*vit - CGAL::Origin());
-	}	
-	z0=z0/m;
-	std::cout<<"z=";
-	round_print(z0);
-
+	
   // RANDOM NUMBERS
   // the random engine with time as a seed
   RNGType rng((double)time(NULL));
@@ -391,7 +502,8 @@ int main(const int argc, const char** argv)
   
   /* OPTIMIZATION */
   //given a direction w compute a vertex v of K that maximize w*v 
-  Vector w(*(V.begin())-CGAL::Origin());
+  std::vector<NT> ww(n,1);
+  Vector w(n,ww.begin(),ww.end());
   std::cout<<"w=";
 	round_print(w);
 	round_print(w/w.squared_length());
@@ -406,16 +518,29 @@ int main(const int argc, const char** argv)
 	
 	
   const int L=30;
+  
+  // Interior point algorithm for optimization
+  //Vector z;
+	//opt_interior(K,m,n,walk_steps,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1,z,w);
+  
+	
+	
+	/* Optimization with bisection
+	 * 
+	 */ 
+
   //first compute a feasible point in K (if K is non empty) 
+  
   Point fp;
-  if (feasibility(K,V,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp)==0){
+  if (feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp)==0){
 	  std::cout<<"The input polytope is not feasible!"<<std::endl;
 	  return 1;
 	}
 	
 	//then compute a point outside K along the line (fp,w)
-  Point pout=fp;
+  Point pout=fp+100*w;
   Point pin=fp;
+  
   
   std::cout<<"Start point: ";
   round_print(pout);
@@ -431,19 +556,20 @@ int main(const int argc, const char** argv)
   bool feasible=true;
   do{
 	  Hyperplane H(pout,w);
+	  std::cout<<std::endl<<"CHECKING FEASIBILITY IN :"<<pout<<std::endl;
 		K.push_back(H);
-		if(feasibility(K,V,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp) == 1){
+		if(feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp) == 1){
 			aug*=2;
       pout+=aug;
       std::cout<<"Outside point but feasible hyperplane: ";
     }
 		else
 			feasible=false;
-    round_print(pout);
     K.pop_back();
   }while(feasible);
   std::cout<<"NON feasible hyperplane found. pout= ";
   round_print(pout);
+  
   
   //binary search for optimization
   double len;
@@ -452,16 +578,16 @@ int main(const int argc, const char** argv)
 		pmid=CGAL::Origin()+(((pin-CGAL::Origin())+(pout-CGAL::Origin()))/2);
 		Hyperplane H(pmid,w);
 		K.push_back(H);
-		std::cout<<"pmid,pin,pout"<<std::endl;
+		std::cout<<"pmid,pin,pout,w"<<std::endl;
 		round_print(pmid);
-		round_print(pin);round_print(pout);
+		round_print(pin);round_print(pout);round_print(w);
 		
-		if(feasibility(K,V,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp) == 1)
+		if(feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp) == 1)
 			pin=pmid;
 		else
 			pout=pmid;
 		K.pop_back();
-		len=CGAL::to_double(((pin-CGAL::Origin())+(pout-CGAL::Origin())).squared_length());
+		len=std::abs((pin-CGAL::Origin())*w - (pout-CGAL::Origin())*w);
 		std::cout<<"len="<<len<<std::endl;
 		std::cout<<"fp=";round_print(fp);
 	}while(len > err_opt);
