@@ -15,6 +15,9 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 
+#include <CGAL/Extreme_points_d.h>
+#include <CGAL/Extreme_points_traits_d.h>
+
 //#include <gmpxx.h>
 //typedef mpq_class NT;
 #include <CGAL/Gmpq.h>
@@ -22,10 +25,6 @@
 //typedef CGAL::Gmpq                NT;
 typedef double                NT;
 //typedef CGAL::Gmpz                NT;
-
-#include <CGAL/Extreme_points_d.h>
-#include <CGAL/Extreme_points_traits_d.h>
-typedef CGAL::Extreme_points_traits_d<CPoint_d>   EP_Traits_d;
 
 
 typedef CGAL::Cartesian_d<NT> 	      Kernel; 
@@ -38,6 +37,8 @@ typedef Kernel::Direction_d						Direction;
 typedef std::vector<Hyperplane>       H_polytope;
 typedef H_polytope 								    Polytope;
 
+typedef CGAL::Extreme_points_traits_d<Point>   EP_Traits_d;
+
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
 
 //function to print rounding to double coordinates 
@@ -49,102 +50,32 @@ void round_print(T p) {
   std::cout<<std::endl;
 }
 
-// compute the extreme points
-template <class NT_>
-void compute_extreme_points(std::vector<std::vector<NT_> >& pointset,
-														std::vector<int>& mi,
-														std::vector<int>& proj,
-                            const ResPol::config &conf){
-  typedef NT_                                           Field;
-  std::vector<std::vector<Field> > extreme_pointset;
-  std::vector<int> extreme_mi;
-  // the nonspecialized-projected points will be first 
-  // thus we have to change the projection
-  std::vector<int> proj_updated;
-	//std::cout<<pointset<<std::endl;
-	//std::cout << mi << std::endl;
-	int current_start=0, current_end=0;
-	for(std::vector<int>::iterator imi=mi.begin(); imi!=mi.end(); ++imi){
-		current_end+=(*imi);
-		//std::cout << current_start << "-" << current_end << std::endl;
-		std::vector<CPoint_d> points;
-		// vector<vector<Field> >  -->  vector<CPoint_d>
-		int specialized_points_position = extreme_pointset.size();
-		int count_specialized_points=0;
-		for (int i=current_start;i<current_end;++i){
-			// if the point in spesialized, i.e not projected
-			if (std::find(proj.begin(), proj.end(), i)==proj.end()){
-				CPoint_d p(D,pointset[i].begin(),pointset[i].end());
-				points.push_back(p);
-        if(conf.verbose>1)
-				  std::cout << p << "\n";
-			} else {
-				proj_updated.push_back(specialized_points_position);
-				extreme_pointset.push_back(pointset[i]);
-				++specialized_points_position;
-				++count_specialized_points;
-			}
-		}
-		//std::cout << std::endl;
-		
-		// compute the extreme points
-		CGAL::Extreme_points_d<EP_Traits_d> ep(D);
-		ep.insert(points.begin(), points.end());
-		std::vector<CPoint_d> extreme_points;
-		ep.get_extreme_points(std::back_inserter(extreme_points));
-		
-		//vector<CPoint_d>  -->  vector<vector<Field> >
-		for (std::vector<CPoint_d>::iterator it=extreme_points.begin();
-				 it!=extreme_points.end();
-				 it++) {
-			//std::cout << *it << std::endl;
-			std::vector<Field> extreme_pointset_value;
-			for (int i=0; i<D; ++i)
-				extreme_pointset_value.push_back(it->cartesian(i));
-			extreme_pointset.push_back(extreme_pointset_value);
-		}
-    if(conf.verbose>1){
-      std::cout<<"\nExtreme points=" << extreme_points.size()
-        << "(out of" << points.size()
-        << ")\n"<<std::endl;
-    }
-		extreme_mi.push_back(extreme_points.size()+count_specialized_points);
-		current_start=current_end;
-	}
-  if(conf.verbose>1){
-    std::cout << "mi= " << mi << " extreme_mi=" << extreme_mi << std::endl;
-    std::cout << "proj= " << proj << " proj_updated=" << proj_updated <<
-      std::endl;
-  }
-	// update pointset, mi, proj
-	pointset = extreme_pointset;
-	mi = extreme_mi;
-	proj = proj_updated;
-}
-
 // Naive algorithm for Mink sum
 typedef std::vector<Point>		Vpoly;
 typedef std::vector<Vpoly>  	Vpolys;
 
 int Minkowski_sum_naive(Vpoly &P1, Vpoly &P2, Vpoly &Msum){
-	
+	std::cout<<(!P1.empty() && !P2.empty())<<std::endl;
 	if(!P1.empty() && !P2.empty()){
 	  Vpoly Msum_all;
-		for (Vpolys::iterator Pit1 = P1.begin(); Pit1 != P1.end(); ++Pit1){
-	    for (Vpolys::iterator Pit2 = P2.begin(); Pit2 != P2.end(); ++Pit2){
+		for (Vpoly::iterator Pit1 = P1.begin(); Pit1 != P1.end(); ++Pit1){
+	    for (Vpoly::iterator Pit2 = P2.begin(); Pit2 != P2.end(); ++Pit2){
 	      Point p = CGAL::Origin() + 
-	            (((*Pit1)-CGAL::Origin()) + ((*Pit1)-CGAL::Origin()));
+	            (((*Pit1)-CGAL::Origin()) + ((*Pit2)-CGAL::Origin()));
 	      Msum_all.push_back(p);
+	      std::cout<<p<<std::endl;
 	    }
 	  } 
+	  std::cout<<"---------"<<std::endl;
 	  // compute the extreme points
 		CGAL::Extreme_points_d<EP_Traits_d> ep(P1[0].dimension());
-	  ep.insert(Msum.begin(),Msum.end());
-		std::vector<Point> extreme_points;
-		ep.get_extreme_points(std::back_inserter(extreme_points));
-		return extreme_points.size();
+	  ep.insert(Msum_all.begin(),Msum_all.end());
+		//std::vector<Point> extreme_points;
+		ep.get_extreme_points(std::back_inserter(Msum));
+		return Msum.size();
+  }
+  return -1;
 }
-
 
 // separation oracle return type 
 struct sep{
@@ -682,8 +613,51 @@ int main(const int argc, const char** argv)
 	//this is the input polytope
 	Polytope K=cube(n,lw,10);
 	
+	Vpoly P1, P2, Msum;
+	P1.push_back(Point(1,1));  
+  P1.push_back(Point(0,1));  
+  P1.push_back(Point(1,0));  
   
-  
+  P2.push_back(Point(1,1));  
+  P2.push_back(Point(0,1));  
+  P2.push_back(Point(1,0));  
+  P2.push_back(Point(0,0));  
+  std::cout<<!P1.empty()<<std::endl;
+  std::cout<<!P2.empty()<<std::endl;
+  Minkowski_sum_naive(P1,P2,Msum);
+  for(Vpoly::iterator pit=Msum.begin(); pit!=Msum.end(); ++pit)
+		std::cout<<*pit<<std::endl;
+	
+	//separation oracle using optimization in the dual
+	
+	//separation in dual 
+	//query point q
+	Vector q(1,1);
+	NT max = q * (*(P1.begin())-CGAL::Origin());
+	Point max_p = *(P1.begin());
+	for(Vpoly::iterator pit=P1.begin(); pit!=P1.end(); ++pit){
+		double innerp = q * (*pit-CGAL::Origin());
+		if(innerp > max){
+			max = innerp;
+			max_p = *pit;
+		}
+	}
+	std::cout<<max_p<<std::endl;
+	max = q * (*(P2.begin())-CGAL::Origin());
+	max_p = *(P2.begin());
+	for(Vpoly::iterator pit=P2.begin(); pit!=P2.end(); ++pit){
+		double innerp = q * (*pit-CGAL::Origin());
+		if(innerp > max){
+			max = innerp;
+			max_p = *pit;
+		}
+	}
+	std::cout<<max_p<<std::endl;
+		
+	
+	
+	exit(1);
+	
   /* OPTIMIZATION */
   //given a direction w compute a vertex v of K that maximize w*v 
   std::vector<NT> ww(n,1);
