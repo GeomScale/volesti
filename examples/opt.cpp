@@ -23,6 +23,10 @@
 typedef double                NT;
 //typedef CGAL::Gmpz                NT;
 
+#include <CGAL/Extreme_points_d.h>
+#include <CGAL/Extreme_points_traits_d.h>
+typedef CGAL::Extreme_points_traits_d<CPoint_d>   EP_Traits_d;
+
 
 typedef CGAL::Cartesian_d<NT> 	      Kernel; 
 //typedef CGAL::Triangulation<Kernel> T;
@@ -44,6 +48,103 @@ void round_print(T p) {
 	  std::cout<<CGAL::to_double(*cit)<<" "; 
   std::cout<<std::endl;
 }
+
+// compute the extreme points
+template <class NT_>
+void compute_extreme_points(std::vector<std::vector<NT_> >& pointset,
+														std::vector<int>& mi,
+														std::vector<int>& proj,
+                            const ResPol::config &conf){
+  typedef NT_                                           Field;
+  std::vector<std::vector<Field> > extreme_pointset;
+  std::vector<int> extreme_mi;
+  // the nonspecialized-projected points will be first 
+  // thus we have to change the projection
+  std::vector<int> proj_updated;
+	//std::cout<<pointset<<std::endl;
+	//std::cout << mi << std::endl;
+	int current_start=0, current_end=0;
+	for(std::vector<int>::iterator imi=mi.begin(); imi!=mi.end(); ++imi){
+		current_end+=(*imi);
+		//std::cout << current_start << "-" << current_end << std::endl;
+		std::vector<CPoint_d> points;
+		// vector<vector<Field> >  -->  vector<CPoint_d>
+		int specialized_points_position = extreme_pointset.size();
+		int count_specialized_points=0;
+		for (int i=current_start;i<current_end;++i){
+			// if the point in spesialized, i.e not projected
+			if (std::find(proj.begin(), proj.end(), i)==proj.end()){
+				CPoint_d p(D,pointset[i].begin(),pointset[i].end());
+				points.push_back(p);
+        if(conf.verbose>1)
+				  std::cout << p << "\n";
+			} else {
+				proj_updated.push_back(specialized_points_position);
+				extreme_pointset.push_back(pointset[i]);
+				++specialized_points_position;
+				++count_specialized_points;
+			}
+		}
+		//std::cout << std::endl;
+		
+		// compute the extreme points
+		CGAL::Extreme_points_d<EP_Traits_d> ep(D);
+		ep.insert(points.begin(), points.end());
+		std::vector<CPoint_d> extreme_points;
+		ep.get_extreme_points(std::back_inserter(extreme_points));
+		
+		//vector<CPoint_d>  -->  vector<vector<Field> >
+		for (std::vector<CPoint_d>::iterator it=extreme_points.begin();
+				 it!=extreme_points.end();
+				 it++) {
+			//std::cout << *it << std::endl;
+			std::vector<Field> extreme_pointset_value;
+			for (int i=0; i<D; ++i)
+				extreme_pointset_value.push_back(it->cartesian(i));
+			extreme_pointset.push_back(extreme_pointset_value);
+		}
+    if(conf.verbose>1){
+      std::cout<<"\nExtreme points=" << extreme_points.size()
+        << "(out of" << points.size()
+        << ")\n"<<std::endl;
+    }
+		extreme_mi.push_back(extreme_points.size()+count_specialized_points);
+		current_start=current_end;
+	}
+  if(conf.verbose>1){
+    std::cout << "mi= " << mi << " extreme_mi=" << extreme_mi << std::endl;
+    std::cout << "proj= " << proj << " proj_updated=" << proj_updated <<
+      std::endl;
+  }
+	// update pointset, mi, proj
+	pointset = extreme_pointset;
+	mi = extreme_mi;
+	proj = proj_updated;
+}
+
+// Naive algorithm for Mink sum
+typedef std::vector<Point>		Vpoly;
+typedef std::vector<Vpoly>  	Vpolys;
+
+int Minkowski_sum_naive(Vpoly &P1, Vpoly &P2, Vpoly &Msum){
+	
+	if(!P1.empty() && !P2.empty()){
+	  Vpoly Msum_all;
+		for (Vpolys::iterator Pit1 = P1.begin(); Pit1 != P1.end(); ++Pit1){
+	    for (Vpolys::iterator Pit2 = P2.begin(); Pit2 != P2.end(); ++Pit2){
+	      Point p = CGAL::Origin() + 
+	            (((*Pit1)-CGAL::Origin()) + ((*Pit1)-CGAL::Origin()));
+	      Msum_all.push_back(p);
+	    }
+	  } 
+	  // compute the extreme points
+		CGAL::Extreme_points_d<EP_Traits_d> ep(P1[0].dimension());
+	  ep.insert(Msum.begin(),Msum.end());
+		std::vector<Point> extreme_points;
+		ep.get_extreme_points(std::back_inserter(extreme_points));
+		return extreme_points.size();
+}
+
 
 // separation oracle return type 
 struct sep{
@@ -553,11 +654,11 @@ int main(const int argc, const char** argv)
   const int m = 20*n;
   //number of walk steps
   //const int walk_steps=m*std::pow(n,3)/100;
-  const int walk_steps=500;
-  //error in hit-and-run bisection of P
-  const double err=0.000001;
-  const double err_opt=0.01;  
-  //bounds for the cube
+  const int walk_steps=500; 
+  //error in hit-and-run bisection of P 
+  const double err=0.000001; 
+  const double err_opt=0.01; 
+  //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
   std::cout<<"m="<<m<<"\n"<<"walk_steps="<<walk_steps<<std::endl;
