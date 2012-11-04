@@ -628,32 +628,38 @@ int main(const int argc, const char** argv)
   for(Vpoly::iterator pit=Msum.begin(); pit!=Msum.end(); ++pit)
 		std::cout<<*pit<<std::endl;
 	
-	//separation oracle using optimization in the dual
+	//Perform optimization in the dual --> separation oracle for Minksum
 	
-	//separation in dual 
+	//Build the separation in dual 
 	//query point q
+	std::cout<<"--------"<<std::endl;
 	Vector q(1,1);
 	NT max = q * (*(P1.begin())-CGAL::Origin());
-	Point max_p = *(P1.begin());
+	Point max_p1 = *(P1.begin());
 	for(Vpoly::iterator pit=P1.begin(); pit!=P1.end(); ++pit){
 		double innerp = q * (*pit-CGAL::Origin());
 		if(innerp > max){
 			max = innerp;
-			max_p = *pit;
+			max_p1 = *pit;
 		}
 	}
-	std::cout<<max_p<<std::endl;
+	std::cout<<max_p1<<std::endl;
 	max = q * (*(P2.begin())-CGAL::Origin());
-	max_p = *(P2.begin());
+	Point max_p2 = *(P2.begin());
 	for(Vpoly::iterator pit=P2.begin(); pit!=P2.end(); ++pit){
 		double innerp = q * (*pit-CGAL::Origin());
 		if(innerp > max){
 			max = innerp;
-			max_p = *pit;
+			max_p2 = *pit;
 		}
 	}
-	std::cout<<max_p<<std::endl;
-		
+	std::cout<<max_p2<<std::endl;
+	Vector max_psum=(max_p1-CGAL::Origin())+(max_p2-CGAL::Origin());
+	if(max_psum*q <= 1)
+		std::cout<<"IN"<<std::endl;
+	else
+	  std::cout<<"OUT"<<std::endl;
+			
 	
 	
 	exit(1);
