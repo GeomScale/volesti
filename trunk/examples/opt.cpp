@@ -579,7 +579,7 @@ int main(const int argc, const char** argv)
 
   /* CONSTANTS */
   //dimension
-  const size_t n=5; 
+  const size_t n=2; 
   //number of random points
   //const int m = 2*n*std::pow(std::log(n),2);
   const int m = 20*n;
@@ -614,30 +614,51 @@ int main(const int argc, const char** argv)
 	Polytope K=cube(n,lw,10);
 	
 	Vpoly P1, P2, Msum;
-	P1.push_back(Point(1,1));  
-  P1.push_back(Point(0,1));  
-  P1.push_back(Point(1,0));  
+	P1.push_back(Point(-1,1));  
+  P1.push_back(Point(2,1));  
+  P1.push_back(Point(-1,-2));  
   
   P2.push_back(Point(1,1));  
-  P2.push_back(Point(0,1));  
-  P2.push_back(Point(1,0));  
-  P2.push_back(Point(0,0));  
+  P2.push_back(Point(1,-1));  
+  P2.push_back(Point(-1,-1));  
+  P2.push_back(Point(-1,1));  
   std::cout<<!P1.empty()<<std::endl;
   std::cout<<!P2.empty()<<std::endl;
+  /*
+  //Transform P1, P2 to contain the origin in their interior
+	Vector P1sum(n, CGAL::NULL_VECTOR);
+	for(Vpoly::iterator pit=P1.begin(); pit!=P1.end(); ++pit)
+		P1sum += (*pit)-CGAL::Origin();
+	P1sum = P1sum/int(P1.size());
+	for(Vpoly::iterator pit=P1.begin(); pit!=P1.end(); ++pit)
+		*pit = CGAL::Origin() + ((*pit - CGAL::Origin()) - P1sum);
+	//
+	Vector P2sum(n, CGAL::NULL_VECTOR);
+	for(Vpoly::iterator pit=P2.begin(); pit!=P2.end(); ++pit)
+		P2sum += (*pit)-CGAL::Origin();
+	P2sum = P2sum/int(P2.size());
+	for(Vpoly::iterator pit=P2.begin(); pit!=P2.end(); ++pit)
+		*pit = CGAL::Origin() + ((*pit - CGAL::Origin()) - P2sum);
+	
+  // compute mink sum using a naive algorithm
   Minkowski_sum_naive(P1,P2,Msum);
   for(Vpoly::iterator pit=Msum.begin(); pit!=Msum.end(); ++pit)
 		std::cout<<*pit<<std::endl;
+	*/
+	
 	
 	//Perform optimization in the dual --> separation oracle for Minksum
 	
 	//Build the separation in dual 
 	//query point q
-	std::cout<<"--------"<<std::endl;
-	Vector q(1,1);
+	//std::cout<<"--------"<<P1sum<<" "<< P2sum<<std::endl;
+	Vector q(1.0/4.0,0.0);
+	//q -= (P1sum + P2sum);
 	NT max = q * (*(P1.begin())-CGAL::Origin());
 	Point max_p1 = *(P1.begin());
 	for(Vpoly::iterator pit=P1.begin(); pit!=P1.end(); ++pit){
 		double innerp = q * (*pit-CGAL::Origin());
+		std::cout<<*pit<<" "<<q<<" "<<innerp<<std::endl;
 		if(innerp > max){
 			max = innerp;
 			max_p1 = *pit;
@@ -655,11 +676,14 @@ int main(const int argc, const char** argv)
 	}
 	std::cout<<max_p2<<std::endl;
 	Vector max_psum=(max_p1-CGAL::Origin())+(max_p2-CGAL::Origin());
+	//+ q*(-P1sum -P2sum)
 	if(max_psum*q <= 1)
 		std::cout<<"IN"<<std::endl;
 	else
 	  std::cout<<"OUT"<<std::endl;
-			
+	if(max_psum*q == 1)
+		std::cout<<"sharp!"<<std::endl;
+	
 	
 	
 	exit(1);
