@@ -579,7 +579,7 @@ int main(const int argc, const char** argv)
 
   /* CONSTANTS */
   //dimension
-  const size_t n=10; 
+  const size_t n=5; 
   //number of random points
   //const int m = 2*n*std::pow(std::log(n),2);
   const int m = 20*n;
