@@ -36,6 +36,8 @@ typedef Kernel::Hyperplane_d					Hyperplane;
 typedef Kernel::Direction_d						Direction;
 typedef std::vector<Hyperplane>       H_polytope;
 typedef H_polytope 								    Polytope;
+typedef std::vector<Point>						V_polytope;
+typedef std::pair<V_polytope,V_polytope> 	MinkSumPolytope;
 
 typedef CGAL::Extreme_points_traits_d<Point>   EP_Traits_d;
 
@@ -51,15 +53,14 @@ void round_print(T p) {
 }
 
 // Naive algorithm for Mink sum
-typedef std::vector<Point>		Vpoly;
-typedef std::vector<Vpoly>  	Vpolys;
+typedef std::vector<V_polytope>  	Vpolys;
 
-int Minkowski_sum_naive(Vpoly &P1, Vpoly &P2, Vpoly &Msum){
+int Minkowski_sum_naive(V_polytope &P1, V_polytope &P2, V_polytope &Msum){
 	std::cout<<(!P1.empty() && !P2.empty())<<std::endl;
 	if(!P1.empty() && !P2.empty()){
-	  Vpoly Msum_all;
-		for (Vpoly::iterator Pit1 = P1.begin(); Pit1 != P1.end(); ++Pit1){
-	    for (Vpoly::iterator Pit2 = P2.begin(); Pit2 != P2.end(); ++Pit2){
+	  V_polytope Msum_all;
+		for (V_polytope::iterator Pit1 = P1.begin(); Pit1 != P1.end(); ++Pit1){
+	    for (V_polytope::iterator Pit2 = P2.begin(); Pit2 != P2.end(); ++Pit2){
 	      Point p = CGAL::Origin() + 
 	            (((*Pit1)-CGAL::Origin()) + ((*Pit2)-CGAL::Origin()));
 	      Msum_all.push_back(p);
@@ -125,17 +126,70 @@ Polytope cube(const int n, const int lw, const int up){
 	return cube;
 }
 
+//template <typename T> struct Oracle{
+//  sep Sep_Oracle(T &P, Point v);
+//};
+
+template <typename T> sep Sep_Oracle(T&, Point);
+
 //function that implements the separation oracle 
-template<typename Polytope> sep Sep_Oracle(Polytope P, Point v)
+template<> sep Sep_Oracle<Polytope>(Polytope &P, Point v)
 {
-    typename Polytope::iterator Hit=P.begin(); 
-    while (Hit!=P.end()){
-      if (Hit->has_on_negative_side(v))
-				return sep(false,*Hit);
-      ++Hit;
-    }
-		return sep(true);	
+	typename Polytope::iterator Hit=P.begin(); 
+	while (Hit!=P.end()){
+		if (Hit->has_on_negative_side(v))
+			return sep(false,*Hit);
+		++Hit;
+	}
+	return sep(true);	
 }
+ 
+// Minkowski sum Separation 
+template<> sep Sep_Oracle<MinkSumPolytope>(MinkSumPolytope &P, 
+																				Point v)
+{		
+	Vector q=v-CGAL::Origin();
+	V_polytope P1=P.first;
+	V_polytope P2=P.second;
+	NT max = q * (*(P1.begin())-CGAL::Origin());
+	Point max_p1 = *(P1.begin());
+	for(V_polytope::iterator pit=P1.begin(); pit!=P1.end(); ++pit){
+		double innerp = q * (*pit-CGAL::Origin());
+		std::cout<<*pit<<" "<<q<<" "<<innerp<<std::endl;
+		if(innerp > max){
+			max = innerp;
+			max_p1 = *pit;
+		}
+	}
+	std::cout<<max_p1<<std::endl;
+	max = q * (*(P2.begin())-CGAL::Origin());
+	Point max_p2 = *(P2.begin());
+	for(V_polytope::iterator pit=P2.begin(); pit!=P2.end(); ++pit){
+		double innerp = q * (*pit-CGAL::Origin());
+		if(innerp > max){
+			max = innerp;
+			max_p2 = *pit;
+		}
+	}
+	std::cout<<max_p2<<std::endl;
+	Vector max_psum=(max_p1-CGAL::Origin())+(max_p2-CGAL::Origin());
+	//+ q*(-P1sum -P2sum)
+	if(max_psum*q <= 1)
+		return sep(true);	
+	else{
+		//construct the dual hyperplane of max_psum
+	  std::vector<NT> vcoord;
+	  for(Vector::Cartesian_const_iterator cit=max_psum.cartesian_begin(); 
+        cit!=max_psum.cartesian_end(); ++cit){
+		  vcoord.push_back(*cit);
+		}
+	  Hyperplane H_sep(int(P1.size()),vcoord.begin(),vcoord.end());
+	  return sep(false,H_sep);
+	}
+	//if(max_psum*q == 1)
+	//	std::cout<<"sharp!"<<std::endl;
+}	
+ 
  
 // function to find intersection of a line and a polytope 
 Vector line_intersect(Point pin, Vector l, Polytope P, double err){
@@ -613,7 +667,7 @@ int main(const int argc, const char** argv)
 	//this is the input polytope
 	Polytope K=cube(n,lw,10);
 	
-	Vpoly P1, P2, Msum;
+	V_polytope P1, P2, Msum;
 	P1.push_back(Point(-1,1));  
   P1.push_back(Point(2,1));  
   P1.push_back(Point(-1,-2));  
@@ -627,22 +681,22 @@ int main(const int argc, const char** argv)
   /*
   //Transform P1, P2 to contain the origin in their interior
 	Vector P1sum(n, CGAL::NULL_VECTOR);
-	for(Vpoly::iterator pit=P1.begin(); pit!=P1.end(); ++pit)
+	for(V_polytope::iterator pit=P1.begin(); pit!=P1.end(); ++pit)
 		P1sum += (*pit)-CGAL::Origin();
 	P1sum = P1sum/int(P1.size());
-	for(Vpoly::iterator pit=P1.begin(); pit!=P1.end(); ++pit)
+	for(V_polytope::iterator pit=P1.begin(); pit!=P1.end(); ++pit)
 		*pit = CGAL::Origin() + ((*pit - CGAL::Origin()) - P1sum);
 	//
 	Vector P2sum(n, CGAL::NULL_VECTOR);
-	for(Vpoly::iterator pit=P2.begin(); pit!=P2.end(); ++pit)
+	for(V_polytope::iterator pit=P2.begin(); pit!=P2.end(); ++pit)
 		P2sum += (*pit)-CGAL::Origin();
 	P2sum = P2sum/int(P2.size());
-	for(Vpoly::iterator pit=P2.begin(); pit!=P2.end(); ++pit)
+	for(V_polytope::iterator pit=P2.begin(); pit!=P2.end(); ++pit)
 		*pit = CGAL::Origin() + ((*pit - CGAL::Origin()) - P2sum);
 	
   // compute mink sum using a naive algorithm
   Minkowski_sum_naive(P1,P2,Msum);
-  for(Vpoly::iterator pit=Msum.begin(); pit!=Msum.end(); ++pit)
+  for(V_polytope::iterator pit=Msum.begin(); pit!=Msum.end(); ++pit)
 		std::cout<<*pit<<std::endl;
 	*/
 	
@@ -652,38 +706,11 @@ int main(const int argc, const char** argv)
 	//Build the separation in dual 
 	//query point q
 	//std::cout<<"--------"<<P1sum<<" "<< P2sum<<std::endl;
-	Vector q(1.0/4.0,0.0);
+	Point q(1.0/2.0,-1.0/3.0);
 	//q -= (P1sum + P2sum);
-	NT max = q * (*(P1.begin())-CGAL::Origin());
-	Point max_p1 = *(P1.begin());
-	for(Vpoly::iterator pit=P1.begin(); pit!=P1.end(); ++pit){
-		double innerp = q * (*pit-CGAL::Origin());
-		std::cout<<*pit<<" "<<q<<" "<<innerp<<std::endl;
-		if(innerp > max){
-			max = innerp;
-			max_p1 = *pit;
-		}
-	}
-	std::cout<<max_p1<<std::endl;
-	max = q * (*(P2.begin())-CGAL::Origin());
-	Point max_p2 = *(P2.begin());
-	for(Vpoly::iterator pit=P2.begin(); pit!=P2.end(); ++pit){
-		double innerp = q * (*pit-CGAL::Origin());
-		if(innerp > max){
-			max = innerp;
-			max_p2 = *pit;
-		}
-	}
-	std::cout<<max_p2<<std::endl;
-	Vector max_psum=(max_p1-CGAL::Origin())+(max_p2-CGAL::Origin());
-	//+ q*(-P1sum -P2sum)
-	if(max_psum*q <= 1)
-		std::cout<<"IN"<<std::endl;
-	else
-	  std::cout<<"OUT"<<std::endl;
-	if(max_psum*q == 1)
-		std::cout<<"sharp!"<<std::endl;
 	
+	MinkSumPolytope P(P1,P2);
+	std::cout<<Sep_Oracle(P,q).get_is_in()<<std::endl;	
 	
 	
 	exit(1);
