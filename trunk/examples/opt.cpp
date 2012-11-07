@@ -143,11 +143,12 @@ template<> sep Sep_Oracle<Polytope>(Polytope &P, Point v)
 	}
 	return sep(true);	
 }
- 
+
 // Minkowski sum Separation 
 template<> sep Sep_Oracle<MinkSumPolytope>(MinkSumPolytope &P, 
-																				Point v)
-{		
+																				   Point v)
+{	
+	//tranform query point v to a vector q
 	Vector q=v-CGAL::Origin();
 	V_polytope P1=P.first;
 	V_polytope P2=P.second;
@@ -178,12 +179,12 @@ template<> sep Sep_Oracle<MinkSumPolytope>(MinkSumPolytope &P,
 		return sep(true);	
 	else{
 		//construct the dual hyperplane of max_psum
-	  std::vector<NT> vcoord;
-	  for(Vector::Cartesian_const_iterator cit=max_psum.cartesian_begin(); 
-        cit!=max_psum.cartesian_end(); ++cit){
-		  vcoord.push_back(*cit);
-		}
-	  Hyperplane H_sep(int(P1.size()),vcoord.begin(),vcoord.end());
+	  //std::vector<NT> vcoord;
+	  //for(Vector::Cartesian_const_iterator cit=max_psum.cartesian_begin(); 
+    //    cit!=max_psum.cartesian_end(); ++cit){
+		//  vcoord.push_back(*cit);
+		//}
+	  Hyperplane H_sep(v,-max_psum.direction());
 	  return sep(false,H_sep);
 	}
 	//if(max_psum*q == 1)
@@ -192,7 +193,8 @@ template<> sep Sep_Oracle<MinkSumPolytope>(MinkSumPolytope &P,
  
  
 // function to find intersection of a line and a polytope 
-Vector line_intersect(Point pin, Vector l, Polytope P, double err){
+template <class T>
+Vector line_intersect(Point pin, Vector l, T &P, double err){
   Vector vin=pin-CGAL::Origin();
   //first compute a point outside P along the line
   Point pout=pin;
@@ -228,8 +230,9 @@ Vector line_intersect(Point pin, Vector l, Polytope P, double err){
 }
 
 /* Hit and run Random Walk */
+template <class T>
 int hit_and_run(Point &p,
-					      Polytope &P,
+					      T &P,
 					      const int n,
 					      double err,
 								RNGType &rng,
@@ -250,7 +253,8 @@ int hit_and_run(Point &p,
 
 /*---------------- MULTIPOINT RANDOM WALK -----------------*/
 // generate m random points uniformly distributed in P
-int multipoint_random_walk(Polytope &P,
+template <class T>
+int multipoint_random_walk(T &P,
 													 std::vector<Point> &V,
 													 const int m,
 													 const int n,
@@ -336,8 +340,8 @@ int multipoint_random_walk(Polytope &P,
 		std::cout<<*vit<<std::endl;											 
 	std::cout<<"--------------------------"<<std::endl;
 	*/
-	for(Polytope::iterator polyit=P.begin(); polyit!=P.end(); ++polyit)
-		std::cout<<*polyit<<std::endl;
+	//for(Polytope::iterator polyit=P.begin(); polyit!=P.end(); ++polyit)
+	//	std::cout<<*polyit<<std::endl;
 	
 	if(m!=V.size()){
 		std::cout<<"Careful m!=V.size()!!"<<std::endl;
@@ -347,7 +351,8 @@ int multipoint_random_walk(Polytope &P,
 
 // return 1 if P is feasible and fp a point in P
 // otherwise return 0 and fp has no meaning
-int feasibility(Polytope &KK,
+template <class T>
+int feasibility(T &KK,
 							  const int m,
 							  const int n,
 							  const int walk_steps,
@@ -408,6 +413,7 @@ int feasibility(Polytope &KK,
 			Hyperplane H(CGAL::Origin()+z,sep_result.get_H_sep().orthogonal_direction());
 			P.push_back(H);
 			//GREEDY alternative: Update P with the original separating hyperplane
+			//PROBLEM: we may lose all random points thus not efficient
 			//Hyperplane H(sep_result.get_H_sep());
 			//P.push_back(H);
 			
@@ -433,9 +439,9 @@ int feasibility(Polytope &KK,
 	return 0;
 }
 
-// return 1 if P is feasible and fp a point in P
-// otherwise return 0 and fp has no meaning
-int optimization(Polytope &KK,
+// 
+template <class T>
+int optimization(T &KK,
 							  const int m,
 							  const int n,
 							  const int walk_steps,
@@ -452,7 +458,7 @@ int optimization(Polytope &KK,
 							  Vector &w){
 	
 	//this is the large cube contains the polytope
-	Polytope P=cube(n,lw,up);								
+	Polytope P=cube(n,-up,up);								
 	
 	/* Initialize points in cube */
   CGAL::Random CGALrng;
@@ -467,7 +473,10 @@ int optimization(Polytope &KK,
 		//std::cout<<v<<std::endl;
 	}
 	
-	int step=0;
+	//initialize the cut with sth that contain KK
+	Hyperplane KK_cut = *(P.begin());
+	//iterate for 2nL steps 
+  int step=0;
   while(step < 2*n*L){
 	  // compute m random points in P stored in V 
 	  multipoint_random_walk(P,V,m,n,walk_steps,err,rng,get_snd_rand,urdist,urdist1);
@@ -491,7 +500,8 @@ int optimization(Polytope &KK,
 			std::cout<<"Feasible point found! "<<z<<std::endl;
 			fp = CGAL::Origin() + z;
 			Hyperplane H(fp,w);
-			KK.push_back(H);
+			P.push_back(H);
+			//KK.push_back(H);
 		}
 		else {
 			//update P with the hyperplane passing through z
@@ -500,23 +510,22 @@ int optimization(Polytope &KK,
 			//GREEDY alternative: Update P with the original separating hyperplane
 			//Hyperplane H(sep_result.get_H_sep());
 			//P.push_back(H);
-			
-			//check for the rest rand points which fall in new P
-			std::vector<Point> newV;
-			for(;vit!=V.end();++vit){
-				if(Sep_Oracle(P,*vit).get_is_in())
-					newV.push_back(*vit);
-			}
-			V=newV;
-			++step;
-			std::cout<<"Cutting hyperplane direction="
-			         <<sep_result.get_H_sep().orthogonal_direction()<<std::endl;
-			std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
-			if(V.empty()){
-				std::cout<<"No random points left. ASSUME that there is no feasible point!"<<std::endl;
-				//fp = CGAL::Origin() + z;
-				return 0;
-			}
+		}	
+		//check for the rest rand points which fall in new P
+		std::vector<Point> newV;
+		for(;vit!=V.end();++vit){
+			if(Sep_Oracle(P,*vit).get_is_in())
+				newV.push_back(*vit);
+		}
+		V=newV;
+		++step;
+		std::cout<<"Cutting hyperplane direction="
+		         <<sep_result.get_H_sep().orthogonal_direction()<<std::endl;
+		std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
+		if(V.empty()){
+			std::cout<<"No random points left. ASSUME that there is no feasible point!"<<std::endl;
+			//fp = CGAL::Origin() + z;
+			return 0;
 		}
 	}
 	std::cout<<"No feasible point found!"<<std::endl;
@@ -525,7 +534,8 @@ int optimization(Polytope &KK,
 
 // return 1 if P is feasible and fp a point in P
 // otherwise return 0 and fp has no meaning
-int opt_interior(Polytope &K,
+template <class T>
+int opt_interior(T &K,
 							  const int m,
 							  const int n,
 							  const int walk_steps,
@@ -639,7 +649,9 @@ int main(const int argc, const char** argv)
   const int m = 20*n;
   //number of walk steps
   //const int walk_steps=m*std::pow(n,3)/100;
-  const int walk_steps=500; 
+  const int walk_steps=20*n; 
+  //
+  const int L=30;
   //error in hit-and-run bisection of P 
   const double err=0.000001; 
   const double err_opt=0.01; 
@@ -665,9 +677,9 @@ int main(const int argc, const char** argv)
   std::vector<Point> V;	
 	
 	//this is the input polytope
-	Polytope K=cube(n,lw,10);
 	
-	V_polytope P1, P2, Msum;
+	
+	V_polytope P1, P2;
 	P1.push_back(Point(-1,1));  
   P1.push_back(Point(2,1));  
   P1.push_back(Point(-1,-2));  
@@ -678,6 +690,9 @@ int main(const int argc, const char** argv)
   P2.push_back(Point(-1,1));  
   std::cout<<!P1.empty()<<std::endl;
   std::cout<<!P2.empty()<<std::endl;
+  
+  MinkSumPolytope Msum(P1,P2);
+  
   /*
   //Transform P1, P2 to contain the origin in their interior
 	Vector P1sum(n, CGAL::NULL_VECTOR);
@@ -706,14 +721,15 @@ int main(const int argc, const char** argv)
 	//Build the separation in dual 
 	//query point q
 	//std::cout<<"--------"<<P1sum<<" "<< P2sum<<std::endl;
-	Point q(1.0/2.0,-1.0/3.0);
+	//Point q(1.0/2.0,-1.0/3.0);
 	//q -= (P1sum + P2sum);
 	
-	MinkSumPolytope P(P1,P2);
-	std::cout<<Sep_Oracle(P,q).get_is_in()<<std::endl;	
+	
+	//std::cout<<Sep_Oracle(P,q).get_is_in()<<std::endl;	
 	
 	
-	exit(1);
+	
+	//exit(1);
 	
   /* OPTIMIZATION */
   //given a direction w compute a vertex v of K that maximize w*v 
@@ -724,15 +740,10 @@ int main(const int argc, const char** argv)
 	round_print(w/w.squared_length());
 	std::cout<<w/w.squared_length()<<std::endl;
 	//normalize w
-	w=w/w.squared_length();
-	std::cout<<"00:"<<w*Vector(0,0)<<std::endl;
-	std::cout<<"10:"<<w*Vector(1,0)<<std::endl;
-	std::cout<<"01:"<<w*Vector(0,1)<<std::endl;
-	std::cout<<"11:"<<w*Vector(1,1)<<std::endl;
+	w=w/w.squared_length();	
 	
 	
-	
-  const int L=30;
+  
   
   // Interior point algorithm for optimization
   //Vector z;
@@ -742,13 +753,26 @@ int main(const int argc, const char** argv)
 	
 	/* Optimization with bisection
 	 * 
-	 */ 
-
+	 */
+  
   //first compute a feasible point in K (if K is non empty) 
   
+  //Polytope K=cube(n,lw,10);
+  
   Point fp;
-  optimization(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp,w);
+  optimization(Msum,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp,w);
   std::cout<<"OPT="<<fp<<std::endl;
+  
+  Point q(1.0/2.0,-1.0/3.0);
+  std::cout<<"Test"<<std::endl;
+	std::cout<<"is in:"<<Sep_Oracle(Msum,q).get_is_in()<<std::endl;	
+	std::cout<<"H sep:"<<Sep_Oracle(Msum,q).get_H_sep()<<std::endl;	
+  Hyperplane Htest = Sep_Oracle(Msum,q).get_H_sep();
+  std::cout<<"H dim:"<<Htest.dimension()<<std::endl;	
+  for(Hyperplane::Coefficient_const_iterator Hit=Htest.coefficients_begin();
+								Hit!=Htest.coefficients_end(); ++Hit)
+		std::cout<<*Hit<<" ";
+	std::cout<<std::endl;
   /*
   if (feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp)==0){
 	  std::cout<<"The input polytope is not feasible!"<<std::endl;
