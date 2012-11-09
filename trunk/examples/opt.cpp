@@ -749,8 +749,7 @@ int main(const int argc, const char** argv)
   //Vector z;
 	//opt_interior(K,m,n,walk_steps,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1,z,w);
   
-	
-	
+  
 	/* Optimization with bisection
 	 * 
 	 */
@@ -763,6 +762,11 @@ int main(const int argc, const char** argv)
   optimization(Msum,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp,w);
   std::cout<<"OPT="<<fp<<std::endl;
   
+  Hyperplane H(n,fp.cartesian_begin(),fp.cartesian_end(),1);
+  
+  std::cout<<"which side(P)="<<H.has_on_positive_side(CGAL::Origin()+w)<<std::endl;
+  std::cout<<"which side(N)="<<H.has_on_negative_side(CGAL::Origin()+w)<<std::endl;
+  
   Point q(1.0/2.0,-1.0/3.0);
   std::cout<<"Test"<<std::endl;
 	std::cout<<"is in:"<<Sep_Oracle(Msum,q).get_is_in()<<std::endl;	
@@ -773,6 +777,9 @@ int main(const int argc, const char** argv)
 								Hit!=Htest.coefficients_end(); ++Hit)
 		std::cout<<*Hit<<" ";
 	std::cout<<std::endl;
+	
+	for(int i=0;i<100;++i)
+	  std::cout<<std::pow(2.71828,double(i))<<std::endl;
   /*
   if (feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp)==0){
 	  std::cout<<"The input polytope is not feasible!"<<std::endl;
