@@ -34,6 +34,7 @@ typedef Kernel::Vector_d							Vector;
 typedef Kernel::Line_d								Line;
 typedef Kernel::Hyperplane_d					Hyperplane;
 typedef Kernel::Direction_d						Direction;
+typedef Kernel::Sphere_d							Ball;
 typedef std::vector<Hyperplane>       H_polytope;
 typedef H_polytope 								    Polytope;
 typedef std::vector<Point>						V_polytope;
@@ -97,7 +98,7 @@ struct sep{
 
 
 /* Construct a n-CUBE */
-Polytope cube(const int n, const int lw, const int up){	
+Polytope cube(const int n, const NT lw, const NT up){	
 	Polytope cube;
 	std::vector<NT> origin(n,NT(lw));
 	for(int i=0; i<n; ++i){
@@ -124,6 +125,26 @@ Polytope cube(const int n, const int lw, const int up){
 	  cube.push_back(h);
 	}
 	return cube;
+}
+
+// contruct a n-ball of radius r centered in the origin  
+Ball ball(const int n, const NT r){
+  
+  std::vector<Point> P_ball;
+  for(int i=0; i<n; ++i){
+		std::vector<NT> coords;
+		for(int j=0; j<n; ++j){
+			if(i==j) 
+				coords.push_back(r);
+			else coords.push_back(NT(0));
+		}
+		P_ball.push_back(Point(n,coords.begin(),coords.end()));
+	}
+	std::vector<NT> extra_coords(n,NT(0));
+	extra_coords[0]=NT(-1*r);
+	P_ball.push_back(Point(n,extra_coords.begin(),extra_coords.end()));
+  Ball B(n,P_ball.begin(),P_ball.end());
+	return B;
 }
 
 //template <typename T> struct Oracle{
@@ -759,7 +780,7 @@ int main(const int argc, const char** argv)
   //Polytope K=cube(n,lw,10);
   
   Point fp;
-  optimization(Msum,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp,w);
+  //optimization(Msum,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp,w);
   std::cout<<"OPT="<<fp<<std::endl;
   
   Hyperplane H(n,fp.cartesian_begin(),fp.cartesian_end(),1);
@@ -778,8 +799,25 @@ int main(const int argc, const char** argv)
 		std::cout<<*Hit<<" ";
 	std::cout<<std::endl;
 	
-	for(int i=0;i<100;++i)
-	  std::cout<<std::pow(2.71828,double(i))<<std::endl;
+	
+	//VOLUME 
+  cube(n,-0.5,0.5);
+  
+  //construct the sequence of balls
+  const NT r=0.5, d=0.71;
+  std::vector<Ball> balls;
+  const int nb = n * (std::log(d)/std::log(2.0));
+  
+  std::cout<<nb<<","<<(std::log(d)/std::log(2.0))<<std::endl;
+  //std::pow(std::log(n),2)
+  
+  for(int i=0; i<nb; ++i){
+		balls.push_back(ball(n,std::pow(2,i/n)));
+	}
+  std::cout<<balls.size()<<std::endl;
+  //std::vector<NT> testp(n,NT(0.2));
+  //std::cout<<B.has_on_positive_side(Point(n,testp.begin(),testp.end()))<<std::endl;
+  
   /*
   if (feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp)==0){
 	  std::cout<<"The input polytope is not feasible!"<<std::endl;
