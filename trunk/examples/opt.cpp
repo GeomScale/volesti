@@ -147,7 +147,7 @@ struct sep{
 
 
 /* Construct a n-CUBE */
-Polytope cube(const int n, const NT lw, const NT up){	
+Polytope cube(int n, const NT lw, const NT up){	
 	Polytope cube;
 	std::vector<NT> origin(n,NT(lw));
 	for(int i=0; i<n; ++i){
@@ -178,7 +178,7 @@ Polytope cube(const int n, const NT lw, const NT up){
 
 // contruct a n-ball of radius r centered in the origin  
 /*
-Ball ball(const int n, const NT r){
+Ball ball(int n, const NT r){
   
   std::vector<Point> P_ball;
   for(int i=0; i<n; ++i){
@@ -323,7 +323,7 @@ Vector line_intersect(Point pin, Vector l, T &P, double err){
 template <class T>
 int hit_and_run(Point &p,
 					      T &P,
-					      const int n,
+					      int n,
 					      double err,
 								RNGType &rng,
 								boost::random::uniform_real_distribution<> &urdist,
@@ -348,7 +348,7 @@ template <class T>
 int multipoint_random_walk(T &P,
 													 std::vector<Point> &V,
 													 const int m,
-													 const int n,
+													 int n,
 													 const int walk_steps,
 													 const double err,
 													 RNGType &rng,
@@ -445,7 +445,7 @@ int multipoint_random_walk(T &P,
 template <class T>
 int feasibility(T &KK,
 							  const int m,
-							  const int n,
+							  int n,
 							  const int walk_steps,
 							  const double err,
 							  const int lw,
@@ -534,7 +534,7 @@ int feasibility(T &KK,
 template <class T>
 int optimization(T &KK,
 							  const int m,
-							  const int n,
+							  int n,
 							  const int walk_steps,
 							  const double err,
 							  const int lw,
@@ -628,7 +628,7 @@ int optimization(T &KK,
 template <class T>
 int opt_interior(T &K,
 							  const int m,
-							  const int n,
+							  int n,
 							  const int walk_steps,
 							  const double err,
 							  const double err_opt,
@@ -729,7 +729,7 @@ int opt_interior(T &K,
 // it stuck in the corners
 template <class T>
 NT volume1(T &P,
-					const int n,
+					int n,
 					int rnum,
 					int walk_len,
 					double err,
@@ -821,7 +821,7 @@ NT volume1(T &P,
 // VOLUME with multipoint random walk
 template <class T>
 NT volume2(T &P,
-					const int n,
+					int n,
 					int rnum,
 					int walk_len,
 					double err,
@@ -906,7 +906,7 @@ NT volume2(T &P,
 	std::cout<<std::endl;
 	std::cout<<"volume = "<<vol<<std::endl;
 	std::cout<<"exact volume = "<<std::pow(2,n)<<std::endl;
-	return 0;
+	return vol;
 }
 
 
@@ -922,11 +922,24 @@ NT volume2(T &P,
 
 int main(const int argc, const char** argv)
 { 
+	int n;
+	double wl_c, e;
+	//parse command line input
+	if(argc==4){
+		std::cout << argv[3]<<std::endl;
+	  //dimension
+		n = atoi(argv[1]);
+		//constants
+		e = atof(argv[2]);
+		wl_c = atof(argv[3]);
+	}else{
+		std::cout<<"Wrong num of args"<<std::endl;
+	}
+	
   double tstartall, tstopall, tstartall2, tstopall2;
 
   /* CONSTANTS */
-  //dimension
-  const size_t n=4; 
+  //int n=4; 
   //number of random points
   //const int m = 2*n*std::pow(std::log(n),2);
   const int m = 20*n;
@@ -1068,22 +1081,24 @@ int main(const int argc, const char** argv)
   
   // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
-  const int rnum = 30 * n * std::log(n);
-  const int walk_len =  1 * std::pow(n,4);
+  int rnum = std::pow(e,-2) * 400 * n * std::log(n);
+  int walk_len =  wl_c * std::pow(n,4);
   
   double v1 = volume1(P,n,rnum,walk_len,err,rng,urdist,urdist1);
+  //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
   
-  std::cout<<"ALGORITHM 1\n-----------\nvolume = "<<vol<<std::endl;
-	std::cout<<"exact volume = "<<std::pow(2,n)<<std::endl;
-	std::cout<<"# walk steps = "<<walk_len<<std::endl;
-	std::cout<<"# rand points = "<<rnum<<std::endl;
-
-
-  std::cout<<"ALGORITHM 2\n-----------\nvolume = "<<vol<<std::endl;
+  std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
+           <<(1-e)*v1<<" < "<<v1<<" < "<<(1+e)*v1<<std::endl;
 	std::cout<<"exact volume = "<<std::pow(2,n)<<std::endl;
 	std::cout<<"# walk steps = "<<walk_len<<std::endl;
 	std::cout<<"# rand points = "<<rnum<<std::endl;
   
+  /*
+  std::cout<<"\nALGORITHM 2\n-----------\nvolume = "<<v2<<std::endl;
+	std::cout<<"exact volume = "<<std::pow(2,n)<<std::endl;
+	std::cout<<"# walk steps = "<<walk_len<<std::endl;
+	std::cout<<"# rand points = "<<rnum<<std::endl;
+  */
   //std::vector<NT> testp(n,NT(0.2));
   //std::cout<<B.has_on_positive_side(Point(n,testp.begin(),testp.end()))<<std::endl;
   
