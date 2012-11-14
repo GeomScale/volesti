@@ -814,12 +814,7 @@ NT volume1(T &P,
 		vol *= NT(rnum)/NT(*prod_it);
 		std::cout<<NT(rnum)<<"/" << NT(*prod_it)<<"="<<NT(rnum)/NT(*prod_it)<<"\n";
 	}
-	std::cout<<std::endl;
-	std::cout<<"volume = "<<vol<<std::endl;
-	std::cout<<"exact volume = "<<std::pow(2,n)<<std::endl;
-	std::cout<<"# walk steps = "<<walk_len<<std::endl;
-	std::cout<<"# rand point = "<<rnum<<std::endl;
-	return 0;
+	return vol;
 }
 
 
@@ -1076,8 +1071,18 @@ int main(const int argc, const char** argv)
   const int rnum = 30 * n * std::log(n);
   const int walk_len =  1 * std::pow(n,4);
   
-  volume1(P,n,rnum,walk_len,err,rng,urdist,urdist1);
-  volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
+  double v1 = volume1(P,n,rnum,walk_len,err,rng,urdist,urdist1);
+  
+  std::cout<<"ALGORITHM 1\n-----------\nvolume = "<<vol<<std::endl;
+	std::cout<<"exact volume = "<<std::pow(2,n)<<std::endl;
+	std::cout<<"# walk steps = "<<walk_len<<std::endl;
+	std::cout<<"# rand points = "<<rnum<<std::endl;
+
+
+  std::cout<<"ALGORITHM 2\n-----------\nvolume = "<<vol<<std::endl;
+	std::cout<<"exact volume = "<<std::pow(2,n)<<std::endl;
+	std::cout<<"# walk steps = "<<walk_len<<std::endl;
+	std::cout<<"# rand points = "<<rnum<<std::endl;
   
   //std::vector<NT> testp(n,NT(0.2));
   //std::cout<<B.has_on_positive_side(Point(n,testp.begin(),testp.end()))<<std::endl;
