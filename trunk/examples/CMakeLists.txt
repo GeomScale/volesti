@@ -30,6 +30,8 @@ if ( CGAL_FOUND )
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++0x")
   #link_libraries("proc")
   create_single_source_cgal_program("opt.cpp")
+  create_single_source_cgal_program("vol.cpp")
+  create_single_source_cgal_program("mink_sum_vol.cpp")
 
 else()
 
