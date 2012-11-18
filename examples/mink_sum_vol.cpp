@@ -116,8 +116,8 @@ int main(const int argc, const char** argv)
 	
 	
   
-  //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  //!!!VOLUME of MINKOWSKI SUM 
+  
+  // VOLUME of MINKOWSKI SUM 
   
   V_polytope P1, P2;
 	P1.push_back(Point(-1,1));  
@@ -161,11 +161,35 @@ int main(const int argc, const char** argv)
 	//Build the separation in dual 
 	//query point q
 	//std::cout<<"--------"<<P1sum<<" "<< P2sum<<std::endl;
-	//Point q(1.0/2.0,-1.0/3.0);
+	Vector q2(2,-2);
 	//q -= (P1sum + P2sum);
 	
 	
-	//std::cout<<Sep_Oracle(P,q).get_is_in()<<std::endl;	
+	Point fp;
+  optimization(Msum,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp,q2);
+  std::cout<<"OPT="<<fp<<std::endl;
+  
+  Hyperplane H(n,fp.cartesian_begin(),fp.cartesian_end(),1);
+  
+  //std::cout<<"prod="<<(fp-CGAL::Origin())*q2<<std::endl;
+  if(double((fp-CGAL::Origin())*q2) <= double(1.0))
+    std::cout<<"result=IN"<<std::endl;
+  else
+    std::cout<<"result=OUT"<<std::endl;
+  
+  std::cout<<"which side(P)="<<H.has_on_positive_side(CGAL::Origin()+q2)<<std::endl;
+  std::cout<<"which side(N)="<<H.has_on_negative_side(CGAL::Origin()+q2)<<std::endl;
+  
+  Point q(1.0/2.0,-1.0/3.0);
+  std::cout<<"Test"<<std::endl;
+	std::cout<<"is in:"<<Sep_Oracle(Msum,q).get_is_in()<<std::endl;	
+	std::cout<<"H sep:"<<Sep_Oracle(Msum,q).get_H_sep()<<std::endl;	
+  Hyperplane Htest = Sep_Oracle(Msum,q).get_H_sep();
+  std::cout<<"H dim:"<<Htest.dimension()<<std::endl;	
+  for(Hyperplane::Coefficient_const_iterator Hit=Htest.coefficients_begin();
+								Hit!=Htest.coefficients_end(); ++Hit)
+		std::cout<<*Hit<<" ";
+	std::cout<<std::endl;
 
   
 
