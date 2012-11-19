@@ -78,8 +78,14 @@ int main(const int argc, const char** argv)
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   int walk_len =  wl_c * std::pow(n,4);
   
+  //sandwitch
+  std::vector<NT> coords_apex(n,1);
+	Vector p_apex(n,coords_apex.begin(),coords_apex.end());
+  NT r=1, d=std::sqrt(p_apex.squared_length());
+  
   tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-  double v1 = volume1(P,n,rnum,walk_len,err,rng,urdist,urdist1);
+  vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
+  double v1 = volume1(P,var,r,d);
   tstop = (double)clock()/(double)CLOCKS_PER_SEC;
   //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
   
