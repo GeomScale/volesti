@@ -89,7 +89,8 @@ int main(const int argc, const char** argv)
   
   //compute the optimum 
   tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-  optimization(P,rnum,n,walk_len,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp,w);
+  vars var(rnum,n,walk_len,err,0,lw,up,L,rng,get_snd_rand,urdist,urdist1);
+  optimization(P,var,fp,w);
   tstop = (double)clock()/(double)CLOCKS_PER_SEC;
   
   //print the results

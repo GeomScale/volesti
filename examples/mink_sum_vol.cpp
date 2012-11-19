@@ -48,7 +48,7 @@ int main(const int argc, const char** argv)
   //int n=4; 
   //number of random points
   //const int m = 2*n*std::pow(std::log(n),2);
-  const int m = 20*n;
+  int m = 20*n;
   //number of walk steps
   //const int walk_steps=m*std::pow(n,3)/100;
   const int walk_steps=20*n; 
@@ -161,12 +161,50 @@ int main(const int argc, const char** argv)
 	//Build the separation in dual 
 	//query point q
 	//std::cout<<"--------"<<P1sum<<" "<< P2sum<<std::endl;
+	
 	Vector q2(2,-2);
 	//q -= (P1sum + P2sum);
 	
+	vars var(m,n,walk_steps,err,0,lw,up,L,rng,get_snd_rand,urdist,urdist1);
 	
+	Point q3(-1.999,0.956277);
+	std::cout<<"SepOracle="<<
+	Sep_Oracle(Msum,q3,var).get_is_in()
+	<<std::endl;
+	
+	
+	exit(1);
+	// Random walks in K_i := the intersection of the ball i with P
+  // the number of random points to be generated in each K_i
+  int rnum = std::pow(e,-2) * 400 * n * std::log(n);
+  int walk_len =  wl_c * std::pow(n,4);
+  
+  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+  vars var2(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
+  double v1 = volume1(Msum,var2,1,std::sqrt(13.0));
+  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+  //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
+  
+  double exactvol = std::pow(2,n);
+  
+  std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
+           <<(1-e)*exactvol<<" < "<<v1<<" < "<<(1+e)*exactvol<<std::endl;
+	std::cout<<"exact volume = "<<exactvol<<std::endl;
+	std::cout<<"# walk steps = "<<walk_len<<std::endl;
+	std::cout<<"# rand points = "<<rnum<<std::endl;
+	std::cout<<"time = "<<tstop-tstart<<std::endl;
+	
+	
+	//compute the Minkowski sum and then the volume
+	// compute mink sum using a naive algorithm
+  V_polytope P;
+  Minkowski_sum_naive(P1,P2,P);
+  for(V_polytope::iterator pit=P.begin(); pit!=P.end(); ++pit)
+		std::cout<<*pit<<std::endl;
+	
+	/*
 	Point fp;
-  optimization(Msum,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp,q2);
+  optimization(Msum,var,fp,q2);
   std::cout<<"OPT="<<fp<<std::endl;
   
   Hyperplane H(n,fp.cartesian_begin(),fp.cartesian_end(),1);
@@ -190,7 +228,7 @@ int main(const int argc, const char** argv)
 								Hit!=Htest.coefficients_end(); ++Hit)
 		std::cout<<*Hit<<" ";
 	std::cout<<std::endl;
-
+*/
   
 
 	

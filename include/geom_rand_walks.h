@@ -52,20 +52,96 @@ typedef Kernel::Line_d								Line;
 typedef Kernel::Hyperplane_d					Hyperplane;
 typedef Kernel::Direction_d						Direction;
 //typedef Kernel::Sphere_d						Ball;
-struct Ball;
+
+// ball type
+struct Ball{
+	public:
+	  Ball(Point c, NT R) : _c(c),	 _R(R) {}
+	   
+	  Point center(){
+			return _c;
+		}
+		NT squared_radius(){
+			return _R;
+		}
+		NT radius(){
+			return std::sqrt(_R);
+		}
+		bool is_in(Point p){
+			return ((p-CGAL::Origin()) - (_c-CGAL::Origin())).squared_length() <= _R;
+		}
+	
+	private:
+	  Point  _c; //center
+	  NT     _R; //squared radius
+};
+
 
 // define different kind of polytopes
 typedef std::vector<Hyperplane>           H_polytope;
 typedef H_polytope 								        Polytope;
 typedef std::vector<Point>						    V_polytope;
-typedef std::pair<V_polytope,V_polytope> 	MinkSumPolytope;
-typedef std::pair<H_polytope,Ball> 	      BallIntersectPolytope;
+
+typedef std::pair<V_polytope,V_polytope> 	    MinkSumPolytope;
+typedef std::pair<MinkSumPolytope,bool> 	    MinkSumPolytopeDual;
+
+template <class T>
+class BallIntersectPolytope {
+  public:
+    BallIntersectPolytope(T &P, Ball &B) : _P(P), _B(B) {};
+    
+    T first() { return _P; }
+    Ball second() { return _B; }
+    
+  private:  
+    T    _P;
+    Ball _B;
+};
 
 
+// define random generators
+typedef boost::mt19937 RNGType; ///< mersenne twister generator
 
+
+//structs with variables and random generators
+struct vars{
+	public:
+	  vars( int m,
+					int n,
+					int walk_steps,
+					const double err,
+					const double err_opt,
+					const int lw,
+					const int up,
+					const int L,
+				  RNGType &rng,
+				  boost::variate_generator< RNGType, boost::normal_distribution<> >
+				  &get_snd_rand,
+				  boost::random::uniform_real_distribution<> urdist,
+				  boost::random::uniform_real_distribution<> urdist1
+			) : 
+	    m(m), n(n), walk_steps(walk_steps), err(err), err_opt(err_opt), 
+	    lw(lw), up(up), L(L), rng(rng), get_snd_rand(get_snd_rand),
+	    urdist(urdist), urdist1(urdist1) {};
+	
+	  int m;
+		int n;
+		int walk_steps;
+		const double err;
+		const double err_opt;
+		const int lw;
+		const int up;
+		const int L;
+	  RNGType &rng;
+	  boost::variate_generator< RNGType, boost::normal_distribution<> >
+	  &get_snd_rand;
+	  boost::random::uniform_real_distribution<> urdist;
+	  boost::random::uniform_real_distribution<> urdist1;
+};
+
+// define extreme points
 typedef CGAL::Extreme_points_traits_d<Point>   EP_Traits_d;
 
-typedef boost::mt19937 RNGType; ///< mersenne twister generator
 
 //function to print rounding to double coordinates 
 template <class T>
@@ -102,28 +178,7 @@ int Minkowski_sum_naive(V_polytope &P1, V_polytope &P2, V_polytope &Msum){
   return -1;
 }
 
-// ball type
-struct Ball{
-	public:
-	  Ball(Point c, NT R) : _c(c),	 _R(R) {}
-	   
-	  Point center(){
-			return _c;
-		}
-		NT squared_radius(){
-			return _R;
-		}
-		NT radius(){
-			return std::sqrt(_R);
-		}
-		bool is_in(Point p){
-			return ((p-CGAL::Origin()) - (_c-CGAL::Origin())).squared_length() <= _R;
-		}
-	
-	private:
-	  Point  _c; //center
-	  NT     _R; //squared radius
-};
+
 
 // separation oracle return type 
 struct sep{
@@ -199,12 +254,20 @@ Ball ball(int n, const NT r){
 //  sep Sep_Oracle(T &P, Point v);
 //};
 
+template <class T>
+int optimization(T &KK,vars var,Point &fp,Vector &w);
+
+
 // GENERIC ORACLE DESCRIPTION
-template <typename T> sep Sep_Oracle(T&, Point);
 // template parameter specialization
+template <typename T> 
+sep Sep_Oracle(T&, Point, vars&);
+
 
 //function that implements the separation oracle 
-template<> sep Sep_Oracle<Polytope>(Polytope &P, Point v)
+template<> sep Sep_Oracle<Polytope>(Polytope &P, 
+                                    Point v,
+                                    vars &var)
 {
 	typename Polytope::iterator Hit=P.begin(); 
 	while (Hit!=P.end()){
@@ -216,13 +279,15 @@ template<> sep Sep_Oracle<Polytope>(Polytope &P, Point v)
 }
 
 // BallIntersectPolytope separation oracle
-template<> sep Sep_Oracle<BallIntersectPolytope>(BallIntersectPolytope &P, Point v)
+template <typename T> sep Sep_Oracle(BallIntersectPolytope<T> &P, 
+                                     Point v,
+                                     vars &var)
 {
-	H_polytope P1 = P.first; 
-	Ball B = P.second;
+	T P1 = P.first(); 
+	Ball B = P.second();
 	
 	if (B.is_in(v)){
-		return Sep_Oracle(P1,v);
+		return Sep_Oracle(P1,v,var);
 	}
 	// the problem here is that it is out but without separating hyperplane
 	// so this is a membership oracle! not separation
@@ -231,9 +296,32 @@ template<> sep Sep_Oracle<BallIntersectPolytope>(BallIntersectPolytope &P, Point
 }
 
 // Minkowski sum Separation 
+// this is Optimization in the dual
 template<> sep Sep_Oracle<MinkSumPolytope>(MinkSumPolytope &P, 
-																				   Point v)
+																				   Point v,
+																				   vars &var)
 {	
+	MinkSumPolytopeDual Pdual(P,true);
+	Point fp;
+	Vector w=v-CGAL::Origin();
+  optimization(Pdual,var,fp,w);
+  //std::cout<<"OPT="<<fp<<std::endl;
+  if ((fp-CGAL::Origin()) * (v-CGAL::Origin()) <= NT(1.0))
+    return sep(true); // is in
+  else { // is out
+    Hyperplane H_sep(fp,(v-CGAL::Origin()).direction());
+    return sep(false,H_sep);
+  }
+}	
+
+
+// DUAL Minkowski sum Separation 
+// this is Optimization in the primal
+template<> sep Sep_Oracle<MinkSumPolytopeDual>(MinkSumPolytopeDual &Pdual, 
+																				       Point v,
+																				       vars &var)
+{	
+	MinkSumPolytope P = Pdual.first;
 	//tranform query point v to a vector q
 	Vector q=v-CGAL::Origin();
 	V_polytope P1=P.first;
@@ -280,7 +368,12 @@ template<> sep Sep_Oracle<MinkSumPolytope>(MinkSumPolytope &P,
  
 // function to find intersection of a line and a polytope 
 template <class T>
-Vector line_intersect(Point pin, Vector l, T &P, double err){
+Vector line_intersect(Point pin, 
+                      Vector l, 
+                      T &P, 
+											vars &var){
+	
+	double err = var.err;											
   Vector vin=pin-CGAL::Origin();
   //first compute a point outside P along the line
   Point pout=pin;
@@ -288,7 +381,7 @@ Vector line_intersect(Point pin, Vector l, T &P, double err){
   //round_print(pin);
 
   Vector aug(l);
-  while(Sep_Oracle(P,pout).get_is_in() == true){
+  while(Sep_Oracle(P,pout,var).get_is_in() == true){
     aug*=2;
     pout+=aug;
     //std::cout<<"Outside point: ";
@@ -302,7 +395,7 @@ Vector line_intersect(Point pin, Vector l, T &P, double err){
   double len;
   do{
 		vmid=(vin+vout)/2;
-		if(Sep_Oracle(P,CGAL::Origin()+vmid).get_is_in() == false)
+		if(Sep_Oracle(P,CGAL::Origin()+vmid,var).get_is_in() == false)
 			vout=vmid;
 		else
 			vin=vmid;
@@ -320,19 +413,20 @@ Vector line_intersect(Point pin, Vector l, T &P, double err){
 template <class T>
 int hit_and_run(Point &p,
 					      T &P,
-					      int n,
-					      double err,
-								RNGType &rng,
-								boost::random::uniform_real_distribution<> &urdist,
-								boost::random::uniform_real_distribution<> &urdist1){
-									
+					      vars &var)
+{	
+	int n = var.n;
+	double err = var.err;
+	RNGType &rng = var.rng;
+	boost::random::uniform_real_distribution<> &urdist = var.urdist;
+	boost::random::uniform_real_distribution<> &urdist1 = var.urdist1; 
 	
 	std::vector<NT> v;
 	for(int i=0; i<n; ++i)
 		v.push_back(urdist1(rng));
 	Vector l(n,v.begin(),v.end());
-	Vector b1 = line_intersect(p,l,P,err);
-	Vector b2 = line_intersect(p,-l,P,err);
+	Vector b1 = line_intersect(p,l,P,var);
+	Vector b2 = line_intersect(p,-l,P,var);
 	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
 	double lambda = urdist(rng);
 	p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
@@ -344,15 +438,18 @@ int hit_and_run(Point &p,
 template <class T>
 int multipoint_random_walk(T &P,
 													 std::vector<Point> &V,
-													 const int m,
-													 int n,
-													 const int walk_steps,
-													 const double err,
-													 RNGType &rng,
-													 boost::variate_generator< RNGType, boost::normal_distribution<> >
-													 &get_snd_rand,
-													 boost::random::uniform_real_distribution<> &urdist,
-													 boost::random::uniform_real_distribution<> &urdist1){
+											     vars &var)
+{
+	 int m = var.m;
+	 int n = var.n;
+	 const int walk_steps = var.walk_steps;
+	 const double err = var.err;
+	 RNGType &rng = var.rng;
+	 boost::variate_generator< RNGType, boost::normal_distribution<> >
+	 &get_snd_rand = var.get_snd_rand;
+	 boost::random::uniform_real_distribution<> &urdist = var.urdist;
+	 boost::random::uniform_real_distribution<> &urdist1 = var.urdist1;
+	 
 	//remove half of the old points
 	//V.erase(V.end()-(V.size()/2),V.end());										
 	
@@ -371,7 +468,7 @@ int multipoint_random_walk(T &P,
 		// hit and run at every point in V
 		Vector p(n,CGAL::NULL_VECTOR);
 	  Point v=*Vit;
-	  hit_and_run(v,P,n,err,rng,urdist,urdist1);
+	  hit_and_run(v,P,var);
 	  U.push_back(v);
 	  ++Vit;
 	  if(Vit==V.end())
@@ -383,7 +480,7 @@ int multipoint_random_walk(T &P,
 	//std::cout<<"Random points before walk"<<std::endl;
 	for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
 		Point v=*vit;
-		hit_and_run(v,P,n,err,rng,urdist,urdist1);
+		hit_and_run(v,P,var);
 		//std::cout<<*vit<<"---->"<<v<<std::endl;
 	}
 	//std::cout<<"WALKING......"<<std::endl;											 
@@ -410,8 +507,8 @@ int multipoint_random_walk(T &P,
 			//std::cout<<line<<std::endl;
 			
 			// Compute the 2 points that the line and P intersect 
-			Vector b1=line_intersect(v,l,P,err);
-			Vector b2=line_intersect(v,-l,P,err);
+			Vector b1=line_intersect(v,l,P,var);
+			Vector b2=line_intersect(v,-l,P,var);
 			//std::cout<<"["<<b1<<","<<b2<<"]"<<std::endl;
 			
 			// Move the point to a random (uniformly) point in P along the constructed line 
@@ -441,20 +538,23 @@ int multipoint_random_walk(T &P,
 // otherwise return 0 and fp has no meaning
 template <class T>
 int feasibility(T &KK,
-							  const int m,
-							  int n,
-							  const int walk_steps,
-							  const double err,
-							  const int lw,
-							  const int up,
-							  const int L,
-							  RNGType &rng,
-							  boost::variate_generator< RNGType, boost::normal_distribution<> >
-							  &get_snd_rand,
-							  boost::random::uniform_real_distribution<> urdist,
-							  boost::random::uniform_real_distribution<> urdist1,
-							  Point &fp){
-	
+								Point &fp,
+								vars var)
+{
+	bool print = false;
+	const int m = var.m;
+  int n = var.n;
+  const int walk_steps = var.walk_steps;
+  const double err = var.err;
+  const int lw = var.lw;
+  const int up = var.up;
+  const int L = var.L;
+  RNGType &rng = var.rng;
+  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  &get_snd_rand = var.get_snd_rand;
+  boost::random::uniform_real_distribution<> urdist = var.urdist;
+  boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
+  	
 	//this is the large cube contains the polytope
 	Polytope P=cube(n,lw,up);								
 	
@@ -474,7 +574,7 @@ int feasibility(T &KK,
 	int step=0;
   while(step < 2*n*L){
 	  // compute m random points in P stored in V 
-	  multipoint_random_walk(P,V,m,n,walk_steps,err,rng,get_snd_rand,urdist,urdist1);
+	  multipoint_random_walk(P,V,var);
 		
 	  //compute the average using the half of the random points
 		Vector z(n,CGAL::NULL_VECTOR);
@@ -487,12 +587,12 @@ int feasibility(T &KK,
 			//std::cout<<*vit<<std::endl;
 		}
 		z=z/(m/2);	
-		std::cout<<"step "<<step<<": "<<"z=";
-		round_print(z);
+		if (print) std::cout<<"step "<<step<<": "<<"z=";
+		if (print) round_print(z);
 		
-		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z);
+		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z,var);
 		if(sep_result.get_is_in()){
-			std::cout<<"Feasible point found! "<<z<<std::endl;
+			if (print) std::cout<<"Feasible point found! "<<z<<std::endl;
 			fp = CGAL::Origin() + z;
 			return 1;
 		}
@@ -508,43 +608,46 @@ int feasibility(T &KK,
 			//check for the rest rand points which fall in new P
 			std::vector<Point> newV;
 			for(;vit!=V.end();++vit){
-				if(Sep_Oracle(P,*vit).get_is_in())
+				if(Sep_Oracle(P,*vit,var).get_is_in())
 					newV.push_back(*vit);
 			}
 			V=newV;
 			++step;
-			std::cout<<"Cutting hyperplane direction="
+			if (print) std::cout<<"Cutting hyperplane direction="
 			         <<sep_result.get_H_sep().orthogonal_direction()<<std::endl;
-			std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
+			if (print) std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
 			if(V.empty()){
-				std::cout<<"No random points left. ASSUME that there is no feasible point!"<<std::endl;
+				if (print) std::cout<<"No random points left. ASSUME that there is no feasible point!"<<std::endl;
 				//fp = CGAL::Origin() + z;
 				return 0;
 			}
 		}
 	}
-	std::cout<<"No feasible point found!"<<std::endl;
+	if (print) std::cout<<"No feasible point found!"<<std::endl;
 	return 0;
 }
 
 // 
 template <class T>
 int optimization(T &KK,
-							  const int m,
-							  int n,
-							  const int walk_steps,
-							  const double err,
-							  const int lw,
-							  const int up,
-							  const int L,
-							  RNGType &rng,
-							  boost::variate_generator< RNGType, boost::normal_distribution<> >
-							  &get_snd_rand,
-							  boost::random::uniform_real_distribution<> urdist,
-							  boost::random::uniform_real_distribution<> urdist1,
+							  vars var,
 							  Point &fp,
-							  Vector &w){
-	
+							  Vector &w)
+{
+	bool print = false;
+  int m = var.m;
+	int n = var.n;
+	int walk_steps = var.walk_steps;
+	const double err = var.err;
+	const int lw = var.lw;
+	const int up = var.up;
+	const int L = var.L;
+  RNGType &rng = var.rng;
+  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  &get_snd_rand = var.get_snd_rand;
+  boost::random::uniform_real_distribution<> urdist = var.urdist;
+  boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
+
 	//this is the large cube contains the polytope
 	Polytope P=cube(n,-up,up);								
 	
@@ -567,25 +670,25 @@ int optimization(T &KK,
   int step=0;
   while(step < 2*n*L){
 	  // compute m random points in P stored in V 
-	  multipoint_random_walk(P,V,m,n,walk_steps,err,rng,get_snd_rand,urdist,urdist1);
+	  multipoint_random_walk(P,V,var);
 		
 	  //compute the average using the half of the random points
 		Vector z(n,CGAL::NULL_VECTOR);
 		int i=0;
 		std::vector<Point>::iterator vit=V.begin();
-		//std::cout<<"RANDOM POINTS"<<std::endl;
+		if (print) std::cout<<"RANDOM POINTS"<<std::endl;
 		for(; i<m/2; ++i,++vit){
 			CGAL:assert(vit!=V.end());
 			z = z + (*vit - CGAL::Origin());
 			//std::cout<<*vit<<std::endl;
 		}
 		z=z/(m/2);	
-		std::cout<<"step "<<step<<": "<<"z=";
-		round_print(z);
+		//std::cout<<"step "<<step<<": "<<"z=";
+		if (print) round_print(z);
 		
-		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z);
+		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z,var);
 		if(sep_result.get_is_in()){
-			std::cout<<"Feasible point found! "<<z<<std::endl;
+			if (print) std::cout<<"Feasible point found! "<<z<<std::endl;
 			fp = CGAL::Origin() + z;
 			Hyperplane H(fp,w);
 			P.push_back(H);
@@ -602,21 +705,21 @@ int optimization(T &KK,
 		//check for the rest rand points which fall in new P
 		std::vector<Point> newV;
 		for(;vit!=V.end();++vit){
-			if(Sep_Oracle(P,*vit).get_is_in())
+			if(Sep_Oracle(P,*vit,var).get_is_in())
 				newV.push_back(*vit);
 		}
 		V=newV;
 		++step;
-		std::cout<<"Cutting hyperplane direction="
+		if (print) std::cout<<"Cutting hyperplane direction="
 		         <<sep_result.get_H_sep().orthogonal_direction()<<std::endl;
-		std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
+		if (print) std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
 		if(V.empty()){
-			std::cout<<"No random points left. ASSUME that there is no feasible point!"<<std::endl;
+			if (print) std::cout<<"No random points left. ASSUME that there is no feasible point!"<<std::endl;
 			//fp = CGAL::Origin() + z;
 			return 0;
 		}
 	}
-	std::cout<<"No feasible point found!"<<std::endl;
+	if (print) std::cout<<"No feasible point found!"<<std::endl;
 	return 0;
 }
 
@@ -624,25 +727,27 @@ int optimization(T &KK,
 // otherwise return 0 and fp has no meaning
 template <class T>
 int opt_interior(T &K,
-							  const int m,
-							  int n,
-							  const int walk_steps,
-							  const double err,
-							  const double err_opt,
-							  const int lw,
-							  const int up,
-							  const int L,
-							  RNGType &rng,
-							  boost::variate_generator< RNGType, boost::normal_distribution<> >
-							  &get_snd_rand,
-							  boost::random::uniform_real_distribution<> urdist,
-							  boost::random::uniform_real_distribution<> urdist1,
 							  Vector &z,
-							  Vector &w){
+							  Vector &w,
+							  vars &var){
+	
+	int m = var.m;
+	int n = var.n;
+	int walk_steps = var.walk_steps;
+	const double err = var.err;
+	const double err_opt = var.err_opt;
+	const int lw = var.lw;
+	const int up = var.up;
+	const int L = var.L;
+  RNGType &rng = var.rng;
+  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  &get_snd_rand = var.get_snd_rand;
+  boost::random::uniform_real_distribution<> urdist = var.urdist;
+  boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
 	
 	//first compute a feasible point in K
 	Point fp;
-  if (feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp)==0){
+  if (feasibility(K,var,fp)==0){
 	  std::cout<<"The input polytope is not feasible!"<<std::endl;
 	  return 1;
 	}
@@ -656,7 +761,7 @@ int opt_interior(T &K,
 	//initialize V !!!! This is a case without theoretical guarantees 
 	for(int i=0; i<m; ++i){
 		Point newv = CGAL::Origin() + z;
-		hit_and_run(newv,K,n,err,rng,urdist,urdist1);
+		hit_and_run(newv,K,var);
 	  V.push_back(newv);
 	}
 	//
@@ -665,7 +770,7 @@ int opt_interior(T &K,
 	do{
 		
 		// compute m random points in K stored in V 
-	  multipoint_random_walk(K,V,m,n,walk_steps,err,rng,get_snd_rand,urdist,urdist1);
+	  multipoint_random_walk(K,V,var);
 			
 	  //compute the average (new z) using the half of the random points
 		Vector newz(n,CGAL::NULL_VECTOR);
@@ -696,7 +801,7 @@ int opt_interior(T &K,
 		//check for the rest rand points which fall in new P
 		std::vector<Point> newV;
 		for(;vit!=V.end();++vit){
-			if(Sep_Oracle(K,*vit).get_is_in())
+			if(Sep_Oracle(K,*vit,var).get_is_in())
 				newV.push_back(*vit);
 		}
 		V=newV;
@@ -723,24 +828,29 @@ int opt_interior(T &K,
 // randomized approximate volume computation 
 /*************************************************
 /**************** VOLUME with hit and run        */
-// it stuck in the corners
+// We assume that the polytope P is proporly sandwitched
+// The sandwitching:
+// r is the radius of the smallest ball
+// d is the radius of the largest
 template <class T>
 NT volume1(T &P,
-					int n,
-					int rnum,
-					int walk_len,
-					double err,
-					RNGType &rng,
-					boost::random::uniform_real_distribution<> &urdist,
-					boost::random::uniform_real_distribution<> &urdist1){
-						
-	// The sandwitching 
-	// r is the radius of the smallest ball
-	// d is the radius of the largest
-  std::vector<NT> coords_apex(n,1);
-	Vector p_apex(n,coords_apex.begin(),coords_apex.end());
-  const NT r=1, d=std::sqrt(p_apex.squared_length());
-  const int nb = std::ceil(n * (std::log(d)/std::log(2.0)));
+					 vars &var,
+					 NT r, 
+					 NT d,
+					 bool print = false)
+{
+  typedef BallIntersectPolytope<T>        BallPoly; 
+	 
+	int n = var.n;
+	int rnum = var.m;
+	int walk_len = var.walk_steps;
+	const double err = var.err;
+	RNGType &rng = var.rng;
+  boost::random::uniform_real_distribution<> urdist = var.urdist;
+  boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
+	
+	//The number of balls we construct 
+  int nb = std::ceil(n * (std::log(d)/std::log(2.0)));
   //std::cout<<"nb="<<nb<<", d="<<d<<std::endl;
   //std::pow(std::log(n),2)
   
@@ -762,8 +872,8 @@ NT volume1(T &P,
 		//radius=1, center=Origin()
 		std::vector<NT> coords(n,0);
 		Point p(n,coords.begin(),coords.end());
-		BallIntersectPolytope PBold(P,balls[0]);
-		hit_and_run(p,PBold,n,err,rng,urdist,urdist1);
+		BallPoly PBold(P,balls[0]);
+		hit_and_run(p,PBold,var);
 		//std::cout<<p<<std::endl;
 		//std::cout<<Sep_Oracle(PBold,p).get_is_in()<<std::endl;
 		//std::cout<<balls[0].is_in(p)<<std::endl;
@@ -783,18 +893,19 @@ NT volume1(T &P,
 			
 		for(; bit!=balls.end(); ++bit, ++prod_it){
 			// generate a random point in bit intersection with P 
-			BallIntersectPolytope PB(P,*bit);
+			BallPoly PB(P,*bit);
 			
 			for(int j=0; j<walk_len; ++j){
-			  hit_and_run(p,PB,n,err,rng,urdist,urdist1);
+			  hit_and_run(p,PB,var);
 				//std::cout<<"h-n-r:"<<p<<std::endl;
 			}
-			if (Sep_Oracle(PBold,p).get_is_in()){
-				//std::cout<<p<<" IN ball: "<<PBold.second.center()<<PBold.second.radius()<<std::endl;
+			if (Sep_Oracle(PBold,p,var).get_is_in()){
+				std::cout<<p<<" IN ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
 			  ++(*prod_it);
 			}else{
-			  ;//std::cout<<p<<":"<<(p-CGAL::Origin()).squared_length()
-			  //<<" OUT ball: "<<PBold.second.center()<<PBold.second.radius()<<std::endl;
+			  ;
+			  std::cout<<p<<":"<<(p-CGAL::Origin()).squared_length()
+			  <<" OUT ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
 			}
 			PBold=PB;
 		}
@@ -818,16 +929,20 @@ NT volume1(T &P,
 // VOLUME with multipoint random walk
 template <class T>
 NT volume2(T &P,
-					int n,
-					int rnum,
-					int walk_len,
-					double err,
-					RNGType &rng,
-					boost::variate_generator< RNGType, boost::normal_distribution<> >
-					&get_snd_rand,
-					boost::random::uniform_real_distribution<> &urdist,
-					boost::random::uniform_real_distribution<> &urdist1){
-						
+					 vars &var)
+{
+	typedef BallIntersectPolytope<T>        BallPoly; 				
+				
+	int n = var.n;
+	int rnum = var.m;
+	int walk_len = var.walk_steps;
+	const double err = var.err;
+	RNGType &rng = var.rng;
+  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  get_snd_rand = var.get_snd_rand;
+  boost::random::uniform_real_distribution<> urdist = var.urdist;
+  boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
+  	
 	// The sandwitching 
 	// r is the radius of the smallest ball
 	// d is the radius of the largest
@@ -854,13 +969,13 @@ NT volume2(T &P,
   std::vector<int> telescopic_prod(nb,0);
   //vector to store the random points
   std::vector<Point> V;
-  BallIntersectPolytope PBold(P,balls[0]);
+  BallPoly PBold(P,balls[0]);
   for(int i=0; i<rnum; ++i){ 
 		// generate rnum rand points  
 		// in the smallest ball i.e. radius=1, center=Origin()
 		std::vector<NT> coords(n,0);
 		Point p(n,coords.begin(),coords.end());
-		hit_and_run(p,PBold,n,err,rng,urdist,urdist1);
+		hit_and_run(p,PBold,var);
 		V.push_back(p);
 		//std::cout<<p<<std::endl;
 	}	
@@ -873,13 +988,14 @@ NT volume2(T &P,
 	++bit; 
 	for(; bit!=balls.end(); ++bit, ++prod_it){
 		// generate a random point in bit (intersection) P 
-		BallIntersectPolytope PB(P,*bit);
+		BallPoly PB(P,*bit);
 	  std::cout<<"walking..."<<walk_len<<"steps"<<std::endl;
-		multipoint_random_walk(PB,V,V.size(),n,walk_len,err,rng,get_snd_rand,urdist,urdist1);
+	  var.m = V.size();
+		multipoint_random_walk(PB,V,var);
 		
 		for(int j=0; j<V.size(); ++j){
 		  
-			if (Sep_Oracle(PBold,V[j]).get_is_in()){
+			if (Sep_Oracle(PBold,V[j],var).get_is_in()){
 				//std::cout<<p<<" IN ball: "<<PBold.second.center()<<PBold.second.radius()<<std::endl;
 				++(*prod_it);
 			}//else{
