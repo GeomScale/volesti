@@ -55,8 +55,8 @@ int main(const int argc, const char** argv)
   //
   const int L=30;
   //error in hit-and-run bisection of P 
-  const double err=0.000001; 
-  const double err_opt=0.01; 
+  const double err=0.0001; 
+  const double err_opt=0.1; 
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
@@ -161,27 +161,33 @@ int main(const int argc, const char** argv)
 	//Build the separation in dual 
 	//query point q
 	//std::cout<<"--------"<<P1sum<<" "<< P2sum<<std::endl;
-	
+	/*
 	Vector q2(2,-2);
 	//q -= (P1sum + P2sum);
 	
-	vars var(m,n,walk_steps,err,0,lw,up,L,rng,get_snd_rand,urdist,urdist1);
-	
+	vars var(100,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
+  
 	Point q3(-1.999,0.956277);
+	tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 	std::cout<<"SepOracle="<<
 	Sep_Oracle(Msum,q3,var).get_is_in()
 	<<std::endl;
-	
-	
+	tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+	std::cout<<"time = "<<tstop-tstart<<std::endl;
 	exit(1);
+	
+	/**/
 	// Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   int walk_len =  wl_c * std::pow(n,4);
   
   tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-  vars var2(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
-  double v1 = volume1(Msum,var2,1,std::sqrt(13.0));
+  //volume vars
+  vars var1(20,n,5,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
+  //opt vars
+  vars var2(10,n,1,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
+  double v1 = volume1(Msum,var1,var2,1,std::sqrt(13.0));
   tstop = (double)clock()/(double)CLOCKS_PER_SEC;
   //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
   
@@ -194,13 +200,19 @@ int main(const int argc, const char** argv)
 	std::cout<<"# rand points = "<<rnum<<std::endl;
 	std::cout<<"time = "<<tstop-tstart<<std::endl;
 	
-	
 	//compute the Minkowski sum and then the volume
 	// compute mink sum using a naive algorithm
   V_polytope P;
   Minkowski_sum_naive(P1,P2,P);
   for(V_polytope::iterator pit=P.begin(); pit!=P.end(); ++pit)
 		std::cout<<*pit<<std::endl;
+	
+	std::ofstream polymakefile;
+	polymakefile.open("volume.polymake");
+	print_polymake_volfile(P,polymakefile);
+	system ("polymake volume.polymake");
+	std::cout<<std::endl;
+	
 	
 	/*
 	Point fp;
