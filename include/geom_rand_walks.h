@@ -112,7 +112,7 @@ struct vars{
 					const double err,
 					const double err_opt,
 					const int lw,
-					const int up,
+					double up,
 					const int L,
 				  RNGType &rng,
 				  boost::variate_generator< RNGType, boost::normal_distribution<> >
@@ -130,7 +130,7 @@ struct vars{
 		const double err;
 		const double err_opt;
 		const int lw;
-		const int up;
+		double up;
 		const int L;
 	  RNGType &rng;
 	  boost::variate_generator< RNGType, boost::normal_distribution<> >
@@ -199,7 +199,7 @@ struct sep{
 
 
 /* Construct a n-CUBE */
-Polytope cube(int n, const NT lw, const NT up){	
+Polytope cube(int n, NT lw, NT up){	
 	Polytope cube;
 	std::vector<NT> origin(n,NT(lw));
 	for(int i=0; i<n; ++i){
@@ -215,6 +215,7 @@ Polytope cube(int n, const NT lw, const NT up){
 	}
 	std::vector<NT> apex(n,NT(up));
 	for(int i=0; i<n; ++i){
+		std::cout<<apex[i]<<" ";
 		std::vector<NT> normal;
 		for(int j=0; j<n; ++j){
 			if(i==j) 
@@ -256,7 +257,8 @@ Ball ball(int n, const NT r){
 
 template <class T>
 int optimization(T &KK,vars var,Point &fp,Vector &w);
-
+template <class T>
+int opt_interior(T &K,vars &var,Point &opt,Vector &w);
 
 // GENERIC ORACLE DESCRIPTION
 // template parameter specialization
@@ -304,7 +306,10 @@ template<> sep Sep_Oracle<MinkSumPolytope>(MinkSumPolytope &P,
 	MinkSumPolytopeDual Pdual(P,true);
 	Point fp;
 	Vector w=v-CGAL::Origin();
+  double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
   optimization(Pdual,var,fp,w);
+  std::cout<<"O"<<(double)clock()/(double)CLOCKS_PER_SEC - tstart<<" "<<std::flush;
+  //opt_interior(Pdual,var,fp,w);
   //std::cout<<"OPT="<<fp<<std::endl;
   if ((fp-CGAL::Origin()) * (v-CGAL::Origin()) <= NT(1.0))
     return sep(true); // is in
@@ -330,13 +335,13 @@ template<> sep Sep_Oracle<MinkSumPolytopeDual>(MinkSumPolytopeDual &Pdual,
 	Point max_p1 = *(P1.begin());
 	for(V_polytope::iterator pit=P1.begin(); pit!=P1.end(); ++pit){
 		double innerp = q * (*pit-CGAL::Origin());
-		std::cout<<*pit<<" "<<q<<" "<<innerp<<std::endl;
+		//std::cout<<*pit<<" "<<q<<" "<<innerp<<std::endl;
 		if(innerp > max){
 			max = innerp;
 			max_p1 = *pit;
 		}
 	}
-	std::cout<<max_p1<<std::endl;
+	//std::cout<<max_p1<<std::endl;
 	max = q * (*(P2.begin())-CGAL::Origin());
 	Point max_p2 = *(P2.begin());
 	for(V_polytope::iterator pit=P2.begin(); pit!=P2.end(); ++pit){
@@ -346,7 +351,7 @@ template<> sep Sep_Oracle<MinkSumPolytopeDual>(MinkSumPolytopeDual &Pdual,
 			max_p2 = *pit;
 		}
 	}
-	std::cout<<max_p2<<std::endl;
+	//std::cout<<max_p2<<std::endl;
 	Vector max_psum=(max_p1-CGAL::Origin())+(max_p2-CGAL::Origin());
 	//+ q*(-P1sum -P2sum)
 	if(max_psum*q <= 1)
@@ -377,18 +382,16 @@ Vector line_intersect(Point pin,
   Vector vin=pin-CGAL::Origin();
   //first compute a point outside P along the line
   Point pout=pin;
-  //std::cout<<"Starting inside point: ";
-  //round_print(pin);
-
-  Vector aug(l);
+  //std::cout<<"Starting inside point: "<<vin<<std::endl;
+	
+	Vector aug(l);
   while(Sep_Oracle(P,pout,var).get_is_in() == true){
     aug*=2;
     pout+=aug;
-    //std::cout<<"Outside point: ";
-    //round_print(pout);
+    //std::cout<<"l="<<l<<" aug="<<aug<<" Outside point:(pout) "<<pout<<std::endl;
   }
   Vector vout=pout-CGAL::Origin();
-
+  
   //intersect using bisection
   //std::cout<<"pout"<<vout<<std::endl;
   Vector vmid;
@@ -406,6 +409,7 @@ Vector line_intersect(Point pin,
   //std::cout<<"Intersection point: ";
   //round_print(vmid);
   //return vmid; 
+	
 	return vin; //ensure that the point is always in P 
 }
 
@@ -473,7 +477,8 @@ int multipoint_random_walk(T &P,
 	  ++Vit;
 	  if(Vit==V.end())
 			Vit=V.begin();
-	}
+	}	
+	
 	//append U to V
 	V.insert(V.end(),U.begin(),U.end());
 	//std::cout<<"--------------------------"<<std::endl;
@@ -483,12 +488,13 @@ int multipoint_random_walk(T &P,
 		hit_and_run(v,P,var);
 		//std::cout<<*vit<<"---->"<<v<<std::endl;
 	}
+	
 	//std::cout<<"WALKING......"<<std::endl;											 
 	for(int mk=0; mk<walk_steps; ++mk){
 		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
 			Point v=*vit;
-			
-			/* Choose a direction */
+		  
+		  /* Choose a direction */
 			std::vector<double> a(V.size());
 			generate(a.begin(),a.end(),get_snd_rand);
 			
@@ -505,9 +511,9 @@ int multipoint_random_walk(T &P,
 			// Compute the line 
 			Line line(v,l.direction());
 			//std::cout<<line<<std::endl;
-			
+	    
 			// Compute the 2 points that the line and P intersect 
-			Vector b1=line_intersect(v,l,P,var);
+			Vector b1=line_intersect(v,l,P,var);	
 			Vector b2=line_intersect(v,-l,P,var);
 			//std::cout<<"["<<b1<<","<<b2<<"]"<<std::endl;
 			
@@ -547,7 +553,7 @@ int feasibility(T &KK,
   const int walk_steps = var.walk_steps;
   const double err = var.err;
   const int lw = var.lw;
-  const int up = var.up;
+  double up = var.up;
   const int L = var.L;
   RNGType &rng = var.rng;
   boost::variate_generator< RNGType, boost::normal_distribution<> >
@@ -556,16 +562,15 @@ int feasibility(T &KK,
   boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
   	
 	//this is the large cube contains the polytope
-	Polytope P=cube(n,lw,up);								
+	Polytope P=cube(n,-up,up);								
 	
 	/* Initialize points in cube */
-  CGAL::Random CGALrng;
   // create a vector V with the random points
   std::vector<Point> V;
   for(size_t i=0; i<m; ++i){
 		std::vector<NT> t;
 		for(size_t j=0; j<n; ++j)
-			t.push_back(NT(CGALrng.get_int(lw,up)));
+			t.push_back(NT(urdist(rng) * up));
 		Point v(n,t.begin(),t.end());
 		V.push_back(v);
 		//std::cout<<v<<std::endl;
@@ -589,6 +594,8 @@ int feasibility(T &KK,
 		z=z/(m/2);	
 		if (print) std::cout<<"step "<<step<<": "<<"z=";
 		if (print) round_print(z);
+		std::cout<<"Step:"<<step<<" Current centroid= "<<z
+		         <<std::endl;
 		
 		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z,var);
 		if(sep_result.get_is_in()){
@@ -627,7 +634,7 @@ int feasibility(T &KK,
 	return 0;
 }
 
-// 
+// TODO: merge same code with interior opt
 template <class T>
 int optimization(T &KK,
 							  vars var,
@@ -635,12 +642,14 @@ int optimization(T &KK,
 							  Vector &w)
 {
 	bool print = false;
+	bool print2 = false;
   int m = var.m;
 	int n = var.n;
 	int walk_steps = var.walk_steps;
 	const double err = var.err;
+	const double err_opt = var.err_opt;
 	const int lw = var.lw;
-	const int up = var.up;
+	double up = var.up;
 	const int L = var.L;
   RNGType &rng = var.rng;
   boost::variate_generator< RNGType, boost::normal_distribution<> >
@@ -648,43 +657,54 @@ int optimization(T &KK,
   boost::random::uniform_real_distribution<> urdist = var.urdist;
   boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
 
-	//this is the large cube contains the polytope
+	//this is the bounding cube that contains the polytope KK
 	Polytope P=cube(n,-up,up);								
 	
-	/* Initialize points in cube */
-  CGAL::Random CGALrng;
+	/* Initialize points in cube */  
   // create a vector V with the random points
   std::vector<Point> V;
   for(size_t i=0; i<m; ++i){
 		std::vector<NT> t;
 		for(size_t j=0; j<n; ++j)
-			t.push_back(NT(CGALrng.get_int(lw,up)));
+			t.push_back(NT(urdist(rng) * up));
 		Point v(n,t.begin(),t.end());
 		V.push_back(v);
 		//std::cout<<v<<std::endl;
 	}
 	
-	//initialize the cut with sth that contain KK
+		//initialize the cut with sth that contain KK
 	Hyperplane KK_cut = *(P.begin());
 	//iterate for 2nL steps 
   int step=0;
-  while(step < 2*n*L){
+  double epsilon=1.0;
+  Vector z(n,CGAL::NULL_VECTOR);
+    
+  while(step < 2*n*L && epsilon > err_opt){
 	  // compute m random points in P stored in V 
 	  multipoint_random_walk(P,V,var);
 		
+	
 	  //compute the average using the half of the random points
-		Vector z(n,CGAL::NULL_VECTOR);
+		Vector newz(n,CGAL::NULL_VECTOR);
 		int i=0;
 		std::vector<Point>::iterator vit=V.begin();
 		if (print) std::cout<<"RANDOM POINTS"<<std::endl;
 		for(; i<m/2; ++i,++vit){
 			CGAL:assert(vit!=V.end());
-			z = z + (*vit - CGAL::Origin());
+			newz = newz + (*vit - CGAL::Origin());
 			//std::cout<<*vit<<std::endl;
 		}
-		z=z/(m/2);	
+		
+		newz=newz/(m/2);	
+		epsilon = std::abs(w*newz - w*z);
+		
+		//update z
+		z = newz;
+		
 		//std::cout<<"step "<<step<<": "<<"z=";
 		if (print) round_print(z);
+		if (print2) std::cout<<"Step:"<<step<<" Current centroid= "<<z
+		         <<" w*z="<<w*z<<" epsilon="<<epsilon<<std::endl;
 		
 		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z,var);
 		if(sep_result.get_is_in()){
@@ -727,9 +747,9 @@ int optimization(T &KK,
 // otherwise return 0 and fp has no meaning
 template <class T>
 int opt_interior(T &K,
-							  Vector &z,
-							  Vector &w,
-							  vars &var){
+                 vars &var,
+							   Point &opt,
+							   Vector &w){
 	
 	int m = var.m;
 	int n = var.n;
@@ -737,7 +757,7 @@ int opt_interior(T &K,
 	const double err = var.err;
 	const double err_opt = var.err_opt;
 	const int lw = var.lw;
-	const int up = var.up;
+	double up = var.up;
 	const int L = var.L;
   RNGType &rng = var.rng;
   boost::variate_generator< RNGType, boost::normal_distribution<> >
@@ -747,11 +767,11 @@ int opt_interior(T &K,
 	
 	//first compute a feasible point in K
 	Point fp;
-  if (feasibility(K,var,fp)==0){
+  if (feasibility(K,fp,var)==0){
 	  std::cout<<"The input polytope is not feasible!"<<std::endl;
 	  return 1;
 	}
-	z = fp - CGAL::Origin();
+	Vector z = fp - CGAL::Origin();
 	// Initialization
 	Hyperplane H(fp,w);
 	K.push_back(H);
@@ -766,7 +786,7 @@ int opt_interior(T &K,
 	}
 	//
 	int step=0;
-	double len;	
+	double epsilon;	
 	do{
 		
 		// compute m random points in K stored in V 
@@ -774,6 +794,7 @@ int opt_interior(T &K,
 			
 	  //compute the average (new z) using the half of the random points
 		Vector newz(n,CGAL::NULL_VECTOR);
+		
 		int i=0;
 		std::vector<Point>::iterator vit=V.begin();
 		//std::cout<<"RANDOM POINTS"<<std::endl;
@@ -782,23 +803,22 @@ int opt_interior(T &K,
 			newz = newz + (*vit - CGAL::Origin());
 			//std::cout<<*vit<<std::endl;
 		}
+		
 		newz=newz/(m/2);	
-		len = std::abs(w*newz - w*z);
-		std::cout<<"step "<<step<<": "<<"z="<<z<<" "
-		         "newz="<<newz<<" "
-		         <<"w*z="<<w*z<<" "
-		         <<"w*newz="<<w*newz<<" "
-		         <<"len="<<len<<std::endl;
+		epsilon = std::abs(w*newz - w*z);
+		
+		std::cout<<"Step:"<<step<<" Current centroid= "<<z
+		         <<" w*z="<<w*z<<" epsilon="<<epsilon<<std::endl;
 		
 		//Update z
 		z=newz;
 		
-		//update P with the hyperplane passing through z	
+		//update K with the hyperplane passing through z	
 		Hyperplane H(CGAL::Origin()+z,w);
 		K.pop_back();
 		K.push_back(H);
 		
-		//check for the rest rand points which fall in new P
+		//check for the rest rand points which fall in new K
 		std::vector<Point> newV;
 		for(;vit!=V.end();++vit){
 			if(Sep_Oracle(K,*vit,var).get_is_in())
@@ -816,9 +836,10 @@ int opt_interior(T &K,
 			return 0;
 		}
 		
-	}while(len>err_opt);
+	}while(epsilon>err_opt);
 	
 	std::cout<<"OPT = "<<z<<std::endl;
+	opt = CGAL::Origin() + z;
 	return 0;
 }
 
@@ -834,7 +855,8 @@ int opt_interior(T &K,
 // d is the radius of the largest
 template <class T>
 NT volume1(T &P,
-					 vars &var,
+					 vars &var,  // constans for volume
+					 vars &var2, // constants for optimization in case of MinkSums
 					 NT r, 
 					 NT d,
 					 bool print = false)
@@ -882,7 +904,7 @@ NT volume1(T &P,
 		std::vector<Ball>::iterator bit=balls.begin();
 		std::vector<int>::iterator prod_it=telescopic_prod.begin();
 		++bit; 
-		std::cout<<"generate random point..."<<i<<"/"<<rnum<<" ";
+		std::cout<<"\n\ngenerate random point..."<<i<<"/"<<rnum<<" ";
 		const NT pi = boost::math::constants::pi<NT>();
 		NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0); 
 		for(std::vector<int>::iterator prod_it=telescopic_prod.begin(); 
@@ -890,16 +912,17 @@ NT volume1(T &P,
 			vol *= NT(i+1)/NT(*prod_it);
 		}
 		std::cout<<"current vol estimation= "<<vol<<std::endl;
-			
+	  std::cout<<"walklen="<<walk_len<<std::endl;
+	  std::cout<<"rnum="<<rnum<<std::endl;
 		for(; bit!=balls.end(); ++bit, ++prod_it){
 			// generate a random point in bit intersection with P 
 			BallPoly PB(P,*bit);
 			
 			for(int j=0; j<walk_len; ++j){
 			  hit_and_run(p,PB,var);
-				//std::cout<<"h-n-r:"<<p<<std::endl;
+				std::cout<<"h-n-r:"<<p<<std::endl;
 			}
-			if (Sep_Oracle(PBold,p,var).get_is_in()){
+			if (Sep_Oracle(PBold,p,var2).get_is_in()){
 				std::cout<<p<<" IN ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
 			  ++(*prod_it);
 			}else{
@@ -1020,5 +1043,44 @@ NT volume2(T &P,
 	std::cout<<"volume = "<<vol<<std::endl;
 	std::cout<<"exact volume = "<<std::pow(2,n)<<std::endl;
 	return vol;
+}
+
+
+// polymake file to compute exact volume
+template <class T>
+void print_polymake_volfile(T &P,
+														std::ostream& os){
+  // print the vertices of the P polytope
+  os << "use Time::HiRes qw(gettimeofday tv_interval);\n";
+	os << "use application 'polytope';\n";
+	os << "my $p=new Polytope<Rational>;\n";
+	os << "$p->POINTS=<<'.';\n";
+  for (typename T::iterator vit = P.begin(); vit != P.end(); vit++){
+    os << "1 ";
+    for (Point::Cartesian_const_iterator cit=vit->cartesian_begin();
+         cit != vit->cartesian_end();
+         cit++){
+      os << *cit;
+      if (cit - vit->cartesian_begin() != vit->dimension()-1)
+        os << " ";
+    }
+    //os << "|" << vit->point().index();
+    os << "\n";
+  }
+	os << ".\n";
+	os << "print ' ';\n";
+	os << "print $p->N_POINTS;\n";
+	os << "print ' ';\n";
+	os << "print $p->N_VERTICES;\n";
+	os << "print ' ';\n";
+	os << "print $p->DIM;\n";
+	os << "print ' ';\n";
+	os << "my $t0 = [gettimeofday];\n";
+	os << "my $f=$p->VOLUME;\n";
+	os << "print double($f);\n";
+	os << "print ' ';\n";
+	os << "print tv_interval($t0,[gettimeofday]);\n";
+	os << "print ' ';\n";
+	os << std::endl;
 }
 
