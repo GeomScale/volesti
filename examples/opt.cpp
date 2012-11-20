@@ -43,14 +43,14 @@ int main(const int argc, const char** argv)
 	}
 	
 	//for timing
-  double tstart, tstop;
+  double tstart, tstop, tstart2, tstop2;
 
   /* CONSTANTS */
   // L = log(R/r)
   const int L=30;
   //error in hit-and-run bisection of P 
-  const double err=0.000001; 
-  const double err_opt=0.01; 
+  const double err=0.001; 
+  const double err_opt=0.001; 
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
@@ -87,17 +87,28 @@ int main(const int argc, const char** argv)
   //the number of steps in every random walk
   int walk_len =  wl_c * std::pow(n,4);
   
-  //compute the optimum 
+  //do optimization 
   tstart = (double)clock()/(double)CLOCKS_PER_SEC;
   vars var(rnum,n,walk_len,err,0,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   optimization(P,var,fp,w);
   tstop = (double)clock()/(double)CLOCKS_PER_SEC;
   
+  Point fp2;
+  //do interior point optimization	
+	tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
+  vars var2(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
+  opt_interior(P,var2,fp2,w);
+  tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
+  
   //print the results
-  std::cout<<"OPT="<<fp<<std::endl;
+  std::cout<<"OPT = "<<fp<<std::endl;
   std::cout<<"# walk steps = "<<walk_len<<std::endl;
 	std::cout<<"# rand points = "<<rnum<<std::endl;
 	std::cout<<"time = "<<tstop-tstart<<std::endl;
+	//std::cout<<"max num of iterations = "<<2*n*L<<std::endl;
+  //
+  std::cout<<"OPT I="<<fp2<<std::endl;
+	std::cout<<"time = "<<tstop2-tstart2<<std::endl;
   /**/
   
   //std::vector<NT> testp(n,NT(0.2));
