@@ -215,7 +215,7 @@ Polytope cube(int n, NT lw, NT up){
 	}
 	std::vector<NT> apex(n,NT(up));
 	for(int i=0; i<n; ++i){
-		std::cout<<apex[i]<<" ";
+		//std::cout<<apex[i]<<" ";
 		std::vector<NT> normal;
 		for(int j=0; j<n; ++j){
 			if(i==j) 
@@ -307,8 +307,9 @@ template<> sep Sep_Oracle<MinkSumPolytope>(MinkSumPolytope &P,
 	Point fp;
 	Vector w=v-CGAL::Origin();
   double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+  //std::cout<<"SEP_ORACLE #randpoints="<<var.m<<std::endl;
   optimization(Pdual,var,fp,w);
-  std::cout<<"O"<<(double)clock()/(double)CLOCKS_PER_SEC - tstart<<" "<<std::flush;
+  //std::cout<<"O"<<(double)clock()/(double)CLOCKS_PER_SEC - tstart<<" "<<std::flush;
   //opt_interior(Pdual,var,fp,w);
   //std::cout<<"OPT="<<fp<<std::endl;
   if ((fp-CGAL::Origin()) * (v-CGAL::Origin()) <= NT(1.0))
@@ -644,6 +645,7 @@ int optimization(T &KK,
 	bool print = false;
 	bool print2 = false;
   int m = var.m;
+  //std::cout<<"OPT #randpoints="<<m<<std::endl;
 	int n = var.n;
 	int walk_steps = var.walk_steps;
 	const double err = var.err;
@@ -658,7 +660,7 @@ int optimization(T &KK,
   boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
 
 	//this is the bounding cube that contains the polytope KK
-	Polytope P=cube(n,-up,up);								
+	Polytope P=cube(n,-up,up);							
 	
 	/* Initialize points in cube */  
   // create a vector V with the random points
@@ -895,7 +897,7 @@ NT volume1(T &P,
 		std::vector<NT> coords(n,0);
 		Point p(n,coords.begin(),coords.end());
 		BallPoly PBold(P,balls[0]);
-		hit_and_run(p,PBold,var);
+		hit_and_run(p,PBold,var2);
 		//std::cout<<p<<std::endl;
 		//std::cout<<Sep_Oracle(PBold,p).get_is_in()<<std::endl;
 		//std::cout<<balls[0].is_in(p)<<std::endl;
@@ -919,16 +921,16 @@ NT volume1(T &P,
 			BallPoly PB(P,*bit);
 			
 			for(int j=0; j<walk_len; ++j){
-			  hit_and_run(p,PB,var);
-				std::cout<<"h-n-r:"<<p<<std::endl;
+			  hit_and_run(p,PB,var2);
+				//std::cout<<"h-n-r:"<<p<<std::endl;
 			}
 			if (Sep_Oracle(PBold,p,var2).get_is_in()){
-				std::cout<<p<<" IN ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
+				//std::cout<<p<<" IN ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
 			  ++(*prod_it);
 			}else{
 			  ;
-			  std::cout<<p<<":"<<(p-CGAL::Origin()).squared_length()
-			  <<" OUT ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
+			  //std::cout<<p<<":"<<(p-CGAL::Origin()).squared_length()
+			  //<<" OUT ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
 			}
 			PBold=PB;
 		}
@@ -940,7 +942,7 @@ NT volume1(T &P,
 	NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0); 
 	//NT vol=1;
 	std::cout<<"vol(K_0)="<<vol<<" ";
-	for(std::vector<int>::iterator prod_it=telescopic_prod.begin(); 
+	for(std::vector<int>::iterator prod_it=telescopic_prod.begin();
 	    prod_it!=telescopic_prod.end(); ++prod_it){
 		vol *= NT(rnum)/NT(*prod_it);
 		std::cout<<NT(rnum)<<"/" << NT(*prod_it)<<"="<<NT(rnum)/NT(*prod_it)<<"\n";

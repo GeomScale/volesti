@@ -55,8 +55,8 @@ int main(const int argc, const char** argv)
   //
   const int L=30;
   //error in hit-and-run bisection of P 
-  const double err=0.0001; 
-  const double err_opt=0.1; 
+  const double err=0.001; 
+  const double err_opt=0.0001; 
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
@@ -165,9 +165,9 @@ int main(const int argc, const char** argv)
 	Vector q2(2,-2);
 	//q -= (P1sum + P2sum);
 	
-	vars var(100,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
+	vars var(20,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
   
-	Point q3(-1.999,0.956277);
+	Point q3(-2.1,0.956277);
 	tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 	std::cout<<"SepOracle="<<
 	Sep_Oracle(Msum,q3,var).get_is_in()
@@ -184,9 +184,10 @@ int main(const int argc, const char** argv)
   
   tstart = (double)clock()/(double)CLOCKS_PER_SEC;
   //volume vars
-  vars var1(20,n,5,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
+  // (#rand_points, n, #walk_steps, ...)
+  vars var1(500,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
   //opt vars
-  vars var2(10,n,1,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
+  vars var2(10,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
   double v1 = volume1(Msum,var1,var2,1,std::sqrt(13.0));
   tstop = (double)clock()/(double)CLOCKS_PER_SEC;
   //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
