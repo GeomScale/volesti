@@ -71,7 +71,15 @@ int main(const int argc, const char** argv)
 	
 	/* VOLUME */
   // The input volume polytope 
-	Polytope P = cube(n,-1,1);
+	//Polytope P = cube(n,-1,1);
+  
+  Polytope P;
+  P.push_back(Hyperplane(Point(3,2),Direction(0,-1)));
+  P.push_back(Hyperplane(Point(3,2),Direction(-1,0)));
+  P.push_back(Hyperplane(Point(-2,-3),Direction(1,0)));
+  P.push_back(Hyperplane(Point(-2,-3),Direction(0,1)));
+  P.push_back(Hyperplane(Point(0,-3),Direction(-1,1)));
+  NT r=1, d=std::sqrt(13.0);
   
   // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
@@ -81,7 +89,7 @@ int main(const int argc, const char** argv)
   //sandwitch
   std::vector<NT> coords_apex(n,1);
 	Vector p_apex(n,coords_apex.begin(),coords_apex.end());
-  NT r=1, d=std::sqrt(p_apex.squared_length());
+  //NT r=1, d=std::sqrt(p_apex.squared_length());
   
   tstart = (double)clock()/(double)CLOCKS_PER_SEC;
   vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
