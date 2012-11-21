@@ -414,6 +414,49 @@ Vector line_intersect(Point pin,
 	return vin; //ensure that the point is always in P 
 }
 
+//version 2
+template <class T>
+Vector line_intersect(Point pin, 
+                      Vector l, 
+                      T &P, 
+											vars &var,
+											vars &var2){
+	
+	double err = var.err;											
+  Vector vin=pin-CGAL::Origin();
+  //first compute a point outside P along the line
+  Point pout=pin;
+  //std::cout<<"Starting inside point: "<<vin<<std::endl;
+	
+	Vector aug(l);
+  while(Sep_Oracle(P,pout,var2).get_is_in() == true){
+    aug*=2;
+    pout+=aug;
+    //std::cout<<"l="<<l<<" aug="<<aug<<" Outside point:(pout) "<<pout<<std::endl;
+  }
+  Vector vout=pout-CGAL::Origin();
+  
+  //intersect using bisection
+  //std::cout<<"pout"<<vout<<std::endl;
+  Vector vmid;
+  double len;
+  do{
+		vmid=(vin+vout)/2;
+		if(Sep_Oracle(P,CGAL::Origin()+vmid,var2).get_is_in() == false)
+			vout=vmid;
+		else
+			vin=vmid;
+		len=CGAL::to_double((vin-vout).squared_length());
+		//std::cout<<"len="<<bool(len<err)<<std::endl;
+	}while(len > err);
+  
+  //std::cout<<"Intersection point: ";
+  //round_print(vmid);
+  //return vmid; 
+	
+	return vin; //ensure that the point is always in P 
+}
+
 /* Hit and run Random Walk */
 template <class T>
 int hit_and_run(Point &p,
@@ -432,6 +475,31 @@ int hit_and_run(Point &p,
 	Vector l(n,v.begin(),v.end());
 	Vector b1 = line_intersect(p,l,P,var);
 	Vector b2 = line_intersect(p,-l,P,var);
+	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
+	double lambda = urdist(rng);
+	p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
+	return 1;
+}
+
+//version 2
+template <class T>
+int hit_and_run(Point &p,
+					      T &P,
+					      vars &var,
+					      vars &var2)
+{	
+	int n = var.n;
+	double err = var.err;
+	RNGType &rng = var.rng;
+	boost::random::uniform_real_distribution<> &urdist = var.urdist;
+	boost::random::uniform_real_distribution<> &urdist1 = var.urdist1; 
+	
+	std::vector<NT> v;
+	for(int i=0; i<n; ++i)
+		v.push_back(urdist1(rng));
+	Vector l(n,v.begin(),v.end());
+	Vector b1 = line_intersect(p,l,P,var,var2);
+	Vector b2 = line_intersect(p,-l,P,var,var2);
 	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
 	double lambda = urdist(rng);
 	p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
@@ -897,7 +965,7 @@ NT volume1(T &P,
 		std::vector<NT> coords(n,0);
 		Point p(n,coords.begin(),coords.end());
 		BallPoly PBold(P,balls[0]);
-		hit_and_run(p,PBold,var2);
+		hit_and_run(p,PBold,var,var2);
 		//std::cout<<p<<std::endl;
 		//std::cout<<Sep_Oracle(PBold,p).get_is_in()<<std::endl;
 		//std::cout<<balls[0].is_in(p)<<std::endl;
@@ -921,7 +989,7 @@ NT volume1(T &P,
 			BallPoly PB(P,*bit);
 			
 			for(int j=0; j<walk_len; ++j){
-			  hit_and_run(p,PB,var2);
+			  hit_and_run(p,PB,var,var2);
 				//std::cout<<"h-n-r:"<<p<<std::endl;
 			}
 			if (Sep_Oracle(PBold,p,var2).get_is_in()){
