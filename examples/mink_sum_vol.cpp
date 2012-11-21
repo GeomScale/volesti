@@ -187,7 +187,7 @@ int main(const int argc, const char** argv)
   // (#rand_points, n, #walk_steps, ...)
   vars var1(500,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
   //opt vars
-  vars var2(10,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
+  vars var2(15,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
   double v1 = volume1(Msum,var1,var2,1,std::sqrt(13.0));
   tstop = (double)clock()/(double)CLOCKS_PER_SEC;
   //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
