@@ -73,7 +73,7 @@ int main(const int argc, const char** argv)
   /*!!! given a direction w compute a vertex v of K that maximize w*v */
   
   //this is the input polytope
-  Polytope P=cube(n,0,10);
+  Polytope P=cube(n,-1,1);
   
   //this is the optimization direction
   std::vector<NT> ww(n,1);
@@ -89,10 +89,11 @@ int main(const int argc, const char** argv)
   
   //do optimization 
   tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-  vars var(rnum,n,walk_len,err,0,lw,up,L,rng,get_snd_rand,urdist,urdist1);
+  vars var(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   optimization(P,var,fp,w);
   tstop = (double)clock()/(double)CLOCKS_PER_SEC;
   
+  std::cout<<"Interior point"<<std::endl;
   Point fp2;
   //do interior point optimization	
 	tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -101,13 +102,17 @@ int main(const int argc, const char** argv)
   tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
   
   //print the results
-  std::cout<<"OPT = "<<fp<<std::endl;
+  std::cout<<"------------------"<<std::endl;
   std::cout<<"# walk steps = "<<walk_len<<std::endl;
-	std::cout<<"# rand points = "<<rnum<<std::endl;
-	std::cout<<"time = "<<tstop-tstart<<std::endl;
+	std::cout<<"# rand points = "<<rnum<<std::endl<<std::endl;
+
+  std::cout<<"OPT = "<<fp<<std::endl;
+  std::cout<<"err = "<<std::abs((fp-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w)<<std::endl;
+  std::cout<<"time = "<<tstop-tstart<<std::endl<<std::endl;
 	//std::cout<<"max num of iterations = "<<2*n*L<<std::endl;
   //
   std::cout<<"OPT I="<<fp2<<std::endl;
+  std::cout<<"err = "<<std::abs((fp2-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w)<<std::endl;
 	std::cout<<"time = "<<tstop2-tstart2<<std::endl;
   /**/
   
