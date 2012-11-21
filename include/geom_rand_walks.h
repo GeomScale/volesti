@@ -692,10 +692,16 @@ int feasibility(T &KK,
 			if (print) std::cout<<"Cutting hyperplane direction="
 			         <<sep_result.get_H_sep().orthogonal_direction()<<std::endl;
 			if (print) std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
-			if(V.empty()){
-				if (print) std::cout<<"No random points left. ASSUME that there is no feasible point!"<<std::endl;
+			
+			if(V.empty()){//HERE we have not theoretical guarantees
+				if (print) std::cout<<"No random points left!"<<std::endl;
+				//try to generate new rand points
+				for(int i=0; i<m; ++i){
+					Point newv = CGAL::Origin() + z;
+					hit_and_run(newv,P,var);
+					V.push_back(newv);
+				}
 				//fp = CGAL::Origin() + z;
-				return 0;
 			}
 		}
 	}
@@ -707,7 +713,7 @@ int feasibility(T &KK,
 template <class T>
 int optimization(T &KK,
 							  vars var,
-							  Point &fp,
+							  Point &opt,
 							  Vector &w)
 {
 	bool print = false;
@@ -742,7 +748,7 @@ int optimization(T &KK,
 		//std::cout<<v<<std::endl;
 	}
 	
-		//initialize the cut with sth that contain KK
+	//initialize the cut with sth that contain KK
 	Hyperplane KK_cut = *(P.begin());
 	//iterate for 2nL steps 
   int step=0;
@@ -779,8 +785,8 @@ int optimization(T &KK,
 		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z,var);
 		if(sep_result.get_is_in()){
 			if (print) std::cout<<"Feasible point found! "<<z<<std::endl;
-			fp = CGAL::Origin() + z;
-			Hyperplane H(fp,w);
+			opt = CGAL::Origin() + z;
+			Hyperplane H(opt,w);
 			P.push_back(H);
 			//KK.push_back(H);
 		}
@@ -803,24 +809,29 @@ int optimization(T &KK,
 		if (print) std::cout<<"Cutting hyperplane direction="
 		         <<sep_result.get_H_sep().orthogonal_direction()<<std::endl;
 		if (print) std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
-		if(V.empty()){
-			if (print) std::cout<<"No random points left. ASSUME that there is no feasible point!"<<std::endl;
-			//fp = CGAL::Origin() + z;
-			return 0;
+		
+		if(V.empty()){//HERE we have no theoretical guarantees
+				if (print) std::cout<<"No random points left!"<<std::endl;
+				//try to generate new rand points
+				for(int i=0; i<m; ++i){
+					Point newv = CGAL::Origin() + z;
+					hit_and_run(newv,P,var);
+					V.push_back(newv);
+				}
+			//opt = CGAL::Origin() + z;
 		}
 	}
-	if (print) std::cout<<"No feasible point found!"<<std::endl;
 	return 0;
 }
 
-// return 1 if P is feasible and fp a point in P
-// otherwise return 0 and fp has no meaning
+// interior point optimization
 template <class T>
 int opt_interior(T &K,
                  vars &var,
 							   Point &opt,
 							   Vector &w){
 	
+	bool print = false;
 	int m = var.m;
 	int n = var.n;
 	int walk_steps = var.walk_steps;
@@ -902,8 +913,14 @@ int opt_interior(T &K,
 		std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
 		
 		if(V.empty()){
-			std::cout<<"No random points left. Current OPT ="<<z<<std::endl;
-			return 0;
+			//HERE we have no theoretical guarantees
+			if (print) std::cout<<"No random points left!"<<std::endl;
+			//try to generate new rand points
+			for(int i=0; i<m; ++i){
+				Point newv = CGAL::Origin() + z;
+				hit_and_run(newv,K,var);
+				V.push_back(newv);
+			}
 		}
 		
 	}while(epsilon>err_opt);
