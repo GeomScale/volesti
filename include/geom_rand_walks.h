@@ -101,7 +101,7 @@ class BallIntersectPolytope {
 
 // define random generators
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
-
+//typedef boost::lagged_fibonacci607 RNGType;
 
 //structs with variables and random generators
 struct vars{
@@ -661,9 +661,9 @@ int feasibility(T &KK,
 			//std::cout<<*vit<<std::endl;
 		}
 		z=z/(m/2);	
-		if (print) std::cout<<"step "<<step<<": "<<"z=";
-		if (print) round_print(z);
-		std::cout<<"Step:"<<step<<" Current centroid= "<<z
+		
+		if (print) 
+		  std::cout<<"Step:"<<step<<" Current centroid= "<<z
 		         <<std::endl;
 		
 		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z,var);
@@ -849,7 +849,7 @@ int opt_interior(T &K,
 	//first compute a feasible point in K
 	Point fp;
   if (feasibility(K,fp,var)==0){
-	  std::cout<<"The input polytope is not feasible!"<<std::endl;
+	  if (print) std::cout<<"The input polytope is not feasible!"<<std::endl;
 	  return 1;
 	}
 	Vector z = fp - CGAL::Origin();
@@ -888,7 +888,8 @@ int opt_interior(T &K,
 		newz=newz/(m/2);	
 		epsilon = std::abs(w*newz - w*z);
 		
-		std::cout<<"Step:"<<step<<" Current centroid= "<<z
+		if (print) 
+		  std::cout<<"Step:"<<step<<" Current centroid= "<<z
 		         <<" w*z="<<w*z<<" epsilon="<<epsilon<<std::endl;
 		
 		//Update z
@@ -908,10 +909,11 @@ int opt_interior(T &K,
 		V=newV;
 		++step;
 		
-	  std::cout<<"Cutting hyperplane direction="
+		if (print) { 
+	    std::cout<<"Cutting hyperplane direction="
 			         <<H.orthogonal_direction()<<std::endl;
-		std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
-		
+		  std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
+	  }
 		if(V.empty()){
 			//HERE we have no theoretical guarantees
 			if (print) std::cout<<"No random points left!"<<std::endl;
@@ -925,7 +927,7 @@ int opt_interior(T &K,
 		
 	}while(epsilon>err_opt);
 	
-	std::cout<<"OPT = "<<z<<std::endl;
+	if (print) std::cout<<"OPT = "<<z<<std::endl;
 	opt = CGAL::Origin() + z;
 	return 0;
 }
