@@ -68,11 +68,13 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
 
 
-	
+	for(n=8; n<20; n+=2){
+	std::cout<<"n="<<n<<"\n"<<std::endl;
 	/* VOLUME */
   // The input volume polytope 
-	//Polytope P = cube(n,-1,1);
+	Polytope P = cube(n,-1,1);
   
+  /*
   Polytope P;
   P.push_back(Hyperplane(Point(3,2),Direction(0,-1)));
   P.push_back(Hyperplane(Point(3,2),Direction(-1,0)));
@@ -80,6 +82,7 @@ int main(const int argc, const char** argv)
   P.push_back(Hyperplane(Point(-2,-3),Direction(0,1)));
   P.push_back(Hyperplane(Point(0,-3),Direction(-1,1)));
   NT r=1, d=std::sqrt(13.0);
+  */
   
   // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
@@ -89,24 +92,34 @@ int main(const int argc, const char** argv)
   //sandwitch
   std::vector<NT> coords_apex(n,1);
 	Vector p_apex(n,coords_apex.begin(),coords_apex.end());
-  //NT r=1, d=std::sqrt(p_apex.squared_length());
+  NT r=1, d=std::sqrt(p_apex.squared_length());
   
-  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-  vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
-  double v1 = volume1(P,var,var,r,d);
-  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-  //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
+  for(int i=1; i<20; ++i){
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
+    double v1 = volume1(P,var,var,r,d);
+    tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+    //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
   
-  double exactvol = std::pow(2,n);
-  
-  std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
-           <<(1-e)*exactvol<<" < "<<v1<<" < "<<(1+e)*exactvol<<std::endl;
-	std::cout<<"exact volume = "<<exactvol<<std::endl;
-	std::cout<<"# walk steps = "<<walk_len<<std::endl;
-	std::cout<<"# rand points = "<<rnum<<std::endl;
-	std::cout<<"time = "<<tstop-tstart<<std::endl;
-  
-	
+	  double exactvol = std::pow(2,n);
+	  
+	  /*
+	  std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
+	           <<(1-e)*exactvol<<" < "<<v1<<" < "<<(1+e)*exactvol<<std::endl;
+		std::cout<<"exact volume = "<<exactvol<<std::endl;
+		std::cout<<"# walk steps = "<<walk_len<<std::endl;
+		std::cout<<"# rand points = "<<rnum<<std::endl;
+		std::cout<<"time = "<<tstop-tstart<<std::endl;
+		*/
+		std::cout<<n<<" "
+		         <<v1<<" "
+		         <<(1+e)*exactvol<<" "
+		         <<exactvol<<" "
+		         <<walk_len<<" "
+		         <<rnum<<" "
+		         <<tstop-tstart<<std::endl;
+	}  
+  }
   return 0;
 }
 
