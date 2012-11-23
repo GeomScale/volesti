@@ -938,7 +938,7 @@ int opt_interior(T &K,
 // randomized approximate volume computation 
 /*************************************************
 /**************** VOLUME with hit and run        */
-// We assume that the polytope P is proporly sandwitched
+// We assume that the polytope P is properly sandwitched
 // The sandwitching:
 // r is the radius of the smallest ball
 // d is the radius of the largest
@@ -947,11 +947,11 @@ NT volume1(T &P,
 					 vars &var,  // constans for volume
 					 vars &var2, // constants for optimization in case of MinkSums
 					 NT r, 
-					 NT d,
-					 bool print = false)
+					 NT d)
 {
   typedef BallIntersectPolytope<T>        BallPoly; 
-	 
+	
+	bool print = false;
 	int n = var.n;
 	int rnum = var.m;
 	int walk_len = var.walk_steps;
@@ -971,10 +971,10 @@ NT volume1(T &P,
   std::vector<Ball> balls;
   for(int i=0; i<=nb; ++i){
 		balls.push_back(Ball(p0,std::pow(std::pow(2.0,NT(i)/NT(n)),2))); 
-		std::cout<<"ball"<<i<<"="<<balls[i].center()<<" "<<balls[i].radius()<<std::endl;
+		if (print) std::cout<<"ball"<<i<<"="<<balls[i].center()<<" "<<balls[i].radius()<<std::endl;
 	}
   assert(!balls.empty());
-  std::cout<<"---------"<<std::endl;
+  if (print) std::cout<<"---------"<<std::endl;
   
     
   std::vector<int> telescopic_prod(nb,0);
@@ -993,16 +993,16 @@ NT volume1(T &P,
 		std::vector<Ball>::iterator bit=balls.begin();
 		std::vector<int>::iterator prod_it=telescopic_prod.begin();
 		++bit; 
-		std::cout<<"\n\ngenerate random point..."<<i<<"/"<<rnum<<" ";
+		if (print) std::cout<<"\n\ngenerate random point..."<<i<<"/"<<rnum<<" ";
 		const NT pi = boost::math::constants::pi<NT>();
 		NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0); 
 		for(std::vector<int>::iterator prod_it=telescopic_prod.begin(); 
 		    prod_it!=telescopic_prod.end(); ++prod_it){
 			vol *= NT(i+1)/NT(*prod_it);
 		}
-		std::cout<<"current vol estimation= "<<vol<<std::endl;
-	  std::cout<<"walklen="<<walk_len<<std::endl;
-	  std::cout<<"rnum="<<rnum<<std::endl;
+		if (print) std::cout<<"current vol estimation= "<<vol<<std::endl;
+	  if (print) std::cout<<"walklen="<<walk_len<<std::endl;
+	  if (print) std::cout<<"rnum="<<rnum<<std::endl;
 		for(; bit!=balls.end(); ++bit, ++prod_it){
 			// generate a random point in bit intersection with P 
 			BallPoly PB(P,*bit);
@@ -1028,11 +1028,11 @@ NT volume1(T &P,
 	const NT pi = boost::math::constants::pi<NT>();
 	NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0); 
 	//NT vol=1;
-	std::cout<<"vol(K_0)="<<vol<<" ";
+	if (print) std::cout<<"vol(K_0)="<<vol<<" ";
 	for(std::vector<int>::iterator prod_it=telescopic_prod.begin();
 	    prod_it!=telescopic_prod.end(); ++prod_it){
 		vol *= NT(rnum)/NT(*prod_it);
-		std::cout<<NT(rnum)<<"/" << NT(*prod_it)<<"="<<NT(rnum)/NT(*prod_it)<<"\n";
+		if (print) std::cout<<NT(rnum)<<"/" << NT(*prod_it)<<"="<<NT(rnum)/NT(*prod_it)<<"\n";
 	}
 	return vol;
 }
