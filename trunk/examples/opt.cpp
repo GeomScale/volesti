@@ -49,9 +49,10 @@ int main(const int argc, const char** argv)
   const int L=30;
   //error in hit-and-run bisection of P 
   const double err=0.001; 
-  const double err_opt=0.001; 
+  const double err_opt=0.00001; 
+  const double err_opt_bisect=0.49;
   //bounds for the cube	
-  const int lw=0, up=100000, R=up-lw;
+  const int lw=0, up=100, R=up-lw;
   
 		
 		
@@ -67,7 +68,7 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
   
   
-  
+  for (n=2; n<20; ++n){
   /* OPTIMIZATION */
   /*!!! given a direction w compute a vertex v of K that maximize w*v */
   
@@ -77,43 +78,59 @@ int main(const int argc, const char** argv)
   //this is the optimization direction
   std::vector<NT> ww(n,1);
   Vector w(n,ww.begin(),ww.end());
-  w=w/w.squared_length();           //normalize
+  //w=w/w.squared_length();           //normalize
   
   
   //the feasible point that approximates opt (at the end fp should be opt)	
-  Point fp, fp2;
-  
+  Point fp1, fp2, fp3;
+    
   //the number of generated random points 
   int rnum =  e * n * std::pow(std::log(n),2);;
   //the number of steps in every random walk
-  int walk_len =  wl_c * std::pow(n,4);
   
-  double t1=0, t2=0, max_err1=0, max_err2=0;
-  int num_of_exp = 50;  
-  vars var(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
+  int walk_len =  wl_c * std::pow(n,4);
+  double t1=0, t2=0, t3=0, max_err1=0, max_err2=0, max_err3=0;
+  int num_of_exp = 10;  
+  vars var1(rnum,n,walk_len,err,err_opt_bisect,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   vars var2(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
-  std::cout<<"# walk steps = "<<walk_len<<std::endl;
-	std::cout<<"# rand points = "<<rnum<<std::endl<<std::endl;
+  vars var3(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
+  //std::cout<<"# walk steps = "<<walk_len<<std::endl;
+	//std::cout<<"# rand points = "<<rnum<<std::endl<<std::endl;
+  //std::cout.precision(3);
+  std::cout<<n<<"\t "
+	           <<e<<"\t "
+	           <<wl_c<<"\t "
+		         <<rnum<<"\t "
+		         <<walk_len<<"\t "<<std::flush;
   for(int i=0; i<num_of_exp; ++i){
-	  std::cout<<"i="<<i<<" "<<std::flush;
 	  //do optimization 
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-	  optimization(P,var,fp,w);
+	  opt_bisect(P,var1,fp1,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t1 += tstop-tstart;
-	  if (max_err1 < std::abs((fp-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w))
-	    max_err1=std::abs((fp-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w);
+	  if (max_err1 < std::abs((fp1-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w))
+	    max_err1=std::abs((fp1-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w);
 	    
 	  //std::cout<<"Interior point"<<std::endl;
 	  //do interior point optimization	
-		tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-	  opt_interior(P,var2,fp2,w);
-	  tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
-	  t2 += tstop2-tstart2;
+		tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+	  optimization(P,var2,fp2,w);
+	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+	  t2 += tstop-tstart;
 	  if (max_err2 < std::abs((fp2-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w))
 	    max_err2=std::abs((fp2-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w);
 	  //std::cout<<"t1="<<tstop-tstart<<" "<<t1<<" t2="<<tstop2-tstart2<<" "<<t2<<std::endl;
+	  
+	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+	  opt_interior(P,var3,fp3,w);
+	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+	  t3 += tstop-tstart;
+	  if (max_err3 < std::abs((fp3-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w))
+	    max_err3=std::abs((fp3-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w);
+	  //std::cout<<"t1="<<tstop-tstart<<" "<<t1<<" t2="<<tstop2-tstart2<<" "<<t2<<std::endl;
+	  
   }
+  /*
   //print the results
   std::cout<<"------------------"<<std::endl;
 
@@ -125,81 +142,20 @@ int main(const int argc, const char** argv)
   std::cout<<"OPT I="<<fp2<<std::endl;
   std::cout<<"max err = "<<max_err2<<std::endl;
 	std::cout<<"time = "<<t2/num_of_exp<<std::endl;
-  
+	*/
+	std::cout  <<max_err1<<"\t "
+		         <<t1/num_of_exp<<"\t "
+		         <<max_err2<<"\t "
+		         <<t2/num_of_exp<<"\t "
+             <<max_err3<<"\t "
+		         <<t3/num_of_exp<<std::endl;
+  }
   /**/
   
   //std::vector<NT> testp(n,NT(0.2));
   //std::cout<<B.has_on_positive_side(Point(n,testp.begin(),testp.end()))<<std::endl;
   
-  /* Optimization with bisection
-	 * TODO: make it a function!!!
-	 */
   
-  /*
-  if (feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp)==0){
-	  std::cout<<"The input polytope is not feasible!"<<std::endl;
-	  return 1;
-	}
-	
-	//then compute a point outside K along the line (fp,w)
-  Point pout=fp+100*w;
-  Point pin=fp;
-  
-  
-  std::cout<<"Start point: ";
-  round_print(pout);
-  Vector aug(w);
-  while(Sep_Oracle(K,pout).get_is_in() == true){
-    aug*=2;
-    pout+=aug;
-    std::cout<<"Next point: ";
-    round_print(pout);
-  }
-  
-  //find a hyperplane that is not feasible
-  bool feasible=true;
-  do{
-	  Hyperplane H(pout,w);
-	  std::cout<<std::endl<<"CHECKING FEASIBILITY IN :"<<pout<<std::endl;
-		K.push_back(H);
-		if(feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp) == 1){
-			aug*=2;
-      pout+=aug;
-      std::cout<<"Outside point but feasible hyperplane: ";
-    }
-		else
-			feasible=false;
-    K.pop_back();
-  }while(feasible);
-  std::cout<<"NON feasible hyperplane found. pout= ";
-  round_print(pout);
-  
-  
-  //binary search for optimization
-  double len;
-  Point pmid;
-  do{
-		pmid=CGAL::Origin()+(((pin-CGAL::Origin())+(pout-CGAL::Origin()))/2);
-		Hyperplane H(pmid,w);
-		K.push_back(H);
-		std::cout<<"pmid,pin,pout,w"<<std::endl;
-		round_print(pmid);
-		round_print(pin);round_print(pout);round_print(w);
-		
-		if(feasibility(K,m,n,walk_steps,err,lw,up,L,rng,get_snd_rand,urdist,urdist1,fp) == 1)
-			pin=pmid;
-		else
-			pout=pmid;
-		K.pop_back();
-		len=std::abs((pin-CGAL::Origin())*w - (pout-CGAL::Origin())*w);
-		std::cout<<"len="<<len<<std::endl;
-		std::cout<<"fp=";round_print(fp);
-	}while(len > err_opt);
-	std::cout<<"fp=";
-	round_print(fp);
-	std::cout<<"w=";
-	round_print(w);
-	*/
 	  
   return 0;
 }
