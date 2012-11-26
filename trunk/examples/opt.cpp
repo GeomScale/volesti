@@ -67,18 +67,29 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<>(urdist); 
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
   
+  //cross(n,-1,1);
+  //exit(1);
   
-  for (n=2; n<20; ++n){
+  //for (n=2; n<20; ++n){
   /* OPTIMIZATION */
   /*!!! given a direction w compute a vertex v of K that maximize w*v */
   
-  //this is the input polytope
-  Polytope P=cube(n,-1,1);
+  //Define the input polytope and the optimization direction
   
-  //this is the optimization direction
-  std::vector<NT> ww(n,1);
-  Vector w(n,ww.begin(),ww.end());
+    /*  Cube  */
+  //Polytope P=cube(n,-1,1);
+  //std::vector<NT> ww(n,1);
+  //Vector w(n,ww.begin(),ww.end());
   //w=w/w.squared_length();           //normalize
+  
+  /*  Cross-polytope  */
+  Polytope P=cross_skinny(n,-1,1);
+  std::vector<NT> ww;
+	for(int j=0; j<n; ++j){
+		if(j==1) ww.push_back(NT(1));
+		else ww.push_back(NT(0));
+  }
+  Vector w(n,ww.begin(),ww.end());
   
   
   //the feasible point that approximates opt (at the end fp should be opt)	
@@ -90,10 +101,21 @@ int main(const int argc, const char** argv)
   
   int walk_len =  wl_c * std::pow(n,4);
   double t1=0, t2=0, t3=0, max_err1=0, max_err2=0, max_err3=0;
-  int num_of_exp = 10;  
+  int num_of_exp = 1;  
   vars var1(rnum,n,walk_len,err,err_opt_bisect,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   vars var2(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   vars var3(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
+  
+  std::vector<NT> test(n,0);
+  std::cout<<"feasible="<<Sep_Oracle(P,Point(n,test.begin(),test.end()),var1).get_is_in()<<std::endl;
+ 
+  for(Polytope::iterator it=P.begin(); it!=P.end(); ++it){
+    std::cout<<(*it).has_on_positive_side(Point(n,test.begin(),test.end()))<<std::endl;
+    std::cout<<(*it).orthogonal_direction()<<std::endl;
+    
+  }
+  // exit(1);
+  
   //std::cout<<"# walk steps = "<<walk_len<<std::endl;
 	//std::cout<<"# rand points = "<<rnum<<std::endl<<std::endl;
   //std::cout.precision(3);
@@ -149,7 +171,7 @@ int main(const int argc, const char** argv)
 		         <<t2/num_of_exp<<"\t "
              <<max_err3<<"\t "
 		         <<t3/num_of_exp<<std::endl;
-  }
+  //}
   /**/
   
   //std::vector<NT> testp(n,NT(0.2));
