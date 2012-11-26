@@ -709,6 +709,77 @@ int feasibility(T &KK,
 	return 0;
 }
 
+/* Optimization with bisection
+	 * TODO: make it a function!!!
+	 */
+ 
+template <class T>
+int opt_bisect(T &K,
+							 vars var,
+							 Point &opt,
+							 Vector &w) 
+{
+	bool print = false;
+	bool print2 = false;
+	int m = var.m;
+	int n = var.n;
+	int walk_steps = var.walk_steps;
+	const double err = var.err;
+	const double err_opt = var.err_opt;
+	const int lw = var.lw;
+	double up = var.up;
+	const int L = var.L;
+  RNGType &rng = var.rng;
+  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  &get_snd_rand = var.get_snd_rand;
+  boost::random::uniform_real_distribution<> urdist = var.urdist;
+  boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
+	
+	
+	//compute 2 parallel hyperplanes one feasible and one not
+	std::vector<NT> xxin(n,1);
+  Point pout(n,xxin.begin(),xxin.end());
+  Hyperplane H_out(pout,w);
+  //
+  std::vector<NT> xxout(n,-1);
+  Point pin(n,xxout.begin(),xxout.end());
+  Hyperplane H_in(pin,w);
+  Point fp(n,xxout.begin(),xxout.end());
+  
+  //binary search for optimization
+  int step = 0;
+  double len;
+  Point pmid;
+  do{
+		pmid=CGAL::Origin()+(((pin-CGAL::Origin())+(pout-CGAL::Origin()))/2);
+		Hyperplane H(pmid,w);
+		K.push_back(H);
+		if (print) std::cout<<"pmid,pin,pout,w"<<std::endl;
+		//if (print) round_print(pmid);
+		//if (print) round_print(pin);round_print(pout);round_print(w);
+		
+		NT c0 = w*(fp-CGAL::Origin());
+		if(feasibility(K,fp,var) == 1){
+			pin=pmid;
+		}
+		else{
+			pout=pmid;
+			if (print2) std::cout<<"NON FEASIBLE"<<std::endl;
+		}
+		K.pop_back();
+		
+		len=std::abs((pin-CGAL::Origin())*w - (pout-CGAL::Origin())*w);
+		//std::cout<<"len="<<len<<std::endl;
+		//std::cout<<"fp=";round_print(fp);
+	  opt=fp;
+    if (print2) std::cout<<"Step:"<<step<<" Current fp= "<<fp
+		         <<" w*fp="<<w*(fp-CGAL::Origin())<<" len="<<len<<std::endl;
+    step++;
+	}while(len > err_opt);
+	
+	return 1;
+}
+
 // TODO: merge same code with interior opt
 template <class T>
 int optimization(T &KK,
@@ -806,6 +877,151 @@ int optimization(T &KK,
 		}
 		V=newV;
 		++step;
+		if (print) std::cout<<"Cutting hyperplane direction="
+		         <<sep_result.get_H_sep().orthogonal_direction()<<std::endl;
+		if (print) std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;
+		
+		if(V.empty()){//HERE we have no theoretical guarantees
+				if (print) std::cout<<"No random points left!"<<std::endl;
+				//try to generate new rand points
+				for(int i=0; i<m; ++i){
+					Point newv = CGAL::Origin() + z;
+					hit_and_run(newv,P,var);
+					V.push_back(newv);
+				}
+			//opt = CGAL::Origin() + z;
+		}
+	}
+	return 0;
+}
+
+// TODO: merge same code with interior opt
+template <class T>
+int optimization2(T &KK,
+							    vars var,
+							    Point &opt,
+							    Vector &w)
+{
+	bool print = false;
+	bool print2 = true;
+  int m = var.m;
+  //std::cout<<"OPT #randpoints="<<m<<std::endl;
+	int n = var.n;
+	int walk_steps = var.walk_steps;
+	const double err = var.err;
+	const double err_opt = var.err_opt;
+	const int lw = var.lw;
+	double up = var.up;
+	const int L = var.L;
+  RNGType &rng = var.rng;
+  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  &get_snd_rand = var.get_snd_rand;
+  boost::random::uniform_real_distribution<> urdist = var.urdist;
+  boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
+
+	//this is the bounding cube that contains the polytope KK
+	Polytope P=cube(n,-up,up);							
+	
+	/* Initialize points in cube */  
+  // create a vector V with the random points
+  std::vector<Point> V;
+  for(size_t i=0; i<m; ++i){
+		std::vector<NT> t;
+		for(size_t j=0; j<n; ++j)
+			t.push_back(NT(urdist(rng) * up));
+		Point v(n,t.begin(),t.end());
+		V.push_back(v);
+		//std::cout<<v<<std::endl;
+	}
+	
+	//compute 2 parallel hyperplanes one feasible and one not
+	std::vector<NT> xxin(n,up);
+  Point pout(n,xxin.begin(),xxin.end());
+  Hyperplane H_out(pout,w);
+  //
+  std::vector<NT> xxout(n,-up);
+  Point pin(n,xxout.begin(),xxout.end());
+  Hyperplane H_in(pin,w);
+  //
+  Point pmid=CGAL::Origin()+(((pin-CGAL::Origin())+(pout-CGAL::Origin()))/2);
+  Hyperplane H_mid(pmid,w);
+  
+	//initialize the cut with sth that contain KK
+	Hyperplane KK_cut = *(P.begin());
+	//iterate for 2nL steps 
+  int step=0, small_step=0;
+  double epsilon=1.0;
+  Vector z(n,CGAL::NULL_VECTOR);
+    
+  //while(step < 2*n*L && epsilon > err_opt){
+	while(epsilon > err_opt){
+	  // compute m random points in P stored in V 
+	  multipoint_random_walk(P,V,var);
+		
+	  //compute the average using the half of the random points
+		Vector newz(n,CGAL::NULL_VECTOR);
+		int i=0;
+		std::vector<Point>::iterator vit=V.begin();
+		if (print) std::cout<<"RANDOM POINTS"<<std::endl;
+		for(; i<m/2; ++i,++vit){
+			CGAL:assert(vit!=V.end());
+			newz = newz + (*vit - CGAL::Origin());
+			//std::cout<<*vit<<std::endl;
+		}
+		
+		newz=newz/(m/2);	
+		epsilon = std::abs(w*(pin-CGAL::Origin()) - w*(pout-CGAL::Origin()));
+		
+		//update z
+		z = newz;
+		
+		//std::cout<<"step "<<step<<": "<<"z=";
+		if (print) round_print(z);
+		if (print2) std::cout<<"Step:"<<step<<" Current centroid= "<<z
+		         <<" w*z="<<w*z<<" epsilon="<<epsilon<<std::endl;
+		
+		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z,var);
+		if(sep_result.get_is_in()){
+			if (print) std::cout<<"Feasible point found! "<<z<<std::endl;
+			opt = CGAL::Origin() + z;
+			pin=opt;
+			H_in = Hyperplane(pin,w);
+			P.push_back(H_in);
+			//KK.push_back(H);
+			if (!H_mid.has_on_negative_side(CGAL::Origin()+z)){
+				pin=pmid;
+				H_in = Hyperplane(pin,w);
+				pmid=CGAL::Origin()+(((pin-CGAL::Origin())+(pout-CGAL::Origin()))/2);
+			  H_mid = Hyperplane(pmid,w);
+			}
+			pmid=CGAL::Origin()+(((pin-CGAL::Origin())+(pout-CGAL::Origin()))/2);
+			H_mid = Hyperplane(pmid,w);
+		}
+		else{
+			//update P with the hyperplane passing through z
+			Hyperplane H(CGAL::Origin()+z,sep_result.get_H_sep().orthogonal_direction());
+			P.push_back(H);
+			//GREEDY alternative: Update P with the original separating hyperplane
+			//Hyperplane H(sep_result.get_H_sep());
+			//P.push_back(H);
+		}
+		if(small_step > 2*n){
+			//H_mid is infeasible. update it
+			pout=pmid;
+			H_out = Hyperplane(pout,w);
+			pmid=CGAL::Origin()+(((pin-CGAL::Origin())+(pout-CGAL::Origin()))/2);
+			H_mid = Hyperplane(pmid,w);
+			small_step=0;
+		}	
+		//check for the rest rand points which fall in new P
+		std::vector<Point> newV;
+		for(;vit!=V.end();++vit){
+			if(Sep_Oracle(P,*vit,var).get_is_in())
+				newV.push_back(*vit);
+		}
+		V=newV;
+		++step;
+		++small_step;
 		if (print) std::cout<<"Cutting hyperplane direction="
 		         <<sep_result.get_H_sep().orthogonal_direction()<<std::endl;
 		if (print) std::cout<<"Number of random points in new P="<<newV.size()<<"/"<<m/2<<std::endl;

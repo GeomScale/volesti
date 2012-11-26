@@ -68,7 +68,7 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
 
 
-	for(n=8; n<20; n+=2){
+	for(n=40; n<100; n+=5){
 	std::cout<<"n="<<n<<"\n"<<std::endl;
 	/* VOLUME */
   // The input volume polytope 
@@ -94,7 +94,7 @@ int main(const int argc, const char** argv)
 	Vector p_apex(n,coords_apex.begin(),coords_apex.end());
   NT r=1, d=std::sqrt(p_apex.squared_length());
   
-  for(int i=1; i<20; ++i){
+  for(int i=1; i<3; ++i){
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
     double v1 = volume1(P,var,var,r,d);
