@@ -24,11 +24,13 @@
 #include <iterator>
 #include <iostream>
 #include <vector>
+#include <bitset>
 #include <random>
 #include <functional>
 #include <algorithm>
 #include "boost/random.hpp"
-#include "boost/generator_iterator.hpp"    
+#include "boost/generator_iterator.hpp"  
+#include "boost/dynamic_bitset.hpp"   
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 
@@ -228,6 +230,76 @@ Polytope cube(int n, NT lw, NT up){
 	}
 	return cube;
 }
+
+/* Construct a n-CROSSPOLYTOPE */
+Polytope cross(int n, NT lw, NT up){	
+	Polytope cross;
+	for(int k=-1; k<2; k+=2){
+		std::vector<NT> vertex;
+		vertex.push_back(NT(k));
+		for(int j=1; j<n; ++j)
+			vertex.push_back(NT(0));
+		std::cout<<Point(n,vertex.begin(),vertex.end())<<std::endl;
+		
+		for(int i=0; i<std::pow(2,n-1); ++i){
+			//bool bytes[sizeof i];
+	    //std::copy(static_cast<const bool*>(static_cast<const void*>(&i)),
+	    //          static_cast<const bool*>(static_cast<const void*>(&i)) + sizeof i,
+	    //          bytes);
+			//for(int j=0; j<(sizeof i); ++j)
+			boost::dynamic_bitset<> b( n, i );
+			std::vector<NT> normal;
+			normal.push_back(NT(-1*k));
+			for (boost::dynamic_bitset<>::size_type j = 0; j < b.size(); ++j){
+	      if(b[j]) normal.push_back(NT(1));
+	      else normal.push_back(NT(-1));
+	    }
+	    //Vector normal_v(n,normal.begin(),normal.end());
+	    std::cout<<Vector(n,normal.begin(),normal.end())<<std::endl;
+			Hyperplane h(Point(n,vertex.begin(),vertex.end()),
+			             Direction(n,normal.begin(),normal.end()));
+		  cross.push_back(h);
+		}
+		std::cout<<"----"<<std::endl;
+	}	
+	return cross;
+}
+
+/* Construct a SKINNY n-CROSSPOLYTOPE */
+Polytope cross_skinny(int n, NT lw, NT up){	
+	Polytope cross;
+	NT sf=0.5;//skinny_factor
+	for(int k=-1; k<2; k+=2){
+		std::vector<NT> vertex;
+		vertex.push_back(NT(k));
+		for(int j=1; j<n; ++j)
+			vertex.push_back(NT(0));
+		std::cout<<Point(n,vertex.begin(),vertex.end())<<std::endl;
+		
+		for(int i=0; i<std::pow(2,n-1); ++i){
+			//bool bytes[sizeof i];
+	    //std::copy(static_cast<const bool*>(static_cast<const void*>(&i)),
+	    //          static_cast<const bool*>(static_cast<const void*>(&i)) + sizeof i,
+	    //          bytes);
+			//for(int j=0; j<(sizeof i); ++j)
+			boost::dynamic_bitset<> b( n, i );
+			std::vector<NT> normal;
+			normal.push_back(NT(-1*k));
+			for (boost::dynamic_bitset<>::size_type j = 0; j < b.size(); ++j){
+	      if(b[j]) normal.push_back(NT(sf));
+	      else normal.push_back(NT(-1*sf));
+	    }
+	    //Vector normal_v(n,normal.begin(),normal.end());
+	    std::cout<<Vector(n,normal.begin(),normal.end())<<std::endl;
+			Hyperplane h(Point(n,vertex.begin(),vertex.end()),
+			             Direction(n,normal.begin(),normal.end()));
+		  cross.push_back(h);
+		}
+		std::cout<<"----"<<std::endl;
+	}	
+	return cross;
+}
+
 
 // contruct a n-ball of radius r centered in the origin  
 /*
@@ -720,7 +792,7 @@ int opt_bisect(T &K,
 							 Vector &w) 
 {
 	bool print = false;
-	bool print2 = false;
+	bool print2 = true;
 	int m = var.m;
 	int n = var.n;
 	int walk_steps = var.walk_steps;
@@ -772,7 +844,7 @@ int opt_bisect(T &K,
 		//std::cout<<"len="<<len<<std::endl;
 		//std::cout<<"fp=";round_print(fp);
 	  opt=fp;
-    if (print2) std::cout<<"Step:"<<step<<" Current fp= "<<fp
+    if (print2) std::cout<<"O1 Step:"<<step<<" Current fp= "<<fp
 		         <<" w*fp="<<w*(fp-CGAL::Origin())<<" len="<<len<<std::endl;
     step++;
 	}while(len > err_opt);
@@ -788,7 +860,7 @@ int optimization(T &KK,
 							  Vector &w)
 {
 	bool print = false;
-	bool print2 = false;
+	bool print2 = true;
   int m = var.m;
   //std::cout<<"OPT #randpoints="<<m<<std::endl;
 	int n = var.n;
@@ -850,7 +922,7 @@ int optimization(T &KK,
 		
 		//std::cout<<"step "<<step<<": "<<"z=";
 		if (print) round_print(z);
-		if (print2) std::cout<<"Step:"<<step<<" Current centroid= "<<z
+		if (print2) std::cout<<"O2 Step:"<<step<<" Current centroid= "<<z
 		         <<" w*z="<<w*z<<" epsilon="<<epsilon<<std::endl;
 		
 		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z,var);
@@ -1048,6 +1120,7 @@ int opt_interior(T &K,
 							   Vector &w){
 	
 	bool print = false;
+	bool print2 = true;
 	int m = var.m;
 	int n = var.n;
 	int walk_steps = var.walk_steps;
@@ -1104,8 +1177,8 @@ int opt_interior(T &K,
 		newz=newz/(m/2);	
 		epsilon = std::abs(w*newz - w*z);
 		
-		if (print) 
-		  std::cout<<"Step:"<<step<<" Current centroid= "<<z
+		if (print2) 
+		  std::cout<<"O3 Step:"<<step<<" Current centroid= "<<z
 		         <<" w*z="<<w*z<<" epsilon="<<epsilon<<std::endl;
 		
 		//Update z
