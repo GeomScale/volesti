@@ -50,7 +50,7 @@ int main(const int argc, const char** argv)
   //error in hit-and-run bisection of P 
   const double err=0.001; 
   const double err_opt=0.00001; 
-  const double err_opt_bisect=0.49;
+  const double err_opt_bisect=0.0049;
   //bounds for the cube	
   const int lw=0, up=100, R=up-lw;
   
@@ -70,7 +70,7 @@ int main(const int argc, const char** argv)
   //cross(n,-1,1);
   //exit(1);
   
-  //for (n=2; n<20; ++n){
+  for (n=2; n<20; ++n){
   /* OPTIMIZATION */
   /*!!! given a direction w compute a vertex v of K that maximize w*v */
   
@@ -91,6 +91,12 @@ int main(const int argc, const char** argv)
   }
   Vector w(n,ww.begin(),ww.end());
   
+  std::vector<NT> optt;
+	for(int j=0; j<n; ++j){
+		if(j==1) optt.push_back(NT(pow(2,n)));
+		else optt.push_back(NT(0));
+  }
+  Vector opt(n,optt.begin(),optt.end());
   
   //the feasible point that approximates opt (at the end fp should be opt)	
   Point fp1, fp2, fp3;
@@ -107,13 +113,12 @@ int main(const int argc, const char** argv)
   vars var3(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   
   std::vector<NT> test(n,0);
-  std::cout<<"feasible="<<Sep_Oracle(P,Point(n,test.begin(),test.end()),var1).get_is_in()<<std::endl;
+  //std::cout<<"feasible="<<Sep_Oracle(P,Point(n,test.begin(),test.end()),var1).get_is_in()<<std::endl;
  
-  for(Polytope::iterator it=P.begin(); it!=P.end(); ++it){
-    std::cout<<(*it).has_on_positive_side(Point(n,test.begin(),test.end()))<<std::endl;
-    std::cout<<(*it).orthogonal_direction()<<std::endl;
-    
-  }
+  //for(Polytope::iterator it=P.begin(); it!=P.end(); ++it){
+  //  std::cout<<(*it).has_on_positive_side(Point(n,test.begin(),test.end()))<<std::endl;
+  //  std::cout<<(*it).orthogonal_direction()<<std::endl;
+  //}
   // exit(1);
   
   //std::cout<<"# walk steps = "<<walk_len<<std::endl;
@@ -127,11 +132,11 @@ int main(const int argc, const char** argv)
   for(int i=0; i<num_of_exp; ++i){
 	  //do optimization 
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-	  opt_bisect(P,var1,fp1,w);
+	  //opt_bisect(P,var1,fp1,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t1 += tstop-tstart;
-	  if (max_err1 < std::abs((fp1-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w))
-	    max_err1=std::abs((fp1-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w);
+	  if (max_err1 < std::abs((fp1-CGAL::Origin())*w - opt*w))
+	    max_err1=std::abs((fp1-CGAL::Origin())*w - opt*w);
 	    
 	  //std::cout<<"Interior point"<<std::endl;
 	  //do interior point optimization	
@@ -139,16 +144,16 @@ int main(const int argc, const char** argv)
 	  optimization(P,var2,fp2,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t2 += tstop-tstart;
-	  if (max_err2 < std::abs((fp2-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w))
-	    max_err2=std::abs((fp2-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w);
+	  if (max_err2 < std::abs((fp2-CGAL::Origin())*w - opt*w))
+	    max_err2=std::abs((fp2-CGAL::Origin())*w - opt*w);
 	  //std::cout<<"t1="<<tstop-tstart<<" "<<t1<<" t2="<<tstop2-tstart2<<" "<<t2<<std::endl;
 	  
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 	  opt_interior(P,var3,fp3,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t3 += tstop-tstart;
-	  if (max_err3 < std::abs((fp3-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w))
-	    max_err3=std::abs((fp3-CGAL::Origin())*w - Vector(n,ww.begin(),ww.end())*w);
+	  if (max_err3 < std::abs((fp3-CGAL::Origin())*w - opt*w))
+	    max_err3=std::abs((fp3-CGAL::Origin())*w - opt*w);
 	  //std::cout<<"t1="<<tstop-tstart<<" "<<t1<<" t2="<<tstop2-tstart2<<" "<<t2<<std::endl;
 	  
   }
@@ -171,7 +176,7 @@ int main(const int argc, const char** argv)
 		         <<t2/num_of_exp<<"\t "
              <<max_err3<<"\t "
 		         <<t3/num_of_exp<<std::endl;
-  //}
+  }
   /**/
   
   //std::vector<NT> testp(n,NT(0.2));

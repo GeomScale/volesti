@@ -239,7 +239,7 @@ Polytope cross(int n, NT lw, NT up){
 		vertex.push_back(NT(k));
 		for(int j=1; j<n; ++j)
 			vertex.push_back(NT(0));
-		std::cout<<Point(n,vertex.begin(),vertex.end())<<std::endl;
+		//std::cout<<Point(n,vertex.begin(),vertex.end())<<std::endl;
 		
 		for(int i=0; i<std::pow(2,n-1); ++i){
 			//bool bytes[sizeof i];
@@ -255,12 +255,12 @@ Polytope cross(int n, NT lw, NT up){
 	      else normal.push_back(NT(-1));
 	    }
 	    //Vector normal_v(n,normal.begin(),normal.end());
-	    std::cout<<Vector(n,normal.begin(),normal.end())<<std::endl;
+	    //std::cout<<Vector(n,normal.begin(),normal.end())<<std::endl;
 			Hyperplane h(Point(n,vertex.begin(),vertex.end()),
 			             Direction(n,normal.begin(),normal.end()));
 		  cross.push_back(h);
 		}
-		std::cout<<"----"<<std::endl;
+		//std::cout<<"----"<<std::endl;
 	}	
 	return cross;
 }
@@ -268,13 +268,13 @@ Polytope cross(int n, NT lw, NT up){
 /* Construct a SKINNY n-CROSSPOLYTOPE */
 Polytope cross_skinny(int n, NT lw, NT up){	
 	Polytope cross;
-	NT sf=0.5;//skinny_factor
+	NT sf=pow(2,n);//skinny_factor
 	for(int k=-1; k<2; k+=2){
 		std::vector<NT> vertex;
 		vertex.push_back(NT(k));
 		for(int j=1; j<n; ++j)
 			vertex.push_back(NT(0));
-		std::cout<<Point(n,vertex.begin(),vertex.end())<<std::endl;
+		//std::cout<<Point(n,vertex.begin(),vertex.end())<<std::endl;
 		
 		for(int i=0; i<std::pow(2,n-1); ++i){
 			//bool bytes[sizeof i];
@@ -284,18 +284,18 @@ Polytope cross_skinny(int n, NT lw, NT up){
 			//for(int j=0; j<(sizeof i); ++j)
 			boost::dynamic_bitset<> b( n, i );
 			std::vector<NT> normal;
-			normal.push_back(NT(-1*k));
+			normal.push_back(NT(-1*k*sf));
 			for (boost::dynamic_bitset<>::size_type j = 0; j < b.size(); ++j){
-	      if(b[j]) normal.push_back(NT(sf));
-	      else normal.push_back(NT(-1*sf));
+	      if(b[j]) normal.push_back(NT(1));
+	      else normal.push_back(NT(-1));
 	    }
 	    //Vector normal_v(n,normal.begin(),normal.end());
-	    std::cout<<Vector(n,normal.begin(),normal.end())<<std::endl;
+	    //std::cout<<Vector(n,normal.begin(),normal.end())<<std::endl;
 			Hyperplane h(Point(n,vertex.begin(),vertex.end()),
 			             Direction(n,normal.begin(),normal.end()));
 		  cross.push_back(h);
 		}
-		std::cout<<"----"<<std::endl;
+		//std::cout<<"----"<<std::endl;
 	}	
 	return cross;
 }
@@ -792,7 +792,7 @@ int opt_bisect(T &K,
 							 Vector &w) 
 {
 	bool print = false;
-	bool print2 = true;
+	bool print2 = false;
 	int m = var.m;
 	int n = var.n;
 	int walk_steps = var.walk_steps;
@@ -860,7 +860,7 @@ int optimization(T &KK,
 							  Vector &w)
 {
 	bool print = false;
-	bool print2 = true;
+	bool print2 = false;
   int m = var.m;
   //std::cout<<"OPT #randpoints="<<m<<std::endl;
 	int n = var.n;
@@ -975,7 +975,7 @@ int optimization2(T &KK,
 							    Vector &w)
 {
 	bool print = false;
-	bool print2 = true;
+	bool print2 = false;
   int m = var.m;
   //std::cout<<"OPT #randpoints="<<m<<std::endl;
 	int n = var.n;
@@ -1120,7 +1120,7 @@ int opt_interior(T &K,
 							   Vector &w){
 	
 	bool print = false;
-	bool print2 = true;
+	bool print2 = false;
 	int m = var.m;
 	int n = var.n;
 	int walk_steps = var.walk_steps;
