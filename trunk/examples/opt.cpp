@@ -52,7 +52,7 @@ int main(const int argc, const char** argv)
   const double err_opt=0.00001; 
   const double err_opt_bisect=0.0049;
   //bounds for the cube	
-  const int lw=0, up=100, R=up-lw;
+  const int lw=0;//, R=up-lw;
   
 		
 		
@@ -60,9 +60,15 @@ int main(const int argc, const char** argv)
   // the random engine with time as a seed
   RNGType rng((double)time(NULL));
   // standard normal distribution with mean of 0 and standard deviation of 1 
-	boost::normal_distribution<> rdist(0,1); 
-	boost::variate_generator< RNGType, boost::normal_distribution<> > 
-											get_snd_rand(rng, rdist); 
+	//boost::normal_distribution<> rdist(0,1); 
+	//boost::variate_generator< RNGType, boost::normal_distribution<> > 
+	//										get_snd_rand(rng, rdist);
+											
+	//exponential distribution
+	boost::exponential_distribution<> rdist(0.1); //i.e. lambda
+	boost::variate_generator< RNGType, boost::exponential_distribution<> > 
+											get_snd_rand(rng, rdist);	
+																	 
   // uniform distribution 
   boost::random::uniform_real_distribution<>(urdist); 
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
@@ -71,24 +77,28 @@ int main(const int argc, const char** argv)
   //exit(1);
   
   for (n=2; n<20; ++n){
+		
+		int up=NT(pow(2,n));
   /* OPTIMIZATION */
   /*!!! given a direction w compute a vertex v of K that maximize w*v */
   
   //Define the input polytope and the optimization direction
   
-    /*  Cube  */
-  //Polytope P=cube(n,-1,1);
-  //std::vector<NT> ww(n,1);
-  //Vector w(n,ww.begin(),ww.end());
+  /*  Cube  
+  Polytope P=cube(n,-1,1);
+  std::vector<NT> ww(n,1);
   //w=w/w.squared_length();           //normalize
-  
-  /*  Cross-polytope  */
+  Vector w(n,ww.begin(),ww.end());
+  Vector opt = w;
+  /**/
+  /*  Cross-polytope */ 
   Polytope P=cross_skinny(n,-1,1);
   std::vector<NT> ww;
 	for(int j=0; j<n; ++j){
 		if(j==1) ww.push_back(NT(1));
 		else ww.push_back(NT(0));
   }
+  
   Vector w(n,ww.begin(),ww.end());
   
   std::vector<NT> optt;
@@ -97,6 +107,7 @@ int main(const int argc, const char** argv)
 		else optt.push_back(NT(0));
   }
   Vector opt(n,optt.begin(),optt.end());
+  /**/
   
   //the feasible point that approximates opt (at the end fp should be opt)	
   Point fp1, fp2, fp3;
@@ -142,6 +153,7 @@ int main(const int argc, const char** argv)
 	  //do interior point optimization	
 		tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 	  optimization(P,var2,fp2,w);
+	  //feasibility(P,fp2,var2);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t2 += tstop-tstart;
 	  if (max_err2 < std::abs((fp2-CGAL::Origin())*w - opt*w))
@@ -149,7 +161,7 @@ int main(const int argc, const char** argv)
 	  //std::cout<<"t1="<<tstop-tstart<<" "<<t1<<" t2="<<tstop2-tstart2<<" "<<t2<<std::endl;
 	  
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-	  opt_interior(P,var3,fp3,w);
+	  //opt_interior(P,var3,fp3,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t3 += tstop-tstart;
 	  if (max_err3 < std::abs((fp3-CGAL::Origin())*w - opt*w))

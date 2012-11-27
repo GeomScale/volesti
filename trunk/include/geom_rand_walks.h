@@ -105,6 +105,9 @@ class BallIntersectPolytope {
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
 //typedef boost::lagged_fibonacci607 RNGType;
 
+//typedef boost::variate_generator< RNGType, boost::normal_distribution<> >  generator;
+typedef boost::variate_generator< RNGType, boost::exponential_distribution<> >  generator;
+
 //structs with variables and random generators
 struct vars{
 	public:
@@ -117,7 +120,7 @@ struct vars{
 					double up,
 					const int L,
 				  RNGType &rng,
-				  boost::variate_generator< RNGType, boost::normal_distribution<> >
+				  generator
 				  &get_snd_rand,
 				  boost::random::uniform_real_distribution<> urdist,
 				  boost::random::uniform_real_distribution<> urdist1
@@ -135,7 +138,7 @@ struct vars{
 		double up;
 		const int L;
 	  RNGType &rng;
-	  boost::variate_generator< RNGType, boost::normal_distribution<> >
+	  generator
 	  &get_snd_rand;
 	  boost::random::uniform_real_distribution<> urdist;
 	  boost::random::uniform_real_distribution<> urdist1;
@@ -553,6 +556,36 @@ int hit_and_run(Point &p,
 	return 1;
 }
 
+template <class T>
+int hit_and_run_exp(Point &p,
+					      T &P,
+					      vars &var)
+{	
+	int n = var.n;
+	double err = var.err;
+	RNGType rng = var.rng;
+	boost::exponential_distribution<> rdist(1); //i.e. lambda
+	boost::variate_generator< RNGType, boost::exponential_distribution<> > 
+											get_snd_rand(rng, rdist);
+	boost::random::uniform_real_distribution<> &urdist = var.urdist;
+	boost::random::uniform_real_distribution<> &urdist1 = var.urdist1; 
+	
+	std::vector<NT> v;
+	for(int i=0; i<n; ++i)
+		v.push_back(urdist1(rng));
+	Vector l(n,v.begin(),v.end());
+	Vector b1 = line_intersect(p,l,P,var);
+	Vector b2 = line_intersect(p,-l,P,var);
+	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
+	//std::vector<NT> lambda(1);
+	//generate(lambda.begin(),lambda.end(),get_snd_rand);
+	//lambda[0] = urdist(rng);
+	double lambda = get_snd_rand();
+	std::cout<<lambda<<" "<<std::endl;
+	p = CGAL::Origin() + (NT(lambda/5)*b1 + (NT(1-lambda/5)*b2));
+	return 1;
+}
+
 //version 2
 template <class T>
 int hit_and_run(Point &p,
@@ -590,7 +623,7 @@ int multipoint_random_walk(T &P,
 	 const int walk_steps = var.walk_steps;
 	 const double err = var.err;
 	 RNGType &rng = var.rng;
-	 boost::variate_generator< RNGType, boost::normal_distribution<> >
+	 generator
 	 &get_snd_rand = var.get_snd_rand;
 	 boost::random::uniform_real_distribution<> &urdist = var.urdist;
 	 boost::random::uniform_real_distribution<> &urdist1 = var.urdist1;
@@ -633,9 +666,10 @@ int multipoint_random_walk(T &P,
 	//std::cout<<"WALKING......"<<std::endl;											 
 	for(int mk=0; mk<walk_steps; ++mk){
 		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
+			/*
 			Point v=*vit;
 		  
-		  /* Choose a direction */
+		  // Choose a direction 
 			std::vector<double> a(V.size());
 			generate(a.begin(),a.end(),get_snd_rand);
 			
@@ -663,7 +697,8 @@ int multipoint_random_walk(T &P,
 			v = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
 			//std::cout<<"new point"<<v<<std::endl;
 			//round_print(v);
-			*vit=v;
+			*vit=v;*/
+			hit_and_run_exp(*vit,P,var);
 	  }
 	}
 	/*
@@ -689,6 +724,7 @@ int feasibility(T &KK,
 								vars var)
 {
 	bool print = false;
+	bool print2 = false;
 	const int m = var.m;
   int n = var.n;
   const int walk_steps = var.walk_steps;
@@ -697,7 +733,7 @@ int feasibility(T &KK,
   double up = var.up;
   const int L = var.L;
   RNGType &rng = var.rng;
-  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  generator
   &get_snd_rand = var.get_snd_rand;
   boost::random::uniform_real_distribution<> urdist = var.urdist;
   boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
@@ -740,7 +776,7 @@ int feasibility(T &KK,
 		
 		sep sep_result = Sep_Oracle(KK,CGAL::Origin()+z,var);
 		if(sep_result.get_is_in()){
-			if (print) std::cout<<"Feasible point found! "<<z<<std::endl;
+			if (print2) std::cout<<"\nFeasible point found! "<<z<<std::endl;
 			fp = CGAL::Origin() + z;
 			return 1;
 		}
@@ -777,7 +813,7 @@ int feasibility(T &KK,
 			}
 		}
 	}
-	if (print) std::cout<<"No feasible point found!"<<std::endl;
+	if (print2) std::cout<<"\nNo feasible point found!"<<std::endl;
 	return 0;
 }
 
@@ -802,7 +838,7 @@ int opt_bisect(T &K,
 	double up = var.up;
 	const int L = var.L;
   RNGType &rng = var.rng;
-  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  generator
   &get_snd_rand = var.get_snd_rand;
   boost::random::uniform_real_distribution<> urdist = var.urdist;
   boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
@@ -871,7 +907,7 @@ int optimization(T &KK,
 	double up = var.up;
 	const int L = var.L;
   RNGType &rng = var.rng;
-  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  generator
   &get_snd_rand = var.get_snd_rand;
   boost::random::uniform_real_distribution<> urdist = var.urdist;
   boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
@@ -986,7 +1022,7 @@ int optimization2(T &KK,
 	double up = var.up;
 	const int L = var.L;
   RNGType &rng = var.rng;
-  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  generator
   &get_snd_rand = var.get_snd_rand;
   boost::random::uniform_real_distribution<> urdist = var.urdist;
   boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
@@ -1130,7 +1166,7 @@ int opt_interior(T &K,
 	double up = var.up;
 	const int L = var.L;
   RNGType &rng = var.rng;
-  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  generator
   &get_snd_rand = var.get_snd_rand;
   boost::random::uniform_real_distribution<> urdist = var.urdist;
   boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
@@ -1339,7 +1375,7 @@ NT volume2(T &P,
 	int walk_len = var.walk_steps;
 	const double err = var.err;
 	RNGType &rng = var.rng;
-  boost::variate_generator< RNGType, boost::normal_distribution<> >
+  generator
   get_snd_rand = var.get_snd_rand;
   boost::random::uniform_real_distribution<> urdist = var.urdist;
   boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
