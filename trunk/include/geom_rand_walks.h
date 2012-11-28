@@ -105,8 +105,8 @@ class BallIntersectPolytope {
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
 //typedef boost::lagged_fibonacci607 RNGType;
 
-//typedef boost::variate_generator< RNGType, boost::normal_distribution<> >  generator;
-typedef boost::variate_generator< RNGType, boost::exponential_distribution<> >  generator;
+typedef boost::variate_generator< RNGType, boost::normal_distribution<> >  generator;
+//typedef boost::variate_generator< RNGType, boost::exponential_distribution<> >  generator;
 
 //structs with variables and random generators
 struct vars{
@@ -169,10 +169,10 @@ int Minkowski_sum_naive(V_polytope &P1, V_polytope &P2, V_polytope &Msum){
 	      Point p = CGAL::Origin() + 
 	            (((*Pit1)-CGAL::Origin()) + ((*Pit2)-CGAL::Origin()));
 	      Msum_all.push_back(p);
-	      std::cout<<p<<std::endl;
+	      //std::cout<<p<<std::endl;
 	    }
 	  } 
-	  std::cout<<"---------"<<std::endl;
+	  //std::cout<<"---------"<<std::endl;
 	  // compute the extreme points
 		CGAL::Extreme_points_d<EP_Traits_d> ep(P1[0].dimension());
 	  ep.insert(Msum_all.begin(),Msum_all.end());
@@ -556,36 +556,6 @@ int hit_and_run(Point &p,
 	return 1;
 }
 
-template <class T>
-int hit_and_run_exp(Point &p,
-					      T &P,
-					      vars &var)
-{	
-	int n = var.n;
-	double err = var.err;
-	RNGType rng = var.rng;
-	boost::exponential_distribution<> rdist(1); //i.e. lambda
-	boost::variate_generator< RNGType, boost::exponential_distribution<> > 
-											get_snd_rand(rng, rdist);
-	boost::random::uniform_real_distribution<> &urdist = var.urdist;
-	boost::random::uniform_real_distribution<> &urdist1 = var.urdist1; 
-	
-	std::vector<NT> v;
-	for(int i=0; i<n; ++i)
-		v.push_back(urdist1(rng));
-	Vector l(n,v.begin(),v.end());
-	Vector b1 = line_intersect(p,l,P,var);
-	Vector b2 = line_intersect(p,-l,P,var);
-	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
-	//std::vector<NT> lambda(1);
-	//generate(lambda.begin(),lambda.end(),get_snd_rand);
-	//lambda[0] = urdist(rng);
-	double lambda = get_snd_rand();
-	std::cout<<lambda<<" "<<std::endl;
-	p = CGAL::Origin() + (NT(lambda/5)*b1 + (NT(1-lambda/5)*b2));
-	return 1;
-}
-
 //version 2
 template <class T>
 int hit_and_run(Point &p,
@@ -698,7 +668,7 @@ int multipoint_random_walk(T &P,
 			//std::cout<<"new point"<<v<<std::endl;
 			//round_print(v);
 			*vit=v;*/
-			hit_and_run_exp(*vit,P,var);
+			hit_and_run(*vit,P,var);
 	  }
 	}
 	/*
@@ -1303,7 +1273,7 @@ NT volume1(T &P,
   
     
   std::vector<int> telescopic_prod(nb,0);
-  for(int i=0; i<rnum; ++i){ //generate rnum rand points 
+  for(int i=1; i<=rnum; ++i){ //generate rnum rand points 
 		//start with a u.d.r point in the smallest ball 
 		//radius=1, center=Origin()
 		std::vector<NT> coords(n,0);
@@ -1318,16 +1288,6 @@ NT volume1(T &P,
 		std::vector<Ball>::iterator bit=balls.begin();
 		std::vector<int>::iterator prod_it=telescopic_prod.begin();
 		++bit; 
-		if (print) std::cout<<"\n\ngenerate random point..."<<i<<"/"<<rnum<<" ";
-		const NT pi = boost::math::constants::pi<NT>();
-		NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0); 
-		for(std::vector<int>::iterator prod_it=telescopic_prod.begin(); 
-		    prod_it!=telescopic_prod.end(); ++prod_it){
-			vol *= NT(i+1)/NT(*prod_it);
-		}
-		if (print) std::cout<<"current vol estimation= "<<vol<<std::endl;
-	  if (print) std::cout<<"walklen="<<walk_len<<std::endl;
-	  if (print) std::cout<<"rnum="<<rnum<<std::endl;
 		for(; bit!=balls.end(); ++bit, ++prod_it){
 			// generate a random point in bit intersection with P 
 			BallPoly PB(P,*bit);
@@ -1346,6 +1306,16 @@ NT volume1(T &P,
 			}
 			PBold=PB;
 		}
+		if (print) std::cout<<"\n\ngenerated random point..."<<i<<"/"<<rnum<<" ";
+		const NT pi = boost::math::constants::pi<NT>();
+		NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0); 
+		for(std::vector<int>::iterator prod_it=telescopic_prod.begin(); 
+		    prod_it!=telescopic_prod.end(); ++prod_it){
+			vol *= NT(i)/NT(*prod_it);
+		}
+		if (print) std::cout<<"current vol estimation= "<<vol<<std::endl;
+	  if (print) std::cout<<"walklen="<<walk_len<<std::endl;
+	  if (print) std::cout<<"rnum="<<rnum<<std::endl;
 		//for(prod_it=telescopic_prod.begin(); prod_it!=telescopic_prod.end(); ++prod_it)
 		//	std::cout<<(*prod_it)<<" ";
 		//std::cout<<std::endl;
@@ -1491,10 +1461,10 @@ void print_polymake_volfile(T &P,
 	os << "print ' ';\n";
 	os << "my $t0 = [gettimeofday];\n";
 	os << "my $f=$p->VOLUME;\n";
-	os << "print double($f);\n";
+	os << "print $f;\n";
 	os << "print ' ';\n";
 	os << "print tv_interval($t0,[gettimeofday]);\n";
-	os << "print ' ';\n";
+	os << "print \"\n\";\n";
 	os << std::endl;
 }
 

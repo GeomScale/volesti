@@ -68,33 +68,39 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
 
 
-	for(n=40; n<100; n+=5){
-	std::cout<<"n="<<n<<"\n"<<std::endl;
+	//for(n=40; n<100; n+=5){
+	//std::cout<<"n="<<n<<"\n"<<std::endl;
 	/* VOLUME */
-  // The input volume polytope 
-	Polytope P = cube(n,-1,1);
   
-  /*
+  /* CUBE 
+	Polytope P = cube(n,-1,1);
+  //sandwitch
+  std::vector<NT> coords_apex(n,1);
+	Vector p_apex(n,coords_apex.begin(),coords_apex.end());
+  NT r=1, d=std::sqrt(p_apex.squared_length());
+  /**/
+  
+  /* Mink Sum 2D example */
   Polytope P;
   P.push_back(Hyperplane(Point(3,2),Direction(0,-1)));
   P.push_back(Hyperplane(Point(3,2),Direction(-1,0)));
   P.push_back(Hyperplane(Point(-2,-3),Direction(1,0)));
   P.push_back(Hyperplane(Point(-2,-3),Direction(0,1)));
   P.push_back(Hyperplane(Point(0,-3),Direction(-1,1)));
+  //sandwitch
   NT r=1, d=std::sqrt(13.0);
-  */
+  /**/
   
   // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   int walk_len =  wl_c * std::pow(n,4);
   
-  //sandwitch
-  std::vector<NT> coords_apex(n,1);
-	Vector p_apex(n,coords_apex.begin(),coords_apex.end());
-  NT r=1, d=std::sqrt(p_apex.squared_length());
+  rnum = e;
+  walk_len =  wl_c;
   
-  for(int i=1; i<3; ++i){
+  int num_of_exp=10;
+  for(int i=0; i<num_of_exp; ++i){
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
     double v1 = volume1(P,var,var,r,d);
@@ -112,14 +118,14 @@ int main(const int argc, const char** argv)
 		std::cout<<"time = "<<tstop-tstart<<std::endl;
 		*/
 		std::cout<<n<<" "
+				     <<walk_len<<" "
+		         <<rnum<<" "
 		         <<v1<<" "
 		         <<(1+e)*exactvol<<" "
 		         <<exactvol<<" "
-		         <<walk_len<<" "
-		         <<rnum<<" "
 		         <<tstop-tstart<<std::endl;
 	}  
-  }
+  //}
   return 0;
 }
 
