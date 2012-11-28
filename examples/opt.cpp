@@ -60,14 +60,14 @@ int main(const int argc, const char** argv)
   // the random engine with time as a seed
   RNGType rng((double)time(NULL));
   // standard normal distribution with mean of 0 and standard deviation of 1 
-	//boost::normal_distribution<> rdist(0,1); 
-	//boost::variate_generator< RNGType, boost::normal_distribution<> > 
-	//										get_snd_rand(rng, rdist);
+	boost::normal_distribution<> rdist(0,1); 
+	boost::variate_generator< RNGType, boost::normal_distribution<> > 
+											get_snd_rand(rng, rdist);
 											
 	//exponential distribution
-	boost::exponential_distribution<> rdist(0.1); //i.e. lambda
-	boost::variate_generator< RNGType, boost::exponential_distribution<> > 
-											get_snd_rand(rng, rdist);	
+	//boost::exponential_distribution<> rdist(0.1); //i.e. lambda
+	//boost::variate_generator< RNGType, boost::exponential_distribution<> > 
+	//										get_snd_rand(rng, rdist);	
 																	 
   // uniform distribution 
   boost::random::uniform_real_distribution<>(urdist); 
@@ -76,22 +76,24 @@ int main(const int argc, const char** argv)
   //cross(n,-1,1);
   //exit(1);
   
-  for (n=2; n<20; ++n){
+  //for (n=2; n<20; ++n){
+  n=11;		
 		
-		int up=NT(pow(2,n));
   /* OPTIMIZATION */
   /*!!! given a direction w compute a vertex v of K that maximize w*v */
   
   //Define the input polytope and the optimization direction
   
-  /*  Cube  
+  /*  Cube */  
+  int up=NT(100);
   Polytope P=cube(n,-1,1);
   std::vector<NT> ww(n,1);
   //w=w/w.squared_length();           //normalize
   Vector w(n,ww.begin(),ww.end());
   Vector opt = w;
   /**/
-  /*  Cross-polytope */ 
+  /*  Cross-polytope 
+  int up=NT(pow(2,n));
   Polytope P=cross_skinny(n,-1,1);
   std::vector<NT> ww;
 	for(int j=0; j<n; ++j){
@@ -109,6 +111,18 @@ int main(const int argc, const char** argv)
   Vector opt(n,optt.begin(),optt.end());
   /**/
   
+  /* Mink Sum 2D polar example 
+  int up=NT(1);
+  Polytope P;
+  P.push_back(Hyperplane(Point(0.0,0.5),Direction(1.0,-1.0)));
+  P.push_back(Hyperplane(Point(0.0,0.5),Direction(-3.0,-2.0)));
+  P.push_back(Hyperplane(Point(NT(1.0/3.0),NT(-1.0/3.0)),Direction(-1.0,0.0)));
+  P.push_back(Hyperplane(Point(NT(1.0/3.0),NT(-1.0/3.0)),Direction(0.0,1.0)));
+  P.push_back(Hyperplane(Point(-0.5,0.0),Direction(2.0,3.0)));
+  Vector w(0.0,1.0);
+  Vector opt(0.5,0.0);
+  /**/
+  
   //the feasible point that approximates opt (at the end fp should be opt)	
   Point fp1, fp2, fp3;
     
@@ -118,11 +132,12 @@ int main(const int argc, const char** argv)
   
   int walk_len =  wl_c * std::pow(n,4);
   double t1=0, t2=0, t3=0, max_err1=0, max_err2=0, max_err3=0;
-  int num_of_exp = 1;  
+  int num_of_exp = 1;
+    
   vars var1(rnum,n,walk_len,err,err_opt_bisect,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   vars var2(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   vars var3(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
-  
+
   std::vector<NT> test(n,0);
   //std::cout<<"feasible="<<Sep_Oracle(P,Point(n,test.begin(),test.end()),var1).get_is_in()<<std::endl;
  
@@ -143,7 +158,7 @@ int main(const int argc, const char** argv)
   for(int i=0; i<num_of_exp; ++i){
 	  //do optimization 
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-	  //opt_bisect(P,var1,fp1,w);
+	  opt_bisect(P,var1,fp1,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t1 += tstop-tstart;
 	  if (max_err1 < std::abs((fp1-CGAL::Origin())*w - opt*w))
@@ -161,7 +176,7 @@ int main(const int argc, const char** argv)
 	  //std::cout<<"t1="<<tstop-tstart<<" "<<t1<<" t2="<<tstop2-tstart2<<" "<<t2<<std::endl;
 	  
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-	  //opt_interior(P,var3,fp3,w);
+	  opt_interior(P,var3,fp3,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t3 += tstop-tstart;
 	  if (max_err3 < std::abs((fp3-CGAL::Origin())*w - opt*w))
@@ -188,7 +203,7 @@ int main(const int argc, const char** argv)
 		         <<t2/num_of_exp<<"\t "
              <<max_err3<<"\t "
 		         <<t3/num_of_exp<<std::endl;
-  }
+  //}
   /**/
   
   //std::vector<NT> testp(n,NT(0.2));

@@ -182,12 +182,15 @@ int main(const int argc, const char** argv)
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   int walk_len =  wl_c * std::pow(n,4);
   
+  rnum=e;
+  walk_len=wl_c;
+  
   tstart = (double)clock()/(double)CLOCKS_PER_SEC;
   //volume vars
   // (#rand_points, n, #walk_steps, ...)
-  vars var1(500,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
+  vars var1(rnum,n,walk_len,err,err_opt,lw,1,L,rng,get_snd_rand,urdist,urdist1);
   //opt vars
-  vars var2(15,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
+  vars var2(6,n,0.1,err,err_opt,lw,1,L,rng,get_snd_rand,urdist,urdist1);
   double v1 = volume1(Msum,var1,var2,1,std::sqrt(13.0));
   tstop = (double)clock()/(double)CLOCKS_PER_SEC;
   //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
@@ -195,8 +198,9 @@ int main(const int argc, const char** argv)
   double exactvol = std::pow(2,n);
   
   std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
-           <<(1-e)*exactvol<<" < "<<v1<<" < "<<(1+e)*exactvol<<std::endl;
-	std::cout<<"exact volume = "<<exactvol<<std::endl;
+           //<<(1-e)*exactvol<<" < "<<v1<<" < "<<(1+e)*exactvol
+           <<v1<<std::endl;
+	//std::cout<<"exact volume = "<<exactvol<<std::endl;
 	std::cout<<"# walk steps = "<<walk_len<<std::endl;
 	std::cout<<"# rand points = "<<rnum<<std::endl;
 	std::cout<<"time = "<<tstop-tstart<<std::endl;
@@ -205,8 +209,8 @@ int main(const int argc, const char** argv)
 	// compute mink sum using a naive algorithm
   V_polytope P;
   Minkowski_sum_naive(P1,P2,P);
-  for(V_polytope::iterator pit=P.begin(); pit!=P.end(); ++pit)
-		std::cout<<*pit<<std::endl;
+  //for(V_polytope::iterator pit=P.begin(); pit!=P.end(); ++pit)
+		//std::cout<<*pit<<std::endl;
 	
 	std::ofstream polymakefile;
 	polymakefile.open("volume.polymake");
