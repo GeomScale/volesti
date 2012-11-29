@@ -76,15 +76,15 @@ int main(const int argc, const char** argv)
   //cross(n,-1,1);
   //exit(1);
   
-  //for (n=2; n<20; ++n){
-  n=11;		
+  for (n=2; n<12; ++n){
+  //n=11;		
 		
   /* OPTIMIZATION */
   /*!!! given a direction w compute a vertex v of K that maximize w*v */
   
   //Define the input polytope and the optimization direction
   
-  /*  Cube */  
+  /*  Cube   
   int up=NT(100);
   Polytope P=cube(n,-1,1);
   std::vector<NT> ww(n,1);
@@ -92,12 +92,12 @@ int main(const int argc, const char** argv)
   Vector w(n,ww.begin(),ww.end());
   Vector opt = w;
   /**/
-  /*  Cross-polytope 
+  /*  Cross-polytope */
   int up=NT(pow(2,n));
-  Polytope P=cross_skinny(n,-1,1);
+  Polytope P=cross_skinny2(n,-1,1);
   std::vector<NT> ww;
 	for(int j=0; j<n; ++j){
-		if(j==1) ww.push_back(NT(1));
+		if(j==0) ww.push_back(NT(1));
 		else ww.push_back(NT(0));
   }
   
@@ -105,7 +105,7 @@ int main(const int argc, const char** argv)
   
   std::vector<NT> optt;
 	for(int j=0; j<n; ++j){
-		if(j==1) optt.push_back(NT(pow(2,n)));
+		if(j==0) optt.push_back(NT(pow(2,n)));
 		else optt.push_back(NT(0));
   }
   Vector opt(n,optt.begin(),optt.end());
@@ -158,7 +158,7 @@ int main(const int argc, const char** argv)
   for(int i=0; i<num_of_exp; ++i){
 	  //do optimization 
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-	  opt_bisect(P,var1,fp1,w);
+	  //opt_bisect(P,var1,fp1,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t1 += tstop-tstart;
 	  if (max_err1 < std::abs((fp1-CGAL::Origin())*w - opt*w))
@@ -176,7 +176,7 @@ int main(const int argc, const char** argv)
 	  //std::cout<<"t1="<<tstop-tstart<<" "<<t1<<" t2="<<tstop2-tstart2<<" "<<t2<<std::endl;
 	  
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-	  opt_interior(P,var3,fp3,w);
+	  //opt_interior(P,var3,fp3,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t3 += tstop-tstart;
 	  if (max_err3 < std::abs((fp3-CGAL::Origin())*w - opt*w))
@@ -203,7 +203,7 @@ int main(const int argc, const char** argv)
 		         <<t2/num_of_exp<<"\t "
              <<max_err3<<"\t "
 		         <<t3/num_of_exp<<std::endl;
-  //}
+  }
   /**/
   
   //std::vector<NT> testp(n,NT(0.2));
