@@ -120,6 +120,12 @@ int main(const int argc, const char** argv)
   // VOLUME of MINKOWSKI SUM 
   
   V_polytope P1, P2;
+	//std::cout<<"cube"<<std::endl;
+	P1=Vcube(n,-1,1);
+	//std::cout<<"cross"<<std::endl;
+	P2=Vcross(n,-1,1);
+	//exit(1);
+	/*
 	P1.push_back(Point(-1,1));  
   P1.push_back(Point(2,1));  
   P1.push_back(Point(-1,-2));  
@@ -130,7 +136,7 @@ int main(const int argc, const char** argv)
   P2.push_back(Point(-1,1));  
   std::cout<<!P1.empty()<<std::endl;
   std::cout<<!P2.empty()<<std::endl;
-  
+  */
   MinkSumPolytope Msum(P1,P2);
   
   /*

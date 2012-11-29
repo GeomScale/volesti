@@ -203,7 +203,7 @@ struct sep{
 };
 
 
-/* Construct a n-CUBE */
+/* Construct a n-CUBE H-REPRESENTATION*/
 Polytope cube(int n, NT lw, NT up){	
 	Polytope cube;
 	std::vector<NT> origin(n,NT(lw));
@@ -230,6 +230,32 @@ Polytope cube(int n, NT lw, NT up){
 		Hyperplane h(Point(n,apex.begin(),apex.end()),
 	           Direction(n,normal.begin(),normal.end()));
 	  cube.push_back(h);
+	}
+	return cube;
+}
+
+/* Construct a n-CUBE V-REPRESENTATION*/
+V_polytope Vcube(int n, NT lw, NT up){	
+	V_polytope cube;
+	for(int k=-1; k<2; k+=2){	
+		for(int i=0; i<std::pow(2,n-1); ++i){
+				//bool bytes[sizeof i];
+		    //std::copy(static_cast<const bool*>(static_cast<const void*>(&i)),
+		    //          static_cast<const bool*>(static_cast<const void*>(&i)) + sizeof i,
+		    //          bytes);
+				//for(int j=0; j<(sizeof i); ++j)
+				boost::dynamic_bitset<> b( n, i );
+				std::vector<NT> normal;
+				normal.push_back(NT(-1*up*k));
+				for (boost::dynamic_bitset<>::size_type j = 0; j < b.size(); ++j){
+		      if(b[j]) normal.push_back(NT(1*up));
+		      else normal.push_back(NT(-1*up));
+		    }
+		    //Vector normal_v(n,normal.begin(),normal.end());
+		    //std::cout<<Vector(n,normal.begin(),normal.end())<<std::endl;
+		    //std::cout<<Point(n,normal.begin(),normal.end())<<std::endl;
+			  cube.push_back(Point(n,normal.begin(),normal.end()));
+		}
 	}
 	return cube;
 }
@@ -303,6 +329,68 @@ Polytope cross_skinny(int n, NT lw, NT up){
 	return cross;
 }
 
+//SKINNY 2
+Polytope cross_skinny2(int n, NT lw, NT up){	
+	Polytope cross;
+	NT sf=pow(2,n);//skinny_factor
+	for(int k=-1; k<2; k+=2){
+		std::vector<NT> vertex;
+		vertex.push_back(NT(k*sf));
+		for(int j=1; j<n; ++j)
+			vertex.push_back(NT(0));
+		//std::cout<<Point(n,vertex.begin(),vertex.end())<<std::endl;
+		
+		for(int i=0; i<std::pow(2,n-1); ++i){
+			//bool bytes[sizeof i];
+	    //std::copy(static_cast<const bool*>(static_cast<const void*>(&i)),
+	    //          static_cast<const bool*>(static_cast<const void*>(&i)) + sizeof i,
+	    //          bytes);
+			//for(int j=0; j<(sizeof i); ++j)
+			boost::dynamic_bitset<> b( n, i );
+			std::vector<NT> normal;
+			normal.push_back(NT(-1*k/sf));
+			for (boost::dynamic_bitset<>::size_type j = 0; j < b.size(); ++j){
+	      if(b[j]) normal.push_back(NT(1));
+	      else normal.push_back(NT(-1));
+	    }
+	    //Vector normal_v(n,normal.begin(),normal.end());
+	    //std::cout<<Vector(n,normal.begin(),normal.end())<<std::endl;
+			Hyperplane h(Point(n,vertex.begin(),vertex.end()),
+			             Direction(n,normal.begin(),normal.end()));
+		  cross.push_back(h);
+		}
+		//std::cout<<"----"<<std::endl;
+	}	
+	return cross;
+}
+
+/* Construct a n-CROSS V-REPRESENTATION*/
+V_polytope Vcross(int n, NT lw, NT up){	
+	V_polytope cross;
+	for(int i=0; i<n; ++i){
+		std::vector<NT> normal;
+		for(int j=0; j<n; ++j){
+			if(i==j) 
+				normal.push_back(NT(1));
+			else normal.push_back(NT(0));
+		}
+	  cross.push_back(Point(n,normal.begin(),normal.end()));
+	  //std::cout<<Point(n,normal.begin(),normal.end())<<std::endl;
+	}
+	for(int i=0; i<n; ++i){
+		//std::cout<<apex[i]<<" ";
+		std::vector<NT> normal;
+		for(int j=0; j<n; ++j){
+			if(i==j) 
+				normal.push_back(NT(-1));
+			else normal.push_back(NT(0));
+		}
+	  //std::cout<<Point(n,normal.begin(),normal.end())<<std::endl;
+		cross.push_back(Point(n,normal.begin(),normal.end()));
+	}
+	return cross;
+}
+
 
 // contruct a n-ball of radius r centered in the origin  
 /*
@@ -371,6 +459,7 @@ template <typename T> sep Sep_Oracle(BallIntersectPolytope<T> &P,
 	// TODO: fix it!
 	return sep(false);
 }
+
 
 // Minkowski sum Separation 
 // this is Optimization in the dual
@@ -1246,7 +1335,7 @@ NT volume1(T &P,
 {
   typedef BallIntersectPolytope<T>        BallPoly; 
 	
-	bool print = false;
+	bool print = true;
 	int n = var.n;
 	int rnum = var.m;
 	int walk_len = var.walk_steps;
@@ -1296,7 +1385,9 @@ NT volume1(T &P,
 			  hit_and_run(p,PB,var,var2);
 				//std::cout<<"h-n-r:"<<p<<std::endl;
 			}
-			if (Sep_Oracle(PBold,p,var2).get_is_in()){
+			//Not need to test for PBold membership. Just check if inside Ball
+			//if (Sep_Oracle(PBold,p,var2).get_is_in()){
+			if (PBold.second().is_in(p)){
 				//std::cout<<p<<" IN ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
 			  ++(*prod_it);
 			}else{
