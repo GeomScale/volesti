@@ -725,7 +725,7 @@ int multipoint_random_walk(T &P,
 	//std::cout<<"WALKING......"<<std::endl;											 
 	for(int mk=0; mk<walk_steps; ++mk){
 		for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
-			/*
+			
 			Point v=*vit;
 		  
 		  // Choose a direction 
@@ -756,8 +756,8 @@ int multipoint_random_walk(T &P,
 			v = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
 			//std::cout<<"new point"<<v<<std::endl;
 			//round_print(v);
-			*vit=v;*/
-			hit_and_run(*vit,P,var);
+			*vit=v;
+			//hit_and_run(*vit,P,var);
 	  }
 	}
 	/*
@@ -1335,7 +1335,7 @@ NT volume1(T &P,
 {
   typedef BallIntersectPolytope<T>        BallPoly; 
 	
-	bool print = true;
+	bool print = false;
 	int n = var.n;
 	int rnum = var.m;
 	int walk_len = var.walk_steps;

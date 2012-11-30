@@ -31,7 +31,7 @@ int main(const int argc, const char** argv)
 	double wl_c, e;
 	//parse command line input
 	if(argc==4){
-		std::cout << argv[3]<<std::endl;
+		//std::cout << argv[3]<<std::endl;
 	  //dimension
 		n = atoi(argv[1]);
 		//constants
@@ -87,12 +87,8 @@ int main(const int argc, const char** argv)
   //given a direction w compute a vertex v of K that maximize w*v 
   std::vector<NT> ww(n,1);
   Vector w(n,ww.begin(),ww.end());
-  std::cout<<"w=";
-	round_print(w);
-	round_print(w/w.squared_length());
-	std::cout<<w/w.squared_length()<<std::endl;
-	//normalize w
-	w=w/w.squared_length();	
+  //normalize w
+	//w=w/w.squared_length();	
 	
 
 
@@ -183,34 +179,47 @@ int main(const int argc, const char** argv)
 	exit(1);
 	
 	/**/
-	// Random walks in K_i := the intersection of the ball i with P
-  // the number of random points to be generated in each K_i
+	
+	//volume vars
+  // (#rand_points, n, #walk_steps, ...)
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   int walk_len =  wl_c * std::pow(n,4);
   
   rnum=e;
   walk_len=wl_c;
   
-  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-  //volume vars
-  // (#rand_points, n, #walk_steps, ...)
   vars var1(rnum,n,walk_len,err,err_opt,lw,1,L,rng,get_snd_rand,urdist,urdist1);
+  
   //opt vars
-  vars var2(6,n,0.1,err,err_opt,lw,1,L,rng,get_snd_rand,urdist,urdist1);
-  double v1 = volume1(Msum,var1,var2,1,std::sqrt(13.0));
-  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-  //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
+  // (#rand_points, n, #walk_steps, ...)
+  int rnum_opt =  5 * n * std::pow(std::log(n),2);
+  int walk_len_opt =  0.001 * std::pow(n,4);
+  vars var2(rnum_opt,n,walk_len_opt,err,err_opt,lw,1,L,rng,get_snd_rand,urdist,urdist1);
   
-  double exactvol = std::pow(2,n);
-  
-  std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
-           //<<(1-e)*exactvol<<" < "<<v1<<" < "<<(1+e)*exactvol
-           <<v1<<std::endl;
-	//std::cout<<"exact volume = "<<exactvol<<std::endl;
-	std::cout<<"# walk steps = "<<walk_len<<std::endl;
-	std::cout<<"# rand points = "<<rnum<<std::endl;
-	std::cout<<"time = "<<tstop-tstart<<std::endl;
-	
+  int num_of_exp=10;
+  for(int i=0; i<num_of_exp; ++i){
+	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+	  double v1 = volume1(Msum,var1,var2,1,std::sqrt(5.0));
+	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+	  //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
+	  /*
+	  double exactvol = std::pow(2,n);
+	  
+	  std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
+	           //<<(1-e)*exactvol<<" < "<<v1<<" < "<<(1+e)*exactvol
+	           <<v1<<std::endl;
+		//std::cout<<"exact volume = "<<exactvol<<std::endl;
+		std::cout<<"# walk steps = "<<walk_len<<std::endl;
+		std::cout<<"# rand points = "<<rnum<<std::endl;
+		std::cout<<"time = "<<tstop-tstart<<std::endl;
+		*/
+		std::cout<<n<<" "
+					   <<walk_len<<" "
+			       <<rnum<<" "
+			       <<v1<<" "
+			       <<tstop-tstart<<std::endl;
+	}	
+	exit(1);
 	//compute the Minkowski sum and then the volume
 	// compute mink sum using a naive algorithm
   V_polytope P;
