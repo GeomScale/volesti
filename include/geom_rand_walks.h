@@ -265,7 +265,7 @@ Polytope cross(int n, NT lw, NT up){
 	Polytope cross;
 	for(int k=-1; k<2; k+=2){
 		std::vector<NT> vertex;
-		vertex.push_back(NT(k));
+		vertex.push_back(NT(k*up));
 		for(int j=1; j<n; ++j)
 			vertex.push_back(NT(0));
 		//std::cout<<Point(n,vertex.begin(),vertex.end())<<std::endl;
@@ -278,10 +278,10 @@ Polytope cross(int n, NT lw, NT up){
 			//for(int j=0; j<(sizeof i); ++j)
 			boost::dynamic_bitset<> b( n, i );
 			std::vector<NT> normal;
-			normal.push_back(NT(-1*k));
+			normal.push_back(NT(-1*k*up));
 			for (boost::dynamic_bitset<>::size_type j = 0; j < b.size(); ++j){
-	      if(b[j]) normal.push_back(NT(1));
-	      else normal.push_back(NT(-1));
+	      if(b[j]) normal.push_back(NT(1*up));
+	      else normal.push_back(NT(-1*up));
 	    }
 	    //Vector normal_v(n,normal.begin(),normal.end());
 	    //std::cout<<Vector(n,normal.begin(),normal.end())<<std::endl;
@@ -371,7 +371,7 @@ V_polytope Vcross(int n, NT lw, NT up){
 		std::vector<NT> normal;
 		for(int j=0; j<n; ++j){
 			if(i==j) 
-				normal.push_back(NT(1));
+				normal.push_back(NT(1*up));
 			else normal.push_back(NT(0));
 		}
 	  cross.push_back(Point(n,normal.begin(),normal.end()));
@@ -382,7 +382,7 @@ V_polytope Vcross(int n, NT lw, NT up){
 		std::vector<NT> normal;
 		for(int j=0; j<n; ++j){
 			if(i==j) 
-				normal.push_back(NT(-1));
+				normal.push_back(NT(-1*up));
 			else normal.push_back(NT(0));
 		}
 	  //std::cout<<Point(n,normal.begin(),normal.end())<<std::endl;
@@ -441,6 +441,14 @@ template<> sep Sep_Oracle<Polytope>(Polytope &P,
 		++Hit;
 	}
 	return sep(true);	
+}
+
+//function that implements the separation oracle 
+template<> sep Sep_Oracle<Ball>(Ball &B, 
+                                Point v,
+                                vars &var)
+{
+	return B.is_in(v);
 }
 
 // BallIntersectPolytope separation oracle
@@ -633,10 +641,8 @@ int hit_and_run(Point &p,
 	boost::random::uniform_real_distribution<> &urdist = var.urdist;
 	boost::random::uniform_real_distribution<> &urdist1 = var.urdist1; 
 	
-	std::vector<NT> v;
-	for(int i=0; i<n; ++i)
-		v.push_back(urdist1(rng));
-	Vector l(n,v.begin(),v.end());
+	CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
+	Vector l = *gen - CGAL::Origin();
 	Vector b1 = line_intersect(p,l,P,var);
 	Vector b2 = line_intersect(p,-l,P,var);
 	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
@@ -658,10 +664,8 @@ int hit_and_run(Point &p,
 	boost::random::uniform_real_distribution<> &urdist = var.urdist;
 	boost::random::uniform_real_distribution<> &urdist1 = var.urdist1; 
 	
-	std::vector<NT> v;
-	for(int i=0; i<n; ++i)
-		v.push_back(urdist1(rng));
-	Vector l(n,v.begin(),v.end());
+	CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
+	Vector l = *gen - CGAL::Origin();
 	Vector b1 = line_intersect(p,l,P,var,var2);
 	Vector b2 = line_intersect(p,-l,P,var,var2);
 	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
@@ -1368,7 +1372,10 @@ NT volume1(T &P,
 		std::vector<NT> coords(n,0);
 		Point p(n,coords.begin(),coords.end());
 		BallPoly PBold(P,balls[0]);
-		hit_and_run(p,PBold,var,var2);
+		//
+		//hit_and_run(p,PBold.second(),var,var2);
+		CGAL::Random_points_in_ball_d<Point> gen (n, 1.0);
+		p = *gen;
 		//std::cout<<p<<std::endl;
 		//std::cout<<Sep_Oracle(PBold,p).get_is_in()<<std::endl;
 		//std::cout<<balls[0].is_in(p)<<std::endl;
@@ -1543,6 +1550,51 @@ void print_polymake_volfile(T &P,
     os << "\n";
   }
 	os << ".\n";
+	os << "print ' ';\n";
+	os << "print $p->N_POINTS;\n";
+	os << "print ' ';\n";
+	os << "print $p->N_VERTICES;\n";
+	os << "print ' ';\n";
+	os << "print $p->DIM;\n";
+	os << "print ' ';\n";
+	os << "my $t0 = [gettimeofday];\n";
+	os << "my $f=$p->VOLUME;\n";
+	os << "print $f;\n";
+	os << "print ' ';\n";
+	os << "print tv_interval($t0,[gettimeofday]);\n";
+	os << "print \"\n\";\n";
+	os << std::endl;
+}
+
+// polymake file to compute exact volume
+template <class T>
+void print_polymake_volfile2(T &P,
+														std::ostream& os){
+  // print the vertices of the P polytope
+  os << "use Time::HiRes qw(gettimeofday tv_interval);\n";
+	os << "use application 'polytope';\n";
+	os << "my $p=new Polytope;\n";
+	os << "$p->INEQUALITIES=<<'.';\n";
+	//os << "my $p=new Polytope<Rational>;\n";
+	//os << "$p->POINTS=<<'.';\n";
+  for (typename T::iterator vit = P.begin(); vit != P.end(); vit++){
+    Hyperplane::Coefficient_const_iterator cit_end = vit->coefficients_end();
+    os << *(--cit_end)<<" ";
+    //os << "0 ";
+    Hyperplane::Coefficient_const_iterator cit = vit->coefficients_begin();
+    //++cit;
+    for (; cit != cit_end; cit++){
+      //std::cout<<*cit<<" ";
+      os <<(*cit)<<" ";
+      if (cit - vit->coefficients_begin() != vit->dimension()-1)
+        os << " ";
+    }
+    //os << "|" << vit->point().index();
+    os << "\n";
+  }
+	os << ".\n";
+	//$p=new Polytope<Rational>(INEQUALITIES=>$inequalities);
+
 	os << "print ' ';\n";
 	os << "print $p->N_POINTS;\n";
 	os << "print ' ';\n";

@@ -24,6 +24,11 @@
 /**** MAIN *****/
 //////////////////////////////////////////////////////////
 
+// Linear optimization over a convex body, polytope or concave 
+// function. 
+// The user should provide the appropriate membership 
+// oracles.
+
 int main(const int argc, const char** argv)
 { 
 	/* VARIABLES */

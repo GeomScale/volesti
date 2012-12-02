@@ -24,6 +24,16 @@
 /**** MAIN *****/
 //////////////////////////////////////////////////////////
 
+int factorial(int n)
+{
+  return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
+}
+
+// Approximating the volume of a convex polytope or body 
+// can also be used for integration of concave functions.
+// The user should provide the appropriate membership 
+// oracles.
+
 int main(const int argc, const char** argv)
 { 
 
@@ -68,7 +78,7 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
 
 
-	//for(n=40; n<100; n+=5){
+	//for(n=2; n<13; n+=2){
 	//std::cout<<"n="<<n<<"\n"<<std::endl;
 	/* VOLUME */
   
@@ -80,7 +90,18 @@ int main(const int argc, const char** argv)
   NT r=1, d=std::sqrt(p_apex.squared_length());
   /**/
   
-  /* Mink Sum 2D example */
+  /*  Cross-polytope */
+  Polytope P=cross(n,-1,n);
+  std::vector<NT> apex;
+	for(int j=0; j<n; ++j){
+		if(j==0) apex.push_back(NT(n));
+		else apex.push_back(NT(0));
+  }
+  Vector p_apex(n,apex.begin(),apex.end());
+  NT r=1, d=std::sqrt(p_apex.squared_length());
+  //NT r=1, d=2;//d=std::sqrt();
+  
+  /* Mink Sum 2D example 
   Polytope P;
   P.push_back(Hyperplane(Point(3,2),Direction(0,-1)));
   P.push_back(Hyperplane(Point(3,2),Direction(-1,0)));
@@ -96,19 +117,23 @@ int main(const int argc, const char** argv)
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   int walk_len =  wl_c * std::pow(n,4);
   
-  rnum = e;
-  walk_len =  wl_c;
+  //rnum = e;
+  //walk_len =  wl_c;
   
-  int num_of_exp=10;
+  int num_of_exp=1;
   for(int i=0; i<num_of_exp; ++i){
+    std::cout<<n<<" "
+		         <<rnum<<" "
+		         <<walk_len<<" "<<std::flush;
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
-    double v1 = volume1(P,var,var,r,d);
+    //double v1 = volume1(P,var,var,r,d);
     tstop = (double)clock()/(double)CLOCKS_PER_SEC;
     //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
   
-	  double exactvol = std::pow(2,n);
-	  
+	  //double exactvol = std::pow(2,n);
+    double exactvol = std::pow(2,n)*std::pow(n,n)/factorial(n);
+
 	  /*
 	  std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
 	           <<(1-e)*exactvol<<" < "<<v1<<" < "<<(1+e)*exactvol<<std::endl;
@@ -117,14 +142,29 @@ int main(const int argc, const char** argv)
 		std::cout<<"# rand points = "<<rnum<<std::endl;
 		std::cout<<"time = "<<tstop-tstart<<std::endl;
 		*/
-		std::cout<<n<<" "
-				     <<walk_len<<" "
-		         <<rnum<<" "
-		         <<v1<<" "
+		std::cout.precision(15);
+		std::cout
+		         //<<v1<<" "
 		         <<(1+e)*exactvol<<" "
 		         <<exactvol<<" "
 		         <<tstop-tstart<<std::endl;
+		         
 	}  
+	
+	
+  //Minkowski_sum_naive(P1,P2,P);
+  //for(V_polytope::iterator pit=P.begin(); pit!=P.end(); ++pit)
+		//std::cout<<*pit<<std::endl;
+	
+	//V_polytope C = Vcross(n,-1,n);
+  
+	std::ofstream polymakefile;
+	polymakefile.open("volume.polymake");
+	//print_polymake_volfile(C,polymakefile);
+  std::cout<<P[0]<<std::endl;
+	print_polymake_volfile2(P,polymakefile);
+	system ("polymake volume.polymake");
+	std::cout<<std::endl;
   //}
   return 0;
 }
