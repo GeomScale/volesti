@@ -24,6 +24,11 @@
 /**** MAIN *****/
 //////////////////////////////////////////////////////////
 
+// Approximating the volume of the Minkowski sum of convex 
+// polytopes or bodies. 
+// The user should provide the appropriate membership 
+// oracles for the summands.
+
 int main(const int argc, const char** argv)
 { 
 	// VARS
@@ -112,7 +117,7 @@ int main(const int argc, const char** argv)
 	
 	
   
-  
+  for (n=2; n<8; ++n){
   // VOLUME of MINKOWSKI SUM 
   
   V_polytope P1, P2;
@@ -184,6 +189,9 @@ int main(const int argc, const char** argv)
   // (#rand_points, n, #walk_steps, ...)
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   int walk_len =  wl_c * std::pow(n,4);
+  //std::cout << rnum << " " << walk_len << std::endl;
+  //rnum=e;
+  //walk_len=wl_c;
   
   rnum=e;
   walk_len=wl_c;
@@ -214,14 +222,17 @@ int main(const int argc, const char** argv)
 		std::cout<<"time = "<<tstop-tstart<<std::endl;
 		*/
 		std::cout<<n<<" "
-					   <<walk_len<<" "
 			       <<rnum<<" "
+			       <<walk_len<<" "
 			       <<v1<<" "
 			       <<tstop-tstart<<std::endl;
 	}	
+  }
 	exit(1);
 	//compute the Minkowski sum and then the volume
 	// compute mink sum using a naive algorithm
+  
+  /*
   V_polytope P;
   Minkowski_sum_naive(P1,P2,P);
   //for(V_polytope::iterator pit=P.begin(); pit!=P.end(); ++pit)
@@ -232,7 +243,7 @@ int main(const int argc, const char** argv)
 	print_polymake_volfile(P,polymakefile);
 	system ("polymake volume.polymake");
 	std::cout<<std::endl;
-	
+	*/
 	
 	/*
 	Point fp;
