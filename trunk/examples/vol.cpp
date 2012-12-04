@@ -77,9 +77,9 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<>(urdist); 
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
 
-
+  //FOR EXPERIMENTS
 	//for(n=2; n<13; n+=2){
-	//std::cout<<"n="<<n<<"\n"<<std::endl;
+
 	/* VOLUME */
   
   /* CUBE 
@@ -120,6 +120,7 @@ int main(const int argc, const char** argv)
   //rnum = e;
   //walk_len =  wl_c;
   
+  //RUN EXPERIMENTS
   int num_of_exp=1;
   for(int i=0; i<num_of_exp; ++i){
     std::cout<<n<<" "
@@ -152,12 +153,7 @@ int main(const int argc, const char** argv)
 	}  
 	
 	
-  //Minkowski_sum_naive(P1,P2,P);
-  //for(V_polytope::iterator pit=P.begin(); pit!=P.end(); ++pit)
-		//std::cout<<*pit<<std::endl;
-	
-	//V_polytope C = Vcross(n,-1,n);
-  
+  // EXACT COMPUTATION WITH POLYMAKE
 	std::ofstream polymakefile;
 	polymakefile.open("volume.polymake");
 	//print_polymake_volfile(C,polymakefile);
