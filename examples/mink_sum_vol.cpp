@@ -80,53 +80,21 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
   
   
-  //this will store the generated random points
-  std::vector<Point> V;	
-	
-	//this is the input polytope
-	
-	
-	
-	
-  /* OPTIMIZATION */
-  //given a direction w compute a vertex v of K that maximize w*v 
-  std::vector<NT> ww(n,1);
-  Vector w(n,ww.begin(),ww.end());
-  //normalize w
-	//w=w/w.squared_length();	
-	
-
-
-  /*
-  Hyperplane H(n,fp.cartesian_begin(),fp.cartesian_end(),1);
-  
-  std::cout<<"which side(P)="<<H.has_on_positive_side(CGAL::Origin()+w)<<std::endl;
-  std::cout<<"which side(N)="<<H.has_on_negative_side(CGAL::Origin()+w)<<std::endl;
-  
-  Point q(1.0/2.0,-1.0/3.0);
-  std::cout<<"Test"<<std::endl;
-	std::cout<<"is in:"<<Sep_Oracle(Msum,q).get_is_in()<<std::endl;	
-	std::cout<<"H sep:"<<Sep_Oracle(Msum,q).get_H_sep()<<std::endl;	
-  Hyperplane Htest = Sep_Oracle(Msum,q).get_H_sep();
-  std::cout<<"H dim:"<<Htest.dimension()<<std::endl;	
-  for(Hyperplane::Coefficient_const_iterator Hit=Htest.coefficients_begin();
-								Hit!=Htest.coefficients_end(); ++Hit)
-		std::cout<<*Hit<<" ";
-	std::cout<<std::endl;
-	*/
-	
-	
-  
-  for (n=2; n<8; ++n){
   // VOLUME of MINKOWSKI SUM 
+ 
+
+  // for experiments
+  //for (n=2; n<8; ++n){
   
+  // Input polytopes
+  //
   V_polytope P1, P2;
 	//std::cout<<"cube"<<std::endl;
 	P1=Vcube(n,-1,1);
 	//std::cout<<"cross"<<std::endl;
 	P2=Vcross(n,-1,1);
-	//exit(1);
-	/*
+
+	/* 2d example
 	P1.push_back(Point(-1,1));  
   P1.push_back(Point(2,1));  
   P1.push_back(Point(-1,-2));  
@@ -138,9 +106,11 @@ int main(const int argc, const char** argv)
   std::cout<<!P1.empty()<<std::endl;
   std::cout<<!P2.empty()<<std::endl;
   */
+
   MinkSumPolytope Msum(P1,P2);
   
-  /*
+  /* AFFINE TRANFORMATION OF THE POLYTOPES TO CONTAIN ORIGIN 
+   
   //Transform P1, P2 to contain the origin in their interior
 	Vector P1sum(n, CGAL::NULL_VECTOR);
 	for(V_polytope::iterator pit=P1.begin(); pit!=P1.end(); ++pit)
@@ -162,48 +132,23 @@ int main(const int argc, const char** argv)
 		std::cout<<*pit<<std::endl;
 	*/
 	
-	
-	//Perform optimization in the dual --> separation oracle for Minksum
-	
-	//Build the separation in dual 
-	//query point q
-	//std::cout<<"--------"<<P1sum<<" "<< P2sum<<std::endl;
-	/*
-	Vector q2(2,-2);
-	//q -= (P1sum + P2sum);
-	
-	vars var(20,n,10,err,err_opt,lw,0.5,L,rng,get_snd_rand,urdist,urdist1);
-  
-	Point q3(-2.1,0.956277);
-	tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-	std::cout<<"SepOracle="<<
-	Sep_Oracle(Msum,q3,var).get_is_in()
-	<<std::endl;
-	tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-	std::cout<<"time = "<<tstop-tstart<<std::endl;
-	exit(1);
-	
-	/**/
-	
 	//volume vars
   // (#rand_points, n, #walk_steps, ...)
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   int walk_len =  wl_c * std::pow(n,4);
-  //std::cout << rnum << " " << walk_len << std::endl;
   //rnum=e;
   //walk_len=wl_c;
-  
-  rnum=e;
-  walk_len=wl_c;
-  
+
   vars var1(rnum,n,walk_len,err,err_opt,lw,1,L,rng,get_snd_rand,urdist,urdist1);
   
   //opt vars
   // (#rand_points, n, #walk_steps, ...)
   int rnum_opt =  5 * n * std::pow(std::log(n),2);
   int walk_len_opt =  0.001 * std::pow(n,4);
+
   vars var2(rnum_opt,n,walk_len_opt,err,err_opt,lw,1,L,rng,get_snd_rand,urdist,urdist1);
   
+  //RUN THE EXPERIMENTS
   int num_of_exp=10;
   for(int i=0; i<num_of_exp; ++i){
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -227,11 +172,11 @@ int main(const int argc, const char** argv)
 			       <<v1<<" "
 			       <<tstop-tstart<<std::endl;
 	}	
-  }
-	exit(1);
+  //}
+	
+	//EXACT ALGORITHM
 	//compute the Minkowski sum and then the volume
 	// compute mink sum using a naive algorithm
-  
   /*
   V_polytope P;
   Minkowski_sum_naive(P1,P2,P);
@@ -244,36 +189,6 @@ int main(const int argc, const char** argv)
 	system ("polymake volume.polymake");
 	std::cout<<std::endl;
 	*/
-	
-	/*
-	Point fp;
-  optimization(Msum,var,fp,q2);
-  std::cout<<"OPT="<<fp<<std::endl;
-  
-  Hyperplane H(n,fp.cartesian_begin(),fp.cartesian_end(),1);
-  
-  //std::cout<<"prod="<<(fp-CGAL::Origin())*q2<<std::endl;
-  if(double((fp-CGAL::Origin())*q2) <= double(1.0))
-    std::cout<<"result=IN"<<std::endl;
-  else
-    std::cout<<"result=OUT"<<std::endl;
-  
-  std::cout<<"which side(P)="<<H.has_on_positive_side(CGAL::Origin()+q2)<<std::endl;
-  std::cout<<"which side(N)="<<H.has_on_negative_side(CGAL::Origin()+q2)<<std::endl;
-  
-  Point q(1.0/2.0,-1.0/3.0);
-  std::cout<<"Test"<<std::endl;
-	std::cout<<"is in:"<<Sep_Oracle(Msum,q).get_is_in()<<std::endl;	
-	std::cout<<"H sep:"<<Sep_Oracle(Msum,q).get_H_sep()<<std::endl;	
-  Hyperplane Htest = Sep_Oracle(Msum,q).get_H_sep();
-  std::cout<<"H dim:"<<Htest.dimension()<<std::endl;	
-  for(Hyperplane::Coefficient_const_iterator Hit=Htest.coefficients_begin();
-								Hit!=Htest.coefficients_end(); ++Hit)
-		std::cout<<*Hit<<" ";
-	std::cout<<std::endl;
-*/
-  
-
 	
   return 0;
 }

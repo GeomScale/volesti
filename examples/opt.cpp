@@ -78,18 +78,17 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<>(urdist); 
   boost::random::uniform_real_distribution<> urdist1(-1,1); 
   
-  //cross(n,-1,1);
-  //exit(1);
   
-  for (n=2; n<12; ++n){
-  //n=11;		
+  //For experiments
+  //for (n=2; n<12; ++n){
+ 
 		
   /* OPTIMIZATION */
   /*!!! given a direction w compute a vertex v of K that maximize w*v */
   
   //Define the input polytope and the optimization direction
   
-  /*  Cube   
+  /* 1.  Cube   */
   int up=NT(100);
   Polytope P=cube(n,-1,1);
   std::vector<NT> ww(n,1);
@@ -97,7 +96,8 @@ int main(const int argc, const char** argv)
   Vector w(n,ww.begin(),ww.end());
   Vector opt = w;
   /**/
-  /*  Cross-polytope */
+ 
+  /* 2. Cross-polytope 
   int up=NT(pow(2,n));
   Polytope P=cross_skinny2(n,-1,1);
   std::vector<NT> ww;
@@ -116,7 +116,7 @@ int main(const int argc, const char** argv)
   Vector opt(n,optt.begin(),optt.end());
   /**/
   
-  /* Mink Sum 2D polar example 
+  /* 3. Mink Sum 2D polar example 
   int up=NT(1);
   Polytope P;
   P.push_back(Hyperplane(Point(0.0,0.5),Direction(1.0,-1.0)));
@@ -132,36 +132,30 @@ int main(const int argc, const char** argv)
   Point fp1, fp2, fp3;
     
   //the number of generated random points 
-  int rnum =  e * n * std::pow(std::log(n),2);;
-  //the number of steps in every random walk
+  int rnum =  e * n * std::pow(std::log(n),2);
   
+  //the number of steps in every random walk
   int walk_len =  wl_c * std::pow(n,4);
+  
+  //time and err variables
   double t1=0, t2=0, t3=0, max_err1=0, max_err2=0, max_err3=0;
-  int num_of_exp = 1;
-    
+  
+  //define the variables  
   vars var1(rnum,n,walk_len,err,err_opt_bisect,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   vars var2(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
   vars var3(rnum,n,walk_len,err,err_opt,lw,up,L,rng,get_snd_rand,urdist,urdist1);
 
-  std::vector<NT> test(n,0);
-  //std::cout<<"feasible="<<Sep_Oracle(P,Point(n,test.begin(),test.end()),var1).get_is_in()<<std::endl;
- 
-  //for(Polytope::iterator it=P.begin(); it!=P.end(); ++it){
-  //  std::cout<<(*it).has_on_positive_side(Point(n,test.begin(),test.end()))<<std::endl;
-  //  std::cout<<(*it).orthogonal_direction()<<std::endl;
-  //}
-  // exit(1);
-  
-  //std::cout<<"# walk steps = "<<walk_len<<std::endl;
-	//std::cout<<"# rand points = "<<rnum<<std::endl<<std::endl;
-  //std::cout.precision(3);
+  //Print info
   std::cout<<n<<"\t "
 	           <<e<<"\t "
 	           <<wl_c<<"\t "
 		         <<rnum<<"\t "
 		         <<walk_len<<"\t "<<std::flush;
+  
+  //DO the experiments
+  int num_of_exp = 1;
   for(int i=0; i<num_of_exp; ++i){
-	  //do optimization 
+	  //OPT1 alg.
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 	  //opt_bisect(P,var1,fp1,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -169,8 +163,7 @@ int main(const int argc, const char** argv)
 	  if (max_err1 < std::abs((fp1-CGAL::Origin())*w - opt*w))
 	    max_err1=std::abs((fp1-CGAL::Origin())*w - opt*w);
 	    
-	  //std::cout<<"Interior point"<<std::endl;
-	  //do interior point optimization	
+	  //OPT2 alg.
 		tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 	  optimization(P,var2,fp2,w);
 	  //feasibility(P,fp2,var2);
@@ -178,19 +171,18 @@ int main(const int argc, const char** argv)
 	  t2 += tstop-tstart;
 	  if (max_err2 < std::abs((fp2-CGAL::Origin())*w - opt*w))
 	    max_err2=std::abs((fp2-CGAL::Origin())*w - opt*w);
-	  //std::cout<<"t1="<<tstop-tstart<<" "<<t1<<" t2="<<tstop2-tstart2<<" "<<t2<<std::endl;
 	  
+	  //OPT3 alg.
 	  tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 	  //opt_interior(P,var3,fp3,w);
 	  tstop = (double)clock()/(double)CLOCKS_PER_SEC;
 	  t3 += tstop-tstart;
 	  if (max_err3 < std::abs((fp3-CGAL::Origin())*w - opt*w))
 	    max_err3=std::abs((fp3-CGAL::Origin())*w - opt*w);
-	  //std::cout<<"t1="<<tstop-tstart<<" "<<t1<<" t2="<<tstop2-tstart2<<" "<<t2<<std::endl;
 	  
-  }
+  //}
   /*
-  //print the results
+  //pretty print the results
   std::cout<<"------------------"<<std::endl;
 
   std::cout<<"OPT = "<<fp<<std::endl;
@@ -202,6 +194,8 @@ int main(const int argc, const char** argv)
   std::cout<<"max err = "<<max_err2<<std::endl;
 	std::cout<<"time = "<<t2/num_of_exp<<std::endl;
 	*/
+	
+	// print info
 	std::cout  <<max_err1<<"\t "
 		         <<t1/num_of_exp<<"\t "
 		         <<max_err2<<"\t "
@@ -209,11 +203,6 @@ int main(const int argc, const char** argv)
              <<max_err3<<"\t "
 		         <<t3/num_of_exp<<std::endl;
   }
-  /**/
-  
-  //std::vector<NT> testp(n,NT(0.2));
-  //std::cout<<B.has_on_positive_side(Point(n,testp.begin(),testp.end()))<<std::endl;
-  
   
 	  
   return 0;
