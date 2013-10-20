@@ -18,7 +18,7 @@
 // 
 // Developer: Vissarion Fisikopoulos
 
-#include <geom_rand_walks.h>
+#include <vol_rand.h>
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
@@ -53,13 +53,34 @@ int main(const int argc, const char** argv)
 		exit(1);
 	}
 	
+
+  //test zone
+  /*
+  stdHPolytope<double> P2(10);
+  P2.print();
+  std::vector<double> p2;
+  //for (int i=0; i<10; ++i)
+  p2.push_back(double(1));
+  p2.push_back(double(-1));
+  p2.push_back(double(0.99));
+  p2.push_back(double(1));
+  p2.push_back(double(-1));
+  p2.push_back(double(-1));
+  p2.push_back(double(1));
+  p2.push_back(double(-1));
+  p2.push_back(double(-1));
+  p2.push_back(double(-1));
+  Point pp2(10,p2.begin(),p2.end());
+  std::cout<<P2.is_in(pp2)<<std::endl;
+  exit(1);
+  /**/
 	//timings
   double tstart, tstop;
 
 
   /* CONSTANTS */
   //error in hit-and-run bisection of P 
-  const double err=0.000001; 
+  const double err=0.0000000001; 
   const double err_opt=0.01; 
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
@@ -82,15 +103,16 @@ int main(const int argc, const char** argv)
 
 	/* VOLUME */
   
-  /* CUBE 
-	Polytope P = cube(n,-1,1);
+  /* CUBE */
+	//Polytope P = cube(n,-1,1);
+  stdHPolytope<double> P(n);
   //sandwitch
   std::vector<NT> coords_apex(n,1);
 	Vector p_apex(n,coords_apex.begin(),coords_apex.end());
   NT r=1, d=std::sqrt(p_apex.squared_length());
   /**/
   
-  /*  Cross-polytope */
+  /*  Cross-polytope 
   Polytope P=cross(n,-1,n);
   std::vector<NT> apex;
 	for(int j=0; j<n; ++j){
@@ -114,11 +136,12 @@ int main(const int argc, const char** argv)
   
   // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
-  int rnum = std::pow(e,-2) * 400 * n * std::log(n);
-  int walk_len =  wl_c * std::pow(n,4);
+  int rnum = std::pow(e,-2) * 4 * n * std::log(n);
+  //int rnum = e;
   
-  //rnum = e;
-  //walk_len =  wl_c;
+  // The number of hit-&-run steps applied to each point   
+  //int walk_len =  wl_c * std::pow(n,4);
+  int walk_len =  wl_c;
   
   //RUN EXPERIMENTS
   int num_of_exp=1;
@@ -128,12 +151,12 @@ int main(const int argc, const char** argv)
 		         <<walk_len<<" "<<std::flush;
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
-    //double v1 = volume1(P,var,var,r,d);
+    double v1 = volume1(P,var,var,r,d);
     tstop = (double)clock()/(double)CLOCKS_PER_SEC;
     //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
   
-	  //double exactvol = std::pow(2,n);
-    double exactvol = std::pow(2,n)*std::pow(n,n)/factorial(n);
+	  double exactvol = std::pow(2,n);
+    //double exactvol = std::pow(2,n)*std::pow(n,n)/factorial(n);
 
 	  /*
 	  std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
@@ -145,14 +168,16 @@ int main(const int argc, const char** argv)
 		*/
 		std::cout.precision(15);
 		std::cout
-		         //<<v1<<" "
-		         <<(1+e)*exactvol<<" "
+		         <<v1<<" \n["
+		         <<(1-e)*exactvol<<", "
+		         <<(1+e)*exactvol<<"]\n "
 		         <<exactvol<<" "
+		         <<(exactvol-v1)/exactvol<<" "
 		         <<tstop-tstart<<std::endl;
 		         
 	}  
 	
-	
+	/*
   // EXACT COMPUTATION WITH POLYMAKE
 	std::ofstream polymakefile;
 	polymakefile.open("volume.polymake");
@@ -162,6 +187,7 @@ int main(const int argc, const char** argv)
 	system ("polymake volume.polymake");
 	std::cout<<std::endl;
   //}
+  */ 
   return 0;
 }
 
