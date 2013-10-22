@@ -137,15 +137,15 @@ int hit_and_run_coord(Point &p,
 //hit-and-run with orthogonal directions
 template <class T>
 int hit_and_run_coord_update(Point &p,
-														 Point &p_prev,
-					                   T &P,
-					                   int rand_coord,
-					                   int rand_coord_prev,
-					                   double kapa,
-					                   std::vector<NT> &lamdas,
-					                   vars &var,
-					                   vars &var2,
-					                   bool init)
+						   Point &p_prev,
+		                   T &P,
+		                   int rand_coord,
+		                   int rand_coord_prev,
+		                   double kapa,
+		                   std::vector<NT> &lamdas,
+		                   vars &var,
+		                   vars &var2,
+		                   bool init)
 {	
 		
 	std::pair<NT,NT> bpair = P.line_intersect_coord(p,p_prev,rand_coord,rand_coord_prev,lamdas,init);
