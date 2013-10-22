@@ -86,7 +86,6 @@ int main(const int argc, const char** argv)
   const int lw=0, up=10000, R=up-lw;
   
  
-		
   /* RANDOM NUMBERS */
   // the random engine with time as a seed
   RNGType rng((double)time(NULL));
@@ -122,6 +121,7 @@ int main(const int argc, const char** argv)
   Vector p_apex(n,apex.begin(),apex.end());
   NT r=1, d=std::sqrt(p_apex.squared_length());
   //NT r=1, d=2;//d=std::sqrt();
+  /**/
   
   /* Mink Sum 2D example 
   Polytope P;
@@ -136,7 +136,7 @@ int main(const int argc, const char** argv)
   
   // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
-  int rnum = std::pow(e,-2) * 4 * n * std::log(n);
+  int rnum = std::pow(e,-2) * 40 * n * std::log(n);
   //int rnum = e;
   
   // The number of hit-&-run steps applied to each point   
@@ -179,6 +179,7 @@ int main(const int argc, const char** argv)
 	
 	/*
   // EXACT COMPUTATION WITH POLYMAKE
+  /*
 	std::ofstream polymakefile;
 	polymakefile.open("volume.polymake");
 	//print_polymake_volfile(C,polymakefile);
@@ -186,8 +187,9 @@ int main(const int argc, const char** argv)
 	print_polymake_volfile2(P,polymakefile);
 	system ("polymake volume.polymake");
 	std::cout<<std::endl;
+  */
   //}
-  */ 
+  
   return 0;
 }
 
