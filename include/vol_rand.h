@@ -24,6 +24,8 @@
 #include <iterator>
 #include <iostream>
 #include <vector>
+#include <forward_list>
+#include <list>
 #include <bitset>
 #include <random>
 #include <functional>
@@ -33,6 +35,7 @@
 #include "boost/dynamic_bitset.hpp"   
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+
 
 #include <CGAL/Extreme_points_d.h>
 #include <CGAL/Extreme_points_traits_d.h>
@@ -372,8 +375,8 @@ NT volume1_reuse(T &P,
 	int nb = std::ceil(n * (std::log(d)/std::log(2.0)));
 	
 	// Construct the sequence of balls
-	std::vector<NT> coords(n,0);
-	Point p0(n,coords.begin(),coords.end());
+	std::vector<NT> coords0(n,0);
+	Point p0(n,coords0.begin(),coords0.end());
 	std::vector<Ball> balls;
 	for(int i=0; i<=nb; ++i){
 		balls.push_back(Ball(p0,std::pow(std::pow(2.0,NT(i)/NT(n)),2))); 
@@ -382,8 +385,8 @@ NT volume1_reuse(T &P,
 	assert(!balls.empty());
 	if (print) std::cout<<"---------"<<std::endl;
 
-    //Generate the first random point in P
-    //1. start with a u.d.r point in the smallest ball 
+  //Generate the first random point in P
+  //1. start with a u.d.r point in the smallest ball 
 	std::vector<NT> coords(n,0);
 	Point p(n,coords.begin(),coords.end());
 	BallPoly PBold(P,balls[0]);
@@ -392,9 +395,9 @@ NT volume1_reuse(T &P,
 	//2. use p to generate the next rand point in the next ball
 	//   until we reach P
 	std::vector<Ball>::iterator bit=balls.begin();
-	std::vector<int>::iterator prod_it=telescopic_prod.begin();
+	//std::vector<int>::iterator prod_it=telescopic_prod.begin();
 	++bit; 
-	for(; bit!=balls.end(); ++bit, ++prod_it){
+	for(; bit!=balls.end(); ++bit){
 		// generate a random point in bit intersection with P 
 		BallPoly PB(P,*bit);
 		
@@ -411,113 +414,94 @@ NT volume1_reuse(T &P,
 		  hit_and_run_coord_update(p,p_prev,PB,rand_coord,rand_coord_prev,kapa,lamdas,var,var2,false);
 		}
 		//Not need to test for PBold membership. Just check if inside Ball
-		if (PBold.second().is_in(p))
-		  ++(*prod_it);
+		//if (PBold.second().is_in(p))
+		//  ++(*prod_it);
 		PBold=PB;
 	}
-    //Now that p is a random point in P
-    //use it to generate random points in P
-    std::vector<Point> randPointsPB;
-    randPointsPB.push_back(p);
-    std::vector<Ball>::iterator bit2=balls.end()
-    for(; bit2!=balls.begin(); ){
-		BallPoly PB(P,*bit);
+	
+	//Now that p is a random point in P
+	//use it to generate random points in P
+	//TODO: std::forward_list<Point> randPoints;
+	std::list<Point> randPoints;
+	randPoints.push_front(p);
+	
+	NT telescopic_prod=NT(1);
+	
+	std::vector<Ball>::iterator bit2=balls.end();
+  bit2--;
+  
+	while(bit2!=balls.begin()){
+	
+		//each step starts with some random points in PBLarge stored in list "randPoints"  
+		//these points have been generated in a previous step
+	
+		BallPoly PBLarge(P,*bit2);
 		--bit2;
-		//check the points in PB if fall in PBnew
-		BallPoly PBnew(P,*bit);
-		for(std::vector<Point>::iterator rpit=randPointsPB.begin(); 
-		                 rpit!=randPointsPB.end(); ++rpit){
-			if (PBold.second().is_in(p))
-				
+		BallPoly PBSmall(P,*bit2);
+		
+		std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
+		<<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
+		
+		// choose a point in PBLarge to be used to generate more rand points
+		Point p_gen = *randPoints.begin(); 
+		
+		// num of points in PBSmall and PBLarge
+		int nump_PBSmall = 0;
+		int nump_PBLarge = randPoints.size();
+		
+		std::cout<<"Points in PBLarge="<<randPoints.size()
+             <<std::endl;
+		
+		//keep the points in randPoints that fall in PBSmall
+		std::list<Point>::iterator rpit=randPoints.begin(); 
+		while(rpit!=randPoints.end()){
+			if (PBSmall.second().is_in(*rpit) == 0){//not in
+				rpit=randPoints.erase(rpit);
+			} else {
+				++nump_PBSmall;
+				++rpit;
+			}
 		}
-		//generate random points in PB
-		for(int i=1; i<=rnum - randPointsPB.size(); ++i){
+     
+    std::cout<<"Points in PBSmall="<<randPoints.size()
+             <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
+             <<std::endl;
+    
+    std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
+             <<std::endl;
+   	
+		//generate more random points in PBLarge to have "rnum" in total
+		for(int i=1; i<=rnum - nump_PBLarge; ++i){
 			std::vector<NT> lamdas(P.size(),NT(0));
 			int rand_coord = uidist(rng);
 			double kapa = urdist(rng);
-			Point p_prev=p;
-			hit_and_run_coord_update(p,p_prev,PB,rand_coord,rand_coord,kapa,lamdas,var,var2,true);	
+			Point p_gen_prev = p_gen;
+			hit_and_run_coord_update(p_gen,p_gen_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var2,true);
 			for(int j=0; j<walk_len; ++j){
 			  int rand_coord_prev = rand_coord;
 			  rand_coord = uidist(rng);
 			  kapa = urdist(rng);
-			  hit_and_run_coord_update(p,p_prev,PB,rand_coord,rand_coord_prev,kapa,lamdas,var,var2,false);
+			  hit_and_run_coord_update(p_gen,p_gen_prev,PBLarge,rand_coord,rand_coord_prev,kapa,lamdas,var,var2,false);
 			}
-			randPointsPB.push_back(p);
+			// count and store in randPoints the points fall in PBSmall
+			if (PBSmall.second().is_in(p_gen) == -1){//is in
+				randPoints.push_back(p_gen);
+				++nump_PBSmall;
+			}
 		}
-		
-	}
-    std::vector<int> telescopic_prod(nb,0);
-    for(int i=1; i<=rnum; ++i){ //generate rnum rand points 
-	//start with a u.d.r point in the smallest ball 
-	//radius=1, center=Origin()
-	std::vector<NT> coords(n,0);
-	Point p(n,coords.begin(),coords.end());
-	BallPoly PBold(P,balls[0]);
-	//
-	//hit_and_run(p,PBold.second(),var,var2);
-	CGAL::Random_points_in_ball_d<Point> gen (n, NT(1.0));
-	p = *gen;
-	//std::cout<<p<<std::endl;
-	//std::cout<<Sep_Oracle(PBold,p).get_is_in()<<std::endl;
-	//std::cout<<balls[0].is_in(p)<<std::endl;
-	
-	std::vector<Ball>::iterator bit=balls.begin();
-	std::vector<int>::iterator prod_it=telescopic_prod.begin();
-	++bit; 
-	for(; bit!=balls.end(); ++bit, ++prod_it){
-		// generate a random point in bit intersection with P 
-		BallPoly PB(P,*bit);
-		
-		std::vector<NT> lamdas(P.size(),NT(0));
-		int rand_coord = uidist(rng);
-		double kapa = urdist(rng);
-		Point p_prev=p;
-		hit_and_run_coord_update(p,p_prev,PB,rand_coord,rand_coord,kapa,lamdas,var,var2,true);
-						
-		for(int j=0; j<walk_len; ++j){
-		  int rand_coord_prev = rand_coord;
-		  rand_coord = uidist(rng);
-		  kapa = urdist(rng);
-		  hit_and_run_coord_update(p,p_prev,PB,rand_coord,rand_coord_prev,kapa,lamdas,var,var2,false);
-		}
-		
-		//Not need to test for PBold membership. Just check if inside Ball
-		//if (Sep_Oracle(PBold,p,var2).get_is_in()){
-		if (PBold.second().is_in(p)){
-			//std::cout<<p<<" IN ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
-		  ++(*prod_it);
-		}else{
-		  ;
-		  //std::cout<<p<<":"<<(p-CGAL::Origin()).squared_length()
-		  //<<" OUT ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
-		}
-		PBold=PB;
-	}
-	if (print) std::cout<<"\n\ngenerated random point..."<<i<<"/"<<rnum<<" ";
-	const NT pi = boost::math::constants::pi<NT>();
-	NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0); 
-	for(std::vector<int>::iterator prod_it=telescopic_prod.begin(); 
-	    prod_it!=telescopic_prod.end(); ++prod_it){
-		vol *= NT(i)/NT(*prod_it);
-	}
-	if (print) std::cout<<"current vol estimation= "<<vol<<std::endl;
-	  if (print) std::cout<<"walklen="<<walk_len<<std::endl;
-	  //if (print) std::cout<<"rnum="<<rnum<<std::endl;
-		//for(prod_it=telescopic_prod.begin(); prod_it!=telescopic_prod.end(); ++prod_it)
-		//	std::cout<<(*prod_it)<<" ";
-		//std::cout<<std::endl;
+		telescopic_prod *= NT(rnum)/NT(nump_PBSmall);
+    std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
+             <<"\n--------------------------"<<std::endl;
 	}	
+	std::cout<<"rand points = "<<rnum<<std::endl;
+	std::cout<<"walk len = "<<walk_len<<std::endl;
 	const NT pi = boost::math::constants::pi<NT>();
-	NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0); 
-	//NT vol=1;
-	if (print) std::cout<<"vol(K_0)="<<vol<<" ";
-	for(std::vector<int>::iterator prod_it=telescopic_prod.begin();
-	    prod_it!=telescopic_prod.end(); ++prod_it){
-		vol *= NT(rnum)/NT(*prod_it);
-		if (print) std::cout<<NT(rnum)<<"/" << NT(*prod_it)<<"="<<NT(rnum)/NT(*prod_it)<<"\n";
-	}
+	NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0) 
+	       //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
+	       * telescopic_prod;
+	//NT vol(0);
 	return vol;
+	
 }
 
 // VOLUME with multipoint random walk

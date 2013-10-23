@@ -22,17 +22,21 @@ struct Ball{
 	  Point center(){
 			return _c;
 		}
+		
 		NT squared_radius(){
 			return _R;
 		}
+		
 		NT radius(){
 			return std::sqrt(_R);
 		}
+		
 		int is_in(Point p){
 			if ((p-_c).squared_length() <= _R)
 			  return -1;
 			else return 0;
 		}
+		
 		std::pair<Point,Point> line_intersect(Point r, 
                                           Vector v){
 			Point::Cartesian_const_iterator rit;
@@ -53,80 +57,32 @@ struct Ball{
 				rc2 += *rcit * (*rcit);
 			}
 			
-			//std::cout<<"r = "<<r<<std::endl;	
-			//std::cout<<"v = "<<v<<std::endl;	
-			//std::cout<<"_c = "<<_c<<std::endl;	
-		
-			//std::cout<<"vrc = "<<vrc<<std::endl;	
-			//std::cout<<"v2 = "<<v2<<std::endl;	
-			//std::cout<<"rc2 = "<<rc2<<std::endl;	
-			//std::cout<<"disc"<<std::pow(vrc,2) - v2 * (rc2 - _R))<<std::endl;
-			
 			NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));
 			NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);									
 			NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);	
-			//std::cout<<"l1 = "<<lamda1<<std::endl;	
-			//std::cout<<"l2 = "<<lamda2<<std::endl;	
-			//std::cout<<"intersect points"<<r+(lamda1*v)<<r+(lamda2*v)<<std::endl;
 			return std::pair<Point,Point> (r+(lamda1*v),r+(lamda2*v));						
 		}
 		
 		std::pair<NT,NT> line_intersect_coord(Point r, 
                                           int rand_coord){
 			
-			//std::cout<<"ball intersection"<<std::endl;
-			//Point::Cartesian_const_iterator rit;
-			//rit=r.cartesian_begin(); 
-			//Point::Cartesian_const_iterator vit;
-			//vit=v.cartesian_begin();
-			//Point::Cartesian_const_iterator cit;
-			//cit=_c.cartesian_begin();
-			//std::cout<<r<<"\n"<<rand_coord<<std::endl;
-			
 			Vector rc = r - _c;
-			//std::cout<<"ok1"<<std::endl;
 			Vector::Cartesian_const_iterator rcit;
 			rcit = rc.cartesian_begin(); 
 			NT vrc = *(rcit + rand_coord);
-			//std::cout<<"ok2"<<std::endl;
 			
 			NT v2 = NT(1);
 			NT rc2(0);
 			for( ; rcit < rc.cartesian_end() ; ++rcit){
-				//vrc += *vit * (*rcit);
-				//v2 += *vit * (*vit);
 				rc2 += *rcit * (*rcit);
 			}
-			//std::cout<<"phase I computed"<<std::endl;
-			//std::cout<<"r = "<<r<<std::endl;	
-			//std::cout<<"v = "<<v<<std::endl;	
-			//std::cout<<"_c = "<<_c<<std::endl;	
-		
-			//std::cout<<"vrc = "<<vrc<<std::endl;	
-			//std::cout<<"v2 = "<<v2<<std::endl;	
-			//std::cout<<"rc2 = "<<rc2<<std::endl;	
-			//std::cout<<"disc"<<std::pow(vrc,2) - v2 * (rc2 - _R))<<std::endl;
 			
 			NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));
 			NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);									
 			NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);	
-			//std::cout<<"l1 = "<<lamda1<<std::endl;	
-			//std::cout<<"l2 = "<<lamda2<<std::endl;	
-			//std::cout<<"intersect points"<<r+(lamda1*v)<<r+(lamda2*v)<<std::endl;
-			
-			//std::cout<<"phase II computed"<<std::endl;
 			
 			return std::pair<NT,NT> (lamda1,lamda2);
-			
-			/*
-			//TODO: only change one coordinate of *r* avoid addition + construction
-			std::vector<NT> v(r.dimension(),NT(0));
-			v[rand_coord]=lamda1;
-			Vector b1(r.dimension(),v.begin(),v.end());
-			v[rand_coord]=lamda2;
-			Vector b2(r.dimension(),v.begin(),v.end());
-			return std::pair<Point,Point> (r+b1,r+b2);
-			*/ 						
+			 						
 		}
 	
 	private:
@@ -196,10 +152,7 @@ class BallIntersectPolytope {
 														              ){
 			
 			std::pair<NT,NT> polypair = _P.line_intersect_coord(r,r_prev,rand_coord,rand_coord_prev,lamdas,init);
-			//std::pair<NT,NT> polypair = _P.line_intersect_coord(r,r_prev,rand_coord,rand_coord_prev,lamdas,init);
-			//std::cout<<"P computed"<<std::endl;
 			std::pair<NT,NT> ballpair = _B.line_intersect_coord(r,rand_coord);
-			//std::cout<<"P,B computed"<<std::endl;
 			return std::pair<NT,NT> (std::min(polypair.first,ballpair.first),
 			                         std::max(polypair.second,ballpair.second));
 		}
