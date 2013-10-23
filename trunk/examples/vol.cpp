@@ -151,7 +151,7 @@ int main(const int argc, const char** argv)
 		         <<walk_len<<" "<<std::flush;
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
-    double v1 = volume1(P,var,var,r,d);
+    double v1 = volume1_reuse(P,var,var,r,d);
     tstop = (double)clock()/(double)CLOCKS_PER_SEC;
     //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
   
