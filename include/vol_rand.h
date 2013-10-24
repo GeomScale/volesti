@@ -36,11 +36,8 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 
-
 #include <CGAL/Extreme_points_d.h>
 #include <CGAL/Extreme_points_traits_d.h>
-
-
 
 //#include <gmpxx.h>
 //typedef mpq_class NT;
@@ -50,7 +47,6 @@
 typedef double                      NT;
 //typedef CGAL::Gmpz                NT;
 
-
 typedef CGAL::Cartesian_d<NT> 	      Kernel; 
 //typedef CGAL::Triangulation<Kernel> T;
 typedef Kernel::Point_d								Point;
@@ -59,8 +55,6 @@ typedef Kernel::Line_d								Line;
 typedef Kernel::Hyperplane_d					Hyperplane;
 typedef Kernel::Direction_d						Direction;
 //typedef Kernel::Sphere_d						Ball;
-
-
 
 
 // define random generators
@@ -85,11 +79,12 @@ struct vars{
 				  generator
 				  &get_snd_rand,
 				  boost::random::uniform_real_distribution<> urdist,
-				  boost::random::uniform_real_distribution<> urdist1
+				  boost::random::uniform_real_distribution<> urdist1,
+				  bool verbose
 			) : 
 	    m(m), n(n), walk_steps(walk_steps), err(err), err_opt(err_opt), 
 	    lw(lw), up(up), L(L), rng(rng), get_snd_rand(get_snd_rand),
-	    urdist(urdist), urdist1(urdist1) {};
+	    urdist(urdist), urdist1(urdist1) , verbose(verbose){};
 	
 	  int m;
 		int n;
@@ -104,6 +99,7 @@ struct vars{
 	  &get_snd_rand;
 	  boost::random::uniform_real_distribution<> urdist;
 	  boost::random::uniform_real_distribution<> urdist1;
+	  bool verbose;
 };
 
 // define extreme points
@@ -361,7 +357,7 @@ NT volume1_reuse(T &P,
 {
   typedef BallIntersectPolytope<T>        BallPoly; 
 	
-	bool print = true;
+	bool print = var.verbose;
 	int n = var.n;
 	int rnum = var.m;
 	int walk_len = var.walk_steps;
@@ -439,7 +435,7 @@ NT volume1_reuse(T &P,
 		--bit2;
 		BallPoly PBSmall(P,*bit2);
 		
-		std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
+		if (print) std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
 		<<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
 		
 		// choose a point in PBLarge to be used to generate more rand points
@@ -449,7 +445,7 @@ NT volume1_reuse(T &P,
 		int nump_PBSmall = 0;
 		int nump_PBLarge = randPoints.size();
 		
-		std::cout<<"Points in PBLarge="<<randPoints.size()
+		if (print) std::cout<<"Points in PBLarge="<<randPoints.size()
              <<std::endl;
 		
 		//keep the points in randPoints that fall in PBSmall
@@ -463,11 +459,11 @@ NT volume1_reuse(T &P,
 			}
 		}
      
-    std::cout<<"Points in PBSmall="<<randPoints.size()
+    if (print) std::cout<<"Points in PBSmall="<<randPoints.size()
              <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
              <<std::endl;
     
-    std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
+    if (print) std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
              <<std::endl;
    	
 		//generate more random points in PBLarge to have "rnum" in total
@@ -490,11 +486,11 @@ NT volume1_reuse(T &P,
 			}
 		}
 		telescopic_prod *= NT(rnum)/NT(nump_PBSmall);
-    std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
+    if (print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
              <<"\n--------------------------"<<std::endl;
 	}	
-	std::cout<<"rand points = "<<rnum<<std::endl;
-	std::cout<<"walk len = "<<walk_len<<std::endl;
+	if (print) std::cout<<"rand points = "<<rnum<<std::endl;
+	if (print) std::cout<<"walk len = "<<walk_len<<std::endl;
 	const NT pi = boost::math::constants::pi<NT>();
 	NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0) 
 	       //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );

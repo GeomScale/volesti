@@ -38,19 +38,73 @@ int main(const int argc, const char** argv)
 { 
 
 	// VARS
-	int n;
+	int n,nexp;
 	double wl_c, e;
 	//parse command line input
-	if(argc==4){
-		std::cout << argv[3]<<std::endl;
-	  //dimension
-		n = atoi(argv[1]);
-		//constants
-		e = atof(argv[2]);
-		wl_c = atof(argv[3]);
-	}else{
-		std::cout<<"Wrong num of args"<<std::endl;
-		exit(1);
+	bool verbose=false;
+	bool file=false;
+	stdHPolytope<double> P;
+	
+	for(int i=1;i<argc;++i){
+		bool correct=false;
+    if(!strcmp(argv[i],"-h")||!strcmp(argv[i],"--help")){
+      std::cerr<<
+        "Usage:\n"<<
+        "-i [dimension] [epsilon] [walk length] [num of experiments]\n"<<
+        "-v, --verbose \n"<<
+        "-f, --file [filename] [epsilon] [walk length] [num of experiments]\n";
+      exit(-1);
+    }
+		if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
+      verbose=true;
+      ++i;
+      std::cout<<"Verbose mode\n";
+      correct=true;
+    } 
+    if(!strcmp(argv[i],"-f")||!strcmp(argv[i],"--file")){
+      if(argc-i<4){
+	      std::cerr<<"Wrong number of arguments \'"<<argc-i-1<<
+	        "\', should be 3,"<<" Try also --help"<<std::endl;
+	      exit(-2);
+			}else{
+	      file=true;
+	      std::ifstream inp;
+	      std::vector<std::vector<double> > Pin;
+	      inp.open(argv[++i],std::ifstream::in);
+	      read_pointset(inp,Pin);
+	      //std::cout<<"d="<<Pin[0][1]<<std::endl;
+	      n = Pin[0][1]-1;
+	      P.init(Pin);
+	      P.print();
+	      //constants
+				e = atof(argv[++i]);
+				wl_c = atof(argv[++i]);
+				nexp = atof(argv[++i]);
+	      //exit(1);
+	      correct=true;
+	    }
+    }
+    if(!strcmp(argv[i],"-i")||!strcmp(argv[i],"--input")){
+      if(argc-i<5){
+				std::cerr<<"Wrong number of arguments \'"<<argc-i-1<<
+        "\', should be 4,"<<" Try also --help"<<std::endl;
+      exit(-2);
+			}else{
+	      //dimension
+				n = atoi(argv[++i]);
+				//constants
+				e = atof(argv[++i]);
+				wl_c = atof(argv[++i]);
+				nexp = atof(argv[++i]);
+				correct=true;
+			}  
+    }
+    if(correct==false){
+      std::cerr<<"unknown parameter \'"<<argv[i]<<
+        "\', try "<<argv[0]<<" --help"<<std::endl;
+      exit(-2);
+    }
+		
 	}
 	
 
@@ -104,7 +158,9 @@ int main(const int argc, const char** argv)
   
   /* CUBE */
 	//Polytope P = cube(n,-1,1);
-  stdHPolytope<double> P(n);
+	
+  if(!file)
+    P.init(n);
   //sandwitch
   std::vector<NT> coords_apex(n,1);
 	Vector p_apex(n,coords_apex.begin(),coords_apex.end());
@@ -136,7 +192,7 @@ int main(const int argc, const char** argv)
   
   // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
-  int rnum = std::pow(e,-2) * 40 * n * std::log(n);
+  int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   //int rnum = e;
   
   // The number of hit-&-run steps applied to each point   
@@ -144,39 +200,60 @@ int main(const int argc, const char** argv)
   int walk_len =  wl_c;
   
   //RUN EXPERIMENTS
-  int num_of_exp=1;
+  int num_of_exp=nexp;
+  double sum=0, sum_time=0;
+  double min,max;
+  std::vector<double> vs;
+  double average, std_dev, exactvol;
+  
   for(int i=0; i<num_of_exp; ++i){
-    std::cout<<n<<" "
-		         <<rnum<<" "
-		         <<walk_len<<" "<<std::flush;
+    std::cout<<"Experiment "<<i+1<<" ";
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-    vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1);
+    vars var(rnum,n,walk_len,err,0,0,0,0,rng,get_snd_rand,urdist,urdist1,verbose);
     double v1 = volume1_reuse(P,var,var,r,d);
     tstop = (double)clock()/(double)CLOCKS_PER_SEC;
     //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
-  
-	  double exactvol = std::pow(2,n);
-    //double exactvol = std::pow(2,n)*std::pow(n,n)/factorial(n);
-
-	  /*
-	  std::cout<<rnum<<"\n\n\nALGORITHM 1\n-----------\nvolume = "
-	           <<(1-e)*exactvol<<" < "<<v1<<" < "<<(1+e)*exactvol<<std::endl;
-		std::cout<<"exact volume = "<<exactvol<<std::endl;
-		std::cout<<"# walk steps = "<<walk_len<<std::endl;
-		std::cout<<"# rand points = "<<rnum<<std::endl;
-		std::cout<<"time = "<<tstop-tstart<<std::endl;
-		*/
-		std::cout.precision(15);
-		std::cout
-		         <<v1<<" \n["
-		         <<(1-e)*exactvol<<", "
-		         <<(1+e)*exactvol<<"]\n "
-		         <<exactvol<<" "
-		         <<(exactvol-v1)/exactvol<<" "
-		         <<tstop-tstart<<std::endl;
-		         
-	}  
-	
+     
+	  //Used to Compute Statistics
+    sum+=v1;
+    if(i==0){max=v1;min=v1;}
+    if(v1>max) max=v1;
+    if(v1<min) min=v1;
+    vs.push_back(v1);
+		sum_time +=  tstop-tstart;
+		std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart<<std::endl;        
+	  
+		//Compute Statistics
+		average=sum/(i+1);
+		std_dev=0;
+		for(std::vector<double>::iterator vit=vs.begin(); vit!=vs.end(); ++vit){
+			std_dev += std::pow(*vit - average,2);
+		}
+		std_dev = std::sqrt(std_dev/(i+1));
+		
+		exactvol = std::pow(2,n);
+	  //double exactvol = std::pow(2,n)*std::pow(n,n)/factorial(n);
+		std::cout.precision(7);
+		
+		//Print statistics
+		std::cout<<"STATISTICS:"<<std::endl;
+		//std::cout<<"d #experiments (1-e)vol, (1+e)vol vol N walklen average min, max std_dev (vol-v*)/vol t"<<std::endl;
+		std::cout 
+		           <<n<<" "
+		           <<num_of_exp<<" "
+		           <<exactvol<<" ["
+		           <<(1-e)*exactvol<<", "
+			         <<(1+e)*exactvol<<"] "
+		           <<rnum<<" "
+		           <<walk_len<<" "
+			         <<average<<" ["
+			         <<min<<", "
+			         <<max<<"] "
+			         <<std_dev<<" "
+			         <<(exactvol-average)/exactvol<<" "
+			         <<(max-min)/average<<" "
+			         <<sum_time/(i+1)<<std::endl;
+	}
 	/*
   // EXACT COMPUTATION WITH POLYMAKE
   /*
