@@ -136,6 +136,48 @@ void print_polymake_volfile2(T &P,
 	os << std::endl;
 }
 
+int read_pointset(std::istream &is,
+                  std::vector<std::vector<double> > &Input){
+	std::string point;
+	
+  while(!std::getline(is, point, '\n').eof()) {
+		//std::cout<<point<<std::endl;
+		if(!std::isdigit(point[0]) && point[0]!='-' && point[0]!=' ')
+		  continue;
+		//std::cout<<std::endl;
+	  //std::size_t found = point.find_first_of(" ");
+    std::size_t found =0;
+    std::size_t found2=0;
+    
+    //ignore empty spaces on start of line
+    found = point.find_first_not_of(" ",found);
+    
+    std::vector<double> input;
+    while (found2!=std::string::npos || point[found]=='-')
+    {
+			//std::cout<<"*"<<(point[found]!='-')<<"*"<<std::endl;
+			if(!std::isdigit(point[found]) && point[found]!='-')
+		    break;
+			found2 = point.find_first_not_of("0123456789-",found);
+      
+      //std::cout<<point.substr(found,found2-found)<<" ";
+			double num = atof(point.substr(found,found2-found).c_str());
+      found=point.find_first_not_of(" ",found2);
+      //std::cout<<"found"<<point[found]<<std::endl;
+      if(point[found]=='/'){
+				found = found + 1;
+				found2=point.find_first_not_of("0123456789-/",found);
+				//std::cout<<"lala="<<point.substr(found,found2-found)<<std::endl;
+				num = num / atof(point.substr(found,found2-found).c_str());
+				found=point.find_first_not_of(" ",found2);
+			}
+			input.push_back(num);
+			//std::cout<< num<<std::endl;
+    }
+    Input.push_back(input);
+		//std::cout<<std::endl;
+	}	
+}
 
 
 #endif //MISC_H

@@ -26,7 +26,9 @@ class stdHPolytope{
 	  typedef std::vector<stdCoeffs>  stdMatrix;
 	
 	public: 
-	  // default constructor: cube(d)
+	  stdHPolytope() {}
+	   
+	  // constructor: cube(d)
 	  stdHPolytope(int d): _d(d) {
 			for(int i=0; i<d; ++i){
 				stdCoeffs coeffs;
@@ -50,7 +52,43 @@ class stdHPolytope{
 		  }
 	  }
 	  
+	  // default initialize: cube(d)
+	  int init(int d){
+				for(int i=0; i<d; ++i){
+				stdCoeffs coeffs;
+				coeffs.push_back(K(1));
+				for(int j=0; j<d; ++j){
+					if(i==j) 
+					  coeffs.push_back(K(1));
+					else coeffs.push_back(K(0));
+				}
+			_A.push_back(coeffs);
+		  }
+		  for(int i=0; i<d; ++i){
+				stdCoeffs coeffs;
+				coeffs.push_back(K(1));				
+				for(int j=0; j<d; ++j){
+					if(i==j) 
+					  coeffs.push_back(K(-1));
+					else coeffs.push_back(K(0));
+				}
+			_A.push_back(coeffs);
+		  }
+			return 0;
+		}
+		
+	  int init(stdMatrix Pin){
+			_d = Pin[0][1]-1;
+			typename stdMatrix::iterator pit=Pin.begin();
+			++pit;
+			for( ; pit<Pin.end(); ++pit){
+				_A.push_back(*pit);
+			}
+			return 0;	
+		}
+	  
 	  int print() {
+			std::cout<<"dim= "<<_d<<std::endl;
 			for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
 				for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
 				  std::cout<<*lit<<" ";
