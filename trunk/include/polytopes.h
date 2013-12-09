@@ -36,8 +36,9 @@ typedef CGAL::Gmpzf ET;
 //#endif
 #include <boost/random/shuffle_order.hpp>
 #include <rref.h>
+//EXPERIMENTAL
 //to implement boundary oracles using NN queries  
-#include <flann/flann.hpp>
+//#include <flann/flann.hpp>
 
 // my H-polytope class
 template <typename K>
@@ -45,7 +46,8 @@ class stdHPolytope{
 	private:
 	  typedef std::vector<K>        stdCoeffs;
 	  typedef std::vector<stdCoeffs>  stdMatrix;
-	  typedef std::vector<flann::Index<flann::L2<double> > >  Flann_trees;  
+	  //EXPERIMENTAL
+	  //typedef std::vector<flann::Index<flann::L2<double> > >  Flann_trees;  
 	  
 	public: 
 	  stdHPolytope() {}
@@ -226,6 +228,8 @@ class stdHPolytope{
 		  return 1;
 	  }
 	  
+	  /* EXPERIMENTAL
+	  
 	  // compute the dual representation of P 
 	  // and construct the flann trees used for NN queries 
 	  int dual(int dir){
@@ -269,12 +273,12 @@ class stdHPolytope{
 				//_Aduals.push_back(_Adual);
 				
 				//print dataset k
-				/*
-				for (int i = 0; i < _A.size(); ++i){
-				  for (int j = 0; j < d+1; ++j)
-						std::cout<<dataset[i][j]<<" ";
-				  std::cout<<"\n";
-				}*/
+				
+				//for (int i = 0; i < _A.size(); ++i){
+				//  for (int j = 0; j < d+1; ++j)
+				//		std::cout<<dataset[i][j]<<" ";
+				//  std::cout<<"\n";
+				//}
 				// construct an randomized kd-tree index using  kd-trees
 				//flann::Index<flann::L2<double> > index(dataset, flann::KDTreeSingleIndexParams(4));
 				flann::Index<flann::L2<double> > index(dataset, flann::LinearIndexParams());
@@ -287,75 +291,7 @@ class stdHPolytope{
 			return 1;
 	  }
 	  
-	  /*TODO: STORE ONLY THE POSITIVE HYPERPLANES WRT THE DIRECTION
-	  // compute the dual representation of P 
-	  // and construct the flann trees used for NN queries 
-	  int dual(int dir){
-			int d=_d;
-			//std::cout<<"\nDual\n";
-			for(int k=1; k<=d; ++k){
-			//for (int k=d; k>=1; --k){
-				int possitive_hyperplanes=0;
-				for(int i = 0; i < _A.size(); ++i){
-					if((_A[i][k]<0)==(dir>0)){
-					  ++possitive_hyperplanes;
-					}
-				}		
-				std::cout << "possitive_hyperplanes="<<possitive_hyperplanes<<std::endl;
-				//flann::Matrix<double> dataset(new double[_A.size()*(d+1)], _A.size(), (d+1));
-				flann::Matrix<double> dataset(new double[possitive_hyperplanes*(d+1)], possitive_hyperplanes, (d+1));
-				stdMatrix _Adual;
-				double M=0;
-				int di=0;
-				for(int i = 0; i < _A.size(); ++i)
-				{ 
-					if((_A[i][k]>0)==(dir<0)){
-					//if(_A[i][k]>0){	
-						std::cout<<"k="<<k<<"_A[i][k]="<<_A[i][k]<<"dir"<<dir
-						         <<"flag="<<((_A[i][k]<0)==(dir>0))<<"i="<<i<<std::endl;
-						double t_norm_squared=0;
-						stdCoeffs coeffs;
-						for(int j = 0; j < d+1; ++j){
-				      if(j != k){
-								double value = dir*_A[i][j]/(_A[i][k]);
-								coeffs.push_back(value);
-								//datasets[k-1][i][j] = value;
-								t_norm_squared += std::pow(value,2);
-								std::cout<<value<<" ";
-							}
-				    }
-				    for(int j = 0; j < d-1; ++j){
-							dataset[di][j] = coeffs[j+1];
-						}
-						dataset[di][d-1]=-1*coeffs[0];
-				    //coeffs.push_back(t_norm_squared);
-				    dataset[di][d]=t_norm_squared;
-				    if(1+t_norm_squared > M) M=1+t_norm_squared;
-				    //_Adual.push_back(coeffs);
-						//std::cout<<"\n";
-						++di;
-					}
-			  }
-			  for(int i = 0; i < possitive_hyperplanes; ++i)
-				{
-					//_Adual[i].push_back(std::sqrt(M-_Adual[i][d+1]));
-					dataset[i][d] = std::sqrt(M-1-dataset[i][d]);
-					//std::cout<<M-1-_Adual[i][d+1]<<" ";
-				}
-			  std::cout<<"\n-----\n";
-				//_Aduals.push_back(_Adual);
-				
-				// construct an randomized kd-tree index using  kd-trees
-				flann::Index<flann::L2<double> > index(dataset, flann::KDTreeSingleIndexParams(16));
-				//Inexact results & Seg.faults
-				//flann::Index<flann::L2<double> > index(dataset, flann::KDTreeIndexParams(4));
-				index.buildIndex();
-				flann_trees.push_back(index);
-				//std::cout<<"\n-----\n";
-			}
-			return 1;
-	  }
-	  */
+	  
 	  
 	  // dual must be set before calling this
 	  std::pair<NT,NT> 
@@ -458,7 +394,7 @@ class stdHPolytope{
 		  //exit(1);
 			return NNpair;
 		}
-		
+		*/
 		
 	  int is_in(Point p) {
 			//std::cout << "Running is in" << std::endl;
@@ -768,8 +704,8 @@ class stdHPolytope{
 	private:
 	  int            _d; //dimension
 	  stdMatrix      _A; //inequalities
-	  //DualstdMatrices      _Aduals; 
-	  Flann_trees    flann_trees; //the (functional) duals of A lifted to answer NN queries
+	  //EXPERIMENTAL
+	  //Flann_trees    flann_trees; //the (functional) duals of A lifted to answer NN queries
 	                               //defined for every d coordinate
 };
 
