@@ -26,6 +26,7 @@ void round_print(T p) {
   std::cout<<std::endl;
 }
 
+/*
 // Naive algorithm for Mink sum
 typedef std::vector<V_polytope>              Vpolys;
 
@@ -51,7 +52,7 @@ int Minkowski_sum_naive(V_polytope &P1, V_polytope &P2, V_polytope &Msum){
   }
   return -1;
 }
-
+*/
 
 // polymake file to compute exact volume
 template <class T>
@@ -178,6 +179,5 @@ int read_pointset(std::istream &is,
 		//std::cout<<std::endl;
 	}	
 }
-
 
 #endif //MISC_H

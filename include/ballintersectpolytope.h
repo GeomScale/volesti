@@ -100,9 +100,18 @@ class BallIntersectPolytope {
     Ball second() { return _B; }
     
     int is_in(Point p){
+			//std::cout << "calling is in"<<std::endl;
 			if(_B.is_in(p)==-1)
 			  return _P.is_in(p);
 			return 0;
+		}
+		
+		int num_of_hyperplanes(){
+			return _P.num_of_hyperplanes();
+		}
+		
+		int dimension(){
+			return _P.dimension();
 		}
 		
 		std::pair<Point,Point> line_intersect(Point r, 
@@ -153,6 +162,13 @@ class BallIntersectPolytope {
 			
 			std::pair<NT,NT> polypair = _P.line_intersect_coord(r,r_prev,rand_coord,rand_coord_prev,lamdas,init);
 			std::pair<NT,NT> ballpair = _B.line_intersect_coord(r,rand_coord);
+			return std::pair<NT,NT> (std::min(polypair.first,ballpair.first),
+			                         std::max(polypair.second,ballpair.second));
+		}
+		
+		std::pair<NT,NT> query_dual(Point &p, int rand_coord){
+			std::pair<NT,NT> polypair = _P.query_dual(p,rand_coord);
+			std::pair<NT,NT> ballpair = _B.line_intersect_coord(p,rand_coord);
 			return std::pair<NT,NT> (std::min(polypair.first,ballpair.first),
 			                         std::max(polypair.second,ballpair.second));
 		}
