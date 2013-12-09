@@ -17,8 +17,26 @@
 #ifndef POLYTOPES_H
 #define POLYTOPES_H
 
+#define CGAL_QP_NO_ASSERTIONS
 
-// my V polytope class
+//this is for LP-solver
+#include <iostream>
+#include <CGAL/basic.h>
+#include <CGAL/QP_models.h>
+#include <CGAL/QP_functions.h>
+// choose exact integral type
+//#ifdef CGAL_USE_GMP
+#include <CGAL/Gmpzf.h>
+typedef CGAL::Gmpzf ET;
+//typedef double ET;
+//#else
+//#include <CGAL/MP_Float.h>
+//typedef CGAL::MP_Float ET;
+//#endif
+#include <boost/random/shuffle_order.hpp>
+#include <rref.h>
+
+// my H-polytope class
 template <typename K>
 class stdHPolytope{
 	private:
@@ -52,16 +70,33 @@ class stdHPolytope{
 		  }
 	  }
 	  
+	  int dimension(){
+			return _d;
+		}
+		
+		int num_of_hyperplanes(){
+			return _A.size();
+		}
+	  
+	  K get_coeff(int i, int j){
+			return _A[i][j];
+		}
+		
+		void put_coeff(int i, int j, K value){
+			_A[i][j] = value;
+		}
+	  
 	  // default initialize: cube(d)
 	  int init(int d){
-				for(int i=0; i<d; ++i){
-				stdCoeffs coeffs;
-				coeffs.push_back(K(1));
-				for(int j=0; j<d; ++j){
-					if(i==j) 
-					  coeffs.push_back(K(1));
-					else coeffs.push_back(K(0));
-				}
+			_d=d;
+			for(int i=0; i<d; ++i){
+			stdCoeffs coeffs;
+			coeffs.push_back(K(1));
+			for(int j=0; j<d; ++j){
+				if(i==j) 
+				  coeffs.push_back(K(1));
+				else coeffs.push_back(K(0));
+			}
 			_A.push_back(coeffs);
 		  }
 		  for(int i=0; i<d; ++i){
@@ -84,6 +119,14 @@ class stdHPolytope{
 			for( ; pit<Pin.end(); ++pit){
 				_A.push_back(*pit);
 			}
+			//double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+			//std::random_shuffle (_A.begin(), _A.end());
+			//unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+      //std::shuffle (_A.begin(), _A.end(), std::default_random_engine(seed));
+			//std::shuffle (_A.begin(), _A.end(), std::default_random_engine(seed));
+			//boost::random::shuffle_order_engine<stdMatrix>(_A.begin(), _A.end());
+			//double tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+			//std::cout << "Shuffle time = " << tstop - tstart << std::endl;
 			return 0;	
 		}
 	  
@@ -95,10 +138,6 @@ class stdHPolytope{
 		    std::cout<<std::endl;
 		  }			
 			return 0;
-		}
-	  
-	  int size() {
-			return _A.size();
 		}
 	  
 	  /*
@@ -121,7 +160,68 @@ class stdHPolytope{
 		}
 	  */
 	  
+	  int rref(){
+			to_reduced_row_echelon_form(_A);
+		  std::vector<int> zeros(_d+1,0);
+		  std::vector<int> ones(_d+1,0);
+		  std::vector<int> zerorow(_A.size(),0);
+		  for (int i = 0; i < _A.size(); ++i)
+			{
+				for (int j = 0; j < _d+1; ++j){
+		      if ( _A[i][j] == double(0)){
+						++zeros[j];
+						++zerorow[i];
+					}
+					if ( _A[i][j] == double(1)){
+						++ones[j];
+					}
+		    }
+		  }
+			for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
+				int j =0;
+				for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ){
+					if(zeros[j]==_A.size()-1 && ones[j]==1)
+						(*mit).erase(lit);
+					else{ //reverse sign in all but the first column
+						if(lit!=mit->end()-1) *lit = (-1)*(*lit);
+						++lit;
+					}		
+					++j;
+				}
+			}
+			//swap last and first columns
+			for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
+				double temp=*(mit->begin());
+				*(mit->begin())=*(mit->end()-1);
+				*(mit->end()-1)=temp;
+			}
+			//delete zero rows
+			for (typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ){
+				int zero=0;
+				for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit){
+					if(*lit==double(0)) ++zero;
+				}
+				if(zero==(*mit).size())
+					_A.erase(mit);
+				else
+           ++mit;
+      }
+      //update _d
+      _d=(_A[0]).size();
+      // add unit vectors
+      for(int i=1;i<_d;++i){
+			  std::vector<double> e(_d,0);
+			  e[i]=1;
+			  _A.push_back(e);
+			}
+			// _d should equals the dimension
+		  _d=_d-1;
+		  return 1;
+	  }
+	  
 	  int is_in(Point p) {
+			//std::cout << "Running is in" << std::endl;
+			//exit(1);
 			for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
 				typename stdCoeffs::iterator lit;
 				Point::Cartesian_const_iterator pit;
@@ -141,10 +241,97 @@ class stdHPolytope{
 			return -1;
 		}
 	  
+	  int chebyshev_center(Point& center, double& radius){
+			typedef CGAL::Linear_program_from_iterators
+			<K**,                          // for A
+			 K*,                          // for b
+			 CGAL::Const_oneset_iterator<CGAL::Comparison_result>,  // for r
+			 bool*,                           // for fl
+			 K*,                              // for l
+			 bool*,                           // for fu
+			 K*,                              // for u
+			 K*>                              // for c 
+			Program;
+			typedef CGAL::Quadratic_program_solution<ET> Solution;
+			
+			//std::cout<<"Cheb"<<std::endl;
+			K* b = new K[_A.size()];
+			K** A_col = new K*[_d+1];
+			for(size_t i = 0; i < _d+1; ++i)
+        A_col[i] = new K[_A.size()];
+			
+			stdMatrix B(_A);
+			//std::random_shuffle (B.begin(), B.end());
+			for(size_t i=0; i<B.size(); ++i){
+				K sum_a2 = 0;
+				b[i] = B[i][0];
+				for(size_t j=0; j<_d; ++j){
+					A_col[j][i] = B[i][j+1];
+					sum_a2 += std::pow(B[i][j+1],2);
+				}
+				A_col[_d][i] = std::sqrt(sum_a2);	
+			}
+			
+		  CGAL::Const_oneset_iterator<CGAL::Comparison_result> 
+        r(CGAL::SMALLER);
+		  
+		  bool* fl = new bool[_d+1]();
+		  bool* fu = new bool[_d+1]();
+		  
+		  for(size_t i=0; i<_d+1; ++i)
+				fl[i]=false;
+		  for(size_t i=0; i<_d+1; ++i)
+				fu[i]=false;
+		  fl[_d]=true;
+		  
+		  K* l = new K[_d+1]();
+		  K* u = new K[_d+1]();
+		  K* c = new K[_d+1]();
+		  
+		  for(size_t i=0; i<_d+1; ++i)
+				l[i]=K(0);
+			for(size_t i=0; i<_d+1; ++i)
+				u[i]=K(0);
+			for(size_t i=0; i<_d+1; ++i)
+				c[i]=K(0);
+		  c[_d]=K(-1);
+		  
+		  Program lp (_d+1, int(_A.size()), A_col, b, r, 
+		              fl, l, fu, u, c, 0);
+		  
+		  //CGAL::Quadratic_program_options options;
+      //options.set_verbosity(1);                         // verbose mode 
+      //options.set_pricing_strategy(CGAL::QP_PARTIAL_FILTERED_DANTZIG);     // Bland's rule
+      //options.set_auto_validation(true);                // automatic self-check
+      //Solution s = CGAL::solve_linear_program(lp, ET(), options);
+                  
+		  Solution s = CGAL::solve_linear_program(lp, ET());
+      // output solution
+      //std::cout << s;
+      if (s.is_infeasible()){
+        std::cout << "The polytope P is unbounded and Vol(P)=0\n";
+        exit(-1);
+      }
+      else {
+	      assert (s.is_optimal());
+	      Solution::Variable_value_iterator it = s.variable_values_begin();
+	      std::vector<double> vecp;
+	      for(; it!=s.variable_values_end()-1; ++it){
+					//std::cout<<CGAL::to_double(*it)<<" ";
+					vecp.push_back(CGAL::to_double(*it));
+				}
+				center = Point(_d,vecp.begin(),vecp.end());
+				//std::cout << center;
+				radius = CGAL::to_double(*it);
+				//std::cout << radius << std::endl;
+			}
+		  return 0;	
+		}
+	  
 	  // compute intersection point of ray starting from r and pointing to v
 	  // with polytope discribed by _A
 	  std::pair<Point,Point> line_intersect(Point r, 
-                         Vector v){
+                                          Vector v){
 		  //std::cout<<"line-polytope-intersection"<<std::endl;
 		  K lamda=0;
 		  K min_plus=0, max_minus=0;
@@ -240,20 +427,6 @@ class stdHPolytope{
 				}			  
 				//std::cout<<r+(lamda*v)<<"\n"<<lamda<<std::endl;
 			}
-			
-			/*
-			std::cout<<"lmin,lmax= "<<max_minus<<" "<<min_plus<<std::endl;
-			std::cout<<"r= "<<r<<std::endl;
-			std::cout<<"v= "<<v<<std::endl;
-			std::cout<<"p1= "<<r+(min_plus*v)<<std::endl;
-			std::cout<<"p2= "<<r+(max_minus*v)<<std::endl;
-			
-			std::pair<Point,Point> preturn(r,r);
-			preturn.first[rand_coord] += min_plus;
-			preturn.second[rand_coord] += max_minus;
-			return preturn;	
-			*/	
-			
 			return std::pair<NT,NT> (min_plus,max_minus);
 		}
 		
@@ -271,8 +444,8 @@ class stdHPolytope{
 		  bool min_plus_not_set=true;
 		  bool max_minus_not_set=true;
 		  
-		  if(init){ //first time compute the innerprod cit*rit	
-		    for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
+		  if(init){ //first time compute the innerprod cit*rit
+				for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
 					typename stdCoeffs::iterator cit;
 					Point::Cartesian_const_iterator rit;
 					rit=r.cartesian_begin(); 
@@ -281,7 +454,7 @@ class stdHPolytope{
 					++cit;
 					K sum_denom= *(cit+rand_coord); 
 					//std::cout<<ait->begin()-ait->end()<<" "<<r.cartesian_begin()-r.cartesian_end()<<" "<<
-					//         v.cartesian_begin()-v.cartesian_end()<<std::endl;
+					//         std::endl;
 					for( ; cit < ait->end() ; ++cit, ++rit){
 						sum_nom -= *cit * (*rit);
 					}
@@ -298,7 +471,7 @@ class stdHPolytope{
 					  if(lamda<min_plus && lamda>0) min_plus=lamda;
 					  if(lamda>max_minus && lamda<0) max_minus=lamda;
 					}
-				}		
+				}	
 			} else {//only a few opers no innerprod
 				for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
 					typename stdCoeffs::iterator cit;
@@ -328,12 +501,10 @@ class stdHPolytope{
 			
 			return std::pair<NT,NT> (min_plus,max_minus);
 		}
-		
-		
-	  
+			  
 	private:
 	  int            _d; //dimension
-	  stdMatrix      _A;
+	  stdMatrix      _A; //inequalities
 };
 
 
