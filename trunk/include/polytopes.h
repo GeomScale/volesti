@@ -25,16 +25,19 @@
 #include <CGAL/QP_models.h>
 #include <CGAL/QP_functions.h>
 // choose exact integral type
-//#ifdef CGAL_USE_GMP
+#ifdef CGAL_USE_GMP
 #include <CGAL/Gmpzf.h>
 typedef CGAL::Gmpzf ET;
+#endif
 //typedef double ET;
 //#else
-//#include <CGAL/MP_Float.h>
+#include <CGAL/MP_Float.h>
 //typedef CGAL::MP_Float ET;
 //#endif
 #include <boost/random/shuffle_order.hpp>
 #include <rref.h>
+//to implement boundary oracles using NN queries  
+#include <flann/flann.hpp>
 
 // my H-polytope class
 template <typename K>
@@ -42,7 +45,8 @@ class stdHPolytope{
 	private:
 	  typedef std::vector<K>        stdCoeffs;
 	  typedef std::vector<stdCoeffs>  stdMatrix;
-	
+	  typedef std::vector<flann::Index<flann::L2<double> > >  Flann_trees;  
+	  
 	public: 
 	  stdHPolytope() {}
 	   
@@ -160,6 +164,9 @@ class stdHPolytope{
 		}
 	  */
 	  
+	  // Compute the reduced row echelon form
+	  // used to transofm {Ax=b,x>=0} to {A'x'<=b'}
+	  // e.g. Birkhoff polytopes
 	  int rref(){
 			to_reduced_row_echelon_form(_A);
 		  std::vector<int> zeros(_d+1,0);
@@ -219,6 +226,240 @@ class stdHPolytope{
 		  return 1;
 	  }
 	  
+	  // compute the dual representation of P 
+	  // and construct the flann trees used for NN queries 
+	  int dual(int dir){
+			int d=_d;
+			//std::cout<<"\nDual\n";
+			for (int k=1; k<=d; ++k){
+			//for (int k=d; k>=1; --k){
+				flann::Matrix<double> dataset(new double[_A.size()*(d+1)], _A.size(), (d+1));
+				stdMatrix _Adual;
+				double M=0;
+				for (int i = 0; i < _A.size(); ++i)
+				{ 
+					double t_norm_squared=0;
+					stdCoeffs coeffs;
+					for (int j = 0; j < d+1; ++j){
+			      if (j != k){
+							double value = dir*_A[i][j]/(_A[i][k]);
+							coeffs.push_back(value);
+							//datasets[k-1][i][j] = value;
+							t_norm_squared += std::pow(value,2);
+							//std::cout<<value<<" ";
+						}
+			    }
+			    for (int j = 0; j < d-1; ++j){
+						dataset[i][j] = coeffs[j+1];
+					}
+					dataset[i][d-1]=-1*coeffs[0];
+			    //coeffs.push_back(t_norm_squared);
+			    dataset[i][d]=t_norm_squared;
+			    if(1+t_norm_squared > M) M=1+t_norm_squared;
+			    //_Adual.push_back(coeffs);
+					//std::cout<<"\n";
+			  }
+			  for (int i = 0; i < _A.size(); ++i)
+				{
+					//_Adual[i].push_back(std::sqrt(M-_Adual[i][d+1]));
+					dataset[i][d] = std::sqrt(M-1-dataset[i][d]);
+					//std::cout<<M-1-_Adual[i][d+1]<<" ";
+				}
+			  //std::cout<<"\n-----\n";
+				//_Aduals.push_back(_Adual);
+				
+				//print dataset k
+				/*
+				for (int i = 0; i < _A.size(); ++i){
+				  for (int j = 0; j < d+1; ++j)
+						std::cout<<dataset[i][j]<<" ";
+				  std::cout<<"\n";
+				}*/
+				// construct an randomized kd-tree index using  kd-trees
+				//flann::Index<flann::L2<double> > index(dataset, flann::KDTreeSingleIndexParams(4));
+				flann::Index<flann::L2<double> > index(dataset, flann::LinearIndexParams());
+				//Inexact results & Seg.faults
+				//flann::Index<flann::L2<double> > index(dataset, flann::KDTreeIndexParams(4));
+				index.buildIndex();
+				flann_trees.push_back(index);
+				//std::cout<<"\n-----\n";
+			}
+			return 1;
+	  }
+	  
+	  /*TODO: STORE ONLY THE POSITIVE HYPERPLANES WRT THE DIRECTION
+	  // compute the dual representation of P 
+	  // and construct the flann trees used for NN queries 
+	  int dual(int dir){
+			int d=_d;
+			//std::cout<<"\nDual\n";
+			for(int k=1; k<=d; ++k){
+			//for (int k=d; k>=1; --k){
+				int possitive_hyperplanes=0;
+				for(int i = 0; i < _A.size(); ++i){
+					if((_A[i][k]<0)==(dir>0)){
+					  ++possitive_hyperplanes;
+					}
+				}		
+				std::cout << "possitive_hyperplanes="<<possitive_hyperplanes<<std::endl;
+				//flann::Matrix<double> dataset(new double[_A.size()*(d+1)], _A.size(), (d+1));
+				flann::Matrix<double> dataset(new double[possitive_hyperplanes*(d+1)], possitive_hyperplanes, (d+1));
+				stdMatrix _Adual;
+				double M=0;
+				int di=0;
+				for(int i = 0; i < _A.size(); ++i)
+				{ 
+					if((_A[i][k]>0)==(dir<0)){
+					//if(_A[i][k]>0){	
+						std::cout<<"k="<<k<<"_A[i][k]="<<_A[i][k]<<"dir"<<dir
+						         <<"flag="<<((_A[i][k]<0)==(dir>0))<<"i="<<i<<std::endl;
+						double t_norm_squared=0;
+						stdCoeffs coeffs;
+						for(int j = 0; j < d+1; ++j){
+				      if(j != k){
+								double value = dir*_A[i][j]/(_A[i][k]);
+								coeffs.push_back(value);
+								//datasets[k-1][i][j] = value;
+								t_norm_squared += std::pow(value,2);
+								std::cout<<value<<" ";
+							}
+				    }
+				    for(int j = 0; j < d-1; ++j){
+							dataset[di][j] = coeffs[j+1];
+						}
+						dataset[di][d-1]=-1*coeffs[0];
+				    //coeffs.push_back(t_norm_squared);
+				    dataset[di][d]=t_norm_squared;
+				    if(1+t_norm_squared > M) M=1+t_norm_squared;
+				    //_Adual.push_back(coeffs);
+						//std::cout<<"\n";
+						++di;
+					}
+			  }
+			  for(int i = 0; i < possitive_hyperplanes; ++i)
+				{
+					//_Adual[i].push_back(std::sqrt(M-_Adual[i][d+1]));
+					dataset[i][d] = std::sqrt(M-1-dataset[i][d]);
+					//std::cout<<M-1-_Adual[i][d+1]<<" ";
+				}
+			  std::cout<<"\n-----\n";
+				//_Aduals.push_back(_Adual);
+				
+				// construct an randomized kd-tree index using  kd-trees
+				flann::Index<flann::L2<double> > index(dataset, flann::KDTreeSingleIndexParams(16));
+				//Inexact results & Seg.faults
+				//flann::Index<flann::L2<double> > index(dataset, flann::KDTreeIndexParams(4));
+				index.buildIndex();
+				flann_trees.push_back(index);
+				//std::cout<<"\n-----\n";
+			}
+			return 1;
+	  }
+	  */
+	  
+	  // dual must be set before calling this
+	  std::pair<NT,NT> 
+	  query_dual(Point p, int rand_coord){
+			std::pair<NT,NT> NNpair;
+			int checks = 16;
+			int eps = 0;
+			int d = _d;
+			int Q=1;
+			int k=1;
+			flann::Matrix<int> indices(new int[Q*k], Q, k);
+			flann::Matrix<double> query(new double[Q*d], Q, d);
+			flann::Matrix<double> dists(new double[Q*k], Q, k);
+			
+			// transform point for query 
+			int j=0;
+			for(int i=0;i<d;i++){
+				if(i!=rand_coord)
+				  query[0][j++]=p.cartesian(i);					
+			}
+			query[0][d-1]=-1;
+			query[0][d]=0;
+			
+			//farthest
+			{
+			flann_trees[rand_coord].knnSearch(query, indices, dists, k, 
+			                                  flann::SearchParams(checks, eps));
+			
+			//std::cout<<"farthest rand_coord: "<<rand_coord<<std::endl;
+			//std::cout<<"Qresult: "<<indices[0][0]<<std::endl;
+			//std::cout<<"Qdist: "<<dists[0][0]<<std::endl;
+			
+			int i = indices[0][0];
+			//
+			K lamda;
+			typename stdCoeffs::iterator cit;
+			Point::Cartesian_const_iterator rit;
+			rit=p.cartesian_begin(); 
+			cit=_A[i].begin();
+			K sum_nom=(*cit);
+			++cit;
+			K sum_denom= *(cit+rand_coord); 
+			//std::cout<<ait->begin()-ait->end()<<" "<<r.cartesian_begin()-r.cartesian_end()<<" "<<
+			//         std::endl;
+			for( ; cit < _A[i].end() ; ++cit, ++rit){
+				sum_nom -= *cit * (*rit);
+			}
+			//lamdas[ait-_A.begin()] = sum_nom;
+			if(sum_denom==K(0)){
+		    //std::cout<<"div0"<<std::endl;
+		    ;
+		  }
+		  else{
+		    lamda = sum_nom*(1/sum_denom);
+			}
+			//std::cout<<"Qlambda:"<<lamda<<std::endl;
+			NNpair.first = lamda;
+		  }
+		  
+			//nearest
+			{
+			flann_trees[rand_coord+d].knnSearch(query, indices, dists, k, 
+			                                  flann::SearchParams(checks, eps));
+			
+			//std::cout<<"nearest rand_coord: "<<rand_coord<<std::endl;
+			//std::cout<<"Qresult: "<<indices[0][0]<<std::endl;
+			//std::cout<<"Qdist: "<<dists[0][0]<<std::endl;
+			
+			int i = indices[0][0];
+			//
+			K lamda;
+			typename stdCoeffs::iterator cit;
+			Point::Cartesian_const_iterator rit;
+			rit=p.cartesian_begin(); 
+			cit=_A[i].begin();
+			K sum_nom=(*cit);
+			++cit;
+			K sum_denom= *(cit+rand_coord); 
+			//std::cout<<ait->begin()-ait->end()<<" "<<r.cartesian_begin()-r.cartesian_end()<<" "<<
+			//         std::endl;
+			for( ; cit < _A[i].end() ; ++cit, ++rit){
+				sum_nom -= *cit * (*rit);
+			}
+			//lamdas[ait-_A.begin()] = sum_nom;
+			if(sum_denom==K(0)){
+		    //std::cout<<"div0"<<std::endl;
+		    ;
+		  }
+		  else{
+		    lamda = sum_nom*(1/sum_denom);
+			}
+			//std::cout<<"Qlambda:"<<lamda<<std::endl;
+		  NNpair.second = lamda;
+		  }
+		  
+		  // deallocate memory
+		  //delete[] query.ptr();
+      //delete[] indices.ptr();
+      //delete[] dists.ptr(); 
+		  //exit(1);
+			return NNpair;
+		}
+		
+		
 	  int is_in(Point p) {
 			//std::cout << "Running is in" << std::endl;
 			//exit(1);
@@ -243,8 +484,8 @@ class stdHPolytope{
 	  
 	  int chebyshev_center(Point& center, double& radius){
 			typedef CGAL::Linear_program_from_iterators
-			<K**,                          // for A
-			 K*,                          // for b
+			<K**,                             // for A
+			 K*,                              // for b
 			 CGAL::Const_oneset_iterator<CGAL::Comparison_result>,  // for r
 			 bool*,                           // for fl
 			 K*,                              // for l
@@ -261,7 +502,7 @@ class stdHPolytope{
         A_col[i] = new K[_A.size()];
 			
 			stdMatrix B(_A);
-			//std::random_shuffle (B.begin(), B.end());
+			std::random_shuffle (B.begin(), B.end());
 			for(size_t i=0; i<B.size(); ++i){
 				K sum_a2 = 0;
 				b[i] = B[i][0];
@@ -301,7 +542,7 @@ class stdHPolytope{
 		  
 		  //CGAL::Quadratic_program_options options;
       //options.set_verbosity(1);                         // verbose mode 
-      //options.set_pricing_strategy(CGAL::QP_PARTIAL_FILTERED_DANTZIG);     // Bland's rule
+      //options.set_pricing_strategy(CGAL::QP_BLAND);     // Bland's rule
       //options.set_auto_validation(true);                // automatic self-check
       //Solution s = CGAL::solve_linear_program(lp, ET(), options);
                   
@@ -325,6 +566,15 @@ class stdHPolytope{
 				radius = CGAL::to_double(*it);
 				//std::cout << radius << std::endl;
 			}
+			// deallocate memory
+			delete [] l;
+			delete [] u;
+			delete [] c;
+			delete [] fl;
+			delete [] fu;
+			for(size_t i = 0; i < _d+1; ++i)
+        delete [] A_col[i];
+			delete [] b;
 		  return 0;	
 		}
 	  
@@ -443,6 +693,7 @@ class stdHPolytope{
 		  K min_plus=0, max_minus=0;
 		  bool min_plus_not_set=true;
 		  bool max_minus_not_set=true;
+		  int mini, maxi;
 		  
 		  if(init){ //first time compute the innerprod cit*rit
 				for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
@@ -470,8 +721,14 @@ class stdHPolytope{
 					  if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
 					  if(lamda<min_plus && lamda>0) min_plus=lamda;
 					  if(lamda>max_minus && lamda<0) max_minus=lamda;
+					  //TEST
+					  //if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;mini=ait-_A.begin();}
+					  //if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;
+						//	 maxi=ait-_A.begin();}
+					  //if(lamda<min_plus && lamda>0) {min_plus=lamda;mini=ait-_A.begin();}
+					  //if(lamda>max_minus && lamda<0) {max_minus=lamda;maxi=ait-_A.begin();}
 					}
-				}	
+				}
 			} else {//only a few opers no innerprod
 				for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
 					typename stdCoeffs::iterator cit;
@@ -494,17 +751,26 @@ class stdHPolytope{
 					  if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
 					  if(lamda<min_plus && lamda>0) min_plus=lamda;
 					  if(lamda>max_minus && lamda<0) max_minus=lamda;
+					  //TEST
+					  //if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;mini=ait-_A.begin();}
+					  //if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;
+						//	 maxi=ait-_A.begin();}
+					  //if(lamda<min_plus && lamda>0) {min_plus=lamda;mini=ait-_A.begin();}
+					  //if(lamda>max_minus && lamda<0) {max_minus=lamda;maxi=ait-_A.begin();}
 					}
 					++lamdait;
 				}	  
 			}	
-			
+			//std::cout<<"Oresult: "<<mini<<" "<<maxi<<std::endl;	
 			return std::pair<NT,NT> (min_plus,max_minus);
 		}
 			  
 	private:
 	  int            _d; //dimension
 	  stdMatrix      _A; //inequalities
+	  //DualstdMatrices      _Aduals; 
+	  Flann_trees    flann_trees; //the (functional) duals of A lifted to answer NN queries
+	                               //defined for every d coordinate
 };
 
 
