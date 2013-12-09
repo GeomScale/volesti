@@ -136,10 +136,14 @@ int main(const int argc, const char** argv)
       correct=true;
     }
     if(!strcmp(argv[i],"-NN")){
+			/*
 			if (verbose) std::cout<<"Building search data-srtuctures..."<<std::endl;
 			NN=true;
 			P.dual(1);
 			P.dual(-1);
+			*/
+			std::cout<<"flann software is needed for this option. Experimental feature." 
+			          <<"Currently under development."<<std::endl; 
 			correct=true;
     }
     if(correct==false){
@@ -231,8 +235,9 @@ int main(const int argc, const char** argv)
 	  //exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1) 
 		std::cout.precision(7);
 		
-		struct proc_t usage;
-    look_up_our_self(&usage);
+		//MEMORY USAGE
+		//struct proc_t usage;
+    //look_up_our_self(&usage);
 		
 		//Print statistics
 		std::cout<<"STATISTICS:"<<std::endl;
@@ -256,7 +261,8 @@ int main(const int argc, const char** argv)
 			         <<(max-min)/average<<" "
 			         <<sum_time/(i+1)<<" "
 			         <<sum_Chebtime/(i+1)<<" "
-			         <<usage.vsize<<std::endl;
+			         //<<usage.vsize
+			         <<std::endl; 
 	}
 	/*
   // EXACT COMPUTATION WITH POLYMAKE

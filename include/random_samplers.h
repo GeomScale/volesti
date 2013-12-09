@@ -288,9 +288,10 @@ int hit_and_run_coord_update(Point &p,
 					                   bool init)
 {	
 	std::pair<NT,NT> bpair;
-  if(var.NN)
-	  bpair = P.query_dual(p,rand_coord);	
-	else
+  // EXPERIMENTAL
+  //if(var.NN)
+	//  bpair = P.query_dual(p,rand_coord);	
+	//else
 	  bpair = P.line_intersect_coord(p,p_prev,rand_coord,rand_coord_prev,lamdas,init);
 	//std::cout<<"original:"<<bpair.first<<" "<<bpair.second<<std::endl;
 	//std::cout<<"-----------"<<std::endl;
