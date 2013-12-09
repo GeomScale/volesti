@@ -1,0 +1,14 @@
+cross_3.ine
+H-representation
+begin
+ 8 4 integer
+ 1 -1 -1 -1 
+ 1 1 -1 -1 
+ 1 -1 1 -1 
+ 1 1 1 -1 
+ 1 -1 -1 1 
+ 1 1 -1 1 
+ 1 -1 1 1 
+ 1 1 1 1 
+end
+input_incidence
