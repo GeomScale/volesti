@@ -787,7 +787,7 @@ NT volume1_reuse_test(T &P,
  * sandwitching 
  *   */
 template <class T>
-EXACT_NT volume1_reuse2(T &P,
+NT volume1_reuse2(T &P,
 					 vars &var,  // constans for volume
 					 vars &var2, // constants for optimization in case of MinkSums
 					 double &Chebtime)
@@ -836,7 +836,7 @@ EXACT_NT volume1_reuse2(T &P,
 	if(print) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
 	
 	rnum=rnum/n_threads;
-	EXACT_NT vol=0;
+	NT vol=0;
 	
 	// Perform the procedure for a number of threads and then take the average
 	//#pragma omp for ordered schedule(dynamic)
@@ -849,7 +849,7 @@ EXACT_NT volume1_reuse2(T &P,
 		p = p + (c-CGAL::Origin());
 		std::list<Point> randPoints; //ds for storing rand points
 		//use a large walk length e.g. 1000
-		rand_point_generator(P, p, 1, 1000, randPoints, var); 
+		rand_point_generator(P, p, 1, 50*n, randPoints, var); 
 		if (print) std::cout<<"First random point: "<<p<<std::endl;
 		
 		double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;	
@@ -962,7 +962,10 @@ EXACT_NT volume1_reuse2(T &P,
 
 			telescopic_prod *= EXACT_NT(rnum)/EXACT_NT(nump_PBSmall);
 	    if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
+	             <<"\ncurrent_vol="<<telescopic_prod
+	             <<"\n="<<CGAL::to_double(telescopic_prod)
 	             <<"\n--------------------------"<<std::endl;
+	    
 	    //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2 
 	    //if(NT(rnum)/NT(nump_PBSmall)>double(1.999)){
 			//	break;
@@ -975,18 +978,44 @@ EXACT_NT volume1_reuse2(T &P,
 		const NT pi = boost::math::constants::pi<NT>();
 		//NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0) 
 		//NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n) 
-		EXACT_NT vol_thread = EXACT_NT(2*std::pow(pi,n/2.0)*std::pow(balls[0].radius(),n)) 
-		                    / EXACT_NT(std::tgamma(n/2.0)*n) 
+		
+		mpfr_t result,pow,base,exp;
+	  mpfr_init(result);
+		mpfr_init(pow);
+		mpfr_init(base);
+		mpfr_init(exp);
+		mpfr_set_ld(result,2.0,GMP_RNDN);
+		
+		mpfr_set_ld(base,pi,GMP_RNDN);
+		mpfr_set_ld(exp,n/2.0,GMP_RNDN);
+    mpfr_pow(pow, base, exp, GMP_RNDN);
+    mpfr_mul(result,result,pow,GMP_RNDN);
+
+    mpfr_set_ld(base,balls[0].radius(),GMP_RNDN);
+		mpfr_set_ld(exp,n,GMP_RNDN);
+    mpfr_pow(pow, base, exp, GMP_RNDN);
+    mpfr_mul(result,result,pow,GMP_RNDN);
+    mpfr_div_d(result,result,std::tgamma(n/2.0)*n,GMP_RNDN);
+    mpfr_mul_d(result,result,CGAL::to_double(telescopic_prod),GMP_RNDN); 
+    
+    std::cout << "mpfr vol=" << mpfr_get_ld(result,GMP_RNDN) << std::endl;
+		
+		/*EXACT_NT vol_thread = EXACT_NT(2)
+		                    * EXACT_NT(std::pow(pi,n/2.0))
+		                    * EXACT_NT(std::pow(balls[0].radius(),n))
+		                    / EXACT_NT(EXACT_NT(std::tgamma(n/2.0))*EXACT_NT(n))
 		                    //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
 		                    * telescopic_prod;
-		//NT vol(0);
-		//#pragma omp ordered
+		*/ 
+                //NT vol(0);
+    //#pragma omp ordered
+		NT vol_thread = mpfr_get_d(result,GMP_RNDN);
 		vol += vol_thread;
 	}
 	
 	// std::cout<<"ROUNDING:"<<round_value<<", "<<CGAL::to_double(round_value*(vol/n_threads)) << ", " <<
 	//           CGAL::to_double(round_value*(vol/n_threads)/n*(n+1))<<std::endl;
-	const NT pi = boost::math::constants::pi<NT>();
+	//const NT pi = boost::math::constants::pi<NT>();
 	//std::cout<<"Cheb:"<<(2*std::pow(pi,n/2.0)*std::pow(radius,n)) 
 	//	                    / (std::tgamma(n/2.0)*n)<<std::endl;
 	return round_value*(vol/n_threads);
@@ -1002,6 +1031,7 @@ EXACT_NT volume1_reuse2(T &P,
  * We also we estimators for the length of the 
  * random walk.
  *   */
+/*
 template <class T>
 EXACT_NT volume1_reuse_estimete_walk(T &P,
 					 vars &var,  // constans for volume
@@ -1099,14 +1129,14 @@ EXACT_NT volume1_reuse_estimete_walk(T &P,
 		if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
 		   
 		std::vector<Ball> balls;
-		/*
-		balls.push_back(Ball(c,std::pow(radius,2))); 
-		if (print) {
-				std::vector<Ball>::iterator bit=balls.end();--bit;
-				std::cout<<"ball "<<bit-balls.begin()<<" | "
-				         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
-			}
-		*/
+		
+		//balls.push_back(Ball(c,std::pow(radius,2))); 
+		//if (print) {
+		//		std::vector<Ball>::iterator bit=balls.end();--bit;
+		//		std::cout<<"ball "<<bit-balls.begin()<<" | "
+		//		         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
+		//	}
+		
 		for(int i=nb1; i<=nb2; ++i){
 			balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2))); 
 			if (print) {
@@ -1204,7 +1234,7 @@ EXACT_NT volume1_reuse_estimete_walk(T &P,
 	//	                    / (std::tgamma(n/2.0)*n)<<std::endl;
 	return round_value*(vol/n_threads);
 }
-
+*/
 
 
 // VOLUME with multipoint random walk

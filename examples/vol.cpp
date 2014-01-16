@@ -204,8 +204,8 @@ int main(const int argc, const char** argv)
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
              urdist,urdist1,verbose,rand_only,round,NN);
-    EXACT_NT vol = volume1_reuse2(P_to_test,var,var,Chebtime);
-    std::cout<<vol<<std::endl;
+    NT vol = volume1_reuse2(P_to_test,var,var,Chebtime);
+    //std::cout<<vol<<std::endl;
     double v1 = CGAL::to_double(vol);
     //double v1 = CGAL::to_double(volume1_reuse_test(P_to_test,var,var));
     //double v1 = CGAL::to_double(volume1_reuse_estimete_walk(P_to_test,var,var,Chebtime));
