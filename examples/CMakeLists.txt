@@ -22,13 +22,10 @@ if ( CGAL_FOUND )
 
   include( ${CGAL_USE_FILE} )
   include( CGAL_CreateSingleSourceCGALProgram )
-  #include_directories (BEFORE ../external/triangulation/include)
-  #include_directories (BEFORE ../external/spatial_sorting/include)
-  #include_directories (BEFORE ../external/kernel_d/include)
   #include_directories (BEFORE ../external/extreme_points_d/include)
   include_directories (BEFORE ../external/eigen_3_2)
   include_directories (BEFORE ../include)
-  #create_single_source_cgal_program("triangulation.cpp")
+
   
   #include_directories (BEFORE ../patches/include)
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")
