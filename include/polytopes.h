@@ -80,7 +80,7 @@ class stdHPolytope{
 			return _d;
 		}
 		
-		int num_of_hyperplanes(){
+	  int num_of_hyperplanes(){
 			return _A.size();
 		}
 	  
@@ -88,7 +88,7 @@ class stdHPolytope{
 			return _A[i][j];
 		}
 		
-		void put_coeff(int i, int j, K value){
+	  void put_coeff(int i, int j, K value){
 			_A[i][j] = value;
 		}
 	  
@@ -136,8 +136,9 @@ class stdHPolytope{
 			return 0;	
 		}
 	  
+	  // print polytope in input format
 	  int print() {
-			std::cout<<"dim= "<<_d<<std::endl;
+			std::cout<<" "<<_A.size()<<" "<<_d+1<<" float"<<std::endl;
 			for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
 				for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
 				  std::cout<<*lit<<" ";

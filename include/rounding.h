@@ -74,8 +74,8 @@ double rotate(T &P){
 template <class T>
 double rounding(T &P, 
                 vars &var,  // constans for volume
-					      vars &var2 // constants for optimization in case of MinkSums
-					      ){
+				vars &var2 // constants for optimization in case of MinkSums
+				){
   bool print = var.verbose;
   int n = var.n;
   int rnum = var.m;
@@ -86,9 +86,9 @@ double rounding(T &P,
 
   // 1. Compute the Chebychev ball (largest inscribed ball) with center and radius 
 	Point c;       //center
-  double radius;
-  P.chebyshev_center(c,radius);
-  if (print) std::cout<<"Chebychev center= "<<c<<"\nradius="<<radius<<std::endl;
+    double radius;
+    P.chebyshev_center(c,radius);
+    if (print) std::cout<<"Chebychev center= "<<c<<"\nradius="<<radius<<std::endl;
   
   // 2. Generate the first random point in P
   // Perform random walk on random point in the Chebychev ball 
@@ -107,19 +107,19 @@ double rounding(T &P,
 	if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
 	rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var); 
 	
-  // 4. Compute approximation of min enclosing ellipsoid of randPoints
-  if(print) std::cout<<"\nCompute approximate min ellipsoid..."<<std::endl;
-  Traits traits;
-  AME ame(0.01, randPoints.begin(), randPoints.end(), traits);
+    // 4. Compute approximation of min enclosing ellipsoid of randPoints
+    if(print) std::cout<<"\nCompute approximate min ellipsoid..."<<std::endl;
+    Traits traits;
+    AME ame(0.01, randPoints.begin(), randPoints.end(), traits);
 	//std::cout<<ame.defining_matrix(1,1)<<std::endl;
 	typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> MT;
-  typedef Eigen::Matrix<double,Eigen::Dynamic,1> VT;
-  // Construct polytope matrices
-  int m=P.num_of_hyperplanes();
-  int d=P.dimension();
-  MT A(m,d);
-  VT b(m);
-  for(int i=0; i<m; ++i){
+    typedef Eigen::Matrix<double,Eigen::Dynamic,1> VT;
+    // Construct polytope matrices
+    int m=P.num_of_hyperplanes();
+    int d=P.dimension();
+    MT A(m,d);
+    VT b(m);
+    for(int i=0; i<m; ++i){
 		b(i) = P.get_coeff(i,0);
 		for(int j=1; j<d+1; ++j){
 		  A(i,j-1) = P.get_coeff(i,j);

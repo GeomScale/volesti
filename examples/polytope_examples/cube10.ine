@@ -1,7 +1,7 @@
 cube_10.ine
 H-representation
 begin
- 20 11 integer
+ 20 11 real
  1 1 0 0 0 0 0 0 0 0 0 
  1 0 1 0 0 0 0 0 0 0 0 
  1 0 0 1 0 0 0 0 0 0 0 

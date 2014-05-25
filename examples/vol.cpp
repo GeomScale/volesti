@@ -19,7 +19,7 @@
 // Developer: Vissarion Fisikopoulos
 
 #include <vol_rand.h>
-#include <proc/readproc.h>
+//#include <proc/readproc.h>
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
@@ -43,6 +43,7 @@ int main(const int argc, const char** argv)
 	double e=1;
 	bool verbose=false, 
 	     rand_only=false, 
+	     round_only=false,
 	     file=false, 
 	     round=false, 
 	     NN=false,
@@ -63,6 +64,7 @@ int main(const int argc, const char** argv)
         "-f2, --file2 [filename type Ax=b,x>=0] [epsilon] [walk length] [threads] [num of experiments]\n"<<
         //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num of experiments]\n"<<
         "-r, --round : enables rounding of the polytope as a preprocess\n"<<
+        "-ro, --round_only : does only rounding to the polytope\n"<<
         "-e, --error [epsilon] : the goal error of approximation\n"<<
         "-w, --walk_len [walk_len] : the random walk length (default 10)\n"<<
         "-exp [#exps] : number of experiments (default 1)\n"<<
@@ -136,15 +138,19 @@ int main(const int argc, const char** argv)
       correct=true;
     }
     if(!strcmp(argv[i],"-NN")){
-			/*
-			if (verbose) std::cout<<"Building search data-srtuctures..."<<std::endl;
-			NN=true;
-			P.dual(1);
-			P.dual(-1);
-			*/
-			std::cout<<"flann software is needed for this option. Experimental feature." 
-			          <<"Currently under development."<<std::endl; 
-			correct=true;
+		/*
+		if (verbose) std::cout<<"Building search data-srtuctures..."<<std::endl;
+		NN=true;
+		P.dual(1);
+		P.dual(-1);
+		*/
+		std::cout<<"flann software is needed for this option. Experimental feature." 
+		          <<"Currently under development."<<std::endl; 
+		correct=true;
+    }
+    if(!strcmp(argv[i],"-ro")){
+		round_only=true;
+		correct=true;
     }
     if(correct==false){
       std::cerr<<"unknown parameters \'"<<argv[i]<<
@@ -202,10 +208,24 @@ int main(const int argc, const char** argv)
     std::cout<<"Experiment "<<i+1<<" ";
     stdHPolytope<double> P_to_test(P);
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    
+    // Setup the parameters
     vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
              urdist,urdist1,verbose,rand_only,round,NN);
-    NT vol = volume1_reuse2(P_to_test,var,var,Chebtime);
-    //std::cout<<vol<<std::endl;
+    
+    NT vol;
+    if(round_only){
+    // Round the polytope and exit
+      double round_value = rounding(P,var,var);
+	  std::cout<<"\n--------------\nRounded polytope\nH-representation\nbegin\n"<<std::endl;
+	  P.print();
+	  std::cout<<"end\n--------------\n"<<std::endl;
+    }else{
+      // Estimate the volume
+      vol = volume1_reuse2(P_to_test,var,var,Chebtime);
+      //std::cout<<vol<<std::endl;
+    }
+    
     double v1 = CGAL::to_double(vol);
     //double v1 = CGAL::to_double(volume1_reuse_test(P_to_test,var,var));
     //double v1 = CGAL::to_double(volume1_reuse_estimete_walk(P_to_test,var,var,Chebtime));
@@ -213,58 +233,60 @@ int main(const int argc, const char** argv)
     tstop = (double)clock()/(double)CLOCKS_PER_SEC;
     //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
      
-	  //Used to Compute Statistics
+	// Statistics
     sum+=v1;
     if(i==0){max=v1;min=v1;}
     if(v1>max) max=v1;
     if(v1<min) min=v1;
     vs.push_back(v1);
-		sum_time +=  tstop-tstart;
-		sum_Chebtime += Chebtime;
-		std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart;
-		if(round)
-			std::cout<<" (rounding is ON)";        
-	  std::cout<<std::endl;
-		//Compute Statistics
-		average=sum/(i+1);
-		std_dev=0;
-		for(std::vector<double>::iterator vit=vs.begin(); vit!=vs.end(); ++vit){
-			std_dev += std::pow(*vit - average,2);
-		}
-		std_dev = std::sqrt(std_dev/(i+1));
-		
-		exactvol = std::pow(2,n);
-	  //exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1) 
-		std::cout.precision(7);
-		
-		//MEMORY USAGE
-		//struct proc_t usage;
-    //look_up_our_self(&usage);
-		
-		//Print statistics
-		std::cout<<"STATISTICS:"<<std::endl;
-		if (verbose) std::cout<<"d m #exp vol\t e (1+-e)vol\t N #walk avg\t min max\t std_dev (vol-v*)/vol\t (max-min)/avg t"<<std::endl;
-		std::cout 
-		           <<n<<" "
-		           //<<argv[]<<" "
-		           <<P.num_of_hyperplanes()<<" "
-		           <<num_of_exp<<" "
-		           <<exactvol<<" "
-		           <<e<<" ["
-		           <<(1-e)*exactvol<<","
-			         <<(1+e)*exactvol<<"] "
-		           <<rnum<<" "
-		           <<walk_len<<" "
-			         <<average<<" ["
-			         <<min<<","
-			         <<max<<"] "
-			         <<std_dev<<" "
-			         <<(exactvol-average)/exactvol<<" "
-			         <<(max-min)/average<<" "
-			         <<sum_time/(i+1)<<" "
-			         <<sum_Chebtime/(i+1)<<" "
-			         //<<usage.vsize
-			         <<std::endl; 
+	sum_time +=  tstop-tstart;
+	sum_Chebtime += Chebtime;
+	
+	std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart;
+	if(round)
+		std::cout<<" (rounding is ON)";        
+	std::cout<<std::endl;
+	
+	//Compute Statistics
+	average=sum/(i+1);
+	std_dev=0;
+	for(std::vector<double>::iterator vit=vs.begin(); vit!=vs.end(); ++vit){
+		std_dev += std::pow(*vit - average,2);
+	}
+	std_dev = std::sqrt(std_dev/(i+1));
+	
+	exactvol = std::pow(2,n);
+	//exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1) 
+	std::cout.precision(7);
+	
+	//MEMORY USAGE
+	//struct proc_t usage;
+	//look_up_our_self(&usage);
+	
+	//Print statistics
+	std::cout<<"STATISTICS:"<<std::endl;
+	if (verbose) std::cout<<"d m #exp vol\t e (1+-e)vol\t N #walk avg\t min max\t std_dev (vol-v*)/vol\t (max-min)/avg t"<<std::endl;
+	std::cout 
+	           <<n<<" "
+	           //<<argv[]<<" "
+	           <<P.num_of_hyperplanes()<<" "
+	           <<num_of_exp<<" "
+	           <<exactvol<<" "
+	           <<e<<" ["
+	           <<(1-e)*exactvol<<","
+		         <<(1+e)*exactvol<<"] "
+	           <<rnum<<" "
+	           <<walk_len<<" "
+		         <<average<<" ["
+		         <<min<<","
+		         <<max<<"] "
+		         <<std_dev<<" "
+		         <<(exactvol-average)/exactvol<<" "
+		         <<(max-min)/average<<" "
+		         <<sum_time/(i+1)<<" "
+		         <<sum_Chebtime/(i+1)<<" "
+		         //<<usage.vsize
+		         <<std::endl; 
 	}
 	/*
   // EXACT COMPUTATION WITH POLYMAKE
