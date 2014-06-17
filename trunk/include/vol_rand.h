@@ -141,6 +141,7 @@ int opt_interior(T &K,vars &var,Point &opt,Vector &w);
 #include <random_samplers.h>
 #include <rounding.h>
 #include <misc.h>
+#include <linear_extensions.h>
 
 /////////////////////////////////////////////////////////
 // VOLUME

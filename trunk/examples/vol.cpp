@@ -47,7 +47,8 @@ int main(const int argc, const char** argv)
 	     file=false, 
 	     round=false, 
 	     NN=false,
-	     user_walk_len=false;
+	     user_walk_len=false,
+	     linear_extensions=false;
 	
 	//this is our polytope
 	stdHPolytope<double> P;
@@ -62,6 +63,7 @@ int main(const int argc, const char** argv)
         "-rand, --rand_only : generates only random points\n"<<
         "-f1, --file1 [filename type Ax<=b]  [epsilon] [walk length] [threads] [num of experiments]\n"<<
         "-f2, --file2 [filename type Ax=b,x>=0] [epsilon] [walk length] [threads] [num of experiments]\n"<<
+        "-fle, --filele : counting linear extensions of a poset\n"<<
         //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num of experiments]\n"<<
         "-r, --round : enables rounding of the polytope as a preprocess\n"<<
         "-ro, --round_only : does only rounding to the polytope\n"<<
@@ -114,6 +116,29 @@ int main(const int argc, const char** argv)
 			//	std::cout<<"Input polytope: "<<n<<std::endl;
       //  P.print();
       //}
+      correct=true;
+    }
+    if(!strcmp(argv[i],"-fle")||!strcmp(argv[i],"--filele")){
+	  file=true;
+      std::cout<<"Reading input from file..."<<std::endl;
+      std::ifstream inp;
+      inp.open(argv[++i],std::ifstream::in);
+      std::ofstream os ("order_polytope.ine",std::ofstream::out);
+      linear_extensions_to_order_polytope(inp,os);
+      
+      std::ifstream inp2;
+      inp2.open("order_polytope.ine",std::ifstream::in);
+      std::vector<std::vector<double> > Pin;
+      read_pointset(inp2,Pin);
+      
+      //std::cout<<"d="<<Pin[0][1]<<std::endl;
+      n = Pin[0][1]-1;
+      P.init(Pin);
+      //if (verbose && P.num_of_hyperplanes()<100){ 
+				std::cout<<"Input polytope: "<<n<<std::endl;
+        P.print();
+      //}
+      linear_extensions = true;
       correct=true;
     }
     if(!strcmp(argv[i],"-r")||!strcmp(argv[i],"--round")){
@@ -223,6 +248,8 @@ int main(const int argc, const char** argv)
     }else{
       // Estimate the volume
       vol = volume1_reuse2(P_to_test,var,var,Chebtime);
+      if(linear_extensions)
+		vol = vol*factorial(n);
       //std::cout<<vol<<std::endl;
     }
     
