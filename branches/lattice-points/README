@@ -1,0 +1,48 @@
+This is a software to compute an approximation of the volume of a polytope 
+given as an intersection of halfspaces.
+
+To compile and use it, you need first to compile the CGAL library, or
+download the precompiled library (this software has been tested with CGAL
+4.1 and newer versions). You can follow these steps:
+
+
+------------------------
+1. Compile CGAL sources
+------------------------
+
+Follow the CGAL installation manual. It states that CGAL requires the Boost
+libraries. In particular the header files and the threading library
+binaries. Version 1.39 (or higher) are needed. Having GMP version 4.2 or
+higher and MPFR version 2.2.1 or higher installed is recommended by CGAL. 
+Once you have installed these libraries, execute:
+
+$ cmake .
+$ make
+
+
+------------------
+2. Compile sources
+------------------
+
+In folder examples execute:
+
+$ cmake -DCGAL_DIR=_YOUR_CGAL_PATH_ .
+$ make
+
+where _YOUR_CGAL_PATH_ is the path where CGAL library was compiled. For
+additional options, set by CMake flags, see the file README.FLAGS (it is
+normally not needed to change default compilation options).
+
+
+---------------------------
+3. Use volume approximation
+---------------------------
+
+./vol -h 
+
+to display a help message about the program's options
+
+
+./vol -f1 polytope_examples/cube10.ine
+
+will approximate the volume of the 10-dim hypercube
