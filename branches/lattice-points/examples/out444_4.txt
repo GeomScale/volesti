@@ -1,0 +1,426 @@
+Reading input from file...
+Experiment 1 
+--------------
+Sampling Lattice points:
+
+[ LP, 28 variables, 64 constraints ]
+[ phase I, iteration 1 ]
+  entering: 0, leaving: 41  basis: 92 0 
+  solution: 1472 / 2  ~= 736
+[ phase I, iteration 2 ]
+  entering: 1, leaving: 51  basis: 92 0 1 
+  solution: 1472 / 2  ~= 736
+[ phase I, iteration 3 ]
+  entering: 3, leaving: 62  basis: 92 0 1 3 
+  solution: 1472 / 2  ~= 736
+[ phase I, iteration 4 ]
+  entering: 2, leaving: 68  basis: 92 0 1 3 2 
+  solution: 1472 / 2  ~= 736
+[ phase I, iteration 5 ]
+  entering: 4, leaving: 78  basis: 92 0 1 3 2 4 
+  solution: 1472 / 2  ~= 736
+[ phase I, iteration 6 ]
+  entering: 16, leaving: 61  basis: 92 0 1 3 2 4 16 
+  solution: 1472 / 2  ~= 736
+[ phase I, iteration 7 ]
+  entering: 21, leaving: 59  basis: 92 0 1 3 2 4 16 21 
+  solution: 1472 / 2  ~= 736
+[ phase I, iteration 8 ]
+  entering: 26, leaving: 82  basis: 92 0 1 3 2 4 16 21 26 
+  solution: 1472 / 2  ~= 736
+[ phase I, iteration 9 ]
+  entering: 14, leaving: 45  basis: 92 0 1 3 2 4 16 21 26 14 
+  solution: 4416 / 18  ~= 245.333
+[ phase I, iteration 10 ]
+  entering: 7, leaving: 79  basis: 92 0 1 3 2 4 16 21 26 14 7 
+  solution: 4416 / 18  ~= 245.333
+[ phase I, iteration 11 ]
+  entering: 9, leaving: 52  basis: 92 0 1 3 2 4 16 21 26 14 7 9 
+  solution: 4416 / 18  ~= 245.333
+[ phase I, iteration 12 ]
+  entering: 15, leaving: 92  basis: 15 0 1 3 2 4 16 21 26 14 7 9 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 13 ]
+  entering: 27, leaving: 36  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 14 ]
+  entering: 13, leaving: 42  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 15 ]
+  entering: 10, leaving: 44  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 16 ]
+  entering: 22, leaving: 49  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 17 ]
+  entering: 11, leaving: 50  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 18 ]
+  entering: 20, leaving: 53  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 19 ]
+  entering: 5, leaving: 55  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 20 ]
+  entering: 25, leaving: 63  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 25 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 21 ]
+  entering: 17, leaving: 64  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 25 17 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 22 ]
+  entering: 18, leaving: 69  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 25 17 18 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 23 ]
+  entering: 19, leaving: 74  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 25 17 18 19 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 24 ]
+  entering: 23, leaving: 81  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 25 17 18 19 23 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 25 ]
+  entering: 6, leaving: 87  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 25 17 18 19 23 6 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 26 ]
+  entering: 12, leaving: 89  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 25 17 18 19 23 6 12 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 27 ]
+  entering: 24, leaving: 91  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 25 17 18 19 23 6 12 24 
+  solution: 0 / 50  ~= 0
+[ phase II, iteration 28 ]
+  entering: 8, leaving: 75  basis: 15 0 1 3 2 4 16 21 26 14 7 9 27 13 10 22 11 20 5 25 17 18 19 23 6 12 24 8 
+  solution: -2839.23 / 10076.5  ~= -0.281766
+[ phase II, iteration 29 ]
+  solution is OPTIMAL
+Validating solution...
+#sample=0  #lattice=0
+#sample=100000  #lattice=30741
+#sample=200000  #lattice=61312
+#sample=300000  #lattice=91528
+#sample=400000  #lattice=121614
+#sample=500000  #lattice=152087
+#sample=600000  #lattice=182268
+#sample=700000  #lattice=212985
+#sample=800000  #lattice=243025
+#sample=900000  #lattice=273608
+#sample=1000000  #lattice=304162
+#sample=1100000  #lattice=334573
+#sample=1200000  #lattice=364719
+#sample=1300000  #lattice=395378
+#sample=1400000  #lattice=426224
+#sample=1500000  #lattice=456319
+#sample=1600000  #lattice=486923
+#sample=1700000  #lattice=517067
+#sample=1800000  #lattice=547796
+#sample=1900000  #lattice=578362
+#sample=2000000  #lattice=608872
+#sample=2100000  #lattice=639378
+#sample=2200000  #lattice=669652
+#sample=2300000  #lattice=700277
+#sample=2400000  #lattice=730351
+#sample=2500000  #lattice=760751
+#sample=2600000  #lattice=791195
+#sample=2700000  #lattice=821564
+#sample=2800000  #lattice=851815
+#sample=2900000  #lattice=882331
+#sample=3000000  #lattice=912664
+#sample=3100000  #lattice=942805
+#sample=3200000  #lattice=973067
+#sample=3300000  #lattice=1003936
+#sample=3400000  #lattice=1034164
+#sample=3500000  #lattice=1064470
+#sample=3600000  #lattice=1094999
+#sample=3700000  #lattice=1125560
+#sample=3800000  #lattice=1155740
+#sample=3900000  #lattice=1186368
+#sample=4000000  #lattice=1216928
+#sample=4100000  #lattice=1246919
+#sample=4200000  #lattice=1277236
+#sample=4300000  #lattice=1307616
+#sample=4400000  #lattice=1337744
+#sample=4500000  #lattice=1367988
+#sample=4600000  #lattice=1398917
+#sample=4700000  #lattice=1429287
+#sample=4800000  #lattice=1459798
+#sample=4900000  #lattice=1489804
+#sample=5000000  #lattice=1520325
+#sample=5100000  #lattice=1550884
+#sample=5200000  #lattice=1581136
+#sample=5300000  #lattice=1611618
+#sample=5400000  #lattice=1642228
+#sample=5500000  #lattice=1672787
+#sample=5600000  #lattice=1702992
+#sample=5700000  #lattice=1733227
+#sample=5800000  #lattice=1763251
+#sample=5900000  #lattice=1793488
+#sample=6000000  #lattice=1823804
+#sample=6100000  #lattice=1853875
+#sample=6200000  #lattice=1884593
+#sample=6300000  #lattice=1914539
+#sample=6400000  #lattice=1944812
+#sample=6500000  #lattice=1974856
+#sample=6600000  #lattice=2005215
+#sample=6700000  #lattice=2035215
+#sample=6800000  #lattice=2065261
+#sample=6900000  #lattice=2095571
+#sample=7000000  #lattice=2125824
+#sample=7100000  #lattice=2156338
+#sample=7200000  #lattice=2186535
+#sample=7300000  #lattice=2216657
+#sample=7400000  #lattice=2246744
+#sample=7500000  #lattice=2277312
+#sample=7600000  #lattice=2307214
+#sample=7700000  #lattice=2337503
+#sample=7800000  #lattice=2367314
+#sample=7900000  #lattice=2397583
+#sample=8000000  #lattice=2427876
+#sample=8100000  #lattice=2458401
+#sample=8200000  #lattice=2488646
+#sample=8300000  #lattice=2518921
+#sample=8400000  #lattice=2549643
+#sample=8500000  #lattice=2579896
+#sample=8600000  #lattice=2610104
+#sample=8700000  #lattice=2640349
+#sample=8800000  #lattice=2670555
+#sample=8900000  #lattice=2700492
+#sample=9000000  #lattice=2730925
+#sample=9100000  #lattice=2761501
+#sample=9200000  #lattice=2791795
+#sample=9300000  #lattice=2821755
+#sample=9400000  #lattice=2851872
+#sample=9500000  #lattice=2882089
+#sample=9600000  #lattice=2912346
+#sample=9700000  #lattice=2942570
+#sample=9800000  #lattice=2972416
+#sample=9900000  #lattice=3002843
+#sample=10000000  #lattice=3033265
+#sample=10100000  #lattice=3063386
+#sample=10200000  #lattice=3093832
+#sample=10300000  #lattice=3124205
+#sample=10400000  #lattice=3154396
+#sample=10500000  #lattice=3184304
+#sample=10600000  #lattice=3214228
+#sample=10700000  #lattice=3244337
+#sample=10800000  #lattice=3274097
+#sample=10900000  #lattice=3303772
+#sample=11000000  #lattice=3334120
+#sample=11100000  #lattice=3364226
+#sample=11200000  #lattice=3394488
+#sample=11300000  #lattice=3424613
+#sample=11400000  #lattice=3454553
+#sample=11500000  #lattice=3484663
+#sample=11600000  #lattice=3514611
+#sample=11700000  #lattice=3544857
+#sample=11800000  #lattice=3574854
+#sample=11900000  #lattice=3605211
+#sample=12000000  #lattice=3635348
+#sample=12100000  #lattice=3665352
+#sample=12200000  #lattice=3695668
+#sample=12300000  #lattice=3725852
+#sample=12400000  #lattice=3756337
+#sample=12500000  #lattice=3786445
+#sample=12600000  #lattice=3816352
+#sample=12700000  #lattice=3846400
+#sample=12800000  #lattice=3876248
+#sample=12900000  #lattice=3906174
+#sample=13000000  #lattice=3936191
+#sample=13100000  #lattice=3966522
+#sample=13200000  #lattice=3996316
+#sample=13300000  #lattice=4026611
+#sample=13400000  #lattice=4056857
+#sample=13500000  #lattice=4086940
+#sample=13600000  #lattice=4116978
+#sample=13700000  #lattice=4147282
+#sample=13800000  #lattice=4177237
+#sample=13900000  #lattice=4207062
+#sample=14000000  #lattice=4237227
+#sample=14100000  #lattice=4267228
+#sample=14200000  #lattice=4297529
+#sample=14300000  #lattice=4327560
+#sample=14400000  #lattice=4357519
+#sample=14500000  #lattice=4387667
+#sample=14600000  #lattice=4418046
+#sample=14700000  #lattice=4448229
+#sample=14800000  #lattice=4478637
+#sample=14900000  #lattice=4509042
+#sample=15000000  #lattice=4539026
+#sample=15100000  #lattice=4568768
+#sample=15200000  #lattice=4598822
+#sample=15300000  #lattice=4628877
+#sample=15400000  #lattice=4659059
+#sample=15500000  #lattice=4689106
+#sample=15600000  #lattice=4718931
+#sample=15700000  #lattice=4749298
+#sample=15800000  #lattice=4779304
+#sample=15900000  #lattice=4809607
+#sample=16000000  #lattice=4839862
+#sample=16100000  #lattice=4869977
+#sample=16200000  #lattice=4900334
+#sample=16300000  #lattice=4929990
+#sample=16400000  #lattice=4959952
+#sample=16500000  #lattice=4990064
+#sample=16600000  #lattice=5019976
+#sample=16700000  #lattice=5050137
+#sample=16800000  #lattice=5080435
+#sample=16900000  #lattice=5110678
+#sample=17000000  #lattice=5140682
+#sample=17100000  #lattice=5170810
+#sample=17200000  #lattice=5201025
+#sample=17300000  #lattice=5231297
+#sample=17400000  #lattice=5261511
+#sample=17500000  #lattice=5291816
+#sample=17600000  #lattice=5322011
+#sample=17700000  #lattice=5351946
+#sample=17800000  #lattice=5381746
+#sample=17900000  #lattice=5411793
+#sample=18000000  #lattice=5441530
+#sample=18100000  #lattice=5471636
+#sample=18200000  #lattice=5501501
+#sample=18300000  #lattice=5531758
+#sample=18400000  #lattice=5561957
+#sample=18500000  #lattice=5592057
+#sample=18600000  #lattice=5622132
+#sample=18700000  #lattice=5652090
+#sample=18800000  #lattice=5682241
+#sample=18900000  #lattice=5712116
+#sample=19000000  #lattice=5742254
+#sample=19100000  #lattice=5772352
+#sample=19200000  #lattice=5802423
+#sample=19300000  #lattice=5832185
+#sample=19400000  #lattice=5862275
+#sample=19500000  #lattice=5892274
+#sample=19600000  #lattice=5922206
+#sample=19700000  #lattice=5952214
+#sample=19800000  #lattice=5982192
+#sample=19900000  #lattice=6012330
+#sample=20000000  #lattice=6042182
+#sample=20100000  #lattice=6072281
+#sample=20200000  #lattice=6102325
+#sample=20300000  #lattice=6132308
+#sample=20400000  #lattice=6162435
+#sample=20500000  #lattice=6192507
+#sample=20600000  #lattice=6222744
+#sample=20700000  #lattice=6252496
+#sample=20800000  #lattice=6282258
+#sample=20900000  #lattice=6312091
+#sample=21000000  #lattice=6341892
+#sample=21100000  #lattice=6371866
+#sample=21200000  #lattice=6401832
+#sample=21300000  #lattice=6432072
+#sample=21400000  #lattice=6462278
+#sample=21500000  #lattice=6492147
+#sample=21600000  #lattice=6522194
+#sample=21700000  #lattice=6552125
+#sample=21800000  #lattice=6582468
+#sample=21900000  #lattice=6612501
+#sample=22000000  #lattice=6642139
+#sample=22100000  #lattice=6672307
+#sample=22200000  #lattice=6702157
+#sample=22300000  #lattice=6731965
+#sample=22400000  #lattice=6762025
+#sample=22500000  #lattice=6792433
+#sample=22600000  #lattice=6822486
+#sample=22700000  #lattice=6852389
+#sample=22800000  #lattice=6882459
+#sample=22900000  #lattice=6912285
+#sample=23000000  #lattice=6942666
+#sample=23100000  #lattice=6972677
+#sample=23200000  #lattice=7002308
+#sample=23300000  #lattice=7032459
+#sample=23400000  #lattice=7062838
+#sample=23500000  #lattice=7093138
+#sample=23600000  #lattice=7123531
+#sample=23700000  #lattice=7153200
+#sample=23800000  #lattice=7183106
+#sample=23900000  #lattice=7213212
+#sample=24000000  #lattice=7243093
+#sample=24100000  #lattice=7273082
+#sample=24200000  #lattice=7303313
+#sample=24300000  #lattice=7333084
+#sample=24400000  #lattice=7363163
+#sample=24500000  #lattice=7393472
+#sample=24600000  #lattice=7423318
+#sample=24700000  #lattice=7453361
+#sample=24800000  #lattice=7483328
+#sample=24900000  #lattice=7513554
+#sample=25000000  #lattice=7543291
+#sample=25100000  #lattice=7573394
+#sample=25200000  #lattice=7603279
+#sample=25300000  #lattice=7633345
+#sample=25400000  #lattice=7663364
+#sample=25500000  #lattice=7693185
+#sample=25600000  #lattice=7722846
+#sample=25700000  #lattice=7752702
+#sample=25800000  #lattice=7782598
+#sample=25900000  #lattice=7812471
+#sample=26000000  #lattice=7842224
+#sample=26100000  #lattice=7872398
+#sample=26200000  #lattice=7902167
+#sample=26300000  #lattice=7932333
+#sample=26400000  #lattice=7962380
+#sample=26500000  #lattice=7992308
+#sample=26600000  #lattice=8022351
+#sample=26700000  #lattice=8052356
+#sample=26800000  #lattice=8082364
+#sample=26900000  #lattice=8112348
+#sample=27000000  #lattice=8142055
+#sample=27100000  #lattice=8171920
+#sample=27200000  #lattice=8201941
+#sample=27300000  #lattice=8232028
+#sample=27400000  #lattice=8261995
+#sample=27500000  #lattice=8291398
+#sample=27600000  #lattice=8321271
+#sample=27700000  #lattice=8350944
+#sample=27800000  #lattice=8380837
+#sample=27900000  #lattice=8410549
+#sample=28000000  #lattice=8440419
+#sample=28100000  #lattice=8470174
+#sample=28200000  #lattice=8499513
+#sample=28300000  #lattice=8529607
+#sample=28400000  #lattice=8559726
+#sample=28500000  #lattice=8589214
+#sample=28600000  #lattice=8619028
+#sample=28700000  #lattice=8648674
+#sample=28800000  #lattice=8678850
+#sample=28900000  #lattice=8708640
+#sample=29000000  #lattice=8738355
+#sample=29100000  #lattice=8767858
+#sample=29200000  #lattice=8797607
+#sample=29300000  #lattice=8827445
+#sample=29400000  #lattice=8857064
+#sample=29500000  #lattice=8886588
+#sample=29600000  #lattice=8916519
+#sample=29700000  #lattice=8946468
+#sample=29800000  #lattice=8976613
+#sample=29900000  #lattice=9006561
+#sample=30000000  #lattice=9036813
+#sample=30100000  #lattice=9066613
+#sample=30200000  #lattice=9096070
+#sample=30300000  #lattice=9126058
+#sample=30400000  #lattice=9155654
+#sample=30500000  #lattice=9185322
+#sample=30600000  #lattice=9215063
+#sample=30700000  #lattice=9244830
+#sample=30800000  #lattice=9274482
+#sample=30900000  #lattice=9304375
+#sample=31000000  #lattice=9334194
+#sample=31100000  #lattice=9364299
+#sample=31200000  #lattice=9394430
+#sample=31300000  #lattice=9424353
+#sample=31400000  #lattice=9454420
+#sample=31500000  #lattice=9483844
+#sample=31600000  #lattice=9513718
+#sample=31700000  #lattice=9543392
+#sample=31800000  #lattice=9573087
+#sample=31900000  #lattice=9603149
+#sample=32000000  #lattice=9632805
+#sample=32100000  #lattice=9662465
+#sample=32200000  #lattice=9692543
+#sample=32300000  #lattice=9722426
+#sample=32400000  #lattice=9752744
+#sample=32500000  #lattice=9782871
+#sample=32600000  #lattice=9812832
+#sample=32700000  #lattice=9842998
+#sample=32800000  #lattice=9872781
+#sample=32900000  #lattice=9902727
+#sample=33000000  #lattice=9932600
+#sample=33100000  #lattice=9962595
+#sample=33200000  #lattice=9992212

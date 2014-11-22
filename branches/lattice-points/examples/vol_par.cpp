@@ -19,7 +19,7 @@
 // Developer: Vissarion Fisikopoulos
 
 #include <vol_rand.h>
-#include <counting.h>
+#include <vol_rand_parallel.h>
 //#include <proc/readproc.h>
 
 //////////////////////////////////////////////////////////
@@ -33,7 +33,7 @@ int factorial(int n)
 
 // Approximating the volume of a convex polytope or body 
 // can also be used for integration of concave functions.
-// The user should provide the appropriate membership our boundary
+// The user should provide the appropriate membership 
 // oracles.
 
 int main(const int argc, const char** argv)
@@ -44,20 +44,15 @@ int main(const int argc, const char** argv)
 	double e=1;
 	bool verbose=false, 
 	     rand_only=false, 
-	     sample_one_lattice=false,
-	     round_only=false,
+	     parallel=false,
 	     file=false, 
 	     round=false, 
 	     NN=false,
-	     user_walk_len=false,
-	     linear_extensions=false;
-	int n_points=100, n_steps=100; 
+	     user_walk_len=false;
 	
 	//this is our polytope
-	typedef stdVPolytope<double> Polytope;
-	//typedef stdHPolytope<double> Polytope;
-	Polytope P;
-		
+	stdHPolytope<double> P;
+	
 	//parse command line input vars
 	for(int i=1;i<argc;++i){
 		bool correct=false;
@@ -66,17 +61,15 @@ int main(const int argc, const char** argv)
         "Usage:\n"<<
         "-v, --verbose \n"<<
         "-rand, --rand_only : generates only random points\n"<<
-        "-sol, sample_only_lattice : samples lattice random point\n"<<
         "-f1, --file1 [filename type Ax<=b]  [epsilon] [walk length] [threads] [num of experiments]\n"<<
         "-f2, --file2 [filename type Ax=b,x>=0] [epsilon] [walk length] [threads] [num of experiments]\n"<<
-        "-fle, --filele : counting linear extensions of a poset\n"<<
         //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num of experiments]\n"<<
         "-r, --round : enables rounding of the polytope as a preprocess\n"<<
-        "-ro, --round_only : does only rounding to the polytope\n"<<
         "-e, --error [epsilon] : the goal error of approximation\n"<<
         "-w, --walk_len [walk_len] : the random walk length (default 10)\n"<<
         "-exp [#exps] : number of experiments (default 1)\n"<<
         "-t, --threads [#threads] : the number of threads to be used\n"<<
+        "-ts, --threads [#threads] : the number of sequencial threads to be used\n"<<
         "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
         std::endl;
       exit(-1);
@@ -125,29 +118,6 @@ int main(const int argc, const char** argv)
       //}
       correct=true;
     }
-    if(!strcmp(argv[i],"-fle")||!strcmp(argv[i],"--filele")){
-	  file=true;
-      std::cout<<"Reading input from file..."<<std::endl;
-      std::ifstream inp;
-      inp.open(argv[++i],std::ifstream::in);
-      std::ofstream os ("order_polytope.ine",std::ofstream::out);
-      linear_extensions_to_order_polytope(inp,os);
-      
-      std::ifstream inp2;
-      inp2.open("order_polytope.ine",std::ifstream::in);
-      std::vector<std::vector<double> > Pin;
-      read_pointset(inp2,Pin);
-      
-      //std::cout<<"d="<<Pin[0][1]<<std::endl;
-      n = Pin[0][1]-1;
-      P.init(Pin);
-      //if (verbose && P.num_of_hyperplanes()<100){ 
-				std::cout<<"Input polytope: "<<n<<std::endl;
-        P.print();
-      //}
-      linear_extensions = true;
-      correct=true;
-    }
     if(!strcmp(argv[i],"-r")||!strcmp(argv[i],"--round")){
       round = true;
       correct=true;
@@ -167,6 +137,11 @@ int main(const int argc, const char** argv)
     }
     if(!strcmp(argv[i],"-t")||!strcmp(argv[i],"--threads")){
       n_threads = atof(argv[++i]);
+      parallel=true;
+      correct=true;
+    }
+    if(!strcmp(argv[i],"-ts")||!strcmp(argv[i],"--threads")){
+      n_threads = atof(argv[++i]);
       correct=true;
     }
     if(!strcmp(argv[i],"-NN")){
@@ -178,16 +153,6 @@ int main(const int argc, const char** argv)
 			*/
 			std::cout<<"flann software is needed for this option. Experimental feature." 
 			          <<"Currently under development."<<std::endl; 
-			correct=true;
-    }
-    if(!strcmp(argv[i],"-ro")){
-			round_only=true;
-			correct=true;
-    }
-    if(!strcmp(argv[i],"-sol")){
-			sample_one_lattice=true;
-			n_points = atof(argv[++i]);
-			n_steps = atof(argv[++i]);
 			correct=true;
     }
     if(correct==false){
@@ -203,7 +168,7 @@ int main(const int argc, const char** argv)
 		walk_len=10 + n/10;
 	
 	// Timings
-  double tstart, tstop;
+  double tstart, tstop, wallstart, wallstop;
 
   /* CONSTANTS */
   //error in hit-and-run bisection of P 
@@ -238,49 +203,34 @@ int main(const int argc, const char** argv)
   int num_of_exp=nexp;
   double sum=0, sum_time=0;
   double min,max;
-  
   std::vector<double> vs;
   double average, std_dev, exactvol;
   double Chebtime, sum_Chebtime=double(0);
   
   for(int i=0; i<num_of_exp; ++i){
-    std::cout<<"Experiment "<<i+1<<" ";
-    Polytope P_to_test(P);
+    std::cout<<"Experiment "<<i+1<<"\n";
+    stdHPolytope<double> P_to_test(P);
+    
+    struct timeval tim;  
+    gettimeofday(&tim, NULL);  
+    double wallstart=tim.tv_sec+(tim.tv_usec/1000000.0);
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     
-    // Setup the parameters
     vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
              urdist,urdist1,verbose,rand_only,round,NN);
     
     NT vol;
-    
-    P.print();
-    
-    if(round_only){
-			// Round the polytope and exit
-      double round_value = rounding(P,var,var);
-		  std::cout<<"\n--------------\nRounded polytope\nH-representation\nbegin\n"<<std::endl;
-		  P.print();
-		  std::cout<<"end\n--------------\n"<<std::endl;
-    }else if(sample_one_lattice){
-			// Enumerate lattice points
-			enumerate_lattice_points(P_to_test,var,n_points,n_steps);
-	  }else{
-      // Estimate the volume
-      vol = volume1_reuse2(P_to_test,var,var,Chebtime);
-      // Return a meaningful value for linear extensions case
-      if(linear_extensions)
-				vol = vol*factorial(n);
-    }
-    
+    if(parallel)
+      vol = volume1_reuse2_parallel(P_to_test,var,var,Chebtime);
+    else
+			vol = volume1_reuse2(P_to_test,var,var,Chebtime);
+      
     double v1 = CGAL::to_double(vol);
-    //double v1 = CGAL::to_double(volume1_reuse_test(P_to_test,var,var));
-    //double v1 = CGAL::to_double(volume1_reuse_estimete_walk(P_to_test,var,var,Chebtime));
-    
     tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-    //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
+    gettimeofday(&tim, NULL);  
+    double wallstop=tim.tv_sec+(tim.tv_usec/1000000.0); 
      
-		// Statistics
+	  //Used to Compute Statistics
     sum+=v1;
     if(i==0){max=v1;min=v1;}
     if(v1>max) max=v1;
@@ -288,12 +238,10 @@ int main(const int argc, const char** argv)
     vs.push_back(v1);
 		sum_time +=  tstop-tstart;
 		sum_Chebtime += Chebtime;
-	
-		std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart;
+		std::cout<<"\t vol= "<<v1<<"\t CPU time= "<<tstop-tstart<<"\t Real time= "<<wallstop-wallstart;
 		if(round)
 			std::cout<<" (rounding is ON)";        
-		std::cout<<std::endl;
-		
+	  std::cout<<std::endl;
 		//Compute Statistics
 		average=sum/(i+1);
 		std_dev=0;
@@ -303,52 +251,52 @@ int main(const int argc, const char** argv)
 		std_dev = std::sqrt(std_dev/(i+1));
 		
 		exactvol = std::pow(2,n);
-		//exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1) 
+	  //exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1) 
 		std::cout.precision(7);
 		
 		//MEMORY USAGE
 		//struct proc_t usage;
-		//look_up_our_self(&usage);
+    //look_up_our_self(&usage);
 		
 		//Print statistics
 		std::cout<<"STATISTICS:"<<std::endl;
 		if (verbose) std::cout<<"d m #exp vol\t e (1+-e)vol\t N #walk avg\t min max\t std_dev (vol-v*)/vol\t (max-min)/avg t"<<std::endl;
 		std::cout 
-	           <<n<<" "
-	           //<<argv[]<<" "
-	           <<P.num_of_hyperplanes()<<" "
-	           <<num_of_exp<<" "
-	           <<exactvol<<" "
-	           <<e<<" ["
-	           <<(1-e)*exactvol<<","
-		         <<(1+e)*exactvol<<"] "
-	           <<rnum<<" "
-	           <<walk_len<<" "
-		         <<average<<" ["
-		         <<min<<","
-		         <<max<<"] "
-		         <<std_dev<<" "
-		         <<(exactvol-average)/exactvol<<" "
-		         <<(max-min)/average<<" "
-		         <<sum_time/(i+1)<<" "
-		         <<sum_Chebtime/(i+1)<<" "
-		         //<<usage.vsize
-		         <<std::endl; 
-		}
-		/*
-	  // EXACT COMPUTATION WITH POLYMAKE
-	  /*
-		std::ofstream polymakefile;
-		polymakefile.open("volume.polymake");
-		//print_polymake_volfile(C,polymakefile);
-	  std::cout<<P[0]<<std::endl;
-		print_polymake_volfile2(P,polymakefile);
-		system ("polymake volume.polymake");
-		std::cout<<std::endl;
-	  */
-	  //}
+		           <<n<<" "
+		           //<<argv[]<<" "
+		           <<P.num_of_hyperplanes()<<" "
+		           <<num_of_exp<<" "
+		           <<exactvol<<" "
+		           <<e<<" ["
+		           <<(1-e)*exactvol<<","
+			         <<(1+e)*exactvol<<"] "
+		           <<rnum<<" "
+		           <<walk_len<<" "
+			         <<average<<" ["
+			         <<min<<","
+			         <<max<<"] "
+			         <<std_dev<<" "
+			         <<(exactvol-average)/exactvol<<" "
+			         <<(max-min)/average<<" "
+			         <<sum_time/(i+1)<<" "
+			         <<sum_Chebtime/(i+1)<<" "
+			         //<<usage.vsize
+			         <<std::endl; 
+	}
+	/*
+  // EXACT COMPUTATION WITH POLYMAKE
+  /*
+	std::ofstream polymakefile;
+	polymakefile.open("volume.polymake");
+	//print_polymake_volfile(C,polymakefile);
+  std::cout<<P[0]<<std::endl;
+	print_polymake_volfile2(P,polymakefile);
+	system ("polymake volume.polymake");
+	std::cout<<std::endl;
+  */
+  //}
   
-		return 0;
+  return 0;
 }
 
 
