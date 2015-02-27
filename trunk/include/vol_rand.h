@@ -99,12 +99,13 @@ struct vars{
 				  bool verbose,
 				  bool rand_only,
 				  bool round,
-				  bool NN
+				  bool NN,
+				  bool birk
 			) : 
 	    m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), err_opt(err_opt), 
 	    lw(lw), up(up), L(L), rng(rng), get_snd_rand(get_snd_rand),
 	    urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round), 
-	    NN(NN){};
+	    NN(NN),birk(birk){};
 	
 	  int m;
 		int n;
@@ -124,6 +125,7 @@ struct vars{
 	  bool rand_only;
 	  bool round;
 	  bool NN;
+          bool birk;
 };
 
 // define extreme points
