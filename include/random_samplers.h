@@ -17,73 +17,43 @@
 #ifndef RANDOM_SAMPLERS_H
 #define RANDOM_SAMPLERS_H
 
-// function to find intersection of a line and a polytope 
-/*OLD
-template <class T>
-Vector line_bisect(Point pin, 
-                      Vector l, 
-                      T &P, 
-											vars &var){
-	
-	double err = var.err;											
-  Vector vin=pin-CGAL::Origin();
-  //first compute a point outside P along the line
-  Point pout=pin;
-  //std::cout<<"Starting inside point: "<<vin<<std::endl;
-	
-	Vector aug(l);
-  while(P.is_in(pout) == -1){
-    aug*=2;
-    pout+=aug;
-    //std::cout<<"l="<<l<<" aug="<<aug<<" Outside point:(pout) "<<pout<<std::endl;
+// WARNING: USE ONLY WITH BIRKHOFF POLYOPES
+// Compute more random points using symmetries of birkhoff polytope
+//
+template <class T, class K>
+int birk_sym(T &P,K &randPoints,Point &p){
+	int n=std::sqrt(p.dimension());
+	std::vector<int> myints;
+	for (int i=0; i<n; i++){
+		myints.push_back(i);
   }
-  Vector vout=pout-CGAL::Origin();
   
-  //intersect using bisection
-  //std::cout<<"pout"<<vout<<std::endl;
-  Vector vmid;
-  double len;
-  do{
-		vmid=(vin+vout)/2;
-		if(P.is_in(CGAL::Origin()+vmid) != -1)
-			vout=vmid;
-		else
-			vin=vmid;
-		len=CGAL::to_double((vin-vout).squared_length());
-		//std::cout<<"len="<<bool(len<err)<<std::endl;
-	}while(len > err);
-  
-  //std::cout<<"Intersection point: ";
-  //round_print(vmid);
-  //return vmid; 
-	
-	return vin; //ensure that the point is always in P 
+  //std::cout << "The n! possible permutations with n elements:\n";
+  do {
+		std::vector<double> newpv;
+		for (int i=0; i<n; i++){
+			//std::cout << myints[i] << " ";
+		}
+		//std::cout << std::endl;
+		for (int j=0; j<p.dimension(); j++){
+		  //std::cout << (myints[j/n])*n+1+j%n << " ";
+		  int idx = (myints[j/n])*n+1+j%n-1;
+		  //std::cout << idx << " ";
+		  newpv.push_back(p[idx]);
+		}
+		//std::cout << "\n";
+		Point new_p(p.dimension(),newpv.begin(),newpv.end());
+		//std::cout << p << std::endl;
+		//std::cout << new_p << "\n" << std::endl;
+		
+		//std::cout << P.is_in(new_p) << std::endl;
+		if(P.is_in(new_p) != 0){
+			//std::cout << "wrong\n";
+			randPoints.push_back(new_p);
+			//exit(1);
+		}
+  } while ( std::next_permutation(myints.begin(),myints.end()) );	
 }
-*/
-
-/* Hit and run with random directions */
-/*OLD
-template <class T>
-int hit_and_run(Point &p,
-					      T &P,
-					      vars &var)
-{	
-	int n = var.n;
-	double err = var.err;
-	RNGType &rng = var.rng;
-	boost::random::uniform_real_distribution<> &urdist = var.urdist;
-	boost::random::uniform_real_distribution<> &urdist1 = var.urdist1; 
-	
-	CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
-	Vector l = *gen - CGAL::Origin();
-	Vector b1 = line_bisect(p,l,P,var);
-	Vector b2 = line_bisect(p,-l,P,var);
-	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
-	double lambda = urdist(rng);
-	p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
-	return 1;
-}
-*/
 
 // ----- RANDOM POINT GENERATION FUNCTIONS ------------ //
 
@@ -96,7 +66,8 @@ int rand_point_generator(T &P,
 												 vars &var  // constans for volume
 												)
 {
-  int n = var.n;
+        int n = var.n;
+        bool birk = var.birk; 
 	RNGType &rng = var.rng;
 	boost::random::uniform_real_distribution<> urdist = var.urdist;
 	boost::random::uniform_int_distribution<> uidist(0,n-1);
@@ -117,8 +88,10 @@ int rand_point_generator(T &P,
 		  //hit_and_run(p,P,var,var);
 		  hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
 		}
-		randPoints.push_back(p);		
+		randPoints.push_back(p);
+                if(birk) birk_sym(P,randPoints,p);		
 	}
+        
 	//if(rand_only) std::cout<<p<<std::endl;
 	//if(print) std::cout<<"("<<i<<") Random point: "<<p<<std::endl;
 }

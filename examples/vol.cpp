@@ -48,7 +48,8 @@ int main(const int argc, const char** argv)
 	     round=false, 
 	     NN=false,
 	     user_walk_len=false,
-	     linear_extensions=false;
+	     linear_extensions=false,
+             birk=false;
 	
 	//this is our polytope
 	stdHPolytope<double> P;
@@ -72,6 +73,7 @@ int main(const int argc, const char** argv)
         "-exp [#exps] : number of experiments (default 1)\n"<<
         "-t, --threads [#threads] : the number of threads to be used\n"<<
         "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
+        "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
         std::endl;
       exit(-1);
     }
@@ -177,6 +179,10 @@ int main(const int argc, const char** argv)
 		round_only=true;
 		correct=true;
     }
+    if(!strcmp(argv[i],"-birk_sym")){
+		birk=true;
+		correct=true;
+    }
     if(correct==false){
       std::cerr<<"unknown parameters \'"<<argv[i]<<
         "\', try "<<argv[0]<<" --help"<<std::endl;
@@ -236,7 +242,7 @@ int main(const int argc, const char** argv)
     
     // Setup the parameters
     vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
-             urdist,urdist1,verbose,rand_only,round,NN);
+             urdist,urdist1,verbose,rand_only,round,NN,birk);
     
     NT vol;
     if(round_only){
