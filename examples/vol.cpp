@@ -54,6 +54,11 @@ int main(const int argc, const char** argv)
 	//this is our polytope
 	stdHPolytope<double> P;
 	
+  if(argc<2){
+    std::cout<<"Use -h for help"<<std::endl;
+    exit(-2);
+  }
+  
 	//parse command line input vars
 	for(int i=1;i<argc;++i){
 		bool correct=false;
