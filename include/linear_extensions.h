@@ -9,7 +9,7 @@
 // for more details.
 //
 // See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with HeaDDaCHe,
+// Public License.  If you did not receive this file along with RandGeom,
 // see <http://www.gnu.org/licenses/>.
 // 
 // Developer: Vissarion Fisikopoulos
@@ -17,19 +17,19 @@
 int linear_extensions_to_order_polytope(std::istream &is,
                                         std::ostream &os){
 
-    std::string ns;
+  std::string ns;
 	//read n: the number of elements in the poset
 	std::getline(is, ns, ' ');
 	std::istringstream buffer(ns);
 	int n;
 	buffer >> n;
-    //read m: the number of edges/relations in the poset
-    std::getline(is, ns, '\n');
+  //read m: the number of edges/relations in the poset
+  std::getline(is, ns, '\n');
 	std::istringstream bufferm(ns);
 	int m;
 	bufferm >> m;
     
-    os << "order_"<<n<<".ine\n";
+  os << "order_"<<n<<".ine\n";
 	os << "H-representation\n";
 	os << "begin\n";
 	os << " " << 2*n+m << " " << n+1 << " integer\n";
@@ -54,8 +54,8 @@ int linear_extensions_to_order_polytope(std::istream &is,
 		os << "\n";
 	}
     
-    //add constraints for the poset relations
-    std::string point;
+  //add constraints for the poset relations
+  std::string point;
 	while(!std::getline(is, point, ']').eof()) {
 			std::vector<int> ipoint;
 			point.erase( std::remove( point.begin(), point.end(), ' ' ),

@@ -1001,8 +1001,8 @@ NT volume1_reuse2(T &P,
     mpfr_div_d(result,result,std::tgamma(n/2.0)*n,GMP_RNDN);
     mpfr_mul_d(result,result,CGAL::to_double(telescopic_prod),GMP_RNDN); 
     
-    std::cout << "mpfr vol=" << mpfr_get_ld(result,GMP_RNDN) << std::endl;
-		
+    //std::cout << "mpfr vol=" << mpfr_get_ld(result,GMP_RNDN) << std::endl;
+		//
 		/*EXACT_NT vol_thread = EXACT_NT(2)
 		                    * EXACT_NT(std::pow(pi,n/2.0))
 		                    * EXACT_NT(std::pow(balls[0].radius(),n))

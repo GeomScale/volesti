@@ -1,48 +1,121 @@
-This is a software to compute an approximation of the volume of a polytope 
-given as an intersection of halfspaces.
 
-To compile and use it, you need first to compile the CGAL library, or
-download the precompiled library (this software has been tested with CGAL
-4.1 and newer versions). You can follow these steps:
+This is an open-source C++ software for computing an approximation of the volume of a polytope given as an intersection of halfspaces. 
+ 
+To compile and use it, you need first to compile the CGAL library, or download the precompiled library (this software has been tested with CGAL 4.1 and newer versions). You can follow these steps: 
+ 
+ 
+------------------------ 
+1. Compile CGAL sources 
+------------------------ 
+ 
+Follow the CGAL installation manual. It states that CGAL requires the Boost libraries. In particular the header files and the threading library binaries. Version 1.39 (or higher) are needed. Having GMP version 4.2 or higher and MPFR version 2.2.1 or higher installed is recommended by CGAL. Once you have installed these libraries, execute: 
+ 
+$ cmake . 
+$ make 
+ 
+ 
+------------------ 
+2. Compile sources 
+------------------ 
+ 
+In folder examples execute: 
+ 
+$ cmake -DCGAL_DIR=_YOUR_CGAL_PATH_ . 
+$ make 
+ 
+where _YOUR_CGAL_PATH_ is the path where CGAL library was compiled. For additional options, set by CMake flags, see the file README.FLAGS (it is normally not needed to change default compilation options). 
+ 
+----------------- 
+3. Polytope input 
+----------------- 
+ 
+The current version of the software assumes that the polytope is given in the form of linear inequalities i.e. {x \in R^d : Ax <= b} where A is a matrix of dimension mxd and b a vector of dimension m. The input is described in an .ine-file as follows: 
+ 
+=================== 
+various comments 
+begin 
+m d+1 numbertype 
+b -A 
+end 
+various options 
+=================== 
+ 
+This filestype (or similar) is used by a number of other software in polyhedral computation (e.g. cdd, vinci, latte). In the current version of the software, the options are treated as comments and the numbertype as C++ double type. 
+ 
+If your input has equality constraints then you have to transform it in the form that only contain linear inequalities which described above by using some other software. We recommend to use latte (https://www.math.ucdavis.edu/~latte) for this transformation. 
+ 
+--------------------------- 
+4. Use volume approximation 
+--------------------------- 
+ 
+After successful compilation you can use the software by command line. 
+ 
+./vol -h  
+ 
+will display a help message about the program's available options. 
+ 
+***Example*** 
+ 
+To estimate the volume of the 10-dimensional hypercube first prepare the file cube.ine as follows: 
+ 
+====================== 
+cube_10.ine 
+H-representation 
+begin 
+ 20 11 real 
+ 1 1 0 0 0 0 0 0 0 0 0  
+ 1 0 1 0 0 0 0 0 0 0 0  
+ 1 0 0 1 0 0 0 0 0 0 0  
+ 1 0 0 0 1 0 0 0 0 0 0  
+ 1 0 0 0 0 1 0 0 0 0 0  
+ 1 0 0 0 0 0 1 0 0 0 0  
+ 1 0 0 0 0 0 0 1 0 0 0  
+ 1 0 0 0 0 0 0 0 1 0 0  
+ 1 0 0 0 0 0 0 0 0 1 0  
+ 1 0 0 0 0 0 0 0 0 0 1  
+ 1 -1 0 0 0 0 0 0 0 0 0  
+ 1 0 -1 0 0 0 0 0 0 0 0  
+ 1 0 0 -1 0 0 0 0 0 0 0  
+ 1 0 0 0 -1 0 0 0 0 0 0  
+ 1 0 0 0 0 -1 0 0 0 0 0  
+ 1 0 0 0 0 0 -1 0 0 0 0  
+ 1 0 0 0 0 0 0 -1 0 0 0  
+ 1 0 0 0 0 0 0 0 -1 0 0  
+ 1 0 0 0 0 0 0 0 0 -1 0  
+ 1 0 0 0 0 0 0 0 0 0 -1  
+end 
+input_incidence 
+======================= 
+ 
+The run the following command: 
+ 
+./vol -f1 polytope_examples/cube10.ine 
+ 
+-------------------- 
+5. Linear extensions 
+-------------------- 
+ 
+The software has the option (-fle) to estimate the number of linear extensions of a partial order set (poset) by estimating the volume of the corresponding order polytope. The input file should be in the following format:  
+ 
+============================== 
+NumberOfElements NumberOfEdges 
+[[a,b],...,[c,d]] 
+============================== 
+ 
+where NumberOfElements, NumberOfEdges are the number of poset elements and poset's edges respectively and a,b,c,d are elements that take values (1,...,NumberOfElements). 
+ 
+***Example*** 
+ 
+Prepare a file simple_poset.txt 
+ 
+=================== 
+4 3 
+[[1,2],[1,3],[3,4]] 
+=================== 
+ 
+Then running 
+  
+./vol -fle simple_poset.txt 
+ 
+will give an estimation of the number of linear extensions which is 3. 
 
-
-------------------------
-1. Compile CGAL sources
-------------------------
-
-Follow the CGAL installation manual. It states that CGAL requires the Boost
-libraries. In particular the header files and the threading library
-binaries. Version 1.39 (or higher) are needed. Having GMP version 4.2 or
-higher and MPFR version 2.2.1 or higher installed is recommended by CGAL. 
-Once you have installed these libraries, execute:
-
-$ cmake .
-$ make
-
-
-------------------
-2. Compile sources
-------------------
-
-In folder examples execute:
-
-$ cmake -DCGAL_DIR=_YOUR_CGAL_PATH_ .
-$ make
-
-where _YOUR_CGAL_PATH_ is the path where CGAL library was compiled. For
-additional options, set by CMake flags, see the file README.FLAGS (it is
-normally not needed to change default compilation options).
-
-
----------------------------
-3. Use volume approximation
----------------------------
-
-./vol -h 
-
-to display a help message about the program's options
-
-
-./vol -f1 polytope_examples/cube10.ine
-
-will approximate the volume of the 10-dim hypercube

@@ -13,7 +13,7 @@
 // for more details.
 //
 // See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with HeaDDaCHe,
+// Public License.  If you did not receive this file along with RandGeom,
 // see <http://www.gnu.org/licenses/>.
 // 
 // Developer: Vissarion Fisikopoulos
@@ -41,6 +41,7 @@ int main(const int argc, const char** argv)
 	int n, nexp=1, n_threads=1;
 	int walk_len;//to be defined after n
 	double e=1;
+  double exactvol(-1.0);
 	bool verbose=false, 
 	     rand_only=false, 
 	     round_only=false,
@@ -49,7 +50,8 @@ int main(const int argc, const char** argv)
 	     NN=false,
 	     user_walk_len=false,
 	     linear_extensions=false,
-             birk=false;
+       birk=false,
+       experiments=true;
 	
 	//this is our polytope
 	stdHPolytope<double> P;
@@ -68,9 +70,11 @@ int main(const int argc, const char** argv)
         "-v, --verbose \n"<<
         "-rand, --rand_only : generates only random points\n"<<
         "-f1, --file1 [filename type Ax<=b]  [epsilon] [walk length] [threads] [num of experiments]\n"<<
-        "-f2, --file2 [filename type Ax=b,x>=0] [epsilon] [walk length] [threads] [num of experiments]\n"<<
+        //"-f2, --file2 [filename type Ax=b,x>=0] [epsilon] [walk length] [threads] [num of experiments]\n"<<
         "-fle, --filele : counting linear extensions of a poset\n"<<
         //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num of experiments]\n"<<
+        "--exact : the exact volume\n"<<
+        "--cube : input polytope is a cube\n"<<
         "-r, --round : enables rounding of the polytope as a preprocess\n"<<
         "-ro, --round_only : does only rounding to the polytope\n"<<
         "-e, --error [epsilon] : the goal error of approximation\n"<<
@@ -82,6 +86,15 @@ int main(const int argc, const char** argv)
         std::endl;
       exit(-1);
     }
+    if(!strcmp(argv[i],"--cube")){
+      exactvol = std::pow(2,n);
+	    //exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1) 
+      correct=true;
+	  }
+    if(!strcmp(argv[i],"--exact")){
+      exactvol = atof(argv[++i]);
+	    correct=true;
+	  }
 		if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
       verbose=true;
       std::cout<<"Verbose mode\n";
@@ -108,6 +121,7 @@ int main(const int argc, const char** argv)
       }
       correct=true;
     }
+/*    
     if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
 			file=true;
       std::ifstream inp;
@@ -125,6 +139,7 @@ int main(const int argc, const char** argv)
       //}
       correct=true;
     }
+*/
     if(!strcmp(argv[i],"-fle")||!strcmp(argv[i],"--filele")){
 	  file=true;
       std::cout<<"Reading input from file..."<<std::endl;
@@ -143,7 +158,7 @@ int main(const int argc, const char** argv)
       P.init(Pin);
       //if (verbose && P.num_of_hyperplanes()<100){ 
 				std::cout<<"Input polytope: "<<n<<std::endl;
-        P.print();
+        //P.print();
       //}
       linear_extensions = true;
       correct=true;
@@ -237,8 +252,9 @@ int main(const int argc, const char** argv)
   double sum=0, sum_time=0;
   double min,max;
   std::vector<double> vs;
-  double average, std_dev, exactvol;
+  double average, std_dev;
   double Chebtime, sum_Chebtime=double(0);
+  NT vol;
   
   for(int i=0; i<num_of_exp; ++i){
     std::cout<<"Experiment "<<i+1<<" ";
@@ -249,7 +265,7 @@ int main(const int argc, const char** argv)
     vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
              urdist,urdist1,verbose,rand_only,round,NN,birk);
     
-    NT vol;
+    
     if(round_only){
     // Round the polytope and exit
       double round_value = rounding(P,var,var);
@@ -259,8 +275,6 @@ int main(const int argc, const char** argv)
     }else{
       // Estimate the volume
       vol = volume1_reuse2(P_to_test,var,var,Chebtime);
-      if(linear_extensions)
-		vol = vol*factorial(n);
       //std::cout<<vol<<std::endl;
     }
     
@@ -272,15 +286,15 @@ int main(const int argc, const char** argv)
     //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
      
 	// Statistics
-    sum+=v1;
-    if(i==0){max=v1;min=v1;}
-    if(v1>max) max=v1;
-    if(v1<min) min=v1;
-    vs.push_back(v1);
+  sum+=v1;
+  if(i==0){max=v1;min=v1;}
+  if(v1>max) max=v1;
+  if(v1<min) min=v1;
+  vs.push_back(v1);
 	sum_time +=  tstop-tstart;
 	sum_Chebtime += Chebtime;
 	
-	std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart;
+	//std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart;
 	if(round)
 		std::cout<<" (rounding is ON)";        
 	std::cout<<std::endl;
@@ -293,8 +307,6 @@ int main(const int argc, const char** argv)
 	}
 	std_dev = std::sqrt(std_dev/(i+1));
 	
-	exactvol = std::pow(2,n);
-	//exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1) 
 	std::cout.precision(7);
 	
 	//MEMORY USAGE
@@ -302,9 +314,52 @@ int main(const int argc, const char** argv)
 	//look_up_our_self(&usage);
 	
 	//Print statistics
-	std::cout<<"STATISTICS:"<<std::endl;
-	if (verbose) std::cout<<"d m #exp vol\t e (1+-e)vol\t N #walk avg\t min max\t std_dev (vol-v*)/vol\t (max-min)/avg t"<<std::endl;
-	std::cout 
+	//std::cout<<"\nSTATISTICS:"<<std::endl;
+	if (!experiments){
+    std::cout 
+	           <<"Dimension= "
+	           <<n<<" "
+	           //<<argv[]<<" "
+	           <<"\nNumber of hyperplanes= "
+             <<P.num_of_hyperplanes()<<" "
+	           <<"\nNumber of runs= "
+	           <<num_of_exp<<" "
+             <<"\nError parameter= "
+	           <<e
+             <<"\nTheoretical range of values= "<<" ["
+	           <<(1-e)*exactvol<<","
+		         <<(1+e)*exactvol<<"] "
+	           <<"\nNumber of random points generated in each iteration= "
+	           <<rnum<<" "
+	           <<"\nRandom walk length= "
+	           <<walk_len<<" "
+		         <<"\nAverage volume (avg)= "
+	           <<average
+             <<"\nmin,max= "
+	           " ["
+		         <<min<<","
+		         <<max<<"] "
+		         <<"\nStandard deviation= "
+	           <<std_dev<<" "
+		         <<"\n(max-min)/avg= "
+	           <<(max-min)/average<<" "
+		         <<"\nTime(sec)= "
+	           <<sum_time/(i+1)<<" "
+		         <<"\nTime(sec) Chebyshev= "
+	           <<sum_Chebtime/(i+1)<<" "
+		         //<<usage.vsize
+		         <<std::endl;
+    
+      if(exactvol!=-1.0){
+	      std::cout 
+	           <<"\nExact volume= "
+	           <<exactvol<<" "
+	           <<"\n(vol-avg)/vol= "
+	           <<(exactvol-average)/exactvol<<" "
+             <<std::endl; 
+      }
+	}else 
+    std::cout 
 	           <<n<<" "
 	           //<<argv[]<<" "
 	           <<P.num_of_hyperplanes()<<" "
@@ -326,6 +381,9 @@ int main(const int argc, const char** argv)
 		         //<<usage.vsize
 		         <<std::endl; 
 	}
+  if(linear_extensions)
+		   std::cout <<"Number of linear extensions= "<<vol*factorial(n)<<std::endl;
+  
 	/*
   // EXACT COMPUTATION WITH POLYMAKE
   /*
