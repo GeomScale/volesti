@@ -9,16 +9,16 @@
 // for more details.
 //
 // See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with HeaDDaCHe,
+// Public License.  If you did not receive this file along with RandGeom,
 // see <http://www.gnu.org/licenses/>.
 // 
 // Developer: Vissarion Fisikopoulos
 
 // -------- ROTATION ---------- //
 template <class T>
-double rotate(T &P){
+double rotating_old(T &P){
 	
-  bool print = false; 
+  bool print = true; 
   if(print) std::cout<<"\nRotate..."<<std::endl;
   typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> MT;
   typedef Eigen::Matrix<double,Eigen::Dynamic,1> VT;
@@ -34,7 +34,7 @@ double rotate(T &P){
 		  A(i,j-1) = P.get_coeff(i,j);
 		}
 	}
-  //std::cout<<A<<"\n"<<b<<std::endl;
+  std::cout<<A<<"\n"<<b<<std::endl;
   
   // Construct rotation matrix by 30o
   MT R(m,m);
@@ -57,7 +57,7 @@ double rotate(T &P){
 	A = R*A;
 	//b = R*b;
 	
-	//std::cout<<A<<"\n"<<b<<std::endl;
+	std::cout<<A<<"\n"<<b<<std::endl;
 	
 	// Write changes (actually perform rotation) to the polytope!
 	for(int i=0; i<m; ++i){
@@ -67,15 +67,63 @@ double rotate(T &P){
 		}
 	}
 	
+  std::cout<<R.determinant()<<"\n"<<b<<std::endl;
+  
 	return R.determinant();
 }
+
+// -------- ROTATION ---------- //
+template <class T>
+double rotating(T &P){
+	
+  bool print = true; 
+  //if(print) std::cout<<"\nRotate..."<<std::endl;
+  typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> MT;
+  typedef Eigen::Matrix<double,Eigen::Dynamic,1> VT;
+  
+  int m=P.num_of_hyperplanes();
+  int d=P.dimension();
+  
+  MT A(m,d);
+  VT b(m);
+  for(int i=0; i<m; ++i){
+		b(i) = P.get_coeff(i,0);
+		for(int j=1; j<d+1; ++j){
+		  A(i,j-1) = P.get_coeff(i,j);
+		}
+	}
+  //std::cout<<A<<"\n"<<b<<std::endl;
+  
+  MT M = MT::Random(d,d);
+  //std::cout << "Here is the matrix m:" << std::endl << M << std::endl;
+  Eigen::JacobiSVD<MT> svd(M, Eigen::ComputeFullU | Eigen::ComputeFullV);
+  //std::cout << "Its singular values are:" << std::endl << svd.singularValues() << std::endl;
+  //std::cout << "Its left singular vectors are the columns of the U matrix:" << std::endl << svd.matrixU() << std::endl;
+  //std::cout << "Det of U matrix:" << std::endl << svd.matrixU().determinant() << std::endl;
+  //std::cout << "Its right singular vectors are the columns of the thin V matrix:" << std::endl << svd.matrixV() << std::endl;
+  
+  A = A*svd.matrixU();
+  
+  //std::cout<<A<<"\n"<<b<<std::endl;
+  
+  // Write changes (actually perform rotation) to the polytope!
+	for(int i=0; i<m; ++i){
+		P.put_coeff(i,0,b(i));
+		for(int j=1; j<d+1; ++j){
+		  P.put_coeff(i,j,A(i,j-1));
+		}
+	}
+  
+	return 0;
+}
+
 
 // ----- ROUNDING ------ //
 template <class T>
 double rounding(T &P, 
                 vars &var,  // constans for volume
-				vars &var2 // constants for optimization in case of MinkSums
-				){
+                vars &var2 // constants for optimization in case of MinkSums
+                ){
   bool print = var.verbose;
   int n = var.n;
   int rnum = var.m;

@@ -9,7 +9,7 @@
 // for more details.
 //
 // See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with HeaDDaCHe,
+// Public License.  If you did not receive this file along with RandGeom,
 // see <http://www.gnu.org/licenses/>.
 // 
 // Developer: Vissarion Fisikopoulos

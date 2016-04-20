@@ -701,7 +701,12 @@ class stdHPolytope{
 			//std::cout<<"Oresult: "<<mini<<" "<<maxi<<std::endl;	
 			return std::pair<NT,NT> (min_plus,max_minus);
 		}
-			  
+		
+    //void rotate(){
+      //std::cout<<_A<<std::endl;
+    //  exit(1);
+    //}
+    	  
 	private:
 	  int            _d; //dimension
 	  stdMatrix      _A; //inequalities

@@ -51,6 +51,7 @@ int main(const int argc, const char** argv)
 	     user_walk_len=false,
 	     linear_extensions=false,
        birk=false,
+       rotate=false,
        experiments=true;
 	
 	//this is our polytope
@@ -105,6 +106,7 @@ int main(const int argc, const char** argv)
       std::cout<<"Generate random points only\n";
       correct=true;
     } 
+    //reading from file
     if(!strcmp(argv[i],"-f1")||!strcmp(argv[i],"--file1")){
 			file=true;
 			std::cout<<"Reading input from file..."<<std::endl;
@@ -140,6 +142,7 @@ int main(const int argc, const char** argv)
       correct=true;
     }
 */
+    //reading linear extensions and order polytopes
     if(!strcmp(argv[i],"-fle")||!strcmp(argv[i],"--filele")){
 	  file=true;
       std::cout<<"Reading input from file..."<<std::endl;
@@ -185,23 +188,28 @@ int main(const int argc, const char** argv)
       correct=true;
     }
     if(!strcmp(argv[i],"-NN")){
-		/*
-		if (verbose) std::cout<<"Building search data-srtuctures..."<<std::endl;
-		NN=true;
-		P.dual(1);
-		P.dual(-1);
-		*/
-		std::cout<<"flann software is needed for this option. Experimental feature." 
-		          <<"Currently under development."<<std::endl; 
-		correct=true;
+      /*
+      if (verbose) std::cout<<"Building search data-srtuctures..."<<std::endl;
+      NN=true;
+      P.dual(1);
+      P.dual(-1);
+      */
+      std::cout<<"flann software is needed for this option. Experimental feature." 
+                <<"Currently under development."<<std::endl; 
+      correct=true;
     }
     if(!strcmp(argv[i],"-ro")){
-		round_only=true;
-		correct=true;
+		  round_only=true;
+		  correct=true;
     }
     if(!strcmp(argv[i],"-birk_sym")){
-		birk=true;
-		correct=true;
+		  birk=true;
+		  correct=true;
+    }
+    //rotate the polytope randomly
+    if(!strcmp(argv[i],"-rot")){
+		  rotate=true;
+		  correct=true;
     }
     if(correct==false){
       std::cerr<<"unknown parameters \'"<<argv[i]<<
@@ -243,6 +251,11 @@ int main(const int argc, const char** argv)
     P.init(n);
   }
     
+  // If rotate flag is on rotate the polytope
+  if(rotate){
+    rotating(P);
+  }
+    
   // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
@@ -275,6 +288,7 @@ int main(const int argc, const char** argv)
     }else{
       // Estimate the volume
       vol = volume1_reuse2(P_to_test,var,var,Chebtime);
+      //if(rotate) vol = std::sqrt(vol);
       //std::cout<<vol<<std::endl;
     }
     
