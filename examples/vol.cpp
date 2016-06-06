@@ -41,7 +41,7 @@ int main(const int argc, const char** argv)
 	int n, nexp=1, n_threads=1;
 	int walk_len;//to be defined after n
 	double e=1;
-  double exactvol(-1.0);
+    double exactvol(-1.0);
 	bool verbose=false, 
 	     rand_only=false, 
 	     round_only=false,
@@ -50,9 +50,10 @@ int main(const int argc, const char** argv)
 	     NN=false,
 	     user_walk_len=false,
 	     linear_extensions=false,
-       birk=false,
-       rotate=false,
-       experiments=true;
+         birk=false,
+         rotate=false,
+         experiments=true,
+         coordinate=true;
 	
 	//this is our polytope
 	stdHPolytope<double> P;
@@ -69,6 +70,7 @@ int main(const int argc, const char** argv)
       std::cerr<<
         "Usage:\n"<<
         "-v, --verbose \n"<<
+        "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
         "-rand, --rand_only : generates only random points\n"<<
         "-f1, --file1 [filename type Ax<=b]  [epsilon] [walk length] [threads] [num of experiments]\n"<<
         //"-f2, --file2 [filename type Ax=b,x>=0] [epsilon] [walk length] [threads] [num of experiments]\n"<<
@@ -91,25 +93,29 @@ int main(const int argc, const char** argv)
       exactvol = std::pow(2,n);
 	    //exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1) 
       correct=true;
-	  }
+      }
     if(!strcmp(argv[i],"--exact")){
       exactvol = atof(argv[++i]);
 	    correct=true;
-	  }
+      }
 		if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
       verbose=true;
       std::cout<<"Verbose mode\n";
       correct=true;
     }
     if(!strcmp(argv[i],"-rand")||!strcmp(argv[i],"--rand_only")){
-      rand_only=true;
-      std::cout<<"Generate random points only\n";
-      correct=true;
-    } 
+        rand_only=true;
+        std::cout<<"Generate random points only\n";
+        correct=true;
+    }
+    if(!strcmp(argv[i],"-rdhr")){
+        coordinate=false;
+        correct=true;
+    }
     //reading from file
     if(!strcmp(argv[i],"-f1")||!strcmp(argv[i],"--file1")){
-			file=true;
-			std::cout<<"Reading input from file..."<<std::endl;
+      file=true;
+      std::cout<<"Reading input from file..."<<std::endl;
       std::ifstream inp;
       std::vector<std::vector<double> > Pin;
       inp.open(argv[++i],std::ifstream::in);
@@ -117,7 +123,7 @@ int main(const int argc, const char** argv)
       //std::cout<<"d="<<Pin[0][1]<<std::endl;
       n = Pin[0][1]-1;
       P.init(Pin);
-      if (verbose && P.num_of_hyperplanes()<100){ 
+      if (verbose && P.num_of_hyperplanes()<100){
 				std::cout<<"Input polytope: "<<n<<std::endl;
         P.print();
       }
@@ -219,11 +225,11 @@ int main(const int argc, const char** argv)
 		
 	}
 	
-	// Set the number of random walk steps
-	if(!user_walk_len)
-		walk_len=10 + n/10;
-	
-	// Timings
+  // Set the number of random walk steps
+  if(!user_walk_len)
+    walk_len=10 + n/10;
+
+  // Timings
   double tstart, tstop;
 
   /* CONSTANTS */
@@ -239,8 +245,8 @@ int main(const int argc, const char** argv)
   // the random engine with this seed
   RNGType rng(seed);
   // standard normal distribution with mean of 0 and standard deviation of 1 
-	boost::normal_distribution<> rdist(0,1); 
-	boost::variate_generator< RNGType, boost::normal_distribution<> > 
+  boost::normal_distribution<> rdist(0,1);
+  boost::variate_generator< RNGType, boost::normal_distribution<> >
 											get_snd_rand(rng, rdist); 
   // uniform distribution 
   boost::random::uniform_real_distribution<>(urdist); 
@@ -254,6 +260,7 @@ int main(const int argc, const char** argv)
   // If rotate flag is on rotate the polytope
   if(rotate){
     rotating(P);
+    //P.print();
   }
     
   // Random walks in K_i := the intersection of the ball i with P
@@ -276,7 +283,7 @@ int main(const int argc, const char** argv)
     
     // Setup the parameters
     vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
-             urdist,urdist1,verbose,rand_only,round,NN,birk);
+             urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
     
     
     if(round_only){
