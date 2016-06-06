@@ -76,17 +76,21 @@ int rand_point_generator(T &P,
 	int rand_coord = uidist(rng);
 	double kapa = urdist(rng);
 	Point p_prev = p;
-	//hit_and_run(p,P,var,var);
-	hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);	
-	
-  for(int i=1; i<=rnum; ++i){
+    if(var.coordinate)
+        hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);
+    else
+        hit_and_run(p,P,var,var);
+
+    for(int i=1; i<=rnum; ++i){
 		
 		for(int j=0; j<walk_len; ++j){
 		  int rand_coord_prev = rand_coord;
 		  rand_coord = uidist(rng);
 		  kapa = urdist(rng);
-		  //hit_and_run(p,P,var,var);
-		  hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
+          if(var.coordinate)
+              hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
+          else
+              hit_and_run(p,P,var,var);
 		}
 		randPoints.push_back(p);
                 if(birk) birk_sym(P,randPoints,p);		
@@ -173,16 +177,21 @@ int rand_point_generator(BallIntersectPolytope<T> &PBLarge,
 	int rand_coord = uidist(rng);
 	double kapa = urdist(rng);
 	Point p_prev = p;
-	//hit_and_run(p,PBLarge,var,var);
-	hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var,true);	
-	
-  for(int i=1; i<=rnum; ++i){		
+
+    if(var.coordinate)
+        hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var,true);
+    else
+        hit_and_run(p,PBLarge,var,var);
+
+    for(int i=1; i<=rnum; ++i){
 		for(int j=0; j<walk_len; ++j){
 		  int rand_coord_prev = rand_coord;
 		  rand_coord = uidist(rng);
 		  kapa = urdist(rng);
-		  //hit_and_run(p,PBLarge,var,var);
-		  hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
+          if(var.coordinate)
+              hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
+          else
+              hit_and_run(p,PBLarge,var,var);
 		}
 		if(PBSmall.second().is_in(p) == -1){//is in
 				randPoints.push_back(p);
