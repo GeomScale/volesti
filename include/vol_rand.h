@@ -33,6 +33,7 @@
 #include <algorithm>
 #include "boost/random.hpp"
 #include "boost/generator_iterator.hpp"  
+#include "boost/math/constants/constants.hpp"
 #include "boost/dynamic_bitset.hpp"   
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
