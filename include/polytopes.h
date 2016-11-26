@@ -20,7 +20,10 @@
 #define CGAL_QP_NO_ASSERTIONS
 
 //this is for LP-solver
+//#include "../external/kd_GeRaF/source/Auto_random_kd_forest.h"
+#include "falconn/lsh_nn_table.h"
 #include <iostream>
+#include <Eigen/Eigen>
 #include <CGAL/basic.h>
 #include <CGAL/QP_models.h>
 #include <CGAL/QP_functions.h>
@@ -34,6 +37,7 @@ typedef CGAL::Gmpzf ET;
 #include <CGAL/MP_Float.h>
 //typedef CGAL::MP_Float ET;
 //#endif
+#include <CGAL/enum.h>
 #include <boost/random/shuffle_order.hpp>
 #include <rref.h>
 //EXPERIMENTAL
@@ -50,6 +54,8 @@ private:
     //typedef std::vector<flann::Index<flann::L2<double> > >  Flann_trees;
 
 public:
+	//stdHPolytope(const stdHPolytope&) e;
+	stdHPolytope& operator=(const stdHPolytope&) = delete;
     stdHPolytope() {}
 
     // constructor: cube(d)
@@ -75,6 +81,90 @@ public:
             _A.push_back(coeffs);
         }
     }
+
+	/** 
+	 * Polytope membership functions 
+	 */
+	Point project(Point& point, int facet_idx) {
+		/**
+		 * proj=p - a * ((p.dot_product(a) + b)/ a.dot_product(a))
+		 */
+		typename stdCoeffs::iterator mit=_A[facet_idx].begin();
+		++mit;
+		Vector facet_normal = Vector(_d, mit, _A[facet_idx].end());
+		Vector point_as_v = point - CGAL::ORIGIN;
+
+		Vector projection = point_as_v - ((point_as_v * facet_normal) + _A[facet_idx][0]) / (facet_normal * facet_normal);
+
+		return CGAL::ORIGIN + projection;
+	}
+
+	Point _get_reflexive_point(Point& internalPoint, int facet_idx) {
+		Point projection = this->project(internalPoint, facet_idx);
+		Vector projection_as_v = projection - CGAL::ORIGIN;
+		Vector internalPoint_as_v = internalPoint - CGAL::ORIGIN;
+
+		//(2 * projection - internalPoint); // <=> internalPoint + 2*(projection-internalPoint)
+		projection_as_v *= 2;
+		Vector reflexive_point = projection_as_v - internalPoint_as_v;
+
+		return CGAL::ORIGIN + reflexive_point; 	
+	}
+
+	void center_sites(std::vector<Point>& sites, Point& internalPoint) {
+		Vector internalPoint_as_v = internalPoint - CGAL::ORIGIN;
+		for (int i=0; i<sites.size(); i++) {
+			_sites.push_back(
+				(CGAL::ORIGIN + ((sites[i] - CGAL::ORIGIN) - internalPoint_as_v))
+			);
+		}
+		_sites.push_back(CGAL::ORIGIN + (internalPoint_as_v - internalPoint_as_v));
+	}
+
+	void create_point_representation() {
+    	Point internalPoint; 
+		double radius;
+
+		this->chebyshev_center(internalPoint, radius);
+		std::vector<Point> sites;
+		
+		for (int i=0; i<this->_A.size(); i++) {
+			sites.push_back(this->_get_reflexive_point(internalPoint, i));
+		}
+		center_sites(sites, internalPoint); // This is useful for the FALCON LSH structure
+		sites.clear();
+		
+		falconn::LSHConstructionParameters params_hp;
+
+		uint64_t seed = 119417657;
+		params_hp.dimension = this->dimension();
+		params_hp.lsh_family = falconn::LSHFamily::Hyperplane;
+		params_hp.distance_function = falconn::DistanceFunction::EuclideanSquared;
+		params_hp.storage_hash_table = falconn::StorageHashTable::FlatHashTable;
+		params_hp.k = 19;
+		params_hp.l = 20;
+		params_hp.num_setup_threads = 0;
+		params_hp.seed = seed ^ 833840234;
+		std::vector<falconn::DenseVector<double>> data;
+
+		for (int i=0; i<_sites.size(); i++) {
+			std::vector<double> tmp_vec(_sites[i].cartesian_begin(), _sites[i].cartesian_end());
+			Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
+			data.push_back(map);
+		}
+
+		this->hptable = falconn::construct_table<falconn::DenseVector<double>>(data, params_hp);
+	}
+
+	bool contains_point(Point& p, int num_probes) {
+		this->hptable->set_num_probes(num_probes);
+		std::vector<double> tmp_vec(p.cartesian_begin(), p.cartesian_end());
+		Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
+		return this->hptable->find_nearest_neighbor(map) == _sites.size();
+	}	
+	/** 
+	 * End of polytope membership functions 
+	 */
 
     int dimension() {
         return _d;
@@ -502,6 +592,7 @@ public:
             //std::cout << center;
             radius = CGAL::to_double(*it);
             //std::cout << radius << std::endl;
+
         }
         // deallocate memory
         delete [] l;
@@ -734,6 +825,8 @@ public:
 private:
     int            _d; //dimension
     stdMatrix      _A; //inequalities
+	std::vector<Point>  _sites;
+	std::shared_ptr<falconn::LSHNearestNeighborTable<falconn::DenseVector<double>>> hptable;
     //EXPERIMENTAL
     //Flann_trees    flann_trees; //the (functional) duals of A lifted to answer NN queries
     //defined for every d coordinate
@@ -741,17 +834,12 @@ private:
 
 
 // define different kind of polytopes
-typedef std::vector<Hyperplane>           H_polytope;
-typedef H_polytope 								        Polytope;
-typedef std::vector<Point>						    V_polytope;
+typedef std::vector<Hyperplane> H_polytope;
+typedef H_polytope Polytope;
+typedef std::vector<Point> V_polytope;
 
-typedef std::pair<V_polytope,V_polytope> 	    MinkSumPolytope;
-typedef std::pair<MinkSumPolytope,bool> 	    MinkSumPolytopeDual;
-
-
-
-
-
+typedef std::pair<V_polytope,V_polytope> MinkSumPolytope;
+typedef std::pair<MinkSumPolytope,bool> MinkSumPolytopeDual;
 
 /* Construct a n-CUBE H-REPRESENTATION*/
 Polytope cube(int n, NT lw, NT up) {
