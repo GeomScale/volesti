@@ -145,16 +145,16 @@ int read_pointset(std::istream &is,
         //std::cout<<point<<std::endl;
         if(!std::isdigit(point[0]) && point[0]!='-' && point[0]!=' ')
             continue;
+        std::vector<double> input;
         //std::cout<<std::endl;
         //std::size_t found = point.find_first_of(" ");
         std::size_t found =0;
         std::size_t found2=0;
 
         //ignore empty spaces on start of line
-        found = point.find_first_not_of(" ",found);
+        found = point.find_first_not_of(" ");
 
-        std::vector<double> input;
-        while (found2!=std::string::npos || point[found]=='-') {
+        while (found2!=std::string::npos || (found!=std::string::npos && point[found]=='-')) {
             //std::cout<<"*"<<(point[found]!='-')<<"*"<<std::endl;
             if(!std::isdigit(point[found]) && point[found]!='-')
                 break;
@@ -164,7 +164,7 @@ int read_pointset(std::istream &is,
             double num = atof(point.substr(found,found2-found).c_str());
             found=point.find_first_not_of(" ",found2);
             //std::cout<<"found"<<point[found]<<std::endl;
-            if(point[found]=='/') {
+            if(found!=std::string::npos && point[found]=='/') {
                 found = found + 1;
                 found2=point.find_first_not_of("0123456789-/",found);
                 //std::cout<<"lala="<<point.substr(found,found2-found)<<std::endl;
