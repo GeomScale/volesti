@@ -30,6 +30,8 @@
 // choose exact integral type
 #ifdef CGAL_USE_GMP
 #include <CGAL/Gmpzf.h>
+#include <ANN/ANN.h>
+
 typedef CGAL::Gmpzf ET;
 #endif
 //typedef double ET;
@@ -82,8 +84,8 @@ public:
         }
     }
 
-	/** 
-	 * Polytope membership functions 
+	/**
+	 * Polytope membership functions
 	 */
 	Point project(Point& point, int facet_idx) {
 		/**
@@ -94,7 +96,10 @@ public:
 		Vector facet_normal = Vector(_d, mit, _A[facet_idx].end());
 		Vector point_as_v = point - CGAL::ORIGIN;
 
-		Vector projection = point_as_v - ((point_as_v * facet_normal) + _A[facet_idx][0]) / (facet_normal * facet_normal);
+		double dir_coeff = ((point_as_v * facet_normal) + _A[facet_idx][0]) / (facet_normal * facet_normal);
+		Vector facet_normal_mul(facet_normal);
+		facet_normal_mul *= dir_coeff;
+		Vector projection = point_as_v - facet_normal_mul;
 
 		return CGAL::ORIGIN + projection;
 	}
@@ -108,7 +113,7 @@ public:
 		projection_as_v *= 2;
 		Vector reflexive_point = projection_as_v - internalPoint_as_v;
 
-		return CGAL::ORIGIN + reflexive_point; 	
+		return CGAL::ORIGIN + reflexive_point;
 	}
 
 	void center_sites(std::vector<Point>& sites, Point& internalPoint) {
@@ -122,18 +127,32 @@ public:
 	}
 
 	void create_point_representation() {
-    	Point internalPoint; 
+		data.clear();
+		_sites.clear();
+		Point tmp_internalPoint;
 		double radius;
 
-		this->chebyshev_center(internalPoint, radius);
+		this->chebyshev_center(tmp_internalPoint, radius);
+		auto it = tmp_internalPoint.cartesian_begin();
+		++it;
+		Point internalPoint(_d, it, tmp_internalPoint.cartesian_end());
+		std::cout << "Chebyshev center: " << internalPoint << std::endl;
 		std::vector<Point> sites;
-		
+
 		for (int i=0; i<this->_A.size(); i++) {
 			sites.push_back(this->_get_reflexive_point(internalPoint, i));
 		}
 		center_sites(sites, internalPoint); // This is useful for the FALCON LSH structure
+
+		/**for (int i=0; i<_sites.size(); i++) {
+			std::cout << _sites[i] << std::endl;
+		}
+		*/
 		sites.clear();
-		
+	}
+
+	void create_lsh_ds(int k, int l) {
+
 		falconn::LSHConstructionParameters params_hp;
 
 		uint64_t seed = 119417657;
@@ -141,29 +160,92 @@ public:
 		params_hp.lsh_family = falconn::LSHFamily::Hyperplane;
 		params_hp.distance_function = falconn::DistanceFunction::EuclideanSquared;
 		params_hp.storage_hash_table = falconn::StorageHashTable::FlatHashTable;
-		params_hp.k = 19;
-		params_hp.l = 20;
+		params_hp.k = k;
+		params_hp.l = l;
 		params_hp.num_setup_threads = 0;
 		params_hp.seed = seed ^ 833840234;
-		std::vector<falconn::DenseVector<double>> data;
 
 		for (int i=0; i<_sites.size(); i++) {
 			std::vector<double> tmp_vec(_sites[i].cartesian_begin(), _sites[i].cartesian_end());
 			Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
-			data.push_back(map);
+			this->data.push_back(map);
 		}
 
-		this->hptable = falconn::construct_table<falconn::DenseVector<double>>(data, params_hp);
+		this->hptable = falconn::construct_table<falconn::DenseVector<double>>(this->data, params_hp);
 	}
 
-	bool contains_point(Point& p, int num_probes) {
+	void create_ann_ds() {
+		ANNpointArray point_array = annAllocPts(_sites.size(), dimension());
+		for (int i=0; i<_sites.size(); i++) {
+			for (int j=0; j<dimension(); j++) {
+				point_array[i][j] = _sites[i][j];
+			}
+		}
+		this->kdTree = new ANNkd_tree(
+						point_array,
+						_sites.size(),
+						this->dimension());
+	}
+
+	bool contains_point_ann(Point& p, double epsilon) {
+		ANNidxArray nnIdx;
+		ANNdistArray dists;
+		nnIdx = new ANNidx[1];
+		dists = new ANNdist[1];
+		ANNpoint queryPt;
+		queryPt = annAllocPt(this->dimension());
+		auto it = p.cartesian_begin();
+
+		for (int i=0; it<p.cartesian_end(); i++, it++) {
+			queryPt[i] = (*it);
+		}
+		this->kdTree->annkSearch(
+				queryPt,
+				1,
+				nnIdx,
+				dists,
+				epsilon
+		);
+
+		bool is_in = nnIdx[0]==_sites.size()-1;
+		delete []nnIdx;
+		delete []dists;
+		return is_in;
+	}
+
+	bool contains_point_lsh(Point& p, int num_probes) {
 		this->hptable->set_num_probes(num_probes);
 		std::vector<double> tmp_vec(p.cartesian_begin(), p.cartesian_end());
 		Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
-		return this->hptable->find_nearest_neighbor(map) == _sites.size();
-	}	
-	/** 
-	 * End of polytope membership functions 
+		int32_t nnIndex = this->hptable->find_nearest_neighbor(map);
+		//std::cout << "nn index: " << nnIndex << std::endl;
+		return  nnIndex== _sites.size()-1;
+	}
+
+    bool contains_point_naive(Point p) {
+        //std::cout << "Running is in" << std::endl;
+        //exit(1);
+        for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit) {
+            typename stdCoeffs::iterator lit;
+            Point::Cartesian_const_iterator pit;
+            pit=p.cartesian_begin();
+            lit=mit->begin();
+			K coeff = (*lit);
+            K sum=(*lit);
+            ++lit;
+            for( ; lit<mit->end() ; ++lit, ++pit) {
+                //std::cout << *lit << " " << *pit <<std::endl;
+                sum += *lit * (*pit);
+            }
+
+            //std::cout<<sum<<std::endl;
+            if (sum>coeff)
+                return false;
+        }
+        return true;
+    }
+	/**
+	 * End of polytope membership functions
 	 */
 
     int dimension() {
@@ -826,7 +908,9 @@ private:
     int            _d; //dimension
     stdMatrix      _A; //inequalities
 	std::vector<Point>  _sites;
-	std::shared_ptr<falconn::LSHNearestNeighborTable<falconn::DenseVector<double>>> hptable;
+	std::shared_ptr<falconn::LSHNearestNeighborTable<falconn::DenseVector<K>>> hptable;
+	std::vector<falconn::DenseVector<K>> data;
+	ANNkd_tree* kdTree;
     //EXPERIMENTAL
     //Flann_trees    flann_trees; //the (functional) duals of A lifted to answer NN queries
     //defined for every d coordinate
