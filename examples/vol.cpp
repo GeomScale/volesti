@@ -19,7 +19,21 @@
 // Developer: Vissarion Fisikopoulos
 
 #include <vol_rand.h>
+#include <string>
+#include <chrono>
 //#include <proc/readproc.h>
+class Timer {
+public:
+	Timer() { start_time = std::chrono::high_resolution_clock::now(); }
+
+	double elapsed_seconds() {
+		auto end_time = std::chrono::high_resolution_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+		return elapsed.count();
+	}
+private:
+	decltype(std::chrono::high_resolution_clock::now()) start_time;
+};
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
@@ -34,14 +48,55 @@ int factorial(int n) {
 // The user should provide the appropriate membership
 // oracles.
 
-int membership_main(stdHPolytope<double>& P) {
-	P.create_point_representation();	
-	std::vector<double> p_v;
-	for (int i=0; i<P.dimension(); i++) {
-		p_v.push_back(0);
-	}	
-	Point p(P.dimension(), p_v.begin(), p_v.end());
-	//std::cout << P.contains_point(p,20) << std::endl;
+int membership_main(stdHPolytope<double>& P, double epsilon, int k, int l, int probes, std::string query_filename) {
+	P.create_point_representation();
+	P.create_lsh_ds(k, l);
+	P.create_ann_ds();
+
+    std::ifstream inp;
+    std::vector<std::vector<double> > Pin;
+    inp.open(query_filename,std::ifstream::in);
+    read_pointset(inp,Pin);
+    //std::cout<<"d="<<Pin[0][1]<<std::endl;
+    std::cout<<"Initialized P..."<<std::endl;
+
+	double naive_time = 0;
+	double ann_time = 0;
+	double lsh_time = 0;
+	int lsh_mismatches = 0;
+	int ann_mismatches = 0;
+	int not_contained = 0;
+	for (int i=0; i<Pin.size(); i++) {
+		Point p(P.dimension(), Pin[i].begin(), Pin[i].end());
+		Timer lsh_timer;
+		bool lsh_contains = P.contains_point_lsh(p, probes);
+		lsh_time += lsh_timer.elapsed_seconds();
+
+		Timer naive_timer;
+		bool naive_contains = P.contains_point_naive(p);
+		naive_time += naive_timer.elapsed_seconds();
+
+		Timer ann_timer;
+		bool ann_contains = P.contains_point_ann(p, probes);
+		ann_time += ann_timer.elapsed_seconds();
+	
+		if (!naive_contains) {
+			not_contained++;
+		}
+		if (ann_contains!=naive_contains) {
+			++ann_mismatches;
+		}
+		if (lsh_contains!=naive_contains) {
+			++lsh_mismatches;
+		}
+	}
+
+	std::cout << "Naive took " << naive_time << "s, averaging at " << (naive_time/Pin.size()) << "s." << std::endl;
+	std::cout << "LSH took " << lsh_time << "s, averaging at " << (lsh_time/Pin.size()) << "s." << std::endl;
+	std::cout << "ANN took " << ann_time << "s, averaging at " << (ann_time/Pin.size()) << "s." << std::endl;
+	std::cout << "LSH Mismatch count: " << lsh_mismatches << std::endl;
+	std::cout << "ANN Mismatch count: " << ann_mismatches << std::endl;
+	std::cout << "Not contained count: " << not_contained << std::endl;
 }
 
 int main(const int argc, const char** argv) {
@@ -64,6 +119,11 @@ int main(const int argc, const char** argv) {
          coordinate=true;
 
     bool membership_test=false;
+	int k = 20;
+	int l = 20;
+	double epsilon = 0.1;
+	int probes = l;
+	std::string query_filename;
 
     //this is our polytope
     stdHPolytope<double> P;
@@ -127,6 +187,26 @@ int main(const int argc, const char** argv) {
 			correct = true;
 			membership_test = true;
         }
+        if(!strcmp(argv[i],"-k")) {
+			correct = true;
+            k = atoi(argv[++i]);
+        }
+        if(!strcmp(argv[i],"--probes")) {
+			correct = true;
+            probes = atoi(argv[++i]);
+        }
+        if(!strcmp(argv[i],"--epsilon")) {
+			correct = true;
+            epsilon = atof(argv[++i]);
+        }
+        if(!strcmp(argv[i],"-l")) {
+			correct = true;
+            l = atoi(argv[++i]);
+        }
+		if(!strcmp(argv[i],"--query-file")) {
+			query_filename = argv[++i];
+			correct = true;
+		}				
         //reading from file
         if(!strcmp(argv[i],"-f1")||!strcmp(argv[i],"--file1")) {
             file=true;
@@ -244,7 +324,7 @@ int main(const int argc, const char** argv) {
     }
 
 	if (membership_test) {
-		membership_main(P);
+		membership_main(P,epsilon,k,l,probes,query_filename);
 	}
 	else {
 			std::cout<<"Starting old experiments" << std::endl;
