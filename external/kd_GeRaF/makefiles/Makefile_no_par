@@ -1,0 +1,23 @@
+OBJS 	= main_no_par.o
+SOURCE	= ../main/main_no_par.cpp
+HEADER  =	../Division_Euclidean_space.h	../Find_diameter.h	../Find_k_max.h	../Householder.h	../IO.h	../Mean_variance.h	../Point.h	../Random_generator.h	../Random_kd_forest.h	../Tree.h	../Auto_random_kd_forest.h
+OUT  	=	geraf
+CXX	= g++
+FLAGS   =	-std=c++0x	-O3	-Wall
+
+all: $(OBJS)
+	$(CXX)	$(OBJS) -o $(OUT)	$(FLAGS)
+	make	-f	makefiles/Makefile_no_par	clean
+	
+# create/compile the individual files >>separately<< 
+main_no_par.o:	main/main_no_par.cpp
+	$(CXX)	-c	main/main_no_par.cpp	$(FLAGS)
+		
+.PHONY : all
+# clean house
+clean:
+	rm -f $(OBJS)
+
+# do a bit of accounting
+count:
+	wc $(SOURCE) $(HEADER)

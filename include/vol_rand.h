@@ -33,6 +33,7 @@
 #include <algorithm>
 #include "boost/random.hpp"
 #include "boost/generator_iterator.hpp"  
+#include "boost/math/constants/constants.hpp"
 #include "boost/dynamic_bitset.hpp"   
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
@@ -985,7 +986,7 @@ NT volume1_reuse2(T &P,
 		//NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n) 
 		
 		mpfr_t result,pow,base,exp;
-	  mpfr_init(result);
+	  	mpfr_init(result);
 		mpfr_init(pow);
 		mpfr_init(base);
 		mpfr_init(exp);
@@ -1016,6 +1017,11 @@ NT volume1_reuse2(T &P,
     //#pragma omp ordered
 		NT vol_thread = mpfr_get_d(result,GMP_RNDN);
 		vol += vol_thread;
+
+		mpfr_clear(result);
+		mpfr_clear(pow);
+		mpfr_clear(base);
+		mpfr_clear(exp);
 	}
 	
 	// std::cout<<"ROUNDING:"<<round_value<<", "<<CGAL::to_double(round_value*(vol/n_threads)) << ", " <<

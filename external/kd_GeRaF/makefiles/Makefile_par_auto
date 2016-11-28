@@ -1,0 +1,23 @@
+OBJS 	= main_par_auto.o
+SOURCE	= ../main/main_par_auto.cpp
+HEADER  =	../Division_Euclidean_space.h	../Find_diameter.h	../Find_k_max.h	../Householder.h	../IO.h	../Mean_variance.h	../Point.h	../Random_generator.h	../Random_kd_forest.h	../Tree.h	../Auto_random_kd_forest.h
+OUT  	=	geraf
+CXX	= g++
+FLAGS   =	-pthread	-std=c++0x	-DRKD_PAR	-O3	-Wall
+
+all: $(OBJS)
+	$(CXX)	$(OBJS) -o $(OUT)	$(FLAGS)
+	make	-f	makefiles/Makefile_par_auto	clean
+	
+# create/compile the individual files >>separately<< 
+main_par_auto.o:	main/main_par_auto.cpp
+	$(CXX)	-c	main/main_par_auto.cpp	$(FLAGS)
+		
+.PHONY : all
+# clean house
+clean:
+	rm -f $(OBJS)
+
+# do a bit of accounting
+count:
+	wc $(SOURCE) $(HEADER)
