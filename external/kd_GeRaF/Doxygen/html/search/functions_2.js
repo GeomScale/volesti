@@ -1,0 +1,7 @@
+var searchData=
+[
+  ['check_5fmiss',['check_miss',['../class_auto__random__kd__forest.html#a7f8bba83996efd2f2ef8e14463754d62',1,'Auto_random_kd_forest']]],
+  ['compute_5fvariances',['compute_variances',['../_mean__variance_8h.html#ad9df66eba007446c26027a35fba9f2b6',1,'compute_variances(const std::vector&lt; T &gt; &amp;points, size_t size, const int D, float *var, int sample=-1):&#160;Mean_variance.h'],['../_mean__variance_8h.html#acd7a5e91b5f25e87d14d7aaa15f1c19a',1,'compute_variances(size_t t, const std::vector&lt; T &gt; &amp;points, const int D, size_t size, float *avg, float *var, size_t *split_dims, int sample=-1):&#160;Mean_variance.h']]],
+  ['computesquare',['computeSquare',['../class_division___euclidean__space.html#a56eb342488f9d573d397b5f144708b16',1,'Division_Euclidean_space::computeSquare()'],['../_division___euclidean__space_8h.html#a1e50a4dbc00549be03337fffc0c59464',1,'computeSquare(const std::vector&lt; T &gt; &amp;p, const size_t N, const size_t D, std::vector&lt; T &gt; &amp;squared_coords):&#160;Division_Euclidean_space.h'],['../_division___euclidean__space_8h.html#a01d03c94f0990b1f9193158b9380ed45',1,'computeSquare(const std::vector&lt; std::vector&lt; T &gt; &gt; &amp;p, const size_t N, const size_t D, std::vector&lt; T &gt; &amp;squared_coords):&#160;Division_Euclidean_space.h']]],
+  ['constdata',['constData',['../class_point.html#ab8036f40dbc1e7e03494d9a90afb9e7e',1,'Point']]]
+];
