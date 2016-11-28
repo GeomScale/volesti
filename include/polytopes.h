@@ -126,7 +126,7 @@ public:
 		_sites.push_back(CGAL::ORIGIN + (internalPoint_as_v - internalPoint_as_v));
 	}
 
-	void create_point_representation() {
+	Point create_point_representation() {
 		data.clear();
 		_sites.clear();
 		Point tmp_internalPoint;
@@ -149,6 +149,7 @@ public:
 		}
 		*/
 		sites.clear();
+		return _sites[_sites.size()-1];
 	}
 
 	void create_lsh_ds(int k, int l) {
@@ -247,6 +248,14 @@ public:
 	/**
 	 * End of polytope membership functions
 	 */
+
+	/**
+	 * Polytope boundary functions
+	 */
+	/**
+	 * End of polytope boundary functions
+	 */
+
 
     int dimension() {
         return _d;

@@ -20,6 +20,7 @@
 
 #include <vol_rand.h>
 #include <string>
+#include <list>
 #include <chrono>
 //#include <proc/readproc.h>
 class Timer {
@@ -48,10 +49,13 @@ int factorial(int n) {
 // The user should provide the appropriate membership
 // oracles.
 
-int membership_main(stdHPolytope<double>& P, double epsilon, int k, int l, int probes, std::string query_filename) {
-	P.create_point_representation();
+int membership_main(stdHPolytope<double>& P, double epsilon, int k, int l, int probes, std::string query_filename,vars& var) {
+	Point chebPoint = P.create_point_representation();
 	P.create_lsh_ds(k, l);
 	P.create_ann_ds();
+	std::list<Point> randPoints; //ds for storing rand points
+
+	rand_point_generator(P, chebPoint, 5000, var.walk_steps, randPoints, var);
 
     std::ifstream inp;
     std::vector<std::vector<double> > Pin;
@@ -79,6 +83,32 @@ int membership_main(stdHPolytope<double>& P, double epsilon, int k, int l, int p
 		Timer ann_timer;
 		bool ann_contains = P.contains_point_ann(p, probes);
 		ann_time += ann_timer.elapsed_seconds();
+	
+		if (!naive_contains) {
+			//not_contained++;
+		}
+		if (ann_contains!=naive_contains) {
+			++ann_mismatches;
+		}
+		if (lsh_contains!=naive_contains) {
+			++lsh_mismatches;
+		}
+	}
+	auto it = randPoints.begin();
+	for (; it!=randPoints.end(); it++) {
+		Point p(P.dimension(), (*it).cartesian_begin(), (*it).cartesian_end());
+		Timer lsh_timer;
+		bool lsh_contains = P.contains_point_lsh(p, probes);
+		lsh_time += lsh_timer.elapsed_seconds();
+
+		Timer naive_timer;
+		bool naive_contains = P.contains_point_naive(p);
+		naive_time += naive_timer.elapsed_seconds();
+
+		Timer ann_timer;
+		bool ann_contains = P.contains_point_ann(p, probes);
+		ann_time += ann_timer.elapsed_seconds();
+		std::cout << p << std::endl;
 	
 		if (!naive_contains) {
 			not_contained++;
@@ -324,7 +354,27 @@ int main(const int argc, const char** argv) {
     }
 
 	if (membership_test) {
-		membership_main(P,epsilon,k,l,probes,query_filename);
+		const double err=0.0000000001;
+		const double err_opt=0.01;
+		//bounds for the cube
+		const int lw=0, up=10000, R=up-lw;
+		
+		/* RANDOM NUMBERS */
+		// obtain a time-based seed:
+		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+		// the random engine with this seed
+		RNGType rng(seed);
+		// standard normal distribution with mean of 0 and standard deviation of 1
+		boost::normal_distribution<> rdist(0,1);
+		boost::variate_generator< RNGType, boost::normal_distribution<> >
+		get_snd_rand(rng, rdist);
+		// uniform distribution
+		boost::random::uniform_real_distribution<>(urdist);
+		boost::random::uniform_real_distribution<> urdist1(-1,1);
+    	int rnum = std::pow(e,-2) * 400 * n * std::log(n);
+        vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
+                 urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
+		membership_main(P,epsilon,k,l,probes,query_filename,var);
 	}
 	else {
 			std::cout<<"Starting old experiments" << std::endl;
