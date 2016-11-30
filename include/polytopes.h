@@ -184,7 +184,7 @@ public:
 						this->dimension());
 	}
 
-	bool contains_point_ann(Point& p, double epsilon) {
+	bool contains_point_ann(Point& p, double membership_epsilon, int *nnIndex_ptr) {
 		ANNidxArray nnIdx;
 		ANNdistArray dists;
 		nnIdx = new ANNidx[1];
@@ -192,6 +192,7 @@ public:
 		ANNpoint queryPt;
 		queryPt = annAllocPt(this->dimension());
 		auto it = p.cartesian_begin();
+		double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
 
 		for (int i=0; it<p.cartesian_end(); i++, it++) {
 			queryPt[i] = (*it);
@@ -205,6 +206,7 @@ public:
 		);
 
 		bool is_in = nnIdx[0]==_sites.size()-1;
+		(*nnIndex_ptr) = nnIdx[0];
 		delete []nnIdx;
 		delete []dists;
 		return is_in;
@@ -219,16 +221,17 @@ public:
 		return  nnIndex== _sites.size()-1;
 	}
 
-    bool contains_point_naive(Point p) {
+    bool contains_point_naive(Point p, double epsilon) {
         //std::cout << "Running is in" << std::endl;
         //exit(1);
+		int idx = 0;
         for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit) {
             typename stdCoeffs::iterator lit;
             Point::Cartesian_const_iterator pit;
             pit=p.cartesian_begin();
             lit=mit->begin();
 			K coeff = (*lit);
-            K sum=(*lit);
+            K sum=0;//(*lit);
             ++lit;
             for( ; lit<mit->end() ; ++lit, ++pit) {
                 //std::cout << *lit << " " << *pit <<std::endl;
@@ -236,8 +239,17 @@ public:
             }
 
             //std::cout<<sum<<std::endl;
-            if (sum>coeff)
+            if (sum>coeff-epsilon) {
+				//auto lit2 = mit->begin();
+				//coeff = (*lit2);
+				//lit2++;
+				//std::cout << "SUM: " << sum << " (";
+				//for (; lit2!=mit->end(); lit2++) {
+				//	std::cout << (*lit2) << ", ";
+				//}
+				//std::cout  << ") <= " << coeff << "  is violated" << std::endl;
                 return false;
+			}
         }
         return true;
     }
@@ -248,6 +260,13 @@ public:
 	/**
 	 * Polytope boundary functions
 	 */
+//	Point compute_boundary_intersection(Point& point, Vector& vector) {
+//		return compute_boundary_intersection(Ray(point, vector));
+//	}
+//
+//	Point compute_boundary_intersection(Ray& ray) {
+//			
+//	}
 	/**
 	 * End of polytope boundary functions
 	 */

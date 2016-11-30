@@ -62,6 +62,7 @@ typedef Kernel::Point_d								Point;
 typedef Kernel::Vector_d							Vector;
 typedef Kernel::Line_d								Line;
 typedef Kernel::Hyperplane_d					Hyperplane;
+typedef Kernel::Ray_d								Ray;
 typedef Kernel::Direction_d						Direction;
 //typedef Kernel::Sphere_d						Ball;
 typedef CGAL::Approximate_min_ellipsoid_d_traits_d<Kernel, EXACT_NT> Traits;
