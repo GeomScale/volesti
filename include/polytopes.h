@@ -27,6 +27,7 @@
 #include <CGAL/basic.h>
 #include <CGAL/QP_models.h>
 #include <CGAL/QP_functions.h>
+#include <CGAL/intersections_d.h>
 // choose exact integral type
 #ifdef CGAL_USE_GMP
 #include <CGAL/Gmpzf.h>
@@ -82,6 +83,9 @@ public:
             }
             _A.push_back(coeffs);
         }
+		hptable = NULL;
+		ANNkd_tree* kdTree = NULL;
+		_maxDistToBoundary = 0;
     }
 
 	/**
@@ -140,14 +144,15 @@ public:
 		std::vector<Point> sites;
 
 		for (int i=0; i<this->_A.size(); i++) {
-			sites.push_back(this->_get_reflexive_point(internalPoint, i));
+			Point reflexive_point = this->_get_reflexive_point(internalPoint, i);
+			sites.push_back(reflexive_point);
+			double tmpDist = ((reflexive_point-CGAL::ORIGIN)-(internalPoint-CGAL::ORIGIN)).squared_length(); 
+			if (tmpDist > _maxDistToBoundary) {
+				_maxDistToBoundary = tmpDist;
+			}
 		}
 		center_sites(sites, internalPoint); // This is useful for the FALCON LSH structure
 
-		/**for (int i=0; i<_sites.size(); i++) {
-			std::cout << _sites[i] << std::endl;
-		}
-		*/
 		sites.clear();
 		return _sites[_sites.size()-1];
 	}
@@ -155,6 +160,8 @@ public:
 	void create_lsh_ds(int k, int l) {
 
 		falconn::LSHConstructionParameters params_hp;
+		this->_k = k;
+		this->_l = l;
 
 		uint64_t seed = 119417657;
 		params_hp.dimension = this->dimension();
@@ -188,16 +195,18 @@ public:
 						this->dimension());
 	}
 
-	bool contains_point_ann(Point& p, double epsilon) {
+	bool contains_point_ann(Point& p, double membership_epsilon, int* nnIndex_ptr) {
+		Point newP = (CGAL::ORIGIN + (p-CGAL::ORIGIN)-(_sites[_sites.size()-1]-CGAL::ORIGIN));
 		ANNidxArray nnIdx;
 		ANNdistArray dists;
 		nnIdx = new ANNidx[1];
 		dists = new ANNdist[1];
 		ANNpoint queryPt;
 		queryPt = annAllocPt(this->dimension());
-		auto it = p.cartesian_begin();
+		auto it = newP.cartesian_begin();
+		double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
 
-		for (int i=0; it<p.cartesian_end(); i++, it++) {
+		for (int i=0; it<newP.cartesian_end(); i++, it++) {
 			queryPt[i] = (*it);
 		}
 		this->kdTree->annkSearch(
@@ -209,30 +218,33 @@ public:
 		);
 
 		bool is_in = nnIdx[0]==_sites.size()-1;
+		(*nnIndex_ptr) = nnIdx[0];
 		delete []nnIdx;
 		delete []dists;
 		return is_in;
 	}
 
-	bool contains_point_lsh(Point& p, int num_probes) {
+	bool contains_point_lsh(Point& p, int num_probes, int* nnIndex_ptr) {
+		Point newP = (CGAL::ORIGIN + (p-CGAL::ORIGIN)-(_sites[_sites.size()-1]-CGAL::ORIGIN));
 		this->hptable->set_num_probes(num_probes);
-		std::vector<double> tmp_vec(p.cartesian_begin(), p.cartesian_end());
+		std::vector<double> tmp_vec(newP.cartesian_begin(), newP.cartesian_end());
 		Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
-		int32_t nnIndex = this->hptable->find_nearest_neighbor(map);
-		//std::cout << "nn index: " << nnIndex << std::endl;
-		return  nnIndex== _sites.size()-1;
+		(*nnIndex_ptr) = this->hptable->find_nearest_neighbor(map);
+		std::cout << "nn index: " << (*nnIndex_ptr) << std::endl;
+		return  (*nnIndex_ptr)== _sites.size()-1;
 	}
 
-    bool contains_point_naive(Point p) {
+    bool contains_point_naive(Point p, double epsilon) {
         //std::cout << "Running is in" << std::endl;
         //exit(1);
+		int idx = 0;
         for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit) {
             typename stdCoeffs::iterator lit;
             Point::Cartesian_const_iterator pit;
             pit=p.cartesian_begin();
             lit=mit->begin();
 			K coeff = (*lit);
-            K sum=(*lit);
+            K sum=0;//(*lit);
             ++lit;
             for( ; lit<mit->end() ; ++lit, ++pit) {
                 //std::cout << *lit << " " << *pit <<std::endl;
@@ -240,8 +252,17 @@ public:
             }
 
             //std::cout<<sum<<std::endl;
-            if (sum>coeff)
+            if (sum>coeff-epsilon) {
+				//auto lit2 = mit->begin();
+				//coeff = (*lit2);
+				//lit2++;
+				//std::cout << "SUM: " << sum << " (";
+				//for (; lit2!=mit->end(); lit2++) {
+				//	std::cout << (*lit2) << ", ";
+				//}
+				//std::cout  << ") <= " << coeff << "  is violated" << std::endl;
                 return false;
+			}
         }
         return true;
     }
@@ -252,6 +273,46 @@ public:
 	/**
 	 * Polytope boundary functions
 	 */
+	Point compute_boundary_intersection(Point& point, Vector& vector, double epsilon, bool use_lsh) {
+		return compute_boundary_intersection(Ray(point, vector), epsilon, use_lsh);
+	}
+
+	Point compute_boundary_intersection(Ray& ray, double epsilon, bool use_lsh) {
+		Vector ray_direction = ray.direction().vector();		
+		ray_direction *= 2 * _maxDistToBoundary;
+		Point x0 = CGAL::ORIGIN + ray_direction;
+		int nnIndex = -1;
+
+		Vector ray_source_v = (ray.source()-CGAL::ORIGIN) - (_sites[_sites.size()-1]-CGAL::ORIGIN);
+
+		do {
+			if (use_lsh) {
+				contains_point_lsh(x0, this->_l, &nnIndex);
+			} else {
+				contains_point_ann(x0, epsilon, &nnIndex);
+			}
+			std::cout << "Point: " << x0 << std::endl;
+			auto it = _A[nnIndex].begin();
+			double coeff = (*it);
+			++it;
+			Hyperplane nn_facet(dimension(), it, _A[nnIndex].end(), coeff);
+			CGAL::cpp11::result_of<Kernel::Intersect_d(Ray, Hyperplane)>::type x1_tmp = CGAL::intersection(ray, nn_facet);
+			Point* x1 = boost::get<Point>(&*x1_tmp);
+			if (nnIndex!=_sites.size()-1) {
+				double x1_ray_norm = (((*x1)-CGAL::ORIGIN) - (ray_source_v)).squared_length();
+				double x0_ray_norm = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
+				std::cout << x0_ray_norm << "\t" << x1_ray_norm << std::endl;
+				if (x1_ray_norm>=x0_ray_norm) {
+					Vector newPoint_v = ((x0-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
+					newPoint_v *= (1-epsilon);
+					(*x1) = CGAL::ORIGIN + newPoint_v;
+				}
+			}
+			x0 = (*x1);
+		} while (nnIndex!=_sites.size()-1);
+
+		return x0;
+	}
 	/**
 	 * End of polytope boundary functions
 	 */
@@ -920,6 +981,9 @@ private:
 	std::shared_ptr<falconn::LSHNearestNeighborTable<falconn::DenseVector<K>>> hptable;
 	std::vector<falconn::DenseVector<K>> data;
 	ANNkd_tree* kdTree;
+	double _maxDistToBoundary;
+	int _k;
+	int _l;
     //EXPERIMENTAL
     //Flann_trees    flann_trees; //the (functional) duals of A lifted to answer NN queries
     //defined for every d coordinate
