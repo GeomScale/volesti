@@ -19,6 +19,7 @@
 // Developer: Vissarion Fisikopoulos
 
 #include <vol_rand.h>
+#include <random>
 #include <string>
 #include <list>
 #include <chrono>
@@ -49,13 +50,13 @@ int factorial(int n) {
 // The user should provide the appropriate membership
 // oracles.
 
-int membership_main(stdHPolytope<double>& P, double epsilon, int k, int l, int probes, std::string query_filename,vars& var) {
+int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_points, int k, int l, int probes, std::string query_filename,vars& var) {
 	Point chebPoint = P.create_point_representation();
 	P.create_lsh_ds(k, l);
 	P.create_ann_ds();
 	std::list<Point> randPoints; //ds for storing rand points
 
-	rand_point_generator(P, chebPoint, 5000, var.walk_steps, randPoints, var);
+	rand_point_generator(P, chebPoint, num_query_points, var.walk_steps, randPoints, var);
 
     std::ifstream inp;
     std::vector<std::vector<double> > Pin;
@@ -70,55 +71,120 @@ int membership_main(stdHPolytope<double>& P, double epsilon, int k, int l, int p
 	int lsh_mismatches = 0;
 	int ann_mismatches = 0;
 	int not_contained = 0;
-	for (int i=0; i<Pin.size(); i++) {
-		Point p(P.dimension(), Pin[i].begin(), Pin[i].end());
-		Timer lsh_timer;
-		bool lsh_contains = P.contains_point_lsh(p, probes);
-		lsh_time += lsh_timer.elapsed_seconds();
-
-		Timer naive_timer;
-		bool naive_contains = P.contains_point_naive(p);
-		naive_time += naive_timer.elapsed_seconds();
-
-		Timer ann_timer;
-		bool ann_contains = P.contains_point_ann(p, probes);
-		ann_time += ann_timer.elapsed_seconds();
-	
-		if (!naive_contains) {
-			//not_contained++;
-		}
-		if (ann_contains!=naive_contains) {
-			++ann_mismatches;
-		}
-		if (lsh_contains!=naive_contains) {
-			++lsh_mismatches;
-		}
-	}
+//	for (int i=0; i<Pin.size(); i++) {
+//		Point p(P.dimension(), Pin[i].begin(), Pin[i].end());
+//		Timer lsh_timer;
+//		bool lsh_contains = P.contains_point_lsh(p, probes);
+//		lsh_time += lsh_timer.elapsed_seconds();
+//
+//		Timer naive_timer;
+//		bool naive_contains = P.contains_point_naive(p);
+//		naive_time += naive_timer.elapsed_seconds();
+//
+//		Timer ann_timer;
+//		bool ann_contains = P.contains_point_ann(p, epsilon);
+//		ann_time += ann_timer.elapsed_seconds();
+//	
+//		if (!naive_contains) {
+//			//not_contained++;
+//		}
+//		if (ann_contains!=naive_contains) {
+//			//++ann_mismatches;
+//		}
+//		if (lsh_contains!=naive_contains) {
+//			//++lsh_mismatches;
+//		}
+//	}
 	auto it = randPoints.begin();
+	
 	for (; it!=randPoints.end(); it++) {
 		Point p(P.dimension(), (*it).cartesian_begin(), (*it).cartesian_end());
+
+		int i=0;
+		Point projection = P.project(p, i++);
+		double minDist = std::sqrt(((p-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
+		for (; i<P.num_of_hyperplanes(); i++) {
+			projection = P.project(p, i);
+			double tmpDist = std::sqrt(((p-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
+			if (tmpDist<minDist) {
+				minDist = tmpDist;
+			}
+		}
+	
 		Timer lsh_timer;
 		bool lsh_contains = P.contains_point_lsh(p, probes);
 		lsh_time += lsh_timer.elapsed_seconds();
 
 		Timer naive_timer;
-		bool naive_contains = P.contains_point_naive(p);
+		bool naive_contains = P.contains_point_naive(p, epsilon);
 		naive_time += naive_timer.elapsed_seconds();
 
 		Timer ann_timer;
-		bool ann_contains = P.contains_point_ann(p, probes);
+		int nnIndex = 0;
+		bool ann_contains = P.contains_point_ann(p, epsilon, &nnIndex);
 		ann_time += ann_timer.elapsed_seconds();
-		std::cout << p << std::endl;
 	
 		if (!naive_contains) {
 			not_contained++;
 		}
-		if (ann_contains!=naive_contains) {
-			++ann_mismatches;
+		if (!ann_contains) {
+			if (minDist>epsilon) {
+				++ann_mismatches;
+			}
 		}
-		if (lsh_contains!=naive_contains) {
-			++lsh_mismatches;
+		if (!lsh_contains) {
+			if (minDist>epsilon) {
+				++lsh_mismatches;
+			}
 		}
+	}
+	it = randPoints.begin();
+	for (; it!=randPoints.end(); it++) {
+		Point p(P.dimension(), (*it).cartesian_begin(), (*it).cartesian_end());
+
+		int i=0;
+		Point projection = P.project(p, i++);
+		double minDist = std::sqrt(((p-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
+		for (; i<P.num_of_hyperplanes(); i++) {
+			projection = P.project(p, i);
+			double tmpDist = std::sqrt(((p-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
+			if (tmpDist<minDist) {
+				minDist = tmpDist;
+			}
+		}
+
+		Vector direction = (projection-CGAL::ORIGIN) - (p-CGAL::ORIGIN);
+		direction *= 3;
+		p = (CGAL::ORIGIN + ((p-CGAL::ORIGIN) + direction));
+	
+		Timer lsh_timer;
+		bool lsh_contains = P.contains_point_lsh(p, probes);
+		lsh_time += lsh_timer.elapsed_seconds();
+
+		Timer naive_timer;
+		bool naive_contains = P.contains_point_naive(p, epsilon);
+		naive_time += naive_timer.elapsed_seconds();
+
+		Timer ann_timer;
+		int nnIndex = 0;
+		bool ann_contains = P.contains_point_ann(p, epsilon, &nnIndex);
+		ann_time += ann_timer.elapsed_seconds();
+	
+		if (naive_contains) {
+			not_contained++;
+		}
+		if (ann_contains) {
+			if (minDist>epsilon) {
+				++ann_mismatches;
+			}
+			
+		}
+		if (lsh_contains) {
+			if (minDist>epsilon) {
+				++lsh_mismatches;
+			}
+		}
+
 	}
 
 	std::cout << "Naive took " << naive_time << "s, averaging at " << (naive_time/Pin.size()) << "s." << std::endl;
@@ -153,6 +219,7 @@ int main(const int argc, const char** argv) {
 	int l = 20;
 	double epsilon = 0.1;
 	int probes = l;
+	int nqp = 10;
 	std::string query_filename;
 
     //this is our polytope
@@ -220,6 +287,10 @@ int main(const int argc, const char** argv) {
         if(!strcmp(argv[i],"-k")) {
 			correct = true;
             k = atoi(argv[++i]);
+        }
+        if(!strcmp(argv[i],"--nqp")) {
+			correct = true;
+            nqp = atoi(argv[++i]);
         }
         if(!strcmp(argv[i],"--probes")) {
 			correct = true;
@@ -374,7 +445,7 @@ int main(const int argc, const char** argv) {
     	int rnum = std::pow(e,-2) * 400 * n * std::log(n);
         vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
                  urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
-		membership_main(P,epsilon,k,l,probes,query_filename,var);
+		membership_main(P,epsilon,nqp,k,l,probes,query_filename,var);
 	}
 	else {
 			std::cout<<"Starting old experiments" << std::endl;
