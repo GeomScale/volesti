@@ -50,6 +50,29 @@ int factorial(int n) {
 // The user should provide the appropriate membership
 // oracles.
 
+int boundary_main(stdHPolytope<double>& P, double epsilon, int num_query_points, int k, int l, int probes, std::string query_filename,vars& var) {
+	Point chebPoint = P.create_point_representation();
+	P.create_lsh_ds(k, l);
+	P.create_ann_ds();
+
+	std::list<Point> randPoints; //ds for storing rand points
+
+	rand_point_generator(P, chebPoint, 2, var.walk_steps, randPoints, var);
+
+	auto it = randPoints.begin();
+	Point p = (*it);
+	++it;
+	Vector v = (*it) - CGAL::ORIGIN;
+	Ray ray(p, v);
+	auto range = P.line_intersect(p, v);
+
+
+	std::cout << range.first << "\t" << range.second << std::endl;
+	std::cout << P.compute_boundary_intersection(ray, epsilon, true) << std::endl;
+	std::cout << P.compute_boundary_intersection(ray, epsilon, false) << std::endl;
+  		
+}
+
 int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_points, int k, int l, int probes, std::string query_filename,vars& var) {
 	Point chebPoint = P.create_point_representation();
 	P.create_lsh_ds(k, l);
@@ -112,7 +135,8 @@ int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_point
 		}
 	
 		Timer lsh_timer;
-		bool lsh_contains = P.contains_point_lsh(p, probes);
+		int nnIndex = 0;
+		bool lsh_contains = P.contains_point_lsh(p, probes, &nnIndex);
 		lsh_time += lsh_timer.elapsed_seconds();
 
 		Timer naive_timer;
@@ -120,7 +144,6 @@ int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_point
 		naive_time += naive_timer.elapsed_seconds();
 
 		Timer ann_timer;
-		int nnIndex = 0;
 		bool ann_contains = P.contains_point_ann(p, epsilon, &nnIndex);
 		ann_time += ann_timer.elapsed_seconds();
 	
@@ -157,8 +180,9 @@ int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_point
 		direction *= 3;
 		p = (CGAL::ORIGIN + ((p-CGAL::ORIGIN) + direction));
 	
+		int nnIndex = 0;
 		Timer lsh_timer;
-		bool lsh_contains = P.contains_point_lsh(p, probes);
+		bool lsh_contains = P.contains_point_lsh(p, probes, &nnIndex);
 		lsh_time += lsh_timer.elapsed_seconds();
 
 		Timer naive_timer;
@@ -166,7 +190,6 @@ int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_point
 		naive_time += naive_timer.elapsed_seconds();
 
 		Timer ann_timer;
-		int nnIndex = 0;
 		bool ann_contains = P.contains_point_ann(p, epsilon, &nnIndex);
 		ann_time += ann_timer.elapsed_seconds();
 	
@@ -215,6 +238,7 @@ int main(const int argc, const char** argv) {
          coordinate=true;
 
     bool membership_test=false;
+	bool boundary_test = false;
 	int k = 20;
 	int l = 20;
 	double epsilon = 0.1;
@@ -282,7 +306,14 @@ int main(const int argc, const char** argv) {
         if(!strcmp(argv[i],"--membership")) {
 			std::cout<<"found membership"<<std::endl;
 			correct = true;
+			boundary_test = false;
 			membership_test = true;
+        }
+        if(!strcmp(argv[i],"--boundary")) {
+			std::cout<<"found membership"<<std::endl;
+			correct = true;
+			boundary_test = true;
+			membership_test = false;
         }
         if(!strcmp(argv[i],"-k")) {
 			correct = true;
@@ -447,7 +478,30 @@ int main(const int argc, const char** argv) {
                  urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
 		membership_main(P,epsilon,nqp,k,l,probes,query_filename,var);
 	}
-	else {
+	if (boundary_test) {
+		const double err=0.0000000001;
+		const double err_opt=0.01;
+		//bounds for the cube
+		const int lw=0, up=10000, R=up-lw;
+		
+		/* RANDOM NUMBERS */
+		// obtain a time-based seed:
+		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+		// the random engine with this seed
+		RNGType rng(seed);
+		// standard normal distribution with mean of 0 and standard deviation of 1
+		boost::normal_distribution<> rdist(0,1);
+		boost::variate_generator< RNGType, boost::normal_distribution<> >
+		get_snd_rand(rng, rdist);
+		// uniform distribution
+		boost::random::uniform_real_distribution<>(urdist);
+		boost::random::uniform_real_distribution<> urdist1(-1,1);
+    	int rnum = std::pow(e,-2) * 400 * n * std::log(n);
+        vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
+                 urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
+		boundary_main(P,epsilon,nqp,k,l,probes,query_filename,var);
+	}
+	if ((!membership_test) && (!boundary_test)) {
 			std::cout<<"Starting old experiments" << std::endl;
 
     // Set the number of random walk steps

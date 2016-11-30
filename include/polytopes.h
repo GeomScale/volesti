@@ -27,7 +27,7 @@
 #include <CGAL/basic.h>
 #include <CGAL/QP_models.h>
 #include <CGAL/QP_functions.h>
-#include <CGAL/intersections.h>
+#include <CGAL/intersections_d.h>
 // choose exact integral type
 #ifdef CGAL_USE_GMP
 #include <CGAL/Gmpzf.h>
@@ -230,7 +230,7 @@ public:
 		std::vector<double> tmp_vec(newP.cartesian_begin(), newP.cartesian_end());
 		Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
 		(*nnIndex_ptr) = this->hptable->find_nearest_neighbor(map);
-		//std::cout << "nn index: " << nnIndex << std::endl;
+		std::cout << "nn index: " << (*nnIndex_ptr) << std::endl;
 		return  (*nnIndex_ptr)== _sites.size()-1;
 	}
 
@@ -273,25 +273,46 @@ public:
 	/**
 	 * Polytope boundary functions
 	 */
-//	Point compute_boundary_intersection(Point& point, Vector& vector, bool use_lsh) {
-//		return compute_boundary_intersection(Ray(point, vector), use_lsh);
-//	}
-//
-//	Point compute_boundary_intersection(Ray& ray, bool use_lsh) {
-//		Vector ray_direction = ray.direction().vector();		
-//		ray_direction *= 2 * _maxDistToBoundary;
-//		Point x0 = CGAL::ORIGIN + ray_direction;
-//		int nnIndex = -1;
-//		do {
-//			contains_point_lsh(Point& p, this->_l, &nnIndex);
-//			auto it = _A[nnIndex].begin();
-//			double coeff = (*it);
-//			++it;
-//			Hyperplane nn_facet(it, _A[nnIndex].end(), coeff);
-//			Point x1 = CGAL::intersection(ray, nn_facet);
-//			
-//		}
-//	}
+	Point compute_boundary_intersection(Point& point, Vector& vector, double epsilon, bool use_lsh) {
+		return compute_boundary_intersection(Ray(point, vector), epsilon, use_lsh);
+	}
+
+	Point compute_boundary_intersection(Ray& ray, double epsilon, bool use_lsh) {
+		Vector ray_direction = ray.direction().vector();		
+		ray_direction *= 2 * _maxDistToBoundary;
+		Point x0 = CGAL::ORIGIN + ray_direction;
+		int nnIndex = -1;
+
+		Vector ray_source_v = (ray.source()-CGAL::ORIGIN) - (_sites[_sites.size()-1]-CGAL::ORIGIN);
+
+		do {
+			if (use_lsh) {
+				contains_point_lsh(x0, this->_l, &nnIndex);
+			} else {
+				contains_point_ann(x0, epsilon, &nnIndex);
+			}
+			std::cout << "Point: " << x0 << std::endl;
+			auto it = _A[nnIndex].begin();
+			double coeff = (*it);
+			++it;
+			Hyperplane nn_facet(dimension(), it, _A[nnIndex].end(), coeff);
+			CGAL::cpp11::result_of<Kernel::Intersect_d(Ray, Hyperplane)>::type x1_tmp = CGAL::intersection(ray, nn_facet);
+			Point* x1 = boost::get<Point>(&*x1_tmp);
+			if (nnIndex!=_sites.size()-1) {
+				double x1_ray_norm = (((*x1)-CGAL::ORIGIN) - (ray_source_v)).squared_length();
+				double x0_ray_norm = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
+				std::cout << x0_ray_norm << "\t" << x1_ray_norm << std::endl;
+				if (x1_ray_norm>=x0_ray_norm) {
+					Vector newPoint_v = ((x0-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
+					newPoint_v *= (1-epsilon);
+					(*x1) = CGAL::ORIGIN + newPoint_v;
+				}
+			}
+			x0 = (*x1);
+		} while (nnIndex!=_sites.size()-1);
+
+		return x0;
+	}
 	/**
 	 * End of polytope boundary functions
 	 */
