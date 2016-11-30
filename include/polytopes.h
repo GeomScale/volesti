@@ -144,10 +144,6 @@ public:
 		}
 		center_sites(sites, internalPoint); // This is useful for the FALCON LSH structure
 
-		/**for (int i=0; i<_sites.size(); i++) {
-			std::cout << _sites[i] << std::endl;
-		}
-		*/
 		sites.clear();
 		return _sites[_sites.size()-1];
 	}
