@@ -27,6 +27,7 @@
 #include <CGAL/basic.h>
 #include <CGAL/QP_models.h>
 #include <CGAL/QP_functions.h>
+#include <CGAL/intersections.h>
 // choose exact integral type
 #ifdef CGAL_USE_GMP
 #include <CGAL/Gmpzf.h>
@@ -82,6 +83,9 @@ public:
             }
             _A.push_back(coeffs);
         }
+		hptable = NULL;
+		ANNkd_tree* kdTree = NULL;
+		_maxDistToBoundary = 0;
     }
 
 	/**
@@ -140,7 +144,12 @@ public:
 		std::vector<Point> sites;
 
 		for (int i=0; i<this->_A.size(); i++) {
-			sites.push_back(this->_get_reflexive_point(internalPoint, i));
+			Point reflexive_point = this->_get_reflexive_point(internalPoint, i);
+			sites.push_back(reflexive_point);
+			double tmpDist = ((reflexive_point-CGAL::ORIGIN)-(internalPoint-CGAL::ORIGIN)).squared_length(); 
+			if (tmpDist > _maxDistToBoundary) {
+				_maxDistToBoundary = tmpDist;
+			}
 		}
 		center_sites(sites, internalPoint); // This is useful for the FALCON LSH structure
 
@@ -151,6 +160,8 @@ public:
 	void create_lsh_ds(int k, int l) {
 
 		falconn::LSHConstructionParameters params_hp;
+		this->_k = k;
+		this->_l = l;
 
 		uint64_t seed = 119417657;
 		params_hp.dimension = this->dimension();
@@ -184,17 +195,18 @@ public:
 						this->dimension());
 	}
 
-	bool contains_point_ann(Point& p, double membership_epsilon, int *nnIndex_ptr) {
+	bool contains_point_ann(Point& p, double membership_epsilon, int* nnIndex_ptr) {
+		Point newP = (CGAL::ORIGIN + (p-CGAL::ORIGIN)-(_sites[_sites.size()-1]-CGAL::ORIGIN));
 		ANNidxArray nnIdx;
 		ANNdistArray dists;
 		nnIdx = new ANNidx[1];
 		dists = new ANNdist[1];
 		ANNpoint queryPt;
 		queryPt = annAllocPt(this->dimension());
-		auto it = p.cartesian_begin();
+		auto it = newP.cartesian_begin();
 		double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
 
-		for (int i=0; it<p.cartesian_end(); i++, it++) {
+		for (int i=0; it<newP.cartesian_end(); i++, it++) {
 			queryPt[i] = (*it);
 		}
 		this->kdTree->annkSearch(
@@ -212,13 +224,14 @@ public:
 		return is_in;
 	}
 
-	bool contains_point_lsh(Point& p, int num_probes) {
+	bool contains_point_lsh(Point& p, int num_probes, int* nnIndex_ptr) {
+		Point newP = (CGAL::ORIGIN + (p-CGAL::ORIGIN)-(_sites[_sites.size()-1]-CGAL::ORIGIN));
 		this->hptable->set_num_probes(num_probes);
-		std::vector<double> tmp_vec(p.cartesian_begin(), p.cartesian_end());
+		std::vector<double> tmp_vec(newP.cartesian_begin(), newP.cartesian_end());
 		Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
-		int32_t nnIndex = this->hptable->find_nearest_neighbor(map);
+		(*nnIndex_ptr) = this->hptable->find_nearest_neighbor(map);
 		//std::cout << "nn index: " << nnIndex << std::endl;
-		return  nnIndex== _sites.size()-1;
+		return  (*nnIndex_ptr)== _sites.size()-1;
 	}
 
     bool contains_point_naive(Point p, double epsilon) {
@@ -260,12 +273,24 @@ public:
 	/**
 	 * Polytope boundary functions
 	 */
-//	Point compute_boundary_intersection(Point& point, Vector& vector) {
-//		return compute_boundary_intersection(Ray(point, vector));
+//	Point compute_boundary_intersection(Point& point, Vector& vector, bool use_lsh) {
+//		return compute_boundary_intersection(Ray(point, vector), use_lsh);
 //	}
 //
-//	Point compute_boundary_intersection(Ray& ray) {
+//	Point compute_boundary_intersection(Ray& ray, bool use_lsh) {
+//		Vector ray_direction = ray.direction().vector();		
+//		ray_direction *= 2 * _maxDistToBoundary;
+//		Point x0 = CGAL::ORIGIN + ray_direction;
+//		int nnIndex = -1;
+//		do {
+//			contains_point_lsh(Point& p, this->_l, &nnIndex);
+//			auto it = _A[nnIndex].begin();
+//			double coeff = (*it);
+//			++it;
+//			Hyperplane nn_facet(it, _A[nnIndex].end(), coeff);
+//			Point x1 = CGAL::intersection(ray, nn_facet);
 //			
+//		}
 //	}
 	/**
 	 * End of polytope boundary functions
@@ -935,6 +960,9 @@ private:
 	std::shared_ptr<falconn::LSHNearestNeighborTable<falconn::DenseVector<K>>> hptable;
 	std::vector<falconn::DenseVector<K>> data;
 	ANNkd_tree* kdTree;
+	double _maxDistToBoundary;
+	int _k;
+	int _l;
     //EXPERIMENTAL
     //Flann_trees    flann_trees; //the (functional) duals of A lifted to answer NN queries
     //defined for every d coordinate
