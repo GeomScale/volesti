@@ -9,6 +9,7 @@ if(COMMAND cmake_policy)
 endif(COMMAND cmake_policy)
 
 find_package(CGAL QUIET COMPONENTS Core )
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 #FIND_PACKAGE( OpenMP REQUIRED)
 #if(OPENMP_FOUND)
