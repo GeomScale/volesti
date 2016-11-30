@@ -230,7 +230,7 @@ public:
 		std::vector<double> tmp_vec(newP.cartesian_begin(), newP.cartesian_end());
 		Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
 		(*nnIndex_ptr) = this->hptable->find_nearest_neighbor(map);
-		std::cout << "nn index: " << (*nnIndex_ptr) << std::endl;
+		//std::cout << "nn index: " << (*nnIndex_ptr) << std::endl;
 		return  (*nnIndex_ptr)== _sites.size()-1;
 	}
 
