@@ -52,8 +52,8 @@ int factorial(int n) {
 
 int boundary_main(stdHPolytope<double>& P, double epsilon, int num_query_points, int k, int l, int probes, std::string query_filename,vars& var) {
 	Point chebPoint = P.create_point_representation();
-	P.create_lsh_ds(k, l);
 	P.create_ann_ds();
+	P.create_ann_jl_ds();
 
 	std::list<Point> randPoints; //ds for storing rand points
 
@@ -62,66 +62,94 @@ int boundary_main(stdHPolytope<double>& P, double epsilon, int num_query_points,
 	auto it = randPoints.begin();
 	Point p = (*it);
 	++it;
+	std::vector<double> v_v;
+	for (int i=0; i<P.dimension()-1; i++) {
+		v_v.push_back(0);
+	}
+	v_v.push_back(1);
 	Vector v = (*it) - CGAL::ORIGIN;
+	Vector v2(P.dimension(), v_v.begin(), v_v.end());
 	Ray ray(p, v);
+	Timer timer1;
 	auto range = P.line_intersect(p, v);
+	double line_intersect_time = timer1.elapsed_seconds();
 
+	Timer timer2;
+	Point p2 = P.compute_boundary_intersection(ray, epsilon, false);
+	double oracle_time = timer2.elapsed_seconds();
 
-	std::cout << range.first << "\t" << range.second << std::endl;
-	std::cout << P.compute_boundary_intersection(ray, epsilon, true) << std::endl;
-	std::cout << P.compute_boundary_intersection(ray, epsilon, false) << std::endl;
-  		
+	std::cout << "Ray: " << ray << std::endl;
+	std::cout << "Range from line_intersect (" << line_intersect_time << "s) : " << std::endl;
+	std::cout << "Point from boundary oracle (" << oracle_time << "s) :" << std::endl;
+	std::cout << "r0: " << range.first << "\n";
+	std::cout << "p0: " << p2 << std::endl;
+	std::cout << "r1: " << range.second << std::endl;
+
+	ray = Ray(p, v2);
+	Timer timer12;
+	range = P.line_intersect(p, v2);
+	line_intersect_time = timer12.elapsed_seconds();
+
+	Timer timer22;
+	p2 = P.compute_boundary_intersection(ray, epsilon, false);
+	oracle_time = timer22.elapsed_seconds();
+
+	std::cout << "------------------------" << std::endl;
+	std::cout << "Ray: " << ray << std::endl;
+	std::cout << "Range from line_intersect (" << line_intersect_time << "s) : " << std::endl;
+	std::cout << "Point from boundary oracle (" << oracle_time << "s) :" << std::endl;
+	std::cout << "r0: " << range.first << "\n";
+	std::cout << "p0: " << p2 << std::endl;
+	std::cout << "r1: " << range.second << std::endl;
 }
 
 int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_points, int k, int l, int probes, std::string query_filename,vars& var) {
 	Point chebPoint = P.create_point_representation();
-	P.create_lsh_ds(k, l);
-	P.create_ann_ds();
+	Timer lsh_create;
+	//P.create_lsh_ds(k, l);
+	double lsh_create_time = lsh_create.elapsed_seconds();
+
+	std::cout << "LSH took " << lsh_create_time << "s to build" << std::endl;
+	Timer ann_create;
+	P.create_ann_jl_ds();
+	double ann_create_time = ann_create.elapsed_seconds();
+	std::cout << "ANN took " << ann_create_time << "s to build" << std::endl;
+
 	std::list<Point> randPoints; //ds for storing rand points
 
+	std::cout << "Creating random points" << std::endl;
 	rand_point_generator(P, chebPoint, num_query_points, var.walk_steps, randPoints, var);
+	std::cout << "Created random points" << std::endl;
 
-    std::ifstream inp;
-    std::vector<std::vector<double> > Pin;
-    inp.open(query_filename,std::ifstream::in);
-    read_pointset(inp,Pin);
+    //std::ifstream inp;
+    //std::vector<std::vector<double> > Pin;
+    //inp.open(query_filename,std::ifstream::in);
+    //read_pointset(inp,Pin);
     //std::cout<<"d="<<Pin[0][1]<<std::endl;
     std::cout<<"Initialized P..."<<std::endl;
 
 	double naive_time = 0;
 	double ann_time = 0;
 	double lsh_time = 0;
+	int lsh_not_found = 0;
 	int lsh_mismatches = 0;
 	int ann_mismatches = 0;
 	int not_contained = 0;
-//	for (int i=0; i<Pin.size(); i++) {
-//		Point p(P.dimension(), Pin[i].begin(), Pin[i].end());
-//		Timer lsh_timer;
-//		bool lsh_contains = P.contains_point_lsh(p, probes);
-//		lsh_time += lsh_timer.elapsed_seconds();
-//
-//		Timer naive_timer;
-//		bool naive_contains = P.contains_point_naive(p);
-//		naive_time += naive_timer.elapsed_seconds();
-//
-//		Timer ann_timer;
-//		bool ann_contains = P.contains_point_ann(p, epsilon);
-//		ann_time += ann_timer.elapsed_seconds();
-//	
-//		if (!naive_contains) {
-//			//not_contained++;
-//		}
-//		if (ann_contains!=naive_contains) {
-//			//++ann_mismatches;
-//		}
-//		if (lsh_contains!=naive_contains) {
-//			//++lsh_mismatches;
-//		}
-//	}
 	auto it = randPoints.begin();
 	
+	ANNidxArray annIdx;
+	ANNdistArray dists;
+	annIdx = new ANNidx[(int)std::ceil(std::sqrt(1+P.num_of_hyperplanes()))];
+	dists = new ANNdist[(int)std::ceil(std::sqrt(1+P.num_of_hyperplanes()))];
+	ANNpoint queryPt;
+	queryPt = annAllocPt(P.dimension());
+	double maxMinDist = -1;
 	for (; it!=randPoints.end(); it++) {
 		Point p(P.dimension(), (*it).cartesian_begin(), (*it).cartesian_end());
+		auto it = p.cartesian_begin();
+		for (int i=0; it<p.cartesian_end(); i++, it++) {
+			queryPt[i] = (*it);
+		}
 
 		int i=0;
 		Point projection = P.project(p, i++);
@@ -134,36 +162,63 @@ int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_point
 			}
 		}
 	
-		Timer lsh_timer;
-		int nnIndex = 0;
-		bool lsh_contains = P.contains_point_lsh(p, probes, &nnIndex);
-		lsh_time += lsh_timer.elapsed_seconds();
+		//Timer lsh_timer;
+		int nnIndex = -1;
+		//bool lsh_contains = P.contains_point_lsh(p, probes, &nnIndex);
+		//lsh_time += lsh_timer.elapsed_seconds();
+		//if (!lsh_contains) {
+		//	//if (minDist>epsilon) {
+		//		++lsh_mismatches;
+		//	//}
+		//}
 
 		Timer naive_timer;
-		bool naive_contains = P.contains_point_naive(p, epsilon);
+		bool naive_contains = P.contains_point_naive(p, 0);
 		naive_time += naive_timer.elapsed_seconds();
 
 		Timer ann_timer;
-		bool ann_contains = P.contains_point_ann(p, epsilon, &nnIndex);
+		bool ann_contains = P.contains_point_ann_jl(queryPt, annIdx, dists, epsilon, &nnIndex);
 		ann_time += ann_timer.elapsed_seconds();
 	
 		if (!naive_contains) {
 			not_contained++;
 		}
 		if (!ann_contains) {
+			if (minDist>maxMinDist) {
+				maxMinDist = minDist;
+			}
 			if (minDist>epsilon) {
 				++ann_mismatches;
 			}
 		}
-		if (!lsh_contains) {
-			if (minDist>epsilon) {
-				++lsh_mismatches;
-			}
+		if (nnIndex==-1) {
+			lsh_not_found += 1;
 		}
 	}
+	std::cout << "---Queries inside P--------------------" << std::endl;
+	std::cout << "Naive took " << naive_time << "s. " << std::endl;
+	std::cout << "LSH took " << lsh_time << "s. " << std::endl;
+	std::cout << "ANN took " << ann_time << "s. " << std::endl;
+	std::cout << "LSH Mismatch count: " << lsh_mismatches << std::endl;
+	std::cout << "ANN not found: " << lsh_not_found << std::endl;
+	std::cout << "ANN Mismatch count: " << ann_mismatches << std::endl;
+	std::cout << "ANN mismatched point max dist to boundary " << maxMinDist << std::endl;
+	std::cout << "Not contained count: " << not_contained << std::endl;
+	std::cout << "---------------------------------------" << std::endl;
+	double naive_time2 = 0;
+	double ann_time2 = 0;
+	double lsh_time2 = 0;
+	int lsh_mismatches2 = 0;
+	int lsh_not_found2 = 0;
+	int ann_mismatches2 = 0;
+	int not_contained2 = 0;
 	it = randPoints.begin();
 	for (; it!=randPoints.end(); it++) {
 		Point p(P.dimension(), (*it).cartesian_begin(), (*it).cartesian_end());
+		auto it = p.cartesian_begin();
+		for (int i=0; it<p.cartesian_end(); i++, it++) {
+			queryPt[i] = (*it);
+		}
 
 		int i=0;
 		Point projection = P.project(p, i++);
@@ -177,45 +232,61 @@ int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_point
 		}
 
 		Vector direction = (projection-CGAL::ORIGIN) - (p-CGAL::ORIGIN);
-		direction *= 3;
+		direction *= P.dimension();
 		p = (CGAL::ORIGIN + ((p-CGAL::ORIGIN) + direction));
 	
-		int nnIndex = 0;
-		Timer lsh_timer;
-		bool lsh_contains = P.contains_point_lsh(p, probes, &nnIndex);
-		lsh_time += lsh_timer.elapsed_seconds();
+		int nnIndex = -1;
+		//Timer lsh_timer;
+		//bool lsh_contains = P.contains_point_lsh(p, probes, &nnIndex);
+		//lsh_time2 += lsh_timer.elapsed_seconds();
 
 		Timer naive_timer;
 		bool naive_contains = P.contains_point_naive(p, epsilon);
-		naive_time += naive_timer.elapsed_seconds();
+		naive_time2 += naive_timer.elapsed_seconds();
 
 		Timer ann_timer;
-		bool ann_contains = P.contains_point_ann(p, epsilon, &nnIndex);
-		ann_time += ann_timer.elapsed_seconds();
+		bool ann_contains = P.contains_point_ann_jl(queryPt, annIdx, dists, epsilon, &nnIndex);
+		ann_time2 += ann_timer.elapsed_seconds();
 	
 		if (naive_contains) {
-			not_contained++;
+			not_contained2++;
 		}
 		if (ann_contains) {
 			if (minDist>epsilon) {
-				++ann_mismatches;
+				++ann_mismatches2;
 			}
 			
 		}
-		if (lsh_contains) {
-			if (minDist>epsilon) {
-				++lsh_mismatches;
-			}
+		//if (lsh_contains) {
+		//	if (minDist>epsilon) {
+		//		++lsh_mismatches2;
+		//	}
+		//}
+		if (nnIndex==-1) {
+			lsh_not_found2 += 1;
 		}
-
 	}
+	delete []annIdx;
+	delete []dists;
 
-	std::cout << "Naive took " << naive_time << "s, averaging at " << (naive_time/Pin.size()) << "s." << std::endl;
-	std::cout << "LSH took " << lsh_time << "s, averaging at " << (lsh_time/Pin.size()) << "s." << std::endl;
-	std::cout << "ANN took " << ann_time << "s, averaging at " << (ann_time/Pin.size()) << "s." << std::endl;
-	std::cout << "LSH Mismatch count: " << lsh_mismatches << std::endl;
-	std::cout << "ANN Mismatch count: " << ann_mismatches << std::endl;
-	std::cout << "Not contained count: " << not_contained << std::endl;
+	std::cout << "---Queries outside P--------------------" << std::endl;
+	std::cout << "Naive took " << naive_time2 << "s. " << std::endl;
+	std::cout << "LSH took " << lsh_time2 << "s. " << std::endl;
+	std::cout << "ANN took " << ann_time2 << "s. " << std::endl;
+	std::cout << "LSH Mismatch count: " << lsh_mismatches2 << std::endl;
+	std::cout << "ANN not found: " << lsh_not_found2 << std::endl;
+	std::cout << "ANN Mismatch count: " << ann_mismatches2 << std::endl;
+	std::cout << "Not contained count: " << not_contained2 << std::endl;
+	std::cout << "---------------------------------------" << std::endl;
+	std::cout << "---Total--------------------" << std::endl;
+	std::cout << "Naive took " << (naive_time+naive_time2) << "s. " << std::endl;
+	std::cout << "LSH took " << (lsh_time+lsh_time2) << "s. " << std::endl;
+	std::cout << "ANN took " << (ann_time2+ann_time) << "s. " << std::endl;
+	std::cout << "LSH Mismatch count: " << (lsh_mismatches+lsh_mismatches2) << std::endl;
+	std::cout << "ANN not found: " << (lsh_not_found+lsh_not_found2) << std::endl;
+	std::cout << "ANN Mismatch count: " << (ann_mismatches+ann_mismatches2) << std::endl;
+	std::cout << "Not contained count: " << (not_contained+not_contained2) << std::endl;
+	std::cout << "---------------------------------------" << std::endl;
 }
 
 int main(const int argc, const char** argv) {

@@ -23,6 +23,7 @@
 //#include "../external/kd_GeRaF/source/Auto_random_kd_forest.h"
 #include "falconn/lsh_nn_table.h"
 #include <iostream>
+#include <chrono>
 #include <Eigen/Eigen>
 #include <CGAL/basic.h>
 #include <CGAL/QP_models.h>
@@ -59,7 +60,11 @@ private:
 public:
 	//stdHPolytope(const stdHPolytope&) e;
 	stdHPolytope& operator=(const stdHPolytope&) = delete;
-    stdHPolytope() {}
+    stdHPolytope() {
+		hptable = NULL;
+		ANNkd_tree* kdTree = NULL;
+		_maxDistToBoundary = 0;
+	}
 
     // constructor: cube(d)
     stdHPolytope(int d): _d(d) {
@@ -124,7 +129,8 @@ public:
 		Vector internalPoint_as_v = internalPoint - CGAL::ORIGIN;
 		for (int i=0; i<sites.size(); i++) {
 			_sites.push_back(
-				(CGAL::ORIGIN + ((sites[i] - CGAL::ORIGIN) - internalPoint_as_v))
+				sites[i]
+				//(CGAL::ORIGIN + ((sites[i] - CGAL::ORIGIN) - internalPoint_as_v))
 			);
 		}
 		_sites.push_back(CGAL::ORIGIN + (internalPoint_as_v - internalPoint_as_v));
@@ -155,6 +161,38 @@ public:
 
 		sites.clear();
 		return _sites[_sites.size()-1];
+	}
+
+	void create_ann_jl_ds() {
+		int new_d = (int)std::ceil(std::log2(_sites.size())/(std::log2(std::log2(_sites.size()))));
+		std::default_random_engine generator;
+		std::normal_distribution<double> distribution(0.0,1.0);
+		proj_matrix.resize(dimension(), new_d);
+		for (int i=0; i<dimension(); i++) {
+			for (int j=0; j<new_d; j++) {
+				proj_matrix(i, j) = distribution(generator);
+			}
+		}
+		Eigen::MatrixXd map(_sites.size(), dimension());
+		for (int i = 0; i < _sites.size(); i++) {
+			auto it = _sites[i].cartesian_begin();	
+			for (int j=0; j<dimension(); j++, ++it) {
+				map(i,j) = (*it);
+			}
+		}
+		Eigen::MatrixXd projected_data = map*proj_matrix;
+
+		ANNpointArray point_array = annAllocPts(_sites.size(), new_d);
+		for (int i=0; i<_sites.size(); i++) {
+			for (int j=0; j<new_d; j++) {
+				point_array[i][j] = projected_data(i,j);
+			}
+		}
+		this->bdTree = new ANNbd_tree(
+						point_array,
+						_sites.size(),
+						new_d
+		);
 	}
 
 	void create_lsh_ds(int k, int l) {
@@ -195,22 +233,66 @@ public:
 						this->dimension());
 	}
 
-	bool contains_point_ann(Point& p, double membership_epsilon, int* nnIndex_ptr) {
-		Point newP = (CGAL::ORIGIN + (p-CGAL::ORIGIN)-(_sites[_sites.size()-1]-CGAL::ORIGIN));
-		ANNidxArray nnIdx;
-		ANNdistArray dists;
-		nnIdx = new ANNidx[1];
-		dists = new ANNdist[1];
-		ANNpoint queryPt;
-		queryPt = annAllocPt(this->dimension());
-		auto it = newP.cartesian_begin();
-		double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
-
-		for (int i=0; it<newP.cartesian_end(); i++, it++) {
-			queryPt[i] = (*it);
+	bool contains_point_ann_jl(ANNpoint& p, ANNidxArray& nnIdx, ANNdistArray& dists, double membership_epsilon, int* nnIndex_ptr) {
+		int new_d = (int)std::ceil(std::log2(_sites.size())/(std::log2(std::log2(_sites.size()))));
+		auto queryPt = annAllocPt(new_d);
+		for (int i=0; i<new_d; i++) {
+			for (int j=0; j<dimension(); j++) {
+				queryPt[i] += p[j] * proj_matrix(j, i);
+			}
 		}
-		this->kdTree->annkSearch(
+
+		int size = (int)std::ceil(std::sqrt(1+num_of_hyperplanes()));
+		
+		double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
+		this->bdTree->annkSearch(
 				queryPt,
+				size,
+				nnIdx,
+				dists,
+				epsilon
+		);
+
+		(*nnIndex_ptr) = -1;
+		double minDist = 1000000;
+		bool contains_center = false;
+		for (int i=0; i<size; i++) {
+			double sum = 0;
+			auto it = _sites[nnIdx[i]].cartesian_begin();
+			for (int j=0; j<dimension(); j++, ++it) {
+				sum += std::pow(p[j] - (*it), 2);
+			}
+			if (sum<minDist) {
+				minDist = sum;
+				(*nnIndex_ptr) = nnIdx[i];
+			}
+			if (nnIdx[i]==_sites.size()-1) {
+				contains_center = true;
+			}
+		}
+
+		if ((*nnIndex_ptr)!=_sites.size()-1) {
+			double sum = 0;
+			auto it = _sites[_sites.size()-1].cartesian_begin();
+			for (int j=0; j<dimension(); j++, ++it) {
+				sum += std::pow(p[j] - (*it), 2);
+			}
+			if (sum<minDist) {
+				(*nnIndex_ptr) = _sites.size()-1;
+			}
+		}
+
+		return (*nnIndex_ptr)==_sites.size()-1;
+	}
+
+	bool contains_point_ann(ANNpoint p, ANNidxArray nnIdx, ANNdistArray dists, double membership_epsilon, int* nnIndex_ptr) {
+		//auto it = _sites[_sites.size()-1].cartesian_begin();
+		//for (int i=0; i<dimension(); i++, ++it) {
+		//	p[i] -= (*it);
+		//}	
+		double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
+		this->kdTree->annkSearch(
+				p,
 				1,
 				nnIdx,
 				dists,
@@ -219,8 +301,6 @@ public:
 
 		bool is_in = nnIdx[0]==_sites.size()-1;
 		(*nnIndex_ptr) = nnIdx[0];
-		delete []nnIdx;
-		delete []dists;
 		return is_in;
 	}
 
@@ -277,39 +357,85 @@ public:
 		return compute_boundary_intersection(Ray(point, vector), epsilon, use_lsh);
 	}
 
-	Point compute_boundary_intersection(Ray& ray, double epsilon, bool use_lsh) {
+	Point compute_boundary_intersection(Ray& ray, double epsilon, bool use_jl) {
+		Line ray_line(ray);
 		Vector ray_direction = ray.direction().vector();		
-		ray_direction *= 2 * _maxDistToBoundary;
-		Point x0 = CGAL::ORIGIN + ray_direction;
+		ray_direction *= dimension() * _maxDistToBoundary;
+		Point x0 = CGAL::ORIGIN + ((ray.source()-CGAL::ORIGIN) + ray_direction);
 		int nnIndex = -1;
+		//std::cout << "x0 is in ? " << contains_point_naive(x0, 0) << std::endl;
 
 		Vector ray_source_v = (ray.source()-CGAL::ORIGIN) - (_sites[_sites.size()-1]-CGAL::ORIGIN);
+		ANNidxArray annIdx;
+		ANNdistArray dists;
+		annIdx = new ANNidx[(int)std::ceil(std::sqrt(1+num_of_hyperplanes()))];
+		dists = new ANNdist[(int)std::ceil(std::sqrt(1+num_of_hyperplanes()))];
+		ANNpoint queryPt = annAllocPt(dimension());
 
 		do {
-			if (use_lsh) {
-				contains_point_lsh(x0, this->_l, &nnIndex);
-			} else {
-				contains_point_ann(x0, epsilon, &nnIndex);
+			auto start_time = std::chrono::high_resolution_clock::now(); 
+			bool contains;
+			auto it = x0.cartesian_begin();
+			for (int i=0; it<x0.cartesian_end(); i++, it++) {
+				queryPt[i] = (*it);
 			}
-			std::cout << "Point: " << x0 << std::endl;
-			auto it = _A[nnIndex].begin();
-			double coeff = (*it);
-			++it;
-			Hyperplane nn_facet(dimension(), it, _A[nnIndex].end(), coeff);
-			CGAL::cpp11::result_of<Kernel::Intersect_d(Ray, Hyperplane)>::type x1_tmp = CGAL::intersection(ray, nn_facet);
-			Point* x1 = boost::get<Point>(&*x1_tmp);
-			if (nnIndex!=_sites.size()-1) {
+			if (!use_jl) {
+				contains = contains_point_ann(queryPt, annIdx, dists, epsilon, &nnIndex);
+			} else {
+				contains = contains_point_ann_jl(queryPt, annIdx, dists, epsilon, &nnIndex);
+			}
+			auto end_time = std::chrono::high_resolution_clock::now();
+			auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+			double elapsed_total = elapsed.count();
+			std::cout << "ANN took: " << elapsed.count() << "s" << std::endl;
+			//bool naive_contains = contains_point_naive(x0, 0);
+			//int i=0;
+			//Point projection = project(x0, i++);
+			//double minDist = std::sqrt(((x0-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
+			//for (; i<num_of_hyperplanes(); i++) {
+			//	projection = project(x0, i);
+			//	double tmpDist = std::sqrt(((x0-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
+			//	if (tmpDist<minDist) {
+			//		minDist = tmpDist;
+			//	}
+			//}
+			//std::cout << "contained: " << contains<< " -- Contained naive: " << naive_contains << " minDist: " << minDist <<" -- LSH NN: " << nnIndex << " -- Point: " << x0 << std::endl;
+		
+			if (!contains) {
+				start_time = std::chrono::high_resolution_clock::now(); 
+
+				auto it = _A[nnIndex].begin();
+				double coeff = (*it);
+				++it;
+				Hyperplane nn_facet(dimension(), it, _A[nnIndex].end(), coeff);
+				CGAL::cpp11::result_of<Kernel::Intersect_d(Line, Hyperplane)>::type x1_tmp = CGAL::intersection(ray_line, nn_facet);
+				Point* x1 = boost::get<Point>(&*x1_tmp);
 				double x1_ray_norm = (((*x1)-CGAL::ORIGIN) - (ray_source_v)).squared_length();
 				double x0_ray_norm = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
-				std::cout << x0_ray_norm << "\t" << x1_ray_norm << std::endl;
-				if (x1_ray_norm>=x0_ray_norm) {
+				end_time = std::chrono::high_resolution_clock::now();
+				elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+				elapsed_total += elapsed.count();
+				std::cout << "Intersection took: " << elapsed.count() << "s" << std::endl;
+				//std::cout << "On ray: " << ray.has_on((*x1)) << " -- " << x0_ray_norm << "\t" << x1_ray_norm << std::endl;
+				if (!ray.has_on((*x1)) || x1_ray_norm>=x0_ray_norm) {
+					start_time = std::chrono::high_resolution_clock::now(); 
 					Vector newPoint_v = ((x0-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
-					newPoint_v *= (1-epsilon);
-					(*x1) = CGAL::ORIGIN + newPoint_v;
+					newPoint_v *= (1-epsilon*_maxDistToBoundary);
+					(*x1) = CGAL::ORIGIN + (newPoint_v + ray_source_v);
+					//std::cout << "\tNew norm: " << (((*x1)-CGAL::ORIGIN)-ray_source_v).squared_length() << std::endl;
+					end_time = std::chrono::high_resolution_clock::now();
+					elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+					elapsed_total += elapsed.count();
+					std::cout << "New x1 took: " << elapsed.count() << "s" << std::endl;
 				}
+				x0 = Point(dimension(), (*x1).cartesian_begin(), (*x1).cartesian_end());
 			}
-			x0 = (*x1);
+			std::cout << "1 iteration took (approximately) " << elapsed_total << "s" << std::endl;
+			
 		} while (nnIndex!=_sites.size()-1);
+		delete []queryPt;
+		delete []annIdx;
+		delete []dists;
 
 		return x0;
 	}
@@ -981,6 +1107,8 @@ private:
 	std::shared_ptr<falconn::LSHNearestNeighborTable<falconn::DenseVector<K>>> hptable;
 	std::vector<falconn::DenseVector<K>> data;
 	ANNkd_tree* kdTree;
+	ANNkd_tree* bdTree;
+	Eigen::MatrixXd proj_matrix;
 	double _maxDistToBoundary;
 	int _k;
 	int _l;
