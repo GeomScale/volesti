@@ -367,7 +367,7 @@ public:
 		int nnIndex = -1;
 		//std::cout << "x0 is in ? " << contains_point_naive(x0, 0) << std::endl;
 
-		Vector ray_source_v = (ray.source()-CGAL::ORIGIN) - (_sites[_sites.size()-1]-CGAL::ORIGIN);
+		Vector ray_source_v = (ray.source()-CGAL::ORIGIN);//- (_sites[_sites.size()-1]-CGAL::ORIGIN);
 		ANNidxArray annIdx;
 		ANNdistArray dists;
 
