@@ -75,7 +75,7 @@ int boundary_main(stdHPolytope<double>& P, double epsilon, int num_query_points,
 	double line_intersect_time = timer1.elapsed_seconds();
 
 	Timer timer2;
-	Point p2 = P.compute_boundary_intersection(ray, epsilon, false);
+	Point p2 = P.compute_boundary_intersection(ray, epsilon, true);
 	double oracle_time = timer2.elapsed_seconds();
 
 	std::cout << "Ray: " << ray << std::endl;
@@ -91,7 +91,7 @@ int boundary_main(stdHPolytope<double>& P, double epsilon, int num_query_points,
 	line_intersect_time = timer12.elapsed_seconds();
 
 	Timer timer22;
-	p2 = P.compute_boundary_intersection(ray, epsilon, false);
+	p2 = P.compute_boundary_intersection(ray, epsilon, true);
 	oracle_time = timer22.elapsed_seconds();
 
 	std::cout << "------------------------" << std::endl;

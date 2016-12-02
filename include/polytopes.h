@@ -279,6 +279,7 @@ public:
 			for (int j=0; j<dimension(); j++, ++it) {
 				sum += std::pow(p[j] - (*it), 2);
 			}
+			//std::cout << "center dist " << sum << " -- ann dist " << minDist << std::endl;
 			if (sum<minDist) {
 				(*nnIndex_ptr) = _sites.size()-1;
 			}
@@ -391,7 +392,7 @@ public:
 			auto end_time = std::chrono::high_resolution_clock::now();
 			auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
 			double elapsed_total = elapsed.count();
-			std::cout << "ANN took: " << elapsed.count() << "s" << std::endl;
+			//std::cout << "ANN took: " << elapsed.count() << "s" << std::endl;
 			//bool naive_contains = contains_point_naive(x0, 0);
 			//int i=0;
 			//Point projection = project(x0, i++);
@@ -419,7 +420,7 @@ public:
 				end_time = std::chrono::high_resolution_clock::now();
 				elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
 				elapsed_total += elapsed.count();
-				std::cout << "Intersection took: " << elapsed.count() << "s" << std::endl;
+				//std::cout << "Intersection took: " << elapsed.count() << "s" << std::endl;
 				//std::cout << "On ray: " << ray.has_on((*x1)) << " -- " << x0_ray_norm << "\t" << x1_ray_norm << std::endl;
 				if (!ray.has_on((*x1)) || x1_ray_norm>=x0_ray_norm) {
 					start_time = std::chrono::high_resolution_clock::now(); 
@@ -430,11 +431,11 @@ public:
 					end_time = std::chrono::high_resolution_clock::now();
 					elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
 					elapsed_total += elapsed.count();
-					std::cout << "New x1 took: " << elapsed.count() << "s" << std::endl;
+					//std::cout << "New x1 took: " << elapsed.count() << "s" << std::endl;
 				}
 				x0 = Point(dimension(), (*x1).cartesian_begin(), (*x1).cartesian_end());
 			}
-			std::cout << "1 iteration took (approximately) " << elapsed_total << "s" << std::endl;
+			//std::cout << "1 iteration took (approximately) " << elapsed_total << "s" << std::endl;
 			
 		} while (nnIndex!=_sites.size()-1);
 		delete []queryPt;
