@@ -242,7 +242,9 @@ public:
 			}
 		}
 
-		int size = (int)std::ceil(std::sqrt(1+num_of_hyperplanes()));
+		int size = (int)std::ceil(std::pow(1+num_of_hyperplanes(), (double)1/4));
+		//int size = (1+num_of_hyperplanes())/100;//i(int)std::ceil(std::pow(1+num_of_hyperplanes(), (double)1/3));
+
 		
 		double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
 		this->bdTree->annkSearch(
@@ -368,8 +370,10 @@ public:
 		Vector ray_source_v = (ray.source()-CGAL::ORIGIN) - (_sites[_sites.size()-1]-CGAL::ORIGIN);
 		ANNidxArray annIdx;
 		ANNdistArray dists;
-		annIdx = new ANNidx[(int)std::ceil(std::sqrt(1+num_of_hyperplanes()))];
-		dists = new ANNdist[(int)std::ceil(std::sqrt(1+num_of_hyperplanes()))];
+
+		int size = (int)std::ceil(std::pow(1+num_of_hyperplanes(), (double)1/4));
+		annIdx = new ANNidx[size];
+		dists = new ANNdist[size];
 		ANNpoint queryPt = annAllocPt(dimension());
 
 		do {
@@ -420,7 +424,7 @@ public:
 				if (!ray.has_on((*x1)) || x1_ray_norm>=x0_ray_norm) {
 					start_time = std::chrono::high_resolution_clock::now(); 
 					Vector newPoint_v = ((x0-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
-					newPoint_v *= (1-epsilon*_maxDistToBoundary);
+					newPoint_v *= (1-0.5);//*_maxDistToBoundary);
 					(*x1) = CGAL::ORIGIN + (newPoint_v + ray_source_v);
 					//std::cout << "\tNew norm: " << (((*x1)-CGAL::ORIGIN)-ray_source_v).squared_length() << std::endl;
 					end_time = std::chrono::high_resolution_clock::now();

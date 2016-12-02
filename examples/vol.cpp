@@ -137,10 +137,11 @@ int membership_main(stdHPolytope<double>& P, double epsilon, int num_query_point
 	int not_contained = 0;
 	auto it = randPoints.begin();
 	
+	int size = (int)std::ceil(std::pow(1+P.num_of_hyperplanes(), (double)1/4));//(1+P.num_of_hyperplanes())/100;//i
 	ANNidxArray annIdx;
 	ANNdistArray dists;
-	annIdx = new ANNidx[(int)std::ceil(std::sqrt(1+P.num_of_hyperplanes()))];
-	dists = new ANNdist[(int)std::ceil(std::sqrt(1+P.num_of_hyperplanes()))];
+	annIdx = new ANNidx[size];
+	dists = new ANNdist[size];
 	ANNpoint queryPt;
 	queryPt = annAllocPt(P.dimension());
 	double maxMinDist = -1;
