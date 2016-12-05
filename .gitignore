@@ -1,0 +1,11 @@
+**/.ycm_extra_conf.py
+**/.ycm_extra_conf.pyc
+examples/CMakeCache.txt
+examples/CMakeFiles/*
+examples/Makefile
+examples/cmake_install.cmake
+examples/compile_commands.json
+examples/rh_d_m
+examples/vol
+**/.vim-bookmarks
+
