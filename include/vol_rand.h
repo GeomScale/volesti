@@ -103,15 +103,19 @@ public:
           bool round,
           bool NN,
           bool birk,
-          bool coordinate
+          bool coordinate,
+		  bool use_jl=true,
+		  bool epsilon=0.1
         ) :
         m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), err_opt(err_opt),
         lw(lw), up(up), L(L), rng(rng), get_snd_rand(get_snd_rand),
         urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
-        NN(NN),birk(birk),coordinate(coordinate) {};
+        NN(NN),birk(birk),coordinate(coordinate),epsilon(epsilon),use_jl(use_jl) {};
 
     int m;
     int n;
+	double epsilon;
+	bool use_jl;
     int walk_steps;
     int n_threads;
     const double err;
@@ -144,6 +148,7 @@ int opt_interior(T &K,vars &var,Point &opt,Vector &w);
 #include <ballintersectpolytope.h>
 //#include <opt_rand.h>
 //#include <oracles.h>
+//#include <../../vol2/include/random_samplers.h>
 #include <random_samplers.h>
 #include <rounding.h>
 #include <misc.h>
