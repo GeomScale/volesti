@@ -104,8 +104,8 @@ public:
           bool NN,
           bool birk,
           bool coordinate,
-		  bool use_jl=true,
-		  bool epsilon=0.1
+          bool use_jl=true,
+          bool epsilon=0.1
         ) :
         m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), err_opt(err_opt),
         lw(lw), up(up), L(L), rng(rng), get_snd_rand(get_snd_rand),
@@ -114,8 +114,8 @@ public:
 
     int m;
     int n;
-	double epsilon;
-	bool use_jl;
+    double epsilon;
+    bool use_jl;
     int walk_steps;
     int n_threads;
     const double err;
