@@ -216,15 +216,30 @@ int hit_and_run(Point &p,
 	RNGType &rng = var.rng;
 	boost::random::uniform_real_distribution<> &urdist = var.urdist;
 	boost::random::uniform_real_distribution<> &urdist1 = var.urdist1; 
+	std::pair<Point,Point> ppair;// = P.line_intersect(p,l);
+	int numberOfSteps;
+	bool succeeded;
 	
-	CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
-	Vector l = *gen - CGAL::Origin();
-	//Vector b1 = line_bisect(p,l,P,var,var2);
-	//Vector b2 = line_bisect(p,-l,P,var,var2);
-	std::pair<Point,Point> ppair = P.line_intersect(p,l);
+	
+	do {
+		CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
+		Vector l = *gen - CGAL::Origin();
+		ppair.first = P.compute_boundary_intersection(p, l, &numberOfSteps, &succeeded, var.epsilon, var.use_jl);
+		l *= -1;
+		bool tmp_succeeded;
+		ppair.second = P.compute_boundary_intersection(p, l, &numberOfSteps, &tmp_succeeded, var.epsilon, var.use_jl);
+		succeeded = succeeded && tmp_succeeded;
+	} while (!succeeded);
+
 	Vector b1 = ppair.first - CGAL::Origin();
 	Vector b2 = ppair.second - CGAL::Origin();
 	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
+	//int numberOfSteps = 0;
+	//Point p2 = P.compute_boundary_intersection(p, l, &numberOfSteps, 0, false);
+	//Vector b1 = p2 - CGAL::ORIGIN;
+	//l *= -1;
+	//p2 = P.compute_boundary_intersection(p, l, &numberOfSteps, 0, false);
+	//Vector b2 = p2 - CGAL::ORIGIN;
 	double lambda = urdist(rng);
 	p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
 	return 1;
