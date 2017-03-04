@@ -148,8 +148,8 @@ int opt_interior(T &K,vars &var,Point &opt,Vector &w);
 #include <ballintersectpolytope.h>
 //#include <opt_rand.h>
 //#include <oracles.h>
-//#include <../../vol2/include/random_samplers.h>
-#include <random_samplers.h>
+#include <random_samplers_vis.h>
+//#include <random_samplers.h>
 #include <rounding.h>
 #include <misc.h>
 #include <linear_extensions.h>
