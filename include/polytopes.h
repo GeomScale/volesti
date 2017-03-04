@@ -49,6 +49,10 @@ typedef CGAL::Gmpzf ET;
 //EXPERIMENTAL
 //to implement boundary oracles using NN queries
 //#include <flann/flann.hpp>
+const static int USE_LSH = 0;
+const static int USE_JL = 1;
+const static int USE_KDTREE = 2;
+const static int USE_EXACT = 3;
 
 // my H-polytope class
 template <typename K>
@@ -102,7 +106,7 @@ public:
         /**
          * proj=p - a * ((p.dot_product(a) + b)/ a.dot_product(a))
          */
-        typename stdCoeffs::iterator mit=_A[facet_idx].begin();
+        auto mit=_A[facet_idx].begin();
         ++mit;
         Vector facet_normal = Vector(_d, mit, _A[facet_idx].end());
         Vector point_as_v = point - CGAL::ORIGIN;
@@ -143,30 +147,37 @@ public:
         _sites.push_back(CGAL::ORIGIN + (internalPoint_as_v - internalPoint_as_v));
     }
 
-    Point create_point_representation() {
+    Point create_point_representation(Point* givenInternalPoint=NULL) {
         data.clear();
         _sites.clear();
-        //std::vector<double> internal;
-        //for (int i=0; i<dimension(); i++) {
-        //	internal.push_back(0);
-        //}
-        Point tmp_internalPoint;//(dimension(), internal.begin(), internal.end());
-        double radius;
 
-        this->chebyshev_center(tmp_internalPoint, radius);
+		/** Compute internal point */
+        Point tmp_internalPoint;
+        double radius;
+		if (givenInternalPoint!=NULL) {
+			tmp_internalPoint = (*givenInternalPoint);
+		}
+		else {
+        	this->chebyshev_center(tmp_internalPoint, radius);
+		}
         auto it = tmp_internalPoint.cartesian_begin();
         ++it;
         Point internalPoint(_d, it, tmp_internalPoint.cartesian_end());
         std::cout << "Chebyshev center: " << internalPoint << std::endl;
-        std::vector<Point> sites;
+		std::cout << "number of constraints: " << _A.size() << std::endl;
 
+        std::vector<Point> sites;
         for (int i=0; i<this->_A.size(); i++) {
             Point reflexive_point = this->_get_reflexive_point(internalPoint, i);
-            sites.push_back(reflexive_point);
+            _sites.push_back(reflexive_point);
         }
-        center_sites(sites, internalPoint); // This is useful for the FALCON LSH structure
+		_sites.push_back(internalPoint);
 
-        sites.clear();
+		std::cout << "number of sites: " << _sites.size() << std::endl;
+		std::cout << _sites.back() << std::endl;
+        //center_sites(sites, internalPoint); // This is useful for the FALCON LSH structure
+
+        //sites.clear();
         return _sites[_sites.size()-1];
     }
 
@@ -218,9 +229,12 @@ public:
         params_hp.num_setup_threads = 0;
         params_hp.seed = seed ^ 833840234;
 
-        for (int i=0; i<_sites.size(); i++) {
+		std::vector<double> chebCenter(_sites.back().cartesian_begin(), _sites.back().cartesian_end());
+		Eigen::Map<Eigen::VectorXd> chebVector(&chebCenter[0], _d);
+        for (int i=0; i<_sites.size()-1; i++) {
             std::vector<double> tmp_vec(_sites[i].cartesian_begin(), _sites[i].cartesian_end());
             Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
+			map = map - chebVector;
             this->data.push_back(map);
         }
 
@@ -234,6 +248,7 @@ public:
                 point_array[i][j] = _sites[i][j];
             }
         }
+		std::cout << "adding " << _sites.size() << "\nlast point:" << _sites.back() << std::endl;
         this->kdTree = new ANNkd_tree(
             point_array,
             _sites.size(),
@@ -301,34 +316,51 @@ public:
         return (*nnIndex_ptr)==_sites.size()-1;
     }
 
+    bool contains_point_exact_nn(Point p, double epsilon, int* nnIndex) {
+		(*nnIndex) = _sites.size()-1;
+		double nnDist = ((p - CGAL::ORIGIN) - (_sites[_sites.size()-1] - CGAL::ORIGIN)).squared_length();
+		std::cout << "internal dist: " << nnDist << std::endl;
+		for (int i=0; i<_sites.size()-1; i++) {
+			double tmpDist = ((p - CGAL::ORIGIN) - (_sites[i] - CGAL::ORIGIN)).squared_length();
+			if (i==_sites.size()-1) {
+				std::cout << "Internal point dist: " << tmpDist << std::endl;
+			}
+			if (tmpDist<nnDist ) {
+				nnDist = tmpDist;
+				(*nnIndex) = i;
+			}
+		}
+		std::cout << "Min dist: " << nnDist << std::endl;
+		std::cout << "nnIndex: " << (*nnIndex) << std::endl;
+
+		if ((*nnIndex)==_sites.size()-1) {
+			return true;
+		}
+		return false;
+	}
+
     bool contains_point_ann(ANNpoint p, ANNidxArray nnIdx, ANNdistArray dists, double membership_epsilon, int* nnIndex_ptr) {
-        //auto it = _sites[_sites.size()-1].cartesian_begin();
-        //for (int i=0; i<dimension(); i++, ++it) {
-        //	p[i] -= (*it);
-        //}
-        double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
+ 		std::cout << "membership epsilon: " << membership_epsilon << std::endl;
         this->kdTree->annkSearch(
             p,
             1,
             nnIdx,
             dists,
-            epsilon
+            membership_epsilon
         );
 
-        //if (nnIdx[0]!=_sites.size()-1) {
-        //	double sum = 0;
-        //	double sum2= 0;
-        //	auto it = _sites[_sites.size()-1].cartesian_begin();
-        //	auto it2 = _sites[nnIdx[0]].cartesian_begin();
-        //	for (int j=0; j<dimension(); j++, ++it) {
-        //		sum += std::pow(p[j] - (*it), 2);
-        //		sum2 += std::pow(p[j] - (*it2), 2);
-        //	}
-        //	//if (sum<minDist) {
-        //	if (sum<=sum2) {
-        //		nnIdx[0] = _sites.size()-1;
-        //	}
-        //}
+        if (nnIdx[0]!=_sites.size()-1) {
+        	double sum = 0;
+        	double sum2= 0;
+        	auto it = _sites[_sites.size()-1].cartesian_begin();
+        	auto it2 = _sites[nnIdx[0]].cartesian_begin();
+        	for (int j=0; j<dimension(); j++, ++it) {
+        		sum += std::pow(p[j] - (*it), 2);
+        		sum2 += (p[j] - (*it2))*(p[j] - (*it2));
+        	}
+			std::cout << dists[0] << std::endl;
+			std::cout << "dist to nn: " << sum2 << " -- rooted: " << std::sqrt(sum2) << " --- dist to internal: " << sum <<  " -- internal rooted: " << std::sqrt(sum) << std::endl;
+        }
 
         bool is_in = nnIdx[0]==_sites.size()-1;
         (*nnIndex_ptr) = nnIdx[0];
@@ -336,38 +368,62 @@ public:
     }
 
     bool contains_point_lsh(Point& p, int num_probes, int* nnIndex_ptr) {
-        Point newP = (CGAL::ORIGIN + (p-CGAL::ORIGIN)-(_sites[_sites.size()-1]-CGAL::ORIGIN));
+        Point newP = (CGAL::ORIGIN + (p-CGAL::ORIGIN)-(_sites.back()-CGAL::ORIGIN));
         this->hptable->set_num_probes(num_probes);
         std::vector<double> tmp_vec(newP.cartesian_begin(), newP.cartesian_end());
         Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
         (*nnIndex_ptr) = this->hptable->find_nearest_neighbor(map);
-        //std::cout << "nn index: " << (*nnIndex_ptr) << std::endl;
+		if ((*nnIndex_ptr)==-1) {
+			return false;
+		}
+		if ((*nnIndex_ptr)!=_sites.size()-1) {
+			double center_dist = 0;
+			double ann_dist = 0;
+
+			auto center_it = _sites.back().cartesian_begin();
+			auto ann_it = _sites[(*nnIndex_ptr)].cartesian_begin();
+			for (int i=0; i<_d; ++i, ++center_it, ++ann_it) {
+				center_dist += std::pow((*center_it)-tmp_vec[i],2);
+				ann_dist += std::pow((*ann_it) - tmp_vec[i],2);
+			}
+
+			if (center_dist<=ann_dist) {
+				(*nnIndex_ptr) = _sites.size()-1;
+			}
+		}
         return  (*nnIndex_ptr)== _sites.size()-1;
     }
 
-    bool contains_point_naive(Point p, double epsilon, int* nnIndex) {
+    bool contains_point_naive(Point p, double epsilon, int* nnIndex, int iii=-1, double* sumiii=NULL) {
         //std::cout << "Running is in" << std::endl;
         //exit(1);
         int idx = 0;
         int i=0;
+		K sum = 0;
         for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++i, ++mit) {
             typename stdCoeffs::iterator lit;
             Point::Cartesian_const_iterator pit;
             pit=p.cartesian_begin();
             lit=mit->begin();
             K coeff = (*lit);
-            K sum=0;//(*lit);
+            sum=coeff;//(*lit);
             ++lit;
             for( ; lit<mit->end() ; ++lit, ++pit) {
                 //std::cout << *lit << " " << *pit <<std::endl;
                 sum += *lit * (*pit);
             }
 
-            if (sum>coeff-epsilon) {
+            if (sum<0) { //-epsilon) {
+				if (iii>-1) {
+					*sumiii = sum;
+				}
                 (*nnIndex) = i;
                 return false;
             }
         }
+				if (iii>-1) {
+					*sumiii = sum;
+				}
         return true;
     }
     /**
@@ -385,28 +441,36 @@ public:
     /**
      * Polytope boundary functions
      */
-    Point compute_boundary_intersection(Point& point, Vector& vector, int* numberOfSteps, bool* succeeded, double epsilon, bool use_jl) {
+    Point compute_boundary_intersection(Point& point, Vector& vector, int* numberOfSteps, bool* succeeded, double epsilon, int algo_type) {
         Ray ray(point, vector);
-        return compute_boundary_intersection(ray, numberOfSteps, succeeded, epsilon, use_jl);
+        return compute_boundary_intersection(ray, numberOfSteps, succeeded, epsilon, algo_type);
     }
 
-    Point compute_boundary_intersection(Ray& ray, int* numberOfSteps, bool* succeeded, double epsilon, bool use_jl) {
+    Point compute_boundary_intersection(Ray& ray, int* numberOfSteps, bool* succeeded, double epsilon, int algo_type) {
+		/* these are pre-computed just once */
+
+		// ray as line (for the intersection with a hyperplane )
         Line ray_line(ray.source(), ray.direction());
+
+		// normalized ray direction
         Vector ray_dir_v = ray.direction().vector();
         ray_dir_v *= 1.0/ std::sqrt(ray_dir_v.squared_length());
         Vector ray_direction(ray_dir_v);
-        ray_direction *= dimension() * _maxDistToBoundary;
-        Point x0 = CGAL::ORIGIN + ((ray.source()-CGAL::ORIGIN) + ray_direction);
-        int nnIndex = -1;
-        Vector newPoint_dir(ray_dir_v);
-        //std::cout << "ray dir: " << newPoint_dir << std::endl;
-        //if (cosine_positive)
-        newPoint_dir *= 1.0/ std::sqrt(ray_dir_v.squared_length());
-        newPoint_dir *= epsilon;// * _maxDistToBoundary;
-        //std::cout << "x0 is in ? " << contains_point_naive(x0, 0, &nnIndex) << std::endl;
-        //std::cout << "Ray source: " << ray.source() << "\nRay direction: " << ray_dir_v << std::endl;
 
-        Vector ray_source_v = (ray.source()-CGAL::ORIGIN);//- (_sites[_sites.size()-1]-CGAL::ORIGIN);
+		// large vector in ray direction
+		ray_direction *= dimension() * _maxDistToBoundary;
+
+		// epsilon vector in ray direction
+        Vector newPoint_dir(ray_dir_v);
+        newPoint_dir *= 1.0/ std::sqrt(ray_dir_v.squared_length());
+        newPoint_dir *= epsilon;
+
+		// ray source as vector
+        Vector ray_source_v = (ray.source()-CGAL::ORIGIN);
+
+        int nnIndex = -1;
+
+		// nn data structures
         ANNidxArray annIdx;
         ANNdistArray dists;
 
@@ -414,39 +478,42 @@ public:
         annIdx = new ANNidx[size];
         dists = new ANNdist[size];
         ANNpoint queryPt = annAllocPt(dimension());
-        (*numberOfSteps) = 0;
+		/* end pre-compute */
+
+		// first point 
+        Point x0 = CGAL::ORIGIN + ((ray.source()-CGAL::ORIGIN) + ray_direction);
         bool is_epsilon_update = false;
+        (*numberOfSteps) = 0;
 
         do {
+			std::cout<< "Current x0: " << x0 << std::endl;
+            double x0_ray_norm2 = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
+			std::cout << "x0 norm: " << x0_ray_norm2 << std::endl;
             (*numberOfSteps)++;
             auto start_time = std::chrono::high_resolution_clock::now();
-            //bool naive_contains = contains_point_naive(x0, 0, &nnIndex);
             bool contains;
+
+			/** Find nearest facet */
             auto it = x0.cartesian_begin();
             for (int i=0; it!=x0.cartesian_end(); i++, it++) {
                 queryPt[i] = (*it);
             }
-            if (!use_jl) {
+            if (algo_type==USE_JL) {
                 contains = contains_point_ann(queryPt, annIdx, dists, epsilon, &nnIndex);
-            } else {
+            } 
+			else if (algo_type==USE_KDTREE) {
                 contains = contains_point_ann_jl(queryPt, annIdx, dists, epsilon, &nnIndex);
             }
+			else if (algo_type==USE_LSH) {
+                contains = contains_point_lsh(x0, this->_l, &nnIndex);
+            }
+			else if (algo_type==USE_EXACT) {
+                contains = contains_point_exact_nn(x0, 0, &nnIndex);
+				std::cout << "nnIndex: " << nnIndex << std::endl;
+			}
             auto end_time = std::chrono::high_resolution_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
             double elapsed_total = elapsed.count();
-            //std::cout << "ANN took: " << elapsed.count() << "s" << std::endl;
-            //int i=0;
-            //Point projection = project(x0, i++);
-            //double minDist = std::sqrt(((x0-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
-            //for (; i<num_of_hyperplanes(); i++) {
-            //	projection = project(x0, i);
-            //	double tmpDist = std::sqrt(((x0-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
-            //	if (tmpDist<minDist) {
-            //		minDist = tmpDist;
-            //	}
-            //}
-            //std::cout << "contained: " << contains<< " -- Contained naive: " << naive_contains << " minDist: " << minDist <<" -- LSH NN: " << nnIndex << " -- Point: " << x0 << std::endl;
-            //std::cout << "NN : " << _sites[nnIndex] << std::endl;
 
             if (!contains) {
                 start_time = std::chrono::high_resolution_clock::now();
@@ -472,10 +539,6 @@ public:
                 if ( x1_ray_norm>=x0_ray_norm) {
                     start_time = std::chrono::high_resolution_clock::now();
                     Vector newPoint_v = ((x0-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
-                    //}
-                    //else {
-                    //	newPoint_dir *= -epsilon/2;
-                    //}
                     newPoint_v -= newPoint_dir;
                     //std::cout << "new point dir: " << newPoint_dir<< std::endl;
                     //newPoint_v *= (1-epsilon);//*_maxDistToBoundary);
@@ -963,7 +1026,7 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by _A
     std::pair<Point,Point> line_intersect(Point r,
-                                          Vector v) {
+                                          Vector v, bool dbg=false) {
         //std::cout<<"line-polytope-intersection"<<std::endl;
         K lamda=0;
         K min_plus=0, max_minus=0;
@@ -1167,6 +1230,10 @@ public:
         //std::cout<<"Oresult: "<<mini<<" "<<maxi<<std::endl;
         return std::pair<NT,NT> (min_plus,max_minus);
     }
+
+	Point get_site(int i) {
+		return _sites[i];
+	}
 
     //void rotate(){
     //std::cout<<_A<<std::endl;
