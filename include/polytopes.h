@@ -27,6 +27,10 @@
 #include <chrono>
 #include <Eigen/Eigen>
 #include <CGAL/point_generators_d.h>
+#include <boost/accumulators/statistics/sum.hpp>
+#include <boost/accumulators/accumulators.hpp> 
+#include <boost/accumulators/statistics/sum_kahan.hpp>
+#include <boost/accumulators/statistics.hpp>
 #include <CGAL/basic.h>
 #include <CGAL/QP_models.h>
 #include <CGAL/QP_functions.h>
@@ -70,6 +74,7 @@ public:
         hptable = NULL;
         ANNkd_tree* kdTree = NULL;
         _maxDistToBoundary = 0;
+		_minDistToBoundary = 1000000;
     }
 
     // constructor: cube(d)
@@ -97,7 +102,16 @@ public:
         hptable = NULL;
         ANNkd_tree* kdTree = NULL;
         _maxDistToBoundary = 0;
+		_minDistToBoundary = 1000000;
     }
+
+	double getMinDistToBoundary() {
+		return _minDistToBoundary;
+	}
+
+	double getMaxDistToBoundary() {
+		return _maxDistToBoundary;
+	}
 
     /**
      * Polytope membership functions
@@ -119,6 +133,23 @@ public:
         return CGAL::ORIGIN + projection;
     }
 
+	void normalize() {
+		for (auto hit=_A.begin(); hit!=_A.end(); hit++) {
+			auto mit = hit->begin();
+			mit++;	
+			double sum = 0;
+			for (; mit!=hit->end(); mit++) {
+				sum += (*mit)*(*mit);
+			}
+			sum = std::sqrt(sum);
+			mit = hit->begin();
+			mit++;
+			for (; mit!=hit->end(); mit++) {
+				(*mit) = (*mit)/sum;
+			}
+		}
+	}
+
     Point _get_reflexive_point(Point& internalPoint, int facet_idx) {
         Point projection = this->project(internalPoint, facet_idx);
         Vector projection_as_v = projection - CGAL::ORIGIN;
@@ -126,6 +157,12 @@ public:
         if (tmpDist > _maxDistToBoundary) {
             _maxDistToBoundary = tmpDist;
         }
+		if (tmpDist < _minDistToBoundary) {
+			_minDistToBoundary = tmpDist;
+			if (_minDistToBoundary==0) {
+				std::cout << "Facet idx that's zero: " << facet_idx << std::endl;
+			}
+		}
         Vector internalPoint_as_v = internalPoint - CGAL::ORIGIN;
 
         //(2 * projection - internalPoint); // <=> internalPoint + 2*(projection-internalPoint)
@@ -164,7 +201,6 @@ public:
         ++it;
         Point internalPoint(_d, it, tmp_internalPoint.cartesian_end());
         std::cout << "Chebyshev center: " << internalPoint << std::endl;
-		std::cout << "number of constraints: " << _A.size() << std::endl;
 
         std::vector<Point> sites;
         for (int i=0; i<this->_A.size(); i++) {
@@ -173,8 +209,6 @@ public:
         }
 		_sites.push_back(internalPoint);
 
-		std::cout << "number of sites: " << _sites.size() << std::endl;
-		std::cout << _sites.back() << std::endl;
         //center_sites(sites, internalPoint); // This is useful for the FALCON LSH structure
 
         //sites.clear();
@@ -248,7 +282,6 @@ public:
                 point_array[i][j] = _sites[i][j];
             }
         }
-		std::cout << "adding " << _sites.size() << "\nlast point:" << _sites.back() << std::endl;
         this->kdTree = new ANNkd_tree(
             point_array,
             _sites.size(),
@@ -274,7 +307,7 @@ public:
             size,
             nnIdx,
             dists,
-            2*epsilon+std::pow(epsilon,2)
+            epsilon
         );
 
         (*nnIndex_ptr) = 0;
@@ -319,19 +352,15 @@ public:
     bool contains_point_exact_nn(Point p, double epsilon, int* nnIndex) {
 		(*nnIndex) = _sites.size()-1;
 		double nnDist = ((p - CGAL::ORIGIN) - (_sites[_sites.size()-1] - CGAL::ORIGIN)).squared_length();
-		std::cout << "internal dist: " << nnDist << std::endl;
 		for (int i=0; i<_sites.size()-1; i++) {
 			double tmpDist = ((p - CGAL::ORIGIN) - (_sites[i] - CGAL::ORIGIN)).squared_length();
 			if (i==_sites.size()-1) {
-				std::cout << "Internal point dist: " << tmpDist << std::endl;
 			}
 			if (tmpDist<nnDist ) {
 				nnDist = tmpDist;
 				(*nnIndex) = i;
 			}
 		}
-		std::cout << "Min dist: " << nnDist << std::endl;
-		std::cout << "nnIndex: " << (*nnIndex) << std::endl;
 
 		if ((*nnIndex)==_sites.size()-1) {
 			return true;
@@ -340,7 +369,6 @@ public:
 	}
 
     bool contains_point_ann(ANNpoint p, ANNidxArray nnIdx, ANNdistArray dists, double membership_epsilon, int* nnIndex_ptr) {
- 		std::cout << "membership epsilon: " << membership_epsilon << std::endl;
         this->kdTree->annkSearch(
             p,
             1,
@@ -358,8 +386,6 @@ public:
         		sum += std::pow(p[j] - (*it), 2);
         		sum2 += (p[j] - (*it2))*(p[j] - (*it2));
         	}
-			std::cout << dists[0] << std::endl;
-			std::cout << "dist to nn: " << sum2 << " -- rooted: " << std::sqrt(sum2) << " --- dist to internal: " << sum <<  " -- internal rooted: " << std::sqrt(sum) << std::endl;
         }
 
         bool is_in = nnIdx[0]==_sites.size()-1;
@@ -395,11 +421,12 @@ public:
     }
 
     bool contains_point_naive(Point p, double epsilon, int* nnIndex, int iii=-1, double* sumiii=NULL) {
-        //std::cout << "Running is in" << std::endl;
+    //    std::cout << "Running is in for p=" << p<< std::endl;
         //exit(1);
         int idx = 0;
         int i=0;
 		K sum = 0;
+	//	boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::sum_kahan> > acc_nom;
         for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++i, ++mit) {
             typename stdCoeffs::iterator lit;
             Point::Cartesian_const_iterator pit;
@@ -411,9 +438,16 @@ public:
             for( ; lit<mit->end() ; ++lit, ++pit) {
                 //std::cout << *lit << " " << *pit <<std::endl;
                 sum += *lit * (*pit);
+	//			acc_nom((*lit)*(*pit));
             }
+			//sum = boost::accumulators::sum_kahan(acc_nom);
 
             if (sum<0) { //-epsilon) {
+	//			std::cout << "Hyperplane #"<< i <<"= ";
+	//			for (auto llit=mit->begin(); llit!=mit->end(); ++llit)
+	//				std::cout << *llit << " ";
+	//			std::cout << std::endl;
+	//			std::cout << "Sum with hyperplane is = " << sum << std::endl;
 				if (iii>-1) {
 					*sumiii = sum;
 				}
@@ -421,9 +455,9 @@ public:
                 return false;
             }
         }
-				if (iii>-1) {
-					*sumiii = sum;
-				}
+		if (iii>-1) {
+			*sumiii = sum;
+		}
         return true;
     }
     /**
@@ -447,6 +481,7 @@ public:
     }
 
     Point compute_boundary_intersection(Ray& ray, int* numberOfSteps, bool* succeeded, double epsilon, int algo_type) {
+		std::cout << "-------------------------------------" << std::endl;
 		/* these are pre-computed just once */
 
 		// ray as line (for the intersection with a hyperplane )
@@ -481,7 +516,20 @@ public:
 		/* end pre-compute */
 
 		// first point 
+		std::cout << "is ray point contained? " << (contains_point_exact_nn(ray.source(), 0, &nnIndex)?"yes":"no") << std::endl;
+		double mmInSum = 50000000;
+		for (int i=0; i<_A.size(); i++) {
+			Point ppp = ray.source();
+			Point projP = project(ppp, i);
+			double sum = std::sqrt(((projP-CGAL::ORIGIN)-(ray.source()-CGAL::ORIGIN)).squared_length());
+			if (sum<mmInSum) {
+				mmInSum = sum;
+			}
+		}
+		std::cout << "Ray point dist to boundary " << mmInSum << std::endl;
+		std::cout << "Ray point: " << ray.source() << "\nRay dir: " << ray.direction() << std::endl;
         Point x0 = CGAL::ORIGIN + ((ray.source()-CGAL::ORIGIN) + ray_direction);
+		std::cout << "is x0 contained? " << (contains_point_exact_nn(x0, 0, &nnIndex)?"yes":"no") << std::endl;
         bool is_epsilon_update = false;
         (*numberOfSteps) = 0;
 
@@ -499,10 +547,10 @@ public:
                 queryPt[i] = (*it);
             }
             if (algo_type==USE_JL) {
-                contains = contains_point_ann(queryPt, annIdx, dists, epsilon, &nnIndex);
+                contains = contains_point_ann_jl(queryPt, annIdx, dists, epsilon, &nnIndex);
             } 
 			else if (algo_type==USE_KDTREE) {
-                contains = contains_point_ann_jl(queryPt, annIdx, dists, epsilon, &nnIndex);
+                contains = contains_point_ann(queryPt, annIdx, dists, epsilon, &nnIndex);
             }
 			else if (algo_type==USE_LSH) {
                 contains = contains_point_lsh(x0, this->_l, &nnIndex);
@@ -557,8 +605,9 @@ public:
                 x0 = Point(dimension(), (*x1).cartesian_begin(), (*x1).cartesian_end());
                 //bool cosine_positive = ray.direction().vector()*(x0-CGAL::ORIGIN)>0;
                 if (!cosine_positive) {
-                    (*succeeded) = false;
-                    return x0;
+					std::cout << "Failed" << std::endl;
+                    //(*succeeded) = false;
+                    //return x0;
                 }
             } else {
                 if (is_epsilon_update) {
@@ -575,7 +624,7 @@ public:
         delete []annIdx;
         delete []dists;
         //std::cout<< "Number of steps : " << (*numberOfSteps) << std::endl;
-        std::cout << "Was epsilon update?" << is_epsilon_update<<std::endl;
+        std::cout << "Was epsilon update?" << (is_epsilon_update?"yes":"no")<<std::endl;
 
         (*succeeded) = true;
         return x0;
@@ -1032,6 +1081,7 @@ public:
         K min_plus=0, max_minus=0;
         bool min_plus_not_set=true;
         bool max_minus_not_set=true;
+		int i =0;
         for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait) {
             typename stdCoeffs::iterator cit;
             Point::Cartesian_const_iterator rit;
@@ -1044,14 +1094,22 @@ public:
             K sum_denom=K(0);
             //std::cout<<ait->begin()-ait->end()<<" "<<r.cartesian_begin()-r.cartesian_end()<<" "<<
             //         v.cartesian_begin()-v.cartesian_end()<<std::endl;
+			//boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::sum_kahan> > acc_nom;
+			//acc_nom(sum_nom);
+			//boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::sum_kahan> > acc_denom;
             for( ; cit < ait->end() ; ++cit, ++rit, ++vit) {
                 //std::cout << sum_nom << " " << sum_denom <<std::endl;
                 //std::cout << int(rit-r.cartesian_begin()) << " " << int(vit-v.cartesian_begin()) <<std::endl;
-                sum_nom -= *cit * (*rit);
-                sum_denom += *cit * (*vit);
+                sum_nom += *cit * (*rit);
+				//acc_nom(-(*cit)*(*rit));
+                sum_denom -= *cit * (*vit);
+				//acc_denom((*cit)*(*vit));
             }
+			//sum_nom = boost::accumulators::sum_kahan(acc_nom);
+			//sum_denom = boost::accumulators::sum_kahan(acc_denom);
+
             if(sum_denom==K(0)) {
-                std::cout<<"div0"<<std::endl;
+                std::cout<<"h: " << i << " div0"<<std::endl;
             } else {
                 lamda = sum_nom/sum_denom;
                 if(min_plus_not_set && lamda>0) {
@@ -1062,9 +1120,10 @@ public:
                     max_minus=lamda;
                     max_minus_not_set=false;
                 }
-                if(lamda<min_plus && lamda>0) min_plus=lamda;
-                if(lamda>max_minus && lamda<0) max_minus=lamda;
+                if(lamda<min_plus && lamda>0) {min_plus=lamda;}
+                if(lamda>max_minus && lamda<0) {max_minus=lamda;}
             }
+			i++;
             //std::cout<<r+(lamda*v)<<"\n"<<lamda<<std::endl;
         }
         /*
@@ -1250,6 +1309,7 @@ private:
     ANNkd_tree* bdTree;
     Eigen::MatrixXd proj_matrix;
     double _maxDistToBoundary;
+	double _minDistToBoundary;
     int _k;
     int _l;
     //EXPERIMENTAL

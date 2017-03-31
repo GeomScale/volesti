@@ -59,7 +59,8 @@ int factorial(int n) {
 // oracles.
 
 int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double epsilon, int num_query_points, vars& var, int use_jl) {
-	Point chebPoint = P.create_point_representation();
+	Point* internalPoint = new Point(P.dimension(), CGAL::ORIGIN);
+	Point chebPoint = P.create_point_representation(internalPoint);
 	if (use_jl==USE_JL) {
 		P.create_ann_jl_ds();
 	}
@@ -88,17 +89,12 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 	for (int i=0; i<num_query_points; i++) {
 		std::cout << ((double)i/num_query_points*100)<<"% completed " << std::endl;
 		Point p = (*it);
+		int nnIndex;
+		std::cout << (P.contains_point_exact_nn(p, 0, &nnIndex)?"Contains query":"Does not contain query") << std::endl;
 		++it;
 		Vector v = (*it) - CGAL::ORIGIN;
-		//std::vector<double> v_v;
-		//for (int i=0; i<P.dimension()-1; i++) {
-		//	v_v.push_back(0);
-		//}
-		//v_v.push_back(2);
-		//Vector v(P.dimension(), v_v.begin(), v_v.end());
 		++it;
 		Ray ray(p, v);
-		//std::cout <<  "Ray source " << p << "\nRay direction " << v << std::endl;
 		Timer timer1;
 		auto range = P.line_intersect(p, v);
 		double line_intersect_time_tmp = timer1.elapsed_seconds();
@@ -112,12 +108,12 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 		if (succeeded) {
 			avgSteps.push_back(numberOfSteps);
 			double dist = std::sqrt(((p2-CGAL::ORIGIN) - (range.first-CGAL::ORIGIN)).squared_length()) ;
+			std::cout << "Dist to line_intersect: " << dist << std::endl;
 			if (dist<minDist) {
 				minDist = dist;
 			}
 			if (dist>maxDist) {
 				maxDist = dist;
-				std::cout << "Changed max dist to " << maxDist << std::endl;
 			}
 
 			avgDist += dist;
@@ -146,7 +142,58 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 	std::cout << "Avg dist:  " << (double)avgDist/(num_query_points-failed) << std::endl;
 }
 
+std::vector<Point*> sample_points(stdHPolytope<double>& P, Point chebPoint, int num_points, double epsilon, bool inside, vars& var, std::vector<double>& dists) {
+	int nnIndex;
+	std::list<Point> randPoints; //ds for storing rand points
+	std::cout << (P.contains_point_exact_nn((chebPoint), 0, &nnIndex)?"Contains cheb point":"Does not contain cheb point") << std::endl;
+	std::cout << (P.contains_point_naive((chebPoint), 0, &nnIndex)?"Contains cheb point":"Does not contain cheb point") << std::endl;
+	std::cout << "Creating random points" << std::endl;
+	rand_point_generator(P, chebPoint, num_points, var.walk_steps, randPoints, var);
+	std::cout << "Created random points" << std::endl;
+	std::default_random_engine generator;
+	std::uniform_real_distribution<double> distribution(0.0,1.0);
+
+	std::vector<Point*> pointsToReturn;
+	for (auto it=randPoints.begin(); it!=randPoints.end(); it++) {
+		/* Compute min dist to boundary for query point */
+		std::cout << (P.contains_point_exact_nn((*it), 0, &nnIndex)?"Contains random point":"Does not contain random point") << std::endl;
+
+		std::cout << (P.contains_point_naive((*it), 0, &nnIndex)?"Contains random point":"Does not contain random point") << std::endl;
+		double minDist;
+		double tmp_epsilon = 0;
+		//if (nnIndex<P.num_of_hyperplanes()) {
+			if (inside) {
+				tmp_epsilon = -P.getMinDistToBoundary();
+			}
+		//}
+		//else {
+			if (!inside) {
+				tmp_epsilon = P.getMaxDistToBoundary();
+			}
+		//}
+
+		Vector v_tmp = (*it) - CGAL::ORIGIN;
+		v_tmp /= std::sqrt(v_tmp.squared_length());
+		v_tmp *= tmp_epsilon;
+		minDist = std::sqrt((v_tmp - (P.project((*it), nnIndex)-CGAL::ORIGIN)).squared_length());
+		if (!inside && distribution(generator)>0.25) {
+			v_tmp += 1000*v_tmp;	
+			minDist = 1000*epsilon;
+		}
+
+		Vector tmp(((*it)-CGAL::ORIGIN));
+		tmp = tmp + v_tmp;
+		Point* queryPoint = new Point(P.dimension(), tmp.cartesian_begin(), tmp.cartesian_end());
+		//bool contains = P.contains_point_exact_nn((*queryPoint), 0, &nnIndex);	
+		pointsToReturn.push_back(queryPoint);
+		dists.push_back(minDist);
+	}
+
+	return pointsToReturn;
+}
+
 int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, double epsilon, int num_query_points, vars& var, int use_jl) {
+//	P.normalize();
 	Point* internalPoint = new Point(P.dimension(), CGAL::ORIGIN);
 	Point chebPoint = P.create_point_representation(internalPoint);
 	Point pprojection = P.project(chebPoint, 0);
@@ -163,11 +210,11 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	}
 	double ann_create_time = timer.elapsed_seconds();
 	std::cout << "Creating the data structure took " << ann_create_time << " seconds." << std::endl;
+	double ann_epsilon = epsilon; //2*epsilon/(1-epsilon);
 
-	std::list<Point> randPoints; //ds for storing rand points
-	std::cout << "Creating random points" << std::endl;
+	//std::vector<double> randPointDists;
+	std::vector<Point> randPoints;// = sample_points(P, chebPoint, num_query_points, epsilon, true, var, randPointDists); //ds for storing rand points
 	rand_point_generator(P, chebPoint, num_query_points, var.walk_steps, randPoints, var);
-	std::cout << "Created random points" << std::endl;
 
 	int size = (int)std::ceil(std::pow(1+P.num_of_hyperplanes(), (double)1/2));
 	ANNidxArray annIdx;
@@ -183,56 +230,34 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	int total_not_inside = 0;
 	int hyperplane_score = 0;
 	double ann_time = 0;
-	double maxDist = 0;
+	double maxDist = -1;
 
 	auto it = randPoints.begin();
 	std::vector<Vector> minDistHyperplanes;
 	minDistHyperplanes.resize(randPoints.size());
 	int randPointIndex = 0;
+	double minAvg = 0;
 	for (; it!=randPoints.end(); it++) {
-		/* Generate query point */
-		Point queryPoint(P.dimension(), (*it).cartesian_begin(), (*it).cartesian_end());
-		auto coords = (*it).cartesian_begin();
-		for (int i=0; coords!=(*it).cartesian_end(); i++, coords++) {
-			annQueryPt[i] = (*coords);
+		Point queryPoint = *it;
+		int ann_i=0;
+		for (auto p_it=queryPoint.cartesian_begin(); p_it!=queryPoint.cartesian_end(); p_it++) {
+			annQueryPt[ann_i++] = (*p_it);
 		}
 
-		/* Compute min dist to boundary for query point */
-		Point projection = P.project(queryPoint, 0);
-		double minDist = std::sqrt(((queryPoint-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
-		int minDistHyperplane = 0;
-		for (int i=1; i<P.num_of_hyperplanes(); i++) {
-			projection = P.project(queryPoint, i);
-			double tmpDist = std::sqrt(((queryPoint-CGAL::ORIGIN)-(projection-CGAL::ORIGIN)).squared_length());
-			if (tmpDist<minDist) {
-				minDist = tmpDist;
-				minDistHyperplane = i;
-				minDistHyperplanes[randPointIndex] = projection-CGAL::ORIGIN;
-			}
-		}
-		randPointIndex++;
-
-		if (minDist>maxDist) {
-			maxDist = minDist;
-		}
-	
 		int naiveSepHyperplane = -1;
 		timer.start();
 		bool naive_contains = P.contains_point_naive(queryPoint, 0, &naiveSepHyperplane);
 		total_naive_time += timer.elapsed_seconds();
 		hyperplane_score += naiveSepHyperplane;
-		std::cout << "---------------------------------" << std::endl;
-		std::cout << "Naive contains? " << (naive_contains?"yes":"no") << std::endl;
 		int nnIndex = -1;
 		bool ann_contains;
 
 		timer.start();
 		if (use_jl==USE_JL) {
-			ann_contains = P.contains_point_ann_jl(annQueryPt, annIdx, dists, epsilon, &nnIndex);
+			ann_contains = P.contains_point_ann_jl(annQueryPt, annIdx, dists, ann_epsilon, &nnIndex);
 		}
 		else if (use_jl==USE_KDTREE) {
-			ann_contains = P.contains_point_ann(annQueryPt, annIdx, dists, epsilon, &nnIndex);
-			std::cout << "KD tree contains: " << (ann_contains?"yes":"no") << std::endl;
+			ann_contains = P.contains_point_ann(annQueryPt, annIdx, dists, ann_epsilon, &nnIndex);
 		}
 		else if (use_jl==USE_LSH) {
 			ann_contains = P.contains_point_lsh(queryPoint, num_probes, &nnIndex);
@@ -240,37 +265,27 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		else if (use_jl==USE_EXACT) {
 			ann_contains = P.contains_point_exact_nn(queryPoint, epsilon, &nnIndex);
 		}
-		std::cout << "ann contains? " << (ann_contains?"yes":"no") << std::endl;
 		ann_time += timer.elapsed_seconds();
 
 		if (!naive_contains) {
 			int nnIndex43 = nnIndex;
-			std::cout << "NN index in vol : " << nnIndex << std::endl;
-			std::cout << "Hyperplane:" << P.get_hyperplane(nnIndex) << std::endl;
-			std::cout << "Corresponding site: " << P.get_site(nnIndex) << std::endl;
 			double hyperplane_sum;
 			P.contains_point_naive(queryPoint, epsilon, &nnIndex, nnIndex43, &hyperplane_sum);
-			std::cout << "Hyperplane*query = " << hyperplane_sum << std::endl;
-			std::cout << "Query: " << queryPoint << std::endl;
 			total_not_inside++;
 		}
 		if (naive_contains && !ann_contains) {
-			int nnIndex43 = nnIndex;
-			std::cout << "NN index in vol : " << nnIndex << std::endl;
-			std::cout << "Hyperplane:" << P.get_hyperplane(nnIndex) << std::endl;
-			std::cout << "Corresponding site: " << P.get_site(nnIndex) << std::endl;
-			double hyperplane_sum;
-			P.contains_point_naive(queryPoint, epsilon, &nnIndex, nnIndex43, &hyperplane_sum);
-			std::cout << "Hyperplane*query = " << hyperplane_sum << std::endl;
-			std::cout << "Query: " << queryPoint << std::endl;
 			ann_mismatches++;
-			if (minDist<=epsilon) {
-				ann_ok_mismatches++;
-			}
+			//if (randPointDists[randPointIndex]<=epsilon) {
+			//	ann_ok_mismatches++;
+			//}
 		}
-		std::cout << "---------------------------------" << std::endl;
+		//if (randPointDists[randPointIndex]>maxDist) {
+		//	maxDist = randPointDists[randPointIndex];
+		//}
+		randPointIndex++;
 	}
 	std::cout << "---Queries inside P--------------------" << std::endl;
+	std::cout << "Min dist avg " << (minAvg/num_query_points) << std::endl;
 	std::cout << "Naive took {" << total_naive_time << "}s. Avg: {" << (double)total_naive_time/randPoints.size() << "}s." << std::endl;
 	if (use_jl==USE_JL) {
 		std::cout << "JL/ANN took {" << ann_time << "}s. Avg: {" << (double)ann_time/randPoints.size() << "}s." << std::endl;
@@ -288,44 +303,45 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	std::cout << "but OK mismatches inside P: {" << ann_ok_mismatches << "}" << std::endl;
 	std::cout << "Total not inside: {" << total_not_inside << "}" << std::endl;
 	std::cout << "Hyperplane score {" << hyperplane_score << "}" << std::endl;
+	std::cout << "------------------------------------" << std::endl;
 
+	//for (auto rit=randPoints.begin(); rit!=randPoints.end(); rit++) {
+	//	delete *rit;
+	//}
+	//randPointDists.clear();
+	//randPoints.clear();
+
+	//randPoints = sample_points(P, chebPoint, num_query_points, epsilon, false, var, randPointDists);	
 	it = randPoints.begin();
-	std::default_random_engine generator;
-	std::uniform_real_distribution<double> distribution(0.0,1.0);
 
 	double total_naive_time2 = 0;
 	double ann_time2 = 0;
 	int ann_mismatches2 = 0;
 	int ann_ok_mismatches2 = 0;
 	int total_inside = 0;
-	double maxDist2;
+	double maxDist2 = -1;
 	randPointIndex = 0;
+	std::default_random_engine generator;
+	std::uniform_real_distribution<double> distribution(0.0,1.0);
 	for (; it!=randPoints.end(); it++) {
-		Point p(P.dimension(), (*it).cartesian_begin(), (*it).cartesian_end());
 
-		Vector v = minDistHyperplanes[randPointIndex] - (p-CGAL::ORIGIN);
-		double v_l = std::sqrt(v.squared_length());
-		v /= v_l;
-		v *= epsilon;
-		minDistHyperplanes[randPointIndex] += v;
-		double minDist = epsilon;
+		Vector queryPointV = (*it) - CGAL::ORIGIN;
+
 		if (distribution(generator)>0.25) {
-			minDistHyperplanes[randPointIndex] += 1000*v;	
-			minDist = 1000*epsilon;
+			queryPointV *= P.dimension() * P.getMaxDistToBoundary();
+		} else {
+			double norm = std::sqrt(queryPointV.squared_length());
+			queryPointV /= std::sqrt(queryPointV.squared_length());
+			norm += epsilon;
+			queryPointV *= norm;
+		}
+		Point queryPoint = CGAL::ORIGIN + queryPointV;
+
+		auto coords = queryPoint.cartesian_begin();
+		for (int i=0; coords!=queryPoint.cartesian_end(); i++, coords++) {
+			annQueryPt[i] = (*coords);// + epsilon/4;
 		}
 
-		if (minDist>maxDist2) {
-			maxDist2 = minDist;
-		}
-
-
-		auto coords = minDistHyperplanes[randPointIndex].cartesian_begin();
-		for (int i=0; coords!=minDistHyperplanes[randPointIndex].cartesian_end(); i++, coords++) {
-			annQueryPt[i] = (*coords) + epsilon/4;
-		}
-		Point queryPoint = Point(P.dimension(), minDistHyperplanes[randPointIndex].cartesian_begin(), minDistHyperplanes[randPointIndex].cartesian_end());
-
-		randPointIndex++;
 		int naiveSepHyperplane = -1;
 		timer.start();
 		bool naive_contains = P.contains_point_naive(queryPoint, 0, &naiveSepHyperplane);
@@ -354,10 +370,13 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		}
 		if (!naive_contains && ann_contains) {
 			ann_mismatches2++;
-			if (minDist<=epsilon) {
-				ann_ok_mismatches2++;
-			}
+			//if (randPointDists[randPointIndex]<=epsilon) {
+			//	ann_ok_mismatches2++;
+			//}
 		}
+		//if (randPointDists[randPointIndex]>maxDist2) {
+		//	maxDist2 = randPointDists[randPointIndex++];
+		//}
 	}
 	delete []annIdx;
 	delete []dists;
@@ -389,6 +408,9 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	}
 	else if (use_jl==USE_LSH) {
 		std::cout << "LSH took {" << (ann_time+ann_time2) << "}s. Avg: {" << (double)(ann_time+ann_time2)/randPoints.size() << "}s." << std::endl;
+	}
+	else if (use_jl==USE_EXACT) {
+		std::cout << "Exact nn took {" << (ann_time+ann_time2) << "}s. Avg: {" << (double)(ann_time+ann_time2)/randPoints.size() << "}s." << std::endl;
 	}
 	std::cout << "ann mismatches inside P: {" << (ann_mismatches+ann_mismatches2) << "}" << std::endl;
 	std::cout << "but OK mismatches inside P: {" << (ann_ok_mismatches+ann_ok_mismatches2) << "}" << std::endl;
@@ -488,7 +510,7 @@ int main(const int argc, const char** argv) {
 			membership_test = true;
         }
         if(!strcmp(argv[i],"--boundary")) {
-			std::cout<<"found membership"<<std::endl;
+			std::cout<<"found boundary"<<std::endl;
 			correct = true;
 			boundary_test = true;
 			membership_test = false;
@@ -633,6 +655,7 @@ int main(const int argc, const char** argv) {
 
     }
 
+	std::cout << "About to go to tests" << std::endl;
 	if (membership_test) {
 		const double err=0.0000000001;
 		const double err_opt=0.01;
@@ -657,6 +680,7 @@ int main(const int argc, const char** argv) {
 		membership_main(P,k,l,num_probes,epsilon,nqp,var,use_jl);
 	}
 	if (boundary_test) {
+		std::cout << "In boundary" << std::endl;
 		const double err=0.0000000001;
 		const double err_opt=0.01;
 		//bounds for the cube
@@ -677,6 +701,7 @@ int main(const int argc, const char** argv) {
     	int rnum = std::pow(e,-2) * 400 * n * std::log(n);
         vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
                  urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate,use_jl,epsilon);
+		std::cout <<"Calling my boundary main" << std::endl;
 		boundary_main(P,k,l,num_probes,epsilon,nqp,var,use_jl);
 	}
 	if ((!membership_test) && (!boundary_test)) {

@@ -81,6 +81,9 @@ int rand_point_generator(T &P,
     else
         hit_and_run(p,P,var,var);
 
+	int nnIndex;
+	//std::cout << "---------------------------" << std::endl;
+	//std::cout << "p is inside? " << (((stdHPolytope<double>)P).contains_point_exact_nn(p, 0, &nnIndex)?"yes":"no") << std::endl;
     for(int i=1; i<=rnum; ++i){
 		
 		for(int j=0; j<walk_len; ++j){
@@ -91,7 +94,9 @@ int rand_point_generator(T &P,
               hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
           else
               hit_and_run(p,P,var,var);
+	//		std::cout << "p is inside? " << (((stdHPolytope<double>)P).contains_point_exact_nn(p, 0, &nnIndex)?"yes":"no") << std::endl;
 		}
+	//	std::cout << "---------------------------" << std::endl;
 		randPoints.push_back(p);
                 if(birk) birk_sym(P,randPoints,p);		
 	}
@@ -221,9 +226,16 @@ int hit_and_run(Point &p,
 	Vector l = *gen - CGAL::Origin();
 	//Vector b1 = line_bisect(p,l,P,var,var2);
 	//Vector b2 = line_bisect(p,-l,P,var,var2);
+	T* P2 = &P;
+	int nnIndex;
+	//std::cout << "-------------------------\npoint p = " << p << ((reinterpret_cast<stdHPolytope<double>* >(P2))->contains_point_exact_nn(p, 0, &nnIndex)?"yes":"no") << std::endl;
+	//std::cout << "ray l = " << l << std::endl;
 	std::pair<Point,Point> ppair = P.line_intersect(p,l);
 	Vector b1 = ppair.first - CGAL::Origin();
 	Vector b2 = ppair.second - CGAL::Origin();
+
+	//std::cout << "p1 is inside? " << ((reinterpret_cast<stdHPolytope<double>* >(P2))->contains_point_exact_nn(ppair.first, 0, &nnIndex)?"yes":"no") << std::endl;
+	//std::cout << "p2 is inside? " << ((reinterpret_cast<stdHPolytope<double>* >(P2))->contains_point_exact_nn(ppair.second, 0, &nnIndex)?"yes":"no") << std::endl;
 	//std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
 	double lambda = urdist(rng);
 	p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
