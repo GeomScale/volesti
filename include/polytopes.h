@@ -133,23 +133,6 @@ public:
         return CGAL::ORIGIN + projection;
     }
 
-	void normalize() {
-		for (auto hit=_A.begin(); hit!=_A.end(); hit++) {
-			auto mit = hit->begin();
-			mit++;	
-			double sum = 0;
-			for (; mit!=hit->end(); mit++) {
-				sum += (*mit)*(*mit);
-			}
-			sum = std::sqrt(sum);
-			mit = hit->begin();
-			mit++;
-			for (; mit!=hit->end(); mit++) {
-				(*mit) = (*mit)/sum;
-			}
-		}
-	}
-
     Point _get_reflexive_point(Point& internalPoint, int facet_idx) {
         Point projection = this->project(internalPoint, facet_idx);
         Vector projection_as_v = projection - CGAL::ORIGIN;
@@ -298,10 +281,9 @@ public:
         }
 
         int size = (int)std::ceil(std::pow(1+num_of_hyperplanes(), (double)1/2));
-        //int size = (1+num_of_hyperplanes())/100;//i(int)std::ceil(std::pow(1+num_of_hyperplanes(), (double)1/3));
-
 
         double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
+		epsilon *= 3;
         this->bdTree->annkSearch(
             queryPt,
             size,
@@ -310,17 +292,16 @@ public:
             epsilon
         );
 
-        (*nnIndex_ptr) = 0;
+		(*nnIndex_ptr) = 0;
         double minDist = 0;
         auto it = _sites[nnIdx[0]].cartesian_begin();
         for (int j=0; j<dimension(); j++, ++it) {
             minDist += std::pow(p[j] - (*it), 2);
         }
-        bool contains_center = nnIdx[0] == _sites.size()-1;
         for (int i=1; i<size; i++) {
             double sum = 0;
             if (nnIdx[i]==-1) {
-                break;
+                continue;
             }
             it = _sites[nnIdx[i]].cartesian_begin();
             for (int j=0; j<dimension(); j++, ++it) {
@@ -330,21 +311,19 @@ public:
                 minDist = sum;
                 (*nnIndex_ptr) = nnIdx[i];
             }
-            if (nnIdx[i]==_sites.size()-1) {
-                contains_center = true;
-            }
         }
 
-        if ((*nnIndex_ptr)!=_sites.size()-1) {
-            double sum = 0;
-            auto it = _sites[_sites.size()-1].cartesian_begin();
-            for (int j=0; j<dimension(); j++, ++it) {
-                sum += std::pow(p[j] - (*it), 2);
-            }
-            if (sum<=minDist) {
-                (*nnIndex_ptr) = _sites.size()-1;
-            }
-        }
+		// Maybe here we can always check with the internal point?
+        //if ((*nnIndex_ptr)!=_sites.size()-1) {
+        //    double sum = 0;
+        //    auto it = _sites[_sites.size()-1].cartesian_begin();
+        //    for (int j=0; j<dimension(); j++, ++it) {
+        //        sum += std::pow(p[j] - (*it), 2);
+        //    }
+        //    if (sum<=minDist) {
+        //        (*nnIndex_ptr) = _sites.size()-1;
+        //    }
+        //}
 
         return (*nnIndex_ptr)==_sites.size()-1;
     }
@@ -369,24 +348,25 @@ public:
 	}
 
     bool contains_point_ann(ANNpoint p, ANNidxArray nnIdx, ANNdistArray dists, double membership_epsilon, int* nnIndex_ptr) {
+        double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
         this->kdTree->annkSearch(
             p,
             1,
             nnIdx,
             dists,
-            membership_epsilon
+            epsilon
         );
 
-        if (nnIdx[0]!=_sites.size()-1) {
-        	double sum = 0;
-        	double sum2= 0;
-        	auto it = _sites[_sites.size()-1].cartesian_begin();
-        	auto it2 = _sites[nnIdx[0]].cartesian_begin();
-        	for (int j=0; j<dimension(); j++, ++it) {
-        		sum += std::pow(p[j] - (*it), 2);
-        		sum2 += (p[j] - (*it2))*(p[j] - (*it2));
-        	}
-        }
+        //if (nnIdx[0]!=_sites.size()-1) {
+        //	double sum = 0;
+        //	double sum2= 0;
+        //	auto it = _sites[_sites.size()-1].cartesian_begin();
+        //	auto it2 = _sites[nnIdx[0]].cartesian_begin();
+        //	for (int j=0; j<dimension(); j++, ++it) {
+        //		sum += std::pow(p[j] - (*it), 2);
+        //		sum2 += (p[j] - (*it2))*(p[j] - (*it2));
+        //	}
+        //}
 
         bool is_in = nnIdx[0]==_sites.size()-1;
         (*nnIndex_ptr) = nnIdx[0];

@@ -142,62 +142,12 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 	std::cout << "Avg dist:  " << (double)avgDist/(num_query_points-failed) << std::endl;
 }
 
-std::vector<Point*> sample_points(stdHPolytope<double>& P, Point chebPoint, int num_points, double epsilon, bool inside, vars& var, std::vector<double>& dists) {
-	int nnIndex;
-	std::list<Point> randPoints; //ds for storing rand points
-	std::cout << (P.contains_point_exact_nn((chebPoint), 0, &nnIndex)?"Contains cheb point":"Does not contain cheb point") << std::endl;
-	std::cout << (P.contains_point_naive((chebPoint), 0, &nnIndex)?"Contains cheb point":"Does not contain cheb point") << std::endl;
-	std::cout << "Creating random points" << std::endl;
-	rand_point_generator(P, chebPoint, num_points, var.walk_steps, randPoints, var);
-	std::cout << "Created random points" << std::endl;
-	std::default_random_engine generator;
-	std::uniform_real_distribution<double> distribution(0.0,1.0);
-
-	std::vector<Point*> pointsToReturn;
-	for (auto it=randPoints.begin(); it!=randPoints.end(); it++) {
-		/* Compute min dist to boundary for query point */
-		std::cout << (P.contains_point_exact_nn((*it), 0, &nnIndex)?"Contains random point":"Does not contain random point") << std::endl;
-
-		std::cout << (P.contains_point_naive((*it), 0, &nnIndex)?"Contains random point":"Does not contain random point") << std::endl;
-		double minDist;
-		double tmp_epsilon = 0;
-		//if (nnIndex<P.num_of_hyperplanes()) {
-			if (inside) {
-				tmp_epsilon = -P.getMinDistToBoundary();
-			}
-		//}
-		//else {
-			if (!inside) {
-				tmp_epsilon = P.getMaxDistToBoundary();
-			}
-		//}
-
-		Vector v_tmp = (*it) - CGAL::ORIGIN;
-		v_tmp /= std::sqrt(v_tmp.squared_length());
-		v_tmp *= tmp_epsilon;
-		minDist = std::sqrt((v_tmp - (P.project((*it), nnIndex)-CGAL::ORIGIN)).squared_length());
-		if (!inside && distribution(generator)>0.25) {
-			v_tmp += 1000*v_tmp;	
-			minDist = 1000*epsilon;
-		}
-
-		Vector tmp(((*it)-CGAL::ORIGIN));
-		tmp = tmp + v_tmp;
-		Point* queryPoint = new Point(P.dimension(), tmp.cartesian_begin(), tmp.cartesian_end());
-		//bool contains = P.contains_point_exact_nn((*queryPoint), 0, &nnIndex);	
-		pointsToReturn.push_back(queryPoint);
-		dists.push_back(minDist);
-	}
-
-	return pointsToReturn;
-}
-
 int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, double epsilon, int num_query_points, vars& var, int use_jl) {
-//	P.normalize();
+	// Compute an internal point (or use the ORIGIN)
 	Point* internalPoint = new Point(P.dimension(), CGAL::ORIGIN);
 	Point chebPoint = P.create_point_representation(internalPoint);
-	Point pprojection = P.project(chebPoint, 0);
 
+	// Create the appropriate data structure based on the parameter
 	Timer timer;
 	if (use_jl==USE_JL) {
 		P.create_ann_jl_ds();
@@ -210,12 +160,15 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	}
 	double ann_create_time = timer.elapsed_seconds();
 	std::cout << "Creating the data structure took " << ann_create_time << " seconds." << std::endl;
-	double ann_epsilon = epsilon; //2*epsilon/(1-epsilon);
 
-	//std::vector<double> randPointDists;
-	std::vector<Point> randPoints;// = sample_points(P, chebPoint, num_query_points, epsilon, true, var, randPointDists); //ds for storing rand points
+	// Create #num_query_points inside the polytope
+	std::cout << "Creating random points" << std::endl;
+	
+	std::vector<Point> randPoints;
 	rand_point_generator(P, chebPoint, num_query_points, var.walk_steps, randPoints, var);
+	std::cout << "Created random points" << std::endl;
 
+	// for jlann ds
 	int size = (int)std::ceil(std::pow(1+P.num_of_hyperplanes(), (double)1/2));
 	ANNidxArray annIdx;
 	ANNdistArray dists;
@@ -228,15 +181,10 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	int ann_mismatches = 0;
 	int ann_ok_mismatches = 0;
 	int total_not_inside = 0;
-	int hyperplane_score = 0;
 	double ann_time = 0;
 	double maxDist = -1;
 
 	auto it = randPoints.begin();
-	std::vector<Vector> minDistHyperplanes;
-	minDistHyperplanes.resize(randPoints.size());
-	int randPointIndex = 0;
-	double minAvg = 0;
 	for (; it!=randPoints.end(); it++) {
 		Point queryPoint = *it;
 		int ann_i=0;
@@ -248,16 +196,15 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		timer.start();
 		bool naive_contains = P.contains_point_naive(queryPoint, 0, &naiveSepHyperplane);
 		total_naive_time += timer.elapsed_seconds();
-		hyperplane_score += naiveSepHyperplane;
+
 		int nnIndex = -1;
 		bool ann_contains;
-
 		timer.start();
 		if (use_jl==USE_JL) {
-			ann_contains = P.contains_point_ann_jl(annQueryPt, annIdx, dists, ann_epsilon, &nnIndex);
+			ann_contains = P.contains_point_ann_jl(annQueryPt, annIdx, dists, epsilon, &nnIndex);
 		}
 		else if (use_jl==USE_KDTREE) {
-			ann_contains = P.contains_point_ann(annQueryPt, annIdx, dists, ann_epsilon, &nnIndex);
+			ann_contains = P.contains_point_ann(annQueryPt, annIdx, dists, epsilon, &nnIndex);
 		}
 		else if (use_jl==USE_LSH) {
 			ann_contains = P.contains_point_lsh(queryPoint, num_probes, &nnIndex);
@@ -267,6 +214,15 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		}
 		ann_time += timer.elapsed_seconds();
 
+		double ratio = -1;
+		if (use_jl==USE_JL) {
+			auto nn = P.get_site(nnIndex);
+			double center_dist = std::sqrt((queryPoint-CGAL::ORIGIN).squared_length());
+			double nn_dist = std::sqrt(((queryPoint-CGAL::ORIGIN)-(nn-CGAL::ORIGIN)).squared_length());	
+			ratio = (center_dist / nn_dist)-1;
+			std::cout << "ratio= " << ratio << std::endl;
+		}
+
 		if (!naive_contains) {
 			int nnIndex43 = nnIndex;
 			double hyperplane_sum;
@@ -275,17 +231,12 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		}
 		if (naive_contains && !ann_contains) {
 			ann_mismatches++;
-			//if (randPointDists[randPointIndex]<=epsilon) {
 			//	ann_ok_mismatches++;
 			//}
 		}
-		//if (randPointDists[randPointIndex]>maxDist) {
-		//	maxDist = randPointDists[randPointIndex];
 		//}
-		randPointIndex++;
 	}
 	std::cout << "---Queries inside P--------------------" << std::endl;
-	std::cout << "Min dist avg " << (minAvg/num_query_points) << std::endl;
 	std::cout << "Naive took {" << total_naive_time << "}s. Avg: {" << (double)total_naive_time/randPoints.size() << "}s." << std::endl;
 	if (use_jl==USE_JL) {
 		std::cout << "JL/ANN took {" << ann_time << "}s. Avg: {" << (double)ann_time/randPoints.size() << "}s." << std::endl;
@@ -302,7 +253,6 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	std::cout << "ann mismatches inside P: {" << ann_mismatches << "}" << std::endl;
 	std::cout << "but OK mismatches inside P: {" << ann_ok_mismatches << "}" << std::endl;
 	std::cout << "Total not inside: {" << total_not_inside << "}" << std::endl;
-	std::cout << "Hyperplane score {" << hyperplane_score << "}" << std::endl;
 	std::cout << "------------------------------------" << std::endl;
 
 	//for (auto rit=randPoints.begin(); rit!=randPoints.end(); rit++) {
@@ -320,7 +270,6 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	int ann_ok_mismatches2 = 0;
 	int total_inside = 0;
 	double maxDist2 = -1;
-	randPointIndex = 0;
 	std::default_random_engine generator;
 	std::uniform_real_distribution<double> distribution(0.0,1.0);
 	for (; it!=randPoints.end(); it++) {
