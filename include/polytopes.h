@@ -198,8 +198,17 @@ public:
         return _sites[_sites.size()-1];
     }
 
+	int get_projected_dimension() {
+		return (int)std::ceil(std::log2(_sites.size()));// /(std::log2(std::log2(_sites.size()))));
+	}
+
+	int get_jl_search_size() {
+		//return (int)std::ceil(std::pow(1+num_of_hyperplanes(), (double)1/2))
+		return num_of_hyperplanes()/std::log2(num_of_hyperplanes());
+	}
+
     void create_ann_jl_ds() {
-        int new_d = (int)std::ceil(std::log2(_sites.size())/(std::log2(std::log2(_sites.size()))));
+        int new_d = get_projected_dimension();
         std::default_random_engine generator;
         std::normal_distribution<double> distribution(0.0,1.0);
         proj_matrix.resize(dimension(), new_d);
@@ -272,7 +281,7 @@ public:
     }
 
     bool contains_point_ann_jl(ANNpoint& p, ANNidxArray& nnIdx, ANNdistArray& dists, double membership_epsilon, int* nnIndex_ptr) {
-        int new_d = (int)std::ceil(std::log2(_sites.size())/(std::log2(std::log2(_sites.size()))));
+        int new_d = get_projected_dimension();
         auto queryPt = annAllocPt(new_d);
         for (int i=0; i<new_d; i++) {
             for (int j=0; j<dimension(); j++) {
@@ -280,7 +289,7 @@ public:
             }
         }
 
-        int size = (int)std::ceil(std::pow(1+num_of_hyperplanes(), (double)1/2));
+        int size = get_jl_search_size();
 
         double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
 		epsilon *= 3;
@@ -294,6 +303,10 @@ public:
 
 		(*nnIndex_ptr) = 0;
         double minDist = 0;
+
+		int internalIndex = -1;
+		if (nnIdx[0]==_sites.size()-1)
+			internalIndex = 0;
         auto it = _sites[nnIdx[0]].cartesian_begin();
         for (int j=0; j<dimension(); j++, ++it) {
             minDist += std::pow(p[j] - (*it), 2);
@@ -311,8 +324,13 @@ public:
                 minDist = sum;
                 (*nnIndex_ptr) = nnIdx[i];
             }
+
+			if (nnIdx[i]==_sites.size()-1)
+				internalIndex = i;
+
         }
 
+		//std::cout << "internal's index :" << internalIndex << std::endl;
 		// Maybe here we can always check with the internal point?
         //if ((*nnIndex_ptr)!=_sites.size()-1) {
         //    double sum = 0;

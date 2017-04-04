@@ -169,7 +169,7 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	std::cout << "Created random points" << std::endl;
 
 	// for jlann ds
-	int size = (int)std::ceil(std::pow(1+P.num_of_hyperplanes(), (double)1/2));
+	int size = P.get_jl_search_size();
 	ANNidxArray annIdx;
 	ANNdistArray dists;
 	annIdx = new ANNidx[size];
