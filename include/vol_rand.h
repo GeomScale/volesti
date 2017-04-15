@@ -40,7 +40,7 @@
 #include <CGAL/Approximate_min_ellipsoid_d_traits_d.h>
 #include <vector>
 #include <iostream>
-
+#include <boost/math/constants/constants.hpp> 
 #include <Eigen/Eigen>
 //#include <Eigen/Cholesky>
 
