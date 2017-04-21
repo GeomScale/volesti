@@ -80,12 +80,22 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 	auto it = randPoints.begin();
 	double line_intersect_time = 0;
 	double boundary_time = 0;
+	int successes =0 ;
 	std::vector<int> avgSteps;
 	bool succeeded = false;
 	double maxDist = -1;
+	double coord_time = 0;
 	double minDist = 100000000;
 	double avgDist = 0;
+	Point p_prev;
+	int rand_coord_prev=0;
+	int nnIndex;
+	std::default_random_engine generator;
+	std::uniform_int_distribution<> dis(0, P.dimension()-1);
+	std::vector<double> lambdas(P.num_of_hyperplanes(),double(0));
+	bool init=true;
 	int failed =0 ;
+	int reallyFailed =0 ;
 	for (int i=0; i<num_query_points; i++) {
 		std::cout << ((double)i/num_query_points*100)<<"% completed " << std::endl;
 		Point p = (*it);
@@ -102,34 +112,73 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 
 		Timer timer2;
 		int numberOfSteps = 0;
-		Point p2 = P.compute_boundary_intersection(ray, &numberOfSteps, &succeeded, epsilon, use_jl);
+		Point p2 = P.compute_boundary_intersection(ray, &numberOfSteps, &succeeded, epsilon, use_jl, 10, num_probes);
 		double oracle_time = timer2.elapsed_seconds();
+		if(!succeeded) {
+			failed++;
+		}
+
+		Timer timer3;
+		ray = Ray(p, -v);
+		Point p3 = P.compute_boundary_intersection(ray, &numberOfSteps, &succeeded, epsilon, use_jl, 10, num_probes);
+		if(!succeeded) {
+			failed++;
+		}
+		oracle_time += timer3.elapsed_seconds();
+
+		Timer timer4;
+		int rand_coord = dis(generator);
+		auto range2	= P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lambdas, init);
+		Point p4 = (p+(range2.first*v));
+		Point p5 = p+(range2.second*v);
+		rand_coord_prev = rand_coord;
+		p_prev = p;
+		init=false;
+		coord_time += timer4.elapsed_seconds();
+
 		boundary_time += oracle_time;
-		if (succeeded) {
+		//if (succeeded) {
 			avgSteps.push_back(numberOfSteps);
 			double dist = std::sqrt(((p2-CGAL::ORIGIN) - (range.first-CGAL::ORIGIN)).squared_length()) ;
-			std::cout << "Dist to line_intersect: " << dist << std::endl;
+			double dist2 = std::sqrt(((p3-CGAL::ORIGIN) - (range.second-CGAL::ORIGIN)).squared_length()) ;
+			double dist3 = std::sqrt(((p4-CGAL::ORIGIN) - (range.first-CGAL::ORIGIN)).squared_length()) ;
+			double dist4 = std::sqrt(((p5-CGAL::ORIGIN) - (range.second-CGAL::ORIGIN)).squared_length()) ;
+			//std::cout <<"Dist: " << dist << "\t" << "dist2: " << dist2 << std::endl;
 			if (dist<minDist) {
 				minDist = dist;
 			}
+			if (dist>epsilon) {
+				reallyFailed++;
+			}
+			if (dist2>epsilon) {
+				reallyFailed++;
+			}
 			if (dist>maxDist) {
 				maxDist = dist;
+				std::cout << "Max dist changed: " << maxDist << std::endl;
+			}
+			if (dist2<minDist) {
+				minDist = dist2;
+			}
+			if (dist2>maxDist) {
+				maxDist = dist2;
 			}
 
 			avgDist += dist;
+			avgDist += dist2;
 			if (epsilon<=std::sqrt(((p2-CGAL::ORIGIN) - (range.first-CGAL::ORIGIN)).squared_length()) ) {
 
 				//std::cout << "Distance to first " << std::sqrt(((p2-CGAL::ORIGIN) - (range.first-CGAL::ORIGIN)).squared_length()) << std::endl;
 				//std::cout << "bp: " << p2 << std::endl;
 				//std::cout << "ep: " << range.first << std::endl;
 			}
-		}
-		else {
-			failed++;
-		}
+			//succeeded=P.contains_point_naive(p2, epsilon, &nnIndex)&&P.contains_point_naive(p3, epsilon, &nnIndex);
+		//}
 	}
 
+	std::cout << "P max dist: " << P.getMaxDistToBoundary() << std::endl;
 	std::cout << "Time line_intersect (" << line_intersect_time << "s) : " << std::endl;
+	std::cout << "Time line_coord_int (" << coord_time << "s) : " << std::endl;
 	std::cout << "Time boundary oracle (" << boundary_time << "s) :" << std::endl;
 	double sum = 0;
 	for (int i=0; i<avgSteps.size(); i++) {
@@ -137,14 +186,25 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 	}
 	std::cout << "Avg steps " << sum / avgSteps.size() << "\n";
 	std::cout << "Failed attempts " << failed << std::endl;
+	std::cout << "really Failed attempts " << reallyFailed << std::endl;
 	std::cout << "Min dist: " << minDist << std::endl;
 	std::cout << "Max dist: " << maxDist << std::endl;
-	std::cout << "Avg dist:  " << (double)avgDist/(num_query_points-failed) << std::endl;
+	std::cout << "Avg dist:  " << (double)avgDist/(2*(num_query_points-failed)) << std::endl;
 }
 
 int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, double epsilon, int num_query_points, vars& var, int use_jl) {
 	// Compute an internal point (or use the ORIGIN)
 	Point* internalPoint = new Point(P.dimension(), CGAL::ORIGIN);
+
+	double internalPointMinDistToBoundary = -1;
+	for (int i=0; i<P.num_of_hyperplanes(); i++) {
+		Point proj = P.project((*internalPoint), i);
+		auto tmp_dist = std::sqrt((((*internalPoint)-CGAL::ORIGIN)-(proj-CGAL::ORIGIN)).squared_length());
+		if (tmp_dist<internalPointMinDistToBoundary || internalPointMinDistToBoundary < 0) {
+			internalPointMinDistToBoundary = tmp_dist;
+		}
+	}
+	std::cout << "Internal point min dist to boundary " << internalPointMinDistToBoundary << std::endl;
 	Point chebPoint = P.create_point_representation(internalPoint);
 
 	// Create the appropriate data structure based on the parameter
@@ -183,10 +243,15 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	int total_not_inside = 0;
 	double ann_time = 0;
 	double maxDist = -1;
+	int anns = 0;
 
 	auto it = randPoints.begin();
 	for (; it!=randPoints.end(); it++) {
 		Point queryPoint = *it;
+		Vector queryPoint_asV = queryPoint-CGAL::ORIGIN;
+		queryPoint_asV /= std::sqrt(queryPoint_asV.squared_length());
+		queryPoint_asV *= -epsilon;
+		queryPoint = CGAL::ORIGIN + ((queryPoint-CGAL::ORIGIN) + (queryPoint_asV));
 		int ann_i=0;
 		for (auto p_it=queryPoint.cartesian_begin(); p_it!=queryPoint.cartesian_end(); p_it++) {
 			annQueryPt[ann_i++] = (*p_it);
@@ -214,15 +279,27 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		}
 		ann_time += timer.elapsed_seconds();
 
-		double ratio = -1;
 		if (use_jl==USE_JL) {
-			auto nn = P.get_site(nnIndex);
-			double center_dist = std::sqrt((queryPoint-CGAL::ORIGIN).squared_length());
-			double nn_dist = std::sqrt(((queryPoint-CGAL::ORIGIN)-(nn-CGAL::ORIGIN)).squared_length());	
-			ratio = (center_dist / nn_dist)-1;
-			std::cout << "ratio= " << ratio << std::endl;
+			if (!ann_contains) {
+				internalPointMinDistToBoundary = -1;
+				for (int i=0; i<P.num_of_hyperplanes(); i++) {
+					Point proj = P.project(queryPoint, i);
+					auto tmp_dist = std::sqrt(((queryPoint-CGAL::ORIGIN)-(proj-CGAL::ORIGIN)).squared_length());
+					if (tmp_dist<internalPointMinDistToBoundary || internalPointMinDistToBoundary < 0) {
+						internalPointMinDistToBoundary = tmp_dist;
+					}
+				}
+				std::cout << "Query point min dist to boundary " << internalPointMinDistToBoundary << std::endl;
+				std::cout << "nnindex = " << nnIndex << std::endl;
+				std::cout << "nnindex dist to query: " << std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length()) << std::endl;
+				std::cout << "center dist to query: " << std::sqrt(((queryPoint-CGAL::ORIGIN)-((*internalPoint)-CGAL::ORIGIN)).squared_length()) << std::endl;
+				std::cout << "1+(2*e)/(1-e): " << (1+(2*epsilon)/(1-epsilon)) << std::endl;
+				if (std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length())<=
+					std::sqrt(((queryPoint-CGAL::ORIGIN)-((*internalPoint)-CGAL::ORIGIN)).squared_length())*(1+(2*epsilon)/(1-epsilon))) {
+					anns++;
+				}
+			}
 		}
-
 		if (!naive_contains) {
 			int nnIndex43 = nnIndex;
 			double hyperplane_sum;
@@ -240,6 +317,7 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	std::cout << "Naive took {" << total_naive_time << "}s. Avg: {" << (double)total_naive_time/randPoints.size() << "}s." << std::endl;
 	if (use_jl==USE_JL) {
 		std::cout << "JL/ANN took {" << ann_time << "}s. Avg: {" << (double)ann_time/randPoints.size() << "}s." << std::endl;
+		std::cout << "Anns out of the mismatches {" << anns << "}" << std::endl;
 	}
 	else if (use_jl==USE_KDTREE) {
 		std::cout << "ANN took {" << ann_time << "}s. Avg: {" << (double)ann_time/randPoints.size() << "}s." << std::endl;
@@ -276,12 +354,12 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 
 		Vector queryPointV = (*it) - CGAL::ORIGIN;
 
-		if (distribution(generator)>0.25) {
+		if (distribution(generator)>0.2) {
 			queryPointV *= P.dimension() * P.getMaxDistToBoundary();
 		} else {
 			double norm = std::sqrt(queryPointV.squared_length());
 			queryPointV /= std::sqrt(queryPointV.squared_length());
-			norm += epsilon;
+			norm += 2*epsilon;
 			queryPointV *= norm;
 		}
 		Point queryPoint = CGAL::ORIGIN + queryPointV;
@@ -318,6 +396,23 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 			total_inside++;
 		}
 		if (!naive_contains && ann_contains) {
+			if (use_jl==USE_JL) {
+				if (ann_contains) {
+					std::cout << "nnindex dist to query: " << std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length()) << std::endl;
+					std::cout << "nnindex = " << nnIndex << std::endl;
+					ann_contains = P.contains_point_exact_nn(queryPoint, epsilon, &nnIndex);
+					Point asd = P.project(queryPoint, nnIndex);
+					double asd_dist = std::sqrt(((asd-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length());
+					std::cout << "Dist to boundary = " << asd_dist << std::endl;
+					std::cout << "exact dist to query: " << std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length()) << std::endl;
+					std::cout << "exact nn = " << nnIndex << std::endl;
+					std::cout << "(1+(2*e)/(1-e))*exact_nn: " << (1+(2*epsilon)/(1-epsilon))* std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length())<< std::endl;
+					if (std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length())<=
+						std::sqrt(((queryPoint-CGAL::ORIGIN)-((*internalPoint)-CGAL::ORIGIN)).squared_length())*(1+(2*epsilon)/(1-epsilon))) {
+						anns++;
+					}
+				}
+			}
 			ann_mismatches2++;
 			//if (randPointDists[randPointIndex]<=epsilon) {
 			//	ann_ok_mismatches2++;
@@ -680,7 +775,7 @@ int main(const int argc, const char** argv) {
     boost::variate_generator< RNGType, boost::normal_distribution<> >
     get_snd_rand(rng, rdist);
     // uniform distribution
-    boost::random::uniform_real_distribution<>(urdist);
+    boost::random::uniform_real_distribution<> (urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
     // If no file specified construct a default polytope
@@ -713,12 +808,17 @@ int main(const int argc, const char** argv) {
         tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 		std::cout << "Creating ann ds " << std::endl;
 		Timer ann_timer;
-		Point chebPoint = P.create_point_representation();
-		if (use_jl) {
+		Point* internalPoint = new Point(P.dimension(), CGAL::ORIGIN);
+		Point chebPoint = P.create_point_representation(internalPoint);
+		//Point chebPoint = P.create_point_representation();
+		if (use_jl==USE_JL) {
 			P.create_ann_jl_ds();
 		}
-		else {
+		else if (use_jl==USE_KDTREE) {
 			P.create_ann_ds();
+		}
+		else if (use_jl==USE_LSH) {
+			P.create_lsh_ds(k, l);
 		}
 		double elapsed_ann = ann_timer.elapsed_seconds();
 		std::cout << "Created ann ds in " << elapsed_ann << "s " << std::endl;

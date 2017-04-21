@@ -829,8 +829,8 @@ NT volume1_reuse2(T &P,
     //1. Compute the Chebychev ball (largest inscribed ball) with center and radius
     double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"\nComputing the Chebychev center..."<<std::endl;
-    Point c;       //center
-    double radius;
+    Point c(P.dimension(), CGAL::ORIGIN);       //center
+    double radius = P.getMinDistToBoundary();
     P.chebyshev_center(c,radius);
     //HACK FOR CROSS POLYTOPES
     //std::vector<double> cp(n,0);
@@ -892,6 +892,7 @@ NT volume1_reuse2(T &P,
         //std::cout<<n* std::log(max_dist)/std::log(2.0) <<std::endl;
         //if(print) std::cout<<nb1<<" "<<nb2<<" "<<std::pow(std::pow(2.0,NT(-2)/NT(n)),2)<<std::endl;
         if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
+		if(print) std::cout<<"\nnb1 = " << nb1 << "\tnb1=" << nb2<<std::endl;
 
         std::vector<Ball> balls;
         /*

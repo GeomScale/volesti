@@ -15,6 +15,7 @@
 // Developer: Vissarion Fisikopoulos
 
 // ball type
+#include <iostream>
 struct Ball {
 public:
     Ball(Point c, NT R) : _c(c),	 _R(R) {}
@@ -117,6 +118,9 @@ public:
     int dimension() {
         return _P.dimension();
     }
+    bool contains_point_naive(Point p, double epsilon, int* nnIndex, int iii=-1, double* sumiii=NULL) {
+		std::cout << "hooray" << std::endl;
+	}
 
     Point compute_boundary_intersection(Point r,
                                         Vector v, int* numberOfSteps, bool* succeeded, double epsilon, bool use_jl) {

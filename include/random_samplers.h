@@ -16,6 +16,7 @@
 
 #ifndef RANDOM_SAMPLERS_H
 #define RANDOM_SAMPLERS_H
+#include <iostream>
 
 // WARNING: USE ONLY WITH BIRKHOFF POLYOPES
 // Compute more random points using symmetries of birkhoff polytope
@@ -81,7 +82,6 @@ int rand_point_generator(T &P,
         hit_and_run(p,P,var,var);
 
     for(int i=1; i<=rnum; ++i) {
-
         for(int j=0; j<walk_len; ++j) {
             int rand_coord_prev = rand_coord;
             rand_coord = uidist(rng);
@@ -218,15 +218,12 @@ int hit_and_run(Point &p,
     bool succeeded;
 
 
-    do {
-        CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
-        Vector l = *gen - CGAL::Origin();
-        ppair.first = P.compute_boundary_intersection(p, l, &numberOfSteps, &succeeded, var.epsilon, var.use_jl);
-        l *= -1;
-        bool tmp_succeeded;
-        ppair.second = P.compute_boundary_intersection(p, l, &numberOfSteps, &tmp_succeeded, var.epsilon, var.use_jl);
-        succeeded = succeeded && tmp_succeeded;
-    } while (!succeeded);
+    CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
+    Vector l = *gen - CGAL::Origin();
+    ppair.first = P.compute_boundary_intersection(p, l, &numberOfSteps, &succeeded, var.epsilon, var.use_jl);
+    l *= -1;
+    bool tmp_succeeded;
+    ppair.second = P.compute_boundary_intersection(p, l, &numberOfSteps, &tmp_succeeded, var.epsilon, var.use_jl);
 
     Vector b1 = ppair.first - CGAL::Origin();
     Vector b2 = ppair.second - CGAL::Origin();
@@ -239,6 +236,10 @@ int hit_and_run(Point &p,
     //Vector b2 = p2 - CGAL::ORIGIN;
     double lambda = urdist(rng);
     p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
+	int asd;
+//	std::cout << "Point p1 is inside? " << (P.contains_point_naive(ppair.first, 0, &asd)?"yes":"no") << std::endl;
+//	std::cout << "Point p2 is inside? " << (P.contains_point_naive(ppair.second, 0, &asd)?"yes":"no") << std::endl;
+//	std::cout << "Point p is inside? " << (P.contains_point_naive(p, 0, &asd)?"yes":"no") << std::endl;
     return 1;
 }
 
