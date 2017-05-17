@@ -83,23 +83,23 @@ typedef boost::variate_generator< RNGType, boost::normal_distribution<> >  gener
 struct vars{
 	public:
 	  vars( int m,
-					int n,
-					int walk_steps,
-					int n_threads,
-					const double err,
-					const double err_opt,
-					const int lw,
-					double up,
-					const int L,
-				  RNGType &rng,
-				  generator
-				  &get_snd_rand,
-				  boost::random::uniform_real_distribution<> urdist,
-				  boost::random::uniform_real_distribution<> urdist1,
-				  bool verbose,
-				  bool rand_only,
-				  bool round,
-				  bool NN,
+		int n,
+		int walk_steps,
+		int n_threads,
+		const double err,
+		const double err_opt,
+		const int lw,
+		double up,
+		const int L,
+		RNGType &rng,
+		generator
+		&get_snd_rand,
+		boost::random::uniform_real_distribution<> urdist,
+		boost::random::uniform_real_distribution<> urdist1,
+		bool verbose,
+		bool rand_only,
+		bool round,
+		bool NN,
                   bool birk,
                   bool coordinate
 			) : 
@@ -781,10 +781,6 @@ NT volume1_reuse_test(T &P,
 }
 
 
-
-
-
-
 /*************************************************
 /* VOLUME with random COORDINATES hit and run 
  * Here we reuse the random points we generate 
@@ -1247,8 +1243,7 @@ template <class T>
 NT volume2(T &P,
 					 vars &var)
 {
-	typedef BallIntersectPolytope<T>        BallPoly; 				
-				
+	typedef BallIntersectPolytope<T>        BallPoly;
 	int n = var.n;
 	int rnum = var.m;
 	int walk_len = var.walk_steps;
