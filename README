@@ -1,7 +1,7 @@
 Approximate computation of Volume of convex bodies
 
 By Vissarion Fisikopoulos, NK Univ. Athens, Greece, 2016.
-Based on the publication: I.Z. Emiris and V. Fisikopoulos, "Efficient random-walk methods for approximating polytope volume", In Proc. ACM Symposium on Computational Geometry 2014, pages 318-325.
+Main algorithm based on: I.Z. Emiris and V. Fisikopoulos, "Efficient random-walk methods for approximating polytope volume", In Proc. ACM Symposium on Computational Geometry 2014, pages 318-325.
 
 
 This is an open-source C++ software for computing an approximation of the volume of a polytope given as an intersection of halfspaces. 
