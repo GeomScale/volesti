@@ -2,7 +2,9 @@
 This is an open-source C++ software for computing an approximation of the volume of a polytope given as an intersection of halfspaces. 
  
 To compile and use it, you need first to compile the CGAL library, or download the precompiled library (this software has been tested with CGAL 4.1 and newer versions). You can follow these steps: 
- 
+
+The current branch is tested to work with gcc6.
+The distribution includes Eigen 3.3 in the folder "external". 
  
 ------------------------ 
 1. Compile CGAL sources 
@@ -118,4 +120,5 @@ Then running
 ./vol -fle simple_poset.txt 
  
 will give an estimation of the number of linear extensions which is 3. 
+
 
