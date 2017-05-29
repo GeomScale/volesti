@@ -41,6 +41,10 @@
 #include <vector>
 #include <iostream>
 
+#ifndef BOOST_MATH_CONSTANTS_CONSTANTS_INCLUDED
+#include <boost/math/constants/constants.hpp>
+#endif // Ioannis Emiris
+
 #include <Eigen/Eigen>
 //#include <Eigen/Cholesky>
 
