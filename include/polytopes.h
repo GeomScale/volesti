@@ -138,14 +138,14 @@ class stdHPolytope{
 	  
 	  // print polytope in input format
 	  int print() {
-			std::cout<<" "<<_A.size()<<" "<<_d+1<<" float"<<std::endl;
-			for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
-				for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
+		std::cout<<" "<<_A.size()<<" "<<_d+1<<" float"<<std::endl;
+		for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
+		    for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
 				  std::cout<<*lit<<" ";
 		    std::cout<<std::endl;
-		  }			
-			return 0;
 		}
+		return 0;
+	  }
 	  
 	  /*
 	  int is_in(stdCoeffs p) {
