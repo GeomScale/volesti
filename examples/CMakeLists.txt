@@ -23,7 +23,7 @@ if ( CGAL_FOUND )
   include( ${CGAL_USE_FILE} )
   include( CGAL_CreateSingleSourceCGALProgram )
   #include_directories (BEFORE ../external/extreme_points_d/include)
-  include_directories (BEFORE ../external/eigen_3_2)
+  include_directories (BEFORE ../external/eigen_3_3)
   include_directories (BEFORE ../include)
 
   
