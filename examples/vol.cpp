@@ -36,20 +36,20 @@ int factorial(int n)
 // oracles.
 
 int main(const int argc, const char** argv)
-{ 
+{
 	//Deafault values
-	int n, nexp=1, n_threads=1;
+    int n, nexp=1, n_threads=1;
 	int walk_len;//to be defined after n
-	double e=1;
-    double exactvol(-1.0);
-	bool verbose=false, 
-	     rand_only=false, 
-	     round_only=false,
-	     file=false, 
-	     round=false, 
-	     NN=false,
-	     user_walk_len=false,
-	     linear_extensions=false,
+    double e=1;
+    	double exactvol(-1.0);
+    bool verbose=false, 
+	 rand_only=false, 
+	 round_only=false,
+	 file=false, 
+	 round=false, 
+	 NN=false,
+	 user_walk_len=false,
+	 linear_extensions=false,
          birk=false,
          rotate=false,
          experiments=true,
@@ -63,27 +63,28 @@ int main(const int argc, const char** argv)
     exit(-2);
   }
   
-	//parse command line input vars
-	for(int i=1;i<argc;++i){
-		bool correct=false;
+  //parse command line input vars
+  for(int i=1;i<argc;++i){
+	bool correct=false;
+
     if(!strcmp(argv[i],"-h")||!strcmp(argv[i],"--help")){
       std::cerr<<
         "Usage:\n"<<
         "-v, --verbose \n"<<
         "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
         "-rand, --rand_only : generates only random points\n"<<
-        "-f1, --file1 [filename type Ax<=b]  [epsilon] [walk length] [threads] [num of experiments]\n"<<
-        //"-f2, --file2 [filename type Ax=b,x>=0] [epsilon] [walk length] [threads] [num of experiments]\n"<<
+        "-f1, --file1 [filename_type_Ax<=b] [epsilon] [walk_length] [threads] [num_of_experiments]\n"<<
+        //"-f2, --file2 [filename_type_Ax=b,x>=0] [epsilon] [walk_length] [threads] [num_of_experiments]\n"<<
         "-fle, --filele : counting linear extensions of a poset\n"<<
-        //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num of experiments]\n"<<
+        //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num_of_experiments]\n"<<
         "--exact : the exact volume\n"<<
         "--cube : input polytope is a cube\n"<<
         "-r, --round : enables rounding of the polytope as a preprocess\n"<<
         "-ro, --round_only : does only rounding to the polytope\n"<<
-        "-e, --error [epsilon] : the goal error of approximation\n"<<
+        "-e, --error epsilon : the goal error of approximation\n"<<
         "-w, --walk_len [walk_len] : the random walk length (default 10)\n"<<
         "-exp [#exps] : number of experiments (default 1)\n"<<
-        "-t, --threads [#threads] : the number of threads to be used\n"<<
+        "-t, --threads #threads : the number of threads to be used\n"<<
         "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
         "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
         std::endl;
@@ -93,12 +94,12 @@ int main(const int argc, const char** argv)
       exactvol = std::pow(2,n);
 	    //exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1) 
       correct=true;
-      }
+    }
     if(!strcmp(argv[i],"--exact")){
       exactvol = atof(argv[++i]);
 	    correct=true;
-      }
-		if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
+    }
+    if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
       verbose=true;
       std::cout<<"Verbose mode\n";
       correct=true;
@@ -124,7 +125,7 @@ int main(const int argc, const char** argv)
       n = Pin[0][1]-1;
       P.init(Pin);
       if (verbose && P.num_of_hyperplanes()<100){
-				std::cout<<"Input polytope: "<<n<<std::endl;
+	std::cout<<"Input polytope: "<<n<<std::endl;
         P.print();
       }
       correct=true;
@@ -142,7 +143,7 @@ int main(const int argc, const char** argv)
       P.rref();
       n=P.dimension();
       //if (verbose && P.num_of_hyperplanes()<1000){ 
-			//	std::cout<<"Input polytope: "<<n<<std::endl;
+	// std::cout<<"Input polytope: "<<n<<std::endl;
       //  P.print();
       //}
       correct=true;
@@ -166,7 +167,7 @@ int main(const int argc, const char** argv)
       n = Pin[0][1]-1;
       P.init(Pin);
       //if (verbose && P.num_of_hyperplanes()<100){ 
-				std::cout<<"Input polytope: "<<n<<std::endl;
+	std::cout<<"Input polytope: "<<n<<std::endl;
         //P.print();
       //}
       linear_extensions = true;
@@ -201,7 +202,7 @@ int main(const int argc, const char** argv)
       P.dual(-1);
       */
       std::cout<<"flann software is needed for this option. Experimental feature." 
-                <<"Currently under development."<<std::endl; 
+          <<"Currently under development."<<std::endl; 
       correct=true;
     }
     if(!strcmp(argv[i],"-ro")){
@@ -222,8 +223,7 @@ int main(const int argc, const char** argv)
         "\', try "<<argv[0]<<" --help"<<std::endl;
       exit(-2);
     }
-		
-	}
+	}//for i
 	
   // Set the number of random walk steps
   if(!user_walk_len)
@@ -285,7 +285,6 @@ int main(const int argc, const char** argv)
     vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
              urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
     
-    
     if(round_only){
     // Round the polytope and exit
       double round_value = rounding(P,var,var);
@@ -306,38 +305,38 @@ int main(const int argc, const char** argv)
     tstop = (double)clock()/(double)CLOCKS_PER_SEC;
     //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
      
-	// Statistics
-  sum+=v1;
-  if(i==0){max=v1;min=v1;}
-  if(v1>max) max=v1;
-  if(v1<min) min=v1;
-  vs.push_back(v1);
-	sum_time +=  tstop-tstart;
-	sum_Chebtime += Chebtime;
+    // Statistics
+    sum+=v1;
+    if(i==0){max=v1;min=v1;}
+    if(v1>max) max=v1;
+    if(v1<min) min=v1;
+    vs.push_back(v1);
+    sum_time +=  tstop-tstart;
+    sum_Chebtime += Chebtime;
 	
-	//std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart;
-	if(round)
+    //std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart;
+    if(round)
 		std::cout<<" (rounding is ON)";        
-	std::cout<<std::endl;
+    std::cout<<std::endl;
 	
-	//Compute Statistics
-	average=sum/(i+1);
-	std_dev=0;
-	for(std::vector<double>::iterator vit=vs.begin(); vit!=vs.end(); ++vit){
+    //Compute Statistics
+    average=sum/(i+1);
+    std_dev=0;
+    for(std::vector<double>::iterator vit=vs.begin(); vit!=vs.end(); ++vit){
 		std_dev += std::pow(*vit - average,2);
-	}
-	std_dev = std::sqrt(std_dev/(i+1));
+    }
+    std_dev = std::sqrt(std_dev/(i+1));
 	
-	std::cout.precision(7);
+    std::cout.precision(7);
 	
-	//MEMORY USAGE
-	//struct proc_t usage;
-	//look_up_our_self(&usage);
+     //MEMORY USAGE
+     //struct proc_t usage;
+     //look_up_our_self(&usage);
 	
-	//Print statistics
-	//std::cout<<"\nSTATISTICS:"<<std::endl;
-	if (!experiments){
-    std::cout 
+     //Print statistics
+     //std::cout<<"\nSTATISTICS:"<<std::endl;
+     if (!experiments){
+    	std::cout 
 	           <<"Dimension= "
 	           <<n<<" "
 	           //<<argv[]<<" "
@@ -379,8 +378,8 @@ int main(const int argc, const char** argv)
 	           <<(exactvol-average)/exactvol<<" "
              <<std::endl; 
       }
-	}else 
-    std::cout 
+	} else 
+    	std::cout 
 	           <<n<<" "
 	           //<<argv[]<<" "
 	           <<P.num_of_hyperplanes()<<" "
