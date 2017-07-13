@@ -36,7 +36,7 @@ int main(const int argc, const char** argv)
   
   srand (time(NULL));
   
-  for(int i=1; i<m; ++i){
+  for(int i=0; i<m; ++i){
 		std::cout << " " << 1000 << " ";
 		for(int j=0; j<d; ++j){
 			if(std::rand()%2==1)
