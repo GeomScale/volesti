@@ -409,7 +409,7 @@ public:
             ++lit;
             for( ; lit<mit->end() ; ++lit, ++pit){
                 //std::cout << *lit << " " << *pit <<std::endl;
-                sum += *lit * (*pit);
+                sum -= *lit * (*pit);
             }
 
             //std::cout<<sum<<std::endl;
