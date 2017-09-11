@@ -43,7 +43,7 @@ The current version of the software assumes that the polytope is given in the fo
 various comments 
 begin 
 m d+1 numbertype 
-b -A 
+b A
 end 
 various options 
 =================== 
