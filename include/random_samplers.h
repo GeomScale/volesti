@@ -1,9 +1,13 @@
-// RandGeom is free software: you can redistribute it and/or modify it
+// VolEsti
+
+// Copyright (c) 2012-2017 Vissarion Fisikopoulos
+
+// VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
-// RandGeom is distributed in the hope that it will be useful, but WITHOUT
+// VolEsti is distributed in the hope that it will be useful, but WITHOUT
 // ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 // for more details.
@@ -11,8 +15,6 @@
 // See the file COPYING.LESSER for the text of the GNU Lesser General
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
-//
-// Developer: Vissarion Fisikopoulos
 
 #ifndef RANDOM_SAMPLERS_H
 #define RANDOM_SAMPLERS_H
@@ -102,12 +104,12 @@ int rand_point_generator(T &P,
 /*
 template <class T, class K>
 int rand_point_generator_with_walk_estimator(T &P,
-														//								 Point &p,   // a point to start
-																						 int rnum,
-					//																	 int walk_len,
-																						 K &randPoints,
-																						 vars &var  // constans for volume
-																						)
+                                                        //								 Point &p,   // a point to start
+                                                                                         int rnum,
+                    //																	 int walk_len,
+                                                                                         K &randPoints,
+                                                                                         vars &var  // constans for volume
+                                                                                        )
 {
   int n = var.n;
 	RNGType &rng = var.rng;
@@ -213,13 +215,18 @@ int hit_and_run(Point &p,
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> &urdist = var.urdist;
     boost::random::uniform_real_distribution<> &urdist1 = var.urdist1;
-    std::pair<Point,Point> ppair;// = P.line_intersect(p,l);
+    CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
+    Vector l = *gen - CGAL::Origin();
+    //Vector b1 = line_bisect(p,l,P,var,var2);
+    //Vector b2 = line_bisect(p,-l,P,var,var2);
+    std::pair<Point,Point> ppair = P.line_intersect(p,l);
+    Vector b1 = ppair.first - CGAL::Origin();
+    Vector b2 = ppair.second - CGAL::Origin();
     int numberOfSteps;
     bool succeeded;
 
-
-    CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
-    Vector l = *gen - CGAL::Origin();
+    /** for boundary oracle 
+    std::pair<Point,Point> ppair;// = P.line_intersect(p,l);
     ppair.first = P.compute_boundary_intersection(p, l, &numberOfSteps, &succeeded, var.epsilon, var.use_jl);
     l *= -1;
     bool tmp_succeeded;
@@ -227,6 +234,7 @@ int hit_and_run(Point &p,
 
     Vector b1 = ppair.first - CGAL::Origin();
     Vector b2 = ppair.second - CGAL::Origin();
+	*/
     //std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
     //int numberOfSteps = 0;
     //Point p2 = P.compute_boundary_intersection(p, l, &numberOfSteps, 0, false);

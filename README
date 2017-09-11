@@ -1,8 +1,22 @@
+VolEsti: Approximate computation of volume of convex bodies.
+
+Copyright (c) 2012-2017 Vissarion Fisikopoulos
+
+You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, see vol.cpp.
+
+Main development by Vissarion Fisikopoulos, University of Athens, Greece.
+Main algorithm based on: I.Z. Emiris and V. Fisikopoulos, "Efficient random-walk methods for approximating polytope volume", In Proc. ACM Symposium on Computational Geometry 2014, pages 318-325.
+
+----------------------
+Introduction
+----------------------
 
 This is an open-source C++ software for computing an approximation of the volume of a polytope given as an intersection of halfspaces. 
  
 To compile and use it, you need first to compile the CGAL library, or download the precompiled library (this software has been tested with CGAL 4.1 and newer versions). You can follow these steps: 
- 
+
+The current branch is tested to work with gcc6.
+The distribution includes Eigen 3.3 in the folder "external". 
  
 ------------------------ 
 1. Compile CGAL sources 
@@ -12,7 +26,6 @@ Follow the CGAL installation manual. It states that CGAL requires the Boost libr
  
 $ cmake . 
 $ make 
- 
  
 ------------------ 
 2. Compile sources 
@@ -35,7 +48,7 @@ The current version of the software assumes that the polytope is given in the fo
 various comments 
 begin 
 m d+1 numbertype 
-b -A 
+b A
 end 
 various options 
 =================== 
@@ -52,14 +65,14 @@ After successful compilation you can use the software by command line.
  
 ./vol -h  
  
-will display a help message about the program's available options. 
+will display a help message about the program's available options.
  
 ***Example*** 
  
-To estimate the volume of the 10-dimensional hypercube first prepare the file cube.ine as follows: 
+To estimate the volume of the 10-dimensional hypercube first prepare the file cube10.ine as follows: 
  
 ====================== 
-cube_10.ine 
+cube10.ine 
 H-representation 
 begin 
  20 11 real 
@@ -87,9 +100,13 @@ end
 input_incidence 
 ======================= 
  
-The run the following command: 
+Then run the following command: 
  
 ./vol -f1 polytope_examples/cube10.ine 
+
+which returns 17 numbers:
+
+d m #experiments exactvolOr-1 approx [.,.] #randPoints walkLength meanVol [minVol,maxVol] stdDev errorVsExact maxminDivergence time timeChebyshevBall
  
 -------------------- 
 5. Linear extensions 
@@ -117,5 +134,6 @@ Then running
   
 ./vol -fle simple_poset.txt 
  
-will give an estimation of the number of linear extensions which is 3. 
+will give an estimation of the number of linear extensions, which is 3. 
+
 

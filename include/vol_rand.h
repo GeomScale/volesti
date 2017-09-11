@@ -1,18 +1,20 @@
-// RandGeom is free software: you can redistribute it and/or modify it
+// VolEsti
+
+// Copyright (c) 2012-2017 Vissarion Fisikopoulos
+
+// VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
-// RandGeom is distributed in the hope that it will be useful, but WITHOUT
+// VolEsti is distributed in the hope that it will be useful, but WITHOUT
 // ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 // for more details.
 //
 // See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with RandGeom,
+// Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
-//
-// Developer: Vissarion Fisikopoulos
 
 
 #include <CGAL/point_generators_d.h>
@@ -41,6 +43,10 @@
 #include <CGAL/Approximate_min_ellipsoid_d_traits_d.h>
 #include <vector>
 #include <iostream>
+
+#ifndef BOOST_MATH_CONSTANTS_CONSTANTS_INCLUDED
+#include <boost/math/constants/constants.hpp>
+#endif // Ioannis Emiris
 
 #include <Eigen/Eigen>
 //#include <Eigen/Cholesky>
@@ -785,10 +791,6 @@ NT volume1_reuse_test(T &P,
 }
 
 
-
-
-
-
 /*************************************************
 /* VOLUME with random COORDINATES hit and run
  * Here we reuse the random points we generate
@@ -1049,9 +1051,9 @@ NT volume1_reuse2(T &P,
 /*
 template <class T>
 EXACT_NT volume1_reuse_estimete_walk(T &P,
-					 vars &var,  // constans for volume
-					 vars &var2, // constants for optimization in case of MinkSums
-					 double &Chebtime)
+                     vars &var,  // constans for volume
+                     vars &var2, // constants for optimization in case of MinkSums
+                     double &Chebtime)
 {
   typedef BallIntersectPolytope<T>        BallPoly;
 

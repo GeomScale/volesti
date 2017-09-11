@@ -1,9 +1,13 @@
-// RandGeom is free software: you can redistribute it and/or modify it
+// VolEsti
+
+// Copyright (c) 2012-2017 Vissarion Fisikopoulos
+
+// VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or (at
 // your option) any later version.
 //
-// RandGeom is distributed in the hope that it will be useful, but WITHOUT
+// VolEsti is distributed in the hope that it will be useful, but WITHOUT
 // ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 // for more details.
@@ -11,8 +15,6 @@
 // See the file COPYING.LESSER for the text of the GNU Lesser General
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
-//
-// Developer: Vissarion Fisikopoulos
 
 #ifndef POLYTOPES_H
 #define POLYTOPES_H
@@ -1020,7 +1022,7 @@ public:
             ++lit;
             for( ; lit<mit->end() ; ++lit, ++pit) {
                 //std::cout << *lit << " " << *pit <<std::endl;
-                sum += *lit * (*pit);
+                sum -= *lit * (*pit);
             }
 
             //std::cout<<sum<<std::endl;
@@ -1148,20 +1150,12 @@ public:
             K sum_denom=K(0);
             //std::cout<<ait->begin()-ait->end()<<" "<<r.cartesian_begin()-r.cartesian_end()<<" "<<
             //         v.cartesian_begin()-v.cartesian_end()<<std::endl;
-			//boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::sum_kahan> > acc_nom;
-			//acc_nom(sum_nom);
-			//boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::sum_kahan> > acc_denom;
             for( ; cit < ait->end() ; ++cit, ++rit, ++vit) {
                 //std::cout << sum_nom << " " << sum_denom <<std::endl;
                 //std::cout << int(rit-r.cartesian_begin()) << " " << int(vit-v.cartesian_begin()) <<std::endl;
-                sum_nom += *cit * (*rit);
-				//acc_nom(-(*cit)*(*rit));
-                sum_denom -= *cit * (*vit);
-				//acc_denom((*cit)*(*vit));
+                sum_nom -= *cit * (*rit);
+                sum_denom += *cit * (*vit);
             }
-			//sum_nom = boost::accumulators::sum_kahan(acc_nom);
-			//sum_denom = boost::accumulators::sum_kahan(acc_denom);
-
             if(sum_denom==K(0)) {
                 std::cout<<"h: " << i << " div0"<<std::endl;
             } else {
@@ -1215,13 +1209,13 @@ public:
             //  std::cout<<*cit2<<" ";
             //}
             //std::cout<<std::endl;
-            K sum_denom= -(*(cit+rand_coord));
+            K sum_denom= *(cit+rand_coord);
             //std::cout<<ait->begin()-ait->end()<<" "<<r.cartesian_begin()-r.cartesian_end()<<" "<<
             //         v.cartesian_begin()-v.cartesian_end()<<std::endl;
             for( ; cit < ait->end() ; ++cit, ++rit) {
                 //std::cout << sum_nom << " " << sum_denom <<std::endl;
                 //std::cout << int(rit-r.cartesian_begin()) << " " << int(vit-v.cartesian_begin()) <<std::endl;
-                sum_nom += *cit * (*rit);
+                sum_nom -= *cit * (*rit);
                 //sum_denom += *cit * (*vit);
             }
             //std::cout << sum_nom << " / "<< sum_denom<<std::endl;
@@ -1240,6 +1234,7 @@ public:
                     max_minus=lamda;
                     max_minus_not_set=false;
                 }
+
                 if(lamda<min_plus && lamda>0) min_plus=lamda;
                 if(lamda>max_minus && lamda<0) max_minus=lamda;
             }
@@ -1271,7 +1266,7 @@ public:
                 cit=ait->begin();
                 K sum_nom=(*cit);
                 ++cit;
-                K sum_denom= (*(cit+rand_coord));
+                K sum_denom= *(cit+rand_coord);
                 //std::cout<<ait->begin()-ait->end()<<" "<<r.cartesian_begin()-r.cartesian_end()<<" "<<
                 //         std::endl;
                 for( ; cit < ait->end() ; ++cit, ++rit) {
@@ -1292,6 +1287,7 @@ public:
                         max_minus=lamda;
                         max_minus_not_set=false;
                     }
+
                     if(lamda<min_plus && lamda>0) min_plus=lamda;
                     if(lamda>max_minus && lamda<0) max_minus=lamda;
                     //TEST
@@ -1381,7 +1377,6 @@ private:
 typedef std::vector<Hyperplane> H_polytope;
 typedef H_polytope Polytope;
 typedef std::vector<Point> V_polytope;
-
 typedef std::pair<V_polytope,V_polytope> MinkSumPolytope;
 typedef std::pair<MinkSumPolytope,bool> MinkSumPolytopeDual;
 
@@ -1612,7 +1607,7 @@ Ball ball(int n, const NT r){
 	extra_coords[0]=NT(-1*r);
 	P_ball.push_back(Point(n,extra_coords.begin(),extra_coords.end()));
   Ball B(n,P_ball.begin(),P_ball.end());
-	return B;
+    return B;
 }
 */
 
