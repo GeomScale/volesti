@@ -346,14 +346,17 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	int ann_ok_mismatches2 = 0;
 	int total_inside = 0;
 	double maxDist2 = -1;
-	std::default_random_engine generator;
+	unsigned seed1 = std::chrono::system_clock::now().time_since_epoch().count();
+	std::mt19937_64 generator(seed1);
 	std::uniform_real_distribution<double> distribution(0.0,1.0);
+	int aaCount = 0;
 	for (; it!=randPoints.end(); it++) {
 
 		Vector queryPointV = (*it) - CGAL::ORIGIN;
 
 		if (distribution(generator)>0.2) {
-			queryPointV *= P.dimension() * P.getMaxDistToBoundary();
+			aaCount++;
+			queryPointV *= 10000*P.dimension() * P.getMaxDistToBoundary();
 		} else {
 			double norm = std::sqrt(queryPointV.squared_length());
 			queryPointV /= std::sqrt(queryPointV.squared_length());
@@ -457,6 +460,7 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	std::cout << "ann mismatches inside P: {" << (ann_mismatches+ann_mismatches2) << "}" << std::endl;
 	std::cout << "but OK mismatches inside P: {" << (ann_ok_mismatches+ann_ok_mismatches2) << "}" << std::endl;
 	std::cout << "maxdist1 {" << maxDist << "}\t maxdist2 {" << maxDist2 << "}" << std::endl;
+	std::cout << "aaCount: " << aaCount << std::endl;
 	delete internalPoint;
 }
 
@@ -478,6 +482,7 @@ int main(const int argc, const char** argv) {
          rotate=false,
          experiments=true,
          coordinate=true;
+	bool linear_extensions=false;
 
     bool membership_test=false;
 	bool boundary_test = false;

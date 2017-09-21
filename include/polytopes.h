@@ -123,14 +123,15 @@ public:
      */
     Point project(Point& point, int facet_idx) {
         /**
-         * proj=p - a * ((p.dot_product(a) + b)/ a.dot_product(a))
+		 * for a hyperplane H:=ax=b and a point p:
+         * proj_H(p)=p - a * ((p.dot_product(a) - b)/ a.dot_product(a))
          */
         auto mit=_A[facet_idx].begin();
         ++mit;
         Vector facet_normal = Vector(_d, mit, _A[facet_idx].end());
         Vector point_as_v = point - CGAL::ORIGIN;
 
-        double dir_coeff = ((point_as_v * facet_normal) + _A[facet_idx][0]) / (facet_normal * facet_normal);
+        double dir_coeff = ((point_as_v * facet_normal) - _A[facet_idx][0]) / (facet_normal * facet_normal);
         Vector facet_normal_mul(facet_normal);
         facet_normal_mul *= dir_coeff;
         Vector projection = point_as_v - facet_normal_mul;
@@ -139,6 +140,11 @@ public:
     }
 
     Point _get_reflexive_point(Point& internalPoint, int facet_idx) {
+		/**
+		 * Get the reflexive point of a point p inside the polytope about the facet_idx-th facet 
+		 * ie. if the facet F is defined by the supporting hyperplane H := ax=b, then
+		 * refl_F(p) = p+2*(proj_H(p)-p) <=> 2*proj_H(p)-p
+		 */
         Point projection = this->project(internalPoint, facet_idx);
         Vector projection_as_v = projection - CGAL::ORIGIN;
         double tmpDist = std::sqrt((projection_as_v-(internalPoint-CGAL::ORIGIN)).squared_length());
@@ -153,7 +159,6 @@ public:
 		}
         Vector internalPoint_as_v = internalPoint - CGAL::ORIGIN;
 
-        //(2 * projection - internalPoint); // <=> internalPoint + 2*(projection-internalPoint)
         projection_as_v *= 2;
         Vector reflexive_point = projection_as_v - internalPoint_as_v;
 
@@ -161,19 +166,21 @@ public:
     }
 
     void center_sites(std::vector<Point>& sites, Point& internalPoint) {
+		/**
+		 * Center set of sites such that the internalPoint is their "origin"
+		 */
         Vector internalPoint_as_v = internalPoint - CGAL::ORIGIN;
-        std::cout << "Sites: "<< std::endl;
         for (int i=0; i<sites.size(); i++) {
             _sites.push_back(
-                sites[i]
-                //(CGAL::ORIGIN + ((sites[i] - CGAL::ORIGIN) - internalPoint_as_v))
+                //sites[i]
+                (CGAL::ORIGIN + ((sites[i] - CGAL::ORIGIN) - internalPoint_as_v))
             );
         }
-        _sites.push_back(CGAL::ORIGIN + (internalPoint_as_v - internalPoint_as_v));
+        _sites.push_back(Point(_d, CGAL::ORIGIN));
     }
 
     Point create_point_representation(Point* givenInternalPoint=NULL) {
-        data.clear();
+        falconnData.clear();
         _sites.clear();
 
 		/** Compute internal point */
@@ -185,9 +192,7 @@ public:
 		else {
         	this->chebyshev_center(tmp_internalPoint, radius);
 		}
-        auto it = tmp_internalPoint.cartesian_begin();
-        ++it;
-        Point internalPoint(_d, it, tmp_internalPoint.cartesian_end());
+        Point internalPoint(_d, tmp_internalPoint.cartesian_begin(), tmp_internalPoint.cartesian_end());
         std::cout << "Chebyshev center: " << internalPoint << std::endl;
 
         std::vector<Point> sites;
@@ -197,7 +202,7 @@ public:
         }
 		_sites.push_back(internalPoint);
 
-        //center_sites(sites, internalPoint); // This is useful for the FALCON LSH structure
+        //center_sites(sites, internalPoint); // This now happens in construct lsh ds.
 
         //sites.clear();
         return _sites[_sites.size()-1];
@@ -280,10 +285,10 @@ public:
             std::vector<double> tmp_vec(_sites[i].cartesian_begin(), _sites[i].cartesian_end());
             Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
 			map = map - chebVector;
-            this->data.push_back(map);
+            this->falconnData.push_back(map);
         }
 
-        this->hptable = falconn::construct_table<falconn::DenseVector<double>>(this->data, params_hp);
+        this->hptable = falconn::construct_table<falconn::DenseVector<double>>(this->falconnData, params_hp);
     }
 
     void create_ann_ds() {
@@ -380,7 +385,7 @@ public:
 	}
 
     bool contains_point_ann(ANNpoint p, ANNidxArray nnIdx, ANNdistArray dists, double membership_epsilon, int* nnIndex_ptr) {
-        double epsilon = (2*membership_epsilon)/(1-membership_epsilon);
+        double epsilon = std::sqrt(1+2*membership_epsilon*membership_epsilon)-1;
         this->kdTree->annkSearch(
             p,
             1,
@@ -433,33 +438,22 @@ public:
     }
 
     bool contains_point_naive(Point p, double epsilon, int* nnIndex, int iii=-1, double* sumiii=NULL) {
-    //    std::cout << "Running is in for p=" << p<< std::endl;
-        //exit(1);
         int idx = 0;
         int i=0;
 		K sum = 0;
-	//	boost::accumulators::accumulator_set<double, boost::accumulators::stats<boost::accumulators::tag::sum_kahan> > acc_nom;
         for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++i, ++mit) {
             typename stdCoeffs::iterator lit;
             Point::Cartesian_const_iterator pit;
             pit=p.cartesian_begin();
             lit=mit->begin();
             K coeff = (*lit);
-            sum=coeff;//(*lit);
+            sum=-coeff;//(*lit);
             ++lit;
             for( ; lit<mit->end() ; ++lit, ++pit) {
-                //std::cout << *lit << " " << *pit <<std::endl;
                 sum += *lit * (*pit);
-	//			acc_nom((*lit)*(*pit));
             }
-			//sum = boost::accumulators::sum_kahan(acc_nom);
 
-            if (sum<0) { //-epsilon) {
-	//			std::cout << "Hyperplane #"<< i <<"= ";
-	//			for (auto llit=mit->begin(); llit!=mit->end(); ++llit)
-	//				std::cout << *llit << " ";
-	//			std::cout << std::endl;
-	//			std::cout << "Sum with hyperplane is = " << sum << std::endl;
+            if (sum>0) {
 				if (iii>-1) {
 					*sumiii = sum;
 				}
@@ -1357,7 +1351,7 @@ private:
     std::vector<Point>  _sites;
 	std::vector<Eigen::MatrixXd> projectedPoints;
     std::shared_ptr<falconn::LSHNearestNeighborTable<falconn::DenseVector<K>>> hptable;
-    std::vector<falconn::DenseVector<K>> data;
+    std::vector<falconn::DenseVector<K>> falconnData;
     ANNkd_tree* kdTree;
 	my_kd_tree_t* tree;
 	std::vector<ANNbd_tree*> bdTree;
