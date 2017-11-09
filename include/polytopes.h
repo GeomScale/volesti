@@ -1246,6 +1246,29 @@ typedef std::vector<Point> V_polytope;
 typedef std::pair<V_polytope,V_polytope> MinkSumPolytope;
 typedef std::pair<MinkSumPolytope,bool> MinkSumPolytopeDual;
 
+template<typename T>
+stdHPolytope<T>* randomPolytope(int n, int d, int sphereRadius = 1000) {
+	stdHPolytope<T>* P = new stdHPolytope<double>();	
+	CGAL::Random_points_on_sphere_d<Point> gen(d, 1000);
+
+	std::vector<std::vector<T> > A;
+	A.reserve(n);
+	for (int i=0; i<n; i++) {
+		std::vector<T> a;
+		a.reserve(d+1);
+		a.push_back(sphereRadius);
+		Point p = (*gen++);
+		for (auto it=p.cartesian_begin(); it!=p.cartesian_end(); ++it) {
+			a.push_back(*it);
+		}
+		A.push_back(a);
+	}
+
+	P->init(A);
+
+	return P;
+}
+
 void randomPolytope(int n, int d, std::string filename) {
     std::ofstream fout(filename.c_str());
     fout << filename << "\n";
