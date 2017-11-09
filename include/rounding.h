@@ -15,7 +15,11 @@
 // See the file COPYING.LESSER for the text of the GNU Lesser General
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
+#ifndef __ROUNDING_H__
+#define __ROUNDING_H__
 
+
+#include <cmath>
 // -------- ROTATION ---------- //
 template <class T>
 double rotating_old(T &P){
@@ -240,3 +244,35 @@ double rounding(T &P,
 	
 	return L_1.determinant();
 }
+
+template <class T>
+double randomTransformation(T &P) {
+	while (true) {
+		Eigen::MatrixXd affineTransformation = Eigen::MatrixXd::Random(P.dimension(), P.dimension());
+		auto determinant = affineTransformation.determinant();
+		if (determinant==0) {
+			continue;
+		}
+
+		determinant = 1.0/std::pow(std::abs(determinant), 1.0/P.dimension());
+		affineTransformation *= determinant; //Determinant of affineTransformation now should be +/-1
+		if (affineTransformation.determinant()<0) {
+			affineTransformation.block(0, 0, 1, P.dimension()) *= -1;
+		}
+		auto coeffMatrix = P.getCoeffientMatrix();
+		Eigen::MatrixXd coeffsInEigen = Eigen::MatrixXd::Zero(coeffMatrix.size(), coeffMatrix[0].size()-1);
+		for (int i=0; i<coeffMatrix.size(); i++) {
+			for (int j=0; j<coeffMatrix[0].size()-1; j++) {
+				coeffsInEigen(i, j) = coeffMatrix[i][j+1];
+			}
+		}
+		coeffsInEigen = coeffsInEigen * affineTransformation;
+		for (int i=0; i<coeffMatrix.size(); i++) {
+			for (int j=0; j<coeffMatrix[0].size()-1; j++) {
+				coeffMatrix[i][j+1] = coeffsInEigen(i, j);
+			}
+		}
+		break;
+	}
+}
+#endif
