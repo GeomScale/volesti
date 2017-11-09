@@ -55,17 +55,52 @@ int factorial(int n) {
 // can also be used for integration of concave functions.
 // The user should provide the appropriate membership
 // oracles.
-
-int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double epsilon, int num_query_points, vars& var, int use_jl) {
+int boundary_steps_test(stdHPolytope<double>& P, int k, int l, int num_probes, double epsilon, int num_query_points, vars& var, int use_jl) {
 	Point* internalPoint = new Point(P.dimension(), CGAL::ORIGIN);
-	Point chebPoint = P.create_point_representation(internalPoint);
-	if (use_jl==USE_JL) {
-		P.create_ann_jl_ds();
+	Point chebPoint = P.create_point_representation(var, rep, internalPoint);
+	std::list<Point> randPoints;
+	rand_point_generator(P, chebPoint, num_query_points, var.walk_steps, randPoints, var);
+
+	CGAL::Random_points_on_sphere_d<Point> rps(P.dimension(), 1);
+	int totalSteps = 0;
+	int maxSteps = -1;
+	int minSteps = 101;
+	int failed = 0;
+	json response;
+	response["voronoi"] = rep;
+	response["rays"] = json::array();
+	for (auto it=randPoints.begin(); it!=randPoints.end(); ++it) {
+		Vector direction = (*rps) - CGAL::ORIGIN;	
+
+		Ray r((*it), direction);
+		int numberOfSteps = 0;
+		bool succeeded = false;
+		
+		json j;
+		P.compute_boundary_intersection(r, &numberOfSteps, &succeeded, epsilon, USE_EXACT, var, j, var.walk_steps, 0);
+		if (var.verbose) {
+			j["succeeded"] = succeeded;
+			response["rays"].push_back(j);
+		}
+		if (!succeeded) {
+			failed++;
+		} else {
+			totalSteps += numberOfSteps;
+			if (numberOfSteps>maxSteps) {
+				maxSteps = numberOfSteps;
+			}
+			if (numberOfSteps<minSteps) {
+				minSteps = numberOfSteps;
+			}
+		}
 	}
 	else if (use_jl==USE_KDTREE) {
 		P.create_ann_ds();
 	}
-	else if (use_jl==USE_LSH) {
+}
+
+int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double epsilon, int num_query_points, vars& var, int use_jl) {
+	if (use_jl==USE_LSH) {
 		P.create_lsh_ds(k, l);
 	}
 
@@ -207,13 +242,7 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 
 	// Create the appropriate data structure based on the parameter
 	Timer timer;
-	if (use_jl==USE_JL) {
-		P.create_ann_jl_ds();
-	}
-	else if (use_jl==USE_KDTREE) {
-		P.create_ann_ds();
-	}
-	else if (use_jl==USE_LSH) {
+	if (use_jl==USE_LSH) {
 		P.create_lsh_ds(k, l);
 	}
 	double ann_create_time = timer.elapsed_seconds();
@@ -227,14 +256,6 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	std::cout << "Created random points" << std::endl;
 
 	// for jlann ds
-	int size = P.get_jl_search_size();
-	ANNidxArray annIdx;
-	ANNdistArray dists;
-	annIdx = new ANNidx[size];
-	dists = new ANNdist[size];
-	ANNpoint annQueryPt;
-	annQueryPt = annAllocPt(P.dimension());
-
 	double total_naive_time = 0;
 	int ann_mismatches = 0;
 	int ann_ok_mismatches = 0;
@@ -251,25 +272,16 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		queryPoint_asV *= -epsilon;
 		queryPoint = CGAL::ORIGIN + ((queryPoint-CGAL::ORIGIN) + (queryPoint_asV));
 		int ann_i=0;
-		for (auto p_it=queryPoint.cartesian_begin(); p_it!=queryPoint.cartesian_end(); p_it++) {
-			annQueryPt[ann_i++] = (*p_it);
-		}
 
 		int naiveSepHyperplane = -1;
 		timer.start();
-		bool naive_contains = P.contains_point_naive(queryPoint, 0, &naiveSepHyperplane);
+		bool naive_contains = P.contains_point_hyperplane(queryPoint, 0, &naiveSepHyperplane);
 		total_naive_time += timer.elapsed_seconds();
 
 		int nnIndex = -1;
 		bool ann_contains;
 		timer.start();
-		if (use_jl==USE_JL) {
-			ann_contains = P.contains_point_ann_jl(annQueryPt, annIdx, dists, epsilon, &nnIndex);
-		}
-		else if (use_jl==USE_KDTREE) {
-			ann_contains = P.contains_point_ann(annQueryPt, annIdx, dists, epsilon, &nnIndex);
-		}
-		else if (use_jl==USE_LSH) {
+		if (use_jl==USE_LSH) {
 			ann_contains = P.contains_point_lsh(queryPoint, num_probes, &nnIndex);
 		}
 		else if (use_jl==USE_EXACT) {
@@ -277,31 +289,10 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		}
 		ann_time += timer.elapsed_seconds();
 
-		if (use_jl==USE_JL) {
-			if (!ann_contains) {
-				internalPointMinDistToBoundary = -1;
-				for (int i=0; i<P.num_of_hyperplanes(); i++) {
-					Point proj = P.project(queryPoint, i);
-					auto tmp_dist = std::sqrt(((queryPoint-CGAL::ORIGIN)-(proj-CGAL::ORIGIN)).squared_length());
-					if (tmp_dist<internalPointMinDistToBoundary || internalPointMinDistToBoundary < 0) {
-						internalPointMinDistToBoundary = tmp_dist;
-					}
-				}
-				std::cout << "Query point min dist to boundary " << internalPointMinDistToBoundary << std::endl;
-				std::cout << "nnindex = " << nnIndex << std::endl;
-				std::cout << "nnindex dist to query: " << std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length()) << std::endl;
-				std::cout << "center dist to query: " << std::sqrt(((queryPoint-CGAL::ORIGIN)-((*internalPoint)-CGAL::ORIGIN)).squared_length()) << std::endl;
-				std::cout << "1+(2*e)/(1-e): " << (1+(2*epsilon)/(1-epsilon)) << std::endl;
-				if (std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length())<=
-					std::sqrt(((queryPoint-CGAL::ORIGIN)-((*internalPoint)-CGAL::ORIGIN)).squared_length())*(1+(2*epsilon)/(1-epsilon))) {
-					anns++;
-				}
-			}
-		}
 		if (!naive_contains) {
 			int nnIndex43 = nnIndex;
 			double hyperplane_sum;
-			P.contains_point_naive(queryPoint, epsilon, &nnIndex, nnIndex43, &hyperplane_sum);
+			P.contains_point_hyperplane(queryPoint, epsilon, &nnIndex, nnIndex43, &hyperplane_sum);
 			total_not_inside++;
 		}
 		if (naive_contains && !ann_contains) {
@@ -313,14 +304,7 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	}
 	std::cout << "---Queries inside P--------------------" << std::endl;
 	std::cout << "Naive took {" << total_naive_time << "}s. Avg: {" << (double)total_naive_time/randPoints.size() << "}s." << std::endl;
-	if (use_jl==USE_JL) {
-		std::cout << "JL/ANN took {" << ann_time << "}s. Avg: {" << (double)ann_time/randPoints.size() << "}s." << std::endl;
-		std::cout << "Anns out of the mismatches {" << anns << "}" << std::endl;
-	}
-	else if (use_jl==USE_KDTREE) {
-		std::cout << "ANN took {" << ann_time << "}s. Avg: {" << (double)ann_time/randPoints.size() << "}s." << std::endl;
-	}
-	else if (use_jl==USE_LSH) {
+	if (use_jl==USE_LSH) {
 		std::cout << "LSH took {" << ann_time << "}s. Avg: {" << (double)ann_time/randPoints.size() << "}s." << std::endl;
 	}
 	else if (use_jl==USE_EXACT) {
@@ -366,26 +350,17 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		Point queryPoint = CGAL::ORIGIN + queryPointV;
 
 		auto coords = queryPoint.cartesian_begin();
-		for (int i=0; coords!=queryPoint.cartesian_end(); i++, coords++) {
-			annQueryPt[i] = (*coords);// + epsilon/4;
-		}
 
 		int naiveSepHyperplane = -1;
 		timer.start();
-		bool naive_contains = P.contains_point_naive(queryPoint, 0, &naiveSepHyperplane);
+		bool naive_contains = P.contains_point_hyperplane(queryPoint, 0, &naiveSepHyperplane);
 		total_naive_time2 += timer.elapsed_seconds();
 
 		int nnIndex = -1;
 		bool ann_contains;
 
 		timer.start();
-		if (use_jl==USE_JL) {
-			ann_contains = P.contains_point_ann_jl(annQueryPt, annIdx, dists, epsilon, &nnIndex);
-		}
-		else if (use_jl==USE_KDTREE) {
-			ann_contains = P.contains_point_ann(annQueryPt, annIdx, dists, epsilon, &nnIndex);
-		}
-		else if (use_jl==USE_LSH) {
+		if (use_jl==USE_LSH) {
 			ann_contains = P.contains_point_lsh(queryPoint, num_probes, &nnIndex);
 		}
 		else if (use_jl==USE_EXACT) {
@@ -397,44 +372,12 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 			total_inside++;
 		}
 		if (!naive_contains && ann_contains) {
-			if (use_jl==USE_JL) {
-				if (ann_contains) {
-					std::cout << "nnindex dist to query: " << std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length()) << std::endl;
-					std::cout << "nnindex = " << nnIndex << std::endl;
-					ann_contains = P.contains_point_exact_nn(queryPoint, epsilon, &nnIndex);
-					Point asd = P.project(queryPoint, nnIndex);
-					double asd_dist = std::sqrt(((asd-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length());
-					std::cout << "Dist to boundary = " << asd_dist << std::endl;
-					std::cout << "exact dist to query: " << std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length()) << std::endl;
-					std::cout << "exact nn = " << nnIndex << std::endl;
-					std::cout << "(1+(2*e)/(1-e))*exact_nn: " << (1+(2*epsilon)/(1-epsilon))* std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length())<< std::endl;
-					if (std::sqrt(((P.get_site(nnIndex)-CGAL::ORIGIN)-(queryPoint-CGAL::ORIGIN)).squared_length())<=
-						std::sqrt(((queryPoint-CGAL::ORIGIN)-((*internalPoint)-CGAL::ORIGIN)).squared_length())*(1+(2*epsilon)/(1-epsilon))) {
-						anns++;
-					}
-				}
-			}
-			ann_mismatches2++;
-			//if (randPointDists[randPointIndex]<=epsilon) {
-			//	ann_ok_mismatches2++;
-			//}
 		}
-		//if (randPointDists[randPointIndex]>maxDist2) {
-		//	maxDist2 = randPointDists[randPointIndex++];
-		//}
 	}
-	delete []annIdx;
-	delete []dists;
 
 	std::cout << "---Queries outside P-------------------" << std::endl;
 	std::cout << "Naive took {" << total_naive_time2 << "}s. Avg: {" << (double)total_naive_time2/randPoints.size() << "}s." << std::endl;
-	if (use_jl==USE_JL) {
-		std::cout << "JL/ANN took {" << ann_time2 << "}s. Avg: {" << (double)ann_time2/randPoints.size() << "}s." << std::endl;
-	}
-	else if (use_jl==USE_KDTREE) {
-		std::cout << "ANN took {" << ann_time2 << "}s. Avg: {" << (double)ann_time2/randPoints.size() << "}s." << std::endl;
-	}
-	else if (use_jl==USE_LSH) {
+	if (use_jl==USE_LSH) {
 		std::cout << "LSH took {" << ann_time2 << "}s. Avg: {" << (double)ann_time2/randPoints.size() << "}s." << std::endl;
 	}
 	else if (use_jl==USE_EXACT) {
@@ -445,16 +388,7 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 	std::cout << "Total inside: {" << total_inside << "}" << std::endl;
 	std::cout << "---Total -------------------------------" << std::endl;
 	std::cout << "Naive took {" << (total_naive_time+total_naive_time2) << "}s. Avg: {" << (double)(total_naive_time+total_naive_time2)/randPoints.size() << "}s." << std::endl;
-	if (use_jl==USE_JL) {
-		std::cout << "JL/ANN took {" << (ann_time+ann_time2) << "}s. Avg: {" << (double)(ann_time+ann_time2)/randPoints.size() << "}s." << std::endl;
-	}
-	else if (use_jl==USE_KDTREE) {
-		std::cout << "ANN took {" << (ann_time+ann_time2) << "}s. Avg: {" << (double)(ann_time+ann_time2)/randPoints.size() << "}s." << std::endl;
-	}
-	else if (use_jl==USE_LSH) {
-		std::cout << "LSH took {" << (ann_time+ann_time2) << "}s. Avg: {" << (double)(ann_time+ann_time2)/randPoints.size() << "}s." << std::endl;
-	}
-	else if (use_jl==USE_EXACT) {
+	if (use_jl==USE_EXACT) {
 		std::cout << "Exact nn took {" << (ann_time+ann_time2) << "}s. Avg: {" << (double)(ann_time+ann_time2)/randPoints.size() << "}s." << std::endl;
 	}
 	std::cout << "ann mismatches inside P: {" << (ann_mismatches+ann_mismatches2) << "}" << std::endl;
@@ -749,7 +683,7 @@ int main(const int argc, const char** argv) {
         vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
                  urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate,use_jl,epsilon);
 		std::cout <<"Calling my boundary main" << std::endl;
-		boundary_main(P,k,l,num_probes,epsilon,nqp,var,use_jl);
+		boundary_steps_test(P,k,l,num_probes,epsilon,nqp,var,use_jl);
 	}
 	if ((!membership_test) && (!boundary_test)) {
 			std::cout<<"Starting old experiments" << std::endl;
@@ -812,15 +746,8 @@ int main(const int argc, const char** argv) {
 		std::cout << "Creating ann ds " << std::endl;
 		Timer ann_timer;
 		Point* internalPoint = new Point(P.dimension(), CGAL::ORIGIN);
-		Point chebPoint = P.create_point_representation(internalPoint);
 		//Point chebPoint = P.create_point_representation();
-		if (use_jl==USE_JL) {
-			P.create_ann_jl_ds();
-		}
-		else if (use_jl==USE_KDTREE) {
-			P.create_ann_ds();
-		}
-		else if (use_jl==USE_LSH) {
+		if (use_jl==USE_LSH) {
 			P.create_lsh_ds(k, l);
 		}
 		double elapsed_ann = ann_timer.elapsed_seconds();
