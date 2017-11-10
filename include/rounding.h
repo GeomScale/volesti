@@ -246,20 +246,20 @@ double rounding(T &P,
 }
 
 template <class T>
-double randomTransformation(T &P) {
+double randomTransformation(T* P) {
 	while (true) {
-		Eigen::MatrixXd affineTransformation = Eigen::MatrixXd::Random(P.dimension(), P.dimension());
+		Eigen::MatrixXd affineTransformation = Eigen::MatrixXd::Random(P->dimension(), P->dimension());
 		auto determinant = affineTransformation.determinant();
 		if (determinant==0) {
 			continue;
 		}
 
-		determinant = 1.0/std::pow(std::abs(determinant), 1.0/P.dimension());
+		determinant = 1.0/std::pow(std::abs(determinant), 1.0/P->dimension());
 		affineTransformation *= determinant; //Determinant of affineTransformation now should be +/-1
 		if (affineTransformation.determinant()<0) {
-			affineTransformation.block(0, 0, 1, P.dimension()) *= -1;
+			affineTransformation.block(0, 0, 1, P->dimension()) *= -1;
 		}
-		auto coeffMatrix = P.getCoeffientMatrix();
+		auto coeffMatrix = P->getCoeffientMatrix();
 		Eigen::MatrixXd coeffsInEigen = Eigen::MatrixXd::Zero(coeffMatrix.size(), coeffMatrix[0].size()-1);
 		for (int i=0; i<coeffMatrix.size(); i++) {
 			for (int j=0; j<coeffMatrix[0].size()-1; j++) {

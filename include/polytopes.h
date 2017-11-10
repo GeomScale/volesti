@@ -189,7 +189,6 @@ public:
         	this->chebyshev_center(tmp_internalPoint, radius);
 		}
         Point internalPoint(_d, tmp_internalPoint.cartesian_begin(), tmp_internalPoint.cartesian_end());
-        std::cout << "Chebyshev center: " << internalPoint << std::endl;
 
         std::vector<Point> sites;
         for (int i=0; i<this->_A.size(); i++) {
@@ -1217,6 +1216,10 @@ public:
     //std::cout<<_A<<std::endl;
     //  exit(1);
     //}
+	
+	stdMatrix& getCoeffientMatrix() {
+		return _A;
+	}
 
 private:
 	std::vector<size_t> ret_indexes;
@@ -1252,7 +1255,11 @@ stdHPolytope<T>* randomPolytope(int n, int d, int sphereRadius = 1000) {
 	CGAL::Random_points_on_sphere_d<Point> gen(d, 1000);
 
 	std::vector<std::vector<T> > A;
-	A.reserve(n);
+	A.reserve(n+1);
+	std::vector<double> dim;
+	dim.push_back(n);
+	dim.push_back(d+1);
+	A.push_back(dim);
 	for (int i=0; i<n; i++) {
 		std::vector<T> a;
 		a.reserve(d+1);
