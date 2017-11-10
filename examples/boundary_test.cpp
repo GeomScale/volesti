@@ -27,8 +27,6 @@ std::string runTests(stdHPolytope<double>* P, vars& var, int nqp) {
 	json rep;
 	Point chebPoint = P->create_point_representation(var, rep, internalPoint);
 
-	std::list<Point> randPoints;
-	rand_point_generator(*P, chebPoint, nqp, var.walk_steps, randPoints, var);
 	CGAL::Random_points_on_sphere_d<Point> rps(P->dimension(), 1);
 	// sample nqp points with CDHR
 
@@ -39,15 +37,18 @@ std::string runTests(stdHPolytope<double>* P, vars& var, int nqp) {
 	json response;
 	response["voronoi"] = rep;
 	response["rays"] = json::array();
-	for (auto it=randPoints.begin(); it!=randPoints.end(); ++it) {
+	for (int i=0; i<nqp; ++i) {
+	    std::list<Point> randPoints;
+	    rand_point_generator(*P, chebPoint, 1, var.walk_steps, randPoints, var);
 		Vector direction = (*rps) - CGAL::ORIGIN;	
 
+		auto it = randPoints.begin();
 		Ray r((*it), direction);
 		int numberOfSteps = 0;
 		bool succeeded = false;
 		
 		json j;
-		P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0, USE_EXACT, var, j, var.walk_steps, 0);
+		P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.001, USE_EXACT, var, j, var.walk_steps, 0);
 		if (var.verbose) {
 			j["succeeded"] = succeeded;
 			response["rays"].push_back(j);
