@@ -21,11 +21,63 @@
 #include <vol_rand.h>
 #include <rounding.h>
 #include <string>
+#include <boost/program_options.hpp>
 
-std::string runTests(stdHPolytope<double>* P, vars& var, int nqp) {
+namespace po = boost::program_options; 
+
+json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
+	var.verbose = false;
+	Point* internalPoint = new Point(P->dimension(), CGAL::ORIGIN);
+	json rep;
+	json response;
+	response["voronoi"] = rep;
+	response["rays"] = json::array();
+	Point chebPoint = P->create_point_representation(var, rep, internalPoint);
+	P->create_lsh_ds(k, l);
+
+	CGAL::Random_points_on_sphere_d<Point> rps(P->dimension(), 1);
+	for (int i=0; i<nqp; ++i) {
+	    std::list<Point> randPoints;
+	    rand_point_generator(*P, chebPoint, 1, var.walk_steps, randPoints, var);
+		Vector direction = (*rps) - CGAL::ORIGIN;	
+
+		auto it = randPoints.begin();
+		Ray r((*it), direction);
+		int numberOfSteps = 0;
+		bool succeeded = false;
+		json j;
+		Point appxPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.1, USE_LSH, var, j, var.walk_steps, l);
+		j["appx_succeeded"] = succeeded;
+		Point exactPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.1, USE_EXACT, var, j, var.walk_steps, l);
+		j["exact_succeeded"] = succeeded;
+		auto actualPoint = P->line_intersect(r.source(), r.direction().vector(), false);
+
+
+		for (auto pit=appxPoint.cartesian_begin(); pit!=appxPoint.cartesian_end(); ++pit) {
+			j["appxPoint"].push_back((*pit));
+		}
+		for (auto pit=exactPoint.cartesian_begin(); pit!=exactPoint.cartesian_end(); ++pit) {
+			j["exactPoint"].push_back((*pit));
+		}
+		for (auto pit=actualPoint.first.cartesian_begin(); pit!=actualPoint.first.cartesian_end(); ++pit) {
+			j["actualPoint"].push_back((*pit));
+		}
+		response["rays"].push_back(j);
+
+		++rps;
+	}
+
+	delete internalPoint;
+	return response;
+}
+
+json simpleTests(stdHPolytope<double>* P, vars& var, int nqp, bool exact=true, int k=-1, int l=-1) {
 	Point* internalPoint = new Point(P->dimension(), CGAL::ORIGIN);
 	json rep;
 	Point chebPoint = P->create_point_representation(var, rep, internalPoint);
+	if (!exact) {
+		P->create_lsh_ds(k, l);
+	}
 
 	CGAL::Random_points_on_sphere_d<Point> rps(P->dimension(), 1);
 	// sample nqp points with CDHR
@@ -37,6 +89,7 @@ std::string runTests(stdHPolytope<double>* P, vars& var, int nqp) {
 	json response;
 	response["voronoi"] = rep;
 	response["rays"] = json::array();
+	auto algo = exact?USE_EXACT:USE_LSH;
 	for (int i=0; i<nqp; ++i) {
 	    std::list<Point> randPoints;
 	    rand_point_generator(*P, chebPoint, 1, var.walk_steps, randPoints, var);
@@ -48,50 +101,77 @@ std::string runTests(stdHPolytope<double>* P, vars& var, int nqp) {
 		bool succeeded = false;
 		
 		json j;
-		P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.001, USE_EXACT, var, j, var.walk_steps, 0);
+		P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.1, algo, var, j, var.walk_steps, l);
 		if (var.verbose) {
 			j["succeeded"] = succeeded;
 			response["rays"].push_back(j);
 		}
 	}
 	delete internalPoint;
-	return response.dump();
+	return response;
 }
 
 int main(int argc, char* argv[]) {
 	// parse args
-	int n = atoi(argv[1]);
-	int d = atoi(argv[2]);
-	int diameter = 1000;
-	int nqp = 200;
-	if (argc>3) {
-		diameter = atoi(argv[3]);
-	}
-	if (argc>4) {
-		nqp = atoi(argv[4]);
-	}
+	po::options_description desc{"Params"};
+	int n;
+	int d; 
+	int diameter;
+	int nqp;
+	bool exact = true;
+	int k;
+	int l;
+	desc.add_options()
+		("help,h", "Help message")
+		(",n", po::value<int>(&n)->required(), "Number of points")
+		(",d", po::value<int>(&d)->required(), "Dimension")
+		("diameter", po::value<int>(&diameter)->default_value(1000), "Diameter of sphere")
+		("nqp", po::value<int>(&nqp)->default_value(100), "Number of query points")
+		(",k", po::value<int>(&k)->default_value(-1), "k for LSH")
+		(",L", po::value<int>(&l)->default_value(-1), "L for LSH")
+		("full", "If specified runs every boundary oracle");
 
+	po::variables_map vm; 
+	po::store(po::parse_command_line(argc, argv, desc),  vm);
+	po::notify(vm);
+	//std::cout << "N = " << n << "\nd = " << d << "\ndiam = " << diameter << "\nnqp = " << nqp << "\nk = " << k << "\nL = " << l << std::endl;
+	if (vm.count("help")) {
+		std::cout << desc << std::endl;
+		return 0;
+	}
+	if (k>-1) {
+		exact = false;
+	}
 	// init vars
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	RNGType rng(seed);
 	boost::normal_distribution<> rdist(0,1);
-	boost::variate_generator< RNGType, boost::normal_distribution<> >
-	get_snd_rand(rng, rdist);
+	boost::variate_generator< RNGType, boost::normal_distribution<> > get_snd_rand(rng, rdist);
 	boost::random::uniform_real_distribution<>(urdist);
 	boost::random::uniform_real_distribution<> urdist1(-1,1);
    	int rnum = std::pow(0.000001,-2) * 400 * n * std::log(n);
-    vars var(rnum,d,d*d*d,1,0.0000001,0,0,0,0,rng,get_snd_rand,
+    vars var(rnum,d,40,1,0.0000001,0,0,0,0,rng,get_snd_rand,
                  urdist,urdist1,true,false,false,false,false,true,0,0.1);
 
 	// create polytope with internal repr
 	json results;
 	stdHPolytope<double>* P = randomPolytope<double>(n, d, diameter);
 	
-	results["original"] = runTests(P, var, nqp);
+	if (!vm.count("full")) {
+		results["original"] = simpleTests(P, var, nqp, exact, k, l);
+	}
+	else {
+		results["original"] = completeTests(P, var, nqp, k, l);
+	}
 
-	randomTransformation<stdHPolytope<double> >(P);
+	randomTransformation<stdHPolytope<double> >(P);	
 
-	results["transformed"] = runTests(P, var, nqp);
+	if (!vm.count("full")) {
+		results["transformed"] = simpleTests(P, var, nqp, exact, k, l);
+	}
+	else {
+		results["transformed"] = completeTests(P, var, nqp, k, l);
+	}
 
 	delete P;
 	std::cout << results.dump();
