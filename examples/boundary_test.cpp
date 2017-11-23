@@ -48,8 +48,16 @@ json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
 		json j;
 		Point appxPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.1, USE_LSH, var, j, var.walk_steps, l);
 		j["appx_succeeded"] = succeeded;
+		j["appx_steps"] = numberOfSteps;
+		j["appx_inside"] = (P->is_in(appxPoint)==-1);
+
+		succeeded = false;
+		numberOfSteps = 0;
 		Point exactPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.1, USE_EXACT, var, j, var.walk_steps, l);
 		j["exact_succeeded"] = succeeded;
+		j["exact_steps"] = numberOfSteps;
+		j["exact_inside"] = (P->is_in(exactPoint)==-1);
+
 		auto actualPoint = P->line_intersect(r.source(), r.direction().vector(), false);
 
 
