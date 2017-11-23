@@ -53,7 +53,7 @@ json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
 
 		succeeded = false;
 		numberOfSteps = 0;
-		Point exactPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.1, USE_EXACT, var, j, var.walk_steps, l);
+		Point exactPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0, USE_EXACT, var, j, var.walk_steps, l);
 		j["exact_succeeded"] = succeeded;
 		j["exact_steps"] = numberOfSteps;
 		j["exact_inside"] = (P->is_in(exactPoint)==-1);

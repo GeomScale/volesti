@@ -468,7 +468,10 @@ public:
 					}
 				}
                 is_epsilon_update = false;
-                if ( x1_ray_norm>=x0_ray_norm) {
+				if ( abs(x1_ray_norm-x0_ray_norm)<0.00001 && epsilon==0 ) {
+					contains = true;
+				}	
+                else if ( x1_ray_norm>=x0_ray_norm) {
                     start_time = std::chrono::high_resolution_clock::now();
                     Vector newPoint_v = ((x0-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
                     newPoint_v -= newPoint_dir;
