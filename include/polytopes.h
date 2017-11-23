@@ -468,8 +468,10 @@ public:
 					}
 				}
                 is_epsilon_update = false;
-				if ( abs(x1_ray_norm-x0_ray_norm)<0.00001 && epsilon==0 ) {
+				if ( (*x1)==x0 && epsilon==0 ) {
 					contains = true;
+					*succeeded = true;
+					nnIndex = _sites.size()-1;
 				}	
                 else if ( x1_ray_norm>=x0_ray_norm) {
                     start_time = std::chrono::high_resolution_clock::now();
@@ -862,8 +864,12 @@ public:
             }
 
             //std::cout<<sum<<std::endl;
-            if(sum<K(0))
+            if (abs(sum)<0.000000001) {
+                sum = K(0);
+            }
+            if(sum<K(0)) {
                 return mit-_A.begin();
+			}
         }
         return -1;
     }
