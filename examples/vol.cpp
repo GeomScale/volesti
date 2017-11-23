@@ -16,11 +16,14 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
+#include "json.hpp"
 #include <vol_rand.h>
 #include <random>
+#include <rounding.h>
 #include <string>
 #include <list>
 #include <chrono>
+
 //#include <proc/readproc.h>
 class Timer {
 public:
@@ -57,6 +60,7 @@ int factorial(int n) {
 // oracles.
 int boundary_steps_test(stdHPolytope<double>& P, int k, int l, int num_probes, double epsilon, int num_query_points, vars& var, int use_jl) {
 	Point* internalPoint = new Point(P.dimension(), CGAL::ORIGIN);
+	json rep;
 	Point chebPoint = P.create_point_representation(var, rep, internalPoint);
 	std::list<Point> randPoints;
 	rand_point_generator(P, chebPoint, num_query_points, var.walk_steps, randPoints, var);
@@ -94,8 +98,10 @@ int boundary_steps_test(stdHPolytope<double>& P, int k, int l, int num_probes, d
 			}
 		}
 	}
-	else if (use_jl==USE_KDTREE) {
-		P.create_ann_ds();
+	if (var.verbose) {
+		std::cout << "JSON:" << response.dump() << std::endl;
+	} else {
+		std::cout << failed << "\t" << ((double) totalSteps / randPoints.size()) << "\t" << maxSteps << "\t" << minSteps << std::endl;
 	}
 }
 
@@ -107,6 +113,9 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 	std::list<Point> randPoints; //ds for storing rand points
 
 	std::cout <<"Creating points" << std::endl;
+	Point* internalPoint = new Point(P.dimension(), CGAL::ORIGIN);
+	json rep;
+	Point chebPoint = P.create_point_representation(var, rep, internalPoint);
 	rand_point_generator(P, chebPoint, 2*num_query_points, var.walk_steps, randPoints, var);
 	std::cout <<"Created points" << std::endl;
 
@@ -145,7 +154,8 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 
 		Timer timer2;
 		int numberOfSteps = 0;
-		Point p2 = P.compute_boundary_intersection(ray, &numberOfSteps, &succeeded, epsilon, use_jl, 10, num_probes);
+		json j;
+		Point p2 = P.compute_boundary_intersection(ray, &numberOfSteps, &succeeded, epsilon, use_jl, var, j, 10, num_probes);
 		double oracle_time = timer2.elapsed_seconds();
 		if(!succeeded) {
 			failed++;
@@ -153,7 +163,7 @@ int boundary_main(stdHPolytope<double>& P, int k, int l, int num_probes, double 
 
 		Timer timer3;
 		ray = Ray(p, -v);
-		Point p3 = P.compute_boundary_intersection(ray, &numberOfSteps, &succeeded, epsilon, use_jl, 10, num_probes);
+		Point p3 = P.compute_boundary_intersection(ray, &numberOfSteps, &succeeded, epsilon, use_jl, var, j, 10, num_probes);
 		if(!succeeded) {
 			failed++;
 		}
@@ -238,7 +248,8 @@ int membership_main(stdHPolytope<double>& P, int k, int l, int num_probes, doubl
 		}
 	}
 	std::cout << "Internal point min dist to boundary " << internalPointMinDistToBoundary << std::endl;
-	Point chebPoint = P.create_point_representation(internalPoint);
+	json rep;
+	Point chebPoint = P.create_point_representation(var, rep, internalPoint);
 
 	// Create the appropriate data structure based on the parameter
 	Timer timer;
@@ -757,6 +768,8 @@ int main(const int argc, const char** argv) {
         vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
                  urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate,use_jl,epsilon);
 
+		json rep;
+		Point chebPoint = P.create_point_representation(var, rep, internalPoint);
 
         if(round_only) {
             // Round the polytope and exit

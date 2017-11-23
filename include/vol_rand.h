@@ -41,6 +41,7 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include <CGAL/Approximate_min_ellipsoid_d.h>
 #include <CGAL/Approximate_min_ellipsoid_d_traits_d.h>
+#include <CGAL/Delaunay_triangulation_3.h>
 #include <vector>
 #include <iostream>
 
@@ -76,6 +77,14 @@ typedef CGAL::Approximate_min_ellipsoid_d_traits_d<Kernel, EXACT_NT> Traits;
 //typedef std::vector<Point>                                     Point_list;
 typedef CGAL::Approximate_min_ellipsoid_d<Traits>              AME;
 
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+typedef CGAL::Exact_predicates_exact_constructions_kernel K;
+typedef CGAL::Triangulation_vertex_base_3<K>                 Vb;
+#include <CGAL/Delaunay_triangulation_cell_base_with_circumcenter_3.h>
+typedef CGAL::Delaunay_triangulation_cell_base_with_circumcenter_3<K> Cb;
+typedef CGAL::Triangulation_data_structure_3<Vb, Cb>         TDS;
+typedef CGAL::Delaunay_triangulation_3<K, TDS>               Triangulation;
+typedef Triangulation::Point          TriangulationPoint;
 // define random generator
 //typedef boost::mt11213b RNGType; ///< mersenne twister generator
 typedef boost::mt19937 RNGType; ///< mersenne twister generator

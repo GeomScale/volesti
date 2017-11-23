@@ -33,13 +33,18 @@
 #include <boost/accumulators/accumulators.hpp> 
 #include <boost/accumulators/statistics/sum_kahan.hpp>
 #include <boost/accumulators/statistics.hpp>
+#include <CGAL/Segment_3.h>
+#include <CGAL/Ray_3.h>
 #include <CGAL/basic.h>
 #include <CGAL/QP_models.h>
+#include <CGAL/Object.h>
 #include <CGAL/QP_functions.h>
 #include <CGAL/intersections_d.h>
+#include <CGAL/Interval_nt.h>
 // choose exact integral type
 #ifdef CGAL_USE_GMP
 #include <CGAL/Gmpzf.h>
+#include "json.hpp"
 
 typedef CGAL::Gmpzf ET;
 #endif
@@ -50,6 +55,7 @@ typedef CGAL::Gmpzf ET;
 //#endif
 #include <CGAL/enum.h>
 #include <boost/random/shuffle_order.hpp>
+#include "json.hpp"
 #include <rref.h>
 //EXPERIMENTAL
 //to implement boundary oracles using NN queries
@@ -363,12 +369,22 @@ public:
         return compute_boundary_intersection(ray, numberOfSteps, succeeded, epsilon, algo_type, maxSteps);
     }
 
-    Point compute_boundary_intersection(Ray& ray, int* numberOfSteps, bool* succeeded, double epsilon, int algo_type, int maxSteps=10, int numProbes=250) {
-	//	std::cout << "-------------------------------------" << std::endl;
+    Point compute_boundary_intersection(Ray& ray, int* numberOfSteps, bool* succeeded, double epsilon, int algo_type, vars& var, json& j, int maxSteps=10, int numProbes=250) {
 		/* these are pre-computed just once */
 
         auto start_time = std::chrono::high_resolution_clock::now();
 		// ray as line (for the intersection with a hyperplane )
+		if (var.verbose) {
+			json rayjson;
+			for (auto sit=ray.source().cartesian_begin(); sit!=ray.source().cartesian_end(); ++sit) {
+				rayjson["source"].push_back((*sit));
+			}
+			for (auto dit=ray.source().cartesian_begin(); dit!=ray.source().cartesian_end(); ++dit) {
+				rayjson["direction"].push_back((*dit));
+			}
+			j["ray"] = rayjson;
+			j["steps"] = json::array();
+		}
         Line ray_line(ray.source(), ray.direction());
 
 		// normalized ray direction
@@ -388,33 +404,9 @@ public:
         Vector ray_source_v = (ray.source()-CGAL::ORIGIN);
 
         int nnIndex = -1;
-
-		// nn data structures
-        ANNidxArray annIdx;
-        ANNdistArray dists;
-
-        int size = get_jl_search_size();
-        annIdx = new ANNidx[size];
-        dists = new ANNdist[size];
-        ANNpoint queryPt = annAllocPt(dimension());
 		/* end pre-compute */
 
-		// first point 
-		//std::cout << "is ray point contained? " << (contains_point_exact_nn(ray.source(), 0, &nnIndex)?"yes":"no") << std::endl;
-		//double mmInSum = 50000000;
-		//for (int i=0; i<_A.size(); i++) {
-		//	Point ppp = ray.source();
-		//	Point projP = project(ppp, i);
-		//	double sum = std::sqrt(((projP-CGAL::ORIGIN)-(ray.source()-CGAL::ORIGIN)).squared_length());
-		//	if (sum<mmInSum) {
-		//		mmInSum = sum;
-		//	}
-		//}
-		//std::cout << "Ray point dist to boundary " << mmInSum << std::endl;
-		//std::cout << "Ray point: " << ray.source() << "\nRay dir: " << ray.direction() << std::endl;
         Point x0 = CGAL::ORIGIN + ((ray.source()-CGAL::ORIGIN) + ray_direction);
-		//std::cout << x0 << std::endl;
-		//std::cout << "is x0 contained? " << (contains_point_exact_nn(x0, 0, &nnIndex)?"yes":"no") << std::endl;
         bool is_epsilon_update = false;
         (*numberOfSteps) = 0;
         auto end_time = std::chrono::high_resolution_clock::now();
@@ -424,46 +416,44 @@ public:
 		double new_point_check_time = 0;
         bool cosine_positive = true;
         for (int currentIt=0; currentIt<maxSteps; currentIt++) {
-			//std::cout << "la la la " << std::endl;
-			//std::cout<< "Current x0: " << x0 << std::endl;
+			json step;
             double x0_ray_norm2 = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
-			//std::cout << "x0 norm: " << x0_ray_norm2 << std::endl;
             (*numberOfSteps)++;
             auto start_time = std::chrono::high_resolution_clock::now();
             bool contains;
 
 			/** Find nearest facet */
             auto it = x0.cartesian_begin();
-            for (int i=0; it!=x0.cartesian_end(); i++, it++) {
-                queryPt[i] = (*it);
-            }
-            if (algo_type==USE_JL) {
-                contains = contains_point_ann_jl(queryPt, annIdx, dists, epsilon, &nnIndex);
-            } 
-			else if (algo_type==USE_KDTREE) {
-                contains = contains_point_ann(queryPt, annIdx, dists, epsilon, &nnIndex);
-            }
-			else if (algo_type==USE_LSH) {
+            if (algo_type==USE_LSH) {
                 contains = contains_point_lsh(x0, numProbes, &nnIndex);
             }
 			else if (algo_type==USE_EXACT) {
                 contains = contains_point_exact_nn(x0, 0, &nnIndex);
-				//std::cout << "nnIndex: " << nnIndex << std::endl;
 			}
             end_time = std::chrono::high_resolution_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
             double elapsed_total = elapsed.count();
 			nn_elapsed_time += elapsed_total;
 
+			if (var.verbose) {
+				step["nnIndex"] = nnIndex;
+				for (auto it=_sites[nnIndex].cartesian_begin(); it!=_sites[nnIndex].cartesian_end(); ++it) {
+					step["nn"].push_back((*it));
+				}
+				for (auto it=x0.cartesian_begin(); it!=x0.cartesian_end(); ++it) {
+					step["x0"].push_back((*it));
+				}
+			}
             if (!contains) {
                 start_time = std::chrono::high_resolution_clock::now();
-                //std::cout << "nn index: " << nnIndex << std::endl;
+				_A[nnIndex][0] *= -1;
                 auto it = _A[nnIndex].begin();
                 double coeff = (*it);
                 ++it;
                 Hyperplane nn_facet(dimension(), it, _A[nnIndex].end(), coeff);
                 CGAL::cpp11::result_of<Kernel::Intersect_d(Line, Hyperplane)>::type x1_tmp = CGAL::intersection(ray_line, nn_facet);
                 Point* x1 = boost::get<Point>(&*x1_tmp);
+				_A[nnIndex][0] *= -1;
                 end_time = std::chrono::high_resolution_clock::now();
                 elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
                 elapsed_total += elapsed.count();
@@ -471,84 +461,59 @@ public:
                 start_time = std::chrono::high_resolution_clock::now();
                 double x1_ray_norm = (((*x1)-CGAL::ORIGIN) - (ray_source_v)).squared_length();
                 double x0_ray_norm = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
-                //std::cout << "x0: " << x0 << std::endl;
-                //std::cout << "x1: " << (*x1) << std::endl;
-                //std::cout << "Cosine sign: " << (ray.direction().vector()*((*x1)-CGAL::ORIGIN)>=0 ? "+" : "-" ) << std::endl;
-                //std::cout << "x0 norm: " << x0_ray_norm << " -- x1 norm: " << x1_ray_norm << std::endl;
-                //std::cout << "Naive contains: " << naive_contains << std::endl;
+				if (var.verbose) {
+					step["inside"] = false;
+					for (auto it=x1->cartesian_begin(); it!=x1->cartesian_end(); ++it) {
+						step["x1"].push_back((*it));
+					}
+				}
                 is_epsilon_update = false;
                 if ( x1_ray_norm>=x0_ray_norm) {
                     start_time = std::chrono::high_resolution_clock::now();
                     Vector newPoint_v = ((x0-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
                     newPoint_v -= newPoint_dir;
-                    //std::cout << "new point dir: " << newPoint_dir<< std::endl;
-                    //newPoint_v *= (1-epsilon);//*_maxDistToBoundary);
                     (*x1) = CGAL::ORIGIN + (newPoint_v + ray_source_v);
-                    //std::cout << "New x1: " << (*x1) << std::endl;
-                    //std::cout << "new norm: " << (((*x1)-CGAL::ORIGIN)-ray_source_v).squared_length() << std::endl;
                     if ((((*x1)-CGAL::ORIGIN)-ray_source_v).squared_length()>=x0_ray_norm) {
-						//std::cout << "negative cosine" << std::endl;
                         cosine_positive = false;
                     }
+					step["epsilon_step"] = true;
                     end_time = std::chrono::high_resolution_clock::now();
                     elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
                     elapsed_total += elapsed.count();
-                    //std::cout << "New x1 took: " << elapsed.count() << "s" << std::endl;
-     //               is_epsilon_update = true;
                 } 
 				else {
-						//std::cout <<"edw"<< std::endl;
-                    //Vector newPoint_v = (((*x1)-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
-                    //newPoint_v -= newPoint_dir;
-                    //(*x1) = CGAL::ORIGIN + (newPoint_v + ray_source_v);
 				}
                 x0 = Point(dimension(), (*x1).cartesian_begin(), (*x1).cartesian_end());
                 end_time = std::chrono::high_resolution_clock::now();
                 elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
 				new_point_check_time += elapsed.count();	
-                //bool cosine_positive = ray.direction().vector()*(x0-CGAL::ORIGIN)>0;
                 if (!cosine_positive) {
-					//std::cout << "cosine negative" << std::endl;
-                    //(*succeeded) = false;
-                    //return x0;
 					break;
                 }
             } else {
+				if (var.verbose) {
+					step["inside"] = true;
+				}
                 if (is_epsilon_update) {
-                    //std::cout << "Updated from epsilon" << std::endl;
-                    //Vector newPoint_v = ((x0-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
-                    //newPoint_v += newPoint_dir;
-                    //x0 = CGAL::ORIGIN + (newPoint_v + ray_source_v);
                 }
             }
-            //std::cout << "1 iteration took (approximately) " << elapsed_total << "s" << std::endl;
+			if (var.verbose) {
+				j["steps"].push_back(step);
+			}
 			if (nnIndex==_sites.size()-1)
 				break;
 
-        } //while (nnIndex!=_sites.size()-1);
+        }
 		if (nnIndex!=_sites.size()-1) {
-			//std::cout << "returning source " << std::endl;
-            //Vector newPoint_v = ((ray.source()-CGAL::ORIGIN) - (_sites.back()-CGAL::ORIGIN));
-            //newPoint_v += newPoint_dir;
-			//return CGAL::ORIGIN+newPoint_v;
 			(*succeeded) = false;
 			if (cosine_positive) {
 				return CGAL::ORIGIN + ((_sites.back()-CGAL::ORIGIN) + newPoint_dir);//ray.source();
 			}
 			return ray.source();
 		}
-		//std::cout << "NN time: " << nn_elapsed_time << std::endl;
-		//std::cout << "NN (avg) time: " << nn_elapsed_time/(*numberOfSteps) << std::endl;
-		//std::cout << "Compute point time: " << compute_point_time << std::endl;
-		//std::cout << "Compute (avg) point time: " << compute_point_time/(*numberOfSteps) << std::endl;
-		//std::cout << "New point check time: " << new_point_check_time << std::endl;
-		//std::cout << "New point check (avg) time: " << new_point_check_time/(*numberOfSteps) << std::endl;
         start_time = std::chrono::high_resolution_clock::now();
         end_time = std::chrono::high_resolution_clock::now();
         auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
-		//std::cout << "Preprocessing time: " << preprocessing_time+elapsed.count() << std::endl;
-        //std::cout<< "Number of steps : " << (*numberOfSteps) << std::endl;
-        //std::cout << "Was epsilon update?" << (is_epsilon_update?"yes":"no")<<std::endl;
 
         (*succeeded) = true;
         return x0;
