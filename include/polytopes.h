@@ -250,20 +250,7 @@ public:
 
     void create_lsh_ds(int k, int l) {
 
-        falconn::LSHConstructionParameters params_hp;
-        this->_k = k;
-        this->_l = l;
-
-        uint64_t seed = 119417657;
-        params_hp.dimension = this->dimension();
-        params_hp.lsh_family = falconn::LSHFamily::Hyperplane;
-        params_hp.distance_function = falconn::DistanceFunction::EuclideanSquared;
-		params_hp.storage_hash_table = falconn::StorageHashTable::BitPackedFlatHashTable;
-        params_hp.k = k;
-        params_hp.l = l;
-        params_hp.num_setup_threads = 0;
-        params_hp.seed = seed ^ 833840234;
-
+		/* prepare data */
 		std::vector<double> chebCenter(_sites.back().cartesian_begin(), _sites.back().cartesian_end());
 		Eigen::Map<Eigen::VectorXd> chebVector(&chebCenter[0], _d);
         for (int i=0; i<_sites.size()-1; i++) {
@@ -272,6 +259,28 @@ public:
 			map = map - chebVector;
             this->falconnData.push_back(map);
         }
+
+        falconn::LSHConstructionParameters params_hp;
+		if (k<1 || l<1) {
+			bool sufficiently_dense = _sites.size()>=dimension()*dimension();
+			params_hp = falconn::get_default_parameters<falconn::DenseVector<double> >(_sites.size(), dimension(), falconn::DistanceFunction::EuclideanSquared, sufficiently_dense);
+			_k = params_hp.k;
+			_l = params_hp.l;
+		}
+		else {
+        	this->_k = k;
+        	this->_l = l;
+        	uint64_t seed = 119417657;
+        	params_hp.dimension = this->dimension();
+        	params_hp.lsh_family = falconn::LSHFamily::Hyperplane;
+        	params_hp.distance_function = falconn::DistanceFunction::EuclideanSquared;
+			params_hp.storage_hash_table = falconn::StorageHashTable::BitPackedFlatHashTable;
+        	params_hp.k = k;
+        	params_hp.l = l;
+        	params_hp.num_setup_threads = 0;
+        	params_hp.seed = seed ^ 833840234;
+		}
+
 
         this->hptable = falconn::construct_table<falconn::DenseVector<double>>(this->falconnData, params_hp);
     }
@@ -295,7 +304,9 @@ public:
 
     bool contains_point_lsh(Point& p, int num_probes, int* nnIndex_ptr) {
         Point newP = (CGAL::ORIGIN + (p-CGAL::ORIGIN)-(_sites.back()-CGAL::ORIGIN));
-        this->hptable->set_num_probes(num_probes);
+		//this->hptable->set_num_probes(num_probes);
+		this->hptable->set_num_probes(2*_k);
+
         std::vector<double> tmp_vec(newP.cartesian_begin(), newP.cartesian_end());
         Eigen::Map<Eigen::VectorXd> map(&tmp_vec[0], this->_d);
         (*nnIndex_ptr) = this->hptable->find_nearest_neighbor(map);
@@ -382,7 +393,7 @@ public:
 			for (auto dit=ray.source().cartesian_begin(); dit!=ray.source().cartesian_end(); ++dit) {
 				rayjson["direction"].push_back((*dit));
 			}
-			j["ray"] = rayjson;
+			//j["ray"] = rayjson;
 			j["steps"] = json::array();
 		}
         Line ray_line(ray.source(), ray.direction());
@@ -437,12 +448,6 @@ public:
 
 			if (var.verbose) {
 				step["nnIndex"] = nnIndex;
-				for (auto it=_sites[nnIndex].cartesian_begin(); it!=_sites[nnIndex].cartesian_end(); ++it) {
-					step["nn"].push_back((*it));
-				}
-				for (auto it=x0.cartesian_begin(); it!=x0.cartesian_end(); ++it) {
-					step["x0"].push_back((*it));
-				}
 			}
             if (!contains) {
                 start_time = std::chrono::high_resolution_clock::now();
@@ -463,9 +468,9 @@ public:
                 double x0_ray_norm = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
 				if (var.verbose) {
 					step["inside"] = false;
-					for (auto it=x1->cartesian_begin(); it!=x1->cartesian_end(); ++it) {
-						step["x1"].push_back((*it));
-					}
+					//for (auto it=x1->cartesian_begin(); it!=x1->cartesian_end(); ++it) {
+					//	step["x1"].push_back((*it));
+					//}
 				}
                 is_epsilon_update = false;
 				if ( (*x1)==x0 && epsilon==0 ) {
