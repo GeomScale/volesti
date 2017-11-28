@@ -23,10 +23,36 @@
 #include <string>
 #include <boost/program_options.hpp>
 
+
+#include <chrono>
+
+namespace funcs{
+class Timer2 {
+public:
+	Timer2() { start_time = std::chrono::high_resolution_clock::now(); }
+
+	void start() {
+		start_time = std::chrono::high_resolution_clock::now();
+	}
+
+	double end() {
+		return elapsed_seconds();
+	}
+
+	double elapsed_seconds() {
+		auto end_time = std::chrono::high_resolution_clock::now();
+		auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+		return elapsed.count();
+	}
+private:
+	decltype(std::chrono::high_resolution_clock::now()) start_time;
+};
+}
+
 namespace po = boost::program_options; 
 
 json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
-	var.verbose = false;
+	var.verbose = true;
 	Point* internalPoint = new Point(P->dimension(), CGAL::ORIGIN);
 	json rep;
 	json response;
@@ -36,6 +62,7 @@ json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
 	P->create_lsh_ds(k, l);
 
 	CGAL::Random_points_on_sphere_d<Point> rps(P->dimension(), 1);
+	funcs::Timer2 timer;
 	for (int i=0; i<nqp; ++i) {
 	    std::list<Point> randPoints;
 	    rand_point_generator(*P, chebPoint, 1, var.walk_steps, randPoints, var);
@@ -46,19 +73,38 @@ json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
 		int numberOfSteps = 0;
 		bool succeeded = false;
 		json j;
+		timer.start();
 		Point appxPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.1, USE_LSH, var, j, var.walk_steps, l);
+		j["appx_time"] = timer.elapsed_seconds();
+		j["appx_path"] = j["steps"];
 		j["appx_succeeded"] = succeeded;
 		j["appx_steps"] = numberOfSteps;
 		j["appx_inside"] = (P->is_in(appxPoint)==-1);
+		if (!j["appx_inside"]) {
+			j["appx_error"] = P->is_in(appxPoint);
+		}
 
 		succeeded = false;
 		numberOfSteps = 0;
+		timer.start();
 		Point exactPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0, USE_EXACT, var, j, var.walk_steps, l);
+		j["exact_time"] = timer.elapsed_seconds();
 		j["exact_succeeded"] = succeeded;
+		j["exact_path"] = j["steps"];
 		j["exact_steps"] = numberOfSteps;
 		j["exact_inside"] = (P->is_in(exactPoint)==-1);
+		if (!j["exact_inside"]) {
+			j["exact_error"] = P->is_in(exactPoint);
+		}
+		j.erase("steps");
 
+		timer.start();
 		auto actualPoint = P->line_intersect(r.source(), r.direction().vector(), false);
+		j["actual_time"] = timer.elapsed_seconds();
+		j["actual_inside"] = (P->is_in(actualPoint.first)==-1);
+		if (!j["actual_inside"]) {
+			j["actual_error"] = P->is_in(actualPoint.first);
+		}
 
 
 		for (auto pit=appxPoint.cartesian_begin(); pit!=appxPoint.cartesian_end(); ++pit) {
