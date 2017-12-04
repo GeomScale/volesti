@@ -80,8 +80,12 @@ int rand_point_generator(T &P,
     Point p_prev = p;
     if(var.coordinate)
         hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);
-    else
-        hit_and_run(p,P,var,var);
+    else {
+		if (var.algoType==USE_EXACT)
+        	hit_and_run(p,P,var,var);
+		else
+        	hit_and_run_oracle(p,P,var,var);
+	}
 
     for(int i=1; i<=rnum; ++i) {
         for(int j=0; j<walk_len; ++j) {
@@ -90,9 +94,14 @@ int rand_point_generator(T &P,
             kapa = urdist(rng);
             if(var.coordinate)
                 hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
-            else
-                hit_and_run(p,P,var,var);
+    		else {
+				if (var.algoType==USE_EXACT)
+    		    	hit_and_run(p,P,var,var);
+				else
+    		    	hit_and_run_oracle(p,P,var,var);
+			}
         }
+		std::cout << i << "-th point inside? " << (P.is_in(p)?"Yeah":"No") << std::endl;
         randPoints.push_back(p);
         if(birk) birk_sym(P,randPoints,p);
     }
@@ -180,18 +189,26 @@ int rand_point_generator(BallIntersectPolytope<T> &PBLarge,
 
     if(var.coordinate)
         hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var,true);
-    else
-        hit_and_run(p,PBLarge,var,var);
+    else {
+		if (var.algoType==USE_EXACT)
+        	hit_and_run(p,PBLarge,var,var);
+		else
+        	hit_and_run_oracle(p,PBLarge,var,var);
+	}
 
     for(int i=1; i<=rnum; ++i) {
         for(int j=0; j<walk_len; ++j) {
             int rand_coord_prev = rand_coord;
             rand_coord = uidist(rng);
             kapa = urdist(rng);
-            if(var.coordinate)
-                hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
-            else
-                hit_and_run(p,PBLarge,var,var);
+    		if(var.coordinate)
+    		    hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var,true);
+    		else {
+				if (var.algoType==USE_EXACT)
+    		    	hit_and_run(p,PBLarge,var,var);
+				else
+    		    	hit_and_run_oracle(p,PBLarge,var,var);
+			}
         }
         if(PBSmall.second().is_in(p) == -1) { //is in
             randPoints.push_back(p);
@@ -248,6 +265,42 @@ int hit_and_run(Point &p,
 //	std::cout << "Point p1 is inside? " << (P.contains_point_naive(ppair.first, 0, &asd)?"yes":"no") << std::endl;
 //	std::cout << "Point p2 is inside? " << (P.contains_point_naive(ppair.second, 0, &asd)?"yes":"no") << std::endl;
 //	std::cout << "Point p is inside? " << (P.contains_point_naive(p, 0, &asd)?"yes":"no") << std::endl;
+    return 1;
+}
+
+template <class T>
+int hit_and_run_oracle(Point &p,
+                T &P,
+                vars &var,
+                vars &var2) {
+    int n = var.n;
+    double err = var.err;
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> &urdist = var.urdist;
+    boost::random::uniform_real_distribution<> &urdist1 = var.urdist1;
+    CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
+
+    int numberOfSteps;
+    bool succeeded = false;
+   	std::pair<Point,Point> ppair;// = P.line_intersect(p,l);
+	json js;
+	while (!succeeded) {
+    	Vector l = *gen - CGAL::Origin();
+		++gen;
+        Ray ray(p, l);
+    	ppair.first = P.compute_boundary_intersection(ray, &numberOfSteps, &succeeded, var.epsilon, var.algoType, var, js, 100);
+		if (!succeeded)
+			continue;
+    	l *= -1;
+		Ray ray2(p, l);
+    	ppair.second = P.compute_boundary_intersection(ray2, &numberOfSteps, &succeeded, var.epsilon, var.algoType, var, js, 100);
+	}
+
+    Vector b1 = ppair.first - CGAL::Origin();
+    Vector b2 = ppair.second - CGAL::Origin();
+	
+    double lambda = urdist(rng);
+    p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
     return 1;
 }
 

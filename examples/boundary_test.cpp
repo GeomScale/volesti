@@ -26,7 +26,7 @@
 
 #include <chrono>
 
-namespace funcs{
+namespace funcs2{
 class Timer2 {
 public:
 	Timer2() { start_time = std::chrono::high_resolution_clock::now(); }
@@ -51,7 +51,7 @@ private:
 
 namespace po = boost::program_options; 
 
-json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
+json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l, int algoType, float w) {
 	var.verbose = true;
 	Point* internalPoint = new Point(P->dimension(), CGAL::ORIGIN);
 	json rep;
@@ -59,10 +59,15 @@ json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
 	response["voronoi"] = rep;
 	response["rays"] = json::array();
 	Point chebPoint = P->create_point_representation(var, rep, internalPoint);
-	P->create_lsh_ds(k, l);
+	if (algoType==USE_LSH) {
+		P->create_lsh_ds(k, l);
+	} 
+	else if (algoType==USE_LSHBOX) {
+		P->create_lshbox(k, l, w);
+	}
 
 	CGAL::Random_points_on_sphere_d<Point> rps(P->dimension(), 1);
-	funcs::Timer2 timer;
+	funcs2::Timer2 timer;
 	for (int i=0; i<nqp; ++i) {
 	    std::list<Point> randPoints;
 	    rand_point_generator(*P, chebPoint, 1, var.walk_steps, randPoints, var);
@@ -73,16 +78,25 @@ json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
 		int numberOfSteps = 0;
 		bool succeeded = false;
 		json j;
+
 		timer.start();
-		Point appxPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.1, USE_LSH, var, j, var.walk_steps, l);
+		auto actualPoint = P->line_intersect(r.source(), r.direction().vector(), false);
+		j["actual_time"] = timer.elapsed_seconds();
+		j["actual_inside"] = (P->is_in(actualPoint.first)==-1);
+		if (!j["actual_inside"]) {
+			j["actual_error"] = P->is_in(actualPoint.first);
+		}
+
+		timer.start();
+		Point appxPoint = P->compute_boundary_intersection(r, &numberOfSteps, &succeeded, 0.1, algoType, var, j, var.walk_steps, l);
 		j["appx_time"] = timer.elapsed_seconds();
 		j["appx_path"] = j["steps"];
 		j["appx_succeeded"] = succeeded;
 		j["appx_steps"] = numberOfSteps;
 		j["appx_inside"] = (P->is_in(appxPoint)==-1);
-		if (!j["appx_inside"]) {
-			j["appx_error"] = P->is_in(appxPoint);
-		}
+		//if (!j["appx_inside"]) {
+			j["appx_error"] = std::sqrt(((actualPoint.first-CGAL::ORIGIN) - (appxPoint-CGAL::ORIGIN)).squared_length());
+		//}
 
 		succeeded = false;
 		numberOfSteps = 0;
@@ -94,17 +108,10 @@ json completeTests(stdHPolytope<double>* P, vars& var, int nqp, int k, int l) {
 		j["exact_steps"] = numberOfSteps;
 		j["exact_inside"] = (P->is_in(exactPoint)==-1);
 		if (!j["exact_inside"]) {
-			j["exact_error"] = P->is_in(exactPoint);
+			j["exact_error"] = std::sqrt(((actualPoint.first-CGAL::ORIGIN) - (exactPoint-CGAL::ORIGIN)).squared_length());
 		}
 		j.erase("steps");
 
-		timer.start();
-		auto actualPoint = P->line_intersect(r.source(), r.direction().vector(), false);
-		j["actual_time"] = timer.elapsed_seconds();
-		j["actual_inside"] = (P->is_in(actualPoint.first)==-1);
-		if (!j["actual_inside"]) {
-			j["actual_error"] = P->is_in(actualPoint.first);
-		}
 
 
 		for (auto pit=appxPoint.cartesian_begin(); pit!=appxPoint.cartesian_end(); ++pit) {
@@ -175,6 +182,8 @@ int main(int argc, char* argv[]) {
 	bool exact = true;
 	int k;
 	int l;
+	int algoType;
+	float w;
 	desc.add_options()
 		("help,h", "Help message")
 		(",n", po::value<int>(&n)->required(), "Number of points")
@@ -183,6 +192,8 @@ int main(int argc, char* argv[]) {
 		("nqp", po::value<int>(&nqp)->default_value(100), "Number of query points")
 		(",k", po::value<int>(&k)->default_value(-1), "k for LSH")
 		(",L", po::value<int>(&l)->default_value(-1), "L for LSH")
+		("algo,a", po::value<int>(&algoType)->default_value(USE_LSH), "0 -- FALCONN\n2 -- LSHBOX\n3 -- EXACT")
+		(",w", po::value<float>(&w)->default_value(4.0f), "Window of euclidian LSH hash functions")
 		("full", "If specified runs every boundary oracle");
 
 	po::variables_map vm; 
@@ -205,7 +216,7 @@ int main(int argc, char* argv[]) {
 	boost::random::uniform_real_distribution<> urdist1(-1,1);
    	int rnum = std::pow(0.000001,-2) * 400 * n * std::log(n);
     vars var(rnum,d,40,1,0.0000001,0,0,0,0,rng,get_snd_rand,
-                 urdist,urdist1,true,false,false,false,false,true,0,0.1);
+                 urdist,urdist1,true,false,false,false,false,true,USE_LSHBOX,0.1);
 
 	// create polytope with internal repr
 	json results;
@@ -215,7 +226,7 @@ int main(int argc, char* argv[]) {
 		results["original"] = simpleTests(P, var, nqp, exact, k, l);
 	}
 	else {
-		results["original"] = completeTests(P, var, nqp, k, l);
+		results["original"] = completeTests(P, var, nqp, k, l, algoType, w);
 	}
 
 	randomTransformation<stdHPolytope<double> >(P);	
@@ -224,7 +235,7 @@ int main(int argc, char* argv[]) {
 		results["transformed"] = simpleTests(P, var, nqp, exact, k, l);
 	}
 	else {
-		results["transformed"] = completeTests(P, var, nqp, k, l);
+		results["transformed"] = completeTests(P, var, nqp, k, l, algoType, w);
 	}
 
 	delete P;

@@ -23,6 +23,7 @@
 
 //this is for LP-solver
 //#include "../external/kd_GeRaF/source/Auto_random_kd_forest.h"
+#include </home/aneva/Libraries/funcs.hpp>
 #include <typeinfo>
 #include "falconn/lsh_nn_table.h"
 #include <iostream>
@@ -45,6 +46,8 @@
 #ifdef CGAL_USE_GMP
 #include <CGAL/Gmpzf.h>
 #include "json.hpp"
+#include <lshbox.h>
+typedef double LSHBOXNT;
 
 typedef CGAL::Gmpzf ET;
 #endif
@@ -61,8 +64,7 @@ typedef CGAL::Gmpzf ET;
 //to implement boundary oracles using NN queries
 //#include <flann/flann.hpp>
 const static int USE_LSH = 0;
-const static int USE_JL = 1;
-const static int USE_KDTREE = 2;
+const static int USE_LSHBOX = 2;
 const static int USE_EXACT = 3;
 
 using json = nlohmann::json;
@@ -186,10 +188,10 @@ public:
         _sites.clear();
 
 		/** Compute internal point */
-        Point tmp_internalPoint;
-        double radius;
+		Point tmp_internalPoint;
+		double radius;
 		if (givenInternalPoint!=NULL) {
-			tmp_internalPoint = (*givenInternalPoint);
+			tmp_internalPoint = *givenInternalPoint;
 		}
 		else {
         	this->chebyshev_center(tmp_internalPoint, radius);
@@ -248,6 +250,48 @@ public:
         return _sites[_sites.size()-1];
     }
 
+	void create_lshbox(int k, int l, float w=4.0) {
+		lshbox_data.reset(dimension(), _sites.size());
+		for (int i=0; i<_sites.size(); i++) {
+			auto it = _sites[i].cartesian_begin();
+			for (int j=0; j<dimension(); j++) {
+				lshbox_data[i][j] = (*it);
+				it++;
+			}
+		}
+
+		lshbox::psdLsh<LSHBOXNT>::Parameter param;
+		param.M = (unsigned) k;
+		param.L = (unsigned) l;
+		param.D = (unsigned) dimension();
+		param.T = (unsigned) 2;
+		param.W = (float) w;
+
+		//std::cout << "k = " << k << " (unsigned) k = " << (unsigned) k << " param.M = " << param.M << std::endl;
+		//std::cout << "l = " << l << " (unsigned) l = " << (unsigned) l << " param.L = " << param.L << std::endl;
+		//std::cout << "D = " << dimension() << " (unsigned) d = " << (unsigned) dimension() << " param.D = " << param.D << std::endl;
+		//std::cout << "w = " << w << " (float) w = " << (unsigned) w << " param.W = " << param.W << std::endl;
+		//lshbox::psdLsh<double>::Parameter param {
+		//	(unsigned) k,
+		//	(unsigned) l,
+		//	(unsigned) dimension(), 
+		//	(unsigned) 2,
+		//	(unsigned) w
+		//};
+
+		lshbox.reset(param);
+		//lshbox.train(lshbox_data);
+		lshbox.hash(lshbox_data);
+
+		accessor.init(lshbox_data);
+	    metric.reset(dimension(), L1_DIST);
+		scanner.init(
+        	accessor,
+        	metric,
+        	1
+    	);
+	}
+
     void create_lsh_ds(int k, int l) {
 
 		/* prepare data */
@@ -301,6 +345,34 @@ public:
 		}
 		return false;
 	}
+
+	bool contains_point_lshbox(Point& p, int* nnIndex_ptr) {
+		LSHBOXNT* point = new LSHBOXNT[dimension()];
+		int i=0;
+		for (auto it=p.cartesian_begin(); it!=p.cartesian_end(); ++it) {
+			point[i++] = (LSHBOXNT) (*it);
+		}
+
+		lshbox.query(point, scanner);
+		auto results = scanner.topk();
+		auto vec = results.getTopk();
+		bool inside;
+		if (vec.size()>0) {
+			auto pair = vec[0];
+			auto idx = pair.second;
+
+			inside = idx==_sites.size()-1;
+			(*nnIndex_ptr) = idx;
+		}
+		else {
+			inside = false;
+			(*nnIndex_ptr) = -1;
+		}
+
+		delete []point;
+		return inside;
+	}
+
 
     bool contains_point_lsh(Point& p, int num_probes, int* nnIndex_ptr) {
         Point newP = (CGAL::ORIGIN + (p-CGAL::ORIGIN)-(_sites.back()-CGAL::ORIGIN));
@@ -426,9 +498,12 @@ public:
 		double compute_point_time = 0;
 		double new_point_check_time = 0;
         bool cosine_positive = true;
+		int prev_nnIndex = -1;
+		Point* x1;
+		funcs::Timer2 timer;
+		double lshTime = 0;
         for (int currentIt=0; currentIt<maxSteps; currentIt++) {
 			json step;
-            double x0_ray_norm2 = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
             (*numberOfSteps)++;
             auto start_time = std::chrono::high_resolution_clock::now();
             bool contains;
@@ -441,6 +516,11 @@ public:
 			else if (algo_type==USE_EXACT) {
                 contains = contains_point_exact_nn(x0, 0, &nnIndex);
 			}
+			else if (algo_type==USE_LSHBOX) {
+				timer.start();
+                contains = contains_point_lshbox(x0, &nnIndex);
+				lshTime += timer.elapsed_seconds();
+			}
             end_time = std::chrono::high_resolution_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
             double elapsed_total = elapsed.count();
@@ -451,21 +531,31 @@ public:
 			}
             if (!contains) {
                 start_time = std::chrono::high_resolution_clock::now();
-				_A[nnIndex][0] *= -1;
-                auto it = _A[nnIndex].begin();
-                double coeff = (*it);
-                ++it;
-                Hyperplane nn_facet(dimension(), it, _A[nnIndex].end(), coeff);
-                CGAL::cpp11::result_of<Kernel::Intersect_d(Line, Hyperplane)>::type x1_tmp = CGAL::intersection(ray_line, nn_facet);
-                Point* x1 = boost::get<Point>(&*x1_tmp);
-				_A[nnIndex][0] *= -1;
-                end_time = std::chrono::high_resolution_clock::now();
-                elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
-                elapsed_total += elapsed.count();
-				compute_point_time += elapsed.count();
-                start_time = std::chrono::high_resolution_clock::now();
-                double x1_ray_norm = (((*x1)-CGAL::ORIGIN) - (ray_source_v)).squared_length();
-                double x0_ray_norm = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
+				bool goForEStep = false;
+               	double x0_ray_norm = ((x0-CGAL::ORIGIN) - (ray_source_v)).squared_length();
+				CGAL::cpp11::result_of<Kernel::Intersect_d(Line, Hyperplane)>::type x1_tmp;
+				if (nnIndex>=0) {
+					_A[nnIndex][0] *= -1;
+                	auto it = _A[nnIndex].begin();
+                	double coeff = (*it);
+                	++it;
+                	Hyperplane nn_facet(dimension(), it, _A[nnIndex].end(), coeff);
+                	x1_tmp = CGAL::intersection(ray_line, nn_facet);
+					x1 = boost::get<Point>(&*x1_tmp);
+					_A[nnIndex][0] *= -1;
+					end_time = std::chrono::high_resolution_clock::now();
+                	elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
+                	elapsed_total += elapsed.count();
+					compute_point_time += elapsed.count();
+                	start_time = std::chrono::high_resolution_clock::now();
+                	double x1_ray_norm = (((*x1)-CGAL::ORIGIN) - (ray_source_v)).squared_length();
+					if (x1_ray_norm>=x0_ray_norm) goForEStep = true;
+					else x0 = Point(dimension(), (*x1).cartesian_begin(), (*x1).cartesian_end());
+				}
+			   	else {
+					goForEStep = true;
+				}
+
 				if (var.verbose) {
 					step["inside"] = false;
 					//for (auto it=x1->cartesian_begin(); it!=x1->cartesian_end(); ++it) {
@@ -473,17 +563,18 @@ public:
 					//}
 				}
                 is_epsilon_update = false;
-				if ( (*x1)==x0 && epsilon==0 ) {
+				if ( algo_type==USE_EXACT && (*x1)==x0 && epsilon==0 ) {
 					contains = true;
 					*succeeded = true;
 					nnIndex = _sites.size()-1;
 				}	
-                else if ( x1_ray_norm>=x0_ray_norm) {
+                else if ( goForEStep) {
                     start_time = std::chrono::high_resolution_clock::now();
                     Vector newPoint_v = ((x0-CGAL::ORIGIN) - (ray.source()-CGAL::ORIGIN));
                     newPoint_v -= newPoint_dir;
-                    (*x1) = CGAL::ORIGIN + (newPoint_v + ray_source_v);
-                    if ((((*x1)-CGAL::ORIGIN)-ray_source_v).squared_length()>=x0_ray_norm) {
+                    //(*x1) = CGAL::ORIGIN + (newPoint_v + ray_source_v);
+                    x0 = CGAL::ORIGIN + (newPoint_v + ray_source_v);
+                    if (((x0-CGAL::ORIGIN)-ray_source_v).squared_length()>=x0_ray_norm) {
                         cosine_positive = false;
                     }
 					step["epsilon_step"] = true;
@@ -493,7 +584,7 @@ public:
                 } 
 				else {
 				}
-                x0 = Point(dimension(), (*x1).cartesian_begin(), (*x1).cartesian_end());
+                //x0 = Point(dimension(), (*x1).cartesian_begin(), (*x1).cartesian_end());
                 end_time = std::chrono::high_resolution_clock::now();
                 elapsed = std::chrono::duration_cast<std::chrono::duration<double>>(end_time - start_time);
 				new_point_check_time += elapsed.count();	
@@ -514,10 +605,12 @@ public:
 				break;
 
         }
+		//std::cout << "lsh time: " << lshTime << std::endl;
 		if (nnIndex!=_sites.size()-1) {
 			(*succeeded) = false;
-			if (cosine_positive) {
-				return CGAL::ORIGIN + ((_sites.back()-CGAL::ORIGIN) + newPoint_dir);//ray.source();
+			if (!cosine_positive) {
+				(*succeeded) = false;
+				return CGAL::ORIGIN + ((ray.source()-CGAL::ORIGIN) + newPoint_dir);//ray.source();
 			}
 			return ray.source();
 		}
@@ -1207,6 +1300,13 @@ private:
     stdMatrix      _A; //inequalities
     std::vector<Point>  _sites;
 	std::vector<Eigen::MatrixXd> projectedPoints;
+
+	lshbox::Matrix<LSHBOXNT> lshbox_data;
+	lshbox::psdLsh<LSHBOXNT> lshbox;
+	lshbox::Matrix<LSHBOXNT>::Accessor accessor;
+	lshbox::Metric<LSHBOXNT> metric;
+	lshbox::Scanner<lshbox::Matrix<LSHBOXNT>::Accessor> scanner;
+
     std::shared_ptr<falconn::LSHNearestNeighborTable<falconn::DenseVector<K>>> hptable;
     std::vector<falconn::DenseVector<K>> falconnData;
     Eigen::MatrixXd proj_matrix;
