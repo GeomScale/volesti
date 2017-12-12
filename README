@@ -1,4 +1,14 @@
-Approximate computation of volume of convex bodies.
+-------------------------------------------------------------------------------------------------
+A. Practical volume computation of structured convex bodies, and an application to modeling
+                       portfolio dependencies and financial crises.
+   Ludovic Cales, Apostolos Chalkis, Ioannis Z. Emiris and Vissarion Fisikopoulos
+
+Get access to code here: (link)
+--------------------------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------------------------
+B. Approximate computation of volume of convex bodies.
 
 By Vissarion Fisikopoulos, N.K. Univ. Athens, Greece, 2012-2016.
 Main algorithm based on: I.Z. Emiris and V. Fisikopoulos, "Efficient random-walk methods for approximating polytope volume", In Proc. ACM Symposium on Computational Geometry 2014, pages 318-325.
