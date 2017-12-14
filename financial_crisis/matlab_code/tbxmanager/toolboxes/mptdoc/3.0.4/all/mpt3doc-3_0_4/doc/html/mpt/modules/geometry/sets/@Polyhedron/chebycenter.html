@@ -1,0 +1,169 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>chebyCenter</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">chebyCenter</h1>
+<h2>Purpose</h2>
+<p>Compute the Chebyshev centre of the Polyhedron.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">s = P.chebyCenter</pre>
+<pre class="synopsis">s = P.chebyCenter(facet)</pre>
+<pre class="synopsis">s = P.chebyCenter(facet,bound)</pre>
+<pre class="synopsis">s = chebyCenter(P,facet,bound)</pre>
+<h2>Description</h2>
+<p></p>
+      Computes the Chebyshev centre of a polyhedron via solving the following optimization problem
+        <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter7.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter7.png"></p>
+        where <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter1.png"> is the centre of the ball inscribed inside the H-representation of the polyhedron <tt>P</tt>
+        and <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter2.png"> is the radius of the ball. The polyhedron is given as
+        <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter3.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter3.png"> with <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter4.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter4.png"> inequalities and <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter5.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter5.png"> equalities.
+
+        It is possible to compute the Chebyshev centre restricted to one or more facets of polyhedron by providing
+        vector of indices <tt>facet</tt>. Note that the polyhedron must be in its minimal representation in order
+        to have facets. If the facet indices are provided, the inequalities in the above optimization problem
+        belonging to these indices change to equality constraints.
+        
+        It is also possible to upper bound the radius <tt>r</tt> by specifying <tt>bound</tt> input. In this case
+        the constraint <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter6.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter6.png"> is added.
+
+<h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Polyhedron in H-representation.<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>facet</tt></td>
+<td>
+<p></p>Vector of indices specifying a subset of facets for computing the Chebyshev centre.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>bound</tt></td>
+<td>
+<p></p>Upper bound on the radius of the inscribed ball. <p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: Inf</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>s</tt></td>
+<td>
+<p></p>Structure with outputs from the Chebyshev centre optimization problem.<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>s.exitflag</tt></td>
+<td>
+<p></p>Informs if the optimization problem was terminated properly.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>s.x</tt></td>
+<td>
+<p></p>Centre of the ball inscribed in polyhedron <tt>P</tt>.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>s.r</tt></td>
+<td>
+<p></p>Radius of the ball inscribed in polyhedron <tt>P</tt>.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Chebyshev centre for 2D polyhedron.Define the polyhedron <tt>P</tt> 2D.<pre class="programlisting"> P = ExamplePoly.randHrep; </pre>
+<pre class="programlisting"></pre>Compute the centre of the ball inscribed ball <pre class="programlisting">s = P.chebyCenter </pre>
+<pre class="programlisting">
+s = 
+
+    exitflag: 1
+           x: [2x1 double]
+           r: 0.728566101748245
+
+</pre>Construct the circle out of the result.<pre class="programlisting">x = sdpvar(2,1); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">F = [norm(x-s.x)&lt;=s.r]; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> circle = YSet(x,F); </pre>
+<pre class="programlisting"></pre> plot the sets <pre class="programlisting"> plot(P); hold on; plot(circle); </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/chebycenter_img_1.png" width="60%"></p>
+<p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="interiorpoint.html" class="button">&#9664;</a>  </td>
+<td align="left">interiorpoint</td>
+<td>  </td>
+<td align="right">slice</td>
+<td align="right" width="20"><a href="slice.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+<p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

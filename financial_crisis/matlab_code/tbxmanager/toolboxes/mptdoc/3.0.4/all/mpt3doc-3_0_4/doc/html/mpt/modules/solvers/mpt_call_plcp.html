@@ -1,0 +1,198 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>mpt_call_plcp</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">mpt_call_plcp</h1>
+<h2>Purpose</h2>
+<p>A gateway function to PLCP solver (without errorchecks)</p>
+<h2>Syntax</h2>
+<pre class="synopsis">R = mpt_call_plcp(S)</pre>
+<h2>Description</h2>
+<p></p>
+        The function implements call to PLCP solver from <tt>Opt</tt> class.
+        Supported problems are PLCP, MPLP, and MPQP.
+        For PLCP, the problem is directly passed to <tt>mpt_plcp</tt> solver.
+        For MPLP/MPQP, the problem is first transformed to PLCP and then PLCP solver is called.
+                
+	<h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>S</tt></td>
+<td>
+<p></p>Object of the <tt>Opt</tt> class with the PLCP data.<p>
+	    		Class: <tt>Opt</tt><p></p><tr valign="top">
+<td><tt>S.Ath</tt></td>
+<td>
+<p></p>Linear part of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_plcp1.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_plcp1.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.bth</tt></td>
+<td>
+<p></p>Right hand side of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_plcp2.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_plcp2.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.M</tt></td>
+<td>
+<p></p>Linear matrix involved in LCP.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.q</tt></td>
+<td>
+<p></p>Right hand side vector involved in LCP.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.Q</tt></td>
+<td>
+<p></p>Linear matrix involved in parametric formulation of LCP.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.n</tt></td>
+<td>
+<p></p>Number of decision variables.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.d</tt></td>
+<td>
+<p></p>Number of parameters.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.varOrder</tt></td>
+<td>
+<p></p>Order of variables if the problem was processed by YALMIP first.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.Internal</tt></td>
+<td>
+<p></p>Internal property of <tt>Opt</tt> class.<p>
+	    		Class: <tt>struct</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>R</tt></td>
+<td>
+<p></p>result structure<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>R.xopt</tt></td>
+<td>
+<p></p>Optimal solution<p>
+	    		Class: <tt>PolyUnion</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.exitflag</tt></td>
+<td>
+<p></p>An integer value that informs if the result was feasible (1), or otherwise (different from 1)<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.how</tt></td>
+<td>
+<p></p>A string that informs if the result was feasible ('ok'), or if any problem appeared through optimization<p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.solveTime</tt></td>
+<td>
+<p></p>Information about the time that elapsed during the computation in seconds.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.stats</tt></td>
+<td>
+<p></p>Further details from the parametric solver.<p>
+	    		Class: <tt>struct</tt></p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>See Also</h2>
+<a href="./@Opt/opt.html">opt</a>, <a href="./mpt_solvemp.html">mpt_solvemp</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="mpt_call_mplp.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt_call_mplp</td>
+<td>  </td>
+<td align="right">mpt_call_qpspline</td>
+<td align="right" width="20"><a href="mpt_call_qpspline.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

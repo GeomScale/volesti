@@ -1,0 +1,10 @@
+variable x1
+variable x2
+parameter a
+parameter b
+
+maximize (x1 + geo_mean(x1,x2))
+subject to
+    a <= x1
+    x1 <= b
+    x2 <= x1

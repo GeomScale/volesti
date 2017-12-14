@@ -1,0 +1,121 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>uplus</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">uplus</h1>
+<h2>Purpose</h2>
+<p>Unitary plus for a polyhedron.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">Q = +P;</pre>
+<h2>Description</h2>
+<p></p>
+        Creates a new copy <tt>Q</tt> of the polyhedron <tt>P</tt> by copying all fields.
+    <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>
+         <tt>Polyhedron</tt> object.<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3> Create H-polyhedron<pre class="programlisting"> P = ExamplePoly.randHrep; </pre>
+<pre class="programlisting"></pre> Copy the polyhedron<pre class="programlisting"> Q = +P; </pre>
+<pre class="programlisting"></pre> 
+         <tt>P</tt> and <tt>Q</tt> are the same.<pre class="programlisting"> P==Q </pre>
+<pre class="programlisting">
+ans =
+
+     1
+
+</pre> 
+         <tt>Q</tt> will not change if <tt>P</tt> is modified. <pre class="programlisting"> P.normalize </pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep (irredundant) : Inequalities   5 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : none
+</pre> The H-description is different because <tt>P</tt> was changed. <pre class="programlisting"> [P.H, Q.H] </pre>
+<pre class="programlisting">
+ans =
+
+  Columns 1 through 5
+
+        -0.973873353820151         0.227091811210997           1.7721262710235        -0.549550768330796         0.128146518069415
+         0.525474934212241        -0.850809081706725          0.90121033341638         0.583076907496421        -0.944073819572629
+        -0.707421776611562        -0.706791645377718         0.475188542788992         -1.48871808326762         -1.48739201755454
+         0.930209391282812         0.367029274539865          1.30994430764807         0.710113694034025         0.280186930388549
+         0.999999574238128     -0.000922780343876191         0.386625296472837          2.58648252807323      -0.00238675625287499
+
+  Column 6
+
+                         1
+                         1
+                         1
+                         1
+                         1
+
+</pre>
+<h2>See Also</h2>
+<a href="./uminus.html">uminus</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="triangulate.html" class="button">&#9664;</a>  </td>
+<td align="left">triangulate</td>
+<td>  </td>
+<td align="right">isinside</td>
+<td align="right" width="20"><a href="isinside.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+</body>
+</html>

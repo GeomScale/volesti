@@ -1,0 +1,10 @@
+variable x(2)
+
+parameter A(1,2)
+parameter ct(1,2)
+parameter b
+
+minimize ct*x
+subject to
+A*x == b
+x >= 0

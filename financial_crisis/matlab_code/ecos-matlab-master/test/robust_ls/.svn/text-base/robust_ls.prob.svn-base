@@ -1,0 +1,26 @@
+variable x1
+variable x2
+
+parameter a11
+parameter a12
+parameter a21
+parameter a22
+parameter a31
+parameter a32
+parameter a41
+parameter a42
+
+parameter b1
+parameter b2
+parameter b3
+parameter b4
+
+parameter c11
+parameter c12
+parameter d
+parameter e
+
+minimize square(a11*x1 + a12*x2 - b1) + square(a21*x1 + a22*x2 - b2) + square(a31*x1 + a32*x2 - b3) + square(a41*x1 + a42*x2 - b4)
+subject to
+    c11*x1 + c12*x2 == d
+    max([abs(x1);abs(x2)]) <= e

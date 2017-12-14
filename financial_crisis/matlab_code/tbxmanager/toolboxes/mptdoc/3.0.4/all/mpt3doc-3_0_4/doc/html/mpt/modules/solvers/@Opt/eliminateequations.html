@@ -1,0 +1,214 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>eliminateEquations</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">eliminateEquations</h1>
+<h2>Purpose</h2>
+<p>Reduce LP/QP/MPLP/MPQP by removing equality constraints</p>
+<h2>Syntax</h2>
+<pre class="synopsis">problem.eliminateEquations</pre>
+<pre class="synopsis">eliminateEquations(problem)</pre>
+<h2>Description</h2>
+<p></p>
+        Remove equality constraints involved in LP, QP, MPLP, and MPQP of the dimension <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations1.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations1.png"> to get optimization
+        problem in the dimension <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations2.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations2.png"> where <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations3.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations3.png"> stands for the number of equalities.
+        Consider the following MPQP
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations23.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations23.png"></p>
+        which contains <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations4.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations4.png">inequality constrains and <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations5.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations5.png"> equality constraints. 
+        
+        To be able to reduce the optimization problem to a simpler form, it is required that the system 
+        of linear equations <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations6.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations6.png"> is consistent, i.e. no linearly 
+        dependent rows are found and the number of equalities <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations7.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations7.png"> is strictly less than number of variables <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations8.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations8.png">, 
+        i.e. <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations9.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations9.png">.
+        The principle is based on factorizing equality constraints <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations10.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations10.png"> in basic <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations11.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations11.png">
+        and non-basic variables <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations12.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations12.png">, i.e.
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations24.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations24.png"></p>
+        which gives
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations25.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations25.png"></p>
+        where the index sets <tt>Bc</tt>, <tt>Nc</tt> denote the columns from which factored system is built. 
+        The factored submatrix <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations13.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations13.png"> must be invertible in order to express basic variables as 
+        a function of non-basic variables, i.e.
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations26.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations26.png"></p>
+        Using the substitution
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations27.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations27.png"></p>
+        and 
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations28.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations28.png"></p>
+        the  relation between basic and non-basic variables is simplified to
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations29.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations29.png"></p>
+        The above MPQP problem <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations14.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations14.png">
+        can be expressed only in non-basic variables <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations15.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations15.png"> as follows:
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations30.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations30.png"></p>        
+        where     
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations31.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations31.png"></p>
+        Original solution to LP/QP problem <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations16.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations16.png"> can be obtained 
+        via relation <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations17.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations17.png">.  The matrices of the backward map are stored inside
+        <tt>recover</tt> property of the <tt>Opt</tt> class as follows
+        <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations32.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations32.png"></p>
+        where the matrix <tt>Y</tt> corresponds to <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations18.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations18.png"> and the matrix <tt>th</tt> to <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations19.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations19.png"> in <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations20.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations20.png">.
+        Note the the reduced problem <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations21.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations21.png"> has different 
+        cost function as the original problem.
+        
+	<h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>problem</tt></td>
+<td>
+<p></p> LP/QP/MPLP/MPQP optimization problem given as <tt>Opt</tt> class. <p>
+	    		Class: <tt>Opt</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Consider LP optimization problem with the following data <pre class="programlisting"> f = [-1 1 2]; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> A = [1 -1 0.4; 0.5 -9 -2; 0.5 -1 0; -5.1 -1 -3]; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> b = [1; 2; 2; 4]; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> Ae = [1 0 0]; be = 1; </pre>
+<pre class="programlisting"></pre> Create the problem <pre class="programlisting"> problem = Opt('A',A,'b',b,'f',f,'Ae',Ae,'be',be) </pre>
+<pre class="programlisting">-------------------------------------------------
+Linear program
+	Num variables:                3
+	Num inequality constraints:   4
+	Num equality constraints:     1
+	Solver:                     LCP
+-------------------------------------------------
+</pre> The problem has equality constraint <img src="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations22.png" alt="../../../../../fig/mpt/modules/solvers/@Opt/eliminateequations22.png"> which can be verified by solving the problem.<pre class="programlisting"> r = problem.solve </pre>
+<pre class="programlisting">
+r = 
+
+        xopt: [3x1 double]
+      lambda: [1x1 struct]
+         obj: -6.884
+         how: 'ok'
+    exitflag: 1
+
+</pre>
+<pre class="programlisting"> r.xopt </pre>
+<pre class="programlisting">
+ans =
+
+                         1
+                     0.548
+                    -3.216
+
+</pre> We can eliminate the equality constaint by calling <pre class="programlisting"> problem.eliminateEquations </pre>
+<pre class="programlisting">-------------------------------------------------
+Linear program
+	Num variables:                2
+	Num inequality constraints:   4
+	Num equality constraints:     0
+	Solver:                     LCP
+-------------------------------------------------
+</pre> The solution and the objective value is different <pre class="programlisting"> rn = problem.solve </pre>
+<pre class="programlisting">
+rn = 
+
+        xopt: [2x1 double]
+      lambda: [1x1 struct]
+         obj: -6.884
+         how: 'ok'
+    exitflag: 1
+
+</pre>
+<pre class="programlisting"> rn.xopt </pre>
+<pre class="programlisting">
+ans =
+
+                    -3.216
+                     0.548
+
+</pre> The mapping between the variables in the old and new problem are stored inside <tt>recover</tt> property. <pre class="programlisting"> problem.recover </pre>
+<pre class="programlisting">
+ans = 
+
+     Y: [3x2 double]
+    th: [3x1 double]
+
+</pre> To get the original solution, use <pre class="programlisting"> xold = problem.recover.Y*rn.xopt + problem.recover.th </pre>
+<pre class="programlisting">
+xold =
+
+                         1
+                     0.548
+                    -3.216
+
+</pre> We can see that the solution is the same <pre class="programlisting"> r.xopt - xold </pre>
+<pre class="programlisting">
+ans =
+
+     0
+     0
+     0
+
+</pre>
+<h2>References</h2>
+<p class="citetitle">[1] 
+	Stephen Boyd and Lieven Vandenberghe: Convex Optimization; Cambridge University Press
+</p>
+<p class="citetitle">[2] 
+	Richard W. Cottle, Jong-Shi Pang, Richard E. Stone: Linear complementarity problem, Academic Press Inc. 1992
+</p>
+<h2>See Also</h2>
+<a href="./solve.html">solve</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="qp2lcp.html" class="button">&#9664;</a>  </td>
+<td align="left">qp2lcp</td>
+<td>  </td>
+<td align="right">opt</td>
+<td align="right" width="20"><a href="opt.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+<p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

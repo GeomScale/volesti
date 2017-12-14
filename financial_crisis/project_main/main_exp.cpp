@@ -48,13 +48,13 @@ int main(int argc, char* argv[]){
 	//int choice=atoi(argv[1]);
 	
 	
-    if(!strcmp(argv[1],"-h")||!strcmp(argv[1],"--help")){
+    if(!strcmp(argv[1],"-h")||!strcmp(argv[1],"-help")){
         std::cerr<<
                     "Usage:\n"<<
                     "-r 1: Run rejection for arbitrary simplex and two arbitrary hyperplanes compared to rejection from unit simplex\n"<<
                     "-r 2: Run rejection for 2 hyperplanes intersecting the unit simplex\n"<<
                     "-r 3: Run rejection for two families of parallel hyperplanes intersecting the facet simplex\n"<<
-                    "-r 4: Run rejection for one family of parallel hyperplanes and one family of cocentric ellipsoids intersecting the facet simplex\n"<<
+                    "-r 4: Run rejection for one family of parallel hyperplanes and one family of cocentric, at the origin, ellipsoids intersecting the facet simplex\n"<<
                     "-ve 1 1: Run VolEsti for an ellipsoid intersecting a unit simplex using random inscribed ball\n"<<
                     "-ve 1 2: Run VolEsti for an ellipsoid intersecting a unit simplex using inscribed ball solving conical optimization problem\n"<<
                     "-ve 2: Run VolEsti for an ellipsoid and two parallel hyperplanes intersecting the unit simplex\n"<<
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]){
 		if (choice==1){
 			
 			timer tim;
-			int dim=atoi(argv[3]), num=atoi(argv[4]),j;
+			int dim=atoi(argv[3]), num=atoi(argv[4]),j,i;
 			double time1,time2,size=100.0,vol_unit,vol_arb;
             std::vector<Point_d> v;
             std::vector<double> pl1,pl2;
@@ -107,8 +107,24 @@ int main(int argc, char* argv[]){
 			std::cout<<"Rejection in  arbitrary simplex, volume: "<<vol_arb<<std::endl;
 			std::cout<<"Rejection in  arbitrary simplex, time: "<<time1<<std::endl;
 			std::cout<<"\n";
-			std::cout<<"Rejection in  unit simplex, volume: "<<vol_unit<<std::endl;
-			std::cout<<"Rejection in  unit simplex, time: "<<time2<<std::endl;
+			std::cout<<"Using rejection in  unit simplex, volume: "<<vol_unit<<std::endl;
+			std::cout<<"Using rejection in  unit simplex, time: "<<time2<<std::endl;
+            
+            std::ofstream outputFile3;
+            outputFile3.open("hyperplane1.txt");
+            std::ofstream outputFile4;
+            outputFile4.open("hyperplane2.txt");
+            for (i=0; i<dim+1; i++){
+                if (i<dim){
+                    outputFile3<<plane1[i]<<" ";
+                    outputFile4<<plane2[i]<<" ";
+                    
+                }else{
+                    outputFile3<<-plane1[i]<<"\n";
+                    outputFile4<<-plane1[i]<<"\n";
+                }
+            }
+            
 			
 			
 		}else if (choice==2){
@@ -162,10 +178,8 @@ int main(int argc, char* argv[]){
 			}
 			
 			for (i=0; i<dim; i++){
-                if (i<dim){
-                    pl1.push_back(planes[i]);
-                    pl2.push_back(planes[i+dim]);
-                }
+                pl1.push_back(planes[i]);
+                pl2.push_back(planes[i+dim]);
             }
             tim.reset();
 			tim.start();
@@ -189,6 +203,7 @@ int main(int argc, char* argv[]){
         }else if(choice==4){
             
             int dim=atoi(argv[3]), num=atoi(argv[4]),i,j;
+            //std::cout<<"hello"<<std::endl;
 			std::vector<double> planes,pl1,ellips;
             double time, z1, z2;
             timer tim;
@@ -211,7 +226,7 @@ int main(int argc, char* argv[]){
             }
             
             std::ifstream inputFile2;
-			std::string inputFileName2 = argv[5]; //reading the input txt file
+			std::string inputFileName2 = argv[6]; //reading the input txt file
 			inputFile2.open(inputFileName2.c_str()); //converting the input to a c-style string
 			
 			std::istream_iterator< double >  input_begin2( inputFile2 );
@@ -219,7 +234,7 @@ int main(int argc, char* argv[]){
 			for(std::istream_iterator< double > it2 = input_begin2; it2 != input_end2; ++it2){
 				ellips.push_back(*it2);
 			}
-            
+            //std::cout<<"hello"<<std::endl;
             MatrixXd C(dim,dim);
             VectorXd center(dim);
             
@@ -264,7 +279,7 @@ int main(int argc, char* argv[]){
                 double time, time2, c0, e=atof(argv[7]),vol, vol_sam;
                 timer tim;
                 
-                
+                std::cout<<"hello"<<std::endl;
                 std::ifstream inputFile2;
                 std::string inputFileName2 = argv[8]; //reading the input txt file
                 inputFile2.open(inputFileName2.c_str()); //converting the input to a c-style string
@@ -277,20 +292,25 @@ int main(int argc, char* argv[]){
             
                 MatrixXd C(dim,dim);
                 VectorXd center(dim);
-                
+              //  std::cout<<"hello"<<std::endl;
                 for (i=0; i<dim+1; i++){
+                   // std::cout<<"hello"<<std::endl;
                     if (i<dim){
                         for (j=0; j<dim; j++){
                             C(i,j)=vec[j+i*dim];
+                          //  std::cout<<C(i,j)<<std::endl;
                         }
                     }else{
                         for (j=0; j<dim; j++){
-                            center(i)=vec[j+i*dim];
+                            center(j)=vec[j+dim*dim];
+                          //  std::cout<<"center "<<center(i)<<std::endl;
                         }
-                        c0=vec[dim+i*dim];
+                        c0=vec[dim+dim*dim];
+                       // std::cout<<c0<<std::endl;
                     }
                 }
-                
+               // std::cout<<center<<std::endl;
+               // std::cout<<c0<<std::endl;
                 ellipsoids G(C, center, c0, dim);
                 int rnum = std::pow(e,-2) * 400 * dim * std::log(dim);
                 
@@ -330,14 +350,15 @@ int main(int argc, char* argv[]){
                     vec.push_back(*it);
                 }
 			
-                for (i=0; i<dim+1; i++){
+                for (i=0; i<dim; i++){
                     if (i<dim){
                         cntr.push_back(vec[i]);
+                        //std::vector<<cntr[i]<<"
                     }else{
                         RR=vec[i];
                     }
                 }
-                
+                RR=vec[dim];
                 vec.clear();
                 std::ifstream inputFile2;
                 std::string inputFileName2 = argv[8]; //reading the input txt file
@@ -359,9 +380,9 @@ int main(int argc, char* argv[]){
                         }
                     }else{
                         for (j=0; j<dim; j++){
-                            center(i)=vec[j+i*dim];
+                            center(j)=vec[j+dim*dim];
                         }
-                        c0=vec[dim+i*dim];
+                        c0=vec[dim+dim*dim];
                     }
                 }
                 
@@ -416,9 +437,9 @@ int main(int argc, char* argv[]){
                     }
                 }else{
                     for (j=0; j<dim; j++){
-                        center(i)=vec[j+i*dim];
+                        center(j)=vec[j+dim*dim];
                     }
-                    c0=vec[dim+i*dim];
+                    c0=vec[dim+dim*dim];
                 }
             }
                 
@@ -427,7 +448,7 @@ int main(int argc, char* argv[]){
                 
             vec.clear();
             std::ifstream inputFile;
-            std::string inputFileName = argv[5]; //reading the input txt file
+            std::string inputFileName = argv[8]; //reading the input txt file
             inputFile.open(inputFileName.c_str()); //converting the input to a c-style string
 			
             std::istream_iterator< double >  input_begin( inputFile );
@@ -450,7 +471,7 @@ int main(int argc, char* argv[]){
             
             tim.reset();
             tim.start();
-            vol_sam=sample_2hyp_par(dim, num, pl, z1, z2);
+            vol_sam=sample_cut_ellipsoid_and_hyps(dim, num, G, pl, z1, z2);
             time2=tim.time();
                 
             std::cout<<"VolEsti Volume: "<<vol<<std::endl;
@@ -479,7 +500,7 @@ int main(int argc, char* argv[]){
            
             MatrixXd C(dim,dim);
             VectorXd center(dim);
-              
+           //   std::cout<<"hello"<<std::endl;
             for (i=0; i<dim+1; i++){
                 if (i<dim){
                     for (j=0; j<dim; j++){
@@ -487,13 +508,13 @@ int main(int argc, char* argv[]){
                     }
                 }else{
                     for (j=0; j<dim; j++){
-                        center(i)=vec[j+i*dim];
+                        center(j)=vec[j+dim*dim];
                     }
                     c1=vec[dim+i*dim];
                     c2=vec[dim+i*dim+1];
                 }
             }
-                
+          //  std::cout<<"hello"<<std::endl;
             ellipsoids G1(C, center, c1, dim);
             ellipsoids G2(C, center, c2, dim);
             int rnum = std::pow(e,-2) * 400 * dim * std::log(dim);
@@ -509,13 +530,13 @@ int main(int argc, char* argv[]){
                 vec.push_back(*it);
             }
 			
-            for (i=0; i<dim+2; i++){
+            for (i=0; i<dim; i++){
                 if (i<dim){
                     pl.push_back(vec[i]);
                 }
             }
             z1=vec[dim]; z2=vec[dim+1];
-                
+          //      std::cout<<"hello"<<std::endl;
             tim.reset();
             tim.start();
             vol=VolEsti_ellips_nonConvex(G1, G2, walk_len, rnum, pl, z1, z2);
@@ -562,6 +583,9 @@ int main(int argc, char* argv[]){
         tim.reset();
         tim.start();
         vol=vol_Ali(pl,-z1,dim);
+        for (i=0; i<dim; i++){
+            vol=vol/((double)(i+1));
+        }
         time=tim.time();
         
         std::cout<<"Volume: "<<vol<<std::endl;
@@ -592,7 +616,7 @@ int main(int argc, char* argv[]){
                 }
             }
             z1=vec[dim]; z2=vec[dim+1];
-        
+            std::cout<<"z1: "<<z1<<" z2: "<<z2<<std::endl;
             tim.reset();
             tim.start();
             NT3 vol=Lawn1(pl, dim, z1, z2);
@@ -600,11 +624,13 @@ int main(int argc, char* argv[]){
         
             vol1=vol_Ali(pl,-z1,dim);
             vol2=vol_Ali(pl,-z2,dim);
+            std::cout<<"vol1 Varsi: "<<vol1<<" vol2 Varsi: "<<vol2<<std::endl;
             vol2=vol2-vol1;
-        
+            
+            
             std::cout<<"Volume: "<<CGAL::to_double(vol)<<std::endl;
             std::cout<<"Excecutional time: "<<time<<std::endl;
-            std::cout<<"Exact Volume with Varsi: "<<vol<<std::endl;
+            std::cout<<"Exact Volume with Varsi: "<<vol2<<std::endl;
             
         }else if (choice2==2){
             
@@ -633,15 +659,21 @@ int main(int argc, char* argv[]){
             tim.reset();
             tim.start();
             vol=Lawn2(pl, dim, z1, z2);
+            for (i=0; i<dim; i++){
+                vol=vol/((double)(i+1));
+            }
             time=tim.time();
         
             vol1=vol_Ali(pl,-z1,dim);
             vol2=vol_Ali(pl,-z2,dim);
             vol2=vol2-vol1;
+            for (i=0; i<dim; i++){
+                vol2=vol2/((double)(i+1));
+            }
         
             std::cout<<"Volume: "<<vol<<std::endl;
             std::cout<<"Excecutional time: "<<time<<std::endl;
-            std::cout<<"Exact Volume with Varsi: "<<vol<<std::endl;
+            std::cout<<"Exact Volume with Varsi: "<<vol2<<std::endl;
             
         }
         

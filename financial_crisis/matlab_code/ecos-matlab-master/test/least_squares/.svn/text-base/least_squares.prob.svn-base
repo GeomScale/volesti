@@ -1,0 +1,16 @@
+dimension m = 10
+dimension n = 5
+dimension p = 3
+
+parameter A(m,n)
+parameter b(m)
+parameter C(p,n)
+parameter d(p)
+parameter e
+
+variable x(n)
+
+minimize square(norm(A*x - b))
+subject to
+    C*x == d
+    norm_inf(x) <= e

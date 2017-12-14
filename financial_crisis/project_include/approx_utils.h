@@ -401,7 +401,7 @@ std::pair<Point_d,double> get_center_radius_inscribed_simplex(std::vector<Point_
 //	std::cout<<"hello2"<<std::endl;
 	g=Bg*g;
 	g=radius*g;
-//	std::cout<<"hello3"<<std::endl;
+	//std::cout<<"hello3"<<std::endl;
 	for (i=0; i<dim; i++){
 		temp_p.push_back(p0[i]+g(i));
 	}
@@ -409,7 +409,7 @@ std::pair<Point_d,double> get_center_radius_inscribed_simplex(std::vector<Point_
 	//std::cout<< "small radius is: "<< radius <<std::endl;
 	result.first=c;
 	result.second=radius;
-	
+	//std::cout<<"hello2"<<std::endl;
 	return result;
 	
 }
@@ -570,7 +570,7 @@ std::pair<Point_d,double> rand_inscribed_ball(ellipsoids G){//std::vector<Point_
 	}
 	std::cout<<"size of points: "<<points.size()<<std::endl;
 	result=get_center_radius_inscribed_simplex(points.begin(), points.end());
-	//std::cout<<"center is: "<<center<<std::endl;
+	std::cout<<"center is: "<<std::endl;
 	//std::cout<<"radius is: "<<*r<<std::endl;
 	//*radius=*r;
 	//c=center;

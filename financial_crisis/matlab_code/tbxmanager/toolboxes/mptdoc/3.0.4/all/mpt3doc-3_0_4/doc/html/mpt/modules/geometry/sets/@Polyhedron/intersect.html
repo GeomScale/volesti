@@ -1,0 +1,155 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>intersect</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">intersect</h1>
+<h2>Purpose</h2>
+<p>Intersect two polyhedra.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">PnS = intersect(P, S)</pre>
+<h2>Description</h2>
+<p></p>
+	  Compute the intersection of two polyhedra:
+ 
+	  <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect5.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect5.png"></p>
+
+	  Note: If <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect1.png"> or <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect2.png"> are in V-rep, then this function will first compute their convex
+	  hull.
+	<h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Polyhedron in any format<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>S</tt></td>
+<td>
+<p></p>Polyhedron in any format<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>PnS</tt></td>
+<td>
+<p></p>Intersection of <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect3.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect3.png"> and <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect4.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect4.png">.<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Intersect two polytopes.<pre class="programlisting">P = ExamplePoly.randVrep;</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">S = ExamplePoly.randHrep;</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">PnS = intersect(P,S)</pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep (redundant)   : Inequalities  15 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : none
+</pre>
+<pre class="programlisting">plot([P;S],'alpha',0.1);hold on; 
+	    plot(PnS,'color','r','alpha',0.6);</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect_img_1.png" width="60%"></p>
+<h3>Example 
+				2</h3>Intersect a polytope and an unbounded polyhedron.<pre class="programlisting">P = Polyhedron('V', [1 1;0 1;1 0], 'R', -[1 0]);</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">S = Polyhedron('H', [randn(10,2) 4*ones(10,1)]);</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">PnS = intersect(P,S)</pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep (redundant)   : Inequalities  13 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : none
+</pre>
+<pre class="programlisting">plot(P,'color','b','alpha',0.1);hold on;
+	       plot(S,'color','g','alpha',0.1); plot(PnS,'color','r','alpha',0.6);</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect_img_2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect_img_2.png" width="60%"></p>
+<h3>Example 
+				3</h3>Intersect a 3D polytope and a lower dimensional cone.<pre class="programlisting">P = Polyhedron('lb',-0.5*ones(3,1), 'ub', 0.5*ones(3,1));</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">S = Polyhedron('R', [-1 0 .5;-1 2 2]);</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">PnS = intersect(P,S)</pre>
+<pre class="programlisting">Polyhedron in R^3 with representations:
+    H-rep (redundant)   : Inequalities   8 | Equalities   1
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : none
+</pre>
+<pre class="programlisting">plot(P,'color','b','alpha',0.1);hold on;
+	       plot(S,'color','g','alpha',0.1); plot(PnS,'color','r','alpha',1);</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect_img_3.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/intersect_img_3.png" width="60%"></p>
+<p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="le.html" class="button">&#9664;</a>  </td>
+<td align="left">le</td>
+<td>  </td>
+<td align="right">outerapprox</td>
+<td align="right" width="20"><a href="outerapprox.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+</body>
+</html>

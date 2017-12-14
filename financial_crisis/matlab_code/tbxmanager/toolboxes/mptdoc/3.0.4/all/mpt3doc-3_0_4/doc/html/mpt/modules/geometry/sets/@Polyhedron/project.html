@@ -1,0 +1,143 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>project</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">project</h1>
+<h2>Purpose</h2>
+<p>Project a point onto the given polyhedron.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">ret = P.project(x)</pre>
+<pre class="synopsis">ret = project(P, x)</pre>
+<h2>Description</h2>
+<p></p> 
+    Computes the projection of the point <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project1.png"> onto this polyhedron by solving the
+    optimization problem:
+    <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project11.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project11.png"></p>
+
+    If <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project2.png"> is a vector of <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project3.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project3.png"> Polyhedra and <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project4.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project4.png"> is a matrix of size <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project5.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project5.png">,
+    then <tt>ret</tt> is a cell array with the structure fields  that correspond the projection of each point in the matrix.
+  <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Polyhedron in any format<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>y</tt></td>
+<td>
+<p></p>Vector of size <tt>P.Dim</tt> that represent single point <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project6.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project6.png">, or matrix of size <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project7.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project7.png">
+    that corresponds to multiple points merged column-wise.
+    <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>ret</tt></td>
+<td>
+<p></p>Optimal solution<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>ret.x</tt></td>
+<td>
+<p></p>Projected point or [] if <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project8.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project8.png"> is empty</td>
+</tr><tr valign="top">
+<td><tt>ret.exitflag</tt></td>
+<td>
+<p></p>Informs about the termination status of the optimization problem.<p>
+	    		Class: <tt>double</tt><p>Allowed values:</p><ul>
+<li><tt>mptopt.OK</tt></li>
+<li><tt>mptopt.INFEASIBLE</tt></li>
+<li><tt>mptopt.UNBOUNDED</tt></li>
+<li><tt>mptopt.ERR</tt></li>
+</ul></p>
+</td>
+</tr><tr valign="top">
+<td><tt>ret.dist</tt></td>
+<td>
+<p></p>Distance from <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project9.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project9.png"> to the set <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project10.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project10.png">.</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create polyhedron:<pre class="programlisting">P = ExamplePoly.poly3d_sin;</pre>
+<pre class="programlisting"></pre>Choose a point and project:<pre class="programlisting">y = [2;2];</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">ret = P.project(y);</pre>
+<pre class="programlisting"></pre>Plot the result<pre class="programlisting">P.plot; hold on; pplot([ret.x';y'],'or');
+      axis square; th=linspace(0,2*pi,100)';
+      pplot(ret.dist*[sin(th) cos(th)]+repmat(y',100,1),'k');</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/project_img_1.png" width="60%"></p>
+<h2>See Also</h2>
+<a href="./projection.html">projection</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="eq.html" class="button">&#9664;</a>  </td>
+<td align="left">eq</td>
+<td>  </td>
+<td align="right">incidencemap</td>
+<td align="right" width="20"><a href="incidencemap.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+</body>
+</html>

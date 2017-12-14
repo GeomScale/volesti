@@ -1,0 +1,157 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>slice</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">slice</h1>
+<h2>Purpose</h2>
+<p>Slice the polyhedron through given dimensions at specified values.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">S = P.slice(dims, values)</pre>
+<pre class="synopsis">S = slice(P, dims, values)</pre>
+<pre class="synopsis">S = P.slice(dims, values, 'keepDim', true/false)</pre>
+<h2>Description</h2>
+<p></p> 
+      Compute the intersection of <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice1.png"> with a subspace spanning the dimensions <tt>dims</tt> at
+      given <tt>values</tt>. If the argument <tt>values</tt> are omitted, the value is assumed to be
+      zero, i.e. <tt>values = zeros(size(dims))</tt>.
+
+     
+     For a polyhedron given in H-representation
+     <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice2.png"></p>     
+     the <tt>slice</tt> operation over <tt>dims</tt> at given <tt>values</tt> returns a polyhedron
+     in a reduced dimension <tt>P.Dim-length(dims)</tt>
+     
+      <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice3.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice3.png"></p>
+     This corresponds to the default choice <tt>keepdim=false</tt>.<br><br>
+     Alternatively, by invoking <tt>keepdim=true</tt>, the polyhedron <tt>S</tt> will be returned in the same
+     dimension as <tt>P</tt>
+     
+      <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice4.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice4.png"></p>
+      
+      
+  
+   <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Polyhedron in any format<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>dims</tt></td>
+<td>
+<p></p>Dimensions to cut through<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>values</tt></td>
+<td>
+<p></p>Set of values at which to compute the slices.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: 0</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>S</tt></td>
+<td>
+<p></p>Polyhedron that represents the cut of the polyhedron <tt>P</tt> over the specified dimensions.<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3> Create random symmetric polytope in dimension 3.<pre class="programlisting">P = ExamplePoly.poly3d_sin('d',3);</pre>
+<pre class="programlisting"></pre>Compute slices over the dimension 2 but preserve the dimension <pre class="programlisting">S = P.slice(2,0,'keepDim',true);</pre>
+<pre class="programlisting"></pre>Plot the result<pre class="programlisting">P.plot('alpha',0.2,'color','lightblue'); hold on;
+              S.plot('color','blue','alpha',0.2,'linestyle','--','linewidth',3);
+              axis tight;
+          </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice_img_1.png" width="60%"></p>
+<h3>Example 
+				2</h3>Create a polytope in 4D from five points.<pre class="programlisting">v = [-7, -3, -10, 2; 1,-5, 6, 8; -2, 6, -5, -5; 4, -4, 9, -8; 3, -4, 5, -3]; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">P = Polyhedron(v);</pre>
+<pre class="programlisting"></pre>Slice it over dimensions 2 and 4 at values [1;-5] <pre class="programlisting">S = P.slice([2,4], [1;-5])</pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep (redundant)   : Inequalities   5 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : none
+</pre> The resulting polyhedron <tt>S</tt> is in reduced dimension and can be plotted.<pre class="programlisting"> S.plot('color','green','alpha',0.5); </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice_img_2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/slice_img_2.png" width="60%"></p>
+<h2>See Also</h2>
+<a href="./projection.html">projection</a>, <a href="./project.html">project</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="chebycenter.html" class="button">&#9664;</a>  </td>
+<td align="left">chebycenter</td>
+<td>  </td>
+<td align="right">extreme</td>
+<td align="right" width="20"><a href="extreme.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+<p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

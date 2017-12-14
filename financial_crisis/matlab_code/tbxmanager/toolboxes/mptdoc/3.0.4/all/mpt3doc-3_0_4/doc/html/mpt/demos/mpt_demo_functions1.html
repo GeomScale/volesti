@@ -1,0 +1,186 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>mpt_demo_functions1</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">mpt_demo_functions1</h1>
+<h2>Purpose</h2>
+<p>Demonstration of functions associated to sets</p>
+<h2>Syntax</h2>
+<pre class="synopsis">mpt_demo_functions1</pre>
+<h2>Description</h2>
+<p></p>
+        Demonstration of functions associated to sets.
+	<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Constructing general functions Create Function object <img src="../../../fig/mpt/demos/mpt_demo_functions11.png" alt="../../../fig/mpt/demos/mpt_demo_functions11.png">. <pre class="programlisting"> F1 = Function(@(x)x) </pre>
+<pre class="programlisting">Function: @(x)x
+</pre> Create Function object <img src="../../../fig/mpt/demos/mpt_demo_functions12.png" alt="../../../fig/mpt/demos/mpt_demo_functions12.png">. <pre class="programlisting"> F2 = Function(@(x) x_(1)-x_(2)^3) </pre>
+<pre class="programlisting">Function: @(x)x_(1)-x_(2)^3
+</pre> Create Function with parameter <img src="../../../fig/mpt/demos/mpt_demo_functions13.png" alt="../../../fig/mpt/demos/mpt_demo_functions13.png">, <img src="../../../fig/mpt/demos/mpt_demo_functions14.png" alt="../../../fig/mpt/demos/mpt_demo_functions14.png">.  Since the parameter value may change, we first create the  object with the parameter <img src="../../../fig/mpt/demos/mpt_demo_functions15.png" alt="../../../fig/mpt/demos/mpt_demo_functions15.png">. <pre class="programlisting"> F3 = Function([],struct('K',eye(2))) </pre>
+<pre class="programlisting">Empty Function
+</pre> Once the object has been created, we can assign the handle and refer to already stored parameter <img src="../../../fig/mpt/demos/mpt_demo_functions16.png" alt="../../../fig/mpt/demos/mpt_demo_functions16.png">. <pre class="programlisting"> F3.setHandle(@(x) -log(F3.Data.K*x)) </pre>
+<pre class="programlisting">Function: @(x)-log(F3.Data.K*x)
+</pre> We can change the value of the parameter any time later. <pre class="programlisting"> F3.Data.K = 2*eye(2) </pre>
+<pre class="programlisting">Function: @(x)-log(F3.Data.K*x)
+</pre>
+<h3>Example 
+				2</h3> Constructing linear and affine functions  Affine map <img src="../../../fig/mpt/demos/mpt_demo_functions17.png" alt="../../../fig/mpt/demos/mpt_demo_functions17.png"> 
+      <pre class="programlisting"> L1 = AffFunction(6,1) </pre>
+<pre class="programlisting">Affine Function: R^1 -&gt; R^1
+</pre> Affine map <img src="../../../fig/mpt/demos/mpt_demo_functions18.png" alt="../../../fig/mpt/demos/mpt_demo_functions18.png"> 
+      <pre class="programlisting"> L2 = AffFunction([-1,1],1) </pre>
+<pre class="programlisting">Affine Function: R^2 -&gt; R^1
+</pre> Vector function <img src="../../../fig/mpt/demos/mpt_demo_functions19.png" alt="../../../fig/mpt/demos/mpt_demo_functions19.png">. <pre class="programlisting"> L3 = AffFunction(eye(2),[1;2]) </pre>
+<pre class="programlisting">Affine Function: R^2 -&gt; R^2
+</pre> Linear function <img src="../../../fig/mpt/demos/mpt_demo_functions110.png" alt="../../../fig/mpt/demos/mpt_demo_functions110.png"> 
+      <pre class="programlisting"> L4 = AffFunction(eye(5)) </pre>
+<pre class="programlisting">Affine Function: R^5 -&gt; R^5
+</pre>
+<h3>Example 
+				3</h3> Constructing quadratic functions  Quadratic map <img src="../../../fig/mpt/demos/mpt_demo_functions111.png" alt="../../../fig/mpt/demos/mpt_demo_functions111.png">. <pre class="programlisting"> Q1 = QuadFunction(1,1) </pre>
+<pre class="programlisting">Quadratic Function: R^1 -&gt; R^1
+</pre> Quadratic map <img src="../../../fig/mpt/demos/mpt_demo_functions112.png" alt="../../../fig/mpt/demos/mpt_demo_functions112.png">. <pre class="programlisting"> Q2 = QuadFunction(2,-4) </pre>
+<pre class="programlisting">Quadratic Function: R^1 -&gt; R^1
+</pre> Quadratic map <img src="../../../fig/mpt/demos/mpt_demo_functions113.png" alt="../../../fig/mpt/demos/mpt_demo_functions113.png"> 
+      <pre class="programlisting"> Q3 = QuadFunction(eye(2),[0,0],1) </pre>
+<pre class="programlisting">Quadratic Function: R^2 -&gt; R^1
+</pre>
+<h3>Example 
+				4</h3> Assign function to a set  Construct the polyhedron first. <pre class="programlisting"> P1 = Polyhedron('lb',-1,'ub',1)</pre>
+<pre class="programlisting">Polyhedron in R^1 with representations:
+    H-rep (redundant)   : Inequalities   2 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : none
+</pre> Assign the function to a set under under the name "a". <pre class="programlisting"> P1.addFunction(QuadFunction(4,-1),'a') </pre>
+<pre class="programlisting">Polyhedron in R^1 with representations:
+    H-rep (redundant)   : Inequalities   2 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : 1 attached "a"
+</pre> Another polyhedron<pre class="programlisting"> P2 = Polyhedron('V',[-1 1;1 1; -1 -1]) </pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep               : Unknown (call computeHRep() to compute)
+    V-rep (redundant)   : Vertices   3 | Rays   0
+Functions : none
+</pre> Assign the function under the name "b". <pre class="programlisting"> P2.addFunction(AffFunction(-eye(2),[-1;2]),'b') </pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep               : Unknown (call computeHRep() to compute)
+    V-rep (redundant)   : Vertices   3 | Rays   0
+Functions : 1 attached "b"
+</pre> You can assign names to functions handles. <pre class="programlisting">P3 = Polyhedron('lb',[-1;-1],'ub',[1;1])</pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep (redundant)   : Inequalities   4 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : none
+</pre>
+<pre class="programlisting">P3.addFunction(Function(@(x)x.^2-x.^3+1),'gain') </pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep (redundant)   : Inequalities   4 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : 1 attached "gain"
+</pre>
+<pre class="programlisting">P3.addFunction(AffFunction(randn(2)),'power') </pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep (redundant)   : Inequalities   4 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : 2 attached "gain", "power"
+</pre> Multiple functions can be assign only at separate calls. <pre class="programlisting"> P4 = Polyhedron('V',randn(6,2)); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> L(1) = AffFunction(randn(2),randn(2,1)); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> L(2) = AffFunction(randn(2),randn(2,1)); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> P4.addFunction(L(1),'a') </pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep               : Unknown (call computeHRep() to compute)
+    V-rep (redundant)   : Vertices   6 | Rays   0
+Functions : 1 attached "a"
+</pre>
+<pre class="programlisting"> P4.addFunction(L(2),'b') </pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep               : Unknown (call computeHRep() to compute)
+    V-rep (redundant)   : Vertices   6 | Rays   0
+Functions : 2 attached "a", "b"
+</pre>
+<h3>Example 
+				5</h3> Plotting of functions  Plot the function over the set based on the name <pre class="programlisting"> P3.fplot('gain') </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_functions1_img_1.png" alt="../../../fig/mpt/demos/mpt_demo_functions1_img_1.png" width="60%"></p>
+<pre class="programlisting"> P3.fplot('power') </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_functions1_img_2.png" alt="../../../fig/mpt/demos/mpt_demo_functions1_img_2.png" width="60%"></p> Plot the first element of the vector valued function "a" <pre class="programlisting"> P4.fplot('a','position',1,'color','y') </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_functions1_img_3.png" alt="../../../fig/mpt/demos/mpt_demo_functions1_img_3.png" width="60%"></p> Plot the second element of the vector valued function "b" based on the index.<pre class="programlisting"> P4.fplot('b','position',2,'color','m') </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_functions1_img_4.png" alt="../../../fig/mpt/demos/mpt_demo_functions1_img_4.png" width="60%"></p>
+<h3>Example 
+				6</h3> Evaluation of functions  Evaluate the function based on the name <pre class="programlisting"> P3.feval([1;0],'power') </pre>
+<pre class="programlisting">
+ans =
+
+         0.482747657739079
+         0.373550607694242
+
+</pre> Evaluate the function "gain" <pre class="programlisting"> P3.feval([-1;0],'gain') </pre>
+<pre class="programlisting">
+ans =
+
+     3
+     1
+
+</pre>
+<h2>See Also</h2>
+<a href="./mpt_demo_functions2.html">mpt_demo_functions2</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="../../mpt.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt</td>
+<td>  </td>
+<td align="right">mpt_demo_deployment_onlinempc</td>
+<td align="right" width="20"><a href="mpt_demo_deployment_onlinempc.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

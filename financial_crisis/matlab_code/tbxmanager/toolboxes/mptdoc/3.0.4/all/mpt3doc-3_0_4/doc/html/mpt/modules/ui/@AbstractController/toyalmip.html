@@ -1,0 +1,145 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>toYALMIP</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">toYALMIP</h1>
+<h2>Purpose</h2>
+<p>Converts an MPC problem into YALMIP's constraints and objective</p>
+<h2>Syntax</h2>
+<pre class="synopsis">yalmipdata = controller.toYALMIP()</pre>
+<h2>Description</h2>
+<p></p> 
+    This function convers an MPC optimization problem into YALMIP. The
+    output structure contains following fields:
+    <ul>
+      
+         <li>
+            <tt>constraints</tt>: contains constraints of the MPC
+      problem as YALMIP's <tt>lmi</tt> object.</li>
+      
+         <li>
+            <tt>objective</tt>: scalar variable of type <tt>sdpvar</tt>
+      which defines the optimization objective.</li>
+      
+         <li>
+            <tt>variables</tt>: structure containing variables of the
+      optimization problem.</li>
+    
+      </ul>
+
+    This method is MPT3 replacement of MPT2's <tt>ownmpc</tt>
+    mechanism. In short, <tt>toYALMIP</tt> allows to modify the MPC
+    problem by adding new constraints and/or by modifying the
+    objective function.
+  <h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>yalmipdata</tt></td>
+<td>
+<p></p>Structure containing constraints, objective, and variables
+    of the MPC problem.<p>
+	    		Class: <tt>struct</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create a 1D LTI system <img src="../../../../../fig/mpt/modules/ui/@AbstractController/toyalmip1.png" alt="../../../../../fig/mpt/modules/ui/@AbstractController/toyalmip1.png">.<pre class="programlisting">sys = LTISystem('A', 0.9, 'B', 1);</pre>
+<pre class="programlisting"></pre>Define an MPC controller.<pre class="programlisting">ctrl = MPCController(sys);</pre>
+<pre class="programlisting"></pre>Specify constraints, penalties, and the prediction horizon.<pre class="programlisting">
+		ctrl.model.x.min = -5; ctrl.model.x.max = 5;
+		ctrl.model.u.min = -5; ctrl.model.u.max = 5;
+		ctrl.model.x.penalty = QuadFunction(1);
+		ctrl.model.u.penalty = QuadFunction(1);
+		ctrl.N = 3;
+	</pre>
+<pre class="programlisting"></pre>Obtain the optimal sequence of inputs over the whole
+    prediction horizon for the initial condition <tt>x0=3</tt>.<pre class="programlisting">[~, ~, openloop] = ctrl.evaluate(3); openloop.U</pre>
+<pre class="programlisting">
+ans =
+
+         -1.57733887733888        -0.505197505197505      5.55111512312578e-17
+
+</pre>Convert the problem to YALMIP and add custom state constraints 
+	on the first two predicted inputs via YALMIP.<pre class="programlisting">
+		Y = ctrl.toYALMIP()
+		Y.constraints = Y.constraints + [ -0.5 &lt;= Y.variables.u(:, 1) &lt;= 0.5];
+		Y.constraints = Y.constraints + [ -0.8 &lt;= Y.variables.u(:, 2) &lt;= 0.8];
+		ctrl.fromYALMIP(Y);
+		x0 = 3;
+		[~, ~, openloop] = ctrl.evaluate(x0); openloop.U
+	</pre>
+<pre class="programlisting">
+Y = 
+
+    constraints: [4 lmi]
+      objective: [1x1 sdpvar]
+      variables: [1x1 struct]
+       internal: [1x1 struct]
+
+
+ans =
+
+                      -0.5                      -0.8       -6.418622835482e-17
+
+</pre>Notice that the updated controller respects constraints
+    added via YALMIP.<h2>See Also</h2>
+<a href="./fromyalmip.html">fromyalmip</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="fromyalmip.html" class="button">&#9664;</a>  </td>
+<td align="left">fromyalmip</td>
+<td>  </td>
+<td align="right">mpt</td>
+<td align="right" width="20"><a href="../../../../mpt.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

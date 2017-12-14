@@ -1,0 +1,247 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>mpt_call_qpspline</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">mpt_call_qpspline</h1>
+<h2>Purpose</h2>
+<p>A gateway function to QPspline solver (without errorchecks)</p>
+<h2>Syntax</h2>
+<pre class="synopsis">R = mpt_call_qpspline(S)</pre>
+<h2>Description</h2>
+<p></p>
+        The function implements call to QPspline solver based on formulation from <tt>Opt</tt> class.
+        Only QP problems are supported with positive definite Hessian.
+        
+        It is assumed that QP entering this function is of the form
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline20.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline20.png"></p>
+        which must be transformed to 
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline21.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline21.png"></p>
+        which accepts QPspline. The lower bound <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline1.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline1.png"> is always set as <tt>-MPTOPTIONS.infbound</tt>.
+        
+        If QP contains equality constraints, these are removed first. It is required that the system of 
+        linear equations <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline2.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline2.png"> is consistent, i.e. no linearly dependent rows are found and 
+        the number of equalities is strictly less than number of variables.
+        The principle is based on factorizing equality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline3.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline3.png"> in basic <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline4.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline4.png">
+        and non-basic variables <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline5.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline5.png">, i.e.
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline22.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline22.png"></p>
+        which gives
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline23.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline23.png"></p>
+        where the index sets <tt>Bc</tt>, <tt>Nc</tt> denote the columns from which factored system is built. 
+        The factored submatrix <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline6.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline6.png"> must be invertible in order to express basic variables as 
+        a function of non-basic variables, i.e.
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline24.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline24.png"></p>
+        With the substitution
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline25.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline25.png"></p>
+        and 
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline26.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline26.png"></p>
+        the  relation between basic and non-basic variables is simplified to
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline27.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline27.png"></p>
+        The above QP problem <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline7.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline7.png"> can be expressed only in non-basic variables <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline8.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline8.png"> as follows:
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline28.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline28.png"></p>        
+        where 
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline29.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline29.png"></p>
+        Original solution to QP problem <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline9.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline9.png"> can be 
+        obtained via relation <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline10.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline10.png">.
+                
+	<h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>S</tt></td>
+<td>
+<p></p>structure of the Opt class<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>S.H</tt></td>
+<td>
+<p></p>Quadratic part of the objective function which is strictly convex <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline11.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline11.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.f</tt></td>
+<td>
+<p></p>Linear part of the objective function.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.A</tt></td>
+<td>
+<p></p>Linear part of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline12.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline12.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.b</tt></td>
+<td>
+<p></p>Right hand side of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline13.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline13.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.Ae</tt></td>
+<td>
+<p></p>Linear part of the equality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline14.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline14.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.be</tt></td>
+<td>
+<p></p>Right hand side of the equality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline15.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline15.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.lb</tt></td>
+<td>
+<p></p>Lower bound for the variables <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline16.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline16.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.ub</tt></td>
+<td>
+<p></p>Upper bound for the variables <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline17.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline17.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.n</tt></td>
+<td>
+<p></p>Problem dimension (number of variables).<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.m</tt></td>
+<td>
+<p></p>Number of inequalities in <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline18.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline18.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.me</tt></td>
+<td>
+<p></p>Number of equalities in <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpspline19.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpspline19.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.problem_type</tt></td>
+<td>
+<p></p>A string specifying the problem to be solved.<p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.test</tt></td>
+<td>
+<p></p>Call (false) or not to call (true) MPT global settings.<p>
+	    		Class: <tt>logical</tt></p>
+<p>
+	    		Default: false</p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>R</tt></td>
+<td>
+<p></p>result structure<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>R.xopt</tt></td>
+<td>
+<p></p>Optimal solution.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.obj</tt></td>
+<td>
+<p></p>Optimal objective value.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.lambda</tt></td>
+<td>
+<p></p>Lagrangian multipliers<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.exitflag</tt></td>
+<td>
+<p></p>An integer value that informs if the result was feasible (1), or otherwise (different from 1).<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.how</tt></td>
+<td>
+<p></p>A string that informs if the result was feasible ('ok'), or if any problem appeared through optimization.<p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>See Also</h2>
+<a href="./mpt_solve.html">mpt_solve</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="mpt_call_plcp.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt_call_plcp</td>
+<td>  </td>
+<td align="right">mpt_call_linprog</td>
+<td align="right" width="20"><a href="mpt_call_linprog.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

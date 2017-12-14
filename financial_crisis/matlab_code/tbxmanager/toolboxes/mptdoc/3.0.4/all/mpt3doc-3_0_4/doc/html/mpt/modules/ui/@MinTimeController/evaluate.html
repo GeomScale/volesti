@@ -1,0 +1,128 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>evaluate</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">evaluate</h1>
+<h2>Purpose</h2>
+<p>Returns the optimal control action</p>
+<h2>Syntax</h2>
+<pre class="synopsis">u = controller.evaluate(x0)</pre>
+<pre class="synopsis">[u, feasible] = controller.evaluate(x0)</pre>
+<pre class="synopsis">[U, feasible, openloop] = controller.evaluate(x0)</pre>
+<h2>Description</h2>
+<p></p> 
+    
+      <tt>u = controller.evaluate(x0)</tt> solves the MPC optimization
+	problem using <tt>x0</tt> as the initial condition and returns the
+	first element of the optimal sequence of control inputs. If
+	the problem is infeasible, <tt>u</tt> will be <tt>NaN</tt>.<br><br>
+
+    
+      <tt>[u, feasible] = controller.evaluate(x0)</tt> also returns the
+	boolean feasibility flag.<br><br>
+
+    
+      <tt>[u, feasible, openloop] = controller.evaluate(x0)</tt> also returns
+	the open-loop predictions of states, inputs and outputs in 
+	<tt>openloop.X</tt>, <tt>openloop.Y</tt>, and <tt>openloop.Y</tt>,
+	respectively. Value of the optimal cost is returned in
+	<tt>openloop.cost</tt>.
+  <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>x0</tt></td>
+<td>
+<p></p>Initial state of the MPC optimization problem.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>u</tt></td>
+<td>
+<p></p>Optimal control action.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>feasible</tt></td>
+<td>
+<p></p>True if the optimization problem was feasible, false otherwise.<p>
+	    		Class: <tt>logical</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>openloop</tt></td>
+<td>
+<p></p>Structure containing open-loop predictions and value of the optimal cost.<p>
+	    		Class: <tt>struct</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="mintimecontroller.html" class="button">&#9664;</a>  </td>
+<td align="left">mintimecontroller</td>
+<td>  </td>
+<td align="right">mpt</td>
+<td align="right" width="20"><a href="../../../../mpt.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

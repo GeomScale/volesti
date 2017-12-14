@@ -1,0 +1,189 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>distance</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">distance</h1>
+<h2>Purpose</h2>
+<p>Compute the distance between the given point/polyhedron and this polyhedron.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">dist = P.distance(x)</pre>
+<pre class="synopsis">ret = P.distance(S)</pre>
+<pre class="synopsis">dist = distance(P, x)</pre>
+<pre class="synopsis">ret = distance(P, S)</pre>
+<h2>Description</h2>
+<p></p> 
+      Compute the distance between the polyhedron <tt>P</tt> and the point <tt>x</tt> or the polyhedron <tt>S</tt>.      
+      <ol>
+          
+         <li>
+    		By providing real vector <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance1.png">, the distance between <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance2.png"> and <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance3.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance3.png"> is computed by
+    		solving the optimization problem
+    		<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance18.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance18.png"></p>
+            and the distance is returned as real number.
+        </li>
+        
+         <li>
+    		If polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance4.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance4.png"> is specified as the argument, the distance between <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance5.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance5.png"> and <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance6.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance6.png"> is
+    		computed by solving the following optimization problem
+    		<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance19.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance19.png"></p>
+            where the results of the optimization are returned in a struct format.
+        </li>
+	
+      </ol>
+  
+   <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Polyhedron in any format<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>x</tt></td>
+<td>
+<p></p>Vector of size P.Dim<p>
+	    		Class: <tt>double vector</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>S</tt></td>
+<td>
+<p></p>Polyhedron with the same dimension as <tt>P</tt>.<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>dist</tt></td>
+<td>
+<p></p>Distance between the point <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance7.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance7.png"> and the Polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance8.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance8.png">
+      <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>ret</tt></td>
+<td>
+<p></p>Optimal solution or [] if <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance9.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance9.png"> is empty.<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>ret.exitflag</tt></td>
+<td>
+<p></p>Integer value informing about the termination status of the optimization. <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>ret.dist</tt></td>
+<td>
+<p></p>Distance from <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance10.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance10.png"> to the set <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance11.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance11.png">
+            <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>ret.x</tt></td>
+<td>
+<p></p>Point <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance12.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance12.png"> in <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance13.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance13.png"> closest to <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance14.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance14.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>ret.y</tt></td>
+<td>
+<p></p>Point <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance15.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance15.png"> in <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance16.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance16.png"> closest to <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance17.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance17.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><p></p></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create a polytope:<pre class="programlisting">P = ExamplePoly.poly3d_sin;</pre>
+<pre class="programlisting"></pre>Choose a point and compute the distance:<pre class="programlisting">y = [2;2];</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">d = P.distance(y);</pre>
+<pre class="programlisting"></pre>Plot the result<pre class="programlisting">P.plot; hold on; pplot(y','or');
+      axis square; th=linspace(0,2*pi,100)';
+      pplot(d.dist*[sin(th) cos(th)]+repmat(y',100,1),'k');</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance_img_1.png" width="60%"></p>
+<h3>Example 
+				2</h3>Create two polyhedra:<pre class="programlisting">P = ExamplePoly.poly3d_sin('d',3);</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">[U,s]=svd(randn(3)); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">S = ExamplePoly.poly3d_sin.affineMap(U(:,1:2)) + [2;2;2];</pre>
+<pre class="programlisting"></pre>Compute the distance:<pre class="programlisting">ret = distance(P,S);</pre>
+<pre class="programlisting"></pre>Plot the result<pre class="programlisting">plot([P S]); hold on; pplot([ret.x';ret.y'],'ok-'); axis square;</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance_img_2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/distance_img_2.png" width="60%"></p>
+<h2>See Also</h2>
+<a href="./minvrep.html">minvrep</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="invaffinemap.html" class="button">&#9664;</a>  </td>
+<td align="left">invaffinemap</td>
+<td>  </td>
+<td align="right">le</td>
+<td align="right" width="20"><a href="le.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+</body>
+</html>

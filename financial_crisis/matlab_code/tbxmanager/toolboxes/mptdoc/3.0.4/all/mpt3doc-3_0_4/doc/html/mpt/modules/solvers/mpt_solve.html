@@ -1,0 +1,388 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>mpt_solve</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">mpt_solve</h1>
+<h2>Purpose</h2>
+<p>A gateway function to solve non-parametric optimization problems (without errorchecks)</p>
+<h2>Syntax</h2>
+<pre class="synopsis">R = mpt_solve(S)</pre>
+<h2>Description</h2>
+<p></p>
+		The function is the main routine for fast calls for solving non-parametric optimization problems
+        in MPT. In fact, it is a subroutine of <tt>Opt</tt> as a part of <tt>solve</tt> method.
+        The <tt>Opt</tt> class serves as general wrapper for preprocessing the data 
+        involved in optimization, including necessary error checks. Once the data are valid, 
+        then are passed to <tt>mpt_solve</tt> function that calls the appropriate solver.
+        
+        It is assumed that QP/LP/MIQP/MILP and entering this function (for LP/MILP <img src="../../../../fig/mpt/modules/solvers/mpt_solve1.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve1.png">)
+        is of the form
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_solve28.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve28.png"></p>
+        where the set <img src="../../../../fig/mpt/modules/solvers/mpt_solve2.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve2.png"> represents
+        <ul>
+            
+         <li>C - continuous variables, <img src="../../../../fig/mpt/modules/solvers/mpt_solve3.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve3.png"> 
+         </li>
+            
+         <li>I - integer variables <img src="../../../../fig/mpt/modules/solvers/mpt_solve4.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve4.png"> 
+         </li>
+            
+         <li>B - binary variables <img src="../../../../fig/mpt/modules/solvers/mpt_solve5.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve5.png"> 
+         </li>
+            
+         <li>N - semi-integer variables (possibly bounded above) <img src="../../../../fig/mpt/modules/solvers/mpt_solve6.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve6.png"> 
+         </li>
+            
+         <li>S - semi-continuous variables (possibly bounded above) <img src="../../../../fig/mpt/modules/solvers/mpt_solve7.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve7.png"> 
+         </li>
+        
+      </ul>
+        which is given by strings in <tt>vartype</tt> field. The matrices <img src="../../../../fig/mpt/modules/solvers/mpt_solve8.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve8.png">, <img src="../../../../fig/mpt/modules/solvers/mpt_solve9.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve9.png">, <img src="../../../../fig/mpt/modules/solvers/mpt_solve10.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve10.png">,
+        and vectors <img src="../../../../fig/mpt/modules/solvers/mpt_solve11.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve11.png">,<img src="../../../../fig/mpt/modules/solvers/mpt_solve12.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve12.png">, <img src="../../../../fig/mpt/modules/solvers/mpt_solve13.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve13.png">, <tt>lb</tt>, <tt>ub</tt> are the problem data, 
+        then <img src="../../../../fig/mpt/modules/solvers/mpt_solve14.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve14.png"> are the decision variables.
+
+        The LCP must be given as:
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_solve29.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve29.png"></p>
+        where the matrices <img src="../../../../fig/mpt/modules/solvers/mpt_solve15.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve15.png">, <img src="../../../../fig/mpt/modules/solvers/mpt_solve16.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve16.png">, and vectors <img src="../../../../fig/mpt/modules/solvers/mpt_solve17.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve17.png"> are the 
+        problem data, <img src="../../../../fig/mpt/modules/solvers/mpt_solve18.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve18.png">, <img src="../../../../fig/mpt/modules/solvers/mpt_solve19.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve19.png"> are the decision variables to be determined.
+        
+        
+        The function <tt>mpt_solve</tt> processes the problem data and passes it to the appropriate solver. The 
+        particular solver can be specified by providing <tt>solver</tt> name or it is selected automatically from 
+        the list of available solvers. Based on the solver name, the appropriated function is called:
+        <ul>
+            
+         <li>
+            <b>CDD</b> solver is installed by default, and can be called via <tt>mpt_call_cdd</tt>. Solves LP problems.</li>
+            
+         <li>
+            <b>CLP</b> solver is installed by default, and can be called via <tt>mpt_call_clp</tt>. Solves LP/QP problems.</li>
+            
+         <li>
+            <b>CPLEX</b> is a commercial solver and must be installed additionally. It can be called via <tt>mpt_call_cplex</tt>. 
+                CPLEX solves LP/QP/MILP/MIQP problems.</li>
+            
+         <li>
+            <b>GLPK</b> solver is installed by default, and can be called via <tt>mpt_call_glpk</tt>. It solves
+                LP/QP/MILP problems.</li>
+            
+         <li>
+            <b>GUROBI</b> is a commercial solver and must be installed additionally. It can be called via <tt>mpt_call_gurobi</tt>. 
+                It solves LP/QP/MILP/MIQP problems.
+            </li>
+            
+         <li>
+            <b>LCP</b> is a default solver, and can be called via <tt>mpt_call_lcp</tt>. It can be used to solve LP/QP and LCP problems.</li>
+            
+         <li>
+            <b>LINPROG</b> is Matlab LP solver, and can be called via <tt>mpt_call_linprog</tt>.</li>
+            
+         <li>
+            <b>QUADPROG</b> is Matlab QP solver, and can be called via <tt>mpt_call_quadprog</tt>.</li>
+            
+         <li>
+            <b>NAG</b> is a commercial solver and must be installed additionally. It can be called via <tt>mpt_call_nag</tt>. 
+                It solves LP/QP problems.
+            </li>
+            
+         <li>
+            <b>QPC</b> is LP/QP solver that need to be installed additionally. It can be called via <tt>mpt_call_qpc</tt>.</li>
+            
+         <li>
+            <b>QPOASES</b> is LP/QP solver that is installed by default. It can be called via <tt>mpt_call_qpoases</tt>.</li>
+            
+         <li>
+            <b>QPSPLINE</b> is a QP solver for strictly convex problems and can be called via <tt>mpt_call_qpspline</tt>.</li>
+            
+         <li>
+            <b>SEDUMI</b> is a semidefinite solver for general convex problems and can be called via <tt>mpt_call_sedumi</tt>.</li>
+        
+      </ul>
+             
+	
+   <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>S</tt></td>
+<td>
+<p></p>structure of the Opt class<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>S.H</tt></td>
+<td>
+<p></p>quadratic part of the objective function<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.f</tt></td>
+<td>
+<p></p>linear part of the objective function<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.A</tt></td>
+<td>
+<p></p>linear part of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_solve20.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve20.png">
+            <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.b</tt></td>
+<td>
+<p></p>right hand side of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_solve21.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve21.png">
+            <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.Ae</tt></td>
+<td>
+<p></p>linear part of the equality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_solve22.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve22.png">
+            <p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.be</tt></td>
+<td>
+<p></p>right hand side of the equality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_solve23.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve23.png">
+            <p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.lb</tt></td>
+<td>
+<p></p>lower bound for the variables <img src="../../../../fig/mpt/modules/solvers/mpt_solve24.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve24.png">
+            <p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.ub</tt></td>
+<td>
+<p></p>upper bound for the variables <img src="../../../../fig/mpt/modules/solvers/mpt_solve25.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve25.png">
+            <p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.M</tt></td>
+<td>
+<p></p>Positive semi-definite matrix defining LCP.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.q</tt></td>
+<td>
+<p></p>Right hand side vector defining LCP.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.n</tt></td>
+<td>
+<p></p>problem dimension (number of variables)<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.m</tt></td>
+<td>
+<p></p>number of inequalities in <img src="../../../../fig/mpt/modules/solvers/mpt_solve26.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve26.png">
+            <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.me</tt></td>
+<td>
+<p></p>number of equalities in <img src="../../../../fig/mpt/modules/solvers/mpt_solve27.png" alt="../../../../fig/mpt/modules/solvers/mpt_solve27.png">
+            <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.problem_type</tt></td>
+<td>
+<p></p>a string specifying the problem to be solved<p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.vartype</tt></td>
+<td>
+<p></p>A string specifying the type of variable. Supported characters are
+                C (continuous), I (integer), B (binary), N (semi-integer), S (semi-continuous). 
+                Example: First variable from three is binary, the rest is continuous: <tt>S.vartype='BCC';</tt> 
+                
+            <p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.solver</tt></td>
+<td>
+<p></p>S string specifying which solver should be called. <p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.test</tt></td>
+<td>
+<p></p>Call (false) or not to call (true) MPT global settings<p>
+	    		Class: <tt>logical</tt></p>
+<p>
+	    		Default: false</p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>R</tt></td>
+<td>
+<p></p>result structure<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>R.xopt</tt></td>
+<td>
+<p></p>Optimal solution<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.obj</tt></td>
+<td>
+<p></p>Objective value<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.lambda</tt></td>
+<td>
+<p></p>Lagrangian multipliers<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.exitflag</tt></td>
+<td>
+<p></p>An integer value that informs if the result was feasible (1), or otherwise (different from 1)<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.how</tt></td>
+<td>
+<p></p>A string that informs if the result was feasible ('ok'), or if any problem appeared through optimization<p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3> Solve an LP stored in file <tt>sc50b</tt>. Load the data<pre class="programlisting"> load sc50b </pre>
+<pre class="programlisting"></pre> Solve the problem using LINPROG<pre class="programlisting">[x,fval,exitflag,output] = linprog(f,A,b,Aeq,beq,lb,[],[]); </pre>
+<pre class="programlisting">Optimization terminated.
+</pre> It is the same as solving using <tt>mpt_solve</tt>.  Put the data to a structure <tt>S</tt>. <pre class="programlisting"> S.f=f; S.A=A; S.b=b; S.Ae=Aeq; S.be=beq; S.lb=lb; </pre>
+<pre class="programlisting"></pre> Solve with the default solver <pre class="programlisting"> R1 = mpt_solve(S) </pre>
+<pre class="programlisting">
+R1 = 
+
+        xopt: [48x1 double]
+      lambda: [1x1 struct]
+         obj: -69.9999999999999
+         how: 'ok'
+    exitflag: 1
+
+</pre> Solve with LCP solver <pre class="programlisting"> S.solver = 'LCP'; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> R2 = mpt_solve(S) </pre>
+<pre class="programlisting">
+R2 = 
+
+        xopt: [48x1 double]
+      lambda: [1x1 struct]
+         obj: -69.9999999999999
+         how: 'ok'
+    exitflag: 1
+
+</pre> You can see that the results are the same. <pre class="programlisting"> norm(x-R1.xopt) </pre>
+<pre class="programlisting">
+ans =
+
+      5.71049616954122e-11
+
+</pre>
+<pre class="programlisting"> norm(x-R2.xopt) </pre>
+<pre class="programlisting">
+ans =
+
+      5.71049616954122e-11
+
+</pre>
+<h2>See Also</h2>
+<a href="./@Opt/opt.html">opt</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="mpt_call_qpoases.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt_call_qpoases</td>
+<td>  </td>
+<td align="right">mpt_call_mplp</td>
+<td align="right" width="20"><a href="mpt_call_mplp.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

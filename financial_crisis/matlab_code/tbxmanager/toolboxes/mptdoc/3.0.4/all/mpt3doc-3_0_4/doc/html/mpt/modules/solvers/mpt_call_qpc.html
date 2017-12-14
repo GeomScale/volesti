@@ -1,0 +1,233 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>mpt_call_qpc</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">mpt_call_qpc</h1>
+<h2>Purpose</h2>
+<p>A gateway function to QPC solver (without errorchecks)</p>
+<h2>Syntax</h2>
+<pre class="synopsis">R = mpt_call_qpc(S)</pre>
+<h2>Description</h2>
+<p></p>
+        The function implements call to QPC solver based on formulation from <tt>Opt</tt> class.
+        Only QP and LP problems are supported.
+        
+        It is assumed that QP/LP entering this function (for LP <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc1.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc1.png">)
+        is of the form
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc10.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc10.png"></p>
+        which is passed to QPC solver directly. Sparse inputs are converted to full if needed.
+        
+        QPC offers two types of algorithms to solve QP/LP. For an interior point method specify in 
+        the field "solver" a string "qpip". Otherwise active set method is chosen by default.
+                
+	<h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>S</tt></td>
+<td>
+<p></p>Structure of the <tt>Opt</tt> class.<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>S.H</tt></td>
+<td>
+<p></p>Quadratic part of the objective function.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.f</tt></td>
+<td>
+<p></p>Linear part of the objective function.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.A</tt></td>
+<td>
+<p></p>Linear part of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc2.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc2.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.b</tt></td>
+<td>
+<p></p>Right hand side of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc3.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc3.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.Ae</tt></td>
+<td>
+<p></p>Linear part of the equality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc4.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc4.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.be</tt></td>
+<td>
+<p></p>Right hand side of the equality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc5.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc5.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.lb</tt></td>
+<td>
+<p></p>Lower bound for the variables <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc6.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc6.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.ub</tt></td>
+<td>
+<p></p>Upper bound for the variables <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc7.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc7.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.n</tt></td>
+<td>
+<p></p>Problem dimension (number of variables).<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.m</tt></td>
+<td>
+<p></p>Number of inequalities in <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc8.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc8.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.me</tt></td>
+<td>
+<p></p>Number of equalities in <img src="../../../../fig/mpt/modules/solvers/mpt_call_qpc9.png" alt="../../../../fig/mpt/modules/solvers/mpt_call_qpc9.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.problem_type</tt></td>
+<td>
+<p></p>A string specifying the problem to be solved.<p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.test</tt></td>
+<td>
+<p></p>Call (false) or not to call (true) MPT global settings.<p>
+	    		Class: <tt>logical</tt></p>
+<p>
+	    		Default: false</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.solver</tt></td>
+<td>
+<p></p>Specific routine to be called of QPC. To call interior point method,
+                specify "qpip". To call active set method, specify "qpas" or leave empty.<p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>R</tt></td>
+<td>
+<p></p>result structure<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>R.xopt</tt></td>
+<td>
+<p></p>Optimal solution.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.obj</tt></td>
+<td>
+<p></p>Optimal objective value.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.lambda</tt></td>
+<td>
+<p></p>Lagrangian multipliers.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.exitflag</tt></td>
+<td>
+<p></p>An integer value that informs if the result was feasible (1), or otherwise (different from 1).<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.how</tt></td>
+<td>
+<p></p>A string that informs if the result was feasible ('ok'), or if any problem appeared through optimization<p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>See Also</h2>
+<a href="./mpt_solve.html">mpt_solve</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="mpt_plcp.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt_plcp</td>
+<td>  </td>
+<td align="right">mpt_solvers_options</td>
+<td align="right" width="20"><a href="mpt_solvers_options.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

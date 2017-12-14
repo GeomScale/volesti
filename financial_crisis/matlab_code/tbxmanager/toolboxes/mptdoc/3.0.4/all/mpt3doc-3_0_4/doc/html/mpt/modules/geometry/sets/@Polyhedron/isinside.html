@@ -1,0 +1,184 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>isInside</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">isInside</h1>
+<h2>Purpose</h2>
+<p>Test if a point is contained inside polyhedron in H-representation.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">[isin, inwhich, closest] = isInside(Pn, x0, Options)</pre>
+<pre class="synopsis">[isin, inwhich, closest] = Pn.isInside(x0, Options)</pre>
+<h2>Description</h2>
+<p></p>
+      Check if the point <tt>x0</tt> is contained inside the polyhedron array <tt>Pn</tt>.
+      The result it the logical statement if <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isinside1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isinside1.png"> and false otherwise.
+
+      <tt>P</tt> must be given in H-representation, otherwise an error is thrown.
+      
+      Note that this operation depends on the settings of absolute tolerance that can be
+      changed in <tt>Options</tt> settings.
+  <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Polyhedron in H-representation.<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>x0</tt></td>
+<td>
+<p></p>A point in the same dimension as polyhedron and given as real column vector.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>Options</tt></td>
+<td>
+<p></p>A structure with the option settings for point location problem.<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>Options.abs_tol</tt></td>
+<td>
+<p></p>Absolute tolerance for checking the satisfaction of inequalities and equalities.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: mptopt.abs_tol</p>
+</td>
+</tr><tr valign="top">
+<td><tt>Options.fastbreak</tt></td>
+<td>
+<p></p>If <tt>Pn</tt> is the polyhedron array, then do a quick stop in the consecutive search when <tt>x0</tt>
+            is contained in any of the polyhedrons.        
+        <p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+<p>
+	    		Default: false</p>
+</td>
+</tr><p></p></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>isin</tt></td>
+<td>
+<p></p>True if <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isinside2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isinside2.png"> and false otherwise.<p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>inwhich</tt></td>
+<td>
+<p></p>If <tt>Pn</tt> is an array of polyhedra in the same dimension, than <tt>isin</tt> indicates which polyhedra
+    from this array contain the point <tt>x0</tt>.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>closest</tt></td>
+<td>
+<p></p>If <tt>Pn</tt> is an array of polyhedra in the same dimension and none of polyhedra contains <tt>x0</tt>,
+    then the field <tt>closest</tt> indicates which polyhedra has the closest distance for <tt>x0</tt> to lie
+    in it's interior.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create two polytopes in 2D.<pre class="programlisting">P(1) = ExamplePoly.randHrep;</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">P(2) = ExamplePoly.randHrep+[1;1];</pre>
+<pre class="programlisting"></pre>Check if the point x0=[1.1;0.9] is contained in any of them.<pre class="programlisting"> x0 = [1.1; 0.9]; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">[isin, inwhich] = P.isInside(x0)</pre>
+<pre class="programlisting">
+isin =
+
+     1
+
+
+inwhich =
+
+     2
+
+</pre>Plot the point and polyhedra<pre class="programlisting">plot(P); hold on; text(x0(1),x0(2),'\bf x')</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isinside_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isinside_img_1.png" width="60%"></p>
+<h2>See Also</h2>
+<a href="./contains.html">contains</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="uplus.html" class="button">&#9664;</a>  </td>
+<td align="left">uplus</td>
+<td>  </td>
+<td align="right">plot</td>
+<td align="right" width="20"><a href="plot.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+<p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

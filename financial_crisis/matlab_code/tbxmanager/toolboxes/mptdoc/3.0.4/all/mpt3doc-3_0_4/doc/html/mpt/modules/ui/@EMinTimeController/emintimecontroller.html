@@ -1,0 +1,138 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>EMinTimeController</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">EMinTimeController</h1>
+<h2>Purpose</h2>
+<p>Explicit minimum-time MPC controller</p>
+<h2>Syntax</h2>
+<pre class="synopsis">ctrl = EMinTimeController(model)</pre>
+<h2>Description</h2>
+<p></p> 
+    Constructs the explicit form of a minimum-time MPC controller by
+    solving the following optimization problem parametrically:
+    <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller9.png" alt="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller9.png"></p>
+    where <img src="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller1.png" alt="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller1.png"> represents the prediction model's
+    state-update equation, <img src="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller2.png" alt="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller2.png"> is a given terminal set, and 
+    <img src="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller3.png" alt="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller3.png"> and <img src="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller4.png" alt="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller4.png"> denote, respectively, the state and input
+    constraints.<br><br>
+
+    LTI, PWA, and MLD models are accepted for predictions.
+    State and input constraint sets <img src="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller5.png" alt="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller5.png">, <img src="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller6.png" alt="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller6.png"> are
+    automatically created using the model's state and input
+    constraints (<tt>model.x.min</tt>, <tt>model.x.max</tt>,
+    <tt>model.u.min</tt>, <tt>model.u.max</tt>). The terminal set
+    <img src="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller7.png" alt="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller7.png"> is either taken from <tt>model.x.terminalSet</tt>
+    or, if the field is empty, by calling
+    <tt>model.stabizilingController()</tt> (for LTI systems only).<br><br>
+
+    Once computed, explicit minimum-time controllers inherit the
+    behavior of the <tt>EMPCController</tt> class in terms of internal
+    structure, evaluation and post-processing. See "<tt>help
+    EMPCController</tt>" for more details.
+  <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>model</tt></td>
+<td>
+<p></p>Prediction model<p>
+	    		Class: <tt>AbstractSystem</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>ctrl</tt></td>
+<td>
+<p></p>Explicit minimum-time controller.<p>
+	    		Class: <tt>EMinTimeController</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create a 1D LTI system<pre class="programlisting">sys = LTISystem('A', 1, 'B', 1, 'C', 1, 'D', 0)</pre>
+<pre class="programlisting">LTISystem with 1 state, 1 input, 1 output
+</pre>Define constraints and quadratic cost function with unity weights<pre class="programlisting">
+		sys.x.min = -1; sys.x.max = 1;
+		sys.u.min = -1; sys.u.max = 1;
+		sys.x.penalty = QuadFunction(1);
+		sys.u.penalty = QuadFunction(1);
+	</pre>
+<pre class="programlisting"></pre>Define a terminal set <img src="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller8.png" alt="../../../../../fig/mpt/modules/ui/@EMinTimeController/emintimecontroller8.png"> and construct the explicit minimum-time controller<pre class="programlisting">
+		sys.x.with('terminalSet');
+		sys.x.terminalSet = Polyhedron('lb', -0.1, 'ub', 0.1);
+		ctrl = EMinTimeController(sys)
+	</pre>
+<pre class="programlisting">Using provided terminal state set...
+Iterating...
+New horizon: 1
+mpt_plcp: 3 regions
+New horizon: 2
+mpt_plcp: 1 regions
+Explicit minimum-time controller (horizon: 1, regions: 4, partitions: 2)
+</pre>
+<h2>See Also</h2>mintimecontrollerr, <a href="../@EMPCController/empccontroller.html">empccontroller</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="../../../../mpt.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt</td>
+<td>  </td>
+<td align="right">evaluate</td>
+<td align="right" width="20"><a href="evaluate.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

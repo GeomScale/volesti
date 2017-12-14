@@ -1,0 +1,264 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Polyhedron</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">Polyhedron</h1>
+<h2>Purpose</h2>
+<p>Create a Polyhedron object.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">P = Polyhedron(param, value, ...)</pre>
+<pre class="synopsis">P = Polyhedron(dat)</pre>
+<pre class="synopsis">P = Polyhedron(con, var)</pre>
+<pre class="synopsis">P = Polyhedron(Q)</pre>
+<h2>Description</h2>
+<p></p> 
+      Creates a Polyhedron:
+      <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron17.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron17.png"></p>
+      or
+      <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron18.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron18.png"></p>
+      
+      <ol>
+          
+         <li> Polyhedral data specified as param, value pairs (detailed below).</li>
+          
+         <li> Polyhedral data given in a structure. The same data as described
+          below for param/value pair, but given as a structure.</li>
+          
+         <li> Yalmip description <tt>con[straints]</tt> 
+            <tt>var[iables]</tt> specified</li>
+          
+         <li> Polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron1.png"> specified.
+              The polyhedron object is a <em>handle</em> object. This means that executing 
+              <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron2.png"> does NOT create a copy of <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron3.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron3.png">, both only another object by the same name. If you 
+          want to copy <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron4.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron4.png">, then call <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron5.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron5.png">. </li>
+      
+      </ol>
+      
+      
+      This class repreents the following polyhedra:
+      <ul>
+          
+         <li> 
+            <b>Unbounded polyhedra</b>
+              All polyhedra can be decomposed into the sum of a bounded polytope a cone:
+              <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron19.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron19.png"></p>
+              and satisfy the Minkowski-Weyl theorem and can therefore be represented
+              either as the intersection of a finite number of inequalities, or as the convex
+              combination of a finite number of vertices (or rays).
+              <em>MPT will store all irredundant polyhedra as a decomposition into a polytope and a cone.</em>
+          
+         </li>
+          
+         <li> 
+            <b>Lower-dimensional polyhedra</b>
+              Theoretically there is no difference between full-dimensional and lower-dimensional
+              polyhedra either in representation or in the algorithms that operate on them. However,
+              experience has shown that if the affine hull of the polyhedron is not taken into account
+              explicitly, then virtually all algorithms will fail.
+              <em>MPT will store a polyhedron as the intersection of a full-dimensional polyhedron and an affine hull.</em>
+          
+         </li>
+          
+         <li> 
+            <b>Upointed Polyhedra</b>
+              Operations on polyhedra with non-empty lineality space (i.e. unpointed polyhedra) adds
+              significant complexity and difficulty. Thankfully, all convex sets can be decomposed into
+              the Minkowski sum of their lineality space, with their restriction onto a linear subspace
+              U that is perpendicular to <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron6.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron6.png">
+              
+            <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron7.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron7.png">
+              where <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron8.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron8.png"> has an empty lineality space. Therefore, it is always possible to
+              represent an unpointed polyhedron as the lifting of a pointed one:
+              <p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron20.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron20.png"></p>
+              where <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron9.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron9.png"> is pointed and <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron10.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron10.png"> with n &gt; m.
+              
+              The requirement of dealing with an additional lifting operation for all polyhedra will add
+              more coding complexity to MPT than desired. Therefore, in the interest of
+              simplicity, MPT will handle unpointed polyhedra only in halfspace form, where the
+              lifting map is not required, and any operation that cannot function on lifted polyhedra
+              will return an error.
+              
+              <em>MPT will have a limited ability to operate on unpointed polyhedra.  It will
+                  handle unpointed polyhedra only in halfspace form, where the lifting map is not
+                  required, and any operation that does not function on unpointed
+              polyhedra will throw an exception.</em>              
+          
+         </li>
+      
+      </ul>   
+  
+   <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Polyhedron in any format<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>H</tt></td>
+<td>
+<p></p> Inequality description (must be full-dimensional) <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron11.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron11.png"> 
+      <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>He</tt></td>
+<td>
+<p></p> Affine set <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron12.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron12.png"> 
+      <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>V</tt></td>
+<td>
+<p></p> Points defining the set <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron13.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron13.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>R</tt></td>
+<td>
+<p></p> Rays defining the set <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron14.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron14.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>irredundantVRep</tt></td>
+<td>
+<p></p> If true, then the given V-representation is assumed irredundant.<p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>irredundantHRep</tt></td>
+<td>
+<p></p> If true, then the given H-representation is assumed irredundant.<p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>lb</tt></td>
+<td>
+<p></p> Add a constraint of the form <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron15.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron15.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>ub</tt></td>
+<td>
+<p></p> Add a constraint of the form <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron16.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron16.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Object of the <tt>Polyhedron</tt> class.</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create V-Polyhedron<pre class="programlisting">P = Polyhedron([2 2;-5 -2; -5 3])</pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep               : Unknown (call computeHRep() to compute)
+    V-rep (redundant)   : Vertices   3 | Rays   0
+Functions : none
+</pre>Create H-Polyhedron<pre class="programlisting">Q = Polyhedron([1 -1;0.5 -2;-1 0.4; -1 -2],[1;2;3;4])</pre>
+<pre class="programlisting">Polyhedron in R^2 with representations:
+    H-rep (redundant)   : Inequalities   4 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : none
+</pre>Plot the polyhedra<pre class="programlisting"> plot([P,Q]); </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron_img_1.png" width="60%"></p>
+<h3>Example 
+				2</h3>Import polyhedron from YALMIPDefine yalmip variables and the set<pre class="programlisting"> x = sdpvar(3,1); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> S = set([-1;-2;-3]&lt;= x &lt;= [1;2;3]); </pre>
+<pre class="programlisting"></pre> Construct polyhedron <pre class="programlisting"> P = Polyhedron(S,x) </pre>
+<pre class="programlisting">Polyhedron in R^3 with representations:
+    H-rep (redundant)   : Inequalities   6 | Equalities   0
+    V-rep               : Unknown (call computeVRep() to compute)
+Functions : none
+</pre>Plot the polyhedron<pre class="programlisting"> plot(P); </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron_img_2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/polyhedron_img_2.png" width="60%"></p>
+<h2>See Also</h2>
+<a href="../@YSet/yset.html">yset</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="fplot.html" class="button">&#9664;</a>  </td>
+<td align="left">fplot</td>
+<td>  </td>
+<td align="right">isemptyset</td>
+<td align="right" width="20"><a href="isemptyset.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+</body>
+</html>

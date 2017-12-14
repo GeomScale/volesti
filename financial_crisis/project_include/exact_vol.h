@@ -116,18 +116,7 @@ NT2 Lawn1(std::vector<double> plane_arx, int dim, double zz1, double zz2){
 	//double q=c[dim],vol,z1,z2,denom,numer;
 	z1=NT2(zz1);
 	z2=NT2(zz2);
-	//double vol2=vol_Ali(plane_arx, -CGAL::to_double(z1), dim);
-	//double vol22=vol_Ali(plane_arx, -CGAL::to_double(z2), dim);
-	//std::cout<<"vol2 is: "<<vol2<<std::endl;
-	//std::cout<<"plane is: "<<std::endl;
-	//for (i=0; i<dim; i++){
-	//	std::cout<<plane[i]<<std::endl;
-	//}
-	//std::cout<<"all z are: "<<std::endl;
-	//for (i=0; i<Zs.size(); i++){
-	//	std::cout<<Zs[i]<<std::endl;
-	//}
-	//std::cout<<"z is: "<<z1<<std::endl;
+	
 	lr=get_left_right_hyp(dim, plane, z1);
 	lefts=lr.first; rights=lr.second;
 	
@@ -179,7 +168,7 @@ NT2 Lawn1(std::vector<double> plane_arx, int dim, double zz1, double zz2){
 			//edges[lefts[i]][rights[j]]=denom;
 			numer=get_numerator(lefts[i],rights[j],dim,plane,z1,c);
 			//std::cout<<"numer for "<<lefts[i]<<" "<<rights[j]<<" is: "<<numer<<std::endl;
-			numerators1.push_back(numer);
+			//numerators1.push_back(numer);
 			//std::cout<<"numer is: "<<numer<<"denom is: "<<denom<<" numer/denom "<<numer/denom<<std::endl;
 			vol=vol+numer/denom;
 			//std::cout<<"vol is: "<<vol<<std::endl;

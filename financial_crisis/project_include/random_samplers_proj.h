@@ -166,7 +166,7 @@ void Sam_Unit_NoProjection(int dim, int num, std::vector<Point_d> &points){
 
 	
 
-	if (dim<=60){
+	/*if (dim<=60){
 		
 		x_vec.assign(dim+1,0);
 
@@ -251,7 +251,7 @@ void Sam_Unit_NoProjection(int dim, int num, std::vector<Point_d> &points){
 			points.push_back(Point_d(dim,y.begin(),y.end()));
 		
 		}
-	}else{
+	}else{*/
 
 		std::vector<double> x_vec2;
 		double Ti,sum;	
@@ -281,7 +281,7 @@ void Sam_Unit_NoProjection(int dim, int num, std::vector<Point_d> &points){
 			
 		}
 
-	}
+	//}
 
 	return;
 

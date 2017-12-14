@@ -1,0 +1,232 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>PolyUnion</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">PolyUnion</h1>
+<h2>Purpose</h2>
+<p>Represents a union of polyhedra in the same dimension</p>
+<h2>Syntax</h2>
+<pre class="synopsis">PU = PolyUnion(P)</pre>
+<pre class="synopsis">PU = PolyUnion('Set',P,'Domain',D,'Convex',true,'Overlaps',false,...)</pre>
+<h2>Description</h2>
+<p></p>
+        The <tt>PolyUnion</tt> object represent collection of polyhedra in the same dimension. The 
+        only restriction to construct the <tt>PolyUnion</tt> object is that the sets have a 
+        common dimension. The union thus can contain bounded, unbounded, and lower-dimensional 
+        polyhedra. Empty sets are removed from at the time of construction of <tt>PolyUnion</tt> 
+        object.
+        
+        You can associate various properties with the <tt>PolyUnion</tt> object:
+        <ul>
+			
+         <li>Domain of the union can be set via the <tt>Domain</tt> property. If not provided,
+			the domain will be equal to the underlying set of the union.</li>
+			
+         <li>To mark the union as <b>convex</b>, you can set the <tt>Convex</tt> property <tt>true</tt> or <tt>false</tt>.
+            If you specify that the union is convex, the remaining algorithms will rely on this information which will can 
+            speed up the computations significantly.
+            </li>
+            
+         <li>To mark that there are <b>overlaps</b> in the union, you can set the <tt>Overlaps</tt> property as <tt>true</tt>
+                or <tt>false</tt>. If the union contains non-overlapping polyhedra, the union forms a <b>partition</b>.
+            </li>
+            
+         <li>To mark that the union is <b>connected</b> in the union, you can set the <tt>Connected</tt> property as <tt>true</tt>
+            or <tt>false</tt>. If the union is convex, if implies that the union is also connected.
+            </li>
+            
+         <li>To mark that the union comprises only of <b>bounded</b> polyhedra, you can set the <tt>Bounded</tt> property as <tt>true</tt>
+            or <tt>false</tt>. 
+            </li>
+            
+         <li>To mark that the union contains only <b>full-dimensional</b> polyhedra, you can set the <tt>FullDim</tt> property as <tt>true</tt>
+            or <tt>false</tt>. 
+            </li>            
+        
+      </ul>
+        By specifying any of the above properties you promise that these properties are automatically satisfied by the provided set, otherwise
+        unexpected results may occur. These properties can be accessed via <tt>PU.Internal</tt> field.
+        
+        You can associate functions to any of the set via <tt>addFunction</tt> method of the 
+        <tt>ConvexSet</tt> class. Function handles and all properties of the sets can be
+        accessed via <tt>PolyUnion.Set</tt> property based on the index.
+         
+        For a list of available methods type "methods('PolyUnion')".
+    <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Non-empty polyhedra in the same dimension. <p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>Domain</tt></td>
+<td>
+<p></p>Specifies domains of the union.<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>Convex</tt></td>
+<td>
+<p></p>Set this property to <tt>true</tt> if you are sure that the union of the polyhedra is convex.<p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>Overlaps</tt></td>
+<td>
+<p></p>Set this property to <tt>false</tt> if you are sure that the union of the polyhedra is non-overlapping.<p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>Connected</tt></td>
+<td>
+<p></p>Set this property to <tt>true</tt> if you are sure that the union of the polyhedra is connected.
+            If the union is convex, then this property is automatically set as <tt>true</tt>.
+        <p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>Bounded</tt></td>
+<td>
+<p></p>Set this property to <tt>true</tt> if you are sure that all the polyhedra in the union are bounded.<p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>FullDim</tt></td>
+<td>
+<p></p>Set this property to <tt>true</tt> if you are sure that all the polyhedra in the union are full-dimensional.<p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>PU</tt></td>
+<td>
+<p></p>Object of the <tt>PolyUnion</tt> class. <p>
+	    		Class: <tt>PolyUnion</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3> Construt the convex and non-overlapping union of two polyhedra in 2D. Define the polyhedra <pre class="programlisting"> P(1) = Polyhedron('lb',[-1;0],'ub',[0;1]); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> P(2) = Polyhedron('lb',[0;0],'ub',[1;1]); </pre>
+<pre class="programlisting"></pre> Assign linear functions to these sets <pre class="programlisting"> P(1).addFunction(AffFunction(eye(2),[1;0]),'f'); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> P(2).addFunction(AffFunction(-eye(2),[1;0]),'f'); </pre>
+<pre class="programlisting"></pre> Create the union and set convexity and overlaps properties because these are known.<pre class="programlisting"> U = PolyUnion('Set',P,'Convex',true,'Overlaps',false); </pre>
+<pre class="programlisting"></pre> Plot the polyhedra <pre class="programlisting"> U.plot </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/polyunion_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/polyunion_img_1.png" width="60%"></p> We can plot also functions over the union <pre class="programlisting"> U.fplot </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/polyunion_img_2.png" alt="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/polyunion_img_2.png" width="60%"></p>
+<h3>Example 
+				2</h3> Create three random polyhedra and merge them to <tt>PolyUnion</tt> object. <pre class="programlisting"> P(1) = ExamplePoly.randVrep; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> P(2) = ExamplePoly.randVrep; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> P(3) = ExamplePoly.randVrep; </pre>
+<pre class="programlisting"></pre> We don't know any of the particular properties of the union, we can call the short syntax:<pre class="programlisting"> U = PolyUnion(P)</pre>
+<pre class="programlisting">PolyUnion in the dimension 2 with 3 polyhedra.
+Functions : none
+</pre> Plot the sets <pre class="programlisting"> U.plot </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/polyunion_img_3.png" alt="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/polyunion_img_3.png" width="60%"></p> We can access the sets via <tt>U.Set</tt> property and add eventually function handles to each set.<pre class="programlisting"> U.Set(1).addFunction(AffFunction(eye(2)),'g'); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> U.Set(2).addFunction(AffFunction(2*eye(2)),'g'); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> U.Set(3).addFunction(AffFunction(3*eye(2)),'g'); </pre>
+<pre class="programlisting"></pre> Plot the function over the sets <pre class="programlisting"> U.fplot </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/polyunion_img_4.png" alt="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/polyunion_img_4.png" width="60%"></p>
+<h2>See Also</h2>
+<a href="../../sets/@Polyhedron/polyhedron.html">polyhedron</a>, <a href="../@Union/union.html">union</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="isconnected.html" class="button">&#9664;</a>  </td>
+<td align="left">isconnected</td>
+<td>  </td>
+<td align="right">convexhull</td>
+<td align="right" width="20"><a href="convexhull.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

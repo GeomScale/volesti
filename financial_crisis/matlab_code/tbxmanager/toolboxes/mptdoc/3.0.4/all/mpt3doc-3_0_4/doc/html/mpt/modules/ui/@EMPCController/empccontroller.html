@@ -1,0 +1,165 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>EMPCController</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">EMPCController</h1>
+<h2>Purpose</h2>
+<p>Explicit MPC controller</p>
+<h2>Syntax</h2>
+<pre class="synopsis">ctrl = EMPCController(model, horizon)</pre>
+<pre class="synopsis">ctrl = EMPCController(MPCController)</pre>
+<h2>Description</h2>
+<p></p> 
+    Constructs the explicit form of an MPC controller.
+
+    The particular type of the optimization problem to be solved
+    parametrically is determined by the type of the prediction model
+    and by its parameters. For a more detailed information, see
+    "<tt>help MPCController</tt>".<br><br>
+
+    Instances of the <tt>EMPCController</tt> class expose following
+    properties:
+    <ul>
+      
+         <li>
+            <tt>model</tt>: the prediction model used in the MPC
+      setup;</li>
+      
+         <li>
+            <tt>N</tt>: the prediction horizon</li>
+      
+         <li>
+            <tt>optimizer</tt>: the explicit optimizer as an instance of
+      the <tt>PolyUnion</tt> class;</li>
+      
+         <li>
+            <tt>partition</tt>: the polyhedral partition of the explicit
+      feedback law as an instance of the <tt>Polyhedron</tt> class;</li>
+      
+         <li>
+            <tt>feedback</tt>: the explicit representation of the
+      feedback law as an instance of the <tt>PolyUnion</tt> class;</li>
+      
+         <li>
+            <tt>cost</tt>: the explicit representation of the
+      optimal cost function as an instance of the <tt>PolyUnion</tt>
+      class.</li> 
+    
+      </ul>
+
+    The <tt>optimizer</tt> property is available for read/write
+    access. This allows, for instance, to remove overlaps from multiple 
+	overlapping partitions by <tt>ctrl.optimizer = ctrl.optimizer.merge()</tt>.
+  <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>model</tt></td>
+<td>
+<p></p>Any MPT3 system (<tt>LTISystem</tt>, <tt>PWASystem</tt>,
+      <tt>MLDSystem</tt>)<p>
+	    		Class: <tt>AbstractSystem</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>ctrl</tt></td>
+<td>
+<p></p>Explicit MPC controller</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create a 2D LTI system<pre class="programlisting">
+		A = [1 1; 0 1]; B = [1; 0.5]; C = [1 0]; D = 0;
+		sys = LTISystem('A', A, 'B', B, 'C', C, 'D', D)
+	</pre>
+<pre class="programlisting">LTISystem with 2 states, 1 input, 1 output
+</pre>Define constraints<pre class="programlisting">
+		sys.x.min = [-5; -5]; sys.x.max = [5; 5];
+		sys.u.min = -1; sys.u.max = 1;
+		sys.y.min = -5; sys.y.max = 1;
+	</pre>
+<pre class="programlisting"></pre>Define penalties (we use squared two-norm with unity
+    weights here)<pre class="programlisting">
+		sys.x.penalty = QuadFunction(eye(2));
+		sys.u.penalty = QuadFunction(1);
+	</pre>
+<pre class="programlisting"></pre>Construct the explicit MPC controller<pre class="programlisting">
+		horizon = 3;
+		ctrl = MPCController(sys, horizon).toExplicit()
+	</pre>
+<pre class="programlisting">mpt_plcp: 7 regions
+Explicit MPC controller (horizon: 3, regions: 7)
+</pre>Plot the optimal feedback law<pre class="programlisting">ctrl.feedback.fplot()</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../fig/mpt/modules/ui/@EMPCController/empccontroller_img_1.png" alt="../../../../../fig/mpt/modules/ui/@EMPCController/empccontroller_img_1.png" width="60%"></p>Plot the optimal cost function<pre class="programlisting">ctrl.cost.fplot()</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../fig/mpt/modules/ui/@EMPCController/empccontroller_img_2.png" alt="../../../../../fig/mpt/modules/ui/@EMPCController/empccontroller_img_2.png" width="60%"></p>Plot the polyhedral partition<pre class="programlisting">ctrl.partition.plot()</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../fig/mpt/modules/ui/@EMPCController/empccontroller_img_3.png" alt="../../../../../fig/mpt/modules/ui/@EMPCController/empccontroller_img_3.png" width="60%"></p>
+<h2>See Also</h2>
+<a href="../@MPCController/mpccontroller.html">mpccontroller</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="../../../../mpt.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt</td>
+<td>  </td>
+<td align="right">exporttoc</td>
+<td align="right" width="20"><a href="exporttoc.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

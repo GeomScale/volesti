@@ -1,0 +1,110 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>mpt_demo_lti4</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">mpt_demo_lti4</h1>
+<h2>Purpose</h2>
+<p>Construction of explicit controller for LTI system</p>
+<h2>Syntax</h2>
+<pre class="synopsis">mpt_demo_lti4</pre>
+<h2>Description</h2>
+<p></p>
+       Construction of explicit controller for LTI system
+	<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Define an LTI prediction model <img src="../../../fig/mpt/demos/mpt_demo_lti41.png" alt="../../../fig/mpt/demos/mpt_demo_lti41.png">
+      <pre class="programlisting">A = [1 1; 0 1]; B = [1; 0.5];</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> lti = LTISystem('A', A, 'B', B); </pre>
+<pre class="programlisting"></pre>Define an MPC controller<pre class="programlisting">
+			horizon = 5;
+			ctrl = MPCController(lti);
+			ctrl.N = horizon;
+			ctrl.model.x.min = [-5; -5];
+			ctrl.model.x.max = [5; 5];
+			ctrl.model.u.min = -1;
+			ctrl.model.u.max = 1;
+			ctrl.model.x.penalty = QuadFunction(eye(ctrl.model.nx));
+			ctrl.model.u.penalty = QuadFunction(eye(ctrl.model.nu));
+		</pre>
+<pre class="programlisting"></pre>Compute the explicit solution<pre class="programlisting"> exp_ctrl = ctrl.toExplicit()</pre>
+<pre class="programlisting">mpt_plcp: 21 regions
+Explicit MPC controller (horizon: 5, regions: 21)
+</pre> Plot the explicit feedback law <pre class="programlisting"> exp_ctrl.feedback.fplot() </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_lti4_img_1.png" alt="../../../fig/mpt/demos/mpt_demo_lti4_img_1.png" width="60%"></p>Plot the explicit value function<pre class="programlisting">exp_ctrl.cost.fplot() </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_lti4_img_2.png" alt="../../../fig/mpt/demos/mpt_demo_lti4_img_2.png" width="60%"></p>Plot the polyhedral partition<pre class="programlisting">exp_ctrl.partition.plot()</pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_lti4_img_3.png" alt="../../../fig/mpt/demos/mpt_demo_lti4_img_3.png" width="60%"></p> Compare the optimal control inputs <pre class="programlisting">
+			x0 = [-4; 0];
+			Uonl = ctrl.evaluate(x0),
+			Uexp = exp_ctrl.evaluate(x0)
+		</pre>
+<pre class="programlisting">
+Uonl =
+
+     1
+
+
+Uexp =
+
+                         1
+
+</pre>
+<h2>See Also</h2>
+<a href="./mpt_demo_lti1.html">mpt_demo_lti1</a>, <a href="./mpt_demo_lti2.html">mpt_demo_lti2</a>, <a href="./mpt_demo_lti3.html">mpt_demo_lti3</a>, <a href="./mpt_demo_lti5.html">mpt_demo_lti5</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="mpt_demo_functions2.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt_demo_functions2</td>
+<td>  </td>
+<td align="right">mpt_demo_sets2</td>
+<td align="right" width="20"><a href="mpt_demo_sets2.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

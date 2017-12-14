@@ -1,0 +1,163 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>isOverlapping</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">isOverlapping</h1>
+<h2>Purpose</h2>
+<p>Test if the union of polyhedra contains overlaps.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">ts = U.isConnected</pre>
+<pre class="synopsis">ts = isConnected(U)</pre>
+<h2>Description</h2>
+<p></p>
+	  Return true if the union <tt>U</tt> of polyhedra contains overlaps and false otherwise.
+      Once this method has been called, the information about the overlaps can be retrieved
+      from <tt>U.Internal.Overlaps</tt> property. 
+      
+      This function considers following two cases to detect overlaps:
+      <ol>
+          
+         <li> If two full-dimensional polyhedra overlap, then the intersection of these polyhedra
+                must be full-dimensional. </li>
+          
+         <li> If low-dimensional and full-dimensional polyhedra overlap, then the intersection
+                of these polyhedra must not be empty.
+          </li>
+      
+      </ol>     
+        
+        
+      <b>Note that this function is computationally demanding and is suitable for
+        unions with small number of polyhedra. </b>
+	
+   <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>U</tt></td>
+<td>
+<p></p>Union of polyhedra in the same dimension.<p>
+	    		Class: <tt>PolyUnion</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>ts</tt></td>
+<td>
+<p></p>True if union of polyhedra has overlaps and false otherwise.<p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create three full-dimensional polyhedra that overlap.<pre class="programlisting">P(1) = ExamplePoly.randHrep;</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">P(2) = ExamplePoly.randHrep;</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">P(3) = ExamplePoly.randHrep;</pre>
+<pre class="programlisting"></pre> Create union out of these polyhedra without specifying the properties<pre class="programlisting"> U = PolyUnion(P) </pre>
+<pre class="programlisting">PolyUnion in the dimension 2 with 3 polyhedra.
+Functions : none
+</pre> Plot the polyhedra to see that they overlap. <pre class="programlisting"> P.plot; </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/isoverlapping_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/isoverlapping_img_1.png" width="60%"></p>Check if the union is overlapping<pre class="programlisting"> U.isOverlapping</pre>
+<pre class="programlisting">
+ans =
+
+     1
+
+</pre> The information about the overlaps can be accessed in<pre class="programlisting"> U.Internal.Overlaps </pre>
+<pre class="programlisting">
+ans =
+
+     1
+
+</pre>
+<h3>Example 
+				2</h3> Full-dimensional and low-dimensional polyhedra that overlap.  Generate affine set in dimension 3. <pre class="programlisting"> A = Polyhedron('Ae',[1 -0.5 2; -1 -4 0],'be',[-1;0.8]); </pre>
+<pre class="programlisting"></pre> Generate box in 3D <pre class="programlisting"> B = Polyhedron('lb',[-1;-1;-1],'ub',[1;1;1]); </pre>
+<pre class="programlisting"></pre> Create union out of these polyhedra <pre class="programlisting"> U = PolyUnion([A,B]); </pre>
+<pre class="programlisting"></pre> Plot to see the sets if they overlap <pre class="programlisting"> U.plot('LineWidth',2,'alpha',0.1) </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/isoverlapping_img_2.png" alt="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/isoverlapping_img_2.png" width="60%"></p> Check if the union is overlapping <pre class="programlisting"> U.isOverlapping </pre>
+<pre class="programlisting">
+ans =
+
+     1
+
+</pre> The result of the operation is stored under <pre class="programlisting"> U.Internal.Overlaps </pre>
+<pre class="programlisting">
+ans =
+
+     1
+
+</pre>
+<h2>See Also</h2>
+<a href="./isconvex.html">isconvex</a>, <a href="./isconnected.html">isconnected</a>, <a href="../../sets/@Polyhedron/isfulldim.html">isfulldim</a>, <a href="../../sets/@ConvexSet/isbounded.html">isbounded</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="outerapprox.html" class="button">&#9664;</a>  </td>
+<td align="left">outerapprox</td>
+<td>  </td>
+<td align="right">plus</td>
+<td align="right" width="20"><a href="plus.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

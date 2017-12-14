@@ -1,0 +1,12 @@
+variable x1
+variable x2
+variable x3
+parameter a
+parameter b
+
+maximize (min([x1 - x2; x3]))
+subject to
+    x2 == a*x1
+    x3 == a*x2
+    abs(x2) <= b
+    max([x1;x3]) <= b

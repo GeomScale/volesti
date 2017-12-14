@@ -1,0 +1,145 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>PWASystem</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">PWASystem</h1>
+<h2>Purpose</h2>
+<p>Represents discrete-time piecewise affine systems</p>
+<h2>Syntax</h2>
+<pre class="synopsis">sys = PWASystem([lti1, lti2, ..., ltiM])</pre>
+<h2>Description</h2>
+<p></p> 
+    This class represents PWA systems, which are composed of a finite
+    number of local affine dynamics, each valid in a corresponding
+    polyhedral region of the state-input space:
+    <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem12.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem12.png"></p>
+    where <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem1.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem1.png"> is the state vector, <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem2.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem2.png"> is the vector of inputs, <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem3.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem3.png"> is the vector of outputs, <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem4.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem4.png">
+    represents the sampling time, and <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem5.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem5.png"> are the polyhedral
+    regions of validity of the <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem6.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem6.png">-th local dynamics.<br><br>
+
+    Each PWA system defines following properties:
+    <ul>
+      
+         <li>
+            <tt>A</tt>, <tt>B</tt>, <tt>f</tt>: matrices of the
+      state-update equation, stored as cell arrays (read-only)</li>
+      
+         <li>
+            <tt>C</tt>, <tt>D</tt>, <tt>g</tt>: matrices of the
+      output equation, stored as cell arrays (read-only)</li>
+      
+         <li>
+            <tt>Ts</tt>: sampling time (read-only)</li>
+      
+         <li>
+            <tt>domain</tt>: array of polyhedra denoting domain of the
+      <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem7.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem7.png">-th local model (read-only)</li>
+      
+         <li>
+            <tt>nx</tt>, <tt>nu</tt>, <tt>ny</tt>: number of states,
+      inputs and outputs (automatically determined, read-only)</li>
+      
+         <li>
+            <tt>ndyn</tt>: number of local models (read-only)</li>
+      
+         <li>
+            <tt>x</tt>: specifications of system's states (see <tt>help
+      SystemSignal</tt>)</li>
+      
+         <li>
+            <tt>u</tt>: specifications of system's inputs (see <tt>help
+      SystemSignal</tt>)</li>
+      
+         <li>
+            <tt>y</tt>: specifications of system's outputs (see <tt>help
+      SystemSignal</tt>)</li>
+      
+         <li>
+            <tt>d</tt>: specifications of the binary dynamics selector
+      signal (see <tt>help SystemSignal</tt>)</li>
+    
+      </ul>
+
+    The preferred way to define a PWA system consisting of a finite
+    number of local affine models is to provide the list of LTI models
+    to the <tt>PWASystem</tt> constructor:<br><br>
+
+    
+      <tt>pwasys = PWASystem([ltisys1, ltisys2, ..., ltisysM])</tt>
+      <br><br>
+
+    Here, each LTI model must have its domain defined by the
+    <tt>ltisys.setDomain()</tt> method (see "<tt>help
+    LTISystem/setDomain</tt>").
+  <h2>Example(s)</h2>
+<h3>Example 
+				1</h3>We create a PWA system, consisting of two local affine
+    models.The first model is given by <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem8.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem8.png">, and is
+    valid for <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem9.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem9.png">.<pre class="programlisting">sys1 = LTISystem('A', 1, 'B', 1);</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">sys1.setDomain('x', Polyhedron('lb', 0));</pre>
+<pre class="programlisting"></pre>The second model has dynamics <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem10.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem10.png">, and
+    is valid if <img src="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem11.png" alt="../../../../../fig/mpt/modules/ui/@PWASystem/pwasystem11.png">.<pre class="programlisting">sys2 = LTISystem('A', -2, 'B', 0.5);</pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">sys2.setDomain('x', Polyhedron('ub', 0));</pre>
+<pre class="programlisting"></pre>Create the PWA system using <tt>sys1</tt> and
+    <tt>sys2</tt>:<pre class="programlisting">pwa = PWASystem([sys1, sys2])</pre>
+<pre class="programlisting">State/input/output constraints not imported, set them manually afterwards.
+PWASystem with 1 state, 1 input, 0 outputs, 2 modes
+</pre>
+<h2>See Also</h2>
+<a href="../@LTISystem/ltisystem.html">ltisystem</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="getstates.html" class="button">&#9664;</a>  </td>
+<td align="left">getstates</td>
+<td>  </td>
+<td align="right">mpt</td>
+<td align="right" width="20"><a href="../../../../mpt.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

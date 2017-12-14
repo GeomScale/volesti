@@ -1,0 +1,98 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>toSystem</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">toSystem</h1>
+<h2>Purpose</h2>
+<p>Converts the closed-loop object to an autonomous dynamical system</p>
+<h2>Syntax</h2>
+<pre class="synopsis">sys = loop.toSystem()</pre>
+<h2>Description</h2>
+<p></p> 
+    This function converts the closed-loop object to an autonomous
+    dynamical system by using the state feedback <img src="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem1.png" alt="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem1.png">,
+    where <img src="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem2.png" alt="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem2.png"> represents the explicit form of the controller.<br><br>
+
+    If the system is an LTI system (i.e., <img src="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem3.png" alt="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem3.png">), and
+    the controller is defined over a single region (i.e., <img src="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem4.png" alt="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem4.png">), this function produces an instance of the
+    <tt>LTISystem</tt> class with the dynamic <img src="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem5.png" alt="../../../../../fig/mpt/modules/ui/@ClosedLoop/tosystem5.png">.<br><br>
+    
+    If the system is PWA, or if the controller is defined over
+    multiple regions, the <tt>toSystem()</tt> method produces an
+    autonomous system as an instance of the <tt>PWASystem</tt>
+    class. The number of dynamics is equal to the number of regions,
+    over which the controller is defined.<br><br>
+
+    In both cases the returned objects represent autonomous systems,
+    i.e. their <tt>B</tt> and <tt>D</tt> matrices are empty.<br><br>
+
+    Note: this function requires that the closed-loop's controller is
+    available in its explicit form.
+  <h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>sys</tt></td>
+<td>
+<p></p>Autonomous dynamical system representing the closed-loop
+    system.</td>
+</tr></tbody>
+</table>
+<p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="invariantset.html" class="button">&#9664;</a>  </td>
+<td align="left">invariantset</td>
+<td>  </td>
+<td align="right">closedloop</td>
+<td align="right" width="20"><a href="closedloop.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

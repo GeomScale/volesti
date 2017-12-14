@@ -1,0 +1,171 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>locatePoint</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">locatePoint</h1>
+<h2>Purpose</h2>
+<p>Implementation of a graph search algorithm for a point location problem.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">[index, details] = locatePoint(U,x)</pre>
+<h2>Description</h2>
+<p></p>
+      Return an index of region in the polyunion <tt>U</tt> where the point <tt>x</tt> is contained.
+      If the point lies outside of the union of polyhedra, the output is empty.
+
+      The polyunion <tt>U</tt> must be returned from PLCP solver with an appropriate adjacency list, 
+      otherwise the method is not applicable. The best performance is achieved if the region exploration 
+      in PLCP solver has been done using breadth-first search (BFS) where the regions have a leveled structure
+      and the first region lies in the middle of the partition. In this case, the graph traversal algorithm
+      proceeds through increasing levels outside from the first region until the desired region is found.
+      
+      The set membership operation depends on the settings of absolute tolerance that can be
+      changed in <tt>Options</tt> settings.
+  <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>U</tt></td>
+<td>
+<p></p>Union of polyhedra returned from PLCP solver with an included adjacency list.<p>
+	    		Class: <tt>PolyUnion</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>x</tt></td>
+<td>
+<p></p>A point in the same dimension as <tt>PolyUnion</tt> given as real column vector.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>index</tt></td>
+<td>
+<p></p>Index of a region where <img src="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/locatepoint1.png" alt="../../../../../../fig/mpt/modules/geometry/unions/@PolyUnion/locatepoint1.png"> is contained, otherwise an empty output <tt>[]</tt>.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>details</tt></td>
+<td>
+<p></p>A structure with statistical information numerical performance of the graph traversal algorithm. <p>
+	    		Class: <tt>struct</tt><p>Allowed values:</p><ul>
+<li>
+<tt>niter</tt><p></p>Number of iterations. </li>
+<li>
+<tt>noper </tt><p></p>Total number of arithmetic operations (multiplications+summations+comparisons). </li>
+<li>
+<tt>multiplications </tt><p></p> Multiplications count. </li>
+<li>
+<tt>summations </tt><p></p> Summation count. </li>
+<li>
+<tt>comparisons </tt><p></p> Comparisons count. </li>
+</ul></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Generate random polytope <tt>P</tt>. <pre class="programlisting">P = ExamplePoly.randVrep('d',3);</pre>
+<pre class="programlisting"></pre>Formulate a parametric optimization problem in 2D over the polytope <tt>P</tt>.<pre class="programlisting">problem = Opt('f',[1,-0.4,0.4],'A',P.A,'b',P.b,'pB',randn(size(P.H,1),2)); </pre>
+<pre class="programlisting"></pre>Solve the problem to get a polyunion with attached adjacency list.<pre class="programlisting"> res = problem.solve </pre>
+<pre class="programlisting">mpt_plcp: 20 regions
+
+res = 
+
+        xopt: [1x1 PolyUnion]
+    exitflag: 1
+         how: 'ok'
+       stats: [1x1 struct]
+
+</pre> Get the interior point located in the last region.<pre class="programlisting"> last = res.xopt.Num </pre>
+<pre class="programlisting">
+last =
+
+    20
+
+</pre>
+<pre class="programlisting"> p = res.xopt.Set(last).interiorPoint </pre>
+<pre class="programlisting">
+p = 
+
+           x: [2x1 double]
+    isStrict: 1
+           r: 916.361188799218
+
+</pre> Verify using the graph traversal algorithm that the point lies in the last region.<pre class="programlisting"> index = locatePoint(res.xopt,p.x) </pre>
+<pre class="programlisting">
+index =
+
+    20
+
+</pre>
+<h2>See Also</h2>
+<a href="../../sets/@Polyhedron/contains.html">contains</a>, <a href="../../sets/@Polyhedron/isinside.html">isinside</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="isbounded.html" class="button">&#9664;</a>  </td>
+<td align="left">isbounded</td>
+<td>  </td>
+<td align="right">isfulldim</td>
+<td align="right" width="20"><a href="isfulldim.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

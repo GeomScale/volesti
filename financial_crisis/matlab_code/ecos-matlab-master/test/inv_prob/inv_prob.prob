@@ -1,0 +1,9 @@
+variable x1
+variable x2
+parameter a
+parameter b
+
+minimize (-x1 + x2 + inv_pos(sqrt(a*x1 - b*x2)))
+subject to
+    pos(x1) <= a
+    neg(x2) <= b

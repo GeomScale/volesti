@@ -1,0 +1,24 @@
+<toc version="2.0">
+<tocitem target="top_level.html" image="$toolbox/matlab/icons/book_mat.png">
+ <tocitem target="getting_started.html" 
+image="$toolbox/matlab/icons/help_gs.png">
+Getting Started
+        <tocitem target="getting_started/installation.html">
+installation
+        </tocitem>
+ </tocitem>
+ <tocitem target="rel_notes.html" 
+image="$toolbox/matlab/icons/help_rn.png">
+Release Notes
+        <tocitem target="rel_notes/relnote1.html">
+relnote1
+        </tocitem>
+ </tocitem>
+<!-- function reference list -->
+<tocreference target="helpfuncbycat.xml"/>
+
+<!-- The following statement provides a link to a Web site -->
+<tocitem target="www.control.ee.ethz.ch/~mpt" image="$toolbox/matlab/icons/webicon.gif">Web Site</tocitem>
+</tocitem>
+
+</toc>

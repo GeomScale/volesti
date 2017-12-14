@@ -1,0 +1,340 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>mpt_plcp</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">mpt_plcp</h1>
+<h2>Purpose</h2>
+<p>Parametric linear complementarity solver (PLCP) (without errorchecks)</p>
+<h2>Syntax</h2>
+<pre class="synopsis">R = mpt_plcp(S)</pre>
+<h2>Description</h2>
+<p></p>
+		Implementation of the lexicographic PLCP solver. The PLCP is given as:
+        <p class="programlistingindent"><img src="../../../../fig/mpt/modules/solvers/mpt_plcp31.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp31.png"></p>
+        where the matrices <img src="../../../../fig/mpt/modules/solvers/mpt_plcp1.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp1.png">, <img src="../../../../fig/mpt/modules/solvers/mpt_plcp2.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp2.png">, <img src="../../../../fig/mpt/modules/solvers/mpt_plcp3.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp3.png">, and vectors <img src="../../../../fig/mpt/modules/solvers/mpt_plcp4.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp4.png">,<img src="../../../../fig/mpt/modules/solvers/mpt_plcp5.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp5.png"> are the 
+        problem data, then <img src="../../../../fig/mpt/modules/solvers/mpt_plcp6.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp6.png">, <img src="../../../../fig/mpt/modules/solvers/mpt_plcp7.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp7.png"> are the decision variables and <img src="../../../../fig/mpt/modules/solvers/mpt_plcp8.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp8.png"> are the parameters.
+
+        Structure of the algorithm:
+        <ol>
+            
+         <li> 
+            <b>Initialisation phase:</b> For any feasible starting point <img src="../../../../fig/mpt/modules/solvers/mpt_plcp9.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp9.png"> solve non-parametric
+            LCP to get feasible basis. The basis is used to determine the initial region <img src="../../../../fig/mpt/modules/solvers/mpt_plcp10.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp10.png"> with the corresponding
+                optimal pair <img src="../../../../fig/mpt/modules/solvers/mpt_plcp11.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp11.png"> and <img src="../../../../fig/mpt/modules/solvers/mpt_plcp12.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp12.png">. 
+            </li>
+            
+         <li> 
+            <b>Exploration phase:</b> For each facet of the initial region <img src="../../../../fig/mpt/modules/solvers/mpt_plcp13.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp13.png"> compute its neighbors <img src="../../../../fig/mpt/modules/solvers/mpt_plcp14.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp14.png">
+            by performing lex-pivot steps in the PLCP subproblem. Compute the graph based on the found neighbors. Store
+            basis of every region to a corresponding hash-table. </li>
+            
+         <li> 
+            <b>Termination phase:</b> Verify the graph of the solution, evaluate the statistics. </li>
+        
+      </ol>
+        
+        The algorithm uses variable step approach for exploration of the parameter space by default. The fixed step approach
+        can be turned on via option <tt>fixed_step</tt>. Parameter exploration is based on a graph search: depth-first search (BFS) 
+        and breadth-first search (BFS) methods are considered, the default is BFS.
+        
+        When the computer runs in a parallel mode, the exploration phase run in a parallel for-loop automatically, which 
+        can potentially increases the computational speed.
+        
+        Any change in default options must be done using <tt>mptopt</tt> class. Following options can be modified:
+        <ul>
+            
+         <li>
+            <b>bfs</b> - Logical value that determines if to use BFS for exploration of the parameter space (default=1).</li>
+            
+         <li>
+            <b>dfs</b> - Logical value that determines if to use DFS for exploration of the parameter space (default=0).</li>
+            
+         <li>
+            <b>debug</b> - Integer value that determines the debugging level (default=0).</li>
+            
+         <li>
+            <b>maxlayers</b> - For BFS-type of exploration, this value limits the number of "layers" starting from the 
+            initial region <img src="../../../../fig/mpt/modules/solvers/mpt_plcp15.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp15.png">. The first layer is defined as the collection of regions that are adjacent to <img src="../../../../fig/mpt/modules/solvers/mpt_plcp16.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp16.png">,
+                the second layer is given as the new found neighbors to all regions in the first layer etc. The default value is <tt>Inf</tt>.
+            </li>
+            
+         <li>
+            <b>maxregions</b> - The maximal number of regions to be produced by PLCP algorithm. This option is useful when solving
+            large PLCP problems when there are memory problems. The default value is <tt>Inf</tt>.
+            </li>
+            
+         <li>
+            <b>QRfactor</b> - Logical value that select the type of factorization to use for pivoting. If true, then recursive QR
+            factorization is used instead of direct sparse LU factorization by default. The default value is 0.</li>
+            
+         <li>
+            <b>checkoverlaps</b> - Logical value that launches overlap checking if true. Very time consuming operation, therefore the
+            default value is 0. </li>
+            
+         <li>
+            <b>rescue</b> - If the variable step approach fails to find all the neighbors, this logical statement indicates if the use
+                the fixes-step approach as a backup. If true, then the fixed-step approach is run whenever variable step approach does not 
+            find overlaps. The disadvantage of fixed step is, however, overlaps can be produced, specially for degenerate cases. The
+            default value is 0.
+            </li>
+            
+         <li> 
+            <b>maxsteps</b> - If the fixed step approach is turned on, this value limits the number of steps to be performed to find 
+                neighbor. The step size is given by the <tt>region_tol</tt>. The default value is 200.
+            </li>
+            
+         <li> 
+            <b>maxpivots</b> - The maximum limit on the lex-pivot steps to be performed when finding a neighbor. Typically, it suffices
+                1-2 pivots to find a neighbor. If the problem is very degenerate, or badly posed, or due to numerical problems involved in
+            factorization, the pivot steps are repeated up to 100-times, which is the default value. </li>
+            
+         <li> 
+            <b>cacheregions</b> - This flag causes that regions that have been discovered are remembered and used
+            for faster exploration of the parameter space. The default value is 1. </li>
+            
+        
+      </ul>
+
+        Note that to properly preprocess data to PLCP, use <tt>Opt</tt> class whenever possible. This will avoid unnecessary 
+        numerical problems caused by improper formulation of the problem.
+        
+	<h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>S</tt></td>
+<td>
+<p></p>Structure of the <tt>Opt</tt> class.<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>S.M</tt></td>
+<td>
+<p></p>Data matrix for linear-complementarity problem <img src="../../../../fig/mpt/modules/solvers/mpt_plcp17.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp17.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.q</tt></td>
+<td>
+<p></p>Right hand side vector for linear-complementarity problem <img src="../../../../fig/mpt/modules/solvers/mpt_plcp18.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp18.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.Ath</tt></td>
+<td>
+<p></p>Linear part of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_plcp19.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp19.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.bth</tt></td>
+<td>
+<p></p>Right hand side of the inequality constraints <img src="../../../../fig/mpt/modules/solvers/mpt_plcp20.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp20.png">.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.recover</tt></td>
+<td>
+<p></p>Affine map for MPLP/MPQP problems after transformation to LCP.<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>S.recover.uX</tt></td>
+<td>
+<p></p>Matrix of the affine map <img src="../../../../fig/mpt/modules/solvers/mpt_plcp21.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp21.png">.
+                            The map is from the optimization variables involed in LCP <img src="../../../../fig/mpt/modules/solvers/mpt_plcp22.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp22.png"> and in the original LP/QP.
+                        <p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.recover.uTh</tt></td>
+<td>
+<p></p>Matrix of the affine map <img src="../../../../fig/mpt/modules/solvers/mpt_plcp23.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp23.png">. 
+                          The map is from the optimization variables involed in LCP <img src="../../../../fig/mpt/modules/solvers/mpt_plcp24.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp24.png"> and in the original LP/QP.
+                    <p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.recover.lambdaX</tt></td>
+<td>
+<p></p>Matrix of the affine map <img src="../../../../fig/mpt/modules/solvers/mpt_plcp25.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp25.png">.
+                        The map is from the optimization variables involed in LCP <img src="../../../../fig/mpt/modules/solvers/mpt_plcp26.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp26.png"> and the Lagrangian multipliers in the original LP/QP.
+                    <p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.recover.lambdaTh</tt></td>
+<td>
+<p></p>Matrix of the affine map <img src="../../../../fig/mpt/modules/solvers/mpt_plcp27.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp27.png">.
+                        The map is from the optimization variables involed in LCP <img src="../../../../fig/mpt/modules/solvers/mpt_plcp28.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp28.png"> and the Lagrangian multipliers in the original LP/QP.
+                        <p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><p></p></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.Internal</tt></td>
+<td>
+<p></p>Internal data that came from transformation from LP/QP to LCP.<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>S.Internal.H</tt></td>
+<td>
+<p></p>Quadratic part of the objective function.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.Internal.f</tt></td>
+<td>
+<p></p>Linear part of the objective function.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>S.Internal.pF</tt></td>
+<td>
+<p></p>Linear part of the objective function for parameters.<p>
+	    		Class: <tt>double</tt></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><p></p></p>
+<p>
+	    		Default: []</p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>R</tt></td>
+<td>
+<p></p>Result structure<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>R.xopt</tt></td>
+<td>
+<p></p>Partition of the polyhedra with the associated function values for <img src="../../../../fig/mpt/modules/solvers/mpt_plcp29.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp29.png"> and <img src="../../../../fig/mpt/modules/solvers/mpt_plcp30.png" alt="../../../../fig/mpt/modules/solvers/mpt_plcp30.png"> variables.<p>
+	    		Class: <tt>PolyUnion</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.exitflag</tt></td>
+<td>
+<p></p>An integer value that informs if the result was feasible (1), or otherwise (different from 1).<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.how</tt></td>
+<td>
+<p></p>A string that informs if the result was feasible ('ok'), or if any problem appeared through optimization.<p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.solveTime</tt></td>
+<td>
+<p></p>How long did the computation take in seconds.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.stats</tt></td>
+<td>
+<p></p>Statistical information about the computation: the total number of pivots performed, the total number of facets traversed.<p>
+	    		Class: <tt>struct</tt><p></p><tr valign="top">
+<td><tt>R.stats.pivs</tt></td>
+<td>
+<p></p>The total number of pivots performed.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><tr valign="top">
+<td><tt>R.stats.facetsTraversed</tt></td>
+<td>
+<p></p>The total number of facets that have been traversed. <p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr><p></p></p>
+</td>
+</tr><p></p></p>
+</td>
+</tr></tbody>
+</table>
+<h2>References</h2>
+<p class="citetitle">[1] 
+	Richard W. Cottle, Jong-Shi Pang, Richard E. Stone: Linear complementarity problem, Academic Press Inc. 1992
+</p>
+<p class="citetitle">[2] 
+    C.N. Jones, M. Morari: Multiparametric Linear Complementarity Problems, IEEE Conference on Decision and Control, 2006
+</p>
+<h2>See Also</h2>
+<a href="./mpt_solvemp.html">mpt_solvemp</a>, lcp<p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="mpt_detect_solvers.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt_detect_solvers</td>
+<td>  </td>
+<td align="right">mpt_call_qpc</td>
+<td align="right" width="20"><a href="mpt_call_qpc.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+<p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

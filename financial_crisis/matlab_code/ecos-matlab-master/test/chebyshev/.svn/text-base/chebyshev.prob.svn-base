@@ -1,0 +1,25 @@
+
+parameter a1t(1,2)
+parameter a2t(1,2)
+parameter a3t(1,2)
+parameter a4t(1,2)
+
+parameter na1
+parameter na2
+parameter na3
+parameter na4
+
+parameter b1
+parameter b2
+parameter b3
+parameter b4
+
+variable r
+variable x(2)
+
+maximize r
+subject to
+    a1t*x + na1*r <= b1
+    a2t*x + na2*r <= b2
+    a3t*x + na3*r <= b3
+    a4t*x + na4*r <= b4

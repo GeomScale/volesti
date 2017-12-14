@@ -312,7 +312,8 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
 		randPoints.push_back(p);
 		//std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
 		//std::cout<<"belong to ellips: "<<G.IsIn(p)<<std::endl;
-		//std::cout<<"belong to sphere: "<<isin_ball(c, radius, p)<<std::endl;
+		std::cout<<c<<std::endl;
+        std::cout<<G.getCenter()<<std::endl;
 		std::cout<<"rnum is: "<<rnum<<std::endl;
 	}
 	std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
@@ -740,6 +741,7 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
 	boost::random::uniform_real_distribution<> urdist2(0,1); 
 	
 	//get the inscribed ball
+    std::cout<<"hello"<<std::endl;
 	inscribed_ball=rand_inscribed_ball_nonConv(G1,G2,facet,z1,z2);
 	c=inscribed_ball.first;
 	radius=inscribed_ball.second;
@@ -1000,7 +1002,7 @@ double sample_2hyp(int dim, int num, Plane_d pl1, Plane_d pl2){
 	std::vector<Point_d> points;
 	Point_d p;
 	int sum=0,i,j;
-	double sum_p1,sum_p2;
+	double sum_p1,sum_p2,vol;
 	
 	Sam_Unit(dim, num, points);
 	
@@ -1016,8 +1018,14 @@ double sample_2hyp(int dim, int num, Plane_d pl1, Plane_d pl2){
 			sum++;
 		}
 	}
-	std::cout<<"sum is: "<<sum<<std::endl;
-	return ((double)sum)/((double)num);
+	std::cout<<"Number of points inside intersection: "<<sum<<std::endl;
+    vol=((double)sum)/((double)num);
+    
+    for(i=0; i<dim; i++){
+        vol=vol/((double)(i+1));
+    }
+    
+	return vol;
 }
 
 
@@ -1052,6 +1060,7 @@ double sample_cut_ellipsoid(int dim, int num, ellipsoids G){
 	std::vector<Point_d> points;
 	Point_d p;
 	int sum=0,i;
+    double vol;
 	
 	Sam_Unit(dim, num, points);
 	
@@ -1061,8 +1070,14 @@ double sample_cut_ellipsoid(int dim, int num, ellipsoids G){
 			sum++;
 		}
 	}
-	std::cout<<"sum is: "<<sum<<std::endl;
-	return (double)(sum)/(double)(num);
+	//std::cout<<"sum is: "<<sum<<std::endl;
+	vol=(double)(sum)/(double)(num);
+    
+    for (i=0; i<dim; i++){
+        vol=vol/((double)(i+1));
+    }
+    
+	return vol;
 	
 	
 	
@@ -1077,7 +1092,7 @@ double sample_cut_ellipsoid_and_hyps(int dim, int num, ellipsoids G, std::vector
 	std::vector<Point_d> points;
 	Point_d p;
 	int sum=0,i,j;
-	double sum_p;
+	double sum_p,vol;
 	
 	Sam_Unit(dim, num, points);
 	
@@ -1092,8 +1107,14 @@ double sample_cut_ellipsoid_and_hyps(int dim, int num, ellipsoids G, std::vector
 			}
 		}
 	}
-	std::cout<<"sum is: "<<sum<<std::endl;
-	return (double)(sum)/(double)(num);
+	//std::cout<<"sum is: "<<sum<<std::endl;
+	
+	vol=(double)(sum)/(double)(num);
+    for (i=0; i<dim; i++){
+        vol=vol/((double)(i+1));
+    }
+	
+	return vol;
 	
 	
 	
@@ -1120,8 +1141,8 @@ double sampleToArb(std::vector<Point_d>::iterator it_beg, std::vector<Point_d>::
 			A(i,j-1)=pk[i]-p0[i];
 		}
 	}
-	vol=A.determinant();
-	
+	vol=std::abs(A.determinant());
+	//std::cout<<"arb det: "<<vol<<std::endl;
 	Sam_arbest(it_beg,it_end,num,points);
 	//sam_simplex2(it_beg,it_end,num,points);
 
@@ -1137,8 +1158,8 @@ double sampleToArb(std::vector<Point_d>::iterator it_beg, std::vector<Point_d>::
 			sum+=1;
 		}
 	}
-	//std::cout<<"Number of Points in Arbitrary Simplex: "<<sum<<std::endl;
-	vol= ((double)sum)/((double)num);
+	std::cout<<"Number of Points in Arbitrary Simplex: "<<sum<<std::endl;
+	vol= vol*((double)sum)/((double)num);
 	for (i=0; i<dim; i++){
 		vol=vol/((double)(i+1));
 	}
@@ -1153,7 +1174,7 @@ double sample_cut_ellipsoid_and_hyps_nonConv(int dim, int num, ellipsoids G1, el
 	std::vector<Point_d> points;
 	Point_d p;
 	int sum=0,i,j;
-	double sum_p;
+	double sum_p,vol;
 	
 	Sam_Unit(dim, num, points);
 	
@@ -1168,8 +1189,15 @@ double sample_cut_ellipsoid_and_hyps_nonConv(int dim, int num, ellipsoids G1, el
 			}
 		}
 	}
-	std::cout<<"sum is: "<<sum<<std::endl;
-	return (double)(sum)/(double)(num);
+	//std::cout<<"sum is: "<<sum<<std::endl;
+	
+	vol=(double)(sum)/(double)(num);
+    
+    for(i=0; i<dim; i++){
+        vol=vol/((double)(i+1));
+    }
+	
+	return vol;
 	
 	
 	
@@ -1195,28 +1223,33 @@ double sampleToUnit(std::vector<Point_d>::iterator it_beg, std::vector<Point_d>:
 	VectorXd pl2(dim);
 	
 	for (i=0; i<dim; i++){
-		pl1(i)=plane1[i];
-		pl2(i)=plane2[i];
+		pl1(i)=0;
+		pl2(i)=0;
 	}
 	z1=-plane1[dim];
 	z2=-plane2[dim];
 	
 	for (j=1; j<dim+1; j++){
 		Point_d pk=*(it_beg+j);
-		z1=z1-pl1(j-1)*p0[j-1];
-		z2=z2-pl2(j-1)*p0[j-1];
-		for (i=0; i<dim; i++){			
+		z1=z1-plane1[j-1]*p0[j-1];
+		z2=z2-plane2[j-1]*p0[j-1];
+		for (i=0; i<dim; i++){
+            pl1(j-1)+=plane1[i]*(pk[i]-p0[i]);
+			pl2(j-1)+=plane2[i]*(pk[i]-p0[i]);
+            
+            
 			A(i,j-1)=pk[i]-p0[i];
 		}
 	}
-	pl1=pl1.transpose()*A;
-	pl2=pl2.transpose()*A;
+	//pl1=(pl1.transpose())*A;
+	//pl2=(pl2.transpose())*A;
 	
 	Sam_Unit(dim,num,points);
-	volume=A.determinant();
+	volume=std::abs(A.determinant());
+    //std::cout<<"unit det: "<<volume<<std::endl;
 	sum=0;
 	 
-	for (i=0; i<dim; i++){
+	for (i=0; i<num; i++){
 		p1=points[i];
 		side1=0.0; side2=0.0;
 		for (j=0; j<dim; j++){
@@ -1228,6 +1261,7 @@ double sampleToUnit(std::vector<Point_d>::iterator it_beg, std::vector<Point_d>:
 			sum++;
 		}
 	}
+	std::cout<<"Number of points in unit simplex: "<<sum<<std::endl;
 	volume=volume*( ((double)sum)/((double)num) );
 	
 	for (i=0; i<dim; i++){

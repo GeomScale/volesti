@@ -1,0 +1,185 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>isNeighbor</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">isNeighbor</h1>
+<h2>Purpose</h2>
+<p>Test if a polyhedron touches another polyhedron along a given facet.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">ts = P.isNeighbor(Q)</pre>
+<pre class="synopsis">ts = isNeighbor(P,Q)</pre>
+<pre class="synopsis">[ts, iP, iQ] = isNeighbor(P,Q,fP,fQ)</pre>
+<h2>Description</h2>
+<p></p>
+        Return true if the polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor1.png"> shares with the polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor2.png"> a part of a common facet.
+        Both polyhedrons must be in H-representation. If they are not, the irredundant
+        H-representation will be computed.
+        
+        The function tests if the intersection of two polyhedra <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor3.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor3.png"> and <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor4.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor4.png"> in dimension <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor5.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor5.png"> 
+        is nonempty and is of dimension <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor6.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor6.png">. If this holds, then the two polyhedra are touching themself
+        along one facet. For closer explanation, see the example below.        
+	<h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>P</tt></td>
+<td>
+<p></p>Polyhedron in H-representation<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>Q</tt></td>
+<td>
+<p></p>Polyhedron in H-representation<p>
+	    		Class: <tt>Polyhedron</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>fP</tt></td>
+<td>
+<p></p>Index of a facet to test from polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor7.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor7.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>fQ</tt></td>
+<td>
+<p></p>Index of a facet to test from polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor8.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor8.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>ts</tt></td>
+<td>
+<p></p>Logical statement if the polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor9.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor9.png"> touches <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor10.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor10.png"> along the facet.<p>
+	    		Class: <tt>logical</tt><p>Allowed values:</p><ul>
+<li><tt>true</tt></li>
+<li><tt>false</tt></li>
+</ul></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>iP</tt></td>
+<td>
+<p></p>Index of a facet from polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor11.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor11.png"> that touches the polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor12.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor12.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>iQ</tt></td>
+<td>
+<p></p>Index of a facet from polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor13.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor13.png"> that touches the polyhedron <img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor14.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor14.png">.<p>
+	    		Class: <tt>double</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create three neighboring polyhedra <tt>R1</tt>, <tt>R2</tt>, and <tt>R3</tt>.<pre class="programlisting"> R1 = Polyhedron([0 0; 2 0; 0 1; 2 1]); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> R2 = Polyhedron([1 0; 2 0; 1 -1; 2 -1]); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> R3 = Polyhedron([2 0; 3 0; 2 -1; 3 -1]); </pre>
+<pre class="programlisting"></pre> Plot the polyhedrons to see that they are touching themself.<pre class="programlisting"> plot([R1 R2 R3], 'showindex', true) </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@Polyhedron/isneighbor_img_1.png" width="60%"></p> Check that polyhedron R1 touches polyhedron R2. <pre class="programlisting"> R1.isNeighbor(R2) </pre>
+<pre class="programlisting">
+ans =
+
+     1
+
+</pre> Check that the fourth facet of the polyhedron R2 touches the second facet of polyhedron R3.<pre class="programlisting"> [ts, iR2, iR3] = R2.isNeighbor(R3) </pre>
+<pre class="programlisting">
+ts =
+
+     1
+
+
+iR2 =
+
+     2
+
+
+iR3 =
+
+     4
+
+</pre> Actually, the facets of <tt>R2</tt> and <tt>R3</tt> are the same, so these polyhedra have face to face property
+        that can be checked using <tt>isAdjacent</tt> method. <pre class="programlisting"> R2.isAdjacent(R3) </pre>
+<pre class="programlisting">
+ans =
+
+     1
+
+</pre>
+<h2>See Also</h2>
+<a href="./isadjacent.html">isadjacent</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="minhrep.html" class="button">&#9664;</a>  </td>
+<td align="left">minhrep</td>
+<td>  </td>
+<td align="right">contains</td>
+<td align="right" width="20"><a href="contains.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

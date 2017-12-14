@@ -1,0 +1,111 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>block</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">block</h1>
+<h2>Purpose</h2>
+<p>Adds a move blocking constraint</p>
+<h2>Syntax</h2>
+<pre class="synopsis"></pre>
+<h2>Description</h2>
+<p></p> 
+    Adding this filter to an MPC setup will modify the constraints in
+    such a way that the differences between several consecutive
+    optimization variables are equal to zero.<br><br>
+
+    In the most common scenario, adding this filter to a signal
+    representing control inputs will add a move-blocking constraint,
+    which is equivalent to setting a control horizon.<br><br>
+
+    To enable this filter, call <tt>model.u.with('block')</tt> (note
+    that you can add this constrain to any type of signals, e.g., to
+    state and output signals as well).<br><br>
+
+    Once the filter is enabled, parameters of the blocking scheme can
+    be specified in the <tt>model.u.block.from</tt> and
+    <tt>model.u.block.to</tt> parameters. Setting these values to
+    non-zero integers will add the constraint <img src="../../../../../fig/mpt/modules/ui/@SystemSignal/filter_block1.png" alt="../../../../../fig/mpt/modules/ui/@SystemSignal/filter_block1.png">.<br><br>
+
+    The filter can be removed by calling
+    <tt>model.x.without('block')</tt>. 
+
+  <h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create a 1D LTI system <img src="../../../../../fig/mpt/modules/ui/@SystemSignal/filter_block2.png" alt="../../../../../fig/mpt/modules/ui/@SystemSignal/filter_block2.png">.<pre class="programlisting">model = LTISystem('A', 0.9, 'B', 1);</pre>
+<pre class="programlisting"></pre>Add constraints and penalties<pre class="programlisting">
+		model.x.min = -4; model.x.max = 4;
+		model.u.min = -1; model.u.max = 1;
+		model.x.penalty = QuadFunction(1);
+		model.u.penalty = QuadFunction(1);
+	</pre>
+<pre class="programlisting"></pre>Create an MPC controller with prediction horizon 10<pre class="programlisting">M = MPCController(model, 5);</pre>
+<pre class="programlisting"></pre>Tell the controller that only the first two control moves
+    are free, the rest are to fixed<pre class="programlisting">
+		M.model.u.with('block');
+		M.model.u.block.from = 2;
+		M.model.u.block.to = 5;
+		x0 = 4;
+		[~, ~, openloop] = M.evaluate(x0);
+		openloop.U
+	</pre>
+<pre class="programlisting">
+ans =
+
+                        -1        -0.719434753448955        -0.719434753448955        -0.719434753448955        -0.719434753448955
+
+</pre>
+<p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="filter_terminalset.html" class="button">&#9664;</a>  </td>
+<td align="left">filter_terminalset</td>
+<td>  </td>
+<td align="right">filter_softmin</td>
+<td align="right" width="20"><a href="filter_softmin.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

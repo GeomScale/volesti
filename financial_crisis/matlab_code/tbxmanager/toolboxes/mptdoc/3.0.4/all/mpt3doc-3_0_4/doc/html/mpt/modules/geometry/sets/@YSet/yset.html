@@ -1,0 +1,158 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>YSet</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">YSet</h1>
+<h2>Purpose</h2>
+<p>Representation of a convex set using YALMIP constraints.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">S = YSet(vars, constraints)</pre>
+<pre class="synopsis">S = YSet(vars, constraints, options)</pre>
+<h2>Description</h2>
+<p></p>
+        The class <tt>YSet</tt> represents convex sets described by YALMIP constraints.
+        Because YALMIP offers very broad specification of convex sets, the class
+        <tt>YSet</tt> is useful when applying methods of the <tt>ConvexSet</tt> class that 
+        are not available in YALMIP. However, it is not intended with this class to 
+        replace basic functionalities for YALMIP objects. For reference how to use YALMIP
+        objects, refer to YALMIP help.
+        Only convex sets are accepted. Convexity is checked internally by YALMIP.
+    <h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>vars</tt></td>
+<td>
+<p></p> Symbolic variables used in the description of the constraints. The dimension of the 
+        variables must much the dimension used in the constraint set. Vector and matrix variables
+        are accepted, multidimensional matrices are not allowed.
+        <p>
+	    		Class: <tt>sdpvar</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>constraints</tt></td>
+<td>
+<p></p>
+            Constraint set given as <tt>lmi</tt> object. The constraints must build a convex set, 
+            otherwise the argument is not accepted. The convexity is checked internally by YALMIP.
+        <p>
+	    		Class: <tt>lmi</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>options</tt></td>
+<td>
+<p></p>
+            YALMIP options defined by <tt>sdpsettings</tt>. You can specify the solver here, verbosity, 
+            the tolerances, etc. By default, these options are idependent of MPT settings.
+            YALMIP chooses the solver based on its internal preferences and depending on the type of the constraint set.            
+            For more details, type <tt>help sdpsettings</tt>.            
+        <p>
+	    		Class: <tt>struct</tt></p>
+</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>S</tt></td>
+<td>
+<p></p> 
+         <tt>YSet</tt> object representing a convex set. <p>
+	    		Class: <tt>YSet</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create a set that looks like a <em>pizza cut</em>. Define 2D vector <tt>x</tt>.<pre class="programlisting"> x = sdpvar(2,1);</pre>
+<pre class="programlisting"></pre> Create constraints in YALMIP. <pre class="programlisting"> F = [-x(1)+x(2)&lt;=0;  -x(1)-x(2)&gt;=0; x'*x&lt;=1]; </pre>
+<pre class="programlisting"></pre> Construct the set <pre class="programlisting"> S = YSet(x,F) </pre>
+<pre class="programlisting">YALMIP set in dimension 2.
+Functions : none
+</pre> Plot the set <pre class="programlisting"> S.plot </pre>
+<pre class="programlisting">Plotting...
+27 of 40
+</pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/sets/@YSet/yset_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@YSet/yset_img_1.png" width="60%"></p>
+<h3>Example 
+				2</h3> Create a set described by linear matrix inequalities  <img src="../../../../../../fig/mpt/modules/geometry/sets/@YSet/yset1.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@YSet/yset1.png">, <img src="../../../../../../fig/mpt/modules/geometry/sets/@YSet/yset2.png" alt="../../../../../../fig/mpt/modules/geometry/sets/@YSet/yset2.png">. Firstly, define the unknow symmetric matrix <tt>P</tt> and a matrix <tt>A</tt>.<pre class="programlisting"> P = sdpvar(2), A = randn(2); </pre>
+<pre class="programlisting">Linear matrix variable 2x2 (symmetric, real, 3 variables)
+</pre> Secondly, set the inequalities in YALMIP. <pre class="programlisting"> constraints = [P&gt;=0; A'*P + P*A &lt;= eye(2)] </pre>
+<pre class="programlisting">+++++++++++++++++++++++++++++++++++++++++++++++++
+|   ID|      Constraint|                    Type|
++++++++++++++++++++++++++++++++++++++++++++++++++
+|   #1|   Numeric value|   Matrix inequality 2x2|
+|   #2|   Numeric value|   Matrix inequality 2x2|
++++++++++++++++++++++++++++++++++++++++++++++++++
+</pre> Construct the set <tt>S</tt> out of this constraint description. <pre class="programlisting"> S = YSet(P(:),constraints) </pre>
+<pre class="programlisting">YALMIP set in dimension 4.
+Functions : none
+</pre>
+<h2>See Also</h2>
+<a href="../@ConvexSet/convexset.html">convexset</a>, <a href="../@Polyhedron/polyhedron.html">polyhedron</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="display.html" class="button">&#9664;</a>  </td>
+<td align="left">display</td>
+<td>  </td>
+<td align="right">project</td>
+<td align="right" width="20"><a href="project.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Colin Neil Jones: EPF Lausanne,    <a href="mailto:colin.jones@epfl.ch">colin.jones@epfl.ch</a></p>
+<p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>

@@ -1,0 +1,139 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>LTISystem</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">LTISystem</h1>
+<h2>Purpose</h2>
+<p>Represents linear time-invariant systems</p>
+<h2>Syntax</h2>
+<pre class="synopsis">sys = LTISystem('A', A, 'B', B, 'C', C, 'D', D, 'T_s', Ts)</pre>
+<h2>Description</h2>
+<p></p> 
+    This class represents linear time-invariant systems of the form
+    <p class="programlistingindent"><img src="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem8.png" alt="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem8.png"></p>
+    where <img src="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem1.png" alt="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem1.png"> is the state vector, <img src="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem2.png" alt="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem2.png"> is the vector of inputs, <img src="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem3.png" alt="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem3.png"> is the vector of outputs, and <img src="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem4.png" alt="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem4.png">
+    represents the sampling time.<br><br>
+
+    Each LTI system defines following properties:
+    <ul>
+      
+         <li>
+            <tt>A</tt>, <tt>B</tt>: matrices of the
+      state-update equation (read-only)</li>
+      
+         <li>
+            <tt>C</tt>, <tt>D</tt>: matrices of the
+      output equation (read-only)</li>
+      
+         <li>
+            <tt>Ts</tt>: sampling time (read-only)</li>
+      
+         <li>
+            <tt>nx</tt>, <tt>nu</tt>, <tt>ny</tt>: number of states,
+      inputs and outputs (automatically determined, read-only)</li>
+      
+         <li>
+            <tt>x</tt>: specifications of system's states (see <tt>help
+      SystemSignal</tt>)</li>
+      
+         <li>
+            <tt>u</tt>: specifications of system's inputs (see <tt>help
+      SystemSignal</tt>)</li>
+      
+         <li>
+            <tt>y</tt>: specifications of system's outputs (see <tt>help
+      SystemSignal</tt>)</li>
+    
+      </ul>
+
+    To define an LTI system, provide the list of system's matrices to
+    the constructor:<br><br>
+    
+    
+      <tt>sys = LTISystem('A', A, 'B', B, 'C', C, 'D', D, 'Ts', Ts)</tt>
+
+    All inputs, except of the <tt>A</tt> matrix, can be omitted. In
+    such a case they are set to empty matrices of corresponding
+    dimension. As a consequence, one can easily define autonomous
+    systems <img src="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem5.png" alt="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem5.png"> by calling <tt> sys =
+    LTISystem('A', A, 'f', f, 'Ts', Ts)</tt>. Similarly, to define an
+    LTI system without outputs, call <tt>sys = LTISystem('A', A, 'B',
+    B, 'Ts', Ts)</tt>. If the sampling time is omitted, it is set to
+    <tt>Ts=1</tt>.<br><br>
+
+    Another option to define an LTI system is to import the dynamics
+    from Control toolbox' discre-time state-space objects:<br><br>
+
+    
+      <tt>sys = LTISystem(ss(A, B, C, D, Ts))</tt>
+
+    Important to remember is that LTI systems carry with them the
+    value of the state vector. The initial value can be set by the
+    <tt>sys.initialize(x0)</tt> method (see "<tt>help
+    LTISystem/initialize</tt>"). Value of the internal state can be
+    retrieved by the <tt>sys.getStates()</tt> method (see "<tt>help
+    LTISystem/getStates</tt>"). To update the internal state using the
+    system's state-update equation, use the <tt>sys.update(u)</tt>
+    function (see "<tt>help LTISystem/update</tt>").
+  <h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create a 1D LTI system <img src="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem6.png" alt="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem6.png">, <img src="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem7.png" alt="../../../../../fig/mpt/modules/ui/@LTISystem/ltisystem7.png">
+      <pre class="programlisting">sys = LTISystem('A', 2, 'B', 1, 'C', 3)</pre>
+<pre class="programlisting">LTISystem with 1 state, 1 input, 1 output
+</pre>
+<h2>See Also</h2>
+<a href="../@PWASystem/pwasystem.html">pwasystem</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="update.html" class="button">&#9664;</a>  </td>
+<td align="left">update</td>
+<td>  </td>
+<td align="right">simulate</td>
+<td align="right" width="20"><a href="simulate.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

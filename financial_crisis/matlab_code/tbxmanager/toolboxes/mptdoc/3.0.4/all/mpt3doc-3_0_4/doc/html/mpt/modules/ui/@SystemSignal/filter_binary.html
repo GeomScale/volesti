@@ -1,0 +1,105 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>binary</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">binary</h1>
+<h2>Purpose</h2>
+<p>Constraints variable to be binary (0/1)</p>
+<h2>Syntax</h2>
+<pre class="synopsis"></pre>
+<h2>Description</h2>
+<p></p>
+    Adding this filter will constraint some (or all) elements of a given
+    variable to take only binary values. To enable the filter, use
+    <tt>model.signal.with('binary')</tt>.<br><br>
+
+    To impose binary on all elements of a given variable
+    (say, <tt>model.u</tt>), use <tt>model.u.binary = true</tt>. To
+    add binary only to elements indexed by <tt>idx</tt>, call
+    <tt>model.u.binary = idx</tt>. To mark all elements of
+    <tt>model.u</tt> as real variables, use <tt>model.u.binary =
+    []</tt>.<br><br>
+    
+    To remove this filter, call
+    <tt>model.signal.without('binary')</tt>, in which case all
+    elements of <tt>signal</tt> will be considered as real-valued
+    variables. 
+  <h2>Example(s)</h2>
+<h3>Example 
+				1</h3>Create a 1D LTI system <img src="../../../../../fig/mpt/modules/ui/@SystemSignal/filter_binary1.png" alt="../../../../../fig/mpt/modules/ui/@SystemSignal/filter_binary1.png">.<pre class="programlisting">model = LTISystem('A', 0.9, 'B', 1);</pre>
+<pre class="programlisting"></pre>Add constraints and penalties<pre class="programlisting">
+		model.x.min = -4; model.x.max = 4;
+		model.x.penalty = OneNormFunction(1);
+		model.u.penalty = OneNormFunction(0.1);
+	</pre>
+<pre class="programlisting"></pre>Create an MPC controller with prediction horizon 3<pre class="programlisting">M = MPCController(model, 3);</pre>
+<pre class="programlisting"></pre>Constraint the control action to be binary and compute
+		the open-loop optimizer for <tt>x0=-4</tt>
+	
+      <pre class="programlisting">
+		M.model.u.with('binary'); 
+		M.model.u.binary = true;
+		[~, ~, openloop] = M.evaluate(-4);
+		openloop.U
+	</pre>
+<pre class="programlisting">
+ans =
+
+     1     1     0
+
+</pre>
+<p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="filter_deltamax.html" class="button">&#9664;</a>  </td>
+<td align="left">filter_deltamax</td>
+<td>  </td>
+<td align="right">filter_penalty</td>
+<td align="right" width="20"><a href="filter_penalty.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

@@ -1,0 +1,8 @@
+parameter A(2)
+parameter b(2)
+
+variable x
+
+minimize x
+subject to
+    A*x <= b

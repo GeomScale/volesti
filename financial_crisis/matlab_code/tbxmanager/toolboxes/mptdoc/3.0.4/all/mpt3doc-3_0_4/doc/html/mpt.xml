@@ -1,0 +1,1389 @@
+<toc version="2.0">
+ <tocitem target="mpt.html"> mpt
+        <tocitem target="mpt/mptopt.html">
+           <name>mptopt</name>
+           <purpose>
+Global option handler for MPT.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/mpt_init.html">
+           <name>mpt_init</name>
+           <purpose>
+Initializes MPT toolbox for the first time after installation.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/mptdoc.html">
+           <name>mptdoc</name>
+           <purpose>
+Display documentation for Multi-Parametric Toolbox in Matlab help browser.           </purpose>
+        </tocitem>
+   <tocitem target="mpt.html#utils"> utils
+        <tocitem target="mpt/utils/mpt_ineq2eq.html">
+           <name>mpt_ineq2eq</name>
+           <purpose>
+Detects inequality constraints which form equalities           </purpose>
+        </tocitem>
+        <tocitem target="mpt/utils/mpt_scale_matrix.html">
+           <name>mpt_scale_matrix</name>
+           <purpose>
+Scales matrix row-wise and column-wise           </purpose>
+        </tocitem>
+   <tocitem target="mpt.html#@IterableBehavior"> @IterableBehavior
+        <tocitem target="mpt/utils/@IterableBehavior/foreach.html">
+           <name>foreach</name>
+           <purpose>
+Applies a given function to each element of in an array of sets.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/utils/@IterableBehavior/iterablebehavior.html">
+           <name>iterablebehavior</name>
+           <purpose>
+Basic class which provides forEach method to iterate over an array.           </purpose>
+        </tocitem>
+  </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#modules"> modules
+   <tocitem target="mpt.html#geometry"> geometry
+   <tocitem target="mpt.html#unions"> unions
+   <tocitem target="mpt.html#@BinTreePolyUnion"> @BinTreePolyUnion
+        <tocitem target="mpt/modules/geometry/unions/@BinTreePolyUnion/toc.html">
+           <name>toc</name>
+           <purpose>
+Export of PWA/PWQ function to C-code           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@Union"> @Union
+        <tocitem target="mpt/modules/geometry/unions/@Union/listfunctions.html">
+           <name>listfunctions</name>
+           <purpose>
+Extract list of functions stored with the union.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/union.html">
+           <name>union</name>
+           <purpose>
+Represents a general union of convex sets in MPT           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/hasfunction.html">
+           <name>hasfunction</name>
+           <purpose>
+Returns true if the union contains given function names.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/contains.html">
+           <name>contains</name>
+           <purpose>
+Test if a point is contained inside the union of convex sets.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/add.html">
+           <name>add</name>
+           <purpose>
+Insert set to Union object.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/display.html">
+           <name>display</name>
+           <purpose>
+Overload display for Union class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/feval.html">
+           <name>feval</name>
+           <purpose>
+Evaluates a given function defined over a union of convex sets.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/fplot.html">
+           <name>fplot</name>
+           <purpose>
+Plot single function over the sets of the Union object.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/vertcat.html">
+           <name>vertcat</name>
+           <purpose>
+Vertical concatenation for union objecs.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/remove.html">
+           <name>remove</name>
+           <purpose>
+Remove set from Union object.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/horzcat.html">
+           <name>horzcat</name>
+           <purpose>
+Horizontal concatenation for union objecs.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/removefunction.html">
+           <name>removefunction</name>
+           <purpose>
+Remove function from all sets in the union based on the function name.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/removeallfunctions.html">
+           <name>removeallfunctions</name>
+           <purpose>
+Remove all functions that are associated to this union of convex sets.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/getfunction.html">
+           <name>getfunction</name>
+           <purpose>
+Extract function handle from the union of convex sets.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/copy.html">
+           <name>copy</name>
+           <purpose>
+Create a copy of an object derived from the Union class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@Union/plot.html">
+           <name>plot</name>
+           <purpose>
+Plot the union of convex sets.           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@PolyUnion"> @PolyUnion
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/le.html">
+           <name>le</name>
+           <purpose>
+Test if a union of polyhedra is contained inside another union.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/outerapprox.html">
+           <name>outerapprox</name>
+           <purpose>
+Computes outer bounding box for the union of polyhedra           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/isoverlapping.html">
+           <name>isoverlapping</name>
+           <purpose>
+Test if the union of polyhedra contains overlaps.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/plus.html">
+           <name>plus</name>
+           <purpose>
+Minkowski addition for union of polyhedra           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/merge.html">
+           <name>merge</name>
+           <purpose>
+Greedy merging of polyhedra           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/join.html">
+           <name>join</name>
+           <purpose>
+Merges arrays of polyunions to one polyunion object.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/ge.html">
+           <name>ge</name>
+           <purpose>
+Test if a union of polyhedra contains another union.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/minus.html">
+           <name>minus</name>
+           <purpose>
+Pontryagin/Minkowski difference for union of polyhedra           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/contains.html">
+           <name>contains</name>
+           <purpose>
+Test if a point is contained inside the union of polyhedra in the same dimension.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/add.html">
+           <name>add</name>
+           <purpose>
+Insert Polyhedron to PolyUnion object.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/display.html">
+           <name>display</name>
+           <purpose>
+Overload display for PolyUnion class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/eq.html">
+           <name>eq</name>
+           <purpose>
+Returns true if the set covered by unions of polyhedra U_1 is the same as the set covered by union U_2 and false otherwise.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/feval.html">
+           <name>feval</name>
+           <purpose>
+Evaluates a given function defined over a union of polyhedra.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/isbounded.html">
+           <name>isbounded</name>
+           <purpose>
+Test if the union is built from bounded polyhedra.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/locatepoint.html">
+           <name>locatepoint</name>
+           <purpose>
+Implementation of a graph search algorithm for a point location problem.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/isfulldim.html">
+           <name>isfulldim</name>
+           <purpose>
+Test if the union is built from full-dimensional polyhedra.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/toc.html">
+           <name>toc</name>
+           <purpose>
+Export of PWA/PWQ function to C-code           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/fplot.html">
+           <name>fplot</name>
+           <purpose>
+Plot function over the union of polyhedra.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/isconnected.html">
+           <name>isconnected</name>
+           <purpose>
+Test if the union of polyhedra form a connected union.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/polyunion.html">
+           <name>polyunion</name>
+           <purpose>
+Represents a union of polyhedra in the same dimension           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/convexhull.html">
+           <name>convexhull</name>
+           <purpose>
+Computes the convex hull for union of polyhedra           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/reduce.html">
+           <name>reduce</name>
+           <purpose>
+Reduces the overlapping union to minimal number of sets.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/removefunction.html">
+           <name>removefunction</name>
+           <purpose>
+Remove function from all Polyhedra in the union based on the function name.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/removeallfunctions.html">
+           <name>removeallfunctions</name>
+           <purpose>
+Remove all functions that are associated to this union of polyhedra.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/getfunction.html">
+           <name>getfunction</name>
+           <purpose>
+Extract function from PolyUnion object.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/isconvex.html">
+           <name>isconvex</name>
+           <purpose>
+Test if the union of polyhedra is convex.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/copy.html">
+           <name>copy</name>
+           <purpose>
+Create a new copy of the PolyUnion object.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/unions/@PolyUnion/plot.html">
+           <name>plot</name>
+           <purpose>
+Plot the union of polyhedra.           </purpose>
+        </tocitem>
+  </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#sets"> sets
+   <tocitem target="mpt.html#@ConvexSet"> @ConvexSet
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/addfunction.html">
+           <name>addfunction</name>
+           <purpose>
+Attach function to a convex set.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/distance.html">
+           <name>distance</name>
+           <purpose>
+Computes the closest distance between the convex set and given point.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/outerapprox.html">
+           <name>outerapprox</name>
+           <purpose>
+Computes outer bounding box of the convex set.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/separate.html">
+           <name>separate</name>
+           <purpose>
+Computes separating hyperplane between the set and given point.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/listfunctions.html">
+           <name>listfunctions</name>
+           <purpose>
+Shows functions attached to a convex set.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/hasfunction.html">
+           <name>hasfunction</name>
+           <purpose>
+Returns true if the set contains given function name.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/convexset.html">
+           <name>convexset</name>
+           <purpose>
+Represets a convex set in MPT           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/fliplr.html">
+           <name>fliplr</name>
+           <purpose>
+Revert the order of convex sets in the array.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/feval.html">
+           <name>feval</name>
+           <purpose>
+Evaluates a function defined over a convex set or an array thereof.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/isbounded.html">
+           <name>isbounded</name>
+           <purpose>
+Test if a convex set is bounded.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/grid.html">
+           <name>grid</name>
+           <purpose>
+Grid the convex set.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/fplot.html">
+           <name>fplot</name>
+           <purpose>
+Plot a single function over a convex set or over an array of convex sets.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/vertcat.html">
+           <name>vertcat</name>
+           <purpose>
+Vertical concatenation for convex set objecs.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/isemptyset.html">
+           <name>isemptyset</name>
+           <purpose>
+Test if a convex set is empty.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/horzcat.html">
+           <name>horzcat</name>
+           <purpose>
+Horizontal concatenation for convex set objecs.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/removefunction.html">
+           <name>removefunction</name>
+           <purpose>
+Remove function associated to a convex set based on the function name.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/removeallfunctions.html">
+           <name>removeallfunctions</name>
+           <purpose>
+Remove all functions that are associated to this set.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/support.html">
+           <name>support</name>
+           <purpose>
+Compute the support of the set in the specified direction.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/getfunction.html">
+           <name>getfunction</name>
+           <purpose>
+Extract function handle from a convex set.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/affinehull.html">
+           <name>affinehull</name>
+           <purpose>
+Computes affine hull of a convex set.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/copy.html">
+           <name>copy</name>
+           <purpose>
+Create a copy of an object derived from the ConvexSet class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@ConvexSet/plot.html">
+           <name>plot</name>
+           <purpose>
+Plot the convex set.           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@YSet"> @YSet
+        <tocitem target="mpt/modules/geometry/sets/@YSet/contains.html">
+           <name>contains</name>
+           <purpose>
+Test if the point is contained inside convex set YSet.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@YSet/display.html">
+           <name>display</name>
+           <purpose>
+Overload display for YSet class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@YSet/yset.html">
+           <name>yset</name>
+           <purpose>
+Representation of a convex set using YALMIP constraints.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@YSet/project.html">
+           <name>project</name>
+           <purpose>
+Compute the projection of the point onto this set.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@YSet/shoot.html">
+           <name>shoot</name>
+           <purpose>
+Compute the maximal value of a multiplier in the desired direction.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@YSet/extreme.html">
+           <name>extreme</name>
+           <purpose>
+Compute an extreme point of this set in the given direction.           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@Polyhedron"> @Polyhedron
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/invaffinemap.html">
+           <name>invaffinemap</name>
+           <purpose>
+Compute the inverse affine map of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/distance.html">
+           <name>distance</name>
+           <purpose>
+Compute the distance between the given point/polyhedron and this polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/le.html">
+           <name>le</name>
+           <purpose>
+Test if a polyhedron is contained inside polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/intersect.html">
+           <name>intersect</name>
+           <purpose>
+Intersect two polyhedra.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/outerapprox.html">
+           <name>outerapprox</name>
+           <purpose>
+Computes outer bounding hypercube of a polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/b.html">
+           <name>b</name>
+           <purpose>
+Get b vector from equality description of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/normalize.html">
+           <name>normalize</name>
+           <purpose>
+Normalizes polyhedron in H-representation.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/uminus.html">
+           <name>uminus</name>
+           <purpose>
+Unitary minus for a polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/separate.html">
+           <name>separate</name>
+           <purpose>
+Separate a point/polyhedron from another polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/lt.html">
+           <name>lt</name>
+           <purpose>
+Test if a polyhedron is contained inside polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/ae.html">
+           <name>ae</name>
+           <purpose>
+Get Ae matrix from equality description of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/computehrep.html">
+           <name>computehrep</name>
+           <purpose>
+Compute H-representation of a polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/volume.html">
+           <name>volume</name>
+           <purpose>
+Compute the volume of the polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/plus.html">
+           <name>plus</name>
+           <purpose>
+Add a Polyhedron and a vector or Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/mldivide.html">
+           <name>mldivide</name>
+           <purpose>
+Set difference between polyhedra           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/facetinteriorpoints.html">
+           <name>facetinteriorpoints</name>
+           <purpose>
+Compute points that lie on each of the facet of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/getfacet.html">
+           <name>getfacet</name>
+           <purpose>
+Extract facet of the polyhedron specified by the inequality index.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/affinemap.html">
+           <name>affinemap</name>
+           <purpose>
+Compute the affine map of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/minvrep.html">
+           <name>minvrep</name>
+           <purpose>
+Compute an irredundant V-representation of a polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/ne.html">
+           <name>ne</name>
+           <purpose>
+Test if a polyhedron is not equal to another polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/be.html">
+           <name>be</name>
+           <purpose>
+Get be vector from equality description of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/meshgrid.html">
+           <name>meshgrid</name>
+           <purpose>
+Generate X-Y grid for 2D bounded polyhedra.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/ge.html">
+           <name>ge</name>
+           <purpose>
+Test if a polyhedron is contained inside polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/minus.html">
+           <name>minus</name>
+           <purpose>
+Subtract a Polyhedron or a vector from a Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/ispointed.html">
+           <name>ispointed</name>
+           <purpose>
+Test if a polyhedron is pointed or not           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/minhrep.html">
+           <name>minhrep</name>
+           <purpose>
+Compute an irredundant H-representation of a polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/isneighbor.html">
+           <name>isneighbor</name>
+           <purpose>
+Test if a polyhedron touches another polyhedron along a given facet.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/contains.html">
+           <name>contains</name>
+           <purpose>
+Test if a polyhedron/point is contained inside polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/isadjacent.html">
+           <name>isadjacent</name>
+           <purpose>
+Test if a polyhedron shares a facet with another polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/projection.html">
+           <name>projection</name>
+           <purpose>
+Compute the projection of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/isfullspace.html">
+           <name>isfullspace</name>
+           <purpose>
+Test if a polyhedron represents the whole space \mathbb{R}^n.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/display.html">
+           <name>display</name>
+           <purpose>
+Overload display for Polyhedron class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/a.html">
+           <name>a</name>
+           <purpose>
+Get A matrix from inequality description of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/gt.html">
+           <name>gt</name>
+           <purpose>
+Test if a polyhedron is contained inside polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/eq.html">
+           <name>eq</name>
+           <purpose>
+Returns true if the set covered by polyhedra P is the same as the set covered by S and false otherwise.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/project.html">
+           <name>project</name>
+           <purpose>
+Project a point onto the given polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/incidencemap.html">
+           <name>incidencemap</name>
+           <purpose>
+Compute the incidence map of this polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/isbounded.html">
+           <name>isbounded</name>
+           <purpose>
+Test if a polyhedron is bounded.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/mtimes.html">
+           <name>mtimes</name>
+           <purpose>
+Multiply two polyhedra, or a polyhedron with a matrix or scalar.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/computevrep.html">
+           <name>computevrep</name>
+           <purpose>
+Compute V-representation of a polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/isfulldim.html">
+           <name>isfulldim</name>
+           <purpose>
+Test if a polyhedron has a non-empty interior.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/shoot.html">
+           <name>shoot</name>
+           <purpose>
+Maximize along a given ray within the polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/fplot.html">
+           <name>fplot</name>
+           <purpose>
+Plot single function over the polyhedron or array of polyhedra.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/polyhedron.html">
+           <name>polyhedron</name>
+           <purpose>
+Create a Polyhedron object.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/isemptyset.html">
+           <name>isemptyset</name>
+           <purpose>
+Test if a polyhedron has a non-empty interior.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/interiorpoint.html">
+           <name>interiorpoint</name>
+           <purpose>
+Compute a point in the relative interior of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/chebycenter.html">
+           <name>chebycenter</name>
+           <purpose>
+Compute the Chebyshev centre of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/slice.html">
+           <name>slice</name>
+           <purpose>
+Slice the polyhedron through given dimensions at specified values.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/extreme.html">
+           <name>extreme</name>
+           <purpose>
+Compute extremal point of a polyhedron in a given direction.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/homogenize.html">
+           <name>homogenize</name>
+           <purpose>
+Compute the homogenization of the given Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/affinehull.html">
+           <name>affinehull</name>
+           <purpose>
+Compute the affine hull of the Polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/triangulate.html">
+           <name>triangulate</name>
+           <purpose>
+Triangulation of a polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/uplus.html">
+           <name>uplus</name>
+           <purpose>
+Unitary plus for a polyhedron.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/isinside.html">
+           <name>isinside</name>
+           <purpose>
+Test if a point is contained inside polyhedron in H-representation.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/sets/@Polyhedron/plot.html">
+           <name>plot</name>
+           <purpose>
+Plot the polyhedron.           </purpose>
+        </tocitem>
+  </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#functions"> functions
+   <tocitem target="mpt.html#@InfNormFunction"> @InfNormFunction
+        <tocitem target="mpt/modules/geometry/functions/@InfNormFunction/infnormfunction.html">
+           <name>infnormfunction</name>
+           <purpose>
+Class representing inf-norm function.           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@Function"> @Function
+        <tocitem target="mpt/modules/geometry/functions/@Function/sethandle.html">
+           <name>sethandle</name>
+           <purpose>
+Assign function handle to existing Function object           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/functions/@Function/isemptyfunction.html">
+           <name>isemptyfunction</name>
+           <purpose>
+Test if the object of the Function class contains a function handle.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/functions/@Function/display.html">
+           <name>display</name>
+           <purpose>
+Overload display for Function class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/functions/@Function/vertcat.html">
+           <name>vertcat</name>
+           <purpose>
+Vertical concatenation for Function class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/functions/@Function/horzcat.html">
+           <name>horzcat</name>
+           <purpose>
+Horizontal concatenation for Function class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/functions/@Function/function.html">
+           <name>function</name>
+           <purpose>
+Function representation for MPT           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@OneNormFunction"> @OneNormFunction
+        <tocitem target="mpt/modules/geometry/functions/@OneNormFunction/onenormfunction.html">
+           <name>onenormfunction</name>
+           <purpose>
+Class representing 1-norm function.           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@AffFunction"> @AffFunction
+        <tocitem target="mpt/modules/geometry/functions/@AffFunction/afffunction.html">
+           <name>afffunction</name>
+           <purpose>
+Representation of affine functions in the form F*x + g           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/functions/@AffFunction/display.html">
+           <name>display</name>
+           <purpose>
+Overload display for AffFunction class.           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@NormFunction"> @NormFunction
+        <tocitem target="mpt/modules/geometry/functions/@NormFunction/normfunction.html">
+           <name>normfunction</name>
+           <purpose>
+Class representing 1- or infinity-norm function.           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@QuadFunction"> @QuadFunction
+        <tocitem target="mpt/modules/geometry/functions/@QuadFunction/display.html">
+           <name>display</name>
+           <purpose>
+Overload display for QuadFunction class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/geometry/functions/@QuadFunction/quadfunction.html">
+           <name>quadfunction</name>
+           <purpose>
+Representation of quadratic functions in the form x'*H*x + F*x + g           </purpose>
+        </tocitem>
+  </tocitem>
+  </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#solvers"> solvers
+        <tocitem target="mpt/modules/solvers/mpt_call_cdd.html">
+           <name>mpt_call_cdd</name>
+           <purpose>
+A gateway function to CDD solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_gurobi.html">
+           <name>mpt_call_gurobi</name>
+           <purpose>
+A gateway function to GUROBI solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_nag.html">
+           <name>mpt_call_nag</name>
+           <purpose>
+A gateway function to the NAG Toolbox LP and QP solvers           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_lcp.html">
+           <name>mpt_call_lcp</name>
+           <purpose>
+A gateway function to LCP solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_mpqp.html">
+           <name>mpt_call_mpqp</name>
+           <purpose>
+A gateway function to MPQP solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_clp.html">
+           <name>mpt_call_clp</name>
+           <purpose>
+A gateway function to CLP solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_qpoases.html">
+           <name>mpt_call_qpoases</name>
+           <purpose>
+A gateway function to QPoases solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_solve.html">
+           <name>mpt_solve</name>
+           <purpose>
+A gateway function to solve non-parametric optimization problems (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_mplp.html">
+           <name>mpt_call_mplp</name>
+           <purpose>
+A gateway function to MPLP solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_plcp.html">
+           <name>mpt_call_plcp</name>
+           <purpose>
+A gateway function to PLCP solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_qpspline.html">
+           <name>mpt_call_qpspline</name>
+           <purpose>
+A gateway function to QPspline solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_linprog.html">
+           <name>mpt_call_linprog</name>
+           <purpose>
+A gateway function to LINPROG solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_sedumi.html">
+           <name>mpt_call_sedumi</name>
+           <purpose>
+A gateway function to SEDUMI solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_glpk.html">
+           <name>mpt_call_glpk</name>
+           <purpose>
+A gateway function to GLPK solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_detect_solvers.html">
+           <name>mpt_detect_solvers</name>
+           <purpose>
+Searches for installed solvers on the path.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_plcp.html">
+           <name>mpt_plcp</name>
+           <purpose>
+Parametric linear complementarity solver (PLCP) (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_qpc.html">
+           <name>mpt_call_qpc</name>
+           <purpose>
+A gateway function to QPC solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_solvers_options.html">
+           <name>mpt_solvers_options</name>
+           <purpose>
+Global option settings for solvers.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_cplex.html">
+           <name>mpt_call_cplex</name>
+           <purpose>
+A gateway function to CPLEX solver (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_solvemp.html">
+           <name>mpt_solvemp</name>
+           <purpose>
+A gateway function to solve parametric optimization problems (without errorchecks)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/mpt_call_quadprog.html">
+           <name>mpt_call_quadprog</name>
+           <purpose>
+A gateway function to QUADPROG solver (without errorchecks)           </purpose>
+        </tocitem>
+   <tocitem target="mpt.html#@Opt"> @Opt
+        <tocitem target="mpt/modules/solvers/@Opt/qp2lcp.html">
+           <name>qp2lcp</name>
+           <purpose>
+Transforms LP/QP/MPLP/MPQP to LPC/PLCP           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/@Opt/eliminateequations.html">
+           <name>eliminateequations</name>
+           <purpose>
+Reduce LP/QP/MPLP/MPQP by removing equality constraints           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/@Opt/opt.html">
+           <name>opt</name>
+           <purpose>
+Interface for solving optimization problems           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/@Opt/display.html">
+           <name>display</name>
+           <purpose>
+Overload display for Opt class.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/@Opt/solve.html">
+           <name>solve</name>
+           <purpose>
+The main routine for solving optimization problems           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/@Opt/feasibleset.html">
+           <name>feasibleset</name>
+           <purpose>
+Computes the feasible set of a given parametric problem.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/solvers/@Opt/copy.html">
+           <name>copy</name>
+           <purpose>
+Creates a copy of the optimization problem given as Opt object.           </purpose>
+        </tocitem>
+  </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#ui"> ui
+        <tocitem target="mpt/modules/ui/mpt_import.html">
+           <name>mpt_import</name>
+           <purpose>
+Converts sysStruct and probStruct into an MPT3 prediction model           </purpose>
+        </tocitem>
+   <tocitem target="mpt.html#@MinTimeController"> @MinTimeController
+        <tocitem target="mpt/modules/ui/@MinTimeController/mintimecontroller.html">
+           <name>mintimecontroller</name>
+           <purpose>
+Implicit minimum-time MPC controller           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MinTimeController/evaluate.html">
+           <name>evaluate</name>
+           <purpose>
+Returns the optimal control action           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@MPCController"> @MPCController
+        <tocitem target="mpt/modules/ui/@MPCController/fromyalmip.html">
+           <name>fromyalmip</name>
+           <purpose>
+Converts a custom YALMIP setup to a controller           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MPCController/toexplicit.html">
+           <name>toexplicit</name>
+           <purpose>
+Computes the explicit solution to the MPC optimization problem           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MPCController/evaluate.html">
+           <name>evaluate</name>
+           <purpose>
+Returns the optimal control action           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MPCController/mpccontroller.html">
+           <name>mpccontroller</name>
+           <purpose>
+MPC controller with on-line optimization           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MPCController/toyalmip.html">
+           <name>toyalmip</name>
+           <purpose>
+Converts an MPC problem into YALMIP's constraints and objective           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#utils"> utils
+        <tocitem target="mpt/modules/ui/utils/mpt_mpsol2pu.html">
+           <name>mpt_mpsol2pu</name>
+           <purpose>
+Converts a parametric solution generated by solvemp to a PolyUnion object           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@SystemSignal"> @SystemSignal
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_deltamin.html">
+           <name>filter_deltamin</name>
+           <purpose>
+Lower bound on the increment of a signal           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_min.html">
+           <name>filter_min</name>
+           <purpose>
+Lower bound on a signal           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_deltapenalty.html">
+           <name>filter_deltapenalty</name>
+           <purpose>
+Penalizes the increment of a signal           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_terminalpenalty.html">
+           <name>filter_terminalpenalty</name>
+           <purpose>
+Penalizes the final predicted state in the MPC problem           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/systemsignal.html">
+           <name>systemsignal</name>
+           <purpose>
+Class representing variables of a dynamical system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_deltamax.html">
+           <name>filter_deltamax</name>
+           <purpose>
+Upper bound on the increment of a signal           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_binary.html">
+           <name>filter_binary</name>
+           <purpose>
+Constraints variable to be binary (0/1)           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_penalty.html">
+           <name>filter_penalty</name>
+           <purpose>
+Penalizes the signal in the MPC cost function           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_softmax.html">
+           <name>filter_softmax</name>
+           <purpose>
+Soft upper bound constraint           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_max.html">
+           <name>filter_max</name>
+           <purpose>
+Upper bound on a signal           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_terminalset.html">
+           <name>filter_terminalset</name>
+           <purpose>
+Adds a polyhedral constraint on the final predicted state           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_block.html">
+           <name>filter_block</name>
+           <purpose>
+Adds a move blocking constraint           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_softmin.html">
+           <name>filter_softmin</name>
+           <purpose>
+Soft lower bound constraint           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_setconstraint.html">
+           <name>filter_setconstraint</name>
+           <purpose>
+Adds a polyhedral constraint           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@SystemSignal/filter_reference.html">
+           <name>filter_reference</name>
+           <purpose>
+Penalizes difference of a signal from a given reference level           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@AbstractSystem"> @AbstractSystem
+        <tocitem target="mpt/modules/ui/@AbstractSystem/output.html">
+           <name>output</name>
+           <purpose>
+Returns value of the output variables           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@AbstractSystem/initialize.html">
+           <name>initialize</name>
+           <purpose>
+Sets the internal state of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@AbstractSystem/update.html">
+           <name>update</name>
+           <purpose>
+Updates the internal state using the state-update equation           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@AbstractSystem/simulate.html">
+           <name>simulate</name>
+           <purpose>
+Simulates evolution of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@AbstractSystem/getstates.html">
+           <name>getstates</name>
+           <purpose>
+Returns the internal state of the system           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@LTISystem"> @LTISystem
+        <tocitem target="mpt/modules/ui/@LTISystem/output.html">
+           <name>output</name>
+           <purpose>
+Returns value of the output variables           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/initialize.html">
+           <name>initialize</name>
+           <purpose>
+Sets the internal state of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/setdomain.html">
+           <name>setdomain</name>
+           <purpose>
+Sets the domain of an LTI system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/lqrgain.html">
+           <name>lqrgain</name>
+           <purpose>
+Linear-quadratic regulator design for LTI systems           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/invariantset.html">
+           <name>invariantset</name>
+           <purpose>
+Computation of invariant sets for linear systems           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/reachableset.html">
+           <name>reachableset</name>
+           <purpose>
+Computes forward or backwards reachable sets           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/update.html">
+           <name>update</name>
+           <purpose>
+Updates the internal state using the state-update equation           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/ltisystem.html">
+           <name>ltisystem</name>
+           <purpose>
+Represents linear time-invariant systems           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/simulate.html">
+           <name>simulate</name>
+           <purpose>
+Simulates evolution of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/lqrset.html">
+           <name>lqrset</name>
+           <purpose>
+Computes an invariant subset of an LQR controller           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/getstates.html">
+           <name>getstates</name>
+           <purpose>
+Returns the internal state of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@LTISystem/lqrpenalty.html">
+           <name>lqrpenalty</name>
+           <purpose>
+Linear-quadratic regulator design for LTI systems           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@PWASystem"> @PWASystem
+        <tocitem target="mpt/modules/ui/@PWASystem/output.html">
+           <name>output</name>
+           <purpose>
+Returns value of the output variables           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@PWASystem/initialize.html">
+           <name>initialize</name>
+           <purpose>
+Sets the internal state of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@PWASystem/invariantset.html">
+           <name>invariantset</name>
+           <purpose>
+Computation of invariant sets for PWA systems           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@PWASystem/reachableset.html">
+           <name>reachableset</name>
+           <purpose>
+Computes forward or backwards reachable sets           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@PWASystem/update.html">
+           <name>update</name>
+           <purpose>
+Updates the internal state using the state-update equation           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@PWASystem/simulate.html">
+           <name>simulate</name>
+           <purpose>
+Simulates evolution of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@PWASystem/tolti.html">
+           <name>tolti</name>
+           <purpose>
+Converts the i-th mode of a PWA system to an LTI system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@PWASystem/getstates.html">
+           <name>getstates</name>
+           <purpose>
+Returns the internal state of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@PWASystem/pwasystem.html">
+           <name>pwasystem</name>
+           <purpose>
+Represents discrete-time piecewise affine systems           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@EMPCController"> @EMPCController
+        <tocitem target="mpt/modules/ui/@EMPCController/empccontroller.html">
+           <name>empccontroller</name>
+           <purpose>
+Explicit MPC controller           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@EMPCController/exporttoc.html">
+           <name>exporttoc</name>
+           <purpose>
+Export the explicit controller to C-code           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@EMPCController/evaluate.html">
+           <name>evaluate</name>
+           <purpose>
+Returns the optimal control action           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@MLDSystem"> @MLDSystem
+        <tocitem target="mpt/modules/ui/@MLDSystem/output.html">
+           <name>output</name>
+           <purpose>
+Returns value of the output variables           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MLDSystem/initialize.html">
+           <name>initialize</name>
+           <purpose>
+Sets the internal state of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MLDSystem/update.html">
+           <name>update</name>
+           <purpose>
+Updates the internal state using the state-update equation           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MLDSystem/simulate.html">
+           <name>simulate</name>
+           <purpose>
+Simulates evolution of the system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MLDSystem/topwa.html">
+           <name>topwa</name>
+           <purpose>
+Converts the MLD model into an equivalent PWA form           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MLDSystem/mldsystem.html">
+           <name>mldsystem</name>
+           <purpose>
+Represents mixed logical dynamical systems           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@MLDSystem/getstates.html">
+           <name>getstates</name>
+           <purpose>
+Returns the internal state of the system           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@AbstractController"> @AbstractController
+        <tocitem target="mpt/modules/ui/@AbstractController/fromyalmip.html">
+           <name>fromyalmip</name>
+           <purpose>
+Converts a custom YALMIP setup to a controller           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@AbstractController/toyalmip.html">
+           <name>toyalmip</name>
+           <purpose>
+Converts an MPC problem into YALMIP's constraints and objective           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@ClosedLoop"> @ClosedLoop
+        <tocitem target="mpt/modules/ui/@ClosedLoop/invariantset.html">
+           <name>invariantset</name>
+           <purpose>
+Computes the invariant subset of the closed-loop system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@ClosedLoop/tosystem.html">
+           <name>tosystem</name>
+           <purpose>
+Converts the closed-loop object to an autonomous dynamical system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@ClosedLoop/closedloop.html">
+           <name>closedloop</name>
+           <purpose>
+Create a closed-loop system.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@ClosedLoop/simulate.html">
+           <name>simulate</name>
+           <purpose>
+Simulates the closed-loop system.           </purpose>
+        </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#@EMinTimeController"> @EMinTimeController
+        <tocitem target="mpt/modules/ui/@EMinTimeController/emintimecontroller.html">
+           <name>emintimecontroller</name>
+           <purpose>
+Explicit minimum-time MPC controller           </purpose>
+        </tocitem>
+        <tocitem target="mpt/modules/ui/@EMinTimeController/evaluate.html">
+           <name>evaluate</name>
+           <purpose>
+Returns the optimal control action           </purpose>
+        </tocitem>
+  </tocitem>
+  </tocitem>
+  </tocitem>
+   <tocitem target="mpt.html#demos"> demos
+        <tocitem target="mpt/demos/mpt_demo_functions1.html">
+           <name>mpt_demo_functions1</name>
+           <purpose>
+Demonstration of functions associated to sets           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_deployment_onlinempc.html">
+           <name>mpt_demo_deployment_onlinempc</name>
+           <purpose>
+Application of online MPC controller with the help of Simulink interface           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_deployment_explicitmpctracking.html">
+           <name>mpt_demo_deployment_explicitmpctracking</name>
+           <purpose>
+Application of tracking explicit MPC controller with the help of Simulink interface           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_lti2.html">
+           <name>mpt_demo_lti2</name>
+           <purpose>
+Demonstrates online MPC for LTI system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_functions2.html">
+           <name>mpt_demo_functions2</name>
+           <purpose>
+Demonstration of functions over unions of polyhedra           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_lti4.html">
+           <name>mpt_demo_lti4</name>
+           <purpose>
+Construction of explicit controller for LTI system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_sets2.html">
+           <name>mpt_demo_sets2</name>
+           <purpose>
+Construction and basic properties of sets created in Yalmip           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_lti5.html">
+           <name>mpt_demo_lti5</name>
+           <purpose>
+Demostration of problem formulation using additional properties.           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_opt1.html">
+           <name>mpt_demo_opt1</name>
+           <purpose>
+Demonstration for using Opt interface           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_sets1.html">
+           <name>mpt_demo_sets1</name>
+           <purpose>
+Demonstrates construction and basic properties of the Polyhedron object           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_pwa1.html">
+           <name>mpt_demo_pwa1</name>
+           <purpose>
+Demonstration for modeling PWA systems           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_lti3.html">
+           <name>mpt_demo_lti3</name>
+           <purpose>
+Demonstrates simulation of the closed-loop system           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_deployment_explicitmpc.html">
+           <name>mpt_demo_deployment_explicitmpc</name>
+           <purpose>
+Application of explicit MPC controller with the help of Simulink interface           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_unions1.html">
+           <name>mpt_demo_unions1</name>
+           <purpose>
+Demo that illustrates working with unions of convex sets           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_lti1.html">
+           <name>mpt_demo_lti1</name>
+           <purpose>
+Simulation of LTISystem           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo2.html">
+           <name>mpt_demo2</name>
+           <purpose>
+Tour through visualization capabilities of the toolbox           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo1.html">
+           <name>mpt_demo1</name>
+           <purpose>
+Demonstration of basic usage of the geometric library           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_unions2.html">
+           <name>mpt_demo_unions2</name>
+           <purpose>
+Demo that illustrates working with unions of polyhedra           </purpose>
+        </tocitem>
+        <tocitem target="mpt/demos/mpt_demo_sets3.html">
+           <name>mpt_demo_sets3</name>
+           <purpose>
+Demo that illustrates operations on polyhedra           </purpose>
+        </tocitem>
+  </tocitem>
+ </tocitem>
+</toc>

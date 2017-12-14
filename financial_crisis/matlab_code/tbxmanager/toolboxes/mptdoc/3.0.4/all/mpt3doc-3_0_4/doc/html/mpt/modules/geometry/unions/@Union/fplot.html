@@ -1,0 +1,178 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>fplot</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">fplot</h1>
+<h2>Purpose</h2>
+<p>Plot single function over the sets of the Union object.</p>
+<h2>Syntax</h2>
+<pre class="synopsis">h = Set.fplot()</pre>
+<pre class="synopsis">h = Set.fplot('name', 'Prop1', value1, 'Prop2', value2)</pre>
+<pre class="synopsis">h = fplot(Set, 'name', 'Prop1', value1, 'Prop2', value2)</pre>
+<h2>Description</h2>
+<p></p>
+        Plot single function over an union of convex sets. If there are more functions attached to a set, then the string <tt>name</tt> identifies
+        the function to be plotted. 
+        If the function is vector valued, i.e. its range is greater than 1, than the first element of the 
+        function is plotted by default. For vector valued functions, use the <tt>position</tt> property to indicate that
+        you want a different element of the function value to plot. 
+
+        Figure properties, such as color, line width, etc, can be specified with "Property" - "Value" pairs. 
+	<h2>Input Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody>
+<tr valign="top">
+<td><tt>U</tt></td>
+<td>
+<p></p>Union object that contains sets derived from the <tt>ConvexSet</tt> class, e.g. <tt>Polyhedron</tt>, <tt>YSet</tt>, ...<p>
+	    		Class: <tt>Union</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>name</tt></td>
+<td>
+<p></p>If there are more functions attached to the set, this string indicates the <tt>name</tt> of the function to plot.
+        <p>
+	    		Class: <tt>char</tt></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>Prop1</tt></td>
+<td>
+<p></p>Specification of figure properties.<p>
+	    		Class: <tt>char</tt><p>Allowed values:</p><ul>
+<li>
+<tt>position</tt><p></p>For vector valued functions, the <tt>position</tt> indicates which element of the function value to plot.</li>
+<li>
+<tt>Grid</tt><p></p>With how many gridpoints to grid the circle/sphere. Default is 20.</li>
+<li>
+<tt>Color</tt><p></p>The color of the plot specified by real RGB vector or a string name of the color (e.g. 'gray');</li>
+<li>
+<tt>Wire</tt><p></p>Highlight the edges of the set. Default is false.</li>
+<li>
+<tt>LineStyle</tt><p></p>Specify the type of the line to plot edges of the set. Accepted values are '-',':','-.','--', and'none'.</li>
+<li>
+<tt>LineWidth</tt><p></p>Specify the width of the line. Default is 1.</li>
+<li>
+<tt>Alpha</tt><p></p>Transparency of the color. The value must be inside [0,1] interval. Default is 1.</li>
+<li>
+<tt>Contour</tt><p></p>Add contour graph. Default is false.</li>
+<li>
+<tt>ContourGrid</tt><p></p>With how many grid points to plot the contour graph. Default is 30.</li>
+<li>
+<tt>show_set</tt><p></p>Plot the domain of the function. Default is false.</li>
+<li>
+<tt>showgrid</tt><p></p>Show the grid inside the set. Default is false.</li>
+<li>
+<tt>colormap</tt><p></p>Color map to use given as a string or a function handle. Default is 'mpt'.</li>
+<li>
+<tt>colororder</tt><p></p>Either 'fixed' or 'random'. Default is 'fixed'.</li>
+</ul></p>
+</td>
+</tr>
+<tr valign="top">
+<td><tt>value1</tt></td>
+<td>
+<p></p>Assigns value to <tt>Prop1</tt>.</td>
+</tr>
+</tbody>
+</table>
+<h2>Output Arguments</h2>
+<table cellspacing="0" class="body" cellpadding="4" border="0" width="100%">
+<colgroup>
+<col width="31%">
+<col width="69%">
+</colgroup>
+<tbody><tr valign="top">
+<td><tt>h</tt></td>
+<td>
+<p></p>Handle related to graphics object.<p>
+	    		Class: <tt>handle</tt></p>
+</td>
+</tr></tbody>
+</table>
+<h2>Example(s)</h2>
+<h3>Example 
+				1</h3> We have two linear functions "alpha", "beta" over a union of convex sets. Construct the set first set as the circle<pre class="programlisting"> x = sdpvar(2,1); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> F = [0.5*x'*x&lt;=0.2]; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> S = YSet(x,F); </pre>
+<pre class="programlisting"></pre> Construct quadratic and linear function.<pre class="programlisting"> Q = QuadFunction(eye(2),[0,1]); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> L = AffFunction([-3, 1], 1); </pre>
+<pre class="programlisting"></pre> Add functions to the set with names "alpha" and "beta". <pre class="programlisting"> S.addFunction(Q,'alpha'); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> S.addFunction(L,'beta'); </pre>
+<pre class="programlisting"></pre> Construct a hyperplane that separates the set <tt>S</tt> and the point <tt>x=[0;1]</tt>. <pre class="programlisting"> x = [0;1]; h = S.separate(x); </pre>
+<pre class="programlisting"></pre> Construct a polyhedron out of the hyperplane. <pre class="programlisting"> P = Polyhedron('He',h,'lb',[-1;-1],'ub',[1;1]); </pre>
+<pre class="programlisting"></pre> Add functions "alpha" and "beta" to the polyhedron <pre class="programlisting"> P.addFunction(Q,'alpha'); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> P.addFunction(L,'beta'); </pre>
+<pre class="programlisting"></pre> Create union object from the sets <tt>S</tt> and <tt>P</tt>. <pre class="programlisting"> U = Union(S); U.add(P) </pre>
+<pre class="programlisting">Union of 2 convex sets.
+Functions : 2 attached "alpha", "beta"
+</pre> Plot the function "beta" over the union because this is contained in both sets<pre class="programlisting"> U.fplot('beta'); </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../../../../fig/mpt/modules/geometry/unions/@Union/fplot_img_1.png" alt="../../../../../../fig/mpt/modules/geometry/unions/@Union/fplot_img_1.png" width="60%"></p>
+<h2>See Also</h2>
+<a href="../../sets/@ConvexSet/plot.html">plot</a><p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="feval.html" class="button">&#9664;</a>  </td>
+<td align="left">feval</td>
+<td>  </td>
+<td align="right">vertcat</td>
+<td align="right" width="20"><a href="vertcat.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+<p>©  <b>2003-2013</b>     Michal Kvasnica: STU Bratislava,    <a href="mailto:michal.kvasnica@stuba.sk">michal.kvasnica@stuba.sk</a></p>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>mpt_demo_opt1</title>
+<style type="text/css">
+	body {background-color: white; color: black; font-family:sans-serif; font-size:medium;}
+	a:link {color: #3300ff;}
+	a:visited {color: #663399;}
+	a:hover {color:#0099ff;}
+	a:active {color: #0066cc;}
+	a.button {text-decoration:none;}
+	
+	table.nav  {background-color: #dbddff;}
+	table.body {margin-top:2ex; margin-bottom:2ex;}
+	table.programlistingindent {margin-left:32px;}
+	
+	img { margin-bottom:0px; margin-top:0px;}
+	tt {margin-left:0.5em; margin-right:0.5em; font-weight:lighter;}
+	
+	p {margin-top:0ex;}
+	p.synopsis {margin-left:32px;}
+	p.programlistingindent {margin-left:32px;}
+	p.citetitle {margin-left:2em;}
+	
+	ul ul {list-style-type:square;}
+	ul li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	ol li p {margin-top:0ex; margin-bottom:.5ex; padding:0}
+	
+	h1.reftitle {color:#a90000;}
+	h1.reftitle {font-size:3.7ex; margin-top:0; margin-bottom:0; font-weight:bold}
+	h1.title {color:black; font-size:4ex; margin-top:1ex; font-weight:bold}
+	h2.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:3ex}
+	h3.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h4.title {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex}
+	h2 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2.5ex}
+	h3 {color:#bd0000; margin-top:1ex; margin-bottom:.9ex; font-weight:bold; font-size:2ex} 
+	
+	pre.programlisting {margin-left:32px;}
+	pre.synopsis {margin-left:32px;}
+	
+	
+	.categorytitle {margin-top:8px; padding-top:0px;}
+	.categorylist {background-color: #e1e6f2;}
+ 	</style>
+</head>
+<body>
+<a name="top_of_page"></a><p style="font-size:1px;"></p>
+<h1 class="reftitle">mpt_demo_opt1</h1>
+<h2>Purpose</h2>
+<p>Demonstration for using Opt interface</p>
+<h2>Syntax</h2>
+<pre class="synopsis">mpt_demo_opt1</pre>
+<h2>Description</h2>
+<p></p>
+        Demonstration for using <tt>Opt</tt> interface for solving optimization problems
+	<h2>Example(s)</h2>
+<h3>Example 
+				1</h3> Formulate LP problem <img src="../../../fig/mpt/demos/mpt_demo_opt11.png" alt="../../../fig/mpt/demos/mpt_demo_opt11.png">. <pre class="programlisting"> f = randn(8,1); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> A = randn(25,8); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> b = 5*rand(25,1); </pre>
+<pre class="programlisting"></pre>  Formulate LP <pre class="programlisting"> problem1 = Opt('f',f,'A',A,'b',b) </pre>
+<pre class="programlisting">-------------------------------------------------
+Linear program
+	Num variables:                8
+	Num inequality constraints:  25
+	Num equality constraints:     0
+	Solver:                     LCP
+-------------------------------------------------
+</pre> Solve LP <pre class="programlisting"> res1 = problem1.solve </pre>
+<pre class="programlisting">
+res1 = 
+
+        xopt: [8x1 double]
+      lambda: [1x1 struct]
+         obj: -7.22865124839414
+         how: 'ok'
+    exitflag: 1
+
+</pre>
+<h3>Example 
+				2</h3> Formulate MPLP problem <img src="../../../fig/mpt/demos/mpt_demo_opt12.png" alt="../../../fig/mpt/demos/mpt_demo_opt12.png">.  Do not forget to include bounds on the parameters <img src="../../../fig/mpt/demos/mpt_demo_opt13.png" alt="../../../fig/mpt/demos/mpt_demo_opt13.png">.  Formulate MPLP <pre class="programlisting"> problem2 = Opt('f',f,'A',A,'b',b,'pB',ones(25,1),'Ath',[-1;1],'bth',[1;1]) </pre>
+<pre class="programlisting">-------------------------------------------------
+Parametric linear program
+	Num variables:                8
+	Num inequality constraints:  25
+	Num equality constraints:     0
+	Num parameters:               1
+	Solver:                     PLCP
+-------------------------------------------------
+</pre> Solve MPLP <pre class="programlisting"> res2 = problem2.solve </pre>
+<pre class="programlisting">mpt_plcp: 6 regions
+
+res2 = 
+
+        xopt: [1x1 PolyUnion]
+    exitflag: 1
+         how: 'ok'
+       stats: [1x1 struct]
+
+</pre> Solution is stored as "primal", we can plot it <pre class="programlisting"> res2.xopt.fplot('primal','show_set',true,'LineWidth',3), title('Primal solution') </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_opt1_img_1.png" alt="../../../fig/mpt/demos/mpt_demo_opt1_img_1.png" width="60%"></p>
+<h3>Example 
+				3</h3> Formulate MPLP problem using MPT2-solver  Formulate MPLP with MPT2-MPLP solver <pre class="programlisting"> problem3 = Opt('f',f,'A',A,'b',b,'pB',ones(25,1),'Ath',[-1;1],'bth',[1;1],'solver','MPLP') </pre>
+<pre class="programlisting">-------------------------------------------------
+Parametric linear program
+	Num variables:                8
+	Num inequality constraints:  25
+	Num equality constraints:     0
+	Num parameters:               1
+	Solver:                     MPLP
+-------------------------------------------------
+</pre> Solve MPLP using MPT2 <pre class="programlisting"> res3 = problem3.solve </pre>
+<pre class="programlisting">Calling mpt_mplp_26 with default options...
+mpt_mplp: 6 regions
+
+res3 = 
+
+        xopt: [1x1 PolyUnion]
+     mplpsol: [1x1 struct]
+    exitflag: 1
+         how: 'ok'
+       stats: [1x1 struct]
+
+</pre> Plot the objective value <pre class="programlisting"> res3.xopt.fplot('obj','show_set',true,'LineWidth',3), title('Objective value') </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_opt1_img_2.png" alt="../../../fig/mpt/demos/mpt_demo_opt1_img_2.png" width="60%"></p>
+<h3>Example 
+				4</h3> Formulate problem using YALMIP  Model data <pre class="programlisting"> A = [0.5 -1;1 0]; B = [1;0]; nu = 1; </pre>
+<pre class="programlisting"></pre> MPC data <pre class="programlisting"> Q = eye(2); R = 1; N = 4; </pre>
+<pre class="programlisting"></pre> Initial state <pre class="programlisting"> x0 = sdpvar(2,1); </pre>
+<pre class="programlisting"></pre> Setup the problem <pre class="programlisting"> u = sdpvar(nu,N); </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> constraints = []; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> objective = 0; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting"> x = x0; </pre>
+<pre class="programlisting"></pre>
+<pre class="programlisting">
+            for k = 1:N
+            x = A*x + B*u(k);
+                objective = objective + norm(Q*x,1) + norm(R*u(k),1);
+                constraints = [constraints, -1 &lt;= u(k) &lt;= 1, -5 &lt;= x &lt;= 5];
+            end
+        </pre>
+<pre class="programlisting"></pre> Formulate the problem <pre class="programlisting"> problem4 = Opt(constraints, objective, x0, u) </pre>
+<pre class="programlisting">-------------------------------------------------
+Parametric linear program
+	Num variables:               24
+	Num inequality constraints:  56
+	Num equality constraints:     0
+	Num lower bounds             24
+	Num upper bounds             24
+	Num parameters:               2
+	Solver:                     PLCP
+-------------------------------------------------
+</pre> Solve the problem <pre class="programlisting"> res4 = problem4.solve </pre>
+<pre class="programlisting">regions:    8, unexplored: 11 
+regions:   24, unexplored: 12 
+mpt_plcp: 52 regions
+
+res4 = 
+
+        xopt: [1x1 PolyUnion]
+    exitflag: 1
+         how: 'ok'
+       stats: [1x1 struct]
+
+</pre> Plot the partition <pre class="programlisting"> res4.xopt.plot </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_opt1_img_3.png" alt="../../../fig/mpt/demos/mpt_demo_opt1_img_3.png" width="60%"></p>
+<h3>Example 
+				5</h3> Formulate problem using MPT2  Process model <pre class="programlisting">
+                sysStruct.A = [1 1; 0 1];
+                sysStruct.B = [1; 0.5];
+                sysStruct.C = [1 0; 0 1];
+                sysStruct.D = [0;0];
+                sysStruct.ymin = [-5; -5];
+                sysStruct.ymax = [5; 5];
+                sysStruct.umin = -1;
+                sysStruct.umax = 1;
+        </pre>
+<pre class="programlisting"></pre> Problem formulation <pre class="programlisting">
+            probStruct.norm=2;
+            probStruct.Q=eye(2);
+            probStruct.R=1;
+            probStruct.N=5;
+            probStruct.subopt_lev=0;
+        </pre>
+<pre class="programlisting"></pre> Generate matrices of the appropriate formulation of parametric problem. <pre class="programlisting"> Matrices = mpt_constructMatrices(sysStruct,probStruct);</pre>
+<pre class="programlisting">Function mpt_constructMatrices is obsolete and will be removed in a future MPT version.
+Iteration 1...
+Iteration 2...
+Iteration 3...
+Iteration 4...
+</pre> Define the problem using <tt>Opt</tt> class.<pre class="programlisting"> problem5 = Opt(Matrices) </pre>
+<pre class="programlisting">-------------------------------------------------
+Parametric quadratic program
+	Num variables:                5
+	Num inequality constraints:  20
+	Num equality constraints:     0
+	Num parameters:               2
+	Solver:                     PLCP
+-------------------------------------------------
+</pre> Solve the problem <pre class="programlisting"> res5 = problem5.solve </pre>
+<pre class="programlisting">mpt_plcp: 25 regions
+
+res5 = 
+
+        xopt: [1x1 PolyUnion]
+    exitflag: 1
+         how: 'ok'
+       stats: [1x1 struct]
+
+</pre> Plot he objective function <pre class="programlisting"> res5.xopt.fplot('obj') </pre>
+<pre class="programlisting"></pre>
+<p class="programlistingindent"><img src="../../../fig/mpt/demos/mpt_demo_opt1_img_4.png" alt="../../../fig/mpt/demos/mpt_demo_opt1_img_4.png" width="60%"></p>
+<p></p>
+<table class="nav" summary="Navigation aid" border="0" width="100%" cellpadding="0" cellspacing="0"><tr valign="top">
+<td align="left" width="20">
+<a href="mpt_demo_lti5.html" class="button">&#9664;</a>  </td>
+<td align="left">mpt_demo_lti5</td>
+<td>  </td>
+<td align="right">mpt_demo_sets1</td>
+<td align="right" width="20"><a href="mpt_demo_sets1.html" class="button">&#9654;</a></td>
+</tr></table>
+<br><p>©  <b>2010-2013</b>     Martin Herceg: ETH Zurich,    <a href="mailto:herceg@control.ee.ethz.ch">herceg@control.ee.ethz.ch</a></p>
+</body>
+</html>
