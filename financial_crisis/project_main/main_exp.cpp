@@ -110,7 +110,7 @@ int main(int argc, char* argv[]){
 			std::cout<<"Using rejection in  unit simplex, volume: "<<vol_unit<<std::endl;
 			std::cout<<"Using rejection in  unit simplex, time: "<<time2<<std::endl;
             
-            std::ofstream outputFile3;
+          /*  std::ofstream outputFile3;
             outputFile3.open("hyperplane1.txt");
             std::ofstream outputFile4;
             outputFile4.open("hyperplane2.txt");
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]){
                     outputFile3<<-plane1[i]<<"\n";
                     outputFile4<<-plane1[i]<<"\n";
                 }
-            }
+            }*/
             
 			
 			
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]){
                 double time, time2, c0, e=atof(argv[7]),vol, vol_sam;
                 timer tim;
                 
-                std::cout<<"hello"<<std::endl;
+               // std::cout<<"hello"<<std::endl;
                 std::ifstream inputFile2;
                 std::string inputFileName2 = argv[8]; //reading the input txt file
                 inputFile2.open(inputFileName2.c_str()); //converting the input to a c-style string
@@ -402,7 +402,7 @@ int main(int argc, char* argv[]){
                 
                 std::cout<<"VolEsti Volume: "<<vol<<std::endl;
                 std::cout<<"VolEsti Excecutional time: "<<time<<std::endl;
-                
+                std::cout<<"\n";
                 std::cout<<"Rejection Volume: "<<vol_sam<<std::endl;
                 std::cout<<"Rejection Excecutional time: "<<time2<<std::endl;
                 
@@ -476,7 +476,7 @@ int main(int argc, char* argv[]){
                 
             std::cout<<"VolEsti Volume: "<<vol<<std::endl;
             std::cout<<"VolEsti Excecutional time: "<<time<<std::endl;
-            
+            std::cout<<"\n";
             std::cout<<"Rejection Volume: "<<vol_sam<<std::endl;
             std::cout<<"Rejection Excecutional time: "<<time2<<std::endl;
             
@@ -549,7 +549,7 @@ int main(int argc, char* argv[]){
             
             std::cout<<"Volume: "<<vol<<std::endl;
             std::cout<<"Excecutional time: "<<time<<std::endl;
-            
+            std::cout<<"\n";
             std::cout<<"Rejection Volume: "<<vol_sam<<std::endl;
             std::cout<<"Rejection Excecutional time: "<<time2<<std::endl;
             
@@ -624,12 +624,12 @@ int main(int argc, char* argv[]){
         
             vol1=vol_Ali(pl,-z1,dim);
             vol2=vol_Ali(pl,-z2,dim);
-            std::cout<<"vol1 Varsi: "<<vol1<<" vol2 Varsi: "<<vol2<<std::endl;
+          //  std::cout<<"vol1 Varsi: "<<vol1<<" vol2 Varsi: "<<vol2<<std::endl;
             vol2=vol2-vol1;
             
             
-            std::cout<<"Volume: "<<CGAL::to_double(vol)<<std::endl;
-            std::cout<<"Excecutional time: "<<time<<std::endl;
+            std::cout<<"Lawrence Volume: "<<CGAL::to_double(vol)<<std::endl;
+            std::cout<<"Lawrence excecutional time: "<<time<<std::endl;
             std::cout<<"Exact Volume with Varsi: "<<vol2<<std::endl;
             
         }else if (choice2==2){
@@ -671,8 +671,9 @@ int main(int argc, char* argv[]){
                 vol2=vol2/((double)(i+1));
             }
         
-            std::cout<<"Volume: "<<vol<<std::endl;
-            std::cout<<"Excecutional time: "<<time<<std::endl;
+            std::cout<<"Lawrence volume: "<<vol<<std::endl;
+            std::cout<<"Lawrence excecutional time: "<<time<<std::endl;
+            std::cout<<"\n";
             std::cout<<"Exact Volume with Varsi: "<<vol2<<std::endl;
             
         }
