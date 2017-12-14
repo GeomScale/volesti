@@ -1,4 +1,104 @@
 
+typedef boost::mt19937 RNGType;
+//typedef CGAL::Gmpq                  EXACT_NT;
+//typedef CGAL::Exact_predicates_exact_constructions_kernel  Kernel2;
+//typedef Kernel2::RT					RT;
+
+//typedef CGAL::Epick_d< CGAL::Dynamic_dimension_tag > Kernel;
+//typedef CGAL::Gmpq 			EXACT_NT;
+//typedef double NT;
+typedef CGAL::Cartesian_d<double> 	      Kernel; 
+typedef Kernel::Point_d Point_d;
+typedef CGAL::Timer				  timer;
+typedef Kernel::Hyperplane_d 		Plane_d;
+
+Point_d get_NewP2(Point_d p, double lamda, int k);
+
+using namespace Eigen;
+
+double metro_sq(Point_d A){
+	
+	int i,dim=A.dimension();
+	double res=0.0;
+	
+	for (i=0; i<dim; i++){
+		res+=std::pow(A[i],2);
+	}
+	
+	return res;
+	
+}
+
+void ray_facets(Point_d p0, int k, std::vector<double> &lamdas){
+	
+	double sum=0.0;
+	int i,dim=p0.dimension();
+	lamdas.push_back(-p0[k]);
+	
+	for (i=0; i<dim; i++){
+		sum+=p0[i];
+	}
+	lamdas.push_back(1.0-sum);
+	
+	return;
+	
+}
+
+
+void ray_NewFacets(Point_d p0, int k, std::vector<double> facet, double z1, double z2, std::vector<double> &lamdas){
+	
+	int i,dim=facet.size();
+	double sum=0.0, lamda1, lamda2;
+	
+	for (i=0; i<dim; i++){
+		sum+=facet[i]*p0[i];
+	}
+	
+	lamda1=(z1-sum)/facet[k];
+	lamda2=(z2-sum)/facet[k];
+	
+	lamdas.push_back(lamda1);
+	lamdas.push_back(lamda2);
+	
+	return;	
+	
+}
+
+std::pair<double,double> sect_ray_ball2(Point_d p0, Point_d center, double radius, int k){
+	double a=1.0,b,c,D;
+	int i,j,dim=p0.dimension();
+	std::vector<double> temp_p;
+	std::pair<double,double> result;
+	Point_d p;
+	
+	for (i=0; i<dim; i++){
+		temp_p.push_back(p0[i]-center[i]);
+	}
+	p=Point_d(dim, temp_p.begin(), temp_p.end());
+	
+	c=metro_sq(p)-std::pow(radius,2);
+	b=2*p[k];
+	
+	Matrix2f A;// b_eig=b/a; c_eig=c/a;
+	A(0,0)= 1.0; A(0,1)=1.0; A(1,0)=-(1.0+b+c); A(1,1)=-(1.0+b);
+	EigenSolver<Matrix2f> es(A);
+	double eig1 = es.eigenvalues()[0].real();
+	double eig2 = es.eigenvalues()[1].real();
+	//std::cout<<"[ball] eig1 is; "<<eig1<<" eig2 is: "<<eig2<<std::endl;
+	
+	D=std::pow(b,2)-4*a*c;
+	//std::cout<<D<<" "<< (-b+std::sqrt(D))/(2*a)<<" "<<(-b-std::sqrt(D))/(2*a)<<std::endl;
+	//lamdas.push_back((-b+std::sqrt(D))/(2*a));
+	//lamdas.push_back((-b-std::sqrt(D))/(2*a));
+	//lamdas.push_back(eig1);
+	//lamdas.push_back(eig2);
+	//result.first=eig2;
+	//result.second=eig1;
+	result.first=eig2;
+	result.second=eig1;
+	
+	return result;
+}
 
 
 class ellipsoids{
@@ -247,6 +347,71 @@ bool isin_ball2(Point_d center, double radius, Point_d p){
 	}else{
 		return false;
 	}
+}
+
+
+std::pair<Point_d,double> get_center_radius_inscribed_simplex(std::vector<Point_d>::iterator it_beg, std::vector<Point_d>::iterator it_end){
+	
+	Point_d p0=*it_beg,p1,c;
+	int dim=p0.dimension(),i,j;
+	std::vector<double> temp_p;
+	double radius=0.0,gi,sum=0.0;
+	MatrixXd B(dim,dim);
+	MatrixXd Bg(dim,dim);
+	VectorXd e(dim);
+	VectorXd row(dim);
+	VectorXd g(dim);
+	std::pair<Point_d,double> result;
+	//MatrixXd res2(1,4);
+	
+	
+	for (j=1; j<dim+1; j++){
+		Point_d pk=*(it_beg+j);
+		e(j-1)=1.0;
+		for (i=0; i<dim; i++){
+				B(i,j-1)=pk[i]-p0[i];
+		}
+	}
+	Bg=B;
+	B=B.inverse();
+	//std::cout<< B <<std::endl;
+	//std::cout<<"\n";
+	for (i=0; i<dim; i++){
+		for (j=0; j<dim; j++){
+			row(j)=B(i,j);
+		}
+	//	std::cout<< row <<std::endl;
+	//	std::cout<<"\n";
+		gi=row.norm();
+		radius+=gi;
+		g(i)=gi;
+		if (i<dim-1){
+			sum+=gi;
+		}
+	//	std::cout<<radius<<std::endl;
+	//	std::cout<<"\n";
+	}
+//	std::cout<<"hello"<<std::endl;
+	e=e*B;
+//	std::cout<< e <<std::endl;
+	//std::cout<<"\n";
+	radius+=e.norm();
+	//std::cout<<"hello2.5"<<std::endl;
+	radius=1.0/radius;
+//	std::cout<<"hello2"<<std::endl;
+	g=Bg*g;
+	g=radius*g;
+//	std::cout<<"hello3"<<std::endl;
+	for (i=0; i<dim; i++){
+		temp_p.push_back(p0[i]+g(i));
+	}
+	c=Point_d(dim,temp_p.begin(), temp_p.end());
+	//std::cout<< "small radius is: "<< radius <<std::endl;
+	result.first=c;
+	result.second=radius;
+	
+	return result;
+	
 }
 
 
@@ -584,6 +749,12 @@ std::pair<Point_d,double> rand_inscribed_ball2(ellipsoids G, std::vector<double>
 	return result;
 
 }
+
+
+
+
+
+
 
 
 

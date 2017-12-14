@@ -1,4 +1,20 @@
 //Sample from the unit simplex
+
+typedef boost::mt19937 RNGType;
+//typedef CGAL::Gmpq                  EXACT_NT;
+//typedef CGAL::Exact_predicates_exact_constructions_kernel  Kernel2;
+//typedef Kernel2::RT					RT;
+
+//typedef CGAL::Epick_d< CGAL::Dynamic_dimension_tag > Kernel;
+//typedef CGAL::Gmpq 			EXACT_NT;
+//typedef double NT;
+typedef CGAL::Cartesian_d<double> 	      Kernel; 
+typedef Kernel::Point_d Point_d;
+typedef CGAL::Timer				  timer;
+typedef Kernel::Hyperplane_d 		Plane_d;
+
+using namespace Eigen;
+
 void Sam_Unit(int dim, int num, std::vector<Point_d> &points){
 	
 	int j,i,k,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
@@ -445,6 +461,75 @@ void Sam_arbest(std::vector<Point_d>::iterator it_beg, std::vector<Point_d>::ite
 
 	return;
 
+}
+
+
+std::pair<double,double> hit_and_run_newP2(ellipsoids G,Point_d p0, Point_d center, double radius, int k, bool isball, bool &onBall){
+	
+	int i,dim=p0.dimension(),n;
+	double lamda1, lamda2, lamdaball1, lamdaball2;
+	std::pair<double,double> result, lamdasball;
+	std::vector<double> temp_p, lamdas;
+	
+	/*if (!first){
+		for (i=0; i<dim; i++){
+			if (i!=kold){
+				temp_p.push_back(p0[i]);
+			}else{
+				temp_p.push_back(p0[i]+lamda);
+			}
+		}
+		p0=Point_d(dim, temp_p.begin(), temp_p.end());
+	}*/
+	
+	ray_facets(p0, k, lamdas);
+	G.SectsRay(p0, k, lamdas);
+	//ray_NewFacets(p0, k, facet1, z1, z2, lamdas);
+	//if (isball){
+	//	sect_ray_ball(p0, center, radius, k, lamdas);
+	//}
+	
+	n=lamdas.size();
+	lamda1=-1234976.34;
+	lamda2=12384.34;
+	
+	for (i=0; i<n; i++){
+		if (lamdas[i]<0){
+			if (lamdas[i]>lamda1){
+				lamda1=lamdas[i];
+			}
+		}else{
+			if (lamdas[i]<lamda2){
+				lamda2=lamdas[i];
+			}
+		}
+	}
+	
+	if (isball){
+		lamdasball=sect_ray_ball2(p0, center, radius, k);
+		lamdaball1=lamdasball.first;
+		lamdaball2=lamdasball.second;
+		
+		if(lamdaball1>lamda1){
+			lamda1=lamdaball1;
+			onBall=(onBall && true);
+		}else{
+			onBall=false;
+			//std::cout<<"make it false\n";
+		}
+		if(lamdaball2<lamda2){
+			lamda2=lamdaball2;
+			onBall=(onBall && true);
+		}else{
+			onBall=false;
+			//std::cout<<"make it false\n";
+		}
+	}
+	
+	result.first=lamda1;
+	result.second=lamda2;
+	
+	return result;
 }
 
 

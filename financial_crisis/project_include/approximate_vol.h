@@ -1,7 +1,20 @@
 typedef CGAL::Gmpq                  EXACT_NT;
 
+typedef boost::mt19937 RNGType;
+//typedef CGAL::Gmpq                  EXACT_NT;
+//typedef CGAL::Exact_predicates_exact_constructions_kernel  Kernel2;
+//typedef Kernel2::RT					RT;
 
+//typedef CGAL::Epick_d< CGAL::Dynamic_dimension_tag > Kernel;
+//typedef CGAL::Gmpq 			EXACT_NT;
+//typedef double NT;
+typedef CGAL::Cartesian_d<double> 	      Kernel; 
+typedef Kernel::Point_d Point_d;
+typedef CGAL::Timer				  timer;
+typedef Kernel::Hyperplane_d 		Plane_d;
 
+using namespace Eigen;
+//double VolEsti_ellips2(ellipsoids G, int walk_len, int rnum);
 
 
 // VolEsti for computing 
@@ -982,6 +995,32 @@ double sample_2hyp_par(int dim, int num,std::vector<double> pl, double z1, doubl
 }
 
 
+double sample_2hyp(int dim, int num, Plane_d pl1, Plane_d pl2){
+	
+	std::vector<Point_d> points;
+	Point_d p;
+	int sum=0,i,j;
+	double sum_p1,sum_p2;
+	
+	Sam_Unit(dim, num, points);
+	
+	for (i=0; i<num; i++){
+		p=points[i];
+		sum_p1=0.0, sum_p2=0.0;
+		for (j=0; j<dim; j++){
+			sum_p1+=p[j]*pl1[j];
+            sum_p2+=p[j]*pl2[j];
+            
+        }
+		if (sum_p2<(pl2[dim]) && sum_p1>(pl1[dim])){
+			sum++;
+		}
+	}
+	std::cout<<"sum is: "<<sum<<std::endl;
+	return ((double)sum)/((double)num);
+}
+
+
 double sample_4hyp_par(int dim, int num,std::vector<double> pl1, double z11, double z12, std::vector<double> pl2, double z21, double z22){
 	
 	std::vector<Point_d> points;
@@ -1063,6 +1102,52 @@ double sample_cut_ellipsoid_and_hyps(int dim, int num, ellipsoids G, std::vector
 }
 
 
+
+double sampleToArb(std::vector<Point_d>::iterator it_beg, std::vector<Point_d>::iterator it_end,Plane_d plane1, Plane_d plane2, int num){
+
+	int i,j,sum=0,dim=std::distance(it_beg,it_end);
+	double side1,side2,vol;
+	Point_d p, p0=*it_beg;;
+	std::vector<Point_d> points;
+	std::vector<Point_d>::iterator iter;
+	dim--;
+	
+	MatrixXd A(dim,dim);
+	
+	for (j=1; j<dim+1; j++){
+		Point_d pk=*(it_beg+j);
+		for (i=0; i<dim; i++){			
+			A(i,j-1)=pk[i]-p0[i];
+		}
+	}
+	vol=A.determinant();
+	
+	Sam_arbest(it_beg,it_end,num,points);
+	//sam_simplex2(it_beg,it_end,num,points);
+
+	for (iter=points.begin(); iter!=points.end(); iter++){
+		p=*iter;
+		side1=0.0; side2=0.0;
+		for (j=0; j<dim; j++){
+			side1+=plane1[j]*p[j];
+			side2+=plane2[j]*p[j];
+		}
+		//side+=plane[dim];
+		if (side1<(-plane1[dim]) && side2<(-plane2[dim])){
+			sum+=1;
+		}
+	}
+	//std::cout<<"Number of Points in Arbitrary Simplex: "<<sum<<std::endl;
+	vol= ((double)sum)/((double)num);
+	for (i=0; i<dim; i++){
+		vol=vol/((double)(i+1));
+	}
+	
+	return vol;
+
+}
+
+
 double sample_cut_ellipsoid_and_hyps_nonConv(int dim, int num, ellipsoids G1, ellipsoids G2, std::vector<double> pl, double z1, double z2){
 	
 	std::vector<Point_d> points;
@@ -1091,4 +1176,259 @@ double sample_cut_ellipsoid_and_hyps_nonConv(int dim, int num, ellipsoids G1, el
 	
 	
 }
+
+
+double sampleToUnit(std::vector<Point_d>::iterator it_beg, std::vector<Point_d>::iterator it_end,Plane_d plane1,Plane_d plane2, int num){
+	
+
+	int j,i,sum;
+	Point_d p0=*it_beg,p1;
+	int dim=p0.dimension();
+	double side1,side2,volume,z1,z2;
+	bool t=false;
+	//int pivot11[dim],pivot12[dim],pivot21[dim],pivot22[dim];
+	std::vector<Point_d> points;
+	std::vector<Point_d>::iterator iter1;
+	
+	MatrixXd A(dim,dim);
+	VectorXd pl1(dim);
+	VectorXd pl2(dim);
+	
+	for (i=0; i<dim; i++){
+		pl1(i)=plane1[i];
+		pl2(i)=plane2[i];
+	}
+	z1=-plane1[dim];
+	z2=-plane2[dim];
+	
+	for (j=1; j<dim+1; j++){
+		Point_d pk=*(it_beg+j);
+		z1=z1-pl1(j-1)*p0[j-1];
+		z2=z2-pl2(j-1)*p0[j-1];
+		for (i=0; i<dim; i++){			
+			A(i,j-1)=pk[i]-p0[i];
+		}
+	}
+	pl1=pl1.transpose()*A;
+	pl2=pl2.transpose()*A;
+	
+	Sam_Unit(dim,num,points);
+	volume=A.determinant();
+	sum=0;
+	 
+	for (i=0; i<dim; i++){
+		p1=points[i];
+		side1=0.0; side2=0.0;
+		for (j=0; j<dim; j++){
+			side1+=pl1(j)*p1[j];
+			side2+=pl2(j)*p1[j];
+		}
+		
+		if (side1<z1 && side2<z2){
+			sum++;
+		}
+	}
+	volume=volume*( ((double)sum)/((double)num) );
+	
+	for (i=0; i<dim; i++){
+		volume=volume/((double)(i+1));
+	}
+	
+	return volume;
+	
+}
+	
+
+std::vector<std::vector<double> > get_par_4hyp_vols(int dim, int num, std::vector<double>  pl1, std::vector<double> pl2){
+	
+	int i,j,col,row;
+	std::vector<double> vec1,vec2,Zs1,Zs2;
+	double sum1,sum2,sum;
+	std::vector<Point_d> points;
+	std::pair< std::vector<double>,std::vector<double> > result;
+	Point_d p;
+	
+	Sam_Unit_NoProjection(dim, num, points);
+	
+    std::vector<std::vector<int> > Matrix(100);
+    std::vector<std::vector<double> > pos_Matrix(100);
+	for (i=0; i<100; i++){
+		Matrix[i].resize(100);
+        pos_Matrix[i].resize(100);
+	}
+	for (i=0; i<100; i++){
+		for (j=0; j<100; j++){
+			Matrix[i][j]=0;
+		}
+	}
+    
+	for (i=0; i<num; i++){
+		p=points[i];
+		//std::cout<<p<<std::endl;
+		sum1=0.0; sum2=0.0; sum=0.0;
+		for (j=0; j<dim; j++){
+			sum1+=p[j]*pl1[j];
+			sum2+=p[j]*pl2[j];
+			//sum+=p[j];
+			
+		}
+		//std::cout<<sum<<std::endl;
+		vec1.push_back(sum1);
+		vec2.push_back(sum2);
+	}
+	std::sort( vec1.begin(), vec1.end() );
+	std::sort( vec2.begin(), vec2.end() );
+	
+	for (i=1; i<100; i++){
+		//std::cout<<((int)std::floor(i*(0.01)*((double)num) ))<<std::endl;
+		//std::cout<<((int)std::floor(i*(0.01)*((double)num) ))<<std::endl;
+		Zs1.push_back(vec1[((int)std::floor(i*(0.01)*((double)num) ))]);
+		Zs2.push_back(vec2[((int)std::floor(i*(0.01)*((double)num) ))]);
+	}
+	
+	
+	
+	//std::cout<<"hello2"<<std::endl;
+	for (i=0; i<num; i++){
+		p=points[i];
+		//std::cout<<"dimension is: "<<p.dimension()<<std::endl;
+		sum1=0.0; sum2=0.0;
+		col=-1; row=-1;
+		for (j=0; j<dim; j++){
+			sum1+=p[j]*pl1[j];
+			sum2+=p[j]*pl2[j];
+		}
+		//std::cout<<"hello3"<<std::endl;
+		for (j=0; j<Zs1.size(); j++){
+			if (sum1<Zs1[j]){
+				col=j;
+				break;
+			}
+		}
+		for (j=0; j<Zs2.size(); j++){
+			if (sum2<Zs2[j]){
+				row=j;
+				break;
+			}
+		}
+		if (col==-1){
+			col=99;
+		}
+		
+		if (row==-1){
+			row=99;
+		}
+		//std::cout<<"hello4"<<std::endl;
+		Matrix[row][col]++;
+	}
+	
+	for (i=0; i<100; i++){
+		for (j=0; j<100; j++){
+			pos_Matrix[i][j]=((double)Matrix[i][j])/((double)num);
+		}
+	}
+	
+	
+	return pos_Matrix;
+	
+}
+
+
+
+std::vector<std::vector<double> > get_par_hypellips_vols(int dim, int num, std::vector<double>  pl, ellipsoids G){
+	
+	int i,j,col,row;
+	std::vector<double> vec1,vec2,Zs1,Cs;
+	double sum1,sum2,sum;
+	std::vector<Point_d> points;
+	std::pair< std::vector<double>,std::vector<double> > result;
+	Point_d p;
+	
+	Sam_Unit_NoProjection(dim, num, points);
+	
+    std::vector<std::vector<int> > Matrix(100);
+    std::vector<std::vector<double> > pos_Matrix(100);
+	for (i=0; i<100; i++){
+		Matrix[i].resize(100);
+        pos_Matrix[i].resize(100);
+	}
+	for (i=0; i<100; i++){
+		for (j=0; j<100; j++){
+			Matrix[i][j]=0;
+		}
+	}
+    
+	for (i=0; i<num; i++){
+		p=points[i];
+		//std::cout<<p<<std::endl;
+		sum1=0.0;
+        sum2=G.MatMult(p);
+		for (j=0; j<dim; j++){
+			sum1+=p[j]*pl[j];
+			//sum2+=p[j]*pl2[j];
+			//sum+=p[j];
+			
+		}
+		//std::cout<<sum<<std::endl;
+		vec1.push_back(sum1);
+		vec2.push_back(sum2);
+	}
+	std::sort( vec1.begin(), vec1.end() );
+	std::sort( vec2.begin(), vec2.end() );
+	
+	for (i=1; i<100; i++){
+		//std::cout<<((int)std::floor(i*(0.01)*((double)num) ))<<std::endl;
+		//std::cout<<((int)std::floor(i*(0.01)*((double)num) ))<<std::endl;
+		Zs1.push_back(vec1[((int)std::floor(i*(0.01)*((double)num) ))]);
+		Cs.push_back(vec2[((int)std::floor(i*(0.01)*((double)num) ))]);
+	}
+	
+	
+	
+	//std::cout<<"hello2"<<std::endl;
+	for (i=0; i<num; i++){
+		p=points[i];
+		//std::cout<<"dimension is: "<<p.dimension()<<std::endl;
+		sum1=0.0; sum2=0.0;
+		col=-1; row=-1;
+        sum2=G.MatMult(p);
+		for (j=0; j<dim; j++){
+			sum1+=p[j]*pl[j];
+			//sum2+=p[j]*pl2[j];
+		}
+		//std::cout<<"hello3"<<std::endl;
+		for (j=0; j<Zs1.size(); j++){
+			if (sum1<Zs1[j]){
+				col=j;
+				break;
+			}
+		}
+		for (j=0; j<Cs.size(); j++){
+			if (sum2<Cs[j]){
+				row=j;
+				break;
+			}
+		}
+		if (col==-1){
+			col=99;
+		}
+		
+		if (row==-1){
+			row=99;
+		}
+		//std::cout<<"hello4"<<std::endl;
+		Matrix[row][col]++;
+	}
+	
+	for (i=0; i<100; i++){
+		for (j=0; j<100; j++){
+			pos_Matrix[i][j]=((double)Matrix[i][j])/((double)num);
+		}
+	}
+	
+	
+	return pos_Matrix;
+	
+}
+
 
