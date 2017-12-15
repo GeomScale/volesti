@@ -202,14 +202,16 @@ NT2 Lawn1(std::vector<double> plane_arx, int dim, double zz1, double zz2){
 	for (i=0; i<lefts2.size(); i++){
 		for (j=0; j<rights2.size(); j++){
 			if (rights2[j]>lefts2[i]){
-				if (quant_vert[lefts2[i]][rights2[j]]!=NT2(-1)){
+				//if (quant_vert[lefts2[i]][rights2[j]]!=NT2(-1)){
+				if(2==3){
 					denom=quant_vert[lefts2[i]][rights2[j]];
 				}else{
 					denom=get_denominator(lefts2[i],rights2[j],dim,plane,c,true);
 				}
 				//std::cout<<"denom for "<<lefts[i]<<" "<<rights[j]<<" is: "<<denom<<std::endl;
 			}else{
-				if(quant_vert[rights2[j]][lefts2[i]]!=NT2(-1)){
+				//if(quant_vert[rights2[j]][lefts2[i]]!=NT2(-1)){
+				if (2==3){
 					denom=quant_vert[rights2[j]][lefts2[i]];
 				}else{
 					denom=get_denominator(lefts2[i],rights2[j],dim,plane,c,true);
@@ -228,7 +230,7 @@ NT2 Lawn1(std::vector<double> plane_arx, int dim, double zz1, double zz2){
 		}
 		denom=get_denominator(lefts2[i],-1,dim,plane,c,false);
 		//std::cout<<"denom for "<<lefts[i]<<" is: "<<denom<<std::endl;
-		if (lefts[i]==0){
+		if (lefts2[i]==0){
 			//num=c[dim];
 			numer=NT2(0);
 		//	for (k=1; k<dim; k++){
@@ -371,14 +373,16 @@ double Lawn2(std::vector<double> plane_arx, int dim, double zz1, double zz2){
 	for (i=0; i<lefts2.size(); i++){
 		for (j=0; j<rights2.size(); j++){
 			if (rights2[j]>lefts2[i]){
-				if (quant_vert[lefts2[i]][rights2[j]]!=(double)(-1)){
+				//if (quant_vert[lefts2[i]][rights2[j]]!=(double)(-1)){
+				if(2==3){
 					denom=quant_vert[lefts2[i]][rights2[j]];
 				}else{
 					denom=get_denominator2(lefts2[i],rights2[j],dim,plane,c,true);
 				}
 				//std::cout<<"denom for "<<lefts[i]<<" "<<rights[j]<<" is: "<<denom<<std::endl;
 			}else{
-				if(quant_vert[rights2[j]][lefts2[i]]!=NT2(-1)){
+				//if(quant_vert[rights2[j]][lefts2[i]]!=NT2(-1)){
+				if(2==3){
 					denom=quant_vert[rights2[j]][lefts2[i]];
 				}else{
 					denom=get_denominator2(lefts2[i],rights2[j],dim,plane,c,true);
@@ -397,7 +401,7 @@ double Lawn2(std::vector<double> plane_arx, int dim, double zz1, double zz2){
 		}
 		denom=get_denominator2(lefts2[i],-1,dim,plane,c,false);
 		//std::cout<<"denom for "<<lefts[i]<<" is: "<<denom<<std::endl;
-		if (lefts[i]==0){
+		if (lefts2[i]==0){
 			//num=c[dim];
 			numer=0.0;
 		//	for (k=1; k<dim; k++){

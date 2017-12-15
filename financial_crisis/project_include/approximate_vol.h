@@ -38,18 +38,18 @@ double VolEsti_ellips2(ellipsoids G, int walk_len, int rnum){
 	inscribed_ball=rand_inscribed_ball(G);
 	c=inscribed_ball.first;
 	radius=inscribed_ball.second;
-	std::cout<<"center is: "<<c<<std::endl;
+	//std::cout<<"center is: "<<c<<std::endl;
 	
 	//radius=*rad;
-	std::cout<<"radius is: "<<radius<<std::endl;
+	//std::cout<<"radius is: "<<radius<<std::endl;
 	
 	CGAL::Random_points_in_ball_d<Point_d> gen (dim, radius);
     Point_d p = *gen;
     //p = p + (c-CGAL::Origin());
     p=Add_points2(p,c);
     std::vector<Point_d> randPoints;
-    std::cout<<"first rand point to begin HnR in P: "<<p<<std::endl;
-    std::cout<<G.IsIn(p)<<std::endl;
+   // std::cout<<"first rand point to begin HnR in P: "<<p<<std::endl;
+   // std::cout<<G.IsIn(p)<<std::endl;
 	
 	k = uidist1(rng); //rand coord
 	
@@ -60,21 +60,21 @@ double VolEsti_ellips2(ellipsoids G, int walk_len, int rnum){
 	l_rand=urdist2(rng);
 	lamda=lamda1+(lamda2-lamda1)*l_rand;
 	p=get_NewP2(p, lamda, k);
-	std::cout<<"second rand point to begin HnR in P: "<<p<<std::endl;
+	//std::cout<<"second rand point to begin HnR in P: "<<p<<std::endl;
 	for (i=0; i<1000; i++){
 		k = uidist1(rng);
-		std::cout<<k<<std::endl;
+		//std::cout<<k<<std::endl;
 		lamdas=hit_and_run_newP2(G, p, c, radius, k, false, ray_onball);
 		lamda1=lamdas.first; lamda2=lamdas.second;
 		l_rand=urdist2(rng);
-		std::cout<<l_rand<<std::endl;
+		//std::cout<<l_rand<<std::endl;
 		lamda=lamda1+(lamda2-lamda1)*l_rand;
 		p=get_NewP2(p, lamda, k);
 		//std::cout<<"belong to ellips: "<<G.IsIn(p)<<std::endl;
 		//std::cout<<"belong to sphere: "<<isin_ball(c, radius, p)<<std::endl;
 	}
 	randPoints.push_back(p);
-	std::cout<<"full rand point to begin HnR in P: "<<p<<std::endl;
+	//std::cout<<"full rand point to begin HnR in P: "<<p<<std::endl;
 	//sample rnum in Convex body 
 	for (i=0; i<rnum; i++){
 		for (j=0; j<walk_len; j++){
@@ -89,9 +89,9 @@ double VolEsti_ellips2(ellipsoids G, int walk_len, int rnum){
 		//std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
 		//std::cout<<"belong to ellips: "<<G.IsIn(p)<<std::endl;
 		//std::cout<<"belong to sphere: "<<isin_ball(c, radius, p)<<std::endl;
-		std::cout<<"rnum is: "<<rnum<<std::endl;
+		//std::cout<<"rnum is: "<<rnum<<std::endl;
 	}
-	std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
+	//std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
 	
 	Point_d p_temp;
 	double current_dist, max_dist=0;
@@ -105,11 +105,11 @@ double VolEsti_ellips2(ellipsoids G, int walk_len, int rnum){
 		}
 	}
 	max_dist=std::sqrt(max_dist);
-	std::cout<<"max dist is: "<<max_dist<<std::endl;
+	//std::cout<<"max dist is: "<<max_dist<<std::endl;
 	
 	int nb1 = dim * (std::log(radius)/std::log(2.0));
     int nb2 = std::ceil(dim * (std::log(max_dist)/std::log(2.0)));
-	std::cout<<"nb1: "<<nb1<<"nb2: "<<nb2<<std::endl;
+	//std::cout<<"nb1: "<<nb1<<"nb2: "<<nb2<<std::endl;
 	
 	std::vector<double> all_radius;
 	
@@ -136,10 +136,10 @@ double VolEsti_ellips2(ellipsoids G, int walk_len, int rnum){
 		//	break;
 		//}
 			//const double pi = boost::math::constants::pi<double>();
-			vol = (2*std::pow(pi,dim/2.0)*std::pow(all_radius[i],dim))
-            / (std::tgamma(dim/2.0)*dim) * CGAL::to_double(telescopic_prod);
+			//vol = (2*std::pow(pi,dim/2.0)*std::pow(all_radius[i],dim))
+          //  / (std::tgamma(dim/2.0)*dim) * CGAL::to_double(telescopic_prod);
             
-        std::cout<<"i is: "<<i<<" vol is: "<<vol<<std::endl;
+       // std::cout<<"i is: "<<i<<" vol is: "<<vol<<std::endl;
 		if (ball_inside){
 			radius=all_radius[i];
 			break;
@@ -159,15 +159,15 @@ double VolEsti_ellips2(ellipsoids G, int walk_len, int rnum){
 		// choose a point in PBLarge to be used to generate more rand points
         Point_d p_gen = *randPoints.begin();
         radLarge=all_radius[i];
-        std::cout<<"Large rad is: "<<radLarge<<std::endl;
+      //  std::cout<<"Large rad is: "<<radLarge<<std::endl;
         //i--;
         radSmall=all_radius[i-1];
-        std::cout<<"Small rad is: "<<radSmall<<std::endl;
+      //  std::cout<<"Small rad is: "<<radSmall<<std::endl;
 
         // num of points in PBSmall and PBLarge
         int nump_PBSmall = 0;
         int nump_PBLarge = randPoints.size();
-        std::cout<<"number in large is: "<<nump_PBLarge<<std::endl;
+      //  std::cout<<"number in large is: "<<nump_PBLarge<<std::endl;
         
         //keep the points in randPoints that fall in PBSmall
         std::vector<Point_d>::iterator rpit=randPoints.begin();
@@ -179,7 +179,7 @@ double VolEsti_ellips2(ellipsoids G, int walk_len, int rnum){
                 ++rpit;
             }
         }
-        std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
+     //   std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
       //nump_PBLarge = randPoints.size();
         for(int i=1; i<=rnum - nump_PBLarge; ++i){
 			for (j=0; j<walk_len; j++){
@@ -201,11 +201,11 @@ double VolEsti_ellips2(ellipsoids G, int walk_len, int rnum){
             }
 		}
 		
-		std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
-		std::cout<<"ray_onball is: "<<ray_onball<<std::endl;
-		std::cout<<"ball_inside is: "<<ball_inside<<std::endl;
+	//	std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
+	//	std::cout<<"ray_onball is: "<<ray_onball<<std::endl;
+	//	std::cout<<"ball_inside is: "<<ball_inside<<std::endl;
 		telescopic_prod *= EXACT_NT(rnum)/EXACT_NT(nump_PBSmall);
-		std::cout<<"telescopic prod is: "<<CGAL::to_double(telescopic_prod)<<std::endl;
+	//	std::cout<<"telescopic prod is: "<<CGAL::to_double(telescopic_prod)<<std::endl;
 	}
 	vol=0.0;
 	//const double pi = boost::math::constants::pi<double>();mpfr_t result,pow,base,exp;
@@ -262,18 +262,18 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
 	//radius=inscribed_ball.second;
 	c=Point_d(dim,cntr.begin(),cntr.end());
 	radius=RR;
-	std::cout<<"center is: "<<c<<std::endl;
+	//std::cout<<"center is: "<<c<<std::endl;
 	
 	//radius=*rad;
-	std::cout<<"radius is: "<<radius<<std::endl;
+	//std::cout<<"radius is: "<<radius<<std::endl;
 	
 	CGAL::Random_points_in_ball_d<Point_d> gen (dim, radius);
     Point_d p = *gen;
     //p = p + (c-CGAL::Origin());
     p=Add_points2(p,c);
     std::vector<Point_d> randPoints;
-    std::cout<<"first rand point to begin HnR in P: "<<p<<std::endl;
-    std::cout<<G.IsIn(p)<<std::endl;
+  //  std::cout<<"first rand point to begin HnR in P: "<<p<<std::endl;
+  //  std::cout<<G.IsIn(p)<<std::endl;
 	
 	k = uidist1(rng); //rand coord
 	
@@ -284,21 +284,21 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
 	l_rand=urdist2(rng);
 	lamda=lamda1+(lamda2-lamda1)*l_rand;
 	p=get_NewP2(p, lamda, k);
-	std::cout<<"second rand point to begin HnR in P: "<<p<<std::endl;
+	//std::cout<<"second rand point to begin HnR in P: "<<p<<std::endl;
 	for (i=0; i<1000; i++){
 		k = uidist1(rng);
-		std::cout<<k<<std::endl;
+		//std::cout<<k<<std::endl;
 		lamdas=hit_and_run_newP2(G, p, c, radius, k, false, ray_onball);
 		lamda1=lamdas.first; lamda2=lamdas.second;
 		l_rand=urdist2(rng);
-		std::cout<<l_rand<<std::endl;
+		//std::cout<<l_rand<<std::endl;
 		lamda=lamda1+(lamda2-lamda1)*l_rand;
 		p=get_NewP2(p, lamda, k);
 		//std::cout<<"belong to ellips: "<<G.IsIn(p)<<std::endl;
 		//std::cout<<"belong to sphere: "<<isin_ball(c, radius, p)<<std::endl;
 	}
 	randPoints.push_back(p);
-	std::cout<<"full rand point to begin HnR in P: "<<p<<std::endl;
+	//std::cout<<"full rand point to begin HnR in P: "<<p<<std::endl;
 	//sample rnum in Convex body 
 	for (i=0; i<rnum; i++){
 		for (j=0; j<walk_len; j++){
@@ -312,11 +312,11 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
 		randPoints.push_back(p);
 		//std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
 		//std::cout<<"belong to ellips: "<<G.IsIn(p)<<std::endl;
-		std::cout<<c<<std::endl;
-        std::cout<<G.getCenter()<<std::endl;
-		std::cout<<"rnum is: "<<rnum<<std::endl;
+	//	std::cout<<c<<std::endl;
+     //   std::cout<<G.getCenter()<<std::endl;
+	//std::cout<<"rnum is: "<<rnum<<std::endl;
 	}
-	std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
+//	std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
 	
 	
 	
@@ -332,7 +332,7 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
 		}
 	}
 	max_dist=std::sqrt(max_dist);
-	std::cout<<"max dist is: "<<max_dist<<std::endl;
+//	std::cout<<"max dist is: "<<max_dist<<std::endl;
 	/*randPoints.clear();
 	for (i=0; i<rnum; i++){
 		for (j=0; j<walk_len; j++){
@@ -352,7 +352,7 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
 	
 	int nb1 = dim * (std::log(radius)/std::log(2.0));
     int nb2 = std::ceil(dim * (std::log(max_dist)/std::log(2.0)));
-	std::cout<<"nb1: "<<nb1<<"nb2: "<<nb2<<std::endl;
+	//std::cout<<"nb1: "<<nb1<<"nb2: "<<nb2<<std::endl;
 	
 	std::vector<double> all_radius;
 	
@@ -379,10 +379,10 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
 		//	break;
 		//}
 			//const double pi = boost::math::constants::pi<double>();
-			vol = (2*std::pow(pi,dim/2.0)*std::pow(all_radius[i],dim))
-            / (std::tgamma(dim/2.0)*dim) * CGAL::to_double(telescopic_prod);
+	//		vol = (2*std::pow(pi,dim/2.0)*std::pow(all_radius[i],dim))
+      //      / (std::tgamma(dim/2.0)*dim) * CGAL::to_double(telescopic_prod);
             
-        std::cout<<"i is: "<<i<<" vol is: "<<vol<<std::endl;
+    //    std::cout<<"i is: "<<i<<" vol is: "<<vol<<std::endl;
 		if (ball_inside){
 			
 			radius=all_radius[i];
@@ -403,15 +403,15 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
 		// choose a point in PBLarge to be used to generate more rand points
         Point_d p_gen = *randPoints.begin();
         radLarge=all_radius[i];
-        std::cout<<"Large rad is: "<<radLarge<<std::endl;
+      //  std::cout<<"Large rad is: "<<radLarge<<std::endl;
         //i--;
         radSmall=all_radius[i-1];
-        std::cout<<"Small rad is: "<<radSmall<<std::endl;
+      //  std::cout<<"Small rad is: "<<radSmall<<std::endl;
 
         // num of points in PBSmall and PBLarge
         int nump_PBSmall = 0;
         int nump_PBLarge = randPoints.size();
-        std::cout<<"number in large is: "<<nump_PBLarge<<std::endl;
+     //   std::cout<<"number in large is: "<<nump_PBLarge<<std::endl;
         
         //keep the points in randPoints that fall in PBSmall
         std::vector<Point_d>::iterator rpit=randPoints.begin();
@@ -423,7 +423,7 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
                 ++rpit;
             }
         }
-        std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
+     //   std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
       //nump_PBLarge = randPoints.size();
         for(int i=1; i<=rnum - nump_PBLarge; ++i){
 			for (j=0; j<walk_len; j++){
@@ -445,11 +445,11 @@ double VolEsti_ellips4(ellipsoids G, int walk_len, int rnum, std::vector<double>
             }
 		}
 		
-		std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
-		std::cout<<"ray_onball is: "<<ray_onball<<std::endl;
-		std::cout<<"ball_inside is: "<<ball_inside<<std::endl;
+	//	std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
+	//	std::cout<<"ray_onball is: "<<ray_onball<<std::endl;
+	//	std::cout<<"ball_inside is: "<<ball_inside<<std::endl;
 		telescopic_prod *= EXACT_NT(rnum)/EXACT_NT(nump_PBSmall);
-		std::cout<<"telescopic prod is: "<<CGAL::to_double(telescopic_prod)<<std::endl;
+	//	std::cout<<"telescopic prod is: "<<CGAL::to_double(telescopic_prod)<<std::endl;
 	}
 	vol=0.0;
 	//const double pi = boost::math::constants::pi<double>();mpfr_t result,pow,base,exp;
@@ -505,18 +505,18 @@ double VolEsti_ellips5(ellipsoids G, int walk_len, int rnum, std::vector<double>
 	radius=inscribed_ball.second;
 	//c=Point_d(dim,cntr.begin(),cntr.end());
 	//radius=RR;
-	std::cout<<"center is: "<<c<<std::endl;
+//	std::cout<<"center is: "<<c<<std::endl;
 	
 	//radius=*rad;
-	std::cout<<"radius is: "<<radius<<std::endl;
+//	std::cout<<"radius is: "<<radius<<std::endl;
 	
 	CGAL::Random_points_in_ball_d<Point_d> gen (dim, radius);
     Point_d p = *gen;
     //p = p + (c-CGAL::Origin());
     p=Add_points2(p,c);
     std::vector<Point_d> randPoints;
-    std::cout<<"first rand point to begin HnR in P: "<<p<<std::endl;
-    std::cout<<G.IsIn(p)<<std::endl;
+  //  std::cout<<"first rand point to begin HnR in P: "<<p<<std::endl;
+  //  std::cout<<G.IsIn(p)<<std::endl;
 	
 	k = uidist1(rng); //rand coord
 	
@@ -527,21 +527,21 @@ double VolEsti_ellips5(ellipsoids G, int walk_len, int rnum, std::vector<double>
 	l_rand=urdist2(rng);
 	lamda=lamda1+(lamda2-lamda1)*l_rand;
 	p=get_NewP2(p, lamda, k);
-	std::cout<<"second rand point to begin HnR in P: "<<p<<std::endl;
+	//std::cout<<"second rand point to begin HnR in P: "<<p<<std::endl;
 	for (i=0; i<1000; i++){
 		k = uidist1(rng);
-		std::cout<<k<<std::endl;
+	//	std::cout<<k<<std::endl;
 		lamdas=hit_and_run_newP3(G, p, c, radius, facet, z1, z2, k, false, ray_onball);
 		lamda1=lamdas.first; lamda2=lamdas.second;
 		l_rand=urdist2(rng);
-		std::cout<<l_rand<<std::endl;
+	//	std::cout<<l_rand<<std::endl;
 		lamda=lamda1+(lamda2-lamda1)*l_rand;
 		p=get_NewP2(p, lamda, k);
 		//std::cout<<"belong to ellips: "<<G.IsIn(p)<<std::endl;
 		//std::cout<<"belong to sphere: "<<isin_ball(c, radius, p)<<std::endl;
 	}
 	randPoints.push_back(p);
-	std::cout<<"full rand point to begin HnR in P: "<<p<<std::endl;
+	//std::cout<<"full rand point to begin HnR in P: "<<p<<std::endl;
 	//sample rnum in Convex body 
 	for (i=0; i<rnum; i++){
 		for (j=0; j<walk_len; j++){
@@ -558,7 +558,7 @@ double VolEsti_ellips5(ellipsoids G, int walk_len, int rnum, std::vector<double>
 		//std::cout<<"belong to sphere: "<<isin_ball(c, radius, p)<<std::endl;
 		//std::cout<<"rnum is: "<<rnum<<std::endl;
 	}
-	std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
+	//std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
 	
 	
 	
@@ -574,7 +574,7 @@ double VolEsti_ellips5(ellipsoids G, int walk_len, int rnum, std::vector<double>
 		}
 	}
 	max_dist=std::sqrt(max_dist);
-	std::cout<<"max dist is: "<<max_dist<<std::endl;
+	//std::cout<<"max dist is: "<<max_dist<<std::endl;
 	/*randPoints.clear();
 	for (i=0; i<rnum; i++){
 		for (j=0; j<walk_len; j++){
@@ -594,7 +594,7 @@ double VolEsti_ellips5(ellipsoids G, int walk_len, int rnum, std::vector<double>
 	
 	int nb1 = dim * (std::log(radius)/std::log(2.0));
     int nb2 = std::ceil(dim * (std::log(max_dist)/std::log(2.0)));
-	std::cout<<"nb1: "<<nb1<<"nb2: "<<nb2<<std::endl;
+	//std::cout<<"nb1: "<<nb1<<"nb2: "<<nb2<<std::endl;
 	
 	std::vector<double> all_radius;
 	
@@ -621,10 +621,10 @@ double VolEsti_ellips5(ellipsoids G, int walk_len, int rnum, std::vector<double>
 		//	break;
 		//}
 			//const double pi = boost::math::constants::pi<double>();
-			vol = (2*std::pow(pi,dim/2.0)*std::pow(all_radius[i],dim))
-            / (std::tgamma(dim/2.0)*dim) * CGAL::to_double(telescopic_prod);
+	//		vol = (2*std::pow(pi,dim/2.0)*std::pow(all_radius[i],dim))
+     //       / (std::tgamma(dim/2.0)*dim) * CGAL::to_double(telescopic_prod);
             
-        std::cout<<"i is: "<<i<<" vol is: "<<vol<<std::endl;
+      //  std::cout<<"i is: "<<i<<" vol is: "<<vol<<std::endl;
 		if (ball_inside){
 			
 			radius=all_radius[i];
@@ -645,15 +645,15 @@ double VolEsti_ellips5(ellipsoids G, int walk_len, int rnum, std::vector<double>
 		// choose a point in PBLarge to be used to generate more rand points
         Point_d p_gen = *randPoints.begin();
         radLarge=all_radius[i];
-        std::cout<<"Large rad is: "<<radLarge<<std::endl;
+    //    std::cout<<"Large rad is: "<<radLarge<<std::endl;
         //i--;
         radSmall=all_radius[i-1];
-        std::cout<<"Small rad is: "<<radSmall<<std::endl;
+     //   std::cout<<"Small rad is: "<<radSmall<<std::endl;
 
         // num of points in PBSmall and PBLarge
         int nump_PBSmall = 0;
         int nump_PBLarge = randPoints.size();
-        std::cout<<"number in large is: "<<nump_PBLarge<<std::endl;
+    //    std::cout<<"number in large is: "<<nump_PBLarge<<std::endl;
         
         //keep the points in randPoints that fall in PBSmall
         std::vector<Point_d>::iterator rpit=randPoints.begin();
@@ -665,7 +665,7 @@ double VolEsti_ellips5(ellipsoids G, int walk_len, int rnum, std::vector<double>
                 ++rpit;
             }
         }
-        std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
+   //    std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
       //nump_PBLarge = randPoints.size();
         for(int i=1; i<=rnum - nump_PBLarge; ++i){
 			for (j=0; j<walk_len; j++){
@@ -687,11 +687,11 @@ double VolEsti_ellips5(ellipsoids G, int walk_len, int rnum, std::vector<double>
             }
 		}
 		
-		std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
-		std::cout<<"ray_onball is: "<<ray_onball<<std::endl;
-		std::cout<<"ball_inside is: "<<ball_inside<<std::endl;
+	//	std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
+	//	std::cout<<"ray_onball is: "<<ray_onball<<std::endl;
+	//	std::cout<<"ball_inside is: "<<ball_inside<<std::endl;
 		telescopic_prod *= EXACT_NT(rnum)/EXACT_NT(nump_PBSmall);
-		std::cout<<"telescopic prod is: "<<CGAL::to_double(telescopic_prod)<<std::endl;
+	//	std::cout<<"telescopic prod is: "<<CGAL::to_double(telescopic_prod)<<std::endl;
 	}
 	vol=0.0;
 	//const double pi = boost::math::constants::pi<double>();mpfr_t result,pow,base,exp;
@@ -741,24 +741,24 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
 	boost::random::uniform_real_distribution<> urdist2(0,1); 
 	
 	//get the inscribed ball
-    std::cout<<"hello"<<std::endl;
+ //   std::cout<<"hello"<<std::endl;
 	inscribed_ball=rand_inscribed_ball_nonConv(G1,G2,facet,z1,z2);
 	c=inscribed_ball.first;
 	radius=inscribed_ball.second;
 	//c=Point_d(dim,cntr.begin(),cntr.end());
 	//radius=RR;
-	std::cout<<"center is: "<<c<<std::endl;
+//	std::cout<<"center is: "<<c<<std::endl;
 	
 	//radius=*rad;
-	std::cout<<"radius is: "<<radius<<std::endl;
+//	std::cout<<"radius is: "<<radius<<std::endl;
 	
 	CGAL::Random_points_in_ball_d<Point_d> gen (dim, radius);
     Point_d p = *gen;
     //p = p + (c-CGAL::Origin());
     p=Add_points2(p,c);
     std::vector<Point_d> randPoints;
-    std::cout<<"first rand point to begin HnR in P: "<<p<<std::endl;
-    std::cout<<G1.IsIn(p)<<std::endl;
+  //  std::cout<<"first rand point to begin HnR in P: "<<p<<std::endl;
+ //   std::cout<<G1.IsIn(p)<<std::endl;
 	
 	k = uidist1(rng); //rand coord
 	
@@ -769,22 +769,22 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
 	l_rand=urdist2(rng);
 	lamda=lamda1+(lamda2-lamda1)*l_rand;
 	p=get_NewP2(p, lamda, k);
-	std::cout<<"second rand point to begin HnR in P: "<<p<<std::endl;
+//	std::cout<<"second rand point to begin HnR in P: "<<p<<std::endl;
 	for (i=0; i<1000; i++){
 		k = uidist1(rng);
-		std::cout<<k<<std::endl;
+	//	std::cout<<k<<std::endl;
 		lamdas=hit_and_run_newP_nonConv(G1, G2, p, c, radius, facet, z1, z2, k, false, ray_onball);
 		lamda1=lamdas.first; lamda2=lamdas.second;
 		l_rand=urdist2(rng);
-		std::cout<<l_rand<<std::endl;
+	//	std::cout<<l_rand<<std::endl;
 		lamda=lamda1+(lamda2-lamda1)*l_rand;
 		p=get_NewP2(p, lamda, k);
-		std::cout<<G1.IsIn(p)<<" "<<G2.IsIn(p)<<" first"<<std::endl;
+		//std::cout<<G1.IsIn(p)<<" "<<G2.IsIn(p)<<" first"<<std::endl;
 		//std::cout<<"belong to ellips: "<<G.IsIn(p)<<std::endl;
 		//std::cout<<"belong to sphere: "<<isin_ball(c, radius, p)<<std::endl;
 	}
 	randPoints.push_back(p);
-	std::cout<<"full rand point to begin HnR in P: "<<p<<std::endl;
+	//std::cout<<"full rand point to begin HnR in P: "<<p<<std::endl;
 	//sample rnum in Convex body 
 	for (i=0; i<rnum; i++){
 		for (j=0; j<walk_len; j++){
@@ -799,10 +799,10 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
 		//std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
 		//std::cout<<"belong to ellips: "<<G.IsIn(p)<<std::endl;
 		//std::cout<<"belong to sphere: "<<isin_ball(c, radius, p)<<std::endl;
-		std::cout<<"rnum is: "<<rnum<<std::endl;
+	//	std::cout<<"rnum is: "<<rnum<<std::endl;
 		//std::cout<<G1.IsIn(c)<<" "<<G2.IsIn(c)<<std::endl;
 	}
-	std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
+	//std::cout<<"number in rand points in P: "<<randPoints.size()<<std::endl;
 	
 	
 	
@@ -818,7 +818,7 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
 		}
 	}
 	max_dist=std::sqrt(max_dist);
-	std::cout<<"max dist is: "<<max_dist<<std::endl;
+	//std::cout<<"max dist is: "<<max_dist<<std::endl;
 	/*randPoints.clear();
 	for (i=0; i<rnum; i++){
 		for (j=0; j<walk_len; j++){
@@ -838,7 +838,7 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
 	
 	int nb1 = dim * (std::log(radius)/std::log(2.0));
     int nb2 = std::ceil(dim * (std::log(max_dist)/std::log(2.0)));
-	std::cout<<"nb1: "<<nb1<<"nb2: "<<nb2<<std::endl;
+	//std::cout<<"nb1: "<<nb1<<"nb2: "<<nb2<<std::endl;
 	
 	std::vector<double> all_radius;
 	
@@ -865,10 +865,10 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
 		//	break;
 		//}
 			//const double pi = boost::math::constants::pi<double>();
-			vol = (2*std::pow(pi,dim/2.0)*std::pow(all_radius[i],dim))
-            / (std::tgamma(dim/2.0)*dim) * CGAL::to_double(telescopic_prod);
+	//		vol = (2*std::pow(pi,dim/2.0)*std::pow(all_radius[i],dim))
+     //       / (std::tgamma(dim/2.0)*dim) * CGAL::to_double(telescopic_prod);
             
-        std::cout<<"i is: "<<i<<" vol is: "<<vol<<std::endl;
+   //     std::cout<<"i is: "<<i<<" vol is: "<<vol<<std::endl;
 		if (ball_inside){
 			
 			radius=all_radius[i];
@@ -889,15 +889,15 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
 		// choose a point in PBLarge to be used to generate more rand points
         Point_d p_gen = *randPoints.begin();
         radLarge=all_radius[i];
-        std::cout<<"Large rad is: "<<radLarge<<std::endl;
+      //  std::cout<<"Large rad is: "<<radLarge<<std::endl;
         //i--;
         radSmall=all_radius[i-1];
-        std::cout<<"Small rad is: "<<radSmall<<std::endl;
+      //  std::cout<<"Small rad is: "<<radSmall<<std::endl;
 
         // num of points in PBSmall and PBLarge
         int nump_PBSmall = 0;
         int nump_PBLarge = randPoints.size();
-        std::cout<<"number in large is: "<<nump_PBLarge<<std::endl;
+     //   std::cout<<"number in large is: "<<nump_PBLarge<<std::endl;
         
         //keep the points in randPoints that fall in PBSmall
         std::vector<Point_d>::iterator rpit=randPoints.begin();
@@ -909,7 +909,7 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
                 ++rpit;
             }
         }
-        std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
+    //    std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
       //nump_PBLarge = randPoints.size();
         for(int i=1; i<=rnum - nump_PBLarge; ++i){
 			for (j=0; j<walk_len; j++){
@@ -932,9 +932,9 @@ double VolEsti_ellips_nonConvex(ellipsoids G1, ellipsoids G2, int walk_len, int 
             }
 		}
 		
-		std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
-		std::cout<<"ray_onball is: "<<ray_onball<<std::endl;
-		std::cout<<"ball_inside is: "<<ball_inside<<std::endl;
+	//	std::cout<<"number in small is: "<<nump_PBSmall<<std::endl;
+	//	std::cout<<"ray_onball is: "<<ray_onball<<std::endl;
+	//	std::cout<<"ball_inside is: "<<ball_inside<<std::endl;
 		telescopic_prod *= EXACT_NT(rnum)/EXACT_NT(nump_PBSmall);
 		//std::cout<<"telescopic prod is: "<<CGAL::to_double(telescopic_prod)<<std::endl;
 	}
@@ -992,7 +992,7 @@ double sample_2hyp_par(int dim, int num,std::vector<double> pl, double z1, doubl
 			sum++;
 		}
 	}
-	std::cout<<"sum is: "<<sum<<std::endl;
+//	std::cout<<"sum is: "<<sum<<std::endl;
 	return ((double)sum)/((double)num);
 }
 
@@ -1018,7 +1018,7 @@ double sample_2hyp(int dim, int num, Plane_d pl1, Plane_d pl2){
 			sum++;
 		}
 	}
-	std::cout<<"Number of points inside intersection: "<<sum<<std::endl;
+	//std::cout<<"Number of points inside intersection: "<<sum<<std::endl;
     vol=((double)sum)/((double)num);
     
     for(i=0; i<dim; i++){
@@ -1049,7 +1049,7 @@ double sample_4hyp_par(int dim, int num,std::vector<double> pl1, double z11, dou
 			sum++;
 		}
 	}
-	std::cout<<"sum is: "<<sum<<std::endl;
+//	std::cout<<"sum is: "<<sum<<std::endl;
 	return ((double)sum)/((double)num);
 }
 

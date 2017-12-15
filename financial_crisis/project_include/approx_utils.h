@@ -568,9 +568,9 @@ std::pair<Point_d,double> rand_inscribed_ball(ellipsoids G){//std::vector<Point_
 		}
 
 	}
-	std::cout<<"size of points: "<<points.size()<<std::endl;
+	//std::cout<<"size of points: "<<points.size()<<std::endl;
 	result=get_center_radius_inscribed_simplex(points.begin(), points.end());
-	std::cout<<"center is: "<<std::endl;
+	//std::cout<<"center is: "<<std::endl;
 	//std::cout<<"radius is: "<<*r<<std::endl;
 	//*radius=*r;
 	//c=center;
@@ -591,6 +591,7 @@ std::pair<Point_d,double> rand_inscribed_ball2(ellipsoids G, std::vector<double>
 	Point_d temp,center;
 	bool inside;
 	double radius;
+	double sumin;
 	std::pair<Point_d,double> result;
 	//std::vector<bool> filter;
 	
@@ -602,7 +603,7 @@ std::pair<Point_d,double> rand_inscribed_ball2(ellipsoids G, std::vector<double>
 	
 
 	if (dim<=60){
-		double sumin;
+		
 		x_vec.assign(dim+1,0);
 
 		while (counter<dim+1){
@@ -697,8 +698,14 @@ std::pair<Point_d,double> rand_inscribed_ball2(ellipsoids G, std::vector<double>
 			temp=Point_d(dim,y.begin(),y.end());
 			inside=G.IsIn(temp);
 			if (inside){
-				counter++;
-				points.push_back(temp);
+				sumin=0.0;
+				for (j=0; j<dim; j++){
+					sumin+=plane[j]*temp[j];
+				}
+				if (sumin<z2 && sumin>z1){
+					counter++;
+					points.push_back(temp);
+				}
 			}
 		
 		}
@@ -730,16 +737,23 @@ std::pair<Point_d,double> rand_inscribed_ball2(ellipsoids G, std::vector<double>
 	
 			points.push_back(Point_d(dim,x_vec2.begin(),x_vec2.end()-1));
 			temp=Point_d(dim,x_vec2.begin(),x_vec2.end()-1);
+			//temp=Point_d(dim,y.begin(),y.end());
 			inside=G.IsIn(temp);
 			if (inside){
-				counter++;
-				points.push_back(temp);
+				sumin=0.0;
+				for (j=0; j<dim; j++){
+					sumin+=plane[j]*temp[j];
+				}
+				if (sumin<z2 && sumin>z1){
+					counter++;
+					points.push_back(temp);
+				}
 			}
 			
 		}
 
 	}
-	std::cout<<"size of points: "<<points.size()<<std::endl;
+	//std::cout<<"size of points: "<<points.size()<<std::endl;
 	result=get_center_radius_inscribed_simplex(points.begin(), points.end());
 	//std::cout<<"center is: "<<center<<std::endl;
 	//std::cout<<"radius is: "<<*r<<std::endl;
@@ -777,7 +791,7 @@ std::pair<Point_d,double> rand_inscribed_ball_nonConv(ellipsoids G1, ellipsoids 
 
 	
 
-	if (dim<=60){
+	if (dim==dim){
 		
 		x_vec.assign(dim+1,0);
 
@@ -936,7 +950,7 @@ std::pair<Point_d,double> rand_inscribed_ball_nonConv(ellipsoids G1, ellipsoids 
 		}
 
 	}
-	std::cout<<"size of points: "<<points.size()<<std::endl;
+	//std::cout<<"size of points: "<<points.size()<<std::endl;
 	result=get_center_radius_inscribed_simplex(points.begin(), points.end());
 	//std::cout<<"center is: "<<center<<std::endl;
 	//std::cout<<"radius is: "<<*r<<std::endl;
