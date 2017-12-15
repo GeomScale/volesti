@@ -104,6 +104,7 @@ int main(int argc, char* argv[]){
 			vol_unit=sampleToUnit(v.begin(), v.end(), plane1, plane2, num);
 			time2=tim.time();
 			
+			std::cout<<"\n";
 			std::cout<<"Rejection in  arbitrary simplex, volume: "<<vol_arb<<std::endl;
 			std::cout<<"Rejection in  arbitrary simplex, time: "<<time1<<std::endl;
 			std::cout<<"\n";
@@ -156,6 +157,7 @@ int main(int argc, char* argv[]){
 			vol_unit=sample_2hyp(dim, num, plane1, plane2);
 			time=tim.time();
 			
+			std::cout<<"\n";
             std::cout<<"Rejection in  unit simplex, volume: "<<vol_unit<<std::endl;
 			std::cout<<"Rejection in  unit simplex, time: "<<time<<std::endl;
 			
@@ -185,7 +187,10 @@ int main(int argc, char* argv[]){
 			tim.start();
             pos_Matrix=get_par_4hyp_vols(dim, num, pl1,pl2);
             time=tim.time();
+            
+            std::cout<<"\n";
             std::cout<<"Excecutional time: "<<time<<std::endl;
+            std::cout<<"The results are in comp_planes_res.txt"<<std::endl;
             
             std::ofstream outputFile3;
             outputFile3.open("comp_planes_res.txt");
@@ -250,7 +255,10 @@ int main(int argc, char* argv[]){
 			tim.start();
             pos_Matrix=get_par_hypellips_vols(dim, num,pl1,G);
             time=tim.time();
+            
+            std::cout<<"\n";
             std::cout<<"Excecutional time: "<<time<<std::endl;
+            std::cout<<"The results are in comp_plane_ellips_res.txt"<<std::endl;
             
             std::ofstream outputFile3;
             outputFile3.open("comp_plane_ellips_res.txt");
@@ -324,7 +332,7 @@ int main(int argc, char* argv[]){
                 vol_sam=sample_cut_ellipsoid(dim, num, G);
                 time2=tim.time();
                 
-                
+                std::cout<<"\n";
                 std::cout<<"VolEsti Volume: "<<vol<<std::endl;
                 std::cout<<"VolEsti Excecutional time: "<<time<<std::endl;
                 
@@ -399,7 +407,7 @@ int main(int argc, char* argv[]){
                 vol_sam=sample_cut_ellipsoid(dim, num, G);
                 time2=tim.time();
                 
-                
+                std::cout<<"\n";
                 std::cout<<"VolEsti Volume: "<<vol<<std::endl;
                 std::cout<<"VolEsti Excecutional time: "<<time<<std::endl;
                 std::cout<<"\n";
@@ -473,7 +481,8 @@ int main(int argc, char* argv[]){
             tim.start();
             vol_sam=sample_cut_ellipsoid_and_hyps(dim, num, G, pl, z1, z2);
             time2=tim.time();
-                
+              
+            std::cout<<"\n";
             std::cout<<"VolEsti Volume: "<<vol<<std::endl;
             std::cout<<"VolEsti Excecutional time: "<<time<<std::endl;
             std::cout<<"\n";
@@ -547,6 +556,7 @@ int main(int argc, char* argv[]){
             vol_sam=sample_cut_ellipsoid_and_hyps_nonConv(dim, num, G1, G2, pl, z1, z2);
             time2=tim.time();
             
+            std::cout<<"\n";
             std::cout<<"Volume: "<<vol<<std::endl;
             std::cout<<"Excecutional time: "<<time<<std::endl;
             std::cout<<"\n";
@@ -588,6 +598,7 @@ int main(int argc, char* argv[]){
         }
         time=tim.time();
         
+        std::cout<<"\n";
         std::cout<<"Volume: "<<vol<<std::endl;
         std::cout<<"Excecutional time: "<<time<<std::endl;
         
@@ -616,20 +627,27 @@ int main(int argc, char* argv[]){
                 }
             }
             z1=vec[dim]; z2=vec[dim+1];
-            std::cout<<"z1: "<<z1<<" z2: "<<z2<<std::endl;
+           // std::cout<<"z1: "<<z1<<" z2: "<<z2<<std::endl;
             tim.reset();
             tim.start();
             NT3 vol=Lawn1(pl, dim, z1, z2);
+            for (i=0; i<dim; i++){
+                vol=vol/NT3(i+1);
+            }
             time=tim.time();
         
             vol1=vol_Ali(pl,-z1,dim);
             vol2=vol_Ali(pl,-z2,dim);
           //  std::cout<<"vol1 Varsi: "<<vol1<<" vol2 Varsi: "<<vol2<<std::endl;
             vol2=vol2-vol1;
+            for (i=0; i<dim; i++){
+                vol2=vol2/((double)(i+1));
+            }
             
-            
+            std::cout<<"\n";
             std::cout<<"Lawrence Volume: "<<CGAL::to_double(vol)<<std::endl;
             std::cout<<"Lawrence excecutional time: "<<time<<std::endl;
+            std::cout<<"\n";
             std::cout<<"Exact Volume with Varsi: "<<vol2<<std::endl;
             
         }else if (choice2==2){
@@ -670,7 +688,8 @@ int main(int argc, char* argv[]){
             for (i=0; i<dim; i++){
                 vol2=vol2/((double)(i+1));
             }
-        
+			
+			std::cout<<"\n";
             std::cout<<"Lawrence volume: "<<vol<<std::endl;
             std::cout<<"Lawrence excecutional time: "<<time<<std::endl;
             std::cout<<"\n";
