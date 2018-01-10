@@ -16,32 +16,32 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
-
 // ball type
-struct Ball{
+#include <iostream>
+struct Ball {
 public:
     Ball(Point c, NT R) : _c(c),	 _R(R) {}
 
-    Point center(){
+    Point center() {
         return _c;
     }
 
-    NT squared_radius(){
+    NT squared_radius() {
         return _R;
     }
 
-    NT radius(){
+    NT radius() {
         return std::sqrt(_R);
     }
 
-    int is_in(Point p){
+    int is_in(Point p) {
         if ((p-_c).squared_length() <= _R)
             return -1;
         else return 0;
     }
 
     std::pair<Point,Point> line_intersect(Point r,
-                                          Vector v){
+                                          Vector v) {
         Point::Cartesian_const_iterator rit;
         rit=r.cartesian_begin();
         Point::Cartesian_const_iterator vit;
@@ -54,7 +54,7 @@ public:
         NT vrc(0);
         NT v2(0);
         NT rc2(0);
-        for( ; cit < _c.cartesian_end() ; ++rcit, ++cit, ++rit, ++vit){
+        for( ; cit < _c.cartesian_end() ; ++rcit, ++cit, ++rit, ++vit) {
             vrc += *vit * (*rcit);
             v2 += *vit * (*vit);
             rc2 += *rcit * (*rcit);
@@ -67,7 +67,7 @@ public:
     }
 
     std::pair<NT,NT> line_intersect_coord(Point r,
-                                          int rand_coord){
+                                          int rand_coord) {
 
         Vector rc = r - _c;
         Vector::Cartesian_const_iterator rcit;
@@ -76,7 +76,7 @@ public:
 
         NT v2 = NT(1);
         NT rc2(0);
-        for( ; rcit < rc.cartesian_end() ; ++rcit){
+        for( ; rcit < rc.cartesian_end() ; ++rcit) {
             rc2 += *rcit * (*rcit);
         }
 
@@ -98,27 +98,74 @@ template <class T>
 class BallIntersectPolytope {
 public:
     BallIntersectPolytope(T &P, Ball &B) : _P(P), _B(B) {};
-    
-    T first() { return _P; }
-    Ball second() { return _B; }
-    
-    int is_in(Point p){
+
+    T first() {
+        return _P;
+    }
+    Ball second() {
+        return _B;
+    }
+
+    int is_in(Point p) {
         //std::cout << "calling is in"<<std::endl;
         if(_B.is_in(p)==-1)
             return _P.is_in(p);
         return 0;
     }
 
-    int num_of_hyperplanes(){
+    int num_of_hyperplanes() {
         return _P.num_of_hyperplanes();
     }
 
-    int dimension(){
+    int dimension() {
         return _P.dimension();
+    }
+    bool contains_point_naive(Point p, double epsilon, int* nnIndex, int iii=-1, double* sumiii=NULL) {
+		std::cout << "hooray" << std::endl;
+	}
+
+    Point compute_boundary_intersection(Ray ray,int* numberOfSteps, bool* succeeded, double epsilon, int algoType, vars& var, json&j, int maxSteps=100, int numOfProbes=100) {
+
+        std::pair<Point,Point> polypair;
+        polypair.first = _P.compute_boundary_intersection(ray, numberOfSteps, succeeded, epsilon, algoType, var, j, maxSteps, numOfProbes);
+        std::pair<Point,Point> returnpair;
+        std::pair<Point,Point> ballpair;
+        bool ballinter=false;
+
+        //check the first intersection point if it is inside ball
+        if(_B.is_in(polypair.first)) {
+            //std::cout<<"inside ball 1, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.first<<std::endl;
+            returnpair.first = polypair.first;
+        } else {
+            //std::cout<<"outside ball 1, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.first<<std::endl;
+            ballinter=true;
+            //compute the intersection with ball
+			Point r = ray.source();
+			Vector v = ray.direction().vector();
+            ballpair = _B.line_intersect(r,v);
+            returnpair.first = ballpair.first;
+            //std::cout<<returnpair.first<<std::endl;
+        }
+        //check the second intersection point
+        //if(_B.is_in(polypair.second)){
+        //  //std::cout<<"inside ball 2, radius:"<<_B.radius()<<std::endl;
+        //  //std::cout<<polypair.second<<std::endl;
+        //  returnpair.second = polypair.second;
+        //}else{
+        //	//std::cout<<"outside ball 2, radius:"<<_B.radius()<<std::endl;
+        //	//std::cout<<polypair.second<<std::endl;
+        //  if(ballinter) //if the intersection with ball is already computed
+        //		returnpair.second = ballpair.second;
+        //	else returnpair.second = (_B.line_intersect(r,v)).second;
+        //	//std::cout<<returnpair.second<<std::endl;
+        //}
+        return returnpair.first;
     }
 
     std::pair<Point,Point> line_intersect(Point r,
-                                          Vector v){
+                                          Vector v) {
 
         std::pair<Point,Point> polypair = _P.line_intersect(r,v);
         std::pair<Point,Point> returnpair;
@@ -126,11 +173,11 @@ public:
         bool ballinter=false;
 
         //check the first intersection point if it is inside ball
-        if(_B.is_in(polypair.first)){
+        if(_B.is_in(polypair.first)) {
             //std::cout<<"inside ball 1, radius:"<<_B.radius()<<std::endl;
             //std::cout<<polypair.first<<std::endl;
             returnpair.first = polypair.first;
-        }else{
+        } else {
             //std::cout<<"outside ball 1, radius:"<<_B.radius()<<std::endl;
             //std::cout<<polypair.first<<std::endl;
             ballinter=true;
@@ -140,11 +187,11 @@ public:
             //std::cout<<returnpair.first<<std::endl;
         }
         //check the second intersection point
-        if(_B.is_in(polypair.second)){
+        if(_B.is_in(polypair.second)) {
             //std::cout<<"inside ball 2, radius:"<<_B.radius()<<std::endl;
             //std::cout<<polypair.second<<std::endl;
             returnpair.second = polypair.second;
-        }else{
+        } else {
             //std::cout<<"outside ball 2, radius:"<<_B.radius()<<std::endl;
             //std::cout<<polypair.second<<std::endl;
             if(ballinter) //if the intersection with ball is already computed
@@ -161,7 +208,7 @@ public:
                                           int rand_coord_prev,
                                           std::vector<NT> &lamdas,
                                           bool init
-                                          ){
+                                         ) {
 
         std::pair<NT,NT> polypair = _P.line_intersect_coord(r,r_prev,rand_coord,rand_coord_prev,lamdas,init);
         std::pair<NT,NT> ballpair = _B.line_intersect_coord(r,rand_coord);
@@ -169,13 +216,13 @@ public:
                                  std::max(polypair.second,ballpair.second));
     }
 
-    std::pair<NT,NT> query_dual(Point &p, int rand_coord){
+    std::pair<NT,NT> query_dual(Point &p, int rand_coord) {
         std::pair<NT,NT> polypair = _P.query_dual(p,rand_coord);
         std::pair<NT,NT> ballpair = _B.line_intersect_coord(p,rand_coord);
         return std::pair<NT,NT> (std::min(polypair.first,ballpair.first),
                                  std::max(polypair.second,ballpair.second));
     }
-    
+
 private:
     T    _P;
     Ball _B;

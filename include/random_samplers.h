@@ -18,26 +18,27 @@
 
 #ifndef RANDOM_SAMPLERS_H
 #define RANDOM_SAMPLERS_H
+#include <iostream>
 
 // WARNING: USE ONLY WITH BIRKHOFF POLYOPES
 // Compute more random points using symmetries of birkhoff polytope
 //
 template <class T, class K>
-int birk_sym(T &P,K &randPoints,Point &p){
+int birk_sym(T &P,K &randPoints,Point &p) {
     int n=std::sqrt(p.dimension());
     std::vector<int> myints;
-    for (int i=0; i<n; i++){
+    for (int i=0; i<n; i++) {
         myints.push_back(i);
     }
 
     //std::cout << "The n! possible permutations with n elements:\n";
     do {
         std::vector<double> newpv;
-        for (int i=0; i<n; i++){
+        for (int i=0; i<n; i++) {
             //std::cout << myints[i] << " ";
         }
         //std::cout << std::endl;
-        for (int j=0; j<p.dimension(); j++){
+        for (int j=0; j<p.dimension(); j++) {
             //std::cout << (myints[j/n])*n+1+j%n << " ";
             int idx = (myints[j/n])*n+1+j%n-1;
             //std::cout << idx << " ";
@@ -49,7 +50,7 @@ int birk_sym(T &P,K &randPoints,Point &p){
         //std::cout << new_p << "\n" << std::endl;
 
         //std::cout << P.is_in(new_p) << std::endl;
-        if(P.is_in(new_p) != 0){
+        if(P.is_in(new_p) != 0) {
             //std::cout << "wrong\n";
             randPoints.push_back(new_p);
             //exit(1);
@@ -66,8 +67,7 @@ int rand_point_generator(T &P,
                          int walk_len,
                          K &randPoints,
                          vars &var  // constans for volume
-                         )
-{
+                        ) {
     int n = var.n;
     bool birk = var.birk;
     RNGType &rng = var.rng;
@@ -80,20 +80,28 @@ int rand_point_generator(T &P,
     Point p_prev = p;
     if(var.coordinate)
         hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);
-    else
-        hit_and_run(p,P,var,var);
+    else {
+		if (var.algoType==USE_EXACT)
+        	hit_and_run(p,P,var,var);
+		else
+        	hit_and_run_oracle(p,P,var,var);
+	}
 
-    for(int i=1; i<=rnum; ++i){
-
-        for(int j=0; j<walk_len; ++j){
+    for(int i=1; i<=rnum; ++i) {
+        for(int j=0; j<walk_len; ++j) {
             int rand_coord_prev = rand_coord;
             rand_coord = uidist(rng);
             kapa = urdist(rng);
             if(var.coordinate)
                 hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
-            else
-                hit_and_run(p,P,var,var);
+    		else {
+				if (var.algoType==USE_EXACT)
+    		    	hit_and_run(p,P,var,var);
+				else
+    		    	hit_and_run_oracle(p,P,var,var);
+			}
         }
+		std::cout << i << "-th point inside? " << (P.is_in(p)?"Yeah":"No") << std::endl;
         randPoints.push_back(p);
         if(birk) birk_sym(P,randPoints,p);
     }
@@ -113,49 +121,49 @@ int rand_point_generator_with_walk_estimator(T &P,
                                                                                         )
 {
   int n = var.n;
-    RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist = var.urdist;
-    boost::random::uniform_int_distribution<> uidist(0,n-1);
+	RNGType &rng = var.rng;
+	boost::random::uniform_real_distribution<> urdist = var.urdist;
+	boost::random::uniform_int_distribution<> uidist(0,n-1);
 
-    NT walk_estimator=0;
-    int walk_len=1;
-    while(walk_estimator<0.99){
-        Point p=*(randPoints.begin());
-        randPoints.clear();
-        std::vector<NT> lamdas(P.num_of_hyperplanes(),NT(0));
-        int rand_coord = uidist(rng);
-        double kapa = urdist(rng);
-        Point p_prev = p;
-        hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);
+	NT walk_estimator=0;
+	int walk_len=1;
+	while(walk_estimator<0.99){
+		Point p=*(randPoints.begin());
+		randPoints.clear();
+		std::vector<NT> lamdas(P.num_of_hyperplanes(),NT(0));
+		int rand_coord = uidist(rng);
+		double kapa = urdist(rng);
+		Point p_prev = p;
+		hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);
 
-        NT point_coord_sum=0;
-        for(int i=1; i<=rnum; ++i){
-            for(int j=0; j<walk_len; ++j){
-              int rand_coord_prev = rand_coord;
-              rand_coord = uidist(rng);
-              kapa = urdist(rng);
-              hit_and_run(p,P,var,var);
-              //hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,true);
-            }
-            randPoints.push_back(p);
-            point_coord_sum += p.cartesian(5);
-        }
+		NT point_coord_sum=0;
+		for(int i=1; i<=rnum; ++i){
+			for(int j=0; j<walk_len; ++j){
+			  int rand_coord_prev = rand_coord;
+			  rand_coord = uidist(rng);
+			  kapa = urdist(rng);
+			  hit_and_run(p,P,var,var);
+			  //hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,true);
+			}
+			randPoints.push_back(p);
+			point_coord_sum += p.cartesian(5);
+		}
 
-        int lpoints=0, rpoints=0;
-        for(typename K::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-            if (pit->cartesian(5) > point_coord_sum/rnum){
-                ++rpoints;
-            } else {
-                ++lpoints;
-            }
-        }
-        walk_estimator=double(std::min(lpoints,rpoints))/double(std::max(lpoints,rpoints));
-        std::cout<<"Walklen="<<walk_len<<" estimator= "<<lpoints<<"/"<<rpoints<<"="<<walk_estimator<<std::endl;
-        ++walk_len;
-    }
+		int lpoints=0, rpoints=0;
+		for(typename K::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+			if (pit->cartesian(5) > point_coord_sum/rnum){
+				++rpoints;
+			} else {
+				++lpoints;
+			}
+		}
+		walk_estimator=double(std::min(lpoints,rpoints))/double(std::max(lpoints,rpoints));
+		std::cout<<"Walklen="<<walk_len<<" estimator= "<<lpoints<<"/"<<rpoints<<"="<<walk_estimator<<std::endl;
+		++walk_len;
+	}
 
-    //if(rand_only) std::cout<<p<<std::endl;
-    //if(print) std::cout<<"("<<i<<") Random point: "<<p<<std::endl;
+	//if(rand_only) std::cout<<p<<std::endl;
+	//if(print) std::cout<<"("<<i<<") Random point: "<<p<<std::endl;
 }
 */
 
@@ -168,8 +176,7 @@ int rand_point_generator(BallIntersectPolytope<T> &PBLarge,
                          BallIntersectPolytope<T> &PBSmall,
                          int &nump_PBSmall,
                          vars &var  // constans for volume
-                         )
-{
+                        ) {
     int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist = var.urdist;
@@ -182,20 +189,28 @@ int rand_point_generator(BallIntersectPolytope<T> &PBLarge,
 
     if(var.coordinate)
         hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var,true);
-    else
-        hit_and_run(p,PBLarge,var,var);
+    else {
+		if (var.algoType==USE_EXACT)
+        	hit_and_run(p,PBLarge,var,var);
+		else
+        	hit_and_run_oracle(p,PBLarge,var,var);
+	}
 
-    for(int i=1; i<=rnum; ++i){
-        for(int j=0; j<walk_len; ++j){
+    for(int i=1; i<=rnum; ++i) {
+        for(int j=0; j<walk_len; ++j) {
             int rand_coord_prev = rand_coord;
             rand_coord = uidist(rng);
             kapa = urdist(rng);
-            if(var.coordinate)
-                hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
-            else
-                hit_and_run(p,PBLarge,var,var);
+    		if(var.coordinate)
+    		    hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var,true);
+    		else {
+				if (var.algoType==USE_EXACT)
+    		    	hit_and_run(p,PBLarge,var,var);
+				else
+    		    	hit_and_run_oracle(p,PBLarge,var,var);
+			}
         }
-        if(PBSmall.second().is_in(p) == -1){//is in
+        if(PBSmall.second().is_in(p) == -1) { //is in
             randPoints.push_back(p);
             ++nump_PBSmall;
         }
@@ -211,14 +226,12 @@ template <class T>
 int hit_and_run(Point &p,
                 T &P,
                 vars &var,
-                vars &var2)
-{	
+                vars &var2) {
     int n = var.n;
     double err = var.err;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> &urdist = var.urdist;
     boost::random::uniform_real_distribution<> &urdist1 = var.urdist1;
-
     CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
     Vector l = *gen - CGAL::Origin();
     //Vector b1 = line_bisect(p,l,P,var,var2);
@@ -226,7 +239,66 @@ int hit_and_run(Point &p,
     std::pair<Point,Point> ppair = P.line_intersect(p,l);
     Vector b1 = ppair.first - CGAL::Origin();
     Vector b2 = ppair.second - CGAL::Origin();
+    int numberOfSteps;
+    bool succeeded;
+
+    /** for boundary oracle 
+    std::pair<Point,Point> ppair;// = P.line_intersect(p,l);
+    ppair.first = P.compute_boundary_intersection(p, l, &numberOfSteps, &succeeded, var.epsilon, var.use_jl);
+    l *= -1;
+    bool tmp_succeeded;
+    ppair.second = P.compute_boundary_intersection(p, l, &numberOfSteps, &tmp_succeeded, var.epsilon, var.use_jl);
+
+    Vector b1 = ppair.first - CGAL::Origin();
+    Vector b2 = ppair.second - CGAL::Origin();
+	*/
     //std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
+    //int numberOfSteps = 0;
+    //Point p2 = P.compute_boundary_intersection(p, l, &numberOfSteps, 0, false);
+    //Vector b1 = p2 - CGAL::ORIGIN;
+    //l *= -1;
+    //p2 = P.compute_boundary_intersection(p, l, &numberOfSteps, 0, false);
+    //Vector b2 = p2 - CGAL::ORIGIN;
+    double lambda = urdist(rng);
+    p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
+	int asd;
+//	std::cout << "Point p1 is inside? " << (P.contains_point_naive(ppair.first, 0, &asd)?"yes":"no") << std::endl;
+//	std::cout << "Point p2 is inside? " << (P.contains_point_naive(ppair.second, 0, &asd)?"yes":"no") << std::endl;
+//	std::cout << "Point p is inside? " << (P.contains_point_naive(p, 0, &asd)?"yes":"no") << std::endl;
+    return 1;
+}
+
+template <class T>
+int hit_and_run_oracle(Point &p,
+                T &P,
+                vars &var,
+                vars &var2) {
+    int n = var.n;
+    double err = var.err;
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> &urdist = var.urdist;
+    boost::random::uniform_real_distribution<> &urdist1 = var.urdist1;
+    CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
+
+    int numberOfSteps;
+    bool succeeded = false;
+   	std::pair<Point,Point> ppair;// = P.line_intersect(p,l);
+	json js;
+	while (!succeeded) {
+    	Vector l = *gen - CGAL::Origin();
+		++gen;
+        Ray ray(p, l);
+    	ppair.first = P.compute_boundary_intersection(ray, &numberOfSteps, &succeeded, var.epsilon, var.algoType, var, js, 100);
+		if (!succeeded)
+			continue;
+    	l *= -1;
+		Ray ray2(p, l);
+    	ppair.second = P.compute_boundary_intersection(ray2, &numberOfSteps, &succeeded, var.epsilon, var.algoType, var, js, 100);
+	}
+
+    Vector b1 = ppair.first - CGAL::Origin();
+    Vector b2 = ppair.second - CGAL::Origin();
+	
     double lambda = urdist(rng);
     p = CGAL::Origin() + (NT(lambda)*b1 + (NT(1-lambda)*b2));
     return 1;
@@ -237,8 +309,7 @@ template <class T>
 int hit_and_run_coord(Point &p,
                       T &P,
                       vars &var,
-                      vars &var2)
-{	
+                      vars &var2) {
     int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> &urdist = var.urdist;
@@ -269,8 +340,7 @@ int hit_and_run_coord_update(Point &p,
                              std::vector<NT> &lamdas,
                              vars &var,
                              vars &var2,
-                             bool init)
-{	
+                             bool init) {
     std::pair<NT,NT> bpair;
     // EXPERIMENTAL
     //if(var.NN)
@@ -294,15 +364,14 @@ int hit_and_run_coord_update(Point &p,
 template <class T>
 int multipoint_random_walk(T &P,
                            std::vector<Point> &V,
-                           vars &var)
-{
+                           vars &var) {
     int m = var.m;
     int n = var.n;
     const int walk_steps = var.walk_steps;
     const double err = var.err;
     RNGType &rng = var.rng;
     generator
-            &get_snd_rand = var.get_snd_rand;
+    &get_snd_rand = var.get_snd_rand;
     boost::random::uniform_real_distribution<> &urdist = var.urdist;
     boost::random::uniform_real_distribution<> &urdist1 = var.urdist1;
 
@@ -312,7 +381,7 @@ int multipoint_random_walk(T &P,
     //generate more points (using points in V) in order to have m in total
     std::vector<Point> U;
     std::vector<Point>::iterator Vit=V.begin();
-    for(int mk=0; mk<m-V.size(); ++mk){
+    for(int mk=0; mk<m-V.size(); ++mk) {
         // Compute a point as a random uniform convex combination of V
         //std::vector<double> a;
         //double suma=0;
@@ -335,15 +404,15 @@ int multipoint_random_walk(T &P,
     V.insert(V.end(),U.begin(),U.end());
     //std::cout<<"--------------------------"<<std::endl;
     //std::cout<<"Random points before walk"<<std::endl;
-    for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
+    for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit) {
         Point v=*vit;
         hit_and_run(v,P,var);
         //std::cout<<*vit<<"---->"<<v<<std::endl;
     }
 
     //std::cout<<"WALKING......"<<std::endl;
-    for(int mk=0; mk<walk_steps; ++mk){
-        for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit){
+    for(int mk=0; mk<walk_steps; ++mk) {
+        for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit) {
 
             Point v=*vit;
 
@@ -353,7 +422,7 @@ int multipoint_random_walk(T &P,
 
             std::vector<Point>::iterator Vit=V.begin();
             Vector l(n,CGAL::NULL_VECTOR);
-            for(std::vector<double>::iterator ait=a.begin(); ait!=a.end(); ++ait){
+            for(std::vector<double>::iterator ait=a.begin(); ait!=a.end(); ++ait) {
                 //*Vit*=*ait;
                 //std::cout<<*ait<<"*"<<(*Vit)<<"= "<<NT(*ait)*(*Vit)<<std::endl;
                 //std::cout<<*ait<<std::endl;
@@ -382,13 +451,13 @@ int multipoint_random_walk(T &P,
     /*
     std::cout<<"Random points after walk"<<std::endl;
     for(std::vector<Point>::iterator vit=V.begin(); vit!=V.end(); ++vit)
-        std::cout<<*vit<<std::endl;
+    	std::cout<<*vit<<std::endl;
     std::cout<<"--------------------------"<<std::endl;
     */
     //for(Polytope::iterator polyit=P.begin(); polyit!=P.end(); ++polyit)
     //	std::cout<<*polyit<<std::endl;
 
-    if(m!=V.size()){
+    if(m!=V.size()) {
         std::cout<<"Careful m!=V.size()!!"<<std::endl;
         exit(1);
     }

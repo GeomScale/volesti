@@ -34,12 +34,14 @@
 #include <functional>
 #include <algorithm>
 #include "boost/random.hpp"
-#include "boost/generator_iterator.hpp"  
-#include "boost/dynamic_bitset.hpp"   
+#include "boost/generator_iterator.hpp"
+#include "boost/math/constants/constants.hpp"
+#include "boost/dynamic_bitset.hpp"
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include <CGAL/Approximate_min_ellipsoid_d.h>
 #include <CGAL/Approximate_min_ellipsoid_d_traits_d.h>
+#include <CGAL/Delaunay_triangulation_3.h>
 #include <vector>
 #include <iostream>
 
@@ -61,12 +63,13 @@ typedef CGAL::Gmpq                  EXACT_NT;
 typedef double                      NT;
 //typedef CGAL::Gmpz                NT;
 
-typedef CGAL::Cartesian_d<NT> 	      Kernel; 
+typedef CGAL::Cartesian_d<NT> 	      Kernel;
 //typedef CGAL::Triangulation<Kernel> T;
 typedef Kernel::Point_d								Point;
 typedef Kernel::Vector_d							Vector;
 typedef Kernel::Line_d								Line;
 typedef Kernel::Hyperplane_d					Hyperplane;
+typedef Kernel::Ray_d								Ray;
 typedef Kernel::Direction_d						Direction;
 //typedef Kernel::Sphere_d						Ball;
 typedef CGAL::Approximate_min_ellipsoid_d_traits_d<Kernel, EXACT_NT> Traits;
@@ -74,19 +77,27 @@ typedef CGAL::Approximate_min_ellipsoid_d_traits_d<Kernel, EXACT_NT> Traits;
 //typedef std::vector<Point>                                     Point_list;
 typedef CGAL::Approximate_min_ellipsoid_d<Traits>              AME;
 
+#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
+typedef CGAL::Exact_predicates_exact_constructions_kernel K;
+typedef CGAL::Triangulation_vertex_base_3<K>                 Vb;
+#include <CGAL/Delaunay_triangulation_cell_base_with_circumcenter_3.h>
+typedef CGAL::Delaunay_triangulation_cell_base_with_circumcenter_3<K> Cb;
+typedef CGAL::Triangulation_data_structure_3<Vb, Cb>         TDS;
+typedef CGAL::Delaunay_triangulation_3<K, TDS>               Triangulation;
+typedef Triangulation::Point          TriangulationPoint;
 // define random generator
 //typedef boost::mt11213b RNGType; ///< mersenne twister generator
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
 //typedef boost::lagged_fibonacci607 RNGType;
 //typedef boost::hellekalek1995 RNGType;
-//typedef boost::rand48 RNGType; 
-//typedef boost::minstd_rand RNGType; 
+//typedef boost::rand48 RNGType;
+//typedef boost::minstd_rand RNGType;
 
 typedef boost::variate_generator< RNGType, boost::normal_distribution<> >  generator;
 //typedef boost::variate_generator< RNGType, boost::exponential_distribution<> >  generator;
 
 //structs with variables and random generators
-struct vars{
+struct vars {
 public:
     vars( int m,
           int n,
@@ -107,15 +118,19 @@ public:
           bool round,
           bool NN,
           bool birk,
-          bool coordinate
-          ) :
+          bool coordinate,
+          int algoType=3,
+          bool epsilon=0.1
+        ) :
         m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), err_opt(err_opt),
         lw(lw), up(up), L(L), rng(rng), get_snd_rand(get_snd_rand),
         urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
-        NN(NN),birk(birk),coordinate(coordinate){};
+        NN(NN),birk(birk),coordinate(coordinate),epsilon(epsilon),algoType(algoType) {};
 
     int m;
     int n;
+    double epsilon;
+    int algoType;
     int walk_steps;
     int n_threads;
     const double err;
@@ -148,6 +163,7 @@ int opt_interior(T &K,vars &var,Point &opt,Vector &w);
 #include <ballintersectpolytope.h>
 //#include <opt_rand.h>
 //#include <oracles.h>
+//#include <random_samplers_vis.h>
 #include <random_samplers.h>
 #include <rounding.h>
 #include <misc.h>
@@ -155,7 +171,7 @@ int opt_interior(T &K,vars &var,Point &opt,Vector &w);
 
 /////////////////////////////////////////////////////////
 // VOLUME
-// randomized approximate volume computation 
+// randomized approximate volume computation
 /*************************************************
 /* VOLUME with random DIRECTIONS hit and run     */
 // We assume that the polytope P is properly sandwitched
@@ -167,8 +183,7 @@ NT volume0(T &P,
            vars &var,  // constans for volume
            vars &var2, // constants for optimization in case of MinkSums
            NT r,
-           NT d)
-{
+           NT d) {
     typedef BallIntersectPolytope<T>        BallPoly;
 
     bool print = true;
@@ -189,16 +204,16 @@ NT volume0(T &P,
     std::vector<NT> coords(n,0);
     Point p0(n,coords.begin(),coords.end());
     std::vector<Ball> balls;
-    for(int i=0; i<=nb; ++i){
+    for(int i=0; i<=nb; ++i) {
         balls.push_back(Ball(p0,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
         if (print) std::cout<<"ball"<<i<<"="<<balls[i].center()<<" "<<balls[i].radius()<<std::endl;
     }
     assert(!balls.empty());
     if (print) std::cout<<"---------"<<std::endl;
 
-    
+
     std::vector<int> telescopic_prod(nb,0);
-    for(int i=1; i<=rnum; ++i){ //generate rnum rand points
+    for(int i=1; i<=rnum; ++i) { //generate rnum rand points
         //start with a u.d.r point in the smallest ball
         //radius=1, center=Origin()
         std::vector<NT> coords(n,0);
@@ -216,20 +231,20 @@ NT volume0(T &P,
         std::vector<Ball>::iterator bit=balls.begin();
         std::vector<int>::iterator prod_it=telescopic_prod.begin();
         ++bit;
-        for(; bit!=balls.end(); ++bit, ++prod_it){
+        for(; bit!=balls.end(); ++bit, ++prod_it) {
             // generate a random point in bit intersection with P
             BallPoly PB(P,*bit);
 
-            for(int j=0; j<walk_len; ++j){
+            for(int j=0; j<walk_len; ++j) {
                 hit_and_run(p,PB,var,var2);
                 //std::cout<<"h-n-r:"<<p<<std::endl;
             }
             //Not need to test for PBold membership. Just check if inside Ball
             //if (Sep_Oracle(PBold,p,var2).get_is_in()){
-            if (PBold.second().is_in(p)){
+            if (PBold.second().is_in(p)) {
                 //std::cout<<p<<" IN ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
                 ++(*prod_it);
-            }else{
+            } else {
                 ;
                 //std::cout<<p<<":"<<(p-CGAL::Origin()).squared_length()
                 //<<" OUT ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
@@ -240,7 +255,7 @@ NT volume0(T &P,
         const NT pi = boost::math::constants::pi<NT>();
         NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0);
         for(std::vector<int>::iterator prod_it=telescopic_prod.begin();
-            prod_it!=telescopic_prod.end(); ++prod_it){
+                prod_it!=telescopic_prod.end(); ++prod_it) {
             vol *= NT(i)/NT(*prod_it);
         }
         if (print) std::cout<<"current vol estimation= "<<vol<<std::endl;
@@ -255,7 +270,7 @@ NT volume0(T &P,
     //NT vol=1;
     if (print) std::cout<<"vol(K_0)="<<vol<<" ";
     for(std::vector<int>::iterator prod_it=telescopic_prod.begin();
-        prod_it!=telescopic_prod.end(); ++prod_it){
+            prod_it!=telescopic_prod.end(); ++prod_it) {
         vol *= NT(rnum)/NT(*prod_it);
         if (print) std::cout<<NT(rnum)<<"/" << NT(*prod_it)<<"="<<NT(rnum)/NT(*prod_it)<<"\n";
     }
@@ -274,8 +289,7 @@ NT volume1(T &P,
            vars &var,  // constans for volume
            vars &var2, // constants for optimization in case of MinkSums
            NT r,
-           NT d)
-{
+           NT d) {
     typedef BallIntersectPolytope<T>        BallPoly;
 
     bool print = var.verbose;
@@ -297,7 +311,7 @@ NT volume1(T &P,
     std::vector<NT> coords(n,0);
     Point p0(n,coords.begin(),coords.end());
     std::vector<Ball> balls;
-    for(int i=0; i<=nb; ++i){
+    for(int i=0; i<=nb; ++i) {
         balls.push_back(Ball(p0,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
         if (print) std::cout<<"ball"<<i<<"="<<balls[i].center()<<" "<<balls[i].radius()<<std::endl;
     }
@@ -307,7 +321,7 @@ NT volume1(T &P,
     std::vector<int> telescopic_prod(nb,0);
 
     //#pragma omp parallel for ordered schedule(dynamic)
-    for(int i=1; i<=rnum; ++i){ //generate rnum rand points
+    for(int i=1; i<=rnum; ++i) { //generate rnum rand points
         //start with a u.d.r point in the smallest ball
         //radius=1, center=Origin()
         std::vector<NT> coords(n,0);
@@ -324,7 +338,7 @@ NT volume1(T &P,
         std::vector<Ball>::iterator bit=balls.begin();
         std::vector<int>::iterator prod_it=telescopic_prod.begin();
         ++bit;
-        for(; bit!=balls.end(); ++bit, ++prod_it){
+        for(; bit!=balls.end(); ++bit, ++prod_it) {
             // generate a random point in bit intersection with P
             BallPoly PB(P,*bit);
 
@@ -334,7 +348,7 @@ NT volume1(T &P,
             Point p_prev=p;
             hit_and_run_coord_update(p,p_prev,PB,rand_coord,rand_coord,kapa,lamdas,var,var2,true);
 
-            for(int j=0; j<walk_len; ++j){
+            for(int j=0; j<walk_len; ++j) {
                 int rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
@@ -343,10 +357,10 @@ NT volume1(T &P,
 
             //Not need to test for PBold membership. Just check if inside Ball
             //if (Sep_Oracle(PBold,p,var2).get_is_in()){
-            if (PBold.second().is_in(p)){
+            if (PBold.second().is_in(p)) {
                 //std::cout<<p<<" IN ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
                 ++(*prod_it);
-            }else{
+            } else {
                 ;
                 //std::cout<<p<<":"<<(p-CGAL::Origin()).squared_length()
                 //<<" OUT ball: "<<PBold.second().center()<<PBold.second().radius()<<std::endl;
@@ -357,7 +371,7 @@ NT volume1(T &P,
         const NT pi = boost::math::constants::pi<NT>();
         NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0);
         for(std::vector<int>::iterator prod_it=telescopic_prod.begin();
-            prod_it!=telescopic_prod.end(); ++prod_it){
+                prod_it!=telescopic_prod.end(); ++prod_it) {
             vol *= NT(i)/NT(*prod_it);
         }
         if (print) std::cout<<"current vol estimation= "<<vol<<std::endl;
@@ -372,7 +386,7 @@ NT volume1(T &P,
     //NT vol=1;
     if (print) std::cout<<"vol(K_0)="<<vol<<" ";
     for(std::vector<int>::iterator prod_it=telescopic_prod.begin();
-        prod_it!=telescopic_prod.end(); ++prod_it){
+            prod_it!=telescopic_prod.end(); ++prod_it) {
         vol *= NT(rnum)/NT(*prod_it);
         if (print) std::cout<<NT(rnum)<<"/" << NT(*prod_it)<<"="<<NT(rnum)/NT(*prod_it)<<"\n";
     }
@@ -380,7 +394,7 @@ NT volume1(T &P,
 }
 
 /*************************************************
-/* VOLUME with random COORDINATES hit and run 
+/* VOLUME with random COORDINATES hit and run
  * Here we reuse the random points we generate   */
 // We assume that the polytope P is properly sandwitched
 // The sandwitching:
@@ -391,8 +405,7 @@ NT volume1_reuse(T &P,
                  vars &var,  // constans for volume
                  vars &var2, // constants for optimization in case of MinkSums
                  NT r,
-                 NT d)
-{
+                 NT d) {
     typedef BallIntersectPolytope<T>        BallPoly;
 
     bool print = var.verbose;
@@ -412,7 +425,7 @@ NT volume1_reuse(T &P,
     std::vector<NT> coords0(n,0);
     Point p0(n,coords0.begin(),coords0.end());
     std::vector<Ball> balls;
-    for(int i=0; i<=nb; ++i){
+    for(int i=0; i<=nb; ++i) {
         balls.push_back(Ball(p0,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
         if (print) std::cout<<"ball"<<i<<"="<<balls[i].center()<<" "<<balls[i].radius()<<std::endl;
     }
@@ -431,7 +444,7 @@ NT volume1_reuse(T &P,
     std::vector<Ball>::iterator bit=balls.begin();
     //std::vector<int>::iterator prod_it=telescopic_prod.begin();
     ++bit;
-    for(; bit!=balls.end(); ++bit){
+    for(; bit!=balls.end(); ++bit) {
         // generate a random point in bit intersection with P
         BallPoly PB(P,*bit);
 
@@ -441,7 +454,7 @@ NT volume1_reuse(T &P,
         Point p_prev=p;
         hit_and_run_coord_update(p,p_prev,PB,rand_coord,rand_coord,kapa,lamdas,var,var2,true);
 
-        for(int j=0; j<walk_len; ++j){
+        for(int j=0; j<walk_len; ++j) {
             int rand_coord_prev = rand_coord;
             rand_coord = uidist(rng);
             kapa = urdist(rng);
@@ -465,7 +478,7 @@ NT volume1_reuse(T &P,
     bit2--;
 
 
-    while(bit2!=balls.begin()){
+    while(bit2!=balls.begin()) {
 
         //each step starts with some random points in PBLarge stored in list "randPoints"
         //these points have been generated in a previous step
@@ -475,7 +488,7 @@ NT volume1_reuse(T &P,
         BallPoly PBSmall(P,*bit2);
 
         if (print) std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
-                           <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
+                                <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
 
         // choose a point in PBLarge to be used to generate more rand points
         Point p_gen = *randPoints.begin();
@@ -485,12 +498,12 @@ NT volume1_reuse(T &P,
         int nump_PBLarge = randPoints.size();
 
         if (print) std::cout<<"Points in PBLarge="<<randPoints.size()
-                           <<std::endl;
+                                <<std::endl;
 
         //keep the points in randPoints that fall in PBSmall
         std::list<Point>::iterator rpit=randPoints.begin();
-        while(rpit!=randPoints.end()){
-            if (PBSmall.second().is_in(*rpit) == 0){//not in
+        while(rpit!=randPoints.end()) {
+            if (PBSmall.second().is_in(*rpit) == 0) { //not in
                 rpit=randPoints.erase(rpit);
             } else {
                 ++nump_PBSmall;
@@ -499,47 +512,47 @@ NT volume1_reuse(T &P,
         }
 
         if (print) std::cout<<"Points in PBSmall="<<randPoints.size()
-                           <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
-                          <<std::endl;
+                                <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
+                                <<std::endl;
 
         if (print) std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
-                           <<std::endl;
+                                <<std::endl;
 
         //generate more random points in PBLarge to have "rnum" in total
-        for(int i=1; i<=rnum - nump_PBLarge; ++i){
+        for(int i=1; i<=rnum - nump_PBLarge; ++i) {
             std::vector<NT> lamdas(P.size(),NT(0));
             int rand_coord = uidist(rng);
             double kapa = urdist(rng);
             Point p_gen_prev = p_gen;
             hit_and_run_coord_update(p_gen,p_gen_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var2,true);
-            for(int j=0; j<walk_len; ++j){
+            for(int j=0; j<walk_len; ++j) {
                 int rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
                 hit_and_run_coord_update(p_gen,p_gen_prev,PBLarge,rand_coord,rand_coord_prev,kapa,lamdas,var,var2,false);
             }
             // count and store in randPoints the points fall in PBSmall
-            if (PBSmall.second().is_in(p_gen) == -1){//is in
+            if (PBSmall.second().is_in(p_gen) == -1) { //is in
                 randPoints.push_back(p_gen);
                 ++nump_PBSmall;
             }
         }
         telescopic_prod *= NT(rnum)/NT(nump_PBSmall);
         if (print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
-                           <<"\n--------------------------"<<std::endl;
+                                <<"\n--------------------------"<<std::endl;
     }
     if (print) std::cout<<"rand points = "<<rnum<<std::endl;
     if (print) std::cout<<"walk len = "<<walk_len<<std::endl;
     const NT pi = boost::math::constants::pi<NT>();
     NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
-            //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
-            * telescopic_prod;
+             //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
+             * telescopic_prod;
     //NT vol(0);
     return vol;
 }
 
 /*************************************************
-/* VOLUME with random COORDINATES hit and run 
+/* VOLUME with random COORDINATES hit and run
  * THIS IS A TEST FUNCTION
  *
  * Here we reuse the random points we generate   */
@@ -551,8 +564,7 @@ template <class T>
 NT volume1_reuse_test(T &P,
                       vars &var,  // constans for volume
                       vars &var2 // constants for optimization in case of MinkSums
-                      )
-{
+                     ) {
     typedef BallIntersectPolytope<T>        BallPoly;
 
     bool round = var.round;
@@ -574,7 +586,7 @@ NT volume1_reuse_test(T &P,
 
     //0. Rounding of the polytope if round=true
     double round_value=1;
-    if(round){
+    if(round) {
         round_value = rounding(P,var,var2);
     }
 
@@ -613,7 +625,7 @@ NT volume1_reuse_test(T &P,
     double kapa = urdist(rng);
     Point p_prev = p;
     hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);
-    for(int j=0; j<1000; ++j){
+    for(int j=0; j<1000; ++j) {
         int rand_coord_prev = rand_coord;
         rand_coord = uidist(rng);
         kapa = urdist(rng);
@@ -631,14 +643,14 @@ NT volume1_reuse_test(T &P,
     //randPoints.push_front(p);
     //rand_point_generator(P, p, rnum-1, walk_len, randPoints, var);
 
-    for(int i=1; i<=rnum-1; ++i){
+    for(int i=1; i<=rnum-1; ++i) {
         std::vector<NT> lamdas(P.num_of_hyperplanes(),NT(0));
         int rand_coord = uidist(rng);
         double kapa = urdist(rng);
         Point p_prev = p;
         hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);
 
-        for(int j=0; j<walk_len; ++j){
+        for(int j=0; j<walk_len; ++j) {
             int rand_coord_prev = rand_coord;
             rand_coord = uidist(rng);
             kapa = urdist(rng);
@@ -655,9 +667,9 @@ NT volume1_reuse_test(T &P,
     // 4.  Construct the sequence of balls
     // 4a. compute the radius of the largest ball
     double current_dist, max_dist=NT(0);
-    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit) {
         current_dist=(*pit-c).squared_length();
-        if(current_dist>max_dist){
+        if(current_dist>max_dist) {
             max_dist=current_dist;
         }
     }
@@ -679,17 +691,18 @@ NT volume1_reuse_test(T &P,
     /*
     balls.push_back(Ball(c,std::pow(radius,2)));
     if (print) {
-            std::vector<Ball>::iterator bit=balls.end();--bit;
-            std::cout<<"ball "<<bit-balls.begin()<<" | "
-                     <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
-        }
+    		std::vector<Ball>::iterator bit=balls.end();--bit;
+    		std::cout<<"ball "<<bit-balls.begin()<<" | "
+    		         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
+    	}
     */
-    for(int i=nb1; i<=nb2; ++i){
+    for(int i=nb1; i<=nb2; ++i) {
         balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
         if (print) {
-            std::vector<Ball>::iterator bit=balls.end();--bit;
+            std::vector<Ball>::iterator bit=balls.end();
+            --bit;
             std::cout<<"ball "<<bit-balls.begin()<<" | "<<i
-                    <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
+                     <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
         }
     }
     assert(!balls.empty());
@@ -707,7 +720,7 @@ NT volume1_reuse_test(T &P,
     bit2--;
 
 
-    while(bit2!=balls.begin()){
+    while(bit2!=balls.begin()) {
 
         //each step starts with some random points in PBLarge stored in list "randPoints"
         //these points have been generated in a previous step
@@ -717,7 +730,7 @@ NT volume1_reuse_test(T &P,
         BallPoly PBSmall(P,*bit2);
 
         if (print) std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
-                           <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
+                                <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
 
         // choose a point in PBLarge to be used to generate more rand points
         Point p_gen = *randPoints.begin();
@@ -727,12 +740,12 @@ NT volume1_reuse_test(T &P,
         int nump_PBLarge = randPoints.size();
 
         if (print) std::cout<<"Points in PBLarge="<<randPoints.size()
-                           <<std::endl;
+                                <<std::endl;
 
         //keep the points in randPoints that fall in PBSmall
         std::list<Point>::iterator rpit=randPoints.begin();
-        while(rpit!=randPoints.end()){
-            if (PBSmall.second().is_in(*rpit) == 0){//not in
+        while(rpit!=randPoints.end()) {
+            if (PBSmall.second().is_in(*rpit) == 0) { //not in
                 rpit=randPoints.erase(rpit);
             } else {
                 ++nump_PBSmall;
@@ -741,43 +754,43 @@ NT volume1_reuse_test(T &P,
         }
 
         if (print) std::cout<<"Points in PBSmall="<<randPoints.size()
-                           <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
-                          <<std::endl;
+                                <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
+                                <<std::endl;
 
         if (print) std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
-                           <<std::endl;
+                                <<std::endl;
 
         //generate more random points in PBLarge to have "rnum" in total
-        for(int i=1; i<=rnum - nump_PBLarge; ++i){
+        for(int i=1; i<=rnum - nump_PBLarge; ++i) {
             std::vector<NT> lamdas(P.num_of_hyperplanes(),NT(0));
             int rand_coord = uidist(rng);
             double kapa = urdist(rng);
             Point p_gen_prev = p_gen;
             hit_and_run_coord_update(p_gen,p_gen_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var2,true);
-            for(int j=0; j<walk_len; ++j){
+            for(int j=0; j<walk_len; ++j) {
                 int rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
                 hit_and_run_coord_update(p_gen,p_gen_prev,PBLarge,rand_coord,rand_coord_prev,kapa,lamdas,var,var2,false);
             }
             // count and store in randPoints the points fall in PBSmall
-            if (PBSmall.second().is_in(p_gen) == -1){//is in
+            if (PBSmall.second().is_in(p_gen) == -1) { //is in
                 randPoints.push_back(p_gen);
                 ++nump_PBSmall;
             }
         }
         telescopic_prod *= NT(rnum)/NT(nump_PBSmall);
         if (print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
-                           <<"\n--------------------------"<<std::endl;
+                                <<"\n--------------------------"<<std::endl;
     }
     if (print) std::cout<<"rand points = "<<rnum<<std::endl;
     if (print) std::cout<<"walk len = "<<walk_len<<std::endl;
     const NT pi = boost::math::constants::pi<NT>();
 
     NT vol = (2*std::pow(pi,n/2.0)*std::pow(balls[0].radius(),n))
-            / (std::tgamma(n/2.0)*n)
-            //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
-            * telescopic_prod;
+             / (std::tgamma(n/2.0)*n)
+             //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
+             * telescopic_prod;
 
     //NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
     //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
@@ -788,7 +801,7 @@ NT volume1_reuse_test(T &P,
 
 
 /*************************************************
-/* VOLUME with random COORDINATES hit and run 
+/* VOLUME with random COORDINATES hit and run
  * Here we reuse the random points we generate
  * We also use Chebychev ball and sampling for
  * sandwitching
@@ -797,8 +810,7 @@ template <class T>
 NT volume1_reuse2(T &P,
                   vars &var,  // constans for volume
                   vars &var2, // constants for optimization in case of MinkSums
-                  double &Chebtime)
-{
+                  double &Chebtime) {
     typedef BallIntersectPolytope<T>        BallPoly;
 
     bool round = var.round;
@@ -820,7 +832,7 @@ NT volume1_reuse2(T &P,
 
     //0. Rounding of the polytope if round=true
     double round_value=1;
-    if(round){
+    if(round) {
         round_value = rounding(P,var,var2);
     }
 
@@ -828,9 +840,10 @@ NT volume1_reuse2(T &P,
     //1. Compute the Chebychev ball (largest inscribed ball) with center and radius
     double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"\nComputing the Chebychev center..."<<std::endl;
-    Point c;       //center
-    double radius;
+    Point c(P.dimension(), CGAL::ORIGIN);       //center
+    double radius = P.getMinDistToBoundary();
     P.chebyshev_center(c,radius);
+	std::cout << "Radius = " << radius << std::endl;
     //HACK FOR CROSS POLYTOPES
     //std::vector<double> cp(n,0);
     //Point c(n,cp.begin(),cp.end());
@@ -847,7 +860,7 @@ NT volume1_reuse2(T &P,
 
     // Perform the procedure for a number of threads and then take the average
     //#pragma omp for ordered schedule(dynamic)
-    for(int t=0; t<n_threads; t++){
+    for(int t=0; t<n_threads; t++) {
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
@@ -872,9 +885,9 @@ NT volume1_reuse2(T &P,
         // 4.  Construct the sequence of balls
         // 4a. compute the radius of the largest ball
         double current_dist, max_dist=NT(0);
-        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit) {
             current_dist=(*pit-c).squared_length();
-            if(current_dist>max_dist){
+            if(current_dist>max_dist) {
                 max_dist=current_dist;
             }
         }
@@ -891,22 +904,24 @@ NT volume1_reuse2(T &P,
         //std::cout<<n* std::log(max_dist)/std::log(2.0) <<std::endl;
         //if(print) std::cout<<nb1<<" "<<nb2<<" "<<std::pow(std::pow(2.0,NT(-2)/NT(n)),2)<<std::endl;
         if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
+		if(print) std::cout<<"\nnb1 = " << nb1 << "\tnb1=" << nb2<<std::endl;
 
         std::vector<Ball> balls;
         /*
         balls.push_back(Ball(c,std::pow(radius,2)));
         if (print) {
-                std::vector<Ball>::iterator bit=balls.end();--bit;
-                std::cout<<"ball "<<bit-balls.begin()<<" | "
-                         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
-            }
+        		std::vector<Ball>::iterator bit=balls.end();--bit;
+        		std::cout<<"ball "<<bit-balls.begin()<<" | "
+        		         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
+        	}
         */
-        for(int i=nb1; i<=nb2; ++i){
+        for(int i=nb1; i<=nb2; ++i) {
             balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
             if (print) {
-                std::vector<Ball>::iterator bit=balls.end();--bit;
+                std::vector<Ball>::iterator bit=balls.end();
+                --bit;
                 std::cout<<"ball "<<bit-balls.begin()<<" | "<<i
-                        <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
+                         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
             }
         }
         assert(!balls.empty());
@@ -923,7 +938,7 @@ NT volume1_reuse2(T &P,
         std::vector<Ball>::iterator bit2=balls.end();
         bit2--;
 
-        while(bit2!=balls.begin()){
+        while(bit2!=balls.begin()) {
 
             //each step starts with some random points in PBLarge stored in list "randPoints"
             //these points have been generated in a previous step
@@ -934,7 +949,7 @@ NT volume1_reuse2(T &P,
 
             if(print)
                 std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
-                        <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
+                         <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
 
             // choose a point in PBLarge to be used to generate more rand points
             Point p_gen = *randPoints.begin();
@@ -944,12 +959,12 @@ NT volume1_reuse2(T &P,
             int nump_PBLarge = randPoints.size();
 
             if(print) std::cout<<"Points in PBLarge="<<randPoints.size()
-                              <<std::endl;
+                                   <<std::endl;
 
             //keep the points in randPoints that fall in PBSmall
             std::list<Point>::iterator rpit=randPoints.begin();
-            while(rpit!=randPoints.end()){
-                if (PBSmall.second().is_in(*rpit) == 0){//not in
+            while(rpit!=randPoints.end()) {
+                if (PBSmall.second().is_in(*rpit) == 0) { //not in
                     rpit=randPoints.erase(rpit);
                 } else {
                     ++nump_PBSmall;
@@ -958,20 +973,20 @@ NT volume1_reuse2(T &P,
             }
 
             if(print) std::cout<<"Points in PBSmall="<<randPoints.size()
-                              <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
-                             <<std::endl;
+                                   <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
+                                   <<std::endl;
 
             if(print) std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
-                              <<std::endl;
+                                   <<std::endl;
 
             //generate more random points in PBLarge to have "rnum" in total
             rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
 
             telescopic_prod *= EXACT_NT(rnum)/EXACT_NT(nump_PBSmall);
             if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
-                              <<"\ncurrent_vol="<<telescopic_prod
-                             <<"\n="<<CGAL::to_double(telescopic_prod)
-                            <<"\n--------------------------"<<std::endl;
+                                   <<"\ncurrent_vol="<<telescopic_prod
+                                   <<"\n="<<CGAL::to_double(telescopic_prod)
+                                   <<"\n--------------------------"<<std::endl;
 
             //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2
             //if(NT(rnum)/NT(nump_PBSmall)>double(1.999)){
@@ -1018,6 +1033,11 @@ NT volume1_reuse2(T &P,
         //#pragma omp ordered
         NT vol_thread = mpfr_get_d(result,GMP_RNDN);
         vol += vol_thread;
+
+        mpfr_clear(result);
+        mpfr_clear(pow);
+        mpfr_clear(base);
+        mpfr_clear(exp);
     }
 
     // std::cout<<"ROUNDING:"<<round_value<<", "<<CGAL::to_double(round_value*(vol/n_threads)) << ", " <<
@@ -1031,7 +1051,7 @@ NT volume1_reuse2(T &P,
 
 
 /*************************************************
-/* VOLUME with random COORDINATES hit and run 
+/* VOLUME with random COORDINATES hit and run
  * Here we reuse the random points we generate
  * We also use Chebychev ball and sampling for
  * sandwitching
@@ -1047,34 +1067,34 @@ EXACT_NT volume1_reuse_estimete_walk(T &P,
 {
   typedef BallIntersectPolytope<T>        BallPoly;
 
-    bool round = var.round;
-    bool print = var.verbose;
-    bool rand_only = var.rand_only;
-    int n = var.n;
-    int rnum = var.m;
-    int walk_len = var.walk_steps;
-    int n_threads = var.n_threads;
-    const double err = var.err;
-    RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist = var.urdist;
-    boost::random::uniform_int_distribution<> uidist(0,n-1);
-    //boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
+	bool round = var.round;
+	bool print = var.verbose;
+	bool rand_only = var.rand_only;
+	int n = var.n;
+	int rnum = var.m;
+	int walk_len = var.walk_steps;
+	int n_threads = var.n_threads;
+	const double err = var.err;
+	RNGType &rng = var.rng;
+	boost::random::uniform_real_distribution<> urdist = var.urdist;
+	boost::random::uniform_int_distribution<> uidist(0,n-1);
+	//boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
 
-    // Rotation: only for test with skinny polytopes and rounding
-    //std::cout<<"Rotate="<<rotate(P)<<std::endl;
-    //rotate(P);
+	// Rotation: only for test with skinny polytopes and rounding
+	//std::cout<<"Rotate="<<rotate(P)<<std::endl;
+	//rotate(P);
 
-    //0. Rounding of the polytope if round=true
-    double round_value=1;
-    if(round){
-        round_value = rounding(P,var,var2);
-    }
+	//0. Rounding of the polytope if round=true
+	double round_value=1;
+	if(round){
+		round_value = rounding(P,var,var2);
+	}
 
-    double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    //1. Compute the Chebychev ball (largest inscribed ball) with center and radius
-    double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-    if(print) std::cout<<"\nComputing the Chebychev center..."<<std::endl;
-    Point c;       //center
+	double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
+	//1. Compute the Chebychev ball (largest inscribed ball) with center and radius
+	double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+	if(print) std::cout<<"\nComputing the Chebychev center..."<<std::endl;
+	Point c;       //center
   double radius;
   P.chebyshev_center(c,radius);
   //radius=std::sqrt(radius);
@@ -1082,164 +1102,164 @@ EXACT_NT volume1_reuse_estimete_walk(T &P,
   double tstop = (double)clock()/(double)CLOCKS_PER_SEC;
   Chebtime = tstop - tstart;
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    if(print) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
+	if(print) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
 
-    rnum=rnum/n_threads;
-    EXACT_NT vol=0;
+	rnum=rnum/n_threads;
+	EXACT_NT vol=0;
 
-    // Perform the procedure for a number of threads and then take the average
-    //#pragma omp for ordered schedule(dynamic)
-    for(int t=0; t<n_threads; t++){
-      // 2. Generate the first random point in P
-      // Perform random walk on random point in the Chebychev ball
-        if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-        CGAL::Random_points_in_ball_d<Point> gen (n, radius);
-        Point p = *gen;
-        p = p + (c-CGAL::Origin());
-        std::list<Point> randPoints; //ds for storing rand points
-        //use a large walk length e.g. 1000
-        rand_point_generator(P, p, 1, 1000, randPoints, var);
-        if (print) std::cout<<"First random point: "<<p<<std::endl;
+	// Perform the procedure for a number of threads and then take the average
+	//#pragma omp for ordered schedule(dynamic)
+	for(int t=0; t<n_threads; t++){
+	  // 2. Generate the first random point in P
+	  // Perform random walk on random point in the Chebychev ball
+		if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
+		CGAL::Random_points_in_ball_d<Point> gen (n, radius);
+		Point p = *gen;
+		p = p + (c-CGAL::Origin());
+		std::list<Point> randPoints; //ds for storing rand points
+		//use a large walk length e.g. 1000
+		rand_point_generator(P, p, 1, 1000, randPoints, var);
+		if (print) std::cout<<"First random point: "<<p<<std::endl;
 
-        double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-        // 3. Sample "rnum" points from P
-        if(print) std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
-        //randPoints.push_front(p);
-        //rand_point_generator(P, p, rnum-1, walk_len, randPoints, var);
-        rand_point_generator_with_walk_estimator(P, rnum-1, randPoints, var);
-        double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
-        if(print) std::cout << "First random points construction time = " << tstop2 - tstart2 << std::endl;
-        //if(rand_only) return -1;
+		double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
+		// 3. Sample "rnum" points from P
+		if(print) std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
+		//randPoints.push_front(p);
+		//rand_point_generator(P, p, rnum-1, walk_len, randPoints, var);
+		rand_point_generator_with_walk_estimator(P, rnum-1, randPoints, var);
+		double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
+		if(print) std::cout << "First random points construction time = " << tstop2 - tstart2 << std::endl;
+		//if(rand_only) return -1;
 
-        // 4.  Construct the sequence of balls
-        // 4a. compute the radius of the largest ball
-        double current_dist, max_dist=NT(0);
-        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-            current_dist=(*pit-c).squared_length();
-            if(current_dist>max_dist){
-                max_dist=current_dist;
-            }
-        }
-        max_dist=std::sqrt(max_dist);
-        std::cout<<"\nFurthest distance from Chebychev point= "<<max_dist<<std::endl;
+		// 4.  Construct the sequence of balls
+		// 4a. compute the radius of the largest ball
+		double current_dist, max_dist=NT(0);
+		for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+			current_dist=(*pit-c).squared_length();
+			if(current_dist>max_dist){
+				max_dist=current_dist;
+			}
+		}
+		max_dist=std::sqrt(max_dist);
+		std::cout<<"\nFurthest distance from Chebychev point= "<<max_dist<<std::endl;
 
-        //
-        // 4b. Number of balls
-        int nb1 = n * (std::log(radius)/std::log(2.0));
-        //int nb1 = std::sqrt(n);// * (std::log(radius)/std::log(2.0));
-        int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
-        //int nb1 = n * (std::log(radius)/std::log(2.0));
-        //int nb2 = n * (std::log(max_dist)/std::log(2.0));
-        //std::cout<<n* std::log(radius)/std::log(2.0) <<std::endl;
-        //std::cout<<n* std::log(max_dist)/std::log(2.0) <<std::endl;
-        //if(print) std::cout<<nb1<<" "<<nb2<<" "<<std::pow(std::pow(2.0,NT(-2)/NT(n)),2)<<std::endl;
-        if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
+		//
+		// 4b. Number of balls
+		int nb1 = n * (std::log(radius)/std::log(2.0));
+		//int nb1 = std::sqrt(n);// * (std::log(radius)/std::log(2.0));
+		int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
+		//int nb1 = n * (std::log(radius)/std::log(2.0));
+		//int nb2 = n * (std::log(max_dist)/std::log(2.0));
+		//std::cout<<n* std::log(radius)/std::log(2.0) <<std::endl;
+		//std::cout<<n* std::log(max_dist)/std::log(2.0) <<std::endl;
+		//if(print) std::cout<<nb1<<" "<<nb2<<" "<<std::pow(std::pow(2.0,NT(-2)/NT(n)),2)<<std::endl;
+		if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
 
-        std::vector<Ball> balls;
+		std::vector<Ball> balls;
 
-        //balls.push_back(Ball(c,std::pow(radius,2)));
-        //if (print) {
-        //		std::vector<Ball>::iterator bit=balls.end();--bit;
-        //		std::cout<<"ball "<<bit-balls.begin()<<" | "
-        //		         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
-        //	}
+		//balls.push_back(Ball(c,std::pow(radius,2)));
+		//if (print) {
+		//		std::vector<Ball>::iterator bit=balls.end();--bit;
+		//		std::cout<<"ball "<<bit-balls.begin()<<" | "
+		//		         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
+		//	}
 
-        for(int i=nb1; i<=nb2; ++i){
-            balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
-            if (print) {
-                std::vector<Ball>::iterator bit=balls.end();--bit;
-                std::cout<<"ball "<<bit-balls.begin()<<" | "<<i
-                         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
-            }
-        }
-        assert(!balls.empty());
-        if (print) std::cout<<"---------"<<std::endl;
+		for(int i=nb1; i<=nb2; ++i){
+			balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
+			if (print) {
+				std::vector<Ball>::iterator bit=balls.end();--bit;
+				std::cout<<"ball "<<bit-balls.begin()<<" | "<<i
+				         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
+			}
+		}
+		assert(!balls.empty());
+		if (print) std::cout<<"---------"<<std::endl;
 
-        // 5. Estimate Vol(P)
-        //
-        //TODO: std::forward_list<Point> randPoints;
-        //std::list<Point> randPoints;
-        //randPoints.push_front(p);
+		// 5. Estimate Vol(P)
+		//
+		//TODO: std::forward_list<Point> randPoints;
+		//std::list<Point> randPoints;
+		//randPoints.push_front(p);
 
-        EXACT_NT telescopic_prod=EXACT_NT(1);
+		EXACT_NT telescopic_prod=EXACT_NT(1);
 
-        std::vector<Ball>::iterator bit2=balls.end();
-      bit2--;
+		std::vector<Ball>::iterator bit2=balls.end();
+	  bit2--;
 
-        while(bit2!=balls.begin()){
+		while(bit2!=balls.begin()){
 
-            //each step starts with some random points in PBLarge stored in list "randPoints"
-            //these points have been generated in a previous step
+			//each step starts with some random points in PBLarge stored in list "randPoints"
+			//these points have been generated in a previous step
 
-          BallPoly PBLarge(P,*bit2);
-            --bit2;
-            BallPoly PBSmall(P,*bit2);
+		  BallPoly PBLarge(P,*bit2);
+			--bit2;
+			BallPoly PBSmall(P,*bit2);
 
-            if(print)
-              std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
-            <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
+			if(print)
+			  std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
+			<<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
 
-            // choose a point in PBLarge to be used to generate more rand points
-            Point p_gen = *randPoints.begin();
+			// choose a point in PBLarge to be used to generate more rand points
+			Point p_gen = *randPoints.begin();
 
-            // num of points in PBSmall and PBLarge
-            int nump_PBSmall = 0;
-            int nump_PBLarge = randPoints.size();
+			// num of points in PBSmall and PBLarge
+			int nump_PBSmall = 0;
+			int nump_PBLarge = randPoints.size();
 
-            if(print) std::cout<<"Points in PBLarge="<<randPoints.size()
-                 <<std::endl;
+			if(print) std::cout<<"Points in PBLarge="<<randPoints.size()
+	             <<std::endl;
 
-            //keep the points in randPoints that fall in PBSmall
-            std::list<Point>::iterator rpit=randPoints.begin();
-            while(rpit!=randPoints.end()){
-                if (PBSmall.second().is_in(*rpit) == 0){//not in
-                    rpit=randPoints.erase(rpit);
-                } else {
-                    ++nump_PBSmall;
-                    ++rpit;
-                }
-            }
+			//keep the points in randPoints that fall in PBSmall
+			std::list<Point>::iterator rpit=randPoints.begin();
+			while(rpit!=randPoints.end()){
+				if (PBSmall.second().is_in(*rpit) == 0){//not in
+					rpit=randPoints.erase(rpit);
+				} else {
+					++nump_PBSmall;
+					++rpit;
+				}
+			}
 
-        if(print) std::cout<<"Points in PBSmall="<<randPoints.size()
-                 <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
-                 <<std::endl;
+	    if(print) std::cout<<"Points in PBSmall="<<randPoints.size()
+	             <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
+	             <<std::endl;
 
-        if(print) std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
-                 <<std::endl;
+	    if(print) std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
+	             <<std::endl;
 
-            //generate more random points in PBLarge to have "rnum" in total
-            rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
+			//generate more random points in PBLarge to have "rnum" in total
+			rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
 
-            telescopic_prod *= EXACT_NT(rnum)/EXACT_NT(nump_PBSmall);
-        if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
-                 <<"\n--------------------------"<<std::endl;
-        //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2
-        //if(NT(rnum)/NT(nump_PBSmall)>double(1.999)){
-            //	break;
-            //}
-        }
-        //if(print) std::cout << "Stopped " << (bit2-balls.begin()) << " balls before Chebychev ball."<< std::endl;
-        //telescopic_prod *= std::pow(2,(bit2-balls.begin()));
-        if(print) std::cout<<"rand points = "<<rnum<<std::endl;
-        if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
-        const NT pi = boost::math::constants::pi<NT>();
-        //NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
-        //NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n)
-        EXACT_NT vol_thread = EXACT_NT(2*std::pow(pi,n/2.0)*std::pow(balls[0].radius(),n))
-                            / EXACT_NT(std::tgamma(n/2.0)*n)
-                            //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
-                            * telescopic_prod;
-        //NT vol(0);
-        //#pragma omp ordered
-        vol += vol_thread;
-    }
+			telescopic_prod *= EXACT_NT(rnum)/EXACT_NT(nump_PBSmall);
+	    if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
+	             <<"\n--------------------------"<<std::endl;
+	    //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2
+	    //if(NT(rnum)/NT(nump_PBSmall)>double(1.999)){
+			//	break;
+			//}
+		}
+		//if(print) std::cout << "Stopped " << (bit2-balls.begin()) << " balls before Chebychev ball."<< std::endl;
+		//telescopic_prod *= std::pow(2,(bit2-balls.begin()));
+		if(print) std::cout<<"rand points = "<<rnum<<std::endl;
+		if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
+		const NT pi = boost::math::constants::pi<NT>();
+		//NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
+		//NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n)
+		EXACT_NT vol_thread = EXACT_NT(2*std::pow(pi,n/2.0)*std::pow(balls[0].radius(),n))
+		                    / EXACT_NT(std::tgamma(n/2.0)*n)
+		                    //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
+		                    * telescopic_prod;
+		//NT vol(0);
+		//#pragma omp ordered
+		vol += vol_thread;
+	}
 
-    // std::cout<<"ROUNDING:"<<round_value<<", "<<CGAL::to_double(round_value*(vol/n_threads)) << ", " <<
-    //           CGAL::to_double(round_value*(vol/n_threads)/n*(n+1))<<std::endl;
-    const NT pi = boost::math::constants::pi<NT>();
-    //std::cout<<"Cheb:"<<(2*std::pow(pi,n/2.0)*std::pow(radius,n))
-    //	                    / (std::tgamma(n/2.0)*n)<<std::endl;
-    return round_value*(vol/n_threads);
+	// std::cout<<"ROUNDING:"<<round_value<<", "<<CGAL::to_double(round_value*(vol/n_threads)) << ", " <<
+	//           CGAL::to_double(round_value*(vol/n_threads)/n*(n+1))<<std::endl;
+	const NT pi = boost::math::constants::pi<NT>();
+	//std::cout<<"Cheb:"<<(2*std::pow(pi,n/2.0)*std::pow(radius,n))
+	//	                    / (std::tgamma(n/2.0)*n)<<std::endl;
+	return round_value*(vol/n_threads);
 }
 */
 
@@ -1247,16 +1267,16 @@ EXACT_NT volume1_reuse_estimete_walk(T &P,
 // VOLUME with multipoint random walk
 template <class T>
 NT volume2(T &P,
-           vars &var)
-{
+           vars &var) {
     typedef BallIntersectPolytope<T>        BallPoly;
+
     int n = var.n;
     int rnum = var.m;
     int walk_len = var.walk_steps;
     const double err = var.err;
     RNGType &rng = var.rng;
     generator
-            get_snd_rand = var.get_snd_rand;
+    get_snd_rand = var.get_snd_rand;
     boost::random::uniform_real_distribution<> urdist = var.urdist;
     boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
 
@@ -1274,7 +1294,7 @@ NT volume2(T &P,
     std::vector<NT> coords(n,0);
     Point p0(n,coords.begin(),coords.end());
     std::vector<Ball> balls;
-    for(int i=0; i<=nb; ++i){
+    for(int i=0; i<=nb; ++i) {
         balls.push_back(Ball(p0,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
         std::cout<<"ball"<<i<<"="<<balls[i].center()<<" "<<balls[i].radius()<<std::endl;
     }
@@ -1287,7 +1307,7 @@ NT volume2(T &P,
     //vector to store the random points
     std::vector<Point> V;
     BallPoly PBold(P,balls[0]);
-    for(int i=0; i<rnum; ++i){
+    for(int i=0; i<rnum; ++i) {
         // generate rnum rand points
         // in the smallest ball i.e. radius=1, center=Origin()
         std::vector<NT> coords(n,0);
@@ -1303,16 +1323,16 @@ NT volume2(T &P,
     std::vector<Ball>::iterator bit=balls.begin();
     std::vector<int>::iterator prod_it=telescopic_prod.begin();
     ++bit;
-    for(; bit!=balls.end(); ++bit, ++prod_it){
+    for(; bit!=balls.end(); ++bit, ++prod_it) {
         // generate a random point in bit (intersection) P
         BallPoly PB(P,*bit);
         std::cout<<"walking..."<<walk_len<<"steps"<<std::endl;
         var.m = V.size();
         multipoint_random_walk(PB,V,var);
 
-        for(int j=0; j<V.size(); ++j){
+        for(int j=0; j<V.size(); ++j) {
 
-            if (Sep_Oracle(PBold,V[j],var).get_is_in()){
+            if (Sep_Oracle(PBold,V[j],var).get_is_in()) {
                 //std::cout<<p<<" IN ball: "<<PBold.second.center()<<PBold.second.radius()<<std::endl;
                 ++(*prod_it);
             }//else{
@@ -1329,7 +1349,7 @@ NT volume2(T &P,
     //NT vol=1;
     std::cout<<"vol(K_0)="<<vol<<" ";
     for(std::vector<int>::iterator prod_it=telescopic_prod.begin();
-        prod_it!=telescopic_prod.end(); ++prod_it){
+            prod_it!=telescopic_prod.end(); ++prod_it) {
         vol *= NT(rnum)/NT(*prod_it);
         std::cout<<NT(rnum)<<"/" << NT(*prod_it)<<"="<<NT(rnum)/NT(*prod_it)<<"\n";
     }

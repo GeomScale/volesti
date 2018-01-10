@@ -19,11 +19,11 @@
 #ifndef MISC_H
 #define MISC_H
 
-//function to print rounding to double coordinates 
+//function to print rounding to double coordinates
 template <class T>
-void round_print(T p) { 
+void round_print(T p) {
     for(typename T::Cartesian_const_iterator cit=p.cartesian_begin();
-        cit!=p.cartesian_end(); ++cit)
+            cit!=p.cartesian_end(); ++cit)
         std::cout<<CGAL::to_double(*cit)<<" ";
     std::cout<<std::endl;
 }
@@ -33,24 +33,24 @@ void round_print(T p) {
 typedef std::vector<V_polytope>              Vpolys;
 
 int Minkowski_sum_naive(V_polytope &P1, V_polytope &P2, V_polytope &Msum){
-    std::cout<<(!P1.empty() && !P2.empty())<<std::endl;
-    if(!P1.empty() && !P2.empty()){
-      V_polytope Msum_all;
-        for (V_polytope::iterator Pit1 = P1.begin(); Pit1 != P1.end(); ++Pit1){
-        for (V_polytope::iterator Pit2 = P2.begin(); Pit2 != P2.end(); ++Pit2){
-          Point p = CGAL::Origin() +
-                (((*Pit1)-CGAL::Origin()) + ((*Pit2)-CGAL::Origin()));
-          Msum_all.push_back(p);
-          //std::cout<<p<<std::endl;
-        }
-      }
-      //std::cout<<"---------"<<std::endl;
-      // compute the extreme points
-        CGAL::Extreme_points_d<EP_Traits_d> ep(P1[0].dimension());
-      ep.insert(Msum_all.begin(),Msum_all.end());
-        //std::vector<Point> extreme_points;
-        ep.get_extreme_points(std::back_inserter(Msum));
-        return Msum.size();
+	std::cout<<(!P1.empty() && !P2.empty())<<std::endl;
+	if(!P1.empty() && !P2.empty()){
+	  V_polytope Msum_all;
+		for (V_polytope::iterator Pit1 = P1.begin(); Pit1 != P1.end(); ++Pit1){
+	    for (V_polytope::iterator Pit2 = P2.begin(); Pit2 != P2.end(); ++Pit2){
+	      Point p = CGAL::Origin() +
+	            (((*Pit1)-CGAL::Origin()) + ((*Pit2)-CGAL::Origin()));
+	      Msum_all.push_back(p);
+	      //std::cout<<p<<std::endl;
+	    }
+	  }
+	  //std::cout<<"---------"<<std::endl;
+	  // compute the extreme points
+		CGAL::Extreme_points_d<EP_Traits_d> ep(P1[0].dimension());
+	  ep.insert(Msum_all.begin(),Msum_all.end());
+		//std::vector<Point> extreme_points;
+		ep.get_extreme_points(std::back_inserter(Msum));
+		return Msum.size();
   }
   return -1;
 }
@@ -59,17 +59,17 @@ int Minkowski_sum_naive(V_polytope &P1, V_polytope &P2, V_polytope &Msum){
 // polymake file to compute exact volume
 template <class T>
 void print_polymake_volfile(T &P,
-                            std::ostream& os){
+                            std::ostream& os) {
     // print the vertices of the P polytope
     os << "use Time::HiRes qw(gettimeofday tv_interval);\n";
     os << "use application 'polytope';\n";
     os << "my $p=new Polytope<Rational>;\n";
     os << "$p->POINTS=<<'.';\n";
-    for (typename T::iterator vit = P.begin(); vit != P.end(); vit++){
+    for (typename T::iterator vit = P.begin(); vit != P.end(); vit++) {
         os << "1 ";
         for (Point::Cartesian_const_iterator cit=vit->cartesian_begin();
-             cit != vit->cartesian_end();
-             cit++){
+                cit != vit->cartesian_end();
+                cit++) {
             os << *cit;
             if (cit - vit->cartesian_begin() != vit->dimension()-1)
                 os << " ";
@@ -97,7 +97,7 @@ void print_polymake_volfile(T &P,
 // polymake file to compute exact volume
 template <class T>
 void print_polymake_volfile2(T &P,
-                             std::ostream& os){
+                             std::ostream& os) {
     // print the vertices of the P polytope
     os << "use Time::HiRes qw(gettimeofday tv_interval);\n";
     os << "use application 'polytope';\n";
@@ -105,13 +105,13 @@ void print_polymake_volfile2(T &P,
     os << "$p->INEQUALITIES=<<'.';\n";
     //os << "my $p=new Polytope<Rational>;\n";
     //os << "$p->POINTS=<<'.';\n";
-    for (typename T::iterator vit = P.begin(); vit != P.end(); vit++){
+    for (typename T::iterator vit = P.begin(); vit != P.end(); vit++) {
         Hyperplane::Coefficient_const_iterator cit_end = vit->coefficients_end();
         os << *(--cit_end)<<" ";
         //os << "0 ";
         Hyperplane::Coefficient_const_iterator cit = vit->coefficients_begin();
         //++cit;
-        for (; cit != cit_end; cit++){
+        for (; cit != cit_end; cit++) {
             //std::cout<<*cit<<" ";
             os <<(*cit)<<" ";
             if (cit - vit->coefficients_begin() != vit->dimension()-1)
@@ -140,24 +140,23 @@ void print_polymake_volfile2(T &P,
 }
 
 int read_pointset(std::istream &is,
-                  std::vector<std::vector<double> > &Input){
+                  std::vector<std::vector<double> > &Input) {
     std::string point;
 
     while(!std::getline(is, point, '\n').eof()) {
         //std::cout<<point<<std::endl;
         if(!std::isdigit(point[0]) && point[0]!='-' && point[0]!=' ')
             continue;
+        std::vector<double> input;
         //std::cout<<std::endl;
         //std::size_t found = point.find_first_of(" ");
         std::size_t found =0;
         std::size_t found2=0;
 
         //ignore empty spaces on start of line
-        found = point.find_first_not_of(" ",found);
+        found = point.find_first_not_of(" ");
 
-        std::vector<double> input;
-        while (found2!=std::string::npos || point[found]=='-')
-        {
+        while (found2!=std::string::npos || (found!=std::string::npos && point[found]=='-')) {
             //std::cout<<"*"<<(point[found]!='-')<<"*"<<std::endl;
             if(!std::isdigit(point[found]) && point[found]!='-')
                 break;
@@ -167,7 +166,7 @@ int read_pointset(std::istream &is,
             double num = atof(point.substr(found,found2-found).c_str());
             found=point.find_first_not_of(" ",found2);
             //std::cout<<"found"<<point[found]<<std::endl;
-            if(point[found]=='/'){
+            if(found!=std::string::npos && point[found]=='/') {
                 found = found + 1;
                 found2=point.find_first_not_of("0123456789-/",found);
                 //std::cout<<"lala="<<point.substr(found,found2-found)<<std::endl;
