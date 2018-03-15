@@ -43,7 +43,10 @@ The computed volume is 1015.48
 Modify VolEsti to compute volumes using your function.
 ------------------
 
+In vol.cpp we add a new option for ball walk. If you run the command:
 
-------------------
-3. Hard: modify VolEsti to compute volumes of polytopes given by a set of vertices.
-------------------
+./vol -f1 cube10.ine -bw
+
+Then ball walk is going to be used.
+
+In random_samplers.h we implement a function for ball walk. Moreover in vol_rand.h we add to the structure var two more members: delta and ball_walk. The first is for the radius that ball walk uses and the second is a boolean variable that is true if -bw is given as an input string, otherwise is false.
