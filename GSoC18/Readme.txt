@@ -2,7 +2,7 @@ Sampling and volume approximation, project for GSoC 2018.
 
 By Tolis Chalkis, N.K. Univ. Athens, Greece, 2018.
 
-Here we give the three answers for the tests are required.
+Here we give the three answers for the test.
 
 ------------------ 
 1. Easy: use VolEsti to compute the volume of the 10-dimensional hypercube.
