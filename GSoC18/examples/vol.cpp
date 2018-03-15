@@ -220,8 +220,8 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-bw")){
           ball_w2=true;
-          delta2 = atof(argv[++i]);
-          delta2=delta2/4.0;
+          //delta2 = atof(argv[++i]);
+          delta2=1.0/4.0;
           //delta2=0.25;
           correct=true;
       }
