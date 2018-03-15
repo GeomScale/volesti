@@ -415,16 +415,14 @@ int Ball_Walk(Point &p,
               T &P,
               vars &var)
 {	
-    //std::cout<<"hello\n";
     double delta2=var.delta;
     CGAL::Random_points_in_ball_d<Point> gen (P.dimension(), delta2);
     bool new_point_accepted=false;
-    //Point y;
     while(!new_point_accepted){
         //std::cout<<"hello while\n";
         Point y=(*gen++);
         y = y + (p-CGAL::Origin());
-        if (P.is_in(y)){
+        if (P.is_in(y)==-1){
             new_point_accepted=true;
             p_prev=p;
             p=y;

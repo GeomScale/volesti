@@ -49,4 +49,4 @@ In vol.cpp we add a new option for ball walk. If you run the command:
 
 Then ball walk is going to be used.
 
-In random_samplers.h we implement a function for ball walk. Moreover in vol_rand.h we add to the structure var two more members: delta and ball_walk. The first is for the radius that ball walk uses and the second is a boolean variable that is true if -bw is given as an input string, otherwise is false.
+In random_samplers.h we implement a function for ball walk. Moreover in vol_rand.h we add to the structure var two more members: delta and ball_walk. The first is a double for the radius that ball walk algorithm uses and the second is a boolean variable that is true if -bw is given as an input string, otherwise is false.
