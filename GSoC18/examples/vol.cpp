@@ -130,6 +130,22 @@ int main(const int argc, const char** argv)
           }
           correct=true;
       }
+      if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
+          file=true;
+          std::cout<<"Reading input from file..."<<std::endl;
+          std::ifstream inp;
+          std::vector<std::vector<double> > Pin;
+          inp.open(argv[++i],std::ifstream::in);
+          read_pointset(inp,Pin);
+          //std::cout<<"d="<<Pin[0][1]<<std::endl;
+          n = Pin[0][1]-1;
+          P.init(Pin);
+          if (verbose && P.num_of_hyperplanes()<100){
+              std::cout<<"Input polytope: "<<n<<std::endl;
+              P.print();
+          }
+          correct=true;
+      }
       /*
     if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
             file=true;

@@ -47,6 +47,28 @@ In vol.cpp we add a new option for ball walk. If you run the command:
 
 ./vol -f1 cube10.ine -bw
 
-Then ball walk is going to be used.
+Then ball walk is going to be used. Of course we have to give a larger number for walk length than the hit-and-run case.
 
 In random_samplers.h we implement a function for ball walk. Moreover in vol_rand.h we add to the structure var two more members: delta and ball_walk. The first is a double for the radius that ball walk algorithm uses and the second is a boolean variable that is true if -bw is given as an input string, otherwise is false.
+
+Example:
+
+f1 cube10.ine -bw -w 20
+Reading input from file...
+Experiment 1 
+
+10 20 1 -1 1 [-0,-2] 9210 11 1058.174 [1058.174,1058.174] 0 1059.174 0 1.368885 0.001205 
+
+------------------
+3. Hard: modify VolEsti to compute volumes of polytopes given by a set of vertices.
+------------------
+
+In vol.cpp we add the option when -f2 is given as an input string to give .ext files with the vertices.
+
+Then we compute the convex hull of the vertices which is the H-representation of the polytope and use volesti implementation.
+
+If you run the command:
+
+./vol -f2 v_polytope.ext
+
+then the new implementation is running. 
