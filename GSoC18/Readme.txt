@@ -65,7 +65,9 @@ Experiment 1
 
 In vol.cpp we add the option when -f2 is given as an input string to give .ext files with the vertices.
 
-Then we compute the convex hull of the vertices which is the H-representation of the polytope and use volesti implementation.
+I created a new class stdVPolytope in polytopes.h header file. I implemented the member function is_in() using linear programming as it is described at http://www.cs.mcgill.ca/~fukuda/soft/polyfaq/node22.html.
+
+Then we use ball walk for the random walk and check if the is inside the V-polytope with the new function is_in().
 
 If you run the command:
 
