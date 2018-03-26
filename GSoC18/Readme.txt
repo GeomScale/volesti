@@ -1,8 +1,9 @@
 Sampling and volume approximation, project for GSoC 2018.
+Efficient Tools for geometrical statistics.
 
 By Tolis Chalkis, N.K. Univ. Athens, Greece, 2018.
 
-Here we give the three answers for the test.
+Here we give the answers for the three tests.
 
 ------------------ 
 1. Easy: use VolEsti to compute the volume of the 10-dimensional hypercube.
@@ -50,7 +51,7 @@ In vol.cpp we add a new option for ball walk. If you run the command:
 
 Then ball walk is going to be used. Of course we have to give a larger number for walk length than the hit-and-run case.
 
-In random_samplers.h we implement a function for ball walk. Moreover in vol_rand.h we add to the structure var two more members: delta and ball_walk. The first is a double for the radius that ball walk algorithm uses and the second is a boolean variable that is true if -bw is given as an input string to the comand line, otherwise is false.
+In random_samplers.h we implement a function for the ball walk algorithm. Moreover in vol_rand.h we add to the structure var two more members: delta and ball_walk. The first is a double for the radius that ball walk algorithm uses and the second is a boolean variable that is true if -bw is given as an input string to the comand line, otherwise is false.
 
 Example:
 
@@ -65,7 +66,7 @@ Experiment 1
 3. Hard: modify VolEsti to compute volumes of polytopes given by a set of vertices.
 ------------------
 
-In vol.cpp we add the option when -f2 is given as an input string to give .ext files with the vertices.
+In vol.cpp we add the option to give an .ext file which contains the vertices of the polytope when -f2 is given as an input string to the command line before the .ext file.
 
 I created a new class (stdVPolytope) in the header file polytopes.h. I implemented the member function is_in() using linear programming as it is described at http://www.cs.mcgill.ca/~fukuda/soft/polyfaq/node22.html. The linear program solver is in the header file solve_convex_hull_containment_lp.h.
 
