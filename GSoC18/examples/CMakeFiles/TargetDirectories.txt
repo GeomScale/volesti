@@ -1,3 +1,0 @@
-/home/tolis/volume_approximation/GSoC18/examples/CMakeFiles/rebuild_cache.dir
-/home/tolis/volume_approximation/GSoC18/examples/CMakeFiles/edit_cache.dir
-/home/tolis/volume_approximation/GSoC18/examples/CMakeFiles/vol.dir
