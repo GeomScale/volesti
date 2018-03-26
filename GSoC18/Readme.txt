@@ -69,7 +69,7 @@ In vol.cpp we add the option when -f2 is given as an input string to give .ext f
 
 I created a new class (stdVPolytope) in the header file polytopes.h. I implemented the member function is_in() using linear programming as it is described at http://www.cs.mcgill.ca/~fukuda/soft/polyfaq/node22.html. The linear program solver is in the header file solve_convex_hull_containment_lp.h.
 
-For the Chebychev ball computation we pick d+1 vertices and compute the chebychev ball of the simplex that they define. The function get_center_radius_inscribed_simplex() takes d+1 points as input and compute the chebychev center and radius. 
+For the Chebychev ball computation we pick d+1 vertices and compute the chebychev ball of the simplex that they define. The function get_center_radius_inscribed_simplex() takes d+1 points as input and compute the chebychev center and radius (the algorithm is given at http://www-personal.umich.edu/~murty/Ballcenter2.pdf). 
 
 Then we use ball walk for the random walk and check if the random point is inside the V-polytope with the new function is_in().
 
