@@ -79,7 +79,7 @@ int rand_point_generator(T &P,
     double kapa = urdist(rng);
     Point p_prev = p;
     if(var.ball_w){
-        std::cout<<"hello\n";
+        //std::cout<<"hello\n";
         Ball_Walk(p,p_prev,P,var);
     }else if(var.coordinate){
         hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);

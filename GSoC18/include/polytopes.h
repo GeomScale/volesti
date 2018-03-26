@@ -38,11 +38,15 @@ typedef CGAL::Gmpzf ET;
 //#endif
 #include <boost/random/shuffle_order.hpp>
 #include <rref.h>
+#include <Eigen/Dense>
+#include "solve_convex_hull_containment_lp.h"
+//using namespace Eigen;
 //EXPERIMENTAL
 //to implement boundary oracles using NN queries  
 //#include <flann/flann.hpp>
 
 // my H-polytope class
+typedef CGAL::Gmpzf ET2;
 template <typename K>
 class stdHPolytope{
 private:
@@ -907,122 +911,122 @@ public:
         return 1;
     }
 
-
-    int is_in(Point p) {
-        //std::cout << "Running is in" << std::endl;
-        //exit(1);
-        for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
-            typename stdCoeffs::iterator lit;
-            Point::Cartesian_const_iterator pit;
-            pit=p.cartesian_begin();
-            lit=mit->begin();
-            K sum=(*lit);
-            ++lit;
-            for( ; lit<mit->end() ; ++lit, ++pit){
-                //std::cout << *lit << " " << *pit <<std::endl;
-                sum -= *lit * (*pit);
+    std::pair<Point,double> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end){
+	
+	Point p0=*it_beg,p1,c;
+	int dim=p0.dimension(),i,j;
+	std::vector<double> temp_p;
+	double radius=0.0,gi,sum=0.0;
+	Eigen::MatrixXd B(dim,dim);
+	Eigen::MatrixXd Bg(dim,dim);
+	Eigen::VectorXd e(dim);
+	Eigen::VectorXd row(dim);
+	Eigen::VectorXd g(dim);
+	std::pair<Point,double> result;
+	//MatrixXd res2(1,4);
+	
+	
+	for (j=1; j<dim+1; j++){
+		Point pk=*(it_beg+j);
+		e(j-1)=1.0;
+		for (i=0; i<dim; i++){
+				B(i,j-1)=pk[i]-p0[i];
+		}
+	}
+	Bg=B;
+    //std::cout<< Bg <<std::endl;
+	B=B.inverse();
+	//std::cout<< B <<std::endl;
+	//std::cout<<"\n";
+	for (i=0; i<dim; i++){
+		for (j=0; j<dim; j++){
+			row(j)=B(i,j);
+		}
+	//	std::cout<< row <<std::endl;
+	//	std::cout<<"\n";
+		gi=row.norm();
+        //std::cout<< gi <<std::endl;
+		radius+=gi;
+        //std::cout<<radius<<std::endl;
+		g(i)=gi;
+		if (i<dim-1){
+			sum+=gi;
+		}
+	//	std::cout<<radius<<std::endl;
+	//	std::cout<<"\n";
+	}
+//	std::cout<<"hello"<<std::endl;
+	e=e*B;
+//	std::cout<< e <<std::endl;
+	//std::cout<<"\n";
+	radius+=e.norm();
+    //std::cout<<radius<<std::endl;
+	//std::cout<<"hello2.5"<<std::endl;
+	radius=1.0/radius;
+    //std::cout<<radius<<std::endl;
+//	std::cout<<"hello2"<<std::endl;
+	g=Bg*g;
+	g=radius*g;
+	//std::cout<<"hello3"<<std::endl;
+	for (i=0; i<dim; i++){
+		temp_p.push_back(p0[i]+g(i));
+	}
+	c=Point(dim,temp_p.begin(), temp_p.end());
+	//std::cout<< "small radius is: "<< radius <<std::endl;
+	result.first=c;
+	result.second=radius;
+    //std::cout<<radius<<std::endl;
+    //std::cout<<c<<std::endl;
+	//std::cout<<"hello2"<<std::endl;
+	return result;
+	
+    }
+    
+    int chebyshev_center(Point& center, double& radius){
+        
+        std::vector<Point> verts(_d+1);
+        std::vector<double> vecp(_d);
+        
+        for(size_t i=0; i<(_d+1); ++i){
+            for (size_t j=0; j<_d; j++){
+                vecp[j]=_A[i][j+1];
+                //std::cout<<_A[i][j+1]<<"\n";
             }
-
-            //std::cout<<sum<<std::endl;
-            if(sum<K(0))
-                return mit-_A.begin();
+            verts[i] = Point(_d,vecp.begin(),vecp.end());
         }
+        
+        std::pair<Point,double> res;
+        res=get_center_radius_inscribed_simplex(verts.begin(), verts.end());
+        center=res.first;
+        radius=res.second;
         return -1;
     }
-
-    int chebyshev_center(Point& center, double& radius){
-        typedef CGAL::Linear_program_from_iterators
-                <K**,                             // for A
-                K*,                              // for b
-                CGAL::Const_oneset_iterator<CGAL::Comparison_result>,  // for r
-                bool*,                           // for fl
-                K*,                              // for l
-                bool*,                           // for fu
-                K*,                              // for u
-                K*>                              // for c
-                Program;
-        typedef CGAL::Quadratic_program_solution<ET> Solution;
-
-        //std::cout<<"Cheb"<<std::endl;
-        K* b = new K[_A.size()];
-        K** A_col = new K*[_d+1];
-        for(size_t i = 0; i < _d+1; ++i)
-            A_col[i] = new K[_A.size()];
-
-        stdMatrix B(_A);
-        std::random_shuffle (B.begin(), B.end());
-        for(size_t i=0; i<B.size(); ++i){
-            K sum_a2 = 0;
-            b[i] = B[i][0];
-            for(size_t j=0; j<_d; ++j){
-                A_col[j][i] = B[i][j+1];
-                sum_a2 += std::pow(B[i][j+1],2);
+        
+    
+    bool is_in_convex_hull (const Point& p,
+            std::vector<Point>::const_iterator begin,
+            std::vector<Point>::const_iterator end)
+    {
+        CGAL::Quadratic_program_solution<ET> s =
+        solve_convex_hull_containment_lp (p, begin, end, ET2(0));
+        return !s.is_infeasible();
+    }
+    
+    int is_in(Point p) {
+        
+        std::vector<Point> verts(_A.size());
+        std::vector<double> vecp(_d);
+        
+        for(size_t i=0; i<_A.size(); ++i){
+            for (size_t j=0; j<_d; j++){
+                vecp[j]=_A[i][j+1];
             }
-            A_col[_d][i] = std::sqrt(sum_a2);
+            verts[i] = Point(_d,vecp.begin(),vecp.end());
         }
-
-        CGAL::Const_oneset_iterator<CGAL::Comparison_result>
-                r(CGAL::SMALLER);
-
-        bool* fl = new bool[_d+1]();
-        bool* fu = new bool[_d+1]();
-
-        for(size_t i=0; i<_d+1; ++i)
-            fl[i]=false;
-        for(size_t i=0; i<_d+1; ++i)
-            fu[i]=false;
-        fl[_d]=true;
-
-        K* l = new K[_d+1]();
-        K* u = new K[_d+1]();
-        K* c = new K[_d+1]();
-
-        for(size_t i=0; i<_d+1; ++i)
-            l[i]=K(0);
-        for(size_t i=0; i<_d+1; ++i)
-            u[i]=K(0);
-        for(size_t i=0; i<_d+1; ++i)
-            c[i]=K(0);
-        c[_d]=K(-1);
-
-        Program lp (_d+1, int(_A.size()), A_col, b, r,
-                    fl, l, fu, u, c, 0);
-
-        //CGAL::Quadratic_program_options options;
-        //options.set_verbosity(1);                         // verbose mode
-        //options.set_pricing_strategy(CGAL::QP_BLAND);     // Bland's rule
-        //options.set_auto_validation(true);                // automatic self-check
-        //Solution s = CGAL::solve_linear_program(lp, ET(), options);
-
-        Solution s = CGAL::solve_linear_program(lp, ET());
-        // output solution
-        //std::cout << s;
-        if (s.is_infeasible()){
-            std::cout << "The polytope P is unbounded and Vol(P)=0\n";
-            exit(-1);
+        
+        if( is_in_convex_hull(p,verts.begin(),verts.end()) ){
+            return -1;
         }
-        else {
-            assert (s.is_optimal());
-            Solution::Variable_value_iterator it = s.variable_values_begin();
-            std::vector<double> vecp;
-            for(; it!=s.variable_values_end()-1; ++it){
-                //std::cout<<CGAL::to_double(*it)<<" ";
-                vecp.push_back(CGAL::to_double(*it));
-            }
-            center = Point(_d,vecp.begin(),vecp.end());
-            //std::cout << center;
-            radius = CGAL::to_double(*it);
-            //std::cout << radius << std::endl;
-        }
-        // deallocate memory
-        delete [] l;
-        delete [] u;
-        delete [] c;
-        delete [] fl;
-        delete [] fu;
-        for(size_t i = 0; i < _d+1; ++i)
-            delete [] A_col[i];
-        delete [] b;
         return 0;
     }
 

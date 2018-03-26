@@ -1,3 +1,0 @@
-/home/tolis/Code-All/volume_approximation/examples/CMakeFiles/rebuild_cache.dir
-/home/tolis/Code-All/volume_approximation/examples/CMakeFiles/edit_cache.dir
-/home/tolis/Code-All/volume_approximation/examples/CMakeFiles/vol.dir

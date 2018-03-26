@@ -1,0 +1,10 @@
+vpolytope.ine
+H-representation
+begin
+ 4 3 real
+ 1 1 0
+ 1 -1 0
+ 1 0 1
+ 1 0 -1
+end
+input_incidence
