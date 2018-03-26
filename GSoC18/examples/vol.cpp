@@ -53,10 +53,12 @@ int main(const int argc, const char** argv)
          rotate=false,
          experiments=true,
          ball_w2=false,
+         v_poly=false,
          coordinate=true;
 	
 	//this is our polytope
 	stdHPolytope<double> P;
+    stdVPolytope<double> P2;
 	
   if(argc<2){
     std::cout<<"Use -h for help"<<std::endl;
@@ -132,6 +134,7 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
           file=true;
+          v_poly=true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
           std::vector<std::vector<double> > Pin;
@@ -139,11 +142,9 @@ int main(const int argc, const char** argv)
           read_pointset(inp,Pin);
           //std::cout<<"d="<<Pin[0][1]<<std::endl;
           n = Pin[0][1]-1;
-          P.init(Pin);
-          if (verbose && P.num_of_hyperplanes()<100){
-              std::cout<<"Input polytope: "<<n<<std::endl;
-              P.print();
-          }
+          P2.init(Pin);
+          ball_w2=true;
+          delta2=1.0/4.0;
           correct=true;
       }
       /*
@@ -316,7 +317,11 @@ int main(const int argc, const char** argv)
           std::cout<<"end\n--------------\n"<<std::endl;
       }else{
           // Estimate the volume
-          vol = volume1_reuse2(P_to_test,var,var,Chebtime);
+          if(v_poly){
+              vol = volume1_reuse2(P2,var,var,Chebtime);
+          }else{
+              vol = volume1_reuse2(P_to_test,var,var,Chebtime);
+          }
           //if(rotate) vol = std::sqrt(vol);
           //std::cout<<vol<<std::endl;
       }
