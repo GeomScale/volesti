@@ -1,33 +1,108 @@
-#include <Rcpp.h>
+// VolEsti
+
+// Copyright (c) 2012-2017 Vissarion Fisikopoulos
+
+// VolEsti is free software: you can redistribute it and/or modify it
+// under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or (at
+// your option) any later version.
+//
+// VolEsti is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+// for more details.
+//
+// See the file COPYING.LESSER for the text of the GNU Lesser General
+// Public License.  If you did not receive this file along with HeaDDaCHe,
+// see <http://www.gnu.org/licenses/>.
+
+
+//#include <CGAL/point_generators_d.h>
+//#include <CGAL/Filtered_kernel_d.h>
+//#include <CGAL/Triangulation.h>
+//#include <CGAL/Cartesian_d.h>
+//#include <CGAL/algorithm.h>
+//#include <CGAL/Random.h>
 #include <iterator>
 #include <iostream>
 #include <vector>
-#include <limits>
-#include <point_d.h>
-#include <polytopes.h>
+#include <forward_list>
+#include <list>
+#include <bitset>
+#include <random>
+#include <chrono>       // std::chrono::system_clock
+#include <functional>
+#include <algorithm>
+#include "boost/random.hpp"
+#include "boost/generator_iterator.hpp"  
+#include "boost/dynamic_bitset.hpp"   
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+#include "cartesian_kernel.h"
+//#include <CGAL/Approximate_min_ellipsoid_d.h>
+//#include <CGAL/Approximate_min_ellipsoid_d_traits_d.h>
+//#include <vector>
+//#include <iostream>
 
+#ifndef BOOST_MATH_CONSTANTS_CONSTANTS_INCLUDED
+#include <boost/math/constants/constants.hpp>
+#endif // Ioannis Emiris
 
+#include <Eigen/Eigen>
+//#include <Eigen/Cholesky>
+
+//#include <CGAL/Extreme_points_d.h>
+//#include <CGAL/Extreme_points_traits_d.h>
+
+//#include <gmpxx.h>
+//typedef mpq_class NT;
+//#include <CGAL/Gmpq.h>
+//#include <CGAL/Gmpz.h>
+//typedef CGAL::Gmpq                  EXACT_NT;
 typedef double                      NT;
-typedef point_d								Point;
+//typedef CGAL::Gmpz                NT;
 
+typedef Cartesian<NT> 	      Kernel; 
+//typedef CGAL::Triangulation<Kernel> T;
+typedef Kernel::Point								Point;
+//typedef Kernel::Vector_d							Vector;
+//typedef Kernel::Line_d								Line;
+//typedef Kernel::Hyperplane_d					Hyperplane;
+//typedef Kernel::Direction_d						Direction;
+//typedef Kernel::Sphere_d						Ball;
+//typedef CGAL::Approximate_min_ellipsoid_d_traits_d<Kernel, EXACT_NT> Traits;
+//typedef Traits::Point                                          Point;
+//typedef std::vector<Point>                                     Point_list;
+//typedef CGAL::Approximate_min_ellipsoid_d<Traits>              AME;
 
+// define random generator
+//typedef boost::mt11213b RNGType; ///< mersenne twister generator
+typedef boost::mt19937 RNGType; ///< mersenne twister generator
+//typedef boost::lagged_fibonacci607 RNGType;
+//typedef boost::hellekalek1995 RNGType;
+//typedef boost::rand48 RNGType; 
+//typedef boost::minstd_rand RNGType; 
 
+typedef boost::variate_generator< RNGType, boost::normal_distribution<> >  generator;
+//typedef boost::variate_generator< RNGType, boost::exponential_distribution<> >  generator;
+
+//structs with variables and random generators
 struct vars{
 public:
     vars( int m,
           int n,
           int walk_steps,
-          //int n_threads,
-          //const double err,
-          //const double err_opt,
-          //const int lw,
-          //double up,
-          //const int L,
-          //RNGType &rng,
-          //generator
-          //&get_snd_rand,
-          //boost::random::uniform_real_distribution<> urdist,
-          //boost::random::uniform_real_distribution<> urdist1,
+          int n_threads,
+          const double err,
+          const double err_opt,
+          const int lw,
+          double up,
+          const int L,
+          RNGType &rng,
+          generator
+          &get_snd_rand,
+          boost::random::uniform_real_distribution<> urdist,
+          boost::random::uniform_real_distribution<> urdist1,
           bool verbose,
           bool rand_only,
           bool round,
@@ -35,23 +110,25 @@ public:
           bool birk,
           bool coordinate
           ) :
-        m(m), n(n), walk_steps(walk_steps), verbose(verbose), rand_only(rand_only), round(round),
+        m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), err_opt(err_opt),
+        lw(lw), up(up), L(L), rng(rng), get_snd_rand(get_snd_rand),
+        urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
         NN(NN),birk(birk),coordinate(coordinate){};
 
     int m;
     int n;
     int walk_steps;
-    //int n_threads;
-    //const double err;
-   // const double err_opt;
-    //const int lw;
-    //double up;
-    //const int L;
-    //RNGType &rng;
-   // generator
-   // &get_snd_rand;
-   // boost::random::uniform_real_distribution<> urdist;
-   // boost::random::uniform_real_distribution<> urdist1;
+    int n_threads;
+    const double err;
+    const double err_opt;
+    const int lw;
+    double up;
+    const int L;
+    RNGType &rng;
+    generator
+    &get_snd_rand;
+    boost::random::uniform_real_distribution<> urdist;
+    boost::random::uniform_real_distribution<> urdist1;
     bool verbose;
     bool rand_only;
     bool round;
@@ -59,6 +136,24 @@ public:
     bool birk;
     bool coordinate;
 };
+
+// define extreme points
+//typedef CGAL::Extreme_points_traits_d<Point>   EP_Traits_d;
+
+template <class T>
+int optimization(T &KK,vars var,Point &fp,Vector &w);
+template <class T>
+int opt_interior(T &K,vars &var,Point &opt,Vector &w);
+
+#include <polytopes.h>
+#include <ballintersectpolytope.h>
+//#include <opt_rand.h>
+//#include <oracles.h>
+#include <samplers.h>
+#include <rounding.h>
+#include <misc.h>
+#include <linear_extensions.h>
+
 
 
 
@@ -121,9 +216,10 @@ NT volume1_reuse2(T &P,
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-        CGAL::Random_points_in_ball_d<Point> gen (n, radius);
-        Point p = *gen;
-        p = p + (c-CGAL::Origin());
+        //CGAL::Random_points_in_ball_d<Point> gen (n, radius);
+        //Point p = *gen;
+        Point p=c;
+        //p = p + (c-CGAL::Origin());
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
@@ -188,7 +284,7 @@ NT volume1_reuse2(T &P,
         //std::list<Point> randPoints;
         //randPoints.push_front(p);
 
-        EXACT_NT telescopic_prod=EXACT_NT(1);
+        NT telescopic_prod=NT(1);
 
         std::vector<Ball>::iterator bit2=balls.end();
         bit2--;
@@ -237,10 +333,10 @@ NT volume1_reuse2(T &P,
             //generate more random points in PBLarge to have "rnum" in total
             rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
 
-            telescopic_prod *= EXACT_NT(rnum)/EXACT_NT(nump_PBSmall);
+            telescopic_prod *= NT(rnum)/NT(nump_PBSmall);
             if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
                               <<"\ncurrent_vol="<<telescopic_prod
-                             <<"\n="<<CGAL::to_double(telescopic_prod)
+                             <<"\n="<<telescopic_prod
                             <<"\n--------------------------"<<std::endl;
 
             //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2
@@ -254,8 +350,9 @@ NT volume1_reuse2(T &P,
         if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
         const NT pi = boost::math::constants::pi<NT>();
         //NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
-        //NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n)
-
+        NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n)
+    
+        /*
         mpfr_t result,pow,base,exp;
         mpfr_init(result);
         mpfr_init(pow);
@@ -273,7 +370,7 @@ NT volume1_reuse2(T &P,
         mpfr_pow(pow, base, exp, GMP_RNDN);
         mpfr_mul(result,result,pow,GMP_RNDN);
         mpfr_div_d(result,result,std::tgamma(n/2.0)*n,GMP_RNDN);
-        mpfr_mul_d(result,result,CGAL::to_double(telescopic_prod),GMP_RNDN);
+        mpfr_mul_d(result,result,CGAL::to_double(telescopic_prod),GMP_RNDN);*/
 
         //std::cout << "mpfr vol=" << mpfr_get_ld(result,GMP_RNDN) << std::endl;
         //
@@ -286,8 +383,8 @@ NT volume1_reuse2(T &P,
         */
         //NT vol(0);
         //#pragma omp ordered
-        NT vol_thread = mpfr_get_d(result,GMP_RNDN);
-        vol += vol_thread;
+        //NT vol_thread = mpfr_get_d(result,GMP_RNDN);
+        //vol += vol_thread;
     }
 
     // std::cout<<"ROUNDING:"<<round_value<<", "<<CGAL::to_double(round_value*(vol/n_threads)) << ", " <<
@@ -297,3 +394,11 @@ NT volume1_reuse2(T &P,
     //	                    / (std::tgamma(n/2.0)*n)<<std::endl;
     return round_value*(vol/n_threads);
 }
+
+
+
+
+
+
+
+
