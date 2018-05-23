@@ -22,10 +22,11 @@
 //function to print rounding to double coordinates 
 template <class T>
 void round_print(T p) { 
-    for(typename T::Cartesian_const_iterator cit=p.cartesian_begin();
-        cit!=p.cartesian_end(); ++cit)
-        std::cout<<CGAL::to_double(*cit)<<" ";
-    std::cout<<std::endl;
+    std::cout<<"test version.."<<std::endl;
+   // for(typename T::Cartesian_const_iterator cit=p.cartesian_begin();
+   //     cit!=p.cartesian_end(); ++cit)
+    //    std::cout<<CGAL::to_double(*cit)<<" ";
+   // std::cout<<std::endl;
 }
 
 /*
@@ -60,6 +61,10 @@ int Minkowski_sum_naive(V_polytope &P1, V_polytope &P2, V_polytope &Msum){
 template <class T>
 void print_polymake_volfile(T &P,
                             std::ostream& os){
+    std::cout<<"test version.."<<std::endl;
+}
+
+/*
     // print the vertices of the P polytope
     os << "use Time::HiRes qw(gettimeofday tv_interval);\n";
     os << "use application 'polytope';\n";
@@ -92,12 +97,15 @@ void print_polymake_volfile(T &P,
     os << "print tv_interval($t0,[gettimeofday]);\n";
     os << "print \"\n\";\n";
     os << std::endl;
-}
+}*/
 
 // polymake file to compute exact volume
 template <class T>
 void print_polymake_volfile2(T &P,
                              std::ostream& os){
+    std::cout<<"test version.."<<std::endl;
+}
+/*
     // print the vertices of the P polytope
     os << "use Time::HiRes qw(gettimeofday tv_interval);\n";
     os << "use application 'polytope';\n";
@@ -137,10 +145,11 @@ void print_polymake_volfile2(T &P,
     os << "print tv_interval($t0,[gettimeofday]);\n";
     os << "print \"\n\";\n";
     os << std::endl;
-}
+}*/
 
 int read_pointset(std::istream &is,
                   std::vector<std::vector<double> > &Input){
+    
     std::string point;
 
     while(!std::getline(is, point, '\n').eof()) {

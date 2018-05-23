@@ -171,12 +171,12 @@ int hit_and_run(Point &p,
     Point l=origin;
     //Vector b1 = line_bisect(p,l,P,var,var2);
     //Vector b2 = line_bisect(p,-l,P,var,var2);
-    std::pair<Point,Point> ppair = P.line_intersect(p,l);
-    Point b1 = ppair.first - Origin;
-    Point b2 = ppair.second - Origin;
+    std::pair<Point,Point> ppair = P.line_intersect(p,origin);
+    Point b1 = ppair.first;// - origin;
+    Point b2 = ppair.second;// - origin;
     //std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
     double lambda = urdist(rng);
-    p = origin + (NT(lambda)*b1 + (NT(1-lambda)*b2));
+    //p = (NT(lambda)*b1 + (NT(1-lambda)*b2));
     return 1;
 }
 
@@ -205,7 +205,7 @@ int hit_and_run_coord_update(Point &p,
     //TODO: only change one coordinate of *r* avoid addition + construction
     std::vector<NT> v(P.dimension(),NT(0));
     v[rand_coord] = bpair.first + kapa * (bpair.second - bpair.first);
-    Vector vp(P.dimension(),v.begin(),v.end());
+    Point vp(P.dimension(),v.begin(),v.end());
     p_prev = p;
     p = p + vp;
     return 1;
