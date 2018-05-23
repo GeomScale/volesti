@@ -194,9 +194,12 @@ NT volume1_reuse2(T &P,
     //1. Compute the Chebychev ball (largest inscribed ball) with center and radius
     double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"\nComputing the Chebychev center..."<<std::endl;
-    Point c;       //center
+    //Point c;       //center
     double radius;
-    P.chebyshev_center(c,radius);
+    //P.chebyshev_center(c,radius);
+    radius=1.0;
+    std::vector<NT> vecc(10,NT(0));
+    Point c(10, vecc.begin(), vecc.end());
     //HACK FOR CROSS POLYTOPES
     //std::vector<double> cp(n,0);
     //Point c(n,cp.begin(),cp.end());
@@ -299,9 +302,9 @@ NT volume1_reuse2(T &P,
             --bit2;
             BallPoly PBSmall(P,*bit2);
 
-          //  if(print)
-               // std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
-                       // <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
+            if(print)
+                std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
+                        <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
 
             // choose a point in PBLarge to be used to generate more rand points
             Point p_gen = *randPoints.begin();
@@ -352,6 +355,8 @@ NT volume1_reuse2(T &P,
         const NT pi = boost::math::constants::pi<NT>();
         //NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
         NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
+        vol=vol*telescopic_prod;
+        std::cout<<"volume computed: "<<vol<<std::endl;
     
         /*
         mpfr_t result,pow,base,exp;

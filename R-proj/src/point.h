@@ -86,7 +86,7 @@ public:
         for (int i=0; i<d; i++){
             lsq+=coeffs[i]*coeffs[i];
         }
-        lsq=std::sqrt(lsq);
+        //lsq=std::sqrt(lsq);
         
     
         return lsq;
