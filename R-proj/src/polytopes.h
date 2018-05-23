@@ -23,21 +23,21 @@
 
 //this is for LP-solver
 #include <iostream>
-#include <CGAL/basic.h>
-#include <CGAL/QP_models.h>
-#include <CGAL/QP_functions.h>
+//#include <CGAL/basic.h>
+//#include <CGAL/QP_models.h>
+//#include <CGAL/QP_functions.h>
 // choose exact integral type
-#ifdef CGAL_USE_GMP
-#include <CGAL/Gmpzf.h>
-typedef CGAL::Gmpzf ET;
-#endif
+//#ifdef CGAL_USE_GMP
+//#include <CGAL/Gmpzf.h>
+//typedef CGAL::Gmpzf ET;
+//#endif
 //typedef double ET;
 //#else
-#include <CGAL/MP_Float.h>
+//#include <CGAL/MP_Float.h>
 //typedef CGAL::MP_Float ET;
 //#endif
 #include <boost/random/shuffle_order.hpp>
-#include <rref.h>
+#include "rref.h"
 //EXPERIMENTAL
 //to implement boundary oracles using NN queries  
 //#include <flann/flann.hpp>
@@ -244,8 +244,9 @@ public:
         //exit(1);
         for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
             typename stdCoeffs::iterator lit;
-            Point::Cartesian_const_iterator pit;
-            pit=p.cartesian_begin();
+            //Point::Cartesian_const_iterator pit;
+            //pit=p.cartesian_begin();
+            typename std::vector<K>::iterator pit=p.iter_begin();
             lit=mit->begin();
             K sum=(*lit);
             ++lit;
@@ -263,7 +264,7 @@ public:
 
     int chebyshev_center(Point& center, double& radius){
         Point f(_d);
-        return f;
+        return 1;
         
     }
 
@@ -279,10 +280,10 @@ public:
         for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
             typename stdCoeffs::iterator cit;
             //Point::Cartesian_const_iterator rit;
-            std::vector<k>::iterator rit=r.iter_begin();
+            typename std::vector<K>::iterator rit=r.iter_begin();
             //rit=r.iter_begin();
             //Point::Cartesian_const_iterator vit;
-            std::vector<k>::iterator vit=v.iter_begin();
+            typename std::vector<K>::iterator vit=v.iter_begin();
             //vit=v.cartesian_begin();
             cit=ait->begin();
             K sum_nom=(*cit);
@@ -315,7 +316,7 @@ public:
             std::cout<<"p1= "<<r+(min_plus*v)<<std::endl;
             std::cout<<"p2= "<<r+(max_minus*v)<<std::endl;
             */
-        return std::pair<Point,Point> (r+(min_plus*v),r+(max_minus*v));
+        return std::pair<Point,Point> ((min_plus*v)+r,(max_minus*v)+r);
     }
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
@@ -330,8 +331,8 @@ public:
         //std::vector<NT>::iterator lamdait = lamdas.begin();
         for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
             typename stdCoeffs::iterator cit;
-            std::vector<k>::iterator rit=r.iter_begin();
-            //Point::Cartesian_const_iterator rit;
+            typename std::vector<K>::iterator rit=r.iter_begin();
+            //Point::Cartestypenameian_const_iterator rit;
             //rit=r.cartesian_begin();
             //Point::Cartesian_const_iterator vit;
             //vit=v.cartesian_begin();
@@ -390,7 +391,7 @@ public:
         if(init){ //first time compute the innerprod cit*rit
             for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
                 typename stdCoeffs::iterator cit;
-                std::vector<k>::iterator rit=r.iter_begin();
+                typename std::vector<K>::iterator rit=r.iter_begin();
                 //Point::Cartesian_const_iterator rit;
                 //rit=r.cartesian_begin();
                 cit=ait->begin();
@@ -465,3 +466,5 @@ public:
 
 
 };
+
+#endif

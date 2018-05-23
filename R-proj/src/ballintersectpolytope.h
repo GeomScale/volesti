@@ -41,20 +41,24 @@ public:
     }
 
     std::pair<Point,Point> line_intersect(Point r,
-                                          Vector v){
-        Point::Cartesian_const_iterator rit;
-        rit=r.cartesian_begin();
-        Point::Cartesian_const_iterator vit;
-        vit=v.cartesian_begin();
-        Point::Cartesian_const_iterator cit;
-        cit=_c.cartesian_begin();
-        Vector rc = r - _c;
-        Vector::Cartesian_const_iterator rcit;
-        rcit=rc.cartesian_begin();
+                                          Point v){
+        //Point::Cartesian_const_iterator rit;
+        //rit=r.cartesian_begin();
+        typename std::vector<NT>::iterator rit=r.iter_begin();
+        //Point::Cartesian_const_iterator vit;
+        //vit=v.cartesian_begin();
+        typename std::vector<NT>::iterator vit=v.iter_begin();
+        //Point::Cartesian_const_iterator cit;
+        //cit=_c.cartesian_begin();
+        typename std::vector<NT>::iterator cit=_c.iter_begin();
+        Point rc = r - _c;
+        //Vector::Cartesian_const_iterator rcit;
+        //rcit=rc.cartesian_begin();
+        typename std::vector<NT>::iterator rcit=rc.iter_begin();
         NT vrc(0);
         NT v2(0);
         NT rc2(0);
-        for( ; cit < _c.cartesian_end() ; ++rcit, ++cit, ++rit, ++vit){
+        for( ; cit < _c.iter_end() ; ++rcit, ++cit, ++rit, ++vit){
             vrc += *vit * (*rcit);
             v2 += *vit * (*vit);
             rc2 += *rcit * (*rcit);
@@ -63,20 +67,21 @@ public:
         NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));
         NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
         NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
-        return std::pair<Point,Point> (r+(lamda1*v),r+(lamda2*v));
+        return std::pair<Point,Point> ((lamda1*v)+r,(lamda2*v)+r);
     }
 
     std::pair<NT,NT> line_intersect_coord(Point r,
                                           int rand_coord){
 
-        Vector rc = r - _c;
-        Vector::Cartesian_const_iterator rcit;
-        rcit = rc.cartesian_begin();
+        Point rc = r - _c;
+        //Vector::Cartesian_const_iterator rcit;
+        //rcit = rc.cartesian_begin();
+        typename std::vector<NT>::iterator rcit=rc.iter_begin();
         NT vrc = *(rcit + rand_coord);
 
         NT v2 = NT(1);
         NT rc2(0);
-        for( ; rcit < rc.cartesian_end() ; ++rcit){
+        for( ; rcit < rc.iter_end() ; ++rcit){
             rc2 += *rcit * (*rcit);
         }
 
@@ -118,7 +123,7 @@ public:
     }
 
     std::pair<Point,Point> line_intersect(Point r,
-                                          Vector v){
+                                          Point v){
 
         std::pair<Point,Point> polypair = _P.line_intersect(r,v);
         std::pair<Point,Point> returnpair;

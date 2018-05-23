@@ -19,6 +19,10 @@
 // -------- ROTATION ---------- //
 template <class T>
 double rotating_old(T &P){
+    
+    return 1.0;
+}
+/*
 	
   bool print = true; 
   if(print) std::cout<<"\nRotate..."<<std::endl;
@@ -72,11 +76,15 @@ double rotating_old(T &P){
   std::cout<<R.determinant()<<"\n"<<b<<std::endl;
   
 	return R.determinant();
-}
+}*/
 
 // -------- ROTATION ---------- //
 template <class T>
 double rotating(T &P){
+    
+    return 1.0;
+}
+/*
 	
   bool print = true; 
   //if(print) std::cout<<"\nRotate..."<<std::endl;
@@ -117,7 +125,7 @@ double rotating(T &P){
 	}
   
 	return 0;
-}
+}*/
 
 
 // ----- ROUNDING ------ //
@@ -126,6 +134,9 @@ double rounding(T &P,
                 vars &var,  // constans for volume
                 vars &var2 // constants for optimization in case of MinkSums
                 ){
+    return 1.0;
+}
+/*
   bool print = var.verbose;
   int n = var.n;
   int rnum = var.m;
@@ -214,15 +225,16 @@ double rounding(T &P,
 		std::cout << ".\n";
 	}
 	*/
-	Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
-	MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
+    /*
+	Eigen::LLT<MT> lltOfA(E);  compute the Cholesky decomposition of E
+	MT L = lltOfA.matrixL();  retrieve factor L  in the decomposition
 	//std::cout<<L<<std::endl;
 	
 	//std::cout<<L*L.transpose()<<std::endl;
 	
-	b = b - A*c_e;
+	//b = b - A*c_e;
 	
-	MT L_1 = L.inverse();
+	//MT L_1 = L.inverse();
 	A = A*(L_1.transpose());
 	
 	// Write changes (actually perform rounding) to the polytope!
@@ -239,4 +251,4 @@ double rounding(T &P,
 	//std::cout<<"rounding value="<<L_1.determinant()<<" , "<<L_1.determinant()*std::pow(2,d)<<std::endl;	
 	
 	return L_1.determinant();
-}
+}*/

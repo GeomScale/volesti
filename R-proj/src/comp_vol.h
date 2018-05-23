@@ -25,6 +25,7 @@
 //#include <CGAL/Random.h>
 #include <iterator>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <forward_list>
 #include <list>
@@ -48,7 +49,7 @@
 #include <boost/math/constants/constants.hpp>
 #endif // Ioannis Emiris
 
-#include <Eigen/Eigen>
+#include "Eigen/Eigen"
 //#include <Eigen/Cholesky>
 
 //#include <CGAL/Extreme_points_d.h>
@@ -141,18 +142,18 @@ public:
 //typedef CGAL::Extreme_points_traits_d<Point>   EP_Traits_d;
 
 template <class T>
-int optimization(T &KK,vars var,Point &fp,Vector &w);
+int optimization(T &KK,vars var,Point &fp,Point &w);
 template <class T>
-int opt_interior(T &K,vars &var,Point &opt,Vector &w);
+int opt_interior(T &K,vars &var,Point &opt,Point &w);
 
-#include <polytopes.h>
-#include <ballintersectpolytope.h>
+#include "polytopes.h"
+#include "ballintersectpolytope.h"
 //#include <opt_rand.h>
 //#include <oracles.h>
-#include <samplers.h>
-#include <rounding.h>
-#include <misc.h>
-#include <linear_extensions.h>
+#include "samplers.h"
+#include "rounding.h"
+#include "misc.h"
+#include "linear_extensions.h"
 
 
 
@@ -201,7 +202,7 @@ NT volume1_reuse2(T &P,
     //Point c(n,cp.begin(),cp.end());
     //double radius=std::sqrt(1.0/double(n));
 
-    if(print) std::cout<<"Chebychev center= "<<c<<"\nradius="<<radius<<std::endl;
+    //if(print) std::cout<<"Chebychev center= "<<c<<"\nradius="<<radius<<std::endl;
     double tstop = (double)clock()/(double)CLOCKS_PER_SEC;
     Chebtime = tstop - tstart;
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -223,7 +224,7 @@ NT volume1_reuse2(T &P,
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
-        if (print) std::cout<<"First random point: "<<p<<std::endl;
+        //if (print) std::cout<<"First random point: "<<p<<std::endl;
 
         double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
         // 3. Sample "rnum" points from P
@@ -269,11 +270,11 @@ NT volume1_reuse2(T &P,
         */
         for(int i=nb1; i<=nb2; ++i){
             balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
-            if (print) {
-                std::vector<Ball>::iterator bit=balls.end();--bit;
-                std::cout<<"ball "<<bit-balls.begin()<<" | "<<i
-                        <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
-            }
+            //if (print) {
+              //  std::vector<Ball>::iterator bit=balls.end();--bit;
+                //std::cout<<"ball "<<bit-balls.begin()<<" | "<<i
+                        //<<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
+            //}
         }
         assert(!balls.empty());
         if (print) std::cout<<"---------"<<std::endl;
@@ -298,9 +299,9 @@ NT volume1_reuse2(T &P,
             --bit2;
             BallPoly PBSmall(P,*bit2);
 
-            if(print)
-                std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
-                        <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
+          //  if(print)
+               // std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
+                       // <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
 
             // choose a point in PBLarge to be used to generate more rand points
             Point p_gen = *randPoints.begin();
@@ -350,7 +351,7 @@ NT volume1_reuse2(T &P,
         if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
         const NT pi = boost::math::constants::pi<NT>();
         //NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
-        NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n)
+        NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
     
         /*
         mpfr_t result,pow,base,exp;
@@ -392,7 +393,7 @@ NT volume1_reuse2(T &P,
     //const NT pi = boost::math::constants::pi<NT>();
     //std::cout<<"Cheb:"<<(2*std::pow(pi,n/2.0)*std::pow(radius,n))
     //	                    / (std::tgamma(n/2.0)*n)<<std::endl;
-    return round_value*(vol/n_threads);
+    return vol;
 }
 
 

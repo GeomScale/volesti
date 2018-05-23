@@ -10,9 +10,12 @@ private:
     int d;
     typedef std::vector<K> coeff;
     coeff coeffs;
-    typedef typename std::vector<K>::iterator iter;
+    
 
 public:
+    
+    typedef typename std::vector<K>::iterator iter;
+    
     point() {}
     
     point(int dim){

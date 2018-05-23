@@ -296,7 +296,7 @@ int main(const int argc, const char** argv)
           //std::cout<<vol<<std::endl;
       }
 
-      double v1 = CGAL::to_double(vol);
+      double v1 = vol;
       //double v1 = CGAL::to_double(volume1_reuse_test(P_to_test,var,var));
       //double v1 = CGAL::to_double(volume1_reuse_estimete_walk(P_to_test,var,var,Chebtime));
 
