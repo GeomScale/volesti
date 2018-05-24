@@ -19,6 +19,54 @@
 #ifndef RANDOM_SAMPLERS_H
 #define RANDOM_SAMPLERS_H
 
+
+template <class P>
+class Random_points_on_sphere_d
+{
+public:
+    typedef typename P::K 	RT;
+    int d;
+    RT r;
+    std::default_random_engine generator;   
+    std::normal_distribution<RT> distribution = std::normal_distribution<RT>(RT(0),RT(1));
+    //typedef std::vector<K> coeff;
+    //coeff coeffs;
+    
+    Random_points_on_sphere_d() {}
+    
+    Random_points_on_sphere_d(int dim, RT radius){
+        d=dim;
+        r=radius;
+    }
+    
+    P sample_point(){
+        std::vector<RT> Xs;
+        RT normal=RT(0);
+        for (int i=0; i<d; i++){
+            Xs.push_back(distribution(generator));
+            normal+=Xs[i]*Xs[i];
+        }
+        normal=1.0/std::sqrt(normal);
+        
+        for (int i=0; i<d; i++){
+            Xs[i]=Xs[i]*normal;
+        }
+        P point(d, Xs.begin(), Xs.end());
+        point=point*r;
+        
+        return point;
+    }
+    
+    
+};
+    
+
+//public:
+    
+   // typedef typename std::vector<K>::iterator iter;
+
+
+
 // WARNING: USE ONLY WITH BIRKHOFF POLYOPES
 // Compute more random points using symmetries of birkhoff polytope
 //
@@ -166,17 +214,18 @@ int hit_and_run(Point &p,
 
     Point origin(n);
     
-    //CGAL::Random_points_on_sphere_d<Point> gen (n, 1.0);
-    //Vector l = *gen - CGAL::Origin();
-    Point l=origin;
+    Random_points_on_sphere_d<Point> gen (n, 1.0);
+    Point l = gen.sample_point();// - CGAL::Origin();
+    //Point l2=origin;
     //Vector b1 = line_bisect(p,l,P,var,var2);
     //Vector b2 = line_bisect(p,-l,P,var,var2);
-    std::pair<Point,Point> ppair = P.line_intersect(p,origin);
+    std::pair<Point,Point> ppair = P.line_intersect(p,l);
     Point b1 = ppair.first;// - origin;
     Point b2 = ppair.second;// - origin;
     //std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
-    double lambda = urdist(rng);
-    //p = (NT(lambda)*b1 + (NT(1-lambda)*b2));
+    NT lambda = urdist(rng);
+    p = (lambda*b1);
+    p=((1-lambda)*b2) + p;
     return 1;
 }
 
