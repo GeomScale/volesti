@@ -16,18 +16,23 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
+//#include <chrono>  
+
 #ifndef RANDOM_SAMPLERS_H
 #define RANDOM_SAMPLERS_H
 
 
-template <class P>
+template <class P, class rn>
 class Random_points_on_sphere_d
 {
 public:
     typedef typename P::K 	RT;
     int d;
     RT r;
-    std::default_random_engine generator;   
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(std::chrono::system_clock::now().time_since_epoch().count());
+    //rn generator;
+    //std::default_random_engine generator;   
     std::normal_distribution<RT> distribution = std::normal_distribution<RT>(RT(0),RT(1));
     //typedef std::vector<K> coeff;
     //coeff coeffs;
@@ -39,11 +44,12 @@ public:
         r=radius;
     }
     
-    P sample_point(){
+    P sample_point(rn generator){
         std::vector<RT> Xs;
         RT normal=RT(0);
         for (int i=0; i<d; i++){
             Xs.push_back(distribution(generator));
+            //std::cout<<Xs[i]<<std::endl;
             normal+=Xs[i]*Xs[i];
         }
         normal=1.0/std::sqrt(normal);
@@ -53,7 +59,9 @@ public:
         }
         P point(d, Xs.begin(), Xs.end());
         point=point*r;
-        
+        //for (int i=0; i<d; i++){
+		//	std::cout<<point[i]<<std::endl;
+		//}
         return point;
     }
     
@@ -119,8 +127,8 @@ int rand_point_generator(T &P,
     int n = var.n;
     bool birk = var.birk;
     RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist = var.urdist;
-    boost::random::uniform_int_distribution<> uidist(0,n-1);
+    std::uniform_real_distribution<NT> urdist = var.urdist;
+    std::uniform_int_distribution<int> uidist(0,n-1);
 
     std::vector<NT> lamdas(P.num_of_hyperplanes(),NT(0));
     int rand_coord = uidist(rng);
@@ -165,8 +173,8 @@ int rand_point_generator(BallIntersectPolytope<T> &PBLarge,
 {
     int n = var.n;
     RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist = var.urdist;
-    boost::random::uniform_int_distribution<> uidist(0,n-1);
+    std::uniform_real_distribution<NT> urdist = var.urdist;
+    std::uniform_int_distribution<int> uidist(0,n-1);
 
     std::vector<NT> lamdas(PBLarge.num_of_hyperplanes(),NT(0));
     int rand_coord = uidist(rng);
@@ -209,13 +217,13 @@ int hit_and_run(Point &p,
     int n = var.n;
     double err = var.err;
     RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> &urdist = var.urdist;
-    boost::random::uniform_real_distribution<> &urdist1 = var.urdist1;
+    std::uniform_real_distribution<NT> &urdist = var.urdist;
+    std::uniform_real_distribution<NT> &urdist1 = var.urdist1;
 
     Point origin(n);
     
-    Random_points_on_sphere_d<Point> gen (n, 1.0);
-    Point l = gen.sample_point();// - CGAL::Origin();
+    Random_points_on_sphere_d<Point, RNGType> gen (n, 1.0);
+    Point l = gen.sample_point(rng);// - CGAL::Origin();
     //Point l2=origin;
     //Vector b1 = line_bisect(p,l,P,var,var2);
     //Vector b2 = line_bisect(p,-l,P,var,var2);

@@ -241,15 +241,20 @@ int main(const int argc, const char** argv)
   // obtain a time-based seed:
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   // the random engine with this seed
+  //RNGType rng(seed);
   RNGType rng(seed);
-  //RNGType rng;
   // standard normal distribution with mean of 0 and standard deviation of 1 
-  boost::normal_distribution<> rdist(0,1);
-  boost::variate_generator< RNGType, boost::normal_distribution<> >
-											get_snd_rand(rng, rdist); 
+  std::normal_distribution<double> rdist(0.0,1.0);
+  //boost::normal_distribution<> rdist(0,1);
+  
+  //boost::variate_generator< RNGType, boost::normal_distribution<> >
+											//get_snd_rand(rng, rdist); 
   // uniform distribution 
-  boost::random::uniform_real_distribution<>(urdist); 
-  boost::random::uniform_real_distribution<> urdist1(-1,1); 
+  //boost::random::uniform_real_distribution<>(urdist); 
+  std::uniform_real_distribution<double> urdist(0.0,1.0);
+  
+  //boost::random::uniform_real_distribution<> urdist1(-1,1);
+  std::uniform_real_distribution<double> urdist1(-1.0,1.0);
 
   // If no file specified construct a default polytope
   if(!file){
@@ -281,7 +286,7 @@ int main(const int argc, const char** argv)
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,get_snd_rand,
+      vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,
                urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
 
       if(round_only){
