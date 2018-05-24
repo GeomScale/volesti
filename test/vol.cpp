@@ -242,6 +242,7 @@ int main(const int argc, const char** argv)
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   // the random engine with this seed
   RNGType rng(seed);
+  //RNGType rng;
   // standard normal distribution with mean of 0 and standard deviation of 1 
   boost::normal_distribution<> rdist(0,1);
   boost::variate_generator< RNGType, boost::normal_distribution<> >

@@ -26,6 +26,7 @@
 #include <iterator>
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <random>
 #include <vector>
 #include <forward_list>
@@ -80,6 +81,7 @@ typedef Kernel::Point								Point;
 // define random generator
 //typedef boost::mt11213b RNGType; ///< mersenne twister generator
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
+//typedef std::default_random_engine RNGType;// generator 
 //typedef boost::lagged_fibonacci607 RNGType;
 //typedef boost::hellekalek1995 RNGType;
 //typedef boost::rand48 RNGType; 
