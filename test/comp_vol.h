@@ -80,8 +80,8 @@ typedef Kernel::Point								Point;
 
 // define random generator
 //typedef boost::mt11213b RNGType; ///< mersenne twister generator
-typedef boost::mt19937 RNGType; ///< mersenne twister generator
-//typedef std::default_random_engine RNGType;// generator 
+//typedef boost::mt19937 RNGType; ///< mersenne twister generator
+typedef std::default_random_engine RNGType;// generator 
 //typedef boost::lagged_fibonacci607 RNGType;
 //typedef boost::hellekalek1995 RNGType;
 //typedef boost::rand48 RNGType; 
@@ -103,10 +103,12 @@ public:
           double up,
           const int L,
           RNGType &rng,
-          generator
-          &get_snd_rand,
-          boost::random::uniform_real_distribution<> urdist,
-          boost::random::uniform_real_distribution<> urdist1,
+          //generator
+          //&get_snd_rand,
+          //boost::random::uniform_real_distribution<> urdist,
+          std::uniform_real_distribution<NT> urdist,
+          //boost::random::uniform_real_distribution<> urdist1,
+          std::uniform_real_distribution<NT> urdist1,
           bool verbose,
           bool rand_only,
           bool round,
@@ -115,7 +117,7 @@ public:
           bool coordinate
           ) :
         m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), err_opt(err_opt),
-        lw(lw), up(up), L(L), rng(rng), get_snd_rand(get_snd_rand),
+        lw(lw), up(up), L(L), rng(rng),
         urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
         NN(NN),birk(birk),coordinate(coordinate){};
 
@@ -129,10 +131,12 @@ public:
     double up;
     const int L;
     RNGType &rng;
-    generator
-    &get_snd_rand;
-    boost::random::uniform_real_distribution<> urdist;
-    boost::random::uniform_real_distribution<> urdist1;
+    //generator
+    //&get_snd_rand;
+    //boost::random::uniform_real_distribution<> urdist,
+    std::uniform_real_distribution<NT> urdist;
+    //boost::random::uniform_real_distribution<> urdist1,
+    std::uniform_real_distribution<NT> urdist1;
     bool verbose;
     bool rand_only;
     bool round;
@@ -179,8 +183,8 @@ NT volume1_reuse2(T &P,
     int n_threads = var.n_threads;
     const double err = var.err;
     //RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist = var.urdist;
-    boost::random::uniform_int_distribution<> uidist(0,n-1);
+    std::uniform_real_distribution<NT> urdist = var.urdist;
+    std::uniform_int_distribution<int> uidist(0,n-1);
     //boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
 
     // Rotation: only for test with skinny polytopes and rounding
