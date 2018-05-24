@@ -16,7 +16,7 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
-
+#include <Rcpp.h>
 //#include <CGAL/point_generators_d.h>
 //#include <CGAL/Filtered_kernel_d.h>
 //#include <CGAL/Triangulation.h>
@@ -217,13 +217,15 @@ NT volume1_reuse2(T &P,
     Chebtime = tstop - tstart;
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
-
+    if(print) std::cout<<"nthread is: "<<n_threads<<std::endl;
     rnum=rnum/n_threads;
+    if(print) std::cout<<"[2]rnum is: "<<rnum<<std::endl;
     NT vol=0;
-
+    if(print) std::cout<<"[2]rnum is: "<<rnum<<std::endl;
     // Perform the procedure for a number of threads and then take the average
     //#pragma omp for ordered schedule(dynamic)
     for(int t=0; t<n_threads; t++){
+        std::cout<<"[3]rnum is: "<<rnum<<std::endl;
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
