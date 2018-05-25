@@ -361,7 +361,7 @@ NT volume1_reuse2(T &P,
         if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
         const NT pi = boost::math::constants::pi<NT>();
         //NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
-        NT vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
+        vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
         vol=vol*telescopic_prod;
         std::cout<<"volume computed: "<<vol<<std::endl;
     

@@ -17,12 +17,12 @@
 // see <http://www.gnu.org/licenses/>.
 
 //#include <chrono>  
-#include <Rcpp.h>
+
 #ifndef RANDOM_SAMPLERS_H
 #define RANDOM_SAMPLERS_H
 
 
-template <class P, class rn>
+template <class P>
 class Random_points_on_sphere_d
 {
 public:
@@ -44,12 +44,12 @@ public:
         r=radius;
     }
     
-    P sample_point(rn generator){
+    template <typename GeneratorType>
+    P sample_point(GeneratorType generator){
         std::vector<RT> Xs;
         RT normal=RT(0);
         for (int i=0; i<d; i++){
             Xs.push_back(distribution(generator));
-            //std::cout<<Xs[i]<<std::endl;
             normal+=Xs[i]*Xs[i];
         }
         normal=1.0/std::sqrt(normal);
@@ -59,9 +59,7 @@ public:
         }
         P point(d, Xs.begin(), Xs.end());
         point=point*r;
-        //for (int i=0; i<d; i++){
-		//	std::cout<<point[i]<<std::endl;
-		//}
+        
         return point;
     }
     
@@ -222,7 +220,7 @@ int hit_and_run(Point &p,
 
     Point origin(n);
     
-    Random_points_on_sphere_d<Point, RNGType> gen (n, 1.0);
+    Random_points_on_sphere_d<Point> gen (n, 1.0);
     Point l = gen.sample_point(rng);// - CGAL::Origin();
     //Point l2=origin;
     //Vector b1 = line_bisect(p,l,P,var,var2);

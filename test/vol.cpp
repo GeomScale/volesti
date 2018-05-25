@@ -16,7 +16,7 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
-#include "comp_vol.h"
+#include "../include/comp_vol.h"
 //#include <proc/readproc.h>
 
 //////////////////////////////////////////////////////////
