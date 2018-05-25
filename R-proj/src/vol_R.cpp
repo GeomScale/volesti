@@ -1,8 +1,8 @@
 #include <Rcpp.h>
-#include "comp_vol.h"
+#include "../../include/comp_vol.h"
 
 // [[Rcpp::export]]
-double vol_R(Rcpp::NumericMatrix A){
+double vol_R(Rcpp::NumericMatrix A, int W ,double e){
     
     int n, nexp=1, n_threads=1,i,j;
 	int walk_len;//to be defined after n
@@ -22,8 +22,8 @@ double vol_R(Rcpp::NumericMatrix A){
     //double vol=0.0;
     stdHPolytope<double> P;
          
-    walk_len=10;
-    double e=0.3;
+    walk_len=W;
+    //double e=0.3;
     n=A.ncol()-1;
     int m=A.nrow()-1;
     std::cout<<n<<" "<<m<<std::endl;
