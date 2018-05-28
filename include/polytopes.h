@@ -601,6 +601,12 @@ public:
         //std::cout<<"Oresult: "<<mini<<" "<<maxi<<std::endl;
         return std::pair<NT,NT> (min_plus,max_minus);
     }
+    
+    int linear_transformIt(Eigen::MatrixXd Tinv){
+        
+        
+        return 1;
+    }
 
     //void rotate(){
     //std::cout<<_A<<std::endl;

@@ -15,7 +15,9 @@
 // See the file COPYING.LESSER for the text of the GNU Lesser General
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
-
+//#include <RcppEigen.h>
+// [[Rcpp::depends(RcppEigen)]]
+#include "../external/Eigen/Eigen"
 #include "../include/comp_vol.h"
 //#include <proc/readproc.h>
 

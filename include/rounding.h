@@ -16,6 +16,92 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
+//ROUNDING
+
+Eigen::MatrixXd getPointsMat(std::list<Point> randPoints, int dim){
+    Eigen::MatrixXd S(dim,randPoints.size());
+    for(int j=0; j<randPoints.size(); j++){
+        Point p=randPoints.front();
+        randPoints.pop_front();
+        for (int i=0; i<dim; i++){
+            S(i,j)=p[i];
+        }
+    }
+    
+    return S;
+}
+
+
+template <class T1>
+double rounding(T1 &P , vars &var){
+    typedef typename T1::K 	K;
+    int n=var.n, walk_len=var.walk_steps;
+    // 1. Compute the Chebychev ball (largest inscribed ball) with center and radius 
+	Point c(n);       //center
+    K radius;
+    //P.chebyshev_center(c,radius);
+    
+    // 2. Generate the first random point in P
+  // Perform random walk on random point in the Chebychev ball 
+	//if (print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
+	Random_points_on_sphere_d<Point> gen (n, radius);
+	Point p = gen.sample_point(var.rng);
+	p = p + c;
+	std::list<Point> randPoints; //ds for storing rand points
+	//use a large walk length e.g. 1000
+	rand_point_generator(P, p, 1, 1000, randPoints, var); 
+	//if (print) std::cout<<"First random point: "<<p<<std::endl;
+    
+    // 3. Sample points from P
+	//randPoints.push_front(p);
+	int num_of_samples = std::pow(1.0,-2) * 400 * n * std::log(n);;//this is the number of sample points will used to compute min_ellipoid
+	//if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
+	rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
+    K current_dist, max_dist;
+    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+        current_dist=(*pit-c).squared_length();
+        if(current_dist>max_dist){
+            max_dist=current_dist;
+        }
+    }
+    max_dist=std::sqrt(max_dist);
+    K R=max_dist/radius;
+    
+    
+    // 4. Compute the transformation matrix T
+    Eigen::MatrixXd T = Eigen::MatrixXd::Identity(n,n);
+    bool well_rounded=false;
+    int t=8*n*n*n, tries=0;
+    
+    while(!well_rounded){
+        tries++;
+        randPoints.clear();
+        T1 P2(P);
+        //P2.linear_transformIt(T.inverse());   //We have to sample from the transformed body
+        rand_point_generator(P, p, t, walk_len, randPoints, var);
+        Eigen::MatrixXd S=getPointsMat(randPoints,n);
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd(S, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        T=svd.matrixU()*S.inverse()*T;
+        well_rounded=true;
+        for (int i=0; i<n; i++){
+            if (svd.singularValues()(i)>2.0){
+                if (tries>(int)std::log(R)){
+                    t=t*2;
+                    tries=0;
+                }
+                well_rounded=false;
+                break;
+            }
+        }
+        //if (well_rounded){
+            //P.linear_transformIt(T.inverse());
+        //}
+    }
+    
+    return T.determinant();
+}
+
+
 // -------- ROTATION ---------- //
 template <class T>
 double rotating_old(T &P){

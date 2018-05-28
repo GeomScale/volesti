@@ -23,6 +23,8 @@
 //#include <CGAL/Cartesian_d.h>
 //#include <CGAL/algorithm.h>
 //#include <CGAL/Random.h>
+
+
 #include <iterator>
 #include <iostream>
 #include <fstream>
@@ -87,7 +89,7 @@ typedef std::default_random_engine RNGType;// generator
 //typedef boost::rand48 RNGType; 
 //typedef boost::minstd_rand RNGType; 
 
-typedef boost::variate_generator< RNGType, boost::normal_distribution<> >  generator;
+//typedef boost::variate_generator< RNGType, boost::normal_distribution<> >  generator;
 //typedef boost::variate_generator< RNGType, boost::exponential_distribution<> >  generator;
 
 //structs with variables and random generators
