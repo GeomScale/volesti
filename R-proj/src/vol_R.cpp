@@ -1,4 +1,6 @@
 #include <Rcpp.h>
+#include <RcppEigen.h>
+// [[Rcpp::depends(RcppEigen)]]
 #include "../../include/comp_vol.h"
 
 // [[Rcpp::export]]
