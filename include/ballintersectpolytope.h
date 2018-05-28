@@ -185,3 +185,174 @@ private:
     T    _P;
     Ball _B;
 };
+
+
+
+template <class T1 , class T2>
+class PolyIntersectEll {
+private:
+    T1 P;
+    T2 E;
+    typedef typename T2::K 	K;
+public:
+    PolyIntersectEll(T1 &Pin, T2 &Ein) : P(Pin), E(Ein) {};
+    
+    T1 first() { return P; }
+    T2 second() { return E; }
+    
+    int is_in(Point p){
+        //std::cout << "calling is in"<<std::endl;
+        if(P.is_in(p)==-1)
+            return E.is_in(p);
+        return 0;
+    }
+    
+    int num_of_hyperplanes(){
+        return P.num_of_hyperplanes();
+    }
+
+    int dimension(){
+        return P.dimension();
+    }
+    
+    std::pair<Point,Point> line_intersect(Point r,
+                                          Point v){
+
+        std::pair<Point,Point> polypair = P.line_intersect(r,v);
+        std::pair<Point,Point> returnpair;
+        std::pair<Point,Point> ellpair;
+        bool ellinter=false;
+
+        //check the first intersection point if it is inside ball
+        if(E.is_in(polypair.first)){
+            //std::cout<<"inside ball 1, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.first<<std::endl;
+            returnpair.first = polypair.first;
+        }else{
+            //std::cout<<"outside ball 1, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.first<<std::endl;
+            ellinter=true;
+            //compute the intersection with ball
+            ellpair = E.line_intersect(r,v);
+            returnpair.first = ellpair.first;
+            //std::cout<<returnpair.first<<std::endl;
+        }
+        //check the second intersection point
+        if(E.is_in(polypair.second)){
+            //std::cout<<"inside ball 2, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.second<<std::endl;
+            returnpair.second = polypair.second;
+        }else{
+            //std::cout<<"outside ball 2, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.second<<std::endl;
+            if(ellinter) //if the intersection with ball is already computed
+                returnpair.second = ellpair.second;
+            else returnpair.second = (E.line_intersect(r,v)).second;
+            //std::cout<<returnpair.second<<std::endl;
+        }
+        return returnpair;
+    }
+    
+    std::pair<K,K> line_intersect_coord(Point &r,
+                                          Point &r_prev,
+                                          int rand_coord,
+                                          int rand_coord_prev,
+                                          std::vector<NT> &lamdas,
+                                          bool init
+                                          ){
+
+        std::pair<K,K> polypair = P.line_intersect_coord(r,r_prev,rand_coord,rand_coord_prev,lamdas,init);
+        std::pair<K,K> ellpair = E.line_intersect_coord(r,rand_coord);
+        return std::pair<K,K> (std::min(polypair.first,ellpair.first),
+                                 std::max(polypair.second,ellpair.second));
+    }
+    
+};
+
+
+template <class T1 , class T2 >
+class BallPolyIntersectEll {
+private:
+    T1 BP;
+    T2 E;
+    typedef typename T2::K 	K;
+public:
+    BallPolyIntersectEll(T1 &BPin, T2 &Ein) : BP(BPin), E(Ein) {};
+    
+    T1 first() { return BP; }
+    T2 second() { return E; }
+    
+    int is_in(Point p){
+        //std::cout << "calling is in"<<std::endl;
+        if(BP.is_in(p)==-1)
+            return E.is_in(p);
+        return 0;
+    }
+    
+    int num_of_hyperplanes(){
+        return BP.num_of_hyperplanes();
+    }
+
+    int dimension(){
+        return BP.dimension();
+    }
+    
+    std::pair<Point,Point> line_intersect(Point r,
+                                          Point v){
+
+        std::pair<Point,Point> Bpolypair = BP.line_intersect(r,v);
+        std::pair<Point,Point> returnpair;
+        std::pair<Point,Point> ellpair;
+        bool ellinter=false;
+
+        //check the first intersection point if it is inside ball
+        if(E.is_in(Bpolypair.first)){
+            //std::cout<<"inside ball 1, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.first<<std::endl;
+            returnpair.first = Bpolypair.first;
+        }else{
+            //std::cout<<"outside ball 1, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.first<<std::endl;
+            ellinter=true;
+            //compute the intersection with ball
+            ellpair = E.line_intersect(r,v);
+            returnpair.first = ellpair.first;
+            //std::cout<<returnpair.first<<std::endl;
+        }
+        //check the second intersection point
+        if(E.is_in(Bpolypair.second)){
+            //std::cout<<"inside ball 2, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.second<<std::endl;
+            returnpair.second = Bpolypair.second;
+        }else{
+            //std::cout<<"outside ball 2, radius:"<<_B.radius()<<std::endl;
+            //std::cout<<polypair.second<<std::endl;
+            if(ellinter) //if the intersection with ball is already computed
+                returnpair.second = ellpair.second;
+            else returnpair.second = (E.line_intersect(r,v)).second;
+            //std::cout<<returnpair.second<<std::endl;
+        }
+        return returnpair;
+    }
+
+    std::pair<K,K> line_intersect_coord(Point &r,
+                                          Point &r_prev,
+                                          int rand_coord,
+                                          int rand_coord_prev,
+                                          std::vector<NT> &lamdas,
+                                          bool init
+                                          ){
+
+        std::pair<K,K> Bpolypair = BP.line_intersect_coord(r,r_prev,rand_coord,rand_coord_prev,lamdas,init);
+        std::pair<K,K> ellpair = E.line_intersect_coord(r,rand_coord);
+        return std::pair<K,K> (std::min(Bpolypair.first,ellpair.first),
+                                 std::max(Bpolypair.second,ellpair.second));
+    }
+    
+    
+    
+};
+
+
+
+
