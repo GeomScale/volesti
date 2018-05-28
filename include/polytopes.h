@@ -191,7 +191,7 @@ class stdHPolytope{
 private:
     typedef std::vector<K>        stdCoeffs;
     typedef std::vector<stdCoeffs>  stdMatrix;
-    
+    Eigen::MatrixXd A;
     int            _d; //dimension
     stdMatrix      _A; //inequalities
     //EXPERIMENTAL
@@ -245,6 +245,7 @@ public:
 
     // default initialize: cube(d)
     int init(int d){
+        A.resize(d,d);
         _d=d;
         for(int i=0; i<d; ++i){
             stdCoeffs coeffs;
@@ -271,10 +272,19 @@ public:
 
     int init(stdMatrix Pin){
         _d = Pin[0][1]-1;
+        
         typename stdMatrix::iterator pit=Pin.begin();
         ++pit;
         for( ; pit<Pin.end(); ++pit){
             _A.push_back(*pit);
+        }
+        
+        //define eigen matrix
+        A.resize(_A.size(),_d);
+        for(int i=0; i<_A.size(); i++){
+            for(int j=1; j<_d+1; j++){
+                A(i,j-1)=_A[i][j];
+            }
         }
         //double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
         //std::random_shuffle (_A.begin(), _A.end());
@@ -603,8 +613,8 @@ public:
     }
     
     int linear_transformIt(Eigen::MatrixXd Tinv){
-        
-        
+        A=A*Tinv;
+        //set _A = A or replace stdMatrix with Eigen::MatrixXd ??????
         return 1;
     }
 

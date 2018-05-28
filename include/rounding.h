@@ -77,7 +77,7 @@ double rounding(T1 &P , vars &var){
         tries++;
         randPoints.clear();
         T1 P2(P);
-        //P2.linear_transformIt(T.inverse());   //We have to sample from the transformed body
+        P2.linear_transformIt(T.inverse());   //We have to sample from the transformed body
         rand_point_generator(P, p, t, walk_len, randPoints, var);
         Eigen::MatrixXd S=getPointsMat(randPoints,n);
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(S, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -93,9 +93,9 @@ double rounding(T1 &P , vars &var){
                 break;
             }
         }
-        //if (well_rounded){
-            //P.linear_transformIt(T.inverse());
-        //}
+        if (well_rounded){
+            P.linear_transformIt(T.inverse());
+        }
     }
     
     return T.determinant();
