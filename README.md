@@ -10,9 +10,13 @@ Main algorithm based on: I.Z. Emiris and V. Fisikopoulos, "Efficient random-walk
 ### *We develop the R version of VolEsti*  
 
 * We develop a C++ library and a R interface.
-* We exclude CGAL and Boost dependecies.
+* We have excluded CGAL and Boost dependecies.
 * In folder include we develop the C++ code.
-* In folder test you can compile the C++ code using command: g++ vol.cpp -o executable
+* To run C++ code you have to copy/paste liblpsolve55.so to usr/lib folder. The file is in folder test.
+* Then in folder test you can compile the C++ code using command: g++ -std=c++11 -o vol vol.cpp /usr/lib/liblpsolve55.so -lm -ldl
+* To run the R interface you have to run RcppExports.R script, then the command Rcpp::sourceCpp('path/to/R-proj/src/vol_R.cpp'). Then VolEsti() R function can be used by giving a list("matrix"=A, "vector"=b, "cheb"=xc), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center.
+* The "cheb" input is optional. When it is not given lpsolve is used.
+* The "vector" input is optional when A is at ".ine" format and the first row is (m,d,0, ... ,0) where m is the number of facets and d the dimension.
 * In folder R-proj/src we develop the R interface. You can call the C++ library through R using command: Rcpp::sourceCpp('path/to/R-proj/src/vol_R.cpp'). Then function vol_R() is ready to call.
-* You have to install Rcpp and RcppEigen libraries.
+* You have to install Rcpp, RcppEigen and lpSolveAPI R libraries.
 
