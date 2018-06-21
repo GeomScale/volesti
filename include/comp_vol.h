@@ -38,19 +38,20 @@
 #include <chrono>       // std::chrono::system_clock
 #include <functional>
 #include <algorithm>
-#include "boost/random.hpp"
-#include "boost/generator_iterator.hpp"  
-#include "boost/dynamic_bitset.hpp"   
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/uniform_real_distribution.hpp>
-#include "cartesian_kernel.h"
+#include <math.h>
+//#include "boost/random.hpp"
+//#include "boost/generator_iterator.hpp"  
+//#include "boost/dynamic_bitset.hpp"   
+//#include <boost/random/normal_distribution.hpp>
+//#include <boost/random/uniform_real_distribution.hpp>
+#include "cartesian_geom/cartesian_kernel.h"
 //#include <CGAL/Approximate_min_ellipsoid_d.h>
 //#include <CGAL/Approximate_min_ellipsoid_d_traits_d.h>
 //#include <vector>
 //#include <iostream>
 
 #ifndef BOOST_MATH_CONSTANTS_CONSTANTS_INCLUDED
-#include <boost/math/constants/constants.hpp>
+//#include <boost/math/constants/constants.hpp>
 #endif // Ioannis Emiris
 
 //#include "Eigen/Eigen"
@@ -155,10 +156,14 @@ int optimization(T &KK,vars var,Point &fp,Point &w);
 template <class T>
 int opt_interior(T &K,vars &var,Point &opt,Point &w);
 
-#include "polytopes.h"
-#include "ballintersectpolytope.h"
+//#include "polytopes.h"
+//#include "ballintersectpolytope.h"
+
 //#include <opt_rand.h>
 //#include <oracles.h>
+#include "convex_bodies/ellipsoids.h"
+#include "convex_bodies/polytopes.h"
+#include "convex_bodies/ballintersectconvex.h"
 #include "samplers.h"
 #include "rounding.h"
 #include "misc.h"
@@ -172,6 +177,7 @@ template <class T>
 NT volume1_reuse2(T &P,
                   vars &var,  // constans for volume
                   vars &var2, // constants for optimization in case of MinkSums
+                  std::pair<Point,double> CheBall,  //Chebychev ball
                   double &Chebtime)
 {
     typedef BallIntersectPolytope<T>        BallPoly;
@@ -204,11 +210,14 @@ NT volume1_reuse2(T &P,
     double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"\nComputing the Chebychev center..."<<std::endl;
     //Point c;       //center
-    double radius;
+    Point c=CheBall.first;
+    double radius=CheBall.second;
+    //P.chebyshev_center(c2,radius2);
+    //double radius;
     //P.chebyshev_center(c,radius);
-    radius=1.0;
-    std::vector<NT> vecc(10,NT(0));
-    Point c(10, vecc.begin(), vecc.end());
+    //double radius=1.0;
+    //std::vector<NT> vecc(10,NT(0));
+    //Point c(10, vecc.begin(), vecc.end());
     //HACK FOR CROSS POLYTOPES
     //std::vector<double> cp(n,0);
     //Point c(n,cp.begin(),cp.end());
@@ -219,6 +228,16 @@ NT volume1_reuse2(T &P,
     Chebtime = tstop - tstart;
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
+
+	//---------print c2 and radius2------TEST_PRINT----//
+	
+	//std::cout<<"center c2 LPSOLVE\n";
+	//for(int j=0; j<n; j++){
+		//std::cout<<c2[j]<<" ";
+	//}
+	//std::cout<<"\n radiusw LPSOLVE: "<<radius2<<std::endl;
+	
+	//------------TEST_PRINT_END----------------//
 
     rnum=rnum/n_threads;
     NT vol=0;
@@ -232,6 +251,7 @@ NT volume1_reuse2(T &P,
         //CGAL::Random_points_in_ball_d<Point> gen (n, radius);
         //Point p = *gen;
         Point p=c;
+        //Point p(10, vecc.begin(), vecc.end());
         //p = p + (c-CGAL::Origin());
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
@@ -361,9 +381,10 @@ NT volume1_reuse2(T &P,
         //telescopic_prod *= std::pow(2,(bit2-balls.begin()));
         if(print) std::cout<<"rand points = "<<rnum<<std::endl;
         if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
-        const NT pi = boost::math::constants::pi<NT>();
+        //const NT pi = boost::math::constants::pi<NT>();
         //NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
-        vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
+        //vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
+        vol = (2*std::pow(M_PI,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
         vol=vol*telescopic_prod;
         std::cout<<"volume computed: "<<vol<<std::endl;
     
