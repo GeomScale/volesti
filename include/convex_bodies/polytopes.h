@@ -1,25 +1,7 @@
-// VolEsti
-
-// Copyright (c) 2012-2017 Vissarion Fisikopoulos
-
-// VolEsti is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at
-// your option) any later version.
-//
-// VolEsti is distributed in the hope that it will be useful, but WITHOUT
-// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for more details.
-//
-// See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with HeaDDaCHe,
-// see <http://www.gnu.org/licenses/>.
-
 #ifndef POLYTOPES_H
 #define POLYTOPES_H
 
-#define CGAL_QP_NO_ASSERTIONS
+//#define CGAL_QP_NO_ASSERTIONS
 
 //this is for LP-solver
 #include <iostream>
@@ -36,153 +18,13 @@
 //#include <CGAL/MP_Float.h>
 //typedef CGAL::MP_Float ET;
 //#endif
-#include <boost/random/shuffle_order.hpp>
-#include "rref.h"
+//#include <boost/random/shuffle_order.hpp>
+//#include "../rref.h"
+//#include "LPsolve/solve_lp.h"
 //EXPERIMENTAL
 //to implement boundary oracles using NN queries  
 //#include <flann/flann.hpp>
 
-
-// ellipsoid class
-template <typename K>
-class ellipsoid{
-private:
-    typedef std::vector<K>        stdCoeffs;
-    typedef std::vector<stdCoeffs>  stdMatrix;
-    int d;
-    stdMatrix C;
-    K c0;
-    
-public:
-    //typedef  K 	RT;
-    ellipsoid(){}
-    
-    ellipsoid(int dim, stdMatrix Cin, K c0in){
-        d=dim;
-        typename stdMatrix::iterator pit=Cin.begin();
-        for( ; pit<Cin.end(); ++pit){
-            C.push_back(*pit);
-        }
-    }
-    
-    int dimension(){
-        return d;
-    }
-    
-    K get_coeff(int i, int j){
-        return C[i][j];
-    }
-
-    void put_coeff(int i, int j, K value){
-        C[i][j] = value;
-    }
-    
-    int print() {
-        std::cout<<" "<<C.size()<<" "<<d+1<<" float"<<std::endl;
-        for(typename stdMatrix::iterator mit=C.begin(); mit<C.end(); ++mit){
-            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
-                std::cout<<*lit<<" ";
-            std::cout<<std::endl;
-        }
-        return 0;
-    }
-    
-    int is_in(Point p){
-        K sum=K(0);
-        for(typename stdMatrix::iterator cit=C.begin(); cit<C.end(); ++cit){
-            typename stdCoeffs::iterator rit;
-            //Point::Cartesian_const_iterator pit;
-            //pit=p.cartesian_begin();
-            typename std::vector<K>::iterator pit=p.iter_begin();
-            rit=cit->begin();
-            //K sum=(*lit);
-            //++lit;
-            for( ; rit<cit->end() ; ++rit, ++pit){
-                //std::cout << *lit << " " << *pit <<std::endl;
-                sum += (*rit) * (*pit);
-            }
-
-            //std::cout<<sum<<std::endl;
-        }
-        if(sum>c0){
-            return 0;
-        }
-        return -1;
-        
-    }
-    
-    std::pair<Point,Point> line_intersect(Point p,
-                                          Point v){
-        K a=K(0) , b1=K(0) , b2=K(0) , c=K(0) , D;
-        stdCoeffs Cu(d,K(0)), Cx(d,K(0));
-        int i;
-        
-        for(typename stdMatrix::iterator cit=C.begin(); cit<C.end(); ++cit){
-            typename stdCoeffs::iterator rit;
-            typename std::vector<K>::iterator vit=v.iter_begin();
-            typename std::vector<K>::iterator pit=p.iter_begin();
-            rit=cit->begin();
-            i=0;
-            for( ; rit<cit->end() ; ++rit, ++pit, ++vit, ++i){
-                Cu[i]+=(*rit) * (*vit);
-                Cx[i]+=(*rit) * (*pit);
-            }
-        }
-        for (i=0; i<d; i++){
-            a+=v[i]*Cu[i];
-            b1+=v[i]*Cx[i];
-            b2+=p[i]*Cu[i];
-            c+=p[i]*Cx[i];
-        }
-        b1+=b2;
-        
-        D=std::pow(b1,2)-4*a*c;
-        return std::pair<Point,Point> ( ( ((-b1+std::sqrt(D))/(2*a))*v)+p , ( ((-b1-std::sqrt(D))/(2*a))*v)+p );
-    }
-    
-    std::pair<K,K> line_intersect_coord(Point &p,
-                                          int rand_coord){
-        K a=K(0) , b=K(0) , c=K(0) , D;
-		int i,j;
-			
-		for (i=0; i<d; i++){
-			if (i==rand_coord){
-				b+=2*C[i][i]*p[i];
-				a+=C[i][i];
-			}
-			c+=C[i][i]*std::pow(p[i],2);
-			for (j=i+1; j<d; j++){
-				if (i==rand_coord){
-					b+=2*C[i][j]*p[j];
-				}
-				if (j==rand_coord){
-					b+=2*C[i][j]*p[i];
-				}
-				c+=C[i][j]*p[i]*p[j]*2;
-			}
-		}
-		c-=c0;
-		//std::cout<<"k is: "<<k<<" a is: "<<a<<" b: "<<b<<" c: "<<c<<std::endl;
-			//Matrix2f A; b_eig=b/a; c_eig=c/a;
-			//A(0,0)= 1.0; A(0,1)=1.0; A(1,0)=-(1.0+b_eig+c_eig); A(1,1)=-(1.0+b_eig);
-			//EigenSolver<Matrix2f> es(A);
-		//	double eig1 = es.eigenvalues()[0].real();
-		//	double eig2 = es.eigenvalues()[1].real();
-			//std::cout<<"eig1 is; "<<eig1<<" eig2 is: "<<eig2<<std::endl;
-			
-		D=std::pow(b,2)-4*a*c;
-        return std::pair<K,K> ((-b+std::sqrt(D))/(2*a) , (-b-std::sqrt(D))/(2*a));
-		//lamdas.push_back((-b+std::sqrt(D))/(2*a));
-		//lamdas.push_back((-b-std::sqrt(D))/(2*a));
-		//lamdas.push_back(eig1);
-		//lamdas.push_back(eig2);
-		//std::cout<< (-b+std::sqrt(D))/(2*a)<<" "<<(-b-std::sqrt(D))/(2*a)<<std::endl;      
-    }
-    
-    
-    
-    
-};
 
 
 // my H-polytope class
@@ -242,6 +84,10 @@ public:
     void put_coeff(int i, int j, K value){
         _A[i][j] = value;
     }
+
+	stdMatrix get_matrix(){
+		return _A;
+	}
 
     // default initialize: cube(d)
     int init(int d){
@@ -417,6 +263,10 @@ public:
 
     int chebyshev_center(Point& center, double& radius){
         Point f(_d);
+        //std::pair<Point,double> res=solveLP(_A, _d);
+        //center=res.first;
+        //radius=res.second;
+        
         return 1;
         
     }

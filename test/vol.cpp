@@ -19,6 +19,7 @@
 // [[Rcpp::depends(RcppEigen)]]
 #include "../external/Eigen/Eigen"
 #include "../include/comp_vol.h"
+#include "../include/LPsolve/solve_lp.h"
 //#include <proc/readproc.h>
 
 //////////////////////////////////////////////////////////
@@ -224,7 +225,11 @@ int main(const int argc, const char** argv)
           exit(-2);
       }
   }//for i
-	
+  
+  //Compute chebychev ball//
+  //std::vector<std::vector<double>> A=P.get_matrix();
+  std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
+  
   // Set the number of random walk steps
   if(!user_walk_len)
       walk_len=10 + n/10;
@@ -299,7 +304,7 @@ int main(const int argc, const char** argv)
           std::cout<<"end\n--------------\n"<<std::endl;
       }else{
           // Estimate the volume
-          vol = volume1_reuse2(P_to_test,var,var,Chebtime);
+          vol = volume1_reuse2(P_to_test,var,var,CheBall,Chebtime);
           //if(rotate) vol = std::sqrt(vol);
           //std::cout<<vol<<std::endl;
       }

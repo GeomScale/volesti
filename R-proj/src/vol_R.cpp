@@ -2,9 +2,10 @@
 #include <RcppEigen.h>
 // [[Rcpp::depends(RcppEigen)]]
 #include "../../include/comp_vol.h"
+//#include "../../include/LPsolve/solve_lp.h"
 
 // [[Rcpp::export]]
-double vol_R(Rcpp::NumericMatrix A, int W ,double e){
+double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector C){
     
     int n, nexp=1, n_threads=1,i,j;
 	int walk_len;//to be defined after n
@@ -52,11 +53,22 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e){
         std::cout<<"\n";
     }
     P.init(Pin);
+    //Compute chebychev ball//
+	std::pair<Point,double> CheBall;// = solveLP(P.get_matrix(), P.dimension());
+    std::vector<double> temp_p;
+    for (int j=0; j<P.dimension(); j++){
+		temp_p.push_back(C[j]);
+	}
+	Point xc( P.dimension() , temp_p.begin() , temp_p.end() );
+	double radius = C[P.dimension()];
+	CheBall.first = xc; CheBall.second = radius;
+    
+    
     stdHPolytope<double> P_to_test(P);
     
     NT Chebtime;
     
-    NT vol = volume1_reuse2(P,var,var,Chebtime);
+    NT vol = volume1_reuse2(P,var,var,CheBall,Chebtime);
     
     
     return vol;
