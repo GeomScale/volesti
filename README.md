@@ -23,8 +23,8 @@ make
 * To run the R interface (turn on library('lpSolveAPI')) you have two choices:  
 1. With Rstudio: Open the project in folder R-proj and click "Build source package" from Build menu at the toolbar, and then click "Install and restart" from Build menu as well.  
 2. From command line: Install R library "devtools". Navigate to /path/to/R-proj and run:  
-$R  
->Rcpp::compileAttributes()
+>$R  
+>Rcpp::compileAttributes()  
 >build()  
 >install()  
 >library(volesti)  
