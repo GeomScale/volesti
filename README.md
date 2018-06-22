@@ -12,9 +12,11 @@ Main algorithm based on: I.Z. Emiris and V. Fisikopoulos, "Efficient random-walk
 * We develop a C++ library and a R interface.
 * We have excluded CGAL and Boost dependecies.
 * In folder include we develop the C++ code.
-* To run C++ code you have to give the path to external library liblpsolve55.so in the CMakeLists.txt file.
-* Then  run:  
-cmake .  
+* To run C++ code you have to specify the path to external library liblpsolve55.so, by running:
+cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ .  
+make
+* For example:
+cmake /usr/lib/lpsolve/liblpsolve55.so .  
 make
 * To run the R interface you have to run RcppExports.R script, then the command Rcpp::sourceCpp('path/to/R-proj/src/vol_R.cpp'). Then VolEsti() R function can be used by giving a list("matrix"=A, "vector"=b, "cheb"=xc), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center.
 * The "cheb" input is optional. When it is not given lpsolve is used.
