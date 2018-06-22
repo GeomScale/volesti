@@ -12,15 +12,23 @@ Main algorithm based on: I.Z. Emiris and V. Fisikopoulos, "Efficient random-walk
 * We develop a C++ library and a R interface.
 * We have excluded CGAL and Boost dependecies.
 * In folder include we develop the C++ code.
-* To run C++ code you have to specify the path to external library liblpsolve55.so, by running:
+* To run C++ code you have to specify the path to external library liblpsolve55.so, by running:  
 cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ .  
 make
-* For example:
+* For example:  
 cmake /usr/lib/lpsolve/liblpsolve55.so .  
-make
-* To run the R interface you have to run RcppExports.R script, then the command Rcpp::sourceCpp('path/to/R-proj/src/vol_R.cpp'). Then VolEsti() R function can be used by giving a list("matrix"=A, "vector"=b, "cheb"=xc), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center.
-* The "cheb" input is optional. When it is not given lpsolve is used.
-* The "vector" input is optional when A is at ".ine" format and the first row is (m,d,0, ... ,0) where m is the number of facets and d the dimension.
-* In folder R-proj/src we develop the R interface. You can call the C++ library through R using command: Rcpp::sourceCpp('path/to/R-proj/src/vol_R.cpp'). Then function vol_R() is ready to call.
-* You have to install Rcpp, RcppEigen and lpSolveAPI R libraries.
+make  
+
+* To use R interface you have to install Rcpp, RcppEigen and lpSolveAPI R libraries.
+* To run the R interface (turn on library('lpSolveAPI')) you have two choices:  
+1. With Rstudio: Open the project in folder R-proj and click "Build source package" from Build menu at the toolbar, and then click "Install and restart" from Build menu as well.  
+2. From command line: Install R library "devtools". Navigate to /path/to/R-proj and run:  
+$R  
+>Rcpp::compileAttributes()
+>build()  
+>install()  
+>library(volesti)  
+* The main function is VolEsti. The input has to be a list("matrix"=A, "vector"=b, "cheb"=xc), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center.
+* The "cheb" input is optional. When it is not given lpsolve library is used.  
+* "vector"=b is optional as well: You can also give as an input only a matrix A, when it is in the same format with matrix "A3.Rdata" in src folder (".ine" style).
 
