@@ -1,9 +1,9 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
-// [[Rcpp::depends(RcppEigen)]]
 #include "../../include/comp_vol.h"
 //#include "../../include/LPsolve/solve_lp.h"
 
+// [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector C){
     
