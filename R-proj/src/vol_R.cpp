@@ -5,7 +5,7 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector C){
+double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector C, bool V){
     
     int n, nexp=1, n_threads=1,i,j;
 	int walk_len;//to be defined after n
@@ -29,10 +29,16 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector C){
     //double e=0.3;
     n=A.ncol()-1;
     int m=A.nrow()-1;
-    std::cout<<n<<" "<<m<<std::endl;
-    int rnum = std::pow(e,-2) * 400 * n * std::log(n);
-    std::cout<<"rnum is: "<<rnum<<std::endl;  
     
+    int rnum = std::pow(e,-2) * 400 * n * std::log(n);
+    //rnum=5000;
+    if(!V){
+		verbose=false;
+	}
+    if(verbose){
+		std::cout<<n<<" "<<m<<std::endl;
+		std::cout<<"rnum is: "<<rnum<<std::endl; 
+	}
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     // the random engine with this seed
     RNGType rng(seed);
@@ -48,9 +54,13 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector C){
         //bin[i]=b[i];
         for(j=0; j<n+1; j++){
             Pin[i][j]=A(i,j);
-            std::cout<<Pin[i][j]<<" ";
+            if(verbose){
+				std::cout<<Pin[i][j]<<" ";
+			}
         }
-        std::cout<<"\n";
+        if(verbose){
+			std::cout<<"\n";
+		}
     }
     P.init(Pin);
     //Compute chebychev ball//

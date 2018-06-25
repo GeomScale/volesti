@@ -1,0 +1,10 @@
+cube_2.ine
+H-representation
+begin
+ 4 3 integer
+ 100 1 0 
+ 1 0 1 
+ 100 -1 0 
+ 1 0 -1 
+end
+input_incidence

@@ -18,6 +18,7 @@ make
 * For example:  
 cmake /usr/lib/lpsolve/liblpsolve55.so .  
 make  
+* You can run experiments by running ./run_tests.sh. In test_data folder you can see the polytopes we test.  
 
 * To use R interface you have to install Rcpp, RcppEigen and lpSolveAPI R libraries.
 * To run the R interface (turn on library('lpSolveAPI')) you have two choices:  
@@ -28,7 +29,9 @@ make
 >build()  
 >install()  
 >library(volesti)  
-* The main function is VolEsti. The input has to be a list("matrix"=A, "vector"=b, "cheb"=xc), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center.
+* The main function is VolEsti. The input has to be a list("matrix"=A, "vector"=b, "cheb"=xc, "verbose"=BOOL), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center.
 * The "cheb" input is optional. When it is not given lpsolve library is used.  
-* "vector"=b is optional as well: You can also give as an input only a matrix A, when it is in the same format with matrix "A3.Rdata" in src folder (".ine" style).
+* "vector"=b is optional as well: You can also give as an input only a matrix A, when it is in the same format with matrix "A3.Rdata" in src folder (".ine" style).  
+* Verbose variable is by default false.  
+* You can run all the experiments by running function testRvolEsti().  
 
