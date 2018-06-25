@@ -7,6 +7,107 @@ modifyMat <- function(A){
   
 }
 
+#char2numeric <- function(r,){
+  
+#}
+
+ineToMatrix <- function(P){
+  
+  #nrows=dim(P)[1]
+  r=as.character(P[3,1])
+  #print(r)
+  count_sp=1
+  str=""
+  beg=0
+  for(j in 1:nchar(r)){
+    if(substr(r, start=j, stop=j)==" "){
+      beg=beg+1
+    }else{
+      break
+    }
+  }
+  #print(beg)
+  for(i in seq(from=beg+1, to=nchar(r), by=1)){
+    if(substr(r, start=i, stop=i)==" "){
+      if(count_sp==1){
+        m=as.numeric(str)
+        str=""
+        count_sp=count_sp+1
+      }else{
+        d=as.numeric(str)
+        str=""
+        break
+      }
+    }else{
+      str=paste0(str,substr(r, start=i, stop=i))
+    }
+  }
+  #m=as.double(substr(r, start=2, stop=3))
+  #d=as.double(substr(r, start=5, stop=6))
+  A=rep(0,d)
+  A[1]=m
+  A[2]=d
+  #print(m)
+  #print(d)
+  newrow=rep(0,d)
+  #print(dim(P)[1]-2)
+  #print(x[dim(P)[1]-2,1])
+  for(i in 4:(dim(P)[1]-2)){
+    r=P[i,1]
+    r=as.character(r)
+    str=""
+    count=1
+    #print(r)
+    beg=0
+    for(j in 1:nchar(r)){
+      if(substr(r, start=j, stop=j)==" "){
+        beg=beg+1
+      }else{
+        break
+      }
+    }
+    sp_bef=FALSE
+    for(j in seq(from=beg+1, to=nchar(r), by=1)){
+      
+      if (substr(r, start=j, stop=j)==" "){
+        if(sp_bef){
+          next
+        }
+        sp_bef=TRUE
+        newrow[count]=as.numeric(str)
+        str=""
+        count=count+1
+      }else{
+        str=paste0(str,substr(r, start=j, stop=j))
+        sp_bef=FALSE
+      }
+    }
+    #print(newrow)
+    A=rbind(A,newrow)
+    newrow=rep(0,d)
+  }
+  A=matrix(A,ncol=dim(A)[2])
+  
+  return(A)
+}
+
+testRvolEsti <- function(){
+  path=getwd()
+  path=paste0(substr(path, start=1, stop=nchar(path)-7),'/test/test_data/')
+  print(path)
+  listofexamples=list.files(path)
+  
+  for(i in 1:length(listofexamples)){
+    x=read.csv(paste0(path,listofexamples[i]))
+    print(listofexamples[i])
+    A=ineToMatrix(x)
+    tim=proc.time()
+    VolEsti(list("matrix"=A))
+    tim=proc.time()-tim
+    print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
+  }
+  #return(A)
+}
 
 CheBall <- function(A,b){
   
@@ -60,12 +161,20 @@ VolEsti <- function(Inputs){
   }else{
     xc=CheBall(A,b)
   }
+  verbose=FALSE
+  if(!is.null(Inputs$verbose)){
+    if(Inputs$verbose){
+      verbose=TRUE
+    }else{
+      verbose=FALSE
+    }
+  }
   #print(A)
   #print(b)
   A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
   #print(A)
   A=matrix(rbind(r,A),ncol=dim(A)[2])
   #return(list("matrix"=A,"vector"=b,"cheb"=xc))
-  return(vol_R(A,10,1,xc))
+  return(vol_R(A,10,1,xc,verbose))
   
 }

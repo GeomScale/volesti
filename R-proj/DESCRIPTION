@@ -11,3 +11,4 @@ Description: One paragraph description of what the package
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.17)
 LinkingTo: Rcpp, RcppEigen
+Depends: Rcpp (>= 0.12.17), RcppEigen, lpSolveAPI
