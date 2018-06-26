@@ -1,3 +1,0 @@
-/home/tolis/Dropbox/R-project/volume_approximation/test/CMakeFiles/edit_cache.dir
-/home/tolis/Dropbox/R-project/volume_approximation/test/CMakeFiles/vol.dir
-/home/tolis/Dropbox/R-project/volume_approximation/test/CMakeFiles/rebuild_cache.dir

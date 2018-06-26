@@ -263,9 +263,6 @@ public:
 
     int chebyshev_center(Point& center, double& radius){
         Point f(_d);
-        //std::pair<Point,double> res=solveLP(_A, _d);
-        //center=res.first;
-        //radius=res.second;
         
         return 1;
         
