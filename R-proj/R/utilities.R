@@ -101,10 +101,10 @@ testRvolEsti <- function(){
     x=read.csv(paste0(path,listofexamples[i]))
     print(listofexamples[i])
     A=ineToMatrix(x)
-    tim=proc.time()
+    #tim=proc.time()
     VolEsti(list("matrix"=A))
-    tim=proc.time()-tim
-    print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
+    #tim=proc.time()-tim
+    #print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
   }
   #return(A)
 }
@@ -175,6 +175,10 @@ VolEsti <- function(Inputs){
   #print(A)
   A=matrix(rbind(r,A),ncol=dim(A)[2])
   #return(list("matrix"=A,"vector"=b,"cheb"=xc))
-  return(vol_R(A,10,1,xc,verbose))
+  tim=proc.time()
+  vol=vol_R(A,10,1,xc,verbose)
+  tim=proc.time()-tim
+  print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
+  return(vol)
   
 }
