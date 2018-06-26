@@ -1,3 +1,4 @@
+#takes matrix .ine style and return matrix A and b: Ax<=b
 modifyMat <- function(A){
   
   b=A[,1]
@@ -7,15 +8,10 @@ modifyMat <- function(A){
   
 }
 
-#char2numeric <- function(r,){
-  
-#}
-
+#functiion to get a read.cs('path/to/file.ine') and return matrix for VolEsti()
 ineToMatrix <- function(P){
   
-  #nrows=dim(P)[1]
   r=as.character(P[3,1])
-  #print(r)
   count_sp=1
   str=""
   beg=0
@@ -26,7 +22,6 @@ ineToMatrix <- function(P){
       break
     }
   }
-  #print(beg)
   for(i in seq(from=beg+1, to=nchar(r), by=1)){
     if(substr(r, start=i, stop=i)==" "){
       if(count_sp==1){
@@ -42,16 +37,10 @@ ineToMatrix <- function(P){
       str=paste0(str,substr(r, start=i, stop=i))
     }
   }
-  #m=as.double(substr(r, start=2, stop=3))
-  #d=as.double(substr(r, start=5, stop=6))
   A=rep(0,d)
   A[1]=m
   A[2]=d
-  #print(m)
-  #print(d)
   newrow=rep(0,d)
-  #print(dim(P)[1]-2)
-  #print(x[dim(P)[1]-2,1])
   for(i in 4:(dim(P)[1]-2)){
     r=P[i,1]
     r=as.character(r)
@@ -82,7 +71,6 @@ ineToMatrix <- function(P){
         sp_bef=FALSE
       }
     }
-    #print(newrow)
     A=rbind(A,newrow)
     newrow=rep(0,d)
   }
@@ -91,6 +79,7 @@ ineToMatrix <- function(P){
   return(A)
 }
 
+#function to run the tests
 testRvolEsti <- function(){
   path=getwd()
   path=paste0(substr(path, start=1, stop=nchar(path)-7),'/test/test_data/')
@@ -101,14 +90,12 @@ testRvolEsti <- function(){
     x=read.csv(paste0(path,listofexamples[i]))
     print(listofexamples[i])
     A=ineToMatrix(x)
-    #tim=proc.time()
     VolEsti(list("matrix"=A))
-    #tim=proc.time()-tim
-    #print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
   }
-  #return(A)
+  
 }
 
+#Take matrices A,b: Ax<=b and compute the chebychev center using lpSolveAPI library
 CheBall <- function(A,b){
   
   d=dim(A)[2]
@@ -116,7 +103,7 @@ CheBall <- function(A,b){
   
   lprec <- make.lp(m, d+1)
   norm_row=rep(0,m)
-  #A2=A
+
   for(j in 1:m){
     norm_row[j]=norm(A[j,],type="2")
   }
@@ -134,17 +121,23 @@ CheBall <- function(A,b){
   #set.bounds(lprec, upper = rep(Inf,d+1), columns = 1:(d+1))
   
   solve(lprec)
-  #ret=c(c(get.variables(lprec)),c(get.objective(lprec)))
-  
   
   return(get.variables(lprec))
+}
+
+#Take the path for an .ine file and compute the volume of the polytope
+volFromIne <- function(path){
+  
+  x=read.csv(path)
+  A=ineToMatrix(x)
+  vol=VolEsti(list("matrix"=A))
+  return(vol)
   
 }
 
-
+#Main function. Takes a list and computes volume
 VolEsti <- function(Inputs){
   
-  #A=Inputs$matrix
   if(!is.null(Inputs$vector)){
     b=Inputs$vector
     A=-Inputs$matrix
@@ -169,14 +162,12 @@ VolEsti <- function(Inputs){
       verbose=FALSE
     }
   }
-  #print(A)
-  #print(b)
+
   A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
-  #print(A)
   A=matrix(rbind(r,A),ncol=dim(A)[2])
-  #return(list("matrix"=A,"vector"=b,"cheb"=xc))
   tim=proc.time()
   vol=vol_R(A,10,1,xc,verbose)
+  #print(paste0('magnitude: ',ceiling(-log10(vol))))
   tim=proc.time()-tim
   print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
   return(vol)

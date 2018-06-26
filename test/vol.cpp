@@ -59,6 +59,8 @@ int main(const int argc, const char** argv)
 	
 	//this is our polytope
 	stdHPolytope<double> P;
+	int magnitude=0;
+	bool exper=false;
 	
   if(argc<2){
     std::cout<<"Use -h for help"<<std::endl;
@@ -99,6 +101,11 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"--exact")){
           exactvol = atof(argv[++i]);
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-mag")){
+          magnitude=int(atof(argv[++i]));
+          exper=true;
           correct=true;
       }
       if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
@@ -225,11 +232,14 @@ int main(const int argc, const char** argv)
                      "\', try "<<argv[0]<<" --help"<<std::endl;
           exit(-2);
       }
+      
   }//for i
   
   //Compute chebychev ball//
-  //std::vector<std::vector<double>> A=P.get_matrix();
+  double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
   std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
+  double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
+  if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
   
   // Set the number of random walk steps
   if(!user_walk_len)
@@ -413,6 +423,24 @@ int main(const int argc, const char** argv)
                  //<<usage.vsize
                  <<std::endl;
 	}
+	if(exper){
+		
+		if (int( std::ceil( -std::log10( average ) ) )<0){
+			if( magnitude==0){
+				std::cout<<"TEST PASSED"<<std::endl;
+			}else{
+				std::cout<<"TEST FAILED"<<std::endl;
+			}
+		}else if( magnitude==int( std::ceil( -std::log10( average ) ) ) ){
+			std::cout<<"TEST PASSED"<<std::endl;
+		}else{
+			std::cout<<"TEST FAILED"<<std::endl;
+		}
+		std::cout<<"-----------------------------------------------\n";
+		std::cout<<" # # # # # # # # # # # # # # # # # # # # # # #\n";
+		std::cout<<"-----------------------------------------------\n";
+	}
+	
   if(linear_extensions)
 		   std::cout <<"Number of linear extensions= "<<vol*factorial(n)<<std::endl;
   

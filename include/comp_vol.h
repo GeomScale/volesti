@@ -190,7 +190,7 @@ NT volume1_reuse2(T &P,
     int walk_len = var.walk_steps;
     int n_threads = var.n_threads;
     const double err = var.err;
-    //RNGType &rng = var.rng;
+    RNGType &rng = var.rng;
     std::uniform_real_distribution<NT> urdist = var.urdist;
     std::uniform_int_distribution<int> uidist(0,n-1);
     //boost::random::uniform_real_distribution<> urdist1 = var.urdist1;
@@ -205,39 +205,10 @@ NT volume1_reuse2(T &P,
         round_value = rounding(P,var,var2);
     }
 
-    double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    //1. Compute the Chebychev ball (largest inscribed ball) with center and radius
-    double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-    if(print) std::cout<<"\nComputing the Chebychev center..."<<std::endl;
-    //Point c;       //center
+    //double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
+    //1. Get the Chebychev ball (largest inscribed ball) with center and radius
     Point c=CheBall.first;
     double radius=CheBall.second;
-    //P.chebyshev_center(c2,radius2);
-    //double radius;
-    //P.chebyshev_center(c,radius);
-    //double radius=1.0;
-    //std::vector<NT> vecc(10,NT(0));
-    //Point c(10, vecc.begin(), vecc.end());
-    //HACK FOR CROSS POLYTOPES
-    //std::vector<double> cp(n,0);
-    //Point c(n,cp.begin(),cp.end());
-    //double radius=std::sqrt(1.0/double(n));
-
-    //if(print) std::cout<<"Chebychev center= "<<c<<"\nradius="<<radius<<std::endl;
-    double tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-    Chebtime = tstop - tstart;
-    double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    if(print) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
-
-	//---------print c2 and radius2------TEST_PRINT----//
-	
-	//std::cout<<"center c2 LPSOLVE\n";
-	//for(int j=0; j<n; j++){
-		//std::cout<<c2[j]<<" ";
-	//}
-	//std::cout<<"\n radiusw LPSOLVE: "<<radius2<<std::endl;
-	
-	//------------TEST_PRINT_END----------------//
 
     rnum=rnum/n_threads;
     NT vol=0;
@@ -248,25 +219,21 @@ NT volume1_reuse2(T &P,
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-        //CGAL::Random_points_in_ball_d<Point> gen (n, radius);
-        //Point p = *gen;
-        Point p=c;
+        Random_points_on_sphere_d<Point> gen (n, radius);
+		Point p = gen.sample_point(rng);
+        p=p+c;
         //Point p(10, vecc.begin(), vecc.end());
         //p = p + (c-CGAL::Origin());
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
-        //if (print) std::cout<<"First random point: "<<p<<std::endl;
 
         double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
         // 3. Sample "rnum" points from P
         if(print) std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
-        //randPoints.push_front(p);
-        //rand_point_generator(P, p, rnum-1, walk_len, randPoints, var);
         rand_point_generator(P, p, rnum-1, walk_len, randPoints, var);
         double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "First random points construction time = " << tstop2 - tstart2 << std::endl;
-        //if(rand_only) return -1;
 
         // 4.  Construct the sequence of balls
         // 4a. compute the radius of the largest ball
@@ -284,38 +251,18 @@ NT volume1_reuse2(T &P,
         // 4b. Number of balls
         int nb1 = n * (std::log(radius)/std::log(2.0));
         int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
-        //int nb1 = n * (std::log(radius)/std::log(2.0));
-        //int nb2 = n * (std::log(max_dist)/std::log(2.0));
-        //std::cout<<n* std::log(radius)/std::log(2.0) <<std::endl;
-        //std::cout<<n* std::log(max_dist)/std::log(2.0) <<std::endl;
-        //if(print) std::cout<<nb1<<" "<<nb2<<" "<<std::pow(std::pow(2.0,NT(-2)/NT(n)),2)<<std::endl;
+        
         if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
 
         std::vector<Ball> balls;
-        /*
-        balls.push_back(Ball(c,std::pow(radius,2)));
-        if (print) {
-                std::vector<Ball>::iterator bit=balls.end();--bit;
-                std::cout<<"ball "<<bit-balls.begin()<<" | "
-                         <<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
-            }
-        */
+        
         for(int i=nb1; i<=nb2; ++i){
             balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
-            //if (print) {
-              //  std::vector<Ball>::iterator bit=balls.end();--bit;
-                //std::cout<<"ball "<<bit-balls.begin()<<" | "<<i
-                        //<<" center="<<bit->center()<<" radius="<<bit->radius()<<std::endl;
-            //}
         }
         assert(!balls.empty());
         if (print) std::cout<<"---------"<<std::endl;
 
         // 5. Estimate Vol(P)
-        //
-        //TODO: std::forward_list<Point> randPoints;
-        //std::list<Point> randPoints;
-        //randPoints.push_front(p);
 
         NT telescopic_prod=NT(1);
 
@@ -373,17 +320,10 @@ NT volume1_reuse2(T &P,
                             <<"\n--------------------------"<<std::endl;
 
             //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2
-            //if(NT(rnum)/NT(nump_PBSmall)>double(1.999)){
-            //	break;
-            //}
         }
-        //if(print) std::cout << "Stopped " << (bit2-balls.begin()) << " balls before Chebychev ball."<< std::endl;
-        //telescopic_prod *= std::pow(2,(bit2-balls.begin()));
+        
         if(print) std::cout<<"rand points = "<<rnum<<std::endl;
         if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
-        //const NT pi = boost::math::constants::pi<NT>();
-        //NT vol = std::pow(pi,n/2.0)/std::tgamma(1+n/2.0)
-        //vol = (2*std::pow(pi,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
         vol = (2*std::pow(M_PI,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
         vol=vol*telescopic_prod;
         std::cout<<"volume computed: "<<vol<<std::endl;

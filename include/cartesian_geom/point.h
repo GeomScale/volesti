@@ -11,9 +11,6 @@ public:
     typedef std::vector<K> coeff;
     coeff coeffs;
     
-
-//public:
-    
     typedef typename std::vector<K>::iterator iter;
     
     point() {}
@@ -21,18 +18,11 @@ public:
     point(int dim){
         d=dim;
         coeffs=coeff(d,0);
-        //for (int i=0; i<d; i++){
-            //coeffs.push_back(0.0);
-           // coeffs[i]=0.0;
-        //}
     }
     
     point(int dim, iter begin, iter end){
         d=dim;
         coeffs=coeff(begin,end);
-        //for (iter it=begin; it!=end; ++it){
-            //coeffs.push_back(*it);
-        //}
     }
     
     int dimension(){
@@ -53,7 +43,6 @@ public:
     
     point operator+ (point& p){
         point temp(d);
-        //temp.set_dimension(d);
         for (int i=0; i<d; i++){
             temp.coeffs[i]=p[i]+coeffs[i];
         }
@@ -63,9 +52,7 @@ public:
     
     point operator- (point& p){
         point temp(d);
-        //temp.set_dimension(d);
         for (int i=0; i<d; i++){
-            //temp.coeffs.push_back(coeffs[i]-p[i]);
             temp.coeffs[i]=coeffs[i]-p[i];
         }
         
@@ -74,9 +61,7 @@ public:
     
     point operator* (const K& k){
         point temp(d);
-        //temp.set_dimension(d);
         for (int i=0; i<d; i++){
-            //temp.coeffs.push_back(coeffs[i]*k);
             temp.coeffs[i]=coeffs[i]*k;
         }
         
@@ -90,10 +75,7 @@ public:
         
         for (int i=0; i<d; i++){
             lsq+=coeffs[i]*coeffs[i];
-        }
-        //lsq=std::sqrt(lsq);
-        
-    
+        }    
         return lsq;
     }
     
