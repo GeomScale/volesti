@@ -20,16 +20,19 @@ public:
     
     point(int dim){
         d=dim;
-        for (int i=0; i<d; i++){
-            coeffs.push_back(0.0);
-        }
+        coeffs=coeff(d,0);
+        //for (int i=0; i<d; i++){
+            //coeffs.push_back(0.0);
+           // coeffs[i]=0.0;
+        //}
     }
     
     point(int dim, iter begin, iter end){
         d=dim;
-        for (iter it=begin; it!=end; ++it){
-            coeffs.push_back(*it);
-        }
+        coeffs=coeff(begin,end);
+        //for (iter it=begin; it!=end; ++it){
+            //coeffs.push_back(*it);
+        //}
     }
     
     int dimension(){
@@ -49,30 +52,32 @@ public:
     }
     
     point operator+ (point& p){
-        point temp;
-        temp.set_dimension(d);
+        point temp(d);
+        //temp.set_dimension(d);
         for (int i=0; i<d; i++){
-            temp.coeffs.push_back(p[i]+coeffs[i]);
+            temp.coeffs[i]=p[i]+coeffs[i];
         }
         
         return temp;
     }
     
     point operator- (point& p){
-        point temp;
-        temp.set_dimension(d);
+        point temp(d);
+        //temp.set_dimension(d);
         for (int i=0; i<d; i++){
-            temp.coeffs.push_back(coeffs[i]-p[i]);
+            //temp.coeffs.push_back(coeffs[i]-p[i]);
+            temp.coeffs[i]=coeffs[i]-p[i];
         }
         
         return temp;
     }
     
     point operator* (const K& k){
-        point temp;
-        temp.set_dimension(d);
+        point temp(d);
+        //temp.set_dimension(d);
         for (int i=0; i<d; i++){
-            temp.coeffs.push_back(coeffs[i]*k);
+            //temp.coeffs.push_back(coeffs[i]*k);
+            temp.coeffs[i]=coeffs[i]*k;
         }
         
         return temp;
