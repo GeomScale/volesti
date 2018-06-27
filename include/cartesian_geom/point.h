@@ -2,76 +2,92 @@
 #define POINT_H
 
 
-template <class Cr>
+template <class K>
 class point
 {
 public:
-    typedef typename Cr::RT 	K;
+    typedef typename K::FT 	FT;
     int d;
-    typedef std::vector<K> coeff;
-    coeff coeffs;
+    typedef std::vector<FT> Coeff;
+    Coeff coeffs;
     
-    typedef typename std::vector<K>::iterator iter;
+    typedef typename std::vector<FT>::iterator iter;
     
     point() {}
     
-    point(int dim){
+    point(const int dim){
         d=dim;
-        coeffs=coeff(d,0);
+        coeffs=Coeff(d,0);
     }
     
-    point(int dim, iter begin, iter end){
+    point(const int dim, iter begin, iter end){
         d=dim;
-        coeffs=coeff(begin,end);
+        coeffs=Coeff(begin,end);
     }
     
     int dimension(){
         return d;
     }
     
-    void set_dimension(int dim){
+    void set_dimension(const int dim){
         d=dim;
     }
     
-    void set_coord(int i, K coord){
+    void set_coord(const int i, FT coord){
         coeffs[i]=coord;
     }
     
-    K operator[] (const int i){
+    FT operator[] (const int i){
         return coeffs[i];
     }
     
     point operator+ (point& p){
-        point temp(d);
-        for (int i=0; i<d; i++){
-            temp.coeffs[i]=p[i]+coeffs[i];
-        }
-        
+        point temp(p.dimension());
+        typename Coeff::iterator tmit=temp.iter_begin();
+        typename Coeff::iterator pit=p.iter_begin();
+        typename Coeff::iterator mit=coeffs.begin();
+        for( ; pit<p.iter_end(); ++pit, ++mit, ++tmit){
+			(*tmit)=(*pit)+(*mit);
+		}
+        //for (int i=0; i<d; i++){
+            //temp.coeffs[i]=p[i]+coeffs[i];
+        //}
         return temp;
     }
     
     point operator- (point& p){
-        point temp(d);
-        for (int i=0; i<d; i++){
-            temp.coeffs[i]=coeffs[i]-p[i];
-        }
+        point temp(p.dimension());
+        typename Coeff::iterator tmit=temp.iter_begin();
+        typename Coeff::iterator pit=p.iter_begin();
+        typename Coeff::iterator mit=coeffs.begin();
+        for( ; pit<p.iter_end(); ++pit, ++mit, ++tmit){
+			(*tmit)=(*mit)-(*pit);
+		}
+        //for (int i=0; i<d; i++){
+            //temp.coeffs[i]=coeffs[i]-p[i];
+        //}
         
         return temp;
     }
     
-    point operator* (const K& k){
-        point temp(d);
-        for (int i=0; i<d; i++){
-            temp.coeffs[i]=coeffs[i]*k;
-        }
+    point operator* (const FT& k){
+        point temp(d,iter_begin(),iter_end());
+        //point temp=*this;
+        typename Coeff::iterator tmit=temp.iter_begin();
+        for( ; tmit<temp.iter_end(); ++tmit){
+			(*tmit)*=k;
+		}
+        //for (int i=0; i<d; i++){
+          //  temp.coeffs[i]=coeffs[i]*k;
+        //}
         
         return temp;
     }
     
     
-    K squared_length(){
+    FT squared_length(){
         
-        K lsq=K(0);
+        FT lsq=FT(0);
         
         for (int i=0; i<d; i++){
             lsq+=coeffs[i]*coeffs[i];
@@ -95,8 +111,8 @@ public:
     
 };
 
-template<class Cr>
-point<Cr> operator* (const typename Cr::RT& k, point<Cr>& p){
+template<class K>
+point<K> operator* (const typename K::FT& k, point<K>& p){
         
         return p*k;
         

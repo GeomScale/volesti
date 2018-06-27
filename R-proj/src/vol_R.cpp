@@ -1,27 +1,26 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "../../include/comp_vol.h"
-//#include "../../include/LPsolve/solve_lp.h"
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector C, bool V){
+double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector C, bool coord, bool rounding, bool V){
     
     int n, nexp=1, n_threads=1,i,j;
-	int walk_len;//to be defined after n
+    int walk_len;//to be defined after n
     double exactvol(-1.0);
     bool verbose=true, 
 	 rand_only=false, 
 	 round_only=false,
 	 file=false, 
-	 round=false, 
+	 round=rounding, 
 	 NN=false,
 	 user_walk_len=false,
 	 linear_extensions=false,
          birk=false,
          rotate=false,
          experiments=true,
-         coordinate=true;
+         coordinate=coord;
     //double vol=0.0;
     stdHPolytope<double> P;
          
