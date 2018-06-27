@@ -19,7 +19,7 @@
 // [[Rcpp::depends(RcppEigen)]]
 #include "../external/Eigen/Eigen"
 #include "../include/comp_vol.h"
-#include "../include/LPsolve/solve_lp.h"
+#include "../external/LPsolve/solve_lp.h"
 
 //#include <proc/readproc.h>
 
@@ -58,7 +58,7 @@ int main(const int argc, const char** argv)
          coordinate=true;
 	
 	//this is our polytope
-	stdHPolytope<double> P;
+	stdHPolytope<NT> P;
 	int magnitude=0;
 	bool exper=false;
 	

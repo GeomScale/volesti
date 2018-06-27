@@ -90,7 +90,7 @@ testRvolEsti <- function(){
     x=read.csv(paste0(path,listofexamples[i]))
     print(listofexamples[i])
     A=ineToMatrix(x)
-    VolEsti(list("matrix"=A))
+    VolEsti(list("matrix"=A,"verbose"=TRUE))
   }
   
 }
@@ -117,42 +117,41 @@ CheBall <- function(A,b){
   set.rhs(lprec, b)
   
   set.bounds(lprec, lower = rep(-Inf,d), columns = 1:d)
-  #set.bounds(lprec, lower = 0, columns = d+1)
-  #set.bounds(lprec, upper = rep(Inf,d+1), columns = 1:(d+1))
   
   solve(lprec)
   
   return(get.variables(lprec))
 }
 
-#Take the path for an .ine file and compute the volume of the polytope
-volFromIne <- function(path){
-  
-  x=read.csv(path)
-  A=ineToMatrix(x)
-  vol=VolEsti(list("matrix"=A))
-  return(vol)
-  
-}
 
 #Main function. Takes a list and computes volume
 VolEsti <- function(Inputs){
   
-  if(!is.null(Inputs$vector)){
+  if(!is.null(Inputs$path)){
+    A=ineToMatrix(read.csv(Inputs$path))
+    r=A[1,]
+    A=A[-c(1),]
+    x=modifyMat(A)
+    A=x$matrix
+    b=x$vector
+  }else if(!is.null(Inputs$vector)){
     b=Inputs$vector
     A=-Inputs$matrix
-  }else{
+  }else if(!is.null(Inputs$matrix)){
     r=Inputs$matrix[1,]
     Inputs$matrix=Inputs$matrix[-c(1),]
     x=modifyMat(Inputs$matrix)
     A=x$matrix
     b=x$vector
+  }else{
+    print('No H-polytope defined from input!')
+    return(-1)
   }
   
   if(!is.null(Inputs$Chebychev)){
-    xc=Inputs$Chebychev
+    Cheb_ball=Inputs$Chebychev
   }else{
-    xc=CheBall(A,b)
+    Cheb_ball=CheBall(A,b)
   }
   verbose=FALSE
   if(!is.null(Inputs$verbose)){
@@ -162,14 +161,42 @@ VolEsti <- function(Inputs){
       verbose=FALSE
     }
   }
+  coordinate=TRUE
+  if(!is.null(Inputs$coordinate)){
+    if(Inputs$coordinate){
+      coordinate=TRUE
+    }else{
+      coordinate=FALSE
+    }
+  }
+  rounding=FALSE
+  if(!is.null(Inputs$rounding)){
+    if(Inputs$rounding){
+      rounding=TRUE
+    }else{
+      rounding=FALSE
+    }
+  }
+  if(!is.null(Inputs$Walk_length)){
+    W=Inputs$Walk_length
+  }else{
+    W=10+floor(dim(A)[2]/10)
+  }
+  if(!is.null(Inputs$error)){
+    e=Inputs$error
+  }else{
+    e=1
+  }
 
   A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
   A=matrix(rbind(r,A),ncol=dim(A)[2])
   tim=proc.time()
-  vol=vol_R(A,10,1,xc,verbose)
+  vol=vol_R(A,W,e,Cheb_ball,coordinate,rounding,verbose)
   #print(paste0('magnitude: ',ceiling(-log10(vol))))
   tim=proc.time()-tim
-  print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
+  if(verbose){
+    print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
+  }
   return(vol)
   
 }

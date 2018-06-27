@@ -97,11 +97,11 @@ std::pair<Point,double> solveLP(std::vector<std::vector<K>> A, int d){
 	}
 	
 	//if(ret == 0) {
-	std::vector<double> temp_p;
+	std::vector<double> temp_p(d,0);
 	get_variables(lp, row);
-	for(j = 0; j < Ncol; j++){
+	for(j = 0; j < d; j++){
 	//printf("%s: %f\n", get_col_name(lp, j + 1), row[j]);
-		temp_p.push_back(row[j]);
+		temp_p[j]=double(row[j]);
 	}
 	
 	Point xc( d , temp_p.begin() , temp_p.end() );

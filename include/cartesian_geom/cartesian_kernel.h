@@ -11,7 +11,7 @@ class Cartesian
 {
 public:
   typedef Cartesian<K> Self;
-  typedef K                    RT;
+  typedef K                    FT;
   typedef point<Self>              Point;
     
 };

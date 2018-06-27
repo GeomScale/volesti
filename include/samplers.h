@@ -26,30 +26,30 @@ template <class P>
 class Random_points_on_sphere_d
 {
 public:
-    typedef typename P::K 	RT;
+    typedef typename P::FT 	FT;
     int d;
-    RT r;
+    FT r;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(std::chrono::system_clock::now().time_since_epoch().count());
     //rn generator;
     //std::default_random_engine generator;   
-    std::normal_distribution<RT> distribution = std::normal_distribution<RT>(RT(0),RT(1));
+    std::normal_distribution<FT> distribution = std::normal_distribution<FT>(FT(0),FT(1));
     //typedef std::vector<K> coeff;
     //coeff coeffs;
     
     Random_points_on_sphere_d() {}
     
-    Random_points_on_sphere_d(int dim, RT radius){
+    Random_points_on_sphere_d(int dim, FT radius){
         d=dim;
         r=radius;
     }
     
     template <typename GeneratorType>
     P sample_point(GeneratorType generator){
-        std::vector<RT> Xs;
-        RT normal=RT(0);
+        std::vector<FT> Xs(d,0);
+        FT normal=FT(0);
         for (int i=0; i<d; i++){
-            Xs.push_back(distribution(generator));
+            Xs[i]=distribution(generator);
             normal+=Xs[i]*Xs[i];
         }
         normal=1.0/std::sqrt(normal);
@@ -122,6 +122,7 @@ int rand_point_generator(T &P,
                          vars &var  // constans for volume
                          )
 {
+	//std::cout<<"EDW2!"<<std::endl;
     int n = var.n;
     bool birk = var.birk;
     RNGType &rng = var.rng;
@@ -132,9 +133,11 @@ int rand_point_generator(T &P,
     int rand_coord = uidist(rng);
     double kapa = urdist(rng);
     Point p_prev = p;
-    if(var.coordinate)
+    if(var.coordinate){
+		//std::cout<<"[1a]P dim: "<<P.dimension()<<std::endl;
         hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);
-    else
+        //std::cout<<"[1b]P dim: "<<P.dimension()<<std::endl;
+    }else
         hit_and_run(p,P,var,var);
 
     for(int i=1; i<=rnum; ++i){
@@ -143,9 +146,10 @@ int rand_point_generator(T &P,
             int rand_coord_prev = rand_coord;
             rand_coord = uidist(rng);
             kapa = urdist(rng);
-            if(var.coordinate)
+            if(var.coordinate){
+				//std::cout<<"[1c]P dim: "<<P.dimension()<<std::endl;
                 hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
-            else
+            }else
                 hit_and_run(p,P,var,var);
         }
         randPoints.push_back(p);
@@ -169,6 +173,7 @@ int rand_point_generator(BallIntersectPolytope<T> &PBLarge,
                          vars &var  // constans for volume
                          )
 {
+	//std::cout<<"EDW!: "<<std::endl;
     int n = var.n;
     RNGType &rng = var.rng;
     std::uniform_real_distribution<NT> urdist = var.urdist;
@@ -249,12 +254,14 @@ int hit_and_run_coord_update(Point &p,
                              vars &var2,
                              bool init)
 {	
+	//std::cout<<"[1]P dim: "<<P.dimension()<<std::endl;
     std::pair<NT,NT> bpair;
     // EXPERIMENTAL
     //if(var.NN)
     //  bpair = P.query_dual(p,rand_coord);
     //else
     bpair = P.line_intersect_coord(p,p_prev,rand_coord,rand_coord_prev,lamdas,init);
+    //std::cout<<"[2]P dim: "<<P.dimension()<<std::endl;
     //std::cout<<"original:"<<bpair.first<<" "<<bpair.second<<std::endl;
     //std::cout<<"-----------"<<std::endl;
     //TODO: only change one coordinate of *r* avoid addition + construction
@@ -262,6 +269,8 @@ int hit_and_run_coord_update(Point &p,
     v[rand_coord] = bpair.first + kapa * (bpair.second - bpair.first);
     Point vp(P.dimension(),v.begin(),v.end());
     p_prev = p;
+    //std::cout<<"v dim: "<<v.size()<<std::endl;
+   // std::cout<<"P dim: "<<P.dimension()<<std::endl;
     p = p + vp;
     return 1;
 }

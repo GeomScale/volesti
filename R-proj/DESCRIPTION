@@ -1,13 +1,14 @@
 Package: volesti
 Type: Package
 SystemRequirements: C++11
-Title: What the Package Does in One 'Title Case' Line
+Title: Volume computation using VolEsti algorithm
 Version: 1.0
-Date: 2018-06-22
-Author: Your Name
-Maintainer: Your Name <your@email.com>
-Description: One paragraph description of what the package
-       does as one or more full sentences.
+Date: 2018-06-28
+Author: Vissarion Fisikopoulos, Chalkis Apostolos
+Maintainer: Chalkis Apostolos <tolis.chal@gmail.com>
+Description: Package provides C++ code and a Rcpp interface for volume computation.
+             The make function takes as input a H-polytope and apply VolEsti algorithm 
+             for volume approximation.
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.17)
 LinkingTo: Rcpp, RcppEigen
