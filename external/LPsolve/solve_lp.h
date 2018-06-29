@@ -3,7 +3,7 @@
 
 
 template <typename K>
-std::pair<Point,double> solveLP(std::vector<std::vector<K>> A, int d){
+std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){
 	
 	lprec *lp;
 	int Ncol=d+1, *colno = NULL, j, ret = 0, m=A.size();

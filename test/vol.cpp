@@ -240,6 +240,14 @@ int main(const int argc, const char** argv)
   std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
+  if(verbose){
+      std::cout<<"size vector: "<<CheBall.first.coeffs.size()<<" point dim: "<<CheBall.first.dimension()<<"\n";
+      std::cout<<"Chebychev center is: "<<std::endl;
+      for(int i=0; i<P.dimension(); i++){
+          std::cout<<CheBall.first[i]<<" ";
+      }
+      std::cout<<"\nradius is: "<<CheBall.second<<std::endl;
+  }
   
   // Set the number of random walk steps
   if(!user_walk_len)
@@ -257,22 +265,29 @@ int main(const int argc, const char** argv)
   
    /* RANDOM NUMBERS */  
   // obtain a time-based seed:
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  //const auto seed = boost::chrono::system_clock::now();
   // the random engine with this seed
   //RNGType rng(seed);
-  RNGType rng(seed);
-  // standard normal distribution with mean of 0 and standard deviation of 1 
-  std::normal_distribution<double> rdist(0.0,1.0);
+  RNGType rng(std::time(0));
+  //rng.engine().seed();
+  //rng.distribution().reset();
+  //srand (seed);
+  boost::normal_distribution<> rdist(0,1);
+  boost::random::uniform_real_distribution<>(urdist);
+  boost::random::uniform_real_distribution<> urdist1(-1,1);
+    // standard normal distribution with mean of 0 and standard deviation of 1
+  //std::normal_distribution<double> rdist(0.0,1.0);
   //boost::normal_distribution<> rdist(0,1);
   
   //boost::variate_generator< RNGType, boost::normal_distribution<> >
 											//get_snd_rand(rng, rdist); 
   // uniform distribution 
   //boost::random::uniform_real_distribution<>(urdist); 
-  std::uniform_real_distribution<double> urdist(0.0,1.0);
+  //std::uniform_real_distribution<double> urdist(0.0,1.0);
   
   //boost::random::uniform_real_distribution<> urdist1(-1,1);
-  std::uniform_real_distribution<double> urdist1(-1.0,1.0);
+  //std::uniform_real_distribution<double> urdist1(-1.0,1.0);
 
   // If no file specified construct a default polytope
   if(!file){

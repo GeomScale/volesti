@@ -1,3 +1,5 @@
+// [[Rcpp::depends(BH)]]
+
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "../../include/comp_vol.h"
@@ -38,12 +40,15 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector C, bool
 		std::cout<<n<<" "<<m<<std::endl;
 		std::cout<<"rnum is: "<<rnum<<std::endl; 
 	}
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     // the random engine with this seed
-    RNGType rng(seed);
-    std::normal_distribution<double> rdist(0.0,1.0); 
-    std::uniform_real_distribution<double> urdist(0.0,1.0);
-    std::uniform_real_distribution<double> urdist1(-1.0,1.0);
+    RNGType rng(std::time(0));
+    boost::normal_distribution<> rdist(0,1);
+    boost::random::uniform_real_distribution<>(urdist);
+    boost::random::uniform_real_distribution<> urdist1(-1,1);
+    //std::normal_distribution<double> rdist(0.0,1.0);
+    //std::uniform_real_distribution<double> urdist(0.0,1.0);
+    //std::uniform_real_distribution<double> urdist1(-1.0,1.0);
     
     vars var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,rng,urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
     std::vector<std::vector<double>> Pin(m+1, std::vector<double>(n+1));
