@@ -21,24 +21,33 @@
 #include <iterator>
 #include <iostream>
 #include <fstream>
-#include <string>
-#include <random>
+//#include <string>
+//#include <random>
 #include <vector>
-#include <forward_list>
+//#include <forward_list>
 #include <list>
-#include <bitset>
-#include <random>
-#include <chrono>       // std::chrono::system_clock
-#include <functional>
+//#include <bitset>
+//#include <chrono>
+#include <ctime>       // std::chrono::system_clock
+//#include <functional>
 #include <algorithm>
 #include <math.h>
+//#include <cstdlib>
 #include "cartesian_geom/cartesian_kernel.h"
+#include "boost/random.hpp"
+//#include "boost/random/mersenne_twister.hpp"
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+//#include <boost/chrono/chrono.hpp>
 
 
 typedef double                      NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
-typedef std::default_random_engine RNGType;// generator 
+//typedef std::default_random_engine RNGType;// generator
+//typedef std::mt19937 RNGType;
+typedef boost::mt19937 RNGType; ///< mersenne twister generator
 
 
 //structs with variables and random generators
@@ -54,8 +63,10 @@ public:
           double up,
           const int L,
           RNGType &rng,
-          std::uniform_real_distribution<NT> urdist,
-          std::uniform_real_distribution<NT> urdist1,
+          //std::uniform_real_distribution<NT> urdist,
+          //std::uniform_real_distribution<NT> urdist1,
+          boost::random::uniform_real_distribution<>(urdist),
+          boost::random::uniform_real_distribution<> urdist1,
           bool verbose,
           bool rand_only,
           bool round,
@@ -78,8 +89,10 @@ public:
     double up;
     const int L;
     RNGType &rng;
-    std::uniform_real_distribution<NT> urdist;
-    std::uniform_real_distribution<NT> urdist1;
+    //std::uniform_real_distribution<NT> urdist;
+    //std::uniform_real_distribution<NT> urdist1;
+    boost::random::uniform_real_distribution<>(urdist);
+    boost::random::uniform_real_distribution<> urdist1;
     bool verbose;
     bool rand_only;
     bool round;
@@ -116,6 +129,8 @@ NT volume1_reuse2(T &P,
 {
     typedef BallIntersectPolytope<T>        BallPoly;
 
+
+
     bool round = var.round;
     bool print = var.verbose;
     bool rand_only = var.rand_only;
@@ -125,9 +140,10 @@ NT volume1_reuse2(T &P,
     int n_threads = var.n_threads;
     const double err = var.err;
     RNGType &rng = var.rng;
-    std::uniform_real_distribution<NT> urdist = var.urdist;
-    std::uniform_int_distribution<int> uidist(0,n-1);
-    
+    //std::uniform_real_distribution<NT> urdist = var.urdist;
+    //std::uniform_int_distribution<int> uidist(0,n-1);
+    //boost::random::uniform_real_distribution<> urdist = var.urdist;
+    //boost::random::uniform_int_distribution<> uidist(0,n-1);
     // Rotation: only for test with skinny polytopes and rounding
     //std::cout<<"Rotate="<<rotate(P)<<std::endl;
     //rotate(P);
@@ -141,6 +157,7 @@ NT volume1_reuse2(T &P,
     //1. Get the Chebychev ball (largest inscribed ball) with center and radius
     Point c=CheBall.first;
     double radius=CheBall.second;
+    NT r0;
 
     rnum=rnum/n_threads;
     NT vol=0;
@@ -181,6 +198,7 @@ NT volume1_reuse2(T &P,
         //
         // 4b. Number of balls
         int nb1 = n * (std::log(radius)/std::log(2.0));
+        //std::cout<<"nb1 = "<< n * (std::log(radius)/std::log(2.0))<<" nb1INT= "<<nb1<<" nb1stdfloor = "<<std::floor(n * (std::log(radius)/std::log(2.0)))<<std::endl;
         int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
         
         if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
@@ -188,7 +206,13 @@ NT volume1_reuse2(T &P,
         std::vector<Ball> balls;
         
         for(int i=nb1; i<=nb2; ++i){
-            balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
+
+            if(i==nb1){
+                balls.push_back(Ball(c,radius*radius));
+            }else{
+                balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
+            }
+
         }
         assert(!balls.empty());
         if (print) std::cout<<"---------"<<std::endl;
@@ -255,8 +279,11 @@ NT volume1_reuse2(T &P,
         
         if(print) std::cout<<"rand points = "<<rnum<<std::endl;
         if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
-        vol = (2*std::pow(M_PI,n/2.0)*std::pow(radius,n)) / (std::tgamma(n/2.0)*n);
+        //NT vol2 = (2*std::pow(M_PI,n/2.0)*std::pow(r0,n)) / (std::tgamma(n/2.0)*n);
+        //NT vol2=(std::pow(M_PI,n/2.0)*(std::pow(r0, n) ) ) / (std::tgamma(n/2.0+1));
+        vol = (std::pow(M_PI,n/2.0)*(std::pow(balls[0].radius(), n) ) ) / (tgamma(n/2.0+1));
         vol=vol*telescopic_prod;
+        if(print) std::cout<<"round_value: "<<round_value<<std::endl;
         vol=round_value*vol;
         if(print) std::cout<<"volume computed: "<<vol<<std::endl;
     

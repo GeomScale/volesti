@@ -33,7 +33,8 @@ public:
     //RNGType rng(std::chrono::system_clock::now().time_since_epoch().count());
     //rn generator;
     //std::default_random_engine generator;   
-    std::normal_distribution<FT> distribution = std::normal_distribution<FT>(FT(0),FT(1));
+    //std::normal_distribution<FT> distribution = std::normal_distribution<FT>(FT(0),FT(1));
+    boost::normal_distribution<> distribution = boost::normal_distribution<>(0,1);
     //typedef std::vector<K> coeff;
     //coeff coeffs;
     
@@ -126,10 +127,14 @@ int rand_point_generator(T &P,
     int n = var.n;
     bool birk = var.birk;
     RNGType &rng = var.rng;
-    std::uniform_real_distribution<NT> urdist = var.urdist;
-    std::uniform_int_distribution<int> uidist(0,n-1);
+    boost::random::uniform_real_distribution<> urdist(0,1);
+    boost::random::uniform_int_distribution<> uidist(0,n-1);
+    //std::uniform_real_distribution<NT> urdist = var.urdist;
+    //std::uniform_int_distribution<int> uidist(0,n-1);
 
     std::vector<NT> lamdas(P.num_of_hyperplanes(),NT(0));
+    //int rand_coord = rand()%n;
+    //double kapa = double(rand())/double(RAND_MAX);
     int rand_coord = uidist(rng);
     double kapa = urdist(rng);
     Point p_prev = p;
@@ -144,6 +149,8 @@ int rand_point_generator(T &P,
 
         for(int j=0; j<walk_len; ++j){
             int rand_coord_prev = rand_coord;
+            //rand_coord = rand()%n;
+            //kapa = double(rand())/double(RAND_MAX);
             rand_coord = uidist(rng);
             kapa = urdist(rng);
             if(var.coordinate){
@@ -176,10 +183,14 @@ int rand_point_generator(BallIntersectPolytope<T> &PBLarge,
 	//std::cout<<"EDW!: "<<std::endl;
     int n = var.n;
     RNGType &rng = var.rng;
-    std::uniform_real_distribution<NT> urdist = var.urdist;
-    std::uniform_int_distribution<int> uidist(0,n-1);
+    boost::random::uniform_real_distribution<> urdist(0,1);
+    boost::random::uniform_int_distribution<> uidist(0,n-1);
+    //std::uniform_real_distribution<NT> urdist = var.urdist;
+    //std::uniform_int_distribution<int> uidist(0,n-1);
 
     std::vector<NT> lamdas(PBLarge.num_of_hyperplanes(),NT(0));
+    //int rand_coord = rand()%n;
+    //double kapa = double(rand())/double(RAND_MAX);
     int rand_coord = uidist(rng);
     double kapa = urdist(rng);
     Point p_prev = p;
@@ -192,6 +203,8 @@ int rand_point_generator(BallIntersectPolytope<T> &PBLarge,
     for(int i=1; i<=rnum; ++i){
         for(int j=0; j<walk_len; ++j){
             int rand_coord_prev = rand_coord;
+            //rand_coord = rand()%n;
+            //kapa = double(rand())/double(RAND_MAX);
             rand_coord = uidist(rng);
             kapa = urdist(rng);
             if(var.coordinate)
@@ -220,8 +233,9 @@ int hit_and_run(Point &p,
     int n = var.n;
     double err = var.err;
     RNGType &rng = var.rng;
-    std::uniform_real_distribution<NT> &urdist = var.urdist;
-    std::uniform_real_distribution<NT> &urdist1 = var.urdist1;
+    //std::uniform_real_distribution<NT> &urdist = var.urdist;
+    boost::random::uniform_real_distribution<> urdist(0,1);
+    //std::uniform_real_distribution<NT> &urdist1 = var.urdist1;
 
     Point origin(n);
     
@@ -265,13 +279,14 @@ int hit_and_run_coord_update(Point &p,
     //std::cout<<"original:"<<bpair.first<<" "<<bpair.second<<std::endl;
     //std::cout<<"-----------"<<std::endl;
     //TODO: only change one coordinate of *r* avoid addition + construction
-    std::vector<NT> v(P.dimension(),NT(0));
-    v[rand_coord] = bpair.first + kapa * (bpair.second - bpair.first);
-    Point vp(P.dimension(),v.begin(),v.end());
+    //std::vector<NT> v(P.dimension(),NT(0));
+    //v[rand_coord] = bpair.first + kapa * (bpair.second - bpair.first);
+    //Point vp(P.dimension(),v.begin(),v.end());
     p_prev = p;
     //std::cout<<"v dim: "<<v.size()<<std::endl;
    // std::cout<<"P dim: "<<P.dimension()<<std::endl;
-    p = p + vp;
+    //p = p + vp;
+    p.set_coord(rand_coord , p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
     return 1;
 }
 

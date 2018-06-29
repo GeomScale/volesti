@@ -11,5 +11,5 @@ Description: Package provides C++ code and a Rcpp interface for volume computati
              for volume approximation.
 License: GPL (>= 2)
 Imports: Rcpp (>= 0.12.17)
-LinkingTo: Rcpp, RcppEigen
+LinkingTo: Rcpp, RcppEigen, BH
 Depends: Rcpp (>= 0.12.17), RcppEigen, lpSolveAPI
