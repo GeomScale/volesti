@@ -149,15 +149,16 @@ NT volume1_reuse2(T &P,
     //rotate(P);
 
     //0. Rounding of the polytope if round=true
+    Point c=CheBall.first;
+    NT radius=CheBall.second;
     double round_value=1;
     if(round){
-        round_value = rounding(P,var,var2);
+        round_value = rounding(P,c,radius,var);
     }
 
     //1. Get the Chebychev ball (largest inscribed ball) with center and radius
-    Point c=CheBall.first;
-    double radius=CheBall.second;
-    NT r0;
+
+    //NT r0;
 
     rnum=rnum/n_threads;
     NT vol=0;
