@@ -19,7 +19,7 @@
 // [[Rcpp::depends(RcppEigen)]]
 #include "../external/Eigen/Eigen"
 #include "../include/comp_vol.h"
-#include "../external/LPsolve/solve_lp.h"
+//#include "../external/LPsolve/solve_lp.h"
 
 //#include <proc/readproc.h>
 
