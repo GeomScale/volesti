@@ -19,12 +19,12 @@
 //ROUNDING
 
 Eigen::MatrixXd getPointsMat(std::list<Point> randPoints, int dim){
-    Eigen::MatrixXd S(dim,randPoints.size());
-    for(int j=0; j<randPoints.size(); j++){
+    Eigen::MatrixXd S(randPoints.size(),dim);
+    for(int i=0; i<randPoints.size(); i++){
         Point p=randPoints.front();
         randPoints.pop_front();
-        for (int i=0; i<dim; i++){
-            S(i,j)=p[i];
+        for (int j=0; j<dim; j++){
+            S(i,j)=p[j];
         }
     }
     
@@ -33,12 +33,45 @@ Eigen::MatrixXd getPointsMat(std::list<Point> randPoints, int dim){
 
 
 template <class T1>
-double rounding(T1 &P , vars &var){
-    typedef typename T1::K 	K;
+std::pair<Point, NT> approx_R(T1 &P, vars var){
+    std::pair<Point,double> Cheb_ball=solveLP(P.get_matrix(), P.dimension());
+    Point c=Cheb_ball.first;
+    NT radius = Cheb_ball.second;
+
+    int n=var.n, walk_len=var.walk_steps;
+    Random_points_on_sphere_d<Point> gen (n, radius);
+    Point p = gen.sample_point(var.rng);
+    p = p + c;
+    std::list<Point> randPoints; //ds for storing rand points
+    //use a large walk length e.g. 1000
+    rand_point_generator(P, p, 1, 50*n, randPoints, var);
+    //if (print) std::cout<<"First random point: "<<p<<std::endl;
+
+    // 3. Sample points from P
+    //randPoints.push_front(p);
+    int num_of_samples = std::pow(1.0,-2) * 400 * n * std::log(n);;//this is the number of sample points will used to compute min_ellipoid
+    //if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
+    rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
+    NT current_dist, max_dist;
+    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+        current_dist=(*pit-c).squared_length();
+        if(current_dist>max_dist){
+            max_dist=current_dist;
+        }
+    }
+    max_dist=std::sqrt(max_dist);
+    NT R=max_dist/radius;
+    return std::pair<Point,NT> (c,R);
+}
+
+
+template <class T1>
+NT rounding(T1 &P , Point c, NT radius, vars &var){
+    //typedef typename T1::FT 	K;
     int n=var.n, walk_len=var.walk_steps;
     // 1. Compute the Chebychev ball (largest inscribed ball) with center and radius 
-	Point c(n);       //center
-    K radius;
+	//Point c(n);       //center
+    //K radius;
     //P.chebyshev_center(c,radius);
     
     // 2. Generate the first random point in P
@@ -49,7 +82,7 @@ double rounding(T1 &P , vars &var){
 	p = p + c;
 	std::list<Point> randPoints; //ds for storing rand points
 	//use a large walk length e.g. 1000
-	rand_point_generator(P, p, 1, 1000, randPoints, var); 
+	rand_point_generator(P, p, 1, 50*n, randPoints, var);
 	//if (print) std::cout<<"First random point: "<<p<<std::endl;
     
     // 3. Sample points from P
@@ -57,7 +90,7 @@ double rounding(T1 &P , vars &var){
 	int num_of_samples = std::pow(1.0,-2) * 400 * n * std::log(n);;//this is the number of sample points will used to compute min_ellipoid
 	//if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
 	rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
-    K current_dist, max_dist;
+    NT current_dist, max_dist;
     for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
         current_dist=(*pit-c).squared_length();
         if(current_dist>max_dist){
@@ -65,23 +98,44 @@ double rounding(T1 &P , vars &var){
         }
     }
     max_dist=std::sqrt(max_dist);
-    K R=max_dist/radius;
+    NT R=max_dist/radius;
     
     
     // 4. Compute the transformation matrix T
     Eigen::MatrixXd T = Eigen::MatrixXd::Identity(n,n);
     bool well_rounded=false;
-    int t=8*n*n*n, tries=0;
-    
+    //int t=8*n*n*n,
+    int t=var.m;
+    int tries=0;
+    Eigen::MatrixXd S=Eigen::MatrixXd::Identity(n,n);
+    std::pair<Point,NT> res;
     while(!well_rounded){
         tries++;
         randPoints.clear();
         T1 P2(P);
         P2.linear_transformIt(T.inverse());   //We have to sample from the transformed body
-        rand_point_generator(P, p, t, walk_len, randPoints, var);
-        Eigen::MatrixXd S=getPointsMat(randPoints,n);
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd(S, Eigen::ComputeThinU | Eigen::ComputeThinV);
-        T=svd.matrixU()*S.inverse()*T;
+        res=solveLP(P2.get_matrix(), P2.dimension());
+        c=res.first;
+        Random_points_on_sphere_d<Point> gen (n, res.second);
+        p = gen.sample_point(var.rng);
+        p = p + c;
+        rand_point_generator(P, p, 1, 50*n, randPoints, var);
+        randPoints.clear();
+        rand_point_generator(P2, p, t, walk_len, randPoints, var);
+        Eigen::MatrixXd PM=getPointsMat(randPoints,n);
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd(PM, Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+        NT min=svd.singularValues()(0);
+        for(int i=1; i<n; i++){
+            if(svd.singularValues()(i)<min){
+                min=svd.singularValues()(i);
+            }
+        }
+        for(int i=0; i<n; i++){
+            S(i,i)=svd.singularValues()(i)/min;
+        }
+
+        T=svd.matrixV()*S.inverse()*T;
         well_rounded=true;
         for (int i=0; i<n; i++){
             if (svd.singularValues()(i)>2.0){
@@ -98,7 +152,7 @@ double rounding(T1 &P , vars &var){
         }
     }
     
-    return T.determinant();
+    return T.inverse().determinant();
 }
 
 

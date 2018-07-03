@@ -15,6 +15,7 @@ private:
     stdMatrix      _A; //inequalities
 
 public:
+    typedef K                    FT;
     stdHPolytope() {}
 
     // constructor: cube(d)
