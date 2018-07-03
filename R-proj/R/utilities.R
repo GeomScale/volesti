@@ -151,7 +151,8 @@ VolEsti <- function(Inputs){
   if(!is.null(Inputs$Chebychev)){
     Cheb_ball=Inputs$Chebychev
   }else{
-    Cheb_ball=CheBall(A,b)
+    #Cheb_ball=CheBall(A,b)
+    Cheb_ball=rep(0,dim(A)[2]+5)
   }
   verbose=FALSE
   if(!is.null(Inputs$verbose)){
@@ -191,6 +192,7 @@ VolEsti <- function(Inputs){
   A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
   A=matrix(rbind(r,A),ncol=dim(A)[2])
   tim=proc.time()
+  print(Cheb_ball)
   vol=vol_R(A,W,e,Cheb_ball,coordinate,rounding,verbose)
   #print(paste0('magnitude: ',ceiling(-log10(vol))))
   tim=proc.time()-tim

@@ -2,5 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-.idea/*
+./R-proj/.idea
+./.idea
 .metadata/*

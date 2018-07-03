@@ -1,1 +1,2 @@
-PKG_CPPFLAGS = -O3
+PKG_LIBS+=$(LDFLAGS) ../external_libs/liblpsolve55.so
+PKG_CPPFLAGS = -I../external_libs -O3 -lm -ldl
