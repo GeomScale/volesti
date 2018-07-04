@@ -17,7 +17,8 @@ This is a Rcpp package based on an open-source C++ software for computing an app
 >build()  
 >install()  
 >library(volesti)  
-You can use Rstudio as well to open volesti.Rproj and then click "build source Package" and then "Install and Restart" in "Build" at the menu bar.  
+
+* You can use Rstudio as well to open volesti.Rproj and then click "build source Package" and then "Install and Restart" in "Build" at the menu bar.  
 
 #### *Run volesti*
 
@@ -33,6 +34,7 @@ You can use Rstudio as well to open volesti.Rproj and then click "build source P
 * To run C++ code you have to specify the path to external library liblpsolve55.so, by running, in folder test:  
 >cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ .  
 >make  
+
 * For example:  
 cmake -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so .  
 make  
@@ -42,14 +44,14 @@ make
 
 * The current version of the software assumes that the polytope is given in the form of linear inequalities i.e. {x \in R^d : Ax <= b} where A is a matrix of dimension mxd and b a vector of dimension m. The input is described in an .ine-file as follows:  
   
-===================   
+- - - - - - - - - -   
 various comments  
 begin  
 m d+1 numbertype  
 b -A  
 end  
 various options  
-===================  
+- - - - - - - - - - 
   
 * This filestype (or similar) is used by a number of other software in polyhedral computation (e.g. cdd, vinci, latte). In the current version of the software, the options are treated as comments and the numbertype as C++ double type.  
 * If your input has equality constraints then you have to transform it in the form that only contain linear inequalities which described above by using some other software. We recommend to use latte (https://www.math.ucdavis.edu/~latte) for this transformation.  
@@ -58,15 +60,15 @@ various options
 
 After successful compilation you can use the software by command line. 
  
-./vol -h  
- 
-will display a help message about the program's available options.  
+>./vol -h  
+  
+* will display a help message about the program's available options.  
   
 **Example**  
   
 * To estimate the volume of the 10-dimensional hypercube first prepare the file cube10.ine as follows:  
   
-======================  
+- - - - - - - - - - 
 cube10.ine  
 H-representation  
 begin  
@@ -93,11 +95,12 @@ begin
  1 0 0 0 0 0 0 0 0 0 -1  
 end  
 input_incidence  
-=======================  
+- - - - - - - - - - -
   
 * Then run the following command:  
 >./vol -f1 polytope_examples/cube10.ine  
-which returns 17 numbers:  
+
+* which returns 17 numbers:  
 >d m #experiments exactvolOr-1 approx [.,.] #randPoints walkLength meanVol [minVol,maxVol] stdDev errorVsExact maxminDivergence time timeChebyshevBall
  
 
