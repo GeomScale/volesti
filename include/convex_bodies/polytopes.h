@@ -105,6 +105,8 @@ public:
                 A(i,j-1)=_A[i][j];
             }
         }
+        //print();
+        //std::cout<<"A eigen: \n"<<A<<std::endl;
         return 0;
     }
 
@@ -349,6 +351,11 @@ public:
     int linear_transformIt(Eigen::MatrixXd Tinv){
         A=A*Tinv;
         //set _A = A or replace stdMatrix with Eigen::MatrixXd ??????
+        for(int i=0; i<_A.size(); i++){
+            for(int j=1; j<_d+1; j++){
+                _A[i][j]=A(i,j-1);
+            }
+        }
         return 1;
     }
 
