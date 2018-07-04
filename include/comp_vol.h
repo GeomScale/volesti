@@ -142,10 +142,6 @@ NT volume1_reuse2(T &P,
     int n_threads = var.n_threads;
     const double err = var.err;
     RNGType &rng = var.rng;
-    //std::uniform_real_distribution<NT> urdist = var.urdist;
-    //std::uniform_int_distribution<int> uidist(0,n-1);
-    //boost::random::uniform_real_distribution<> urdist = var.urdist;
-    //boost::random::uniform_int_distribution<> uidist(0,n-1);
     // Rotation: only for test with skinny polytopes and rounding
     //std::cout<<"Rotate="<<rotate(P)<<std::endl;
     //rotate(P);
@@ -155,14 +151,16 @@ NT volume1_reuse2(T &P,
     NT radius=CheBall.second;
     double round_value=1;
     if(round){
+        if(print) std::cout<<"\nRounding.."<<std::endl;
+        double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
         round_value = rounding_min_ellipsoid(P,c,radius,var);
+        double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
+        if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         std::pair<Point,NT> res=solveLP(P.get_matrix(), P.dimension());
         c=res.first; radius=res.second;
     }
 
     //1. Get the Chebychev ball (largest inscribed ball) with center and radius
-
-    //NT r0;
 
     rnum=rnum/n_threads;
     NT vol=0;
@@ -284,54 +282,14 @@ NT volume1_reuse2(T &P,
         
         if(print) std::cout<<"rand points = "<<rnum<<std::endl;
         if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
-        //NT vol2 = (2*std::pow(M_PI,n/2.0)*std::pow(r0,n)) / (std::tgamma(n/2.0)*n);
-        //NT vol2=(std::pow(M_PI,n/2.0)*(std::pow(r0, n) ) ) / (std::tgamma(n/2.0+1));
         vol = (std::pow(M_PI,n/2.0)*(std::pow(balls[0].radius(), n) ) ) / (tgamma(n/2.0+1));
         vol=vol*telescopic_prod;
         if(print) std::cout<<"round_value: "<<round_value<<std::endl;
         vol=round_value*vol;
         if(print) std::cout<<"volume computed: "<<vol<<std::endl;
-    
-        /*
-        mpfr_t result,pow,base,exp;
-        mpfr_init(result);
-        mpfr_init(pow);
-        mpfr_init(base);
-        mpfr_init(exp);
-        mpfr_set_ld(result,2.0,GMP_RNDN);
 
-        mpfr_set_ld(base,pi,GMP_RNDN);
-        mpfr_set_ld(exp,n/2.0,GMP_RNDN);
-        mpfr_pow(pow, base, exp, GMP_RNDN);
-        mpfr_mul(result,result,pow,GMP_RNDN);
-
-        mpfr_set_ld(base,balls[0].radius(),GMP_RNDN);
-        mpfr_set_ld(exp,n,GMP_RNDN);
-        mpfr_pow(pow, base, exp, GMP_RNDN);
-        mpfr_mul(result,result,pow,GMP_RNDN);
-        mpfr_div_d(result,result,std::tgamma(n/2.0)*n,GMP_RNDN);
-        mpfr_mul_d(result,result,CGAL::to_double(telescopic_prod),GMP_RNDN);*/
-
-        //std::cout << "mpfr vol=" << mpfr_get_ld(result,GMP_RNDN) << std::endl;
-        //
-        /*EXACT_NT vol_thread = EXACT_NT(2)
-                            * EXACT_NT(std::pow(pi,n/2.0))
-                            * EXACT_NT(std::pow(balls[0].radius(),n))
-                            / EXACT_NT(EXACT_NT(std::tgamma(n/2.0))*EXACT_NT(n))
-                            //* (std::pow(NT(rnum),balls.size()-1) / telescopic_prod_nom );
-                            * telescopic_prod;
-        */
-        //NT vol(0);
-        //#pragma omp ordered
-        //NT vol_thread = mpfr_get_d(result,GMP_RNDN);
-        //vol += vol_thread;
     }
 
-    // std::cout<<"ROUNDING:"<<round_value<<", "<<CGAL::to_double(round_value*(vol/n_threads)) << ", " <<
-    //           CGAL::to_double(round_value*(vol/n_threads)/n*(n+1))<<std::endl;
-    //const NT pi = boost::math::constants::pi<NT>();
-    //std::cout<<"Cheb:"<<(2*std::pow(pi,n/2.0)*std::pow(radius,n))
-    //	                    / (std::tgamma(n/2.0)*n)<<std::endl;
     return vol;
 }
 
