@@ -30,7 +30,8 @@ make
 >install()  
 >library(volesti)  
 * The main function is VolEsti. The input has to be a list("matrix"=A, "vector"=b, "cheb"=xc, "verbose"=BOOL), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center.
-* The "cheb" input is optional. When it is not given lpsolve library is used.  
+* The "cheb" input is optional. When it is not given lpsolve library is used from C++ code.  
+* A R function, using lpSolveAPI, to compute chebychev center is provided.
 * "vector"=b is optional as well: You can also give as an input only a matrix A, when it is in the same format with matrix "A3.Rdata" in src folder (".ine" style).  
 * Verbose variable is by default false.  
 * Function volFromIne() could be used for an .ine file when the path 'path/to/file.ine' is given.  

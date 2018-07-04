@@ -3,6 +3,8 @@
 cmake .
 make
 
+#g++ -o vol vol.cpp -O3 /usr/lib/liblpsolve55.so -lm -ldl
+
 if [[ $1 == "-exp" ]]; then
 ./vol -f1 ./test_data/birk3.ine -mag 1
 ./vol -f1 ./test_data/birk4.ine -mag 4

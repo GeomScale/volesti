@@ -52,7 +52,7 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
     //std::uniform_real_distribution<double> urdist1(-1.0,1.0);
     
     vars var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,rng,urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
-    std::vector<std::vector<double>> Pin(m+1, std::vector<double>(n+1));
+    std::vector<std::vector<double> > Pin(m+1, std::vector<double>(n+1));
     std::vector<double> bin(m);
     
     for (i=0; i<m+1; i++){

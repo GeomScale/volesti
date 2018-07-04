@@ -34,6 +34,7 @@
 #include <math.h>
 //#include <cstdlib>
 #include "cartesian_geom/cartesian_kernel.h"
+//#include <gsl/cblas>
 #include "boost/random.hpp"
 //#include "boost/random/mersenne_twister.hpp"
 #include <boost/random/uniform_int.hpp>
@@ -108,6 +109,7 @@ template <class T>
 int opt_interior(T &K,vars &var,Point &opt,Point &w);
 
 #include "../external/LPsolve/solve_lp.h"
+#include "../external/minimum_ellipsoid/khach2.h"
 #include "convex_bodies/ellipsoids.h"
 #include "convex_bodies/polytopes.h"
 #include "convex_bodies/ballintersectconvex.h"
@@ -153,7 +155,9 @@ NT volume1_reuse2(T &P,
     NT radius=CheBall.second;
     double round_value=1;
     if(round){
-        round_value = rounding(P,c,radius,var);
+        round_value = rounding_min_ellipsoid(P,c,radius,var);
+        std::pair<Point,NT> res=solveLP(P.get_matrix(), P.dimension());
+        c=res.first; radius=res.second;
     }
 
     //1. Get the Chebychev ball (largest inscribed ball) with center and radius
