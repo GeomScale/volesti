@@ -241,7 +241,6 @@ int main(const int argc, const char** argv)
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
   if(verbose){
-      std::cout<<"size vector: "<<CheBall.first.coeffs.size()<<" point dim: "<<CheBall.first.dimension()<<"\n";
       std::cout<<"Chebychev center is: "<<std::endl;
       for(int i=0; i<P.dimension(); i++){
           std::cout<<CheBall.first[i]<<" ";
@@ -263,31 +262,11 @@ int main(const int argc, const char** argv)
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
-   /* RANDOM NUMBERS */  
-  // obtain a time-based seed:
-  //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  //const auto seed = boost::chrono::system_clock::now();
-  // the random engine with this seed
-  //RNGType rng(seed);
+   /* RANDOM NUMBERS */
   RNGType rng(std::time(0));
-  //rng.engine().seed();
-  //rng.distribution().reset();
-  //srand (seed);
   boost::normal_distribution<> rdist(0,1);
   boost::random::uniform_real_distribution<>(urdist);
   boost::random::uniform_real_distribution<> urdist1(-1,1);
-    // standard normal distribution with mean of 0 and standard deviation of 1
-  //std::normal_distribution<double> rdist(0.0,1.0);
-  //boost::normal_distribution<> rdist(0,1);
-  
-  //boost::variate_generator< RNGType, boost::normal_distribution<> >
-											//get_snd_rand(rng, rdist); 
-  // uniform distribution 
-  //boost::random::uniform_real_distribution<>(urdist); 
-  //std::uniform_real_distribution<double> urdist(0.0,1.0);
-  
-  //boost::random::uniform_real_distribution<> urdist1(-1,1);
-  //std::uniform_real_distribution<double> urdist1(-1.0,1.0);
 
   // If no file specified construct a default polytope
   if(!file){
@@ -336,8 +315,6 @@ int main(const int argc, const char** argv)
       }
 
       double v1 = vol;
-      //double v1 = CGAL::to_double(volume1_reuse_test(P_to_test,var,var));
-      //double v1 = CGAL::to_double(volume1_reuse_estimete_walk(P_to_test,var,var,Chebtime));
 
       tstop = (double)clock()/(double)CLOCKS_PER_SEC;
       //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);

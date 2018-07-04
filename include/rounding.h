@@ -173,11 +173,8 @@ double rounding_min_ellipsoid(T1 &P , Point c, NT radius, vars &var){
     std::list<Point> randPoints; //ds for storing rand points
     //use a large walk length e.g. 1000
     rand_point_generator(P, p, 1, 50*n, randPoints, var);
-    //if (print) std::cout<<"First random point: "<<p<<std::endl;
     // 3. Sample points from P
-    //randPoints.push_front(p);
     int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
-    //if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
     randPoints.clear();
     rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
     NT current_dist, max_dist;
@@ -189,7 +186,6 @@ double rounding_min_ellipsoid(T1 &P , Point c, NT radius, vars &var){
     }
     max_dist=std::sqrt(max_dist);
     NT R=max_dist/radius;
-    if(print) std::cout<<"R = "<<max_dist<<" r = "<<radius<<"ratio R/r = "<<R<<"\n"<<std::endl;
     int mm=randPoints.size();
     boost::numeric::ublas::matrix<double> Ap(n,mm);
     for(int j=0; j<mm; j++){
@@ -201,11 +197,8 @@ double rounding_min_ellipsoid(T1 &P , Point c, NT radius, vars &var){
     }
     boost::numeric::ublas::matrix<double> Q(n,n);
     boost::numeric::ublas::vector<double> c2(n);
-    if(print) std::cout<<Ap<<std::endl;
     size_t w=1000;
-    if(print) std::cout<<"call KhachiyanAlgo"<<std::endl;
     double elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2);
-    //if(print) std::cout<<"matrix of ellipsoid: \n"<<Q<<"\n\n"<<"center: \n"<<c2<<"\n"<<std::endl;
 
     Eigen::MatrixXd E(n,n);
     Eigen::VectorXd e(n);

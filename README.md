@@ -22,7 +22,7 @@ This is a Rcpp package based on an open-source C++ software for computing an app
 
 #### *Run volesti*
 
-* The main function is VolEsti(). The input has to be a list("matrix"=A, "vector"=b, "cheb"=xc, "verbose"=BOOL), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center.  
+* The main function is VolEsti(). The input has to be a list("matrix"=A, "vector"=b, "cheb"=xc, "rounding"=bool, "verbose"=BOOL), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center. Rounding option is to apply a linear transformation to the convex body to get a well rounded one.  
 * You can give as input a list("path"='path/to/ine/file') insteed of a "matrix" or a "vector".  
 * The "cheb" input is optional. When it is not given lpsolve library is used from C++ code.  
 * A R function, using lpSolveAPI, to compute chebychev center is provided.
@@ -98,7 +98,7 @@ input_incidence
 - - - - - - - - - - -
   
 * Then run the following command:  
->./vol -f1 polytope_examples/cube10.ine  
+>./vol -f1 ./test_data/cube10.ine  
 
 * which returns 17 numbers:  
 >d m #experiments exactvolOr-1 approx [.,.] #randPoints walkLength meanVol [minVol,maxVol] stdDev errorVsExact maxminDivergence time timeChebyshevBall
