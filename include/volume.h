@@ -97,6 +97,7 @@ public:
 #include "convex_bodies/ballintersectconvex.h"
 #include "samplers.h"
 #include "rounding.h"
+#include "annealing/gaussian_annealing.h"
 #include "misc.h"
 #include "linear_extensions.h"
 
