@@ -90,7 +90,7 @@ testRvolEsti <- function(){
     x=read.csv(paste0(path,listofexamples[i]))
     print(listofexamples[i])
     A=ineToMatrix(x)
-    VolEsti(list("matrix"=A,"verbose"=TRUE))
+    VolEsti(list("matrix"=A,"test"=TRUE))
   }
   
 }
@@ -162,6 +162,14 @@ VolEsti <- function(Inputs){
       verbose=FALSE
     }
   }
+  test=FALSE
+  if(!is.null(Inputs$test)){
+    if(Inputs$test){
+      test=TRUE
+    }else{
+      test=FALSE
+    }
+  }
   coordinate=TRUE
   if(!is.null(Inputs$coordinate)){
     if(Inputs$coordinate){
@@ -192,11 +200,10 @@ VolEsti <- function(Inputs){
   A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
   A=matrix(rbind(r,A),ncol=dim(A)[2])
   tim=proc.time()
-  print(Cheb_ball)
   vol=vol_R(A,W,e,Cheb_ball,coordinate,rounding,verbose)
   #print(paste0('magnitude: ',ceiling(-log10(vol))))
   tim=proc.time()-tim
-  if(verbose){
+  if(verbose || test){
     print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
   }
   return(vol)
