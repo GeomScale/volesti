@@ -1,6 +1,6 @@
 ## *VolEsti:* Approximate computation of volume of convex bodies.
 
-Copyright (c) 2012-2018 Vissarion Fisikopoulos
+Copyright (c) 2012-2018 Vissarion Fisikopoulos  
 Copyright (c) 2018 Apostolos Chalkis
 
 You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, see vol.cpp.  
@@ -14,7 +14,7 @@ This is a Rcpp package based on an open-source C++ software for computing an app
 
 * Install package-dependencies: Rcpp, RcppEigen, BH, lpSolveAPI.  
 * Then use devtools package to install volesti Rcpp package. Run:
->>Rcpp::compileAttributes()  
+>Rcpp::compileAttributes()  
 >build()  
 >install()  
 >library(volesti)  
