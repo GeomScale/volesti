@@ -1,3 +1,10 @@
+// Copyright(c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+
+#ifndef SOLVE_LP_H
+#define SOLVE_LP_H
+
 #include <stdio.h>
 #include "lp_lib.h"
 
@@ -112,3 +119,5 @@ std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){
 
 	
 }
+
+#endif
