@@ -1,3 +1,11 @@
+// Copyright(c) 2016-2018 Kjell Konis <kjell.konis@me.com>.
+// Version: 5.5.2.0-17
+// Description: The lpSolveAPI package provides an R interface to 'lp_solve',
+// a Mixed Integer Linear Programming (MILP) solver with support for pure
+//        linear, (mixed) integer/binary, semi-continuous and special ordered sets
+//        (SOS) models.
+// License: LGPL-2
+// Repository: CRAN
 
 #include <string.h>
 #include "commonlib.h"
@@ -3294,7 +3302,7 @@ STATIC MYBOOL get_colIndexA(lprec *lp, int varset, int *colindex, MYBOOL append)
 #endif
     }
 
-    /* Find if the variable is in the scope - default is {Ø} */
+    /* Find if the variable is in the scope - default is {ï¿½} */
     i = lp->is_basic[varnr];
     if((varset & USE_BASICVARS) > 0 && (i))
       ;
