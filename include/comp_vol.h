@@ -108,7 +108,7 @@ int optimization(T &KK,vars var,Point &fp,Point &w);
 template <class T>
 int opt_interior(T &K,vars &var,Point &opt,Point &w);
 
-#include "../external/LPsolve/solve_lp.h"
+#include "../external/LPsolve_src/run_headers/solve_lp.h"
 #include "../external/minimum_ellipsoid/khach2.h"
 #include "convex_bodies/ellipsoids.h"
 #include "convex_bodies/polytopes.h"

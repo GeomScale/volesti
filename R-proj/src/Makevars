@@ -1,2 +1,10 @@
-PKG_LIBS+=$(LDFLAGS) ../external_libs/liblpsolve55.so
-PKG_CPPFLAGS = -I../external_libs -O3 -lm -ldl
+PKG_CPPFLAGS=-I../../external/LPsolve_src/include -O3 -lm -ldl -lblas
+
+PKG_LIBS=-Llp_solve -llp_solve $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+
+$(SHLIB): lp_solve/liblp_solve.a
+
+lp_solve/liblp_solve.a:
+	@(cd lp_solve && $(MAKE) liblp_solve.a \
+    CC="$(CC)" CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" \
+    CPICFLAGS="$(CPICFLAGS)" AR="$(AR)" RANLIB="$(RANLIB)")
