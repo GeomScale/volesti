@@ -1,8 +1,14 @@
 // [[Rcpp::depends(BH)]]
 
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 #include <Rcpp.h>
 #include <RcppEigen.h>
-#include "../../include/comp_vol.h"
+#include "../../include/volume.h"
 //#include "../../external/LPsolve/solve_lp.h"
 
 // [[Rcpp::plugins(cpp11)]]
@@ -25,7 +31,7 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
          experiments=true,
          coordinate=coord;
     //double vol=0.0;
-    stdHPolytope<double> P;
+    Polytope<double> P;
          
     walk_len=W;
     //double e=0.3;
@@ -96,11 +102,9 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
     //CheBall.first = xc; CheBall.second = radius;
     
     
-    stdHPolytope<double> P_to_test(P);
+    Polytope<double> P_to_test(P);
     
-    NT Chebtime;
-    
-    NT vol = volume1_reuse2(P,var,var,CheBall,Chebtime);
+    NT vol = volume(P,var,var,CheBall);
     
     
     return vol;
