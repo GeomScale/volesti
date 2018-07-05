@@ -11,7 +11,7 @@
 #include <cmath>
 #include <algorithm>
 
-//exclude gsl library
+//exclude gsl library  Apostolos Chalkis
 //#include <gsl/gsl_math.h>
 //#include <gsl/gsl_eigen.h>
 
@@ -212,7 +212,7 @@ namespace Minim {
     }
   }
 
-  //exlude principalCV function. Not needed + exclude gsl lib.
+  //exlude principalCV function. Not needed + exclude gsl lib. Apostolos Chalkis
 /*  void principalCV(const std::vector<double> &cv,
 		   std::vector<double> &eigvals,
 		   std::vector<double> &eigvects)
