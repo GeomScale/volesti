@@ -1,3 +1,24 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+
+// VolEsti is free software: you can redistribute it and/or modify it
+// under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or (at
+// your option) any later version.
+//
+// VolEsti is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+// for more details.
+//
+// See the file COPYING.LESSER for the text of the GNU Lesser General
+// Public License.  If you did not receive this file along with HeaDDaCHe,
+// see <http://www.gnu.org/licenses/>.
+
 #ifndef POLYTOPES_H
 #define POLYTOPES_H
 
@@ -6,7 +27,7 @@
 
 // my H-polytope class
 template <typename K>
-class stdHPolytope{
+class Polytope{
 private:
     typedef std::vector<K>        stdCoeffs;
     typedef std::vector<stdCoeffs>  stdMatrix;
@@ -16,10 +37,10 @@ private:
 
 public:
     typedef K                    FT;
-    stdHPolytope() {}
+    Polytope() {}
 
     // constructor: cube(d)
-    stdHPolytope(int d): _d(d) {
+    Polytope(int d): _d(d) {
         for(int i=0; i<d; ++i){
             stdCoeffs coeffs;
             coeffs.push_back(K(1));

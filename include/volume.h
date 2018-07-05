@@ -16,38 +16,25 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
-
+#ifndef VOLUME_H
+#define VOLUME_H
 
 #include <iterator>
-#include <iostream>
 #include <fstream>
-//#include <string>
-//#include <random>
 #include <vector>
-//#include <forward_list>
 #include <list>
-//#include <bitset>
-//#include <chrono>
-#include <ctime>       // std::chrono::system_clock
-//#include <functional>
 #include <algorithm>
 #include <math.h>
-//#include <cstdlib>
 #include "cartesian_geom/cartesian_kernel.h"
-//#include <gsl/cblas>
 #include "boost/random.hpp"
-//#include "boost/random/mersenne_twister.hpp"
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-//#include <boost/chrono/chrono.hpp>
 
 
 typedef double                      NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
-//typedef std::default_random_engine RNGType;// generator
-//typedef std::mt19937 RNGType;
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
 
 
@@ -103,11 +90,6 @@ public:
 };
 
 
-template <class T>
-int optimization(T &KK,vars var,Point &fp,Point &w);
-template <class T>
-int opt_interior(T &K,vars &var,Point &opt,Point &w);
-
 #include "../external/LPsolve_src/run_headers/solve_lp.h"
 #include "../external/minimum_ellipsoid/khach2.h"
 #include "convex_bodies/ellipsoids.h"
@@ -119,15 +101,11 @@ int opt_interior(T &K,vars &var,Point &opt,Point &w);
 #include "linear_extensions.h"
 
 
-
-
-
 template <class T>
-NT volume1_reuse2(T &P,
+NT volume(T &P,
                   vars &var,  // constans for volume
                   vars &var2, // constants for optimization in case of MinkSums
-                  std::pair<Point,double> CheBall,  //Chebychev ball
-                  double &Chebtime)
+                  std::pair<Point,double> CheBall)  //Chebychev ball
 {
     typedef BallIntersectPolytope<T>        BallPoly;
 
@@ -172,13 +150,11 @@ NT volume1_reuse2(T &P,
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
         Random_points_on_sphere_d<Point> gen (n, radius);
-		Point p = gen.sample_point(rng);
-		//std::cout<<"n is: "<<n<<std::endl;
+        Point p = gen.sample_point(rng);
         p=p+c;
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
-
         double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
         // 3. Sample "rnum" points from P
         if(print) std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
@@ -293,10 +269,4 @@ NT volume1_reuse2(T &P,
     return vol;
 }
 
-
-
-
-
-
-
-
+#endif

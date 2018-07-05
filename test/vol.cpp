@@ -1,6 +1,9 @@
-// VolEsti
+// VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2017 Vissarion Fisikopoulos
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
 // VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
@@ -15,13 +18,9 @@
 // See the file COPYING.LESSER for the text of the GNU Lesser General
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
-//#include <RcppEigen.h>
-// [[Rcpp::depends(RcppEigen)]]
-#include "../external/Eigen/Eigen"
-#include "../include/comp_vol.h"
-//#include "../external/LPsolve/solve_lp.h"
 
-//#include <proc/readproc.h>
+#include "../external/Eigen/Eigen"
+#include "../include/volume.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
@@ -58,7 +57,7 @@ int main(const int argc, const char** argv)
          coordinate=true;
 	
 	//this is our polytope
-	stdHPolytope<NT> P;
+	Polytope<NT> P;
 	int magnitude=0;
 	bool exper=false;
 	
@@ -294,7 +293,7 @@ int main(const int argc, const char** argv)
   
   for(int i=0; i<num_of_exp; ++i){
       std::cout<<"Experiment "<<i+1<<" ";
-      stdHPolytope<double> P_to_test(P);
+      Polytope<double> P_to_test(P);
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
@@ -303,13 +302,13 @@ int main(const int argc, const char** argv)
 
       if(round_only){
           // Round the polytope and exit
-          double round_value = rounding(P,var,var);
+          double round_value = rounding_min_ellipsoid(P,CheBall.first,CheBall.second,var);
           std::cout<<"\n--------------\nRounded polytope\nH-representation\nbegin\n"<<std::endl;
           P.print();
           std::cout<<"end\n--------------\n"<<std::endl;
       }else{
           // Estimate the volume
-          vol = volume1_reuse2(P_to_test,var,var,CheBall,Chebtime);
+          vol = volume(P_to_test,var,var,CheBall);
           //if(rotate) vol = std::sqrt(vol);
           //std::cout<<vol<<std::endl;
       }

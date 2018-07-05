@@ -1,6 +1,9 @@
-// VolEsti
+// VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2017 Vissarion Fisikopoulos
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
 // VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +19,8 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
+#ifndef BALLINTERSECTCONVEX_H
+#define BALLINTERSECTCONVEX_H
 
 // ball type
 struct Ball{
@@ -189,13 +194,13 @@ private:
 
 
 template <class T1 , class T2>
-class PolyIntersectEll {
+class PolytopeIntersectEllipsoid {
 private:
     T1 P;
     T2 E;
     typedef typename T2::K 	K;
 public:
-    PolyIntersectEll(T1 &Pin, T2 &Ein) : P(Pin), E(Ein) {};
+    PolytopeIntersectEllipsoid(T1 &Pin, T2 &Ein) : P(Pin), E(Ein) {};
     
     T1 first() { return P; }
     T2 second() { return E; }
@@ -353,6 +358,4 @@ public:
     
 };
 
-
-
-
+#endif

@@ -1,6 +1,9 @@
-// VolEsti
+// VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2017 Vissarion Fisikopoulos
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
 // VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
@@ -15,8 +18,6 @@
 // See the file COPYING.LESSER for the text of the GNU Lesser General
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
-
-//#include <chrono>  
 
 #ifndef RANDOM_SAMPLERS_H
 #define RANDOM_SAMPLERS_H
@@ -66,17 +67,9 @@ public:
     
     
 };
-    
-
-//public:
-    
-   // typedef typename std::vector<K>::iterator iter;
-
-
 
 // WARNING: USE ONLY WITH BIRKHOFF POLYOPES
 // Compute more random points using symmetries of birkhoff polytope
-//
 template <class T, class K>
 int birk_sym(T &P,K &randPoints,Point &p){
     int n=std::sqrt(p.dimension());
