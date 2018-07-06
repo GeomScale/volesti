@@ -17,8 +17,10 @@
 #define _BNMIN1_SETS_ELIIPSOIDS_HXX__
 
 #include <set>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
+#include "numeric/ublas/vector.hpp"
+#include "numeric/ublas/matrix.hpp"
+//#include <boost/numeric/ublas/vector.hpp>
+//#include <boost/numeric/ublas/matrix.hpp>
 
 namespace Minim {
 
