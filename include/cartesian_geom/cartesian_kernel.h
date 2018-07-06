@@ -19,13 +19,10 @@
 // see <http://www.gnu.org/licenses/>.
 
 
-#include "point.h"
-
-
 #ifndef CARTESIAN_KERNEL_H
 #define CARTESIAN_KERNEL_H
 
-
+#include "point.h"
 
 template <typename K>
 class Cartesian
