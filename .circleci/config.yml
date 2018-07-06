@@ -6,3 +6,11 @@ jobs:
     steps:
       - checkout
       - run: echo "A first hello"
+  dependencies:
+    pre:
+      - sudo apt-get update || true
+      - sudo apt-get install cmake
+      - sudo apt-get install lp-solve
+  test:
+    override:
+      - cd test ; cmake -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so . ; ./run_tests.sh -exp
