@@ -9,13 +9,16 @@
 
    Computation and use of ellipsoids releated to sets of points
 */
-
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/lu.hpp>
+#include "numeric/ublas/triangular.hpp"
+#include "numeric/ublas/banded.hpp"
+#include "numeric/ublas/lu.hpp"
+//#include <boost/numeric/ublas/triangular.hpp>
+//#include <boost/numeric/ublas/banded.hpp>
+//#include <boost/numeric/ublas/lu.hpp>
 
 #include <iostream>
-#include <boost/numeric/ublas/io.hpp>
+#include "numeric/ublas/io.hpp"
+//#include <boost/numeric/ublas/io.hpp>
 
 #include "khach1.h"
 #include "mcpoint1.h"

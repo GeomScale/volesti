@@ -19,8 +19,8 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
-#include "../external/Eigen/Eigen"
-#include "../include/volume.h"
+#include "Eigen/Eigen"
+#include "volume.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
