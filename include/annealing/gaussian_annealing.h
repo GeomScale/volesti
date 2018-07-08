@@ -139,7 +139,7 @@ int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C,
     std::list<Point> randPoints;
     vars var2=var;
     var2.coordinate=false;
-    rand_point_generator(K, p, N, 1, randPoints, var2);
+    rand_gaussian_point_generator(K, p, N, 1, randPoints, last_a, var2);
 
     while(!done){
         a = last_a*std::pow(ratio,(NT(k)));
@@ -179,6 +179,8 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
 
     Point p(K.dimension());
 
+    vars var2=var;
+    var2.coordinate=false;
     while(curr_fn/curr_its>1.001 && a_vals[it]>=a_stop) {
         a_vals.push_back(get_next_gaussian(K, a_vals, a_vals[it], 500 * ((int) C) + ((int) (dim * dim / 2)), ratio, C, p, var));
         it++;
@@ -187,7 +189,7 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
         curr_its = 0;
 
         for (int j = 0; j < steps; j++) {
-            rand_point_generator(K, p, 1, 1, randPoints, var);
+            rand_gaussian_point_generator(K, p, 1, 1, randPoints, a_vals[it-1], var2);
 
             curr_its += 1.0;
             curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
