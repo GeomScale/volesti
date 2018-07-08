@@ -109,7 +109,7 @@ int rand_gaussian_point_generator(T &P,
     Point p_prev = p;
     if(var.coordinate){
         //std::cout<<"[1a]P dim: "<<P.dimension()<<std::endl;
-        hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,a_i,lamdas,var,true);
+        gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,a_i,lamdas,var,true);
         //std::cout<<"[1b]P dim: "<<P.dimension()<<std::endl;
     }else
         gaussian_hit_and_run(p,P,a_i,var);
@@ -124,7 +124,7 @@ int rand_gaussian_point_generator(T &P,
             kapa = urdist(rng);
             if(var.coordinate){
                 //std::cout<<"[1c]P dim: "<<P.dimension()<<std::endl;
-                hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,a_i,lamdas,var,false);
+                gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,a_i,lamdas,var,false);
             }else
                 gaussian_hit_and_run(p,P,a_i,var);
         }

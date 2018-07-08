@@ -275,4 +275,130 @@ NT volume(T &P,
     return vol;
 }
 
+
+template <class T>
+NT volume_gaussian_annealing(T &P,
+                             vars &var,  // constans for volume
+                             std::pair<Point,double> CheBall) {
+    NT vol;
+    bool round = var.round, converged, done;
+    bool print = var.verbose;
+    bool rand_only = var.rand_only;
+    int n = var.n, steps;
+    int rnum = var.m;
+    int walk_len = var.walk_steps;
+    int n_threads = var.n_threads, min_index, max_index, index, min_steps;
+    const double err = var.err;
+    NT error = var.error, curr_eps, min_val, max_val, val;
+    RNGType &rng = var.rng;
+    // Rotation: only for test with skinny polytopes and rounding
+    //std::cout<<"Rotate="<<rotate(P)<<std::endl;
+    //rotate(P);
+
+    //0. Rounding of the polytope if round=true
+    Point c=CheBall.first;
+    NT radius=CheBall.second;
+    NT round_value=1;
+    if(round){
+        if(print) std::cout<<"\nRounding.."<<std::endl;
+        double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
+        round_value = rounding_min_ellipsoid(P,c,radius,var);
+        double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
+        if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
+        std::pair<Point,NT> res=solveLP(P.get_matrix(), P.dimension());
+        c=res.first; radius=res.second;
+    }
+
+    //1. Move chebychev center to origin and apply the same shifting to the polytope
+    int m=P.num_of_hyperplanes();
+    Eigen::MatrixXd A(m,n);
+    Eigen::VectorXd b(m);
+    Eigen::VectorXd c_e(n);
+    for(int i=0; i<n; i++){
+        c_e(i)=c[i];
+    }
+    for(int i=0; i<m; ++i){
+        b(i) = P.get_coeff(i,0);
+        for(int j=1; j<n+1; ++j){
+            A(i,j-1) = P.get_coeff(i,j);
+        }
+    }
+    //Shift polytope
+    b = b - A*c_e;
+    // Write changesto the polytope!
+    for(int i=0; i<m; ++i){
+        P.put_coeff(i,0,b(i));
+        for(int j=1; j<n+1; ++j){
+            P.put_coeff(i,j,A(i,j-1));
+        }
+    }
+
+    std::vector<NT> a_vals;
+    NT ratio = 1.0-1.0/(NT(n));
+    NT C=2.0;
+    get_annealing_schedule(P, a_vals, error, radius, ratio, C, var);
+    int mm = a_vals.size();
+    std::vector<NT> fn(m,0), its(mm,0);
+    int W = 4*n*n+500;
+    std::vector<NT> last_W(W,0);
+    vol=std::pow((M_PI/a_vals[0]), NT(n/2.0))*std::abs(round_value);
+    vars var2=var;
+    var2.coordinate=false;
+    std::list<Point> randPoints;
+
+    for(int i=0; i<mm-1; i++){
+        //initialize convergence test
+        curr_eps = error/std::sqrt(mm);
+        converged=false, done=false;
+        min_val=-std::pow(10,100);
+        max_val=-min_val;
+        min_index=W;
+        max_index=W;
+        index = 0;
+        min_steps=0;
+        Point p;
+        randPoints.clear();
+
+        while(!done || its[i]<min_steps){
+            for(int j=0; j<n_threads; j++){
+                rand_gaussian_point_generator(P, p, 1, 1, randPoints, a_vals[i], var2);
+                its[i] += 1.0;
+                fn[i] += eval_exp(p,a_vals[i+1]) / eval_exp(p,a_vals[i]);
+                val = fn[i]/its[i];
+
+                last_W[index] = val;
+                if(val<=min_val){
+                    min_val = val;
+                    min_index = index;
+                }else if(min_index==index){
+                    min_val = *(std::min_element(last_W.begin() , last_W.end() ));
+                    min_index = std::distance(last_W.begin(),std::min_element(last_W.begin() , last_W.end() ));
+                }
+
+                if(val>=max_val){
+                    max_val = val;
+                    max_index = index;
+                }else if(max_index==index){
+                    max_val = *(std::max_element(last_W.begin() , last_W.end() ));
+                    max_index = std::distance(last_W.begin(),std::max_element(last_W.begin() , last_W.end() ));
+                }
+
+                if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
+                    done=true;
+                }
+
+                index = index%W+1;
+            }
+        }
+        vol = vol*(fn[i]/its[i]);
+    }
+    NT sum_of_steps;
+    for(std::vector<NT>::iterator it = its.begin(); it != its.end(); ++it) {
+        sum_of_steps += *it;
+    }
+    steps= int(sum_of_steps);
+
+    return vol;
+}
+
 #endif
