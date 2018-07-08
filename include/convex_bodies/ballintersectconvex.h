@@ -45,7 +45,7 @@ public:
         else return 0;
     }
 
-    std::pair<Point,Point> line_intersect(Point r,
+    std::pair<NT,NT> line_intersect(Point r,
                                           Point v){
         //Point::Cartesian_const_iterator rit;
         //rit=r.cartesian_begin();
@@ -72,7 +72,8 @@ public:
         NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));
         NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
         NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
-        return std::pair<Point,Point> ((lamda1*v)+r,(lamda2*v)+r);
+        //return std::pair<Point,Point> ((lamda1*v)+r,(lamda2*v)+r);
+        return std::pair<NT,NT> (lamda1,lamda2);
     }
 
     std::pair<NT,NT> line_intersect_coord(Point r,
@@ -127,10 +128,15 @@ public:
         return _P.dimension();
     }
 
-    std::pair<Point,Point> line_intersect(Point r,
-                                          Point v){
+    std::pair<NT,NT> line_intersect(Point r,
+                                          Point v) {
 
-        std::pair<Point,Point> polypair = _P.line_intersect(r,v);
+        std::pair <NT, NT> polypair = _P.line_intersect(r, v);
+        std::pair <NT, NT> ballpair = _B.line_intersect(r, v);
+        return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
+                                 std::max(polypair.second, ballpair.second));
+    }
+    /*
         std::pair<Point,Point> returnpair;
         std::pair<Point,Point> ballpair;
         bool ballinter=false;
@@ -163,7 +169,7 @@ public:
             //std::cout<<returnpair.second<<std::endl;
         }
         return returnpair;
-    }
+    }*/
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
