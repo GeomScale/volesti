@@ -297,7 +297,7 @@ int main(const int argc, const char** argv)
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars var(rnum,n,walk_len,n_threads,err,0,0,0,0,rng,
+      vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,rng,
                urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
 
       if(round_only){

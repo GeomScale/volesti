@@ -50,7 +50,7 @@ public:
           int walk_steps,
           int n_threads,
           const double err,
-          const double err_opt,
+          double error,
           const int lw,
           double up,
           const int L,
@@ -66,7 +66,7 @@ public:
           bool birk,
           bool coordinate
           ) :
-        m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), err_opt(err_opt),
+        m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
         lw(lw), up(up), L(L), rng(rng),
         urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
         NN(NN),birk(birk),coordinate(coordinate){};
@@ -76,7 +76,7 @@ public:
     int walk_steps;
     int n_threads;
     const double err;
-    const double err_opt;
+    double error;
     const int lw;
     double up;
     const int L;

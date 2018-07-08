@@ -237,10 +237,16 @@ int hit_and_run(Point &p,
     //Point l2=origin;
     //Vector b1 = line_bisect(p,l,P,var,var2);
     //Vector b2 = line_bisect(p,-l,P,var,var2);
-    std::pair<Point,Point> ppair = P.line_intersect(p,l);
-    Point b1 = ppair.first;// - origin;
-    Point b2 = ppair.second;// - origin;
+    //std::pair<Point,Point> ppair = P.line_intersect(p,l);
+    std::pair<NT,NT> dbpair = P.line_intersect(p,l);
+    NT min_plus = dbpair.first;
+    NT max_minus = dbpair.second;
+    Point b1 = (min_plus*l)+p;
+    Point b2 = (max_minus*l)+p;
+    //Point b1 = ppair.first;// - origin;
+    //Point b2 = ppair.second;// - origin;
     //std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
+
     NT lambda = urdist(rng);
     p = (lambda*b1);
     p=((1-lambda)*b2) + p;
