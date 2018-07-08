@@ -105,6 +105,37 @@ int birk_sym(T &P,K &randPoints,Point &p){
     } while ( std::next_permutation(myints.begin(),myints.end()) );
 }
 
+
+int rand_exp_range(NT l, NT u, NT a_i, NT &dis, vars &var){
+    NT r, r_val, fn;
+    if(a_i>std::pow(10,-8.0) && std::abs(u-l)>=2.0/std::sqrt(2.0*a_i)){
+        boost::normal_distribution<> rdist(-1,1);
+        while(true){
+            r = rdist(var.rng);
+            r = r/std::sqrt(2.0*a_i);
+            if(r>=l && r<=u){
+                break;
+            }
+        }
+        dis=r;
+
+    }else{
+        boost::random::uniform_real_distribution<> urdist(0,1);
+        NT M=1.0;
+        while(true){
+            r=urdist(var.rng);
+            dis = (1.0-r)*l+r*u;
+            r_val = M*urdist(var.rng);
+            fn = std::exp(-a_i*dis*dis);
+            if(r_val<fn){
+                break;
+            }
+        }
+    }
+    return 1;
+}
+
+
 // ----- RANDOM POINT GENERATION FUNCTIONS ------------ //
 
 template <class T, class K>
