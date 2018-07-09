@@ -114,7 +114,7 @@ int rand_gaussian_point_generator(T &P,
     }else
         gaussian_hit_and_run(p,P,a_i,var);
 
-    for(int i=1; i<=rnum; ++i){
+    for(int i=1; i<rnum; ++i){
 
         for(int j=0; j<walk_len; ++j){
             int rand_coord_prev = rand_coord;
@@ -164,6 +164,7 @@ int gaussian_hit_and_run(Point &p,
     NT max_minus = dbpair.second;
     NT dis;
     rand_exp_range(max_minus, min_plus, a_i, dis, var);
+    //if(var.verbose) std::cout<<"max_minus = "<<max_minus<<"min_plus = "<<min_plus<<"dis= "<<dis<<std::endl;
     p = (dis*l)+p;
     //Point b1 = (min_plus*l)+p;
     //Point b2 = (max_minus*l)+p;

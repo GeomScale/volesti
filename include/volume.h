@@ -107,6 +107,36 @@ public:
 #include "linear_extensions.h"
 
 
+std::pair<int,NT> min_vec(std::vector<NT> vec){
+    int n=vec.size();
+    NT Vmin=vec[0];
+    int Pmin=0;
+
+    for(int i=1; i<n; i++){
+        if(vec[i]<Vmin){
+            Vmin=vec[i];
+            Pmin=i;
+        }
+    }
+    return std::pair<int,NT> (Pmin, Vmin);
+}
+
+
+std::pair<int,NT> max_vec(std::vector<NT> vec){
+    int n=vec.size();
+    NT Vmax=vec[0];
+    int Pmax=0;
+
+    for(int i=1; i<n; i++){
+        if(vec[i]>Vmax){
+            Vmax=vec[i];
+            Pmax=i;
+        }
+    }
+    return std::pair<int,NT> (Pmax, Vmax);
+}
+
+
 template <class T>
 NT volume(T &P,
                   vars &var,  // constans for volume
@@ -335,29 +365,50 @@ NT volume_gaussian_annealing(T &P,
 
     std::vector<NT> a_vals;
     NT ratio = 1.0-1.0/(NT(n));
+    if(print) std::cout<<"ratio = "<<ratio<<std::endl;
     NT C=2.0;
+    error = 0.2;
+    if(print) std::cout<<"Computing annealing...\n"<<std::endl;
+    double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
     get_annealing_schedule(P, a_vals, error, radius, ratio, C, var);
+    double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
+    if(print) std::cout<<"annealing computed in = "<<tstop2-tstart2<<std::endl;
     int mm = a_vals.size();
-    std::vector<NT> fn(m,0), its(mm,0);
+    if(print){
+        for(int i=0; i<mm; i++){
+            std::cout<<"a_"<<i<<" = "<<a_vals[i]<<" ";
+        }
+        std::cout<<"\n"<<std::endl;
+    }
+    std::vector<NT> fn(mm,0), its(mm,0);
     int W = 4*n*n+500;
+    if(print) std::cout<<"W = "<<W<<std::endl;
     std::vector<NT> last_W(W,0);
-    vol=std::pow((M_PI/a_vals[0]), NT(n/2.0))*std::abs(round_value);
+    vol=std::pow((M_PI/a_vals[0]), (NT(n))/2.0)*std::abs(round_value);
+    if(print) std::cout<<"vol = "<<vol<<std::endl;
     vars var2=var;
     var2.coordinate=false;
     std::list<Point> randPoints;
+    Point p(n);
+    P.print();
+    std::pair<int,NT> res;
 
+    if(print) std::cout<<"computing ratios..\n"<<std::endl;
     for(int i=0; i<mm-1; i++){
         //initialize convergence test
-        curr_eps = error/std::sqrt(mm);
+        curr_eps = error/std::sqrt((NT(mm)));
+        //if(print) std::cout<<"error = "<<error<<"sqrt(m) = "<<std::sqrt((NT(mm)))<<"curr_eps = "<<curr_eps<<std::endl;
         converged=false, done=false;
-        min_val=-std::pow(10,100);
+        min_val=-std::pow(10.0,10.0);
         max_val=-min_val;
-        min_index=W;
-        max_index=W;
+        //if(print) std::cout<<"min_val = "<<min_val<<" max_val = "<<max_val<<"\n"<<std::endl;
+        min_index=0;
+        max_index=0;
         index = 0;
         min_steps=0;
-        Point p;
+        //Point p(n);
         randPoints.clear();
+        std::vector<NT> last_W(W,0);
 
         while(!done || its[i]<min_steps){
             for(int j=0; j<n_threads; j++){
@@ -371,25 +422,42 @@ NT volume_gaussian_annealing(T &P,
                     min_val = val;
                     min_index = index;
                 }else if(min_index==index){
-                    min_val = *(std::min_element(last_W.begin() , last_W.end() ));
-                    min_index = std::distance(last_W.begin(),std::min_element(last_W.begin() , last_W.end() ));
+                    //if(print) std::cout<<"val = "<<val<<std::endl;
+                    res=min_vec(last_W);
+                    //min_val = *(std::min_element(last_W.begin() , last_W.end() ));
+                    min_val=res.second;
+                    //if(print) std::cout<<"min_val = "<<min_val<<std::endl;
+                    //min_index = std::distance(last_W.begin(),std::min_element(last_W.begin() , last_W.end() ));
+                    min_index=res.first;
+                    //if(print) std::cout<<"min_index = "<<min_index<<std::endl;
                 }
 
                 if(val>=max_val){
                     max_val = val;
                     max_index = index;
                 }else if(max_index==index){
-                    max_val = *(std::max_element(last_W.begin() , last_W.end() ));
-                    max_index = std::distance(last_W.begin(),std::max_element(last_W.begin() , last_W.end() ));
+                    //if(print) std::cout<<"val = "<<val<<std::endl;
+                    res=max_vec(last_W);
+                    //max_val = *(std::max_element(last_W.begin() , last_W.end() ));
+                    max_val=res.second;
+                    //if(print) std::cout<<"max_val = "<<max_val<<std::endl;
+                    //max_index = std::distance(last_W.begin(),std::max_element(last_W.begin() , last_W.end() ));
+                    max_index=res.first;
+                    //if(print) std::cout<<"max_index = "<<max_index<<std::endl;
                 }
+                //if(print) std::cout<<"ratio = "<<(max_val-min_val)/max_val<<std::endl;
 
                 if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
                     done=true;
                 }
 
                 index = index%W+1;
+                //if(print) std::cout<<"index1 = "<<index<<std::endl;
+                if(index==W) index=0;
+                //if(print) std::cout<<"index2 = "<<index<<std::endl;
             }
         }
+        if(print) std::cout<<"ratio "<<i<<" = "<<fn[i]/its[i]<<" its[i] = "<<its[i]<<std::endl;
         vol = vol*(fn[i]/its[i]);
     }
     NT sum_of_steps;
