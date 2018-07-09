@@ -385,7 +385,7 @@ NT volume_gaussian_annealing(T &P,
     if(print) std::cout<<"W = "<<W<<std::endl;
     if(print) std::cout<<"pi/a_0 = "<<M_PI/a_vals[0]<<std::endl;
     std::vector<NT> last_W(W,0);
-    vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0);//*std::abs(round_value);
+    vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
     if(print) std::cout<<"vol = "<<vol<<std::endl;
     vars var2=var;
     var2.coordinate=false;
@@ -411,13 +411,13 @@ NT volume_gaussian_annealing(T &P,
         randPoints.clear();
         std::vector<NT> last_W(W,0);
         n_threads=1;
-        if(print){
-            std::cout<<"p before = ";
-            for(int j=0; j<p.dimension(); j++){
-                std::cout<<p[j]<<" ";
-            }
-            std::cout<<"\n\n";
-        }
+        //if(print){
+          //  std::cout<<"p before = ";
+            //for(int j=0; j<p.dimension(); j++){
+              //  std::cout<<p[j]<<" ";
+            //}
+            //std::cout<<"\n\n";
+        //}
 
         while(!done || its[i]<min_steps){
             for(int j=0; j<n_threads; j++){
