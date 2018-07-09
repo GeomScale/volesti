@@ -232,6 +232,7 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by _A
+    /*
     std::pair<Point,Point> line_intersect(Point r,
                                           Point v){
         K lamda=0;
@@ -265,6 +266,44 @@ public:
         
         return std::pair<Point,Point> ((min_plus*v)+r,(max_minus*v)+r);
     }
+     */
+    // compute intersection point of ray starting from r and pointing to v
+    // with polytope discribed by _A
+    std::pair<NT,NT> line_intersect(Point r,
+                                          Point v){
+        K lamda=0;
+        K min_plus=0, max_minus=0;
+        bool min_plus_not_set=true;
+        bool max_minus_not_set=true;
+        for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
+            typename stdCoeffs::iterator cit;
+            typename std::vector<K>::iterator rit=r.iter_begin();
+            typename std::vector<K>::iterator vit=v.iter_begin();
+            cit=ait->begin();
+            K sum_nom=(*cit);
+            ++cit;
+            K sum_denom=K(0);
+            for( ; cit < ait->end() ; ++cit, ++rit, ++vit){
+                sum_nom -= *cit * (*rit);
+                sum_denom += *cit * (*vit);
+            }
+            if(sum_denom==K(0)){
+                //std::cout<<"div0"<<std::endl;
+                ;
+            }
+            else{
+                lamda = sum_nom/sum_denom;
+                if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
+                if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
+                if(lamda<min_plus && lamda>0) min_plus=lamda;
+                if(lamda>max_minus && lamda<0) max_minus=lamda;
+            }
+        }
+
+        //return std::pair<Point,Point> ((min_plus*v)+r,(max_minus*v)+r);
+        return std::pair<NT,NT> (min_plus, max_minus);
+    }
+
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           int rand_coord){

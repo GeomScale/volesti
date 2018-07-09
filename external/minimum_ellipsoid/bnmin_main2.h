@@ -8,8 +8,8 @@
    \file bnmin_main.cxx
 
 */
-
-#include <boost/format.hpp>
+#include "format.hpp"
+//#include <boost/format.hpp>
 
 #include "bnmin_main1.h"
 //#include "config.h"

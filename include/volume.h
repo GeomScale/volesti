@@ -26,10 +26,14 @@
 #include <algorithm>
 #include <math.h>
 #include "cartesian_geom/cartesian_kernel.h"
-#include "boost/random.hpp"
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/uniform_real_distribution.hpp>
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
+//#include "boost/random.hpp"
+//#include <boost/random/uniform_int.hpp>
+//#include <boost/random/normal_distribution.hpp>
+//#include <boost/random/uniform_real_distribution.hpp>
 
 
 typedef double                      NT;
@@ -46,7 +50,7 @@ public:
           int walk_steps,
           int n_threads,
           const double err,
-          const double err_opt,
+          double error,
           const int lw,
           double up,
           const int L,
@@ -62,7 +66,7 @@ public:
           bool birk,
           bool coordinate
           ) :
-        m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), err_opt(err_opt),
+        m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
         lw(lw), up(up), L(L), rng(rng),
         urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
         NN(NN),birk(birk),coordinate(coordinate){};
@@ -72,7 +76,7 @@ public:
     int walk_steps;
     int n_threads;
     const double err;
-    const double err_opt;
+    double error;
     const int lw;
     double up;
     const int L;
@@ -90,8 +94,8 @@ public:
 };
 
 
-#include "../external/LPsolve_src/run_headers/solve_lp.h"
-#include "../external/minimum_ellipsoid/khach2.h"
+#include "run_headers/solve_lp.h"
+#include "khach2.h"
 #include "convex_bodies/ellipsoids.h"
 #include "convex_bodies/polytopes.h"
 #include "convex_bodies/ballintersectconvex.h"
