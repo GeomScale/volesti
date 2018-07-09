@@ -36,7 +36,7 @@ NT mean ( std::vector<NT> &v )
         return_value += v[i];
     }
 
-    return ( return_value / n);
+    return ( return_value / (NT(n)));
 }
 //****************End of average funtion****************
 
@@ -50,11 +50,11 @@ NT variance ( std::vector<NT> &v , NT mean )
 
     for ( int j =0; j < n; j++)
     {
-        temp = pow(v[j] - mean,2);
+        temp = pow(v[j] - mean,2.0);
         sum += temp;
     }
 
-    return sum/(n -1);
+    return sum/(NT(n -1));
 }
 //****************End of variance funtion****************
 NT eval_exp(Point p, NT a){
@@ -82,15 +82,15 @@ int get_first_gaussian(T1 &K, NT radius, NT &error, std::vector<NT> &a_vals, NT 
         its+=1;
         sum=0.0;
         for(int i=0; i<dists.size(); i++){
-            sum+=std::exp(-upper*std::pow(dists[i],2.0))/(2*dists[i]*std::sqrt(M_PI*upper));
+            sum+=std::exp(-upper*std::pow(dists[i],2.0))/(2.0*dists[i]*std::sqrt(M_PI*upper));
         }
 
         sigma_sqd = 1/(2.0*upper);
 
-        t = (d-sigma_sqd*dim)/(sigma_sqd*std::sqrt(((double)dim)));
-        sum+=std::exp(std::pow(-t,2.0)/8.0);
-        if(sum>frac*error || t<=1){
-            upper+=10;
+        //t = (d-sigma_sqd*(NT(dim)))/(sigma_sqd*std::sqrt(((double)dim)));
+        //sum+=std::exp(std::pow(-t,2.0)/8.0);
+        if(sum>frac*error){//} || t<=1){
+            upper=upper*10;
         }else{
             break;
         }
@@ -111,9 +111,9 @@ int get_first_gaussian(T1 &K, NT radius, NT &error, std::vector<NT> &a_vals, NT 
 
         sigma_sqd = 1.0/(2.0*mid);
 
-        t = (d-sigma_sqd)/(sigma_sqd*std::sqrt(((double)dim)));
-        sum += std::exp(std::pow(-t,2.0)/8.0);
-        if(sum<frac*error && t>1){
+        //t = (d-sigma_sqd)/(sigma_sqd*std::sqrt(((double)dim)));
+        //sum += std::exp(std::pow(-t,2.0)/8.0);
+        if(sum<frac*error){//} && t>1){
             upper=mid;
         }else{
             lower=mid;
@@ -131,8 +131,8 @@ template <class T1>
 int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C, Point &p, vars var){
     //its++;
     NT last_a = a, last_ratio=0.1, avg;
-    bool done;
-    int k, i;
+    bool done=false, print=var.verbose;
+    int k=1, i;
     std::vector<NT> fn(N,0);
 
     //sample N points using hit and run
@@ -143,12 +143,20 @@ int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C,
 
     while(!done){
         a = last_a*std::pow(ratio,(NT(k)));
+        if(print) std::cout<<"a = "<<a<<std::endl;
 
         i=0;
         for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             fn[i] = eval_exp(*pit,a)/eval_exp(*pit, last_a);
+            i++;
         }
         avg=mean(fn);
+        if(print) std::cout<<"avg = "<<avg<<std::endl;
+        if(print) std::cout<<"var = "<<variance(fn,avg)<<std::endl;
+        if(print) std::cout<<"var/avg^2 = "<<variance(fn,avg)/std::pow(avg,2.0)<<std::endl;
+        if(print) std::cout<<"avg/last_ratio = "<<avg/last_ratio<<std::endl;
+        if(print) std::cout<<"C = "<<C<<std::endl;
+        if(print) std::cout<<"k = "<<k<<"\n"<<std::endl;
 
         if(variance(fn,avg)/std::pow(avg,2.0)>=C || avg/last_ratio<1.00001){
             if(k!=1){
@@ -161,6 +169,7 @@ int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C,
         last_ratio = avg;
     }
     a_vals.push_back(last_a*std::pow(ratio, (NT(k)) ) );
+    if(print) std::cout<<"Next a found = "<<last_a*std::pow(ratio, (NT(k)) ) <<std::endl;
 
     return 1;
 }
@@ -168,7 +177,11 @@ int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C,
 
 template <class T1>
 int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, NT ratio, NT C, vars var){
-    a_vals.push_back(get_first_gaussian(K, radius, error, a_vals, 0.1, var));
+    bool print=var.verbose;
+    get_first_gaussian(K, radius, error, a_vals, 0.1, var);
+    if(print) std::cout<<"first gaussian computed"<<std::endl;
+    if(print) std::cout<<"first gaussian a_0 = "<<a_vals[0]<<std::endl;
+    if(print) std::cout<<"error is = "<<error<<"\n"<<std::endl;
     NT a_stop=0.0, curr_fn=2.0, curr_its=1.0;
     int it=0, dim=K.dimension(), steps=((int)150/error);
     std::list<Point> randPoints;
@@ -181,9 +194,12 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
 
     vars var2=var;
     var2.coordinate=false;
+    if(print) std::cout<<"Computing the sequence of gaussians.."<<std::endl;
+    if(print) std::cout<<"N = "<<500 * ((int) C) + ((int) (dim * dim / 2))<<"\n"<<std::endl;
     while(curr_fn/curr_its>1.001 && a_vals[it]>=a_stop) {
-        a_vals.push_back(get_next_gaussian(K, a_vals, a_vals[it], 500 * ((int) C) + ((int) (dim * dim / 2)), ratio, C, p, var));
+        get_next_gaussian(K, a_vals, a_vals[it], 500 * ((int) C) + ((int) (dim * dim / 2)), ratio, C, p, var2);
         it++;
+        if(print) std::cout<<"gaussian a_"<<it<<" = "<<a_vals[it]<<std::endl;
 
         curr_fn = 0;
         curr_its = 0;
