@@ -383,14 +383,15 @@ NT volume_gaussian_annealing(T &P,
     std::vector<NT> fn(mm,0), its(mm,0);
     int W = 4*n*n+500;
     if(print) std::cout<<"W = "<<W<<std::endl;
+    if(print) std::cout<<"pi/a_0 = "<<M_PI/a_vals[0]<<std::endl;
     std::vector<NT> last_W(W,0);
-    vol=std::pow((M_PI/a_vals[0]), (NT(n))/2.0)*std::abs(round_value);
+    vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0);//*std::abs(round_value);
     if(print) std::cout<<"vol = "<<vol<<std::endl;
     vars var2=var;
     var2.coordinate=false;
     std::list<Point> randPoints;
     Point p(n);
-    P.print();
+    //P.print();
     std::pair<int,NT> res;
 
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
@@ -402,20 +403,38 @@ NT volume_gaussian_annealing(T &P,
         min_val=-std::pow(10.0,10.0);
         max_val=-min_val;
         //if(print) std::cout<<"min_val = "<<min_val<<" max_val = "<<max_val<<"\n"<<std::endl;
-        min_index=0;
-        max_index=0;
+        min_index=W-1;
+        max_index=W-1;
         index = 0;
         min_steps=0;
         //Point p(n);
         randPoints.clear();
         std::vector<NT> last_W(W,0);
+        n_threads=1;
+        if(print){
+            std::cout<<"p before = ";
+            for(int j=0; j<p.dimension(); j++){
+                std::cout<<p[j]<<" ";
+            }
+            std::cout<<"\n\n";
+        }
 
         while(!done || its[i]<min_steps){
             for(int j=0; j<n_threads; j++){
                 rand_gaussian_point_generator(P, p, 1, 1, randPoints, a_vals[i], var2);
                 its[i] += 1.0;
                 fn[i] += eval_exp(p,a_vals[i+1]) / eval_exp(p,a_vals[i]);
+               // if(print){
+                   // std::cout<<"i = "<<i<<std::endl;
+                    //std::cout<<"p after = ";
+                    //for(int j=0; j<p.dimension(); j++){
+                        //std::cout<<p[j]<<" ";
+                    //}
+                    //std::cout<<"\n"<<"p norm = "<<p.squared_length()<<std::endl;
+                    //std::cout<<"eval_exp(p,a_vals[i+1])  = "<<eval_exp(p,a_vals[i+1])<<" eval_exp(p,a_vals[i] = "<<eval_exp(p,a_vals[i])<<std::endl;
+               // }
                 val = fn[i]/its[i];
+                //if(print) std::cout<<"val = "<<val<<std::endl;
 
                 last_W[index] = val;
                 if(val<=min_val){

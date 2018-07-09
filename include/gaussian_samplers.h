@@ -22,27 +22,57 @@
 #ifndef GAUSSIAN_SAMPLERS_H
 #define GAUSSIAN_SAMPLERS_H
 
-int rand_exp_range(NT l, NT u, NT a_i, NT &dis, vars &var){
+NT eval_exp(Point p, NT a){
+    return std::exp(-a*p.squared_length());
+}
+
+
+NT get_max(Point l, Point u, NT a_i){
+    NT res;
+    Point a = -1.0*l;
+    Point bef = u-l;
+    Point b = (1.0/std::sqrt((bef).squared_length()))*bef;
+    Point z = (a.dot(b)*b)+l;
+    NT low_bd = (l[0]-z[0])/b[0];
+    NT up_bd = (u[0]-z[0])/b[0];
+    if(low_bd*up_bd>0){
+        res = std::max(eval_exp(u,a_i),eval_exp(l,a_i));
+    }else{
+        res = eval_exp(z,a_i);
+    }
+
+    return res;
+}
+
+
+int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars &var){
     NT r, r_val, fn;
-    if(a_i>std::pow(10,-8.0) && std::abs(u-l)>=2.0/std::sqrt(2.0*a_i)){
+    if(a_i>0.00000001 && std::sqrt((upper-lower).squared_length())>=2.0/std::sqrt(2.0*a_i)){
         boost::normal_distribution<> rdist(-1,1);
+        Point a = -1.0*lower;
+        Point bef = upper-lower;
+        Point b = (1.0/std::sqrt((bef).squared_length()))*bef;
+        Point z = (a.dot(b)*b)+lower;
+        NT low_bd = (lower[0]-z[0])/b[0];
+        NT up_bd = (upper[0]-z[0])/b[0];
         while(true){
             r = rdist(var.rng);
             r = r/std::sqrt(2.0*a_i);
-            if(r>=l && r<=u){
+            if(r>=low_bd && r<=up_bd){
                 break;
             }
         }
-        dis=r;
+        p=(r*b)+z;
 
     }else{
         boost::random::uniform_real_distribution<> urdist(0,1);
-        NT M=1.0;
+        NT M=get_max(lower, upper, a_i);
         while(true){
             r=urdist(var.rng);
-            dis = (1.0-r)*l+r*u;
+            Point pef = r*upper;
+            p = ((1.0-r)*lower)+ pef;
             r_val = M*urdist(var.rng);
-            fn = std::exp(-a_i*dis*dis);
+            fn = eval_exp(p,a_i);
             if(r_val<fn){
                 break;
             }
@@ -111,8 +141,10 @@ int rand_gaussian_point_generator(T &P,
         //std::cout<<"[1a]P dim: "<<P.dimension()<<std::endl;
         gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,a_i,lamdas,var,true);
         //std::cout<<"[1b]P dim: "<<P.dimension()<<std::endl;
-    }else
-        gaussian_hit_and_run(p,P,a_i,var);
+    }else {
+        gaussian_hit_and_run(p, P, a_i, var);
+        randPoints.push_back(p);
+    }
 
     for(int i=1; i<rnum; ++i){
 
@@ -162,12 +194,13 @@ int gaussian_hit_and_run(Point &p,
     std::pair<NT,NT> dbpair = P.line_intersect(p,l);
     NT min_plus = dbpair.first;
     NT max_minus = dbpair.second;
-    NT dis;
-    rand_exp_range(max_minus, min_plus, a_i, dis, var);
-    //if(var.verbose) std::cout<<"max_minus = "<<max_minus<<"min_plus = "<<min_plus<<"dis= "<<dis<<std::endl;
-    p = (dis*l)+p;
-    //Point b1 = (min_plus*l)+p;
-    //Point b2 = (max_minus*l)+p;
+    //NT dis;
+    //rand_exp_range(max_minus, min_plus, a_i, dis, var);
+    //if(var.verbose) std::cout<<"max_minus = "<<max_minus<<"min_plus = "<<min_plus<<std::endl;
+    //p = (dis*l)+p;
+    Point upper = (min_plus*l)+p;
+    Point lower = (max_minus*l)+p;
+    rand_exp_range(lower, upper, a_i, p, var);
     //Point b1 = ppair.first;// - origin;
     //Point b2 = ppair.second;// - origin;
     //std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
