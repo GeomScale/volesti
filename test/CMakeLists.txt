@@ -8,11 +8,11 @@ if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
-find_library(LP_SOLVE NAMES liblpsolve55.so)
+find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
 
-if (LP_SOLVE-NOTFOUND)
+if (NOT LP_SOLVE)
 
-  message(STATUS "This program requires the lp_solve library, and will not be compiled.")
+  message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
 
 else ()
 

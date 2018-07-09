@@ -2,15 +2,17 @@ version: 2
 jobs:
   build:
     docker: # See https://docs.docker.com/get-started/#docker-concepts if you are new to Docker.
-      - image: circleci/ruby:2.4.1-jessie
+    #    - image: circleci/ruby:2.4.1-jessie
+        - image: circleci/ruby:2.6-rc
     steps:
-      - checkout
-      - run: echo "A first hello"
-  dependencies:
-    pre:
-      - sudo apt-get update || true
-      - sudo apt-get install cmake
-      - sudo apt-get install lp-solve
-  test:
-    override:
-      - cd test ; cmake -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so . ; ./run_tests.sh -exp
+       - checkout
+       - run: echo "A first hello";
+            sudo apt-get update || true;
+            sudo apt-get install cmake lp-solve libboost-random-dev; 
+            whereis boost;
+            rm -rf build;
+            mkdir build; 
+            cd build;
+            cmake ../test;
+            make; 
+            ./vol -h
