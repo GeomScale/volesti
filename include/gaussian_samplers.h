@@ -51,7 +51,7 @@ int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars &var){
         boost::normal_distribution<> rdist(-1,1);
         Point a = -1.0*lower;
         Point bef = upper-lower;
-        Point b = (1.0/std::sqrt((bef).squared_length()))*bef;
+        Point b = (1.0/std::sqrt(bef.squared_length()))*bef;
         Point z = (a.dot(b)*b)+lower;
         NT low_bd = (lower[0]-z[0])/b[0];
         NT up_bd = (upper[0]-z[0])/b[0];
