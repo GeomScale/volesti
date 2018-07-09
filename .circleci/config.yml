@@ -6,7 +6,7 @@ jobs:
         - image: circleci/ruby:2.6-rc
     steps:
        - checkout
-       - run: echo "A first hello";
+       - run: 
             sudo apt-get update || true;
             sudo apt-get install cmake lp-solve libboost-random-dev; 
             whereis boost;
