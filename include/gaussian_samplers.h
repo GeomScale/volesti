@@ -22,6 +22,9 @@
 #ifndef GAUSSIAN_SAMPLERS_H
 #define GAUSSIAN_SAMPLERS_H
 
+//#include <stdio.h>
+//#include <math.h>
+
 NT eval_exp(Point p, NT a){
     return std::exp(-a*p.squared_length());
 }
@@ -35,7 +38,7 @@ NT get_max(Point l, Point u, NT a_i){
     Point z = (a.dot(b)*b)+l;
     NT low_bd = (l[0]-z[0])/b[0];
     NT up_bd = (u[0]-z[0])/b[0];
-    if(low_bd*up_bd>0){
+    if(std::signbit(low_bd)==std::signbit(up_bd)){
         res = std::max(eval_exp(u,a_i),eval_exp(l,a_i));
     }else{
         res = eval_exp(z,a_i);
@@ -47,10 +50,10 @@ NT get_max(Point l, Point u, NT a_i){
 
 int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars &var){
     NT r, r_val, fn;
-    if(a_i>0.00000001 && std::sqrt((upper-lower).squared_length())>=2.0/std::sqrt(2.0*a_i)){
+    Point bef = upper-lower;
+    if(a_i>0.00000001 && std::sqrt(bef.squared_length()) >= (2.0/std::sqrt(2.0*a_i))){
         boost::normal_distribution<> rdist(-1,1);
         Point a = -1.0*lower;
-        Point bef = upper-lower;
         Point b = (1.0/std::sqrt(bef.squared_length()))*bef;
         Point z = (a.dot(b)*b)+lower;
         NT low_bd = (lower[0]-z[0])/b[0];
@@ -167,6 +170,25 @@ int rand_gaussian_point_generator(T &P,
 
     //if(rand_only) std::cout<<p<<std::endl;
     //if(print) std::cout<<"("<<i<<") Random point: "<<p<<std::endl;
+}
+
+
+void get_dir(Point &l, vars var){
+    int dim=l.dimension();
+    boost::normal_distribution<> rdist(-1.0,1.0);
+    std::vector<NT> Xs(dim,0);
+    NT normal=NT(0);
+    for (int i=0; i<dim; i++){
+        Xs[i]=rdist(var.rng);
+        normal+=Xs[i]*Xs[i];
+    }
+    normal=1.0/std::sqrt(normal);
+
+    for (int i=0; i<dim; i++){
+        Xs[i]=Xs[i]*normal;
+    }
+    //P point(d, Xs.begin(), Xs.end());
+
 }
 
 
