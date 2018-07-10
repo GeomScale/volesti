@@ -21,6 +21,7 @@
 #ifndef POINT_H
 #define POINT_H
 
+#include <iostream>
 
 template <class K>
 class point
@@ -125,6 +126,14 @@ public:
             lsq+=coeffs[i]*coeffs[i];
         }    
         return lsq;
+    }
+
+    void print(){
+        std::cout<<"\n";
+        for(int i=0; i<d; i++){
+            std::cout<<coeffs[i]<<" ";
+        }
+        std::cout<<"\n";
     }
     
     

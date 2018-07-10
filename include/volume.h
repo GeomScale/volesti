@@ -384,14 +384,16 @@ NT volume_gaussian_annealing(T &P,
     int W = 4*n*n+500;
     if(print) std::cout<<"W = "<<W<<std::endl;
     if(print) std::cout<<"pi/a_0 = "<<M_PI/a_vals[0]<<std::endl;
-    std::vector<NT> last_W(W,0);
+    std::vector<NT> last_W2(W,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
     if(print) std::cout<<"vol = "<<vol<<std::endl;
     vars var2=var;
     var2.coordinate=false;
     std::list<Point> randPoints;
+    Point p2(n);
     Point p(n);
     //P.print();
+    //std::cout<<P.num_of_hyperplanes()<<" "<<P.dimension();
     std::pair<int,NT> res;
 
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
@@ -409,7 +411,7 @@ NT volume_gaussian_annealing(T &P,
         min_steps=0;
         //Point p(n);
         randPoints.clear();
-        std::vector<NT> last_W(W,0);
+        std::vector<NT> last_W=last_W2;
         n_threads=1;
         //if(print){
           //  std::cout<<"p before = ";
@@ -418,10 +420,16 @@ NT volume_gaussian_annealing(T &P,
             //}
             //std::cout<<"\n\n";
         //}
+        //p=p2;
 
         while(!done || its[i]<min_steps){
-            for(int j=0; j<n_threads; j++){
-                rand_gaussian_point_generator(P, p, 1, 1, randPoints, a_vals[i], var2);
+            //r(int j=0; j<n_threads; j++){
+                //rand_gaussian_point_generator(P, p, 1, 1, randPoints, a_vals[i], var2);
+                gaussian_hit_and_run(p,P,a_vals[i],var);
+                if(!P.is_in(p)){
+                    std::cout<<"point not in P\n";
+                    exit(-1);
+                }
                 its[i] += 1.0;
                 fn[i] += eval_exp(p,a_vals[i+1]) / eval_exp(p,a_vals[i]);
                // if(print){
@@ -474,7 +482,7 @@ NT volume_gaussian_annealing(T &P,
                 //if(print) std::cout<<"index1 = "<<index<<std::endl;
                 if(index==W) index=0;
                 //if(print) std::cout<<"index2 = "<<index<<std::endl;
-            }
+           // }
         }
         if(print) std::cout<<"ratio "<<i<<" = "<<fn[i]/its[i]<<" its[i] = "<<its[i]<<std::endl;
         vol = vol*(fn[i]/its[i]);
