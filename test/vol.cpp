@@ -92,7 +92,7 @@ int main(const int argc, const char** argv)
                       "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
                       "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
                       std::endl;
-          exit(-1);
+          return 0;
       }
       if(!strcmp(argv[i],"--cube")){
           exactvol = std::pow(2,n);
