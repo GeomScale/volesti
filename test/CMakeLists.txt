@@ -1,5 +1,7 @@
 project( VolEsti )
 
+enable_testing()
+
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
@@ -40,7 +42,17 @@ else ()
 
   add_executable (vol vol.cpp)
 
-  TARGET_LINK_LIBRARIES(vol ${LP_SOLVE}) 
+  add_library(test_main OBJECT test_main.cpp)
+
+  add_executable (volume volume_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME volume_cube COMMAND volume -tc=cube)
+  add_test(NAME volume_cross COMMAND volume -tc=cross)
+  add_test(NAME volume_birkhoff COMMAND volume -tc=birkhoff)
+  add_test(NAME volume_prod_simplex COMMAND volume -tc=prod_simplex)
+  add_test(NAME volume_skinny_cube COMMAND volume -tc=skinny_cube)
+
+  TARGET_LINK_LIBRARIES(vol ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(volume ${LP_SOLVE})
  
 
 endif()
