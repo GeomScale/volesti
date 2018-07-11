@@ -92,15 +92,16 @@ public:
     }
     
     point operator* (const FT& k){
-        point temp(d,iter_begin(),iter_end());
+        //point temp(d,iter_begin(),iter_end());
+        point temp(d);
         //point temp=*this;
-        typename Coeff::iterator tmit=temp.iter_begin();
-        for( ; tmit<temp.iter_end(); ++tmit){
-			(*tmit)*=k;
-		}
-        //for (int i=0; i<d; i++){
-          //  temp.coeffs[i]=coeffs[i]*k;
-        //}
+        //typename Coeff::iterator tmit=temp.iter_begin();
+        //for( ; tmit<temp.iter_end(); ++tmit){
+		//	(*tmit)*=k;
+		//}
+        for (int i=0; i<d; i++){
+            temp.coeffs[i]=coeffs[i]*k;
+        }
         
         return temp;
     }

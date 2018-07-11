@@ -267,7 +267,9 @@ int main(const int argc, const char** argv)
   const int lw=0, up=10000, R=up-lw;
   
    /* RANDOM NUMBERS */
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   RNGType rng(std::time(0));
+  //  RNGType rng(seed);
   boost::normal_distribution<> rdist(0,1);
   boost::random::uniform_real_distribution<>(urdist);
   boost::random::uniform_real_distribution<> urdist1(-1,1);
