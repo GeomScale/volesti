@@ -52,14 +52,16 @@ int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars &var){
     NT r, r_val, fn;
     Point bef = upper-lower;
     if(a_i>0.00000001 && std::sqrt(bef.squared_length()) >= (2.0/std::sqrt(2.0*a_i))){
-        boost::normal_distribution<> rdist(-1,1);
+        boost::normal_distribution<> rdist(0,1);
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        RNGType rng(seed);
         Point a = -1.0*lower;
         Point b = (1.0/std::sqrt(bef.squared_length()))*bef;
         Point z = (a.dot(b)*b)+lower;
         NT low_bd = (lower[0]-z[0])/b[0];
         NT up_bd = (upper[0]-z[0])/b[0];
         while(true){
-            r = rdist(var.rng);
+            r = rdist(rng);
             r = r/std::sqrt(2.0*a_i);
             if(r>=low_bd && r<=up_bd){
                 break;
@@ -173,21 +175,26 @@ int rand_gaussian_point_generator(T &P,
 }
 
 
-void get_dir(Point &l, vars var){
-    int dim=l.dimension();
-    boost::normal_distribution<> rdist(-1.0,1.0);
+Point get_dir(vars var){
+    int dim=var.n;
+    boost::normal_distribution<> rdist(0,1);
     std::vector<NT> Xs(dim,0);
     NT normal=NT(0);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
     for (int i=0; i<dim; i++){
-        Xs[i]=rdist(var.rng);
+        Xs[i]=rdist(rng);
+        //std::cout<<Xs[i]<<" ";
         normal+=Xs[i]*Xs[i];
     }
+    //std::cout<<"\n";
     normal=1.0/std::sqrt(normal);
 
     for (int i=0; i<dim; i++){
         Xs[i]=Xs[i]*normal;
     }
-    //P point(d, Xs.begin(), Xs.end());
+    Point p(dim, Xs.begin(), Xs.end());
+    return p;
 
 }
 
@@ -202,13 +209,13 @@ int gaussian_hit_and_run(Point &p,
     double err = var.err;
     RNGType &rng = var.rng;
     //std::uniform_real_distribution<NT> &urdist = var.urdist;
-    boost::random::uniform_real_distribution<> urdist(0,1);
-    //std::uniform_real_distribution<NT> &urdist1 = var.urdist1;
+    boost::random::uniform_real_distribution<> urdist(0,1);   //std::uniform_real_distribution<NT> &urdist1 = var.urdist1;
 
-    Point origin(n);
+    //Point origin(n);
 
-    Random_points_on_sphere_d<Point> gen (n, 1.0);
-    Point l = gen.sample_point(rng);// - CGAL::Origin();
+    //Random_points_on_sphere_d<Point> gen (n, 1.0);
+    //Point l = gen.sample_point(var.rng);// - CGAL::Origin();
+    Point l=get_dir(var);
     //Point l2=origin;
     //Vector b1 = line_bisect(p,l,P,var,var2);
     //Vector b2 = line_bisect(p,-l,P,var,var2);

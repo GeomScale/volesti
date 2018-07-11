@@ -35,7 +35,7 @@ public:
     //rn generator;
     //std::default_random_engine generator;   
     //std::normal_distribution<FT> distribution = std::normal_distribution<FT>(FT(0),FT(1));
-    boost::normal_distribution<> distribution = boost::normal_distribution<>(-1.0,1.0);
+    boost::normal_distribution<> distribution = boost::normal_distribution<>(0,1.0);
     //typedef std::vector<K> coeff;
     //coeff coeffs;
     
