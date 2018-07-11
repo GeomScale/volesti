@@ -26,10 +26,11 @@
 template <class P>
 class Random_points_on_sphere_d
 {
-public:
+private:
     typedef typename P::FT 	FT;
     int d;
     FT r;
+public:
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(std::chrono::system_clock::now().time_since_epoch().count());
     //rn generator;
