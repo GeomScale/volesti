@@ -507,3 +507,6 @@ NT volume_gaussian_annealing(T &P,
 }
 
 #endif
+=======
+#endif
+>>>>>>> cgal_remove
