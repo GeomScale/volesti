@@ -138,7 +138,7 @@ int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C,
     std::list<Point> randPoints;
     vars var2=var;
     var2.coordinate=false;
-    rand_gaussian_point_generator(K, p, N, 1, randPoints, last_a, var2);
+    rand_gaussian_point_generator(K, p, N, 1, randPoints, last_a, var);
     if(print) std::cout<<"size of randPoints = "<<randPoints.size()<<" N = "<<N<<std::endl;
 
     while(!done){
@@ -202,7 +202,7 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
     if(print) std::cout<<"N = "<<500 * ((int) C) + ((int) (dim * dim / 2))<<"\n"<<std::endl;
     if(print) std::cout<<"ratio = "<<ratio<<std::endl;
     while(curr_fn/curr_its>1.001 && a_vals[it]>=a_stop) {
-        get_next_gaussian(K, a_vals, a_vals[it], 500 * ((int) C) + ((int) (dim * dim / 2)), ratio, C, p, var2);
+        get_next_gaussian(K, a_vals, a_vals[it], 500 * ((int) C) + ((int) (dim * dim / 2)), ratio, C, p, var);
         it++;
         if(print) std::cout<<"gaussian a_"<<it<<" = "<<a_vals[it]<<std::endl;
 
@@ -212,12 +212,12 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
         for (int j = 0; j < steps; j++) {
             //if(print) std::cout<<"first time\n";
             //p.print();
-            rand_gaussian_point_generator(K, p, 1, 1, randPoints, a_vals[it-1], var2);
-            p.print();
-            if(!K.is_in(p)){
-                std::cout<<"point not in K";
-                exit(-1);
-            }
+            rand_gaussian_point_generator(K, p, 1, 1, randPoints, a_vals[it-1], var);
+            //p.print();
+            //if(!K.is_in(p)){
+                //std::cout<<"point not in K";
+                //exit(-1);
+            //}
             curr_its += 1.0;
             curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
         }
