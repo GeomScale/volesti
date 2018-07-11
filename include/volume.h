@@ -428,6 +428,7 @@ NT volume_gaussian_annealing(T &P,
             //r(int j=0; j<n_threads; j++){
                 //rand_gaussian_point_generator(P, p, 1, 1, randPoints, a_vals[i], var2);
                 gaussian_hit_and_run(p,P,a_vals[i],var);
+                //std::cout<<var.coordinate;
                 if(!P.is_in(p)){
                     std::cout<<"point not in P\n";
                     exit(-1);

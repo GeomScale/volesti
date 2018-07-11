@@ -38,13 +38,22 @@ NT get_max(Point l, Point u, NT a_i){
     Point z = (a.dot(b)*b)+l;
     NT low_bd = (l[0]-z[0])/b[0];
     NT up_bd = (u[0]-z[0])/b[0];
-    if(std::signbit(low_bd)==std::signbit(up_bd)){
+    if(low_bd*up_bd>0){
+    //if(std::signbit(low_bd)==std::signbit(up_bd)){
         res = std::max(eval_exp(u,a_i),eval_exp(l,a_i));
     }else{
         res = eval_exp(z,a_i);
     }
 
     return res;
+}
+
+
+NT get_max_coord(NT l, NT u, NT a_i){
+    if(l<0.0 && u>0.0){
+        return 1.0;
+    }
+    return std::max(std::exp(-a_i*l*l), std::exp(-a_i*u*u));
 }
 
 
@@ -61,7 +70,7 @@ int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars &var){
         NT low_bd = (lower[0]-z[0])/b[0];
         NT up_bd = (upper[0]-z[0])/b[0];
         while(true){
-            r = rdist(rng);
+            r = rdist(var.rng);
             r = r/std::sqrt(2.0*a_i);
             if(r>=low_bd && r<=up_bd){
                 break;
@@ -89,10 +98,12 @@ int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars &var){
 
 int rand_exp_range_coord(NT l, NT u, NT a_i, NT &dis, vars &var){
     NT r, r_val, fn;
-    if(a_i>std::pow(10,-8.0) && std::abs(u-l)>=2.0/std::sqrt(2.0*a_i)){
-        boost::normal_distribution<> rdist(-1,1);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    if(a_i>std::pow(10,-8.0) && u-l>=2.0/std::sqrt(2.0*a_i)){
+        boost::normal_distribution<> rdist(0,1);
         while(true){
-            r = rdist(var.rng);
+            r = rdist(rng);
             r = r/std::sqrt(2.0*a_i);
             if(r>=l && r<=u){
                 break;
@@ -102,9 +113,9 @@ int rand_exp_range_coord(NT l, NT u, NT a_i, NT &dis, vars &var){
 
     }else{
         boost::random::uniform_real_distribution<> urdist(0,1);
-        NT M=1.0;
+        NT M = get_max_coord(l, u, a_i);
         while(true){
-            r=urdist(var.rng);
+            r=urdist(rng);
             dis = (1.0-r)*l+r*u;
             r_val = M*urdist(var.rng);
             fn = std::exp(-a_i*dis*dis);
@@ -131,7 +142,7 @@ int rand_gaussian_point_generator(T &P,
     int n = var.n;
     //bool birk = var.birk;
     RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist(0,1);
+    //boost::random::uniform_real_distribution<> urdist(0,1);
     boost::random::uniform_int_distribution<> uidist(0,n-1);
     //std::uniform_real_distribution<NT> urdist = var.urdist;
     //std::uniform_int_distribution<int> uidist(0,n-1);
@@ -140,11 +151,12 @@ int rand_gaussian_point_generator(T &P,
     //int rand_coord = rand()%n;
     //double kapa = double(rand())/double(RAND_MAX);
     int rand_coord = uidist(rng);
-    double kapa = urdist(rng);
+    //double kapa = urdist(rng);
     Point p_prev = p;
     if(var.coordinate){
         //std::cout<<"[1a]P dim: "<<P.dimension()<<std::endl;
         gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,a_i,lamdas,var,true);
+        randPoints.push_back(p);
         //std::cout<<"[1b]P dim: "<<P.dimension()<<std::endl;
     }else {
         gaussian_hit_and_run(p, P, a_i, var);
@@ -158,7 +170,7 @@ int rand_gaussian_point_generator(T &P,
             //rand_coord = rand()%n;
             //kapa = double(rand())/double(RAND_MAX);
             rand_coord = uidist(rng);
-            kapa = urdist(rng);
+            //kapa = urdist(rng);
             if(var.coordinate){
                 //std::cout<<"[1c]P dim: "<<P.dimension()<<std::endl;
                 gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,a_i,lamdas,var,false);
@@ -183,7 +195,7 @@ Point get_dir(vars var){
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
     for (int i=0; i<dim; i++){
-        Xs[i]=rdist(rng);
+        Xs[i]=rdist(var.rng);
         //std::cout<<Xs[i]<<" ";
         normal+=Xs[i]*Xs[i];
     }
@@ -263,9 +275,9 @@ int gaussian_hit_and_run_coord_update(Point &p,
     NT min_plus = bpair.first;
     NT max_minus = bpair.second;
     NT dis;
-    rand_exp_range_coord(max_minus, min_plus, a_i, dis, var);
+    rand_exp_range_coord(p[rand_coord]+max_minus, p[rand_coord]+min_plus, a_i, dis, var);
     p_prev = p;
-    p.set_coord(rand_coord , p[rand_coord] + dis);
+    p.set_coord(rand_coord , dis);
     return 1;
 }
 
