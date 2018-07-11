@@ -382,7 +382,7 @@ NT volume_gaussian_annealing(T &P,
         }
         std::cout<<"\n"<<std::endl;
     }
-    std::vector<NT> fn(mm,0), its(mm,0);
+    std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
     int W = 4*n*n+500;
     if(print) std::cout<<"W = "<<W<<std::endl;
     if(print) std::cout<<"pi/a_0 = "<<M_PI/a_vals[0]<<std::endl;
@@ -392,11 +392,17 @@ NT volume_gaussian_annealing(T &P,
     vars var2=var;
     var2.coordinate=false;
     std::list<Point> randPoints;
-    Point p2(n);
+    //Point p2(n);
     Point p(n);
     //P.print();
     //std::cout<<P.num_of_hyperplanes()<<" "<<P.dimension();
     std::pair<int,NT> res;
+    Point p_prev=p;
+    int coord_prev=-1;
+    //boost::random::uniform_int_distribution<> uidist(0,n-1);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(std::time(0));
+    //RNGType rng(seed);
 
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
     for(int i=0; i<mm-1; i++){
@@ -427,7 +433,8 @@ NT volume_gaussian_annealing(T &P,
         while(!done || its[i]<min_steps){
             //r(int j=0; j<n_threads; j++){
                 //rand_gaussian_point_generator(P, p, 1, 1, randPoints, a_vals[i], var2);
-                gaussian_hit_and_run(p,P,a_vals[i],var);
+                gaussian_next_point(P,p,p_prev,coord_prev,1,a_vals[i],lamdas,var);
+                //gaussian_hit_and_run(p,P,a_vals[i],var);
                 //std::cout<<var.coordinate;
                 if(!P.is_in(p)){
                     std::cout<<"point not in P\n";
