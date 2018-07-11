@@ -129,6 +129,48 @@ int rand_exp_range_coord(NT l, NT u, NT a_i, NT &dis, vars &var){
 }
 
 
+template <class T>
+int gaussian_next_point(T &P,
+                        Point &p,   // a point to start
+                        Point &p_prev,
+                        int &coord_prev,
+                        int walk_len,
+                        NT a_i,
+                        std::vector<NT> &lamdas,
+                        vars &var)
+{
+    int n=var.n;
+    //RNGType &rng = var.rng;
+    boost::random::uniform_int_distribution<> uidist(0,n-1);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+
+    if(!var.coordinate){
+        gaussian_hit_and_run(p,P,a_i,var);
+    }else{
+        int rand_coord;
+        if(coord_prev==-1){
+            p_prev = p;
+            rand_coord = uidist(rng);
+            gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,a_i,lamdas,var,true);
+            coord_prev=rand_coord;
+            if(walk_len==1){
+                return 1;
+            }else{
+                walk_len--;
+            }
+        }
+        for(int j=0; j<walk_len; j++){
+            rand_coord = uidist(rng);
+            gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,coord_prev,a_i,lamdas,var,false);
+            coord_prev=rand_coord;
+        }
+    }
+
+    return 1;
+}
+
+
 template <class T, class K>
 int rand_gaussian_point_generator(T &P,
                          Point &p,   // a point to start

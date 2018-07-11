@@ -201,6 +201,9 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
     if(print) std::cout<<"Computing the sequence of gaussians.."<<std::endl;
     if(print) std::cout<<"N = "<<500 * ((int) C) + ((int) (dim * dim / 2))<<"\n"<<std::endl;
     if(print) std::cout<<"ratio = "<<ratio<<std::endl;
+    Point p_prev=p;
+    int coord_prev=-1;
+    std::vector<NT> lamdas(K.num_of_hyperplanes(),NT(0));
     while(curr_fn/curr_its>1.001 && a_vals[it]>=a_stop) {
         get_next_gaussian(K, a_vals, a_vals[it], 500 * ((int) C) + ((int) (dim * dim / 2)), ratio, C, p, var);
         it++;
@@ -208,11 +211,20 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
 
         curr_fn = 0;
         curr_its = 0;
+        p_prev=p;
+        coord_prev=-1;
+        std::fill(lamdas.begin(), lamdas.end(), NT(0));
 
         for (int j = 0; j < steps; j++) {
             //if(print) std::cout<<"first time\n";
             //p.print();
-            rand_gaussian_point_generator(K, p, 1, 1, randPoints, a_vals[it-1], var);
+            //if(var.coordinate){
+
+            //}else{
+
+            //}
+            //rand_gaussian_point_generator(K, p, 1, 1, randPoints, a_vals[it-1], var);
+            gaussian_next_point(K,p,p_prev,coord_prev,1,a_vals[it-1],lamdas,var);
             //p.print();
             //if(!K.is_in(p)){
                 //std::cout<<"point not in K";
