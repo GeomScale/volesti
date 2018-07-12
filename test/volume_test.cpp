@@ -55,9 +55,15 @@ void test_volume(FilePath f, double expected, double tolerance=0.1)
     std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
 
     // Estimate the volume
-    double vol = volume(P,var,var,CheBall);
-    double error = (vol-expected)/expected;
-    std::cout << "Computed volume = " << vol << std::endl;
+    std::cout << "--- Testing volume of " << f << std::endl;
+    double vol = 0;
+    unsigned int const num_of_exp = 10;
+    for (unsigned int i=0; i<num_of_exp; i++)
+    {
+        vol += volume(P,var,var,CheBall);
+    }
+    double error = ((vol/num_of_exp)-expected)/expected;
+    std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
     std::cout << "Expected volume = " << expected << std::endl;
     CHECK(error < tolerance);
 }

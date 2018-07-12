@@ -8,11 +8,10 @@ jobs:
        - checkout
        - run: 
             sudo apt-get update || true;
-            sudo apt-get install cmake lp-solve libboost-random-dev; 
-            whereis boost;
+            sudo apt-get install cmake lp-solve; 
             rm -rf build;
             mkdir build; 
             cd build;
             cmake ../test;
             make; 
-            make test;
+            ctest --verbose;
