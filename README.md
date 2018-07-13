@@ -10,6 +10,8 @@ Main algorithm based on: I.Z. Emiris and V. Fisikopoulos, "Efficient random-walk
 
 This is a Rcpp package based on an open-source C++ software for computing an approximation of the volume of convex bodies given as an intersection of an ellipsoid and a polytope given as an intersection of halfspaces or of a polytope given by its vertices. We have excluded CGAL and Boost dependecies. In folder include we develop the C++ code.
 
+[![CircleCI](https://circleci.com/gh/vissarion/volume_approximation.svg?style=svg)](https://circleci.com/gh/vissarion/volume_approximation)
+
 ### *1. Install Rcpp package*  
 
 * Install package-dependencies: Rcpp, RcppEigen, BH, lpSolveAPI.  
