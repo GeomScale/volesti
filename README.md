@@ -7,10 +7,10 @@
 
 **VolEsti** is a C++ library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an *R* interface.
 
-## Documentation
+Documentation
 ----------------
 
-#####  Install Rcpp package  
+####  Install Rcpp package  
  
 * Install package-dependencies: `Rcpp`, `RcppEigen`, `BH`, `lpSolveAPI`.  
 * Then use devtools package to install `volesti` Rcpp package. Run:
@@ -22,7 +22,7 @@ library(volesti)
 ```
  You can use Rstudio as well to open `volesti.Rproj` and then click `build source Package` and then `Install and Restart` in `Build` at the menu bar.  
 
-#####  Run volesti from `R`
+####  Run volesti from `R`
 * The main function is VolEsti(). The input has to be a list("matrix"=A, "vector"=b, "cheb"=xc, "rounding"=bool, "verbose"=BOOL), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center. Rounding option is to apply a linear transformation to the convex body to get a well rounded one.  
 * You can give as input a list("path"='path/to/ine/file') insteed of a "matrix" or a "vector".  
 * The "cheb" input is optional. When it is not given lpsolve library is used from C++ code.  
@@ -30,7 +30,7 @@ library(volesti)
 * Verbose variable is by default false.  
 * You can run all the experiments by running function testRvolEsti().  
 
-#####  Compile C++ sources and run tests 
+####  Compile C++ sources and run tests 
 
 To compile the C++ code you have to specify the path to external library `liblpsolve55.so`, by running, in folder test:  
 ```
@@ -41,7 +41,7 @@ For example:  `-DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so`
 
 You can run the tests by `cmake test` or `ctest -jK` where `K` the number of `CPU` threads. By adding the option `--verbose` to `ctest` you get more information about the tests, *e.g.* time per test, volume computed and the name of the polytope or convex body. 
 
-##### Polytope input  
+#### Polytope input  
 
 The current version of the software assumes that the polytope is given in the form of linear inequalities i.e. $${x \in R^d : Ax \leq b}$$ where $$A$$ is a matrix of dimension $$m\times d$$ and $$b$$ a vector of dimension $$m$$. The input is described in an `.ine`-file as follows:  
   
@@ -57,7 +57,7 @@ various options
 This filestype (or similar) is used by a number of other software in polyhedral computation (e.g. `cdd`, `vinci`, `latte`). In the current version of the software, the options are treated as comments and the numbertype as C++ double type.  
 If your input has equality constraints then you have to transform it in the form that only contain linear inequalities which described above by using some other software. We recommend to use latte https://www.math.ucdavis.edu/~latte for this transformation.  
   
-##### Run volesti from command line  
+#### Run volesti from command line  
 
 After successful compilation you can use the software by command line. For example, the following command `./vol -h`   will display a help message about the program's available options.  
   
@@ -102,7 +102,7 @@ Then run the following command:
 which returns 17 numbers:  
 ```d m #experiments exactvolOr-1 approxVolume [.,.] #randPoints walkLength meanVol [minVol,maxVol] stdDev errorVsExact maxminDivergence time timeChebyshevBall```
  
-## Credits
+Credits
 -------
 
 Copyright (c) 2012-2018 Vissarion Fisikopoulos  
@@ -114,7 +114,7 @@ The Rcpp package is based on an open-source C++ software for computing an approx
 
 Main development by Vissarion Fisikopoulos while he was affiliated with University of Athens (UoA, Greece), University of Brussels (ULB, Belgium) and Oracle Corp, and Chalkis Apostolos affiliated with University of Athens.
 
-##### Publications
+#### Publications
 
 1. I.Z. Emiris and V. Fisikopoulos, *Efficient random-walk methods for approximating polytope volume*, In Proc. ACM Symposium on Computational Geometry, Kyoto, Japan, p.318-325, 2014.  
 2. I.Z. Emiris and V. Fisikopoulos, *Practical polytope volume approximation*, ACM Transactions on Mathematical Software, vol 44, issue 4, 2018.
