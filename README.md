@@ -23,12 +23,12 @@ library(volesti)
  You can use Rstudio as well to open `volesti.Rproj` and then click `build source Package` and then `Install and Restart` in `Build` at the menu bar.  
 
 ####  Run volesti from `R`
-* The main function is VolEsti(). The input has to be a list("matrix"=A, "vector"=b, "cheb"=xc, "rounding"=bool, "verbose"=BOOL), for a polytope Ax<=b and a d+1 vector xc which last coordinate is the radius of the chebychev ball and the first d coordinates the center. Rounding option is to apply a linear transformation to the convex body to get a well rounded one.  
-* You can give as input a list("path"='path/to/ine/file') insteed of a "matrix" or a "vector".  
-* The "cheb" input is optional. When it is not given lpsolve library is used from C++ code.  
-* A R function, using lpSolveAPI, to compute chebychev center is provided.
-* Verbose variable is by default false.  
-* You can run all the experiments by running function testRvolEsti().  
+* The main function is `VolEsti()`. The input has to be a `list("matrix"=A, "vector"=b, "cheb"=xc, "rounding"=bool, "verbose"=BOOL)`, for a polytope \(Ax\leq b\) and a \(d+1\) vector `xc` which last coordinate is the radius of the chebychev ball and the first \(d\) coordinates the center. Rounding option is to apply a linear transformation to the convex body to get a well rounded one.  
+* You can give as input a `list("path"='path/to/ine/file')` insteed of a `"matrix"` or a `"vector"`.  
+* The `"cheb"` input is optional. When it is not given lpsolve library is used from C++ code.  
+* An `R` function, using `lpSolveAPI`, to compute Chebychev center is provided.
+* `"verbose"` is by default `false`.  
+* You can run all the tests by running function `testRvolEsti()`.  
 
 ####  Compile C++ sources and run tests 
 
