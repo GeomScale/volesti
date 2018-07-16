@@ -53,6 +53,8 @@ int main(const int argc, const char** argv)
 	 linear_extensions=false,
          birk=false,
          rotate=false,
+         ball_walk=false,
+         ball_rad=false,
          experiments=true,
          annealing = false,
          coordinate=true;
@@ -61,6 +63,7 @@ int main(const int argc, const char** argv)
 	Polytope<NT> P;
 	int magnitude=0;
 	bool exper=false;
+	double ball_radius=0.0;
 	
   if(argc<2){
     std::cout<<"Use -h for help"<<std::endl;
@@ -120,6 +123,15 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-rdhr")){
           coordinate=false;
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-bw")){
+          ball_walk=true;
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-bwr")){
+          ball_rad=true;
+          ball_radius = atof(argv[++i]);
           correct=true;
       }
       //reading from file
@@ -304,8 +316,11 @@ int main(const int argc, const char** argv)
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,rng,
-               urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
+      //if(!ball_rad){
+      //    ball_radius =
+      //}
+      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,0.0,rng,
+               urdist,urdist1,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
       if(round_only){
           // Round the polytope and exit

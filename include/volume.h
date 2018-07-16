@@ -56,6 +56,7 @@ public:
           const int lw,
           double up,
           const int L,
+          double ball_radius,
           RNGType &rng,
           //std::uniform_real_distribution<NT> urdist,
           //std::uniform_real_distribution<NT> urdist1,
@@ -66,12 +67,13 @@ public:
           bool round,
           bool NN,
           bool birk,
+          bool ball_walk,
           bool coordinate
           ) :
         m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
-        lw(lw), up(up), L(L), rng(rng),
+        lw(lw), up(up), L(L), ball_radius(ball_radius), rng(rng),
         urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
-        NN(NN),birk(birk),coordinate(coordinate){};
+        NN(NN),birk(birk),ball_walk(ball_walk),coordinate(coordinate){};
 
     int m;
     int n;
@@ -82,6 +84,7 @@ public:
     const int lw;
     double up;
     const int L;
+    double ball_radius;
     RNGType &rng;
     //std::uniform_real_distribution<NT> urdist;
     //std::uniform_real_distribution<NT> urdist1;
@@ -92,6 +95,7 @@ public:
     bool round;
     bool NN;
     bool birk;
+    bool ball_walk;
     bool coordinate;
 };
 
@@ -175,6 +179,7 @@ NT volume(T &P,
         std::pair<Point,NT> res=solveLP(P.get_matrix(), P.dimension());
         c=res.first; radius=res.second;
     }
+
 
     //1. Get the Chebychev ball (largest inscribed ball) with center and radius
 
@@ -339,6 +344,9 @@ NT volume_gaussian_annealing(T &P,
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         std::pair<Point,NT> res=solveLP(P.get_matrix(), P.dimension());
         c=res.first; radius=res.second;
+    }
+    if(var.ball_walk){
+        var.ball_radius = radius;
     }
 
     //1. Move chebychev center to origin and apply the same shifting to the polytope
