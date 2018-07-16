@@ -1,4 +1,10 @@
-#takes matrix .ine style and return matrix A and b: Ax<=b
+#' takes a numerical matrix in ine format and return numerical matrix A and vector b: Ax<=b
+#'
+#' @param A the numerical matrix in ine format of the H-polytope
+#' @return numerical matrix A and vector b: Ax<=b
+#'
+#' @examples
+#' modifyMat(A)
 modifyMat <- function(A){
   
   b=A[,1]
@@ -8,7 +14,13 @@ modifyMat <- function(A){
   
 }
 
-#functiion to get a read.cs('path/to/file.ine') and return matrix for VolEsti()
+
+#' functiion to get a ine file and return matrix A in ine format for VolEsti()
+#'
+#' @param read.cs('path/to/file.ine') the ine file desrcibing the H-polytope
+#' @return The numerical matrix in ine format of \code{read.cs('path/to/file.ine')}
+#' @examples
+#' ineToMatrix(read.cs('path/to/data/cube40.ine'))
 ineToMatrix <- function(P){
   
   r=as.character(P[3,1])
@@ -79,10 +91,15 @@ ineToMatrix <- function(P){
   return(A)
 }
 
-#function to run the tests
+#' Run some experiments
+#'
+#' @param empty No inputs
+#' @return Print the computed volumes and the total time
+#' @examples
+#' testRvolEsti()
 testRvolEsti <- function(){
   path=getwd()
-  path=paste0(substr(path, start=1, stop=nchar(path)-7),'/test/test_data/')
+  path=paste0(substr(path, start=1, stop=nchar(path)-7),'/data/')
   print(path)
   listofexamples=list.files(path)
   
@@ -95,7 +112,13 @@ testRvolEsti <- function(){
   
 }
 
-#Take matrices A,b: Ax<=b and compute the chebychev center using lpSolveAPI library
+#' Compute the Chebychev ball of a H-polytope, P:= Ax<=b
+#'
+#' @param A the matrix of the H-polytope
+#' @param b the vector with the constants of the hyperplanes
+#' @return The Chebychev center of the Polytope discribed by the matrix \code{A} and the vector \code{b}
+#' @examples
+#' CheBall(A,b)
 CheBall <- function(A,b){
   
   d=dim(A)[2]
@@ -124,7 +147,22 @@ CheBall <- function(A,b){
 }
 
 
-#Main function. Takes a list and computes volume
+#' The main R function for volume approximation of a convex H-Polytope
+#'
+#' @param list("path","matrix","vector","Chebychev","verbose","coordinate","rounding","Walk_length","error","test")
+#' @param path The path to the ine file that describes the H-polytope. If path is given then "matrix" and "vector" inputs are not needed
+#' @param matrix The matrix A of the polytope. If it is in ine format then the input "vector" is not needed
+#' @param vector The vector b that containes the constants of the hyperplanes
+#' @param Chebychev Optional. A d+1 vector that containes the chebychev center in the first d coordinates and the radius of the chebychev ball in the last coordinate
+#' @param verbose Optional. A boolean parameter for printing. Default is False
+#' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default is True
+#' @param rounding Optional. A boolean parameter to activate the rounding option. Default is False
+#' @param Walk_length Optional. Declare the number of the steps for the random walk, default is 10+d/10
+#' @param error Optional. Declare the goal for the approximation error. Default is 1
+#' @param test Optional. A boolean parameter. Declare if the current excecution is a test or not. Default is False
+#' @return The approximation of the volume of an H-polytope
+#' @examples
+#' VolEsti(list("path"=/path/to/ine/file, "verbose"=TRUE))
 VolEsti <- function(Inputs){
   
   if(!is.null(Inputs$path)){
