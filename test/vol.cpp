@@ -54,6 +54,7 @@ int main(const int argc, const char** argv)
          birk=false,
          rotate=false,
          experiments=true,
+         annealing = false,
          coordinate=true;
 	
 	//this is our polytope
@@ -226,6 +227,10 @@ int main(const int argc, const char** argv)
           rotate=true;
           correct=true;
       }
+      if(!strcmp(argv[i],"-g_an")){
+          annealing=true;
+          correct=true;
+      }
       if(correct==false){
           std::cerr<<"unknown parameters \'"<<argv[i]<<
                      "\', try "<<argv[0]<<" --help"<<std::endl;
@@ -262,7 +267,9 @@ int main(const int argc, const char** argv)
   const int lw=0, up=10000, R=up-lw;
   
    /* RANDOM NUMBERS */
-  RNGType rng(std::time(0));
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  //RNGType rng(std::time(0));
+  RNGType rng(seed);
   boost::normal_distribution<> rdist(0,1);
   boost::random::uniform_real_distribution<>(urdist);
   boost::random::uniform_real_distribution<> urdist1(-1,1);
@@ -308,6 +315,11 @@ int main(const int argc, const char** argv)
           std::cout<<"end\n--------------\n"<<std::endl;
       }else{
           // Estimate the volume
+          if(annealing){
+              vol = volume_gaussian_annealing(P_to_test, var, CheBall);
+              std::cout<<"volume computed = "<<vol<<std::endl;
+              return 0;
+          }
           vol = volume(P_to_test,var,var,CheBall);
           //if(rotate) vol = std::sqrt(vol);
           //std::cout<<vol<<std::endl;

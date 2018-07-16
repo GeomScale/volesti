@@ -36,7 +36,7 @@ public:
     //rn generator;
     //std::default_random_engine generator;   
     //std::normal_distribution<FT> distribution = std::normal_distribution<FT>(FT(0),FT(1));
-    boost::normal_distribution<> distribution = boost::normal_distribution<>(0,1);
+    boost::normal_distribution<> distribution = boost::normal_distribution<>(0,1.0);
     //typedef std::vector<K> coeff;
     //coeff coeffs;
     
@@ -106,6 +106,7 @@ int birk_sym(T &P,K &randPoints,Point &p){
     } while ( std::next_permutation(myints.begin(),myints.end()) );
 }
 
+
 // ----- RANDOM POINT GENERATION FUNCTIONS ------------ //
 
 template <class T, class K>
@@ -154,7 +155,7 @@ int rand_point_generator(T &P,
                 hit_and_run(p,P,var,var);
         }
         randPoints.push_back(p);
-        if(birk) birk_sym(P,randPoints,p);
+        //if(birk) birk_sym(P,randPoints,p);
     }
 
     //if(rand_only) std::cout<<p<<std::endl;
