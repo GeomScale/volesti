@@ -62,7 +62,7 @@ NT variance ( std::vector<NT> &v , NT m )
 
 
 template <class T1>
-int get_first_gaussian(T1 &K, NT radius, NT &error, std::vector<NT> &a_vals, NT frac, vars var){
+int get_first_gaussian(T1 &K, NT radius, NT &error, std::vector<NT> &a_vals, NT frac, vars_g var){
 
     int m=K.num_of_hyperplanes(), dim=var.n, its=0;
     NT sum, lower=0.0, upper=1.0, sigma_sqd, t, mid;
@@ -127,7 +127,7 @@ int get_first_gaussian(T1 &K, NT radius, NT &error, std::vector<NT> &a_vals, NT 
 
 
 template <class T1>
-int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C, Point &p, vars var){
+int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C, Point &p, vars_g var){
     //its++;
     NT last_a = a, last_ratio=0.1, avg,average;
     bool done=false, print=var.verbose;
@@ -136,8 +136,8 @@ int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C,
 
     //sample N points using hit and run
     std::list<Point> randPoints;
-    vars var2=var;
-    var2.coordinate=false;
+    //vars var2=var;
+    //var2.coordinate=false;
     rand_gaussian_point_generator(K, p, N, 1, randPoints, last_a, var);
     if(print) std::cout<<"size of randPoints = "<<randPoints.size()<<" N = "<<N<<std::endl;
 
@@ -180,9 +180,9 @@ int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C,
 
 
 template <class T1>
-int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, NT ratio, NT C, vars var){
+int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, NT ratio, NT C, NT frac, int N, vars_g var){
     bool print=var.verbose;
-    get_first_gaussian(K, radius, error, a_vals, 0.1, var);
+    get_first_gaussian(K, radius, error, a_vals, frac, var);
     if(print) std::cout<<"first gaussian computed"<<std::endl;
     if(print) std::cout<<"first gaussian a_0 = "<<a_vals[0]<<std::endl;
     if(print) std::cout<<"error is = "<<error<<"\n"<<std::endl;
@@ -196,8 +196,8 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
 
     Point p(K.dimension());
 
-    vars var2=var;
-    var2.coordinate=false;
+    //vars var2=var;
+    //var2.coordinate=false;
     if(print) std::cout<<"Computing the sequence of gaussians.."<<std::endl;
     if(print) std::cout<<"N = "<<500 * ((int) C) + ((int) (dim * dim / 2))<<"\n"<<std::endl;
     if(print) std::cout<<"ratio = "<<ratio<<std::endl;
@@ -205,7 +205,7 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
     int coord_prev=-1;
     std::vector<NT> lamdas(K.num_of_hyperplanes(),NT(0));
     while(curr_fn/curr_its>1.001 && a_vals[it]>=a_stop) {
-        get_next_gaussian(K, a_vals, a_vals[it], 500 * ((int) C) + ((int) (dim * dim / 2)), ratio, C, p, var);
+        get_next_gaussian(K, a_vals, a_vals[it], N, ratio, C, p, var);
         it++;
         if(print) std::cout<<"gaussian a_"<<it<<" = "<<a_vals[it]<<std::endl;
 

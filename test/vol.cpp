@@ -309,6 +309,13 @@ int main(const int argc, const char** argv)
   double average, std_dev;
   double Chebtime, sum_Chebtime=double(0);
   NT vol;
+  NT C=2.0;
+  int N = 500 * ((int) C) + ((int) (n * n / 2));
+  int W = 4*n*n+500;
+  NT ratio = 1.0-1.0/(NT(n));
+  NT frac =0.1;
+  NT error=0.2;
+  NT delta=-1.0;
   
   for(int i=0; i<num_of_exp; ++i){
       std::cout<<"Experiment "<<i+1<<" ";
@@ -319,8 +326,8 @@ int main(const int argc, const char** argv)
       //if(!ball_rad){
       //    ball_radius =
       //}
-      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,0.0,rng,
-               urdist,urdist1,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,rng,
+               urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
 
       if(round_only){
           // Round the polytope and exit
@@ -331,7 +338,10 @@ int main(const int argc, const char** argv)
       }else{
           // Estimate the volume
           if(annealing){
-              vol = volume_gaussian_annealing(P_to_test, var, CheBall);
+              vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,rng,
+                       urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
+              vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+              vol = volume_gaussian_annealing(P_to_test, var1, var2, CheBall);
               std::cout<<"volume computed = "<<vol<<std::endl;
               return 0;
           }

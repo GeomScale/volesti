@@ -57,7 +57,7 @@ NT get_max_coord(NT l, NT u, NT a_i){
 }
 
 
-int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars &var){
+int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars_g &var){
     NT r, r_val, fn;
     Point bef = upper-lower;
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -97,7 +97,7 @@ int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars &var){
 }
 
 
-int rand_exp_range_coord(NT l, NT u, NT a_i, NT &dis, vars &var){
+int rand_exp_range_coord(NT l, NT u, NT a_i, NT &dis, vars_g &var){
     NT r, r_val, fn;
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
@@ -139,7 +139,7 @@ int gaussian_next_point(T &P,
                         int walk_len,
                         NT a_i,
                         std::vector<NT> &lamdas,
-                        vars &var)
+                        vars_g &var)
 {
     int n=var.n;
     //RNGType &rng = var.rng;
@@ -150,7 +150,7 @@ int gaussian_next_point(T &P,
     NT ball_rad;
 
     if(var.ball_walk) {
-        ball_rad = 4.0*var.ball_radius/std::sqrt(std::max(1.0,a_i)*NT(n));
+        ball_rad = 4.0*var.che_rad/std::sqrt(std::max(1.0,a_i)*NT(n));
         gaussian_ball_walk(p, P, a_i, ball_rad, var);
     }else if(!var.coordinate){
         gaussian_hit_and_run(p,P,a_i,var);
@@ -185,7 +185,7 @@ int rand_gaussian_point_generator(T &P,
                          int walk_len,
                          K &randPoints,
                          NT a_i,
-                         vars &var)  // constans for volume
+                         vars_g &var)  // constans for volume
 {
     //std::cout<<"EDW2!"<<std::endl;
     int n = var.n;
@@ -205,7 +205,7 @@ int rand_gaussian_point_generator(T &P,
     //double kapa = urdist(rng);
     Point p_prev = p;
     if(var.ball_walk) {
-        ball_rad = 4.0*var.ball_radius/std::sqrt(std::max(1.0,a_i)*NT(n));
+        ball_rad = 4.0*var.che_rad/std::sqrt(std::max(1.0,a_i)*NT(n));
         gaussian_ball_walk(p, P, a_i, ball_rad, var);
         randPoints.push_back(p);
     }else if(var.coordinate){
@@ -244,7 +244,7 @@ int rand_gaussian_point_generator(T &P,
 }
 
 
-Point get_dir(vars var){
+Point get_dir(vars_g var){
     int dim=var.n;
     boost::normal_distribution<> rdist(0,1);
     std::vector<NT> Xs(dim,0);
@@ -269,7 +269,7 @@ Point get_dir(vars var){
 }
 
 
-Point get_point_in_Dsphere(vars var, NT radius){
+Point get_point_in_Dsphere(vars_g var, NT radius){
     int dim = var.n;
     boost::normal_distribution<> rdist(0,1);
     boost::random::uniform_real_distribution<> urdist(0,1);
@@ -301,10 +301,10 @@ template <class T>
 int gaussian_hit_and_run(Point &p,
                 T &P,
                 NT a_i,
-                vars &var)
+                vars_g &var)
 {
     int n = var.n;
-    double err = var.err;
+    //double err = var.err;
     RNGType &rng = var.rng;
     RNGType rng2 = var.rng;
     //std::uniform_real_distribution<NT> &urdist = var.urdist;
@@ -349,7 +349,7 @@ int gaussian_hit_and_run_coord_update(Point &p,
                              int rand_coord_prev,
                              NT a_i,
                              std::vector<NT> &lamdas,
-                             vars &var,
+                             vars_g &var,
                              bool init)
 {
     //std::cout<<"[1]P dim: "<<P.dimension()<<std::endl;
@@ -375,7 +375,7 @@ int gaussian_ball_walk(Point &p,
               T &P,
               NT a_i,
               NT ball_rad,
-              vars var)
+              vars_g var)
 {
     int n =P.dimension();
     //NT radius = var.ball_radius;

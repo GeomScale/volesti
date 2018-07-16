@@ -56,7 +56,6 @@ public:
           const int lw,
           double up,
           const int L,
-          double ball_radius,
           RNGType &rng,
           //std::uniform_real_distribution<NT> urdist,
           //std::uniform_real_distribution<NT> urdist1,
@@ -67,13 +66,12 @@ public:
           bool round,
           bool NN,
           bool birk,
-          bool ball_walk,
           bool coordinate
           ) :
         m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
-        lw(lw), up(up), L(L), ball_radius(ball_radius), rng(rng),
+        lw(lw), up(up), L(L), rng(rng),
         urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
-        NN(NN),birk(birk),ball_walk(ball_walk),coordinate(coordinate){};
+        NN(NN),birk(birk),coordinate(coordinate){};
 
     int m;
     int n;
@@ -84,7 +82,6 @@ public:
     const int lw;
     double up;
     const int L;
-    double ball_radius;
     RNGType &rng;
     //std::uniform_real_distribution<NT> urdist;
     //std::uniform_real_distribution<NT> urdist1;
@@ -95,9 +92,57 @@ public:
     bool round;
     bool NN;
     bool birk;
+    bool coordinate;
+};
+
+struct vars_g{
+public:
+    vars_g( int n,
+          int walk_steps,
+          int N,
+          int W,
+          int n_threads,
+          double error,
+          double che_rad,
+          RNGType &rng,
+          double C,
+          double frac,
+          double ratio,
+          double delta,
+          bool verbose,
+          bool rand_only,
+          bool round,
+          bool NN,
+          bool birk,
+          bool ball_walk,
+          bool coordinate
+    ) :
+            n(n), walk_steps(walk_steps), N(N), W(W), n_threads(n_threads), error(error),
+            che_rad(che_rad), rng(rng), C(C), frac(frac), ratio(ratio), delta(delta),
+            verbose(verbose), rand_only(rand_only), round(round),
+            NN(NN),birk(birk),ball_walk(ball_walk),coordinate(coordinate){};
+
+    int n;
+    int walk_steps;
+    int N;
+    int W;
+    int n_threads;
+    double error;
+    double che_rad;
+    RNGType &rng;
+    double C;
+    double frac;
+    double ratio;
+    double delta;
+    bool verbose;
+    bool rand_only;
+    bool round;
+    bool NN;
+    bool birk;
     bool ball_walk;
     bool coordinate;
 };
+
 
 
 #include "run_headers/solve_lp.h"
@@ -315,18 +360,19 @@ NT volume(T &P,
 
 template <class T>
 NT volume_gaussian_annealing(T &P,
-                             vars &var,  // constans for volume
+                             vars_g &var,  // constans for volume
+                             vars &var2,
                              std::pair<Point,double> CheBall) {
     NT vol;
     bool round = var.round, converged, done;
     bool print = var.verbose;
     bool rand_only = var.rand_only;
     int n = var.n, steps;
-    int rnum = var.m;
+    //int rnum = var.m;
     int walk_len = var.walk_steps;
     int n_threads = var.n_threads, min_index, max_index, index, min_steps;
-    const double err = var.err;
     NT error = var.error, curr_eps, min_val, max_val, val;
+    NT frac = var.frac;
     RNGType &rng = var.rng;
     // Rotation: only for test with skinny polytopes and rounding
     //std::cout<<"Rotate="<<rotate(P)<<std::endl;
@@ -339,14 +385,14 @@ NT volume_gaussian_annealing(T &P,
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        round_value = rounding_min_ellipsoid(P,c,radius,var);
+        round_value = rounding_min_ellipsoid(P,c,radius,var2);
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         std::pair<Point,NT> res=solveLP(P.get_matrix(), P.dimension());
         c=res.first; radius=res.second;
     }
     if(var.ball_walk){
-        var.ball_radius = radius;
+        var.che_rad = radius;
     }
 
     //1. Move chebychev center to origin and apply the same shifting to the polytope
@@ -374,13 +420,17 @@ NT volume_gaussian_annealing(T &P,
     }
 
     std::vector<NT> a_vals;
-    NT ratio = 1.0-1.0/(NT(n));
+    NT ratio = var.ratio;
+    NT C = var.C;
+
+    //NT ratio = 1.0-1.0/(NT(n));
     if(print) std::cout<<"ratio = "<<ratio<<std::endl;
-    NT C=2.0;
-    error = 0.2;
+    //NT C=2.0;
+    //error = 0.2;
     if(print) std::cout<<"Computing annealing...\n"<<std::endl;
+    int N = var.N;
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    get_annealing_schedule(P, a_vals, error, radius, ratio, C, var);
+    get_annealing_schedule(P, a_vals, error, radius, ratio, C, frac, N, var);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"annealing computed in = "<<tstop2-tstart2<<std::endl;
     int mm = a_vals.size();
@@ -391,15 +441,16 @@ NT volume_gaussian_annealing(T &P,
         std::cout<<"\n"<<std::endl;
     }
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
-    int W = 4*n*n+500;
+    //int W = 4*n*n+500;
+    int W = var.W;
     if(print) std::cout<<"W = "<<W<<std::endl;
     if(print) std::cout<<"pi/a_0 = "<<M_PI/a_vals[0]<<std::endl;
     std::vector<NT> last_W2(W,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
     if(print) std::cout<<"vol = "<<vol<<std::endl;
-    vars var2=var;
-    var2.coordinate=false;
-    std::list<Point> randPoints;
+    //vars var2=var;
+    //var2.coordinate=false;
+    //std::list<Point> randPoints;
     //Point p2(n);
     Point p(n);
     //P.print();
@@ -426,7 +477,7 @@ NT volume_gaussian_annealing(T &P,
         index = 0;
         min_steps=0;
         //Point p(n);
-        randPoints.clear();
+        //randPoints.clear();
         std::vector<NT> last_W=last_W2;
         n_threads=1;
         //if(print){
