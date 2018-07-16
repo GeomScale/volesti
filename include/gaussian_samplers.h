@@ -60,8 +60,8 @@ NT get_max_coord(NT l, NT u, NT a_i){
 int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars_g &var){
     NT r, r_val, fn;
     Point bef = upper-lower;
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
     RNGType &rng2 = var.rng;
     if(a_i>0.00000001 && std::sqrt(bef.squared_length()) >= (2.0/std::sqrt(2.0*a_i))){
         boost::normal_distribution<> rdist(0,1);
@@ -99,8 +99,8 @@ int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars_g &var){
 
 int rand_exp_range_coord(NT l, NT u, NT a_i, NT &dis, vars_g &var){
     NT r, r_val, fn;
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
     RNGType &rng2 = var.rng;
     if(a_i>std::pow(10,-8.0) && u-l>=2.0/std::sqrt(2.0*a_i)){
         boost::normal_distribution<> rdist(0,1);
@@ -142,15 +142,18 @@ int gaussian_next_point(T &P,
                         vars_g &var)
 {
     int n=var.n;
-    //RNGType &rng = var.rng;
     boost::random::uniform_int_distribution<> uidist(0,n-1);
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
     RNGType &rng2 = var.rng;
     NT ball_rad;
 
     if(var.ball_walk) {
-        ball_rad = 4.0*var.che_rad/std::sqrt(std::max(1.0,a_i)*NT(n));
+        if(var.delta<0.0) {
+            ball_rad = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_i) * NT(n));
+        }else{
+            ball_rad=var.delta;
+        }
         gaussian_ball_walk(p, P, a_i, ball_rad, var);
     }else if(!var.coordinate){
         gaussian_hit_and_run(p,P,a_i,var);
@@ -187,32 +190,28 @@ int rand_gaussian_point_generator(T &P,
                          NT a_i,
                          vars_g &var)  // constans for volume
 {
-    //std::cout<<"EDW2!"<<std::endl;
     int n = var.n;
     //bool birk = var.birk;
-    RNGType &rng = var.rng;
+    //RNGType &rng = var.rng;
     RNGType &rng2 = var.rng;
-    //boost::random::uniform_real_distribution<> urdist(0,1);
     boost::random::uniform_int_distribution<> uidist(0,n-1);
-    //std::uniform_real_distribution<NT> urdist = var.urdist;
-    //std::uniform_int_distribution<int> uidist(0,n-1);
 
     std::vector<NT> lamdas(P.num_of_hyperplanes(),NT(0));
-    //int rand_coord = rand()%n;
-    //double kapa = double(rand())/double(RAND_MAX);
     int rand_coord = uidist(rng2);
     NT ball_rad;
-    //double kapa = urdist(rng);
     Point p_prev = p;
+
     if(var.ball_walk) {
-        ball_rad = 4.0*var.che_rad/std::sqrt(std::max(1.0,a_i)*NT(n));
+        if(var.delta<0.0) {
+            ball_rad = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_i) * NT(n));
+        }else{
+            ball_rad=var.delta;
+        }
         gaussian_ball_walk(p, P, a_i, ball_rad, var);
         randPoints.push_back(p);
     }else if(var.coordinate){
-        //std::cout<<"[1a]P dim: "<<P.dimension()<<std::endl;
         gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,a_i,lamdas,var,true);
         randPoints.push_back(p);
-        //std::cout<<"[1b]P dim: "<<P.dimension()<<std::endl;
     }else {
         gaussian_hit_and_run(p, P, a_i, var);
         randPoints.push_back(p);
@@ -222,14 +221,10 @@ int rand_gaussian_point_generator(T &P,
 
         for(int j=0; j<walk_len; ++j){
             int rand_coord_prev = rand_coord;
-            //rand_coord = rand()%n;
-            //kapa = double(rand())/double(RAND_MAX);
             rand_coord = uidist(rng2);
-            //kapa = urdist(rng);
             if(var.ball_walk) {
                 gaussian_ball_walk(p, P, a_i, ball_rad, var);
             }else if(var.coordinate){
-                //std::cout<<"[1c]P dim: "<<P.dimension()<<std::endl;
                 gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,a_i,lamdas,var,false);
             }else
                 gaussian_hit_and_run(p,P,a_i,var);
@@ -238,9 +233,6 @@ int rand_gaussian_point_generator(T &P,
         //if(birk) birk_sym(P,randPoints,p);
     }
     return 1;
-
-    //if(rand_only) std::cout<<p<<std::endl;
-    //if(print) std::cout<<"("<<i<<") Random point: "<<p<<std::endl;
 }
 
 
@@ -251,13 +243,11 @@ Point get_dir(vars_g var){
     NT normal=NT(0);
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
-    RNGType rng2 = var.rng;
+    //RNGType rng2 = var.rng;
     for (int i=0; i<dim; i++){
         Xs[i]=rdist(rng);
-        //std::cout<<Xs[i]<<" ";
         normal+=Xs[i]*Xs[i];
     }
-    //std::cout<<"\n";
     normal=1.0/std::sqrt(normal);
 
     for (int i=0; i<dim; i++){
@@ -275,15 +265,14 @@ Point get_point_in_Dsphere(vars_g var, NT radius){
     boost::random::uniform_real_distribution<> urdist(0,1);
     std::vector<NT> Xs(dim,0);
     NT normal=NT(0), U;
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
     RNGType &rng2 = var.rng;
     for (int i=0; i<dim; i++){
         Xs[i]=rdist(rng2);
         //std::cout<<Xs[i]<<" ";
         normal+=Xs[i]*Xs[i];
     }
-    //std::cout<<"\n";
     normal=1.0/std::sqrt(normal);
 
     for (int i=0; i<dim; i++){
@@ -304,38 +293,17 @@ int gaussian_hit_and_run(Point &p,
                 vars_g &var)
 {
     int n = var.n;
-    //double err = var.err;
-    RNGType &rng = var.rng;
     RNGType rng2 = var.rng;
-    //std::uniform_real_distribution<NT> &urdist = var.urdist;
-    //boost::random::uniform_real_distribution<> urdist(0,1);   //std::uniform_real_distribution<NT> &urdist1 = var.urdist1;
-
-    //Point origin(n);
-
-    //Random_points_on_sphere_d<Point> gen (n, 1.0);
-    //Point l = gen.sample_point(var.rng);// - CGAL::Origin();
     Point l=get_dir(var);
-    //Point l2=origin;
-    //Vector b1 = line_bisect(p,l,P,var,var2);
-    //Vector b2 = line_bisect(p,-l,P,var,var2);
-    //std::pair<Point,Point> ppair = P.line_intersect(p,l);
     std::pair<NT,NT> dbpair = P.line_intersect(p,l);
+
     NT min_plus = dbpair.first;
     NT max_minus = dbpair.second;
-    //NT dis;
-    //rand_exp_range(max_minus, min_plus, a_i, dis, var);
-    //if(var.verbose) std::cout<<"max_minus = "<<max_minus<<"min_plus = "<<min_plus<<std::endl;
-    //p = (dis*l)+p;
     Point upper = (min_plus*l)+p;
     Point lower = (max_minus*l)+p;
-    rand_exp_range(lower, upper, a_i, p, var);
-    //Point b1 = ppair.first;// - origin;
-    //Point b2 = ppair.second;// - origin;
-    //std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
 
-    //NT lambda = urdist(rng);
-    //p = (lambda*b1);
-    //p=((1-lambda)*b2) + p;
+    rand_exp_range(lower, upper, a_i, p, var);
+
     return 1;
 }
 
@@ -352,12 +320,7 @@ int gaussian_hit_and_run_coord_update(Point &p,
                              vars_g &var,
                              bool init)
 {
-    //std::cout<<"[1]P dim: "<<P.dimension()<<std::endl;
     std::pair<NT,NT> bpair;
-    // EXPERIMENTAL
-    //if(var.NN)
-    //  bpair = P.query_dual(p,rand_coord);
-    //else
     bpair = P.line_intersect_coord(p,p_prev,rand_coord,rand_coord_prev,lamdas,init);
     NT min_plus = bpair.first;
     NT max_minus = bpair.second;
@@ -378,13 +341,12 @@ int gaussian_ball_walk(Point &p,
               vars_g var)
 {
     int n =P.dimension();
-    //NT radius = var.ball_radius;
     NT f_x,f_y,rnd;
     Point y=get_point_in_Dsphere(var, ball_rad);
     y=y+p;
     f_x = eval_exp(p,a_i);
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
     RNGType &rng2=var.rng;
     boost::random::uniform_real_distribution<> urdist(0,1);
     if (P.is_in(y)==-1){

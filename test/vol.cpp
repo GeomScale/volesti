@@ -39,8 +39,8 @@ int factorial(int n)
 int main(const int argc, const char** argv)
 {
 	//Deafault values
-    int n, nexp=1, n_threads=1;
-	int walk_len;//to be defined after n
+    int n, nexp=1, n_threads=1, W;
+	int walk_len,N;//to be defined after n
     double e=1;
     	double exactvol(-1.0);
     bool verbose=false, 
@@ -62,8 +62,9 @@ int main(const int argc, const char** argv)
 	//this is our polytope
 	Polytope<NT> P;
 	int magnitude=0;
-	bool exper=false;
+	bool exper=false, user_W=false, user_N=false, user_ratio=false;
 	double ball_radius=0.0;
+	double C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
 	
   if(argc<2){
     std::cout<<"Use -h for help"<<std::endl;
@@ -130,8 +131,26 @@ int main(const int argc, const char** argv)
           correct=true;
       }
       if(!strcmp(argv[i],"-bwr")){
-          ball_rad=true;
-          ball_radius = atof(argv[++i]);
+          delta = atof(argv[++i]);
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-Win")){
+          W = atof(argv[++i]);
+          user_W=true;
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-ratio")){
+          ratio = atof(argv[++i]);
+          user_ratio=true;
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-frac")){
+          frac = atof(argv[++i]);
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-N_an")){
+          N = atof(argv[++i]);
+          user_N=true;
           correct=true;
       }
       //reading from file
@@ -200,6 +219,7 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-e")||!strcmp(argv[i],"--error")){
           e = atof(argv[++i]);
+          error=e;
           correct=true;
       }
       if(!strcmp(argv[i],"-w")||!strcmp(argv[i],"--walk_len")){
@@ -266,7 +286,22 @@ int main(const int argc, const char** argv)
   
   // Set the number of random walk steps
   if(!user_walk_len)
-      walk_len=10 + n/10;
+      walk_len = 10 + n / 10;
+
+  if(!user_walk_len) {
+      if(!annealing) {
+          walk_len = 10 + n / 10;
+      }else{
+          walk_len = 1;
+      }
+  }
+  if(!user_N)
+      N = 500 * ((int) C) + ((int) (n * n / 2));
+  if(!user_ratio)
+      ratio = 1.0-1.0/(NT(n));
+  if(!user_W)
+      W = 4*n*n+500;
+
 
   // Timings
   double tstart, tstop;
@@ -309,13 +344,14 @@ int main(const int argc, const char** argv)
   double average, std_dev;
   double Chebtime, sum_Chebtime=double(0);
   NT vol;
-  NT C=2.0;
+  /* NT C=2.0;
   int N = 500 * ((int) C) + ((int) (n * n / 2));
   int W = 4*n*n+500;
   NT ratio = 1.0-1.0/(NT(n));
   NT frac =0.1;
   NT error=0.2;
   NT delta=-1.0;
+   */
   
   for(int i=0; i<num_of_exp; ++i){
       std::cout<<"Experiment "<<i+1<<" ";
@@ -342,7 +378,9 @@ int main(const int argc, const char** argv)
                        urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
               vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
               vol = volume_gaussian_annealing(P_to_test, var1, var2, CheBall);
+              tstop = (double)clock()/(double)CLOCKS_PER_SEC;
               std::cout<<"volume computed = "<<vol<<std::endl;
+              std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;
               return 0;
           }
           vol = volume(P_to_test,var,var,CheBall);

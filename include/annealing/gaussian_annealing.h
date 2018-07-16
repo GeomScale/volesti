@@ -128,7 +128,7 @@ int get_first_gaussian(T1 &K, NT radius, NT &error, std::vector<NT> &a_vals, NT 
 
 template <class T1>
 int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C, Point &p, vars_g var){
-    //its++;
+
     NT last_a = a, last_ratio=0.1, avg,average;
     bool done=false, print=var.verbose;
     int k=1, i;
@@ -136,30 +136,17 @@ int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C,
 
     //sample N points using hit and run
     std::list<Point> randPoints;
-    //vars var2=var;
-    //var2.coordinate=false;
-    rand_gaussian_point_generator(K, p, N, 1, randPoints, last_a, var);
-    if(print) std::cout<<"size of randPoints = "<<randPoints.size()<<" N = "<<N<<std::endl;
+    rand_gaussian_point_generator(K, p, N, var.walk_steps, randPoints, last_a, var);
 
     while(!done){
         a = last_a*std::pow(ratio,(NT(k)));
-        if(print) std::cout<<"a = "<<a<<std::endl;
 
         i=0;
         for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             fn[i] = eval_exp(*pit,a)/eval_exp(*pit, last_a);
-            //if(print) std::cout<<"fn[i] = "<<fn[i]<<std::endl;
             i++;
         }
         avg=mean(fn);
-        //average = std::accumulate( fn.begin(), fn.end(), 0.0)/fn.size();
-        //if(print) std::cout<<"avg = "<<avg<<std::endl;
-        //if(print) std::cout<<"average = "<<average<<std::endl;
-        //if(print) std::cout<<"var = "<<variance(fn,avg)<<std::endl;
-        //if(print) std::cout<<"var/avg^2 = "<<variance(fn,avg)/std::pow(avg,2.0)<<std::endl;
-        //if(print) std::cout<<"avg/last_ratio = "<<avg/last_ratio<<std::endl;
-        //if(print) std::cout<<"C = "<<C<<std::endl;
-        //if(print) std::cout<<"k = "<<k<<"\n"<<std::endl;
 
         if(variance(fn,avg)/std::pow(avg,2.0)>=C || avg/last_ratio<1.00001){
             if(k!=1){
@@ -171,9 +158,7 @@ int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C,
         }
         last_ratio = avg;
     }
-    if(print) std::cout<<"k = "<<k<<std::endl;
     a_vals.push_back(last_a*std::pow(ratio, (NT(k)) ) );
-    if(print) std::cout<<"Next a found = "<<last_a*std::pow(ratio, (NT(k)) ) <<std::endl;
 
     return 1;
 }
@@ -183,9 +168,7 @@ template <class T1>
 int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, NT ratio, NT C, NT frac, int N, vars_g var){
     bool print=var.verbose;
     get_first_gaussian(K, radius, error, a_vals, frac, var);
-    if(print) std::cout<<"first gaussian computed"<<std::endl;
-    if(print) std::cout<<"first gaussian a_0 = "<<a_vals[0]<<std::endl;
-    if(print) std::cout<<"error is = "<<error<<"\n"<<std::endl;
+    if(print) std::cout<<"first gaussian computed\n"<<std::endl;
     NT a_stop=0.0, curr_fn=2.0, curr_its=1.0;
     int it=0, dim=K.dimension(), steps=((int)150/error)+1;
     std::list<Point> randPoints;
@@ -196,18 +179,14 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
 
     Point p(K.dimension());
 
-    //vars var2=var;
-    //var2.coordinate=false;
-    if(print) std::cout<<"Computing the sequence of gaussians.."<<std::endl;
-    if(print) std::cout<<"N = "<<500 * ((int) C) + ((int) (dim * dim / 2))<<"\n"<<std::endl;
-    if(print) std::cout<<"ratio = "<<ratio<<std::endl;
+    if(print) std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
+
     Point p_prev=p;
     int coord_prev=-1;
     std::vector<NT> lamdas(K.num_of_hyperplanes(),NT(0));
     while(curr_fn/curr_its>1.001 && a_vals[it]>=a_stop) {
         get_next_gaussian(K, a_vals, a_vals[it], N, ratio, C, p, var);
         it++;
-        if(print) std::cout<<"gaussian a_"<<it<<" = "<<a_vals[it]<<std::endl;
 
         curr_fn = 0;
         curr_its = 0;
@@ -216,20 +195,7 @@ int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, 
         std::fill(lamdas.begin(), lamdas.end(), NT(0));
 
         for (int j = 0; j < steps; j++) {
-            //if(print) std::cout<<"first time\n";
-            //p.print();
-            //if(var.coordinate){
-
-            //}else{
-
-            //}
-            //rand_gaussian_point_generator(K, p, 1, 1, randPoints, a_vals[it-1], var);
-            gaussian_next_point(K,p,p_prev,coord_prev,1,a_vals[it-1],lamdas,var);
-            //p.print();
-            //if(!K.is_in(p)){
-                //std::cout<<"point not in K";
-                //exit(-1);
-            //}
+            gaussian_next_point(K,p,p_prev,coord_prev,var.walk_steps,a_vals[it-1],lamdas,var);
             curr_its += 1.0;
             curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
         }

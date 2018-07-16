@@ -364,11 +364,10 @@ NT volume_gaussian_annealing(T &P,
                              vars &var2,
                              std::pair<Point,double> CheBall) {
     NT vol;
-    bool round = var.round, converged, done;
+    bool round = var.round, done;
     bool print = var.verbose;
     bool rand_only = var.rand_only;
     int n = var.n, steps;
-    //int rnum = var.m;
     int walk_len = var.walk_steps;
     int n_threads = var.n_threads, min_index, max_index, index, min_steps;
     NT error = var.error, curr_eps, min_val, max_val, val;
@@ -423,16 +422,12 @@ NT volume_gaussian_annealing(T &P,
     NT ratio = var.ratio;
     NT C = var.C;
 
-    //NT ratio = 1.0-1.0/(NT(n));
-    if(print) std::cout<<"ratio = "<<ratio<<std::endl;
-    //NT C=2.0;
-    //error = 0.2;
-    if(print) std::cout<<"Computing annealing...\n"<<std::endl;
+    if(print) std::cout<<"\n\nComputing annealing...\n"<<std::endl;
     int N = var.N;
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
     get_annealing_schedule(P, a_vals, error, radius, ratio, C, frac, N, var);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    if(print) std::cout<<"annealing computed in = "<<tstop2-tstart2<<std::endl;
+    if(print) std::cout<<"All the variances of schedule_Sannealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
     int mm = a_vals.size();
     if(print){
         for(int i=0; i<mm; i++){
@@ -441,119 +436,69 @@ NT volume_gaussian_annealing(T &P,
         std::cout<<"\n"<<std::endl;
     }
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
-    //int W = 4*n*n+500;
     int W = var.W;
-    if(print) std::cout<<"W = "<<W<<std::endl;
-    if(print) std::cout<<"pi/a_0 = "<<M_PI/a_vals[0]<<std::endl;
     std::vector<NT> last_W2(W,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
-    if(print) std::cout<<"vol = "<<vol<<std::endl;
-    //vars var2=var;
-    //var2.coordinate=false;
-    //std::list<Point> randPoints;
-    //Point p2(n);
+    if(print) std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
     Point p(n);
-    //P.print();
-    //std::cout<<P.num_of_hyperplanes()<<" "<<P.dimension();
     std::pair<int,NT> res;
     Point p_prev=p;
     int coord_prev=-1;
-    //boost::random::uniform_int_distribution<> uidist(0,n-1);
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //RNGType rng(std::time(0));
-    //RNGType rng(seed);
 
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
     for(int i=0; i<mm-1; i++){
         //initialize convergence test
         curr_eps = error/std::sqrt((NT(mm)));
-        //if(print) std::cout<<"error = "<<error<<"sqrt(m) = "<<std::sqrt((NT(mm)))<<"curr_eps = "<<curr_eps<<std::endl;
-        converged=false, done=false;
+        done=false;
         min_val=-std::pow(10.0,10.0);
         max_val=-min_val;
-        //if(print) std::cout<<"min_val = "<<min_val<<" max_val = "<<max_val<<"\n"<<std::endl;
         min_index=W-1;
         max_index=W-1;
         index = 0;
         min_steps=0;
-        //Point p(n);
-        //randPoints.clear();
         std::vector<NT> last_W=last_W2;
         n_threads=1;
-        //if(print){
-          //  std::cout<<"p before = ";
-            //for(int j=0; j<p.dimension(); j++){
-              //  std::cout<<p[j]<<" ";
-            //}
-            //std::cout<<"\n\n";
-        //}
-        //p=p2;
 
         while(!done || its[i]<min_steps){
-            //r(int j=0; j<n_threads; j++){
-                //rand_gaussian_point_generator(P, p, 1, 1, randPoints, a_vals[i], var2);
-                gaussian_next_point(P,p,p_prev,coord_prev,1,a_vals[i],lamdas,var);
-                //gaussian_hit_and_run(p,P,a_vals[i],var);
-                //std::cout<<var.coordinate;
-                if(!P.is_in(p)){
-                    std::cout<<"point not in P\n";
-                    exit(-1);
-                }
-                its[i] += 1.0;
-                fn[i] += eval_exp(p,a_vals[i+1]) / eval_exp(p,a_vals[i]);
-               // if(print){
-                   // std::cout<<"i = "<<i<<std::endl;
-                    //std::cout<<"p after = ";
-                    //for(int j=0; j<p.dimension(); j++){
-                        //std::cout<<p[j]<<" ";
-                    //}
-                    //std::cout<<"\n"<<"p norm = "<<p.squared_length()<<std::endl;
-                    //std::cout<<"eval_exp(p,a_vals[i+1])  = "<<eval_exp(p,a_vals[i+1])<<" eval_exp(p,a_vals[i] = "<<eval_exp(p,a_vals[i])<<std::endl;
-               // }
-                val = fn[i]/its[i];
-                //if(print) std::cout<<"val = "<<val<<std::endl;
 
-                last_W[index] = val;
-                if(val<=min_val){
-                    min_val = val;
-                    min_index = index;
-                }else if(min_index==index){
-                    //if(print) std::cout<<"val = "<<val<<std::endl;
-                    res=min_vec(last_W);
-                    //min_val = *(std::min_element(last_W.begin() , last_W.end() ));
-                    min_val=res.second;
-                    //if(print) std::cout<<"min_val = "<<min_val<<std::endl;
-                    //min_index = std::distance(last_W.begin(),std::min_element(last_W.begin() , last_W.end() ));
-                    min_index=res.first;
-                    //if(print) std::cout<<"min_index = "<<min_index<<std::endl;
-                }
+            gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,a_vals[i],lamdas,var);
 
-                if(val>=max_val){
-                    max_val = val;
-                    max_index = index;
-                }else if(max_index==index){
-                    //if(print) std::cout<<"val = "<<val<<std::endl;
-                    res=max_vec(last_W);
-                    //max_val = *(std::max_element(last_W.begin() , last_W.end() ));
-                    max_val=res.second;
-                    //if(print) std::cout<<"max_val = "<<max_val<<std::endl;
-                    //max_index = std::distance(last_W.begin(),std::max_element(last_W.begin() , last_W.end() ));
-                    max_index=res.first;
-                    //if(print) std::cout<<"max_index = "<<max_index<<std::endl;
-                }
-                //if(print) std::cout<<"ratio = "<<(max_val-min_val)/max_val<<std::endl;
+            if(!P.is_in(p)){
+                std::cout<<"point not in P\n";
+                exit(-1);
+            }
+            its[i] += 1.0;
+            fn[i] += eval_exp(p,a_vals[i+1]) / eval_exp(p,a_vals[i]);
+            val = fn[i]/its[i];
 
-                if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
-                    done=true;
-                }
+            last_W[index] = val;
+            if(val<=min_val){
+                min_val = val;
+                min_index = index;
+            }else if(min_index==index){
+                res=min_vec(last_W);
+                min_val=res.second;
+                min_index=res.first;
+            }
 
-                index = index%W+1;
-                //if(print) std::cout<<"index1 = "<<index<<std::endl;
-                if(index==W) index=0;
-                //if(print) std::cout<<"index2 = "<<index<<std::endl;
-           // }
+            if(val>=max_val){
+                max_val = val;
+                max_index = index;
+            }else if(max_index==index){
+                res=max_vec(last_W);
+                max_val=res.second;
+                max_index=res.first;
+            }
+
+            if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
+                done=true;
+            }
+
+            index = index%W+1;
+
+            if(index==W) index=0;
         }
-        if(print) std::cout<<"ratio "<<i<<" = "<<fn[i]/its[i]<<" its[i] = "<<its[i]<<std::endl;
+        if(print) std::cout<<"ratio "<<i<<" = "<<fn[i]/its[i]<<" N_"<<i<<" = "<<its[i]<<std::endl;
         vol = vol*(fn[i]/its[i]);
     }
     NT sum_of_steps;
@@ -561,6 +506,7 @@ NT volume_gaussian_annealing(T &P,
         sum_of_steps += *it;
     }
     steps= int(sum_of_steps);
+    if(print) std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
 
     return vol;
 }
