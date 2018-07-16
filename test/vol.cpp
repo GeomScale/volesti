@@ -95,6 +95,16 @@ int main(const int argc, const char** argv)
                       "-t, --threads #threads : the number of threads to be used\n"<<
                       "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
                       "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
+                      "\n-g_an : use the practical CV algo\n"<<
+                      "-w, --walk_len [walk_len] : the random walk length (default 1)\n"<<
+                      "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
+                      "-e, --error epsilon : the goal error of approximation\n"<<
+                      "-bw : use ball walk for sampling\n"<<
+                      "-bwr : the radius of the ball walk (default r*chebychev_radius/sqrt(max(1.0, a_i)*dimension\n"<<
+                      "-Win : the size of the open window for the ratios convergence\n"<<
+                      "-N : the number of points to sample in each step of schedule annealing\n"<<
+                      "-frac : the fraction of the total error to spend in the first gaussian\n"<<
+                      "-ratio : parameter of schedule annealing, larger ratio means larger steps in schedule annealing (default 1-1/dimension)\n"<<
                       std::endl;
           return 0;
       }
