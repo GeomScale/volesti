@@ -358,6 +358,7 @@ NT volume(T &P,
 }
 
 
+
 template <class T>
 NT volume_gaussian_annealing(T &P,
                              vars_g &var,  // constans for volume
@@ -510,5 +511,6 @@ NT volume_gaussian_annealing(T &P,
 
     return vol;
 }
+
 
 #endif
