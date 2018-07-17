@@ -348,8 +348,9 @@ double rotating(T &P){
 		  P.put_coeff(i,j,A(i,j-1));
 		}
 	}
-  
-	return 0;
+
+    //return std::abs(svd.matrixU().determinant());
+	return std::abs(svd.matrixU().inverse().determinant());
 }
 
 #endif
