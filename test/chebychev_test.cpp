@@ -45,11 +45,11 @@ void cheb_test(FilePath f)//, double expected, double tolerance=0.1)
     std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
 
     for(int i=0; i<P.dimension(); i++){
-        CHECK(!isnan(CheBall.first[i]));
-        CHECK(!isinf(CheBall.first[i]));
+        CHECK(!std::isnan(CheBall.first[i]));
+        CHECK(!std::isinf(CheBall.first[i]));
     }
-    CHECK(!isnan(CheBall.second));
-    CHECK(!isinf(CheBall.second));
+    CHECK(!std::isnan(CheBall.second));
+    CHECK(!std::isinf(CheBall.second));
 }
 
 TEST_CASE("cheb_cube") {

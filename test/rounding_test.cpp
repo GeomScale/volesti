@@ -46,8 +46,8 @@ void rounding_test(FilePath f)//, double expected, double tolerance=0.1)
     std::cout<<"\nround value is: "<<round_value<<std::endl;
     std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
 
-    CHECK(!isnan(round_value));
-    CHECK(!isinf(round_value));
+    CHECK(!std::isnan(round_value));
+    CHECK(!std::isinf(round_value));
 }
 
 TEST_CASE("round_cube") {
