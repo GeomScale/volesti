@@ -94,18 +94,20 @@ void cheb_test(FilePath f)//, double expected, double tolerance=0.1)
              urdist,urdist1,false,false,false,false,false,true);
 
     //Compute chebychev ball//
+    std::cout << "\n--- Testing Chebchev ball computation of " << f << std::endl;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
     std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
 
-    std::cout<<"Chebychev center is: "<<std::endl;
-    for(int i=0; i<P.dimension(); i++){
-        std::cout<<CheBall.first[i]<<" ";
-    }
+    //std::cout<<"Chebychev center is: "<<std::endl;
+    //for(int i=0; i<P.dimension(); i++){
+        //std::cout<<CheBall.first[i]<<" ";
+    //}
     std::cout<<"\nradius is: "<<CheBall.second<<std::endl;
     std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
 
-    CHECK(!isnan(CheBall.second) && !isinf(CheBall.second));
+    CHECK(!isnan(CheBall.second));
+    CHECK(!isinf(CheBall.second));
 }
 
 TEST_CASE("cheb_cube") {
@@ -144,9 +146,9 @@ TEST_CASE("cheb_skinny_cube") {
     cheb_test("../data/skinny_cube10.ine");
     cheb_test("../data/skinny_cube20.ine");
 }
-
-//TODO: add tests for rotated skinny cubes, rounding, chebyschev ball, etc
 */
+//TODO: add tests for rotated skinny cubes, rounding, chebyschev ball, etc
+
 TEST_CASE("cube") {
     test_volume("../data/cube10.ine", 1024);
     test_volume("../data/cube20.ine", 1048576);
