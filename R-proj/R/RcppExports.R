@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 vol_R <- function(A, W, e, Chebychev, coord, rounding, V) {
-    .Call(`_volesti_vol_R`, A, W, e, Chebychev, coord, rounding, V)
+    .Call('_volesti_vol_R', PACKAGE = 'volesti', A, W, e, Chebychev, coord, rounding, V)
 }
 

@@ -171,7 +171,7 @@ NT volume(T &P,
         round_value=res_round.first;
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-        std::pair<Point,NT> res=solveLP(P.get_matrix(), P.dimension());
+        std::pair<Point,NT> res=solveLP(P);
         c=res.first; radius=res.second;
     }
 
