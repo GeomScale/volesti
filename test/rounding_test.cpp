@@ -41,12 +41,31 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
         rot_val = rotating(P);
         std::cout << "Rotation value = "<<rot_val<<std::endl;
     }
-    std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
-    Point c=CheBall.first;
-    NT radius=CheBall.second;
-    NT round_value;
+    std::pair<Point,double> CheBall;// = solveLP(P.get_matrix(), P.dimension());
+    Point c;//=CheBall.first;
+    NT radius;//=CheBall.second;
+    NT round_value=1.0, ratio1,ratio2;
+    std::pair<NT,NT> res_round;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    round_value = rounding_min_ellipsoid(P,c,radius,var);
+    int count=1;
+    CheBall = solveLP(P.get_matrix(), P.dimension());
+    c=CheBall.first;
+    radius=CheBall.second;
+    res_round = rounding_min_ellipsoid(P, c, radius, var);
+    round_value = round_value * res_round.first;
+    ratio2 = res_round.second;
+    ratio1 = 0.0;
+    while(ratio2>ratio1 && count<=10) {
+        CheBall = solveLP(P.get_matrix(), P.dimension());
+        c=CheBall.first;
+        radius=CheBall.second;
+        res_round = rounding_min_ellipsoid(P, c, radius, var);
+        round_value = round_value * res_round.first;
+        ratio1=ratio2;
+        ratio2 = res_round.second;
+        //std::cout<<ratio1<<" "<<ratio2<<std::endl;
+        count++;
+    }
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout<<"\nround value is: "<<round_value<<std::endl;
     std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
@@ -70,8 +89,8 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
 }
 
 TEST_CASE("round_rot_skinny_cube") {
-    rounding_test("../data/skinny_cube10.ine", true, 102400,0.2);
-    rounding_test("../data/skinny_cube20.ine", true, 104857600, 0.6);
+    rounding_test("../data/skinny_cube10.ine", true, 102400);
+    rounding_test("../data/skinny_cube20.ine", true, 104857600, 0.2);
 }
 
 TEST_CASE("round_skinny_cube") {
