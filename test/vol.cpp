@@ -305,7 +305,7 @@ int main(const int argc, const char** argv)
       if(round_only){
           // Round the polytope and exit
           std::pair<double,double> res_round;
-          res_round = rounding_min_ellipsoid(P,CheBall.first,CheBall.second,var);
+          res_round = rounding_min_ellipsoid(P,CheBall,var);
           double round_value = res_round.first;
           std::cout<<"\n--------------\nRounded polytope\nH-representation\nbegin\n"<<std::endl;
           P.print();

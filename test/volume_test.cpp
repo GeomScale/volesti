@@ -105,6 +105,3 @@ TEST_CASE("skinny_cube") {
     test_volume("../data/skinny_cube10.ine", 102400);
     test_volume("../data/skinny_cube20.ine", 104857600);
 }
-
-
-//TODO: add tests for rotated skinny cubes, rounding, chebyschev ball, etc 
