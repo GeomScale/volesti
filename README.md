@@ -30,6 +30,15 @@ library(volesti)
 * `"verbose"` is by default `false`.  
 * You can run all the tests by running function `testRvolEsti()`.  
 
+#### Create pdf documentation from Rd files
+* Navigate to /R-proj folder from the commend line.  
+* Run
+'''
+R CMD Rd2pdf --pdf --title='VolEsti Documentation' -o /path/to/save/volesti.pdf man/*.Rd
+'''
+* The pdf will be created and saved in the declared path.  
+* We give such a documentation in /R-proj/doc folder.
+
 ####  Compile C++ sources and run tests 
 
 To compile the C++ code you have to specify the path to external library `liblpsolve55.so`, by running, in folder test:  

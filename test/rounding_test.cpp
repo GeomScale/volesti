@@ -35,9 +35,11 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
 
     //Compute chebychev ball//
     std::cout << "\n--- Testing rounding of " << f << std::endl;
+    double rot_val;
     if(rot){
         std::cout << "\n--- Rotation is ON "<< std::endl;
-        rotating(P);
+        rot_val = rotating(P);
+        std::cout << "Rotation value = "<<rot_val<<std::endl;
     }
     std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
     Point c=CheBall.first;
@@ -48,7 +50,7 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout<<"\nround value is: "<<round_value<<std::endl;
     std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-    std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
+    CheBall = solveLP(P.get_matrix(), P.dimension());
     //c=CheBall.first;
     //radius=CheBall.second;
 
@@ -56,7 +58,7 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
     unsigned int const num_of_exp = 10;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
-        vol += volume(P,var,var,CheBall);
+        vol += round_value*volume(P,var,var,CheBall);
     }
     double error = std::abs(((vol/num_of_exp)-expected))/expected;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
@@ -68,8 +70,8 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
 }
 
 TEST_CASE("round_rot_skinny_cube") {
-    rotation_test("../data/skinny_cube10.ine", true, 102400);
-    rotation_test("../data/skinny_cube20.ine", true, 104857600);
+    rounding_test("../data/skinny_cube10.ine", true, 102400,0.2);
+    rounding_test("../data/skinny_cube20.ine", true, 104857600, 0.6);
 }
 
 TEST_CASE("round_skinny_cube") {
