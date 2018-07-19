@@ -77,7 +77,7 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
     //Compute chebychev ball//
     std::pair<Point,double> CheBall;
     if(Chebychev.size()!=P.dimension()+1){
-        CheBall = solveLP(P.get_matrix(), P.dimension());
+        CheBall = solveLP(P);
     }else{
         std::vector<double> temp_p;
         for (int j=0; j<P.dimension(); j++){
