@@ -169,17 +169,17 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
 
 // ----- ROUNDING ------ //
 template <class T1>
-std::pair<double,double> rounding_min_ellipsoid(T1 &P , Point c, NT radius, vars &var){
+std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> CheBall, vars &var){
     int n=var.n, walk_len=var.walk_steps;
     bool print=var.verbose;
+    Point c = CheBall.first;
+    NT radius = CheBall.second;
     // 2. Generate the first random point in P
     // Perform random walk on random point in the Chebychev ball
     Random_points_on_sphere_d<Point> gen (n, radius);
     Point p = gen.sample_point(var.rng);
     p = p + c;
     std::list<Point> randPoints; //ds for storing rand points
-    //vars var2=var;
-    //var2.coordinate=false;
     //use a large walk length e.g. 1000
     rand_point_generator(P, p, 1, 50*n, randPoints, var);
     // 3. Sample points from P
