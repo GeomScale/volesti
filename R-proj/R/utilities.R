@@ -17,7 +17,7 @@ modifyMat <- function(A){
 
 #' functiion to get a ine file and return matrix A in ine format for VolEsti()
 #'
-#' @param read.cs('path/to/file.ine') the ine file desrcibing the H-polytope
+#' @param P It is in format, read.cs('path/to/file.ine'). The ine file desrcibies the H-polytope
 #' @return The numerical matrix in ine format of \code{read.cs('path/to/file.ine')}
 #' @examples
 #' ineToMatrix(read.cs('path/to/data/cube40.ine'))
@@ -93,7 +93,6 @@ ineToMatrix <- function(P){
 
 #' Run some experiments
 #'
-#' @param empty No inputs
 #' @return Print the computed volumes and the total time
 #' @examples
 #' testRvolEsti()
