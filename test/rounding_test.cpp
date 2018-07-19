@@ -55,7 +55,8 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
     round_value = round_value * res_round.first;
     ratio2 = res_round.second;
     ratio1 = 0.0;
-    while(ratio2>ratio1 && count<=10) {
+    //std::cout<<ratio1<<" "<<ratio2<<std::endl;
+    while(ratio2>ratio1 && count<=4) {
         CheBall = solveLP(P);
         c=CheBall.first;
         radius=CheBall.second;
