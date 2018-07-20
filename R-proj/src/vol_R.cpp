@@ -30,16 +30,13 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
          rotate=false,
          experiments=true,
          coordinate=coord;
-    //double vol=0.0;
     Polytope<double> P;
          
     walk_len=W;
-    //double e=0.3;
     n=A.ncol()-1;
     int m=A.nrow()-1;
     
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
-    //rnum=5000;
     if(!V){
 		verbose=false;
 	}
@@ -47,15 +44,12 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
 		std::cout<<n<<" "<<m<<std::endl;
 		std::cout<<"rnum is: "<<rnum<<std::endl; 
 	}
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     // the random engine with this seed
-    RNGType rng(std::time(0));
+    RNGType rng(seed);
     boost::normal_distribution<> rdist(0,1);
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
-    //std::normal_distribution<double> rdist(0.0,1.0);
-    //std::uniform_real_distribution<double> urdist(0.0,1.0);
-    //std::uniform_real_distribution<double> urdist1(-1.0,1.0);
     
     vars var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,rng,urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
     std::vector<std::vector<double> > Pin(m+1, std::vector<double>(n+1));
@@ -77,7 +71,7 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
     //Compute chebychev ball//
     std::pair<Point,double> CheBall;
     if(Chebychev.size()!=P.dimension()+1){
-        CheBall = solveLP(P.get_matrix(), P.dimension());
+        CheBall = solveLP(P);
     }else{
         std::vector<double> temp_p;
         for (int j=0; j<P.dimension(); j++){
@@ -85,22 +79,8 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
         }
         Point xc( P.dimension() , temp_p.begin() , temp_p.end() );
         NT radius = Chebychev[P.dimension()];
-        //Point xc=CheBall2.first;
-        //double radius = CheBall2.second;
         CheBall.first = xc; CheBall.second = radius;
     }
-    //std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
-    //std::pair<Point,double> CheBall;// = solveLP(P.get_matrix(), P.dimension());
-    //std::vector<double> temp_p;
-    //for (int j=0; j<P.dimension(); j++){
-      //  temp_p.push_back(C[j]);
-    //}
-    //Point xc( P.dimension() , temp_p.begin() , temp_p.end() );
-    //double radius = C[P.dimension()];
-    //Point xc=CheBall2.first;
-    //double radius = CheBall2.second;
-    //CheBall.first = xc; CheBall.second = radius;
-    
     
     Polytope<double> P_to_test(P);
     

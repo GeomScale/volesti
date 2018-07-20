@@ -6,9 +6,6 @@
 \usage{
 testRvolEsti()
 }
-\arguments{
-\item{empty}{No inputs}
-}
 \value{
 Print the computed volumes and the total time
 }

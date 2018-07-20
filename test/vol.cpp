@@ -283,7 +283,7 @@ int main(const int argc, const char** argv)
   
   //Compute chebychev ball//
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-  std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
+  std::pair<Point,double> CheBall = solveLP(P);
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
   if(verbose){
@@ -377,7 +377,9 @@ int main(const int argc, const char** argv)
 
       if(round_only){
           // Round the polytope and exit
-          double round_value = rounding_min_ellipsoid(P,CheBall.first,CheBall.second,var);
+          std::pair<double,double> res_round;
+          res_round = rounding_min_ellipsoid(P,CheBall,var);
+          double round_value = res_round.first;
           std::cout<<"\n--------------\nRounded polytope\nH-representation\nbegin\n"<<std::endl;
           P.print();
           std::cout<<"end\n--------------\n"<<std::endl;

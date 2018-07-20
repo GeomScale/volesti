@@ -7,6 +7,8 @@
 VolEsti(Inputs)
 }
 \arguments{
+\item{list("path", "matrix", "vector", "Chebychev", "verbose", "coordinate", "rounding", "Walk_length", "error", "test")}{A list that includes alla the parameters of the algorithm}
+
 \item{path}{The path to the ine file that describes the H-polytope. If path is given then "matrix" and "vector" inputs are not needed}
 
 \item{matrix}{The matrix A of the polytope. If it is in ine format then the input "vector" is not needed}

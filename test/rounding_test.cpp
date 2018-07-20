@@ -10,7 +10,7 @@ long int factorial(int n)
 
 
 template <typename FilePath>
-void rounding_test(FilePath f)//, double expected, double tolerance=0.1)
+void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)//, double expected, double tolerance=0.1)
 {
     std::ifstream inp;
     std::vector<std::vector<double> > Pin;
@@ -35,54 +35,66 @@ void rounding_test(FilePath f)//, double expected, double tolerance=0.1)
 
     //Compute chebychev ball//
     std::cout << "\n--- Testing rounding of " << f << std::endl;
-    std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
-    Point c=CheBall.first;
-    NT radius=CheBall.second;
-    NT round_value;
+    double rot_val;
+    if(rot){
+        std::cout << "\n--- Rotation is ON "<< std::endl;
+        rot_val = rotating(P);
+        std::cout << "Rotation value = "<<rot_val<<std::endl;
+    }
+    std::pair<Point,double> CheBall;// = solveLP(P.get_matrix(), P.dimension());
+    Point c;//=CheBall.first;
+    NT radius;//=CheBall.second;
+    NT round_value=1.0, ratio1,ratio2;
+    std::pair<NT,NT> res_round;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    round_value = rounding_min_ellipsoid(P,c,radius,var);
+    int count=1;
+    CheBall = solveLP(P);
+    //c=CheBall.first;
+    //radius=CheBall.second;
+    res_round = rounding_min_ellipsoid(P, CheBall, var);
+    round_value = round_value * res_round.first;
+    ratio2 = res_round.second;
+    ratio1 = 0.0;
+    //std::cout<<ratio1<<" "<<ratio2<<std::endl;
+    while(ratio2>ratio1 && count<=4) {
+        CheBall = solveLP(P);
+        //c=CheBall.first;
+        //radius=CheBall.second;
+        res_round = rounding_min_ellipsoid(P, CheBall, var);
+        round_value = round_value * res_round.first;
+        ratio1=ratio2;
+        ratio2 = res_round.second;
+        //std::cout<<ratio1<<" "<<ratio2<<std::endl;
+        count++;
+    }
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
-
     std::cout<<"\nround value is: "<<round_value<<std::endl;
     std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
+    CheBall = solveLP(P);
+    //c=CheBall.first;
+    //radius=CheBall.second;
 
-    CHECK(!std::isnan(round_value));
-    CHECK(!std::isinf(round_value));
+    double vol = 0;
+    unsigned int const num_of_exp = 10;
+    for (unsigned int i=0; i<num_of_exp; i++)
+    {
+        vol += round_value*volume(P,var,var,CheBall);
+    }
+    double error = std::abs(((vol/num_of_exp)-expected))/expected;
+    std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
+    std::cout << "Expected volume = " << expected << std::endl;
+    CHECK(error < tolerance);
+
+
+
 }
 
-TEST_CASE("round_cube") {
-    rounding_test("../data/cube10.ine");
-    rounding_test("../data/cube20.ine");
-    rounding_test("../data/cube30.ine");
-}
-
-TEST_CASE("round_cross") {
-    rounding_test("../data/cross_10.ine");
-}
-
-TEST_CASE("round_birkhoff") {
-    rounding_test("../data/birk3.ine");
-    rounding_test("../data/birk4.ine");
-    rounding_test("../data/birk5.ine");
-    rounding_test("../data/birk6.ine");
-}
-
-TEST_CASE("round_prod_simplex") {
-    rounding_test("../data/prod_simplex_5_5.ine");
-    rounding_test("../data/prod_simplex_10_10.ine");
-    rounding_test("../data/prod_simplex_15_15.ine");
-    rounding_test("../data/prod_simplex_20_20.ine");
-}
-
-TEST_CASE("round_simplex") {
-    rounding_test("../data/simplex10.ine");
-    rounding_test("../data/simplex20.ine");
-    rounding_test("../data/simplex30.ine");
-    rounding_test("../data/simplex40.ine");
-    rounding_test("../data/simplex50.ine");
+TEST_CASE("round_rot_skinny_cube") {
+    rounding_test("../data/skinny_cube10.ine", true, 102400);
+    rounding_test("../data/skinny_cube20.ine", true, 104857600, 0.2);
 }
 
 TEST_CASE("round_skinny_cube") {
-    rounding_test("../data/skinny_cube10.ine");
-    rounding_test("../data/skinny_cube20.ine");
+    rounding_test("../data/skinny_cube10.ine", false, 102400);
+    rounding_test("../data/skinny_cube20.ine", false, 104857600);
 }

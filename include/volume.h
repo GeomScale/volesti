@@ -218,10 +218,11 @@ NT volume(T &P,
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        round_value = rounding_min_ellipsoid(P,c,radius,var);
+        std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,CheBall,var);
+        round_value=res_round.first;
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-        std::pair<Point,NT> res=solveLP(P.get_matrix(), P.dimension());
+        std::pair<Point,NT> res=solveLP(P);
         c=res.first; radius=res.second;
     }
 
@@ -385,10 +386,11 @@ NT volume_gaussian_annealing(T &P,
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        round_value = rounding_min_ellipsoid(P,c,radius,var2);
+        std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,CheBall,var2);
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-        std::pair<Point,NT> res=solveLP(P.get_matrix(), P.dimension());
+        round_value=res_round.first;
+        std::pair<Point,NT> res=solveLP(P);
         c=res.first; radius=res.second;
     }
     if(var.ball_walk){

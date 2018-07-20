@@ -169,9 +169,11 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
 
 // ----- ROUNDING ------ //
 template <class T1>
-double rounding_min_ellipsoid(T1 &P , Point c, NT radius, vars &var){
+std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> CheBall, vars &var){
     int n=var.n, walk_len=var.walk_steps;
     bool print=var.verbose;
+    Point c = CheBall.first;
+    NT radius = CheBall.second;
     // 2. Generate the first random point in P
     // Perform random walk on random point in the Chebychev ball
     Random_points_on_sphere_d<Point> gen (n, radius);
@@ -228,6 +230,17 @@ double rounding_min_ellipsoid(T1 &P , Point c, NT radius, vars &var){
         }
     }
 
+    //Find the smallest and the largest axes of the elliposoid
+    Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(E);
+    NT rel = std::real(eigensolver.eigenvalues()[0]);
+    NT Rel = std::real(eigensolver.eigenvalues()[0]);
+    for(int i=1; i<n; i++){
+        if(std::real(eigensolver.eigenvalues()[i])<rel) rel=std::real(eigensolver.eigenvalues()[i]);
+        if(std::real(eigensolver.eigenvalues()[i])>Rel) Rel=std::real(eigensolver.eigenvalues()[i]);
+
+    }
+    //std::cout<<rel<<" "<<Rel<<std::endl;
+
     Eigen::LLT<Eigen::MatrixXd> lltOfA(E); // compute the Cholesky decomposition of E
     Eigen::MatrixXd L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
 
@@ -245,7 +258,8 @@ double rounding_min_ellipsoid(T1 &P , Point c, NT radius, vars &var){
         }
     }
 
-    return L_1.determinant();
+    //return L_1.determinant();
+    return std::pair<double,double> (L_1.determinant(),rel/Rel);
 }
 
 
@@ -349,7 +363,8 @@ double rotating(T &P){
 		}
 	}
 
-    //return std::abs(svd.matrixU().determinant());
+
+	//return std::abs(svd.matrixU().determinant());
 	return std::abs(svd.matrixU().inverse().determinant());
 }
 

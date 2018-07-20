@@ -9,9 +9,12 @@
 #include "lp_lib.h"
 
 
-template <typename K>
-std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){
-	
+template <class T1>
+std::pair<Point,double> solveLP(T1 &P){//std::vector<std::vector<K> > A, int d){
+
+	typedef typename T1::FT                    K;
+	int d=P.dimension();
+	std::vector<std::vector<K> > A = P.get_matrix();
 	lprec *lp;
 	int Ncol=d+1, *colno = NULL, j, ret = 0, m=A.size();
 	REAL *row = NULL;
