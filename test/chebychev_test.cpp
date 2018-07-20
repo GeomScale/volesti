@@ -10,7 +10,7 @@ long int factorial(int n)
 
 
 template <typename FilePath>
-void cheb_test(FilePath f)//, double expected, double tolerance=0.1)
+void cheb_test(FilePath f, double expected, double tolerance=0.001)
 {
     std::ifstream inp;
     std::vector<std::vector<double> > Pin;
@@ -36,7 +36,7 @@ void cheb_test(FilePath f)//, double expected, double tolerance=0.1)
     //Compute chebychev ball//
     std::cout << "\n--- Testing Chebchev ball computation of " << f << std::endl;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    std::pair<Point,double> CheBall = solveLP(P.get_matrix(), P.dimension());
+    std::pair<Point,double> CheBall = solveLP(P);
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
 
     //std::cout<<"Chebychev center is: "<<std::endl;
@@ -44,47 +44,45 @@ void cheb_test(FilePath f)//, double expected, double tolerance=0.1)
     std::cout<<"\nradius is: "<<CheBall.second<<std::endl;
     std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
 
-    for(int i=0; i<P.dimension(); i++){
-        CHECK(!std::isnan(CheBall.first[i]));
-        CHECK(!std::isinf(CheBall.first[i]));
-    }
-    CHECK(!std::isnan(CheBall.second));
-    CHECK(!std::isinf(CheBall.second));
+    double error = std::abs(CheBall.second-expected)/expected;
+
+    CHECK(error < tolerance);
+
 }
 
 TEST_CASE("cheb_cube") {
-cheb_test("../data/cube10.ine");
-cheb_test("../data/cube20.ine");
-cheb_test("../data/cube30.ine");
+cheb_test("../data/cube10.ine",1.0);
+cheb_test("../data/cube20.ine",1.0);
+cheb_test("../data/cube30.ine",1.0);
 }
 
 TEST_CASE("cheb_cross") {
-cheb_test("../data/cross_10.ine");
+cheb_test("../data/cross_10.ine",0.316228);
 }
 
 TEST_CASE("cheb_birkhoff") {
-cheb_test("../data/birk3.ine");
-cheb_test("../data/birk4.ine");
-cheb_test("../data/birk5.ine");
-cheb_test("../data/birk6.ine");
+cheb_test("../data/birk3.ine",0.207107);
+cheb_test("../data/birk4.ine",0.122008);
+cheb_test("../data/birk5.ine",0.0833333);
+cheb_test("../data/birk6.ine",0.0618034);
 }
 
 TEST_CASE("cheb_prod_simplex") {
-cheb_test("../data/prod_simplex_5_5.ine");
-cheb_test("../data/prod_simplex_10_10.ine");
-cheb_test("../data/prod_simplex_15_15.ine");
-cheb_test("../data/prod_simplex_20_20.ine");
+cheb_test("../data/prod_simplex_5_5.ine",0.138197);
+cheb_test("../data/prod_simplex_10_10.ine",0.0759747);
+cheb_test("../data/prod_simplex_15_15.ine",0.0529858);
+cheb_test("../data/prod_simplex_20_20.ine",0.0408628);
 }
 
 TEST_CASE("cheb_simplex") {
-cheb_test("../data/simplex10.ine");
-cheb_test("../data/simplex20.ine");
-cheb_test("../data/simplex30.ine");
-cheb_test("../data/simplex40.ine");
-cheb_test("../data/simplex50.ine");
+cheb_test("../data/simplex10.ine",0.0759747);
+cheb_test("../data/simplex20.ine",0.0408628);
+cheb_test("../data/simplex30.ine",0.0281871);
+cheb_test("../data/simplex40.ine",0.0215868);
+cheb_test("../data/simplex50.ine",0.017522);
 }
 
 TEST_CASE("cheb_skinny_cube") {
-cheb_test("../data/skinny_cube10.ine");
-cheb_test("../data/skinny_cube20.ine");
+cheb_test("../data/skinny_cube10.ine",1.0);
+cheb_test("../data/skinny_cube20.ine",1.0);
 }

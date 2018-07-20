@@ -7,7 +7,7 @@
 ineToMatrix(P)
 }
 \arguments{
-\item{read.cs('path/to/file.ine')}{the ine file desrcibing the H-polytope}
+\item{P}{It is in format, read.cs('path/to/file.ine'). The ine file desrcibies the H-polytope}
 }
 \value{
 The numerical matrix in ine format of \code{read.cs('path/to/file.ine')}

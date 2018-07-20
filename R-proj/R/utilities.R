@@ -17,7 +17,7 @@ modifyMat <- function(A){
 
 #' functiion to get a ine file and return matrix A in ine format for VolEsti()
 #'
-#' @param read.cs('path/to/file.ine') the ine file desrcibing the H-polytope
+#' @param P It is in format, read.cs('path/to/file.ine'). The ine file desrcibies the H-polytope
 #' @return The numerical matrix in ine format of \code{read.cs('path/to/file.ine')}
 #' @examples
 #' ineToMatrix(read.cs('path/to/data/cube40.ine'))
@@ -93,7 +93,6 @@ ineToMatrix <- function(P){
 
 #' Run some experiments
 #'
-#' @param empty No inputs
 #' @return Print the computed volumes and the total time
 #' @examples
 #' testRvolEsti()
@@ -149,7 +148,7 @@ CheBall <- function(A,b){
 
 #' The main R function for volume approximation of a convex H-Polytope
 #'
-#' @param list("path","matrix","vector","Chebychev","verbose","coordinate","rounding","Walk_length","error","test")
+#' @param list("path","matrix","vector","Chebychev","verbose","coordinate","rounding","Walk_length","error","test") A list that includes alla the parameters of the algorithm
 #' @param path The path to the ine file that describes the H-polytope. If path is given then "matrix" and "vector" inputs are not needed
 #' @param matrix The matrix A of the polytope. If it is in ine format then the input "vector" is not needed
 #' @param vector The vector b that containes the constants of the hyperplanes
