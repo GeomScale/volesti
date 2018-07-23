@@ -223,11 +223,14 @@ public:
         return -1;
     }
 
-    int chebyshev_center(Point& center, double& radius){
-        Point f(_d);
-        
-        return 1;
-        
+    std::pair<Point,double> chebyshev_center(){
+
+        std::pair<Point,double> res;
+        res=solveLP(_A,_d);
+        return res;
+        //center=res.first;
+        // radius=res.second;
+        //return -1;
     }
 
     // compute intersection point of ray starting from r and pointing to v
@@ -263,7 +266,7 @@ public:
                 if(lamda>max_minus && lamda<0) max_minus=lamda;
             }
         }
-        
+
         return std::pair<Point,Point> ((min_plus*v)+r,(max_minus*v)+r);
     }
      */
@@ -422,5 +425,336 @@ public:
 
 
 };
+
+
+
+
+template <typename K>
+class VPolytope{
+private:
+    typedef std::vector<K>        stdCoeffs;
+    typedef std::vector<stdCoeffs>  stdMatrix;
+    //EXPERIMENTAL
+    //typedef std::vector<flann::Index<flann::L2<double> > >  Flann_trees;
+
+public:
+    typedef K                    FT;
+    VPolytope() {}
+
+    // constructor: cube(d)
+    VPolytope(int d): _d(d) {
+        for(int i=0; i<d; ++i){
+            stdCoeffs coeffs;
+            coeffs.push_back(K(1));
+            for(int j=0; j<d; ++j){
+                if(i==j)
+                    coeffs.push_back(K(1));
+                else coeffs.push_back(K(0));
+            }
+            _A.push_back(coeffs);
+        }
+        for(int i=0; i<d; ++i){
+            stdCoeffs coeffs;
+            coeffs.push_back(K(1));
+            for(int j=0; j<d; ++j){
+                if(i==j)
+                    coeffs.push_back(K(-1));
+                else coeffs.push_back(K(0));
+            }
+            _A.push_back(coeffs);
+        }
+    }
+
+    int dimension(){
+        return _d;
+    }
+
+    int num_of_hyperplanes(){
+        return _A.size();
+    }
+
+    int num_of_vertices(){
+        return _A.size();
+    }
+
+    K get_coeff(int i, int j){
+        return _A[i][j];
+    }
+
+    void put_coeff(int i, int j, K value){
+        _A[i][j] = value;
+    }
+
+    stdMatrix get_matrix(){
+        return _A;
+    }
+
+    // default initialize: cube(d)
+    int init(int d){
+        _d=d;
+        for(int i=0; i<d; ++i){
+            stdCoeffs coeffs;
+            coeffs.push_back(K(1));
+            for(int j=0; j<d; ++j){
+                if(i==j)
+                    coeffs.push_back(K(1));
+                else coeffs.push_back(K(0));
+            }
+            _A.push_back(coeffs);
+        }
+        for(int i=0; i<d; ++i){
+            stdCoeffs coeffs;
+            coeffs.push_back(K(1));
+            for(int j=0; j<d; ++j){
+                if(i==j)
+                    coeffs.push_back(K(-1));
+                else coeffs.push_back(K(0));
+            }
+            _A.push_back(coeffs);
+        }
+        return 0;
+    }
+
+    int init(stdMatrix Pin){
+        _d = Pin[0][1]-1;
+        typename stdMatrix::iterator pit=Pin.begin();
+        ++pit;
+        for( ; pit<Pin.end(); ++pit){
+            _A.push_back(*pit);
+        }
+        //double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        //std::random_shuffle (_A.begin(), _A.end());
+        //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        //std::shuffle (_A.begin(), _A.end(), std::default_random_engine(seed));
+        //std::shuffle (_A.begin(), _A.end(), std::default_random_engine(seed));
+        //boost::random::shuffle_order_engine<stdMatrix>(_A.begin(), _A.end());
+        //double tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+        //std::cout << "Shuffle time = " << tstop - tstart << std::endl;
+        return 0;
+    }
+
+    // print polytope in input format
+    int print() {
+        std::cout<<" "<<_A.size()<<" "<<_d+1<<" float"<<std::endl;
+        for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
+            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
+                std::cout<<*lit<<" ";
+            std::cout<<std::endl;
+        }
+        return 0;
+    }
+
+
+    // Compute the reduced row echelon form
+    // used to transofm {Ax=b,x>=0} to {A'x'<=b'}
+    // e.g. Birkhoff polytopes
+    int rref(){
+        to_reduced_row_echelon_form(_A);
+        std::vector<int> zeros(_d+1,0);
+        std::vector<int> ones(_d+1,0);
+        std::vector<int> zerorow(_A.size(),0);
+        for (int i = 0; i < _A.size(); ++i)
+        {
+            for (int j = 0; j < _d+1; ++j){
+                if ( _A[i][j] == double(0)){
+                    ++zeros[j];
+                    ++zerorow[i];
+                }
+                if ( _A[i][j] == double(1)){
+                    ++ones[j];
+                }
+            }
+        }
+        for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
+            int j =0;
+            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ){
+                if(zeros[j]==_A.size()-1 && ones[j]==1)
+                    (*mit).erase(lit);
+                else{ //reverse sign in all but the first column
+                    if(lit!=mit->end()-1) *lit = (-1)*(*lit);
+                    ++lit;
+                }
+                ++j;
+            }
+        }
+        //swap last and first columns
+        for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
+            double temp=*(mit->begin());
+            *(mit->begin())=*(mit->end()-1);
+            *(mit->end()-1)=temp;
+        }
+        //delete zero rows
+        for (typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ){
+            int zero=0;
+            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit){
+                if(*lit==double(0)) ++zero;
+            }
+            if(zero==(*mit).size())
+                _A.erase(mit);
+            else
+                ++mit;
+        }
+        //update _d
+        _d=(_A[0]).size();
+        // add unit vectors
+        for(int i=1;i<_d;++i){
+            std::vector<double> e(_d,0);
+            e[i]=1;
+            _A.push_back(e);
+        }
+        // _d should equals the dimension
+        _d=_d-1;
+        return 1;
+    }
+
+    std::pair<Point,double> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end){
+
+        Point p0=*it_beg,p1,c;
+        int dim=p0.dimension(),i,j;
+        std::vector<double> temp_p;
+        double radius=0.0,gi,sum=0.0;
+        Eigen::MatrixXd B(dim,dim);
+        Eigen::MatrixXd Bg(dim,dim);
+        //Eigen::VectorXd e(dim);
+        Eigen::MatrixXd e(1,dim);
+        Eigen::VectorXd row(dim);
+        Eigen::VectorXd g(dim);
+        std::pair<Point,double> result;
+        //MatrixXd res2(1,4);
+       // std::cout<<"initialization done\n";
+
+
+        for (j=1; j<dim+1; j++){
+            Point pk=*(it_beg+j);
+            e(j-1)=1.0;
+            for (i=0; i<dim; i++){
+                B(i,j-1)=pk[i]-p0[i];
+            }
+        }
+        Bg=B;
+       // std::cout<< Bg <<std::endl;
+        B=B.inverse();
+       // std::cout<< B <<std::endl;
+       // std::cout<<"\n";
+        for (i=0; i<dim; i++){
+            for (j=0; j<dim; j++){
+                row(j)=B(i,j);
+            }
+            	//std::cout<< row <<std::endl;
+            	//std::cout<<"\n";
+            gi=row.norm();
+           // std::cout<< gi <<std::endl;
+            radius+=gi;
+           // std::cout<<radius<<std::endl;
+            g(i)=gi;
+            if (i<dim-1){
+                sum+=gi;
+            }
+            	//std::cout<<radius<<std::endl;
+            	//std::cout<<"\n";
+        }
+	//std::cout<<"hello"<<std::endl;
+        e=e*B;
+	//std::cout<< e <<std::endl;
+       // std::cout<<"\n";
+        radius+=e.norm();
+      //  std::cout<<radius<<std::endl;
+       // std::cout<<"hello2.5"<<std::endl;
+        radius=1.0/radius;
+        //std::cout<<radius<<std::endl;
+	//std::cout<<"hello2"<<std::endl;
+        g=Bg*g;
+        g=radius*g;
+        //std::cout<<"hello3"<<std::endl;
+        for (i=0; i<dim; i++){
+            temp_p.push_back(p0[i]+g(i));
+        }
+        c=Point(dim,temp_p.begin(), temp_p.end());
+        //std::cout<< "small radius is: "<< radius <<std::endl;
+        result.first=c;
+        result.second=radius;
+       //std::cout<<radius<<std::endl;
+        //std::cout<<c<<std::endl;
+        //std::cout<<"hello2"<<std::endl;
+        return result;
+
+    }
+
+    std::pair<Point,double> chebyshev_center(){
+
+        std::vector<Point> verts(_d+1);
+        std::vector<double> vecp(_d);
+
+        for(size_t i=0; i<(_d+1); ++i){
+            for (size_t j=0; j<_d; j++){
+                vecp[j]=_A[i][j+1];
+                //std::cout<<_A[i][j+1]<<"\n";
+            }
+            verts[i] = Point(_d,vecp.begin(),vecp.end());
+        }
+
+        std::pair<Point,double> res;
+        res=get_center_radius_inscribed_simplex(verts.begin(), verts.end());
+        return res;
+        //center=res.first;
+       // radius=res.second;
+        //return -1;
+    }
+
+
+   /* bool is_in_convex_hull (const Point& p,
+                            std::vector<Point>::const_iterator begin,
+                            std::vector<Point>::const_iterator end)
+    {
+        CGAL::Quadratic_program_solution<ET> s =
+                solve_convex_hull_containment_lp (p, begin, end, ET2(0));
+        return !s.is_infeasible();
+    }*/
+
+    int is_in(Point p) {
+
+        if(memLP_Vpoly(_A, p)){
+            return -1;
+        }
+        return 0;
+    }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with polytope discribed by _A
+    std::pair<NT,NT> line_intersect(Point r,
+                                          Point v){
+
+        return std::pair<NT,NT> (0,0);
+    }
+
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          int rand_coord){
+
+        return std::pair<NT,NT> (0,0);
+    }
+
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          Point &r_prev,
+                                          int rand_coord,
+                                          int rand_coord_prev,
+                                          std::vector<NT> &lamdas,
+                                          bool init){
+
+        return std::pair<NT,NT> (0,0);
+    }
+
+    //void rotate(){
+    //std::cout<<_A<<std::endl;
+    //  exit(1);
+    //}
+
+private:
+    int            _d; //dimension
+    stdMatrix      _A; //inequalities
+    //EXPERIMENTAL
+    //Flann_trees    flann_trees; //the (functional) duals of A lifted to answer NN queries
+    //defined for every d coordinate
+};
+
 
 #endif
