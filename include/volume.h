@@ -56,22 +56,25 @@ public:
           const int lw,
           double up,
           const int L,
+          double che_rad,
           RNGType &rng,
           //std::uniform_real_distribution<NT> urdist,
           //std::uniform_real_distribution<NT> urdist1,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
+          double delta,
           bool verbose,
           bool rand_only,
           bool round,
           bool NN,
           bool birk,
+          bool ball_walk,
           bool coordinate
           ) :
         m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
-        lw(lw), up(up), L(L), rng(rng),
-        urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
-        NN(NN),birk(birk),coordinate(coordinate){};
+        lw(lw), up(up), L(L), che_rad(che_rad), rng(rng),
+        urdist(urdist), urdist1(urdist1) , delta(delta) , verbose(verbose), rand_only(rand_only), round(round),
+        NN(NN),birk(birk), ball_walk(ball_walk), coordinate(coordinate){};
 
     int m;
     int n;
@@ -82,16 +85,19 @@ public:
     const int lw;
     double up;
     const int L;
+    double che_rad;
     RNGType &rng;
     //std::uniform_real_distribution<NT> urdist;
     //std::uniform_real_distribution<NT> urdist1;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;
+    double delta;
     bool verbose;
     bool rand_only;
     bool round;
     bool NN;
     bool birk;
+    bool ball_walk;
     bool coordinate;
 };
 
@@ -222,7 +228,7 @@ NT volume(T &P,
         round_value=res_round.first;
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-        std::pair<Point,NT> res=solveLP(P);
+        std::pair<Point,NT> res=P.chebyshev_center();
         c=res.first; radius=res.second;
     }
 
@@ -390,7 +396,7 @@ NT volume_gaussian_annealing(T &P,
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         round_value=res_round.first;
-        std::pair<Point,NT> res=solveLP(P);
+        std::pair<Point,NT> res=P.chebyshev_center();
         c=res.first; radius=res.second;
     }
     if(var.ball_walk){

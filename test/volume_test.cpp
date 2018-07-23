@@ -48,11 +48,11 @@ void test_volume(FilePath f, double expected, double tolerance=0.1)
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
     
-    vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,rng,
-             urdist,urdist1,false,false,false,false,false,true);
+    vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
+             urdist,urdist1,-1.0,false,false,false,false,false,false,true);
 
     //Compute chebychev ball//
-    std::pair<Point,double> CheBall = solveLP(P);
+    std::pair<Point,double> CheBall = P.chebyshev_center();
 
     // Estimate the volume
     std::cout << "--- Testing volume of " << f << std::endl;

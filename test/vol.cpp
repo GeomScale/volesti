@@ -57,10 +57,12 @@ int main(const int argc, const char** argv)
          ball_rad=false,
          experiments=true,
          annealing = false,
+         Vpoly=false,
          coordinate=true;
 	
 	//this is our polytope
 	Polytope<NT> P;
+	VPolytope<NT> VP;
 	int magnitude=0;
 	bool exper=false, user_W=false, user_N=false, user_ratio=false;
 	double ball_radius=0.0;
@@ -180,6 +182,23 @@ int main(const int argc, const char** argv)
           }
           correct=true;
       }
+      if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
+          file=true;
+          Vpoly=true;
+          std::cout<<"Reading input from file..."<<std::endl;
+          std::ifstream inp;
+          std::vector<std::vector<double> > Pin;
+          inp.open(argv[++i],std::ifstream::in);
+          read_pointset(inp,Pin);
+          //std::cout<<"d="<<Pin[0][1]<<std::endl;
+          n = Pin[0][1]-1;
+          VP.init(Pin);
+          if (verbose && VP.num_of_vertices()<100){
+              std::cout<<"Input polytope: "<<n<<std::endl;
+              VP.print();
+          }
+          correct=true;
+      }
       /*
     if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
             file=true;
@@ -282,8 +301,13 @@ int main(const int argc, const char** argv)
   }//for i
   
   //Compute chebychev ball//
+  std::pair<Point, double> CheBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-  std::pair<Point,double> CheBall = solveLP(P);
+  if(!Vpoly) {
+      CheBall = P.chebyshev_center();
+  }else{
+      CheBall = VP.chebyshev_center();
+  }
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
   if(verbose){
@@ -372,8 +396,8 @@ int main(const int argc, const char** argv)
       //if(!ball_rad){
       //    ball_radius =
       //}
-      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,rng,
-               urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
+      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,CheBall.second,rng,
+               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
       if(round_only){
           // Round the polytope and exit
@@ -386,8 +410,8 @@ int main(const int argc, const char** argv)
       }else{
           // Estimate the volume
           if(annealing){
-              vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,rng,
-                       urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
+              vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,CheBall.second,rng,
+                       urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
               vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
               vol = volume_gaussian_annealing(P_to_test, var1, var2, CheBall);
               tstop = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -395,7 +419,11 @@ int main(const int argc, const char** argv)
               std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;
               return 0;
           }
-          vol = volume(P_to_test,var,var,CheBall);
+          if(!Vpoly) {
+              vol = volume(P_to_test, var, var, CheBall);
+          }else{
+              vol = volume(VP, var, var, CheBall);
+          }
           //if(rotate) vol = std::sqrt(vol);
           //std::cout<<vol<<std::endl;
       }
