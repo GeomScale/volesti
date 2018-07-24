@@ -312,10 +312,11 @@ int main(const int argc, const char** argv)
   if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
   if(verbose){
       std::cout<<"Chebychev center is: "<<std::endl;
-      for(int i=0; i<P.dimension(); i++){
+      for(int i=0; i<VP.dimension(); i++){
           std::cout<<CheBall.first[i]<<" ";
       }
       std::cout<<"\nradius is: "<<CheBall.second<<std::endl;
+      //VP.print();
   }
   
   // Set the number of random walk steps

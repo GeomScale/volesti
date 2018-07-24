@@ -621,18 +621,22 @@ public:
         Eigen::VectorXd g(dim);
         std::pair<Point,double> result;
         //MatrixXd res2(1,4);
-       // std::cout<<"initialization done\n";
-
+        //std::cout<<"initialization done, dimension = "<<dim<<std::endl;
+       // std::cout<<"p0: ";
+        p0.print();
+       // std::cout<<"\n";
 
         for (j=1; j<dim+1; j++){
             Point pk=*(it_beg+j);
+            //pk.print();
+            //std::cout<<"\n";
             e(j-1)=1.0;
             for (i=0; i<dim; i++){
                 B(i,j-1)=pk[i]-p0[i];
             }
         }
         Bg=B;
-       // std::cout<< Bg <<std::endl;
+        //std::cout<< Bg <<std::endl;
         B=B.inverse();
        // std::cout<< B <<std::endl;
        // std::cout<<"\n";
@@ -684,10 +688,28 @@ public:
 
         std::vector<Point> verts(_d+1);
         std::vector<double> vecp(_d);
+        int m = _A.size(), vert_rand, pointer=0,i,j;
+        std::vector<int> x_vec;
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        RNGType rng(seed);
+        boost::random::uniform_int_distribution<> uidist(1, m);
+        x_vec.assign(_d+1,0);
+        //std::cout<<"initialzation in cheb\n";
 
-        for(size_t i=0; i<(_d+1); ++i){
-            for (size_t j=0; j<_d; j++){
-                vecp[j]=_A[i][j+1];
+        while(pointer!=_d+1) {
+            vert_rand = uidist(rng);
+            // Check if this integer is selected first time
+            if (std::find(x_vec.begin(), x_vec.begin() + pointer, vert_rand) == x_vec.begin() + pointer) {
+                x_vec[pointer] = vert_rand;
+                pointer++;
+            }
+        }
+        //std::cout<<"vertices ok\n";
+
+        for(i=0; i<(_d+1); i++){
+            for (j=0; j<_d; j++){
+                //std::cout<<"vertex: "<<x_vec[i]-1<<"\n";
+                vecp[j]=_A[x_vec[i]-1][j+1];
                 //std::cout<<_A[i][j+1]<<"\n";
             }
             verts[i] = Point(_d,vecp.begin(),vecp.end());
@@ -712,10 +734,13 @@ public:
     }*/
 
     int is_in(Point p) {
+        //p.print();
 
         if(memLP_Vpoly(_A, p)){
+            //std::cout<<"IN poly"<<std::endl;
             return -1;
         }
+       //std::cout<<"OUT poly"<<std::endl;
         return 0;
     }
 
