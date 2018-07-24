@@ -1,3 +1,7 @@
+# VolEsti (volume computation and sampling library)
+# Copyright (c) 20012-2018 Vissarion Fisikopoulos
+# Licensed under GNU LGPL.3, see LICENCE file
+
 version: 2
 jobs:
   build:
