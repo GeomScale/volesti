@@ -607,7 +607,7 @@ public:
         return 1;
     }
 
-    std::pair<Point,double> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end){
+    std::pair<Point,double> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end,bool &done){
 
         Point p0=*it_beg,p1,c;
         int dim=p0.dimension(),i,j;
@@ -637,8 +637,17 @@ public:
         }
         Bg=B;
         //std::cout<< Bg <<std::endl;
+        Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(B);
+        auto rank = lu_decomp.rank();
+        //std::cout<<"rank of B = "<<rank<<std::endl;
+        //std::cout<< Bg <<std::endl;
+        if(rank==dim){
+            done=true;
+        }else{
+            return result;
+        }
         B=B.inverse();
-       // std::cout<< B <<std::endl;
+        std::cout<< B <<std::endl;
        // std::cout<<"\n";
         for (i=0; i<dim; i++){
             for (j=0; j<dim; j++){
@@ -689,34 +698,41 @@ public:
         std::vector<Point> verts(_d+1);
         std::vector<double> vecp(_d);
         int m = _A.size(), vert_rand, pointer=0,i,j;
-        std::vector<int> x_vec;
+        std::vector<int> x_vec(_d);
+        bool done=false;
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         RNGType rng(seed);
         boost::random::uniform_int_distribution<> uidist(1, m);
-        x_vec.assign(_d+1,0);
+        //x_vec.assign(_d+1,0);
         //std::cout<<"initialzation in cheb\n";
 
-        while(pointer!=_d+1) {
-            vert_rand = uidist(rng);
-            // Check if this integer is selected first time
-            if (std::find(x_vec.begin(), x_vec.begin() + pointer, vert_rand) == x_vec.begin() + pointer) {
-                x_vec[pointer] = vert_rand;
-                pointer++;
-            }
-        }
-        //std::cout<<"vertices ok\n";
-
-        for(i=0; i<(_d+1); i++){
-            for (j=0; j<_d; j++){
-                //std::cout<<"vertex: "<<x_vec[i]-1<<"\n";
-                vecp[j]=_A[x_vec[i]-1][j+1];
-                //std::cout<<_A[i][j+1]<<"\n";
-            }
-            verts[i] = Point(_d,vecp.begin(),vecp.end());
-        }
-
         std::pair<Point,double> res;
-        res=get_center_radius_inscribed_simplex(verts.begin(), verts.end());
+        while(!done){
+            pointer=0;
+            x_vec.assign(_d+1,0);
+            while(pointer!=_d+1) {
+                vert_rand = uidist(rng);
+                // Check if this integer is selected first time
+                if (std::find(x_vec.begin(), x_vec.begin() + pointer, vert_rand) == x_vec.begin() + pointer) {
+                    x_vec[pointer] = vert_rand;
+                    pointer++;
+                }
+            }
+            //std::cout<<"vertices ok\n";
+
+            for(i=0; i<(_d+1); i++){
+                for (j=0; j<_d; j++){
+                    //std::cout<<"vertex: "<<x_vec[i]-1<<"\n";
+                    vecp[j]=_A[x_vec[i]-1][j+1];
+                    //std::cout<<_A[i][j+1]<<"\n";
+                }
+                verts[i] = Point(_d,vecp.begin(),vecp.end());
+            }
+
+
+
+            res=get_center_radius_inscribed_simplex(verts.begin(), verts.end(), done);
+        }
         return res;
         //center=res.first;
        // radius=res.second;
@@ -748,14 +764,30 @@ public:
     // with polytope discribed by _A
     std::pair<NT,NT> line_intersect(Point r,
                                           Point v){
+        NT min_plus, max_minus;
+        //std::cout<<"point r in Vpoly: "<<is_in(r)<<std::endl;
 
-        return std::pair<NT,NT> (0,0);
+        max_minus = intersect_line_Vpoly(_A, r, v, true);
+        //std::cout<<"max_minus = "<<max_minus<<std::endl;
+
+        min_plus = intersect_line_Vpoly(_A, r, v, false);
+        //std::cout<<"min_plus = "<<min_plus<<std::endl;
+
+
+        return std::pair<NT,NT> (min_plus, max_minus);
     }
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           int rand_coord){
+        NT min_plus, max_minus;
+        std::vector<NT> temp(_d);
+        temp[rand_coord]=1.0;
+        Point v(_d,temp.begin(), temp.end());
 
-        return std::pair<NT,NT> (0,0);
+        max_minus = intersect_line_Vpoly(_A, r, v, true);
+        min_plus = intersect_line_Vpoly(_A, r, v, false);
+
+        return std::pair<NT,NT> (min_plus, max_minus);
     }
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
@@ -764,8 +796,15 @@ public:
                                           int rand_coord_prev,
                                           std::vector<NT> &lamdas,
                                           bool init){
+        NT min_plus, max_minus;
+        std::vector<NT> temp(_d);
+        temp[rand_coord]=1.0;
+        Point v(_d,temp.begin(), temp.end());
 
-        return std::pair<NT,NT> (0,0);
+        max_minus = intersect_line_Vpoly(_A, r, v, true);
+        min_plus = intersect_line_Vpoly(_A, r, v, false);
+
+        return std::pair<NT,NT> (min_plus, max_minus);
     }
 
     //void rotate(){
