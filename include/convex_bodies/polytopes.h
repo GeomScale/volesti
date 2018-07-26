@@ -5,19 +5,7 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
-// VolEsti is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at
-// your option) any later version.
-//
-// VolEsti is distributed in the hope that it will be useful, but WITHOUT
-// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for more details.
-//
-// See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with HeaDDaCHe,
-// see <http://www.gnu.org/licenses/>.
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef POLYTOPES_H
 #define POLYTOPES_H
@@ -223,10 +211,11 @@ public:
         return -1;
     }
 
-    int chebyshev_center(Point& center, double& radius){
-        Point f(_d);
-        
-        return 1;
+    std::pair<Point,double> chebyshev_center(){
+
+        std::pair<Point,double> res;
+        res=solveLP(_A,_d);
+        return res;
         
     }
 
