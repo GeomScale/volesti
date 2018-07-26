@@ -303,11 +303,13 @@ int main(const int argc, const char** argv)
   //Compute chebychev ball//
   std::pair<Point, double> CheBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
+
   if(!Vpoly) {
       CheBall = P.chebyshev_center();
   }else{
       CheBall = VP.chebyshev_center();
   }
+
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
   if(verbose){

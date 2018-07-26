@@ -10,7 +10,8 @@
 
 
 template <typename K>
-std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){//std::vector<std::vector<K> > A, int d){
+
+std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){
 
 	//typedef typename T1::FT                    K;
 	//int d=P.dimension();
@@ -116,6 +117,8 @@ std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){//std::ve
 	
 	Point xc( d , temp_p.begin() , temp_p.end() );
 	double r=double(get_objective(lp));
+	delete_lp(lp);
+
 			
 	return std::pair<Point,double> (xc,r);
 }
