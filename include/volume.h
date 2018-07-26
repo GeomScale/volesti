@@ -1,20 +1,8 @@
-// VolEsti
+// VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2017 Vissarion Fisikopoulos
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
 
-// VolEsti is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at
-// your option) any later version.
-//
-// VolEsti is distributed in the hope that it will be useful, but WITHOUT
-// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for more details.
-//
-// See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with HeaDDaCHe,
-// see <http://www.gnu.org/licenses/>.
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef VOLUME_H
 #define VOLUME_H
@@ -222,7 +210,7 @@ NT volume(T &P,
         round_value=res_round.first;
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-        std::pair<Point,NT> res=solveLP(P);
+        std::pair<Point,NT> res=P.chebyshev_center();
         c=res.first; radius=res.second;
     }
 
