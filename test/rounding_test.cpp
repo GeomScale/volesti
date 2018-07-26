@@ -55,7 +55,7 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
     std::pair<NT,NT> res_round;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
     int count=1;
-    CheBall = solveLP(P);
+    CheBall = P.chebyshev_center();
     //c=CheBall.first;
     //radius=CheBall.second;
     res_round = rounding_min_ellipsoid(P, CheBall, var);
@@ -64,7 +64,7 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
     ratio1 = 0.0;
     //std::cout<<ratio1<<" "<<ratio2<<std::endl;
     while(ratio2>ratio1 && count<=4) {
-        CheBall = solveLP(P);
+        CheBall = P.chebyshev_center();
         //c=CheBall.first;
         //radius=CheBall.second;
         res_round = rounding_min_ellipsoid(P, CheBall, var);
@@ -77,7 +77,7 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout<<"\nround value is: "<<round_value<<std::endl;
     std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-    CheBall = solveLP(P);
+    CheBall = P.chebyshev_center();
     //c=CheBall.first;
     //radius=CheBall.second;
 

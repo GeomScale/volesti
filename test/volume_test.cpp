@@ -40,7 +40,7 @@ void test_volume(FilePath f, double expected, double tolerance=0.1)
              urdist,urdist1,false,false,false,false,false,true);
 
     //Compute chebychev ball//
-    std::pair<Point,double> CheBall = solveLP(P);
+    std::pair<Point,double> CheBall = P.chebyshev_center();
 
     // Estimate the volume
     std::cout << "--- Testing volume of " << f << std::endl;
