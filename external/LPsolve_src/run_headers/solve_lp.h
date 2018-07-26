@@ -116,7 +116,6 @@ std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){//std::ve
 	
 	Point xc( d , temp_p.begin() , temp_p.end() );
 	double r=double(get_objective(lp));
-	delete_lp(lp);
 			
 	return std::pair<Point,double> (xc,r);
 }
@@ -252,7 +251,6 @@ template <typename K>
 double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, bool maxi){
 
 	int d=v.dimension();
-	//std::vector<std::vector<K> > A = P.get_matrix();
 	lprec *lp;
 	int m=A.size();
 	m++;
@@ -269,13 +267,6 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 
 	//std::cout<<"ret1 = "<<ret<<std::endl;
 	if(ret == 0) {
-		/* let us name our variables. Not required, but can be useful for debugging */
-
-		//for (int i=0; i<d; i++){
-		//set_col_name(lp, i+1, "xi");
-		//set_col_name(lp, 2, "y");
-		//}
-
 		/* create space large enough for one row */
 		colno = (int *) malloc(Ncol * sizeof(*colno));
 		row = (REAL *) malloc(Ncol * sizeof(*row));
@@ -296,7 +287,6 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 		for(j=0; j<m-1; j++){
 			colno[j] = j+1; /* j_th column */
 			row[j] = A[j][i+1];
-			//sum += A[i][j+1]*A[i][j+1];
 		}
 		colno[m-1] = m; /* last column */
 		row[m-1] = v[i];
@@ -309,7 +299,7 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 		}
 		i++;
 	}
-	//std::cout<<"ret4 = "<<ret<<std::endl;
+
 	if(ret==0){
 		for(j=0; j<m-1; j++){
 			colno[j] = j+1; /* j_th column */
@@ -328,7 +318,6 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 	}
 
 	//set the bounds
-	//std::cout<<"ret5 = "<<ret<<std::endl;
 	if(ret == 0) {
 		set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
 
@@ -347,7 +336,6 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 
 	}
 
-	//std::cout<<"ret6 = "<<ret<<std::endl;
 	if(ret == 0) {
 		/* set the object direction to maximize */
 		if(maxi) {
@@ -355,14 +343,6 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 		}else{
 			set_minim(lp);
 		}
-		//set_minim(lp);
-
-		/* just out of curioucity, now show the model in lp format on screen */
-		/* this only works if this is a console application. If not, use write_lp and a filename */
-		//write_LP(lp, stdout);
-		/* write_lp(lp, "model.lp"); */
-
-		/* I only want to see important messages on screen while solving */
 		set_verbose(lp, NEUTRAL);
 
 		/* Now let lpsolve calculate a solution */
@@ -372,14 +352,14 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 		else
 			ret = 5;
 	}
-	//std::cout<<"ret7 = "<<ret<<std::endl;
+
 	if(ret==0) {
 		res = K(-get_objective(lp));
 		delete_lp(lp);
 	    return res;
 
 	}
-	std::cout<<K(-get_objective(lp))<<std::endl;
+	std::cout<<"Linear Program for hit and run failed"<<std::endl;
 	exit(-1);
 	return 0;
 
