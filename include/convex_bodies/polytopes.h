@@ -615,80 +615,51 @@ public:
         double radius=0.0,gi,sum=0.0;
         Eigen::MatrixXd B(dim,dim);
         Eigen::MatrixXd Bg(dim,dim);
-        //Eigen::VectorXd e(dim);
         Eigen::MatrixXd e(1,dim);
         Eigen::VectorXd row(dim);
         Eigen::VectorXd g(dim);
         std::pair<Point,double> result;
-        //MatrixXd res2(1,4);
-        //std::cout<<"initialization done, dimension = "<<dim<<std::endl;
-       // std::cout<<"p0: ";
-        p0.print();
-       // std::cout<<"\n";
+        //p0.print();
 
         for (j=1; j<dim+1; j++){
             Point pk=*(it_beg+j);
-            //pk.print();
-            //std::cout<<"\n";
             e(j-1)=1.0;
             for (i=0; i<dim; i++){
                 B(i,j-1)=pk[i]-p0[i];
             }
         }
         Bg=B;
-        //std::cout<< Bg <<std::endl;
         Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(B);
         auto rank = lu_decomp.rank();
-        //std::cout<<"rank of B = "<<rank<<std::endl;
-        //std::cout<< Bg <<std::endl;
         if(rank==dim){
             done=true;
         }else{
             return result;
         }
         B=B.inverse();
-        std::cout<< B <<std::endl;
-       // std::cout<<"\n";
         for (i=0; i<dim; i++){
             for (j=0; j<dim; j++){
                 row(j)=B(i,j);
             }
-            	//std::cout<< row <<std::endl;
-            	//std::cout<<"\n";
             gi=row.norm();
-           // std::cout<< gi <<std::endl;
             radius+=gi;
-           // std::cout<<radius<<std::endl;
             g(i)=gi;
             if (i<dim-1){
                 sum+=gi;
             }
-            	//std::cout<<radius<<std::endl;
-            	//std::cout<<"\n";
         }
-	//std::cout<<"hello"<<std::endl;
         e=e*B;
-	//std::cout<< e <<std::endl;
-       // std::cout<<"\n";
         radius+=e.norm();
-      //  std::cout<<radius<<std::endl;
-       // std::cout<<"hello2.5"<<std::endl;
         radius=1.0/radius;
-        //std::cout<<radius<<std::endl;
-	//std::cout<<"hello2"<<std::endl;
         g=Bg*g;
         g=radius*g;
-        //std::cout<<"hello3"<<std::endl;
         for (i=0; i<dim; i++){
             temp_p.push_back(p0[i]+g(i));
         }
         c=Point(dim,temp_p.begin(), temp_p.end());
-        //std::cout<< "small radius is: "<< radius <<std::endl;
         result.first=c;
         result.second=radius;
-       //std::cout<<radius<<std::endl;
-        //std::cout<<c<<std::endl;
-        //std::cout<<"hello2"<<std::endl;
+
         return result;
 
     }
@@ -703,8 +674,6 @@ public:
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         RNGType rng(seed);
         boost::random::uniform_int_distribution<> uidist(1, m);
-        //x_vec.assign(_d+1,0);
-        //std::cout<<"initialzation in cheb\n";
 
         std::pair<Point,double> res;
         while(!done){
@@ -718,13 +687,10 @@ public:
                     pointer++;
                 }
             }
-            //std::cout<<"vertices ok\n";
 
             for(i=0; i<(_d+1); i++){
                 for (j=0; j<_d; j++){
-                    //std::cout<<"vertex: "<<x_vec[i]-1<<"\n";
                     vecp[j]=_A[x_vec[i]-1][j+1];
-                    //std::cout<<_A[i][j+1]<<"\n";
                 }
                 verts[i] = Point(_d,vecp.begin(),vecp.end());
             }
@@ -734,29 +700,16 @@ public:
             res=get_center_radius_inscribed_simplex(verts.begin(), verts.end(), done);
         }
         return res;
-        //center=res.first;
-       // radius=res.second;
-        //return -1;
+
     }
 
 
-   /* bool is_in_convex_hull (const Point& p,
-                            std::vector<Point>::const_iterator begin,
-                            std::vector<Point>::const_iterator end)
-    {
-        CGAL::Quadratic_program_solution<ET> s =
-                solve_convex_hull_containment_lp (p, begin, end, ET2(0));
-        return !s.is_infeasible();
-    }*/
 
     int is_in(Point p) {
-        //p.print();
 
         if(memLP_Vpoly(_A, p)){
-            //std::cout<<"IN poly"<<std::endl;
             return -1;
         }
-       //std::cout<<"OUT poly"<<std::endl;
         return 0;
     }
 
@@ -765,14 +718,9 @@ public:
     std::pair<NT,NT> line_intersect(Point r,
                                           Point v){
         NT min_plus, max_minus;
-        //std::cout<<"point r in Vpoly: "<<is_in(r)<<std::endl;
 
         max_minus = intersect_line_Vpoly(_A, r, v, true);
-        //std::cout<<"max_minus = "<<max_minus<<std::endl;
-
         min_plus = intersect_line_Vpoly(_A, r, v, false);
-        //std::cout<<"min_plus = "<<min_plus<<std::endl;
-
 
         return std::pair<NT,NT> (min_plus, max_minus);
     }
