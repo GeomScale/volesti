@@ -211,10 +211,11 @@ public:
         return -1;
     }
 
-    int chebyshev_center(Point& center, double& radius){
-        Point f(_d);
-        
-        return 1;
+    std::pair<Point,double> chebyshev_center(){
+
+        std::pair<Point,double> res;
+        res=solveLP(_A,_d);
+        return res;
         
     }
 
