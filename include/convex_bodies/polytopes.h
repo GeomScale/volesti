@@ -20,6 +20,7 @@ private:
     typedef std::vector<K>        stdCoeffs;
     typedef std::vector<stdCoeffs>  stdMatrix;
     Eigen::MatrixXd A;
+    Eigen::VectorXd b;
     int            _d; //dimension
     stdMatrix      _A; //inequalities
 
@@ -108,10 +109,12 @@ public:
         }
         
         //define eigen matrix
-        A.resize(_A.size(),_d);
-        for(int i=0; i<_A.size(); i++){
+        A.resize(Pin.size()-1,_d);
+        b.resize(Pin.size()-1);
+        for(int i=1; i<Pin.size(); i++){
+            b(i-1) = Pin[i][0];
             for(int j=1; j<_d+1; j++){
-                A(i,j-1)=_A[i][j];
+                A(i-1,j-1)=Pin[i][j];
             }
         }
         //print();
@@ -196,6 +199,20 @@ public:
     
 
     int is_in(Point p) {
+        K sum;
+        int m = A.rows(), i, j;
+        for (i = 0; i < m; i++) {
+            sum = b(i);
+            for (j = 0; j < _d; j++) {
+                sum -= A(i, j) * p[j];
+            }
+            if (sum < K(0)) {
+                return 0;
+            }
+        }
+        return -1;
+    }
+        /*
         for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
             typename stdCoeffs::iterator lit;
             typename std::vector<K>::iterator pit=p.iter_begin();
@@ -209,12 +226,12 @@ public:
                 return mit-_A.begin();
         }
         return -1;
-    }
+    }*/
 
     std::pair<Point,double> chebyshev_center(){
 
         std::pair<Point,double> res;
-        res=solveLP(_A,_d);
+        res=solveLP(A,b,_d);
         return res;
         
     }
