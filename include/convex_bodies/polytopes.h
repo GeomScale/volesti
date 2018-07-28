@@ -60,6 +60,24 @@ public:
         return A.rows();
     }
 
+    Eigen::MatrixXd get_eigen_mat(){
+        return A;
+    }
+
+    Eigen::VectorXd get_eigen_vec(){
+        return b;
+    }
+
+    int set_eigen_mat(Eigen::MatrixXd A2){
+        A = A2;
+        return -1;
+    }
+
+    int set_eigen_vec(Eigen::VectorXd b2){
+        b = b2;
+        return -1;
+    }
+
     K get_coeff(int i, int j){
         if(j==0){
             return b(i);
@@ -282,12 +300,42 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by _A
     std::pair<NT,NT> line_intersect(Point r,
-                                          Point v){
-        K lamda=0;
-        K min_plus=0, max_minus=0;
-        bool min_plus_not_set=true;
-        bool max_minus_not_set=true;
-        for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
+                                          Point v) {
+        K lamda = 0;
+        K min_plus = 0, max_minus = 0;
+        K sum_nom, sum_denom;
+        bool min_plus_not_set = true;
+        bool max_minus_not_set = true;
+        int m = num_of_hyperplanes();
+
+        for (int i = 0; i < m; i++) {
+            sum_nom = b(i);
+            sum_denom = K(0);
+            for (int j = 0; j < _d; j++) {
+                sum_nom -= A(i, j) * r[j];
+                sum_denom += A(i, j) * v[j];
+            }
+            if (sum_denom == K(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (min_plus_not_set && lamda > 0) {
+                    min_plus = lamda;
+                    min_plus_not_set = false;
+                }
+                if (max_minus_not_set && lamda < 0) {
+                    max_minus = lamda;
+                    max_minus_not_set = false;
+                }
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
+            }
+        }
+        return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
+        /*for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
             typename stdCoeffs::iterator cit;
             typename std::vector<K>::iterator rit=r.iter_begin();
             typename std::vector<K>::iterator vit=v.iter_begin();
@@ -314,15 +362,46 @@ public:
 
         //return std::pair<Point,Point> ((min_plus*v)+r,(max_minus*v)+r);
         return std::pair<NT,NT> (min_plus, max_minus);
-    }
+    }*/
 
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          int rand_coord){
-        K lamda=0;
-        K min_plus=0, max_minus=0;
-        bool min_plus_not_set=true;
-        bool max_minus_not_set=true;
+                                          int rand_coord) {
+            K lamda = 0;
+            K min_plus = 0, max_minus = 0;
+            bool min_plus_not_set = true;
+            bool max_minus_not_set = true;
+            K sum_nom, sum_denom;
+            int m = num_of_hyperplanes();
+
+            for (int i = 0; i < m; i++) {
+                sum_nom = b(i);
+                sum_denom = A(i, rand_coord);
+                for (int j = 0; j < _d; j++) {
+                    sum_nom -= A(i, j) * r[j];
+                }
+                if (sum_denom == K(0)) {
+                    //std::cout<<"div0"<<sum_denom<<std::endl;
+                    ;
+                } else {
+                    lamda = sum_nom * (1 / sum_denom);
+
+                    if (min_plus_not_set && lamda > 0) {
+                        min_plus = lamda;
+                        min_plus_not_set = false;
+                    }
+                    if (max_minus_not_set && lamda < 0) {
+                        max_minus = lamda;
+                        max_minus_not_set = false;
+                    }
+                    if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                    if (lamda > max_minus && lamda < 0) max_minus = lamda;
+                }
+            }
+            return std::pair<NT, NT>(min_plus, max_minus);
+        }
+
+        /*
         for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
             typename stdCoeffs::iterator cit;
             typename std::vector<K>::iterator rit=r.iter_begin();
@@ -347,22 +426,83 @@ public:
             }
         }
         return std::pair<NT,NT> (min_plus,max_minus);
-    }
+    }*/
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
                                           int rand_coord,
                                           int rand_coord_prev,
                                           std::vector<NT> &lamdas,
-                                          bool init){
-        K lamda=0;
-        std::vector<NT>::iterator lamdait = lamdas.begin();
+                                          bool init) {
+            K lamda = 0;
+            std::vector<NT>::iterator lamdait = lamdas.begin();
 
-        K min_plus=0, max_minus=0;
-        bool min_plus_not_set=true;
-        bool max_minus_not_set=true;
-        int mini, maxi;
+            K min_plus = 0, max_minus = 0;
+            K sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
+            bool min_plus_not_set = true;
+            bool max_minus_not_set = true;
+            int mini, maxi, m = num_of_hyperplanes();
 
+            if (init) { //first time compute the innerprod cit*rit
+                for (int i = 0; i < m; i++) {
+                    sum_nom = b(i);
+                    sum_denom = A(i, rand_coord);
+                    for (int j = 0; j < _d; j++) {
+                        sum_nom -= A(i, j) * r[j];
+                    }
+                    lamdas[i] = sum_nom;
+                    if (sum_denom == K(0)) {
+                        //std::cout<<"div0"<<sum_denom<<std::endl;
+                        ;
+                    } else {
+                        lamda = sum_nom * (1 / sum_denom);
+
+                        if (min_plus_not_set && lamda > 0) {
+                            min_plus = lamda;
+                            min_plus_not_set = false;
+                        }
+                        if (max_minus_not_set && lamda < 0) {
+                            max_minus = lamda;
+                            max_minus_not_set = false;
+                        }
+                        if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                        if (lamda > max_minus && lamda < 0) max_minus = lamda;
+
+                    }
+                }
+            } else {//only a few opers no innerprod
+                for (int i = 0; i < m; i++) {
+                    sum_denom = b(i);
+                    c_rand_coord = A(i, rand_coord);
+                    c_rand_coord_prev = A(i, rand_coord_prev);
+
+                    *lamdait = *lamdait
+                               + c_rand_coord_prev * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
+                    if (c_rand_coord == K(0)) {
+                        //std::cout<<"div0"<<std::endl;
+                        ;
+                    } else {
+                        lamda = (*lamdait) / c_rand_coord;
+
+                        if (min_plus_not_set && lamda > 0) {
+                            min_plus = lamda;
+                            min_plus_not_set = false;
+                        }
+                        if (max_minus_not_set && lamda < 0) {
+                            max_minus = lamda;
+                            max_minus_not_set = false;
+                        }
+                        if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                        if (lamda > max_minus && lamda < 0) max_minus = lamda;
+
+                    }
+                    ++lamdait;
+                }
+            }
+            return std::pair<NT, NT>(min_plus, max_minus);
+        }
+
+/*
         if(init){ //first time compute the innerprod cit*rit
             for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
                 typename stdCoeffs::iterator cit;
@@ -418,7 +558,7 @@ public:
         }
         //std::cout<<"Oresult: "<<mini<<" "<<maxi<<std::endl;
         return std::pair<NT,NT> (min_plus,max_minus);
-    }
+    }*/
     
     int linear_transformIt(Eigen::MatrixXd Tinv){
         A=A*Tinv;
