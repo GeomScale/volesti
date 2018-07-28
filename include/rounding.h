@@ -227,7 +227,6 @@ std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> 
         if(std::real(eigensolver.eigenvalues()[i])>Rel) Rel=std::real(eigensolver.eigenvalues()[i]);
 
     }
-    //std::cout<<rel<<" "<<Rel<<std::endl;
 
     Eigen::LLT<Eigen::MatrixXd> lltOfA(E); // compute the Cholesky decomposition of E
     Eigen::MatrixXd L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
@@ -239,9 +238,9 @@ std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> 
     A = A*(L_1.transpose());
 
     // Write changes (actually perform rounding) to the polytope!
-    for(int i=0; i<m; ++i){
+    for(int i=0; i<m; i++){
         P.put_coeff(i,0,b(i));
-        for(int j=1; j<n+1; ++j){
+        for(int j=1; j<n+1; j++){
             P.put_coeff(i,j,A(i,j-1));
         }
     }

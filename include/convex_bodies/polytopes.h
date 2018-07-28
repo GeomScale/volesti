@@ -57,15 +57,23 @@ public:
     }
 
     int num_of_hyperplanes(){
-        return _A.size();
+        return A.rows();
     }
 
     K get_coeff(int i, int j){
-        return _A[i][j];
+        if(j==0){
+            return b(i);
+        }
+        return A(i,j-1);
     }
 
     void put_coeff(int i, int j, K value){
-        _A[i][j] = value;
+        if(j==0){
+            b(i) = value;
+        }else {
+            A(i, j - 1) = value;
+            _A[i][j] = value;
+        }
     }
 
 	stdMatrix get_matrix(){
@@ -117,8 +125,6 @@ public:
                 A(i-1,j-1)=Pin[i][j];
             }
         }
-        //print();
-        //std::cout<<"A eigen: \n"<<A<<std::endl;
         return 0;
     }
 
