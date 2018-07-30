@@ -28,7 +28,7 @@ Eigen::MatrixXd getPointsMat(std::list<Point> randPoints, int dim){
 
 template <class T1>
 std::pair<Point, NT> approx_R(T1 &P, vars var){
-    std::pair<Point,double> Cheb_ball=solveLP(P.get_matrix(), P.dimension());
+    std::pair<Point,double> Cheb_ball=P.chebyshev_center();
     Point c=Cheb_ball.first;
     NT radius = Cheb_ball.second;
 
@@ -209,19 +209,8 @@ std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> 
     }
 
     int m=P.num_of_hyperplanes();
-    //Eigen::MatrixXd A(m,n);
     Eigen::MatrixXd A = P.get_eigen_mat();
-    //Eigen::VectorXd b(m);
     Eigen::VectorXd b = P.get_eigen_vec();
-
-    /*
-    for(int i=0; i<m; ++i){
-        b(i) = P.get_coeff(i,0);
-        for(int j=1; j<n+1; ++j){
-            A(i,j-1) = P.get_coeff(i,j);
-        }
-    }*/
-    //if(print) std::cout<<"A = "<<A<<"\n A2 = "<<A2<<"\n b = "<<b<<"\n b2 = "<<b2<<std::endl;
 
     //Find the smallest and the largest axes of the elliposoid
     Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(E);
@@ -237,26 +226,14 @@ std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> 
 
     //Shift polytope in order to contain the origin (center of the ellipsoid)
     b = b - A*e;
-    //b2 = b2 - A2*e;
 
     Eigen::MatrixXd L_1 = L.inverse();
     A = A*(L_1.transpose());
-    //A2 = A2*(L_1.transpose());
 
     // Write changes (actually perform rounding) to the polytope!
     P.set_eigen_mat(A);
     P.set_eigen_vec(b);
-    //if(print) std::cout<<"A = "<<A<<"\n A2 = "<<A2<<"\n b = "<<b<<"\n b2 = "<<b2<<std::endl;
 
-    /*
-    for(int i=0; i<m; i++){
-        P.put_coeff(i,0,b(i));
-        for(int j=1; j<n+1; j++){
-            P.put_coeff(i,j,A(i,j-1));
-        }
-    }*/
-
-    //return L_1.determinant();
     return std::pair<double,double> (L_1.determinant(),rel/Rel);
 }
 

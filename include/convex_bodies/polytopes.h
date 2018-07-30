@@ -17,12 +17,9 @@
 template <typename K>
 class Polytope{
 private:
-    typedef std::vector<K>        stdCoeffs;
-    typedef std::vector<stdCoeffs>  stdMatrix;
-    Eigen::MatrixXd A;
-    Eigen::VectorXd b;
+    Eigen::MatrixXd A; //matrix A
+    Eigen::VectorXd b; // vector b, s.t.: Ax<=b
     int            _d; //dimension
-    stdMatrix      _A; //inequalities
 
 public:
     typedef K                    FT;
@@ -30,117 +27,107 @@ public:
 
     // constructor: cube(d)
     Polytope(int d): _d(d) {
-        for(int i=0; i<d; ++i){
-            stdCoeffs coeffs;
-            coeffs.push_back(K(1));
-            for(int j=0; j<d; ++j){
-                if(i==j)
-                    coeffs.push_back(K(1));
-                else coeffs.push_back(K(0));
+        A.resize(2 * d, d);
+        b.resize(2 * d);
+        for (int i = 0; i < d; ++i) {
+            b(i) = 1;
+            for (int j = 0; j < d; ++j) {
+                if (i == j) {
+                    A(i, j) = 1;
+                } else {
+                    A(i, j) = 0;
+                }
             }
-            _A.push_back(coeffs);
         }
-        for(int i=0; i<d; ++i){
-            stdCoeffs coeffs;
-            coeffs.push_back(K(1));
-            for(int j=0; j<d; ++j){
-                if(i==j)
-                    coeffs.push_back(K(-1));
-                else coeffs.push_back(K(0));
+        for (int i = 0; i < d; ++i) {
+            b(i + d) = 1;
+            for (int j = 0; j < d; ++j) {
+                if (i == j) {
+                    A(i + d, j) = -1;
+                } else {
+                    A(i + d, j) = 0;
+                }
             }
-            _A.push_back(coeffs);
         }
     }
 
-    int dimension(){
+    int dimension() {
         return _d;
     }
 
-    int num_of_hyperplanes(){
+    int num_of_hyperplanes() {
         return A.rows();
     }
 
-    Eigen::MatrixXd get_eigen_mat(){
+    Eigen::MatrixXd get_eigen_mat() {
         return A;
     }
 
-    Eigen::VectorXd get_eigen_vec(){
+    Eigen::VectorXd get_eigen_vec() {
         return b;
     }
 
-    int set_eigen_mat(Eigen::MatrixXd A2){
+    int set_eigen_mat(Eigen::MatrixXd A2) {
         A = A2;
         return -1;
     }
 
-    int set_eigen_vec(Eigen::VectorXd b2){
+    int set_eigen_vec(Eigen::VectorXd b2) {
         b = b2;
         return -1;
     }
 
-    K get_coeff(int i, int j){
-        if(j==0){
+    K get_coeff(int i, int j) {
+        if (j == 0) {
             return b(i);
         }
-        return A(i,j-1);
+        return A(i, j - 1);
     }
 
-    void put_coeff(int i, int j, K value){
-        if(j==0){
+    void put_coeff(int i, int j, K value) {
+        if (j == 0) {
             b(i) = value;
-        }else {
+        } else {
             A(i, j - 1) = value;
-            _A[i][j] = value;
         }
     }
-
-	stdMatrix get_matrix(){
-		return _A;
-	}
 
     // default initialize: cube(d)
-    int init(int d){
-        A.resize(d,d);
-        _d=d;
-        for(int i=0; i<d; ++i){
-            stdCoeffs coeffs;
-            coeffs.push_back(K(1));
-            for(int j=0; j<d; ++j){
-                if(i==j)
-                    coeffs.push_back(K(1));
-                else coeffs.push_back(K(0));
+    int init(int d) {
+        A.resize(2 * d, d);
+        b.resize(2 * d);
+        for (int i = 0; i < d; ++i) {
+            b(i) = 1;
+            for (int j = 0; j < d; ++j) {
+                if (i == j) {
+                    A(i, j) = 1;
+                } else {
+                    A(i, j) = 0;
+                }
             }
-            _A.push_back(coeffs);
         }
-        for(int i=0; i<d; ++i){
-            stdCoeffs coeffs;
-            coeffs.push_back(K(1));
-            for(int j=0; j<d; ++j){
-                if(i==j)
-                    coeffs.push_back(K(-1));
-                else coeffs.push_back(K(0));
+        for (int i = 0; i < d; ++i) {
+            b(i + d) = 1;
+            for (int j = 0; j < d; ++j) {
+                if (i == j) {
+                    A(i + d, j) = -1;
+                } else {
+                    A(i + d, j) = 0;
+                }
             }
-            _A.push_back(coeffs);
         }
         return 0;
     }
 
-    int init(stdMatrix Pin){
-        _d = Pin[0][1]-1;
-        
-        typename stdMatrix::iterator pit=Pin.begin();
-        ++pit;
-        for( ; pit<Pin.end(); ++pit){
-            _A.push_back(*pit);
-        }
-        
-        //define eigen matrix
-        A.resize(Pin.size()-1,_d);
-        b.resize(Pin.size()-1);
-        for(int i=1; i<Pin.size(); i++){
-            b(i-1) = Pin[i][0];
-            for(int j=1; j<_d+1; j++){
-                A(i-1,j-1)=Pin[i][j];
+    int init(std::vector<std::vector<K> > Pin) {
+        _d = Pin[0][1] - 1;
+        //define matrix A and vector b, s.t. Ax<=b
+        A.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (int i = 1; i < Pin.size(); i++) {
+            b(i - 1) = Pin[i][0];
+            for (int j = 1; j < _d + 1; j++) {
+                A(i - 1, j - 1) = Pin[i][j];
             }
         }
         return 0;
@@ -148,11 +135,12 @@ public:
 
     // print polytope in input format
     int print() {
-        std::cout<<" "<<_A.size()<<" "<<_d+1<<" float"<<std::endl;
-        for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
-            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
-                std::cout<<*lit<<" ";
-            std::cout<<std::endl;
+        std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
+        for (int i = 0; i < A.rows(); i++) {
+            for (int j = 0; j < _d; j++) {
+                std::cout << A(i, j) << " ";
+            }
+            std::cout << "<= " << b(i) << std::endl;
         }
         return 0;
     }
@@ -161,6 +149,8 @@ public:
     // Compute the reduced row echelon form
     // used to transofm {Ax=b,x>=0} to {A'x'<=b'}
     // e.g. Birkhoff polytopes
+    /*
+    // Todo change the implementation in order to use eigen matrix.
     int rref(){
         to_reduced_row_echelon_form(_A);
         std::vector<int> zeros(_d+1,0);
@@ -218,7 +208,7 @@ public:
         // _d should equals the dimension
         _d=_d-1;
         return 1;
-    }
+    }*/
 
     
 
@@ -236,69 +226,18 @@ public:
         }
         return -1;
     }
-        /*
-        for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
-            typename stdCoeffs::iterator lit;
-            typename std::vector<K>::iterator pit=p.iter_begin();
-            lit=mit->begin();
-            K sum=(*lit);
-            ++lit;
-            for( ; lit<mit->end() ; ++lit, ++pit){
-                sum -= *lit * (*pit);
-            }
-            if(sum<K(0))
-                return mit-_A.begin();
-        }
-        return -1;
-    }*/
 
-    std::pair<Point,double> chebyshev_center(){
 
-        std::pair<Point,double> res;
-        res=solveLP(A,b,_d);
+    std::pair<Point,double> chebyshev_center() {
+
+        std::pair<Point, double> res;
+        res = solveLP(A, b, _d);
         return res;
-        
+
     }
 
     // compute intersection point of ray starting from r and pointing to v
-    // with polytope discribed by _A
-    /*
-    std::pair<Point,Point> line_intersect(Point r,
-                                          Point v){
-        K lamda=0;
-        K min_plus=0, max_minus=0;
-        bool min_plus_not_set=true;
-        bool max_minus_not_set=true;
-        for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-            typename stdCoeffs::iterator cit;
-            typename std::vector<K>::iterator rit=r.iter_begin();
-            typename std::vector<K>::iterator vit=v.iter_begin();
-            cit=ait->begin();
-            K sum_nom=(*cit);
-            ++cit;
-            K sum_denom=K(0);
-            for( ; cit < ait->end() ; ++cit, ++rit, ++vit){
-                sum_nom -= *cit * (*rit);
-                sum_denom += *cit * (*vit);
-            }
-            if(sum_denom==K(0)){
-                //std::cout<<"div0"<<std::endl;
-                ;
-            }
-            else{
-                lamda = sum_nom/sum_denom;
-                if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                if(lamda<min_plus && lamda>0) min_plus=lamda;
-                if(lamda>max_minus && lamda<0) max_minus=lamda;
-            }
-        }
-        
-        return std::pair<Point,Point> ((min_plus*v)+r,(max_minus*v)+r);
-    }
-     */
-    // compute intersection point of ray starting from r and pointing to v
-    // with polytope discribed by _A
+    // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point r,
                                           Point v) {
         K lamda = 0;
@@ -334,35 +273,6 @@ public:
         }
         return std::pair<NT, NT>(min_plus, max_minus);
     }
-
-        /*for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-            typename stdCoeffs::iterator cit;
-            typename std::vector<K>::iterator rit=r.iter_begin();
-            typename std::vector<K>::iterator vit=v.iter_begin();
-            cit=ait->begin();
-            K sum_nom=(*cit);
-            ++cit;
-            K sum_denom=K(0);
-            for( ; cit < ait->end() ; ++cit, ++rit, ++vit){
-                sum_nom -= *cit * (*rit);
-                sum_denom += *cit * (*vit);
-            }
-            if(sum_denom==K(0)){
-                //std::cout<<"div0"<<std::endl;
-                ;
-            }
-            else{
-                lamda = sum_nom/sum_denom;
-                if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                if(lamda<min_plus && lamda>0) min_plus=lamda;
-                if(lamda>max_minus && lamda<0) max_minus=lamda;
-            }
-        }
-
-        //return std::pair<Point,Point> ((min_plus*v)+r,(max_minus*v)+r);
-        return std::pair<NT,NT> (min_plus, max_minus);
-    }*/
 
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
@@ -401,32 +311,6 @@ public:
             return std::pair<NT, NT>(min_plus, max_minus);
         }
 
-        /*
-        for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-            typename stdCoeffs::iterator cit;
-            typename std::vector<K>::iterator rit=r.iter_begin();
-            cit=ait->begin();
-            K sum_nom=(*cit);
-            ++cit;
-            K sum_denom= *(cit+rand_coord);
-            for( ; cit < ait->end() ; ++cit, ++rit){
-                sum_nom -= *cit * (*rit);
-            }
-            if(sum_denom==K(0)){
-                //std::cout<<"div0"<<sum_denom<<std::endl;
-                ;
-            }
-            else{
-                lamda = sum_nom*(1/sum_denom);
-
-                if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                if(lamda<min_plus && lamda>0) min_plus=lamda;
-                if(lamda>max_minus && lamda<0) max_minus=lamda;
-            }
-        }
-        return std::pair<NT,NT> (min_plus,max_minus);
-    }*/
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
@@ -502,72 +386,9 @@ public:
             return std::pair<NT, NT>(min_plus, max_minus);
         }
 
-/*
-        if(init){ //first time compute the innerprod cit*rit
-            for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-                typename stdCoeffs::iterator cit;
-                typename std::vector<K>::iterator rit=r.iter_begin();
-                cit=ait->begin();
-                K sum_nom=(*cit);
-                ++cit;
-                K sum_denom= *(cit+rand_coord);
-                for( ; cit < ait->end() ; ++cit, ++rit){
-                    sum_nom -= *cit * (*rit);
-                }
-                lamdas[ait-_A.begin()] = sum_nom;
-                if(sum_denom==K(0)){
-                    //std::cout<<"div0"<<sum_denom<<std::endl;
-                    ;
-                }
-                else{
-                    lamda = sum_nom*(1/sum_denom);
-
-                    if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                    if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                    if(lamda<min_plus && lamda>0) min_plus=lamda;
-                    if(lamda>max_minus && lamda<0) max_minus=lamda;
-                    
-                }
-            }
-        } else {//only a few opers no innerprod
-            for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-                typename stdCoeffs::iterator cit;
-                cit=ait->begin();
-                ++cit;
-
-                NT c_rand_coord = *(cit+rand_coord);
-                NT c_rand_coord_prev = *(cit+rand_coord_prev);
-
-                *lamdait = *lamdait
-                        + c_rand_coord_prev * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
-
-                if(c_rand_coord==K(0)){
-                    //std::cout<<"div0"<<std::endl;
-                    ;
-                } else {
-                    lamda = (*lamdait) / c_rand_coord;
-
-                    if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                    if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                    if(lamda<min_plus && lamda>0) min_plus=lamda;
-                    if(lamda>max_minus && lamda<0) max_minus=lamda;
-                    
-                }
-                ++lamdait;
-            }
-        }
-        //std::cout<<"Oresult: "<<mini<<" "<<maxi<<std::endl;
-        return std::pair<NT,NT> (min_plus,max_minus);
-    }*/
     
-    int linear_transformIt(Eigen::MatrixXd Tinv){
-        A=A*Tinv;
-        //set _A = A or replace stdMatrix with Eigen::MatrixXd ??????
-        for(int i=0; i<_A.size(); i++){
-            for(int j=1; j<_d+1; j++){
-                _A[i][j]=A(i,j-1);
-            }
-        }
+    int linear_transformIt(Eigen::MatrixXd T) {
+        A = A * T;
         return 1;
     }
 
