@@ -184,8 +184,6 @@ NT volume(T &P,
 {
     typedef BallIntersectPolytope<T>        BallPoly;
 
-
-
     bool round = var.round;
     bool print = var.verbose;
     bool rand_only = var.rand_only;
