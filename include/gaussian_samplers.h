@@ -24,71 +24,74 @@
 
 //#include <stdio.h>
 //#include <math.h>
-
-NT eval_exp(Point p, NT a){
-    return std::exp(-a*p.squared_length());
+template <typename FT>
+FT eval_exp(Point p, FT a) {
+    return std::exp(-a * p.squared_length());
 }
 
 
-NT get_max(Point l, Point u, NT a_i){
-    NT res;
-    Point a = -1.0*l;
-    Point bef = u-l;
-    Point b = (1.0/std::sqrt((bef).squared_length()))*bef;
-    Point z = (a.dot(b)*b)+l;
-    NT low_bd = (l[0]-z[0])/b[0];
-    NT up_bd = (u[0]-z[0])/b[0];
-    if(low_bd*up_bd>0){
-    //if(std::signbit(low_bd)==std::signbit(up_bd)){
-        res = std::max(eval_exp(u,a_i),eval_exp(l,a_i));
-    }else{
-        res = eval_exp(z,a_i);
+template <typename FT>
+FT get_max(Point l, Point u, FT a_i) {
+    FT res;
+    Point a = -1.0 * l;
+    Point bef = u - l;
+    Point b = (1.0 / std::sqrt((bef).squared_length())) * bef;
+    Point z = (a.dot(b) * b) + l;
+    FT low_bd = (l[0] - z[0]) / b[0];
+    FT up_bd = (u[0] - z[0]) / b[0];
+    if (low_bd * up_bd > 0) {
+        //if(std::signbit(low_bd)==std::signbit(up_bd)){
+        res = std::max(eval_exp(u, a_i), eval_exp(l, a_i));
+    } else {
+        res = eval_exp(z, a_i);
     }
 
     return res;
 }
 
 
-NT get_max_coord(NT l, NT u, NT a_i){
-    if(l<0.0 && u>0.0){
+template <typename FT>
+FT get_max_coord(FT l, FT u, FT a_i) {
+    if (l < 0.0 && u > 0.0) {
         return 1.0;
     }
-    return std::max(std::exp(-a_i*l*l), std::exp(-a_i*u*u));
+    return std::max(std::exp(-a_i * l * l), std::exp(-a_i * u * u));
 }
 
 
-int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars_g &var){
-    NT r, r_val, fn;
-    Point bef = upper-lower;
+template <typename FT>
+int rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
+    FT r, r_val, fn;
+    Point bef = upper - lower;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    if(a_i>0.00000001 && std::sqrt(bef.squared_length()) >= (2.0/std::sqrt(2.0*a_i))){
-        boost::normal_distribution<> rdist(0,1);
-        Point a = -1.0*lower;
-        Point b = (1.0/std::sqrt(bef.squared_length()))*bef;
-        Point z = (a.dot(b)*b)+lower;
-        NT low_bd = (lower[0]-z[0])/b[0];
-        NT up_bd = (upper[0]-z[0])/b[0];
-        while(true){
+    if (a_i > 0.00000001 && std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i))) {
+        boost::normal_distribution<> rdist(0, 1);
+        Point a = -1.0 * lower;
+        Point b = (1.0 / std::sqrt(bef.squared_length())) * bef;
+        Point z = (a.dot(b) * b) + lower;
+        FT low_bd = (lower[0] - z[0]) / b[0];
+        FT up_bd = (upper[0] - z[0]) / b[0];
+        while (true) {
             r = rdist(rng2);
-            r = r/std::sqrt(2.0*a_i);
-            if(r>=low_bd && r<=up_bd){
+            r = r / std::sqrt(2.0 * a_i);
+            if (r >= low_bd && r <= up_bd) {
                 break;
             }
         }
-        p=(r*b)+z;
+        p = (r * b) + z;
 
-    }else{
-        boost::random::uniform_real_distribution<> urdist(0,1);
-        NT M=get_max(lower, upper, a_i);
-        while(true){
-            r=urdist(rng2);
-            Point pef = r*upper;
-            p = ((1.0-r)*lower)+ pef;
-            r_val = M*urdist(var.rng);
-            fn = eval_exp(p,a_i);
-            if(r_val<fn){
+    } else {
+        boost::random::uniform_real_distribution<> urdist(0, 1);
+        FT M = get_max(lower, upper, a_i);
+        while (true) {
+            r = urdist(rng2);
+            Point pef = r * upper;
+            p = ((1.0 - r) * lower) + pef;
+            r_val = M * urdist(var.rng);
+            fn = eval_exp(p, a_i);
+            if (r_val < fn) {
                 break;
             }
         }
@@ -97,31 +100,32 @@ int rand_exp_range(Point lower, Point upper, NT a_i, Point &p, vars_g &var){
 }
 
 
-int rand_exp_range_coord(NT l, NT u, NT a_i, NT &dis, vars_g &var){
-    NT r, r_val, fn;
+template <typename FT>
+int rand_exp_range_coord(FT l, FT u, FT a_i, FT &dis, vars_g &var) {
+    FT r, r_val, fn;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    if(a_i>std::pow(10,-8.0) && u-l>=2.0/std::sqrt(2.0*a_i)){
-        boost::normal_distribution<> rdist(0,1);
-        while(true){
+    if (a_i > std::pow(10, -8.0) && u - l >= 2.0 / std::sqrt(2.0 * a_i)) {
+        boost::normal_distribution<> rdist(0, 1);
+        while (true) {
             r = rdist(rng2);
-            r = r/std::sqrt(2.0*a_i);
-            if(r>=l && r<=u){
+            r = r / std::sqrt(2.0 * a_i);
+            if (r >= l && r <= u) {
                 break;
             }
         }
-        dis=r;
+        dis = r;
 
-    }else{
-        boost::random::uniform_real_distribution<> urdist(0,1);
-        NT M = get_max_coord(l, u, a_i);
-        while(true){
-            r=urdist(rng2);
-            dis = (1.0-r)*l+r*u;
-            r_val = M*urdist(rng2);
-            fn = std::exp(-a_i*dis*dis);
-            if(r_val<fn){
+    } else {
+        boost::random::uniform_real_distribution<> urdist(0, 1);
+        FT M = get_max_coord(l, u, a_i);
+        while (true) {
+            r = urdist(rng2);
+            dis = (1.0 - r) * l + r * u;
+            r_val = M * urdist(rng2);
+            fn = std::exp(-a_i * dis * dis);
+            if (r_val < fn) {
                 break;
             }
         }
@@ -131,49 +135,48 @@ int rand_exp_range_coord(NT l, NT u, NT a_i, NT &dis, vars_g &var){
 }
 
 
-template <class T>
+template <class T, typename FT>
 int gaussian_next_point(T &P,
                         Point &p,   // a point to start
                         Point &p_prev,
                         int &coord_prev,
                         int walk_len,
-                        NT a_i,
-                        std::vector<NT> &lamdas,
-                        vars_g &var)
-{
-    int n=var.n;
-    boost::random::uniform_int_distribution<> uidist(0,n-1);
+                        FT a_i,
+                        std::vector<FT> &lamdas,
+                        vars_g &var) {
+    int n = var.n;
+    boost::random::uniform_int_distribution<> uidist(0, n - 1);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    NT ball_rad;
+    FT ball_rad;
 
-    if(var.ball_walk) {
-        if(var.delta<0.0) {
-            ball_rad = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_i) * NT(n));
-        }else{
-            ball_rad=var.delta;
+    if (var.ball_walk) {
+        if (var.delta < 0.0) {
+            ball_rad = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_i) * FT(n));
+        } else {
+            ball_rad = var.delta;
         }
         gaussian_ball_walk(p, P, a_i, ball_rad, var);
-    }else if(!var.coordinate){
-        gaussian_hit_and_run(p,P,a_i,var);
-    }else{
+    } else if (!var.coordinate) {
+        gaussian_hit_and_run(p, P, a_i, var);
+    } else {
         int rand_coord;
-        if(coord_prev==-1){
+        if (coord_prev == -1) {
             p_prev = p;
             rand_coord = uidist(rng2);
-            gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,a_i,lamdas,var,true);
-            coord_prev=rand_coord;
-            if(walk_len==1){
+            gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord, a_i, lamdas, var, true);
+            coord_prev = rand_coord;
+            if (walk_len == 1) {
                 return 1;
-            }else{
+            } else {
                 walk_len--;
             }
         }
-        for(int j=0; j<walk_len; j++){
+        for (int j = 0; j < walk_len; j++) {
             rand_coord = uidist(rng2);
-            gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,coord_prev,a_i,lamdas,var,false);
-            coord_prev=rand_coord;
+            gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var, false);
+            coord_prev = rand_coord;
         }
     }
 
@@ -181,53 +184,53 @@ int gaussian_next_point(T &P,
 }
 
 
-template <class T, class K>
+template <class T, class K, typename FT>
 int rand_gaussian_point_generator(T &P,
                          Point &p,   // a point to start
                          int rnum,
                          int walk_len,
                          K &randPoints,
-                         NT a_i,
+                         FT a_i,
                          vars_g &var)  // constans for volume
 {
     int n = var.n;
     //bool birk = var.birk;
     //RNGType &rng = var.rng;
     RNGType &rng2 = var.rng;
-    boost::random::uniform_int_distribution<> uidist(0,n-1);
+    boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector<NT> lamdas(P.num_of_hyperplanes(),NT(0));
+    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
     int rand_coord = uidist(rng2);
-    NT ball_rad;
+    FT ball_rad;
     Point p_prev = p;
 
-    if(var.ball_walk) {
-        if(var.delta<0.0) {
+    if (var.ball_walk) {
+        if (var.delta < 0.0) {
             ball_rad = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_i) * NT(n));
-        }else{
-            ball_rad=var.delta;
+        } else {
+            ball_rad = var.delta;
         }
         gaussian_ball_walk(p, P, a_i, ball_rad, var);
         randPoints.push_back(p);
-    }else if(var.coordinate){
-        gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,a_i,lamdas,var,true);
+    } else if (var.coordinate) {
+        gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord, a_i, lamdas, var, true);
         randPoints.push_back(p);
-    }else {
+    } else {
         gaussian_hit_and_run(p, P, a_i, var);
         randPoints.push_back(p);
     }
 
-    for(int i=1; i<rnum; ++i){
+    for (int i = 1; i < rnum; ++i) {
 
-        for(int j=0; j<walk_len; ++j){
+        for (int j = 0; j < walk_len; ++j) {
             int rand_coord_prev = rand_coord;
             rand_coord = uidist(rng2);
-            if(var.ball_walk) {
+            if (var.ball_walk) {
                 gaussian_ball_walk(p, P, a_i, ball_rad, var);
-            }else if(var.coordinate){
-                gaussian_hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,a_i,lamdas,var,false);
-            }else
-                gaussian_hit_and_run(p,P,a_i,var);
+            } else if (var.coordinate) {
+                gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, a_i, lamdas, var, false);
+            } else
+                gaussian_hit_and_run(p, P, a_i, var);
         }
         randPoints.push_back(p);
         //if(birk) birk_sym(P,randPoints,p);
@@ -236,71 +239,71 @@ int rand_gaussian_point_generator(T &P,
 }
 
 
+//template <typename FT>
 Point get_dir(vars_g var){
-    int dim=var.n;
+    int dim = var.n;
     boost::normal_distribution<> rdist(0,1);
     std::vector<NT> Xs(dim,0);
-    NT normal=NT(0);
+    NT normal = NT(0);
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
     //RNGType rng2 = var.rng;
-    for (int i=0; i<dim; i++){
-        Xs[i]=rdist(rng);
-        normal+=Xs[i]*Xs[i];
+    for (int i=0; i<dim; i++) {
+        Xs[i] = rdist(rng);
+        normal += Xs[i] * Xs[i];
     }
     normal=1.0/std::sqrt(normal);
 
-    for (int i=0; i<dim; i++){
-        Xs[i]=Xs[i]*normal;
+    for (int i=0; i<dim; i++) {
+        Xs[i] = Xs[i] * normal;
     }
     Point p(dim, Xs.begin(), Xs.end());
     return p;
-
 }
 
 
-Point get_point_in_Dsphere(vars_g var, NT radius){
+template <typename FT>
+Point get_point_in_Dsphere(vars_g var, FT radius){
     int dim = var.n;
     boost::normal_distribution<> rdist(0,1);
     boost::random::uniform_real_distribution<> urdist(0,1);
-    std::vector<NT> Xs(dim,0);
-    NT normal=NT(0), U;
+    std::vector<FT> Xs(dim,0);
+    FT normal=FT(0), U;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    for (int i=0; i<dim; i++){
-        Xs[i]=rdist(rng2);
+    for (int i=0; i<dim; i++) {
+        Xs[i] = rdist(rng2);
         //std::cout<<Xs[i]<<" ";
-        normal+=Xs[i]*Xs[i];
+        normal += Xs[i] * Xs[i];
     }
     normal=1.0/std::sqrt(normal);
 
-    for (int i=0; i<dim; i++){
-        Xs[i]=Xs[i]*normal;
+    for (int i=0; i<dim; i++) {
+        Xs[i] = Xs[i] * normal;
     }
     Point p(dim, Xs.begin(), Xs.end());
     U = urdist(rng2);
-    U = std::pow(U, 1.0/(NT(dim)));
+    U = std::pow(U, 1.0/(FT(dim)));
     p = (radius*U)*p;
     return p;
 }
 
 
-template <class T>
+template <class T, typename FT>
 int gaussian_hit_and_run(Point &p,
                 T &P,
-                NT a_i,
-                vars_g &var)
-{
+                FT a_i,
+                vars_g &var) {
     int n = var.n;
     RNGType rng2 = var.rng;
-    Point l=get_dir(var);
-    std::pair<NT,NT> dbpair = P.line_intersect(p,l);
+    Point l = get_dir(var);
+    std::pair <FT, FT> dbpair = P.line_intersect(p, l);
 
-    NT min_plus = dbpair.first;
-    NT max_minus = dbpair.second;
-    Point upper = (min_plus*l)+p;
-    Point lower = (max_minus*l)+p;
+    FT min_plus = dbpair.first;
+    FT max_minus = dbpair.second;
+    Point upper = (min_plus * l) + p;
+    Point lower = (max_minus * l) + p;
 
     rand_exp_range(lower, upper, a_i, p, var);
 
@@ -309,51 +312,49 @@ int gaussian_hit_and_run(Point &p,
 
 
 //hit-and-run with orthogonal directions and update
-template <class T>
+template <class T, typename FT>
 int gaussian_hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              T &P,
                              int rand_coord,
                              int rand_coord_prev,
-                             NT a_i,
-                             std::vector<NT> &lamdas,
+                             FT a_i,
+                             std::vector<FT> &lamdas,
                              vars_g &var,
-                             bool init)
-{
-    std::pair<NT,NT> bpair;
-    bpair = P.line_intersect_coord(p,p_prev,rand_coord,rand_coord_prev,lamdas,init);
-    NT min_plus = bpair.first;
-    NT max_minus = bpair.second;
-    NT dis;
-    rand_exp_range_coord(p[rand_coord]+max_minus, p[rand_coord]+min_plus, a_i, dis, var);
+                             bool init) {
+    std::pair <FT, FT> bpair;
+    bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas, init);
+    FT min_plus = bpair.first;
+    FT max_minus = bpair.second;
+    FT dis;
+    rand_exp_range_coord(p[rand_coord] + max_minus, p[rand_coord] + min_plus, a_i, dis, var);
     p_prev = p;
-    p.set_coord(rand_coord , dis);
+    p.set_coord(rand_coord, dis);
     return 1;
 }
 
 
 //Ball walk. Test_2
-template <class T>
+template <class T, typename FT>
 int gaussian_ball_walk(Point &p,
               T &P,
-              NT a_i,
-              NT ball_rad,
-              vars_g var)
-{
-    int n =P.dimension();
-    NT f_x,f_y,rnd;
-    Point y=get_point_in_Dsphere(var, ball_rad);
-    y=y+p;
-    f_x = eval_exp(p,a_i);
+              FT a_i,
+              FT ball_rad,
+              vars_g var) {
+    int n = P.dimension();
+    FT f_x, f_y, rnd;
+    Point y = get_point_in_Dsphere(var, ball_rad);
+    y = y + p;
+    f_x = eval_exp(p, a_i);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
-    RNGType &rng2=var.rng;
-    boost::random::uniform_real_distribution<> urdist(0,1);
-    if (P.is_in(y)==-1){
-        f_y = eval_exp(y,a_i);
+    RNGType &rng2 = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    if (P.is_in(y) == -1) {
+        f_y = eval_exp(y, a_i);
         rnd = urdist(rng2);
-        if(rnd <= f_y/f_x){
-            p=y;
+        if (rnd <= f_y / f_x) {
+            p = y;
         }
     }
     return 1;

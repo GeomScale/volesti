@@ -417,11 +417,14 @@ NT volume_gaussian_annealing(T &P,
     get_annealing_schedule(P, a_vals, error, radius, ratio, C, frac, N, var);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"All the variances of schedule_Sannealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
-    int mm = a_vals.size();
+    int mm = a_vals.size()-1, j=0;
     if(print){
-        for(int i=0; i<mm; i++){
-            std::cout<<"a_"<<i<<" = "<<a_vals[i]<<" ";
+        for (typename std::vector<NT>::iterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
+            std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
         }
+        //for(int i=0; i<mm; i++){
+            //std::cout<<"a_"<<i<<" = "<<a_vals[i]<<" ";
+        //}
         std::cout<<"\n"<<std::endl;
     }
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
@@ -432,10 +435,12 @@ NT volume_gaussian_annealing(T &P,
     Point p(n);
     std::pair<int,NT> res;
     Point p_prev=p;
-    int coord_prev=-1;
+    int coord_prev=-1, i=0;
 
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
-    for(int i=0; i<mm-1; i++){
+    typename std::vector<NT>::iterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin();
+    for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) {
+    //for(int i=0; i<mm-1; i++){
         //initialize convergence test
         curr_eps = error/std::sqrt((NT(mm)));
         done=false;
@@ -448,17 +453,17 @@ NT volume_gaussian_annealing(T &P,
         std::vector<NT> last_W=last_W2;
         n_threads=1;
 
-        while(!done || its[i]<min_steps){
+        while(!done || (*itsIt)<min_steps){
+        //while(!done || its[i]<min_steps){
 
-            gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,a_vals[i],lamdas,var);
+            gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
 
-            if(!P.is_in(p)){
-                std::cout<<"point not in P\n";
-                exit(-1);
-            }
-            its[i] += 1.0;
-            fn[i] += eval_exp(p,a_vals[i+1]) / eval_exp(p,a_vals[i]);
-            val = fn[i]/its[i];
+            *itsIt = *itsIt + 1.0;
+            //its[i] += 1.0;
+            *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);
+            //fn[i] += eval_exp(p,a_vals[i+1]) / eval_exp(p,a_vals[i]);
+            val = (*fnIt) / (*itsIt);
+            //val = fn[i]/its[i];
 
             last_W[index] = val;
             if(val<=min_val){
@@ -487,15 +492,17 @@ NT volume_gaussian_annealing(T &P,
 
             if(index==W) index=0;
         }
-        if(print) std::cout<<"ratio "<<i<<" = "<<fn[i]/its[i]<<" N_"<<i<<" = "<<its[i]<<std::endl;
-        vol = vol*(fn[i]/its[i]);
+        if(print) std::cout<<"ratio "<<i<<" = "<<(*fnIt) / (*itsIt)<<" N_"<<i<<" = "<<*itsIt<<std::endl;
+        vol = vol*((*fnIt) / (*itsIt));
     }
-    NT sum_of_steps;
-    for(std::vector<NT>::iterator it = its.begin(); it != its.end(); ++it) {
-        sum_of_steps += *it;
+    if (print) {
+        NT sum_of_steps;
+        for(typename std::vector<NT>::iterator it = its.begin(); it != its.end(); ++it) {
+            sum_of_steps += *it;
+        }
+        steps= int(sum_of_steps);
+        std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
     }
-    steps= int(sum_of_steps);
-    if(print) std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
 
     return vol;
 }
