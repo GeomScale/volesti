@@ -17,7 +17,7 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
     
     int n, nexp=1, n_threads=1,i,j;
     int walk_len;//to be defined after n
-    double exactvol(-1.0);
+    NT exactvol(-1.0);
     bool verbose=true, 
 	 rand_only=false, 
 	 round_only=false,
@@ -30,7 +30,7 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
          rotate=false,
          experiments=true,
          coordinate=coord;
-    Polytope<double> P;
+    Polytope<NT> P;
          
     walk_len=W;
     n=A.ncol()-1;
@@ -52,8 +52,8 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
     boost::random::uniform_real_distribution<> urdist1(-1,1);
     
     vars var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,rng,urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
-    std::vector<std::vector<double> > Pin(m+1, std::vector<double>(n+1));
-    std::vector<double> bin(m);
+    std::vector<std::vector<NT> > Pin(m+1, std::vector<NT>(n+1));
+    std::vector<NT> bin(m);
     
     for (i=0; i<m+1; i++){
         //bin[i]=b[i];
@@ -69,11 +69,11 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
     }
     P.init(Pin);
     //Compute chebychev ball//
-    std::pair<Point,double> CheBall;
+    std::pair<Point,NT> CheBall;
     if(Chebychev.size()!=P.dimension()+1){
         CheBall = P.chebyshev_center();
     }else{
-        std::vector<double> temp_p;
+        std::vector<NT> temp_p;
         for (int j=0; j<P.dimension(); j++){
           temp_p.push_back(Chebychev[j]);
         }
@@ -82,10 +82,10 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
         CheBall.first = xc; CheBall.second = radius;
     }
     
-    Polytope<double> P_to_test(P);
+    //Polytope<double> P_to_test(P);
     
     NT vol = volume(P,var,var,CheBall);
     
     
-    return vol;
+    return ((double)vol);
 }
