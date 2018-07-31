@@ -156,12 +156,12 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
 
 
 // ----- ROUNDING ------ //
-template <class T1>
-std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> CheBall, vars &var){
+template <class T1, typename FT>
+std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, vars &var) {
     int n=var.n, walk_len=var.walk_steps;
     bool print=var.verbose;
     Point c = CheBall.first;
-    NT radius = CheBall.second;
+    FT radius = CheBall.second;
     // 2. Generate the first random point in P
     // Perform random walk on random point in the Chebychev ball
     Random_points_on_sphere_d<Point> gen (n, radius);
@@ -174,7 +174,7 @@ std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> 
     int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
     randPoints.clear();
     rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
-    NT current_dist, max_dist;
+    FT current_dist, max_dist;
     for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
         current_dist=(*pit-c).squared_length();
         if(current_dist>max_dist){
@@ -182,20 +182,20 @@ std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> 
         }
     }
     max_dist=std::sqrt(max_dist);
-    NT R=max_dist/radius;
+    FT R=max_dist/radius;
     int mm=randPoints.size();
-    boost::numeric::ublas::matrix<double> Ap(n,mm);
+    boost::numeric::ublas::matrix<FT> Ap(n,mm);
     for(int j=0; j<mm; j++){
         Point temp=randPoints.front();
         randPoints.pop_front();
         for (int i=0; i<n; i++){
-            Ap(i,j)=double(temp[i]);
+            Ap(i,j)=FT(temp[i]);
         }
     }
-    boost::numeric::ublas::matrix<double> Q(n,n);
-    boost::numeric::ublas::vector<double> c2(n);
+    boost::numeric::ublas::matrix<FT> Q(n,n);
+    boost::numeric::ublas::vector<FT> c2(n);
     size_t w=1000;
-    double elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2);
+    FT elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2);
 
     Eigen::MatrixXd E(n,n);
     Eigen::VectorXd e(n);
@@ -214,8 +214,8 @@ std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> 
 
     //Find the smallest and the largest axes of the elliposoid
     Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(E);
-    NT rel = std::real(eigensolver.eigenvalues()[0]);
-    NT Rel = std::real(eigensolver.eigenvalues()[0]);
+    FT rel = std::real(eigensolver.eigenvalues()[0]);
+    FT Rel = std::real(eigensolver.eigenvalues()[0]);
     for(int i=1; i<n; i++){
         if(std::real(eigensolver.eigenvalues()[i])<rel) rel=std::real(eigensolver.eigenvalues()[i]);
         if(std::real(eigensolver.eigenvalues()[i])>Rel) Rel=std::real(eigensolver.eigenvalues()[i]);
@@ -234,7 +234,7 @@ std::pair<double,double> rounding_min_ellipsoid(T1 &P , std::pair<Point,double> 
     P.set_eigen_mat(A);
     P.set_eigen_vec(b);
 
-    return std::pair<double,double> (L_1.determinant(),rel/Rel);
+    return std::pair<FT,FT> (L_1.determinant(),rel/Rel);
 }
 
 

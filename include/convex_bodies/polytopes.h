@@ -152,7 +152,7 @@ public:
     // used to transofm {Ax=b,x>=0} to {A'x'<=b'}
     // e.g. Birkhoff polytopes
     /*
-    // Todo change the implementation in order to use eigen matrix.
+    // Todo: change the implementation in order to use eigen matrix and vector.
     int rref(){
         to_reduced_row_echelon_form(_A);
         std::vector<int> zeros(_d+1,0);
