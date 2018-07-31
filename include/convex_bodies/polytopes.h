@@ -12,6 +12,9 @@
 
 #include <iostream>
 
+//min and max values for the Hit and Run functions
+const NT maxNT = 1.79769e+308;
+const NT minNT = -1.79769e+308;
 
 // my H-polytope class
 template <typename FT>
@@ -22,7 +25,6 @@ private:
     int            _d; //dimension
 
 public:
-    //typedef FT                    RT;
     Polytope() {}
 
     // constructor: cube(d)
@@ -211,7 +213,7 @@ public:
     }*/
 
     
-
+    //Check if Point p is in H-polytope P:= Ax<=b
     int is_in(Point p) {
         FT sum;
         int m = A.rows(), i, j;
@@ -220,7 +222,7 @@ public:
             for (j = 0; j < _d; j++) {
                 sum -= A(i, j) * p[j];
             }
-            if (sum < FT(0)) {
+            if (sum < FT(0)) { //Check if corresponding hyperplane is violated
                 return 0;
             }
         }
@@ -228,10 +230,12 @@ public:
     }
 
 
+    //Compute Chebyshev ball of H-polytope P:= Ax<=b
+    //Use LpSolve library
     std::pair<Point,FT> chebyshev_center() {
 
         std::pair <Point,FT> res;
-        res = solveLP(A, b, _d);
+        res = solveLP(A, b, _d);  //lpSolve lib for the linear program
         return res;
     }
 
@@ -239,33 +243,27 @@ public:
     // with polytope discribed by A and b
     std::pair<FT,FT> line_intersect(Point r,
                                           Point v) {
-        FT lamda = 0;
-        FT min_plus = 0, max_minus = 0;
+
+        FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom;
-        bool min_plus_not_set = true;
-        bool max_minus_not_set = true;
         int i, j, m = num_of_hyperplanes();
+        typename std::vector<FT>::iterator rit, vit;
 
         for (i = 0; i < m; i++) {
             sum_nom = b(i);
             sum_denom = FT(0);
-            for (j = 0; j < _d; j++) {
-                sum_nom -= A(i, j) * r[j];
-                sum_denom += A(i, j) * v[j];
+            j = 0;
+            rit = r.iter_begin();
+            vit = v.iter_begin();
+            for ( ; rit != r.iter_end(); rit++, vit++, j++){
+                sum_nom -= A(i, j) * (*rit);
+                sum_denom += A(i, j) * (*vit);
             }
             if (sum_denom == FT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
                 lamda = sum_nom / sum_denom;
-                if (min_plus_not_set && lamda > 0) {
-                    min_plus = lamda;
-                    min_plus_not_set = false;
-                }
-                if (max_minus_not_set && lamda < 0) {
-                    max_minus = lamda;
-                    max_minus_not_set = false;
-                }
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
@@ -274,118 +272,75 @@ public:
     }
 
 
+    //First coordinate ray intersecting convex polytope
     std::pair<FT,FT> line_intersect_coord(Point &r,
-                                          int rand_coord) {
-            FT lamda = 0;
-            FT min_plus = 0, max_minus = 0;
-            bool min_plus_not_set = true;
-            bool max_minus_not_set = true;
-            FT sum_nom, sum_denom;
-            int i, j, m = num_of_hyperplanes();
+                                          int rand_coord,
+                                          std::vector<FT> &lamdas) {
 
-            for (i = 0; i < m; i++) {
-                sum_nom = b(i);
-                sum_denom = A(i, rand_coord);
-                for (j = 0; j < _d; j++) {
-                    sum_nom -= A(i, j) * r[j];
-                }
-                if (sum_denom == FT(0)) {
-                    //std::cout<<"div0"<<sum_denom<<std::endl;
-                    ;
-                } else {
-                    lamda = sum_nom * (1 / sum_denom);
+        FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
+        FT sum_nom, sum_denom;
+        int i, j, m = num_of_hyperplanes();
+        typename std::vector<FT>::iterator rit;
 
-                    if (min_plus_not_set && lamda > 0) {
-                        min_plus = lamda;
-                        min_plus_not_set = false;
-                    }
-                    if (max_minus_not_set && lamda < 0) {
-                        max_minus = lamda;
-                        max_minus_not_set = false;
-                    }
-                    if (lamda < min_plus && lamda > 0) min_plus = lamda;
-                    if (lamda > max_minus && lamda < 0) max_minus = lamda;
-                }
+        for (i = 0; i < m; i++) {
+            sum_nom = b(i);
+            sum_denom = A(i, rand_coord);
+            rit = r.iter_begin();
+            j = 0;
+            for (; rit != r.iter_end(); rit++, j++) {
+                sum_nom -= A(i, j) * (*rit);
             }
-            return std::pair<FT, FT>(min_plus, max_minus);
+            lamdas[i] = sum_nom;
+            if (sum_denom == FT(0)) {
+                //std::cout<<"div0"<<sum_denom<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom * (1 / sum_denom);
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
+
+            }
         }
+        return std::pair<FT, FT>(min_plus, max_minus);
+    }
 
 
+    //Not the first coordinate ray intersecting convex
     std::pair<FT,FT> line_intersect_coord(Point &r,
                                           Point &r_prev,
                                           int rand_coord,
                                           int rand_coord_prev,
-                                          std::vector<FT> &lamdas,
-                                          bool init) {
-            FT lamda = 0;
-            typename std::vector<FT>::iterator lamdait = lamdas.begin();
+                                          std::vector<FT> &lamdas) {
 
-            FT min_plus = 0, max_minus = 0;
-            FT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
-            bool min_plus_not_set = true;
-            bool max_minus_not_set = true;
-            int mini, maxi, i, j, m = num_of_hyperplanes();
+        typename std::vector<FT>::iterator lamdait = lamdas.begin();
+        FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
+        FT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
+        int i, j, m = num_of_hyperplanes();
+        typename std::vector<FT>::iterator rit;
 
-            if (init) { //first time compute the innerprod cit*rit
-                for (i = 0; i < m; i++) {
-                    sum_nom = b(i);
-                    sum_denom = A(i, rand_coord);
-                    for (j = 0; j < _d; j++) {
-                        sum_nom -= A(i, j) * r[j];
-                    }
-                    lamdas[i] = sum_nom;
-                    if (sum_denom == FT(0)) {
-                        //std::cout<<"div0"<<sum_denom<<std::endl;
-                        ;
-                    } else {
-                        lamda = sum_nom * (1 / sum_denom);
+        for (i = 0; i < m; i++) {
+            sum_denom = b(i);
+            c_rand_coord = A(i, rand_coord);
+            c_rand_coord_prev = A(i, rand_coord_prev);
 
-                        if (min_plus_not_set && lamda > 0) {
-                            min_plus = lamda;
-                            min_plus_not_set = false;
-                        }
-                        if (max_minus_not_set && lamda < 0) {
-                            max_minus = lamda;
-                            max_minus_not_set = false;
-                        }
-                        if (lamda < min_plus && lamda > 0) min_plus = lamda;
-                        if (lamda > max_minus && lamda < 0) max_minus = lamda;
+            *lamdait = *lamdait
+                       + c_rand_coord_prev * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
+            if (c_rand_coord == FT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = (*lamdait) / c_rand_coord;
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
 
-                    }
-                }
-            } else {//only a few opers no innerprod
-                for (i = 0; i < m; i++) {
-                    sum_denom = b(i);
-                    c_rand_coord = A(i, rand_coord);
-                    c_rand_coord_prev = A(i, rand_coord_prev);
-
-                    *lamdait = *lamdait
-                               + c_rand_coord_prev * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
-                    if (c_rand_coord == FT(0)) {
-                        //std::cout<<"div0"<<std::endl;
-                        ;
-                    } else {
-                        lamda = (*lamdait) / c_rand_coord;
-
-                        if (min_plus_not_set && lamda > 0) {
-                            min_plus = lamda;
-                            min_plus_not_set = false;
-                        }
-                        if (max_minus_not_set && lamda < 0) {
-                            max_minus = lamda;
-                            max_minus_not_set = false;
-                        }
-                        if (lamda < min_plus && lamda > 0) min_plus = lamda;
-                        if (lamda > max_minus && lamda < 0) max_minus = lamda;
-
-                    }
-                    ++lamdait;
-                }
             }
-            return std::pair<FT,FT> (min_plus, max_minus);
+            ++lamdait;
         }
+        return std::pair<FT, FT>(min_plus, max_minus);
+    }
 
-    
+
+    //Apply linear transformation, of square matrix T, in H-polytope P:= Ax<=b
     int linear_transformIt(Eigen::MatrixXd T) {
         A = A * T;
         return 1;
