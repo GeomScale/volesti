@@ -41,8 +41,8 @@ int main(const int argc, const char** argv)
 	//Deafault values
     int n, nexp=1, n_threads=1;
 	int walk_len;//to be defined after n
-    double e=1;
-    	double exactvol(-1.0);
+    NT e=1;
+    NT exactvol(-1.0);
     bool verbose=false, 
 	 rand_only=false, 
 	 round_only=false,
@@ -126,7 +126,7 @@ int main(const int argc, const char** argv)
           file=true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
-          std::vector<std::vector<double> > Pin;
+          std::vector<std::vector<NT> > Pin;
           inp.open(argv[++i],std::ifstream::in);
           read_pointset(inp,Pin);
           //std::cout<<"d="<<Pin[0][1]<<std::endl;
@@ -168,7 +168,7 @@ int main(const int argc, const char** argv)
 
           std::ifstream inp2;
           inp2.open("order_polytope.ine",std::ifstream::in);
-          std::vector<std::vector<double> > Pin;
+          std::vector<std::vector<NT> > Pin;
           read_pointset(inp2,Pin);
 
           //std::cout<<"d="<<Pin[0][1]<<std::endl;
@@ -236,7 +236,7 @@ int main(const int argc, const char** argv)
   
   //Compute chebychev ball//
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-  std::pair<Point,double> CheBall = P.chebyshev_center();
+  std::pair<Point,NT> CheBall = P.chebyshev_center();
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
   if(verbose){
@@ -256,8 +256,8 @@ int main(const int argc, const char** argv)
 
   /* CONSTANTS */
   //error in hit-and-run bisection of P 
-  const double err=0.0000000001; 
-  const double err_opt=0.01; 
+  const NT err=0.0000000001;
+  const NT err_opt=0.01;
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
@@ -286,16 +286,16 @@ int main(const int argc, const char** argv)
   
   //RUN EXPERIMENTS
   int num_of_exp=nexp;
-  double sum=0, sum_time=0;
-  double min,max;
-  std::vector<double> vs;
-  double average, std_dev;
+  double sum_time=0;
+  NT min,max,sum=0;
+  std::vector<NT> vs;
+  NT average, std_dev;
   double Chebtime, sum_Chebtime=double(0);
   NT vol;
   
   for(int i=0; i<num_of_exp; ++i){
       std::cout<<"Experiment "<<i+1<<" ";
-      Polytope<double> P_to_test(P);
+      Polytope<NT> P_to_test(P);
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
@@ -304,20 +304,20 @@ int main(const int argc, const char** argv)
 
       if(round_only){
           // Round the polytope and exit
-          std::pair<double,double> res_round;
+          std::pair<NT,NT> res_round;
           res_round = rounding_min_ellipsoid(P,CheBall,var);
-          double round_value = res_round.first;
+          NT round_value = res_round.first;
           std::cout<<"\n--------------\nRounded polytope\nH-representation\nbegin\n"<<std::endl;
           P.print();
           std::cout<<"end\n--------------\n"<<std::endl;
       }else{
           // Estimate the volume
-          vol = volume(P_to_test,var,var,CheBall);
+          vol = volume(P,var,var,CheBall);
           //if(rotate) vol = std::sqrt(vol);
           //std::cout<<vol<<std::endl;
       }
 
-      double v1 = vol;
+      NT v1 = vol;
 
       tstop = (double)clock()/(double)CLOCKS_PER_SEC;
       //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
@@ -339,7 +339,7 @@ int main(const int argc, const char** argv)
       //Compute Statistics
       average=sum/(i+1);
       std_dev=0;
-      for(std::vector<double>::iterator vit=vs.begin(); vit!=vs.end(); ++vit){
+      for(std::vector<NT>::iterator vit=vs.begin(); vit!=vs.end(); ++vit){
           std_dev += std::pow(*vit - average,2);
       }
       std_dev = std::sqrt(std_dev/(i+1));

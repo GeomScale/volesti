@@ -30,9 +30,9 @@ public:
     
     Random_points_on_sphere_d() {}
     
-    Random_points_on_sphere_d(int dim, FT radius){
-        d=dim;
-        r=radius;
+    Random_points_on_sphere_d(int dim, FT radius) {
+        d = dim;
+        r = radius;
     }
     
     template <typename GeneratorType>
@@ -54,7 +54,7 @@ public:
         return point;
     }
     
-    
+
 };
 
 // WARNING: USE ONLY WITH BIRKHOFF POLYOPES
@@ -69,7 +69,7 @@ int birk_sym(T &P,K &randPoints,Point &p){
 
     //std::cout << "The n! possible permutations with n elements:\n";
     do {
-        std::vector<double> newpv;
+        std::vector<NT> newpv;
         for (int i=0; i<n; i++){
             //std::cout << myints[i] << " ";
         }
@@ -103,105 +103,91 @@ int rand_point_generator(T &P,
                          int rnum,
                          int walk_len,
                          K &randPoints,
-                         vars &var  // constans for volume
-                         )
+                         vars &var)  // constans for volume
 {
-	//std::cout<<"EDW2!"<<std::endl;
+    typedef typename Point::FT 	FT;
     int n = var.n;
     bool birk = var.birk;
     RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist(0,1);
-    boost::random::uniform_int_distribution<> uidist(0,n-1);
-    //std::uniform_real_distribution<NT> urdist = var.urdist;
-    //std::uniform_int_distribution<int> uidist(0,n-1);
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector<NT> lamdas(P.num_of_hyperplanes(),NT(0));
-    //int rand_coord = rand()%n;
-    //double kapa = double(rand())/double(RAND_MAX);
-    int rand_coord = uidist(rng);
-    double kapa = urdist(rng);
+    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+    int rand_coord, rand_coord_prev;
+    FT kapa;
     Point p_prev = p;
-    if(var.coordinate){
-		//std::cout<<"[1a]P dim: "<<P.dimension()<<std::endl;
-        hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord,kapa,lamdas,var,var,true);
-        //std::cout<<"[1b]P dim: "<<P.dimension()<<std::endl;
-    }else
-        hit_and_run(p,P,var,var);
 
-    for(int i=1; i<=rnum; ++i){
+    if (var.coordinate) {//Compute the first point for the CDHR
+        rand_coord = uidist(rng);
+        kapa = urdist(rng);
+        std::pair <FT, FT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+        p_prev = p;
+        p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+    } else
+        hit_and_run(p, P, var, var);
 
-        for(int j=0; j<walk_len; ++j){
-            int rand_coord_prev = rand_coord;
-            //rand_coord = rand()%n;
-            //kapa = double(rand())/double(RAND_MAX);
-            rand_coord = uidist(rng);
-            kapa = urdist(rng);
-            if(var.coordinate){
-				//std::cout<<"[1c]P dim: "<<P.dimension()<<std::endl;
-                hit_and_run_coord_update(p,p_prev,P,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
-            }else
-                hit_and_run(p,P,var,var);
+    for (int i = 1; i <= rnum; ++i) {
+
+        for (int j = 0; j < walk_len; ++j) {
+            if (var.coordinate) {
+                rand_coord_prev = rand_coord;
+                rand_coord = uidist(rng);
+                kapa = urdist(rng);
+                hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas, var, var);
+            } else
+                hit_and_run(p, P, var, var);
         }
         randPoints.push_back(p);
-        //if(birk) birk_sym(P,randPoints,p);
     }
-
-    //if(rand_only) std::cout<<p<<std::endl;
-    //if(print) std::cout<<"("<<i<<") Random point: "<<p<<std::endl;
 }
 
 
 
 template <class T, class K>
-int rand_point_generator(BallIntersectPolytope<T> &PBLarge,
+int rand_point_generator(BallIntersectPolytope<T,NT> &PBLarge,
                          Point &p,   // a point to start
                          int rnum,
                          int walk_len,
                          K &randPoints,
-                         BallIntersectPolytope<T> &PBSmall,
+                         BallIntersectPolytope<T,NT> &PBSmall,
                          int &nump_PBSmall,
-                         vars &var  // constans for volume
-                         )
-{
-	//std::cout<<"EDW!: "<<std::endl;
+                         vars &var) {  // constans for volume
+    typedef typename Point::FT 	FT;
     int n = var.n;
     RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist(0,1);
-    boost::random::uniform_int_distribution<> uidist(0,n-1);
-    //std::uniform_real_distribution<NT> urdist = var.urdist;
-    //std::uniform_int_distribution<int> uidist(0,n-1);
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector<NT> lamdas(PBLarge.num_of_hyperplanes(),NT(0));
-    //int rand_coord = rand()%n;
-    //double kapa = double(rand())/double(RAND_MAX);
-    int rand_coord = uidist(rng);
-    double kapa = urdist(rng);
+    std::vector <FT> lamdas(PBLarge.num_of_hyperplanes(), NT(0));
+    int rand_coord, rand_coord_prev;
+    FT kapa;
     Point p_prev = p;
 
-    if(var.coordinate)
-        hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord,kapa,lamdas,var,var,true);
-    else
-        hit_and_run(p,PBLarge,var,var);
+    if (var.coordinate) {//Compute the first point for the CDHR
+        rand_coord = uidist(rng);
+        kapa = urdist(rng);
+        std::pair <FT, FT> bpair = PBLarge.line_intersect_coord(p, rand_coord, lamdas);
+        p_prev = p;
+        p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+    } else {
+        hit_and_run(p, PBLarge, var, var);
+    }
 
-    for(int i=1; i<=rnum; ++i){
-        for(int j=0; j<walk_len; ++j){
-            int rand_coord_prev = rand_coord;
-            //rand_coord = rand()%n;
-            //kapa = double(rand())/double(RAND_MAX);
-            rand_coord = uidist(rng);
-            kapa = urdist(rng);
-            if(var.coordinate)
-                hit_and_run_coord_update(p,p_prev,PBLarge,rand_coord,rand_coord_prev,kapa,lamdas,var,var,false);
-            else
-                hit_and_run(p,PBLarge,var,var);
+    for (int i = 1; i <= rnum; ++i) {
+        for (int j = 0; j < walk_len; ++j) {
+            if (var.coordinate) {
+                rand_coord_prev = rand_coord;
+                rand_coord = uidist(rng);
+                kapa = urdist(rng);
+                hit_and_run_coord_update(p, p_prev, PBLarge, rand_coord, rand_coord_prev, kapa, lamdas, var, var);
+            } else
+                hit_and_run(p, PBLarge, var, var);
         }
-        if(PBSmall.second().is_in(p) == -1){//is in
+        if (PBSmall.second().is_in(p) == -1) {//is in
             randPoints.push_back(p);
             ++nump_PBSmall;
         }
     }
-    //if(rand_only) std::cout<<p<<std::endl;
-    //if(print) std::cout<<"("<<i<<") Random point: "<<p<<std::endl;
 }
 
 // ----- HIT AND RUN FUNCTIONS ------------ //
@@ -211,71 +197,42 @@ template <class T>
 int hit_and_run(Point &p,
                 T &P,
                 vars &var,
-                vars &var2)
-{	
+                vars &var2) {
+    typedef typename Point::FT 	FT;
     int n = var.n;
-    double err = var.err;
     RNGType &rng = var.rng;
-    //std::uniform_real_distribution<NT> &urdist = var.urdist;
-    boost::random::uniform_real_distribution<> urdist(0,1);
-    //std::uniform_real_distribution<NT> &urdist1 = var.urdist1;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
 
     Point origin(n);
-    
-    Random_points_on_sphere_d<Point> gen (n, 1.0);
-    Point l = gen.sample_point(rng);// - CGAL::Origin();
-    //Point l2=origin;
-    //Vector b1 = line_bisect(p,l,P,var,var2);
-    //Vector b2 = line_bisect(p,-l,P,var,var2);
-    //std::pair<Point,Point> ppair = P.line_intersect(p,l);
-    std::pair<NT,NT> dbpair = P.line_intersect(p,l);
-    NT min_plus = dbpair.first;
-    NT max_minus = dbpair.second;
-    Point b1 = (min_plus*l)+p;
-    Point b2 = (max_minus*l)+p;
-    //Point b1 = ppair.first;// - origin;
-    //Point b2 = ppair.second;// - origin;
-    //std::cout<<"b1="<<b1<<"b2="<<b2<<std::endl;
+    Random_points_on_sphere_d<Point> gen(n, 1.0);
+    Point l = gen.sample_point(rng);
 
-    NT lambda = urdist(rng);
-    p = (lambda*b1);
-    p=((1-lambda)*b2) + p;
+    std::pair <FT, FT> dbpair = P.line_intersect(p, l);
+    FT min_plus = dbpair.first;
+    FT max_minus = dbpair.second;
+    Point b1 = (min_plus * l) + p;
+    Point b2 = (max_minus * l) + p;
+    FT lambda = urdist(rng);
+    p = (lambda * b1);
+    p = ((1 - lambda) * b2) + p;
     return 1;
 }
 
 
 //hit-and-run with orthogonal directions and update
-template <class T>
+template <class T, typename FT>
 int hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              T &P,
                              int rand_coord,
                              int rand_coord_prev,
-                             double kapa,
-                             std::vector<NT> &lamdas,
+                             FT kapa,
+                             std::vector<FT> &lamdas,
                              vars &var,
-                             vars &var2,
-                             bool init)
-{	
-	//std::cout<<"[1]P dim: "<<P.dimension()<<std::endl;
-    std::pair<NT,NT> bpair;
-    // EXPERIMENTAL
-    //if(var.NN)
-    //  bpair = P.query_dual(p,rand_coord);
-    //else
-    bpair = P.line_intersect_coord(p,p_prev,rand_coord,rand_coord_prev,lamdas,init);
-    //std::cout<<"[2]P dim: "<<P.dimension()<<std::endl;
-    //std::cout<<"original:"<<bpair.first<<" "<<bpair.second<<std::endl;
-    //std::cout<<"-----------"<<std::endl;
-    //TODO: only change one coordinate of *r* avoid addition + construction
-    //std::vector<NT> v(P.dimension(),NT(0));
-    //v[rand_coord] = bpair.first + kapa * (bpair.second - bpair.first);
-    //Point vp(P.dimension(),v.begin(),v.end());
+                             vars &var2) {
+    std::pair <FT, FT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     p_prev = p;
-    //std::cout<<"v dim: "<<v.size()<<std::endl;
-   // std::cout<<"P dim: "<<P.dimension()<<std::endl;
-    //p = p + vp;
-    p.set_coord(rand_coord , p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+    p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
     return 1;
 }
 

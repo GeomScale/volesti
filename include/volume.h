@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <math.h>
 #include <chrono>
-//#include <random.h>
 #include "cartesian_geom/cartesian_kernel.h"
 #include "random.hpp"
 #include "random/uniform_int.hpp"
@@ -27,6 +26,8 @@
 
 
 typedef double                      NT;
+//typedef float                      NT;
+//typedef long double                     NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
@@ -39,14 +40,12 @@ public:
           int n,
           int walk_steps,
           int n_threads,
-          const double err,
-          double error,
+          const NT err,
+          NT error,
           const int lw,
-          double up,
+          NT up,
           const int L,
           RNGType &rng,
-          //std::uniform_real_distribution<NT> urdist,
-          //std::uniform_real_distribution<NT> urdist1,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
           bool verbose,
@@ -65,14 +64,12 @@ public:
     int n;
     int walk_steps;
     int n_threads;
-    const double err;
-    double error;
+    const NT err;
+    NT error;
     const int lw;
-    double up;
+    NT up;
     const int L;
     RNGType &rng;
-    //std::uniform_real_distribution<NT> urdist;
-    //std::uniform_real_distribution<NT> urdist1;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;
     bool verbose;
@@ -129,9 +126,9 @@ template <class T>
 NT volume(T &P,
                   vars &var,  // constans for volume
                   vars &var2, // constants for optimization in case of MinkSums
-                  std::pair<Point,double> CheBall)  //Chebychev ball
+                  std::pair<Point,NT> CheBall)  //Chebychev ball
 {
-    typedef BallIntersectPolytope<T>        BallPoly;
+    typedef BallIntersectPolytope<T,NT>        BallPoly;
 
     bool round = var.round;
     bool print = var.verbose;
@@ -140,7 +137,7 @@ NT volume(T &P,
     int rnum = var.m;
     int walk_len = var.walk_steps;
     int n_threads = var.n_threads;
-    const double err = var.err;
+    const NT err = var.err;
     RNGType &rng = var.rng;
     // Rotation: only for test with skinny polytopes and rounding
     //std::cout<<"Rotate="<<rotate(P)<<std::endl;
@@ -149,7 +146,7 @@ NT volume(T &P,
     //0. Rounding of the polytope if round=true
     Point c=CheBall.first;
     NT radius=CheBall.second;
-    double round_value=1;
+    NT round_value=1;
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -187,7 +184,7 @@ NT volume(T &P,
 
         // 4.  Construct the sequence of balls
         // 4a. compute the radius of the largest ball
-        double current_dist, max_dist=NT(0);
+        NT current_dist, max_dist=NT(0);
         for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             current_dist=(*pit-c).squared_length();
             if(current_dist>max_dist){
