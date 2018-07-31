@@ -197,6 +197,14 @@ int get_annealing_schedule(T1 K, std::vector<FT> &a_vals, FT &error, FT radius, 
         p_prev=p;
         coord_prev=-1;
         std::fill(lamdas.begin(), lamdas.end(), FT(0));
+        steps = ((int)150/error)+1;
+
+        if (var.coordinate){
+            gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var, true);
+            curr_its += 1.0;
+            curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
+            steps--;
+        }
 
         for (int j = 0; j < steps; j++) {
             gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var);

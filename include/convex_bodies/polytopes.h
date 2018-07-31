@@ -12,120 +12,137 @@
 
 #include <iostream>
 
+//min and max values for the Hit and Run functions
+const NT maxNT = 1.79769e+308;
+const NT minNT = -1.79769e+308;
 
 // my H-polytope class
-template <typename K>
+template <typename FT>
 class Polytope{
 private:
-    typedef std::vector<K>        stdCoeffs;
-    typedef std::vector<stdCoeffs>  stdMatrix;
-    Eigen::MatrixXd A;
+    Eigen::MatrixXd A; //matrix A
+    Eigen::VectorXd b; // vector b, s.t.: Ax<=b
     int            _d; //dimension
-    stdMatrix      _A; //inequalities
 
 public:
-    typedef K                    FT;
     Polytope() {}
 
     // constructor: cube(d)
     Polytope(int d): _d(d) {
-        for(int i=0; i<d; ++i){
-            stdCoeffs coeffs;
-            coeffs.push_back(K(1));
-            for(int j=0; j<d; ++j){
-                if(i==j)
-                    coeffs.push_back(K(1));
-                else coeffs.push_back(K(0));
+        A.resize(2 * d, d);
+        b.resize(2 * d);
+        for (int i = 0; i < d; ++i) {
+            b(i) = 1;
+            for (int j = 0; j < d; ++j) {
+                if (i == j) {
+                    A(i, j) = 1;
+                } else {
+                    A(i, j) = 0;
+                }
             }
-            _A.push_back(coeffs);
         }
-        for(int i=0; i<d; ++i){
-            stdCoeffs coeffs;
-            coeffs.push_back(K(1));
-            for(int j=0; j<d; ++j){
-                if(i==j)
-                    coeffs.push_back(K(-1));
-                else coeffs.push_back(K(0));
+        for (int i = 0; i < d; ++i) {
+            b(i + d) = 1;
+            for (int j = 0; j < d; ++j) {
+                if (i == j) {
+                    A(i + d, j) = -1;
+                } else {
+                    A(i + d, j) = 0;
+                }
             }
-            _A.push_back(coeffs);
         }
     }
 
-    int dimension(){
+    int dimension() {
         return _d;
     }
 
-    int num_of_hyperplanes(){
-        return _A.size();
+    int num_of_hyperplanes() {
+        return A.rows();
     }
 
-    K get_coeff(int i, int j){
-        return _A[i][j];
+    Eigen::MatrixXd get_eigen_mat() {
+        return A;
     }
 
-    void put_coeff(int i, int j, K value){
-        _A[i][j] = value;
+    Eigen::VectorXd get_eigen_vec() {
+        return b;
     }
 
-	stdMatrix get_matrix(){
-		return _A;
-	}
+    int set_eigen_mat(Eigen::MatrixXd A2) {
+        A = A2;
+        return -1;
+    }
+
+    int set_eigen_vec(Eigen::VectorXd b2) {
+        b = b2;
+        return -1;
+    }
+
+    FT get_coeff(int i, int j) {
+        if (j == 0) {
+            return b(i);
+        }
+        return A(i, j - 1);
+    }
+
+    void put_coeff(int i, int j, FT value) {
+        if (j == 0) {
+            b(i) = value;
+        } else {
+            A(i, j - 1) = value;
+        }
+    }
 
     // default initialize: cube(d)
-    int init(int d){
-        A.resize(d,d);
-        _d=d;
-        for(int i=0; i<d; ++i){
-            stdCoeffs coeffs;
-            coeffs.push_back(K(1));
-            for(int j=0; j<d; ++j){
-                if(i==j)
-                    coeffs.push_back(K(1));
-                else coeffs.push_back(K(0));
+    int init(int d) {
+        A.resize(2 * d, d);
+        b.resize(2 * d);
+        for (int i = 0; i < d; ++i) {
+            b(i) = 1;
+            for (int j = 0; j < d; ++j) {
+                if (i == j) {
+                    A(i, j) = 1;
+                } else {
+                    A(i, j) = 0;
+                }
             }
-            _A.push_back(coeffs);
         }
-        for(int i=0; i<d; ++i){
-            stdCoeffs coeffs;
-            coeffs.push_back(K(1));
-            for(int j=0; j<d; ++j){
-                if(i==j)
-                    coeffs.push_back(K(-1));
-                else coeffs.push_back(K(0));
+        for (int i = 0; i < d; ++i) {
+            b(i + d) = 1;
+            for (int j = 0; j < d; ++j) {
+                if (i == j) {
+                    A(i + d, j) = -1;
+                } else {
+                    A(i + d, j) = 0;
+                }
             }
-            _A.push_back(coeffs);
         }
         return 0;
     }
 
-    int init(stdMatrix Pin){
-        _d = Pin[0][1]-1;
-        
-        typename stdMatrix::iterator pit=Pin.begin();
-        ++pit;
-        for( ; pit<Pin.end(); ++pit){
-            _A.push_back(*pit);
-        }
-        
-        //define eigen matrix
-        A.resize(_A.size(),_d);
-        for(int i=0; i<_A.size(); i++){
-            for(int j=1; j<_d+1; j++){
-                A(i,j-1)=_A[i][j];
+    int init(std::vector<std::vector<FT> > Pin) {
+        _d = Pin[0][1] - 1;
+        //define matrix A and vector b, s.t. Ax<=b
+        A.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (int i = 1; i < Pin.size(); i++) {
+            b(i - 1) = Pin[i][0];
+            for (int j = 1; j < _d + 1; j++) {
+                A(i - 1, j - 1) = Pin[i][j];
             }
         }
-        //print();
-        //std::cout<<"A eigen: \n"<<A<<std::endl;
         return 0;
     }
 
     // print polytope in input format
     int print() {
-        std::cout<<" "<<_A.size()<<" "<<_d+1<<" float"<<std::endl;
-        for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
-            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
-                std::cout<<*lit<<" ";
-            std::cout<<std::endl;
+        std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
+        for (int i = 0; i < A.rows(); i++) {
+            for (int j = 0; j < _d; j++) {
+                std::cout << A(i, j) << " ";
+            }
+            std::cout << "<= " << b(i) << std::endl;
         }
         return 0;
     }
@@ -134,6 +151,8 @@ public:
     // Compute the reduced row echelon form
     // used to transofm {Ax=b,x>=0} to {A'x'<=b'}
     // e.g. Birkhoff polytopes
+    /*
+    // Todo: change the implementation in order to use eigen matrix and vector.
     int rref(){
         to_reduced_row_echelon_form(_A);
         std::vector<int> zeros(_d+1,0);
@@ -191,220 +210,139 @@ public:
         // _d should equals the dimension
         _d=_d-1;
         return 1;
-    }
+    }*/
 
     
-
+    //Check if Point p is in H-polytope P:= Ax<=b
     int is_in(Point p) {
-        for(typename stdMatrix::iterator mit=_A.begin(); mit<_A.end(); ++mit){
-            typename stdCoeffs::iterator lit;
-            typename std::vector<K>::iterator pit=p.iter_begin();
-            lit=mit->begin();
-            K sum=(*lit);
-            ++lit;
-            for( ; lit<mit->end() ; ++lit, ++pit){
-                sum -= *lit * (*pit);
+        FT sum;
+        int m = A.rows(), i, j;
+        for (i = 0; i < m; i++) {
+            sum = b(i);
+            for (j = 0; j < _d; j++) {
+                sum -= A(i, j) * p[j];
             }
-            if(sum<K(0))
-                return mit-_A.begin();
+            if (sum < FT(0)) { //Check if corresponding hyperplane is violated
+                return 0;
+            }
         }
         return -1;
     }
 
-    std::pair<Point,double> chebyshev_center(){
 
-        std::pair<Point,double> res;
-        res=solveLP(_A,_d);
+    //Compute Chebyshev ball of H-polytope P:= Ax<=b
+    //Use LpSolve library
+    std::pair<Point,FT> chebyshev_center() {
+
+        std::pair <Point,FT> res;
+        res = solveLP(A, b, _d);  //lpSolve lib for the linear program
         return res;
-        
     }
 
     // compute intersection point of ray starting from r and pointing to v
-    // with polytope discribed by _A
-    /*
-    std::pair<Point,Point> line_intersect(Point r,
-                                          Point v){
-        K lamda=0;
-        K min_plus=0, max_minus=0;
-        bool min_plus_not_set=true;
-        bool max_minus_not_set=true;
-        for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-            typename stdCoeffs::iterator cit;
-            typename std::vector<K>::iterator rit=r.iter_begin();
-            typename std::vector<K>::iterator vit=v.iter_begin();
-            cit=ait->begin();
-            K sum_nom=(*cit);
-            ++cit;
-            K sum_denom=K(0);
-            for( ; cit < ait->end() ; ++cit, ++rit, ++vit){
-                sum_nom -= *cit * (*rit);
-                sum_denom += *cit * (*vit);
-            }
-            if(sum_denom==K(0)){
-                //std::cout<<"div0"<<std::endl;
-                ;
-            }
-            else{
-                lamda = sum_nom/sum_denom;
-                if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                if(lamda<min_plus && lamda>0) min_plus=lamda;
-                if(lamda>max_minus && lamda<0) max_minus=lamda;
-            }
-        }
-        
-        return std::pair<Point,Point> ((min_plus*v)+r,(max_minus*v)+r);
-    }
-     */
-    // compute intersection point of ray starting from r and pointing to v
-    // with polytope discribed by _A
-    std::pair<NT,NT> line_intersect(Point r,
-                                          Point v){
-        K lamda=0;
-        K min_plus=0, max_minus=0;
-        bool min_plus_not_set=true;
-        bool max_minus_not_set=true;
-        for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-            typename stdCoeffs::iterator cit;
-            typename std::vector<K>::iterator rit=r.iter_begin();
-            typename std::vector<K>::iterator vit=v.iter_begin();
-            cit=ait->begin();
-            K sum_nom=(*cit);
-            ++cit;
-            K sum_denom=K(0);
-            for( ; cit < ait->end() ; ++cit, ++rit, ++vit){
-                sum_nom -= *cit * (*rit);
-                sum_denom += *cit * (*vit);
-            }
-            if(sum_denom==K(0)){
-                //std::cout<<"div0"<<std::endl;
-                ;
-            }
-            else{
-                lamda = sum_nom/sum_denom;
-                if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                if(lamda<min_plus && lamda>0) min_plus=lamda;
-                if(lamda>max_minus && lamda<0) max_minus=lamda;
-            }
-        }
+    // with polytope discribed by A and b
+    std::pair<FT,FT> line_intersect(Point r,
+                                          Point v) {
 
-        //return std::pair<Point,Point> ((min_plus*v)+r,(max_minus*v)+r);
-        return std::pair<NT,NT> (min_plus, max_minus);
+        FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
+        FT sum_nom, sum_denom;
+        int i, j, m = num_of_hyperplanes();
+        typename std::vector<FT>::iterator rit, vit;
+
+        for (i = 0; i < m; i++) {
+            sum_nom = b(i);
+            sum_denom = FT(0);
+            j = 0;
+            rit = r.iter_begin();
+            vit = v.iter_begin();
+            for ( ; rit != r.iter_end(); rit++, vit++, j++){
+                sum_nom -= A(i, j) * (*rit);
+                sum_denom += A(i, j) * (*vit);
+            }
+            if (sum_denom == FT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
+            }
+        }
+        return std::pair<FT, FT>(min_plus, max_minus);
     }
 
 
-    std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          int rand_coord){
-        K lamda=0;
-        K min_plus=0, max_minus=0;
-        bool min_plus_not_set=true;
-        bool max_minus_not_set=true;
-        for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-            typename stdCoeffs::iterator cit;
-            typename std::vector<K>::iterator rit=r.iter_begin();
-            cit=ait->begin();
-            K sum_nom=(*cit);
-            ++cit;
-            K sum_denom= *(cit+rand_coord);
-            for( ; cit < ait->end() ; ++cit, ++rit){
-                sum_nom -= *cit * (*rit);
+    //First coordinate ray intersecting convex polytope
+    std::pair<FT,FT> line_intersect_coord(Point &r,
+                                          int rand_coord,
+                                          std::vector<FT> &lamdas) {
+
+        FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
+        FT sum_nom, sum_denom;
+        int i, j, m = num_of_hyperplanes();
+        typename std::vector<FT>::iterator rit;
+
+        for (i = 0; i < m; i++) {
+            sum_nom = b(i);
+            sum_denom = A(i, rand_coord);
+            rit = r.iter_begin();
+            j = 0;
+            for (; rit != r.iter_end(); rit++, j++) {
+                sum_nom -= A(i, j) * (*rit);
             }
-            if(sum_denom==K(0)){
+            lamdas[i] = sum_nom;
+            if (sum_denom == FT(0)) {
                 //std::cout<<"div0"<<sum_denom<<std::endl;
                 ;
-            }
-            else{
-                lamda = sum_nom*(1/sum_denom);
+            } else {
+                lamda = sum_nom * (1 / sum_denom);
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
 
-                if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                if(lamda<min_plus && lamda>0) min_plus=lamda;
-                if(lamda>max_minus && lamda<0) max_minus=lamda;
             }
         }
-        return std::pair<NT,NT> (min_plus,max_minus);
+        return std::pair<FT, FT>(min_plus, max_minus);
     }
 
-    std::pair<NT,NT> line_intersect_coord(Point &r,
+
+    //Not the first coordinate ray intersecting convex
+    std::pair<FT,FT> line_intersect_coord(Point &r,
                                           Point &r_prev,
                                           int rand_coord,
                                           int rand_coord_prev,
-                                          std::vector<NT> &lamdas,
-                                          bool init){
-        K lamda=0;
-        std::vector<NT>::iterator lamdait = lamdas.begin();
+                                          std::vector<FT> &lamdas) {
 
-        K min_plus=0, max_minus=0;
-        bool min_plus_not_set=true;
-        bool max_minus_not_set=true;
-        int mini, maxi;
+        typename std::vector<FT>::iterator lamdait = lamdas.begin();
+        FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
+        FT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
+        int i, j, m = num_of_hyperplanes();
+        typename std::vector<FT>::iterator rit;
 
-        if(init){ //first time compute the innerprod cit*rit
-            for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-                typename stdCoeffs::iterator cit;
-                typename std::vector<K>::iterator rit=r.iter_begin();
-                cit=ait->begin();
-                K sum_nom=(*cit);
-                ++cit;
-                K sum_denom= *(cit+rand_coord);
-                for( ; cit < ait->end() ; ++cit, ++rit){
-                    sum_nom -= *cit * (*rit);
-                }
-                lamdas[ait-_A.begin()] = sum_nom;
-                if(sum_denom==K(0)){
-                    //std::cout<<"div0"<<sum_denom<<std::endl;
-                    ;
-                }
-                else{
-                    lamda = sum_nom*(1/sum_denom);
+        for (i = 0; i < m; i++) {
+            sum_denom = b(i);
+            c_rand_coord = A(i, rand_coord);
+            c_rand_coord_prev = A(i, rand_coord_prev);
 
-                    if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                    if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                    if(lamda<min_plus && lamda>0) min_plus=lamda;
-                    if(lamda>max_minus && lamda<0) max_minus=lamda;
-                    
-                }
+            *lamdait = *lamdait
+                       + c_rand_coord_prev * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
+            if (c_rand_coord == FT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = (*lamdait) / c_rand_coord;
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
+
             }
-        } else {//only a few opers no innerprod
-            for(typename stdMatrix::iterator ait=_A.begin(); ait<_A.end(); ++ait){
-                typename stdCoeffs::iterator cit;
-                cit=ait->begin();
-                ++cit;
-
-                NT c_rand_coord = *(cit+rand_coord);
-                NT c_rand_coord_prev = *(cit+rand_coord_prev);
-
-                *lamdait = *lamdait
-                        + c_rand_coord_prev * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
-
-                if(c_rand_coord==K(0)){
-                    //std::cout<<"div0"<<std::endl;
-                    ;
-                } else {
-                    lamda = (*lamdait) / c_rand_coord;
-
-                    if(min_plus_not_set && lamda>0){min_plus=lamda;min_plus_not_set=false;}
-                    if(max_minus_not_set && lamda<0){max_minus=lamda;max_minus_not_set=false;}
-                    if(lamda<min_plus && lamda>0) min_plus=lamda;
-                    if(lamda>max_minus && lamda<0) max_minus=lamda;
-                    
-                }
-                ++lamdait;
-            }
+            ++lamdait;
         }
-        //std::cout<<"Oresult: "<<mini<<" "<<maxi<<std::endl;
-        return std::pair<NT,NT> (min_plus,max_minus);
+        return std::pair<FT, FT>(min_plus, max_minus);
     }
-    
-    int linear_transformIt(Eigen::MatrixXd Tinv){
-        A=A*Tinv;
-        //set _A = A or replace stdMatrix with Eigen::MatrixXd ??????
-        for(int i=0; i<_A.size(); i++){
-            for(int j=1; j<_d+1; j++){
-                _A[i][j]=A(i,j-1);
-            }
-        }
+
+
+    //Apply linear transformation, of square matrix T, in H-polytope P:= Ax<=b
+    int linear_transformIt(Eigen::MatrixXd T) {
+        A = A * T;
         return 1;
     }
 

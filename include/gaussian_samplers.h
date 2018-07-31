@@ -143,8 +143,58 @@ int gaussian_next_point(T &P,
                         int walk_len,
                         FT a_i,
                         std::vector<FT> &lamdas,
+                        vars_g &var,
+                        bool first) {
+    int n = var.n, rand_coord;
+    boost::random::uniform_int_distribution<> uidist(0, n - 1);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
+    RNGType &rng2 = var.rng;
+    FT ball_rad;
+
+    if (var.coordinate) {
+        rand_coord = uidist(rng2);
+        std::pair <FT, FT> bpair = P.line_intersect_coord(p,rand_coord, lamdas);
+        FT dis;
+        rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, dis, var);
+        p_prev = p;
+        coord_prev = rand_coord;
+        p.set_coord(rand_coord, dis);
+        walk_len--;
+    }
+    if (var.ball_walk) {
+        if (var.delta < 0.0) {
+            ball_rad = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_i) * FT(n));
+        } else {
+            ball_rad = var.delta;
+        }
+    }
+
+    for (int j = 0; j < walk_len; j++) {
+        if (var.ball_walk) {
+            gaussian_ball_walk(p, P, a_i, ball_rad, var);
+        } else if (!var.coordinate) {
+            gaussian_hit_and_run(p, P, a_i, var);
+        } else {
+            rand_coord = uidist(rng2);
+            gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
+            coord_prev = rand_coord;
+        }
+    }
+    return 1;
+}
+
+
+template <class T, typename FT>
+int gaussian_next_point(T &P,
+                        Point &p,   // a point to start
+                        Point &p_prev,
+                        int &coord_prev,
+                        int walk_len,
+                        FT a_i,
+                        std::vector<FT> &lamdas,
                         vars_g &var) {
-    int n = var.n;
+    int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
@@ -157,29 +207,19 @@ int gaussian_next_point(T &P,
         } else {
             ball_rad = var.delta;
         }
-        gaussian_ball_walk(p, P, a_i, ball_rad, var);
-    } else if (!var.coordinate) {
-        gaussian_hit_and_run(p, P, a_i, var);
-    } else {
-        int rand_coord;
-        if (coord_prev == -1) {
-            p_prev = p;
+    }
+
+    for (int j = 0; j < walk_len; j++) {
+        if (var.ball_walk) {
+            gaussian_ball_walk(p, P, a_i, ball_rad, var);
+        } else if (!var.coordinate) {
+            gaussian_hit_and_run(p, P, a_i, var);
+        } else {
             rand_coord = uidist(rng2);
-            gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord, a_i, lamdas, var, true);
-            coord_prev = rand_coord;
-            if (walk_len == 1) {
-                return 1;
-            } else {
-                walk_len--;
-            }
-        }
-        for (int j = 0; j < walk_len; j++) {
-            rand_coord = uidist(rng2);
-            gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var, false);
+            gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
             coord_prev = rand_coord;
         }
     }
-
     return 1;
 }
 
@@ -200,7 +240,7 @@ int rand_gaussian_point_generator(T &P,
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
     std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
-    int rand_coord = uidist(rng2);
+    int rand_coord = uidist(rng2), coord_prev;
     FT ball_rad;
     Point p_prev = p;
 
@@ -210,17 +250,27 @@ int rand_gaussian_point_generator(T &P,
         } else {
             ball_rad = var.delta;
         }
-        gaussian_ball_walk(p, P, a_i, ball_rad, var);
+    }
+        //gaussian_ball_walk(p, P, a_i, ball_rad, var);
+        //randPoints.push_back(p);
+    if (var.coordinate) {
+        rand_coord = uidist(rng2);
+        std::pair <FT, FT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+        FT dis;
+        rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, dis, var);
+        p_prev = p;
+        coord_prev = rand_coord;
+        p.set_coord(rand_coord, dis);
+        for (int j = 0; j < walk_len - 1; ++j) {
+            rand_coord = uidist(rng2);
+            gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
+            coord_prev = rand_coord;
+        }
         randPoints.push_back(p);
-    } else if (var.coordinate) {
-        gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord, a_i, lamdas, var, true);
-        randPoints.push_back(p);
-    } else {
-        gaussian_hit_and_run(p, P, a_i, var);
-        randPoints.push_back(p);
+        rnum--;
     }
 
-    for (int i = 1; i < rnum; ++i) {
+    for (int i = 1; i <= rnum; ++i) {
 
         for (int j = 0; j < walk_len; ++j) {
             int rand_coord_prev = rand_coord;
@@ -228,7 +278,7 @@ int rand_gaussian_point_generator(T &P,
             if (var.ball_walk) {
                 gaussian_ball_walk(p, P, a_i, ball_rad, var);
             } else if (var.coordinate) {
-                gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, a_i, lamdas, var, false);
+                gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, a_i, lamdas, var);
             } else
                 gaussian_hit_and_run(p, P, a_i, var);
         }
@@ -320,10 +370,9 @@ int gaussian_hit_and_run_coord_update(Point &p,
                              int rand_coord_prev,
                              FT a_i,
                              std::vector<FT> &lamdas,
-                             vars_g &var,
-                             bool init) {
+                             vars_g &var) {
     std::pair <FT, FT> bpair;
-    bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas, init);
+    bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     FT min_plus = bpair.first;
     FT max_minus = bpair.second;
     FT dis;
