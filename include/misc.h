@@ -136,7 +136,7 @@ void print_polymake_volfile2(T &P,
 }*/
 
 int read_pointset(std::istream &is,
-                  std::vector<std::vector<double> > &Input){
+                  std::vector<std::vector<NT> > &Input){
     
     std::string point;
 
@@ -152,7 +152,7 @@ int read_pointset(std::istream &is,
         //ignore empty spaces on start of line
         found = point.find_first_not_of(" ",found);
 
-        std::vector<double> input;
+        std::vector<NT> input;
         while (found2!=std::string::npos || point[found]=='-')
         {
             //std::cout<<"*"<<(point[found]!='-')<<"*"<<std::endl;
@@ -161,7 +161,7 @@ int read_pointset(std::istream &is,
             found2 = point.find_first_not_of("0123456789-",found);
 
             //std::cout<<point.substr(found,found2-found)<<" ";
-            double num = atof(point.substr(found,found2-found).c_str());
+            NT num = atof(point.substr(found,found2-found).c_str());
             found=point.find_first_not_of(" ",found2);
             //std::cout<<"found"<<point[found]<<std::endl;
             if(point[found]=='/'){
