@@ -184,16 +184,16 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
     max_dist=std::sqrt(max_dist);
     FT R=max_dist/radius;
     int mm=randPoints.size();
-    boost::numeric::ublas::matrix<FT> Ap(n,mm);
+    boost::numeric::ublas::matrix<double> Ap(n,mm);
     for(int j=0; j<mm; j++){
         Point temp=randPoints.front();
         randPoints.pop_front();
         for (int i=0; i<n; i++){
-            Ap(i,j)=FT(temp[i]);
+            Ap(i,j)=double(temp[i]);
         }
     }
-    boost::numeric::ublas::matrix<FT> Q(n,n);
-    boost::numeric::ublas::vector<FT> c2(n);
+    boost::numeric::ublas::matrix<double> Q(n,n);
+    boost::numeric::ublas::vector<double> c2(n);
     size_t w=1000;
     FT elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2);
 
@@ -202,9 +202,9 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
 
     //Get ellipsoid matrix and center as Eigen objects
     for(int i=0; i<n; i++){
-        e(i)=c2(i);
+        e(i)=FT(c2(i));
         for (int j=0; j<n; j++){
-            E(i,j)=Q(i,j);
+            E(i,j)=FT(Q(i,j));
         }
     }
 
@@ -298,12 +298,12 @@ double rotating_old(T &P){
 
 // -------- ROTATION ---------- //
 template <class T>
-double rotating(T &P){
+NT rotating(T &P){
 
   bool print = true; 
   //if(print) std::cout<<"\nRotate..."<<std::endl;
-  typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> MT;
-  typedef Eigen::Matrix<double,Eigen::Dynamic,1> VT;
+  typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+  typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
   
   int m=P.num_of_hyperplanes();
   int d=P.dimension();

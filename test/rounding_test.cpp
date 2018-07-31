@@ -17,20 +17,20 @@ long int factorial(int n)
 
 
 template <typename FilePath>
-void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)//, double expected, double tolerance=0.1)
+void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
 {
     std::ifstream inp;
-    std::vector<std::vector<double> > Pin;
+    std::vector<std::vector<NT> > Pin;
     inp.open(f,std::ifstream::in);
     read_pointset(inp,Pin);
     int n = Pin[0][1]-1;
-    Polytope<double> P;
+    Polytope<NT> P;
     P.init(Pin);
 
     // Setup the parameters
-    double walk_len=10 + n/10;
+    int walk_len=10 + n/10;
     int nexp=1, n_threads=1;
-    double e=1, err=0.0000000001;
+    NT e=1, err=0.0000000001;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
     RNGType rng(std::time(0));
     boost::normal_distribution<> rdist(0,1);
@@ -42,13 +42,13 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
 
     //Compute chebychev ball//
     std::cout << "\n--- Testing rounding of " << f << std::endl;
-    double rot_val;
+    NT rot_val;
     if(rot){
         std::cout << "\n--- Rotation is ON "<< std::endl;
         rot_val = rotating(P);
         std::cout << "Rotation value = "<<rot_val<<std::endl;
     }
-    std::pair<Point,double> CheBall;// = solveLP(P.get_matrix(), P.dimension());
+    std::pair<Point,NT> CheBall;// = solveLP(P.get_matrix(), P.dimension());
     Point c;//=CheBall.first;
     NT radius;//=CheBall.second;
     NT round_value=1.0, ratio1,ratio2;
@@ -81,13 +81,13 @@ void rounding_test(FilePath f, bool rot, double expected, double tolerance=0.1)/
     //c=CheBall.first;
     //radius=CheBall.second;
 
-    double vol = 0;
+    NT vol = 0;
     unsigned int const num_of_exp = 10;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
         vol += round_value*volume(P,var,var,CheBall);
     }
-    double error = std::abs(((vol/num_of_exp)-expected))/expected;
+    NT error = std::abs(((vol/num_of_exp)-expected))/expected;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
     std::cout << "Expected volume = " << expected << std::endl;
     CHECK(error < tolerance);

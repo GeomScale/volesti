@@ -26,6 +26,7 @@
 
 
 typedef double                      NT;
+//typedef float                      NT;
 //typedef long double                     NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
