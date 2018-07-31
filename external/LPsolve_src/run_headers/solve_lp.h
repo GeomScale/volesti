@@ -120,7 +120,7 @@ std::pair<Point,NT> solveLP(Eigen::MatrixXd &A, Eigen::VectorXd &b, int d){
 	NT r=NT(get_objective(lp));
 	delete_lp(lp);
 			
-	return std::pair<Point,double> (xc,r);
+	return std::pair<Point,NT> (xc,r);
 
 	
 }
