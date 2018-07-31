@@ -31,6 +31,7 @@ typedef double                      NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
 typedef boost::mt19937 RNGType; ///< mersenne twister generator
+const bool first_coord_point = true;
 
 
 //structs with variables and random generators
@@ -419,9 +420,6 @@ NT volume_gaussian_annealing(T &P,
         for (typename std::vector<NT>::iterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
             std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
         }
-        //for(int i=0; i<mm; i++){
-            //std::cout<<"a_"<<i<<" = "<<a_vals[i]<<" ";
-        //}
         std::cout<<"\n"<<std::endl;
     }
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
@@ -432,12 +430,14 @@ NT volume_gaussian_annealing(T &P,
     Point p(n);
     std::pair<int,NT> res;
     Point p_prev=p;
-    int coord_prev=-1, i=0;
+    int coord_prev, i=0;
 
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
     typename std::vector<NT>::iterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin();
+    if(var.coordinate){
+        gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var,first_coord_point);
+    }
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) {
-    //for(int i=0; i<mm-1; i++){
         //initialize convergence test
         curr_eps = error/std::sqrt((NT(mm)));
         done=false;
@@ -450,21 +450,13 @@ NT volume_gaussian_annealing(T &P,
         std::vector<NT> last_W=last_W2;
         n_threads=1;
 
-        if(var.coordinate){
-            gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var,true);
-        }
-
         while(!done || (*itsIt)<min_steps){
-        //while(!done || its[i]<min_steps){
 
             gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
 
             *itsIt = *itsIt + 1.0;
-            //its[i] += 1.0;
             *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);
-            //fn[i] += eval_exp(p,a_vals[i+1]) / eval_exp(p,a_vals[i]);
             val = (*fnIt) / (*itsIt);
-            //val = fn[i]/its[i];
 
             last_W[index] = val;
             if(val<=min_val){
@@ -497,7 +489,7 @@ NT volume_gaussian_annealing(T &P,
         vol = vol*((*fnIt) / (*itsIt));
     }
     if (print) {
-        NT sum_of_steps;
+        NT sum_of_steps = 0.0;
         for(typename std::vector<NT>::iterator it = its.begin(); it != its.end(); ++it) {
             sum_of_steps += *it;
         }
