@@ -24,7 +24,7 @@
 
 #include <complex>
 
-//Functions below from http://www.cplusplus.com/forum/beginner/130733/
+
 //Function for average
 template <typename FT>
 FT mean ( std::vector<FT> &v ) {
@@ -108,9 +108,6 @@ int get_first_gaussian(T1 &K, FT radius, FT &error, std::vector<FT> &a_vals, FT 
         for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
             sum += std::exp(-mid * std::pow(*it, 2)) / (2 * (*it) * std::sqrt(M_PI * mid));
         }
-        //for (int i = 0; i < dists.size(); i++) {
-            //sum += std::exp(-mid * std::pow(dists[i], 2)) / (2 * dists[i] * std::sqrt(M_PI * mid));
-        //}
 
         sigma_sqd = 1.0 / (2.0 * mid);
 
@@ -174,19 +171,19 @@ int get_annealing_schedule(T1 K, std::vector<FT> &a_vals, FT &error, FT radius, 
     get_first_gaussian(K, radius, error, a_vals, frac, var);
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
     FT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0;
-    int it = 0, dim = K.dimension(), steps = ((int)150/error)+1;
+    int it = 0, n = var.n, steps, coord_prev;
+    const int totalSteps= ((int)150/error)+1;
     std::list<Point> randPoints;
 
     if(a_vals[0]<a_stop) {
         a_vals[0] = a_stop;
     }
 
-    Point p(K.dimension());
+    Point p(n);
 
     if(print) std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
 
     Point p_prev=p;
-    int coord_prev=-1;
     std::vector<FT> lamdas(K.num_of_hyperplanes(),NT(0));
     while (curr_fn/curr_its>1.001 && a_vals[it]>=a_stop) {
         get_next_gaussian(K, a_vals, a_vals[it], N, ratio, C, p, var);
@@ -194,13 +191,11 @@ int get_annealing_schedule(T1 K, std::vector<FT> &a_vals, FT &error, FT radius, 
 
         curr_fn = 0;
         curr_its = 0;
-        p_prev=p;
-        coord_prev=-1;
         std::fill(lamdas.begin(), lamdas.end(), FT(0));
-        steps = ((int)150/error)+1;
+        steps = totalSteps;
 
         if (var.coordinate){
-            gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var, true);
+            gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var, first_coord_point);
             curr_its += 1.0;
             curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
             steps--;
