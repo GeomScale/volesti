@@ -14,7 +14,7 @@
 
 
 // my H-polytope class
-template <typename K>
+template <typename FT>
 class Polytope{
 private:
     Eigen::MatrixXd A; //matrix A
@@ -22,7 +22,7 @@ private:
     int            _d; //dimension
 
 public:
-    typedef K                    FT;
+    //typedef FT                    RT;
     Polytope() {}
 
     // constructor: cube(d)
@@ -77,14 +77,14 @@ public:
         return -1;
     }
 
-    K get_coeff(int i, int j) {
+    FT get_coeff(int i, int j) {
         if (j == 0) {
             return b(i);
         }
         return A(i, j - 1);
     }
 
-    void put_coeff(int i, int j, K value) {
+    void put_coeff(int i, int j, FT value) {
         if (j == 0) {
             b(i) = value;
         } else {
@@ -119,7 +119,7 @@ public:
         return 0;
     }
 
-    int init(std::vector<std::vector<K> > Pin) {
+    int init(std::vector<std::vector<FT> > Pin) {
         _d = Pin[0][1] - 1;
         //define matrix A and vector b, s.t. Ax<=b
         A.resize(Pin.size() - 1, _d);
@@ -213,14 +213,14 @@ public:
     
 
     int is_in(Point p) {
-        K sum;
+        FT sum;
         int m = A.rows(), i, j;
         for (i = 0; i < m; i++) {
             sum = b(i);
             for (j = 0; j < _d; j++) {
                 sum -= A(i, j) * p[j];
             }
-            if (sum < K(0)) {
+            if (sum < FT(0)) {
                 return 0;
             }
         }
@@ -228,33 +228,32 @@ public:
     }
 
 
-    std::pair<Point,double> chebyshev_center() {
+    std::pair<Point,FT> chebyshev_center() {
 
-        std::pair<Point, double> res;
+        std::pair <Point,FT> res;
         res = solveLP(A, b, _d);
         return res;
-
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT,NT> line_intersect(Point r,
+    std::pair<FT,FT> line_intersect(Point r,
                                           Point v) {
-        K lamda = 0;
-        K min_plus = 0, max_minus = 0;
-        K sum_nom, sum_denom;
+        FT lamda = 0;
+        FT min_plus = 0, max_minus = 0;
+        FT sum_nom, sum_denom;
         bool min_plus_not_set = true;
         bool max_minus_not_set = true;
-        int m = num_of_hyperplanes();
+        int i, j, m = num_of_hyperplanes();
 
-        for (int i = 0; i < m; i++) {
+        for (i = 0; i < m; i++) {
             sum_nom = b(i);
-            sum_denom = K(0);
-            for (int j = 0; j < _d; j++) {
+            sum_denom = FT(0);
+            for (j = 0; j < _d; j++) {
                 sum_nom -= A(i, j) * r[j];
                 sum_denom += A(i, j) * v[j];
             }
-            if (sum_denom == K(0)) {
+            if (sum_denom == FT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
@@ -271,26 +270,26 @@ public:
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::pair<FT, FT>(min_plus, max_minus);
     }
 
 
-    std::pair<NT,NT> line_intersect_coord(Point &r,
+    std::pair<FT,FT> line_intersect_coord(Point &r,
                                           int rand_coord) {
-            K lamda = 0;
-            K min_plus = 0, max_minus = 0;
+            FT lamda = 0;
+            FT min_plus = 0, max_minus = 0;
             bool min_plus_not_set = true;
             bool max_minus_not_set = true;
-            K sum_nom, sum_denom;
-            int m = num_of_hyperplanes();
+            FT sum_nom, sum_denom;
+            int i, j, m = num_of_hyperplanes();
 
-            for (int i = 0; i < m; i++) {
+            for (i = 0; i < m; i++) {
                 sum_nom = b(i);
                 sum_denom = A(i, rand_coord);
-                for (int j = 0; j < _d; j++) {
+                for (j = 0; j < _d; j++) {
                     sum_nom -= A(i, j) * r[j];
                 }
-                if (sum_denom == K(0)) {
+                if (sum_denom == FT(0)) {
                     //std::cout<<"div0"<<sum_denom<<std::endl;
                     ;
                 } else {
@@ -308,34 +307,34 @@ public:
                     if (lamda > max_minus && lamda < 0) max_minus = lamda;
                 }
             }
-            return std::pair<NT, NT>(min_plus, max_minus);
+            return std::pair<FT, FT>(min_plus, max_minus);
         }
 
 
-    std::pair<NT,NT> line_intersect_coord(Point &r,
+    std::pair<FT,FT> line_intersect_coord(Point &r,
                                           Point &r_prev,
                                           int rand_coord,
                                           int rand_coord_prev,
-                                          std::vector<NT> &lamdas,
+                                          std::vector<FT> &lamdas,
                                           bool init) {
-            K lamda = 0;
-            std::vector<NT>::iterator lamdait = lamdas.begin();
+            FT lamda = 0;
+            typename std::vector<FT>::iterator lamdait = lamdas.begin();
 
-            K min_plus = 0, max_minus = 0;
-            K sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
+            FT min_plus = 0, max_minus = 0;
+            FT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
             bool min_plus_not_set = true;
             bool max_minus_not_set = true;
-            int mini, maxi, m = num_of_hyperplanes();
+            int mini, maxi, i, j, m = num_of_hyperplanes();
 
             if (init) { //first time compute the innerprod cit*rit
-                for (int i = 0; i < m; i++) {
+                for (i = 0; i < m; i++) {
                     sum_nom = b(i);
                     sum_denom = A(i, rand_coord);
-                    for (int j = 0; j < _d; j++) {
+                    for (j = 0; j < _d; j++) {
                         sum_nom -= A(i, j) * r[j];
                     }
                     lamdas[i] = sum_nom;
-                    if (sum_denom == K(0)) {
+                    if (sum_denom == FT(0)) {
                         //std::cout<<"div0"<<sum_denom<<std::endl;
                         ;
                     } else {
@@ -355,14 +354,14 @@ public:
                     }
                 }
             } else {//only a few opers no innerprod
-                for (int i = 0; i < m; i++) {
+                for (i = 0; i < m; i++) {
                     sum_denom = b(i);
                     c_rand_coord = A(i, rand_coord);
                     c_rand_coord_prev = A(i, rand_coord_prev);
 
                     *lamdait = *lamdait
                                + c_rand_coord_prev * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
-                    if (c_rand_coord == K(0)) {
+                    if (c_rand_coord == FT(0)) {
                         //std::cout<<"div0"<<std::endl;
                         ;
                     } else {
@@ -383,7 +382,7 @@ public:
                     ++lamdait;
                 }
             }
-            return std::pair<NT, NT>(min_plus, max_minus);
+            return std::pair<FT,FT> (min_plus, max_minus);
         }
 
     
