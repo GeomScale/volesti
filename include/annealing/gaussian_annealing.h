@@ -25,37 +25,22 @@
 #include <complex>
 
 
-//Function for average
+//An implementation of Welford's algorithm for mean and variance.
 template <typename FT>
-FT mean ( std::vector<FT> &v ) {
-    FT return_value = 0.0;
-    int n = v.size();
+std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
+    FT mean = 0, M2 = 0, variance = 0, delta;
 
-    for (int i = 0; i < n; i++) {
-        return_value += v[i];
+    int i=0;
+    typename std::vector<FT>::iterator vecit = vec.begin();
+    for( ; vecit!=vec.end(); vecit++, i++){
+        delta = *vecit - mean;
+        mean += delta / (i + 1);
+        M2 += delta * (*vecit - mean);
+        variance = M2 / (i + 1);
     }
 
-    return (return_value / (FT(n)));
+    return std::pair<FT,FT> (mean, variance);
 }
-//****************End of average funtion****************
-
-
-//Function for variance
-template <typename FT>
-FT variance ( std::vector<FT> &v , FT m ) {
-    FT sum = 0.0;
-    FT temp;
-    int n = v.size();
-
-    for (int j = 0; j < n; j++) {
-        //temp = pow(v[j] - m,2.0);
-        temp = (v[j] - m) * (v[j] - m);
-        sum += temp;
-    }
-
-    return sum / (FT(n - 1));
-}
-//****************End of variance funtion****************
 
 
 
@@ -63,6 +48,8 @@ template <class T1, typename FT>
 int get_first_gaussian(T1 &K, FT radius, FT &error, std::vector<FT> &a_vals, FT frac, vars_g var) {
 
     int m = K.num_of_hyperplanes(), dim = var.n, its = 0;
+    const int maxiter = 10000;
+    const FT tol = 0.0000001;
     FT sum, lower = 0.0, upper = 1.0, sigma_sqd, t, mid;
     std::vector <FT> dists(m, 0);
     for (int i = 0; i < m; i++) {
@@ -73,36 +60,29 @@ int get_first_gaussian(T1 &K, FT radius, FT &error, std::vector<FT> &a_vals, FT 
         dists[i] = K.get_coeff(i, 0) / std::sqrt(sum);
     }
 
-    //FT d = std::pow(10.0, 10.0);
-
-    while (its < 10000) {
+    while (its < maxiter) {
         its += 1;
         sum = 0.0;
         for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
             sum += std::exp(-upper * std::pow(*it, 2.0)) / (2.0 * (*it) * std::sqrt(M_PI * upper));
         }
-        //for (int i = 0; i < dists.size(); i++) {
-            //sum += std::exp(-upper * std::pow(dists[i], 2.0)) / (2.0 * dists[i] * std::sqrt(M_PI * upper));
-        //}
 
         sigma_sqd = 1 / (2.0 * upper);
 
-        //t = (d-sigma_sqd*(NT(dim)))/(sigma_sqd*std::sqrt(((double)dim)));
-        //sum+=std::exp(std::pow(-t,2.0)/8.0);
-        if (sum > frac * error) {//} || t<=1){
+        if (sum > frac * error) {
             upper = upper * 10;
         } else {
             break;
         }
     }
 
-    if (its == 10000) {
+    if (its == maxiter) {
         std::cout << "Cannot obtain sharp enough starting Gaussian" << std::endl;
         exit(-1);
     }
 
     //get a_0 with binary search
-    while (upper - lower > 0.0000001) {
+    while (upper - lower > tol) {
         mid = (upper + lower) / 2.0;
         sum = 0.0;
         for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
@@ -111,9 +91,7 @@ int get_first_gaussian(T1 &K, FT radius, FT &error, std::vector<FT> &a_vals, FT 
 
         sigma_sqd = 1.0 / (2.0 * mid);
 
-        //t = (d-sigma_sqd)/(sigma_sqd*std::sqrt(((double)dim)));
-        //sum += std::exp(std::pow(-t,2.0)/8.0);
-        if (sum < frac * error) {//} && t>1){
+        if (sum < frac * error) {
             upper = mid;
         } else {
             lower = mid;
@@ -130,9 +108,10 @@ int get_first_gaussian(T1 &K, FT radius, FT &error, std::vector<FT> &a_vals, FT 
 template <class T1, typename FT>
 int get_next_gaussian(T1 K,std::vector<FT> &a_vals, FT a, int N, FT ratio, FT C, Point &p, vars_g var){
 
-    FT last_a = a, last_ratio = 0.1, avg, average;
+    FT last_a = a, last_ratio = 0.1, k=1.0;
+    const FT tol = 0.00001;
     bool done=false, print=var.verbose;
-    int k=1, i;
+    int i;
     std::vector<FT> fn(N,0);
 
     //sample N points using hit and run
@@ -152,19 +131,19 @@ int get_next_gaussian(T1 K,std::vector<FT> &a_vals, FT a, int N, FT ratio, FT C,
             fn[i] = eval_exp(*pit,a)/eval_exp(*pit, last_a);
             i++;
         }
-        avg=mean(fn);
+        std::pair<FT,FT> mv = getMeanVariance(fn);
 
-        if(variance(fn,avg)/std::pow(avg,2.0)>=C || avg/last_ratio<1.00001){
-            if(k!=1){
+        if(mv.second/(mv.first * mv.first)>=C || mv.first/last_ratio<1.0+tol){
+            if(k!=1.0){
                 k=k/2;
             }
             done=true;
         }else{
             k=2*k;
         }
-        last_ratio = avg;
+        last_ratio = mv.first;
     }
-    a_vals.push_back(last_a*std::pow(ratio, (FT(k)) ) );
+    a_vals.push_back(last_a*std::pow(ratio, k ) );
 
     return 1;
 }
@@ -176,6 +155,7 @@ int get_annealing_schedule(T1 K, std::vector<FT> &a_vals, FT &error, FT radius, 
     get_first_gaussian(K, radius, error, a_vals, frac, var);
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
     FT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0;
+    const FT tol = 0.001;
     int it = 0, n = var.n, steps, coord_prev;
     const int totalSteps= ((int)150/error)+1;
     std::list<Point> randPoints;
@@ -190,7 +170,7 @@ int get_annealing_schedule(T1 K, std::vector<FT> &a_vals, FT &error, FT radius, 
 
     Point p_prev=p;
     std::vector<FT> lamdas(K.num_of_hyperplanes(),NT(0));
-    while (curr_fn/curr_its>1.001 && a_vals[it]>=a_stop) {
+    while (curr_fn/curr_its>(1.0+tol) && a_vals[it]>=a_stop) {
         get_next_gaussian(K, a_vals, a_vals[it], N, ratio, C, p, var);
         it++;
 

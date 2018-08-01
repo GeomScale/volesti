@@ -61,11 +61,12 @@ FT get_max_coord(FT l, FT u, FT a_i) {
 template <typename FT>
 int rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
     FT r, r_val, fn;
+    const FT tol = 0.00000001;
     Point bef = upper - lower;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    if (a_i > 0.00000001 && std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i))) {
+    if (a_i > tol && std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i))) {
         boost::normal_distribution<> rdist(0, 1);
         Point a = -1.0 * lower;
         Point b = (1.0 / std::sqrt(bef.squared_length())) * bef;
@@ -102,10 +103,11 @@ int rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
 template <typename FT>
 int rand_exp_range_coord(FT l, FT u, FT a_i, FT &dis, vars_g &var) {
     FT r, r_val, fn;
+    const FT tol = 0.00000001;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    if (a_i > std::pow(10, -8.0) && u - l >= 2.0 / std::sqrt(2.0 * a_i)) {
+    if (a_i > tol && u - l >= 2.0 / std::sqrt(2.0 * a_i)) {
         boost::normal_distribution<> rdist(0, 1);
         while (true) {
             r = rdist(rng2);

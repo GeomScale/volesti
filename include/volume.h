@@ -344,7 +344,7 @@ template <class T>
 NT volume_gaussian_annealing(T &P,
                              vars_g &var,  // constans for volume
                              vars &var2,
-                             std::pair<Point,double> CheBall) {
+                             std::pair<Point,NT> CheBall) {
     NT vol;
     bool round = var.round, done;
     bool print = var.verbose;
@@ -376,27 +376,16 @@ NT volume_gaussian_annealing(T &P,
 
     //1. Move chebychev center to origin and apply the same shifting to the polytope
     int m=P.num_of_hyperplanes();
-    Eigen::MatrixXd A(m,n);
-    Eigen::VectorXd b(m);
     Eigen::VectorXd c_e(n);
     for(int i=0; i<n; i++){
         c_e(i)=c[i];
     }
-    for(int i=0; i<m; ++i){
-        b(i) = P.get_coeff(i,0);
-        for(int j=1; j<n+1; ++j){
-            A(i,j-1) = P.get_coeff(i,j);
-        }
-    }
+    Eigen::MatrixXd A = P.get_eigen_mat();
+    Eigen::VectorXd b = P.get_eigen_vec();
     //Shift polytope
     b = b - A*c_e;
     // Write changesto the polytope!
-    for(int i=0; i<m; ++i){
-        P.put_coeff(i,0,b(i));
-        for(int j=1; j<n+1; ++j){
-            P.put_coeff(i,j,A(i,j-1));
-        }
-    }
+    P.set_eigen_vec(b);
 
     std::vector<NT> a_vals;
     NT ratio = var.ratio;
