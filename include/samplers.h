@@ -11,51 +11,48 @@
 #define RANDOM_SAMPLERS_H
 
 
-template <class P>
-class Random_points_on_sphere_d
-{
-private:
-    typedef typename P::FT 	FT;
-    int d;
-    FT r;
-public:
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //RNGType rng(std::chrono::system_clock::now().time_since_epoch().count());
-    //rn generator;
-    //std::default_random_engine generator;   
-    //std::normal_distribution<FT> distribution = std::normal_distribution<FT>(FT(0),FT(1));
-    boost::normal_distribution<> distribution = boost::normal_distribution<>(0,1.0);
-    //typedef std::vector<K> coeff;
-    //coeff coeffs;
-    
-    Random_points_on_sphere_d() {}
-    
-    Random_points_on_sphere_d(int dim, FT radius) {
-        d = dim;
-        r = radius;
+Point get_direction(int dim) {
+    boost::normal_distribution<> rdist(0,1);
+    std::vector<NT> Xs(dim,0);
+    NT normal = NT(0);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    //RNGType rng2 = var.rng;
+    for (int i=0; i<dim; i++) {
+        Xs[i] = rdist(rng);
+        normal += Xs[i] * Xs[i];
     }
-    
-    template <typename GeneratorType>
-    P sample_point(GeneratorType generator){
-        std::vector<FT> Xs(d,0);
-        FT normal=FT(0);
-        for (int i=0; i<d; i++){
-            Xs[i]=distribution(generator);
-            normal+=Xs[i]*Xs[i];
-        }
-        normal=1.0/std::sqrt(normal);
-        
-        for (int i=0; i<d; i++){
-            Xs[i]=Xs[i]*normal;
-        }
-        P point(d, Xs.begin(), Xs.end());
-        point=point*r;
-        
-        return point;
-    }
-    
+    normal=1.0/std::sqrt(normal);
 
-};
+    for (int i=0; i<dim; i++) {
+        Xs[i] = Xs[i] * normal;
+    }
+    Point p(dim, Xs.begin(), Xs.end());
+    return p;
+}
+
+
+template <typename FT>
+Point get_point_on_Dsphere(int dim, FT radius){
+    Point p = get_direction(dim);//, Xs.begin(), Xs.end());
+    p = radius * p;
+    return p;
+}
+
+
+template <typename FT>
+Point get_point_in_Dsphere(int dim, FT radius){
+    boost::random::uniform_real_distribution<> urdist(0,1);
+    FT U;
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng2(seed);
+    Point p = get_direction(dim);//, Xs.begin(), Xs.end());
+    U = urdist(rng2);
+    U = std::pow(U, 1.0/(FT(dim)));
+    p = (radius*U)*p;
+    return p;
+}
+
 
 // WARNING: USE ONLY WITH BIRKHOFF POLYOPES
 // Compute more random points using symmetries of birkhoff polytope
@@ -203,9 +200,8 @@ int hit_and_run(Point &p,
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
 
-    Point origin(n);
-    Random_points_on_sphere_d<Point> gen(n, 1.0);
-    Point l = gen.sample_point(rng);
+    //Point l = get_point_on_Dsphere(n,1.0);
+    Point l = get_direction(n);
 
     std::pair <FT, FT> dbpair = P.line_intersect(p, l);
     FT min_plus = dbpair.first;

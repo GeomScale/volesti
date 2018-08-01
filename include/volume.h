@@ -191,9 +191,6 @@ NT volume(T &P,
     int n_threads = var.n_threads;
     const NT err = var.err;
     RNGType &rng = var.rng;
-    // Rotation: only for test with skinny polytopes and rounding
-    //std::cout<<"Rotate="<<rotate(P)<<std::endl;
-    //rotate(P);
 
     //0. Rounding of the polytope if round=true
     Point c=CheBall.first;
@@ -222,8 +219,7 @@ NT volume(T &P,
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-        Random_points_on_sphere_d<Point> gen (n, radius);
-        Point p = gen.sample_point(rng);
+        Point p = get_point_on_Dsphere(n, radius);
         p=p+c;
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
@@ -359,9 +355,6 @@ NT volume_gaussian_annealing(T &P,
     NT error = var.error, curr_eps, min_val, max_val, val;
     NT frac = var.frac;
     RNGType &rng = var.rng;
-    // Rotation: only for test with skinny polytopes and rounding
-    //std::cout<<"Rotate="<<rotate(P)<<std::endl;
-    //rotate(P);
 
     //0. Rounding of the polytope if round=true
     Point c=CheBall.first;
@@ -434,7 +427,7 @@ NT volume_gaussian_annealing(T &P,
 
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
     typename std::vector<NT>::iterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin();
-    if(var.coordinate){
+    if(var.coordinate && !var.ball_walk){
         gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var,first_coord_point);
     }
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) {
@@ -449,6 +442,11 @@ NT volume_gaussian_annealing(T &P,
         min_steps=0;
         std::vector<NT> last_W=last_W2;
         n_threads=1;
+        if (var.ball_walk) {
+            if (var.delta < 0.0) {
+                var.delta = 4.0 * radius / std::sqrt(std::max(1.0, *avalsIt) * NT(n));
+            }
+        }
 
         while(!done || (*itsIt)<min_steps){
 

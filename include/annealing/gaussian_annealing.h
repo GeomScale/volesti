@@ -137,6 +137,11 @@ int get_next_gaussian(T1 K,std::vector<FT> &a_vals, FT a, int N, FT ratio, FT C,
 
     //sample N points using hit and run
     std::list<Point> randPoints;
+    if (var.ball_walk) {
+        if (var.delta < 0.0) {
+            var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, last_a) * FT(var.n));
+        }
+    }
     rand_gaussian_point_generator(K, p, N, var.walk_steps, randPoints, last_a, var);
 
     while(!done){
@@ -194,11 +199,16 @@ int get_annealing_schedule(T1 K, std::vector<FT> &a_vals, FT &error, FT radius, 
         std::fill(lamdas.begin(), lamdas.end(), FT(0));
         steps = totalSteps;
 
-        if (var.coordinate){
+        if (var.coordinate && !var.ball_walk){
             gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var, first_coord_point);
             curr_its += 1.0;
             curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
             steps--;
+        }
+        if (var.ball_walk) {
+            if (var.delta < 0.0) {
+                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_vals[it - 1]) * FT(n));
+            }
         }
 
         for (int j = 0; j < steps; j++) {

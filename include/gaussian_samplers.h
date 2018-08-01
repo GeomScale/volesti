@@ -22,8 +22,7 @@
 #ifndef GAUSSIAN_SAMPLERS_H
 #define GAUSSIAN_SAMPLERS_H
 
-//#include <stdio.h>
-//#include <math.h>
+
 template <typename FT>
 FT eval_exp(Point p, FT a) {
     return std::exp(-a * p.squared_length());
@@ -150,9 +149,9 @@ int gaussian_next_point(T &P,
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    FT ball_rad;
+    FT ball_rad = var.delta;
 
-    if (var.coordinate) {
+    if (var.coordinate && !var.ball_walk) {
         rand_coord = uidist(rng2);
         std::pair <FT, FT> bpair = P.line_intersect_coord(p,rand_coord, lamdas);
         FT dis;
@@ -161,13 +160,6 @@ int gaussian_next_point(T &P,
         coord_prev = rand_coord;
         p.set_coord(rand_coord, dis);
         walk_len--;
-    }
-    if (var.ball_walk) {
-        if (var.delta < 0.0) {
-            ball_rad = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_i) * FT(n));
-        } else {
-            ball_rad = var.delta;
-        }
     }
 
     for (int j = 0; j < walk_len; j++) {
@@ -199,15 +191,7 @@ int gaussian_next_point(T &P,
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    FT ball_rad;
-
-    if (var.ball_walk) {
-        if (var.delta < 0.0) {
-            ball_rad = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_i) * FT(n));
-        } else {
-            ball_rad = var.delta;
-        }
-    }
+    FT ball_rad = var.delta;
 
     for (int j = 0; j < walk_len; j++) {
         if (var.ball_walk) {
@@ -241,19 +225,10 @@ int rand_gaussian_point_generator(T &P,
 
     std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
     int rand_coord = uidist(rng2), coord_prev;
-    FT ball_rad;
+    FT ball_rad = var.delta;
     Point p_prev = p;
 
-    if (var.ball_walk) {
-        if (var.delta < 0.0) {
-            ball_rad = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_i) * NT(n));
-        } else {
-            ball_rad = var.delta;
-        }
-    }
-        //gaussian_ball_walk(p, P, a_i, ball_rad, var);
-        //randPoints.push_back(p);
-    if (var.coordinate) {
+    if (var.coordinate && !var.ball_walk) {
         rand_coord = uidist(rng2);
         std::pair <FT, FT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
         FT dis;
@@ -289,57 +264,6 @@ int rand_gaussian_point_generator(T &P,
 }
 
 
-//template <typename FT>
-Point get_dir(vars_g var){
-    int dim = var.n;
-    boost::normal_distribution<> rdist(0,1);
-    std::vector<NT> Xs(dim,0);
-    NT normal = NT(0);
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
-    //RNGType rng2 = var.rng;
-    for (int i=0; i<dim; i++) {
-        Xs[i] = rdist(rng);
-        normal += Xs[i] * Xs[i];
-    }
-    normal=1.0/std::sqrt(normal);
-
-    for (int i=0; i<dim; i++) {
-        Xs[i] = Xs[i] * normal;
-    }
-    Point p(dim, Xs.begin(), Xs.end());
-    return p;
-}
-
-
-template <typename FT>
-Point get_point_in_Dsphere(vars_g var, FT radius){
-    int dim = var.n;
-    boost::normal_distribution<> rdist(0,1);
-    boost::random::uniform_real_distribution<> urdist(0,1);
-    std::vector<FT> Xs(dim,0);
-    FT normal=FT(0), U;
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //RNGType rng(seed);
-    RNGType &rng2 = var.rng;
-    for (int i=0; i<dim; i++) {
-        Xs[i] = rdist(rng2);
-        //std::cout<<Xs[i]<<" ";
-        normal += Xs[i] * Xs[i];
-    }
-    normal=1.0/std::sqrt(normal);
-
-    for (int i=0; i<dim; i++) {
-        Xs[i] = Xs[i] * normal;
-    }
-    Point p(dim, Xs.begin(), Xs.end());
-    U = urdist(rng2);
-    U = std::pow(U, 1.0/(FT(dim)));
-    p = (radius*U)*p;
-    return p;
-}
-
-
 template <class T, typename FT>
 int gaussian_hit_and_run(Point &p,
                 T &P,
@@ -347,7 +271,8 @@ int gaussian_hit_and_run(Point &p,
                 vars_g &var) {
     int n = var.n;
     RNGType rng2 = var.rng;
-    Point l = get_dir(var);
+    //Point l = get_point_on_Dsphere(n, 1.0);
+    Point l = get_direction(n);
     std::pair <FT, FT> dbpair = P.line_intersect(p, l);
 
     FT min_plus = dbpair.first;
@@ -392,7 +317,7 @@ int gaussian_ball_walk(Point &p,
               vars_g var) {
     int n = P.dimension();
     FT f_x, f_y, rnd;
-    Point y = get_point_in_Dsphere(var, ball_rad);
+    Point y = get_point_in_Dsphere(n, ball_rad);
     y = y + p;
     f_x = eval_exp(p, a_i);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
