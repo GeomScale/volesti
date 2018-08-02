@@ -53,30 +53,37 @@ public:
         }
     }
 
+    // return dimension
     int dimension() {
         return _d;
     }
 
+    // return the number of facets
     int num_of_hyperplanes() {
         return A.rows();
     }
 
+    // return the matrix A
     Eigen::MatrixXd get_eigen_mat() {
         return A;
     }
 
+    // return the vector b
     Eigen::VectorXd get_eigen_vec() {
         return b;
     }
 
+    // chenge the matrix A
     void set_eigen_mat(Eigen::MatrixXd A2) {
         A = A2;
     }
 
+    // change the vector b
     void set_eigen_vec(Eigen::VectorXd b2) {
         b = b2;
     }
 
+    // get a single coefficient of the matrix or the vector
     FT get_coeff(int i, int j) {
         if (j == 0) {
             return b(i);
@@ -84,6 +91,7 @@ public:
         return A(i, j - 1);
     }
 
+    // change a single coefficient of the matrix or the vector
     void put_coeff(int i, int j, FT value) {
         if (j == 0) {
             b(i) = value;
@@ -118,9 +126,9 @@ public:
         }
     }
 
+    //define matrix A and vector b, s.t. Ax<=b and the dimension
     void init(std::vector<std::vector<FT> > Pin) {
         _d = Pin[0][1] - 1;
-        //define matrix A and vector b, s.t. Ax<=b
         A.resize(Pin.size() - 1, _d);
         b.resize(Pin.size() - 1);
         for (int i = 1; i < Pin.size(); i++) {

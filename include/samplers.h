@@ -11,6 +11,7 @@
 #define RANDOM_SAMPLERS_H
 
 
+// Pick a random direction as a normilized vector
 Point get_direction(int dim) {
     boost::normal_distribution<> rdist(0,1);
     std::vector<NT> Xs(dim,0);
@@ -32,21 +33,23 @@ Point get_direction(int dim) {
 }
 
 
+// Pick a random point from a d-sphere
 template <typename FT>
 Point get_point_on_Dsphere(int dim, FT radius){
-    Point p = get_direction(dim);//, Xs.begin(), Xs.end());
+    Point p = get_direction(dim);
     p = radius * p;
     return p;
 }
 
 
+// Pick a random point from a d-ball
 template <typename FT>
 Point get_point_in_Dsphere(int dim, FT radius){
     boost::random::uniform_real_distribution<> urdist(0,1);
     FT U;
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng2(seed);
-    Point p = get_direction(dim);//, Xs.begin(), Xs.end());
+    Point p = get_direction(dim);
     U = urdist(rng2);
     U = std::pow(U, 1.0/(FT(dim)));
     p = (radius*U)*p;
@@ -64,29 +67,18 @@ int birk_sym(T &P,K &randPoints,Point &p){
         myints.push_back(i);
     }
 
-    //std::cout << "The n! possible permutations with n elements:\n";
+    //The n! possible permutations with n elements
     do {
         std::vector<NT> newpv;
-        for (int i=0; i<n; i++){
-            //std::cout << myints[i] << " ";
-        }
-        //std::cout << std::endl;
+
         for (int j=0; j<p.dimension(); j++){
-            //std::cout << (myints[j/n])*n+1+j%n << " ";
             int idx = (myints[j/n])*n+1+j%n-1;
-            //std::cout << idx << " ";
             newpv.push_back(p[idx]);
         }
-        //std::cout << "\n";
-        Point new_p(p.dimension(),newpv.begin(),newpv.end());
-        //std::cout << p << std::endl;
-        //std::cout << new_p << "\n" << std::endl;
 
-        //std::cout << P.is_in(new_p) << std::endl;
+        Point new_p(p.dimension(),newpv.begin(),newpv.end());
         if(P.is_in(new_p) != 0){
-            //std::cout << "wrong\n";
             randPoints.push_back(new_p);
-            //exit(1);
         }
     } while ( std::next_permutation(myints.begin(),myints.end()) );
 }
@@ -189,7 +181,7 @@ void rand_point_generator(BallIntersectPolytope<T,NT> &PBLarge,
 
 // ----- HIT AND RUN FUNCTIONS ------------ //
 
-//hit-and-run with random directions
+//hit-and-run with random directions and update
 template <class T>
 void hit_and_run(Point &p,
                 T &P,
