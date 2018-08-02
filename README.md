@@ -116,9 +116,11 @@ To use CV algorithm run the following command:
 ./vol -f1 ./test_data/cube10.ine -g_an  
 ```
 which returns:  
-```volume computed =...  
-Total time = .. sec```
- 
+```
+volume computed =...  
+Total time = .. sec
+```
+  
 Credits
 -------
 
