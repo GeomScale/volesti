@@ -63,8 +63,8 @@ int main(const int argc, const char** argv)
 	Polytope<NT> P;
 	int magnitude=0;
 	bool exper=false, user_W=false, user_N=false, user_ratio=false;
-	double ball_radius=0.0;
-	double C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
+	NT ball_radius=0.0;
+	NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
 	
   if(argc<2){
     std::cout<<"Use -h for help"<<std::endl;
@@ -370,7 +370,7 @@ int main(const int argc, const char** argv)
   
   for(int i=0; i<num_of_exp; ++i){
       std::cout<<"Experiment "<<i+1<<" ";
-      Polytope<NT> P_to_test(P);
+      //Polytope<NT> P_to_test(P);
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
@@ -394,7 +394,7 @@ int main(const int argc, const char** argv)
               vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,rng,
                        urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
               vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
-              vol = volume_gaussian_annealing(P_to_test, var1, var2, CheBall);
+              vol = volume_gaussian_annealing(P, var1, var2, CheBall);
               tstop = (double)clock()/(double)CLOCKS_PER_SEC;
               std::cout<<"volume computed = "<<vol<<std::endl;
               std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;
