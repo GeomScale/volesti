@@ -69,14 +69,12 @@ public:
         return b;
     }
 
-    int set_eigen_mat(Eigen::MatrixXd A2) {
+    void set_eigen_mat(Eigen::MatrixXd A2) {
         A = A2;
-        return -1;
     }
 
-    int set_eigen_vec(Eigen::VectorXd b2) {
+    void set_eigen_vec(Eigen::VectorXd b2) {
         b = b2;
-        return -1;
     }
 
     FT get_coeff(int i, int j) {
@@ -95,7 +93,7 @@ public:
     }
 
     // default initialize: cube(d)
-    int init(int d) {
+    void init(int d) {
         A.resize(2 * d, d);
         b.resize(2 * d);
         for (int i = 0; i < d; ++i) {
@@ -118,10 +116,9 @@ public:
                 }
             }
         }
-        return 0;
     }
 
-    int init(std::vector<std::vector<FT> > Pin) {
+    void init(std::vector<std::vector<FT> > Pin) {
         _d = Pin[0][1] - 1;
         //define matrix A and vector b, s.t. Ax<=b
         A.resize(Pin.size() - 1, _d);
@@ -132,11 +129,10 @@ public:
                 A(i - 1, j - 1) = Pin[i][j];
             }
         }
-        return 0;
     }
 
     // print polytope in input format
-    int print() {
+    void print() {
         std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
         for (int i = 0; i < A.rows(); i++) {
             for (int j = 0; j < _d; j++) {
@@ -144,7 +140,6 @@ public:
             }
             std::cout << "<= " << b(i) << std::endl;
         }
-        return 0;
     }
 
 
@@ -341,9 +336,8 @@ public:
 
 
     //Apply linear transformation, of square matrix T, in H-polytope P:= Ax<=b
-    int linear_transformIt(Eigen::MatrixXd T) {
+    void linear_transformIt(Eigen::MatrixXd T) {
         A = A * T;
-        return 1;
     }
 
 

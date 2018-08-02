@@ -184,61 +184,82 @@ VolEsti <- function(Inputs){
     print('No H-polytope defined from input!')
     return(-1)
   }
-  
+  Cheb_ball=rep(0,dim(A)[2]+5)
   if(!is.null(Inputs$Chebychev)){
     Cheb_ball=Inputs$Chebychev
-  }else{
-    #Cheb_ball=CheBall(A,b)
-    Cheb_ball=rep(0,dim(A)[2]+5)
+  }
+  annealing=FALSE
+  if(!is.null(Inputs$annealing)){
+    annealing=Inputs$annealing
   }
   verbose=FALSE
   if(!is.null(Inputs$verbose)){
-    if(Inputs$verbose){
-      verbose=TRUE
-    }else{
-      verbose=FALSE
-    }
+    verbose=Inputs$verbose
   }
   test=FALSE
   if(!is.null(Inputs$test)){
-    if(Inputs$test){
-      test=TRUE
-    }else{
-      test=FALSE
-    }
+    test=Inputs$test
   }
   coordinate=TRUE
   if(!is.null(Inputs$coordinate)){
-    if(Inputs$coordinate){
-      coordinate=TRUE
-    }else{
-      coordinate=FALSE
-    }
+    coordinate=Inputs$coordinate
   }
   rounding=FALSE
   if(!is.null(Inputs$rounding)){
-    if(Inputs$rounding){
-      rounding=TRUE
-    }else{
-      rounding=FALSE
-    }
+    rounding=Inputs$rounding
   }
   if(!is.null(Inputs$Walk_length)){
     W=Inputs$Walk_length
   }else{
-    W=10+floor(dim(A)[2]/10)
+    if(annealing){
+      W=1
+    }else{
+      W=10+floor(dim(A)[2]/10)
+    }
   }
   if(!is.null(Inputs$error)){
     e=Inputs$error
   }else{
-    e=1
+    if(annealing){
+      e=0.2
+    }else{
+      e=1
+    }
+  }
+  dimension=dim(A)[2]
+  win_len=4*(dimension^2)+500
+  if(!is.null(Inputs$window_len)){
+    win_len=Inputs$window_len
+  }
+  C=2
+  if(!is.null(Inputs$C)){
+    C=Inputs$C
+  }
+  ratio=1-1/dimension
+  if(!is.null(Inputs$ratio)){
+    ratio=Inputs$ratio
+  }
+  N=500*C+(dimension^2)/2
+  if(!is.null(Inputs$N)){
+    N=Inputs$N
+  }
+  frac=0.1
+  if(!is.null(Inputs$frac)){
+    frac=Inputs$frac
+  }
+  ball_walk=FALSE
+  if(!is.null(Inputs$ball_walk)){
+    ball_walk=Inputs$ball_walk
+  }
+  delta=-1
+  if(!is.null(Inputs$delta)){
+    delta=Inputs$delta
   }
 
   A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
   A=matrix(rbind(r,A),ncol=dim(A)[2])
   tim=proc.time()
-  vol=vol_R(A,W,e,Cheb_ball,coordinate,rounding,verbose)
-  #print(paste0('magnitude: ',ceiling(-log10(vol))))
+  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,coordinate,rounding,verbose)
   tim=proc.time()-tim
   if(verbose || test){
     print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
