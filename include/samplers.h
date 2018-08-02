@@ -95,7 +95,7 @@ int birk_sym(T &P,K &randPoints,Point &p){
 // ----- RANDOM POINT GENERATION FUNCTIONS ------------ //
 
 template <class T, class K>
-int rand_point_generator(T &P,
+void rand_point_generator(T &P,
                          Point &p,   // a point to start
                          int rnum,
                          int walk_len,
@@ -141,7 +141,7 @@ int rand_point_generator(T &P,
 
 
 template <class T, class K>
-int rand_point_generator(BallIntersectPolytope<T,NT> &PBLarge,
+void rand_point_generator(BallIntersectPolytope<T,NT> &PBLarge,
                          Point &p,   // a point to start
                          int rnum,
                          int walk_len,
@@ -191,11 +191,11 @@ int rand_point_generator(BallIntersectPolytope<T,NT> &PBLarge,
 
 //hit-and-run with random directions
 template <class T>
-int hit_and_run(Point &p,
+void hit_and_run(Point &p,
                 T &P,
                 vars &var,
                 vars &var2) {
-    typedef typename Point::FT 	FT;
+    typedef typename Point::FT FT;
     int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
@@ -211,13 +211,12 @@ int hit_and_run(Point &p,
     FT lambda = urdist(rng);
     p = (lambda * b1);
     p = ((1 - lambda) * b2) + p;
-    return 1;
 }
 
 
 //hit-and-run with orthogonal directions and update
 template <class T, typename FT>
-int hit_and_run_coord_update(Point &p,
+void hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              T &P,
                              int rand_coord,
@@ -229,7 +228,6 @@ int hit_and_run_coord_update(Point &p,
     std::pair <FT, FT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     p_prev = p;
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-    return 1;
 }
 
 

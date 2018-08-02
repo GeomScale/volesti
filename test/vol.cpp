@@ -102,7 +102,8 @@ int main(const int argc, const char** argv)
                       "-bw : use ball walk for sampling\n"<<
                       "-bwr : the radius of the ball walk (default r*chebychev_radius/sqrt(max(1.0, a_i)*dimension\n"<<
                       "-Win : the size of the open window for the ratios convergence\n"<<
-                      "-N : the number of points to sample in each step of schedule annealing\n"<<
+                      "-C : a constant for the upper boud of variance/mean^2 in schedule annealing\n"
+                      "-N : the number of points to sample in each step of schedule annealing. Default value N = 500*C + dimension^2/2\n"<<
                       "-frac : the fraction of the total error to spend in the first gaussian\n"<<
                       "-ratio : parameter of schedule annealing, larger ratio means larger steps in schedule annealing (default 1-1/dimension)\n"<<
                       std::endl;
@@ -156,6 +157,10 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-frac")){
           frac = atof(argv[++i]);
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-C")){
+          C = atof(argv[++i]);
           correct=true;
       }
       if(!strcmp(argv[i],"-N_an")){
