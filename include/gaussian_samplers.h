@@ -58,6 +58,7 @@ FT get_max_coord(FT l, FT u, FT a_i) {
 }
 
 
+// Pick a point from gaussian on the chord
 template <typename FT>
 void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
     FT r, r_val, fn;
@@ -99,6 +100,7 @@ void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
 }
 
 
+// Pick a point from gaussian on the coordinate chord
 template <typename FT>
 FT rand_exp_range_coord(FT l, FT u, FT a_i, vars_g &var) {
     FT r, r_val, fn, dis;
@@ -134,54 +136,45 @@ FT rand_exp_range_coord(FT l, FT u, FT a_i, vars_g &var) {
 }
 
 
+// compute the first coordinate point
 template <class T, typename FT>
-void gaussian_next_point(T &P,
-                        Point &p,   // a point to start
-                        Point &p_prev,
-                        int &coord_prev,
-                        int walk_len,
-                        FT a_i,
-                        std::vector<FT> &lamdas,
-                        vars_g &var,
-                        bool first) {
+void gaussian_first_coord_point(T &P,
+                         Point &p,   // a point to start
+                         Point &p_prev, // previous point
+                         int &coord_prev, // previous coordinate ray
+                         int walk_len, // number of steps
+                         FT a_i,
+                         std::vector<FT> &lamdas,
+                         vars_g &var) {
     int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    FT ball_rad = var.delta;
 
-    if (var.coordinate && !var.ball_walk) {
-        rand_coord = uidist(rng2);
-        std::pair <FT, FT> bpair = P.line_intersect_coord(p,rand_coord, lamdas);
-        //FT dis;
-        FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
-        p_prev = p;
-        coord_prev = rand_coord;
-        p.set_coord(rand_coord, dis);
-        walk_len--;
-    }
+    rand_coord = uidist(rng2);
+    std::pair <FT, FT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+    FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
+    p_prev = p;
+    coord_prev = rand_coord;
+    p.set_coord(rand_coord, dis);
+    walk_len--;
 
     for (int j = 0; j < walk_len; j++) {
-        if (var.ball_walk) {
-            gaussian_ball_walk(p, P, a_i, ball_rad, var);
-        } else if (!var.coordinate) {
-            gaussian_hit_and_run(p, P, a_i, var);
-        } else {
-            rand_coord = uidist(rng2);
-            gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
-            coord_prev = rand_coord;
-        }
+        rand_coord = uidist(rng2);
+        gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
+        coord_prev = rand_coord;
     }
 }
 
 
+// Compute the next point with target distribution the gaussian
 template <class T, typename FT>
 void gaussian_next_point(T &P,
                         Point &p,   // a point to start
-                        Point &p_prev,
-                        int &coord_prev,
-                        int walk_len,
+                        Point &p_prev, // previous point
+                        int &coord_prev, // previous coordinate ray
+                        int walk_len, // number of steps
                         FT a_i,
                         std::vector<FT> &lamdas,
                         vars_g &var) {
@@ -206,6 +199,7 @@ void gaussian_next_point(T &P,
 }
 
 
+// Sample N points with target distribution the gaussian
 template <class T, class K, typename FT>
 void rand_gaussian_point_generator(T &P,
                          Point &p,   // a point to start
@@ -260,6 +254,7 @@ void rand_gaussian_point_generator(T &P,
 }
 
 
+// hit-and-run with random directions and update
 template <class T, typename FT>
 void gaussian_hit_and_run(Point &p,
                 T &P,
@@ -280,7 +275,7 @@ void gaussian_hit_and_run(Point &p,
 }
 
 
-//hit-and-run with orthogonal directions and update
+// hit-and-run with orthogonal directions and update
 template <class T, typename FT>
 void gaussian_hit_and_run_coord_update(Point &p,
                              Point &p_prev,
@@ -298,6 +293,8 @@ void gaussian_hit_and_run_coord_update(Point &p,
 }
 
 
+
+// ball walk and update
 template <class T, typename FT>
 void gaussian_ball_walk(Point &p,
               T &P,

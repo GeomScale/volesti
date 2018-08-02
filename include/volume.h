@@ -2,6 +2,10 @@
 
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 
+// Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef VOLUME_H
@@ -30,8 +34,7 @@ typedef double                      NT;
 //typedef long double                     NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
-typedef boost::mt19937 RNGType; ///< mersenne twister generator
-const bool first_coord_point = true;
+typedef boost::mt19937 RNGType; // mersenne twister generator
 
 
 //structs with variables and random generators
@@ -162,9 +165,11 @@ NT volume(T &P,
     const NT err = var.err;
     RNGType &rng = var.rng;
 
-    //0. Rounding of the polytope if round=true
+    //0. Get the Chebychev ball (largest inscribed ball) with center and radius
     Point c=CheBall.first;
     NT radius=CheBall.second;
+
+    //1. Rounding of the polytope if round=true
     NT round_value=1;
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
@@ -178,13 +183,11 @@ NT volume(T &P,
     }
 
 
-    //1. Get the Chebychev ball (largest inscribed ball) with center and radius
 
     rnum=rnum/n_threads;
     NT vol=0;
 
     // Perform the procedure for a number of threads and then take the average
-    //#pragma omp for ordered schedule(dynamic)
     for(int t=0; t<n_threads; t++){
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
@@ -216,7 +219,6 @@ NT volume(T &P,
         //
         // 4b. Number of balls
         int nb1 = n * (std::log(radius)/std::log(2.0));
-        //std::cout<<"nb1 = "<< n * (std::log(radius)/std::log(2.0))<<" nb1INT= "<<nb1<<" nb1stdfloor = "<<std::floor(n * (std::log(radius)/std::log(2.0)))<<std::endl;
         int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
         
         if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
@@ -323,15 +325,17 @@ NT volume_gaussian_annealing(T &P,
     bool print = var.verbose;
     bool rand_only = var.rand_only;
     int n = var.n, steps;
-    int walk_len = var.walk_steps;
+    int walk_len = var.walk_steps, m=P.num_of_hyperplanes();
     int n_threads = var.n_threads, min_index, max_index, index, min_steps;
     NT error = var.error, curr_eps, min_val, max_val, val;
     NT frac = var.frac;
     RNGType &rng = var.rng;
 
-    //0. Rounding of the polytope if round=true
+    // Consider Chebychev center as an internal point
     Point c=CheBall.first;
     NT radius=CheBall.second;
+
+    // rounding of the polytope if round=true
     NT round_value=1;
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
@@ -343,28 +347,31 @@ NT volume_gaussian_annealing(T &P,
         std::pair<Point,NT> res=P.chebyshev_center();
         c=res.first; radius=res.second;
     }
+
+    // Save the radius of the Chebychev ball if ball walk is requested
     if(var.ball_walk){
         var.che_rad = radius;
     }
 
-    //1. Move chebychev center to origin and apply the same shifting to the polytope
-    int m=P.num_of_hyperplanes();
+    // Move chebychev center to origin and apply the same shifting to the polytope
     Eigen::VectorXd c_e(n);
     for(int i=0; i<n; i++){
-        c_e(i)=c[i];
+        c_e(i)=c[i];  // write chebychev center in an eigen vector
     }
     Eigen::MatrixXd A = P.get_eigen_mat();
     Eigen::VectorXd b = P.get_eigen_vec();
-    //Shift polytope
+    // Shift polytope
     b = b - A*c_e;
-    // Write changesto the polytope!
+    // Write changesto the polytope
     P.set_eigen_vec(b);
 
+    // Initialization
     std::vector<NT> a_vals;
     NT ratio = var.ratio;
     NT C = var.C;
     int N = var.N;
 
+    // Computing the sequence of gaussians
     if(print) std::cout<<"\n\nComputing annealing...\n"<<std::endl;
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
     get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals);
@@ -378,34 +385,38 @@ NT volume_gaussian_annealing(T &P,
         std::cout<<"\n"<<std::endl;
     }
 
+    // Initialization for the approximation of the ratios
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
     int W = var.W;
     std::vector<NT> last_W2(W,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
-    if(print) std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
-
-    Point p(n);
+    Point p(n); // The origin is in the Chebychev center of the Polytope
     std::pair<int,NT> res;
     Point p_prev=p;
     int coord_prev, i=0;
-
-    if(print) std::cout<<"computing ratios..\n"<<std::endl;
     typename std::vector<NT>::iterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
+
+    if(print) std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
+    if(print) std::cout<<"computing ratios..\n"<<std::endl;
+
+    // Compute the first point if CDHR is requested
     if(var.coordinate && !var.ball_walk){
-        gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var,first_coord_point);
+        //gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var,first_coord_point);
+        gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
     }
-    for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) {
+    for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios
         //initialize convergence test
         curr_eps = error/std::sqrt((NT(mm)));
         done=false;
-        min_val=-std::pow(10.0,10.0);
-        max_val=-min_val;
-        min_index=W-1;
-        max_index=W-1;
+        min_val = minNT;
+        max_val = maxNT;
+        min_index = W-1;
+        max_index = W-1;
         index = 0;
         min_steps=0;
         std::vector<NT> last_W=last_W2;
-        n_threads=1;
+
+        // Set the radius for the ball walk if it is requested
         if (var.ball_walk) {
             if (var.delta < 0.0) {
                 var.delta = 4.0 * radius / std::sqrt(std::max(1.0, *avalsIt) * NT(n));
@@ -450,6 +461,7 @@ NT volume_gaussian_annealing(T &P,
         if(print) std::cout<<"ratio "<<i<<" = "<<(*fnIt) / (*itsIt)<<" N_"<<i<<" = "<<*itsIt<<std::endl;
         vol = vol*((*fnIt) / (*itsIt));
     }
+    // Compute and print total number of steps in verbose mode only
     if (print) {
         NT sum_of_steps = 0.0;
         for(typename std::vector<NT>::iterator it = its.begin(); it != its.end(); ++it) {
