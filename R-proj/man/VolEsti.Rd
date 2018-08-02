@@ -15,19 +15,35 @@ VolEsti(Inputs)
 
 \item{vector}{The vector b that containes the constants of the hyperplanes}
 
+\item{Walk_length}{Optional. Declare the number of the steps for the random walk, default is 10+d/10}
+
+\item{error}{Optional. Declare the goal for the approximation error. Default is 1 for volesti and 0.2 for CV.}
+
 \item{Chebychev}{Optional. A d+1 vector that containes the chebychev center in the first d coordinates and the radius of the chebychev ball in the last coordinate}
+
+\item{annealing}{Optional. A boolean parameter to use CV algorithm. Default value is false.}
+
+\item{win_len}{Optional. The size of the window for the ratios' approximation in CV algorithm. Default value is win_len=4*(dimension^2)+500}
+
+\item{C}{Optional. a constant for the upper boud of variance/mean^2 in schedule annealing}
+
+\item{N}{optional. The number of points we sample in each step of schedule annealing in CV algorithm. Default value is N=500*C+(dimension^2)/2}
+
+\item{ratio}{Optional. parameter of schedule annealing, larger ratio means larger steps in schedule annealing. Default value is ratio=1-1/dimension}
+
+\item{frac}{Optional. the fraction of the total error to spend in the first gaussian. Default value is frac=0.1}
+
+\item{ball_walk}{Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is False}
+
+\item{delta}{Optional. The radius for the ball walk}
 
 \item{verbose}{Optional. A boolean parameter for printing. Default is False}
 
-\item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default is True}
+\item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is True}
 
-\item{rounding}{Optional. A boolean parameter to activate the rounding option. Default is False}
+\item{rounding}{Optional. A boolean parameter to activate the rounding option. Default value is False}
 
-\item{Walk_length}{Optional. Declare the number of the steps for the random walk, default is 10+d/10}
-
-\item{error}{Optional. Declare the goal for the approximation error. Default is 1}
-
-\item{test}{Optional. A boolean parameter. Declare if the current excecution is a test or not. Default is False}
+\item{test}{Optional. A boolean parameter. Declare if the current excecution is a test or not. Default value is False}
 }
 \value{
 The approximation of the volume of an H-polytope

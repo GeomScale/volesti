@@ -104,7 +104,7 @@ int main(const int argc, const char** argv)
                       "-Win : the size of the open window for the ratios convergence\n"<<
                       "-C : a constant for the upper boud of variance/mean^2 in schedule annealing\n"
                       "-N : the number of points to sample in each step of schedule annealing. Default value N = 500*C + dimension^2/2\n"<<
-                      "-frac : the fraction of the total error to spend in the first gaussian\n"<<
+                      "-frac : the fraction of the total error to spend in the first gaussian (default frac=0.1)\n"<<
                       "-ratio : parameter of schedule annealing, larger ratio means larger steps in schedule annealing (default 1-1/dimension)\n"<<
                       std::endl;
           return 0;
