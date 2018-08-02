@@ -340,6 +340,9 @@ NT volume(T &P,
 
 
 
+// Implementation is based on algorithm from paper "A practical volume algorithm",
+// Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
+// Ben Cousins, Santosh Vempala
 template <class T>
 NT volume_gaussian_annealing(T &P,
                              vars_g &var,  // constans for volume
@@ -390,11 +393,11 @@ NT volume_gaussian_annealing(T &P,
     std::vector<NT> a_vals;
     NT ratio = var.ratio;
     NT C = var.C;
+    int N = var.N;
 
     if(print) std::cout<<"\n\nComputing annealing...\n"<<std::endl;
-    int N = var.N;
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    get_annealing_schedule(P, a_vals, error, radius, ratio, C, frac, N, var);
+    get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"All the variances of schedule_Sannealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
     int mm = a_vals.size()-1, j=0;
@@ -404,11 +407,13 @@ NT volume_gaussian_annealing(T &P,
         }
         std::cout<<"\n"<<std::endl;
     }
+
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
     int W = var.W;
     std::vector<NT> last_W2(W,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
     if(print) std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
+
     Point p(n);
     std::pair<int,NT> res;
     Point p_prev=p;

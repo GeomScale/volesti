@@ -59,7 +59,7 @@ FT get_max_coord(FT l, FT u, FT a_i) {
 
 
 template <typename FT>
-int rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
+void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
     FT r, r_val, fn;
     const FT tol = 0.00000001;
     Point bef = upper - lower;
@@ -96,13 +96,12 @@ int rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
             }
         }
     }
-    return 1;
 }
 
 
 template <typename FT>
-int rand_exp_range_coord(FT l, FT u, FT a_i, FT &dis, vars_g &var) {
-    FT r, r_val, fn;
+FT rand_exp_range_coord(FT l, FT u, FT a_i, vars_g &var) {
+    FT r, r_val, fn, dis;
     const FT tol = 0.00000001;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
@@ -131,13 +130,12 @@ int rand_exp_range_coord(FT l, FT u, FT a_i, FT &dis, vars_g &var) {
             }
         }
     }
-
-    return 1;
+    return dis;
 }
 
 
 template <class T, typename FT>
-int gaussian_next_point(T &P,
+void gaussian_next_point(T &P,
                         Point &p,   // a point to start
                         Point &p_prev,
                         int &coord_prev,
@@ -156,8 +154,8 @@ int gaussian_next_point(T &P,
     if (var.coordinate && !var.ball_walk) {
         rand_coord = uidist(rng2);
         std::pair <FT, FT> bpair = P.line_intersect_coord(p,rand_coord, lamdas);
-        FT dis;
-        rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, dis, var);
+        //FT dis;
+        FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
         p_prev = p;
         coord_prev = rand_coord;
         p.set_coord(rand_coord, dis);
@@ -175,12 +173,11 @@ int gaussian_next_point(T &P,
             coord_prev = rand_coord;
         }
     }
-    return 1;
 }
 
 
 template <class T, typename FT>
-int gaussian_next_point(T &P,
+void gaussian_next_point(T &P,
                         Point &p,   // a point to start
                         Point &p_prev,
                         int &coord_prev,
@@ -206,12 +203,11 @@ int gaussian_next_point(T &P,
             coord_prev = rand_coord;
         }
     }
-    return 1;
 }
 
 
 template <class T, class K, typename FT>
-int rand_gaussian_point_generator(T &P,
+void rand_gaussian_point_generator(T &P,
                          Point &p,   // a point to start
                          int rnum,
                          int walk_len,
@@ -225,7 +221,7 @@ int rand_gaussian_point_generator(T &P,
     RNGType &rng2 = var.rng;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+    std::vector <FT> lamdas(P.num_of_hyperplanes(), FT(0));
     int rand_coord = uidist(rng2), coord_prev;
     FT ball_rad = var.delta;
     Point p_prev = p;
@@ -233,8 +229,8 @@ int rand_gaussian_point_generator(T &P,
     if (var.coordinate && !var.ball_walk) {
         rand_coord = uidist(rng2);
         std::pair <FT, FT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-        FT dis;
-        rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, dis, var);
+        //FT dis;
+        FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
         p_prev = p;
         coord_prev = rand_coord;
         p.set_coord(rand_coord, dis);
@@ -260,14 +256,12 @@ int rand_gaussian_point_generator(T &P,
                 gaussian_hit_and_run(p, P, a_i, var);
         }
         randPoints.push_back(p);
-        //if(birk) birk_sym(P,randPoints,p);
     }
-    return 1;
 }
 
 
 template <class T, typename FT>
-int gaussian_hit_and_run(Point &p,
+void gaussian_hit_and_run(Point &p,
                 T &P,
                 FT a_i,
                 vars_g &var) {
@@ -283,14 +277,12 @@ int gaussian_hit_and_run(Point &p,
     Point lower = (max_minus * l) + p;
 
     rand_exp_range(lower, upper, a_i, p, var);
-
-    return 1;
 }
 
 
 //hit-and-run with orthogonal directions and update
 template <class T, typename FT>
-int gaussian_hit_and_run_coord_update(Point &p,
+void gaussian_hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              T &P,
                              int rand_coord,
@@ -298,21 +290,16 @@ int gaussian_hit_and_run_coord_update(Point &p,
                              FT a_i,
                              std::vector<FT> &lamdas,
                              vars_g &var) {
-    std::pair <FT, FT> bpair;
-    bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
-    FT min_plus = bpair.first;
-    FT max_minus = bpair.second;
-    FT dis;
-    rand_exp_range_coord(p[rand_coord] + max_minus, p[rand_coord] + min_plus, a_i, dis, var);
+    std::pair <FT, FT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
+    //FT dis;
+    FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
     p_prev = p;
     p.set_coord(rand_coord, dis);
-    return 1;
 }
 
 
-//Ball walk. Test_2
 template <class T, typename FT>
-int gaussian_ball_walk(Point &p,
+void gaussian_ball_walk(Point &p,
               T &P,
               FT a_i,
               FT ball_rad,
@@ -333,10 +320,6 @@ int gaussian_ball_walk(Point &p,
             p = y;
         }
     }
-    return 1;
 }
-
-
-
 
 #endif

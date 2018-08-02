@@ -45,9 +45,10 @@ std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
 
 
 template <class T1, typename FT>
-int get_first_gaussian(T1 &K, FT radius, FT &error, std::vector<FT> &a_vals, FT frac, vars_g var) {
+void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
 
-    int m = K.num_of_hyperplanes(), dim = var.n, its = 0;
+    int m = K.num_of_hyperplanes(), dim = var.n;
+    unsigned int iterations = 0;
     const int maxiter = 10000;
     const FT tol = 0.0000001;
     FT sum, lower = 0.0, upper = 1.0, sigma_sqd, t, mid;
@@ -60,8 +61,8 @@ int get_first_gaussian(T1 &K, FT radius, FT &error, std::vector<FT> &a_vals, FT 
         dists[i] = K.get_coeff(i, 0) / std::sqrt(sum);
     }
 
-    while (its < maxiter) {
-        its += 1;
+    while (iterations < maxiter) {
+        iterations += 1;
         sum = 0.0;
         for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
             sum += std::exp(-upper * std::pow(*it, 2.0)) / (2.0 * (*it) * std::sqrt(M_PI * upper));
@@ -76,7 +77,7 @@ int get_first_gaussian(T1 &K, FT radius, FT &error, std::vector<FT> &a_vals, FT 
         }
     }
 
-    if (its == maxiter) {
+    if (iterations == maxiter) {
         std::cout << "Cannot obtain sharp enough starting Gaussian" << std::endl;
         exit(-1);
     }
@@ -100,18 +101,17 @@ int get_first_gaussian(T1 &K, FT radius, FT &error, std::vector<FT> &a_vals, FT 
 
     a_vals.push_back((upper + lower) / 2.0);
     error = (1.0 - frac) * error;
-
-    return 1;
 }
 
 
 template <class T1, typename FT>
-int get_next_gaussian(T1 K,std::vector<FT> &a_vals, FT a, int N, FT ratio, FT C, Point &p, vars_g var){
+void get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var, std::vector<FT> &a_vals){
 
-    FT last_a = a, last_ratio = 0.1, k=1.0;
+    FT last_a = a, last_ratio = 0.1;
+    //k is needed for the computation of the next variance a_{i+1} = a_i * (1-1/d)^k
+    FT k = 1.0;
     const FT tol = 0.00001;
     bool done=false, print=var.verbose;
-    int i;
     std::vector<FT> fn(N,0);
 
     //sample N points using hit and run
@@ -122,14 +122,14 @@ int get_next_gaussian(T1 K,std::vector<FT> &a_vals, FT a, int N, FT ratio, FT C,
         }
     }
     rand_gaussian_point_generator(K, p, N, var.walk_steps, randPoints, last_a, var);
+    typename std::vector<FT>::iterator fnit;
 
     while(!done){
         a = last_a*std::pow(ratio,(FT(k)));
 
-        i=0;
-        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-            fn[i] = eval_exp(*pit,a)/eval_exp(*pit, last_a);
-            i++;
+        fnit = fn.begin();
+        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, fnit++){
+            *fnit = eval_exp(*pit,a)/eval_exp(*pit, last_a);
         }
         std::pair<FT,FT> mv = getMeanVariance(fn);
 
@@ -144,15 +144,13 @@ int get_next_gaussian(T1 K,std::vector<FT> &a_vals, FT a, int N, FT ratio, FT C,
         last_ratio = mv.first;
     }
     a_vals.push_back(last_a*std::pow(ratio, k ) );
-
-    return 1;
 }
 
 
 template <class T1, typename FT>
-int get_annealing_schedule(T1 K, std::vector<FT> &a_vals, FT &error, FT radius, FT ratio, FT C, FT frac, int N, vars_g var){
+void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, vars_g var, FT &error, std::vector<FT> &a_vals){
     bool print=var.verbose;
-    get_first_gaussian(K, radius, error, a_vals, frac, var);
+    get_first_gaussian(K, radius, frac, var, error, a_vals);
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
     FT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0;
     const FT tol = 0.001;
@@ -171,7 +169,7 @@ int get_annealing_schedule(T1 K, std::vector<FT> &a_vals, FT &error, FT radius, 
     Point p_prev=p;
     std::vector<FT> lamdas(K.num_of_hyperplanes(),NT(0));
     while (curr_fn/curr_its>(1.0+tol) && a_vals[it]>=a_stop) {
-        get_next_gaussian(K, a_vals, a_vals[it], N, ratio, C, p, var);
+        get_next_gaussian(K, p, a_vals[it], N, ratio, C, var, a_vals);
         it++;
 
         curr_fn = 0;
@@ -204,8 +202,6 @@ int get_annealing_schedule(T1 K, std::vector<FT> &a_vals, FT &error, FT radius, 
     }else {
         a_vals[it] = a_stop;
     }
-
-    return 1;
 }
 
 
