@@ -47,19 +47,17 @@ std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
 template <class T1, typename FT>
 void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
 
-    int m = K.num_of_hyperplanes(), dim = var.n;
+    int m = K.num_of_hyperplanes(), dim = var.n, i=0;
     unsigned int iterations = 0;
     const int maxiter = 10000;
     const FT tol = 0.0000001;
     FT sum, lower = 0.0, upper = 1.0, sigma_sqd, t, mid;
     std::vector <FT> dists(m, 0);
-    for (int i = 0; i < m; i++) {
-        sum = 0.0;
-        for (int j = 1; j < dim + 1; j++) {
-            sum += K.get_coeff(i, j) * K.get_coeff(i, j);
-        }
-        dists[i] = K.get_coeff(i, 0) / std::sqrt(sum);
-    }
+    Eigen::MatrixXd A = K.get_eigen_mat();
+    Eigen::VectorXd b = K.get_eigen_vec();
+    typename std::vector<FT>::iterator disit = dists.begin();
+    for ( ; disit!=dists.end(); disit++, i++)
+        *disit = b(i)/A.row(i).norm();
 
     while (iterations < maxiter) {
         iterations += 1;

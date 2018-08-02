@@ -144,36 +144,6 @@ public:
 #include "linear_extensions.h"
 
 
-std::pair<int,NT> min_vec(std::vector<NT> vec){
-    int n=vec.size();
-    NT Vmin=vec[0];
-    int Pmin=0;
-
-    for(int i=1; i<n; i++){
-        if(vec[i]<Vmin){
-            Vmin=vec[i];
-            Pmin=i;
-        }
-    }
-    return std::pair<int,NT> (Pmin, Vmin);
-}
-
-
-std::pair<int,NT> max_vec(std::vector<NT> vec){
-    int n=vec.size();
-    NT Vmax=vec[0];
-    int Pmax=0;
-
-    for(int i=1; i<n; i++){
-        if(vec[i]>Vmax){
-            Vmax=vec[i];
-            Pmax=i;
-        }
-    }
-    return std::pair<int,NT> (Pmax, Vmax);
-}
-
-
 template <class T>
 NT volume(T &P,
                   vars &var,  // constans for volume
@@ -420,7 +390,7 @@ NT volume_gaussian_annealing(T &P,
     int coord_prev, i=0;
 
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
-    typename std::vector<NT>::iterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin();
+    typename std::vector<NT>::iterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
     if(var.coordinate && !var.ball_walk){
         gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var,first_coord_point);
     }
@@ -455,18 +425,18 @@ NT volume_gaussian_annealing(T &P,
                 min_val = val;
                 min_index = index;
             }else if(min_index==index){
-                res=min_vec(last_W);
-                min_val=res.second;
-                min_index=res.first;
+                minmaxIt = std::min_element(last_W.begin(), last_W.end());
+                min_val = *minmaxIt;
+                min_index = std::distance(last_W.begin(), minmaxIt);
             }
 
             if(val>=max_val){
                 max_val = val;
                 max_index = index;
             }else if(max_index==index){
-                res=max_vec(last_W);
-                max_val=res.second;
-                max_index=res.first;
+                minmaxIt = std::max_element(last_W.begin(), last_W.end());
+                max_val = *minmaxIt;
+                max_index = std::distance(last_W.begin(), minmaxIt);
             }
 
             if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
