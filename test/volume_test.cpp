@@ -16,20 +16,20 @@ long int factorial(int n)
 }
 
 template <typename FilePath>
-void test_volume(FilePath f, double expected, double tolerance=0.1)
+void test_volume(FilePath f, NT expected, NT tolerance=0.1)
 { 
     std::ifstream inp;
-    std::vector<std::vector<double> > Pin;
+    std::vector<std::vector<NT> > Pin;
     inp.open(f,std::ifstream::in);
     read_pointset(inp,Pin);
     int n = Pin[0][1]-1;
-    Polytope<double> P;
+    Polytope<NT> P;
     P.init(Pin);
 
     // Setup the parameters
-    double walk_len=10 + n/10;
+    int walk_len=10 + n/10;
     int nexp=1, n_threads=1;
-    double e=1, err=0.0000000001;
+    NT e=1, err=0.0000000001;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
     RNGType rng(std::time(0));
     boost::normal_distribution<> rdist(0,1);
@@ -40,17 +40,17 @@ void test_volume(FilePath f, double expected, double tolerance=0.1)
              urdist,urdist1,-1.0,false,false,false,false,false,false,true);
 
     //Compute chebychev ball//
-    std::pair<Point,double> CheBall = P.chebyshev_center();
+    std::pair<Point,NT> CheBall = P.chebyshev_center();
 
     // Estimate the volume
     std::cout << "--- Testing volume of " << f << std::endl;
-    double vol = 0;
+    NT vol = 0;
     unsigned int const num_of_exp = 10;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
         vol += volume(P,var,var,CheBall);
     }
-    double error = std::abs(((vol/num_of_exp)-expected))/expected;
+    NT error = std::abs(((vol/num_of_exp)-expected))/expected;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
     std::cout << "Expected volume = " << expected << std::endl;
     CHECK(error < tolerance);

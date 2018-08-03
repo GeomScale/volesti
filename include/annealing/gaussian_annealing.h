@@ -24,190 +24,195 @@
 
 #include <complex>
 
-//Functions below from http://www.cplusplus.com/forum/beginner/130733/
-//Function for average
-NT mean ( std::vector<NT> &v )
-{
-    NT return_value = 0.0;
-    int n = v.size();
 
-    for ( int i=0; i < n; i++)
-    {
-        return_value += v[i];
+//An implementation of Welford's algorithm for mean and variance.
+template <typename FT>
+std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
+    FT mean = 0, M2 = 0, variance = 0, delta;
+
+    int i=0;
+    typename std::vector<FT>::iterator vecit = vec.begin();
+    for( ; vecit!=vec.end(); vecit++, i++){
+        delta = *vecit - mean;
+        mean += delta / (i + 1);
+        M2 += delta * (*vecit - mean);
+        variance = M2 / (i + 1);
     }
 
-    return ( return_value / (NT(n)));
+    return std::pair<FT,FT> (mean, variance);
 }
-//****************End of average funtion****************
 
 
-//Function for variance
-NT variance ( std::vector<NT> &v , NT m )
-{
-    NT sum = 0.0;
-    NT temp;
-    int n=v.size();
+// Compute the first variance a_0 for the starting gaussian
+template <class T1, typename FT>
+void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
 
-    for ( int j =0; j < n; j++)
-    {
-        //temp = pow(v[j] - m,2.0);
-        temp=(v[j]-m)*(v[j]-m);
-        sum += temp;
-    }
+    int m = K.num_of_hyperplanes(), dim = var.n, i=0;
+    unsigned int iterations = 0;
+    const int maxiter = 10000;
+    const FT tol = 0.0000001;
+    FT sum, lower = 0.0, upper = 1.0, sigma_sqd, t, mid;
+    std::vector <FT> dists(m, 0);
+    Eigen::MatrixXd A = K.get_eigen_mat();
+    Eigen::VectorXd b = K.get_eigen_vec();
 
-    return sum/(NT(n -1));
-}
-//****************End of variance funtion****************
+    typename std::vector<FT>::iterator disit = dists.begin();
+    for ( ; disit!=dists.end(); disit++, i++)
+        *disit = b(i)/A.row(i).norm();
 
-
-
-template <class T1>
-int get_first_gaussian(T1 &K, NT radius, NT &error, std::vector<NT> &a_vals, NT frac, vars_g var){
-
-    int m=K.num_of_hyperplanes(), dim=var.n, its=0;
-    NT sum, lower=0.0, upper=1.0, sigma_sqd, t, mid;
-    std::vector<NT> dists(m,0);
-    for(int i=0; i<m; i++){
-        sum=0.0;
-        for(int j=1; j<dim+1; j++){
-            sum+=K.get_coeff(i,j)*K.get_coeff(i,j);
-        }
-        dists[i]=K.get_coeff(i,0)/std::sqrt(sum);
-    }
-
-    NT d=std::pow(10.0,10.0);
-
-    while(its<10000){
-        its+=1;
-        sum=0.0;
-        for(int i=0; i<dists.size(); i++){
-            sum+=std::exp(-upper*std::pow(dists[i],2.0))/(2.0*dists[i]*std::sqrt(M_PI*upper));
+    // Compute an upper bound for a_0
+    while (iterations < maxiter) {
+        iterations += 1;
+        sum = 0.0;
+        for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
+            sum += std::exp(-upper * std::pow(*it, 2.0)) / (2.0 * (*it) * std::sqrt(M_PI * upper));
         }
 
-        sigma_sqd = 1/(2.0*upper);
+        sigma_sqd = 1 / (2.0 * upper);
 
-        //t = (d-sigma_sqd*(NT(dim)))/(sigma_sqd*std::sqrt(((double)dim)));
-        //sum+=std::exp(std::pow(-t,2.0)/8.0);
-        if(sum>frac*error){//} || t<=1){
-            upper=upper*10;
-        }else{
+        if (sum > frac * error) {
+            upper = upper * 10;
+        } else {
             break;
         }
     }
 
-    if(its==10000){
-        std::cout<<"Cannot obtain sharp enough starting Gaussian"<<std::endl;
+    if (iterations == maxiter) {
+        std::cout << "Cannot obtain sharp enough starting Gaussian" << std::endl;
         exit(-1);
     }
 
     //get a_0 with binary search
-    while(upper-lower>0.0000001){
-        mid = (upper+lower)/2.0;
-        sum=0.0;
-        for(int i=0; i<dists.size(); i++){
-            sum += std::exp(-mid*std::pow(dists[i],2)) / (2*dists[i]*std::sqrt(M_PI*mid));
+    while (upper - lower > tol) {
+        mid = (upper + lower) / 2.0;
+        sum = 0.0;
+        for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
+            sum += std::exp(-mid * std::pow(*it, 2)) / (2 * (*it) * std::sqrt(M_PI * mid));
         }
 
-        sigma_sqd = 1.0/(2.0*mid);
+        sigma_sqd = 1.0 / (2.0 * mid);
 
-        //t = (d-sigma_sqd)/(sigma_sqd*std::sqrt(((double)dim)));
-        //sum += std::exp(std::pow(-t,2.0)/8.0);
-        if(sum<frac*error){//} && t>1){
-            upper=mid;
-        }else{
-            lower=mid;
+        if (sum < frac * error) {
+            upper = mid;
+        } else {
+            lower = mid;
         }
     }
 
-    a_vals.push_back((upper+lower)/2.0);
-    error = (1.0-frac)*error;
-
-    return 1;
+    a_vals.push_back((upper + lower) / 2.0);
+    error = (1.0 - frac) * error;
 }
 
 
-template <class T1>
-int get_next_gaussian(T1 K,std::vector<NT> &a_vals, NT a, int N, NT ratio, NT C, Point &p, vars_g var){
+// Compute a_{i+1} when a_i is given
+template <class T1, typename FT>
+void get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var, std::vector<FT> &a_vals){
 
-    NT last_a = a, last_ratio=0.1, avg,average;
+    FT last_a = a, last_ratio = 0.1;
+    //k is needed for the computation of the next variance a_{i+1} = a_i * (1-1/d)^k
+    FT k = 1.0;
+    const FT tol = 0.00001;
     bool done=false, print=var.verbose;
-    int k=1, i;
-    std::vector<NT> fn(N,0);
-
-    //sample N points using hit and run
+    std::vector<FT> fn(N,0);
     std::list<Point> randPoints;
+
+    // Set the radius for the ball walk if it is requested
+    if (var.ball_walk) {
+        if (var.delta < 0.0) {
+            var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, last_a) * FT(var.n));
+        }
+    }
+    //sample N points using hit and run or ball walk
     rand_gaussian_point_generator(K, p, N, var.walk_steps, randPoints, last_a, var);
 
+    typename std::vector<FT>::iterator fnit;
     while(!done){
-        a = last_a*std::pow(ratio,(NT(k)));
+        a = last_a*std::pow(ratio,k);
 
-        i=0;
-        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-            fn[i] = eval_exp(*pit,a)/eval_exp(*pit, last_a);
-            i++;
+        fnit = fn.begin();
+        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, fnit++){
+            *fnit = eval_exp(*pit,a)/eval_exp(*pit, last_a);
         }
-        avg=mean(fn);
+        std::pair<FT,FT> mv = getMeanVariance(fn);
 
-        if(variance(fn,avg)/std::pow(avg,2.0)>=C || avg/last_ratio<1.00001){
-            if(k!=1){
+        // Compute a_{i+1}
+        if(mv.second/(mv.first * mv.first)>=C || mv.first/last_ratio<1.0+tol){
+            if(k!=1.0){
                 k=k/2;
             }
             done=true;
         }else{
             k=2*k;
         }
-        last_ratio = avg;
+        last_ratio = mv.first;
     }
-    a_vals.push_back(last_a*std::pow(ratio, (NT(k)) ) );
-
-    return 1;
+    a_vals.push_back(last_a*std::pow(ratio, k));
 }
 
 
-template <class T1>
-int get_annealing_schedule(T1 K, std::vector<NT> &a_vals, NT &error, NT radius, NT ratio, NT C, NT frac, int N, vars_g var){
+// Compute the sequence of spherical gaussians
+template <class T1, typename FT>
+void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, vars_g var, FT &error, std::vector<FT> &a_vals){
     bool print=var.verbose;
-    get_first_gaussian(K, radius, error, a_vals, frac, var);
+    // Compute the first gaussian
+    get_first_gaussian(K, radius, frac, var, error, a_vals);
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
-    NT a_stop=0.0, curr_fn=2.0, curr_its=1.0;
-    int it=0, dim=K.dimension(), steps=((int)150/error)+1;
+
+    FT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0;
+    const FT tol = 0.001;
+    int it = 0, n = var.n, steps, coord_prev;
+    const int totalSteps= ((int)150/error)+1;
     std::list<Point> randPoints;
 
-    if(a_vals[0]<a_stop){
-        a_vals[0]=a_stop;
+    if(a_vals[0]<a_stop) {
+        a_vals[0] = a_stop;
     }
 
-    Point p(K.dimension());
+    Point p(n);
 
     if(print) std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
 
     Point p_prev=p;
-    int coord_prev=-1;
-    std::vector<NT> lamdas(K.num_of_hyperplanes(),NT(0));
-    while(curr_fn/curr_its>1.001 && a_vals[it]>=a_stop) {
-        get_next_gaussian(K, a_vals, a_vals[it], N, ratio, C, p, var);
+    std::vector<FT> lamdas(K.num_of_hyperplanes(),NT(0));
+    while (curr_fn/curr_its>(1.0+tol) && a_vals[it]>=a_stop) {
+        // Compute the next gaussian
+        get_next_gaussian(K, p, a_vals[it], N, ratio, C, var, a_vals);
         it++;
 
         curr_fn = 0;
         curr_its = 0;
-        p_prev=p;
-        coord_prev=-1;
-        std::fill(lamdas.begin(), lamdas.end(), NT(0));
+        std::fill(lamdas.begin(), lamdas.end(), FT(0));
+        steps = totalSteps;
 
+        if (var.coordinate && !var.ball_walk){
+            //gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var, first_coord_point);
+            gaussian_first_coord_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var);
+            curr_its += 1.0;
+            curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
+            steps--;
+        }
+        if (var.ball_walk) {
+            if (var.delta < 0.0) {
+                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_vals[it - 1]) * FT(n));
+            }
+        }
+
+        // Compute some ratios to decide if this is the last gaussian
         for (int j = 0; j < steps; j++) {
-            gaussian_next_point(K,p,p_prev,coord_prev,var.walk_steps,a_vals[it-1],lamdas,var);
+            gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var);
             curr_its += 1.0;
             curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
         }
     }
-    if (a_vals[it]>a_stop){
+    // Remove the last gaussian.
+    // Set the last a_i equal to zero
+    if (a_vals[it]>a_stop) {
         a_vals.pop_back();
-        a_vals[it-1]=a_stop;
-    }else{
+        a_vals[it - 1] = a_stop;
+
+    }else {
         a_vals[it] = a_stop;
     }
-
-    return 1;
 }
 
 
