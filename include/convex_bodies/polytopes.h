@@ -349,6 +349,9 @@ public:
     }
 
 
+    void shift(Eigen::VectorXd c){
+        b = b - A*c;
+    }
 
 };
 
@@ -486,7 +489,7 @@ public:
 
     // print polytope in input format
     void print() {
-        std::cout << " " << V.rows()+1 << " " << _d + 1 << " float" << std::endl;
+        std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
         for (int i = 0; i < V.rows(); i++) {
             for (int j = 0; j < _d; j++) {
                 std::cout << V(i, j) << " ";
@@ -640,6 +643,16 @@ public:
         min_plus = intersect_line_Vpoly(V, r, v, false);
 
         return std::pair<NT,NT> (min_plus, max_minus);
+    }
+
+    void shift(Eigen::VectorXd c){
+       Eigen::MatrixXd V2 = (V.transpose()).colwise() - c;
+       V = V2.transpose();
+    }
+
+    void linear_transformIt(Eigen::MatrixXd T){
+        Eigen::MatrixXd V2 = T.inverse()*(V.transpose());
+        V = V2.transpose();
     }
 
 };
