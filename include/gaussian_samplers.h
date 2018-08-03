@@ -23,6 +23,7 @@
 #define GAUSSIAN_SAMPLERS_H
 
 
+// evaluate the pdf of point p
 template <typename FT>
 FT eval_exp(Point p, FT a) {
     return std::exp(-a * p.squared_length());
@@ -58,7 +59,7 @@ FT get_max_coord(FT l, FT u, FT a_i) {
 }
 
 
-// Pick a point from gaussian on the chord
+// Pick a point from the distribution exp(-a_i||x||^2) on the chord
 template <typename FT>
 void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
     FT r, r_val, fn;
@@ -67,6 +68,7 @@ void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
+    // pick from 1-dimensional gaussian if enough weight is inside polytope P
     if (a_i > tol && std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i))) {
         boost::normal_distribution<> rdist(0, 1);
         Point a = -1.0 * lower;
@@ -83,6 +85,7 @@ void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
         }
         p = (r * b) + z;
 
+    // select using rejection sampling from a bounding rectangle
     } else {
         boost::random::uniform_real_distribution<> urdist(0, 1);
         FT M = get_max(lower, upper, a_i);
@@ -100,7 +103,7 @@ void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
 }
 
 
-// Pick a point from gaussian on the coordinate chord
+// Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
 template <typename FT>
 FT rand_exp_range_coord(FT l, FT u, FT a_i, vars_g &var) {
     FT r, r_val, fn, dis;
@@ -108,6 +111,7 @@ FT rand_exp_range_coord(FT l, FT u, FT a_i, vars_g &var) {
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
+    // pick from 1-dimensional gaussian if enough weight is inside polytope P
     if (a_i > tol && u - l >= 2.0 / std::sqrt(2.0 * a_i)) {
         boost::normal_distribution<> rdist(0, 1);
         while (true) {
@@ -119,6 +123,7 @@ FT rand_exp_range_coord(FT l, FT u, FT a_i, vars_g &var) {
         }
         dis = r;
 
+    // select using rejection sampling from a bounding rectangle
     } else {
         boost::random::uniform_real_distribution<> urdist(0, 1);
         FT M = get_max_coord(l, u, a_i);
@@ -142,7 +147,7 @@ void gaussian_first_coord_point(T &P,
                          Point &p,   // a point to start
                          Point &p_prev, // previous point
                          int &coord_prev, // previous coordinate ray
-                         int walk_len, // number of steps
+                         int walk_len, // number of steps for the random walk
                          FT a_i,
                          std::vector<FT> &lamdas,
                          vars_g &var) {
@@ -174,7 +179,7 @@ void gaussian_next_point(T &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
                         int &coord_prev, // previous coordinate ray
-                        int walk_len, // number of steps
+                        int walk_len, // number of steps for the random walk
                         FT a_i,
                         std::vector<FT> &lamdas,
                         vars_g &var) {
@@ -203,9 +208,9 @@ void gaussian_next_point(T &P,
 template <class T, class K, typename FT>
 void rand_gaussian_point_generator(T &P,
                          Point &p,   // a point to start
-                         int rnum,
-                         int walk_len,
-                         K &randPoints,
+                         int rnum,   // number of points to sample
+                         int walk_len,  // number of stpes for the random walk
+                         K &randPoints,  // list to store the sampled points
                          FT a_i,
                          vars_g &var)  // constans for volume
 {
@@ -262,7 +267,6 @@ void gaussian_hit_and_run(Point &p,
                 vars_g &var) {
     int n = var.n;
     RNGType rng2 = var.rng;
-    //Point l = get_point_on_Dsphere(n, 1.0);
     Point l = get_direction(n);
     std::pair <FT, FT> dbpair = P.line_intersect(p, l);
 
@@ -286,7 +290,6 @@ void gaussian_hit_and_run_coord_update(Point &p,
                              std::vector<FT> &lamdas,
                              vars_g &var) {
     std::pair <FT, FT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
-    //FT dis;
     FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
     p_prev = p;
     p.set_coord(rand_coord, dis);
