@@ -367,12 +367,18 @@ NT volume_gaussian_annealing(T &P,
     for(int i=0; i<n; i++){
         c_e(i)=c[i];  // write chebychev center in an eigen vector
     }
+    P.shift(c_e);
+    /*
+    Eigen::VectorXd c_e(n);
+    for(int i=0; i<n; i++){
+        c_e(i)=c[i];  // write chebychev center in an eigen vector
+    }
     Eigen::MatrixXd A = P.get_eigen_mat();
     Eigen::VectorXd b = P.get_eigen_vec();
     // Shift polytope
     b = b - A*c_e;
     // Write changesto the polytope
-    P.set_eigen_vec(b);
+    P.set_eigen_vec(b);*/
 
     // Initialization
     std::vector<NT> a_vals;

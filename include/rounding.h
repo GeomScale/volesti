@@ -223,14 +223,16 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
     Eigen::MatrixXd L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
 
     //Shift polytope in order to contain the origin (center of the ellipsoid)
-    b = b - A*e;
+    P.shift(e);
+    //b = b - A*e;
 
     Eigen::MatrixXd L_1 = L.inverse();
-    A = A*(L_1.transpose());
+    //A = A*(L_1.transpose());
+    P.linear_transformIt(L_1.transpose());
 
     // Write changes (actually perform rounding) to the polytope!
-    P.set_eigen_mat(A);
-    P.set_eigen_vec(b);
+    //P.set_eigen_mat(A);
+    //P.set_eigen_vec(b);
 
     return std::pair<FT,FT> (L_1.determinant(),rel/Rel);
 }
