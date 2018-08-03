@@ -29,7 +29,7 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
     // Setup the parameters
     int walk_len=1;
     int nexp=1, n_threads=1;
-    NT e=0.1, err=0.0000000001;
+    NT e=0.2, err=0.0000000001;
     NT C=2.0,ratio,frac=0.1,delta=-1.0;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
     int N = 500 * ((int) C) + ((int) (n * n / 2));
@@ -40,13 +40,13 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
-    //Compute chebychev ball//
-    std::pair<Point,NT> CheBall;// = P.chebyshev_center();
+    //structure for the chebychev ball
+    std::pair<Point,NT> CheBall;
 
     // Estimate the volume
     std::cout << "--- Testing volume of " << f << std::endl;
     NT vol = 0;
-    unsigned int const num_of_exp = 10;
+    unsigned int const num_of_exp = 20;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
         CheBall = P.chebyshev_center();

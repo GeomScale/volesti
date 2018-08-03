@@ -104,7 +104,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
 }
 
 
-// Compute a_{i+1} when s_i is given
+// Compute a_{i+1} when a_i is given
 template <class T1, typename FT>
 void get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var, std::vector<FT> &a_vals){
 
