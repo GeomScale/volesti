@@ -2,6 +2,10 @@
 
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 
+// Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef VOLUME_H
@@ -14,7 +18,6 @@
 #include <algorithm>
 #include <math.h>
 #include <chrono>
-//#include <random.h>
 #include "cartesian_geom/cartesian_kernel.h"
 #include "random.hpp"
 #include "random/uniform_int.hpp"
@@ -27,9 +30,11 @@
 
 
 typedef double                      NT;
+//typedef float                      NT;
+//typedef long double                     NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
-typedef boost::mt19937 RNGType; ///< mersenne twister generator
+typedef boost::mt19937 RNGType; // mersenne twister generator
 
 
 //structs with variables and random generators
@@ -39,15 +44,13 @@ public:
           int n,
           int walk_steps,
           int n_threads,
-          const double err,
-          double error,
+          const NT err,
+          NT error,
           const int lw,
-          double up,
+          NT up,
           const int L,
           double che_rad,
           RNGType &rng,
-          //std::uniform_real_distribution<NT> urdist,
-          //std::uniform_real_distribution<NT> urdist1,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
           double delta,
@@ -68,15 +71,13 @@ public:
     int n;
     int walk_steps;
     int n_threads;
-    const double err;
-    double error;
+    const NT err;
+    NT error;
     const int lw;
-    double up;
+    NT up;
     const int L;
     double che_rad;
     RNGType &rng;
-    //std::uniform_real_distribution<NT> urdist;
-    //std::uniform_real_distribution<NT> urdist1;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;
     double delta;
@@ -152,43 +153,13 @@ public:
 #include "linear_extensions.h"
 
 
-std::pair<int,NT> min_vec(std::vector<NT> vec){
-    int n=vec.size();
-    NT Vmin=vec[0];
-    int Pmin=0;
-
-    for(int i=1; i<n; i++){
-        if(vec[i]<Vmin){
-            Vmin=vec[i];
-            Pmin=i;
-        }
-    }
-    return std::pair<int,NT> (Pmin, Vmin);
-}
-
-
-std::pair<int,NT> max_vec(std::vector<NT> vec){
-    int n=vec.size();
-    NT Vmax=vec[0];
-    int Pmax=0;
-
-    for(int i=1; i<n; i++){
-        if(vec[i]>Vmax){
-            Vmax=vec[i];
-            Pmax=i;
-        }
-    }
-    return std::pair<int,NT> (Pmax, Vmax);
-}
-
-
 template <class T>
 NT volume(T &P,
                   vars &var,  // constans for volume
                   vars &var2, // constants for optimization in case of MinkSums
-                  std::pair<Point,double> CheBall)  //Chebychev ball
+                  std::pair<Point,NT> CheBall)  //Chebychev ball
 {
-    typedef BallIntersectPolytope<T>        BallPoly;
+    typedef BallIntersectPolytope<T,NT>        BallPoly;
 
     bool round = var.round;
     bool print = var.verbose;
@@ -197,16 +168,15 @@ NT volume(T &P,
     int rnum = var.m;
     int walk_len = var.walk_steps;
     int n_threads = var.n_threads;
-    const double err = var.err;
+    const NT err = var.err;
     RNGType &rng = var.rng;
-    // Rotation: only for test with skinny polytopes and rounding
-    //std::cout<<"Rotate="<<rotate(P)<<std::endl;
-    //rotate(P);
 
-    //0. Rounding of the polytope if round=true
+    //0. Get the Chebychev ball (largest inscribed ball) with center and radius
     Point c=CheBall.first;
     NT radius=CheBall.second;
-    double round_value=1;
+
+    //1. Rounding of the polytope if round=true
+    NT round_value=1;
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -217,21 +187,21 @@ NT volume(T &P,
         std::pair<Point,NT> res=P.chebyshev_center();
         c=res.first; radius=res.second;
     }
-
-
-    //1. Get the Chebychev ball (largest inscribed ball) with center and radius
+    if (var.ball_walk){
+        if(var.delta<0.0){
+            var.delta = 4.0 * radius / NT(n);
+        }
+    }
 
     rnum=rnum/n_threads;
     NT vol=0;
 
     // Perform the procedure for a number of threads and then take the average
-    //#pragma omp for ordered schedule(dynamic)
     for(int t=0; t<n_threads; t++){
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-        Random_points_on_sphere_d<Point> gen (n, radius);
-        Point p = gen.sample_point(rng);
+        Point p = get_point_on_Dsphere(n, radius);
         p=p+c;
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
@@ -245,7 +215,7 @@ NT volume(T &P,
 
         // 4.  Construct the sequence of balls
         // 4a. compute the radius of the largest ball
-        double current_dist, max_dist=NT(0);
+        NT current_dist, max_dist=NT(0);
         for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             current_dist=(*pit-c).squared_length();
             if(current_dist>max_dist){
@@ -258,7 +228,6 @@ NT volume(T &P,
         //
         // 4b. Number of balls
         int nb1 = n * (std::log(radius)/std::log(2.0));
-        //std::cout<<"nb1 = "<< n * (std::log(radius)/std::log(2.0))<<" nb1INT= "<<nb1<<" nb1stdfloor = "<<std::floor(n * (std::log(radius)/std::log(2.0)))<<std::endl;
         int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
         
         if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
@@ -352,28 +321,30 @@ NT volume(T &P,
 
 
 
+// Implementation is based on algorithm from paper "A practical volume algorithm",
+// Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
+// Ben Cousins, Santosh Vempala
 template <class T>
 NT volume_gaussian_annealing(T &P,
                              vars_g &var,  // constans for volume
                              vars &var2,
-                             std::pair<Point,double> CheBall) {
+                             std::pair<Point,NT> CheBall) {
     NT vol;
     bool round = var.round, done;
     bool print = var.verbose;
     bool rand_only = var.rand_only;
     int n = var.n, steps;
-    int walk_len = var.walk_steps;
+    int walk_len = var.walk_steps, m=P.num_of_hyperplanes();
     int n_threads = var.n_threads, min_index, max_index, index, min_steps;
     NT error = var.error, curr_eps, min_val, max_val, val;
     NT frac = var.frac;
     RNGType &rng = var.rng;
-    // Rotation: only for test with skinny polytopes and rounding
-    //std::cout<<"Rotate="<<rotate(P)<<std::endl;
-    //rotate(P);
 
-    //0. Rounding of the polytope if round=true
+    // Consider Chebychev center as an internal point
     Point c=CheBall.first;
     NT radius=CheBall.second;
+
+    // rounding of the polytope if round=true
     NT round_value=1;
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
@@ -385,104 +356,107 @@ NT volume_gaussian_annealing(T &P,
         std::pair<Point,NT> res=P.chebyshev_center();
         c=res.first; radius=res.second;
     }
+
+    // Save the radius of the Chebychev ball if ball walk is requested
     if(var.ball_walk){
         var.che_rad = radius;
     }
 
-    //1. Move chebychev center to origin and apply the same shifting to the polytope
-    int m=P.num_of_hyperplanes();
-    Eigen::MatrixXd A(m,n);
-    Eigen::VectorXd b(m);
+    // Move chebychev center to origin and apply the same shifting to the polytope
     Eigen::VectorXd c_e(n);
     for(int i=0; i<n; i++){
-        c_e(i)=c[i];
+        c_e(i)=c[i];  // write chebychev center in an eigen vector
     }
-    for(int i=0; i<m; ++i){
-        b(i) = P.get_coeff(i,0);
-        for(int j=1; j<n+1; ++j){
-            A(i,j-1) = P.get_coeff(i,j);
-        }
-    }
-    //Shift polytope
+    Eigen::MatrixXd A = P.get_eigen_mat();
+    Eigen::VectorXd b = P.get_eigen_vec();
+    // Shift polytope
     b = b - A*c_e;
-    // Write changesto the polytope!
-    for(int i=0; i<m; ++i){
-        P.put_coeff(i,0,b(i));
-        for(int j=1; j<n+1; ++j){
-            P.put_coeff(i,j,A(i,j-1));
-        }
-    }
+    // Write changesto the polytope
+    P.set_eigen_vec(b);
 
+    // Initialization
     std::vector<NT> a_vals;
     NT ratio = var.ratio;
     NT C = var.C;
-
-    if(print) std::cout<<"\n\nComputing annealing...\n"<<std::endl;
     int N = var.N;
+
+    // Computing the sequence of gaussians
+    if(print) std::cout<<"\n\nComputing annealing...\n"<<std::endl;
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    get_annealing_schedule(P, a_vals, error, radius, ratio, C, frac, N, var);
+    get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"All the variances of schedule_Sannealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
-    int mm = a_vals.size();
+    int mm = a_vals.size()-1, j=0;
     if(print){
-        for(int i=0; i<mm; i++){
-            std::cout<<"a_"<<i<<" = "<<a_vals[i]<<" ";
+        for (typename std::vector<NT>::iterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
+            std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
         }
         std::cout<<"\n"<<std::endl;
     }
+
+    // Initialization for the approximation of the ratios
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
     int W = var.W;
     std::vector<NT> last_W2(W,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
-    if(print) std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
-    Point p(n);
+    Point p(n); // The origin is in the Chebychev center of the Polytope
     std::pair<int,NT> res;
     Point p_prev=p;
-    int coord_prev=-1;
+    int coord_prev, i=0;
+    typename std::vector<NT>::iterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
 
+    if(print) std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
-    for(int i=0; i<mm-1; i++){
+
+    // Compute the first point if CDHR is requested
+    if(var.coordinate && !var.ball_walk){
+        //gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var,first_coord_point);
+        gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
+    }
+    for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios
         //initialize convergence test
         curr_eps = error/std::sqrt((NT(mm)));
         done=false;
-        min_val=-std::pow(10.0,10.0);
-        max_val=-min_val;
-        min_index=W-1;
-        max_index=W-1;
+        min_val = minNT;
+        max_val = maxNT;
+        min_index = W-1;
+        max_index = W-1;
         index = 0;
         min_steps=0;
         std::vector<NT> last_W=last_W2;
-        n_threads=1;
 
-        while(!done || its[i]<min_steps){
-
-            gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,a_vals[i],lamdas,var);
-
-            if(!P.is_in(p)){
-                std::cout<<"point not in P\n";
-                exit(-1);
+        // Set the radius for the ball walk if it is requested
+        if (var.ball_walk) {
+            if (var.delta < 0.0) {
+                var.delta = 4.0 * radius / std::sqrt(std::max(1.0, *avalsIt) * NT(n));
             }
-            its[i] += 1.0;
-            fn[i] += eval_exp(p,a_vals[i+1]) / eval_exp(p,a_vals[i]);
-            val = fn[i]/its[i];
+        }
+
+        while(!done || (*itsIt)<min_steps){
+
+            gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
+
+            *itsIt = *itsIt + 1.0;
+            *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);
+            val = (*fnIt) / (*itsIt);
 
             last_W[index] = val;
             if(val<=min_val){
                 min_val = val;
                 min_index = index;
             }else if(min_index==index){
-                res=min_vec(last_W);
-                min_val=res.second;
-                min_index=res.first;
+                minmaxIt = std::min_element(last_W.begin(), last_W.end());
+                min_val = *minmaxIt;
+                min_index = std::distance(last_W.begin(), minmaxIt);
             }
 
             if(val>=max_val){
                 max_val = val;
                 max_index = index;
             }else if(max_index==index){
-                res=max_vec(last_W);
-                max_val=res.second;
-                max_index=res.first;
+                minmaxIt = std::max_element(last_W.begin(), last_W.end());
+                max_val = *minmaxIt;
+                max_index = std::distance(last_W.begin(), minmaxIt);
             }
 
             if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
@@ -493,15 +467,18 @@ NT volume_gaussian_annealing(T &P,
 
             if(index==W) index=0;
         }
-        if(print) std::cout<<"ratio "<<i<<" = "<<fn[i]/its[i]<<" N_"<<i<<" = "<<its[i]<<std::endl;
-        vol = vol*(fn[i]/its[i]);
+        if(print) std::cout<<"ratio "<<i<<" = "<<(*fnIt) / (*itsIt)<<" N_"<<i<<" = "<<*itsIt<<std::endl;
+        vol = vol*((*fnIt) / (*itsIt));
     }
-    NT sum_of_steps;
-    for(std::vector<NT>::iterator it = its.begin(); it != its.end(); ++it) {
-        sum_of_steps += *it;
+    // Compute and print total number of steps in verbose mode only
+    if (print) {
+        NT sum_of_steps = 0.0;
+        for(typename std::vector<NT>::iterator it = its.begin(); it != its.end(); ++it) {
+            sum_of_steps += *it;
+        }
+        steps= int(sum_of_steps);
+        std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
     }
-    steps= int(sum_of_steps);
-    if(print) std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
 
     return vol;
 }

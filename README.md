@@ -103,14 +103,24 @@ end
 input_incidence  
 ```
   
-Then run the following command:  
+Then to use volesti algorithm run the following command:  
 ```
 ./vol -f1 ./test_data/cube10.ine  
 ```
 
 which returns 17 numbers:  
 ```d m #experiments exactvolOr-1 approxVolume [.,.] #randPoints walkLength meanVol [minVol,maxVol] stdDev errorVsExact maxminDivergence time timeChebyshevBall```
- 
+  
+To use CV algorithm run the following command:  
+```
+./vol -f1 ./test_data/cube10.ine -g_an  
+```
+which returns:  
+```
+volume computed =...  
+Total time = .. sec
+```
+  
 Credits
 -------
 

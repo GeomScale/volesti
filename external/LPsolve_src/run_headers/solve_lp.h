@@ -9,15 +9,14 @@
 #include "lp_lib.h"
 
 
-template <typename K>
-
-std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){
+//template <typename K>
+std::pair<Point,NT> solveLP(Eigen::MatrixXd &A, Eigen::VectorXd &b, int d){
 
 	//typedef typename T1::FT                    K;
 	//int d=P.dimension();
 	//std::vector<std::vector<K> > A = P.get_matrix();
 	lprec *lp;
-	int Ncol=d+1, *colno = NULL, j, ret = 0, m=A.size();
+	int Ncol=d+1, *colno = NULL, j, ret = 0, m=A.rows();
 	REAL *row = NULL;
 	
 	lp = make_lp(m, Ncol);
@@ -47,14 +46,16 @@ std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){
 		set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 	}
 	int i=0;
-	K sum;
+	NT sum;
 	while(ret==0 & i<m){
 		/* construct all rows (120 x + 210 y <= 15000) */
-		sum=K(0);
+		sum=NT(0);
 		for(j=0; j<d; j++){
 			colno[j] = j+1; /* j_th column */
-			row[j] = A[i][j+1];
-			sum += A[i][j+1]*A[i][j+1];
+			//row[j] = A[i][j+1];
+			row[j] = A(i,j);
+			sum+=A(i,j)*A(i,j);
+			//sum += A[i][j+1]*A[i][j+1];
 		}
 		colno[d] = d+1; /* last column */
 		row[d] = std::sqrt(sum);
@@ -62,7 +63,7 @@ std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){
 		
 
     /* add the row to lpsolve */
-		if(!add_constraintex(lp, d+1, row, colno, LE, A[i][0])){
+		if(!add_constraintex(lp, d+1, row, colno, LE, b(i))){
 			ret = 3;
 		}
 		i++;
@@ -108,32 +109,31 @@ std::pair<Point,double> solveLP(std::vector<std::vector<K> > A, int d){
 	}
 	
 	//if(ret == 0) {
-	std::vector<double> temp_p(d,0);
+	std::vector<NT> temp_p(d,0);
 	get_variables(lp, row);
 	for(j = 0; j < d; j++){
 	//printf("%s: %f\n", get_col_name(lp, j + 1), row[j]);
-		temp_p[j]=double(row[j]);
+		temp_p[j]=NT(row[j]);
 	}
 	
 	Point xc( d , temp_p.begin() , temp_p.end() );
-	double r=double(get_objective(lp));
+	NT r=NT(get_objective(lp));
 	delete_lp(lp);
 
-			
-	return std::pair<Point,double> (xc,r);
+	return std::pair<Point,NT> (xc,r);
 }
 
 
 
 
-template <typename K>
-bool memLP_Vpoly(std::vector<std::vector<K> > &A, Point q){
+//template <typename K>
+bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 
 	//typedef typename T1::FT                    K;
 	int d=q.dimension();
 	//std::vector<std::vector<K> > A = P.get_matrix();
 	lprec *lp;
-	int Ncol=d+1, *colno = NULL, j, ret = 0, m=A.size();
+	int Ncol=d+1, *colno = NULL, j, ret = 0, m=V.rows();//A.size();
 	m++;
 	REAL *row = NULL;
 
@@ -169,7 +169,8 @@ bool memLP_Vpoly(std::vector<std::vector<K> > &A, Point q){
 		//sum=K(0);
 		for(j=0; j<d; j++){
 			colno[j] = j+1; /* j_th column */
-			row[j] = A[i][j+1];
+			//row[j] = A[i][j+1];
+			row[j] = V(i,j);
 			//sum += A[i][j+1]*A[i][j+1];
 		}
 		colno[d] = d+1; /* last column */
@@ -239,7 +240,7 @@ bool memLP_Vpoly(std::vector<std::vector<K> > &A, Point q){
 			ret = 5;
 	}
 
-	double r=double(get_objective(lp));
+	NT r = NT(get_objective(lp));
 	delete_lp(lp);
 	if(r>0.0){
 		return false;
@@ -250,16 +251,16 @@ bool memLP_Vpoly(std::vector<std::vector<K> > &A, Point q){
 }
 
 
-template <typename K>
-double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, bool maxi){
+//template <typename K>
+NT intersect_line_Vpoly(Eigen::MatrixXd V, Point &p, Point &v, bool maxi){
 
 	int d=v.dimension();
 	lprec *lp;
-	int m=A.size();
+	int m=V.rows();//A.size();
 	m++;
 	int Ncol=m, *colno = NULL, j, ret = 0;
 	REAL *row = NULL;
-	K res;
+	NT res;
 
 	lp = make_lp(d+1, Ncol);
 
@@ -289,7 +290,8 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 		//sum=K(0);
 		for(j=0; j<m-1; j++){
 			colno[j] = j+1; /* j_th column */
-			row[j] = A[j][i+1];
+			//row[j] = A[j][i+1];
+			row[j] = V(j,i);//A[j][i+1];
 		}
 		colno[m-1] = m; /* last column */
 		row[m-1] = v[i];
@@ -357,7 +359,7 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 	}
 
 	if(ret==0) {
-		res = K(-get_objective(lp));
+		res = NT(-get_objective(lp));
 		delete_lp(lp);
 	    return res;
 
@@ -365,7 +367,6 @@ double intersect_line_Vpoly(std::vector<std::vector<K> > &A,Point &p, Point &v, 
 	std::cout<<"Linear Program for hit and run failed"<<std::endl;
 	exit(-1);
 	return 0;
-
 }
 
 #endif

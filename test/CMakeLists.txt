@@ -53,12 +53,18 @@ else ()
   add_executable (volume_test volume_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (cheb_test chebychev_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (rounding_test rounding_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (volumeCV_test volumeCV_test.cpp $<TARGET_OBJECTS:test_main>)
   
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
   add_test(NAME volume_birkhoff COMMAND volume_test -tc=birkhoff)
   add_test(NAME volume_prod_simplex COMMAND volume_test -tc=prod_simplex)
   add_test(NAME volume_skinny_cube COMMAND volume_test -tc=skinny_cube)
+
+  add_test(NAME volumeCV_cube COMMAND volumeCV_test -tc=cube)
+  add_test(NAME volumeCV_cross COMMAND volumeCV_test -tc=cross)
+  add_test(NAME volumeCV_birkhoff COMMAND volumeCV_test -tc=birkhoff)
+  add_test(NAME volumeCV_prod_simplex COMMAND volumeCV_test -tc=prod_simplex)
 
   add_test(NAME cheb_cube COMMAND cheb_test -tc=cheb_cube)
   add_test(NAME cheb_cross COMMAND cheb_test -tc=cheb_cross)
@@ -75,6 +81,7 @@ else ()
   TARGET_LINK_LIBRARIES(volume_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(cheb_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(rounding_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(volumeCV_test ${LP_SOLVE})
  
 
 endif()

@@ -4,7 +4,7 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-int linear_extensions_to_order_polytope(std::istream &is,
+void linear_extensions_to_order_polytope(std::istream &is,
                                         std::ostream &os){
 
     std::string ns;
