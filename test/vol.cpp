@@ -40,7 +40,7 @@ int main(const int argc, const char** argv)
 {
 	//Deafault values
     int n, nexp=1, n_threads=1, W;
-    int walk_len,N;//to be defined after n
+    int walk_len,N;
     double e=1;
     double exactvol(-1.0);
     bool verbose=false, 
@@ -61,8 +61,9 @@ int main(const int argc, const char** argv)
 	
 	//this is our polytope
 	Polytope<NT> P;
-	int magnitude=0;
-	bool exper=false, user_W=false, user_N=false, user_ratio=false;
+
+	// parameters of CV algorithm
+	bool user_W=false, user_N=false, user_ratio=false;
 	NT ball_radius=0.0;
 	NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
 	
@@ -111,16 +112,10 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"--cube")){
           exactvol = std::pow(2,n);
-          //exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1)
           correct=true;
       }
       if(!strcmp(argv[i],"--exact")){
           exactvol = atof(argv[++i]);
-          correct=true;
-      }
-      if(!strcmp(argv[i],"-mag")){
-          magnitude=int(atof(argv[++i]));
-          exper=true;
           correct=true;
       }
       if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
@@ -176,7 +171,6 @@ int main(const int argc, const char** argv)
           std::vector<std::vector<NT> > Pin;
           inp.open(argv[++i],std::ifstream::in);
           read_pointset(inp,Pin);
-          //std::cout<<"d="<<Pin[0][1]<<std::endl;
           n = Pin[0][1]-1;
           P.init(Pin);
           if (verbose && P.num_of_hyperplanes()<100){
@@ -217,14 +211,9 @@ int main(const int argc, const char** argv)
           inp2.open("order_polytope.ine",std::ifstream::in);
           std::vector<std::vector<NT> > Pin;
           read_pointset(inp2,Pin);
-
-          //std::cout<<"d="<<Pin[0][1]<<std::endl;
           n = Pin[0][1]-1;
           P.init(Pin);
-          //if (verbose && P.num_of_hyperplanes()<100){
           std::cout<<"Input polytope: "<<n<<std::endl;
-          //P.print();
-          //}
           linear_extensions = true;
           correct=true;
       }
@@ -251,12 +240,6 @@ int main(const int argc, const char** argv)
           correct=true;
       }
       if(!strcmp(argv[i],"-NN")){
-          /*
-      if (verbose) std::cout<<"Building search data-srtuctures..."<<std::endl;
-      NN=true;
-      P.dual(1);
-      P.dual(-1);
-      */
           std::cout<<"flann software is needed for this option. Experimental feature."
                   <<"Currently under development."<<std::endl;
           correct=true;
@@ -284,7 +267,7 @@ int main(const int argc, const char** argv)
           exit(-2);
       }
       
-  }//for i
+  }
   
   //Compute chebychev ball//
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -325,12 +308,12 @@ int main(const int argc, const char** argv)
   //error in hit-and-run bisection of P 
   const NT err=0.0000000001;
   const NT err_opt=0.01;
+
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
    /* RANDOM NUMBERS */
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  //RNGType rng(std::time(0));
   RNGType rng(seed);
   boost::normal_distribution<> rdist(0,1);
   boost::random::uniform_real_distribution<>(urdist);
@@ -344,10 +327,8 @@ int main(const int argc, const char** argv)
   // If rotate flag is on rotate the polytope
   if(rotate){
       rotating(P);
-      //P.print();
   }
 
-  // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   
@@ -359,24 +340,12 @@ int main(const int argc, const char** argv)
   NT average, std_dev;
   double Chebtime, sum_Chebtime=double(0);
   NT vol;
-  /* NT C=2.0;
-  int N = 500 * ((int) C) + ((int) (n * n / 2));
-  int W = 4*n*n+500;
-  NT ratio = 1.0-1.0/(NT(n));
-  NT frac =0.1;
-  NT error=0.2;
-  NT delta=-1.0;
-   */
   
   for(int i=0; i<num_of_exp; ++i){
       std::cout<<"Experiment "<<i+1<<" ";
-      //Polytope<NT> P_to_test(P);
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      //if(!ball_rad){
-      //    ball_radius =
-      //}
       vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,rng,
                urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
 
@@ -391,6 +360,7 @@ int main(const int argc, const char** argv)
       }else{
           // Estimate the volume
           if(annealing){
+              // setup the parameters
               vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,rng,
                        urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
               vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
@@ -401,14 +371,11 @@ int main(const int argc, const char** argv)
               return 0;
           }
           vol = volume(P,var,var,CheBall);
-          //if(rotate) vol = std::sqrt(vol);
-          //std::cout<<vol<<std::endl;
       }
 
       NT v1 = vol;
 
       tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-      //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
 
       // Statistics
       sum+=v1;
@@ -419,7 +386,6 @@ int main(const int argc, const char** argv)
       sum_time +=  tstop-tstart;
       sum_Chebtime += Chebtime;
 
-      //std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart;
       if(round)
           std::cout<<" (rounding is ON)";
       std::cout<<std::endl;
@@ -505,23 +471,6 @@ int main(const int argc, const char** argv)
                  <<sum_Chebtime/(i+1)<<" "
                  //<<usage.vsize
                  <<std::endl;
-	}
-	if(exper){
-		
-		if (int( std::ceil( -std::log10( average ) ) )<0){
-			if( magnitude==0){
-				std::cout<<"TEST PASSED"<<std::endl;
-			}else{
-				std::cout<<"TEST FAILED"<<std::endl;
-			}
-		}else if( magnitude==int( std::ceil( -std::log10( average ) ) ) ){
-			std::cout<<"TEST PASSED"<<std::endl;
-		}else{
-			std::cout<<"TEST FAILED"<<std::endl;
-		}
-		std::cout<<"-----------------------------------------------\n";
-		std::cout<<" # # # # # # # # # # # # # # # # # # # # # # #\n";
-		std::cout<<"-----------------------------------------------\n";
 	}
 	
   if(linear_extensions)
