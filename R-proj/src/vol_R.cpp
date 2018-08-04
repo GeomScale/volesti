@@ -75,7 +75,7 @@ double vol_R (Rcpp::NumericMatrix A, int walk_len ,double e, Rcpp::NumericVector
     if (annealing) {
         vars var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, rng,
                   urdist, urdist1, verbose, rand_only, round, NN, birk, coordinate);
-        vars_g var1(n, walk_len, N, win_len, 1, e, CheBall.second, rng, C, frac, ratio, delta, verbose, rand_only, round,
+        vars_g var1(n, walk_len, N, win_len, 1, e, CheBall.second, rng, C, frac, ratio, delta, false, verbose, rand_only, round,
                     NN, birk, ball_walk, coordinate);
         vol = volume_gaussian_annealing(P, var1, var2, CheBall);
         if(verbose) std::cout<<"volume computed = "<<vol<<std::endl;

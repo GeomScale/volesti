@@ -23,6 +23,7 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
+//#include "math/special_functions/binomial.hpp"
 //#include "boost/random.hpp"
 //#include <boost/random/uniform_int.hpp>
 //#include <boost/random/normal_distribution.hpp>
@@ -104,6 +105,7 @@ public:
           double frac,
           double ratio,
           double delta,
+          bool deltaset,
           bool verbose,
           bool rand_only,
           bool round,
@@ -114,7 +116,7 @@ public:
     ) :
             n(n), walk_steps(walk_steps), N(N), W(W), n_threads(n_threads), error(error),
             che_rad(che_rad), rng(rng), C(C), frac(frac), ratio(ratio), delta(delta),
-            verbose(verbose), rand_only(rand_only), round(round),
+            deltaset(deltaset), verbose(verbose), rand_only(rand_only), round(round),
             NN(NN),birk(birk),ball_walk(ball_walk),coordinate(coordinate){};
 
     int n;
@@ -129,6 +131,7 @@ public:
     double frac;
     double ratio;
     double delta;
+    bool deltaset;
     bool verbose;
     bool rand_only;
     bool round;
@@ -163,7 +166,7 @@ NT volume(T &P,
 
     bool round = var.round;
     bool print = var.verbose;
-    bool rand_only = var.rand_only;
+    bool rand_only = var.rand_only, deltaset = false;
     int n = var.n;
     int rnum = var.m;
     int walk_len = var.walk_steps;
@@ -174,6 +177,12 @@ NT volume(T &P,
     //0. Get the Chebychev ball (largest inscribed ball) with center and radius
     Point c=CheBall.first;
     NT radius=CheBall.second;
+    if (var.ball_walk){
+        if(var.delta<0.0){
+            var.delta = 4.0 * radius / NT(n);
+            deltaset = true;
+        }
+    }
 
     //1. Rounding of the polytope if round=true
     NT round_value=1;
@@ -187,11 +196,14 @@ NT volume(T &P,
         std::pair<Point,NT> res=P.chebyshev_center();
         c=res.first; radius=res.second;
     }
+
     if (var.ball_walk){
-        if(var.delta<0.0){
+        if(deltaset){
             var.delta = 4.0 * radius / NT(n);
         }
     }
+
+    //P.get_dists(radius);
 
     rnum=rnum/n_threads;
     NT vol=0;
@@ -332,7 +344,7 @@ NT volume_gaussian_annealing(T &P,
     NT vol;
     bool round = var.round, done;
     bool print = var.verbose;
-    bool rand_only = var.rand_only;
+    bool rand_only = var.rand_only, deltaset = false;
     int n = var.n, steps;
     int walk_len = var.walk_steps, m=P.num_of_hyperplanes();
     int n_threads = var.n_threads, min_index, max_index, index, min_steps;
@@ -343,6 +355,12 @@ NT volume_gaussian_annealing(T &P,
     // Consider Chebychev center as an internal point
     Point c=CheBall.first;
     NT radius=CheBall.second;
+    if (var.ball_walk){
+        if(var.delta<0.0){
+            var.delta = 4.0 * radius / NT(n);
+            var.deltaset = true;
+        }
+    }
 
     // rounding of the polytope if round=true
     NT round_value=1;
@@ -357,10 +375,8 @@ NT volume_gaussian_annealing(T &P,
         c=res.first; radius=res.second;
     }
 
-    // Save the radius of the Chebychev ball if ball walk is requested
-    if(var.ball_walk){
-        var.che_rad = radius;
-    }
+    // Save the radius of the Chebychev ball
+    var.che_rad = radius;
 
     // Move chebychev center to origin and apply the same shifting to the polytope
     Eigen::VectorXd c_e(n);
@@ -368,17 +384,6 @@ NT volume_gaussian_annealing(T &P,
         c_e(i)=c[i];  // write chebychev center in an eigen vector
     }
     P.shift(c_e);
-    /*
-    Eigen::VectorXd c_e(n);
-    for(int i=0; i<n; i++){
-        c_e(i)=c[i];  // write chebychev center in an eigen vector
-    }
-    Eigen::MatrixXd A = P.get_eigen_mat();
-    Eigen::VectorXd b = P.get_eigen_vec();
-    // Shift polytope
-    b = b - A*c_e;
-    // Write changesto the polytope
-    P.set_eigen_vec(b);*/
 
     // Initialization
     std::vector<NT> a_vals;
@@ -391,7 +396,7 @@ NT volume_gaussian_annealing(T &P,
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
     get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    if(print) std::cout<<"All the variances of schedule_Sannealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
+    if(print) std::cout<<"All the variances of schedule_annealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
     int mm = a_vals.size()-1, j=0;
     if(print){
         for (typename std::vector<NT>::iterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
@@ -433,7 +438,7 @@ NT volume_gaussian_annealing(T &P,
 
         // Set the radius for the ball walk if it is requested
         if (var.ball_walk) {
-            if (var.delta < 0.0) {
+            if (var.deltaset) {
                 var.delta = 4.0 * radius / std::sqrt(std::max(1.0, *avalsIt) * NT(n));
             }
         }
