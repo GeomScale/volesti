@@ -47,18 +47,13 @@ std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
 template <class T1, typename FT>
 void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
 
-    int m = K.num_of_hyperplanes(), dim = var.n, i=0;
+    //int m = K.num_of_hyperplanes();
+    int dim = var.n, i=0;
     unsigned int iterations = 0;
     const int maxiter = 10000;
     const FT tol = 0.0000001;
     FT sum, lower = 0.0, upper = 1.0, sigma_sqd, t, mid;
-    std::vector <FT> dists(m, 0);
-    Eigen::MatrixXd A = K.get_eigen_mat();
-    Eigen::VectorXd b = K.get_eigen_vec();
-
-    typename std::vector<FT>::iterator disit = dists.begin();
-    for ( ; disit!=dists.end(); disit++, i++)
-        *disit = b(i)/A.row(i).norm();
+    std::vector <FT> dists = K.get_dists(var.che_rad);
 
     // Compute an upper bound for a_0
     while (iterations < maxiter) {
@@ -118,7 +113,7 @@ void get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var, s
 
     // Set the radius for the ball walk if it is requested
     if (var.ball_walk) {
-        if (var.delta < 0.0) {
+        if (var.deltaset) {
             var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, last_a) * FT(var.n));
         }
     }
@@ -192,7 +187,7 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
             steps--;
         }
         if (var.ball_walk) {
-            if (var.delta < 0.0) {
+            if (var.deltaset) {
                 var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_vals[it - 1]) * FT(n));
             }
         }

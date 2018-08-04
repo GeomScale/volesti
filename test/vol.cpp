@@ -389,8 +389,12 @@ int main(const int argc, const char** argv)
               vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,CheBall.second,rng,
                        urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
-              vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
-              vol = volume_gaussian_annealing(P, var1, var2, CheBall);
+              vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,false,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+              if(!Vpoly) {
+                  vol = volume_gaussian_annealing(P, var1, var2, CheBall);
+              }else{
+                  vol = volume_gaussian_annealing(VP, var1, var2, CheBall);
+              }
               tstop = (double)clock()/(double)CLOCKS_PER_SEC;
               std::cout<<"volume computed = "<<vol<<std::endl;
               std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;

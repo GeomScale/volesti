@@ -53,7 +53,7 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
 
         vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,rng,
                  urdist,urdist1,-1.0,false,false,false,false,false,false,true);
-        vars_g var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
+        vars_g var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
                     false,false,false,false,false,false,true);
         vol += volume_gaussian_annealing(P, var1, var2, CheBall);
     }

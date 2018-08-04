@@ -353,6 +353,16 @@ public:
         b = b - A*c;
     }
 
+    std::vector<FT> get_dists(FT radius){
+        int i=0;
+        std::vector <FT> dists(num_of_hyperplanes(), 0);
+        typename std::vector<FT>::iterator disit = dists.begin();
+        for ( ; disit!=dists.end(); disit++, i++)
+            *disit = b(i)/A.row(i).norm();
+
+        return dists;
+    }
+
 };
 
 
@@ -653,6 +663,35 @@ public:
     void linear_transformIt(Eigen::MatrixXd T){
         Eigen::MatrixXd V2 = T.inverse()*(V.transpose());
         V = V2.transpose();
+    }
+
+    std::vector<FT> get_dists(FT radius){
+        //FT num = boost::math::binomial_coefficient<FT>(10, 2);
+        int k = V.rows(), d1 = int(std::floor((_d+1)/2)), d2 = int(std::floor((_d+2)/2));
+        //std::cout<<"k = "<<k<<" d1 = "<<d1<<" d2 = "<<d2<<std::endl;
+        int num_of_hyp = 0, nom=1, denom=1;
+        for(int i=(k-_d+1); i<=k-d1; i++){
+            nom *= i;
+        }
+        for(int i=1; i<=_d-d1; i++){
+            denom *= i;
+        }
+        num_of_hyp+=nom/denom;
+        //std::cout<<"nom = "<<nom<<" denom = "<<denom<<" num_of_hyp = "<<num_of_hyp<<std::endl;
+        nom=1; denom=1;
+
+        for(int i=(k-_d+1); i<=k-d2; i++){
+            nom *= i;
+        }
+        for(int i=1; i<=_d-d2; i++){
+            denom *= i;
+        }
+        num_of_hyp+=nom/denom;
+        //std::cout<<"nom = "<<nom<<" denom = "<<denom<<" num_of_hyp = "<<num_of_hyp<<std::endl;
+        nom=1; denom=1;
+
+        std::vector<FT> res(num_of_hyp, radius);
+        return res;
     }
 
 };
