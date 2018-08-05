@@ -304,7 +304,7 @@ NT rotating(T &P){
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
   // apply rotation to the polytope P
   P.linear_transformIt(svd.matrixU());
-  
+
   return std::abs(svd.matrixU().inverse().determinant());
 }
 

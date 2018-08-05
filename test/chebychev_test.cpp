@@ -24,7 +24,7 @@ void cheb_test(FilePath f, NT expected, NT tolerance=0.001)
     inp.open(f,std::ifstream::in);
     read_pointset(inp,Pin);
     int n = Pin[0][1]-1;
-    Polytope<NT> P;
+    HPolytope<NT> P;
     P.init(Pin);
 
     // Setup the parameters

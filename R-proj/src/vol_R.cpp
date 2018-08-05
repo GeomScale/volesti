@@ -29,7 +29,7 @@ double vol_R (Rcpp::NumericMatrix A, int walk_len ,double e, Rcpp::NumericVector
          rotate=false,
          experiments=true,
          coordinate=coord;
-    Polytope<NT> P;
+    HPolytope<NT> P;
 
     n=A.ncol()-1;
     int m=A.nrow()-1;

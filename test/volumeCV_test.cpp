@@ -10,7 +10,7 @@
 #include "Eigen/Eigen"
 #include "volume.h"
 
-long int factorial(int n)
+NT factorial(NT n)
 {
     return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
@@ -23,7 +23,7 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
     inp.open(f,std::ifstream::in);
     read_pointset(inp,Pin);
     int n = Pin[0][1]-1;
-    Polytope<NT> P;
+    HPolytope<NT> P;
     P.init(Pin);
 
     // Setup the parameters
