@@ -26,7 +26,7 @@
 /**** MAIN *****/
 //////////////////////////////////////////////////////////
 
-int factorial(int n)
+NT factorial(NT n)
 {
   return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
@@ -61,7 +61,7 @@ int main(const int argc, const char** argv)
          coordinate=true;
 	
 	//this is our polytope
-	Polytope<NT> P;
+	HPolytope<NT> P;
 	VPolytope<NT> VP;
 
 	// parameters of CV algorithm
@@ -289,7 +289,7 @@ int main(const int argc, const char** argv)
   }
   
   //Compute chebychev ball//
-  std::pair<Point, double> CheBall;
+  std::pair<Point, NT> CheBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(!Vpoly) {
       CheBall = P.chebyshev_center();

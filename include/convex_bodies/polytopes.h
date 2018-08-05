@@ -16,19 +16,19 @@
 const NT maxNT = 1.79769e+308;
 const NT minNT = -1.79769e+308;
 
-// my H-polytope class
+// H-polytope class
 template <typename FT>
-class Polytope{
+class HPolytope{
 private:
     Eigen::MatrixXd A; //matrix A
     Eigen::VectorXd b; // vector b, s.t.: Ax<=b
     int            _d; //dimension
 
 public:
-    Polytope() {}
+    HPolytope() {}
 
     // constructor: cube(d)
-    Polytope(int d): _d(d) {
+    HPolytope(int d): _d(d) {
         A.resize(2 * d, d);
         b.resize(2 * d);
         for (int i = 0; i < d; ++i) {
@@ -53,52 +53,62 @@ public:
         }
     }
 
+
     // return dimension
     int dimension() {
         return _d;
     }
+
 
     // return the number of facets
     int num_of_hyperplanes() {
         return A.rows();
     }
 
+
     // return the matrix A
-    Eigen::MatrixXd get_eigen_mat() {
+    Eigen::MatrixXd get_mat() {
         return A;
     }
 
+
     // return the vector b
-    Eigen::VectorXd get_eigen_vec() {
+    Eigen::VectorXd get_vec() {
         return b;
     }
 
-    // chenge the matrix A
-    void set_eigen_mat(Eigen::MatrixXd A2) {
+
+    // change the matrix A
+    void set_mat(Eigen::MatrixXd A2) {
         A = A2;
     }
 
+
     // change the vector b
-    void set_eigen_vec(Eigen::VectorXd b2) {
+    void set_vec(Eigen::VectorXd b2) {
         b = b2;
     }
 
-    // get a single coefficient of the matrix or the vector
-    FT get_coeff(int i, int j) {
-        if (j == 0) {
-            return b(i);
-        }
-        return A(i, j - 1);
+
+    FT get_mat_coeff(int i, int j) {
+        return A(i,j);
     }
 
-    // change a single coefficient of the matrix or the vector
-    void put_coeff(int i, int j, FT value) {
-        if (j == 0) {
-            b(i) = value;
-        } else {
-            A(i, j - 1) = value;
-        }
+
+    FT get_vec_coeff(int i) {
+        return b(i);
     }
+
+
+    void put_mat_coeff(int i, int j, FT value) {
+        A(i,j) = value;
+    }
+
+
+    void put_vec_coeff(int i, FT value) {
+        b(i) = value;
+    }
+
 
     // default initialize: cube(d)
     void init(int d) {
@@ -126,6 +136,7 @@ public:
         }
     }
 
+
     //define matrix A and vector b, s.t. Ax<=b and the dimension
     void init(std::vector<std::vector<FT> > Pin) {
         _d = Pin[0][1] - 1;
@@ -138,6 +149,7 @@ public:
             }
         }
     }
+
 
     // print polytope in input format
     void print() {
@@ -241,6 +253,7 @@ public:
         res = solveLP(A, b, _d);  //lpSolve lib for the linear program
         return res;
     }
+
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
@@ -353,6 +366,7 @@ public:
         b = b - A*c;
     }
 
+
     std::vector<FT> get_dists(FT radius){
         int i=0;
         std::vector <FT> dists(num_of_hyperplanes(), 0);
@@ -367,7 +381,6 @@ public:
     bool get_points_for_rounding (T &randPoints) {
         return false;
     }
-
 };
 
 
@@ -377,7 +390,7 @@ public:
 //-------------------------------------------------------//
 
 
-
+// V-Polytope class
 template <typename FT>
 class VPolytope{
 private:
@@ -388,105 +401,93 @@ private:
 public:
     VPolytope() {}
 
-    // constructor: cube(d)
-    VPolytope(int d): _d(d) {
-        V.resize(2 * d, d);
-        b.resize(2 * d);
-        for (int i = 0; i < d; ++i) {
-            b(i) = 1;
-            for (int j = 0; j < d; ++j) {
-                if (i == j) {
-                    V(i, j) = 1;
-                } else {
-                    V(i, j) = 0;
-                }
-            }
-        }
-        for (int i = 0; i < d; ++i) {
-            b(i + d) = 1;
-            for (int j = 0; j < d; ++j) {
-                if (i == j) {
-                    V(i + d, j) = -1;
-                } else {
-                    V(i + d, j) = 0;
-                }
-            }
-        }
-    }
-
-    int dimension(){
+    // return dimension
+    int dimension() {
         return _d;
     }
 
-    int num_of_hyperplanes(){
+
+    // this function
+    int num_of_hyperplanes() {
+        return 0;
+    }
+
+
+    // compute the number of facets of the cyclic polytope in dimension _d with the same number of vertices
+    // this is an upper bound for the number of the facets from McMullen's Upper Bound Theorem
+    int upper_bound_of_hyperplanes() {
+        int k = num_of_vertices(), d1 = int(std::floor((_d + 1) / 2)), d2 = int(std::floor((_d + 2) / 2));
+        int num_of_hyp = 0, nom = 1, denom = 1;
+        for (int i = (k - _d + 1); i <= k - d1; i++) {
+            nom *= i;
+        }
+        for (int i = 1; i <= _d - d1; i++) {
+            denom *= i;
+        }
+        num_of_hyp += nom / denom;
+        nom = 1;
+        denom = 1;
+
+        for (int i = (k - _d + 1); i <= k - d2; i++) {
+            nom *= i;
+        }
+        for (int i = 1; i <= _d - d2; i++) {
+            denom *= i;
+        }
+        num_of_hyp += nom / denom;
+
+        return num_of_hyp;
+    }
+
+
+    int num_of_vertices() {
         return V.rows();
     }
 
-    int num_of_vertices(){
-        return V.rows();
-    }
 
     // return the matrix A
-    Eigen::MatrixXd get_eigen_mat() {
+    Eigen::MatrixXd get_mat() {
         return V;
     }
 
+
     // return the vector b
-    Eigen::VectorXd get_eigen_vec() {
+    Eigen::VectorXd get_vec() {
         return b;
     }
 
-    // chenge the matrix A
-    void set_eigen_mat(Eigen::MatrixXd V2) {
+
+    // change the matrix A
+    void set_mat(Eigen::MatrixXd V2) {
         V = V2;
     }
 
+
     // change the vector b
-    void set_eigen_vec(Eigen::VectorXd b2) {
+    void set_vec(Eigen::VectorXd b2) {
         b = b2;
     }
 
-    FT get_coeff(int i, int j){
-        if (j == 0) {
-            return b(i);
-        }
-        return V(i, j - 1);
-    }
 
-    void put_coeff(int i, int j, FT value){
-        if (j == 0) {
-            b(i) = value;
-        } else {
-            V(i, j - 1) = value;
-        }
+    FT get_mat_coeff(int i, int j) {
+        return V(i,j);
     }
 
 
-    // default initialize: cube(d)
-    void init(int d) {
-        V.resize(2 * d, d);
-        b.resize(2 * d);
-        for (int i = 0; i < d; ++i) {
-            b(i) = 1;
-            for (int j = 0; j < d; ++j) {
-                if (i == j) {
-                    V(i, j) = 1;
-                } else {
-                    V(i, j) = 0;
-                }
-            }
-        }
-        for (int i = 0; i < d; ++i) {
-            b(i + d) = 1;
-            for (int j = 0; j < d; ++j) {
-                if (i == j) {
-                    V(i + d, j) = -1;
-                } else {
-                    V(i + d, j) = 0;
-                }
-            }
-        }
+    FT get_vec_coeff(int i) {
+        return b(i);
     }
+
+
+    void put_mat_coeff(int i, int j, FT value) {
+        V(i,j) = value;
+    }
+
+
+    void put_vec_coeff(int i, FT value) {
+        b(i) = value;
+    }
+
 
     // Construct matrix V which contains the vertices row-wise
     void init(std::vector<std::vector<FT> > Pin) {
@@ -514,7 +515,7 @@ public:
     }
 
 
-    std::pair<Point,FT> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end,bool &done){
+    std::pair<Point,FT> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end, bool &done) {
 
         Point p0=*it_beg,p1,c;
         int dim=p0.dimension(),i,j;
@@ -570,11 +571,12 @@ public:
 
     }
 
+
     std::pair<Point,FT> chebyshev_center(){
 
         std::vector<Point> verts(_d+1);
         std::vector<FT> vecp(_d);
-        int m = V.rows(), vert_rand, pointer=0,i,j;
+        int m = num_of_vertices(), vert_rand, pointer=0,i,j;
         std::vector<int> x_vec(_d);
         bool done=false;
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -596,12 +598,10 @@ public:
 
             for(i=0; i<(_d+1); i++){
                 for (j=0; j<_d; j++){
-                    //vecp[j]=_A[x_vec[i]-1][j+1];
                     vecp[j]=V(x_vec[i]-1,j);
                 }
                 verts[i] = Point(_d,vecp.begin(),vecp.end());
             }
-
             res=get_center_radius_inscribed_simplex(verts.begin(), verts.end(), done);
         }
         return res;
@@ -609,14 +609,13 @@ public:
     }
 
 
-
     int is_in(Point p) {
-
         if(memLP_Vpoly(V, p)){
             return -1;
         }
         return 0;
     }
+
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by _A
@@ -629,6 +628,7 @@ public:
 
         return std::pair<NT,NT> (min_plus, max_minus);
     }
+
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           int rand_coord,
@@ -643,6 +643,7 @@ public:
 
         return std::pair<NT,NT> (min_plus, max_minus);
     }
+
 
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
@@ -660,44 +661,24 @@ public:
         return std::pair<NT,NT> (min_plus, max_minus);
     }
 
-    void shift(Eigen::VectorXd c){
-       Eigen::MatrixXd V2 = (V.transpose()).colwise() - c;
-       V = V2.transpose();
-    }
 
-    void linear_transformIt(Eigen::MatrixXd T){
-        Eigen::MatrixXd V2 = T.inverse()*(V.transpose());
+    void shift(Eigen::VectorXd c) {
+        Eigen::MatrixXd V2 = V.transpose().colwise() - c;
         V = V2.transpose();
     }
 
-    std::vector<FT> get_dists(FT radius){
-        //FT num = boost::math::binomial_coefficient<FT>(10, 2);
-        int k = V.rows(), d1 = int(std::floor((_d+1)/2)), d2 = int(std::floor((_d+2)/2));
-        //std::cout<<"k = "<<k<<" d1 = "<<d1<<" d2 = "<<d2<<std::endl;
-        int num_of_hyp = 0, nom=1, denom=1;
-        for(int i=(k-_d+1); i<=k-d1; i++){
-            nom *= i;
-        }
-        for(int i=1; i<=_d-d1; i++){
-            denom *= i;
-        }
-        num_of_hyp+=nom/denom;
-        //std::cout<<"nom = "<<nom<<" denom = "<<denom<<" num_of_hyp = "<<num_of_hyp<<std::endl;
-        nom=1; denom=1;
 
-        for(int i=(k-_d+1); i<=k-d2; i++){
-            nom *= i;
-        }
-        for(int i=1; i<=_d-d2; i++){
-            denom *= i;
-        }
-        num_of_hyp+=nom/denom;
-        //std::cout<<"nom = "<<nom<<" denom = "<<denom<<" num_of_hyp = "<<num_of_hyp<<std::endl;
-        nom=1; denom=1;
+    void linear_transformIt(Eigen::MatrixXd T) {
+        Eigen::MatrixXd V2 = T.inverse() * V.transpose();
+        V = V2.transpose();
+    }
 
-        std::vector<FT> res(num_of_hyp, radius);
+
+    std::vector<FT> get_dists(FT radius) {
+        std::vector <FT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }
+
 
     template <class T>
     bool get_points_for_rounding (T &randPoints) {
@@ -717,7 +698,6 @@ public:
         }
         return true;
     }
-
 };
 
 
