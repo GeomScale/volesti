@@ -90,21 +90,25 @@ public:
     }
 
 
+    // set a specific coeff of matrix A
     FT get_mat_coeff(int i, int j) {
         return A(i,j);
     }
 
 
+    // get a spesific coeff of vector b
     FT get_vec_coeff(int i) {
         return b(i);
     }
 
 
+    // get a specific coeff of matrix A
     void put_mat_coeff(int i, int j, FT value) {
         A(i,j) = value;
     }
 
 
+    // set a spesific coeff of vector b
     void put_vec_coeff(int i, FT value) {
         b(i) = value;
     }
@@ -356,17 +360,19 @@ public:
     }
 
 
-    //Apply linear transformation, of square matrix T, in H-polytope P:= Ax<=b
+    // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
     void linear_transformIt(Eigen::MatrixXd T) {
         A = A * T;
     }
 
 
+    // shift polytope by a point c
     void shift(Eigen::VectorXd c){
         b = b - A*c;
     }
 
 
+    // return for each facet the distance from the origin
     std::vector<FT> get_dists(FT radius){
         int i=0;
         std::vector <FT> dists(num_of_hyperplanes(), FT(0));
@@ -377,6 +383,8 @@ public:
         return dists;
     }
 
+
+    // no points given for the rounding, you have to sample from the polytope
     template <class T>
     bool get_points_for_rounding (T &randPoints) {
         return false;
@@ -407,7 +415,7 @@ public:
     }
 
 
-    // this function
+    // this function returns 0. The main sampler requests this function to set the length of lambdas vector
     int num_of_hyperplanes() {
         return 0;
     }
@@ -440,12 +448,13 @@ public:
     }
 
 
+    // return the number of vertices
     int num_of_vertices() {
         return V.rows();
     }
 
 
-    // return the matrix A
+    // return the matrix V
     Eigen::MatrixXd get_mat() {
         return V;
     }
@@ -469,21 +478,25 @@ public:
     }
 
 
+    // get a specific coeff of matrix V
     FT get_mat_coeff(int i, int j) {
         return V(i,j);
     }
 
 
+    // get a specific coeff of vector b
     FT get_vec_coeff(int i) {
         return b(i);
     }
 
 
+    // set a specific coeff of matrix V
     void put_mat_coeff(int i, int j, FT value) {
         V(i,j) = value;
     }
 
 
+    // set a specific coeff of vector b
     void put_vec_coeff(int i, FT value) {
         b(i) = value;
     }
@@ -515,6 +528,8 @@ public:
     }
 
 
+    // take d+1 points as input and compute the chebychev ball of the defined simplex
+    // done is true when the simplex is full dimensional and false if it is not
     std::pair<Point,FT> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end, bool &done) {
 
         Point p0=*it_beg,p1,c;
@@ -538,7 +553,7 @@ public:
         Bg=B;
         Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(B);
         auto rank = lu_decomp.rank();
-        if(rank==dim){
+        if(rank==dim){  // check if the simplex is full dimensional
             done=true;
         }else{
             return result;
@@ -572,6 +587,8 @@ public:
     }
 
 
+    // pick d+1 random vertices until they define a full dimensional simplex and then compute the chebychev ball of
+    // that simplex
     std::pair<Point,FT> chebyshev_center(){
 
         std::vector<Point> verts(_d+1);
@@ -584,12 +601,13 @@ public:
         boost::random::uniform_int_distribution<> uidist(1, m);
 
         std::pair<Point,FT> res;
+        // while d+1 points do not define a full dimensional simplex repeat
         while(!done){
             pointer=0;
             x_vec.assign(_d+1,0);
             while(pointer!=_d+1) {
                 vert_rand = uidist(rng);
-                // Check if this integer is selected first time
+                // Check if this vertex is selected first time
                 if (std::find(x_vec.begin(), x_vec.begin() + pointer, vert_rand) == x_vec.begin() + pointer) {
                     x_vec[pointer] = vert_rand;
                     pointer++;
@@ -609,6 +627,7 @@ public:
     }
 
 
+    // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point p) {
         if(memLP_Vpoly(V, p)){
             return -1;
@@ -618,7 +637,7 @@ public:
 
 
     // compute intersection point of ray starting from r and pointing to v
-    // with polytope discribed by _A
+    // with V-polytope
     std::pair<FT,FT> line_intersect(Point r,
                                           Point v) {
         FT min_plus, max_minus;
@@ -630,6 +649,8 @@ public:
     }
 
 
+    // Compute the intersection of a coordinate ray
+    // with a V-polytope
     std::pair<FT,FT> line_intersect_coord(Point &r,
                                           int rand_coord,
                                           std::vector<FT> &lamdas) {
@@ -645,6 +666,8 @@ public:
     }
 
 
+    // Compute the intersection of a coordinate ray
+    // with a V-polytope
     std::pair<FT,FT> line_intersect_coord(Point &r,
                                           Point &r_prev,
                                           int rand_coord,
@@ -662,24 +685,31 @@ public:
     }
 
 
+    // shift polytope by a point c
     void shift(Eigen::VectorXd c) {
         Eigen::MatrixXd V2 = V.transpose().colwise() - c;
         V = V2.transpose();
     }
 
 
+    // apply linear transformation, of square matrix T, to a V-Polytope
     void linear_transformIt(Eigen::MatrixXd T) {
         Eigen::MatrixXd V2 = T.inverse() * V.transpose();
         V = V2.transpose();
     }
 
 
+    // consider an upper bound for the number of facets of a V-polytope
+    // for each facet consider a lower bound for the distance from the origin
+    // useful for CV algorithm to get the first gaussian
     std::vector<FT> get_dists(FT radius) {
         std::vector <FT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }
 
 
+    // in number_of_vertices<=20*dimension use the vertices for the rounding
+    // otherwise you have to sample from the V-polytope
     template <class T>
     bool get_points_for_rounding (T &randPoints) {
         if (num_of_vertices()>20*_d) {
