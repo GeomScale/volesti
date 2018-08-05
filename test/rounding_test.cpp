@@ -8,9 +8,10 @@
 #include "doctest.h"
 #include <unistd.h>
 #include "Eigen/Eigen"
+#include "use_double.h"
 #include "volume.h"
 
-long int factorial(int n)
+NT factorial(NT n)
 {
     return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
