@@ -299,9 +299,11 @@ template <class T>
 NT rotating(T &P){
 
   int n = P.dimension();
+
   // pick a random rotation
   Eigen::MatrixXd R = Eigen::MatrixXd::Random(n,n);
   Eigen::JacobiSVD<Eigen::MatrixXd> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
   // apply rotation to the polytope P
   P.linear_transformIt(svd.matrixU());
 

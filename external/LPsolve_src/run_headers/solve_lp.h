@@ -1,6 +1,23 @@
-// Copyright(c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+
+// VolEsti is free software: you can redistribute it and/or modify it
+// under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or (at
+// your option) any later version.
+//
+// VolEsti is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+// for more details.
+//
+// See the file COPYING.LESSER for the text of the GNU Lesser General
+// Public License.  If you did not receive this file along with HeaDDaCHe,
+// see <http://www.gnu.org/licenses/>.
+
 
 #ifndef SOLVE_LP_H
 #define SOLVE_LP_H
@@ -9,12 +26,9 @@
 #include "lp_lib.h"
 
 
-//template <typename K>
+// compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
 std::pair<Point,NT> solveLP(Eigen::MatrixXd &A, Eigen::VectorXd &b, int d){
 
-	//typedef typename T1::FT                    K;
-	//int d=P.dimension();
-	//std::vector<std::vector<K> > A = P.get_matrix();
 	lprec *lp;
 	int Ncol=d+1, *colno = NULL, j, ret = 0, m=A.rows();
 	REAL *row = NULL;
@@ -27,13 +41,6 @@ std::pair<Point,NT> solveLP(Eigen::MatrixXd &A, Eigen::VectorXd &b, int d){
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
     
     if(ret == 0) {
-    /* let us name our variables. Not required, but can be useful for debugging */
-		
-		//for (int i=0; i<d; i++){
-			//set_col_name(lp, i+1, "xi");
-			//set_col_name(lp, 2, "y");
-		//}
-
 		/* create space large enough for one row */
 		colno = (int *) malloc(Ncol * sizeof(*colno));
 		row = (REAL *) malloc(Ncol * sizeof(*row));
@@ -48,21 +55,17 @@ std::pair<Point,NT> solveLP(Eigen::MatrixXd &A, Eigen::VectorXd &b, int d){
 	int i=0;
 	NT sum;
 	while(ret==0 & i<m){
-		/* construct all rows (120 x + 210 y <= 15000) */
+		/* construct all rows */
 		sum=NT(0);
 		for(j=0; j<d; j++){
-			colno[j] = j+1; /* j_th column */
-			//row[j] = A[i][j+1];
+			colno[j] = j+1;
 			row[j] = A(i,j);
 			sum+=A(i,j)*A(i,j);
-			//sum += A[i][j+1]*A[i][j+1];
 		}
 		colno[d] = d+1; /* last column */
 		row[d] = std::sqrt(sum);
-		//set_bounds(lp, d, 0.0, infinite);
-		
 
-    /* add the row to lpsolve */
+        /* add the row to lpsolve */
 		if(!add_constraintex(lp, d+1, row, colno, LE, b(i))){
 			ret = 3;
 		}
@@ -71,31 +74,27 @@ std::pair<Point,NT> solveLP(Eigen::MatrixXd &A, Eigen::VectorXd &b, int d){
 	
 	if(ret == 0) {
 		set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
-		
+
+
+		for (j = 0; j < d; j++) {
+            colno[j] = j + 1;
+            row[j] = 0;
+            set_bounds(lp, j + 1, -infinite, infinite);
+        }
+        colno[d] = d + 1; /* last column */
+        row[d] = 1.0;
+        set_bounds(lp, d + 1, 0.0, infinite);
+
 		// set the objective function
-		for(j=0; j<d; j++){
-			colno[j] = j+1; /* j_th column */
-			row[j] = 0;
-			set_bounds(lp, j+1, -infinite, infinite);
-		}
-		colno[d] = d+1; /* last column */
-		row[d] = 1.0;
-		set_bounds(lp, d+1, 0.0, infinite);
-		if(!set_obj_fnex(lp, d+1, row, colno)){
+		if (!set_obj_fnex(lp, d + 1, row, colno)) {
 			ret = 4;
 		}
-		
 	}
 	
 	
 	if(ret == 0) {
 		/* set the object direction to maximize */
 		set_maxim(lp);
-
-		/* just out of curioucity, now show the model in lp format on screen */
-		/* this only works if this is a console application. If not, use write_lp and a filename */
-		//write_LP(lp, stdout);
-		/* write_lp(lp, "model.lp"); */
 
 		/* I only want to see important messages on screen while solving */
 		set_verbose(lp, NEUTRAL);
@@ -107,33 +106,37 @@ std::pair<Point,NT> solveLP(Eigen::MatrixXd &A, Eigen::VectorXd &b, int d){
 		else
 			ret = 5;
 	}
-	
-	//if(ret == 0) {
-	std::vector<NT> temp_p(d,0);
-	get_variables(lp, row);
-	for(j = 0; j < d; j++){
-	//printf("%s: %f\n", get_col_name(lp, j + 1), row[j]);
-		temp_p[j]=NT(row[j]);
-	}
-	
-	Point xc( d , temp_p.begin() , temp_p.end() );
-	NT r=NT(get_objective(lp));
-	delete_lp(lp);
 
-	return std::pair<Point,NT> (xc,r);
+    std::pair<Point,NT> res;
+
+	if(ret == 0) {
+        std::vector<NT> temp_p(d,0);
+        get_variables(lp, row);
+        for(j = 0; j < d; j++){
+			temp_p[j]=NT(row[j]);
+	    }
+	
+	    Point xc( d , temp_p.begin() , temp_p.end() );
+	    NT r=NT(get_objective(lp));
+	    res = std::pair<Point,NT> (xc,r);
+	} else {
+        delete_lp(lp);
+        std::cout<<"Linear program for the computation of the chebychev ball failed"<<std::endl;
+        exit(-1);
+    }
+
+    delete_lp(lp);
+	return res;
 }
 
 
-
-
-//template <typename K>
+// return true if q belongs to the convex hull of the V-polytope described by matrix V
+// otherwise return false
 bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 
-	//typedef typename T1::FT                    K;
 	int d=q.dimension();
-	//std::vector<std::vector<K> > A = P.get_matrix();
 	lprec *lp;
-	int Ncol=d+1, *colno = NULL, j, ret = 0, m=V.rows();//A.size();
+	int Ncol=d+1, *colno = NULL, j, ret = 0, m=V.rows();
 	m++;
 	REAL *row = NULL;
 
@@ -145,13 +148,6 @@ bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 	REAL infinite = get_infinite(lp); /* will return 1.0e30 */
 
 	if(ret == 0) {
-		/* let us name our variables. Not required, but can be useful for debugging */
-
-		//for (int i=0; i<d; i++){
-		//set_col_name(lp, i+1, "xi");
-		//set_col_name(lp, 2, "y");
-		//}
-
 		/* create space large enough for one row */
 		colno = (int *) malloc(Ncol * sizeof(*colno));
 		row = (REAL *) malloc(Ncol * sizeof(*row));
@@ -163,17 +159,13 @@ bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 		set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 	}
 	int i=0;
-	//K sum;
 	while(ret==0 & i<m-1){
-		/* construct all rows (120 x + 210 y <= 15000) */
-		//sum=K(0);
+		/* construct all rows */
 		for(j=0; j<d; j++){
-			colno[j] = j+1; /* j_th column */
-			//row[j] = A[i][j+1];
+			colno[j] = j+1;
 			row[j] = V(i,j);
-			//sum += A[i][j+1]*A[i][j+1];
 		}
-		colno[d] = d+1; /* last column */
+		colno[d] = d+1;
 		row[d] = -1.0;
 		//set_bounds(lp, d, 0.0, infinite);
 
@@ -186,14 +178,11 @@ bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 	}
 	if (ret==0){
 		for(j=0; j<d; j++){
-			colno[j] = j+1; /* j_th column */
+			colno[j] = j+1; /* last column */
 			row[j] = q[j];
-			//sum += A[i][j+1]*A[i][j+1];
 		}
 		colno[d] = d+1; /* last column */
 		row[d] = -1.0;
-		//set_bounds(lp, d, 0.0, infinite);
-
 
 		/* add the row to lpsolve */
 		if(!add_constraintex(lp, d+1, row, colno, LE, 1.0)){
@@ -205,7 +194,7 @@ bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 	if(ret == 0) {
 		set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
 
-		// set the objective function
+        // set the bounds
 		for(j=0; j<d; j++){
 			colno[j] = j+1; /* j_th column */
 			row[j] = q[j];
@@ -214,6 +203,8 @@ bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 		colno[d] = d+1; /* last column */
 		row[d] = -1.0;
 		set_bounds(lp, d+1, -infinite, infinite);
+
+        // set the objective function
 		if(!set_obj_fnex(lp, d+1, row, colno)){
 			ret = 4;
 		}
@@ -223,11 +214,6 @@ bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 	if(ret == 0) {
 		/* set the object direction to maximize */
 		set_maxim(lp);
-
-		/* just out of curioucity, now show the model in lp format on screen */
-		/* this only works if this is a console application. If not, use write_lp and a filename */
-		//write_LP(lp, stdout);
-		/* write_lp(lp, "model.lp"); */
 
 		/* I only want to see important messages on screen while solving */
 		set_verbose(lp, NEUTRAL);
@@ -240,23 +226,29 @@ bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 			ret = 5;
 	}
 
-	NT r = NT(get_objective(lp));
-	delete_lp(lp);
-	if(r>0.0){
-		return false;
+	if (ret == 0) {
+        NT r = NT(get_objective(lp));
+        delete_lp(lp);
+        if(r>0.0){
+            return false;
+        }
+        return true;
 	}
-	return true;
 
-
+    std::cout<<"Linear Program for the membership failed"<<std::endl;
+    exit(-1);
+    return 0;
 }
 
 
-//template <typename K>
+// compute the intersection of a ray with a V-polytope
+// if maxi is true compute positive lambda, when the ray is p + lambda \codt v
+// otherwise compute the negative lambda
 NT intersect_line_Vpoly(Eigen::MatrixXd V, Point &p, Point &v, bool maxi){
 
 	int d=v.dimension();
 	lprec *lp;
-	int m=V.rows();//A.size();
+	int m=V.rows();
 	m++;
 	int Ncol=m, *colno = NULL, j, ret = 0;
 	REAL *row = NULL;
@@ -269,7 +261,6 @@ NT intersect_line_Vpoly(Eigen::MatrixXd V, Point &p, Point &v, bool maxi){
 
 	REAL infinite = get_infinite(lp); /* will return 1.0e30 */
 
-	//std::cout<<"ret1 = "<<ret<<std::endl;
 	if(ret == 0) {
 		/* create space large enough for one row */
 		colno = (int *) malloc(Ncol * sizeof(*colno));
@@ -277,26 +268,20 @@ NT intersect_line_Vpoly(Eigen::MatrixXd V, Point &p, Point &v, bool maxi){
 		if((colno == NULL) || (row == NULL))
 			ret = 2;
 	}
-	//std::cout<<"ret2 = "<<ret<<std::endl;
 
 	if(ret == 0) {
 		set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 	}
 	int i=0;
-	//std::cout<<"ret3 = "<<ret<<std::endl;
 
 	while(ret==0 & i<d){
-		/* construct all rows (120 x + 210 y <= 15000) */
-		//sum=K(0);
+		/* construct all rows  */
 		for(j=0; j<m-1; j++){
 			colno[j] = j+1; /* j_th column */
-			//row[j] = A[j][i+1];
-			row[j] = V(j,i);//A[j][i+1];
+			row[j] = V(j,i);
 		}
 		colno[m-1] = m; /* last column */
 		row[m-1] = v[i];
-		//set_bounds(lp, d, 0.0, infinite);
-
 
 		/* add the row to lpsolve */
 		if(!add_constraintex(lp, m, row, colno, EQ, p[i])){
@@ -309,12 +294,9 @@ NT intersect_line_Vpoly(Eigen::MatrixXd V, Point &p, Point &v, bool maxi){
 		for(j=0; j<m-1; j++){
 			colno[j] = j+1; /* j_th column */
 			row[j] = 1.0;
-			//sum += A[i][j+1]*A[i][j+1];
 		}
 		colno[m-1] = m; /* last column */
 		row[m-1] = 0.0;
-		//set_bounds(lp, d, 0.0, infinite);
-
 
 		/* add the row to lpsolve */
 		if(!add_constraintex(lp, m, row, colno, EQ, 1.0)){
@@ -330,11 +312,12 @@ NT intersect_line_Vpoly(Eigen::MatrixXd V, Point &p, Point &v, bool maxi){
 		for(j=0; j<m-1; j++){
 			colno[j] = j+1; /* j_th column */
 			row[j] = 0;
-			//set_bounds(lp, j+1, 0.0, infinite);
 		}
 		colno[m - 1] =m; /* last column */
 		row[m-1] = 1.0;
 		set_bounds(lp, m, -infinite, infinite);
+
+		// set objective function
 		if(!set_obj_fnex(lp, m, row, colno)){
 			ret = 4;
 		}
@@ -342,10 +325,10 @@ NT intersect_line_Vpoly(Eigen::MatrixXd V, Point &p, Point &v, bool maxi){
 	}
 
 	if(ret == 0) {
-		/* set the object direction to maximize */
-		if(maxi) {
+
+		if(maxi) {  /* set the object direction to maximize */
 			set_maxim(lp);
-		}else{
+		}else{      /* set the object direction to minimize */
 			set_minim(lp);
 		}
 		set_verbose(lp, NEUTRAL);
