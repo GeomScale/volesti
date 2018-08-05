@@ -8,6 +8,7 @@
 #include "doctest.h"
 #include <unistd.h>
 #include "Eigen/Eigen"
+#include "use_double.h"
 #include "volume.h"
 
 NT factorial(NT n)

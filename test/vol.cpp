@@ -20,6 +20,7 @@
 // see <http://www.gnu.org/licenses/>.
 
 #include "Eigen/Eigen"
+#include "use_double.h"
 #include "volume.h"
 
 //////////////////////////////////////////////////////////
@@ -41,8 +42,8 @@ int main(const int argc, const char** argv)
 	//Deafault values
     int n, nexp=1, n_threads=1, W;
     int walk_len,N;
-    double e=1;
-    double exactvol(-1.0);
+    NT e=1;
+    NT exactvol(-1.0);
     bool verbose=false, 
 	 rand_only=false, 
 	 round_only=false,
@@ -186,7 +187,7 @@ int main(const int argc, const char** argv)
           Vpoly=true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
-          std::vector<std::vector<double> > Pin;
+          std::vector<std::vector<NT> > Pin;
           inp.open(argv[++i],std::ifstream::in);
           read_pointset(inp,Pin);
           //std::cout<<"d="<<Pin[0][1]<<std::endl;
@@ -300,7 +301,7 @@ int main(const int argc, const char** argv)
   if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
   if(verbose){
       std::cout<<"Chebychev center is: "<<std::endl;
-      for(int i=0; i<VP.dimension(); i++){
+      for(int i=0; i<n; i++){
           std::cout<<CheBall.first[i]<<" ";
       }
       std::cout<<"\nradius is: "<<CheBall.second<<std::endl;

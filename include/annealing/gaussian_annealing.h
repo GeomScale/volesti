@@ -47,12 +47,17 @@ std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
 template <class T1, typename FT>
 void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
 
-    //int m = K.num_of_hyperplanes();
     int dim = var.n, i=0;
     unsigned int iterations = 0;
     const int maxiter = 10000;
-    const FT tol = 0.0000001;
-    FT sum, lower = 0.0, upper = 1.0, sigma_sqd, t, mid;
+    FT tol;
+    if (using_float) {
+        tol = 0.000001;
+    } else {
+        tol = 0.0000001;
+    }
+
+    FT sum, lower = 0.0, upper = 1.0, mid;
     std::vector <FT> dists = K.get_dists(var.che_rad);
 
     // Compute an upper bound for a_0
@@ -60,10 +65,8 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
         iterations += 1;
         sum = 0.0;
         for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
-            sum += std::exp(-upper * std::pow(*it, 2.0)) / (2.0 * (*it) * std::sqrt(M_PI * upper));
+            sum += std::exp(-upper * std::pow(*it, FT(2.0))) / (2.0 * (*it) * std::sqrt(FT(M_PI) * upper));
         }
-
-        sigma_sqd = 1 / (2.0 * upper);
 
         if (sum > frac * error) {
             upper = upper * 10;
@@ -82,10 +85,8 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
         mid = (upper + lower) / 2.0;
         sum = 0.0;
         for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
-            sum += std::exp(-mid * std::pow(*it, 2)) / (2 * (*it) * std::sqrt(M_PI * mid));
+            sum += std::exp(-mid * std::pow(*it, FT(2.0))) / (2.0 * (*it) * std::sqrt(FT(M_PI) * mid));
         }
-
-        sigma_sqd = 1.0 / (2.0 * mid);
 
         if (sum < frac * error) {
             upper = mid;
@@ -94,7 +95,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
         }
     }
 
-    a_vals.push_back((upper + lower) / 2.0);
+    a_vals.push_back((upper + lower) / FT(2.0));
     error = (1.0 - frac) * error;
 }
 
@@ -108,13 +109,13 @@ void get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var, s
     FT k = 1.0;
     const FT tol = 0.00001;
     bool done=false, print=var.verbose;
-    std::vector<FT> fn(N,0);
+    std::vector<FT> fn(N,FT(0.0));
     std::list<Point> randPoints;
 
     // Set the radius for the ball walk if it is requested
     if (var.ball_walk) {
         if (var.deltaset) {
-            var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, last_a) * FT(var.n));
+            var.delta = 4.0 * var.che_rad / std::sqrt(std::max(FT(1.0), last_a) * FT(var.n));
         }
     }
     //sample N points using hit and run or ball walk
@@ -168,7 +169,7 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
     if(print) std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
 
     Point p_prev=p;
-    std::vector<FT> lamdas(K.num_of_hyperplanes(),NT(0));
+    std::vector<FT> lamdas(K.num_of_hyperplanes(),FT(0));
     while (curr_fn/curr_its>(1.0+tol) && a_vals[it]>=a_stop) {
         // Compute the next gaussian
         get_next_gaussian(K, p, a_vals[it], N, ratio, C, var, a_vals);
@@ -188,7 +189,7 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
         }
         if (var.ball_walk) {
             if (var.deltaset) {
-                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_vals[it - 1]) * FT(n));
+                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(FT(1.0), a_vals[it - 1]) * FT(n));
             }
         }
 

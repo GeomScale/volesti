@@ -30,7 +30,7 @@
 //#include <boost/random/uniform_real_distribution.hpp>
 
 
-typedef double                      NT;
+//typedef double                      NT;
 //typedef float                      NT;
 //typedef long double                     NT;
 typedef Cartesian<NT> 	      Kernel; 
@@ -98,13 +98,13 @@ public:
           int N,
           int W,
           int n_threads,
-          double error,
-          double che_rad,
+          NT error,
+          NT che_rad,
           RNGType &rng,
-          double C,
-          double frac,
-          double ratio,
-          double delta,
+          NT C,
+          NT frac,
+          NT ratio,
+          NT delta,
           bool deltaset,
           bool verbose,
           bool rand_only,
@@ -124,13 +124,13 @@ public:
     int N;
     int W;
     int n_threads;
-    double error;
-    double che_rad;
+    NT error;
+    NT che_rad;
     RNGType &rng;
-    double C;
-    double frac;
-    double ratio;
-    double delta;
+    NT C;
+    NT frac;
+    NT ratio;
+    NT delta;
     bool deltaset;
     bool verbose;
     bool rand_only;
@@ -439,7 +439,7 @@ NT volume_gaussian_annealing(T &P,
         // Set the radius for the ball walk if it is requested
         if (var.ball_walk) {
             if (var.deltaset) {
-                var.delta = 4.0 * radius / std::sqrt(std::max(1.0, *avalsIt) * NT(n));
+                var.delta = 4.0 * radius / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n));
             }
         }
 

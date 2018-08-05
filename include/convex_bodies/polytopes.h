@@ -369,7 +369,7 @@ public:
 
     std::vector<FT> get_dists(FT radius){
         int i=0;
-        std::vector <FT> dists(num_of_hyperplanes(), 0);
+        std::vector <FT> dists(num_of_hyperplanes(), FT(0));
         typename std::vector<FT>::iterator disit = dists.begin();
         for ( ; disit!=dists.end(); disit++, i++)
             *disit = b(i)/A.row(i).norm();
@@ -619,46 +619,46 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by _A
-    std::pair<NT,NT> line_intersect(Point r,
-                                          Point v){
-        NT min_plus, max_minus;
+    std::pair<FT,FT> line_intersect(Point r,
+                                          Point v) {
+        FT min_plus, max_minus;
 
         max_minus = intersect_line_Vpoly(V, r, v, true);
         min_plus = intersect_line_Vpoly(V, r, v, false);
 
-        return std::pair<NT,NT> (min_plus, max_minus);
+        return std::pair<FT, FT>(min_plus, max_minus);
     }
 
 
-    std::pair<NT,NT> line_intersect_coord(Point &r,
+    std::pair<FT,FT> line_intersect_coord(Point &r,
                                           int rand_coord,
                                           std::vector<FT> &lamdas) {
-        NT min_plus, max_minus;
-        std::vector<NT> temp(_d);
+        FT min_plus, max_minus;
+        std::vector<FT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
         max_minus = intersect_line_Vpoly(V, r, v, true);
         min_plus = intersect_line_Vpoly(V, r, v, false);
 
-        return std::pair<NT,NT> (min_plus, max_minus);
+        return std::pair<FT, FT> (min_plus, max_minus);
     }
 
 
-    std::pair<NT,NT> line_intersect_coord(Point &r,
+    std::pair<FT,FT> line_intersect_coord(Point &r,
                                           Point &r_prev,
                                           int rand_coord,
                                           int rand_coord_prev,
                                           std::vector<FT> &lamdas) {
-        NT min_plus, max_minus;
-        std::vector<NT> temp(_d);
+        FT min_plus, max_minus;
+        std::vector<FT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
         max_minus = intersect_line_Vpoly(V, r, v, true);
         min_plus = intersect_line_Vpoly(V, r, v, false);
 
-        return std::pair<NT,NT> (min_plus, max_minus);
+        return std::pair<FT, FT> (min_plus, max_minus);
     }
 
 
@@ -686,7 +686,7 @@ public:
             return false;
         }
         int j;
-        std::vector<FT> temp(_d,0);
+        std::vector<FT> temp(_d,FT(0));
         typename std::vector<FT>::iterator pointIt;
         for (int i=0; i<num_of_vertices(); i++) {
             pointIt = temp.begin(); j=0;
