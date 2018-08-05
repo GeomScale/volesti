@@ -363,6 +363,11 @@ public:
         return dists;
     }
 
+    template <class T>
+    bool get_points_for_rounding (T &randPoints) {
+        return false;
+    }
+
 };
 
 
@@ -418,7 +423,7 @@ public:
     }
 
     int num_of_vertices(){
-        return V.cols();
+        return V.rows();
     }
 
     // return the matrix A
@@ -692,6 +697,25 @@ public:
 
         std::vector<FT> res(num_of_hyp, radius);
         return res;
+    }
+
+    template <class T>
+    bool get_points_for_rounding (T &randPoints) {
+        if (num_of_vertices()>20*_d) {
+            return false;
+        }
+        int j;
+        std::vector<FT> temp(_d,0);
+        typename std::vector<FT>::iterator pointIt;
+        for (int i=0; i<num_of_vertices(); i++) {
+            pointIt = temp.begin(); j=0;
+            for ( ; pointIt!=temp.end(); pointIt++, j++){
+                *pointIt = V(i,j);
+            }
+            Point p(_d, temp.begin(), temp.end());
+            randPoints.push_back(p);
+        }
+        return true;
     }
 
 };
