@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/volumeCV_test.dir/volumeCV_test.o CMakeFiles/test_main.dir/test_main.o  -o volumeCV_test -rdynamic -llpsolve55 
