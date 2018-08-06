@@ -305,7 +305,6 @@ int main(const int argc, const char** argv)
           std::cout<<CheBall.first[i]<<" ";
       }
       std::cout<<"\nradius is: "<<CheBall.second<<std::endl;
-      //VP.print();
   }
   
   // Set the number of random walk steps
