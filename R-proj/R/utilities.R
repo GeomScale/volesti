@@ -58,7 +58,6 @@ ineToMatrix <- function(P){
     r=as.character(r)
     str=""
     count=1
-    #print(r)
     beg=0
     for(j in 1:nchar(r)){
       if(substr(r, start=j, stop=j)==" "){
@@ -69,7 +68,6 @@ ineToMatrix <- function(P){
     }
     sp_bef=FALSE
     for(j in seq(from=beg+1, to=nchar(r), by=1)){
-      
       if (substr(r, start=j, stop=j)==" "){
         if(sp_bef){
           next
@@ -81,6 +79,9 @@ ineToMatrix <- function(P){
       }else{
         str=paste0(str,substr(r, start=j, stop=j))
         sp_bef=FALSE
+        if(j==nchar(r)){
+          newrow[count]=as.numeric(str)
+        }
       }
     }
     A=rbind(A,newrow)
@@ -149,7 +150,7 @@ CheBall <- function(A,b){
 #' The main R function for volume approximation of a convex H-Polytope
 #'
 #' @param list("path","matrix","vector","Chebychev","verbose","coordinate","rounding","Walk_length","error","test") A list that includes alla the parameters of the algorithm
-#' @param path The path to the ine file that describes the H-polytope. If path is given then "matrix" and "vector" inputs are not needed
+#' @param path The path to an ine or ext file that describes the H-polytope. If path is given then "matrix" and "vector" inputs are not needed
 #' @param matrix The matrix A of the polytope. If it is in ine format then the input "vector" is not needed
 #' @param vector The vector b that containes the constants of the hyperplanes
 #' @param Walk_length Optional. Declare the number of the steps for the random walk, default is 10+d/10
@@ -164,6 +165,7 @@ CheBall <- function(A,b){
 #' @param ball_walk Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is False
 #' @param delta Optional. The radius for the ball walk
 #' @param verbose Optional. A boolean parameter for printing. Default is False
+#' @param Vpoly A boolean parameter, has to be true when a V-polytope is given as input
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is True
 #' @param rounding Optional. A boolean parameter to activate the rounding option. Default value is False
 #' @param test Optional. A boolean parameter. Declare if the current excecution is a test or not. Default value is False
@@ -172,6 +174,10 @@ CheBall <- function(A,b){
 #' VolEsti(list("path"=/path/to/ine/file, "verbose"=TRUE))
 VolEsti <- function(Inputs){
   
+  Vpoly=FALSE
+  if(!is.null(Inputs$Vpoly)){
+    Vpoly = Inputs$Vpoly
+  }
   if(!is.null(Inputs$path)){
     A=ineToMatrix(read.csv(Inputs$path))
     r=A[1,]
@@ -189,7 +195,11 @@ VolEsti <- function(Inputs){
     A=x$matrix
     b=x$vector
   }else{
-    print('No H-polytope defined from input!')
+    if(Vpoly){
+      print('No V-polytope defined from input!')
+    }else{
+      print('No H-polytope defined from input!')
+    }
     return(-1)
   }
   Cheb_ball=rep(0,dim(A)[2]+5)
@@ -266,8 +276,10 @@ VolEsti <- function(Inputs){
 
   A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
   A=matrix(rbind(r,A),ncol=dim(A)[2])
+  print(A)
+  print(Vpoly)
   tim=proc.time()
-  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,coordinate,rounding,verbose)
+  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,coordinate,rounding,verbose)
   tim=proc.time()-tim
   if(verbose || test){
     print(paste0('Total time: ',as.numeric(as.character(tim[3]))))

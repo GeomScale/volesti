@@ -466,7 +466,7 @@ public:
     }
 
 
-    // change the matrix A
+    // change the matrix V
     void set_mat(Eigen::MatrixXd V2) {
         V = V2;
     }
@@ -532,64 +532,63 @@ public:
     // done is true when the simplex is full dimensional and false if it is not
     std::pair<Point,FT> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end, bool &done) {
 
-        Point p0=*it_beg,p1,c;
-        int dim=p0.dimension(),i,j;
-        std::vector<FT> temp_p;
-        FT radius=0.0,gi,sum=0.0;
+        Point p0 = *it_beg,p1,c;
+        int dim = p0.dimension(),i,j;
+        std::vector <FT> temp_p;
+        FT radius = 0.0, gi, sum = 0.0;
         Eigen::MatrixXd B(dim,dim);
         Eigen::MatrixXd Bg(dim,dim);
         Eigen::MatrixXd e(1,dim);
         Eigen::VectorXd row(dim);
         Eigen::VectorXd g(dim);
-        std::pair<Point,FT> result;
+        std::pair <Point,FT> result;
 
-        for (j=1; j<dim+1; j++){
-            Point pk=*(it_beg+j);
-            e(j-1)=1.0;
-            for (i=0; i<dim; i++){
-                B(i,j-1)=pk[i]-p0[i];
+        for (j=1; j<dim+1; j++) {
+            Point pk = *(it_beg + j);
+            e(j - 1) = 1.0;
+            for (i = 0; i < dim; i++) {
+                B(i, j - 1) = pk[i] - p0[i];
             }
         }
-        Bg=B;
-        Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(B);
+        Bg = B;
+        Eigen::FullPivLU <Eigen::MatrixXd> lu_decomp(B);
         auto rank = lu_decomp.rank();
-        if(rank==dim){  // check if the simplex is full dimensional
-            done=true;
-        }else{
+        if(rank==dim) {  // check if the simplex is full dimensional
+            done = true;
+        }else {
             return result;
         }
-        B=B.inverse();
-        for (i=0; i<dim; i++){
-            for (j=0; j<dim; j++){
-                row(j)=B(i,j);
+        B = B.inverse();
+        for (i=0; i<dim; i++) {
+            for (j = 0; j < dim; j++) {
+                row(j) = B(i, j);
             }
-            gi=row.norm();
-            radius+=gi;
-            g(i)=gi;
-            if (i<dim-1){
-                sum+=gi;
+            gi = row.norm();
+            radius += gi;
+            g(i) = gi;
+            if (i < dim - 1) {
+                sum += gi;
             }
         }
-        e=e*B;
-        radius+=e.norm();
-        radius=1.0/radius;
-        g=Bg*g;
-        g=radius*g;
-        for (i=0; i<dim; i++){
-            temp_p.push_back(p0[i]+g(i));
+        e = e * B;
+        radius += e.norm();
+        radius = 1.0 / radius;
+        g = Bg * g;
+        g = radius * g;
+        for (i=0; i<dim; i++) {
+            temp_p.push_back(p0[i] + g(i));
         }
-        c=Point(dim,temp_p.begin(), temp_p.end());
-        result.first=c;
-        result.second=radius;
+        c = Point(dim, temp_p.begin(), temp_p.end());
+        result.first = c;
+        result.second = radius;
 
         return result;
-
     }
 
 
     // pick d+1 random vertices until they define a full dimensional simplex and then compute the chebychev ball of
     // that simplex
-    std::pair<Point,FT> chebyshev_center(){
+    std::pair<Point,FT> chebyshev_center() {
 
         std::vector<Point> verts(_d+1);
         std::vector<FT> vecp(_d);
@@ -615,15 +614,14 @@ public:
             }
 
             for(i=0; i<(_d+1); i++){
-                for (j=0; j<_d; j++){
-                    vecp[j]=V(x_vec[i]-1,j);
+                for (j=0; j<_d; j++) {
+                    vecp[j] = V(x_vec[i] - 1, j);
                 }
                 verts[i] = Point(_d,vecp.begin(),vecp.end());
             }
             res=get_center_radius_inscribed_simplex(verts.begin(), verts.end(), done);
         }
         return res;
-
     }
 
 
