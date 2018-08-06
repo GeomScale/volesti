@@ -30,9 +30,6 @@
 //#include <boost/random/uniform_real_distribution.hpp>
 
 
-//typedef double                      NT;
-//typedef float                      NT;
-//typedef long double                     NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
 typedef boost::mt19937 RNGType; // mersenne twister generator
@@ -203,8 +200,6 @@ NT volume(T &P,
         }
     }
 
-    //P.get_dists(radius);
-
     rnum=rnum/n_threads;
     NT vol=0;
 
@@ -250,6 +245,7 @@ NT volume(T &P,
 
             if(i==nb1){
                 balls.push_back(Ball(c,radius*radius));
+                vol = (std::pow(M_PI,n/2.0)*(std::pow(balls[0].radius(), n) ) ) / (tgamma(n/2.0+1));
             }else{
                 balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
             }
@@ -259,8 +255,6 @@ NT volume(T &P,
         if (print) std::cout<<"---------"<<std::endl;
 
         // 5. Estimate Vol(P)
-
-        NT telescopic_prod=NT(1);
 
         std::vector<Ball>::iterator bit2=balls.end();
         bit2--;
@@ -309,24 +303,19 @@ NT volume(T &P,
             //generate more random points in PBLarge to have "rnum" in total
             rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
 
-            telescopic_prod *= NT(rnum)/NT(nump_PBSmall);
+            vol *= NT(rnum)/NT(nump_PBSmall);
             if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
-                              <<"\ncurrent_vol="<<telescopic_prod
-                             <<"\n="<<telescopic_prod
+                              <<"\ncurrent_vol = "<<vol
                             <<"\n--------------------------"<<std::endl;
 
             //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2
         }
-        
-        if(print) std::cout<<"rand points = "<<rnum<<std::endl;
-        if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
-        vol = (std::pow(M_PI,n/2.0)*(std::pow(balls[0].radius(), n) ) ) / (tgamma(n/2.0+1));
-        vol=vol*telescopic_prod;
-        if(print) std::cout<<"round_value: "<<round_value<<std::endl;
-        vol=round_value*vol;
-        if(print) std::cout<<"volume computed: "<<vol<<std::endl;
-
     }
+    if(print) std::cout<<"rand points = "<<rnum<<std::endl;
+    if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
+    if(print) std::cout<<"round_value: "<<round_value<<std::endl;
+    vol=round_value*vol;
+    if(print) std::cout<<"volume computed: "<<vol<<std::endl;
 
     return vol;
 }
@@ -421,7 +410,6 @@ NT volume_gaussian_annealing(T &P,
 
     // Compute the first point if CDHR is requested
     if(var.coordinate && !var.ball_walk){
-        //gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var,first_coord_point);
         gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
     }
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios

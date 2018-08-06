@@ -188,12 +188,29 @@ VolEsti <- function(Inputs){
   }else if(!is.null(Inputs$vector)){
     b=Inputs$vector
     A=-Inputs$matrix
+    d=dim(A)[2]+1
+    m=dim(A)[1]
+    r=rep(0,d)
+    r[1]=m
+    r[2]=d
   }else if(!is.null(Inputs$matrix)){
-    r=Inputs$matrix[1,]
-    Inputs$matrix=Inputs$matrix[-c(1),]
-    x=modifyMat(Inputs$matrix)
-    A=x$matrix
-    b=x$vector
+    if(Vpoly){
+      A=Inputs$matrix
+      d=dim(A)[2]+1
+      m=dim(A)[1]
+      nc=rep(1,m)
+      A=cbind(nc,A)
+      nr=rep(0,d)
+      nr[1]=m
+      nr[2]=d
+      A=rbind(nr,A)
+    }else{
+      r=Inputs$matrix[1,]
+      Inputs$matrix=Inputs$matrix[-c(1),]
+      x=modifyMat(Inputs$matrix)
+      A=x$matrix
+      b=x$vector
+    }
   }else{
     if(Vpoly){
       print('No V-polytope defined from input!')
@@ -274,10 +291,10 @@ VolEsti <- function(Inputs){
     delta=Inputs$delta
   }
 
-  A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
-  A=matrix(rbind(r,A),ncol=dim(A)[2])
-  print(A)
-  print(Vpoly)
+  if(!Vpoly){
+    A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
+    A=matrix(rbind(r,A),ncol=dim(A)[2])
+  }
   tim=proc.time()
   vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,coordinate,rounding,verbose)
   tim=proc.time()-tim
