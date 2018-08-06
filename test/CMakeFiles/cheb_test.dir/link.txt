@@ -1,1 +1,0 @@
-/usr/bin/c++      CMakeFiles/cheb_test.dir/chebychev_test.o CMakeFiles/test_main.dir/test_main.o  -o cheb_test -rdynamic -llpsolve55 
