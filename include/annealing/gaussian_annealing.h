@@ -51,7 +51,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
     unsigned int iterations = 0;
     const int maxiter = 10000;
     FT tol;
-    if (using_float) {
+    if (using_float) { // if tol is smaller than 1e-6 no convergence can be obtained when float is used
         tol = 0.000001;
     } else {
         tol = 0.0000001;

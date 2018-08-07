@@ -374,7 +374,7 @@ NT volume_gaussian_annealing(T &P,
     }
     P.shift(c_e);
 
-    // Initialization
+    // Initialization for the schedule annealing
     std::vector<NT> a_vals;
     NT ratio = var.ratio;
     NT C = var.C;
@@ -400,7 +400,6 @@ NT volume_gaussian_annealing(T &P,
     std::vector<NT> last_W2(W,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
     Point p(n); // The origin is in the Chebychev center of the Polytope
-    std::pair<int,NT> res;
     Point p_prev=p;
     int coord_prev, i=0;
     typename std::vector<NT>::iterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
