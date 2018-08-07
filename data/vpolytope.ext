@@ -2,7 +2,7 @@ vpolytope.ext
 V-representation
 begin
  8 4 real
- 1 -1 1 -1
+ 1 -1 1 -1 
  1 -1 -1 1 
  1 -1 1 1 
  1 -1 -1 -1 

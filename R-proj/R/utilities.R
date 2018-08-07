@@ -22,7 +22,6 @@ modifyMat <- function(A){
 #' @examples
 #' ineToMatrix(read.cs('path/to/data/cube40.ine'))
 ineToMatrix <- function(P){
-  
   r=as.character(P[3,1])
   count_sp=1
   str=""
@@ -165,7 +164,7 @@ CheBall <- function(A,b){
 #' @param ball_walk Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is False
 #' @param delta Optional. The radius for the ball walk
 #' @param verbose Optional. A boolean parameter for printing. Default is False
-#' @param Vpoly A boolean parameter, has to be true when a V-polytope is given as input
+#' @param vpoly A boolean parameter, has to be true when a V-polytope is given as input
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is True
 #' @param rounding Optional. A boolean parameter to activate the rounding option. Default value is False
 #' @param test Optional. A boolean parameter. Declare if the current excecution is a test or not. Default value is False
@@ -198,12 +197,10 @@ VolEsti <- function(Inputs){
       A=Inputs$matrix
       d=dim(A)[2]+1
       m=dim(A)[1]
-      nc=rep(1,m)
-      A=cbind(nc,A)
-      nr=rep(0,d)
-      nr[1]=m
-      nr[2]=d
-      A=rbind(nr,A)
+      b=rep(1,m)
+      r=rep(0,d)
+      r[1]=m
+      r[2]=d
     }else{
       r=Inputs$matrix[1,]
       Inputs$matrix=Inputs$matrix[-c(1),]
@@ -219,6 +216,9 @@ VolEsti <- function(Inputs){
     }
     return(-1)
   }
+  A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
+  A=matrix(rbind(r,A),ncol=dim(A)[2])
+  
   Cheb_ball=rep(0,dim(A)[2]+5)
   if(!is.null(Inputs$Chebychev)){
     Cheb_ball=Inputs$Chebychev
@@ -291,10 +291,6 @@ VolEsti <- function(Inputs){
     delta=Inputs$delta
   }
 
-  if(!Vpoly){
-    A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
-    A=matrix(rbind(r,A),ncol=dim(A)[2])
-  }
   tim=proc.time()
   vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,coordinate,rounding,verbose)
   tim=proc.time()-tim
