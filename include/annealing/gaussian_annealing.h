@@ -51,7 +51,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
     unsigned int iterations = 0;
     const int maxiter = 10000;
     const FT tol = 0.0000001;
-    FT sum, lower = 0.0, upper = 1.0, sigma_sqd, t, mid;
+    FT sum, lower = 0.0, upper = 1.0, mid;
     std::vector <FT> dists(m, 0);
     Eigen::MatrixXd A = K.get_eigen_mat();
     Eigen::VectorXd b = K.get_eigen_vec();
@@ -67,8 +67,6 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
         for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
             sum += std::exp(-upper * std::pow(*it, 2.0)) / (2.0 * (*it) * std::sqrt(M_PI * upper));
         }
-
-        sigma_sqd = 1 / (2.0 * upper);
 
         if (sum > frac * error) {
             upper = upper * 10;
@@ -89,8 +87,6 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
         for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
             sum += std::exp(-mid * std::pow(*it, 2)) / (2 * (*it) * std::sqrt(M_PI * mid));
         }
-
-        sigma_sqd = 1.0 / (2.0 * mid);
 
         if (sum < frac * error) {
             upper = mid;
