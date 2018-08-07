@@ -60,7 +60,7 @@ std::pair<Point, NT> approx_R(T1 &P, vars var){
 }
 
 
-//Needs developing
+//Needs developing (experimental)
 template <class T1>
 NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
     //typedef typename T1::FT 	K;
@@ -155,6 +155,7 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
 
 
 // ----- ROUNDING ------ //
+// main rounding function
 template <class T1, typename FT>
 std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, vars &var) {
     int n=var.n, walk_len=var.walk_steps, i, j = 0;
