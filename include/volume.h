@@ -91,13 +91,13 @@ public:
           int N,
           int W,
           int n_threads,
-          double error,
-          double che_rad,
+          NT error,
+          NT che_rad,
           RNGType &rng,
-          double C,
-          double frac,
-          double ratio,
-          double delta,
+          NT C,
+          NT frac,
+          NT ratio,
+          NT delta,
           bool verbose,
           bool rand_only,
           bool round,
@@ -116,13 +116,13 @@ public:
     int N;
     int W;
     int n_threads;
-    double error;
-    double che_rad;
+    NT error;
+    NT che_rad;
     RNGType &rng;
-    double C;
-    double frac;
-    double ratio;
-    double delta;
+    NT C;
+    NT frac;
+    NT ratio;
+    NT delta;
     bool verbose;
     bool rand_only;
     bool round;
@@ -401,7 +401,6 @@ NT volume_gaussian_annealing(T &P,
 
     // Compute the first point if CDHR is requested
     if(var.coordinate && !var.ball_walk){
-        //gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var,first_coord_point);
         gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
     }
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios
