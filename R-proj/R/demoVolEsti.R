@@ -13,7 +13,7 @@ demoVolEsti <- function(){
     x=read.csv(paste0(path,listofexamples[i]))
     print(listofexamples[i])
     A=ineToMatrix(x)
-    VolEsti(list("matrix"=A,"test"=TRUE))
+    VolEsti(list("matrix"=A,"test"=TRUE,"verbose"=TRUE))
   }
   
 }

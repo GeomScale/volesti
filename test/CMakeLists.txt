@@ -34,7 +34,7 @@ else ()
   #include_directories (BEFORE ../include/convex_bodies)
   include_directories (BEFORE ../external/LPsolve_src)
   include_directories (BEFORE ../external/boost)
-  include_directories (BEFORE ../include/number_types)
+  include_directories (BEFORE ../external/number_types)
   include_directories (BEFORE ../include)
 
 
