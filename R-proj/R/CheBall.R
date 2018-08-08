@@ -1,10 +1,15 @@
-#' Compute the Chebychev ball of a H-polytope, P:= Ax<=b
+#' Compute the Chebychev ball of a H-polytope.
+#' 
+#' For a H-polytope described by a \eqn{m\times d} matrix A and a d-dimensional vector b, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball of that polytope by solving the corresponding linear program.
 #'
-#' @param A the matrix of the H-polytope
-#' @param b the vector with the constants of the hyperplanes
-#' @return The Chebychev center of the Polytope discribed by the matrix \code{A} and the vector \code{b}
+#' @param A the matrix of the H-polytope.
+#' @param b The d-dimensional vector b that containes the constants of the facets.
+#' @return A d+1-dimensional vector that containes the chebychev ball. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.
 #' @examples
-#' CheBall(A,b)
+#' #compute the Chebychev ball of a 2d unit simplex
+#' A = matrix(c(-1,0,0,-1,1,1),ncol=2,nrow=3,byrow=TRUE)
+#' b = c(0,0,1)
+#' ball_vec = CheBall(A,b)
 CheBall <- function(A,b){
   
   d=dim(A)[2]
