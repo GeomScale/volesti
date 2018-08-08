@@ -47,7 +47,7 @@ demoVolume <- function(algo){
   cat('\n')
   listofpoly=c('birk3.ine','birk4.ine','birk5.ine','birk6.ine')
   exactvols=c(0.125,0.000970018,0.000000225,0.0000000000009455459196)
-  tols=c(0.1,0.1,0.1,0.5)
+  tols=c(0.1,0.1,0.2,0.5)
   runtest(path,listofpoly,exactvols,tols,num_of_exps,algo)
   
   
@@ -94,7 +94,7 @@ runtest <- function(path,listofpoly,exactvols,tols,num_of_exps,algo){
       if (algo == "volesti"){
         vol = vol + volume(list("path"=paste0(path,listofpoly[i])))
       } else {
-        vol = vol + volume(list("path"=paste0(path,listofpoly[i]),"annealing"=TRUE))
+        vol = vol + volume(list("path"=paste0(path,listofpoly[i]), "annealing"=TRUE, "error"=0.1))
       }
     }
     vol = vol / num_of_exps
