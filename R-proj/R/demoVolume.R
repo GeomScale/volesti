@@ -2,7 +2,7 @@
 #'
 #' Run volesti or CV algorithm to approximate the volume of some cubes, simplices, skinny_cubes, cross polytopes, birkhoff polytopes.
 #' 
-#' @return Print the computed volumes and the total time
+#' @return Print the computed volumes and the error. If the test fails a message is printed.
 #' @examples
 #' #test volesti
 #' demoVolume("volesti")

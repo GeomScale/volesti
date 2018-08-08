@@ -2,21 +2,24 @@
 % Please edit documentation in R/CheBall.R
 \name{CheBall}
 \alias{CheBall}
-\title{Compute the Chebychev ball of a H-polytope, P:= Ax<=b}
+\title{Compute the Chebychev ball of a H-polytope.}
 \usage{
 CheBall(A, b)
 }
 \arguments{
-\item{A}{the matrix of the H-polytope}
+\item{A}{the matrix of the H-polytope.}
 
-\item{b}{the vector with the constants of the hyperplanes}
+\item{b}{The d-dimensional vector b that containes the constants of the facets.}
 }
 \value{
-The Chebychev center of the Polytope discribed by the matrix \code{A} and the vector \code{b}
+A d+1-dimensional vector that containes the chebychev ball. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.
 }
 \description{
-Compute the Chebychev ball of a H-polytope, P:= Ax<=b
+For a H-polytope described by a \eqn{m\times d} matrix A and a d-dimensional vector b, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball of that polytope by solving the corresponding linear program.
 }
 \examples{
-CheBall(A,b)
+#compute the Chebychev ball of a 2d unit simplex
+A = matrix(c(-1,0,0,-1,1,1),ncol=2,nrow=3,byrow=TRUE)
+b = c(0,0,1)
+ball_vec = CheBall(A,b)
 }

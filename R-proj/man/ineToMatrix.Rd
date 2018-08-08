@@ -2,19 +2,20 @@
 % Please edit documentation in R/ineToMatrix.R
 \name{ineToMatrix}
 \alias{ineToMatrix}
-\title{functiion to get a ine file and return matrix A in ine format for VolEsti()}
+\title{function to get a ine file and returns a numerical matrix A.}
 \usage{
 ineToMatrix(P)
 }
 \arguments{
-\item{P}{It is in format, read.cs('path/to/file.ine'). The ine file desrcibies the H-polytope}
+\item{P}{It is in format, read.cs('path/to/file.ine'). The ine file desrcibes a H-polytope.}
 }
 \value{
-The numerical matrix in ine format of \code{read.cs('path/to/file.ine')}
+The numerical matrix in ine format.
 }
 \description{
-functiion to get a ine file and return matrix A in ine format for VolEsti()
+This function takes an ine file as a string (using read.csv()) and returns a numerical matrix A in ine format for function volume (see \eqn{volume} function examples).
 }
 \examples{
-ineToMatrix(read.cs('path/to/data/cube40.ine'))
+#give path to cube40.ine
+A = ineToMatrix(read.csv('path/to/data/cube40.ine'))
 }

@@ -2,57 +2,72 @@
 % Please edit documentation in R/volume.R
 \name{volume}
 \alias{volume}
-\title{The main R function for volume approximation of a convex H-Polytope}
+\title{The main R function for volume approximation of a convex H or V Polytope}
 \usage{
 volume(Inputs)
 }
 \arguments{
-\item{list("argument"=value)}{A list that includes alla the parameters of the algorithm}
+\item{list("argument"=value)}{A list that includes all the parameters of the algorithm}
 
-\item{path}{The path to an ine or ext file that describes the H-polytope. If path is given then "matrix" and "vector" inputs are not needed}
+\item{path}{The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.}
 
-\item{matrix}{The matrix A of the polytope. If it is in ine format then the input "vector" is not needed}
+\item{matrix}{The matrix of the H polytope or the matrix that contains all the vertices of a V polytope row-wise. If the matrix is in ine file, for H-polytopes only (see examples), then the "vector" input is not needed.}
 
-\item{vector}{The vector b that containes the constants of the hyperplanes}
+\item{vector}{Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.}
 
-\item{Walk_length}{Optional. Declare the number of the steps for the random walk, default is 10+d/10}
+\item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{10 + d/10}.}
 
-\item{error}{Optional. Declare the goal for the approximation error. Default is 1 for volesti and 0.2 for CV.}
+\item{error}{Optional. Declare the goal for the approximation error. Default is 1 for volesti and \eqn{0.2} for CV.}
 
-\item{Chebychev}{Optional. A d+1 vector that containes the chebychev center in the first d coordinates and the radius of the chebychev ball in the last coordinate}
+\item{Chebychev}{Optional. A d+1 vector that containes the chebychev center. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.}
 
 \item{annealing}{Optional. A boolean parameter to use CV algorithm. Default value is false.}
 
-\item{win_len}{Optional. The size of the window for the ratios' approximation in CV algorithm. Default value is win_len=4*(dimension^2)+500}
+\item{win_len}{Optional. The size of the window for the ratios' approximation in CV algorithm. Default value is \eqn{4 \ dimension^2 + 500}.}
 
-\item{C}{Optional. a constant for the upper boud of variance/mean^2 in schedule annealing}
+\item{C}{Optional. a constant for the upper boud of \eqn{variance/mean^2} in schedule annealing.}
 
-\item{N}{optional. The number of points we sample in each step of schedule annealing in CV algorithm. Default value is N=500*C+(dimension^2)/2}
+\item{N}{optional. The number of points we sample in each step of schedule annealing in CV algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
 
-\item{ratio}{Optional. parameter of schedule annealing, larger ratio means larger steps in schedule annealing. Default value is ratio=1-1/dimension}
+\item{ratio}{Optional. parameter of schedule annealing, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
 
-\item{frac}{Optional. the fraction of the total error to spend in the first gaussian. Default value is frac=0.1}
+\item{frac}{Optional. the fraction of the total error to spend in the first gaussian. Default value is \eqn{0.1}.}
 
-\item{ball_walk}{Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is False}
+\item{ball_walk}{Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is false.}
 
-\item{delta}{Optional. The radius for the ball walk}
+\item{delta}{Optional. The radius for the ball walk.}
 
-\item{verbose}{Optional. A boolean parameter for printing. Default is False}
+\item{verbose}{Optional. A boolean parameter for printing. Default is false.}
 
-\item{vpoly}{A boolean parameter, has to be true when a V-polytope is given as input}
+\item{vpoly}{A boolean parameter, has to be true when a V-polytope is given as input.}
 
-\item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is True}
+\item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 
-\item{rounding}{Optional. A boolean parameter to activate the rounding option. Default value is False}
-
-\item{test}{Optional. A boolean parameter. Declare if the current excecution is a test or not. Default value is False}
+\item{rounding}{Optional. A boolean parameter to activate the rounding option. Default value is false.}
 }
 \value{
-The approximation of the volume of an H-polytope
+The approximation of the volume of a convex H or V polytope.
 }
 \description{
-The main R function for volume approximation of a convex H-Polytope
+For the volume approximation can be used two algorithms. Either volesti or CV. A H-polytope with m facets is described by a \eqn{m\times d} matrix A and a d-dimensional vector b, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of d-dimensional points.
 }
 \examples{
-VolEsti(list("path"=/path/to/ine/file, "verbose"=TRUE))
+# calling volesti algorithm for a H-polytope (2d unit simplex)
+A = matrix(c(-1,0,0,-1,1,1),ncol=2,nrow=3,byrow=TRUE)
+b = c(0,0,1)
+vol = volume(list("matrix"=A, "vector"=b))
+
+# calling CV algorithm for a V-polytope (3d cube)
+V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1),ncol=3,nrow=8,byrow=TRUE)
+vol = volume(list("matrix"=V, "annealing"=TRUE "Vpoly"=TRUE))
+
+# a 2d unit simplex in H-representation using ine format matrix, calling volesti algorithm
+A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1),ncol=3,nrow=4,byrow=TRUE)
+vol = volume(list("matrix"=A))
+}
+\references{
+\cite{I.Z.Emiris and V. Fisikopoulos,
+\dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2014.},
+
+\cite{B. Cousins and S. Vempala, \dQuote{A practical volume algorithm,} \emph{Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society,} 2015.}
 }

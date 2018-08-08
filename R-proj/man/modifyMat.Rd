@@ -2,19 +2,21 @@
 % Please edit documentation in R/modifyMat.R
 \name{modifyMat}
 \alias{modifyMat}
-\title{takes a numerical matrix in ine format and return numerical matrix A and vector b: Ax<=b}
+\title{Takes a numerical matrix in ine format and returns the matrix A and the vector b.}
 \usage{
 modifyMat(A)
 }
 \arguments{
-\item{A}{the numerical matrix in ine format of the H-polytope}
+\item{A}{The numerical matrix in ine format (see example) of the H-polytope.}
 }
 \value{
-numerical matrix A and vector b: Ax<=b
+A list that contains the numerical \eqn{m\times d} matrix A and the numerical d-dimensional vector b, defining H-polytope P, s.t.:  \eqn{Ax\leq b}.
 }
 \description{
-takes a numerical matrix in ine format and return numerical matrix A and vector b: Ax<=b
+This function can be used to extract from a numerical matrix in ine format (see example), that describes a H-polytope, the \eqn{m\times d} matrix A and the d-dimensional vector b, s.t.: \eqn{Ax\leq b}.
 }
 \examples{
-modifyMat(A)
+# a 2d unit simplex in H-representation using matrix in ine format
+A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1),ncol=3,nrow=4,byrow=TRUE)
+list_of_matrix_and_vector = modifyMat(A)
 }
