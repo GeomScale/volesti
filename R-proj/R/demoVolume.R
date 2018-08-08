@@ -3,7 +3,7 @@
 #' @return Print the computed volumes and the total time
 #' @examples
 #' testRvolEsti()
-demoVolEsti <- function(){
+demoVolume <- function(){
   path=getwd()
   path=paste0(substr(path, start=1, stop=nchar(path)-7),'/data/')
   print(path)
@@ -13,7 +13,7 @@ demoVolEsti <- function(){
     x=read.csv(paste0(path,listofexamples[i]))
     print(listofexamples[i])
     A=ineToMatrix(x)
-    VolEsti(list("matrix"=A,"test"=TRUE,"verbose"=TRUE))
+    volume(list("matrix"=A,"test"=TRUE,"verbose"=TRUE))
   }
   
 }
