@@ -23,7 +23,7 @@
 #' @return The approximation of the volume of an H-polytope
 #' @examples
 #' VolEsti(list("path"=/path/to/ine/file, "verbose"=TRUE))
-VolEsti <- function(Inputs){
+volume <- function(Inputs){
   
   Vpoly=FALSE
   if(!is.null(Inputs$Vpoly)){
@@ -143,13 +143,16 @@ VolEsti <- function(Inputs){
     delta=Inputs$delta
   }
 
+  sample_only = FALSE
+  variance = 0
+  numpoints = 0
   tim=proc.time()
-  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,coordinate,rounding,verbose)
+  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,sample_only,numpoints,variance,coordinate,rounding,verbose)
   tim=proc.time()-tim
   if(verbose || test){
     print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
   }
-  return(vol)
+  return(vol[1,1])
   
 }
 
