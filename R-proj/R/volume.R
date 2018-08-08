@@ -1,6 +1,6 @@
 #' The main R function for volume approximation of a convex H-Polytope
 #'
-#' @param list("path","matrix","vector","Chebychev","verbose","coordinate","rounding","Walk_length","error","test") A list that includes alla the parameters of the algorithm
+#' @param list("argument"=value) A list that includes alla the parameters of the algorithm
 #' @param path The path to an ine or ext file that describes the H-polytope. If path is given then "matrix" and "vector" inputs are not needed
 #' @param matrix The matrix A of the polytope. If it is in ine format then the input "vector" is not needed
 #' @param vector The vector b that containes the constants of the hyperplanes
@@ -113,7 +113,7 @@ volume <- function(Inputs){
       e=1
     }
   }
-  dimension=dim(A)[2]
+  dimension=dim(A)[2]-1
   win_len=4*(dimension^2)+500
   if(!is.null(Inputs$window_len)){
     win_len=Inputs$window_len
