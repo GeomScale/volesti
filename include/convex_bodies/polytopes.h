@@ -378,7 +378,7 @@ public:
         std::vector <FT> dists(num_of_hyperplanes(), FT(0));
         typename std::vector<FT>::iterator disit = dists.begin();
         for ( ; disit!=dists.end(); disit++, i++)
-            *disit = b(i)/A.row(i).norm();
+            *disit = b(i) / A.row(i).norm();
 
         return dists;
     }
