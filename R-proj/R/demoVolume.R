@@ -1,6 +1,10 @@
-#' Run some experiments
+#' Run some volume approxiamtion experiments.
 #'
 #' Run volesti or CV algorithm to approximate the volume of some cubes, simplices, skinny_cubes, cross polytopes, birkhoff polytopes.
+#' We run \eqn{10} experiments for volesti and \eqn{20} for CV. We demand \eqn{error = 0.1}. For all the other parameters use the default values for both algorithms.
+#' 
+#' @param CV The string "CV" to choose CV algorithm.
+#' @param volesti The string "volesti" to choose volesti algorithm.
 #' 
 #' @return Print the computed volumes and the error. If the test fails a message is printed.
 #' @examples
@@ -32,7 +36,7 @@ demoVolume <- function(algo){
   
   
   print('----------------------------------------')
-  print('------------2nd test [cross]------------')
+  print('------2nd test [cross_polytopes]--------')
   print('----------------------------------------')
   cat('\n')
   listofpoly=c('cross_10.ine')
@@ -47,7 +51,7 @@ demoVolume <- function(algo){
   cat('\n')
   listofpoly=c('birk3.ine','birk4.ine','birk5.ine','birk6.ine')
   exactvols=c(0.125,0.000970018,0.000000225,0.0000000000009455459196)
-  tols=c(0.1,0.1,0.2,0.5)
+  tols=c(0.1,0.2,0.2,0.5)
   runtest(path,listofpoly,exactvols,tols,num_of_exps,algo)
   
   

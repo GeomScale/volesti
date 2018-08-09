@@ -16,6 +16,6 @@ The numerical matrix in ine format.
 This function takes an ine file as a string (using read.csv()) and returns a numerical matrix A in ine format for function volume (see \eqn{volume} function examples).
 }
 \examples{
-#give path to cube40.ine
+#give the path to cube40.ine
 A = ineToMatrix(read.csv('path/to/data/cube40.ine'))
 }

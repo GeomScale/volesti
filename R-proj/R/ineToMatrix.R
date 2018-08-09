@@ -5,7 +5,7 @@
 #' @param P It is in format, read.cs('path/to/file.ine'). The ine file desrcibes a H-polytope.
 #' @return The numerical matrix in ine format.
 #' @examples
-#' #give path to cube40.ine
+#' #give the path to cube40.ine
 #' A = ineToMatrix(read.csv('path/to/data/cube40.ine'))
 ineToMatrix <- function(P){
   r=as.character(P[3,1])

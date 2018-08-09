@@ -36,6 +36,7 @@ else ()
   include_directories (BEFORE ../external/boost)
   include_directories (BEFORE ../external/number_types)
   include_directories (BEFORE ../include)
+  include_directories (BEFORE ../include/samplers)
 
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard

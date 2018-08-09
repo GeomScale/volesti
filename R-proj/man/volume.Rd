@@ -7,7 +7,7 @@
 volume(Inputs)
 }
 \arguments{
-\item{list("argument"=value)}{A list that includes all the parameters of the algorithm}
+\item{list("argument"=value)}{A list that includes parameters for the chosen algorithm}
 
 \item{path}{The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.}
 
@@ -15,7 +15,7 @@ volume(Inputs)
 
 \item{vector}{Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.}
 
-\item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{10 + d/10}.}
+\item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10 + d/10\rfloor}.}
 
 \item{error}{Optional. Declare the goal for the approximation error. Default is 1 for volesti and \eqn{0.2} for CV.}
 
@@ -25,7 +25,7 @@ volume(Inputs)
 
 \item{win_len}{Optional. The size of the window for the ratios' approximation in CV algorithm. Default value is \eqn{4 \ dimension^2 + 500}.}
 
-\item{C}{Optional. a constant for the upper boud of \eqn{variance/mean^2} in schedule annealing.}
+\item{C}{Optional. a constant for the lower boud of \eqn{variance/mean^2} in schedule annealing.}
 
 \item{N}{optional. The number of points we sample in each step of schedule annealing in CV algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
 
@@ -39,7 +39,7 @@ volume(Inputs)
 
 \item{verbose}{Optional. A boolean parameter for printing. Default is false.}
 
-\item{vpoly}{A boolean parameter, has to be true when a V-polytope is given as input.}
+\item{vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
 
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 
@@ -53,16 +53,16 @@ For the volume approximation can be used two algorithms. Either volesti or CV. A
 }
 \examples{
 # calling volesti algorithm for a H-polytope (2d unit simplex)
-A = matrix(c(-1,0,0,-1,1,1),ncol=2,nrow=3,byrow=TRUE)
+A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
 vol = volume(list("matrix"=A, "vector"=b))
 
 # calling CV algorithm for a V-polytope (3d cube)
-V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1),ncol=3,nrow=8,byrow=TRUE)
-vol = volume(list("matrix"=V, "annealing"=TRUE "Vpoly"=TRUE))
+V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
+vol = volume(list("matrix"=V, "annealing"=TRUE, "Vpoly"=TRUE))
 
 # a 2d unit simplex in H-representation using ine format matrix, calling volesti algorithm
-A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1),ncol=3,nrow=4,byrow=TRUE)
+A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1), ncol=3, nrow=4, byrow=TRUE)
 vol = volume(list("matrix"=A))
 }
 \references{

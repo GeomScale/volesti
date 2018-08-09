@@ -149,6 +149,7 @@ public:
 #include "rounding.h"
 #include "gaussian_samplers.h"
 #include "annealing/gaussian_annealing.h"
+#include "sample_only.h"
 #include "misc.h"
 #include "linear_extensions.h"
 
