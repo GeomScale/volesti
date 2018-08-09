@@ -156,11 +156,12 @@ volume <- function(Inputs){
     delta=Inputs$delta
   }
 
+  rotate_only = FALSE
   sample_only = FALSE
   variance = 0
   numpoints = 0
   tim=proc.time()
-  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,sample_only,numpoints,variance,coordinate,rounding,verbose)
+  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,rotate_only,sample_only,numpoints,variance,coordinate,rounding,verbose)
   tim=proc.time()-tim
   if(verbose){
     print(paste0('Total time: ',as.numeric(as.character(tim[3]))))

@@ -10,11 +10,12 @@
 #include <RcppEigen.h>
 #include "use_double.h"
 #include "volume.h"
+#include "extractMatPoly.h"
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::NumericVector Chebychev, bool annealing, int win_len,
-             int N, double C, double ratio, double frac, bool ball_walk, double delta, bool Vpoly, bool sample_only, int numpoints, double variance, bool coord, bool rounding, bool verbose) {
+             int N, double C, double ratio, double frac, bool ball_walk, double delta, bool Vpoly, bool rotate_only, bool sample_only, int numpoints, double variance, bool coord, bool rounding, bool verbose) {
 
     int n=A.ncol()-1;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
@@ -26,7 +27,6 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     int nexp=1, n_threads=1,i,j;
     NT exactvol(-1.0);
     bool rand_only=false,
-	 round_only=false,
 	 file=false,
 	 NN=false,
 	 user_walk_len=false,
@@ -60,6 +60,18 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         P.init(Pin);
     } else {
         VP.init(Pin);
+    }
+
+    if (rotate_only) {
+        Rcpp::NumericMatrix Mat;
+        if (!Vpoly) {
+            rotating(P);
+            Mat = extractMatPoly(P);
+        } else {
+            rotating(VP);
+            Mat = extractMatPoly(VP);
+        }
+        return Mat;
     }
 
     std::pair<Point,NT> CheBall;
