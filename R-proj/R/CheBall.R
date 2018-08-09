@@ -7,7 +7,7 @@
 #' @return A d+1-dimensional vector that containes the chebychev ball. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.
 #' @examples
 #' #compute the Chebychev ball of a 2d unit simplex
-#' A = matrix(c(-1,0,0,-1,1,1),ncol=2,nrow=3,byrow=TRUE)
+#' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
 #' ball_vec = CheBall(A,b)
 CheBall <- function(A,b){

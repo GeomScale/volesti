@@ -7,7 +7,7 @@
 sample_points(Inputs)
 }
 \arguments{
-\item{list("argument"=value)}{A list that includes all the parameters of the algorithm}
+\item{list("argument"=value)}{A list that includes parameters for the chosen target distribution and the random walk algorithm.}
 
 \item{path}{The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.}
 
@@ -15,7 +15,7 @@ sample_points(Inputs)
 
 \item{vector}{Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.}
 
-\item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{10+d/10}.}
+\item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.}
 
 \item{internal_point}{Optional. A d-dimensional vector that containes an internal point of the polytope.}
 
@@ -36,18 +36,18 @@ sample_points(Inputs)
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 }
 \value{
-N points sampled from the convex polytope.
+A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope.
 }
 \description{
 Sample N points from a H or a V-polytope with uniform or spherical gaussian target distribution.
 }
 \examples{
 #uniform distribution from a 3d cube described by a set of vertices
-V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1),ncol=3,nrow=8,byrow=TRUE)
+V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
 points = sample_points(list("matrix"=V, "Vpoly"=TRUE, "N"=1000))
 
 #gaussian distribution from a 2d unit simplex in H-representation with variance = 2
-A = matrix(c(-1,0,0,-1,1,1),ncol=2,nrow=3,byrow=TRUE)
+A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
 vol = sample_points(list("matrix"=A, "vector"=b, "gaussian"=TRUE, "variance"=2))
 }

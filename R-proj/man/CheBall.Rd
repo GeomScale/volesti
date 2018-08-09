@@ -19,7 +19,7 @@ For a H-polytope described by a \eqn{m\times d} matrix A and a d-dimensional vec
 }
 \examples{
 #compute the Chebychev ball of a 2d unit simplex
-A = matrix(c(-1,0,0,-1,1,1),ncol=2,nrow=3,byrow=TRUE)
+A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
 ball_vec = CheBall(A,b)
 }

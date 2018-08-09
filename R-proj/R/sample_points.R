@@ -1,11 +1,11 @@
 #' Sample points from a convex Polytope
 #'
 #' Sample N points from a H or a V-polytope with uniform or spherical gaussian target distribution.
-#' @param list("argument"=value) A list that includes all the parameters of the algorithm
+#' @param list("argument"=value) A list that includes parameters for the chosen target distribution and the random walk algorithm.
 #' @param path The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.
 #' @param matrix The matrix A of a H-polytope or the matrix V that contains all the vertices of a V polytope row-wise. If it is in ine format, only for H-polytopes, then the input "vector" is not needed.
 #' @param vector Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.
-#' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{10+d/10}.
+#' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.
 #' @param internal_point Optional. A d-dimensional vector that containes an internal point of the polytope.
 #' @param gaussian Optional. A boolean parameter to sample with gaussian target distribution. Default value is false.
 #' @param variance Optional. The variance for the spherical gaussian. Default value is \eqn{1}.
@@ -15,14 +15,14 @@
 #' @param verbose Optional. A boolean parameter for printing. Default is false.
 #' @param vpoly A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
-#' @return N points sampled from the convex polytope.
+#' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope.
 #' @examples 
 #' #uniform distribution from a 3d cube described by a set of vertices
-#' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1),ncol=3,nrow=8,byrow=TRUE)
+#' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
 #' points = sample_points(list("matrix"=V, "Vpoly"=TRUE, "N"=1000))
 #' 
 #' #gaussian distribution from a 2d unit simplex in H-representation with variance = 2
-#' A = matrix(c(-1,0,0,-1,1,1),ncol=2,nrow=3,byrow=TRUE)
+#' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
 #' vol = sample_points(list("matrix"=A, "vector"=b, "gaussian"=TRUE, "variance"=2))
 sample_points <- function(Inputs){

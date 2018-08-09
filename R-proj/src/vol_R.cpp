@@ -10,7 +10,6 @@
 #include <RcppEigen.h>
 #include "use_double.h"
 #include "volume.h"
-#include "sample_R.h"
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
@@ -19,9 +18,9 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
 
     int n=A.ncol()-1;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
-    if (sample_only) {
-        return sample_R(A, walk_len, numpoints, Chebychev, annealing, variance, ball_walk, delta, Vpoly, coord, verbose);
-    }
+    //if (sample_only) {
+        //return sample_R(A, walk_len, numpoints, Chebychev, annealing, variance, ball_walk, delta, Vpoly, coord, verbose);
+    //}
     Rcpp::NumericMatrix vol_res(1,1);
 
     int nexp=1, n_threads=1,i,j;
@@ -63,23 +62,68 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         VP.init(Pin);
     }
 
-    //Compute chebychev ball//
     std::pair<Point,NT> CheBall;
-    if(Chebychev.size()!=P.dimension()+1){ //if it is not given as an input
+    //Compute chebychev ball//
+    if(Chebychev.size()==n+1 || Chebychev.size()==n) { //if it is given as an input
+        if (Chebychev.size()==n) {
+            if (!Vpoly) {
+                CheBall = P.chebyshev_center();
+            } else {
+                CheBall = VP.chebyshev_center();
+            }
+        }
+        std::vector<NT> temp_p;
+        for (int j=0; j<n; j++){
+            temp_p.push_back(Chebychev[j]);
+        }
+        CheBall.first = Point( n , temp_p.begin() , temp_p.end() );
+        if (Chebychev.size()==n+1) CheBall.second = Chebychev[n];
+    } else {
         if (!Vpoly) {
             CheBall = P.chebyshev_center();
         } else {
             CheBall = VP.chebyshev_center();
         }
-    }else{ // if it is given as an input
-        std::vector<NT> temp_p;
-        for (int j=0; j<n; j++){
-          temp_p.push_back(Chebychev[j]);
-        }
-        Point xc( n , temp_p.begin() , temp_p.end() );
-        NT radius = Chebychev[n];
-        CheBall.first = xc; CheBall.second = radius;
     }
+
+    if (sample_only){
+        std::list<Point> randPoints;
+        Point p = CheBall.first;
+        NT a = 1.0 / (2.0 * variance);
+        if (ball_walk){
+            if(delta<0.0){
+                if(annealing) {
+                    delta = 4.0 * CheBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
+                } else {
+                    delta = 4.0 * CheBall.second / std::sqrt(NT(n));
+                }
+            }
+        }
+        vars var1(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,CheBall.second,rng,urdist,urdist1,
+                 delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
+        vars_g var2(n, walk_len, 0, 0, 1, 0, CheBall.second, rng, 0, 0, 0, delta, false, verbose,
+                    rand_only, false, NN, birk, ball_walk, coord);
+        if(!Vpoly) {
+            sampling_only(randPoints, P, walk_len, numpoints, annealing, a, p, var1, var2);
+        } else {
+            sampling_only(randPoints, VP, walk_len, numpoints, annealing, a, p, var1, var2);
+        }
+        Rcpp::NumericMatrix PointSet(n,numpoints);
+
+        typename std::list<Point>::iterator rpit=randPoints.begin();
+        typename std::vector<NT>::iterator qit;
+        j = 0;
+        for ( ; rpit!=randPoints.end(); rpit++, j++) {
+            qit = (*rpit).iter_begin(); i=0;
+            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
+                PointSet(i,j)=*qit;
+            }
+        }
+
+        return PointSet;
+
+    }
+
     // print chebychev ball in verbose mode
     if (verbose) {
         std::cout << "Chebychev center = " << std::endl;
