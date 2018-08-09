@@ -49,5 +49,5 @@ points = sample_points(list("matrix"=V, "Vpoly"=TRUE, "N"=1000))
 #gaussian distribution from a 2d unit simplex in H-representation with variance = 2
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
-vol = sample_points(list("matrix"=A, "vector"=b, "gaussian"=TRUE, "variance"=2))
+points = sample_points(list("matrix"=A, "vector"=b, "gaussian"=TRUE, "variance"=2))
 }

@@ -18,7 +18,7 @@
 #' 
 #' #rotate a V-polytope (3d cube)
 #' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-#' matVpoly = rand_rotate(list("matrix"=V, Vpoly"=TRUE))
+#' matVpoly = rand_rotate(list("matrix"=V, "Vpoly"=TRUE))
 rand_rotate <- function(Inputs){
   
   Vpoly=FALSE
@@ -28,7 +28,7 @@ rand_rotate <- function(Inputs){
   if(!is.null(Inputs$path)){
     A=ineToMatrix(read.csv(Inputs$path))
     r=A[1,]
-    A=A[-c(1),]
+    #A=A[-c(1),]
     x=modifyMat(A)
     A=x$matrix
     b=x$vector
@@ -51,7 +51,7 @@ rand_rotate <- function(Inputs){
       r[2]=d
     }else{
       r=Inputs$matrix[1,]
-      Inputs$matrix=Inputs$matrix[-c(1),]
+      #Inputs$matrix=Inputs$matrix[-c(1),]
       x=modifyMat(Inputs$matrix)
       A=x$matrix
       b=x$vector
@@ -64,6 +64,8 @@ rand_rotate <- function(Inputs){
     }
     return(-1)
   }
+  A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
+  A=matrix(rbind(r,A),ncol=dim(A)[2])
   
   verbose=FALSE
   if(!is.null(Inputs$verbose)){
@@ -73,7 +75,7 @@ rand_rotate <- function(Inputs){
   rotate_only = TRUE
   W = 0
   e = 0
-  CheBall = c(0)
+  Cheb_ball = c(0)
   annealing = FALSE
   win_len = 0
   N = 0
@@ -88,7 +90,7 @@ rand_rotate <- function(Inputs){
   coordinate = TRUE
   rounding = FALSE
   
-  Mat = rand_rotate(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,rotate_only,sample_only,numpoints,variance,coordinate,rounding,verbose)
+  Mat = vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,rotate_only,sample_only,numpoints,variance,coordinate,rounding,verbose)
   retList = modifyMat(Mat)
   if (Vpoly){
     return(retList$matrix)
