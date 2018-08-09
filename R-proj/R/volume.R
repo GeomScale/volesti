@@ -49,7 +49,7 @@ volume <- function(Inputs){
   if(!is.null(Inputs$path)){
     A=ineToMatrix(read.csv(Inputs$path))
     r=A[1,]
-    A=A[-c(1),]
+    #A=A[-c(1),]
     x=modifyMat(A)
     A=x$matrix
     b=x$vector
@@ -72,7 +72,7 @@ volume <- function(Inputs){
       r[2]=d
     }else{
       r=Inputs$matrix[1,]
-      Inputs$matrix=Inputs$matrix[-c(1),]
+      #Inputs$matrix=Inputs$matrix[-c(1),]
       x=modifyMat(Inputs$matrix)
       A=x$matrix
       b=x$vector

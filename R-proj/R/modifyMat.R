@@ -11,6 +11,7 @@
 #' list_of_matrix_and_vector = modifyMat(A)
 modifyMat <- function(A){
   
+  A=A[-c(1),]
   b=A[,1]
   A2=A[,-c(1)]
   retList=list("matrix"=A2, "vector"=b)

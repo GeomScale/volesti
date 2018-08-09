@@ -25,3 +25,13 @@ A H or V-polytope which is a random rotation of the polytope that is given as an
 \description{
 Give a convex H or V polytope as input and then a random rotation is computed and be applied to the polytope.
 }
+\examples{
+#rotate a H-polytope (2d unit simplex)
+A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
+b = c(0,0,1)
+listHpoly = rand_rotate(list("matrix"=A, "vector"=b))
+
+#rotate a V-polytope (3d cube)
+V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
+matVpoly = rand_rotate(list("matrix"=V, "Vpoly"=TRUE))
+}

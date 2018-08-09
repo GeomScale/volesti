@@ -24,7 +24,7 @@
 #' #gaussian distribution from a 2d unit simplex in H-representation with variance = 2
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
-#' vol = sample_points(list("matrix"=A, "vector"=b, "gaussian"=TRUE, "variance"=2))
+#' points = sample_points(list("matrix"=A, "vector"=b, "gaussian"=TRUE, "variance"=2))
 sample_points <- function(Inputs){
   Vpoly=FALSE
   if(!is.null(Inputs$Vpoly)){
@@ -33,7 +33,7 @@ sample_points <- function(Inputs){
   if(!is.null(Inputs$path)){
     A=ineToMatrix(read.csv(Inputs$path))
     r=A[1,]
-    A=A[-c(1),]
+    #A=A[-c(1),]
     x=modifyMat(A)
     A=x$matrix
     b=x$vector
@@ -56,7 +56,7 @@ sample_points <- function(Inputs){
       r[2]=d
     }else{
       r=Inputs$matrix[1,]
-      Inputs$matrix=Inputs$matrix[-c(1),]
+      #Inputs$matrix=Inputs$matrix[-c(1),]
       x=modifyMat(Inputs$matrix)
       A=x$matrix
       b=x$vector
