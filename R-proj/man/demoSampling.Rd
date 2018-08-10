@@ -15,7 +15,7 @@ demoSampling(distribution)
 Print the computed volumes and the error. If the test fails a message is printed.
 }
 \description{
-Use uniform or spherical gaussian to sample from some convex H-polytopes, i.e. cubes, simplices, skinny_cubes, cross polytopes, birkhoff polytopes.
+Use uniform or spherical gaussian to sample from some convex H-polytopes, i.e. cubes, simplices, skinny cubes, cross polytopes, birkhoff polytopes.
 We use the default values, i.e. \eqn{walk length = \lfloor 10+dimension/10\rfloor}, \eqn{N = 100}, Cordinate Directions HnR, \eqn{variance = 1}.
 }
 \examples{

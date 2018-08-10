@@ -149,7 +149,7 @@ public:
         for (int i = 1; i < Pin.size(); i++) {
             b(i - 1) = Pin[i][0];
             for (int j = 1; j < _d + 1; j++) {
-                A(i - 1, j - 1) = Pin[i][j];
+                A(i - 1, j - 1) = -Pin[i][j];
             }
         }
     }

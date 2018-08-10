@@ -1,6 +1,6 @@
 #' Run some sampling experiments.
 #'
-#' Use uniform or spherical gaussian to sample from some convex H-polytopes, i.e. cubes, simplices, skinny_cubes, cross polytopes, birkhoff polytopes.
+#' Use uniform or spherical gaussian to sample from some convex H-polytopes, i.e. cubes, simplices, skinny cubes, cross polytopes, birkhoff polytopes.
 #' We use the default values, i.e. \eqn{walk length = \lfloor 10+dimension/10\rfloor}, \eqn{N = 100}, Cordinate Directions HnR, \eqn{variance = 1}.
 #' 
 #' @param uniform The string "uniform" to choose uniform as the target distribution.

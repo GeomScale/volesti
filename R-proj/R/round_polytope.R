@@ -12,7 +12,7 @@
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
 #' @param verbose Optional. A boolean parameter for printing. Default is false.
 #' 
-#' @return A H or V-polytope which is a random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{k\times d} matrix that contains the \eqn{k} vertices of the V polytope row-wise.
+#' @return For both H and V-polytopes is a list that contains elements to describe the rounded polytope, i.e. "matrix" and "vector" for H-polytopes and just "matrix" for V-polytopes, containig the verices row-wise. For both representations the list contains elements "round_value" which is the determinant of the square matrix of the linear transformation and "minmaxRatio" which is the ratio between the minimum and the maximum axe of the computed ellipsoid, for the rounded body.
 #' @examples
 #' #rotate a H-polytope (2d unit simplex)
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
@@ -102,10 +102,15 @@ round_polytope <- function(Inputs){
   rounding = FALSE
   
   Mat = vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,round_only,rotate_only,sample_only,numpoints,variance,coordinate,rounding,verbose)
+  r = Mat[c(1),]
+  round_value = r[1]
+  minmaxRatio = r[2]
   retList = modifyMat(Mat)
   if (Vpoly){
-    return(retList$matrix)
+    output = list("matrix"=retList$matrix, "round_value"=round_value, "minmaxRatio" = minmaxRatio)
+    return(output)
   } else {
-    return(retList)
+    output = list("matrix"=retList$matrix, "vector"=retList$vaector, "round_value"=round_value, "minmaxRatio" = minmaxRatio)
+    return(output)
   }
 }

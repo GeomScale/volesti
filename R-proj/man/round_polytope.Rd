@@ -26,7 +26,7 @@ round_polytope(Inputs)
 \item{verbose}{Optional. A boolean parameter for printing. Default is false.}
 }
 \value{
-A H or V-polytope which is a random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{k\times d} matrix that contains the \eqn{k} vertices of the V polytope row-wise.
+For both H and V-polytopes is a list that contains elements to describe the rounded polytope, i.e. "matrix" and "vector" for H-polytopes and just "matrix" for V-polytopes, containig the verices row-wise. For both representations the list contains elements "round_value" which is the determinant of the square matrix of the linear transformation and "minmaxRatio" which is the ratio between the minimum and the maximum axe of the computed ellipsoid, for the rounded body.
 }
 \description{
 Given a convex H or V polytope as input this function computes a rounding based on minimum volume enclosing ellipsoid to a pointset.

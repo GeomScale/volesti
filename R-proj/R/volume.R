@@ -9,7 +9,7 @@
 #' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10 + d/10\rfloor}.
 #' @param error Optional. Declare the goal for the approximation error. Default is 1 for volesti and \eqn{0.2} for CV.
 #' @param Chebychev Optional. A d+1 vector that containes the chebychev center. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.
-#' @param annealing Optional. A boolean parameter to use CV algorithm. Default value is false.
+#' @param CV Optional. A boolean parameter to use CV algorithm. Default value is false.
 #' @param win_len Optional. The size of the window for the ratios' approximation in CV algorithm. Default value is \eqn{4 \ dimension^2 + 500}.
 #' @param C Optional. a constant for the lower boud of \eqn{variance/mean^2} in schedule annealing.
 #' @param N optional. The number of points we sample in each step of schedule annealing in CV algorithm. Default value is \eqn{500C + dimension^2 / 2}.
@@ -35,7 +35,7 @@
 #' 
 #' # calling CV algorithm for a V-polytope (3d cube)
 #' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-#' vol = volume(list("matrix"=V, "annealing"=TRUE, "Vpoly"=TRUE))
+#' vol = volume(list("matrix"=V, "CV"=TRUE, "Vpoly"=TRUE))
 #' 
 #' # a 2d unit simplex in H-representation using ine format matrix, calling volesti algorithm
 #' A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1), ncol=3, nrow=4, byrow=TRUE)
@@ -91,8 +91,8 @@ volume <- function(Inputs){
     Cheb_ball=Inputs$Chebychev
   }
   annealing=FALSE
-  if(!is.null(Inputs$annealing)){
-    annealing=Inputs$annealing
+  if(!is.null(Inputs$CV)){
+    annealing=Inputs$CV
   }
   verbose=FALSE
   if(!is.null(Inputs$verbose)){
