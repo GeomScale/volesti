@@ -7,7 +7,7 @@
 volume(Inputs)
 }
 \arguments{
-\item{list("argument"=value)}{A list that includes parameters for the chosen algorithm}
+\item{list("argument"=value)}{A list that includes parameters for the chosen algorithm.}
 
 \item{path}{The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.}
 

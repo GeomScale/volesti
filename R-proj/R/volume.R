@@ -2,7 +2,7 @@
 #'
 #' For the volume approximation can be used two algorithms. Either volesti or CV. A H-polytope with m facets is described by a \eqn{m\times d} matrix A and a d-dimensional vector b, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of d-dimensional points.
 #'
-#' @param list("argument"=value) A list that includes parameters for the chosen algorithm
+#' @param list("argument"=value) A list that includes parameters for the chosen algorithm.
 #' @param path The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.
 #' @param matrix The matrix of the H polytope or the matrix that contains all the vertices of a V polytope row-wise. If the matrix is in ine file, for H-polytopes only (see examples), then the "vector" input is not needed.
 #' @param vector Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.
@@ -49,7 +49,6 @@ volume <- function(Inputs){
   if(!is.null(Inputs$path)){
     A=ineToMatrix(read.csv(Inputs$path))
     r=A[1,]
-    #A=A[-c(1),]
     x=modifyMat(A)
     A=x$matrix
     b=x$vector
@@ -72,7 +71,6 @@ volume <- function(Inputs){
       r[2]=d
     }else{
       r=Inputs$matrix[1,]
-      #Inputs$matrix=Inputs$matrix[-c(1),]
       x=modifyMat(Inputs$matrix)
       A=x$matrix
       b=x$vector
@@ -156,12 +154,13 @@ volume <- function(Inputs){
     delta=Inputs$delta
   }
 
+  round_only = FALSE
   rotate_only = FALSE
   sample_only = FALSE
   variance = 0
   numpoints = 0
   tim=proc.time()
-  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,rotate_only,sample_only,numpoints,variance,coordinate,rounding,verbose)
+  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,round_only,rotate_only,sample_only,numpoints,variance,coordinate,rounding,verbose)
   tim=proc.time()-tim
   if(verbose){
     print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
