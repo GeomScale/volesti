@@ -26,106 +26,132 @@
 #' b = c(0,0,1)
 #' points = sample_points(list("matrix"=A, "vector"=b, "gaussian"=TRUE, "variance"=2))
 sample_points <- function(Inputs){
-  Vpoly=FALSE
-  if(!is.null(Inputs$Vpoly)){
+  
+  #set flag for V-polytope
+  Vpoly = FALSE
+  if (!is.null(Inputs$Vpoly)) {
     Vpoly = Inputs$Vpoly
   }
-  if(!is.null(Inputs$path)){
-    A=ineToMatrix(read.csv(Inputs$path))
-    r=A[1,]
-    #A=A[-c(1),]
-    x=modifyMat(A)
-    A=x$matrix
-    b=x$vector
-  }else if(!is.null(Inputs$vector)){
-    b=Inputs$vector
-    A=-Inputs$matrix
-    d=dim(A)[2]+1
-    m=dim(A)[1]
-    r=rep(0,d)
-    r[1]=m
-    r[2]=d
-  }else if(!is.null(Inputs$matrix)){
-    if(Vpoly){
-      A=Inputs$matrix
-      d=dim(A)[2]+1
-      m=dim(A)[1]
-      b=rep(1,m)
-      r=rep(0,d)
-      r[1]=m
-      r[2]=d
-    }else{
-      r=Inputs$matrix[1,]
-      #Inputs$matrix=Inputs$matrix[-c(1),]
-      x=modifyMat(Inputs$matrix)
-      A=x$matrix
-      b=x$vector
+  
+  # polytope initialization
+  if (!is.null(Inputs$path)) {
+    A = ineToMatrix(read.csv(Inputs$path))
+    r = A[1,]
+    x = modifyMat(A)
+    A = x$matrix
+    b = x$vector
+  } else if (!is.null(Inputs$vector)) {
+    b = Inputs$vector
+    A = -Inputs$matrix
+    d = dim(A)[2] + 1
+    m = dim(A)[1]
+    r = rep(0,d)
+    r[1] = m
+    r[2] = d
+  } else if (!is.null(Inputs$matrix)) {
+    if (Vpoly) {
+      A = Inputs$matrix
+      d = dim(A)[2] + 1
+      m = dim(A)[1]
+      b = rep(1,m)
+      r = rep(0,d)
+      r[1] = m
+      r[2] = d
+    } else {
+      r = Inputs$matrix[1,]
+      x = modifyMat(Inputs$matrix)
+      A = x$matrix
+      b = x$vector
     }
-  }else{
-    if(Vpoly){
+  } else {
+    if (Vpoly) {
       print('No V-polytope defined from input!')
-    }else{
+    } else {
       print('No H-polytope defined from input!')
     }
     return(-1)
   }
-  A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
-  A=matrix(rbind(r,A),ncol=dim(A)[2])
+  A = matrix(cbind(b,A), ncol=dim(A)[2] + 1)
+  A = matrix(rbind(r,A), ncol=dim(A)[2])
   
-  N=100
-  if(!is.null(Inputs$N)){
-    N=Inputs$N
+  # set the number of points to sample
+  N = 100
+  if (!is.null(Inputs$N)) {
+    N = Inputs$N
   }
   
-  internal_point=rep(0,dim(A)[2]+5)
-  if(!is.null(Inputs$internal_point)){
-    internal_point=Inputs$internal_point
+  # set too large vector for internal point if it is not given as an input
+  internal_point = rep(0,dim(A)[2] + 5)
+  if (!is.null(Inputs$internal_point)) {
+    internal_point = Inputs$internal_point
   }
-  gaussian=FALSE
-  if(!is.null(Inputs$gaussian)){
-    gaussian=Inputs$gaussian
+  
+  # set flag for spherical gaussian distribution
+  gaussian = FALSE
+  if (!is.null(Inputs$gaussian)) {
+    gaussian = Inputs$gaussian
   }
-  variance=1
-  if(!is.null(Inputs$variance)){
-    variance=Inputs$variance
+  
+  # set variance
+  variance = 1
+  if (!is.null(Inputs$variance)) {
+    variance = Inputs$variance
   }
-  verbose=FALSE
-  if(!is.null(Inputs$verbose)){
-    verbose=Inputs$verbose
+  
+  # set flag for verbose mode
+  verbose = FALSE
+  if (!is.null(Inputs$verbose)) {
+    verbose = Inputs$verbose
   }
-  coordinate=TRUE
-  if(!is.null(Inputs$coordinate)){
-    coordinate=Inputs$coordinate
+  
+  # set flag for Coordinate or Random Directions HnR
+  coordinate = TRUE
+  if (!is.null(Inputs$coordinate)) {
+    coordinate = Inputs$coordinate
   }
-  W=10+floor((dim(A)[2]-1)/10)
-  if(!is.null(Inputs$Walk_length)){
-    W=Inputs$Walk_length
+  
+  # set the number of steps for the random walk
+  W = 10 + floor((dim(A)[2] - 1) / 10)
+  if (!is.null(Inputs$walk_length)) {
+    W = Inputs$walk_length
   }
-  ball_walk=FALSE
-  if(!is.null(Inputs$ball_walk)){
-    ball_walk=Inputs$ball_walk
+  
+  # set flag for the ball walk
+  ball_walk = FALSE
+  if (!is.null(Inputs$ball_walk)) {
+    ball_walk = Inputs$ball_walk
   }
-  delta=-1
-  if(!is.null(Inputs$delta)){
-    delta=Inputs$delta
+  
+  # set the radius for the ball walk. Negative value means that is not given as input
+  delta = -1
+  if (!is.null(Inputs$delta)) {
+    delta = Inputs$delta
   }
-  rounding=FALSE
-  e=0
-  win_len=0
-  C=0
-  ratio=0
-  NN=0
-  frac=0
+  
+  #--------------------#
+  rounding = FALSE
+  e = 0
+  win_len = 0
+  C = 0
+  ratio = 0
+  NN = 0
+  frac = 0
+  #-------------------#
   
   round_only = FALSE
   rotate_only = FALSE
   sample_only = TRUE
-  tim=proc.time()
-  points=vol_R(A,W,e,internal_point,gaussian,win_len,NN,C,ratio,frac,ball_walk,delta,Vpoly,round_only,rotate_only,sample_only,N,variance,coordinate,rounding,verbose)
-  tim=proc.time()-tim
-  if(verbose){
+  
+  # set timer
+  tim = proc.time()
+  
+  points = vol_R(A, W, e, internal_point, gaussian, win_len, NN, C, ratio, frac,
+                 ball_walk, delta, Vpoly, round_only, rotate_only, sample_only, N,
+                 variance, coordinate, rounding, verbose)
+  
+  tim = proc.time() - tim
+  if (verbose) {
     print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
   }
   return(points)
-  
 }

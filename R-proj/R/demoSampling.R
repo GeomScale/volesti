@@ -13,18 +13,19 @@
 #' #choose spherical gaussian distribution
 #' demoSampling("gaussian")
 demoSampling <- function(distribution){
+  
   if(distribution!="uniform" & distribution!="gaussian"){
     print('choose between uniform and gaussian for the distribution.')
     return()
   }
   
-  path=getwd()
-  path=paste0(substr(path, start=1, stop=nchar(path)-7),'/data/')
+  path = getwd()
+  path = paste0(substr(path, start=1, stop=nchar(path) - 7), '/data/')
   
   print('----------------------------------------')
   print('------------1st test [cubes]------------')
   print('----------------------------------------')
-  listofpoly=c('cube10.ine','cube20.ine','cube30.ine')
+  listofpoly=c('cube10.ine', 'cube20.ine', 'cube30.ine')
   runsample(path, listofpoly, distribution)
 
   print('----------------------------------------')
@@ -36,41 +37,41 @@ demoSampling <- function(distribution){
   print('----------------------------------------')
   print('----------3rd test [birkhoff]-----------')
   print('----------------------------------------')
-  listofpoly=c('birk3.ine','birk4.ine','birk5.ine','birk6.ine')
+  listofpoly=c('birk3.ine', 'birk4.ine', 'birk5.ine', 'birk6.ine')
   runsample(path, listofpoly, distribution)
   
   print('----------------------------------------')
   print('--------4th test [prod_simplex]---------')
   print('----------------------------------------')
   cat('\n')
-  listofpoly=c('prod_simplex_5_5.ine','prod_simplex_10_10.ine','prod_simplex_15_15.ine','prod_simplex_20_20.ine')
+  listofpoly=c('prod_simplex_5_5.ine', 'prod_simplex_10_10.ine', 'prod_simplex_15_15.ine', 'prod_simplex_20_20.ine')
   runsample(path, listofpoly, distribution)
   
   print('----------------------------------------')
   print('-----------5th test [simplex]-----------')
   print('----------------------------------------')
-  listofpoly=c('simplex10.ine','simplex20.ine','simplex30.ine','simplex40.ine','simplex50.ine')
+  listofpoly=c('simplex10.ine', 'simplex20.ine', 'simplex30.ine', 'simplex40.ine', 'simplex50.ine')
   runsample(path, listofpoly, distribution)
   
   print('----------------------------------------')
   print('--------6th test [skinny_cubes]---------')
   print('----------------------------------------')
-  listofpoly=c('skinny_cube10.ine','skinny_cube20.ine')
+  listofpoly=c('skinny_cube10.ine', 'skinny_cube20.ine')
   runsample(path, listofpoly, distribution)
 }
 
 
 runsample <- function(path,listofpoly,dist){
-  for(i in 1:length(listofpoly)){
-    if (dist == "uniform"){
-      p = sample_points(list("path"=paste0(path,listofpoly[i])))
+  for (i in 1:length(listofpoly)) {
+    if (dist == "uniform") {
+      p = sample_points(list("path"=paste0(path, listofpoly[i])))
     } else {
       p = sample_points(list("path"=paste0(path,listofpoly[i]), "gaussian"=TRUE))
     }
-    if (length(p[is.nan(p)])>0 | length(p[is.infinite(p)])>0){
-      print(paste0('Test FAILED!! [',listofpoly[i],']  There are NaN or Inf values in the coordinates of your points!'))
+    if (length(p[is.nan(p)])>0 | length(p[is.infinite(p)])>0) {
+      print(paste0('Test FAILED!! [', listofpoly[i], ']  There are NaN or Inf values in the coordinates of your points!'))
     } else {
-      print(paste0('Test PASSED!! [',listofpoly[i],']'))
+      print(paste0('Test PASSED!! [', listofpoly[i], ']'))
     }
   }
   cat('\n')

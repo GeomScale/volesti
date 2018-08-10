@@ -12,21 +12,27 @@
 #' ball_vec = CheBall(A,b)
 CheBall <- function(A,b){
   
-  d=dim(A)[2]
-  m=dim(A)[1]
+  d = dim(A)[2]
+  m = dim(A)[1]
   
   lprec <- make.lp(m, d+1)
-  norm_row=rep(0,m)
+  norm_row = rep(0,m)
 
+  # get 2-norm of each row
   for(j in 1:m){
-    norm_row[j]=norm(A[j,],type="2")
+    norm_row[j] = norm(A[j,], type="2")
   }
-  for(i in 1:d){
+  
+  # set coeffs
+  for (i in 1:d) {
     set.column(lprec, i, A[,i])
   }
   set.column(lprec, d+1, norm_row)
   
-  set.objfn(lprec, c(rep(0,d),c(-1)))
+  # set objective function
+  set.objfn(lprec, c(rep(0,d), c(-1)))
+  
+  # set the type of constraints
   set.constr.type(lprec, rep("<=",m))
   set.rhs(lprec, b)
   
@@ -36,4 +42,3 @@ CheBall <- function(A,b){
   
   return(get.variables(lprec))
 }
-

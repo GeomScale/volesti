@@ -42,130 +42,158 @@
 #' vol = volume(list("matrix"=A))
 volume <- function(Inputs){
   
-  Vpoly=FALSE
-  if(!is.null(Inputs$Vpoly)){
+  # flag for V-polytope
+  Vpoly = FALSE
+  if (!is.null(Inputs$Vpoly)) {
     Vpoly = Inputs$Vpoly
   }
-  if(!is.null(Inputs$path)){
-    A=ineToMatrix(read.csv(Inputs$path))
-    r=A[1,]
-    x=modifyMat(A)
-    A=x$matrix
-    b=x$vector
-  }else if(!is.null(Inputs$vector)){
-    b=Inputs$vector
-    A=-Inputs$matrix
-    d=dim(A)[2]+1
-    m=dim(A)[1]
-    r=rep(0,d)
-    r[1]=m
-    r[2]=d
-  }else if(!is.null(Inputs$matrix)){
-    if(Vpoly){
-      A=Inputs$matrix
-      d=dim(A)[2]+1
-      m=dim(A)[1]
-      b=rep(1,m)
-      r=rep(0,d)
-      r[1]=m
-      r[2]=d
-    }else{
-      r=Inputs$matrix[1,]
-      x=modifyMat(Inputs$matrix)
-      A=x$matrix
-      b=x$vector
+  # initialization of the Polytope
+  if (!is.null(Inputs$path)) {
+    A = ineToMatrix(read.csv(Inputs$path))
+    r = A[1,]
+    x = modifyMat(A)
+    A = x$matrix
+    b = x$vector
+  } else if (!is.null(Inputs$vector)) {
+    b = Inputs$vector
+    A = -Inputs$matrix
+    d = dim(A)[2] + 1
+    m = dim(A)[1]
+    r = rep(0,d)
+    r[1] = m
+    r[2] = d
+  } else if (!is.null(Inputs$matrix)) {
+    if (Vpoly) {
+      A = Inputs$matrix
+      d = dim(A)[2] + 1
+      m = dim(A)[1]
+      b = rep(1, m)
+      r = rep(0, d)
+      r[1] = m
+      r[2] = d
+    } else {
+      r = Inputs$matrix[1,]
+      x = modifyMat(Inputs$matrix)
+      A = x$matrix
+      b = x$vector
     }
-  }else{
-    if(Vpoly){
+  } else {
+    if (Vpoly) {
       print('No V-polytope defined from input!')
-    }else{
+    } else {
       print('No H-polytope defined from input!')
     }
     return(-1)
   }
-  A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
-  A=matrix(rbind(r,A),ncol=dim(A)[2])
+  A = matrix(cbind(b,A), ncol = dim(A)[2] + 1)
+  A = matrix(rbind(r,A), ncol = dim(A)[2])
   
-  Cheb_ball=rep(0,dim(A)[2]+5)
-  if(!is.null(Inputs$Chebychev)){
-    Cheb_ball=Inputs$Chebychev
+  # set a too large vector for chebychev ball if it is not given as input
+  Cheb_ball = rep(0, dim(A)[2] + 5)
+  if (!is.null(Inputs$Chebychev)) {
+    Cheb_ball = Inputs$Chebychev
   }
-  annealing=FALSE
-  if(!is.null(Inputs$CV)){
-    annealing=Inputs$CV
+  
+  # set flag for CV algorithm
+  annealing = FALSE
+  if (!is.null(Inputs$CV)) {
+    annealing = Inputs$CV
   }
-  verbose=FALSE
-  if(!is.null(Inputs$verbose)){
-    verbose=Inputs$verbose
+  
+  # set flag for verbose mode
+  verbose = FALSE
+  if (!is.null(Inputs$verbose)) {
+    verbose = Inputs$verbose
   }
-  coordinate=TRUE
-  if(!is.null(Inputs$coordinate)){
-    coordinate=Inputs$coordinate
+  
+  # set flag for Coordinate or Random Directions HnR
+  coordinate = TRUE
+  if (!is.null(Inputs$coordinate)) {
+    coordinate = Inputs$coordinate
   }
-  rounding=FALSE
-  if(!is.null(Inputs$rounding)){
-    rounding=Inputs$rounding
+  
+  # set flag for rounding
+  rounding = FALSE
+  if (!is.null(Inputs$rounding)) {
+    rounding = Inputs$rounding
   }
-  if(!is.null(Inputs$walk_length)){
+  
+  # set the number of steps for the random walk
+  if (!is.null(Inputs$walk_length)) {
     W=Inputs$walk_length
-  }else{
-    if(annealing){
-      W=1
+  } else {
+    if (annealing) {
+      W = 1
     }else{
-      W=10+floor(dim(A)[2]/10)
+      W = 10 + floor( dim(A)[2]/10 )
     }
   }
-  if(!is.null(Inputs$error)){
-    e=Inputs$error
-  }else{
-    if(annealing){
-      e=0.2
-    }else{
-      e=1
+  
+  # set the requested error
+  if (!is.null(Inputs$error)) {
+    e = Inputs$error
+  } else {
+    if (annealing) {
+      e = 0.2
+    } else {
+      e = 1
     }
   }
-  dimension=dim(A)[2]-1
-  win_len=4*(dimension^2)+500
-  if(!is.null(Inputs$win_len)){
-    win_len=Inputs$win_len
+  dimension = dim(A)[2] - 1
+  
+  # [CV] initialization
+  win_len = 4 * ( dimension ^ 2 ) + 500
+  if (!is.null(Inputs$win_len)) {
+    win_len = Inputs$win_len
   }
-  C=2
-  if(!is.null(Inputs$C)){
-    C=Inputs$C
+  
+  C = 2
+  if (!is.null(Inputs$C)) {
+    C = Inputs$C
   }
-  ratio=1-1/dimension
-  if(!is.null(Inputs$ratio)){
-    ratio=Inputs$ratio
+  ratio = 1 - 1 / dimension
+  if (!is.null(Inputs$ratio)) {
+    ratio = Inputs$ratio
   }
-  N=500*C+(dimension^2)/2
-  if(!is.null(Inputs$N)){
-    N=Inputs$N
+  N = 500 * C + ( dimension^2 ) / 2
+  if (!is.null(Inputs$N)) {
+    N = Inputs$N
   }
-  frac=0.1
-  if(!is.null(Inputs$frac)){
-    frac=Inputs$frac
+  frac = 0.1
+  if (!is.null(Inputs$frac)) {
+    frac = Inputs$frac
   }
-  ball_walk=FALSE
-  if(!is.null(Inputs$ball_walk)){
-    ball_walk=Inputs$ball_walk
+  
+  # set flag for the ball walk
+  ball_walk = FALSE
+  if (!is.null(Inputs$ball_walk)) {
+    ball_walk = Inputs$ball_walk
   }
-  delta=-1
-  if(!is.null(Inputs$delta)){
-    delta=Inputs$delta
+  
+  # set the radius for the ball walk. Negative value means that is not given as input
+  delta = -1
+  if (!is.null(Inputs$delta)) {
+    delta = Inputs$delta
   }
 
+  #------------------------#
   round_only = FALSE
   rotate_only = FALSE
   sample_only = FALSE
   variance = 0
   numpoints = 0
-  tim=proc.time()
-  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,round_only,rotate_only,sample_only,numpoints,variance,coordinate,rounding,verbose)
-  tim=proc.time()-tim
-  if(verbose){
-    print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
+  #-----------------------#
+  # set the timer
+  tim = proc.time()
+  
+  vol = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk,
+              delta, Vpoly, round_only, rotate_only, sample_only, numpoints, variance,
+              coordinate, rounding, verbose)
+  
+  tim = proc.time()-tim
+  if (verbose) {
+    print(paste0('Total time: ', as.numeric(as.character(tim[3]))))
   }
   return(vol[1,1])
   
 }
-
