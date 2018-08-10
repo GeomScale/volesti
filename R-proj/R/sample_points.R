@@ -117,10 +117,11 @@ sample_points <- function(Inputs){
   NN=0
   frac=0
   
+  round_only = FALSE
   rotate_only = FALSE
   sample_only = TRUE
   tim=proc.time()
-  points=vol_R(A,W,e,internal_point,gaussian,win_len,NN,C,ratio,frac,ball_walk,delta,Vpoly,rotate_only,sample_only,N,variance,coordinate,rounding,verbose)
+  points=vol_R(A,W,e,internal_point,gaussian,win_len,NN,C,ratio,frac,ball_walk,delta,Vpoly,round_only,rotate_only,sample_only,N,variance,coordinate,rounding,verbose)
   tim=proc.time()-tim
   if(verbose){
     print(paste0('Total time: ',as.numeric(as.character(tim[3]))))

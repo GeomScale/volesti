@@ -15,7 +15,7 @@
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::NumericVector Chebychev, bool annealing, int win_len,
-             int N, double C, double ratio, double frac, bool ball_walk, double delta, bool Vpoly, bool rotate_only, bool sample_only, int numpoints, double variance, bool coord, bool rounding, bool verbose) {
+             int N, double C, double ratio, double frac, bool ball_walk, double delta, bool Vpoly, bool round_only, bool rotate_only, bool sample_only, int numpoints, double variance, bool coord, bool rounding, bool verbose) {
 
     int n=A.ncol()-1;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
@@ -96,6 +96,23 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         } else {
             CheBall = VP.chebyshev_center();
         }
+    }
+
+    if (round_only) {
+        Rcpp::NumericMatrix Mat;
+        if (ball_walk) {
+            delta = 4.0 * CheBall.second / std::sqrt(NT(n));
+        }
+        vars var(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,CheBall.second,rng,urdist,urdist1,
+                 delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
+        if (!Vpoly) {
+            rounding_min_ellipsoid(P, CheBall, var);
+            Mat = extractMatPoly(VP);
+        } else {
+            rounding_min_ellipsoid(VP, CheBall, var);
+            Mat = extractMatPoly(VP);
+        }
+        return Mat;
     }
 
     if (sample_only){
