@@ -21,58 +21,63 @@
 #' matVpoly = rand_rotate(list("matrix"=V, "Vpoly"=TRUE))
 rand_rotate <- function(Inputs){
   
-  Vpoly=FALSE
-  if(!is.null(Inputs$Vpoly)){
+  # set flag for V-polytope
+  Vpoly = FALSE
+  if (!is.null(Inputs$Vpoly)) {
     Vpoly = Inputs$Vpoly
   }
-  if(!is.null(Inputs$path)){
-    A=ineToMatrix(read.csv(Inputs$path))
-    r=A[1,]
-    #A=A[-c(1),]
-    x=modifyMat(A)
-    A=x$matrix
-    b=x$vector
-  }else if(!is.null(Inputs$vector)){
-    b=Inputs$vector
-    A=-Inputs$matrix
-    d=dim(A)[2]+1
-    m=dim(A)[1]
-    r=rep(0,d)
-    r[1]=m
-    r[2]=d
-  }else if(!is.null(Inputs$matrix)){
-    if(Vpoly){
-      A=Inputs$matrix
-      d=dim(A)[2]+1
-      m=dim(A)[1]
-      b=rep(1,m)
-      r=rep(0,d)
-      r[1]=m
-      r[2]=d
-    }else{
-      r=Inputs$matrix[1,]
-      #Inputs$matrix=Inputs$matrix[-c(1),]
-      x=modifyMat(Inputs$matrix)
-      A=x$matrix
-      b=x$vector
+  
+  # polytope initialization
+  if (!is.null(Inputs$path)) {
+    A = ineToMatrix(read.csv(Inputs$path))
+    r = A[1,]
+    x = modifyMat(A)
+    A = x$matrix
+    b = x$vector
+  } else if (!is.null(Inputs$vector)) {
+    b = Inputs$vector
+    A = -Inputs$matrix
+    d = dim(A)[2] + 1
+    m = dim(A)[1]
+    r = rep(0,d)
+    r[1] = m
+    r[2] = d
+  } else if (!is.null(Inputs$matrix)) {
+    if (Vpoly) {
+      A = Inputs$matrix
+      d = dim(A)[2] + 1
+      m = dim(A)[1]
+      b = rep(1,m)
+      r = rep(0,d)
+      r[1] = m
+      r[2] = d
+    } else {
+      r = Inputs$matrix[1,]
+      x = modifyMat(Inputs$matrix)
+      A = x$matrix
+      b = x$vector
     }
-  }else{
-    if(Vpoly){
+  } else {
+    if (Vpoly) {
       print('No V-polytope defined from input!')
-    }else{
+    } else {
       print('No H-polytope defined from input!')
     }
     return(-1)
   }
-  A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
-  A=matrix(rbind(r,A),ncol=dim(A)[2])
+  A = matrix(cbind(b,A), ncol=dim(A)[2] + 1)
+  A = matrix(rbind(r,A), ncol=dim(A)[2])
   
+  # set flag for verbose mode
   verbose=FALSE
   if(!is.null(Inputs$verbose)){
     verbose=Inputs$verbose
   }
   
+  # set flag for rotating only
   rotate_only = TRUE
+  
+  #---------------------#
   round_only = FALSE
   W = 0
   e = 0
@@ -90,10 +95,16 @@ rand_rotate <- function(Inputs){
   variance = 0
   coordinate = TRUE
   rounding = FALSE
+  #-------------------#
   
-  Mat = vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,round_only,rotate_only,sample_only,numpoints,variance,coordinate,rounding,verbose)
+  Mat = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
+              Vpoly, round_only, rotate_only, sample_only, numpoints, variance, coordinate,
+              rounding, verbose)
+  
+  # get elements "matrix" and "vector"
   retList = modifyMat(Mat)
   if (Vpoly){
+    # in V-polytope case return only the marix
     return(retList$matrix)
   } else {
     return(retList)

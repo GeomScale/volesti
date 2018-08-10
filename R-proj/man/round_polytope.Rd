@@ -17,6 +17,8 @@ round_polytope(Inputs)
 
 \item{vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
 
+\item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.}
+
 \item{ball_walk}{Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is false.}
 
 \item{delta}{Optional. The radius for the ball walk.}
