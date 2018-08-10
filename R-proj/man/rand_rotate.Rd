@@ -7,7 +7,7 @@
 rand_rotate(Inputs)
 }
 \arguments{
-\item{list("argument"=value)}{A list that includes parameters for the chosen algorithm.}
+\item{list("argument"=value)}{A list that includes elements that describe the convex polytope given as input.}
 
 \item{path}{The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.}
 
@@ -23,7 +23,7 @@ rand_rotate(Inputs)
 A H or V-polytope which is a random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{k\times d} matrix that contains the \eqn{k} vertices of the V polytope row-wise.
 }
 \description{
-Give a convex H or V polytope as input and then a random rotation is computed and be applied to the polytope.
+Given a convex H or V polytope as input and then a random rotation is applied to the polytope.
 }
 \examples{
 #rotate a H-polytope (2d unit simplex)

@@ -16,7 +16,7 @@ Print the computed volumes and the error. If the test fails a message is printed
 }
 \description{
 Run volesti or CV algorithm to approximate the volume of some cubes, simplices, skinny_cubes, cross polytopes, birkhoff polytopes.
-We run \eqn{10} experiments for volesti and \eqn{20} for CV. We demand \eqn{error = 0.1}. For all the other parameters use the default values for both algorithms.
+We run \eqn{10} experiments for volesti and \eqn{20} for CV, for each polytope and we consider the mean as the computed volume. We demand \eqn{error = 0.1}. For all the other parameters use the default values for both algorithms.
 }
 \examples{
 #test volesti

@@ -21,7 +21,7 @@ volume(Inputs)
 
 \item{Chebychev}{Optional. A d+1 vector that containes the chebychev center. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.}
 
-\item{annealing}{Optional. A boolean parameter to use CV algorithm. Default value is false.}
+\item{CV}{Optional. A boolean parameter to use CV algorithm. Default value is false.}
 
 \item{win_len}{Optional. The size of the window for the ratios' approximation in CV algorithm. Default value is \eqn{4 \ dimension^2 + 500}.}
 
@@ -59,7 +59,7 @@ vol = volume(list("matrix"=A, "vector"=b))
 
 # calling CV algorithm for a V-polytope (3d cube)
 V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-vol = volume(list("matrix"=V, "annealing"=TRUE, "Vpoly"=TRUE))
+vol = volume(list("matrix"=V, "CV"=TRUE, "Vpoly"=TRUE))
 
 # a 2d unit simplex in H-representation using ine format matrix, calling volesti algorithm
 A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1), ncol=3, nrow=4, byrow=TRUE)

@@ -1,8 +1,8 @@
 #' Apply a random rotation to a convex H or V-polytope.
 #' 
-#' Give a convex H or V polytope as input and then a random rotation is computed and be applied to the polytope.
+#' Given a convex H or V polytope as input and then a random rotation is applied to the polytope.
 #' 
-#' @param list("argument"=value) A list that includes parameters for the chosen algorithm.
+#' @param list("argument"=value) A list that includes elements that describe the convex polytope given as input.
 #' @param path The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.
 #' @param matrix The matrix of the H polytope or the matrix that contains all the vertices of a V polytope row-wise. If the matrix is in ine file, for H-polytopes only (see examples), then the "vector" input is not needed.
 #' @param vector Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.
