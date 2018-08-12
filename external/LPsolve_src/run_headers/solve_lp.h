@@ -27,7 +27,7 @@
 
 
 // compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
-std::pair<Point,NT> solveLP(Eigen::MatrixXd &A, Eigen::VectorXd &b, int d){
+std::pair<Point,NT> solveLP(MT &A, VT &b, int d){
 
 	lprec *lp;
 	int Ncol=d+1, *colno = NULL, j, ret = 0, m=A.rows();
@@ -132,7 +132,7 @@ std::pair<Point,NT> solveLP(Eigen::MatrixXd &A, Eigen::VectorXd &b, int d){
 
 // return true if q belongs to the convex hull of the V-polytope described by matrix V
 // otherwise return false
-bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
+bool memLP_Vpoly(MT V, Point q){
 
 	int d=q.dimension();
 	lprec *lp;
@@ -244,7 +244,7 @@ bool memLP_Vpoly(Eigen::MatrixXd V, Point q){
 // compute the intersection of a ray with a V-polytope
 // if maxi is true compute positive lambda, when the ray is p + lambda \codt v
 // otherwise compute the negative lambda
-NT intersect_line_Vpoly(Eigen::MatrixXd V, Point &p, Point &v, bool maxi){
+NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
 
 	int d=v.dimension();
 	lprec *lp;

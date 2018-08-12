@@ -30,6 +30,8 @@
 //#include <boost/random/uniform_real_distribution.hpp>
 
 
+typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
 typedef boost::mt19937 RNGType; // mersenne twister generator
@@ -47,11 +49,11 @@ public:
           const int lw,
           NT up,
           const int L,
-          double che_rad,
+          NT che_rad,
           RNGType &rng,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
-          double delta,
+          NT delta,
           bool verbose,
           bool rand_only,
           bool round,
@@ -74,11 +76,11 @@ public:
     const int lw;
     NT up;
     const int L;
-    double che_rad;
+    NT che_rad;
     RNGType &rng;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;
-    double delta;
+    NT delta;
     bool verbose;
     bool rand_only;
     bool round;
@@ -369,7 +371,7 @@ NT volume_gaussian_annealing(T &P,
     var.che_rad = radius;
 
     // Move chebychev center to origin and apply the same shifting to the polytope
-    Eigen::VectorXd c_e(n);
+    VT c_e(n);
     for(int i=0; i<n; i++){
         c_e(i)=c[i];  // write chebychev center in an eigen vector
     }
