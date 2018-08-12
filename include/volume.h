@@ -30,8 +30,6 @@
 
 
 typedef double                      NT;
-//typedef float                      NT;
-//typedef long double                     NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
 typedef boost::mt19937 RNGType; // mersenne twister generator
