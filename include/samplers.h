@@ -134,13 +134,13 @@ void rand_point_generator(T &P,
 
 
 
-template <class T, class K>
-void rand_point_generator(BallIntersectPolytope<T,NT> &PBLarge,
+template <class T, class K, typename FT>
+void rand_point_generator(BallIntersectPolytope<T,FT> &PBLarge,
                          Point &p,   // a point to start
                          int rnum,
                          int walk_len,
                          K &randPoints,
-                         BallIntersectPolytope<T,NT> &PBSmall,
+                         BallIntersectPolytope<T,FT> &PBSmall,
                          int &nump_PBSmall,
                          vars &var) {  // constants for volume
     int n = var.n;
@@ -148,7 +148,7 @@ void rand_point_generator(BallIntersectPolytope<T,NT> &PBLarge,
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector <NT> lamdas(PBLarge.num_of_hyperplanes(), NT(0));
+    std::vector <FT> lamdas(PBLarge.num_of_hyperplanes(), FT(0));
     int rand_coord, rand_coord_prev;
     NT kapa, ball_rad = var.delta;
     Point p_prev = p;
@@ -195,6 +195,7 @@ void hit_and_run(Point &p,
     int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
+
     Point l = get_direction(n);
     std::pair <NT, NT> dbpair = P.line_intersect(p, l);
     NT min_plus = dbpair.first;

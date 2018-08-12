@@ -17,7 +17,7 @@ NT factorial(NT n)
 }
 
 template <typename FilePath>
-void test_float_ve_volume(FilePath f, NT expected, NT tolerance=0.1)
+void test_float_ve_volume(FilePath f, NT expected, NT tolerance=0.2)
 {
     std::ifstream inp;
     std::vector<std::vector<NT> > Pin;
