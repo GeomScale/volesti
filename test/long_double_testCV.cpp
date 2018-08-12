@@ -30,7 +30,7 @@ void test_CV_long_double_volume(FilePath f, NT expected, NT tolerance=0.2)
     // Setup the parameters
     int walk_len=1;
     int nexp=1, n_threads=1;
-    NT e=0.2, err=0.0000000001;
+    NT e=0.1, err=0.0000000001;
     NT C=2.0,ratio,frac=0.1,delta=-1.0;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
     int N = 500 * ((int) C) + ((int) (n * n / 2));
