@@ -41,9 +41,9 @@ int main(const int argc, const char** argv)
 {
 	//Deafault values
     int n, nexp=1, n_threads=1, W;
-    int walk_len,N;
+    int walk_len,N, nsam = 100;
     NT e=1;
-    NT exactvol(-1.0);
+    NT exactvol(-1.0), a=0.5;
     bool verbose=false, 
 	 rand_only=false, 
 	 round_only=false,
@@ -59,7 +59,8 @@ int main(const int argc, const char** argv)
          experiments=true,
          annealing = false,
          Vpoly=false,
-         coordinate=true;
+         coordinate=true,
+         gaussian_sam = false;
 	
 	//this is our polytope
 	HPolytope<NT> P;
@@ -83,8 +84,12 @@ int main(const int argc, const char** argv)
           std::cerr<<
                       "Usage:\n"<<
                       "-v, --verbose \n"<<
-                      "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
+                      "-rot : does only rotating to the polytope\n"<<
+                      "-ro, --round_only : does only rounding to the polytope\n"<<
                       "-rand, --rand_only : generates only random points\n"<<
+                      "-nsample : the number of points to sample in rand_olny mode\n"<<
+                      "-gaussian : sample with spherical gaussian target distribution in rand_only mode\n"<<
+                      "-variance : the variance of the spherical distribution in spherical mode (default 1)\n"<<
                       "-f1, --file1 [filename_type_Ax<=b] [epsilon] [walk_length] [threads] [num_of_experiments]\n"<<
                       //"-f2, --file2 [filename_type_Ax=b,x>=0] [epsilon] [walk_length] [threads] [num_of_experiments]\n"<<
                       "-fle, --filele : counting linear extensions of a poset\n"<<
@@ -92,7 +97,6 @@ int main(const int argc, const char** argv)
                       "--exact : the exact volume\n"<<
                       "--cube : input polytope is a cube\n"<<
                       "-r, --round : enables rounding of the polytope as a preprocess\n"<<
-                      "-ro, --round_only : does only rounding to the polytope\n"<<
                       "-e, --error epsilon : the goal error of approximation\n"<<
                       "-w, --walk_len [walk_len] : the random walk length (default 10)\n"<<
                       "-exp [#exps] : number of experiments (default 1)\n"<<
@@ -164,6 +168,19 @@ int main(const int argc, const char** argv)
       if(!strcmp(argv[i],"-N_an")){
           N = atof(argv[++i]);
           user_N=true;
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-nsample")){
+          nsam = atof(argv[++i]);
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-gaussian")){
+          gaussian_sam = true;
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-variance")){
+          a = atof(argv[++i]);
+          a = 1.0 / (2.0 * a);
           correct=true;
       }
       //reading from file
@@ -308,8 +325,6 @@ int main(const int argc, const char** argv)
   }
   
   // Set the number of random walk steps
-  if(!user_walk_len)
-      walk_len = 10 + n / 10;
 
   if(!user_walk_len) {
       if(!annealing) {
@@ -350,8 +365,40 @@ int main(const int argc, const char** argv)
   }
 
   // If rotate flag is on rotate the polytope
-  if(rotate){
-      rotating(P);
+  if(rotate) {
+      if (!Vpoly) {
+          rotating(P);
+          std::cout << "\n--------------\nRotated polytope\nH-representation\nbegin\n" << std::endl;
+          P.print();
+      } else {
+          rotating(VP);
+          std::cout << "\n--------------\nRotated polytope\nV-representation\nbegin\n" << std::endl;
+          VP.print();
+      }
+      return 0;
+  }
+  if (rand_only) {
+      std::list <Point> randPoints;
+      if (ball_walk) {
+          if (delta < 0.0) { // set the radius for the ball walk if is not set by the user
+              if (gaussian_sam) {
+                  delta = 4.0 * CheBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
+              } else {
+                  delta = 4.0 * CheBall.second / std::sqrt(NT(n));
+              }
+          }
+      }
+      vars var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, CheBall.second, rng,
+                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
+      vars_g var2(n, walk_len, N, W, 1, 0, CheBall.second, rng, C, frac, ratio, delta,
+                  false, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
+      
+      if (!Vpoly) {
+          sampling_only(randPoints, P, walk_len, nsam, gaussian_sam, a, CheBall.first, var1, var2);
+      } else {
+          sampling_only(randPoints, VP, walk_len, nsam, gaussian_sam, a, CheBall.first, var1, var2);
+      }
+      return 0;
   }
 
   // the number of random points to be generated in each K_i
@@ -374,35 +421,42 @@ int main(const int argc, const char** argv)
       vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,CheBall.second,rng,
                urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
-      if(round_only){
+      if(round_only) {
           // Round the polytope and exit
-          std::pair<NT,NT> res_round;
-          res_round = rounding_min_ellipsoid(P,CheBall,var);
-          NT round_value = res_round.first;
-          std::cout<<"\n--------------\nRounded polytope\nH-representation\nbegin\n"<<std::endl;
-          P.print();
-          std::cout<<"end\n--------------\n"<<std::endl;
-      }else{
+          std::pair <NT, NT> res_round;
+          if (!Vpoly) {
+              res_round = rounding_min_ellipsoid(P, CheBall, var);
+              std::cout << "\n--------------\nRounded polytope\nH-representation\nbegin\n" << std::endl;
+              P.print();
+          } else {
+              res_round = rounding_min_ellipsoid(VP, CheBall, var);
+              std::cout << "\n--------------\nRounded polytope\nV-representation\nbegin\n" << std::endl;
+              VP.print();
+          }
+          std::cout << "end\n--------------\n" << std::endl;
+          return 0;
+      } else {
           // Estimate the volume
-          if(annealing){
+          if (annealing) {
               // setup the parameters
-              vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,CheBall.second,rng,
-                       urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+              vars var2(rnum, n, 10 + n / 10, n_threads, err, e, 0, 0.0, 0, CheBall.second, rng,
+                        urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
 
-              vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,false,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
-              if(!Vpoly) {
+              vars_g var1(n, walk_len, N, W, 1, error, CheBall.second, rng, C, frac, ratio, delta,
+                          false, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
+              if (!Vpoly) {
                   vol = volume_gaussian_annealing(P, var1, var2, CheBall);
-              }else{
+              } else {
                   vol = volume_gaussian_annealing(VP, var1, var2, CheBall);
               }
-              tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-              std::cout<<"volume computed = "<<vol<<std::endl;
-              std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;
+              tstop = (double) clock() / (double) CLOCKS_PER_SEC;
+              std::cout << "volume computed = " << vol << std::endl;
+              std::cout << "Total time = " << tstop - tstart << " sec" << std::endl;
               return 0;
           }
-          if(!Vpoly) {
+          if (!Vpoly) {
               vol = volume(P, var, var, CheBall);
-          }else{
+          } else {
               vol = volume(VP, var, var, CheBall);
           }
       }
