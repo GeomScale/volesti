@@ -215,7 +215,6 @@ void rand_gaussian_point_generator(T &P,
                          vars_g &var)  // constans for volume
 {
     int n = var.n;
-    //bool birk = var.birk;
     //RNGType &rng = var.rng;
     RNGType &rng2 = var.rng;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
