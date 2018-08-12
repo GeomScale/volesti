@@ -20,8 +20,8 @@ const NT minNT = -1.79769e+308;
 template <typename FT>
 class HPolytope{
 private:
-    Eigen::MatrixXd A; //matrix A
-    Eigen::VectorXd b; // vector b, s.t.: Ax<=b
+    MT A; //matrix A
+    VT b; // vector b, s.t.: Ax<=b
     int            _d; //dimension
 
 public:
@@ -67,25 +67,25 @@ public:
 
 
     // return the matrix A
-    Eigen::MatrixXd get_mat() {
+    MT get_mat() {
         return A;
     }
 
 
     // return the vector b
-    Eigen::VectorXd get_vec() {
+    VT get_vec() {
         return b;
     }
 
 
     // change the matrix A
-    void set_mat(Eigen::MatrixXd A2) {
+    void set_mat(MT A2) {
         A = A2;
     }
 
 
     // change the vector b
-    void set_vec(Eigen::VectorXd b2) {
+    void set_vec(VT b2) {
         b = b2;
     }
 
@@ -361,13 +361,13 @@ public:
 
 
     // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
-    void linear_transformIt(Eigen::MatrixXd T) {
+    void linear_transformIt(MT T) {
         A = A * T;
     }
 
 
     // shift polytope by a point c
-    void shift(Eigen::VectorXd c){
+    void shift(VT c){
         b = b - A*c;
     }
 
@@ -402,8 +402,8 @@ public:
 template <typename FT>
 class VPolytope{
 private:
-    Eigen::MatrixXd V; //matrix V. Each row contains a vertex
-    Eigen::VectorXd b; // vector b that contains first column of ine file
+    MT V;  //matrix V. Each row contains a vertex
+    VT b;  // vector b that contains first column of ine file
     int _d;  //dimension
 
 public:
@@ -455,25 +455,25 @@ public:
 
 
     // return the matrix V
-    Eigen::MatrixXd get_mat() {
+    MT get_mat() {
         return V;
     }
 
 
     // return the vector b
-    Eigen::VectorXd get_vec() {
+    VT get_vec() {
         return b;
     }
 
 
     // change the matrix V
-    void set_mat(Eigen::MatrixXd V2) {
+    void set_mat(MT V2) {
         V = V2;
     }
 
 
     // change the vector b
-    void set_vec(Eigen::VectorXd b2) {
+    void set_vec(VT b2) {
         b = b2;
     }
 
@@ -536,11 +536,11 @@ public:
         int dim = p0.dimension(),i,j;
         std::vector <FT> temp_p;
         FT radius = 0.0, gi, sum = 0.0;
-        Eigen::MatrixXd B(dim,dim);
-        Eigen::MatrixXd Bg(dim,dim);
-        Eigen::MatrixXd e(1,dim);
-        Eigen::VectorXd row(dim);
-        Eigen::VectorXd g(dim);
+        MT B(dim,dim);
+        MT Bg(dim,dim);
+        MT e(1,dim);
+        VT row(dim);
+        VT g(dim);
         std::pair <Point,FT> result;
 
         for (j=1; j<dim+1; j++) {
@@ -551,7 +551,7 @@ public:
             }
         }
         Bg = B;
-        Eigen::FullPivLU <Eigen::MatrixXd> lu_decomp(B);
+        Eigen::FullPivLU <MT> lu_decomp(B);
         auto rank = lu_decomp.rank();
         if(rank==dim) {  // check if the simplex is full dimensional
             done = true;
@@ -684,15 +684,15 @@ public:
 
 
     // shift polytope by a point c
-    void shift(Eigen::VectorXd c) {
-        Eigen::MatrixXd V2 = V.transpose().colwise() - c;
+    void shift(VT c) {
+        MT V2 = V.transpose().colwise() - c;
         V = V2.transpose();
     }
 
 
     // apply linear transformation, of square matrix T, to a V-Polytope
-    void linear_transformIt(Eigen::MatrixXd T) {
-        Eigen::MatrixXd V2 = T.inverse() * V.transpose();
+    void linear_transformIt(MT T) {
+        MT V2 = T.inverse() * V.transpose();
         V = V2.transpose();
     }
 
