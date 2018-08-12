@@ -12,8 +12,8 @@
 
 //ROUNDING
 
-Eigen::MatrixXd getPointsMat(std::list<Point> randPoints, int dim){
-    Eigen::MatrixXd S(randPoints.size(),dim);
+MT getPointsMat(std::list<Point> randPoints, int dim){
+    MT S(randPoints.size(),dim);
     for(int i=0; i<randPoints.size(); i++){
         Point p=randPoints.front();
         randPoints.pop_front();
@@ -99,12 +99,12 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
     if(print) std::cout<<"R = "<<max_dist<<" r = "<<radius<<"ratio R/r = "<<R<<"\n"<<std::endl;
     
     // 4. Compute the transformation matrix T
-    Eigen::MatrixXd T = Eigen::MatrixXd::Identity(n,n);
+    MT T = Eigen::MatrixXd::Identity(n,n);
     bool well_rounded=false;
     int t=8*n*n*n;
     //int t=var.m;
     int tries=0;
-    Eigen::MatrixXd S=Eigen::MatrixXd::Identity(n,n);
+    MT S=Eigen::MatrixXd::Identity(n,n);
     std::pair<Point,NT> res;
     while(!well_rounded){
         tries++;
@@ -118,8 +118,8 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
         rand_point_generator(P2, p, 1, 50*n, randPoints, var2);
         randPoints.clear();
         rand_point_generator(P2, p, t, 1, randPoints, var2);
-        Eigen::MatrixXd PM=getPointsMat(randPoints,n);
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd(PM, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        MT PM=getPointsMat(randPoints,n);
+        Eigen::JacobiSVD<MT> svd(PM, Eigen::ComputeThinU | Eigen::ComputeThinV);
         if(print) std::cout<<svd.singularValues()<<"\n"<<std::endl;
         NT min=svd.singularValues()(0);
         for(int i=1; i<n; i++){
@@ -202,8 +202,8 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
     size_t w=1000;
     FT elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
-    Eigen::MatrixXd E(n,n);
-    Eigen::VectorXd e(n);
+    MT E(n,n);
+    VT e(n);
 
     //Get ellipsoid matrix and center as Eigen objects
     for(int i=0; i<n; i++){
@@ -215,7 +215,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
 
 
     //Find the smallest and the largest axes of the elliposoid
-    Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(E);
+    Eigen::EigenSolver<MT> eigensolver(E);
     FT rel = std::real(eigensolver.eigenvalues()[0]);
     FT Rel = std::real(eigensolver.eigenvalues()[0]);
     for(int i=1; i<n; i++){
@@ -223,13 +223,13 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
         if(std::real(eigensolver.eigenvalues()[i])>Rel) Rel=std::real(eigensolver.eigenvalues()[i]);
     }
 
-    Eigen::LLT<Eigen::MatrixXd> lltOfA(E); // compute the Cholesky decomposition of E
-    Eigen::MatrixXd L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
+    Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
+    MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
 
     //Shift polytope in order to contain the origin (center of the ellipsoid)
     P.shift(e);
 
-    Eigen::MatrixXd L_1 = L.inverse();
+    MT L_1 = L.inverse();
     P.linear_transformIt(L_1.transpose());
 
     return std::pair<FT,FT> (L_1.determinant(),rel/Rel);
@@ -302,8 +302,8 @@ NT rotating(T &P){
   int n = P.dimension();
 
   // pick a random rotation
-  Eigen::MatrixXd R = Eigen::MatrixXd::Random(n,n);
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
+  MT R = MT::Random(n,n);
+  Eigen::JacobiSVD<MT> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
   // apply rotation to the polytope P
   P.linear_transformIt(svd.matrixU());
