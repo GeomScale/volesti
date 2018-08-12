@@ -23,20 +23,24 @@ library(volesti)
  You can use Rstudio as well to open `volesti.Rproj` and then click `build source Package` and then `Install and Restart` in `Build` at the menu bar.  
 
 ####  Run volesti from `R`
-* The main function is `VolEsti()`. The input has to be a `list("matrix"=A, "vector"=b, "cheb"=xc, "rounding"=bool, "verbose"=BOOL)`, for a polytope Ax<=b and a d+1 vector `xc` which last coordinate is the radius of the chebychev ball and the first d coordinates the center. Rounding option is to apply a linear transformation to the convex body to get a well rounded one.  
-* You can give as input a `list("path"='path/to/ine/file')` insteed of a `"matrix"` or a `"vector"`.  
-* The `"cheb"` input is optional. When it is not given lpsolve library is used from C++ code.  
-* An `R` function, using `lpSolveAPI`, to compute Chebychev center is provided.
-* `"verbose"` is by default `false`.  
-* You can run all the tests by running function `testRvolEsti()`.  
+* The main function is `volume()`. The input has to be a `list("argument"=value)` that contains all the parameters for either volesti or CV algorithms. This function can be used for both H and V polytopes.  
+* You can sample from a convex H or V-polytope by using the function `sample_points()`.  
+* You can round a convex H or V-polytope by using the function `round_polytope()`.  
+* You can apply a random rotation to a convex H or V-polytope by using the function `rand_rotate()`.  
+* An `R` function, using `lpSolveAPI`, to compute Chebychev ball is provided.
+* You can run all the volume tests by running function `demoVolume()`. You can run rounding tests by running `demoRounding()` or sampling tests by running `demoSampling()`.  
+* For more details you can see the documentation in R-proj/doc folder.  
 
 #### Create pdf documentation from Rd files
-* Navigate to /R-proj folder from the commend line.  
-* Run
+* Install volesti library.  
+* In `R` mode (or in Rstudio) Run
 ```
-R CMD Rd2pdf --pdf --title='VolEsti Documentation' -o /path/to/save/volesti.pdf man/*.Rd
+pack = "volesti"  
+path = find.package(pack)  
+system(paste(shQuote(file.path(R.home("bin"), "R")),  
+    "CMD", "Rd2pdf", shQuote(path)))
 ```
-* The pdf will be created and saved in the declared path.  
+* The pdf will be created and saved in R-proj folder.  
 * We give such a documentation in /R-proj/doc folder.
 
 ####  Compile C++ sources and run tests 
