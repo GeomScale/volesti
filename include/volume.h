@@ -328,6 +328,7 @@ NT volume_gaussian_annealing(T &P,
     NT error = var.error, curr_eps, min_val, max_val, val;
     NT frac = var.frac;
     RNGType &rng = var.rng;
+    typedef typename std::vector<NT>::iterator viterator;
 
     // Consider Chebychev center as an internal point
     Point c=CheBall.first;
@@ -377,7 +378,7 @@ NT volume_gaussian_annealing(T &P,
     if(print) std::cout<<"All the variances of schedule_Sannealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
     int mm = a_vals.size()-1, j=0;
     if(print){
-        for (typename std::vector<NT>::iterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
+        for (viterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
             std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
         }
         std::cout<<"\n"<<std::endl;
@@ -392,7 +393,7 @@ NT volume_gaussian_annealing(T &P,
     std::pair<int,NT> res;
     Point p_prev=p;
     int coord_prev, i=0;
-    typename std::vector<NT>::iterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
+    viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
 
     if(print) std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
@@ -461,7 +462,7 @@ NT volume_gaussian_annealing(T &P,
     // Compute and print total number of steps in verbose mode only
     if (print) {
         NT sum_of_steps = 0.0;
-        for(typename std::vector<NT>::iterator it = its.begin(); it != its.end(); ++it) {
+        for(viterator it = its.begin(); it != its.end(); ++it) {
             sum_of_steps += *it;
         }
         steps= int(sum_of_steps);
