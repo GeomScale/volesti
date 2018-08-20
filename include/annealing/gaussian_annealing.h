@@ -24,6 +24,21 @@
 
 #include <complex>
 
+template<typename T, typename U>
+struct is_same
+{
+    static const bool value = false;
+};
+
+template<typename T>
+struct is_same<T, T>
+{
+    static const bool value = true;
+};
+
+template<typename T, typename U>
+bool eqTypes() { return is_same<T, U>::value; }
+
 
 //An implementation of Welford's algorithm for mean and variance.
 template <typename FT>
@@ -53,7 +68,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
     const int maxiter = 10000;
     typedef typename std::vector<FT>::iterator viterator;
     FT tol;
-    if (using_float) { // if tol is smaller than 1e-6 no convergence can be obtained when float is used
+    if (eqTypes<float, FT>()) { // if tol is smaller than 1e-6 no convergence can be obtained when float is used
         tol = 0.000001;
     } else {
         tol = 0.0000001;
