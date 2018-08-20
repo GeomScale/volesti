@@ -135,7 +135,7 @@ void print_polymake_volfile2(T &P,
     os << std::endl;
 }*/
 
-int read_pointset(std::istream &is,
+void read_pointset(std::istream &is,
                   std::vector<std::vector<NT> > &Input){
     
     std::string point;

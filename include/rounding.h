@@ -33,8 +33,9 @@ std::pair<Point, NT> approx_R(T1 &P, vars var){
     NT radius = Cheb_ball.second;
 
     int n=var.n, walk_len=var.walk_steps;
-    Random_points_on_sphere_d<Point> gen (n, radius);
-    Point p = gen.sample_point(var.rng);
+    //Random_points_on_sphere_d<Point> gen (n, radius);
+    //Point p = gen.sample_point(var.rng);
+    Point p = get_point_on_Dsphere(n, radius);
     p = p + c;
     std::list<Point> randPoints; //ds for storing rand points
     //use a large walk length e.g. 1000
@@ -75,8 +76,7 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
 	//if (print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
 	vars var2=var;
 	var2.coordinate=false;
-	Random_points_on_sphere_d<Point> gen (n, radius);
-	Point p = gen.sample_point(var.rng);
+    Point p = get_point_on_Dsphere(n, radius);
 	p = p + c;
 	std::list<Point> randPoints; //ds for storing rand points
 	//use a large walk length e.g. 1000
@@ -113,8 +113,7 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
         P2.linear_transformIt(T.inverse());   //We have to sample from the transformed body
         res=solveLP(P2.get_matrix(), P2.dimension());
         c=res.first;
-        Random_points_on_sphere_d<Point> gen (n, res.second);
-        p = gen.sample_point(var.rng);
+        p = get_point_on_Dsphere(n, res.second);
         p = p + c;
         rand_point_generator(P2, p, 1, 50*n, randPoints, var2);
         randPoints.clear();
@@ -164,8 +163,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
     FT radius = CheBall.second;
     // 2. Generate the first random point in P
     // Perform random walk on random point in the Chebychev ball
-    Random_points_on_sphere_d<Point> gen (n, radius);
-    Point p = gen.sample_point(var.rng);
+    Point p = get_point_on_Dsphere(n, radius);
     p = p + c;
     std::list<Point> randPoints; //ds for storing rand points
     //use a large walk length e.g. 1000
@@ -337,6 +335,7 @@ NT rotating(T &P){
 		  P.put_coeff(i,j,A(i,j-1));
 		}
 	}
+
 
 	//return std::abs(svd.matrixU().determinant());
 	return std::abs(svd.matrixU().inverse().determinant());

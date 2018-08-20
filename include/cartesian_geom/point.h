@@ -9,6 +9,7 @@
 #ifndef POINT_H
 #define POINT_H
 
+#include <iostream>
 
 template <class K>
 class point
@@ -74,7 +75,7 @@ public:
         }
         return temp;
     }
-    
+
     point operator* (const FT& k) {
         point temp(d, iter_begin(), iter_end());
 
@@ -84,6 +85,18 @@ public:
             (*tmit) *= k;
         }
         return temp;
+    }
+
+
+    FT dot(point& p){
+        FT res=FT(0);
+
+        typename Coeff::iterator pit=p.iter_begin();
+        typename Coeff::iterator mit=coeffs.begin();
+        for( ; pit<p.iter_end(); ++pit, ++mit){
+            res+=(*mit)*(*pit);
+        }
+        return res;
     }
     
     
@@ -96,6 +109,14 @@ public:
             lsq += (*mit)*(*mit);
         }
         return lsq;
+    }
+
+    void print(){
+        std::cout<<"\n";
+        for(int i=0; i<d; i++){
+            std::cout<<coeffs[i]<<" ";
+        }
+        std::cout<<"\n";
     }
     
     

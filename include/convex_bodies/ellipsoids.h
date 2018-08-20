@@ -46,14 +46,13 @@ public:
         C[i][j] = value;
     }
     
-    int print() {
+    void print() {
         std::cout<<" "<<C.size()<<" "<<d+1<<" float"<<std::endl;
         for(typename stdMatrix::iterator mit=C.begin(); mit<C.end(); ++mit){
             for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
                 std::cout<<*lit<<" ";
             std::cout<<std::endl;
         }
-        return 0;
     }
     
     int is_in(Point p){

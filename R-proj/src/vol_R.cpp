@@ -13,13 +13,12 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebychev, bool coord, bool rounding, bool V){
-    
+double vol_R (Rcpp::NumericMatrix A, int walk_len ,double e, Rcpp::NumericVector Chebychev, bool annealing, int win_len,
+             int N, double C, double ratio, double frac, bool ball_walk, double delta, bool coord, bool rounding, bool verbose) {
+
     int n, nexp=1, n_threads=1,i,j;
-    int walk_len;//to be defined after n
     NT exactvol(-1.0);
-    bool verbose=true, 
-	 rand_only=false, 
+    bool rand_only=false,
 	 round_only=false,
 	 file=false, 
 	 round=rounding, 
@@ -31,15 +30,12 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
          experiments=true,
          coordinate=coord;
     Polytope<NT> P;
-         
-    walk_len=W;
+
     n=A.ncol()-1;
     int m=A.nrow()-1;
     
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
-    if(!V){
-		verbose=false;
-	}
+
     if(verbose){
 		std::cout<<n<<" "<<m<<std::endl;
 		std::cout<<"rnum is: "<<rnum<<std::endl; 
@@ -54,18 +50,11 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
     vars var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,rng,urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
     std::vector<std::vector<NT> > Pin(m+1, std::vector<NT>(n+1));
     std::vector<NT> bin(m);
-    
+
     for (i=0; i<m+1; i++){
-        //bin[i]=b[i];
         for(j=0; j<n+1; j++){
             Pin[i][j]=A(i,j);
-            if(verbose){
-				std::cout<<Pin[i][j]<<" ";
-			}
         }
-        if(verbose){
-			std::cout<<"\n";
-		}
     }
     P.init(Pin);
     //Compute chebychev ball//
@@ -81,11 +70,18 @@ double vol_R(Rcpp::NumericMatrix A, int W ,double e, Rcpp::NumericVector Chebych
         NT radius = Chebychev[P.dimension()];
         CheBall.first = xc; CheBall.second = radius;
     }
-    
-    //Polytope<double> P_to_test(P);
-    
-    NT vol = volume(P,var,var,CheBall);
-    
+
+    NT vol;
+    if (annealing) {
+        vars var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, rng,
+                  urdist, urdist1, verbose, rand_only, round, NN, birk, coordinate);
+        vars_g var1(n, walk_len, N, win_len, 1, e, CheBall.second, rng, C, frac, ratio, delta, verbose, rand_only, round,
+                    NN, birk, ball_walk, coordinate);
+        vol = volume_gaussian_annealing(P, var1, var2, CheBall);
+        if(verbose) std::cout<<"volume computed = "<<vol<<std::endl;
+    } else {
+        vol = volume(P, var, var, CheBall);
+    }
     
     return ((double)vol);
 }

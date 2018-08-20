@@ -39,8 +39,8 @@ int factorial(int n)
 int main(const int argc, const char** argv)
 {
 	//Deafault values
-    int n, nexp=1, n_threads=1;
-	int walk_len;//to be defined after n
+    int n, nexp=1, n_threads=1, W;
+    int walk_len,N;
     NT e=1;
     NT exactvol(-1.0);
     bool verbose=false, 
@@ -53,13 +53,19 @@ int main(const int argc, const char** argv)
 	 linear_extensions=false,
          birk=false,
          rotate=false,
+         ball_walk=false,
+         ball_rad=false,
          experiments=true,
+         annealing = false,
          coordinate=true;
 	
 	//this is our polytope
 	Polytope<NT> P;
-	int magnitude=0;
-	bool exper=false;
+
+	// parameters of CV algorithm
+	bool user_W=false, user_N=false, user_ratio=false;
+	NT ball_radius=0.0;
+	NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
 	
   if(argc<2){
     std::cout<<"Use -h for help"<<std::endl;
@@ -90,21 +96,26 @@ int main(const int argc, const char** argv)
                       "-t, --threads #threads : the number of threads to be used\n"<<
                       "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
                       "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
+                      "\n-g_an : use the practical CV algo\n"<<
+                      "-w, --walk_len [walk_len] : the random walk length (default 1)\n"<<
+                      "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
+                      "-e, --error epsilon : the goal error of approximation\n"<<
+                      "-bw : use ball walk for sampling\n"<<
+                      "-bwr : the radius of the ball walk (default r*chebychev_radius/sqrt(max(1.0, a_i)*dimension\n"<<
+                      "-Win : the size of the open window for the ratios convergence\n"<<
+                      "-C : a constant for the upper boud of variance/mean^2 in schedule annealing\n"
+                      "-N : the number of points to sample in each step of schedule annealing. Default value N = 500*C + dimension^2/2\n"<<
+                      "-frac : the fraction of the total error to spend in the first gaussian (default frac=0.1)\n"<<
+                      "-ratio : parameter of schedule annealing, larger ratio means larger steps in schedule annealing (default 1-1/dimension)\n"<<
                       std::endl;
           return 0;
       }
       if(!strcmp(argv[i],"--cube")){
           exactvol = std::pow(2,n);
-          //exactvol = std::pow(2,n)/std::tgamma(n+1);//factorial of a natural number n is gamma(n+1)
           correct=true;
       }
       if(!strcmp(argv[i],"--exact")){
           exactvol = atof(argv[++i]);
-          correct=true;
-      }
-      if(!strcmp(argv[i],"-mag")){
-          magnitude=int(atof(argv[++i]));
-          exper=true;
           correct=true;
       }
       if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
@@ -121,6 +132,37 @@ int main(const int argc, const char** argv)
           coordinate=false;
           correct=true;
       }
+      if(!strcmp(argv[i],"-bw")){
+          ball_walk=true;
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-bwr")){
+          delta = atof(argv[++i]);
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-Win")){
+          W = atof(argv[++i]);
+          user_W=true;
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-ratio")){
+          ratio = atof(argv[++i]);
+          user_ratio=true;
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-frac")){
+          frac = atof(argv[++i]);
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-C")){
+          C = atof(argv[++i]);
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-N_an")){
+          N = atof(argv[++i]);
+          user_N=true;
+          correct=true;
+      }
       //reading from file
       if(!strcmp(argv[i],"-f1")||!strcmp(argv[i],"--file1")){
           file=true;
@@ -129,7 +171,6 @@ int main(const int argc, const char** argv)
           std::vector<std::vector<NT> > Pin;
           inp.open(argv[++i],std::ifstream::in);
           read_pointset(inp,Pin);
-          //std::cout<<"d="<<Pin[0][1]<<std::endl;
           n = Pin[0][1]-1;
           P.init(Pin);
           if (verbose && P.num_of_hyperplanes()<100){
@@ -170,14 +211,9 @@ int main(const int argc, const char** argv)
           inp2.open("order_polytope.ine",std::ifstream::in);
           std::vector<std::vector<NT> > Pin;
           read_pointset(inp2,Pin);
-
-          //std::cout<<"d="<<Pin[0][1]<<std::endl;
           n = Pin[0][1]-1;
           P.init(Pin);
-          //if (verbose && P.num_of_hyperplanes()<100){
           std::cout<<"Input polytope: "<<n<<std::endl;
-          //P.print();
-          //}
           linear_extensions = true;
           correct=true;
       }
@@ -187,6 +223,7 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-e")||!strcmp(argv[i],"--error")){
           e = atof(argv[++i]);
+          error=e;
           correct=true;
       }
       if(!strcmp(argv[i],"-w")||!strcmp(argv[i],"--walk_len")){
@@ -203,12 +240,6 @@ int main(const int argc, const char** argv)
           correct=true;
       }
       if(!strcmp(argv[i],"-NN")){
-          /*
-      if (verbose) std::cout<<"Building search data-srtuctures..."<<std::endl;
-      NN=true;
-      P.dual(1);
-      P.dual(-1);
-      */
           std::cout<<"flann software is needed for this option. Experimental feature."
                   <<"Currently under development."<<std::endl;
           correct=true;
@@ -226,13 +257,17 @@ int main(const int argc, const char** argv)
           rotate=true;
           correct=true;
       }
+      if(!strcmp(argv[i],"-g_an")){
+          annealing=true;
+          correct=true;
+      }
       if(correct==false){
           std::cerr<<"unknown parameters \'"<<argv[i]<<
                      "\', try "<<argv[0]<<" --help"<<std::endl;
           exit(-2);
       }
       
-  }//for i
+  }
   
   //Compute chebychev ball//
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -241,7 +276,7 @@ int main(const int argc, const char** argv)
   if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
   if(verbose){
       std::cout<<"Chebychev center is: "<<std::endl;
-      for(int i=0; i<P.dimension(); i++){
+      for(int i=0; i<n; i++){
           std::cout<<CheBall.first[i]<<" ";
       }
       std::cout<<"\nradius is: "<<CheBall.second<<std::endl;
@@ -249,7 +284,22 @@ int main(const int argc, const char** argv)
   
   // Set the number of random walk steps
   if(!user_walk_len)
-      walk_len=10 + n/10;
+      walk_len = 10 + n / 10;
+
+  if(!user_walk_len) {
+      if(!annealing) {
+          walk_len = 10 + n / 10;
+      }else{
+          walk_len = 1;
+      }
+  }
+  if(!user_N)
+      N = 500 * ((int) C) + ((int) (n * n / 2));
+  if(!user_ratio)
+      ratio = 1.0-1.0/(NT(n));
+  if(!user_W)
+      W = 4*n*n+500;
+
 
   // Timings
   double tstart, tstop;
@@ -258,12 +308,12 @@ int main(const int argc, const char** argv)
   //error in hit-and-run bisection of P 
   const NT err=0.0000000001;
   const NT err_opt=0.01;
+
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
    /* RANDOM NUMBERS */
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  //RNGType rng(std::time(0));
   RNGType rng(seed);
   boost::normal_distribution<> rdist(0,1);
   boost::random::uniform_real_distribution<>(urdist);
@@ -277,10 +327,8 @@ int main(const int argc, const char** argv)
   // If rotate flag is on rotate the polytope
   if(rotate){
       rotating(P);
-      //P.print();
   }
 
-  // Random walks in K_i := the intersection of the ball i with P
   // the number of random points to be generated in each K_i
   int rnum = std::pow(e,-2) * 400 * n * std::log(n);
   
@@ -295,11 +343,10 @@ int main(const int argc, const char** argv)
   
   for(int i=0; i<num_of_exp; ++i){
       std::cout<<"Experiment "<<i+1<<" ";
-      Polytope<NT> P_to_test(P);
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,rng,
+      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,rng,
                urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
 
       if(round_only){
@@ -312,15 +359,23 @@ int main(const int argc, const char** argv)
           std::cout<<"end\n--------------\n"<<std::endl;
       }else{
           // Estimate the volume
+          if(annealing){
+              // setup the parameters
+              vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,rng,
+                       urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
+              vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+              vol = volume_gaussian_annealing(P, var1, var2, CheBall);
+              tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+              std::cout<<"volume computed = "<<vol<<std::endl;
+              std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;
+              return 0;
+          }
           vol = volume(P,var,var,CheBall);
-          //if(rotate) vol = std::sqrt(vol);
-          //std::cout<<vol<<std::endl;
       }
 
       NT v1 = vol;
 
       tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-      //double v2 = volume2(P,n,rnum,walk_len,err,rng,get_snd_rand,urdist,urdist1);
 
       // Statistics
       sum+=v1;
@@ -331,7 +386,6 @@ int main(const int argc, const char** argv)
       sum_time +=  tstop-tstart;
       sum_Chebtime += Chebtime;
 
-      //std::cout<<"\t vol= "<<v1<<"\t time= "<<tstop-tstart;
       if(round)
           std::cout<<" (rounding is ON)";
       std::cout<<std::endl;
@@ -417,23 +471,6 @@ int main(const int argc, const char** argv)
                  <<sum_Chebtime/(i+1)<<" "
                  //<<usage.vsize
                  <<std::endl;
-	}
-	if(exper){
-		
-		if (int( std::ceil( -std::log10( average ) ) )<0){
-			if( magnitude==0){
-				std::cout<<"TEST PASSED"<<std::endl;
-			}else{
-				std::cout<<"TEST FAILED"<<std::endl;
-			}
-		}else if( magnitude==int( std::ceil( -std::log10( average ) ) ) ){
-			std::cout<<"TEST PASSED"<<std::endl;
-		}else{
-			std::cout<<"TEST FAILED"<<std::endl;
-		}
-		std::cout<<"-----------------------------------------------\n";
-		std::cout<<" # # # # # # # # # # # # # # # # # # # # # # #\n";
-		std::cout<<"-----------------------------------------------\n";
 	}
 	
   if(linear_extensions)
