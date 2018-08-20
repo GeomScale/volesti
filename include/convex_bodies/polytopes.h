@@ -11,6 +11,7 @@
 #define POLYTOPES_H
 
 #include <iostream>
+#include "solve_lp.h"
 
 //min and max values for the Hit and Run functions
 const NT maxNT = 1.79769e+308;
@@ -19,6 +20,10 @@ const NT minNT = -1.79769e+308;
 // H-polytope class
 template <typename FT>
 class HPolytope{
+public:
+    typedef Eigen::Matrix<FT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<FT,Eigen::Dynamic,1> VT;
+
 private:
     MT A; //matrix A
     VT b; // vector b, s.t.: Ax<=b
@@ -401,6 +406,10 @@ public:
 // V-Polytope class
 template <typename FT>
 class VPolytope{
+public:
+    typedef Eigen::Matrix<FT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<FT,Eigen::Dynamic,1> VT;
+
 private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file

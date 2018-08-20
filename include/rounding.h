@@ -11,8 +11,9 @@
 #define ROUNDING_H
 
 //ROUNDING
-
+template <class MT>
 MT getPointsMat(std::list<Point> randPoints, int dim){
+
     MT S(randPoints.size(),dim);
     for(int i=0; i<randPoints.size(); i++){
         Point p=randPoints.front();
@@ -63,7 +64,8 @@ std::pair<Point, NT> approx_R(T1 &P, vars var){
 //Needs developing (experimental)
 template <class T1>
 NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
-    //typedef typename T1::FT 	K;
+    typedef typename T1::MT 	MT;
+    typedef typename T1::VT 	VT;
     int n=var.n, walk_len=var.walk_steps;
     bool print=var.verbose;
     // 1. Compute the Chebychev ball (largest inscribed ball) with center and radius 
@@ -118,7 +120,7 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
         rand_point_generator(P2, p, 1, 50*n, randPoints, var2);
         randPoints.clear();
         rand_point_generator(P2, p, t, 1, randPoints, var2);
-        MT PM=getPointsMat(randPoints,n);
+        MT PM=getPointsMat<MT>(randPoints,n);
         Eigen::JacobiSVD<MT> svd(PM, Eigen::ComputeThinU | Eigen::ComputeThinV);
         if(print) std::cout<<svd.singularValues()<<"\n"<<std::endl;
         NT min=svd.singularValues()(0);
@@ -158,6 +160,9 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
 // main rounding function
 template <class T1, typename FT>
 std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, vars &var) {
+
+    typedef typename T1::MT 	MT;
+    typedef typename T1::VT 	VT;
     int n=var.n, walk_len=var.walk_steps, i, j = 0;
     bool print=var.verbose;
     Point c = CheBall.first;
@@ -298,6 +303,9 @@ double rotating_old(T &P){
 // -------- ROTATION ---------- //
 template <class T>
 NT rotating(T &P){
+
+  typedef typename T::MT 	MT;
+  typedef typename T::VT 	VT;
 
   int n = P.dimension();
 

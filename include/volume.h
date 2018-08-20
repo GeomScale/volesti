@@ -29,9 +29,6 @@
 //#include <boost/random/normal_distribution.hpp>
 //#include <boost/random/uniform_real_distribution.hpp>
 
-
-typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
 typedef boost::mt19937 RNGType; // mersenne twister generator
@@ -141,10 +138,7 @@ public:
 };
 
 
-
-#include "run_headers/solve_lp.h"
 #include "khach2.h"
-#include "convex_bodies/ellipsoids.h"
 #include "convex_bodies/polytopes.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "samplers.h"
@@ -332,6 +326,8 @@ NT volume_gaussian_annealing(T &P,
                              vars_g &var,  // constans for volume
                              vars &var2,
                              std::pair<Point,NT> CheBall) {
+    typedef typename T::MT 	MT;
+    typedef typename T::VT 	VT;
     NT vol;
     bool round = var.round, done;
     bool print = var.verbose;
