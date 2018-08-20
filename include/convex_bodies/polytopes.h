@@ -23,6 +23,7 @@ private:
     Eigen::MatrixXd A; //matrix A
     Eigen::VectorXd b; // vector b, s.t.: Ax<=b
     int            _d; //dimension
+    typedef typename std::vector<FT>::iterator viterator;
 
 public:
     Polytope() {}
@@ -53,32 +54,37 @@ public:
         }
     }
 
+    // return dimension
     int dimension() {
         return _d;
     }
 
+    // return the number of facets
     int num_of_hyperplanes() {
         return A.rows();
     }
 
+    // return the matrix A
     Eigen::MatrixXd get_eigen_mat() {
         return A;
     }
 
+    // return the vector b
     Eigen::VectorXd get_eigen_vec() {
         return b;
     }
 
-    int set_eigen_mat(Eigen::MatrixXd A2) {
+    // chenge the matrix A
+    void set_eigen_mat(Eigen::MatrixXd A2) {
         A = A2;
-        return -1;
     }
 
-    int set_eigen_vec(Eigen::VectorXd b2) {
+    // change the vector b
+    void set_eigen_vec(Eigen::VectorXd b2) {
         b = b2;
-        return -1;
     }
 
+    // get a single coefficient of the matrix or the vector
     FT get_coeff(int i, int j) {
         if (j == 0) {
             return b(i);
@@ -86,6 +92,7 @@ public:
         return A(i, j - 1);
     }
 
+    // change a single coefficient of the matrix or the vector
     void put_coeff(int i, int j, FT value) {
         if (j == 0) {
             b(i) = value;
@@ -95,7 +102,7 @@ public:
     }
 
     // default initialize: cube(d)
-    int init(int d) {
+    void init(int d) {
         A.resize(2 * d, d);
         b.resize(2 * d);
         for (int i = 0; i < d; ++i) {
@@ -118,12 +125,11 @@ public:
                 }
             }
         }
-        return 0;
     }
 
-    int init(std::vector<std::vector<FT> > Pin) {
+    //define matrix A and vector b, s.t. Ax<=b and the dimension
+    void init(std::vector<std::vector<FT> > Pin) {
         _d = Pin[0][1] - 1;
-        //define matrix A and vector b, s.t. Ax<=b
         A.resize(Pin.size() - 1, _d);
         b.resize(Pin.size() - 1);
         for (int i = 1; i < Pin.size(); i++) {
@@ -132,11 +138,10 @@ public:
                 A(i - 1, j - 1) = Pin[i][j];
             }
         }
-        return 0;
     }
 
     // print polytope in input format
-    int print() {
+    void print() {
         std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
         for (int i = 0; i < A.rows(); i++) {
             for (int j = 0; j < _d; j++) {
@@ -144,7 +149,6 @@ public:
             }
             std::cout << "<= " << b(i) << std::endl;
         }
-        return 0;
     }
 
 
@@ -247,7 +251,7 @@ public:
         FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom;
         int i, j, m = num_of_hyperplanes();
-        typename std::vector<FT>::iterator rit, vit;
+        viterator rit, vit;
 
         for (i = 0; i < m; i++) {
             sum_nom = b(i);
@@ -280,7 +284,7 @@ public:
         FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom;
         int i, j, m = num_of_hyperplanes();
-        typename std::vector<FT>::iterator rit;
+        viterator rit;
 
         for (i = 0; i < m; i++) {
             sum_nom = b(i);
@@ -312,11 +316,10 @@ public:
                                           int rand_coord_prev,
                                           std::vector<FT> &lamdas) {
 
-        typename std::vector<FT>::iterator lamdait = lamdas.begin();
+        viterator lamdait = lamdas.begin(), rit;
         FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
         int i, j, m = num_of_hyperplanes();
-        typename std::vector<FT>::iterator rit;
 
         for (i = 0; i < m; i++) {
             sum_denom = b(i);
@@ -341,9 +344,8 @@ public:
 
 
     //Apply linear transformation, of square matrix T, in H-polytope P:= Ax<=b
-    int linear_transformIt(Eigen::MatrixXd T) {
+    void linear_transformIt(Eigen::MatrixXd T) {
         A = A * T;
-        return 1;
     }
 
 
