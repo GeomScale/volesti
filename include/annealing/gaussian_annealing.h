@@ -29,9 +29,10 @@
 template <typename FT>
 std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
     FT mean = 0, M2 = 0, variance = 0, delta;
+    typedef typename std::vector<FT>::iterator viterator;
 
     int i=0;
-    typename std::vector<FT>::iterator vecit = vec.begin();
+    viterator vecit = vec.begin();
     for( ; vecit!=vec.end(); vecit++, i++){
         delta = *vecit - mean;
         mean += delta / (i + 1);
@@ -48,23 +49,22 @@ template <class T1, typename FT>
 void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
 
     int m = K.num_of_hyperplanes(), dim = var.n, i=0;
-    unsigned int iterations = 0;
     const int maxiter = 10000;
     const FT tol = 0.0000001;
     FT sum, lower = 0.0, upper = 1.0, mid;
     std::vector <FT> dists(m, 0);
     Eigen::MatrixXd A = K.get_eigen_mat();
     Eigen::VectorXd b = K.get_eigen_vec();
+    typedef typename std::vector<FT>::iterator viterator;
 
-    typename std::vector<FT>::iterator disit = dists.begin();
+    viterator disit = dists.begin();
     for ( ; disit!=dists.end(); disit++, i++)
         *disit = b(i)/A.row(i).norm();
 
     // Compute an upper bound for a_0
-    while (iterations < maxiter) {
-        iterations += 1;
+    for (i= 1; i <= maxiter; ++i) {
         sum = 0.0;
-        for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
+        for (viterator it = dists.begin(); it != dists.end(); ++it) {
             sum += std::exp(-upper * std::pow(*it, 2.0)) / (2.0 * (*it) * std::sqrt(M_PI * upper));
         }
 
@@ -75,7 +75,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
         }
     }
 
-    if (iterations == maxiter) {
+    if (i == maxiter) {
         std::cout << "Cannot obtain sharp enough starting Gaussian" << std::endl;
         exit(-1);
     }
@@ -84,7 +84,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
     while (upper - lower > tol) {
         mid = (upper + lower) / 2.0;
         sum = 0.0;
-        for (typename std::vector<FT>::iterator it = dists.begin(); it != dists.end(); ++it) {
+        for (viterator it = dists.begin(); it != dists.end(); ++it) {
             sum += std::exp(-mid * std::pow(*it, 2)) / (2 * (*it) * std::sqrt(M_PI * mid));
         }
 
@@ -102,7 +102,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
 
 // Compute a_{i+1} when a_i is given
 template <class T1, typename FT>
-void get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var, std::vector<FT> &a_vals){
+FT get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var){
 
     FT last_a = a, last_ratio = 0.1;
     //k is needed for the computation of the next variance a_{i+1} = a_i * (1-1/d)^k
@@ -111,17 +111,12 @@ void get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var, s
     bool done=false, print=var.verbose;
     std::vector<FT> fn(N,0);
     std::list<Point> randPoints;
+    typedef typename std::vector<FT>::iterator viterator;
 
-    // Set the radius for the ball walk if it is requested
-    if (var.ball_walk) {
-        if (var.delta < 0.0) {
-            var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, last_a) * FT(var.n));
-        }
-    }
     //sample N points using hit and run or ball walk
     rand_gaussian_point_generator(K, p, N, var.walk_steps, randPoints, last_a, var);
 
-    typename std::vector<FT>::iterator fnit;
+    viterator fnit;
     while(!done){
         a = last_a*std::pow(ratio,k);
 
@@ -142,7 +137,7 @@ void get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var, s
         }
         last_ratio = mv.first;
     }
-    a_vals.push_back(last_a*std::pow(ratio, k));
+    return last_a*std::pow(ratio, k);
 }
 
 
@@ -154,7 +149,7 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
     get_first_gaussian(K, radius, frac, var, error, a_vals);
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
 
-    FT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0;
+    FT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0, next_a;
     const FT tol = 0.001;
     int it = 0, n = var.n, steps, coord_prev;
     const int totalSteps= ((int)150/error)+1;
@@ -170,10 +165,15 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
 
     Point p_prev=p;
     std::vector<FT> lamdas(K.num_of_hyperplanes(),NT(0));
-    while (curr_fn/curr_its>(1.0+tol) && a_vals[it]>=a_stop) {
+    while (true) {
+
+        if (var.ball_walk) {
+            if (var.delta < 0.0) {
+                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_vals[it]) * FT(n));
+            }
+        }
         // Compute the next gaussian
-        get_next_gaussian(K, p, a_vals[it], N, ratio, C, var, a_vals);
-        it++;
+        next_a = get_next_gaussian(K, p, a_vals[it], N, ratio, C, var);
 
         curr_fn = 0;
         curr_its = 0;
@@ -181,34 +181,35 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
         steps = totalSteps;
 
         if (var.coordinate && !var.ball_walk){
-            //gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var, first_coord_point);
-            gaussian_first_coord_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var);
+            gaussian_first_coord_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it], lamdas, var);
             curr_its += 1.0;
-            curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
+            curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
             steps--;
         }
-        if (var.ball_walk) {
-            if (var.delta < 0.0) {
-                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_vals[it - 1]) * FT(n));
-            }
-        }
+
 
         // Compute some ratios to decide if this is the last gaussian
         for (int j = 0; j < steps; j++) {
-            gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it - 1], lamdas, var);
+            gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it], lamdas, var);
             curr_its += 1.0;
-            curr_fn += eval_exp(p, a_vals[it]) / eval_exp(p, a_vals[it - 1]);
+            curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
+        }
+
+        // Remove the last gaussian.
+        // Set the last a_i equal to zero
+        if (next_a>0 && curr_fn/curr_its>(1.0+tol)) {
+            a_vals.push_back(next_a);
+            it ++;
+        } else if (next_a <= 0) {
+            a_vals.push_back(a_stop);
+            it++;
+            break;
+        } else {
+            a_vals[it] = a_stop;
+            break;
         }
     }
-    // Remove the last gaussian.
-    // Set the last a_i equal to zero
-    if (a_vals[it]>a_stop) {
-        a_vals.pop_back();
-        a_vals[it - 1] = a_stop;
 
-    }else {
-        a_vals[it] = a_stop;
-    }
 }
 
 

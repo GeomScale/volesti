@@ -23,6 +23,7 @@ private:
     Eigen::MatrixXd A; //matrix A
     Eigen::VectorXd b; // vector b, s.t.: Ax<=b
     int            _d; //dimension
+    typedef typename std::vector<FT>::iterator viterator;
 
 public:
     Polytope() {}
@@ -250,7 +251,7 @@ public:
         FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom;
         int i, j, m = num_of_hyperplanes();
-        typename std::vector<FT>::iterator rit, vit;
+        viterator rit, vit;
 
         for (i = 0; i < m; i++) {
             sum_nom = b(i);
@@ -283,7 +284,7 @@ public:
         FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom;
         int i, j, m = num_of_hyperplanes();
-        typename std::vector<FT>::iterator rit;
+        viterator rit;
 
         for (i = 0; i < m; i++) {
             sum_nom = b(i);
@@ -315,11 +316,10 @@ public:
                                           int rand_coord_prev,
                                           std::vector<FT> &lamdas) {
 
-        typename std::vector<FT>::iterator lamdait = lamdas.begin();
+        viterator lamdait = lamdas.begin(), rit;
         FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
         int i, j, m = num_of_hyperplanes();
-        typename std::vector<FT>::iterator rit;
 
         for (i = 0; i < m; i++) {
             sum_denom = b(i);
