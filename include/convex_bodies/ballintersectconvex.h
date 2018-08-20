@@ -13,6 +13,8 @@
 // ball type
 struct Ball{
 public:
+    typedef typename std::vector<NT>::iterator viterator;
+
     Ball(Point c, NT R) : _c(c),	 _R(R) {}
 
     Point center(){
@@ -35,19 +37,12 @@ public:
 
     std::pair<NT,NT> line_intersect(Point r,
                                           Point v){
-        //Point::Cartesian_const_iterator rit;
-        //rit=r.cartesian_begin();
-        typename std::vector<NT>::iterator rit=r.iter_begin();
-        //Point::Cartesian_const_iterator vit;
-        //vit=v.cartesian_begin();
-        typename std::vector<NT>::iterator vit=v.iter_begin();
-        //Point::Cartesian_const_iterator cit;
-        //cit=_c.cartesian_begin();
-        typename std::vector<NT>::iterator cit=_c.iter_begin();
+
+        viterator rit=r.iter_begin();
+        viterator vit=v.iter_begin();
+        viterator cit=_c.iter_begin();
         Point rc = r - _c;
-        //Vector::Cartesian_const_iterator rcit;
-        //rcit=rc.cartesian_begin();
-        typename std::vector<NT>::iterator rcit=rc.iter_begin();
+        viterator rcit=rc.iter_begin();
         NT vrc(0);
         NT v2(0);
         NT rc2(0);
@@ -60,7 +55,6 @@ public:
         NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));
         NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
         NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
-        //return std::pair<Point,Point> ((lamda1*v)+r,(lamda2*v)+r);
         return std::pair<NT,NT> (lamda1,lamda2);
     }
 
@@ -68,9 +62,7 @@ public:
                                           int rand_coord){
 
         Point rc = r - _c;
-        //Vector::Cartesian_const_iterator rcit;
-        //rcit = rc.cartesian_begin();
-        typename std::vector<NT>::iterator rcit=rc.iter_begin();
+        viterator rcit=rc.iter_begin();
         NT vrc = *(rcit + rand_coord);
 
         NT v2 = NT(1);
