@@ -134,7 +134,7 @@ void print_polymake_volfile2(T &P,
     os << "print \"\n\";\n";
     os << std::endl;
 }*/
-
+template <typename NT>
 void read_pointset(std::istream &is,
                   std::vector<std::vector<NT> > &Input){
     

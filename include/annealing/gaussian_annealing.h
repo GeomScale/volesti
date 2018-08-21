@@ -60,8 +60,8 @@ std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
 
 
 // Compute the first variance a_0 for the starting gaussian
-template <class T1, typename FT>
-void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
+template <class T1, class T2, typename FT>
+void get_first_gaussian(T1 &K, FT radius, FT frac, T2 var, FT &error, std::vector<FT> &a_vals) {
 
     int dim = var.n, i=0;
     unsigned int iterations = 0;
@@ -117,8 +117,8 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
 
 
 // Compute a_{i+1} when a_i is given
-template <class T1, typename FT>
-FT get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var){
+template <class T1, class T2, class Point, typename FT>
+FT get_next_gaussian(T1 K, Point &p, FT a, int N, FT ratio, FT C, T2 var){
 
     FT last_a = a, last_ratio = 0.1;
     //k is needed for the computation of the next variance a_{i+1} = a_i * (1-1/d)^k
@@ -137,7 +137,7 @@ FT get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var){
         a = last_a*std::pow(ratio,k);
 
         fnit = fn.begin();
-        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, fnit++){
+        for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, fnit++){
             *fnit = eval_exp(*pit,a)/eval_exp(*pit, last_a);
         }
         std::pair<FT,FT> mv = getMeanVariance(fn);
@@ -158,9 +158,10 @@ FT get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var){
 
 
 // Compute the sequence of spherical gaussians
-template <class T1, typename FT>
-void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, vars_g var, FT &error, std::vector<FT> &a_vals){
+template <class T1, class T2, typename FT>
+void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, T2 var, FT &error, std::vector<FT> &a_vals){
     bool print=var.verbose;
+    typedef typename T1::point2 Point;
     // Compute the first gaussian
     get_first_gaussian(K, radius, frac, var, error, a_vals);
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
@@ -181,7 +182,7 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
 
     Point p_prev=p;
 
-    std::vector<FT> lamdas(K.num_of_hyperplanes(),NT(0));
+    std::vector<FT> lamdas(K.num_of_hyperplanes(),FT(0));
     while (true) {
 
         if (var.ball_walk) {

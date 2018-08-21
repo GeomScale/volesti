@@ -29,28 +29,30 @@
 //#include <boost/random/normal_distribution.hpp>
 //#include <boost/random/uniform_real_distribution.hpp>
 
-typedef Cartesian<NT> 	      Kernel; 
-typedef Kernel::Point								Point;
-typedef boost::mt19937 RNGType; // mersenne twister generator
+//typedef Cartesian<NT> 	      Kernel;
+//typedef Kernel::Point								Point;
+//typedef boost::mt19937 RNGType; // mersenne twister generator
 
 
 //structs with variables and random generators
+template <typename FT, class RNG>
 struct vars{
 public:
+    typedef RNG RNGType;
     vars( int m,
           int n,
           int walk_steps,
           int n_threads,
-          const NT err,
-          NT error,
+          const FT err,
+          FT error,
           const int lw,
-          NT up,
+          FT up,
           const int L,
-          NT che_rad,
-          RNGType &rng,
+          FT che_rad,
+          RNG &rng,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
-          NT delta,
+          FT delta,
           bool verbose,
           bool rand_only,
           bool round,
@@ -68,16 +70,16 @@ public:
     int n;
     int walk_steps;
     int n_threads;
-    const NT err;
-    NT error;
+    const FT err;
+    FT error;
     const int lw;
-    NT up;
+    FT up;
     const int L;
-    NT che_rad;
-    RNGType &rng;
+    FT che_rad;
+    RNG &rng;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;
-    NT delta;
+    FT delta;
     bool verbose;
     bool rand_only;
     bool round;
@@ -87,20 +89,22 @@ public:
     bool coordinate;
 };
 
+template <typename FT, class RNG>
 struct vars_g{
 public:
+    typedef RNG RNGType;
     vars_g( int n,
           int walk_steps,
           int N,
           int W,
           int n_threads,
-          NT error,
-          NT che_rad,
-          RNGType &rng,
-          NT C,
-          NT frac,
-          NT ratio,
-          NT delta,
+          FT error,
+          FT che_rad,
+          RNG &rng,
+          FT C,
+          FT frac,
+          FT ratio,
+          FT delta,
           bool deltaset,
           bool verbose,
           bool rand_only,
@@ -120,13 +124,13 @@ public:
     int N;
     int W;
     int n_threads;
-    NT error;
-    NT che_rad;
-    RNGType &rng;
-    NT C;
-    NT frac;
-    NT ratio;
-    NT delta;
+    FT error;
+    FT che_rad;
+    RNG &rng;
+    FT C;
+    FT frac;
+    FT ratio;
+    FT delta;
     bool deltaset;
     bool verbose;
     bool rand_only;
@@ -149,13 +153,16 @@ public:
 #include "linear_extensions.h"
 
 
-template <class T>
-NT volume(T &P,
-                  vars &var,  // constans for volume
-                  vars &var2, // constants for optimization in case of MinkSums
+template <class T1, class T2, class Point, typename NT>
+NT volume(T1 &P,
+                  T2 &var,  // constans for volume
+                  T2 &var2, // constants for optimization in case of MinkSums
                   std::pair<Point,NT> CheBall)  //Chebychev ball
 {
-    typedef BallIntersectPolytope<T,NT>        BallPoly;
+    typedef Ball<Point> Ball;
+    typedef BallIntersectPolytope<T1,Ball>        BallPoly;
+    typedef typename T2::RNGType RNGType;
+
 
     bool round = var.round;
     bool print = var.verbose;
@@ -204,7 +211,7 @@ NT volume(T &P,
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-        Point p = get_point_on_Dsphere(n, radius);
+        Point p = get_point_on_Dsphere<RNGType , Point, NT>(n, radius);
         p=p+c;
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
@@ -219,7 +226,7 @@ NT volume(T &P,
         // 4.  Construct the sequence of balls
         // 4a. compute the radius of the largest ball
         NT current_dist, max_dist=NT(0);
-        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+        for(typename  std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             current_dist=(*pit-c).squared_length();
             if(current_dist>max_dist){
                 max_dist=current_dist;
@@ -252,7 +259,7 @@ NT volume(T &P,
 
         // 5. Estimate Vol(P)
 
-        std::vector<Ball>::iterator bit2=balls.end();
+        typename std::vector<Ball>::iterator bit2=balls.end();
         bit2--;
 
         while(bit2!=balls.begin()){
@@ -279,7 +286,7 @@ NT volume(T &P,
                               <<std::endl;
 
             //keep the points in randPoints that fall in PBSmall
-            std::list<Point>::iterator rpit=randPoints.begin();
+            typename std::list<Point>::iterator rpit=randPoints.begin();
             while(rpit!=randPoints.end()){
                 if (PBSmall.second().is_in(*rpit) == 0){//not in
                     rpit=randPoints.erase(rpit);
@@ -321,13 +328,16 @@ NT volume(T &P,
 // Implementation is based on algorithm from paper "A practical volume algorithm",
 // Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
 // Ben Cousins, Santosh Vempala
-template <class T>
-NT volume_gaussian_annealing(T &P,
-                             vars_g &var,  // constans for volume
-                             vars &var2,
+template <class T1, class T2, class T3, class Point, typename NT>
+NT volume_gaussian_annealing(T1 &P,
+                             T2 &var,  // constans for volume
+                             T3 &var2,
                              std::pair<Point,NT> CheBall) {
-    typedef typename T::MT 	MT;
-    typedef typename T::VT 	VT;
+    typedef typename T1::MT 	MT;
+    typedef typename T1::VT 	VT;
+    typedef typename T2::RNGType RNGType;
+    const NT maxNT = 1.79769e+308;
+    const NT minNT = -1.79769e+308;
     NT vol;
     bool round = var.round, done;
     bool print = var.verbose;

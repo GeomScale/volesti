@@ -14,13 +14,14 @@
 #include "solve_lp.h"
 
 //min and max values for the Hit and Run functions
-const NT maxNT = 1.79769e+308;
-const NT minNT = -1.79769e+308;
+
 
 // H-polytope class
-template <typename FT>
+template <class Point>
 class HPolytope{
 public:
+    typedef Point point2;
+    typedef typename Point::FT FT;
     typedef Eigen::Matrix<FT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<FT,Eigen::Dynamic,1> VT;
 
@@ -29,6 +30,8 @@ private:
     VT b; // vector b, s.t.: Ax<=b
     int            _d; //dimension
     typedef typename std::vector<FT>::iterator viterator;
+    const FT maxNT = 1.79769e+308;
+    const FT minNT = -1.79769e+308;
 
 public:
     HPolytope() {}
@@ -260,7 +263,7 @@ public:
     std::pair<Point,FT> chebyshev_center() {
 
         std::pair <Point,FT> res;
-        res = solveLP(A, b, _d);  //lpSolve lib for the linear program
+        res = solveLP<MT, VT, Point, FT>(A, b, _d);  //lpSolve lib for the linear program
         return res;
     }
 
@@ -404,9 +407,11 @@ public:
 
 
 // V-Polytope class
-template <typename FT>
+template <class Point, class  RNGType>
 class VPolytope{
 public:
+    typedef Point point2;
+    typedef typename Point::FT FT;
     typedef Eigen::Matrix<FT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<FT,Eigen::Dynamic,1> VT;
 
@@ -414,6 +419,8 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     int _d;  //dimension
+    const FT maxNT = 1.79769e+308;
+    const FT minNT = -1.79769e+308;
 
 public:
     VPolytope() {}
@@ -539,7 +546,7 @@ public:
 
     // take d+1 points as input and compute the chebychev ball of the defined simplex
     // done is true when the simplex is full dimensional and false if it is not
-    std::pair<Point,FT> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end, bool &done) {
+    std::pair<Point,FT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg, typename std::vector<Point>::iterator it_end, bool &done) {
 
         Point p0 = *it_beg,p1,c;
         int dim = p0.dimension(),i,j;
@@ -598,7 +605,7 @@ public:
     // pick d+1 random vertices until they define a full dimensional simplex and then compute the chebychev ball of
     // that simplex
     std::pair<Point,FT> chebyshev_center() {
-
+        
         std::vector<Point> verts(_d+1);
         std::vector<FT> vecp(_d);
         int m = num_of_vertices(), vert_rand, pointer=0,i,j;
@@ -636,7 +643,7 @@ public:
 
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point p) {
-        if(memLP_Vpoly(V, p)){
+        if(memLP_Vpoly<MT, Point, FT>(V, p)){
             return -1;
         }
         return 0;
@@ -649,8 +656,8 @@ public:
                                           Point v) {
         FT min_plus, max_minus;
 
-        max_minus = intersect_line_Vpoly(V, r, v, true);
-        min_plus = intersect_line_Vpoly(V, r, v, false);
+        max_minus = intersect_line_Vpoly<MT, Point, FT>(V, r, v, true);
+        min_plus = intersect_line_Vpoly<MT, Point, FT>(V, r, v, false);
 
         return std::pair<FT, FT>(min_plus, max_minus);
     }
@@ -666,8 +673,8 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly(V, r, v, true);
-        min_plus = intersect_line_Vpoly(V, r, v, false);
+        max_minus = intersect_line_Vpoly<MT, Point, FT>(V, r, v, true);
+        min_plus = intersect_line_Vpoly<MT, Point, FT>(V, r, v, false);
 
         return std::pair<FT, FT> (min_plus, max_minus);
     }
@@ -685,8 +692,8 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly(V, r, v, true);
-        min_plus = intersect_line_Vpoly(V, r, v, false);
+        max_minus = intersect_line_Vpoly<MT, Point, FT>(V, r, v, true);
+        min_plus = intersect_line_Vpoly<MT, Point, FT>(V, r, v, false);
 
         return std::pair<FT, FT> (min_plus, max_minus);
     }

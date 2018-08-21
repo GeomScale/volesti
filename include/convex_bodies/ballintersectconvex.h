@@ -11,9 +11,13 @@
 #define BALLINTERSECTCONVEX_H
 
 // ball type
+template <class Point>
 struct Ball{
 public:
+    typedef Point Point2;
+    typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
+
 
     Ball(Point c, NT R) : _c(c),	 _R(R) {}
 
@@ -85,14 +89,19 @@ private:
 };
 
 
-template <class T, typename FT>
+template <class T, class T2>
 class BallIntersectPolytope {
+private:
+    T    _P;
+    T2 _B;
 public:
-    BallIntersectPolytope(T &P, Ball &B) : _P(P), _B(B) {};
+    typedef typename T2::NT FT;
+    typedef typename T2::Point2 Point;
+    BallIntersectPolytope(T &P, T2 &B) : _P(P), _B(B) {};
     
     T first() { return _P; }
-    Ball second() { return _B; }
-    
+    T2 second() { return _B; }
+
     int is_in(Point p){
         if(_B.is_in(p)==-1)
             return _P.is_in(p);
@@ -146,14 +155,11 @@ public:
         return std::pair<FT, FT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
     }
-    
-private:
-    T    _P;
-    Ball _B;
+
 };
 
 
-
+/* EXPERIMEntAL
 template <class T1 , class T2>
 class PolytopeIntersectEllipsoid {
 private:
@@ -307,6 +313,6 @@ public:
     
     
     
-};
+};*/
 
 #endif

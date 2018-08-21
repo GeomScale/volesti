@@ -11,7 +11,7 @@
 #define ROUNDING_H
 
 //ROUNDING
-template <class MT>
+template <class MT, class Point>
 MT getPointsMat(std::list<Point> randPoints, int dim){
 
     MT S(randPoints.size(),dim);
@@ -27,9 +27,9 @@ MT getPointsMat(std::list<Point> randPoints, int dim){
 }
 
 
-template <class T1>
-std::pair<Point, NT> approx_R(T1 &P, vars var){
-    std::pair<Point,double> Cheb_ball=P.chebyshev_center();
+template <class T1, class Point, class T2, typename NT>
+std::pair<Point, NT> approx_R(T1 &P, T2 var){
+    std::pair<Point,NT> Cheb_ball=P.chebyshev_center();
     Point c=Cheb_ball.first;
     NT radius = Cheb_ball.second;
 
@@ -49,7 +49,7 @@ std::pair<Point, NT> approx_R(T1 &P, vars var){
     //if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
     rand_point_generator(P, p, num_of_samples*10, 1, randPoints, var);
     NT current_dist, max_dist;
-    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
         current_dist=(*pit-c).squared_length();
         if(current_dist>max_dist){
             max_dist=current_dist;
@@ -62,8 +62,8 @@ std::pair<Point, NT> approx_R(T1 &P, vars var){
 
 
 //Needs developing (experimental)
-template <class T1>
-NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
+template <class T1, class Point, class T2, typename  NT>
+NT rounding_SVD(T1 &P , Point c, NT radius, T2 &var){
     typedef typename T1::MT 	MT;
     typedef typename T1::VT 	VT;
     int n=var.n, walk_len=var.walk_steps;
@@ -76,21 +76,21 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
     // 2. Generate the first random point in P
   // Perform random walk on random point in the Chebychev ball 
 	//if (print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-	vars var2=var;
-	var2.coordinate=false;
+	//vars var2=var;
+	//var2.coordinate=false;
     Point p = get_point_on_Dsphere(n, radius);
 	p = p + c;
 	std::list<Point> randPoints; //ds for storing rand points
 	//use a large walk length e.g. 1000
-	rand_point_generator(P, p, 1, 50*n, randPoints, var2);
+	rand_point_generator(P, p, 1, 50*n, randPoints, var);
 	//if (print) std::cout<<"First random point: "<<p<<std::endl;
     // 3. Sample points from P
 	//randPoints.push_front(p);
 	int num_of_samples = std::pow(1.0,-2) * 400 * n * std::log(n);;//this is the number of sample points will used to compute min_ellipoid
 	//if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
-	rand_point_generator(P, p, num_of_samples*10, 1, randPoints, var2);
+	rand_point_generator(P, p, num_of_samples*10, 1, randPoints, var);
     NT current_dist, max_dist;
-    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
         current_dist=(*pit-c).squared_length();
         if(current_dist>max_dist){
             max_dist=current_dist;
@@ -117,9 +117,9 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
         c=res.first;
         p = get_point_on_Dsphere(n, res.second);
         p = p + c;
-        rand_point_generator(P2, p, 1, 50*n, randPoints, var2);
+        rand_point_generator(P2, p, 1, 50*n, randPoints, var);
         randPoints.clear();
-        rand_point_generator(P2, p, t, 1, randPoints, var2);
+        rand_point_generator(P2, p, t, 1, randPoints, var);
         MT PM=getPointsMat<MT>(randPoints,n);
         Eigen::JacobiSVD<MT> svd(PM, Eigen::ComputeThinU | Eigen::ComputeThinV);
         if(print) std::cout<<svd.singularValues()<<"\n"<<std::endl;
@@ -158,11 +158,12 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
 
 // ----- ROUNDING ------ //
 // main rounding function
-template <class T1, typename FT>
-std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, vars &var) {
+template <class T1, class Point, class T2, typename FT>
+std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, T2 &var) {
 
     typedef typename T1::MT 	MT;
     typedef typename T1::VT 	VT;
+    typedef typename T2::RNGType RNGType;
     int n=var.n, walk_len=var.walk_steps, i, j = 0;
     bool print=var.verbose;
     Point c = CheBall.first;
@@ -172,7 +173,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
         // If P is not a V-Polytope or number_of_vertices>20*domension
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
-        Point p = get_point_on_Dsphere(n, radius);
+        Point p = get_point_on_Dsphere<RNGType, Point, FT>(n, radius);
         p = p + c;
 
         //use a large walk length e.g. 1000
@@ -182,7 +183,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
         randPoints.clear();
         rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
         FT current_dist, max_dist;
-        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+        for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             current_dist=(*pit-c).squared_length();
             if(current_dist>max_dist){
                 max_dist=current_dist;
@@ -301,7 +302,7 @@ double rotating_old(T &P){
 }*/
 
 // -------- ROTATION ---------- //
-template <class T>
+template <class T, typename NT>
 NT rotating(T &P){
 
   typedef typename T::MT 	MT;
