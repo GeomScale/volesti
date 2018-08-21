@@ -24,6 +24,21 @@
 
 #include <complex>
 
+template<typename T, typename U>
+struct is_same
+{
+    static const bool value = false;
+};
+
+template<typename T>
+struct is_same<T, T>
+{
+    static const bool value = true;
+};
+
+template<typename T, typename U>
+bool eqTypes() { return is_same<T, U>::value; }
+
 
 //An implementation of Welford's algorithm for mean and variance.
 template <typename FT>
@@ -48,18 +63,19 @@ std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
 template <class T1, typename FT>
 void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
 
-    int m = K.num_of_hyperplanes(), dim = var.n, i=0;
+    int dim = var.n;
+    unsigned int i;
     const int maxiter = 10000;
-    const FT tol = 0.0000001;
-    FT sum, lower = 0.0, upper = 1.0, mid;
-    std::vector <FT> dists(m, 0);
-    Eigen::MatrixXd A = K.get_eigen_mat();
-    Eigen::VectorXd b = K.get_eigen_vec();
     typedef typename std::vector<FT>::iterator viterator;
+    FT tol;
+    if (eqTypes<float, FT>()) { // if tol is smaller than 1e-6 no convergence can be obtained when float is used
+        tol = 0.000001;
+    } else {
+        tol = 0.0000001;
+    }
 
-    viterator disit = dists.begin();
-    for ( ; disit!=dists.end(); disit++, i++)
-        *disit = b(i)/A.row(i).norm();
+    FT sum, lower = 0.0, upper = 1.0, mid;
+    std::vector <FT> dists = K.get_dists(var.che_rad);
 
     // Compute an upper bound for a_0
     for (i= 1; i <= maxiter; ++i) {
@@ -85,7 +101,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
         mid = (upper + lower) / 2.0;
         sum = 0.0;
         for (viterator it = dists.begin(); it != dists.end(); ++it) {
-            sum += std::exp(-mid * std::pow(*it, 2)) / (2 * (*it) * std::sqrt(M_PI * mid));
+            sum += std::exp(-mid * std::pow(*it, 2.0)) / (2.0 * (*it) * std::sqrt(M_PI * mid));
         }
 
         if (sum < frac * error) {
@@ -95,7 +111,7 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
         }
     }
 
-    a_vals.push_back((upper + lower) / 2.0);
+    a_vals.push_back((upper + lower) / FT(2.0));
     error = (1.0 - frac) * error;
 }
 
@@ -109,7 +125,7 @@ FT get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var){
     FT k = 1.0;
     const FT tol = 0.00001;
     bool done=false, print=var.verbose;
-    std::vector<FT> fn(N,0);
+    std::vector<FT> fn(N,FT(0.0));
     std::list<Point> randPoints;
     typedef typename std::vector<FT>::iterator viterator;
 
@@ -164,12 +180,13 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
     if(print) std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
 
     Point p_prev=p;
+
     std::vector<FT> lamdas(K.num_of_hyperplanes(),NT(0));
     while (true) {
 
         if (var.ball_walk) {
-            if (var.delta < 0.0) {
-                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(1.0, a_vals[it]) * FT(n));
+            if (var.deltaset) {
+                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(FT(1.0), a_vals[it]) * FT(n));
             }
         }
         // Compute the next gaussian
@@ -187,9 +204,8 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
             steps--;
         }
 
-
         // Compute some ratios to decide if this is the last gaussian
-        for (int j = 0; j < steps; j++) {
+        for (unsigned  int j = 0; j < steps; j++) {
             gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it], lamdas, var);
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);

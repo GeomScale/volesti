@@ -8,9 +8,10 @@
 #include "doctest.h"
 #include <unistd.h>
 #include "Eigen/Eigen"
+#include "use_double.h"
 #include "volume.h"
 
-long int factorial(int n)
+NT factorial(NT n)
 {
     return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
@@ -24,7 +25,7 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
     inp.open(f,std::ifstream::in);
     read_pointset(inp,Pin);
     int n = Pin[0][1]-1;
-    Polytope<NT> P;
+    HPolytope<NT> P;
     P.init(Pin);
 
     // Setup the parameters
@@ -37,8 +38,8 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
-    vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,rng,
-             urdist,urdist1,false,false,false,false,false,true);
+    vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
+             urdist,urdist1,-1.0,false,false,false,false,false,false,true);
 
     //Compute chebychev ball//
     std::cout << "\n--- Testing rounding of " << f << std::endl;
@@ -55,7 +56,7 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
     std::pair<NT,NT> res_round;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
     int count=1;
-    CheBall = P.chebyshev_center();
+    CheBall = P.ComputeInnerBall();
     //c=CheBall.first;
     //radius=CheBall.second;
     res_round = rounding_min_ellipsoid(P, CheBall, var);
@@ -64,7 +65,7 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
     ratio1 = 0.0;
     //std::cout<<ratio1<<" "<<ratio2<<std::endl;
     while(ratio2>ratio1 && count<=4) {
-        CheBall = P.chebyshev_center();
+        CheBall = P.ComputeInnerBall();
         //c=CheBall.first;
         //radius=CheBall.second;
         res_round = rounding_min_ellipsoid(P, CheBall, var);
@@ -77,7 +78,7 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout<<"\nround value is: "<<round_value<<std::endl;
     std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-    CheBall = P.chebyshev_center();
+    CheBall = P.ComputeInnerBall();
     //c=CheBall.first;
     //radius=CheBall.second;
 

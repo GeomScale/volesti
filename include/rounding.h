@@ -11,13 +11,14 @@
 #define ROUNDING_H
 
 //ROUNDING
+template <class MT>
+MT getPointsMat(std::list<Point> randPoints, int dim){
 
-Eigen::MatrixXd getPointsMat(std::list<Point> randPoints, int dim){
-    Eigen::MatrixXd S(randPoints.size(),dim);
-    for(int i=0; i<randPoints.size(); i++){
+    MT S(randPoints.size(),dim);
+    for(unsigned int i=0; i<randPoints.size(); i++){
         Point p=randPoints.front();
         randPoints.pop_front();
-        for (int j=0; j<dim; j++){
+        for (unsigned int j=0; j<dim; j++){
             S(i,j)=p[j];
         }
     }
@@ -28,9 +29,9 @@ Eigen::MatrixXd getPointsMat(std::list<Point> randPoints, int dim){
 
 template <class T1>
 std::pair<Point, NT> approx_R(T1 &P, vars var){
-    std::pair<Point,double> Cheb_ball=P.chebyshev_center();
-    Point c=Cheb_ball.first;
-    NT radius = Cheb_ball.second;
+    std::pair<Point,double> InnerBall=P.ComputeInnerBall();
+    Point c=InnerBall.first;
+    NT radius = InnerBall.second;
 
     int n=var.n, walk_len=var.walk_steps;
     //Random_points_on_sphere_d<Point> gen (n, radius);
@@ -60,10 +61,11 @@ std::pair<Point, NT> approx_R(T1 &P, vars var){
 }
 
 
-//Needs developing
+//Needs developing (experimental)
 template <class T1>
 NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
-    //typedef typename T1::FT 	K;
+    typedef typename T1::MT 	MT;
+    typedef typename T1::VT 	VT;
     int n=var.n, walk_len=var.walk_steps;
     bool print=var.verbose;
     // 1. Compute the Chebychev ball (largest inscribed ball) with center and radius 
@@ -99,12 +101,12 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
     if(print) std::cout<<"R = "<<max_dist<<" r = "<<radius<<"ratio R/r = "<<R<<"\n"<<std::endl;
     
     // 4. Compute the transformation matrix T
-    Eigen::MatrixXd T = Eigen::MatrixXd::Identity(n,n);
+    MT T = Eigen::MatrixXd::Identity(n,n);
     bool well_rounded=false;
     int t=8*n*n*n;
     //int t=var.m;
     int tries=0;
-    Eigen::MatrixXd S=Eigen::MatrixXd::Identity(n,n);
+    MT S=Eigen::MatrixXd::Identity(n,n);
     std::pair<Point,NT> res;
     while(!well_rounded){
         tries++;
@@ -118,16 +120,16 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
         rand_point_generator(P2, p, 1, 50*n, randPoints, var2);
         randPoints.clear();
         rand_point_generator(P2, p, t, 1, randPoints, var2);
-        Eigen::MatrixXd PM=getPointsMat(randPoints,n);
-        Eigen::JacobiSVD<Eigen::MatrixXd> svd(PM, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        MT PM=getPointsMat<MT>(randPoints,n);
+        Eigen::JacobiSVD<MT> svd(PM, Eigen::ComputeThinU | Eigen::ComputeThinV);
         if(print) std::cout<<svd.singularValues()<<"\n"<<std::endl;
         NT min=svd.singularValues()(0);
-        for(int i=1; i<n; i++){
+        for(unsigned int i=1; i<n; i++){
             if(svd.singularValues()(i)<min){
                 min=svd.singularValues()(i);
             }
         }
-        for(int i=0; i<n; i++){
+        for(unsigned int i=0; i<n; i++){
             S(i,i)=svd.singularValues()(i)/min;
         }
         if(print) std::cout<<S<<"\n"<<std::endl;
@@ -135,7 +137,7 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
         T=svd.matrixV()*S.inverse()*T;
         if(print) std::cout<<T<<"\n"<<std::endl;
         well_rounded=true;
-        for (int i=0; i<n; i++){
+        for (unsigned int i=0; i<n; i++){
             if (S(i,i)>2.0){
                 if (tries>((int)log2(R))){
                     t=t*2;
@@ -155,88 +157,92 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
 
 
 // ----- ROUNDING ------ //
+// main rounding function
 template <class T1, typename FT>
-std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, vars &var) {
-    int n=var.n, walk_len=var.walk_steps;
+std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> InnerBall, vars &var) {
+
+    typedef typename T1::MT 	MT;
+    typedef typename T1::VT 	VT;
+    int n=var.n, walk_len=var.walk_steps, i, j = 0;
     bool print=var.verbose;
-    Point c = CheBall.first;
-    FT radius = CheBall.second;
-    // 2. Generate the first random point in P
-    // Perform random walk on random point in the Chebychev ball
-    Point p = get_point_on_Dsphere(n, radius);
-    p = p + c;
+    Point c = InnerBall.first;
+    FT radius = InnerBall.second, R = 1;
     std::list<Point> randPoints; //ds for storing rand points
-    //use a large walk length e.g. 1000
-    rand_point_generator(P, p, 1, 50*n, randPoints, var);
-    // 3. Sample points from P
-    int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
-    randPoints.clear();
-    rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
-    FT current_dist, max_dist;
-    for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-        current_dist=(*pit-c).squared_length();
-        if(current_dist>max_dist){
-            max_dist=current_dist;
+    if (!P.get_points_for_rounding(randPoints)) {  // If P is a V-polytope then it will store its vertices in randPoints
+        // If P is not a V-Polytope or number_of_vertices>20*domension
+        // 2. Generate the first random point in P
+        // Perform random walk on random point in the Chebychev ball
+        Point p = get_point_on_Dsphere(n, radius);
+        p = p + c;
+
+        //use a large walk length e.g. 1000
+        rand_point_generator(P, p, 1, 50*n, randPoints, var);
+        // 3. Sample points from P
+        int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
+        randPoints.clear();
+        rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
+        FT current_dist, max_dist;
+        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+            current_dist=(*pit-c).squared_length();
+            if(current_dist>max_dist){
+                max_dist=current_dist;
+            }
         }
+        max_dist=std::sqrt(max_dist);
+        R=max_dist/radius;
     }
-    max_dist=std::sqrt(max_dist);
-    FT R=max_dist/radius;
-    int mm=randPoints.size();
-    boost::numeric::ublas::matrix<double> Ap(n,mm);
-    for(int j=0; j<mm; j++){
-        Point temp=randPoints.front();
-        randPoints.pop_front();
-        for (int i=0; i<n; i++){
-            Ap(i,j)=double(temp[i]);
+
+    // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
+    boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
+    typename std::list<Point>::iterator rpit=randPoints.begin();
+    typename std::vector<FT>::iterator qit;
+    for ( ; rpit!=randPoints.end(); rpit++, j++) {
+        qit = (*rpit).iter_begin(); i=0;
+        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
+            Ap(i,j)=double(*qit);
         }
     }
     boost::numeric::ublas::matrix<double> Q(n,n);
     boost::numeric::ublas::vector<double> c2(n);
     size_t w=1000;
-    FT elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2);
+    FT elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
-    Eigen::MatrixXd E(n,n);
-    Eigen::VectorXd e(n);
+    MT E(n,n);
+    VT e(n);
 
     //Get ellipsoid matrix and center as Eigen objects
-    for(int i=0; i<n; i++){
+    for(unsigned int i=0; i<n; i++){
         e(i)=FT(c2(i));
-        for (int j=0; j<n; j++){
+        for (unsigned int j=0; j<n; j++){
             E(i,j)=FT(Q(i,j));
         }
     }
 
-    int m=P.num_of_hyperplanes();
-    Eigen::MatrixXd A = P.get_eigen_mat();
-    Eigen::VectorXd b = P.get_eigen_vec();
 
     //Find the smallest and the largest axes of the elliposoid
-    Eigen::EigenSolver<Eigen::MatrixXd> eigensolver(E);
+    Eigen::EigenSolver<MT> eigensolver(E);
     FT rel = std::real(eigensolver.eigenvalues()[0]);
     FT Rel = std::real(eigensolver.eigenvalues()[0]);
-    for(int i=1; i<n; i++){
+    for(unsigned int i=1; i<n; i++){
         if(std::real(eigensolver.eigenvalues()[i])<rel) rel=std::real(eigensolver.eigenvalues()[i]);
         if(std::real(eigensolver.eigenvalues()[i])>Rel) Rel=std::real(eigensolver.eigenvalues()[i]);
     }
 
-    Eigen::LLT<Eigen::MatrixXd> lltOfA(E); // compute the Cholesky decomposition of E
-    Eigen::MatrixXd L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
+    Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
+    MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
 
     //Shift polytope in order to contain the origin (center of the ellipsoid)
-    b = b - A*e;
+    P.shift(e);
 
-    Eigen::MatrixXd L_1 = L.inverse();
-    A = A*(L_1.transpose());
-
-    // Write changes (actually perform rounding) to the polytope!
-    P.set_eigen_mat(A);
-    P.set_eigen_vec(b);
+    MT L_1 = L.inverse();
+    P.linear_transformIt(L_1.transpose());
 
     return std::pair<FT,FT> (L_1.determinant(),rel/Rel);
 }
 
 
 // -------- ROTATION ---------- //
+/*
 template <class T>
 double rotating_old(T &P){
 
@@ -292,53 +298,25 @@ double rotating_old(T &P){
   std::cout<<R.determinant()<<"\n"<<b<<std::endl;
   
 	return R.determinant();
-}
+}*/
 
 // -------- ROTATION ---------- //
 template <class T>
 NT rotating(T &P){
 
-  bool print = true; 
-  //if(print) std::cout<<"\nRotate..."<<std::endl;
-  typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-  typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-  
-  int m=P.num_of_hyperplanes();
-  int d=P.dimension();
-  
-  MT A(m,d);
-  VT b(m);
-  for(int i=0; i<m; ++i){
-		b(i) = P.get_coeff(i,0);
-		for(int j=1; j<d+1; ++j){
-		  A(i,j-1) = P.get_coeff(i,j);
-		}
-	}
-  //std::cout<<A<<"\n"<<b<<std::endl;
-  
-  MT M = MT::Random(d,d);
-  //std::cout << "Here is the matrix m:" << std::endl << M << std::endl;
-  Eigen::JacobiSVD<MT> svd(M, Eigen::ComputeFullU | Eigen::ComputeFullV);
-  //std::cout << "Its singular values are:" << std::endl << svd.singularValues() << std::endl;
-  //std::cout << "Its left singular vectors are the columns of the U matrix:" << std::endl << svd.matrixU() << std::endl;
-  //std::cout << "Det of U matrix:" << std::endl << svd.matrixU().determinant() << std::endl;
-  //std::cout << "Its right singular vectors are the columns of the thin V matrix:" << std::endl << svd.matrixV() << std::endl;
-  
-  A = A*svd.matrixU();
-  
-  //std::cout<<A<<"\n"<<b<<std::endl;
-  
-  // Write changes (actually perform rotation) to the polytope!
-	for(int i=0; i<m; ++i){
-		P.put_coeff(i,0,b(i));
-		for(int j=1; j<d+1; ++j){
-		  P.put_coeff(i,j,A(i,j-1));
-		}
-	}
+  typedef typename T::MT 	MT;
+  typedef typename T::VT 	VT;
 
+  int n = P.dimension();
 
-	//return std::abs(svd.matrixU().determinant());
-	return std::abs(svd.matrixU().inverse().determinant());
+  // pick a random rotation
+  MT R = MT::Random(n,n);
+  Eigen::JacobiSVD<MT> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
+  // apply rotation to the polytope P
+  P.linear_transformIt(svd.matrixU());
+
+  return std::abs(svd.matrixU().inverse().determinant());
 }
 
 #endif

@@ -8,9 +8,10 @@
 #include "doctest.h"
 #include <unistd.h>
 #include "Eigen/Eigen"
+#include "use_double.h"
 #include "volume.h"
 
-long int factorial(int n)
+NT factorial(NT n)
 {
     return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
@@ -24,7 +25,7 @@ void cheb_test(FilePath f, NT expected, NT tolerance=0.001)
     inp.open(f,std::ifstream::in);
     read_pointset(inp,Pin);
     int n = Pin[0][1]-1;
-    Polytope<NT> P;
+    HPolytope<NT> P;
     P.init(Pin);
 
     // Setup the parameters
@@ -37,13 +38,13 @@ void cheb_test(FilePath f, NT expected, NT tolerance=0.001)
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
-    vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,rng,
-             urdist,urdist1,false,false,false,false,false,true);
+    vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
+             urdist,urdist1,-1.0,false,false,false,false,false,false,true);
 
     //Compute chebychev ball//
     std::cout << "\n--- Testing Chebchev ball computation of " << f << std::endl;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    std::pair<Point,NT> CheBall = P.chebyshev_center();
+    std::pair<Point,NT> CheBall = P.ComputeInnerBall();
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
 
     //std::cout<<"Chebychev center is: "<<std::endl;

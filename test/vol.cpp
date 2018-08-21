@@ -20,13 +20,14 @@
 // see <http://www.gnu.org/licenses/>.
 
 #include "Eigen/Eigen"
+#include "use_double.h"
 #include "volume.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
 //////////////////////////////////////////////////////////
 
-int factorial(int n)
+NT factorial(NT n)
 {
   return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
@@ -57,10 +58,12 @@ int main(const int argc, const char** argv)
          ball_rad=false,
          experiments=true,
          annealing = false,
+         Vpoly=false,
          coordinate=true;
 	
 	//this is our polytope
-	Polytope<NT> P;
+	HPolytope<NT> HP;
+	VPolytope<NT> VP;
 
 	// parameters of CV algorithm
 	bool user_W=false, user_N=false, user_ratio=false;
@@ -172,10 +175,27 @@ int main(const int argc, const char** argv)
           inp.open(argv[++i],std::ifstream::in);
           read_pointset(inp,Pin);
           n = Pin[0][1]-1;
-          P.init(Pin);
-          if (verbose && P.num_of_hyperplanes()<100){
+          HP.init(Pin);
+          if (verbose && HP.num_of_hyperplanes()<100){
               std::cout<<"Input polytope: "<<n<<std::endl;
-              P.print();
+              HP.print();
+          }
+          correct=true;
+      }
+      if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
+          file=true;
+          Vpoly=true;
+          std::cout<<"Reading input from file..."<<std::endl;
+          std::ifstream inp;
+          std::vector<std::vector<NT> > Pin;
+          inp.open(argv[++i],std::ifstream::in);
+          read_pointset(inp,Pin);
+          //std::cout<<"d="<<Pin[0][1]<<std::endl;
+          n = Pin[0][1]-1;
+          VP.init(Pin);
+          if (verbose && VP.num_of_vertices()<100){
+              std::cout<<"Input polytope: "<<n<<std::endl;
+              VP.print();
           }
           correct=true;
       }
@@ -212,7 +232,7 @@ int main(const int argc, const char** argv)
           std::vector<std::vector<NT> > Pin;
           read_pointset(inp2,Pin);
           n = Pin[0][1]-1;
-          P.init(Pin);
+          HP.init(Pin);
           std::cout<<"Input polytope: "<<n<<std::endl;
           linear_extensions = true;
           correct=true;
@@ -270,16 +290,21 @@ int main(const int argc, const char** argv)
   }
   
   //Compute chebychev ball//
+  std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-  std::pair<Point,NT> CheBall = P.chebyshev_center();
+  if(!Vpoly) {
+      InnerBall = HP.ComputeInnerBall();
+  }else{
+      InnerBall = VP.ComputeInnerBall();
+  }
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
-  if(verbose) std::cout << "Chebychev time = " << tstop1 - tstart1 << std::endl;
+  if(verbose) std::cout << "Inner ball time = " << tstop1 - tstart1 << std::endl;
   if(verbose){
-      std::cout<<"Chebychev center is: "<<std::endl;
-      for(int i=0; i<n; i++){
-          std::cout<<CheBall.first[i]<<" ";
+      std::cout<<"Inner ball center is: "<<std::endl;
+      for(unsigned int i=0; i<n; i++){
+          std::cout<<InnerBall.first[i]<<" ";
       }
-      std::cout<<"\nradius is: "<<CheBall.second<<std::endl;
+      std::cout<<"\nradius is: "<<InnerBall.second<<std::endl;
   }
   
   // Set the number of random walk steps
@@ -321,12 +346,12 @@ int main(const int argc, const char** argv)
 
   // If no file specified construct a default polytope
   if(!file){
-      P.init(n);
+      HP.init(n);
   }
 
   // If rotate flag is on rotate the polytope
   if(rotate){
-      rotating(P);
+      rotating(HP);
   }
 
   // the number of random points to be generated in each K_i
@@ -341,36 +366,46 @@ int main(const int argc, const char** argv)
   double Chebtime, sum_Chebtime=double(0);
   NT vol;
   
-  for(int i=0; i<num_of_exp; ++i){
+  for(unsigned int i=0; i<num_of_exp; ++i){
       std::cout<<"Experiment "<<i+1<<" ";
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,rng,
-               urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
+      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
       if(round_only){
           // Round the polytope and exit
           std::pair<NT,NT> res_round;
-          res_round = rounding_min_ellipsoid(P,CheBall,var);
+          res_round = rounding_min_ellipsoid(HP,InnerBall,var);
           NT round_value = res_round.first;
           std::cout<<"\n--------------\nRounded polytope\nH-representation\nbegin\n"<<std::endl;
-          P.print();
+          HP.print();
           std::cout<<"end\n--------------\n"<<std::endl;
       }else{
           // Estimate the volume
           if(annealing){
               // setup the parameters
-              vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,rng,
-                       urdist,urdist1,verbose,rand_only,round,NN,birk,coordinate);
-              vars_g var1(n,walk_len,N,W,1,error,CheBall.second,rng,C,frac,ratio,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
-              vol = volume_gaussian_annealing(P, var1, var2, CheBall);
+              vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+                       urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+
+              vars_g var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
+                          verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+              if(!Vpoly) {
+                  vol = volume_gaussian_annealing(HP, var1, var2, InnerBall);
+              }else{
+                  vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
+              }
               tstop = (double)clock()/(double)CLOCKS_PER_SEC;
               std::cout<<"volume computed = "<<vol<<std::endl;
               std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;
               return 0;
           }
-          vol = volume(P,var,var,CheBall);
+          if(!Vpoly) {
+              vol = volume(HP, var, var, InnerBall);
+          }else{
+              vol = volume(VP, var, var, InnerBall);
+          }
       }
 
       NT v1 = vol;
@@ -412,7 +447,7 @@ int main(const int argc, const char** argv)
                   <<n<<" "
                    //<<argv[]<<" "
                   <<"\nNumber of hyperplanes= "
-                  <<P.num_of_hyperplanes()<<" "
+                  <<HP.num_of_hyperplanes()<<" "
                   <<"\nNumber of runs= "
                   <<num_of_exp<<" "
                   <<"\nError parameter= "
@@ -453,7 +488,7 @@ int main(const int argc, const char** argv)
     	std::cout 
                  <<n<<" "
                  //<<argv[]<<" "
-                 <<P.num_of_hyperplanes()<<" "
+                 <<HP.num_of_hyperplanes()<<" "
                  <<num_of_exp<<" "
                  <<exactvol<<" "
                  <<e<<" ["

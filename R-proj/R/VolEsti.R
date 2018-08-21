@@ -1,155 +1,7 @@
-#' takes a numerical matrix in ine format and return numerical matrix A and vector b: Ax<=b
-#'
-#' @param A the numerical matrix in ine format of the H-polytope
-#' @return numerical matrix A and vector b: Ax<=b
-#'
-#' @examples
-#' modifyMat(A)
-modifyMat <- function(A){
-  
-  b=A[,1]
-  A2=A[,-c(1)]
-  retList=list("matrix"=A2, "vector"=b)
-  return(retList)
-  
-}
-
-
-#' functiion to get a ine file and return matrix A in ine format for VolEsti()
-#'
-#' @param P It is in format, read.cs('path/to/file.ine'). The ine file desrcibies the H-polytope
-#' @return The numerical matrix in ine format of \code{read.cs('path/to/file.ine')}
-#' @examples
-#' ineToMatrix(read.cs('path/to/data/cube40.ine'))
-ineToMatrix <- function(P){
-  
-  r=as.character(P[3,1])
-  count_sp=1
-  str=""
-  beg=0
-  for(j in 1:nchar(r)){
-    if(substr(r, start=j, stop=j)==" "){
-      beg=beg+1
-    }else{
-      break
-    }
-  }
-  for(i in seq(from=beg+1, to=nchar(r), by=1)){
-    if(substr(r, start=i, stop=i)==" "){
-      if(count_sp==1){
-        m=as.numeric(str)
-        str=""
-        count_sp=count_sp+1
-      }else{
-        d=as.numeric(str)
-        str=""
-        break
-      }
-    }else{
-      str=paste0(str,substr(r, start=i, stop=i))
-    }
-  }
-  A=rep(0,d)
-  A[1]=m
-  A[2]=d
-  newrow=rep(0,d)
-  for(i in 4:(dim(P)[1]-2)){
-    r=P[i,1]
-    r=as.character(r)
-    str=""
-    count=1
-    #print(r)
-    beg=0
-    for(j in 1:nchar(r)){
-      if(substr(r, start=j, stop=j)==" "){
-        beg=beg+1
-      }else{
-        break
-      }
-    }
-    sp_bef=FALSE
-    for(j in seq(from=beg+1, to=nchar(r), by=1)){
-      
-      if (substr(r, start=j, stop=j)==" "){
-        if(sp_bef){
-          next
-        }
-        sp_bef=TRUE
-        newrow[count]=as.numeric(str)
-        str=""
-        count=count+1
-      }else{
-        str=paste0(str,substr(r, start=j, stop=j))
-        sp_bef=FALSE
-      }
-    }
-    A=rbind(A,newrow)
-    newrow=rep(0,d)
-  }
-  A=matrix(A,ncol=dim(A)[2])
-  
-  return(A)
-}
-
-#' Run some experiments
-#'
-#' @return Print the computed volumes and the total time
-#' @examples
-#' testRvolEsti()
-testRvolEsti <- function(){
-  path=getwd()
-  path=paste0(substr(path, start=1, stop=nchar(path)-7),'/data/')
-  print(path)
-  listofexamples=list.files(path)
-  
-  for(i in 1:length(listofexamples)){
-    x=read.csv(paste0(path,listofexamples[i]))
-    print(listofexamples[i])
-    A=ineToMatrix(x)
-    VolEsti(list("matrix"=A,"test"=TRUE))
-  }
-  
-}
-
-#' Compute the Chebychev ball of a H-polytope, P:= Ax<=b
-#'
-#' @param A the matrix of the H-polytope
-#' @param b the vector with the constants of the hyperplanes
-#' @return The Chebychev center of the Polytope discribed by the matrix \code{A} and the vector \code{b}
-#' @examples
-#' CheBall(A,b)
-CheBall <- function(A,b){
-  
-  d=dim(A)[2]
-  m=dim(A)[1]
-  
-  lprec <- make.lp(m, d+1)
-  norm_row=rep(0,m)
-
-  for(j in 1:m){
-    norm_row[j]=norm(A[j,],type="2")
-  }
-  for(i in 1:d){
-    set.column(lprec, i, A[,i])
-  }
-  set.column(lprec, d+1, norm_row)
-  
-  set.objfn(lprec, c(rep(0,d),c(-1)))
-  set.constr.type(lprec, rep("<=",m))
-  set.rhs(lprec, b)
-  
-  set.bounds(lprec, lower = rep(-Inf,d), columns = 1:d)
-  
-  solve(lprec)
-  
-  return(get.variables(lprec))
-}
-
-
 #' The main R function for volume approximation of a convex H-Polytope
 #'
 #' @param list("path","matrix","vector","Chebychev","verbose","coordinate","rounding","Walk_length","error","test") A list that includes alla the parameters of the algorithm
-#' @param path The path to the ine file that describes the H-polytope. If path is given then "matrix" and "vector" inputs are not needed
+#' @param path The path to an ine or ext file that describes the H-polytope. If path is given then "matrix" and "vector" inputs are not needed
 #' @param matrix The matrix A of the polytope. If it is in ine format then the input "vector" is not needed
 #' @param vector The vector b that containes the constants of the hyperplanes
 #' @param Walk_length Optional. Declare the number of the steps for the random walk, default is 10+d/10
@@ -164,6 +16,7 @@ CheBall <- function(A,b){
 #' @param ball_walk Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is False
 #' @param delta Optional. The radius for the ball walk
 #' @param verbose Optional. A boolean parameter for printing. Default is False
+#' @param vpoly A boolean parameter, has to be true when a V-polytope is given as input
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is True
 #' @param rounding Optional. A boolean parameter to activate the rounding option. Default value is False
 #' @param test Optional. A boolean parameter. Declare if the current excecution is a test or not. Default value is False
@@ -172,6 +25,10 @@ CheBall <- function(A,b){
 #' VolEsti(list("path"=/path/to/ine/file, "verbose"=TRUE))
 VolEsti <- function(Inputs){
   
+  Vpoly=FALSE
+  if(!is.null(Inputs$Vpoly)){
+    Vpoly = Inputs$Vpoly
+  }
   if(!is.null(Inputs$path)){
     A=ineToMatrix(read.csv(Inputs$path))
     r=A[1,]
@@ -182,16 +39,38 @@ VolEsti <- function(Inputs){
   }else if(!is.null(Inputs$vector)){
     b=Inputs$vector
     A=-Inputs$matrix
+    d=dim(A)[2]+1
+    m=dim(A)[1]
+    r=rep(0,d)
+    r[1]=m
+    r[2]=d
   }else if(!is.null(Inputs$matrix)){
-    r=Inputs$matrix[1,]
-    Inputs$matrix=Inputs$matrix[-c(1),]
-    x=modifyMat(Inputs$matrix)
-    A=x$matrix
-    b=x$vector
+    if(Vpoly){
+      A=Inputs$matrix
+      d=dim(A)[2]+1
+      m=dim(A)[1]
+      b=rep(1,m)
+      r=rep(0,d)
+      r[1]=m
+      r[2]=d
+    }else{
+      r=Inputs$matrix[1,]
+      Inputs$matrix=Inputs$matrix[-c(1),]
+      x=modifyMat(Inputs$matrix)
+      A=x$matrix
+      b=x$vector
+    }
   }else{
-    print('No H-polytope defined from input!')
+    if(Vpoly){
+      print('No V-polytope defined from input!')
+    }else{
+      print('No H-polytope defined from input!')
+    }
     return(-1)
   }
+  A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
+  A=matrix(rbind(r,A),ncol=dim(A)[2])
+  
   Cheb_ball=rep(0,dim(A)[2]+5)
   if(!is.null(Inputs$Chebychev)){
     Cheb_ball=Inputs$Chebychev
@@ -264,10 +143,8 @@ VolEsti <- function(Inputs){
     delta=Inputs$delta
   }
 
-  A=matrix(cbind(b,A),ncol=dim(A)[2]+1)
-  A=matrix(rbind(r,A),ncol=dim(A)[2])
   tim=proc.time()
-  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,coordinate,rounding,verbose)
+  vol=vol_R(A,W,e,Cheb_ball,annealing,win_len,N,C,ratio,frac,ball_walk,delta,Vpoly,coordinate,rounding,verbose)
   tim=proc.time()-tim
   if(verbose || test){
     print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
@@ -275,3 +152,4 @@ VolEsti <- function(Inputs){
   return(vol)
   
 }
+
