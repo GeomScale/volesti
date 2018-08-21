@@ -63,8 +63,8 @@ std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
 template <class T1, typename FT>
 void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
 
-    int dim = var.n, i=0;
-    unsigned int iterations = 0;
+    int dim = var.n;
+    unsigned int i;
     const int maxiter = 10000;
     typedef typename std::vector<FT>::iterator viterator;
     FT tol;
@@ -205,7 +205,7 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
         }
 
         // Compute some ratios to decide if this is the last gaussian
-        for (int j = 0; j < steps; j++) {
+        for (unsigned  int j = 0; j < steps; j++) {
             gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it], lamdas, var);
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);

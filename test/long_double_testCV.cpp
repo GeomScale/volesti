@@ -50,7 +50,7 @@ void test_CV_long_double_volume(FilePath f, NT expected, NT tolerance=0.2)
     unsigned int const num_of_exp = 20;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
-        CheBall = P.chebyshev_center();
+        CheBall = P.ComputeInnerBall();
 
         vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,rng,
                   urdist,urdist1,-1.0,false,false,false,false,false,false,true);
