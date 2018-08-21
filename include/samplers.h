@@ -12,7 +12,9 @@
 
 
 // Pick a random direction as a normilized vector
+template <class RNGType, class Point, typename NT>
 Point get_direction(int dim) {
+
     boost::normal_distribution<> rdist(0,1);
     std::vector<NT> Xs(dim,0);
     NT normal = NT(0);
@@ -34,22 +36,23 @@ Point get_direction(int dim) {
 
 
 // Pick a random point from a d-sphere
-template <typename FT>
+template <class RNGType, class Point, typename FT>
 Point get_point_on_Dsphere(int dim, FT radius){
-    Point p = get_direction(dim);
+    Point p = get_direction<RNGType, Point, FT>(dim);
     p = radius * p;
     return p;
 }
 
 
 // Pick a random point from a d-ball
-template <typename FT>
+template <class RNGType, class Point, typename FT>
 Point get_point_in_Dsphere(int dim, FT radius){
+
     boost::random::uniform_real_distribution<> urdist(0,1);
     FT U;
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng2(seed);
-    Point p = get_direction(dim);
+    Point p = get_direction<RNGType, Point, FT>(dim);
     U = urdist(rng2);
     U = std::pow(U, 1.0/(FT(dim)));
     p = (radius*U)*p;
@@ -59,7 +62,8 @@ Point get_point_in_Dsphere(int dim, FT radius){
 
 // WARNING: USE ONLY WITH BIRKHOFF POLYOPES
 // Compute more random points using symmetries of birkhoff polytope
-template <class T, class K>
+/*
+template <class T, class Point, class K, typename  NT>
 int birk_sym(T &P, K &randPoints, Point &p) {
     int n=std::sqrt(p.dimension());
     std::vector<int> myints;
@@ -81,19 +85,21 @@ int birk_sym(T &P, K &randPoints, Point &p) {
             randPoints.push_back(new_p);
         }
     } while ( std::next_permutation(myints.begin(),myints.end()) );
-}
+}*/
 
 
 // ----- RANDOM POINT GENERATION FUNCTIONS ------------ //
 
-template <class T, class K>
-void rand_point_generator(T &P,
+template <class T1, class K, class T2, class Point>
+void rand_point_generator(T1 &P,
                          Point &p,   // a point to start
                          int rnum,
                          int walk_len,
                          K &randPoints,
-                         vars &var)  // constants for volume
+                         T2 &var)  // constants for volume
 {
+    typedef typename T2::RNGType RNGType;
+    typedef typename T1::FT NT;
     int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
@@ -105,7 +111,7 @@ void rand_point_generator(T &P,
     Point p_prev = p;
 
     if (var.ball_walk) {
-        ball_walk(p, P, ball_rad);
+        ball_walk(p, P, ball_rad, var);
     }else if (var.coordinate) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
@@ -113,20 +119,20 @@ void rand_point_generator(T &P,
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
     } else
-        hit_and_run(p, P, var, var);
+        hit_and_run(p, P, var);
 
     for (int i = 1; i <= rnum; ++i) {
 
         for (int j = 0; j < walk_len; ++j) {
             if (var.ball_walk) {
-                ball_walk(p, P, ball_rad);
+                ball_walk(p, P, ball_rad, var);
             }else if (var.coordinate) {
                 rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
-                hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas, var, var);
+                hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas);
             } else
-                hit_and_run(p, P, var, var);
+                hit_and_run(p, P, var);
         }
         randPoints.push_back(p);
     }
@@ -134,15 +140,18 @@ void rand_point_generator(T &P,
 
 
 
-template <class T, class K, typename FT>
-void rand_point_generator(BallIntersectPolytope<T,FT> &PBLarge,
+template <class K, class T2, class Point, class T3>
+void rand_point_generator(T3 &PBLarge,
                          Point &p,   // a point to start
                          int rnum,
                          int walk_len,
                          K &randPoints,
-                         BallIntersectPolytope<T,FT> &PBSmall,
+                         T3 &PBSmall,
                          int &nump_PBSmall,
-                         vars &var) {  // constants for volume
+                         T2 &var) {  // constants for volume
+
+    typedef typename Point::FT FT;
+    typedef typename T2::RNGType RNGType;
     int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
@@ -150,32 +159,32 @@ void rand_point_generator(BallIntersectPolytope<T,FT> &PBLarge,
 
     std::vector <FT> lamdas(PBLarge.num_of_hyperplanes(), FT(0));
     int rand_coord, rand_coord_prev;
-    NT kapa, ball_rad = var.delta;
+    FT kapa, ball_rad = var.delta;
     Point p_prev = p;
 
     if (var.ball_walk) {
-        ball_walk(p, PBLarge, ball_rad);
+        ball_walk(p, PBLarge, ball_rad, var);
     }else if (var.coordinate) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
-        std::pair <NT, NT> bpair = PBLarge.line_intersect_coord(p, rand_coord, lamdas);
+        std::pair <FT, FT> bpair = PBLarge.line_intersect_coord(p, rand_coord, lamdas);
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
     } else {
-        hit_and_run(p, PBLarge, var, var);
+        hit_and_run(p, PBLarge, var);
     }
 
     for (int i = 1; i <= rnum; ++i) {
         for (int j = 0; j < walk_len; ++j) {
             if (var.ball_walk) {
-                ball_walk(p, PBLarge, ball_rad);
+                ball_walk(p, PBLarge, ball_rad, var);
             }else if (var.coordinate) {
                 rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
-                hit_and_run_coord_update(p, p_prev, PBLarge, rand_coord, rand_coord_prev, kapa, lamdas, var, var);
+                hit_and_run_coord_update(p, p_prev, PBLarge, rand_coord, rand_coord_prev, kapa, lamdas);
             } else
-                hit_and_run(p, PBLarge, var, var);
+                hit_and_run(p, PBLarge, var);
         }
         if (PBSmall.second().is_in(p) == -1) {//is in
             randPoints.push_back(p);
@@ -187,16 +196,17 @@ void rand_point_generator(BallIntersectPolytope<T,FT> &PBLarge,
 // ----- HIT AND RUN FUNCTIONS ------------ //
 
 //hit-and-run with random directions and update
-template <class T>
+template <class T1, class T2, class Point>
 void hit_and_run(Point &p,
-                T &P,
-                vars &var,
-                vars &var2) {
-    int n = var.n;
+                T1 &P,
+                T2 &var) {
+    typedef typename T2::RNGType RNGType;
+    typedef typename T1::FT NT;
+    int n = P.dimension();
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
 
-    Point l = get_direction(n);
+    Point l = get_direction<RNGType, Point, NT>(n);
     std::pair <NT, NT> dbpair = P.line_intersect(p, l);
     NT min_plus = dbpair.first;
     NT max_minus = dbpair.second;
@@ -209,16 +219,14 @@ void hit_and_run(Point &p,
 
 
 //hit-and-run with orthogonal directions and update
-template <class T, typename FT>
+template <class T1, class Point, typename FT>
 void hit_and_run_coord_update(Point &p,
                              Point &p_prev,
-                             T &P,
+                             T1 &P,
                              int rand_coord,
                              int rand_coord_prev,
                              FT kapa,
-                             std::vector<FT> &lamdas,
-                             vars &var,
-                             vars &var2) {
+                             std::vector<FT> &lamdas) {
     std::pair <FT, FT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     p_prev = p;
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
@@ -226,12 +234,14 @@ void hit_and_run_coord_update(Point &p,
 
 
 // ball walk with uniform target distribution
-template <class T, typename FT>
+template <class T, class T2, class Point, typename FT>
 int ball_walk(Point &p,
               T &P,
-              FT delta)
+              FT delta,
+              T2 var)
 {
-    Point y = get_point_in_Dsphere(p.dimension(), delta);
+    typedef typename T2::RNGType RNGType;
+    Point y = get_point_in_Dsphere<RNGType, Point, FT>(p.dimension(), delta);
     y = y + p;
     if (P.is_in(y)==-1) {
         p = y;

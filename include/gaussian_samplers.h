@@ -24,13 +24,13 @@
 
 
 // evaluate the pdf of point p
-template <typename FT>
+template <class Point, typename FT>
 FT eval_exp(Point p, FT a) {
     return std::exp(-a * p.squared_length());
 }
 
 
-template <typename FT>
+template <class Point, typename FT>
 FT get_max(Point l, Point u, FT a_i) {
     FT res;
     Point a = -1.0 * l;
@@ -60,8 +60,9 @@ FT get_max_coord(FT l, FT u, FT a_i) {
 
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
-template <typename FT>
-void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
+template <class T2, class Point, typename FT>
+void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, T2 &var) {
+    typedef typename T2::RNGType RNGType;
     FT r, r_val, fn;
     const FT tol = 0.00000001;
     Point bef = upper - lower;
@@ -104,8 +105,9 @@ void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, vars_g &var) {
 
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
-template <typename FT>
-FT rand_exp_range_coord(FT l, FT u, FT a_i, vars_g &var) {
+template <class T2, typename FT>
+FT rand_exp_range_coord(FT l, FT u, FT a_i, T2 &var) {
+    typedef typename T2::RNGType RNGType;
     FT r, r_val, fn, dis;
     const FT tol = 0.00000001;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -142,15 +144,16 @@ FT rand_exp_range_coord(FT l, FT u, FT a_i, vars_g &var) {
 
 
 // compute the first coordinate point
-template <class T, typename FT>
-void gaussian_first_coord_point(T &P,
+template <class T1, class Point, class T2, typename FT>
+void gaussian_first_coord_point(T1 &P,
                          Point &p,   // a point to start
                          Point &p_prev, // previous point
                          int &coord_prev, // previous coordinate ray
                          int walk_len, // number of steps for the random walk
                          FT a_i,
                          std::vector<FT> &lamdas,
-                         vars_g &var) {
+                         T2 &var) {
+    typedef typename T2::RNGType RNGType;
     int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -174,15 +177,16 @@ void gaussian_first_coord_point(T &P,
 
 
 // Compute the next point with target distribution the gaussian
-template <class T, typename FT>
-void gaussian_next_point(T &P,
+template <class T1, class Point, class T2, typename FT>
+void gaussian_next_point(T1 &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
                         int &coord_prev, // previous coordinate ray
                         int walk_len, // number of steps for the random walk
                         FT a_i,
                         std::vector<FT> &lamdas,
-                        vars_g &var) {
+                        T2&var) {
+    typedef typename T2::RNGType RNGType;
     int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -205,15 +209,16 @@ void gaussian_next_point(T &P,
 
 
 // Sample N points with target distribution the gaussian
-template <class T, class K, typename FT>
-void rand_gaussian_point_generator(T &P,
+template <class T1, class T2, class Point, class K, typename FT>
+void rand_gaussian_point_generator(T1 &P,
                          Point &p,   // a point to start
                          int rnum,   // number of points to sample
                          int walk_len,  // number of stpes for the random walk
                          K &randPoints,  // list to store the sampled points
                          FT a_i,
-                         vars_g &var)  // constans for volume
+                         T2 &var)  // constans for volume
 {
+    typedef typename T2::RNGType RNGType;
     int n = var.n;
     //RNGType &rng = var.rng;
     RNGType &rng2 = var.rng;
@@ -259,14 +264,15 @@ void rand_gaussian_point_generator(T &P,
 
 
 // hit-and-run with random directions and update
-template <class T, typename FT>
+template <class T1, class T2, class Point, typename FT>
 void gaussian_hit_and_run(Point &p,
-                T &P,
+                T1 &P,
                 FT a_i,
-                vars_g &var) {
+                T2 &var) {
+    typedef typename T2::RNGType RNGType;
     int n = var.n;
     RNGType rng2 = var.rng;
-    Point l = get_direction(n);
+    Point l = get_direction<RNGType, Point, FT>(n);
     std::pair <FT, FT> dbpair = P.line_intersect(p, l);
 
     FT min_plus = dbpair.first;
@@ -279,15 +285,15 @@ void gaussian_hit_and_run(Point &p,
 
 
 // hit-and-run with orthogonal directions and update
-template <class T, typename FT>
+template <class T1, class T2, class Point, typename FT>
 void gaussian_hit_and_run_coord_update(Point &p,
                              Point &p_prev,
-                             T &P,
+                             T1 &P,
                              int rand_coord,
                              int rand_coord_prev,
                              FT a_i,
                              std::vector<FT> &lamdas,
-                             vars_g &var) {
+                             T2 var) {
     std::pair <FT, FT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
     p_prev = p;
@@ -297,15 +303,16 @@ void gaussian_hit_and_run_coord_update(Point &p,
 
 
 // ball walk and update
-template <class T, typename FT>
+template <class T1, class T2, class Point, typename FT>
 void gaussian_ball_walk(Point &p,
-              T &P,
+              T1 &P,
               FT a_i,
               FT ball_rad,
-              vars_g var) {
+              T2 var) {
+    typedef typename T2::RNGType RNGType;
     int n = P.dimension();
     FT f_x, f_y, rnd;
-    Point y = get_point_in_Dsphere(n, ball_rad);
+    Point y = get_point_in_Dsphere<RNGType, Point, FT>(n, ball_rad);
     y = y + p;
     f_x = eval_exp(p, a_i);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
