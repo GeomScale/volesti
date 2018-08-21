@@ -29,7 +29,7 @@
 
 // compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
 template <class MT, class VT>
-std::pair<Point,NT> solveLP(MT &A, VT &b, int d){
+std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
 
     lprec *lp;
     int Ncol=d+1, *colno = NULL, j, m=A.rows(), i;

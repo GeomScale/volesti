@@ -62,17 +62,17 @@ double vol_R (Rcpp::NumericMatrix A, int walk_len ,double e, Rcpp::NumericVector
     std::pair<Point,NT> CheBall;
     if(Chebychev.size()!=P.dimension()+1){ //if it is not given as an input
         if (!Vpoly) {
-            CheBall = P.chebyshev_center();
+            CheBall = P.ComputeInnerBall();
         } else {
-            CheBall = VP.chebyshev_center();
+            CheBall = VP.ComputeInnerBall();
         }
     }else{ // if it is given as an input
         std::vector<NT> temp_p;
-        for (int j=0; j<P.dimension(); j++){
+        for (int j=0; j<n; j++){
           temp_p.push_back(Chebychev[j]);
         }
-        Point xc( P.dimension() , temp_p.begin() , temp_p.end() );
-        NT radius = Chebychev[P.dimension()];
+        Point xc( n , temp_p.begin() , temp_p.end() );
+        NT radius = Chebychev[n];
         CheBall.first = xc; CheBall.second = radius;
     }
     // print chebychev ball in verbose mode

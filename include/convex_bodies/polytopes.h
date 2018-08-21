@@ -37,9 +37,9 @@ public:
     HPolytope(int d): _d(d) {
         A.resize(2 * d, d);
         b.resize(2 * d);
-        for (int i = 0; i < d; ++i) {
+        for (unsigned int i = 0; i < d; ++i) {
             b(i) = 1;
-            for (int j = 0; j < d; ++j) {
+            for (unsigned int j = 0; j < d; ++j) {
                 if (i == j) {
                     A(i, j) = 1;
                 } else {
@@ -47,9 +47,9 @@ public:
                 }
             }
         }
-        for (int i = 0; i < d; ++i) {
+        for (unsigned int i = 0; i < d; ++i) {
             b(i + d) = 1;
-            for (int j = 0; j < d; ++j) {
+            for (unsigned int j = 0; j < d; ++j) {
                 if (i == j) {
                     A(i + d, j) = -1;
                 } else {
@@ -124,9 +124,9 @@ public:
     void init(int d) {
         A.resize(2 * d, d);
         b.resize(2 * d);
-        for (int i = 0; i < d; ++i) {
+        for (unsigned int i = 0; i < d; ++i) {
             b(i) = 1;
-            for (int j = 0; j < d; ++j) {
+            for (unsigned int j = 0; j < d; ++j) {
                 if (i == j) {
                     A(i, j) = 1;
                 } else {
@@ -134,9 +134,9 @@ public:
                 }
             }
         }
-        for (int i = 0; i < d; ++i) {
+        for (unsigned int i = 0; i < d; ++i) {
             b(i + d) = 1;
-            for (int j = 0; j < d; ++j) {
+            for (unsigned int j = 0; j < d; ++j) {
                 if (i == j) {
                     A(i + d, j) = -1;
                 } else {
@@ -152,9 +152,9 @@ public:
         _d = Pin[0][1] - 1;
         A.resize(Pin.size() - 1, _d);
         b.resize(Pin.size() - 1);
-        for (int i = 1; i < Pin.size(); i++) {
+        for (unsigned int i = 1; i < Pin.size(); i++) {
             b(i - 1) = Pin[i][0];
-            for (int j = 1; j < _d + 1; j++) {
+            for (unsigned int j = 1; j < _d + 1; j++) {
                 A(i - 1, j - 1) = -Pin[i][j];
             }
         }
@@ -164,8 +164,8 @@ public:
     // print polytope in input format
     void print() {
         std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
-        for (int i = 0; i < A.rows(); i++) {
-            for (int j = 0; j < _d; j++) {
+        for (unsigned int i = 0; i < A.rows(); i++) {
+            for (unsigned int j = 0; j < _d; j++) {
                 std::cout << A(i, j) << " ";
             }
             std::cout << "<= " << b(i) << std::endl;
@@ -241,7 +241,8 @@ public:
     //Check if Point p is in H-polytope P:= Ax<=b
     int is_in(Point p) {
         FT sum;
-        int m = A.rows(), i, j;
+        int m = A.rows();
+        unsigned int i, j;
         for (i = 0; i < m; i++) {
             sum = b(i);
             for (j = 0; j < _d; j++) {
@@ -257,10 +258,10 @@ public:
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
-    std::pair<Point,FT> chebyshev_center() {
+    std::pair<Point,FT> ComputeInnerBall() {
 
         std::pair <Point,FT> res;
-        res = solveLP(A, b, _d);  //lpSolve lib for the linear program
+        res = ComputeChebychevBall(A, b, _d);  //lpSolve lib for the linear program
         return res;
     }
 
@@ -272,7 +273,8 @@ public:
 
         FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom;
-        int i, j, m = num_of_hyperplanes();
+        unsigned int i, j;
+        int m = num_of_hyperplanes();
         viterator rit, vit;
 
         for (i = 0; i < m; i++) {
@@ -305,7 +307,8 @@ public:
 
         FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom;
-        int i, j, m = num_of_hyperplanes();
+        unsigned int i, j;
+        int m = num_of_hyperplanes();
         viterator rit;
 
         for (i = 0; i < m; i++) {
@@ -341,7 +344,8 @@ public:
         viterator lamdait = lamdas.begin(), rit;
         FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
         FT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
-        int i, j, m = num_of_hyperplanes();
+        unsigned int i, j;
+        int m = num_of_hyperplanes();
 
         for (i = 0; i < m; i++) {
             sum_denom = b(i);
@@ -379,7 +383,7 @@ public:
 
     // return for each facet the distance from the origin
     std::vector<FT> get_dists(FT radius){
-        int i=0;
+        unsigned int i=0;
         std::vector <FT> dists(num_of_hyperplanes(), FT(0));
         typename std::vector<FT>::iterator disit = dists.begin();
         for ( ; disit!=dists.end(); disit++, i++)
@@ -435,20 +439,20 @@ public:
     int upper_bound_of_hyperplanes() {
         int k = num_of_vertices(), d1 = int(std::floor((_d + 1) / 2)), d2 = int(std::floor((_d + 2) / 2));
         int num_of_hyp = 0, nom = 1, denom = 1;
-        for (int i = (k - _d + 1); i <= k - d1; i++) {
+        for (unsigned int i = (k - _d + 1); i <= k - d1; i++) {
             nom *= i;
         }
-        for (int i = 1; i <= _d - d1; i++) {
+        for (unsigned int i = 1; i <= _d - d1; i++) {
             denom *= i;
         }
         num_of_hyp += nom / denom;
         nom = 1;
         denom = 1;
 
-        for (int i = (k - _d + 1); i <= k - d2; i++) {
+        for (unsigned int i = (k - _d + 1); i <= k - d2; i++) {
             nom *= i;
         }
-        for (int i = 1; i <= _d - d2; i++) {
+        for (unsigned int i = 1; i <= _d - d2; i++) {
             denom *= i;
         }
         num_of_hyp += nom / denom;
@@ -516,9 +520,9 @@ public:
         _d = Pin[0][1] - 1;
         V.resize(Pin.size() - 1, _d);
         b.resize(Pin.size() - 1);
-        for (int i = 1; i < Pin.size(); i++) {
+        for (unsigned int i = 1; i < Pin.size(); i++) {
             b(i - 1) = Pin[i][0];
-            for (int j = 1; j < _d + 1; j++) {
+            for (unsigned int j = 1; j < _d + 1; j++) {
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
@@ -528,8 +532,8 @@ public:
     // print polytope in input format
     void print() {
         std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
-        for (int i = 0; i < V.rows(); i++) {
-            for (int j = 0; j < _d; j++) {
+        for (unsigned int i = 0; i < V.rows(); i++) {
+            for (unsigned int j = 0; j < _d; j++) {
                 std::cout << V(i, j) << " ";
             }
             std::cout<<"\n";
@@ -542,7 +546,8 @@ public:
     std::pair<Point,FT> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end, bool &done) {
 
         Point p0 = *it_beg,p1,c;
-        int dim = p0.dimension(),i,j;
+        int dim = p0.dimension();
+        unsigned int i,j;
         std::vector <FT> temp_p;
         FT radius = 0.0, gi, sum = 0.0;
         MT B(dim,dim);
@@ -597,11 +602,12 @@ public:
 
     // pick d+1 random vertices until they define a full dimensional simplex and then compute the chebychev ball of
     // that simplex
-    std::pair<Point,FT> chebyshev_center() {
+    std::pair<Point,FT> ComputeInnerBall() {
 
         std::vector<Point> verts(_d+1);
         std::vector<FT> vecp(_d);
-        int m = num_of_vertices(), vert_rand, pointer=0,i,j;
+        int m = num_of_vertices(), vert_rand, pointer=0;
+        unsigned int i,j;
         std::vector<int> x_vec(_d);
         bool done=false;
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -722,10 +728,10 @@ public:
         if (num_of_vertices()>20*_d) {
             return false;
         }
-        int j;
+        unsigned int j;
         std::vector<FT> temp(_d,FT(0));
         typename std::vector<FT>::iterator pointIt;
-        for (int i=0; i<num_of_vertices(); i++) {
+        for (unsigned int i=0; i<num_of_vertices(); i++) {
             pointIt = temp.begin(); j=0;
             for ( ; pointIt!=temp.end(); pointIt++, j++){
                 *pointIt = V(i,j);
