@@ -23,13 +23,12 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
+//#include "math/special_functions/binomial.hpp"
 //#include "boost/random.hpp"
 //#include <boost/random/uniform_int.hpp>
 //#include <boost/random/normal_distribution.hpp>
 //#include <boost/random/uniform_real_distribution.hpp>
 
-
-typedef double                      NT;
 typedef Cartesian<NT> 	      Kernel; 
 typedef Kernel::Point								Point;
 typedef boost::mt19937 RNGType; // mersenne twister generator
@@ -47,20 +46,23 @@ public:
           const int lw,
           NT up,
           const int L,
+          NT che_rad,
           RNGType &rng,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
+          NT delta,
           bool verbose,
           bool rand_only,
           bool round,
           bool NN,
           bool birk,
+          bool ball_walk,
           bool coordinate
           ) :
         m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
-        lw(lw), up(up), L(L), rng(rng),
-        urdist(urdist), urdist1(urdist1) , verbose(verbose), rand_only(rand_only), round(round),
-        NN(NN),birk(birk),coordinate(coordinate){};
+        lw(lw), up(up), L(L), che_rad(che_rad), rng(rng),
+        urdist(urdist), urdist1(urdist1) , delta(delta) , verbose(verbose), rand_only(rand_only), round(round),
+        NN(NN),birk(birk), ball_walk(ball_walk), coordinate(coordinate){};
 
     int m;
     int n;
@@ -71,14 +73,17 @@ public:
     const int lw;
     NT up;
     const int L;
+    NT che_rad;
     RNGType &rng;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;
+    NT delta;
     bool verbose;
     bool rand_only;
     bool round;
     bool NN;
     bool birk;
+    bool ball_walk;
     bool coordinate;
 };
 
@@ -96,6 +101,7 @@ public:
           NT frac,
           NT ratio,
           NT delta,
+          bool deltaset,
           bool verbose,
           bool rand_only,
           bool round,
@@ -106,7 +112,7 @@ public:
     ) :
             n(n), walk_steps(walk_steps), N(N), W(W), n_threads(n_threads), error(error),
             che_rad(che_rad), rng(rng), C(C), frac(frac), ratio(ratio), delta(delta),
-            verbose(verbose), rand_only(rand_only), round(round),
+            deltaset(deltaset), verbose(verbose), rand_only(rand_only), round(round),
             NN(NN),birk(birk),ball_walk(ball_walk),coordinate(coordinate){};
 
     int n;
@@ -121,6 +127,7 @@ public:
     NT frac;
     NT ratio;
     NT delta;
+    bool deltaset;
     bool verbose;
     bool rand_only;
     bool round;
@@ -131,10 +138,7 @@ public:
 };
 
 
-
-#include "run_headers/solve_lp.h"
 #include "khach2.h"
-#include "convex_bodies/ellipsoids.h"
 #include "convex_bodies/polytopes.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "samplers.h"
@@ -149,13 +153,13 @@ template <class T>
 NT volume(T &P,
                   vars &var,  // constans for volume
                   vars &var2, // constants for optimization in case of MinkSums
-                  std::pair<Point,NT> CheBall)  //Chebychev ball
+                  std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
     typedef BallIntersectPolytope<T,NT>        BallPoly;
 
     bool round = var.round;
     bool print = var.verbose;
-    bool rand_only = var.rand_only;
+    bool rand_only = var.rand_only, deltaset = false;
     int n = var.n;
     int rnum = var.m;
     int walk_len = var.walk_steps;
@@ -164,29 +168,39 @@ NT volume(T &P,
     RNGType &rng = var.rng;
 
     //0. Get the Chebychev ball (largest inscribed ball) with center and radius
-    Point c=CheBall.first;
-    NT radius=CheBall.second;
+    Point c=InnerBall.first;
+    NT radius=InnerBall.second;
+    if (var.ball_walk){
+        if(var.delta<0.0){
+            var.delta = 4.0 * radius / NT(n);
+            deltaset = true;
+        }
+    }
 
     //1. Rounding of the polytope if round=true
     NT round_value=1;
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,CheBall,var);
+        std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,InnerBall,var);
         round_value=res_round.first;
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-        std::pair<Point,NT> res=P.chebyshev_center();
+        std::pair<Point,NT> res=P.ComputeInnerBall();
         c=res.first; radius=res.second;
     }
 
-
+    if (var.ball_walk){
+        if(deltaset){
+            var.delta = 4.0 * radius / NT(n);
+        }
+    }
 
     rnum=rnum/n_threads;
     NT vol=0;
 
     // Perform the procedure for a number of threads and then take the average
-    for(int t=0; t<n_threads; t++){
+    for(unsigned int t=0; t<n_threads; t++){
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
@@ -227,6 +241,7 @@ NT volume(T &P,
 
             if(i==nb1){
                 balls.push_back(Ball(c,radius*radius));
+                vol = (std::pow(M_PI,n/2.0)*(std::pow(balls[0].radius(), n) ) ) / (tgamma(n/2.0+1));
             }else{
                 balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
             }
@@ -236,8 +251,6 @@ NT volume(T &P,
         if (print) std::cout<<"---------"<<std::endl;
 
         // 5. Estimate Vol(P)
-
-        NT telescopic_prod=NT(1);
 
         std::vector<Ball>::iterator bit2=balls.end();
         bit2--;
@@ -286,24 +299,19 @@ NT volume(T &P,
             //generate more random points in PBLarge to have "rnum" in total
             rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
 
-            telescopic_prod *= NT(rnum)/NT(nump_PBSmall);
+            vol *= NT(rnum)/NT(nump_PBSmall);
             if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
-                              <<"\ncurrent_vol="<<telescopic_prod
-                             <<"\n="<<telescopic_prod
+                              <<"\ncurrent_vol = "<<vol
                             <<"\n--------------------------"<<std::endl;
 
             //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2
         }
-        
-        if(print) std::cout<<"rand points = "<<rnum<<std::endl;
-        if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
-        vol = (std::pow(M_PI,n/2.0)*(std::pow(balls[0].radius(), n) ) ) / (tgamma(n/2.0+1));
-        vol=vol*telescopic_prod;
-        if(print) std::cout<<"round_value: "<<round_value<<std::endl;
-        vol=round_value*vol;
-        if(print) std::cout<<"volume computed: "<<vol<<std::endl;
-
     }
+    if(print) std::cout<<"rand points = "<<rnum<<std::endl;
+    if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
+    if(print) std::cout<<"round_value: "<<round_value<<std::endl;
+    vol=round_value*vol;
+    if(print) std::cout<<"volume computed: "<<vol<<std::endl;
 
     return vol;
 }
@@ -317,11 +325,13 @@ template <class T>
 NT volume_gaussian_annealing(T &P,
                              vars_g &var,  // constans for volume
                              vars &var2,
-                             std::pair<Point,NT> CheBall) {
+                             std::pair<Point,NT> InnerBall) {
+    typedef typename T::MT 	MT;
+    typedef typename T::VT 	VT;
     NT vol;
     bool round = var.round, done;
     bool print = var.verbose;
-    bool rand_only = var.rand_only;
+    bool rand_only = var.rand_only, deltaset = false;
     int n = var.n, steps;
     int walk_len = var.walk_steps, m=P.num_of_hyperplanes();
     int n_threads = var.n_threads, min_index, max_index, index, min_steps;
@@ -331,40 +341,39 @@ NT volume_gaussian_annealing(T &P,
     typedef typename std::vector<NT>::iterator viterator;
 
     // Consider Chebychev center as an internal point
-    Point c=CheBall.first;
-    NT radius=CheBall.second;
+    Point c=InnerBall.first;
+    NT radius=InnerBall.second;
+    if (var.ball_walk){
+        if(var.delta<0.0){
+            var.delta = 4.0 * radius / NT(n);
+            var.deltaset = true;
+        }
+    }
 
     // rounding of the polytope if round=true
     NT round_value=1;
     if(round){
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,CheBall,var2);
+        std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,InnerBall,var2);
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         round_value=res_round.first;
-        std::pair<Point,NT> res=P.chebyshev_center();
+        std::pair<Point,NT> res=P.ComputeInnerBall();
         c=res.first; radius=res.second;
     }
 
-    // Save the radius of the Chebychev ball if ball walk is requested
-    if(var.ball_walk){
-        var.che_rad = radius;
-    }
+    // Save the radius of the Chebychev ball
+    var.che_rad = radius;
 
     // Move chebychev center to origin and apply the same shifting to the polytope
-    Eigen::VectorXd c_e(n);
-    for(int i=0; i<n; i++){
+    VT c_e(n);
+    for(unsigned int i=0; i<n; i++){
         c_e(i)=c[i];  // write chebychev center in an eigen vector
     }
-    Eigen::MatrixXd A = P.get_eigen_mat();
-    Eigen::VectorXd b = P.get_eigen_vec();
-    // Shift polytope
-    b = b - A*c_e;
-    // Write changesto the polytope
-    P.set_eigen_vec(b);
+    P.shift(c_e);
 
-    // Initialization
+    // Initialization for the schedule annealing
     std::vector<NT> a_vals;
     NT ratio = var.ratio;
     NT C = var.C;
@@ -375,7 +384,7 @@ NT volume_gaussian_annealing(T &P,
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
     get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    if(print) std::cout<<"All the variances of schedule_Sannealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
+    if(print) std::cout<<"All the variances of schedule_annealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
     int mm = a_vals.size()-1, j=0;
     if(print){
         for (viterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
@@ -390,7 +399,6 @@ NT volume_gaussian_annealing(T &P,
     std::vector<NT> last_W2(W,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
     Point p(n); // The origin is in the Chebychev center of the Polytope
-    std::pair<int,NT> res;
     Point p_prev=p;
     int coord_prev, i=0;
     viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
@@ -416,8 +424,8 @@ NT volume_gaussian_annealing(T &P,
 
         // Set the radius for the ball walk if it is requested
         if (var.ball_walk) {
-            if (var.delta < 0.0) {
-                var.delta = 4.0 * radius / std::sqrt(std::max(1.0, *avalsIt) * NT(n));
+            if (var.deltaset) {
+                var.delta = 4.0 * radius / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n));
             }
         }
 
