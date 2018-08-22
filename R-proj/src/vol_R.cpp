@@ -71,16 +71,16 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         return Mat;
     }
 
-    std::pair<Point,NT> CheBall;
+    std::pair<Point,NT> InnerBall;
     //Compute chebychev ball//
     if(Chebychev.size()==n+1 || Chebychev.size()==n) { //if it is given as an input
         if (Chebychev.size()==n) {
             // if only sampling is requested
             // the radius of the inscribed ball is going to be needed for the sampling (radius of ball walk)
             if (!Vpoly) {
-                CheBall = P.chebyshev_center();
+                InnerBall = P.ComputeInnerBall();
             } else {
-                CheBall = VP.chebyshev_center();
+                InnerBall = VP.ComputeInnerBall();
             }
         }
         // store internal point hat is given as input
@@ -88,15 +88,15 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         for (int j=0; j<n; j++){
             temp_p.push_back(Chebychev[j]);
         }
-        CheBall.first = Point( n , temp_p.begin() , temp_p.end() );
+        InnerBall.first = Point( n , temp_p.begin() , temp_p.end() );
         // store the radius of the internal ball that is given as input
-        if (Chebychev.size()==n+1) CheBall.second = Chebychev[n];
+        if (Chebychev.size()==n+1) InnerBall.second = Chebychev[n];
     } else {
         // no internal ball or point is given as input
         if (!Vpoly) {
-            CheBall = P.chebyshev_center();
+            InnerBall = P.ComputeInnerBall();
         } else {
-            CheBall = VP.chebyshev_center();
+            InnerBall = VP.ComputeInnerBall();
         }
     }
 
@@ -104,17 +104,17 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     if (round_only) {
         Rcpp::NumericMatrix Mat;
         if (ball_walk) {
-            delta = 4.0 * CheBall.second / std::sqrt(NT(n));
+            delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
         }
         // initialization
-        vars var(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,CheBall.second,rng,urdist,urdist1,
+        vars var(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
                  delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
         std::pair <NT, NT> round_res;
         if (!Vpoly) {
-            round_res = rounding_min_ellipsoid(P, CheBall, var);
+            round_res = rounding_min_ellipsoid(P, InnerBall, var);
             Mat = extractMatPoly(P);
         } else {
-            round_res = rounding_min_ellipsoid(VP, CheBall, var);
+            round_res = rounding_min_ellipsoid(VP, InnerBall, var);
             Mat = extractMatPoly(VP);
         }
         // store rounding value and the ratio between min and max axe in the first row
@@ -127,21 +127,21 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     // if only sampling is requested
     if (sample_only){
         std::list<Point> randPoints;
-        Point p = CheBall.first;
+        Point p = InnerBall.first;
         NT a = 1.0 / (2.0 * variance);
         if (ball_walk){
             if(delta<0.0){ // set the radius for the ball walk if is not set by the user
                 if(annealing) {
-                    delta = 4.0 * CheBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
+                    delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
                 } else {
-                    delta = 4.0 * CheBall.second / std::sqrt(NT(n));
+                    delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
                 }
             }
         }
         // initialization
-        vars var1(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,CheBall.second,rng,urdist,urdist1,
+        vars var1(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
                  delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
-        vars_g var2(n, walk_len, 0, 0, 1, 0, CheBall.second, rng, 0, 0, 0, delta, false, verbose,
+        vars_g var2(n, walk_len, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                     rand_only, false, NN, birk, ball_walk, coord);
         if(!Vpoly) {
             sampling_only(randPoints, P, walk_len, numpoints, annealing, a, p, var1, var2);
@@ -165,34 +165,34 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
 
     // print chebychev ball in verbose mode
     if (verbose) {
-        std::cout << "Chebychev center = " << std::endl;
+        std::cout << "Inner ball center = " << std::endl;
         for (i = 0; i < n; i++) {
-            std::cout << CheBall.first[i] << " ";
+            std::cout << InnerBall.first[i] << " ";
         }
-        std::cout << "\nradius of chebychev ball = " << CheBall.second << std::endl;
+        std::cout << "\nradius of inner ball = " << InnerBall.second << std::endl;
     }
 
     // initialization for volesti
-    vars var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,CheBall.second,rng,urdist,urdist1,
+    vars var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
              delta,verbose,rand_only,rounding,NN,birk,ball_walk,coordinate);
     NT vol;
     if (annealing) {
         // initialization for CV
-        vars var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, CheBall.second, rng,
+        vars var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second, rng,
                   urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
-        vars_g var1(n, walk_len, N, win_len, 1, e, CheBall.second, rng, C, frac, ratio, delta, false, verbose,
+        vars_g var1(n, walk_len, N, win_len, 1, e, InnerBall.second, rng, C, frac, ratio, delta, false, verbose,
                     rand_only, rounding, NN, birk, ball_walk, coordinate);
         if (!Vpoly) { // if the input is a H-polytope
-            vol = volume_gaussian_annealing(P, var1, var2, CheBall);
+            vol = volume_gaussian_annealing(P, var1, var2, InnerBall);
         } else {  // if the input is a V-polytope
-            vol = volume_gaussian_annealing(VP, var1, var2, CheBall);
+            vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
         }
         if (verbose) std::cout << "volume computed = " << vol << std::endl;
     } else {
         if (!Vpoly) { // if the input is a H-polytope
-            vol = volume(P, var, var, CheBall);
+            vol = volume(P, var, var, InnerBall);
         } else { // if the input is a V-polytope
-            vol = volume(VP, var, var, CheBall);
+            vol = volume(VP, var, var, InnerBall);
         }
     }
     vol_res(0,0)=vol;
