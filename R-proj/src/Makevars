@@ -1,4 +1,4 @@
-PKG_CPPFLAGS=-I../../external/LPsolve_src/include -I../../external/LPsolve_src -I../../external/minimum_ellipsoid -I../../external/boost -I../../include -I../../include/samplers -I../../external/number_types -O3 -lm -ldl -DBOOST_NO_AUTO_PTR
+PKG_CPPFLAGS=-I../../external/LPsolve_src/include -I../../external/LPsolve_src -I../../external/minimum_ellipsoid -I../../external/boost -I../../include -I../../include/samplers -I../../include/number_types -O3 -lm -ldl -DBOOST_NO_AUTO_PTR
 
 PKG_LIBS=-Llp_solve -llp_solve $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 

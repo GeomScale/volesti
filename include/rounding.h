@@ -11,13 +11,14 @@
 #define ROUNDING_H
 
 //ROUNDING
-
+template <class MT>
 MT getPointsMat(std::list<Point> randPoints, int dim){
+
     MT S(randPoints.size(),dim);
-    for(int i=0; i<randPoints.size(); i++){
+    for(unsigned int i=0; i<randPoints.size(); i++){
         Point p=randPoints.front();
         randPoints.pop_front();
-        for (int j=0; j<dim; j++){
+        for (unsigned int j=0; j<dim; j++){
             S(i,j)=p[j];
         }
     }
@@ -28,9 +29,9 @@ MT getPointsMat(std::list<Point> randPoints, int dim){
 
 template <class T1>
 std::pair<Point, NT> approx_R(T1 &P, vars var){
-    std::pair<Point,double> Cheb_ball=P.chebyshev_center();
-    Point c=Cheb_ball.first;
-    NT radius = Cheb_ball.second;
+    std::pair<Point,double> InnerBall=P.ComputeInnerBall();
+    Point c=InnerBall.first;
+    NT radius = InnerBall.second;
 
     int n=var.n, walk_len=var.walk_steps;
     //Random_points_on_sphere_d<Point> gen (n, radius);
@@ -63,7 +64,8 @@ std::pair<Point, NT> approx_R(T1 &P, vars var){
 //Needs developing (experimental)
 template <class T1>
 NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
-    //typedef typename T1::FT 	K;
+    typedef typename T1::MT 	MT;
+    typedef typename T1::VT 	VT;
     int n=var.n, walk_len=var.walk_steps;
     bool print=var.verbose;
     // 1. Compute the Chebychev ball (largest inscribed ball) with center and radius 
@@ -118,16 +120,16 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
         rand_point_generator(P2, p, 1, 50*n, randPoints, var2);
         randPoints.clear();
         rand_point_generator(P2, p, t, 1, randPoints, var2);
-        MT PM=getPointsMat(randPoints,n);
+        MT PM=getPointsMat<MT>(randPoints,n);
         Eigen::JacobiSVD<MT> svd(PM, Eigen::ComputeThinU | Eigen::ComputeThinV);
         if(print) std::cout<<svd.singularValues()<<"\n"<<std::endl;
         NT min=svd.singularValues()(0);
-        for(int i=1; i<n; i++){
+        for(unsigned int i=1; i<n; i++){
             if(svd.singularValues()(i)<min){
                 min=svd.singularValues()(i);
             }
         }
-        for(int i=0; i<n; i++){
+        for(unsigned int i=0; i<n; i++){
             S(i,i)=svd.singularValues()(i)/min;
         }
         if(print) std::cout<<S<<"\n"<<std::endl;
@@ -135,7 +137,7 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
         T=svd.matrixV()*S.inverse()*T;
         if(print) std::cout<<T<<"\n"<<std::endl;
         well_rounded=true;
-        for (int i=0; i<n; i++){
+        for (unsigned int i=0; i<n; i++){
             if (S(i,i)>2.0){
                 if (tries>((int)log2(R))){
                     t=t*2;
@@ -157,11 +159,14 @@ NT rounding_SVD(T1 &P , Point c, NT radius, vars &var){
 // ----- ROUNDING ------ //
 // main rounding function
 template <class T1, typename FT>
-std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, vars &var) {
+std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> InnerBall, vars &var) {
+
+    typedef typename T1::MT 	MT;
+    typedef typename T1::VT 	VT;
     int n=var.n, walk_len=var.walk_steps, i, j = 0;
     bool print=var.verbose;
-    Point c = CheBall.first;
-    FT radius = CheBall.second, R = 1;
+    Point c = InnerBall.first;
+    FT radius = InnerBall.second, R = 1;
     std::list<Point> randPoints; //ds for storing rand points
     if (!P.get_points_for_rounding(randPoints)) {  // If P is a V-polytope then it will store its vertices in randPoints
         // If P is not a V-Polytope or number_of_vertices>20*domension
@@ -206,9 +211,9 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
     VT e(n);
 
     //Get ellipsoid matrix and center as Eigen objects
-    for(int i=0; i<n; i++){
+    for(unsigned int i=0; i<n; i++){
         e(i)=FT(c2(i));
-        for (int j=0; j<n; j++){
+        for (unsigned int j=0; j<n; j++){
             E(i,j)=FT(Q(i,j));
         }
     }
@@ -218,7 +223,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> CheBall, v
     Eigen::EigenSolver<MT> eigensolver(E);
     FT rel = std::real(eigensolver.eigenvalues()[0]);
     FT Rel = std::real(eigensolver.eigenvalues()[0]);
-    for(int i=1; i<n; i++){
+    for(unsigned int i=1; i<n; i++){
         if(std::real(eigensolver.eigenvalues()[i])<rel) rel=std::real(eigensolver.eigenvalues()[i]);
         if(std::real(eigensolver.eigenvalues()[i])>Rel) Rel=std::real(eigensolver.eigenvalues()[i]);
     }
@@ -298,6 +303,9 @@ double rotating_old(T &P){
 // -------- ROTATION ---------- //
 template <class T>
 NT rotating(T &P){
+
+  typedef typename T::MT 	MT;
+  typedef typename T::VT 	VT;
 
   int n = P.dimension();
 
