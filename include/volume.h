@@ -35,7 +35,7 @@
 
 
 //structs with variables and random generators
-template <typename FT, class RNG>
+template <typename NT, class RNG>
 struct vars{
 public:
     typedef RNG RNGType;
@@ -43,16 +43,16 @@ public:
           int n,
           int walk_steps,
           int n_threads,
-          const FT err,
-          FT error,
+          const NT err,
+          NT error,
           const int lw,
-          FT up,
+          NT up,
           const int L,
-          FT che_rad,
+          NT che_rad,
           RNG &rng,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
-          FT delta,
+          NT delta,
           bool verbose,
           bool rand_only,
           bool round,
@@ -70,16 +70,16 @@ public:
     int n;
     int walk_steps;
     int n_threads;
-    const FT err;
-    FT error;
+    const NT err;
+    NT error;
     const int lw;
-    FT up;
+    NT up;
     const int L;
-    FT che_rad;
+    NT che_rad;
     RNG &rng;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;
-    FT delta;
+    NT delta;
     bool verbose;
     bool rand_only;
     bool round;
@@ -89,7 +89,7 @@ public:
     bool coordinate;
 };
 
-template <typename FT, class RNG>
+template <typename NT, class RNG>
 struct vars_g{
 public:
     typedef RNG RNGType;
@@ -98,13 +98,13 @@ public:
           int N,
           int W,
           int n_threads,
-          FT error,
-          FT che_rad,
+          NT error,
+          NT che_rad,
           RNG &rng,
-          FT C,
-          FT frac,
-          FT ratio,
-          FT delta,
+          NT C,
+          NT frac,
+          NT ratio,
+          NT delta,
           bool deltaset,
           bool verbose,
           bool rand_only,
@@ -124,13 +124,13 @@ public:
     int N;
     int W;
     int n_threads;
-    FT error;
-    FT che_rad;
+    NT error;
+    NT che_rad;
     RNG &rng;
-    FT C;
-    FT frac;
-    FT ratio;
-    FT delta;
+    NT C;
+    NT frac;
+    NT ratio;
+    NT delta;
     bool deltaset;
     bool verbose;
     bool rand_only;
@@ -153,15 +153,15 @@ public:
 #include "linear_extensions.h"
 
 
-template <class T1, class T2, class Point, typename NT>
-NT volume(T1 &P,
-                  T2 &var,  // constans for volume
-                  T2 &var2, // constants for optimization in case of MinkSums
+template <class Polytope, class Parameters, class Point, typename NT>
+NT volume(Polytope &P,
+                  Parameters &var,  // constans for volume
+                  Parameters &var2, // constants for optimization in case of MinkSums
                   std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
     typedef Ball<Point> Ball;
-    typedef BallIntersectPolytope<T1,Ball>        BallPoly;
-    typedef typename T2::RNGType RNGType;
+    typedef BallIntersectPolytope<Polytope,Ball>        BallPoly;
+    typedef typename Parameters::RNGType RNGType;
 
 
     bool round = var.round;
@@ -211,7 +211,7 @@ NT volume(T1 &P,
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-        Point p = get_point_on_Dsphere<RNGType , Point, NT>(n, radius);
+        Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
         p=p+c;
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
@@ -328,14 +328,14 @@ NT volume(T1 &P,
 // Implementation is based on algorithm from paper "A practical volume algorithm",
 // Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
 // Ben Cousins, Santosh Vempala
-template <class T1, class T2, class T3, class Point, typename NT>
-NT volume_gaussian_annealing(T1 &P,
-                             T2 &var,  // constans for volume
-                             T3 &var2,
+template <class Polytope, class UParameters, class GParameters, class Point, typename NT>
+NT volume_gaussian_annealing(Polytope &P,
+                             GParameters &var,  // constans for volume
+                             UParameters &var2,
                              std::pair<Point,NT> InnerBall) {
-    typedef typename T1::MT 	MT;
-    typedef typename T1::VT 	VT;
-    typedef typename T2::RNGType RNGType;
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    typedef typename UParameters::RNGType RNGType;
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
     NT vol;
@@ -395,6 +395,7 @@ NT volume_gaussian_annealing(T1 &P,
     get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"All the variances of schedule_annealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
+
     int mm = a_vals.size()-1, j=0;
     if(print){
         for (viterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){

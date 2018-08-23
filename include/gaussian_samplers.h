@@ -24,21 +24,21 @@
 
 
 // evaluate the pdf of point p
-template <class Point, typename FT>
-FT eval_exp(Point p, FT a) {
+template <class Point, typename NT>
+NT eval_exp(Point p, NT a) {
     return std::exp(-a * p.squared_length());
 }
 
 
-template <class Point, typename FT>
-FT get_max(Point l, Point u, FT a_i) {
-    FT res;
+template <class Point, typename NT>
+NT get_max(Point l, Point u, NT a_i) {
+    NT res;
     Point a = -1.0 * l;
     Point bef = u - l;
     Point b = (1.0 / std::sqrt((bef).squared_length())) * bef;
     Point z = (a.dot(b) * b) + l;
-    FT low_bd = (l[0] - z[0]) / b[0];
-    FT up_bd = (u[0] - z[0]) / b[0];
+    NT low_bd = (l[0] - z[0]) / b[0];
+    NT up_bd = (u[0] - z[0]) / b[0];
     if (low_bd * up_bd > 0) {
         //if(std::signbit(low_bd)==std::signbit(up_bd)){
         res = std::max(eval_exp(u, a_i), eval_exp(l, a_i));
@@ -50,8 +50,8 @@ FT get_max(Point l, Point u, FT a_i) {
 }
 
 
-template <typename FT>
-FT get_max_coord(FT l, FT u, FT a_i) {
+template <typename NT>
+NT get_max_coord(NT l, NT u, NT a_i) {
     if (l < 0.0 && u > 0.0) {
         return 1.0;
     }
@@ -60,11 +60,11 @@ FT get_max_coord(FT l, FT u, FT a_i) {
 
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
-template <class T2, class Point, typename FT>
-void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, T2 &var) {
-    typedef typename T2::RNGType RNGType;
-    FT r, r_val, fn;
-    const FT tol = 0.00000001;
+template <class Parameters, class Point, typename NT>
+void rand_exp_range(Point lower, Point upper, NT a_i, Point &p, Parameters &var) {
+    typedef typename Parameters::RNGType RNGType;
+    NT r, r_val, fn;
+    const NT tol = 0.00000001;
     Point bef = upper - lower;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
@@ -75,8 +75,8 @@ void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, T2 &var) {
         Point a = -1.0 * lower;
         Point b = (1.0 / std::sqrt(bef.squared_length())) * bef;
         Point z = (a.dot(b) * b) + lower;
-        FT low_bd = (lower[0] - z[0]) / b[0];
-        FT up_bd = (upper[0] - z[0]) / b[0];
+        NT low_bd = (lower[0] - z[0]) / b[0];
+        NT up_bd = (upper[0] - z[0]) / b[0];
         while (true) {
             r = rdist(rng2);
             r = r / std::sqrt(2.0 * a_i);
@@ -89,7 +89,7 @@ void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, T2 &var) {
     // select using rejection sampling from a bounding rectangle
     } else {
         boost::random::uniform_real_distribution<> urdist(0, 1);
-        FT M = get_max(lower, upper, a_i);
+        NT M = get_max(lower, upper, a_i);
         while (true) {
             r = urdist(rng2);
             Point pef = r * upper;
@@ -105,11 +105,11 @@ void rand_exp_range(Point lower, Point upper, FT a_i, Point &p, T2 &var) {
 
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
-template <class T2, typename FT>
-FT rand_exp_range_coord(FT l, FT u, FT a_i, T2 &var) {
-    typedef typename T2::RNGType RNGType;
-    FT r, r_val, fn, dis;
-    const FT tol = 0.00000001;
+template <class Parameters, typename NT>
+NT rand_exp_range_coord(NT l, NT u, NT a_i, Parameters &var) {
+    typedef typename Parameters::RNGType RNGType;
+    NT r, r_val, fn, dis;
+    const NT tol = 0.00000001;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
@@ -128,7 +128,7 @@ FT rand_exp_range_coord(FT l, FT u, FT a_i, T2 &var) {
     // select using rejection sampling from a bounding rectangle
     } else {
         boost::random::uniform_real_distribution<> urdist(0, 1);
-        FT M = get_max_coord(l, u, a_i);
+        NT M = get_max_coord(l, u, a_i);
         while (true) {
             r = urdist(rng2);
             dis = (1.0 - r) * l + r * u;
@@ -144,16 +144,16 @@ FT rand_exp_range_coord(FT l, FT u, FT a_i, T2 &var) {
 
 
 // compute the first coordinate point
-template <class T1, class Point, class T2, typename FT>
-void gaussian_first_coord_point(T1 &P,
+template <class Polytope, class Point, class Parameters, typename NT>
+void gaussian_first_coord_point(Polytope &P,
                          Point &p,   // a point to start
                          Point &p_prev, // previous point
                          int &coord_prev, // previous coordinate ray
                          int walk_len, // number of steps for the random walk
-                         FT a_i,
-                         std::vector<FT> &lamdas,
-                         T2 &var) {
-    typedef typename T2::RNGType RNGType;
+                         NT a_i,
+                         std::vector<NT> &lamdas,
+                         Parameters &var) {
+    typedef typename Parameters::RNGType RNGType;
     int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -161,8 +161,8 @@ void gaussian_first_coord_point(T1 &P,
     RNGType &rng2 = var.rng;
 
     rand_coord = uidist(rng2);
-    std::pair <FT, FT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-    FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
+    std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+    NT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
     p_prev = p;
     coord_prev = rand_coord;
     p.set_coord(rand_coord, dis);
@@ -177,22 +177,22 @@ void gaussian_first_coord_point(T1 &P,
 
 
 // Compute the next point with target distribution the gaussian
-template <class T1, class Point, class T2, typename FT>
-void gaussian_next_point(T1 &P,
+template <class Polytope, class Point, class Parameters, typename NT>
+void gaussian_next_point(Polytope &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
                         int &coord_prev, // previous coordinate ray
                         int walk_len, // number of steps for the random walk
-                        FT a_i,
-                        std::vector<FT> &lamdas,
-                        T2&var) {
-    typedef typename T2::RNGType RNGType;
+                        NT a_i,
+                        std::vector<NT> &lamdas,
+                        Parameters &var) {
+    typedef typename Parameters::RNGType RNGType;
     int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
-    FT ball_rad = var.delta;
+    NT ball_rad = var.delta;
 
     for (unsigned int j = 0; j < walk_len; j++) {
         if (var.ball_walk) {
@@ -209,31 +209,30 @@ void gaussian_next_point(T1 &P,
 
 
 // Sample N points with target distribution the gaussian
-template <class T1, class T2, class Point, class K, typename FT>
-void rand_gaussian_point_generator(T1 &P,
+template <class Polytope, class Parameters, class Point, class PointList, typename NT>
+void rand_gaussian_point_generator(Polytope &P,
                          Point &p,   // a point to start
                          int rnum,   // number of points to sample
                          int walk_len,  // number of stpes for the random walk
-                         K &randPoints,  // list to store the sampled points
-                         FT a_i,
-                         T2 &var)  // constans for volume
+                         PointList &randPoints,  // list to store the sampled points
+                         NT a_i,
+                         Parameters &var)  // constans for volume
 {
-    typedef typename T2::RNGType RNGType;
+    typedef typename Parameters::RNGType RNGType;
     int n = var.n;
     //RNGType &rng = var.rng;
     RNGType &rng2 = var.rng;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector <FT> lamdas(P.num_of_hyperplanes(), FT(0));
-    int rand_coord = uidist(rng2), coord_prev;
-    FT ball_rad = var.delta;
+    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+    int rand_coord = uidist(rng2), coord_prev, rand_coord_prev;
+    NT ball_rad = var.delta;
     Point p_prev = p;
 
     if (var.coordinate && !var.ball_walk) {
         rand_coord = uidist(rng2);
-        std::pair <FT, FT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-        //FT dis;
-        FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
+        std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+        NT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
         p_prev = p;
         coord_prev = rand_coord;
         p.set_coord(rand_coord, dis);
@@ -247,13 +246,12 @@ void rand_gaussian_point_generator(T1 &P,
     }
 
     for (unsigned  int i = 1; i <= rnum; ++i) {
-
         for (unsigned int j = 0; j < walk_len; ++j) {
-            int rand_coord_prev = rand_coord;
-            rand_coord = uidist(rng2);
             if (var.ball_walk) {
                 gaussian_ball_walk(p, P, a_i, ball_rad, var);
             } else if (var.coordinate) {
+                rand_coord_prev = rand_coord;
+                rand_coord = uidist(rng2);
                 gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, a_i, lamdas, var);
             } else
                 gaussian_hit_and_run(p, P, a_i, var);
@@ -264,19 +262,19 @@ void rand_gaussian_point_generator(T1 &P,
 
 
 // hit-and-run with random directions and update
-template <class T1, class T2, class Point, typename FT>
+template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_hit_and_run(Point &p,
-                T1 &P,
-                FT a_i,
-                T2 &var) {
-    typedef typename T2::RNGType RNGType;
+                Polytope &P,
+                NT a_i,
+                Parameters &var) {
+    typedef typename Parameters::RNGType RNGType;
     int n = var.n;
     RNGType rng2 = var.rng;
-    Point l = get_direction<RNGType, Point, FT>(n);
-    std::pair <FT, FT> dbpair = P.line_intersect(p, l);
+    Point l = get_direction<RNGType, Point, NT>(n);
+    std::pair <NT, NT> dbpair = P.line_intersect(p, l);
 
-    FT min_plus = dbpair.first;
-    FT max_minus = dbpair.second;
+    NT min_plus = dbpair.first;
+    NT max_minus = dbpair.second;
     Point upper = (min_plus * l) + p;
     Point lower = (max_minus * l) + p;
 
@@ -285,17 +283,17 @@ void gaussian_hit_and_run(Point &p,
 
 
 // hit-and-run with orthogonal directions and update
-template <class T1, class T2, class Point, typename FT>
+template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_hit_and_run_coord_update(Point &p,
                              Point &p_prev,
-                             T1 &P,
+                             Polytope &P,
                              int rand_coord,
                              int rand_coord_prev,
-                             FT a_i,
-                             std::vector<FT> &lamdas,
-                             T2 var) {
-    std::pair <FT, FT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
-    FT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
+                             NT a_i,
+                             std::vector<NT> &lamdas,
+                             Parameters var) {
+    std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
+    NT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
     p_prev = p;
     p.set_coord(rand_coord, dis);
 }
@@ -303,16 +301,16 @@ void gaussian_hit_and_run_coord_update(Point &p,
 
 
 // ball walk and update
-template <class T1, class T2, class Point, typename FT>
+template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_ball_walk(Point &p,
-              T1 &P,
-              FT a_i,
-              FT ball_rad,
-              T2 var) {
-    typedef typename T2::RNGType RNGType;
+              Polytope &P,
+              NT a_i,
+              NT ball_rad,
+              Parameters var) {
+    typedef typename Parameters::RNGType RNGType;
     int n = P.dimension();
-    FT f_x, f_y, rnd;
-    Point y = get_point_in_Dsphere<RNGType, Point, FT>(n, ball_rad);
+    NT f_x, f_y, rnd;
+    Point y = get_point_in_Dsphere<RNGType, Point>(n, ball_rad);
     y = y + p;
     f_x = eval_exp(p, a_i);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();

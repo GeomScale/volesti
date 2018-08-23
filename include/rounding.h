@@ -10,6 +10,7 @@
 #ifndef ROUNDING_H
 #define ROUNDING_H
 
+/* EXPERIMENTAL
 //ROUNDING
 template <class MT, class Point>
 MT getPointsMat(std::list<Point> randPoints, int dim){
@@ -27,8 +28,8 @@ MT getPointsMat(std::list<Point> randPoints, int dim){
 }
 
 
-template <class T1, class Point, class T2, typename NT>
-std::pair<Point, NT> approx_R(T1 &P, T2 var){
+template <typename NT, class Polytope, class Point, class Parameters>
+std::pair<Point, NT> approx_R(Polytope &P, Parameters var){
     std::pair<Point,NT> InnerBall=P.ComputeInnerBall();
     Point c=InnerBall.first;
     NT radius = InnerBall.second;
@@ -62,10 +63,10 @@ std::pair<Point, NT> approx_R(T1 &P, T2 var){
 
 
 //Needs developing (experimental)
-template <class T1, class Point, class T2, typename  NT>
-NT rounding_SVD(T1 &P , Point c, NT radius, T2 &var){
-    typedef typename T1::MT 	MT;
-    typedef typename T1::VT 	VT;
+template <class Polytope, class Point, class Parameters, typename  NT>
+NT rounding_SVD(Polytope &P , Point c, NT radius, Parameters &var){
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
     int n=var.n, walk_len=var.walk_steps;
     bool print=var.verbose;
     // 1. Compute the Chebychev ball (largest inscribed ball) with center and radius 
@@ -111,7 +112,7 @@ NT rounding_SVD(T1 &P , Point c, NT radius, T2 &var){
     while(!well_rounded){
         tries++;
         randPoints.clear();
-        T1 P2(P);
+        Polytope P2(P);
         P2.linear_transformIt(T.inverse());   //We have to sample from the transformed body
         res=solveLP(P2.get_matrix(), P2.dimension());
         c=res.first;
@@ -153,27 +154,27 @@ NT rounding_SVD(T1 &P , Point c, NT radius, T2 &var){
     }
     
     return std::abs(T.determinant());
-}
+}*/
 
 
 // ----- ROUNDING ------ //
 // main rounding function
-template <class T1, class Point, class T2, typename FT>
-std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> InnerBall, T2 &var) {
+template <class Polytope, class Point, class Parameters, typename NT>
+std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> InnerBall, Parameters &var) {
 
-    typedef typename T1::MT 	MT;
-    typedef typename T1::VT 	VT;
-    typedef typename T2::RNGType RNGType;
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    typedef typename Parameters::RNGType RNGType;
     int n=var.n, walk_len=var.walk_steps, i, j = 0;
     bool print=var.verbose;
     Point c = InnerBall.first;
-    FT radius = InnerBall.second, R = 1;
+    NT radius = InnerBall.second, R = 1;
     std::list<Point> randPoints; //ds for storing rand points
     if (!P.get_points_for_rounding(randPoints)) {  // If P is a V-polytope then it will store its vertices in randPoints
         // If P is not a V-Polytope or number_of_vertices>20*domension
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
-        Point p = get_point_on_Dsphere<RNGType, Point, FT>(n, radius);
+        Point p = get_point_on_Dsphere<RNGType, Point>(n, radius);
         p = p + c;
 
         //use a large walk length e.g. 1000
@@ -182,7 +183,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> InnerBall,
         int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
         randPoints.clear();
         rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
-        FT current_dist, max_dist;
+        NT current_dist, max_dist;
         for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             current_dist=(*pit-c).squared_length();
             if(current_dist>max_dist){
@@ -196,7 +197,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> InnerBall,
     // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
     boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
     typename std::list<Point>::iterator rpit=randPoints.begin();
-    typename std::vector<FT>::iterator qit;
+    typename std::vector<NT>::iterator qit;
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
         qit = (*rpit).iter_begin(); i=0;
         for ( ; qit!=(*rpit).iter_end(); qit++, i++){
@@ -206,24 +207,24 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> InnerBall,
     boost::numeric::ublas::matrix<double> Q(n,n);
     boost::numeric::ublas::vector<double> c2(n);
     size_t w=1000;
-    FT elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+    NT elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
     MT E(n,n);
     VT e(n);
 
     //Get ellipsoid matrix and center as Eigen objects
     for(unsigned int i=0; i<n; i++){
-        e(i)=FT(c2(i));
+        e(i)=NT(c2(i));
         for (unsigned int j=0; j<n; j++){
-            E(i,j)=FT(Q(i,j));
+            E(i,j)=NT(Q(i,j));
         }
     }
 
 
     //Find the smallest and the largest axes of the elliposoid
     Eigen::EigenSolver<MT> eigensolver(E);
-    FT rel = std::real(eigensolver.eigenvalues()[0]);
-    FT Rel = std::real(eigensolver.eigenvalues()[0]);
+    NT rel = std::real(eigensolver.eigenvalues()[0]);
+    NT Rel = std::real(eigensolver.eigenvalues()[0]);
     for(unsigned int i=1; i<n; i++){
         if(std::real(eigensolver.eigenvalues()[i])<rel) rel=std::real(eigensolver.eigenvalues()[i]);
         if(std::real(eigensolver.eigenvalues()[i])>Rel) Rel=std::real(eigensolver.eigenvalues()[i]);
@@ -238,7 +239,7 @@ std::pair <FT, FT> rounding_min_ellipsoid(T1 &P , std::pair<Point,FT> InnerBall,
     MT L_1 = L.inverse();
     P.linear_transformIt(L_1.transpose());
 
-    return std::pair<FT,FT> (L_1.determinant(),rel/Rel);
+    return std::pair<NT, NT> (L_1.determinant(),rel/Rel);
 }
 
 
@@ -302,11 +303,11 @@ double rotating_old(T &P){
 }*/
 
 // -------- ROTATION ---------- //
-template <class T, typename NT>
-NT rotating(T &P){
+template <typename NT, class Polytope>
+NT rotating(Polytope &P){
 
-  typedef typename T::MT 	MT;
-  typedef typename T::VT 	VT;
+  typedef typename Polytope::MT 	MT;
+  typedef typename Polytope::VT 	VT;
 
   int n = P.dimension();
 
