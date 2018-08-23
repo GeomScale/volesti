@@ -168,7 +168,7 @@ void gaussian_first_coord_point(T1 &P,
     p.set_coord(rand_coord, dis);
     walk_len--;
 
-    for (int j = 0; j < walk_len; j++) {
+    for (unsigned int j = 0; j < walk_len; j++) {
         rand_coord = uidist(rng2);
         gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
         coord_prev = rand_coord;
@@ -194,7 +194,7 @@ void gaussian_next_point(T1 &P,
     RNGType &rng2 = var.rng;
     FT ball_rad = var.delta;
 
-    for (int j = 0; j < walk_len; j++) {
+    for (unsigned int j = 0; j < walk_len; j++) {
         if (var.ball_walk) {
             gaussian_ball_walk(p, P, a_i, ball_rad, var);
         } else if (!var.coordinate) {
@@ -237,7 +237,7 @@ void rand_gaussian_point_generator(T1 &P,
         p_prev = p;
         coord_prev = rand_coord;
         p.set_coord(rand_coord, dis);
-        for (int j = 0; j < walk_len - 1; ++j) {
+        for (unsigned int j = 0; j < walk_len - 1; ++j) {
             rand_coord = uidist(rng2);
             gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
             coord_prev = rand_coord;
@@ -246,9 +246,9 @@ void rand_gaussian_point_generator(T1 &P,
         rnum--;
     }
 
-    for (int i = 1; i <= rnum; ++i) {
+    for (unsigned  int i = 1; i <= rnum; ++i) {
 
-        for (int j = 0; j < walk_len; ++j) {
+        for (unsigned int j = 0; j < walk_len; ++j) {
             int rand_coord_prev = rand_coord;
             rand_coord = uidist(rng2);
             if (var.ball_walk) {

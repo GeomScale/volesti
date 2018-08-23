@@ -44,7 +44,7 @@ void cheb_test(FilePath f, NT expected, NT tolerance=0.001)
     //Compute chebychev ball//
     std::cout << "\n--- Testing Chebchev ball computation of " << f << std::endl;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    std::pair<Point,NT> CheBall = P.chebyshev_center();
+    std::pair<Point,NT> CheBall = P.ComputeInnerBall();
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
 
     //std::cout<<"Chebychev center is: "<<std::endl;
