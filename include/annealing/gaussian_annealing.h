@@ -69,7 +69,7 @@ void get_first_gaussian(Polytope &P, NT radius, NT frac, Parameters var, NT &err
     typedef typename std::vector<NT>::iterator viterator;
     NT tol;
     if (eqTypes<float, NT>()) { // if tol is smaller than 1e-6 no convergence can be obtained when float is used
-        tol = 0.000001;
+        tol = 0.001;
     } else {
         tol = 0.0000001;
     }
