@@ -21,13 +21,13 @@ Point get_direction(int dim) {
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
     //RNGType rng2 = var.rng;
-    for (int i=0; i<dim; i++) {
+    for (unsigned int i=0; i<dim; i++) {
         Xs[i] = rdist(rng);
         normal += Xs[i] * Xs[i];
     }
     normal=1.0/std::sqrt(normal);
 
-    for (int i=0; i<dim; i++) {
+    for (unsigned int i=0; i<dim; i++) {
         Xs[i] = Xs[i] * normal;
     }
     Point p(dim, Xs.begin(), Xs.end());
@@ -67,7 +67,7 @@ template <class T, class Point, class K, typename  NT>
 int birk_sym(T &P, K &randPoints, Point &p) {
     int n=std::sqrt(p.dimension());
     std::vector<int> myints;
-    for (int i=0; i<n; i++){
+    for (unsigned int i=0; i<n; i++){
         myints.push_back(i);
     }
 
@@ -75,7 +75,7 @@ int birk_sym(T &P, K &randPoints, Point &p) {
     do {
         std::vector<NT> newpv;
 
-        for (int j=0; j<p.dimension(); j++){
+        for (unsigned int j=0; j<p.dimension(); j++){
             int idx = (myints[j/n])*n+1+j%n-1;
             newpv.push_back(p[idx]);
         }
@@ -121,9 +121,8 @@ void rand_point_generator(T1 &P,
     } else
         hit_and_run(p, P, var);
 
-    for (int i = 1; i <= rnum; ++i) {
-
-        for (int j = 0; j < walk_len; ++j) {
+    for (unsigned int i = 1; i <= rnum; ++i) {
+        for (unsigned int j = 0; j < walk_len; ++j) {
             if (var.ball_walk) {
                 ball_walk(p, P, ball_rad, var);
             }else if (var.coordinate) {
@@ -174,8 +173,8 @@ void rand_point_generator(T3 &PBLarge,
         hit_and_run(p, PBLarge, var);
     }
 
-    for (int i = 1; i <= rnum; ++i) {
-        for (int j = 0; j < walk_len; ++j) {
+    for (unsigned int i = 1; i <= rnum; ++i) {
+        for (unsigned int j = 0; j < walk_len; ++j) {
             if (var.ball_walk) {
                 ball_walk(p, PBLarge, ball_rad, var);
             }else if (var.coordinate) {

@@ -41,7 +41,7 @@ void test_float_ve_volume(FilePath f, NT expected, NT tolerance=0.2)
              urdist,urdist1,-1.0,false,false,false,false,false,false,true);
 
     //Compute chebychev ball//
-    std::pair<Point,NT> CheBall = P.chebyshev_center();
+    std::pair<Point,NT> CheBall = P.ComputeInnerBall();
 
     // Estimate the volume
     std::cout << "--- Testing volume of " << f << std::endl;
