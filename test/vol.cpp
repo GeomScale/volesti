@@ -41,10 +41,10 @@ FT factorial(FT n)
 int main(const int argc, const char** argv)
 {
 	//Deafault values
-    typedef double                      NT;
-    typedef Cartesian<NT> 	      Kernel;
-    typedef Kernel::Point								Point;
-    typedef boost::mt19937 RNGType;
+    typedef double                    NT;
+    typedef Cartesian<NT>             Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937            RNGType;
     int n, nexp=1, n_threads=1, W;
     int walk_len,N;
     NT e=1;
@@ -106,7 +106,7 @@ int main(const int argc, const char** argv)
                       "-t, --threads #threads : the number of threads to be used\n"<<
                       "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
                       "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
-                      "\n-g_an : use the practical CV algo\n"<<
+                      "\n-cv : use the practical CV algo\n"<<
                       "-w, --walk_len [walk_len] : the random walk length (default 1)\n"<<
                       "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
                       "-e, --error epsilon : the goal error of approximation\n"<<
@@ -284,7 +284,7 @@ int main(const int argc, const char** argv)
           rotate=true;
           correct=true;
       }
-      if(!strcmp(argv[i],"-g_an")){
+      if(!strcmp(argv[i],"-cv")){
           annealing=true;
           correct=true;
       }
