@@ -160,7 +160,7 @@ NT volume(Polytope &P,
                   std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
     typedef Ball<Point> Ball;
-    typedef BallIntersectPolytope<Polytope,Ball>        BallPoly;
+    typedef BallIntersectPolytope<Polytope,Ball> BallPoly;
     typedef typename Parameters::RNGType RNGType;
 
 
