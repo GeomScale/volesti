@@ -607,8 +607,8 @@ public:
     }
 
 
-    // pick d+1 random vertices until they define a full dimensional simplex and then compute the chebychev ball of
-    // that simplex
+    // pick d+1 random vertices until they define a full dimensional simplex and then
+    // compute the chebychev ball of that simplex
     std::pair<Point,NT> ComputeInnerBall() {
 
         std::vector<Point> verts(_d+1);

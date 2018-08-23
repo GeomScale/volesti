@@ -97,6 +97,7 @@ private:
 public:
     typedef typename CBall::NT NT;
     typedef typename CBall::BallPoint Point;
+
     BallIntersectPolytope(Polytope &P, CBall &B) : _P(P), _B(B) {};
     
     Polytope first() { return _P; }
@@ -159,7 +160,7 @@ public:
 };
 
 
-/* EXPERIMEntAL
+/* EXPERIMENTAL
 template <class T1 , class T2>
 class PolytopeIntersectEllipsoid {
 private:

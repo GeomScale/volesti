@@ -220,7 +220,8 @@ void rand_gaussian_point_generator(Polytope &P,
 {
     typedef typename Parameters::RNGType RNGType;
     int n = var.n;
-    //RNGType &rng = var.rng;
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
     RNGType &rng2 = var.rng;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 

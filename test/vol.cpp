@@ -405,15 +405,13 @@ int main(const int argc, const char** argv)
               }else{
                   vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
               }
-              tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-              std::cout<<"volume computed = "<<vol<<std::endl;
-              std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;
-              return 0;
-          }
-          if(!Vpoly) {
-              vol = volume(HP, var, var, InnerBall);
-          }else{
-              vol = volume(VP, var, var, InnerBall);
+
+          } else {
+              if (!Vpoly) {
+                  vol = volume(HP, var, var, InnerBall);
+              } else {
+                  vol = volume(VP, var, var, InnerBall);
+              }
           }
       }
 
