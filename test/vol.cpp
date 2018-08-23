@@ -69,7 +69,7 @@ int main(const int argc, const char** argv)
 	//this is our polytope
 
 	HPolytope<Point> HP;
-	VPolytope<Point, RNGType> VP;
+	VPolytope<Point, RNGType> VP; // RNGType only needed for the construction of the inner ball which needs randomization
 
 
 	// parameters of CV algorithm
@@ -358,7 +358,7 @@ int main(const int argc, const char** argv)
 
   // If rotate flag is on rotate the polytope
   if(rotate){
-      rotating<HPolytope<Point>, NT>(HP);
+      rotating<NT>(HP);
   }
 
   // the number of random points to be generated in each K_i
