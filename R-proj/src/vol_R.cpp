@@ -8,7 +8,6 @@
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 #include <Rcpp.h>
 #include <RcppEigen.h>
-#include "use_double.h"
 #include "volume.h"
 
 // [[Rcpp::plugins(cpp11)]]
@@ -16,6 +15,10 @@
 double vol_R (Rcpp::NumericMatrix A, int walk_len ,double e, Rcpp::NumericVector Chebychev, bool annealing, int win_len,
              int N, double C, double ratio, double frac, bool ball_walk, double delta, bool Vpoly, bool coord, bool rounding, bool verbose) {
 
+    typedef double NT;
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937    RNGType;
     int n, nexp=1, n_threads=1,i,j;
     NT exactvol(-1.0);
     bool rand_only=false,
@@ -28,8 +31,8 @@ double vol_R (Rcpp::NumericMatrix A, int walk_len ,double e, Rcpp::NumericVector
          rotate=false,
          experiments=true,
          coordinate=coord;
-    HPolytope<NT> P;
-    VPolytope<NT> VP;
+    HPolytope<Point> P;
+    VPolytope<Point, RNGType > VP;
 
     n=A.ncol()-1;
     int m=A.nrow()-1;
@@ -85,13 +88,13 @@ double vol_R (Rcpp::NumericMatrix A, int walk_len ,double e, Rcpp::NumericVector
     }
 
     // initialization
-    vars var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,CheBall.second,rng,urdist,urdist1,
+    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,CheBall.second,rng,urdist,urdist1,
              delta,verbose,rand_only,rounding,NN,birk,ball_walk,coordinate);
     NT vol;
     if (annealing) {
-        vars var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, CheBall.second, rng,
+        vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, CheBall.second, rng,
                   urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
-        vars_g var1(n, walk_len, N, win_len, 1, e, CheBall.second, rng, C, frac, ratio, delta, false, verbose,
+        vars_g<NT, RNGType> var1(n, walk_len, N, win_len, 1, e, CheBall.second, rng, C, frac, ratio, delta, false, verbose,
                     rand_only, rounding, NN, birk, ball_walk, coordinate);
         if (!Vpoly) { // if the input is a H-polytope
             vol = volume_gaussian_annealing(P, var1, var2, CheBall);
