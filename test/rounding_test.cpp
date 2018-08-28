@@ -8,24 +8,28 @@
 #include "doctest.h"
 #include <unistd.h>
 #include "Eigen/Eigen"
-#include "use_double.h"
 #include "volume.h"
 
+template <typename NT>
 NT factorial(NT n)
 {
     return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
 
 
-template <typename FilePath>
+template <typename NT, typename FilePath>
 void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
 {
+
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937    RNGType;
     std::ifstream inp;
     std::vector<std::vector<NT> > Pin;
     inp.open(f,std::ifstream::in);
     read_pointset(inp,Pin);
     int n = Pin[0][1]-1;
-    HPolytope<NT> P;
+    HPolytope<Point> P;
     P.init(Pin);
 
     // Setup the parameters
@@ -37,51 +41,48 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
     boost::normal_distribution<> rdist(0,1);
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
-
-    vars var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
+    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
              urdist,urdist1,-1.0,false,false,false,false,false,false,true);
 
-    //Compute chebychev ball//
     std::cout << "\n--- Testing rounding of " << f << std::endl;
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
+    //apply rotation if requested
     NT rot_val;
     if(rot){
         std::cout << "\n--- Rotation is ON "<< std::endl;
-        rot_val = rotating(P);
+        rot_val = rotating<NT>(P);
         std::cout << "Rotation value = "<<rot_val<<std::endl;
     }
-    std::pair<Point,NT> CheBall;// = solveLP(P.get_matrix(), P.dimension());
-    Point c;//=CheBall.first;
-    NT radius;//=CheBall.second;
+    std::pair<Point,NT> CheBall;
+    Point c;
+    NT radius;
     NT round_value=1.0, ratio1,ratio2;
     std::pair<NT,NT> res_round;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
     int count=1;
+    //Compute chebychev ball//
     CheBall = P.ComputeInnerBall();
-    //c=CheBall.first;
-    //radius=CheBall.second;
+
+    //apply rounding
     res_round = rounding_min_ellipsoid(P, CheBall, var);
     round_value = round_value * res_round.first;
     ratio2 = res_round.second;
     ratio1 = 0.0;
-    //std::cout<<ratio1<<" "<<ratio2<<std::endl;
+    //apply rounding until conditios are satisfied
     while(ratio2>ratio1 && count<=4) {
-        CheBall = P.ComputeInnerBall();
-        //c=CheBall.first;
-        //radius=CheBall.second;
+        CheBall = P.ComputeInnerBall(); //compute the new chebychev center
         res_round = rounding_min_ellipsoid(P, CheBall, var);
         round_value = round_value * res_round.first;
         ratio1=ratio2;
         ratio2 = res_round.second;
-        //std::cout<<ratio1<<" "<<ratio2<<std::endl;
         count++;
     }
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout<<"\nround value is: "<<round_value<<std::endl;
     std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
-    CheBall = P.ComputeInnerBall();
-    //c=CheBall.first;
-    //radius=CheBall.second;
+    CheBall = P.ComputeInnerBall(); //compute the new chebychev center
 
+    //estimate volume
     NT vol = 0;
     unsigned int const num_of_exp = 10;
     for (unsigned int i=0; i<num_of_exp; i++)
@@ -93,16 +94,30 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
     std::cout << "Expected volume = " << expected << std::endl;
     CHECK(error < tolerance);
 
-
-
 }
 
+
+template <typename NT>
+void call_test_rot_skinny_cubes() {
+    rounding_test<NT>("../data/skinny_cube10.ine", true, 102400.0);
+    rounding_test<NT>("../data/skinny_cube20.ine", true, 104857600.0, 0.2);
+}
+
+template <typename NT>
+void call_test_skinny_cubes() {
+        rounding_test<NT>("../data/skinny_cube10.ine", false, 102400.0);
+        rounding_test<NT>("../data/skinny_cube20.ine", false, 104857600.0);
+    }
+
+
 TEST_CASE("round_rot_skinny_cube") {
-    rounding_test("../data/skinny_cube10.ine", true, 102400);
-    rounding_test("../data/skinny_cube20.ine", true, 104857600, 0.2);
+    call_test_rot_skinny_cubes<double>();
+    call_test_rot_skinny_cubes<float>();
+    call_test_rot_skinny_cubes<long double>();
 }
 
 TEST_CASE("round_skinny_cube") {
-    rounding_test("../data/skinny_cube10.ine", false, 102400);
-    rounding_test("../data/skinny_cube20.ine", false, 104857600);
+    call_test_skinny_cubes<double>();
+    call_test_skinny_cubes<float>();
+    call_test_skinny_cubes<long double>();
 }

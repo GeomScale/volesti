@@ -14,21 +14,24 @@
 #include "solve_lp.h"
 
 //min and max values for the Hit and Run functions
-const NT maxNT = 1.79769e+308;
-const NT minNT = -1.79769e+308;
+
 
 // H-polytope class
-template <typename FT>
+template <class Point>
 class HPolytope{
 public:
-    typedef Eigen::Matrix<FT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<FT,Eigen::Dynamic,1> VT;
+    typedef Point PolytopePoint;
+    typedef typename Point::FT NT;
+    typedef typename std::vector<NT>::iterator viterator;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
 private:
     MT A; //matrix A
     VT b; // vector b, s.t.: Ax<=b
     int            _d; //dimension
-    typedef typename std::vector<FT>::iterator viterator;
+    const NT maxNT = 1.79769e+308;
+    const NT minNT = -1.79769e+308;
 
 public:
     HPolytope() {}
@@ -97,25 +100,25 @@ public:
 
 
     // set a specific coeff of matrix A
-    FT get_mat_coeff(int i, int j) {
+    NT get_mat_coeff(int i, int j) {
         return A(i,j);
     }
 
 
     // get a spesific coeff of vector b
-    FT get_vec_coeff(int i) {
+    NT get_vec_coeff(int i) {
         return b(i);
     }
 
 
     // get a specific coeff of matrix A
-    void put_mat_coeff(int i, int j, FT value) {
+    void put_mat_coeff(int i, int j, NT value) {
         A(i,j) = value;
     }
 
 
     // set a spesific coeff of vector b
-    void put_vec_coeff(int i, FT value) {
+    void put_vec_coeff(int i, NT value) {
         b(i) = value;
     }
 
@@ -148,7 +151,7 @@ public:
 
 
     //define matrix A and vector b, s.t. Ax<=b and the dimension
-    void init(std::vector<std::vector<FT> > Pin) {
+    void init(std::vector<std::vector<NT> > Pin) {
         _d = Pin[0][1] - 1;
         A.resize(Pin.size() - 1, _d);
         b.resize(Pin.size() - 1);
@@ -240,7 +243,7 @@ public:
     
     //Check if Point p is in H-polytope P:= Ax<=b
     int is_in(Point p) {
-        FT sum;
+        NT sum;
         int m = A.rows();
         unsigned int i, j;
         for (i = 0; i < m; i++) {
@@ -248,7 +251,7 @@ public:
             for (j = 0; j < _d; j++) {
                 sum -= A(i, j) * p[j];
             }
-            if (sum < FT(0)) { //Check if corresponding hyperplane is violated
+            if (sum < NT(0)) { //Check if corresponding hyperplane is violated
                 return 0;
             }
         }
@@ -258,28 +261,28 @@ public:
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
-    std::pair<Point,FT> ComputeInnerBall() {
+    std::pair<Point,NT> ComputeInnerBall() {
 
-        std::pair <Point,FT> res;
-        res = ComputeChebychevBall(A, b, _d);  //lpSolve lib for the linear program
+        std::pair <Point,NT> res;
+        res = ComputeChebychevBall<NT, Point>(A, b, _d);  //lpSolve lib for the linear program
         return res;
     }
 
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<FT,FT> line_intersect(Point r,
+    std::pair<NT,NT> line_intersect(Point r,
                                           Point v) {
 
-        FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
-        FT sum_nom, sum_denom;
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom;
         unsigned int i, j;
         int m = num_of_hyperplanes();
         viterator rit, vit;
 
         for (i = 0; i < m; i++) {
             sum_nom = b(i);
-            sum_denom = FT(0);
+            sum_denom = NT(0);
             j = 0;
             rit = r.iter_begin();
             vit = v.iter_begin();
@@ -287,7 +290,7 @@ public:
                 sum_nom -= A(i, j) * (*rit);
                 sum_denom += A(i, j) * (*vit);
             }
-            if (sum_denom == FT(0)) {
+            if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
@@ -296,17 +299,17 @@ public:
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
         }
-        return std::pair<FT, FT>(min_plus, max_minus);
+        return std::pair<NT, NT>(min_plus, max_minus);
     }
 
 
     //First coordinate ray intersecting convex polytope
-    std::pair<FT,FT> line_intersect_coord(Point &r,
+    std::pair<NT,NT> line_intersect_coord(Point &r,
                                           int rand_coord,
-                                          std::vector<FT> &lamdas) {
+                                          std::vector<NT> &lamdas) {
 
-        FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
-        FT sum_nom, sum_denom;
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom;
         unsigned int i, j;
         int m = num_of_hyperplanes();
         viterator rit;
@@ -320,7 +323,7 @@ public:
                 sum_nom -= A(i, j) * (*rit);
             }
             lamdas[i] = sum_nom;
-            if (sum_denom == FT(0)) {
+            if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<sum_denom<<std::endl;
                 ;
             } else {
@@ -330,20 +333,20 @@ public:
 
             }
         }
-        return std::pair<FT, FT>(min_plus, max_minus);
+        return std::pair<NT, NT>(min_plus, max_minus);
     }
 
 
     //Not the first coordinate ray intersecting convex
-    std::pair<FT,FT> line_intersect_coord(Point &r,
+    std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
                                           int rand_coord,
                                           int rand_coord_prev,
-                                          std::vector<FT> &lamdas) {
+                                          std::vector<NT> &lamdas) {
 
         viterator lamdait = lamdas.begin(), rit;
-        FT lamda = 0, min_plus = FT(maxNT), max_minus = FT(minNT);
-        FT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
         unsigned int i, j;
         int m = num_of_hyperplanes();
 
@@ -354,7 +357,7 @@ public:
 
             *lamdait = *lamdait
                        + c_rand_coord_prev * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
-            if (c_rand_coord == FT(0)) {
+            if (c_rand_coord == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
@@ -365,7 +368,7 @@ public:
             }
             ++lamdait;
         }
-        return std::pair<FT, FT>(min_plus, max_minus);
+        return std::pair<NT, NT>(min_plus, max_minus);
     }
 
 
@@ -382,10 +385,10 @@ public:
 
 
     // return for each facet the distance from the origin
-    std::vector<FT> get_dists(FT radius){
+    std::vector<NT> get_dists(NT radius){
         unsigned int i=0;
-        std::vector <FT> dists(num_of_hyperplanes(), FT(0));
-        typename std::vector<FT>::iterator disit = dists.begin();
+        std::vector <NT> dists(num_of_hyperplanes(), NT(0));
+        typename std::vector<NT>::iterator disit = dists.begin();
         for ( ; disit!=dists.end(); disit++, i++)
             *disit = b(i)/A.row(i).norm();
 
@@ -408,16 +411,20 @@ public:
 
 
 // V-Polytope class
-template <typename FT>
+template <class Point, class  RNGType>
 class VPolytope{
 public:
-    typedef Eigen::Matrix<FT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<FT,Eigen::Dynamic,1> VT;
+    typedef Point PolytopePoint;
+    typedef typename Point::FT NT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
 private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     int _d;  //dimension
+    const NT maxNT = 1.79769e+308;
+    const NT minNT = -1.79769e+308;
 
 public:
     VPolytope() {}
@@ -492,31 +499,31 @@ public:
 
 
     // get a specific coeff of matrix V
-    FT get_mat_coeff(int i, int j) {
+    NT get_mat_coeff(int i, int j) {
         return V(i,j);
     }
 
 
     // get a specific coeff of vector b
-    FT get_vec_coeff(int i) {
+    NT get_vec_coeff(int i) {
         return b(i);
     }
 
 
     // set a specific coeff of matrix V
-    void put_mat_coeff(int i, int j, FT value) {
+    void put_mat_coeff(int i, int j, NT value) {
         V(i,j) = value;
     }
 
 
     // set a specific coeff of vector b
-    void put_vec_coeff(int i, FT value) {
+    void put_vec_coeff(int i, NT value) {
         b(i) = value;
     }
 
 
     // Construct matrix V which contains the vertices row-wise
-    void init(std::vector<std::vector<FT> > Pin) {
+    void init(std::vector<std::vector<NT> > Pin) {
         _d = Pin[0][1] - 1;
         V.resize(Pin.size() - 1, _d);
         b.resize(Pin.size() - 1);
@@ -543,19 +550,19 @@ public:
 
     // take d+1 points as input and compute the chebychev ball of the defined simplex
     // done is true when the simplex is full dimensional and false if it is not
-    std::pair<Point,FT> get_center_radius_inscribed_simplex(std::vector<Point>::iterator it_beg, std::vector<Point>::iterator it_end, bool &done) {
+    std::pair<Point,NT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg, typename std::vector<Point>::iterator it_end, bool &done) {
 
         Point p0 = *it_beg,p1,c;
         int dim = p0.dimension();
         unsigned int i,j;
-        std::vector <FT> temp_p;
-        FT radius = 0.0, gi, sum = 0.0;
+        std::vector <NT> temp_p;
+        NT radius = 0.0, gi, sum = 0.0;
         MT B(dim,dim);
         MT Bg(dim,dim);
         MT e(1,dim);
         VT row(dim);
         VT g(dim);
-        std::pair <Point,FT> result;
+        std::pair <Point,NT> result;
 
         for (j=1; j<dim+1; j++) {
             Point pk = *(it_beg + j);
@@ -600,12 +607,12 @@ public:
     }
 
 
-    // pick d+1 random vertices until they define a full dimensional simplex and then compute the chebychev ball of
-    // that simplex
-    std::pair<Point,FT> ComputeInnerBall() {
+    // pick d+1 random vertices until they define a full dimensional simplex and then
+    // compute the chebychev ball of that simplex
+    std::pair<Point,NT> ComputeInnerBall() {
 
         std::vector<Point> verts(_d+1);
-        std::vector<FT> vecp(_d);
+        std::vector<NT> vecp(_d);
         int m = num_of_vertices(), vert_rand, pointer=0;
         unsigned int i,j;
         std::vector<int> x_vec(_d);
@@ -614,7 +621,7 @@ public:
         RNGType rng(seed);
         boost::random::uniform_int_distribution<> uidist(1, m);
 
-        std::pair<Point,FT> res;
+        std::pair<Point,NT> res;
         // while d+1 points do not define a full dimensional simplex repeat
         while(!done){
             pointer=0;
@@ -651,50 +658,50 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with V-polytope
-    std::pair<FT,FT> line_intersect(Point r,
+    std::pair<NT,NT> line_intersect(Point r,
                                           Point v) {
-        FT min_plus, max_minus;
+        NT min_plus, max_minus;
 
-        max_minus = intersect_line_Vpoly(V, r, v, true);
-        min_plus = intersect_line_Vpoly(V, r, v, false);
+        max_minus = intersect_line_Vpoly<NT>(V, r, v, true);
+        min_plus = intersect_line_Vpoly<NT>(V, r, v, false);
 
-        return std::pair<FT, FT>(min_plus, max_minus);
+        return std::pair<NT, NT>(min_plus, max_minus);
     }
 
 
     // Compute the intersection of a coordinate ray
     // with a V-polytope
-    std::pair<FT,FT> line_intersect_coord(Point &r,
+    std::pair<NT,NT> line_intersect_coord(Point &r,
                                           int rand_coord,
-                                          std::vector<FT> &lamdas) {
-        FT min_plus, max_minus;
-        std::vector<FT> temp(_d);
+                                          std::vector<NT> &lamdas) {
+        NT min_plus, max_minus;
+        std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly(V, r, v, true);
-        min_plus = intersect_line_Vpoly(V, r, v, false);
+        max_minus = intersect_line_Vpoly<NT>(V, r, v, true);
+        min_plus = intersect_line_Vpoly<NT>(V, r, v, false);
 
-        return std::pair<FT, FT> (min_plus, max_minus);
+        return std::pair<NT, NT> (min_plus, max_minus);
     }
 
 
     // Compute the intersection of a coordinate ray
     // with a V-polytope
-    std::pair<FT,FT> line_intersect_coord(Point &r,
+    std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
                                           int rand_coord,
                                           int rand_coord_prev,
-                                          std::vector<FT> &lamdas) {
-        FT min_plus, max_minus;
-        std::vector<FT> temp(_d);
+                                          std::vector<NT> &lamdas) {
+        NT min_plus, max_minus;
+        std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly(V, r, v, true);
-        min_plus = intersect_line_Vpoly(V, r, v, false);
+        max_minus = intersect_line_Vpoly<NT>(V, r, v, true);
+        min_plus = intersect_line_Vpoly<NT>(V, r, v, false);
 
-        return std::pair<FT, FT> (min_plus, max_minus);
+        return std::pair<NT, NT> (min_plus, max_minus);
     }
 
 
@@ -715,22 +722,22 @@ public:
     // consider an upper bound for the number of facets of a V-polytope
     // for each facet consider a lower bound for the distance from the origin
     // useful for CV algorithm to get the first gaussian
-    std::vector<FT> get_dists(FT radius) {
-        std::vector <FT> res(upper_bound_of_hyperplanes(), radius);
+    std::vector<NT> get_dists(NT radius) {
+        std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }
 
 
     // in number_of_vertices<=20*dimension use the vertices for the rounding
     // otherwise you have to sample from the V-polytope
-    template <class T>
-    bool get_points_for_rounding (T &randPoints) {
+    template <class PointList>
+    bool get_points_for_rounding (PointList &randPoints) {
         if (num_of_vertices()>20*_d) {
             return false;
         }
         unsigned int j;
-        std::vector<FT> temp(_d,FT(0));
-        typename std::vector<FT>::iterator pointIt;
+        std::vector<NT> temp(_d,NT(0));
+        typename std::vector<NT>::iterator pointIt;
         for (unsigned int i=0; i<num_of_vertices(); i++) {
             pointIt = temp.begin(); j=0;
             for ( ; pointIt!=temp.end(); pointIt++, j++){

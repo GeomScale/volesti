@@ -28,7 +28,7 @@
 
 
 // compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
-template <class MT, class VT>
+template <typename NT, class Point, class MT, class VT>
 std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
 
     lprec *lp;
@@ -135,9 +135,10 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
 
 // return true if q belongs to the convex hull of the V-polytope described by matrix V
 // otherwise return false
-template <class MT>
+template <class MT, class Point>
 bool memLP_Vpoly(MT V, Point q){
 
+    typedef typename Point::FT NT;
     int d=q.dimension();
     lprec *lp;
     int Ncol=d+1, *colno = NULL, j, i, m=V.rows();
@@ -253,7 +254,7 @@ bool memLP_Vpoly(MT V, Point q){
 // compute the intersection of a ray with a V-polytope
 // if maxi is true compute positive lambda, when the ray is p + lambda \codt v
 // otherwise compute the negative lambda
-template <class MT>
+template <typename NT, class MT, class Point>
 NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
 
     int d=v.dimension(), i;

@@ -41,10 +41,10 @@ bool eqTypes() { return is_same<T, U>::value; }
 
 
 //An implementation of Welford's algorithm for mean and variance.
-template <typename FT>
-std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
-    FT mean = 0, M2 = 0, variance = 0, delta;
-    typedef typename std::vector<FT>::iterator viterator;
+template <typename NT>
+std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
+    NT mean = 0, M2 = 0, variance = 0, delta;
+    typedef typename std::vector<NT>::iterator viterator;
 
     int i=0;
     viterator vecit = vec.begin();
@@ -55,27 +55,27 @@ std::pair<FT,FT> getMeanVariance(std::vector<FT>& vec) {
         variance = M2 / (i + 1);
     }
 
-    return std::pair<FT,FT> (mean, variance);
+    return std::pair<NT, NT> (mean, variance);
 }
 
 
 // Compute the first variance a_0 for the starting gaussian
-template <class T1, typename FT>
-void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, std::vector<FT> &a_vals) {
+template <class Polytope, class Parameters, typename NT>
+void get_first_gaussian(Polytope &P, NT radius, NT frac, Parameters var, NT &error, std::vector<NT> &a_vals) {
 
     int dim = var.n;
     unsigned int i;
     const int maxiter = 10000;
-    typedef typename std::vector<FT>::iterator viterator;
-    FT tol;
-    if (eqTypes<float, FT>()) { // if tol is smaller than 1e-6 no convergence can be obtained when float is used
-        tol = 0.000001;
+    typedef typename std::vector<NT>::iterator viterator;
+    NT tol;
+    if (eqTypes<float, NT>()) { // if tol is smaller than 1e-6 no convergence can be obtained when float is used
+        tol = 0.001;
     } else {
         tol = 0.0000001;
     }
 
-    FT sum, lower = 0.0, upper = 1.0, mid;
-    std::vector <FT> dists = K.get_dists(var.che_rad);
+    NT sum, lower = 0.0, upper = 1.0, mid;
+    std::vector <NT> dists = P.get_dists(var.che_rad);
 
     // Compute an upper bound for a_0
     for (i= 1; i <= maxiter; ++i) {
@@ -111,36 +111,36 @@ void get_first_gaussian(T1 &K, FT radius, FT frac, const vars_g var, FT &error, 
         }
     }
 
-    a_vals.push_back((upper + lower) / FT(2.0));
+    a_vals.push_back((upper + lower) / NT(2.0));
     error = (1.0 - frac) * error;
 }
 
 
 // Compute a_{i+1} when a_i is given
-template <class T1, typename FT>
-FT get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var){
+template <class Polytope, class Parameters, class Point, typename NT>
+NT get_next_gaussian(Polytope &P, Point &p, NT a, int N, NT ratio, NT C, Parameters var){
 
-    FT last_a = a, last_ratio = 0.1;
+    NT last_a = a, last_ratio = 0.1;
     //k is needed for the computation of the next variance a_{i+1} = a_i * (1-1/d)^k
-    FT k = 1.0;
-    const FT tol = 0.00001;
+    NT k = 1.0;
+    const NT tol = 0.00001;
     bool done=false, print=var.verbose;
-    std::vector<FT> fn(N,FT(0.0));
+    std::vector<NT> fn(N,NT(0.0));
     std::list<Point> randPoints;
-    typedef typename std::vector<FT>::iterator viterator;
+    typedef typename std::vector<NT>::iterator viterator;
 
     //sample N points using hit and run or ball walk
-    rand_gaussian_point_generator(K, p, N, var.walk_steps, randPoints, last_a, var);
+    rand_gaussian_point_generator(P, p, N, var.walk_steps, randPoints, last_a, var);
 
     viterator fnit;
     while(!done){
         a = last_a*std::pow(ratio,k);
 
         fnit = fn.begin();
-        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, fnit++){
+        for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, fnit++){
             *fnit = eval_exp(*pit,a)/eval_exp(*pit, last_a);
         }
-        std::pair<FT,FT> mv = getMeanVariance(fn);
+        std::pair<NT, NT> mv = getMeanVariance(fn);
 
         // Compute a_{i+1}
         if(mv.second/(mv.first * mv.first)>=C || mv.first/last_ratio<1.0+tol){
@@ -158,15 +158,17 @@ FT get_next_gaussian(T1 K,Point &p, FT a, int N, FT ratio, FT C, vars_g var){
 
 
 // Compute the sequence of spherical gaussians
-template <class T1, typename FT>
-void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, vars_g var, FT &error, std::vector<FT> &a_vals){
+template <class Polytope, class Parameters, typename NT>
+void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, int N,
+                            Parameters var, NT &error, std::vector<NT> &a_vals){
     bool print=var.verbose;
+    typedef typename Polytope::PolytopePoint Point;
     // Compute the first gaussian
-    get_first_gaussian(K, radius, frac, var, error, a_vals);
+    get_first_gaussian(P, radius, frac, var, error, a_vals);
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
 
-    FT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0, next_a;
-    const FT tol = 0.001;
+    NT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0, next_a;
+    const NT tol = 0.001;
     int it = 0, n = var.n, steps, coord_prev;
     const int totalSteps= ((int)150/error)+1;
     std::list<Point> randPoints;
@@ -181,24 +183,24 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
 
     Point p_prev=p;
 
-    std::vector<FT> lamdas(K.num_of_hyperplanes(),NT(0));
+    std::vector<NT> lamdas(P.num_of_hyperplanes(), NT(0));
     while (true) {
 
         if (var.ball_walk) {
             if (var.deltaset) {
-                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(FT(1.0), a_vals[it]) * FT(n));
+                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n));
             }
         }
         // Compute the next gaussian
-        next_a = get_next_gaussian(K, p, a_vals[it], N, ratio, C, var);
+        next_a = get_next_gaussian(P, p, a_vals[it], N, ratio, C, var);
 
         curr_fn = 0;
         curr_its = 0;
-        std::fill(lamdas.begin(), lamdas.end(), FT(0));
+        std::fill(lamdas.begin(), lamdas.end(), NT(0));
         steps = totalSteps;
 
         if (var.coordinate && !var.ball_walk){
-            gaussian_first_coord_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it], lamdas, var);
+            gaussian_first_coord_point(P, p, p_prev, coord_prev, var.walk_steps, a_vals[it], lamdas, var);
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
             steps--;
@@ -206,7 +208,7 @@ void get_annealing_schedule(T1 K, FT radius, FT ratio, FT C, FT frac, int N, var
 
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++) {
-            gaussian_next_point(K, p, p_prev, coord_prev, var.walk_steps, a_vals[it], lamdas, var);
+            gaussian_next_point(P, p, p_prev, coord_prev, var.walk_steps, a_vals[it], lamdas, var);
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
         }
