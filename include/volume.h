@@ -23,15 +23,6 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-//#include "math/special_functions/binomial.hpp"
-//#include "boost/random.hpp"
-//#include <boost/random/uniform_int.hpp>
-//#include <boost/random/normal_distribution.hpp>
-//#include <boost/random/uniform_real_distribution.hpp>
-
-//typedef Cartesian<NT> 	      Kernel;
-//typedef Kernel::Point								Point;
-//typedef boost::mt19937 RNGType; // mersenne twister generator
 
 
 //structs with variables and random generators

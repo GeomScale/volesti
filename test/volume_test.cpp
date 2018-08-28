@@ -45,7 +45,7 @@ void test_volume(FilePath f, NT expected, NT tolerance=0.1)
              urdist,urdist1,-1.0,false,false,false,false,false,false,true);
 
     //Compute chebychev ball//
-    std::pair<Point,NT> CheBall = P.ComputeInnerBall();
+    std::pair<Point,NT> CheBall;
 
     // Estimate the volume
     std::cout << "--- Testing volume of " << f << std::endl;
@@ -54,6 +54,7 @@ void test_volume(FilePath f, NT expected, NT tolerance=0.1)
     unsigned int const num_of_exp = 10;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
+        CheBall = P.ComputeInnerBall();
         vol += volume(P,var,var,CheBall);
     }
     NT error = std::abs(((vol/num_of_exp)-expected))/expected;

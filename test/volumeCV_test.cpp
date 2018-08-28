@@ -48,7 +48,7 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
 
     //compute the chebychev ball
     std::pair<Point,NT> CheBall;
-    CheBall = P.ComputeInnerBall();
+
 
     // Estimate the volume
     std::cout << "--- Testing volume of " << f << std::endl;
@@ -57,6 +57,7 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
     unsigned int const num_of_exp = 20;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
+        CheBall = P.ComputeInnerBall();
         vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,rng,
                  urdist,urdist1,-1.0,false,false,false,false,false,false,true);
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
