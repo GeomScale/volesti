@@ -127,18 +127,18 @@ TEST_CASE("birk") {
 
 TEST_CASE("prod_simplex") {
     call_test_prod_simplex<double>();
-    call_test_prod_simplex<float>();
+    //call_test_prod_simplex<float>();
     call_test_prod_simplex<long double>();
 }
 
 TEST_CASE("simplex") {
     call_test_simplex<double>();
-    call_test_simplex<float>();
-    call_test_simplex<long double>();
+    //call_test_simplex<float>();
+    //call_test_simplex<long double>();
 }
 
 TEST_CASE("skinny_cube") {
     call_test_skinny_cube<double>();
-    call_test_skinny_cube<float>();
+    //call_test_skinny_cube<float>();
     call_test_skinny_cube<long double>();
 }
