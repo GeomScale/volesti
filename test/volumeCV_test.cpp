@@ -8,23 +8,28 @@
 #include "doctest.h"
 #include <unistd.h>
 #include "Eigen/Eigen"
-#include "use_double.h"
 #include "volume.h"
+#include <string>
+#include <typeinfo>
 
+template <typename NT>
 NT factorial(NT n)
 {
     return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
 
-template <typename FilePath>
+template <typename NT, typename FilePath>
 void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
 {
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937    RNGType;
     std::ifstream inp;
     std::vector<std::vector<NT> > Pin;
     inp.open(f,std::ifstream::in);
     read_pointset(inp,Pin);
     int n = Pin[0][1]-1;
-    HPolytope<NT> P;
+    HPolytope<Point> P;
     P.init(Pin);
 
     // Setup the parameters
@@ -41,20 +46,21 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
-    //structure for the chebychev ball
+    //compute the chebychev ball
     std::pair<Point,NT> CheBall;
+
 
     // Estimate the volume
     std::cout << "--- Testing volume of " << f << std::endl;
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol = 0;
     unsigned int const num_of_exp = 20;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
         CheBall = P.ComputeInnerBall();
-
-        vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,rng,
+        vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,rng,
                  urdist,urdist1,-1.0,false,false,false,false,false,false,true);
-        vars_g var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
+        vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
                     false,false,false,false,false,false,true);
         vol += volume_gaussian_annealing(P, var1, var2, CheBall);
     }
@@ -64,35 +70,69 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
             CHECK(error < tolerance);
 }
 
+template <typename NT>
+void call_test_cube(){
+    test_CV_volume<NT>("../data/cube10.ine", 1024.0);
+    test_CV_volume<NT>("../data/cube20.ine", 1048576.0);
+    test_CV_volume<NT>("../data/cube30.ine", 1073742000.0, 0.2);
+}
+
+template <typename NT>
+void call_test_cross(){
+    test_CV_volume<NT>("../data/cross_10.ine", 0.0002821869);
+}
+
+template <typename NT>
+void call_test_birk() {
+    test_CV_volume<NT>("../data/birk3.ine", 0.125);
+    //test_CV_volume<NT>("../data/birk4.ine", 0.000970018);
+    //test_CV_volume<NT>("../data/birk5.ine", 0.000000225);
+    test_CV_volume<NT>("../data/birk6.ine", 0.0000000000009455459196, 0.5);
+}
+
+template <typename NT>
+void call_test_prod_simplex() {
+    test_CV_volume<NT>("../data/prod_simplex_5_5.ine", std::pow(1.0 / factorial(5.0), 2));
+    test_CV_volume<NT>("../data/prod_simplex_10_10.ine", std::pow(1.0 / factorial(10.0), 2));
+    test_CV_volume<NT>("../data/prod_simplex_15_15.ine", std::pow(1.0 / factorial(15.0), 2));
+    test_CV_volume<NT>("../data/prod_simplex_20_20.ine", std::pow(1.0 / factorial(20.0), 2));
+}
+
+template <typename NT>
+void call_test_simplex() {
+    test_CV_volume<NT>("../data/simplex10.ine", 1.0 / factorial(10.0));
+    test_CV_volume<NT>("../data/simplex20.ine", 1.0 / factorial(20.0));
+    test_CV_volume<NT>("../data/simplex30.ine", 1.0 / factorial(30.0));
+    test_CV_volume<NT>("../data/simplex40.ine", 1.0 / factorial(40.0));
+    test_CV_volume<NT>("../data/simplex50.ine", 1.0 / factorial(50.0));
+}
 
 TEST_CASE("cube") {
-    test_CV_volume("../data/cube10.ine", 1024);
-    test_CV_volume("../data/cube20.ine", 1048576);
-    test_CV_volume("../data/cube30.ine", 1073742000, 0.2);
+    call_test_cube<double>();
+    call_test_cube<float>();
+    call_test_cube<long double>();
 }
 
 TEST_CASE("cross") {
-    test_CV_volume("../data/cross_10.ine", 0.0002821869);
+    call_test_cross<double>();
+    //call_test_cross<float>();
+    call_test_cross<long double>();
 }
 
-TEST_CASE("birkhoff") {
-    test_CV_volume("../data/birk3.ine", 0.125);
-    test_CV_volume("../data/birk4.ine", 0.000970018);
-    test_CV_volume("../data/birk5.ine", 0.000000225);
-    test_CV_volume("../data/birk6.ine", 0.0000000000009455459196, 0.5);
+TEST_CASE("birk") {
+    call_test_birk<double>();
+    //call_test_birk<float>();
+    call_test_birk<long double>();
 }
 
 TEST_CASE("prod_simplex") {
-    test_CV_volume("../data/prod_simplex_5_5.ine", std::pow(1.0/factorial(5),2));
-    test_CV_volume("../data/prod_simplex_10_10.ine", std::pow(1.0/factorial(10),2));
-    test_CV_volume("../data/prod_simplex_15_15.ine", std::pow(1.0/factorial(15),2));
-    test_CV_volume("../data/prod_simplex_20_20.ine", std::pow(1.0/factorial(20),2));
+    call_test_prod_simplex<double>();
+    //call_test_prod_simplex<float>();
+    call_test_prod_simplex<long double>();
 }
 
 TEST_CASE("simplex") {
-    test_CV_volume("../data/simplex10.ine", 1.0/factorial(10));
-    test_CV_volume("../data/simplex20.ine", 1.0/factorial(20));
-    test_CV_volume("../data/simplex30.ine", 1.0/factorial(30));
-    test_CV_volume("../data/simplex40.ine", 1.0/factorial(40));
-    test_CV_volume("../data/simplex50.ine", 1.0/factorial(50));
+    call_test_simplex<double>();
+    //call_test_simplex<float>();
+    call_test_simplex<long double>();
 }

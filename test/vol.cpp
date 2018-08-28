@@ -20,14 +20,15 @@
 // see <http://www.gnu.org/licenses/>.
 
 #include "Eigen/Eigen"
-#include "use_double.h"
+//#include "use_double.h"
 #include "volume.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
 //////////////////////////////////////////////////////////
 
-NT factorial(NT n)
+template <typename FT>
+FT factorial(FT n)
 {
   return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
@@ -40,6 +41,10 @@ NT factorial(NT n)
 int main(const int argc, const char** argv)
 {
 	//Deafault values
+    typedef double                    NT;
+    typedef Cartesian<NT>             Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937            RNGType;
     int n, nexp=1, n_threads=1, W;
     int walk_len,N;
     NT e=1;
@@ -62,8 +67,10 @@ int main(const int argc, const char** argv)
          coordinate=true;
 	
 	//this is our polytope
-	HPolytope<NT> HP;
-	VPolytope<NT> VP;
+
+	HPolytope<Point> HP;
+	VPolytope<Point, RNGType> VP; // RNGType only needed for the construction of the inner ball which needs randomization
+
 
 	// parameters of CV algorithm
 	bool user_W=false, user_N=false, user_ratio=false;
@@ -99,7 +106,7 @@ int main(const int argc, const char** argv)
                       "-t, --threads #threads : the number of threads to be used\n"<<
                       "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
                       "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
-                      "\n-g_an : use the practical CV algo\n"<<
+                      "\n-cv : use the practical CV algo\n"<<
                       "-w, --walk_len [walk_len] : the random walk length (default 1)\n"<<
                       "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
                       "-e, --error epsilon : the goal error of approximation\n"<<
@@ -277,7 +284,7 @@ int main(const int argc, const char** argv)
           rotate=true;
           correct=true;
       }
-      if(!strcmp(argv[i],"-g_an")){
+      if(!strcmp(argv[i],"-cv")){
           annealing=true;
           correct=true;
       }
@@ -351,7 +358,7 @@ int main(const int argc, const char** argv)
 
   // If rotate flag is on rotate the polytope
   if(rotate){
-      rotating(HP);
+      rotating<NT>(HP);
   }
 
   // the number of random points to be generated in each K_i
@@ -371,7 +378,7 @@ int main(const int argc, const char** argv)
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
                urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
       if(round_only){
@@ -386,25 +393,25 @@ int main(const int argc, const char** argv)
           // Estimate the volume
           if(annealing){
               // setup the parameters
-              vars var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+
+              vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
                        urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
-              vars_g var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
+              vars_g<NT, RNGType> var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
                           verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+
               if(!Vpoly) {
                   vol = volume_gaussian_annealing(HP, var1, var2, InnerBall);
               }else{
                   vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
               }
-              tstop = (double)clock()/(double)CLOCKS_PER_SEC;
-              std::cout<<"volume computed = "<<vol<<std::endl;
-              std::cout<<"Total time = "<<tstop-tstart<<" sec"<<std::endl;
-              return 0;
-          }
-          if(!Vpoly) {
-              vol = volume(HP, var, var, InnerBall);
-          }else{
-              vol = volume(VP, var, var, InnerBall);
+
+          } else {
+              if (!Vpoly) {
+                  vol = volume(HP, var, var, InnerBall);
+              } else {
+                  vol = volume(VP, var, var, InnerBall);
+              }
           }
       }
 
