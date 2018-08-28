@@ -10,6 +10,7 @@
 #include "Eigen/Eigen"
 #include "volume.h"
 #include <string>
+#include <typeinfo>
 
 template <typename NT>
 NT factorial(NT n)
@@ -51,6 +52,7 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
 
     // Estimate the volume
     std::cout << "--- Testing volume of " << f << std::endl;
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol = 0;
     unsigned int const num_of_exp = 20;
     for (unsigned int i=0; i<num_of_exp; i++)
@@ -67,79 +69,69 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
             CHECK(error < tolerance);
 }
 
-template <typename NT, class string>
-void call_tests(string test) {
+template <typename NT>
+void call_test_cube(){
+    test_CV_volume<NT>("../data/cube10.ine", 1024.0);
+    test_CV_volume<NT>("../data/cube20.ine", 1048576.0);
+    test_CV_volume<NT>("../data/cube30.ine", 1073742000.0, 0.2);
+}
 
-    string strcube("cube");
-    string strcross("cross");
-    string strbirk("birk");
-    string strprod_simplex("prod_simplex");
-    string strsimplex("simplex");
+template <typename NT>
+void call_test_cross(){
+    test_CV_volume<NT>("../data/cross_10.ine", 0.0002821869);
+}
 
-    if(test.compare(strcube) == 0) {
-        test_CV_volume<NT>("../data/cube10.ine", 1024.0);
-        test_CV_volume<NT>("../data/cube20.ine", 1048576.0);
-        test_CV_volume<NT>("../data/cube30.ine", 1073742000.0, 0.2);
-    }
+template <typename NT>
+void call_test_birk() {
+    test_CV_volume<NT>("../data/birk3.ine", 0.125);
+    //test_CV_volume<NT>("../data/birk4.ine", 0.000970018);
+    //test_CV_volume<NT>("../data/birk5.ine", 0.000000225);
+    test_CV_volume<NT>("../data/birk6.ine", 0.0000000000009455459196, 0.5);
+}
 
-    if(test.compare(strcross) == 0) {
-        test_CV_volume<NT>("../data/cross_10.ine", 0.0002821869);
-    }
+template <typename NT>
+void call_test_prod_simplex() {
+    test_CV_volume<NT>("../data/prod_simplex_5_5.ine", std::pow(1.0 / factorial(5.0), 2));
+    test_CV_volume<NT>("../data/prod_simplex_10_10.ine", std::pow(1.0 / factorial(10.0), 2));
+    test_CV_volume<NT>("../data/prod_simplex_15_15.ine", std::pow(1.0 / factorial(15.0), 2));
+    test_CV_volume<NT>("../data/prod_simplex_20_20.ine", std::pow(1.0 / factorial(20.0), 2));
+}
 
-    if(test.compare(strbirk) == 0) {
-        test_CV_volume<NT>("../data/birk3.ine", 0.125);
-        test_CV_volume<NT>("../data/birk4.ine", 0.000970018);
-        test_CV_volume<NT>("../data/birk5.ine", 0.000000225);
-        test_CV_volume<NT>("../data/birk6.ine", 0.0000000000009455459196, 0.5);
-    }
-
-    if(test.compare(strprod_simplex) == 0) {
-        test_CV_volume<NT>("../data/prod_simplex_5_5.ine", std::pow(1.0 / factorial(5.0), 2));
-        test_CV_volume<NT>("../data/prod_simplex_10_10.ine", std::pow(1.0 / factorial(10.0), 2));
-        test_CV_volume<NT>("../data/prod_simplex_15_15.ine", std::pow(1.0 / factorial(15.0), 2));
-        test_CV_volume<NT>("../data/prod_simplex_20_20.ine", std::pow(1.0 / factorial(20.0), 2));
-    }
-
-    if(test.compare(strsimplex) == 0) {
-        test_CV_volume<NT>("../data/simplex10.ine", 1.0 / factorial(10.0));
-        test_CV_volume<NT>("../data/simplex20.ine", 1.0 / factorial(20.0));
-        test_CV_volume<NT>("../data/simplex30.ine", 1.0 / factorial(30.0));
-        test_CV_volume<NT>("../data/simplex40.ine", 1.0 / factorial(40.0));
-        test_CV_volume<NT>("../data/simplex50.ine", 1.0 / factorial(50.0));
-    }
+template <typename NT>
+void call_test_simplex() {
+    test_CV_volume<NT>("../data/simplex10.ine", 1.0 / factorial(10.0));
+    test_CV_volume<NT>("../data/simplex20.ine", 1.0 / factorial(20.0));
+    test_CV_volume<NT>("../data/simplex30.ine", 1.0 / factorial(30.0));
+    test_CV_volume<NT>("../data/simplex40.ine", 1.0 / factorial(40.0));
+    test_CV_volume<NT>("../data/simplex50.ine", 1.0 / factorial(50.0));
 }
 
 TEST_CASE("cube") {
-    std::string strtest("cube");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_cube<double>();
+    call_test_cube<float>();
+    call_test_cube<long double>();
 }
 
 TEST_CASE("cross") {
-    std::string strtest("cross");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_cross<double>();
+    //call_test_cross<float>();
+    call_test_cross<long double>();
 }
 
 TEST_CASE("birk") {
-    std::string strtest("birk");
-    call_tests<double>(strtest);
-    //call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_birk<double>();
+    //call_test_birk<float>();
+    call_test_birk<long double>();
 }
 
 TEST_CASE("prod_simplex") {
-    std::string strtest("prod_simplex");
-    call_tests<double>(strtest);
-    //call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_prod_simplex<double>();
+    //call_test_prod_simplex<float>();
+    call_test_prod_simplex<long double>();
 }
 
 TEST_CASE("simplex") {
-    std::string strtest("simplex");
-    call_tests<double>(strtest);
-    //call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_simplex<double>();
+    //call_test_simplex<float>();
+    call_test_simplex<long double>();
 }

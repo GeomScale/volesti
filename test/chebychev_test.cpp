@@ -47,6 +47,7 @@ void cheb_test(FilePath f, NT expected, NT tolerance=0.0001)
 
     //Compute chebychev ball//
     std::cout << "\n--- Testing Chebchev ball computation of " << f << std::endl;
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
     std::pair<Point,NT> CheBall = P.ComputeInnerBall();
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -61,94 +62,83 @@ void cheb_test(FilePath f, NT expected, NT tolerance=0.0001)
 
 }
 
-template <typename NT, class string>
-void call_tests(string test) {
+template <typename NT>
+void call_test_cube() {
+    cheb_test<NT>("../data/cube10.ine", 1.0);
+    cheb_test<NT>("../data/cube20.ine", 1.0);
+    cheb_test<NT>("../data/cube30.ine", 1.0);
+}
 
-    string strcube("cheb_cube");
-    string strcross("cheb_cross");
-    string strbirk("cheb_birk");
-    string strprod_simplex("cheb_prod_simplex");
-    string strsimplex("cheb_simplex");
-    string strskinny_cube("skinny_cube");
+template <typename NT>
+void call_test_cross() {
+    cheb_test<NT>("../data/cross_10.ine", 0.316228);
+}
 
-    if(test.compare(strcube) == 0) {
-        cheb_test<NT>("../data/cube10.ine", 1.0);
-        cheb_test<NT>("../data/cube20.ine", 1.0);
-        cheb_test<NT>("../data/cube30.ine", 1.0);
-    }
+template <typename NT>
+void call_test_birk() {
+    cheb_test<NT>("../data/birk3.ine", 0.207107);
+    cheb_test<NT>("../data/birk4.ine", 0.122008);
+    cheb_test<NT>("../data/birk5.ine", 0.0833333);
+    cheb_test<NT>("../data/birk6.ine", 0.0618034);
+}
 
-    if(test.compare(strcross) == 0) {
-        cheb_test<NT>("../data/cross_10.ine", 0.316228);
-    }
+template <typename NT>
+void call_test_prod_simplex() {
+    cheb_test<NT>("../data/prod_simplex_5_5.ine", 0.138197);
+    cheb_test<NT>("../data/prod_simplex_10_10.ine", 0.0759747);
+    cheb_test<NT>("../data/prod_simplex_15_15.ine", 0.0529858);
+    cheb_test<NT>("../data/prod_simplex_20_20.ine", 0.0408628);
+}
 
-    if(test.compare(strbirk) == 0) {
-        cheb_test<NT>("../data/birk3.ine", 0.207107);
-        cheb_test<NT>("../data/birk4.ine", 0.122008);
-        cheb_test<NT>("../data/birk5.ine", 0.0833333);
-        cheb_test<NT>("../data/birk6.ine", 0.0618034);
-    }
+template <typename NT>
+void call_test_simplex() {
+    cheb_test<NT>("../data/simplex10.ine", 0.0759747);
+    cheb_test<NT>("../data/simplex20.ine", 0.0408628);
+    cheb_test<NT>("../data/simplex30.ine", 0.0281871);
+    cheb_test<NT>("../data/simplex40.ine", 0.0215868);
+    cheb_test<NT>("../data/simplex50.ine", 0.017522);
+}
 
-    if(test.compare(strprod_simplex) == 0) {
-        cheb_test<NT>("../data/prod_simplex_5_5.ine", 0.138197);
-        cheb_test<NT>("../data/prod_simplex_10_10.ine", 0.0759747);
-        cheb_test<NT>("../data/prod_simplex_15_15.ine", 0.0529858);
-        cheb_test<NT>("../data/prod_simplex_20_20.ine", 0.0408628);
-    }
-
-    if(test.compare(strsimplex) == 0) {
-        cheb_test<NT>("../data/simplex10.ine", 0.0759747);
-        cheb_test<NT>("../data/simplex20.ine", 0.0408628);
-        cheb_test<NT>("../data/simplex30.ine", 0.0281871);
-        cheb_test<NT>("../data/simplex40.ine", 0.0215868);
-        cheb_test<NT>("../data/simplex50.ine", 0.017522);
-    }
-
-    if(test.compare(strskinny_cube) == 0) {
-        cheb_test<NT>("../data/skinny_cube10.ine", 1.0);
-        cheb_test<NT>("../data/skinny_cube20.ine", 1.0);
-    }
+template <typename NT>
+void call_test_skinny_cube() {
+    cheb_test<NT>("../data/skinny_cube10.ine", 1.0);
+    cheb_test<NT>("../data/skinny_cube20.ine", 1.0);
 }
 
 
 
 TEST_CASE("cheb_cube") {
-    std::string strtest("cheb_cube");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_cube<double>();
+    call_test_cube<float>();
+    call_test_cube<long double>();
 }
 
 TEST_CASE("cheb_cross") {
-    std::string strtest("cheb_cross");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_cross<double>();
+    call_test_cross<float>();
+    call_test_cross<long double>();
 }
 
 TEST_CASE("cheb_birk") {
-    std::string strtest("cheb_birk");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_birk<double>();
+    call_test_birk<float>();
+    call_test_birk<long double>();
 }
 
 TEST_CASE("cheb_prod_simplex") {
-    std::string strtest("cheb_prod_simplex");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_prod_simplex<double>();
+    call_test_prod_simplex<float>();
+    call_test_prod_simplex<long double>();
 }
 
 TEST_CASE("cheb_simplex") {
-    std::string strtest("cheb_simplex");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_simplex<double>();
+    call_test_simplex<float>();
+    call_test_simplex<long double>();
 }
 
 TEST_CASE("cheb_skinny_cube") {
-    std::string strtest("cheb_skinny_cube");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_skinny_cube<double>();
+    call_test_skinny_cube<float>();
+    call_test_skinny_cube<long double>();
 }
