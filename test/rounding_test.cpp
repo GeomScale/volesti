@@ -45,6 +45,7 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
              urdist,urdist1,-1.0,false,false,false,false,false,false,true);
 
     std::cout << "\n--- Testing rounding of " << f << std::endl;
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
     //apply rotation if requested
     NT rot_val;
     if(rot){
@@ -96,33 +97,27 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
 }
 
 
-template <typename NT, class string>
-void call_tests(string test) {
-
-    string strrotskinny_cube("round_rot_skinny_cube");
-    string strskinny_cube("round_skinny_cube");
-
-    if(test.compare(strrotskinny_cube) == 0) {
-        rounding_test("../data/skinny_cube10.ine", true, 102400.0);
-        rounding_test("../data/skinny_cube20.ine", true, 104857600.0, 0.2);
-    }
-
-    if(test.compare(strskinny_cube) == 0) {
-        rounding_test("../data/skinny_cube10.ine", false, 102400.0);
-        rounding_test("../data/skinny_cube20.ine", false, 104857600.0);
-    }
+template <typename NT>
+void call_test_rot_skinny_cubes() {
+    rounding_test<NT>("../data/skinny_cube10.ine", true, 102400.0);
+    rounding_test<NT>("../data/skinny_cube20.ine", true, 104857600.0, 0.2);
 }
 
+template <typename NT>
+void call_test_skinny_cubes() {
+        rounding_test<NT>("../data/skinny_cube10.ine", false, 102400.0);
+        rounding_test<NT>("../data/skinny_cube20.ine", false, 104857600.0);
+    }
+
+
 TEST_CASE("round_rot_skinny_cube") {
-    std::string strtest("round_rot_skinny_cube");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_rot_skinny_cubes<double>();
+    call_test_rot_skinny_cubes<float>();
+    call_test_rot_skinny_cubes<long double>();
 }
 
 TEST_CASE("round_skinny_cube") {
-    std::string strtest("round_skinny_cube");
-    call_tests<double>(strtest);
-    call_tests<float>(strtest);
-    call_tests<long double>(strtest);
+    call_test_skinny_cubes<double>();
+    call_test_skinny_cubes<float>();
+    call_test_skinny_cubes<long double>();
 }
