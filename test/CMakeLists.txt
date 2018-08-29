@@ -54,6 +54,8 @@ else ()
   add_executable (cheb_test chebychev_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (rounding_test rounding_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (volumeCV_test volumeCV_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (VpolyCV_test VpolyCV_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (VpolyVol_test VpolyVol_test.cpp $<TARGET_OBJECTS:test_main>)
   
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
@@ -67,6 +69,14 @@ else ()
   add_test(NAME volumeCV_birkhoff COMMAND volumeCV_test -tc=birkhoff)
   add_test(NAME volumeCV_prod_simplex COMMAND volumeCV_test -tc=prod_simplex)
   add_test(NAME volumeCV_simplex COMMAND volumeCV_test -tc=simplex)
+
+  add_test(NAME VpolyCV_cube COMMAND VpolyCV_test -tc=cube)
+  add_test(NAME VpolyCV_cross COMMAND VpolyCV_test -tc=cross)
+  add_test(NAME VpolyCV_simplex COMMAND VpolyCV_test -tc=simplex)
+
+  add_test(NAME VpolyVol_cube COMMAND VpolyVol_test -tc=cube)
+  add_test(NAME VpolyVol_cross COMMAND VpolyVol_test -tc=cross)
+  add_test(NAME VpolyVol_simplex COMMAND VpolyVol_test -tc=simplex)
 
   add_test(NAME cheb_cube COMMAND cheb_test -tc=cheb_cube)
   add_test(NAME cheb_cross COMMAND cheb_test -tc=cheb_cross)
@@ -84,6 +94,8 @@ else ()
   TARGET_LINK_LIBRARIES(cheb_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(rounding_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volumeCV_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(VpolyCV_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(VpolyVol_test ${LP_SOLVE})
 
 endif()
 
