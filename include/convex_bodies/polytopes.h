@@ -30,8 +30,8 @@ private:
     MT A; //matrix A
     VT b; // vector b, s.t.: Ax<=b
     int            _d; //dimension
-    const NT maxNT = 1.79769e+308;
-    const NT minNT = -1.79769e+308;
+    NT maxNT = 1.79769e+308;
+    NT minNT = -1.79769e+308;
 
 public:
     HPolytope() {}
@@ -123,6 +123,13 @@ public:
     }
 
 
+    void init(int dim, MT _A, VT _b) {
+        _d = dim;
+        A = _A;
+        b = _b;
+    }
+
+
     // default initialize: cube(d)
     void init(int d) {
         A.resize(2 * d, d);
@@ -169,7 +176,7 @@ public:
         std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                std::cout << A(i, j) << " ";
+                std::cout << -A(i, j) << " ";
             }
             std::cout << "<= " << b(i) << std::endl;
         }
@@ -423,8 +430,8 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     int _d;  //dimension
-    const NT maxNT = 1.79769e+308;
-    const NT minNT = -1.79769e+308;
+    NT maxNT = 1.79769e+308;
+    NT minNT = -1.79769e+308;
 
 public:
     VPolytope() {}
@@ -519,6 +526,20 @@ public:
     // set a specific coeff of vector b
     void put_vec_coeff(int i, NT value) {
         b(i) = value;
+    }
+
+
+    void init(int dim, MT _V) {
+        _d = dim;
+        V = _V;
+        b.resize(V.rows());
+    }
+
+
+    void init(int dim, MT _V, VT _b) {
+        _d = dim;
+        V = _V;
+        b = _b;
     }
 
 

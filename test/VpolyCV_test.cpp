@@ -63,13 +63,13 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
                                  false,false,false,false,false,false,true);
         vol += volume_gaussian_annealing(VP, var1, var2, CheBall);
+        std::cout<<"vol = "<<vol<<std::endl;
     }
     NT error = std::abs(((vol/num_of_exp)-expected))/expected;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
     std::cout << "Expected volume = " << expected << std::endl;
             CHECK(error < tolerance);
 }
-
 
 template <typename NT>
 void call_test_cube(){
@@ -80,10 +80,10 @@ void call_test_cube(){
 
 template <typename NT>
 void call_test_cross(){
-    test_CV_volume<NT>("../data/cross_5.ext", 0.266667);
-    test_CV_volume<NT>("../data/cross_8.ext", 0.006349206);
+    test_CV_volume<NT>("../data/cross_4.ext", 0.6666667);
     if(typeid(NT)== typeid(double)) {
-        test_CV_volume<NT>("../data/cross_10.ext", 0.0002821869);
+        test_CV_volume<NT>("../data/cross_5.ext", 0.26666667);
+        test_CV_volume<NT>("../data/cross_6.ext", 0.08888889);
     }
 }
 
