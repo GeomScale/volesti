@@ -1,0 +1,15 @@
+cube_3.ext
+V-representation
+begin
+8  4  integer
+ 1 1 -1 -1
+ 1 1 -1 1
+ 1 1 1 1
+ 1 1 1 -1
+ 1 -1 1 1
+ 1 -1 1 -1
+ 1 -1 -1 1
+ 1 -1 -1 -1
+end
+hull
+incidence
