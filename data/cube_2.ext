@@ -1,0 +1,11 @@
+cube_2.ext
+V-representation
+begin
+4 3 integer
+1 -1 -1
+1 -1  1
+1  1 -1
+1  1  1
+end
+hull
+incidence
