@@ -45,6 +45,8 @@ int main(const int argc, const char** argv)
     typedef Cartesian<NT>             Kernel;
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937            RNGType;
+    typedef HPolytope<Point> Hpolytope;
+    typedef VPolytope<Point, RNGType > Vpolytope;
     int n, nexp=1, n_threads=1, W;
     int walk_len,N;
     NT e=1;
@@ -65,18 +67,17 @@ int main(const int argc, const char** argv)
          annealing = false,
          Vpoly=false,
          coordinate=true;
-	
-	//this is our polytope
 
-	HPolytope<Point> HP;
-	VPolytope<Point, RNGType> VP; // RNGType only needed for the construction of the inner ball which needs randomization
+    //this is our polytope
+    Hpolytope HP;
+    Vpolytope VP; // RNGType only needed for the construction of the inner ball which needs randomization
 
 
-	// parameters of CV algorithm
-	bool user_W=false, user_N=false, user_ratio=false;
-	NT ball_radius=0.0;
-	NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
-	
+    // parameters of CV algorithm
+    bool user_W=false, user_N=false, user_ratio=false;
+    NT ball_radius=0.0;
+    NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
+
   if(argc<2){
     std::cout<<"Use -h for help"<<std::endl;
     exit(-2);
@@ -295,7 +296,7 @@ int main(const int argc, const char** argv)
       }
       
   }
-  
+
   //Compute chebychev ball//
   std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;

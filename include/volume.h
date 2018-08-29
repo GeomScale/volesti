@@ -142,6 +142,7 @@ public:
 #include "annealing/gaussian_annealing.h"
 #include "misc.h"
 #include "linear_extensions.h"
+#include "polytope_generators.h"
 
 
 template <class Polytope, class Parameters, class Point, typename NT>

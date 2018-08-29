@@ -34,6 +34,7 @@ else ()
   #include_directories (BEFORE ../include/convex_bodies)
   include_directories (BEFORE ../external/LPsolve_src)
   include_directories (BEFORE ../external/boost)
+  include_directories (BEFORE ../include/polytope_generators)
   include_directories (BEFORE ../include)
 
 
