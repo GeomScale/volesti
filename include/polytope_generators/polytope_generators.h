@@ -315,4 +315,52 @@ Polytope gen_prod_simplex(int dim, int m){
     return P;
 }
 
+
+template <class Polytope, class RNGType>
+Polytope gen_zonotope(int dim, int m) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::normal_distribution<> rdist(0, 1);
+
+    NT sum;
+    MT A;
+    VT b;
+    A.resize(m, dim);
+    b.resize(m);
+    Polytope P;
+
+    for (int i = 0; i < dim; ++i) {
+        b(i) = 0.0;
+        for (int j = 0; j < dim; ++j) {
+            if (i==j) {
+                A(i,j) = 1.0;
+            } else {
+                A(i,j) = 0.0;
+            }
+        }
+    }
+
+    for (int i = dim; i < m; ++i) {
+        b(i) = 0.0;
+        sum = 0.0;
+        for (int j = 0; j < dim; ++j) {
+            A(i,j) = rdist(rng);
+            sum += A(i,j) * A(i,j);
+        }
+        sum = 1.0 / std::sqrt(sum);
+        for (int j = 0; j < dim; ++j) {
+            A(i,j) = A(i,j) * sum;
+        }
+    }
+
+    P.init(dim, A, b);
+    return P;
+}
+
+
 #endif
