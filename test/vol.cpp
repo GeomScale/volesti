@@ -22,6 +22,7 @@
 #include "Eigen/Eigen"
 //#include "use_double.h"
 #include "volume.h"
+#include "zonotope_exact_vol.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
@@ -47,6 +48,7 @@ int main(const int argc, const char** argv)
     typedef boost::mt19937            RNGType;
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef Zonotope<Point> Zonotope;
     int n, nexp=1, n_threads=1, W;
     int walk_len,N;
     NT e=1;
@@ -297,13 +299,27 @@ int main(const int argc, const char** argv)
       
   }
 
+
+  n=5;
+  Zonotope ZP = gen_zonotope<Zonotope, RNGType>(5,10);
+  ZP.print();
+  Point q(n);
+  std::cout<<ZP.is_in(q)<<std::endl;
+  NT tmp[] = {1234920, 323094, 42348, 123290, 234134};
+  std::vector<NT> temp(tmp, tmp+5);
+  Point q2(n, temp.begin(), temp.end());
+  std::cout<<ZP.is_in(q2)<<std::endl;
+  NT zono_vol = exact_zonotope_vol<NT, Zonotope>(ZP);
+  std::cout<<"exact zonotope volume = "<<zono_vol<<"\n"<<std::endl;
+
+
   //Compute chebychev ball//
   std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(!Vpoly) {
       InnerBall = HP.ComputeInnerBall();
   }else{
-      InnerBall = VP.ComputeInnerBall();
+      InnerBall = ZP.ComputeInnerBall();
   }
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Inner ball time = " << tstop1 - tstart1 << std::endl;
@@ -404,14 +420,14 @@ int main(const int argc, const char** argv)
               if(!Vpoly) {
                   vol = volume_gaussian_annealing(HP, var1, var2, InnerBall);
               }else{
-                  vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
+                  vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
               }
 
           } else {
               if (!Vpoly) {
                   vol = volume(HP, var, var, InnerBall);
               } else {
-                  vol = volume(VP, var, var, InnerBall);
+                  vol = volume(ZP, var, var, InnerBall);
               }
           }
       }

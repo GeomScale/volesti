@@ -23,6 +23,7 @@
 #define SOLVE_LP_H
 
 #include <stdio.h>
+#include <cmath>
 #include <exception>
 #include "run_headers/lp_lib.h"
 
@@ -252,22 +253,27 @@ bool memLP_Vpoly(MT V, Point q){
 
 
 // compute the intersection of a ray with a V-polytope
-// if maxi is true compute positive lambda, when the ray is p + lambda \codt v
+// if maxi is true compute positive lambda, when the ray is p + lambda \cdot v
 // otherwise compute the negative lambda
 template <typename NT, class MT, class Point>
-NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
+NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
 
     int d=v.dimension(), i;
     lprec *lp;
     int m=V.rows();
     m++;
-    int Ncol=m, *colno = NULL, j;
+    int Ncol=m, *colno = NULL, j, Nrows;
     REAL *row = NULL;
     NT res;
+    if(!zonotope) {
+        Nrows = d+1;
+    } else {
+        Nrows = d;
+    }
 
     try
     {
-        lp = make_lp(m, Ncol);
+        lp = make_lp(Nrows, Ncol);
         if(lp == NULL) throw false;
     }
     catch (bool e) {
@@ -308,20 +314,21 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
 
     }
 
-    for(j=0; j<m-1; j++){
-        colno[j] = j+1; /* j_th column */
-        row[j] = 1.0;
-    }
-    colno[m-1] = m; /* last column */
-    row[m-1] = 0.0;
+    if(!zonotope) {
+        for (j = 0; j < m - 1; j++) {
+            colno[j] = j + 1; /* j_th column */
+            row[j] = 1.0;
+        }
+        colno[m - 1] = m; /* last column */
+        row[m - 1] = 0.0;
 
-    /* add the row to lpsolve */
-    try {
-        if(!add_constraintex(lp, m, row, colno, EQ, 1.0)) throw false;
-    }
-    catch (bool e)
-    {
-        std::cout<<"Could not construct constaints for the Linear Program for ray-shooting "<<e<<std::endl;
+        /* add the row to lpsolve */
+        try {
+            if (!add_constraintex(lp, m, row, colno, EQ, 1.0)) throw false;
+        }
+        catch (bool e) {
+            std::cout << "Could not construct constaints for the Linear Program for ray-shooting " << e << std::endl;
+        }
     }
 
     //set the bounds
@@ -330,6 +337,7 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
     // set the objective function
     for(j=0; j<m-1; j++){
         colno[j] = j+1; /* j_th column */
+        set_bounds(lp, j+1, 0.0, 1.0);
         row[j] = 0;
     }
     colno[m - 1] =m; /* last column */
@@ -366,6 +374,91 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi){
     res = NT(-get_objective(lp));
     delete_lp(lp);
     return res;
+}
+
+
+template <class MT, class Point>
+bool memLP_Zonotope(MT V, Point q){
+
+    typedef typename Point::FT NT;
+    int d=q.dimension();
+    lprec *lp;
+    int Ncol=V.rows(), *colno = NULL, j, i;//, m=V.rows();
+    REAL *row = NULL;
+
+    try
+    {
+        lp = make_lp(d, Ncol);
+        if(lp == NULL) throw false;
+    }
+    catch (bool e) {
+        std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
+    }
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    try
+    {
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        row = (REAL *) malloc(Ncol * sizeof(*row));
+    }
+    catch (std::exception &e)
+    {
+        std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
+    }
+
+    set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
+
+    for (i = 0;  i< d; ++i) {
+        /* construct all rows */
+        for(j=0; j<Ncol; j++){
+            colno[j] = j+1;
+            row[j] = V(j,i);
+        }
+
+        /* add the row to lpsolve */
+        try {
+            if(!add_constraintex(lp, Ncol, row, colno, EQ, q[i])) throw false;
+        }
+        catch (bool e)
+        {
+            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+        }
+    }
+
+    //set the bounds
+    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
+
+    // set the bounds
+    for(j=0; j<Ncol; j++){
+        colno[j] = j+1; /* j_th column */
+        row[j] = 0.0;
+        set_bounds(lp, j+1, 0.0, 1.0);
+    }
+
+    // set the objective function
+    try
+    {
+        if(!set_obj_fnex(lp, Ncol, row, colno)) throw false;
+    }
+    catch (bool e)
+    {
+        std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
+    }
+
+    /* set the object direction to maximize */
+    set_maxim(lp);
+
+    /* I only want to see important messages on screen while solving */
+    set_verbose(lp, NEUTRAL);
+
+    /* Now let lpsolve calculate a solution */
+    if (solve(lp) != OPTIMAL){
+        //std::cout<<"LP sol no optimal!"<<std::endl;
+        return false;
+    }
+    //std::cout<<"LP sol optimal!"<<std::endl;
+    return true;
 }
 
 #endif
