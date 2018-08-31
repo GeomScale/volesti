@@ -996,14 +996,17 @@ public:
     // shift zonotope to the origin
     void initial_shifting() {
         std::vector<NT> vec(_d,0.0);
+        typename std::vector<NT>::iterator vecit;
         Point xc(_d);
 
-        int m = V.rows();
+        int m = V.rows(), j;
         Point temp;
 
-        for (int i = 0; i < m; ++i) {
-            for (int j = 0; j < _d; ++j) {
-                vec[j] = V(i,j);
+        for (unsigned int i = 0; i < m; ++i) {
+            vecit = vec.begin();
+            j = 0;
+            for ( ; vecit!=vec.end(); ++vecit, ++j) {
+                *vecit = V(i,j);
             }
             temp = Point(_d, vec.begin(), vec.end());
             xc = xc + temp;
@@ -1011,8 +1014,10 @@ public:
         xc = xc * (1.0 / NT(m));
 
         VT c(_d);
-        for (int i = 0; i < _d; ++i) {
-            c(i) = xc[i];
+        vecit = xc.iter_begin();
+        j = 0;
+        for ( ; vecit!=xc.iter_end(); ++vecit, ++j) {
+            c(j) = *vecit;
         }
 
         MT V2 = V.transpose().colwise() - c;
