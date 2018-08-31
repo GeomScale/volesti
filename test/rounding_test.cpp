@@ -37,7 +37,8 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
     int nexp=1, n_threads=1;
     NT e=1, err=0.0000000001;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
-    RNGType rng(std::time(0));
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
     boost::normal_distribution<> rdist(0,1);
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);

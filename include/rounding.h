@@ -174,9 +174,8 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
         // If P is not a V-Polytope or number_of_vertices>20*domension
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
-        //Point p = get_point_on_Dsphere<RNGType, Point>(n, radius);
-        Point p = c;
-        std::cout<<"p is in: "<<P.is_in(p)<<std::endl;
+        Point p = get_point_on_Dsphere<RNGType, Point>(n, radius);
+        p = p + c;
 
         //use a large walk length e.g. 1000
         rand_point_generator(P, p, 1, 50*n, randPoints, var);

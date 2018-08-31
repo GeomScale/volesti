@@ -22,7 +22,6 @@
 #include "Eigen/Eigen"
 //#include "use_double.h"
 #include "volume.h"
-#include "zonotope_exact_vol.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
@@ -68,12 +67,13 @@ int main(const int argc, const char** argv)
          experiments=true,
          annealing = false,
          Vpoly=false,
+         Zono=false,
          coordinate=true;
 
     //this is our polytope
     Hpolytope HP;
     Vpolytope VP; // RNGType only needed for the construction of the inner ball which needs randomization
-
+    Zonotope  ZP;
 
     // parameters of CV algorithm
     bool user_W=false, user_N=false, user_ratio=false;
@@ -95,8 +95,9 @@ int main(const int argc, const char** argv)
                       "-v, --verbose \n"<<
                       "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
                       "-rand, --rand_only : generates only random points\n"<<
-                      "-f1, --file1 [filename_type_Ax<=b] [epsilon] [walk_length] [threads] [num_of_experiments]\n"<<
-                      //"-f2, --file2 [filename_type_Ax=b,x>=0] [epsilon] [walk_length] [threads] [num_of_experiments]\n"<<
+                      "-f1, --file1 [filename_type_Ax<=b] [epsilon] [walk_length] [threads] [num_of_experiments], for H-polytopes\n"<<
+                      "-f2, --file2 [filename_type_V] [epsilon] [walk_length] [threads] [num_of_experiments], for V-polytopes\n"<<
+                      "-f3, --file3 [filename_type_G] [epsilon] [walk_length] [threads] [num_of_experiments], for Zonotopes\n"<<
                       "-fle, --filele : counting linear extensions of a poset\n"<<
                       //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num_of_experiments]\n"<<
                       "--exact : the exact volume\n"<<
@@ -209,6 +210,19 @@ int main(const int argc, const char** argv)
           }
           correct=true;
       }
+      if(!strcmp(argv[i],"-f3")||!strcmp(argv[i],"--file3")){
+          file=true;
+          Zono=true;
+          std::cout<<"Reading input from file..."<<std::endl;
+          std::ifstream inp;
+          std::vector<std::vector<NT> > Pin;
+          inp.open(argv[++i],std::ifstream::in);
+          read_pointset(inp,Pin);
+          //std::cout<<"d="<<Pin[0][1]<<std::endl;
+          n = Pin[0][1]-1;
+          ZP.init(Pin);
+          correct=true;
+      }
       /*
     if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
             file=true;
@@ -299,27 +313,15 @@ int main(const int argc, const char** argv)
       
   }
 
-
-  n=5;
-  Zonotope ZP = gen_zonotope<Zonotope, RNGType>(5,10);
-  ZP.print();
-  Point q(n);
-  std::cout<<ZP.is_in(q)<<std::endl;
-  NT tmp[] = {1234920, 323094, 42348, 123290, 234134};
-  std::vector<NT> temp(tmp, tmp+5);
-  Point q2(n, temp.begin(), temp.end());
-  std::cout<<ZP.is_in(q2)<<std::endl;
-  NT zono_vol = exact_zonotope_vol<NT, Zonotope>(ZP);
-  std::cout<<"exact zonotope volume = "<<zono_vol<<"\n"<<std::endl;
-
-
   //Compute chebychev ball//
   std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-  if(!Vpoly) {
+  if (Zono) {
+      InnerBall = ZP.ComputeInnerBall();
+  } else if(!Vpoly) {
       InnerBall = HP.ComputeInnerBall();
   }else{
-      InnerBall = ZP.ComputeInnerBall();
+      InnerBall = VP.ComputeInnerBall();
   }
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Inner ball time = " << tstop1 - tstart1 << std::endl;
@@ -417,17 +419,21 @@ int main(const int argc, const char** argv)
               vars_g<NT, RNGType> var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
                           verbose,rand_only,round,NN,birk,ball_walk,coordinate);
 
-              if(!Vpoly) {
-                  vol = volume_gaussian_annealing(HP, var1, var2, InnerBall);
-              }else{
+              if (Zono) {
                   vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
+              } else if (!Vpoly) {
+                  vol = volume_gaussian_annealing(HP, var1, var2, InnerBall);
+              } else {
+                  vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
               }
 
           } else {
-              if (!Vpoly) {
+              if (Zono) {
+                  vol = volume(ZP, var, var, InnerBall);
+              } else if (!Vpoly) {
                   vol = volume(HP, var, var, InnerBall);
               } else {
-                  vol = volume(ZP, var, var, InnerBall);
+                  vol = volume(VP, var, var, InnerBall);
               }
           }
       }

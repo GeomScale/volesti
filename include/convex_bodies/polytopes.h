@@ -803,20 +803,19 @@ public:
 
     // return the number of parallelopipeds. Used in get_dists fnction.
     unsigned int upper_bound_of_hyperplanes() {
-        unsigned int k = V.rows(), d = _d, res;
+        unsigned int m = V.rows(), d = _d, res;
         long double nom = 1.0, denom = 1.0, num_of_hyp = 0.0;
 
-        for (unsigned int i = d+1 ; i <= k; ++i) {
+        for (unsigned int i = d+1 ; i <= m; ++i) {
             nom *= i;
         }
-        for (unsigned int i = 1 ; i <= k-d; ++i) {
+        for (unsigned int i = 1 ; i <= m-d; ++i) {
             denom *= i;
         }
 
         num_of_hyp = nom / denom;
 
         res= num_of_hyp;
-        std::cout<<"num_of_hyp = "<<num_of_hyp<<std::endl;
         return res;
     }
 
@@ -886,6 +885,7 @@ public:
         _d = dim;
         V = _V;
         b = _b;
+        initial_shifting(); // shift zonotope to the origin
     }
 
 
@@ -900,6 +900,7 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
+        initial_shifting(); // shift zonotope to the origin
     }
 
 
@@ -927,30 +928,18 @@ public:
     // Compute an inner ball of the zonotope
     std::pair<Point,NT> ComputeInnerBall() {
         std::vector<NT> temp(_d,0);
-        NT radius =  maxNT, min_plus, max_minus;
+        NT radius =  maxNT, min_plus;
         Point center(_d);
-        std::cout<<"origin is in: "<<is_in(center)<<std::endl;
 
         for (unsigned int i = 0; i < _d; ++i) {
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
             min_plus = intersect_line_Vpoly<NT>(V, center, v, false, true);
-            //max_minus = intersect_line_Vpoly<NT>(V, center, v, true, true);
-            std::cout<<"min_plus = "<<min_plus<<std::endl;
-            //std::cout<<"max_minus = "<<max_minus<<std::endl;
-            if (min_plus < radius && min_plus>0) radius = min_plus;
-        }
-        radius = radius / std::sqrt(NT(_d) * (1.1));
-        for (unsigned int i = 0; i < _d; ++i) {
-            temp.assign(_d,0);
-            temp[i] = radius;
-            Point v(_d,temp.begin(), temp.end());
-            std::cout<<"radius*e_i is in: "<<is_in(v)<<std::endl;
+            if (min_plus < radius) radius = min_plus;
         }
 
-
-        //radius = radius / std::sqrt(NT(_d));
+        radius = radius / std::sqrt(NT(_d));
         return std::pair<Point, NT> (center, radius);
     }
 
@@ -1002,6 +991,34 @@ public:
 
         return std::pair<NT, NT> (min_plus, max_minus);
     }
+
+
+    // shift zonotope to the origin
+    void initial_shifting() {
+        std::vector<NT> vec(_d,0.0);
+        Point xc(_d);
+
+        int m = V.rows();
+        Point temp;
+
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < _d; ++j) {
+                vec[j] = V(i,j);
+            }
+            temp = Point(_d, vec.begin(), vec.end());
+            xc = xc + temp;
+        }
+        xc = xc * (1.0 / NT(m));
+
+        VT c(_d);
+        for (int i = 0; i < _d; ++i) {
+            c(i) = xc[i];
+        }
+
+        MT V2 = V.transpose().colwise() - c;
+        V = V2.transpose();
+    }
+
 
     // shift polytope by a point c
     // vector c has to be always the zero vector
