@@ -41,7 +41,8 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
     int N = 500 * ((int) C) + ((int) (n * n / 2));
     int W = 4*n*n+500;
     ratio = 1.0-1.0/(NT(n));
-    RNGType rng(std::time(0));
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
     boost::normal_distribution<> rdist(0,1);
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
