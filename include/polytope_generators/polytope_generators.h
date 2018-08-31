@@ -146,7 +146,11 @@ Polytope gen_simplex(int dim, bool Vpoly){
     b.resize(dim+1);
 
     for(int i=0; i<dim; ++i){
-        b(i) = 0;
+        if (!Vpoly) {
+            b(i) = 0;
+        } else {
+            b(i) = 1;
+        }
         for(int j=0; j<dim; ++j){
             if(i==j) {
                 A(i,j) = 1.0;
@@ -335,7 +339,7 @@ Polytope gen_zonotope(int dim, int m) {
     Polytope P;
 
     for (int i = 0; i < dim; ++i) {
-        b(i) = 0.0;
+        b(i) = 1.0;
         for (int j = 0; j < dim; ++j) {
             if (i==j) {
                 A(i,j) = 1.0;
@@ -346,7 +350,7 @@ Polytope gen_zonotope(int dim, int m) {
     }
 
     for (int i = dim; i < m; ++i) {
-        b(i) = 0.0;
+        b(i) = 1.0;
         sum = 0.0;
         for (int j = 0; j < dim; ++j) {
             A(i,j) = rdist(rng);

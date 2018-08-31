@@ -20,7 +20,6 @@
 // see <http://www.gnu.org/licenses/>.
 
 #include "Eigen/Eigen"
-//#include "use_double.h"
 #include "volume.h"
 
 //////////////////////////////////////////////////////////
@@ -87,7 +86,7 @@ int main(const int argc, const char** argv)
   
   //parse command line input vars
   for(int i=1;i<argc;++i){
-      bool correct=false;
+      bool correct = false;
 
       if(!strcmp(argv[i],"-h")||!strcmp(argv[i],"--help")){
           std::cerr<<

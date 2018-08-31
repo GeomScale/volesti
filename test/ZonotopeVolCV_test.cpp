@@ -54,10 +54,8 @@ void test_zono_volume(int n, int m, NT tolerance = 0.15)
     std::cout << "--- Testing volume of Zonotope in dimension: " << n <<" and number of generators: "<< m << std::endl;
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol_exact = exact_zonotope_vol<NT>(ZP);
-    std::cout<<"\nexact volume = "<<vol_exact<<std::endl;
     res_round = rounding_min_ellipsoid(ZP, CheBall, var);
     round_value = round_value * res_round.first;
-    ZP.print();
     NT vol = 0;
     unsigned int const num_of_exp = 10;
     for (unsigned int i=0; i<num_of_exp; i++)
