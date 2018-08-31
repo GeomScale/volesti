@@ -454,10 +454,10 @@ bool memLP_Zonotope(MT V, Point q){
 
     /* Now let lpsolve calculate a solution */
     if (solve(lp) != OPTIMAL){
-        //std::cout<<"LP sol no optimal!"<<std::endl;
+        delete_lp(lp);
         return false;
     }
-    //std::cout<<"LP sol optimal!"<<std::endl;
+    delete_lp(lp);
     return true;
 }
 

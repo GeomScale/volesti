@@ -367,4 +367,59 @@ Polytope gen_zonotope(int dim, int m) {
 }
 
 
+/*
+ * ToDo: brkhoff polytope generator
+template <class Polytope>
+Polytope gen_birk(int n, bool Vpoly = false){
+ int m = pow(n,2);
+  int d = pow(n-1,2)+1;
+
+  std::cout << "birk_"<<n<<".ine\n";
+  std::cout << "H-representation\n";
+  std::cout << "begin\n";
+  std::cout << " " << m << " " << d << " integer\n";
+
+  std::cout << -1*(n-2) << " ";
+  for(int j=1; j< d; ++j)
+    std::cout << "1 ";
+  std::cout << "\n";
+
+  for(int i=0; i<n-1; ++i){
+		std::cout << "1 ";
+		for(int j=1; j< d; ++j){
+			if(j%(n-1) == i){
+		    std::cout << "-1 ";
+		  }
+		  else std::cout << " 0 ";
+		}
+		std::cout << "\n";
+	}
+
+	for(int i=0; i<n-1; ++i){
+		std::cout << "1 ";
+		for(int j=0; j< d-1; ++j){
+			if(j/(n-1) == i){
+		    std::cout << "-1 ";
+		  }
+		  else std::cout << " 0 ";
+		}
+		std::cout << "\n";
+	}
+
+	for(int i=0; i<d-1; ++i){
+		std::cout << "0 ";
+		for(int j=0; j< d-1; ++j){
+			if(j == i){
+		    std::cout << " 1 ";
+		  }
+		  else std::cout << " 0 ";
+		}
+		std::cout << "\n";
+	}
+	std::cout << "end\ninput_incidence" << std::endl;
+ }
+
+
+ */
+
 #endif
