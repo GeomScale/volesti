@@ -177,7 +177,6 @@ bool memLP_Vpoly(MT V, Point q){
         }
         colno[d] = d+1;
         row[d] = -1.0;
-        //set_bounds(lp, d, 0.0, infinite);
 
         /* add the row to lpsolve */
         try {
@@ -383,7 +382,7 @@ bool memLP_Zonotope(MT V, Point q){
     typedef typename Point::FT NT;
     int d=q.dimension();
     lprec *lp;
-    int Ncol=V.rows(), *colno = NULL, j, i;//, m=V.rows();
+    int Ncol=V.rows(), *colno = NULL, j, i;
     REAL *row = NULL;
 
     try
