@@ -18,21 +18,14 @@ NT factorial(NT n)
     return (n == 1 || n == 0) ? 1 : factorial(n - 1) * n;
 }
 
-template <typename NT, typename FilePath>
-void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
+template <typename NT, class RNGType, class Polytope>
+void test_CV_volume(Polytope &VP, NT expected, NT tolerance=0.2)
 {
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef boost::mt19937    RNGType;
-    std::ifstream inp;
-    std::vector<std::vector<NT> > Pin;
-    inp.open(f,std::ifstream::in);
-    read_pointset(inp,Pin);
-    int n = Pin[0][1]-1;
-    VPolytope<Point, RNGType> VP;
-    VP.init(Pin);
+
+    typedef typename Polytope::PolytopePoint Point;
 
     // Setup the parameters
+    int n = VP.dimension();
     int walk_len=1;
     int nexp=1, n_threads=1;
     NT e=0.2, err=0.0000000001;
@@ -50,9 +43,7 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
     //compute the chebychev ball
     std::pair<Point,NT> CheBall;
 
-
     // Estimate the volume
-    std::cout << "--- Testing volume of " << f << std::endl;
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol = 0;
     unsigned int const num_of_exp = 10;
@@ -64,7 +55,7 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
                                  false,false,false,false,false,false,true);
         vol += volume_gaussian_annealing(VP, var1, var2, CheBall);
-        std::cout<<"vol = "<<vol<<std::endl;
+
     }
     NT error = std::abs(((vol/num_of_exp)-expected))/expected;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
@@ -74,25 +65,60 @@ void test_CV_volume(FilePath f, NT expected, NT tolerance=0.2)
 
 template <typename NT>
 void call_test_cube(){
-    test_CV_volume<NT>("../data/cube_3.ext", 8.0);
-    test_CV_volume<NT>("../data/cube_4.ext", 16.0);
-    test_CV_volume<NT>("../data/cube_5.ext", 32.0);
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937    RNGType;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    Vpolytope P;
+
+    std::cout << "--- Testing volume of V-cube3" << std::endl;
+    P = gen_cube<Vpolytope>(3, true);
+    test_CV_volume<NT, RNGType>(P, 8.0);
+
+    std::cout << "--- Testing volume of V-cube4" << std::endl;
+    P = gen_cube<Vpolytope>(4, true);
+    test_CV_volume<NT, RNGType>(P, 16.0);
+
+    /*std::cout << "--- Testing volume of V-cube5" << std::endl;
+    P = gen_cube<Vpolytope>(5, true);
+    test_CV_volume<NT, RNGType>(P, 32.0);*/
+
 }
 
 template <typename NT>
 void call_test_cross(){
-    test_CV_volume<NT>("../data/cross_4.ext", 0.6666667);
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937    RNGType;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    Vpolytope P;
+
+    std::cout << "--- Testing volume of V-cross4" << std::endl;
+    P = gen_cross<Vpolytope>(4, true);
+    test_CV_volume<NT, RNGType>(P, 0.6666667);
     if(typeid(NT)== typeid(double)) {
-        test_CV_volume<NT>("../data/cross_5.ext", 0.26666667);
-        test_CV_volume<NT>("../data/cross_6.ext", 0.08888889);
+        std::cout << "--- Testing volume of V-cross5" << std::endl;
+        P = gen_cross<Vpolytope>(5, true);
+        test_CV_volume<NT, RNGType>(P, 0.26666667);
+
     }
 }
 
 template <typename NT>
 void call_test_simplex() {
-    test_CV_volume<NT>("../data/simplex5.ext", 1.0 / factorial(5.0));
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937    RNGType;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    Vpolytope P;
+
+    std::cout << "--- Testing volume of V-simplex5" << std::endl;
+    P = gen_simplex<Vpolytope>(5, true);
+    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(5.0));
     if(typeid(NT)== typeid(double)) {
-        test_CV_volume<NT>("../data/simplex10.ext", 1.0 / factorial(10.0));
+        std::cout << "--- Testing volume of V-simplex7" << std::endl;
+        P = gen_simplex<Vpolytope>(7, true);
+        test_CV_volume<NT, RNGType>(P, 1.0 / factorial(7.0));
     }
 }
 

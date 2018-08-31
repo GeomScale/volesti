@@ -49,6 +49,7 @@ else ()
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
   add_executable (vol vol.cpp)
+  add_executable (generate generator.cpp)
 
   add_library(test_main OBJECT test_main.cpp)
 
@@ -97,6 +98,7 @@ else ()
   add_test(NAME round_rot_skinny_cube COMMAND rounding_test -tc=round_rot_skinny_cube)
 
   TARGET_LINK_LIBRARIES(vol ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(generate ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(cheb_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(rounding_test ${LP_SOLVE})
