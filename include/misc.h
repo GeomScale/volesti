@@ -142,7 +142,7 @@ void read_pointset(std::istream &is,
 
     while(!std::getline(is, point, '\n').eof()) {
         //std::cout<<point<<std::endl;
-        if(!std::isdigit(point[0]) && point[0]!='-' && point[0]!=' ')
+        if(!std::isdigit(point[0]) && point[0]!='-' && point[0]!=' ' && point[0]!='.')
             continue;
         //std::cout<<std::endl;
         //std::size_t found = point.find_first_of(" ");
@@ -158,7 +158,7 @@ void read_pointset(std::istream &is,
             //std::cout<<"*"<<(point[found]!='-')<<"*"<<std::endl;
             if(!std::isdigit(point[found]) && point[found]!='-')
                 break;
-            found2 = point.find_first_not_of("0123456789-",found);
+            found2 = point.find_first_not_of("0123456789-.",found);
 
             //std::cout<<point.substr(found,found2-found)<<" ";
             NT num = atof(point.substr(found,found2-found).c_str());
@@ -166,7 +166,7 @@ void read_pointset(std::istream &is,
             //std::cout<<"found"<<point[found]<<std::endl;
             if(point[found]=='/'){
                 found = found + 1;
-                found2=point.find_first_not_of("0123456789-/",found);
+                found2=point.find_first_not_of("0123456789-./",found);
                 //std::cout<<"lala="<<point.substr(found,found2-found)<<std::endl;
                 num = num / atof(point.substr(found,found2-found).c_str());
                 found=point.find_first_not_of(" ",found2);
