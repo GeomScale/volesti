@@ -205,7 +205,7 @@ void call_test_skinny_cube() {
 
 TEST_CASE("cube") {
     call_test_cube<double>();
-    call_test_cube<float>();
+    //call_test_cube<float>();
     call_test_cube<long double>();
 }
 
