@@ -79,10 +79,6 @@ void call_test_cube(){
     P = gen_cube<Vpolytope>(4, true);
     test_CV_volume<NT, RNGType>(P, 16.0);
 
-    /*std::cout << "--- Testing volume of V-cube5" << std::endl;
-    P = gen_cube<Vpolytope>(5, true);
-    test_CV_volume<NT, RNGType>(P, 32.0);*/
-
 }
 
 template <typename NT>
