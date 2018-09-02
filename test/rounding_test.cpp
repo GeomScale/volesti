@@ -17,34 +17,26 @@ NT factorial(NT n)
 }
 
 
-template <typename NT, typename FilePath>
-void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
+template <typename NT, class RNGType, class Polytope>
+void rounding_test(Polytope &P, bool rot, NT expected, NT tolerance=0.1)
 {
 
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef boost::mt19937    RNGType;
-    std::ifstream inp;
-    std::vector<std::vector<NT> > Pin;
-    inp.open(f,std::ifstream::in);
-    read_pointset(inp,Pin);
-    int n = Pin[0][1]-1;
-    HPolytope<Point> P;
-    P.init(Pin);
+    typedef typename Polytope::PolytopePoint Point;
 
     // Setup the parameters
+    int n = P.dimension();
     int walk_len=10 + n/10;
     int nexp=1, n_threads=1;
     NT e=1, err=0.0000000001;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
-    RNGType rng(std::time(0));
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
     boost::normal_distribution<> rdist(0,1);
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
     vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
              urdist,urdist1,-1.0,false,false,false,false,false,false,true);
 
-    std::cout << "\n--- Testing rounding of " << f << std::endl;
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     //apply rotation if requested
     NT rot_val;
@@ -99,15 +91,39 @@ void rounding_test(FilePath f, bool rot, NT expected, NT tolerance=0.1)
 
 template <typename NT>
 void call_test_rot_skinny_cubes() {
-    rounding_test<NT>("../data/skinny_cube10.ine", true, 102400.0);
-    rounding_test<NT>("../data/skinny_cube20.ine", true, 104857600.0, 0.2);
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937    RNGType;
+    typedef HPolytope<Point> Hpolytope;
+    Hpolytope P;
+
+    std::cout << "\n--- Testing rounding of rotated H-skinny_cube10" << std::endl;
+    P = gen_skinny_cube<Hpolytope>(10);
+    rounding_test<NT, RNGType>(P, true, 102400.0);
+
+    //std::cout << "\n--- Testing rounding of rotated H-skinny_cube20" << std::endl;
+    //P = gen_skinny_cube<Hpolytope>(20);
+    //rounding_test<NT, RNGType>(P, true, 104857600.0, 0.2);
+
 }
 
 template <typename NT>
 void call_test_skinny_cubes() {
-        rounding_test<NT>("../data/skinny_cube10.ine", false, 102400.0);
-        rounding_test<NT>("../data/skinny_cube20.ine", false, 104857600.0);
-    }
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef boost::mt19937 RNGType;
+    typedef HPolytope <Point> Hpolytope;
+    Hpolytope P;
+
+    std::cout << "\n--- Testing rounding of H-skinny_cube10" << std::endl;
+    P = gen_skinny_cube<Hpolytope>(10);
+    rounding_test<NT, RNGType>(P, false, 102400.0);
+
+    std::cout << "\n--- Testing rounding of H-skinny_cube20" << std::endl;
+    P = gen_skinny_cube<Hpolytope>(20);
+    rounding_test<NT, RNGType>(P, false, 104857600.0);
+
+}
 
 
 TEST_CASE("round_rot_skinny_cube") {

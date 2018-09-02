@@ -34,6 +34,8 @@ else ()
   #include_directories (BEFORE ../include/convex_bodies)
   include_directories (BEFORE ../external/LPsolve_src)
   include_directories (BEFORE ../external/boost)
+  include_directories (BEFORE ../include/polytope_generators)
+  include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
 
 
@@ -47,6 +49,7 @@ else ()
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
   add_executable (vol vol.cpp)
+  add_executable (generate generator.cpp)
 
   add_library(test_main OBJECT test_main.cpp)
 
@@ -54,6 +57,10 @@ else ()
   add_executable (cheb_test chebychev_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (rounding_test rounding_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (volumeCV_test volumeCV_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (VpolyCV_test VpolyCV_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (VpolyVol_test VpolyVol_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (ZonotopeVol_test ZonotopeVol_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (ZonotopeVolCV_test ZonotopeVolCV_test.cpp $<TARGET_OBJECTS:test_main>)
   
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
@@ -68,6 +75,19 @@ else ()
   add_test(NAME volumeCV_prod_simplex COMMAND volumeCV_test -tc=prod_simplex)
   add_test(NAME volumeCV_simplex COMMAND volumeCV_test -tc=simplex)
 
+  add_test(NAME VpolyCV_cube COMMAND VpolyCV_test -tc=cube)
+  add_test(NAME VpolyCV_cross COMMAND VpolyCV_test -tc=cross)
+  add_test(NAME VpolyCV_simplex COMMAND VpolyCV_test -tc=simplex)
+  
+  add_test(NAME VpolyVol_cube COMMAND VpolyVol_test -tc=cube)
+  add_test(NAME VpolyVol_cross COMMAND VpolyVol_test -tc=cross)
+  add_test(NAME VpolyVol_simplex COMMAND VpolyVol_test -tc=simplex)
+
+  add_test(NAME ZonotopeVol4 COMMAND ZonotopeVol_test -tc=4th_dim)
+
+  add_test(NAME ZonotopeVolCV4 COMMAND ZonotopeVolCV_test -tc=4th_dim)
+  add_test(NAME ZonotopeVolCV5 COMMAND ZonotopeVolCV_test -tc=5th_dim)
+
   add_test(NAME cheb_cube COMMAND cheb_test -tc=cheb_cube)
   add_test(NAME cheb_cross COMMAND cheb_test -tc=cheb_cross)
   add_test(NAME cheb_birkhoff COMMAND cheb_test -tc=cheb_birkhoff)
@@ -78,14 +98,17 @@ else ()
   add_test(NAME round_skinny_cube COMMAND rounding_test -tc=round_skinny_cube)
   add_test(NAME round_rot_skinny_cube COMMAND rounding_test -tc=round_rot_skinny_cube)
 
-
   TARGET_LINK_LIBRARIES(vol ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(generate ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(cheb_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(rounding_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volumeCV_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(VpolyCV_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(VpolyVol_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(ZonotopeVol_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(ZonotopeVolCV_test ${LP_SOLVE})
 
 endif()
-
 
 
