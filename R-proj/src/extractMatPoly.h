@@ -23,12 +23,13 @@
 #define EXTRACTMATPOLY_H
 
 // Take a H or a V-polytope and return a numerical matrix in ine or ext format respectively
-template <class T>
-Rcpp::NumericMatrix extractMatPoly(T &P) {
+template <class Polytope>
+Rcpp::NumericMatrix extractMatPoly(Polytope &P) {
 
-
-    Eigen::MatrixXd A = P.get_mat();
-    Eigen::VectorXd b = P.get_vec();
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    MT A = P.get_mat();
+    VT b = P.get_vec();
     int n = P.dimension(), m = A.rows(), i, j;
 
     Rcpp::NumericMatrix Mat(m+1, n+1);

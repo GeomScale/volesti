@@ -23,20 +23,13 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-//#include "math/special_functions/binomial.hpp"
-//#include "boost/random.hpp"
-//#include <boost/random/uniform_int.hpp>
-//#include <boost/random/normal_distribution.hpp>
-//#include <boost/random/uniform_real_distribution.hpp>
-
-typedef Cartesian<NT> 	      Kernel; 
-typedef Kernel::Point								Point;
-typedef boost::mt19937 RNGType; // mersenne twister generator
 
 
 //structs with variables and random generators
+template <typename NT, class RNG>
 struct vars{
 public:
+    typedef RNG RNGType;
     vars( int m,
           int n,
           int walk_steps,
@@ -47,7 +40,7 @@ public:
           NT up,
           const int L,
           NT che_rad,
-          RNGType &rng,
+          RNG &rng,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
           NT delta,
@@ -74,7 +67,7 @@ public:
     NT up;
     const int L;
     NT che_rad;
-    RNGType &rng;
+    RNG &rng;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;
     NT delta;
@@ -87,8 +80,10 @@ public:
     bool coordinate;
 };
 
+template <typename NT, class RNG>
 struct vars_g{
 public:
+    typedef RNG RNGType;
     vars_g( int n,
           int walk_steps,
           int N,
@@ -96,7 +91,7 @@ public:
           int n_threads,
           NT error,
           NT che_rad,
-          RNGType &rng,
+          RNG &rng,
           NT C,
           NT frac,
           NT ratio,
@@ -122,7 +117,7 @@ public:
     int n_threads;
     NT error;
     NT che_rad;
-    RNGType &rng;
+    RNG &rng;
     NT C;
     NT frac;
     NT ratio;
@@ -148,15 +143,19 @@ public:
 #include "sample_only.h"
 #include "misc.h"
 #include "linear_extensions.h"
+#include "polytope_generators.h"
 
 
-template <class T>
-NT volume(T &P,
-                  vars &var,  // constans for volume
-                  vars &var2, // constants for optimization in case of MinkSums
+template <class Polytope, class Parameters, class Point, typename NT>
+NT volume(Polytope &P,
+                  Parameters &var,  // constans for volume
+                  Parameters &var2, // constants for optimization in case of MinkSums
                   std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
-    typedef BallIntersectPolytope<T,NT>        BallPoly;
+    typedef Ball<Point> Ball;
+    typedef BallIntersectPolytope<Polytope,Ball> BallPoly;
+    typedef typename Parameters::RNGType RNGType;
+
 
     bool round = var.round;
     bool print = var.verbose;
@@ -205,7 +204,7 @@ NT volume(T &P,
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-        Point p = get_point_on_Dsphere(n, radius);
+        Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
         p=p+c;
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
@@ -220,7 +219,7 @@ NT volume(T &P,
         // 4.  Construct the sequence of balls
         // 4a. compute the radius of the largest ball
         NT current_dist, max_dist=NT(0);
-        for(std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+        for(typename  std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             current_dist=(*pit-c).squared_length();
             if(current_dist>max_dist){
                 max_dist=current_dist;
@@ -253,7 +252,7 @@ NT volume(T &P,
 
         // 5. Estimate Vol(P)
 
-        std::vector<Ball>::iterator bit2=balls.end();
+        typename std::vector<Ball>::iterator bit2=balls.end();
         bit2--;
 
         while(bit2!=balls.begin()){
@@ -280,7 +279,7 @@ NT volume(T &P,
                               <<std::endl;
 
             //keep the points in randPoints that fall in PBSmall
-            std::list<Point>::iterator rpit=randPoints.begin();
+            typename std::list<Point>::iterator rpit=randPoints.begin();
             while(rpit!=randPoints.end()){
                 if (PBSmall.second().is_in(*rpit) == 0){//not in
                     rpit=randPoints.erase(rpit);
@@ -322,13 +321,16 @@ NT volume(T &P,
 // Implementation is based on algorithm from paper "A practical volume algorithm",
 // Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
 // Ben Cousins, Santosh Vempala
-template <class T>
-NT volume_gaussian_annealing(T &P,
-                             vars_g &var,  // constans for volume
-                             vars &var2,
+template <class Polytope, class UParameters, class GParameters, class Point, typename NT>
+NT volume_gaussian_annealing(Polytope &P,
+                             GParameters &var,  // constans for volume
+                             UParameters &var2,
                              std::pair<Point,NT> InnerBall) {
-    typedef typename T::MT 	MT;
-    typedef typename T::VT 	VT;
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    typedef typename UParameters::RNGType RNGType;
+    const NT maxNT = 1.79769e+308;
+    const NT minNT = -1.79769e+308;
     NT vol;
     bool round = var.round, done;
     bool print = var.verbose;
@@ -386,6 +388,7 @@ NT volume_gaussian_annealing(T &P,
     get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"All the variances of schedule_annealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
+
     int mm = a_vals.size()-1, j=0;
     if(print){
         for (viterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
