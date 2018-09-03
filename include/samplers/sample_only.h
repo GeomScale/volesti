@@ -22,14 +22,15 @@
 #ifndef SAMPLE_ONLY_H
 #define SAMPLE_ONLY_H
 
-template <class T, class K, typename FT>
-void sampling_only(K &randPoints, T &P, int walk_len, int rnum, bool gaussian, FT a, Point internal_point, vars var1, vars_g var2) {
+template <class Point, typename NT, class PointList, class Polytope, class UParameters, class GParameters>
+void sampling_only(PointList &randPoints, Polytope &P, int walk_len, int rnum, bool gaussian, NT a, Point internal_point, UParameters var1, GParameters var2) {
 
+    typedef typename UParameters::RNGType RNGType;
     bool print = var1.verbose;
     int n = var1.n;
     Point p = internal_point;
     if(print) std::cout<<"\ncomputing first random point..."<<std::endl;
-    Point q = get_point_on_Dsphere(n, var1.che_rad);
+    Point q = get_point_on_Dsphere<RNGType, Point>(n, var1.che_rad);
     p=p+q;
     rand_point_generator(P, p, 1, 50 * n, randPoints, var1);
 

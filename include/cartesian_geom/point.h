@@ -112,7 +112,6 @@ public:
     }
 
     void print(){
-        std::cout<<"\n";
         for(int i=0; i<d; i++){
             std::cout<<coeffs[i]<<" ";
         }

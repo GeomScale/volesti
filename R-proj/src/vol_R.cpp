@@ -8,7 +8,6 @@
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 #include <Rcpp.h>
 #include <RcppEigen.h>
-#include "use_double.h"
 #include "volume.h"
 #include "extractMatPoly.h"
 
@@ -18,7 +17,14 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
              int N, double C, double ratio, double frac, bool ball_walk, double delta, bool Vpoly, bool round_only, bool rotate_only, bool sample_only, int numpoints, double variance, bool coord, bool rounding, bool verbose) {
 
 
-    int nexp=1, n_threads=1,i,j;
+    typedef double NT;
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937    RNGType;
+    typedef HPolytope<Point> Hpolytope;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef Zonotope<Point> Zonotope;
+    int n, nexp=1, n_threads=1,i,j;
     NT exactvol(-1.0);
     bool rand_only=false,
 	 file=false,
@@ -28,9 +34,11 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
          birk=false,
          rotate=false,
          experiments=true,
+         Zono = false,
          coordinate=coord;
-    HPolytope<NT> P;
-    VPolytope<NT> VP;
+    Hpolytope HP;
+    Vpolytope VP;
+    Zonotope ZP;
 
     int m=A.nrow()-1;
     int n=A.ncol()-1;
@@ -53,17 +61,22 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         }
     }
     // construct polytope
-    if (!Vpoly) {
-        P.init(Pin);
+    if (Zono) {
+        ZP.init(Pin);
+    } else if (!Vpoly) {
+        HP.init(Pin);
     } else {
         VP.init(Pin);
     }
 
     if (rotate_only) {
         Rcpp::NumericMatrix Mat;
-        if (!Vpoly) {
-            rotating(P);
-            Mat = extractMatPoly(P);
+        if (Zono) {
+            rotating<NT>(ZP);
+            Mat = extractMatPoly(ZP);
+        }else if (!Vpoly) {
+            rotating<NT>(HP);
+            Mat = extractMatPoly(HP);
         } else {
             rotating(VP);
             Mat = extractMatPoly(VP);
@@ -77,8 +90,10 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         if (Chebychev.size()==n) {
             // if only sampling is requested
             // the radius of the inscribed ball is going to be needed for the sampling (radius of ball walk)
-            if (!Vpoly) {
-                InnerBall = P.ComputeInnerBall();
+            if (Zono) {
+                InnerBall = ZP.ComputeInnerBall();
+            } else if (!Vpoly) {
+                InnerBall = HP.ComputeInnerBall();
             } else {
                 InnerBall = VP.ComputeInnerBall();
             }
@@ -93,8 +108,10 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         if (Chebychev.size()==n+1) InnerBall.second = Chebychev[n];
     } else {
         // no internal ball or point is given as input
-        if (!Vpoly) {
-            InnerBall = P.ComputeInnerBall();
+        if (Zono) {
+            InnerBall = ZP.ComputeInnerBall();
+        } else if (!Vpoly) {
+            InnerBall = HP.ComputeInnerBall();
         } else {
             InnerBall = VP.ComputeInnerBall();
         }
@@ -110,9 +127,12 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         vars var(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
                  delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
         std::pair <NT, NT> round_res;
-        if (!Vpoly) {
-            round_res = rounding_min_ellipsoid(P, InnerBall, var);
-            Mat = extractMatPoly(P);
+        if (Zono) {
+            round_res = rounding_min_ellipsoid(ZP, InnerBall, var);
+            Mat = extractMatPoly(ZP);
+        } else if (!Vpoly) {
+            round_res = rounding_min_ellipsoid(HP, InnerBall, var);
+            Mat = extractMatPoly(HP);
         } else {
             round_res = rounding_min_ellipsoid(VP, InnerBall, var);
             Mat = extractMatPoly(VP);
@@ -143,10 +163,12 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
                  delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
         vars_g var2(n, walk_len, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                     rand_only, false, NN, birk, ball_walk, coord);
-        if(!Vpoly) {
-            sampling_only(randPoints, P, walk_len, numpoints, annealing, a, p, var1, var2);
+        if (Zono) {
+            sampling_only<Point>(randPoints, ZP, walk_len, numpoints, annealing, a, p, var1, var2);
+        } else if(!Vpoly) {
+            sampling_only<Point>(randPoints, HP, walk_len, numpoints, annealing, a, p, var1, var2);
         } else {
-            sampling_only(randPoints, VP, walk_len, numpoints, annealing, a, p, var1, var2);
+            sampling_only<Point>(randPoints, VP, walk_len, numpoints, annealing, a, p, var1, var2);
         }
         Rcpp::NumericMatrix PointSet(n,numpoints);
 
@@ -172,25 +194,29 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         std::cout << "\nradius of inner ball = " << InnerBall.second << std::endl;
     }
 
-    // initialization for volesti
-    vars var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
+
+    // initialization
+    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0,CheBall.second,rng,urdist,urdist1,
              delta,verbose,rand_only,rounding,NN,birk,ball_walk,coordinate);
     NT vol;
     if (annealing) {
-        // initialization for CV
-        vars var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second, rng,
+        vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, CheBall.second, rng,
                   urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
-        vars_g var1(n, walk_len, N, win_len, 1, e, InnerBall.second, rng, C, frac, ratio, delta, false, verbose,
+        vars_g<NT, RNGType> var1(n, walk_len, N, win_len, 1, e, CheBall.second, rng, C, frac, ratio, delta, false, verbose,
                     rand_only, rounding, NN, birk, ball_walk, coordinate);
-        if (!Vpoly) { // if the input is a H-polytope
-            vol = volume_gaussian_annealing(P, var1, var2, InnerBall);
+        if (Zono) {
+            vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
+        } else if (!Vpoly) { // if the input is a H-polytope
+            vol = volume_gaussian_annealing(HP, var1, var2, InnerBall);
         } else {  // if the input is a V-polytope
             vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
         }
         if (verbose) std::cout << "volume computed = " << vol << std::endl;
     } else {
-        if (!Vpoly) { // if the input is a H-polytope
-            vol = volume(P, var, var, InnerBall);
+        if (Zono) {
+            vol = volume(ZP, var, var, InnerBall);
+        } else if (!Vpoly) { // if the input is a H-polytope
+            vol = volume(HP, var, var, InnerBall);
         } else { // if the input is a V-polytope
             vol = volume(VP, var, var, InnerBall);
         }
