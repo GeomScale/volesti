@@ -6,7 +6,7 @@
 #' @param path The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.
 #' @param matrix The matrix of the H polytope or the matrix that contains all the vertices of a V polytope row-wise. If the matrix is in ine file, for H-polytopes only (see examples), then the "vector" input is not needed.
 #' @param vector Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.
-#' @param vpoly A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.
+#' @param Vpoly A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.
 #' @param verbose Optional. A boolean parameter for printing. Default is false.
 #' 
 #' @return A H or V-polytope which is a random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{k\times d} matrix that contains the \eqn{k} vertices of the V polytope row-wise.
@@ -26,6 +26,10 @@ rand_rotate <- function(Inputs){
   if (!is.null(Inputs$Vpoly)) {
     Vpoly = Inputs$Vpoly
   }
+  Zono = FALSE
+  if (!is.null(Inputs$Zonotope)) {
+    Zono = Inputs$Zonotope
+  }
   
   # polytope initialization
   if (!is.null(Inputs$path)) {
@@ -43,7 +47,7 @@ rand_rotate <- function(Inputs){
     r[1] = m
     r[2] = d
   } else if (!is.null(Inputs$matrix)) {
-    if (Vpoly) {
+    if (Vpoly || Zono) {
       A = Inputs$matrix
       d = dim(A)[2] + 1
       m = dim(A)[1]
@@ -58,7 +62,9 @@ rand_rotate <- function(Inputs){
       b = x$vector
     }
   } else {
-    if (Vpoly) {
+    if (Zono) {
+      print('No Zonotope defined from input!')
+    } else if (Vpoly) {
       print('No V-polytope defined from input!')
     } else {
       print('No H-polytope defined from input!')
@@ -95,11 +101,16 @@ rand_rotate <- function(Inputs){
   variance = 0
   coordinate = TRUE
   rounding = FALSE
+  gen_only = FALSE
+  Vpoly_gen = FALSE
+  kind_gen = -1
+  dim_gen = 0
+  m_gen = 0
   #-------------------#
   
   Mat = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
-              Vpoly, round_only, rotate_only, sample_only, numpoints, variance, coordinate,
-              rounding, verbose)
+              Vpoly, Zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
+              rotate_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
   
   # get elements "matrix" and "vector"
   retList = modifyMat(Mat)
