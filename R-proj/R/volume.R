@@ -4,7 +4,7 @@
 #'
 #' @param list("argument"=value) A list that includes parameters for the chosen algorithm.
 #' @param path The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.
-#' @param matrix The matrix of the H polytope or the matrix that contains all the vertices of a V polytope row-wise. If the matrix is in ine file, for H-polytopes only (see examples), then the "vector" input is not needed.
+#' @param matrix The matrix of the H polytope or the matrix that contains all the vertices or the segments of a V-polytope or a zonotope respectively row-wise. If the matrix is in ine file, for H-polytopes only (see examples), then the "vector" input is not needed.
 #' @param vector Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.
 #' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10 + d/10\rfloor}.
 #' @param error Optional. Declare the goal for the approximation error. Default is 1 for volesti and \eqn{0.2} for CV.
@@ -19,6 +19,7 @@
 #' @param delta Optional. The radius for the ball walk.
 #' @param verbose Optional. A boolean parameter for printing. Default is false.
 #' @param Vpoly A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.
+#' @param Zonotope A boolean parameter, has to be true when a zonotope is given as input. Default value is false.
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
 #' @param rounding Optional. A boolean parameter to activate the rounding option. Default value is false.
 #' 
@@ -40,6 +41,10 @@
 #' # a 2d unit simplex in H-representation using ine format matrix, calling volesti algorithm
 #' A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1), ncol=3, nrow=4, byrow=TRUE)
 #' vol = volume(list("matrix"=A))
+#' 
+#' # calling Gaussian-Cooling algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
+#' zonotope = GenZonotope(5, 10)
+#' vol = volume(list("matrix"=zonotope, "Zonotope"=TRUE, "rounding"=TRUE, "CV"=TRUE))
 volume <- function(Inputs){
   
   # flag for V-polytope
@@ -193,13 +198,14 @@ volume <- function(Inputs){
   kind_gen = -1
   dim_gen = 0
   m_gen = 0
+  exact_zono = FALSE
   #-----------------------#
   # set the timer
   tim = proc.time()
   
   vol = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk,
-              delta, Vpoly, Zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen,
-              round_only, rotate_only, sample_only, numpoints, variance, cordinate,
+              delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen,
+              round_only, rotate_only, sample_only, numpoints, variance, coordinate,
               rounding, verbose)
   
   tim = proc.time()-tim

@@ -16,7 +16,7 @@
 // [[Rcpp::export]]
 Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::NumericVector Chebychev,
                            bool annealing, int win_len, int N, double C, double ratio, double frac,
-                           bool ball_walk, double delta, bool Vpoly, bool Zono, bool gen_only,
+                           bool ball_walk, double delta, bool Vpoly, bool Zono, bool exact_zono, bool gen_only,
                            bool Vpoly_gen, int kind_gen, int dim_gen, int m_gen, bool round_only,
                            bool rotate_only, bool sample_only, int numpoints, double variance,
                            bool coord, bool rounding, bool verbose) {
@@ -30,7 +30,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> Zonotope;
     int nexp=1, n_threads=1,i,j;
-    NT exactvol(-1.0);
+    //NT exactvol(-1.0);
     bool rand_only=false,
 	 file=false,
 	 NN=false,
@@ -110,6 +110,10 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     // construct polytope
     if (Zono) {
         ZP.init(Pin);
+        if (exact_zono) {
+            vol_res(0,0) = exact_zonotope_vol<NT>(ZP);
+            return vol_res;
+        }
     } else if (!Vpoly) {
         HP.init(Pin);
     } else {
@@ -268,7 +272,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
             vol = volume(VP, var, var, InnerBall);
         }
     }
-    vol_res(0,0)=vol;
+    vol_res(0,0) = vol;
     
     return vol_res;
 }

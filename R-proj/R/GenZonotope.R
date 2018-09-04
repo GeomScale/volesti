@@ -1,51 +1,22 @@
-
-
+#' Generator function for zonotopes.
+#' 
+#' This function can be used to generate a d-dimensional zonotope described by the Minkowski sum of m segments. We consider the \eqn{e_1, \dots ,e_d} generators and m-d random generators. Then we shift the zonotope in order to contain the origin as the center of symmetry. It might needs rounding before the volume computation.
+#' 
+#' @param Dimension The dimension of the cross polytope.
+#' @param NumGen The number of segments that generate the zonotope.
+#' 
+#' @return A \eqn{m \times d} matrix that containes the m d-dimensional segments.
+#' @examples 
+#' # generate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
+#' zonotope = GenZonotope(10, 20)
 GenZonotope <- function(DimGen, NumGen) {
   
   Zono = TRUE
   kind_gen = 0
-  Vpoly_gen = FALSE
+  repr = 'zonotope'
   
-  ListMat = polytope_generator(Zono, Vpoly_gen, kind_gen, DimGen, NumGen)
+  ListMat = polytope_generator(Zono, repr, kind_gen, DimGen, NumGen)
   
   return(ListMat)
   
-}
-  
-  # set flag for verbose mode
-  verbose=FALSE
-  if(!is.null(Inputs$verbose)){
-    verbose=Inputs$verbose
-  }
-  
-  #---------------------#
-  round_only = FALSE
-  rotate_only = FALSE
-  W = 0
-  e = 0
-  Cheb_ball = c(0)
-  annealing = FALSE
-  win_len = 0
-  N = 0
-  C = 0
-  ratio = 0
-  frac = 0
-  ball_walk = FALSE
-  delta =0
-  Vpoly = FALSE
-  sample_only = FALSE
-  numpoints = 0
-  variance = 0
-  coordinate = TRUE
-  rounding = FALSE
-  Vpoly_gen = FALSE
-  #-------------------#
-  
-  Mat = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
-              Vpoly, Zono, gen_only, Vpoly_gen, kind_gen, DimGen, NumGen, round_only, 
-              rotate_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
-  
-  # get elements "matrix" and "vector"
-  retList = modifyMat(Mat)
-  return(retList$matrix)
 }

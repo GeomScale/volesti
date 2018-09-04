@@ -130,22 +130,22 @@ round_polytope <- function(Inputs){
   kind_gen = -1
   dim_gen = 0
   m_gen = 0
+  exact_zono = FALSE
   #---------------------#
   
   Mat = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk,
-              delta, Vpoly, Zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only,
+              delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only,
               rotate_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
-  # get first row which has the info for round_value and minmaxRatio
+  # get first row which has the info for round_value
   r = Mat[c(1),]
   round_value = r[1]
-  minmaxRatio = r[2]
   # get "matrix" and "vector" elements
   retList = modifyMat(Mat)
   if (Vpoly) {
-    output = list("matrix"=retList$matrix, "round_value"=round_value, "minmaxRatio" = minmaxRatio)
+    output = list("matrix"=retList$matrix, "round_value"=round_value)
     return(output)
   } else {
-    output = list("matrix"=retList$matrix, "vector"=retList$vector, "round_value"=round_value, "minmaxRatio" = minmaxRatio)
+    output = list("matrix"=retList$matrix, "vector"=retList$vector, "round_value"=round_value)
     return(output)
   }
 }

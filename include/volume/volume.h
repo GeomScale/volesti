@@ -144,6 +144,7 @@ public:
 #include "misc.h"
 #include "linear_extensions.h"
 #include "polytope_generators.h"
+#include "zonotope_exact_vol.h"
 
 
 template <class Polytope, class Parameters, class Point, typename NT>

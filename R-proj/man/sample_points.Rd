@@ -31,7 +31,7 @@ sample_points(Inputs)
 
 \item{verbose}{Optional. A boolean parameter for printing. Default is false.}
 
-\item{vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
+\item{Vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
 
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 }

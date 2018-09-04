@@ -15,7 +15,7 @@ rand_rotate(Inputs)
 
 \item{vector}{Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.}
 
-\item{vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
+\item{Vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
 
 \item{verbose}{Optional. A boolean parameter for printing. Default is false.}
 }

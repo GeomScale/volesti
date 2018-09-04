@@ -106,10 +106,11 @@ rand_rotate <- function(Inputs){
   kind_gen = -1
   dim_gen = 0
   m_gen = 0
+  exact_zono = FALSE
   #-------------------#
   
   Mat = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
-              Vpoly, Zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
+              Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
               rotate_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
   
   # get elements "matrix" and "vector"
