@@ -15,7 +15,7 @@ round_polytope(Inputs)
 
 \item{vector}{Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.}
 
-\item{vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
+\item{Vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
 
 \item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.}
 

@@ -7,15 +7,15 @@
 demoRounding(algo)
 }
 \arguments{
-\item{CV}{The string "CV" to choose CV algorithm}
+\item{CG}{The string "CG" to choose CoolingGaussian algorithm}
 
-\item{volesti}{The string "volesti" to choose volesti algorithm}
+\item{SOB}{The string "SOB" to choose SequenceOfBalls algorithm}
 }
 \value{
 Print the computed volume and print a failure message if the error is larger than the expected.
 }
 \description{
-Choose volume algorithm between CV and volesti and run rounding tests for some skinny cubes. In the first test we apply a random rotation as well before the rounding. For we run 10 experiments for volesti and 20 for CV.
+Choose volume algorithm between CoolingGaussian and SequenceOfBalls and run rounding tests for some skinny cubes. In the first test we apply a random rotation as well before the rounding. For we run 10 experiments for SequenceOfBalls and 20 for CoolingGaussian.
 }
 \examples{
 #run tests for volesti algorithm

@@ -151,13 +151,14 @@ sample_points <- function(Inputs){
   kind_gen = -1
   dim_gen = 0
   m_gen = 0
+  exact_zono = FALSE
   #---------------------#
   
   # set timer
   tim = proc.time()
   
   points = vol_R(A, W, e, internal_point, gaussian, win_len, NN, C, ratio, frac,
-                 ball_walk, delta, Vpoly, Zono, gen_only, Vpoly_gen, kind_gen, dim_gen,
+                 ball_walk, delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen,
                  m_gen, round_only, rotate_only, sample_only, N, variance, coordinate,
                  rounding, verbose)
   

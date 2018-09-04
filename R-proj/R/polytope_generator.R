@@ -1,13 +1,21 @@
-
 # This is an internal function. No Rd file.
-polytope_generator <- function(Zono, Vpoly_gen, kind_gen, dim_gen, m_gen) {
+polytope_generator <- function(Zono, repr, kind_gen, dim_gen, m_gen) {
+  
+  if (repr == "V") {
+    Vpoly_gen = TRUE
+  } else if (repr == "H" || repr == "zonotope") {
+    Vpoly_gen = FALSE
+  } else {
+    print('The second argument has to be V for V-polytopes or H for H-polytopes')
+    return(FALSE)
+  }
   
   if (dim_gen<0) {
-    print('Wrong Inputs.. You could read the documentation.')
+    print('Wrong Inputs.. The dimension can not be negative.')
     return(FALSE)
   }
   if (Zono && m_gen<0) {
-    print('Wrong Inputs.. You could read the documentation.')
+    print('Wrong Inputs.. The number of zonotope generators can not be negative.')
     return(FALSE)
   }
   
@@ -25,6 +33,7 @@ polytope_generator <- function(Zono, Vpoly_gen, kind_gen, dim_gen, m_gen) {
   gen_only = TRUE
   
   #---------------------#
+  A = matrix(c(0,0))
   round_only = FALSE
   rotate_only = FALSE
   W = 0
@@ -39,6 +48,7 @@ polytope_generator <- function(Zono, Vpoly_gen, kind_gen, dim_gen, m_gen) {
   ball_walk = FALSE
   delta =0
   Vpoly = FALSE
+  exact_zono = FALSE
   sample_only = FALSE
   numpoints = 0
   variance = 0
@@ -48,12 +58,12 @@ polytope_generator <- function(Zono, Vpoly_gen, kind_gen, dim_gen, m_gen) {
   #-------------------#
   
   Mat = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
-              Vpoly, Zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
+              Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
               rotate_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
   
   # get elements "matrix" and "vector"
   retList = modifyMat(Mat)
-  if (Vpoly || Zono){
+  if (Vpoly_gen || Zono){
     # in V-polytope or Zonotope case return only the marix
     return(retList$matrix)
   } else {
