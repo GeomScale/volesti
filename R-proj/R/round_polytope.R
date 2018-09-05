@@ -1,28 +1,33 @@
-#' Apply rounding to a convex H or V-polytope.
+#' Apply rounding to a convex polytope.
 #' 
-#' Given a convex H or V polytope as input this function computes a rounding based on minimum volume enclosing ellipsoid to a pointset.
+#' Given a convex H or V polytope or a zonotope as input this function computes a rounding based on minimum volume enclosing ellipsoid of a pointset.
 #' 
 #' @param list("argument"=value) A list that includes parameters for the rounding.
-#' @param path The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.
-#' @param matrix The matrix of the H polytope or the matrix that contains all the vertices of a V polytope row-wise. If the matrix is in ine file, for H-polytopes only (see examples), then the "vector" input is not needed.
-#' @param vector Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.
+#' @param path The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.
+#' @param matrix The \eqn{m\times d} matrix A of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} d-dimensional vertices of a V polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} d-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.
+#' @param vector Only for H-polytopes. The m-dimensional vector b that containes the constants of the m facets, s.t.: \eqn{Ax\leq b}.
 #' @param Vpoly A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.
+#' @param Zonotope A boolean parameter, has to be true when a zonotope is given as input. Default value is false.
 #' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.
-#' @param ball_walk Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is false.
+#' @param ball_walk Optional. Boolean parameter to use ball walk, only for CG algorithm .Default value is false.
 #' @param delta Optional. The radius for the ball walk.
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
 #' @param verbose Optional. A boolean parameter for printing. Default is false.
 #' 
-#' @return For both H and V-polytopes is a list that contains elements to describe the rounded polytope, i.e. "matrix" and "vector" for H-polytopes and just "matrix" for V-polytopes, containig the verices row-wise. For both representations the list contains elements "round_value" which is the determinant of the square matrix of the linear transformation and "minmaxRatio" which is the ratio between the minimum and the maximum axe of the computed ellipsoid, for the rounded body.
+#' @return Is a list that contains elements to describe the rounded polytope, i.e. "matrix" and "vector" for H-polytopes and just "matrix" for V-polytopes and zonotopes, containing the verices or segments row-wise. For both representations the list contains element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
 #' @examples
-#' #rotate a H-polytope (2d unit simplex)
+#' # rotate a H-polytope (2d unit simplex)
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
 #' listHpoly = round_polytope(list("matrix"=A, "vector"=b))
 #' 
-#' #rotate a V-polytope (3d cube) using Random Directions HnR
+#' # rotate a V-polytope (3d cube) using Random Directions HnR
 #' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-#' matVpoly = round_polytope(list("matrix"=V, "Vpoly"=TRUE, "coordinate"=FALSE))
+#' ListVpoly = round_polytope(list("matrix"=V, "Vpoly"=TRUE, "coordinate"=FALSE))
+#' 
+#' # rotate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
+#' Zono = GenZonotope(10,20)
+#' ListZono = round_polytope(list("matrix"=Zono, "Zonotope"=TRUE))
 round_polytope <- function(Inputs){
   
   # set flag for V-polytope

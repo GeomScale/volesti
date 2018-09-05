@@ -8,9 +8,9 @@
 #' 
 #' @return Print the computed volumes and the error. If the test fails a message is printed.
 #' @examples
-#' #test SequenceOfBalls
+#' # test SequenceOfBalls
 #' HdemoVolume("SOB")
-#' #test CoolingGausian
+#' # test CoolingGausian
 #' HdemoVolume("CG")
 HdemoVolume <- function(algo){
   

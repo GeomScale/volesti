@@ -1,5 +1,17 @@
-
-
+#' Run some volume approximation experiments for V-polytopes.
+#'
+#' Run SequenceOfBalls or CoolingGaussian algorithm to approximate the volume of some zonotopes. In each test we use GenZonotope() function to generate a random zonotope and then we apply rounding before the volume approximation.
+#' For each polytope we run \eqn{10} experiments.
+#' 
+#' @param CG The string "CG" to choose CoolingGaussian algorithm.
+#' @param SOB The string "SOB" to choose SequenceOfBalls algorithm.
+#' 
+#' @return Print the computed volumes and the error. If the test fails a message is printed.
+#' @examples
+#' # test SequenceOfBalls
+#' ZdemoVolume("SOB")
+#' # test CoolingGausian
+#' ZdemoVolume("CG")
 ZdemoVolume <- function(algo){
   
   if(algo!="CG" & algo!="SOB"){
@@ -55,9 +67,9 @@ runtest <- function(Mat, name_string, tol, num_of_exps, algo){
   vol = 0
   for (j in 1:num_of_exps) {
     if (algo == "SOB") {
-      vol = vol + volume(list("matrix"=Mat, "Zonotope"=TRUE))
+      vol = vol + volume(list("matrix"=Mat, "Zonotope"=TRUE, "rounding"=TRUE))
     } else {
-      vol = vol + volume(list("matrix"=Mat, "Zonotope"=TRUE, "CG"=TRUE, "error"=0.2))
+      vol = vol + volume(list("matrix"=Mat, "Zonotope"=TRUE, "CG"=TRUE, "error"=0.2, "rounding"=TRUE))
     }
   }
   vol = vol / num_of_exps

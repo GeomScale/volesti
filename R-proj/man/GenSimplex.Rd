@@ -4,12 +4,12 @@
 \alias{GenSimplex}
 \title{Generator function for simplices.}
 \usage{
-GenSimplex(DimGen, repr)
+GenSimplex(dimension, repr)
 }
 \arguments{
-\item{Dimension}{The dimension of the simplex.}
+\item{dimension}{The dimension of the simplex.}
 
-\item{representation}{A string to declare the representation. It has to be H for H-representation or V for V-representation.}
+\item{repr}{A string to declare the representation. It has to be H for H-representation or V for V-representation.}
 }
 \value{
 A simplex in H or V-representation. For an H polytope the return value is a list with two elements: the "matrix" containing a \eqn{d+1\times d} matrix A and the "vector" containing a d+1-dimensional vector b, s.t. \eqn{Ax\leq b}. When the V-representation is chosen the return value is a \eqn{d+1\times d} matrix that containes the vertices row-wise.

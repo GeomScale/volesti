@@ -7,31 +7,37 @@
 rand_rotate(Inputs)
 }
 \arguments{
-\item{list("argument"=value)}{A list that includes elements that describe the convex polytope given as input.}
+\item{list("argument"=value)}{A list that includes elements that describe the convex body that is given as input.}
 
-\item{path}{The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.}
+\item{path}{The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.}
 
-\item{matrix}{The matrix of the H polytope or the matrix that contains all the vertices of a V polytope row-wise. If the matrix is in ine file, for H-polytopes only (see examples), then the "vector" input is not needed.}
+\item{matrix}{The matrix of the H polytope or the matrix that containes all the d-dimensional vertices of a V polytope row-wise or a matrix that containes the d-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.}
 
-\item{vector}{Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.}
+\item{vector}{Only for H-polytopes. The m-dimensional vector b that containes the constants of the facets.}
 
 \item{Vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
+
+\item{Zonotope}{A boolean parameter, has to be true when a zonotope is given as input. Default value is false.}
 
 \item{verbose}{Optional. A boolean parameter for printing. Default is false.}
 }
 \value{
-A H or V-polytope which is a random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{k\times d} matrix that contains the \eqn{k} vertices of the V polytope row-wise.
+A random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{m\times d} matrix that contains the \eqn{m} d-dimensional vertices of the V polytope row-wise. For a zonotope is a \eqn{m\times d} matrix that containes the \eqn{m} d-dimensional segments row-wise.
 }
 \description{
-Given a convex H or V polytope as input and then a random rotation is applied to the polytope.
+Given a convex H or V polytope or a zonotope as input this function applies a random rotation.
 }
 \examples{
-#rotate a H-polytope (2d unit simplex)
+# rotate a H-polytope (2d unit simplex)
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
 listHpoly = rand_rotate(list("matrix"=A, "vector"=b))
 
-#rotate a V-polytope (3d cube)
+# rotate a V-polytope (3d cube)
 V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
 matVpoly = rand_rotate(list("matrix"=V, "Vpoly"=TRUE))
+
+# rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
+Zono = GenZonotope(5,15)
+MatZono = rand_rotate(list("matrix"=Zono, "Zonotope"=TRUE))
 }

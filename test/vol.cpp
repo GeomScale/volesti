@@ -68,6 +68,7 @@ int main(const int argc, const char** argv)
          Vpoly=false,
          Zono=false,
          coordinate=true,
+         exact_zono = false,
          gaussian_sam = false;
 
     //this is our polytope
