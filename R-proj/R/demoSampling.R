@@ -1,6 +1,6 @@
 #' Run some sampling experiments.
 #'
-#' Use uniform or spherical gaussian to sample from some convex H-polytopes, i.e. cubes, simplices, skinny cubes, cross polytopes, birkhoff polytopes.
+#' Use uniform or spherical gaussian to sample from some convex H-polytopes, i.e. cubes, simplices, skinny cubes, cross polytopes and birkhoff polytopes.
 #' We use the default values, i.e. \eqn{walk length = \lfloor 10+dimension/10\rfloor}, \eqn{N = 100}, Cordinate Directions HnR, \eqn{variance = 1}.
 #' 
 #' @param uniform The string "uniform" to choose uniform as the target distribution.
@@ -8,9 +8,9 @@
 #' 
 #' @return Print the computed volumes and the error. If the test fails a message is printed.
 #' @examples
-#' #choose uniform distribution
+#' # choose uniform distribution
 #' demoSampling("uniform")
-#' #choose spherical gaussian distribution
+#' # choose spherical gaussian distribution
 #' demoSampling("gaussian")
 demoSampling <- function(distribution){
   

@@ -2,7 +2,7 @@
 % Please edit documentation in R/round_polytope.R
 \name{round_polytope}
 \alias{round_polytope}
-\title{Apply rounding to a convex polytope.}
+\title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope).}
 \usage{
 round_polytope(Inputs)
 }
@@ -11,9 +11,9 @@ round_polytope(Inputs)
 
 \item{path}{The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.}
 
-\item{matrix}{The \eqn{m\times d} matrix A of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} d-dimensional vertices of a V polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} d-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.}
+\item{matrix}{The \eqn{m\times d} matrix \eqn{A} of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V-polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see \eqn{volume} function example), then the "vector" input is not needed.}
 
-\item{vector}{Only for H-polytopes. The m-dimensional vector b that containes the constants of the m facets, s.t.: \eqn{Ax\leq b}.}
+\item{vector}{Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets, s.t.: \eqn{Ax\leq b}.}
 
 \item{Vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
 
@@ -21,7 +21,7 @@ round_polytope(Inputs)
 
 \item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.}
 
-\item{ball_walk}{Optional. Boolean parameter to use ball walk, only for CG algorithm .Default value is false.}
+\item{ball_walk}{Optional. Boolean parameter to use ball walk, only for CG algorithm. Default value is false.}
 
 \item{delta}{Optional. The radius for the ball walk.}
 
@@ -30,7 +30,7 @@ round_polytope(Inputs)
 \item{verbose}{Optional. A boolean parameter for printing. Default is false.}
 }
 \value{
-Is a list that contains elements to describe the rounded polytope, i.e. "matrix" and "vector" for H-polytopes and just "matrix" for V-polytopes and zonotopes, containing the verices or segments row-wise. For both representations the list contains element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
+Is a list that containes elements to describe the rounded polytope, i.e. "matrix" and "vector" for H-polytopes and just "matrix" for V-polytopes and zonotopes, containing the verices or segments row-wise. For both representations the list containes element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
 }
 \description{
 Given a convex H or V polytope or a zonotope as input this function computes a rounding based on minimum volume enclosing ellipsoid of a pointset.

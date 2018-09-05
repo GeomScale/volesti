@@ -15,8 +15,8 @@ HdemoVolume(algo)
 Print the computed volumes and the error. If the test fails a message is printed.
 }
 \description{
-Run SequenceOfBalls or CoolingGaussian algorithm to approximate the volume of some cubes, simplices, skinny_cubes, cross polytopes, birkhoff polytopes in H-representation.
-For each polytope we run \eqn{10} experiments for SequenceOfBalls and \eqn{20} for CoolingGaussian and we consider the mean as the computed volume. We demand \eqn{error = 0.1}. For all the other parameters use the default values for both algorithms.
+Choose between SequenceOfBalls and CoolingGaussian algorithm to approximate the volume of some cubes, simplices, skinny_cubes, cross polytopes and birkhoff polytopes in H-representation.
+For each polytope we run \eqn{10} volume experiments for SequenceOfBalls and \eqn{20} for CoolingGaussian and we consider the mean value as the volume approximation. We demand \eqn{error = 0.1} for the most of them. For all the other parameters we use the default values for both algorithms.
 }
 \examples{
 # test SequenceOfBalls

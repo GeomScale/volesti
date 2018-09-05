@@ -7,18 +7,18 @@
 CheBall(A, b)
 }
 \arguments{
-\item{A}{the matrix of the H-polytope.}
+\item{A}{The matrix of the H-polytope.}
 
-\item{b}{The m-dimensional vector b that containes the constants of the facets.}
+\item{b}{The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets.}
 }
 \value{
-A d+1-dimensional vector that containes the chebychev ball. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.
+A \eqn{(d+1)}-dimensional vector that containes the Chebychev ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the Chebychev ball.
 }
 \description{
-For a H-polytope described by a \eqn{m\times d} matrix A and a m-dimensional vector b, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) of that polytope by solving the corresponding linear program.
+For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) of that polytope by solving the corresponding linear program.
 }
 \examples{
-#compute the Chebychev ball of a 2d unit simplex
+# compute the Chebychev ball of a 2d unit simplex
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
 ball_vec = CheBall(A,b)

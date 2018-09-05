@@ -13,7 +13,7 @@ ExactZonoVol(Matrix)
 The exact volume of the zonotope
 }
 \description{
-Given the \eqn{m \times d} matrix that containes the m segments that define the d-dimensional zonotope, this function computes the sum of the determinants of all the \eqn{d \times d} submatrices.
+Given the \eqn{m \times d} matrix that containes the \eqn{m} segments that define the \eqn{d}-dimensional zonotope, this function computes the sum of the determinants of all the \eqn{d \times d} submatrices.
 }
 \examples{
 

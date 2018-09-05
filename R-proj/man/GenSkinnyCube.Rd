@@ -10,10 +10,10 @@ GenSkinnyCube(dimension, repr = "H")
 \item{dimension}{The dimension of the skinny hypercube.}
 }
 \value{
-A d-dimensional skinny hypercube in H-representation.The retutn value is a list with two elements: the "matrix" containing a \eqn{2d\times d} matrix A and the "vector" containing a 2d-dimensional vector b, s.t. \eqn{Ax\leq b}.
+A \eqn{d}-dimensional skinny hypercube in H-representation. The retutn value is a list with two elements: the "matrix" containing a \eqn{2d\times d} matrix \eqn{A} and the "vector" containing a \eqn{2d}-dimensional vector \eqn{b}, s.t. \eqn{Ax\leq b}.
 }
 \description{
-This function can be used to generate a d-dimensional skinny hypercube in H-representation.
+This function can be used to generate a \eqn{d}-dimensional skinny hypercube only in H-representation.
 }
 \examples{
 # generate a 10-dimensional skinny hypercube.
