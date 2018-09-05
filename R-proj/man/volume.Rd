@@ -9,31 +9,31 @@ volume(Inputs)
 \arguments{
 \item{list("argument"=value)}{A list that includes parameters for the chosen algorithm.}
 
-\item{path}{The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.}
+\item{path}{The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.}
 
-\item{matrix}{The matrix of the H polytope or the matrix that contains all the vertices or the segments of a V-polytope or a zonotope respectively row-wise. If the matrix is in ine file, for H-polytopes only (see examples), then the "vector" input is not needed.}
+\item{matrix}{The \eqn{m\times d} matrix A of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.}
 
-\item{vector}{Only for H-polytopes. The d-dimensional vector b that containes the constants of the facets.}
+\item{vector}{Only for H-polytopes. The \eqn{m}-dimensional vector b that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.}
 
 \item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10 + d/10\rfloor}.}
 
-\item{error}{Optional. Declare the goal for the approximation error. Default is 1 for volesti and \eqn{0.2} for CV.}
+\item{error}{Optional. Declare the goal for the approximation error. Default is 1 for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.[m]}
 
-\item{Chebychev}{Optional. A d+1 vector that containes the chebychev center. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.}
+\item{InnerVec}{Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined as the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,m}.}
 
-\item{CV}{Optional. A boolean parameter to use CV algorithm. Default value is false.}
+\item{CG}{Optional. A boolean parameter to use CoolingGaussian algorithm. Default value is false.}
 
-\item{win_len}{Optional. The size of the window for the ratios' approximation in CV algorithm. Default value is \eqn{4 \ dimension^2 + 500}.}
+\item{win_len}{Optional. The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \ dimension^2 + 500}.}
 
-\item{C}{Optional. a constant for the lower boud of \eqn{variance/mean^2} in schedule annealing.}
+\item{C}{Optional. A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm.}
 
-\item{N}{optional. The number of points we sample in each step of schedule annealing in CV algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
+\item{N}{optional. The number of points we sample in each step of schedule annealing in CG algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
 
-\item{ratio}{Optional. parameter of schedule annealing, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
+\item{ratio}{Optional. Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
 
-\item{frac}{Optional. the fraction of the total error to spend in the first gaussian. Default value is \eqn{0.1}.}
+\item{frac}{Optional. The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.}
 
-\item{ball_walk}{Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is false.}
+\item{ball_walk}{Optional. Boolean parameter to use ball walk. Default value is false.}
 
 \item{delta}{Optional. The radius for the ball walk.}
 
@@ -51,7 +51,7 @@ volume(Inputs)
 The approximation of the volume of a convex H or V polytope.
 }
 \description{
-For the volume approximation can be used two algorithms. Either volesti or CV. A H-polytope with m facets is described by a \eqn{m\times d} matrix A and a d-dimensional vector b, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of d-dimensional points.
+For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with m facets is described by a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of \eqn{d}-dimensional points. A zonotope is desrcibed as the Minkowski sum of \eqn{d}-dimensional segments.
 }
 \examples{
 # calling volesti algorithm for a H-polytope (2d unit simplex)
@@ -61,7 +61,7 @@ vol = volume(list("matrix"=A, "vector"=b))
 
 # calling CV algorithm for a V-polytope (3d cube)
 V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-vol = volume(list("matrix"=V, "CV"=TRUE, "Vpoly"=TRUE))
+vol = volume(list("matrix"=V, "CG"=TRUE, "Vpoly"=TRUE))
 
 # a 2d unit simplex in H-representation using ine format matrix, calling volesti algorithm
 A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1), ncol=3, nrow=4, byrow=TRUE)
@@ -69,7 +69,7 @@ vol = volume(list("matrix"=A))
 
 # calling Gaussian-Cooling algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
 zonotope = GenZonotope(5, 10)
-vol = volume(list("matrix"=zonotope, "Zonotope"=TRUE, "rounding"=TRUE, "CV"=TRUE))
+vol = volume(list("matrix"=zonotope, "Zonotope"=TRUE, "rounding"=TRUE, "CG"=TRUE))
 }
 \references{
 \cite{I.Z.Emiris and V. Fisikopoulos,

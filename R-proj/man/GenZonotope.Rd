@@ -4,12 +4,12 @@
 \alias{GenZonotope}
 \title{Generator function for zonotopes.}
 \usage{
-GenZonotope(DimGen, NumGen)
+GenZonotope(dimension, NumGen)
 }
 \arguments{
-\item{NumGen}{The number of segments that generate the zonotope.}
+\item{dimension}{The dimension of the cross polytope.}
 
-\item{Dimension}{The dimension of the cross polytope.}
+\item{NumGen}{The number of segments that generate the zonotope.}
 }
 \value{
 A \eqn{m \times d} matrix that containes the m d-dimensional segments.

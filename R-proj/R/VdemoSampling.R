@@ -1,5 +1,17 @@
-
-
+#' Run some volume approximation experiments for V-polytopes.
+#'
+#' Run SequenceOfBalls or CoolingGaussian algorithm to approximate the volume of some cubes, simplices and cross polytopes in V-representation.
+#' For each polytope we run \eqn{10} experiments.
+#' 
+#' @param CG The string "CG" to choose CoolingGaussian algorithm.
+#' @param SOB The string "SOB" to choose SequenceOfBalls algorithm.
+#' 
+#' @return Print the computed volumes and the error. If the test fails a message is printed.
+#' @examples
+#' # test SequenceOfBalls
+#' VdemoVolume("SOB")
+#' # test CoolingGausian
+#' VdemoVolume("CG")
 VdemoVolume <- function(algo){
   
   if(algo!="CG" & algo!="SOB"){

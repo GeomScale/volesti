@@ -4,12 +4,12 @@
 \alias{GenCube}
 \title{Generator function for hypercubes.}
 \usage{
-GenCube(DimGen, repr)
+GenCube(dimension, repr)
 }
 \arguments{
-\item{Dimension}{The dimension of the hypercube}
+\item{dimension}{The dimension of the hypercube}
 
-\item{represenation}{A string to declare the representation. It has to be H for H-representation or V for V-representation.}
+\item{repr}{A string to declare the representation. It has to be H for H-representation or V for V-representation.}
 }
 \value{
 A hypercube in H or V-representation. For an H polytope the return value is a list with two elements: the "matrix" containing a \eqn{2d\times d} matrix A and the "vector" containing a 2d-dimensional vector b, s.t. \eqn{Ax\leq b}. When the V-representation is chosen the return value is a \eqn{2^d \times d} matrix that containes the vertices row-wise.

@@ -1,18 +1,16 @@
 Package: volesti
 Type: Package
 License: GPL (>= 2)
-Title: Volume approximation using VolEsti and CV algorithms.
+Title: Volume approximation of convex polytopes.
 Authors@R: c(person("Fisikopoulos", "Vissarion" , role=c("cph", "cre", "aut"), email="vissarion.fysikopoulos@oracle.com"),
-             person("Chalkis", "Apostolos" , role=c("cph", "ctb", "aut"), comment = "Contribution and development, as part of Google Summer of Code 2018 program", email="tolis.chal@gmail.com"))
-Description: Package provides C++ code and a Rcpp interface for volume approxiation.
-             The main function takes as input a H-polytope or a V-polytope and apply
-             VolEsti or CV algorithm.
+             person("Chalkis", "Apostolos" , role=c("cph", "ctb", "aut"), email="tolis.chal@gmail.com"))
+Description: Package provides an R interface for VolEsti C++ package. VolEsti computes approximations of volume of polytopes given as a set of points or linear inequalities or Minkowski sum of segments (zonotopes). There are two algorithms for volume approximation as well as algorithms for sampling, rounding and rotating polytopes.
 Maintainer: Fisikopoulos Vissarion <vissarion.fysikopoulos@oracle.com>, Chalkis Apostolos <tolis.chal@gmail.com>
-Version: 1.0
-Date: 2018-08-08
+Version: 1.0.0
+Date: 2018-09-05
 BugReports: https://github.com/vissarion/volume_approximation/issues
 SystemRequirements: C++11
-Depends: Rcpp (>= 0.12.17), RcppEigen, lpSolveAPI, BH
+Depends: Rcpp (>= 0.12.17), lpSolveAPI, BH
 Imports: Rcpp (>= 0.12.17)
-LinkingTo: Rcpp, RcppEigen, BH
+LinkingTo: Rcpp, BH
 RoxygenNote: 6.0.1

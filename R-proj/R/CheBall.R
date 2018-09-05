@@ -1,9 +1,9 @@
 #' Compute the Chebychev ball of a H-polytope.
 #' 
-#' For a H-polytope described by a \eqn{m\times d} matrix A and a d-dimensional vector b, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball of that polytope by solving the corresponding linear program.
+#' For a H-polytope described by a \eqn{m\times d} matrix A and a m-dimensional vector b, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) of that polytope by solving the corresponding linear program.
 #'
 #' @param A the matrix of the H-polytope.
-#' @param b The d-dimensional vector b that containes the constants of the facets.
+#' @param b The m-dimensional vector b that containes the constants of the facets.
 #' @return A d+1-dimensional vector that containes the chebychev ball. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.
 #' @examples
 #' #compute the Chebychev ball of a 2d unit simplex

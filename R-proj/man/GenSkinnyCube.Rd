@@ -4,16 +4,16 @@
 \alias{GenSkinnyCube}
 \title{Generator function for skinny hypercubes.}
 \usage{
-GenSkinnyCube(DimGen, repr = "H")
+GenSkinnyCube(dimension, repr = "H")
 }
 \arguments{
-\item{Dimension}{The dimension of the skinny hypercube.}
+\item{dimension}{The dimension of the skinny hypercube.}
 }
 \value{
 A d-dimensional skinny hypercube in H-representation.The retutn value is a list with two elements: the "matrix" containing a \eqn{2d\times d} matrix A and the "vector" containing a 2d-dimensional vector b, s.t. \eqn{Ax\leq b}.
 }
 \description{
-This function can be used to generate a d-dimensional skinny hypercube.
+This function can be used to generate a d-dimensional skinny hypercube in H-representation.
 }
 \examples{
 # generate a 10-dimensional skinny hypercube.
