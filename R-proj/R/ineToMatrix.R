@@ -1,6 +1,6 @@
 #' function to get a ine file and returns a numerical matrix A.
 #'
-#' This function takes an ine file as a string (using read.csv()) and returns a numerical matrix A in ine format for function volume (see \eqn{volume} function examples).
+#' This function takes an ine file as a string (using read.csv()) and returns a numerical matrix \eqn{A} in ine format for function volume (see \eqn{volume} function examples).
 #'
 #' @param P It is in format, read.cs('path/to/file.ine'). The ine file desrcibes a H-polytope.
 #' @return The numerical matrix in ine format.

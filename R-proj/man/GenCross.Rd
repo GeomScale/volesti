@@ -9,13 +9,13 @@ GenCross(dimension, repr)
 \arguments{
 \item{dimension}{The dimension of the cross polytope.}
 
-\item{repr}{A string to declare the representation. It has to be H for H-representation or V for V-representation.}
+\item{repr}{A string to declare the representation. It has to be 'H' for H-representation or 'V' for V-representation.}
 }
 \value{
-A cross polytope in H or V-representation. For an H polytope the return value is a list with two elements: the "matrix" containing a \eqn{2^d \times d} matrix A and the "vector" containing a \eqn{2^d} -dimensional vector b, s.t. \eqn{Ax\leq b}. When the V-representation is chosen the return value is a \eqn{2d \times d} matrix that containes the vertices row-wise.
+A cross polytope in H or V-representation. For an H polytope the return value is a list with two elements: the "matrix" containing a \eqn{2^d \times d} matrix \eqn{A} and the "vector" containing a \eqn{2^d} -dimensional vector \eqn{b}, s.t. \eqn{Ax\leq b}. When the V-representation is chosen the return value is a \eqn{2d \times d} matrix that containes the vertices row-wise.
 }
 \description{
-This function can be used to generate a d-dimensional cross polytope in H or V representation.
+This function can be used to generate a \eqn{d}-dimensional cross polytope in H or V representation.
 }
 \examples{
 # generate a 10-dimensional cross polytope in H-representation

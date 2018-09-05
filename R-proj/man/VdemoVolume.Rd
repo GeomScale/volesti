@@ -15,8 +15,8 @@ VdemoVolume(algo)
 Print the computed volumes and the error. If the test fails a message is printed.
 }
 \description{
-Run SequenceOfBalls or CoolingGaussian algorithm to approximate the volume of some cubes, simplices and cross polytopes in V-representation.
-For each polytope we run \eqn{10} experiments.
+Choose between SequenceOfBalls and CoolingGaussian algorithm to approximate the volume of some cubes, simplices and cross polytopes in V-representation.
+For each polytope we run \eqn{10} volume experiments and we consider the mean value as the volume approximation. For SOB algorithm we demand \eqn{error = 0.1} and for CG algorithm we demand \eqn{error = 0.2}.
 }
 \examples{
 # test SequenceOfBalls

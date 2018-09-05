@@ -1,13 +1,13 @@
-#' Sample points from a convex Polytope
+#' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope).
 #'
 #' Sample N points from a H or a V-polytope or a zonotope with uniform or spherical gaussian -centered in an internal point- target distribution.
 #' 
 #' @param list("argument"=value) A list that includes parameters for the chosen target distribution and the random walk algorithm.
 #' @param path The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.
-#' @param matrix The \eqn{m\times d} matrix A of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} d-dimensional vertices of a V polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} d-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.
-#' @param vector Only for H-polytopes. The m-dimensional vector b that containes the constants of the m facets, s.t.: \eqn{Ax\leq b}.
+#' @param matrix The \eqn{m\times d} matrix \eqn{A} of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V-polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see \eqn{volume} function example), then the "vector" input is not needed.
+#' @param vector Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets, s.t.: \eqn{Ax\leq b}.
 #' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.
-#' @param internal_point Optional. A d-dimensional vector that containes the coordinates of an internal point of the polytope. If it is not given then for H-polytopes the Chebychev center is computed, for V-polytopes d+1 vertices are picked randomly and the Chebychev center of the defined simplex is computed. For a zonotope that is defined as the Minkowski sum of \eqn{m} segments we use the origin.
+#' @param internal_point Optional. A \eqn{d}-dimensional vector that containes the coordinates of an internal point of the polytope. If it is not given then for H-polytopes the Chebychev center is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev center of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we use the origin.
 #' @param gaussian Optional. A boolean parameter to sample with gaussian target distribution. Default value is false.
 #' @param variance Optional. The variance for the spherical gaussian. Default value is \eqn{1}.
 #' @param N The number of points that the function is going to sample from the convex polytope. Default value is \eqn{100}.
@@ -19,11 +19,11 @@
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
 #' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope.
 #' @examples 
-#' #uniform distribution from a 3d cube described by a set of vertices
+#' # uniform distribution from a 3d cube described by a set of vertices
 #' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
 #' points = sample_points(list("matrix"=V, "Vpoly"=TRUE, "N"=1000))
 #' 
-#' #gaussian distribution from a 2d unit simplex in H-representation with variance = 2
+#' # gaussian distribution from a 2d unit simplex in H-representation with variance = 2
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
 #' points = sample_points(list("matrix"=A, "vector"=b, "gaussian"=TRUE, "variance"=2))

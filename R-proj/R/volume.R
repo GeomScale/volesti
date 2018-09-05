@@ -1,13 +1,13 @@
-#' The main R function for volume approximation of a convex H or V Polytope
+#' The main R function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope).
 #'
-#' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with m facets is described by a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of \eqn{d}-dimensional points. A zonotope is desrcibed as the Minkowski sum of \eqn{d}-dimensional segments.
+#' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of \eqn{d}-dimensional points. A zonotope is desrcibed by the Minkowski sum of \eqn{d}-dimensional segments.
 #'
 #' @param list("argument"=value) A list that includes parameters for the chosen algorithm.
 #' @param path The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.
-#' @param matrix The \eqn{m\times d} matrix A of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.
-#' @param vector Only for H-polytopes. The \eqn{m}-dimensional vector b that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.
+#' @param matrix The \eqn{m\times d} matrix \eqn{A} of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V-polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.
+#' @param vector Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.
 #' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10 + d/10\rfloor}.
-#' @param error Optional. Declare the goal for the approximation error. Default is 1 for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.[m]
+#' @param error Optional. Declare the goal for the approximation error. Default is \eqn{1} for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.
 #' @param InnerVec Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined as the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,m}.
 #' @param CG Optional. A boolean parameter to use CoolingGaussian algorithm. Default value is false.
 #' @param win_len Optional. The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \ dimension^2 + 500}.

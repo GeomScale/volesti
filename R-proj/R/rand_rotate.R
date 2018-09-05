@@ -1,16 +1,16 @@
-#' Apply a random rotation to a convex H or V-polytope.
+#' Apply a random rotation to a convex polytope (H-polytope, V-polytope or a zonotope).
 #' 
 #' Given a convex H or V polytope or a zonotope as input this function applies a random rotation.
 #' 
 #' @param list("argument"=value) A list that includes elements that describe the convex body that is given as input.
 #' @param path The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.
-#' @param matrix The matrix of the H polytope or the matrix that containes all the d-dimensional vertices of a V polytope row-wise or a matrix that containes the d-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.
-#' @param vector Only for H-polytopes. The m-dimensional vector b that containes the constants of the facets.
+#' @param matrix The \eqn{m\times d} matrix \eqn{A} of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V-polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see \eqn{volume} function example), then the "vector" input is not needed.
+#' @param vector Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets.
 #' @param Vpoly A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.
 #' @param Zonotope A boolean parameter, has to be true when a zonotope is given as input. Default value is false.
 #' @param verbose Optional. A boolean parameter for printing. Default is false.
 #' 
-#' @return A random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{m\times d} matrix that contains the \eqn{m} d-dimensional vertices of the V polytope row-wise. For a zonotope is a \eqn{m\times d} matrix that containes the \eqn{m} d-dimensional segments row-wise.
+#' @return A random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{m\times d} matrix that containes the \eqn{m} \eqn{d}-dimensional vertices of the V-polytope row-wise. For a zonotope is a \eqn{m\times d} matrix that containes the \eqn{m} \eqn{d}-dimensional segments row-wise.
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)

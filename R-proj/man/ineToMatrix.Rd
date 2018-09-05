@@ -13,7 +13,7 @@ ineToMatrix(P)
 The numerical matrix in ine format.
 }
 \description{
-This function takes an ine file as a string (using read.csv()) and returns a numerical matrix A in ine format for function volume (see \eqn{volume} function examples).
+This function takes an ine file as a string (using read.csv()) and returns a numerical matrix \eqn{A} in ine format for function volume (see \eqn{volume} function examples).
 }
 \examples{
 # give the path to birk4.ine

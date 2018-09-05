@@ -15,12 +15,12 @@ demoRounding(algo)
 Print the computed volume and print a failure message if the error is larger than the expected.
 }
 \description{
-Choose volume algorithm between CoolingGaussian and SequenceOfBalls and run rounding tests for some skinny cubes. In the first test we apply a random rotation as well before the rounding. We run 10 experiments for SequenceOfBalls and 20 for CoolingGaussian.
+Choose volume algorithm between CoolingGaussian and SequenceOfBalls and run rounding tests for some skinny cubes. In the first test we apply a random rotation as well before the rounding. We run \eqn{10} volume experiments for SequenceOfBalls and \eqn{20} for CoolingGaussian and we consider the mean value as the volume approximation.
 }
 \examples{
-#run tests for SOB algorithm
+# run tests for SOB algorithm
 demoRounding("SOB")
 
-#run tests for CV algorithm
+# run tests for CV algorithm
 demoRounding("CG")
 }

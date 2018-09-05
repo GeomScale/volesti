@@ -1,7 +1,7 @@
-#' Run some volume approximation experiments for V-polytopes.
+#' Run some volume approximation experiments for zonotopes.
 #'
 #' Run SequenceOfBalls or CoolingGaussian algorithm to approximate the volume of some zonotopes. In each test we use GenZonotope() function to generate a random zonotope and then we apply rounding before the volume approximation.
-#' For each polytope we run \eqn{10} experiments.
+#' For each polytope we run \eqn{10} volume experiments and we consider the mean value as the volume approximation. For SOB algorithm we demand \eqn{error = 0.1} and for CG algorithm we demand \eqn{error = 0.2}.
 #' 
 #' @param CG The string "CG" to choose CoolingGaussian algorithm.
 #' @param SOB The string "SOB" to choose SequenceOfBalls algorithm.

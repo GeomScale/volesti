@@ -2,7 +2,7 @@
 % Please edit documentation in R/modifyMat.R
 \name{modifyMat}
 \alias{modifyMat}
-\title{Takes a numerical matrix in ine format and returns the matrix A and the vector b.}
+\title{Takes a numerical matrix in ine format and returns the matrix \eqn{A} and the vector \eqn{b} s.t.: \eqn{Ax\leq b}.}
 \usage{
 modifyMat(A)
 }
@@ -10,10 +10,10 @@ modifyMat(A)
 \item{A}{The numerical matrix in ine format (see example) of the H-polytope.}
 }
 \value{
-A list that contains elements "matrix" and "vector", i.e. the numerical \eqn{m\times d} matrix A and the numerical m-dimensional vector b, defining H-polytope P, s.t.:  \eqn{Ax\leq b}. For V polytopes the element "vector" is useless in practice.
+A list that containes elements "matrix" and "vector", i.e. the numerical \eqn{m\times d} matrix \eqn{A} and the numerical \eqn{m}-dimensional vector \eqn{b}, defining H-polytope \eqn{P}, s.t.:  \eqn{Ax\leq b}. For V polytopes the element "vector" is useless in practice.
 }
 \description{
-This function can be used to extract from a numerical matrix in ine format (see example), that describes a H-polytope, the \eqn{m\times d} matrix A and the m-dimensional vector b, s.t.: \eqn{Ax\leq b}.
+This function can be used to extract from a numerical matrix in ine format (see example), that describes a H-polytope, the \eqn{m\times d} matrix \eqn{A} and the \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}.
 }
 \examples{
 # a 2d unit simplex in H-representation using numerical matrix in ine format

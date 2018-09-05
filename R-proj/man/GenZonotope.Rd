@@ -7,15 +7,15 @@
 GenZonotope(dimension, NumGen)
 }
 \arguments{
-\item{dimension}{The dimension of the cross polytope.}
+\item{dimension}{The dimension of the zonotope.}
 
 \item{NumGen}{The number of segments that generate the zonotope.}
 }
 \value{
-A \eqn{m \times d} matrix that containes the m d-dimensional segments.
+A \eqn{m \times d} matrix that containes the \eqn{m} \eqn{d}-dimensional segments.
 }
 \description{
-This function can be used to generate a d-dimensional zonotope described by the Minkowski sum of m segments. We consider the \eqn{e_1, \dots ,e_d} generators and m-d random generators. Then we shift the zonotope in order to contain the origin as the center of symmetry. It might needs rounding before the volume computation.
+This function can be used to generate a \eqn{d}-dimensional zonotope described by the Minkowski sum of m segments. We consider the \eqn{e_1, \dots ,e_d} generators and \eqn{m-d} random generators. Then we shift the zonotope in order to contain the origin. The origin is the center of symmetry as well. It might needs rounding before the volume computation.
 }
 \examples{
 # generate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
