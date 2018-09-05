@@ -1,7 +1,7 @@
-#' Run some volume approximation experiments.
+#' Run some volume approximation experiments for H-polytopes.
 #'
-#' Run SequenceOfBalls or CoolingGaussian algorithm to approximate the volume of some cubes, simplices, skinny_cubes, cross polytopes, birkhoff polytopes.
-#' We run \eqn{10} experiments for SequenceOfBalls and \eqn{20} for CoolingGaussian, for each polytope and we consider the mean as the computed volume. We demand \eqn{error = 0.1}. For all the other parameters use the default values for both algorithms.
+#' Run SequenceOfBalls or CoolingGaussian algorithm to approximate the volume of some cubes, simplices, skinny_cubes, cross polytopes, birkhoff polytopes in H-representation.
+#' For each polytope we run \eqn{10} experiments for SequenceOfBalls and \eqn{20} for CoolingGaussian and we consider the mean as the computed volume. We demand \eqn{error = 0.1}. For all the other parameters use the default values for both algorithms.
 #' 
 #' @param CG The string "CG" to choose CoolingGaussian algorithm.
 #' @param SOB The string "SOB" to choose SequenceOfBalls algorithm.
@@ -9,10 +9,10 @@
 #' @return Print the computed volumes and the error. If the test fails a message is printed.
 #' @examples
 #' #test SequenceOfBalls
-#' demoVolume("SOB")
+#' HdemoVolume("SOB")
 #' #test CoolingGausian
-#' demoVolume("CG")
-demoVolume <- function(algo){
+#' HdemoVolume("CG")
+HdemoVolume <- function(algo){
   
   if(algo!="CG" & algo!="SOB"){
     print('choose between CV and volesti.')
@@ -30,12 +30,15 @@ demoVolume <- function(algo){
   print('------------1st test [cubes]------------')
   print('----------------------------------------')
   cat('\n')
+  print('H-cube10')
   PolyList = GenCube(10, 'H')
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-cube10', 1024, 0.1, num_of_exps, algo)
   
+  print('H-cube20')
   PolyList = GenCube(20, 'H')
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-cube20', 1048576, 0.1, num_of_exps, algo)
   
+  print('H-cube30')
   PolyList = GenCube(30, 'H')
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-cube30', 1073742000, 0.2, num_of_exps, algo)
   
@@ -44,42 +47,52 @@ demoVolume <- function(algo){
   print('----------------------------------------')
   cat('\n')
   
+  print('H-cross10')
   PolyList = GenCross(10, 'H')
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-cross10', 0.0002821869, 0.1, num_of_exps, algo)
-
+  
   print('----------------------------------------')
   print('----------3rd test [birkhoff]-----------')
   print('----------------------------------------')
   cat('\n')
+  print('H-birk3')
   A = ineToMatrix(read.csv(paste0(path,'birk3.ine')))
   x = modifyMat(A)
   runtest(x$matrix, x$vector, FALSE, FALSE, 'H-birk3', 0.125, 0.1, num_of_exps, algo)
   
+  print('H-birk4')
   A = ineToMatrix(read.csv(paste0(path,'birk4.ine')))
   x = modifyMat(A)
   runtest(x$matrix, x$vector, FALSE, FALSE, 'H-birk4', 0.000970018, 0.2, num_of_exps, algo)
   
+  print('H-birk5')
   A = ineToMatrix(read.csv(paste0(path,'birk5.ine')))
   x = modifyMat(A)
   runtest(x$matrix, x$vector, FALSE, FALSE, 'H-birk5', 0.000000225, 0.2, num_of_exps, algo)
   
+  print('H-birk6')
   A = ineToMatrix(read.csv(paste0(path,'birk6.ine')))
   x = modifyMat(A)
+  
   runtest(x$matrix, x$vector, FALSE, FALSE, 'H-birk6', 0.0000000000009455459196, 0.5, num_of_exps, algo)
   
   print('----------------------------------------')
   print('--------4th test [prod_simplex]---------')
   print('----------------------------------------')
   cat('\n')
+  print('H-prod_simplex_5_5')
   PolyList = GenProdSimplex(5)
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-prod_simplex_5_5', (1/prod(1:5))^2, 0.1, num_of_exps, algo)
   
+  print('H-prod_simplex_10_10')
   PolyList = GenProdSimplex(10)
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-prod_simplex_10_10', (1/prod(1:10))^2, 0.1, num_of_exps, algo)
   
+  print('H-prod_simplex_15_15')
   PolyList = GenProdSimplex(15)
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-prod_simplex_15_15', (1/prod(1:15))^2, 0.1, num_of_exps, algo)
   
+  print('H-prod_simplex_20_20')
   PolyList = GenProdSimplex(20)
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-prod_simplex_20_20', (1/prod(1:20))^2, 0.1, num_of_exps, algo)
   
@@ -87,18 +100,23 @@ demoVolume <- function(algo){
   print('--------5th test [simplex]---------')
   print('----------------------------------------')
   cat('\n')
+  print('H-simplex10')
   PolyList = GenSimplex(10, 'H')
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-simplex10', (1/prod(1:10)), 0.1, num_of_exps, algo)
   
+  print('H-simplex20')
   PolyList = GenSimplex(20, 'H')
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-simplex20', (1/prod(1:20)), 0.1, num_of_exps, algo)
   
+  print('H-simplex30')
   PolyList = GenSimplex(30, 'H')
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-simplex30', (1/prod(1:30)), 0.1, num_of_exps, algo)
   
+  print('H-simplex40')
   PolyList = GenSimplex(40, 'H')
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-simplex40', (1/prod(1:40)), 0.1, num_of_exps, algo)
   
+  print('H-simplex50')
   PolyList = GenSimplex(50, 'H')
   runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-simplex50', (1/prod(1:50)), 0.1, num_of_exps, algo)
   
@@ -107,9 +125,11 @@ demoVolume <- function(algo){
     print('--------6th test [skinny_cubes]---------')
     print('----------------------------------------')
     cat('\n')
+    print('H-skinny_cube10')
     PolyList = GenSkinnyCube(10)
     runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-skinny_cube10', 102400, 0.1, num_of_exps, algo)
     
+    print('H-skinny_cube20')
     PolyList = GenSkinnyCube(20)
     runtest(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-skinny_cube20', 104857600, 0.1, num_of_exps, algo)
   }
@@ -124,7 +144,7 @@ runtest <- function(Mat, vector, Vpoly, Zono, name_string,
     if (algo == "SOB") {
       vol = vol + volume(list("matrix"=Mat, "vector"=vector))
     } else {
-      vol = vol + volume(list("matrix"=Mat, "vector"=vector, "CV"=TRUE, "error"=0.1))
+      vol = vol + volume(list("matrix"=Mat, "vector"=vector, "CG"=TRUE, "error"=0.1))
     }
   }
   vol = vol / num_of_exps
