@@ -1,6 +1,6 @@
 #' The main R function for volume approximation of a convex H or V Polytope
 #'
-#' For the volume approximation can be used two algorithms. Either volesti or CV. A H-polytope with m facets is described by a \eqn{m\times d} matrix A and a d-dimensional vector b, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of d-dimensional points.
+#' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with m facets is described by a \eqn{m\times d} matrix A and a d-dimensional vector b, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of d-dimensional points.
 #'
 #' @param list("argument"=value) A list that includes parameters for the chosen algorithm.
 #' @param path The path to an ine or ext file that describes the H or V polytope respectively. If path is given then "matrix" and "vector" inputs are not needed.
@@ -9,13 +9,13 @@
 #' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10 + d/10\rfloor}.
 #' @param error Optional. Declare the goal for the approximation error. Default is 1 for volesti and \eqn{0.2} for CV.
 #' @param Chebychev Optional. A d+1 vector that containes the chebychev center. The first d coordinates corresponds to the center and the last one to the radius of the chebychev ball.
-#' @param CV Optional. A boolean parameter to use CV algorithm. Default value is false.
-#' @param win_len Optional. The size of the window for the ratios' approximation in CV algorithm. Default value is \eqn{4 \ dimension^2 + 500}.
-#' @param C Optional. a constant for the lower boud of \eqn{variance/mean^2} in schedule annealing.
-#' @param N optional. The number of points we sample in each step of schedule annealing in CV algorithm. Default value is \eqn{500C + dimension^2 / 2}.
-#' @param ratio Optional. parameter of schedule annealing, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.
-#' @param frac Optional. the fraction of the total error to spend in the first gaussian. Default value is \eqn{0.1}.
-#' @param ball_walk Optional. Boolean parameter to use ball walk, only for CV algorithm .Default value is false.
+#' @param CG Optional. A boolean parameter to use CG algorithm. Default value is false.
+#' @param win_len Optional. The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \ dimension^2 + 500}.
+#' @param C Optional. A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm.
+#' @param N optional. The number of points we sample in each step of schedule annealing in CG algorithm. Default value is \eqn{500C + dimension^2 / 2}.
+#' @param ratio Optional. Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.
+#' @param frac Optional. The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.
+#' @param ball_walk Optional. Boolean parameter to use ball walk, only for CG algorithm .Default value is false.
 #' @param delta Optional. The radius for the ball walk.
 #' @param verbose Optional. A boolean parameter for printing. Default is false.
 #' @param Vpoly A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.
@@ -36,7 +36,7 @@
 #' 
 #' # calling CV algorithm for a V-polytope (3d cube)
 #' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-#' vol = volume(list("matrix"=V, "CV"=TRUE, "Vpoly"=TRUE))
+#' vol = volume(list("matrix"=V, "CG"=TRUE, "Vpoly"=TRUE))
 #' 
 #' # a 2d unit simplex in H-representation using ine format matrix, calling volesti algorithm
 #' A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1), ncol=3, nrow=4, byrow=TRUE)
@@ -44,7 +44,7 @@
 #' 
 #' # calling Gaussian-Cooling algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
 #' zonotope = GenZonotope(5, 10)
-#' vol = volume(list("matrix"=zonotope, "Zonotope"=TRUE, "rounding"=TRUE, "CV"=TRUE))
+#' vol = volume(list("matrix"=zonotope, "Zonotope"=TRUE, "rounding"=TRUE, "CG"=TRUE))
 volume <- function(Inputs){
   
   # flag for V-polytope
@@ -107,8 +107,8 @@ volume <- function(Inputs){
   
   # set flag for CV algorithm
   annealing = FALSE
-  if (!is.null(Inputs$CV)) {
-    annealing = Inputs$CV
+  if (!is.null(Inputs$CG)) {
+    annealing = Inputs$CG
   }
   
   # set flag for verbose mode

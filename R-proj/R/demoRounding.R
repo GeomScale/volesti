@@ -62,7 +62,7 @@ testRound <- function(Mat, vector, exactvol, tol, name_string, num_of_exps, algo
       if (algo == "SOB") {
         vol = vol + listHpoly$round_value * volume(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector))
       } else {
-        vol = vol + listHpoly$round_value * volume(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector, "CV"=TRUE, "error"=0.1))
+        vol = vol + listHpoly$round_value * volume(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector, "CG"=TRUE, "error"=0.1))
       }
     }
     vol = vol / num_of_exps
