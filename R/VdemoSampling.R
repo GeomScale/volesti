@@ -63,25 +63,26 @@ VdemoVolume <- function(algo){
   PolyMat = GenSimplex(7, 'V')
   Vruntest(PolyMat, 'V-simplex7', 1/prod(1:7), tol, num_of_exps, algo)
   
-}
 
-Vruntest <- function(Mat, name_string, exactvol, tol, num_of_exps, algo){
+  Vruntest <- function(Mat, name_string, exactvol, tol, num_of_exps, algo){
   
-  vol = 0
-  for (j in 1:num_of_exps) {
-    if (algo == "SOB") {
-      vol = vol + volume(list("matrix"=Mat, "Vpoly"=TRUE))
-    } else {
-      vol = vol + volume(list("matrix"=Mat, "Vpoly"=TRUE, "CG"=TRUE, "error"=0.2))
+    vol = 0
+    for (j in 1:num_of_exps) {
+      if (algo == "SOB") {
+        vol = vol + volume(list("matrix"=Mat, "Vpoly"=TRUE))
+      } else {
+        vol = vol + volume(list("matrix"=Mat, "Vpoly"=TRUE, "CG"=TRUE, "error"=0.2))
+      }
     }
+    vol = vol / num_of_exps
+    print(paste0('volume approximation of ',name_string,' = ',vol))
+    print(paste0('exact volume of ',name_string,' = ',exactvol))
+    error = abs(vol - exactvol) / exactvol
+    print(paste0('error = ',error))
+    if (error >= tol){
+      print(paste0('TEST FAILED!! ', error, ' > ', tol))
+    }
+    cat('\n')
   }
-  vol = vol / num_of_exps
-  print(paste0('volume approximation of ',name_string,' = ',vol))
-  print(paste0('exact volume of ',name_string,' = ',exactvol))
-  error = abs(vol - exactvol) / exactvol
-  print(paste0('error = ',error))
-  if (error >= tol){
-    print(paste0('TEST FAILED!! ', error, ' > ', tol))
-  }
-  cat('\n')
+
 }

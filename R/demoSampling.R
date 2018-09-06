@@ -119,32 +119,32 @@ demoSampling <- function(distribution){
   
   zonotope = GenZonotope(5, 10)
   runsample(zonotope, c(0,0), FALSE, TRUE, 'zonotope_5_10', distribution)
-  
-}
 
 
-runsample <- function(Mat, vector, Vpoly, Zono, name_string, dist){
-  if (dist == "uniform") {
-    if (Zono) {
-      p = sample_points(list("matrix"=Mat, "Zonotope"=TRUE))
-    } else if (Vpoly) {
-      p = sample_points(list("matrix"=Mat, "Vpoly"=TRUE))
+  runsample <- function(Mat, vector, Vpoly, Zono, name_string, dist){
+    if (dist == "uniform") {
+      if (Zono) {
+        p = sample_points(list("matrix"=Mat, "Zonotope"=TRUE))
+      } else if (Vpoly) {
+        p = sample_points(list("matrix"=Mat, "Vpoly"=TRUE))
+      } else {
+        p = sample_points(list("matrix"=Mat, "vector"=vector))
+      }
     } else {
-      p = sample_points(list("matrix"=Mat, "vector"=vector))
+      if (Zono) {
+        p = sample_points(list("matrix"=Mat, "Zonotope"=TRUE, "gaussian"=TRUE))
+      } else if (Vpoly) {
+        p = sample_points(list("matrix"=Mat, "Vpoly"=TRUE, "gaussian"=TRUE))
+      } else {
+        p = sample_points(list("matrix"=Mat, "vector"=vector, "gaussian"=TRUE))
+      }
     }
-  } else {
-    if (Zono) {
-      p = sample_points(list("matrix"=Mat, "Zonotope"=TRUE, "gaussian"=TRUE))
-    } else if (Vpoly) {
-      p = sample_points(list("matrix"=Mat, "Vpoly"=TRUE, "gaussian"=TRUE))
+    if (length(p[is.nan(p)])>0 | length(p[is.infinite(p)])>0) {
+      print(paste0('Test FAILED!! [', name_string, ']  There are NaN or Inf values in the coordinates of your points!'))
     } else {
-      p = sample_points(list("matrix"=Mat, "vector"=vector, "gaussian"=TRUE))
+      print(paste0('Test PASSED!! [', name_string, ']'))
     }
+    cat('\n')
   }
-  if (length(p[is.nan(p)])>0 | length(p[is.infinite(p)])>0) {
-    print(paste0('Test FAILED!! [', name_string, ']  There are NaN or Inf values in the coordinates of your points!'))
-  } else {
-    print(paste0('Test PASSED!! [', name_string, ']'))
-  }
-  cat('\n')
+
 }
