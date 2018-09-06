@@ -23,7 +23,7 @@ HdemoVolume <- function(algo){
     num_of_exps = 20
   }
   path = getwd()
-  path = paste0(path, '/data/')
+  path = paste0(path, '/inst/extdata/')
   
   print('----------------------------------------')
   print('------------1st test [cubes]------------')
@@ -132,25 +132,26 @@ HdemoVolume <- function(algo){
     Hruntest(PolyList$matrix, PolyList$vector, 'H-skinny_cube20', 104857600, 0.1, num_of_exps, algo)
   }
   
-}
 
-Hruntest <- function(Mat, vector, name_string, exactvol, tol, num_of_exps, alg){
+  Hruntest <- function(Mat, vector, name_string, exactvol, tol, num_of_exps, alg){
   
-  vol = 0
-  for (j in 1:num_of_exps) {
-    if (alg == "SOB") {
-      vol = vol + volume(list("matrix"=Mat, "vector"=vector))
-    } else {
-      vol = vol + volume(list("matrix"=Mat, "vector"=vector, "CG"=TRUE, "error"=0.1))
+    vol = 0
+    for (j in 1:num_of_exps) {
+      if (alg == "SOB") {
+        vol = vol + volume(list("matrix"=Mat, "vector"=vector))
+      } else {
+        vol = vol + volume(list("matrix"=Mat, "vector"=vector, "CG"=TRUE, "error"=0.1))
+      }
     }
+    vol = vol / num_of_exps
+    print(paste0('volume approximation of ',name_string,' = ',vol))
+    print(paste0('exact volume of ',name_string,' = ',exactvol))
+    error = abs(vol - exactvol) / exactvol
+    print(paste0('error = ',error))
+    if (error >= tol){
+      print(paste0('TEST FAILED!! ', error, ' > ', tol))
+    }
+    cat('\n')
   }
-  vol = vol / num_of_exps
-  print(paste0('volume approximation of ',name_string,' = ',vol))
-  print(paste0('exact volume of ',name_string,' = ',exactvol))
-  error = abs(vol - exactvol) / exactvol
-  print(paste0('error = ',error))
-  if (error >= tol){
-    print(paste0('TEST FAILED!! ', error, ' > ', tol))
-  }
-  cat('\n')
+
 }

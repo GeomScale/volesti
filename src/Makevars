@@ -1,4 +1,6 @@
-PKG_CPPFLAGS=-I../external/LPsolve_src/include -I../external/LPsolve_src -I../external/minimum_ellipsoid -I../include -I../include/volume -I../include/polytope_generators -I../include/samplers -O3 -lm -ldl -DBOOST_NO_AUTO_PTR
+PKG_CPPFLAGS=-Iexternal/LPsolve_src/include -Iexternal/LPsolve_src -Iexternal/minimum_ellipsoid -Iinclude -Iinclude/volume -Iinclude/polytope_generators -Iinclude/samplers 
+PKG_CXXFLAGS=-O3 -lm -ldl -Wno-ignored-attributes -DBOOST_NO_AUTO_PTR
+CXX_STD = CXX11
 
 PKG_LIBS=-Llp_solve -llp_solve $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 

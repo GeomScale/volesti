@@ -44,31 +44,32 @@ demoRounding <- function(algo){
   PolyList = GenSkinnyCube(20)
   testRound(PolyList$matrix, PolyList$vector, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, FALSE)
   
-}
 
-testRound <- function(Mat, vector, exactvol, tol, name_string, num_of_exps, algo, rotation){
+  testRound <- function(Mat, vector, exactvol, tol, name_string, num_of_exps, algo, rotation){
   
-  if (rotation) {
-    listHpoly = rand_rotate(list("matrix"=Mat, "vector"=vector))
-    listHpoly = round_polytope(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector))
-  } else {
-    listHpoly = round_polytope(list("matrix"=Mat, "vector"=vector))
-  }
-  vol = 0
-    for (j in 1:num_of_exps) {
-  if (algo == "SOB") {
-      vol = vol + listHpoly$round_value * volume(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector))
+    if (rotation) {
+      listHpoly = rand_rotate(list("matrix"=Mat, "vector"=vector))
+      listHpoly = round_polytope(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector))
     } else {
-      vol = vol + listHpoly$round_value * volume(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector, "CG"=TRUE, "error"=0.1))
+      listHpoly = round_polytope(list("matrix"=Mat, "vector"=vector))
     }
-  }
-  vol = vol / num_of_exps
+    vol = 0
+      for (j in 1:num_of_exps) {
+    if (algo == "SOB") {
+        vol = vol + listHpoly$round_value * volume(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector))
+      } else {
+        vol = vol + listHpoly$round_value * volume(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector, "CG"=TRUE, "error"=0.1))
+      }
+    }
+    vol = vol / num_of_exps
     print(paste0('volume approximation of ', name_string,' = ',vol))
-  print(paste0('exact volume of ', name_string,' = ',exactvol))
-  error = abs(vol - exactvol) / exactvol
-  print(paste0('error = ',error))
-  if (error >= tol){
-    print(paste0('TEST FAILED!! ', error, ' > ', tol))
+    print(paste0('exact volume of ', name_string,' = ',exactvol))
+    error = abs(vol - exactvol) / exactvol
+    print(paste0('error = ',error))
+    if (error >= tol){
+      print(paste0('TEST FAILED!! ', error, ' > ', tol))
+    }
+    cat('\n')
   }
-  cat('\n')
+
 }

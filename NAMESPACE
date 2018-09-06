@@ -1,4 +1,4 @@
 useDynLib(volesti, .registration=TRUE)
 exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
-import(lpSolveAPI)
+importFrom("utils", "read.csv")
