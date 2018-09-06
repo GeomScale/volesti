@@ -32,11 +32,11 @@ VdemoVolume <- function(algo){
   cat('\n')
   print('V-cube3')
   PolyMat = GenCube(3, 'V')
-  runtest(PolyMat, 'V-cube3', 8, tol, num_of_exps, algo)
+  Vruntest(PolyMat, 'V-cube3', 8, tol, num_of_exps, algo)
   
-  print('V-cube5')
+  print('V-cube4')
   PolyMat = GenCube(4, 'V')
-  runtest(PolyMat, 'V-cube4', 16, tol, num_of_exps, algo)
+  Vruntest(PolyMat, 'V-cube4', 16, tol, num_of_exps, algo)
   
   print('----------------------------------------')
   print('------2nd test [cross_polytopes]--------')
@@ -45,11 +45,11 @@ VdemoVolume <- function(algo){
   
   print('V-cross5')
   PolyMat = GenCross(5, 'V')
-  runtest(PolyMat, 'V-cross5', 0.2666667, tol, num_of_exps, algo)
+  Vruntest(PolyMat, 'V-cross5', 0.2666667, tol, num_of_exps, algo)
   
   print('V-cross7')
   PolyMat = GenCross(7, 'V')
-  runtest(PolyMat, 'V-cross7', 0.02539683, tol, num_of_exps, algo)
+  Vruntest(PolyMat, 'V-cross7', 0.02539683, tol, num_of_exps, algo)
   
   print('----------------------------------------')
   print('--------3rd test [simplex]---------')
@@ -57,15 +57,15 @@ VdemoVolume <- function(algo){
   cat('\n')
   print('V-simplex5')
   PolyMat = GenSimplex(5, 'V')
-  runtest(PolyMat, 'V-simplex5', 1/prod(1:5), tol, num_of_exps, algo)
+  Vruntest(PolyMat, 'V-simplex5', 1/prod(1:5), tol, num_of_exps, algo)
   
   print('V-simplex7')
   PolyMat = GenSimplex(7, 'V')
-  runtest(PolyMat, 'V-simplex7', 1/prod(1:7), tol, num_of_exps, algo)
+  Vruntest(PolyMat, 'V-simplex7', 1/prod(1:7), tol, num_of_exps, algo)
   
 }
 
-runtest <- function(Mat, name_string, exactvol, tol, num_of_exps, algo){
+Vruntest <- function(Mat, name_string, exactvol, tol, num_of_exps, algo){
   
   vol = 0
   for (j in 1:num_of_exps) {

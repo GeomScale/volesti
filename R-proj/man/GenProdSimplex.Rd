@@ -10,7 +10,7 @@ GenProdSimplex(dimension, repr = "H")
 \item{dimension}{The dimension of the simplices.}
 }
 \value{
-A polytope defined as the product of two unit simplices in H-representation.The retutn value is a list with two elements: the "matrix" containing a \eqn{(2d+1)\times 2d} matrix \eqn{A} and the "vector" containing a \eqn{(2d+1})-dimensional vector \eqn{b}, s.t. \eqn{Ax\leq b}.
+A polytope defined as the product of two unit simplices in H-representation. The retutn value is a list with two elements: the "matrix" containing a \eqn{(2d+1)\times 2d} matrix \eqn{A} and the "vector" containing a \eqn{(2d+1})-dimensional vector \eqn{b}, s.t. \eqn{Ax\leq b}.
 }
 \description{
 This function can be used to generate a \eqn{2d}-dimensional polytope that is defined as the product of two \eqn{d}-dimensional unit simplices in H-representation.
