@@ -19,10 +19,10 @@
 #include <math.h>
 #include <chrono>
 #include "cartesian_geom/cartesian_kernel.h"
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 
 
 //structs with variables and random generators
