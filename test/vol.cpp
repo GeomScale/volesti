@@ -107,6 +107,7 @@ int main(const int argc, const char** argv)
                       //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num_of_experiments]\n"<<
                       "--exact : the exact volume\n"<<
                       "--cube : input polytope is a cube\n"<<
+                      "-exact_zono : compute the exact volume of a zonotope\n"<<
                       "-r, --round : enables rounding of the polytope as a preprocess\n"<<
                       "-e, --error epsilon : the goal error of approximation\n"<<
                       "-w, --walk_len [walk_len] : the random walk length (default 10)\n"<<
@@ -130,73 +131,77 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"--cube")){
           exactvol = std::pow(2,n);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"--exact")){
           exactvol = atof(argv[++i]);
-          correct=true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-exact_zono")){
+          exact_zono = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-v")||!strcmp(argv[i],"--verbose")){
-          verbose=true;
+          verbose = true;
           std::cout<<"Verbose mode\n";
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-rand")||!strcmp(argv[i],"--rand_only")){
-          rand_only=true;
+          rand_only = true;
           std::cout<<"Generate random points only\n";
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-rdhr")){
-          coordinate=false;
-          correct=true;
+          coordinate = false;
+          correct = true;
       }
       if(!strcmp(argv[i],"-bw")){
-          ball_walk=true;
-          correct=true;
+          ball_walk = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-bwr")){
           delta = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-Win")){
           W = atof(argv[++i]);
-          user_W=true;
-          correct=true;
+          user_W = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-ratio")){
           ratio = atof(argv[++i]);
-          user_ratio=true;
-          correct=true;
+          user_ratio = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-frac")){
           frac = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-C")){
           C = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-N_an")){
           N = atof(argv[++i]);
-          user_N=true;
-          correct=true;
+          user_N = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-nsample")){
           nsam = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-gaussian")){
           gaussian_sam = true;
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-variance")){
           a = atof(argv[++i]);
           a = 1.0 / (2.0 * a);
-          correct=true;
+          correct = true;
       }
       //reading from file
       if(!strcmp(argv[i],"-f1")||!strcmp(argv[i],"--file1")){
-          file=true;
+          file = true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
           std::vector<std::vector<NT> > Pin;
@@ -208,11 +213,11 @@ int main(const int argc, const char** argv)
               std::cout<<"Input polytope: "<<n<<std::endl;
               HP.print();
           }
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
-          file=true;
-          Vpoly=true;
+          file = true;
+          Vpoly = true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
           std::vector<std::vector<NT> > Pin;
@@ -225,11 +230,11 @@ int main(const int argc, const char** argv)
               std::cout<<"Input polytope: "<<n<<std::endl;
               VP.print();
           }
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-f3")||!strcmp(argv[i],"--file3")){
-          file=true;
-          Zono=true;
+          file = true;
+          Zono = true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
           std::vector<std::vector<NT> > Pin;
@@ -238,7 +243,7 @@ int main(const int argc, const char** argv)
           //std::cout<<"d="<<Pin[0][1]<<std::endl;
           n = Pin[0][1]-1;
           ZP.init(Pin);
-          correct=true;
+          correct = true;
       }
       /*
     if(!strcmp(argv[i],"-f2")||!strcmp(argv[i],"--file2")){
@@ -261,7 +266,7 @@ int main(const int argc, const char** argv)
 */
       //reading linear extensions and order polytopes
       if(!strcmp(argv[i],"-fle")||!strcmp(argv[i],"--filele")){
-          file=true;
+          file = true;
           std::cout<<"Reading input from file..."<<std::endl;
           std::ifstream inp;
           inp.open(argv[++i],std::ifstream::in);
@@ -276,51 +281,51 @@ int main(const int argc, const char** argv)
           HP.init(Pin);
           std::cout<<"Input polytope: "<<n<<std::endl;
           linear_extensions = true;
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-r")||!strcmp(argv[i],"--round")){
           round = true;
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-e")||!strcmp(argv[i],"--error")){
           e = atof(argv[++i]);
-          error=e;
-          correct=true;
+          error = e;
+          correct = true;
       }
       if(!strcmp(argv[i],"-w")||!strcmp(argv[i],"--walk_len")){
           walk_len = atof(argv[++i]);
-          user_walk_len=true;
-          correct=true;
+          user_walk_len = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-exp")){
           nexp = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-t")||!strcmp(argv[i],"--threads")){
           n_threads = atof(argv[++i]);
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-NN")){
           std::cout<<"flann software is needed for this option. Experimental feature."
                   <<"Currently under development."<<std::endl;
-          correct=true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-ro")){
-          round_only=true;
-          correct=true;
+          round_only = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-birk_sym")){
-          birk=true;
-          correct=true;
+          birk = true;
+          correct = true;
       }
       //rotate the polytope randomly
       if(!strcmp(argv[i],"-rot")){
-          rotate=true;
-          correct=true;
+          rotate = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-cv")){
-          annealing=true;
-          correct=true;
+          annealing = true;
+          correct = true;
       }
       if(correct==false){
           std::cerr<<"unknown parameters \'"<<argv[i]<<
@@ -328,6 +333,12 @@ int main(const int argc, const char** argv)
           exit(-2);
       }
       
+  }
+
+  if (exact_zono) {
+      NT vol_ex = exact_zonotope_vol<NT>(ZP);
+      std::cout<<"Zonotope's exact volume = "<<vol_ex<<std::endl;
+      return 0;
   }
 
   //Compute chebychev ball//

@@ -32,11 +32,11 @@ ZdemoVolume <- function(algo){
   cat('\n')
   print('Zonotope_2_4')
   ZonoMat = GenZonotope(2, 4)
-  runtest(ZonoMat, 'Zonotope_2_4', tol, num_of_exps, algo)
+  Zruntest(ZonoMat, 'Zonotope_2_4', tol, num_of_exps, algo)
   
   print('Zonotope_2_8')
   ZonoMat = GenZonotope(2, 8)
-  runtest(ZonoMat, 'Zonotope_2_8', tol, num_of_exps, algo)
+  Zruntest(ZonoMat, 'Zonotope_2_8', tol, num_of_exps, algo)
   
   print('----------------------------------------')
   print('-------2nd test [4-dimensional]---------')
@@ -45,11 +45,11 @@ ZdemoVolume <- function(algo){
   
   print('Zonotope_4_8')
   ZonoMat = GenZonotope(4, 8)
-  runtest(ZonoMat, 'Zonotope_4_8', tol, num_of_exps, algo)
+  Zruntest(ZonoMat, 'Zonotope_4_8', tol, num_of_exps, algo)
   
   print('Zonotope_4_10')
   ZonoMat = GenZonotope(4, 10)
-  runtest(ZonoMat, 'Zonotope_4_10', tol, num_of_exps, algo)
+  Zruntest(ZonoMat, 'Zonotope_4_10', tol, num_of_exps, algo)
   
   print('----------------------------------------')
   print('--------3rd test [5-dimensional]---------')
@@ -57,11 +57,11 @@ ZdemoVolume <- function(algo){
   cat('\n')
   print('Zonotope_5_10')
   ZonoMat = GenZonotope(5, 10)
-  runtest(ZonoMat, 'Zonotope_5_10', tol, num_of_exps, algo)
+  Zruntest(ZonoMat, 'Zonotope_5_10', tol, num_of_exps, algo)
   
 }
 
-runtest <- function(Mat, name_string, tol, num_of_exps, algo){
+Zruntest <- function(Mat, name_string, tol, num_of_exps, algo){
   
   exactvol = ExactZonoVol(Mat)
   vol = 0
