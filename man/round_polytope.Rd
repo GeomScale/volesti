@@ -4,20 +4,16 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope).}
 \usage{
-round_polytope(Inputs)
+round_polytope(A, b, V, G, walk_length, ball_walk, delta, coordinate, verbose)
 }
 \arguments{
-\item{list("argument"=value)}{A list that includes parameters for the rounding.}
+\item{A}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}
 
-\item{path}{The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.}
+\item{b}{Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.}
 
-\item{matrix}{The \eqn{m\times d} matrix \eqn{A} of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V-polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see \eqn{volume} function example), then the "vector" input is not needed.}
+\item{V}{Only for V-polytopes. The \eqn{m\times d} matrix V that containes row-wise the \eqn{m} \eqn{d}-dimensional vertices of the polytope.}
 
-\item{vector}{Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets, s.t.: \eqn{Ax\leq b}.}
-
-\item{Vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
-
-\item{Zonotope}{A boolean parameter, has to be true when a zonotope is given as input. Default value is false.}
+\item{G}{Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.}
 
 \item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.}
 
@@ -39,13 +35,13 @@ Given a convex H or V polytope or a zonotope as input this function computes a r
 # rotate a H-polytope (2d unit simplex)
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
-listHpoly = round_polytope(list("matrix"=A, "vector"=b))
+listHpoly = round_polytope(A=A, b=b)
 
 # rotate a V-polytope (3d cube) using Random Directions HnR
 V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-ListVpoly = round_polytope(list("matrix"=V, "Vpoly"=TRUE, "coordinate"=FALSE))
+ListVpoly = round_polytope(V=V, coordinate=FALSE)
 
 # rotate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
 Zono = GenZonotope(10,20)
-ListZono = round_polytope(list("matrix"=Zono, "Zonotope"=TRUE))
+ListZono = round_polytope(G=Zono)
 }

@@ -67,7 +67,8 @@ polytope_generator <- function(Zono, repr, kind_gen, dim_gen, m_gen) {
     # in V-polytope or Zonotope case return only the marix
     return(retList$matrix)
   } else {
-    return(retList)
+    retList2 = list("A"=retList$matrix, "b"=retList$b)
+    return(retList2)
   }
   
 }

@@ -21,7 +21,7 @@ modifyMat <- function(A){
   A2 = A[,-c(1)]
   
   # return final list
-  retList = list("matrix"=A2, "vector"=b)
+  retList = list("matrix"=A2, "b"=b)
   return(retList)
   
 }

@@ -2,88 +2,65 @@
 #' 
 #' Given a convex H or V polytope or a zonotope as input this function applies a random rotation.
 #' 
-#' @param list("argument"=value) A list that includes elements that describe the convex body that is given as input.
-#' @param path The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.
-#' @param matrix The \eqn{m\times d} matrix \eqn{A} of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V-polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see \eqn{volume} function example), then the "vector" input is not needed.
-#' @param vector Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets.
-#' @param Vpoly A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.
-#' @param Zonotope A boolean parameter, has to be true when a zonotope is given as input. Default value is false.
-#' @param verbose Optional. A boolean parameter for printing. Default is false.
+#' @param A Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.
+#' @param b Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.
+#' @param V Only for V-polytopes. The \eqn{m\times d} matrix V that containes row-wise the \eqn{m} \eqn{d}-dimensional vertices of the polytope.
+#' @param G Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.
 #' 
 #' @return A random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{m\times d} matrix that containes the \eqn{m} \eqn{d}-dimensional vertices of the V-polytope row-wise. For a zonotope is a \eqn{m\times d} matrix that containes the \eqn{m} \eqn{d}-dimensional segments row-wise.
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
-#' listHpoly = rand_rotate(list("matrix"=A, "vector"=b))
+#' listHpoly = rand_rotate(A=A, b=b)
 #' 
 #' # rotate a V-polytope (3d cube)
 #' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-#' matVpoly = rand_rotate(list("matrix"=V, "Vpoly"=TRUE))
+#' matVpoly = rand_rotate(V=V)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
 #' Zono = GenZonotope(5,15)
-#' MatZono = rand_rotate(list("matrix"=Zono, "Zonotope"=TRUE))
-rand_rotate <- function(Inputs){
+#' MatZono = rand_rotate(G=Zono)
+rand_rotate <- function(A, b, V, G){
   
-  # set flag for V-polytope
-  Vpoly = FALSE
-  if (!is.null(Inputs$Vpoly)) {
-    Vpoly = Inputs$Vpoly
-  }
+  vpoly = FALSE
   Zono = FALSE
-  if (!is.null(Inputs$Zonotope)) {
-    Zono = Inputs$Zonotope
-  }
-  
-  # polytope initialization
-  if (!is.null(Inputs$path)) {
-    A = ineToMatrix(read.csv(Inputs$path))
-    r = A[1,]
-    x = modifyMat(A)
-    A = x$matrix
-    b = x$vector
-  } else if (!is.null(Inputs$vector)) {
-    b = Inputs$vector
-    A = -Inputs$matrix
-    d = dim(A)[2] + 1
-    m = dim(A)[1]
-    r = rep(0,d)
+  if(missing(b)) {
+    if(!missing(V)) {
+      Mat = V
+      vpoly = TRUE
+    } else if(!missing(G)){
+      Mat = G
+      Zono =TRUE
+    } else {
+      print('No V-polytope or zonotope can be defined!')
+      return(-1)
+    }
+    d = dim(Mat)[2] + 1
+    m = dim(Mat)[1]
+    b = rep(1, m)
+    r = rep(0, d)
     r[1] = m
     r[2] = d
-  } else if (!is.null(Inputs$matrix)) {
-    if (Vpoly || Zono) {
-      A = Inputs$matrix
-      d = dim(A)[2] + 1
-      m = dim(A)[1]
-      b = rep(1,m)
+  } else {
+    if (!missing(A)) {
+      Mat = -A
+      vec = b
+      d = dim(Mat)[2] + 1
+      m = dim(Mat)[1]
       r = rep(0,d)
       r[1] = m
       r[2] = d
     } else {
-      r = Inputs$matrix[1,]
-      x = modifyMat(Inputs$matrix)
-      A = x$matrix
-      b = x$vector
+      print('matrix A is missing to define a H-polytope!')
+      return(-1)
     }
-  } else {
-    if (Zono) {
-      print('No Zonotope defined from input!')
-    } else if (Vpoly) {
-      print('No V-polytope defined from input!')
-    } else {
-      print('No H-polytope defined from input!')
-    }
-    return(-1)
   }
-  A = matrix(cbind(b,A), ncol=dim(A)[2] + 1)
-  A = matrix(rbind(r,A), ncol=dim(A)[2])
+  Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
+  Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
   
   # set flag for verbose mode
   verbose=FALSE
-  if(!is.null(Inputs$verbose)){
-    verbose=Inputs$verbose
-  }
   
   # set flag for rotating only
   rotate_only = TRUE
@@ -114,16 +91,17 @@ rand_rotate <- function(Inputs){
   exact_zono = FALSE
   #-------------------#
   
-  Mat = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
-              Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
+  Mat = vol_R(Mat, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
+              vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
               rotate_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
   
   # get elements "matrix" and "vector"
   retList = modifyMat(Mat)
-  if (Vpoly){
-    # in V-polytope case return only the marix
+  if (vpoly || Zono){
+    # in V-polytope or zonotope cases return only the marix
     return(retList$matrix)
   } else {
-    return(retList)
+    retList2 = list("A"=retList$matrix, "b"=retList$b)
+    return(retList2)
   }
 }

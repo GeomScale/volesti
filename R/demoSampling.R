@@ -20,17 +20,17 @@ demoSampling <- function(distribution){
   }
   
   path = getwd()
-  path = paste0(path, '/data/')
+  path = paste0(path, '/inst/extdata/')
   
   print('----------------------------------------')
   print('------------1st test [cubes]------------')
   print('----------------------------------------')
   cat('\n')
   PolyList = GenCube(10, 'H')
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-cube10', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-cube10', distribution)
   
   PolyList = GenCube(20, 'H')
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-cube20', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-cube20', distribution)
   
   PolyMat = GenCube(5, 'V')
   runsample(PolyMat, c(0,0), TRUE, FALSE, 'V-cube5', distribution)
@@ -43,7 +43,7 @@ demoSampling <- function(distribution){
   print('----------------------------------------')
   cat('\n')
   PolyList = GenCross(10, 'H')
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-cross10', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-cross10', distribution)
   
   PolyMat = GenCross(10, 'V')
   runsample(PolyMat, c(0,0), TRUE, FALSE, 'V-cross10', distribution)
@@ -54,45 +54,45 @@ demoSampling <- function(distribution){
   cat('\n')
   A = ineToMatrix(read.csv(paste0(path,'birk3.ine')))
   x = modifyMat(A)
-  runsample(x$matrix, x$vector, FALSE, FALSE, 'H-birk3', distribution)
+  runsample(x$matrix, x$b, FALSE, FALSE, 'H-birk3', distribution)
   
   A = ineToMatrix(read.csv(paste0(path,'birk4.ine')))
   x = modifyMat(A)
-  runsample(x$matrix, x$vector, FALSE, FALSE, 'H-birk4', distribution)
+  runsample(x$matrix, x$b, FALSE, FALSE, 'H-birk4', distribution)
   
   A = ineToMatrix(read.csv(paste0(path,'birk5.ine')))
   x = modifyMat(A)
-  runsample(x$matrix, x$vector, FALSE, FALSE, 'H-birk5', distribution)
+  runsample(x$matrix, x$b, FALSE, FALSE, 'H-birk5', distribution)
   
   A = ineToMatrix(read.csv(paste0(path,'birk6.ine')))
   x = modifyMat(A)
-  runsample(x$matrix, x$vector, FALSE, FALSE, 'H-birk6', distribution)
+  runsample(x$matrix, x$b, FALSE, FALSE, 'H-birk6', distribution)
   
   print('----------------------------------------')
   print('--------4th test [prod_simplex]---------')
   print('----------------------------------------')
   cat('\n')
   PolyList = GenProdSimplex(5)
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-prod_simplex_5_5', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-prod_simplex_5_5', distribution)
   
   PolyList = GenProdSimplex(10)
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-prod_simplex_10_10', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-prod_simplex_10_10', distribution)
   
   PolyList = GenProdSimplex(15)
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-prod_simplex_15_15', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-prod_simplex_15_15', distribution)
   
   PolyList = GenProdSimplex(20)
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-prod_simplex_20_20', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-prod_simplex_20_20', distribution)
   
   print('----------------------------------------')
   print('-----------5th test [simplex]-----------')
   print('----------------------------------------')
   cat('\n')
   PolyList = GenSimplex(10, 'H')
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-prod_simplex10', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-prod_simplex10', distribution)
   
   PolyList = GenSimplex(20, 'H')
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-simplex20', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-simplex20', distribution)
   
   PolyMat = GenSimplex(10, 'V')
   runsample(PolyMat, c(0,0), TRUE, FALSE, 'V-simplex10', distribution)
@@ -105,10 +105,10 @@ demoSampling <- function(distribution){
   print('----------------------------------------')
   cat('\n')
   PolyList = GenSkinnyCube(10)
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-skinny_cube10', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-skinny_cube10', distribution)
   
   PolyList = GenSkinnyCube(20)
-  runsample(PolyList$matrix, PolyList$vector, FALSE, FALSE, 'H-skinny_cube20', distribution)
+  runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-skinny_cube20', distribution)
   
   print('----------------------------------------')
   print('----------7th test [Zonotopes]----------')
@@ -120,23 +120,24 @@ demoSampling <- function(distribution){
   zonotope = GenZonotope(5, 10)
   runsample(zonotope, c(0,0), FALSE, TRUE, 'zonotope_5_10', distribution)
 
+}
 
   runsample <- function(Mat, vector, Vpoly, Zono, name_string, dist){
     if (dist == "uniform") {
       if (Zono) {
-        p = sample_points(list("matrix"=Mat, "Zonotope"=TRUE))
+        p = sample_points(G = Mat)
       } else if (Vpoly) {
-        p = sample_points(list("matrix"=Mat, "Vpoly"=TRUE))
+        p = sample_points(V = Mat)
       } else {
-        p = sample_points(list("matrix"=Mat, "vector"=vector))
+        p = sample_points(A=Mat, b=vector)
       }
     } else {
       if (Zono) {
-        p = sample_points(list("matrix"=Mat, "Zonotope"=TRUE, "gaussian"=TRUE))
+        p = sample_points(G=Mat, gaussian=TRUE)
       } else if (Vpoly) {
-        p = sample_points(list("matrix"=Mat, "Vpoly"=TRUE, "gaussian"=TRUE))
+        p = sample_points(V=Mat, gaussian=TRUE)
       } else {
-        p = sample_points(list("matrix"=Mat, "vector"=vector, "gaussian"=TRUE))
+        p = sample_points(A=Mat, b=vector, gaussian=TRUE)
       }
     }
     if (length(p[is.nan(p)])>0 | length(p[is.infinite(p)])>0) {
@@ -146,5 +147,3 @@ demoSampling <- function(distribution){
     }
     cat('\n')
   }
-
-}
