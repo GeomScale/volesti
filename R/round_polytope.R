@@ -125,15 +125,22 @@ round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate
   # get first row which has the info for round_value
   r = Mat[c(1),]
   round_value = r[1]
-  # get "matrix" and "vector" elements
-  retList = modifyMat(Mat)
+  # remove first row
+  Mat = Mat[-c(1),]
+  
+  # first column is the vector b
+  b = Mat[,1]
+  
+  # remove first column
+  A = Mat[,-c(1)]
   if (vpoly) {
-    output = list("V"=retList$matrix, "round_value"=round_value)
-    return(output)
+    retList = list("V"=A, "round_value"=round_value)
+    return(retList)
   }else if (Zono) {
-    output = list("G"=retList$matrix, "round_value"=round_value)
+    retList = list("G"=A, "round_value"=round_value)
+    return(retList)
   } else {
-    output = list("A"=retList$matrix, "b"=retList$b, "round_value"=round_value)
-    return(output)
+    retList = list("A"=A, "b"=b, "round_value"=round_value)
+    return(retList)
   }
 }
