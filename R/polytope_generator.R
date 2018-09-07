@@ -62,13 +62,20 @@ polytope_generator <- function(Zono, repr, kind_gen, dim_gen, m_gen) {
               rotate_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
   
   # get elements "matrix" and "vector"
-  retList = modifyMat(Mat)
+  # remove first row
+  Mat = Mat[-c(1),]
+  
+  # first column is the vector b
+  b = Mat[,1]
+  
+  # remove first column
+  A = Mat[,-c(1)]
   if (Vpoly_gen || Zono){
     # in V-polytope or Zonotope case return only the marix
-    return(retList$matrix)
+    return(A)
   } else {
-    retList2 = list("A"=retList$matrix, "b"=retList$b)
-    return(retList2)
+    retList = list("A"=A, "b"=b)
+    return(retList)
   }
   
 }
