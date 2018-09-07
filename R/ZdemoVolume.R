@@ -59,6 +59,7 @@ ZdemoVolume <- function(algo){
   ZonoMat = GenZonotope(5, 10)
   Zruntest(ZonoMat, 'Zonotope_5_10', tol, num_of_exps, algo)
   
+}
 
   Zruntest <- function(Mat, name_string, tol, num_of_exps, algo){
   
@@ -66,9 +67,9 @@ ZdemoVolume <- function(algo){
     vol = 0
     for (j in 1:num_of_exps) {
       if (algo == "SOB") {
-        vol = vol + volume(list("matrix"=Mat, "Zonotope"=TRUE, "rounding"=TRUE))
+        vol = vol + volume(G=Mat, rounding=TRUE)
       } else {
-        vol = vol + volume(list("matrix"=Mat, "Zonotope"=TRUE, "CG"=TRUE, "error"=0.2, "rounding"=TRUE))
+        vol = vol + volume(G=Mat, CG=TRUE, error=0.2, rounding=TRUE)
       }
     }
     vol = vol / num_of_exps
@@ -81,5 +82,3 @@ ZdemoVolume <- function(algo){
     }
     cat('\n')
   }
-
-}

@@ -4,16 +4,17 @@
 \alias{sample_points}
 \title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope).}
 \usage{
-sample_points(Inputs)
+sample_points(A, b, V, G, walk_length, internal_point, gaussian, variance, N,
+  ball_walk, delta, verbose, coordinate)
 }
 \arguments{
-\item{list("argument"=value)}{A list that includes parameters for the chosen target distribution and the random walk algorithm.}
+\item{A}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}
 
-\item{path}{The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.}
+\item{b}{Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.}
 
-\item{matrix}{The \eqn{m\times d} matrix \eqn{A} of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V-polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see \eqn{volume} function example), then the "vector" input is not needed.}
+\item{V}{Only for V-polytopes. The \eqn{m\times d} matrix V that containes row-wise the \eqn{m} \eqn{d}-dimensional vertices of the polytope.}
 
-\item{vector}{Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets, s.t.: \eqn{Ax\leq b}.}
+\item{G}{Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.}
 
 \item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.}
 
@@ -31,10 +32,6 @@ sample_points(Inputs)
 
 \item{verbose}{Optional. A boolean parameter for printing. Default is false.}
 
-\item{Vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
-
-\item{Zonotope}{A boolean parameter, has to be true when a zonotope is given as input. Default value is false.}
-
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 }
 \value{
@@ -46,10 +43,10 @@ Sample N points from a H or a V-polytope or a zonotope with uniform or spherical
 \examples{
 # uniform distribution from a 3d cube described by a set of vertices
 V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-points = sample_points(list("matrix"=V, "Vpoly"=TRUE, "N"=1000))
+points = sample_points(V=V, N=1000)
 
 # gaussian distribution from a 2d unit simplex in H-representation with variance = 2
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
-points = sample_points(list("matrix"=A, "vector"=b, "gaussian"=TRUE, "variance"=2))
+points = sample_points(A=A, b=b, gaussian=TRUE, variance=2)
 }

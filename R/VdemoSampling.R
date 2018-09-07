@@ -63,15 +63,15 @@ VdemoVolume <- function(algo){
   PolyMat = GenSimplex(7, 'V')
   Vruntest(PolyMat, 'V-simplex7', 1/prod(1:7), tol, num_of_exps, algo)
   
-
+}
   Vruntest <- function(Mat, name_string, exactvol, tol, num_of_exps, algo){
   
     vol = 0
     for (j in 1:num_of_exps) {
       if (algo == "SOB") {
-        vol = vol + volume(list("matrix"=Mat, "Vpoly"=TRUE))
+        vol = vol + volume(V=Mat)
       } else {
-        vol = vol + volume(list("matrix"=Mat, "Vpoly"=TRUE, "CG"=TRUE, "error"=0.2))
+        vol = vol + volume(V=Mat, CG=TRUE, error=0.2)
       }
     }
     vol = vol / num_of_exps
@@ -85,4 +85,3 @@ VdemoVolume <- function(algo){
     cat('\n')
   }
 
-}

@@ -2,10 +2,10 @@
 #'
 #' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of \eqn{d}-dimensional points. A zonotope is desrcibed by the Minkowski sum of \eqn{d}-dimensional segments.
 #'
-#' @param list("argument"=value) A list that includes parameters for the chosen algorithm.
-#' @param path The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.
-#' @param matrix The \eqn{m\times d} matrix \eqn{A} of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V-polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.
-#' @param vector Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.
+#' @param A Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.
+#' @param b Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.
+#' @param V Only for V-polytopes. The \eqn{m\times d} matrix V that containes row-wise the \eqn{m} \eqn{d}-dimensional vertices of the polytope.
+#' @param G Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.
 #' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10 + d/10\rfloor}.
 #' @param error Optional. Declare the goal for the approximation error. Default is \eqn{1} for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.
 #' @param InnerVec Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined as the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,m}.
@@ -18,8 +18,6 @@
 #' @param ball_walk Optional. Boolean parameter to use ball walk. Default value is false.
 #' @param delta Optional. The radius for the ball walk.
 #' @param verbose Optional. A boolean parameter for printing. Default is false.
-#' @param Vpoly A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.
-#' @param Zonotope A boolean parameter, has to be true when a zonotope is given as input. Default value is false.
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
 #' @param rounding Optional. A boolean parameter to activate the rounding option. Default value is false.
 #' 
@@ -32,117 +30,101 @@
 #' # calling volesti algorithm for a H-polytope (2d unit simplex)
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
-#' vol = volume(list("matrix"=A, "vector"=b))
+#' vol = volume(A=A, b=b)
 #' 
 #' # calling CV algorithm for a V-polytope (3d cube)
 #' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-#' vol = volume(list("matrix"=V, "CG"=TRUE, "Vpoly"=TRUE))
-#' 
-#' # a 2d unit simplex in H-representation using ine format matrix, calling volesti algorithm
-#' A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1), ncol=3, nrow=4, byrow=TRUE)
-#' vol = volume(list("matrix"=A))
+#' vol = volume(V=V, CG=TRUE)
 #' 
 #' # calling Gaussian-Cooling algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
 #' zonotope = GenZonotope(5, 10)
-#' vol = volume(list("matrix"=zonotope, "Zonotope"=TRUE, "rounding"=TRUE, "CG"=TRUE))
-volume <- function(Inputs){
+#' vol = volume(G=zonotope, rounding=TRUE, CG=TRUE)
+volume <- function(A, b, V, G, walk_length, error, InnerVec, CG, win_len,
+                   C, N, ratio, frac, ball_walk, delta, verbose, 
+                   coordinate, rounding) {
   
-  # flag for V-polytope
-  Vpoly = FALSE
-  if (!is.null(Inputs$Vpoly)) {
-    Vpoly = Inputs$Vpoly
-  }
+  vpoly = FALSE
   Zono = FALSE
-  if (!is.null(Inputs$Zonotope)) {
-    Zono = Inputs$Zonotope
-  }
-  # initialization of the Polytope
-  if (!is.null(Inputs$path)) {
-    A = ineToMatrix(read.csv(Inputs$path))
-    r = A[1,]
-    x = modifyMat(A)
-    A = x$matrix
-    b = x$vector
-  } else if (!is.null(Inputs$vector)) {
-    b = Inputs$vector
-    A = -Inputs$matrix
-    d = dim(A)[2] + 1
-    m = dim(A)[1]
-    r = rep(0,d)
+  if(missing(b)) {
+    if(!missing(V)) {
+      Mat = V
+      vpoly = TRUE
+    } else if(!missing(G)){
+      Mat = G
+      Zono =TRUE
+    } else {
+      print('No V-polytope or zonotope can be defined!')
+      return(-1)
+    }
+    d = dim(Mat)[2] + 1
+    m = dim(Mat)[1]
+    b = rep(1, m)
+    r = rep(0, d)
     r[1] = m
     r[2] = d
-  } else if (!is.null(Inputs$matrix)) {
-    if (Vpoly || Zono) {
-      A = Inputs$matrix
-      d = dim(A)[2] + 1
-      m = dim(A)[1]
-      b = rep(1, m)
-      r = rep(0, d)
+  } else {
+    if (!missing(A)) {
+      Mat = -A
+      vec = b
+      d = dim(Mat)[2] + 1
+      m = dim(Mat)[1]
+      r = rep(0,d)
       r[1] = m
       r[2] = d
     } else {
-      r = Inputs$matrix[1,]
-      x = modifyMat(Inputs$matrix)
-      A = x$matrix
-      b = x$vector
+      print('matrix A is missing to define a H-polytope!')
+      return(-1)
     }
-  } else {
-    if (Zono) {
-      print('No Zonotope defined from input!')
-    } else if (Vpoly) {
-      print('No V-polytope defined from input!')
-    } else {
-      print('No H-polytope defined from input!')
-    }
-    return(-1)
   }
-  A = matrix(cbind(b,A), ncol = dim(A)[2] + 1)
-  A = matrix(rbind(r,A), ncol = dim(A)[2])
+  Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
+  Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
+  
+  dimension = dim(Mat)[2] - 1
   
   # set a too large vector for chebychev ball if it is not given as input
-  Cheb_ball = rep(0, dim(A)[2] + 5)
-  if (!is.null(Inputs$Chebychev)) {
-    Cheb_ball = Inputs$Chebychev
+  InnerBall = rep(0, dimension + 5)
+  if (!missing(InnerVec)) {
+    InnerBall = InnerVec
   }
   
   # set flag for CV algorithm
   annealing = FALSE
-  if (!is.null(Inputs$CG)) {
-    annealing = Inputs$CG
+  if (!missing(CG)) {
+    annealing = CG
   }
   
   # set flag for verbose mode
-  verbose = FALSE
-  if (!is.null(Inputs$verbose)) {
-    verbose = Inputs$verbose
+  verb = FALSE
+  if (!missing(verbose)) {
+    verb = verbose
   }
   
   # set flag for Coordinate or Random Directions HnR
-  coordinate = TRUE
-  if (!is.null(Inputs$coordinate)) {
-    coordinate = Inputs$coordinate
+  coord = TRUE
+  if (!missing(coordinate)) {
+    coord = coordinate
   }
   
   # set flag for rounding
-  rounding = FALSE
-  if (!is.null(Inputs$rounding)) {
-    rounding = Inputs$rounding
+  round = FALSE
+  if (!missing(rounding)) {
+    round = rounding
   }
   
   # set the number of steps for the random walk
-  if (!is.null(Inputs$walk_length)) {
-    W=Inputs$walk_length
+  if (!missing(walk_length)) {
+    W = walk_length
   } else {
     if (annealing) {
       W = 1
     }else{
-      W = 10 + floor( dim(A)[2]/10 )
+      W = 10 + floor( dimension / 10 )
     }
   }
   
   # set the requested error
-  if (!is.null(Inputs$error)) {
-    e = Inputs$error
+  if (!missing(error)) {
+    e = error
   } else {
     if (annealing) {
       e = 0.2
@@ -150,41 +132,41 @@ volume <- function(Inputs){
       e = 1
     }
   }
-  dimension = dim(A)[2] - 1
   
-  # [CV] initialization
-  win_len = 4 * ( dimension ^ 2 ) + 500
-  if (!is.null(Inputs$win_len)) {
-    win_len = Inputs$win_len
+  
+  # [CG] initialization
+  window_len = 4 * ( dimension ^ 2 ) + 500
+  if (!missing(win_len)) {
+    window_len = win_len
   }
   
-  C = 2
-  if (!is.null(Inputs$C)) {
-    C = Inputs$C
+  c = 2
+  if (!missing(C)) {
+    c = C
   }
-  ratio = 1 - 1 / dimension
-  if (!is.null(Inputs$ratio)) {
-    ratio = Inputs$ratio
+  Ratio = 1 - 1 / dimension
+  if (!missing(ratio)) {
+    Ratio = ratio
   }
-  N = 500 * C + ( dimension^2 ) / 2
-  if (!is.null(Inputs$N)) {
-    N = Inputs$N
+  NN = 500 * c + ( dimension^2 ) / 2
+  if (!missing(N)) {
+    NN = N
   }
-  frac = 0.1
-  if (!is.null(Inputs$frac)) {
-    frac = Inputs$frac
+  Frac = 0.1
+  if (!missing(frac)) {
+    Frac = frac
   }
   
   # set flag for the ball walk
-  ball_walk = FALSE
-  if (!is.null(Inputs$ball_walk)) {
-    ball_walk = Inputs$ball_walk
+  ballwalk = FALSE
+  if (!missing(ball_walk)) {
+    ballwalk = ball_walk
   }
   
   # set the radius for the ball walk. Negative value means that is not given as input
-  delta = -1
-  if (!is.null(Inputs$delta)) {
-    delta = Inputs$delta
+  Delta = -1
+  if (!missing(delta)) {
+    Delta = delta
   }
 
   #------------------------#
@@ -203,13 +185,13 @@ volume <- function(Inputs){
   # set the timer
   tim = proc.time()
   
-  vol = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk,
-              delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen,
-              round_only, rotate_only, sample_only, numpoints, variance, coordinate,
-              rounding, verbose)
+  vol = vol_R(Mat, W, e, InnerBall, annealing, window_len, NN, c, Ratio, Frac, ballwalk,
+              Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen,
+              round_only, rotate_only, sample_only, numpoints, variance, coord,
+              round, verb)
   
   tim = proc.time()-tim
-  if (verbose) {
+  if (verb) {
     print(paste0('Total time: ', as.numeric(as.character(tim[3]))))
   }
   return(vol[1,1])

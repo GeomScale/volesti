@@ -29,36 +29,37 @@ demoRounding <- function(algo){
   print('--------------------------------------------')
   cat('\n')
   PolyList = GenSkinnyCube(10)
-  testRound(PolyList$matrix, PolyList$vector, 102400, 0.1, 'H-skinny_cube10', num_of_exps, algo, TRUE)
+  testRound(PolyList$A, PolyList$b, 102400, 0.1, 'H-skinny_cube10', num_of_exps, algo, TRUE)
   
   PolyList = GenSkinnyCube(20)
-  testRound(PolyList$matrix, PolyList$vector, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, TRUE)
+  testRound(PolyList$A, PolyList$b, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, TRUE)
   
   print('--------------------------------------------')
   print('------2nd test [skinny_cubes]-------')
   print('--------------------------------------------')
   cat('\n')
   PolyList = GenSkinnyCube(10)
-  testRound(PolyList$matrix, PolyList$vector, 102400, 0.1, 'H-skinny_cube10', num_of_exps, algo, FALSE)
+  testRound(PolyList$A, PolyList$b, 102400, 0.1, 'H-skinny_cube10', num_of_exps, algo, FALSE)
   
   PolyList = GenSkinnyCube(20)
-  testRound(PolyList$matrix, PolyList$vector, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, FALSE)
+  testRound(PolyList$A, PolyList$b, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, FALSE)
   
+}
 
   testRound <- function(Mat, vector, exactvol, tol, name_string, num_of_exps, algo, rotation){
   
     if (rotation) {
-      listHpoly = rand_rotate(list("matrix"=Mat, "vector"=vector))
-      listHpoly = round_polytope(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector))
+      listHpoly = rand_rotate(A=Mat, b=vector)
+      listHpoly = round_polytope(A=listHpoly$A, b=listHpoly$b)
     } else {
-      listHpoly = round_polytope(list("matrix"=Mat, "vector"=vector))
+      listHpoly = round_polytope(A=Mat, b=vector)
     }
     vol = 0
       for (j in 1:num_of_exps) {
     if (algo == "SOB") {
-        vol = vol + listHpoly$round_value * volume(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector))
+        vol = vol + listHpoly$round_value * volume(A=listHpoly$A, b=listHpoly$b)
       } else {
-        vol = vol + listHpoly$round_value * volume(list("matrix"=listHpoly$matrix, "vector"=listHpoly$vector, "CG"=TRUE, "error"=0.1))
+        vol = vol + listHpoly$round_value * volume(A=listHpoly$A, b=listHpoly$b, CG=TRUE, error=0.1)
       }
     }
     vol = vol / num_of_exps
@@ -71,5 +72,3 @@ demoRounding <- function(algo){
     }
     cat('\n')
   }
-
-}

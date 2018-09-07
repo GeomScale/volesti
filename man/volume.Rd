@@ -4,16 +4,17 @@
 \alias{volume}
 \title{The main R function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope).}
 \usage{
-volume(Inputs)
+volume(A, b, V, G, walk_length, error, InnerVec, CG, win_len, C, N, ratio, frac,
+  ball_walk, delta, verbose, coordinate, rounding)
 }
 \arguments{
-\item{list("argument"=value)}{A list that includes parameters for the chosen algorithm.}
+\item{A}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}
 
-\item{path}{The path to an ine (H-polytope) or ext (V-polytope, zonotope) file that describes the polytope. If path is given then "matrix" and "vector" inputs are not needed.}
+\item{b}{Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.}
 
-\item{matrix}{The \eqn{m\times d} matrix \eqn{A} of the H polytope or the \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional vertices of a V-polytope row-wise or a \eqn{m\times d} matrix that containes all the \eqn{m} \eqn{d}-dimensional segments that define a zonotope row-wise. If the matrix is in ine format, for H-polytopes only (see examples), then the "vector" input is not needed.}
+\item{V}{Only for V-polytopes. The \eqn{m\times d} matrix V that containes row-wise the \eqn{m} \eqn{d}-dimensional vertices of the polytope.}
 
-\item{vector}{Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.}
+\item{G}{Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.}
 
 \item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10 + d/10\rfloor}.}
 
@@ -39,10 +40,6 @@ volume(Inputs)
 
 \item{verbose}{Optional. A boolean parameter for printing. Default is false.}
 
-\item{Vpoly}{A boolean parameter, has to be true when a V-polytope is given as input. Default value is false.}
-
-\item{Zonotope}{A boolean parameter, has to be true when a zonotope is given as input. Default value is false.}
-
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 
 \item{rounding}{Optional. A boolean parameter to activate the rounding option. Default value is false.}
@@ -57,19 +54,15 @@ For the volume approximation can be used two algorithms. Either SequenceOfBalls 
 # calling volesti algorithm for a H-polytope (2d unit simplex)
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
-vol = volume(list("matrix"=A, "vector"=b))
+vol = volume(A=A, b=b)
 
 # calling CV algorithm for a V-polytope (3d cube)
 V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-vol = volume(list("matrix"=V, "CG"=TRUE, "Vpoly"=TRUE))
-
-# a 2d unit simplex in H-representation using ine format matrix, calling volesti algorithm
-A = matrix(c(3,3,0,0,-1,0,0,0,-1,1,1,1), ncol=3, nrow=4, byrow=TRUE)
-vol = volume(list("matrix"=A))
+vol = volume(V=V, CG=TRUE)
 
 # calling Gaussian-Cooling algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
 zonotope = GenZonotope(5, 10)
-vol = volume(list("matrix"=zonotope, "Zonotope"=TRUE, "rounding"=TRUE, "CG"=TRUE))
+vol = volume(G=zonotope, rounding=TRUE, CG=TRUE)
 }
 \references{
 \cite{I.Z.Emiris and V. Fisikopoulos,
