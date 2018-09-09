@@ -181,13 +181,14 @@ volume <- function(A, b, V, G, walk_length, error, InnerVec, CG, win_len,
   dim_gen = 0
   m_gen = 0
   exact_zono = FALSE
+  ball_only = FALSE
   #-----------------------#
   # set the timer
   tim = proc.time()
   
   vol = vol_R(Mat, W, e, InnerBall, annealing, window_len, NN, c, Ratio, Frac, ballwalk,
               Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen,
-              round_only, rotate_only, sample_only, numpoints, variance, coord,
+              round_only, rotate_only, ball_only, sample_only, numpoints, variance, coord,
               round, verb)
   
   tim = proc.time()-tim

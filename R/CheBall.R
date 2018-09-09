@@ -1,7 +1,7 @@
 #' Compute the Chebychev ball of a H-polytope.
 #' 
 #' For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) of that polytope by solving the corresponding linear program.
-#' This function needs suggested R-package lpSolveAPI.
+#' This function can use suggested R-package lpSolveAPI.
 #'
 #' @param A The matrix of the H-polytope.
 #' @param b The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets.
@@ -13,38 +13,54 @@
 #' ball_vec = CheBall(A,b)
 CheBall <- function(A,b){
   
-  if (!requireNamespace("lpSolveAPI", quietly = TRUE)) {
-    stop("Package \"lpSolveAPI\" needed for this function to work. Please install it.",
-         call. = FALSE)
-  }
+  Mat = -A
+  d = dim(Mat)[2] + 1
+  m = dim(Mat)[1]
+  r = rep(0,d)
+  r[1] = m
+  r[2] = d
   
-  d = dim(A)[2]
-  m = dim(A)[1]
+  Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
+  Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
   
-  lprec <- make.lp(m, d+1)
-  norm_row = rep(0,m)
-
-  # get 2-norm of each row
-  for(j in 1:m){
-    norm_row[j] = norm(A[j,], type="2")
-  }
+  ball_only = TRUE
   
-  # set coeffs
-  for (i in 1:d) {
-    set.column(lprec, i, A[,i])
-  }
-  set.column(lprec, d+1, norm_row)
+  #---------------------#
+  verbose = FALSE
+  vpoly = FALSE
+  Zono = FALSE
+  rotate_only = FALSE
+  round_only = FALSE
+  W = 0
+  e = 0
+  Cheb_ball = c(0)
+  annealing = FALSE
+  win_len = 0
+  N = 0
+  C = 0
+  ratio = 0
+  frac = 0
+  ball_walk = FALSE
+  delta =0
+  sample_only = FALSE
+  numpoints = 0
+  variance = 0
+  coordinate = TRUE
+  rounding = FALSE
+  gen_only = FALSE
+  Vpoly_gen = FALSE
+  kind_gen = -1
+  dim_gen = 0
+  m_gen = 0
+  exact_zono = FALSE
+  #-------------------#
   
-  # set objective function
-  set.objfn(lprec, c(rep(0,d), c(-1)))
+  Mat = vol_R(Mat, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
+              vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
+              rotate_only, ball_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
   
-  # set the type of constraints
-  set.constr.type(lprec, rep("<=",m))
-  set.rhs(lprec, b)
-  
-  set.bounds(lprec, lower = rep(-Inf,d), columns = 1:d)
-  
-  solve(lprec)
-  
-  return(get.variables(lprec))
+  print(Mat)
+  retvec = c(Mat[1,])
+  return(retvec)
+    
 }

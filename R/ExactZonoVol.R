@@ -51,10 +51,11 @@ ExactZonoVol <- function(Matrix) {
   coordinate = TRUE
   rounding = FALSE
   verbose=FALSE
+  ball_only = FALSE
   #-------------------#
   
   vol = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
               Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
-              rotate_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
+              rotate_only, ball_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
   return(vol[1,1])
 }

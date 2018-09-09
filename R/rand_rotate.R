@@ -89,11 +89,12 @@ rand_rotate <- function(A, b, V, G){
   dim_gen = 0
   m_gen = 0
   exact_zono = FALSE
+  ball_only = FALSE
   #-------------------#
   
   Mat = vol_R(Mat, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
               vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
-              rotate_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
+              rotate_only, ball_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
   
   # get elements "matrix" and "vector"
   # remove first row
