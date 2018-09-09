@@ -117,11 +117,12 @@ round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate
   dim_gen = 0
   m_gen = 0
   exact_zono = FALSE
+  ball_only = FALSE
   #---------------------#
   
   Mat = vol_R(Mat, W, e, InnerBall, annealing, win_len, N, C, ratio, frac, ballwalk,
               Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only,
-              rotate_only, sample_only, numpoints, variance, coord, rounding, verb)
+              rotate_only, ball_only, sample_only, numpoints, variance, coord, rounding, verb)
   # get first row which has the info for round_value
   r = Mat[c(1),]
   round_value = r[1]

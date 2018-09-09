@@ -17,7 +17,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
                            bool annealing, int win_len, int N, double C, double ratio, double frac,
                            bool ball_walk, double delta, bool Vpoly, bool Zono, bool exact_zono, bool gen_only,
                            bool Vpoly_gen, int kind_gen, int dim_gen, int m_gen, bool round_only,
-                           bool rotate_only, bool sample_only, int numpoints, double variance,
+                           bool rotate_only, bool ball_only, bool sample_only, int numpoints, double variance,
                            bool coord, bool rounding, bool verbose) {
 
 
@@ -119,6 +119,23 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         VP.init(Pin);
     }
 
+    std::pair<Point,NT> InnerBall;
+    if (ball_only) {
+        Rcpp::NumericMatrix Mat(1, n + 1);
+        if (Zono) {
+            InnerBall = ZP.ComputeInnerBall();
+        } else if (!Vpoly) {
+            InnerBall = HP.ComputeInnerBall();
+        } else {
+            InnerBall = VP.ComputeInnerBall();
+        }
+        for (int k = 0; k < n; ++k) {
+            Mat(0,k) = InnerBall.first[k];
+        }
+        Mat(0,n) = InnerBall.second;
+        return Mat;
+    }
+
     if (rotate_only) {
         Rcpp::NumericMatrix Mat;
         if (Zono) {
@@ -134,7 +151,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         return Mat;
     }
 
-    std::pair<Point,NT> InnerBall;
+
     //Compute chebychev ball//
     if(Chebychev.size()==n+1 || Chebychev.size()==n) { //if it is given as an input
         if (Chebychev.size()==n) {
