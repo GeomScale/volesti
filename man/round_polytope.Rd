@@ -2,7 +2,7 @@
 % Please edit documentation in R/round_polytope.R
 \name{round_polytope}
 \alias{round_polytope}
-\title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope).}
+\title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
 round_polytope(A, b, V, G, walk_length, ball_walk, delta, coordinate, verbose)
 }

@@ -1,4 +1,4 @@
-#' Compute the exact volume of a zonotope.
+#' Compute the exact volume of a zonotope
 #' 
 #' Given the \eqn{m \times d} matrix that containes the \eqn{m} segments that define the \eqn{d}-dimensional zonotope, this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices.
 #' 
@@ -10,6 +10,7 @@
 #' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
 #' ZonoMat = GenZonotope(5, 10)
 #' vol = ExactZonoVol(ZonoMat)
+#' @export
 ExactZonoVol <- function(ZonoMat) {
   A = ZonoMat
   d = dim(A)[2] + 1

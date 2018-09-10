@@ -1,4 +1,4 @@
-#' Generator function for simplices.
+#' Generator function for simplices
 #' 
 #' This function can be used to generate a \eqn{d}-dimensional unit simplex in H or V representation.
 #' 
@@ -12,6 +12,7 @@
 #' 
 #' # generate a 20-dimensional simplex in V-representation
 #' PolyList = GenSimplex(20, 'V')
+#' @export
 GenSimplex <- function(dimension, repr) {
   
   Zono = FALSE

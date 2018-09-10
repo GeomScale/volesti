@@ -63,7 +63,6 @@ for (i in 1:2) {
   print('----------------------------------------')
   cat('\n')
   print('H-birk3')
-  print(path)
   ListPoly = fileToMatrix(paste0(path,'/birk3.ine'))
   Hruntest(ListPoly$A, ListPoly$b, 'H-birk3', 0.125, 0.1, num_of_exps, algo)
 

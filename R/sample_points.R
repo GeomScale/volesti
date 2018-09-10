@@ -1,4 +1,4 @@
-#' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope).
+#' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope)
 #'
 #' Sample N points from a H or a V-polytope or a zonotope with uniform or spherical gaussian -centered in an internal point- target distribution.
 #' 
@@ -25,6 +25,7 @@
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
 #' points = sample_points(A=A, b=b, gaussian=TRUE, variance=2)
+#' @export
 sample_points <- function(A, b, V, G, walk_length, internal_point,
                           gaussian, variance, N, ball_walk, delta,
                           verbose, coordinate){

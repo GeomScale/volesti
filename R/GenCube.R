@@ -1,4 +1,4 @@
-#' Generator function for hypercubes.
+#' Generator function for hypercubes
 #' 
 #' This function can be used to generate a \eqn{d}-dimensional Hypercube \eqn{[-1,1]^d} in H or V representation.
 #' 
@@ -12,6 +12,7 @@
 #' 
 #' # generate a 15-dimension hypercube in V-representation
 #' PolyList = GenCube(15, 'V')
+#' @export
 GenCube <- function(dimension, repr) {
   
   Zono = FALSE

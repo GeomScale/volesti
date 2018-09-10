@@ -2,7 +2,7 @@
 % Please edit documentation in R/GenProdSimplex.R
 \name{GenProdSimplex}
 \alias{GenProdSimplex}
-\title{Generator function for product of simplices.}
+\title{Generator function for product of simplices}
 \usage{
 GenProdSimplex(dimension)
 }

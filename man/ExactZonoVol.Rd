@@ -2,7 +2,7 @@
 % Please edit documentation in R/ExactZonoVol.R
 \name{ExactZonoVol}
 \alias{ExactZonoVol}
-\title{Compute the exact volume of a zonotope.}
+\title{Compute the exact volume of a zonotope}
 \usage{
 ExactZonoVol(ZonoMat)
 }

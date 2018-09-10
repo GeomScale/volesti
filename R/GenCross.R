@@ -1,4 +1,4 @@
-#' Generator function for cross polytopes.
+#' Generator function for cross polytopes
 #' 
 #' This function can be used to generate a \eqn{d}-dimensional cross polytope in H or V representation.
 #' 
@@ -12,6 +12,7 @@
 #' 
 #' # generate a 15-dimension cross polytope in V-representation
 #' PolyList = GenCross(15, 'V')
+#' @export
 GenCross <- function(dimension, repr) {
   
   Zono = FALSE

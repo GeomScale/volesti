@@ -2,7 +2,7 @@
 % Please edit documentation in R/CheBall.R
 \name{CheBall}
 \alias{CheBall}
-\title{Compute the Chebychev ball of a H-polytope.}
+\title{Compute the Chebychev ball of a H-polytope}
 \usage{
 CheBall(A, b)
 }

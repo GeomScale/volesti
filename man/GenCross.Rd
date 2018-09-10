@@ -2,7 +2,7 @@
 % Please edit documentation in R/GenCross.R
 \name{GenCross}
 \alias{GenCross}
-\title{Generator function for cross polytopes.}
+\title{Generator function for cross polytopes}
 \usage{
 GenCross(dimension, repr)
 }

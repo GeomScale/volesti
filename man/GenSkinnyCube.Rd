@@ -2,7 +2,7 @@
 % Please edit documentation in R/GenSkinnyCube.R
 \name{GenSkinnyCube}
 \alias{GenSkinnyCube}
-\title{Generator function for skinny hypercubes.}
+\title{Generator function for skinny hypercubes}
 \usage{
 GenSkinnyCube(dimension)
 }

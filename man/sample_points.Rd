@@ -2,7 +2,7 @@
 % Please edit documentation in R/sample_points.R
 \name{sample_points}
 \alias{sample_points}
-\title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope).}
+\title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
 sample_points(A, b, V, G, walk_length, internal_point, gaussian, variance, N,
   ball_walk, delta, verbose, coordinate)
