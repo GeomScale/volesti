@@ -7,7 +7,7 @@
 #' @param V Only for V-polytopes. The \eqn{m\times d} matrix V that containes row-wise the \eqn{m} \eqn{d}-dimensional vertices of the polytope.
 #' @param G Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.
 #' 
-#' @return A random rotation of the polytope that is given as an input. The output for a H-polytope is a list that containes elements "matrix" and "vector". For a V-polytope the output is a \eqn{m\times d} matrix that containes the \eqn{m} \eqn{d}-dimensional vertices of the V-polytope row-wise. For a zonotope is a \eqn{m\times d} matrix that containes the \eqn{m} \eqn{d}-dimensional segments row-wise.
+#' @return A random rotation of the polytope that is given as an input. For H-polytopes the return value is a list that containes a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b s.t.: \eqn{Ax\leq b}. For V-polytopes and zonotopes the return value is a \eqn{m\times d} matrix that containes row-wise the \eqn{d}-dimensional vertices or segments respectively.
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
@@ -19,8 +19,8 @@
 #' matVpoly = rand_rotate(V=V)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
-#' Zono = GenZonotope(5,15)
-#' MatZono = rand_rotate(G=Zono)
+#' Zmat = GenZonotope(5,15)
+#' MatZono = rand_rotate(G=Zmat)
 rand_rotate <- function(A, b, V, G){
   
   vpoly = FALSE

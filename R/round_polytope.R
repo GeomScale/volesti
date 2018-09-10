@@ -6,13 +6,13 @@
 #' @param b Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.
 #' @param V Only for V-polytopes. The \eqn{m\times d} matrix V that containes row-wise the \eqn{m} \eqn{d}-dimensional vertices of the polytope.
 #' @param G Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.
-#' @param walk_length Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.
+#' @param walk_length Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.
 #' @param ball_walk Optional. Boolean parameter to use ball walk, only for CG algorithm. Default value is false.
 #' @param delta Optional. The radius for the ball walk.
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
-#' @param verbose Optional. A boolean parameter for printing. Default is false.
+#' @param verbose Optional. A boolean parameter for printing. Default value is false.
 #' 
-#' @return Is a list that containes elements to describe the rounded polytope, i.e. "matrix" and "vector" for H-polytopes and just "matrix" for V-polytopes and zonotopes, containing the verices or segments row-wise. For both representations the list containes element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
+#' @return For H-polytopes the return value is a list that containes a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b s.t.: \eqn{Ax\leq b}. For V-polytopes and zonotopes the return value is a list with first element a \eqn{m\times d} matrix that containes row-wise the \eqn{d}-dimensional vertices or segments respectively. For all the representations the returned list containes element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
@@ -20,12 +20,12 @@
 #' listHpoly = round_polytope(A=A, b=b)
 #' 
 #' # rotate a V-polytope (3d cube) using Random Directions HnR
-#' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-#' ListVpoly = round_polytope(V=V, coordinate=FALSE)
+#' Vmat = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
+#' ListVpoly = round_polytope(V=Vmat, coordinate=FALSE)
 #' 
 #' # rotate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
-#' Zono = GenZonotope(10,20)
-#' ListZono = round_polytope(G=Zono)
+#' Zmat = GenZonotope(10,20)
+#' ListZono = round_polytope(G=Zmat)
 round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate, verbose) {
   
   vpoly = FALSE

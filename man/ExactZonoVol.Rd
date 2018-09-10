@@ -4,20 +4,20 @@
 \alias{ExactZonoVol}
 \title{Compute the exact volume of a zonotope.}
 \usage{
-ExactZonoVol(Matrix)
+ExactZonoVol(ZonoMat)
 }
 \arguments{
-\item{Matrix}{The \eqn{m \times d} matrix that containes the segments that define the zonotope.}
+\item{ZonoMat}{The \eqn{m \times d} matrix that containes the segments that define the zonotope.}
 }
 \value{
 The exact volume of the zonotope
 }
 \description{
-Given the \eqn{m \times d} matrix that containes the \eqn{m} segments that define the \eqn{d}-dimensional zonotope, this function computes the sum of the determinants of all the \eqn{d \times d} submatrices.
+Given the \eqn{m \times d} matrix that containes the \eqn{m} segments that define the \eqn{d}-dimensional zonotope, this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices.
 }
 \examples{
 
 # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
-zonotope = GenZonotope(5, 10)
-vol = ExactZonoVol(zonotope)
+ZonoMat = GenZonotope(5, 10)
+vol = ExactZonoVol(ZonoMat)
 }

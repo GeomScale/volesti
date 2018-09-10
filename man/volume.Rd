@@ -16,15 +16,15 @@ volume(A, b, V, G, walk_length, error, InnerVec, CG, win_len, C, N, ratio, frac,
 
 \item{G}{Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.}
 
-\item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10 + d/10\rfloor}.}
+\item{walk_length}{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10 + d/10\rfloor}.}
 
-\item{error}{Optional. Declare the goal for the approximation error. Default is \eqn{1} for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.}
+\item{error}{Optional. Declare the goal for the approximation error. Default value is \eqn{1} for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.}
 
-\item{InnerVec}{Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined as the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,m}.}
+\item{InnerVec}{Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an internal ball.}
 
 \item{CG}{Optional. A boolean parameter to use CoolingGaussian algorithm. Default value is false.}
 
-\item{win_len}{Optional. The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \ dimension^2 + 500}.}
+\item{win_len}{Optional. The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \cdot dimension^2 + 500}.}
 
 \item{C}{Optional. A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm.}
 
@@ -38,29 +38,29 @@ volume(A, b, V, G, walk_length, error, InnerVec, CG, win_len, C, N, ratio, frac,
 
 \item{delta}{Optional. The radius for the ball walk.}
 
-\item{verbose}{Optional. A boolean parameter for printing. Default is false.}
+\item{verbose}{Optional. A boolean parameter for printing. Default value is false.}
 
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 
 \item{rounding}{Optional. A boolean parameter to activate the rounding option. Default value is false.}
 }
 \value{
-The approximation of the volume of a convex H or V polytope.
+The approximation of the volume of a convex polytope.
 }
 \description{
 For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of \eqn{d}-dimensional points. A zonotope is desrcibed by the Minkowski sum of \eqn{d}-dimensional segments.
 }
 \examples{
-# calling volesti algorithm for a H-polytope (2d unit simplex)
+# calling SOB algorithm for a H-polytope (2d unit simplex)
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
 vol = volume(A=A, b=b)
 
-# calling CV algorithm for a V-polytope (3d cube)
-V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-vol = volume(V=V, CG=TRUE)
+# calling CG algorithm for a V-polytope (3d cube)
+Vmat = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
+vol = volume(V=Vmat, CG=TRUE)
 
-# calling Gaussian-Cooling algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
+# calling CG algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
 zonotope = GenZonotope(5, 10)
 vol = volume(G=zonotope, rounding=TRUE, CG=TRUE)
 }
