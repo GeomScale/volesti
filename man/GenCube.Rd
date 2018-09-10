@@ -2,7 +2,7 @@
 % Please edit documentation in R/GenCube.R
 \name{GenCube}
 \alias{GenCube}
-\title{Generator function for hypercubes.}
+\title{Generator function for hypercubes}
 \usage{
 GenCube(dimension, repr)
 }

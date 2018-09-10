@@ -2,7 +2,7 @@
 % Please edit documentation in R/fileToMatrix.R
 \name{fileToMatrix}
 \alias{fileToMatrix}
-\title{function to get a ine file and returns a numerical matrix A.}
+\title{function to get a ine file and returns a numerical matrix A}
 \usage{
 fileToMatrix(path)
 }

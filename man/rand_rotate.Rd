@@ -2,7 +2,7 @@
 % Please edit documentation in R/rand_rotate.R
 \name{rand_rotate}
 \alias{rand_rotate}
-\title{Apply a random rotation to a convex polytope (H-polytope, V-polytope or a zonotope).}
+\title{Apply a random rotation to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
 rand_rotate(A, b, V, G)
 }

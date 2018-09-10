@@ -1,4 +1,4 @@
-#' Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope).
+#' Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)
 #' 
 #' Given a convex H or V polytope or a zonotope as input this function computes a rounding based on minimum volume enclosing ellipsoid of a pointset.
 #' 
@@ -26,6 +26,7 @@
 #' # rotate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
 #' Zmat = GenZonotope(10,20)
 #' ListZono = round_polytope(G=Zmat)
+#' @export
 round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate, verbose) {
   
   vpoly = FALSE

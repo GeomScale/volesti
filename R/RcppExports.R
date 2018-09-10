@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 vol_R <- function(A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only, sample_only, numpoints, variance, coord, rounding, verbose) {
-    .Call(`_volesti_vol_R`, A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only, sample_only, numpoints, variance, coord, rounding, verbose)
+    .Call('_volesti_vol_R', PACKAGE = 'volesti', A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only, sample_only, numpoints, variance, coord, rounding, verbose)
 }
 

@@ -1,4 +1,4 @@
-#' The main R function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope).
+#' The main R function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
 #'
 #' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of \eqn{d}-dimensional points. A zonotope is desrcibed by the Minkowski sum of \eqn{d}-dimensional segments.
 #'
@@ -25,6 +25,7 @@
 #' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2014.}, 
 #' @references \cite{B. Cousins and S. Vempala, \dQuote{A practical volume algorithm,} \emph{Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society,} 2015.}
 #' 
+#' 
 #' @return The approximation of the volume of a convex polytope.
 #' @examples
 #' # calling SOB algorithm for a H-polytope (2d unit simplex)
@@ -39,6 +40,11 @@
 #' # calling CG algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
 #' zonotope = GenZonotope(5, 10)
 #' vol = volume(G=zonotope, rounding=TRUE, CG=TRUE)
+#' @export
+#' @useDynLib volesti
+#' @importFrom Rcpp evalCpp
+#' @importFrom "utils" "read.csv"
+#' @exportPattern "^[[:alpha:]]+"
 volume <- function(A, b, V, G, walk_length, error, InnerVec, CG, win_len,
                    C, N, ratio, frac, ball_walk, delta, verbose, 
                    coordinate, rounding) {

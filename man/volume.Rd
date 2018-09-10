@@ -2,7 +2,7 @@
 % Please edit documentation in R/volume.R
 \name{volume}
 \alias{volume}
-\title{The main R function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope).}
+\title{The main R function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
 volume(A, b, V, G, walk_length, error, InnerVec, CG, win_len, C, N, ratio, frac,
   ball_walk, delta, verbose, coordinate, rounding)

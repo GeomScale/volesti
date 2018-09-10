@@ -1,4 +1,4 @@
-#' Apply a random rotation to a convex polytope (H-polytope, V-polytope or a zonotope).
+#' Apply a random rotation to a convex polytope (H-polytope, V-polytope or a zonotope)
 #' 
 #' Given a convex H or V polytope or a zonotope as input this function applies a random rotation.
 #' 
@@ -21,6 +21,7 @@
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
 #' Zmat = GenZonotope(5,15)
 #' MatZono = rand_rotate(G=Zmat)
+#' @export
 rand_rotate <- function(A, b, V, G){
   
   vpoly = FALSE

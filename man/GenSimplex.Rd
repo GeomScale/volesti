@@ -2,7 +2,7 @@
 % Please edit documentation in R/GenSimplex.R
 \name{GenSimplex}
 \alias{GenSimplex}
-\title{Generator function for simplices.}
+\title{Generator function for simplices}
 \usage{
 GenSimplex(dimension, repr)
 }

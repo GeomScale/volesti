@@ -1,4 +1,4 @@
-#' function to get a ine file and returns a numerical matrix A.
+#' function to get a ine file and returns a numerical matrix A
 #'
 #' This function takes the path for an ine or an ext file and returns the corresponding numerical matrix and vector that are compatible with volesti package's functions.
 #'
@@ -9,6 +9,7 @@
 #' # give the path to birk4.ine
 #' path = system.file('extdata', package = 'volesti')
 #' ListPoly = fileToMatrix(paste0(path,'/birk4.ine'))
+#' @export
 fileToMatrix <- function(path){
   
   ineorext=substr(path, start = nchar(path) - 2, stop = nchar(path))

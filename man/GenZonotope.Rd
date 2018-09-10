@@ -2,7 +2,7 @@
 % Please edit documentation in R/GenZonotope.R
 \name{GenZonotope}
 \alias{GenZonotope}
-\title{Generator function for zonotopes.}
+\title{Generator function for zonotopes}
 \usage{
 GenZonotope(dimension, NumGen)
 }

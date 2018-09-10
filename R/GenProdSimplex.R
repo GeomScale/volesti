@@ -1,4 +1,4 @@
-#' Generator function for product of simplices.
+#' Generator function for product of simplices
 #' 
 #' This function can be used to generate a \eqn{2d}-dimensional polytope that is defined as the product of two \eqn{d}-dimensional unit simplices in H-representation.
 #' 
@@ -8,6 +8,7 @@
 #' @examples
 #' # generate a product of two 5-dimensional simplices.
 #' PolyList = GenProdSimplex(5)
+#' @export
 GenProdSimplex <- function(dimension) {
   
   Zono = FALSE
