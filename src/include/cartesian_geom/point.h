@@ -113,9 +113,9 @@ public:
 
     void print(){
         for(int i=0; i<d; i++){
-            std::cout<<coeffs[i]<<" ";
+            //std::cout<<coeffs[i]<<" ";
         }
-        std::cout<<"\n";
+        //std::cout<<"\n";
     }
     
     

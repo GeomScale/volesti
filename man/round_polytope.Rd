@@ -38,7 +38,7 @@ b = c(0,0,1)
 listHpoly = round_polytope(A=A, b=b)
 
 # rotate a V-polytope (3d cube) using Random Directions HnR
-Vmat = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
+Vmat = GenCube(3, 'V')
 ListVpoly = round_polytope(V=Vmat, coordinate=FALSE)
 
 # rotate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments

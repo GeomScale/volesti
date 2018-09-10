@@ -15,8 +15,8 @@
 #' listHpoly = rand_rotate(A=A, b=b)
 #' 
 #' # rotate a V-polytope (3d cube)
-#' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-#' matVpoly = rand_rotate(V=V)
+#' Vmat = GenCube(3, 'V')
+#' matVpoly = rand_rotate(V=Vmat)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
 #' Zmat = GenZonotope(5,15)

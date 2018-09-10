@@ -17,5 +17,6 @@ This function takes the path for an ine or an ext file and returns the correspon
 }
 \examples{
 # give the path to birk4.ine
-ListPoly = fileToMatrix(path/to/data/birk4.ine)
+path = system.file('extdata', package = 'volesti')
+ListPoly = fileToMatrix(paste0(path,'/birk4.ine'))
 }

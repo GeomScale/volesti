@@ -42,8 +42,8 @@ Sample N points from a H or a V-polytope or a zonotope with uniform or spherical
 }
 \examples{
 # uniform distribution from a 3d cube described by a set of vertices
-V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-points = sample_points(V=V, N=1000)
+Vmat = GenCube(3, 'V')
+points = sample_points(V=Vmat, N=1000)
 
 # gaussian distribution from a 2d unit simplex in H-representation with variance = 2
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)

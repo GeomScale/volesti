@@ -1,7 +1,7 @@
 Package: volesti
 Type: Package
-License: GPL (>= 2)
-Title: Volume approximation of convex polytopes.
+License: LGPL-3
+Title: Volume approximation of convex polytopes
 Authors@R: c(person("Fisikopoulos", "Vissarion" , role=c("cph", "cre", "aut"), email="vissarion.fysikopoulos@oracle.com"),
              person("Chalkis", "Apostolos" , role=c("cph", "ctb", "aut"), email="tolis.chal@gmail.com"))
 Description: Package provides an R interface for VolEsti C++ package. VolEsti computes
@@ -9,9 +9,9 @@ Description: Package provides an R interface for VolEsti C++ package. VolEsti co
              or Minkowski sum of segments (zonotopes). There are two algorithms for volume
              approximation as well as algorithms for sampling, rounding and rotating polytopes.
 Maintainer: Fisikopoulos Vissarion <vissarion.fysikopoulos@oracle.com>, Chalkis Apostolos <tolis.chal@gmail.com>
-Version: 1.0.0
+Version: 0.1.0
 Date: 2018-09-05
 BugReports: https://github.com/vissarion/volume_approximation/issues
 Imports: Rcpp (>= 0.12.17), RcppEigen (>= 0.3.3.4.0), BH (>= 1.66.0-1)
-LinkingTo: Rcpp (>= 0.12.17), RcppEigen (>= 0.3.3.4.0), BH (>= 1.66.0-1)
+LinkingTo: Rcpp, RcppEigen, BH
 RoxygenNote: 6.0.1

@@ -10,7 +10,7 @@
 //function to print rounding to double coordinates 
 template <class T>
 void round_print(T p) { 
-    std::cout<<"test version.."<<std::endl;
+    //std::cout<<"test version.."<<std::endl;
    // for(typename T::Cartesian_const_iterator cit=p.cartesian_begin();
    //     cit!=p.cartesian_end(); ++cit)
     //    std::cout<<CGAL::to_double(*cit)<<" ";
@@ -49,7 +49,7 @@ int Minkowski_sum_naive(V_polytope &P1, V_polytope &P2, V_polytope &Msum){
 template <class T>
 void print_polymake_volfile(T &P,
                             std::ostream& os){
-    std::cout<<"test version.."<<std::endl;
+   // std::cout<<"test version.."<<std::endl;
 }
 
 /*
@@ -91,7 +91,7 @@ void print_polymake_volfile(T &P,
 template <class T>
 void print_polymake_volfile2(T &P,
                              std::ostream& os){
-    std::cout<<"test version.."<<std::endl;
+    //std::cout<<"test version.."<<std::endl;
 }
 /*
     // print the vertices of the P polytope

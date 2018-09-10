@@ -4,7 +4,7 @@
 \alias{GenSkinnyCube}
 \title{Generator function for skinny hypercubes.}
 \usage{
-GenSkinnyCube(dimension, repr = "H")
+GenSkinnyCube(dimension)
 }
 \arguments{
 \item{dimension}{The dimension of the skinny hypercube.}

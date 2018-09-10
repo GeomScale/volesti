@@ -8,7 +8,7 @@
 #ifndef POLYTOPE_GENERATORS_H
 #define POLYTOPE_GENERATORS_H
 
-#include <time.h>
+//#include <time.h>
 
 template <class Polytope>
 Polytope gen_cube(int dim, bool Vpoly) {
@@ -177,9 +177,11 @@ Polytope gen_simplex(int dim, bool Vpoly){
 template <class Polytope>
 Polytope gen_prod_simplex(int dim, bool Vpoly = false){
 
+    Polytope Perr;
     if (Vpoly) {
-        std::cout<<"Only prod simplices in H-representation can be generated.."<<std::endl;
-        exit(-1);
+        //std::cout<<"Only prod simplices in H-representation can be generated.."<<std::endl;
+        //exit(-1);
+        return Perr;
     }
 
     typedef typename Polytope::MT    MT;
@@ -243,9 +245,12 @@ Polytope gen_prod_simplex(int dim, bool Vpoly = false){
 
 template <class Polytope>
 Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
+
+    Polytope Perr;
     if (Vpoly) {
-        std::cout<<"Only skinny cubes in H-representation can be generated.."<<std::endl;
-        exit(-1);
+        //std::cout<<"Only skinny cubes in H-representation can be generated.."<<std::endl;
+        //exit(-1);
+        return Perr;
     }
 
     typedef typename Polytope::MT    MT;
@@ -291,33 +296,41 @@ Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
 }
 
 
-template <class Polytope>
+/*
+template <class Polytope, class RNGType>
 Polytope gen_prod_simplex(int dim, int m){
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::random::uniform_int_distribution<> uidist1(0, 1);
+    boost::random::uniform_int_distribution<> uidist2(0, 999);
+
+    int choice;
     MT A;
     VT b;
     A.resize(dim, m);
     b.resize(dim);
     Polytope P;
 
-    srand (time(NULL));
+    //srand (time(NULL));
 
     for(int i=1; i<m; ++i){
         b(dim) = 1000.0;
         for(int j=0; j<dim; ++j){
-            if(std::rand()%2==1) {
-                A(i,j) = -std::rand()%1000;
+            choice = uidist1(rng);
+            if(choice==1) {
+                A(i,j) = -uidist2(rng);
             } else {
-                A(i,j) = std::rand()%1000;
+                A(i,j) = uidist2(rng);
             }
         }
     }
     P.init(dim, A, b);
     return P;
-}
+}*/
 
 
 template <class Polytope, class RNGType>
