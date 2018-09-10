@@ -13,8 +13,8 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::NumericVector Chebychev,
-                           bool annealing, int win_len, int N, double C, double ratio, double frac,
+Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::NumericVector InnerVec,
+                           bool CG, int win_len, int N, double C, double ratio, double frac,
                            bool ball_walk, double delta, bool Vpoly, bool Zono, bool exact_zono, bool gen_only,
                            bool Vpoly_gen, int kind_gen, int dim_gen, int m_gen, bool round_only,
                            bool rotate_only, bool ball_only, bool sample_only, int numpoints, double variance,
@@ -74,8 +74,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
                 VP = gen_simplex<Vpolytope>(dim_gen, true);
                 Mat = extractMatPoly(VP);
             } else {
-                std::cout<<"An internal error is occured.. We are sorry for the inconvinience."<<std::endl;
-                exit(-1);
+                return Mat;
             }
         } else {
             if (kind_gen == 1) {
@@ -94,8 +93,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
                 HP = gen_skinny_cube<Hpolytope>(dim_gen);
                 Mat = extractMatPoly(HP);
             } else {
-                std::cout<<"An internal error is occured.. We are sorry for the inconvinience."<<std::endl;
-                exit(-1);
+                return Mat;
             }
         }
         return Mat;
@@ -153,8 +151,8 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
 
 
     //Compute chebychev ball//
-    if(Chebychev.size()==n+1 || Chebychev.size()==n) { //if it is given as an input
-        if (Chebychev.size()==n) {
+    if(InnerVec.size()==n+1 || InnerVec.size()==n) { //if it is given as an input
+        if (InnerVec.size()==n) {
             // if only sampling is requested
             // the radius of the inscribed ball is going to be needed for the sampling (radius of ball walk)
             if (Zono) {
@@ -168,11 +166,11 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         // store internal point hat is given as input
         std::vector<NT> temp_p;
         for (int j=0; j<n; j++){
-            temp_p.push_back(Chebychev[j]);
+            temp_p.push_back(InnerVec[j]);
         }
         InnerBall.first = Point( n , temp_p.begin() , temp_p.end() );
         // store the radius of the internal ball that is given as input
-        if (Chebychev.size()==n+1) InnerBall.second = Chebychev[n];
+        if (InnerVec.size()==n+1) InnerBall.second = InnerVec[n];
     } else {
         // no internal ball or point is given as input
         if (Zono) {
@@ -212,13 +210,13 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     }
 
     // if only sampling is requested
-    if (sample_only){
+    if (sample_only) {
         std::list<Point> randPoints;
         Point p = InnerBall.first;
         NT a = 1.0 / (2.0 * variance);
-        if (ball_walk){
-            if(delta<0.0){ // set the radius for the ball walk if is not set by the user
-                if(annealing) {
+        if (ball_walk) {
+            if (delta < 0.0) { // set the radius for the ball walk if is not set by the user
+                if (CG) {
                     delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
                 } else {
                     delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
@@ -231,11 +229,11 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         vars_g<NT, RNGType> var2(n, walk_len, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                     rand_only, false, NN, birk, ball_walk, coord);
         if (Zono) {
-            sampling_only<Point>(randPoints, ZP, walk_len, numpoints, annealing, a, p, var1, var2);
-        } else if(!Vpoly) {
-            sampling_only<Point>(randPoints, HP, walk_len, numpoints, annealing, a, p, var1, var2);
+            sampling_only<Point>(randPoints, ZP, walk_len, numpoints, CG, a, p, var1, var2);
+        } else if (!Vpoly) {
+            sampling_only<Point>(randPoints, HP, walk_len, numpoints, CG, a, p, var1, var2);
         } else {
-            sampling_only<Point>(randPoints, VP, walk_len, numpoints, annealing, a, p, var1, var2);
+            sampling_only<Point>(randPoints, VP, walk_len, numpoints, CG, a, p, var1, var2);
         }
         Rcpp::NumericMatrix PointSet(n,numpoints);
 
@@ -252,21 +250,12 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         return PointSet;
     }
 
-    // print chebychev ball in verbose mode
-    if (verbose) {
-        std::cout << "Inner ball center = " << std::endl;
-        for (i = 0; i < n; i++) {
-            std::cout << InnerBall.first[i] << " ";
-        }
-        std::cout << "\nradius of inner ball = " << InnerBall.second << std::endl;
-    }
-
 
     // initialization
     vars<NT, RNGType> var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0, InnerBall.second,rng,urdist,urdist1,
              delta,verbose,rand_only,rounding,NN,birk,ball_walk,coordinate);
     NT vol;
-    if (annealing) {
+    if (CG) {
         vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second, rng,
                   urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
         vars_g<NT, RNGType> var1(n, walk_len, N, win_len, 1, e, InnerBall.second, rng, C, frac, ratio, delta, false, verbose,
@@ -278,7 +267,6 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         } else {  // if the input is a V-polytope
             vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
         }
-        if (verbose) std::cout << "volume computed = " << vol << std::endl;
     } else {
         if (Zono) {
             vol = volume(ZP, var, var, InnerBall);

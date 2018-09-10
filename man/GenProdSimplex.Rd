@@ -4,7 +4,7 @@
 \alias{GenProdSimplex}
 \title{Generator function for product of simplices.}
 \usage{
-GenProdSimplex(dimension, repr = "H")
+GenProdSimplex(dimension)
 }
 \arguments{
 \item{dimension}{The dimension of the simplices.}

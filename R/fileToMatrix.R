@@ -4,9 +4,11 @@
 #'
 #' @param path A string that containes the path to an ine or a ext file. The ine file desrcibes a H-polytope and ext file describes a V-polytope or a zonotope.
 #' @return If the path corresponds to an ine file then the return value is a list that containes elements "A" and "b", i.e. the numerical \eqn{m\times d} matrix \eqn{A} and the numerical \eqn{m}-dimensional vector \eqn{b}, defining H-polytope \eqn{P}, s.t.:  \eqn{Ax\leq b}. If it corresponds to an ext file (V-polytopes or zonotopes) then the return value is a \eqn{m\times d} matrix that containes row-wise the vertices or the segments respectively.
+#'
 #' @examples
 #' # give the path to birk4.ine
-#' ListPoly = fileToMatrix(path/to/data/birk4.ine)
+#' path = system.file('extdata', package = 'volesti')
+#' ListPoly = fileToMatrix(paste0(path,'/birk4.ine'))
 fileToMatrix <- function(path){
   
   ineorext=substr(path, start = nchar(path) - 2, stop = nchar(path))

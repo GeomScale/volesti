@@ -3,7 +3,7 @@
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 
 // Licensed under GNU LGPL.3, see LICENCE file
-
+/*
 void linear_extensions_to_order_polytope(std::istream &is,
                                         std::ostream &os){
 
@@ -19,10 +19,10 @@ void linear_extensions_to_order_polytope(std::istream &is,
     int m;
     bufferm >> m;
     
-    os << "order_"<<n<<".ine\n";
-    os << "H-representation\n";
-    os << "begin\n";
-    os << " " << 2*n+m << " " << n+1 << " integer\n";
+    //os << "order_"<<n<<".ine\n";
+   // os << "H-representation\n";
+    //os << "begin\n";
+    //os << " " << 2*n+m << " " << n+1 << " integer\n";
 
     //this is a cube
     for(int i=0; i<n; ++i){
@@ -89,4 +89,4 @@ void linear_extensions_to_order_polytope(std::istream &is,
         }
     }
     os << "end\ninput_incidence" << std::endl;
-}
+}*/

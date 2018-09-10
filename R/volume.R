@@ -33,7 +33,7 @@
 #' vol = volume(A=A, b=b)
 #' 
 #' # calling CG algorithm for a V-polytope (3d cube)
-#' Vmat = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
+#' Vmat = GenCube(3, 'V')
 #' vol = volume(V=Vmat, CG=TRUE)
 #' 
 #' # calling CG algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments

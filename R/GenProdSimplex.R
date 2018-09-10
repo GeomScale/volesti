@@ -8,11 +8,12 @@
 #' @examples
 #' # generate a product of two 5-dimensional simplices.
 #' PolyList = GenProdSimplex(5)
-GenProdSimplex <- function(dimension, repr = 'H') {
+GenProdSimplex <- function(dimension) {
   
   Zono = FALSE
   kind_gen = 4
   NumGen = 0
+  repr = 'H'
   
   ListMat = polytope_generator(Zono, repr, kind_gen, dimension, NumGen)
   

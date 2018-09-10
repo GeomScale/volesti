@@ -173,12 +173,12 @@ public:
 
     // print polytope in input format
     void print() {
-        std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
+        //std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                std::cout << -A(i, j) << " ";
+                //std::cout << -A(i, j) << " ";
             }
-            std::cout << "<= " << b(i) << std::endl;
+            //std::cout << "<= " << b(i) << std::endl;
         }
     }
 
@@ -553,12 +553,12 @@ public:
 
     // print polytope in input format
     void print() {
-        std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
+        //std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
         for (unsigned int i = 0; i < V.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                std::cout << V(i, j) << " ";
+               // std::cout << V(i, j) << " ";
             }
-            std::cout<<"\n";
+           // std::cout<<"\n";
         }
     }
 
@@ -906,12 +906,12 @@ public:
 
     // print polytope in input format
     void print() {
-        std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
+        //std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
         for (unsigned int i = 0; i < V.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                std::cout << V(i, j) << " ";
+               // std::cout << V(i, j) << " ";
             }
-            std::cout<<"\n";
+            //std::cout<<"\n";
         }
     }
 

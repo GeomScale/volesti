@@ -8,11 +8,12 @@
 #' @examples
 #' # generate a 10-dimensional skinny hypercube.
 #' PolyList = GenSkinnyCube(10)
-GenSkinnyCube <- function(dimension, repr = 'H') {
+GenSkinnyCube <- function(dimension) {
   
   Zono = FALSE
   kind_gen = 5
   NumGen = 0
+  repr = 'H'
   
   ListMat = polytope_generator(Zono, repr, kind_gen, dimension, NumGen)
   
