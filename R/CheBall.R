@@ -1,7 +1,6 @@
 #' Compute the Chebychev ball of a H-polytope.
 #' 
 #' For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) of that polytope by solving the corresponding linear program.
-#' This function can use suggested R-package lpSolveAPI.
 #'
 #' @param A The matrix of the H-polytope.
 #' @param b The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets.
@@ -11,6 +10,10 @@
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
 #' ball_vec = CheBall(A,b)
+#' 
+#' # compute the Chebychev ball of 10-dimensional cross polytope
+#' PolyList = GenCross(10, 'H')
+#' ball_vec = CheBall(PolyList$A, PolyList$b)
 CheBall <- function(A,b){
   
   Mat = -A

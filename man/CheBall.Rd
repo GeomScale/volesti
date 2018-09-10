@@ -16,11 +16,14 @@ A \eqn{(d+1)}-dimensional vector that containes the Chebychev ball. The first \e
 }
 \description{
 For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) of that polytope by solving the corresponding linear program.
-This function needs suggested R-package lpSolveAPI.
 }
 \examples{
 # compute the Chebychev ball of a 2d unit simplex
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
 ball_vec = CheBall(A,b)
+
+# compute the Chebychev ball of 10-dimensional cross polytope
+PolyList = GenCross(10, 'H')
+ball_vec = CheBall(PolyList$A, PolyList$b)
 }

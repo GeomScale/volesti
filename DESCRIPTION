@@ -13,6 +13,5 @@ Version: 1.0.0
 Date: 2018-09-05
 BugReports: https://github.com/vissarion/volume_approximation/issues
 Imports: Rcpp (>= 0.12.17), RcppEigen (>= 0.3.3.4.0), BH (>= 1.66.0-1)
-Suggests: lpSolveAPI (>= 5.5.2.0-17)
 LinkingTo: Rcpp (>= 0.12.17), RcppEigen (>= 0.3.3.4.0), BH (>= 1.66.0-1)
 RoxygenNote: 6.0.1

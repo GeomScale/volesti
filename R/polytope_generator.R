@@ -1,4 +1,21 @@
-# This is an internal function. No Rd file.
+#' Internal function to generate polytopes
+#' 
+#' This function is used by polytope generator functions. It is an internal function and it is not suggested to use it.
+#' 
+#' @param Zono A boolean parameter to declare if the generated polytope has to be zonotope or not.
+#' @param repr A string parameter to declare the representation of the polytope. Use 'H' for H-representation, 'V' for V-representation and 'zontope' for zonotopes.
+#' @param kind_gen An integer to declare the kind of the polytope. Use '0' for zonotopes, '1' for cubes, '2' for cross polytopes, '3' for simplices, '4' for product of two simplices and '5' for skinny cubes. See polytope generator functions for more details.
+#' @param dim_gen An integer to declare the dimension of the polytope.
+#' @param m_gen Only for zonotopes. An integer to declare the number of segments.
+#' 
+#' @return For H-polytopes the return value is a list that containes a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b s.t.: \eqn{Ax\leq b}. For V-polytopes and zonotopes the return value is a \eqn{m\times d} matrix that containes row-wise the \eqn{d}-dimensional vertices or segments respectively.
+#' 
+#' @examples 
+#' # create a 5-dimensional zonotope that is defined by the Minkowski sum of 10 segments
+#' ZonoMat = polytope_generator(TRUE, 'zonotope', 0, 5, 10)
+#' 
+#' # create a 20-dimensional unit simplex in V-representation
+#' PolyMat = polytope_generator(FALSE, 'V', 1, 20, -1) 
 polytope_generator <- function(Zono, repr, kind_gen, dim_gen, m_gen) {
   
   if (repr == "V") {

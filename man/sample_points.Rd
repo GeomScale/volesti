@@ -16,7 +16,7 @@ sample_points(A, b, V, G, walk_length, internal_point, gaussian, variance, N,
 
 \item{G}{Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.}
 
-\item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.}
+\item{walk_length}{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.}
 
 \item{internal_point}{Optional. A \eqn{d}-dimensional vector that containes the coordinates of an internal point of the polytope. If it is not given then for H-polytopes the Chebychev center is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev center of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we use the origin.}
 
@@ -30,12 +30,12 @@ sample_points(A, b, V, G, walk_length, internal_point, gaussian, variance, N,
 
 \item{delta}{Optional. The radius for the ball walk.}
 
-\item{verbose}{Optional. A boolean parameter for printing. Default is false.}
+\item{verbose}{Optional. A boolean parameter for printing. Default value is false.}
 
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 }
 \value{
-A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope.
+A \eqn{d\times N} matrix that containes, column-wise, the sampled points from the convex polytope.
 }
 \description{
 Sample N points from a H or a V-polytope or a zonotope with uniform or spherical gaussian -centered in an internal point- target distribution.

@@ -15,7 +15,7 @@ round_polytope(A, b, V, G, walk_length, ball_walk, delta, coordinate, verbose)
 
 \item{G}{Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.}
 
-\item{walk_length}{Optional. The number of the steps for the random walk, default is \eqn{\lfloor 10+d/10\rfloor}.}
+\item{walk_length}{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.}
 
 \item{ball_walk}{Optional. Boolean parameter to use ball walk, only for CG algorithm. Default value is false.}
 
@@ -23,10 +23,10 @@ round_polytope(A, b, V, G, walk_length, ball_walk, delta, coordinate, verbose)
 
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 
-\item{verbose}{Optional. A boolean parameter for printing. Default is false.}
+\item{verbose}{Optional. A boolean parameter for printing. Default value is false.}
 }
 \value{
-Is a list that containes elements to describe the rounded polytope, i.e. "matrix" and "vector" for H-polytopes and just "matrix" for V-polytopes and zonotopes, containing the verices or segments row-wise. For both representations the list containes element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
+For H-polytopes the return value is a list that containes a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b s.t.: \eqn{Ax\leq b}. For V-polytopes and zonotopes the return value is a list with first element a \eqn{m\times d} matrix that containes row-wise the \eqn{d}-dimensional vertices or segments respectively. For all the representations the returned list containes element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
 }
 \description{
 Given a convex H or V polytope or a zonotope as input this function computes a rounding based on minimum volume enclosing ellipsoid of a pointset.
@@ -38,10 +38,10 @@ b = c(0,0,1)
 listHpoly = round_polytope(A=A, b=b)
 
 # rotate a V-polytope (3d cube) using Random Directions HnR
-V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-ListVpoly = round_polytope(V=V, coordinate=FALSE)
+Vmat = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
+ListVpoly = round_polytope(V=Vmat, coordinate=FALSE)
 
 # rotate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
-Zono = GenZonotope(10,20)
-ListZono = round_polytope(G=Zono)
+Zmat = GenZonotope(10,20)
+ListZono = round_polytope(G=Zmat)
 }
