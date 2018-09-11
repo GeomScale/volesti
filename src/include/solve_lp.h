@@ -22,10 +22,10 @@
 #ifndef SOLVE_LP_H
 #define SOLVE_LP_H
 
-#include <stdio.h>
+//#include <stdio.h>
 #include <cmath>
 #include <exception>
-#include "run_headers/lp_lib.h"
+#include "lp_lib.h"
 
 
 // compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
@@ -43,7 +43,6 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
         if(lp == NULL) throw false;
     }
     catch (bool e) {
-        //std::cout<<"Could not construct Linear Program for chebychev center "<<e<<std::endl;
         return res_error;
     }
     
@@ -57,7 +56,6 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
     }
     catch (std::exception &e)
     {
-        //std::cout<<"Linear Program for chebychev center failed "<<e.what()<<std::endl;
         return res_error;
     }
 
@@ -81,7 +79,6 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
         }
         catch (bool e)
         {
-            //std::cout<<"Could not define constriants for the Linear Program for chebychev center "<<e<<std::endl;
             return res_error;
         }
     }
@@ -103,7 +100,6 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
     }
     catch (bool e)
     {
-        //std::cout<<"Could not define objective function for the Linear Program for chebychev center "<<e<<std::endl;
         return res_error;
     }
 
@@ -158,7 +154,6 @@ bool memLP_Vpoly(MT V, Point q){
         if(lp == NULL) throw false;
     }
     catch (bool e) {
-        //std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
         return false;
     }
 
@@ -171,7 +166,6 @@ bool memLP_Vpoly(MT V, Point q){
     }
     catch (std::exception &e)
     {
-        //std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
         return false;
     }
 
@@ -192,7 +186,6 @@ bool memLP_Vpoly(MT V, Point q){
         }
         catch (bool e)
         {
-            //std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
             return false;
         }
     }
@@ -209,7 +202,6 @@ bool memLP_Vpoly(MT V, Point q){
     }
     catch (bool e)
     {
-        //std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
         return false;
     }
 
@@ -233,7 +225,6 @@ bool memLP_Vpoly(MT V, Point q){
     }
     catch (bool e)
     {
-        //std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
         return false;
     }
 
@@ -250,7 +241,6 @@ bool memLP_Vpoly(MT V, Point q){
     }
     catch (bool e)
     {
-        //std::cout<<"Could not solve the Linear Program for memebrship "<<e<<std::endl;
         return false;
     }
 
@@ -288,7 +278,6 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
         if(lp == NULL) throw false;
     }
     catch (bool e) {
-        //std::cout<<"Could not construct Linear Program for ray-shooting "<<e<<std::endl;
         return -1.0;
     }
 
@@ -301,7 +290,6 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
     catch (std::exception &e)
     {
-        //std::cout<<"Linear Program for ray-shooting failed "<<e.what()<<std::endl;
         return -1.0;
     }
 
@@ -322,7 +310,6 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
         }
         catch (bool e)
         {
-            //std::cout<<"Could not construct constaints for the Linear Program for ray-shooting "<<e<<std::endl;
             return -1.0;
         }
 
@@ -341,7 +328,6 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
             if (!add_constraintex(lp, m, row, colno, EQ, 1.0)) throw false;
         }
         catch (bool e) {
-            //std::cout << "Could not construct constaints for the Linear Program for ray-shooting " << e << std::endl;
             return -1.0;
         }
     }
@@ -366,7 +352,6 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
     catch (bool e)
     {
-        //std::cout<<"Could not construct objective function for the Linear Program for ray-shooting "<<e<<std::endl;
         return -1.0;
     }
 
@@ -384,7 +369,6 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
     catch (bool e)
     {
-        //std::cout<<"Could not solve the Linear Program for ray-shooting "<<e<<std::endl;
         return -1.0;
     }
 
@@ -409,7 +393,6 @@ bool memLP_Zonotope(MT V, Point q){
         if(lp == NULL) throw false;
     }
     catch (bool e) {
-        //std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
         return false;
     }
 
@@ -422,7 +405,6 @@ bool memLP_Zonotope(MT V, Point q){
     }
     catch (std::exception &e)
     {
-        //std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
         return false;
     }
 
@@ -441,7 +423,6 @@ bool memLP_Zonotope(MT V, Point q){
         }
         catch (bool e)
         {
-            //std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
             return false;
         }
     }
@@ -463,7 +444,6 @@ bool memLP_Zonotope(MT V, Point q){
     }
     catch (bool e)
     {
-        //std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
         return false;
     }
 

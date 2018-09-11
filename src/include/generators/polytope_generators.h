@@ -179,8 +179,6 @@ Polytope gen_prod_simplex(int dim, bool Vpoly = false){
 
     Polytope Perr;
     if (Vpoly) {
-        //std::cout<<"Only prod simplices in H-representation can be generated.."<<std::endl;
-        //exit(-1);
         return Perr;
     }
 
@@ -248,8 +246,6 @@ Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
 
     Polytope Perr;
     if (Vpoly) {
-        //std::cout<<"Only skinny cubes in H-representation can be generated.."<<std::endl;
-        //exit(-1);
         return Perr;
     }
 
@@ -294,43 +290,6 @@ Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
 
     return P;
 }
-
-
-/*
-template <class Polytope, class RNGType>
-Polytope gen_prod_simplex(int dim, int m){
-
-    typedef typename Polytope::MT    MT;
-    typedef typename Polytope::VT    VT;
-
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
-    boost::random::uniform_int_distribution<> uidist1(0, 1);
-    boost::random::uniform_int_distribution<> uidist2(0, 999);
-
-    int choice;
-    MT A;
-    VT b;
-    A.resize(dim, m);
-    b.resize(dim);
-    Polytope P;
-
-    //srand (time(NULL));
-
-    for(int i=1; i<m; ++i){
-        b(dim) = 1000.0;
-        for(int j=0; j<dim; ++j){
-            choice = uidist1(rng);
-            if(choice==1) {
-                A(i,j) = -uidist2(rng);
-            } else {
-                A(i,j) = uidist2(rng);
-            }
-        }
-    }
-    P.init(dim, A, b);
-    return P;
-}*/
 
 
 template <class Polytope, class RNGType>

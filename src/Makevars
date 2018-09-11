@@ -1,4 +1,4 @@
-PKG_CPPFLAGS=-Iexternal/LPsolve_src/include -Iexternal/LPsolve_src -Iexternal/minimum_ellipsoid -Iinclude -Iinclude/volume -Iinclude/generators -Iinclude/samplers 
+PKG_CPPFLAGS=-Iexternal/LPsolve_src/run_headers -Iexternal/minimum_ellipsoid -Iinclude -Iinclude/volume -Iinclude/generators -Iinclude/samplers -Iinclude/annealing -Iinclude/convex_bodies
 PKG_CXXFLAGS= -lm -ldl -Wno-ignored-attributes -DBOOST_NO_AUTO_PTR
 CXX_STD = CXX11
 
