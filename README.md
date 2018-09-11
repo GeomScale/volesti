@@ -1,12 +1,13 @@
 ## Volume computation and sampling
+----------------------------------
 
-**VolEsti** is a C++ library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an *R* interface.
+####  About  
+[**volesti**](https://github.com/vissarion/volume_approximation) is a C++ library for volume approximation and sampling of convex bodies (*e.g.* polytopes). This package provides a [CGAL](https://www.cgal.org/) free version and a *R* interface.  
 
-Documentation
-----------------
+volesti computes approximations of volume of polytopes given as a set of points or linear inequalities or as a Minkowski sum of segments (zonotopes). There are two algorithms for volume approximation as well as algorithms for sampling, rounding and rotating polytopes.  
 
-####  Install Rcpp package  
- 
+##  Install package  
+
 * Install package-dependencies: `Rcpp`, `RcppEigen`, `BH`, `lpSolveAPI`.  
 * Then use devtools package to install `volesti` Rcpp package. Run:
 ```r

@@ -51,7 +51,6 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     // the random engine with this seed
     RNGType rng(seed);
-    //boost::normal_distribution<> rdist(0,1);
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 

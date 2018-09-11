@@ -26,27 +26,18 @@ template <class Point, typename NT, class PointList, class Polytope, class UPara
 void sampling_only(PointList &randPoints, Polytope &P, int walk_len, int rnum, bool gaussian, NT a, Point internal_point, UParameters var1, GParameters var2) {
 
     typedef typename UParameters::RNGType RNGType;
-    //bool print = var1.verbose;
     int n = var1.n;
     Point p = internal_point;
-    //if(print) std::cout<<"\ncomputing first random point..."<<std::endl;
     Point q = get_point_on_Dsphere<RNGType, Point>(n, var1.che_rad);
     p=p+q;
     rand_point_generator(P, p, 1, 50 * n, randPoints, var1);
 
-    //if(print) std::cout<<"\nfirst random point computed!"<<std::endl;
-    //if(print) std::cout<<"p = ";
-    //if(print) p.print();
-
     randPoints.clear();
-    //if(print) std::cout<<"\nsampling points..."<<std::endl;
     if (!gaussian){
         rand_point_generator(P, p, rnum, walk_len, randPoints, var1);
     } else {
         rand_gaussian_point_generator(P, p, rnum, walk_len, randPoints, a, var2);
     }
-    //if(print) std::cout<<"\nsampling completed!\n"<<std::endl;
-
 }
 
 #endif

@@ -92,8 +92,6 @@ void get_first_gaussian(Polytope &P, NT radius, NT frac, Parameters var, NT &err
     }
 
     if (i == maxiter) {
-        //std::cout << "Cannot obtain sharp enough starting Gaussian" << std::endl;
-        //exit(-1);
         return;
     }
 
@@ -162,11 +160,10 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, int N, NT ratio, NT C, Paramet
 template <class Polytope, class Parameters, typename NT>
 void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, int N,
                             Parameters var, NT &error, std::vector<NT> &a_vals){
-    //bool print=var.verbose;
+
     typedef typename Polytope::PolytopePoint Point;
     // Compute the first gaussian
     get_first_gaussian(P, radius, frac, var, error, a_vals);
-    //if(print) std::cout<<"first gaussian computed\n"<<std::endl;
 
     NT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0, next_a;
     const NT tol = 0.001;
@@ -179,8 +176,6 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, int
     }
 
     Point p(n);
-
-    //if(print) std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
 
     Point p_prev=p;
 
