@@ -25,6 +25,8 @@
 //#include <stdio.h>
 #include <cmath>
 #include <exception>
+#undef Realloc
+#undef Free
 #include "lp_lib.h"
 
 
