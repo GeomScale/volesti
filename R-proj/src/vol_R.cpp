@@ -28,16 +28,12 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> Zonotope;
-    int nexp=1, n_threads=1,i,j;
-    //NT exactvol(-1.0);
+    int n_threads=1,i,j;
+
     bool rand_only=false,
-	 file=false,
 	 NN=false,
-	 user_walk_len=false,
-	 linear_extensions=false,
          birk=false,
          rotate=false,
-         experiments=true,
          coordinate=coord;
     Hpolytope HP;
     Vpolytope VP;

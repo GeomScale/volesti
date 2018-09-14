@@ -201,8 +201,9 @@ hull
 incidence  
 ```
 Run:  
+```
 ./vol -f3 ./zonotope_4_8.ext  
-
+```
 
 #### Generate polytopes
 

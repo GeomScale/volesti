@@ -8,6 +8,7 @@
 #ifndef POLYTOPE_GENERATORS_H
 #define POLYTOPE_GENERATORS_H
 
+#include <exception>
 
 template <class Polytope>
 Polytope gen_cube(int dim, bool Vpoly) {
@@ -177,7 +178,11 @@ template <class Polytope>
 Polytope gen_prod_simplex(int dim, bool Vpoly = false){
 
     Polytope Perr;
-    if (Vpoly) {
+    try
+    {
+        if(Vpoly) throw false;
+    }
+    catch (bool e) {
         std::cout<<"Only prod simplices in H-representation can be generated.."<<std::endl;
         return Perr;
     }
@@ -245,8 +250,12 @@ template <class Polytope>
 Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
 
     Polytope Perr;
-    if (Vpoly) {
-        std::cout<<"Only skinny cubes in H-representation can be generated.."<<std::endl;
+    try
+    {
+        if(Vpoly) throw false;
+    }
+    catch (bool e) {
+        std::cout<<"Only prod simplices in H-representation can be generated.."<<std::endl;
         return Perr;
     }
 
