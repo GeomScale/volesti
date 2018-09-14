@@ -93,7 +93,7 @@ void get_first_gaussian(Polytope &P, NT radius, NT frac, Parameters var, NT &err
 
     if (i == maxiter) {
         std::cout << "Cannot obtain sharp enough starting Gaussian" << std::endl;
-        exit(-1);
+        return;
     }
 
     //get a_0 with binary search
