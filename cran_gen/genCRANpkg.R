@@ -83,10 +83,13 @@ unlink(dir_Rproj, recursive = TRUE)
 dir_test = paste0(path,'/test')
 unlink(dir_test, recursive = TRUE)
 
+dir_lic = paste0(path,'/LICENCE')
+unlink(dir_lic, recursive = TRUE)
+
 dir_boost = paste0(path,'/src/external/boost')
 unlink(dir_boost, recursive = TRUE)
 
-dir_eigen = paste0(path,'/src/external/eigen')
+dir_eigen = paste0(path,'/src/external/Eigen')
 unlink(dir_eigen, recursive = TRUE)
 
 #dir_self = paste0(path,'/cran_gen')
