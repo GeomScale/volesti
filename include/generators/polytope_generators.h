@@ -8,7 +8,6 @@
 #ifndef POLYTOPE_GENERATORS_H
 #define POLYTOPE_GENERATORS_H
 
-#include <time.h>
 
 template <class Polytope>
 Polytope gen_cube(int dim, bool Vpoly) {
@@ -177,9 +176,10 @@ Polytope gen_simplex(int dim, bool Vpoly){
 template <class Polytope>
 Polytope gen_prod_simplex(int dim, bool Vpoly = false){
 
+    Polytope Perr;
     if (Vpoly) {
         std::cout<<"Only prod simplices in H-representation can be generated.."<<std::endl;
-        exit(-1);
+        return Perr;
     }
 
     typedef typename Polytope::MT    MT;
@@ -243,9 +243,11 @@ Polytope gen_prod_simplex(int dim, bool Vpoly = false){
 
 template <class Polytope>
 Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
+
+    Polytope Perr;
     if (Vpoly) {
         std::cout<<"Only skinny cubes in H-representation can be generated.."<<std::endl;
-        exit(-1);
+        return Perr;
     }
 
     typedef typename Polytope::MT    MT;
@@ -287,35 +289,6 @@ Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
     Polytope P;
     P.init(dim, A, b);
 
-    return P;
-}
-
-
-template <class Polytope>
-Polytope gen_prod_simplex(int dim, int m){
-
-    typedef typename Polytope::MT    MT;
-    typedef typename Polytope::VT    VT;
-
-    MT A;
-    VT b;
-    A.resize(dim, m);
-    b.resize(dim);
-    Polytope P;
-
-    srand (time(NULL));
-
-    for(int i=1; i<m; ++i){
-        b(dim) = 1000.0;
-        for(int j=0; j<dim; ++j){
-            if(std::rand()%2==1) {
-                A(i,j) = -std::rand()%1000;
-            } else {
-                A(i,j) = std::rand()%1000;
-            }
-        }
-    }
-    P.init(dim, A, b);
     return P;
 }
 
