@@ -115,7 +115,7 @@ int main(const int argc, const char** argv)
                       "-t, --threads #threads : the number of threads to be used\n"<<
                       "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
                       "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
-                      "\n-cv : use the practical CV algo\n"<<
+                      "\n-cg : use the practical CG algo\n"<<
                       "-w, --walk_len [walk_len] : the random walk length (default 1)\n"<<
                       "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
                       "-e, --error epsilon : the goal error of approximation\n"<<
@@ -323,7 +323,7 @@ int main(const int argc, const char** argv)
           rotate = true;
           correct = true;
       }
-      if(!strcmp(argv[i],"-cv")){
+      if(!strcmp(argv[i],"-cg")){
           annealing = true;
           correct = true;
       }
