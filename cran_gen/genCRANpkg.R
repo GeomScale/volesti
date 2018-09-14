@@ -44,8 +44,8 @@ include_dir = paste0(path,'/include')
 include_dist = paste0(path,'/src')
 file.copy(include_dir, include_dist, recursive=TRUE)
 
-#circleci = paste0(path,'/.circleci')
-#unlink(circleci, recursive = TRUE)
+circleci = paste0(path,'/.circleci')
+unlink(circleci, recursive = TRUE)
 
 readme_dir = paste0(path,'/cran_gen/README.md')
 readme_dist = path
@@ -55,33 +55,40 @@ news_dir = paste0(path,'/cran_gen/NEWS.md')
 news_dist = path
 file.copy(news_dir, news_dist, recursive=TRUE)
 
-#makefile_dir = paste0(path,'/cran_gen/Makefile')
-#makefile_dist = paste0(path, '/src/lp_solve')
-#file.copy(makefile_dir, makefile_dist, recursive=TRUE)
+makefile_dir = paste0(path,'/cran_gen/Makefile')
+makefile_dist = paste0(path, '/src/lp_solve')
+file.copy(makefile_dir, makefile_dist, recursive=TRUE)
 
-#makevars_dir = paste0(path,'/cran_gen/Makevars')
-#makevars_dist = paste0(path, '/src')
-#file.copy(makevars_dir, makevars_dist, recursive=TRUE)
+makevars_dir = paste0(path,'/cran_gen/Makevars')
+makevars_dist = paste0(path, '/src')
+file.copy(makevars_dir, makevars_dist, recursive=TRUE)
 
-#makevarswin_dir = paste0(path,'/cran_gen/Makevars.win')
-#makevarswin_dist = paste0(path, '/src')
-#file.copy(makevarswin_dir, makevarswin_dist, recursive=TRUE)
+makevarswin_dir = paste0(path,'/cran_gen/Makevars.win')
+makevarswin_dist = paste0(path, '/src')
+file.copy(makevarswin_dir, makevarswin_dist, recursive=TRUE)
 
-#volume_dir = paste0(path,'/cran_gen/volume.h')
-#volume_dist = paste0(path,'/src/include/volume'
-#file.copy(volume_dir, volume_dist, recursive=TRUE)
+volume_dir = paste0(path,'/cran_gen/volume.h')
+volume_dist = paste0(path,'/src/include/volume')
+file.copy(volume_dir, volume_dist, recursive=TRUE)
 
-#dir_ext = paste0(path,'/external')
-#unlink(dir_ext, recursive = TRUE)
+dir_ext = paste0(path,'/external')
+unlink(dir_ext, recursive = TRUE)
 
-#dir_inc = paste0(path,'/include')
-#unlink(dir_inc, recursive = TRUE)
+dir_inc = paste0(path,'/include')
+unlink(dir_inc, recursive = TRUE)
 
-#dir_boost = paste0(path,'/src/external/boost')
-#unlink(dir_boost, recursive = TRUE)
+dir_Rproj = paste0(path,'/R-proj')
+unlink(dir_Rproj, recursive = TRUE)
 
-#dir_eigen = paste0(path,'/src/external/eigen')
-#unlink(dir_eigen, recursive = TRUE)
+dir_test = paste0(path,'/test')
+unlink(dir_test, recursive = TRUE)
 
+dir_boost = paste0(path,'/src/external/boost')
+unlink(dir_boost, recursive = TRUE)
 
+dir_eigen = paste0(path,'/src/external/eigen')
+unlink(dir_eigen, recursive = TRUE)
+
+#dir_self = paste0(path,'/cran_gen')
+#unlink(dir_self, recursive = TRUE)
 
