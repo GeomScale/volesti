@@ -1,6 +1,6 @@
 path = getwd()
 path = substr(path, start=1, stop=nchar(path)-9)
-print(path)
+
 dir_data = paste0(path,'/data')
 unlink(dir_data, recursive = TRUE)
 

@@ -1,3 +1,6 @@
+context("Sampling test")
+
+library(volesti)
 
 runsample <- function(Mat, vector, Vpoly, Zono, name_string, dist){
   if (dist == "uniform") {
@@ -18,15 +21,17 @@ runsample <- function(Mat, vector, Vpoly, Zono, name_string, dist){
     }
   }
   if (length(p[is.nan(p)])>0 | length(p[is.infinite(p)])>0) {
-    print(paste0('Test FAILED!! [', name_string, ']  There are NaN or Inf values in the coordinates of your points!'))
+    res = 0
   } else {
-    print(paste0('Test PASSED!! [', name_string, ']'))
+    res = 1
   }
-  cat('\n')
+  
+  test_that("Sampling test", {
+    expect_equal(res, 1)
+  })
+  
 }
 
-
-library(volesti)
 
 path = system.file('extdata', package = 'volesti')
 
@@ -38,10 +43,7 @@ for (i in 1:2) {
     distribution = 'uniform'
   }
   
-  print('----------------------------------------')
-  print('------------1st test [cubes]------------')
-  print('----------------------------------------')
-  cat('\n')
+
   PolyList = GenCube(10, 'H')
   runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-cube10', distribution)
   
@@ -53,40 +55,27 @@ for (i in 1:2) {
   
   PolyMat = GenCube(10, 'V')
   runsample(PolyMat, c(0,0), TRUE, FALSE, 'V-cube10', distribution)
-  
-  print('----------------------------------------')
-  print('------2nd test [cross_polytopes]--------')
-  print('----------------------------------------')
-  cat('\n')
+
   PolyList = GenCross(10, 'H')
   runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-cross10', distribution)
   
   PolyMat = GenCross(20, 'V')
   runsample(PolyMat, c(0,0), TRUE, FALSE, 'V-cross20', distribution)
   
-  print('----------------------------------------')
-  print('----------3rd test [birkhoff]-----------')
-  print('----------------------------------------')
-  cat('\n')
+
   ListPoly = fileToMatrix(paste0(path,'/birk3.ine'))
   runsample(ListPoly$A, ListPoly$b, FALSE, FALSE, 'H-birk3', distribution)
   
   ListPoly = fileToMatrix(paste0(path,'/birk4.ine'))
   runsample(ListPoly$A, ListPoly$b, FALSE, FALSE, 'H-birk4', distribution)
-  #runsample(x$matrix, x$b, FALSE, FALSE, 'H-birk4', distribution)
   
   ListPoly = fileToMatrix(paste0(path,'/birk5.ine'))
   runsample(ListPoly$A, ListPoly$b, FALSE, FALSE, 'H-birk5', distribution)
-  #runsample(x$matrix, x$b, FALSE, FALSE, 'H-birk5', distribution)
   
   ListPoly = fileToMatrix(paste0(path,'/birk6.ine'))
   runsample(ListPoly$A, ListPoly$b, FALSE, FALSE, 'H-birk6', distribution)
-  #runsample(x$matrix, x$b, FALSE, FALSE, 'H-birk6', distribution)
   
-  print('----------------------------------------')
-  print('--------4th test [prod_simplex]---------')
-  print('----------------------------------------')
-  cat('\n')
+
   PolyList = GenProdSimplex(5)
   runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-prod_simplex_5_5', distribution)
   
@@ -99,10 +88,7 @@ for (i in 1:2) {
   PolyList = GenProdSimplex(20)
   runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-prod_simplex_20_20', distribution)
   
-  print('----------------------------------------')
-  print('-----------5th test [simplex]-----------')
-  print('----------------------------------------')
-  cat('\n')
+
   PolyList = GenSimplex(10, 'H')
   runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-prod_simplex10', distribution)
   
@@ -115,20 +101,14 @@ for (i in 1:2) {
   PolyMat = GenSimplex(20, 'V')
   runsample(PolyMat, c(0,0), TRUE, FALSE, 'V-simplex20', distribution)
   
-  print('----------------------------------------')
-  print('--------6th test [skinny_cubes]---------')
-  print('----------------------------------------')
-  cat('\n')
+
   PolyList = GenSkinnyCube(10)
   runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-skinny_cube10', distribution)
   
   PolyList = GenSkinnyCube(20)
   runsample(PolyList$A, PolyList$b, FALSE, FALSE, 'H-skinny_cube20', distribution)
   
-  print('----------------------------------------')
-  print('----------7th test [Zonotopes]----------')
-  print('----------------------------------------')
-  cat('\n')
+
   zonotope = GenZonotope(4, 8)
   runsample(zonotope, c(0,0), FALSE, TRUE, 'zonotope_4_8', distribution)
   

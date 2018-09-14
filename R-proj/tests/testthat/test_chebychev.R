@@ -17,8 +17,6 @@ runCheTest <- function(A, b, name_string, radius, tol) {
     #print(paste0('Test PASSED!! [', name_string, ']'))
     res = 1
   }
-  print(res)
-  #cat('\n')
   return(res)
 }
 
@@ -28,6 +26,10 @@ tol = 0.00001
 
 PolyList = GenCube(10, 'H')
 runCheTest(PolyList$A, PolyList$b, 'H-cube10', 1.0, tol)
+test_that("Chebychev test", {
+  res = runCheTest(PolyList$A, PolyList$b, 'H-cube10', 1.0, tol)
+  expect_equal(res, 1)
+})
 
 PolyList = GenCube(20, 'H')
 test_that("Chebychev test", {
