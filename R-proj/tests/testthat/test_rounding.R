@@ -1,3 +1,7 @@
+context("Rounding test")
+
+library(volesti)
+
 testRound <- function(Mat, vector, exactvol, tol, name_string, num_of_exps, algo, rotation){
   
   if (rotation) {
@@ -15,17 +19,21 @@ testRound <- function(Mat, vector, exactvol, tol, name_string, num_of_exps, algo
     }
   }
   vol = vol / num_of_exps
-  print(paste0('volume approximation of ', name_string,' = ',vol))
-  print(paste0('exact volume of ', name_string,' = ',exactvol))
+  #print(paste0('volume approximation of ', name_string,' = ',vol))
+  #print(paste0('exact volume of ', name_string,' = ',exactvol))
   error = abs(vol - exactvol) / exactvol
-  print(paste0('error = ',error))
+  #print(paste0('error = ',error))
   if (error >= tol){
-    print(paste0('TEST FAILED!! ', error, ' > ', tol))
+    res = 0
+  } else {
+    res = 1
   }
-  cat('\n')
+  
+  test_that("Rounding test", {
+    expect_equal(res, 1)
+  })
 }
 
-library(volesti)
 
 for (i in 1:2) {
   if (i==1) {
@@ -36,20 +44,12 @@ for (i in 1:2) {
     num_of_exps = 20
   }
   
-  print('--------------------------------------------')
-  print('------1st test [rotated_skinny_cubes]-------')
-  print('--------------------------------------------')
-  cat('\n')
   PolyList = GenSkinnyCube(10)
   testRound(PolyList$A, PolyList$b, 102400, 0.1, 'H-skinny_cube10', num_of_exps, algo, TRUE)
   
   PolyList = GenSkinnyCube(20)
   testRound(PolyList$A, PolyList$b, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, TRUE)
   
-  print('--------------------------------------------')
-  print('------2nd test [skinny_cubes]-------')
-  print('--------------------------------------------')
-  cat('\n')
   PolyList = GenSkinnyCube(10)
   testRound(PolyList$A, PolyList$b, 102400, 0.1, 'H-skinny_cube10', num_of_exps, algo, FALSE)
   
