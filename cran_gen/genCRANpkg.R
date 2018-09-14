@@ -85,7 +85,7 @@ unlink(dir_test, recursive = TRUE)
 
 dir_lic = paste0(path,'/LICENSE')
 lic_dist = paste0(path,'/inst/doc')
-file.copy(lic_dir, lic_dist, recursive=TRUE)
+file.copy(dir_lic, lic_dist, recursive=TRUE)
 
 dir_boost = paste0(path,'/src/external/boost')
 unlink(dir_boost, recursive = TRUE)

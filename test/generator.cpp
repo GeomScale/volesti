@@ -220,8 +220,20 @@ int main(const int argc, const char** argv) {
         }
     } else if (Hpoly) {
         Hpolytope HP;
-
-
+        if (cube) {
+            HP = gen_cube<Hpolytope>(d, false);
+        } else if (cross) {
+            HP = gen_cross<Hpolytope>(d, false);
+        } else if (simplex) {
+            HP = gen_simplex<Hpolytope>(d, false);
+        } else if (prod_simplex) {
+            HP = gen_prod_simplex<Hpolytope>(d);
+        } else if (skinny_cube) {
+            HP = gen_skinny_cube<Hpolytope>(d);
+        } else {
+            std::cout << "Wrong inputs, try -help" << std::endl;
+            exit(-1);
+        }
         create_txt(HP.get_mat(), HP.get_vec(), kind, false);
     } else if (Vpoly) {
         Vpolytope VP;
