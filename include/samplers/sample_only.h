@@ -35,8 +35,6 @@ void sampling_only(PointList &randPoints, Polytope &P, int walk_len, int rnum, b
     rand_point_generator(P, p, 1, 50 * n, randPoints, var1);
 
     if(print) std::cout<<"\nfirst random point computed!"<<std::endl;
-    if(print) std::cout<<"p = ";
-    if(print) p.print();
 
     randPoints.clear();
     if(print) std::cout<<"\nsampling points..."<<std::endl;
