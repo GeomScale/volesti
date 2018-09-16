@@ -57,11 +57,15 @@ CheBall <- function(A,b){
   dim_gen = 0
   m_gen = 0
   exact_zono = FALSE
+  sam_simplex = FALSE
+  sam_can_simplex = FALSE
+  sam_arb_simplex = FALSE
   #-------------------#
   
   Mat = vol_R(Mat, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
               vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
-              rotate_only, ball_only, sample_only, numpoints, variance, coordinate, rounding, verbose)
+              rotate_only, ball_only, sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, 
+              numpoints, variance, coordinate, rounding, verbose)
   
   retvec = c(Mat[1,])
   return(retvec)

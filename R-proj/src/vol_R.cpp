@@ -17,7 +17,8 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
                            bool CG, int win_len, int N, double C, double ratio, double frac,
                            bool ball_walk, double delta, bool Vpoly, bool Zono, bool exact_zono, bool gen_only,
                            bool Vpoly_gen, int kind_gen, int dim_gen, int m_gen, bool round_only,
-                           bool rotate_only, bool ball_only, bool sample_only, int numpoints, double variance,
+                           bool rotate_only, bool ball_only, bool sample_only, bool sam_simplex,
+                           bool sam_can_simplex, bool sam_arb_simplex, int numpoints, double variance,
                            bool coord, bool rounding, bool verbose) {
 
 
@@ -52,6 +53,62 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
 
     std::vector<std::vector<NT> > Pin(m+1, std::vector<NT>(n+1));
     std::vector<NT> bin(m);
+
+    if (sam_simplex || sam_can_simplex) {
+        Rcpp::NumericMatrix Mat;
+        std::list<Point> randPoints;
+
+        if (sam_simplex) {
+            Sam_Unit<NT, RNGType >(dim_gen, numpoints, randPoints);
+        } else {
+            Sam_Canon_Unit<NT, RNGType >(dim_gen, numpoints, randPoints);
+        }
+
+        Rcpp::NumericMatrix PointSet(dim_gen,numpoints);
+
+        // store the sampled points to the output matrix
+        typename std::list<Point>::iterator rpit=randPoints.begin();
+        typename std::vector<NT>::iterator qit;
+        j = 0;
+        for ( ; rpit!=randPoints.end(); rpit++, j++) {
+            qit = (*rpit).iter_begin(); i=0;
+            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
+                PointSet(i,j)=*qit;
+            }
+        }
+        return PointSet;
+    }
+
+    if (sam_arb_simplex) {
+        std::vector<NT> temp_p(n + 1, 0.0);
+        typename std::vector<NT>::iterator temp_it;
+        std::vector<Point> vec_point;
+
+        for (int k = 0; k < A.nrow(); ++k) {
+            temp_it = temp_p.begin();
+            for (int l = 0; l < A.ncol(); ++l, ++temp_it) {
+                *temp_it = A(k,l);
+            }
+            vec_point.push_back(Point(n+1, temp_p.begin(), temp_p.end()));
+        }
+        std::list<Point> randPoints;
+
+        Sam_arb_simplex<NT, RNGType>(vec_point.begin(), vec_point.end(), numpoints, randPoints);
+
+        Rcpp::NumericMatrix PointSet(n+1, numpoints);
+
+        // store the sampled points to the output matrix
+        typename std::list<Point>::iterator rpit=randPoints.begin();
+        typename std::vector<NT>::iterator qit;
+        j = 0;
+        for ( ; rpit!=randPoints.end(); rpit++, j++) {
+            qit = (*rpit).iter_begin(); i=0;
+            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
+                PointSet(i,j)=*qit;
+            }
+        }
+        return PointSet;
+    }
 
     if (gen_only) {
         Rcpp::NumericMatrix Mat;
