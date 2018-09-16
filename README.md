@@ -7,8 +7,8 @@
 
 **VolEsti** is a C++ library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an *R* interface.
 
-Documentation
-----------------
+### - R Interface
+------------
 
 ####  Install Rcpp package  
  
@@ -54,6 +54,9 @@ system(paste(shQuote(file.path(R.home("bin"), "R")),
 ```
 * The pdf will be created and saved in R-proj folder.  
 * We give such a documentation in /R-proj/doc folder.
+
+### - C++ Interface
+------------
 
 ####  Compile C++ sources and run tests 
 
@@ -134,7 +137,7 @@ input_incidence
   
 Then to use SequenceOfBalls (SOB) algorithm run the following command:  
 ```
-./vol -f1 ./cube10.ine  
+./vol -f1 cube10.ine  
 ```
 
 which returns 17 numbers:  
@@ -142,7 +145,7 @@ which returns 17 numbers:
   
 To use CoolingGaussian (CG) algorithm run the following command:  
 ```
-./vol -f1 ./cube10.ine -CG  
+./vol -f1 cube10.ine -CG  
 ```
 which returns the same output as before.  
 
@@ -178,7 +181,7 @@ incidence
 ```
 Run:   
 ```
-./vol -f2 ./cross_10.ext  
+./vol -f2 cross_10.ext  
 ```
 which returns the same output as before.  
 
@@ -202,8 +205,9 @@ incidence
 ```
 Run:  
 ```
-./vol -f3 ./zonotope_4_8.ext  
+./vol -f3 zonotope_4_8.ext  
 ```
+Flag -v enables the print mode.
 
 #### Generate polytopes
 
@@ -224,6 +228,17 @@ You can use executable `generator` to generate polytopes (hypercubes, simplices,
 ./generate -zonotope -d 5 -m 10
 ```
 
+#### Sampling
+
+You can sample from a convex polytope uniformly or from the spherical gaussian distribution. For example to sample uniformly from the 10-dimensional hypercube, run:
+```
+./vol -f1 cube10.ine -rand -nsample 1000
+```
+Flag -nsample declares the number of points we wish to sample (default is 100). To sample from the gaussian distribution, run:
+```
+./vol -rand -nsample 1300 -gaussian -variance 1.5
+```
+Flag variance declares the variance (default is 1.0). The center of the spherical gaussian is the Chebychev center for H-polytopes, or the origin for zonotopes. For V-polytopes is the chebychev center of the simplex that is defined by a random choice of d+1 vertices. Give flag -v to print the excecutional time.
 
 #### Credits
 

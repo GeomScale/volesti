@@ -96,7 +96,7 @@ int main(const int argc, const char** argv)
                       "-v, --verbose \n"<<
                       "-rot : does only rotating to the polytope\n"<<
                       "-ro, --round_only : does only rounding to the polytope\n"<<
-                      "-rand, --rand_only : generates only random points\n"<<
+                      "-rand, --rand_only : only samples from the convex polytope\n"<<
                       "-nsample : the number of points to sample in rand_olny mode\n"<<
                       "-gaussian : sample with spherical gaussian target distribution in rand_only mode\n"<<
                       "-variance : the variance of the spherical distribution in spherical mode (default 1)\n"<<
@@ -352,7 +352,7 @@ int main(const int argc, const char** argv)
       InnerBall = VP.ComputeInnerBall();
   }
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
-  if(verbose) std::cout << "Inner ball time = " << tstop1 - tstart1 << std::endl;
+  if(verbose) std::cout << "Inner ball time: " << tstop1 - tstart1 << std::endl;
   if(verbose){
       std::cout<<"Inner ball center is: "<<std::endl;
       for(unsigned int i=0; i<n; i++){
@@ -434,6 +434,7 @@ int main(const int argc, const char** argv)
       vars_g<NT, RNGType> var2(n, walk_len, N, W, 1, 0, InnerBall.second, rng, C, frac, ratio, delta,
                   false, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
 
+      double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if (Zono) {
           sampling_only<Point>(randPoints, ZP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
       } else if (!Vpoly) {
@@ -441,6 +442,8 @@ int main(const int argc, const char** argv)
       } else {
           sampling_only<Point>(randPoints, VP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
       }
+      double tstop11 = (double)clock()/(double)CLOCKS_PER_SEC;
+      if(verbose) std::cout << "Sampling time: " << tstop11 - tstart11 << std::endl;
       return 0;
   }
 
