@@ -137,7 +137,7 @@ input_incidence
   
 Then to use SequenceOfBalls (SOB) algorithm run the following command:  
 ```
-./vol -f1 cube10.ine  
+./vol -f1 cube_10.ine  
 ```
 
 which returns 17 numbers:  
@@ -145,11 +145,11 @@ which returns 17 numbers:
   
 To use CoolingGaussian (CG) algorithm run the following command:  
 ```
-./vol -f1 cube10.ine -CG  
+./vol -f1 cube_10.ine -CG  
 ```
 which returns the same output as before.  
 
-To estimate the volume of a 10-dimensional V-cross polytope described in cross_10.ext as follows:  
+To estimate the volume of a 10-dimensional V-cross polytope described in `cross_10.ext` as follows:  
 ```
 cross_10.ext  
 V-representation  
@@ -185,7 +185,7 @@ Run:
 ```
 which returns the same output as before.  
 
-To estimate the volume of a 4-dimensional zonotope defined by the Minkowski sum of 8 segments described in zonotope_4_8.ext as follows:  
+To estimate the volume of a 4-dimensional zonotope defined by the Minkowski sum of 8 segments described in `zonotope_4_8.ext` as follows:  
 ```
 zonotope_4_8.ext  
 Zonotpe  
@@ -207,7 +207,7 @@ Run:
 ```
 ./vol -f3 zonotope_4_8.ext  
 ```
-Flag -v enables the print mode.
+Flag `-v` enables the print mode.
 
 #### Generate polytopes
 
@@ -228,26 +228,38 @@ You can use executable `generator` to generate polytopes (hypercubes, simplices,
 ./generate -zonotope -d 5 -m 10
 ```
 
+Command `./generate -help` will display a help message about the program's available options.  
+
 #### Sampling
 
-You can sample from a convex polytope uniformly or from the spherical gaussian distribution. For example to sample uniformly from the 10-dimensional hypercube, run:
+You can sample from a convex polytope uniformly or from the spherical gaussian distribution. For example:  
+
+1. To sample uniformly from the 10-dimensional hypercube, run:  
 ```
-./vol -f1 cube10.ine -rand -nsample 1000
+./vol -f1 cube_10.ine -rand -nsample 1000
 ```
-Flag -nsample declares the number of points we wish to sample (default is 100). To sample from the gaussian distribution, run:
+Flag -nsample declares the number of points we wish to sample (default is 100).  
+
+2. To sample from the gaussian distribution, run:  
 ```
-./vol -rand -nsample 1300 -gaussian -variance 1.5
+./vol -f1 cube_10.ine -rand -nsample 1300 -gaussian -variance 1.5
 ```
-Flag variance declares the variance (default is 1.0). The center of the spherical gaussian is the Chebychev center for H-polytopes, or the origin for zonotopes. For V-polytopes is the chebychev center of the simplex that is defined by a random choice of d+1 vertices. Give flag -v to print the excecutional time.
+Flag `-variance` declares the variance (default is 1.0). The center of the spherical gaussian is the Chebychev center for H-polytopes, or the origin for zonotopes. For V-polytopes is the chebychev center of the simplex that is defined by a random choice of d+1 vertices.
+
+3. To sample from a zonotope described in zonotope.ext file run:
+```
+./vol -f3 zonotope.ext -rand -nsample 1500
+```
+For V-polytopes use flag `-f2` before the `.ext` file. In all cases use flag `-v` to print the excecutional time.  
 
 #### Credits
 
 Copyright (c) 2012-2018 Vissarion Fisikopoulos  
-Copyright (c) 2018 Apostolos Chalkis
+Copyright (c) 2018 Apostolos Chalkis  
 
 You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY, see vol.cpp.  
 
-The Rcpp package is based on an open-source C++ software for computing an approximation of the volume of convex bodies given as an intersection of an ellipsoid and a polytope given as an intersection of halfspaces or of a polytope given by its vertices. We have excluded CGAL and Boost dependecies. In folder include we develop the C++ code.
+The Rcpp package is based on an open-source C++ software for computing an approximation of the volume of convex bodies given as an intersection of an ellipsoid and a polytope given as an intersection of halfspaces or of a polytope given by its vertices. We have excluded CGAL and Boost dependecies. In folder include we develop the C++ code.  
 
 Main development by Vissarion Fisikopoulos while he was affiliated with University of Athens (UoA, Greece), University of Brussels (ULB, Belgium) and Oracle Corp, and Chalkis Apostolos affiliated with University of Athens.  
 
