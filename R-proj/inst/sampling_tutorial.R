@@ -14,45 +14,40 @@ print(' ')
 
 # Generate the 3d unit simplex
 PolyList = GenSimplex(3, 'H')
-# sample 1000 uniform points from the 3d unit simplex
-sample1 = sample_simplex(dimension = 3, N = 1000)
+# sample 100 uniform points from the 3d unit simplex
+sample1 = sample_simplex(dimension = 3, N = 100)
 
 
 #-----Coordinate Directions Hit-and-run-------#
 
-# sample 1000 points using coordinate directions hit-and-run with walk step equals to 1
-sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 1000, walk_length = 1)
-print(paste0('[CDHR][W=',1,'] the value of the test statistic = ',peacock3(sample1, sample2)))
+# sample 100 points using coordinate directions hit-and-run with walk step equals to 1
+sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 100, walk_length = 1)
+print(paste0('[CDHR][W=',1,'] the value of the test statistic = ',peacock3(t(sample1), t(sample2))))
 
-# sample 1000 points using coordinate directions hit-and-run with walk step equals to 10
-sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 1000, walk_length = 10)
-print(paste0('[CDHR][W=',10,'] the value of the test statistic = ',peacock3(sample1, sample2)))
+# sample 100 points using coordinate directions hit-and-run with walk step equals to 10
+sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 100, walk_length = 10)
+print(paste0('[CDHR][W=',10,'] the value of the test statistic = ',peacock3(t(sample1), t(sample2))))
+
+# sample 100 points using coordinate directions hit-and-run with walk step equals to 10
+sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 100, walk_length = 50)
+print(paste0('[CDHR][W=',50,'] the value of the test statistic = ',peacock3(t(sample1), t(sample2))))
 print('- - - - - - - - - - - - - - - - - - - -')
 #---------------------------------------------------------------------------#
 
 #-----Random Directions Hit-and-run-------#
 
-# sample 1000 points using random directions hit-and-run with walk step equals to 1
-sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 1000, walk_length = 1, coordinate = FALSE)
-print(paste0('[RDHR][W=',1,'] the value of the test statistic = ',peacock3(sample1, sample2)))
+# sample 100 points using random directions hit-and-run with walk step equals to 1
+sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 100, walk_length = 1, coordinate = FALSE)
+print(paste0('[RDHR][W=',1,'] the value of the test statistic = ',peacock3(t(sample1), t(sample2))))
 
-# sample 1000 points using random directions hit-and-run with walk step equals to 10
-sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 1000, walk_length = 10, coordinate = FALSE)
-print(paste0('[RDHR][W=',10,'] the value of the test statistic = ',peacock3(sample1, sample2)))
+# sample 100 points using random directions hit-and-run with walk step equals to 10
+sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 100, walk_length = 10, coordinate = FALSE)
+print(paste0('[RDHR][W=',10,'] the value of the test statistic = ',peacock3(t(sample1), t(sample2))))
+
+# sample 100 points using random directions hit-and-run with walk step equals to 50
+sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 100, walk_length = 50, coordinate = FALSE)
+print(paste0('[RDHR][W=',50,'] the value of the test statistic = ',peacock3(t(sample1), t(sample2))))
 print('- - - - - - - - - - - - - - - - - - - -')
-#---------------------------------------------------------------------------#
-
-#-----Ball walk-------#
-
-# sample 1000 points using ball walk with walk step equals to 1
-sample2 = sample_points(A = PolyList$A, b = PolyList$b, N = 1000, walk_length = 1, ball_walk = TRUE)
-print(paste0('[BW][W=',1,'] the value of the test statistic = ',peacock3(sample1, sample2)))
-
-# sample 1000 points using ball walk with walk step equals to 10
-sample3 = sample_points(A = PolyList$A, b = PolyList$b, N = 1000, walk_length = 10, ball_walk = TRUE)
-print(paste0('[BW][W=',10,'] the value of the test statistic = ',peacock3(sample1, sample2)))
-print('- - - - - - - - - - - - - - - - - - - -')
-print(' ')
 #---------------------------------------------------------------------------#
 
 
@@ -73,43 +68,31 @@ b=c(0,0,7)
 
 sample1 = sample_simplex(vertices =V, N = 100)
 sample2 = sample_points(A=A, b=b, N=100, walk_length = 1)
-print(paste0('[CDHR][W=',1,'] the value of the test statistic = ',peacock2(sample1, sample2)))
+print(paste0('[CDHR][W=',1,'] the value of the test statistic = ',peacock2(t(sample1), t(sample2))))
 print(' ')
 
 sample2 = sample_points(A=A, b=b, N=100, walk_length = 10)
-print(paste0('[CDHR][W=',10,'] the value of the test statistic = ',peacock2(sample1, sample2)))
+print(paste0('[CDHR][W=',10,'] the value of the test statistic = ',peacock2(t(sample1), t(sample2))))
 print(' ')
 
 sample2 = sample_points(A=A, b=b, N=100, walk_length = 50)
-print(paste0('[CDHR][W=',50,'] the value of the test statistic = ',peacock2(sample1, sample2)))
+print(paste0('[CDHR][W=',50,'] the value of the test statistic = ',peacock2(t(sample1), t(sample2))))
 print(' ')
 print(' - - - - - - - - - ')
 
 sample2 = sample_points(A=A, b=b, N=100, walk_length = 1, coordinate = FALSE)
-print(paste0('[RDHR][W=',1,'] the value of the test statistic = ',peacock2(sample1, sample2)))
+print(paste0('[RDHR][W=',1,'] the value of the test statistic = ',peacock2(t(sample1), t(sample2))))
 print(' ')
 
 sample2 = sample_points(A=A, b=b, N=100, walk_length = 10, coordinate = FALSE)
-print(paste0('[RDHR][W=',10,'] the value of the test statistic = ',peacock2(sample1, sample2)))
+print(paste0('[RDHR][W=',10,'] the value of the test statistic = ',peacock2(t(sample1), t(sample2))))
 print(' ')
 
 sample2 = sample_points(A=A, b=b, N=100, walk_length = 50, coordinate = FALSE)
-print(paste0('[RDHR][W=',50,'] the value of the test statistic = ',peacock2(sample1, sample2)))
+print(paste0('[RDHR][W=',50,'] the value of the test statistic = ',peacock2(t(sample1), t(sample2))))
 print(' ')
 print(' - - - - - - - - - ')
 
-sample2 = sample_points(A=A, b=b, N=100, walk_length = 1, ball_walk = TRUE)
-print(paste0('[BW][W=',1,'] the value of the test statistic = ',peacock2(sample1, sample2)))
-print(' ')
-
-sample2 = sample_points(A=A, b=b, N=100, walk_length = 10, ball_walk = TRUE)
-print(paste0('[BW][W=',10,'] the value of the test statistic = ',peacock2(sample1, sample2)))
-print(' ')
-
-sample2 = sample_points(A=A, b=b, N=100, walk_length = 50, ball_walk = TRUE)
-print(paste0('[BW][W=',50,'] the value of the test statistic = ',peacock2(sample1, sample2)))
-print(' ')
-print(' - - - - - - - - - ')
 
 #--------------------------------------------------------------------------#
 #---------------Coordinate Dir HnR -vs- Random Dir HnR---------------------#
