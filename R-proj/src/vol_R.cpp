@@ -18,8 +18,8 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
                            bool ball_walk, double delta, bool Vpoly, bool Zono, bool exact_zono, bool gen_only,
                            bool Vpoly_gen, int kind_gen, int dim_gen, int m_gen, bool round_only,
                            bool rotate_only, bool ball_only, bool sample_only, bool sam_simplex,
-                           bool sam_can_simplex, bool sam_arb_simplex, int numpoints, double variance,
-                           bool coord, bool rounding, bool verbose) {
+                           bool sam_can_simplex, bool sam_arb_simplex, bool sam_ball, bool sam_sphere,
+                           int numpoints, double variance, bool coord, bool rounding, bool verbose) {
 
 
     typedef double NT;
@@ -54,8 +54,34 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     std::vector<std::vector<NT> > Pin(m+1, std::vector<NT>(n+1));
     std::vector<NT> bin(m);
 
+    if (sam_ball || sam_sphere) {
+        std::list<Point> randPoints;
+
+        for (int k = 0; k < numpoints; ++k) {
+            if (sam_ball) {
+                randPoints.push_back(get_point_in_Dsphere<RNGType , Point >(dim_gen, delta));
+            } else {
+                randPoints.push_back(get_point_on_Dsphere<RNGType , Point >(dim_gen, delta));
+            }
+        }
+
+        Rcpp::NumericMatrix PointSet(dim_gen, numpoints);
+
+        // store the sampled points to the output matrix
+        typename std::list<Point>::iterator rpit=randPoints.begin();
+        typename std::vector<NT>::iterator qit;
+        j = 0;
+        for ( ; rpit!=randPoints.end(); rpit++, j++) {
+            qit = (*rpit).iter_begin(); i=0;
+            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
+                PointSet(i,j)=*qit;
+            }
+        }
+        return PointSet;
+
+    }
+
     if (sam_simplex || sam_can_simplex) {
-        Rcpp::NumericMatrix Mat;
         std::list<Point> randPoints;
 
         if (sam_simplex) {

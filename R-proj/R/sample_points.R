@@ -142,6 +142,8 @@ sample_points <- function(A, b, V, G, walk_length, internal_point,
   sam_simplex = FALSE
   sam_can_simplex = FALSE
   sam_arb_simplex = FALSE
+  sam_ball = FALSE
+  sam_sphere = FALSE
   #---------------------#
   
   # set timer
@@ -150,8 +152,8 @@ sample_points <- function(A, b, V, G, walk_length, internal_point,
   points = vol_R(Mat, W, e, internalpoint, Gaussian, win_len, NN, C, ratio, frac,
                  ballwalk, Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen,
                  kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only,
-                 sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, n,
-                 var, coord, rounding, verb)
+                 sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, 
+                 sam_ball, sam_sphere, n, var, coord, rounding, verb)
   
   tim = proc.time() - tim
   if (verb) {

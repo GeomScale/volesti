@@ -142,15 +142,15 @@ void call_test_prod_simplex() {
 
     std::cout << "--- Testing volume of H-prod_simplex10" << std::endl;
     P = gen_prod_simplex<Hpolytope>(10);
-    test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(10.0), 2));
+    test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(10.0), 3));
 
     std::cout << "--- Testing volume of H-prod_simplex15" << std::endl;
     P = gen_prod_simplex<Hpolytope>(15);
-    test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(15.0), 2), 0.25);
+    test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(15.0), 2), 0.3);
 
     std::cout << "--- Testing volume of H-prod_simplex20" << std::endl;
     P = gen_prod_simplex<Hpolytope>(20);
-    test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(20.0), 2), 0.25);
+    test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(20.0), 2), 0.3);
 
 }
 
@@ -172,15 +172,15 @@ void call_test_simplex() {
 
     std::cout << "--- Testing volume of H-simplex30" << std::endl;
     P = gen_simplex<Hpolytope>(30, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(30.0));
+    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(30.0), 0.3);
 
     std::cout << "--- Testing volume of H-simplex40" << std::endl;
     P = gen_simplex<Hpolytope>(40, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(40.0));
+    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(40.0), 0.3);
 
     std::cout << "--- Testing volume of H-simplex50" << std::endl;
     P = gen_simplex<Hpolytope>(50, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(50.0));
+    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(50.0), 0.3);
 
 }
 

@@ -4,23 +4,25 @@
 #' 
 #' @param vertices Only for an arbitrary simplex. A \eqn{(d+1)\times d} matrix that containes the vertices of a \eqn{d}-dimensional simplex.
 #' @param dimension The dimension of the unit or the canonical simplex.
-#' @param num_points The number of points to sample. Default value is \eqn{100}.
+#' @param N The number of points to sample. Default value is \eqn{100}.
 #' @param canonical A boolean flag. It has to be TRUE when sampling is from the \eqn{d}-dimensional canonical simplex. Default value is FALSE.
 #' 
 #' @description This function can be used to sample uniform points from the \eqn{d}-dimensional unit simplex \eqn{S\subset\R^d} or the \eqn{d-1}-dimensional canonical simplex \eqn{S\subset\R^{d}}.
 #' Moreover it can be used to sample uniform points from an arbitrary simplex when \eqn{d+1} \eqn{d}-dimensional vertices that define a full dimensional simplex are given.
 #' 
+#' @return A \eqn{d\times N} matrix that containes, column-wise, the sampled points.
+#' 
 #' @examples 
 #' # sample 1000 points from the 10-dimensional unit simplex
-#' MatPoints = sample_simplex(dimension = 10, num_points = 1000)
+#' MatPoints = sample_simplex(dimension = 10, N = 1000)
 #' 
 #' # sample 2000 points from the 20-dimensional canonical simplex
-#' MatPoints = sample_simplex(dimension = 10, num_points = 2000, canonical = TRUE)
+#' MatPoints = sample_simplex(dimension = 10, N = 2000, canonical = TRUE)
 #' 
 #' # sample 3000 points from an arbitrary simplex
 #' V = matrix(c(0,0,0,7,11,0), ncol=2, nrow=3, byrow=TRUE)
-#' MatPoints = sample_simplex(vertices = V, num_points = 3000)
-sample_simplex <- function(vertices, dimension, num_points, canonical) {
+#' MatPoints = sample_simplex(vertices = V, N = 3000)
+sample_simplex <- function(vertices, dimension, N, canonical) {
   
   if (!missing(vertices)) {
     sam_simplex = FALSE
@@ -49,8 +51,8 @@ sample_simplex <- function(vertices, dimension, num_points, canonical) {
   }
   
   n = 100
-  if (!missing(num_points)){
-    n = num_points
+  if (!missing(N)){
+    n = N
   }
   
   # set flag for verbose mode
@@ -83,6 +85,8 @@ sample_simplex <- function(vertices, dimension, num_points, canonical) {
   m_gen = 0
   exact_zono = FALSE
   ball_only = FALSE
+  sam_ball = FALSE
+  sam_sphere = FALSE
   #-------------------#
   
   
@@ -92,8 +96,8 @@ sample_simplex <- function(vertices, dimension, num_points, canonical) {
   Matpoints = vol_R(vertices, W, e, internalpoint, Gaussian, win_len, NN, C, ratio, frac,
                  ballwalk, delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen,
                  kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only,
-                 sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, n,
-                 var, coord, rounding, verbose)
+                 sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball,
+                 sam_sphere, n, var, coord, rounding, verbose)
   
   tim = proc.time() - tim
   if (verbose) {

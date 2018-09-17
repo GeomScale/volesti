@@ -76,12 +76,14 @@ polytope_generator <- function(Zono, repr, kind_gen, dim_gen, m_gen) {
   sam_simplex = FALSE
   sam_can_simplex = FALSE
   sam_arb_simplex = FALSE
+  sam_ball = FALSE
+  sam_sphere = FALSE
   #-------------------#
   
   Mat = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
               Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
               rotate_only, ball_only, sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, 
-              numpoints, variance, coordinate, rounding, verbose)
+              sam_ball, sam_sphere, numpoints, variance, coordinate, rounding, verbose)
   
   # get elements "matrix" and "vector"
   # remove first row
@@ -96,7 +98,7 @@ polytope_generator <- function(Zono, repr, kind_gen, dim_gen, m_gen) {
     # in V-polytope or Zonotope case return only the marix
     return(A)
   } else {
-    retList = list("A"=A, "b"=b)
+    retList = list("A"=-A, "b"=b)
     return(retList)
   }
   
