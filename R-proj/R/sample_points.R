@@ -13,7 +13,6 @@
 #' @param N The number of points that the function is going to sample from the convex polytope. Default value is \eqn{100}.
 #' @param ball_walk Optional. Boolean parameter to use ball walk for the sampling. Default value is false.
 #' @param delta Optional. The radius for the ball walk.
-#' @param verbose Optional. A boolean parameter for printing. Default value is false.
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
 #' @return A \eqn{d\times N} matrix that containes, column-wise, the sampled points from the convex polytope.
 #' @examples 
@@ -28,7 +27,7 @@
 #' @export
 sample_points <- function(A, b, V, G, walk_length, internal_point,
                           gaussian, variance, N, ball_walk, delta,
-                          verbose, coordinate){
+                          coordinate){
   
   vpoly = FALSE
   Zono = FALSE
@@ -92,9 +91,6 @@ sample_points <- function(A, b, V, G, walk_length, internal_point,
   
   # set flag for verbose mode
   verb = FALSE
-  if (!missing(verbose)) {
-    verb = verbose
-  }
   
   # set flag for Coordinate or Random Directions HnR
   coord = TRUE
@@ -146,18 +142,11 @@ sample_points <- function(A, b, V, G, walk_length, internal_point,
   sam_sphere = FALSE
   #---------------------#
   
-  # set timer
-  tim = proc.time()
-  
   points = vol_R(Mat, W, e, internalpoint, Gaussian, win_len, NN, C, ratio, frac,
                  ballwalk, Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen,
                  kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only,
                  sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, 
                  sam_ball, sam_sphere, n, var, coord, rounding, verb)
   
-  tim = proc.time() - tim
-  if (verb) {
-    print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
-  }
   return(points)
 }

@@ -10,7 +10,6 @@
 #' @param ball_walk Optional. Boolean parameter to use ball walk, only for CG algorithm. Default value is false.
 #' @param delta Optional. The radius for the ball walk.
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
-#' @param verbose Optional. A boolean parameter for printing. Default value is false.
 #' 
 #' @return For H-polytopes the return value is a list that containes a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b s.t.: \eqn{Ax\leq b}. For V-polytopes and zonotopes the return value is a list with first element a \eqn{m\times d} matrix that containes row-wise the \eqn{d}-dimensional vertices or segments respectively. For all the representations the returned list containes element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
 #' @examples
@@ -27,7 +26,7 @@
 #' Zmat = GenZonotope(10,20)
 #' ListZono = round_polytope(G=Zmat)
 #' @export
-round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate, verbose) {
+round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate) {
   
   vpoly = FALSE
   Zono = FALSE
@@ -91,9 +90,6 @@ round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate
   
   # set flag for verbose mode
   verb = FALSE
-  if (!missing(verbose)) {
-    verb = verbose
-  }
   
   #set round_only flag
   round_only = TRUE
@@ -126,19 +122,11 @@ round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate
   sam_sphere = FALSE
   #---------------------#
   
-  # set timer
-  tim = proc.time()
-  
   Mat = vol_R(Mat, W, e, InnerBall, annealing, win_len, N, C, ratio, frac, ballwalk,
               Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen,
               m_gen, round_only, rotate_only, ball_only, sample_only, sam_simplex,
               sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, 
               variance, coord, rounding, verb)
-  
-  tim = proc.time() - tim
-  if (verb) {
-    print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
-  }
   
   # get first row which has the info for round_value
   r = Mat[c(1),]

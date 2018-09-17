@@ -134,11 +134,14 @@ for (i in 1:2) {
     })
   }
     
-  test_that("Volume H-simplex10", {
-    PolyList = GenSimplex(10, 'H')
-    res = Hruntest(PolyList$A, PolyList$b, 'H-simplex10', (1/prod(1:10)), 0.1, num_of_exps, algo)
-    expect_equal(res, 1)
-  })
+  if (!cran_only) {
+    skip_on_cran()
+    test_that("Volume H-simplex10", {
+      PolyList = GenSimplex(10, 'H')
+      res = Hruntest(PolyList$A, PolyList$b, 'H-simplex10', (1/prod(1:10)), 0.1, num_of_exps, algo)
+      expect_equal(res, 1)
+    })
+  }
     
   if (!cran_only) {
     skip_on_cran()

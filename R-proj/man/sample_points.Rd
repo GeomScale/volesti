@@ -5,7 +5,7 @@
 \title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
 sample_points(A, b, V, G, walk_length, internal_point, gaussian, variance, N,
-  ball_walk, delta, verbose, coordinate)
+  ball_walk, delta, coordinate)
 }
 \arguments{
 \item{A}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}
@@ -29,8 +29,6 @@ sample_points(A, b, V, G, walk_length, internal_point, gaussian, variance, N,
 \item{ball_walk}{Optional. Boolean parameter to use ball walk for the sampling. Default value is false.}
 
 \item{delta}{Optional. The radius for the ball walk.}
-
-\item{verbose}{Optional. A boolean parameter for printing. Default value is false.}
 
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
 }

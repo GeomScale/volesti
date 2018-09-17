@@ -1,7 +1,7 @@
 Package: volesti
 Type: Package
 License: LGPL-3
-Title: Volume Approximation of Convex Polytopes
+Title: Volume Approximation and Sampling of Convex Polytopes
 Authors@R: c(person("Fisikopoulos", "Vissarion" , role=c("cph", "cre", "aut"), email="vissarion.fisikopoulos@gmail.com"),
              person("Chalkis", "Apostolos" , role=c("cph", "ctb", "aut"), email="tolis.chal@gmail.com"))
 Description: Package provides an R interface for VolEsti C++ package. VolEsti computes

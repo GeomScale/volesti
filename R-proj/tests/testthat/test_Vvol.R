@@ -23,16 +23,16 @@ Vruntest <- function(Mat, name_string, exactvol, tol, num_of_exps, algo){
 }
 
 cran_only = TRUE
-num_of_exps = 10
+num_of_exps = 5
 
 for (i in 1:2) {
   
   if (i==1) {
     algo = 'CG'
-    tol = 0.2
+    tol = 0.25
   } else {
     algo = 'SOB'
-    tol = 0.1
+    tol = 0.15
   }
   
   if (!cran_only) {
@@ -53,11 +53,14 @@ for (i in 1:2) {
     })
   }
   
-  test_that("Volume V-cross3", {
-    PolyMat = GenCross(3, 'V')
-    res = Vruntest(PolyMat, 'V-cross3', 1.333333, tol, num_of_exps, algo)
-    expect_equal(res, 1)
-  })
+  if (!cran_only) {
+    skip_on_cran()
+    test_that("Volume V-cross3", {
+      PolyMat = GenCross(3, 'V')
+      res = Vruntest(PolyMat, 'V-cross3', 1.333333, tol, num_of_exps, algo)
+      expect_equal(res, 1)
+    })
+  }
   
   if (!cran_only) {
     skip_on_cran()
@@ -67,6 +70,7 @@ for (i in 1:2) {
       expect_equal(res, 1)
     })
   }
+  
   
   test_that("Volume V-simplex3", {
     PolyMat = GenSimplex(3, 'V')

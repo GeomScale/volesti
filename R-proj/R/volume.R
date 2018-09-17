@@ -194,18 +194,13 @@ volume <- function(A, b, V, G, walk_length, error, InnerVec, CG, win_len,
   sam_ball = FALSE
   sam_sphere = FALSE
   #-----------------------#
-  # set the timer
-  tim = proc.time()
   
   vol = vol_R(Mat, W, e, InnerBall, annealing, window_len, NN, c, Ratio, Frac, ballwalk,
               Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen,
               round_only, rotate_only, ball_only, sample_only, sam_simplex, sam_can_simplex,
               sam_arb_simplex, sam_ball, sam_sphere, numpoints, variance, coord, round, verb)
   
-  tim = proc.time()-tim
-  if (verb) {
-    print(paste0('Total time: ', as.numeric(as.character(tim[3]))))
-  }
+
   return(vol[1,1])
   
 }
