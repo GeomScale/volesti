@@ -91,7 +91,7 @@ fileToMatrix <- function(path){
   
   if(ineorext=="ine") {
     # return final list if it is ine file
-    retList = list("A"=A2, "b"=b)
+    retList = list("A"=-A2, "b"=b)
     return(retList)
   } else if(ineorext == "ext") {
     return(A2)

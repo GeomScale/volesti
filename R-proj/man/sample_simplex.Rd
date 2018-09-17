@@ -4,16 +4,19 @@
 \alias{sample_simplex}
 \title{Function to sample from the unit or an arbitrary simplex}
 \usage{
-sample_simplex(vertices, dimension, num_points, canonical)
+sample_simplex(vertices, dimension, N, canonical)
 }
 \arguments{
 \item{vertices}{Only for an arbitrary simplex. A \eqn{(d+1)\times d} matrix that containes the vertices of a \eqn{d}-dimensional simplex.}
 
 \item{dimension}{The dimension of the unit or the canonical simplex.}
 
-\item{num_points}{The number of points to sample. Default value is \eqn{100}.}
+\item{N}{The number of points to sample. Default value is \eqn{100}.}
 
 \item{canonical}{A boolean flag. It has to be TRUE when sampling is from the \eqn{d}-dimensional canonical simplex. Default value is FALSE.}
+}
+\value{
+A \eqn{d\times N} matrix that containes, column-wise, the sampled points.
 }
 \description{
 This function can be used to sample uniform points from the \eqn{d}-dimensional unit simplex \eqn{S\subset\R^d} or the \eqn{d-1}-dimensional canonical simplex \eqn{S\subset\R^{d}}.
@@ -24,12 +27,12 @@ The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R}, s
 }
 \examples{
 # sample 1000 points from the 10-dimensional unit simplex
-MatPoints = sample_simplex(dimension = 10, num_points = 1000)
+MatPoints = sample_simplex(dimension = 10, N = 1000)
 
 # sample 2000 points from the 20-dimensional canonical simplex
-MatPoints = sample_simplex(dimension = 10, num_points = 2000, canonical = TRUE)
+MatPoints = sample_simplex(dimension = 10, N = 2000, canonical = TRUE)
 
 # sample 3000 points from an arbitrary simplex
 V = matrix(c(0,0,0,7,11,0), ncol=2, nrow=3, byrow=TRUE)
-MatPoints = sample_simplex(vertices = V, num_points = 3000)
+MatPoints = sample_simplex(vertices = V, N = 3000)
 }

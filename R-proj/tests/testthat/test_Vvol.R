@@ -1,4 +1,4 @@
-context("V-Volume V test")
+context("V-Volume test")
 
 library(volesti)
 

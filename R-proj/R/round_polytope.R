@@ -122,12 +122,24 @@ round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate
   sam_simplex = FALSE
   sam_can_simplex = FALSE
   sam_arb_simplex = FALSE
+  sam_ball = FALSE
+  sam_sphere = FALSE
   #---------------------#
+  
+  # set timer
+  tim = proc.time()
   
   Mat = vol_R(Mat, W, e, InnerBall, annealing, win_len, N, C, ratio, frac, ballwalk,
               Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen,
               m_gen, round_only, rotate_only, ball_only, sample_only, sam_simplex,
-              sam_can_simplex, sam_arb_simplex, numpoints, variance, coord, rounding, verb)
+              sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, 
+              variance, coord, rounding, verb)
+  
+  tim = proc.time() - tim
+  if (verb) {
+    print(paste0('Total time: ',as.numeric(as.character(tim[3]))))
+  }
+  
   # get first row which has the info for round_value
   r = Mat[c(1),]
   round_value = r[1]

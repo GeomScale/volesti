@@ -56,11 +56,13 @@ ExactZonoVol <- function(ZonoMat) {
   sam_simplex = FALSE
   sam_can_simplex = FALSE
   sam_arb_simplex = FALSE
+  sam_ball = FALSE
+  sam_sphere = FALSE
   #-------------------#
   
   vol = vol_R(A, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
               Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
               rotate_only, ball_only, sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex,
-              numpoints, variance, coordinate, rounding, verbose)
+              sam_ball, sam_sphere, numpoints, variance, coordinate, rounding, verbose)
   return(vol[1,1])
 }
