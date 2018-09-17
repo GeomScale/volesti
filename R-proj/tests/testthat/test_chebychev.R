@@ -1,4 +1,4 @@
-context("Chebychev test")
+context("Chebychev ball test")
 
 library(volesti)
 

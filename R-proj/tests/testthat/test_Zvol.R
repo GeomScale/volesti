@@ -1,4 +1,4 @@
-context("Z-Volume test")
+context("Zonotopes' volume test")
 
 library(volesti)
 
@@ -35,13 +35,13 @@ for (i in 1:2) {
     tol = 0.1
   }
 
-  test_that("Z volume test", {
+  test_that("Volume Zonotope_2_4", {
     ZonoMat = GenZonotope(2, 4)
     res = Zruntest(ZonoMat, 'Zonotope_2_4', tol, num_of_exps, algo)
     expect_equal(res, 1)
   })
   
-  test_that("Z volume test", {
+  test_that("Volume Zonotope_2_8", {
     ZonoMat = GenZonotope(2, 8)
     res = Zruntest(ZonoMat, 'Zonotope_2_8', tol, num_of_exps, algo)
     expect_equal(res, 1)
@@ -49,7 +49,7 @@ for (i in 1:2) {
   
   if (!cran_only) {
     skip_on_cran()
-    test_that("Z volume test", {
+    test_that("Volume Zonotope_4_8", {
       ZonoMat = GenZonotope(4, 8)
       res = Zruntest(ZonoMat, 'Zonotope_4_8', tol, num_of_exps, algo)
       expect_equal(res, 1)
@@ -58,7 +58,7 @@ for (i in 1:2) {
   
   if (!cran_only) {
     skip_on_cran()
-    test_that("Z volume test", {
+    test_that("Volume Zonotope_4_10", {
       ZonoMat = GenZonotope(4, 10)
       res = Zruntest(ZonoMat, 'Zonotope_4_10', tol, num_of_exps, algo)
       expect_equal(res, 1)
@@ -67,7 +67,7 @@ for (i in 1:2) {
   
   if (!cran_only) {
     skip_on_cran()
-    test_that("Z volume test", {
+    test_that("Volume Zonotope_5_10", {
       ZonoMat = GenZonotope(5, 10)
       res = Zruntest(ZonoMat, 'Zonotope_5_10', tol, num_of_exps, algo)
       expect_equal(res, 1)

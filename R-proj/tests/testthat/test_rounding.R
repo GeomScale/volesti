@@ -50,7 +50,7 @@ for (i in 1:2) {
   #PolyList = GenSkinnyCube(20)
   #testRound(PolyList$A, PolyList$b, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, TRUE)
   
-  test_that("Rounding test", {
+  test_that("Rounding H-skinny_cube10", {
     PolyList = GenSkinnyCube(10)
     res = testRound(PolyList$A, PolyList$b, 102400, 0.1, 'H-skinny_cube10', num_of_exps, algo, FALSE)
     expect_equal(res, 1)
@@ -58,7 +58,7 @@ for (i in 1:2) {
   
   if (!cran_only) {
     skip_on_cran()
-    test_that("Rounding test", {
+    test_that("Rounding H-skinny_cube20", {
       PolyList = GenSkinnyCube(20)
       res = testRound(PolyList$A, PolyList$b, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, FALSE)
       expect_equal(res, 1)

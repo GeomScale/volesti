@@ -23,7 +23,7 @@ This function can be used to sample uniform points from the \eqn{d}-dimensional 
 Moreover it can be used to sample uniform points from an arbitrary simplex when \eqn{d+1} \eqn{d}-dimensional vertices that define a full dimensional simplex are given.
 }
 \details{
-The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R}, s.t.: \eqn{\sum_i x_i\leq 1}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R}, s.t.: \eqn{\sum_i x_i = 1}.
+The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
 }
 \examples{
 # sample 1000 points from the 10-dimensional unit simplex

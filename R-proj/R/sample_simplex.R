@@ -1,6 +1,6 @@
 #' Function to sample from the unit or an arbitrary simplex
 #' 
-#' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R}, s.t.: \eqn{\sum_i x_i\leq 1}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R}, s.t.: \eqn{\sum_i x_i = 1}.
+#' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
 #' 
 #' @param vertices Only for an arbitrary simplex. A \eqn{(d+1)\times d} matrix that containes the vertices of a \eqn{d}-dimensional simplex.
 #' @param dimension The dimension of the unit or the canonical simplex.
