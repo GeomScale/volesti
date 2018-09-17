@@ -4,7 +4,7 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-round_polytope(A, b, V, G, walk_length, ball_walk, delta, coordinate, verbose)
+round_polytope(A, b, V, G, walk_length, ball_walk, delta, coordinate)
 }
 \arguments{
 \item{A}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}
@@ -22,8 +22,6 @@ round_polytope(A, b, V, G, walk_length, ball_walk, delta, coordinate, verbose)
 \item{delta}{Optional. The radius for the ball walk.}
 
 \item{coordinate}{Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.}
-
-\item{verbose}{Optional. A boolean parameter for printing. Default value is false.}
 }
 \value{
 For H-polytopes the return value is a list that containes a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b s.t.: \eqn{Ax\leq b}. For V-polytopes and zonotopes the return value is a list with first element a \eqn{m\times d} matrix that containes row-wise the \eqn{d}-dimensional vertices or segments respectively. For all the representations the returned list containes element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.

@@ -45,7 +45,7 @@ vol_R(A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk,
 
 \item{kind_gen}{An integer parameter to declare the kind of the polytope when the gen_only flag is true.}
 
-\item{dim_gen}{An integer parameter to declare the dimension when the gen_only flag is true.}
+\item{dim_gen}{An integer parameter to declare the dimension when the gen_only or sam_simplex, sam_can_simplex, sam_arb_simplex flags are true.}
 
 \item{m_gen}{An integer parameter to declare the number of segments that generate a zonotope when gen_only flag is true.}
 
@@ -57,7 +57,13 @@ vol_R(A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk,
 
 \item{sample_only}{A boolean flag, it has to be true when the function is called only to sample from a convex polytope.}
 
-\item{numpoints}{The number of points that the function is going to sample from the convex polytope when sample_only flag is true.}
+\item{sam_simplex}{A boolean flag, it has to be true when the function is called only to sample uniformly from the unit simplex.}
+
+\item{sam_can_simplex}{A boolean flag, it has to be true when the function is called only to sample uniformly from the canonical simplex.}
+
+\item{sam_can_simplex}{A boolean flag, it has to be true when the function is called only to sample uniformly from an arbitrary simplex in V-representation.}
+
+\item{numpoints}{The number of points that the function is going to sample from the convex polytope when sample_only or sam_simplex, sam_can_simplex, sam_arb_simplex flags are true.}
 
 \item{variance}{The variance for the spherical gaussian when sample_only flag is true.}
 

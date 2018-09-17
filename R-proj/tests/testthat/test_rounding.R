@@ -38,7 +38,7 @@ for (i in 1:2) {
     num_of_exps = 10
   } else {
     algo = 'SOB'
-    num_of_exps = 20
+    num_of_exps = 10
   }
   
   #test_that("Rounding test", {

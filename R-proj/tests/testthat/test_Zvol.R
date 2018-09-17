@@ -41,11 +41,14 @@ for (i in 1:2) {
     expect_equal(res, 1)
   })
   
-  test_that("Volume Zonotope_2_8", {
-    ZonoMat = GenZonotope(2, 8)
-    res = Zruntest(ZonoMat, 'Zonotope_2_8', tol, num_of_exps, algo)
-    expect_equal(res, 1)
-  })
+  if (!cran_only) {
+    skip_on_cran()
+    test_that("Volume Zonotope_2_8", {
+      ZonoMat = GenZonotope(2, 8)
+      res = Zruntest(ZonoMat, 'Zonotope_2_8', tol, num_of_exps, algo)
+      expect_equal(res, 1)
+    })
+  }
   
   if (!cran_only) {
     skip_on_cran()
