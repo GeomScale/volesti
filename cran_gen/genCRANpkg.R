@@ -1,99 +1,110 @@
+# create cran package folder
+dir.create("cran_package")
+# set /root as main path
 path = getwd()
 path = substr(path, start=1, stop=nchar(path)-9)
 
-dir_data = paste0(path,'/data')
-unlink(dir_data, recursive = TRUE)
-
+# copy paste the src folder
 src_dir = paste0(path,'/R-proj/src')
-src_dist = path
+src_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(src_dir, src_dist, recursive=TRUE)
 
+# copy paste the inst folder
 inst_dir = paste0(path,'/R-proj/inst')
-inst_dist = path
+inst_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(inst_dir, inst_dist, recursive=TRUE)
 
+# copy paste the man folder
 man_dir = paste0(path,'/R-proj/man')
-man_dist = path
+man_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(man_dir, man_dist, recursive=TRUE)
 
+# copy paste the R folder
 R_dir = paste0(path,'/R-proj/R')
-R_dist = path
+R_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(R_dir, R_dist, recursive=TRUE)
 
+# copy paste the tests folder
 tests_dir = paste0(path,'/R-proj/tests')
-tests_dist = path
+tests_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(tests_dir, tests_dist, recursive=TRUE)
 
+# copy paste the DESCRIPTION file
 descr_dir = paste0(path,'/R-proj/DESCRIPTION')
-descr_dist = path
+descr_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(descr_dir, descr_dist, recursive=TRUE)
 
+# copy paste the NAMESPACE file
 namesp_dir = paste0(path,'/R-proj/NAMESPACE')
-namesp_dist = path
+namesp_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(namesp_dir, namesp_dist, recursive=TRUE)
 
+# copy paste the volesti.Rproj
 volpro_dir = paste0(path,'/R-proj/volesti.Rproj')
-volpro_dist = path
+volpro_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(volpro_dir, volpro_dist, recursive=TRUE)
 
+# copy paste the external folder
 external_dir = paste0(path,'/external')
-external_dist = paste0(path,'/src')
+external_dist = paste0(path,'/cran_gen/cran_package/src')
 file.copy(external_dir, external_dist, recursive=TRUE)
 
+# copy paste the include folder
 include_dir = paste0(path,'/include')
-include_dist = paste0(path,'/src')
+include_dist = paste0(path,'/cran_gen/cran_package/src')
 file.copy(include_dir, include_dist, recursive=TRUE)
 
-circleci = paste0(path,'/.circleci')
-unlink(circleci, recursive = TRUE)
-
+# copy paste the README.md file
 readme_dir = paste0(path,'/cran_gen/README.md')
-readme_dist = path
+readme_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(readme_dir, readme_dist, recursive=TRUE)
 
+# copy paste the NEWS.md file
 news_dir = paste0(path,'/cran_gen/NEWS.md')
-news_dist = path
+news_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(news_dir, news_dist, recursive=TRUE)
 
+# replace the Makefile
 makefile_dir = paste0(path,'/cran_gen/Makefile')
-makefile_dist = paste0(path, '/src/lp_solve')
+makefile_dist = paste0(path, '/cran_gen/cran_package/src/lp_solve')
 file.copy(makefile_dir, makefile_dist, recursive=TRUE)
 
+# replace the Makevars
 makevars_dir = paste0(path,'/cran_gen/Makevars')
-makevars_dist = paste0(path, '/src')
+makevars_dist = paste0(path, '/cran_gen/cran_package/src')
 file.copy(makevars_dir, makevars_dist, recursive=TRUE)
 
+# replace the Makevars.win
 makevarswin_dir = paste0(path,'/cran_gen/Makevars.win')
-makevarswin_dist = paste0(path, '/src')
+makevarswin_dist = paste0(path, '/cran_gen/cran_package/src')
 file.copy(makevarswin_dir, makevarswin_dist, recursive=TRUE)
 
+# replace the volume.h 
 volume_dir = paste0(path,'/cran_gen/volume.h')
-volume_dist = paste0(path,'/src/include/volume')
+volume_dist = paste0(path,'/cran_gen/cran_package/src/include/volume')
 file.copy(volume_dir, volume_dist, recursive=TRUE)
 
-dir_ext = paste0(path,'/external')
-unlink(dir_ext, recursive = TRUE)
-
-dir_inc = paste0(path,'/include')
-unlink(dir_inc, recursive = TRUE)
-
-dir_Rproj = paste0(path,'/R-proj')
-unlink(dir_Rproj, recursive = TRUE)
-
-dir_test = paste0(path,'/test')
-unlink(dir_test, recursive = TRUE)
-
+# copy paste the LICENCE
 dir_lic = paste0(path,'/LICENSE')
-lic_dist = paste0(path,'/inst/doc')
-file.copy(dir_lic, lic_dist, recursive=TRUE)
-unlink(dir_lic, recursive = TRUE)
+lic_dist = paste0(path,'/cran_package/inst/doc')
 
-dir_boost = paste0(path,'/src/external/boost')
+# delete boost from external
+dir_boost = paste0(path,'/cran_gen/cran_package/src/external/boost')
 unlink(dir_boost, recursive = TRUE)
 
-dir_eigen = paste0(path,'/src/external/Eigen')
+# deete eigen from external
+dir_eigen = paste0(path,'/cran_gen/cran_package/src/external/Eigen')
 unlink(dir_eigen, recursive = TRUE)
 
-dir_self = paste0(path,'/cran_gen')
-unlink(dir_self, recursive = TRUE)
+# set new cran package folder as wrking directory
+setwd(paste0(path,'/cran_gen/cran_package'))
+# enable devtools and Rcpp libraries
+library(devtools)
+library(Rcpp)
 
+# build package tar.gz
+Rcpp::compileAttributes()
+devtools::build()
+
+# set /root/R-proj as the working directory
+setwd(paste0(path,'/R-proj'))
