@@ -142,7 +142,7 @@ void call_test_prod_simplex() {
 
     std::cout << "--- Testing volume of H-prod_simplex10" << std::endl;
     P = gen_prod_simplex<Hpolytope>(10);
-    test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(10.0), 3));
+    test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(10.0), 2));
 
     std::cout << "--- Testing volume of H-prod_simplex15" << std::endl;
     P = gen_prod_simplex<Hpolytope>(15);
