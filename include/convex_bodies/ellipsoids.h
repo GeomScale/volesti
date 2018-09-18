@@ -47,11 +47,18 @@ public:
     }
     
     void print() {
+        #ifdef VOLESTI_DEBUG
         std::cout<<" "<<C.size()<<" "<<d+1<<" float"<<std::endl;
+        #endif
         for(typename stdMatrix::iterator mit=C.begin(); mit<C.end(); ++mit){
-            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit)
+            for(typename stdCoeffs::iterator lit=mit->begin(); lit<mit->end() ; ++lit){
+                #ifdef VOLESTI_DEBUG
                 std::cout<<*lit<<" ";
+                #endif
+            }
+            #ifdef VOLESTI_DEBUG
             std::cout<<std::endl;
+            #endif
         }
     }
     

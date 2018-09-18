@@ -173,12 +173,18 @@ public:
 
     // print polytope in input format
     void print() {
+#ifdef VOLESTI_DEBUG
         std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
+#endif
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
+                #ifdef VOLESTI_DEBUG
                 std::cout << -A(i, j) << " ";
+                #endif
             }
+            #ifdef VOLESTI_DEBUG
             std::cout << "<= " << b(i) << std::endl;
+            #endif
         }
     }
 
@@ -553,12 +559,18 @@ public:
 
     // print polytope in input format
     void print() {
+        #ifdef VOLESTI_DEBUG
         std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
+        #endif
         for (unsigned int i = 0; i < V.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
+                #ifdef VOLESTI_DEBUG
                 std::cout << V(i, j) << " ";
+                #endif
             }
+            #ifdef VOLESTI_DEBUG
             std::cout<<"\n";
+            #endif
         }
     }
 
@@ -906,12 +918,18 @@ public:
 
     // print polytope in input format
     void print() {
+        #ifdef VOLESTI_DEBUG
         std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
+        #endif
         for (unsigned int i = 0; i < V.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
+                #ifdef VOLESTI_DEBUG
                 std::cout << V(i, j) << " ";
+                #endif
             }
+            #ifdef VOLESTI_DEBUG
             std::cout<<"\n";
+            #endif
         }
     }
 

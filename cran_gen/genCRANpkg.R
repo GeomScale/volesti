@@ -118,3 +118,7 @@ devtools::build()
 
 # set /root/R-proj as the working directory
 setwd(paste0(path,'/R-proj'))
+
+# delete folder cran_package
+dir_cr_pkg = paste0(path,'/cran_gen/cran_package')
+unlink(dir_cr_pkg, recursive = TRUE)

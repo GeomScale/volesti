@@ -92,7 +92,9 @@ void get_first_gaussian(Polytope &P, NT radius, NT frac, Parameters var, NT &err
     }
 
     if (i == maxiter) {
+        #ifdef VOLESTI_DEBUG
         std::cout << "Cannot obtain sharp enough starting Gaussian" << std::endl;
+        #endif
         return;
     }
 
@@ -165,7 +167,9 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, int
     typedef typename Polytope::PolytopePoint Point;
     // Compute the first gaussian
     get_first_gaussian(P, radius, frac, var, error, a_vals);
+    #ifdef VOLESTI_DEBUG
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
+    #endif
 
     NT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0, next_a;
     const NT tol = 0.001;
@@ -179,7 +183,9 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, int
 
     Point p(n);
 
+    #ifdef VOLESTI_DEBUG
     if(print) std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
+    #endif
 
     Point p_prev=p;
 
