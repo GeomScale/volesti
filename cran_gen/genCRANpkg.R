@@ -64,6 +64,16 @@ news_dir = paste0(path,'/cran_gen/NEWS.md')
 news_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(news_dir, news_dist, recursive=TRUE)
 
+# copy paste the cran-comments.md file
+cran_com_dir = paste0(path,'/cran_gen/cran-comments.md')
+cran_com_dist = paste0(path,'/cran_gen/cran_package')
+file.copy(cran_com_dir, cran_com_dist, recursive=TRUE)
+
+# copy paste the Rbuildignore.md file
+Rbuild_dir = paste0(path,'/cran_gen/.Rbuildignore')
+Rbuild_dist = paste0(path,'/cran_gen/cran_package')
+file.copy(Rbuild_dir, Rbuild_dist, recursive=TRUE)
+
 # replace the Makefile
 makefile_dir = paste0(path,'/cran_gen/Makefile')
 makefile_dist = paste0(path, '/cran_gen/cran_package/src/lp_solve')

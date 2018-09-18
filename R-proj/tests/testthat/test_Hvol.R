@@ -103,7 +103,7 @@ for (i in 1:2) {
 
   test_that("Volume H-prod_simplex_5_5", {
     PolyList = GenProdSimplex(5)
-    res = Hruntest(PolyList$A, PolyList$b, 'H-prod_simplex_5_5', (1/prod(1:5))^2, 0.1, num_of_exps, algo)
+    res = Hruntest(PolyList$A, PolyList$b, 'H-prod_simplex_5_5', (1/prod(1:5))^2, 0.15, num_of_exps, algo)
     expect_equal(res, 1)
   })
 
