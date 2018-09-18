@@ -36,13 +36,10 @@ Object files/libraries should not be included in a source package.
 
 * checking compiled code ... NOTE
 File ‘volesti/libs/volesti.so’:
-  Found ‘_ZSt4cout’, possibly from ‘std::cout’ (C++)
-    Object: ‘vol_R.o’
   Found ‘rand’, possibly from ‘rand’ (C)
     Object: ‘vol_R.o’
 
-  We use 'std::cout' only for printing in the main function because it is really useful for a user to be able to obtain the steps of the algorithm.
-  ‘rand’ comes from external source in folder /src/external/minimum_ellipsoid which is part of [BNMin1](https://github.com/bnikolic/oof/tree/master/bnmin1) library
+  This comes from lpSolveAPI which is build exactly from the same source code and header files and the same way as in lpSolveAPI R package
 
 
 ### test environments
