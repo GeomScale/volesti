@@ -1,8 +1,12 @@
 ## R CMD check results
 
+### Downstream dependencies
+
+There are currently no downstream dependencies for this package
+
 ###  There were no ERRORs or WARNINGs. 
 
-There was 1 NOTE:
+There was 3 NOTE:
 
 * hecking if this is a source package ... NOTE
 Found the following apparent object files/libraries:
@@ -27,16 +31,21 @@ Object files/libraries should not be included in a source package.
     extdata   1.9Mb
     libs     26.0Mb
 
-  This is because of the externals and extdata
+  This is because of the externals and extdata size
 
 
 * checking compiled code ... NOTE
 File ‘volesti/libs/volesti.so’:
+  Found ‘_ZSt4cout’, possibly from ‘std::cout’ (C++)
+    Object: ‘vol_R.o’
   Found ‘rand’, possibly from ‘rand’ (C)
     Object: ‘vol_R.o’
 
-  This comes from external source in folder /src/external/minimum_ellipsoid which is part of [BNMin1](https://github.com/bnikolic/oof/tree/master/bnmin1) library
+  We use 'std::cout' only for printing in the main function because it is really useful for a user to be able to obtain the steps of the algorithm.
+  ‘rand’ comes from external source in folder /src/external/minimum_ellipsoid which is part of [BNMin1](https://github.com/bnikolic/oof/tree/master/bnmin1) library
 
+
+### test environments
 
 ###  External libraries
 

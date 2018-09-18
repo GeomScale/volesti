@@ -5,8 +5,9 @@
 \usage{
 vol_R(A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk,
  delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen,
- m_gen, round_only, rotate_only, ball_only, sample_only, numpoints, variance,
- coord, rounding, verbose)
+ m_gen, round_only, rotate_only, ball_only, sample_only, sam_simplex,
+ sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints,
+ variance,coord, rounding, verbose)
 }
 \arguments{
 \item{A}{A matrix in ine format (for H-polytopes) or in ext format (for V-polytopes or zonotopes).}
@@ -61,7 +62,11 @@ vol_R(A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk,
 
 \item{sam_can_simplex}{A boolean flag, it has to be true when the function is called only to sample uniformly from the canonical simplex.}
 
-\item{sam_can_simplex}{A boolean flag, it has to be true when the function is called only to sample uniformly from an arbitrary simplex in V-representation.}
+\item{sam_arb_simplex}{A boolean flag, it has to be true when the function is called only to sample uniformly from an arbitrary simplex in V-representation.}
+
+\item{sam_ball}{A boolean flag, it has to be true when the function is called only to sample uniformly from a ball.}
+
+\item{sam_sphere}{A boolean flag, it has to be true when the function is called only to sample uniformly from a sphere.}
 
 \item{numpoints}{The number of points that the function is going to sample from the convex polytope when sample_only or sam_simplex, sam_can_simplex, sam_arb_simplex flags are true.}
 
