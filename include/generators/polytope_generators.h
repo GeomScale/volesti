@@ -183,7 +183,9 @@ Polytope gen_prod_simplex(int dim, bool Vpoly = false){
         if(Vpoly) throw false;
     }
     catch (bool e) {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Only prod simplices in H-representation can be generated.."<<std::endl;
+        #endif
         return Perr;
     }
 
@@ -255,7 +257,9 @@ Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
         if(Vpoly) throw false;
     }
     catch (bool e) {
+        #ifdef VOLESTI_DEBUG
         std::cout<<"Only prod simplices in H-representation can be generated.."<<std::endl;
+        #endif
         return Perr;
     }
 
