@@ -106,6 +106,10 @@ unlink(dir_boost, recursive = TRUE)
 dir_eigen = paste0(path,'/cran_gen/cran_package/src/external/Eigen')
 unlink(dir_eigen, recursive = TRUE)
 
+# deete misc.h from include
+dir_misc = paste0(path,'/cran_gen/cran_package/src/include/misc.h')
+unlink(dir_misc, recursive = TRUE)
+
 # set new cran package folder as wrking directory
 setwd(paste0(path,'/cran_gen/cran_package'))
 # enable devtools and Rcpp libraries
