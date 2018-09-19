@@ -43,7 +43,6 @@ template <typename NT, class Polytope>
 NT exact_zonotope_vol(Polytope ZP){
 
     typedef typename Polytope::MT 	MT;
-    typedef typename Polytope::VT 	VT;
     typedef std::vector< std::vector<int> >::iterator  IntMatIt;
     typedef std::vector<int>::iterator  IntIt;
 
@@ -73,27 +72,11 @@ NT exact_zonotope_vol(Polytope ZP){
 }
 
 template <typename NT>
-NT vol_Ali(std::vector<NT> plane, NT zit, int dim){
+NT vol_Ali(std::vector<NT> plane, NT zit, unsigned int dim){
 
     NT vol;
-    int i,j,J,counter,K,k;
-    //double min,max,step,z,zit;
-
-    //std::cout<<"hello"<<std::endl;
-    //min=min_coeff(plane);
-    //max=max_coeff(plane);
-    //step=(max-min)/100;
-    //std::cout<<"helloooo"<<std::endl;
-    //double *Y = (double *)malloc((dim+2) * sizeof(double));
-    //double *X = (double *)malloc((dim+2) * sizeof(double));
-    //double *a = (double *)malloc((dim+2) * sizeof(double));
-
+    unsigned int i,J,counter,K,k;
     std::vector<NT> Y(dim+2 , 0.0), X(dim+2 , 0.0), a(dim+2 , 0.0);
-
-    //std::cout<<min<<" "<<max<<" "<<step<<" "<<plane.size()<<std::endl;
-
-    //z=min;
-    //while (z<=max){
 
     J=0; K=0; counter=0;
     if (zit<0){
@@ -123,15 +106,8 @@ NT vol_Ali(std::vector<NT> plane, NT zit, int dim){
         }
     }
 
-    //results.push_back(a[K]);
-    //z+=step;
-
     vol=a[K];
-
-    //free(Y); free(X); free(a);
     return vol;
-
-
 }
 
 #endif

@@ -113,7 +113,7 @@ public:
         return _P.num_of_hyperplanes();
     }
 
-    int dimension(){
+    unsigned int dimension(){
         return _P.dimension();
     }
 
@@ -128,7 +128,7 @@ public:
 
     //First coordinate ray shooting intersecting convex body
     std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          int rand_coord,
+                                          unsigned int rand_coord,
                                           std::vector<NT> &lamdas) {
 
         std::pair <NT, NT> polypair = _P.line_intersect_coord(r, rand_coord, lamdas);
@@ -140,8 +140,8 @@ public:
     //Not the first coordinate ray shooting intersecting convex body
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
-                                          int rand_coord,
-                                          int rand_coord_prev,
+                                          unsigned int rand_coord,
+                                          unsigned int rand_coord_prev,
                                           std::vector<NT> &lamdas) {
 
         std::pair <NT, NT> polypair = _P.line_intersect_coord(r, r_prev, rand_coord, rand_coord_prev, lamdas);
@@ -150,7 +150,7 @@ public:
                                  std::max(polypair.second, ballpair.second));
     }
 
-    std::pair<NT,NT> query_dual(Point &p, int rand_coord) {
+    std::pair<NT,NT> query_dual(Point &p, unsigned int rand_coord) {
         std::pair <NT, NT> polypair = _P.query_dual(p, rand_coord);
         std::pair <NT, NT> ballpair = _B.line_intersect_coord(p, rand_coord);
         return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),

@@ -29,7 +29,7 @@ public:
 private:
     MT A; //matrix A
     VT b; // vector b, s.t.: Ax<=b
-    int            _d; //dimension
+    unsigned int            _d; //dimension
     NT maxNT = 1.79769e+308;
     NT minNT = -1.79769e+308;
 
@@ -37,7 +37,7 @@ public:
     HPolytope() {}
 
     // constructor: cube(d)
-    HPolytope(int d): _d(d) {
+    HPolytope(unsigned int d): _d(d) {
         A.resize(2 * d, d);
         b.resize(2 * d);
         for (unsigned int i = 0; i < d; ++i) {
@@ -64,13 +64,13 @@ public:
 
 
     // return dimension
-    int dimension() {
+    unsigned int dimension() {
         return _d;
     }
 
 
     // return the number of facets
-    int num_of_hyperplanes() {
+    unsigned int num_of_hyperplanes() {
         return A.rows();
     }
 
@@ -100,30 +100,30 @@ public:
 
 
     // set a specific coeff of matrix A
-    NT get_mat_coeff(int i, int j) {
+    NT get_mat_coeff(unsigned int i, unsigned int j) {
         return A(i,j);
     }
 
 
     // get a spesific coeff of vector b
-    NT get_vec_coeff(int i) {
+    NT get_vec_coeff(unsigned int i) {
         return b(i);
     }
 
 
     // get a specific coeff of matrix A
-    void put_mat_coeff(int i, int j, NT value) {
+    void put_mat_coeff(unsigned int i, unsigned int j, NT value) {
         A(i,j) = value;
     }
 
 
     // set a spesific coeff of vector b
-    void put_vec_coeff(int i, NT value) {
+    void put_vec_coeff(unsigned int i, NT value) {
         b(i) = value;
     }
 
 
-    void init(int dim, MT _A, VT _b) {
+    void init(unsigned int dim, MT _A, VT _b) {
         _d = dim;
         A = _A;
         b = _b;
@@ -131,7 +131,7 @@ public:
 
 
     // default initialize: cube(d)
-    void init(int d) {
+    void init(unsigned int d) {
         A.resize(2 * d, d);
         b.resize(2 * d);
         for (unsigned int i = 0; i < d; ++i) {
@@ -257,7 +257,7 @@ public:
     //Check if Point p is in H-polytope P:= Ax<=b
     int is_in(Point p) {
         NT sum;
-        int m = A.rows();
+        unsigned int m = A.rows();
         unsigned int i, j;
         for (i = 0; i < m; i++) {
             sum = b(i);
@@ -290,7 +290,7 @@ public:
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom;
         unsigned int i, j;
-        int m = num_of_hyperplanes();
+        unsigned int m = num_of_hyperplanes();
         viterator rit, vit;
 
         for (i = 0; i < m; i++) {
@@ -318,13 +318,13 @@ public:
 
     //First coordinate ray intersecting convex polytope
     std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          int rand_coord,
+                                          unsigned int rand_coord,
                                           std::vector<NT> &lamdas) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom;
         unsigned int i, j;
-        int m = num_of_hyperplanes();
+        unsigned int m = num_of_hyperplanes();
         viterator rit;
 
         for (i = 0; i < m; i++) {
@@ -353,15 +353,15 @@ public:
     //Not the first coordinate ray intersecting convex
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
-                                          int rand_coord,
-                                          int rand_coord_prev,
+                                          unsigned int rand_coord,
+                                          unsigned int rand_coord_prev,
                                           std::vector<NT> &lamdas) {
 
         viterator lamdait = lamdas.begin(), rit;
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
         unsigned int i, j;
-        int m = num_of_hyperplanes();
+        unsigned int m = num_of_hyperplanes();
 
         for (i = 0; i < m; i++) {
             sum_denom = b(i);
@@ -435,7 +435,7 @@ public:
 private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
-    int _d;  //dimension
+    unsigned int _d;  //dimension
     NT maxNT = 1.79769e+308;
     NT minNT = -1.79769e+308;
 
@@ -443,13 +443,13 @@ public:
     VPolytope() {}
 
     // return dimension
-    int dimension() {
+    unsigned int dimension() {
         return _d;
     }
 
 
     // this function returns 0. The main sampler requests this function to set the length of lambdas vector
-    int num_of_hyperplanes() {
+    unsigned int num_of_hyperplanes() {
         return 0;
     }
 
@@ -513,30 +513,30 @@ public:
 
 
     // get a specific coeff of matrix V
-    NT get_mat_coeff(int i, int j) {
+    NT get_mat_coeff(unsigned int i, unsigned int j) {
         return V(i,j);
     }
 
 
     // get a specific coeff of vector b
-    NT get_vec_coeff(int i) {
+    NT get_vec_coeff(unsigned int i) {
         return b(i);
     }
 
 
     // set a specific coeff of matrix V
-    void put_mat_coeff(int i, int j, NT value) {
+    void put_mat_coeff(unsigned int i, unsigned int j, NT value) {
         V(i,j) = value;
     }
 
 
     // set a specific coeff of vector b
-    void put_vec_coeff(int i, NT value) {
+    void put_vec_coeff(unsigned int i, NT value) {
         b(i) = value;
     }
 
 
-    void init(int dim, MT _V, VT _b) {
+    void init(unsigned int dim, MT _V, VT _b) {
         _d = dim;
         V = _V;
         b = _b;
@@ -580,7 +580,7 @@ public:
     std::pair<Point,NT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg, typename std::vector<Point>::iterator it_end, bool &done) {
 
         Point p0 = *it_beg,p1,c;
-        int dim = p0.dimension();
+        unsigned int dim = p0.dimension();
         unsigned int i,j;
         std::vector <NT> temp_p;
         NT radius = 0.0, gi, sum = 0.0;
@@ -640,7 +640,7 @@ public:
 
         std::vector<Point> verts(_d+1);
         std::vector<NT> vecp(_d);
-        int m = num_of_vertices(), vert_rand, pointer=0;
+        unsigned int m = num_of_vertices(), vert_rand, pointer=0;
         unsigned int i,j;
         std::vector<int> x_vec(_d);
         bool done=false;
@@ -717,8 +717,8 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
-                                          int rand_coord,
-                                          int rand_coord_prev,
+                                          unsigned int rand_coord,
+                                          unsigned int rand_coord_prev,
                                           std::vector<NT> &lamdas) {
         NT min_plus, max_minus;
         std::vector<NT> temp(_d);
@@ -793,7 +793,7 @@ public:
 private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
-    int _d;  //dimension
+    unsigned int _d;  //dimension
     NT maxNT = 1.79769e+308;
     NT minNT = -1.79769e+308;
 
@@ -802,13 +802,13 @@ public:
     Zonotope() {}
 
     // return the dimension
-    int dimension() {
+    unsigned int dimension() {
         return _d;
     }
 
 
     // this function returns 0. The main sampler requests this function to set the length of lambdas vector
-    int num_of_hyperplanes() {
+    unsigned int num_of_hyperplanes() {
         return 0;
     }
 
@@ -827,19 +827,19 @@ public:
 
         num_of_hyp = nom / denom;
 
-        res= num_of_hyp;
+        res = num_of_hyp;
         return res;
     }
 
 
     // return the number of vertices
-    int num_of_vertices() {
+    unsigned int num_of_vertices() {
         return V.rows();
     }
 
 
     // return the number of generators
-    int num_of_generators() {
+    unsigned int num_of_generators() {
         return V.rows();
     }
 
@@ -869,31 +869,31 @@ public:
 
 
     // get a specific coeff of matrix V
-    NT get_mat_coeff(int i, int j) {
+    NT get_mat_coeff(unsigned int i, unsigned int j) {
         return V(i,j);
     }
 
 
     // get a specific coeff of vector b
-    NT get_vec_coeff(int i) {
+    NT get_vec_coeff(unsigned int i) {
         return b(i);
     }
 
 
     // set a specific coeff of matrix V
-    void put_mat_coeff(int i, int j, NT value) {
+    void put_mat_coeff(unsigned int i, unsigned int j, NT value) {
         V(i,j) = value;
     }
 
 
     // set a specific coeff of vector b
-    void put_vec_coeff(int i, NT value) {
+    void put_vec_coeff(unsigned int i, NT value) {
         b(i) = value;
     }
 
 
     // define zonotope using Eigen matrix V. Vector b is neded in order the code to compatible with Hpolytope class
-    void init(int dim, MT _V, VT _b) {
+    void init(unsigned int dim, MT _V, VT _b) {
         _d = dim;
         V = _V;
         b = _b;
@@ -978,7 +978,7 @@ public:
     // Compute the intersection of a coordinate ray
     // with the Zonotope
     std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          int rand_coord,
+                                          unsigned int rand_coord,
                                           std::vector<NT> &lamdas) {
         NT min_plus, max_minus;
         std::vector<NT> temp(_d,0);
@@ -996,8 +996,8 @@ public:
     // with the Zonotope
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           Point &r_prev,
-                                          int rand_coord,
-                                          int rand_coord_prev,
+                                          unsigned int rand_coord,
+                                          unsigned int rand_coord_prev,
                                           std::vector<NT> &lamdas) {
         NT min_plus, max_minus;
         std::vector<NT> temp(_d,0);
@@ -1017,7 +1017,7 @@ public:
         typename std::vector<NT>::iterator vecit;
         Point xc(_d);
 
-        int m = V.rows(), j;
+        unsigned int m = V.rows(), j;
         Point temp;
 
         for (unsigned int i = 0; i < m; ++i) {

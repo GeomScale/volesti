@@ -165,10 +165,9 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
     typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
     typedef typename Parameters::RNGType RNGType;
-    int n=var.n, walk_len=var.walk_steps, i, j = 0;
-    bool print=var.verbose;
+    unsigned int n=var.n, walk_len=var.walk_steps, i, j = 0;
     Point c = InnerBall.first;
-    NT radius = InnerBall.second, R = 1;
+    NT radius = InnerBall.second;
     std::list<Point> randPoints; //ds for storing rand points
     if (!P.get_points_for_rounding(randPoints)) {  // If P is a V-polytope then it will store its vertices in randPoints
         // If P is not a V-Polytope or number_of_vertices>20*domension
@@ -180,10 +179,10 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
         //use a large walk length e.g. 1000
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
         // 3. Sample points from P
-        int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
+        unsigned int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
         randPoints.clear();
         rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
-        NT current_dist, max_dist;
+        /*NT current_dist, max_dist;
         for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
             current_dist=(*pit-c).squared_length();
             if(current_dist>max_dist){
@@ -191,7 +190,7 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
             }
         }
         max_dist=std::sqrt(max_dist);
-        R=max_dist/radius;
+        R=max_dist/radius;*/
     }
 
     // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
@@ -207,7 +206,7 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
     boost::numeric::ublas::matrix<double> Q(n,n);
     boost::numeric::ublas::vector<double> c2(n);
     size_t w=1000;
-    NT elleps=Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+    Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
     MT E(n,n);
     VT e(n);
@@ -307,9 +306,8 @@ template <typename NT, class Polytope>
 NT rotating(Polytope &P){
 
   typedef typename Polytope::MT 	MT;
-  typedef typename Polytope::VT 	VT;
 
-  int n = P.dimension();
+  unsigned int n = P.dimension();
 
   // pick a random rotation
   MT R = MT::Random(n,n);

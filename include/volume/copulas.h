@@ -92,13 +92,13 @@ std::vector<std::vector<NT> > twoParHypFam(int dim, int num, int num_slices, std
             sum2+=p[j]*pl2[j];
         }
         //std::cout<<"hello3"<<std::endl;
-        for (j=0; j<Zs1.size(); j++){
+        for (unsigned int j=0; j<Zs1.size(); j++){
             if (sum1<Zs1[j]){
                 col=j;
                 break;
             }
         }
-        for (j=0; j<Zs2.size(); j++){
+        for (unsigned int j=0; j<Zs2.size(); j++){
             if (sum2<Zs2[j]){
                 row=j;
                 break;
@@ -131,7 +131,7 @@ std::vector<std::vector<NT> > hypfam_ellfam(int dim, int num, int num_slices, st
 
     int i,j,col,row;
     std::vector<NT> vec1,vec2,Zs1,Cs;
-    NT sum1,sum2,sum;
+    NT sum1,sum2;
     std::list<Point> points;
     typename std::list<Point>::iterator rpit;
     std::pair< std::vector<NT>,std::vector<NT> > result;
@@ -197,13 +197,13 @@ std::vector<std::vector<NT> > hypfam_ellfam(int dim, int num, int num_slices, st
             //sum2+=p[j]*pl2[j];
         }
         //std::cout<<"hello3"<<std::endl;
-        for (j=0; j<Zs1.size(); j++){
+        for (unsigned intj=0; j<Zs1.size(); j++){
             if (sum1<Zs1[j]){
                 col=j;
                 break;
             }
         }
-        for (j=0; j<Cs.size(); j++){
+        for (unsigned int j=0; j<Cs.size(); j++){
             if (sum2<Cs[j]){
                 row=j;
                 break;

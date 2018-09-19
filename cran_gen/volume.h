@@ -30,10 +30,10 @@ template <typename NT, class RNG>
 struct vars{
 public:
     typedef RNG RNGType;
-    vars( int m,
-          int n,
-          int walk_steps,
-          int n_threads,
+    vars( unsigned int m,
+          unsigned int n,
+          unsigned int walk_steps,
+          unsigned int n_threads,
           const NT err,
           NT error,
           const int lw,
@@ -57,10 +57,10 @@ public:
         urdist(urdist), urdist1(urdist1) , delta(delta) , verbose(verbose), rand_only(rand_only), round(round),
         NN(NN),birk(birk), ball_walk(ball_walk), coordinate(coordinate){};
 
-    int m;
-    int n;
-    int walk_steps;
-    int n_threads;
+    unsigned int m;
+    unsigned int n;
+    unsigned int walk_steps;
+    unsigned int n_threads;
     const NT err;
     NT error;
     const int lw;
@@ -84,11 +84,11 @@ template <typename NT, class RNG>
 struct vars_g{
 public:
     typedef RNG RNGType;
-    vars_g( int n,
-          int walk_steps,
-          int N,
-          int W,
-          int n_threads,
+    vars_g(unsigned int n,
+          unsigned int walk_steps,
+          unsigned int N,
+          unsigned int W,
+          unsigned int n_threads,
           NT error,
           NT che_rad,
           RNG &rng,
@@ -110,11 +110,11 @@ public:
             deltaset(deltaset), verbose(verbose), rand_only(rand_only), round(round),
             NN(NN),birk(birk),ball_walk(ball_walk),coordinate(coordinate){};
 
-    int n;
-    int walk_steps;
-    int N;
-    int W;
-    int n_threads;
+    unsigned int n;
+    unsigned int walk_steps;
+    unsigned int N;
+    unsigned int W;
+    unsigned int n_threads;
     NT error;
     NT che_rad;
     RNG &rng;
@@ -162,13 +162,11 @@ NT volume(Polytope &P,
 
     bool round = var.round;
     bool print = var.verbose;
-    bool rand_only = var.rand_only, deltaset = false;
-    int n = var.n;
-    int rnum = var.m;
-    int walk_len = var.walk_steps;
-    int n_threads = var.n_threads;
-    const NT err = var.err;
-    RNGType &rng = var.rng;
+    bool deltaset = false;
+    unsigned int n = var.n;
+    unsigned int rnum = var.m;
+    unsigned int walk_len = var.walk_steps;
+    unsigned int n_threads = var.n_threads;
 
     //0. Get the Chebychev ball (largest inscribed ball) with center and radius
     Point c=InnerBall.first;
@@ -293,8 +291,8 @@ NT volume(Polytope &P,
             Point p_gen = *randPoints.begin();
 
             // num of points in PBSmall and PBLarge
-            int nump_PBSmall = 0;
-            int nump_PBLarge = randPoints.size();
+            unsigned int nump_PBSmall = 0;
+            unsigned int nump_PBLarge = randPoints.size();
 
             #ifdef VOLESTI_DEBUG
             if(print) std::cout<<"Points in PBLarge="<<randPoints.size()
@@ -355,7 +353,7 @@ NT volume_gaussian_annealing(Polytope &P,
                              GParameters &var,  // constans for volume
                              UParameters &var2,
                              std::pair<Point,NT> InnerBall) {
-    typedef typename Polytope::MT 	MT;
+    //typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
     typedef typename UParameters::RNGType RNGType;
     const NT maxNT = 1.79769e+308;
@@ -363,13 +361,11 @@ NT volume_gaussian_annealing(Polytope &P,
     NT vol;
     bool round = var.round, done;
     bool print = var.verbose;
-    bool rand_only = var.rand_only, deltaset = false;
-    int n = var.n, steps;
-    int walk_len = var.walk_steps, m=P.num_of_hyperplanes();
-    int n_threads = var.n_threads, min_index, max_index, index, min_steps;
+    unsigned int n = var.n;
+    unsigned int m=P.num_of_hyperplanes();
+    unsigned int min_index, max_index, index, min_steps;
     NT error = var.error, curr_eps, min_val, max_val, val;
     NT frac = var.frac;
-    RNGType &rng = var.rng;
     typedef typename std::vector<NT>::iterator viterator;
 
     // Consider Chebychev center as an internal point
@@ -413,7 +409,7 @@ NT volume_gaussian_annealing(Polytope &P,
     std::vector<NT> a_vals;
     NT ratio = var.ratio;
     NT C = var.C;
-    int N = var.N;
+    unsigned int N = var.N;
 
     // Computing the sequence of gaussians
     #ifdef VOLESTI_DEBUG
@@ -426,8 +422,9 @@ NT volume_gaussian_annealing(Polytope &P,
     if(print) std::cout<<"All the variances of schedule_annealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
     #endif
 
-    int mm = a_vals.size()-1, j=0;
+    unsigned int mm = a_vals.size()-1;
     #ifdef VOLESTI_DEBUG
+    unsigned int j = 0;
     if(print){
         for (viterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
             std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
@@ -438,12 +435,12 @@ NT volume_gaussian_annealing(Polytope &P,
 
     // Initialization for the approximation of the ratios
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
-    int W = var.W;
+    unsigned int W = var.W;
     std::vector<NT> last_W2(W,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
     Point p(n); // The origin is in the Chebychev center of the Polytope
     Point p_prev=p;
-    int coord_prev, i=0;
+    unsigned int coord_prev, i=0;
     viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
 
     #ifdef VOLESTI_DEBUG

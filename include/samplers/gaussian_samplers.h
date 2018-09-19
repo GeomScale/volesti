@@ -148,13 +148,13 @@ template <class Polytope, class Point, class Parameters, typename NT>
 void gaussian_first_coord_point(Polytope &P,
                          Point &p,   // a point to start
                          Point &p_prev, // previous point
-                         int &coord_prev, // previous coordinate ray
-                         int walk_len, // number of steps for the random walk
+                         unsigned int &coord_prev, // previous coordinate ray
+                         unsigned int walk_len, // number of steps for the random walk
                          NT a_i,
                          std::vector<NT> &lamdas,
                          Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
-    int n = var.n, rand_coord;
+    unsigned int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
@@ -181,13 +181,13 @@ template <class Polytope, class Point, class Parameters, typename NT>
 void gaussian_next_point(Polytope &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
-                        int &coord_prev, // previous coordinate ray
-                        int walk_len, // number of steps for the random walk
+                        unsigned int &coord_prev, // previous coordinate ray
+                        unsigned int walk_len, // number of steps for the random walk
                         NT a_i,
                         std::vector<NT> &lamdas,
                         Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
-    int n = var.n, rand_coord;
+    unsigned int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
@@ -212,21 +212,21 @@ void gaussian_next_point(Polytope &P,
 template <class Polytope, class Parameters, class Point, class PointList, typename NT>
 void rand_gaussian_point_generator(Polytope &P,
                          Point &p,   // a point to start
-                         int rnum,   // number of points to sample
-                         int walk_len,  // number of stpes for the random walk
+                         unsigned int rnum,   // number of points to sample
+                         unsigned int walk_len,  // number of stpes for the random walk
                          PointList &randPoints,  // list to store the sampled points
                          NT a_i,
                          Parameters &var)  // constans for volume
 {
     typedef typename Parameters::RNGType RNGType;
-    int n = var.n;
+    unsigned int n = var.n;
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
     RNGType &rng2 = var.rng;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
     std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
-    int rand_coord = uidist(rng2), coord_prev, rand_coord_prev;
+    unsigned int rand_coord = uidist(rng2), coord_prev, rand_coord_prev;
     NT ball_rad = var.delta;
     Point p_prev = p;
 
@@ -269,7 +269,7 @@ void gaussian_hit_and_run(Point &p,
                 NT a_i,
                 Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
-    int n = var.n;
+    unsigned int n = var.n;
     RNGType rng2 = var.rng;
     Point l = get_direction<RNGType, Point, NT>(n);
     std::pair <NT, NT> dbpair = P.line_intersect(p, l);
@@ -288,8 +288,8 @@ template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              Polytope &P,
-                             int rand_coord,
-                             int rand_coord_prev,
+                             unsigned int rand_coord,
+                             unsigned int rand_coord_prev,
                              NT a_i,
                              std::vector<NT> &lamdas,
                              Parameters var) {
@@ -309,7 +309,7 @@ void gaussian_ball_walk(Point &p,
               NT ball_rad,
               Parameters var) {
     typedef typename Parameters::RNGType RNGType;
-    int n = P.dimension();
+    unsigned int n = P.dimension();
     NT f_x, f_y, rnd;
     Point y = get_point_in_Dsphere<RNGType, Point>(n, ball_rad);
     y = y + p;

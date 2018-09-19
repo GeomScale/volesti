@@ -100,7 +100,7 @@ void call_test_birk() {
     std::cout << "\n--- Testing Chebchev ball computation of H-birk3" << std::endl;
     std::ifstream inp;
     std::vector<std::vector<NT> > Pin;
-    inp.open("../data/birk3.ine",std::ifstream::in);
+    inp.open("../R-proj/inst/extdata/birk3.ine",std::ifstream::in);
     read_pointset(inp,Pin);
     P.init(Pin);
     cheb_test<NT, RNGType>(P, 0.207107);
@@ -108,7 +108,7 @@ void call_test_birk() {
     std::cout << "\n--- Testing Chebchev ball computation of H-birk4" << std::endl;
     std::ifstream inp2;
     std::vector<std::vector<NT> > Pin2;
-    inp2.open("../data/birk4.ine",std::ifstream::in);
+    inp2.open("../R-proj/inst/extdata/birk4.ine",std::ifstream::in);
     read_pointset(inp2,Pin2);
     P.init(Pin2);
     cheb_test<NT, RNGType>(P, 0.122008);
@@ -116,7 +116,7 @@ void call_test_birk() {
     std::cout << "\n--- Testing Chebchev ball computation of H-birk5" << std::endl;
     std::ifstream inp3;
     std::vector<std::vector<NT> > Pin3;
-    inp3.open("../data/birk5.ine",std::ifstream::in);
+    inp3.open("../R-proj/inst/extdata/birk5.ine",std::ifstream::in);
     read_pointset(inp3,Pin3);
     P.init(Pin3);
     cheb_test<NT, RNGType>(P, 0.0833333);
@@ -124,7 +124,7 @@ void call_test_birk() {
     std::cout << "\n--- Testing Chebchev ball computation of H-birk6" << std::endl;
     std::ifstream inp4;
     std::vector<std::vector<NT> > Pin4;
-    inp4.open("../data/birk6.ine",std::ifstream::in);
+    inp4.open("../R-proj/inst/extdata/birk6.ine",std::ifstream::in);
     read_pointset(inp4,Pin4);
     P.init(Pin4);
     cheb_test<NT, RNGType>(P, 0.0618034);

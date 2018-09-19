@@ -13,7 +13,7 @@
 
 // Pick a random direction as a normilized vector
 template <class RNGType, class Point, typename NT>
-Point get_direction(int dim) {
+Point get_direction(unsigned int dim) {
 
     boost::normal_distribution<> rdist(0,1);
     std::vector<NT> Xs(dim,0);
@@ -37,7 +37,7 @@ Point get_direction(int dim) {
 
 // Pick a random point from a d-sphere
 template <class RNGType, class Point, typename NT>
-Point get_point_on_Dsphere(int dim, NT radius){
+Point get_point_on_Dsphere(unsigned int dim, NT radius){
     Point p = get_direction<RNGType, Point, NT>(dim);
     p = radius * p;
     return p;
@@ -46,7 +46,7 @@ Point get_point_on_Dsphere(int dim, NT radius){
 
 // Pick a random point from a d-ball
 template <class RNGType, class Point, typename NT>
-Point get_point_in_Dsphere(int dim, NT radius){
+Point get_point_in_Dsphere(unsigned int dim, NT radius){
 
     boost::random::uniform_real_distribution<> urdist(0,1);
     NT U;
@@ -93,20 +93,20 @@ int birk_sym(T &P, K &randPoints, Point &p) {
 template <class Polytope, class PointList, class Parameters, class Point>
 void rand_point_generator(Polytope &P,
                          Point &p,   // a point to start
-                         int rnum,
-                         int walk_len,
+                         unsigned int rnum,
+                         unsigned int walk_len,
                          PointList &randPoints,
                          Parameters &var)  // constants for volume
 {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
-    int n = var.n;
+    unsigned int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
     std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
-    int rand_coord, rand_coord_prev;
+    unsigned int rand_coord, rand_coord_prev;
     NT kapa, ball_rad = var.delta;
     Point p_prev = p;
 
@@ -142,22 +142,22 @@ void rand_point_generator(Polytope &P,
 template <class BallPoly, class PointList, class Parameters, class Point>
 void rand_point_generator(BallPoly &PBLarge,
                          Point &p,   // a point to start
-                         int rnum,
-                         int walk_len,
+                         unsigned int rnum,
+                         unsigned int walk_len,
                          PointList &randPoints,
                          BallPoly &PBSmall,
-                         int &nump_PBSmall,
+                         unsigned int &nump_PBSmall,
                          Parameters &var) {  // constants for volume
 
     typedef typename Point::FT NT;
     typedef typename Parameters::RNGType RNGType;
-    int n = var.n;
+    unsigned int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
     std::vector <NT> lamdas(PBLarge.num_of_hyperplanes(), NT(0));
-    int rand_coord, rand_coord_prev;
+    unsigned int rand_coord, rand_coord_prev;
     NT kapa, ball_rad = var.delta;
     Point p_prev = p;
 
@@ -201,7 +201,7 @@ void hit_and_run(Point &p,
                 Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
-    int n = P.dimension();
+    unsigned int n = P.dimension();
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
 
@@ -222,8 +222,8 @@ template <class Polytope, class Point, typename NT>
 void hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              Polytope &P,
-                             int rand_coord,
-                             int rand_coord_prev,
+                             unsigned int rand_coord,
+                             unsigned int rand_coord_prev,
                              NT kapa,
                              std::vector<NT> &lamdas) {
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
