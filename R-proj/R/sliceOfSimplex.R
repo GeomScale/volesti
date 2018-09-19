@@ -5,6 +5,12 @@
 #' @param H A \eqn{d}-dimensional vector that defines the direction of the hyperplane.
 #' @param z0 The scalar that defines the half-space.
 #' 
+#' @references \cite{Varsi, Giulio,
+#' \dQuote{The multidimensional content of the frustum of the simplex,} \emph{Pacific J. Math. 46, no. 1, 303--314,} 1973.}
+#' 
+#' @references \cite{Ali, Mir M.,
+#' \dQuote{Content of the frustum of a simplex,} \emph{ Pacific J. Math. 48, no. 2, 313--322,} 1973.}
+#' 
 #' @return The percentage of the volume of the unit simplex that is contained in the intersection of the given half-space and the unit simplex
 #' 
 #' @examples 

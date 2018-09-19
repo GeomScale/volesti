@@ -360,7 +360,7 @@ public:
         viterator lamdait = lamdas.begin(), rit;
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
-        unsigned int i, j;
+        unsigned int i;
         unsigned int m = num_of_hyperplanes();
 
         for (i = 0; i < m; i++) {
@@ -483,7 +483,7 @@ public:
 
 
     // return the number of vertices
-    int num_of_vertices() {
+    unsigned int num_of_vertices() {
         return V.rows();
     }
 
@@ -600,7 +600,7 @@ public:
         }
         Bg = B;
         Eigen::FullPivLU <MT> lu_decomp(B);
-        auto rank = lu_decomp.rank();
+        unsigned int rank = lu_decomp.rank();
         if(rank==dim) {  // check if the simplex is full dimensional
             done = true;
         }else {

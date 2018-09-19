@@ -6,12 +6,10 @@
 
 Package `volesti` computes approximations of volume of polytopes given as a set of points or linear inequalities or as a Minkowski sum of segments (zonotopes). There are two algorithms for volume approximation as well as algorithms for sampling, rounding and rotating polytopes.  
 
-###  Install package  
-
-* Install R package [`remotes`](https://github.com/r-lib/remotes).  
-* Then you can install `volesti` from the current branch of this repository:  
+###  Install CRAN package
+* Install `volesti` by runing:  
 ```
-remotes::install_github("tolischal/volume_approximation@R_volesti")
+install.packages("volesti")
 ```
 * The package-dependencies are: `Rcpp`, `RcppEigen`, `BH`.  
 
@@ -40,5 +38,4 @@ Main development by Vissarion Fisikopoulos while he was affiliated with Universi
 1. I.Z. Emiris and V. Fisikopoulos, *Efficient random-walk methods for approximating polytope volume*, In Proc. ACM Symposium on Computational Geometry, Kyoto, Japan, p.318-325, 2014.  
 2. I.Z. Emiris and V. Fisikopoulos, *Practical polytope volume approximation*, ACM Transactions on Mathematical Software, vol 44, issue 4, 2018.  
 3. L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos, *Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises*, Proc. of Symposium on Computational Geometry, Budapest, Hungary, 2018.  
-4. Cousins, Ben & Vempala, Santosh. (2015). A practical volume algorithm. Mathematical Programming Computation. 8. 10.1007/s12532-015-0097-z.
 

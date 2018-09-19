@@ -23,3 +23,10 @@ H=c(-1,1)
 z0=0
 frustum = sliceOfSimplex(H=H, z0=z0)
 }
+\references{
+\cite{Varsi, Giulio,
+\dQuote{The multidimensional content of the frustum of the simplex,} \emph{Pacific J. Math. 46, no. 1, 303--314,} 1973.}
+
+\cite{Ali, Mir M.,
+\dQuote{Content of the frustum of a simplex,} \emph{ Pacific J. Math. 48, no. 2, 313--322,} 1973.}
+}

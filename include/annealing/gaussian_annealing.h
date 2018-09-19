@@ -64,7 +64,6 @@ template <class Polytope, class Parameters, typename NT>
 void get_first_gaussian(Polytope &P, NT radius, NT frac,
                         Parameters var, NT &error, std::vector<NT> &a_vals) {
 
-    unsigned int dim = var.n;
     unsigned int i;
     const unsigned int maxiter = 10000;
     typedef typename std::vector<NT>::iterator viterator;
@@ -128,7 +127,7 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
     //k is needed for the computation of the next variance a_{i+1} = a_i * (1-1/d)^k
     NT k = 1.0;
     const NT tol = 0.00001;
-    bool done=false, print=var.verbose;
+    bool done=false;
     std::vector<NT> fn(N,NT(0.0));
     std::list<Point> randPoints;
     typedef typename std::vector<NT>::iterator viterator;
@@ -165,11 +164,12 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
 template <class Polytope, class Parameters, typename NT>
 void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, unsigned int N,
                             Parameters var, NT &error, std::vector<NT> &a_vals){
-    bool print=var.verbose;
+
     typedef typename Polytope::PolytopePoint Point;
     // Compute the first gaussian
     get_first_gaussian(P, radius, frac, var, error, a_vals);
     #ifdef VOLESTI_DEBUG
+    bool print=var.verbose;
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
     #endif
 
@@ -186,6 +186,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
     Point p(n);
 
     #ifdef VOLESTI_DEBUG
+    bool print=var.verbose;
     if(print) std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
     #endif
 
