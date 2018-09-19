@@ -72,4 +72,66 @@ NT exact_zonotope_vol(Polytope ZP){
     return vol;
 }
 
+template <typename NT>
+NT vol_Ali(std::vector<NT> plane, NT zit, int dim){
+
+    NT vol;
+    int i,j,J,counter,K,k;
+    //double min,max,step,z,zit;
+
+    //std::cout<<"hello"<<std::endl;
+    //min=min_coeff(plane);
+    //max=max_coeff(plane);
+    //step=(max-min)/100;
+    //std::cout<<"helloooo"<<std::endl;
+    //double *Y = (double *)malloc((dim+2) * sizeof(double));
+    //double *X = (double *)malloc((dim+2) * sizeof(double));
+    //double *a = (double *)malloc((dim+2) * sizeof(double));
+
+    std::vector<NT> Y(dim+2 , 0.0), X(dim+2 , 0.0), a(dim+2 , 0.0);
+
+    //std::cout<<min<<" "<<max<<" "<<step<<" "<<plane.size()<<std::endl;
+
+    //z=min;
+    //while (z<=max){
+
+    J=0; K=0; counter=0;
+    if (zit<0){
+        X[0]=zit; J++;
+    }else{
+        Y[0]=zit; counter++;
+    }
+
+    for (i=0; i<dim; i++){
+
+        a[i]=0.0;
+
+        if (plane[i]+zit<0){
+            X[J]=plane[i]+zit;
+            J++;
+        }else{
+            Y[counter]=plane[i]+zit;
+            counter++;
+        }
+    }
+    K=dim+1-J;
+    a[0]=1.0; a[dim]=0.0; a[dim+1]=0.0;
+
+    for (i=0; i<J; i++){
+        for (k=1; k<K+1; k++){
+            a[k]=( Y[k-1]*a[k] - X[i]*a[k-1] ) / ( Y[k-1]-X[i] );
+        }
+    }
+
+    //results.push_back(a[K]);
+    //z+=step;
+
+    vol=a[K];
+
+    //free(Y); free(X); free(a);
+    return vol;
+
+
+}
+
 #endif

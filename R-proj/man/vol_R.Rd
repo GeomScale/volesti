@@ -7,7 +7,8 @@ vol_R(A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk,
  delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen,
  m_gen, round_only, rotate_only, ball_only, sample_only, sam_simplex,
  sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints,
- variance,coord, rounding, verbose)
+ variance, construct_copula, hyplane1, hyplane2, num_slices, sliceSimplex,
+ coord, rounding, verbose)
 }
 \arguments{
 \item{A}{A matrix in ine format (for H-polytopes) or in ext format (for V-polytopes or zonotopes).}
@@ -71,6 +72,16 @@ vol_R(A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk,
 \item{numpoints}{The number of points that the function is going to sample from the convex polytope when sample_only or sam_simplex, sam_can_simplex, sam_arb_simplex flags are true.}
 
 \item{variance}{The variance for the spherical gaussian when sample_only flag is true.}
+
+\item{construct_copula}{A boolean flag, it has to be true when the function is called only to construct a copula.}
+
+\item{hyplane1}{A \eqn{d}-dimensional vector that containes the direction of a family of parallel hyperplanes when copula is constructed or a \eqn{d+1}-dimensional vector the containes a hyperplane when a slice of the unit simplex is computed.}
+
+\item{hyplane2}{A \eqn{d}-dimensional vector that containes the direction of a family of parallel hyperplanes when copula is constructed.}
+
+\item{num_slices}{An integer that declares the number of slices when a copula is constructed.}
+
+\item{sliceSimplex}{A boolean flag, it has to be true when the percentage of the volume of a slice of the unit simplex is computed.}
 
 \item{coord}{A boolean flag for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR.}
 

@@ -87,13 +87,19 @@ sample_simplex <- function(vertices, dimension, N, canonical) {
   ball_only = FALSE
   sam_ball = FALSE
   sam_sphere = FALSE
+  construct_copula = FALSE
+  h1 = c(0)
+  h2 = c(0)
+  slices = 0
+  sliceSimplex = FALSE
   #-------------------#
   
   Matpoints = vol_R(vertices, W, e, internalpoint, Gaussian, win_len, NN, C, ratio, frac,
                  ballwalk, delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen,
                  kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only,
                  sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball,
-                 sam_sphere, n, var, coord, rounding, verbose)
+                 sam_sphere, n, var, construct_copula, h1, h2, slices, sliceSimplex,
+                 coord, rounding, verbose)
   
   return(Matpoints)
 }

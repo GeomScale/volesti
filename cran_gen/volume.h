@@ -135,6 +135,7 @@ public:
 
 #include "khach2.h"
 #include "polytopes.h"
+#include "ellipsoids.h"
 #include "ballintersectconvex.h"
 #include "samplers.h"
 #include "rounding.h"
@@ -143,8 +144,9 @@ public:
 #include "sample_only.h"
 //#include "linear_extensions.h"
 #include "polytope_generators.h"
-#include "zonotope_exact_vol.h"
+#include "exact_vols.h"
 #include "simplex_samplers.h"
+#include "copulas.h"
 
 
 template <class Polytope, class Parameters, class Point, typename NT>
