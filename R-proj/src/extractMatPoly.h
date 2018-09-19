@@ -30,7 +30,7 @@ Rcpp::NumericMatrix extractMatPoly(Polytope &P) {
     typedef typename Polytope::VT 	VT;
     MT A = P.get_mat();
     VT b = P.get_vec();
-    int n = P.dimension(), m = A.rows(), i, j;
+    unsigned int n = P.dimension(), m = A.rows(), i, j;
 
     Rcpp::NumericMatrix Mat(m+1, n+1);
 

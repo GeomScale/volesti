@@ -11,21 +11,21 @@
 #include <exception>
 
 template <class Polytope>
-Polytope gen_cube(int dim, bool Vpoly) {
+Polytope gen_cube(unsigned int dim, bool Vpoly) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     MT A;
     VT b;
-    int m;
+    unsigned int m;
 
     if (!Vpoly) {
 
         A.resize(2 * dim, dim);
         b.resize(2 * dim);
-        for (int i = 0; i < dim; ++i) {
+        for (unsigned int i = 0; i < dim; ++i) {
             b(i) = 1.0;
-            for (int j = 0; j < dim; ++j) {
+            for (unsigned int j = 0; j < dim; ++j) {
                 if (i == j) {
                     A(i, j) = 1.0;
                 } else {
@@ -33,9 +33,9 @@ Polytope gen_cube(int dim, bool Vpoly) {
                 }
             }
         }
-        for (int i = 0; i < dim; ++i) {
+        for (unsigned int i = 0; i < dim; ++i) {
             b(i + dim) = 1.0;
-            for (int j = 0; j < dim; ++j) {
+            for (unsigned int j = 0; j < dim; ++j) {
                 if (i == j) {
                     A(i + dim, j) = -1.0;
                 } else {
@@ -48,9 +48,9 @@ Polytope gen_cube(int dim, bool Vpoly) {
         m = 2 << (dim - 1);
         A.resize(m, dim);
         b.resize(m);
-        for(int i=0; i<m; ++i){
+        for(unsigned int i=0; i<m; ++i){
             b(i) = 1;
-            int k=i, j=0;
+            unsigned int k=i, j=0;
             while(k!=0){
                 int bit = k % 2;
                 if(bit == 0) {
@@ -74,9 +74,9 @@ Polytope gen_cube(int dim, bool Vpoly) {
 
 
 template <class Polytope>
-Polytope gen_cross(int dim, bool Vpoly) {
+Polytope gen_cross(unsigned int dim, bool Vpoly) {
 
-    int m;
+    unsigned int m;
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
@@ -88,11 +88,11 @@ Polytope gen_cross(int dim, bool Vpoly) {
         m = 2 << (dim - 1);
         A.resize(m, dim);
         b.resize(m);
-        for(int i=0; i<m; ++i){
+        for(unsigned int i=0; i<m; ++i){
             b(i) = 1;
-            int k=i, j=0;
+            unsigned int k=i, j=0;
             while(k!=0){
-                int bit = k % 2;
+                unsigned int bit = k % 2;
                 if(bit == 0) {
                     A(i,j) = -1.0;
                 }else {
@@ -109,9 +109,9 @@ Polytope gen_cross(int dim, bool Vpoly) {
         A.resize(2 * dim, dim);
         b.resize(2 * dim);
 
-        for(int i=0; i<dim; ++i){
+        for(unsigned int i=0; i<dim; ++i){
             b(i) = 1.0;
-            for(int j=0; j<dim; ++j){
+            for(unsigned int j=0; j<dim; ++j){
                 if(i==j) {
                     A(i,j) = 1.0;
                 } else {
@@ -119,9 +119,9 @@ Polytope gen_cross(int dim, bool Vpoly) {
                 }
             }
         }
-        for(int i=0; i<dim; ++i){
+        for(unsigned int i=0; i<dim; ++i){
             b(i + dim) = 1.0;
-            for(int j=0; j<dim; ++j){
+            for(unsigned int j=0; j<dim; ++j){
                 if(i==j) {
                     A(i + dim, j) = -1.0;
                 } else {
@@ -136,7 +136,7 @@ Polytope gen_cross(int dim, bool Vpoly) {
 
 
 template <class Polytope>
-Polytope gen_simplex(int dim, bool Vpoly){
+Polytope gen_simplex(unsigned int dim, bool Vpoly){
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
@@ -145,13 +145,13 @@ Polytope gen_simplex(int dim, bool Vpoly){
     VT b;
     b.resize(dim+1);
 
-    for(int i=0; i<dim; ++i){
+    for(unsigned int i=0; i<dim; ++i){
         if (!Vpoly) {
             b(i) = 0;
         } else {
             b(i) = 1;
         }
-        for(int j=0; j<dim; ++j){
+        for(unsigned int j=0; j<dim; ++j){
             if(i==j) {
                 A(i,j) = 1.0;
             } else {
@@ -160,7 +160,7 @@ Polytope gen_simplex(int dim, bool Vpoly){
         }
     }
     b(dim) = 1;
-    for(int j=0; j<dim; ++j){
+    for(unsigned int j=0; j<dim; ++j){
         if (!Vpoly) {
             A(dim, j) = -1.0;
         } else {
@@ -175,7 +175,7 @@ Polytope gen_simplex(int dim, bool Vpoly){
 
 
 template <class Polytope>
-Polytope gen_prod_simplex(int dim, bool Vpoly = false){
+Polytope gen_prod_simplex(unsigned int dim, bool Vpoly = false){
 
     Polytope Perr;
     try
@@ -199,12 +199,12 @@ Polytope gen_prod_simplex(int dim, bool Vpoly = false){
     Polytope P;
 
     //first simplex
-    for(int i=0; i<dim; ++i){
+    for(unsigned int i=0; i<dim; ++i){
         b(i) = 0.0;
-        for(int j=0; j<dim; ++j) {
+        for(unsigned int j=0; j<dim; ++j) {
             A(i, j) = 0.0;
         }
-        for(int j=0; j<dim; ++j){
+        for(unsigned int j=0; j<dim; ++j){
             if(i==j) {
                 A(i, j + dim) = 1.0;
             }else{
@@ -214,32 +214,32 @@ Polytope gen_prod_simplex(int dim, bool Vpoly = false){
     }
 
     b(dim) = 1.0;
-    for(int j=0; j<dim; ++j) {
+    for(unsigned int j=0; j<dim; ++j) {
         A(dim, j) = 0.0;
     }
-    for(int j=0; j<dim; ++j){
+    for(unsigned int j=0; j<dim; ++j){
         A(dim, j + dim) = -1.0;
     }
 
     //second simplex
-    for(int i=0; i<dim; ++i){
+    for(unsigned int i=0; i<dim; ++i){
         b(dim + 1 + i) = 0.0;
-        for(int j=0; j<dim; ++j){
+        for(unsigned int j=0; j<dim; ++j){
             if(i==j) {
                 A(dim + 1 + i, j) = 1.0;
             }else {
                 A(dim + 1 + i, j) = 0.0;
             }
         }
-        for(int j=0; j<dim; ++j) {
+        for(unsigned int j=0; j<dim; ++j) {
             A(dim + 1 + i, j + dim) = 0.0;
         }
     }
     b(2 * dim +1) = 1.0;
-    for(int j=0; j<dim; ++j) {
+    for(unsigned int j=0; j<dim; ++j) {
         A(2 * dim +1, j) = -1.0;
     }
-    for(int j=0; j<dim; ++j) {
+    for(unsigned int j=0; j<dim; ++j) {
         A(2 * dim +1, j + dim) = 0.0;
     }
 
@@ -249,7 +249,7 @@ Polytope gen_prod_simplex(int dim, bool Vpoly = false){
 
 
 template <class Polytope>
-Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
+Polytope gen_skinny_cube(unsigned int dim, bool Vpoly = false) {
 
     Polytope Perr;
     try
@@ -271,13 +271,13 @@ Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
     VT b;
     b.resize(2 * dim);
 
-    for(int i=0; i<dim; ++i){
+    for(unsigned int i=0; i<dim; ++i){
         if (i==0) {
             b(i) = 100.0;
         } else {
             b(i) = 1.0;
         }
-        for(int j=0; j<dim; ++j){
+        for(unsigned int j=0; j<dim; ++j){
             if(i==j) {
                 A(i,j) = 1.0;
             } else {
@@ -285,13 +285,13 @@ Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
             }
         }
     }
-    for(int i=0; i<dim; ++i){
+    for(unsigned int i=0; i<dim; ++i){
         if (i==0) {
             b(i + dim) = 100.0;
         } else {
             b(i + dim) = 1.0;
         }
-        for(int j=0; j<dim; ++j){
+        for(unsigned int j=0; j<dim; ++j){
             if(i==j) {
                 A(i + dim, j) = -1.0;
             } else {
@@ -307,7 +307,7 @@ Polytope gen_skinny_cube(int dim, bool Vpoly = false) {
 
 
 template <class Polytope, class RNGType>
-Polytope gen_zonotope(int dim, int m) {
+Polytope gen_zonotope(unsigned int dim, unsigned int m) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -324,9 +324,9 @@ Polytope gen_zonotope(int dim, int m) {
     b.resize(m);
     Polytope P;
 
-    for (int i = 0; i < dim; ++i) {
+    for (unsigned int i = 0; i < dim; ++i) {
         b(i) = 1.0;
-        for (int j = 0; j < dim; ++j) {
+        for (unsigned int j = 0; j < dim; ++j) {
             if (i==j) {
                 A(i,j) = 1.0;
             } else {
@@ -335,15 +335,15 @@ Polytope gen_zonotope(int dim, int m) {
         }
     }
 
-    for (int i = dim; i < m; ++i) {
+    for (unsigned int i = dim; i < m; ++i) {
         b(i) = 1.0;
         sum = 0.0;
-        for (int j = 0; j < dim; ++j) {
+        for (unsigned int j = 0; j < dim; ++j) {
             A(i,j) = rdist(rng);
             sum += A(i,j) * A(i,j);
         }
         sum = 1.0 / std::sqrt(sum);
-        for (int j = 0; j < dim; ++j) {
+        for (unsigned int j = 0; j < dim; ++j) {
             A(i,j) = A(i,j) * sum;
         }
     }

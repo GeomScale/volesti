@@ -22,10 +22,10 @@
 #define SIMPLEX_SAMPLERS_H
 
 template <typename NT, class RNGType, class Point>
-void Sam_Unit(int dim, int num, std::list<Point> &points){
+void Sam_Unit(unsigned int dim, unsigned int num, std::list<Point> &points){
 
-    int j,i,k,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
-    std::vector<int> x_vec;
+    unsigned int j,i,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
+    std::vector<unsigned int> x_vec;
     std::vector<NT> y;
 
     boost::random::uniform_int_distribution<> uidist(1,M);
@@ -154,10 +154,10 @@ void Sam_Unit(int dim, int num, std::list<Point> &points){
 }
 
 template <typename NT, class RNGType, class Point>
-void Sam_Canon_Unit(int dim, int num, std::list<Point> &points){
+void Sam_Canon_Unit(unsigned int dim, unsigned int num, std::list<Point> &points){
 
-    int j,i,k,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
-    std::vector<int> x_vec;
+    unsigned int j,i,x_rand,M=2147483647,pointer;  // M is the largest possible integer
+    //std::vector<int> x_vec;
     std::vector<NT> y;
     dim--;
     boost::random::uniform_int_distribution<> uidist(1,M);
@@ -201,11 +201,11 @@ void Sam_Canon_Unit(int dim, int num, std::list<Point> &points){
 
 //Owen mapping for sample from an arbitrary simplex given in V-represantation
 template <typename NT, class RNGType, class Point>
-void Sam_arb_simplex(typename std::vector<Point>::iterator it_beg, typename std::vector<Point>::iterator it_end, int num, std::list<Point> &points){
+void Sam_arb_simplex(typename std::vector<Point>::iterator it_beg, typename std::vector<Point>::iterator it_end, unsigned int num, std::list<Point> &points){
 
-    int n=std::distance(it_beg,it_end),j,i,k,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
-    int dim = n-1;
-    std::vector<int> x_vec;
+    unsigned int n=std::distance(it_beg,it_end),j,i,k,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
+    unsigned int dim = n-1;
+    std::vector<unsigned int> x_vec;
     std::vector<NT> y;
 
     NT Xj;

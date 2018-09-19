@@ -23,10 +23,12 @@
 #define SAMPLE_ONLY_H
 
 template <class Point, typename NT, class PointList, class Polytope, class UParameters, class GParameters>
-void sampling_only(PointList &randPoints, Polytope &P, int walk_len, int rnum, bool gaussian, NT a, Point internal_point, UParameters var1, GParameters var2) {
+void sampling_only(PointList &randPoints, Polytope &P, unsigned int walk_len,
+                   unsigned int rnum, bool gaussian, NT a, Point internal_point,
+                   UParameters var1, GParameters var2) {
 
     typedef typename UParameters::RNGType RNGType;
-    int n = var1.n;
+    unsigned int n = var1.n;
     Point p = internal_point;
     Point q = get_point_on_Dsphere<RNGType, Point>(n, var1.che_rad);
     p=p+q;

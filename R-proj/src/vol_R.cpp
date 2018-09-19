@@ -13,14 +13,14 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::NumericVector InnerVec,
-                           bool CG, int win_len, int N, double C, double ratio, double frac,
+Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, unsigned int walk_len, double e, Rcpp::NumericVector InnerVec,
+                           bool CG, unsigned int win_len, unsigned int N, double C, double ratio, double frac,
                            bool ball_walk, double delta, bool Vpoly, bool Zono, bool exact_zono, bool gen_only,
-                           bool Vpoly_gen, int kind_gen, int dim_gen, int m_gen, bool round_only,
-                           bool rotate_only, bool ball_only, bool sample_only, bool sam_simplex,
+                           bool Vpoly_gen, unsigned int kind_gen, unsigned int dim_gen, unsigned int m_gen,
+                           bool round_only, bool rotate_only, bool ball_only, bool sample_only, bool sam_simplex,
                            bool sam_can_simplex, bool sam_arb_simplex, bool sam_ball, bool sam_sphere,
-                           int numpoints, double variance, bool construct_copula, Rcpp::NumericVector hyplane1,
-                           Rcpp::NumericVector hyplane2, int num_slices, bool sliceSimplex, bool coord,
+                           unsigned int numpoints, double variance, bool construct_copula, Rcpp::NumericVector hyplane1,
+                           Rcpp::NumericVector hyplane2, unsigned int num_slices, bool sliceSimplex, bool coord,
                            bool rounding, bool verbose) {
 
 
@@ -32,20 +32,19 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> Zonotope;
     typedef copula_ellipsoid<Point> CopEll;
-    int n_threads=1,i,j;
+    unsigned int n_threads=1,i,j;
 
     bool rand_only=false,
 	 NN=false,
          birk=false,
-         rotate=false,
          coordinate=coord;
     Hpolytope HP;
     Vpolytope VP;
     Zonotope ZP;
 
-    int m=A.nrow()-1;
-    int n=A.ncol()-1;
-    int rnum = std::pow(e,-2) * 400 * n * std::log(n);
+    unsigned int m=A.nrow()-1;
+    unsigned int n=A.ncol()-1;
+    unsigned int rnum = std::pow(e,-2) * 400 * n * std::log(n);
     Rcpp::NumericMatrix vol_res(1,1);
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -58,7 +57,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     std::vector<NT> bin(m);
 
     if (sliceSimplex) {
-        int dim = hyplane1.size() - 1;
+        unsigned int dim = hyplane1.size() - 1;
         NT z0 = hyplane1[dim];
         std::vector<NT> hyp(dim, 0.0);
 
@@ -74,7 +73,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     if(construct_copula) {
         Rcpp::NumericMatrix copula(num_slices, num_slices);
         std::vector<std::vector<NT> > StdCopula;
-        int dim = hyplane1.size();
+        unsigned int dim = hyplane1.size();
         if (dim == hyplane2.size()) {
             std::vector<NT> hyp1(dim, 0.0);
             std::vector<NT> hyp2(dim, 0.0);
@@ -117,7 +116,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     if (sam_ball || sam_sphere) {
         std::list<Point> randPoints;
 
-        for (int k = 0; k < numpoints; ++k) {
+        for (unsigned int k = 0; k < numpoints; ++k) {
             if (sam_ball) {
                 randPoints.push_back(get_point_in_Dsphere<RNGType , Point >(dim_gen, delta));
             } else {
@@ -170,9 +169,9 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         typename std::vector<NT>::iterator temp_it;
         std::vector<Point> vec_point;
 
-        for (int k = 0; k < A.nrow(); ++k) {
+        for (unsigned int k = 0; k < A.nrow(); ++k) {
             temp_it = temp_p.begin();
-            for (int l = 0; l < A.ncol(); ++l, ++temp_it) {
+            for (unsigned int l = 0; l < A.ncol(); ++l, ++temp_it) {
                 *temp_it = A(k,l);
             }
             vec_point.push_back(Point(n+1, temp_p.begin(), temp_p.end()));
@@ -303,7 +302,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
         }
         // store internal point hat is given as input
         std::vector<NT> temp_p;
-        for (int j=0; j<n; j++){
+        for (unsigned int j=0; j<n; j++){
             temp_p.push_back(InnerVec[j]);
         }
         InnerBall.first = Point( n , temp_p.begin() , temp_p.end() );

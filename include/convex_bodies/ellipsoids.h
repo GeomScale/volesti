@@ -22,7 +22,7 @@ private:
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     MT G;
-    int dim;
+    unsigned int dim;
 public:
 
     copula_ellipsoid() {}
@@ -39,7 +39,7 @@ public:
 
     NT mat_mult(Point p) {
         VT q(dim);
-        int i = 0;
+        unsigned int i = 0;
         viterator pit = p.iter_begin();
         for ( ; pit!=p.iter_end(); ++pit, ++i){
             q(i)=(*pit);

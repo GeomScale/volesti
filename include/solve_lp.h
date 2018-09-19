@@ -35,9 +35,10 @@ template <typename NT, class Point, class MT, class VT>
 std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
 
     lprec *lp;
-    int Ncol=d+1, *colno = NULL, j, m=A.rows(), i;
+    int Ncol=d+1, j, m=A.rows(), i;
+    int *colno = NULL;
     REAL *row = NULL;
-    std::pair<Point,NT> exception_pair;
+    std::pair<Point,NT> exception_pair(Point(1),-1.0);
 
     try
     {
@@ -433,7 +434,7 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
 template <class MT, class Point>
 bool memLP_Zonotope(MT V, Point q){
 
-    typedef typename Point::FT NT;
+    //typedef typename Point::FT NT;
     int d=q.dimension();
     lprec *lp;
     int Ncol=V.rows(), *colno = NULL, j, i;

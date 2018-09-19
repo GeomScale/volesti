@@ -15,7 +15,7 @@ template <class K>
 class point
 {
 private:
-    int d;
+    unsigned int d;
     typedef std::vector<typename K::FT> Coeff;
     Coeff coeffs;
     typedef typename std::vector<typename K::FT>::iterator iter;
@@ -24,29 +24,29 @@ public:
 
     point() {}
     
-    point(const int dim) {
+    point(const unsigned int dim) {
         d = dim;
         coeffs = Coeff(d,0);
     }
     
-    point(const int dim, iter begin, iter end) {
+    point(const unsigned int dim, iter begin, iter endit) {
         d = dim;
-        coeffs = Coeff(begin,end);
+        coeffs = Coeff(begin,endit);
     }
     
     int dimension() {
         return d;
     }
     
-    void set_dimension(const int dim) {
+    void set_dimension(const unsigned int dim) {
         d = dim;
     }
     
-    void set_coord(const int i, FT coord) {
+    void set_coord(const unsigned int i, FT coord) {
         coeffs[i] = coord;
     }
     
-    FT operator[] (const int i) {
+    FT operator[] (const unsigned int i) {
         return coeffs[i];
     }
     
@@ -89,7 +89,7 @@ public:
 
 
     FT dot(point& p){
-        FT res=FT(0);
+        FT res=FT(0.0);
 
         typename Coeff::iterator pit=p.iter_begin();
         typename Coeff::iterator mit=coeffs.begin();
@@ -102,7 +102,7 @@ public:
     
     FT squared_length() {
 
-        FT lsq = FT(0);
+        FT lsq = FT(0.0);
 
         typename Coeff::iterator mit=coeffs.begin();
         for ( ; mit != coeffs.end(); mit++){
@@ -112,7 +112,7 @@ public:
     }
 
     void print(){
-        for(int i=0; i<d; i++){
+        for(unsigned int i=0; i<d; i++){
             #ifdef VOLESTI_DEBUG
             std::cout<<coeffs[i]<<" ";
             #endif
