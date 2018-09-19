@@ -70,7 +70,7 @@ for (i in 1:2) {
 
   test_that("Volume H-birk3", {
     ListPoly = fileToMatrix(paste0(path,'/birk3.ine'))
-    res = Hruntest(ListPoly$A, ListPoly$b, 'H-birk3', 0.125, 0.1, num_of_exps, algo)
+    res = Hruntest(ListPoly$A, ListPoly$b, 'H-birk3', 0.125, 0.2, num_of_exps, algo)
     expect_equal(res, 1)
   })
   

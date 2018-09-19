@@ -19,7 +19,9 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
                            bool Vpoly_gen, int kind_gen, int dim_gen, int m_gen, bool round_only,
                            bool rotate_only, bool ball_only, bool sample_only, bool sam_simplex,
                            bool sam_can_simplex, bool sam_arb_simplex, bool sam_ball, bool sam_sphere,
-                           int numpoints, double variance, bool coord, bool rounding, bool verbose) {
+                           int numpoints, double variance, bool construct_copula, Rcpp::NumericVector hyplane1,
+                           Rcpp::NumericVector hyplane2, int num_slices, bool sliceSimplex, bool coord,
+                           bool rounding, bool verbose) {
 
 
     typedef double NT;
@@ -29,6 +31,7 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> Zonotope;
+    typedef copula_ellipsoid<Point> CopEll;
     int n_threads=1,i,j;
 
     bool rand_only=false,
@@ -53,6 +56,63 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, int walk_len, double e, Rcpp::
 
     std::vector<std::vector<NT> > Pin(m+1, std::vector<NT>(n+1));
     std::vector<NT> bin(m);
+
+    if (sliceSimplex) {
+        int dim = hyplane1.size() - 1;
+        NT z0 = hyplane1[dim];
+        std::vector<NT> hyp(dim, 0.0);
+
+        for ( i=0; i<dim; i++) {
+            hyp[i] = hyplane1[i];
+        }
+
+        vol_res(0,0) = vol_Ali(hyp,-z0, dim);
+        return vol_res;
+
+    }
+
+    if(construct_copula) {
+        Rcpp::NumericMatrix copula(num_slices, num_slices);
+        std::vector<std::vector<NT> > StdCopula;
+        int dim = hyplane1.size();
+        if (dim == hyplane2.size()) {
+            std::vector<NT> hyp1(dim, 0.0);
+            std::vector<NT> hyp2(dim, 0.0);
+            typename std::vector<NT>::iterator hit1, hit2;
+            i = 0;
+            hit1 = hyp1.begin();
+            hit2 = hyp2.begin();
+            for ( ;  hit1!=hyp1.end(); ++hit1, ++hit2, ++i) {
+                *hit1 = hyplane1[i];
+                *hit2 = hyplane2[i];
+            }
+
+            StdCopula = twoParHypFam<Point, RNGType >(dim, numpoints, num_slices, hyp1, hyp2);
+
+
+        } else {
+            std::vector<NT> hyp1(dim, 0.0);
+            std::vector<std::vector<NT> > Gin(dim, std::vector<NT>(dim));
+
+            for (i=0; i<dim; i++){
+                hyp1[i] = hyplane1[i];
+                for(j=0; j<dim; j++){
+                    Gin[i][j]=A(i,j);
+                }
+            }
+            CopEll Ell(Gin);
+            StdCopula = hypfam_ellfam<Point, RNGType >(dim, numpoints, num_slices, hyp1, Ell);
+        }
+
+
+        for(i=0; i<num_slices; i++) {
+            for(j=0; j<num_slices; j++){
+                copula(i,j) = StdCopula[i][j];
+            }
+        }
+
+        return copula;
+    }
 
     if (sam_ball || sam_sphere) {
         std::list<Point> randPoints;
