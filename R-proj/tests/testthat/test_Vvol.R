@@ -29,15 +29,15 @@ for (i in 1:2) {
   
   if (i==1) {
     algo = 'CG'
-    tol = 0.25
+    tol = 0.3
   } else {
     algo = 'SOB'
-    tol = 0.15
+    tol = 0.2
   }
   
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume V-cube3", {
+      skip_on_cran()
       PolyMat = GenCube(3, 'V')
       res = Vruntest(PolyMat, 'V-cube3', 8, tol, num_of_exps, algo)
       expect_equal(res, 1)
@@ -45,8 +45,8 @@ for (i in 1:2) {
   }
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume V-cube4", {
+      skip_on_cran()
       PolyMat = GenCube(4, 'V')
       res = Vruntest(PolyMat, 'V-cube4', 16, tol, num_of_exps, algo)
       expect_equal(res, 1)
@@ -54,8 +54,8 @@ for (i in 1:2) {
   }
   
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume V-cross3", {
+      skip_on_cran()
       PolyMat = GenCross(3, 'V')
       res = Vruntest(PolyMat, 'V-cross3', 1.333333, tol, num_of_exps, algo)
       expect_equal(res, 1)

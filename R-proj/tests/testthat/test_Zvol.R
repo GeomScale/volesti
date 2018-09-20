@@ -24,15 +24,15 @@ Zruntest <- function(Mat, name_string, tol, num_of_exps, algo){
 }
 
 cran_only = TRUE
-num_of_exps = 10
+num_of_exps = 5
 
 for (i in 1:2) {
   if (i==1) {
     algo = 'CG'
-    tol = 0.2
+    tol = 0.4
   } else {
     algo = 'SOB'
-    tol = 0.1
+    tol = 0.2
   }
 
   test_that("Volume Zonotope_2_4", {
@@ -42,8 +42,8 @@ for (i in 1:2) {
   })
   
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume Zonotope_2_8", {
+      skip_on_cran()
       ZonoMat = GenZonotope(2, 8)
       res = Zruntest(ZonoMat, 'Zonotope_2_8', tol, num_of_exps, algo)
       expect_equal(res, 1)
@@ -51,8 +51,8 @@ for (i in 1:2) {
   }
   
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume Zonotope_4_8", {
+      skip_on_cran()
       ZonoMat = GenZonotope(4, 8)
       res = Zruntest(ZonoMat, 'Zonotope_4_8', tol, num_of_exps, algo)
       expect_equal(res, 1)
@@ -60,8 +60,8 @@ for (i in 1:2) {
   }
   
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume Zonotope_4_10", {
+      skip_on_cran()
       ZonoMat = GenZonotope(4, 10)
       res = Zruntest(ZonoMat, 'Zonotope_4_10', tol, num_of_exps, algo)
       expect_equal(res, 1)
@@ -69,8 +69,8 @@ for (i in 1:2) {
   }
   
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume Zonotope_5_10", {
+      skip_on_cran()
       ZonoMat = GenZonotope(5, 10)
       res = Zruntest(ZonoMat, 'Zonotope_5_10', tol, num_of_exps, algo)
       expect_equal(res, 1)

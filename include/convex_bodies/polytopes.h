@@ -70,7 +70,7 @@ public:
 
 
     // return the number of facets
-    unsigned int num_of_hyperplanes() {
+    int num_of_hyperplanes() {
         return A.rows();
     }
 
@@ -257,11 +257,10 @@ public:
     //Check if Point p is in H-polytope P:= Ax<=b
     int is_in(Point p) {
         NT sum;
-        unsigned int m = A.rows();
-        unsigned int i, j;
-        for (i = 0; i < m; i++) {
+        int m = A.rows();
+        for (int i = 0; i < m; i++) {
             sum = b(i);
-            for (j = 0; j < _d; j++) {
+            for (unsigned int j = 0; j < _d; j++) {
                 sum -= A(i, j) * p[j];
             }
             if (sum < NT(0)) { //Check if corresponding hyperplane is violated
@@ -277,7 +276,7 @@ public:
     std::pair<Point,NT> ComputeInnerBall() {
 
         std::pair <Point,NT> res;
-        res = ComputeChebychevBall<NT, Point>(A, b, _d);  //lpSolve lib for the linear program
+        res = ComputeChebychevBall<NT, Point>(A, b);  //lpSolve lib for the linear program
         return res;
     }
 
@@ -289,11 +288,12 @@ public:
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom;
-        unsigned int i, j;
-        unsigned int m = num_of_hyperplanes();
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes();
         viterator rit, vit;
 
-        for (i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++) {
             sum_nom = b(i);
             sum_denom = NT(0);
             j = 0;
@@ -323,11 +323,11 @@ public:
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom;
-        unsigned int i, j;
-        unsigned int m = num_of_hyperplanes();
+        unsigned int j;
+        int m = num_of_hyperplanes();
         viterator rit;
 
-        for (i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++) {
             sum_nom = b(i);
             sum_denom = A(i, rand_coord);
             rit = r.iter_begin();
@@ -360,10 +360,9 @@ public:
         viterator lamdait = lamdas.begin(), rit;
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
-        unsigned int i;
-        unsigned int m = num_of_hyperplanes();
+        int m = num_of_hyperplanes();
 
-        for (i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++) {
             sum_denom = b(i);
             c_rand_coord = A(i, rand_coord);
             c_rand_coord_prev = A(i, rand_coord_prev);
@@ -449,7 +448,7 @@ public:
 
 
     // this function returns 0. The main sampler requests this function to set the length of lambdas vector
-    unsigned int num_of_hyperplanes() {
+    int num_of_hyperplanes() {
         return 0;
     }
 
@@ -483,7 +482,7 @@ public:
 
 
     // return the number of vertices
-    unsigned int num_of_vertices() {
+    int num_of_vertices() {
         return V.rows();
     }
 
@@ -600,7 +599,7 @@ public:
         }
         Bg = B;
         Eigen::FullPivLU <MT> lu_decomp(B);
-        unsigned int rank = lu_decomp.rank();
+        int rank = lu_decomp.rank();
         if(rank==dim) {  // check if the simplex is full dimensional
             done = true;
         }else {
@@ -640,8 +639,9 @@ public:
 
         std::vector<Point> verts(_d+1);
         std::vector<NT> vecp(_d);
-        unsigned int m = num_of_vertices(), vert_rand, pointer=0;
+        unsigned int vert_rand, pointer=0;
         unsigned int i,j;
+        int m = num_of_vertices();
         std::vector<int> x_vec(_d);
         bool done=false;
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -699,7 +699,7 @@ public:
     // Compute the intersection of a coordinate ray
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          int rand_coord,
+                                          unsigned int rand_coord,
                                           std::vector<NT> &lamdas) {
         NT min_plus, max_minus;
         std::vector<NT> temp(_d);
@@ -765,7 +765,7 @@ public:
         unsigned int j;
         std::vector<NT> temp(_d,NT(0));
         typename std::vector<NT>::iterator pointIt;
-        for (unsigned int i=0; i<num_of_vertices(); i++) {
+        for (int i=0; i<num_of_vertices(); i++) {
             pointIt = temp.begin(); j=0;
             for ( ; pointIt!=temp.end(); pointIt++, j++){
                 *pointIt = V(i,j);
@@ -808,7 +808,7 @@ public:
 
 
     // this function returns 0. The main sampler requests this function to set the length of lambdas vector
-    unsigned int num_of_hyperplanes() {
+    int num_of_hyperplanes() {
         return 0;
     }
 
@@ -833,13 +833,13 @@ public:
 
 
     // return the number of vertices
-    unsigned int num_of_vertices() {
+    int num_of_vertices() {
         return V.rows();
     }
 
 
     // return the number of generators
-    unsigned int num_of_generators() {
+    int num_of_generators() {
         return V.rows();
     }
 
@@ -1017,10 +1017,10 @@ public:
         typename std::vector<NT>::iterator vecit;
         Point xc(_d);
 
-        unsigned int m = V.rows(), j;
+        int m = V.rows(), j;
         Point temp;
 
-        for (unsigned int i = 0; i < m; ++i) {
+        for (int i = 0; i < m; ++i) {
             vecit = vec.begin();
             j = 0;
             for ( ; vecit!=vec.end(); ++vecit, ++j) {

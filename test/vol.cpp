@@ -20,7 +20,10 @@
 // see <http://www.gnu.org/licenses/>.
 
 #include "Eigen/Eigen"
+#define VOLESTI_DEBUG
 #include "volume.h"
+
+
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/

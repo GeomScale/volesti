@@ -34,11 +34,11 @@
 #' vol = volume(A=A, b=b)
 #' 
 #' # calling CG algorithm for a V-polytope (3d cube)
-#' Vmat = GenCube(3, 'V')
+#' Vmat = GenSimplex(2,'V')
 #' vol = volume(V=Vmat, CG=TRUE)
 #' 
 #' # calling CG algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
-#' zonotope = GenZonotope(5, 10)
+#' zonotope = GenZonotope(2, 4)
 #' vol = volume(G=zonotope, rounding=TRUE, CG=TRUE)
 #' @export
 #' @useDynLib volesti

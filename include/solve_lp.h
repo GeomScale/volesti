@@ -32,11 +32,13 @@
 
 // compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
 template <typename NT, class Point, class MT, class VT>
-std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b, int d){
+std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b){
 
     lprec *lp;
+    int d = A.cols();
     int Ncol=d+1, j, m=A.rows(), i;
     int *colno = NULL;
+
     REAL *row = NULL;
     std::pair<Point,NT> exception_pair(Point(1),-1.0);
 

@@ -8,7 +8,6 @@ Description: Package provides an R interface for VolEsti C++ package. Volesti co
              approximations of volume of polytopes given as a set of points or linear inequalities
              or Minkowski sum of segments (zonotopes). There are two algorithms for volume
              approximation as well as algorithms for sampling, rounding and rotating polytopes.
-Maintainer: Chalkis Apostolos <tolis.chal@gmail.com>
 Version: 0.0.0
 Date: 2018-09-05
 BugReports: https://github.com/vissarion/volume_approximation/issues
