@@ -169,9 +169,9 @@ Rcpp::NumericMatrix vol_R (Rcpp::NumericMatrix A, unsigned int walk_len, double 
         typename std::vector<NT>::iterator temp_it;
         std::vector<Point> vec_point;
 
-        for (unsigned int k = 0; k < A.nrow(); ++k) {
+        for (int k = 0; k < A.nrow(); ++k) {
             temp_it = temp_p.begin();
-            for (unsigned int l = 0; l < A.ncol(); ++l, ++temp_it) {
+            for (int l = 0; l < A.ncol(); ++l, ++temp_it) {
                 *temp_it = A(k,l);
             }
             vec_point.push_back(Point(n+1, temp_p.begin(), temp_p.end()));

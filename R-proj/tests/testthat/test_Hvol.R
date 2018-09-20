@@ -40,13 +40,13 @@ for (i in 1:2) {
   
   test_that("Volume H-cube10", {
     PolyList = GenCube(10, 'H')
-    res = Hruntest(PolyList$A, PolyList$b, 'H-cube10', 1024, 0.1, num_of_exps, algo)
+    res = Hruntest(PolyList$A, PolyList$b, 'H-cube10', 1024, 0.2, num_of_exps, algo)
     expect_equal(res, 1)
   })
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-cube20", {
+      skip_on_cran()
       PolyList = GenCube(20, 'H')
       res = Hruntest(PolyList$A, PolyList$b, 'H-cube20', 1048576, 0.1, num_of_exps, algo)
       expect_equal(res, 1)
@@ -54,29 +54,32 @@ for (i in 1:2) {
   }
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-cube30", {
+      skip_on_cran()
       PolyList = GenCube(30, 'H')
       res = Hruntest(PolyList$A, PolyList$b, 'H-cube30', 1073742000, 0.2, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }
   
-  test_that("Volume H-cross10", {
-    PolyList = GenCross(10, 'H')
-    res = Hruntest(PolyList$A, PolyList$b, 'H-cross10', 0.0002821869, 0.1, num_of_exps, algo)
+  test_that("Volume H-cross5", {
+    PolyList = GenCross(5, 'H')
+    res = Hruntest(PolyList$A, PolyList$b, 'H-cross10', 0.2666667, 0.2, num_of_exps, algo)
     expect_equal(res, 1)
   })
 
-  test_that("Volume H-birk3", {
-    ListPoly = fileToMatrix(paste0(path,'/birk3.ine'))
-    res = Hruntest(ListPoly$A, ListPoly$b, 'H-birk3', 0.125, 0.2, num_of_exps, algo)
-    expect_equal(res, 1)
-  })
+  if (!cran_only) {
+    test_that("Volume H-birk3", {
+      skip_on_cran()
+      ListPoly = fileToMatrix(paste0(path,'/birk3.ine'))
+      res = Hruntest(ListPoly$A, ListPoly$b, 'H-birk3', 0.125, 0.2, num_of_exps, algo)
+      expect_equal(res, 1)
+    })
+  }
   
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-birk4", {
+      skip_on_cran()
       ListPoly = fileToMatrix(paste0(path,'/birk4.ine'))
       res = Hruntest(ListPoly$A, ListPoly$b, 'H-birk4', 0.000970018, 0.2, num_of_exps, algo)
       expect_equal(res, 1)
@@ -84,8 +87,8 @@ for (i in 1:2) {
   }
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-birk5", {
+      skip_on_cran()
       ListPoly = fileToMatrix(paste0(path,'/birk5.ine'))
       res = Hruntest(ListPoly$A, ListPoly$b, 'H-birk5', 0.000000225, 0.2, num_of_exps, algo)
       expect_equal(res, 1)
@@ -103,13 +106,13 @@ for (i in 1:2) {
 
   test_that("Volume H-prod_simplex_5_5", {
     PolyList = GenProdSimplex(5)
-    res = Hruntest(PolyList$A, PolyList$b, 'H-prod_simplex_5_5', (1/prod(1:5))^2, 0.15, num_of_exps, algo)
+    res = Hruntest(PolyList$A, PolyList$b, 'H-prod_simplex_5_5', (1/prod(1:5))^2, 0.2, num_of_exps, algo)
     expect_equal(res, 1)
   })
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-prod_simplex_10_10", {
+      skip_on_cran()
       PolyList = GenProdSimplex(10)
       res = Hruntest(PolyList$A, PolyList$b, 'H-prod_simplex_10_10', (1/prod(1:10))^2, 0.1, num_of_exps, algo)
       expect_equal(res, 1)
@@ -117,8 +120,8 @@ for (i in 1:2) {
   }
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-prod_simplex_15_15", {
+      skip_on_cran()
       PolyList = GenProdSimplex(15)
       res = Hruntest(PolyList$A, PolyList$b, 'H-prod_simplex_15_15', (1/prod(1:15))^2, 0.1, num_of_exps, algo)
       expect_equal(res, 1)
@@ -126,8 +129,8 @@ for (i in 1:2) {
   }
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-prod_simplex_20_20", {
+      skip_on_cran()
       PolyList = GenProdSimplex(20)
       res = Hruntest(PolyList$A, PolyList$b, 'H-prod_simplex_20_20', (1/prod(1:20))^2, 0.1, num_of_exps, algo)
       expect_equal(res, 1)
@@ -135,8 +138,8 @@ for (i in 1:2) {
   }
     
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-simplex10", {
+      skip_on_cran()
       PolyList = GenSimplex(10, 'H')
       res = Hruntest(PolyList$A, PolyList$b, 'H-simplex10', (1/prod(1:10)), 0.1, num_of_exps, algo)
       expect_equal(res, 1)
@@ -144,8 +147,8 @@ for (i in 1:2) {
   }
     
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-simplex20", {
+      skip_on_cran()
       PolyList = GenSimplex(20, 'H')
       res = Hruntest(PolyList$A, PolyList$b, 'H-simplex20', (1/prod(1:20)), 0.1, num_of_exps, algo)
       expect_equal(res, 1)
@@ -153,8 +156,8 @@ for (i in 1:2) {
   }
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-simplex30", {
+      skip_on_cran()
       PolyList = GenSimplex(30, 'H')
       res = Hruntest(PolyList$A, PolyList$b, 'H-simplex30', (1/prod(1:30)), 0.1, num_of_exps, algo)
       expect_equal(res, 1)
@@ -162,8 +165,8 @@ for (i in 1:2) {
   }
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-simplex40", {
+      skip_on_cran()
       PolyList = GenSimplex(40, 'H')
       res = Hruntest(PolyList$A, PolyList$b, 'H-simplex40', (1/prod(1:40)), 0.1, num_of_exps, algo)
       expect_equal(res, 1)
@@ -171,8 +174,8 @@ for (i in 1:2) {
   }
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume H-simplex50", {
+      skip_on_cran()
       PolyList = GenSimplex(50, 'H')
       res = Hruntest(PolyList$A, PolyList$b, 'H-simplex50', (1/prod(1:50)), 0.1, num_of_exps, algo)
       expect_equal(res, 1)
@@ -181,15 +184,18 @@ for (i in 1:2) {
 
   if(algo=="SOB"){
 
-    test_that("Volume H-skinny_cube10", {
-      PolyList = GenSkinnyCube(10)
-      res = Hruntest(PolyList$A, PolyList$b, 'H-skinny_cube10', 102400, 0.1, num_of_exps, algo)
-      expect_equal(res, 1)
-    })
+    if (!cran_only) {
+      test_that("Volume H-skinny_cube10", {
+        skip_on_cran()
+        PolyList = GenSkinnyCube(10)
+        res = Hruntest(PolyList$A, PolyList$b, 'H-skinny_cube10', 102400, 0.1, num_of_exps, algo)
+        expect_equal(res, 1)
+      })
+    }
   
     if (!cran_only) {
-      skip_on_cran()
       test_that("Volume H-skinny_cube20", {
+        skip_on_cran()
         PolyList = GenSkinnyCube(20)
         res = Hruntest(PolyList$A, PolyList$b, 'H-skinny_cube20', 104857600, 0.1, num_of_exps, algo)
         expect_equal(res, 1)

@@ -186,7 +186,6 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
     Point p(n);
 
     #ifdef VOLESTI_DEBUG
-    bool print=var.verbose;
     if(print) std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
     #endif
 

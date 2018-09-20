@@ -148,14 +148,16 @@ test_that("Chebychev test", {
 })
 
 
-PolyList = GenSkinnyCube(10)
-res = runCheTest(PolyList$A, PolyList$b, 'H-skinny_cube10', 1.0, tol)
+
 test_that("Chebychev test", {
+  PolyList = GenSkinnyCube(10)
+  res = runCheTest(PolyList$A, PolyList$b, 'H-skinny_cube10', 1.0, tol)
   expect_equal(res, 1)
 })
 
-PolyList = GenSkinnyCube(20)
-res = runCheTest(PolyList$A, PolyList$b, 'H-skinny_cube20', 1.0, tol)
+
 test_that("Chebychev test", {
+  PolyList = GenSkinnyCube(20)
+  res = runCheTest(PolyList$A, PolyList$b, 'H-skinny_cube20', 1.0, tol)
   expect_equal(res, 1)
 })
