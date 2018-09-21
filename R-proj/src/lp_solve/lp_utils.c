@@ -7,6 +7,7 @@
 #include <time.h>
 #include <sys/timeb.h>
 #include "lp_bit.h"
+#include "R_ext/Random.h"
 
 #ifdef FORTIFY
 # include "lp_fortify.h"
@@ -604,9 +605,9 @@ STATIC LPSREAL rand_uniform(lprec *lp, LPSREAL range)
 
   if(!randomized) {
     randomized = TRUE;
-    srand((unsigned) time( NULL ));
   }
-  range *= (LPSREAL) rand() / (LPSREAL) RAND_MAX;
+  GetRNGstate();
+  range *= (LPSREAL) unif_rand();
   return( range );
 }
 
