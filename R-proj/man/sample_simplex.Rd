@@ -36,3 +36,13 @@ MatPoints = sample_simplex(dimension = 10, N = 2000, canonical = TRUE)
 V = matrix(c(0,0,0,7,11,0), ncol=2, nrow=3, byrow=TRUE)
 MatPoints = sample_simplex(vertices = V, N = 3000)
 }
+\references{
+\cite{R.Y. Rubinstein and B. Melamed,
+\dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
+
+\cite{A Smith, Noah and W Tromble, Roy,
+\dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
+
+\cite{Art B. Owen,
+\dQuote{Monte Carlo theory, methods and examples,} \emph{ Copyright Art Owen,} 2009-2013.}
+}
