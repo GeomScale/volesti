@@ -608,6 +608,7 @@ STATIC LPSREAL rand_uniform(lprec *lp, LPSREAL range)
   }
   GetRNGstate();
   range *= (LPSREAL) unif_rand();
+  PutRNGstate();
   return( range );
 }
 

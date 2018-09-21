@@ -10,6 +10,14 @@
 #' @description This function can be used to sample uniform points from the \eqn{d}-dimensional unit simplex \eqn{S\subset\R^d} or the \eqn{d-1}-dimensional canonical simplex \eqn{S\subset\R^{d}}.
 #' Moreover it can be used to sample uniform points from an arbitrary simplex when \eqn{d+1} \eqn{d}-dimensional vertices that define a full dimensional simplex are given.
 #' 
+#' @references \cite{R.Y. Rubinstein and B. Melamed,
+#' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
+#' @references \cite{A Smith, Noah and W Tromble, Roy,
+#' \dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
+#' @references \cite{Art B. Owen,
+#' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Copyright Art Owen,} 2009-2013.}
+#' 
+#' 
 #' @return A \eqn{d\times N} matrix that containes, column-wise, the sampled points.
 #' 
 #' @examples 
