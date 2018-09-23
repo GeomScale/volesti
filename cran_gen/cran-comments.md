@@ -21,12 +21,12 @@ File ‘volesti/libs/volesti.so’:
   Found ‘rand’, possibly from ‘rand’ (C)  
     Object: ‘vol_R.o’  
 
-  Library lpSolveAPI uses rand() and srand() in lp_utils.c. We replace both functions with GetRNGstate(); PutRNGstate(); double unif_rand(); from R’s internal random number generation routines as it is proposed in `Writing R Extensions`. Moreover if you run in folder `/src`:  
+  Library lpSolveAPI uses rand() and srand() in lp_utils.c. We replace both functions with GetRNGstate(); PutRNGstate(); unif_rand(); from R’s internal random number generation routines as it is proposed in `Writing R Extensions`. Moreover if you run in folder `/src`:  
 $ grep -r 'rand()'
 You just get:  
 `utils.c:  range *= (LPSREAL) unif_rand();`  
 which is our replacement. If you replace `rand()` with `srand` in grep search you get a null result.  
-This NOTE appears because of our functions in `/src/include/samplers` where word `rand` appears a lot of times, for example `rand_point_generator`.  
+This NOTE appears because of our functions in `/src/include/samplers` where word `rand` appears a lot of times, for example `rand_point_generator()`.  
 
 --------------------------------------------
 
