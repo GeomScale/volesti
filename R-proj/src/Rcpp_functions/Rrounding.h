@@ -10,7 +10,6 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-
 Rcpp::NumericMatrix rounding (Rcpp::NumericMatrix A, unsigned int walk_len, bool coord,
                               bool ball_walk, double delta, bool Vpoly, bool Zono) {
 
