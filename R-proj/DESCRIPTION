@@ -3,7 +3,7 @@ Type: Package
 License: LGPL-3
 Title: Volume Approximation and Sampling of Convex Polytopes
 Authors@R: c(person("Fisikopoulos", "Vissarion" , role=c("cph", "cre", "aut"), email="vissarion.fisikopoulos@gmail.com"),
-             person("Chalkis", "Apostolos" , role=c("cph", "ctb", "aut"), email="tolis.chal@gmail.com"))
+             person("Chalkis", "Apostolos" , role=c("cph", "aut"), email="tolis.chal@gmail.com"))
 Description: Package provides an R interface for volesti C++ package. Volesti computes
              approximations of volume of polytopes given as a set of points or linear inequalities
              or Minkowski sum of segments (zonotopes). There are two algorithms for volume
