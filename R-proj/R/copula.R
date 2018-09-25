@@ -26,7 +26,7 @@
 #' E = replicate(10, rnorm(20))
 #' E = cov(E)
 #' cop = copula(h1=h1, E=E, numSlices=10, N=100000)
-
+#' @export
 copula <-function(h1, h2, E, numSlices, N) {
   if(missing(h1)) {
     print('Wrong inputs..see the documentaion')
