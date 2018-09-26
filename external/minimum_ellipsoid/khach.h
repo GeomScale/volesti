@@ -9,6 +9,13 @@
 
    Computation and use of ellipsoids releated to sets of points
 */
+#ifndef KHACH_H
+#define KHACH_H
+
+#include <set>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+
 #include <boost/numeric/ublas/triangular.hpp>
 #include <boost/numeric/ublas/banded.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -16,15 +23,23 @@
 #include <iostream>
 #include <boost/numeric/ublas/io.hpp>
 
-#include "khach1.h"
-#include "mcpoint1.h"
-#include "mcpoint2.h"
+//#include "khach1.h"
+//#include "mcpoint1.h"
+#include "mcpoint.h"
 //#include "bnmin_main1.h"
 //#include "bnmin_main2.h"
 
 //#include "../bnmin_main.hxx"
 
-namespace Minim {
+//namespace Minim {
+
+  namespace ublas=boost::numeric::ublas;
+
+  struct KhachiyanEllipsoid
+  {
+      ublas::matrix<double> Q;
+      ublas::vector<double> c;
+  };
 
   template<class T>
   bool InvertMatrix(const ublas::matrix<T> &input,
@@ -41,7 +56,8 @@ namespace Minim {
     return true;
   }
 
-  void InvertLP(const ublas::matrix<double> &Lambdap,
+
+  inline void InvertLP(const ublas::matrix<double> &Lambdap,
                 ublas::matrix<double> &LpInv)
   {
     bool res=InvertMatrix(Lambdap, LpInv);
@@ -53,7 +69,7 @@ namespace Minim {
     }
   }
 
-  void Lift(const ublas::matrix<double> &A,
+  inline void Lift(const ublas::matrix<double> &A,
             ublas::matrix<double> &Ap)
   {
     Ap.resize(A.size1()+1,
@@ -67,7 +83,7 @@ namespace Minim {
 
   }
 
-  void genDiag(const ublas::vector<double> &p,
+  inline void genDiag(const ublas::vector<double> &p,
                ublas::matrix<double> &res)
   {
     res.assign(ublas::zero_matrix<double>(p.size(),
@@ -78,7 +94,7 @@ namespace Minim {
     }
   }
 
-  void KaLambda(const ublas::matrix<double> &Ap,
+  inline void KaLambda(const ublas::matrix<double> &Ap,
                 const ublas::vector<double> &p,
                 ublas::matrix<double> &Lambdap)
   {
@@ -91,7 +107,7 @@ namespace Minim {
                         dp);
   }
 
-  double KhachiyanIter(const ublas::matrix<double> &Ap,
+  inline double KhachiyanIter(const ublas::matrix<double> &Ap,
                        ublas::vector<double> &p)
   {
     /// Dimensionality of the problem
@@ -125,7 +141,7 @@ namespace Minim {
 
   }
 
-  void KaInvertDual(const ublas::matrix<double> &A,
+  inline void KaInvertDual(const ublas::matrix<double> &A,
                     const ublas::vector<double> &p,
                     ublas::matrix<double> &Q,
                     ublas::vector<double> &c
@@ -150,7 +166,7 @@ namespace Minim {
 
   }
 
-  double KhachiyanAlgo(const ublas::matrix<double> &A,
+  inline double KhachiyanAlgo(const ublas::matrix<double> &A,
                        double eps,
                        size_t maxiter,
                        ublas::matrix<double> &Q,
@@ -159,7 +175,7 @@ namespace Minim {
     ublas::vector<double> p=ublas::scalar_vector<double>(A.size2(), 1.0)*(1.0/A.size2());
 
     ublas::matrix<double> Ap;
-    Minim::Lift(A, Ap);
+    Lift(A, Ap);
 
     double ceps=eps*2;
     for (size_t i=0;  i<maxiter && ceps>eps; ++i)
@@ -174,7 +190,7 @@ namespace Minim {
 
   }
 
-  double KhachiyanAlgo(const std::set<MCPoint> &ss,
+  inline double KhachiyanAlgo(const std::set<MCPoint> &ss,
                        double eps,
                        size_t maxiter,
                        KhachiyanEllipsoid &res)
@@ -203,5 +219,6 @@ namespace Minim {
     return ceps;
   }
 
+#endif
 
-}
+//}

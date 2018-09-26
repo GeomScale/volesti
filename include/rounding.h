@@ -10,6 +10,9 @@
 #ifndef ROUNDING_H
 #define ROUNDING_H
 
+
+#include "khach.h"
+
 /* EXPERIMENTAL
 //ROUNDING
 template <class MT, class Point>
@@ -206,7 +209,7 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
     boost::numeric::ublas::matrix<double> Q(n,n);
     boost::numeric::ublas::vector<double> c2(n);
     size_t w=1000;
-    Minim::KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+    KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
     MT E(n,n);
     VT e(n);

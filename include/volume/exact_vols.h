@@ -15,7 +15,7 @@
 // From rosetta code at http://rosettacode.org/wiki/Combinations#C.2B.2B
 // We made some adjustments to vectorize the output
 // Compute all the N combinations from N elements
-std::vector< std::vector<int> > comb(int N, int K)
+inline std::vector< std::vector<int> > comb(int N, int K)
 {
     std::string bitmask(K, 1); // K leading 1's
     bitmask.resize(N, 0); // N-K trailing 0's
