@@ -7,6 +7,12 @@
 
    \file mcpoint.cxx
 */
+#ifndef MCPOINT_H
+#define MCPOINT_H
+
+#include <vector>
+#include <list>
+#include <set>
 
 #include <cmath>
 #include <algorithm>
@@ -15,13 +21,102 @@
 //#include <gsl/gsl_math.h>
 //#include <gsl/gsl_eigen.h>
 
-#include "mcpoint1.h"
+//#include "mcpoint1.h"
 //#include "mcpoint2.h"
-#include "bnmin_main1.h"
-#include "bnmin_main2.h"
+#include "bnmin_main.h"
+//#include "bnmin_main2.h"
 
-namespace Minim {
-  
+//namespace Minim {
+    struct MCPoint
+    {
+        /// The actual parameters
+        std::vector<double> p;
+        /// Log-likelihood of this point
+        double ll;
+        /// A vector to store derived quantities at sample of the
+        /// distribution
+        std::vector<double> fval;
+
+        /// Default constructor allowed, fill in the data later
+        MCPoint(void):
+                p(0),
+                ll(-9999),
+                fval(0)
+        {
+        }
+
+        /** \Construct with supplied position vector
+         */
+        MCPoint(const std::vector<double> &p):
+                p(p),
+                ll(-9999),
+                fval(0)
+        {
+        }
+
+        /** \brief The parameter vector has n values
+         */
+        MCPoint(size_t np):
+                p(np),
+                ll(-9999),
+                fval(0)
+        {
+        }
+
+        MCPoint(const MCPoint &other):
+                p(other.p),
+                ll(other.ll),
+                fval(other.fval)
+        {
+        }
+
+        MCPoint & operator=(const MCPoint &other)
+        {
+            p=other.p;
+            ll=other.ll;
+            fval=other.fval;
+            return *this;
+        }
+
+
+    };
+
+    inline bool operator< (const MCPoint &a, const MCPoint &b)
+    {
+        return a.ll < b.ll;
+    }
+
+    struct WPPoint:
+            public MCPoint
+    {
+        /** \brief Weight factor
+         */
+        double w;
+
+        WPPoint(void):
+                w(0.0)
+        {
+        }
+
+        WPPoint(const std::vector<double> &p,
+                double w):
+                MCPoint(p),
+                w(w)
+        {
+        }
+
+        /** \brief Construct from MCPoint and a supplied weight
+         */
+        WPPoint(const MCPoint &mp,
+                double w):
+                MCPoint(mp),
+                w(w)
+        {
+        }
+
+    };
+
+    /*
   MCPoint::MCPoint(void):
     p(0),
     ll(-9999),
@@ -56,10 +151,11 @@ namespace Minim {
     ll=other.ll;
     fval=other.fval;
     return *this;
-  }
+  }*/
 
-  void moment1(const std::list<WPPoint> &l,
-	       std::vector<double> &res)
+
+  inline void moment1(const std::list<WPPoint> &l,
+	       std::vector<double > &res)
   {
     const size_t n=l.begin()->p.size();
     res=std::vector<double>(n, 0.0);
@@ -74,7 +170,7 @@ namespace Minim {
     }
   }
 
-  void moment1(const std::list<WPPoint> &l,
+  inline void moment1(const std::list<WPPoint> &l,
 	       double Z,
 	       std::vector<double> &res)
   {
@@ -83,9 +179,10 @@ namespace Minim {
       res[j] /= Z;
   }
 
-  void moment2(const std::list<WPPoint> &l,
-	       const std::vector<double> &m1,
-	       std::vector<double> &res)
+
+  inline void moment2(const std::list<WPPoint> &l,
+	       const std::vector<double > &m1,
+	       std::vector<double > &res)
   {
     const size_t n=m1.size();
     res=std::vector<double>(n, 0.0);
@@ -100,7 +197,7 @@ namespace Minim {
     }
   }
 
-  void moment2(const std::list<WPPoint> &l,
+  inline void moment2(const std::list<WPPoint> &l,
 	       const std::vector<double> &m1,
 	       double Z,
 	       std::vector<double> &res)
@@ -110,7 +207,7 @@ namespace Minim {
       res[j] /= Z;    
   }
 
-  void moment1(const std::set<MCPoint> &s,
+  inline void moment1(const std::set<MCPoint> &s,
 	       std::vector<double> &res)
   {
     const size_t n=s.begin()->p.size();
@@ -138,7 +235,7 @@ namespace Minim {
     }
   }
 
-  void moment2(const std::set<MCPoint> &s,
+  inline void moment2(const std::set<MCPoint> &s,
 	       const std::vector<double> &m1,
 	       std::vector<double> &res)
   {
@@ -163,9 +260,10 @@ namespace Minim {
     }
   }
 
-  void omoment2(const std::set<MCPoint> &s,
-		const std::vector<double> &m1,
-		std::vector<double> &res)
+
+  inline void omoment2(const std::set<MCPoint> &s,
+		const std::vector<double > &m1,
+		std::vector<double > &res)
   {
     const size_t n=m1.size();
     res=std::vector<double>(n*n, 0.0);
@@ -191,7 +289,8 @@ namespace Minim {
     }
 
   }
-  void omoment2(const std::set<MCPoint> &s,
+
+  inline void omoment2(const std::set<MCPoint> &s,
 		std::vector<double> &res)
   {
     std::vector<double> m1;
@@ -199,8 +298,9 @@ namespace Minim {
     omoment2(s, m1, res);
   }
 
-  void StdDev(const std::set<MCPoint> &s,
-	      std::vector<double> &res)
+
+  inline void StdDev(const std::set<MCPoint> &s,
+	      std::vector<double > &res)
   {
     std::vector<double> m1, m2;
     moment1(s, m1);
@@ -253,7 +353,7 @@ namespace Minim {
     gsl_matrix_free (evec);
   }*/
 
-  void postHist(const std::list<WPPoint> &l,
+  inline void postHist(const std::list<WPPoint> &l,
 		double Z,
 		const std::vector<double> &low,
 		const std::vector<double> &high,
@@ -297,13 +397,14 @@ namespace Minim {
     }
   }
 
-  void marginHist(const std::list<WPPoint> &l,
+
+  inline void marginHist(const std::list<WPPoint> &l,
 		  size_t pi,
-		  double Z,
-		  double low,
-		  double high,
+          double Z,
+          double low,
+          double high,
 		  size_t nbins,
-		  std::vector<double> &res)
+		  std::vector<double > &res)
   {
     res.resize(nbins);
     std::fill(res.begin(), res.end(), 
@@ -327,7 +428,7 @@ namespace Minim {
     }
   }
 
-  void marginHist2D(const std::list<WPPoint> &l,
+  inline void marginHist2D(const std::list<WPPoint> &l,
 		    double Z,
 		    size_t i,
 		    double ilow,
@@ -361,6 +462,6 @@ namespace Minim {
       
     }
   }
-}
+//}
 
-
+#endif

@@ -8,20 +8,6 @@
 #ifndef RSLICEOFSIMPLEX_H
 #define RSLICEOFSIMPLEX_H
 
-// [[Rcpp::plugins(cpp11)]]
-// [[Rcpp::export]]
-double SliceSimplex(Rcpp::NumericVector hyplane){
-
-    unsigned int dim = hyplane.size() - 1;
-    NT z0 = hyplane[dim];
-    std::vector<NT> hyp(dim, 0.0);
-
-    for ( i=0; i<dim; i++) {
-        hyp[i] = hyplane1[i];
-    }
-
-    return vol_Ali(hyp,-z0, dim);
-
-}
+double SliceSimplex(Rcpp::NumericVector hyplane);
 
 #endif

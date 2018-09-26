@@ -133,7 +133,6 @@ public:
 };
 
 
-#include "khach2.h"
 #include "polytopes.h"
 #include "ellipsoids.h"
 #include "ballintersectconvex.h"
@@ -143,7 +142,7 @@ public:
 #include "gaussian_annealing.h"
 #include "sample_only.h"
 #include "misc.h"
-#include "linear_extensions.h"
+//#include "linear_extensions.h"
 #include "polytope_generators.h"
 #include "exact_vols.h"
 #include "simplex_samplers.h"
