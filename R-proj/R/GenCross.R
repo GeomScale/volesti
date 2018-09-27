@@ -15,12 +15,29 @@
 #' @export
 GenCross <- function(dimension, repr) {
   
-  Zono = FALSE
   kind_gen = 2
-  NumGen = 0
+  m_gen = 0
+  if (repr == "V") {
+    Vpoly_gen = TRUE
+  } else if (repr == "H") {
+    Vpoly_gen = FALSE
+  } else {
+    stop('Not a known representation.')
+  }
   
-  ListMat = polytope_generator(Zono, repr, kind_gen, dimension, NumGen)
+  Mat = poly_gen(kind_gen, Vpoly_gen, dimension, m_gen)
   
-  return(ListMat)
+  # remove first row
+  Mat = Mat[-c(1),]
+  # first column is the vector b
+  b = Mat[,1]
+  Mat = Mat[,-c(1)]
   
+  if (Vpoly_gen) {
+    P = VPolytope(V = Mat)
+  } else {
+    P = HPolytope(A = -Mat, b = b)
+  }
+  
+  return(P)
 }

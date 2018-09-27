@@ -25,134 +25,116 @@
 #' b = c(0,0,1)
 #' points = sample_points(A=A, b=b, gaussian=TRUE, variance=2)
 #' @export
-sample_points <- function(A, b, V, G, walk_length, internal_point,
-                          gaussian, variance, N, ball_walk, delta,
-                          coordinate){
+sample_points <- function(P, InnerPoint, method){
   
-  vpoly = FALSE
-  Zono = FALSE
-  if(missing(b)) {
-    if(!missing(V)) {
-      Mat = V
+  if (!missing(P)) {
+    repr = class(P)[1]
+    if (repr == "HPolytope") {
+      vpoly = FALSE
+      Zono = FALSE
+    } else if(repr == "VPolytope") {
       vpoly = TRUE
-    } else if(!missing(G)){
-      Mat = G
-      Zono =TRUE
+      Zono = FALSE
     } else {
-      print('No V-polytope or zonotope can be defined!')
-      return(-1)
+      vpoly = FALSE
+      Zono = TRUE
     }
-    d = dim(Mat)[2] + 1
-    m = dim(Mat)[1]
-    b = rep(1, m)
-    r = rep(0, d)
-    r[1] = m
-    r[2] = d
-  } else {
-    if (!missing(A)) {
-      Mat = -A
-      vec = b
-      d = dim(Mat)[2] + 1
-      m = dim(Mat)[1]
-      r = rep(0,d)
-      r[1] = m
-      r[2] = d
-    } else {
-      print('matrix A is missing to define a H-polytope!')
-      return(-1)
-    }
-  }
-  Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
-  Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
   
-  # set the number of points to sample
-  n = 100
-  if (!missing(N)) {
-    n = N
+    Mat = P$get_mat()
+    dimension = dim(Mat)[2] - 1
+  } else {
+    if(missing(method)) {
+      stop("Neither a polytope or a direct method of sampling is declared.")
+    }
+    Mat = matrix(c(0,0))
+    Zono = FALSE
+    vpoly = FALSE
+  }
+  
+  if(missing(method)) {
+    gaussian = FALSE
+    ball_walk = FALSE
+    delta = -1
+    coord = TRUE
+    sam_simplex = FALSE
+    sam_can_simplex = FALSE
+    sam_arb_simplex = FALSE
+    sam_ball = FALSE
+    sam_sphere = FALSE
+    numpoints = 100
+    dim = 0
+    variance = 0
+  } else {
+    if(!is.null(method$direct)) {
+      if (method$direct) {
+        if(is.null(method$body)) {
+          stop("Direct sampling should be called only for simplices and spheres.")
+        }
+        if (method$body=="simplex") {
+          if(is.null(method$d)){
+            if(missing(P)) {
+              stop("For direct sampling from a simplex you have to give the dimension of the unit simplex or a simplex in V-representation.")
+            }
+            dim = 0
+            sam_simplex = FALSE
+            sam_can_simplex = FALSE
+            sam_arb_simplex = TRUE
+            sam_ball = FALSE
+            sam_sphere = FALSE
+          } else {
+            dim = method$d
+            sam_simplex = TRUE
+            sam_can_simplex = FALSE
+            sam_arb_simplex = FALSE
+            sam_ball = FALSE
+            sam_sphere = FALSE
+          }
+        } else if(method$body=="can_simplex") {
+          if(is.null(method$d)) {
+            stop("For direct sampling from a canonical simplex you have to give the dimension.")
+          }
+          dim = method$d
+          sam_simplex = FALSE
+          sam_can_simplex = TRUE
+          sam_arb_simplex = FALSE
+          sam_ball = FALSE
+          sam_sphere = FALSE
+        } else if (method$body=="sphere") {
+          if(is.null(method$d)) {
+            stop("For direct sampling from a hypersphere you have to give the dimension of the hypersphere.")
+          }
+          dim = method$d
+          sam_simplex = FALSE
+          sam_can_simplex = FALSE
+          sam_arb_simplex = FALSE
+          sam_ball = FALSE
+          sam_sphere = TRUE
+        } else if(method$body=="ball") {
+          f(is.null(method$d)) {
+            stop("For direct sampling from a ball you have to give the dimension of the ball.")
+          }
+          dim = method$d
+          sam_simplex = FALSE
+          sam_can_simplex = FALSE
+          sam_arb_simplex = FALSE
+          sam_ball = TRUE
+          sam_sphere = FALSE
+        }
+      }
+    }  
   }
   
   # set too large vector for internal point if it is not given as an input
-  internalpoint = rep(0,dim(Mat)[2] + 5)
-  if (!missing(internal_point)) {
-    internalpoint = internal_point
+  innerpoint = rep(0,dim(Mat)[2] + 5)
+  if (!missing(InnerPoint)) {
+    innerpoint = InnerPoint
   }
   
-  # set flag for spherical gaussian distribution
-  Gaussian = FALSE
-  if (!missing(gaussian)) {
-    Gaussian = gaussian
-  }
   
-  # set variance
-  var = 1
-  if (!missing(variance)) {
-    var = variance
-  }
-  
-  # set flag for verbose mode
-  verb = FALSE
-  
-  # set flag for Coordinate or Random Directions HnR
-  coord = TRUE
-  if (!missing(coordinate)) {
-    coord = coordinate
-  }
-  
-  # set the number of steps for the random walk
-  W = 10 + floor((dim(Mat)[2] - 1) / 10)
-  if (!missing(walk_length)) {
-    W = walk_length
-  }
-  
-  # set flag for the ball walk
-  ballwalk = FALSE
-  if (!missing(ball_walk)) {
-    ballwalk = ball_walk
-  }
-  
-  # set the radius for the ball walk. Negative value means that is not given as input
-  Delta = -1
-  if (!missing(delta)) {
-    Delta = delta
-  }
-  
-  #--------------------#
-  rounding = FALSE
-  e = 0
-  win_len = 0
-  C = 0
-  ratio = 0
-  NN = 0
-  frac = 0
-  
-  round_only = FALSE
-  rotate_only = FALSE
-  sample_only = TRUE
-  gen_only = FALSE
-  Vpoly_gen = FALSE
-  kind_gen = -1
-  dim_gen = 0
-  m_gen = 0
-  exact_zono = FALSE
-  ball_only = FALSE
-  sam_simplex = FALSE
-  sam_can_simplex = FALSE
-  sam_arb_simplex = FALSE
-  sam_ball = FALSE
-  sam_sphere = FALSE
-  construct_copula = FALSE
-  h1 = c(0)
-  h2 = c(0)
-  slices = 0
-  sliceSimplex = FALSE
-  #---------------------#
-  
-  points = vol_R(Mat, W, e, internalpoint, Gaussian, win_len, NN, C, ratio, frac,
-                 ballwalk, Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen,
-                 kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only,
-                 sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, 
-                 sam_ball, sam_sphere, n, var, construct_copula, h1, h2, slices,
-                 sliceSimplex, coord, rounding, verb)
+  points = Rsample_points(Mat, walk_len, innerpoint, gaussian, ball_walk, delta,
+                 coord, vpoly, Zono, sam_simplex, sam_can_simplex,
+                 sam_arb_simplex, sam_ball, sam_sphere, numpoints,
+                 dim, variance)
   
   return(points)
 }

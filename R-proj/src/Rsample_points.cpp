@@ -11,10 +11,10 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len, double e, Rcpp::NumericVector InnerVec,
-                                    bool CG, bool ball_walk, double delta, bool coord, bool Vpoly, bool Zono, bool sam_simplex,
+Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len, Rcpp::NumericVector InnerPoint,
+                                    bool gaussian, bool ball_walk, double delta, bool coord, bool Vpoly, bool Zono, bool sam_simplex,
                                     bool sam_can_simplex, bool sam_arb_simplex, bool sam_ball, bool sam_sphere,
-                                    unsigned int numpoints, int dim_gen, double variance) {
+                                    unsigned int numpoints, int dim, double variance) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -29,15 +29,15 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
     zonotope ZP;
 
     std::list<Point> randPoints;
-    Rcpp::NumericMatrix PointSet(dim_gen,numpoints);
+    Rcpp::NumericMatrix PointSet(dim,numpoints);
 
     if (sam_ball || sam_sphere) {
 
         for (unsigned int k = 0; k < numpoints; ++k) {
             if (sam_ball) {
-                randPoints.push_back(get_point_in_Dsphere<RNGType , Point >(dim_gen, delta));
+                randPoints.push_back(get_point_in_Dsphere<RNGType , Point >(dim, delta));
             } else {
-                randPoints.push_back(get_point_on_Dsphere<RNGType , Point >(dim_gen, delta));
+                randPoints.push_back(get_point_on_Dsphere<RNGType , Point >(dim, delta));
             }
         }
 
@@ -58,9 +58,9 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
     if (sam_simplex || sam_can_simplex) {
 
         if (sam_simplex) {
-            Sam_Unit<NT, RNGType >(dim_gen, numpoints, randPoints);
+            Sam_Unit<NT, RNGType >(dim, numpoints, randPoints);
         } else {
-            Sam_Canon_Unit<NT, RNGType >(dim_gen, numpoints, randPoints);
+            Sam_Canon_Unit<NT, RNGType >(dim, numpoints, randPoints);
         }
 
         // store the sampled points to the output matrix
@@ -143,10 +143,10 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
         InnerBall = VP.ComputeInnerBall();
     }
 
-    if (InnerVec.size()==n) {
+    if (InnerPoint.size()==n) {
         std::vector<NT> temp_p;
         for (unsigned int j=0; j<n; j++){
-            temp_p.push_back(InnerVec[j]);
+            temp_p.push_back(InnerPoint[j]);
         }
         InnerBall.first = Point( n , temp_p.begin() , temp_p.end() );
     }
@@ -155,25 +155,25 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
     NT a = 1.0 / (2.0 * variance);
     if (ball_walk) {
         if (delta < 0.0) { // set the radius for the ball walk if is not set by the user
-            if (CG) {
+            if (gaussian) {
                 delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
             } else {
                 delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
             }
         }
     }
-    unsigned int rnum = std::pow(e,-2) * 400 * n * std::log(n);
+    unsigned int rnum = std::pow(1.0,-2) * 400 * n * std::log(n);
     // initialization
     vars<NT, RNGType> var1(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
                            delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
     vars_g<NT, RNGType> var2(n, walk_len, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                              rand_only, false, NN, birk, ball_walk, coord);
     if (Zono) {
-        sampling_only<Point>(randPoints, ZP, walk_len, numpoints, CG, a, p, var1, var2);
+        sampling_only<Point>(randPoints, ZP, walk_len, numpoints, gaussian, a, p, var1, var2);
     } else if (!Vpoly) {
-        sampling_only<Point>(randPoints, HP, walk_len, numpoints, CG, a, p, var1, var2);
+        sampling_only<Point>(randPoints, HP, walk_len, numpoints, gaussian, a, p, var1, var2);
     } else {
-        sampling_only<Point>(randPoints, VP, walk_len, numpoints, CG, a, p, var1, var2);
+        sampling_only<Point>(randPoints, VP, walk_len, numpoints, gaussian, a, p, var1, var2);
     }
 
     // store the sampled points to the output matrix
