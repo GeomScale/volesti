@@ -17,7 +17,6 @@
 #' @param frac Optional. The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.
 #' @param ball_walk Optional. Boolean parameter to use ball walk. Default value is false.
 #' @param delta Optional. The radius for the ball walk.
-#' @param verbose Optional. A boolean parameter for printing. Default value is false.
 #' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
 #' @param rounding Optional. A boolean parameter to activate the rounding option. Default value is false.
 #' 
@@ -45,83 +44,70 @@
 #' @importFrom Rcpp evalCpp
 #' @importFrom "utils" "read.csv"
 #' @exportPattern "^[[:alpha:]]+"
-volume <- function(A, b, V, G, walk_length, error, InnerVec, CG, win_len,
-                   C, N, ratio, frac, ball_walk, delta, verbose, 
-                   coordinate, rounding) {
+volume <- function(P, walk_length, error, InnerBall, Algo, WalkType, rounding){
   
-  vpoly = FALSE
-  Zono = FALSE
-  if(missing(b)) {
-    if(!missing(V)) {
-      Mat = V
-      vpoly = TRUE
-    } else if(!missing(G)){
-      Mat = G
-      Zono =TRUE
-    } else {
-      print('No V-polytope or zonotope can be defined!')
-      return(-1)
-    }
-    d = dim(Mat)[2] + 1
-    m = dim(Mat)[1]
-    b = rep(1, m)
-    r = rep(0, d)
-    r[1] = m
-    r[2] = d
+  repr = class(P)[1]
+  if (repr == "HPolytope") {
+    vpoly = FALSE
+    Zono = FALSE
+  } else if(repr == "VPolytope") {
+    vpoly = TRUE
+    Zono = FALSE
   } else {
-    if (!missing(A)) {
-      Mat = -A
-      vec = b
-      d = dim(Mat)[2] + 1
-      m = dim(Mat)[1]
-      r = rep(0,d)
-      r[1] = m
-      r[2] = d
-    } else {
-      print('matrix A is missing to define a H-polytope!')
-      return(-1)
-    }
+    vpoly = FALSE
+    Zono = TRUE
   }
-  Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
-  Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
+  
+  Mat = P$get_mat()
   
   dimension = dim(Mat)[2] - 1
   
-  # set a too large vector for chebychev ball if it is not given as input
-  InnerBall = rep(0, dimension + 5)
-  if (!missing(InnerVec)) {
-    InnerBall = InnerVec
-  }
-  
-  # set flag for CV algorithm
-  annealing = FALSE
-  if (!missing(CG)) {
-    annealing = CG
-  }
-  
-  # set flag for verbose mode
-  verb = FALSE
-  if (!missing(verbose)) {
-    verb = verbose
-  }
-  
-  # set flag for Coordinate or Random Directions HnR
-  coord = TRUE
-  if (!missing(coordinate)) {
-    coord = coordinate
-  }
-  
-  # set flag for rounding
-  round = FALSE
-  if (!missing(rounding)) {
-    round = rounding
+  CG = FALSE
+  win_len = 0
+  C = 0
+  N = 0
+  ratio = 0
+  frac = 0
+  if (!missing(Algo)) {
+    if(!is.null(Algo$CG)) {
+      if(Algo$CG) {
+        CG = TRUE
+        
+        win_len=4*(dimension^2)+500
+        if(!is.null(Algo$window_len)){
+          win_len=Algo$window_len
+        }
+        C=2
+        if(!is.null(Algo$C)){
+          C=Algo$C
+        }
+        ratio=1-1/dimension
+        if(!is.null(Algo$ratio)){
+          ratio=Algo$ratio
+        }
+        N=500*C+(dimension^2)/2
+        if(!is.null(Algo$N)){
+          N=Algo$N
+        }
+        frac=0.1
+        if(!is.null(Algo$frac)){
+          frac=Algo$frac
+        }
+      } else if (!is.null(Algo$SOB)) {
+        if (!Algo$SOB) {
+          stop("You have to choose between two Algorithms!")
+        }
+      } else {
+        warning("CG is false and no flag for SOB. The latest algorithm will be used.")
+      }
+    }
   }
   
   # set the number of steps for the random walk
   if (!missing(walk_length)) {
     W = walk_length
   } else {
-    if (annealing) {
+    if (CG) {
       W = 1
     }else{
       W = 10 + floor( dimension / 10 )
@@ -132,83 +118,54 @@ volume <- function(A, b, V, G, walk_length, error, InnerVec, CG, win_len,
   if (!missing(error)) {
     e = error
   } else {
-    if (annealing) {
+    if (CG) {
       e = 0.2
     } else {
       e = 1
     }
   }
   
-  
-  # [CG] initialization
-  window_len = 4 * ( dimension ^ 2 ) + 500
-  if (!missing(win_len)) {
-    window_len = win_len
+  # set a too large vector for chebychev ball if it is not given as input
+  InnerB = rep(0, dimension + 5)
+  if (!missing(InnerBall)) {
+    InnerB = InnerBall
   }
   
-  c = 2
-  if (!missing(C)) {
-    c = C
-  }
-  Ratio = 1 - 1 / dimension
-  if (!missing(ratio)) {
-    Ratio = ratio
-  }
-  NN = 500 * c + ( dimension^2 ) / 2
-  if (!missing(N)) {
-    NN = N
-  }
-  Frac = 0.1
-  if (!missing(frac)) {
-    Frac = frac
+  round = FALSE
+  if (!missing(rounding)) {
+    round = rounding
   }
   
-  # set flag for the ball walk
-  ballwalk = FALSE
-  if (!missing(ball_walk)) {
-    ballwalk = ball_walk
+  if (missing(WalkType)) {
+    ball_walk = FALSE
+    delta = -1
+    coordinate = TRUE
+  } else {
+    if(is.null(WalkType$method)){
+      stop("No method for random wak was picked.")
+    }
+    if(WalkType$method=="hnr") {
+      ball_walk = FALSE
+      delta = -1
+      coordinate = TRUE
+      if(!is.null(WalkType$coordinate)){
+        coordinate = WalkType$coordinate
+      }
+    } else if(WalkType$method=="bw") {
+      coordinate = TRUE
+      ball_walk = TRUE
+      delta = -1
+      if(!is.null(WalkType$delta)){
+        delta = WalkType$delta
+      }
+    } else {
+      stop("Not a known random walk method.")
+    }
   }
   
-  # set the radius for the ball walk. Negative value means that is not given as input
-  Delta = -1
-  if (!missing(delta)) {
-    Delta = delta
-  }
+  vol = Rvolume(Mat, W, e, InnerB, CG, win_len, N, C, ratio,
+                frac, ball_walk, delta, vpoly, Zono, coordinate, round)
 
-  #------------------------#
-  round_only = FALSE
-  rotate_only = FALSE
-  sample_only = FALSE
-  variance = 0
-  numpoints = 0
-  gen_only = FALSE
-  Vpoly_gen = FALSE
-  kind_gen = -1
-  dim_gen = 0
-  m_gen = 0
-  exact_zono = FALSE
-  ball_only = FALSE
-  sam_simplex = FALSE
-  sam_can_simplex = FALSE
-  sam_arb_simplex = FALSE
-  sam_ball = FALSE
-  sam_sphere = FALSE
-  construct_copula = FALSE
-  h1 = c(0)
-  h2 = c(0)
-  slices = 0
-  sliceSimplex = FALSE
-  #-----------------------#
-  
-  vol = vol_R(Mat, W, e, InnerBall, annealing, window_len, NN, c,
-              Ratio, Frac, ballwalk, Delta, vpoly, Zono, exact_zono,
-              gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen,
-              round_only, rotate_only, ball_only, sample_only,
-              sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball,
-              sam_sphere, numpoints, variance,construct_copula, h1, h2,
-              slices, sliceSimplex, coord, round, verb)
-  
-
-  return(vol[1,1])
+  return(vol)
   
 }

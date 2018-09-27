@@ -14,7 +14,7 @@
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 double Rvolume (Rcpp::NumericMatrix A, unsigned int walk_len, double e,
-                Rcpp::NumericVector InnerVec, bool CG, unsigned int win_len,
+                Rcpp::NumericVector InnerBall, bool CG, unsigned int win_len,
                 unsigned int N, double C, double ratio, double frac,
                 bool ball_walk, double delta, bool Vpoly, bool Zono,
                 bool coord, bool rounding) {
@@ -26,7 +26,6 @@ double Rvolume (Rcpp::NumericMatrix A, unsigned int walk_len, double e,
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> zonotope;
-    //typedef copula_ellipsoid<Point> CopEll;
     //unsigned int n_threads=1,i,j;
 
     bool rand_only=false,
@@ -66,52 +65,52 @@ double Rvolume (Rcpp::NumericMatrix A, unsigned int walk_len, double e,
         VP.init(Pin);
     }
 
-    std::pair<Point,NT> InnerBall;
+    std::pair<Point,NT> InnerB;
 
-    if(InnerVec.size()==n+1) { //if it is given as an input
+    if(InnerBall.size()==n+1) { //if it is given as an input
         // store internal point hat is given as input
         std::vector<NT> temp_p;
         for (unsigned int j=0; j<n; j++){
-            temp_p.push_back(InnerVec[j]);
+            temp_p.push_back(InnerBall[j]);
         }
-        InnerBall.first = Point( n , temp_p.begin() , temp_p.end() );
+        InnerB.first = Point( n , temp_p.begin() , temp_p.end() );
         // store the radius of the internal ball that is given as input
-        InnerBall.second = InnerVec[n];
+        InnerB.second = InnerBall[n];
     } else {
         // no internal ball or point is given as input
         if (Zono) {
-            InnerBall = ZP.ComputeInnerBall();
+            InnerB = ZP.ComputeInnerBall();
         } else if (!Vpoly) {
-            InnerBall = HP.ComputeInnerBall();
+            InnerB = HP.ComputeInnerBall();
         } else {
-            InnerBall = VP.ComputeInnerBall();
+            InnerB = VP.ComputeInnerBall();
         }
     }
 
 
     // initialization
-    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0, InnerBall.second,rng,urdist,urdist1,
+    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0, InnerB.second,rng,urdist,urdist1,
                           delta,verbose,rand_only,rounding,NN,birk,ball_walk,coordinate);
     NT vol;
     if (CG) {
-        vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second, rng,
+        vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
                                urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
-        vars_g<NT, RNGType> var1(n, walk_len, N, win_len, 1, e, InnerBall.second, rng, C, frac, ratio, delta, false, verbose,
+        vars_g<NT, RNGType> var1(n, walk_len, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                  rand_only, rounding, NN, birk, ball_walk, coordinate);
         if (Zono) {
-            vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
+            vol = volume_gaussian_annealing(ZP, var1, var2, InnerB);
         } else if (!Vpoly) { // if the input is a H-polytope
-            vol = volume_gaussian_annealing(HP, var1, var2, InnerBall);
+            vol = volume_gaussian_annealing(HP, var1, var2, InnerB);
         } else {  // if the input is a V-polytope
-            vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
+            vol = volume_gaussian_annealing(VP, var1, var2, InnerB);
         }
     } else {
         if (Zono) {
-            vol = volume(ZP, var, var, InnerBall);
+            vol = volume(ZP, var, var, InnerB);
         } else if (!Vpoly) { // if the input is a H-polytope
-            vol = volume(HP, var, var, InnerBall);
+            vol = volume(HP, var, var, InnerB);
         } else { // if the input is a V-polytope
-            vol = volume(VP, var, var, InnerBall);
+            vol = volume(VP, var, var, InnerB);
         }
     }
 

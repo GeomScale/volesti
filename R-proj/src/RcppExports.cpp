@@ -6,6 +6,34 @@
 
 using namespace Rcpp;
 
+// copula_hypEll
+Rcpp::NumericMatrix copula_hypEll(Rcpp::NumericVector hyplane, Rcpp::NumericMatrix E, unsigned int num_slices, unsigned int numpoints);
+RcppExport SEXP _volesti_copula_hypEll(SEXP hyplaneSEXP, SEXP ESEXP, SEXP num_slicesSEXP, SEXP numpointsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type hyplane(hyplaneSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type E(ESEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_slices(num_slicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type numpoints(numpointsSEXP);
+    rcpp_result_gen = Rcpp::wrap(copula_hypEll(hyplane, E, num_slices, numpoints));
+    return rcpp_result_gen;
+END_RCPP
+}
+// copula_hyps
+Rcpp::NumericMatrix copula_hyps(Rcpp::NumericVector hyplane1, Rcpp::NumericVector hyplane2, unsigned int num_slices, unsigned int numpoints);
+RcppExport SEXP _volesti_copula_hyps(SEXP hyplane1SEXP, SEXP hyplane2SEXP, SEXP num_slicesSEXP, SEXP numpointsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type hyplane1(hyplane1SEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type hyplane2(hyplane2SEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type num_slices(num_slicesSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type numpoints(numpointsSEXP);
+    rcpp_result_gen = Rcpp::wrap(copula_hyps(hyplane1, hyplane2, num_slices, numpoints));
+    return rcpp_result_gen;
+END_RCPP
+}
 // InnerBall
 Rcpp::NumericVector InnerBall(Rcpp::NumericMatrix A, bool Zono, bool Vpoly);
 RcppExport SEXP _volesti_InnerBall(SEXP ASEXP, SEXP ZonoSEXP, SEXP VpolySEXP) {
@@ -33,6 +61,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rotating
+Rcpp::NumericMatrix rotating(Rcpp::NumericMatrix A, bool Zono, bool Vpoly);
+RcppExport SEXP _volesti_rotating(SEXP ASEXP, SEXP ZonoSEXP, SEXP VpolySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< bool >::type Zono(ZonoSEXP);
+    Rcpp::traits::input_parameter< bool >::type Vpoly(VpolySEXP);
+    rcpp_result_gen = Rcpp::wrap(rotating(A, Zono, Vpoly));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rounding
 Rcpp::NumericMatrix rounding(Rcpp::NumericMatrix A, unsigned int walk_len, bool coord, bool ball_walk, double delta, bool Vpoly, bool Zono);
 RcppExport SEXP _volesti_rounding(SEXP ASEXP, SEXP walk_lenSEXP, SEXP coordSEXP, SEXP ball_walkSEXP, SEXP deltaSEXP, SEXP VpolySEXP, SEXP ZonoSEXP) {
@@ -51,15 +92,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // Rsample_points
-Rcpp::NumericMatrix Rsample_points(Rcpp::NumericMatrix A, unsigned int walk_len, double e, Rcpp::NumericVector InnerVec, bool CG, bool ball_walk, double delta, bool coord, bool Vpoly, bool Zono, bool sam_simplex, bool sam_can_simplex, bool sam_arb_simplex, bool sam_ball, bool sam_sphere, unsigned int numpoints, int dim_gen, double variance);
-RcppExport SEXP _volesti_Rsample_points(SEXP ASEXP, SEXP walk_lenSEXP, SEXP eSEXP, SEXP InnerVecSEXP, SEXP CGSEXP, SEXP ball_walkSEXP, SEXP deltaSEXP, SEXP coordSEXP, SEXP VpolySEXP, SEXP ZonoSEXP, SEXP sam_simplexSEXP, SEXP sam_can_simplexSEXP, SEXP sam_arb_simplexSEXP, SEXP sam_ballSEXP, SEXP sam_sphereSEXP, SEXP numpointsSEXP, SEXP dim_genSEXP, SEXP varianceSEXP) {
+Rcpp::NumericMatrix Rsample_points(Rcpp::NumericMatrix A, unsigned int walk_len, double e, Rcpp::NumericVector InnerPoint, bool CG, bool ball_walk, double delta, bool coord, bool Vpoly, bool Zono, bool sam_simplex, bool sam_can_simplex, bool sam_arb_simplex, bool sam_ball, bool sam_sphere, unsigned int numpoints, int dim_gen, double variance);
+RcppExport SEXP _volesti_Rsample_points(SEXP ASEXP, SEXP walk_lenSEXP, SEXP eSEXP, SEXP InnerPointSEXP, SEXP CGSEXP, SEXP ball_walkSEXP, SEXP deltaSEXP, SEXP coordSEXP, SEXP VpolySEXP, SEXP ZonoSEXP, SEXP sam_simplexSEXP, SEXP sam_can_simplexSEXP, SEXP sam_arb_simplexSEXP, SEXP sam_ballSEXP, SEXP sam_sphereSEXP, SEXP numpointsSEXP, SEXP dim_genSEXP, SEXP varianceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
     Rcpp::traits::input_parameter< unsigned int >::type walk_len(walk_lenSEXP);
     Rcpp::traits::input_parameter< double >::type e(eSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type InnerVec(InnerVecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type InnerPoint(InnerPointSEXP);
     Rcpp::traits::input_parameter< bool >::type CG(CGSEXP);
     Rcpp::traits::input_parameter< bool >::type ball_walk(ball_walkSEXP);
     Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
@@ -74,7 +115,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< unsigned int >::type numpoints(numpointsSEXP);
     Rcpp::traits::input_parameter< int >::type dim_gen(dim_genSEXP);
     Rcpp::traits::input_parameter< double >::type variance(varianceSEXP);
-    rcpp_result_gen = Rcpp::wrap(Rsample_points(A, walk_len, e, InnerVec, CG, ball_walk, delta, coord, Vpoly, Zono, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, dim_gen, variance));
+    rcpp_result_gen = Rcpp::wrap(Rsample_points(A, walk_len, e, InnerPoint, CG, ball_walk, delta, coord, Vpoly, Zono, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, dim_gen, variance));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -89,16 +130,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Rvol_exact
+double Rvol_exact(Rcpp::NumericMatrix A, bool exact_zono, bool exact_cube, bool exact_simplex, bool exact_cross, int dim);
+RcppExport SEXP _volesti_Rvol_exact(SEXP ASEXP, SEXP exact_zonoSEXP, SEXP exact_cubeSEXP, SEXP exact_simplexSEXP, SEXP exact_crossSEXP, SEXP dimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
+    Rcpp::traits::input_parameter< bool >::type exact_zono(exact_zonoSEXP);
+    Rcpp::traits::input_parameter< bool >::type exact_cube(exact_cubeSEXP);
+    Rcpp::traits::input_parameter< bool >::type exact_simplex(exact_simplexSEXP);
+    Rcpp::traits::input_parameter< bool >::type exact_cross(exact_crossSEXP);
+    Rcpp::traits::input_parameter< int >::type dim(dimSEXP);
+    rcpp_result_gen = Rcpp::wrap(Rvol_exact(A, exact_zono, exact_cube, exact_simplex, exact_cross, dim));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Rvolume
-double Rvolume(Rcpp::NumericMatrix A, unsigned int walk_len, double e, Rcpp::NumericVector InnerVec, bool CG, unsigned int win_len, unsigned int N, double C, double ratio, double frac, bool ball_walk, double delta, bool Vpoly, bool Zono, bool coord, bool rounding);
-RcppExport SEXP _volesti_Rvolume(SEXP ASEXP, SEXP walk_lenSEXP, SEXP eSEXP, SEXP InnerVecSEXP, SEXP CGSEXP, SEXP win_lenSEXP, SEXP NSEXP, SEXP CSEXP, SEXP ratioSEXP, SEXP fracSEXP, SEXP ball_walkSEXP, SEXP deltaSEXP, SEXP VpolySEXP, SEXP ZonoSEXP, SEXP coordSEXP, SEXP roundingSEXP) {
+double Rvolume(Rcpp::NumericMatrix A, unsigned int walk_len, double e, Rcpp::NumericVector InnerBall, bool CG, unsigned int win_len, unsigned int N, double C, double ratio, double frac, bool ball_walk, double delta, bool Vpoly, bool Zono, bool coord, bool rounding);
+RcppExport SEXP _volesti_Rvolume(SEXP ASEXP, SEXP walk_lenSEXP, SEXP eSEXP, SEXP InnerBallSEXP, SEXP CGSEXP, SEXP win_lenSEXP, SEXP NSEXP, SEXP CSEXP, SEXP ratioSEXP, SEXP fracSEXP, SEXP ball_walkSEXP, SEXP deltaSEXP, SEXP VpolySEXP, SEXP ZonoSEXP, SEXP coordSEXP, SEXP roundingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
     Rcpp::traits::input_parameter< unsigned int >::type walk_len(walk_lenSEXP);
     Rcpp::traits::input_parameter< double >::type e(eSEXP);
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type InnerVec(InnerVecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type InnerBall(InnerBallSEXP);
     Rcpp::traits::input_parameter< bool >::type CG(CGSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type win_len(win_lenSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type N(NSEXP);
@@ -111,7 +168,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type Zono(ZonoSEXP);
     Rcpp::traits::input_parameter< bool >::type coord(coordSEXP);
     Rcpp::traits::input_parameter< bool >::type rounding(roundingSEXP);
-    rcpp_result_gen = Rcpp::wrap(Rvolume(A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding));
+    rcpp_result_gen = Rcpp::wrap(Rvolume(A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -166,11 +223,15 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_volesti_copula_hypEll", (DL_FUNC) &_volesti_copula_hypEll, 4},
+    {"_volesti_copula_hyps", (DL_FUNC) &_volesti_copula_hyps, 4},
     {"_volesti_InnerBall", (DL_FUNC) &_volesti_InnerBall, 3},
     {"_volesti_poly_gen", (DL_FUNC) &_volesti_poly_gen, 4},
+    {"_volesti_rotating", (DL_FUNC) &_volesti_rotating, 3},
     {"_volesti_rounding", (DL_FUNC) &_volesti_rounding, 7},
     {"_volesti_Rsample_points", (DL_FUNC) &_volesti_Rsample_points, 18},
     {"_volesti_SliceSimplex", (DL_FUNC) &_volesti_SliceSimplex, 1},
+    {"_volesti_Rvol_exact", (DL_FUNC) &_volesti_Rvol_exact, 6},
     {"_volesti_Rvolume", (DL_FUNC) &_volesti_Rvolume, 16},
     {"_volesti_vol_R", (DL_FUNC) &_volesti_vol_R, 39},
     {NULL, NULL, 0}

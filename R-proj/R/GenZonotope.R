@@ -12,12 +12,18 @@
 #' @export
 GenZonotope <- function(dimension, NumGen) {
   
-  Zono = TRUE
   kind_gen = 0
-  repr = 'zonotope'
+  Vpoly_gen = FALSE
   
-  ListMat = polytope_generator(Zono, repr, kind_gen, dimension, NumGen)
+  Mat = poly_gen(kind_gen, Vpoly_gen, dimension, NumGen)
   
-  return(ListMat)
+  # remove first row
+  Mat = Mat[-c(1),]
+  # first column is the vector b
+  b = Mat[,1]
+  Mat = Mat[,-c(1)]
   
+  P = Zonotope(G = Mat)
+
+  return(P)
 }

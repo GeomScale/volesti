@@ -11,13 +11,20 @@
 #' @export
 GenProdSimplex <- function(dimension) {
   
-  Zono = FALSE
   kind_gen = 4
-  NumGen = 0
-  repr = 'H'
+  m_gen = 0
+  Vpoly_gen = FALSE
   
-  ListMat = polytope_generator(Zono, repr, kind_gen, dimension, NumGen)
+  Mat = poly_gen(kind_gen, Vpoly_gen, dimension, m_gen)
   
-  return(ListMat)
+  # remove first row
+  Mat = Mat[-c(1),]
+  # first column is the vector b
+  b = Mat[,1]
+  Mat = Mat[,-c(1)]
+  
+  P = HPolytope(A = -Mat, b = b)
+  
+  return(P)
   
 }
