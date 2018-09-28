@@ -9,8 +9,8 @@ copula_hyps <- function(hyplane1, hyplane2, num_slices, numpoints) {
     .Call('_volesti_copula_hyps', PACKAGE = 'volesti', hyplane1, hyplane2, num_slices, numpoints)
 }
 
-InnerBall <- function(A, Zono, Vpoly) {
-    .Call('_volesti_InnerBall', PACKAGE = 'volesti', A, Zono, Vpoly)
+RInnerBall <- function(A, Zono, Vpoly) {
+    .Call('_volesti_RInnerBall', PACKAGE = 'volesti', A, Zono, Vpoly)
 }
 
 poly_gen <- function(kind_gen, Vpoly_gen, dim_gen, m_gen) {

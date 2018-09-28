@@ -10,9 +10,12 @@
 #' path = system.file('extdata', package = 'volesti')
 #' ListPoly = fileToMatrix(paste0(path,'/birk4.ine'))
 #' @export
-fileToMatrix <- function(path){
+fileToMatrix <- function(path, zonotope){
   
   ineorext=substr(path, start = nchar(path) - 2, stop = nchar(path))
+  if(ineorext!="ine" || ineorext!="ext") {
+    stop("Only ine or ext files can be handled by this function!")
+  }
   P = read.csv(path)
   r = as.character(P[3,1])
   count_sp = 1
@@ -90,13 +93,15 @@ fileToMatrix <- function(path){
   A2 = A[,-c(1)]
   
   if(ineorext=="ine") {
-    # return final list if it is ine file
-    retList = list("A"=-A2, "b"=b)
-    return(retList)
-  } else if(ineorext == "ext") {
-    return(A2)
+    P = HPolytope(A=-A2, b=b)
   } else {
-    print('Only ine or et files can be handled by this function!')
-    return(-1)
+    if(!missing(zonotope)){
+      if(zonotope) {
+        P = Zonotope(G=A2)
+        return(P)
+      }
+    }
+    P = VPolytope(V=A2)
   }
+  return(P)
 }

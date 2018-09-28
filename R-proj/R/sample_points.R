@@ -79,7 +79,7 @@ sample_points <- function(P, N, distribution, method, InnerPoint){
           if(is.null(method$dim)){
             if(missing(P)) {
               stop("For direct sampling from a simplex you have to give the dimension of the unit simplex or a simplex in V-representation.")
-            } else if(!vpoly || Zono) {
+            } else if(!vpoly) {
               stop("To sample uniformly points from a simplex, it has to be given in V-representation.")
             } else if(dimension != dim(Mat)[1]-2) {
               stop("The polytope is not a simplex.")
