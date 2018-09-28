@@ -41,7 +41,7 @@ double Rvol_exact (Rcpp::NumericMatrix A, bool exact_zono, bool exact_cube,
         unsigned int m = A.nrow() - 1;
         unsigned int n = A.ncol() - 1;
 
-        std::vector <std::vector<NT>> Pin(m + 1, std::vector<NT>(n + 1));
+        std::vector <std::vector<NT> > Pin(m + 1, std::vector<NT>(n + 1));
 
         for (unsigned int i=0; i<m+1; i++){
             for(unsigned int j=0; j<n+1; j++){
@@ -54,13 +54,17 @@ double Rvol_exact (Rcpp::NumericMatrix A, bool exact_zono, bool exact_cube,
     } else if(exact_simplex) {
         unsigned int m = A.nrow() - 1;
         unsigned int n = A.ncol() - 1;
+        if (dim!=n) {
+            vol = 1.0 / factorial(NT(dim));
+            return vol;
+        }
         typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
         typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
         MT V(n, n + 1);
-        for (int i = 0; i < A.ncol(); ++i) {
-            for (int j = 0; j < A.nrow(); ++j) {
-                V(i, j) = A(j, i);
+        for (int i = 1; i < A.ncol(); ++i) {
+            for (int j = 1; j < A.nrow(); ++j) {
+                V(i-1, j-1) = A(j, i);
             }
         }
         VT v0 = V.col(n);

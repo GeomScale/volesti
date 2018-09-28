@@ -27,89 +27,35 @@
 #' E = cov(E)
 #' cop = copula(h1=h1, E=E, numSlices=10, N=100000)
 #' @export
-copula <-function(h1, h2, E, numSlices, N) {
-  if(missing(h1)) {
-    print('Wrong inputs..see the documentaion')
-    return(0)
-  } else if (missing(E)) {
-    if (missing(h2)) {
-      print('Wrong inputs..see the documentaion')
-      return(0)
-    }
-    if (length(h1)!=length(h2)  || length(h1)<2){
-      print('Wrong inputs..see the documentaion')
-      return(0)
-    }
-    E=matrix(c(0,0))
-  } else {
-    if (!missing(h2)) {
-      print('Wrong inputs..see the documentaion')
-      return(0)
-    }
-    if(length(h1)!=dim(E)[2] || length(h1)<2) {
-      print('Wrong inputs..see the documentaion')
-      return(0)
-    }
-    h2 = c(0)
+copula1 <-function(h1, h2, numSlices, N) {
+  
+  if(missing(h1) || missing(h2)) {
+    stop('Only one family is given.')
   }
+  
+  if (length(h1)<2 || length(h2)<2) {
+    stop("The dimension of the two families has to be greater than 2.")
+  }
+  
+  if (length(h1)!=length(h2)){
+    stop('The two families are defined for different dimensions.')
+  }
+  
   slices = 100
   if(!missing(numSlices)) {
-    slices = numSlices 
+    slices = numSlices
+    if(slices<=0) {
+      stop("Number of slices has to be a positive integer.")
+    }
   }
   n = 4000000
   if (!missing(N)) {
     n = N
+    if(n<=0) {
+      stop("Number of sampled points has to be a positive integer.")
+    }
   }
   
-  construct_copula = TRUE
-  
-  # set flag for verbose mode
-  verbose=FALSE
-  
-  #---------------------#
-  round_only = FALSE
-  rotate_only = FALSE
-  W = 0
-  e = 0
-  internalpoint = c(0)
-  Gaussian = FALSE
-  win_len = 0
-  NN = 0
-  C = 0
-  ratio = 0
-  frac = 0
-  ballwalk = FALSE
-  delta =0
-  vpoly = FALSE
-  Zono = FALSE
-  exact_zono = FALSE
-  sample_only = FALSE
-  var = 0
-  coord = TRUE
-  rounding = FALSE
-  gen_only = FALSE
-  Vpoly_gen = FALSE
-  kind_gen = -1
-  m_gen = 0
-  dim_gen = 0
-  exact_zono = FALSE
-  ball_only = FALSE
-  sam_simplex = FALSE
-  sam_can_simplex = FALSE
-  sam_arb_simplex = FALSE
-  sam_ball = FALSE
-  sam_sphere = FALSE
-  sliceSimplex = FALSE
-  #-------------------#
-  
-  Mat = vol_R(E, W, e, internalpoint, Gaussian, win_len, NN, C, ratio, frac,
-                    ballwalk, delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen,
-                    kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only,
-                    sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball,
-                    sam_sphere, n, var, construct_copula, h1, h2, slices, sliceSimplex,
-                    coord, rounding, verbose)
-  
+  Mat = copula_hyps(h1, h2, slices, n)
   return(Mat)
-  
-  
 }

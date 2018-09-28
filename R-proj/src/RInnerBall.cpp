@@ -17,7 +17,7 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::NumericVector InnerBall(Rcpp::NumericMatrix A, bool Zono, bool Vpoly) {
+Rcpp::NumericVector RInnerBall(Rcpp::NumericMatrix A, bool Zono, bool Vpoly) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -59,9 +59,9 @@ Rcpp::NumericVector InnerBall(Rcpp::NumericMatrix A, bool Zono, bool Vpoly) {
         InnerBall = VP.ComputeInnerBall();
     }
     for (unsigned int k = 0; k < n; ++k) {
-        vec(k) = InnerBall.first[k];
+        vec[k] = InnerBall.first[k];
     }
-    vec(n) = InnerBall.second;
+    vec[n] = InnerBall.second;
     return vec;
 
 }
