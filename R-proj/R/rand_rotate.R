@@ -22,91 +22,30 @@
 #' Zmat = GenZonotope(5,15)
 #' MatZono = rand_rotate(G=Zmat)
 #' @export
-rand_rotate <- function(A, b, V, G){
+rand_rotate <- function(P){
   
-  vpoly = FALSE
-  Zono = FALSE
-  if(missing(b)) {
-    if(!missing(V)) {
-      Mat = V
+  if (!missing(P)) {
+    repr = class(P)[1]
+    if (repr == "HPolytope") {
+      vpoly = FALSE
+      Zono = FALSE
+    } else if(repr == "VPolytope") {
       vpoly = TRUE
-    } else if(!missing(G)){
-      Mat = G
-      Zono =TRUE
+      Zono = FALSE
+    } else if(repr == "Zonotope") {
+      vpoly = FALSE
+      Zono = TRUE
     } else {
-      print('No V-polytope or zonotope can be defined!')
-      return(-1)
+      stop("Not a known polytope representation.")
     }
-    d = dim(Mat)[2] + 1
-    m = dim(Mat)[1]
-    b = rep(1, m)
-    r = rep(0, d)
-    r[1] = m
-    r[2] = d
+    Mat = P$get_mat()
+    dimension = dim(Mat)[2] - 1
+    walk_length = 10 + floor( dimension / 10 )
   } else {
-    if (!missing(A)) {
-      Mat = -A
-      vec = b
-      d = dim(Mat)[2] + 1
-      m = dim(Mat)[1]
-      r = rep(0,d)
-      r[1] = m
-      r[2] = d
-    } else {
-      print('matrix A is missing to define a H-polytope!')
-      return(-1)
-    }
+    stop("No polytope is given.")
   }
-  Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
-  Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
   
-  # set flag for verbose mode
-  verbose=FALSE
-  
-  # set flag for rotating only
-  rotate_only = TRUE
-  
-  #---------------------#
-  round_only = FALSE
-  W = 0
-  e = 0
-  Cheb_ball = c(0)
-  annealing = FALSE
-  win_len = 0
-  N = 0
-  C = 0
-  ratio = 0
-  frac = 0
-  ball_walk = FALSE
-  delta =0
-  sample_only = FALSE
-  numpoints = 0
-  variance = 0
-  coordinate = TRUE
-  rounding = FALSE
-  gen_only = FALSE
-  Vpoly_gen = FALSE
-  kind_gen = -1
-  dim_gen = 0
-  m_gen = 0
-  exact_zono = FALSE
-  ball_only = FALSE
-  sam_simplex = FALSE
-  sam_can_simplex = FALSE
-  sam_arb_simplex = FALSE
-  sam_ball = FALSE
-  sam_sphere = FALSE
-  construct_copula = FALSE
-  h1 = c(0)
-  h2 = c(0)
-  slices = 0
-  sliceSimplex = FALSE
-  #-------------------#
-  
-  Mat = vol_R(Mat, W, e, Cheb_ball, annealing, win_len, N, C, ratio, frac, ball_walk, delta,
-              vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, 
-              rotate_only, ball_only, sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex,
-              sam_ball, sam_sphere, numpoints, variance, construct_copula, h1, h2, slices, sliceSimplex, coordinate, rounding, verbose)
+  Mat = rotating(Mat, Zono, vpoly)
   
   # get elements "matrix" and "vector"
   # remove first row
@@ -117,11 +56,13 @@ rand_rotate <- function(A, b, V, G){
   
   # remove first column
   A = Mat[,-c(1)]
-  if (vpoly || Zono){
-    # in V-polytope or zonotope cases return only the marix
-    return(A)
+  A = Mat[,-c(1)]
+  if (vpoly) {
+    PP = VPolytope(V=A)
+  }else if (Zono) {
+    PP = Zonotope(G=A)
   } else {
-    retList = list("A"=A, "b"=b)
-    return(retList)
+    PP = HPolytope("A"=A, "b"=b)
   }
+  return(PP)
 }
