@@ -78,16 +78,16 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
 
     if (sam_arb_simplex) {
         unsigned int n=A.ncol()-1;
-        std::vector<NT> temp_p(n + 1, 0.0);
+        std::vector<NT> temp_p(n, 0.0);
         typename std::vector<NT>::iterator temp_it;
         std::vector<Point> vec_point;
 
-        for (int k = 0; k < A.nrow(); ++k) {
+        for (int k = 1; k < A.nrow(); ++k) {
             temp_it = temp_p.begin();
-            for (int l = 0; l < A.ncol(); ++l, ++temp_it) {
+            for (int l = 1; l < A.ncol(); ++l, ++temp_it) {
                 *temp_it = A(k,l);
             }
-            vec_point.push_back(Point(n+1, temp_p.begin(), temp_p.end()));
+            vec_point.push_back(Point(n, temp_p.begin(), temp_p.end()));
         }
 
         Sam_arb_simplex<NT, RNGType>(vec_point.begin(), vec_point.end(), numpoints, randPoints);

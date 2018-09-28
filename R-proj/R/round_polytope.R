@@ -26,113 +26,63 @@
 #' Zmat = GenZonotope(10,20)
 #' ListZono = round_polytope(G=Zmat)
 #' @export
-round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate) {
+round_polytope <- function(P, method) {
   
-  vpoly = FALSE
-  Zono = FALSE
-  if(missing(b)) {
-    if(!missing(V)) {
-      Mat = V
+  if (!missing(P)) {
+    repr = class(P)[1]
+    if (repr == "HPolytope") {
+      vpoly = FALSE
+      Zono = FALSE
+    } else if(repr == "VPolytope") {
       vpoly = TRUE
-    } else if(!missing(G)){
-      Mat = G
-      Zono =TRUE
+      Zono = FALSE
+    } else if(repr == "Zonotope") {
+      vpoly = FALSE
+      Zono = TRUE
     } else {
-      print('No V-polytope or zonotope can be defined!')
-      return(-1)
+      stop("Not a known polytope representation.")
     }
-    d = dim(Mat)[2] + 1
-    m = dim(Mat)[1]
-    b = rep(1, m)
-    r = rep(0, d)
-    r[1] = m
-    r[2] = d
+    Mat = P$get_mat()
+    dimension = dim(Mat)[2] - 1
+    walk_length = 10 + floor( dimension / 10 )
   } else {
-    if (!missing(A)) {
-      Mat = -A
-      vec = b
-      d = dim(Mat)[2] + 1
-      m = dim(Mat)[1]
-      r = rep(0,d)
-      r[1] = m
-      r[2] = d
-    } else {
-      print('matrix A is missing to define a H-polytope!')
-      return(-1)
+    stop("No polytope is given.")
+  }
+  
+  coordinate = TRUE
+  ball_walk = FALSE
+  delta = -1
+  if(!missing(method)) {
+    if(!is.null(method$coord)){
+      coordinate = method$coord
+    }
+    if(!is.null(method$WalkT)) {
+      if(method$WalkT=="hnr") {
+        ball_walk = FALSE
+        delta = -1
+      } else if(method$WalkT=="bw") {
+        if(!is.null(method$coord)){
+          warning("Ball walk and coordinate are both declared. Ball walk is going to be used.")
+        }
+        coordinate = TRUE
+        ball_walk = TRUE
+        delta = -1
+        if(!is.null(method$delta)){
+          delta = method$delta
+        }
+      } else {
+        stop("Not a known random walk method.")
+      }
+    }
+    if(!is.null(method$W)) {
+      walk_length = method$W
+      if (walk_length<=0) {
+        stop("Walk length must be a positive value.")
+      }
     }
   }
-  Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
-  Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
   
-  # set the number of steps for the random walk
-  W = 10 + floor((dim(Mat)[2] - 1) / 10)
-  if (!missing(walk_length)) {
-    W = walk_length
-  }
-  
-  # set flag for Coordinate or Random Directions HnR
-  coord = TRUE
-  if (!missing(coordinate)) {
-    coord = coordinate
-  }
-  
-  # set flag for ball walk
-  ballwalk = FALSE
-  if (!missing(ball_walk)) {
-    ballwalk = ball_walk
-  }
-  
-  # set the radius for the ball walk. Negative value means that is not given as input
-  Delta = -1
-  if (!missing(delta)) {
-    Delta = delta
-  }
-  
-  # set flag for verbose mode
-  verb = FALSE
-  
-  #set round_only flag
-  round_only = TRUE
-  
-  #---------------------#
-  rotate_only = FALSE
-  e = 0
-  InnerBall = rep(0,dim(Mat)[2] + 5)
-  annealing = FALSE
-  win_len = 0
-  N = 0
-  C = 0
-  ratio = 0
-  frac = 0
-  sample_only = FALSE
-  numpoints = 0
-  variance = 0
-  rounding = FALSE
-  gen_only = FALSE
-  Vpoly_gen = FALSE
-  kind_gen = -1
-  dim_gen = 0
-  m_gen = 0
-  exact_zono = FALSE
-  ball_only = FALSE
-  sam_simplex = FALSE
-  sam_can_simplex = FALSE
-  sam_arb_simplex = FALSE
-  sam_ball = FALSE
-  sam_sphere = FALSE
-  construct_copula = FALSE
-  h1 = c(0)
-  h2 = c(0)
-  slices = 0
-  sliceSimplex = FALSE
-  #---------------------#
-  
-  Mat = vol_R(Mat, W, e, InnerBall, annealing, win_len, N, C, ratio, frac, ballwalk,
-              Delta, vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen,
-              m_gen, round_only, rotate_only, ball_only, sample_only, sam_simplex,
-              sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, 
-              variance, construct_copula, h1, h2, slices, sliceSimplex, coord,
-              rounding, verb)
+  Mat = rounding(Mat, walk_length, coordinate, ball_walk, delta, vpoly, Zono)
   
   # get first row which has the info for round_value
   r = Mat[c(1),]
@@ -146,13 +96,11 @@ round_polytope <- function(A, b, V, G, walk_length, ball_walk, delta, coordinate
   # remove first column
   A = Mat[,-c(1)]
   if (vpoly) {
-    retList = list("V"=A, "round_value"=round_value)
-    return(retList)
+    PP = list("P" = VPolytope(V=A), "round_value" = round_value)
   }else if (Zono) {
-    retList = list("G"=A, "round_value"=round_value)
-    return(retList)
+    PP = list("P" = Zonotope(G=A), "round_value" = round_value)
   } else {
-    retList = list("A"=A, "b"=b, "round_value"=round_value)
-    return(retList)
+    PP = list("P" = HPolytope("A"=A, "b"=b), "round_value" = round_value)
   }
+  return(PP)
 }

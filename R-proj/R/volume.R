@@ -53,9 +53,11 @@ volume <- function(P, walk_length, error, InnerBall, Algo, WalkType, rounding){
   } else if(repr == "VPolytope") {
     vpoly = TRUE
     Zono = FALSE
-  } else {
+  } else if(repr == "Zonotope") {
     vpoly = FALSE
     Zono = TRUE
+  } else {
+    stop("Not a known polytope representation.")
   }
   
   Mat = P$get_mat()
