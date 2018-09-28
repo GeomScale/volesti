@@ -119,6 +119,7 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
     unsigned int m=A.nrow()-1;
     unsigned int n=A.ncol()-1;
     std::vector <std::vector<NT> > Pin(m + 1, std::vector<NT>(n + 1));
+    Rcpp::NumericMatrix PointSet2(n,numpoints);
 
     for (unsigned int i = 0; i < m + 1; i++) {
         for (unsigned int j = 0; j < n + 1; j++) {
@@ -183,9 +184,9 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
         qit = (*rpit).iter_begin(); i=0;
         for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            PointSet(i,j)=*qit;
+            PointSet2(i,j)=*qit;
         }
     }
-    return PointSet;
+    return PointSet2;
 
 }

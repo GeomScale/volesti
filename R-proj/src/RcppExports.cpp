@@ -92,16 +92,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // Rsample_points
-Rcpp::NumericMatrix Rsample_points(Rcpp::NumericMatrix A, unsigned int walk_len, double e, Rcpp::NumericVector InnerPoint, bool CG, bool ball_walk, double delta, bool coord, bool Vpoly, bool Zono, bool sam_simplex, bool sam_can_simplex, bool sam_arb_simplex, bool sam_ball, bool sam_sphere, unsigned int numpoints, int dim_gen, double variance);
-RcppExport SEXP _volesti_Rsample_points(SEXP ASEXP, SEXP walk_lenSEXP, SEXP eSEXP, SEXP InnerPointSEXP, SEXP CGSEXP, SEXP ball_walkSEXP, SEXP deltaSEXP, SEXP coordSEXP, SEXP VpolySEXP, SEXP ZonoSEXP, SEXP sam_simplexSEXP, SEXP sam_can_simplexSEXP, SEXP sam_arb_simplexSEXP, SEXP sam_ballSEXP, SEXP sam_sphereSEXP, SEXP numpointsSEXP, SEXP dim_genSEXP, SEXP varianceSEXP) {
+Rcpp::NumericMatrix Rsample_points(Rcpp::NumericMatrix A, unsigned int walk_len, Rcpp::NumericVector InnerPoint, bool gaussian, bool ball_walk, double delta, bool coord, bool Vpoly, bool Zono, bool sam_simplex, bool sam_can_simplex, bool sam_arb_simplex, bool sam_ball, bool sam_sphere, unsigned int numpoints, int dim, double variance);
+RcppExport SEXP _volesti_Rsample_points(SEXP ASEXP, SEXP walk_lenSEXP, SEXP InnerPointSEXP, SEXP gaussianSEXP, SEXP ball_walkSEXP, SEXP deltaSEXP, SEXP coordSEXP, SEXP VpolySEXP, SEXP ZonoSEXP, SEXP sam_simplexSEXP, SEXP sam_can_simplexSEXP, SEXP sam_arb_simplexSEXP, SEXP sam_ballSEXP, SEXP sam_sphereSEXP, SEXP numpointsSEXP, SEXP dimSEXP, SEXP varianceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type A(ASEXP);
     Rcpp::traits::input_parameter< unsigned int >::type walk_len(walk_lenSEXP);
-    Rcpp::traits::input_parameter< double >::type e(eSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type InnerPoint(InnerPointSEXP);
-    Rcpp::traits::input_parameter< bool >::type CG(CGSEXP);
+    Rcpp::traits::input_parameter< bool >::type gaussian(gaussianSEXP);
     Rcpp::traits::input_parameter< bool >::type ball_walk(ball_walkSEXP);
     Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
     Rcpp::traits::input_parameter< bool >::type coord(coordSEXP);
@@ -113,9 +112,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type sam_ball(sam_ballSEXP);
     Rcpp::traits::input_parameter< bool >::type sam_sphere(sam_sphereSEXP);
     Rcpp::traits::input_parameter< unsigned int >::type numpoints(numpointsSEXP);
-    Rcpp::traits::input_parameter< int >::type dim_gen(dim_genSEXP);
+    Rcpp::traits::input_parameter< int >::type dim(dimSEXP);
     Rcpp::traits::input_parameter< double >::type variance(varianceSEXP);
-    rcpp_result_gen = Rcpp::wrap(Rsample_points(A, walk_len, e, InnerPoint, CG, ball_walk, delta, coord, Vpoly, Zono, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, dim_gen, variance));
+    rcpp_result_gen = Rcpp::wrap(Rsample_points(A, walk_len, InnerPoint, gaussian, ball_walk, delta, coord, Vpoly, Zono, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, dim, variance));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -229,7 +228,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_volesti_poly_gen", (DL_FUNC) &_volesti_poly_gen, 4},
     {"_volesti_rotating", (DL_FUNC) &_volesti_rotating, 3},
     {"_volesti_rounding", (DL_FUNC) &_volesti_rounding, 7},
-    {"_volesti_Rsample_points", (DL_FUNC) &_volesti_Rsample_points, 18},
+    {"_volesti_Rsample_points", (DL_FUNC) &_volesti_Rsample_points, 17},
     {"_volesti_SliceSimplex", (DL_FUNC) &_volesti_SliceSimplex, 1},
     {"_volesti_Rvol_exact", (DL_FUNC) &_volesti_Rvol_exact, 6},
     {"_volesti_Rvolume", (DL_FUNC) &_volesti_Rvolume, 16},

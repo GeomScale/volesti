@@ -25,7 +25,7 @@
 #' b = c(0,0,1)
 #' points = sample_points(A=A, b=b, gaussian=TRUE, variance=2)
 #' @export
-sample_points <- function(P, InnerPoint, method){
+sample_points <- function(P, N, distribution, method, InnerPoint){
   
   if (!missing(P)) {
     repr = class(P)[1]
@@ -42,6 +42,7 @@ sample_points <- function(P, InnerPoint, method){
   
     Mat = P$get_mat()
     dimension = dim(Mat)[2] - 1
+    walk_length = 10 + floor( dimension / 10 )
   } else {
     if(missing(method)) {
       stop("Neither a polytope or a direct method of sampling is declared.")
@@ -49,22 +50,22 @@ sample_points <- function(P, InnerPoint, method){
     Mat = matrix(c(0,0))
     Zono = FALSE
     vpoly = FALSE
+    walk_length = 0
   }
   
-  if(missing(method)) {
-    gaussian = FALSE
-    ball_walk = FALSE
-    delta = -1
-    coord = TRUE
-    sam_simplex = FALSE
-    sam_can_simplex = FALSE
-    sam_arb_simplex = FALSE
-    sam_ball = FALSE
-    sam_sphere = FALSE
-    numpoints = 100
-    dim = 0
-    variance = 0
-  } else {
+  gaussian = FALSE
+  ball_walk = FALSE
+  delta = -1
+  coord = TRUE
+  sam_simplex = FALSE
+  sam_can_simplex = FALSE
+  sam_arb_simplex = FALSE
+  sam_ball = FALSE
+  sam_sphere = FALSE
+  numpoints = 100
+  dim = 0
+  variance = 1.0
+  if(!missing(method)) {
     if(!is.null(method$direct)) {
       if (method$direct) {
         if(is.null(method$body)) {
@@ -75,53 +76,90 @@ sample_points <- function(P, InnerPoint, method){
             if(missing(P)) {
               stop("For direct sampling from a simplex you have to give the dimension of the unit simplex or a simplex in V-representation.")
             }
-            dim = 0
-            sam_simplex = FALSE
-            sam_can_simplex = FALSE
             sam_arb_simplex = TRUE
-            sam_ball = FALSE
-            sam_sphere = FALSE
           } else {
             dim = method$d
             sam_simplex = TRUE
-            sam_can_simplex = FALSE
-            sam_arb_simplex = FALSE
-            sam_ball = FALSE
-            sam_sphere = FALSE
           }
         } else if(method$body=="can_simplex") {
           if(is.null(method$d)) {
             stop("For direct sampling from a canonical simplex you have to give the dimension.")
           }
           dim = method$d
-          sam_simplex = FALSE
           sam_can_simplex = TRUE
-          sam_arb_simplex = FALSE
-          sam_ball = FALSE
-          sam_sphere = FALSE
         } else if (method$body=="sphere") {
           if(is.null(method$d)) {
             stop("For direct sampling from a hypersphere you have to give the dimension of the hypersphere.")
           }
           dim = method$d
-          sam_simplex = FALSE
-          sam_can_simplex = FALSE
-          sam_arb_simplex = FALSE
-          sam_ball = FALSE
           sam_sphere = TRUE
         } else if(method$body=="ball") {
-          f(is.null(method$d)) {
+          if(is.null(method$d)) {
             stop("For direct sampling from a ball you have to give the dimension of the ball.")
           }
           dim = method$d
-          sam_simplex = FALSE
-          sam_can_simplex = FALSE
-          sam_arb_simplex = FALSE
           sam_ball = TRUE
-          sam_sphere = FALSE
         }
       }
-    }  
+    } else {
+      if(missing(P)) {
+        stop("Polytope not defined.")
+      }
+      coordinate = TRUE
+      if(!is.null(method$coord)){
+        coordinate = method$coord
+      }
+      if(method$WalkT=="hnr") {
+        ball_walk = FALSE
+        delta = -1
+      } else if(method$WalkT=="bw") {
+        if(!is.null(method$coord)){
+          warning("Ball walk and coordinate are both declared. Ball walk is going to be used.")
+        }
+        coordinate = TRUE
+        ball_walk = TRUE
+        delta = -1
+        if(!is.null(method$delta)){
+          delta = method$delta
+        }
+      } else {
+        stop("Not a known random walk method.")
+      }
+      if(!is.null(method$W)) {
+        walk_len = method$W
+        if (walk_len<=0) {
+          stop("Walk length must be a positive value.")
+        }
+      }
+    }
+  }
+  if(!missing(distribution)) {
+    if(!is.null(distribution$gaussian)) {
+      gaussian = distribution$gaussian
+      if(!is.null(distribution$uniform)) {
+        if(gaussian && distribution$uniform) {
+          stop("Only one target distribution has to be picked.")
+        }
+      }
+      if(!is.null(distribution$variance)) {
+        variance = distribution$variance
+        if (variance<=0) {
+          stop("Variance must be a positive value.")
+        }
+      }
+    } else {
+      if(!is.null(distribution$variance)) {
+        warning("Variance should be declared when gaussian distribution is enabled.")
+      }
+    }
+    
+  }
+  
+  if(!missing(N)){
+    numpoints = N
+    if(numpoints<=0) {
+      stop("Number of points has to be a positive integer.")
+    }
   }
   
   # set too large vector for internal point if it is not given as an input
@@ -130,11 +168,10 @@ sample_points <- function(P, InnerPoint, method){
     innerpoint = InnerPoint
   }
   
-  
-  points = Rsample_points(Mat, walk_len, innerpoint, gaussian, ball_walk, delta,
-                 coord, vpoly, Zono, sam_simplex, sam_can_simplex,
-                 sam_arb_simplex, sam_ball, sam_sphere, numpoints,
-                 dim, variance)
+  points = Rsample_points(Mat, walk_length, innerpoint, gaussian,
+                          ball_walk, delta, coord, vpoly, Zono,
+                          sam_simplex, sam_can_simplex, sam_arb_simplex,
+                          sam_ball, sam_sphere, numpoints, dim, variance)
   
   return(points)
 }
