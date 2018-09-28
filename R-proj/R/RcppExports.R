@@ -25,8 +25,8 @@ rounding <- function(A, walk_len, coord, ball_walk, delta, Vpoly, Zono) {
     .Call('_volesti_rounding', PACKAGE = 'volesti', A, walk_len, coord, ball_walk, delta, Vpoly, Zono)
 }
 
-Rsample_points <- function(A, walk_len, e, InnerPoint, CG, ball_walk, delta, coord, Vpoly, Zono, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, dim_gen, variance) {
-    .Call('_volesti_Rsample_points', PACKAGE = 'volesti', A, walk_len, e, InnerPoint, CG, ball_walk, delta, coord, Vpoly, Zono, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, dim_gen, variance)
+Rsample_points <- function(A, walk_len, InnerPoint, gaussian, ball_walk, delta, coord, Vpoly, Zono, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, dim, variance) {
+    .Call('_volesti_Rsample_points', PACKAGE = 'volesti', A, walk_len, InnerPoint, gaussian, ball_walk, delta, coord, Vpoly, Zono, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, dim, variance)
 }
 
 SliceSimplex <- function(hyplane) {
