@@ -51,7 +51,24 @@ exact_vol <- function(Z, exact) {
       }
     }
     Mat = matrix(c(0))
-    
+    if (!is.null(exact$simplex)) {
+      exact_simplex = exact$simplex
+    }
+    if (!is.null(exact$cube)) {
+      exact_cube = exact$cube
+      if (exact_cube && exact_simplex) {
+        stop("Wrong declaration.. Only exact volume of one polytope can be computed.")
+      }
+    }
+    if (!is.null(exact$cross)) {
+      exact_cross = exact$cross
+      if (exact_cross && (exact_cube || exact_simplex)) {
+        stop("Wrong declaration.. Only exact volume of one polytope can be computed.")
+      }
+    }
+    if (!exact_cross && !exact_cube && !exact_simplex) {
+      stop("Np exact volume computation is enabled.")
+    }
   } else {
     stop("Wrong inputs..See the documentation.")
   }
