@@ -14,7 +14,8 @@ template <class VPolytope>
 class IntersectionOfVpoly {
 public:
     typedef typename VPolytope::NT NT;
-    typedef typename VPolytope::PolytopePoint Point;
+    typedef typename VPolytope::PolytopePoint PolytopePoint;
+    typedef PolytopePoint Point;
     typedef typename VPolytope::MT MT;
     typedef typename VPolytope::VT VT;
     VPolytope P1;
@@ -41,7 +42,7 @@ public:
     }
 
     int num_of_vertices() {
-        return P1.num_of_vertices + P2.num_of_vertices;
+        return P1.num_of_vertices() + P2.num_of_vertices();
     }
 
     unsigned int upper_bound_of_hyperplanes() {

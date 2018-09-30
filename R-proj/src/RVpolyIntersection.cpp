@@ -18,13 +18,14 @@ double RVpolyIntersection(Rcpp::NumericMatrix V1, Rcpp::NumericMatrix V2,
                           unsigned int walk_len, double e, Rcpp::NumericVector InnerBall,
                           bool CG, unsigned int win_len, unsigned int N, double C,
                           double ratio, double frac, bool ball_walk, double delta,
-                          bool Vpoly, bool Zono, bool coord, bool rounding) {
+                          bool coord, bool rounding) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937    RNGType;
     typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef IntersectionOfVpoly<Vpolytope> InterVP;
     //unsigned int n_threads=1,i,j;
 
     bool rand_only=false,
@@ -40,7 +41,6 @@ double RVpolyIntersection(Rcpp::NumericMatrix V1, Rcpp::NumericMatrix V2,
     unsigned int n=V1.ncol() - 1;
     unsigned int m2=V2.nrow() - 1;
     unsigned int rnum = std::pow(e,-2) * 400 * n * std::log(n);
-    NT vol;
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     // the random engine with this seed
@@ -64,6 +64,7 @@ double RVpolyIntersection(Rcpp::NumericMatrix V1, Rcpp::NumericMatrix V2,
     // construct polytopes
     VP1.init(Pin1);
     VP2.init(Pin2);
+    InterVP VPcVP(VP1, VP2);
 
     std::pair<Point,NT> InnerB;
 
@@ -78,7 +79,7 @@ double RVpolyIntersection(Rcpp::NumericMatrix V1, Rcpp::NumericMatrix V2,
         InnerB.second = InnerBall[n];
     } else {
         // no internal ball or point is given as input
-        //InnerB = InterVP.ComputeInnerBall();
+        InnerB = VPcVP.ComputeInnerBall();
     }
 
 
@@ -91,10 +92,10 @@ double RVpolyIntersection(Rcpp::NumericMatrix V1, Rcpp::NumericMatrix V2,
                                urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
         vars_g<NT, RNGType> var1(n, walk_len, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                  rand_only, rounding, NN, birk, ball_walk, coordinate);
-        //vol = volume_gaussian_annealing(InterVP, var1, var2, InnerB);
+        vol = volume_gaussian_annealing(VPcVP, var1, var2, InnerB);
 
     } else {
-        //vol = volume(InterVP, var, var, InnerB);
+        vol = volume(VPcVP, var, var, InnerB);
     }
 
     return vol;

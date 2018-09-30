@@ -16,10 +16,22 @@ HPolytope <- setRefClass("HPolytope", fields = list(A="matrix", b="vector"),
             ))
 
 #' @export
-VPolytope <- setRefClass("VPolytope", fields = list(V="matrix"),
+VPolytope <- setRefClass("VPolytope", fields = list(V="matrix", V2="matrix"),
             methods = list(
               get_mat = function() {
                 Mat = V
+                d = dim(Mat)[2] + 1
+                m = dim(Mat)[1]
+                b = rep(1, m)
+                r = rep(0, d)
+                r[1] = m
+                r[2] = d
+                Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
+                Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
+                return(Mat)
+              },
+              get_mat2 = function() {
+                Mat = V2
                 d = dim(Mat)[2] + 1
                 m = dim(Mat)[1]
                 b = rep(1, m)
