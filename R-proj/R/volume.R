@@ -46,11 +46,20 @@
 #' @exportPattern "^[[:alpha:]]+"
 volume <- function(P, walk_length, error, InnerBall, Algo, WalkType, rounding){
   
+  intersection = FALSE
   repr = class(P)[1]
   if (repr == "HPolytope") {
     vpoly = FALSE
     Zono = FALSE
   } else if(repr == "VPolytope") {
+    if (dim(P$V2)[1]!=0) {
+      if (dim(P$V2)[2] != dim(P$V)[2]) {
+        stop("V-polytopes defined for different dimensions.")
+      }
+      intersection = TRUE
+      V1 = P$get_mat()
+      V2 = P$get_mat2()
+    }
     vpoly = TRUE
     Zono = FALSE
   } else if(repr == "Zonotope") {
@@ -60,9 +69,12 @@ volume <- function(P, walk_length, error, InnerBall, Algo, WalkType, rounding){
     stop("Not a known polytope representation.")
   }
   
-  Mat = P$get_mat()
-  
-  dimension = dim(Mat)[2] - 1
+  if (!intersection) {
+    Mat = P$get_mat()
+    dimension = dim(Mat)[2] - 1
+  } else {
+    dimension = dim(V1)[2] - 1
+  }
   
   CG = FALSE
   win_len = 0
@@ -165,8 +177,13 @@ volume <- function(P, walk_length, error, InnerBall, Algo, WalkType, rounding){
     }
   }
   
-  vol = Rvolume(Mat, W, e, InnerB, CG, win_len, N, C, ratio,
+  if (intersection) {
+    vol = RVpolyIntersection(V1, V2, W, e, InnerB, CG, win_len, N, C, ratio,
+                     frac, ball_walk, delta, coordinate, round)
+  } else {
+    vol = Rvolume(Mat, W, e, InnerB, CG, win_len, N, C, ratio,
                 frac, ball_walk, delta, vpoly, Zono, coordinate, round)
+  }
 
   return(vol)
   

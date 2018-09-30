@@ -136,6 +136,7 @@ public:
 #include "polytopes.h"
 #include "ellipsoids.h"
 #include "ballintersectconvex.h"
+#include "vpolyintersectvpoly.h"
 #include "samplers.h"
 #include "rounding.h"
 #include "gaussian_samplers.h"
