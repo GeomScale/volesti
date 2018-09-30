@@ -80,6 +80,9 @@ double RVpolyIntersection(Rcpp::NumericMatrix V1, Rcpp::NumericMatrix V2,
     } else {
         // no internal ball or point is given as input
         InnerB = VPcVP.ComputeInnerBall();
+        if (InnerB.second < 0.0) {
+            return -1.0;
+        }
     }
 
 
