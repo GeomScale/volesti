@@ -180,6 +180,9 @@ volume <- function(P, walk_length, error, InnerBall, Algo, WalkType, rounding){
   if (intersection) {
     vol = RVpolyIntersection(V1, V2, W, e, InnerB, CG, win_len, N, C, ratio,
                      frac, ball_walk, delta, coordinate, round)
+    if(vol < 0) {
+      stop("Inner ball computation failed. Give an inner ball.")
+    }
   } else {
     vol = Rvolume(Mat, W, e, InnerB, CG, win_len, N, C, ratio,
                 frac, ball_walk, delta, vpoly, Zono, coordinate, round)

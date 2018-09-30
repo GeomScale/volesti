@@ -51,6 +51,7 @@ public:
 
     std::pair<Point,NT> ComputeInnerBall() {
 
+        unsigned int num_of_v = 0;
         unsigned int d = dimension();
         MT V(0, d);
         MT V1 = P1.get_mat();
@@ -70,6 +71,7 @@ public:
             if (P2.is_in(p) == -1) {
                 V.conservativeResize(V.rows() + 1, V.cols());
                 V.row(V.rows()-1) = itervec;
+                num_of_v++;
             }
         }
 
@@ -84,7 +86,13 @@ public:
             if (P1.is_in(p) == -1) {
                 V.conservativeResize(V.rows() + 1, V.cols());
                 V.row(V.rows()-1) = itervec;
+                num_of_v++;
             }
+        }
+        if (num_of_v <= d) {
+            std::pair<Point,NT> res;
+            res.second = -1.0;
+            return res;
         }
 
         VPolytope Q;
