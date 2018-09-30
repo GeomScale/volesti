@@ -19,8 +19,10 @@ exact_vol <- function(Z, exact) {
   exact_cross = FALSE
   dim = 0
   if(!missing(Z)) {
-    if (!is.null(exact$cube, exact$cross)) {
-      warning("If a polytope is given then cube and cross in exact list should be NULL.")
+    if (!missing(exact)) {
+      if (!is.null(exact$cube, exact$cross)) {
+        warning("If a polytope is given then cube and cross in exact list should be NULL.")
+      }
     }
     Mat = Z$get_mat()
     dimension = dim(Mat)[2] - 1

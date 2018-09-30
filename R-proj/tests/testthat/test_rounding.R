@@ -2,20 +2,20 @@ context("Rounding test")
 
 library(volesti)
 
-testRound <- function(Mat, vector, exactvol, tol, name_string, num_of_exps, algo, rotation){
+testRound <- function(P, exactvol, tol, name_string, num_of_exps, algo, rotation){
   
   if (rotation) {
-    listHpoly = rand_rotate(A=Mat, b=vector)
-    listHpoly = round_polytope(A=listHpoly$A, b=listHpoly$b)
+    P = rand_rotate(P)
+    listHpoly = round_polytope(P)
   } else {
-    listHpoly = round_polytope(A=Mat, b=vector)
+    listHpoly = round_polytope(P)
   }
   vol = 0
   for (j in 1:num_of_exps) {
     if (algo == "SOB") {
-      vol = vol + listHpoly$round_value * volume(A=listHpoly$A, b=listHpoly$b)
+      vol = vol + listHpoly$round_value * volume(listHpoly$P)
     } else {
-      vol = vol + listHpoly$round_value * volume(A=listHpoly$A, b=listHpoly$b, CG=TRUE, error=0.1)
+      vol = vol + listHpoly$round_value * volume(listHpoly$P, error=0.1, Algo=list("CG"=TRUE))
     }
   }
   vol = vol / num_of_exps
@@ -52,17 +52,17 @@ for (i in 1:2) {
   
   if (algo=='SOB') {
     test_that("Rounding H-skinny_cube10", {
-      PolyList = GenSkinnyCube(10)
-      res = testRound(PolyList$A, PolyList$b, 102400, 0.3, 'H-skinny_cube10', num_of_exps, algo, FALSE)
+      P = GenSkinnyCube(10)
+      res = testRound(P, 102400, 0.3, 'H-skinny_cube10', num_of_exps, algo, FALSE)
       expect_equal(res, 1)
     })
   }
   
   if (!cran_only) {
-    skip_on_cran()
     test_that("Rounding H-skinny_cube20", {
-      PolyList = GenSkinnyCube(20)
-      res = testRound(PolyList$A, PolyList$b, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, FALSE)
+      skip_on_cran()
+      P = GenSkinnyCube(20)
+      res = testRound(P, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, FALSE)
       expect_equal(res, 1)
     })
   }

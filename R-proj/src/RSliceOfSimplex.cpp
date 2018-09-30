@@ -1,5 +1,3 @@
-// [[Rcpp::depends(BH)]]
-
 // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 20012-2018 Vissarion Fisikopoulos

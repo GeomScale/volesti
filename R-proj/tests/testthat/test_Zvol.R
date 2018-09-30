@@ -2,15 +2,15 @@ context("Zonotopes' volume test")
 
 library(volesti)
 
-Zruntest <- function(Mat, name_string, tol, num_of_exps, algo){
+Zruntest <- function(P, name_string, tol, num_of_exps, algo){
   
-  exactvol = ExactZonoVol(Mat)
+  exactvol = exact_vol(P)
   vol = 0
   for (j in 1:num_of_exps) {
     if (algo == "SOB") {
-      vol = vol + volume(G=Mat, rounding=TRUE)
+      vol = vol + volume(P, rounding=TRUE)
     } else {
-      vol = vol + volume(G=Mat, CG=TRUE, error=0.2, rounding=TRUE)
+      vol = vol + volume(P, error=0.2, Algo = list("CG"=TRUE), rounding=TRUE)
     }
   }
   vol = vol / num_of_exps
@@ -36,16 +36,16 @@ for (i in 1:2) {
   }
 
   test_that("Volume Zonotope_2_4", {
-    ZonoMat = GenZonotope(2, 4)
-    res = Zruntest(ZonoMat, 'Zonotope_2_4', tol, num_of_exps, algo)
+    Z = GenZonotope(2, 4)
+    res = Zruntest(Z, 'Zonotope_2_4', tol, num_of_exps, algo)
     expect_equal(res, 1)
   })
   
   if (!cran_only) {
     test_that("Volume Zonotope_2_8", {
       skip_on_cran()
-      ZonoMat = GenZonotope(2, 8)
-      res = Zruntest(ZonoMat, 'Zonotope_2_8', tol, num_of_exps, algo)
+      Z = GenZonotope(2, 8)
+      res = Zruntest(Z, 'Zonotope_2_8', tol, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }
@@ -53,8 +53,8 @@ for (i in 1:2) {
   if (!cran_only) {
     test_that("Volume Zonotope_4_8", {
       skip_on_cran()
-      ZonoMat = GenZonotope(4, 8)
-      res = Zruntest(ZonoMat, 'Zonotope_4_8', tol, num_of_exps, algo)
+      Z = GenZonotope(4, 8)
+      res = Zruntest(Z, 'Zonotope_4_8', tol, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }
@@ -62,8 +62,8 @@ for (i in 1:2) {
   if (!cran_only) {
     test_that("Volume Zonotope_4_10", {
       skip_on_cran()
-      ZonoMat = GenZonotope(4, 10)
-      res = Zruntest(ZonoMat, 'Zonotope_4_10', tol, num_of_exps, algo)
+      Z = GenZonotope(4, 10)
+      res = Zruntest(Z, 'Zonotope_4_10', tol, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }
@@ -71,8 +71,8 @@ for (i in 1:2) {
   if (!cran_only) {
     test_that("Volume Zonotope_5_10", {
       skip_on_cran()
-      ZonoMat = GenZonotope(5, 10)
-      res = Zruntest(ZonoMat, 'Zonotope_5_10', tol, num_of_exps, algo)
+      Z = GenZonotope(5, 10)
+      res = Zruntest(Z, 'Zonotope_5_10', tol, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }

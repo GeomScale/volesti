@@ -45,7 +45,3 @@ RVpolyIntersection <- function(V1, V2, walk_len, e, InnerBall, CG, win_len, N, C
     .Call('_volesti_RVpolyIntersection', PACKAGE = 'volesti', V1, V2, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, coord, rounding)
 }
 
-vol_R <- function(A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only, sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, variance, construct_copula, hyplane1, hyplane2, num_slices, sliceSimplex, coord, rounding, verbose) {
-    .Call('_volesti_vol_R', PACKAGE = 'volesti', A, walk_len, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, exact_zono, gen_only, Vpoly_gen, kind_gen, dim_gen, m_gen, round_only, rotate_only, ball_only, sample_only, sam_simplex, sam_can_simplex, sam_arb_simplex, sam_ball, sam_sphere, numpoints, variance, construct_copula, hyplane1, hyplane2, num_slices, sliceSimplex, coord, rounding, verbose)
-}
-

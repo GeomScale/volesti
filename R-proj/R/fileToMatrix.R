@@ -13,7 +13,7 @@
 fileToMatrix <- function(path, zonotope){
   
   ineorext=substr(path, start = nchar(path) - 2, stop = nchar(path))
-  if(ineorext!="ine" || ineorext!="ext") {
+  if(ineorext!="ine" && ineorext!="ext") {
     stop("Only ine or ext files can be handled by this function!")
   }
   P = read.csv(path)
