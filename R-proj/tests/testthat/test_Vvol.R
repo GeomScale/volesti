@@ -2,14 +2,14 @@ context("V-polytopes' volume test")
 
 library(volesti)
 
-Vruntest <- function(Mat, name_string, exactvol, tol, num_of_exps, algo){
+Vruntest <- function(P, name_string, exactvol, tol, num_of_exps, algo){
   
   vol = 0
   for (j in 1:num_of_exps) {
     if (algo == "SOB") {
-      vol = vol + volume(V=Mat)
+      vol = vol + volume(P)
     } else {
-      vol = vol + volume(V=Mat, CG=TRUE, error=0.2)
+      vol = vol + volume(P, error=0.2, Algo=list("CG"=TRUE))
     }
   }
   vol = vol / num_of_exps
@@ -38,8 +38,8 @@ for (i in 1:2) {
   if (!cran_only) {
     test_that("Volume V-cube3", {
       skip_on_cran()
-      PolyMat = GenCube(3, 'V')
-      res = Vruntest(PolyMat, 'V-cube3', 8, tol, num_of_exps, algo)
+      P = GenCube(3, 'V')
+      res = Vruntest(P, 'V-cube3', 8, tol, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }
@@ -47,8 +47,8 @@ for (i in 1:2) {
   if (!cran_only) {
     test_that("Volume V-cube4", {
       skip_on_cran()
-      PolyMat = GenCube(4, 'V')
-      res = Vruntest(PolyMat, 'V-cube4', 16, tol, num_of_exps, algo)
+      P = GenCube(4, 'V')
+      res = Vruntest(P, 'V-cube4', 16, tol, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }
@@ -56,33 +56,33 @@ for (i in 1:2) {
   if (!cran_only) {
     test_that("Volume V-cross3", {
       skip_on_cran()
-      PolyMat = GenCross(3, 'V')
-      res = Vruntest(PolyMat, 'V-cross3', 1.333333, tol, num_of_exps, algo)
+      P = GenCross(3, 'V')
+      res = Vruntest(P, 'V-cross3', 1.333333, tol, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }
   
   if (!cran_only) {
-    skip_on_cran()
     test_that("V volume test", {
-      PolyMat = GenCross(7, 'V')
-      Vruntest(PolyMat, 'V-cross7', 0.02539683, tol, num_of_exps, algo)
+      skip_on_cran()
+      P = GenCross(7, 'V')
+      Vruntest(P, 'V-cross7', 0.02539683, tol, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }
   
   
   test_that("Volume V-simplex3", {
-    PolyMat = GenSimplex(3, 'V')
-    res = Vruntest(PolyMat, 'V-simplex3', 1/prod(1:3), tol, num_of_exps, algo)
+    P = GenSimplex(3, 'V')
+    res = Vruntest(P, 'V-simplex3', 1/prod(1:3), tol, num_of_exps, algo)
     expect_equal(res, 1)
   })
 
   if (!cran_only) {
-    skip_on_cran()
     test_that("Volume V-simplex7", {
-      PolyMat = GenSimplex(7, 'V')
-      res = Vruntest(PolyMat, 'V-simplex7', 1/prod(1:7), tol, num_of_exps, algo)
+      skip_on_cran()
+      P = GenSimplex(7, 'V')
+      res = Vruntest(P, 'V-simplex7', 1/prod(1:7), tol, num_of_exps, algo)
       expect_equal(res, 1)
     })
   }

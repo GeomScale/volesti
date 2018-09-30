@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "Eigen/Eigen"
 #include "volume.h"
+#include "polytope_generators.h"
 #include <typeinfo>
 
 template <typename NT>

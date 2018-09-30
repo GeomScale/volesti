@@ -1,3 +1,5 @@
+// [[Rcpp::depends(BH)]]
+
 // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 20012-2018 Vissarion Fisikopoulos
@@ -7,7 +9,18 @@
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
-#include "volume.h"
+#include <chrono>
+#include "cartesian_geom/cartesian_kernel.h"
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+#include "vars.h"
+#include "polytopes.h"
+#include "samplers.h"
+#include "gaussian_samplers.h"
+#include "sample_only.h"
+#include "simplex_samplers.h"
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]

@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include "Eigen/Eigen"
 #include "volume.h"
+#include "polytope_generators.h"
 
 template <typename NT>
 NT factorial(NT n)

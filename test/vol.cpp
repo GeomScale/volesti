@@ -21,9 +21,10 @@
 
 #include "Eigen/Eigen"
 #define VOLESTI_DEBUG
+#include <fstream>
 #include "volume.h"
-
-
+#include "sample_only.h"
+#include "exact_vols.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/

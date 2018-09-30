@@ -12,10 +12,10 @@
 #define VOLUME_H
 
 #include <iterator>
-#include <fstream>
+//#include <fstream>
 #include <vector>
 #include <list>
-#include <algorithm>
+//#include <algorithm>
 #include <math.h>
 #include <chrono>
 #include "cartesian_geom/cartesian_kernel.h"
@@ -23,131 +23,22 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-
-
-//structs with variables and random generators
-template <typename NT, class RNG>
-struct vars{
-public:
-    typedef RNG RNGType;
-    vars( unsigned int m,
-          unsigned int n,
-          unsigned int walk_steps,
-          unsigned int n_threads,
-          const NT err,
-          NT error,
-          const int lw,
-          NT up,
-          const int L,
-          NT che_rad,
-          RNG &rng,
-          boost::random::uniform_real_distribution<>(urdist),
-          boost::random::uniform_real_distribution<> urdist1,
-          NT delta,
-          bool verbose,
-          bool rand_only,
-          bool round,
-          bool NN,
-          bool birk,
-          bool ball_walk,
-          bool coordinate
-          ) :
-        m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
-        lw(lw), up(up), L(L), che_rad(che_rad), rng(rng),
-        urdist(urdist), urdist1(urdist1) , delta(delta) , verbose(verbose), rand_only(rand_only), round(round),
-        NN(NN),birk(birk), ball_walk(ball_walk), coordinate(coordinate){};
-
-    unsigned int m;
-    unsigned int n;
-    unsigned int walk_steps;
-    unsigned int n_threads;
-    const NT err;
-    NT error;
-    const int lw;
-    NT up;
-    const int L;
-    NT che_rad;
-    RNG &rng;
-    boost::random::uniform_real_distribution<>(urdist);
-    boost::random::uniform_real_distribution<> urdist1;
-    NT delta;
-    bool verbose;
-    bool rand_only;
-    bool round;
-    bool NN;
-    bool birk;
-    bool ball_walk;
-    bool coordinate;
-};
-
-template <typename NT, class RNG>
-struct vars_g{
-public:
-    typedef RNG RNGType;
-    vars_g(unsigned int n,
-          unsigned int walk_steps,
-          unsigned int N,
-          unsigned int W,
-          unsigned int n_threads,
-          NT error,
-          NT che_rad,
-          RNG &rng,
-          NT C,
-          NT frac,
-          NT ratio,
-          NT delta,
-          bool deltaset,
-          bool verbose,
-          bool rand_only,
-          bool round,
-          bool NN,
-          bool birk,
-          bool ball_walk,
-          bool coordinate
-    ) :
-            n(n), walk_steps(walk_steps), N(N), W(W), n_threads(n_threads), error(error),
-            che_rad(che_rad), rng(rng), C(C), frac(frac), ratio(ratio), delta(delta),
-            deltaset(deltaset), verbose(verbose), rand_only(rand_only), round(round),
-            NN(NN),birk(birk),ball_walk(ball_walk),coordinate(coordinate){};
-
-    unsigned int n;
-    unsigned int walk_steps;
-    unsigned int N;
-    unsigned int W;
-    unsigned int n_threads;
-    NT error;
-    NT che_rad;
-    RNG &rng;
-    NT C;
-    NT frac;
-    NT ratio;
-    NT delta;
-    bool deltaset;
-    bool verbose;
-    bool rand_only;
-    bool round;
-    bool NN;
-    bool birk;
-    bool ball_walk;
-    bool coordinate;
-};
-
-
+#include "vars.h"
 #include "polytopes.h"
-#include "ellipsoids.h"
+//#include "ellipsoids.h"
 #include "ballintersectconvex.h"
 #include "vpolyintersectvpoly.h"
 #include "samplers.h"
 #include "rounding.h"
 #include "gaussian_samplers.h"
 #include "gaussian_annealing.h"
-#include "sample_only.h"
+//#include "sample_only.h"
 #include "misc.h"
 #include "linear_extensions.h"
-#include "polytope_generators.h"
-#include "exact_vols.h"
-#include "simplex_samplers.h"
-#include "copulas.h"
+//#include "polytope_generators.h"
+//#include "exact_vols.h"
+//#include "simplex_samplers.h"
+//#include "copulas.h"
 
 
 template <class Polytope, class Parameters, class Point, typename NT>
