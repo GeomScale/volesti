@@ -4,10 +4,11 @@
 \alias{sample_points}
 \title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-sample_points(A, b, V, G, walk_length, internal_point, gaussian, variance, N,
-  ball_walk, delta, coordinate)
+sample_points(P, N, distribution, method, InnerPoint)
 }
 \arguments{
+\item{N}{The number of points that the function is going to sample from the convex polytope. Default value is \eqn{100}.}
+
 \item{A}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}
 
 \item{b}{Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.}
@@ -23,8 +24,6 @@ sample_points(A, b, V, G, walk_length, internal_point, gaussian, variance, N,
 \item{gaussian}{Optional. A boolean parameter to sample with gaussian target distribution. Default value is false.}
 
 \item{variance}{Optional. The variance for the spherical gaussian. Default value is \eqn{1}.}
-
-\item{N}{The number of points that the function is going to sample from the convex polytope. Default value is \eqn{100}.}
 
 \item{ball_walk}{Optional. Boolean parameter to use ball walk for the sampling. Default value is false.}
 

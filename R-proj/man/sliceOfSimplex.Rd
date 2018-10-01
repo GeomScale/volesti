@@ -4,10 +4,10 @@
 \alias{sliceOfSimplex}
 \title{Compute the percentage of the volume of the unit simplex that is contained in the intersection of a half-space and the unit simplex}
 \usage{
-sliceOfSimplex(H, z0)
+sliceOfSimplex(c, z0)
 }
 \arguments{
-\item{H}{A \eqn{d}-dimensional vector that defines the direction of the hyperplane.}
+\item{c}{A \eqn{d}-dimensional vector that defines the direction of the hyperplane.}
 
 \item{z0}{The scalar that defines the half-space.}
 }
@@ -19,9 +19,9 @@ When a half-space \eqn{H} is given as a pair of a vector \eqn{c\in R^d} and a sc
 }
 \examples{
 # compute the frustum of H: -x+y<=0
-H=c(-1,1)
+c=c(-1,1)
 z0=0
-frustum = sliceOfSimplex(H=H, z0=z0)
+frustum = sliceOfSimplex(c, z0)
 }
 \references{
 \cite{Varsi, Giulio,

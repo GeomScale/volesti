@@ -4,7 +4,7 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-round_polytope(A, b, V, G, walk_length, ball_walk, delta, coordinate)
+round_polytope(P, method)
 }
 \arguments{
 \item{A}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}
