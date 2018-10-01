@@ -20,12 +20,12 @@
 #' listHpoly = round_polytope(P)
 #' 
 #' # rotate a V-polytope (3d cube) using Random Directions HnR
-#' Vmat = GenCube(3, 'V')
-#' ListVpoly = round_polytope(V=Vmat, coordinate=FALSE)
+#' P = GenCube(3, 'V')
+#' ListVpoly = round_polytope(P, method = list("coordinate"=FALSE))
 #' 
 #' # rotate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
-#' Zmat = GenZonotope(10,20)
-#' ListZono = round_polytope(G=Zmat)
+#' Z = GenZonotope(4,8)
+#' ListZono = round_polytope(Z)
 #' @export
 round_polytope <- function(P, method) {
   
