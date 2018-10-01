@@ -2,28 +2,35 @@
 #'
 #' Sample N points from a H or a V-polytope or a zonotope with uniform or spherical gaussian -centered in an internal point- target distribution.
 #' 
-#' @param A Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.
-#' @param b Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.
-#' @param V Only for V-polytopes. The \eqn{m\times d} matrix V that containes row-wise the \eqn{m} \eqn{d}-dimensional vertices of the polytope.
-#' @param G Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.
-#' @param walk_length Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.
-#' @param internal_point Optional. A \eqn{d}-dimensional vector that containes the coordinates of an internal point of the polytope. If it is not given then for H-polytopes the Chebychev center is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev center of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we use the origin.
-#' @param gaussian Optional. A boolean parameter to sample with gaussian target distribution. Default value is false.
-#' @param variance Optional. The variance for the spherical gaussian. Default value is \eqn{1}.
+#' @param P A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.
 #' @param N The number of points that the function is going to sample from the convex polytope. Default value is \eqn{100}.
-#' @param ball_walk Optional. Boolean parameter to use ball walk for the sampling. Default value is false.
-#' @param delta Optional. The radius for the ball walk.
-#' @param coordinate Optional. A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is true.
-#' @return A \eqn{d\times N} matrix that containes, column-wise, the sampled points from the convex polytope.
+#' @param distribution Optional. A list that contains parameters for the target distribution. Default distribution is uniform.
+#' \itemize{
+#'  \item{gaussian }{A boolean parameter. It declares spherical gaussian distribution as the target distribution. Default value is false.}
+#'  \item{variance }{The variance for the spherical gaussian distribution. Default value is \eqn{1}.}
+#' }
+#' @param method Optional. A list that contains parameters for the random walk method. Default method is Coordinate Hit-and-Run.
+#' \itemize{
+#'  \item{direct }{A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope and the dimension should not be declared through method list. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball).}
+#'  \item{dim }{An integer that declares the dimension when direct flag is enabled for a unit simplex or a hypersphere (boundary or interior).}
+#'  \item{body }{A string to request uniform sampling: (a) "simplex" to sample from an arbitrary simplex (when the simplex is given as a V-polytope) or a unit simplex (when no polytope is given and the dimension is declared), (b) "sphere" to sample from the boundary of a {d}-dimensional hypersphere centered at the origin and (c) to sample from the interior of the \eqn{d}-dimensional hypersphere centered at the origin. For (b) and (c) dimension should be given as well through method list.}
+#'  \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
+#'  \item{WalkT }{A string to declare the random walk method: (a)"hnr" for Hit-and-Run or (b) "bw" for ball walk. Default method is Hit-and-Run.}
+#'  \item{coord }{A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is TRUE.}
+#'  \item{delta }{Optional. The radius for the ball walk.}
+#'  \item{W }{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.}
+#' }
+#' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope.
 #' @examples 
-#' # uniform distribution from a 3d cube described by a set of vertices
-#' Vmat = GenCube(3, 'V')
-#' points = sample_points(V=Vmat, N=1000)
+#' # uniform distribution from a 3d cube in V-representation using ball walk
+#' P = GenCube(3, 'V')
+#' points = sample_points(P, method = list("WalkT"="bw", "W"=5) N=200)
 #' 
 #' # gaussian distribution from a 2d unit simplex in H-representation with variance = 2
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
-#' points = sample_points(A=A, b=b, gaussian=TRUE, variance=2)
+#' P = HPolytope(A=A, b=b)
+#' points = sample_points(P, distribution = list("gaussian"=TRUE, "variance"=2))
 #' @export
 sample_points <- function(P, N, distribution, method, InnerPoint){
   
