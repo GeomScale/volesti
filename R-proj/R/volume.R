@@ -2,7 +2,7 @@
 #'
 #' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of \eqn{d}-dimensional points. A zonotope is desrcibed by the Minkowski sum of \eqn{d}-dimensional segments.
 #'
-#' @param P Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.
+#' @param P A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.
 #' @param walk_length Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
 #' @param error Optional. Declare the goal for the approximation error. Default value is \eqn{1} for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.
 #' @param InnerBall Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an internal ball.
