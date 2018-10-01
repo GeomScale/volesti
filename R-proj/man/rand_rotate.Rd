@@ -4,7 +4,7 @@
 \alias{rand_rotate}
 \title{Apply a random rotation to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-rand_rotate(A, b, V, G)
+rand_rotate(P)
 }
 \arguments{
 \item{A}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}

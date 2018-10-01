@@ -1,4 +1,3 @@
-#' @export
 HPolytope <- setRefClass("HPolytope", fields = list(A="matrix", b="vector"),
             methods = list(
               get_mat = function() {
@@ -15,7 +14,6 @@ HPolytope <- setRefClass("HPolytope", fields = list(A="matrix", b="vector"),
               }
             ))
 
-#' @export
 VPolytope <- setRefClass("VPolytope", fields = list(V="matrix", V2="matrix"),
             methods = list(
               get_mat = function() {
@@ -44,8 +42,6 @@ VPolytope <- setRefClass("VPolytope", fields = list(V="matrix", V2="matrix"),
               }
             ))
 
-
-#' @export
 Zonotope <- setRefClass("Zonotope", fields = list(G="matrix"),
             methods = list(
               get_mat = function() {

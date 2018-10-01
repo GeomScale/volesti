@@ -4,7 +4,7 @@
 \alias{fileToMatrix}
 \title{function to get a ine file and returns a numerical matrix A}
 \usage{
-fileToMatrix(path)
+fileToMatrix(path, zonotope)
 }
 \arguments{
 \item{path}{A string that containes the path to an ine or a ext file. The ine file desrcibes a H-polytope and ext file describes a V-polytope or a zonotope.}
