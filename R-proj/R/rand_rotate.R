@@ -7,17 +7,16 @@
 #' @return A random rotation of the polytope that is given as an input. The return class is the same as the input class.
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
-#' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
-#' b = c(0,0,1)
-#' listHpoly = rand_rotate(A=A, b=b)
+#' P = GenSimplex(2,'H')
+#' listHpoly = rand_rotate(P)
 #' 
 #' # rotate a V-polytope (3d cube)
-#' Vmat = GenCube(3, 'V')
-#' matVpoly = rand_rotate(V=Vmat)
+#' P = GenCube(3, 'V')
+#' matVpoly = rand_rotate(P)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
-#' Zmat = GenZonotope(5,15)
-#' MatZono = rand_rotate(G=Zmat)
+#' Z = GenZonotope(3,6)
+#' MatZono = rand_rotate(Z)
 #' @export
 rand_rotate <- function(P){
   

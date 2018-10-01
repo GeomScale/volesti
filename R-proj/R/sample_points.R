@@ -1,6 +1,7 @@
-#' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope)
+#' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from unit simplex and hypersphere
 #'
 #' Sample N points from a H or a V-polytope or a zonotope with uniform or spherical gaussian -centered in an internal point- target distribution.
+#' #' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
 #' 
 #' @param P A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.
 #' @param N The number of points that the function is going to sample from the convex polytope. Default value is \eqn{100}.
@@ -20,6 +21,14 @@
 #'  \item{delta }{Optional. The radius for the ball walk.}
 #'  \item{W }{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.}
 #' }
+#' 
+#' @references \cite{R.Y. Rubinstein and B. Melamed,
+#' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
+#' @references \cite{A Smith, Noah and W Tromble, Roy,
+#' \dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
+#' @references \cite{Art B. Owen,
+#' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Copyright Art Owen,} 2009-2013.}
+#' 
 #' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope.
 #' @examples 
 #' # uniform distribution from a 3d cube in V-representation using ball walk

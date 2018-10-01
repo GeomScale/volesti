@@ -31,17 +31,16 @@
 #' @return The approximation of the volume of a convex polytope.
 #' @examples
 #' # calling SOB algorithm for a H-polytope (2d unit simplex)
-#' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
-#' b = c(0,0,1)
-#' vol = volume(A=A, b=b)
+#' P = GenSimplex(2,'H')
+#' vol = volume(P)
 #' 
 #' # calling CG algorithm for a V-polytope (3d cube)
-#' Vmat = GenSimplex(2,'V')
-#' vol = volume(V=Vmat, CG=TRUE)
+#' P = GenSimplex(2,'V')
+#' vol = volume(P, Algo = list("CG"=TRUE))
 #' 
 #' # calling CG algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
-#' zonotope = GenZonotope(2, 4)
-#' vol = volume(G=zonotope, rounding=TRUE, CG=TRUE)
+#' Z = GenZonotope(2, 4)
+#' vol = volume(Z, WalkType = list("method"="hnr", "coordinate"=FALSE, "W"=5), rounding=TRUE)
 #' @export
 #' @useDynLib volesti
 #' @importFrom Rcpp evalCpp
