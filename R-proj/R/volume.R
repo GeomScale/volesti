@@ -8,12 +8,12 @@
 #' @param InnerBall Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an internal ball.
 #' @param Algo Optional. A list that contains parameters for the CoolingGaussian algorithm. When it is null SequenceOfBalls is used as the default.
 #' \itemize{
-#'  \item{CG}{A boolean element. When it is true CoolingGaussian algorithm is used.}
-#'  \item{win_len}{The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \cdot dimension^2 + 500}.}
-#'  \item{C}{A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. Default value is \eqn{2}.}
-#'  \item{N}{The number of points we sample in each step of schedule annealing in CG algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
-#'  \item{ratio}{Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
-#'  \item{frac}{The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.}
+#'  \item{CG }{A boolean element. When it is true CoolingGaussian algorithm is used.}
+#'  \item{win_len }{The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \cdot dimension^2 + 500}.}
+#'  \item{C }{A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. Default value is \eqn{2}.}
+#'  \item{N }{The number of points we sample in each step of schedule annealing in CG algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
+#'  \item{ratio }{Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
+#'  \item{frac }{The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.}
 #' }
 #' @param WalkType Optional. A list that contains parameters for the random walk method.
 #' \itemize{

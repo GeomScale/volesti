@@ -4,7 +4,6 @@
 #' 
 #' @param h1 A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
 #' @param h2 A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.
-#' @param E The \eqn{d\times d} symmetric positive define matrix of the family of concentric ellipsoids centered at the origin.
 #' @param numSlices The number of the slices for the copula. Default value is 100.
 #' @param N The number of points to sample. Default value is \eqn{4\cdot 10^6}.
 #'
@@ -19,13 +18,6 @@
 #' h2=runif(n = 10, min = 1, max = 1000)
 #' h2 = h2 / 1000
 #' cop = copula(h1=h1, h2=h2, numSlices = 10, N = 100000)
-#' 
-#' # compute a copula for a family of parallel hyperplanes and a family of conentric ellipsoids
-#' h1 = runif(n = 10, min = 1, max = 1000)
-#' h1 = h1 / 1000
-#' E = replicate(10, rnorm(20))
-#' E = cov(E)
-#' cop = copula(h1=h1, E=E, numSlices=10, N=100000)
 #' @export
 copula1 <-function(h1, h2, numSlices, N) {
   
