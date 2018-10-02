@@ -17,7 +17,7 @@
 #' h1 = h1 / 1000
 #' h2=runif(n = 10, min = 1, max = 1000)
 #' h2 = h2 / 1000
-#' cop = copula(h1=h1, h2=h2, numSlices = 10, N = 100000)
+#' cop = copula1(h1=h1, h2=h2, numSlices = 10, N = 100000)
 #' @export
 copula1 <-function(h1, h2, numSlices, N) {
   

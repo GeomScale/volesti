@@ -28,7 +28,7 @@ exact_vol <- function(Z, exact) {
   dim = 0
   if(!missing(Z)) {
     if (!missing(exact)) {
-      if (!is.null(exact$cube, exact$cross)) {
+      if (!is.null(exact$cube) || !is.null(exact$cross)) {
         warning("If a polytope is given then cube and cross in exact list should be NULL.")
       }
     }

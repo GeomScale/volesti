@@ -3,9 +3,9 @@ context("Chebychev ball test")
 library(volesti)
 
 runCheTest <- function(P, name_string, radius, tol) {
-  dimension = dim(A)[2]
-  vec_ball = InnerBall(A,b)
-  rad = vec_ball[dimension + 1]
+  
+  vec_ball = InnerBall(P)
+  rad = vec_ball[length(vec_ball)]
   
   error = abs(radius - rad) / radius
   if (error >= tol){
