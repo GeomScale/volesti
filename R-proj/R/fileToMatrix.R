@@ -3,6 +3,8 @@
 #' This function takes the path for an ine or an ext file and returns the corresponding numerical matrix and vector that are compatible with volesti package's functions.
 #'
 #' @param path A string that containes the path to an ine or a ext file. The ine file desrcibes a H-polytope and ext file describes a V-polytope or a zonotope.
+#' @param zonotope A boolean parameter. It has to be TRUE when the path leads to an .ext file that describes a zonotope.
+#'
 #' @return If the path corresponds to an ine file then the return value is a list that containes elements "A" and "b", i.e. the numerical \eqn{m\times d} matrix \eqn{A} and the numerical \eqn{m}-dimensional vector \eqn{b}, defining H-polytope \eqn{P}, s.t.:  \eqn{Ax\leq b}. If it corresponds to an ext file (V-polytopes or zonotopes) then the return value is a \eqn{m\times d} matrix that containes row-wise the vertices or the segments respectively.
 #'
 #' @examples

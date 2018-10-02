@@ -21,6 +21,7 @@
 #'  \item{delta }{Optional. The radius for the ball walk.}
 #'  \item{W }{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.}
 #' }
+#' @param InnerPoint A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.
 #' 
 #' @references \cite{R.Y. Rubinstein and B. Melamed,
 #' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
@@ -33,7 +34,7 @@
 #' @examples 
 #' # uniform distribution from a 3d cube in V-representation using ball walk
 #' P = GenCube(3, 'V')
-#' points = sample_points(P, method = list("WalkT"="bw", "W"=5) N=200)
+#' points = sample_points(P, method = list("WalkT"="bw", "W"=5))
 #' 
 #' # gaussian distribution from a 2d unit simplex in H-representation with variance = 2
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)

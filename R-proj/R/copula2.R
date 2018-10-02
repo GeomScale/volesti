@@ -17,7 +17,7 @@
 #' h = h / 1000
 #' E = replicate(10, rnorm(20))
 #' E = cov(E)
-#' cop = copula(h=h, E=E, numSlices=10, N=100000)
+#' cop = copula2(h=h, E=E, numSlices=10, N=100000)
 #' @export
 copula2 <- function(h, E, numSlices, N) {
   
