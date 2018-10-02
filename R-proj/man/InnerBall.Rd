@@ -2,28 +2,27 @@
 % Please edit documentation in R/InnerBall.R
 \name{InnerBall}
 \alias{InnerBall}
-\title{Compute the Chebychev ball of a H-polytope}
+\title{Compute an inscribed ball of a convex polytope}
 \usage{
 InnerBall(P)
 }
 \arguments{
-\item{A}{The matrix of the H-polytope.}
-
-\item{b}{The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets.}
+\item{P}{A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.}
 }
 \value{
-A \eqn{(d+1)}-dimensional vector that containes the Chebychev ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the Chebychev ball.
+A \eqn{d+1}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
 }
 \description{
-For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) of that polytope by solving the corresponding linear program.
+For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) by solving the corresponding linear program.
+For a V-polytope \eqn{d+1} vertices that define a full dimensional simplex picked at random and the largest inscribed ball of the simplex is computed.
+For a zonotope \eqn{P} we compute the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
 }
 \examples{
 # compute the Chebychev ball of a 2d unit simplex
-A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
-b = c(0,0,1)
-ball_vec = CheBall(A,b)
+P = GenSimplex(2,'H')
+ball_vec = InnerBall(P)
 
-# compute the Chebychev ball of 10-dimensional cross polytope
-PolyList = GenCross(10, 'H')
-ball_vec = CheBall(PolyList$A, PolyList$b)
+# compute the Chebychev ball of 3-dimensional cube in V-representation
+P = GenCube(3, 'V')
+ball_vec = InnerBall(P)
 }

@@ -2,22 +2,31 @@
 % Please edit documentation in R/exact_vol.R
 \name{exact_vol}
 \alias{exact_vol}
-\title{Compute the exact volume of a zonotope}
+\title{Compute the exact volume of (a) a zonotope (b) an arbitrary simplex (c) a unit simplex (d) a cross polytope (e) a hypercube}
 \usage{
 exact_vol(Z, exact)
 }
 \arguments{
-\item{ZonoMat}{The \eqn{m \times d} matrix that containes the segments that define the zonotope.}
+\item{Z}{An object of class Zonotope.}
+
+\item{exact}{A list that contains parameters for the exact volume computations. When a zonotope is given it should be null.
+\itemize{
+ \item{simplex }{A boolean parameter. It has to be TRUE when a simplex is given in V-representation or in order to compute the exact volume of a unit simplex.}
+ \item{cube }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional hypercube is requested.}
+ \item{cross }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional cross polytope is requested.}
+}}
 }
 \value{
 The exact volume of the zonotope
 }
 \description{
-Given the \eqn{m \times d} matrix that containes the \eqn{m} segments that define the \eqn{d}-dimensional zonotope, this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices.
+Given a zonotope (as an object of class Zonotope), this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices of the \eqn{m\times d} matrix \eqn{G} that contains row-wise the segments that define the zonotope.
+For an arbitrary simplex that is given in V-representation this function computes the absolute value of the determinant formed by the simplex's points assuming it is shifted to the origin.
+For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this function computes the exact well known formulas.
 }
 \examples{
 
 # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
-ZonoMat = GenZonotope(5, 10)
-vol = ExactZonoVol(ZonoMat)
+Z = GenZonotope(5, 10)
+vol = exact_vol(Z)
 }
