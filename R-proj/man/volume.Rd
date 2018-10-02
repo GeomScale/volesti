@@ -7,7 +7,7 @@
 volume(P, walk_length, error, InnerBall, Algo, WalkType, rounding)
 }
 \arguments{
-\item{P}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}
+\item{P}{A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.}
 
 \item{walk_length}{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.}
 
@@ -17,12 +17,12 @@ volume(P, walk_length, error, InnerBall, Algo, WalkType, rounding)
 
 \item{Algo}{Optional. A list that contains parameters for the CoolingGaussian algorithm. When it is null SequenceOfBalls is used as the default.
 \itemize{
- \item{CG}{A boolean element. When it is true CoolingGaussian algorithm is used.}
- \item{win_len}{The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \cdot dimension^2 + 500}.}
- \item{C}{A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. Default value is \eqn{2}.}
- \item{N}{The number of points we sample in each step of schedule annealing in CG algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
- \item{ratio}{Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
- \item{frac}{The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.}
+ \item{CG }{A boolean element. When it is true CoolingGaussian algorithm is used.}
+ \item{win_len }{The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \cdot dimension^2 + 500}.}
+ \item{C }{A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. Default value is \eqn{2}.}
+ \item{N }{The number of points we sample in each step of schedule annealing in CG algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
+ \item{ratio }{Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
+ \item{frac }{The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.}
 }}
 
 \item{WalkType}{Optional. A list that contains parameters for the random walk method.
@@ -42,17 +42,16 @@ For the volume approximation can be used two algorithms. Either SequenceOfBalls 
 }
 \examples{
 # calling SOB algorithm for a H-polytope (2d unit simplex)
-A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
-b = c(0,0,1)
-vol = volume(A=A, b=b)
+P = GenSimplex(2,'H')
+vol = volume(P)
 
 # calling CG algorithm for a V-polytope (3d cube)
-Vmat = GenSimplex(2,'V')
-vol = volume(V=Vmat, CG=TRUE)
+P = GenSimplex(2,'V')
+vol = volume(P, Algo = list("CG"=TRUE))
 
 # calling CG algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
-zonotope = GenZonotope(2, 4)
-vol = volume(G=zonotope, rounding=TRUE, CG=TRUE)
+Z = GenZonotope(2, 4)
+vol = volume(Z, WalkType = list("method"="hnr", "coordinate"=FALSE, "W"=5), rounding=TRUE)
 }
 \references{
 \cite{I.Z.Emiris and V. Fisikopoulos,

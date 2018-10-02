@@ -7,31 +7,24 @@
 rand_rotate(P)
 }
 \arguments{
-\item{A}{Only for H-polytopes. The \eqn{m\times d} matrix \eqn{A} that containes the directions of the \eqn{m} facets.}
-
-\item{b}{Only for H-polytopes. The \eqn{m}-dimensional vector \eqn{b} that containes the constants of the \eqn{m} facets s.t.: \eqn{Ax\leq b}.}
-
-\item{V}{Only for V-polytopes. The \eqn{m\times d} matrix V that containes row-wise the \eqn{m} \eqn{d}-dimensional vertices of the polytope.}
-
-\item{G}{Only for zonotopes. The \eqn{m\times d} matrix G that containes row-wise the \eqn{m} \eqn{d}-dimensional segments that define a zonotope.}
+\item{P}{A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.}
 }
 \value{
-A random rotation of the polytope that is given as an input. For H-polytopes the return value is a list that containes a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b s.t.: \eqn{Ax\leq b}. For V-polytopes and zonotopes the return value is a \eqn{m\times d} matrix that containes row-wise the \eqn{d}-dimensional vertices or segments respectively.
+A random rotation of the polytope that is given as an input. The return class is the same as the input class.
 }
 \description{
 Given a convex H or V polytope or a zonotope as input this function applies a random rotation.
 }
 \examples{
 # rotate a H-polytope (2d unit simplex)
-A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
-b = c(0,0,1)
-listHpoly = rand_rotate(A=A, b=b)
+P = GenSimplex(2,'H')
+listHpoly = rand_rotate(P)
 
 # rotate a V-polytope (3d cube)
-Vmat = GenCube(3, 'V')
-matVpoly = rand_rotate(V=Vmat)
+P = GenCube(3, 'V')
+matVpoly = rand_rotate(P)
 
 # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
-Zmat = GenZonotope(5,15)
-MatZono = rand_rotate(G=Zmat)
+Z = GenZonotope(3,6)
+MatZono = rand_rotate(Z)
 }

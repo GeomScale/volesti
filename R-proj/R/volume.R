@@ -45,6 +45,7 @@
 #' @useDynLib volesti
 #' @importFrom Rcpp evalCpp
 #' @importFrom "utils" "read.csv"
+#' @importFrom "methods" "new"
 #' @exportPattern "^[[:alpha:]]+"
 volume <- function(P, walk_length, error, InnerBall, Algo, WalkType, rounding){
   

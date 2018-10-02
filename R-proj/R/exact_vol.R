@@ -8,14 +8,16 @@
 #' @param exact A list that contains parameters for the exact volume computations. When a zonotope is given it should be null.
 #' \itemize{
 #'  \item{simplex }{A boolean parameter. It has to be TRUE when a simplex is given in V-representation or in order to compute the exact volume of a unit simplex.}
+#'  \item{cube }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional hypercube is requested.}
+#'  \item{cross }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional cross polytope is requested.}
 #' }
 #' 
 #' @return The exact volume of the zonotope
 #' @examples
 #' 
 #' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
-#' ZonoMat = GenZonotope(5, 10)
-#' vol = ExactZonoVol(ZonoMat)
+#' Z = GenZonotope(5, 10)
+#' vol = exact_vol(Z)
 #' @export
 exact_vol <- function(Z, exact) {
   
