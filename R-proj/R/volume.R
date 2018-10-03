@@ -187,7 +187,7 @@ volume <- function(P, walk_length, error, InnerBall, Algo, WalkType, rounding){
       stop("Inner ball computation failed. Give an inner ball.")
     }
   } else {
-    vol = Rvolume(Mat, W, e, InnerB, CG, win_len, N, C, ratio,
+    vol = Rvolume(P, Mat, W, e, InnerB, CG, win_len, N, C, ratio,
                 frac, ball_walk, delta, vpoly, Zono, coordinate, round)
   }
 
