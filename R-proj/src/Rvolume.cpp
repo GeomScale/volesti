@@ -11,9 +11,43 @@
 #include <RcppEigen.h>
 #include "volume.h"
 
+
+template <class HPolytope>
+class converter{
+public:
+    typedef typename HPolytope::NT NT;
+
+    converter() {}
+
+    HPolytope get(Rcpp::Reference P) {
+        Rcpp::NumericMatrix A = P.field("A");
+        Rcpp::NumericVector b = P.field("b");
+
+        int n = A.cols();
+        int m = A.rows();
+        std::vector<std::vector<NT> > Mat(m+1, std::vector<NT>(n+1));
+
+        Mat[0][0] = m; Mat[0][1] = n+1;
+
+        for (int i = 1; i < m+1; ++i) {
+            Mat[i][0] = b(i-1);
+            for (int j = 1; j < n+1; ++j) {
+                Mat[i][j] = -A(i-1, j-1);
+            }
+        }
+
+        HPolytope HP;
+        HP.init(Mat);
+
+        return HP;
+    }
+
+};
+
+
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double Rvolume (Rcpp::NumericMatrix A, unsigned int walk_len, double e,
+double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len, double e,
                 Rcpp::NumericVector InnerBall, bool CG, unsigned int win_len,
                 unsigned int N, double C, double ratio, double frac,
                 bool ball_walk, double delta, bool Vpoly, bool Zono,
@@ -37,6 +71,9 @@ double Rvolume (Rcpp::NumericMatrix A, unsigned int walk_len, double e,
     Hpolytope HP;
     Vpolytope VP;
     zonotope ZP;
+
+    converter<Hpolytope> conv;
+    Hpolytope HP2 = conv.get(P);
 
     unsigned int m=A.nrow()-1;
     unsigned int n=A.ncol()-1;
@@ -107,7 +144,7 @@ double Rvolume (Rcpp::NumericMatrix A, unsigned int walk_len, double e,
         if (Zono) {
             vol = volume(ZP, var, var, InnerB);
         } else if (!Vpoly) { // if the input is a H-polytope
-            vol = volume(HP, var, var, InnerB);
+            vol = volume(HP2, var, var, InnerB);
         } else { // if the input is a V-polytope
             vol = volume(VP, var, var, InnerB);
         }

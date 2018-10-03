@@ -37,8 +37,8 @@ Rvol_exact <- function(A, exact_zono, exact_cube, exact_simplex, exact_cross, di
     .Call('_volesti_Rvol_exact', PACKAGE = 'volesti', A, exact_zono, exact_cube, exact_simplex, exact_cross, dim)
 }
 
-Rvolume <- function(A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding) {
-    .Call('_volesti_Rvolume', PACKAGE = 'volesti', A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding)
+Rvolume <- function(P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding) {
+    .Call('_volesti_Rvolume', PACKAGE = 'volesti', P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding)
 }
 
 RVpolyIntersection <- function(V1, V2, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, coord, rounding) {
