@@ -72,8 +72,8 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
     Vpolytope VP;
     zonotope ZP;
 
-    converter<Hpolytope> conv;
-    Hpolytope HP2 = conv.get(P);
+    //converter<Hpolytope> conv;
+    //Hpolytope HP2 = conv.get(P);
 
     unsigned int m=A.nrow()-1;
     unsigned int n=A.ncol()-1;
@@ -144,7 +144,7 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
         if (Zono) {
             vol = volume(ZP, var, var, InnerB);
         } else if (!Vpoly) { // if the input is a H-polytope
-            vol = volume(HP2, var, var, InnerB);
+            vol = volume(HP, var, var, InnerB);
         } else { // if the input is a V-polytope
             vol = volume(VP, var, var, InnerB);
         }
