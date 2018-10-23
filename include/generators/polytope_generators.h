@@ -317,13 +317,13 @@ Polytope gen_zonotope(unsigned int dim, unsigned int m) {
     RNGType rng(seed);
     boost::normal_distribution<> rdist(0, 1);
 
-    NT sum;
     MT A;
     VT b;
     A.resize(m, dim);
     b.resize(m);
     Polytope P;
 
+    /*
     for (unsigned int i = 0; i < dim; ++i) {
         b(i) = 1.0;
         for (unsigned int j = 0; j < dim; ++j) {
@@ -333,18 +333,12 @@ Polytope gen_zonotope(unsigned int dim, unsigned int m) {
                 A(i,j) = 0.0;
             }
         }
-    }
+    }*/
 
-    for (unsigned int i = dim; i < m; ++i) {
+    for (unsigned int i = 0; i < m; ++i) {
         b(i) = 1.0;
-        sum = 0.0;
         for (unsigned int j = 0; j < dim; ++j) {
             A(i,j) = rdist(rng);
-            sum += A(i,j) * A(i,j);
-        }
-        sum = 1.0 / std::sqrt(sum);
-        for (unsigned int j = 0; j < dim; ++j) {
-            A(i,j) = A(i,j) * sum;
         }
     }
 

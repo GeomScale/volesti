@@ -339,6 +339,9 @@ int main(const int argc, const char** argv)
       
   }
 
+  //mvrandn(N);
+  //return -1;
+
   if (exact_zono) {
       NT vol_ex = exact_zonotope_vol<NT>(ZP);
       std::cout<<"Zonotope's exact volume = "<<vol_ex<<std::endl;

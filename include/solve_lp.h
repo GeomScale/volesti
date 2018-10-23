@@ -387,7 +387,11 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     // set the objective function
     for(j=0; j<m-1; j++){
         colno[j] = j+1; /* j_th column */
-        set_bounds(lp, j+1, 0.0, 1.0);
+        if(!zonotope) {
+            set_bounds(lp, j + 1, 0.0, 1.0);
+        } else {
+            set_bounds(lp, j + 1, -1.0, 1.0);
+        };
         row[j] = 0;
     }
     colno[m - 1] =m; /* last column */
@@ -498,7 +502,7 @@ bool memLP_Zonotope(MT V, Point q){
     for(j=0; j<Ncol; j++){
         colno[j] = j+1; /* j_th column */
         row[j] = 0.0;
-        set_bounds(lp, j+1, 0.0, 1.0);
+        set_bounds(lp, j+1, -1.0, 1.0);
     }
 
     // set the objective function
