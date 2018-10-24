@@ -45,3 +45,7 @@ RVpolyIntersection <- function(V1, V2, walk_len, e, InnerBall, CG, win_len, N, C
     .Call('_volesti_RVpolyIntersection', PACKAGE = 'volesti', V1, V2, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, coord, rounding)
 }
 
+vol_zono <- function(P, e, mvrandn) {
+    .Call('_volesti_vol_zono', PACKAGE = 'volesti', P, e, mvrandn)
+}
+

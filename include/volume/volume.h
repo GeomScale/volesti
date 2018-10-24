@@ -35,7 +35,7 @@
 //#include "sample_only.h"
 #include "misc.h"
 #include "linear_extensions.h"
-#include "sampleTruncated.h"
+//#include "sampleTruncated.h"
 //#include "polytope_generators.h"
 //#include "exact_vols.h"
 //#include "simplex_samplers.h"

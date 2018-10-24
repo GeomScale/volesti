@@ -113,13 +113,13 @@ public:
 
     void print(){
         for(unsigned int i=0; i<d; i++){
-            #ifdef VOLESTI_DEBUG
+            //#ifdef VOLESTI_DEBUG
             std::cout<<coeffs[i]<<" ";
-            #endif
+            //#endif
         }
-        #ifdef VOLESTI_DEBUG
+        //#ifdef VOLESTI_DEBUG
         std::cout<<"\n";
-        #endif
+        //#endif
     }
     
     
