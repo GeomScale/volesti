@@ -63,11 +63,11 @@ NT cg_volume_zono(Polytope &P,
     var.che_rad = radius;
 
     // Move chebychev center to origin and apply the same shifting to the polytope
-    VT c_e(n);
-    for(unsigned int i=0; i<n; i++){
-        c_e(i)=c[i];  // write chebychev center in an eigen vector
-    }
-    P.shift(c_e);
+    //VT c_e(n);
+    //for(unsigned int i=0; i<n; i++){
+        //c_e(i)=c[i];  // write chebychev center in an eigen vector
+    //}
+    //P.shift(c_e);
     MT G = P.get_mat().transpose();
 
     // Initialization for the schedule annealing
@@ -144,7 +144,7 @@ NT cg_volume_zono(Polytope &P,
             for (int k = 0; k < 2*W; ++k) {
                 *itsIt = *itsIt + 1.0;
                 //*fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);
-                *fnIt = *fnIt + std::exp(-(*avalsIt + 1)*(pointset.col(k).squaredNorm())) / std::exp(-(*avalsIt)*(pointset.col(k).squaredNorm()));
+                *fnIt = *fnIt + std::exp(-(*(avalsIt + 1))*(pointset.col(k).squaredNorm())) / std::exp(-(*avalsIt)*(pointset.col(k).squaredNorm()));
                 val = (*fnIt) / (*itsIt);
 
                 last_W[index] = val;

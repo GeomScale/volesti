@@ -897,7 +897,7 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-        initial_shifting(); // shift zonotope to the origin
+       // initial_shifting(); // shift zonotope to the origin
     }
 
 
@@ -912,7 +912,7 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        initial_shifting(); // shift zonotope to the origin
+        //initial_shifting(); // shift zonotope to the origin
     }
 
 

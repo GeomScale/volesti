@@ -5,6 +5,14 @@ poly_gen <- function(kind_gen, Vpoly_gen, dim_gen, m_gen) {
     .Call('_volesti_poly_gen', PACKAGE = 'volesti', kind_gen, Vpoly_gen, dim_gen, m_gen)
 }
 
+Rvol_exact <- function(A, exact_zono, exact_cube, exact_simplex, exact_cross, dim) {
+    .Call('_volesti_Rvol_exact', PACKAGE = 'volesti', A, exact_zono, exact_cube, exact_simplex, exact_cross, dim)
+}
+
+Rvolume <- function(P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding) {
+    .Call('_volesti_Rvolume', PACKAGE = 'volesti', P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding)
+}
+
 vol_zono <- function(P, e, mvrandn, verbose) {
     .Call('_volesti_vol_zono', PACKAGE = 'volesti', P, e, mvrandn, verbose)
 }

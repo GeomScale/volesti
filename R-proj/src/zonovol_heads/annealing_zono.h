@@ -126,11 +126,11 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
 
     viterator fnit;
     while(!done){
-        a = last_a*std::pow(ratio,k);
 
+        a = last_a*std::pow(ratio,k);
         fnit = fn.begin();
         //for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, fnit++){
-        for (int i = 0; i < N; ++i) {
+        for (int i = 0; i < N; ++i, ++fnit) {
             //*fnit = eval_exp(*pit,a)/eval_exp(*pit, last_a);
             *fnit = std::exp(-(a)*(pointset.col(i).squaredNorm())) / std::exp(-(last_a)*(pointset.col(i).squaredNorm()));
         }
@@ -208,7 +208,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
             //curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
             //steps--;
         //}
-        sigma2 = (1.0/(2.0*(a_vals[it])))*sigma;
+        sigma2 = (1.0/(2.0*a_vals[it]))*sigma;
         pointset = sampleTr(l, u , sigma2, steps, mvrandn, G);
 
         // Compute some ratios to decide if this is the last gaussian

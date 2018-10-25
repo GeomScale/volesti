@@ -11,7 +11,7 @@ template <class VT, class MT>
 MT sampleTr(VT l, VT u, MT sig, int N, Rcpp::Function rv, MT G){
 
     //arma::mat X = Rcpp::as<arma::mat>(rv(l, u, sig, N));
-    MT X2 = G * Rcpp::as<MT>(rv(l, u, sig, N));
+    MT X2 = G * Rcpp::as<MT>(rv(Rcpp::wrap(l), Rcpp::wrap(u), Rcpp::wrap(sig), N));
     return X2;
 
 }
