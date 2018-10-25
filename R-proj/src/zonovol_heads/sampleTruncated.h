@@ -5,16 +5,13 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
-#include <Rcpp.h>
+//#include <Rcpp.h>
 
-template <class PointList>
-PointList sampleTr(Rcpp::NumericVector l, Rcpp::NumericVector u,
-                   Rcpp::NumericMatrix sig, Rcpp::Function rv, PointList &randPoints){
+template <class VT, class MT>
+MT sampleTr(VT l, VT u, MT sig, int N, Rcpp::Function rv, MT G){
 
-    Rcpp::NumericMatrix X = rv(l, u, sig, 100);
-    //std::vector<std::vector<double> > Pin(std::vector<std::vector<double> >::iterator(X.begin()), std::vector<std::vector<double> >::iterator(X.begin()) );
-    //std::cout<<Pin.size()<<std::endl;
-    randPoints.clear();
-    return randPoints;
+    //arma::mat X = Rcpp::as<arma::mat>(rv(l, u, sig, N));
+    MT X2 = G * Rcpp::as<MT>(rv(l, u, sig, N));
+    return X2;
 
 }

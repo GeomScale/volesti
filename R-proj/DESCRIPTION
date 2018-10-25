@@ -12,7 +12,7 @@ Version: 0.0.0
 Date: 2018-09-05
 BugReports: https://github.com/vissarion/volume_approximation/issues
 Imports: Rcpp (>= 0.12.17), methods
-LinkingTo: Rcpp, RcppEigen, BH
+LinkingTo: RcppArmadillo, Rcpp, RcppEigen, BH 
 Suggests: testthat
 Encoding: UTF-8
 RoxygenNote: 6.0.1

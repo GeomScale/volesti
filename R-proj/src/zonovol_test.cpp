@@ -1,4 +1,4 @@
-// [[Rcpp::depends(BH)]]
+
 
 // VolEsti (volume computation and sampling library)
 
@@ -7,8 +7,11 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
-#include <Rcpp.h>
+//#include <Rcpp.h>
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppEigen.h>
+// [[Rcpp::depends(BH)]]
 #include <iterator>
 //#include <fstream>
 #include <vector>
@@ -28,13 +31,15 @@
 //#include "vpolyintersectvpoly.h"
 #include "samplers.h"
 #include "rounding.h"
-#include "gaussian_samplers.h"
-#include "gaussian_annealing.h"
+//#include "gaussian_samplers.h"
+//#include "gaussian_annealing.h"
 #include "zonovol_heads/sampleTruncated.h"
+#include "zonovol_heads/annealing_zono.h"
+#include "zonovol_heads/cg_zonovol.h"
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::NumericMatrix vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn) {
+double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbose) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -43,42 +48,29 @@ Rcpp::NumericMatrix vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrand
     typedef HPolytope <Point> Hpolytope;
     typedef VPolytope <Point, RNGType> Vpolytope;
     typedef Zonotope <Point> zonotope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     //unsigned int n_threads=1,i,j;
 
     bool rand_only = false,
             NN = false,
-            birk = false,
-            verbose = false;
+            birk = false;
+            //verbose = false;
     unsigned int n_threads = 1;
     Hpolytope HP;
     Vpolytope VP;
     zonotope ZP;
 
-    int N = 1000;
-    Rcpp::NumericVector l = Rcpp::NumericVector::create(-1.0, -1.0);
-    Rcpp::NumericVector u = Rcpp::NumericVector::create(1.0, 1.0);
-    Rcpp::NumericMatrix sig(2, 2);
-    sig(0, 0) = 2, sig(0, 1) = 0;
-    sig(1, 0) = 0;
-    sig(1, 1) = 2;
-    //Rcpp::NumericMatrix::Column zzcol = sig( _, 1);
-    //Point p(2,std::vector<NT>::iterator(sig( _, 0).begin()), std::vector<NT>::iterator(sig( _, 0).end()));
-    //p.print();
-    //std::cout<<p[0]<<" "<<"dfsdf "<<p[1]<<std::endl;
-
-            std::list<Point> randPoints;
-    randPoints = sampleTr(l, u, sig, mvrandn, randPoints);
-    typename std::list<Point>::iterator pit=randPoints.begin();
-    for ( ;  pit!=randPoints.end(); ++pit) {
-        (*pit).print();
-    }
-    //std::vector<std::vector<NT> > Pin(X.begin(), X.end());
-    return sig;
-}/*
     Rcpp::NumericMatrix A = P.field("G");
 
     unsigned int m=A.nrow()-1;
     unsigned int n=A.ncol()-1;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    // the random engine with this seed
+    RNGType rng(seed);
+    boost::random::uniform_real_distribution<>(urdist);
+    boost::random::uniform_real_distribution<> urdist1(-1,1);
 
     std::vector<std::vector<NT> > Pin(m+1, std::vector<NT>(n+1));
 
@@ -87,10 +79,28 @@ Rcpp::NumericMatrix vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrand
             Pin[i][j]=A(i,j);
         }
     }
-
     ZP.init(Pin);
-    //Eigen::MatrixXd pinv = A.completeOrthogonalDecomposition().pseudoInverse();
-    std::pair<Point,NT> InnerB;
-    InnerB = ZP.ComputeInnerBall();
 
-}*/
+    MT G = (Rcpp::as<MT>(A)).transpose();
+    MT ps = G.completeOrthogonalDecomposition().pseudoInverse();
+    MT sigma = ps*ps.transpose();
+
+    VT l = VT::Zero(m) - VT::Ones(m);
+    VT u = VT::Ones(m);
+
+    MT test = sampleTr(l, u, sigma, 100, mvrandn, G);
+    std::pair<Point,NT> InnerB = ZP.ComputeInnerBall();
+    NT C = 2.0, frac=0.1, ratio = 1.0-1.0/(NT(n));;
+    int W = 4*n*n+500, N = 500 * ((int) C) + ((int) (n * n / 2));
+
+    vars<NT, RNGType> var2(1, n, 10 + n / 10, 1, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
+                           urdist, urdist1, -1.0, verbose, false, false, NN, birk, false,
+                           false);
+    vars_g<NT, RNGType> var1(n, 1, N, W, 1, e, InnerB.second, rng, C, frac,
+                             ratio, -1.0, false, verbose, false, false, NN, birk,
+                             false, false);
+
+    NT vol = cg_volume_zono(ZP, var1, var2, InnerB, mvrandn, sigma, l, u);
+
+    return -1.0;
+}

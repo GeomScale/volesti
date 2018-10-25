@@ -1,4 +1,4 @@
-// [[Rcpp::depends(BH)]]
+
 
 // VolEsti (volume computation and sampling library)
 
@@ -7,8 +7,10 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppEigen.h>
+// [[Rcpp::depends(BH)]]
 #include <chrono>
 #include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
