@@ -115,6 +115,7 @@ NT cg_volume_zono(Polytope &P,
         //gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
     //}
     MT pointset;
+    double tstart122 = (double)clock()/(double)CLOCKS_PER_SEC;
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios
         //initialize convergence test
         curr_eps = error/std::sqrt((NT(mm)));
@@ -180,6 +181,8 @@ NT cg_volume_zono(Polytope &P,
 #endif
         vol = vol*((*fnIt) / (*itsIt));
     }
+    double tstop122 = (double)clock()/(double)CLOCKS_PER_SEC;
+    if(print) std::cout<<"Ratios time cost = "<<tstop122-tstart122<<" sec"<<std::endl;
     // Compute and print total number of steps in verbose mode only
 #ifdef VOLESTI_DEBUG
     if (print) {

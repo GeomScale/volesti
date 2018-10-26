@@ -6,7 +6,7 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
-
+#define VOLESTI_DEBUG
 #include <Rcpp.h>
 #include <RcppEigen.h>
 // [[Rcpp::depends(BH)]]
@@ -37,7 +37,7 @@
 #include "zonovol_heads/outer_zono.h"
 #include "zonovol_heads/cg_zonovol.h"
 
-#define VOLESTI_DEBUG
+
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
@@ -79,7 +79,7 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     MT sigma = ps*ps.transpose();
     //std::cout<<sigma<<std::endl;
     for (int i1 = 0; i1 < m; ++i1) {
-        sigma(i1,i1) = sigma(i1,i1) + 0.00001;
+        sigma(i1,i1) = sigma(i1,i1) + 0.000001;
     }
     //sigma = sigma + 0.00001*MT::DiagonalMatrix(m);
 

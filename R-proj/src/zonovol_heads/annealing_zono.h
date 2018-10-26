@@ -160,12 +160,15 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
     typedef typename Polytope::PolytopePoint Point;
     MT G = P.get_mat().transpose();
     // Compute the first gaussian
+    double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
     get_first_gaussian(P, radius, frac, var, error, a_vals);
+    double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
 #ifdef VOLESTI_DEBUG
     bool print=var.verbose;
     if(print) std::cout<<"first gaussian computed\n"<<std::endl;
 #endif
 
+    if(print) std::cout << "first gaussian time = " << tstop1 - tstart1 << std::endl;
     NT a_stop = 0.0, curr_fn = 2.0, curr_its = 1.0, next_a;
     const NT tol = 0.001;
     unsigned int it = 0, n = var.n, coord_prev;
@@ -187,6 +190,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
     MT pointset;
     std::vector<NT> lamdas(P.num_of_hyperplanes(), NT(0));
     MT sigma2;
+    double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
     while (true) {
 
         //if (var.ball_walk) {
@@ -233,6 +237,8 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
             break;
         }
     }
+    double tstop11 = (double)clock()/(double)CLOCKS_PER_SEC;
+    if(print) std::cout << "sequence of gaussian time cost = " << tstop11 - tstart11 << std::endl;
 
 }
 

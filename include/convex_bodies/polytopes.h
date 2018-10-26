@@ -828,7 +828,7 @@ public:
         num_of_hyp = nom / denom;
 
         res = num_of_hyp;
-        return res;
+        return 10*m*m;
     }
 
 

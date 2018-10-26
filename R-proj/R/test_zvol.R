@@ -9,12 +9,13 @@ test_zvol <- function(d,m,verbose=FALSE){
   print(paste0('test method time: ',as.numeric(as.character(tim[3]))))
   print(' ')
   
-  tim=proc.time()
-  ev = exact_vol(Z)
-  tim=proc.time()-tim
-  print(paste0('exact volume = ',ev))
-  print(paste0('exact volume time: ',as.numeric(as.character(tim[3]))))
-  print(' ')
+  #tim=proc.time()
+  #ev = exact_vol(Z)
+  #tim=proc.time()-tim
+  #print(paste0('exact volume = ',ev))
+  #print(paste0('exact volume time: ',as.numeric(as.character(tim[3]))))
+  #print(' ')
+  ev=1
   
   tim=proc.time()
   est_vol = volume(P=Z, error = 0.1,Algo = list("CG"=TRUE))
