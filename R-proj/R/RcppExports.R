@@ -13,7 +13,7 @@ Rvolume <- function(P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac
     .Call('_volesti_Rvolume', PACKAGE = 'volesti', P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding)
 }
 
-vol_zono <- function(P, e, mvrandn, verbose) {
-    .Call('_volesti_vol_zono', PACKAGE = 'volesti', P, e, mvrandn, verbose)
+vol_zono <- function(P, e, mvrandn, verbose, delta_in = 0.0, var_in = 0.0, up_lim = 0.0) {
+    .Call('_volesti_vol_zono', PACKAGE = 'volesti', P, e, mvrandn, verbose, delta_in, var_in, up_lim)
 }
 

@@ -41,7 +41,7 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbose) {
+double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbose, double delta_in=0.0, double var_in=0.0, double up_lim=0.0) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -88,8 +88,12 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
 
     //MT test = sampleTr(l, u, sigma, 10, mvrandn, G);
     std::list<Point> randPoints;
-    NT delta, variance, ratio;
-    get_delta<Point>(ZP, l, u, sigma, mvrandn, G, variance, delta, ratio, randPoints);
+    NT delta, ratio;
+    double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
+    get_delta<Point>(ZP, l, u, sigma, mvrandn, G, var_in, delta_in, up_lim, ratio, randPoints);
+    double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
+    if(verbose) std::cout << "[1] computation of outer time = " << tstop1 - tstart1 << std::endl;
+    delta = delta_in;
 
     std::pair<Point,NT> InnerB = ZP.ComputeInnerBall();
     NT C = 2.0, frac=0.1, ratio2 = 1.0-1.0/(NT(n));
@@ -107,29 +111,32 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     u = u + VT::Ones(m) * delta;
     if (verbose) std::cout<<"delta = "<<delta<<" first estimation of ratio (t-test value) = "<<ratio<<std::endl;
     //std::cout<<l<<"\n"<<u<<std::endl;
+    double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
     NT vol = cg_volume_zono(ZP, var1, var2, InnerB, mvrandn, sigma, l, u);
+    double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
+    if(verbose) std::cout << "[2] outer volume estimation with cg algo time = " << tstop2 - tstart2 << std::endl;
     if (verbose) std::cout<<"volume of outer = "<<vol<<std::endl;
 
     NT countIn = ratio*1200.0, totCount = 1200.0;
     //std::cout<<"countIn = "<<countIn<<std::endl;
 
-    //std::cout<<"variance = "<<variance<<std::endl;
-    sigma = 2*variance * sigma;
+    sigma = 2*var_in * sigma;
     //std::cout<<sigma<<std::endl;
     MT sample = sampleTr(l, u, sigma, 4800, mvrandn, G);
     for (int i = 0; i < 4800; ++i) {
         Point p(n, typename std::vector<NT>::iterator(sample.col(i).data()), typename std::vector<NT>::iterator(sample.col(i).data() + n));
         randPoints.push_back(p);
     }
-
     std::list<Point>::iterator rpit = randPoints.begin();
+    double tstart3 = (double)clock()/(double)CLOCKS_PER_SEC;
     for ( ;  rpit!=randPoints.end(); ++rpit) {
         if(ZP.is_in(*rpit)==-1) {
             countIn = countIn + 1.0;
         }
         totCount = totCount + 1.0;
     }
-
+    double tstop3 = (double)clock()/(double)CLOCKS_PER_SEC;
+    if(verbose) std::cout << "[3] rejection time = " << tstop3 - tstart3 << std::endl;
     if (verbose) std::cout<<"final ratio = "<<countIn / totCount<<std::endl;
     vol = vol * (countIn / totCount);
     //std::cout<<"final volume = "<<vol<<std::endl;

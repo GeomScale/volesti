@@ -8,7 +8,7 @@
 //#include <Rcpp.h>
 
 template <class Polytope, class PointList, typename NT>
-void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bool &too_few, NT &ratio, bool print) {
+void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bool &too_few, NT &ratio, NT up_lim, bool print) {
 
     typedef typename Polytope::PolytopePoint Point;
     std::vector<NT> ratios;
@@ -35,7 +35,7 @@ void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bo
 
     //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
     if (p_mval > p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
-        if (p_mval < (p_test + 0.5) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+        if (p_mval < (up_lim) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
             done= true;
             ratio = p_mval;
         }
@@ -49,12 +49,24 @@ void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bo
 
 
 template <class Point, class Polytope, class VT, class MT, typename NT, class PointList>
-void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT G, NT &var, NT &delta, NT &ratio, PointList &randPoints){
+void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT G, NT &var, NT &delta, NT &up_lim, NT &ratio, PointList &randPoints){
 
-    NT delta2 = 0.5, delta1 = 0.0;
+    NT delta1 = 0.0, delta2;
+    if (delta!=0.0){
+        delta2 = delta;
+    } else {
+        delta2 = 0.5;
+    }
+
+    if(up_lim==0.0){
+        up_lim=0.6;
+    }
     int n = P.dimension(), m = P.num_of_vertices();
     int N = 1200;
-    var = 100.0*n;
+    if (var==0.0) {
+        var = 100.0*m;
+    }
+    //var = 100.0*n;
     VT l2(m), u2(m);
     MT sigma2(m,m);
     MT sample;
@@ -73,9 +85,9 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
             randPoints.push_back(p);
         }
 
-        check_converg(P, randPoints, 0.1, done, too_few, ratio, true);
-        std::cout<<"ratio = "<<ratio<<std::endl;
-        std::cout<<"delta2 = "<<delta2<<std::endl;
+        check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
+        //std::cout<<"ratio = "<<ratio<<std::endl;
+        //std::cout<<"delta2 = "<<delta2<<std::endl;
 
         if(done) {
             delta = delta2;
@@ -110,9 +122,9 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
             randPoints.push_back(p);
         }
 
-        check_converg(P, randPoints, 0.1, done, too_few, ratio, true);
-        std::cout<<"ratio = "<<ratio<<std::endl;
-        std::cout<<"delta_med = "<<delta_med<<std::endl;
+        check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
+        //std::cout<<"ratio = "<<ratio<<std::endl;
+        //std::cout<<"delta_med = "<<delta_med<<std::endl;
 
         if(done) {
             delta = delta_med;
