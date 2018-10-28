@@ -41,7 +41,7 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbose, double delta_in=0.0, double var_in=0.0, double up_lim=0.0) {
+double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbose, double delta_in=0.0, double var_in=0.0, double up_lim=0.3) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -79,7 +79,7 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     MT sigma = ps*ps.transpose();
     //std::cout<<sigma<<std::endl;
     for (int i1 = 0; i1 < m; ++i1) {
-        sigma(i1,i1) = sigma(i1,i1) + 0.000001;
+        sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
     }
     //sigma = sigma + 0.00001*MT::DiagonalMatrix(m);
 
@@ -122,19 +122,28 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
 
     sigma = 2*var_in * sigma;
     //std::cout<<sigma<<std::endl;
-    MT sample = sampleTr(l, u, sigma, 4800, mvrandn, G);
-    for (int i = 0; i < 4800; ++i) {
+    int count;
+    double tstart3 = (double)clock()/(double)CLOCKS_PER_SEC;
+    //MT sample = sampleTr(l, u, sigma, 8800, mvrandn, G, count);
+    //countIn = countIn + NT(8800-count);
+    //totCount = totCount + NT(8800-count);
+    MT sample = sampleTr(l, u, sigma, 8800, mvrandn, G);
+    randPoints.clear();
+    //for (int i = 0; i < count; ++i) {
+    for (int i = 0; i < 8800; ++i) {
         Point p(n, typename std::vector<NT>::iterator(sample.col(i).data()), typename std::vector<NT>::iterator(sample.col(i).data() + n));
         randPoints.push_back(p);
     }
     std::list<Point>::iterator rpit = randPoints.begin();
-    double tstart3 = (double)clock()/(double)CLOCKS_PER_SEC;
+
     for ( ;  rpit!=randPoints.end(); ++rpit) {
         if(ZP.is_in(*rpit)==-1) {
             countIn = countIn + 1.0;
         }
         totCount = totCount + 1.0;
     }
+    if (verbose) std::cout<<"countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;
+    if (verbose) std::cout<<"variance = "<<var_in<<std::endl;
     double tstop3 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(verbose) std::cout << "[3] rejection time = " << tstop3 - tstart3 << std::endl;
     if (verbose) std::cout<<"final ratio = "<<countIn / totCount<<std::endl;

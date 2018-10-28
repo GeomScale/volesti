@@ -59,12 +59,12 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
     }
 
     if(up_lim==0.0){
-        up_lim=0.6;
+        up_lim=0.3;
     }
     int n = P.dimension(), m = P.num_of_vertices();
     int N = 1200;
     if (var==0.0) {
-        var = 100.0*m;
+        var = 1000000.0;
     }
     //var = 100.0*n;
     VT l2(m), u2(m);
@@ -100,7 +100,7 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
 
         delta1 = delta2;
         delta2 = 2*delta2;
-        var = 2*var;
+        //var = 2*var;
         randPoints.clear();
 
     }
