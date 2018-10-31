@@ -148,6 +148,31 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     if(verbose) std::cout << "[3] rejection time = " << tstop3 - tstart3 << std::endl;
     if (verbose) std::cout<<"final ratio = "<<countIn / totCount<<std::endl;
     vol = vol * (countIn / totCount);
+
+    countIn = 0.0;
+    totCount = 0.0;
+
+    randPoints.clear();
+    Point q(n);
+
+    //rand_point_generator(ZP, q, 1200, 10, randPoints, var2);
+    //rpit = randPoints.begin();
+    //std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
+    /*MT Q = ZP.get_Q();
+    MT G2=ZP.get_mat().transpose();
+    for ( ;  rpit!=randPoints.end(); ++rpit) {
+        if(is_in_sym(*rpit, G2, Q, delta_in)) {
+            countIn = countIn + 1.0;
+        } else {
+            if(ZP.is_in(*rpit)==-1) {
+                countIn++;
+            }
+        }
+        totCount = totCount + 1.0;
+    }
+
+    if (verbose) std::cout<<"LAST countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;*/
+
     //std::cout<<"final volume = "<<vol<<std::endl;
     return vol;
 }

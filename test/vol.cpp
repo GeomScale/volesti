@@ -348,6 +348,8 @@ int main(const int argc, const char** argv)
       return 0;
   }
 
+
+
   //Compute chebychev ball//
   std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -402,6 +404,30 @@ int main(const int argc, const char** argv)
   boost::normal_distribution<> rdist(0,1);
   boost::random::uniform_real_distribution<>(urdist);
   boost::random::uniform_real_distribution<> urdist1(-1,1);
+
+    if(Zono) {
+        typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+        MT GQ=ZP.get_GQ();
+        MT AQ = ZP.get_AQ();
+        Point q(4);
+        vars<NT, RNGType> var2(1, n, 10 + n / 10, 1, 0.0, e, 0, 0.0, 0, 0.1, rng,
+                               urdist, urdist1, -1.0, verbose, false, false, NN, birk, false,
+                               false);
+        std::list<Point> randPoints;
+        rand_point_generator(ZP, q, 1200, 10, randPoints, var2);
+        std::list<Point>::iterator rpit = randPoints.begin();
+        std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
+        NT countIn=0.0, totCount=0.0;
+        for ( ;  rpit!=randPoints.end(); ++rpit) {
+            if(is_in_sym2(*rpit, GQ, AQ, NT(2))) {
+                countIn = countIn + 1.0;
+            }
+            totCount = totCount + 1.0;
+        }
+
+        if (verbose) std::cout<<"LAST countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;
+        return -1.0;
+    }
 
   // If no file specified construct a default polytope
   if(!file){
