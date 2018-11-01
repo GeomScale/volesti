@@ -815,4 +815,120 @@ bool is_in_sym2(Point p, MT GQ, MT AQ, NT delta) {
 }
 
 
+template <class MT, class Point, typename NT>
+bool is_in_sym3(Point p, MT Q0, MT G, NT delta ) {
+
+    lprec *lp;
+    int d = G.rows(), k = G.cols();
+    int Ncol=k, *colno = NULL, j, i;
+    REAL *row = NULL;
+    //std::cout<<k<<" "<<d<<std::endl;
+
+    try
+    {
+        lp = make_lp(2*k-d, Ncol);
+        if(lp == NULL) throw false;
+    }
+    catch (bool e) {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
+#endif
+        return false;
+    }
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    try
+    {
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        row = (REAL *) malloc(Ncol * sizeof(*row));
+    }
+    catch (std::exception &e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
+#endif
+        return false;
+    }
+
+    set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
+
+    for (i = 0;  i< k; ++i) {
+
+        if (i < k - d) {
+            for (j = 0; j < k; ++j) {
+                row[j] = Q0(i, j);
+            }
+        } else {
+            for (j = 0;  j< k; ++j) {
+                row[j] = G(i - k + d, j);
+            }
+        }
+        for (int l = 0; l < k; ++l) {
+        std::cout<<row[l]<<" ";
+        }
+        std::cout<<"\n";
+        try {
+            if (i<k-d) {
+                if (!add_constraintex(lp, Ncol, row, colno, LE, 0.1)) throw false;
+                if (!add_constraintex(lp, Ncol, row, colno, GE, -0.1)) throw false;
+            } else{
+                if (!add_constraintex(lp, Ncol, row, colno, EQ, p[i-k+d])) throw false;
+            }
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+#endif
+            return false;
+        }
+
+    }
+
+    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
+
+    // set the bounds
+    for(j=0; j<k; j++){
+        colno[j] = j+1; /* j_th column */
+        row[j] = 0.0;
+        set_bounds(lp, j + 1, -1.0-delta, 1.0+delta);
+    }
+
+    // set the objective function
+    try
+    {
+        if(!set_obj_fnex(lp, Ncol, row, colno)) throw false;
+    }
+    catch (bool e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
+#endif
+        return false;
+    }
+
+    /* set the object direction to maximize */
+    set_maxim(lp);
+
+    /* I only want to see important messages on screen while solving */
+    set_verbose(lp, NEUTRAL);
+
+    /* Now let lpsolve calculate a solution */
+    if (solve(lp) != OPTIMAL){
+        //get_variables(lp, row);
+        delete_lp(lp);
+        //for (int l = 0; l < d+k; ++l) {
+        //std::cout<<row[l]<<" ";
+        //}
+        //std::cout<<"\n";
+        //std::cout<<"Out"<<std::endl;
+        return false;
+    }
+    //std::cout<<"In"<<std::endl;
+    delete_lp(lp);
+    return true;
+
+}
+
 #endif

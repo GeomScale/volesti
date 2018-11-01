@@ -800,6 +800,7 @@ private:
     MT Q;
     MT AQ;
     MT GQ;
+    MT Q0;
 
 public:
 
@@ -933,9 +934,9 @@ public:
 
         MT ps = G.completeOrthogonalDecomposition().pseudoInverse();
         MT sigma = ps*ps.transpose();
-        //for (int i1 = 0; i1 < num_of_generators(); ++i1) {
-            //sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
-        //}
+        for (int i1 = 0; i1 < num_of_generators(); ++i1) {
+            sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
+        }
         //MT sigma2 = sigma.inverse();
         Eigen::EigenSolver<MT> es(sigma);
 
@@ -956,10 +957,19 @@ public:
                 }
             }
         }
-        std::cout<<Q<<"\n"<<std::endl;
+        //std::cout<<Q<<"\n"<<std::endl;
         AQ = A*Q;
         GQ = G*Q;
-        std::cout<<GQ<<"\n"<<std::endl;
+        //std::cout<<GQ<<"\n"<<std::endl;
+
+        Q0.resize(k,k-_d);
+        for (int i = 0; i < k-_d; ++i) {
+            for (int j = 0; j < k; ++j) {
+                Q0(j,i) = std::real(Q2(j,i+_d));
+            }
+        }
+        std::cout<<V<<"\n"<<std::endl;
+        std::cout<<Q0<<"\n"<<std::endl;
 
     }
 
@@ -973,6 +983,10 @@ public:
 
     MT get_GQ(){
         return GQ;
+    }
+
+    MT get_Q0(){
+        return Q0;
     }
 
 

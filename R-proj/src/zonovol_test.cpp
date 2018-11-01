@@ -136,9 +136,11 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     }
     std::list<Point>::iterator rpit = randPoints.begin();
 
+    Point q2;
     for ( ;  rpit!=randPoints.end(); ++rpit) {
         if(ZP.is_in(*rpit)==-1) {
             countIn = countIn + 1.0;
+            q2=*rpit;
         }
         totCount = totCount + 1.0;
     }
@@ -155,23 +157,19 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     randPoints.clear();
     Point q(n);
 
-    //rand_point_generator(ZP, q, 1200, 10, randPoints, var2);
-    //rpit = randPoints.begin();
-    //std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
-    /*MT Q = ZP.get_Q();
+    rand_point_generator(ZP, q, 1200, 10, randPoints, var2);
+    rpit = randPoints.begin();
+    std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
+    MT Q0 = ZP.get_Q0().transpose();
     MT G2=ZP.get_mat().transpose();
     for ( ;  rpit!=randPoints.end(); ++rpit) {
-        if(is_in_sym(*rpit, G2, Q, delta_in)) {
+        if(is_in_sym3(q2, Q0, G2, delta_in)) {
             countIn = countIn + 1.0;
-        } else {
-            if(ZP.is_in(*rpit)==-1) {
-                countIn++;
-            }
         }
         totCount = totCount + 1.0;
     }
 
-    if (verbose) std::cout<<"LAST countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;*/
+    if (verbose) std::cout<<"LAST countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;
 
     //std::cout<<"final volume = "<<vol<<std::endl;
     return vol;

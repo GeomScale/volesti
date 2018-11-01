@@ -407,19 +407,21 @@ int main(const int argc, const char** argv)
 
     if(Zono) {
         typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-        MT GQ=ZP.get_GQ();
-        MT AQ = ZP.get_AQ();
-        Point q(4);
-        vars<NT, RNGType> var2(1, n, 10 + n / 10, 1, 0.0, e, 0, 0.0, 0, 0.1, rng,
-                               urdist, urdist1, -1.0, verbose, false, false, NN, birk, false,
-                               false);
+        MT G=ZP.get_mat().transpose();
+        MT Q0 = ZP.get_Q0().transpose();
+        Point q(n);
+        vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, rng,
+                               urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, false);
         std::list<Point> randPoints;
-        rand_point_generator(ZP, q, 1200, 10, randPoints, var2);
+        rand_point_generator(ZP, q, 1200, 10, randPoints, var1);
         std::list<Point>::iterator rpit = randPoints.begin();
         std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
         NT countIn=0.0, totCount=0.0;
+        NT sum;
+        std::cout<<Q0*G.transpose()<<std::endl;
         for ( ;  rpit!=randPoints.end(); ++rpit) {
-            if(is_in_sym2(*rpit, GQ, AQ, NT(2))) {
+            if(is_in_sym3(*rpit, Q0, G, NT(20))) {
+
                 countIn = countIn + 1.0;
             }
             totCount = totCount + 1.0;
