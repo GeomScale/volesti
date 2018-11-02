@@ -96,18 +96,15 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
         typedef Zonotope<Point> Zonotope;
         Zonotope ZP;
         return generic_volume<Point,NT>(ZP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding);
-        //ZP.init(Pin);
     } else if (!Vpoly) {
         typedef HPolytope<Point> Hpolytope;
         Hpolytope HP;
         return generic_volume<Point,NT>(HP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding);
-        //HP.init(Pin);
     } else {
         typedef boost::mt19937    RNGType;
         typedef VPolytope<Point, RNGType > Vpolytope;
         Vpolytope VP;
         return generic_volume<Point,NT>(VP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding);
-        //VP.init(Pin);
     }
 
     return 0;
