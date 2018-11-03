@@ -19,6 +19,8 @@ public:
     typedef typename std::vector<NT>::iterator viterator;
 
 
+    Ball() {}
+
     Ball(Point c, NT R) : _c(c),	 _R(R) {}
 
     Point center(){
@@ -95,8 +97,11 @@ private:
     Polytope    _P;
     CBall _B;
 public:
+    typedef CBall ball;
     typedef typename CBall::NT NT;
     typedef typename CBall::BallPoint Point;
+
+    BallIntersectPolytope() {}
 
     BallIntersectPolytope(Polytope &P, CBall &B) : _P(P), _B(B) {};
     

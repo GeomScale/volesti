@@ -668,18 +668,17 @@ bool is_in_sym(Point p, MT G, MT Q, NT delta) {
 
 
 template <class Point, class MT, typename NT>
-bool is_in_sym2(Point p, MT GQ, MT AQ, NT delta) {
+bool is_in_sym2(Point p, MT Q0, MT G, NT delta) {
 
     lprec *lp;
-    int d = GQ.rows(), k = GQ.cols();
-    int Ncol=k+d, *colno = NULL, j, i;
+    int d = G.rows(), k = G.cols();
+    int Ncol=k, *colno = NULL, j, i;
     REAL *row = NULL;
-    MT Ik = MT::Identity(k,k);
     //std::cout<<k<<" "<<d<<std::endl;
 
     try
     {
-        lp = make_lp(d+3*k, Ncol);
+        lp = make_lp(k, Ncol);
         if(lp == NULL) throw false;
     }
     catch (bool e) {
@@ -706,76 +705,34 @@ bool is_in_sym2(Point p, MT GQ, MT AQ, NT delta) {
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 
-    for (i = 0;  i< d+3*k; ++i) {
-
-        if(i<k) {
-            for (j = 0;  j< d+k; ++j) {
-                if(j<d) {
-                    if(i==j) {
-                        row[j]=1.0;
-                    } else {
-                        row[j]=0.0;
-                    }
-                    //row[j] = Q(i,j);
-                } else {
-                    if(i==j-d) {
-                        row[j]=-1.0;
-                    } else {
-                        row[j]=0.0;
-                    }
-                    //row[j] = -Ik(i,j-d);
-                }
-            }
-        } else if(i<(d+k)) {
-            for (j = 0;  j< k+d; ++j) {
-                if(j<d) {
-                    row[j] = 0.0;
-                } else {
-                    row[j] = GQ(i-k,j-d);
-                }
-            }
-        } else {
-            for (j = 0;  j< k+d; ++j) {
-                if(j<d) {
-                    row[j] = 0.0;
-                } else {
-                    row[j] = AQ(i-k-d,j-d);
-                }
-            }
+    for (i = 0;  i< k-d; ++i) {
+        for (j = 0; j < k; ++j) {
+            colno[j] = j+1;
+            row[j] = Q0(i, j);
         }
-        //for (int l = 0; l < d+k; ++l) {
-        //std::cout<<row[l]<<" ";
-        //}
-        //std::cout<<"\n";
-        try {
-            if (i<k) {
-                if (!add_constraintex(lp, Ncol, row, colno, EQ, 0.0)) throw false;
-            } else if(i<(k+d)){
-                if (!add_constraintex(lp, Ncol, row, colno, EQ, p[i-k])) throw false;
-            } else {
-                if (!add_constraintex(lp, Ncol, row, colno, LE, 1.0+delta)) throw false;
-            }
+        if (!add_constraintex(lp, Ncol, row, colno, EQ, 0.0)) {
+            std::cout << "error in constraint1" << std::endl;
+            exit(-1);
         }
-        catch (bool e)
-        {
-#ifdef VOLESTI_DEBUG
-            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
-#endif
-            return false;
+    }
+    for (i = 0;  i< d; ++i) {
+        for (j = 0; j < k; ++j) {
+            colno[j] = j+1;
+            row[j] = G(i, j);
+        }
+        if (!add_constraintex(lp, Ncol, row, colno, EQ, p[i])) {
+            std::cout << "error in constraint1" << std::endl;
+            exit(-1);
         }
     }
 
     set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
 
     // set the bounds
-    for(j=0; j<d+k; j++){
+    for(j=0; j<k; j++){
         colno[j] = j+1; /* j_th column */
         row[j] = 0.0;
-        if (j<d) {
-            set_bounds(lp, j + 1, -infinite, infinite);
-        } else {
-            set_bounds(lp, j + 1, -infinite, infinite);
-        }
+        set_bounds(lp, j + 1, -1.0-delta, 1.0+delta);
     }
 
     // set the objective function
@@ -792,7 +749,7 @@ bool is_in_sym2(Point p, MT GQ, MT AQ, NT delta) {
     }
 
     /* set the object direction to maximize */
-    set_minim(lp);
+    set_maxim(lp);
 
     /* I only want to see important messages on screen while solving */
     set_verbose(lp, NEUTRAL);
@@ -816,7 +773,7 @@ bool is_in_sym2(Point p, MT GQ, MT AQ, NT delta) {
 
 
 template <class MT, class Point, typename NT>
-bool is_in_sym3(Point p, MT Q0, MT G, NT delta ) {
+bool is_in_sym3(Point p, MT Q0, MT G, NT delta, std::vector<NT> Zs) {
 
     lprec *lp;
     int d = G.rows(), k = G.cols();
@@ -853,37 +810,29 @@ bool is_in_sym3(Point p, MT Q0, MT G, NT delta ) {
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 
-    for (i = 0;  i< k; ++i) {
-
-        if (i < k - d) {
-            for (j = 0; j < k; ++j) {
-                row[j] = Q0(i, j);
-            }
-        } else {
-            for (j = 0;  j< k; ++j) {
-                row[j] = G(i - k + d, j);
-            }
+    for (i = 0;  i< k-d; ++i) {
+        for (j = 0; j < k; ++j) {
+            colno[j] = j+1;
+            row[j] = Q0(i, j);
         }
-        for (int l = 0; l < k; ++l) {
-        std::cout<<row[l]<<" ";
+        if (!add_constraintex(lp, Ncol, row, colno, LE, Zs[i])) {
+            std::cout << "error in constraint1" << std::endl;
+            exit(-1);
         }
-        std::cout<<"\n";
-        try {
-            if (i<k-d) {
-                if (!add_constraintex(lp, Ncol, row, colno, LE, 0.1)) throw false;
-                if (!add_constraintex(lp, Ncol, row, colno, GE, -0.1)) throw false;
-            } else{
-                if (!add_constraintex(lp, Ncol, row, colno, EQ, p[i-k+d])) throw false;
-            }
+        if (!add_constraintex(lp, Ncol, row, colno, GE, -Zs[i])) {
+            std::cout << "error in constraint2" << std::endl;
+            exit(-1);
         }
-        catch (bool e)
-        {
-#ifdef VOLESTI_DEBUG
-            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
-#endif
-            return false;
+    }
+    for (i = 0;  i< d; ++i) {
+        for (j = 0; j < k; ++j) {
+            colno[j] = j+1;
+            row[j] = G(i, j);
         }
-
+        if (!add_constraintex(lp, Ncol, row, colno, EQ, p[i])) {
+            std::cout << "error in constraint1" << std::endl;
+            exit(-1);
+        }
     }
 
     set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */

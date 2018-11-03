@@ -6,7 +6,7 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
-
+#define VOLESTI_DEBUG
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "volume.h"
@@ -65,7 +65,7 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
     bool rand_only=false,
             NN=false,
             birk=false,
-            verbose =false,
+            verbose =true,
             coordinate=coord;
     unsigned int n_threads=1;
     Hpolytope HP;

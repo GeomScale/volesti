@@ -796,11 +796,8 @@ private:
     unsigned int _d;  //dimension
     NT maxNT = 1.79769e+308;
     NT minNT = -1.79769e+308;
-    MT Qpl;
-    MT Q;
-    MT AQ;
-    MT GQ;
     MT Q0;
+    MT sigma;
 
 public:
 
@@ -902,91 +899,65 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-        compute_eigenvectors(V.transpose());
+        bool normalization1=true;
+        bool normalization2=false;
+        compute_eigenvectors(V.transpose(),normalization1,normalization2);
        // initial_shifting(); // shift zonotope to the origin
     }
 
-    void compute_eigenvectors(MT G) {
+    void compute_eigenvectors(MT G, bool norm1, bool norm2) {
 
-        int k = num_of_generators();
-        MT A(2 * k, k);
-        //b.resize(2 * dim);
-        for (unsigned int i = 0; i < k; ++i) {
-            //b(i) = 1.0;
-            for (unsigned int j = 0; j < k; ++j) {
-                if (i == j) {
-                    A(i, j) = -1.0;
-                } else {
-                    A(i, j) = 0.0;
-                }
-            }
-        }
-        for (unsigned int i = 0; i < k; ++i) {
-            //b(i + dim) = 1.0;
-            for (unsigned int j = 0; j < k; ++j) {
-                if (i == j) {
-                    A(i + k, j) = 1.0;
-                } else {
-                    A(i + k, j) = 0.0;
-                }
-            }
-        }
+        int k = G.cols();
+        //std::cout<<"number of generators = "<<k<<std::endl;
 
         MT ps = G.completeOrthogonalDecomposition().pseudoInverse();
-        MT sigma = ps*ps.transpose();
-        for (int i1 = 0; i1 < num_of_generators(); ++i1) {
-            sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
+        sigma.resize(k,k);
+        sigma = ps*ps.transpose();
+        //std::cout<<sigma<<std::endl;
+        if (norm1) {
+            sigma = (sigma + sigma.transpose()) / 2;
+        }
+        //std::cout<<"\n"<<sigma<<std::endl;
+        //std::cout<<"\n";
+        if (norm2) {
+            for (int i1 = 0; i1 < k; ++i1) {
+                sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
+            }
         }
         //MT sigma2 = sigma.inverse();
-        Eigen::EigenSolver<MT> es(sigma);
+        Eigen::SelfAdjointEigenSolver<MT> es(sigma);
 
-        Eigen::MatrixXcd D = es.eigenvalues().asDiagonal();
-        Eigen::MatrixXcd Q2 = es.eigenvectors();
+        MT D = es.eigenvalues().asDiagonal();
+        MT Q2 = es.eigenvectors();
 
-        std::cout<<Q2<<"\n"<<std::endl;
-        std::cout<<es.eigenvalues()<<"\n"<<std::endl;
-        std::cout<<D<<"\n"<<std::endl;
-
-        Q.resize(num_of_generators(), num_of_generators());
-        Qpl.resize(num_of_generators(),_d);
-        for (int i = 0; i < num_of_generators(); ++i) {
-            for (int j = 0; j < num_of_generators(); ++j) {
-                Q(j,i) = std::real(Q2(j,i));
-                if(i<_d){
-                    Qpl(j,i) = std::real(Q2(j,i));
-                }
-            }
-        }
-        //std::cout<<Q<<"\n"<<std::endl;
-        AQ = A*Q;
-        GQ = G*Q;
-        //std::cout<<GQ<<"\n"<<std::endl;
+        //std::cout<<Q2<<"\n"<<std::endl;
+        //std::cout<<es.eigenvalues()<<"\n"<<std::endl;
+        //std::cout<<D<<"\n"<<std::endl;
 
         Q0.resize(k,k-_d);
-        for (int i = 0; i < k-_d; ++i) {
-            for (int j = 0; j < k; ++j) {
-                Q0(j,i) = std::real(Q2(j,i+_d));
+        int count=0;
+        for (int i = 0; i < k; ++i) {
+            if(es.eigenvalues()[i]<0.0000001) {
+                for (int j = 0; j < k; ++j) {
+                    Q0(j, count) = Q2(j, i);
+                }
+                count++;
             }
         }
-        std::cout<<V<<"\n"<<std::endl;
-        std::cout<<Q0<<"\n"<<std::endl;
+        //std::cout<<G<<"\n"<<std::endl;
+        //std::cout<<Q0<<"\n"<<std::endl;
+        for (int i1 = 0; i1 < k; ++i1) {
+            sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
+        }
 
-    }
-
-    MT get_Q(){
-        return Qpl;
-    }
-
-    MT get_AQ(){
-        return AQ;
-    }
-
-    MT get_GQ(){
-        return GQ;
     }
 
     MT get_Q0(){
         return Q0;
+    }
+
+    MT get_sigma() {
+        return sigma;
     }
 
 
@@ -1001,7 +972,9 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        compute_eigenvectors(V.transpose());
+        bool normalization1=true;
+        bool normalization2=false;
+        compute_eigenvectors(V.transpose(),normalization1,normalization2);
         //initial_shifting(); // shift zonotope to the origin
     }
 

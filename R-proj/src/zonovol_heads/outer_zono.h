@@ -59,7 +59,7 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
     }
 
     if(up_lim==0.0){
-        up_lim=0.3;
+        up_lim=0.2;
     }
     int n = P.dimension(), m = P.num_of_vertices();
     int N = 1200;
@@ -85,9 +85,11 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
             randPoints.push_back(p);
         }
 
+        done = false;
+        too_few = false;
         check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
-        //std::cout<<"ratio = "<<ratio<<std::endl;
-        //std::cout<<"delta2 = "<<delta2<<std::endl;
+        std::cout<<"ratio = "<<ratio<<std::endl;
+        std::cout<<"delta2 = "<<delta2<<std::endl;
 
         if(done) {
             delta = delta2;
@@ -122,9 +124,11 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
             randPoints.push_back(p);
         }
 
+        done = false;
+        too_few = false;
         check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
-        //std::cout<<"ratio = "<<ratio<<std::endl;
-        //std::cout<<"delta_med = "<<delta_med<<std::endl;
+        std::cout<<"ratio = "<<ratio<<std::endl;
+        std::cout<<"delta_med = "<<delta_med<<std::endl;
 
         if(done) {
             delta = delta_med;

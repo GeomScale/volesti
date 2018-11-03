@@ -405,7 +405,7 @@ int main(const int argc, const char** argv)
   boost::random::uniform_real_distribution<>(urdist);
   boost::random::uniform_real_distribution<> urdist1(-1,1);
 
-    if(Zono) {
+    /*if(Zono) {
         typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
         MT G=ZP.get_mat().transpose();
         MT Q0 = ZP.get_Q0().transpose();
@@ -418,9 +418,10 @@ int main(const int argc, const char** argv)
         std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
         NT countIn=0.0, totCount=0.0;
         NT sum;
-        std::cout<<Q0*G.transpose()<<std::endl;
+        std::cout<<"G= "<<G<<std::endl;
+        std::cout<<"Q0= "<<Q0<<std::endl;
         for ( ;  rpit!=randPoints.end(); ++rpit) {
-            if(is_in_sym3(*rpit, Q0, G, NT(20))) {
+            if(is_in_sym2(*rpit, Q0, G, NT(0.0))) {
 
                 countIn = countIn + 1.0;
             }
@@ -429,7 +430,7 @@ int main(const int argc, const char** argv)
 
         if (verbose) std::cout<<"LAST countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;
         return -1.0;
-    }
+    }*/
 
   // If no file specified construct a default polytope
   if(!file){

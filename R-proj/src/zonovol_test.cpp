@@ -26,7 +26,7 @@
 #include "vars.h"
 #include "polytopes.h"
 //#include "ellipsoids.h"
-//#include "ballintersectconvex.h"
+#include "ballintersectconvex.h"
 //#include "vpolyintersectvpoly.h"
 #include "samplers.h"
 #include "rounding.h"
@@ -36,12 +36,13 @@
 #include "zonovol_heads/annealing_zono.h"
 #include "zonovol_heads/outer_zono.h"
 #include "zonovol_heads/cg_zonovol.h"
+#include "zonovol_heads/ball_annealing.h"
 
 
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbose, double delta_in=0.0, double var_in=0.0, double up_lim=0.3) {
+double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbose, bool relaxed, double delta_in=0.0, double var_in=0.0, double up_lim=0.2) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -77,9 +78,10 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     MT G = V.transpose();
     MT ps = G.completeOrthogonalDecomposition().pseudoInverse();
     MT sigma = ps*ps.transpose();
+    sigma = (sigma + sigma.transpose())/2.0;
     //std::cout<<sigma<<std::endl;
     for (int i1 = 0; i1 < m; ++i1) {
-        sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
+        sigma(i1,i1) = sigma(i1,i1) + 0.0000000001;
     }
     //sigma = sigma + 0.00001*MT::DiagonalMatrix(m);
 
@@ -127,7 +129,8 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     //MT sample = sampleTr(l, u, sigma, 8800, mvrandn, G, count);
     //countIn = countIn + NT(8800-count);
     //totCount = totCount + NT(8800-count);
-    MT sample = sampleTr(l, u, sigma, 8800, mvrandn, G);
+    std::pair<MT,MT> samples = sample_cube(l, u, sigma, 8800, mvrandn, G);
+    MT sample = samples.first;
     randPoints.clear();
     //for (int i = 0; i < count; ++i) {
     for (int i = 0; i < 8800; ++i) {
@@ -136,11 +139,11 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     }
     std::list<Point>::iterator rpit = randPoints.begin();
 
-    Point q2;
+    //Point q2;
     for ( ;  rpit!=randPoints.end(); ++rpit) {
         if(ZP.is_in(*rpit)==-1) {
             countIn = countIn + 1.0;
-            q2=*rpit;
+            //q2=*rpit;
         }
         totCount = totCount + 1.0;
     }
@@ -157,19 +160,47 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     randPoints.clear();
     Point q(n);
 
-    rand_point_generator(ZP, q, 1200, 10, randPoints, var2);
+    rand_point_generator(ZP, q, 12000, 1, randPoints, var2);
     rpit = randPoints.begin();
     std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
     MT Q0 = ZP.get_Q0().transpose();
     MT G2=ZP.get_mat().transpose();
+
+    std::vector<NT> Zs;
+    if(relaxed){
+        MT X2 = Q0 * samples.second;
+        for (int i = 0; i < m-n; ++i) {
+            //std::cout<<X2.row(i).maxCoeff()<<" "<<-X2.row(i).minCoeff()<<" "<<std::max(X2.row(i).maxCoeff(), -X2.row(i).minCoeff())<<std::endl;
+            Zs.push_back(std::max(X2.row(i).maxCoeff(), -X2.row(i).minCoeff()));
+        }
+
+    }
+
     for ( ;  rpit!=randPoints.end(); ++rpit) {
-        if(is_in_sym3(q2, Q0, G2, delta_in)) {
-            countIn = countIn + 1.0;
+        if(relaxed) {
+            if (is_in_sym3(*rpit, Q0, G2, delta_in, Zs)) {
+                countIn = countIn + 1.0;
+            }
+        } else {
+            if (is_in_sym2(*rpit, Q0, G2, delta_in)) {
+                countIn = countIn + 1.0;
+            }
         }
         totCount = totCount + 1.0;
     }
 
     if (verbose) std::cout<<"LAST countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;
+
+    typedef Ball<Point> ball;
+    typedef BallIntersectPolytope<zonotope , ball > ZonoBall;
+    typedef std::list<Point> PointList;
+    std::vector<ZonoBall> ZonoBallSet;
+    std::vector<PointList> PointSets;
+    std::vector<NT> ratios;
+    NT p_value = 0.1;
+
+    get_sequence_of_zonoballs<ball>(ZP, ZonoBallSet, PointSets, ratios,
+                              p_value, var2, delta_in, Zs, relaxed);
 
     //std::cout<<"final volume = "<<vol<<std::endl;
     return vol;

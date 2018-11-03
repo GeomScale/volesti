@@ -17,6 +17,16 @@ MT sampleTr(VT l, VT u, MT sig, int N, Rcpp::Function rv, MT G){
 
 
 template <class VT, class MT>
+std::pair<MT,MT> sample_cube(VT l, VT u, MT sig, int N, Rcpp::Function rv, MT G){
+
+    MT X2 = Rcpp::as<MT>(rv(Rcpp::wrap(l), Rcpp::wrap(u), Rcpp::wrap(sig), N));
+    MT X1 = G * X2;
+    return std::pair<MT,MT> (X1,X2);
+
+}
+
+
+template <class VT, class MT>
 MT sampleTr(VT l, VT u, MT sig, int N, Rcpp::Function rv, MT G, int &count){
 
     int k = sig.cols();
