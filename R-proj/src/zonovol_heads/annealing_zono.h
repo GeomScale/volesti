@@ -107,7 +107,7 @@ void get_first_gaussian(Polytope &P, NT radius, NT frac,
 template <class Polytope, class Parameters, class Point, typename NT, class VT, class MT>
 NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
                      NT ratio, NT C, Parameters var,
-                     VT l, VT u, MT sigma, Rcpp::Function mvrandn){
+                     VT l, VT u, MT sigma, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn, Rcpp::Function mvNcdf, std::vector<NT> &probs){
 
     NT last_a = a, last_ratio = 0.1;
     MT G = P.get_mat().transpose();
@@ -118,11 +118,21 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
     std::vector<NT> fn(N,NT(0.0));
     std::list<Point> randPoints;
     typedef typename std::vector<NT>::iterator viterator;
+    NT prob;
 
     //sample N points using hit and run or ball walk
     //rand_gaussian_point_generator(P, p, N, var.walk_steps, randPoints, last_a, var);
     MT sigma2 = (1.0/(2.0*last_a))*sigma;
-    MT pointset = sampleTr(l, u , sigma2, N, mvrandn, G);
+    prob = test_botev<NT>(l, u, sigma2, 10000, mvNcdf);
+    probs.push_back(prob);
+    MT pointset;
+    int kk = G.cols();
+    if(prob>0.001) {
+        pointset = sampleTr(l, u, sigma2, N, mvrandn, G);
+    } else {
+        pointset = sampleTr_gibbs(l, u, sigma2, N, 10+kk/10, rtmvnorm, G);
+    }
+    //MT pointset = sampleTr(l, u , sigma2, N, mvrandn, G);
 
     viterator fnit;
     while(!done){
@@ -155,7 +165,7 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
 template <class Polytope, class Parameters, typename NT, class VT, class MT>
 void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, unsigned int N,
                             Parameters var, NT &error, std::vector<NT> &a_vals,
-                            VT l, VT u, MT sigma, Rcpp::Function mvrandn){
+                            VT l, VT u, MT sigma, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn, Rcpp::Function mvNcdf, std::vector<NT> &probs){
 
     typedef typename Polytope::PolytopePoint Point;
     MT G = P.get_mat().transpose();
@@ -191,6 +201,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
     std::vector<NT> lamdas(P.num_of_hyperplanes(), NT(0));
     MT sigma2;
     double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
+    int kk = G.cols();
     while (true) {
 
         //if (var.ball_walk) {
@@ -199,7 +210,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
             //}
         //}
         // Compute the next gaussian
-        next_a = get_next_gaussian(P, p, a_vals[it], N, ratio, C, var, l, u, sigma, mvrandn);
+        next_a = get_next_gaussian(P, p, a_vals[it], N, ratio, C, var, l, u, sigma, rtmvnorm, mvrandn, mvNcdf, probs);
 
         curr_fn = 0;
         curr_its = 0;
@@ -213,7 +224,14 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
             //steps--;
         //}
         sigma2 = (1.0/(2.0*a_vals[it]))*sigma;
-        pointset = sampleTr(l, u , sigma2, steps, mvrandn, G);
+        if(probs[it]>0.001) {
+            std::cout<<"a_"<<it<<" = "<<a_vals[it]<<" | prob = "<<probs[it]<<std::endl;
+            pointset = sampleTr(l, u, sigma2, steps, mvrandn, G);
+        } else {
+            std::cout<<"a_"<<it<<" = "<<a_vals[it]<<" | prob = "<<probs[it]<<std::endl;
+            pointset = sampleTr_gibbs(l, u, sigma2, steps, 10+kk/10, rtmvnorm, G);
+        }
+        //pointset = sampleTr(l, u , sigma2, steps, mvrandn, G);
 
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++) {

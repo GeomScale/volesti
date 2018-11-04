@@ -3,7 +3,6 @@
 // Copyright (c) 20012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
 #ifndef CG_ZONOVOL_H
 #define CG_ZONOVOL_H
@@ -13,7 +12,7 @@ NT cg_volume_zono(Polytope &P,
                              GParameters &var,  // constans for volume
                              UParameters &var2,
                              std::pair<Point,NT> InnerBall,
-                             Rcpp::Function mvrandn,
+                             Rcpp::Function rtmvnorm, Rcpp::Function mvrandn, Rcpp::Function mvNcdf,
                              MT sigma, VT l, VT u) {
     //typedef typename Polytope::MT 	MT;
     //typedef typename Polytope::VT 	VT;
@@ -75,13 +74,14 @@ NT cg_volume_zono(Polytope &P,
     NT ratio = var.ratio;
     NT C = var.C;
     unsigned int N = var.N;
+    std::vector<NT> probs;
 
     // Computing the sequence of gaussians
 #ifdef VOLESTI_DEBUG
     if(print) std::cout<<"\n\nComputing annealing...\n"<<std::endl;
 #endif
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals, l, u, sigma, mvrandn);
+    get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals, l, u, sigma, rtmvnorm, mvrandn, mvNcdf, probs);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
 #ifdef VOLESTI_DEBUG
     if(print) std::cout<<"All the variances of schedule_annealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
@@ -103,7 +103,7 @@ NT cg_volume_zono(Polytope &P,
     Point p(n); // The origin is in the Chebychev center of the Polytope
     Point p_prev=p;
     unsigned int coord_prev, i=0;
-    viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
+    viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), probIt = probs.begin(), minmaxIt;
 
 #ifdef VOLESTI_DEBUG
     if(print) std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
@@ -115,8 +115,9 @@ NT cg_volume_zono(Polytope &P,
         //gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
     //}
     MT pointset;
+    int kk = P.num_of_generators();
     double tstart122 = (double)clock()/(double)CLOCKS_PER_SEC;
-    for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios
+    for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, ++probIt, i++) { //iterate over the number of ratios
         //initialize convergence test
         curr_eps = error/std::sqrt((NT(mm)));
         done=false;
@@ -140,7 +141,14 @@ NT cg_volume_zono(Polytope &P,
 
             //gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
             sigma2 = (1.0/(2.0*(*avalsIt)))*sigma;
-            pointset = sampleTr(l, u , sigma2, 2*W, mvrandn, G);
+            if((*probIt)>0.001) {
+                std::cout<<"a_"<<i<<" = "<<*avalsIt<<" | prob = "<<*probIt<<std::endl;
+                pointset = sampleTr(l, u , sigma2, 2*W, mvrandn, G);
+            } else {
+                std::cout<<"a_"<<i<<" = "<<*avalsIt<<" | prob = "<<*probIt<<std::endl;
+                pointset = sampleTr_gibbs(l, u, sigma2, 2*W, 10+kk/10, rtmvnorm, G);
+            }
+            //pointset = sampleTr(l, u , sigma2, 2*W, mvrandn, G);
 
             for (int k = 0; k < 2*W; ++k) {
                 *itsIt = *itsIt + 1.0;

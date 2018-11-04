@@ -37,12 +37,14 @@
 #include "zonovol_heads/outer_zono.h"
 #include "zonovol_heads/cg_zonovol.h"
 #include "zonovol_heads/ball_annealing.h"
+#include "zonovol_heads/est_ratio1.h"
 
 
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbose, bool relaxed, double delta_in=0.0, double var_in=0.0, double up_lim=0.2) {
+double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn, Rcpp::Function mvNcdf, bool verbose, bool relaxed,
+                 double delta_in=0.0, double var_in=0.0, double up_lim=0.2) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -81,7 +83,7 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     sigma = (sigma + sigma.transpose())/2.0;
     //std::cout<<sigma<<std::endl;
     for (int i1 = 0; i1 < m; ++i1) {
-        sigma(i1,i1) = sigma(i1,i1) + 0.0000000001;
+        sigma(i1,i1) = sigma(i1,i1) + 0.000000001;
     }
     //sigma = sigma + 0.00001*MT::DiagonalMatrix(m);
 
@@ -92,7 +94,7 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     std::list<Point> randPoints;
     NT delta, ratio;
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    get_delta<Point>(ZP, l, u, sigma, mvrandn, G, var_in, delta_in, up_lim, ratio, randPoints);
+    get_delta<Point>(ZP, l, u, sigma, rtmvnorm, mvrandn, mvNcdf, G, var_in, delta_in, up_lim, ratio, randPoints);
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(verbose) std::cout << "[1] computation of outer time = " << tstop1 - tstart1 << std::endl;
     delta = delta_in;
@@ -114,7 +116,7 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     if (verbose) std::cout<<"delta = "<<delta<<" first estimation of ratio (t-test value) = "<<ratio<<std::endl;
     //std::cout<<l<<"\n"<<u<<std::endl;
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    NT vol = cg_volume_zono(ZP, var1, var2, InnerB, mvrandn, sigma, l, u);
+    NT vol = cg_volume_zono(ZP, var1, var2, InnerB, rtmvnorm, mvrandn, mvNcdf, sigma, l, u);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(verbose) std::cout << "[2] outer volume estimation with cg algo time = " << tstop2 - tstart2 << std::endl;
     if (verbose) std::cout<<"volume of outer = "<<vol<<std::endl;
@@ -122,15 +124,24 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     NT countIn = ratio*1200.0, totCount = 1200.0;
     //std::cout<<"countIn = "<<countIn<<std::endl;
 
-    sigma = 2*var_in * sigma;
+    sigma = var_in * sigma;
     //std::cout<<sigma<<std::endl;
     int count;
     double tstart3 = (double)clock()/(double)CLOCKS_PER_SEC;
     //MT sample = sampleTr(l, u, sigma, 8800, mvrandn, G, count);
     //countIn = countIn + NT(8800-count);
     //totCount = totCount + NT(8800-count);
-    std::pair<MT,MT> samples = sample_cube(l, u, sigma, 8800, mvrandn, G);
-    MT sample = samples.first;
+    std::pair<MT,MT> samples;// = sample_cube(l, u, sigma, 8800, mvrandn, G);
+    //MT sample = samples.first;
+    MT sample;
+    NT prob = test_botev<NT>(l, u, sigma, 10000, mvNcdf);
+    NT ratio22 = est_ratio_zono(ZP, prob, 0.5, W, rtmvnorm, mvrandn, sigma, G, l, u);
+    /*if(prob>0.001) {
+        sample = sampleTr(l, u, sigma, N, mvrandn, G);
+    } else {
+        sample = sampleTr_gibbs(l, u, sigma, N, rtmvnorm, G);
+    }
+
     randPoints.clear();
     //for (int i = 0; i < count; ++i) {
     for (int i = 0; i < 8800; ++i) {
@@ -147,12 +158,12 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
         }
         totCount = totCount + 1.0;
     }
-    if (verbose) std::cout<<"countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;
+    if (verbose) std::cout<<"countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;*/
     if (verbose) std::cout<<"variance = "<<var_in<<std::endl;
     double tstop3 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(verbose) std::cout << "[3] rejection time = " << tstop3 - tstart3 << std::endl;
-    if (verbose) std::cout<<"final ratio = "<<countIn / totCount<<std::endl;
-    vol = vol * (countIn / totCount);
+    if (verbose) std::cout<<"final ratio = "<<ratio22<<std::endl;
+    vol = vol * ratio22;
 
     countIn = 0.0;
     totCount = 0.0;
@@ -160,7 +171,8 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     randPoints.clear();
     Point q(n);
 
-    rand_point_generator(ZP, q, 12000, 1, randPoints, var2);
+    rand_point_generator(ZP, q, 40000, 1, randPoints, var2);
+    std::list<Point>::iterator rpit;
     rpit = randPoints.begin();
     std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
     MT Q0 = ZP.get_Q0().transpose();
@@ -199,8 +211,8 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function mvrandn, bool verbo
     std::vector<NT> ratios;
     NT p_value = 0.1;
 
-    get_sequence_of_zonoballs<ball>(ZP, ZonoBallSet, PointSets, ratios,
-                              p_value, var2, delta_in, Zs, relaxed);
+    //get_sequence_of_zonoballs<ball>(ZP, ZonoBallSet, PointSets, ratios,
+                             // p_value, var2, delta_in, Zs, relaxed);
 
     //std::cout<<"final volume = "<<vol<<std::endl;
     return vol;

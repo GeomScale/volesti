@@ -49,7 +49,7 @@ void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bo
 
 
 template <class Point, class Polytope, class VT, class MT, typename NT, class PointList>
-void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT G, NT &var, NT &delta, NT &up_lim, NT &ratio, PointList &randPoints){
+void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn, Rcpp::Function mvNcdf, MT G, NT &var, NT &delta, NT &up_lim, NT &ratio, PointList &randPoints){
 
     NT delta1 = 0.0, delta2;
     if (delta!=0.0){
@@ -70,6 +70,15 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
     VT l2(m), u2(m);
     MT sigma2(m,m);
     MT sample;
+    NT prob;
+    sigma2 = var * sigma;
+    int kk = G.cols();
+
+    l2 = l - VT::Ones(m) * delta2;
+    u2 = u + VT::Ones(m) * delta2;
+    prob = test_botev<NT>(l2, u2, sigma2, 10000, mvNcdf);
+    std::cout<<"prob = "<<prob<<std::endl;
+    int ww = 10+kk/10;
 
     bool done = false, too_few = false;
 
@@ -79,7 +88,15 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
         u2 = u + VT::Ones(m) * delta2;
         sigma2 = var * sigma;
 
-        sample = sampleTr(l2, u2, sigma2, N, mvrandn, G);
+        //prob = test_botev(l2, u2, sigma2, 10000, mvNcdf);
+
+
+        if(prob>0.001) {
+            sample = sampleTr(l2, u2, sigma2, N, mvrandn, G);
+        } else {
+            sample = sampleTr_gibbs(l2, u2, sigma2, N, ww, rtmvnorm, G);
+        }
+
         for (int i = 0; i < N; ++i) {
             Point p(n, typename std::vector<NT>::iterator(sample.col(i).data()), typename std::vector<NT>::iterator(sample.col(i).data() + n));
             randPoints.push_back(p);
@@ -118,7 +135,12 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function mvrandn, MT 
         u2 = u + VT::Ones(m) * delta_med;
         //sigma2 = var * sigma;
 
-        sample = sampleTr(l2, u2, sigma2, N, mvrandn, G);
+        if(prob>0.001) {
+            sample = sampleTr(l2, u2, sigma2, N, mvrandn, G);
+        } else {
+            sample = sampleTr_gibbs(l2, u2, sigma2, N, ww, rtmvnorm, G);
+        }
+        //sample = sampleTr(l2, u2, sigma2, N, mvrandn, G);
         for (int i = 0; i < N; ++i) {
             Point p(n, typename std::vector<NT>::iterator(sample.col(i).data()), typename std::vector<NT>::iterator(sample.col(i).data() + n));
             randPoints.push_back(p);

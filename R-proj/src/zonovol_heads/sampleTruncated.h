@@ -15,6 +15,29 @@ MT sampleTr(VT l, VT u, MT sig, int N, Rcpp::Function rv, MT G){
 
 }
 
+template <typename NT, class VT, class MT>
+NT test_botev(VT l, VT u, MT sig, int N, Rcpp::Function mvNcdf){
+
+    Rcpp::List prob = mvNcdf(Rcpp::wrap(l), Rcpp::wrap(u), Rcpp::wrap(sig), N);
+
+    return prob[0];
+
+}
+
+
+template <class VT, class MT>
+MT sampleTr_gibbs(VT l, VT u, MT sig, int N, int Wstep, Rcpp::Function rtmv, MT G){
+
+    //Rcpp::String algo("gibbs");
+    int k = G.cols();
+    VT mu = VT::Zero(G.cols());
+    int burn = 10*k;
+    //std::cout<<u<<"\n"<<l<<std::endl;
+    MT X2 = G * Rcpp::as<MT>(rtmv(N, Rcpp::wrap(mu), Rcpp::wrap(sig), Rcpp::wrap(u), Rcpp::wrap(l), burn, Wstep));
+    return X2;
+
+}
+
 
 template <class VT, class MT>
 std::pair<MT,MT> sample_cube(VT l, VT u, MT sig, int N, Rcpp::Function rv, MT G){
