@@ -26,7 +26,7 @@
 #include <complex>
 
 
-template <typename NT>
+/*template <typename NT>
 std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
     NT mean = 0, M2 = 0, variance = 0, delta;
     typedef typename std::vector<NT>::iterator viterator;
@@ -41,12 +41,12 @@ std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
     }
 
     return std::pair<NT, NT> (mean, variance);
-}
+}*/
 
 
 // Compute the first variance a_0 for the starting gaussian
 template <class Polytope, class Parameters, typename NT>
-void get_first_gaussian(Polytope &P, NT radius, NT frac,
+void get_first_gaussian2(Polytope &P, NT radius, NT frac,
                         Parameters var, NT &error, std::vector<NT> &a_vals) {
 
     unsigned int i;
@@ -105,7 +105,7 @@ void get_first_gaussian(Polytope &P, NT radius, NT frac,
 
 // Compute a_{i+1} when a_i is given
 template <class Polytope, class Parameters, class Point, typename NT, class VT, class MT>
-NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
+NT get_next_gaussian2(Polytope &P, Point &p, NT a, int Wst, unsigned int N,
                      NT ratio, NT C, Parameters var,
                      VT l, VT u, MT sigma, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn, Rcpp::Function mvNcdf, std::vector<NT> &probs){
 
@@ -126,11 +126,11 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
     prob = test_botev<NT>(l, u, sigma2, 10000, mvNcdf);
     probs.push_back(prob);
     MT pointset;
-    int kk = G.cols();
+    //int kk = G.cols();
     if(prob>0.001) {
         pointset = sampleTr(l, u, sigma2, N, mvrandn, G);
     } else {
-        pointset = sampleTr_gibbs(l, u, sigma2, N, kk*kk/10, rtmvnorm, G);
+        pointset = sampleTr_gibbs(l, u, sigma2, N, Wst, rtmvnorm, G);
     }
     //MT pointset = sampleTr(l, u , sigma2, N, mvrandn, G);
 
@@ -163,15 +163,15 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
 
 // Compute the sequence of spherical gaussians
 template <class Polytope, class Parameters, typename NT, class VT, class MT>
-void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, unsigned int N,
-                            Parameters var, NT &error, std::vector<NT> &a_vals,
+void get_annealing_schedule2(Polytope &P, NT radius, NT ratio, NT C, NT frac, unsigned int N,
+                            Parameters var, NT &error, std::vector<NT> &a_vals, int Wst,
                             VT l, VT u, MT sigma, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn, Rcpp::Function mvNcdf, std::vector<NT> &probs){
 
     typedef typename Polytope::PolytopePoint Point;
     MT G = P.get_mat().transpose();
     // Compute the first gaussian
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    get_first_gaussian(P, radius, frac, var, error, a_vals);
+    get_first_gaussian2(P, radius, frac, var, error, a_vals);
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
 #ifdef VOLESTI_DEBUG
     bool print=var.verbose;
@@ -201,7 +201,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
     std::vector<NT> lamdas(P.num_of_hyperplanes(), NT(0));
     MT sigma2;
     double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
-    int kk = G.cols();
+    //int kk = G.cols();
     while (true) {
 
         //if (var.ball_walk) {
@@ -210,7 +210,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
             //}
         //}
         // Compute the next gaussian
-        next_a = get_next_gaussian(P, p, a_vals[it], N, ratio, C, var, l, u, sigma, rtmvnorm, mvrandn, mvNcdf, probs);
+        next_a = get_next_gaussian2(P, p, a_vals[it], Wst, N, ratio, C, var, l, u, sigma, rtmvnorm, mvrandn, mvNcdf, probs);
 
         curr_fn = 0;
         curr_its = 0;
@@ -229,7 +229,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
             pointset = sampleTr(l, u, sigma2, steps, mvrandn, G);
         } else {
             std::cout<<"a_"<<it<<" = "<<a_vals[it]<<" | prob = "<<probs[it]<<std::endl;
-            pointset = sampleTr_gibbs(l, u, sigma2, steps,  kk*kk/10, rtmvnorm, G);
+            pointset = sampleTr_gibbs(l, u, sigma2, steps,  Wst, rtmvnorm, G);
         }
         //pointset = sampleTr(l, u , sigma2, steps, mvrandn, G);
 

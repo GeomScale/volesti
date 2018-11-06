@@ -29,7 +29,10 @@
 #include "ballintersectconvex.h"
 //#include "vpolyintersectvpoly.h"
 #include "samplers.h"
+#include "gaussian_samplers.h"
+#include "gaussian_annealing.h"
 #include "rounding.h"
+#include "zonovol_heads/cg_hpoly.h"
 //#include "gaussian_samplers.h"
 //#include "gaussian_annealing.h"
 #include "zonovol_heads/sampleTruncated.h"
@@ -43,8 +46,9 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn, Rcpp::Function mvNcdf, bool verbose, bool relaxed,
-                 double delta_in=0.0, double var_in=0.0, double up_lim=0.2) {
+double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn,
+                 Rcpp::Function mvNcdf, bool verbose, bool relaxed=false, int Wst=0, double delta_in=0.0,
+                 double var_in=0.0, double up_lim=0.2) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -93,8 +97,11 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     //MT test = sampleTr(l, u, sigma, 10, mvrandn, G);
     std::list<Point> randPoints;
     NT delta, ratio;
+    if (Wst==0) {
+        Wst = 10*m;
+    }
     double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
-    get_delta<Point>(ZP, l, u, sigma, rtmvnorm, mvrandn, mvNcdf, G, var_in, delta_in, up_lim, ratio, randPoints);
+    get_delta<Point>(ZP, l, u, sigma, rtmvnorm, mvrandn, mvNcdf, G, var_in, delta_in, up_lim, ratio, Wst, randPoints);
     double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(verbose) std::cout << "[1] computation of outer time = " << tstop1 - tstart1 << std::endl;
     delta = delta_in;
@@ -116,10 +123,49 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     if (verbose) std::cout<<"delta = "<<delta<<" first estimation of ratio (t-test value) = "<<ratio<<std::endl;
     //std::cout<<l<<"\n"<<u<<std::endl;
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    NT vol = cg_volume_zono(ZP, var1, var2, InnerB, rtmvnorm, mvrandn, mvNcdf, sigma, l, u);
+    NT vol = cg_volume_zono(ZP, var1, var2, InnerB, rtmvnorm, mvrandn, mvNcdf, sigma, l, u, Wst);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(verbose) std::cout << "[2] outer volume estimation with cg algo time = " << tstop2 - tstart2 << std::endl;
     if (verbose) std::cout<<"volume of outer = "<<vol<<std::endl;
+
+
+    MT AA; VT b;
+    AA.resize(2 * m, m);
+    b.resize(2 * m);
+    for (unsigned int i = 0; i < m; ++i) {
+        b(i) = 1.0 + delta;
+        for (unsigned int j = 0; j < m; ++j) {
+            if (i == j) {
+                AA(i, j) = 1.0;
+            } else {
+                AA(i, j) = 0.0;
+            }
+        }
+    }
+    for (unsigned int i = 0; i < m; ++i) {
+        b(i + m) = 1.0 + delta;
+        for (unsigned int j = 0; j < m; ++j) {
+            if (i == j) {
+                AA(i + m, j) = -1.0;
+            } else {
+                AA(i + m, j) = 0.0;
+            }
+        }
+    }
+    MT T = ZP.get_T();
+    MT Tt = T.transpose();
+    MT A2 = AA*Tt;
+    MT B = G*Tt;
+    MT A3 = A2*B.completeOrthogonalDecomposition().pseudoInverse();
+    Hpolytope HP;
+    HP.init(n,A3,b);
+    std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
+    vars_g<NT, RNGType> var11(n, 1, N, W, 1, e/10.0, InnerBall.second, rng, C, frac,
+                             ratio2, -1.0, false, false, false, false, NN, birk,
+                             false, true);
+    NT vol2 = volume_gaussian_annealing(HP, var11, var2, InnerBall);
+    std::cout<<"\n\nvol of h-polytope = "<<vol2<<"\n\n"<<std::endl;
+
 
     NT countIn = ratio*1200.0, totCount = 1200.0;
     //std::cout<<"countIn = "<<countIn<<std::endl;
@@ -136,29 +182,8 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     MT sample;
     NT prob = test_botev<NT>(l, u, sigma22, 10000, mvNcdf);
     NT ratio22 = est_ratio_zono(ZP, prob, e/2.0, W, rtmvnorm, mvrandn, sigma22, G, l, u);
-    /*if(prob>0.001) {
-        sample = sampleTr(l, u, sigma, N, mvrandn, G);
-    } else {
-        sample = sampleTr_gibbs(l, u, sigma, N, rtmvnorm, G);
-    }
 
-    randPoints.clear();
-    //for (int i = 0; i < count; ++i) {
-    for (int i = 0; i < 8800; ++i) {
-        Point p(n, typename std::vector<NT>::iterator(sample.col(i).data()), typename std::vector<NT>::iterator(sample.col(i).data() + n));
-        randPoints.push_back(p);
-    }
-    std::list<Point>::iterator rpit = randPoints.begin();
 
-    //Point q2;
-    for ( ;  rpit!=randPoints.end(); ++rpit) {
-        if(ZP.is_in(*rpit)==-1) {
-            countIn = countIn + 1.0;
-            //q2=*rpit;
-        }
-        totCount = totCount + 1.0;
-    }
-    if (verbose) std::cout<<"countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;*/
     if (verbose) std::cout<<"variance = "<<var_in<<std::endl;
     double tstop3 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(verbose) std::cout << "[3] rejection time = " << tstop3 - tstart3 << std::endl;
@@ -174,37 +199,6 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     MT G2=ZP.get_mat().transpose();
     std::vector<NT> Zs;
 
-    /*rand_point_generator(ZP, q, 40000, 1, randPoints, var2);
-    std::list<Point>::iterator rpit;
-    rpit = randPoints.begin();
-    std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
-    MT Q0 = ZP.get_Q0().transpose();
-    MT G2=ZP.get_mat().transpose();
-
-    std::vector<NT> Zs;
-    if(relaxed){
-        MT X2 = Q0 * samples.second;
-        for (int i = 0; i < m-n; ++i) {
-            //std::cout<<X2.row(i).maxCoeff()<<" "<<-X2.row(i).minCoeff()<<" "<<std::max(X2.row(i).maxCoeff(), -X2.row(i).minCoeff())<<std::endl;
-            Zs.push_back(std::max(X2.row(i).maxCoeff(), -X2.row(i).minCoeff()));
-        }
-
-    }
-
-    for ( ;  rpit!=randPoints.end(); ++rpit) {
-        if(relaxed) {
-            if (is_in_sym3(*rpit, Q0, G2, delta_in, Zs)) {
-                countIn = countIn + 1.0;
-            }
-        } else {
-            if (is_in_sym2(*rpit, Q0, G2, delta_in)) {
-                countIn = countIn + 1.0;
-            }
-        }
-        totCount = totCount + 1.0;
-    }
-
-    if (verbose) std::cout<<"LAST countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;*/
 
     typedef Ball<Point> ball;
     typedef BallIntersectPolytope<zonotope , ball > ZonoBall;

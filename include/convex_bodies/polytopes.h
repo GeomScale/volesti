@@ -798,6 +798,7 @@ private:
     NT minNT = -1.79769e+308;
     MT Q0;
     MT sigma;
+    MT T;
 
 public:
 
@@ -944,12 +945,24 @@ public:
                 count++;
             }
         }
+        Eigen::JacobiSVD<MT> svd(Q0, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        MT T2 = svd.matrixU().transpose();
+        T.resize(k-_d,k);
+        for (int i = _d; i < k; ++i) {
+            for (int j = 0; j < k; ++j) {
+                T(i-_d,j) = T2(i,j);
+            }
+        }
         //std::cout<<G<<"\n"<<std::endl;
         //std::cout<<Q0<<"\n"<<std::endl;
         for (int i1 = 0; i1 < k; ++i1) {
             sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
         }
 
+    }
+
+    MT get_T() {
+        return T;
     }
 
     MT get_Q0(){

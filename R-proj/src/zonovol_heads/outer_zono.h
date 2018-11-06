@@ -49,7 +49,8 @@ void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bo
 
 
 template <class Point, class Polytope, class VT, class MT, typename NT, class PointList>
-void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn, Rcpp::Function mvNcdf, MT G, NT &var, NT &delta, NT &up_lim, NT &ratio, PointList &randPoints){
+void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn,
+               Rcpp::Function mvNcdf, MT G, NT &var, NT &delta, NT &up_lim, NT &ratio, int Wst, PointList &randPoints){
 
     NT delta1 = 0.0, delta2;
     if (delta!=0.0){
@@ -79,7 +80,7 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rc
     prob = test_botev<NT>(l2, u2, sigma2, 10000, mvNcdf);
     //prob=0.1;
     std::cout<<"prob = "<<prob<<std::endl;
-    int ww = kk*kk/10;
+    //int ww = kk*kk/10;
 
     bool done = false, too_few = false;
 
@@ -95,7 +96,7 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rc
         if(prob>0.001) {
             sample = sampleTr(l2, u2, sigma2, N, mvrandn, G);
         } else {
-            sample = sampleTr_gibbs(l2, u2, sigma2, N, ww, rtmvnorm, G);
+            sample = sampleTr_gibbs(l2, u2, sigma2, N, Wst, rtmvnorm, G);
         }
 
         for (int i = 0; i < N; ++i) {
@@ -139,7 +140,7 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rc
         if(prob>0.001) {
             sample = sampleTr(l2, u2, sigma2, N, mvrandn, G);
         } else {
-            sample = sampleTr_gibbs(l2, u2, sigma2, N, ww, rtmvnorm, G);
+            sample = sampleTr_gibbs(l2, u2, sigma2, N, Wst, rtmvnorm, G);
         }
         //sample = sampleTr(l2, u2, sigma2, N, mvrandn, G);
         for (int i = 0; i < N; ++i) {
