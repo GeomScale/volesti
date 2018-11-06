@@ -77,8 +77,9 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rc
     l2 = l - VT::Ones(m) * delta2;
     u2 = u + VT::Ones(m) * delta2;
     prob = test_botev<NT>(l2, u2, sigma2, 10000, mvNcdf);
+    //prob=0.1;
     std::cout<<"prob = "<<prob<<std::endl;
-    int ww = 10+kk/10;
+    int ww = kk*kk/10;
 
     bool done = false, too_few = false;
 

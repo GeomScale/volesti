@@ -111,14 +111,15 @@ void get_next_zonoball(Zonotope &Z, std::vector<ZonoBall> &ZonoBallSet,
         }
     }
     ball Biter;
+    rad2=std::sqrt(rad2);
 
     while (true) {
         rad = 0.5*(rad1+rad2);
-        Biter = ball(center, rad);
+        Biter = ball(center, rad*rad);
         done = false;
         too_few = false;
 
-        check_converg2(Biter, randPoints, 0.1, done, too_few, ratio, 0.2, false);
+        check_converg2(Biter, randPoints, 0.1, done, too_few, ratio, 0.15, false);
 
         if(done){
             ZonoBallSet.push_back(ZonoBall(Z, Biter));
@@ -155,8 +156,10 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ZonoBall> &ZonoBallSet,
     PointSets.push_back(randPoints);
     if (is_last_zonoball(randPoints, Q0, G, delta, Zs, ratio, relaxed, var)) {
         ratios.push_back(ratio);
+        std::cout<<"last ball and ratio = "<<ratio<<std::endl;
         return;
     }
+    std::cout<<"not the last ball"<<std::endl;
     get_next_zonoball<ball>(Z, ZonoBallSet, randPoints, ratios, var);
 
     ZonoBall ZBiter;
@@ -169,10 +172,12 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ZonoBall> &ZonoBallSet,
         PointSets.push_back(randPoints);
         if (is_last_zonoball(randPoints, Q0, G, delta, Zs, ratio, relaxed, var)) {
             ratios.push_back(ratio);
+            std::cout<<"number of balls = "<<ZonoBallSet.size()<<std::endl;
             return;
         }
         get_next_zonoball<ball>(Z, ZonoBallSet, randPoints, ratios, var);
     }
+
 
 }
 

@@ -18,12 +18,12 @@ test_zvol <- function(d,m,verbose=TRUE){
   #print(' ')
   #ev=1
   
-  tim=proc.time()
-  est_vol = volume(P=Z, error = 0.1,Algo = list("CG"=TRUE), rounding = TRUE)
-  tim=proc.time()-tim
-  print(paste0('cg-HnR volume = ',est_vol))
-  print(paste0('cg-HnR volume time: ',as.numeric(as.character(tim[3]))))
-  print(' ')
+  #tim=proc.time()
+  #est_vol = volume(P=Z, error = 0.1,Algo = list("CG"=TRUE), rounding = TRUE)
+  #tim=proc.time()-tim
+  #print(paste0('cg-HnR volume = ',est_vol))
+  #print(paste0('cg-HnR volume time: ',as.numeric(as.character(tim[3]))))
+  #print(' ')
   
   #print(paste0('test method error = ',abs(test_vol-ev)/ev))
   #print(paste0('cg-HnR error = ',abs(est_vol-ev)/ev))

@@ -146,7 +146,7 @@ NT cg_volume_zono(Polytope &P,
                 pointset = sampleTr(l, u , sigma2, 2*W, mvrandn, G);
             } else {
                 std::cout<<"a_"<<i<<" = "<<*avalsIt<<" | prob = "<<*probIt<<std::endl;
-                pointset = sampleTr_gibbs(l, u, sigma2, 2*W, 10+kk/10, rtmvnorm, G);
+                pointset = sampleTr_gibbs(l, u, sigma2, 2*W,  kk*kk/10, rtmvnorm, G);
             }
             //pointset = sampleTr(l, u , sigma2, 2*W, mvrandn, G);
 

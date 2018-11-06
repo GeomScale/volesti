@@ -31,7 +31,7 @@ MT sampleTr_gibbs(VT l, VT u, MT sig, int N, int Wstep, Rcpp::Function rtmv, MT 
     //Rcpp::String algo("gibbs");
     int k = G.cols();
     VT mu = VT::Zero(G.cols());
-    int burn = 10*k;
+    int burn = 100*k;
     //std::cout<<u<<"\n"<<l<<std::endl;
     MT X2 = G * Rcpp::as<MT>(rtmv(N, Rcpp::wrap(mu), Rcpp::wrap(sig), Rcpp::wrap(u), Rcpp::wrap(l), burn, Wstep));
     return X2;

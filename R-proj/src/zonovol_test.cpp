@@ -83,7 +83,7 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     sigma = (sigma + sigma.transpose())/2.0;
     //std::cout<<sigma<<std::endl;
     for (int i1 = 0; i1 < m; ++i1) {
-        sigma(i1,i1) = sigma(i1,i1) + 0.000000001;
+        sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
     }
     //sigma = sigma + 0.00001*MT::DiagonalMatrix(m);
 
@@ -106,7 +106,7 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     vars<NT, RNGType> var2(1, n, 10 + n / 10, 1, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
                            urdist, urdist1, -1.0, verbose, false, false, NN, birk, false,
                            false);
-    vars_g<NT, RNGType> var1(n, 1, N, W, 1, e/2.0, InnerB.second, rng, C, frac,
+    vars_g<NT, RNGType> var1(n, 1, N, W, 1, e/10.0, InnerB.second, rng, C, frac,
                              ratio2, -1.0, false, verbose, false, false, NN, birk,
                              false, false);
 
@@ -124,7 +124,7 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     NT countIn = ratio*1200.0, totCount = 1200.0;
     //std::cout<<"countIn = "<<countIn<<std::endl;
 
-    sigma = var_in * sigma;
+    MT sigma22 = var_in * sigma;
     //std::cout<<sigma<<std::endl;
     int count;
     double tstart3 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -134,8 +134,8 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     std::pair<MT,MT> samples;// = sample_cube(l, u, sigma, 8800, mvrandn, G);
     //MT sample = samples.first;
     MT sample;
-    NT prob = test_botev<NT>(l, u, sigma, 10000, mvNcdf);
-    NT ratio22 = est_ratio_zono(ZP, prob, 0.5, W, rtmvnorm, mvrandn, sigma, G, l, u);
+    NT prob = test_botev<NT>(l, u, sigma22, 10000, mvNcdf);
+    NT ratio22 = est_ratio_zono(ZP, prob, e/2.0, W, rtmvnorm, mvrandn, sigma22, G, l, u);
     /*if(prob>0.001) {
         sample = sampleTr(l, u, sigma, N, mvrandn, G);
     } else {
@@ -170,8 +170,11 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
 
     randPoints.clear();
     Point q(n);
+    MT Q0 = ZP.get_Q0().transpose();
+    MT G2=ZP.get_mat().transpose();
+    std::vector<NT> Zs;
 
-    rand_point_generator(ZP, q, 40000, 1, randPoints, var2);
+    /*rand_point_generator(ZP, q, 40000, 1, randPoints, var2);
     std::list<Point>::iterator rpit;
     rpit = randPoints.begin();
     std::cout<<"num of points in zono = "<<randPoints.size()<<std::endl;
@@ -201,7 +204,7 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
         totCount = totCount + 1.0;
     }
 
-    if (verbose) std::cout<<"LAST countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;
+    if (verbose) std::cout<<"LAST countIn = "<<countIn<<" totCountIn = "<<totCount<<std::endl;*/
 
     typedef Ball<Point> ball;
     typedef BallIntersectPolytope<zonotope , ball > ZonoBall;
@@ -210,9 +213,29 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     std::vector<PointList> PointSets;
     std::vector<NT> ratios;
     NT p_value = 0.1;
+    ZonoBall zb1, zb2;
 
-    //get_sequence_of_zonoballs<ball>(ZP, ZonoBallSet, PointSets, ratios,
-                             // p_value, var2, delta_in, Zs, relaxed);
+    get_sequence_of_zonoballs<ball>(ZP, ZonoBallSet, PointSets, ratios,
+                             p_value, var2, delta_in, Zs, relaxed);
+
+    if (ZonoBallSet.size()==0) {
+        if(ratios[0]==1) return vol;
+        if(verbose) std::cout<<"no ball | ratio = "<<ratios[0]<<std::endl;
+        vol = vol * est_ratio_zball_sym<Point>(ZP, sigma, G2, Q0, l, u, delta_in, ratios[0], e*0.8602325, var2);
+    } else {
+        if(verbose) std::cout<<"number of balls = "<<ZonoBallSet.size()<<std::endl;
+        zb1 = ZonoBallSet[0];
+        vol = vol * est_ratio_zonoballs(ZP, zb1, zb1, ratios[0], e, var2, true);
+
+        for (int i = 0; i < ZonoBallSet.size()-1; ++i) {
+            zb1 = ZonoBallSet[i];
+            zb2 = ZonoBallSet[i+1];
+            vol = vol * est_ratio_zonoballs(ZP, zb1, zb2, ratios[i], e, var2, false);
+        }
+
+        zb1 = ZonoBallSet[ZonoBallSet.size()-1];
+        vol = vol * est_ratio_zball_sym<Point>(zb1, sigma, G2, Q0, l, u, delta_in, ratios[ratios.size()-1], e, var2);
+    }
 
     //std::cout<<"final volume = "<<vol<<std::endl;
     return vol;

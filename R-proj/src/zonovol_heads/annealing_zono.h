@@ -130,7 +130,7 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
     if(prob>0.001) {
         pointset = sampleTr(l, u, sigma2, N, mvrandn, G);
     } else {
-        pointset = sampleTr_gibbs(l, u, sigma2, N, 10+kk/10, rtmvnorm, G);
+        pointset = sampleTr_gibbs(l, u, sigma2, N, kk*kk/10, rtmvnorm, G);
     }
     //MT pointset = sampleTr(l, u , sigma2, N, mvrandn, G);
 
@@ -229,7 +229,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
             pointset = sampleTr(l, u, sigma2, steps, mvrandn, G);
         } else {
             std::cout<<"a_"<<it<<" = "<<a_vals[it]<<" | prob = "<<probs[it]<<std::endl;
-            pointset = sampleTr_gibbs(l, u, sigma2, steps, 10+kk/10, rtmvnorm, G);
+            pointset = sampleTr_gibbs(l, u, sigma2, steps,  kk*kk/10, rtmvnorm, G);
         }
         //pointset = sampleTr(l, u , sigma2, steps, mvrandn, G);
 

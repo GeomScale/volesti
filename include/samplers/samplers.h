@@ -192,6 +192,43 @@ void rand_point_generator(BallPoly &PBLarge,
     }
 }
 
+
+template <class Polytope, class Point, class Parameters>
+void rand_point(Polytope &P, Point &p, Parameters &var){
+
+    typedef typename Parameters::RNGType RNGType;
+    typedef typename Polytope::NT NT;
+    int n = var.n;
+    int walk_len = var.walk_steps;
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    boost::random::uniform_int_distribution<> uidist(0, n - 1);
+    int rand_coord;
+    NT kapa;
+    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+
+    if (var.ball_walk) {
+        for (int i = 0; i < walk_len; ++i) {
+            ball_walk(p, P, var.delta, var);
+        }
+    }else if (var.coordinate) {
+        //rand_coord_prev = rand_coord;
+        for (int i = 0; i < walk_len; ++i) {
+            rand_coord = uidist(rng);
+            kapa = urdist(rng);
+            std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+            //std::cout<<"min_plus = "<<bpair.first<<" max_minus = "<<bpair.second<<std::endl;
+            p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+            //hit_and_run_coord_update(p, p, P, rand_coord, 0, kapa, lamdas, var, var);
+        }
+    } else {
+        for (int i = 0; i < walk_len; ++i) {
+            hit_and_run(p, P, var);
+        }
+    }
+}
+
+
 // ----- HIT AND RUN FUNCTIONS ------------ //
 
 //hit-and-run with random directions and update
