@@ -47,8 +47,8 @@ void check_converg2(ball &P, PointList &randPoints, NT p_test, bool &done, bool 
 }
 
 
-template <class PointList, class MT, typename NT, class Parameter>
-bool is_last_zonoball(PointList randPoints, MT Q0, MT G, NT delta, std::vector<NT> Zs, NT  &ratio, bool relaxed, Parameter var){
+template <class PointList, class HPolytope, typename NT, class Parameter>
+bool is_last_zonoball(PointList randPoints, HPolytope &HP, NT &ratio, Parameter var){
 
     NT countIn = 0.0;
     std::vector<NT> ratios;
@@ -57,15 +57,11 @@ bool is_last_zonoball(PointList randPoints, MT Q0, MT G, NT delta, std::vector<N
     typename PointList::iterator rpit = randPoints.begin();
     int i=1;
     for ( ;  rpit!=randPoints.end(); ++rpit, ++i) {
-        if(relaxed) {
-            if (is_in_sym3(*rpit, Q0, G, delta, Zs)) {
-                countIn = countIn + 1.0;
-            }
-        } else {
-            if (is_in_sym2(*rpit, Q0, G, delta)) {
-                countIn = countIn + 1.0;
-            }
+
+        if (HP.is_in(*rpit)==-1) {
+            countIn = countIn + 1.0;
         }
+
         if (i % 120 == 0) {
             //if (print) std::cout<<"ratio = "<<countsIn/120.0<<std::endl;
             ratios.push_back(countIn/120.0);
@@ -136,8 +132,8 @@ void get_next_zonoball(Zonotope &Z, std::vector<ZonoBall> &ZonoBallSet,
 
 }
 
-template <class ball, class Zonotope, class ZonoBall, class PointList, class Parameters, typename NT>
-void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ZonoBall> &ZonoBallSet,
+template <class ball, class Zonotope, class HPolytope, class ZonoBall, class PointList, class Parameters, typename NT>
+void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<ZonoBall> &ZonoBallSet,
                                std::vector<PointList> &PointSets, std::vector<NT> &ratios,
                                NT &p_value, Parameters &var, NT &delta, std::vector<NT> &Zs, bool relaxed) {
 
@@ -154,7 +150,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ZonoBall> &ZonoBallSet,
     Point q(n);
     rand_point_generator(Z, q, 1200, 1, randPoints, var);
     PointSets.push_back(randPoints);
-    if (is_last_zonoball(randPoints, Q0, G, delta, Zs, ratio, relaxed, var)) {
+    if (is_last_zonoball(randPoints, HP, ratio, var)) {
         ratios.push_back(ratio);
         std::cout<<"last ball and ratio = "<<ratio<<std::endl;
         return;
@@ -170,7 +166,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ZonoBall> &ZonoBallSet,
         randPoints.clear();
         rand_point_generator(ZBiter, q, 1200, 1, randPoints, var);
         PointSets.push_back(randPoints);
-        if (is_last_zonoball(randPoints, Q0, G, delta, Zs, ratio, relaxed, var)) {
+        if (is_last_zonoball(randPoints, HP, ratio, var)) {
             ratios.push_back(ratio);
             std::cout<<"number of balls = "<<ZonoBallSet.size()<<std::endl;
             return;

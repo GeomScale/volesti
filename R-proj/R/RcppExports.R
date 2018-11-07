@@ -9,15 +9,7 @@ rounding <- function(A, walk_len, coord, ball_walk, delta, Vpoly, Zono) {
     .Call('_volesti_rounding', PACKAGE = 'volesti', A, walk_len, coord, ball_walk, delta, Vpoly, Zono)
 }
 
-Rvol_exact <- function(A, exact_zono, exact_cube, exact_simplex, exact_cross, dim) {
-    .Call('_volesti_Rvol_exact', PACKAGE = 'volesti', A, exact_zono, exact_cube, exact_simplex, exact_cross, dim)
-}
-
-Rvolume <- function(P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding) {
-    .Call('_volesti_Rvolume', PACKAGE = 'volesti', P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding)
-}
-
-vol_zono <- function(P, e, rtmvnorm, mvrandn, mvNcdf, verbose, relaxed = FALSE, Wst = 0L, delta_in = 0.0, var_in = 0.0, up_lim = 0.2) {
-    .Call('_volesti_vol_zono', PACKAGE = 'volesti', P, e, rtmvnorm, mvrandn, mvNcdf, verbose, relaxed, Wst, delta_in, var_in, up_lim)
+get_ball_ann <- function(P, e, lb_ratio = 0.1, ub_ratio = 0.2) {
+    .Call('_volesti_get_ball_ann', PACKAGE = 'volesti', P, e, lb_ratio, ub_ratio)
 }
 

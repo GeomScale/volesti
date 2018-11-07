@@ -122,11 +122,11 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     u = u + VT::Ones(m) * delta;
     if (verbose) std::cout<<"delta = "<<delta<<" first estimation of ratio (t-test value) = "<<ratio<<std::endl;
     //std::cout<<l<<"\n"<<u<<std::endl;
-    double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    NT vol = cg_volume_zono(ZP, var1, var2, InnerB, rtmvnorm, mvrandn, mvNcdf, sigma, l, u, Wst);
-    double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    if(verbose) std::cout << "[2] outer volume estimation with cg algo time = " << tstop2 - tstart2 << std::endl;
-    if (verbose) std::cout<<"volume of outer = "<<vol<<std::endl;
+   // double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
+    //NT vol = cg_volume_zono(ZP, var1, var2, InnerB, rtmvnorm, mvrandn, mvNcdf, sigma, l, u, Wst);
+   // double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
+    //if(verbose) std::cout << "[2] outer volume estimation with cg algo time = " << tstop2 - tstart2 << std::endl;
+   // if (verbose) std::cout<<"volume of outer = "<<vol<<std::endl;
 
 
     MT AA; VT b;
@@ -156,42 +156,50 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     MT Tt = T.transpose();
     MT A2 = AA*Tt;
     MT B = G*Tt;
-    MT A3 = A2*B.completeOrthogonalDecomposition().pseudoInverse();
+    MT A3 = A2*B.inverse();
     Hpolytope HP;
     HP.init(n,A3,b);
+    Hpolytope HP2;// = HP;
+    HP2.init(n,A3,b);
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    vars_g<NT, RNGType> var11(n, 1, N, W, 1, e/10.0, InnerBall.second, rng, C, frac,
-                             ratio2, -1.0, false, false, false, false, NN, birk,
+    InnerBall.first.print();
+    std::cout<<"radius = "<<InnerBall.second<<std::endl;
+    vars_g<NT, RNGType> var111(n, 1, N, 2*W, 1, e/10.0, InnerBall.second, rng, C, frac,
+                             ratio2, -1.0, false, verbose, false, false, NN, birk,
                              false, true);
-    NT vol2 = volume_gaussian_annealing(HP, var11, var2, InnerBall);
-    std::cout<<"\n\nvol of h-polytope = "<<vol2<<"\n\n"<<std::endl;
+    NT vol = volume_gaussian_annealing(HP, var111, var2, InnerBall);
+    std::cout<<"\n\nvol of h-polytope = "<<vol<<"\n\n"<<std::endl;
 
 
-    NT countIn = ratio*1200.0, totCount = 1200.0;
+    //NT countIn = ratio*1200.0, totCount = 1200.0;
     //std::cout<<"countIn = "<<countIn<<std::endl;
 
-    MT sigma22 = var_in * sigma;
+    //MT sigma22 = var_in * sigma;
     //std::cout<<sigma<<std::endl;
-    int count;
+    //int count;
     double tstart3 = (double)clock()/(double)CLOCKS_PER_SEC;
     //MT sample = sampleTr(l, u, sigma, 8800, mvrandn, G, count);
     //countIn = countIn + NT(8800-count);
     //totCount = totCount + NT(8800-count);
-    std::pair<MT,MT> samples;// = sample_cube(l, u, sigma, 8800, mvrandn, G);
+   // std::pair<MT,MT> samples;// = sample_cube(l, u, sigma, 8800, mvrandn, G);
     //MT sample = samples.first;
-    MT sample;
-    NT prob = test_botev<NT>(l, u, sigma22, 10000, mvNcdf);
-    NT ratio22 = est_ratio_zono(ZP, prob, e/2.0, W, rtmvnorm, mvrandn, sigma22, G, l, u);
+    //MT sample;
+    //NT prob = test_botev<NT>(l, u, sigma22, 10000, mvNcdf);
+    //NT ratio22 = est_ratio_zono(ZP, prob, e/2.0, W, rtmvnorm, mvrandn, sigma22, G, l, u);
+    vars<NT, RNGType> var22(1, n, 10 + n / 10, 1, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
+                           urdist, urdist1, -1.0, verbose, false, false, NN, birk, false,
+                           true);
+    NT ratio22 = est_ratio_hzono(ZP, HP2, e/2.0, var22);
 
 
-    if (verbose) std::cout<<"variance = "<<var_in<<std::endl;
+    //if (verbose) std::cout<<"variance = "<<var_in<<std::endl;
     double tstop3 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(verbose) std::cout << "[3] rejection time = " << tstop3 - tstart3 << std::endl;
     if (verbose) std::cout<<"final ratio = "<<ratio22<<std::endl;
     vol = vol * ratio22;
 
-    countIn = 0.0;
-    totCount = 0.0;
+    //countIn = 0.0;
+    //totCount = 0.0;
 
     randPoints.clear();
     Point q(n);
@@ -209,26 +217,28 @@ double vol_zono (Rcpp::Reference P, double e, Rcpp::Function rtmvnorm, Rcpp::Fun
     NT p_value = 0.1;
     ZonoBall zb1, zb2;
 
-    get_sequence_of_zonoballs<ball>(ZP, ZonoBallSet, PointSets, ratios,
+    get_sequence_of_zonoballs<ball>(ZP, HP2, ZonoBallSet, PointSets, ratios,
                              p_value, var2, delta_in, Zs, relaxed);
 
     if (ZonoBallSet.size()==0) {
         if(ratios[0]==1) return vol;
         if(verbose) std::cout<<"no ball | ratio = "<<ratios[0]<<std::endl;
-        vol = vol * est_ratio_zball_sym<Point>(ZP, sigma, G2, Q0, l, u, delta_in, ratios[0], e*0.8602325, var2);
+        //vol = vol * est_ratio_zball_sym<Point>(ZP, sigma, G2, Q0, l, u, delta_in, ratios[0], e*0.8602325, var2);
+        vol = vol * est_ratio_zonoballs<Point>(ZP, HP2, HP2, ratios[0], e*0.8602325, var2, true);
     } else {
         if(verbose) std::cout<<"number of balls = "<<ZonoBallSet.size()<<std::endl;
         zb1 = ZonoBallSet[0];
-        vol = vol * est_ratio_zonoballs(ZP, zb1, zb1, ratios[0], e, var2, true);
+        vol = vol * est_ratio_zonoballs<Point>(ZP, zb1, zb1, ratios[0], e, var2, true);
 
         for (int i = 0; i < ZonoBallSet.size()-1; ++i) {
             zb1 = ZonoBallSet[i];
             zb2 = ZonoBallSet[i+1];
-            vol = vol * est_ratio_zonoballs(ZP, zb1, zb2, ratios[i], e, var2, false);
+            vol = vol * est_ratio_zonoballs<Point>(ZP, zb1, zb2, ratios[i], e, var2, false);
         }
 
         zb1 = ZonoBallSet[ZonoBallSet.size()-1];
-        vol = vol * est_ratio_zball_sym<Point>(zb1, sigma, G2, Q0, l, u, delta_in, ratios[ratios.size()-1], e, var2);
+        //vol = vol * est_ratio_zball_sym<Point>(zb1, sigma, G2, Q0, l, u, delta_in, ratios[ratios.size()-1], e, var2);
+        vol = vol * est_ratio_zonoballs<Point>(zb1, HP2, HP2, ratios[ratios.size()-1], e*0.8602325, var2, true);
     }
 
     //std::cout<<"final volume = "<<vol<<std::endl;

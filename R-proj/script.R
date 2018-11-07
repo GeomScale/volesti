@@ -2,4 +2,5 @@ library(volesti)
 library(TruncatedNormal)
 library(tmvtnorm)
 
-Z=test_zvol(20,40)
+Z=GenZonotope(5,10)
+test_vol = vol_zono(Z,0.1,SampleGibbs, mvrandn, mvNcdf, TRUE,FALSE)

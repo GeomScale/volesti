@@ -947,10 +947,10 @@ public:
         }
         Eigen::JacobiSVD<MT> svd(Q0, Eigen::ComputeFullU | Eigen::ComputeFullV);
         MT T2 = svd.matrixU().transpose();
-        T.resize(k-_d,k);
-        for (int i = _d; i < k; ++i) {
+        T.resize(_d,k);
+        for (int i = k-_d; i < k; ++i) {
             for (int j = 0; j < k; ++j) {
-                T(i-_d,j) = T2(i,j);
+                T(i-k+_d,j) = T2(i,j);
             }
         }
         //std::cout<<G<<"\n"<<std::endl;
