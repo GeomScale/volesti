@@ -12,6 +12,7 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
+#include "samplers.h"
 #include "convex_bodies/polytopes.h"
 #include "polytope_generators.h"
 #include <fstream>
@@ -33,7 +34,7 @@ void create_txt(MT A, VT b, int kind, bool Vpoly) {
             name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
             outputFile.open(name);
             outputFile<<name<<"\n";
-            outputFile<<"Zonotpe\n";
+            outputFile<<"Zonotope\n";
         } else if (kind == 1) {
             std::string poly = "cube";
             name = poly + bar + std::to_string(d) + ext;
@@ -50,8 +51,14 @@ void create_txt(MT A, VT b, int kind, bool Vpoly) {
             std::string poly = "simplex";
             name = poly + bar + std::to_string(d) + ext;
             outputFile.open(name);
-            outputFile<<"simplex_"<<d<<".ext\n";
-            outputFile<<"V-representation\n";
+            outputFile << "simplex_" << d << ".ext\n";
+            outputFile << "V-representation\n";
+        }else if(kind == 6) {
+            std::string poly = "random_v_poly";
+            name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
+            outputFile.open(name);
+            outputFile << "random_" << d << "_" << m << ".ext\n";
+            outputFile << "V-representation\n";
         } else {
             return;
         }
@@ -80,14 +87,14 @@ void create_txt(MT A, VT b, int kind, bool Vpoly) {
             std::string poly = "skinny_cube";
             name = poly + bar + std::to_string(d) + ine;
             outputFile.open(name);
-            outputFile<<"skinny_cube_"<<d<<".ine\n";
+            outputFile << "skinny_cube_" << d << ".ine\n";
         } else {
             return;
         }
         outputFile<<"H-representation\n";
     }
     outputFile<<"begin\n";
-    if(kind == 0){
+    if(kind == 0 || kind == 6){
         outputFile << " " << m << " " << d + 1 << " real\n";
     } else {
         outputFile << " " << m << " " << d + 1 << " integer\n";
@@ -125,7 +132,7 @@ int main(const int argc, const char** argv) {
 
     bool Hpoly = false, Vpoly = false, Zono = false,
             cube = false, cross = false, simplex = false,
-                    prod_simplex = false, skinny_cube = false;
+            prod_simplex = false, skinny_cube = false, random_v = false;
     int d = 0, m = 0, kind = -1;
 
     for(int i=1;i<argc;++i) {
@@ -148,6 +155,12 @@ int main(const int argc, const char** argv) {
             return 0;
         }
 
+        if(!strcmp(argv[i],"-rv")) {
+            random_v = true;
+            kind = 6;
+            Vpoly = true;
+            correct = true;
+        }
         if(!strcmp(argv[i],"-zonotope")) {
             Zono = true;
             Vpoly = true;
@@ -237,7 +250,9 @@ int main(const int argc, const char** argv) {
         create_txt(HP.get_mat(), HP.get_vec(), kind, false);
     } else if (Vpoly) {
         Vpolytope VP;
-        if (cube) {
+        if(random_v) {
+            VP = random_vpoly<Vpolytope , RNGType>(d, m);
+        } else if (cube) {
             VP = gen_cube<Vpolytope>(d, true);
         } else if (cross) {
             VP = gen_cross<Vpolytope>(d, true);

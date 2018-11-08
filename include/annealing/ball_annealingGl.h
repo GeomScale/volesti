@@ -3,11 +3,10 @@
 // Copyright (c) 20012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-#ifndef BALL_ANNEALINGTWO_H
-#define BALL_ANNEALINGTWO_H
+#ifndef BALL_ANNEALINGGL_H
+#define BALL_ANNEALINGGL_H
 
-
-template <typename NT>
+/*template <typename NT>
 std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
     NT mean = 0, M2 = 0, variance = 0, delta;
     typedef typename std::vector<NT>::iterator viterator;
@@ -22,7 +21,7 @@ std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
     }
 
     return std::pair<NT, NT> (mean, variance);
-}
+}*/
 
 template <class Point, class ball, class PointList, typename NT>
 void check_converg2(ball &P, PointList &randPoints, NT p_test, bool &done, bool &too_few, NT &ratio, NT up_lim, bool print) {
@@ -37,7 +36,7 @@ void check_converg2(ball &P, PointList &randPoints, NT p_test, bool &done, bool 
             countsIn += 1.0;
         }
         if (i % 120 == 0) {
-            //if (print) std::cout<<"ratio = "<<countsIn/120.0<<std::endl;
+            if (print) std::cout<<"ratio = "<<countsIn/120.0<<std::endl;
             ratios.push_back(countsIn/120.0);
             countsIn = 0.0;
         }
@@ -105,7 +104,7 @@ bool is_last_zonoball(PointList randPoints, ball &B0, NT  &ratio, Parameter var)
 
 template <class ball, class Zonotope, class PointList, typename NT, class Parameters>
 void get_next_zonoball(Zonotope &Z, std::vector<ball> &BallSet,
-                       PointList &randPoints, std::vector<NT> &ratios, NT p_value, NT ub_lim, Parameters &var){
+                       PointList &randPoints, std::vector<NT> &ratios, NT &p_value, NT up, Parameters &var){
 
     //typename typedef ZonoBall::ball ball;
     typedef typename Zonotope::PolytopePoint Point;
@@ -133,7 +132,7 @@ void get_next_zonoball(Zonotope &Z, std::vector<ball> &BallSet,
         done = false;
         too_few = false;
 
-        check_converg2<Point>(Biter, randPoints, p_value, done, too_few, ratio, ub_lim, false);
+        check_converg2<Point>(Biter, randPoints, p_value, done, too_few, ratio, up, false);
 
         if(done){
             BallSet.push_back(Biter);
@@ -154,7 +153,7 @@ template <class RNGType,class ball, class Zonotope, class Parameters, typename N
 void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var, NT &ballsteps){
 
     typedef typename Zonotope::PolytopePoint Point;
-    NT rad2 = 10*radius;
+    NT rad2 = 2*radius;
     NT rad1 = radius;
     int n = var.n;
     bool print = var.verbose;
@@ -189,7 +188,7 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
             break;
         }
         rad1 = rad2;
-        rad2 = rad2 + 10*radius;
+        rad2 = rad2 + 2*radius;
     }
 
     NT rad_med;
@@ -227,14 +226,14 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
 template <class ZonoBall, class RNGType,class ball, class Zonotope, class PointList, class Parameters, typename NT>
 void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0, NT &ratio0,
                                std::vector<PointList> &PointSets, std::vector<NT> &ratios,
-                               NT p_value, NT ub_lim, NT radius, Parameters &var, NT &ballSteps, NT &HnRSteps) {
+                               NT &p_value, NT up, NT radius, Parameters &var, NT &ballSteps, NT &HnRSteps) {
 
 
     typedef typename Zonotope::PolytopePoint Point;
     typedef typename Zonotope::MT MT;
     bool print = var.verbose;
-    MT Q0 = Z.get_Q0().transpose();
-    MT G = Z.get_mat().transpose();
+    //MT Q0 = Z.get_Q0().transpose();
+    //MT G = Z.get_mat().transpose();
     HnRSteps = 0.0;
     int n = var.n;
     //int k = Z.num_of_generators();
@@ -257,7 +256,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
         return;
     }
     if(print) std::cout<<"not the last ball, ratio = "<<ratio<<std::endl;
-    get_next_zonoball(Z, BallSet, randPoints, ratios, p_value, ub_lim, var);
+    get_next_zonoball(Z, BallSet, randPoints, ratios, p_value, up, var);
 
     ball Biter;
 
@@ -274,10 +273,11 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
             //std::cout<<"number of balls = "<<ZonoBallSet.size()<<std::endl;
             return;
         }
-        get_next_zonoball(Z, BallSet, randPoints, ratios, p_value, ub_lim, var);
+        get_next_zonoball(Z, BallSet, randPoints, ratios, p_value, up, var);
     }
 
 
 }
+
 
 #endif

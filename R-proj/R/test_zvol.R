@@ -5,7 +5,8 @@ test_zvol <- function(d,m,verbose=TRUE){
   
   tim=proc.time()
   #test_vol = vol_zono(Z,0.05,SampleGibbs, mvrandn, mvNcdf, verbose,FALSE)
-  test_vol = get_ball_ann(Z,0.1)
+  test_vol = ZonoBallAnn(Z,0.1,TRUE)
+  #test_vol = vol_zono(Z,0.1,TRUE)
   tim=proc.time()-tim
   print(paste0('test method volume = ',test_vol))
   print(paste0('test method time: ',as.numeric(as.character(tim[3]))))
@@ -29,6 +30,6 @@ test_zvol <- function(d,m,verbose=TRUE){
   #print(paste0('test method error = ',abs(test_vol-ev)/ev))
   #print(paste0('cg-HnR error = ',abs(est_vol-ev)/ev))
   
-  return(Z)
+  #return(Z)
   
 }

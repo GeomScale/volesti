@@ -347,6 +347,39 @@ Polytope gen_zonotope(unsigned int dim, unsigned int m) {
 }
 
 
+template <class Polytope, class RNGType>
+Polytope random_vpoly(unsigned int dim, unsigned int k) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+    typedef typename Polytope::PolytopePoint Point;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+
+    Point p;
+    typename std::vector<NT>::iterator pit;
+    MT V(k, dim);
+    unsigned int j;
+
+    for (unsigned int i = 0; i < k; ++i) {
+        p = get_direction<RNGType, Point, NT>(dim);
+        pit = p.iter_begin();
+        j = 0;
+        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
+            V(i,j) = *pit;
+        }
+    }
+
+    Polytope VP;
+    VT b = VT::Ones(k);
+    VP.init(dim, V, b);
+
+    return VP;
+
+}
+
 /*
  * ToDo: brkhoff polytope generator
 template <class Polytope>

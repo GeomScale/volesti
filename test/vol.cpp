@@ -54,7 +54,7 @@ int main(const int argc, const char** argv)
     int n, nexp=1, n_threads=1, W;
     int walk_len,N, nsam = 100;
     NT e=1;
-    NT exactvol(-1.0), a=0.5;
+    NT exactvol(-1.0), a=0.5 ,lb=0.1, up_lim=0.15;
     bool verbose=false, 
 	 rand_only=false, 
 	 round_only=false,
@@ -73,6 +73,7 @@ int main(const int argc, const char** argv)
          Zono=false,
          coordinate=true,
          exact_zono = false,
+                 ball_annealing = false,
          gaussian_sam = false;
 
     //this is our polytope
@@ -139,6 +140,18 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"--exact")){
           exactvol = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-l")){
+          lb = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-u")){
+          up_lim = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-ban")){
+          ball_annealing = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-exact_zono")){
@@ -523,7 +536,16 @@ int main(const int argc, const char** argv)
           return 0;
       } else {
           // Estimate the volume
-          if (annealing) {
+          if (ball_annealing) {
+              //vol = volume(ZP, var, var, InnerBall, lb, up_lim);
+              if(Zono) {
+                  vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var);
+              } else if(!Vpoly) {
+                  vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var);
+              } else {
+                  vol = volesti_ball_ann(VP, InnerBall, lb, up_lim, var);
+              }
+          }else if (annealing) {
 
               // setup the parameters
               vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,rng,

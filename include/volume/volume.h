@@ -32,6 +32,7 @@
 #include "rounding.h"
 #include "gaussian_samplers.h"
 #include "gaussian_annealing.h"
+#include "ball_ann_vol.h"
 //#include "sample_only.h"
 #include "misc.h"
 #include "linear_extensions.h"

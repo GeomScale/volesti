@@ -192,16 +192,19 @@ NT cg_volume_zono(Polytope &P,
     double tstop122 = (double)clock()/(double)CLOCKS_PER_SEC;
     if(print) std::cout<<"Ratios time cost = "<<tstop122-tstart122<<" sec"<<std::endl;
     // Compute and print total number of steps in verbose mode only
-#ifdef VOLESTI_DEBUG
-    if (print) {
-        NT sum_of_steps = 0.0;
-        for(viterator it = its.begin(); it != its.end(); ++it) {
-            sum_of_steps += *it;
-        }
-        steps= int(sum_of_steps);
-        std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
+
+    //if (print) {
+    NT sum_of_steps = 0.0;
+    for(viterator it = its.begin(); it != its.end(); ++it) {
+        sum_of_steps += *it;
     }
+    //cg_steps = sum_of_steps + (NT(N))*(NT(mm));
+    steps= int(sum_of_steps);
+#ifdef VOLESTI_DEBUG
+       if(print) std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
 #endif
+    //}
+
 
     return vol;
 }

@@ -4,8 +4,8 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 
-#ifndef BALL_RATIOS_H
-#define BALL_RATIOS_H
+#ifndef ESTI_RATIOGL_H
+#define ESTI_RATIOGL_H
 
 template <class ZonoBall, class ball, typename NT, class Parameters>
 NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &steps) {
@@ -26,7 +26,7 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &st
     int max_index = W-1;
     int index = 0;
     int min_steps=0;
-    std::vector<NT> last_W(W,0);
+    std::vector<NT> last_W(W,0), lamdas(Zb.num_of_hyperplanes(),0);
     std::list<Point> randPoints;
     typename std::vector<NT>::iterator minmaxIt;
     typename std::list<Point>::iterator rpit;
@@ -43,13 +43,19 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &st
     //MT sample;
     NT countIn = ratio*1200.0;
     NT totCount = 1200.0;
-    //std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
+    std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
     Point p(n);
+    Point p_prev=p;
+    unsigned int coord_prev;
+    if(var.coordinate && !var.ball_walk){
+        uniform_first_coord_point(Zb,p,p_prev,coord_prev,var.walk_steps,lamdas,var);
+    }
     while(!done){
 
         //gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
         //sigma2 = (1.0/(2.0*(*avalsIt)))*sigma;
-        rand_point(Zb, p, var);
+        //rand_point(Zb, p, var);
+        uniform_next_point(Zb, p, p_prev, coord_prev, var.walk_steps, lamdas, var);
         if(B0.is_in(p)==-1) {
             //std::cout<<"Point in!"<<std::endl;
             countIn = countIn + 1.0;

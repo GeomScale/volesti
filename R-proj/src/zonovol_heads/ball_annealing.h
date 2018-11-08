@@ -135,8 +135,7 @@ void get_next_zonoball(Zonotope &Z, std::vector<ZonoBall> &ZonoBallSet,
 template <class ball, class Zonotope, class HPolytope, class ZonoBall, class PointList, class Parameters, typename NT>
 void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<ZonoBall> &ZonoBallSet,
                                std::vector<PointList> &PointSets, std::vector<NT> &ratios,
-                               NT &p_value, Parameters &var) {
-
+                               NT &p_value, Parameters &var, NT &HnRsteps) {
 
     typedef typename Zonotope::PolytopePoint Point;
     typedef typename Zonotope::MT MT;
@@ -148,7 +147,9 @@ void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<ZonoBall>
     NT ratio;
     PointList randPoints;
     Point q(n);
+    HnRsteps = 0.0;
     rand_point_generator(Z, q, 1200, 1, randPoints, var);
+    HnRsteps += 1200.0;
     PointSets.push_back(randPoints);
     if (is_last_zonoball(randPoints, HP, ratio, var)) {
         ratios.push_back(ratio);
@@ -165,6 +166,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<ZonoBall>
         q=Point(n);
         randPoints.clear();
         rand_point_generator(ZBiter, q, 1200, 1, randPoints, var);
+        HnRsteps += 1200.0;
         PointSets.push_back(randPoints);
         if (is_last_zonoball(randPoints, HP, ratio, var)) {
             ratios.push_back(ratio);
