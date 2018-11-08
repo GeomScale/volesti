@@ -88,24 +88,33 @@ double get_ball_ann(Rcpp::Reference P, double e, double lb_ratio=0.1, double ub_
         std::cout << *rit << " ";
     }
     std::cout<<"\n";
+    std::cout<<"size of ballSet = "<<BallSet.size()<<std::endl;
+    std::cout<<"B0 radius = "<<B0.radius()<<std::endl;
 
     NT vol = (std::pow(M_PI,n/2.0)*(std::pow(B0.radius(), n) ) ) / (tgamma(n/2.0+1));
-    vol = vol * est_ratio1<RNGType>(B0, ZP, ratio0);
+    vol = vol * esti_ratio1<RNGType>(B0, ZP, ratio0);
 
     ball Biter;
     ZonoBall zb1, zb2;
+    var2.coordinate = true;
+    var2.walk_steps=1;
     NT tele_prod=1.0;
-    NT er = e/std::sqrt(NT(BallSet.size()));
-    tele_prod = tele_prod * esti_ratio(ZP, BallSet[0], ratios[0], er, var2);
-    for (int i = 1; i < BallSet[BallSet.size()-1]; ++i) {
-        zb1 = ZonoBall(ZP, BallSet[i-1]);
-        //zb2 = ZonoBall(ZP, BallSet[i]);
-        tele_prod = tele_prod * esti_ratio(zb1, BallSet[i], ratios[i], er, var2);
-    }
+    if (BallSet.size()>0) {
+        NT er = e / std::sqrt(NT(BallSet.size()+1));
+        tele_prod = tele_prod * esti_ratio(ZP, BallSet[0], ratios[0], er, var2);
+        for (int i = 0; i < BallSet.size() - 1; ++i) {
+            zb1 = ZonoBall(ZP, BallSet[i]);
+            //zb2 = ZonoBall(ZP, BallSet[i]);
+            tele_prod = tele_prod * esti_ratio(zb1, BallSet[i+1], ratios[i+1], er, var2);
+        }
 
-    zb1 = ZonoBall(ZP, BallSet[BallSet.size()-1]);
-    tele_prod = tele_prod * esti_ratio(zb1, B0, ratios[ratios.size()-1], er,var2);
-    vol = vol/tele_prod;
+
+        zb1 = ZonoBall(ZP, BallSet[BallSet.size() - 1]);
+        tele_prod = tele_prod * esti_ratio(zb1, B0, ratios[ratios.size() - 1], er, var2);
+        vol = vol / tele_prod;
+    } else {
+        vol = vol / esti_ratio(ZP, B0, ratios[0], e/sqrt(2), var2);
+    }
 
     return vol;
 }

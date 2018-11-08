@@ -5,11 +5,7 @@ poly_gen <- function(kind_gen, Vpoly_gen, dim_gen, m_gen) {
     .Call('_volesti_poly_gen', PACKAGE = 'volesti', kind_gen, Vpoly_gen, dim_gen, m_gen)
 }
 
-rounding <- function(A, walk_len, coord, ball_walk, delta, Vpoly, Zono) {
-    .Call('_volesti_rounding', PACKAGE = 'volesti', A, walk_len, coord, ball_walk, delta, Vpoly, Zono)
-}
-
-get_ball_ann <- function(P, e, lb_ratio = 0.1, ub_ratio = 0.2) {
-    .Call('_volesti_get_ball_ann', PACKAGE = 'volesti', P, e, lb_ratio, ub_ratio)
+vol_zono <- function(P, e, verbose, delta_in = 0.0, up_lim = 0.15) {
+    .Call('_volesti_vol_zono', PACKAGE = 'volesti', P, e, verbose, delta_in, up_lim)
 }
 

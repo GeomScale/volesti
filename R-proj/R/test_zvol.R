@@ -4,7 +4,8 @@ test_zvol <- function(d,m,verbose=TRUE){
   #print(Z)
   
   tim=proc.time()
-  test_vol = vol_zono(Z,0.05,SampleGibbs, mvrandn, mvNcdf, verbose,FALSE)
+  #test_vol = vol_zono(Z,0.05,SampleGibbs, mvrandn, mvNcdf, verbose,FALSE)
+  test_vol = get_ball_ann(Z,0.1)
   tim=proc.time()-tim
   print(paste0('test method volume = ',test_vol))
   print(paste0('test method time: ',as.numeric(as.character(tim[3]))))

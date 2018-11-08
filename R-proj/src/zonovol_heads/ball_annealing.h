@@ -135,7 +135,7 @@ void get_next_zonoball(Zonotope &Z, std::vector<ZonoBall> &ZonoBallSet,
 template <class ball, class Zonotope, class HPolytope, class ZonoBall, class PointList, class Parameters, typename NT>
 void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<ZonoBall> &ZonoBallSet,
                                std::vector<PointList> &PointSets, std::vector<NT> &ratios,
-                               NT &p_value, Parameters &var, NT &delta, std::vector<NT> &Zs, bool relaxed) {
+                               NT &p_value, Parameters &var) {
 
 
     typedef typename Zonotope::PolytopePoint Point;

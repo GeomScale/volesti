@@ -14,7 +14,8 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var) {
     const NT minNT = -1.79769e+308;
 
     typedef typename ball::BallPoint Point;
-    int n = Zb.dimension();
+    int n = var.n;
+    //std::cout<<"n = "<<n<<std::endl;
     int W=10*n*n+1200;
     //int m = Z.num_of_generators();
     NT curr_eps = error;
@@ -42,16 +43,19 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var) {
     //MT sample;
     NT countIn = ratio*1200.0;
     NT totCount = 1200.0;
+    //std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
     Point p(n);
     while(!done){
 
         //gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
         //sigma2 = (1.0/(2.0*(*avalsIt)))*sigma;
         rand_point(Zb, p, var);
-        if(B0.is_in(*rpit)==-1) {
+        if(B0.is_in(p)==-1) {
+            //std::cout<<"Point in!"<<std::endl;
             countIn = countIn + 1.0;
             //q2=*rpit;
         }
+        //std::cout<<"Point out!"<<std::endl;
         totCount = totCount + 1.0;
 
         //pointset = sampleTr(l, u , sigma2, 2*W, mvrandn, G);

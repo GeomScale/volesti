@@ -7,6 +7,9 @@
 
 //#include <Rcpp.h>
 
+#ifndef OUTER_ZONO_H
+#define OUTER_ZONO_H
+
 template <class Polytope, class PointList, typename NT>
 void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bool &too_few, NT &ratio, NT up_lim, bool print) {
 
@@ -169,3 +172,94 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rc
     }
 
 }
+
+template <class Point, class Polytope, class HPolytope, typename NT, class PointList, class Parameters>
+void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio, PointList &randPoints, Parameters &var){
+
+    NT delta1 = 0.0;
+    NT delta2 = 0.5;
+    typedef typename Polytope::VT VT;
+    VT b = HP.get_vec();
+    VT b2 = b;
+    HPolytope HPiter=HP;
+
+    int n = P.dimension(), m = P.num_of_generators();
+    int N = 1200;
+    if(up_lim==0.0){
+        up_lim=0.15;
+    }
+    Point q(n);
+    bool done, too_few;
+    //std::list<Point> randPoints;
+    randPoints.clear();
+
+    //std::cout<<HPiter.get_mat()<<"\n"<<HPiter.get_vec()<<std::endl;
+    while(true) {
+
+        q=Point(n);
+        b2 = b + VT::Ones(2*m) * delta2;
+        HPiter.set_vec(b2);
+        //std::cout<<HPiter.get_vec()<<std::endl;
+        //randPoints.clear();
+        rand_point_generator(HPiter, q, 1200, 10+n/10, randPoints, var);
+
+        done = false;
+        too_few = false;
+        check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
+        std::cout<<"ratio = "<<ratio<<std::endl;
+        std::cout<<"delta2 = "<<delta2<<std::endl;
+
+        if(done) {
+            delta = delta2;
+            HP.set_vec(b2);
+            return;
+        }
+
+        if (too_few) {
+            break;
+        }
+
+        delta1 = delta2;
+        delta2 = 2*delta2;
+        //var = 2*var;
+        randPoints.clear();
+
+    }
+
+    // bisection between delta1 - delta_2
+    NT delta_med;
+    randPoints.clear();
+    while(true) {
+
+        delta_med = (delta1 + delta2) * 0.5;
+
+        q=Point(n);
+        b2 = b + VT::Ones(2*m) * delta_med;
+        HPiter.set_vec(b2);
+        //randPoints.clear();
+        rand_point_generator(HPiter, q, 1200, 10+n/10, randPoints, var);
+
+        done = false;
+        too_few = false;
+        check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
+        std::cout<<"ratio = "<<ratio<<std::endl;
+        std::cout<<"delta_med = "<<delta_med<<std::endl;
+
+        if(done) {
+            delta = delta_med;
+            HP.set_vec(b2);
+            return;
+        }
+
+        if (too_few) {
+            delta2 = delta_med;
+        } else {
+            delta1 = delta_med;
+        }
+        randPoints.clear();
+
+    }
+
+}
+
+#endif

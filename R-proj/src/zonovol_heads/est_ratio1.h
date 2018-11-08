@@ -48,7 +48,7 @@ NT est_ratio_hzono(Zonotope &Z, HPolytope &HP, NT error, Parameters &var) {
         //gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
         //sigma2 = (1.0/(2.0*(*avalsIt)))*sigma;
         rand_point(HP, p, var);
-        if(Z.is_in(*rpit)==-1) {
+        if(Z.is_in(p)==-1) {
             countIn = countIn + 1.0;
             //q2=*rpit;
         }
@@ -296,11 +296,14 @@ NT est_ratio_zball_sym(Zonoball ZB, MT sigma, MT G, MT Q0, VT l, VT u, NT delta,
 }
 
 
-template <class Point, class Zonotope, class Zonoball, class Parameters, typename NT>
-NT est_ratio_zonoballs(Zonotope &Z, Zonoball &zb1, Zonoball &zb2, NT ratio, NT error, Parameters &var, bool zono){
+template <class Point, class convexB, class Zonotope, class Parameters, typename NT>
+NT est_ratio_zonoballs(Zonotope &Z, convexB &b1, NT ratio, NT error, Parameters &var){
 
     NT countIn = ratio*NT(1200);
     NT totCount = NT(1200);
+    //typedef typename Zonotope::PolytopePoint Point;
+    //ball b1 = zb1.second();
+   // ball b2 = zb2.second();
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
@@ -335,23 +338,13 @@ NT est_ratio_zonoballs(Zonotope &Z, Zonoball &zb1, Zonoball &zb2, NT ratio, NT e
     Point p(n);
     while(!done){
 
-        if (zono) {
-            rand_point(Z, p, var);
-        } else {
-            rand_point(zb1, p, var);
-        }
-
+        rand_point(Z, p, var);
         //Point q2;
         //for ( ;  rpit!=randPoints.end(); ++rpit) {
-        if (zono) {
-            if (zb1.is_in(p)==-1) {
-                countIn = countIn + 1.0;
-            }
-        } else {
-            if(zb2.is_in(p)==-1) {
-                countIn = countIn + 1.0;
-            }
+        if (b1.is_in(p)==-1) {
+            countIn = countIn + 1.0;
         }
+
         totCount = totCount + 1.0;
 
         //pointset = sampleTr(l, u , sigma2, 2*W, mvrandn, G);
