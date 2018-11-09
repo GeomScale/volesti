@@ -54,11 +54,11 @@ rand_rotate <- function(P){
   A = Mat[,-c(1)]
   A = Mat[,-c(1)]
   if (vpoly) {
-    PP = VPolytope(V=A)
+    PP = VPolytope(V=A, t=2)
   }else if (Zono) {
-    PP = Zonotope(G=A)
+    PP = Zonotope(G=A, t=3)
   } else {
-    PP = HPolytope("A"=A, "b"=b)
+    PP = HPolytope("A"=A, "b"=b, t=1)
   }
   return(PP)
 }

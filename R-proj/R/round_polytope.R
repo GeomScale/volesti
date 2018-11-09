@@ -97,11 +97,11 @@ round_polytope <- function(P, method) {
   # remove first column
   A = Mat[,-c(1)]
   if (vpoly) {
-    PP = list("P" = VPolytope(V=A), "round_value" = round_value)
+    PP = list("P" = VPolytope(V=A, t=2), "round_value" = round_value)
   }else if (Zono) {
-    PP = list("P" = Zonotope(G=A), "round_value" = round_value)
+    PP = list("P" = Zonotope(G=A, t=3), "round_value" = round_value)
   } else {
-    PP = list("P" = HPolytope("A"=A, "b"=b), "round_value" = round_value)
+    PP = list("P" = HPolytope("A"=A, "b"=b, t=1), "round_value" = round_value)
   }
   return(PP)
 }

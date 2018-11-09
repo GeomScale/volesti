@@ -4,7 +4,7 @@
 #' 
 #' @field A \eqn{m\times d} numerical matrix A
 #' @field A \eqn{m}-dimensional vector b
-HPolytope <- setRefClass("HPolytope", fields = list(A="matrix", b="vector"),
+HPolytope <- setRefClass("HPolytope", fields = list(A="matrix", b="vector", t="numeric"),
             methods = list(
               get_mat = function() {
                 "Return a numerical matrix that describes the polytope in ine format"
@@ -26,7 +26,7 @@ HPolytope <- setRefClass("HPolytope", fields = list(A="matrix", b="vector"),
 #' 
 #' @field A \eqn{m\times d} numerical matrix V that contains row-wise the \eqn{m} vertices of a V-polytope.
 #' @field A \eqn{k\times d} numerical matrix V2 that contains row-wise the \eqn{k} vertices of the second V-polytope that defines the intersection. If this field is NULL then the created object will represent a V-polytope defined by the first field.
-VPolytope <- setRefClass("VPolytope", fields = list(V="matrix", V2="matrix"),
+VPolytope <- setRefClass("VPolytope", fields = list(V="matrix", V2="matrix", t="numeric"),
             methods = list(
               get_mat = function() {
                 "Return a numerical matrix that describes the first polytope in ext format"
@@ -60,7 +60,7 @@ VPolytope <- setRefClass("VPolytope", fields = list(V="matrix", V2="matrix"),
 #' @description A \eqn{d}-dimensional zonotope is a convex polytope defined by the Minkowski sum of \eqn{d}-dimensional segments.
 #' 
 #' @field A \eqn{m\times d} numerical matrix G that contains row-wise the \eqn{m} segments.
-Zonotope <- setRefClass("Zonotope", fields = list(G="matrix"),
+Zonotope <- setRefClass("Zonotope", fields = list(G="matrix", t="numeric"),
             methods = list(
               get_mat = function() {
                 "Return a numerical matrix that describes the zonotope in ine format"

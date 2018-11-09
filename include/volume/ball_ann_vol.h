@@ -12,7 +12,7 @@
 #include "esti_ratioGl.h"
 
 template <class Polytope, class Point, class Parameters, typename NT>
-NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up, Parameters &var){
+NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up, Parameters &var, bool steps_only = false){
 
     typedef Ball<Point> ball;
     typedef BallIntersectPolytope<Polytope,ball> ZonoBall;
@@ -56,13 +56,16 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     P.shift(c_e);
 
     NT ratio0, steps, HnRSteps = 0.0, MemLps=0.0, ballsteps;
-    var.coordinate=false;
+    var.coordinate=true;
     ball B0;
 
     if(verbose) std::cout<<"Computing ball annealing..."<<std::endl;
     get_sequence_of_zonoballs<ZonoBall, RNGType>(P, BallSet, B0, ratio0, PointSets,
                                                  ratios, lb, up, InnerBall.second, var,
                                                  ballsteps, steps);
+    if(steps_only) {
+        return BallSet.size()+1;
+    }
     HnRSteps = steps;
     MemLps = ballsteps;
 

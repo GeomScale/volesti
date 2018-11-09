@@ -36,7 +36,7 @@ public:
     }
 
     int is_in(Point p){
-        if ((p-_c).squared_length() <= _R)
+        if (p.squared_length() <= _R)
             return -1;
         else return 0;
     }

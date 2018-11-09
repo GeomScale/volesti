@@ -41,8 +41,8 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &st
 
     //MT sigma2;
     //MT sample;
-    NT countIn = ratio*1200.0;
-    NT totCount = 1200.0;
+    NT countIn = ratio*(1200.0+2.0*n*n);
+    NT totCount = 1200.0+n*n*2.0;
     std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
     Point p(n);
     Point p_prev=p;

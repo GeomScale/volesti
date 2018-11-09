@@ -29,15 +29,16 @@ void check_converg2(ball &P, PointList &randPoints, NT p_test, bool &done, bool 
     //typedef typename ball::BallPoint Point;
     std::vector<NT> ratios;
     NT countsIn = 0.0;
+    int m = randPoints.size()/10;
 
     int i = 1;
     for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
         if (P.is_in(*pit)==-1) {
             countsIn += 1.0;
         }
-        if (i % 120 == 0) {
-            if (print) std::cout<<"ratio = "<<countsIn/120.0<<std::endl;
-            ratios.push_back(countsIn/120.0);
+        if (i % m == 0) {
+            if (print) std::cout<<"ratio = "<<countsIn/m<<std::endl;
+            ratios.push_back(countsIn/m);
             countsIn = 0.0;
         }
     }
@@ -71,7 +72,7 @@ bool is_last_zonoball(PointList randPoints, ball &B0, NT  &ratio, Parameter var)
 
     NT countIn = 0.0;
     std::vector<NT> ratios;
-
+    int m = randPoints.size()/10;
 
     typename PointList::iterator rpit = randPoints.begin();
     int i=1;
@@ -79,9 +80,9 @@ bool is_last_zonoball(PointList randPoints, ball &B0, NT  &ratio, Parameter var)
         if(B0.is_in(*rpit)==-1) {
             countIn = countIn + 1.0;
         }
-        if (i % 120 == 0) {
+        if (i % m == 0) {
             //if (print) std::cout<<"ratio = "<<countsIn/120.0<<std::endl;
-            ratios.push_back(countIn/120.0);
+            ratios.push_back(countIn/m);
             countIn = 0.0;
         }
     }
@@ -247,7 +248,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
     get_first_ball<RNGType>(Z, B0, ratio, radius, var, ballSteps);
     ratio0 = ratio;
 
-    rand_point_generator(Z, q, 1200, 1, randPoints, var);
+    rand_point_generator(Z, q, 1200+2*n*n, 1, randPoints, var);
     HnRSteps += 1200.0;
     PointSets.push_back(randPoints);
     if (is_last_zonoball(randPoints, B0, ratio, var)) {
@@ -265,7 +266,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
         zb_it = ZonoBall(Z,Biter);
         q=Point(n);
         randPoints.clear();
-        rand_point_generator(zb_it, q, 1200, 1, randPoints, var);
+        rand_point_generator(zb_it, q, 1200+2*n*n, 1, randPoints, var);
         HnRSteps += 1200.0;
         PointSets.push_back(randPoints);
         if (is_last_zonoball(randPoints, B0, ratio, var)) {
