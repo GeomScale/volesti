@@ -380,6 +380,39 @@ Polytope random_vpoly(unsigned int dim, unsigned int k) {
 
 }
 
+template <class Polytope, class RNGType>
+Polytope random_hpoly(unsigned int dim, unsigned int m) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+    typedef typename Polytope::PolytopePoint Point;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::random::uniform_real_distribution<> urdist1(-10, 10);
+    Point p(dim);
+    typename std::vector<NT>::iterator pit;
+    MT A(m, dim);
+    VT b(m);
+    unsigned int j;
+
+    for(unsigned int i=0; i<m; ++i){
+        p = get_direction<RNGType, Point, NT>(dim);
+        pit = p.iter_begin();
+        j = 0;
+        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
+            A(i,j) = *pit;
+        }
+        b(i) = 10.0;
+
+    }
+    Polytope HP;
+    HP.init(dim, A, b);
+
+    return HP;
+}
+
 /*
  * ToDo: brkhoff polytope generator
 template <class Polytope>

@@ -1,5 +1,0 @@
-/home/tolis/volume_approximation/test/CMakeFiles/edit_cache.dir
-/home/tolis/volume_approximation/test/CMakeFiles/test.dir
-/home/tolis/volume_approximation/test/CMakeFiles/rebuild_cache.dir
-/home/tolis/volume_approximation/test/CMakeFiles/vol.dir
-/home/tolis/volume_approximation/test/CMakeFiles/generate.dir

@@ -16,21 +16,22 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include "samplers.h"
 #include "polytopes.h"
 #include "polytope_generators.h"
 #include "extractMatPoly.h"
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_gen){
+Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_gen) {
 
     typedef double NT;
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef boost::mt19937    RNGType;
-    typedef HPolytope<Point> Hpolytope;
-    typedef VPolytope<Point, RNGType > Vpolytope;
-    typedef Zonotope<Point> zonotope;
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef boost::mt19937 RNGType;
+    typedef HPolytope <Point> Hpolytope;
+    typedef VPolytope <Point, RNGType> Vpolytope;
+    typedef Zonotope <Point> zonotope;
     //typedef copula_ellipsoid<Point> CopEll;
 
     Hpolytope HP;
@@ -41,7 +42,13 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
     if (kind_gen == 0) {
         zonotope ZP = gen_zonotope<zonotope, RNGType>(dim_gen, m_gen);
         Mat = extractMatPoly(ZP);
-    } else if (Vpoly_gen) {
+    } else if( kind_gen == -1) {
+        Hpolytope HP2 = random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen);
+        Mat = extractMatPoly(HP2);
+    } else if(kind_gen == -2) {
+        Vpolytope VP2 = random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen);
+        Mat = extractMatPoly(VP2);
+    }else if (Vpoly_gen) {
         if (kind_gen == 1) {
             VP = gen_cube<Vpolytope>(dim_gen, true);
             Mat = extractMatPoly(VP);

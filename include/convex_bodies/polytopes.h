@@ -273,6 +273,9 @@ public:
         return -1;
     }
 
+    void get_vol_centroid(std::pair<Point,NT> cheball){
+        return;
+    }
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
@@ -635,6 +638,21 @@ public:
         return result;
     }
 
+    template <class PointLlist>
+    void get_vol_centroid(std::pair<Point,NT> &cheball, PointLlist &randPoints){
+
+        int k = randPoints.size();
+        Point xc(_d);
+
+        typename PointLlist::iterator rpit = randPoints.begin();
+        for ( ;  rpit!=randPoints.end(); ++rpit) {
+            xc = xc + (*rpit);
+        }
+        xc = (1.0/NT(k))*xc;
+        cheball.first = xc;
+
+        return;
+    }
 
     // pick d+1 random vertices until they define a full dimensional simplex and then
     // compute the chebychev ball of that simplex
@@ -762,7 +780,7 @@ public:
     // otherwise you have to sample from the V-polytope
     template <class PointList>
     bool get_points_for_rounding (PointList &randPoints) {
-        if (num_of_vertices()>20*_d) {
+        if (num_of_vertices()>40*_d) {
             return false;
         }
         unsigned int j;
@@ -1021,6 +1039,9 @@ public:
         return 0;
     }
 
+    void get_vol_centroid(std::pair<Point,NT> cheball){
+        return;
+    }
 
     // Compute an inner ball of the zonotope
     std::pair<Point,NT> ComputeInnerBall() {

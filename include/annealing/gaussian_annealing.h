@@ -41,7 +41,7 @@ bool eqTypes() { return is_same<T, U>::value; }
 
 
 //An implementation of Welford's algorithm for mean and variance.
-template <typename NT>
+/*template <typename NT>
 std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
     NT mean = 0, M2 = 0, variance = 0, delta;
     typedef typename std::vector<NT>::iterator viterator;
@@ -56,7 +56,7 @@ std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
     }
 
     return std::pair<NT, NT> (mean, variance);
-}
+}*/
 
 
 // Compute the first variance a_0 for the starting gaussian

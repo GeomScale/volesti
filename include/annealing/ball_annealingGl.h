@@ -154,9 +154,9 @@ template <class RNGType,class ball, class Zonotope, class Parameters, typename N
 void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var, NT &ballsteps){
 
     typedef typename Zonotope::PolytopePoint Point;
-    NT rad2 = 2*radius;
-    NT rad1 = radius;
     int n = var.n;
+    NT rad2 = 2*std::log2(NT(n))*radius;
+    NT rad1 = radius;
     bool print = var.verbose;
     bool done, too_few;
 
@@ -189,7 +189,7 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
             break;
         }
         rad1 = rad2;
-        rad2 = rad2 + 2*radius;
+        rad2 = rad2 + 2*std::log2(NT(n))*radius;
     }
 
     NT rad_med;
@@ -249,7 +249,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
     ratio0 = ratio;
 
     rand_point_generator(Z, q, 1200+2*n*n, 1, randPoints, var);
-    HnRSteps += 1200.0;
+    HnRSteps += 1200.0+n*n*2.0;
     PointSets.push_back(randPoints);
     if (is_last_zonoball(randPoints, B0, ratio, var)) {
         ratios.push_back(ratio);
@@ -267,7 +267,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
         q=Point(n);
         randPoints.clear();
         rand_point_generator(zb_it, q, 1200+2*n*n, 1, randPoints, var);
-        HnRSteps += 1200.0;
+        HnRSteps += 1200.0+n*n*2.0;
         PointSets.push_back(randPoints);
         if (is_last_zonoball(randPoints, B0, ratio, var)) {
             ratios.push_back(ratio);

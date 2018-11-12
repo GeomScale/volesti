@@ -12,7 +12,7 @@
 #include "esti_ratioGl.h"
 
 template <class Polytope, class Point, class Parameters, typename NT>
-NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up, Parameters &var, bool steps_only = false){
+NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up, Parameters &var, NT &hnrst, NT &nballs, NT &memball, bool steps_only = false){
 
     typedef Ball<Point> ball;
     typedef BallIntersectPolytope<Polytope,ball> ZonoBall;
@@ -56,7 +56,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     P.shift(c_e);
 
     NT ratio0, steps, HnRSteps = 0.0, MemLps=0.0, ballsteps;
-    var.coordinate=true;
+   // var.coordinate=true;
     ball B0;
 
     if(verbose) std::cout<<"Computing ball annealing..."<<std::endl;
@@ -64,7 +64,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
                                                  ratios, lb, up, InnerBall.second, var,
                                                  ballsteps, steps);
     if(steps_only) {
-        return BallSet.size()+1;
+        return NT(BallSet.size()+1);
     }
     HnRSteps = steps;
     MemLps = ballsteps;
@@ -83,7 +83,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
 
     ball Biter;
     ZonoBall zb1, zb2;
-    var.coordinate = true;
+    //var.coordinate = true;
     var.walk_steps=1;
     NT tele_prod=1.0;
     NT er = e*0.942809;
@@ -120,6 +120,9 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
         std::cout<<"number of HnR steps = "<<HnRSteps<<std::endl;
         std::cout<<"number of memberships (ball random points) = "<<MemLps<<std::endl;
     }
+    hnrst = HnRSteps;
+    memball = MemLps;
+    nballs = NT(BallSet.size()+1);
 
     return vol*round_value;
 

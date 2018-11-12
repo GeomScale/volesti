@@ -7,6 +7,26 @@
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
+#ifndef VARS_H
+#define VARS_H
+
+//An implementation of Welford's algorithm for mean and variance.
+template <typename NT>
+std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
+    NT mean = 0, M2 = 0, variance = 0, delta;
+    typedef typename std::vector<NT>::iterator viterator;
+
+    unsigned int i=0;
+    viterator vecit = vec.begin();
+    for( ; vecit!=vec.end(); vecit++, i++){
+        delta = *vecit - mean;
+        mean += delta / (i + 1);
+        M2 += delta * (*vecit - mean);
+        variance = M2 / (i + 1);
+    }
+
+    return std::pair<NT, NT> (mean, variance);
+}
 
 
 //structs with variables and random generators
@@ -115,3 +135,5 @@ public:
     bool ball_walk;
     bool coordinate;
 };
+
+#endif

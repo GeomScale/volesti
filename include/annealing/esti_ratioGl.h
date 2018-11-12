@@ -15,6 +15,7 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &st
 
     typedef typename ball::BallPoint Point;
     int n = var.n;
+    bool print = var.verbose;
     //std::cout<<"n = "<<n<<std::endl;
     int W=4*n*n+500;
     //int m = Z.num_of_generators();
@@ -43,7 +44,7 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &st
     //MT sample;
     NT countIn = ratio*(1200.0+2.0*n*n);
     NT totCount = 1200.0+n*n*2.0;
-    std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
+    //if (print) std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
     Point p(n);
     Point p_prev=p;
     unsigned int coord_prev;
@@ -93,9 +94,9 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &st
         }
 
         if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
-            std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
+            if (print) std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
             done=true;
-            steps = (totCount - 1200.0);
+            steps = (totCount - 1200.0-n*n*2.0);
             return val;
         }
 
@@ -140,6 +141,7 @@ NT esti_ratio2(ball B0, Zonotope &Z, NT error, NT ratio, NT &steps) {
     typedef typename Zonotope::PolytopePoint Point;
     int n = Z.dimension();
     int W = 4 * n * n + 500;
+    //bool print = var.verbose;
     //int m = Z.num_of_generators();
 
     NT curr_eps = error;
@@ -212,7 +214,7 @@ NT esti_ratio2(ball B0, Zonotope &Z, NT error, NT ratio, NT &steps) {
         }
 
         if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
-            std::cout<<"last ball rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
+            //std::cout<<"last ball rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
             done=true;
             steps = (totCount - 1200.0);
             return val;

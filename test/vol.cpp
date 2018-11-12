@@ -537,13 +537,14 @@ int main(const int argc, const char** argv)
       } else {
           // Estimate the volume
           if (ball_annealing) {
+              NT HnRsteps, nballs, MemLps;
               //vol = volume(ZP, var, var, InnerBall, lb, up_lim);
               if(Zono) {
-                  vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var);
+                  vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps);
               } else if(!Vpoly) {
-                  vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var);
+                  vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps);
               } else {
-                  vol = volesti_ball_ann(VP, InnerBall, lb, up_lim, var);
+                  vol = volesti_ball_ann(VP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps);
               }
           }else if (annealing) {
 

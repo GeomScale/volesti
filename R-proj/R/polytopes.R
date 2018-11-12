@@ -18,6 +18,9 @@ HPolytope <- setRefClass("HPolytope", fields = list(A="matrix", b="vector", t="n
                 Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
                 Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
                 return(Mat)
+              }, 
+              get_type = function(){
+                return(1)
               }
             ))
 #' A reference class to represent a V-polytope or the intersection of two V-polytopes
@@ -53,6 +56,9 @@ VPolytope <- setRefClass("VPolytope", fields = list(V="matrix", V2="matrix", t="
                 Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
                 Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
                 return(Mat)
+              }, 
+              get_type = function(){
+                return(2)
               }
             ))
 #' A class that represent a zonotope
@@ -74,5 +80,8 @@ Zonotope <- setRefClass("Zonotope", fields = list(G="matrix", t="numeric"),
                 Mat = matrix(cbind(b, Mat), ncol = dim(Mat)[2] + 1)
                 Mat = matrix(rbind(r, Mat), ncol = dim(Mat)[2])
                 return(Mat)
+              }, 
+              get_type = function(){
+                return(3)
               }
             ))
