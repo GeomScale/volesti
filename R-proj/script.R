@@ -6,8 +6,12 @@ time1=c()
 time2=c()
 steps1=c()
 steps2=c()
-for (i in 2:20) {
-  HP = GenCross(i,'H')
+path = system.file('extdata', package = 'volesti')
+for (i in 2:100) {
+  print(i)
+  #name_bir = paste0('/birk',i,'.ine')
+  #HP = fileToMatrix(paste0(path,name_bir))
+  HP = GenHpoly(i,3*i)
   tim=proc.time()
   st1=ban_volume(HP, steps_only = TRUE)
   tim=proc.time()-tim
@@ -24,7 +28,7 @@ for (i in 2:20) {
 }
 
 test.data <- data.frame(
-  dimension= 2:20,
+  dimension= 2:100,
   BallAnnealing = steps1, 
   CoolingGaussian = steps2
 )

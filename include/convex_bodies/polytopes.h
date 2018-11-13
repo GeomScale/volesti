@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include "solve_lp.h"
+#include <limits.h>
 
 //min and max values for the Hit and Run functions
 
@@ -483,6 +484,7 @@ public:
         num_of_hyp += nom / denom;
 
         res = num_of_hyp;
+        std::cout<<num_of_hyp<<" "<<res<<" "<<std::numeric_limits<unsigned int>::max()<<std::endl;
         return res;
     }
 
@@ -838,21 +840,30 @@ public:
 
 
     // return the number of parallelopipeds. Used in get_dists fnction.
-    unsigned int upper_bound_of_hyperplanes() {
-        unsigned int m = V.rows(), d = _d, res;
+    unsigned long int upper_bound_of_hyperplanes() {
+        unsigned long int m = V.rows(), d = _d, res;
         long double nom = 1.0, denom = 1.0, num_of_hyp = 0.0;
 
-        for (unsigned int i = d+1 ; i <= m; ++i) {
+        for (unsigned long int i = m-d+2 ; i <= m; ++i) {
             nom *= i;
         }
-        for (unsigned int i = 1 ; i <= m-d; ++i) {
+        for (unsigned long int i = 1 ; i <= d-1; ++i) {
             denom *= i;
         }
 
-        num_of_hyp = nom / denom;
+        num_of_hyp = 2 * (nom / denom);
 
         res = num_of_hyp;
-        return 10*m*m;
+        if (num_of_hyp>NT(std::numeric_limits<unsigned int>::max())) {
+            std::cout<<"[WARNIG!] upper bound larger than maximum unsigned int!"<<std::endl;
+            //std::cout<<num_of_hyp<<" "<<res<<" "<<std::numeric_limits<unsigned long int>::max()<<std::endl;
+            res=0;
+            //exit(-1);
+        }
+        //res=10*m*m;
+        //res=0;
+        //std::cout<<num_of_hyp<<" "<<res<<" "<<std::numeric_limits<unsigned long int>::max()<<std::endl;
+        return res;
     }
 
 
@@ -921,9 +932,9 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-        bool normalization1=true;
-        bool normalization2=false;
-        compute_eigenvectors(V.transpose(),normalization1,normalization2);
+       // bool normalization1=true;
+        //bool normalization2=false;
+        //compute_eigenvectors(V.transpose(),normalization1,normalization2);
        // initial_shifting(); // shift zonotope to the origin
     }
 
@@ -1006,9 +1017,9 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        bool normalization1=true;
-        bool normalization2=false;
-        compute_eigenvectors(V.transpose(),normalization1,normalization2);
+       // bool normalization1=true;
+       // bool normalization2=false;
+        //compute_eigenvectors(V.transpose(),normalization1,normalization2);
         //initial_shifting(); // shift zonotope to the origin
     }
 
