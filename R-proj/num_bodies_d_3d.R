@@ -5,26 +5,27 @@ library(volesti)
 bodies1=c()
 #bodies2=c()
 continue_ball = TRUE
-time_limit = 2700
+time_limit = 3600
 i=2
 while(TRUE) {
+  print(paste0('i = ',i))
   if (!continue_ball) {
     break
   }
   num_b=0
   #num_b2 = 0
   for (j in 1:1){
-    Z = GenZonotope(i,2*i)
+    Z = GenZonotope(i,3*i)
     x=system.time({ b1 = ban_volume(Z,steps_only = TRUE)})
     if (as.numeric(x[3])>time_limit) {
       continue_ball = FALSE
     }
     num_b = num_b + b1
   }
-    
+  
   num_b = num_b / 1
   bodies1=c(bodies1, num_b)
-  save(bodies1, file = "bodies1_d_2d.RData")
+  save(bodies1, file = "bodies_d_3d.RData")
   if(i==2){
     i=5
   }else{
