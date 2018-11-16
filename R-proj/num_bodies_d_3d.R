@@ -6,7 +6,7 @@ bodies1=c()
 #bodies2=c()
 continue_ball = TRUE
 time_limit = 3600
-i=2
+i=70
 while(TRUE) {
   print(paste0('i = ',i))
   if (!continue_ball) {
@@ -18,14 +18,14 @@ while(TRUE) {
     Z = GenZonotope(i,3*i)
     x=system.time({ b1 = ban_volume(Z,steps_only = TRUE)})
     if (as.numeric(x[3])>time_limit) {
-      continue_ball = FALSE
+      continue_ball = TRUE
     }
     num_b = num_b + b1
   }
   
   num_b = num_b / 1
   bodies1=c(bodies1, num_b)
-  save(bodies1, file = "bodies_d_3d.RData")
+  save(bodies1, file = "bodies70_d_3d.RData")
   if(i==2){
     i=5
   }else{
