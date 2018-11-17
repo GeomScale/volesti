@@ -880,4 +880,90 @@ bool is_in_sym3(Point p, MT Q0, MT G, NT delta, std::vector<NT> Zs) {
 
 }
 
+template <typename NT, class MT, class VT>
+bool get_maxZ0(MT A, MT G, VT &Zs_max){
+
+    lprec *lp;
+    int d = G.rows(), k = G.cols();
+    int Ncol=k, *colno = NULL, j, i;
+    REAL *row = NULL;
+    //std::cout<<k<<" "<<d<<std::endl;
+
+    try
+    {
+        lp = make_lp(0, Ncol);
+        if(lp == NULL) throw false;
+    }
+    catch (bool e) {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
+#endif
+        return false;
+    }
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    try
+    {
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        row = (REAL *) malloc(Ncol * sizeof(*row));
+    }
+    catch (std::exception &e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
+#endif
+        return false;
+    }
+
+    MT R = A*G;
+    NT z;
+    for (j = 0; j < k; ++j) {
+        set_bounds(lp, j + 1, -1.0, 1.0);
+    }
+    for (i = 0; i < k; ++i) {
+        for(j=0; j<k; j++){
+            colno[j] = j+1; /* j_th column */
+            row[j] = R(i,j);
+        }
+
+        // set the objective function
+        try
+        {
+            if(!set_obj_fnex(lp, Ncol, row, colno)) throw false;
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
+#endif
+            return false;
+        }
+
+        /* set the object direction to maximize */
+        set_maxim(lp);
+
+        /* I only want to see important messages on screen while solving */
+        set_verbose(lp, NEUTRAL);
+
+        /* Now let lpsolve calculate a solution */
+        if (solve(lp) != OPTIMAL){
+            std::cout<<"no feasible!"<<std::endl;
+            return false;
+        }
+
+        z=NT(get_objective(lp));
+        //std::cout<<"z = "<<z<<std::endl;
+        //if(i==k-1){
+            //std::cout<<"\n";
+        //}
+        Zs_max(i)=z;
+        Zs_max(i+k)=z;
+    }
+
+    delete_lp(lp);
+    return true;
+
+}
+
 #endif

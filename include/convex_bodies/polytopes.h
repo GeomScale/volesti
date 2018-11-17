@@ -932,9 +932,9 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-       // bool normalization1=true;
-        //bool normalization2=false;
-        //compute_eigenvectors(V.transpose(),normalization1,normalization2);
+        bool normalization1=true;
+        bool normalization2=false;
+        compute_eigenvectors(V.transpose(),normalization1,normalization2);
        // initial_shifting(); // shift zonotope to the origin
     }
 
@@ -1017,9 +1017,9 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-       // bool normalization1=true;
-       // bool normalization2=false;
-        //compute_eigenvectors(V.transpose(),normalization1,normalization2);
+        bool normalization1=true;
+        bool normalization2=false;
+        compute_eigenvectors(V.transpose(),normalization1,normalization2);
         //initial_shifting(); // shift zonotope to the origin
     }
 

@@ -17,3 +17,7 @@ cg_volume <- function(P, e = 0.1, steps_only = FALSE, rounding = FALSE, verbose 
     .Call('_volesti_cg_volume', PACKAGE = 'volesti', P, e, steps_only, rounding, verbose)
 }
 
+vol_hzono <- function(P, e = 0.1, steps_only = FALSE, verbose = FALSE, cg_hpol = FALSE, delta_in = 0.0, up_lim = 0.15) {
+    .Call('_volesti_vol_hzono', PACKAGE = 'volesti', P, e, steps_only, verbose, cg_hpol, delta_in, up_lim)
+}
+

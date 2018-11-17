@@ -8,10 +8,11 @@
 #define EST_RATIO_ONE_H
 
 template <class Zonotope, class HPolytope, typename NT, class Parameters>
-NT est_ratio_hzono(Zonotope &Z, HPolytope &HP, NT error, Parameters &var, NT &steps) {
+NT est_ratio_hzono(Zonotope &Z, HPolytope &HP, NT error, NT ratio, Parameters &var, NT &steps) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
+    bool print = var.verbose;
 
     typedef typename Zonotope::PolytopePoint Point;
     int n = Z.dimension();
@@ -40,8 +41,8 @@ NT est_ratio_hzono(Zonotope &Z, HPolytope &HP, NT error, Parameters &var, NT &st
 
     //MT sigma2;
     //MT sample;
-    NT countIn = 0.0;
-    NT totCount = 0.0;
+    NT countIn = ratio*NT(1200);
+    NT totCount = NT(1200);
     Point p(n);
     while(!done){
 
@@ -83,7 +84,7 @@ NT est_ratio_hzono(Zonotope &Z, HPolytope &HP, NT error, Parameters &var, NT &st
         }
 
         if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
-            std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
+            if(print) std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
             done=true;
             steps = (totCount - 1200.0);
             return val;
@@ -300,17 +301,19 @@ NT est_ratio_zball_sym(Zonoball ZB, MT sigma, MT G, MT Q0, VT l, VT u, NT delta,
 template <class Point, class convexB, class Zonotope, class Parameters, typename NT>
 NT est_ratio_zonoballs(Zonotope &Z, convexB &b1, NT ratio, NT error, Parameters &var, NT &steps){
 
-    NT countIn = ratio*NT(1200);
-    NT totCount = NT(1200);
+
     //typedef typename Zonotope::PolytopePoint Point;
     //ball b1 = zb1.second();
    // ball b2 = zb2.second();
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
+    bool print = var.verbose;
 
     //typedef typename Zonotope::PolytopePoint Point;
     int n = var.n;
+    NT countIn = ratio*NT(1200+2.0*n*n);
+    NT totCount = NT(1200+2.0*n*n);
     int W=4*n*n+500;
     //int m = Z.num_of_generators();
     NT curr_eps = error;
@@ -377,7 +380,7 @@ NT est_ratio_zonoballs(Zonotope &Z, convexB &b1, NT ratio, NT error, Parameters 
         }
 
         if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
-            std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
+            if(print) std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
             done=true;
             steps = (totCount - 1200.0);
             return val;

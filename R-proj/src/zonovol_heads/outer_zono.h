@@ -180,6 +180,13 @@ void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio,
     NT delta1 = 0.0;
     NT delta2 = 0.5;
     typedef typename Polytope::VT VT;
+    //typedef typename Polytope::MT MT;
+    //MT G = P.get_mat().transpose();
+    //MT A = HP.get_mat();
+    //int kk = G.cols();
+    //VT Zs_max(2*kk);
+    //get_maxZ0<NT>(A, G, Zs_max);
+    //std::cout<<Zs_max<<"\n"<<std::endl;
     VT b = HP.get_vec();
     VT b2 = b;
     HPolytope HPiter=HP;
@@ -190,10 +197,49 @@ void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio,
         up_lim=0.15;
     }
     Point q(n);
-    bool done, too_few;
+    bool done, too_few, print = var.verbose;
     //std::list<Point> randPoints;
     randPoints.clear();
     steps = 0.0;
+
+    //NT l=0.0, u=1.0, med;
+    //VT  Zmed(2*m);
+    //randPoints.clear();
+    /*while(true) {
+
+        q=Point(n);
+        med = (u + l) * 0.5;
+        Zmed = Zs_max*med;
+        HPiter.set_vec(Zmed);
+
+        rand_point_generator(HPiter, q, 1200, 10+n/10, randPoints, var);
+        steps += 1200.0;
+
+        done = false;
+        too_few = false;
+        check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
+        if(print) std::cout<<"ratio = "<<ratio<<std::endl;
+        if(print) std::cout<<"med = "<<med<<std::endl;
+
+        if(done) {
+            //delta = delta2;
+            HP.set_vec(Zmed);
+            return;
+        }
+
+        if (too_few) {
+            u = med;
+            //break;
+        } else {
+            l = med;
+        }
+
+        //delta1 = delta2;
+        //delta2 = 2*delta2;
+        //var = 2*var;
+        randPoints.clear();
+
+    }*/
 
     //std::cout<<HPiter.get_mat()<<"\n"<<HPiter.get_vec()<<std::endl;
     while(true) {
@@ -209,8 +255,8 @@ void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio,
         done = false;
         too_few = false;
         check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
-        std::cout<<"ratio = "<<ratio<<std::endl;
-        std::cout<<"delta2 = "<<delta2<<std::endl;
+        if(print) std::cout<<"ratio = "<<ratio<<std::endl;
+        if(print) std::cout<<"delta2 = "<<delta2<<std::endl;
 
         if(done) {
             delta = delta2;
@@ -246,8 +292,8 @@ void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio,
         done = false;
         too_few = false;
         check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
-        std::cout<<"ratio = "<<ratio<<std::endl;
-        std::cout<<"delta_med = "<<delta_med<<std::endl;
+        if(print) std::cout<<"ratio = "<<ratio<<std::endl;
+        if(print) std::cout<<"delta_med = "<<delta_med<<std::endl;
 
         if(done) {
             delta = delta_med;

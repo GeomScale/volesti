@@ -155,7 +155,7 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
 
     typedef typename Zonotope::PolytopePoint Point;
     int n = var.n;
-    NT rad2 = 2*std::log2(NT(n))*radius;
+    NT rad2 = 2*std::sqrt(NT(n))*radius;
     NT rad1 = radius;
     bool print = var.verbose;
     bool done, too_few;
@@ -189,7 +189,7 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
             break;
         }
         rad1 = rad2;
-        rad2 = rad2 + 2*std::log2(NT(n))*radius;
+        rad2 = rad2 + 2*std::sqrt(NT(n))*radius;
     }
 
     NT rad_med;
