@@ -23,6 +23,7 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
+#include <boost/math/special_functions/erf.hpp>
 #include "vars.h"
 #include "polytopes.h"
 //#include "ellipsoids.h"

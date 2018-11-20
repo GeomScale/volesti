@@ -20,6 +20,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include <boost/math/special_functions/erf.hpp>
 #include "vars.h"
 #include "polytopes.h"
 //#include "ellipsoids.h"
@@ -32,7 +33,7 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_only = false, bool rounding = false, bool verbose = false,
+Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_only = false, bool const_win = true, bool rounding = false, bool verbose = false,
                                 double lb_ratio=0.1, double ub_ratio=0.15) {
 
     typedef double NT;
@@ -107,11 +108,11 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
     }
 
     if(type==1) {
-        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, steps_only);
+        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, steps_only, const_win);
     } else if(type==2) {
-        vol = volesti_ball_ann(VP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, steps_only);
+        vol = volesti_ball_ann(VP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, steps_only, const_win);
     } else {
-        vol = volesti_ball_ann(ZP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, steps_only);
+        vol = volesti_ball_ann(ZP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, steps_only, const_win);
     }
 
     if (steps_only) {

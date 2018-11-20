@@ -7,8 +7,10 @@
 #ifndef ESTI_RATIOGL_H
 #define ESTI_RATIOGL_H
 
+#include <numeric>
+
 template <class ZonoBall, class ball, typename NT, class Parameters>
-NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &steps) {
+NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, int Win, Parameters &var, NT &steps) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
@@ -17,8 +19,9 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &st
     int n = var.n;
     bool print = var.verbose;
     //std::cout<<"n = "<<n<<std::endl;
-    int W=4*n*n+500;
-    //int m = Z.num_of_generators();
+    //int W=4*n*n+500;
+    int W = Win;
+            //int m = Z.num_of_generators();
     NT curr_eps = error;
     bool done=false;
     NT min_val = minNT;
@@ -111,7 +114,7 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, Parameters &var, NT &st
 
 
 template <class RNGType, class Zonotope, class ball, typename NT>
-NT esti_ratio1(ball B0, Zonotope &Z, NT ratio) {
+NT esti_ratio1(ball B0, Zonotope &Z, NT ratio, int N) {
 
     typedef typename Zonotope::PolytopePoint Point;
     int n = Z.dimension();
@@ -122,7 +125,7 @@ NT esti_ratio1(ball B0, Zonotope &Z, NT ratio) {
     NT totCount = 1200.0;
     NT rad = B0.radius();
     Point p(n);
-    for (int i = 0; i < 40000; ++i) {
+    for (int i = 0; i < N; ++i) {
         p = get_point_in_Dsphere<RNGType, Point>(n, rad);
         if (Z.is_in(p) == -1) {
             countIn = countIn + 1.0;
@@ -134,17 +137,19 @@ NT esti_ratio1(ball B0, Zonotope &Z, NT ratio) {
 }
 
 template <class RNGType, class Zonotope, class ball, typename NT>
-NT esti_ratio2(ball B0, Zonotope &Z, NT error, NT ratio, NT &steps) {
+NT esti_ratio2(ball B0, Zonotope &Z, NT error, int Win, NT ratio, NT &steps) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
     typedef typename Zonotope::PolytopePoint Point;
     int n = Z.dimension();
-    int W = 4 * n * n + 500;
+    //int W = 4 * n * n + 500;
     //bool print = var.verbose;
     //int m = Z.num_of_generators();
-
+    int W = Win;
+   // std::cout<<"W = "<<W<<std::endl;
     NT curr_eps = error;
+    //std::cout<<"curr_eps = "<<curr_eps<<std::endl;
     bool done=false;
     NT min_val = minNT;
     NT max_val = maxNT;
@@ -190,7 +195,7 @@ NT esti_ratio2(ball B0, Zonotope &Z, NT error, NT ratio, NT &steps) {
         //for (int k = 0; k < 4*W; ++k) {
         //*itsIt = *itsIt + 1.0;
         //*fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);
-        // *fnIt = *fnIt + std::exp(-(*(avalsIt + 1))*(pointset.col(k).squaredNorm())) / std::exp(-(*avalsIt)*(pointset.col(k).squaredNorm()));
+        // *fnIt = *fnIt + std::exp(-(*(avalsIt +  1))*(pointset.col(k).squaredNorm())) / std::exp(-(*avalsIt)*(pointset.col(k).squaredNorm()));
         //val = (*fnIt) / (*itsIt);
 
         val = countIn / totCount;
@@ -227,5 +232,227 @@ NT esti_ratio2(ball B0, Zonotope &Z, NT error, NT ratio, NT &steps) {
     }
     return countIn / totCount;
 }
+
+template <typename NT>
+bool check_max_error(NT a, NT b, NT val, NT error) {
+
+    NT e1 = std::abs(a - val) / a;
+    NT e2 = std::abs(b - val) / b;
+    //std::cout<<"er1 = "<<e1<<" er2 = "<<e2<<" error = "<<error<<std::endl;
+    if (e1<error/2.0 && e2<error/2.0){
+        return true;
+    }
+    return false;
+}
+
+template <class ZonoBall, class ball, typename NT, class Parameters>
+NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int Win, NT prob, Parameters &var, NT &steps) {
+
+    const NT maxNT = 1.79769e+308;
+    const NT minNT = -1.79769e+308;
+
+    typedef typename ball::BallPoint Point;
+    int n = var.n;
+    bool print = var.verbose;
+    //std::cout<<"n = "<<n<<std::endl;
+    //int W=4*n*n+500;
+    int W = 3600;
+    //int m = Z.num_of_generators();
+    NT curr_eps = error;
+    bool done=false;
+    NT min_val = minNT;
+    NT max_val = maxNT;
+    int min_index = W-1;
+    int max_index = W-1;
+    int index = 0;
+    int min_steps=0;
+    std::vector<NT> last_W(W,0), lamdas(Zb.num_of_hyperplanes(),0);
+    std::list<Point> randPoints;
+    typename std::vector<NT>::iterator minmaxIt;
+    typename std::list<Point>::iterator rpit;
+    NT val;
+    std::vector<std::vector<NT> > vals(30, std::vector<NT>(120));
+
+    NT countIn = ratio*(1200.0+2.0*n*n);
+    NT totCount = 1200.0+n*n*2.0;
+    //if (print) std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
+    Point p(n);
+    Point p_prev=p;
+    unsigned int coord_prev;
+    if(var.coordinate && !var.ball_walk){
+        uniform_first_coord_point(Zb,p,p_prev,coord_prev,var.walk_steps,lamdas,var);
+    }
+    int col=0, row=0;
+    std::vector<NT> sums(30,0.0);
+    //typename std::vector< std::vector<NT> >::iterator sumit=vals.begin();
+    //typename std::vector<NT>::iterator sit=sums.begin();
+    for (int i = 0; i < 3600; ++i) {
+        //std::cout<<"row = "<<row<<" col = "<<col<<"i = "<<i<<std::endl;
+        uniform_next_point(Zb, p, p_prev, coord_prev, var.walk_steps, lamdas, var);
+        if(B0.is_in(p)==-1) {
+            countIn = countIn + 1.0;
+        }
+        totCount = totCount + 1.0;
+        val = countIn / totCount;
+        vals[row][col] = val;
+        col++;
+        if(col%120==0) {
+            col=0;
+
+            //sums[row-1] = std::accumulate((*sumit).begin(), (*sumit).end(), NT(0.0)) / 120.0;
+            for (int j = 0; j < 120; ++j) {
+                sums[row] += vals[row][j];
+            }
+            sums[row] = sums[row]/120.0;
+            row++;
+            //0sumit++;
+            //sit++;
+        }
+    }
+    col=0;
+    std::pair<NT,NT> mv;
+    NT pr = 1.0 - prob / 2.0 ,m, s, zp;
+    bool chk;
+    while(!done){
+        //std::cout<<"col = "<<col<<std::endl;
+
+        uniform_next_point(Zb, p, p_prev, coord_prev, var.walk_steps, lamdas, var);
+        if(B0.is_in(p)==-1) {
+            countIn = countIn + 1.0;
+        }
+        totCount = totCount + 1.0;
+        val = countIn / totCount;
+
+        for (int i = 0; i < 29; ++i) {
+            sums[i] -= vals[i][col] / 120.0;
+            sums[i] += vals[i+1][col] / 120.0;
+            vals[i][col] = vals[i+1][col];
+        }
+        sums[29] -= vals[29][col] / 120.0;
+        sums[29] += val / 120.0;
+        vals[29][col] = val;
+
+        col++;
+        if(col%120==0) col=0;
+
+        mv = getMeanVariance(sums);
+        m = mv.first;
+        s = std::sqrt(mv.second);
+        zp = m + s*std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
+        //std::cout<<"m = "<<m<<" s ="<<s<<" zp = "<<zp<<std::endl;
+        chk= check_max_error(m-zp*s, m+zp*s, val, error);
+        if(chk) {
+            if (print) std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
+            done=true;
+            steps = (totCount - 1200.0-n*n*2.0);
+            //std::cout<<"steps = "<<steps<<std::endl;
+            return val;
+        }
+
+    }
+    return val;
+
+}
+
+template <class RNGType, class Zonotope, class ball, typename NT>
+NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int Win, NT ratio, NT prob, NT &steps) {
+
+    const NT maxNT = 1.79769e+308;
+    const NT minNT = -1.79769e+308;
+    typedef typename Zonotope::PolytopePoint Point;
+    int n = Z.dimension();
+    //int W = 4 * n * n + 500;
+    //bool print = var.verbose;
+    //int m = Z.num_of_generators();
+    int W = 3600;
+    // std::cout<<"W = "<<W<<std::endl;
+    NT curr_eps = error;
+    //std::cout<<"curr_eps = "<<curr_eps<<std::endl;
+    bool done=false;
+    NT min_val = minNT;
+    NT max_val = maxNT;
+    int min_index = W-1;
+    int max_index = W-1;
+    int index = 0;
+    int min_steps=0;
+    std::vector<NT> last_W(W,0);
+    std::list<Point> randPoints;
+    typename std::vector<NT>::iterator minmaxIt;
+    typename std::list<Point>::iterator rpit;
+    NT val;
+    std::vector<std::vector<NT> > vals(30, std::vector<NT>(120));
+
+    NT countIn = ratio*1200.0;
+    NT totCount = 1200.0;
+    NT rad = B0.radius();
+    int col=0, row=0;
+    std::vector<NT> sums(30,0.0);
+    Point p(n);
+    //typename std::vector< std::vector<NT> >::iterator sumit=vals.begin();
+    //typename std::vector<NT>::iterator sit=sums.begin();
+    for (int i = 0; i < 3600; ++i) {
+        p = get_point_in_Dsphere<RNGType, Point>(n, rad);
+        if(Z.is_in(p)==-1) {
+            countIn = countIn + 1.0;
+        }
+        totCount = totCount + 1.0;
+        val = countIn / totCount;
+        vals[row][col] = val;
+        col++;
+        if(col%120==0) {
+            col=0;
+
+            //sums[row-1] = std::accumulate((*sumit).begin(), (*sumit).end(), NT(0.0)) / 120.0;
+            for (int j = 0; j < 120; ++j) {
+                sums[row] += vals[row][j];
+            }
+            sums[row] = sums[row]/120.0;
+            row++;
+            //0sumit++;
+            //sit++;
+        }
+    }
+    //std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
+    col=0;
+    std::pair<NT,NT> mv;
+    NT pr = 1.0 - prob / 2.0 ,m, s, zp;
+    bool chk;
+    while(!done){
+
+        p = get_point_in_Dsphere<RNGType, Point>(n, rad);
+        if(Z.is_in(p)==-1) {
+            countIn = countIn + 1.0;
+        }
+        totCount = totCount + 1.0;
+
+        val = countIn / totCount;
+        for (int i = 0; i < 29; ++i) {
+            sums[i] -= vals[i][col] / 120.0;
+            sums[i] += vals[i+1][col] / 120.0;
+            vals[i][col] = vals[i+1][col];
+        }
+        sums[29] -= vals[29][col] / 120.0;
+        sums[29] += val / 120.0;
+        vals[29][col] = val;
+
+        col++;
+        if(col%120==0) col=0;
+
+        mv = getMeanVariance(sums);
+        m = mv.first;
+        s = std::sqrt(mv.second);
+        zp = m + s*std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
+        chk= check_max_error(m-zp*s, m+zp*s, val, error);
+        if(chk) {
+            //if (print) std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
+            done=true;
+            steps = (totCount - 1200.0);
+            return val;
+        }
+
+    }
+    return val;
+}
+
 
 #endif
