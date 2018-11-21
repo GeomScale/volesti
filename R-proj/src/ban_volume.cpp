@@ -34,7 +34,7 @@
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_only = false, bool const_win = true, bool rounding = false, bool verbose = false,
-                                double lb_ratio=0.1, double ub_ratio=0.15) {
+                                double lb_ratio=0.1, double ub_ratio=0.15, int len_subwin = 0, int len_tuple = 0) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -65,7 +65,7 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         n = A.cols();
         VT vec = Rcpp::as<VT>(P.field("b"));
         HP.init(n, A, vec);
-
+        //coordinate = false;
     } else if(type==2) {
         MT V = Rcpp::as<MT>(P.field("V"));
         n = V.cols();
@@ -107,12 +107,14 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         VP.get_vol_centroid(InnerBall, randPoints);
     }
 
+    if(len_subwin==0) len_subwin = 30;// + int(std::log2(NT(n)));
+    if(len_tuple==0) len_tuple = 150+n;
     if(type==1) {
-        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, steps_only, const_win);
+        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
     } else if(type==2) {
-        vol = volesti_ball_ann(VP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, steps_only, const_win);
+        vol = volesti_ball_ann(VP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
     } else {
-        vol = volesti_ball_ann(ZP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, steps_only, const_win);
+        vol = volesti_ball_ann(ZP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
     }
 
     if (steps_only) {

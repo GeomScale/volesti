@@ -167,7 +167,7 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
     } else {
         NT HnRsteps2, nballs, MemLps2;
         NT lb_ratio=0.1, up_ratio=0.15;
-        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, up_ratio, var2, HnRsteps2, nballs, MemLps2, false);
+        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, up_ratio, var2, HnRsteps2, nballs, MemLps2, 0, 0, false, false);
     }
     cg_steps = 0.0;
     if(verbose) std::cout<<"\n\nvol of h-polytope = "<<vol<<"\n\n"<<std::endl;
