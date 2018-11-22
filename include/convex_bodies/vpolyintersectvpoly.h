@@ -10,6 +10,10 @@
 #ifndef VPOLYINTERSECTVPOLY_H
 #define VPOLYINTERSECTVPOLY_H
 
+#include <iostream>
+#include <iterator>
+#include <vector>
+
 template <class VPolytope>
 class IntersectionOfVpoly {
 public:
@@ -18,9 +22,15 @@ public:
     typedef PolytopePoint Point;
     typedef typename VPolytope::MT MT;
     typedef typename VPolytope::VT VT;
+    typedef typename VPolytope::rngtype RNGType;
+    std::vector<Point> vecV;
+    NT rad;
     VPolytope P1;
     VPolytope P2;
+    //int _d;
 
+
+    IntersectionOfVpoly() {}
 
     IntersectionOfVpoly(VPolytope &P, VPolytope &Q) : P1(P), P2(Q) {};
 
@@ -31,6 +41,11 @@ public:
         if(P1.is_in(p)==-1)
             return P2.is_in(p);
         return 0;
+    }
+
+    void init(VPolytope &P, VPolytope &Q) {
+        P1 = P;
+        P2 = Q;
     }
 
     int num_of_hyperplanes(){
@@ -46,9 +61,95 @@ public:
     }
 
     unsigned int upper_bound_of_hyperplanes() {
-        return P1.upper_bound_of_hyperplanes() + P2.upper_bound_of_hyperplanes() ;
+        //return P1.upper_bound_of_hyperplanes() + P2.upper_bound_of_hyperplanes() ;
+        return 4;
     }
 
+    std::vector<Point> get_vertices() {
+        return vecV;
+    }
+
+    NT getRad() {
+        return rad;
+    }
+
+    MT get_mat1() {
+        return P1.get_mat();
+    }
+
+    MT get_mat2() {
+        return P2.get_mat();
+    }
+
+    void print() {
+        std::cout<<"First polytope:\n";
+        P1.print();
+        std::cout<<"\n";
+        std::cout<<"Second polytope:\n";
+        P2.print();
+    }
+
+    std::pair<Point,NT> getInnerPoint_rad(bool &empty) {
+
+        unsigned int num = 0;
+        unsigned int d = P1.dimension();
+        MT V1 = P1.get_mat();
+        MT V2 = P2.get_mat();
+        Point p(d);//, direction;
+        int k1 = V1.rows();
+        int k2 = V2.rows();
+        int k = k1 + k2;
+        Point direction(k);
+        std::pair<Point, NT> cheball;
+        std::vector<Point> vertices;
+        typename std::vector<Point>::iterator rvert;
+        bool same, done = false;
+
+        while(true) {
+
+            while(num<d+1){
+
+                direction = get_direction<RNGType, Point, NT>(k);
+                //std::
+                p = PointInIntersection<VT>(V1, V2, direction, empty);
+
+                if (empty) {
+                    return cheball;
+                }
+
+                same = false;
+                rvert = vertices.begin();
+                for ( ;  rvert!=vertices.end(); ++rvert) {
+                    if (p==(*rvert)) {
+                        same = true;
+                        break;
+                    }
+                }
+                if (same) continue;
+                vertices.push_back(p);
+                num++;
+
+            }
+
+            cheball = P1.get_center_radius_inscribed_simplex(vertices.begin(), vertices.end(), done);
+            if (done) {
+                vecV = vertices;
+                rad = cheball.second;
+                return cheball;
+            }
+            vertices.clear();
+
+            num = 0;
+            //break;
+
+        }
+
+
+
+    }
+
+
+    /*
     std::pair<Point,NT> ComputeInnerBall() {
 
         unsigned int num_of_v = 0;
@@ -90,6 +191,7 @@ public:
             }
         }
         if (num_of_v <= d) {
+            std::cout<<"no simplex"<<std::endl;
             std::pair<Point,NT> res;
             res.second = -1.0;
             return res;
@@ -98,7 +200,7 @@ public:
         VPolytope Q;
         Q.init(d, V, itervec);
         return Q.ComputeInnerBall();
-    }
+    }*/
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope

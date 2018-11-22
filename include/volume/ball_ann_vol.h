@@ -13,7 +13,7 @@
 
 template <class Polytope, class Point, class Parameters, typename NT>
 NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up, Parameters &var,
-                    NT &hnrst, NT &nballs, NT &memball, bool steps_only = false, bool const_win = true){
+                    NT &hnrst, NT &nballs, NT &memball, int n_subw, int n_tuples, bool steps_only = false, bool const_win = true){
 
     typedef Ball<Point> ball;
     typedef BallIntersectPolytope<Polytope,ball> ZonoBall;
@@ -41,9 +41,9 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
 #ifdef VOLESTI_DEBUG
         if(verbose) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
 #endif
-        round_value=res_round.first;
-        std::pair<Point,NT> res=P.ComputeInnerBall();
-        c=res.first; radius=res.second;
+       // round_value=res_round.first;
+        //std::pair<Point,NT> res=P.ComputeInnerBall();
+        //c=res.first; radius=res.second;
     }
 
     // Save the radius of the Chebychev ball
@@ -57,7 +57,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     P.shift(c_e);
 
     NT ratio0, steps, HnRSteps = 0.0, MemLps=0.0, ballsteps;
-   // var.coordinate=true;
+    // var.coordinate=true;
     ball B0;
 
     if(verbose) std::cout<<"Computing ball annealing..."<<std::endl;
@@ -85,12 +85,12 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     NT er1 = (e*std::sqrt(4.0*NT(mm)-1))/(2.0*std::sqrt(NT(mm)));
 
     //if (BallSet.size()==0) {
-        //vol = vol * esti_ratio2<RNGType>(B0, P, er0, ratio0, steps);
+    //vol = vol * esti_ratio2<RNGType>(B0, P, er0, ratio0, steps);
     //} else {
     int WW = 4*n*n+500;
     //Win0 = int(std::min( (1.0/(1.0-std::pow(0.75,1.0/NT(mm)))) * (2.25*((1.0/er0)*(1.0/er0))), 4.0*NT(n*n)+500.0 ) );
     if(const_win){
-        vol = vol * esti_ratio2_const<RNGType>(B0, P, er0, WW, ratio0, prob, steps);
+        vol = vol * esti_ratio2_const<RNGType>(B0, P, er0, n_subw, n_tuples, ratio0, prob, steps);
     } else {
         vol = vol * esti_ratio2<RNGType>(B0, P, er0, WW, ratio0, steps);
     }
@@ -107,7 +107,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
         //int W1 = int((1.0/(1.0-std::pow(0.75,1.0/NT(mm)))) * (2.25*((1.0/er0)*(1.0/er0))));
         //tele_prod = tele_prod * esti_ratio(P, BallSet[0], ratios[0], er1, Win1, var, steps);
         if(const_win) {
-            tele_prod = tele_prod * esti_ratio_interval(P, BallSet[0], ratios[0], er1, 3600, prob, var, steps);
+            tele_prod = tele_prod * esti_ratio_interval(P, BallSet[0], ratios[0], er1, n_subw, n_tuples, prob, var, steps);
             //esti_ratio(P, BallSet[0], ratios[0], er1, WW, var, steps);
             //std::cout<<"------------------\n"<<std::endl;
         } else {
@@ -120,7 +120,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
             //zb2 = ZonoBall(ZP, BallSet[i]);
             //tele_prod = tele_prod * esti_ratio(zb1, BallSet[i+1], ratios[i+1], er1, Win1, var, steps);
             if(const_win) {
-                tele_prod = tele_prod * esti_ratio_interval(zb1, BallSet[i+1], ratios[i+1], er1, 3600, prob, var, steps);
+                tele_prod = tele_prod * esti_ratio_interval(zb1, BallSet[i+1], ratios[i+1], er1, n_subw, n_tuples, prob, var, steps);
                 //esti_ratio(zb1, BallSet[i+1], ratios[i+1], er1, WW, var, steps);
                 //std::cout<<"------------------\n"<<std::endl;
             } else {
@@ -133,7 +133,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
         zb1 = ZonoBall(P, BallSet[BallSet.size() - 1]);
         //tele_prod = tele_prod * esti_ratio(zb1, B0, ratios[ratios.size() - 1], er1, Win1, var, steps);
         if(const_win) {
-            tele_prod = tele_prod * esti_ratio_interval(zb1, B0, ratios[ratios.size() - 1], er1, 3600, prob, var, steps);
+            tele_prod = tele_prod * esti_ratio_interval(zb1, B0, ratios[ratios.size() - 1], er1, n_subw, n_tuples, prob, var, steps);
             //esti_ratio(zb1, B0, ratios[ratios.size() - 1], er1, WW, var, steps);
             //std::cout<<"------------------\n"<<std::endl;
         } else {
@@ -144,7 +144,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     } else {
         if (ratios[0]!=1) {
             if(const_win) {
-                vol = vol / esti_ratio_interval(P, B0, ratios[0], er1, WW, prob, var, steps);
+                vol = vol / esti_ratio_interval(P, B0, ratios[0], er1, n_subw, n_tuples, prob, var, steps);
                 //esti_ratio(P, B0, ratios[0], er1, WW, var, steps);
                 //std::cout<<"------------------\n"<<std::endl;
             } else {

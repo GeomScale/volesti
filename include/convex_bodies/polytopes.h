@@ -434,6 +434,7 @@ template <class Point, class  RNGType>
 class VPolytope{
 public:
     typedef Point PolytopePoint;
+    typedef RNGType rngtype;
     typedef typename Point::FT NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -822,6 +823,8 @@ private:
     MT Q0;
     MT sigma;
     MT T;
+    MT GG;
+    //int count;
 
 public:
 
@@ -934,6 +937,8 @@ public:
         b = _b;
         bool normalization1=true;
         bool normalization2=false;
+        GG = V.transpose();
+        //count = 0;
         compute_eigenvectors(V.transpose(),normalization1,normalization2);
        // initial_shifting(); // shift zonotope to the origin
     }
@@ -1019,6 +1024,8 @@ public:
         }
         bool normalization1=true;
         bool normalization2=false;
+        GG=V.transpose();
+        //count = 0;
         compute_eigenvectors(V.transpose(),normalization1,normalization2);
         //initial_shifting(); // shift zonotope to the origin
     }
@@ -1041,9 +1048,31 @@ public:
         }
     }
 
+    //void print_count(){
+        //std::cout<<"count = "<<count<<std::endl;
+    //}
 
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point p) {
+        //VT c(_d);// = Eigen::Map<VT>(p.iter_begin(),_d);//.transpose()*GG;
+        //for (int i = 0; i < _d; ++i) {
+           //c(i) = p[i];
+        //}
+        //std::vector<NT> sd(p.iter_begin(),p.iter_end());
+        //VT c(sd.begin(),sd.begin()+sd.size());
+        //VT c2=c.transpose()*GG;
+        //NT val = c2.cwiseAbs().sum();
+        //NT sumabs = 0.0;
+        //for (int j = 0; j < _d; ++j) {
+            //sumabs += std::abs(NT(c2(j)));
+        //}
+        //std::cout<<c2<<"\n val = "<<val<<" sum = "<<sumabs<<std::endl;
+        //if (val<p.squared_length()){
+            //count++;
+            //return 0;
+
+        //}
+
         if(memLP_Zonotope(V, p)){
             return -1;
         }
@@ -1079,10 +1108,11 @@ public:
                                     Point v) {
         NT min_plus, max_minus;
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
+        //max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
+        //min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
+        return intersect_line_zono<NT>(V, r, v);
 
-        return std::pair<NT, NT>(min_plus, max_minus);
+        //return std::pair<NT, NT>(min_plus, max_minus);
     }
 
 
@@ -1099,6 +1129,7 @@ public:
         max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
         min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
 
+        //return intersect_line_zono<NT>(V, r, v);
         return std::pair<NT, NT> (min_plus, max_minus);
     }
 
@@ -1118,6 +1149,7 @@ public:
         max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
         min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
 
+        //return intersect_line_zono<NT>(V, r, v);
         return std::pair<NT, NT> (min_plus, max_minus);
     }
 

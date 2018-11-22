@@ -24,6 +24,72 @@ std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
 }*/
 
 template <class Point, class ball, class PointList, typename NT>
+void check_converg001(ball &P, PointList &randPoints, NT p_test, bool &done, bool &too_few, NT &ratio, NT up_lim, bool print) {
+
+    //typedef typename ball::BallPoint Point;
+    std::vector<NT> ratios;
+    NT countsIn = 0.0;
+    int m = randPoints.size()/10;
+    NT pr = 0.99, rm , rs;
+    NT p = (1.0+pr)/2.0;
+    NT zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*p - 1.0);
+    std::pair<NT,NT> mv;
+
+    int i = 1, count_sets=0;
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
+        if (P.is_in(*pit)==-1) {
+            countsIn += 1.0;
+        }
+        if (i % m == 0) {
+            //count_sets++;
+            if (print) std::cout<<"ratio = "<<countsIn/m<<std::endl;
+            ratios.push_back(countsIn/m);
+            countsIn = 0.0;
+            mv = getMeanVariance(ratios);
+            rm = mv.first; rs = mv.second;
+            //std::cout<<"rm = "<<rm<<"rs = "<<rs<<"rm+zp*rs = "<<rm+zp*rs<<"rm-zp*rs = "<<rm-zp*rs<<std::endl;
+            if (rm+zp*rs<0.09) {
+                too_few = true;
+                return;
+            } else if (rm-zp*rs>0.17) {
+                return;
+            }
+        }
+
+        //if (count_sets==1) {
+        //if(ratios[0]<0.04) {
+        //too_few=true;
+        //return;
+        //} else if(ratios[0]>0.5) {
+        //return;
+        //}
+        //}
+    }
+
+    mv = getMeanVariance(ratios);
+    NT t_value = 0.700;
+    NT p_mval = mv.first;
+    NT p_varval = mv.second;
+    int ni = ratios.size();
+    //NT p_test = a;
+
+    //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
+    if (p_mval > p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+        if (p_mval < (up_lim) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+            done= true;
+            ratio = p_mval;
+            //std::cout<<"ni = "<<ni<<std::endl;
+            //std::cout<<"ratio done = "<<ratio<<" var = "<<p_varval<<" "<<(up_lim) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
+        }
+        ratio = p_mval; // for test only
+    } else {
+        too_few = true;
+        ratio = p_mval; // for test only
+    }
+
+}
+
+template <class Point, class ball, class PointList, typename NT>
 void check_converg2(ball &P, PointList &randPoints, NT p_test, bool &done, bool &too_few, NT &ratio, NT up_lim, bool print) {
 
     //typedef typename ball::BallPoint Point;
@@ -174,7 +240,7 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
         }
         ballsteps +=1200.0;
         done = false; too_few = false;
-        check_converg2<Point>(Z, randPoints, 0.1, done, too_few, ratio, 0.15, false);
+        check_converg001<Point>(Z, randPoints, 0.1, done, too_few, ratio, 0.15, false);
         if(print) std::cout<<"rad2 = "<<rad2<<std::endl;
         if(print) std::cout<<"ratio = "<<ratio<<std::endl;
 
@@ -203,7 +269,7 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
         }
         ballsteps +=1200.0;
         done = false; too_few = false;
-        check_converg2<Point>(Z, randPoints, 0.1, done, too_few, ratio, 0.15, false);
+        check_converg001<Point>(Z, randPoints, 0.1, done, too_few, ratio, 0.15, false);
 
         if(print) std::cout<<"rad_med = "<<rad_med<<std::endl;
         if(print) std::cout<<"ratio = "<<ratio<<std::endl;

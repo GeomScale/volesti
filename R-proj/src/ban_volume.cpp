@@ -23,10 +23,12 @@
 #include <boost/math/special_functions/erf.hpp>
 #include "vars.h"
 #include "polytopes.h"
+
 //#include "ellipsoids.h"
 #include "ballintersectconvex.h"
 //#include "vpolyintersectvpoly.h"
 #include "samplers.h"
+#include "vpolyintersectvpoly.h"
 #include "rounding.h"
 #include "ball_ann_vol.h"
 
@@ -43,6 +45,7 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
     typedef HPolytope <Point> Hpolytope;
     typedef VPolytope <Point, RNGType> Vpolytope;
     typedef Zonotope <Point> zonotope;
+    typedef IntersectionOfVpoly<Vpolytope> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
@@ -56,6 +59,8 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
     zonotope ZP;
     Vpolytope VP;
     Hpolytope HP;
+    Vpolytope VP2;
+    InterVP VPcVP;
     int n;
 
     int type = P.field("t");
@@ -72,12 +77,21 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         VT vec = VT::Ones(V.rows());
         VP.init(n, V, vec);
         coordinate = false;
-    } else {
+    } else if(type==3) {
         MT V = Rcpp::as<MT>(P.field("G"));
         n = V.cols();
         VT vec = VT::Ones(V.rows());
         ZP.init(n, V, vec);
         coordinate = false;
+    } else {
+        MT V1 = Rcpp::as<MT>(P.field("V"));
+        MT V2 = Rcpp::as<MT>(P.field("V2"));
+        n = V1.cols();
+        VT vec1 = VT::Ones(V1.rows());
+        VT vec2 = VT::Ones(V2.rows());
+        VP.init(n, V1, vec1);
+        VP2.init(n, V2, vec2);
+        VPcVP.init(VP, VP2);
     }
 
     //Compute chebychev ball//
@@ -86,8 +100,15 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         InnerBall = HP.ComputeInnerBall();
     } else if(type==2) {
         InnerBall = VP.ComputeInnerBall();
-    }else{
+    }else if(type==3){
         InnerBall = ZP.ComputeInnerBall();
+    } else {
+        bool empty=false;
+        InnerBall = VPcVP.getInnerPoint_rad(empty);
+        if(empty){
+            Rcpp::NumericVector res;
+            return res;
+        }
     }
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -105,6 +126,11 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         std::list<Point> randPoints;
         rand_point_generator(VP, p, 20*n, 1, randPoints, var);
         VP.get_vol_centroid(InnerBall, randPoints);
+    } else if(type==4){
+        //Point p = InnerBall.first;
+        //std::list<Point> randPoints;
+        //rand_point_generator(VP, p, 20*n, 1, randPoints, var);
+        //VPcVP.get_vol_centroid(InnerBall, randPoints);
     }
 
     if(len_subwin==0) len_subwin = 30;// + int(std::log2(NT(n)));
@@ -113,8 +139,10 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         vol = volesti_ball_ann(HP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
     } else if(type==2) {
         vol = volesti_ball_ann(VP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
-    } else {
+    } else if(type==3){
         vol = volesti_ball_ann(ZP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
+    } else {
+        vol = volesti_ball_ann(VPcVP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
     }
 
     if (steps_only) {

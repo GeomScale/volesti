@@ -45,6 +45,10 @@ public:
     void set_coord(const unsigned int i, FT coord) {
         coeffs[i] = coord;
     }
+
+    Coeff get_coeffs(){
+        return coeffs;
+    }
     
     FT operator[] (const unsigned int i) {
         return coeffs[i];
@@ -87,6 +91,17 @@ public:
         return temp;
     }
 
+    bool operator== (point& p) {
+
+        typename Coeff::iterator pit = p.iter_begin();
+        typename Coeff::iterator mit = coeffs.begin();
+
+        for ( ;  pit!=p.iter_end(); ++pit, ++mit) {
+            if (*mit!=*pit) return false;
+        }
+
+        return true;
+    }
 
     FT dot(point& p){
         FT res=FT(0.0);
