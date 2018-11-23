@@ -948,9 +948,10 @@ public:
         int k = G.cols();
         //std::cout<<"number of generators = "<<k<<std::endl;
 
-        MT ps = G.completeOrthogonalDecomposition().pseudoInverse();
+        //MT ps = G.completeOrthogonalDecomposition().pseudoInverse();
+        MT ps = G;//*G.transpose();
         sigma.resize(k,k);
-        sigma = ps*ps.transpose();
+        sigma = ps.transpose()*ps;
         //std::cout<<sigma<<std::endl;
         if (norm1) {
             sigma = (sigma + sigma.transpose()) / 2;
@@ -1126,11 +1127,11 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
+        //max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
+        //min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
 
-        //return intersect_line_zono<NT>(V, r, v);
-        return std::pair<NT, NT> (min_plus, max_minus);
+        return intersect_line_zono<NT>(V, r, v);
+        //return std::pair<NT, NT> (min_plus, max_minus);
     }
 
 
@@ -1146,11 +1147,11 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
+        //max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
+        //min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
 
-        //return intersect_line_zono<NT>(V, r, v);
-        return std::pair<NT, NT> (min_plus, max_minus);
+        return intersect_line_zono<NT>(V, r, v);
+        //return std::pair<NT, NT> (min_plus, max_minus);
     }
 
 

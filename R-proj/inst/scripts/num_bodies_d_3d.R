@@ -6,7 +6,7 @@ bodies1=c()
 #bodies2=c()
 continue_ball = TRUE
 time_limit = 3600
-i=70
+i=85
 while(TRUE) {
   print(paste0('i = ',i))
   if (!continue_ball) {
@@ -25,7 +25,7 @@ while(TRUE) {
   
   num_b = num_b / 1
   bodies1=c(bodies1, num_b)
-  save(bodies1, file = "bodies70_d_3d.RData")
+  save(bodies1, file = "bodies85_d_3d.RData")
   if(i==2){
     i=5
   }else{

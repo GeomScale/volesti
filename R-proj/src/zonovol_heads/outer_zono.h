@@ -10,6 +10,68 @@
 #ifndef OUTER_ZONO_H
 #define OUTER_ZONO_H
 
+
+template <class Point, class ball, class PointList, typename NT>
+void check_converg00001(ball &P, PointList &randPoints, NT p_test, bool &done, bool &too_few,
+                      NT &ratio, NT up_lim, bool print) {
+
+    //typedef typename ball::BallPoint Point;
+    std::vector<NT> ratios;
+    NT countsIn = 0.0;
+    int m = randPoints.size()/10;
+    NT pr = 0.99, rm , rs;
+    NT p = (1.0+pr)/2.0;
+    NT zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*p - 1.0);
+    std::pair<NT,NT> mv;
+
+    int i = 1, count_sets=0;
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
+        if (P.is_in(*pit)==-1) {
+            countsIn += 1.0;
+        }
+        if (i % m == 0) {
+            //count_sets++;
+            if (print) std::cout<<"ratio = "<<countsIn/m<<std::endl;
+            ratios.push_back(countsIn/m);
+            countsIn = 0.0;
+            mv = getMeanVariance(ratios);
+            rm = mv.first; rs = mv.second;
+            //std::cout<<"rm = "<<rm<<"rs = "<<rs<<"rm+zp*rs = "<<rm+zp*rs<<"rm-zp*rs = "<<rm-zp*rs<<std::endl;
+            if (rm+zp*rs<0.09) {
+                too_few = true;
+                return;
+            } else if (rm-zp*rs>0.17) {
+                return;
+            }
+        }
+
+    }
+
+    mv = getMeanVariance(ratios);
+    NT t_value = 0.700;
+    NT p_mval = mv.first;
+    NT p_varval = mv.second;
+    int ni = ratios.size();
+    //NT p_test = a;
+
+    //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
+    if (p_mval > p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+        if (p_mval < (up_lim) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+            done= true;
+            ratio = p_mval;
+            //std::cout<<"ni = "<<ni<<std::endl;
+            //std::cout<<"ratio done = "<<ratio<<" var = "<<p_varval<<" "<<(up_lim) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
+        }
+        ratio = p_mval; // for test only
+    } else {
+        too_few = true;
+        ratio = p_mval; // for test only
+    }
+
+}
+
+
+
 template <class Polytope, class PointList, typename NT>
 void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bool &too_few, NT &ratio, NT up_lim, bool print) {
 
@@ -50,7 +112,7 @@ void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bo
 
 }
 
-
+/*
 template <class Point, class Polytope, class VT, class MT, typename NT, class PointList>
 void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rcpp::Function mvrandn,
                Rcpp::Function mvNcdf, MT G, NT &var, NT &delta, NT &up_lim, NT &ratio, int Wst, PointList &randPoints){
@@ -171,20 +233,23 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rc
 
     }
 
-}
+}*/
 
-template <class Point, class Polytope, class HPolytope, typename NT, class PointList, class Parameters>
-void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio,
+template <class Point, class Polytope, class HPolytope, class VT, typename NT, class PointList, class Parameters>
+void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio,
                 PointList &randPoints, Parameters &var, NT &steps){
 
     NT delta1 = 0.0;
     NT delta2 = 0.5;
-    typedef typename Polytope::VT VT;
-    //typedef typename Polytope::MT MT;
-    //MT G = P.get_mat().transpose();
-    //MT A = HP.get_mat();
-    //int kk = G.cols();
-    //VT Zs_max(2*kk);
+    //typedef typename Polytope::VT VT;
+    typedef typename Polytope::MT MT;
+    MT G = P.get_mat().transpose();
+    MT A = HP.get_mat();
+    int kk = G.cols();
+    VT Zs_max = (A*G).cwiseAbs().rowwise().sum();
+    Zs_max_gl = Zs_max;
+    VT Zs_min = HP.get_vec();
+
     //get_maxZ0<NT>(A, G, Zs_max);
     //std::cout<<Zs_max<<"\n"<<std::endl;
     VT b = HP.get_vec();
@@ -202,14 +267,16 @@ void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio,
     randPoints.clear();
     steps = 0.0;
 
-    //NT l=0.0, u=1.0, med;
-    //VT  Zmed(2*m);
-    //randPoints.clear();
-    /*while(true) {
+    NT l=0.0, u=1.0, med;
+    VT  Zmed(2*m);
+    randPoints.clear();
+    int count =0;
+    while(true) {
 
+        count++;
         q=Point(n);
         med = (u + l) * 0.5;
-        Zmed = Zs_max*med;
+        Zmed = Zs_min + (Zs_max-Zs_min)*med;
         HPiter.set_vec(Zmed);
 
         rand_point_generator(HPiter, q, 1200, 10+n/10, randPoints, var);
@@ -217,7 +284,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio,
 
         done = false;
         too_few = false;
-        check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, true);
+        check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, false);
         if(print) std::cout<<"ratio = "<<ratio<<std::endl;
         if(print) std::cout<<"med = "<<med<<std::endl;
 
@@ -238,11 +305,15 @@ void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio,
         //delta2 = 2*delta2;
         //var = 2*var;
         randPoints.clear();
+        if(count>80 || med>0.9) {
+            HP.set_vec(Zmed);
+            return;
+        }
 
-    }*/
+    }
 
     //std::cout<<HPiter.get_mat()<<"\n"<<HPiter.get_vec()<<std::endl;
-    while(true) {
+    /*while(true) {
 
         q=Point(n);
         b2 = b + VT::Ones(2*m) * delta2;
@@ -308,7 +379,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, NT &delta, NT &up_lim, NT &ratio,
         }
         randPoints.clear();
 
-    }
+    }*/
 
 }
 

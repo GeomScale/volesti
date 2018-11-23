@@ -92,6 +92,7 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         VP.init(n, V1, vec1);
         VP2.init(n, V2, vec2);
         VPcVP.init(VP, VP2);
+        coordinate = false;
     }
 
     //Compute chebychev ball//

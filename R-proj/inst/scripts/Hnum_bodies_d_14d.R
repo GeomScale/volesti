@@ -6,7 +6,7 @@ bodies1=c()
 #bodies2=c()
 continue_ball = TRUE
 time_limit = 1000
-i=2
+i=5
 while(TRUE) {
   print(paste0('i = ',i))
   if (!continue_ball) {

@@ -245,13 +245,13 @@ bool check_max_error(NT a, NT b, NT val, NT error) {
     return false;
 }
 
-template <class ZonoBall, class ball, typename NT, class Parameters>
+template <class Point, class ZonoBall, class ball, typename NT, class Parameters>
 NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int n_subw, int n_tuples, NT prob, Parameters &var, NT &steps) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
 
-    typedef typename ball::BallPoint Point;
+    //typedef typename ball::BallPoint Point;
     int n = var.n;
     bool print = var.verbose;
     //std::cout<<"n = "<<n<<std::endl;
@@ -446,7 +446,7 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int n_subw, int n_tuple, NT
         zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
         chk= check_max_error(m-zp*s, m+zp*s, val, error);
         if(chk) {
-            std::cout<<"final rejection to Z ratio = "<<val<< " | total points = "<<totCount<<std::endl;
+            //std::cout<<"final rejection to Z ratio = "<<val<< " | total points = "<<totCount<<std::endl;
             done=true;
             steps = (totCount - 1200.0);
             return val;

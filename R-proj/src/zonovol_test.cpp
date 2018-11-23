@@ -21,6 +21,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include <boost/math/special_functions/erf.hpp>
 #include "vars.h"
 #include "polytopes.h"
 //#include "ellipsoids.h"
@@ -40,13 +41,15 @@
 #include "zonovol_heads/ball_annealing.h"
 #include "zonovol_heads/est_ratio1.h"
 #include "ball_ann_vol.h"
+#include "ZonoIntersectHPoly.h"
 
 
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=false, bool verbose=false, bool cg_hpol = false, double delta_in=0.0,
-                              double up_lim=0.15) {
+Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=false, bool verbose=false, bool const_win=true,
+                               bool cg_hpol = false, bool PCA = false, double delta_in=0.0, double up_lim=0.15,
+                               int len_subwin = 0, int len_tuple = 0) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -94,6 +97,8 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
                              ratio2, -1.0, false, verbose, false, false, NN, birk,
                              false, false);
 
+    if(PCA) m = n;
+
     MT AA; VT b;
     AA.resize(2 * m, m);
     b.resize(2 * m);
@@ -117,47 +122,66 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
             }
         }
     }
-    MT T = ZP.get_T();
-    MT Tt = T.transpose();
-    MT A2 = AA*Tt;
-    MT B = G*Tt;
-    MT A3 = A2*B.inverse();
+    MT A3;
+    NT volh;
+    if(!PCA) {
+        MT T = ZP.get_T();
+        MT Tt = T.transpose();
+        MT A2 = AA * Tt;
+        MT B = G * Tt;
+        A3 = A2 * B.inverse();
+    } else {
+        MT X(n, 2*G.cols());
+        X << G, -G;
+        MT X2 = X.transpose();
+        MT C = X2.transpose()*X2;
+        Eigen::JacobiSVD<MT> svd(C, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        volh = std::pow(2.0,NT(n))*svd.matrixU().determinant();
+        A3 = AA*svd.matrixU().transpose();
+    }
     Hpolytope HP;
     HP.init(n,A3,b);
     vars<NT, RNGType> var33(1, n, 10 + n / 10, 1, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
                             urdist, urdist1, -1.0, verbose, false, false, NN, birk, false,
                             true);
     NT steps, Hsteps, HnRsteps = 0.0, MemLps = 0.0, cg_steps;
-    get_hdelta<Point>(ZP, HP, delta_in, up_lim, ratio, randPoints, var33, Hsteps);
-    if(verbose) std::cout<<"delta = "<<delta_in<<std::endl;
+    VT Zs_max(2*m);
+    get_hdelta<Point>(ZP, HP, Zs_max, up_lim, ratio, randPoints, var33, Hsteps);
+    //if(verbose) std::cout<<"delta = "<<delta_in<<std::endl;
     MemLps += Hsteps;
     Hpolytope HP2=HP;// = HP;
     //HP2.init(n,A3,b);
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
 
     typedef Ball<Point> ball;
-    typedef BallIntersectPolytope<zonotope , ball > ZonoBall;
+    typedef ZonoIntersectHPoly<zonotope , Hpolytope > ZonoHP;
     typedef std::list<Point> PointList;
-    std::vector<ZonoBall> ZonoBallSet;
+    std::vector<Hpolytope > HPolySet;
     std::vector<PointList> PointSets;
     std::vector<NT> ratios;
     NT p_value = 0.1;
-    ZonoBall zb1, zb2;
+    ZonoHP zb1, zb2;
 
     var2.coordinate=false;
     var2.walk_steps=1;
-    get_sequence_of_zonoballs<ball>(ZP, HP2, ZonoBallSet, PointSets, ratios,
+    get_sequence_of_zonoballs<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios,
                                     p_value, var2, steps);
     if(steps_only) {
         Rcpp::NumericVector res(1);
-        res[0] = NT(ZonoBallSet.size() + 1);
+        res[0] = NT(HPolySet.size() + 1);
         return res;
     }
     HnRsteps += steps;
+    int mm=HPolySet.size()+2;
+    NT prob = std::pow(0.75, 1.0/NT(mm));
+    NT er0 = e/(2.0*std::sqrt(NT(mm)));
+    NT er1 = (e*std::sqrt(2.0*NT(mm)-1))/(std::sqrt(2.0*NT(mm)));
+    NT Her = e/(2.0*std::sqrt(NT(mm)));
+
     var2.walk_steps=10 + n / 10;
     //InnerBall.first.print();
     //std::cout<<"radius = "<<InnerBall.second<<std::endl;
-    vars_g<NT, RNGType> var111(n, 1, N, 2*W, 1, e/10.0, InnerBall.second, rng, C, frac,
+    vars_g<NT, RNGType> var111(n, 1, N, 2*W, 1, Her, InnerBall.second, rng, C, frac,
                                ratio2, -1.0, false, verbose, false, false, NN, birk,
                                false, true);
     var2.coordinate=true;
@@ -167,16 +191,25 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
     } else {
         NT HnRsteps2, nballs, MemLps2;
         NT lb_ratio=0.1, up_ratio=0.15;
+        var2.error=Her;
+        var2.walk_steps=1;
         vol = volesti_ball_ann(HP, InnerBall, lb_ratio, up_ratio, var2, HnRsteps2, nballs, MemLps2, 0, 0, false, false);
     }
     cg_steps = 0.0;
-    if(verbose) std::cout<<"\n\nvol of h-polytope = "<<vol<<"\n\n"<<std::endl;
+    if(verbose) std::cout<<"\n\nvol of h-polytope = "<<vol<<"volhPCA = "<<volh<<"\n\n"<<std::endl;
     double tstart3 = (double)clock()/(double)CLOCKS_PER_SEC;
 
-    vars<NT, RNGType> var22(1, n, 10+10/n, 1, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
+    vars<NT, RNGType> var22(1, n, 10+n, 1, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
                             urdist, urdist1, -1.0, verbose, false, false, NN, birk, false,
-                            true);
-    NT ratio22 = est_ratio_hzono(ZP, HP2, e/2.0, ratio, var22, Hsteps);
+                            false);
+    NT ratio22;
+    if(len_subwin==0) len_subwin = 30;// + int(std::log2(NT(n)));
+    if(len_tuple==0) len_tuple = 150+n;
+    if(const_win){
+        ratio22 = est_ratio_hzono_normal(ZP, HP2, er0, len_subwin, len_tuple, prob, ratio, var22, Hsteps);
+    } else {
+        ratio22 = est_ratio_hzono(ZP, HP2, er0, ratio, var22, Hsteps);
+    }
     MemLps += Hsteps;
 
     double tstop3 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -196,41 +229,57 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
 
 
 
-    ball b1, b2;
-    NT er = e*0.8602325;
-    if (ZonoBallSet.size()==0) {
+    Hpolytope b1, b2;
+    //NT er = e*0.8602325;
+    if (HPolySet.size()==0) {
         if (verbose) std::cout << "no ball | ratio = " << ratios[0] << std::endl;
         if (ratios[0]!=1) {
             //vol = vol * est_ratio_zball_sym<Point>(ZP, sigma, G2, Q0, l, u, delta_in, ratios[0], e*0.8602325, var2);
-            vol = vol * est_ratio_zonoballs<Point>(ZP, HP2, ratios[0], er, var2, steps);
+            if(const_win) {
+                esti_ratio_interval<Point>(ZP, HP2, ratios[0], er1, len_subwin, len_tuple, prob, var2, steps);
+            } else {
+                vol = vol * est_ratio_zonoballs<Point>(ZP, HP2, ratios[0], er1, var2, steps);
+            }
             HnRsteps += steps;
         }
     } else {
-        er = er/std::sqrt(ZonoBallSet.size()+1);
-        if(verbose) std::cout<<"number of balls = "<<ZonoBallSet.size()<<std::endl;
-        zb1 = ZonoBallSet[0];
-        b1 = zb1.second();
-        vol = vol / est_ratio_zonoballs<Point>(ZP, b1, ratios[0], er, var2, steps);
+        //er = er/std::sqrt(HPolySet.size()+1);
+        if(verbose) std::cout<<"number of balls = "<<HPolySet.size()<<std::endl;
+        b1 = HPolySet[0];
+        //b1 = zb1.second();
+        if(const_win) {
+            vol = vol / esti_ratio_interval<Point>(ZP, b1, ratios[0], er1, len_subwin, len_tuple, prob, var2, steps);
+        } else {
+            vol = vol / est_ratio_zonoballs<Point>(ZP, b1, ratios[0], er1, var2, steps);
+        }
         HnRsteps += steps;
 
-        for (int i = 0; i < ZonoBallSet.size()-1; ++i) {
-            zb1 = ZonoBallSet[i];
+        for (int i = 0; i < HPolySet.size()-1; ++i) {
+            zb1 = ZonoHP(ZP,HPolySet[i]);
             //b1 = zb1.second();
-            zb2 = ZonoBallSet[i+1];
-            b2 = zb2.second();
-            vol = vol / est_ratio_zonoballs<Point>(zb1, b2, ratios[i], er, var2, steps);
+            b2 = HPolySet[i+1];
+            //b2 = zb2.second();
+            if(const_win) {
+                vol = vol / esti_ratio_interval<Point>(zb1, b2, ratios[i], er1, len_subwin, len_tuple, prob, var2, steps);
+            } else {
+                vol = vol / est_ratio_zonoballs<Point>(zb1, b2, ratios[i], er1, var2, steps);
+            }
             HnRsteps += steps;
         }
 
-        zb1 = ZonoBallSet[ZonoBallSet.size()-1];
+        zb1 = ZonoHP(ZP,HPolySet[HPolySet.size()-1]);
         //vol = vol * est_ratio_zball_sym<Point>(zb1, sigma, G2, Q0, l, u, delta_in, ratios[ratios.size()-1], e, var2);
-        vol = vol / est_ratio_zonoballs<Point>(zb1, HP2, ratios[ratios.size()-1], er, var2, steps);
+        if (const_win) {
+            vol = vol / esti_ratio_interval<Point>(zb1, HP2, ratios[ratios.size() - 1], er1, len_subwin, len_tuple, prob, var2, steps);
+        } else {
+            vol = vol / est_ratio_zonoballs<Point>(zb1, HP2, ratios[ratios.size() - 1], er1, var2, steps);
+        }
         HnRsteps += steps;
     }
 
     Rcpp::NumericVector res(5);
     res[0] = vol;
-    res[1] = NT(ZonoBallSet.size()+1);
+    res[1] = NT(HPolySet.size()+1);
     res[2] = HnRsteps;
     res[3] = MemLps;
     res[4] = (10+10/n)*MemLps + cg_steps;

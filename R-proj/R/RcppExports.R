@@ -17,7 +17,7 @@ Rvol_exact <- function(A, exact_zono, exact_cube, exact_simplex, exact_cross, di
     .Call('_volesti_Rvol_exact', PACKAGE = 'volesti', A, exact_zono, exact_cube, exact_simplex, exact_cross, dim)
 }
 
-vol_hzono <- function(P, e = 0.1, steps_only = FALSE, verbose = FALSE, cg_hpol = FALSE, delta_in = 0.0, up_lim = 0.15) {
-    .Call('_volesti_vol_hzono', PACKAGE = 'volesti', P, e, steps_only, verbose, cg_hpol, delta_in, up_lim)
+vol_hzono <- function(P, e = 0.1, steps_only = FALSE, verbose = FALSE, const_win = TRUE, cg_hpol = FALSE, PCA = FALSE, delta_in = 0.0, up_lim = 0.15, len_subwin = 0L, len_tuple = 0L) {
+    .Call('_volesti_vol_hzono', PACKAGE = 'volesti', P, e, steps_only, verbose, const_win, cg_hpol, PCA, delta_in, up_lim, len_subwin, len_tuple)
 }
 
