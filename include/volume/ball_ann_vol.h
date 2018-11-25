@@ -13,7 +13,8 @@
 
 template <class Polytope, class Point, class Parameters, typename NT>
 NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up, Parameters &var,
-                    NT &hnrst, NT &nballs, NT &memball, int n_subw, int n_tuples, bool steps_only = false, bool const_win = true){
+                    NT &hnrst, NT &nballs, NT &memball, int n_subw, int n_tuples, bool steps_only = false,
+                    bool const_win = true, NT B0_radius = 0, NT ratio_B0 = 0){
 
     typedef Ball<Point> ball;
     typedef BallIntersectPolytope<Polytope,ball> ZonoBall;
@@ -41,9 +42,9 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
 #ifdef VOLESTI_DEBUG
         if(verbose) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
 #endif
-       // round_value=res_round.first;
-        //std::pair<Point,NT> res=P.ComputeInnerBall();
-        //c=res.first; radius=res.second;
+       round_value=res_round.first;
+       std::pair<Point,NT> res=P.ComputeInnerBall();
+       c=res.first; radius=res.second;
     }
 
     // Save the radius of the Chebychev ball
@@ -61,9 +62,10 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     ball B0;
 
     if(verbose) std::cout<<"Computing ball annealing..."<<std::endl;
+    if(ratio_B0!=0) ratio0 = ratio_B0;
     get_sequence_of_zonoballs<ZonoBall, RNGType>(P, BallSet, B0, ratio0, PointSets,
                                                  ratios, lb, up, InnerBall.second, var,
-                                                 ballsteps, steps);
+                                                 ballsteps, steps, B0_radius);
     if(steps_only) {
         return NT(BallSet.size()+1);
     }

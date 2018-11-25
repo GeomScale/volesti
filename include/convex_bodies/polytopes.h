@@ -783,7 +783,7 @@ public:
     // otherwise you have to sample from the V-polytope
     template <class PointList>
     bool get_points_for_rounding (PointList &randPoints) {
-        if (num_of_vertices()>40*_d) {
+        if (num_of_vertices()>100*_d) {
             return false;
         }
         unsigned int j;

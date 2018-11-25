@@ -293,7 +293,8 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
 template <class ZonoBall, class RNGType,class ball, class Zonotope, class PointList, class Parameters, typename NT>
 void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0, NT &ratio0,
                                std::vector<PointList> &PointSets, std::vector<NT> &ratios,
-                               NT &p_value, NT up, NT radius, Parameters &var, NT &ballSteps, NT &HnRSteps) {
+                               NT &p_value, NT up, NT radius, Parameters &var, NT &ballSteps,
+                               NT &HnRSteps, NT B0_radius = 0) {
 
 
     typedef typename Zonotope::PolytopePoint Point;
@@ -311,8 +312,12 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
     ZonoBall zb_it;
     //ball B0;
     ballSteps = 0.0;
-    get_first_ball<RNGType>(Z, B0, ratio, radius, var, ballSteps);
-    ratio0 = ratio;
+    if (B0_radius==0) {
+        get_first_ball<RNGType>(Z, B0, ratio, radius, var, ballSteps);
+        ratio0 = ratio;
+    } else {
+        B0 = ball(Point(n), B0_radius*B0_radius);
+    }
 
     rand_point_generator(Z, q, 1200+2*n*n, 1, randPoints, var);
     HnRSteps += 1200.0+n*n*2.0;

@@ -279,14 +279,14 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio
         Zmed = Zs_min + (Zs_max-Zs_min)*med;
         HPiter.set_vec(Zmed);
 
-        rand_point_generator(HPiter, q, 1200, 10+n/10, randPoints, var);
+        rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, var);
         steps += 1200.0;
 
         done = false;
         too_few = false;
-        check_converg(P, randPoints, 0.1, done, too_few, ratio, up_lim, false);
+        check_converg00001<Point>(P, randPoints, 0.1, done, too_few, ratio, up_lim, false);
         if(print) std::cout<<"ratio = "<<ratio<<std::endl;
-        if(print) std::cout<<"med = "<<med<<std::endl;
+        if(print) std::cout<<"Z_med = "<<med<<std::endl;
 
         if(done) {
             //delta = delta2;

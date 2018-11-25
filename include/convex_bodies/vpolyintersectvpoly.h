@@ -149,9 +149,14 @@ public:
     }
 
 
-    /*
+
     std::pair<Point,NT> ComputeInnerBall() {
 
+        std::pair<Point,NT> res;
+        return res;
+
+    }
+/*
         unsigned int num_of_v = 0;
         unsigned int d = dimension();
         MT V(0, d);

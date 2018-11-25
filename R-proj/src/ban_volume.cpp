@@ -121,8 +121,14 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
     vars<NT, RNGType> var(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second, rng,
                            urdist, urdist1, -1, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
     NT HnRsteps, nballs, MemLps, vol;
+    NT round_val = 1.0;
 
     if(type==2) {
+        if (rounding) {
+            std::pair<NT,NT> res_round = rounding_min_ellipsoid(VP,InnerBall,var);
+            round_val=res_round.first;
+            InnerBall = VP.ComputeInnerBall();
+        }
         Point p = InnerBall.first;
         std::list<Point> randPoints;
         rand_point_generator(VP, p, 20*n, 1, randPoints, var);
@@ -152,7 +158,7 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
     }
 
     Rcpp::NumericVector res(4);
-    res[0] = vol;
+    res[0] = vol*round_val;
     res[1] = nballs;
     res[2] = HnRsteps;
     res[3] = MemLps;
