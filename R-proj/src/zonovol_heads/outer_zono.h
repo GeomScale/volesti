@@ -289,6 +289,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio
         if(print) std::cout<<"Z_med = "<<med<<std::endl;
 
         if(done) {
+            std::cout<<"done first Hpoly"<<std::endl;
             //delta = delta2;
             HP.set_vec(Zmed);
             return;

@@ -96,10 +96,10 @@ public:
 
     // change the vector b
     void set_vec(VT b2) {
-        for (int i = 0; i < num_of_hyperplanes(); ++i) {
-            b(i) = b2(i);
-        }
-        //b = b2;
+        //for (int i = 0; i < num_of_hyperplanes(); ++i) {
+            //b(i) = b2(i);
+        //}
+        b = b2;
     }
 
 

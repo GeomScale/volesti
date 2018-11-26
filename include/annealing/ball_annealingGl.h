@@ -171,7 +171,7 @@ bool is_last_zonoball(PointList randPoints, ball &B0, NT  &ratio, Parameter var)
 
 template <class ball, class Zonotope, class PointList, typename NT, class Parameters>
 void get_next_zonoball(Zonotope &Z, std::vector<ball> &BallSet,
-                       PointList &randPoints, std::vector<NT> &ratios, NT &p_value, NT up, Parameters &var){
+                       PointList &randPoints, NT rad_min, std::vector<NT> &ratios, NT &p_value, NT up, Parameters &var){
 
     //typename typedef ZonoBall::ball ball;
     typedef typename Zonotope::PolytopePoint Point;
@@ -179,7 +179,7 @@ void get_next_zonoball(Zonotope &Z, std::vector<ball> &BallSet,
     bool done, too_few;
 
     NT rad2=0.0;
-    NT rad1=0.0, rad;
+    NT rad1=rad_min, rad;
     NT pnorm, ratio;
     Point center(n);
 
@@ -201,6 +201,7 @@ void get_next_zonoball(Zonotope &Z, std::vector<ball> &BallSet,
 
         check_converg2<Point>(Biter, randPoints, p_value, done, too_few, ratio, up, false);
 
+        std::cout<<"rad = "<<rad<<" ratio = "<<ratio<<std::endl;
         if(done){
             BallSet.push_back(Biter);
             ratios.push_back(ratio);
@@ -328,7 +329,8 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
         return;
     }
     if(print) std::cout<<"not the last ball, ratio = "<<ratio<<std::endl;
-    get_next_zonoball(Z, BallSet, randPoints, ratios, p_value, up, var);
+    get_next_zonoball(Z, BallSet, randPoints, B0.radius(), ratios, p_value, up, var);
+    if(print) std::cout<<"number of balls = "<<BallSet.size()<<std::endl;
 
     ball Biter;
 
@@ -345,7 +347,8 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
             //std::cout<<"number of balls = "<<ZonoBallSet.size()<<std::endl;
             return;
         }
-        get_next_zonoball(Z, BallSet, randPoints, ratios, p_value, up, var);
+        get_next_zonoball(Z, BallSet, randPoints, B0.radius(), ratios, p_value, up, var);
+        if(print) std::cout<<"number of balls = "<<BallSet.size()<<std::endl;
     }
 
 

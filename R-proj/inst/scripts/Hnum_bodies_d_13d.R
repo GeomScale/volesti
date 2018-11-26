@@ -3,10 +3,10 @@ library(volesti)
 #library(tidyr)
 
 bodies1=c()
-#bodies2=c()
+bodies2=c()
 continue_ball = TRUE
 time_limit = 1000
-i=80
+i=90
 while(TRUE) {
   print(paste0('i = ',i))
   if (!continue_ball) {
@@ -15,7 +15,7 @@ while(TRUE) {
   num_b=0
   #num_b2 = 0
   for (j in 1:1){
-    Z = GenZonotope(i,floor(1.5*i))
+    Z = GenZonotope(i,floor(1.3*i))
     x=system.time({ b1 = vol_hzono(Z,steps_only = TRUE)})
     if (as.numeric(x[3])>time_limit) {
       continue_ball = TRUE
@@ -31,7 +31,7 @@ while(TRUE) {
   #num_b2 = num_b2 / 5
   #bodies2=c(bodies2, num_b2)
   bodies1=c(bodies1, num_b)
-  save(bodies1, file = "Hbodies80_d_15d.RData")
+  save(bodies1, file = "Hbodies90_d_13d.RData")
   #save(bodies2, file = "bodies_d_15d.RData")
   if(i==2){
     i=5

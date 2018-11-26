@@ -82,6 +82,7 @@ bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, Paramete
     //NT p_test = a;
 
     //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
+    std::cout<<"check for last hpoly, p_mval = "<<p_mval<<std::endl;
     if (p_mval > 0.1 + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
         ratio = p_mval;
         return true;
@@ -92,7 +93,7 @@ bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, Paramete
 
 template <class Zonotope, class HPolytope, class VT, class PointList, typename NT, class Parameters>
 void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
-                         HPolytope &HP2, VT Zs_max, PointList randPoints,
+                         HPolytope &HP2, VT Zs_max, VT Zs_min, PointList randPoints,
                         std::vector<NT> &ratios, Parameters &var){
 
     //typename typedef ZonoBall::ball ball;
@@ -104,7 +105,7 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
     NT rad1=0.0, rad;
     NT pnorm, ratio;
 
-    VT Zs_min = HP2.get_vec(), Zmed(2 * Z.num_of_generators());
+    VT Zmed(2 * Z.num_of_generators());
     NT med, u = 1.0, l = 0.0;
 
     while (true) {
@@ -160,10 +161,11 @@ void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
         return;
     }
     if(print) std::cout<<"not the last hpoly"<<std::endl;
-    get_next_zonoball22(Z, HPolySet, HP2, Zs_max, randPoints, ratios, var);
-    //std::cout<<"get first hpoly"<<std::endl;
+    get_next_zonoball22(Z, HPolySet, HP2, Zs_max, HP.get_vec(), randPoints, ratios, var);
+    if(print) std::cout<<"get first hpoly"<<std::endl;
 
     ZonoHP ZHP2;
+    VT Zs_min = HP.get_vec();
 
     while (true) {
         //HP2 = HPolySet[HPolySet.size()-1];
@@ -178,8 +180,8 @@ void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
             if(print) std::cout<<"number of hpolys = "<<HPolySet.size()<<std::endl;
             return;
         }
-        get_next_zonoball22(Z, HPolySet, HP2, Zs_max, randPoints, ratios, var);
-        //std::cout<<"get hpoly"<<std::endl;
+        get_next_zonoball22(Z, HPolySet, HP2, HP2.get_vec(), Zs_min, randPoints, ratios, var);
+        if(print) std::cout<<"get hpoly"<<std::endl;
     }
 
 
