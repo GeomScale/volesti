@@ -31,12 +31,13 @@
 #include "vpolyintersectvpoly.h"
 #include "rounding.h"
 #include "ball_ann_vol.h"
+#include "compute_miniball.h"
 
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_only = false, bool const_win = true, bool rounding = false, bool verbose = false,
-                                double lb_ratio=0.1, double ub_ratio=0.15, int len_subwin = 0, int len_tuple = 0) {
+                                double lb_ratio=0.1, double ub_ratio=0.15, double PR=0.75, int len_subwin = 0, int len_tuple = 0) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -70,7 +71,7 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         n = A.cols();
         VT vec = Rcpp::as<VT>(P.field("b"));
         HP.init(n, A, vec);
-        //coordinate = false;
+        coordinate = false;
     } else if(type==2) {
         MT V = Rcpp::as<MT>(P.field("V"));
         n = V.cols();
@@ -95,12 +96,37 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         coordinate = false;
     }
 
+    NT round_val = 1.0;
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    // the random engine with this seed
+    RNGType rng(seed);
+    boost::random::uniform_real_distribution<>(urdist);
+    boost::random::uniform_real_distribution<> urdist1(-1,1);
     //Compute chebychev ball//
     std::pair<Point, NT> InnerBall;
+    NT rmax=0.0;
     if (type==1) {
         InnerBall = HP.ComputeInnerBall();
     } else if(type==2) {
-        InnerBall = VP.ComputeInnerBall();
+        //InnerBall = VP.ComputeInnerBall();
+
+        if(rounding) {
+            InnerBall.first = VP.get_mean_of_vertices();
+            InnerBall.second = 0.0;
+            vars<NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second, rng,
+                                  urdist, urdist1, -1, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
+            std::pair<NT,NT> res_round = rounding_min_ellipsoid(VP,InnerBall,var2);
+            round_val=res_round.first;
+            rounding = false;
+            InnerBall.first = Point(n);
+            InnerBall.second = 0.0;
+            rmax = VP.get_max_vert_norm();
+        } else {
+            InnerBall = compute_minball<Point, VT, NT>(VP);
+            rmax = InnerBall.second;
+            InnerBall.second = 0.0;
+            //VP.print();
+        }
     }else if(type==3){
         InnerBall = ZP.ComputeInnerBall();
     } else {
@@ -112,18 +138,11 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         }
     }
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    // the random engine with this seed
-    RNGType rng(seed);
-    boost::random::uniform_real_distribution<>(urdist);
-    boost::random::uniform_real_distribution<> urdist1(-1,1);
-
     vars<NT, RNGType> var(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second, rng,
                            urdist, urdist1, -1, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
     NT HnRsteps, nballs, MemLps, vol;
-    NT round_val = 1.0;
 
-    if(type==2) {
+    /*if(type==2) {
         if (rounding) {
             std::pair<NT,NT> res_round = rounding_min_ellipsoid(VP,InnerBall,var);
             round_val=res_round.first;
@@ -138,18 +157,18 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         //std::list<Point> randPoints;
         //rand_point_generator(VP, p, 20*n, 1, randPoints, var);
         //VPcVP.get_vol_centroid(InnerBall, randPoints);
-    }
+    }*/
 
-    if(len_subwin==0) len_subwin = 30;// + int(std::log2(NT(n)));
-    if(len_tuple==0) len_tuple = 150+n;
+    if(len_subwin==0) len_subwin = 2;// + int(std::log2(NT(n)));
+    if(len_tuple==0) len_tuple = n*n+125;
     if(type==1) {
-        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
+        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, PR, steps_only, const_win);
     } else if(type==2) {
-        vol = volesti_ball_ann(VP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
+        vol = volesti_ball_ann(VP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, PR, steps_only, const_win,0.0,0.0, rmax);
     } else if(type==3){
-        vol = volesti_ball_ann(ZP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
+        vol = volesti_ball_ann(ZP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, PR, steps_only, const_win);
     } else {
-        vol = volesti_ball_ann(VPcVP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, steps_only, const_win);
+        vol = volesti_ball_ann(VPcVP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple, PR, steps_only, const_win);
     }
 
     if (steps_only) {

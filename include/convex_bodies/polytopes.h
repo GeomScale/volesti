@@ -485,7 +485,7 @@ public:
         num_of_hyp += nom / denom;
 
         res = num_of_hyp;
-        std::cout<<num_of_hyp<<" "<<res<<" "<<std::numeric_limits<unsigned int>::max()<<std::endl;
+        //std::cout<<num_of_hyp<<" "<<res<<" "<<std::numeric_limits<unsigned int>::max()<<std::endl;
         return res;
     }
 
@@ -543,6 +543,32 @@ public:
         b(i) = value;
     }
 
+    Point get_mean_of_vertices() {
+        std::vector<NT> vec(_d);
+        Point xc(_d), temp(_d);
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            for (int j = 0; j < _d; ++j) {
+                vec[j] = V(i,j);
+            }
+            temp = Point(_d, vec.begin(), vec.end());
+            xc = xc + temp;
+        }
+        xc = xc * (1.0/NT(num_of_vertices()));
+
+        return xc;
+    }
+
+    NT get_max_vert_norm() {
+        NT rad =0.0;
+        NT rad_iter;
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            rad_iter = V.row(i).norm();
+            if(rad_iter>rad){
+                rad = rad_iter;
+            }
+        }
+        return rad;
+    }
 
     void init(unsigned int dim, MT _V, VT _b) {
         _d = dim;
@@ -567,18 +593,18 @@ public:
 
     // print polytope in input format
     void print() {
-        #ifdef VOLESTI_DEBUG
+        //#ifdef VOLESTI_DEBUG
         std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
-        #endif
+        //#endif
         for (unsigned int i = 0; i < V.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                #ifdef VOLESTI_DEBUG
+                //#ifdef VOLESTI_DEBUG
                 std::cout << V(i, j) << " ";
-                #endif
+                //#endif
             }
-            #ifdef VOLESTI_DEBUG
+            //#ifdef VOLESTI_DEBUG
             std::cout<<"\n";
-            #endif
+            //#endif
         }
     }
 
@@ -713,10 +739,11 @@ public:
                                           Point v) {
         NT min_plus, max_minus;
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, false);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, false);
+        //max_minus = intersect_line_Vpoly<NT>(V, r, v, true, false);
+        //min_plus = intersect_line_Vpoly<NT>(V, r, v, false, false);
+        return intersect_double_line_Vpoly<NT>(V, r, v);
 
-        return std::pair<NT, NT>(min_plus, max_minus);
+        //return std::pair<NT, NT>(min_plus, max_minus);
     }
 
 
@@ -730,10 +757,11 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, false);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, false);
+        //max_minus = intersect_line_Vpoly<NT>(V, r, v, true, false);
+        //min_plus = intersect_line_Vpoly<NT>(V, r, v, false, false);
+        return intersect_double_line_Vpoly<NT>(V, r, v);
 
-        return std::pair<NT, NT> (min_plus, max_minus);
+        //return std::pair<NT, NT> (min_plus, max_minus);
     }
 
 
@@ -749,10 +777,11 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, false);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, false);
+        //max_minus = intersect_line_Vpoly<NT>(V, r, v, true, false);
+        //min_plus = intersect_line_Vpoly<NT>(V, r, v, false, false);
+        return intersect_double_line_Vpoly<NT>(V, r, v);
 
-        return std::pair<NT, NT> (min_plus, max_minus);
+        //return std::pair<NT, NT> (min_plus, max_minus);
     }
 
 

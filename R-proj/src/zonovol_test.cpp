@@ -193,7 +193,7 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
         NT lb_ratio=0.1, up_ratio=0.15;
         var2.error=Her;
         var2.walk_steps=1;
-        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, up_ratio, var2, HnRsteps2, nballs, MemLps2, 0, 0, false, false);
+        vol = volesti_ball_ann(HP, InnerBall, lb_ratio, up_ratio, var2, HnRsteps2, nballs, MemLps2, 0, 0, 0.75, false, false);
     }
     cg_steps = 0.0;
     if(verbose) std::cout<<"\n\nvol of h-polytope = "<<vol<<"volhPCA = "<<volh<<"\n\n"<<std::endl;
@@ -203,8 +203,8 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
                             urdist, urdist1, -1.0, verbose, false, false, NN, birk, false,
                             false);
     NT ratio22;
-    if(len_subwin==0) len_subwin = 30;// + int(std::log2(NT(n)));
-    if(len_tuple==0) len_tuple = 150+n;
+    if(len_subwin==0) len_subwin = 2;// + int(std::log2(NT(n)));
+    if(len_tuple==0) len_tuple = n*n+125;
     if(const_win){
         ratio22 = est_ratio_hzono_normal(ZP, HP2, er0, len_subwin, len_tuple, prob, ratio, var22, Hsteps);
     } else {

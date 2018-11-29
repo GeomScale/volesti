@@ -151,21 +151,21 @@ Rcpp::NumericVector volume_zono (Rcpp::Reference P, double e=0.1, bool rounding 
     var.error=e/5.0;
     var.walk_steps=1;
     NT HnRsteps2, nballs2, MemLps2;
-    NT vol2 = volesti_ball_ann(HP, InnerBall2, lb_ratio, ub_ratio, var, HnRsteps2, nballs2, MemLps2, 0, 0, false, false);//*ratio2;
+    NT vol2 = volesti_ball_ann(HP, InnerBall2, lb_ratio, ub_ratio, var, HnRsteps2, nballs2, MemLps2, 0, 0, 0.75, false, false);//*ratio2;
     if(verbose) std::cout<<"vol2 = "<<vol2*ratio2<<std::endl;
 
     //------------------------------------------------------------//
 
 
 
-    if(len_subwin==0) len_subwin = 30;// + int(std::log2(NT(n)));
-    if(len_tuple==0) len_tuple = 150+n;
+    if(len_subwin==0) len_subwin = 2;// + int(std::log2(NT(n)));
+    if(len_tuple==0) len_tuple = n*n+125;
 
     if(vol1*ratio>vol2*ratio2) {
         var.error=e;
         HnRsteps = 0.0;
         vol = volesti_ball_ann(ZP, InnerBall, lb_ratio, ub_ratio, var, HnRsteps, nballs, MemLps, len_subwin, len_tuple,
-                               steps_only, const_win, B0.radius(), ratio);
+                               0.75,steps_only, const_win, B0.radius(), ratio);
         if (steps_only) {
             Rcpp::NumericVector res(1, vol);
             return res;

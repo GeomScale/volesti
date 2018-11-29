@@ -177,6 +177,7 @@ void get_next_zonoball(Zonotope &Z, std::vector<ball> &BallSet,
     typedef typename Zonotope::PolytopePoint Point;
     int n = var.n;
     bool done, too_few;
+    bool print = var.verbose;
 
     NT rad2=0.0;
     NT rad1=rad_min, rad;
@@ -201,7 +202,7 @@ void get_next_zonoball(Zonotope &Z, std::vector<ball> &BallSet,
 
         check_converg2<Point>(Biter, randPoints, p_value, done, too_few, ratio, up, false);
 
-        std::cout<<"rad = "<<rad<<" ratio = "<<ratio<<std::endl;
+        //if(print) std::cout<<"rad = "<<rad<<" ratio = "<<ratio<<std::endl;
         if(done){
             BallSet.push_back(Biter);
             ratios.push_back(ratio);
@@ -218,13 +219,38 @@ void get_next_zonoball(Zonotope &Z, std::vector<ball> &BallSet,
 }
 
 template <class RNGType,class ball, class Zonotope, class Parameters, typename NT>
-void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var, NT &ballsteps){
+void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var, NT &ballsteps,NT rmax){
 
     typedef typename Zonotope::PolytopePoint Point;
     int n = var.n;
-    NT rad2 = 2*std::sqrt(NT(n))*radius;
-    NT rad1 = radius;
+    NT rad2;
+    bool bis_int = false;
     bool print = var.verbose;
+    if(rmax>0.0) {
+        rad2 = rmax;
+        std::list<Point> randPoints2;
+        randPoints2.clear();
+        Point pp(n);
+        for (int i = 0; i < 1200; ++i) {
+            pp = get_point_in_Dsphere<RNGType, Point>(n, rad2);
+            randPoints2.push_back(pp);
+        }
+        ballsteps +=1200.0;
+        bool done2 = false, too_few2 = false;
+        check_converg001<Point>(Z, randPoints2, 0.1, done2, too_few2, ratio, 0.15, false);
+        if (done2 || !too_few2) {
+            B0 = ball(Point(n), rad2*rad2);
+            std::cout<<"rmax is enclosing and ok for rejection.., rmax = "<<rmax<<" rmin = "<<radius<<std::endl;
+            return;
+        } else {
+            std::cout<<"rmax is NOT OK for rejection..rmax = "<<rmax<<" rmin = "<<radius<<std::endl;
+        }
+        bis_int = true;
+    } else {
+        rad2 = 2 * std::sqrt(NT(n)) * radius;
+    }
+    NT rad1 = radius;
+
     bool done, too_few;
 
     ball BallIter;
@@ -232,7 +258,7 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
     std::list<Point> randPoints;
     Point center(n);
 
-    while(true) {
+    while(!bis_int) {
 
         randPoints.clear();
         for (int i = 0; i < 1200; ++i) {
@@ -275,6 +301,7 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
         if(print) std::cout<<"rad_med = "<<rad_med<<std::endl;
         if(print) std::cout<<"ratio = "<<ratio<<std::endl;
         if(done) {
+            std::cout<<"rad_med = "<<rad_med<<std::endl;
             BallIter = ball(center, rad_med*rad_med);
             //zb = ZonoBall(Z,BallIter);
             B0 = BallIter;
@@ -295,7 +322,7 @@ template <class ZonoBall, class RNGType,class ball, class Zonotope, class PointL
 void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0, NT &ratio0,
                                std::vector<PointList> &PointSets, std::vector<NT> &ratios,
                                NT &p_value, NT up, NT radius, Parameters &var, NT &ballSteps,
-                               NT &HnRSteps, NT B0_radius = 0) {
+                               NT &HnRSteps, NT B0_radius = 0.0, NT rmax = 0.0) {
 
 
     typedef typename Zonotope::PolytopePoint Point;
@@ -313,8 +340,8 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
     ZonoBall zb_it;
     //ball B0;
     ballSteps = 0.0;
-    if (B0_radius==0) {
-        get_first_ball<RNGType>(Z, B0, ratio, radius, var, ballSteps);
+    if (B0_radius==0.0) {
+        get_first_ball<RNGType>(Z, B0, ratio, radius, var, ballSteps,rmax);
         ratio0 = ratio;
     } else {
         B0 = ball(Point(n), B0_radius*B0_radius);

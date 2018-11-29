@@ -249,6 +249,7 @@ void uniform_first_coord_point(Polytope &P,
     NT kapa = urdist(rng2);
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+    //p.set_coord(rand_coord, p[rand_coord] + bpair.second + kapa * (bpair.first - bpair.second));
     p_prev = p;
     coord_prev = rand_coord;
     walk_len--;
@@ -338,6 +339,7 @@ void hit_and_run_coord_update(Point &p,
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     p_prev = p;
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+    //p.set_coord(rand_coord, p[rand_coord] + bpair.second + kapa * (bpair.first - bpair.second));
 }
 
 

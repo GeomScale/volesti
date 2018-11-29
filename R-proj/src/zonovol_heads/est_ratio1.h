@@ -202,8 +202,9 @@ bool check_max_error2(NT a, NT b, NT val, NT error) {
 
     NT e1 = std::abs(a - val) / a;
     NT e2 = std::abs(b - val) / b;
+    NT e3 = (b-a)/b;
     //std::cout<<"er1 = "<<e1<<" er2 = "<<e2<<" error = "<<error<<std::endl;
-    if (e1<error/2.0 && e2<error/2.0){
+    if (e3<error/2.0){
         return true;
     }
     return false;
@@ -253,7 +254,11 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
         }
         totCount = totCount + 1.0;
         val = countIn / totCount;
-        vals[row][col] = val;
+        last_W[index] = val;
+        index = index%W+1;
+
+        if(index==W) index=0;
+        /*vals[row][col] = val;
         col++;
         if(col%n_tuple==0) {
             col=0;
@@ -266,12 +271,13 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
             row++;
             //0sumit++;
             //sit++;
-        }
+        }*/
     }
     //std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
     col=0;
     std::pair<NT,NT> mv;
     NT pr = (1.0 + prob) / 2.0 ,m, s, zp;
+    zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
     bool chk;
     //p=Point(n);
     while(!done){
@@ -283,7 +289,7 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
         totCount = totCount + 1.0;
 
         val = countIn / totCount;
-        for (int i = 0; i < n_subw-1; ++i) {
+        /*for (int i = 0; i < n_subw-1; ++i) {
             sums[i] -= vals[i][col] / NT(n_tuple);
             sums[i] += vals[i+1][col] / NT(n_tuple);
             vals[i][col] = vals[i+1][col];
@@ -293,13 +299,17 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
         vals[n_subw-1][col] = val;
 
         col++;
-        if(col%n_tuple==0) col=0;
+        if(col%n_tuple==0) col=0;*/
 
-        mv = getMeanVariance(sums);
+        last_W[index] = val;
+        index = index%W+1;
+
+        if(index==W) index=0;
+        mv = getMeanVariance(last_W);
         m = mv.first;
         s = std::sqrt(mv.second);
         //zp = m + s*std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
-        zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
+
         chk= check_max_error2(m-zp*s, m+zp*s, val, error);
         if(chk) {
             //std::cout<<"final rejection to Z ratio = "<<val<< " | total points = "<<totCount<<std::endl;
