@@ -240,10 +240,10 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
         check_converg001<Point>(Z, randPoints2, 0.1, done2, too_few2, ratio, 0.15, false);
         if (done2 || !too_few2) {
             B0 = ball(Point(n), rad2*rad2);
-            std::cout<<"rmax is enclosing and ok for rejection.., rmax = "<<rmax<<" rmin = "<<radius<<std::endl;
+            if(print) std::cout<<"rmax is enclosing and ok for rejection.., rmax = "<<rmax<<" rmin = "<<radius<<std::endl;
             return;
         } else {
-            std::cout<<"rmax is NOT OK for rejection..rmax = "<<rmax<<" rmin = "<<radius<<std::endl;
+            if(print) std::cout<<"rmax is NOT OK for rejection..rmax = "<<rmax<<" rmin = "<<radius<<std::endl;
         }
         bis_int = true;
     } else {
@@ -301,7 +301,7 @@ void get_first_ball(Zonotope &Z, ball &B0, NT &ratio, NT radius, Parameters &var
         if(print) std::cout<<"rad_med = "<<rad_med<<std::endl;
         if(print) std::cout<<"ratio = "<<ratio<<std::endl;
         if(done) {
-            std::cout<<"rad_med = "<<rad_med<<std::endl;
+            if(print) std::cout<<"rad_med = "<<rad_med<<std::endl;
             BallIter = ball(center, rad_med*rad_med);
             //zb = ZonoBall(Z,BallIter);
             B0 = BallIter;

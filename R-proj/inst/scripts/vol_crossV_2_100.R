@@ -8,35 +8,40 @@ steps1=c()
 steps2=c()
 errors1=c()
 errors2=c()
+nballs1=c()
 vols1=c()
-dimen=70
-num_tests=1
+dimen=100
+num_tests=5
 path = system.file('extdata', package = 'volesti')
-for (i in c(2,seq(from=5,to=70,by=5))) {
+for (i in seq(from=5,to=150,by=5)) {
   print(i)
   #name_bir = paste0('/birk',i,'.ine')
   #HP = fileToMatrix(paste0(path,name_bir))
   #HP = GenCube(i,'H')
-  Z=GenZonotope(i,3*i)
-  #ev=2^i
+  P=GenCross(i,'V')
+  ev=2^i/prod(1:i)
   
   st1=0
   err1=0
   tim1=0
+  vol1=0
   nb=0
   st2=0
   err2=0
   tim2=0
-  vol1=0
   #er11=c()
   for (j in 1:num_tests) {
-    tim=system.time({ ps1 = vol_hzono(Z)})
+    if (i>=80) {
+      tim=system.time({ ps1 = ban_volume(P,e=0.1)})
+    } else {
+      tim=system.time({ ps1 = ban_volume(P)})
+    }
     tim = as.numeric(as.character(tim[3]))
     tim1=tim1+tim
     st1=st1+ps1[3]
-    nb=ps1[2]
-    vol1=ps1[1]
-    #err1 = err1 + abs(ev-ps1[1])/ev
+    nb=ps1[2] +nb
+    vol1=vol1+ps1[1]
+    err1 = err1 + abs(ev-ps1[1])/ev
     #er11=c(er11,abs(ev-ps1[1])/ev)
     #print(paste0('vol = ',ps1[1]))
     
@@ -46,19 +51,23 @@ for (i in c(2,seq(from=5,to=70,by=5))) {
     #st2=st2+ps2[3]
     #err2 = err2 + abs(ev-ps2[1])/ev
   }
+  vol1=vol1/num_tests
   nb=nb/num_tests
   st1=st1/num_tests
   tim1=tim1/num_tests
+  err1 = err1/num_tests
   
   times1=c(times1,tim1)
-  nballs1=c(nb,err1)
+  vols1 =c(vols1,vol1)
+  nballs1=c(nballs1,nb)
   steps1=c(steps1,st1)
-  vols1=c(vols1,vol1)
+  errors1=c(errors1,err1)
   
-  save(vols1, file = "vols_2_100_d_3d.RData")
-  save(times1, file = "times_2_70_d_3d.RData")
-  save(steps1, file = "steps_2_70_d_3d.RData")
-  save(nballs1, file = "nballs_2_70_d_3d.RData")
+  save(times1, file = "5xtimes_2_100_crossV.RData")
+  save(vols1, file = "5xvols_2_100_crossV.RData")
+  save(steps1, file = "5xsteps_2_100_crossV.RData")
+  save(nballs1, file = "5xnballs_2_100_crossV.RData")
+  save(errors1, file = "5xerrors_2_100_crossV.RData")
   
 }
 

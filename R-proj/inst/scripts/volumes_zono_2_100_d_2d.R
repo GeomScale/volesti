@@ -8,10 +8,11 @@ steps1=c()
 steps2=c()
 errors1=c()
 errors2=c()
+vols1=c()
 dimen=100
 num_tests=1
 path = system.file('extdata', package = 'volesti')
-for (i in c(2,seq(from=5,to=40,by=5))) {
+for (i in c(2,seq(from=5,to=100,by=5))) {
   print(i)
   #name_bir = paste0('/birk',i,'.ine')
   #HP = fileToMatrix(paste0(path,name_bir))
@@ -26,6 +27,7 @@ for (i in c(2,seq(from=5,to=40,by=5))) {
   st2=0
   err2=0
   tim2=0
+  vol1=0
   #er11=c()
   for (j in 1:num_tests) {
     tim=system.time({ ps1 = vol_hzono(Z)})
@@ -33,6 +35,7 @@ for (i in c(2,seq(from=5,to=40,by=5))) {
     tim1=tim1+tim
     st1=st1+ps1[3]
     nb=ps1[2]
+    vol1 = ps1[1]
     #err1 = err1 + abs(ev-ps1[1])/ev
     #er11=c(er11,abs(ev-ps1[1])/ev)
     #print(paste0('vol = ',ps1[1]))
@@ -46,11 +49,14 @@ for (i in c(2,seq(from=5,to=40,by=5))) {
   nb=nb/num_tests
   st1=st1/num_tests
   tim1=tim1/num_tests
+  vol1=vol1/num_tests
   
   times1=c(times1,tim1)
   nballs1=c(nb,err1)
   steps1=c(steps1,st1)
+  vols1=c(vols1,vol1)
   
+  save(vols1, file = "vols_2_100_d_2d.RData")
   save(times1, file = "times_2_100_d_2d.RData")
   save(steps1, file = "steps_2_100_d_2d.RData")
   save(nballs1, file = "nballs_2_100_d_2d.RData")

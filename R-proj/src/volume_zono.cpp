@@ -101,7 +101,7 @@ Rcpp::NumericVector volume_zono (Rcpp::Reference P, double e=0.1, bool rounding 
     typedef Ball<Point> ball;
     typedef BallIntersectPolytope<zonotope ,ball> ZonoBall;
     ball B0;
-    get_first_ball<RNGType>(ZP, B0, ratio, InnerBall.second, var, MemLps);
+    get_first_ball<RNGType>(ZP, B0, ratio, InnerBall.second, var, MemLps,0.0);
     NT vol1= (std::pow(M_PI,n/2.0)*(std::pow(B0.radius(), n) ) ) / (tgamma(n/2.0+1));//*ratio;
     if(verbose)  std::cout<<"vol1 = "<<vol1*ratio<<std::endl;
 

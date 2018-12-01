@@ -37,7 +37,7 @@
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_only = false, bool const_win = true, bool rounding = false, bool verbose = false,
-                                double lb_ratio=0.1, double ub_ratio=0.15, double PR=0.75, int len_subwin = 0, int len_tuple = 0) {
+                                double lb_ratio=0.1, double ub_ratio=0.15, double PR=0.75, int len_subwin = 0, int len_tuple = 0, bool coordinate = false) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -53,7 +53,7 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
     bool rand_only = false,
             NN = false,
                     ball_walk = false,
-                            coordinate = true,
+                          //  coordinate = true,
             birk = false;
     //verbose = false;
     unsigned int n_threads = 1;
@@ -71,7 +71,7 @@ Rcpp::NumericVector ban_volume(Rcpp::Reference P, double e = 0.1, bool steps_onl
         n = A.cols();
         VT vec = Rcpp::as<VT>(P.field("b"));
         HP.init(n, A, vec);
-        coordinate = false;
+        //coordinate = false;
     } else if(type==2) {
         MT V = Rcpp::as<MT>(P.field("V"));
         n = V.cols();

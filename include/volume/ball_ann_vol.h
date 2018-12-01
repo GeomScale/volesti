@@ -61,11 +61,14 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     // var.coordinate=true;
     ball B0;
 
+    //var.coordinate = false;
+    //std::cout<<"var.ball_walk = "<<var.ball_walk<<"var.coordinate = "<<var.coordinate<<std::endl;
     if(verbose) std::cout<<"Computing ball annealing..."<<std::endl;
     if(ratio_B0!=0.0) ratio0 = ratio_B0;
     get_sequence_of_zonoballs<ZonoBall, RNGType>(P, BallSet, B0, ratio0, PointSets,
                                                  ratios, lb, up, InnerBall.second, var,
                                                  ballsteps, steps, B0_radius, rmax);
+    //var.coordinate = true;
     if(steps_only) {
         return NT(BallSet.size()+1);
     }
@@ -102,7 +105,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
 
     ball Biter;
     ZonoBall zb1, zb2;
-    //var.coordinate = true;
+
     var.walk_steps=1;
     NT tele_prod=1.0;
     //NT er = e*0.942809;

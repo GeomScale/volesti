@@ -1,4 +1,5 @@
 library(volesti)
+library(geometry)
 #library(ggplot2)
 #library(tidyr)
 
@@ -8,57 +9,67 @@ steps1=c()
 steps2=c()
 errors1=c()
 errors2=c()
+nballs1=c()
 vols1=c()
-dimen=70
-num_tests=1
+dimen=100
+num_tests=5
 path = system.file('extdata', package = 'volesti')
-for (i in c(2,seq(from=5,to=70,by=5))) {
+for (i in c(10,seq(from=15,to=100,by=5))) {
   print(i)
   #name_bir = paste0('/birk',i,'.ine')
   #HP = fileToMatrix(paste0(path,name_bir))
   #HP = GenCube(i,'H')
-  Z=GenZonotope(i,3*i)
-  #ev=2^i
+  
+  #ev=2^i/prod(1:i)
   
   st1=0
-  err1=0
+  #err1=0
   tim1=0
-  nb=0
-  st2=0
-  err2=0
-  tim2=0
   vol1=0
+  nb=0
+  #st2=0
+  #err2=0
+  #tim2=0
   #er11=c()
   for (j in 1:num_tests) {
-    tim=system.time({ ps1 = vol_hzono(Z)})
+    P=GenVpoly(i,6*i)
+    
+    tim=system.time({ ps1 = ban_volume(P,rounding = TRUE)})
     tim = as.numeric(as.character(tim[3]))
     tim1=tim1+tim
     st1=st1+ps1[3]
-    nb=ps1[2]
-    vol1=ps1[1]
+    nb=ps1[2] +nb
+    vol1=vol1+ps1[1]
     #err1 = err1 + abs(ev-ps1[1])/ev
     #er11=c(er11,abs(ev-ps1[1])/ev)
     #print(paste0('vol = ',ps1[1]))
     
     #tim=system.time({ ps2 = cg_volume(HP)})
     #tim = as.numeric(as.character(tim[3]))
-    #tim2=tim2+tim
+    #tim2=tim2+as.numeric(as.character(tim_ex[3]))
     #st2=st2+ps2[3]
     #err2 = err2 + abs(ev-ps2[1])/ev
   }
+  vol1=vol1/num_tests
   nb=nb/num_tests
   st1=st1/num_tests
   tim1=tim1/num_tests
+  #tim2=tim2/num_tests
+  #err1 = err1/num_tests
   
   times1=c(times1,tim1)
-  nballs1=c(nb,err1)
+  vols1 =c(vols1,vol1)
+  nballs1=c(nballs1,nb)
   steps1=c(steps1,st1)
-  vols1=c(vols1,vol1)
+  #times2=c(times2,tim2)
+  #errors1=c(errors1,err1)
   
-  save(vols1, file = "vols_2_100_d_3d.RData")
-  save(times1, file = "times_2_70_d_3d.RData")
-  save(steps1, file = "steps_2_70_d_3d.RData")
-  save(nballs1, file = "nballs_2_70_d_3d.RData")
+  save(times1, file = "5xtimes1_2_100_randV_d_6d.RData")
+  #save(times2, file = "times2_2_14_randV_d_6d.RData")
+  #save(errors1, file = "errors_2_14_randV_d_6d.RData")
+  save(vols1, file = "5xvols_2_100_randV_d_6d.RData")
+  save(steps1, file = "5xsteps_2_100_randV_d_6d.RData")
+  save(nballs1, file = "5xnballs_2_100_randV_d_6d.RData")
   
 }
 

@@ -261,6 +261,7 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int n_subw, in
     int W = n_subw*n_tuples;
     //int m = Z.num_of_generators();
     //std::cout<<"W = "<<W<<" n_subw = "<<n_subw<<" n_tuples = "<<n_tuples<<" walk_steps = "<<var.walk_steps<<std::endl;
+   // std::cout<<"coordinate : "<<var.coordinate<<std::endl;
     NT curr_eps = error;
     bool done=false;
     NT min_val = minNT;
@@ -289,14 +290,18 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int n_subw, in
     //std::vector<NT> sums(n_subw,0.0);
     //typename std::vector< std::vector<NT> >::iterator sumit=vals.begin();
     //typename std::vector<NT>::iterator sit=sums.begin();
+    NT sum_sq=0.0;
+    NT sum=0.0;
     for (int i = 0; i < W; ++i) {
         //std::cout<<"row = "<<row<<" col = "<<col<<"i = "<<i<<std::endl;
-        uniform_next_point(Zb, p, p_prev, coord_prev, var.walk_steps, lamdas, var);
+        uniform_next_point(Zb, p, p_prev, coord_prev, 1, lamdas, var);
         if(B0.is_in(p)==-1) {
             countIn = countIn + 1.0;
         }
         totCount = totCount + 1.0;
         val = countIn / totCount;
+        sum += val;
+        sum_sq += val*val;
         last_W[index] = val;
         index = index%W+1;
 
@@ -321,20 +326,19 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int n_subw, in
     NT pr = (1.0 + prob) / 2.0 ,m, mW, s, zp, zp2=2.38774;
     zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
     //std::cout<<"zp = "<<zp<<std::endl;
+    m=sum/NT(W);
+    NT m2,s2;
     bool chk;
     while(!done){
         //std::cout<<"col = "<<col<<std::endl;
 
-        uniform_next_point(Zb, p, p_prev, coord_prev, var.walk_steps, lamdas, var);
+        uniform_next_point(Zb, p, p_prev, coord_prev, 1, lamdas, var);
         if(B0.is_in(p)==-1) {
             countIn = countIn + 1.0;
         }
         totCount = totCount + 1.0;
         val = countIn / totCount;
-        last_W[index] = val;
-        index = index%W+1;
 
-        if(index==W) index=0;
 
         /*for (int i = 0; i < n_subw-1; ++i) {
             sums[i] -= vals[i][col] / NT(n_tuples);
@@ -351,10 +355,23 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int n_subw, in
         //mv = getMeanVariance(sums);
         //m = mv.first;
         //s = std::sqrt(mv.second);*/
-        mv = getMeanVariance(last_W);
-        m=mv.first;
-        s = std::sqrt(mv.second);
-        //std::cout<<"m = "<<m<<" mW = "<<mW<<std::endl;
+        m-=last_W[index]/NT(W);
+        m+=val/NT(W);
+        sum_sq -= last_W[index]*last_W[index];
+        sum_sq += val*val;
+        sum-=last_W[index];
+        sum+=val;
+        //mv = getMeanVariance(last_W);
+        //m2=mv.first;
+        s = std::sqrt((sum_sq+NT(W)*m*m-2.0*m*sum)/NT(W));
+        //mv = getMeanVariance(last_W);
+        //m2=mv.first;
+        //s2 = std::sqrt(mv.second);
+        //std::cout<<"m="<<m<<" m2="<<m2<<"s="<<s<<" s2="<<s2<<std::endl;
+        last_W[index] = val;
+        index = index%W+1;
+
+        if(index==W) index=0;
         //zp2 = m + s*std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
 
         //std::cout<<"["<<m-zp*s<<","<<m+zp*s<<"] || ["<<m-zp2*s<<","<<m+zp2*s<<"]"<<std::endl;
@@ -409,6 +426,8 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int n_subw, int n_tuple, NT
     Point p(n);
     //typename std::vector< std::vector<NT> >::iterator sumit=vals.begin();
     //typename std::vector<NT>::iterator sit=sums.begin();
+    NT sum_sq=0.0;
+    NT sum=0.0;
     for (int i = 0; i < W; ++i) {
         p = get_point_in_Dsphere<RNGType, Point>(n, rad);
         if(Z.is_in(p)==-1) {
@@ -416,6 +435,8 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int n_subw, int n_tuple, NT
         }
         totCount = totCount + 1.0;
         val = countIn / totCount;
+        sum += val;
+        sum_sq += val*val;
         last_W[index] = val;
         index = index%W+1;
 
@@ -442,6 +463,10 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int n_subw, int n_tuple, NT
     zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
    // std::cout<<"zp = "<<zp<<std::endl;
     bool chk;
+    //mv = getMeanVariance(last_W);
+    m=sum/NT(W);
+    //s = std::sqrt(mv.second);
+
     while(!done){
 
         p = get_point_in_Dsphere<RNGType, Point>(n, rad);
@@ -451,10 +476,7 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int n_subw, int n_tuple, NT
         totCount = totCount + 1.0;
 
         val = countIn / totCount;
-        last_W[index] = val;
-        index = index%W+1;
 
-        if(index==W) index=0;
         /*for (int i = 0; i < n_subw-1; ++i) {
             sums[i] -= vals[i][col] / NT(n_tuple);
             sums[i] += vals[i+1][col] / NT(n_tuple);
@@ -470,9 +492,20 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int n_subw, int n_tuple, NT
         //mv = getMeanVariance(sums);
         //m = mv.first;
         //s = std::sqrt(mv.second);*/
-        mv = getMeanVariance(last_W);
-        m=mv.first;
-        s = std::sqrt(mv.second);
+        m-=last_W[index]/NT(W);
+        m+=val/NT(W);
+        sum_sq -= last_W[index]*last_W[index];
+        sum_sq += val*val;
+        sum-=last_W[index];
+        sum+=val;
+        //mv = getMeanVariance(last_W);
+        //m=mv.first;
+        s = std::sqrt((sum_sq+NT(W)*m*m-2.0*m*sum)/NT(W));
+
+        last_W[index] = val;
+        index = index%W+1;
+
+        if(index==W) index=0;
         //zp = m + s*std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
 
         chk= check_max_error123(m-zp*s, m+zp*s, val, error);

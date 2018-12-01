@@ -1,4 +1,4 @@
-// VolEsti (volume computation and sampling library)
+P=GenC// VolEsti (volume computation and sampling library)
 
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 
