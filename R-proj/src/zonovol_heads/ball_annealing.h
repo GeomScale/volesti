@@ -32,13 +32,13 @@ void check_converg22(Hpolytope &P, PointList &randPoints, NT p_test, bool &done,
     std::pair<NT,NT> mv = getMeanVariance(ratios);
     NT t_value = 0.700;
     NT p_mval = mv.first;
-    NT p_varval = mv.second;
+    NT p_varval = std::sqrt(mv.second);
     int ni = ratios.size();
     //NT p_test = a;
 
     //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
-    if (p_mval > p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
-        if (p_mval < (up_lim) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+    if (p_mval > p_test + t_value*(p_varval/std::sqrt(NT(ni)))) {
+        if (p_mval < (up_lim) + t_value*(p_varval/std::sqrt(NT(ni)))) {
             done= true;
             ratio = p_mval;
         }
@@ -77,13 +77,13 @@ bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, Paramete
     std::pair<NT,NT> mv = getMeanVariance(ratios);
     NT t_value = 0.700;
     NT p_mval = mv.first;
-    NT p_varval = mv.second;
+    NT p_varval = std::sqrt(mv.second);
     int ni = ratios.size();
     //NT p_test = a;
 
     //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
     std::cout<<"check for last hpoly, p_mval = "<<p_mval<<std::endl;
-    if (p_mval > 0.1 + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+    if (p_mval > 0.1 + t_value*(p_varval/std::sqrt(NT(ni)))) {
         ratio = p_mval;
         return true;
     }

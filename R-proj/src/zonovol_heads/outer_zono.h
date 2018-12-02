@@ -50,13 +50,13 @@ void check_converg00001(ball &P, PointList &randPoints, NT p_test, bool &done, b
     mv = getMeanVariance(ratios);
     NT t_value = 0.700;
     NT p_mval = mv.first;
-    NT p_varval = mv.second;
+    NT p_varval = std::sqrt(mv.second);
     int ni = ratios.size();
     //NT p_test = a;
 
     //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
-    if (p_mval > p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
-        if (p_mval < (up_lim) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+    if (p_mval > p_test + t_value*(p_varval/std::sqrt(NT(ni)))) {
+        if (p_mval < (up_lim) + t_value*(p_varval/std::sqrt(NT(ni)))) {
             done= true;
             ratio = p_mval;
             //std::cout<<"ni = "<<ni<<std::endl;
@@ -94,13 +94,13 @@ void check_converg(Polytope &P, PointList &randPoints, NT p_test, bool &done, bo
     std::pair<NT,NT> mv = getMeanVariance(ratios);
     NT t_value = 0.700;
     NT p_mval = mv.first;
-    NT p_varval = mv.second;
+    NT p_varval = std::sqrt(mv.second);
     int ni = ratios.size();
     //NT p_test = a;
 
     //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
-    if (p_mval > p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
-        if (p_mval < (up_lim) + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))) {
+    if (p_mval > p_test + t_value*(p_varval/std::sqrt(NT(ni)))) {
+        if (p_mval < (up_lim) + t_value*(p_varval/std::sqrt(NT(ni)))) {
             done= true;
             ratio = p_mval;
         }

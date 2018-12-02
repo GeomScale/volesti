@@ -12,9 +12,9 @@ errors2=c()
 nballs1=c()
 vols1=c()
 dimen=100
-num_tests=5
+num_tests=1
 path = system.file('extdata', package = 'volesti')
-for (i in c(10,seq(from=15,to=100,by=5))) {
+for (i in c(seq(from=40,to=100,by=5))) {
   print(i)
   #name_bir = paste0('/birk',i,'.ine')
   #HP = fileToMatrix(paste0(path,name_bir))
@@ -35,7 +35,7 @@ for (i in c(10,seq(from=15,to=100,by=5))) {
   for (j in 1:num_tests) {
     P=GenVpoly(i,4*i)
     
-    tim=system.time({ ps1 = ban_volume(P,rounding = TRUE)})
+    tim=system.time({ ps1 = ban_volume(P,rounding = TRUE,verbose = TRUE)})
     tim = as.numeric(as.character(tim[3]))
     tim1=tim1+tim
     st1=st1+ps1[3]
@@ -65,12 +65,12 @@ for (i in c(10,seq(from=15,to=100,by=5))) {
   #times2=c(times2,tim2)
   #errors1=c(errors1,err1)
   
-  save(times1, file = "5xtimes1_45_100_randV_d_4d.RData")
+  save(times1, file = "1xtimes1_4_100_randV_d_4d.RData")
   #save(times2, file = "times2_45_14_randV_d_4d.RData")
   #save(errors1, file = "errors_45_14_randV_d_4d.RData")
-  save(vols1, file = "5xvols_45_100_randV_d_4d.RData")
-  save(steps1, file = "5xsteps_45_100_randV_d_4d.RData")
-  save(nballs1, file = "5xnballs_45_100_randV_d_4d.RData")
+  save(vols1, file = "1xvols_40_100_randV_d_4d.RData")
+  save(steps1, file = "1xsteps_40_100_randV_d_4d.RData")
+  save(nballs1, file = "1xnballs_40_100_randV_d_4d.RData")
   
 }
 

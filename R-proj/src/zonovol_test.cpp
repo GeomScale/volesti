@@ -243,6 +243,7 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
             HnRsteps += steps;
         }
     } else {
+        er1 = er1 / std::sqrt(NT(mm)-1.0);
         //er = er/std::sqrt(HPolySet.size()+1);
         if(verbose) std::cout<<"number of balls = "<<HPolySet.size()<<std::endl;
         b1 = HPolySet[0];
