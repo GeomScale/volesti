@@ -17,6 +17,10 @@ Rvol_exact <- function(A, exact_zono, exact_cube, exact_simplex, exact_cross, di
     .Call('_volesti_Rvol_exact', PACKAGE = 'volesti', A, exact_zono, exact_cube, exact_simplex, exact_cross, dim)
 }
 
+Rvolume <- function(P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding) {
+    .Call('_volesti_Rvolume', PACKAGE = 'volesti', P, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding)
+}
+
 ban_volume <- function(P, e = 0.1, steps_only = FALSE, const_win = TRUE, rounding = FALSE, verbose = FALSE, lb_ratio = 0.1, ub_ratio = 0.15, PR = 0.75, len_subwin = 0L, len_tuple = 0L, coordinate = FALSE) {
     .Call('_volesti_ban_volume', PACKAGE = 'volesti', P, e, steps_only, const_win, rounding, verbose, lb_ratio, ub_ratio, PR, len_subwin, len_tuple, coordinate)
 }

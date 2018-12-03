@@ -47,7 +47,7 @@ public:
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len, double e,
+Rcpp::NumericVector Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len, double e,
                 Rcpp::NumericVector InnerBall, bool CG, unsigned int win_len,
                 unsigned int N, double C, double ratio, double frac,
                 bool ball_walk, double delta, bool Vpoly, bool Zono,
@@ -128,6 +128,7 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
     vars<NT, RNGType> var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0, InnerB.second,rng,urdist,urdist1,
                           delta,verbose,rand_only,rounding,NN,birk,ball_walk,coordinate);
     NT vol;
+    NT HnRsteps;
     if (CG) {
         vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
                                urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
@@ -142,14 +143,17 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
         }
     } else {
         if (Zono) {
-            vol = volume(ZP, var, var, InnerB);
+            vol = volume(ZP, var, var, InnerB, HnRsteps);
         } else if (!Vpoly) { // if the input is a H-polytope
-            vol = volume(HP, var, var, InnerB);
+            vol = volume(HP, var, var, InnerB, HnRsteps);
         } else { // if the input is a V-polytope
-            vol = volume(VP, var, var, InnerB);
+            vol = volume(VP, var, var, InnerB, HnRsteps);
         }
     }
+    Rcpp::NumericVector res(2);
+    res[0] = vol;
+    res[1] = HnRsteps;
 
-    return vol;
+    return res;
 
 }

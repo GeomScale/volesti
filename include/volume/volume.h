@@ -1,4 +1,4 @@
-P=GenC// VolEsti (volume computation and sampling library)
+// VolEsti (volume computation and sampling library)
 
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 
@@ -28,8 +28,9 @@ P=GenC// VolEsti (volume computation and sampling library)
 #include "polytopes.h"
 //#include "ellipsoids.h"
 #include "ballintersectconvex.h"
-#include "vpolyintersectvpoly.h"
+
 #include "samplers.h"
+#include "vpolyintersectvpoly.h"
 #include "rounding.h"
 #include "gaussian_samplers.h"
 #include "gaussian_annealing.h"
@@ -48,13 +49,14 @@ template <class Polytope, class Parameters, class Point, typename NT>
 NT volume(Polytope &P,
                   Parameters &var,  // constans for volume
                   Parameters &var2, // constants for optimization in case of MinkSums
-                  std::pair<Point,NT> InnerBall)  //Chebychev ball
+                  std::pair<Point,NT> InnerBall, //Chebychev ball
+                  NT &HnRsteps)
 {
     typedef Ball<Point> Ball;
     typedef BallIntersectPolytope<Polytope,Ball> BallPoly;
     typedef typename Parameters::RNGType RNGType;
 
-
+    HnRsteps = 0.0;
     bool round = var.round;
     bool print = var.verbose;
     bool rand_only = var.rand_only, deltaset = false;
@@ -113,6 +115,7 @@ NT volume(Polytope &P,
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
+        HnRsteps += 50.0*NT(n);
         double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
         // 3. Sample "rnum" points from P
         #ifdef VOLESTI_DEBUG
@@ -221,6 +224,7 @@ NT volume(Polytope &P,
 
             //generate more random points in PBLarge to have "rnum" in total
             rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
+            HnRsteps += NT(walk_len) * NT(rnum-nump_PBLarge);
 
             vol *= NT(rnum)/NT(nump_PBSmall);
 
