@@ -12,9 +12,9 @@ errors2=c()
 nballs1=c()
 vols1=c()
 dimen=100
-num_tests=5
+num_tests=1
 path = system.file('extdata', package = 'volesti')
-for (i in c(10,seq(from=15,to=100,by=5))) {
+for (i in c(seq(from=60,to=100,by=5))) {
   print(i)
   #name_bir = paste0('/birk',i,'.ine')
   #HP = fileToMatrix(paste0(path,name_bir))
@@ -64,12 +64,12 @@ for (i in c(10,seq(from=15,to=100,by=5))) {
   #times2=c(times2,tim2)
   #errors1=c(errors1,err1)
   
-  save(times1, file = "5xtimes1_2_100_randV_d_6d.RData")
+  save(times1, file = "1xtimes1_60_100_randV_d_6d.RData")
   #save(times2, file = "times2_2_14_randV_d_6d.RData")
   #save(errors1, file = "errors_2_14_randV_d_6d.RData")
-  save(vols1, file = "5xvols_2_100_randV_d_6d.RData")
-  save(steps1, file = "5xsteps_2_100_randV_d_6d.RData")
-  save(nballs1, file = "5xnballs_2_100_randV_d_6d.RData")
+  save(vols1, file = "1xvols_60_100_randV_d_6d.RData")
+  save(steps1, file = "1xsteps_60_100_randV_d_6d.RData")
+  save(nballs1, file = "1xnballs_60_100_randV_d_6d.RData")
   
 }
 

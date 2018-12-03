@@ -236,9 +236,9 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
         if (ratios[0]!=1) {
             //vol = vol * est_ratio_zball_sym<Point>(ZP, sigma, G2, Q0, l, u, delta_in, ratios[0], e*0.8602325, var2);
             if(const_win) {
-                esti_ratio_interval<Point>(ZP, HP2, ratios[0], er1, len_subwin, len_tuple, prob, var2, steps);
+                vol = vol / esti_ratio_interval<Point>(ZP, HP2, ratios[0], er1, len_subwin, len_tuple, prob, var2, steps);
             } else {
-                vol = vol * est_ratio_zonoballs<Point>(ZP, HP2, ratios[0], er1, var2, steps);
+                vol = vol / est_ratio_zonoballs<Point>(ZP, HP2, ratios[0], er1, var2, steps);
             }
             HnRsteps += steps;
         }

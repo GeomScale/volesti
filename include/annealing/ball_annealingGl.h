@@ -349,7 +349,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
 
     rand_point_generator(Z, q, 1200+2*n*n, 1, randPoints, var);
     HnRSteps += 1200.0+n*n*2.0;
-    PointSets.push_back(randPoints);
+    //PointSets.push_back(randPoints);
     if (is_last_zonoball(randPoints, B0, ratio, var)) {
         ratios.push_back(ratio);
         if(print) std::cout<<"one ball and ratio = "<<ratio<<std::endl;
@@ -368,7 +368,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, std::vector<ball> &BallSet, ball &B0
         randPoints.clear();
         rand_point_generator(zb_it, q, 1200+2*n*n, 1, randPoints, var);
         HnRSteps += 1200.0+n*n*2.0;
-        PointSets.push_back(randPoints);
+        //PointSets.push_back(randPoints);
         if (is_last_zonoball(randPoints, B0, ratio, var)) {
             ratios.push_back(ratio);
             //std::cout<<"number of balls = "<<ZonoBallSet.size()<<std::endl;

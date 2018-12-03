@@ -118,7 +118,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
             //esti_ratio(P, BallSet[0], ratios[0], er1, WW, var, steps);
             //std::cout<<"------------------\n"<<std::endl;
         } else {
-            tele_prod = tele_prod * esti_ratio(P, BallSet[0], ratios[0], er1, WW, var, steps);
+            vol = vol / esti_ratio(P, BallSet[0], ratios[0], er1, WW, var, steps);
         }
 
         HnRSteps += steps;
@@ -131,7 +131,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
                 //esti_ratio(zb1, BallSet[i+1], ratios[i+1], er1, WW, var, steps);
                 //std::cout<<"------------------\n"<<std::endl;
             } else {
-                tele_prod = tele_prod * esti_ratio(zb1, BallSet[i+1], ratios[i+1], er1, WW, var, steps);
+                vol = vol / esti_ratio(zb1, BallSet[i+1], ratios[i+1], er1, WW, var, steps);
             }
             HnRSteps += steps;
         }
@@ -144,7 +144,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
             //esti_ratio(zb1, B0, ratios[ratios.size() - 1], er1, WW, var, steps);
             //std::cout<<"------------------\n"<<std::endl;
         } else {
-            tele_prod = tele_prod * esti_ratio(zb1, B0, ratios[ratios.size() - 1], er1, WW, var, steps);
+            vol = vol / esti_ratio(zb1, B0, ratios[ratios.size() - 1], er1, WW, var, steps);
         }
         HnRSteps += steps;
         //vol = vol / tele_prod;
