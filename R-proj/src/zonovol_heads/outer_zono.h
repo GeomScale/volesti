@@ -256,7 +256,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio
     VT b2 = b;
     HPolytope HPiter=HP;
 
-    int n = P.dimension(), m = P.num_of_generators();
+    int n = P.dimension(), m = Zs_max_gl.size();
     int N = 1200;
     if(up_lim==0.0){
         up_lim=0.15;
@@ -268,7 +268,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio
     steps = 0.0;
 
     NT l=0.0, u=1.0, med;
-    VT  Zmed(2*m);
+    VT  Zmed(m);
     randPoints.clear();
     int count =0;
     while(true) {

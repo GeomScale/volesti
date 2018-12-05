@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1543982135148.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "169917895",
+    "id" : "ADC4FA20",
+    "lastKnownWriteTime" : 1543982875,
+    "last_content_update" : 1543982875161,
+    "path" : "~/volume_approximation/R-proj/inst/scripts/test_pca_10_15.R",
+    "project_path" : "inst/scripts/test_pca_10_15.R",
+    "properties" : {
+        "cursorPosition" : "17,26",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1543964898347.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4062261376",
+    "id" : "38ED7EED",
+    "lastKnownWriteTime" : 1543959838,
+    "last_content_update" : 1543959838,
+    "path" : "~/volume_approximation/R-proj/vols_2_50_d_10d.R",
+    "project_path" : "vols_2_50_d_10d.R",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

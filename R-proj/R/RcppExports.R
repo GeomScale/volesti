@@ -33,7 +33,7 @@ volume_zono <- function(P, e = 0.1, rounding = FALSE, steps_only = FALSE, verbos
     .Call('_volesti_volume_zono', PACKAGE = 'volesti', P, e, rounding, steps_only, verbose, const_win, cg_hpol, PCA, lb_ratio, ub_ratio, len_subwin, len_tuple)
 }
 
-vol_hzono <- function(P, e = 0.1, steps_only = FALSE, verbose = FALSE, const_win = TRUE, cg_hpol = FALSE, PCA = FALSE, delta_in = 0.0, up_lim = 0.15, len_subwin = 0L, len_tuple = 0L) {
-    .Call('_volesti_vol_hzono', PACKAGE = 'volesti', P, e, steps_only, verbose, const_win, cg_hpol, PCA, delta_in, up_lim, len_subwin, len_tuple)
+vol_hzono <- function(P, e = 0.1, steps_only = FALSE, verbose = FALSE, const_win = TRUE, cg_hpol = FALSE, PCA = FALSE, pca_ratio = FALSE, delta_in = 0.0, up_lim = 0.15, len_subwin = 0L, len_tuple = 0L) {
+    .Call('_volesti_vol_hzono', PACKAGE = 'volesti', P, e, steps_only, verbose, const_win, cg_hpol, PCA, pca_ratio, delta_in, up_lim, len_subwin, len_tuple)
 }
 

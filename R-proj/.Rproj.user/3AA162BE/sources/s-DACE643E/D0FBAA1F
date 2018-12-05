@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1543964921738.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "D0FBAA1F",
+    "lastKnownWriteTime" : 1543959838,
+    "last_content_update" : 1543959838,
+    "path" : "~/volume_approximation/R-proj/inst/scripts/test_errors.R",
+    "project_path" : "inst/scripts/test_errors.R",
+    "properties" : {
+        "cursorPosition" : "63,57",
+        "scrollLine" : "48"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -145,26 +145,26 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
     if(pca_ratio) {
 
         int mn=n;
-        MT AA2; VT b2;
-        AA2.resize(2 * mn, mn);
-        b2.resize(2 * mn);
+        MT AA; VT b;
+        AA.resize(2 * mn, mn);
+        b.resize(2 * mn);
         for (unsigned int i = 0; i < mn; ++i) {
-            b2(i) = 1.0;
+            b(i) = 1.0;
             for (unsigned int j = 0; j < mn; ++j) {
                 if (i == j) {
-                    AA2(i, j) = 1.0;
+                    AA(i, j) = 1.0;
                 } else {
-                    AA2(i, j) = 0.0;
+                    AA(i, j) = 0.0;
                 }
             }
         }
         for (unsigned int i = 0; i < mn; ++i) {
-            b2(i + mn) = 1.0;
+            b(i + mn) = 1.0;
             for (unsigned int j = 0; j < mn; ++j) {
                 if (i == j) {
-                    AA2(i + mn, j) = -1.0;
+                    AA(i + mn, j) = -1.0;
                 } else {
-                    AA2(i + mn, j) = 0.0;
+                    AA(i + mn, j) = 0.0;
                 }
             }
         }
@@ -175,19 +175,18 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
         MT C = X2.transpose()*X2;
         Eigen::JacobiSVD<MT> svd(C, Eigen::ComputeFullU | Eigen::ComputeFullV);
         //volh = std::pow(2.0,NT(n))*svd.matrixU().determinant();
-        A33 = AA2*svd.matrixU().transpose();
+        A33 = AA*svd.matrixU().transpose();
         Hpolytope HP33;
         HP33.init(n,A33,b);
         std::pair<Point, NT> InnerBall33 = HP33.ComputeInnerBall();
         std::cout<<"radius = "<<InnerBall33.second<<std::endl;
         vars<NT, RNGType> var33(1, n, 1, 1, 0.0, e, 0, 0.0, 0, InnerBall33.second, rng,
                                 urdist, urdist1, -1.0, verbose, false, false, NN, birk, false,
-                                false);
+                                true);
         NT HnRsteps2, nballs, MemLps2;
         NT lb_ratio=0.1, up_ratio=0.15;
         VT Zs33_max(2*n);
         get_hdelta<Point>(ZP, HP33, Zs33_max, up_lim, ratio, randPoints, var33, HnRsteps2);
-        HP33.set_vec(Zs33_max);
         vol_pca = volesti_ball_ann(HP33, InnerBall33, lb_ratio, up_ratio, var33, HnRsteps2, nballs, MemLps2, 0, 0, 0.75, false, false);
     }
 
