@@ -278,6 +278,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio
         med = (u + l) * 0.5;
         Zmed = Zs_min + (Zs_max-Zs_min)*med;
         HPiter.set_vec(Zmed);
+        randPoints.clear();
 
         rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, var);
         steps += 1200.0;
@@ -305,8 +306,17 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio
         //delta1 = delta2;
         //delta2 = 2*delta2;
         //var = 2*var;
-        randPoints.clear();
+
         if(count>80 || med>0.9) {
+            NT countsIn = 0.0;
+            for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+                if (P.is_in(*pit)==-1) {
+                    countsIn += 1.0;
+                }
+            }
+            ratio = countsIn/1200.0;
+            if(print) std::cout<<"ratio = "<<ratio<<std::endl;
+            if(print) std::cout<<"Z_med = "<<med<<std::endl;
             HP.set_vec(Zmed);
             return;
         }

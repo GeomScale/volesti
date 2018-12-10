@@ -1,5 +1,3 @@
-
-
 // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 20012-2018 Vissarion Fisikopoulos
@@ -30,7 +28,7 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     std::vector<NT> ratios;
     NT p_value = 0.1;
     Point c = InnerBall.first;
-    NT radius, round_value = 1.0;
+    NT radius = InnerBall.second, round_value = 1.0;
 
     if(round){
 #ifdef VOLESTI_DEBUG
@@ -166,11 +164,11 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     //res[1] = NT(BallSet.size()+1);
     //res[2] = HnRSteps;
     //res[3] = MemLps;
-    if(verbose) {
-        std::cout<<"number of balls = "<<BallSet.size()+1<<std::endl;
-        std::cout<<"number of HnR steps = "<<HnRSteps<<std::endl;
-        std::cout<<"number of memberships (ball random points) = "<<MemLps<<std::endl;
-    }
+    //if(verbose) {
+        //std::cout<<"number of balls = "<<BallSet.size()+1<<std::endl;
+        //std::cout<<"number of HnR steps = "<<HnRSteps<<std::endl;
+        //std::cout<<"number of memberships (ball random points) = "<<MemLps<<std::endl;
+    //}
     hnrst = HnRSteps;
     memball = MemLps;
     nballs = NT(BallSet.size()+1);

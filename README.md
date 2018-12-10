@@ -1,3 +1,38 @@
+## SoCG 2019
+
+- Save `liblpsolve55.so` in folder `/usr/lib`.
+- Compile C++ code by running:  
+```
+cmake .  
+make  
+```
+1. Zonotopes  
+- You can generate a random zonotope in dimension `dim` with `k` generators by running:  
+```
+./generate -zonotope -d dim -m k
+```
+- Estimate the volume using balls in MMC and `e=0.1` (default):  
+```
+./vol -f3 zonotope_dim_k.ext -ban
+```
+- Estimate the volume using h-polytopes in MMC and `e=0.2` (default):  
+```
+./vol -f3 zonotope_dim_k.ext -hpoly -e 0.2
+```
+- For example the following commands:  
+```
+./generate -zonotope -d 10 -m 15
+./vol -f3 zonotope_10_15.ext -hpoly
+```
+Will generate a random 10-dimensional zonotope with 15 generators and estimate the volume by using h-polytopes in MMC.  
+- To compute the exact volume run:  
+```
+./vol -f3 zonotope_10_15.ext -exact_zono
+```
+2. V-polytopes  
+
+
+
 ## Volume computation and sampling
 
 |         | Build           

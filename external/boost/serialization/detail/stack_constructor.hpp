@@ -1,5 +1,5 @@
-#ifndef  BOOST_SERIALIZATION_DETAIL_STACH_CONSTRUCTOR_HPP
-#define BOOST_SERIALIZATION_DETAIL_STACH_CONSTRUCTOR_HPP
+#ifndef  BOOST_SERIALIZATION_DETAIL_STACK_CONSTRUCTOR_HPP
+#define BOOST_SERIALIZATION_DETAIL_STACK_CONSTRUCTOR_HPP
 
 // MS compatible compilers support #pragma once
 #if defined(_MSC_VER)
@@ -17,6 +17,7 @@
 //  See http://www.boost.org for updates, documentation, and revision history.
 
 #include <boost/aligned_storage.hpp>
+#include <boost/serialization/serialization.hpp>
 
 namespace boost{
 namespace serialization {
@@ -36,11 +37,7 @@ struct stack_allocate
 private:
     typedef typename boost::aligned_storage<
         sizeof(T), 
-        #if BOOST_WORKAROUND(__BORLANDC__,BOOST_TESTED_AT(0x560))
-            8
-        #else
-            boost::alignment_of<T>::value
-        #endif
+        boost::alignment_of<T>::value
     > type;
     type storage_;
 };

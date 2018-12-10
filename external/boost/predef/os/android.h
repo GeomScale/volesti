@@ -1,12 +1,12 @@
 /*
-Copyright Rene Rivera 2013
+Copyright Rene Rivera 2015
 Distributed under the Boost Software License, Version 1.0.
 (See accompanying file LICENSE_1_0.txt or copy at
 http://www.boost.org/LICENSE_1_0.txt)
 */
 
-#ifndef BOOST_PREDEF_OS_ADROID_H
-#define BOOST_PREDEF_OS_ADROID_H
+#ifndef BOOST_PREDEF_OS_ANDROID_H
+#define BOOST_PREDEF_OS_ANDROID_H
 
 #include <boost/predef/version_number.h>
 #include <boost/predef/make.h>
@@ -39,8 +39,7 @@ http://www.boost.org/LICENSE_1_0.txt)
 
 #define BOOST_OS_ANDROID_NAME "Android"
 
+#endif
+
 #include <boost/predef/detail/test.h>
 BOOST_PREDEF_DECLARE_TEST(BOOST_OS_ANDROID,BOOST_OS_ANDROID_NAME)
-
-
-#endif

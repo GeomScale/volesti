@@ -226,10 +226,11 @@ Rcpp::NumericVector vol_hzono (Rcpp::Reference P, double e=0.1, bool steps_only=
     }
     HnRsteps += steps;
     int mm=HPolySet.size()+2;
-    NT prob = std::pow(0.75, 1.0/NT(mm));
-    NT er0 = e/(2.0*std::sqrt(NT(mm)));
-    NT er1 = (e*std::sqrt(2.0*NT(mm)-1))/(std::sqrt(2.0*NT(mm)));
-    NT Her = e/(2.0*std::sqrt(NT(mm)));
+    int mm2=mm+1;
+    NT prob = std::pow(0.75, 1.0/NT(mm2));
+    NT er0 = e/(2.0*std::sqrt(NT(mm2)));
+    NT er1 = (e*std::sqrt(2.0*NT(mm2)-1))/(std::sqrt(2.0*NT(mm2)));
+    NT Her = e/(2.0*std::sqrt(NT(mm2)));
 
     var2.walk_steps=10 + n / 10;
     //InnerBall.first.print();

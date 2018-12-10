@@ -55,8 +55,10 @@
 // BOOST_MOVE_IS_POD(T) should evaluate to true if T is a POD type
 // BOOST_MOVE_HAS_TRIVIAL_CONSTRUCTOR(T) should evaluate to true if "T x;" has no effect
 // BOOST_MOVE_HAS_TRIVIAL_COPY(T) should evaluate to true if T(t) <==> memcpy
+// (Note: this trait does not guarantee T is copy constructible, the copy constructor could be deleted but still be trivial)
 // BOOST_MOVE_HAS_TRIVIAL_MOVE_CONSTRUCTOR(T) should evaluate to true if T(boost::move(t)) <==> memcpy
 // BOOST_MOVE_HAS_TRIVIAL_ASSIGN(T) should evaluate to true if t = u <==> memcpy
+// (Note: this trait does not guarantee T is assignable , the copy assignmen could be deleted but still be trivial)
 // BOOST_MOVE_HAS_TRIVIAL_MOVE_ASSIGN(T) should evaluate to true if t = boost::move(u) <==> memcpy
 // BOOST_MOVE_HAS_TRIVIAL_DESTRUCTOR(T) should evaluate to true if ~T() has no effect
 // BOOST_MOVE_HAS_NOTHROW_CONSTRUCTOR(T) should evaluate to true if "T x;" can not throw
@@ -117,9 +119,7 @@
 #     define BOOST_MOVE_HAS_TRIVIAL_CONSTRUCTOR(T) __has_trivial_constructor(T)
 #   endif
 #   if __has_feature(has_trivial_copy)
-#     //There are problems with deleted copy constructors detected as trivially copyable.
-#     //http://stackoverflow.com/questions/12754886/has-trivial-copy-behaves-differently-in-clang-and-gcc-whos-right
-#     define BOOST_MOVE_HAS_TRIVIAL_COPY(T) (__has_trivial_copy(T) && ::boost::move_detail::is_copy_constructible<T>::value)
+#     define BOOST_MOVE_HAS_TRIVIAL_COPY(T) __has_trivial_copy(T)
 #   endif
 #   if __has_feature(has_trivial_assign)
 #     define BOOST_MOVE_HAS_TRIVIAL_ASSIGN(T) (__has_trivial_assign(T) )
@@ -219,7 +219,10 @@
 #endif
 
 #ifdef BOOST_MOVE_IS_POD
-   #define BOOST_MOVE_IS_POD_IMPL(T) BOOST_MOVE_IS_POD(T)
+   //in some compilers the intrinsic is limited to class types so add scalar and void
+   #define BOOST_MOVE_IS_POD_IMPL(T) (::boost::move_detail::is_scalar<T>::value ||\
+                                      ::boost::move_detail::is_void<T>::value   ||\
+                                       BOOST_MOVE_IS_POD(T))
 #else
    #define BOOST_MOVE_IS_POD_IMPL(T) \
       (::boost::move_detail::is_scalar<T>::value || ::boost::move_detail::is_void<T>::value)
@@ -232,7 +235,9 @@
 #endif
 
 #ifdef BOOST_MOVE_HAS_TRIVIAL_COPY
-   #define BOOST_MOVE_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)   BOOST_MOVE_HAS_TRIVIAL_COPY(T)
+   #define BOOST_MOVE_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)   ::boost::move_detail::is_pod<T>::value ||\
+                                                          (::boost::move_detail::is_copy_constructible<T>::value &&\
+                                                           BOOST_MOVE_HAS_TRIVIAL_COPY(T))
 #else
    #define BOOST_MOVE_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)   ::boost::move_detail::is_pod<T>::value
 #endif
@@ -243,12 +248,6 @@
    #define BOOST_MOVE_IS_TRIVIALLY_DEFAULT_CONSTRUCTIBLE(T)  ::boost::move_detail::is_pod<T>::value
 #endif
 
-#ifdef BOOST_MOVE_HAS_TRIVIAL_COPY
-   #define BOOST_MOVE_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)   BOOST_MOVE_HAS_TRIVIAL_COPY(T)
-#else
-   #define BOOST_MOVE_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T)   ::boost::move_detail::is_pod<T>::value
-#endif
-
 #ifdef BOOST_MOVE_HAS_TRIVIAL_MOVE_CONSTRUCTOR
    #define BOOST_MOVE_IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T)   BOOST_MOVE_HAS_TRIVIAL_MOVE_CONSTRUCTOR(T)
 #else
@@ -256,7 +255,9 @@
 #endif
 
 #ifdef BOOST_MOVE_HAS_TRIVIAL_ASSIGN
-   #define BOOST_MOVE_IS_TRIVIALLY_COPY_ASSIGNABLE(T) BOOST_MOVE_HAS_TRIVIAL_ASSIGN(T)
+   #define BOOST_MOVE_IS_TRIVIALLY_COPY_ASSIGNABLE(T) ::boost::move_detail::is_pod<T>::value ||\
+                                                      ( ::boost::move_detail::is_copy_assignable<T>::value &&\
+                                                         BOOST_MOVE_HAS_TRIVIAL_ASSIGN(T))
 #else
    #define BOOST_MOVE_IS_TRIVIALLY_COPY_ASSIGNABLE(T) ::boost::move_detail::is_pod<T>::value
 #endif
@@ -341,23 +342,28 @@ struct is_pointer<T*>
 {  static const bool value = true; };
 
 //////////////////////////
-//    add_reference
+//       is_const
 //////////////////////////
-template <typename T>
-struct add_reference
-{  typedef T& type;  };
+template<class T>
+struct is_const
+{  static const bool value = false; };
 
 template<class T>
-struct add_reference<T&>
-{  typedef T& type;  };
+struct is_const<const T>
+{  static const bool value = true; };
 
-template<>
-struct add_reference<void>
-{  typedef nat &type;   };
+//////////////////////////
+//       unvoid_ref
+//////////////////////////
+template <typename T> struct unvoid_ref : add_lvalue_reference<T>{};
+template <> struct unvoid_ref<void>                { typedef unvoid_ref & type; };
+template <> struct unvoid_ref<const void>          { typedef unvoid_ref & type; };
+template <> struct unvoid_ref<volatile void>       { typedef unvoid_ref & type; };
+template <> struct unvoid_ref<const volatile void> { typedef unvoid_ref & type; };
 
-template<>
-struct add_reference<const void>
-{  typedef const nat &type;   };
+template <typename T>
+struct add_reference : add_lvalue_reference<T>
+{};
 
 //////////////////////////
 //    add_const_reference
@@ -369,6 +375,14 @@ struct add_const_reference
 template <class T>
 struct add_const_reference<T&>
 {  typedef T& type;   };
+
+//////////////////////////
+//    add_const_if_c
+//////////////////////////
+template<class T, bool Add>
+struct add_const_if_c
+   : if_c<Add, typename add_const<T>::type, T>
+{};
 
 //////////////////////////
 //    remove_const
@@ -464,7 +478,7 @@ template <class T>
 struct remove_all_extents<T[]>
 {  typedef typename remove_all_extents<T>::type type; };
 
-template <class T, size_t N>
+template <class T, std::size_t N>
 struct remove_all_extents<T[N]>
 {  typedef typename remove_all_extents<T>::type type;};
 
@@ -700,16 +714,31 @@ template <class T>
 struct is_empty
 {  static const bool value = BOOST_MOVE_IS_EMPTY_IMPL(T);  };
 
+
+template<class T>
+struct has_boost_move_no_copy_constructor_or_assign_type
+{
+   template <class U>
+   static yes_type test(typename U::boost_move_no_copy_constructor_or_assign*);
+
+   template <class U>
+   static no_type test(...);
+
+   static const bool value = sizeof(test<T>(0)) == sizeof(yes_type);
+};
+
 //////////////////////////////////////
 //       is_copy_constructible
 //////////////////////////////////////
+#if !defined(BOOST_NO_CXX11_DELETED_FUNCTIONS) && !defined(BOOST_NO_CXX11_DECLTYPE) \
+   && !defined(BOOST_INTEL_CXX_VERSION) && \
+      !(defined(BOOST_MSVC) && _MSC_VER == 1800)
+#define BOOST_MOVE_TT_CXX11_IS_COPY_CONSTRUCTIBLE
+#endif
+
 template<class T>
 struct is_copy_constructible
 {
-   typedef char yes_type;
-   struct no_type { char dummy[2]; };
-   template<class U> static typename add_reference<U>::type source();
-
    // Intel compiler has problems with SFINAE for copy constructors and deleted functions:
    //
    // error: function *function_name* cannot be referenced -- it is a deleted function
@@ -717,8 +746,8 @@ struct is_copy_constructible
    //                                                        ^ 
    // MSVC 12.0 (Visual 2013) has problems when the copy constructor has been deleted. See:
    // https://connect.microsoft.com/VisualStudio/feedback/details/800328/std-is-copy-constructible-is-broken
-   #if !defined(BOOST_NO_CXX11_DELETED_FUNCTIONS) && !defined(BOOST_INTEL_CXX_VERSION) &&\
-       !(defined(BOOST_MSVC) && _MSC_VER == 1800)
+   #if defined(BOOST_MOVE_TT_CXX11_IS_COPY_CONSTRUCTIBLE)
+      template<class U> static typename add_reference<U>::type source();
       static no_type test(...);
       #ifdef BOOST_NO_CXX11_DECLTYPE
          template <class U>
@@ -727,13 +756,45 @@ struct is_copy_constructible
          template <class U>
          static yes_type test(U&, decltype(U(source<U>()))* = 0);
       #endif
+      static const bool value = sizeof(test(source<T>())) == sizeof(yes_type);
    #else
-      template <class U>
-      static no_type test(U&, typename U::boost_move_no_copy_constructor_or_assign* = 0);
-      static yes_type test(...);
+   static const bool value = !has_boost_move_no_copy_constructor_or_assign_type<T>::value;
    #endif
+};
 
-   static const bool value = sizeof(test(source<T>())) == sizeof(yes_type);
+
+//////////////////////////////////////
+//       is_copy_assignable
+//////////////////////////////////////
+#if !defined(BOOST_NO_CXX11_DELETED_FUNCTIONS) && !defined(BOOST_NO_CXX11_DECLTYPE) \
+   && !defined(BOOST_INTEL_CXX_VERSION) && \
+      !(defined(BOOST_MSVC) && _MSC_VER == 1800)
+#define BOOST_MOVE_TT_CXX11_IS_COPY_ASSIGNABLE
+#endif
+
+template <class T>
+struct is_copy_assignable
+{
+// Intel compiler has problems with SFINAE for copy constructors and deleted functions:
+//
+// error: function *function_name* cannot be referenced -- it is a deleted function
+// static boost::type_traits::yes_type test(T1&, decltype(T1(boost::declval<T1&>()))* = 0);
+//                                                        ^ 
+//
+// MSVC 12.0 (Visual 2013) has problems when the copy constructor has been deleted. See:
+// https://connect.microsoft.com/VisualStudio/feedback/details/800328/std-is-copy-constructible-is-broken
+#if defined(BOOST_MOVE_TT_CXX11_IS_COPY_ASSIGNABLE)
+   typedef char yes_type;
+   struct no_type { char dummy[2]; };
+   
+   template <class U>   static typename add_reference<U>::type source();
+   template <class U>   static decltype(source<U&>() = source<const U&>(), yes_type() ) test(int);
+   template <class>     static no_type test(...);
+
+   static const bool value = sizeof(test<T>(0)) == sizeof(yes_type);
+#else
+   static const bool value = !has_boost_move_no_copy_constructor_or_assign_type<T>::value;
+#endif
 };
 
 //////////////////////////////////////
@@ -755,21 +816,29 @@ struct is_trivially_default_constructible
 //////////////////////////////////////
 template<class T>
 struct is_trivially_copy_constructible
-{  static const bool value = BOOST_MOVE_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T); };
+{
+   //In several compilers BOOST_MOVE_IS_TRIVIALLY_COPY_CONSTRUCTIBLE return true even with
+   //deleted copy constructors so make sure the type is copy constructible.
+   static const bool value = BOOST_MOVE_IS_TRIVIALLY_COPY_CONSTRUCTIBLE(T);
+};
 
 //////////////////////////////////////
 //       is_trivially_move_constructible
 //////////////////////////////////////
 template<class T>
 struct is_trivially_move_constructible
-{  static const bool value = BOOST_MOVE_IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T); };
+{ static const bool value = BOOST_MOVE_IS_TRIVIALLY_MOVE_CONSTRUCTIBLE(T); };
 
 //////////////////////////////////////
 //       is_trivially_copy_assignable
 //////////////////////////////////////
 template<class T>
 struct is_trivially_copy_assignable
-{  static const bool value = BOOST_MOVE_IS_TRIVIALLY_COPY_ASSIGNABLE(T);  };
+{
+   //In several compilers BOOST_MOVE_IS_TRIVIALLY_COPY_CONSTRUCTIBLE return true even with
+   //deleted copy constructors so make sure the type is copy constructible.
+   static const bool value = BOOST_MOVE_IS_TRIVIALLY_COPY_ASSIGNABLE(T);
+};                             
 
 //////////////////////////////////////
 //       is_trivially_move_assignable
@@ -898,14 +967,13 @@ typedef union max_align max_align_t;
 #if !defined(BOOST_NO_ALIGNMENT)
 
 template<std::size_t Len, std::size_t Align>
-struct aligned_storage_impl;
+struct aligned_struct;
 
 #define BOOST_MOVE_ALIGNED_STORAGE_WITH_BOOST_ALIGNMENT(A)\
 template<std::size_t Len>\
-struct BOOST_ALIGNMENT(A) aligned_storage_impl<Len, A>\
+struct BOOST_ALIGNMENT(A) aligned_struct<Len, A>\
 {\
-   char dummy[Len];\
-   typedef aligned_storage_impl<Len, A> type;\
+   char data[Len];\
 };\
 //
 
@@ -926,13 +994,28 @@ BOOST_MOVE_ALIGNED_STORAGE_WITH_BOOST_ALIGNMENT(0x1000)
 
 #undef BOOST_MOVE_ALIGNED_STORAGE_WITH_BOOST_ALIGNMENT
 
+// Workaround for bogus [-Wignored-attributes] warning on GCC 6.x/7.x: don't use a type that "directly" carries the alignment attribute.
+// See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82270
+template<std::size_t Len, std::size_t Align>
+union aligned_struct_wrapper
+{
+   aligned_struct<Len, Align> aligner;
+   char data[sizeof(aligned_struct<Len, Align>)];
+};
+
+template<std::size_t Len, std::size_t Align>
+struct aligned_storage_impl
+{
+   typedef aligned_struct_wrapper<Len, Align> type;
+};
+
 #else //BOOST_NO_ALIGNMENT
 
-template<class T, size_t Len>
+template<class T, std::size_t Len>
 union aligned_union
-{	
+{   
    T aligner;
-   char dummy[Len];
+   char data[Len];
 };
 
 template<std::size_t Len, std::size_t Align, class T, bool Ok>
@@ -948,7 +1031,7 @@ struct aligned_next<Len, Align, T, true>
 //End of search defaults to max_align_t
 template<std::size_t Len, std::size_t Align>
 struct aligned_next<Len, Align, max_align_t, false>
-{	typedef aligned_union<max_align_t, Len> type;   };
+{   typedef aligned_union<max_align_t, Len> type;   };
 
 //Now define a search list through types
 #define BOOST_MOVE_ALIGNED_NEXT_STEP(TYPE, NEXT_TYPE)\

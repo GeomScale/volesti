@@ -23,7 +23,7 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-#include <boost/math/special_functions/erf.hpp>
+#include "math/special_functions/erf.hpp"
 #include "vars.h"
 #include "polytopes.h"
 //#include "ellipsoids.h"
@@ -43,6 +43,7 @@
 //#include "exact_vols.h"
 //#include "simplex_samplers.h"
 //#include "copulas.h"
+#include "hzono_vol.h"
 
 
 template <class Polytope, class Parameters, class Point, typename NT>
@@ -55,6 +56,7 @@ NT volume(Polytope &P,
     typedef Ball<Point> Ball;
     typedef BallIntersectPolytope<Polytope,Ball> BallPoly;
     typedef typename Parameters::RNGType RNGType;
+    typedef typename Polytope::VT VT;
 
     HnRsteps = 0.0;
     bool round = var.round;
@@ -99,6 +101,13 @@ NT volume(Polytope &P,
             var.delta = 4.0 * radius / NT(n);
         }
     }
+
+    VT c_e(n);
+    for(unsigned int i=0; i<n; i++){
+        c_e(i)=c[i];  // write chebychev center in an eigen vector
+    }
+    P.shift(c_e);
+    c=Point(n);
 
     rnum=rnum/n_threads;
     NT vol=0;
@@ -155,10 +164,10 @@ NT volume(Polytope &P,
         for(int i=nb1; i<=nb2; ++i){
 
             if(i==nb1){
-                balls.push_back(Ball(c,radius*radius));
+                balls.push_back(Ball(Point(n),radius*radius));
                 vol = (std::pow(M_PI,n/2.0)*(std::pow(balls[0].radius(), n) ) ) / (tgamma(n/2.0+1));
             }else{
-                balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
+                balls.push_back(Ball(Point(n),std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
             }
 
         }
@@ -218,7 +227,7 @@ NT volume(Polytope &P,
             #endif
 
             #ifdef VOLESTI_DEBUG
-            if(print) std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
+            if(print) std::cout<<"Generate "<<rnum - nump_PBLarge<<  " more "
                               <<std::endl;
             #endif
 

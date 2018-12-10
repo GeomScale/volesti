@@ -25,6 +25,7 @@
 #include "volume.h"
 #include "sample_only.h"
 #include "exact_vols.h"
+#include "compute_miniball.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
@@ -74,7 +75,9 @@ int main(const int argc, const char** argv)
          coordinate=true,
          exact_zono = false,
                  ball_annealing = false,
+                         hpoly = false,
          gaussian_sam = false;
+    int n_subw=0, n_tuples=0;
 
     //this is our polytope
     Hpolytope HP;
@@ -152,6 +155,10 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-ban")){
           ball_annealing = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-hpoly")){
+          hpoly = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-exact_zono")){
@@ -536,16 +543,58 @@ int main(const int argc, const char** argv)
           return 0;
       } else {
           // Estimate the volume
-          if (ball_annealing) {
+          if(Zono && hpoly){
+              NT HnRsteps, MemLps;
+              int nHpoly;
+              NT lb2=lb, up_lim2=0.15;
+              if (e==1.0){
+                  if (verbose) std::cout<<"set error to 0.1"<<std::endl;
+                  var.error=0.1;
+              }
+              vol = vol_hzono<Hpolytope > (ZP, lb2, up_lim2, var, nHpoly, HnRsteps, MemLps, n_subw, n_tuples);
+              //(Zonotope &ZP, int &lb, int &up_lim, Parameters &var, int &nHpoly, NT &HnRsteps, NT &MemLps,
+                      //int len_subwin = 0, int len_tuple = 0, bool steps_only=false, bool const_win=true,
+                      //bool cg_hpol = false, bool PCA = false, bool pca_ratio = false)
+          }else if (ball_annealing) {
+              if (e==1.0){
+                  if (verbose) std::cout<<"set error to 0.1"<<std::endl;
+                  var.error=0.1;
+              }
+              if (n_subw==0) n_subw=2;
+              if (n_tuples==0) n_tuples=n*n+125;
               NT HnRsteps, nballs, MemLps;
               //vol = volume(ZP, var, var, InnerBall, lb, up_lim);
               if(Zono) {
-                  vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps);
+                  vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps,n_subw, n_tuples);
               } else if(!Vpoly) {
-                  vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps);
+                  vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps,n_subw, n_tuples);
               } else {
-                  vol = volesti_ball_ann(VP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps);
+                  NT round_val=1.0;
+                  NT rmax;
+                  if(round) {
+                      InnerBall.first = VP.get_mean_of_vertices();
+                      InnerBall.second = 0.0;
+                      vars<NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second, rng,
+                                             urdist, urdist1, -1, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
+                      std::pair<NT,NT> res_round = rounding_min_ellipsoid(VP,InnerBall,var2);
+                      round_val=res_round.first;
+                      //rounding = false;
+                      var.round=false;
+                      InnerBall.first = Point(n);
+                      InnerBall.second = 0.0;
+                      rmax = VP.get_max_vert_norm();
+                  } else {
+                      typedef typename Vpolytope::VT VT;
+                      InnerBall = compute_minball<Point, VT, NT>(VP);
+                      rmax = InnerBall.second;
+                      InnerBall.second = 0.0;
+                      //VP.print();
+                  }
+                  vol = volesti_ball_ann(VP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps, n_subw, n_tuples,
+                                         0.75, false, true, 0.0, 0.0, rmax);
+                  vol = vol*round_val;
               }
+              std::cout<<"\nNumber of balls = "<<nballs<<"\n Number of steps = "<<HnRsteps<<"\n"<<std::endl;
           }else if (annealing) {
 
               // setup the parameters
@@ -554,6 +603,7 @@ int main(const int argc, const char** argv)
 
               vars_g<NT, RNGType> var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
                           verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+
 
               if (Zono) {
                   vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
@@ -564,12 +614,13 @@ int main(const int argc, const char** argv)
               }
 
           } else {
+              NT HnRst;
               if (Zono) {
-                  vol = volume(ZP, var, var, InnerBall);
+                  vol = volume(ZP, var, var, InnerBall,HnRst);
               } else if (!Vpoly) {
-                  vol = volume(HP, var, var, InnerBall);
+                  vol = volume(HP, var, var, InnerBall,HnRst);
               } else {
-                  vol = volume(VP, var, var, InnerBall);
+                  vol = volume(VP, var, var, InnerBall,HnRst);
               }
           }
       }
