@@ -1,6 +1,6 @@
 ## SoCG 2019
 
-- Save `liblpsolve55.so` in folder `/usr/lib`.
+- Save `liblpsolve55.so` in folder `/usr/lib`. You will find it in `/external` folder.
 - In folder `/test` compile C++ code by running:  
 ```
 cmake .  
