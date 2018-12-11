@@ -17,7 +17,7 @@ For example:
 ./generate -cube -h -d 20
 ./vol -f1 cube_20.ine -ban
 ```
-- To generate a unit simple in `dim` dimension and estimate the volume:  
+- To generate a unit simplex in `dim` dimension and estimate the volume:  
 ```
 ./generate -simplex -h -d dim
 ./vol -f1 simplex_dim.ine -ban
@@ -42,7 +42,7 @@ For example:
 - To generate a unit cube in `dim` dimension and estimate the volume:  
 ```
 ./generate -cube -v -d dim
-./vol -f2 cube_dim.ext -dim
+./vol -f2 cube_dim.ext -ban
 ```
 - To generate a random V-polytope in `dim` dimension with k vertices and estimate the volume:  
 ```
@@ -56,11 +56,11 @@ Note: For random V-polytopes use the flag `-r` to round the polytope.
 ```
 ./generate -zonotope -d dim -m k
 ```
-- Estimate the volume using balls in MMC and `e=0.1` (default):  
+- Estimate the volume using balls in MMC:  
 ```
 ./vol -f3 zonotope_dim_k.ext -ban
 ```
-- Estimate the volume using h-polytopes in MMC and `e=0.1` (default):  
+- Estimate the volume using h-polytopes in MMC:  
 ```
 ./vol -f3 zonotope_dim_k.ext -hpoly
 ```
@@ -75,7 +75,7 @@ Will generate a random 10-dimensional zonotope with 15 generators and estimate t
 ./vol -f3 zonotope_10_15.ext -exact_zono
 ```
 
-Note: If you wish to give specific polytopes as input use `.ine` file for H-polytopes and `.ext` files for V-polytopes or zonotopes. Keep the same format as in the generated files.
+Note: If you wish to give a specific polytope as input use `.ine` file for an H-polytope and `.ext` file for a V-polytopes or a zonotopes. Keep the same format as in the generated files.
 
 4. Flags
 
