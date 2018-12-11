@@ -252,12 +252,13 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio
 
     //get_maxZ0<NT>(A, G, Zs_max);
     //std::cout<<Zs_max<<"\n"<<std::endl;
+    //std::cout<<Zs_min<<"\n"<<std::endl;
     VT b = HP.get_vec();
     VT b2 = b;
     HPolytope HPiter=HP;
 
     int n = P.dimension(), m = Zs_max_gl.size();
-    std::cout<<"k = "<<m<<std::endl;
+    //std::cout<<"k = "<<m<<std::endl;
     int N = 1200;
     if(up_lim==0.0){
         up_lim=0.15;
@@ -291,7 +292,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio
         if(print) std::cout<<"Z_med = "<<med<<std::endl;
 
         if(done) {
-            std::cout<<"done first Hpoly"<<std::endl;
+            //std::cout<<"done first Hpoly"<<std::endl;
             //delta = delta2;
             HP.set_vec(Zmed);
             return;

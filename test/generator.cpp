@@ -67,27 +67,32 @@ void create_txt(MT A, VT b, int kind, bool Vpoly) {
             std::string poly = "cube";
             name = poly + bar + std::to_string(d) + ine;
             outputFile.open(name);
-            outputFile<<"cube_"<<d<<".ine\n";
+            outputFile << "cube_" << d << ".ine\n";
         } else if (kind == 2) {
             std::string poly = "cross";
             name = poly + bar + std::to_string(d) + ine;
             outputFile.open(name);
-            outputFile<<"cross_"<<d<<".ine\n";
+            outputFile << "cross_" << d << ".ine\n";
         } else if (kind == 3) {
             std::string poly = "simplex";
             name = poly + bar + std::to_string(d) + ine;
             outputFile.open(name);
-            outputFile<<"simplex_"<<d<<".ine\n";
+            outputFile << "simplex_" << d << ".ine\n";
         } else if (kind == 4) {
             std::string poly = "prod_simplex";
-            name = poly + bar + std::to_string(d/2) + bar + std::to_string(d/2) + ine;
+            name = poly + bar + std::to_string(d / 2) + bar + std::to_string(d / 2) + ine;
             outputFile.open(name);
-            outputFile<<"prod_simplex_"<<d/2<<"_"<<d/2<<".ine\n";
+            outputFile << "prod_simplex_" << d / 2 << "_" << d / 2 << ".ine\n";
         } else if (kind == 5) {
             std::string poly = "skinny_cube";
             name = poly + bar + std::to_string(d) + ine;
             outputFile.open(name);
             outputFile << "skinny_cube_" << d << ".ine\n";
+        } else if(kind == 6){
+            std::string poly = "random_h_poly";
+            name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ine;
+            outputFile.open(name);
+            outputFile << "random_h_poly_" << d << "_" << m << ".ine\n";
         } else {
             return;
         }
@@ -132,7 +137,7 @@ int main(const int argc, const char** argv) {
 
     bool Hpoly = false, Vpoly = false, Zono = false,
             cube = false, cross = false, simplex = false,
-            prod_simplex = false, skinny_cube = false, random_v = false;
+            prod_simplex = false, skinny_cube = false, random_v = false, random_h = false;
     int d = 0, m = 0, kind = -1;
 
     for(int i=1;i<argc;++i) {
@@ -147,10 +152,12 @@ int main(const int argc, const char** argv) {
                      "-simplex : generate a simplex\n"<<
                      "-prod_simplex : generate a product of two simplices\n"<<
                      "-skinny_cube : generate a skinny hypercube\n"<<
+                     "-rv : generate a random V-polytope\n"<<
+                     "-rh : generate a random H-polytope\n"<<
                      "-h : generate polytope in H-representation\n"<<
                      "-v : generate polytope in V-representation\n"<<
                      "-d : the dimension\n"<<
-                     "-m : number of segments that generate the zonotope\n"<<
+                     "-m : number of segments for a random zonotope or the number of vertices for a random V-polytope or the number of facets for a random H-polytope \n"<<
                      std::endl;
             return 0;
         }
@@ -159,6 +166,12 @@ int main(const int argc, const char** argv) {
             random_v = true;
             kind = 6;
             Vpoly = true;
+            correct = true;
+        }
+        if(!strcmp(argv[i],"-rh")) {
+            Hpoly = true;
+            random_h = true;
+            kind = 6;
             correct = true;
         }
         if(!strcmp(argv[i],"-zonotope")) {
@@ -243,6 +256,8 @@ int main(const int argc, const char** argv) {
             HP = gen_prod_simplex<Hpolytope>(d);
         } else if (skinny_cube) {
             HP = gen_skinny_cube<Hpolytope>(d);
+        } else if(random_h) {
+            HP = random_hpoly<Hpolytope , RNGType >(d,m);
         } else {
             std::cout << "Wrong inputs, try -help" << std::endl;
             exit(-1);

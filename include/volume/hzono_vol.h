@@ -14,8 +14,8 @@
 
 template <class Hpolytope, class Zonotope, class Parameters, typename NT>
 NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT &HnRsteps, NT &MemLps,
-              int len_subwin = 0, int len_tuple = 0, bool steps_only=false, bool const_win=true,
-              bool cg_hpol = false, bool PCA = false, bool pca_ratio = false) {
+              int len_subwin = 0, int len_tuple = 0, bool pca_ratio = false, bool steps_only=false, bool const_win=true,
+              bool cg_hpol = false, bool PCA = false) {
 
     typedef typename Zonotope::PolytopePoint Point;
     typedef typename Zonotope::VT VT;
@@ -28,7 +28,7 @@ NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT
 
     bool verbose = var.verbose;
     NT e = var.error;
-    std::cout<<"error = "<<e<<std::endl;
+    //std::cout<<"error = "<<e<<std::endl;
     int n= var.n;
     NT ratio;
 
@@ -134,9 +134,9 @@ NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT
         //volh = std::pow(2.0,NT(n))*svd.matrixU().determinant();
         A33 = AA2*svd.matrixU().transpose();
         Hpolytope HP33;
-        HP33.init(n,A33,b);
+        HP33.init(n,A33,b2);
         std::pair<Point, NT> InnerBall33 = HP33.ComputeInnerBall();
-        std::cout<<"radius = "<<InnerBall33.second<<std::endl;
+        //std::cout<<"radius = "<<InnerBall33.second<<std::endl;
         vars<NT, RNGType> var33(1, n, 1, 1, 0.0, e, 0, 0.0, 0, InnerBall33.second, var.rng,
                                 var.urdist, var.urdist1, -1.0, verbose, false, false, NN, birk, false,
                                 false);
@@ -144,6 +144,7 @@ NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT
         NT lb_ratio=0.1, up_ratio=0.15;
         VT Zs33_max(2*n);
         get_hdelta(ZP, HP33, Zs33_max, up_ratio, ratio, randPoints, var33, HnRsteps2);
+        //std::cout<<"Z_max"<<Zs33_max<<std::endl;
         HP33.set_vec(Zs33_max);
         vol_pca = volesti_ball_ann(HP33, InnerBall33, lb_ratio, up_ratio, var33, HnRsteps2, nballs, MemLps2, 0, 0, 0.75, false, false);
         var2.coordinate=true;
@@ -301,6 +302,7 @@ NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT
     if(pca_ratio){
         return std::pow(vol_pca/vol, 1.0/NT(n));
     }
+    std::cout<<"\nNumber of phases (h-polytopes) = "<<nHpoly<<"\nNumber of steps = "<<HnRsteps<<"\nVolume = "<<vol<<std::endl;
     return vol;
 
 }

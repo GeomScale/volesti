@@ -76,7 +76,8 @@ int main(const int argc, const char** argv)
          exact_zono = false,
                  ball_annealing = false,
                          hpoly = false,
-         gaussian_sam = false;
+         gaussian_sam = false,
+                 pca_ratio=false;
     int n_subw=0, n_tuples=0;
 
     //this is our polytope
@@ -159,6 +160,10 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-hpoly")){
           hpoly = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-pca")){
+          pca_ratio = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-exact_zono")){
@@ -547,11 +552,16 @@ int main(const int argc, const char** argv)
               NT HnRsteps, MemLps;
               int nHpoly;
               NT lb2=lb, up_lim2=0.15;
+              var.coordinate = false;
               if (e==1.0){
                   if (verbose) std::cout<<"set error to 0.1"<<std::endl;
                   var.error=0.1;
               }
-              vol = vol_hzono<Hpolytope > (ZP, lb2, up_lim2, var, nHpoly, HnRsteps, MemLps, n_subw, n_tuples);
+              vol = vol_hzono<Hpolytope > (ZP, lb2, up_lim2, var, nHpoly, HnRsteps, MemLps, n_subw, n_tuples, pca_ratio);
+              if (pca_ratio) {
+                  std::cout<<"\nRatio of over-approximation = "<<vol<<std::endl;
+                  return -1;
+              }
               //(Zonotope &ZP, int &lb, int &up_lim, Parameters &var, int &nHpoly, NT &HnRsteps, NT &MemLps,
                       //int len_subwin = 0, int len_tuple = 0, bool steps_only=false, bool const_win=true,
                       //bool cg_hpol = false, bool PCA = false, bool pca_ratio = false)
@@ -565,10 +575,12 @@ int main(const int argc, const char** argv)
               NT HnRsteps, nballs, MemLps;
               //vol = volume(ZP, var, var, InnerBall, lb, up_lim);
               if(Zono) {
+                  var.coordinate = false;
                   vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps,n_subw, n_tuples);
               } else if(!Vpoly) {
                   vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps,n_subw, n_tuples);
               } else {
+                  var.coordinate = false;
                   NT round_val=1.0;
                   NT rmax;
                   if(round) {
@@ -594,7 +606,7 @@ int main(const int argc, const char** argv)
                                          0.75, false, true, 0.0, 0.0, rmax);
                   vol = vol*round_val;
               }
-              std::cout<<"\nNumber of balls = "<<nballs<<"\n Number of steps = "<<HnRsteps<<"\n"<<std::endl;
+              std::cout<<"\nNumber of phases (balls) = "<<nballs<<"\nNumber of steps = "<<HnRsteps<<"\nVolume = "<< vol<<std::endl;
           }else if (annealing) {
 
               // setup the parameters
@@ -628,6 +640,10 @@ int main(const int argc, const char** argv)
       NT v1 = vol;
 
       tstop = (double)clock()/(double)CLOCKS_PER_SEC;
+      if(ball_annealing || (Zono && hpoly)) {
+          std::cout<<"Time = "<<tstop-tstart<<" sec"<<std::endl;
+          return -1;
+      }
 
       // Statistics
       sum+=v1;

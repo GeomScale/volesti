@@ -57,7 +57,7 @@ bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, Paramete
     NT countIn = 0.0;
     std::vector<NT> ratios;
     int m = randPoints.size()/10;
-
+    bool print = var.verbose;
 
     typename PointList::iterator rpit = randPoints.begin();
     int i=1;
@@ -82,7 +82,7 @@ bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, Paramete
     //NT p_test = a;
 
     //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
-    std::cout<<"check for last hpoly, p_mval = "<<p_mval<<std::endl;
+    //if (print) std::cout<<"check for last hpoly, p_mval = "<<p_mval<<std::endl;
     if (p_mval > 0.1 + t_value*(p_varval/std::sqrt(NT(ni)))) {
         ratio = p_mval;
         return true;
@@ -100,6 +100,7 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
     typedef typename Zonotope::PolytopePoint Point;
     int n = var.n;
     bool done, too_few;
+    bool print = var.verbose;
 
     NT rad2=0.0;
     NT rad1=0.0, rad;
@@ -123,7 +124,7 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
             return;
         }
 
-        std::cout<<"med = "<<med<<" ratio = "<<ratio<<std::endl;
+        if(print) std::cout<<"med = "<<med<<" ratio = "<<ratio<<std::endl;
         if(too_few) {
             l = med;
         } else {

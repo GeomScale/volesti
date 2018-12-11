@@ -1,12 +1,65 @@
 ## SoCG 2019
 
 - Save `liblpsolve55.so` in folder `/usr/lib`.
-- Compile C++ code by running:  
+- In folder `/test` compile C++ code by running:  
 ```
 cmake .  
 make  
 ```
-1. Zonotopes  
+1. H-polytopes (Table 1):  
+- To generate a unit cube in `dim` dimension and estimate the volume:  
+```
+./generate -cube -h -d dim
+./vol -f1 cube_dim.ine -ban
+```
+For example:  
+```
+./generate -cube -h -d 20
+./vol -f1 cube_20.ine -ban
+```
+Use flag `-rdhr` to use Random Directions Hit and Run:
+```
+./vol -f1 cube_dim.ine -ban -rdhr
+```
+Use flag `-e` to set the error (the default value is `0.1`):  
+```
+./vol -f1 cube_20.ine -ban -e 0.2
+```
+- To generate a unit simple in `dim` dimension and estimate the volume:  
+```
+./generate -simplex -h -d dim
+./vol -f1 simplex_dim.ine -ban
+```
+-To generate a random H-polytope in `dim` with `k` facets dimension and estimate the volume:  
+```
+./generate -rh -d dim -m k
+./vol -f1 random_h_poly_dim_k.ine -ban
+```
+
+2. V-polytopes (Table 2):  
+- To generate a cross polytope in `dim` dimension and estimate the volume:  
+```
+./generate -cross -v -d dim
+./vol -f2 cross_dim.ext -ban
+```
+- To generate a unit simplex in `dim` dimension:  
+```
+./generate -simplex -v -d dim
+./vol -f2 simplex_dim.ext -ban
+```
+- To generate a unit cube in `dim` dimension and estimate the volume:  
+```
+./generate -cube -v -d dim
+./vol -f2 cube_dim.ext -dim
+```
+- To generate a random V-polytope in `dim` dimension with k vertices and estimate the volume:  
+```
+./generate -rv -d dim -m k
+./vol -f2 random_v_poly_dim_k.ext -ban -r
+```
+Note: For random v-polytopes use the flag `-r` to round the polytope.
+
+3. Zonotopes (Table 3):  
 - You can generate a random zonotope in dimension `dim` with `k` generators by running:  
 ```
 ./generate -zonotope -d dim -m k
@@ -29,9 +82,15 @@ Will generate a random 10-dimensional zonotope with 15 generators and estimate t
 ```
 ./vol -f3 zonotope_10_15.ext -exact_zono
 ```
-2. V-polytopes  
 
+Note: If you wish to give other polytope as input use `.ine` file for H-polytopes and `.ext` files for V-polytopes or zonotopes. Keep the same format as in generated files.
 
+4. Test PCA over-aproximations of a zonotope
+
+- To compute the ratio for the PCA approximation of a zonotope that is described in a `.ext` file run:  
+```
+./vol -f3 zonotope_dim_k.ext -hpoly -pca
+```
 
 ## Volume computation and sampling
 
