@@ -37,10 +37,10 @@ void check_converg00001(ball &P, PointList &randPoints, NT p_test, bool &done, b
             mv = getMeanVariance(ratios);
             rm = mv.first; rs = mv.second;
             //std::cout<<"rm = "<<rm<<"rs = "<<rs<<"rm+zp*rs = "<<rm+zp*rs<<"rm-zp*rs = "<<rm-zp*rs<<std::endl;
-            if (rm+zp*rs<0.09) {
+            if (rm+zp*rs<(p_test-0.01)) {
                 too_few = true;
                 return;
-            } else if (rm-zp*rs>0.17) {
+            } else if (rm-zp*rs>(up_lim+0.02)) {
                 return;
             }
         }
@@ -236,7 +236,7 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rc
 }*/
 
 template <class Polytope, class HPolytope, class VT, typename NT, class PointList, class Parameters>
-void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio,
+void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT &ratio,
                 PointList &randPoints, Parameters &var, NT &steps){
 
     NT delta1 = 0.0;
@@ -287,7 +287,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT &up_lim, NT &ratio
 
         done = false;
         too_few = false;
-        check_converg00001<Point>(P, randPoints, 0.1, done, too_few, ratio, up_lim, false);
+        check_converg00001<Point>(P, randPoints, lb, done, too_few, ratio, up_lim, false);
         if(print) std::cout<<"ratio = "<<ratio<<std::endl;
         if(print) std::cout<<"Z_med = "<<med<<std::endl;
 

@@ -17,20 +17,12 @@ For example:
 ./generate -cube -h -d 20
 ./vol -f1 cube_20.ine -ban
 ```
-Use flag `-rdhr` to use Random Directions Hit and Run:
-```
-./vol -f1 cube_dim.ine -ban -rdhr
-```
-Use flag `-e` to set the error (the default value is `0.1`):  
-```
-./vol -f1 cube_20.ine -ban -e 0.2
-```
 - To generate a unit simple in `dim` dimension and estimate the volume:  
 ```
 ./generate -simplex -h -d dim
 ./vol -f1 simplex_dim.ine -ban
 ```
--To generate a random H-polytope in `dim` with `k` facets dimension and estimate the volume:  
+- To generate a random H-polytope in `dim` with `k` facets dimension and estimate the volume:  
 ```
 ./generate -rh -d dim -m k
 ./vol -f1 random_h_poly_dim_k.ine -ban
@@ -57,7 +49,7 @@ Use flag `-e` to set the error (the default value is `0.1`):
 ./generate -rv -d dim -m k
 ./vol -f2 random_v_poly_dim_k.ext -ban -r
 ```
-Note: For random v-polytopes use the flag `-r` to round the polytope.
+Note: For random V-polytopes use the flag `-r` to round the polytope.
 
 3. Zonotopes (Table 3):  
 - You can generate a random zonotope in dimension `dim` with `k` generators by running:  
@@ -68,9 +60,9 @@ Note: For random v-polytopes use the flag `-r` to round the polytope.
 ```
 ./vol -f3 zonotope_dim_k.ext -ban
 ```
-- Estimate the volume using h-polytopes in MMC and `e=0.2` (default):  
+- Estimate the volume using h-polytopes in MMC and `e=0.1` (default):  
 ```
-./vol -f3 zonotope_dim_k.ext -hpoly -e 0.2
+./vol -f3 zonotope_dim_k.ext -hpoly
 ```
 - For example the following commands:  
 ```
@@ -83,11 +75,41 @@ Will generate a random 10-dimensional zonotope with 15 generators and estimate t
 ./vol -f3 zonotope_10_15.ext -exact_zono
 ```
 
-Note: If you wish to give other polytope as input use `.ine` file for H-polytopes and `.ext` files for V-polytopes or zonotopes. Keep the same format as in generated files.
+Note: If you wish to give specific polytopes as input use `.ine` file for H-polytopes and `.ext` files for V-polytopes or zonotopes. Keep the same format as in the generated files.
 
-4. Test PCA over-aproximations of a zonotope
+4. Flags
 
-- To compute the ratio for the PCA approximation of a zonotope that is described in a `.ext` file run:  
+- For H-polytopes the default random walk is Coordinate Directions HnR. Use flag `-rdhr` to use Random Directions HnR:  
+```
+./vol -f1 cube_dim.ine -ban -rdhr
+```
+- For V-polytopes and zonotopes the default random walk is Random Directions HnR. To use Coordinate Directions HnR use the flag `-cdhr`. For example:  
+```
+./vol -f2 cube_dim.ext -ban -cdhr
+```
+- Use flag `-WalkL` to set the step of the HnR (the default value is 1). For example:  
+```
+./vol -f1 cross_dim.ext -ban -WalkL 5
+```
+Will set the step equals to 5.
+- Use flag `-e` to set the error (the default value is `0.1`). For example:  
+```
+./vol -f1 zonotope_dim_k.ext -ban -e 0.2
+```
+- Use flag `-WinLen` to set the length of the sliding window (the default value is 4d^2+250). For example:  
+```
+./vol -f1 cross_dim.ext -ban -WinLen 500
+```
+Will set the window's length `n=500`.
+- Use flags `-l` and `-u` to set the test values for testR (r) and testL (r+\delta) respectively. For example:  
+```
+./vol -f1 cube_dim.ine -ban -l 0.01 -u 0.015
+```
+Will define ratios between `0.01` and `0.015` with high probability.
+
+5. Test PCA over-aproximations of a zonotope
+
+- To compute the ratio for the PCA approximation of a zonotope that is described in a `.ext` file, use flag `-pca` and run:  
 ```
 ./vol -f3 zonotope_dim_k.ext -hpoly -pca
 ```

@@ -248,7 +248,7 @@ bool check_max_error123(NT a, NT b, NT val, NT error) {
 }
 
 template <class Point, class ZonoBall, class ball, typename NT, class Parameters>
-NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int n_subw, int n_tuples, NT prob, Parameters &var, NT &steps) {
+NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int WW, NT prob, Parameters &var, NT &steps) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
@@ -258,10 +258,10 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int n_subw, in
     bool print = var.verbose;
     //std::cout<<"n = "<<n<<std::endl;
     //int W=4*n*n+500;
-    int W = n_subw*n_tuples;
+    int W = WW;
     //int m = Z.num_of_generators();
-    //std::cout<<"W = "<<W<<" n_subw = "<<n_subw<<" n_tuples = "<<n_tuples<<" walk_steps = "<<var.walk_steps<<std::endl;
-   // std::cout<<"coordinate : "<<var.coordinate<<std::endl;
+    std::cout<<"W = "<<W<<" walk_steps = "<<var.walk_steps<<std::endl;
+    std::cout<<"coordinate : "<<var.coordinate<<std::endl;
     NT curr_eps = error;
     bool done=false;
     NT min_val = minNT;
@@ -379,7 +379,7 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int n_subw, in
         if(chk) {
             if (print) std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
             done=true;
-            steps = (totCount - 1200.0-n*n*2.0);
+            steps = (totCount - 1200.0-n*n*2.0)*NT(var.walk_steps);
             //std::cout<<"steps = "<<steps<<std::endl;
             return val;
         }
@@ -390,7 +390,7 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int n_subw, in
 }
 
 template <class RNGType, class Zonotope, class ball, typename NT>
-NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int n_subw, int n_tuple, NT ratio, NT prob, NT &steps) {
+NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int WW, NT ratio, NT prob, NT &steps) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
@@ -399,7 +399,7 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int n_subw, int n_tuple, NT
     //int W = 4 * n * n + 500;
     //bool print = var.verbose;
     //int m = Z.num_of_generators();
-    int W = n_subw*n_tuple;
+    int W = WW;
    // std::cout<<"W = "<<W<<" n_subw = "<<n_subw<<" n_tuples = "<<n_tuple<<std::endl;
     // std::cout<<"W = "<<W<<std::endl;
     NT curr_eps = error;

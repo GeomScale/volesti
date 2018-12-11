@@ -212,7 +212,7 @@ bool check_max_error2(NT a, NT b, NT val, NT error) {
 
 
 template <class Zonotope, class HPolytope, typename NT, class Parameters>
-NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int n_tuple, NT prob, NT ratio, Parameters &var, NT &steps) {
+NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int WW, NT prob, NT ratio, Parameters &var, NT &steps) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
@@ -221,7 +221,7 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
     //int W = 4 * n * n + 500;
     //bool print = var.verbose;
     //int m = Z.num_of_generators();
-    int W = n_subw*n_tuple;
+    int W = WW;
     // std::cout<<"W = "<<W<<std::endl;
     NT curr_eps = error;
     //std::cout<<"curr_eps = "<<curr_eps<<std::endl;
@@ -237,16 +237,18 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
     typename std::vector<NT>::iterator minmaxIt;
     typename std::list<Point>::iterator rpit;
     NT val;
-    std::vector<std::vector<NT> > vals(n_subw, std::vector<NT>(n_tuple));
+    //std::vector<std::vector<NT> > vals(n_subw, std::vector<NT>(n_tuple));
 
     NT countIn = ratio*1200.0;
     NT totCount = 1200.0;
     //NT rad = B0.radius();
     int col=0, row=0;
-    std::vector<NT> sums(n_subw,0.0);
+    //std::vector<NT> sums(n_subw,0.0);
     Point p(n);
     //typename std::vector< std::vector<NT> >::iterator sumit=vals.begin();
     //typename std::vector<NT>::iterator sit=sums.begin();
+    NT sum_sq=0.0;
+    NT sum=0.0;
     for (int i = 0; i < W; ++i) {
         rand_point(HP, p, var);
         if(Z.is_in(p)==-1) {
@@ -254,6 +256,8 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
         }
         totCount = totCount + 1.0;
         val = countIn / totCount;
+        sum += val;
+        sum_sq += val*val;
         last_W[index] = val;
         index = index%W+1;
 
@@ -279,6 +283,7 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
     NT pr = (1.0 + prob) / 2.0 ,m, s, zp;
     zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
     bool chk;
+    m=sum/NT(W);
     //p=Point(n);
     while(!done){
 
@@ -289,6 +294,15 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
         totCount = totCount + 1.0;
 
         val = countIn / totCount;
+        m-=last_W[index]/NT(W);
+        m+=val/NT(W);
+        sum_sq -= last_W[index]*last_W[index];
+        sum_sq += val*val;
+        sum-=last_W[index];
+        sum+=val;
+        //mv = getMeanVariance(last_W);
+        //m=mv.first;
+        s = std::sqrt((sum_sq+NT(W)*m*m-2.0*m*sum)/NT(W));
         /*for (int i = 0; i < n_subw-1; ++i) {
             sums[i] -= vals[i][col] / NT(n_tuple);
             sums[i] += vals[i+1][col] / NT(n_tuple);
@@ -305,9 +319,9 @@ NT est_ratio_hzono_normal(Zonotope &Z, HPolytope &HP, NT error, int n_subw, int 
         index = index%W+1;
 
         if(index==W) index=0;
-        mv = getMeanVariance(last_W);
-        m = mv.first;
-        s = std::sqrt(mv.second);
+        //mv = getMeanVariance(last_W);
+        //m = mv.first;
+        //s = std::sqrt(mv.second);
         //zp = m + s*std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
 
         chk= check_max_error2(m-zp*s, m+zp*s, val, error);

@@ -53,7 +53,7 @@ int main(const int argc, const char** argv)
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> Zonotope;
     int n, nexp=1, n_threads=1, W;
-    int walk_len,N, nsam = 100;
+    int walk_len,N, nsam = 100, Win_len, walk_l=1;
     NT e=1;
     NT exactvol(-1.0), a=0.5 ,lb=0.1, up_lim=0.15;
     bool verbose=false, 
@@ -77,7 +77,9 @@ int main(const int argc, const char** argv)
                  ball_annealing = false,
                          hpoly = false,
          gaussian_sam = false,
-                 pca_ratio=false;
+                 set_coord=false,
+            user_banW=false,
+    pca_ratio=false;
     int n_subw=0, n_tuples=0;
 
     //this is our polytope
@@ -158,6 +160,15 @@ int main(const int argc, const char** argv)
           ball_annealing = true;
           correct = true;
       }
+      if(!strcmp(argv[i],"-WinLen")){
+          Win_len = atof(argv[++i]);
+          user_banW = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-WalkL")){
+          walk_l = atof(argv[++i]);
+          correct = true;
+      }
       if(!strcmp(argv[i],"-hpoly")){
           hpoly = true;
           correct = true;
@@ -182,6 +193,10 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-rdhr")){
           coordinate = false;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-cdhr")){
+          set_coord = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-bw")){
@@ -410,7 +425,9 @@ int main(const int argc, const char** argv)
       ratio = 1.0-1.0/(NT(n));
   if(!user_W)
       W = 4*n*n+500;
-
+  if(!user_banW){
+      Win_len = 2*n*n+250;
+  }
 
   // Timings
   double tstart, tstop;
@@ -549,15 +566,17 @@ int main(const int argc, const char** argv)
       } else {
           // Estimate the volume
           if(Zono && hpoly){
+              vars<NT, RNGType> var11(rnum,n,walk_l,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+                                    urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,set_coord);
               NT HnRsteps, MemLps;
               int nHpoly;
-              NT lb2=lb, up_lim2=0.15;
-              var.coordinate = false;
+              NT lb2=lb, up_lim2=up_lim;
+              //var11.coordinate = false;
               if (e==1.0){
                   if (verbose) std::cout<<"set error to 0.1"<<std::endl;
-                  var.error=0.1;
+                  var11.error=0.1;
               }
-              vol = vol_hzono<Hpolytope > (ZP, lb2, up_lim2, var, nHpoly, HnRsteps, MemLps, n_subw, n_tuples, pca_ratio);
+              vol = vol_hzono<Hpolytope > (ZP, lb2, up_lim2, var11, nHpoly, HnRsteps, MemLps, Win_len, pca_ratio);
               if (pca_ratio) {
                   std::cout<<"\nRatio of over-approximation = "<<vol<<std::endl;
                   return -1;
@@ -566,21 +585,27 @@ int main(const int argc, const char** argv)
                       //int len_subwin = 0, int len_tuple = 0, bool steps_only=false, bool const_win=true,
                       //bool cg_hpol = false, bool PCA = false, bool pca_ratio = false)
           }else if (ball_annealing) {
+              vars<NT, RNGType> var11(rnum,n,walk_l,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+                                      urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
               if (e==1.0){
                   if (verbose) std::cout<<"set error to 0.1"<<std::endl;
-                  var.error=0.1;
+                  var11.error=0.1;
               }
               if (n_subw==0) n_subw=2;
               if (n_tuples==0) n_tuples=n*n+125;
               NT HnRsteps, nballs, MemLps;
               //vol = volume(ZP, var, var, InnerBall, lb, up_lim);
               if(Zono) {
-                  var.coordinate = false;
-                  vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps,n_subw, n_tuples);
+                  if (!set_coord) {
+                      var11.coordinate = false;
+                  }
+                  vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var11, HnRsteps, nballs, MemLps, Win_len);
               } else if(!Vpoly) {
-                  vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps,n_subw, n_tuples);
+                  vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var11, HnRsteps, nballs, MemLps, Win_len);
               } else {
-                  var.coordinate = false;
+                  if (!set_coord) {
+                      var11.coordinate = false;
+                  }
                   NT round_val=1.0;
                   NT rmax;
                   if(round) {
@@ -602,7 +627,7 @@ int main(const int argc, const char** argv)
                       InnerBall.second = 0.0;
                       //VP.print();
                   }
-                  vol = volesti_ball_ann(VP, InnerBall, lb, up_lim, var, HnRsteps, nballs, MemLps, n_subw, n_tuples,
+                  vol = volesti_ball_ann(VP, InnerBall, lb, up_lim, var11, HnRsteps, nballs, MemLps, Win_len,
                                          0.75, false, true, 0.0, 0.0, rmax);
                   vol = vol*round_val;
               }

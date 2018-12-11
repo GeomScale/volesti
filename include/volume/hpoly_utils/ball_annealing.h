@@ -52,7 +52,7 @@ void check_converg22(Hpolytope &P, PointList &randPoints, NT p_test, bool &done,
 
 
 template <class PointList, class HPolytope, typename NT, class Parameter>
-bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, Parameter var){
+bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, NT p_value, Parameter var){
 
     NT countIn = 0.0;
     std::vector<NT> ratios;
@@ -83,7 +83,7 @@ bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, Paramete
 
     //if (print) std::cout<<"mean must be greater than = "<<p_test + t_value*(ni-1)*(p_varval/std::sqrt(NT(ni)))<<std::endl;
     //if (print) std::cout<<"check for last hpoly, p_mval = "<<p_mval<<std::endl;
-    if (p_mval > 0.1 + t_value*(p_varval/std::sqrt(NT(ni)))) {
+    if (p_mval > p_value + t_value*(p_varval/std::sqrt(NT(ni)))) {
         ratio = p_mval;
         return true;
     }
@@ -94,7 +94,7 @@ bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, Paramete
 template <class Zonotope, class HPolytope, class VT, class PointList, typename NT, class Parameters>
 void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
                          HPolytope &HP2, VT Zs_max, VT Zs_min, PointList randPoints,
-                        std::vector<NT> &ratios, Parameters &var){
+                        std::vector<NT> &ratios, NT p_value, NT up_lim, Parameters &var){
 
     //typename typedef ZonoBall::ball ball;
     typedef typename Zonotope::PolytopePoint Point;
@@ -116,7 +116,7 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
         done = false;
         too_few = false;
 
-        check_converg22(HP2, randPoints, 0.1, done, too_few, ratio, 0.15, false);
+        check_converg22(HP2, randPoints, p_value, done, too_few, ratio, up_lim, false);
 
         if(done){
             HPolySet.push_back(HP2);
@@ -138,7 +138,7 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
 template <class ZonoHP,class Zonotope, class HPolytope, class VT, class Parameters, typename NT>
 void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<HPolytope> &HPolySet,
                                VT Zs_max, std::vector<NT> &ratios,
-                               NT &p_value, Parameters &var, NT &HnRsteps) {
+                               NT &p_value, NT up_lim, Parameters &var, NT &HnRsteps) {
 
     bool print = var.verbose;
     typedef typename Zonotope::PolytopePoint Point;
@@ -152,17 +152,17 @@ void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
     std::list<Point> randPoints;
     Point q(n);
     HnRsteps = 0.0;
-    rand_point_generator(Z, q, 1200+2*n*n, 1, randPoints, var);
-    HnRsteps += 1200.0+2.0*n*n;
+    rand_point_generator(Z, q, 1200+2*n*n, var.walk_steps, randPoints, var);
+    HnRsteps += (1200.0+2.0*n*n)*NT(var.walk_steps);
     //PointSets.push_back(randPoints);
     HPolytope HP2 = HP;
-    if (is_last_zonoball22(randPoints, HP, ratio, var)) {
+    if (is_last_zonoball22(randPoints, HP, ratio, p_value, var)) {
         ratios.push_back(ratio);
         if(print) std::cout<<"last hpoly and ratio = "<<ratio<<std::endl;
         return;
     }
     if(print) std::cout<<"not the last hpoly"<<std::endl;
-    get_next_zonoball22(Z, HPolySet, HP2, Zs_max, HP.get_vec(), randPoints, ratios, var);
+    get_next_zonoball22(Z, HPolySet, HP2, Zs_max, HP.get_vec(), randPoints, ratios, p_value, up_lim, var);
     if(print) std::cout<<"get first hpoly"<<std::endl;
 
     ZonoHP ZHP2;
@@ -173,15 +173,15 @@ void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
         ZHP2 = ZonoHP(Z,HP2);
         q=Point(n);
         randPoints.clear();
-        rand_point_generator(ZHP2, q, 1200+2*n*n, 1, randPoints, var);
-        HnRsteps += 1200.0+2.0*n*n;
+        rand_point_generator(ZHP2, q, 1200+2*n*n, var.walk_steps, randPoints, var);
+        HnRsteps += (1200.0+2.0*n*n)*NT(var.walk_steps);
         //PointSets.push_back(randPoints);
-        if (is_last_zonoball22(randPoints, HP, ratio, var)) {
+        if (is_last_zonoball22(randPoints, HP, ratio, p_value, var)) {
             ratios.push_back(ratio);
             if(print) std::cout<<"number of hpolys = "<<HPolySet.size()<<std::endl;
             return;
         }
-        get_next_zonoball22(Z, HPolySet, HP2, HP2.get_vec(), Zs_min, randPoints, ratios, var);
+        get_next_zonoball22(Z, HPolySet, HP2, HP2.get_vec(), Zs_min, randPoints, ratios, p_value, up_lim, var);
         if(print) std::cout<<"get hpoly"<<std::endl;
     }
 
