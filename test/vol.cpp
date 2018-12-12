@@ -80,7 +80,7 @@ int main(const int argc, const char** argv)
                  set_coord=false,
             user_banW=false,
     pca_ratio=false;
-    int n_subw=0, n_tuples=0;
+    int n_subw=0, n_tuples=0, nu = 0, Ns = 0;
 
     //this is our polytope
     Hpolytope HP;
@@ -177,6 +177,12 @@ int main(const int argc, const char** argv)
           pca_ratio = true;
           correct = true;
       }
+      if(!strcmp(argv[i],"-nuN")){
+          Ns = atof(argv[++i]);
+          nu = atof(argv[++i]);
+          correct = true;
+      }
+
       if(!strcmp(argv[i],"-exact_zono")){
           exact_zono = true;
           correct = true;
@@ -576,7 +582,7 @@ int main(const int argc, const char** argv)
                   if (verbose) std::cout<<"set error to 0.1"<<std::endl;
                   var11.error=0.1;
               }
-              vol = vol_hzono<Hpolytope > (ZP, lb2, up_lim2, var11, nHpoly, HnRsteps, MemLps, Win_len, pca_ratio);
+              vol = vol_hzono<Hpolytope > (ZP, lb2, up_lim2, var11, nHpoly, HnRsteps, MemLps, Win_len, Ns, nu, pca_ratio);
               if (pca_ratio) {
                   std::cout<<"\nRatio of over-approximation = "<<vol<<std::endl;
                   return -1;
@@ -599,9 +605,9 @@ int main(const int argc, const char** argv)
                   if (!set_coord) {
                       var11.coordinate = false;
                   }
-                  vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var11, HnRsteps, nballs, MemLps, Win_len);
+                  vol = volesti_ball_ann(ZP, InnerBall, lb, up_lim, var11, HnRsteps, nballs, MemLps, Win_len, Ns, nu);
               } else if(!Vpoly) {
-                  vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var11, HnRsteps, nballs, MemLps, Win_len);
+                  vol = volesti_ball_ann(HP, InnerBall, lb, up_lim, var11, HnRsteps, nballs, MemLps, Win_len, Ns, nu);
               } else {
                   if (!set_coord) {
                       var11.coordinate = false;
@@ -627,7 +633,7 @@ int main(const int argc, const char** argv)
                       InnerBall.second = 0.0;
                       //VP.print();
                   }
-                  vol = volesti_ball_ann(VP, InnerBall, lb, up_lim, var11, HnRsteps, nballs, MemLps, Win_len,
+                  vol = volesti_ball_ann(VP, InnerBall, lb, up_lim, var11, HnRsteps, nballs, MemLps, Win_len, Ns, nu,
                                          0.75, false, true, 0.0, 0.0, rmax);
                   vol = vol*round_val;
               }

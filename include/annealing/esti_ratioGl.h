@@ -260,8 +260,8 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int WW, NT pro
     //int W=4*n*n+500;
     int W = WW;
     //int m = Z.num_of_generators();
-    std::cout<<"W = "<<W<<" walk_steps = "<<var.walk_steps<<std::endl;
-    std::cout<<"coordinate : "<<var.coordinate<<std::endl;
+    //std::cout<<"W = "<<W<<" walk_steps = "<<var.walk_steps<<std::endl;
+    //std::cout<<"coordinate : "<<var.coordinate<<std::endl;
     NT curr_eps = error;
     bool done=false;
     NT min_val = minNT;

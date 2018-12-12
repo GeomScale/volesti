@@ -11,7 +11,7 @@
 
 template <class Polytope, class Point, class Parameters, typename NT>
 NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up, Parameters &var,
-                    NT &hnrst, NT &nballs, NT &memball, int Win_len, NT PR=0.75, bool steps_only = false,
+                    NT &hnrst, NT &nballs, NT &memball, int Win_len, int Ns=0, int nu=0, NT PR=0.75, bool steps_only = false,
                     bool const_win = true, NT B0_radius = 0.0, NT ratio_B0 = 0.0, NT rmax = 0.0){
 
     typedef Ball<Point> ball;
@@ -63,8 +63,13 @@ NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, NT &lb, NT &up,
     //std::cout<<"var.ball_walk = "<<var.ball_walk<<"var.coordinate = "<<var.coordinate<<std::endl;
     if(verbose) std::cout<<"Computing ball annealing..."<<std::endl;
     if(ratio_B0!=0.0) ratio0 = ratio_B0;
+    if(Ns==0 && nu==0){
+        Ns=1200+2*n*n;
+        nu=10;
+    }
+
     get_sequence_of_zonoballs<ZonoBall, RNGType>(P, BallSet, B0, ratio0, PointSets,
-                                                 ratios, lb, up, InnerBall.second, var,
+                                                 ratios, Ns, nu, lb, up, InnerBall.second, var,
                                                  ballsteps, steps, B0_radius, rmax);
     //var.coordinate = true;
     if(steps_only) {

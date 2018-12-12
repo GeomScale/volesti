@@ -14,7 +14,7 @@
 
 template <class Hpolytope, class Zonotope, class Parameters, typename NT>
 NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT &HnRsteps, NT &MemLps,
-              int Win_len, bool pca_ratio = false, bool steps_only=false, bool const_win=true,
+              int Win_len, int Ns=0, int nu=0, bool pca_ratio = false, bool steps_only=false, bool const_win=true,
               bool cg_hpol = false, bool PCA = false) {
 
     typedef typename Zonotope::PolytopePoint Point;
@@ -26,11 +26,16 @@ NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT
     HnRsteps = 0.0;
     MemLps = 0.0;
 
+
     bool verbose = var.verbose;
     NT e = var.error;
     //std::cout<<"error = "<<e<<std::endl;
     int n= var.n;
     NT ratio;
+    if(Ns==0 && nu==0){
+        Ns=1200+2*n*n;
+        nu=10;
+    }
 
     bool rand_only = false,
             NN = false,
@@ -146,7 +151,8 @@ NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT
         get_hdelta(ZP, HP33, Zs33_max, lb_ratio, up_ratio, ratio, randPoints, var33, HnRsteps2);
         //std::cout<<"Z_max"<<Zs33_max<<std::endl;
         HP33.set_vec(Zs33_max);
-        vol_pca = volesti_ball_ann(HP33, InnerBall33, lb_ratio, up_ratio, var33, HnRsteps2, nballs, MemLps2, 2*n*n+250, 0.75, false, false);
+        vol_pca = volesti_ball_ann(HP33, InnerBall33, lb_ratio, up_ratio, var33, HnRsteps2, nballs, MemLps2,
+                2*n*n+250, 0, 0, 0.75, false, false);
         var2.coordinate=true;
     }
 
@@ -175,7 +181,7 @@ NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT
 
     var2.coordinate=false;
     var2.walk_steps=1;
-    get_sequence_of_zonoballs<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios,
+    get_sequence_of_zonoballs<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, Ns, nu,
                                       p_value, up_lim, var, steps);
     if(steps_only) {
         //Rcpp::NumericVector res(1);
@@ -244,7 +250,7 @@ NT vol_hzono (Zonotope &ZP, NT &lb, NT &up_lim, Parameters &var, int &nHpoly, NT
 
 
     Hpolytope b1, b2;
-    std::cout<<"coordinate: "<<var.coordinate<<std::endl;
+    //std::cout<<"coordinate: "<<var.coordinate<<std::endl;
     //NT er = e*0.8602325;
     if (HPolySet.size()==0) {
         if (verbose) std::cout << "no ball | ratio = " << ratios[0] << std::endl;
