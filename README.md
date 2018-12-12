@@ -6,7 +6,7 @@
 cmake .  
 make  
 ```
-### 1. H-polytopes (Table 1):  
+#### 1. H-polytopes (Table 1):  
 - To generate a unit cube in `dim` dimension and estimate the volume:  
 ```
 ./generate -cube -h -d dim
@@ -28,7 +28,7 @@ For example:
 ./vol -f1 random_h_poly_dim_k.ine -ban
 ```
 
-### 2. V-polytopes (Table 2):  
+#### 2. V-polytopes (Table 2):  
 - To generate a cross polytope in `dim` dimension and estimate the volume:  
 ```
 ./generate -cross -v -d dim
@@ -51,7 +51,7 @@ For example:
 ```
 Note: For random V-polytopes use the flag `-r` to round the polytope.
 
-### 3. Zonotopes (Table 3):  
+#### 3. Zonotopes (Table 3):  
 - You can generate a random zonotope in dimension `dim` with `k` generators by running:  
 ```
 ./generate -zonotope -d dim -m k
@@ -77,7 +77,7 @@ Will generate a random 10-dimensional zonotope with 15 generators and estimate t
 
 Note: If you wish to give a specific polytope as input use `.ine` file for an H-polytope and `.ext` file for a V-polytopes or a zonotopes. Keep the same format as in the generated files.
 
-### 4. Flags
+#### 4. Flags
 
 - For H-polytopes the default random walk is Coordinate Directions HnR. Use flag `-rdhr` to use Random Directions HnR:  
 ```
@@ -112,7 +112,7 @@ Will define ratios between `0.01` and `0.015` with high probability.
 ```
 Wil sample 1600 points in total and split them to 10 sub-lists. So the degrees of freedom in each t-test will be 9 = 10-1.
 
-### 5. Test PCA over-aproximations of a zonotope
+#### 5. Test PCA over-aproximations of a zonotope
 
 - To compute the ratio for the PCA approximation of a zonotope that is described in a `.ext` file, use flag `-pca` and run:  
 ```
