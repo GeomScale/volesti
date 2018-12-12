@@ -106,7 +106,7 @@ Will set the window's length `n=500`.
 ./vol -f1 cube_dim.ine -ban -l 0.01 -u 0.015
 ```
 Will define ratios between `0.01` and `0.015` with high probability.
-- Use flag `-nuN` to set the number of points that are generated in Pi, in each step of the annealing schedule. For example:  
+- Use flag `-nuN` to set the number of points that are generated in each step of the annealing schedule, from the convex body P_i of the previous step. For example:  
 ```
 ./vol -f3 zonotope_dim_k.ext -ban -nuN 1600 10
 ```
