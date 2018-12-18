@@ -12,68 +12,19 @@
 #include "volume.h"
 
 
-template <class HPolytope>
-class converter{
-public:
-    typedef typename HPolytope::NT NT;
-
-    converter() {}
-
-    HPolytope get(Rcpp::Reference P) {
-        Rcpp::NumericMatrix A = P.field("A");
-        Rcpp::NumericVector b = P.field("b");
-
-        int n = A.cols();
-        int m = A.rows();
-        std::vector<std::vector<NT> > Mat(m+1, std::vector<NT>(n+1));
-
-        Mat[0][0] = m; Mat[0][1] = n+1;
-
-        for (int i = 1; i < m+1; ++i) {
-            Mat[i][0] = b(i-1);
-            for (int j = 1; j < n+1; ++j) {
-                Mat[i][j] = -A(i-1, j-1);
-            }
-        }
-
-        HPolytope HP;
-        HP.init(Mat);
-
-        return HP;
-    }
-
-};
-
-
-// [[Rcpp::plugins(cpp11)]]
-// [[Rcpp::export]]
-double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len, double e,
-                Rcpp::NumericVector InnerBall, bool CG, unsigned int win_len,
-                unsigned int N, double C, double ratio, double frac,
-                bool ball_walk, double delta, bool Vpoly, bool Zono,
-                bool coord, bool rounding) {
-
-    typedef double NT;
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef boost::mt19937    RNGType;
-    typedef HPolytope<Point> Hpolytope;
-    typedef VPolytope<Point, RNGType > Vpolytope;
-    typedef Zonotope<Point> zonotope;
-    //unsigned int n_threads=1,i,j;
-
+template <class Point, class NT, class Polytope>
+double generic_volume(Polytope& P, Rcpp::NumericMatrix& A, unsigned int walk_len, double e,
+                    Rcpp::NumericVector& InnerBall, bool CG, unsigned int win_len,
+                    unsigned int N, double C, double ratio, double frac,
+                    bool ball_walk, double delta, bool Vpoly, bool Zono,
+                    bool coord, bool rounding)
+{
     bool rand_only=false,
-            NN=false,
-            birk=false,
-            verbose =false,
-            coordinate=coord;
+         NN=false,
+         birk=false,
+         verbose =true,
+         coordinate=coord;
     unsigned int n_threads=1;
-    Hpolytope HP;
-    Vpolytope VP;
-    zonotope ZP;
-
-    //converter<Hpolytope> conv;
-    //Hpolytope HP2 = conv.get(P);
 
     unsigned int m=A.nrow()-1;
     unsigned int n=A.ncol()-1;
@@ -81,6 +32,7 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     // the random engine with this seed
+    typedef boost::mt19937    RNGType;
     RNGType rng(seed);
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
@@ -92,14 +44,8 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
             Pin[i][j]=A(i,j);
         }
     }
-    // construct polytope
-    if (Zono) {
-        ZP.init(Pin);
-    } else if (!Vpoly) {
-        HP.init(Pin);
-    } else {
-        VP.init(Pin);
-    }
+
+    P.init(Pin);
 
     std::pair<Point,NT> InnerB;
 
@@ -114,15 +60,8 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
         InnerB.second = InnerBall[n];
     } else {
         // no internal ball or point is given as input
-        if (Zono) {
-            InnerB = ZP.ComputeInnerBall();
-        } else if (!Vpoly) {
-            InnerB = HP.ComputeInnerBall();
-        } else {
-            InnerB = VP.ComputeInnerBall();
-        }
+        InnerB = P.ComputeInnerBall();
     }
-
 
     // initialization
     vars<NT, RNGType> var(rnum,n,walk_len,n_threads,0.0,0.0,0,0.0,0, InnerB.second,rng,urdist,urdist1,
@@ -133,23 +72,40 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
                                urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
         vars_g<NT, RNGType> var1(n, walk_len, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                  rand_only, rounding, NN, birk, ball_walk, coordinate);
-        if (Zono) {
-            vol = volume_gaussian_annealing(ZP, var1, var2, InnerB);
-        } else if (!Vpoly) { // if the input is a H-polytope
-            vol = volume_gaussian_annealing(HP, var1, var2, InnerB);
-        } else {  // if the input is a V-polytope
-            vol = volume_gaussian_annealing(VP, var1, var2, InnerB);
-        }
+        vol = volume_gaussian_annealing(P, var1, var2, InnerB);
     } else {
-        if (Zono) {
-            vol = volume(ZP, var, var, InnerB);
-        } else if (!Vpoly) { // if the input is a H-polytope
-            vol = volume(HP, var, var, InnerB);
-        } else { // if the input is a V-polytope
-            vol = volume(VP, var, var, InnerB);
-        }
+        vol = volume(P, var, var, InnerB);
     }
 
-    return vol;
+     return vol;
+}
 
+// [[Rcpp::plugins(cpp11)]]
+// [[Rcpp::export]]
+double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len, double e,
+                Rcpp::NumericVector InnerBall, bool CG, unsigned int win_len,
+                unsigned int N, double C, double ratio, double frac,
+                bool ball_walk, double delta, bool Vpoly, bool Zono,
+                bool coord, bool rounding) {
+
+    typedef double NT;
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+
+    if (Zono) {
+        typedef Zonotope<Point> Zonotope;
+        Zonotope ZP;
+        return generic_volume<Point,NT>(ZP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding);
+    } else if (!Vpoly) {
+        typedef HPolytope<Point> Hpolytope;
+        Hpolytope HP;
+        return generic_volume<Point,NT>(HP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding);
+    } else {
+        typedef boost::mt19937    RNGType;
+        typedef VPolytope<Point, RNGType > Vpolytope;
+        Vpolytope VP;
+        return generic_volume<Point,NT>(VP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding);
+    }
+
+    return 0;
 }

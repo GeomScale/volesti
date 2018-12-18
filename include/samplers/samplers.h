@@ -39,7 +39,7 @@ Point get_direction(unsigned int dim) {
 template <class RNGType, class Point, typename NT>
 Point get_point_on_Dsphere(unsigned int dim, NT radius){
     Point p = get_direction<RNGType, Point, NT>(dim);
-    p = radius * p;
+    p = (radius == 0) ? p : radius * p;
     return p;
 }
 
@@ -135,6 +135,7 @@ void rand_point_generator(Polytope &P,
         }
         randPoints.push_back(p);
     }
+ 
 }
 
 
@@ -155,7 +156,6 @@ void rand_point_generator(BallPoly &PBLarge,
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
-
     std::vector <NT> lamdas(PBLarge.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord, rand_coord_prev;
     NT kapa, ball_rad = var.delta;
@@ -166,6 +166,7 @@ void rand_point_generator(BallPoly &PBLarge,
     }else if (var.coordinate) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
+        
         std::pair <NT, NT> bpair = PBLarge.line_intersect_coord(p, rand_coord, lamdas);
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
