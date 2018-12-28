@@ -10,13 +10,14 @@
 #define POINT_H
 
 #include <iostream>
+#include <vector>
 
 template <class K>
 class point
 {
 private:
     unsigned int d;
-    typedef std::vector<typename K::FT> Coeff;
+    typedef typename std::vector<typename K::FT> Coeff;
     Coeff coeffs;
     typedef typename std::vector<typename K::FT>::iterator iter;
 public:
@@ -33,6 +34,10 @@ public:
         d = dim;
         coeffs = Coeff(begin,endit);
     }
+
+    FT* data() {
+        return coeffs.data();
+    }
     
     int dimension() {
         return d;
@@ -40,6 +45,7 @@ public:
     
     void set_dimension(const unsigned int dim) {
         d = dim;
+        coeffs.reserve(d);
     }
     
     void set_coord(const unsigned int i, FT coord) {

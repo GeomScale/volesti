@@ -11,7 +11,19 @@
 #define POLYTOPES_H
 
 #include <iostream>
+#include <vector>
+#include <chrono>
+#include <cmath>
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
+#include "vars.h"
 #include "solve_lp.h"
+
+#ifdef USE_FAISS
+#include "faiss/IndexFlat.h"
+#endif
 
 //min and max values for the Hit and Run functions
 
@@ -23,7 +35,8 @@ public:
     typedef Point PolytopePoint;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    typedef RowMatrixXd MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
 private:
@@ -32,6 +45,11 @@ private:
     unsigned int            _d; //dimension
     NT maxNT = 1.79769e+308;
     NT minNT = -1.79769e+308;
+
+    NT** representatives;
+#ifdef USE_FAISS
+    faiss::IndexFlatL2* index; // call constructor
+#endif
 
 public:
     HPolytope() {}
@@ -62,6 +80,115 @@ public:
         }
     }
 
+    HPolytope(Eigen::Map<MT> A, Eigen::Map<VT> b) {
+        this->A = A;
+        this->b = b;
+        _d = A.cols();
+        representatives = NULL;
+    }
+
+    ~HPolytope() {
+        if (representatives!=NULL) {
+            for (int i=0; i<num_of_hyperplanes()+1; i++) {
+                delete representatives[i];
+            }
+            delete []representatives;
+#ifdef USE_FAISS
+            delete index;
+#endif
+        }
+
+    }
+
+    NT* project(NT* point, int facet_idx) {
+        /**
+		 * for a hyperplane H:=ax=b and a point p:
+         * proj_H(p)=p - a * ((p.dot_product(a) - b)/ a.dot_product(a))
+         */
+        NT dot_product = 0;
+        NT normalizer = 0;
+        for (uint i=0; i<dimension(); i++) {
+            dot_product += A(facet_idx, i)*point[i];
+            normalizer += A(facet_idx, i)*A(facet_idx, i);
+        }
+
+        double dir_coeff = (dot_product - b[facet_idx]) / normalizer;
+
+        NT* projected_point = new NT[dimension()];
+        for (uint i=0; i<dimension(); i++) {
+            projected_point[i] = point[i] - dir_coeff*A(facet_idx, i);
+        }
+        return projected_point;
+    }
+
+    NT* get_reflexive_point(NT* internalPoint, int facet_idx) {
+		/**
+		 * Get the reflexive point of a point p inside the polytope about the facet_idx-th facet
+		 * ie. if the facet F is defined by the supporting hyperplane H := ax=b, then
+		 * refl_F(p) = p+2*(proj_H(p)-p) <=> 2*proj_H(p)-p
+		 */
+        NT* projection = project(internalPoint, facet_idx);
+        for (uint i=0; i<dimension(); i++) {
+            projection[i] = 2*projection[i] - internalPoint[i];
+        }
+
+        return projection;
+    }
+
+    void create_point_representation(NT* internalPoint) {
+        representatives = new NT*[num_of_hyperplanes()+1];
+        for (int i=0; i<num_of_hyperplanes(); i++) {
+            NT* reflexive_point = this->get_reflexive_point(internalPoint, i);
+            representatives[i] = reflexive_point;
+        }
+
+        representatives[num_of_hyperplanes()] = new NT[dimension()];
+        for (uint i=0; i<dimension(); i++) {
+            representatives[num_of_hyperplanes()][i] = internalPoint[i];
+        }
+#ifdef USE_FAISS
+        index = new faiss::IndexFlatL2(dimension());
+        for (int i=0;i<num_of_hyperplanes()+1; i++)
+            index->add(1, representatives[i]);
+#endif
+    }
+
+    bool contains_point(NT* point) {
+#ifdef USE_FAISS
+        long *I = new long[1];
+        float *D = new float[1];
+        index->search(1, point, 1, D, I);
+
+        long nnIndex = I[0];
+
+        delete []I;
+        delete []D;
+        
+        return nnIndex==num_of_hyperplanes();
+#else
+        double minDist=0;
+        double minIndex=num_of_hyperplanes();
+        for (uint i=0; i<dimension(); i++) {
+            auto tmp = point[i]*representatives[minIndex][i];
+            minDist += tmp*tmp;
+        }
+
+        for (int j=0; j<num_of_hyperplanes(); j++) {
+            double dist=0;
+            for (uint i=0; i<dimension(); i++) {
+                auto tmp = point[i]*representatives[j][i];
+                dist += tmp*tmp;
+            }
+            if (dist<minDist) {
+                minDist = dist;
+                minIndex = j;
+                break;
+            }
+        }
+
+        return minIndex==num_of_hyperplanes();
+#endif
+    }
 
     // return dimension
     unsigned int dimension() {
@@ -76,7 +203,7 @@ public:
 
 
     // return the matrix A
-    MT get_mat() {
+    MT& get_mat() {
         return A;
     }
 
@@ -179,13 +306,23 @@ public:
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
                 #ifdef VOLESTI_DEBUG
-                std::cout << -A(i, j) << " ";
+                std::cout << A(i, j) << " ";
                 #endif
             }
             #ifdef VOLESTI_DEBUG
             std::cout << "<= " << b(i) << std::endl;
             #endif
         }
+
+#ifdef VOLESTI_DEBUG
+        for (int i=0; i<num_of_hyperplanes()+1; i++) {
+            std::cout<<"#"<<i<<": "<<representatives[i][0];
+            for (uint j=1; j<dimension(); j++) {
+                std::cout<<", "<<representatives[i][j];
+            }
+            std::cout<<std::endl;
+        }
+#endif
     }
 
 
