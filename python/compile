@@ -1,0 +1,14 @@
+SAVEIFS=$IFS
+# Change IFS to new line.
+IFS=$'\n'
+names=($(readlink -f ../include/*/))
+# Restore IFS
+IFS=$SAVEIFS
+includes='-I../include -I../external/LPsolve_src/run_headers -I../external/boost -I../external '
+for (( i=0; i<${#names[@]}; i++ ))
+do
+    includes+="-I${names[$i]} "
+done
+echo $includes
+g++ -DVOLESTI_DEBUG -DUSE_FAISS $includes -O3 -Wall -shared -std=c++11 -fPIC `python3 -m pybind11 --includes` point_pybind11.cpp  -o volesti`python3-config --extension-suffix` -lfaiss
+ipython test.py
