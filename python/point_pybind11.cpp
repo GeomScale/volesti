@@ -56,7 +56,18 @@ PYBIND11_MODULE(volesti, m) {
         })
         .def("is_in", [](Polytope &p, py::array_t<NT> point) -> bool {
             py::buffer_info point_info = point.request();
-            return p.contains_point((NT* ) point_info.ptr);
+#ifdef USE_FAISS
+            return p.is_in((NT* ) point_info.ptr);
+#else
+            Point the_point(point_info.shape[0]);
+            the_point.set_dimension(info.shape[0]);
+            NT* buffer_data = static_cast<NT*>(info.ptr);
+            for (int i=0; i<the_point.dimension(); i++) {
+                the_point.set_coord(i, buffer_data[i]);
+            }
+            return p.is_in(the_point)==-1;
+
+#endif
         });
 
 }

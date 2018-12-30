@@ -153,8 +153,8 @@ public:
 #endif
     }
 
-    bool contains_point(NT* point) {
 #ifdef USE_FAISS
+    int is_in(NT* point) {
         long *I = new long[1];
         float *D = new float[1];
         index->search(1, point, 1, D, I);
@@ -165,30 +165,26 @@ public:
         delete []D;
         
         return nnIndex==num_of_hyperplanes();
-#else
-        double minDist=0;
-        double minIndex=num_of_hyperplanes();
-        for (uint i=0; i<dimension(); i++) {
-            auto tmp = point[i]*representatives[minIndex][i];
-            minDist += tmp*tmp;
-        }
-
-        for (int j=0; j<num_of_hyperplanes(); j++) {
-            double dist=0;
-            for (uint i=0; i<dimension(); i++) {
-                auto tmp = point[i]*representatives[j][i];
-                dist += tmp*tmp;
-            }
-            if (dist<minDist) {
-                minDist = dist;
-                minIndex = j;
-                break;
-            }
-        }
-
-        return minIndex==num_of_hyperplanes();
-#endif
     }
+#else
+    //Check if Point p is in H-polytope P:= Ax<=b
+    int is_in(Point p) {
+        NT sum;
+        int m = A.rows();
+        for (int i = 0; i < m; i++) {
+            sum = b(i);
+            for (unsigned int j = 0; j < _d; j++) {
+                sum -= A(i, j) * p[j];
+            }
+            if (sum < NT(0)) { //Check if corresponding hyperplane is violated
+                return 0;
+            }
+        }
+        return -1;
+    }
+#endif
+
+
 
     // return dimension
     unsigned int dimension() {
@@ -391,22 +387,6 @@ public:
     }*/
 
     
-    //Check if Point p is in H-polytope P:= Ax<=b
-    int is_in(Point p) {
-        NT sum;
-        int m = A.rows();
-        for (int i = 0; i < m; i++) {
-            sum = b(i);
-            for (unsigned int j = 0; j < _d; j++) {
-                sum -= A(i, j) * p[j];
-            }
-            if (sum < NT(0)) { //Check if corresponding hyperplane is violated
-                return 0;
-            }
-        }
-        return -1;
-    }
-
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
