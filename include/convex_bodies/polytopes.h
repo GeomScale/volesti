@@ -154,7 +154,7 @@ public:
     }
 
 #ifdef USE_FAISS
-    int is_in(NT* point) {
+    int contains_point(NT* point) {
         long *I = new long[1];
         float *D = new float[1];
         index->search(1, point, 1, D, I);
@@ -166,7 +166,7 @@ public:
         
         return nnIndex==num_of_hyperplanes();
     }
-#else
+#endif
     //Check if Point p is in H-polytope P:= Ax<=b
     int is_in(Point p) {
         NT sum;
@@ -182,9 +182,6 @@ public:
         }
         return -1;
     }
-#endif
-
-
 
     // return dimension
     unsigned int dimension() {

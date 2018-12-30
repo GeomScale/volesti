@@ -16,7 +16,7 @@ print('A=', a)
 print('b=', b)
 
 print('Begin membership tests')
-dim=2
+dim=100
 n=100000
 mean=np.zeros(dim)
 cov=np.eye(dim)
@@ -24,5 +24,8 @@ normals=np.random.multivariate_normal(mean, cov, n)
 b=np.ones(n)
 p=volesti.Polytope(normals, b)
 p.create_point_representation(mean)
-print(p.is_in(np.array([1.1,0])))
-print(p.is_in(np.array([0.2, 0.001])))
+
+test_point = np.zeros(dim)
+print(p.contains_point(test_point), p.is_in(test_point))
+test_point[0]=1.0
+print(p.contains_point(test_point), p.is_in(test_point))
