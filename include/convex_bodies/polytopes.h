@@ -47,6 +47,7 @@ private:
     NT minNT = -1.79769e+308;
 
     NT** representatives;
+    double maxDistToBoundary;
 #ifdef USE_FAISS
     faiss::IndexFlatL2* index; // call constructor
 #endif
@@ -135,12 +136,31 @@ public:
         return projection;
     }
 
+    double squared_distance(NT* a, NT* b) {
+        double dist = 0.0;
+        for (uint i=0; i<dimension(); i++) {
+            double tmp = a[i]-b[i];
+            dist += tmp*tmp;
+        }
+        return dist;
+    }
+
     void create_point_representation(NT* internalPoint) {
         representatives = new NT*[num_of_hyperplanes()+1];
-        for (int i=0; i<num_of_hyperplanes(); i++) {
-            NT* reflexive_point = this->get_reflexive_point(internalPoint, i);
-            representatives[i] = reflexive_point;
+        maxDistToBoundary=-1;
+
+        representatives[0] = this->get_reflexive_point(internalPoint, 0);
+        maxDistToBoundary = squared_distance(internalPoint, representatives[0]);
+
+        for (int i=1; i<num_of_hyperplanes(); i++) {
+            representatives[i] = this->get_reflexive_point(internalPoint, i);
+            double tmpDist = squared_distance(internalPoint, representatives[i]);
+            if (tmpDist>maxDistToBoundary) {
+                maxDistToBoundary = tmpDist;
+            }
         }
+
+        maxDistToBoundary = std::sqrt(maxDistToBoundary);
 
         representatives[num_of_hyperplanes()] = new NT[dimension()];
         for (uint i=0; i<dimension(); i++) {
@@ -154,7 +174,7 @@ public:
     }
 
 #ifdef USE_FAISS
-    int contains_point(NT* point) {
+    long get_nearest_facet(NT* point) {
         long *I = new long[1];
         float *D = new float[1];
         index->search(1, point, 1, D, I);
@@ -163,8 +183,81 @@ public:
 
         delete []I;
         delete []D;
-        
+        return nnIndex;
+    }
+    bool contains_point(NT* point) {
+        long nnIndex = get_nearest_facet(point); 
         return nnIndex==num_of_hyperplanes();
+    }
+#endif
+
+    Point intersect_ray_hyperplane(Point& source, Point& direction, int facet_idx) {
+        //l = (b -a*s)/(r*a);
+        double source_dot = 0.0;
+        double dir_dot = 0.0;
+
+        for (uint i=0; i<dimension(); i++) {
+            source_dot += A(facet_idx,i)*source[i];
+            dir_dot += A(facet_idx,i)*direction[i];
+        }
+
+        double lambda = (b[facet_idx]-source_dot)/dir_dot;
+
+        Point intersection(dimension());
+        for (uint i=0; i<dimension(); i++) {
+            intersection.set_coord(i, source[i]+lambda*direction[i]);
+        }
+        return intersection;
+    }
+
+#ifdef asd
+    Point compute_boundary_intersection(Point& source, Point& direction, float epsilon, int maxSteps) {
+        direction.normalize();
+        Point direction_epsilon(dimension());
+        for (uint j=0; j<dimension(); j++) {
+            direction_epsilon.set_coord(j, direction[j]*(-epsilon));
+        }
+        Point x0(dimension());
+        for (uint i=0; i<dimension(); i++) {
+            x0.set_coord(i, source[i]+direction[i]*2*maxDistToBoundary);
+        }
+
+        for (int currentIt=0; currentIt<maxSteps; currentIt++) {
+			/** Find nearest facet */
+            long nn_index = get_nearest_facet(x0.data());
+
+            /** if point is not inside */
+            if (nn_index!=num_of_hyperplanes()) {
+				Point x1 = intersect_ray_hyperplane(source, direction, nn_index);
+
+                double x1_ray_norm = 0.0;
+                double x0_ray_norm = 0.0;
+                for (uint d_idx=0; d_idx<dimension(); ++d_idx) {
+                    double x1_tmp = x1[d_idx]-source[d_idx];
+                    x1_ray_norm += x1_tmp*x1_tmp;
+
+                    double x0_tmp = x0[d_idx]-source[d_idx];
+                    x0_ray_norm += x0_tmp*x0_tmp;
+                }
+
+				if (x1_ray_norm>=x0_ray_norm) {
+                    for (uint j=0; j<dimension(); j++) {
+                        x0.set_coord(j, x0[j]+direction_epsilon[j]);
+                    }
+                }
+				else {
+                    for (uint j=0; j<dimension(); j++) {
+                        x0.set_coord(j, x1[j]);
+                    }
+
+                }
+            }
+
+            else{
+				break;
+            }
+        }
+        return x0;
     }
 #endif
     //Check if Point p is in H-polytope P:= Ax<=b
@@ -397,8 +490,8 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT,NT> line_intersect(Point r,
-                                          Point v) {
+    std::pair<Point, Point> line_intersect(Point& r,
+                                          Point& v) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom;
@@ -410,23 +503,30 @@ public:
         for (int i = 0; i < m; i++) {
             sum_nom = b(i);
             sum_denom = NT(0);
-            j = 0;
-            rit = r.iter_begin();
-            vit = v.iter_begin();
-            for ( ; rit != r.iter_end(); rit++, vit++, j++){
-                sum_nom -= A(i, j) * (*rit);
-                sum_denom += A(i, j) * (*vit);
+            for (uint j=0; j<dimension(); j++){
+                sum_nom -= A(i, j) * r[j];
+                sum_denom += A(i, j) * v[j];
             }
             if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
+                //std::cout << sum_nom << "\t"<<sum_denom<<std::endl;
                 lamda = sum_nom / sum_denom;
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        //r+(min_plus*v),r+(max_minus*v)
+        Point a(dimension());
+        Point b(dimension());
+
+        //std::cout<<"min plus: " <<min_plus<<", max minus: "<<max_minus<<std::endl;
+        for (uint i=0; i<dimension(); i++) {
+            a.set_coord(i, r[i] + min_plus*v[i]);
+            b.set_coord(i, r[i] + max_minus*v[i]);
+        }
+        return std::pair<Point, Point>(a, b);
     }
 
 
