@@ -1,4 +1,5 @@
 #include "pybind11/pybind11.h"
+#include <utility>
 #include "cartesian_kernel.h"
 #include "solve_lp.h"
 #include "pybind11/numpy.h"
@@ -67,6 +68,69 @@ PYBIND11_MODULE(volesti, m) {
                 the_point.set_coord(i, buffer_data[i]);
             }
             return p.is_in(the_point)==-1;
+        })
+        .def("intersect", [](Polytope &p, py::array_t<NT> source, py::array_t<NT> direction, int facet_idx) -> py::array_t<NT> {
+            py::buffer_info source_i = source.request();
+            py::buffer_info ray_i = direction.request();
+
+            Point source_p(p.dimension(), (NT* ) source_i.ptr);
+            Point ray_p(p.dimension(), (NT* ) ray_i.ptr);
+
+            Point intersection = p.intersect_ray_hyperplane(source_p, ray_p, facet_idx);
+
+            return py::array_t<NT>(
+                py::buffer_info(
+                    intersection.data(),
+                    sizeof(NT),
+                    py::format_descriptor<NT>::format(),
+                    1,
+                    { p.dimension() },
+                    { sizeof(NT) }
+                )
+            );
+        })
+        .def("boundary", [](Polytope &p, py::array_t<NT> source, py::array_t<NT> direction, float epsilon, int maxSteps) -> py::array_t<NT> {
+            py::buffer_info source_i = source.request();
+            py::buffer_info ray_i = direction.request();
+
+            Point source_p(p.dimension(), (NT* ) source_i.ptr);
+            Point ray_p(p.dimension(), (NT* ) ray_i.ptr);
+
+            Point intersection = p.compute_boundary_intersection(source_p, ray_p, epsilon, maxSteps);
+
+            return py::array_t<NT>(
+                py::buffer_info(
+                    intersection.data(),
+                    sizeof(NT),
+                    py::format_descriptor<NT>::format(),
+                    1,
+                    { p.dimension() },
+                    { sizeof(NT) }
+                )
+            );
+        })
+        .def("line_intersect", [](Polytope &p, py::array_t<NT> source, py::array_t<NT> direction) -> py::array_t<NT> {
+            py::buffer_info source_i = source.request();
+            py::buffer_info ray_i = direction.request();
+
+            Point source_p(p.dimension(), (NT* ) source_i.ptr);
+            Point ray_p(p.dimension(), (NT* ) ray_i.ptr);
+
+            std::pair<Point, Point> intersection = p.line_intersect(source_p, ray_p);
+            intersection.first.get_coeffs().insert(intersection.first.get_coeffs().end(), 
+                    intersection.second.get_coeffs().begin(), intersection.second.get_coeffs().end());
+
+            return py::array_t<NT>(
+                py::buffer_info(
+                    intersection.first.data(),
+                    sizeof(NT),
+                    py::format_descriptor<NT>::format(),
+                    2,
+                    { 2, (int) p.dimension() },
+                    { sizeof(NT) * p.dimension(), sizeof(NT) }
+                )
+            );
         });
+
 
 }
