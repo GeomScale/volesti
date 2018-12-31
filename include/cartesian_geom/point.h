@@ -10,6 +10,7 @@
 #define POINT_H
 
 #include <iostream>
+#include <cmath>
 #include <vector>
 
 template <class K>
@@ -35,8 +36,20 @@ public:
         coeffs = Coeff(begin,endit);
     }
 
+    point(const unsigned int dim, FT* data) {
+        d = dim;
+        coeffs.reserve(d);
+        for (uint i=0; i<dim; i++) {
+            coeffs[i] = data[i];
+        }
+    }
+
     FT* data() {
         return coeffs.data();
+    }
+
+    Coeff& get_coeffs() {
+        return coeffs;
     }
     
     int dimension() {
@@ -80,6 +93,16 @@ public:
             (*tmit) = (*mit) - (*pit);
         }
         return temp;
+    }
+
+    double squared_distance(point& p) {
+
+        double dist = 0.0;
+        for (auto mit = coeffs.begin(), pit=p.iter_begin(); pit < p.iter_end(); ++pit, ++mit) {
+            double tmp = (*mit)-(*pit);
+            dist += tmp*tmp;
+        }
+        return dist;
     }
 
     point operator* (const FT& k) {
@@ -127,7 +150,13 @@ public:
         std::cout<<"\n";
         #endif
     }
-    
+
+    void normalize() {
+        FT lsq=std::sqrt(squared_length());
+        for (auto mit=coeffs.begin(); mit!=coeffs.end(); mit++){
+            (*mit) = (*mit)/lsq;
+        }
+    }
     
     iter iter_begin() {
         return coeffs.begin();
