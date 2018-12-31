@@ -228,7 +228,7 @@ public:
 
             /** if point is not inside */
             if (nn_index!=num_of_hyperplanes()) {
-				Point x1 = intersect_ray_hyperplane(source, direction, nn_index);
+                Point x1 = intersect_ray_hyperplane(source, direction, nn_index);
 
                 double x1_ray_norm = 0.0;
                 double x0_ray_norm = 0.0;
@@ -240,21 +240,20 @@ public:
                     x0_ray_norm += x0_tmp*x0_tmp;
                 }
 
-				if (x1_ray_norm>=x0_ray_norm) {
+                if (x1_ray_norm>=x0_ray_norm) {
                     for (uint j=0; j<dimension(); j++) {
                         x0.set_coord(j, x0[j]+direction_epsilon[j]);
                     }
                 }
-				else {
+                else {
                     for (uint j=0; j<dimension(); j++) {
                         x0.set_coord(j, x1[j]);
                     }
-
                 }
             }
 
             else{
-				break;
+                break;
             }
         }
         return x0;
