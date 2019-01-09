@@ -2,8 +2,8 @@
 
 |         | Build           
 | ------------- |:-------------:| 
-| **master** |[![CircleCI](https://circleci.com/gh/vissarion/volume_approximation/tree/master.svg?style=svg)](https://circleci.com/gh/GeomScale/volume_approximation/tree/master)
-|**develop** |[![CircleCI](https://circleci.com/gh/vissarion/volume_approximation/tree/develop.svg?style=svg)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
+| **master** |[![CircleCI](https://circleci.com/gh/GeomScale/volume_approximation/tree/master.svg?style=svg)](https://circleci.com/gh/GeomScale/volume_approximation/tree/master)
+|**develop** |[![CircleCI](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=svg)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
 
 **VolEsti** is a C++ library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an *R* interface.
 
