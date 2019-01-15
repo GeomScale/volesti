@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 a=np.array([2.1,3.2])
 b=np.array([1.2,0.1])
@@ -62,4 +63,4 @@ for i in range(1000):
     if np.linalg.norm(p2-points[1,:])>0.01:
         failures += 1
 
-print(f'Boundary time: {boundary_time/1000}.\nLI time: {li_time/1000}\nFailures:{failures}\nAvg dists:{avg_dists/2000}')
+print('Boundary time: {}.\nLI time: {}\nFailures:{}\nAvg dists:{}'.format(boundary_time/1000, li_time/1000, failures, avg_dists/2000))

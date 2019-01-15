@@ -10,5 +10,8 @@ do
     includes+="-I${names[$i]} "
 done
 echo $includes
-g++ -Dasd -DVOLESTI_DEBUG -DUSE_FAISS $includes -O3 -Wall -shared -std=c++11 -fPIC `python3 -m pybind11 --includes` volesti_pybind11.cpp  -o volesti`python3-config --extension-suffix` -lfaiss
-ipython test.py
+suffix=`python-config --extension-suffix`
+if [ -z "$var" ]; then
+	suffix=".so"
+fi
+g++ -Dasd -DVOLESTI_DEBUG -DUSE_FAISS $includes -O3 -Wall -shared -std=c++11 -fPIC `python -m pybind11 --includes` volesti_pybind11.cpp  -o volesti$suffix -lfaiss
