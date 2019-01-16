@@ -10,6 +10,8 @@
 #ifndef POLYTOPES_H
 #define POLYTOPES_H
 
+#include <limits>
+
 #include <iostream>
 #include "solve_lp.h"
 
@@ -23,6 +25,8 @@ public:
     typedef Point PolytopePoint;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
+    //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    //typedef RowMatrixXd MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
@@ -32,6 +36,8 @@ private:
     unsigned int            _d; //dimension
     NT maxNT = 1.79769e+308;
     NT minNT = -1.79769e+308;
+    //NT maxNT = std::numeric_limits<NT>::max();
+    //NT minNT = std::numeric_limits<NT>::min();
 
 public:
     HPolytope() {}
@@ -435,8 +441,10 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    NT maxNT = 1.79769e+308;
-    NT minNT = -1.79769e+308;
+    //NT maxNT = 1.79769e+308;
+    //NT minNT = -1.79769e+308;
+    NT maxNT = std::numeric_limits<NT>::max();
+    NT minNT = std::numeric_limits<NT>::min();
 
 public:
     VPolytope() {}
@@ -794,8 +802,10 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    NT maxNT = 1.79769e+308;
-    NT minNT = -1.79769e+308;
+    //NT maxNT = 1.79769e+308;
+    //NT minNT = -1.79769e+308;
+    NT maxNT = std::numeric_limits<NT>::max();
+    NT minNT = std::numeric_limits<NT>::min();
 
 public:
 
@@ -827,7 +837,7 @@ public:
 
         num_of_hyp = nom / denom;
 
-        res = num_of_hyp;
+        res = 2*_d;
         return res;
     }
 
@@ -897,7 +907,7 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-        initial_shifting(); // shift zonotope to the origin
+        //initial_shifting(); // shift zonotope to the origin
     }
 
 
@@ -912,7 +922,7 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        initial_shifting(); // shift zonotope to the origin
+        //initial_shifting(); // shift zonotope to the origin
     }
 
 
