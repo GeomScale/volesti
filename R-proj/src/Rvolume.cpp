@@ -82,7 +82,7 @@ double generic_volume(Polytope& P, Rcpp::NumericMatrix& A, unsigned int walk_len
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len, double e,
+double volume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len, double e,
                 Rcpp::NumericVector InnerBall, bool CG, unsigned int win_len,
                 unsigned int N, double C, double ratio, double frac,
                 bool ball_walk, double delta, bool Vpoly, bool Zono,
@@ -95,16 +95,19 @@ double Rvolume (Rcpp::Reference P, Rcpp::NumericMatrix A, unsigned int walk_len,
     if (Zono) {
         typedef Zonotope<Point> Zonotope;
         Zonotope ZP;
-        return generic_volume<Point,NT>(ZP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding);
+        return generic_volume<Point,NT>(ZP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                        Vpoly, Zono, coord, rounding);
     } else if (!Vpoly) {
         typedef HPolytope<Point> Hpolytope;
         Hpolytope HP;
-        return generic_volume<Point,NT>(HP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding);
+        return generic_volume<Point,NT>(HP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                        Vpoly, Zono, coord, rounding);
     } else {
         typedef boost::mt19937    RNGType;
         typedef VPolytope<Point, RNGType > Vpolytope;
         Vpolytope VP;
-        return generic_volume<Point,NT>(VP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta, Vpoly, Zono, coord, rounding);
+        return generic_volume<Point,NT>(VP, A, walk_len, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                        Vpoly, Zono, coord, rounding);
     }
 
     return 0;

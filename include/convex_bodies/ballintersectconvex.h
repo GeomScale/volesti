@@ -34,7 +34,7 @@ public:
     }
 
     int is_in(Point p){
-        if ((p-_c).squared_length() <= _R)
+        if (p.squared_length() <= _R)
             return -1;
         else return 0;
     }
@@ -45,8 +45,8 @@ public:
         viterator rit=r.iter_begin();
         viterator vit=v.iter_begin();
         viterator cit=_c.iter_begin();
-        Point rc = r - _c;
-        viterator rcit=rc.iter_begin();
+        //Point rc = r;// - _c;
+        viterator rcit=r.iter_begin();
         NT vrc(0);
         NT v2(0);
         NT rc2(0);
@@ -65,19 +65,20 @@ public:
     std::pair<NT,NT> line_intersect_coord(Point r,
                                           int rand_coord){
 
-        Point rc = r - _c;
-        viterator rcit=rc.iter_begin();
+        //Point rc = r;// - _c;
+        viterator rcit=r.iter_begin();
         NT vrc = *(rcit + rand_coord);
 
-        NT v2 = NT(1);
-        NT rc2(0);
-        for( ; rcit < rc.iter_end() ; ++rcit){
-            rc2 += *rcit * (*rcit);
+        //NT v2 = NT(1);
+        NT rc2(_R);
+        for( ; rcit < r.iter_end() ; ++rcit){
+            rc2 -= *rcit * (*rcit);
         }
 
-        NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));
-        NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
-        NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
+        //NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));
+        NT disc_sqrt = std::sqrt(std::pow(vrc,2) + rc2);// + _R);
+        NT lamda1((NT(-1)*vrc + disc_sqrt));
+        NT lamda2((NT(-1)*vrc - disc_sqrt));
 
         return std::pair<NT,NT> (lamda1,lamda2);
 

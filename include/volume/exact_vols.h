@@ -48,10 +48,12 @@ NT exact_zonotope_vol(Polytope ZP){
 
     int n = ZP.dimension();
     int k = ZP.num_of_generators();
-    MT V = ZP.get_mat().transpose();
+    MT V1 = ZP.get_mat().transpose();
+    MT V(n, 2*k);
+    V << V1, -V1;
     NT vol = 0.0;
 
-    std::vector< std::vector<int> > combs = comb(k, n);
+    std::vector< std::vector<int> > combs = comb(2*k, n);
     IntMatIt iter_combs;
     IntIt it;
 
