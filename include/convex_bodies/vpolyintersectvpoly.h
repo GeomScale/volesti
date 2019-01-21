@@ -21,6 +21,7 @@ public:
     VPolytope P1;
     VPolytope P2;
 
+    IntersectionOfVpoly() {}
 
     IntersectionOfVpoly(VPolytope &P, VPolytope &Q) : P1(P), P2(Q) {};
 
@@ -47,6 +48,11 @@ public:
 
     unsigned int upper_bound_of_hyperplanes() {
         return P1.upper_bound_of_hyperplanes() + P2.upper_bound_of_hyperplanes() ;
+    }
+
+    void init(VPolytope VP1, VPolytope VP2) {
+        P1 = VP1;
+        P2 = VP2;
     }
 
     std::pair<Point,NT> ComputeInnerBall() {
