@@ -23,7 +23,7 @@ GenSkinnyCube <- function(dimension) {
   b = Mat[,1]
   Mat = Mat[,-c(1)]
   
-  P = HPolytope(A = -Mat, b = b)
+  P = HPolytope$new(-Mat, b)
   
   return(P)
 }

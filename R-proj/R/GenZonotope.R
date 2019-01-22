@@ -23,7 +23,7 @@ GenZonotope <- function(dimension, NumGen) {
   b = Mat[,1]
   Mat = Mat[,-c(1)]
   
-  P = Zonotope(G = Mat)
+  P = Zonotope$new(Mat)
 
   return(P)
 }

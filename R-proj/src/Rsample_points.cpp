@@ -22,6 +22,7 @@
 #include "sample_only.h"
 #include "simplex_samplers.h"
 
+
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
 Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len, Rcpp::NumericVector InnerPoint,
@@ -201,5 +202,52 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
         }
     }
     return PointSet2;
+
+}
+
+
+Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P, Rcpp::Nullable<unsigned int> N = R_NilValue,
+                                  Rcpp::Nullable<Rcpp::List> method = R_NilValue,
+                                  Rcpp::Nullable<bool> exact = R_NilValue,
+                                  Rcpp::Nullable<std::string> body = R_NilValue,
+                                  Rcpp::Nullable<double> radius = R_NilValue,
+                                  Rcpp::Nullable<std::string> distribution = R_NilValue,
+                                  Rcpp::Nullable<Rcpp::NumericVector> InnerPoint = R_NilValue){
+
+    typedef double NT;
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937 RNGType;
+    typedef HPolytope <Point> Hpolytope;
+    typedef VPolytope <Point, RNGType> Vpolytope;
+    typedef Zonotope <Point> zonotope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    int type;
+    std::list<Point> randPoints;
+    Rcpp::NumericMatrix PointSet(dim,numpoints);
+
+    if(P.isNotNull()){
+        type = Rcpp::as<Rcpp::Reference>(P).field("t");
+        if (exact.isNotNull()) {
+            if (Rcpp::as<bool>(exact) && type==2) {
+                if (Rcpp::as<MT>(P.field("V")).rows()==Rcpp::as<MT>(P.field("V")).cols()+1) {
+                    MT V = Rcpp::as<MT>(P.field("V"));
+                    std::vector<Point> vec_point;
+                    //std::vector<NT> temp_it;
+                    for (int i = 0; i < V.rows(); ++i) {
+                        std::vector<NT> temp_p(&V.row(i)[0], V.row(i).data()+V.row(i).cols()*V.row(i).rows());
+                        vec_point.push_back(Point(n, temp_p.begin(), temp_p.end()));
+                    }
+                    Sam_arb_simplex<NT, RNGType>(vec_point.begin(), vec_point.end(), Rcpp::as<unsigned int>(N), randPoints);
+
+                } else {
+                    throw std::range_error("Not a simplex!");
+                }
+            } else if (Rcpp::as<bool>(exact) && type!=2){
+                throw std::range_error("Not a simplex in V-representation!");
+            }
+        }
+    }
 
 }
