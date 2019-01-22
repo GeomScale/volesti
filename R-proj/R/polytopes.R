@@ -4,7 +4,7 @@
 #' 
 #' @field A \eqn{m\times d} numerical matrix A
 #' @field A \eqn{m}-dimensional vector b
-HPolytope2 <- setRefClass("HPolytope", fields = list(A="matrix", b="vector", type="S4"),
+HPolytope2 <- setRefClass("HPolytope", fields = list(A="matrix", b="vector", type="numeric"),
             methods = list(
               get_mat = function() {
                 "Return a numerical matrix that describes the polytope in ine format"

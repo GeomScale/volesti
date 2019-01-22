@@ -33,9 +33,9 @@ GenCube <- function(dimension, repr) {
   b = Mat[,1]
   Mat = Mat[,-c(1)]
   if (Vpoly_gen) {
-    P = VPolytope(V = Mat)
+    P = VPolytope$new(Mat)
   } else {
-    P = HPolytope2(A = -Mat, b = b)
+    P = HPolytope$new(-Mat, b)
   }
   
   return(P)

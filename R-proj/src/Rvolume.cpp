@@ -164,8 +164,6 @@ double Rvolume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_Ni
             N = 500 * ((int) C) + n * n / 2;
         }
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("N")) {
-            Rprintf("parameters contains N");
-            std::cout<<" N = "<<Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["N"])<<std::endl;
             N = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["N"]);
         }
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("Window")) {

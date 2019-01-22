@@ -34,9 +34,9 @@ GenSimplex <- function(dimension, repr) {
   Mat = Mat[,-c(1)]
   
   if (Vpoly_gen) {
-    P = VPolytope(V = Mat)
+    P = VPolytope$new(Mat)
   } else {
-    P = HPolytope(A = -Mat, b = b)
+    P = HPolytope$new(-Mat, b)
   }
   
   return(P)
