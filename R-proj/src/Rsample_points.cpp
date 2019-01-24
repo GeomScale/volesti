@@ -191,7 +191,7 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
         sampling_only<Point>(randPoints, VP, walk_len, numpoints, gaussian, a, p, var1, var2);
     }
 
-    // store the sampled points to the output matrix
+    // store the sampled points to the output matrixRcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["radius"])
     typename std::list<Point>::iterator rpit=randPoints.begin();
     typename std::vector<NT>::iterator qit;
     unsigned int j = 0, i;
@@ -206,11 +206,12 @@ Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len
 }
 
 
-Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P, Rcpp::Nullable<unsigned int> N = R_NilValue,
-                                  Rcpp::Nullable<Rcpp::List> method = R_NilValue,
+Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue, Rcpp::Nullable<unsigned int> N = R_NilValue,
+                                  Rcpp::Nullable<std::string> WalkType = R_NilValue,
+                                  Rcpp::Nullable<unsigned int> walk_len = R_NilValue,
                                   Rcpp::Nullable<bool> exact = R_NilValue,
                                   Rcpp::Nullable<std::string> body = R_NilValue,
-                                  Rcpp::Nullable<double> radius = R_NilValue,
+                                  Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
                                   Rcpp::Nullable<std::string> distribution = R_NilValue,
                                   Rcpp::Nullable<Rcpp::NumericVector> InnerPoint = R_NilValue){
 
@@ -223,31 +224,145 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P, Rcpp::Nulla
     typedef Zonotope <Point> zonotope;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    int type;
+    int type, dim;
+    NT radius = 1.0, delta = -1.0;
+    bool set_mean_point = false, coordinate, ball_walk;
     std::list<Point> randPoints;
     Rcpp::NumericMatrix PointSet(dim,numpoints);
 
-    if(P.isNotNull()){
-        type = Rcpp::as<Rcpp::Reference>(P).field("t");
-        if (exact.isNotNull()) {
+    if (exact.isNotNull()) {
+        if (P.isNotNull()) {
+            type = Rcpp::as<Rcpp::Reference>(P).field("t");
             if (Rcpp::as<bool>(exact) && type==2) {
-                if (Rcpp::as<MT>(P.field("V")).rows()==Rcpp::as<MT>(P.field("V")).cols()+1) {
-                    MT V = Rcpp::as<MT>(P.field("V"));
-                    std::vector<Point> vec_point;
-                    //std::vector<NT> temp_it;
-                    for (int i = 0; i < V.rows(); ++i) {
-                        std::vector<NT> temp_p(&V.row(i)[0], V.row(i).data()+V.row(i).cols()*V.row(i).rows());
-                        vec_point.push_back(Point(n, temp_p.begin(), temp_p.end()));
-                    }
-                    Sam_arb_simplex<NT, RNGType>(vec_point.begin(), vec_point.end(), Rcpp::as<unsigned int>(N), randPoints);
-
+                if (Rcpp::as<MT>(P.field("V")).rows() == Rcpp::as<MT>(P.field("V")).cols()+1) {
+                    Vpolytope VP;
+                    VP.init(Rcpp::as<MT>(P.field("V")).cols(), Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+                    Sam_arb_simplex(VP, Rcpp::as<unsigned int>(N), randPoints);
                 } else {
                     throw std::range_error("Not a simplex!");
                 }
-            } else if (Rcpp::as<bool>(exact) && type!=2){
+            } else if (Rcpp::as<bool>(exact) && type!=2) {
                 throw std::range_error("Not a simplex in V-representation!");
             }
+        } else {
+            if (!body.isNotNul()) {
+
+                throw std::range_error("Wrong input!");
+
+            } else if (!Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("dimension")) {
+
+                throw std::range_error("Wrong input!");
+
+            }
+            dim = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["dimension"]);
+            if (!Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("radius")) {
+
+                radius = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["radius"]);
+
+            }
+            if (Rcpp::as<std::string>(body).compare(std::string("hypersphere"))==0) {
+
+                for (unsigned int k = 0; k < Rcpp::as<unsigned int>(N); ++k) {
+                    randPoints.push_back(get_point_on_Dsphere<RNGType , Point >(dim, radius));
+                }
+
+            } else if (Rcpp::as<std::string>(body).compare(std::string("ball"))==0) {
+
+                for (unsigned int k = 0; k < Rcpp::as<unsigned int>(N); ++k) {
+                    randPoints.push_back(get_point_in_Dsphere<RNGType , Point >(dim, radius));
+                }
+
+            } else if (Rcpp::as<std::string>(body).compare(std::string("unit simplex"))==0) {
+
+                Sam_Unit<NT, RNGType >(dim, Rcpp::as<unsigned int>(N), randPoints);
+
+            } else if (Rcpp::as<std::string>(body).compare(std::string("canonical simplex"))==0) {
+
+                Sam_Canon_Unit<NT, RNGType >(dim, Rcpp::as<unsigned int>(N), randPoints);
+
+            } else {
+
+                throw std::range_error("Wrong input!");
+
+            }
         }
+    } else if (P.isNotNull()) {
+
+        type = Rcpp::as<Rcpp::Reference>(P).field("t");
+        dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
+        unsigned int walkL = 10+dim/10;
+        Point MeanPoint;
+        if (InnerPoint.isNotNull()) {
+            if (Rcpp::as<Rcpp::NumericVector>(InnerPoint).size()!=dim) {
+                warning("Internal Point has to lie in the same dimension as the polytope P");
+            } else {
+                set_mean_point = true;
+                MeanPoint = Point( dim , Rcpp::as<std::vector<NT> >(InnerPoint).begin(),
+                        Rcpp::as<std::vector<NT> >(InnerPoint).end() );
+            }
+        }
+        if(walk_len.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_len);
+
+        NT a = 0.5;
+
+        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("variance"))
+            a = 1.0 / (2.0 * Rcpp::as<Rcpp::List>(Parameters)["variance"]);
+
+        if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
+            coordinate = true;
+            ball_walk = false;
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
+            coordinate = false;
+            ball_walk = false;
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
+            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
+                delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
+            }
+            coordinate = false;
+            ball_walk = true;
+        } else {
+            throw std::range_error("Unknown walk type!");
+        }
+
+        vars<NT, RNGType> var1(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
+                               delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
+        vars_g<NT, RNGType> var2(n, walk_len, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
+                                 rand_only, false, NN, birk, ball_walk, coord);
+
+        if (type==1) {
+            // Hpolytope
+            Hpolytope HP;
+            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            sampling_only<Point>(randPoints, HP, walk_len, Rcpp::as<unsigned int>(N), gaussian, a, MeanPoint, var1, var2);
+        } else if(type==2) {
+            // Vpolytope
+            Vpolytope VP;
+            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            return generic_volume<Point,NT>(VP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                            coordinate, round);
+
+        } else if(type==3){
+            // Zonotope
+            zonotope ZP;
+            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            return generic_volume<Point,NT>(ZP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                            coordinate, round);
+        } else {
+            // Intersection of two V-polytopes
+            Vpolytope VP1;
+            Vpolytope VP2;
+            InterVP VPcVP;
+            VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
+            VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
+            VPcVP.init(VP1, VP2);
+            return generic_volume<Point,NT>(VPcVP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                            coordinate, round);
+        }
+
+    } else {
+
+        throw std::range_error("Wrong input!");
+
     }
 
 }

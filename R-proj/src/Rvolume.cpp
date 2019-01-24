@@ -125,13 +125,13 @@ double Rvolume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_Ni
         if(!walk_len.isNotNull()){
             walkL= 10+n/10;
         } else {
-            walkL = Rcpp::as<int>(walk_len);
+            walkL = Rcpp::as<unsigned int>(walk_len);
         }
 
         if(!error.isNotNull()){
             e = 1.0;
         } else {
-            e = Rcpp::as<double>(error);
+            e = Rcpp::as<NT>(error);
         }
 
     } else if (Rcpp::as<std::string>(Algo).compare(std::string("CG"))==0) {
@@ -141,7 +141,7 @@ double Rvolume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_Ni
         if (!error.isNotNull()) {
             e = 0.1;
         } else {
-            e = Rcpp::as<double>(error);
+            e = Rcpp::as<NT>(error);
         }
 
         if (!walk_len.isNotNull()) {
@@ -157,10 +157,10 @@ double Rvolume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_Ni
     if(Parameters.isNotNull()) {
 
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
-            delta = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
+            delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
         }
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("C")) {
-            C = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["C"]);
+            C = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["C"]);
             N = 500 * ((int) C) + n * n / 2;
         }
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("N")) {
@@ -170,10 +170,10 @@ double Rvolume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_Ni
             win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["Window"]);
         }
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("frac")) {
-            frac = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["frac"]);
+            frac = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["frac"]);
         }
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("ratio")) {
-            ratio = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["ratio"]);
+            ratio = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["ratio"]);
         }
     }
 

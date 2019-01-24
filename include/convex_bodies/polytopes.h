@@ -436,6 +436,7 @@ public:
     typedef typename Point::FT NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef RNGType rngtype;
 
 private:
     MT V;  //matrix V. Each row contains a vertex
