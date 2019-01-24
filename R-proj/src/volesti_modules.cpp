@@ -28,7 +28,7 @@ public:
         dimension = _A.ncol();
     }
     int type = 1;
-    int dimension;
+    unsigned int dimension;
     Rcpp::NumericMatrix A;
     Rcpp::NumericVector b;
 
@@ -41,7 +41,7 @@ public:
         dimension = _V.ncol();
     }
     int type = 2;
-    int dimension;
+    unsigned int dimension;
     Rcpp::NumericMatrix V;
 
 };
@@ -53,7 +53,7 @@ public:
         dimension = _G.ncol();
     }
     int type = 3;
-    int dimension;
+    unsigned int dimension;
     Rcpp::NumericMatrix G;
 
 };
@@ -65,7 +65,7 @@ public:
         dimension = _V1.ncol();
     }
     int type = 4;
-    int dimension;
+    unsigned int dimension;
     Rcpp::NumericMatrix V1;
     Rcpp::NumericMatrix V2;
 
