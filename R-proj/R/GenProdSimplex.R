@@ -23,7 +23,7 @@ GenProdSimplex <- function(dimension) {
   b = Mat[,1]
   Mat = Mat[,-c(1)]
   
-  P = HPolytope$new(-Mat, b)
+  P = Hpolytope$new(-Mat, b)
   
   return(P)
   

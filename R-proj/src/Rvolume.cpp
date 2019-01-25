@@ -93,10 +93,11 @@ double Rvolume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_Ni
     typedef IntersectionOfVpoly<Vpolytope> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    int n = P.field("dimension"), walkL;
+    unsigned int n = P.field("dimension"), walkL;
 
     bool CG, coordinate, ball_walk, round;
     unsigned int win_len = 4*n*n+500, N = 500 * 2 +  n * n / 2;
+
     double C = 2.0, ratio = 1.0-1.0/(NT(n)), frac = 0.1, e, delta = -1.0;
 
     if(!rounding.isNotNull()){
@@ -115,7 +116,7 @@ double Rvolume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_Ni
         coordinate = false;
         ball_walk = true;
     } else {
-        throw std::range_error("Unknown walk type!");
+        throw Rcpp::exception("Unknown walk type!");
     }
 
     if(!Algo.isNotNull() || Rcpp::as<std::string>(Algo).compare(std::string("SOB"))==0){
@@ -151,7 +152,7 @@ double Rvolume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_Ni
         }
 
     } else {
-        throw std::range_error("Unknown method!");
+        throw Rcpp::exception("Unknown method!");
     }
 
     if(Parameters.isNotNull()) {

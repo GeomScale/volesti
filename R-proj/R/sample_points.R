@@ -42,7 +42,7 @@
 #' P = HPolytope(A=A, b=b)
 #' points = sample_points(P, distribution = list("gaussian"=TRUE, "variance"=2))
 #' @export
-sample_points <- function(P, N, distribution, method, InnerPoint){
+RRsample_points <- function(P, N, distribution, method, InnerPoint){
   
   if (!missing(P)) {
     repr = class(P)[1]

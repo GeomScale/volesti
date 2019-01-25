@@ -211,16 +211,17 @@ void Sam_arb_simplex(Vpolytope P, unsigned int num, PointList &points){
     MT V = P.get_mat();
     std::vector<NT> temp_p;
     std::vector<Point> vec_point;
+    typename std::vector<Point>::iterator it_beg = vec_point.begin();
+
+    unsigned int n=P.dimension()+1,j,i,k,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
+    unsigned int dim = n - 1;
+    std::vector<unsigned int> x_vec;
+    std::vector<NT> y;
+
     for (int i = 0; i < V.rows(); ++i) {
         std::vector<NT> temp_p(&V.row(i)[0], V.row(i).data()+V.row(i).cols()*V.row(i).rows());
         vec_point.push_back(Point(n, temp_p.begin(), temp_p.end()));
     }
-    typename std::vectr<NT>::iterator it_beg = vec_point.begin();
-
-    unsigned int n=P.dimension+1,j,i,k,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
-    unsigned int dim = n - 1;
-    std::vector<unsigned int> x_vec;
-    std::vector<NT> y;
 
     NT Xj;
     Point p0=*it_beg;
