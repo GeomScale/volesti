@@ -17,7 +17,7 @@
 #' P = GenCube(3, 'V')
 #' ball_vec = InnerBall(P)
 #' @export
-InnerBall <- function(P){
+RRInnerBall <- function(P){
   
   if (!missing(P)) {
     repr = class(P)[1]
