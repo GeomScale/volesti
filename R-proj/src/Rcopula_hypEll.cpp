@@ -8,7 +8,8 @@
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
 #include <Rcpp.h>
-//#include <RcppEigen.h>
+#include <RcppEigen.h>
+#include "ellipsoids.h"
 #include <chrono>
 #include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
@@ -18,30 +19,40 @@
 
 // [[Rcpp::plugins(cpp11)]]
 // [[Rcpp::export]]
-Rcpp::NumericMatrix copula_hyps (Rcpp::NumericVector hyplane1, Rcpp::NumericVector hyplane2,
-                                 unsigned int num_slices, unsigned int numpoints){
+Rcpp::NumericMatrix copula2 (Rcpp::NumericVector h, Rcpp::NumericMatrix E,
+                                   Rcpp::Nullable<unsigned int> numSlices, Rcpp::Nullable<unsigned int> N){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937    RNGType;
+    typedef copula_ellipsoid<Point> CopEll;
+
+    unsigned int num_slices = 100, numpoints = 4000000;
+
+    if (numSlices.isNotNull()) {
+        num_slices = Rcpp::as<unsigned int>(numSlices);
+    }
+
+    if (N.isNotNull()) {
+        numpoints = Rcpp::as<unsigned int>(N);
+    }
 
     Rcpp::NumericMatrix copula(num_slices, num_slices);
     std::vector<std::vector<NT> > StdCopula;
-    unsigned int dim = hyplane1.size(), i, j;
+    unsigned int dim = h.size(), i, j;
 
-    std::vector<NT> hyp1(dim, 0.0);
-    std::vector<NT> hyp2(dim, 0.0);
-    typename std::vector<NT>::iterator hit1, hit2;
-    i = 0;
-    hit1 = hyp1.begin();
-    hit2 = hyp2.begin();
-    for ( ;  hit1!=hyp1.end(); ++hit1, ++hit2, ++i) {
-        *hit1 = hyplane1[i];
-        *hit2 = hyplane2[i];
+    std::vector<NT> hyp1 = Rcpp::as<std::vector<NT> >(h);;
+    std::vector<std::vector<NT> > Gin(dim, std::vector<NT>(dim));
+
+    for (i=0; i<dim; i++){
+        hyp1[i] = h[i];
+        for(j=0; j<dim; j++){
+            Gin[i][j]=E(i,j);
+        }
     }
-
-    StdCopula = twoParHypFam<Point, RNGType >(dim, numpoints, num_slices, hyp1, hyp2);
+    CopEll Ell(Gin);
+    StdCopula = hypfam_ellfam<Point, RNGType >(dim, numpoints, num_slices, hyp1, Ell);
 
     for(i=0; i<num_slices; i++) {
         for(j=0; j<num_slices; j++){

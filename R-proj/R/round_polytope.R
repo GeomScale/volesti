@@ -30,14 +30,14 @@
 round_polytope <- function(P, method) {
   
   if (!missing(P)) {
-    repr = class(P)[1]
-    if (repr == "HPolytope") {
+    repr = P$type
+    if (repr == 1) {
       vpoly = FALSE
       Zono = FALSE
-    } else if(repr == "VPolytope") {
+    } else if(repr == 2) {
       vpoly = TRUE
       Zono = FALSE
-    } else if(repr == "Zonotope") {
+    } else if(repr == 3) {
       vpoly = FALSE
       Zono = TRUE
     } else {
@@ -97,11 +97,11 @@ round_polytope <- function(P, method) {
   # remove first column
   A = Mat[,-c(1)]
   if (vpoly) {
-    PP = list("P" = VPolytope(V=A), "round_value" = round_value)
+    PP = list("P" = Vpolytope$new(A), "round_value" = round_value)
   }else if (Zono) {
-    PP = list("P" = Zonotope(G=A), "round_value" = round_value)
+    PP = list("P" = Zonotope$new(A), "round_value" = round_value)
   } else {
-    PP = list("P" = HPolytope("A"=A, "b"=b), "round_value" = round_value)
+    PP = list("P" = Hpolytope$new(A, b), "round_value" = round_value)
   }
   return(PP)
 }

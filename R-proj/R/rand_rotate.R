@@ -21,14 +21,14 @@
 rand_rotate <- function(P){
   
   if (!missing(P)) {
-    repr = class(P)[1]
-    if (repr == "HPolytope") {
+    repr = P$type
+    if (repr == 1) {
       vpoly = FALSE
       Zono = FALSE
-    } else if(repr == "VPolytope") {
+    } else if(repr == 2) {
       vpoly = TRUE
       Zono = FALSE
-    } else if(repr == "Zonotope") {
+    } else if(repr == 3) {
       vpoly = FALSE
       Zono = TRUE
     } else {
@@ -54,11 +54,11 @@ rand_rotate <- function(P){
   A = Mat[,-c(1)]
   A = Mat[,-c(1)]
   if (vpoly) {
-    PP = VPolytope(V=A)
+    PP = Vpolytope$new(A)
   }else if (Zono) {
-    PP = Zonotope(G=A)
+    PP = Zonotope$new(A)
   } else {
-    PP = HPolytope("A"=A, "b"=b)
+    PP = Hpolytope$new(A, b)
   }
   return(PP)
 }
