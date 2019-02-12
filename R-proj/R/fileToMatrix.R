@@ -12,6 +12,11 @@
 #' path = system.file('extdata', package = 'volesti')
 #' ListPoly = fileToMatrix(paste0(path,'/birk4.ine'))
 #' @export
+#' @useDynLib volesti, .registration=TRUE
+#' @importFrom Rcpp evalCpp
+#' @importFrom "utils" "read.csv"
+#' @importFrom "methods" "new"
+#' @exportPattern "^[[:alpha:]]+"
 fileToMatrix <- function(path, zonotope){
   
   ineorext=substr(path, start = nchar(path) - 2, stop = nchar(path))

@@ -23,192 +23,54 @@
 #include "simplex_samplers.h"
 #include "vpolyintersectvpoly.h"
 
-/*
-Rcpp::NumericMatrix Rsample_points (Rcpp::NumericMatrix A, unsigned int walk_len, Rcpp::NumericVector InnerPoint,
-                                    bool gaussian, bool ball_walk, double delta, bool coord, bool Vpoly, bool Zono, bool sam_simplex,
-                                    bool sam_can_simplex, bool sam_arb_simplex, bool sam_ball, bool sam_sphere,
-                                    unsigned int numpoints, int dim, double variance) {
 
-    typedef double NT;
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef boost::mt19937    RNGType;
-    typedef HPolytope<Point> Hpolytope;
-    typedef VPolytope<Point, RNGType > Vpolytope;
-    typedef Zonotope<Point> zonotope;
-
-    Hpolytope HP;
-    Vpolytope VP;
-    zonotope ZP;
-    InterVP VPcVP;
-
-    std::list<Point> randPoints;
-    Rcpp::NumericMatrix PointSet(dim,numpoints);
-
-    if (sam_ball || sam_sphere) {
-
-        for (unsigned int k = 0; k < numpoints; ++k) {
-            if (sam_ball) {
-                randPoints.push_back(get_point_in_Dsphere<RNGType , Point >(dim, delta));
-            } else {
-                randPoints.push_back(get_point_on_Dsphere<RNGType , Point >(dim, delta));
-            }
-        }
-
-        // store the sampled points to the output matrix
-        typename std::list<Point>::iterator rpit=randPoints.begin();
-        typename std::vector<NT>::iterator qit;
-        unsigned int j = 0, i;
-        for ( ; rpit!=randPoints.end(); rpit++, j++) {
-            qit = (*rpit).iter_begin(); i=0;
-            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-                PointSet(i,j)=*qit;
-            }
-        }
-        return PointSet;
-
-    }
-
-    if (sam_simplex || sam_can_simplex) {
-
-        if (sam_simplex) {
-            Sam_Unit<NT, RNGType >(dim, numpoints, randPoints);
-        } else {
-            Sam_Canon_Unit<NT, RNGType >(dim, numpoints, randPoints);
-        }
-
-        // store the sampled points to the output matrix
-        typename std::list<Point>::iterator rpit=randPoints.begin();
-        typename std::vector<NT>::iterator qit;
-        unsigned int j = 0, i;
-        for ( ; rpit!=randPoints.end(); rpit++, j++) {
-            qit = (*rpit).iter_begin(); i=0;
-            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-                PointSet(i,j)=*qit;
-            }
-        }
-        return PointSet;
-    }
-
-    if (sam_arb_simplex) {
-        unsigned int n=A.ncol()-1;
-        std::vector<NT> temp_p(n, 0.0);
-        typename std::vector<NT>::iterator temp_it;
-        std::vector<Point> vec_point;
-
-        for (int k = 1; k < A.nrow(); ++k) {
-            temp_it = temp_p.begin();
-            for (int l = 1; l < A.ncol(); ++l, ++temp_it) {
-                *temp_it = A(k,l);
-            }
-            vec_point.push_back(Point(n, temp_p.begin(), temp_p.end()));
-        }
-
-        Sam_arb_simplex<NT, RNGType>(vec_point.begin(), vec_point.end(), numpoints, randPoints);
-
-        // store the sampled points to the output matrix
-        typename std::list<Point>::iterator rpit=randPoints.begin();
-        typename std::vector<NT>::iterator qit;
-        unsigned int j = 0, i;
-        for ( ; rpit!=randPoints.end(); rpit++, j++) {
-            qit = (*rpit).iter_begin(); i=0;
-            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-                PointSet(i,j)=*qit;
-            }
-        }
-        return PointSet;
-    }
-
-    bool rand_only=false,
-            NN=false,
-            birk=false,
-            verbose=false,
-            coordinate=coord;
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    // the random engine with this seed
-    RNGType rng(seed);
-    boost::random::uniform_real_distribution<>(urdist);
-    boost::random::uniform_real_distribution<> urdist1(-1,1);
-
-    unsigned int m=A.nrow()-1;
-    unsigned int n=A.ncol()-1;
-    std::vector <std::vector<NT> > Pin(m + 1, std::vector<NT>(n + 1));
-    Rcpp::NumericMatrix PointSet2(n,numpoints);
-
-    for (unsigned int i = 0; i < m + 1; i++) {
-        for (unsigned int j = 0; j < n + 1; j++) {
-            Pin[i][j] = A(i, j);
-        }
-    }
-    // construct polytope
-    if (Zono) {
-        ZP.init(Pin);
-    } else if (!Vpoly) {
-        HP.init(Pin);
-    } else {
-        VP.init(Pin);
-    }
-
-    std::pair<Point,NT> InnerBall;
-    if (Zono) {
-        InnerBall = ZP.ComputeInnerBall();
-    } else if (!Vpoly) {
-        InnerBall = HP.ComputeInnerBall();
-    } else {
-        InnerBall = VP.ComputeInnerBall();
-    }
-
-    if (InnerPoint.size()==n) {
-        std::vector<NT> temp_p;
-        for (unsigned int j=0; j<n; j++){
-            temp_p.push_back(InnerPoint[j]);
-        }
-        InnerBall.first = Point( n , temp_p.begin() , temp_p.end() );
-    }
-
-    Point p = InnerBall.first;
-    NT a = 1.0 / (2.0 * variance);
-    if (ball_walk) {
-        if (delta < 0.0) { // set the radius for the ball walk if is not set by the user
-            if (gaussian) {
-                delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
-            } else {
-                delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
-            }
-        }
-    }
-    unsigned int rnum = std::pow(1.0,-2) * 400 * n * std::log(n);
-    // initialization
-    vars<NT, RNGType> var1(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
-                           delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
-    vars_g<NT, RNGType> var2(n, walk_len, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
-                             rand_only, false, NN, birk, ball_walk, coord);
-    if (Zono) {
-        sampling_only<Point>(randPoints, ZP, walk_len, numpoints, gaussian, a, p, var1, var2);
-    } else if (!Vpoly) {
-        sampling_only<Point>(randPoints, HP, walk_len, numpoints, gaussian, a, p, var1, var2);
-    } else {
-        sampling_only<Point>(randPoints, VP, walk_len, numpoints, gaussian, a, p, var1, var2);
-    }
-
-    // store the sampled points to the output matrixRcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["radius"])
-    typename std::list<Point>::iterator rpit=randPoints.begin();
-    typename std::vector<NT>::iterator qit;
-    unsigned int j = 0, i;
-    for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        qit = (*rpit).iter_begin(); i=0;
-        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            PointSet2(i,j)=*qit;
-        }
-    }
-    return PointSet2;
-
-}*/
-
-
-// [[Rcpp::plugins(cpp11)]]
+//' Sample many points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from unit simplex and hypersphere
+//'
+//' Sample N points from a H or a V-polytope or a zonotope with uniform or spherical gaussian -centered in an internal point- target distribution.
+//' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
+//'
+//' @param P A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.
+//' @param N The number of points that the function is going to sample from the convex polytope. Default value is \eqn{100}.
+//' @param distribution Optional. A list that contains parameters for the target distribution. Default distribution is uniform.
+//' \itemize{
+//'  \item{gaussian }{A boolean parameter. It declares spherical gaussian distribution as the target distribution. Default value is false.}
+//'  \item{variance }{The variance for the spherical gaussian distribution. Default value is \eqn{1}.}
+//' }
+//' @param method Optional. A list that contains parameters for the random walk method. Default method is Coordinate Hit-and-Run.
+//' \itemize{
+//'  \item{direct }{A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope and the dimension should not be declared through method list. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball).}
+//'  \item{dim }{An integer that declares the dimension when direct flag is enabled for a unit simplex or a hypersphere (boundary or interior).}
+//'  \item{body }{A string to request uniform sampling: (a) "simplex" to sample from an arbitrary simplex (when the simplex is given as a V-polytope) or a unit simplex (when no polytope is given and the dimension is declared), (b) "sphere" to sample from the boundary of a {d}-dimensional hypersphere centered at the origin and (c) to sample from the interior of the \eqn{d}-dimensional hypersphere centered at the origin. For (b) and (c) dimension should be given as well through method list.}
+//'  \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
+//'  \item{WalkT }{A string to declare the random walk method: (a)"hnr" for Hit-and-Run or (b) "bw" for ball walk. Default method is Hit-and-Run.}
+//'  \item{coord }{A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is TRUE.}
+//'  \item{delta }{Optional. The radius for the ball walk.}
+//'  \item{W }{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.}
+//' }
+//' @param InnerPoint A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.
+//'
+//' @references \cite{R.Y. Rubinstein and B. Melamed,
+//' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
+//' @references \cite{A Smith, Noah and W Tromble, Roy,
+//' \dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
+//' @references \cite{Art B. Owen,
+//' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Copyright Art Owen,} 2009-2013.}
+//'
+//' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope.
+//' @examples
+//' # uniform distribution from a 3d cube in V-representation using ball walk
+//' P = GenCube(3, 'V')
+//' points = sample_points(P, method = list("WalkT"="bw", "W"=5))
+//'
+//' # gaussian distribution from a 2d unit simplex in H-representation with variance = 2
+//' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
+//' b = c(0,0,1)
+//' P = HPolytope(A=A, b=b)
+//' points = sample_points(P, distribution = list("gaussian"=TRUE, "variance"=2))
+//' @export
 // [[Rcpp::export]]
-Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue, Rcpp::Nullable<unsigned int> N = R_NilValue,
+Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
+                                  Rcpp::Nullable<unsigned int> N = R_NilValue,
                                   Rcpp::Nullable<std::string> WalkType = R_NilValue,
                                   Rcpp::Nullable<unsigned int> walk_len = R_NilValue,
                                   Rcpp::Nullable<bool> exact = R_NilValue,
@@ -366,7 +228,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         if (type==1) {
             // Hpolytope
             //Hpolytope HP;
-            HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")), Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
+            HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
+                    Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
 
             if (!set_mean_point || ball_walk) {
                 InnerBall = HP.ComputeInnerBall();
@@ -376,7 +239,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         } else if(type==2) {
             // Vpolytope
             //Vpolytope VP;
-            VP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")), VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
+            VP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
+                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
 
             if (!set_mean_point || ball_walk) {
                 InnerBall = VP.ComputeInnerBall();
@@ -386,7 +250,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         } else if(type==3){
             // Zonotope
             //zonotope ZP;
-            ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")), VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
+            ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
+                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
 
             if (!set_mean_point || ball_walk) {
                 InnerBall = VP.ComputeInnerBall();
@@ -398,8 +263,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             Vpolytope VP1;
             Vpolytope VP2;
             //InterVP VPcVP;
-            VP1.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")), VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
-            VP2.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")), VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
+            VP1.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
+                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
+            VP2.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
+                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
             VPcVP.init(VP1, VP2);
 
             if (!set_mean_point || ball_walk) {
