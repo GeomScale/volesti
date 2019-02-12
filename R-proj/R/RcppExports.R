@@ -37,7 +37,7 @@ InnerBall <- function(P) {
 #' @references \cite{Ali, Mir M.,
 #' \dQuote{Content of the frustum of a simplex,} \emph{ Pacific J. Math. 48, no. 2, 313--322,} 1973.}
 #'
-#' @return The percentage of the volume of the unit simplex that is contained in the intersection of the given half-space and the unit simplex
+#' @return The percentage of the volume of the unit simplex that is contained in the intersection of the given half-space and the unit simplex.
 #'
 #' @examples
 #' # compute the frustum of H: -x1+x2<=0
@@ -79,7 +79,7 @@ copula1 <- function(h1, h2, numSlices, N) {
 #' Given two families of parallel hyperplanes (or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin) intersecting the canonical simplex, this function samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
 #'
 #' @param h A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
-#' @param E The \eqn{d\times d} symmetric positive define matrix that describes the family of concentric ellipsoids centered at the origin.
+#' @param E The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
 #' @param numSlices The number of the slices for the copula. Default value is 100.
 #' @param N The number of points to sample. Default value is \eqn{4\cdot 10^6}.
 #'
@@ -105,12 +105,12 @@ copula2 <- function(h, E, numSlices, N) {
 #' For an arbitrary simplex that is given in V-representation this function computes the absolute value of the determinant formed by the simplex's points assuming it is shifted to the origin.
 #' For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this function computes the exact well known formulas.
 #'
-#' @param Z An object of class Zonotope.
-#' @param exact A list that contains parameters for the exact volume computations. When a zonotope is given it should be null.
+#' @param P A zonotope or a simplex in V-representation.
+#' @param body A string that declares the type of the body for the exact sampling: a) 'simplex' for the unit simplex, b) 'cross' for the cross polytope, c) 'hypersphere' for the hypersphere, d) 'cube' for the unit cube.
+#' @param Parameters A list for the parameters of the methods:
 #' \itemize{
-#'  \item{simplex }{A boolean parameter. It has to be TRUE when a simplex is given in V-representation or in order to compute the exact volume of a unit simplex.}
-#'  \item{cube }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional hypercube is requested.}
-#'  \item{cross }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional cross polytope is requested.}
+#' \item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+#' \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
 #' }
 #'
 #' @return The exact volume of the zonotope
@@ -119,11 +119,27 @@ copula2 <- function(h, E, numSlices, N) {
 #' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
 #' Z = GenZonotope(5, 10)
 #' vol = exact_vol(Z)
+#'
+#' # compute the exact volume of a 2-d arbitrary simplex
+#' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
+#' P = Vpolytope$new(V)
+#' vol = exact_vol(P)
+#'
+#' # compute the exact volume the 10-dimensional cross polytope
+#' vol = exact_vol(body = "cross", Parameters = list("dimension" = 10))
 #' @export
 exact_vol <- function(P, body = NULL, Parameters = NULL) {
     .Call(`_volesti_exact_vol`, P, body, Parameters)
 }
 
+#' An internal Rccp function as a polytope generator
+#'
+#' @param kind_gen An integer to declare the type of the polytope.
+#' @param Vpoly_gen A boolean parameter to declare if the requested polytope has to be in V-representation.
+#' @param dim_gen An integer to declare the dimension of the requested polytope.
+#' @param m_gen An integer to declare the number of generators for the requested random zonotope
+#'
+#' @return A numerical matrix describing the requested polytope
 poly_gen <- function(kind_gen, Vpoly_gen, dim_gen, m_gen) {
     .Call(`_volesti_poly_gen`, kind_gen, Vpoly_gen, dim_gen, m_gen)
 }
@@ -145,28 +161,44 @@ poly_gen <- function(kind_gen, Vpoly_gen, dim_gen, m_gen) {
 #' P = Zonotope$new(G)
 NULL
 
+#'  An internal Rccp function for the random rotation of a convex polytope
+#'
+#' @param P A convex polytope (H-, V-polytope or a zonotope).
+#'
+#' @return A matrix that describes the rotated polytope
+rotating <- function(P) {
+    .Call(`_volesti_rotating`, P)
+}
+
+#' Internal rcpp function for the rounding of a convex polytope.
+#'
+#' @param WalkType Optional. A string that declares the random walk.
+#' @param walk_length Optional. The number of the steps for the random walk.
+#' @param radius Optional. The radius for the ball walk.
+#'
+#' @return A Matrix that describes the rounded polytope and contains the round value.
+rounding <- function(P, WalkType = NULL, walk_length = NULL, radius = NULL) {
+    .Call(`_volesti_rounding`, P, WalkType, walk_length, radius)
+}
+
 #' Sample many points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from unit simplex and hypersphere
 #'
 #' Sample N points from a H or a V-polytope or a zonotope with uniform or spherical gaussian -centered in an internal point- target distribution.
 #' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
 #'
-#' @param P A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.
-#' @param N The number of points that the function is going to sample from the convex polytope. Default value is \eqn{100}.
-#' @param distribution Optional. A list that contains parameters for the target distribution. Default distribution is uniform.
+#' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
+#' @param N The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.
+#' @param distribution Optional. A string that declares the target distribution: a) 'uniform' for uniform distribution or b) 'gaussian' for spherical multidimensional distribution. The default target distribution is uniform.
+#' @param WalkType Optional. A string that declares the random walk method: a) 'CDHR' for Coordinate Directions Hit-and-Run, b) 'RDHR' for Random Directions Hit-and-Run or c) 'BW' for Ball Walk. The default walk is  'CDHR'.
+#' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.
+#' @param exact. A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball) as well as the radius of the hypersphere.
+#' @param body. A string that declares the type of the body for the exact sampling: a) 'unit simplex' for the unit simplex, b) 'canonical simplex' for the canonical simplex, c) 'hypersphere' for the boundary of a hypersphere centered at the origin, d) 'ball' for the interior of a hypersphere centered at the origin.
+#' @param Parameters. A list for the parameters of the methods:
 #' \itemize{
-#'  \item{gaussian }{A boolean parameter. It declares spherical gaussian distribution as the target distribution. Default value is false.}
-#'  \item{variance }{The variance for the spherical gaussian distribution. Default value is \eqn{1}.}
-#' }
-#' @param method Optional. A list that contains parameters for the random walk method. Default method is Coordinate Hit-and-Run.
-#' \itemize{
-#'  \item{direct }{A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope and the dimension should not be declared through method list. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball).}
-#'  \item{dim }{An integer that declares the dimension when direct flag is enabled for a unit simplex or a hypersphere (boundary or interior).}
-#'  \item{body }{A string to request uniform sampling: (a) "simplex" to sample from an arbitrary simplex (when the simplex is given as a V-polytope) or a unit simplex (when no polytope is given and the dimension is declared), (b) "sphere" to sample from the boundary of a {d}-dimensional hypersphere centered at the origin and (c) to sample from the interior of the \eqn{d}-dimensional hypersphere centered at the origin. For (b) and (c) dimension should be given as well through method list.}
-#'  \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
-#'  \item{WalkT }{A string to declare the random walk method: (a)"hnr" for Hit-and-Run or (b) "bw" for ball walk. Default method is Hit-and-Run.}
-#'  \item{coord }{A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is TRUE.}
-#'  \item{delta }{Optional. The radius for the ball walk.}
-#'  \item{W }{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.}
+#' \item{variance }{The variance of the spherical multidimensional gaussian. The default value is 1.}
+#' \item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+#' \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
+#' \item{BW_rad }{The radius for the ball walk.}
 #' }
 #' @param InnerPoint A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.
 #'
@@ -181,42 +213,46 @@ NULL
 #' @examples
 #' # uniform distribution from a 3d cube in V-representation using ball walk
 #' P = GenCube(3, 'V')
-#' points = sample_points(P, method = list("WalkT"="bw", "W"=5))
+#' points = sample_points(P, WalkType = "BW", walk_length = 5)
 #'
 #' # gaussian distribution from a 2d unit simplex in H-representation with variance = 2
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
-#' P = HPolytope(A=A, b=b)
-#' points = sample_points(P, distribution = list("gaussian"=TRUE, "variance"=2))
+#' P = Hpolytope$new(A,b)
+#' points = sample_points(P, distribution = "gaussian", Parameters = list("variance" = 2))
+#'
+#' # uniform points from the boundary of a 10-dimensional hypersphere with radius 5
+#' points = sample_points(exact = TRUE, body = "hypersphere", Parameters = list("dimension" = 10, "radius" = 5))
+#'
+#' # 10000 uniform points from a 2-d arbitrary simplex
+#' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
+#' P = Vpolytope$new(V)
+#' points = sample_points(P, N = 10000, exact = TRUE)
 #' @export
-sample_points <- function(P = NULL, N = NULL, WalkType = NULL, walk_len = NULL, exact = NULL, body = NULL, Parameters = NULL, distribution = NULL, InnerPoint = NULL) {
-    .Call(`_volesti_sample_points`, P, N, WalkType, walk_len, exact, body, Parameters, distribution, InnerPoint)
+sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_length = NULL, exact = NULL, body = NULL, Parameters = NULL, InnerPoint = NULL) {
+    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_length, exact, body, Parameters, InnerPoint)
 }
 
-#' The main R function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
+#' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
 #'
 #' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of \eqn{d}-dimensional points. A zonotope is desrcibed by the Minkowski sum of \eqn{d}-dimensional segments.
 #'
-#' @param P A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.
+#' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
 #' @param walk_length Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
-#' @param error Optional. Declare the goal for the approximation error. Default value is \eqn{1} for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.
-#' @param InnerBall Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an internal ball.
-#' @param Algo Optional. A list that contains parameters for the CoolingGaussian algorithm. When it is null SequenceOfBalls is used as the default.
+#' @param error Optional. Declare the upper bound for the approximation error. Default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
+#' @param InnerBall Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
+#' @param Algo Optional. A string that declares which algorithm to use: a) 'SoB' for SequenceOfBalls or b) 'CG' for CoolingGaussian.
+#' @param WalkType Optional. A string that declares the random walk method: a) 'CDHR' for Coordinate Directions Hit-and-Run, b) 'RDHR' for Random Directions Hit-and-Run or c) 'BW' for Ball Walk. The default walk is  'CDHR'.
+#' @param rounding Optional. A boolean parameter for rounding. Default value is FALSE.
+#' @param Parameters Optional. A list for the parameters of the algorithms:
 #' \itemize{
-#'  \item{CG }{A boolean element. When it is true CoolingGaussian algorithm is used.}
-#'  \item{win_len }{The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \cdot dimension^2 + 500}.}
-#'  \item{C }{A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. Default value is \eqn{2}.}
-#'  \item{N }{The number of points we sample in each step of schedule annealing in CG algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
-#'  \item{ratio }{Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
-#'  \item{frac }{The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.}
+#' \item{Window }{The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
+#'  \item{C }{A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. The default value is \eqn{2}.}
+#'  \item{N }{The number of points we sample in each step of schedule annealing in CG algorithm. The default value is \eqn{500C + dimension^2 / 2}.}
+#'  \item{ratio }{Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. The default value is \eqn{1 - 1/dimension}.}
+#'  \item{frac }{The fraction of the total error to spend in the first gaussian in CG algorithm. The default value is \eqn{0.1}.}
+#'  \item{BW_rad}{The radius for the ball walk. The default value is \eqn{4r/dimension}, where \eqn{r} is the radius of the inscribed ball of the polytope.}
 #' }
-#' @param WalkType Optional. A list that contains parameters for the random walk method.
-#' \itemize{
-#'  \item{method}{A string that declares the method: (a) "hnr" for Hit-and-Run or (b) "bw" for ball walk. Default method is Hit-and-Run.}
-#'  \item{coordinate}{A boolean parameter for Hit-and-Run. It has to be TRUE for Cordinate Directions Hit-and-Run or FALSE for Random Directions Hit-and-Run. Default method is Coordinate Directions Hnr.}
-#'  \item{delta}{The radius for the ball walk.}
-#' }
-#' @param rounding Optional. A boolean parameter to activate the rounding option. Default value is false.
 #'
 #' @references \cite{I.Z.Emiris and V. Fisikopoulos,
 #' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2014.},
@@ -237,7 +273,7 @@ sample_points <- function(P = NULL, N = NULL, WalkType = NULL, walk_len = NULL, 
 #' Z = GenZonotope(2, 4)
 #' vol = volume(Z, WalkType = list("method"="hnr", "coordinate"=FALSE, "W"=5), rounding=TRUE)
 #' @export
-volume <- function(P, walk_len = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
-    .Call(`_volesti_volume`, P, walk_len, error, InnerBall, Algo, WalkType, rounding, Parameters)
+volume <- function(P, walk_length = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
+    .Call(`_volesti_volume`, P, walk_length, error, InnerBall, Algo, WalkType, rounding, Parameters)
 }
 
