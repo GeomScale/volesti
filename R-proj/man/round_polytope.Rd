@@ -4,18 +4,16 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-round_polytope(P, method)
+round_polytope(P, WalkType = NULL, walk_length = NULL, radius = NULL)
 }
 \arguments{
-\item{P}{A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.}
+\item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
 
-\item{method}{A list that contains parameters for the random walk method.
-\itemize{
- \item{WalkT }{A string to declare the random walk method: (a)"hnr" for Hit-and-Run or (b) "bw" for ball walk. Default method is Hit-and-Run.}
- \item{coord }{A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is TRUE.}
- \item{delta }{Optional. The radius for the ball walk.}
- \item{W }{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.}
-}}
+\item{WalkType}{Optional. A string that declares the random walk method: a) 'CDHR' for Coordinate Directions Hit-and-Run, b) 'RDHR' for Random Directions Hit-and-Run or c) 'BW' for Ball Walk. The default walk is  'CDHR'.}
+
+\item{walk_length}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.}
+
+\item{radius}{Optional. The radius for the ball walk.}
 }
 \value{
 A list with 2 elements: (a) a polytope of the same class as the input polytope class and (b) the element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
@@ -27,14 +25,14 @@ Given a convex H or V polytope or a zonotope as input this function computes a r
 # rotate a H-polytope (2d unit simplex)
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
-P = HPolytope(A=A, b=b)
+P = HPolytope$new(A, b)
 listHpoly = round_polytope(P)
 
-# rotate a V-polytope (3d cube) using Random Directions HnR
+# rotate a V-polytope (3d cube) using Random Directions HnR with step equal to 50
 P = GenCube(3, 'V')
-ListVpoly = round_polytope(P, method = list("coordinate"=FALSE))
+ListVpoly = round_polytope(P, WalkType = 'RDHR', walk_length = 50)
 
-# rotate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
+# rotate a 4-dimensional zonotope defined by the Minkowski sum of 8 segments using ball walk with a radius equal to 0.02
 Z = GenZonotope(4,8)
-ListZono = round_polytope(Z)
+ListZono = round_polytope(Z, WalkType = 'BW', radius = 0.02)
 }

@@ -2,38 +2,35 @@
 % Please edit documentation in R/RcppExports.R
 \name{volume}
 \alias{volume}
-\title{The main R function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)}
+\title{The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-volume(P, walk_len = NULL, error = NULL, InnerBall = NULL,
+volume(P, walk_length = NULL, error = NULL, InnerBall = NULL,
   Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL)
 }
 \arguments{
-\item{P}{A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.}
-
-\item{error}{Optional. Declare the goal for the approximation error. Default value is \eqn{1} for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.}
-
-\item{InnerBall}{Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an internal ball.}
-
-\item{Algo}{Optional. A list that contains parameters for the CoolingGaussian algorithm. When it is null SequenceOfBalls is used as the default.
-\itemize{
- \item{CG }{A boolean element. When it is true CoolingGaussian algorithm is used.}
- \item{win_len }{The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \cdot dimension^2 + 500}.}
- \item{C }{A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. Default value is \eqn{2}.}
- \item{N }{The number of points we sample in each step of schedule annealing in CG algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
- \item{ratio }{Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
- \item{frac }{The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.}
-}}
-
-\item{WalkType}{Optional. A list that contains parameters for the random walk method.
-\itemize{
- \item{method}{A string that declares the method: (a) "hnr" for Hit-and-Run or (b) "bw" for ball walk. Default method is Hit-and-Run.}
- \item{coordinate}{A boolean parameter for Hit-and-Run. It has to be TRUE for Cordinate Directions Hit-and-Run or FALSE for Random Directions Hit-and-Run. Default method is Coordinate Directions Hnr.}
- \item{delta}{The radius for the ball walk.}
-}}
-
-\item{rounding}{Optional. A boolean parameter to activate the rounding option. Default value is false.}
+\item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
 
 \item{walk_length}{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.}
+
+\item{error}{Optional. Declare the upper bound for the approximation error. Default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.}
+
+\item{InnerBall}{Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.}
+
+\item{Algo}{Optional. A string that declares which algorithm to use: a) 'SoB' for SequenceOfBalls or b) 'CG' for CoolingGaussian.}
+
+\item{WalkType}{Optional. A string that declares the random walk method: a) 'CDHR' for Coordinate Directions Hit-and-Run, b) 'RDHR' for Random Directions Hit-and-Run or c) 'BW' for Ball Walk. The default walk is  'CDHR'.}
+
+\item{rounding}{Optional. A boolean parameter for rounding. Default value is FALSE.}
+
+\item{Parameters}{Optional. A list for the parameters of the algorithms:
+\itemize{
+\item{Window }{The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
+ \item{C }{A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. The default value is \eqn{2}.}
+ \item{N }{The number of points we sample in each step of schedule annealing in CG algorithm. The default value is \eqn{500C + dimension^2 / 2}.}
+ \item{ratio }{Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. The default value is \eqn{1 - 1/dimension}.}
+ \item{frac }{The fraction of the total error to spend in the first gaussian in CG algorithm. The default value is \eqn{0.1}.}
+ \item{BW_rad}{The radius for the ball walk. The default value is \eqn{4r/dimension}, where \eqn{r} is the radius of the inscribed ball of the polytope.}
+}}
 }
 \value{
 The approximation of the volume of a convex polytope.
