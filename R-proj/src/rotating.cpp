@@ -20,9 +20,13 @@
 #include "rounding.h"
 #include "extractMatPoly.h"
 
-// [[Rcpp::plugins(cpp11)]]
+//'  An internal Rccp function for the random rotation of a convex polytope
+//'
+//' @param P A convex polytope (H-, V-polytope or a zonotope).
+//'
+//' @return A matrix that describes the rotated polytope
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rotating (Rcpp::NumericMatrix A, bool Zono, bool Vpoly) {
+Rcpp::NumericMatrix rotating (Rcpp::Reference P){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -31,41 +35,38 @@ Rcpp::NumericMatrix rotating (Rcpp::NumericMatrix A, bool Zono, bool Vpoly) {
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> zonotope;
-    //typedef copula_ellipsoid<Point> CopEll;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
     Hpolytope HP;
     Vpolytope VP;
     zonotope ZP;
 
-    unsigned int m = A.nrow() - 1;
-    unsigned int n = A.ncol() - 1;
-    std::vector <std::vector<NT> > Pin(m + 1, std::vector<NT>(n + 1));
-
-    for (unsigned int i = 0; i < m + 1; i++) {
-        for (unsigned int j = 0; j < n + 1; j++) {
-            Pin[i][j] = A(i, j);
-        }
-    }
-    // construct polytope
-    if (Zono) {
-        ZP.init(Pin);
-    } else if (!Vpoly) {
-        HP.init(Pin);
-    } else {
-        VP.init(Pin);
-    }
-
     Rcpp::NumericMatrix Mat;
-    if (Zono) {
-        rotating<NT>(ZP);
-        Mat = extractMatPoly(ZP);
-    }else if (!Vpoly) {
-        rotating<NT>(HP);
+    unsigned int n = P.field("dimension");
+    int type = P.field("type");
+    if (type==1) {
+        // Hpolytope
+        Hpolytope HP;
+        HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+        rotating < NT > (HP);
         Mat = extractMatPoly(HP);
-    } else {
+    } else if(type==2) {
+        // Vpolytope
+        Vpolytope VP;
+        VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
         rotating<NT>(VP);
         Mat = extractMatPoly(VP);
+    } else if(type==3) {
+        // Zonotope
+        zonotope ZP;
+        ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+        rotating < NT > (ZP);
+        Mat = extractMatPoly(ZP);
+    } else {
+        throw Rcpp::exception("Wrong polytope input");
     }
+
     return Mat;
 
 }

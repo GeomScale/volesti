@@ -21,10 +21,18 @@
 #include "rounding.h"
 #include "extractMatPoly.h"
 
-// [[Rcpp::plugins(cpp11)]]
+//' Internal rcpp function for the rounding of a convex polytope.
+//'
+//' @param WalkType Optional. A string that declares the random walk.
+//' @param walk_length Optional. The number of the steps for the random walk.
+//' @param radius Optional. The radius for the ball walk.
+//'
+//' @return A Matrix that describes the rounded polytope and contains the round value.
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rounding (Rcpp::NumericMatrix A, unsigned int walk_len, bool coord,
-                              bool ball_walk, double delta, bool Vpoly, bool Zono) {
+Rcpp::NumericMatrix rounding (Rcpp::Reference P,
+                              Rcpp::Nullable<std::string> WalkType = R_NilValue,
+                              Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
+                              Rcpp::Nullable<double> radius = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -33,6 +41,8 @@ Rcpp::NumericMatrix rounding (Rcpp::NumericMatrix A, unsigned int walk_len, bool
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> zonotope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
     Hpolytope HP;
     Vpolytope VP;
@@ -42,55 +52,67 @@ Rcpp::NumericMatrix rounding (Rcpp::NumericMatrix A, unsigned int walk_len, bool
             NN=false,
             birk=false,
             verbose=false,
-            coordinate=coord;
+            coordinate=true, ball_walk = false;
+    NT delta;
 
-    unsigned int m = A.nrow() - 1;
-    unsigned int n = A.ncol() - 1;
+    unsigned int n = P.field("dimension");
     unsigned int rnum = std::pow(1.0,-2.0) * 400 * n * std::log(n);
-    std::vector <std::vector<NT> > Pin(m + 1, std::vector<NT>(n + 1));
+    unsigned int walkL = 10+n/10;
+    if(walk_length.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_length);
 
-    for (unsigned int i = 0; i < m + 1; i++) {
-        for (unsigned int j = 0; j < n + 1; j++) {
-            Pin[i][j] = A(i, j);
-        }
-    }
-    // construct polytope
-    if (Zono) {
-        ZP.init(Pin);
-    } else if (!Vpoly) {
-        HP.init(Pin);
+    std::pair <Point, NT> InnerBall;
+    Rcpp::NumericMatrix Mat;
+    int type = P.field("type");
+    if (type==1) {
+        // Hpolytope
+        Hpolytope HP;
+        HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+        InnerBall = HP.ComputeInnerBall();
+    } else if (type==2) {
+        Vpolytope VP;
+        VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+        InnerBall = VP.ComputeInnerBall();
+    } else if (type == 3) {
+        // Zonotope
+        zonotope ZP;
+        ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+        InnerBall = ZP.ComputeInnerBall();
     } else {
-        VP.init(Pin);
+        throw Rcpp::exception("Wrong polytope input");
     }
+
+    if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
+        coordinate = true;
+        ball_walk = false;
+    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
+        coordinate = false;
+        ball_walk = false;
+    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
+        if(radius.isNotNull()){
+            delta = Rcpp::as<NT>(radius);
+        } else {
+            delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
+        }
+        coordinate = false;
+        ball_walk = true;
+    } else {
+        throw Rcpp::exception("Unknown walk type!");
+    }
+
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     // the random engine with this seed
     RNGType rng(seed);
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
-    std::pair <Point, NT> InnerBall;
-    Rcpp::NumericVector vec(n + 1);
-    if (Zono) {
-        InnerBall = ZP.ComputeInnerBall();
-    } else if (!Vpoly) {
-        InnerBall = HP.ComputeInnerBall();
-    } else {
-        InnerBall = VP.ComputeInnerBall();
-    }
-
-
-    Rcpp::NumericMatrix Mat;
-    if (ball_walk) {
-        delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
-    }
     // initialization
-    vars<NT, RNGType> var(rnum,n,walk_len,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
-                          delta,verbose,rand_only,false,NN,birk,ball_walk,coord);
+    vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
+                          delta,verbose,rand_only,false,NN,birk,ball_walk,coordinate);
     std::pair <NT, NT> round_res;
-    if (Zono) {
+    if (type == 3) {
         round_res = rounding_min_ellipsoid(ZP, InnerBall, var);
         Mat = extractMatPoly(ZP);
-    } else if (!Vpoly) {
+    } else if (type == 1) {
         round_res = rounding_min_ellipsoid(HP, InnerBall, var);
         Mat = extractMatPoly(HP);
     } else {

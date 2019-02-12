@@ -21,7 +21,7 @@
 //' @references \cite{Ali, Mir M.,
 //' \dQuote{Content of the frustum of a simplex,} \emph{ Pacific J. Math. 48, no. 2, 313--322,} 1973.}
 //'
-//' @return The percentage of the volume of the unit simplex that is contained in the intersection of the given half-space and the unit simplex
+//' @return The percentage of the volume of the unit simplex that is contained in the intersection of the given half-space and the unit simplex.
 //'
 //' @examples
 //' # compute the frustum of H: -x1+x2<=0

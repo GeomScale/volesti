@@ -28,12 +28,12 @@ FT factorial(FT n)
 //' For an arbitrary simplex that is given in V-representation this function computes the absolute value of the determinant formed by the simplex's points assuming it is shifted to the origin.
 //' For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this function computes the exact well known formulas.
 //'
-//' @param Z An object of class Zonotope.
-//' @param exact A list that contains parameters for the exact volume computations. When a zonotope is given it should be null.
+//' @param P A zonotope or a simplex in V-representation.
+//' @param body A string that declares the type of the body for the exact sampling: a) 'simplex' for the unit simplex, b) 'cross' for the cross polytope, c) 'hypersphere' for the hypersphere, d) 'cube' for the unit cube.
+//' @param Parameters A list for the parameters of the methods:
 //' \itemize{
-//'  \item{simplex }{A boolean parameter. It has to be TRUE when a simplex is given in V-representation or in order to compute the exact volume of a unit simplex.}
-//'  \item{cube }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional hypercube is requested.}
-//'  \item{cross }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional cross polytope is requested.}
+//' \item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+//' \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
 //' }
 //'
 //' @return The exact volume of the zonotope
@@ -42,6 +42,14 @@ FT factorial(FT n)
 //' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
 //' Z = GenZonotope(5, 10)
 //' vol = exact_vol(Z)
+//'
+//' # compute the exact volume of a 2-d arbitrary simplex
+//' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
+//' P = Vpolytope$new(V)
+//' vol = exact_vol(P)
+//'
+//' # compute the exact volume the 10-dimensional cross polytope
+//' vol = exact_vol(body = "cross", Parameters = list("dimension" = 10))
 //' @export
 // [[Rcpp::export]]
 double exact_vol(Rcpp::Nullable<Rcpp::Reference> P, Rcpp::Nullable<std::string> body = R_NilValue,
@@ -69,13 +77,17 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P, Rcpp::Nullable<std::string> 
                         VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
                 vol = exact_zonotope_vol<NT>(ZP);
             } else if (type == 2) {
-                MT V = Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).transpose();
-                VT v0 = V.col(dim);
-                VT V2 = V.block(0,0,dim,dim);
-                V2 = V2.colwise() - v0;
+                if (Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows() == Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).cols()+1) {
+                    MT V = Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).transpose();
+                    VT v0 = V.col(dim);
+                    VT V2 = V.block(0, 0, dim, dim);
+                    V2 = V2.colwise() - v0;
 
-                vol = V2.determinant();
-                vol = vol / factorial(NT(dim));
+                    vol = V2.determinant();
+                    vol = vol / factorial(NT(dim));
+                } else {
+                    throw Rcpp::exception("Not a simplex!");
+                }
             } else {
                 throw Rcpp::exception("Wrong input!");
             }

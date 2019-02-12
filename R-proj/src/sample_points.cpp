@@ -29,23 +29,19 @@
 //' Sample N points from a H or a V-polytope or a zonotope with uniform or spherical gaussian -centered in an internal point- target distribution.
 //' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
 //'
-//' @param P A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.
-//' @param N The number of points that the function is going to sample from the convex polytope. Default value is \eqn{100}.
-//' @param distribution Optional. A list that contains parameters for the target distribution. Default distribution is uniform.
+//' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
+//' @param N The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.
+//' @param distribution Optional. A string that declares the target distribution: a) 'uniform' for uniform distribution or b) 'gaussian' for spherical multidimensional distribution. The default target distribution is uniform.
+//' @param WalkType Optional. A string that declares the random walk method: a) 'CDHR' for Coordinate Directions Hit-and-Run, b) 'RDHR' for Random Directions Hit-and-Run or c) 'BW' for Ball Walk. The default walk is  'CDHR'.
+//' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.
+//' @param exact. A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball) as well as the radius of the hypersphere.
+//' @param body. A string that declares the type of the body for the exact sampling: a) 'unit simplex' for the unit simplex, b) 'canonical simplex' for the canonical simplex, c) 'hypersphere' for the boundary of a hypersphere centered at the origin, d) 'ball' for the interior of a hypersphere centered at the origin.
+//' @param Parameters. A list for the parameters of the methods:
 //' \itemize{
-//'  \item{gaussian }{A boolean parameter. It declares spherical gaussian distribution as the target distribution. Default value is false.}
-//'  \item{variance }{The variance for the spherical gaussian distribution. Default value is \eqn{1}.}
-//' }
-//' @param method Optional. A list that contains parameters for the random walk method. Default method is Coordinate Hit-and-Run.
-//' \itemize{
-//'  \item{direct }{A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope and the dimension should not be declared through method list. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball).}
-//'  \item{dim }{An integer that declares the dimension when direct flag is enabled for a unit simplex or a hypersphere (boundary or interior).}
-//'  \item{body }{A string to request uniform sampling: (a) "simplex" to sample from an arbitrary simplex (when the simplex is given as a V-polytope) or a unit simplex (when no polytope is given and the dimension is declared), (b) "sphere" to sample from the boundary of a {d}-dimensional hypersphere centered at the origin and (c) to sample from the interior of the \eqn{d}-dimensional hypersphere centered at the origin. For (b) and (c) dimension should be given as well through method list.}
-//'  \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
-//'  \item{WalkT }{A string to declare the random walk method: (a)"hnr" for Hit-and-Run or (b) "bw" for ball walk. Default method is Hit-and-Run.}
-//'  \item{coord }{A boolean parameter for the hit-and-run. True for Coordinate Directions HnR, false for Random Directions HnR. Default value is TRUE.}
-//'  \item{delta }{Optional. The radius for the ball walk.}
-//'  \item{W }{Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10+d/10\rfloor}.}
+//' \item{variance }{The variance of the spherical multidimensional gaussian. The default value is 1.}
+//' \item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+//' \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
+//' \item{BW_rad }{The radius for the ball walk.}
 //' }
 //' @param InnerPoint A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.
 //'
@@ -60,23 +56,31 @@
 //' @examples
 //' # uniform distribution from a 3d cube in V-representation using ball walk
 //' P = GenCube(3, 'V')
-//' points = sample_points(P, method = list("WalkT"="bw", "W"=5))
+//' points = sample_points(P, WalkType = "BW", walk_length = 5)
 //'
 //' # gaussian distribution from a 2d unit simplex in H-representation with variance = 2
 //' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 //' b = c(0,0,1)
-//' P = HPolytope(A=A, b=b)
-//' points = sample_points(P, distribution = list("gaussian"=TRUE, "variance"=2))
+//' P = Hpolytope$new(A,b)
+//' points = sample_points(P, distribution = "gaussian", Parameters = list("variance" = 2))
+//'
+//' # uniform points from the boundary of a 10-dimensional hypersphere with radius 5
+//' points = sample_points(exact = TRUE, body = "hypersphere", Parameters = list("dimension" = 10, "radius" = 5))
+//'
+//' # 10000 uniform points from a 2-d arbitrary simplex
+//' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
+//' P = Vpolytope$new(V)
+//' points = sample_points(P, N = 10000, exact = TRUE)
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                                   Rcpp::Nullable<unsigned int> N = R_NilValue,
+                                  Rcpp::Nullable<std::string> distribution = R_NilValue,
                                   Rcpp::Nullable<std::string> WalkType = R_NilValue,
-                                  Rcpp::Nullable<unsigned int> walk_len = R_NilValue,
+                                  Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
                                   Rcpp::Nullable<bool> exact = R_NilValue,
                                   Rcpp::Nullable<std::string> body = R_NilValue,
                                   Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
-                                  Rcpp::Nullable<std::string> distribution = R_NilValue,
                                   Rcpp::Nullable<Rcpp::NumericVector> InnerPoint = R_NilValue){
 
     typedef double NT;
@@ -97,7 +101,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
-    bool set_mean_point = false, coordinate, ball_walk, gaussian = false;
+    bool set_mean_point = false, coordinate = true, ball_walk = false, gaussian = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -180,7 +184,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                         Rcpp::as<std::vector<NT> >(InnerPoint).end() );
             }
         }
-        if(walk_len.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_len);
+        if(walk_length.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_length);
 
         NT a = 0.5;
 

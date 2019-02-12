@@ -20,28 +20,8 @@
 #' @export
 rand_rotate <- function(P){
   
-  if (!missing(P)) {
-    repr = P$type
-    if (repr == 1) {
-      vpoly = FALSE
-      Zono = FALSE
-    } else if(repr == 2) {
-      vpoly = TRUE
-      Zono = FALSE
-    } else if(repr == 3) {
-      vpoly = FALSE
-      Zono = TRUE
-    } else {
-      stop("Not a known polytope representation.")
-    }
-    Mat = P$get_mat()
-    dimension = dim(Mat)[2] - 1
-    walk_length = 10 + floor( dimension / 10 )
-  } else {
-    stop("No polytope is given.")
-  }
-  
-  Mat = rotating(Mat, Zono, vpoly)
+  #call rcpp rotating function
+  Mat = rotating(P)
   
   # get elements "matrix" and "vector"
   # remove first row
