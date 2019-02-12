@@ -9,7 +9,7 @@ copula2(h, E, numSlices, N)
 \arguments{
 \item{h}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
 
-\item{E}{The \eqn{d\times d} symmetric positive define matrix that describes the family of concentric ellipsoids centered at the origin.}
+\item{E}{The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.}
 
 \item{numSlices}{The number of the slices for the copula. Default value is 100.}
 

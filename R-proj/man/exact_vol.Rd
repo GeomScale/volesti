@@ -7,13 +7,14 @@
 exact_vol(P, body = NULL, Parameters = NULL)
 }
 \arguments{
-\item{Z}{An object of class Zonotope.}
+\item{P}{A zonotope or a simplex in V-representation.}
 
-\item{exact}{A list that contains parameters for the exact volume computations. When a zonotope is given it should be null.
+\item{body}{A string that declares the type of the body for the exact sampling: a) 'simplex' for the unit simplex, b) 'cross' for the cross polytope, c) 'hypersphere' for the hypersphere, d) 'cube' for the unit cube.}
+
+\item{Parameters}{A list for the parameters of the methods:
 \itemize{
- \item{simplex }{A boolean parameter. It has to be TRUE when a simplex is given in V-representation or in order to compute the exact volume of a unit simplex.}
- \item{cube }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional hypercube is requested.}
- \item{cross }{A boolean parameter. It has to be TRUE when the exact volume of a \eqn{d}-dimensional cross polytope is requested.}
+\item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+\item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
 }}
 }
 \value{
@@ -29,4 +30,12 @@ For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this functio
 # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
 Z = GenZonotope(5, 10)
 vol = exact_vol(Z)
+
+# compute the exact volume of a 2-d arbitrary simplex
+V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
+P = Vpolytope$new(V)
+vol = exact_vol(P)
+
+# compute the exact volume the 10-dimensional cross polytope
+vol = exact_vol(body = "cross", Parameters = list("dimension" = 10))
 }

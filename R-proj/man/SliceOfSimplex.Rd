@@ -12,7 +12,7 @@ SliceOfSimplex(a, z0)
 \item{z0}{The scalar that defines the half-space.}
 }
 \value{
-The percentage of the volume of the unit simplex that is contained in the intersection of the given half-space and the unit simplex
+The percentage of the volume of the unit simplex that is contained in the intersection of the given half-space and the unit simplex.
 }
 \description{
 When a half-space \eqn{H} is given as a pair of a vector \eqn{a\in R^d} and a scalar \eqn{z0\in R} s.t.: \eqn{a^Tx\leq z0} this function calls the Ali's version of the Varsi formula.
