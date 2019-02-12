@@ -74,9 +74,52 @@ double generic_volume(Polytope& P, unsigned int walk_len, double e,
      return vol;
 }
 
-// [[Rcpp::plugins(cpp11)]]
+//' The main R function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
+//'
+//' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is described as a set of \eqn{d}-dimensional points. A zonotope is desrcibed by the Minkowski sum of \eqn{d}-dimensional segments.
+//'
+//' @param P A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.
+//' @param walk_length Optional. The number of the steps for the random walk. Default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
+//' @param error Optional. Declare the goal for the approximation error. Default value is \eqn{1} for SequenceOfBalls and \eqn{0.2} for CoolingGaussian.
+//' @param InnerBall Optional. A \eqn{d+1} vector that containes an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an internal ball.
+//' @param Algo Optional. A list that contains parameters for the CoolingGaussian algorithm. When it is null SequenceOfBalls is used as the default.
+//' \itemize{
+//'  \item{CG }{A boolean element. When it is true CoolingGaussian algorithm is used.}
+//'  \item{win_len }{The size of the window for the ratios' approximation in CG algorithm. Default value is \eqn{4 \cdot dimension^2 + 500}.}
+//'  \item{C }{A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. Default value is \eqn{2}.}
+//'  \item{N }{The number of points we sample in each step of schedule annealing in CG algorithm. Default value is \eqn{500C + dimension^2 / 2}.}
+//'  \item{ratio }{Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. Default value is \eqn{1 - 1/dimension}.}
+//'  \item{frac }{The fraction of the total error to spend in the first gaussian in CG algorithm. Default value is \eqn{0.1}.}
+//' }
+//' @param WalkType Optional. A list that contains parameters for the random walk method.
+//' \itemize{
+//'  \item{method}{A string that declares the method: (a) "hnr" for Hit-and-Run or (b) "bw" for ball walk. Default method is Hit-and-Run.}
+//'  \item{coordinate}{A boolean parameter for Hit-and-Run. It has to be TRUE for Cordinate Directions Hit-and-Run or FALSE for Random Directions Hit-and-Run. Default method is Coordinate Directions Hnr.}
+//'  \item{delta}{The radius for the ball walk.}
+//' }
+//' @param rounding Optional. A boolean parameter to activate the rounding option. Default value is false.
+//'
+//' @references \cite{I.Z.Emiris and V. Fisikopoulos,
+//' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2014.},
+//' @references \cite{B. Cousins and S. Vempala, \dQuote{A practical volume algorithm,} \emph{Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society,} 2015.}
+//'
+//'
+//' @return The approximation of the volume of a convex polytope.
+//' @examples
+//' # calling SOB algorithm for a H-polytope (2d unit simplex)
+//' P = GenSimplex(2,'H')
+//' vol = volume(P)
+//'
+//' # calling CG algorithm for a V-polytope (3d cube)
+//' P = GenSimplex(2,'V')
+//' vol = volume(P, Algo = list("CG"=TRUE))
+//'
+//' # calling CG algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
+//' Z = GenZonotope(2, 4)
+//' vol = volume(Z, WalkType = list("method"="hnr", "coordinate"=FALSE, "W"=5), rounding=TRUE)
+//' @export
 // [[Rcpp::export]]
-double Rvolume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_NilValue,
+double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_len = R_NilValue,
                 Rcpp::Nullable<double> error = R_NilValue,
                 Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
                 Rcpp::Nullable<std::string> Algo = R_NilValue,
