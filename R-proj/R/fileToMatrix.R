@@ -14,6 +14,7 @@
 #' @export
 #' @useDynLib volesti, .registration=TRUE
 #' @importFrom Rcpp evalCpp
+#' @importFrom Rcpp loadModule
 #' @importFrom "utils" "read.csv"
 #' @importFrom "methods" "new"
 #' @exportPattern "^[[:alpha:]]+"

@@ -4,9 +4,9 @@
 \alias{sample_points}
 \title{Sample many points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from unit simplex and hypersphere}
 \usage{
-sample_points(P = NULL, N = NULL, distribution = NULL,
-  WalkType = NULL, walk_length = NULL, exact = NULL, body = NULL,
-  Parameters = NULL, InnerPoint = NULL)
+sample_points(P = NULL, N = NULL, distribution = NULL, WalkType = NULL,
+  walk_length = NULL, exact = NULL, body = NULL, Parameters = NULL,
+  InnerPoint = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}

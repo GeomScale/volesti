@@ -25,7 +25,7 @@ double generic_volume(Polytope& P, unsigned int walk_length, double e,
     bool rand_only=false,
          NN=false,
          birk=false,
-         verbose =true,
+         verbose =false,
          coordinate=coord;
     unsigned int n_threads=1;
 

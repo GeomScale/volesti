@@ -9,6 +9,7 @@
 #define POLYTOPE_GENERATORS_H
 
 #include <exception>
+#include "samplers.h"
 
 template <class Polytope>
 Polytope gen_cube(unsigned int dim, bool Vpoly) {
@@ -317,40 +318,89 @@ Polytope gen_zonotope(unsigned int dim, unsigned int m) {
     RNGType rng(seed);
     boost::normal_distribution<> rdist(0, 1);
 
-    NT sum;
     MT A;
     VT b;
     A.resize(m, dim);
     b.resize(m);
     Polytope P;
 
-    for (unsigned int i = 0; i < dim; ++i) {
+    for (unsigned int i = 0; i < m; ++i) {
         b(i) = 1.0;
-        for (unsigned int j = 0; j < dim; ++j) {
-            if (i==j) {
-                A(i,j) = 1.0;
-            } else {
-                A(i,j) = 0.0;
-            }
-        }
-    }
-
-    for (unsigned int i = dim; i < m; ++i) {
-        b(i) = 1.0;
-        sum = 0.0;
         for (unsigned int j = 0; j < dim; ++j) {
             A(i,j) = rdist(rng);
-            sum += A(i,j) * A(i,j);
-        }
-        sum = 1.0 / std::sqrt(sum);
-        for (unsigned int j = 0; j < dim; ++j) {
-            A(i,j) = A(i,j) * sum;
         }
     }
 
     P.init(dim, A, b);
     return P;
 }
+
+template <class Polytope, class RNGType>
+Polytope random_vpoly(unsigned int dim, unsigned int k) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+    typedef typename Polytope::PolytopePoint Point;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+
+    Point p;
+    typename std::vector<NT>::iterator pit;
+    MT V(k, dim);
+    unsigned int j;
+
+    for (unsigned int i = 0; i < k; ++i) {
+        p = get_direction<RNGType, Point, NT>(dim);
+        pit = p.iter_begin();
+        j = 0;
+        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
+            V(i,j) = *pit;
+        }
+    }
+
+    Polytope VP;
+    VT b = VT::Ones(k);
+    VP.init(dim, V, b);
+
+    return VP;
+
+}
+
+template <class Polytope, class RNGType>
+Polytope random_hpoly(unsigned int dim, unsigned int m) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+    typedef typename Polytope::PolytopePoint Point;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::random::uniform_real_distribution<> urdist1(-10, 10);
+    Point p(dim);
+    typename std::vector<NT>::iterator pit;
+    MT A(m, dim);
+    VT b(m);
+    unsigned int j;
+
+    for(unsigned int i=0; i<m; ++i){
+        p = get_direction<RNGType, Point, NT>(dim);
+        pit = p.iter_begin();
+        j = 0;
+        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
+            A(i,j) = *pit;
+        }
+        b(i) = 10.0;
+
+    }
+    Polytope HP;
+    HP.init(dim, A, b);
+
+    return HP;
+}
+
 
 
 /*

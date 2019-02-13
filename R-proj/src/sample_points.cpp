@@ -138,7 +138,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
             }
             dim = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["dimension"]);
-            if (!Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("radius")) {
+            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("radius")) {
 
                 radius = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["radius"]);
 
@@ -258,7 +258,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
 
             if (!set_mean_point || ball_walk) {
-                InnerBall = VP.ComputeInnerBall();
+                InnerBall = ZP.ComputeInnerBall();
                 if (!set_mean_point) MeanPoint = InnerBall.first;
             }
 

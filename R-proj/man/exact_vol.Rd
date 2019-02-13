@@ -4,7 +4,7 @@
 \alias{exact_vol}
 \title{Compute the exact volume of (a) a zonotope (b) an arbitrary simplex (c) a unit simplex (d) a cross polytope (e) a hypercube}
 \usage{
-exact_vol(P, body = NULL, Parameters = NULL)
+exact_vol(P = NULL, body = NULL, Parameters = NULL)
 }
 \arguments{
 \item{P}{A zonotope or a simplex in V-representation.}

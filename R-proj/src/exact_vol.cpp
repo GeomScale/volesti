@@ -52,7 +52,7 @@ FT factorial(FT n)
 //' vol = exact_vol(body = "cross", Parameters = list("dimension" = 10))
 //' @export
 // [[Rcpp::export]]
-double exact_vol(Rcpp::Nullable<Rcpp::Reference> P, Rcpp::Nullable<std::string> body = R_NilValue,
+double exact_vol(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue, Rcpp::Nullable<std::string> body = R_NilValue,
                  Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue){
 
     typedef double NT;
@@ -70,6 +70,7 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P, Rcpp::Nullable<std::string> 
     NT vol, rad;
 
     if (P.isNotNull()) {
+        type = Rcpp::as<Rcpp::Reference>(P).field("type");
         if (!body.isNotNull()) {
             dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
             if (type == 3) {
@@ -83,7 +84,7 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P, Rcpp::Nullable<std::string> 
                     VT V2 = V.block(0, 0, dim, dim);
                     V2 = V2.colwise() - v0;
 
-                    vol = V2.determinant();
+                    vol = std::abs(V2.determinant());
                     vol = vol / factorial(NT(dim));
                 } else {
                     throw Rcpp::exception("Not a simplex!");

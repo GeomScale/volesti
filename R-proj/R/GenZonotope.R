@@ -5,7 +5,7 @@
 #' @param dimension The dimension of the zonotope.
 #' @param NumGen The number of segments that generate the zonotope.
 #' 
-#' @return A \eqn{m \times d} matrix that containes the \eqn{m} \eqn{d}-dimensional segments.
+#' @return A zonotope.
 #' @examples 
 #' # generate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
 #' zonotope = GenZonotope(10, 20)
