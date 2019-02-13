@@ -72,21 +72,7 @@ public:
 
 };
 
-//' Classes to construct convex polytopes (H, V or zonotopes)
-//'
-//' @examples
-//' # Create a 2-d unit simplex in H-representation
-//' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
-//' b = c(0,0,1)
-//' P = Hpolytope$new(A,b)
-//'
-//' # Create a 3-d cube in V-representation
-//' V = matrix(c(-1,1,-1,-1,-1,1,-1,1,1,-1,-1,-1,1,1,-1,1,-1,1,1,1,1,1,-1,-1), ncol=3, nrow=8, byrow=TRUE)
-//' P = Vpolytope$new(V)
-//'
-//' # Create a 2-d zonotope with 4 generators
-//' G = matrix(c(1,0,0,1,-0.73,0.67,-0.25,0.96), ncol = 2, nrow = 4, byrow = TRUE)
-//' P = Zonotope$new(G)
+
 RCPP_MODULE(yada){
     using namespace Rcpp ;
 

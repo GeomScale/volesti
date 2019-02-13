@@ -57,7 +57,10 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
         } else if (kind_gen == 3) {
             VP = gen_simplex<Vpolytope>(dim_gen, true);
             Mat = extractMatPoly(VP);
-        } else {
+        } else if(kind_gen == 4) {
+            VP = random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen);
+            Mat = extractMatPoly(VP);
+        }else {
             return Mat;
         }
     } else {
@@ -76,7 +79,10 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
         } else if (kind_gen == 5) {
             HP = gen_skinny_cube<Hpolytope>(dim_gen);
             Mat = extractMatPoly(HP);
-        } else {
+        } else if (kind_gen == 6) {
+            HP = random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen);
+            Mat = extractMatPoly(HP);
+        }else {
             return Mat;
         }
     }

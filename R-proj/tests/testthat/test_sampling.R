@@ -6,7 +6,7 @@ runsample <- function(P, name_string, dist){
   if (dist == "uniform") {
     p = sample_points(P)
   } else {
-    p = sample_points(P, distribution = list("gaussian"=TRUE))
+    p = sample_points(P, distribution = "gaussian")
   }
   if (length(p[is.nan(p)])>0 | length(p[is.infinite(p)])>0) {
     res = 0
@@ -17,7 +17,7 @@ runsample <- function(P, name_string, dist){
   
 }
 
-cran_only = TRUE
+#cran_only = TRUE
 path = system.file('extdata', package = 'volesti')
 
 for (i in 1:2) {
@@ -35,12 +35,14 @@ for (i in 1:2) {
   })
   
   test_that("Sampling test", {
+    skip_on_cran()
     P = GenCube(20, 'H')
     res = runsample(P, 'H-cube20', distribution)
     expect_equal(res, 1)
   })
   
   test_that("Sampling test", {
+    skip_on_cran()
     P = GenCube(5, 'V')
     res = runsample(P, 'V-cube5', distribution)
     expect_equal(res, 1)
@@ -59,6 +61,7 @@ for (i in 1:2) {
   })
   
   test_that("Sampling test", {
+    skip_on_cran()
     P = fileToMatrix(paste0(path,'/birk4.ine'))
     res = runsample(P, 'H-birk4', distribution)
     expect_equal(res, 1)
@@ -83,18 +86,21 @@ for (i in 1:2) {
   })
   
   test_that("Sampling test", {
+    skip_on_cran()
     P = GenSimplex(20, 'H')
     res = runsample(P, 'H-simplex20', distribution)
     expect_equal(res, 1)
   })
   
   test_that("Sampling test", {
+    skip_on_cran()
     P = GenSimplex(10, 'V')
     res = runsample(P, 'V-simplex10', distribution)
     expect_equal(res, 1)
   })
   
   test_that("Sampling test", {
+    skip_on_cran()
     P = GenSimplex(20, 'V')
     res = runsample(P, 'V-simplex20', distribution)
     expect_equal(res, 1)

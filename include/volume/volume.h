@@ -339,12 +339,15 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     unsigned int mm = a_vals.size()-1, j=0;
+
+    #ifdef VOLESTI_DEBUG
     if(print){
         for (viterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
             std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
         }
         std::cout<<"\n"<<std::endl;
     }
+    #endif
 
     // Initialization for the approximation of the ratios
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
