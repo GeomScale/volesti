@@ -315,13 +315,13 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
         if(lp == NULL) throw false;
     }
     catch (bool e) {
-        #ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct Linear Program for ray-shooting "<<e<<std::endl;
-        #endif
+#endif
         return -1.0;
     }
 
-	REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
 
     try
     {
@@ -330,9 +330,9 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
     catch (std::exception &e)
     {
-        #ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
         std::cout<<"Linear Program for ray-shooting failed "<<e.what()<<std::endl;
-        #endif
+#endif
         return -1.0;
     }
 
@@ -353,9 +353,9 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
         }
         catch (bool e)
         {
-            #ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
             std::cout<<"Could not construct constaints for the Linear Program for ray-shooting "<<e<<std::endl;
-            #endif
+#endif
             return -1.0;
         }
 
@@ -374,9 +374,9 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
             if (!add_constraintex(lp, m, row, colno, EQ, 1.0)) throw false;
         }
         catch (bool e) {
-            #ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
             std::cout << "Could not construct constaints for the Linear Program for ray-shooting " << e << std::endl;
-            #endif
+#endif
             return -1.0;
         }
     }
@@ -405,9 +405,9 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
     catch (bool e)
     {
-        #ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct objective function for the Linear Program for ray-shooting "<<e<<std::endl;
-        #endif
+#endif
         return -1.0;
     }
 
@@ -425,9 +425,9 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
     catch (bool e)
     {
-        #ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
         std::cout<<"Could not solve the Linear Program for ray-shooting "<<e<<std::endl;
-        #endif
+#endif
         return -1.0;
     }
 
@@ -531,6 +531,238 @@ bool memLP_Zonotope(MT V, Point q){
     }
     delete_lp(lp);
     return true;
+}
+
+
+// compute the intersection of a ray with a V-polytope
+// if maxi is true compute positive lambda, when the ray is p + lambda \cdot v
+// otherwise compute the negative lambda
+template <typename NT, class MT, class Point>
+std::pair<NT,NT> intersect_line_zono(MT V, Point &p, Point &v){
+
+    std::pair<NT,NT> pair_res;
+    int d=v.dimension(), i;
+    lprec *lp;//, *lp2;
+    int m=V.rows();
+    m++;
+    int Ncol=m, *colno = NULL, j, Nrows;
+    REAL *row = NULL;
+    NT res;
+    Nrows = d;
+
+    try
+    {
+        lp = make_lp(Nrows, Ncol);
+        //lp2 = make_lp(Nrows, Ncol);
+        if(lp == NULL) throw false;
+    }
+    catch (bool e) {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct Linear Program for ray-shooting "<<e<<std::endl;
+#endif
+        // return -1.0;
+    }
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    try
+    {
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        row = (REAL *) malloc(Ncol * sizeof(*row));
+    }
+    catch (std::exception &e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Linear Program for ray-shooting failed "<<e.what()<<std::endl;
+#endif
+        // return -1.0;
+    }
+
+    set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
+    // set_add_rowmode(lp2, TRUE);
+    for (i=0; i<d; i++){
+        /* construct all rows  */
+        for(j=0; j<m-1; j++){
+            colno[j] = j+1; /* j_th column */
+            row[j] = V(j,i);
+        }
+        colno[m-1] = m; /* last column */
+        row[m-1] = v[i];
+
+        /* add the row to lpsolve */
+        try {
+            if(!add_constraintex(lp, m, row, colno, EQ, p[i])) throw false;
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct constaints for the Linear Program for ray-shooting "<<e<<std::endl;
+#endif
+        }
+
+    }
+
+    //set the bounds
+    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
+
+    // set the objective function
+    for(j=0; j<m-1; j++){
+        colno[j] = j+1; /* j_th column */
+        set_bounds(lp, j + 1, -1.0, 1.0);
+        row[j] = 0;
+    }
+    colno[m - 1] =m; /* last column */
+    row[m-1] = 1.0;
+    set_bounds(lp, m, -infinite, infinite);
+
+    // set objective function
+    try
+    {
+        if(!set_obj_fnex(lp, m, row, colno)) throw false;
+    }
+    catch (bool e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct objective function for the Linear Program for ray-shooting "<<e<<std::endl;
+#endif
+    }
+
+    int* bas = (int *)malloc((d+m+1) * sizeof(int));
+    set_maxim(lp);
+    set_verbose(lp, NEUTRAL);
+    solve(lp);
+    pair_res.second = NT(-get_objective(lp));
+    set_minim(lp);
+    solve(lp);
+    pair_res.first = NT(-get_objective(lp));
+
+    delete_lp(lp);
+    return pair_res;
+}
+
+
+template <typename NT, class MT, class Point>
+std::pair<NT,NT> intersect_double_line_Vpoly(MT V, Point &p, Point &v){
+
+    int d=v.dimension(), i;
+    lprec *lp;
+    int m=V.rows();
+    m++;
+    int Ncol=m, *colno = NULL, j, Nrows;
+    REAL *row = NULL;
+    NT res;
+    Nrows = d+1;
+    std::pair<NT,NT> res_pair;
+
+    try
+    {
+        lp = make_lp(Nrows, Ncol);
+        if(lp == NULL) throw false;
+    }
+    catch (bool e) {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct Linear Program for ray-shooting "<<e<<std::endl;
+#endif
+        return res_pair;
+    }
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    try
+    {
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        row = (REAL *) malloc(Ncol * sizeof(*row));
+    }
+    catch (std::exception &e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Linear Program for ray-shooting failed "<<e.what()<<std::endl;
+#endif
+        return res_pair;
+    }
+
+    set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
+
+    for (i=0; i<d; i++){
+        /* construct all rows  */
+        for(j=0; j<m-1; j++){
+            colno[j] = j+1; /* j_th column */
+            row[j] = V(j,i);
+        }
+        colno[m-1] = m; /* last column */
+        row[m-1] = v[i];
+
+        /* add the row to lpsolve */
+        try {
+            if(!add_constraintex(lp, m, row, colno, EQ, p[i])) throw false;
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct constaints for the Linear Program for ray-shooting "<<e<<std::endl;
+#endif
+            return res_pair;
+        }
+
+    }
+
+    for (j = 0; j < m - 1; j++) {
+        colno[j] = j + 1; /* j_th column */
+        row[j] = 1.0;
+    }
+    colno[m - 1] = m; /* last column */
+    row[m - 1] = 0.0;
+
+    /* add the row to lpsolve */
+    try {
+        if (!add_constraintex(lp, m, row, colno, EQ, 1.0)) throw false;
+    }
+    catch (bool e) {
+#ifdef VOLESTI_DEBUG
+        std::cout << "Could not construct constaints for the Linear Program for ray-shooting " << e << std::endl;
+#endif
+        return res_pair;
+    }
+
+    //set the bounds
+    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
+
+    // set the objective function
+    for(j=0; j<m-1; j++){
+        colno[j] = j+1; /* j_th column */
+        set_bounds(lp, j + 1, 0.0, 1.0);
+        row[j] = 0;
+    }
+    colno[m - 1] =m; /* last column */
+    row[m-1] = 1.0;
+    set_bounds(lp, m, -infinite, infinite);
+
+    // set objective function
+    try
+    {
+        if(!set_obj_fnex(lp, m, row, colno)) throw false;
+    }
+    catch (bool e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct objective function for the Linear Program for ray-shooting "<<e<<std::endl;
+#endif
+        return res_pair;
+    }
+
+    set_maxim(lp);
+    set_verbose(lp, NEUTRAL);
+    solve(lp);
+
+    res_pair.second = NT(-get_objective(lp));
+
+    set_minim(lp);
+    solve(lp);
+    res_pair.first = NT(-get_objective(lp));
+
+
+    delete_lp(lp);
+    return res_pair;
 }
 
 #endif
