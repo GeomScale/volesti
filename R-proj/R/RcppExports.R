@@ -130,6 +130,7 @@ rotating <- function(P) {
 
 #' Internal rcpp function for the rounding of a convex polytope.
 #'
+#' @param P A convex polytope (H- or V-representation or zonotope).
 #' @param WalkType Optional. A string that declares the random walk.
 #' @param walk_length Optional. The number of the steps for the random walk.
 #' @param radius Optional. The radius for the ball walk.
@@ -149,9 +150,9 @@ rounding <- function(P, WalkType = NULL, walk_length = NULL, radius = NULL) {
 #' @param distribution Optional. A string that declares the target distribution: a) 'uniform' for uniform distribution or b) 'gaussian' for spherical multidimensional distribution. The default target distribution is uniform.
 #' @param WalkType Optional. A string that declares the random walk method: a) 'CDHR' for Coordinate Directions Hit-and-Run, b) 'RDHR' for Random Directions Hit-and-Run or c) 'BW' for Ball Walk. The default walk is  'CDHR'.
 #' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.
-#' @param exact. A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball) as well as the radius of the hypersphere.
-#' @param body. A string that declares the type of the body for the exact sampling: a) 'unit simplex' for the unit simplex, b) 'canonical simplex' for the canonical simplex, c) 'hypersphere' for the boundary of a hypersphere centered at the origin, d) 'ball' for the interior of a hypersphere centered at the origin.
-#' @param Parameters. A list for the parameters of the methods:
+#' @param exact A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball) as well as the radius of the hypersphere.
+#' @param body A string that declares the type of the body for the exact sampling: a) 'unit simplex' for the unit simplex, b) 'canonical simplex' for the canonical simplex, c) 'hypersphere' for the boundary of a hypersphere centered at the origin, d) 'ball' for the interior of a hypersphere centered at the origin.
+#' @param Parameters A list for the parameters of the methods:
 #' \itemize{
 #' \item{variance }{The variance of the spherical multidimensional gaussian. The default value is 1.}
 #' \item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
@@ -179,8 +180,8 @@ rounding <- function(P, WalkType = NULL, walk_length = NULL, radius = NULL) {
 #' P = Hpolytope$new(A,b)
 #' points = sample_points(P, distribution = "gaussian", Parameters = list("variance" = 2))
 #'
-#' # uniform points from the boundary of a 10-dimensional hypersphere with radius 5
-#' points = sample_points(exact = TRUE, body = "hypersphere", Parameters = list("dimension" = 10, "radius" = 5))
+#' # uniform points from the boundary of a 10-dimensional hypersphere
+#' points = sample_points(exact = TRUE, body = "hypersphere", Parameters = list("dimension" = 10))
 #'
 #' # 10000 uniform points from a 2-d arbitrary simplex
 #' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
@@ -210,7 +211,7 @@ sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NU
 #' # compute the frustum of H: -x1+x2<=0
 #' a=c(-1,1)
 #' z0=0
-#' frustum = sliceOfSimplex(a, z0)
+#' frustum = SliceOfSimplex(a, z0)
 #' @export
 SliceOfSimplex <- function(a, z0) {
     .Call(`_volesti_SliceOfSimplex`, a, z0)

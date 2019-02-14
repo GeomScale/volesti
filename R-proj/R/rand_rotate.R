@@ -33,9 +33,10 @@ rand_rotate <- function(P){
   # remove first column
   A = Mat[,-c(1)]
   A = Mat[,-c(1)]
-  if (vpoly) {
+  type = P$type
+  if (type == 2) {
     PP = Vpolytope$new(A)
-  }else if (Zono) {
+  }else if (type == 3) {
     PP = Zonotope$new(A)
   } else {
     PP = Hpolytope$new(A, b)

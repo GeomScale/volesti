@@ -49,11 +49,13 @@ for (i in 1:2) {
     })
   }
   
+  if (!cran_only) {
   test_that("Rounding H-skinny_cube20", {
     skip_on_cran()
     P = GenSkinnyCube(20)
     res = testRound(P, 104857600, 0.3, 'H-skinny_cube20', num_of_exps, algo, FALSE)
     expect_equal(res, 1)
   })
+  }
   
 }

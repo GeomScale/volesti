@@ -7,6 +7,8 @@
 rounding(P, WalkType = NULL, walk_length = NULL, radius = NULL)
 }
 \arguments{
+\item{P}{A convex polytope (H- or V-representation or zonotope).}
+
 \item{WalkType}{Optional. A string that declares the random walk.}
 
 \item{walk_length}{Optional. The number of the steps for the random walk.}

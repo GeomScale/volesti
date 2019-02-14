@@ -27,7 +27,7 @@
 //' # compute the frustum of H: -x1+x2<=0
 //' a=c(-1,1)
 //' z0=0
-//' frustum = sliceOfSimplex(a, z0)
+//' frustum = SliceOfSimplex(a, z0)
 //' @export
 // [[Rcpp::export]]
 double SliceOfSimplex(Rcpp::NumericVector a, double z0){
