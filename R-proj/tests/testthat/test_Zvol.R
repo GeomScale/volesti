@@ -23,7 +23,7 @@ Zruntest <- function(P, name_string, tol, num_of_exps, algo){
   return(res)
 }
 
-#cran_only = TRUE
+cran_only = TRUE
 num_of_exps = 5
 
 for (i in 1:2) {
@@ -41,33 +41,40 @@ for (i in 1:2) {
     expect_equal(res, 1)
   })
   
+  if (!cran_only) {
   test_that("Volume Zonotope_2_8", {
     skip_on_cran()
     Z = GenZonotope(2, 8)
     res = Zruntest(Z, 'Zonotope_2_8', tol, num_of_exps, algo)
     expect_equal(res, 1)
   })
+  }
   
+  if (!cran_only) {
   test_that("Volume Zonotope_4_8", {
     skip_on_cran()
     Z = GenZonotope(4, 8)
     res = Zruntest(Z, 'Zonotope_4_8', tol, num_of_exps, algo)
     expect_equal(res, 1)
   })
+  }
   
-  
+  if (!cran_only) {
   test_that("Volume Zonotope_4_10", {
     skip_on_cran()
     Z = GenZonotope(4, 10)
     res = Zruntest(Z, 'Zonotope_4_10', tol, num_of_exps, algo)
     expect_equal(res, 1)
   })
+  }
   
+  if (!cran_only) {
   test_that("Volume Zonotope_5_10", {
     skip_on_cran()
     Z = GenZonotope(5, 10)
     res = Zruntest(Z, 'Zonotope_5_10', tol, num_of_exps, algo)
     expect_equal(res, 1)
   })
+  }
   
 }

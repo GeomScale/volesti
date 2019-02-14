@@ -19,19 +19,19 @@ sample_points(P = NULL, N = NULL, distribution = NULL, WalkType = NULL,
 
 \item{walk_length}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.}
 
-\item{InnerPoint}{A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.}
+\item{exact}{A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball) as well as the radius of the hypersphere.}
 
-\item{exact.}{A boolean parameter. It should be used for uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from a unit or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies it has to be declared the dimension and the type of body (simplex, sphere, ball) as well as the radius of the hypersphere.}
+\item{body}{A string that declares the type of the body for the exact sampling: a) 'unit simplex' for the unit simplex, b) 'canonical simplex' for the canonical simplex, c) 'hypersphere' for the boundary of a hypersphere centered at the origin, d) 'ball' for the interior of a hypersphere centered at the origin.}
 
-\item{body.}{A string that declares the type of the body for the exact sampling: a) 'unit simplex' for the unit simplex, b) 'canonical simplex' for the canonical simplex, c) 'hypersphere' for the boundary of a hypersphere centered at the origin, d) 'ball' for the interior of a hypersphere centered at the origin.}
-
-\item{Parameters.}{A list for the parameters of the methods:
+\item{Parameters}{A list for the parameters of the methods:
 \itemize{
 \item{variance }{The variance of the spherical multidimensional gaussian. The default value is 1.}
 \item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
 \item{BW_rad }{The radius for the ball walk.}
 }}
+
+\item{InnerPoint}{A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.}
 }
 \value{
 A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope.
@@ -51,8 +51,8 @@ b = c(0,0,1)
 P = Hpolytope$new(A,b)
 points = sample_points(P, distribution = "gaussian", Parameters = list("variance" = 2))
 
-# uniform points from the boundary of a 10-dimensional hypersphere with radius 5
-points = sample_points(exact = TRUE, body = "hypersphere", Parameters = list("dimension" = 10, "radius" = 5))
+# uniform points from the boundary of a 10-dimensional hypersphere
+points = sample_points(exact = TRUE, body = "hypersphere", Parameters = list("dimension" = 10))
 
 # 10000 uniform points from a 2-d arbitrary simplex
 V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)

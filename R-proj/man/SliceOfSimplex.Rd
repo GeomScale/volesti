@@ -21,7 +21,7 @@ When a half-space \eqn{H} is given as a pair of a vector \eqn{a\in R^d} and a sc
 # compute the frustum of H: -x1+x2<=0
 a=c(-1,1)
 z0=0
-frustum = sliceOfSimplex(a, z0)
+frustum = SliceOfSimplex(a, z0)
 }
 \references{
 \cite{Varsi, Giulio,

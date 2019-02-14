@@ -23,6 +23,7 @@
 
 //' Internal rcpp function for the rounding of a convex polytope.
 //'
+//' @param P A convex polytope (H- or V-representation or zonotope).
 //' @param WalkType Optional. A string that declares the random walk.
 //' @param walk_length Optional. The number of the steps for the random walk.
 //' @param radius Optional. The radius for the ball walk.
@@ -53,7 +54,7 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
             birk=false,
             verbose=false,
             coordinate=true, ball_walk = false;
-    NT delta;
+    NT delta = -1.0;
 
     unsigned int n = P.field("dimension");
     unsigned int rnum = std::pow(1.0,-2.0) * 400 * n * std::log(n);
@@ -65,16 +66,13 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
     int type = P.field("type");
     if (type==1) {
         // Hpolytope
-        Hpolytope HP;
         HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
         InnerBall = HP.ComputeInnerBall();
     } else if (type==2) {
-        Vpolytope VP;
         VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
         InnerBall = VP.ComputeInnerBall();
     } else if (type == 3) {
         // Zonotope
-        zonotope ZP;
         ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
         InnerBall = ZP.ComputeInnerBall();
     } else {

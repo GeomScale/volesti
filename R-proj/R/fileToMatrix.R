@@ -101,15 +101,15 @@ fileToMatrix <- function(path, zonotope){
   A2 = A[,-c(1)]
   
   if(ineorext=="ine") {
-    P = HPolytope(A=-A2, b=b)
+    P = Hpolytope$new(-A2,b)
   } else {
     if(!missing(zonotope)){
       if(zonotope) {
-        P = Zonotope(G=A2)
+        P = Zonotope$new(A2)
         return(P)
       }
     }
-    P = VPolytope(V=A2)
+    P = Vpolytope$new(A2)
   }
   return(P)
 }

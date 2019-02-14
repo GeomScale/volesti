@@ -12,16 +12,16 @@
 #' # rotate a H-polytope (2d unit simplex)
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
-#' P = HPolytope$new(A, b)
+#' P = Hpolytope$new(A, b)
 #' listHpoly = round_polytope(P)
 #' 
 #' # rotate a V-polytope (3d cube) using Random Directions HnR with step equal to 50
 #' P = GenCube(3, 'V')
 #' ListVpoly = round_polytope(P, WalkType = 'RDHR', walk_length = 50)
 #' 
-#' # rotate a 4-dimensional zonotope defined by the Minkowski sum of 8 segments using ball walk with a radius equal to 0.02
-#' Z = GenZonotope(4,8)
-#' ListZono = round_polytope(Z, WalkType = 'BW', radius = 0.02)
+#' # round a 2-dimensional zonotope defined by 6 generators using ball walk
+#' Z = GenZonotope(2,6)
+#' ListZono = round_polytope(Z, WalkType = 'BW')
 #' @export
 round_polytope <- function(P, WalkType = NULL, walk_length = NULL, radius = NULL){
   
@@ -38,12 +38,13 @@ round_polytope <- function(P, WalkType = NULL, walk_length = NULL, radius = NULL
   
   # remove first column
   A = Mat[,-c(1)]
-  if (vpoly) {
+  type = P$type
+  if (type == 2) {
     PP = list("P" = Vpolytope$new(A), "round_value" = round_value)
-  }else if (Zono) {
+  }else if (type == 3) {
     PP = list("P" = Zonotope$new(A), "round_value" = round_value)
   } else {
-    PP = list("P" = Hpolytope$new(A, b), "round_value" = round_value)
+    PP = list("P" = Hpolytope$new(A,b), "round_value" = round_value)
   }
   return(PP)
 }
