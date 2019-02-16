@@ -51,34 +51,38 @@ Rcpp::NumericVector InnerBall(Rcpp::Reference P) {
     std::pair <Point, NT> InnerBall;
 
     int type = P.field("type");
-    if (type==1) {
-        // Hpolytope
-        Hpolytope HP;
-        HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-        InnerBall = HP.ComputeInnerBall();
-    } else if(type==2) {
-        // Vpolytope
-        Vpolytope VP;
-        VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-        InnerBall = VP.ComputeInnerBall();
 
-    } else if(type==3){
-        // Zonotope
-        zonotope ZP;
-        InnerBall = ZP.ComputeInnerBall();
-        ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-        InnerBall = ZP.ComputeInnerBall();
-    } else {
-        // Intersection of two V-polytopes
-        Vpolytope VP1;
-        Vpolytope VP2;
-        InterVP VPcVP;
-        VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
-        VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
-        VPcVP.init(VP1, VP2);
-        InnerBall = VPcVP.ComputeInnerBall();
+    switch (type) {
+        case 1: {
+            // Hpolytope
+            Hpolytope HP;
+            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            InnerBall = HP.ComputeInnerBall();
+        }
+        case 2: {
+            // Vpolytope
+            Vpolytope VP;
+            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            InnerBall = VP.ComputeInnerBall();
+        }
+        case 3: {
+            // Zonotope
+            zonotope ZP;
+            InnerBall = ZP.ComputeInnerBall();
+            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            InnerBall = ZP.ComputeInnerBall();
+        }
+        case 4: {
+            // Intersection of two V-polytopes
+            Vpolytope VP1;
+            Vpolytope VP2;
+            InterVP VPcVP;
+            VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
+            VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
+            VPcVP.init(VP1, VP2);
+            InnerBall = VPcVP.ComputeInnerBall();
+        }
     }
-
 
     Rcpp::NumericVector vec(n + 1);
     for (unsigned int k = 0; k < n; ++k) {

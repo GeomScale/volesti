@@ -217,41 +217,42 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
         }
     }
 
-
-    //std::cout<<"n = "<<n<<" Algo null = "<<!Algo.isNotNull()<<" CG = "<<CG<<" N = "<<N<<" C = "<<C<<" win_len = "<<win_len<<" frac = "<<frac<<" ratio = "<<ratio<<" walk_length = "<<walkL<<" error = "<<e<<" coordinate = "<<coordinate<< " ball_walk = "<<ball_walk<<std::endl;
-
     int type = P.field("type");
-    if (type==1) {
-        // Hpolytope
-        Hpolytope HP;
-        HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-        return generic_volume<Point,NT>(HP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
-                                        coordinate, round);
-    } else if(type==2) {
-        // Vpolytope
-        Vpolytope VP;
-        VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-        return generic_volume<Point,NT>(VP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
-                                        coordinate, round);
-
-    } else if(type==3){
-        // Zonotope
-        zonotope ZP;
-        ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-        return generic_volume<Point,NT>(ZP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
-                                        coordinate, round);
-    } else {
-        // Intersection of two V-polytopes
-        Vpolytope VP1;
-        Vpolytope VP2;
-        InterVP VPcVP;
-        VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
-        VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
-        VPcVP.init(VP1, VP2);
-        return generic_volume<Point,NT>(VPcVP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
-                                        coordinate, round);
+    switch(type) {
+        case 1: {
+            // Hpolytope
+            Hpolytope HP;
+            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                             coordinate, round);
+        }
+        case 2: {
+            // Vpolytope
+            Vpolytope VP;
+            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                             coordinate, round);
+        }
+        case 3: {
+            // Zonotope
+            zonotope ZP;
+            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                             coordinate, round);
+        }
+        case 4: {
+            // Intersection of two V-polytopes
+            Vpolytope VP1;
+            Vpolytope VP2;
+            InterVP VPcVP;
+            VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
+            VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
+            VPcVP.init(VP1, VP2);
+            return generic_volume<Point, NT>(VPcVP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk,
+                                             delta,
+                                             coordinate, round);
+        }
     }
-
 
     return 0;
 }
