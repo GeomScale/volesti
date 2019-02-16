@@ -45,26 +45,29 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
     Rcpp::NumericMatrix Mat;
     unsigned int n = P.field("dimension");
     int type = P.field("type");
-    if (type==1) {
-        // Hpolytope
-        Hpolytope HP;
-        HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-        rotating < NT > (HP);
-        Mat = extractMatPoly(HP);
-    } else if(type==2) {
-        // Vpolytope
-        Vpolytope VP;
-        VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-        rotating<NT>(VP);
-        Mat = extractMatPoly(VP);
-    } else if(type==3) {
-        // Zonotope
-        zonotope ZP;
-        ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-        rotating < NT > (ZP);
-        Mat = extractMatPoly(ZP);
-    } else {
-        throw Rcpp::exception("Wrong polytope input");
+
+    switch (type) {
+        case 1: {
+            // Hpolytope
+            Hpolytope HP;
+            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            rotating < NT > (HP);
+            Mat = extractMatPoly(HP);
+        }
+        case 2: {
+            // Vpolytope
+            Vpolytope VP;
+            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            rotating<NT>(VP);
+            Mat = extractMatPoly(VP);
+        }
+        case 3: {
+            // Zonotope
+            zonotope ZP;
+            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            rotating < NT > (ZP);
+            Mat = extractMatPoly(ZP);
+        }
     }
 
     return Mat;

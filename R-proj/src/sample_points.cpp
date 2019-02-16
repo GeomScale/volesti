@@ -229,53 +229,51 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                                  rand_only, false, NN, birk, ball_walk, coordinate);
 
-        if (type==1) {
-            // Hpolytope
-            //Hpolytope HP;
-            HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
-                    Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
+        switch(type) {
+            case 1: {
+                // Hpolytope
+                HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
+                        Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
 
-            if (!set_mean_point || ball_walk) {
-                InnerBall = HP.ComputeInnerBall();
-                if (!set_mean_point) MeanPoint = InnerBall.first;
+                if (!set_mean_point || ball_walk) {
+                    InnerBall = HP.ComputeInnerBall();
+                    if (!set_mean_point) MeanPoint = InnerBall.first;
+                }
             }
+            case 2: {
+                // Vpolytope
+                VP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
+                        VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
 
-        } else if(type==2) {
-            // Vpolytope
-            //Vpolytope VP;
-            VP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
-                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
-
-            if (!set_mean_point || ball_walk) {
-                InnerBall = VP.ComputeInnerBall();
-                if (!set_mean_point) MeanPoint = InnerBall.first;
+                if (!set_mean_point || ball_walk) {
+                    InnerBall = VP.ComputeInnerBall();
+                    if (!set_mean_point) MeanPoint = InnerBall.first;
+                }
             }
+            case 3: {
+                // Zonotope
+                ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
+                        VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
 
-        } else if(type==3){
-            // Zonotope
-            //zonotope ZP;
-            ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
-                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
-
-            if (!set_mean_point || ball_walk) {
-                InnerBall = ZP.ComputeInnerBall();
-                if (!set_mean_point) MeanPoint = InnerBall.first;
+                if (!set_mean_point || ball_walk) {
+                    InnerBall = ZP.ComputeInnerBall();
+                    if (!set_mean_point) MeanPoint = InnerBall.first;
+                }
             }
+            case 4: {
+                // Intersection of two V-polytopes
+                Vpolytope VP1;
+                Vpolytope VP2;
+                VP1.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
+                         VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
+                VP2.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
+                         VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
+                VPcVP.init(VP1, VP2);
 
-        } else {
-            // Intersection of two V-polytopes
-            Vpolytope VP1;
-            Vpolytope VP2;
-            //InterVP VPcVP;
-            VP1.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
-                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
-            VP2.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
-                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
-            VPcVP.init(VP1, VP2);
-
-            if (!set_mean_point || ball_walk) {
-                InnerBall = VP.ComputeInnerBall();
-                if (!set_mean_point) MeanPoint = InnerBall.first;
+                if (!set_mean_point || ball_walk) {
+                    InnerBall = VP.ComputeInnerBall();
+                    if (!set_mean_point) MeanPoint = InnerBall.first;
+                }
             }
         }
 
@@ -287,18 +285,23 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
         }
 
-        if (type == 1) {
-            sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
-                                 a, MeanPoint, var1, var2);
-        } else if (type == 2) {
-            sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
-                                 a, MeanPoint, var1, var2);
-        } else if (type == 3) {
-            sampling_only<Point>(randPoints, ZP, walkL, numpoints, gaussian,
-                                 a, MeanPoint, var1, var2);
-        } else {
-            sampling_only<Point>(randPoints, VPcVP, walkL, numpoints, gaussian,
-                                 a, MeanPoint, var1, var2);
+        switch (type) {
+            case 1: {
+                sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
+                                     a, MeanPoint, var1, var2);
+            }
+            case 2: {
+                sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
+                                     a, MeanPoint, var1, var2);
+            }
+            case 3: {
+                sampling_only<Point>(randPoints, ZP, walkL, numpoints, gaussian,
+                                     a, MeanPoint, var1, var2);
+            }
+            case 4: {
+                sampling_only<Point>(randPoints, VPcVP, walkL, numpoints, gaussian,
+                                     a, MeanPoint, var1, var2);
+            }
         }
 
     } else {

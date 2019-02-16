@@ -64,19 +64,23 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;
     int type = P.field("type");
-    if (type==1) {
-        // Hpolytope
-        HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-        InnerBall = HP.ComputeInnerBall();
-    } else if (type==2) {
-        VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-        InnerBall = VP.ComputeInnerBall();
-    } else if (type == 3) {
-        // Zonotope
-        ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-        InnerBall = ZP.ComputeInnerBall();
-    } else {
-        throw Rcpp::exception("Wrong polytope input");
+
+    switch (type) {
+        case 1: {
+            // Hpolytope
+            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            InnerBall = HP.ComputeInnerBall();
+        }
+        case 2: {
+            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            InnerBall = VP.ComputeInnerBall();
+        }
+        case 3: {
+            // Zonotope
+            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            InnerBall = ZP.ComputeInnerBall();
+        }
+        //default: throw Rcpp::exception("Wrong polytope input");
     }
 
     if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
@@ -107,6 +111,23 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
     vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
                           delta,verbose,rand_only,false,NN,birk,ball_walk,coordinate);
     std::pair <NT, NT> round_res;
+
+    switch (type) {
+        case 1: {
+            round_res = rounding_min_ellipsoid(HP, InnerBall, var);
+            Mat = extractMatPoly(HP);
+        }
+        case 2: {
+            round_res = rounding_min_ellipsoid(VP, InnerBall, var);
+            Mat = extractMatPoly(VP);
+        }
+        case 3: {
+            round_res = rounding_min_ellipsoid(ZP, InnerBall, var);
+            Mat = extractMatPoly(ZP);
+        }
+    }
+
+    /*
     if (type == 3) {
         round_res = rounding_min_ellipsoid(ZP, InnerBall, var);
         Mat = extractMatPoly(ZP);
@@ -116,7 +137,7 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
     } else {
         round_res = rounding_min_ellipsoid(VP, InnerBall, var);
         Mat = extractMatPoly(VP);
-    }
+    }*/
     // store rounding value and the ratio between min and max axe in the first row
     // the matrix is in ine format so the first row is useless and is going to be removed by R function modifyMat()
     Mat(0,0) = round_res.first;
