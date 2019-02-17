@@ -34,10 +34,10 @@ private:
     MT A; //matrix A
     VT b; // vector b, s.t.: Ax<=b
     unsigned int            _d; //dimension
-    NT maxNT = 1.79769e+308;
-    NT minNT = -1.79769e+308;
-    //NT maxNT = std::numeric_limits<NT>::max();
-    //NT minNT = std::numeric_limits<NT>::min();
+    //NT maxNT = 1.79769e+308;
+    //NT minNT = -1.79769e+308;
+    NT maxNT = std::numeric_limits<NT>::max();
+    NT minNT = std::numeric_limits<NT>::lowest();
 
 public:
     HPolytope() {}
@@ -790,7 +790,7 @@ private:
     //NT maxNT = 1.79769e+308;
     //NT minNT = -1.79769e+308;
     NT maxNT = std::numeric_limits<NT>::max();
-    NT minNT = std::numeric_limits<NT>::min();
+    NT minNT = std::numeric_limits<NT>::lowest();
 
 public:
 
