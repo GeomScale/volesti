@@ -58,12 +58,14 @@ Rcpp::NumericVector InnerBall(Rcpp::Reference P) {
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             InnerBall = HP.ComputeInnerBall();
+            break;
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
+            break;
         }
         case 3: {
             // Zonotope
@@ -71,6 +73,7 @@ Rcpp::NumericVector InnerBall(Rcpp::Reference P) {
             InnerBall = ZP.ComputeInnerBall();
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
+            break;
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -81,6 +84,7 @@ Rcpp::NumericVector InnerBall(Rcpp::Reference P) {
             VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
             VPcVP.init(VP1, VP2);
             InnerBall = VPcVP.ComputeInnerBall();
+            break;
         }
     }
 

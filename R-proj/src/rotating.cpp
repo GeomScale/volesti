@@ -53,6 +53,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             rotating < NT > (HP);
             Mat = extractMatPoly(HP);
+            break;
         }
         case 2: {
             // Vpolytope
@@ -60,6 +61,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             rotating<NT>(VP);
             Mat = extractMatPoly(VP);
+            break;
         }
         case 3: {
             // Zonotope
@@ -67,6 +69,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             rotating < NT > (ZP);
             Mat = extractMatPoly(ZP);
+            break;
         }
     }
 

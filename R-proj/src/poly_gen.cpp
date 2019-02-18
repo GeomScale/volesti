@@ -37,7 +37,6 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> zonotope;
-    //typedef copula_ellipsoid<Point> CopEll;
 
     Hpolytope HP;
     Vpolytope VP;
@@ -48,44 +47,57 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
         zonotope ZP = gen_zonotope<zonotope, RNGType>(dim_gen, m_gen);
         Mat = extractMatPoly(ZP);
     } else if (Vpoly_gen) {
-        if (kind_gen == 1) {
-            VP = gen_cube<Vpolytope>(dim_gen, true);
-            Mat = extractMatPoly(VP);
-        } else if (kind_gen == 2) {
-            VP = gen_cross<Vpolytope>(dim_gen, true);
-            Mat = extractMatPoly(VP);
-        } else if (kind_gen == 3) {
-            VP = gen_simplex<Vpolytope>(dim_gen, true);
-            Mat = extractMatPoly(VP);
-        } else if(kind_gen == 4) {
-            VP = random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen);
-            Mat = extractMatPoly(VP);
-        }else {
-            return Mat;
+        switch (kind_gen) {
+
+            case 1: {
+                VP = gen_cube<Vpolytope>(dim_gen, true);
+                break;
+            }
+            case 2: {
+                VP = gen_cross<Vpolytope>(dim_gen, true);
+                break;
+            }
+            case 3: {
+                VP = gen_simplex<Vpolytope>(dim_gen, true);
+                break;
+            }
+            case 4: {
+                VP = random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen);
+                break;
+            }
         }
+        Mat = extractMatPoly(VP);
     } else {
-        if (kind_gen == 1) {
-            HP = gen_cube<Hpolytope>(dim_gen, false);
-            Mat = extractMatPoly(HP);
-        } else if (kind_gen == 2) {
-            HP = gen_cross<Hpolytope>(dim_gen, false);
-            Mat = extractMatPoly(HP);
-        } else if (kind_gen == 3) {
-            HP = gen_simplex<Hpolytope>(dim_gen, false);
-            Mat = extractMatPoly(HP);
-        } else if (kind_gen == 4) {
-            HP = gen_prod_simplex<Hpolytope>(dim_gen);
-            Mat = extractMatPoly(HP);
-        } else if (kind_gen == 5) {
-            HP = gen_skinny_cube<Hpolytope>(dim_gen);
-            Mat = extractMatPoly(HP);
-        } else if (kind_gen == 6) {
-            HP = random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen);
-            Mat = extractMatPoly(HP);
-        }else {
-            return Mat;
+        switch (kind_gen) {
+
+            case 1:
+                HP = gen_cube<Hpolytope>(dim_gen, false);
+                break;
+
+            case 2: {
+                HP = gen_cross<Hpolytope>(dim_gen, false);
+                break;
+            }
+            case 3: {
+                HP = gen_simplex<Hpolytope>(dim_gen, false);
+                break;
+            }
+            case 4: {
+                HP = gen_prod_simplex<Hpolytope>(dim_gen);
+                break;
+            }
+            case 5: {
+                HP = gen_skinny_cube<Hpolytope>(dim_gen);
+                break;
+            }
+            case 6: {
+                HP = random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen);
+                break;
+            }
         }
+        Mat = extractMatPoly(HP);
     }
+
     return Mat;
 
 }

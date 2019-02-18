@@ -239,6 +239,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = HP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
+                break;
             }
             case 2: {
                 // Vpolytope
@@ -249,6 +250,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = VP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
+                break;
             }
             case 3: {
                 // Zonotope
@@ -259,6 +261,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = ZP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
+                break;
             }
             case 4: {
                 // Intersection of two V-polytopes
@@ -274,6 +277,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = VP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
+                break;
             }
         }
 
@@ -289,18 +293,22 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             case 1: {
                 sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
                                      a, MeanPoint, var1, var2);
+                break;
             }
             case 2: {
                 sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
                                      a, MeanPoint, var1, var2);
+                break;
             }
             case 3: {
                 sampling_only<Point>(randPoints, ZP, walkL, numpoints, gaussian,
                                      a, MeanPoint, var1, var2);
+                break;
             }
             case 4: {
                 sampling_only<Point>(randPoints, VPcVP, walkL, numpoints, gaussian,
                                      a, MeanPoint, var1, var2);
+                break;
             }
         }
 

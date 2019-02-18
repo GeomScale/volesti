@@ -70,15 +70,18 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
             // Hpolytope
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             InnerBall = HP.ComputeInnerBall();
+            break;
         }
         case 2: {
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
+            break;
         }
         case 3: {
             // Zonotope
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
+            break;
         }
         //default: throw Rcpp::exception("Wrong polytope input");
     }
@@ -116,14 +119,17 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
         case 1: {
             round_res = rounding_min_ellipsoid(HP, InnerBall, var);
             Mat = extractMatPoly(HP);
+            break;
         }
         case 2: {
             round_res = rounding_min_ellipsoid(VP, InnerBall, var);
             Mat = extractMatPoly(VP);
+            break;
         }
         case 3: {
             round_res = rounding_min_ellipsoid(ZP, InnerBall, var);
             Mat = extractMatPoly(ZP);
+            break;
         }
     }
 
