@@ -43,13 +43,13 @@ For the volume approximation can be used two algorithms. Either SequenceOfBalls 
 P = GenSimplex(2,'H')
 vol = volume(P)
 
-# calling CG algorithm for a V-polytope (3d cube)
+# calling CG algorithm for a V-polytope (3d simplex)
 P = GenSimplex(2,'V')
-vol = volume(P, Algo = list("CG"=TRUE))
+vol = volume(P, Algo = "CG")
 
-# calling CG algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
+# calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 Z = GenZonotope(2, 4)
-vol = volume(Z, WalkType = list("method"="hnr", "coordinate"=FALSE, "W"=5), rounding=TRUE)
+vol = volume(Z, WalkType = "RDHR", walk_length = 5)
 }
 \references{
 \cite{I.Z.Emiris and V. Fisikopoulos,

@@ -1,6 +1,6 @@
 \name{Hpolytope}
 \alias{Hpolytope}
-\title{An exposed C++ class to represent H-polytopes}
+\title{A C++ class to represent H-polytopes.}
 
 \description{
 A H-polytope is a convex polytope defined by a set of linear inequalities or equivalently a \eqn{d}-dimensional H-polytope with \eqn{m} facets is defined by a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b, s.t.: \eqn{Ax\leq b}.
@@ -11,7 +11,7 @@ A H-polytope is a convex polytope defined by a set of linear inequalities or equ
 
 \item{\code{b} }{\eqn{m}-dimensional vector b}
 
-\item{\code{type} }{An integer that declares the representation of the polytope. For H-representation the default value is 1. It has not be given to the constructor.}
+\item{\code{type} }{An integer that declares the representation of the polytope. For H-representation the default value is 1.}
 
-\item{\code{dimension} }{An integer that declares the dimension of the polytope. It has not be given to the constructor.
+\item{\code{dimension} }{An integer that declares the dimension of the polytope.
 }}}

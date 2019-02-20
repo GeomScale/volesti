@@ -7,17 +7,17 @@
 \alias{$,Rcpp_Zonotope-method}
 \alias{filepaths<-,Rcpp_Zonotope-method}
 \title{
-Rcpp_Zonotope
+An exposed C++ class to represent zonotopes.
 }
 \description{
-this is Zonotope
+A zonotope is a convex polytope defined by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 }
 \details{
 \describe{
-   \item{type}{An integer for the representation.}
-
-\item{dimension}{An integer for the dimension.}
-
-\item{G}{A numerical matrix.}
+   \item{\code{G}}{A \eqn{m\times d} numerical matrix that contains the segments (or generators) row-wise}
+  
+\item{\code{type}}{An integer that declares the representation of the polytope. For zonotopes the default value is 3.}
+  
+\item{\code{dimension}}{An integer that declares the dimension of the polytope.}
  }
 }
