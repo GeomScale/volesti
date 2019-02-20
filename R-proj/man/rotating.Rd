@@ -15,3 +15,8 @@ A matrix that describes the rotated polytope
 \description{
 An internal Rccp function for the random rotation of a convex polytope
 }
+\section{warning}{
+
+Do not use this function.
+}
+

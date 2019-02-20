@@ -2,21 +2,21 @@
 #' 
 #' Given a convex H or V polytope or a zonotope as input this function applies a random rotation.
 #' 
-#' @param P A convex polytope. It is an object from class (a) HPolytope or (b) VPolytope or (c) Zonotope.
+#' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
 #' 
 #' @return A random rotation of the polytope that is given as an input. The return class is the same as the input class.
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
 #' P = GenSimplex(2,'H')
-#' listHpoly = rand_rotate(P)
+#' P = rand_rotate(P)
 #' 
 #' # rotate a V-polytope (3d cube)
 #' P = GenCube(3, 'V')
-#' matVpoly = rand_rotate(P)
+#' P = rand_rotate(P)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
 #' Z = GenZonotope(3,6)
-#' MatZono = rand_rotate(Z)
+#' Z = rand_rotate(Z)
 #' @export
 rand_rotate <- function(P){
   

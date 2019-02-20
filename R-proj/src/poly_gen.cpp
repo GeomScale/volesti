@@ -24,7 +24,10 @@
 //' @param kind_gen An integer to declare the type of the polytope.
 //' @param Vpoly_gen A boolean parameter to declare if the requested polytope has to be in V-representation.
 //' @param dim_gen An integer to declare the dimension of the requested polytope.
-//' @param m_gen An integer to declare the number of generators for the requested random zonotope
+//' @param m_gen An integer to declare the number of generators for the requested random zonotope.
+//'
+//' @section warning:
+//' Do not use this function.
 //'
 //' @return A numerical matrix describing the requested polytope
 // [[Rcpp::export]]

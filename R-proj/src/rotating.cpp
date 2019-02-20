@@ -24,6 +24,9 @@
 //'
 //' @param P A convex polytope (H-, V-polytope or a zonotope).
 //'
+//' @section warning:
+//' Do not use this function.
+//'
 //' @return A matrix that describes the rotated polytope
 // [[Rcpp::export]]
 Rcpp::NumericMatrix rotating (Rcpp::Reference P){

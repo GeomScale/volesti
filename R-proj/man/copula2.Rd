@@ -16,10 +16,10 @@ copula2(h, E, numSlices, N)
 \item{N}{The number of points to sample. Default value is \eqn{4\cdot 10^6}.}
 }
 \value{
-A \eqn{numSlices\times numSlices} copula.
+A \eqn{numSlices\times numSlices} numerical matrix that corresponds to a copula.
 }
 \description{
-Given two families of parallel hyperplanes (or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin) intersecting the canonical simplex, this function samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
+Given a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
 }
 \examples{
 # compute a copula for a family of parallel hyperplanes and a family of conentric ellipsoids

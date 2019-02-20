@@ -13,7 +13,7 @@ poly_gen(kind_gen, Vpoly_gen, dim_gen, m_gen)
 
 \item{dim_gen}{An integer to declare the dimension of the requested polytope.}
 
-\item{m_gen}{An integer to declare the number of generators for the requested random zonotope}
+\item{m_gen}{An integer to declare the number of generators for the requested random zonotope.}
 }
 \value{
 A numerical matrix describing the requested polytope
@@ -21,3 +21,8 @@ A numerical matrix describing the requested polytope
 \description{
 An internal Rccp function as a polytope generator
 }
+\section{warning}{
+
+Do not use this function.
+}
+

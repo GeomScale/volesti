@@ -17,7 +17,7 @@
 
 //' Construct a copula using uniform sampling from the unit simplex
 //'
-//' Given two families of parallel hyperplanes (or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin) intersecting the canonical simplex, this function samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
+//' Given two families of parallel hyperplanes intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
 //'
 //' @param h1 A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
 //' @param h2 A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.
@@ -27,9 +27,9 @@
 //' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 //' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
 //'
-//' @return A \eqn{numSlices\times numSlices} copula.
+//' @return A \eqn{numSlices\times numSlices} numerical matrix that corresponds to a copula.
 //' @examples
-//' # compute a copula for two families of parallel hyperplanes
+//' # compute a copula for two random families of parallel hyperplanes
 //' h1 = runif(n = 10, min = 1, max = 1000)
 //' h1 = h1 / 1000
 //' h2=runif(n = 10, min = 1, max = 1000)

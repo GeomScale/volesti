@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{rounding}
 \alias{rounding}
-\title{Internal rcpp function for the rounding of a convex polytope.}
+\title{Internal rcpp function for the rounding of a convex polytope}
 \usage{
 rounding(P, WalkType = NULL, walk_length = NULL, radius = NULL)
 }
@@ -16,8 +16,13 @@ rounding(P, WalkType = NULL, walk_length = NULL, radius = NULL)
 \item{radius}{Optional. The radius for the ball walk.}
 }
 \value{
-A Matrix that describes the rounded polytope and contains the round value.
+A numerical matrix that describes the rounded polytope and contains the round value.
 }
 \description{
-Internal rcpp function for the rounding of a convex polytope.
+Internal rcpp function for the rounding of a convex polytope
 }
+\section{warning}{
+
+Do not use this function.
+}
+
