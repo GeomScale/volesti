@@ -113,11 +113,12 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     if (exact.isNotNull()) {
         if (P.isNotNull()) {
-            type = Rcpp::as<Rcpp::Reference>(P).field("t");
+            type = Rcpp::as<Rcpp::Reference>(P).field("type");
+            dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
             if (Rcpp::as<bool>(exact) && type==2) {
                 if (Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows() == Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).cols()+1) {
                     Vpolytope VP;
-                    VP.init(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).cols(),
+                    VP.init(dim,
                             Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
                             VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
                     Sam_arb_simplex(VP, numpoints, randPoints);
@@ -224,10 +225,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         RNGType rng(seed);
         boost::random::uniform_real_distribution<>(urdist);
         boost::random::uniform_real_distribution<> urdist1(-1,1);
-        vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
-                               delta,verbose,rand_only,false,NN,birk,ball_walk,coordinate);
-        vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
-                                 rand_only, false, NN, birk, ball_walk, coordinate);
 
         switch(type) {
             case 1: {
@@ -288,6 +285,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 delta = 4.0 * InnerBall.second / std::sqrt(NT(dim));
             }
         }
+        vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
+                               delta,verbose,rand_only,false,NN,birk,ball_walk,coordinate);
+        vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
+                                 rand_only, false, NN, birk, ball_walk, coordinate);
 
         switch (type) {
             case 1: {

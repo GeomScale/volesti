@@ -7,18 +7,17 @@
 \alias{$,Rcpp_Vpolytope-method}
 \alias{filepaths<-,Rcpp_Vpolytope-method}
 \title{
-Rcpp_Vpolytopes
+An exposed C++ class to represent V-polytopes.
 }
 \description{
-this is Vpoly
+A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which corresponds to its vertices.
 }
 \details{
 \describe{
-   \item{type}{An integer for the representation.}
-
-\item{dimension}{An integer for the dimension.}
-
-\item{V}{A numerical matrix.}
-
+   \item{\code{V} }{A \eqn{m\times d} numerical matrix that contains the vertices row-wise}
+  
+  \item{\code{type} }{An integer that declares the representation of the polytope. For V-representation the default value is 2.}
+  
+  \item{\code{dimension} }{An integer that declares the dimension of the polytope.}
  }
 }

@@ -10,10 +10,6 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "../../include/volume/volume.h"
-//#include "vpolyintersectvpoly.h"
-
-//#include <Rcpp.h>
-
 
 
 template <class Point, class NT, class Polytope>
@@ -106,13 +102,13 @@ double generic_volume(Polytope& P, unsigned int walk_length, double e,
 //' P = GenSimplex(2,'H')
 //' vol = volume(P)
 //'
-//' # calling CG algorithm for a V-polytope (3d cube)
+//' # calling CG algorithm for a V-polytope (3d simplex)
 //' P = GenSimplex(2,'V')
-//' vol = volume(P, Algo = list("CG"=TRUE))
+//' vol = volume(P, Algo = "CG")
 //'
-//' # calling CG algorithm for a 5-dimensional zonotope defined as the Minkowski sum of 10 segments
+//' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 //' Z = GenZonotope(2, 4)
-//' vol = volume(Z, WalkType = list("method"="hnr", "coordinate"=FALSE, "W"=5), rounding=TRUE)
+//' vol = volume(Z, WalkType = "RDHR", walk_length = 5)
 //' @export
 // [[Rcpp::export]]
 double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
