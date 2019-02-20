@@ -12,7 +12,7 @@ GenRandVpoly(dimension, m)
 \item{m}{The number of the vertices.}
 }
 \value{
-A V-polytope.
+A polytope class representing a V-polytope.
 }
 \description{
 This function can be used to generate a \eqn{d}-dimensional polytope in V-representation with \eqn{m} vertices. We pick \eqn{m} random points from the boundary of the \eqn{d}-dimensional unit hypersphere as vertices.

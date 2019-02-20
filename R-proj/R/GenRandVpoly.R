@@ -5,7 +5,7 @@
 #' @param dimension The dimension of the convex polytope.
 #' @param m The number of the vertices.
 #' 
-#' @return A V-polytope.
+#' @return A polytope class representing a V-polytope.
 #' @examples 
 #' # generate a 10-dimensional polytope defined as the convex hull of 25 random vertices
 #' P = GenRandVpoly(10, 25)

@@ -21,14 +21,17 @@
 #include "rounding.h"
 #include "extractMatPoly.h"
 
-//' Internal rcpp function for the rounding of a convex polytope.
+//' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
 //' @param WalkType Optional. A string that declares the random walk.
 //' @param walk_length Optional. The number of the steps for the random walk.
 //' @param radius Optional. The radius for the ball walk.
 //'
-//' @return A Matrix that describes the rounded polytope and contains the round value.
+//' @section warning:
+//' Do not use this function.
+//'
+//' @return A numerical matrix that describes the rounded polytope and contains the round value.
 // [[Rcpp::export]]
 Rcpp::NumericMatrix rounding (Rcpp::Reference P,
                               Rcpp::Nullable<std::string> WalkType = R_NilValue,

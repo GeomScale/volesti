@@ -10,7 +10,7 @@ Description: Package provides an R interface for volesti C++ package. Volesti co
              approximation as well as algorithms for sampling, rounding and rotating polytopes.
 Version: 0.0.0
 Date: 2018-09-05
-BugReports: https://github.com/vissarion/volume_approximation/issues
+BugReports: https://github.com/GeomScale/volume_approximation/issues
 Depends: Rcpp (>= 0.12.17)
 Imports: methods
 LinkingTo: Rcpp, RcppEigen, BH

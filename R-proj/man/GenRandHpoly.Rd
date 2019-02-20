@@ -12,10 +12,10 @@ GenRandHpoly(dimension, m)
 \item{m}{The number of the facets.}
 }
 \value{
-A H-polytope.
+A polytope class representing a H-polytope.
 }
 \description{
-This function can be used to generate a \eqn{d}-dimensional polytope in V-representation with \eqn{m} facets. We pick \eqn{m} random hyperplanes tangent on the \eqn{d}-dimensional unit hypersphere as facets.
+This function can be used to generate a \eqn{d}-dimensional polytope in H-representation with \eqn{m} facets. We pick \eqn{m} random hyperplanes tangent on the \eqn{d}-dimensional unit hypersphere as facets.
 }
 \examples{
 # generate a 10-dimensional polytope with 50 facets
