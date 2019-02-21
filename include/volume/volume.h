@@ -44,7 +44,6 @@
 template <class Polytope, class Parameters, class Point, typename NT>
 NT volume(Polytope &P,
                   Parameters &var,  // constans for volume
-                  Parameters &var2, // constants for optimization in case of MinkSums
                   std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
  
@@ -277,7 +276,7 @@ NT volume_gaussian_annealing(Polytope &P,
     bool print = var.verbose;
     bool rand_only = var.rand_only, deltaset = false;
     unsigned int n = var.n, steps;
-    unsigned int walk_len = var.walk_steps, m=P.num_of_hyperplanes();
+    unsigned int walk_len = var.walk_steps, m = P.num_of_hyperplanes();
     unsigned int n_threads = var.n_threads, min_index, max_index, index, min_steps;
     NT error = var.error, curr_eps, min_val, max_val, val;
     NT frac = var.frac;
@@ -306,9 +305,9 @@ NT volume_gaussian_annealing(Polytope &P,
         #ifdef VOLESTI_DEBUG
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         #endif
-        round_value=res_round.first;
-        std::pair<Point,NT> res=P.ComputeInnerBall();
-        c=res.first; radius=res.second;
+        round_value = res_round.first;
+        std::pair<Point,NT> res = P.ComputeInnerBall();
+        c = res.first; radius = res.second;
     }
 
     // Save the radius of the Chebychev ball
@@ -365,7 +364,7 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     // Compute the first point if CDHR is requested
-    if(var.coordinate && !var.ball_walk){
+    if(var.cdhr_walk){
         gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
     }
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios

@@ -207,7 +207,7 @@ void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, uns
         std::fill(lamdas.begin(), lamdas.end(), NT(0));
         steps = totalSteps;
 
-        if (var.coordinate && !var.ball_walk){
+        if (var.cdhr_walk){
             gaussian_first_coord_point(P, p, p_prev, coord_prev, var.walk_steps, a_vals[it], lamdas, var);
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);

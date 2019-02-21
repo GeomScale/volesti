@@ -101,7 +101,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
-    bool set_mean_point = false, coordinate = true, ball_walk = false, gaussian = false;
+    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -193,16 +193,19 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["variance"]));
 
         if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
-            coordinate = true;
+            cdhr = true;
+            rdhr = false;
             ball_walk = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
-            coordinate = false;
+            cdhr = false;
+            rdhr = true;
             ball_walk = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
                 delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
             }
-            coordinate = false;
+            cdhr = false;
+            rdhr = false;
             ball_walk = true;
         } else {
             throw Rcpp::exception("Unknown walk type!");
@@ -286,9 +289,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
         }
         vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
-                               delta,verbose,rand_only,false,NN,birk,ball_walk,coordinate);
+                               delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr);
         vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
-                                 rand_only, false, NN, birk, ball_walk, coordinate);
+                                 rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
 
         switch (type) {
             case 1: {
