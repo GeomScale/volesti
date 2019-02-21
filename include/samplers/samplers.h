@@ -59,6 +59,17 @@ Point get_point_in_Dsphere(unsigned int dim, NT radius){
     return p;
 }
 
+// ball walk with uniform target distribution
+template <class RNGType, class Point, class Polytope, typename NT>
+void ball_walk(Point &p,
+               Polytope &P,
+               NT delta)
+{
+    //typedef typename Parameters::RNGType RNGType;
+    Point y = get_point_in_Dsphere<RNGType, Point>(p.dimension(), delta);
+    y = y + p;
+    if (P.is_in(y)==-1) p = y;
+}
 
 // WARNING: USE ONLY WITH BIRKHOFF POLYOPES
 // Compute more random points using symmetries of birkhoff polytope
@@ -111,8 +122,8 @@ void rand_point_generator(Polytope &P,
     Point p_prev = p;
 
     if (var.ball_walk) {
-        ball_walk(p, P, ball_rad, var);
-    }else if (var.coordinate) {//Compute the first point for the CDHR
+        ball_walk <RNGType> (p, P, ball_rad);
+    }else if (var.cdhr_walk) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
         std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
@@ -124,8 +135,8 @@ void rand_point_generator(Polytope &P,
     for (unsigned int i = 1; i <= rnum; ++i) {
         for (unsigned int j = 0; j < walk_len; ++j) {
             if (var.ball_walk) {
-                ball_walk(p, P, ball_rad, var);
-            }else if (var.coordinate) {
+                ball_walk<RNGType>(p, P, ball_rad);
+            }else if (var.cdhr_walk) {
                 rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
@@ -162,8 +173,8 @@ void rand_point_generator(BallPoly &PBLarge,
     Point p_prev = p;
 
     if (var.ball_walk) {
-        ball_walk(p, PBLarge, ball_rad, var);
-    }else if (var.coordinate) {//Compute the first point for the CDHR
+        ball_walk<RNGType>(p, PBLarge, ball_rad);
+    }else if (var.cdhr_walk) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
         
@@ -177,8 +188,8 @@ void rand_point_generator(BallPoly &PBLarge,
     for (unsigned int i = 1; i <= rnum; ++i) {
         for (unsigned int j = 0; j < walk_len; ++j) {
             if (var.ball_walk) {
-                ball_walk(p, PBLarge, ball_rad, var);
-            }else if (var.coordinate) {
+                ball_walk<RNGType>(p, PBLarge, ball_rad);
+            }else if (var.cdhr_walk) {
                 rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
@@ -231,24 +242,5 @@ void hit_and_run_coord_update(Point &p,
     p_prev = p;
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
 }
-
-
-// ball walk with uniform target distribution
-template <class Polytope, class Parameters, class Point, typename NT>
-int ball_walk(Point &p,
-              Polytope &P,
-              NT delta,
-              Parameters var)
-{
-    typedef typename Parameters::RNGType RNGType;
-    Point y = get_point_in_Dsphere<RNGType, Point>(p.dimension(), delta);
-    y = y + p;
-    if (P.is_in(y)==-1) {
-        p = y;
-    }
-    return 1;
-}
-
-
 
 #endif //RANDOM_SAMPLERS_H

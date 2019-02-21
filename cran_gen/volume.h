@@ -43,7 +43,6 @@
 template <class Polytope, class Parameters, class Point, typename NT>
 NT volume(Polytope &P,
           Parameters &var,  // constans for volume
-          Parameters &var2, // constants for optimization in case of MinkSums
           std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
     typedef Ball<Point> Ball;
@@ -261,7 +260,7 @@ NT volume(Polytope &P,
 // Ben Cousins, Santosh Vempala
 template <class Polytope, class UParameters, class GParameters, class Point, typename NT>
 NT volume_gaussian_annealing(Polytope &P,
-                             GParameters &var,  // constans for volume
+                             GParameters &var,  // constants for volume
                              UParameters &var2,
                              std::pair<Point,NT> InnerBall) {
     //typedef typename Polytope::MT 	MT;
@@ -365,7 +364,7 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     // Compute the first point if CDHR is requested
-    if(var.coordinate && !var.ball_walk){
+    if(var.cdhr_walk){
         gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
     }
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios

@@ -56,7 +56,7 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
             NN=false,
             birk=false,
             verbose=false,
-            coordinate=true, ball_walk = false;
+            cdhr=true, rdhr = false, ball_walk = false;
     NT delta = -1.0;
 
     unsigned int n = P.field("dimension");
@@ -90,10 +90,12 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
     }
 
     if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
-        coordinate = true;
+        cdhr = true;
+        rdhr = false;
         ball_walk = false;
     } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
-        coordinate = false;
+        cdhr = false;
+        rdhr = true;
         ball_walk = false;
     } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
         if(radius.isNotNull()){
@@ -101,7 +103,8 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
         } else {
             delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
         }
-        coordinate = false;
+        cdhr = false;
+        rdhr = false;
         ball_walk = true;
     } else {
         throw Rcpp::exception("Unknown walk type!");
@@ -115,7 +118,7 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
 
     // initialization
     vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
-                          delta,verbose,rand_only,false,NN,birk,ball_walk,coordinate);
+                          delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr);
     std::pair <NT, NT> round_res;
 
     switch (type) {
@@ -136,17 +139,6 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
         }
     }
 
-    /*
-    if (type == 3) {
-        round_res = rounding_min_ellipsoid(ZP, InnerBall, var);
-        Mat = extractMatPoly(ZP);
-    } else if (type == 1) {
-        round_res = rounding_min_ellipsoid(HP, InnerBall, var);
-        Mat = extractMatPoly(HP);
-    } else {
-        round_res = rounding_min_ellipsoid(VP, InnerBall, var);
-        Mat = extractMatPoly(VP);
-    }*/
     // store rounding value and the ratio between min and max axe in the first row
     // the matrix is in ine format so the first row is useless and is going to be removed by R function modifyMat()
     Mat(0,0) = round_res.first;

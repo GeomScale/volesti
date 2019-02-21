@@ -45,7 +45,7 @@ void test_zono_volume(int n, int m, NT tolerance = 0.15)
     std::pair<NT,NT> res_round;
 
     vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
-                          urdist,urdist1,-1.0,false,false,false,false,false,false,true);
+                          urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
 
     //Compute chebychev ball//
     std::pair<Point,NT> CheBall;
@@ -63,9 +63,9 @@ void test_zono_volume(int n, int m, NT tolerance = 0.15)
     {
         CheBall = ZP.ComputeInnerBall();
         vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,rng,
-                               urdist,urdist1,-1.0,false,false,false,false,false,false,true);
+                               urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
-                                 false,false,false,false,false,false,true);
+                                 false,false,false,false,false,false,true,false);
         vol += round_value * volume_gaussian_annealing(ZP, var1, var2, CheBall);
     }
     NT error = std::abs(((vol/num_of_exp)-vol_exact))/vol_exact;

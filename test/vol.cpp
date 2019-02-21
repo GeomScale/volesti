@@ -71,7 +71,8 @@ int main(const int argc, const char** argv)
          annealing = false,
          Vpoly=false,
          Zono=false,
-         coordinate=true,
+         cdhr=true,
+         rdhr=false,
          exact_zono = false,
          gaussian_sam = false;
 
@@ -156,11 +157,15 @@ int main(const int argc, const char** argv)
           correct = true;
       }
       if(!strcmp(argv[i],"-rdhr")){
-          coordinate = false;
+          cdhr = false;
+          rdhr = true;
+          ball_walk = false;
           correct = true;
       }
       if(!strcmp(argv[i],"-bw")){
           ball_walk = true;
+          cdhr = false;
+          rdhr = false;
           correct = true;
       }
       if(!strcmp(argv[i],"-bwr")){
@@ -434,9 +439,9 @@ int main(const int argc, const char** argv)
           }
       }
       vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, rng,
-                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
+                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
       vars_g<NT, RNGType> var2(n, walk_len, N, W, 1, 0, InnerBall.second, rng, C, frac, ratio, delta,
-                  false, verbose, rand_only, round, NN, birk, ball_walk, coordinate);
+                  false, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
       double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if (Zono) {
@@ -469,7 +474,7 @@ int main(const int argc, const char** argv)
 
       // Setup the parameters
       vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
-               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr);
 
       if(round_only) {
           // Round the polytope and exit
@@ -495,10 +500,10 @@ int main(const int argc, const char** argv)
 
               // setup the parameters
               vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
-                       urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+                       urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr);
 
               vars_g<NT, RNGType> var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
-                          verbose,rand_only,round,NN,birk,ball_walk,coordinate);
+                          verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr);
 
               if (Zono) {
                   vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
@@ -510,11 +515,11 @@ int main(const int argc, const char** argv)
 
           } else {
               if (Zono) {
-                  vol = volume(ZP, var, var, InnerBall);
+                  vol = volume(ZP, var, InnerBall);
               } else if (!Vpoly) {
-                  vol = volume(HP, var, var, InnerBall);
+                  vol = volume(HP, var, InnerBall);
               } else {
-                  vol = volume(VP, var, var, InnerBall);
+                  vol = volume(VP, var, InnerBall);
               }
           }
       }
