@@ -77,7 +77,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                                   Rcpp::Nullable<unsigned int> N = R_NilValue,
                                   Rcpp::Nullable<std::string> distribution = R_NilValue,
                                   Rcpp::Nullable<std::string> WalkType = R_NilValue,
-                                  Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
+                                  Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
                                   Rcpp::Nullable<bool> exact = R_NilValue,
                                   Rcpp::Nullable<std::string> body = R_NilValue,
                                   Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
@@ -185,7 +185,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                         Rcpp::as<std::vector<NT> >(InnerPoint).end() );
             }
         }
-        if(walk_length.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_length);
+        if(walk_step.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_step);
 
         NT a = 0.5;
 

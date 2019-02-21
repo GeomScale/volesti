@@ -4,11 +4,13 @@
 \alias{volume}
 \title{The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-volume(P, walk_length = NULL, error = NULL, InnerBall = NULL,
+volume(P, walk_step = NULL, error = NULL, InnerBall = NULL,
   Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
+
+\item{walk_step}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.}
 
 \item{error}{Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.}
 
@@ -29,8 +31,6 @@ volume(P, walk_length = NULL, error = NULL, InnerBall = NULL,
  \item{frac }{The fraction of the total error to spend in the first gaussian in CG algorithm. The default value is \eqn{0.1}.}
  \item{BW_rad }{The radius for the ball walk. The default value is \eqn{4r/dimension}, where \eqn{r} is the radius of the inscribed ball of the polytope.}
 }}
-
-\item{walk_step}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.}
 }
 \value{
 The approximation of the volume of a convex polytope.
@@ -49,7 +49,7 @@ vol = volume(P, Algo = "CG")
 
 # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 Z = GenZonotope(2, 4)
-vol = volume(Z, WalkType = "RDHR", walk_length = 5)
+vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 }
 \references{
 \cite{I.Z.Emiris and V. Fisikopoulos,
