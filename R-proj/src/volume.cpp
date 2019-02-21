@@ -9,7 +9,7 @@
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
-#include "../../include/volume/volume.h"
+#include "volume.h"
 
 
 template <class Point, class NT, class Polytope>
