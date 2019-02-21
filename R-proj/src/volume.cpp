@@ -13,7 +13,7 @@
 
 
 template <class Point, class NT, class Polytope>
-double generic_volume(Polytope& P, unsigned int walk_length, double e,
+double generic_volume(Polytope& P, unsigned int walk_step, double e,
                       Rcpp::Nullable<Rcpp::NumericVector> InnerBall, bool CG, unsigned int win_len,
                       unsigned int N, double C, double ratio, double frac,
                       bool ball_walk, double delta, bool coord, bool rounding)
@@ -54,13 +54,13 @@ double generic_volume(Polytope& P, unsigned int walk_length, double e,
     }
 
     // initialization
-    vars<NT, RNGType> var(rnum,n,walk_length,n_threads,0.0,e,0,0.0,0, InnerB.second,rng,urdist,urdist1,
+    vars<NT, RNGType> var(rnum,n,walk_step,n_threads,0.0,e,0,0.0,0, InnerB.second,rng,urdist,urdist1,
                           delta,verbose,rand_only,rounding,NN,birk,ball_walk,coordinate);
     NT vol;
     if (CG) {
         vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
                                urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, coordinate);
-        vars_g<NT, RNGType> var1(n, walk_length, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
+        vars_g<NT, RNGType> var1(n, walk_step, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                  rand_only, rounding, NN, birk, ball_walk, coordinate);
         vol = volume_gaussian_annealing(P, var1, var2, InnerB);
     } else {
@@ -108,10 +108,10 @@ double generic_volume(Polytope& P, unsigned int walk_length, double e,
 //'
 //' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 //' Z = GenZonotope(2, 4)
-//' vol = volume(Z, WalkType = "RDHR", walk_length = 5)
+//' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 //' @export
 // [[Rcpp::export]]
-double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
+double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
                 Rcpp::Nullable<double> error = R_NilValue,
                 Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
                 Rcpp::Nullable<std::string> Algo = R_NilValue,
@@ -158,10 +158,10 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
 
         CG = false;
 
-        if(!walk_length.isNotNull()){
+        if(!walk_step.isNotNull()){
             walkL= 10+n/10;
         } else {
-            walkL = Rcpp::as<unsigned int>(walk_length);
+            walkL = Rcpp::as<unsigned int>(walk_step);
         }
 
         if(!error.isNotNull()){
@@ -180,10 +180,10 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
             e = Rcpp::as<NT>(error);
         }
 
-        if (!walk_length.isNotNull()) {
+        if (!walk_step.isNotNull()) {
             walkL = 1;
         } else {
-            walkL = Rcpp::as<int>(walk_length);
+            walkL = Rcpp::as<int>(walk_step);
         }
 
     } else {

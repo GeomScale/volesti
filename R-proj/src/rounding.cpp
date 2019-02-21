@@ -25,7 +25,7 @@
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
 //' @param WalkType Optional. A string that declares the random walk.
-//' @param walk_length Optional. The number of the steps for the random walk.
+//' @param walk_step Optional. The number of the steps for the random walk.
 //' @param radius Optional. The radius for the ball walk.
 //'
 //' @section warning:
@@ -35,7 +35,7 @@
 // [[Rcpp::export]]
 Rcpp::NumericMatrix rounding (Rcpp::Reference P,
                               Rcpp::Nullable<std::string> WalkType = R_NilValue,
-                              Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
+                              Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
                               Rcpp::Nullable<double> radius = R_NilValue) {
 
     typedef double NT;
@@ -62,7 +62,7 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
     unsigned int n = P.field("dimension");
     unsigned int rnum = std::pow(1.0,-2.0) * 400 * n * std::log(n);
     unsigned int walkL = 10+n/10;
-    if(walk_length.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_length);
+    if(walk_step.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_step);
 
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;

@@ -5,7 +5,7 @@
 \title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere}
 \usage{
 sample_points(P = NULL, N = NULL, distribution = NULL,
-  WalkType = NULL, walk_length = NULL, exact = NULL, body = NULL,
+  WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL,
   Parameters = NULL, InnerPoint = NULL)
 }
 \arguments{
@@ -16,6 +16,8 @@ sample_points(P = NULL, N = NULL, distribution = NULL,
 \item{distribution}{Optional. A string that declares the target distribution: a) 'uniform' for the uniform distribution or b) 'gaussian' for the multidimensional spherical distribution. The default target distribution is uniform.}
 
 \item{WalkType}{Optional. A string that declares the random walk method: a) 'CDHR' for Coordinate Directions Hit-and-Run, b) 'RDHR' for Random Directions Hit-and-Run or c) 'BW' for Ball Walk. The default walk is  'CDHR'.}
+
+\item{walk_step}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.}
 
 \item{exact}{A boolean parameter. It should be used for the uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from the unit or the canonical or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies the dimension has to be declared and the type of body as well as the radius of the hypersphere.}
 
@@ -30,8 +32,6 @@ sample_points(P = NULL, N = NULL, distribution = NULL,
 }}
 
 \item{InnerPoint}{A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.}
-
-\item{walk_step}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.}
 }
 \value{
 A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope P.

@@ -163,15 +163,15 @@ rotating <- function(P) {
 #'
 #' @param P A convex polytope (H- or V-representation or zonotope).
 #' @param WalkType Optional. A string that declares the random walk.
-#' @param walk_length Optional. The number of the steps for the random walk.
+#' @param walk_step Optional. The number of the steps for the random walk.
 #' @param radius Optional. The radius for the ball walk.
 #'
 #' @section warning:
 #' Do not use this function.
 #'
 #' @return A numerical matrix that describes the rounded polytope and contains the round value.
-rounding <- function(P, WalkType = NULL, walk_length = NULL, radius = NULL) {
-    .Call(`_volesti_rounding`, P, WalkType, walk_length, radius)
+rounding <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL) {
+    .Call(`_volesti_rounding`, P, WalkType, walk_step, radius)
 }
 
 #' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere
@@ -222,8 +222,8 @@ rounding <- function(P, WalkType = NULL, walk_length = NULL, radius = NULL) {
 #' P = Vpolytope$new(V)
 #' points = sample_points(P, N = 10000, exact = TRUE)
 #' @export
-sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_length = NULL, exact = NULL, body = NULL, Parameters = NULL, InnerPoint = NULL) {
-    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_length, exact, body, Parameters, InnerPoint)
+sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL, Parameters = NULL, InnerPoint = NULL) {
+    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_step, exact, body, Parameters, InnerPoint)
 }
 
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
@@ -264,9 +264,9 @@ sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NU
 #'
 #' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 #' Z = GenZonotope(2, 4)
-#' vol = volume(Z, WalkType = "RDHR", walk_length = 5)
+#' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 #' @export
-volume <- function(P, walk_length = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
-    .Call(`_volesti_volume`, P, walk_length, error, InnerBall, Algo, WalkType, rounding, Parameters)
+volume <- function(P, walk_step = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
+    .Call(`_volesti_volume`, P, walk_step, error, InnerBall, Algo, WalkType, rounding, Parameters)
 }
 
