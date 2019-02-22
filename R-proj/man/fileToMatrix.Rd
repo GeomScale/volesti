@@ -8,9 +8,11 @@ fileToMatrix(path, zonotope)
 }
 \arguments{
 \item{path}{A string that containes the path to an ine or a ext file. The ine file desrcibes a H-polytope and ext file describes a V-polytope or a zonotope.}
+
+\item{zonotope}{A boolean parameter. It has to be TRUE when the path leads to an .ext file that describes a zonotope.}
 }
 \value{
-If the path corresponds to an ine file then the return value is a list that containes elements "A" and "b", i.e. the numerical \eqn{m\times d} matrix \eqn{A} and the numerical \eqn{m}-dimensional vector \eqn{b}, defining H-polytope \eqn{P}, s.t.:  \eqn{Ax\leq b}. If it corresponds to an ext file (V-polytopes or zonotopes) then the return value is a \eqn{m\times d} matrix that containes row-wise the vertices or the segments respectively.
+A polytope class. If the path corresponds to an ine file then the return value represents a H-polytope. If it corresponds to an ext file the return value represents a V-polytope (default choice) or a zonotope if the second argument is TRUE.
 }
 \description{
 This function takes the path for an ine or an ext file and returns the corresponding numerical matrix and vector that are compatible with volesti package's functions.
@@ -18,5 +20,5 @@ This function takes the path for an ine or an ext file and returns the correspon
 \examples{
 # give the path to birk4.ine
 path = system.file('extdata', package = 'volesti')
-ListPoly = fileToMatrix(paste0(path,'/birk4.ine'))
+P = fileToMatrix(paste0(path,'/birk4.ine'))
 }

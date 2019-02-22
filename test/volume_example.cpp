@@ -78,12 +78,12 @@ int main()
     boost::random::uniform_real_distribution<> urdist1(-1,1);
     
     vars<NT, RNGType> var1(rnum,n,walk_len,1,0,1,0,0,0,0,rng,
-             urdist,urdist1,-1.0,false,false,false,false,false,false,true);
+             urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
     vars_g<NT, RNGType> var2(n,walk_len,N,W,1,0.2,CheBall.second,rng,C,0.1,ratio,-1,false,
-                    false,false,false,false,false,false,true);
+                    false,false,false,false,false,false,true,false);
 
     // Estimate the volume
-    NT vol1 = volume(HP, var1, var1, CheBall);
+    NT vol1 = volume(HP, var1, CheBall);
     std::cout << "Computed volume (alg.1) = " << vol1 << std::endl;
     
     NT vol2 = volume_gaussian_annealing(HP, var2, var1, CheBall);

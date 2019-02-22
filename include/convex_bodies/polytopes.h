@@ -10,6 +10,8 @@
 #ifndef POLYTOPES_H
 #define POLYTOPES_H
 
+#include <limits>
+
 #include <iostream>
 #include "solve_lp.h"
 
@@ -23,6 +25,8 @@ public:
     typedef Point PolytopePoint;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
+    //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    //typedef RowMatrixXd MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
@@ -30,8 +34,10 @@ private:
     MT A; //matrix A
     VT b; // vector b, s.t.: Ax<=b
     unsigned int            _d; //dimension
-    NT maxNT = 1.79769e+308;
-    NT minNT = -1.79769e+308;
+    //NT maxNT = 1.79769e+308;
+    //NT minNT = -1.79769e+308;
+    NT maxNT = std::numeric_limits<NT>::max();
+    NT minNT = std::numeric_limits<NT>::lowest();
 
 public:
     HPolytope() {}
@@ -430,13 +436,12 @@ public:
     typedef typename Point::FT NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef RNGType rngtype;
 
 private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    NT maxNT = 1.79769e+308;
-    NT minNT = -1.79769e+308;
 
 public:
     VPolytope() {}
@@ -687,12 +692,8 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r,
                                           Point v) {
-        NT min_plus, max_minus;
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, false);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, false);
-
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return intersect_double_line_Vpoly<NT>(V, r, v);
     }
 
 
@@ -701,15 +702,11 @@ public:
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           unsigned int rand_coord,
                                           std::vector<NT> &lamdas) {
-        NT min_plus, max_minus;
+
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, false);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, false);
-
-        return std::pair<NT, NT> (min_plus, max_minus);
+        return intersect_double_line_Vpoly<NT>(V, r, v);
     }
 
 
@@ -720,15 +717,11 @@ public:
                                           unsigned int rand_coord,
                                           unsigned int rand_coord_prev,
                                           std::vector<NT> &lamdas) {
-        NT min_plus, max_minus;
+
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, false);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, false);
-
-        return std::pair<NT, NT> (min_plus, max_minus);
+        return intersect_double_line_Vpoly<NT>(V, r, v);
     }
 
 
@@ -794,8 +787,10 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    NT maxNT = 1.79769e+308;
-    NT minNT = -1.79769e+308;
+    //NT maxNT = 1.79769e+308;
+    //NT minNT = -1.79769e+308;
+    NT maxNT = std::numeric_limits<NT>::max();
+    NT minNT = std::numeric_limits<NT>::lowest();
 
 public:
 
@@ -827,7 +822,7 @@ public:
 
         num_of_hyp = nom / denom;
 
-        res = num_of_hyp;
+        res = 2*_d;
         return res;
     }
 
@@ -897,7 +892,6 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-        initial_shifting(); // shift zonotope to the origin
     }
 
 
@@ -912,7 +906,6 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        initial_shifting(); // shift zonotope to the origin
     }
 
 
@@ -966,12 +959,8 @@ public:
     // with the Zonotope
     std::pair<NT,NT> line_intersect(Point r,
                                     Point v) {
-        NT min_plus, max_minus;
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
-
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return intersect_line_zono<NT>(V, r, v);
     }
 
 
@@ -980,15 +969,13 @@ public:
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           unsigned int rand_coord,
                                           std::vector<NT> &lamdas) {
-        NT min_plus, max_minus;
+
         std::vector<NT> temp(_d,0);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
+        return intersect_line_zono<NT>(V, r, v);
 
-        return std::pair<NT, NT> (min_plus, max_minus);
     }
 
 
@@ -999,47 +986,12 @@ public:
                                           unsigned int rand_coord,
                                           unsigned int rand_coord_prev,
                                           std::vector<NT> &lamdas) {
-        NT min_plus, max_minus;
+
         std::vector<NT> temp(_d,0);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        max_minus = intersect_line_Vpoly<NT>(V, r, v, true, true);
-        min_plus = intersect_line_Vpoly<NT>(V, r, v, false, true);
-
-        return std::pair<NT, NT> (min_plus, max_minus);
-    }
-
-
-    // shift zonotope to the origin
-    void initial_shifting() {
-        std::vector<NT> vec(_d,0.0);
-        typename std::vector<NT>::iterator vecit;
-        Point xc(_d);
-
-        int m = V.rows(), j;
-        Point temp;
-
-        for (int i = 0; i < m; ++i) {
-            vecit = vec.begin();
-            j = 0;
-            for ( ; vecit!=vec.end(); ++vecit, ++j) {
-                *vecit = V(i,j);
-            }
-            temp = Point(_d, vec.begin(), vec.end());
-            xc = xc + temp;
-        }
-        xc = xc * (1.0 / NT(m));
-
-        VT c(_d);
-        vecit = xc.iter_begin();
-        j = 0;
-        for ( ; vecit!=xc.iter_end(); ++vecit, ++j) {
-            c(j) = *vecit;
-        }
-
-        MT V2 = V.transpose().colwise() - c;
-        V = V2.transpose();
+        return intersect_line_zono<NT>(V, r, v);
     }
 
 

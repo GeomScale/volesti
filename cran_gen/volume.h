@@ -43,12 +43,12 @@
 template <class Polytope, class Parameters, class Point, typename NT>
 NT volume(Polytope &P,
           Parameters &var,  // constans for volume
-          Parameters &var2, // constants for optimization in case of MinkSums
           std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
     typedef Ball<Point> Ball;
     typedef BallIntersectPolytope<Polytope,Ball> BallPoly;
     typedef typename Parameters::RNGType RNGType;
+    typedef typename Polytope::VT VT;
 
     bool round = var.round;
     bool print = var.verbose;
@@ -93,6 +93,13 @@ NT volume(Polytope &P,
         }
     }
 
+    VT c_e(n);
+    for(unsigned int i=0; i<n; i++){
+        c_e(i)=c[i];  // write chebychev center in an eigen vector
+    }
+    P.shift(c_e);
+    c=Point(n);
+
     rnum=rnum/n_threads;
     NT vol=0;
 
@@ -105,7 +112,7 @@ NT volume(Polytope &P,
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
         #endif
         Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
-        p=p+c;
+
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
@@ -127,7 +134,7 @@ NT volume(Polytope &P,
         // 4a. compute the radius of the largest ball
         NT current_dist, max_dist=NT(0);
         for(typename  std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-            current_dist=(*pit-c).squared_length();
+            current_dist=(*pit).squared_length();
             if(current_dist>max_dist){
                 max_dist=current_dist;
             }
@@ -253,7 +260,7 @@ NT volume(Polytope &P,
 // Ben Cousins, Santosh Vempala
 template <class Polytope, class UParameters, class GParameters, class Point, typename NT>
 NT volume_gaussian_annealing(Polytope &P,
-                             GParameters &var,  // constans for volume
+                             GParameters &var,  // constants for volume
                              UParameters &var2,
                              std::pair<Point,NT> InnerBall) {
     //typedef typename Polytope::MT 	MT;
@@ -357,7 +364,7 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     // Compute the first point if CDHR is requested
-    if(var.coordinate && !var.ball_walk){
+    if(var.cdhr_walk){
         gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
     }
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios
