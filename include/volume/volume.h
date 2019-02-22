@@ -44,13 +44,13 @@
 template <class Polytope, class Parameters, class Point, typename NT>
 NT volume(Polytope &P,
                   Parameters &var,  // constans for volume
-                  Parameters &var2, // constants for optimization in case of MinkSums
                   std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
  
     typedef Ball<Point> Ball;
     typedef BallIntersectPolytope<Polytope,Ball> BallPoly;
     typedef typename Parameters::RNGType RNGType;
+    typedef typename Polytope::VT VT;
 
     bool round = var.round;
     bool print = var.verbose;
@@ -95,6 +95,13 @@ NT volume(Polytope &P,
         }
     }
 
+    VT c_e(n);
+    for(unsigned int i=0; i<n; i++){
+        c_e(i)=c[i];  // write chebychev center in an eigen vector
+    }
+    P.shift(c_e);
+    c=Point(n);
+
     rnum=rnum/n_threads;
     NT vol=0;
         
@@ -109,7 +116,7 @@ NT volume(Polytope &P,
         #endif
         
         Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
-        p=p+c;
+        //p=p+c;
         
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
@@ -133,7 +140,7 @@ NT volume(Polytope &P,
         // 4a. compute the radius of the largest ball
         NT current_dist, max_dist=NT(0);
         for(typename  std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-            current_dist=(*pit-c).squared_length();
+            current_dist=(*pit).squared_length();
             if(current_dist>max_dist){
                 max_dist=current_dist;
             }
@@ -153,8 +160,6 @@ NT volume(Polytope &P,
         #endif
 
         std::vector<Ball> balls;
-        
-        
         
         for(int i=nb1; i<=nb2; ++i){
 
@@ -271,7 +276,7 @@ NT volume_gaussian_annealing(Polytope &P,
     bool print = var.verbose;
     bool rand_only = var.rand_only, deltaset = false;
     unsigned int n = var.n, steps;
-    unsigned int walk_len = var.walk_steps, m=P.num_of_hyperplanes();
+    unsigned int walk_len = var.walk_steps, m = P.num_of_hyperplanes();
     unsigned int n_threads = var.n_threads, min_index, max_index, index, min_steps;
     NT error = var.error, curr_eps, min_val, max_val, val;
     NT frac = var.frac;
@@ -300,9 +305,9 @@ NT volume_gaussian_annealing(Polytope &P,
         #ifdef VOLESTI_DEBUG
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         #endif
-        round_value=res_round.first;
-        std::pair<Point,NT> res=P.ComputeInnerBall();
-        c=res.first; radius=res.second;
+        round_value = res_round.first;
+        std::pair<Point,NT> res = P.ComputeInnerBall();
+        c = res.first; radius = res.second;
     }
 
     // Save the radius of the Chebychev ball
@@ -333,12 +338,15 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     unsigned int mm = a_vals.size()-1, j=0;
+
+    #ifdef VOLESTI_DEBUG
     if(print){
         for (viterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
             std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
         }
         std::cout<<"\n"<<std::endl;
     }
+    #endif
 
     // Initialization for the approximation of the ratios
     std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
@@ -356,7 +364,7 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     // Compute the first point if CDHR is requested
-    if(var.coordinate && !var.ball_walk){
+    if(var.cdhr_walk){
         gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
     }
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios

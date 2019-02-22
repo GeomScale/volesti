@@ -1,4 +1,4 @@
 library(testthat)
-library(volesti)
+#library(volesti)
 
 test_check("volesti")

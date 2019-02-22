@@ -200,13 +200,30 @@ void Sam_Canon_Unit(unsigned int dim, unsigned int num, std::list<Point> &points
 
 
 //Owen mapping for sample from an arbitrary simplex given in V-represantation
-template <typename NT, class RNGType, class Point>
-void Sam_arb_simplex(typename std::vector<Point>::iterator it_beg, typename std::vector<Point>::iterator it_end, unsigned int num, std::list<Point> &points){
+template <class Vpolytope, class PointList>
+void Sam_arb_simplex(Vpolytope P, unsigned int num, PointList &points){
 
-    unsigned int n=std::distance(it_beg,it_end),j,i,k,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
-    unsigned int dim = n-1;
+    typedef typename Vpolytope::MT MT;
+    typedef typename Vpolytope::NT NT;
+    typedef typename Vpolytope::rngtype RNGType;
+    typedef typename Vpolytope::PolytopePoint Point;
+
+    MT V = P.get_mat();
+    std::vector<Point> vec_point;
+
+    unsigned int n=V.rows(),j,i,k,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
+    unsigned int dim = V.cols();
+    std::vector<NT> temp_p(dim, 0.0);
     std::vector<unsigned int> x_vec;
     std::vector<NT> y;
+
+    for (int i = 0; i < V.rows(); ++i) {
+        for (int j = 0; j < V.cols(); ++j) {
+            temp_p[j] = V(i,j);
+        }
+        vec_point.push_back(Point(dim, temp_p.begin(), temp_p.end()));
+    }
+    typename std::vector<Point>::iterator it_beg = vec_point.begin();
 
     NT Xj;
     Point p0=*it_beg;

@@ -12,12 +12,12 @@ GenZonotope(dimension, NumGen)
 \item{NumGen}{The number of segments that generate the zonotope.}
 }
 \value{
-A \eqn{m \times d} matrix that containes the \eqn{m} \eqn{d}-dimensional segments.
+A polytope class representing a zonotope.
 }
 \description{
-This function can be used to generate a \eqn{d}-dimensional zonotope defined by the Minkowski sum of \eqn{m} segments. We consider the \eqn{e_1, \dots ,e_d} generators and \eqn{m-d} random generators. Then we shift the zonotope in order to contain the origin. The origin is the center of symmetry as well. It might needs rounding before the volume approximation using SequenceOfBalls or CoolingGaussian algorithms.
+This function can be used to generate a random \eqn{d}-dimensional zonotope defined by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments. We consider \eqn{m} random directions in \eqn{R^d} and for each direction we pick a random length in \eqn{[(,\sqrt{d}]} in order to define \eqn{m} segments.
 }
 \examples{
 # generate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
-zonotope = GenZonotope(10, 20)
+P = GenZonotope(10, 20)
 }
