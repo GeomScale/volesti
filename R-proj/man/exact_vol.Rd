@@ -31,10 +31,11 @@ For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this functio
 Z = GenZonotope(5, 10)
 vol = exact_vol(Z)
 
-# compute the exact volume of a 2-d arbitrary simplex
+\dontrun{# compute the exact volume of a 2-d arbitrary simplex
 V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
 P = Vpolytope$new(V)
 vol = exact_vol(P)
+}
 
 # compute the exact volume the 10-dimensional cross polytope
 vol = exact_vol(body = "cross", Parameters = list("dimension" = 10))
