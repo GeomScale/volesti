@@ -62,7 +62,7 @@ void rounding_test(Polytope &P, bool rot, NT expected, NT tolerance=0.2)
     ratio2 = res_round.second;
     ratio1 = 0.0;
     //apply rounding until conditios are satisfied
-    while(ratio2>ratio1 && count<=4) {
+    while(ratio2>ratio1 && count<=1) {
         CheBall = P.ComputeInnerBall(); //compute the new chebychev center
         res_round = rounding_min_ellipsoid(P, CheBall, var);
         round_value = round_value * res_round.first;
@@ -127,11 +127,11 @@ void call_test_skinny_cubes() {
 }
 
 
-TEST_CASE("round_rot_skinny_cube") {
-    call_test_rot_skinny_cubes<double>();
+//TEST_CASE("round_rot_skinny_cube") {
+    //call_test_rot_skinny_cubes<double>();
     //call_test_rot_skinny_cubes<float>();
     //call_test_rot_skinny_cubes<long double>();
-}
+//}
 
 TEST_CASE("round_skinny_cube") {
     call_test_skinny_cubes<double>();
