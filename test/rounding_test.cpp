@@ -89,7 +89,7 @@ void rounding_test(Polytope &P, bool rot, NT expected, NT tolerance=0.2)
 
 }
 
-
+/*
 template <typename NT>
 void call_test_rot_skinny_cubes() {
     typedef Cartesian<NT>    Kernel;
@@ -98,15 +98,15 @@ void call_test_rot_skinny_cubes() {
     typedef HPolytope<Point> Hpolytope;
     Hpolytope P;
 
-    std::cout << "\n--- Testing rounding of rotated H-skinny_cube10" << std::endl;
-    P = gen_skinny_cube<Hpolytope>(10);
-    rounding_test<NT, RNGType>(P, true, 102400.0);
+    //std::cout << "\n--- Testing rounding of rotated H-skinny_cube10" << std::endl;
+    //P = gen_skinny_cube<Hpolytope>(10);
+    //rounding_test<NT, RNGType>(P, true, 102400.0);
 
     //std::cout << "\n--- Testing rounding of rotated H-skinny_cube20" << std::endl;
     //P = gen_skinny_cube<Hpolytope>(20);
     //rounding_test<NT, RNGType>(P, true, 104857600.0, 0.2);
 
-}
+}*/
 
 template <typename NT>
 void call_test_skinny_cubes() {
