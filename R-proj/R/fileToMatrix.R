@@ -1,6 +1,6 @@
-#' function to get a ine file and returns a numerical matrix A
+#' function to get an ine or an ext file and returns the corresponding polytope
 #'
-#' This function takes the path for an ine or an ext file and returns the corresponding numerical matrix and vector that are compatible with volesti package's functions.
+#' For an ine file it generates the corresponding H-polytope. For an ext file it generates the corresponding V-polytope or zonotope.
 #'
 #' @param path A string that containes the path to an ine or a ext file. The ine file desrcibes a H-polytope and ext file describes a V-polytope or a zonotope.
 #' @param zonotope A boolean parameter. It has to be TRUE when the path leads to an .ext file that describes a zonotope.

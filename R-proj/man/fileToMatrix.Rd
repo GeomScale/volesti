@@ -2,7 +2,7 @@
 % Please edit documentation in R/fileToMatrix.R
 \name{fileToMatrix}
 \alias{fileToMatrix}
-\title{function to get a ine file and returns a numerical matrix A}
+\title{function to get an ine or an ext file and returns the corresponding polytope}
 \usage{
 fileToMatrix(path, zonotope)
 }
@@ -15,7 +15,7 @@ fileToMatrix(path, zonotope)
 A polytope class. If the path corresponds to an ine file then the return value represents a H-polytope. If it corresponds to an ext file the return value represents a V-polytope (default choice) or a zonotope if the second argument is TRUE.
 }
 \description{
-This function takes the path for an ine or an ext file and returns the corresponding numerical matrix and vector that are compatible with volesti package's functions.
+For an ine file it generates the corresponding H-polytope. For an ext file it generates the corresponding V-polytope or zonotope.
 }
 \examples{
 # give the path to birk4.ine

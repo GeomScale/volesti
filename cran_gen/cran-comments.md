@@ -21,7 +21,7 @@ File ‘volesti/libs/volesti.so’:
   Found ‘rand’, possibly from ‘rand’ (C)  
     Object: ‘rotating.o’  
 
-  Library lpSolveAPI uses rand() and srand() in lp_utils.c. We replace both functions with GetRNGstate(); PutRNGstate(); unif_rand(); from R’s internal random number generation routines as it is proposed in `Writing R Extensions`. Moreover if you run in folder `/src`:  
+Library lpSolveAPI uses rand() and srand() in lp_utils.c. We replace both functions with GetRNGstate(); PutRNGstate(); unif_rand(); from R’s internal random number generation routines as it is proposed in `Writing R Extensions`. Moreover if you run in folder `/src`:  
 $ grep -r 'rand()'
 You just get:  
 `utils.c:  range *= (LPSREAL) unif_rand();`  
@@ -51,7 +51,7 @@ We compile the C code from the lpsolveAPI R package using the same Makefile in f
 
 --------------------------------------------
 
-- FROM: `devtools::build_win()`
+- FROM: `devtools::build_win()`, `Fedora Linux, R-devel, clang, gfortran`, `Windows Server 2008 R2 SP1, R-devel, 32/64 bit`, `Ubuntu Linux 16.04 LTS, R-release`
 
 * checking CRAN incoming feasibility ... NOTE  
 Maintainer: 'Fisikopoulos Vissarion <vissarion.fisikopoulos@gmail.com>'  
