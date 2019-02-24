@@ -9,7 +9,7 @@ Description: Package provides an R interface for volesti C++ package. Volesti co
              or Minkowski sum of segments (zonotopes). There are two algorithms for volume
              approximation as well as algorithms for sampling, rounding and rotating polytopes.
 Version: 0.0.0
-Date: 2018-09-05
+Date: 2019-02-24
 BugReports: https://github.com/GeomScale/volume_approximation/issues
 Depends: Rcpp (>= 0.12.17)
 Imports: methods

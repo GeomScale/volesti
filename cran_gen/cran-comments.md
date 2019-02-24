@@ -4,22 +4,22 @@ There are currently no downstream dependencies for this package
 
 ## check results
 
-1. We ran devtools::check() and devtools::build_win() locally.  
+1. We ran `devtools::check()` and `devtools::build_win()` and `R CMD check` locally.  
 2. We used package `r-hub` for other platforms.  
 
-0 errors | 0 warnings in all platforms (Build fails only in `Oracle Solaris 10, x86, 32 bit, R-patched (experimental)`)
+0 errors | 0 warnings in all platforms (Build fails in `Oracle Solaris 10, x86, 32 bit, R-patched (experimental)`, `macOS 10.11 El Capitan, R-release (experimental)`, `macOS 10.9 Mavericks, R-oldrel (experimental)` in rhub builder.)
 
 ###  There were no ERRORs or WARNINGs. 
 
 There was 3 NOTES in total:  
 
 
-- FROM: all Platforms,  
+- FROM: `R CMD check`, `devtools::check()`, `devtools::build_win()`, `Ubuntu Linux 16.04 LTS, R-devel`, `Ubuntu Linux 16.04 LTS, R-release`, `Fedora Linux, R-devel, clang, gfortran`  
 
 * checking compiled code ... NOTE  
 File ‘volesti/libs/volesti.so’:  
   Found ‘rand’, possibly from ‘rand’ (C)  
-    Object: ‘vol_R.o’  
+    Object: ‘rotating.o’  
 
   Library lpSolveAPI uses rand() and srand() in lp_utils.c. We replace both functions with GetRNGstate(); PutRNGstate(); unif_rand(); from R’s internal random number generation routines as it is proposed in `Writing R Extensions`. Moreover if you run in folder `/src`:  
 $ grep -r 'rand()'
@@ -30,7 +30,7 @@ This NOTE appears because of our functions in `/src/include/samplers` where word
 
 --------------------------------------------
 
-- FROM: all Platforms,  
+- FROM: `devtools::check()`,  
 
 * checking compiled code ... NOTE  
 Found the following apparent object files/libraries:  
@@ -51,7 +51,7 @@ We compile the C code from the lpsolveAPI R package using the same Makefile in f
 
 --------------------------------------------
 
-- FROM: `devtools::build_win()`, `Fedora Linux, R-devel, clang, gfortran`, `Windows Server 2008 R2 SP1, R-devel, 32/64 bit`,  
+- FROM: `devtools::build_win()`
 
 * checking CRAN incoming feasibility ... NOTE  
 Maintainer: 'Fisikopoulos Vissarion <vissarion.fisikopoulos@gmail.com>'  
@@ -67,15 +67,6 @@ Possibly mis-spelled words in DESCRIPTION:
   zonotopes (9:44)  
 
 These words except of `volesti` (which is the name of our package) describe geometrical concepts.  
-
---------------------------------------------
-
-- FROM: `Windows Server 2008 R2 SP1, R-devel, 32/64 bit`,  
-
-* checking sizes of PDF files under 'inst/doc' ... NOTE
-Unable to find GhostScript executable to run checks on size reduction
-
-We do not use GhostScript.
 
 
 ###  External libraries
