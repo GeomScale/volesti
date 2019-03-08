@@ -117,7 +117,7 @@ void call_test_simplex() {
 TEST_CASE("cube") {
     call_test_cube<double>();
     //call_test_cube<float>();
-    call_test_cube<long double>();
+    //call_test_cube<long double>();
 }
 
 TEST_CASE("cross") {

@@ -81,13 +81,13 @@ void call_test(int n, int m){
 }
 
 
-TEST_CASE("4 dimensional") {
+TEST_CASE("4_dimensional") {
     call_test<double>(4, 8);
     call_test<float>(4,8);
     call_test<long double>(4,8);
 }
 
-TEST_CASE("5 dimensional") {
+TEST_CASE("5_dimensional") {
     call_test<double>(5, 10);
     call_test<float>(5, 10);
     call_test<long double>(5, 10);

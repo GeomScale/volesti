@@ -117,8 +117,8 @@ void call_test_skinny_cubes() {
     Hpolytope P;
 
     std::cout << "\n--- Testing rounding of H-skinny_cube10" << std::endl;
-    P = gen_skinny_cube<Hpolytope>(10);
-    rounding_test<NT, RNGType>(P, false, 102400.0);
+    P = gen_skinny_cube<Hpolytope>(5);
+    rounding_test<NT, RNGType>(P, false, 3200.0);
 
     //std::cout << "\n--- Testing rounding of H-skinny_cube20" << std::endl;
     //P = gen_skinny_cube<Hpolytope>(20);
