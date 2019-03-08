@@ -150,9 +150,9 @@ void call_test_prod_simplex() {
     P = gen_prod_simplex<Hpolytope>(15);
     test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(15.0), 2), 0.3);
 
-    std::cout << "--- Testing volume of H-prod_simplex20" << std::endl;
-    P = gen_prod_simplex<Hpolytope>(20);
-    test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(20.0), 2), 0.3);
+    //std::cout << "--- Testing volume of H-prod_simplex20" << std::endl;
+    //P = gen_prod_simplex<Hpolytope>(20);
+    //test_CV_volume<NT, RNGType>(P, std::pow(1.0 / factorial(20.0), 2), 0.3);
 
 }
 
@@ -180,16 +180,16 @@ void call_test_simplex() {
     P = gen_simplex<Hpolytope>(40, false);
     test_CV_volume<NT, RNGType>(P, 1.0 / factorial(40.0), 0.3);
 
-    std::cout << "--- Testing volume of H-simplex50" << std::endl;
-    P = gen_simplex<Hpolytope>(50, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(50.0), 0.3);
+    //std::cout << "--- Testing volume of H-simplex50" << std::endl;
+    //P = gen_simplex<Hpolytope>(50, false);
+    //test_CV_volume<NT, RNGType>(P, 1.0 / factorial(50.0), 0.3);
 
 }
 
 
 TEST_CASE("cube") {
     call_test_cube<double>();
-    call_test_cube<float>();
+    //call_test_cube<float>();
     call_test_cube<long double>();
 }
 
@@ -208,7 +208,7 @@ TEST_CASE("birk") {
 TEST_CASE("prod_simplex") {
     call_test_prod_simplex<double>();
     //call_test_prod_simplex<float>();
-    call_test_prod_simplex<long double>();
+    //call_test_prod_simplex<long double>();
 }
 
 TEST_CASE("simplex") {
