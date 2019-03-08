@@ -182,9 +182,9 @@ void call_test_simplex() {
     P = gen_simplex<Hpolytope>(40, false);
     test_volume<NT, RNGType>(P, 1.0 / factorial(40.0));
 
-    std::cout << "--- Testing volume of H-simplex50" << std::endl;
-    P = gen_simplex<Hpolytope>(50, false);
-    test_volume<NT, RNGType>(P, 1.0 / factorial(50.0));
+    //std::cout << "--- Testing volume of H-simplex50" << std::endl;
+    //P = gen_simplex<Hpolytope>(50, false);
+    //test_volume<NT, RNGType>(P, 1.0 / factorial(50.0));
 }
 
 template <typename NT>
@@ -199,9 +199,9 @@ void call_test_skinny_cube() {
     P = gen_skinny_cube<Hpolytope>(10);
     test_volume<NT, RNGType>(P, 102400.0);
 
-    std::cout << "--- Testing volume of H-skinny_cube20" << std::endl;
-    P = gen_skinny_cube<Hpolytope>(20);
-    test_volume<NT, RNGType>(P, 104857600.0);
+    //std::cout << "--- Testing volume of H-skinny_cube20" << std::endl;
+    //P = gen_skinny_cube<Hpolytope>(20);
+    //test_volume<NT, RNGType>(P, 104857600.0);
 }
 
 

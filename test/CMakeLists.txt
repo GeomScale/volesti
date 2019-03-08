@@ -68,14 +68,14 @@ else ()
   
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
-  add_test(NAME volume_birkhoff COMMAND volume_test -tc=birkhoff)
+  add_test(NAME volume_birkhoff COMMAND volume_test -tc=birk)
   add_test(NAME volume_prod_simplex COMMAND volume_test -tc=prod_simplex)
   add_test(NAME volume_simplex COMMAND volume_test -tc=simplex)
   add_test(NAME volume_skinny_cube COMMAND volume_test -tc=skinny_cube)
 
   add_test(NAME volumeCV_cube COMMAND volumeCV_test -tc=cube)
   add_test(NAME volumeCV_cross COMMAND volumeCV_test -tc=cross)
-  add_test(NAME volumeCV_birkhoff COMMAND volumeCV_test -tc=birkhoff)
+  add_test(NAME volumeCV_birkhoff COMMAND volumeCV_test -tc=birk)
   add_test(NAME volumeCV_prod_simplex COMMAND volumeCV_test -tc=prod_simplex)
   add_test(NAME volumeCV_simplex COMMAND volumeCV_test -tc=simplex)
 
@@ -87,10 +87,10 @@ else ()
   add_test(NAME VpolyVol_cross COMMAND VpolyVol_test -tc=cross)
   add_test(NAME VpolyVol_simplex COMMAND VpolyVol_test -tc=simplex)
 
-  add_test(NAME ZonotopeVol4 COMMAND ZonotopeVol_test -tc=4th_dim)
+  add_test(NAME ZonotopeVol4 COMMAND ZonotopeVol_test -tc=4_dimensional)
 
-  add_test(NAME ZonotopeVolCV4 COMMAND ZonotopeVolCV_test -tc=4th_dim)
-  add_test(NAME ZonotopeVolCV5 COMMAND ZonotopeVolCV_test -tc=5th_dim)
+  add_test(NAME ZonotopeVolCV4 COMMAND ZonotopeVolCV_test -tc=4_dimensional)
+  add_test(NAME ZonotopeVolCV5 COMMAND ZonotopeVolCV_test -tc=5_dimensional)
 
   add_test(NAME cheb_cube COMMAND cheb_test -tc=cheb_cube)
   add_test(NAME cheb_cross COMMAND cheb_test -tc=cheb_cross)
@@ -100,7 +100,7 @@ else ()
   add_test(NAME cheb_skinny_cube COMMAND cheb_test -tc=cheb_skinny_cube)
 
   add_test(NAME round_skinny_cube COMMAND rounding_test -tc=round_skinny_cube)
-  add_test(NAME round_rot_skinny_cube COMMAND rounding_test -tc=round_rot_skinny_cube)
+  #add_test(NAME round_rot_skinny_cube COMMAND rounding_test -tc=round_rot_skinny_cube)
 
   TARGET_LINK_LIBRARIES(vol ${LP_SOLVE})
   #TARGET_LINK_LIBRARIES(volume ${LP_SOLVE})
