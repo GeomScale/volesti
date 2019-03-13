@@ -133,8 +133,8 @@ void call_test_skinny_cubes() {
     //call_test_rot_skinny_cubes<long double>();
 //}
 
-TEST_CASE("round_skinny_cube") {
-    call_test_skinny_cubes<double>();
+//TEST_CASE("round_skinny_cube") {
+    //call_test_skinny_cubes<double>();
     //call_test_skinny_cubes<float>();
     //call_test_skinny_cubes<long double>();
-}
+//}
