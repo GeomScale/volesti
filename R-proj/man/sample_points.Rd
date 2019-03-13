@@ -13,22 +13,22 @@ sample_points(P = NULL, N = NULL, distribution = NULL,
 
 \item{N}{The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.}
 
-\item{distribution}{Optional. A string that declares the target distribution: a) 'uniform' for the uniform distribution or b) 'gaussian' for the multidimensional spherical distribution. The default target distribution is uniform.}
+\item{distribution}{Optional. A string that declares the target distribution: a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
 
-\item{WalkType}{Optional. A string that declares the random walk method: a) 'CDHR' for Coordinate Directions Hit-and-Run, b) 'RDHR' for Random Directions Hit-and-Run or c) 'BW' for Ball Walk. The default walk is  'CDHR'.}
+\item{WalkType}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.}
 
 \item{walk_step}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.}
 
 \item{exact}{A boolean parameter. It should be used for the uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from the unit or the canonical or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies the dimension has to be declared and the type of body as well as the radius of the hypersphere.}
 
-\item{body}{A string that declares the type of the body for the exact sampling: a) 'unit simplex' for the unit simplex, b) 'canonical simplex' for the canonical simplex, c) 'hypersphere' for the boundary of a hypersphere centered at the origin, d) 'ball' for the interior of a hypersphere centered at the origin.}
+\item{body}{A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
 
 \item{Parameters}{A list for the parameters of the methods:
 \itemize{
-\item{variance }{The variance of the multidimensional spherical gaussian. The default value is 1.}
-\item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
-\item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
-\item{BW_rad }{The radius for the ball walk.}
+\item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
+\item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+\item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
+\item{\code{BW_rad} }{ The radius for the ball walk.}
 }}
 
 \item{InnerPoint}{A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.}
