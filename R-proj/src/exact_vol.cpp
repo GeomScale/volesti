@@ -29,11 +29,11 @@ FT factorial(FT n)
 //' For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this function computes the exact well known formulas.
 //'
 //' @param P A zonotope or a simplex in V-representation.
-//' @param body A string that declares the type of the body for the exact sampling: a) 'simplex' for the unit simplex, b) 'cross' for the cross polytope, c) 'hypersphere' for the hypersphere, d) 'cube' for the unit cube.
+//' @param body A string that declares the type of the body for the exact sampling: a) \code{'simplex'} for the unit simplex, b) \code{'cross'} for the cross polytope, c) \code{'hypersphere'} for the hypersphere, d) \code{'cube'} for the unit cube.
 //' @param Parameters A list for the parameters of the methods:
 //' \itemize{
-//' \item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
-//' \item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
+//' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+//' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
 //' }
 //'
 //' @return The exact volume of the zonotope

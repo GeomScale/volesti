@@ -3,7 +3,7 @@
 #' This function can be used to generate the \eqn{d}-dimensional cross polytope in H- or V-representation.
 #' 
 #' @param dimension The dimension of the cross polytope.
-#' @param repr A string to declare the representation. It has to be 'H' for H-representation or 'V' for V-representation.
+#' @param repr A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.
 #' 
 #' @return A polytope class representing a cross polytope in H- or V-representation.
 #' @examples 

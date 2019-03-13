@@ -9,12 +9,12 @@ exact_vol(P = NULL, body = NULL, Parameters = NULL)
 \arguments{
 \item{P}{A zonotope or a simplex in V-representation.}
 
-\item{body}{A string that declares the type of the body for the exact sampling: a) 'simplex' for the unit simplex, b) 'cross' for the cross polytope, c) 'hypersphere' for the hypersphere, d) 'cube' for the unit cube.}
+\item{body}{A string that declares the type of the body for the exact sampling: a) \code{'simplex'} for the unit simplex, b) \code{'cross'} for the cross polytope, c) \code{'hypersphere'} for the hypersphere, d) \code{'cube'} for the unit cube.}
 
 \item{Parameters}{A list for the parameters of the methods:
 \itemize{
-\item{dimension }{An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
-\item{radius }{The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
+\item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+\item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
 }}
 }
 \value{

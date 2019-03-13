@@ -9,7 +9,7 @@ GenCross(dimension, repr)
 \arguments{
 \item{dimension}{The dimension of the cross polytope.}
 
-\item{repr}{A string to declare the representation. It has to be 'H' for H-representation or 'V' for V-representation.}
+\item{repr}{A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.}
 }
 \value{
 A polytope class representing a cross polytope in H- or V-representation.

@@ -9,7 +9,7 @@ GenSimplex(dimension, repr)
 \arguments{
 \item{dimension}{The dimension of the unit simplex.}
 
-\item{repr}{A string to declare the representation. It has to be 'H' for H-representation or 'V' for V-representation.}
+\item{repr}{A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.}
 }
 \value{
 A polytope class representing the \eqn{d}-dimensional unit simplex in H- or V-representation.
