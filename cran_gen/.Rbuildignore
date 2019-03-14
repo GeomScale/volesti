@@ -1,0 +1,5 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^cran-comments\.md$
+^volesti\.Rproj$
+^inst/checks$
