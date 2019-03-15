@@ -74,6 +74,6 @@ void call_test(int n, int m){
 
 TEST_CASE("4_dimensional") {
     call_test<double>(4, 8);
-    call_test<float>(4,8);
-    call_test<long double>(4,8);
+    //call_test<float>(4,8);
+    //call_test<long double>(4,8);
 }
