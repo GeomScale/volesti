@@ -18,5 +18,5 @@ jobs:
             mkdir build; 
             cd build;
             cmake ../test;
-            make -j8; 
+            make; 
             ctest -j8 --verbose;
