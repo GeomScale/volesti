@@ -1,18 +1,8 @@
-// RandGeom is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at
-// your option) any later version.
-//
-// RandGeom is distributed in the hope that it will be useful, but WITHOUT
-// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for more details.
-//
-// See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with HeaDDaCHe,
-// see <http://www.gnu.org/licenses/>.
-// 
-// Developer: Vissarion Fisikopoulos
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
+
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef MISC_H
 #define MISC_H
@@ -20,10 +10,11 @@
 //function to print rounding to double coordinates 
 template <class T>
 void round_print(T p) { 
-    for(typename T::Cartesian_const_iterator cit=p.cartesian_begin();
-        cit!=p.cartesian_end(); ++cit)
-        std::cout<<CGAL::to_double(*cit)<<" ";
-    std::cout<<std::endl;
+    std::cout<<"test version.."<<std::endl;
+   // for(typename T::Cartesian_const_iterator cit=p.cartesian_begin();
+   //     cit!=p.cartesian_end(); ++cit)
+    //    std::cout<<CGAL::to_double(*cit)<<" ";
+   // std::cout<<std::endl;
 }
 
 /*
@@ -58,6 +49,10 @@ int Minkowski_sum_naive(V_polytope &P1, V_polytope &P2, V_polytope &Msum){
 template <class T>
 void print_polymake_volfile(T &P,
                             std::ostream& os){
+    std::cout<<"test version.."<<std::endl;
+}
+
+/*
     // print the vertices of the P polytope
     os << "use Time::HiRes qw(gettimeofday tv_interval);\n";
     os << "use application 'polytope';\n";
@@ -90,12 +85,15 @@ void print_polymake_volfile(T &P,
     os << "print tv_interval($t0,[gettimeofday]);\n";
     os << "print \"\n\";\n";
     os << std::endl;
-}
+}*/
 
 // polymake file to compute exact volume
 template <class T>
 void print_polymake_volfile2(T &P,
                              std::ostream& os){
+    std::cout<<"test version.."<<std::endl;
+}
+/*
     // print the vertices of the P polytope
     os << "use Time::HiRes qw(gettimeofday tv_interval);\n";
     os << "use application 'polytope';\n";
@@ -135,15 +133,16 @@ void print_polymake_volfile2(T &P,
     os << "print tv_interval($t0,[gettimeofday]);\n";
     os << "print \"\n\";\n";
     os << std::endl;
-}
-
-int read_pointset(std::istream &is,
-                  std::vector<std::vector<double> > &Input){
+}*/
+template <typename NT>
+void read_pointset(std::istream &is,
+                  std::vector<std::vector<NT> > &Input){
+    
     std::string point;
 
     while(!std::getline(is, point, '\n').eof()) {
         //std::cout<<point<<std::endl;
-        if(!std::isdigit(point[0]) && point[0]!='-' && point[0]!=' ')
+        if(!std::isdigit(point[0]) && point[0]!='-' && point[0]!=' ' && point[0]!='.')
             continue;
         //std::cout<<std::endl;
         //std::size_t found = point.find_first_of(" ");
@@ -153,21 +152,21 @@ int read_pointset(std::istream &is,
         //ignore empty spaces on start of line
         found = point.find_first_not_of(" ",found);
 
-        std::vector<double> input;
+        std::vector<NT> input;
         while (found2!=std::string::npos || point[found]=='-')
         {
             //std::cout<<"*"<<(point[found]!='-')<<"*"<<std::endl;
             if(!std::isdigit(point[found]) && point[found]!='-')
                 break;
-            found2 = point.find_first_not_of("0123456789-",found);
+            found2 = point.find_first_not_of("0123456789-.",found);
 
             //std::cout<<point.substr(found,found2-found)<<" ";
-            double num = atof(point.substr(found,found2-found).c_str());
+            NT num = atof(point.substr(found,found2-found).c_str());
             found=point.find_first_not_of(" ",found2);
             //std::cout<<"found"<<point[found]<<std::endl;
             if(point[found]=='/'){
                 found = found + 1;
-                found2=point.find_first_not_of("0123456789-/",found);
+                found2=point.find_first_not_of("0123456789-./",found);
                 //std::cout<<"lala="<<point.substr(found,found2-found)<<std::endl;
                 num = num / atof(point.substr(found,found2-found).c_str());
                 found=point.find_first_not_of(" ",found2);

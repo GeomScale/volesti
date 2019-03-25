@@ -1,23 +1,255 @@
-// RandGeom is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at
-// your option) any later version.
-//
-// RandGeom is distributed in the hope that it will be useful, but WITHOUT
-// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-// for more details.
-//
-// See the file COPYING.LESSER for the text of the GNU Lesser General
-// Public License.  If you did not receive this file along with RandGeom,
-// see <http://www.gnu.org/licenses/>.
-// 
-// Developer: Vissarion Fisikopoulos
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
+#ifndef ROUNDING_H
+#define ROUNDING_H
+
+
+#include "khach.h"
+
+/* EXPERIMENTAL
+//ROUNDING
+template <class MT, class Point>
+MT getPointsMat(std::list<Point> randPoints, int dim){
+
+    MT S(randPoints.size(),dim);
+    for(unsigned int i=0; i<randPoints.size(); i++){
+        Point p=randPoints.front();
+        randPoints.pop_front();
+        for (unsigned int j=0; j<dim; j++){
+            S(i,j)=p[j];
+        }
+    }
+    
+    return S;
+}
+
+
+template <typename NT, class Polytope, class Point, class Parameters>
+std::pair<Point, NT> approx_R(Polytope &P, Parameters var){
+    std::pair<Point,NT> InnerBall=P.ComputeInnerBall();
+    Point c=InnerBall.first;
+    NT radius = InnerBall.second;
+
+    int n=var.n, walk_len=var.walk_steps;
+    //Random_points_on_sphere_d<Point> gen (n, radius);
+    //Point p = gen.sample_point(var.rng);
+    Point p = get_point_on_Dsphere(n, radius);
+    p = p + c;
+    std::list<Point> randPoints; //ds for storing rand points
+    //use a large walk length e.g. 1000
+    rand_point_generator(P, p, 1, 50*n, randPoints, var);
+    //if (print) std::cout<<"First random point: "<<p<<std::endl;
+
+    // 3. Sample points from P
+    //randPoints.push_front(p);
+    int num_of_samples = std::pow(1.0,-2) * 400 * n * std::log(n);;//this is the number of sample points will used to compute min_ellipoid
+    //if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
+    rand_point_generator(P, p, num_of_samples*10, 1, randPoints, var);
+    NT current_dist, max_dist;
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+        current_dist=(*pit-c).squared_length();
+        if(current_dist>max_dist){
+            max_dist=current_dist;
+        }
+    }
+    max_dist=std::sqrt(max_dist);
+    NT R=max_dist/radius;
+    return std::pair<Point,NT> (c,R);
+}
+
+
+//Needs developing (experimental)
+template <class Polytope, class Point, class Parameters, typename  NT>
+NT rounding_SVD(Polytope &P , Point c, NT radius, Parameters &var){
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    int n=var.n, walk_len=var.walk_steps;
+    bool print=var.verbose;
+    // 1. Compute the Chebychev ball (largest inscribed ball) with center and radius 
+	//Point c(n);       //center
+    //K radius;
+    //P.chebyshev_center(c,radius);
+    
+    // 2. Generate the first random point in P
+  // Perform random walk on random point in the Chebychev ball 
+	//if (print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
+	//vars var2=var;
+	//var2.coordinate=false;
+    Point p = get_point_on_Dsphere(n, radius);
+	p = p + c;
+	std::list<Point> randPoints; //ds for storing rand points
+	//use a large walk length e.g. 1000
+	rand_point_generator(P, p, 1, 50*n, randPoints, var);
+	//if (print) std::cout<<"First random point: "<<p<<std::endl;
+    // 3. Sample points from P
+	//randPoints.push_front(p);
+	int num_of_samples = std::pow(1.0,-2) * 400 * n * std::log(n);;//this is the number of sample points will used to compute min_ellipoid
+	//if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
+	rand_point_generator(P, p, num_of_samples*10, 1, randPoints, var);
+    NT current_dist, max_dist;
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+        current_dist=(*pit-c).squared_length();
+        if(current_dist>max_dist){
+            max_dist=current_dist;
+        }
+    }
+    max_dist=std::sqrt(max_dist);
+    NT R=max_dist/radius;
+    if(print) std::cout<<"R = "<<max_dist<<" r = "<<radius<<"ratio R/r = "<<R<<"\n"<<std::endl;
+    
+    // 4. Compute the transformation matrix T
+    MT T = Eigen::MatrixXd::Identity(n,n);
+    bool well_rounded=false;
+    int t=8*n*n*n;
+    //int t=var.m;
+    int tries=0;
+    MT S=Eigen::MatrixXd::Identity(n,n);
+    std::pair<Point,NT> res;
+    while(!well_rounded){
+        tries++;
+        randPoints.clear();
+        Polytope P2(P);
+        P2.linear_transformIt(T.inverse());   //We have to sample from the transformed body
+        res=solveLP(P2.get_matrix(), P2.dimension());
+        c=res.first;
+        p = get_point_on_Dsphere(n, res.second);
+        p = p + c;
+        rand_point_generator(P2, p, 1, 50*n, randPoints, var);
+        randPoints.clear();
+        rand_point_generator(P2, p, t, 1, randPoints, var);
+        MT PM=getPointsMat<MT>(randPoints,n);
+        Eigen::JacobiSVD<MT> svd(PM, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        if(print) std::cout<<svd.singularValues()<<"\n"<<std::endl;
+        NT min=svd.singularValues()(0);
+        for(unsigned int i=1; i<n; i++){
+            if(svd.singularValues()(i)<min){
+                min=svd.singularValues()(i);
+            }
+        }
+        for(unsigned int i=0; i<n; i++){
+            S(i,i)=svd.singularValues()(i)/min;
+        }
+        if(print) std::cout<<S<<"\n"<<std::endl;
+
+        T=svd.matrixV()*S.inverse()*T;
+        if(print) std::cout<<T<<"\n"<<std::endl;
+        well_rounded=true;
+        for (unsigned int i=0; i<n; i++){
+            if (S(i,i)>2.0){
+                if (tries>((int)log2(R))){
+                    t=t*2;
+                    tries=0;
+                }
+                well_rounded=false;
+                break;
+            }
+        }
+        if (well_rounded){
+            P.linear_transformIt(T.inverse());
+        }
+    }
+    
+    return std::abs(T.determinant());
+}*/
+
+
+// ----- ROUNDING ------ //
+// main rounding function
+template <class Polytope, class Point, class Parameters, typename NT>
+std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> InnerBall, Parameters &var) {
+
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n=var.n, walk_len=var.walk_steps, i, j = 0;
+    Point c = InnerBall.first;
+    NT radius = InnerBall.second;
+    std::list<Point> randPoints; //ds for storing rand points
+    if (!P.get_points_for_rounding(randPoints)) {  // If P is a V-polytope then it will store its vertices in randPoints
+        // If P is not a V-Polytope or number_of_vertices>20*domension
+        // 2. Generate the first random point in P
+        // Perform random walk on random point in the Chebychev ball
+        Point p = get_point_on_Dsphere<RNGType, Point>(n, radius);
+        p = p + c;
+
+        //use a large walk length e.g. 1000
+        rand_point_generator(P, p, 1, 50*n, randPoints, var);
+        // 3. Sample points from P
+        unsigned int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
+        randPoints.clear();
+        rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var);
+        /*NT current_dist, max_dist;
+        for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+            current_dist=(*pit-c).squared_length();
+            if(current_dist>max_dist){
+                max_dist=current_dist;
+            }
+        }
+        max_dist=std::sqrt(max_dist);
+        R=max_dist/radius;*/
+    }
+
+    // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
+    boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
+    typename std::list<Point>::iterator rpit=randPoints.begin();
+    typename std::vector<NT>::iterator qit;
+    for ( ; rpit!=randPoints.end(); rpit++, j++) {
+        qit = (*rpit).iter_begin(); i=0;
+        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
+            Ap(i,j)=double(*qit);
+        }
+    }
+    boost::numeric::ublas::matrix<double> Q(n,n);
+    boost::numeric::ublas::vector<double> c2(n);
+    size_t w=1000;
+    KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+
+    MT E(n,n);
+    VT e(n);
+
+    //Get ellipsoid matrix and center as Eigen objects
+    for(unsigned int i=0; i<n; i++){
+        e(i)=NT(c2(i));
+        for (unsigned int j=0; j<n; j++){
+            E(i,j)=NT(Q(i,j));
+        }
+    }
+
+
+    //Find the smallest and the largest axes of the elliposoid
+    Eigen::EigenSolver<MT> eigensolver(E);
+    NT rel = std::real(eigensolver.eigenvalues()[0]);
+    NT Rel = std::real(eigensolver.eigenvalues()[0]);
+    for(unsigned int i=1; i<n; i++){
+        if(std::real(eigensolver.eigenvalues()[i])<rel) rel=std::real(eigensolver.eigenvalues()[i]);
+        if(std::real(eigensolver.eigenvalues()[i])>Rel) Rel=std::real(eigensolver.eigenvalues()[i]);
+    }
+
+    Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
+    MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
+
+    //Shift polytope in order to contain the origin (center of the ellipsoid)
+    P.shift(e);
+
+    MT L_1 = L.inverse();
+    P.linear_transformIt(L_1.transpose());
+
+    return std::pair<NT, NT> (L_1.determinant(),rel/Rel);
+}
+
 
 // -------- ROTATION ---------- //
+/*
 template <class T>
 double rotating_old(T &P){
-	
+
   bool print = true; 
   if(print) std::cout<<"\nRotate..."<<std::endl;
   typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> MT;
@@ -70,171 +302,24 @@ double rotating_old(T &P){
   std::cout<<R.determinant()<<"\n"<<b<<std::endl;
   
 	return R.determinant();
-}
+}*/
 
 // -------- ROTATION ---------- //
-template <class T>
-double rotating(T &P){
-	
-  bool print = true; 
-  //if(print) std::cout<<"\nRotate..."<<std::endl;
-  typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> MT;
-  typedef Eigen::Matrix<double,Eigen::Dynamic,1> VT;
-  
-  int m=P.num_of_hyperplanes();
-  int d=P.dimension();
-  
-  MT A(m,d);
-  VT b(m);
-  for(int i=0; i<m; ++i){
-		b(i) = P.get_coeff(i,0);
-		for(int j=1; j<d+1; ++j){
-		  A(i,j-1) = P.get_coeff(i,j);
-		}
-	}
-  //std::cout<<A<<"\n"<<b<<std::endl;
-  
-  MT M = MT::Random(d,d);
-  //std::cout << "Here is the matrix m:" << std::endl << M << std::endl;
-  Eigen::JacobiSVD<MT> svd(M, Eigen::ComputeFullU | Eigen::ComputeFullV);
-  //std::cout << "Its singular values are:" << std::endl << svd.singularValues() << std::endl;
-  //std::cout << "Its left singular vectors are the columns of the U matrix:" << std::endl << svd.matrixU() << std::endl;
-  //std::cout << "Det of U matrix:" << std::endl << svd.matrixU().determinant() << std::endl;
-  //std::cout << "Its right singular vectors are the columns of the thin V matrix:" << std::endl << svd.matrixV() << std::endl;
-  
-  A = A*svd.matrixU();
-  
-  //std::cout<<A<<"\n"<<b<<std::endl;
-  
-  // Write changes (actually perform rotation) to the polytope!
-	for(int i=0; i<m; ++i){
-		P.put_coeff(i,0,b(i));
-		for(int j=1; j<d+1; ++j){
-		  P.put_coeff(i,j,A(i,j-1));
-		}
-	}
-  
-	return 0;
+template <typename NT, class Polytope>
+NT rotating(Polytope &P){
+
+  typedef typename Polytope::MT 	MT;
+
+  unsigned int n = P.dimension();
+
+  // pick a random rotation
+  MT R = MT::Random(n,n);
+  Eigen::JacobiSVD<MT> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
+  // apply rotation to the polytope P
+  P.linear_transformIt(svd.matrixU());
+
+  return std::abs(svd.matrixU().inverse().determinant());
 }
 
-
-// ----- ROUNDING ------ //
-template <class T>
-double rounding(T &P, 
-                vars &var,  // constans for volume
-                vars &var2 // constants for optimization in case of MinkSums
-                ){
-  bool print = var.verbose;
-  int n = var.n;
-  int rnum = var.m;
-	int walk_len = var.walk_steps;
-	RNGType &rng = var.rng;
-	boost::random::uniform_real_distribution<> urdist = var.urdist;
-	boost::random::uniform_int_distribution<> uidist(0,n-1);
-
-  // 1. Compute the Chebychev ball (largest inscribed ball) with center and radius 
-	Point c;       //center
-    double radius;
-    P.chebyshev_center(c,radius);
-    if (print) std::cout<<"Chebychev center= "<<c<<"\nradius="<<radius<<std::endl;
-  
-  // 2. Generate the first random point in P
-  // Perform random walk on random point in the Chebychev ball 
-	if (print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
-	CGAL::Random_points_in_ball_d<Point> gen (n, radius);
-	Point p = *gen;
-	p = p + (c-CGAL::Origin());
-	std::list<Point> randPoints; //ds for storing rand points
-	//use a large walk length e.g. 1000
-	rand_point_generator(P, p, 1, 1000, randPoints, var); 
-	if (print) std::cout<<"First random point: "<<p<<std::endl;
-		
-	// 3. Sample points from P
-	//randPoints.push_front(p);
-	int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
-	if(print) std::cout<<"\nCompute "<<num_of_samples<<" random points in P"<<std::endl;
-	rand_point_generator(P, p, num_of_samples, walk_len, randPoints, var); 
-	
-    // 4. Compute approximation of min enclosing ellipsoid of randPoints
-    if(print) std::cout<<"\nCompute approximate min ellipsoid..."<<std::endl;
-    Traits traits;
-    AME ame(0.01, randPoints.begin(), randPoints.end(), traits);
-	//std::cout<<ame.defining_matrix(1,1)<<std::endl;
-	typedef Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<double,Eigen::Dynamic,1> VT;
-    // Construct polytope matrices
-    int m=P.num_of_hyperplanes();
-    int d=P.dimension();
-    MT A(m,d);
-    VT b(m);
-    for(int i=0; i<m; ++i){
-		b(i) = P.get_coeff(i,0);
-		for(int j=1; j<d+1; ++j){
-		  A(i,j-1) = P.get_coeff(i,j);
-		}
-	}
-	//std::cout<<A<<"\n"<<b<<std::endl;
-	// 4a. Construct ellipsoid matrix
-	int k=randPoints.size();
-	double achieved_epsilon = ame.achieved_epsilon();
-	MT E(d,d);
-	for(int i=0; i<d; ++i){
-		for(int j=0; j<d; ++j){
-		  E(i,j) = ame.defining_matrix(i,j) / ((1+achieved_epsilon)*(1+d));
-		}
-	}
-	//std::cout<<E<<std::endl;
-	// 4b. The center of the ellipsoid
-	VT c_e(d);
-	for(AME::Center_coordinate_iterator cit=ame.center_cartesian_begin(); cit!=ame.center_cartesian_end(); ++cit)
-		c_e(cit-ame.center_cartesian_begin()) = *cit;
-	//std::cout<<"center\n"<<c_e<<std::endl;
-	
-	// The defining vector of the ellipsoid
-	VT e(d);
-	for(int i=0; i<d; ++i)
-		e(i) = ame.defining_vector(i) / ((1+achieved_epsilon)*(1+d));
-	//std::cout<<"e:\n"<<e<<std::endl;
-	
-	//std::cout<<"test e:\n"<<(-1*E.transpose()*c_e)-E*c_e<<std::endl;
-	
-	//std::cout<<"Is full dimensional: "<<ame.is_full_dimensional()<<std::endl;
-	// Axes lengths
-	/*
-	AME::Axes_lengths_iterator axes = ame.axes_lengths_begin();
-	for (int i = 0; i < d; ++i) {
-		std::cout << "Semiaxis " << i << " has length " << *axes++  << "\n"
-							<< "and Cartesian coordinates ";
-		for (AME::Axes_direction_coordinate_iterator
-					 d_it = ame.axis_direction_cartesian_begin(i);
-				 d_it != ame.axis_direction_cartesian_end(i); ++d_it)
-			std::cout << *d_it << ' ';
-		std::cout << ".\n";
-	}
-	*/
-	Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
-	MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
-	//std::cout<<L<<std::endl;
-	
-	//std::cout<<L*L.transpose()<<std::endl;
-	
-	b = b - A*c_e;
-	
-	MT L_1 = L.inverse();
-	A = A*(L_1.transpose());
-	
-	// Write changes (actually perform rounding) to the polytope!
-	for(int i=0; i<m; ++i){
-		P.put_coeff(i,0,b(i));
-		for(int j=1; j<d+1; ++j){
-		  P.put_coeff(i,j,A(i,j-1));
-		}
-	}
-	
-	//const double pi = boost::math::constants::pi<double>();
-	//double ame_vol = (std::pow(pi,d/2.0) / (std::tgamma((d/2.0)+1) * std::sqrt(E.determinant())));
-	//std::cout<<"Ellipsoid volume "<<ame_vol<<" ,"<<std::pow(2,d)<<std::endl;
-	//std::cout<<"rounding value="<<L_1.determinant()<<" , "<<L_1.determinant()*std::pow(2,d)<<std::endl;	
-	
-	return L_1.determinant();
-}
+#endif
