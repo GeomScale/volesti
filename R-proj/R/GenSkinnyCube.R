@@ -17,9 +17,7 @@ GenSkinnyCube <- function(dimension) {
   Vpoly_gen = FALSE
   
   Mat = poly_gen(kind_gen, Vpoly_gen, dimension, m_gen)
-  
-  # remove first row
-  Mat = Mat[-c(1),]
+
   # first column is the vector b
   b = Mat[,1]
   Mat = Mat[,-c(1)]

@@ -26,13 +26,10 @@
 #' @export
 round_polytope <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL){
   
-  Mat = rounding(P, WalkType, walk_step, radius)
+  ret_list = rounding(P, WalkType, walk_step, radius)
   
-  # get first row which has the info for round_value
-  r = Mat[c(1),]
-  round_value = r[1]
-  # remove first row
-  Mat = Mat[-c(1),]
+  #get the matrix that describes the polytope
+  Mat = ret_list$Mat
   
   # first column is the vector b
   b = Mat[,1]
@@ -41,11 +38,11 @@ round_polytope <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL){
   A = Mat[,-c(1)]
   type = P$type
   if (type == 2) {
-    PP = list("P" = Vpolytope$new(A), "round_value" = round_value)
+    PP = list("P" = Vpolytope$new(A), "round_value" = ret_list$round_value)
   }else if (type == 3) {
-    PP = list("P" = Zonotope$new(A), "round_value" = round_value)
+    PP = list("P" = Zonotope$new(A), "round_value" = ret_list$round_value)
   } else {
-    PP = list("P" = Hpolytope$new(A,b), "round_value" = round_value)
+    PP = list("P" = Hpolytope$new(A,b), "round_value" = ret_list$round_value)
   }
   return(PP)
 }

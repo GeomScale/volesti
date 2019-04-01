@@ -51,6 +51,7 @@ int main(const int argc, const char** argv)
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> Zonotope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     int n, nexp=1, n_threads=1, W;
     int walk_len,N, nsam = 100;
     NT e=1;
@@ -413,15 +414,15 @@ int main(const int argc, const char** argv)
   // If rotate flag is on rotate the polytope
   if(rotate) {
       if (Zono) {
-          rotating<NT>(ZP);
+          rotating<MT>(ZP);
           std::cout << "\n--------------\nRotated Zonotope\n" << std::endl;
           ZP.print();
       } else if (!Vpoly) {
-          rotating<NT>(HP);
+          rotating<MT>(HP);
           std::cout << "\n--------------\nRotated polytope\nH-representation\nbegin\n" << std::endl;
           HP.print();
       } else {
-          rotating<NT>(VP);
+          rotating<MT>(VP);
           std::cout << "\n--------------\nRotated polytope\nV-representation\nbegin\n" << std::endl;
           VP.print();
       }

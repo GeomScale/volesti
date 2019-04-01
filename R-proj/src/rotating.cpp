@@ -45,6 +45,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
     Vpolytope VP;
     zonotope ZP;
 
+    MT TransorfMat;
     Rcpp::NumericMatrix Mat;
     unsigned int n = P.field("dimension");
     int type = P.field("type");
@@ -54,7 +55,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            rotating < NT > (HP);
+            TransorfMat = rotating < MT > (HP);
             Mat = extractMatPoly(HP);
             break;
         }
@@ -62,7 +63,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            rotating<NT>(VP);
+            TransorfMat = rotating< MT >(VP);
             Mat = extractMatPoly(VP);
             break;
         }
@@ -70,12 +71,16 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             // Zonotope
             zonotope ZP;
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-            rotating < NT > (ZP);
+            TransorfMat = rotating < MT > (ZP);
             Mat = extractMatPoly(ZP);
             break;
         }
     }
 
-    return Mat;
+    TransorfMat.conservativeResize(n+1, n);
+    TransorfMat.row(n) = VT::Ones(n);
+    MT res(TransorfMat.rows(), Rcpp::as<MT>(Mat).rows()+n);
+    res << Rcpp::as<MT>(Mat).transpose(), TransorfMat;
+    return Rcpp::wrap(res);
 
 }
