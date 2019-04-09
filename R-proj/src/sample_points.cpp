@@ -50,7 +50,7 @@
 //' @references \cite{A Smith, Noah and W Tromble, Roy,
 //' \dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
 //' @references \cite{Art B. Owen,
-//' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Copyright Art Owen,} 2009-2013.}
+//' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Art Owen,} 2009.}
 //'
 //' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope P.
 //' @examples
