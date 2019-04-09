@@ -2,8 +2,8 @@
 
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
-// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 20012-2019 Vissarion Fisikopoulos
+// Copyright (c) 2018-2019 Apostolos Chalkis
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
@@ -43,7 +43,7 @@ FT factorial(FT n)
 //' Z = GenZonotope(5, 10)
 //' vol = exact_vol(Z)
 //'
-//' \dontrun{# compute the exact volume of a 2-d arbitrary simplex
+//' \donttest{# compute the exact volume of a 2-d arbitrary simplex
 //' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
 //' P = Vpolytope$new(V)
 //' vol = exact_vol(P)

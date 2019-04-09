@@ -67,5 +67,5 @@ points = sample_points(P, N = 10000, exact = TRUE)
 \dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
 
 \cite{Art B. Owen,
-\dQuote{Monte Carlo theory, methods and examples,} \emph{ Copyright Art Owen,} 2009-2013.}
+\dQuote{Monte Carlo theory, methods and examples,} \emph{ Art Owen,} 2009.}
 }
