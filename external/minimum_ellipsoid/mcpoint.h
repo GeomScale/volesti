@@ -1,3 +1,12 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+// This file is converted from BNMin1 (https://www.mrao.cam.ac.uk/~bn204/oof/bnmin1.html) by Apostolos Chalkis
+
+// Original copyright notice:
+
 /**
    Bojan Nikolic <bojan@bnikolic.co.uk> 
    Initial version 2009

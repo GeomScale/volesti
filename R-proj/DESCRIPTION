@@ -4,7 +4,9 @@ License: LGPL-3
 Title: Volume Approximation and Sampling of Convex Polytopes
 Author: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com> [aut, cph, cre],
   Apostolos Chalkis <tolis.chal@gmail.com> [cph, aut],
-  lp_solve <http://lpsolve.sourceforge.net/> [ctb].
+  lp_solve <http://lpsolve.sourceforge.net/> [ctb],
+  BNMin1 <https://www.mrao.cam.ac.uk/~bn204/oof/bnmin1.html> [ctb].
+Copyright: file inst/COPYRIGHTS
 Description: Provides an R interface for 'volesti' C++ package. 'volesti' computes
              estimations of volume of polytopes given by a set of points or linear inequalities
              or Minkowski sum of segments (zonotopes). There are two algorithms for volume
