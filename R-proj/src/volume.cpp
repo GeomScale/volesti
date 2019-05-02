@@ -15,7 +15,7 @@
 
 template <class Point, class NT, class Polytope>
 double generic_volume(Polytope& P, unsigned int walk_step, double e,
-                      Rcpp::Nullable<Rcpp::NumericVector> InnerBall, bool CG, unsigned int win_len,
+                      Rcpp::Nullable<Rcpp::NumericVector> InnerBall, bool CG, bool BAN, unsigned int win_len,
                       unsigned int N, double C, double ratio, double frac,
                       bool ball_walk, double delta, bool cdhr, bool rdhr, bool rounding)
 {
@@ -48,7 +48,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
         InnerB.first = Point( n , temp_p.begin() , temp_p.end() );
         // store the radius of the internal ball that is given as input
         InnerB.second = InnerVec[n];
-    } else {
+    }else {
         // no internal ball or point is given as input
         InnerB = P.ComputeInnerBall();
     }
@@ -63,7 +63,10 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
         vars_g<NT, RNGType> var1(n, walk_step, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                  rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr);
         vol = volume_gaussian_annealing(P, var1, var2, InnerB);
-    } else {
+    } else if (BAN) {
+        vars_ban<NT> var_ban(0.1, 0.15, 0.75, 0.0, 0.0, 0.0, 2*n*n+250, 0, 0, false);
+        vol = volesti_ball_ann(P, var, var_ban, InnerB);
+    }else {
         vol = volume(P, var, InnerB);
     }
 

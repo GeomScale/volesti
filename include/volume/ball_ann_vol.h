@@ -12,7 +12,7 @@
 #include "esti_ratioGl.h"
 
 template <class Polytope, class Point, class UParameters, class AParameters, typename NT>
-NT volesti_ball_ann(Polytope &P, std::pair<Point,NT> &InnerBall, UParameters &var, AParameters &var_ban){
+NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall){
 
     typedef Ball<Point> ball;
     typedef BallIntersectPolytope<Polytope,ball> PolyBall;
