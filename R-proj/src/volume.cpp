@@ -10,6 +10,7 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "volume.h"
+#include "ball_ann_vol.h"
 
 
 template <class Point, class NT, class Polytope>
