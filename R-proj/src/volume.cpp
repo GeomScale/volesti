@@ -115,7 +115,11 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
                 Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
                 Rcpp::Nullable<std::string> Algo = R_NilValue,
                 Rcpp::Nullable<std::string> WalkType = R_NilValue, Rcpp::Nullable<bool> rounding = R_NilValue,
-                Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue) {
+                Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
+                Rcpp::Nullable<Rcpp::NumericMatrix> A = R_NilValue,
+                Rcpp::Nullable<Rcpp::NumericVector> b = R_NilValue,
+                Rcpp::Nullable<Rcpp::NumericMatrix> Aeq = R_NilValue,
+                Rcpp::Nullable<Rcpp::NumericVector> beq = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -127,7 +131,15 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
     typedef IntersectionOfVpoly<Vpolytope> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    unsigned int n = P.field("dimension"), walkL;
+    unsigned int n, walkL;
+
+    if (P.isNotNull()) {
+        n = Rcpp::as<Rcpp::Reference>(P).field("dimension");
+    } else if (A.isNotNull() && Aeq.isNotNull() && b.isNotNull() && beq.isNotNull()) {
+        n = Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)).cols() - Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)).rows();
+    } else {
+        throw Rcpp::exception("Wrong inputs! you have to define a feasible region!");
+    }
 
     bool CG, cdhr = true, rdhr = false, ball_walk = false, round;
     unsigned int win_len = 4*n*n+500, N = 500 * 2 +  n * n / 2;
@@ -215,26 +227,66 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
         }
     }
 
-    int type = P.field("type");
+    if (!P.isNotNull()) {
+        if (!A.isNotNull() || !Aeq.isNotNull() || !b.isNotNull() || !beq.isNotNull()) {
+            throw Rcpp::exception("If a polytope is not given then you have to define a linear constraints wth matrices A, Aeq and vectors b, beq.");
+        } else {
+            if (Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)).rows() <= Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)).cols()) {
+                throw Rcpp::exception("Rows of matrix A must be more than its columns!");
+            } else if (Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)).cols() != Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)).cols()) {
+                throw Rcpp::exception("Matrices A, Aeq must have the same number of columns!");
+            } else if(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)).rows() != Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(b)).size()) {
+                throw Rcpp::exception("Matrix A must have equal number of rows to the size of vector b");
+            } else if(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)).rows() != Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(beq)).size()) {
+                throw Rcpp::exception("Matrix Aeq must have equal number of rows to the size of vector beq");
+            } else if (Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)).rows() <= Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)).rows()) {
+                throw Rcpp::exception("Matrix A must have more rows than matrix Aeq!");
+            }
+        }
+
+        bool feas = is_feasible(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)),
+                                Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(b)),
+                                Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)),
+                                Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(beq)));
+        if (!feas) {
+            Rf_warning("The region is not feasible!");
+            return 0.0;
+        }
+        Hpolytope HP;
+        std::pair<Hpolytope ,VT> low_res;
+        MT W;
+        low_res = get_low_dimensional_poly<Hpolytope>(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)),
+                                                      Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(b)),
+                                                      Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)),
+                                                      Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(beq)), W);
+        HP = low_res.first;
+        return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
+                                         cdhr, rdhr, round);
+    }
+
+    int type = Rcpp::as<Rcpp::Reference>(P).field("type");
     switch(type) {
         case 1: {
             // Hpolytope
             Hpolytope HP;
-            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            HP.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
+                    Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
             return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
                                              cdhr, rdhr, round);
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
-            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            VP.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
+                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
             return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
                                              cdhr, rdhr, round);
         }
         case 3: {
             // Zonotope
             zonotope ZP;
-            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            ZP.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
+                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
             return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
                                              cdhr, rdhr, round);
         }
@@ -243,8 +295,10 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
             Vpolytope VP1;
             Vpolytope VP2;
             InterVP VPcVP;
-            VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
-            VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
+            VP1.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
+                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
+            VP2.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
+                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
             VPcVP.init(VP1, VP2);
             Rcpp::NumericVector InnerVec(n+1);
             bool empty;
