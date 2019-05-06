@@ -171,6 +171,9 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
         } else {
             e = Rcpp::as<NT>(error);
         }
+        if (e<=0) {
+            throw Rcpp::exception("The requested error must be positive!");
+        }
 
     } else if (Rcpp::as<std::string>(Algo).compare(std::string("CG"))==0) {
 
@@ -180,6 +183,9 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
             e = 0.1;
         } else {
             e = Rcpp::as<NT>(error);
+        }
+        if (e<=0) {
+            throw Rcpp::exception("The requested error must be positive!");
         }
 
         if (!walk_step.isNotNull()) {
