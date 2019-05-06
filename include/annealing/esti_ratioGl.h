@@ -11,7 +11,7 @@
 //#include <boost/math/distributions/students_t.hpp>
 
 template <class ZonoBall, class ball, typename NT, class Parameters>
-NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, int Win, Parameters &var, NT &steps) {
+NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, int Win, Parameters &var) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
@@ -52,7 +52,7 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, int Win, Parameters &va
     Point p(n);
     Point p_prev=p;
     unsigned int coord_prev;
-    if(var.coordinate && !var.ball_walk){
+    if(var.cdhr_walk && !var.ball_walk){
         uniform_first_coord_point(Zb,p,p_prev,coord_prev,var.walk_steps,lamdas,var);
     }
     while(!done){
@@ -100,7 +100,7 @@ NT esti_ratio(ZonoBall &Zb, ball B0, NT ratio, NT error, int Win, Parameters &va
         if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
             if (print) std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
             done=true;
-            steps = (totCount - 1200.0-n*n*2.0);
+            //steps = (totCount - 1200.0-n*n*2.0);
             return val;
         }
 
@@ -138,7 +138,7 @@ NT esti_ratio1(ball B0, Zonotope &Z, NT ratio, int N) {
 }
 
 template <class RNGType, class Zonotope, class ball, typename NT>
-NT esti_ratio2(ball B0, Zonotope &Z, NT error, int Win, NT ratio, NT &steps) {
+NT esti_ratio2(ball B0, Zonotope &Z, NT error, int Win, NT ratio) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
@@ -222,7 +222,7 @@ NT esti_ratio2(ball B0, Zonotope &Z, NT error, int Win, NT ratio, NT &steps) {
         if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
             //std::cout<<"last ball rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
             done=true;
-            steps = (totCount - 1200.0);
+           // steps = (totCount - 1200.0);
             //std::cout<<"COUNT IN Cm = "<<steps<<std::endl;
             return val;
         }
@@ -238,32 +238,23 @@ NT esti_ratio2(ball B0, Zonotope &Z, NT error, int Win, NT ratio, NT &steps) {
 template <typename NT>
 bool check_max_error123(NT a, NT b, NT val, NT error) {
 
-    NT e1 = std::abs(a - val) / a;
+    //NT e1 = std::abs(a - val) / a;
     //NT e2 = std::abs(b - val) / b;
-    //NT e3 = (b-a)/b;
-    //std::cout<<"er1 = "<<e1<<" er2 = "<<e2<<"e3 = "<<e3<<" error = "<<error/10.0<<std::endl;
-    //if (e1<error/2.0 && e2<error/2.0){
-    if(e1<error/2.0) {
+    NT e3 = (b-a)/a;
+    if(e3<error/2.0) {
         return true;
     }
     return false;
 }
 
 template <class Point, class ZonoBall, class ball, typename NT, class Parameters>
-NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int WW, NT prob, Parameters &var, NT &steps) {
+NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int W, int Ntot, NT prob, Parameters &var) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
 
-    //typedef typename ball::BallPoint Point;
     int n = var.n;
     bool print = var.verbose;
-    //std::cout<<"n = "<<n<<std::endl;
-    //int W=4*n*n+500;
-    int W = WW;
-    //int m = Z.num_of_generators();
-    //std::cout<<"W = "<<W<<" walk_steps = "<<var.walk_steps<<std::endl;
-    //std::cout<<"coordinate : "<<var.coordinate<<std::endl;
     NT curr_eps = error;
     bool done=false;
     NT min_val = minNT;
@@ -271,118 +262,63 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int WW, NT pro
     int min_index = W-1;
     int max_index = W-1;
     int index = 0;
-    int min_steps=0;
     std::vector<NT> last_W(W,0), lamdas(Zb.num_of_hyperplanes(),0);
-    std::list<Point> randPoints;
-    typename std::vector<NT>::iterator minmaxIt;
-    typename std::list<Point>::iterator rpit;
     NT val;
-    //std::vector<std::vector<NT> > vals(n_subw, std::vector<NT>(n_tuples));
 
-    NT countIn = ratio*(1200.0+2.0*n*n);
-    NT totCount = 1200.0+n*n*2.0;
-    //if (print) std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
+    NT countIn = ratio*NT(Ntot);
+    NT totCount = NT(Ntot);
     Point p(n);
     Point p_prev=p;
     unsigned int coord_prev;
-    if(var.coordinate && !var.ball_walk){
+    if(var.cdhr_walk && !var.ball_walk){
         uniform_first_coord_point(Zb,p,p_prev,coord_prev,var.walk_steps,lamdas,var);
     }
     int col=0, row=0;
-    //std::vector<NT> sums(n_subw,0.0);
-    //typename std::vector< std::vector<NT> >::iterator sumit=vals.begin();
-    //typename std::vector<NT>::iterator sit=sums.begin();
     NT sum_sq=0.0;
     NT sum=0.0;
     for (int i = 0; i < W; ++i) {
-        //std::cout<<"row = "<<row<<" col = "<<col<<"i = "<<i<<std::endl;
+
         uniform_next_point(Zb, p, p_prev, coord_prev, 1, lamdas, var);
-        if(B0.is_in(p)==-1) {
+        if (B0.is_in(p) == -1) {
             countIn = countIn + 1.0;
         }
         totCount = totCount + 1.0;
         val = countIn / totCount;
         sum += val;
-        sum_sq += val*val;
+        sum_sq += val * val;
         last_W[index] = val;
-        index = index%W+1;
+        index = index % W + 1;
 
-        if(index==W) index=0;
-        /*vals[row][col] = val;
-        col++;
-        if(col%n_tuples==0) {
-            col=0;
-
-            //sums[row-1] = std::accumulate((*sumit).begin(), (*sumit).end(), NT(0.0)) / 120.0;
-            for (int j = 0; j < n_tuples; ++j) {
-                sums[row] += vals[row][j];
-            }
-            sums[row] = sums[row]/NT(n_tuples);
-            row++;
-            //0sumit++;
-            //sit++;
-        }*/
+        if (index == W) index = 0;
     }
-    col=0;
-    std::pair<NT,NT> mv;
+
     NT pr = (1.0 + prob) / 2.0 ,m, mW, s, zp, zp2=2.38774;
     zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
-    //std::cout<<"zp = "<<zp<<std::endl;
     m=sum/NT(W);
-    NT m2,s2;
-    bool chk;
-    while(!done){
-        //std::cout<<"col = "<<col<<std::endl;
+
+    while(!done) {
 
         uniform_next_point(Zb, p, p_prev, coord_prev, 1, lamdas, var);
-        if(B0.is_in(p)==-1) {
+        if (B0.is_in(p) == -1) {
             countIn = countIn + 1.0;
         }
         totCount = totCount + 1.0;
         val = countIn / totCount;
 
-
-        /*for (int i = 0; i < n_subw-1; ++i) {
-            sums[i] -= vals[i][col] / NT(n_tuples);
-            sums[i] += vals[i+1][col] / NT(n_tuples);
-            vals[i][col] = vals[i+1][col];
-        }
-        sums[n_subw-1] -= vals[n_subw-1][col] / NT(n_tuples);
-        sums[n_subw-1] += val / NT(n_tuples);
-        vals[n_subw-1][col] = val;
-
-        col++;
-        if(col%n_tuples==0) col=0;
-
-        //mv = getMeanVariance(sums);
-        //m = mv.first;
-        //s = std::sqrt(mv.second);*/
-        m-=last_W[index]/NT(W);
-        m+=val/NT(W);
-        sum_sq -= last_W[index]*last_W[index];
-        sum_sq += val*val;
-        sum-=last_W[index];
-        sum+=val;
-        //mv = getMeanVariance(last_W);
-        //m2=mv.first;
-        s = std::sqrt((sum_sq+NT(W)*m*m-2.0*m*sum)/NT(W));
-        //mv = getMeanVariance(last_W);
-        //m2=mv.first;
-        //s2 = std::sqrt(mv.second);
-        //std::cout<<"m="<<m<<" m2="<<m2<<"s="<<s<<" s2="<<s2<<std::endl;
+        m -= last_W[index] / NT(W);
+        m += val / NT(W);
+        sum_sq -= last_W[index] * last_W[index];
+        sum_sq += val * val;
+        sum -= last_W[index];
+        sum += val;
+        s = std::sqrt((sum_sq + NT(W) * m * m - 2.0 * m * sum) / NT(W));
         last_W[index] = val;
-        index = index%W+1;
+        index = index % W + 1;
 
-        if(index==W) index=0;
-        //zp2 = m + s*std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
-
-        //std::cout<<"["<<m-zp*s<<","<<m+zp*s<<"] || ["<<m-zp2*s<<","<<m+zp2*s<<"]"<<std::endl;
-        chk= check_max_error123(m-zp*s, m+zp*s, val, error);
-        if(chk) {
-            if (print) std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
-            done=true;
-            steps = (totCount - 1200.0-n*n*2.0)*NT(var.walk_steps);
-            //std::cout<<"steps = "<<steps<<std::endl;
+        if (index == W) index = 0;
+        if (check_max_error123(val - zp * s, val + zp * s, val, error)) {
+            if (print) std::cout << "final rejection ratio = " << val << " | total points = " << totCount << std::endl;
+            //done=true;
             return val;
         }
 
@@ -392,20 +328,12 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int WW, NT pro
 }
 
 template <class RNGType, class Zonotope, class ball, typename NT>
-NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int WW, NT ratio, NT prob, NT &steps) {
+NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int W, NT ratio, NT prob) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
     typedef typename Zonotope::PolytopePoint Point;
     int n = Z.dimension();
-    //int W = 4 * n * n + 500;
-    //bool print = var.verbose;
-    //int m = Z.num_of_generators();
-    int W = WW;
-   // std::cout<<"W = "<<W<<" n_subw = "<<n_subw<<" n_tuples = "<<n_tuple<<std::endl;
-    // std::cout<<"W = "<<W<<std::endl;
-    NT curr_eps = error;
-    //std::cout<<"curr_eps = "<<curr_eps<<std::endl;
     bool done=false;
     NT min_val = minNT;
     NT max_val = maxNT;
@@ -414,60 +342,34 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int WW, NT ratio, NT prob, 
     int index = 0;
     int min_steps=0;
     std::vector<NT> last_W(W,0);
-    std::list<Point> randPoints;
-    typename std::vector<NT>::iterator minmaxIt;
-    typename std::list<Point>::iterator rpit;
     NT val;
-    //std::vector<std::vector<NT> > vals(n_subw, std::vector<NT>(n_tuple));
 
     NT countIn = ratio*1200.0;
     NT totCount = 1200.0;
     NT rad = B0.radius();
     int col=0, row=0;
-    //std::vector<NT> sums(n_subw,0.0);
     Point p(n);
-    //typename std::vector< std::vector<NT> >::iterator sumit=vals.begin();
-    //typename std::vector<NT>::iterator sit=sums.begin();
     NT sum_sq=0.0;
     NT sum=0.0;
     for (int i = 0; i < W; ++i) {
         p = get_point_in_Dsphere<RNGType, Point>(n, rad);
-        if(Z.is_in(p)==-1) {
+        if (Z.is_in(p) == -1) {
             countIn = countIn + 1.0;
         }
         totCount = totCount + 1.0;
         val = countIn / totCount;
         sum += val;
-        sum_sq += val*val;
+        sum_sq += val * val;
         last_W[index] = val;
-        index = index%W+1;
+        index = index % W + 1;
 
-        if(index==W) index=0;
-        /*vals[row][col] = val;
-        col++;
-        if(col%n_tuple==0) {
-            col=0;
-
-            //sums[row-1] = std::accumulate((*sumit).begin(), (*sumit).end(), NT(0.0)) / 120.0;
-            for (int j = 0; j < n_tuple; ++j) {
-                sums[row] += vals[row][j];
-            }
-            sums[row] = sums[row]/NT(n_tuple);
-            row++;
-            //0sumit++;
-            //sit++;
-        }*/
+        if (index == W) index = 0;
     }
-    //std::cout<<"countIn = "<<countIn<<" totCount = "<<totCount<<std::endl;
-    col=0;
     std::pair<NT,NT> mv;
     NT pr = (1.0 + prob) / 2.0 ,m, s, zp;
     zp = std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
-   // std::cout<<"zp = "<<zp<<std::endl;
     bool chk;
-    //mv = getMeanVariance(last_W);
     m=sum/NT(W);
-    //s = std::sqrt(mv.second);
 
     while(!done){
 
@@ -478,44 +380,22 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int WW, NT ratio, NT prob, 
         totCount = totCount + 1.0;
 
         val = countIn / totCount;
-
-        /*for (int i = 0; i < n_subw-1; ++i) {
-            sums[i] -= vals[i][col] / NT(n_tuple);
-            sums[i] += vals[i+1][col] / NT(n_tuple);
-            vals[i][col] = vals[i+1][col];
-        }
-        sums[n_subw-1] -= vals[n_subw-1][col] / NT(n_tuple);
-        sums[n_subw-1] += val / NT(n_tuple);
-        vals[n_subw-1][col] = val;
-
-        col++;
-        if(col%n_tuple==0) col=0;
-
-        //mv = getMeanVariance(sums);
-        //m = mv.first;
-        //s = std::sqrt(mv.second);*/
         m-=last_W[index]/NT(W);
         m+=val/NT(W);
         sum_sq -= last_W[index]*last_W[index];
         sum_sq += val*val;
         sum-=last_W[index];
         sum+=val;
-        //mv = getMeanVariance(last_W);
-        //m=mv.first;
         s = std::sqrt((sum_sq+NT(W)*m*m-2.0*m*sum)/NT(W));
 
         last_W[index] = val;
         index = index%W+1;
 
         if(index==W) index=0;
-        //zp = m + s*std::sqrt(2.0)*boost::math::erf_inv(2.0*pr - 1.0);
-
-        chk= check_max_error123(m-zp*s, m+zp*s, val, error);
+        chk= check_max_error123(val-zp*s, val+zp*s, val, error);
         if(chk) {
             //std::cout<<"final rejection to Z ratio = "<<val<< " | total points = "<<totCount<<std::endl;
-            done=true;
-            steps = (totCount - 1200.0);
-            //std::cout<<"COUNT IN Cm = "<<steps<<std::endl;
+            //done=true;
             return val;
         }
 
