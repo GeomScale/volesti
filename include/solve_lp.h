@@ -156,6 +156,120 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b){
 }
 
 
+template <class MT, class VT>
+bool is_feasible(MT A, VT b, MT Aeq, VT beq){
+
+    lprec *lp;
+    int d = A.cols();
+    int Ncol=d, j, m=A.rows()+Aeq.rows(), i, m1 = A.rows();
+    int *colno = NULL;
+
+    REAL *row = NULL;
+    //std::pair<Point,NT> exception_pair(Point(1),-1.0);
+
+    try
+    {
+        lp = make_lp(m, Ncol);
+        if(lp == NULL) throw false;
+    }
+    catch (bool e) {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct Linear Program for chebychev center "<<e<<std::endl;
+#endif
+        return false;
+    }
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    /* create space large enough for one row */
+    try
+    {
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        row = (REAL *) malloc(Ncol * sizeof(*row));
+    }
+    catch (std::exception &e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Linear Program for chebychev center failed "<<e.what()<<std::endl;
+#endif
+        return false;
+    }
+
+    set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
+
+    //NT sum;
+    for (i = 0; i < m; ++i) {
+        /* construct all rows */
+        //sum=NT(0);
+        for(j=0; j<d; j++){
+            colno[j] = j+1;
+            if (i<m1) {
+                row[j] = A(i, j);
+            } else {
+                row[j] = Aeq(i-m1, j);
+            }
+            //sum+=A(i,j)*A(i,j);
+        }
+        //colno[d] = d+1; /* last column */
+        //row[d] = std::sqrt(sum);
+
+        /* add the row to lpsolve */
+        try {
+            if (i<m1) {
+                if (!add_constraintex(lp, d, row, colno, LE, b(i))) throw false;
+            } else {
+                if (!add_constraintex(lp, d, row, colno, EQ, beq(i-m1))) throw false;
+            }
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not define constriants for the Linear Program for chebychev center "<<e<<std::endl;
+#endif
+            return false;
+        }
+    }
+
+    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
+    for (j = 0; j < d; j++) {
+        colno[j] = j + 1;
+        row[j] = 1;
+        set_bounds(lp, j + 1, -infinite, infinite);
+    }
+    //colno[d] = d + 1; /* last column */
+    //row[d] = 1.0;
+    //set_bounds(lp, d + 1, 0.0, infinite);
+
+    // set the objective function
+    try
+    {
+        if (!set_obj_fnex(lp, d, row, colno)) throw false;
+    }
+    catch (bool e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not define objective function for the Linear Program for chebychev center "<<e<<std::endl;
+#endif
+        return false;
+    }
+
+    /* set the object direction to maximize */
+    set_maxim(lp);
+
+    /* I only want to see important messages on screen while solving */
+    set_verbose(lp, NEUTRAL);
+
+    /* Now let lpsolve calculate a solution */
+    if (solve(lp) != OPTIMAL){
+
+        return false;
+    }
+    delete_lp(lp);
+    return true;
+
+}
+
+
 // return true if q belongs to the convex hull of the V-polytope described by matrix V
 // otherwise return false
 template <class MT, class Point>
