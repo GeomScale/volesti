@@ -101,7 +101,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
-    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false;
+    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false, dikin = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -196,10 +196,12 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             cdhr = true;
             rdhr = false;
             ball_walk = false;
+            dikin = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
             cdhr = false;
             rdhr = true;
             ball_walk = false;
+            dikin = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
                 delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
@@ -207,6 +209,12 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             cdhr = false;
             rdhr = false;
             ball_walk = true;
+            dikin = false;
+        }else if (Rcpp::as<std::string>(WalkType).compare(std::string("Dikin"))==0) {
+            cdhr = false;
+            rdhr = false;
+            ball_walk = false;
+            dikin = true;
         } else {
             throw Rcpp::exception("Unknown walk type!");
         }
@@ -292,9 +300,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
         }
         vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
-                               delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr);
+                               delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,dikin);
         vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
-                                 rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
+                                 rand_only, false, NN, birk, ball_walk, cdhr, rdhr,dikin);
 
         switch (type) {
             case 1: {

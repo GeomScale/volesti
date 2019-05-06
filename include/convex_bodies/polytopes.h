@@ -402,6 +402,31 @@ public:
     }
 
 
+    void set_dikin_rep() {
+        for (int i = 0; i < A.rows(); ++i) {
+            A.row(i) = A.row(i) * (1.0/b(i));
+            b(i) = 1.0;
+        }
+    }
+
+
+    MT get_Dikin_ell(Point &x) {
+        MT H= MT::Zero(_d,_d);
+        VT r(_d);
+        NT sum;
+        for (int i = 0; i < A.rows(); ++i) {
+            for (int k = 0; k < _d; ++k) {
+                r(k) = A(i,k);
+            }
+            sum = 1.0;
+            for (int j = 0; j < _d; ++j) {
+                sum -= r(j)*x[j];
+            }
+            H = H + (r*r.transpose())*(1.0/(sum*sum));
+        }
+        return H;
+    }
+
     // return for each facet the distance from the origin
     std::vector<NT> get_dists(NT radius){
         unsigned int i=0;
@@ -768,6 +793,14 @@ public:
         }
         return true;
     }
+
+    void set_dikin_rep() {
+
+    }
+
+    MT get_Dikin_ell(Point &x) {
+        return V;
+    }
 };
 
 
@@ -1021,6 +1054,14 @@ public:
     template <class T>
     bool get_points_for_rounding (T &randPoints) {
         return false;
+    }
+
+    void set_dikin_rep() {
+
+    }
+
+    MT get_Dikin_ell(Point &x) {
+        return V;
     }
 
 };

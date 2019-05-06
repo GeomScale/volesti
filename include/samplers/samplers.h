@@ -71,6 +71,49 @@ void ball_walk(Point &p,
     if (P.is_in(y)==-1) p = y;
 }
 
+template <class MT, class Point>
+bool is_in_ell(MT &H, Point &center, Point &p) {
+
+    typedef typename Point::FT NT;
+    Point x = p-center;
+    unsigned int dim = center.dimension();
+    NT sum, mults =0.0;
+
+    for (int i = 0; i < dim; ++i) {
+        sum = 0.0;
+        for (int j = 0; j < dim; ++j) {
+            sum += H(i,j)*x[j];
+        }
+        mults += sum * x[i];
+    }
+
+    if (mults < 1.0) {
+        return true;
+    }
+    return false;
+
+}
+
+template <class RNGType, class Polytope, class Point>
+void Dikin_walk(Point &p, Polytope &P) {
+
+    typedef typename Point::FT NT;
+    typedef typename Polytope::MT MT;
+    boost::random::uniform_real_distribution<> urdist(0,1);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng2(seed);
+    //if (urdist(rng2)<0.5) return;
+    MT Hp = P.get_Dikin_ell(p);
+    Point q = get_point_in_ellipsoid<RNGType>(Hp, p);
+    MT Hq = P.get_Dikin_ell(q);
+    if (is_in_ell(Hq, q, p)) {
+        if (urdist(rng2)<std::min(1.0, std::sqrt(Hq.determinant() / Hp.determinant()))){
+            p=q;
+        }
+    }
+    //return p;
+}
+
 // WARNING: USE ONLY WITH BIRKHOFF POLYOPES
 // Compute more random points using symmetries of birkhoff polytope
 /*
