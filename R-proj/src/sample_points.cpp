@@ -237,6 +237,12 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         boost::random::uniform_real_distribution<>(urdist);
         boost::random::uniform_real_distribution<> urdist1(-1,1);
 
+        if (dikin) {
+            if (type != 1) {
+                throw Rcpp::exception("Dikin walk can be used only for H-polytopes!");
+            }
+            HP.set_dikin_rep();
+        }
         switch(type) {
             case 1: {
                 // Hpolytope
