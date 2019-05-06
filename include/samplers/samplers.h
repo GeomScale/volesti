@@ -102,6 +102,68 @@ int birk_sym(T &P, K &randPoints, Point &p) {
 // ----- RANDOM POINT GENERATION FUNCTIONS ------------ //
 
 template <class Polytope, class PointList, class Parameters, class Point>
+void boundary_rand_point_generator(Polytope &P,
+                                   Point &p,   // a point to start
+                                   unsigned int rnum,
+                                   unsigned int walk_len,
+                                   PointList &randPoints,
+                                   Parameters &var)  // constants for volume
+{
+    typedef typename Parameters::RNGType RNGType;
+    typedef typename Point::FT NT;
+    unsigned int n = var.n;
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    boost::random::uniform_int_distribution<> uidist(0, n - 1);
+
+    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+    unsigned int rand_coord, rand_coord_prev;
+    NT kapa;
+    Point p_prev = p, p1(n), p2(n), l(n);
+    std::pair <NT, NT> bpair;
+
+    if (var.cdhr_walk) {//Compute the first point for the CDHR
+        rand_coord = uidist(rng);
+        kapa = urdist(rng);
+        bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+        p_prev = p;
+        p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+    } else
+        hit_and_run(p, P, var);
+
+    for (unsigned int i = 1; i <= rnum; ++i) {
+        for (unsigned int j = 0; j < walk_len; ++j) {
+            if (var.cdhr_walk) {
+                rand_coord_prev = rand_coord;
+                rand_coord = uidist(rng);
+                kapa = urdist(rng);
+                bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
+                p_prev = p;
+                p1 = p;
+                p2 = p;
+                p1.set_coord(rand_coord, p[rand_coord] + bpair.first);
+                p2.set_coord(rand_coord, p[rand_coord] + bpair.second);
+                p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+                //hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas);
+            } else {
+                l = get_direction<RNGType, Point, NT>(n);
+                bpair = P.line_intersect(p, l);
+                p1 = (bpair.first * l) + p;
+                p2 = (bpair.second * l) + p;
+                kapa = urdist(rng);
+                p = (kapa * p1);
+                p = ((1 - kapa) * p2) + p;
+                //hit_and_run(p, P, var);
+            }
+        }
+        randPoints.push_back(p1);
+        randPoints.push_back(p2);
+    }
+
+}
+
+
+template <class Polytope, class PointList, class Parameters, class Point>
 void rand_point_generator(Polytope &P,
                          Point &p,   // a point to start
                          unsigned int rnum,
