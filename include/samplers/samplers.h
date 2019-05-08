@@ -94,6 +94,32 @@ bool is_in_ell(MT &H, Point &center, Point &p) {
 
 }
 
+// Pick a random point from a d-hyperellipsoid
+template <class RNGType, class MT, class Point>
+Point get_point_in_ellipsoid(MT &H, Point &center){
+
+    typedef typename Point::FT NT;
+    unsigned int dim = center.dimension();
+    Point q = get_point_in_Dsphere<RNGType, Point>(dim, NT(1.0));
+    Point p(dim);
+    NT sum;
+
+    MT Hinv = H.inverse();
+
+    Eigen::LLT<MT> lltOfA(Hinv); // compute the Cholesky decomposition of A
+    MT L = lltOfA.matrixL(); // retrieve factor L in the decomposition
+    for (int i = 0; i < dim; ++i) {
+        sum = 0.0;
+        for (int j = 0; j < dim; ++j) {
+            sum += L(i,j)*q[j];
+        }
+        p.set_coord(i, sum + center[i]);
+    }
+
+    //p.print();
+    return p;
+}
+
 template <class RNGType, class Polytope, class Point>
 void Dikin_walk(Point &p, Polytope &P) {
 
@@ -166,6 +192,8 @@ void rand_point_generator(Polytope &P,
 
     if (var.ball_walk) {
         ball_walk <RNGType> (p, P, ball_rad);
+    }else if (var.dikin_walk) {
+        Dikin_walk<RNGType>(p, P);
     }else if (var.cdhr_walk) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
@@ -179,6 +207,8 @@ void rand_point_generator(Polytope &P,
         for (unsigned int j = 0; j < walk_len; ++j) {
             if (var.ball_walk) {
                 ball_walk<RNGType>(p, P, ball_rad);
+            }else if (var.dikin_walk) {
+                Dikin_walk<RNGType>(p, P);
             }else if (var.cdhr_walk) {
                 rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng);
