@@ -40,6 +40,7 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
     typedef std::list <Point> PointList;
     NT e = var.error;
     int n = var.n;
+    var.verbose = true;
     bool verbose = var.verbose, round = var.round;
 
     NT lb = var_ban.lb, ub = var_ban.ub, PR = var_ban.p, B0_radius = var_ban.B0_radius,
