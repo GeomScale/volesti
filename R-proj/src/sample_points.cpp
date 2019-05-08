@@ -257,6 +257,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             if (!feas) {
                 Rf_warning("The region is not feasible!");
                 return Rcpp::NumericMatrix();
+            } else if (gaussian) {
+                Rf_warning("The region is feasible but Gaussian sampling is not available for low dimensional convex polytopes.");
+                return Rcpp::NumericMatrix();
             }
             Hpolytope HP2;
             std::pair<Hpolytope ,VT> low_res;
@@ -273,7 +276,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
             InnerBall = HP2.ComputeInnerBall();
             vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
-                                   delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr, dikin);
+                                   delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr);
             Point p = InnerBall.first;
             std::list<Point> randPoints2;
             rand_point_generator(HP2, p, numpoints, walkL, randPoints2, var1);

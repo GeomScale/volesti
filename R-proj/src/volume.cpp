@@ -10,6 +10,7 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "volume.h"
+#include "low_dimensional.h"
 
 
 template <class Point, class NT, class Polytope>
@@ -110,16 +111,18 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 //' @export
 // [[Rcpp::export]]
-double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
-                Rcpp::Nullable<double> error = R_NilValue,
-                Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
-                Rcpp::Nullable<std::string> Algo = R_NilValue,
-                Rcpp::Nullable<std::string> WalkType = R_NilValue, Rcpp::Nullable<bool> rounding = R_NilValue,
-                Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
-                Rcpp::Nullable<Rcpp::NumericMatrix> A = R_NilValue,
-                Rcpp::Nullable<Rcpp::NumericVector> b = R_NilValue,
-                Rcpp::Nullable<Rcpp::NumericMatrix> Aeq = R_NilValue,
-                Rcpp::Nullable<Rcpp::NumericVector> beq = R_NilValue) {
+double volume (Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
+               Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
+               Rcpp::Nullable<double> error = R_NilValue,
+               Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
+               Rcpp::Nullable<std::string> Algo = R_NilValue,
+               Rcpp::Nullable<std::string> WalkType = R_NilValue,
+               Rcpp::Nullable<bool> rounding = R_NilValue,
+               Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
+               Rcpp::Nullable<Rcpp::NumericMatrix> A = R_NilValue,
+               Rcpp::Nullable<Rcpp::NumericVector> b = R_NilValue,
+               Rcpp::Nullable<Rcpp::NumericMatrix> Aeq = R_NilValue,
+               Rcpp::Nullable<Rcpp::NumericVector> beq = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;

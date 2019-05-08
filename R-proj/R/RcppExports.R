@@ -223,8 +223,8 @@ rounding <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL) {
 #' P = Vpolytope$new(V)
 #' points = sample_points(P, N = 10000, exact = TRUE)
 #' @export
-sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL, Parameters = NULL, InnerPoint = NULL) {
-    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_step, exact, body, Parameters, InnerPoint)
+sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL, Parameters = NULL, InnerPoint = NULL, A = NULL, b = NULL, Aeq = NULL, beq = NULL) {
+    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_step, exact, body, Parameters, InnerPoint, A, b, Aeq, beq)
 }
 
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
@@ -267,7 +267,7 @@ sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NU
 #' Z = GenZonotope(2, 4)
 #' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 #' @export
-volume <- function(P, walk_step = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
-    .Call(`_volesti_volume`, P, walk_step, error, InnerBall, Algo, WalkType, rounding, Parameters)
+volume <- function(P = NULL, walk_step = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL, A = NULL, b = NULL, Aeq = NULL, beq = NULL) {
+    .Call(`_volesti_volume`, P, walk_step, error, InnerBall, Algo, WalkType, rounding, Parameters, A, b, Aeq, beq)
 }
 
