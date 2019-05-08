@@ -74,6 +74,7 @@ int main(const int argc, const char** argv)
          Zono=false,
          cdhr=true,
          rdhr=false,
+         boundary = false,
          exact_zono = false,
          gaussian_sam = false;
 
@@ -155,6 +156,12 @@ int main(const int argc, const char** argv)
       if(!strcmp(argv[i],"-rand")||!strcmp(argv[i],"--rand_only")){
           rand_only = true;
           std::cout<<"Generate random points only\n";
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-boundary")){
+          boundary = true;
+          rand_only = true;
+          std::cout<<"Generate random points on the boundary only\n";
           correct = true;
       }
       if(!strcmp(argv[i],"-rdhr")){
@@ -446,11 +453,23 @@ int main(const int argc, const char** argv)
 
       double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if (Zono) {
-          sampling_only<Point>(randPoints, ZP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+          if (boundary) {
+              boundary_rand_point_generator(ZP, InnerBall.first, nsam, walk_len, randPoints, var1);
+          } else {
+              sampling_only<Point>(randPoints, ZP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+          }
       } else if (!Vpoly) {
-          sampling_only<Point>(randPoints, HP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+          if (boundary) {
+              boundary_rand_point_generator(HP, InnerBall.first, nsam, walk_len, randPoints, var1);
+          } else {
+              sampling_only<Point>(randPoints, HP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+          }
       } else {
-          sampling_only<Point>(randPoints, VP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+          if (boundary) {
+              boundary_rand_point_generator(VP, InnerBall.first, nsam, walk_len, randPoints, var1);
+          } else {
+              sampling_only<Point>(randPoints, VP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+          }
       }
       double tstop11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if(verbose) std::cout << "Sampling time: " << tstop11 - tstart11 << std::endl;
