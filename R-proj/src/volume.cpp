@@ -64,7 +64,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
                                  rand_only, rounding, false, birk, ball_walk, cdhr, rdhr);
         vol = volume_gaussian_annealing(P, var1, var2, InnerB);
     } else if (BAN) {
-        vars_ban<NT> var_ban(0.1, 0.15, 0.75, 0.0, 0.0, 0.0, 2*n*n+250, 120+(n*n)/10, 10, false);
+        vars_ban<NT> var_ban(0.1, 0.15, 0.75, 0.0, 0.0, 0.0, 2*n*n+250, 220+(n*n)/10, 10, false);
         vol = volesti_ball_ann(P, var, var_ban, InnerB);
     }else {
         vol = volume(P, var, InnerB);

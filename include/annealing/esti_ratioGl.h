@@ -394,7 +394,7 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int W, NT ratio, NT prob) {
         if(index==W) index=0;
         chk= check_max_error123(val-zp*s, val+zp*s, val, error);
         if(chk) {
-            //std::cout<<"final rejection to Z ratio = "<<val<< " | total points = "<<totCount<<std::endl;
+            std::cout<<"final rejection to Z ratio = "<<val<< " | total points = "<<totCount<<std::endl;
             //done=true;
             return val;
         }

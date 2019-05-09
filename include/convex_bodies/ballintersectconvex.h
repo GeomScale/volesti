@@ -26,6 +26,10 @@ public:
         return _c;
     }
 
+    int dimension() {
+        return _c.dimension();
+    }
+
     NT squared_radius(){
         return _R;
     }
