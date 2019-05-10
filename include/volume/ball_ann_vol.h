@@ -99,33 +99,38 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
 
     int WW = 4 * n * n + 500;
     vol *= (window2) ? esti_ratio2<RNGType>(B0, P, er0, WW, ratio0) :
-           esti_ratio2_const<RNGType>(B0, P, er0, win_len, ratio0, prob);
+           esti_ratio_interval<RNGType, Point>(B0, P,  ratio0, er1, win_len, 1200, prob, var, true, B0.radius()); //esti_ratio2_const<RNGType>(B0, P, er0, win_len, ratio0, prob);
 
-    ball Biter;
-    PolyBall zb1, zb2;
+    //ball Biter;
+    PolyBall Pb;
 
     NT tele_prod = 1.0;
+    typename std::vector<ball> balliter = BallSet.begin();
+    typename std::vector<NT> ratioiter = ratios.begin();
     if (BallSet.size() > 0) {
         er1 = er1 / std::sqrt(NT(mm) - 1.0);
-        vol *= (!window2) ? 1 / esti_ratio_interval<Point>(P, BallSet[0], ratios[0], er1, win_len, N * nu, prob, var) :
-               1 / esti_ratio(P, BallSet[0], ratios[0], er1, WW, var);
+        vol *= (!window2) ? 1 /
+                            esti_ratio_interval<RNGType, Point>(P, BallSet[0], ratios[0], er1, win_len, N * nu, prob,
+                                                                var) : 1 / esti_ratio(P, BallSet[0], ratios[0], er1, WW,
+                                                                                      var);
 
         for (int i = 0; i < BallSet.size() - 1; ++i) {
-            zb1 = PolyBall(P, BallSet[i]);
-            vol *= (!window2) ? 1 / esti_ratio_interval<Point>(zb1, BallSet[i + 1], ratios[i + 1], er1, win_len, N * nu,
-                                                               prob, var) :
+            Pb = PolyBall(P, BallSet[i]);
+            vol *= (!window2) ? 1 / esti_ratio_interval<RNGType, Point>(Pb, BallSet[i + 1], ratios[i + 1], er1, win_len,
+                                                                        N * nu, prob, var) :
                    1 / esti_ratio(zb1, BallSet[i + 1], ratios[i + 1], er1, WW, var);
         }
 
 
-        zb1 = PolyBall(P, BallSet[BallSet.size() - 1]);
+        Pb = PolyBall(P, BallSet[BallSet.size() - 1]);
         vol *= (!window2) ? 1 /
-                            esti_ratio_interval<Point>(zb1, B0, ratios[ratios.size() - 1], er1, win_len, N * nu, prob,
-                                                       var) :
+                            esti_ratio_interval<RNGType, Point>(Pb, B0, ratios[ratios.size() - 1], er1, win_len, N * nu,
+                                                                prob, var) :
                1 / esti_ratio(zb1, B0, ratios[ratios.size() - 1], er1, WW, var);
     } else {
         if (ratios[0] != 1) {
-            vol *= (!window2) ? 1 / esti_ratio_interval<Point>(P, B0, ratios[0], er1, win_len, N * nu, prob, var) :
+            vol *= (!window2) ? 1 /
+                                esti_ratio_interval<RNGType, Point>(P, B0, ratios[0], er1, win_len, N * nu, prob, var) :
                    1 / esti_ratio(P, B0, ratios[0], er1, WW, var);
         }
     }

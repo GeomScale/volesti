@@ -44,6 +44,10 @@ public:
         else return 0;
     }
 
+    int num_of_hyperplanes() {
+        return 0;
+    }
+
     std::pair<NT,NT> line_intersect(Point r,
                                           Point v){
 
@@ -88,6 +92,20 @@ public:
         return std::pair<NT,NT> (lamda1,lamda2);
 
     }
+
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          unsigned int rand_coord,
+                                          std::vector<NT> &lamdas) {
+        return std::pair<NT,NT> (0.0, 0.0);
+    }
+
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          Point &r_prev,
+                                          unsigned int rand_coord,
+                                          unsigned int rand_coord_prev,
+                                          std::vector<NT> &lamdas){
+        return std::pair<NT,NT> (0.0, 0.0);
+    };
 
 private:
     Point  _c; //center

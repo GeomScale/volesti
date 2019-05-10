@@ -247,8 +247,9 @@ bool check_max_error123(NT a, NT b, NT val, NT error) {
     return false;
 }
 
-template <class Point, class ZonoBall, class ball, typename NT, class Parameters>
-NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int W, int Ntot, NT prob, Parameters &var) {
+template <class RNGType, class Point, class PolyBall1, class PolyBall2, typename NT, class Parameters>
+NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot, NT prob,
+                       Parameters &var, bool isball = false, NT radius = 0.0) {
 
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
@@ -262,7 +263,7 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int W, int Nto
     int min_index = W-1;
     int max_index = W-1;
     int index = 0;
-    std::vector<NT> last_W(W,0), lamdas(Zb.num_of_hyperplanes(),0);
+    std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0);
     NT val;
 
     NT countIn = ratio*NT(Ntot);
@@ -270,16 +271,20 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int W, int Nto
     Point p(n);
     Point p_prev=p;
     unsigned int coord_prev;
-    if(var.cdhr_walk && !var.ball_walk){
-        uniform_first_coord_point(Zb,p,p_prev,coord_prev,var.walk_steps,lamdas,var);
+    if(var.cdhr_walk && !var.ball_walk && !isball){
+        uniform_first_coord_point(Pb1,p,p_prev,coord_prev,var.walk_steps,lamdas,var);
     }
     int col=0, row=0;
     NT sum_sq=0.0;
     NT sum=0.0;
     for (int i = 0; i < W; ++i) {
 
-        uniform_next_point(Zb, p, p_prev, coord_prev, 1, lamdas, var);
-        if (B0.is_in(p) == -1) {
+        if (isball) {
+            p = get_point_in_Dsphere<RNGType, Point>(n, radius);
+        } else {
+            uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, var);
+        }
+        if (Pb2.is_in(p) == -1) {
             countIn = countIn + 1.0;
         }
         totCount = totCount + 1.0;
@@ -298,8 +303,12 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int W, int Nto
 
     while(!done) {
 
-        uniform_next_point(Zb, p, p_prev, coord_prev, 1, lamdas, var);
-        if (B0.is_in(p) == -1) {
+        if (isball) {
+            p = get_point_in_Dsphere<RNGType, Point>(n, radius);
+        } else {
+            uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, var);
+        }
+        if (Pb2.is_in(p) == -1) {
             countIn = countIn + 1.0;
         }
         totCount = totCount + 1.0;
@@ -327,6 +336,7 @@ NT esti_ratio_interval(ZonoBall &Zb, ball B0, NT ratio, NT error, int W, int Nto
 
 }
 
+/*
 template <class RNGType, class Zonotope, class ball, typename NT>
 NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int W, NT ratio, NT prob) {
 
@@ -401,9 +411,9 @@ NT esti_ratio2_const(ball B0, Zonotope &Z, NT error, int W, NT ratio, NT prob) {
 
     }
     return val;
-}
+}*/
 
-
+/*
 template <class RNGType, class Zonotope, class ball, typename NT>
 NT esti_ball_ratio_no_W(ball B0, Zonotope &Z, NT error, std::vector<NT> all_ratios,
                      NT ratio, NT prob, NT &steps, int N) {
@@ -461,7 +471,6 @@ NT esti_ball_ratio_no_W(ball B0, Zonotope &Z, NT error, std::vector<NT> all_rati
 
     }
 
-}
-
+}*/
 
 #endif
