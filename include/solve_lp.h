@@ -503,7 +503,7 @@ bool memLP_Zonotope(MT V, Point q){
     for(j=0; j<Ncol; j++){
         colno[j] = j+1; /* j_th column */
         row[j] = 0.0;
-        set_bounds(lp, j+1, 0.0, 1.0);
+        set_bounds(lp, j+1, -1.0, 1.0);
     }
 
     // set the objective function
