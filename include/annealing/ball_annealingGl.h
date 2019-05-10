@@ -6,8 +6,6 @@
 #ifndef BALL_ANNEALINGGL_H
 #define BALL_ANNEALINGGL_H
 
-#include <boost/math/distributions/students_t.hpp>
-
 
 template <class Point, class ConvexBody, class PointList, typename NT>
 bool check_converg001(ConvexBody &P, PointList &randPoints, NT lb, NT ub, bool &too_few, NT &ratio,
