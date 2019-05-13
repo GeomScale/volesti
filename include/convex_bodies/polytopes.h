@@ -827,6 +827,74 @@ public:
     }
 
 
+    void compute_eigenvectors(MT G, bool norm1, bool norm2) {
+
+        int k = G.cols();
+        //std::cout<<"number of generators = "<<k<<std::endl;
+
+        //MT ps = G.completeOrthogonalDecomposition().pseudoInverse();
+        MT ps = G;//*G.transpose();
+        sigma.resize(k,k);
+        sigma = ps.transpose()*ps;
+        //std::cout<<sigma<<std::endl;
+        if (norm1) {
+            sigma = (sigma + sigma.transpose()) / 2;
+        }
+        //std::cout<<"\n"<<sigma<<std::endl;
+        //std::cout<<"\n";
+        if (norm2) {
+            for (int i1 = 0; i1 < k; ++i1) {
+                sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
+            }
+        }
+        //MT sigma2 = sigma.inverse();
+        Eigen::SelfAdjointEigenSolver<MT> es(sigma);
+
+        MT D = es.eigenvalues().asDiagonal();
+        MT Q2 = es.eigenvectors();
+
+        //std::cout<<Q2<<"\n"<<std::endl;
+        //std::cout<<es.eigenvalues()<<"\n"<<std::endl;
+        //std::cout<<D<<"\n"<<std::endl;
+
+        Q0.resize(k,k-_d);
+        int count=0;
+        for (int i = 0; i < k; ++i) {
+            if(es.eigenvalues()[i]<0.0000001) {
+                for (int j = 0; j < k; ++j) {
+                    Q0(j, count) = Q2(j, i);
+                }
+                count++;
+            }
+        }
+        Eigen::JacobiSVD<MT> svd(Q0, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        MT T2 = svd.matrixU().transpose();
+        T.resize(_d,k);
+        for (int i = k-_d; i < k; ++i) {
+            for (int j = 0; j < k; ++j) {
+                T(i-k+_d,j) = T2(i,j);
+            }
+        }
+        //std::cout<<G<<"\n"<<std::endl;
+        //std::cout<<Q0<<"\n"<<std::endl;
+        for (int i1 = 0; i1 < k; ++i1) {
+            sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
+        }
+
+    }
+
+    MT get_T() {
+        return T;
+    }
+
+    MT get_Q0(){
+        return Q0;
+    }
+
+    MT get_sigma() {
+        return sigma;
+    }
+
     // return the number of vertices
     int num_of_vertices() {
         return V.rows();
