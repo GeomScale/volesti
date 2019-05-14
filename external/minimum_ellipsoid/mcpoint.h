@@ -371,7 +371,7 @@
   {
     const size_t ndim=low.size();
 
-    res.resize(pow(nbins,ndim));
+    res.resize(pow(nbins, static_cast<size_t>(ndim)));
     std::fill(res.begin(), res.end(), 0.0);
     
 
@@ -392,7 +392,7 @@
 	int dimi = int((i->p[j]-low[j])/deltas[j]);
 	if (dimi >= 0 and dimi < (int)nbins)
 	{
-	  k+= dimi * pow(nbins, ndim-j-1);
+	  k+= dimi * pow(nbins, static_cast<size_t>(ndim-j-1));
 	}
 	else
 	{
@@ -449,7 +449,7 @@
 		    std::vector<double> &res)
   {
     // Two dimensions only
-    res.resize(pow(nbins,2));
+    res.resize(pow(nbins,static_cast<size_t>(2)));
     std::fill(res.begin(), res.end(), 
 	      0.0);
     const double idelta=(ihigh-ilow)/nbins;

@@ -17,7 +17,7 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include "polytopes.h"
 #include "samplers.h"
-#include "rounding.h"
+#include "rotating.h"
 #include "extractMatPoly.h"
 
 //'  An internal Rccp function for the random rotation of a convex polytope
