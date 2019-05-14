@@ -237,7 +237,7 @@ void get_delta(Polytope &P, VT &l, VT &u, MT &sigma, Rcpp::Function rtmvnorm, Rc
 
 template <class Polytope, class HPolytope, class VT, typename NT, class PointList, class Parameters>
 void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT &ratio,
-                PointList &randPoints, Parameters &var, NT &steps){
+                PointList &randPoints, Parameters &var){
 
     NT delta1 = 0.0;
     NT delta2 = 0.5;
@@ -267,7 +267,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
     bool done, too_few, print = var.verbose;
     //std::list<Point> randPoints;
     randPoints.clear();
-    steps = 0.0;
+    //steps = 0.0;
 
     NT l=0.0, u=1.0, med;
     VT  Zmed(m);
@@ -283,7 +283,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
         randPoints.clear();
 
         rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, var);
-        steps += 1200.0;
+        //steps += 1200.0;
 
         done = false;
         too_few = false;

@@ -71,6 +71,10 @@ public:
         return rad;
     }
 
+    MT get_mat() {
+        return P1.get_mat();
+    }
+
     MT get_mat1() {
         return P1.get_mat();
     }
@@ -273,6 +277,22 @@ public:
         }
 
         return true;
+    }
+
+    void compute_eigenvectors(MT G, bool norm1, bool norm2) {
+        //
+    }
+
+    MT get_T() {
+        return P1.get_mat();
+    }
+
+    MT get_Q0(){
+        return P1.get_mat();
+    }
+
+    MT get_sigma() {
+        return P1.get_mat();
     }
 
 };

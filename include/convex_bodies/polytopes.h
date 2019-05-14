@@ -419,6 +419,23 @@ public:
     bool get_points_for_rounding (T &randPoints) {
         return false;
     }
+
+    void compute_eigenvectors(MT G, bool norm1, bool norm2) {
+        //
+    }
+
+    MT get_T() {
+        return A;
+    }
+
+    MT get_Q0(){
+        return A;
+    }
+
+    MT get_sigma() {
+        return A;
+    }
+
 };
 
 
@@ -768,6 +785,23 @@ public:
         }
         return true;
     }
+
+    void compute_eigenvectors(MT G, bool norm1, bool norm2) {
+        //
+    }
+
+    MT get_T() {
+        return V;
+    }
+
+    MT get_Q0(){
+        return V;
+    }
+
+    MT get_sigma() {
+        return V;
+    }
+
 };
 
 
@@ -786,6 +820,9 @@ public:
 private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
+    MT sigma;
+    MT Q0;
+    MT T;
     unsigned int _d;  //dimension
     //NT maxNT = 1.79769e+308;
     //NT minNT = -1.79769e+308;
@@ -960,6 +997,11 @@ public:
         _d = dim;
         V = _V;
         b = _b;
+        bool normalization1=true;
+        bool normalization2=false;
+        //GG=V.transpose();
+        //count = 0;
+        compute_eigenvectors(V.transpose(),normalization1,normalization2);
     }
 
 
@@ -974,6 +1016,11 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
+        bool normalization1=true;
+        bool normalization2=false;
+        //GG=V.transpose();
+        //count = 0;
+        compute_eigenvectors(V.transpose(),normalization1,normalization2);
     }
 
 

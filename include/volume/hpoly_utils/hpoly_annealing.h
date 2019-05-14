@@ -106,7 +106,7 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
     NT rad1=0.0, rad;
     NT pnorm, ratio;
 
-    VT Zmed(2 * Z.num_of_generators());
+    VT Zmed(Zs_max.size());
     NT med, u = 1.0, l = 0.0;
 
     while (true) {
@@ -136,9 +136,9 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
 }
 
 template <class ZonoHP,class Zonotope, class HPolytope, class VT, class Parameters, typename NT>
-void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<HPolytope> &HPolySet,
+void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope> &HPolySet,
                                VT Zs_max, std::vector<NT> &ratios, int Ntot, int nu,
-                               NT &p_value, NT up_lim, Parameters &var, NT &HnRsteps) {
+                               NT &p_value, NT up_lim, Parameters &var) {
 
     bool print = var.verbose;
     typedef typename Zonotope::PolytopePoint Point;
@@ -151,10 +151,10 @@ void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
     NT ratio;
     std::list<Point> randPoints;
     Point q(n);
-    HnRsteps = 0.0;
+    //HnRsteps = 0.0;
     //std::cout<<"Ntot = "<<Ntot<<" nu = "<<nu<<std::endl;
     rand_point_generator(Z, q, Ntot, var.walk_steps, randPoints, var);
-    HnRsteps += NT(Ntot)*NT(var.walk_steps);
+    //HnRsteps += NT(Ntot)*NT(var.walk_steps);
     //PointSets.push_back(randPoints);
     HPolytope HP2 = HP;
     if (is_last_zonoball22(randPoints, HP, ratio, p_value, nu, var)) {
@@ -175,7 +175,7 @@ void get_sequence_of_zonoballs(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
         q=Point(n);
         randPoints.clear();
         rand_point_generator(ZHP2, q, Ntot, var.walk_steps, randPoints, var);
-        HnRsteps += NT(Ntot)*NT(var.walk_steps);
+        //HnRsteps += NT(Ntot)*NT(var.walk_steps);
         //PointSets.push_back(randPoints);
         if (is_last_zonoball22(randPoints, HP, ratio, p_value, nu, var)) {
             ratios.push_back(ratio);
