@@ -6,8 +6,8 @@
 #ifndef HZONO_VOL_H
 #define HZONO_VOL_H
 
-#include "hpoly_utils/outer_zono.h"
-#include "hpoly_utils/hpoly_annealing.h"
+#include "ball_annealingGl.h"
+#include "hpoly_annealing.h"
 //#include "hpoly_utils/est_ratio1.h"
 #include "esti_ratioGl.h"
 #include "ZonoIntersectHPoly.h"
@@ -115,13 +115,13 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     var.error = Her;
     var.cdhr_walk = false;
     var.rdhr_walk = true;
-    if( cg_hpol ) {
+    if( true ) {
         vol = volume_gaussian_annealing(HP, var_g, var, InnerBall);
     } else {
         vol = volesti_ball_ann(HP, var, var_ban, InnerBall);
     }
-    var.cdhr_walk = true;
-    var.rdhr_walk = false;
+    //var.cdhr_walk = true;
+    //var.rdhr_walk = false;
     if(verbose) std::cout<<"\nvol of h-polytope = "<<vol<<"\n"<<std::endl;
     //double tstart3 = (double)clock()/(double)CLOCKS_PER_SEC;
 

@@ -7,8 +7,6 @@
 #define BALL_ANNEALING_H
 
 
-
-
 template <class Hpolytope, class PointList, typename NT>
 void check_converg22(Hpolytope &P, PointList &randPoints, NT p_test, bool &done, bool &too_few, NT &ratio, NT up_lim, int nu, bool print) {
 
@@ -90,6 +88,100 @@ bool is_last_zonoball22(PointList randPoints, HPolytope &HP, NT &ratio, NT p_val
     return false;
 
 }
+
+
+template <class Polytope, class HPolytope, class VT, typename NT, class PointList, class Parameters>
+void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT &ratio,
+                PointList &randPoints, Parameters &var){
+
+    NT delta1 = 0.0;
+    NT delta2 = 0.5;
+    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Polytope::MT MT;
+    MT G = P.get_mat().transpose();
+    MT A = HP.get_mat();
+    int kk = G.cols();
+    VT Zs_max = (A*G).cwiseAbs().rowwise().sum();
+    Zs_max_gl = Zs_max;
+    VT Zs_min = HP.get_vec();
+
+    //get_maxZ0<NT>(A, G, Zs_max);
+    //std::cout<<Zs_max<<"\n"<<std::endl;
+    //std::cout<<Zs_min<<"\n"<<std::endl;
+    VT b = HP.get_vec();
+    VT b2 = b;
+    HPolytope HPiter=HP;
+
+    int n = P.dimension(), m = Zs_max_gl.size();
+    //std::cout<<"k = "<<m<<std::endl;
+    int N = 1200;
+    if(up_lim==0.0){
+        up_lim=0.15;
+    }
+    Point q(n);
+    bool done, too_few, print = var.verbose;
+    //std::list<Point> randPoints;
+    randPoints.clear();
+    //steps = 0.0;
+
+    NT l=0.0, u=1.0, med;
+    VT  Zmed(m);
+    randPoints.clear();
+    int count =0;
+    while(true) {
+
+        count++;
+        q=Point(n);
+        med = (u + l) * 0.5;
+        Zmed = Zs_min + (Zs_max-Zs_min)*med;
+        HPiter.set_vec(Zmed);
+        randPoints.clear();
+
+        rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, var);
+        //steps += 1200.0;
+
+        done = false;
+        too_few = false;
+        //check_converg00001<Point>(P, randPoints, lb, done, too_few, ratio, up_lim, false);
+        if(print) std::cout<<"ratio = "<<ratio<<std::endl;
+        if(print) std::cout<<"Z_med = "<<med<<std::endl;
+
+        if(check_converg001<Point>(P, randPoints, lb, up_lim, too_few, ratio, 10, true, false)) {
+            //std::cout<<"done first Hpoly"<<std::endl;
+            //delta = delta2;
+            HP.set_vec(Zmed);
+            return;
+        }
+
+        if (too_few) {
+            u = med;
+            //break;
+        } else {
+            l = med;
+        }
+
+        //delta1 = delta2;
+        //delta2 = 2*delta2;
+        //var = 2*var;
+        //randPoints.clear();
+        if(med>0.9) {
+            NT countsIn = 0.0;
+            for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+                if (P.is_in(*pit)==-1) {
+                    countsIn += 1.0;
+                }
+            }
+            ratio = countsIn/1200.0;
+            if(print) std::cout<<"ratio = "<<ratio<<std::endl;
+            if(print) std::cout<<"Z_med = "<<med<<std::endl;
+            HP.set_vec(Zmed);
+            return;
+        }
+
+    }
+
+}
+
 
 template <class Zonotope, class HPolytope, class VT, class PointList, typename NT, class Parameters>
 void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
