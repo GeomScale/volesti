@@ -8,7 +8,6 @@
 
 #include "ball_annealingGl.h"
 #include "hpoly_annealing.h"
-//#include "hpoly_utils/est_ratio1.h"
 #include "esti_ratioGl.h"
 #include "ZonoIntersectHPoly.h"
 
@@ -22,10 +21,10 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     typedef typename UParameters::RNGType RNGType;
 
     NT lb = var_ban.lb, ub = var_ban.ub, prob = var_ban.p, rmax = var_ban.rmax,
-            radius = InnerB.second, round_value = 1.0, e = var.error, ratio, vol;
+            radius = InnerB.second, round_value = 1.0, e = var.error, ratio, vol, alpha = var_ban.alpha;
     int n = var.n, win_len = var_ban.win_len, N = var_ban.N, nu = var_ban.nu;
 
-    var.verbose = true;
+    //var.verbose = true;
     bool verbose = var.verbose, round = var.round, window2 = var_ban.window2;
 
     MT V = ZP.get_mat();
@@ -68,7 +67,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     HP.init(n,A3,b);
 
     VT Zs_max(2*m);
-    get_hdelta(ZP, HP, Zs_max, lb, ub, ratio, randPoints, var);
+    get_hdelta(ZP, HP, Zs_max, lb, ub, ratio, var);
     Hpolytope HP2=HP;
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
@@ -79,8 +78,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     NT p_value = 0.1;
     ZonoHP zb1, zb2;
 
-    get_sequence_of_zonopolys<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, N*nu, nu,
-                                      lb, ub, var);
+    get_sequence_of_zonopolys<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var);
 
     int mm=HPolySet.size()+2;
     int mm2=mm+1;
