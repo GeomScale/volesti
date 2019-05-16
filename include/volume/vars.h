@@ -133,30 +133,24 @@ public:
     vars_ban(NT lb,
              NT ub,
              NT p,
-             NT B0_radius,
-             NT ratio_B0,
              NT rmax,
              int win_len,
              int N,
              int nu,
-             bool window2,
-             bool hp_cg
+             bool window2
     ) :
-            lb(lb), ub(ub), p(p), B0_radius(B0_radius), ratio_B0(ratio_B0), rmax(rmax),
-            win_len(win_len), N(N), nu(nu), window2(window2), hp_cg(hp_cg) {};
+            lb(lb), ub(ub), p(p), rmax(rmax),
+            win_len(win_len), N(N), nu(nu), window2(window2) {};
 
 
     NT lb;
     NT ub;
     NT p;
-    NT B0_radius;
-    NT ratio_B0;
     NT rmax;
     int win_len;
     int N;
     int nu;
     bool window2;
-    bool hp_cg;
 };
 
 #endif

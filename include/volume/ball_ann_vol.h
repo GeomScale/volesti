@@ -30,8 +30,8 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
     int n = var.n, win_len = var_ban.win_len, N = var_ban.N, nu = var_ban.nu;
     var.verbose = true;
     bool verbose = var.verbose, round = var.round, window2 = var_ban.window2;
-    NT lb = var_ban.lb, ub = var_ban.ub, prob = var_ban.p, B0_radius = var_ban.B0_radius, rmax = var_ban.rmax,
-            radius = InnerBall.second, round_value = 1.0, tele_prod = 1.0, e = var.error, ratio0;
+    NT lb = var_ban.lb, ub = var_ban.ub, prob = var_ban.p, rmax = var_ban.rmax, radius = InnerBall.second,
+            round_value = 1.0, e = var.error, ratio0;
 
     std::vector <ball> BallSet;
     std::vector <NT> ratios;
