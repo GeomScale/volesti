@@ -31,7 +31,7 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
     var.verbose = true;
     bool verbose = var.verbose, round = var.round, window2 = var_ban.window2;
     NT lb = var_ban.lb, ub = var_ban.ub, prob = var_ban.p, rmax = var_ban.rmax, radius = InnerBall.second,
-            round_value = 1.0, e = var.error, ratio0;
+            round_value = 1.0, e = var.error, alpha = var_ban.alpha;
 
     std::vector <ball> BallSet;
     std::vector <NT> ratios;
@@ -62,7 +62,7 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
     P.shift(c_e);
 
     if (verbose) std::cout << "Computing ball annealing..." << std::endl;
-    get_sequence_of_zonoballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, var);
+    get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var);
 
     NT vol = (std::pow(M_PI, n / 2.0) * (std::pow((*(BallSet.end() - 1)).radius(), n))) / (tgamma(n / 2.0 + 1));
 

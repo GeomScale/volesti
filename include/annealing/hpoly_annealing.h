@@ -146,7 +146,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
         if(print) std::cout<<"ratio = "<<ratio<<std::endl;
         if(print) std::cout<<"Z_med = "<<med<<std::endl;
 
-        if(check_converg001<Point>(P, randPoints, lb, up_lim, too_few, ratio, 10, true, false)) {
+        if(check_converg001<Point>(P, randPoints, lb, up_lim, too_few, ratio, 10, 0.2, true, false)) {
             //std::cout<<"done first Hpoly"<<std::endl;
             //delta = delta2;
             HP.set_vec(Zmed);

@@ -134,12 +134,13 @@ public:
              NT ub,
              NT p,
              NT rmax,
+             NT alpha,
              int win_len,
              int N,
              int nu,
              bool window2
     ) :
-            lb(lb), ub(ub), p(p), rmax(rmax),
+            lb(lb), ub(ub), p(p), rmax(rmax), alpha(alpha),
             win_len(win_len), N(N), nu(nu), window2(window2) {};
 
 
@@ -147,6 +148,7 @@ public:
     NT ub;
     NT p;
     NT rmax;
+    NT alpha;
     int win_len;
     int N;
     int nu;
