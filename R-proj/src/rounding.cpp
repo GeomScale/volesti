@@ -31,7 +31,7 @@
 //' @section warning:
 //' Do not use this function.
 //'
-//' @return A numerical matrix that describes the rounded polytope and contains the round value.
+//' @return A List that contains a numerical matrix that describes the rounded polytope and the round value.
 // [[Rcpp::export]]
 Rcpp::List rounding (Rcpp::Reference P,
                               Rcpp::Nullable<std::string> WalkType = R_NilValue,
