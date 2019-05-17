@@ -271,3 +271,7 @@ volume <- function(P, walk_step = NULL, error = NULL, InnerBall = NULL, Algo = N
     .Call(`_volesti_volume`, P, walk_step, error, InnerBall, Algo, WalkType, rounding, Parameters)
 }
 
+zono_approx <- function(P, fit_ratio = NULL, Parameters = NULL) {
+    .Call(`_volesti_zono_approx`, P, fit_ratio, Parameters)
+}
+

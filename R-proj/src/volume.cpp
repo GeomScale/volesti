@@ -126,7 +126,8 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
                 Rcpp::Nullable<double> error = R_NilValue,
                 Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
                 Rcpp::Nullable<std::string> Algo = R_NilValue,
-                Rcpp::Nullable<std::string> WalkType = R_NilValue, Rcpp::Nullable<bool> rounding = R_NilValue,
+                Rcpp::Nullable<std::string> WalkType = R_NilValue,
+                Rcpp::Nullable<bool> rounding = R_NilValue,
                 Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue) {
 
     typedef double NT;
