@@ -9,11 +9,12 @@ compute_indicators <- function(MatReturns, win_len = NULL, numSlices = NULL, N =
   wl = win_len-1
   
   indicators = c()
+  print(nrows-wl)
   for (i in 1:(nrows-wl)) {
     
-    W=i:wl
-    nR = MatReturns[W,]
-    E = cov(nR)
+    W=i:(i+wl)
+    #nR = MatReturns[W,]
+    E = cov(MatReturns[W,])
     
     compRet = rep(1,nassets)
     for (j in 1:nassets) {
@@ -41,7 +42,7 @@ compute_indicators <- function(MatReturns, win_len = NULL, numSlices = NULL, N =
       }
     }
     indicators = c(indicators, blue_mass / red_mass)
-    #print(length(indicators))
+    print(length(indicators))
   }
   
   return(indicators)
