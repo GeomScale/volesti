@@ -152,71 +152,46 @@ std::vector<std::vector<NT> > hypfam_ellfam(int dim, int num, int num_slices, st
     }
 
     rpit = points.begin();
-    //for (i=0; i<num; i++){
     for( ; rpit!=points.end(); ++rpit){
-        //p=points[i];
         p = (*rpit);
-        //std::cout<<p<<std::endl;
         sum1=0.0;
         sum2=G.mat_mult(p);
-        for (j=0; j<dim; j++){
-            sum1+=p[j]*pl[j];
-            //sum2+=p[j]*pl2[j];
-            //sum+=p[j];
+        for (j=0; j<dim; j++) sum1+=p[j]*pl[j];
 
-        }
-        //std::cout<<sum<<std::endl;
         vec1.push_back(sum1);
         vec2.push_back(sum2);
     }
-    std::sort( vec1.begin(), vec1.end() );
-    std::sort( vec2.begin(), vec2.end() );
+    std::vector<NT> vec11 = vec1, vec22 = vec2;
+    std::sort( vec11.begin(), vec11.end() );
+    std::sort( vec22.begin(), vec22.end() );
 
 
     NT pos = 1.0 / NT(num_slices);
     for (i=1; i<num_slices; i++){
-        //std::cout<<((int)std::floor(i*(0.01)*((double)num) ))<<std::endl;
-        //std::cout<<((int)std::floor(i*(0.01)*((double)num) ))<<std::endl;
-        Zs1.push_back(vec1[((int)std::floor(i*(pos)*((NT)num) ))]);
-        Cs.push_back(vec2[((int)std::floor(i*(pos)*((NT)num) ))]);
+        Zs1.push_back(vec11[((int)std::floor(i*(pos)*((NT)num) ))]);
+        Cs.push_back(vec22[((int)std::floor(i*(pos)*((NT)num) ))]);
     }
 
-
-
     rpit = points.begin();
-    //for (i=0; i<num; i++){
-    for( ; rpit!=points.end(); ++rpit){
-        //p=points[i];
-        p = (*rpit);
-        //std::cout<<"dimension is: "<<p.dimension()<<std::endl;
-        sum1=0.0; sum2=0.0;
+    typename std::vector<NT>::iterator rvec1 = vec1.begin(), rvec2 = vec2.begin();
+    for( ; rvec1!=vec1.end(); ++rvec1, ++rvec2){
+
         col=-1; row=-1;
-        sum2=G.mat_mult(p);
-        for (j=0; j<dim; j++){
-            sum1+=p[j]*pl[j];
-            //sum2+=p[j]*pl2[j];
-        }
-        //std::cout<<"hello3"<<std::endl;
         for (unsigned int j=0; j<Zs1.size(); j++){
-            if (sum1<Zs1[j]){
+            if (*rvec1<Zs1[j]){
                 col=j;
                 break;
             }
         }
         for (unsigned int j=0; j<Cs.size(); j++){
-            if (sum2<Cs[j]){
+            if (*rvec2<Cs[j]){
                 row=j;
                 break;
             }
         }
-        if (col==-1){
-            col=num_slices - 1;
-        }
+        if (col==-1) col=num_slices - 1;
+        if (row==-1) row=num_slices - 1;
 
-        if (row==-1){
-            row=num_slices - 1;
-        }
-        //std::cout<<"hello4"<<std::endl;
         Matrix[row][col]++;
     }
 

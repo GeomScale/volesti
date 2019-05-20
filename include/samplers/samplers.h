@@ -204,6 +204,79 @@ void rand_point_generator(BallPoly &PBLarge,
     }
 }
 
+
+template <class Polytope, class Point, class Parameters, typename NT>
+void uniform_first_coord_point(Polytope &P,
+                               Point &p,   // a point to start
+                               Point &p_prev, // previous point
+                               unsigned int &coord_prev, // previous coordinate ray
+                               unsigned int walk_len, // number of steps for the random walk
+                               std::vector<NT> &lamdas,
+                               Parameters &var) {
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = var.n, rand_coord;
+    boost::random::uniform_int_distribution<> uidist(0, n - 1);
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
+    RNGType &rng2 = var.rng;
+
+    rand_coord = uidist(rng2);
+    NT kapa = urdist(rng2);
+    std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+    p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+    //p.set_coord(rand_coord, p[rand_coord] + bpair.second + kapa * (bpair.first - bpair.second));
+    p_prev = p;
+    coord_prev = rand_coord;
+    walk_len--;
+
+    for (unsigned int j = 0; j < walk_len; j++) {
+        rand_coord = uidist(rng2);
+        kapa = urdist(rng2);
+        hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, kapa, lamdas);
+        coord_prev = rand_coord;
+    }
+}
+
+
+template <class Polytope, class Point, class Parameters, typename NT>
+void uniform_next_point(Polytope &P,
+                        Point &p,   // a point to start
+                        Point &p_prev, // previous point
+                        unsigned int &coord_prev, // previous coordinate ray
+                        unsigned int walk_len, // number of steps for the random walk
+                        std::vector<NT> &lamdas,
+                        Parameters &var) {
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = var.n, rand_coord;
+    boost::random::uniform_int_distribution<> uidist(0, n - 1);
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
+    RNGType &rng2 = var.rng;
+    NT ball_rad = var.delta;
+    NT kapa;
+
+
+    if (var.ball_walk) {
+        for (unsigned int j = 0; j < walk_len; j++) {
+            ball_walk<RNGType>(p, P, ball_rad);
+        }
+    } else if (!var.cdhr_walk) {
+        for (unsigned int j = 0; j < walk_len; j++) {
+            hit_and_run(p, P, var);
+        }
+    } else {
+        for (unsigned int j = 0; j < walk_len; j++) {
+            rand_coord = uidist(rng2);
+            kapa = urdist(rng2);
+            hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, kapa, lamdas);
+            coord_prev = rand_coord;
+        }
+    }
+}
+
+
 // ----- HIT AND RUN FUNCTIONS ------------ //
 
 //hit-and-run with random directions and update
@@ -242,5 +315,6 @@ void hit_and_run_coord_update(Point &p,
     p_prev = p;
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
 }
+
 
 #endif //RANDOM_SAMPLERS_H

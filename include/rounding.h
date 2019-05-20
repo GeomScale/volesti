@@ -305,21 +305,31 @@ double rotating_old(T &P){
 }*/
 
 // -------- ROTATION ---------- //
-template <typename NT, class Polytope>
-NT rotating(Polytope &P){
+template <class MT, class Polytope>
+MT rotating(Polytope &P){
 
-  typedef typename Polytope::MT 	MT;
+    typedef boost::mt19937    RNGType;
+    //typedef typename Polytope::MT 	MT;
 
-  unsigned int n = P.dimension();
+    boost::random::uniform_real_distribution<> urdist(-1.0, 1.0);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    unsigned int n = P.dimension();
 
-  // pick a random rotation
-  MT R = MT::Random(n,n);
-  Eigen::JacobiSVD<MT> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    // pick a random rotation
+    MT R(n,n);
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            R(i,j) = urdist(rng);
+        }
+    }
 
-  // apply rotation to the polytope P
-  P.linear_transformIt(svd.matrixU());
+    Eigen::JacobiSVD<MT> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
-  return std::abs(svd.matrixU().inverse().determinant());
+    // apply rotation to the polytope P
+    P.linear_transformIt(svd.matrixU());
+
+    return svd.matrixU().inverse();
 }
 
 #endif

@@ -16,7 +16,7 @@ rounding(P, WalkType = NULL, walk_step = NULL, radius = NULL)
 \item{radius}{Optional. The radius for the ball walk.}
 }
 \value{
-A numerical matrix that describes the rounded polytope and contains the round value.
+A List that contains a numerical matrix that describes the rounded polytope and the round value.
 }
 \description{
 Internal rcpp function for the rounding of a convex polytope

@@ -18,11 +18,16 @@ public:
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
 
+    Ball() {}
 
     Ball(Point c, NT R) : _c(c),	 _R(R) {}
 
     Point center(){
         return _c;
+    }
+
+    int dimension() {
+        return _c.dimension();
     }
 
     NT squared_radius(){
@@ -37,6 +42,10 @@ public:
         if (p.squared_length() <= _R)
             return -1;
         else return 0;
+    }
+
+    int num_of_hyperplanes() {
+        return 0;
     }
 
     std::pair<NT,NT> line_intersect(Point r,
@@ -84,6 +93,20 @@ public:
 
     }
 
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          unsigned int rand_coord,
+                                          std::vector<NT> &lamdas) {
+        return std::pair<NT,NT> (0.0, 0.0);
+    }
+
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          Point &r_prev,
+                                          unsigned int rand_coord,
+                                          unsigned int rand_coord_prev,
+                                          std::vector<NT> &lamdas){
+        return std::pair<NT,NT> (0.0, 0.0);
+    };
+
 private:
     Point  _c; //center
     NT     _R; //SQUARED radius !!!
@@ -98,6 +121,8 @@ private:
 public:
     typedef typename CBall::NT NT;
     typedef typename CBall::BallPoint Point;
+
+    BallIntersectPolytope() {}
 
     BallIntersectPolytope(Polytope &P, CBall &B) : _P(P), _B(B) {};
     
