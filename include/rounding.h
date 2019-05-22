@@ -199,11 +199,12 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
     // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
     boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
     typename std::list<Point>::iterator rpit=randPoints.begin();
-    typename std::vector<NT>::iterator qit;
+
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        qit = (*rpit).iter_begin(); i=0;
-        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            Ap(i,j)=double(*qit);
+        VT coeffs = rpit->getCoefficients();
+
+        for (i=0 ; i<rpit->dimension() ; i++) {
+            Ap(i,j)=double(coeffs(i));
         }
     }
     boost::numeric::ublas::matrix<double> Q(n,n);

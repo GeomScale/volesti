@@ -11,29 +11,41 @@
 
 #include <iostream>
 
+
 template <class K>
 class point
 {
 private:
     unsigned int d;
-    typedef std::vector<typename K::FT> Coeff;
+//    typedef std::vector<typename K::FT> Coeff;
+    typedef Eigen::Matrix<typename K::FT, Eigen::Dynamic,1> Coeff;
+
     Coeff coeffs;
     typedef typename std::vector<typename K::FT>::iterator iter;
 public:
     typedef typename K::FT 	FT;
 
+
     point() {}
-    
+
     point(const unsigned int dim) {
         d = dim;
-        coeffs = Coeff(d,0);
+        coeffs.setZero(d);
     }
     
     point(const unsigned int dim, iter begin, iter endit) {
         d = dim;
-        coeffs = Coeff(begin,endit);
+        coeffs.resize(d);
+        int i = 0;
+
+        for (iter it=begin ; it != endit ; it++)
+            coeffs(i++) = *it;
     }
-    
+
+    Coeff getCoefficients() {
+        return coeffs;
+    }
+
     int dimension() {
         return d;
     }
@@ -43,58 +55,50 @@ public:
     }
     
     void set_coord(const unsigned int i, FT coord) {
-        coeffs[i] = coord;
+        coeffs(i) = coord;
     }
     
     FT operator[] (const unsigned int i) {
-        return coeffs[i];
+        return coeffs(i);
     }
     
     point operator+ (point& p) {
-        point temp(p.dimension());
-
-        typename Coeff::iterator tmit = temp.iter_begin();
-        typename Coeff::iterator pit = p.iter_begin();
-        typename Coeff::iterator mit = coeffs.begin();
-
-        for (; pit < p.iter_end(); ++pit, ++mit, ++tmit) {
-            (*tmit) = (*pit) + (*mit);
-        }
+        point temp;
+        temp.d = d;
+        temp.coeffs = coeffs + p.getCoefficients();
         return temp;
     }
-    
+
+    void add(Coeff coeffs) {
+        this->coeffs = coeffs + this->coeffs;
+    }
+
     point operator- (point& p) {
-        point temp(p.dimension());
-
-        typename Coeff::iterator tmit = temp.iter_begin();
-        typename Coeff::iterator pit = p.iter_begin();
-        typename Coeff::iterator mit = coeffs.begin();
-
-        for (; pit < p.iter_end(); ++pit, ++mit, ++tmit) {
-            (*tmit) = (*mit) - (*pit);
-        }
+        point temp;
+        temp.d = d;
+        temp.coeffs = coeffs - p.getCoefficients();
         return temp;
     }
 
     point operator* (const FT& k) {
-        point temp(d, iter_begin(), iter_end());
-
-        typename Coeff::iterator tmit = temp.iter_begin();
-
-        for (; tmit < temp.iter_end(); ++tmit) {
-            (*tmit) *= k;
-        }
+        point temp;
+        temp.d = d;
+        temp.coeffs = coeffs * k;
         return temp;
     }
 
+    point operator/ (const FT& k) {
+        point temp;
+        temp.d = d;
+        temp.coeffs = coeffs / k;
+        return temp;
+    }
 
-    bool operator== (point& p) {
+    bool operator== (point& p) {//TODO check dim?
+        int i=0;
 
-        typename Coeff::iterator pit = p.iter_begin();
-        typename Coeff::iterator mit = coeffs.begin();
-
-        for ( ;  pit!=p.iter_end(); ++pit, ++mit) {
-            if (*mit!=*pit) return false;
+        for (auto x : p.getCoefficients()) {
+            if (x != coeffs(i++)) return false;
         }
 
         return true;
@@ -102,14 +106,7 @@ public:
 
 
     FT dot(point& p){
-        FT res=FT(0.0);
-
-        typename Coeff::iterator pit=p.iter_begin();
-        typename Coeff::iterator mit=coeffs.begin();
-        for( ; pit<p.iter_end(); ++pit, ++mit){
-            res+=(*mit)*(*pit);
-        }
-        return res;
+        return coeffs.dot(p.getCoefficients());
     }
     
     
@@ -117,9 +114,8 @@ public:
 
         FT lsq = FT(0.0);
 
-        typename Coeff::iterator mit=coeffs.begin();
-        for ( ; mit != coeffs.end(); mit++){
-            lsq += (*mit)*(*mit);
+        for (int i=0; i<d ; i++){
+            lsq += coeffs(i) * coeffs(i);
         }
         return lsq;
     }
@@ -127,7 +123,7 @@ public:
     void print(){
         for(unsigned int i=0; i<d; i++){
             #ifdef VOLESTI_DEBUG
-            std::cout<<coeffs[i]<<" ";
+            std::cout<<coeffs(i)<<" ";
             #endif
         }
         #ifdef VOLESTI_DEBUG
@@ -136,13 +132,13 @@ public:
     }
     
     
-    iter iter_begin() {
-        return coeffs.begin();
-    }
-    
-    iter iter_end() {
-        return coeffs.end();
-    }
+//    iter iter_begin() {
+//        return coeffs.begin();
+//    }
+//
+//    iter iter_end() {
+//        return coeffs.end();
+//    }
     
     
 };

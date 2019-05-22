@@ -42,18 +42,24 @@ public:
     std::pair<NT,NT> line_intersect(Point r,
                                           Point v){
 
-        viterator rit=r.iter_begin();
-        viterator vit=v.iter_begin();
-        viterator cit=_c.iter_begin();
+        VT r_coeffs = r.getCoefficients();
+        VT v_coeffs = v.getCoefficients();
+        VT c_coeffs = _c.getCoefficients();
+
+//        viterator rit=r.iter_begin();
+//        viterator vit=v.iter_begin();
+//        viterator cit=_c.iter_begin();
         //Point rc = r;// - _c;
-        viterator rcit=r.iter_begin();
+//        viterator rcit=r.iter_begin();
+
         NT vrc(0);
         NT v2(0);
         NT rc2(0);
-        for( ; cit < _c.iter_end() ; ++rcit, ++cit, ++rit, ++vit){
-            vrc += *vit * (*rcit);
-            v2 += *vit * (*vit);
-            rc2 += *rcit * (*rcit);
+
+        for(int i=0 ; i < r.dimension() ; ++i){ //TODO correct
+            vrc += v_coeffs(i) * r_coeffs(i);
+            v2 += v_coeffs(i) * v_coeffs(i);
+            rc2 += r_coeffs(i) * r_coeffs(i);
         }
 
         NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));
@@ -66,13 +72,14 @@ public:
                                           int rand_coord){
 
         //Point rc = r;// - _c;
-        viterator rcit=r.iter_begin();
-        NT vrc = *(rcit + rand_coord);
+        VT coeffs = r.getCoefficients();
+
+        NT vrc = r[rand_coord];
 
         //NT v2 = NT(1);
         NT rc2(_R);
-        for( ; rcit < r.iter_end() ; ++rcit){
-            rc2 -= *rcit * (*rcit);
+        for(int i=0 ; i <r.dimension() ; ++i){//TODO correct - seems weird (original)
+            rc2 -= coeffs(i) * coeffs(i);
         }
 
         //NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));
