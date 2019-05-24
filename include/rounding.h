@@ -12,7 +12,7 @@
 
 
 #include "khach.h"
-
+#include "Eigen"
 
 // ----- ROUNDING ------ //
 // main rounding function
@@ -22,6 +22,8 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
     typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
     typedef typename Parameters::RNGType RNGType;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic,1> Coeff;
+
     unsigned int n=var.n, walk_len=var.walk_steps, i, j = 0;
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
@@ -53,11 +55,12 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
     // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
     boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
     typename std::list<Point>::iterator rpit=randPoints.begin();
-    typename std::vector<NT>::iterator qit;
+
+
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        qit = (*rpit).iter_begin(); i=0;
-        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            Ap(i,j)=double(*qit);
+        Coeff coeffs = rpit->getCoefficients();
+        for (i=0 ; i<rpit->dimension(); i++){
+            Ap(i,j)=double(coeffs(i));
         }
     }
     boost::numeric::ublas::matrix<double> Q(n,n);

@@ -17,7 +17,7 @@ public:
     typedef Point BallPoint;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
-
+    typedef Eigen::Matrix<NT, Eigen::Dynamic,1> Coeff;
 
     Ball(Point cc, NT RR) : c(cc),	 R(RR) {}
 
@@ -42,18 +42,20 @@ public:
     std::pair<NT,NT> line_intersect(Point r,
                                           Point v){
 
-        viterator rit=r.iter_begin();
-        viterator vit=v.iter_begin();
-        viterator cit=c.iter_begin();
+        Coeff r_coeffs = r.getCoefficients();
+        Coeff v_coeffs = v.getCoefficients();
+        Coeff c_coeffs = c.getCoefficients();
+
         //Point rc = r;// - _c;
-        viterator rcit=r.iter_begin();
+//        viterator rcit=r.iter_begin();
+
         NT vrc(0);
         NT v2(0);
         NT rc2(0);
-        for( ; cit < c.iter_end() ; ++rcit, ++cit, ++rit, ++vit){
-            vrc += *vit * (*rcit);
-            v2 += *vit * (*vit);
-            rc2 += *rcit * (*rcit);
+        for(int i=0 ; i < c.dimension() ; ++i){
+            vrc += v_coeffs(i) * c_coeffs(i);
+            v2 += v_coeffs(i) * v_coeffs(i);
+            rc2 += r_coeffs(i) * r_coeffs(i);
         }
 
         NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
@@ -66,13 +68,13 @@ public:
                                           int rand_coord){
 
         //Point rc = r;// - _c;
-        viterator rcit=r.iter_begin();
-        NT vrc = *(rcit + rand_coord);
+        Coeff r_coeffs = r.getCoefficients();
+        NT vrc = r_coeffs(0 + rand_coord) ;
 
         //NT v2 = NT(1);
         NT rc2(R);
-        for( ; rcit < r.iter_end() ; ++rcit){
-            rc2 -= *rcit * (*rcit);
+        for(int i=0 ; i < r.dimension() ; ++i){
+            rc2 -= r_coeffs(i) * r_coeffs(i);
         }
 
         //NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - _R));

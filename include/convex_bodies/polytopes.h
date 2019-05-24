@@ -297,17 +297,17 @@ public:
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes();
-        viterator rit, vit;
+
 
         for (int i = 0; i < m; i++) {
             sum_nom = b(i);
             sum_denom = NT(0);
             j = 0;
-            rit = r.iter_begin();
-            vit = v.iter_begin();
-            for ( ; rit != r.iter_end(); rit++, vit++, j++){
-                sum_nom -= A(i, j) * (*rit);
-                sum_denom += A(i, j) * (*vit);
+            VT r_coeffs = r.getCoefficients();
+            VT v_coeffs = v.getCoefficients();
+            for (int i=0 ; i< r.dimension(); i++, j++){
+                sum_nom -= A(i, j) * r_coeffs(i);
+                sum_denom += A(i, j) * v_coeffs(i);
             }
             if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
@@ -331,15 +331,14 @@ public:
         NT sum_nom, sum_denom;
         unsigned int j;
         int m = num_of_hyperplanes();
-        viterator rit;
+
 
         for (int i = 0; i < m; i++) {
             sum_nom = b(i);
             sum_denom = A(i, rand_coord);
-            rit = r.iter_begin();
-            j = 0;
-            for (; rit != r.iter_end(); rit++, j++) {
-                sum_nom -= A(i, j) * (*rit);
+            VT r_coeffs = r.getCoefficients();
+            for (j=0; j< r.dimension(); j++) {
+                sum_nom -= A(i, j) * r_coeffs(j);
             }
             lamdas[i] = sum_nom;
             if (sum_denom == NT(0)) {
