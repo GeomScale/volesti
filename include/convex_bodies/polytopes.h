@@ -302,12 +302,11 @@ public:
         for (int i = 0; i < m; i++) {
             sum_nom = b(i);
             sum_denom = NT(0);
-            j = 0;
             VT r_coeffs = r.getCoefficients();
             VT v_coeffs = v.getCoefficients();
-            for (int i=0 ; i< r.dimension(); i++, j++){
-                sum_nom -= A(i, j) * r_coeffs(i);
-                sum_denom += A(i, j) * v_coeffs(i);
+            for (j=0 ; j< r.dimension();  j++){
+                sum_nom -= A(i, j) * r_coeffs(j);
+                sum_denom += A(i, j) * v_coeffs(j);
             }
             if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
