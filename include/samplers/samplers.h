@@ -10,6 +10,11 @@
 #ifndef RANDOM_SAMPLERS_H
 #define RANDOM_SAMPLERS_H
 
+#include "Eigen"
+
+typedef double NT_MATRIX;
+typedef Eigen::Matrix<NT_MATRIX,Eigen::Dynamic,Eigen::Dynamic> MT;
+typedef Eigen::Matrix<NT_MATRIX,Eigen::Dynamic,1> VT;
 
 // Pick a random direction as a normilized vector
 template <class RNGType, class Point, typename NT>
@@ -150,6 +155,64 @@ void rand_point_generator(Polytope &P,
 }
 
 
+//TODO i added this
+// use hit and run and return end points of segments
+template<class Polytope, class PointList, class Parameters, class Point>
+void smart_rand_point_generator(Polytope &P,
+                                Point &p,   // a point to start
+                                unsigned int rnum,
+                                unsigned int walk_len,
+                                PointList &randPoints,
+                                PointList &endPoints,
+                                Parameters &var,
+                                MT& isotropic)  // constants for volume
+{
+    int dim = p.dimension();
+    Point p1(dim), p2(dim);
+
+    hit_and_run(p, P, var);
+
+    for (unsigned int i = 1; i <= rnum; ++i) {
+        Point p1(dim), p2(dim);
+
+        for (unsigned int j = 0; j < walk_len; ++j)
+            smart_hit_and_run(p, P, var, p1, p2, isotropic);
+
+        randPoints.push_back(p);
+        endPoints.push_back(p1);
+        endPoints.push_back(p2);
+    }
+}
+
+//TODO i added this
+// use hit and run and return end points of segments
+template<class Polytope, class PointList, class Parameters, class Point>
+void rand_point_generator(Polytope &P,
+                          Point &p,   // a point to start
+                          unsigned int rnum,
+                          unsigned int walk_len,
+                          PointList &randPoints,
+                          PointList &endPoints,
+                          Parameters &var)  // constants for volume
+{
+    int dim = p.dimension();
+    Point p1(dim), p2(dim);
+
+    hit_and_run(p, P, var);
+
+
+    for (unsigned int i = 1; i <= rnum; ++i) {
+        Point p1(dim), p2(dim);
+
+        for (unsigned int j = 0; j < walk_len; ++j)
+            hit_and_run(p, P, var, p1, p2);
+
+        randPoints.push_back(p);
+        endPoints.push_back(p1);
+        endPoints.push_back(p2);
+    }
+}
+
 
 template <class BallPoly, class PointList, class Parameters, class Point>
 void rand_point_generator(BallPoly &PBLarge,
@@ -228,6 +291,67 @@ void hit_and_run(Point &p,
     p = ((1 - lambda) * b2) + p;
 }
 
+//TODO i added this
+template<class Polytope, class Point, class Parameters>
+void hit_and_run(Point &p,
+                 Polytope &P,
+                 Parameters &var,
+                 Point &b1,
+                 Point &b2) {
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = P.dimension();
+    typedef typename Point::FT NT;
+
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+
+    Point l = get_direction<RNGType, Point, NT>(n);
+    std::pair<NT, NT> dbpair = P.line_intersect(p, l);
+    NT min_plus = dbpair.first;
+    NT max_minus = dbpair.second;
+    b1 = (min_plus * l) + p;
+    b2 = (max_minus * l) + p;
+    NT lambda = urdist(rng);
+    p = (lambda * b1);
+    p = ((1 - lambda) * b2) + p;
+}
+
+//TODO i added this
+//hit-and-run with random directions and update
+// copied this function - need it to return the end points of the segment
+template<class Polytope, class Point, class Parameters>
+void smart_hit_and_run(Point &p,
+                       Polytope &P,
+                       Parameters &var,
+                       Point &b1,
+                       Point &b2,
+                       MT &isotropic) {
+    typedef typename Parameters::RNGType RNGType;
+    typedef typename Point::FT NT;
+
+    unsigned int n = P.dimension();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+
+    Point l = get_point_on_Dsphere<RNGType, Point, NT>(n, 1.0);//get_direction<RNGType, Point, NT>(n);
+    MT v(n, 1);
+    v = isotropic * l.getCoefficients();
+//
+    for (int i=0 ; i<l.dimension() ; i++) {
+        l.set_coord(i, v(i, 0));
+        i++;
+    }
+//    l.add(isotropic*l.getCoefficients());
+
+    std::pair<NT, NT> dbpair = P.line_intersect(p, l);
+    NT min_plus = dbpair.first;
+    NT max_minus = dbpair.second;
+    b1 = (min_plus * l) + p;
+    b2 = (max_minus * l) + p;
+    NT lambda = urdist(rng);
+    p = (lambda * b1);
+    p = ((1 - lambda) * b2) + p;
+}
 
 //hit-and-run with orthogonal directions and update
 template <class Polytope, class Point, typename NT>

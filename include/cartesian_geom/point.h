@@ -31,6 +31,11 @@ public:
         coeffs.setZero(d);
     }
 
+    point(Coeff coeffs) {
+        d = coeffs.rows();
+        this->coeffs = coeffs;
+    }
+
     point(const unsigned int dim, iter begin, iter endit) {
         d = dim;
         coeffs.resize(d);

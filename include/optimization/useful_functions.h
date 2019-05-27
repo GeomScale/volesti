@@ -1,0 +1,8 @@
+//
+// Created by panagiotis on 27/5/2019.
+//
+
+#ifndef VOLESTI_USEFUL_FUNCTIONS_H
+#define VOLESTI_USEFUL_FUNCTIONS_H
+
+#endif //VOLESTI_USEFUL_FUNCTIONS_H
