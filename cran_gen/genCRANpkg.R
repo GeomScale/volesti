@@ -74,11 +74,6 @@ Rbuild_dir = paste0(path,'/cran_gen/.Rbuildignore')
 Rbuild_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(Rbuild_dir, Rbuild_dist, recursive=TRUE)
 
-# replace the Makefile
-makefile_dir = paste0(path,'/cran_gen/Makefile')
-makefile_dist = paste0(path, '/cran_gen/cran_package/src/lp_solve')
-file.copy(makefile_dir, makefile_dist, recursive=TRUE)
-
 # replace the Makevars
 makevars_dir = paste0(path,'/cran_gen/Makevars')
 makevars_dist = paste0(path, '/cran_gen/cran_package/src')
@@ -113,6 +108,29 @@ unlink(dir_misc, recursive = TRUE)
 # delete linear_extensions.h from include
 dir_lin_ext = paste0(path,'/cran_gen/cran_package/src/include/linear_extensions.h')
 unlink(dir_lin_ext, recursive = TRUE)
+
+# create lpsolve folder
+dir.create(paste0(path,"/cran_gen/cran_package/src/external/lpsolve"))
+dir.create(paste0(path,"/cran_gen/cran_package/src/external/lpsolve/build"))
+dir.create(paste0(path,"/cran_gen/cran_package/src/external/lpsolve/headers"))
+dir_lp = paste0(path,"/cran_gen/cran_package/src/Rproj_externals/lp_solve")
+lp_dist = (paste0(path,"/cran_gen/cran_package/src/external/lpsolve/build"))
+file.copy(dir_lp, lp_dist, recursive=TRUE)
+dir_lp = paste0(path,"/cran_gen/cran_package/src/external/LPsolve_src/include")
+lp_dist = (paste0(path,"/cran_gen/cran_package/src/external/lpsolve/headers"))
+file.copy(dir_lp, lp_dist, recursive=TRUE)
+dir_lp = paste0(path,"/cran_gen/cran_package/src/external/LPsolve_src/run_headers")
+lp_dist = (paste0(path,"/cran_gen/cran_package/src/external/lpsolve/headers"))
+file.copy(dir_lp, lp_dist, recursive=TRUE)
+dir_lpsolve_heds = paste0(path,"/cran_gen/cran_package/src/external/LPsolve_src")
+unlink(dir_lpsolve_heds, recursive = TRUE)
+dir_lpsolve_heds = paste0(path,"/cran_gen/cran_package/src/Rproj_externals")
+unlink(dir_lpsolve_heds, recursive = TRUE)
+
+# replace the Makefile
+makefile_dir = paste0(path,'/cran_gen/Makefile')
+makefile_dist = paste0(path, '/cran_gen/cran_package/src/external/lpsolve/build/lp_solve')
+file.copy(makefile_dir, makefile_dist, recursive=TRUE)
 
 # set new cran package folder as wrking directory
 setwd(paste0(path,'/cran_gen/cran_package'))

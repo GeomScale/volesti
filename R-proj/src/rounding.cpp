@@ -33,7 +33,7 @@
 //'
 //' @return A numerical matrix that describes the rounded polytope and contains the round value.
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rounding (Rcpp::Reference P,
+Rcpp::List rounding (Rcpp::Reference P,
                               Rcpp::Nullable<std::string> WalkType = R_NilValue,
                               Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
                               Rcpp::Nullable<double> radius = R_NilValue) {
@@ -139,10 +139,6 @@ Rcpp::NumericMatrix rounding (Rcpp::Reference P,
         }
     }
 
-    // store rounding value and the ratio between min and max axe in the first row
-    // the matrix is in ine format so the first row is useless and is going to be removed by R function modifyMat()
-    Mat(0,0) = round_res.first;
-    Mat(0,1) = round_res.second;
-    return Mat;
+    return Rcpp::List::create(Rcpp::Named("Mat") = Mat , Rcpp::Named("round_value") = round_res.first);
 
 }

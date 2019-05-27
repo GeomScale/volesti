@@ -246,7 +246,24 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
             VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
             VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
             VPcVP.init(VP1, VP2);
-            return generic_volume<Point, NT>(VPcVP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk,
+            Rcpp::NumericVector InnerVec(n+1);
+            bool empty;
+            std::pair<Point, NT> InnerB = VPcVP.getInnerPoint_rad(empty);
+            if (empty) {
+                Rf_warning("Empty set");
+                return 0;
+            }
+            if(!InnerBall.isNotNull()) {
+                for (int i = 0; i < n; ++i) {
+                    InnerVec[i] = InnerB.first[i];
+                }
+                InnerVec[n] = InnerB.second;
+            } else {
+
+                InnerVec = Rcpp::as<Rcpp::NumericVector>(InnerBall);
+
+            }
+            return generic_volume<Point, NT>(VPcVP, walkL, e, InnerVec, CG, win_len, N, C, ratio, frac, ball_walk,
                                              delta, cdhr, rdhr, round);
         }
     }

@@ -9,6 +9,9 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
+#ifndef VARS_H
+#define VARS_H
+
 //structs with variables and random generators
 template <typename NT, class RNG>
 struct vars{
@@ -119,3 +122,5 @@ public:
     bool cdhr_walk;
     bool rdhr_walk;
 };
+
+#endif
