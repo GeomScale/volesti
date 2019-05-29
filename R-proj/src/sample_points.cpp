@@ -50,7 +50,7 @@
 //' @references \cite{A Smith, Noah and W Tromble, Roy,
 //' \dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
 //' @references \cite{Art B. Owen,
-//' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Copyright Art Owen,} 2009-2013.}
+//' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Art Owen,} 2009.}
 //'
 //' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope P.
 //' @examples
@@ -273,10 +273,13 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                          VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
                 VPcVP.init(VP1, VP2);
 
-                if (!set_mean_point || ball_walk) {
-                    InnerBall = VP.ComputeInnerBall();
-                    if (!set_mean_point) MeanPoint = InnerBall.first;
+                bool empty;
+                InnerBall = VPcVP.getInnerPoint_rad(empty);
+                if (empty) {
+                    Rf_warning("Empty set");
+                    return Rcpp::NumericMatrix(0,0);
                 }
+                if (!set_mean_point) MeanPoint = InnerBall.first;
                 break;
             }
         }

@@ -123,11 +123,11 @@ TEST_CASE("cube") {
 TEST_CASE("cross") {
     call_test_cross<double>();
     //call_test_cross<float>();
-    call_test_cross<long double>();
+    //call_test_cross<long double>();
 }
 
 TEST_CASE("simplex") {
     call_test_simplex<double>();
     //call_test_simplex<float>();
-    call_test_simplex<long double>();
+    //call_test_simplex<long double>();
 }

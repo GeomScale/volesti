@@ -120,7 +120,7 @@ copula2 <- function(h, E, numSlices, N) {
 #' Z = GenZonotope(5, 10)
 #' vol = exact_vol(Z)
 #'
-#' \dontrun{# compute the exact volume of a 2-d arbitrary simplex
+#' \donttest{# compute the exact volume of a 2-d arbitrary simplex
 #' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
 #' P = Vpolytope$new(V)
 #' vol = exact_vol(P)
@@ -201,7 +201,7 @@ rounding <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL) {
 #' @references \cite{A Smith, Noah and W Tromble, Roy,
 #' \dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
 #' @references \cite{Art B. Owen,
-#' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Copyright Art Owen,} 2009-2013.}
+#' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Art Owen,} 2009.}
 #'
 #' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples

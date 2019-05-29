@@ -1,3 +1,12 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+// This file is converted from BNMin1 (https://www.mrao.cam.ac.uk/~bn204/oof/bnmin1.html) by Apostolos Chalkis
+
+// Original copyright notice:
+
 /**
    Bojan Nikolic <bojan@bnikolic.co.uk> 
    Initial version 2009
@@ -362,7 +371,8 @@
   {
     const size_t ndim=low.size();
 
-    res.resize(pow(nbins,ndim));
+    //res.resize(pow(nbins, static_cast<size_t>(ndim)));
+    res.resize( static_cast<int>( pow(static_cast<long double>(nbins), static_cast<long double>(ndim)) ) );
     std::fill(res.begin(), res.end(), 0.0);
     
 
@@ -383,7 +393,7 @@
 	int dimi = int((i->p[j]-low[j])/deltas[j]);
 	if (dimi >= 0 and dimi < (int)nbins)
 	{
-	  k+= dimi * pow(nbins, ndim-j-1);
+	  k+= dimi * static_cast<int>( pow(static_cast<long double>(nbins), static_cast<long double>(ndim-j-1)) );
 	}
 	else
 	{
@@ -440,7 +450,7 @@
 		    std::vector<double> &res)
   {
     // Two dimensions only
-    res.resize(pow(nbins,2));
+    res.resize( static_cast<int>( pow(static_cast<long double>(nbins), static_cast<long double>(2)) ) );
     std::fill(res.begin(), res.end(), 
 	      0.0);
     const double idelta=(ihigh-ilow)/nbins;

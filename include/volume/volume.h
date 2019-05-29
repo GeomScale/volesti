@@ -30,6 +30,7 @@
 #include "vpolyintersectvpoly.h"
 #include "samplers.h"
 #include "rounding.h"
+#include "rotating.h"
 #include "gaussian_samplers.h"
 #include "gaussian_annealing.h"
 //#include "sample_only.h"

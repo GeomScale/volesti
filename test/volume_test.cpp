@@ -208,25 +208,25 @@ void call_test_skinny_cube() {
 TEST_CASE("cube") {
     call_test_cube<double>();
     //call_test_cube<float>();
-    call_test_cube<long double>();
+    //call_test_cube<long double>();
 }
 
 TEST_CASE("cross") {
     call_test_cross<double>();
-    call_test_cross<float>();
-    call_test_cross<long double>();
+    //call_test_cross<float>();
+    //call_test_cross<long double>();
 }
 
 TEST_CASE("birk") {
     call_test_birk<double>();
-    call_test_birk<float>();
-    call_test_birk<long double>();
+    //call_test_birk<float>();
+    //call_test_birk<long double>();
 }
 
 TEST_CASE("prod_simplex") {
     call_test_prod_simplex<double>();
     //call_test_prod_simplex<float>();
-    call_test_prod_simplex<long double>();
+    //call_test_prod_simplex<long double>();
 }
 
 TEST_CASE("simplex") {
@@ -238,5 +238,5 @@ TEST_CASE("simplex") {
 TEST_CASE("skinny_cube") {
     call_test_skinny_cube<double>();
     //call_test_skinny_cube<float>();
-    call_test_skinny_cube<long double>();
+    //call_test_skinny_cube<long double>();
 }

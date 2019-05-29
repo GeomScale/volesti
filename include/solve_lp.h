@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <exception>
+#include "samplers.h"
 #undef Realloc
 #undef Free
 #include "lp_lib.h"
@@ -502,7 +503,7 @@ bool memLP_Zonotope(MT V, Point q){
     for(j=0; j<Ncol; j++){
         colno[j] = j+1; /* j_th column */
         row[j] = 0.0;
-        set_bounds(lp, j+1, 0.0, 1.0);
+        set_bounds(lp, j+1, -1.0, 1.0);
     }
 
     // set the objective function
@@ -763,6 +764,144 @@ std::pair<NT,NT> intersect_double_line_Vpoly(MT V, Point &p, Point &v){
 
     delete_lp(lp);
     return res_pair;
+}
+
+
+template <class VT, class MT, class Point>
+Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
+
+    typedef typename Point::FT NT;
+    unsigned int d = V1.cols();
+    unsigned int k1 = V1.rows();
+    unsigned int k2 = V2.rows();
+    unsigned int k = k1 + k2;
+    VT cb(k1);
+    lprec *lp;
+    int Ncol=k, *colno = NULL, j, i;
+    REAL *row = NULL;
+    Point p(d);
+
+    try
+    {
+        lp = make_lp(d+2, Ncol);
+        if(lp == NULL) throw false;
+    }
+    catch (bool e) {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
+#endif
+        return false;
+    }
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    try
+    {
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        row = (REAL *) malloc(Ncol * sizeof(*row));
+    }
+    catch (std::exception &e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
+#endif
+        return false;
+    }
+
+    set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
+
+
+    for (i = 0;  i< d+2; ++i) {
+        /* construct all rows */
+        for(j=0; j<k1; j++){
+            colno[j] = j+1;
+            if (i==d) {
+                row[j] = 1.0;
+            } else if(i==d+1){
+                row[j] = 0.0;
+            } else {
+                row[j] = V1(j, i);
+            }
+        }
+        for(j=0; j<k2; j++){
+            colno[k1+j] = k1+j+1;
+            if (i==d) {
+                row[k1+j] = 0.0;
+            } else if(i==d+1){
+                row[k1+j] = 1.0;
+            } else {
+                row[k1+j] = -V2(j, i);
+            }
+        }
+
+        /* add the row to lpsolve */
+        try {
+            if(i==d || i==d+1) {
+                if (!add_constraintex(lp, Ncol, row, colno, EQ, 1.0)) throw false;
+            } else {
+                if (!add_constraintex(lp, Ncol, row, colno, EQ, 0.0)) throw false;
+            }
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+#endif
+            return false;
+        }
+    }
+
+    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
+
+    // set the bounds
+    typename std::vector<NT>::iterator pit = direction.iter_begin();
+    for(j=0; j<Ncol; ++j, ++pit){
+        colno[j] = j+1; /* j_th column */
+        row[j] = (*pit);
+        set_bounds(lp, j+1, 0.0, infinite);
+    }
+
+    try
+    {
+        if(!set_obj_fnex(lp, Ncol, row, colno)) throw false;
+    }
+    catch (bool e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
+#endif
+        return false;
+    }
+
+    /* set the object direction to maximize */
+    set_maxim(lp);
+
+    /* I only want to see important messages on screen while solving */
+    set_verbose(lp, NEUTRAL);
+
+    /* Now let lpsolve calculate a solution */
+    if (solve(lp) != OPTIMAL){
+        delete_lp(lp);
+        empty = true;
+        return p;
+    }
+    get_variables(lp, row);
+    delete_lp(lp);
+
+    for ( j=0; j<k1; ++j) {
+        cb(j) = row[j];
+    }
+    VT cb2(d);
+    cb2 = V1.transpose()*cb;
+    pit = p.iter_begin();
+    j = 0;
+    for ( ; pit!=p.iter_end(); ++pit, ++j) {
+        *pit = cb2(j);
+    }
+
+    empty = false;
+    return p;
+
 }
 
 #endif
