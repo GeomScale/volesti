@@ -5,7 +5,6 @@
 #ifndef VOLESTI_CUTTING_PLANE_H
 #define VOLESTI_CUTTING_PLANE_H
 
-#define NDEBUG
 
 #include "polytopes.h"
 #include "Eigen"
@@ -13,8 +12,7 @@
 #include <vector>
 #include <unsupported/Eigen/MatrixFunctions>
 #include "samplers.h"
-
-
+#include "interior_point.h"
 
 namespace optimization {
 
@@ -335,7 +333,6 @@ namespace optimization {
             Y = Y.sqrt();
         }
         catch (int e) {
-//            std::cout << "Failed sqrttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt\n";
             throw e;
         }
 
@@ -354,18 +351,15 @@ namespace optimization {
      * @tparam Parameters struct vars
      * @tparam Point class Point
      * @tparam NT The numeric type
-     * @param c a vector holding the coefficients of the object function
-     * @param polytope An instance of class HPolytope
+     * @param lp
      * @param parameters An instance of struct vars
      * @param error how much distance between two successive estimations before we stop
      * @param masSteps maximum number of steps
      * @return A pair of the point that minimizes the object function and the minimum value
      */
     template<class Parameters, class Point, typename NT>
-    std::pair<Point, NT>
-    cutting_plane_method(VT c, HPolytope<Point> polytope, Parameters parameters, const NT error,
-                        const unsigned int maxSteps) {
-
+    std::pair<Point, NT> cutting_plane_method(HPolytope<Point> polytope, VT& objectiveFunction, Parameters parameters, const NT error,
+                        const unsigned int maxSteps, Point& initial) {
 
         bool verbose = parameters.verbose;
         unsigned int rnum = parameters.m;
@@ -373,63 +367,56 @@ namespace optimization {
         bool tillConvergence = maxSteps == 0;
         unsigned int step = 1;
 
-        // add one more row in polytope, where we will store the current cutting plane
-        // each time we cut the polytope we replace the previous cutting plane with the new one
-        addRowInPolytope<Point, NT>(polytope);
-
-        // get an internal point so you can sample
-        std::pair<Point, NT> InnerBall = polytope.ComputeInnerBall();
-        Point interiorPoint = InnerBall.first;
 
         std::pair<Point, Point> minimizingPoints;
-
-        // sample points from polytope
         std::list<Point> randPoints;
-
         // the intersection points between the polytope and the lines of hit and run
         std::list<Point> intersectionPoints;
+
+        // get an internal point so you can sample
+        auto t1 = std::chrono::steady_clock::now();
+
+        // get an internal point so you can sample
+        Point interiorPoint = initial;
 
         rand_point_generator(polytope, interiorPoint, rnum, walk_len, randPoints, intersectionPoints, parameters);
 
         // find where to cut the polytope
-        minimizingPoints = getPairMinimizingPoint<Point, NT>(c, randPoints);
-        NT min = c.dot(minimizingPoints.second.getCoefficients());
-        int every = 3;
+        minimizingPoints = getPairMinimizingPoint<Point, NT>(objectiveFunction, randPoints);
+        NT min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+
+        // add one more row in polytope, where we will store the current cutting plane
+        // each time we cut the polytope we replace the previous cutting plane with the new one
+        addRowInPolytope<Point, NT>(polytope);
 
         do {
             std::list<Point> randPoints;
 
             // cut the polytope
-            cutPolytope<Point, NT>(c, polytope, minimizingPoints.second);
+            cutPolytope<Point, NT>(objectiveFunction, polytope, minimizingPoints.second);
 
             // we need this for arithmetic stability
             intersectionPoints.push_back(minimizingPoints.first);
+            intersectionPoints.push_back(minimizingPoints.second);
 
             // sample points from polytope
 
-                // use this point as the next starting point for sampling
-            interiorPoint = getArithmeticMean<Point, NT>(c, intersectionPoints, minimizingPoints.second);
+            // use this point as the next starting point for sampling
+            interiorPoint = getArithmeticMean<Point, NT>(objectiveFunction, intersectionPoints, minimizingPoints.second);
 
             intersectionPoints.clear();
             rand_point_generator(polytope, interiorPoint, rnum, walk_len, randPoints, intersectionPoints, parameters);
 
             // find where to cut the polytope
-            minimizingPoints = getPairMinimizingPoint<Point, NT>(c, randPoints);
+            minimizingPoints = getPairMinimizingPoint<Point, NT>(objectiveFunction, randPoints);
 
-            NT newMin = c.dot(minimizingPoints.first.getCoefficients());
-//            std::cout << polytope.is_in(minimizingPoints.second) <<"\n";
-            // check for distance between successive estimations
-
+            NT newMin = objectiveFunction.dot(minimizingPoints.first.getCoefficients());
             NT distance = abs(newMin - min);
             min = newMin;
 
             if (distance < error) break;
 
-            // add the cutting plane
-
-//            std::cout << min <<"\n";
             step++;
-//            if (verbose) std::cout << "Step " << step  << std::endl;
         } while (step <= maxSteps || tillConvergence);
 
 
@@ -450,18 +437,15 @@ namespace optimization {
      * @tparam Parameters struct vars
      * @tparam Point class Point
      * @tparam NT The numeric type
-     * @param c a vector holding the coefficients of the object function
-     * @param polytope An instance of class HPolytope
+     * @param lp
      * @param parameters An instance of struct vars
      * @param error how much distance between two successive estimations before we stop
      * @param masSteps maximum number of steps
      * @return A pair of the point that minimizes the object function and the minimum value
      */
     template<class Parameters, class Point, typename NT>
-    std::pair<Point, NT>
-    cutting_plane_method_isotropic(VT c, HPolytope<Point> polytope, Parameters parameters, const NT error,
-                        const unsigned int maxSteps) {
-
+    std::pair<Point, NT> cutting_plane_method_isotropic(HPolytope<Point> polytope, VT& objectiveFunction, Parameters parameters, const NT error,
+                        const unsigned int maxSteps, Point& initial) {
 
         bool verbose = parameters.verbose;
         unsigned int rnum = parameters.m;
@@ -469,37 +453,32 @@ namespace optimization {
         bool tillConvergence = maxSteps == 0;
         unsigned int step = 1;
 
-        // add one more row in polytope, where we will store the current cutting plane
-        // each time we cut the polytope we replace the previous cutting plane with the new one
-        addRowInPolytope<Point, NT>(polytope);
-
-        // get an internal point so you can sample
-        std::pair<Point, NT> InnerBall = polytope.ComputeInnerBall();
-        Point interiorPoint = InnerBall.first;
-
         std::pair<Point, Point> minimizingPoints;
-
-        // sample points from polytope
         std::list<Point> randPoints;
-
         // the intersection points between the polytope and the lines of hit and run
         std::list<Point> intersectionPoints;
 
+        // get an internal point so you can sample
+        Point interiorPoint = initial;
         rand_point_generator(polytope, interiorPoint, rnum, walk_len, randPoints, intersectionPoints, parameters);
 
         // find where to cut the polytope
-        minimizingPoints = getPairMinimizingPoint<Point, NT>(c, randPoints);
-        NT min = c.dot(minimizingPoints.second.getCoefficients());
+        minimizingPoints = getPairMinimizingPoint<Point, NT>(objectiveFunction, randPoints);
+        NT min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
 
+        // add one more row in polytope, where we will store the current cutting plane
+        // each time we cut the polytope we replace the previous cutting plane with the new one
+        addRowInPolytope<Point, NT>(polytope);
 
         do {
             std::list<Point> randPoints;
 
             // cut the polytope
-            cutPolytope<Point, NT>(c, polytope, minimizingPoints.second);
+            cutPolytope<Point, NT>(objectiveFunction, polytope, minimizingPoints.second);
 
             // we need this for arithmetic stability
             intersectionPoints.push_back(minimizingPoints.first);
+            intersectionPoints.push_back(minimizingPoints.second);
 
             // sample points from polytope
             // matrix isotropic will be multiplied witch each direction vector of hit and run
@@ -507,19 +486,16 @@ namespace optimization {
             std::list<NT> intersectionPointsDotProducts;
             VT sum;
 
-            dotProducts(c, intersectionPoints, intersectionPointsDotProducts);
-            interiorPoint = getArithmeticMean(c, intersectionPoints, minimizingPoints.second, intersectionPointsDotProducts, sum);
-
-//                std::cout << "The interior point is in: " << polytope.is_in(interiorPoint) << "\n" << interiorPoint.getCoefficients() << "\n\n\n";
-
+            dotProducts(objectiveFunction, intersectionPoints, intersectionPointsDotProducts);
+            interiorPoint = getArithmeticMean(objectiveFunction, intersectionPoints, minimizingPoints.second, intersectionPointsDotProducts, sum);
 
             try { // we may fail to compute square root of matrix
-                MT isotropic = getIsotropicQuantities<Point, NT>(c, intersectionPoints, minimizingPoints,
+                MT isotropic = getIsotropicQuantities<Point, NT>(objectiveFunction, intersectionPoints, minimizingPoints,
                                                                  intersectionPointsDotProducts, sum);
+
                 intersectionPoints.clear();
                 smart_rand_point_generator(polytope, interiorPoint, rnum, walk_len, randPoints,
                                            intersectionPoints, parameters, isotropic);
-
             }
             catch (int e) {
                 intersectionPoints.clear();
@@ -529,22 +505,16 @@ namespace optimization {
 
 
             // find where to cut the polytope
-            minimizingPoints = getPairMinimizingPoint<Point, NT>(c, randPoints);
+            minimizingPoints = getPairMinimizingPoint<Point, NT>(objectiveFunction, randPoints);
 
-            NT newMin = c.dot(minimizingPoints.first.getCoefficients());
-//            std::cout << polytope.is_in(minimizingPoints.second) <<"\n";
             // check for distance between successive estimations
-
+            NT newMin = objectiveFunction.dot(minimizingPoints.first.getCoefficients());
             NT distance = abs(newMin - min);
             min = newMin;
 
             if (distance < error) break;
 
-            // add the cutting plane
-
-//            std::cout << min <<"\n";
             step++;
-//            if (verbose) std::cout << "Step " << step  << std::endl;
         } while (step <= maxSteps || tillConvergence);
 
 

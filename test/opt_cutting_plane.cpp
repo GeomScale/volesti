@@ -12,6 +12,9 @@
 #include "solve_lp.h"
 #include <chrono>
 #include "Eigen"
+#include "lp_problem.h"
+#include "lp_generator.h"
+#include "interior_point.h"
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
@@ -22,26 +25,17 @@ typedef Cartesian<NT> Kernel;
 typedef typename Kernel::Point Point;
 typedef boost::mt19937 RNGType;
 typedef HPolytope<Point> Hpolytope;
-typedef std::pair<Point, NT> Result;
-
+typedef optimization::lp_problem<Point, NT> lp_problem;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
 void printHelpMessage();
-
-bool
-readFromFile(const char *const *argv, bool verbose, HPolytope<point<Cartesian<double>::Self>> &HP, int &n, bool &file,
-             int &i, VT& objectFunction);
-
-
-bool loadProgramFromStream(std::istream &is, HPolytope<Point> &HP, VT& objectFunction);
-NT solveWithLPSolve(HPolytope<Point>& HP, VT objectFunction);
+NT solveWithLPSolve(lp_problem);
 
 int main(const int argc, const char **argv) {
 
     // the object function is a vector
 
-    VT objectFunction;
     //Deafault values
     int dimensinon, numOfExperinments = 1, walkLength = 10, numOfRandomPoints = 16, nsam = 100, numMaxSteps = 100;
     NT e = 1;
@@ -70,7 +64,7 @@ int main(const int argc, const char **argv) {
             gaussian_sam = false;
 
 
-    Hpolytope HP;
+    lp_problem lp;
 
     NT delta = -1.0, error = 0.2;
     NT distance = 0.0001;
@@ -96,7 +90,11 @@ int main(const int argc, const char **argv) {
         }
 
         if (!strcmp(argv[i], "-f") || !strcmp(argv[i], "--file")) {
-            readFromFile(argv, verbose, HP, dimensinon, file, i, objectFunction);
+            std::ifstream inp;
+            inp.open(argv[++i], std::ios_base::in);
+            lp = optimization::lp_problem<Point, NT>(inp);
+            inp.close();
+            file = true;
             correct = true;
         }
 
@@ -139,14 +137,13 @@ int main(const int argc, const char **argv) {
     }
 
 
-
     if (uselpSolve) {
         std::cout << "Using lp_solve" << std::endl;
 
         auto t1 = std::chrono::steady_clock::now();
 
 
-        NT min = solveWithLPSolve(HP, objectFunction);
+        NT min = solveWithLPSolve(lp);
 
         auto t2 = std::chrono::steady_clock::now();
 
@@ -175,76 +172,71 @@ int main(const int argc, const char **argv) {
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1, 1);
 
+    // Setup the parameters
+    vars<NT, RNGType> var(numOfRandomPoints, dimensinon, walkLength, 1, err, e, 0, 0.0, 0, 0, rng,
+                          urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
     //RUN EXPERIMENTS
+    std::vector<NT> results;
     std::vector<double> times;
-    std::vector<Result> results;
-    NT sum = NT(0);
-    std::cout.precision(7);
-
-
-    if (verbose && HP.num_of_hyperplanes() < 100) {
-        std::cout << "Input polytope is of dimension: " << dimensinon << std::endl;
-        HP.print();
-    }
 
     for (unsigned int i = 0; i < numOfExperinments; ++i) {
         std::cout << "Experiment " << i + 1 << std::endl;
-
         auto t1 = std::chrono::steady_clock::now();
 
-        // Setup the parameters
-        vars<NT, RNGType> var(numOfRandomPoints, dimensinon, walkLength, 1, err, e, 0, 0.0, 0, 0, rng,
-                              urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
-
-
-
-        Result result;
-
-        if (useIsotropyMatrix)
-            result = optimization::cutting_plane_method_isotropic(objectFunction, HP, var, distance, numMaxSteps);
-        else
-            result = optimization::cutting_plane_method(objectFunction, HP, var, distance, numMaxSteps);
+        lp.solve(useIsotropyMatrix, var, distance, numMaxSteps);
 
         auto t2 = std::chrono::steady_clock::now();
 
+        std::cout << std::fixed;
+        lp.printSolution();
 
         if ( std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < 10000 ) {
-            std::cout << "Min value is: " << result.second << std::endl <<
-                      "coords: ";
-            result.first.print();
             std::cout << "Computed at " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " msecs" << std::endl << std::endl;
         }
         else {
-            std::cout << "Min value is: " << result.second << std::endl <<
-                      "coords: ";
-            result.first.print();
             std::cout << "Computed at " << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " secs" << std::endl << std::endl;
         }
 
-//        results.push_back(result);
-//        sum += result.second;
+        results.push_back(lp.solutionVal);
+        times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count());
     }
 
+    double sum = 0;
+
+    for (auto x : results)
+        sum += x;
+
+    double average = sum / (double) results.size();
+    double std_dev=0;
+    double variance = 0;
+
+    for(auto x : results){
+        variance += std::pow(x - average,2);
+    }
+
+    variance /= (double)results.size();
+    std_dev = std::sqrt(variance);
+
+    double avg_time = 0;
+
+    for (auto x : times)
+        avg_time += x;
+
+    avg_time /= (double) times.size();
+
+    std::cout.precision(7);
+
+    std::cout << "\nStatistics\n" <<
+        "Average result: " << average << "\n"<<
+         "Average tine: " << avg_time << "\n" <<
+        "Variance: " << variance << "\n" <<
+        "Standard deviation: " << std_dev << "\n" <<
+        "Coefficient of variation: " << abs(std_dev / average)  << "\n";
 
     return 0;
 }
 
-
-
-bool
-readFromFile(const char *const *argv, bool verbose, HPolytope<point<Cartesian<double>::Self>> &HP, int &n, bool &file,
-             int &i, VT& objectFunction) {
-    file = true;
-    std::cout << "Reading input from file..." << std::endl;
-    std::ifstream inp;
-    inp.open(argv[++i], std::ios_base::in);
-    bool retval = loadProgramFromStream(inp, HP, objectFunction);
-    inp.close();
-    n = HP.dimension();
-//    HP.print();
-    return retval;
-}
 
 void printHelpMessage() {
     std::cerr <<
@@ -265,111 +257,48 @@ void printHelpMessage() {
               std::endl;
 }
 
-bool loadProgramFromStream(std::istream &is, HPolytope<Point> &HP, VT& objectFunction){
-
-    std::string line;
-    std::string::size_type sz;
-
-    //read dimension
-    if (std::getline(is, line, '\n').eof())
-        return false;
-
-    int dim = std::stoi(line);
-
-
-    //read object function
-    if (std::getline(is, line, '\n').eof())
-        return false;
-
-    objectFunction.resize(dim);
-
-    NT num = std::stod(line, &sz);
-    objectFunction(0) = num;
-
-    for (int j=2 ; j<=dim  ; j++) {
-        line = line.substr(sz);
-        num = std::stod(line, &sz);
-        objectFunction(j-1) = num;
-    }
-
-
-    if (std::getline(is, line, '\n').eof())
-        return false;
-
-    //read number of constraints
-    int constraintsNum = std::stoi(line, &sz);
-
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-
-    VT b;
-    MT A;
-
-    A.resize(constraintsNum, dim);
-    b.resize(constraintsNum);
-
-    // for each constraint
-    for (int i=1 ; i<=constraintsNum ; i++) {
-
-        if (std::getline(is, line, '\n').eof())
-            return false;
-
-        // read first line of A
-
-        NT num = std::stod(line, &sz);
-        A(i - 1, 0) = num;
-
-        for (int j=2 ; j<=dim  ; j++) {
-            line = line.substr(sz);
-            num = std::stod(line, &sz);
-            A(i - 1, j - 1) = num;
-        }
-
-        //read first row of b
-        line = line.substr(sz);
-        num = std::stod(line, &sz);
-        b(i - 1) = num;
-    }
-
-    HP.init(dim, A, b);
-    return true;
-}
-
-NT solveWithLPSolve(HPolytope<Point>& HP, VT objectFunction) {
-    lprec *lp;
-    unsigned int dim = HP.dimension();
+NT solveWithLPSolve(lp_problem lp) {
+    lprec *_lp;
+    unsigned int dim = lp.polytope.dimension();
 
     REAL row[1 + dim]; /* must be 1 more then number of columns ! */
 
     /* Create a new LP model */
-    lp = make_lp(0, dim);
+    _lp = make_lp(0, dim);
 
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
-    VT b = HP.get_vec();
-    MT A = HP.get_mat();
+    VT b = lp.polytope.get_vec();
+    MT A = lp.polytope.get_mat();
 
 
     for (int j=1 ; j<=dim ; j++)
-        row[j] = objectFunction(j-1); //j must start at 1
+        row[j] = lp.objectiveFunction(j-1); //j must start at 1
 
-    set_obj_fn(lp, row);
+    set_obj_fn(_lp, row);
 
-    set_add_rowmode(lp, TRUE);
+    set_add_rowmode(_lp, TRUE);
 
     for (int i=0 ; i<A.rows() ; i++) {
         for (int j=1 ; j<=dim ; j++)
             row[j] = A(i, j-1); //j must start at 1
 
-        add_constraint(lp, row, LE, b(i)); /* constructs the row: +v_1 +2 v_2 >= 3 */
+        add_constraint(_lp, row, LE, b(i)); /* constructs the row: +v_1 +2 v_2 >= 3 */
     }
 
-    set_add_rowmode(lp, FALSE);
-    set_minim(lp);
+    set_add_rowmode(_lp, FALSE);
+    set_minim(_lp);
 
-    solve(lp);
-    NT ret = get_objective(lp);
-    delete_lp(lp);
+    solve(_lp);
+    NT ret = get_objective(_lp);
+
+    REAL solution[10];
+    get_variables(_lp, solution);
+    std::cout << "Optimal solution: " << std::endl;
+    for (int i=0; i < 10; i++)
+        std::cout << "x[" << i+1 << "] = " << solution[i] << std::endl;
+
+    delete_lp(_lp);
     return ret;
 }

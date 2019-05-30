@@ -10,6 +10,7 @@
 
 #include <exception>
 #include "samplers.h"
+#include "Eigen"
 
 template <class Polytope>
 Polytope gen_cube(unsigned int dim, bool Vpoly) {
@@ -347,16 +348,14 @@ Polytope random_vpoly(unsigned int dim, unsigned int k) {
     RNGType rng(seed);
 
     Point p;
-    typename std::vector<NT>::iterator pit;
     MT V(k, dim);
     unsigned int j;
 
     for (unsigned int i = 0; i < k; ++i) {
         p = get_direction<RNGType, Point, NT>(dim);
-        pit = p.iter_begin();
-        j = 0;
-        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
-            V(i,j) = *pit;
+        VT p_coeffs = p.getCoefficients();
+        for (j = 0;  j < p.dimension(); ++j) {
+            V(i,j) = p_coeffs(j);
         }
     }
 
@@ -380,17 +379,16 @@ Polytope random_hpoly(unsigned int dim, unsigned int m) {
     RNGType rng(seed);
     boost::random::uniform_real_distribution<> urdist1(-10, 10);
     Point p(dim);
-    typename std::vector<NT>::iterator pit;
+
     MT A(m, dim);
     VT b(m);
     unsigned int j;
 
     for(unsigned int i=0; i<m; ++i){
         p = get_direction<RNGType, Point, NT>(dim);
-        pit = p.iter_begin();
-        j = 0;
-        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
-            A(i,j) = *pit;
+        VT p_coeffs = p.getCoefficients();
+        for ( j=0;  j<p.dimension(); ++j) {
+            A(i,j) = p_coeffs(j);
         }
         b(i) = 10.0;
 

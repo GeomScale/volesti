@@ -545,7 +545,7 @@
     }
     }
     #define eigen_plain_assert(x) assert(x)
-  #else
+#else
     // work around bug 89
     #include <cstdlib>   // for abort
     #include <iostream>  // for std::cerr
@@ -574,8 +574,9 @@
 
 // eigen_assert can be overridden
 #ifndef eigen_assert
-#define eigen_assert(x) eigen_plain_assert(x)
-#endif
+//#define eigen_assert(x) eigen_plain_assert(x)
+#define eigen_assert(x) if (!(x)) { throw 1; }
+ #endif
 
 #ifdef EIGEN_INTERNAL_DEBUGGING
 #define eigen_internal_assert(x) eigen_assert(x)

@@ -54,6 +54,7 @@ else ()
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
   add_executable (vol vol.cpp)
+  add_executable (generate_lp generate_lp.cpp)
   #add_executable (volume volume_example.cpp)
   add_executable (generate generator.cpp)
   add_executable (opt_cutting_plane opt_cutting_plane.cpp)
