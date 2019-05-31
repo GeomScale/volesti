@@ -19,11 +19,13 @@
 | `Ubuntu Linux 16.04 LTS, R-release, GCC` |`N/A` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-6911a48496c075be151e7ba5d6326fbb) |
 | `CentOS 6, stock R from EPEL` |`N/A` | 1 | 0 | 0 | [ERROR](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-6f5d27f5b548d46da8fcafab677b86e4)** |
 | `CentOS 6 with Redhat Developer Toolset, R from EPEL` | `N/A` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-efce07b30b0a73c6c4f39db5fed70efa) |
-| `Debian Linux, R-devel, GCC ASAN/UBSAN` | `N/A` | 0 | 0 | 0 | [OK](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-1d695055bc3e2facdc252827c5d27f1b) |
-| `Ubuntu Linux 16.04 LTS, R-devel with rchk` | `N/A` | 0 | 0 | 1 | [OK](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-a35e57a5f29f45f2e74e07fd3b72c9e5) |
+| `Debian Linux, R-devel, GCC ASAN/UBSAN` *** | `N/A` |  |  |  | [SUCCESS](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-1d695055bc3e2facdc252827c5d27f1b) |
+| `Ubuntu Linux 16.04 LTS, R-devel with rchk` *** | `N/A` |  |  |  | [SUCCESS](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-a35e57a5f29f45f2e74e07fd3b72c9e5) |
 
 All the checks above have performed via [rhub](https://cran.r-project.org/web/packages/rhub/index.html) package. For more details on system characteristics see [rhub's vignettes](https://cran.r-project.org/web/packages/rhub/vignettes/rhub.html). **cran-name** column shows the correspondance to [CRAN package check flavors](https://cran.r-project.org/web/checks/check_flavors.html)  
   
 *The check on `macOS 10.9 Mavericks, R-oldrel (experimental)` fails because the system fails to install `RcppEigen`. You can see our [issue](https://github.com/r-hub/rhub/issues/280) at [rhub's github page](https://github.com/r-hub/rhub).
 
 ** This is expected since our C++ code needs C++11 standard at least while this systems uses gcc4.4.X which does not support C++11
+
+*** Checks for compiled code
