@@ -8,6 +8,6 @@
 
 # volesti 1.0.2
 
-* Fix all bugs and CRAN violations.
+* Fix all bugs and CRAN policy violation.
 
 
