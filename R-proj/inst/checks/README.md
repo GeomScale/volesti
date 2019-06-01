@@ -1,22 +1,31 @@
-| Check                   |      errors   | warnings  | NOTES |
-| ----------------------- |:-------------:| :-------: | :---: |
-| `devtools::check()`     |       0       |     0     |   1 (`rand`)   |
-| `devtools::build_win()` |       0       |     0     |   [2](https://win-builder.r-project.org/q9J85CboQuDA/00check.log)   |
-| `rhub::check_on_cran()` |       0       |     0     |   [4](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-46af77102a0c4d3ca0a2593ce6e572a6)   |
-| `rhub::check_with_roldrel()`  | 0 | 0 | [2](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-5828b5f9dd224ce48cfec44f2d74f398) |
-| `rhub::check_with_rrelease()` | 0 | 0 | [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-b178259e61a14297823174769605f640) |
-| `rhub::check_with_rpatched()` | 0 | 0 | [2](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-a0ff236c759748f29e4a6c59f278d3b9) |
-| `rhub::check_with_rdevel()`   | 0 | 0 | [2](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-da80904e99b045298a42c9922517f1a0) |
-| `rhub::check_on_linux()`      | 0 | 0 | [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-6cd434b931c345dca219cdf286c7a9a9) |
-| `rhub::check_on_ubuntu()` |       0       |     0     |   [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-00dbeb6b6daf47589cd24eb546a0725c) |
-| `rhub::check_on_debian()`  | 0 | 0 | [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-764ee37c6c3846b9b6a197eed59535eb) |
-| `rhub::check_on_fedora()`  | 0 | 0 | [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-1c6e19322fc9424a992eb5febf21b283) |
-| `rhub::check_on_centos()`  | [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-35342cfa3c984b4e84e60f4de51cd837) | 0 | 0 |
-| `rhub::check_on_windows()` |     0     |      0     |   [2](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-2d6fc57bb08d4ffabc00a3b0e7c7da66) |
-| `Windows Server 2008 R2 SP1, R-release, 32/64 bit`   | 0 | 0 | [2](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-9c665303f9f439b1d5e62022dcc436ff) |
-| `Windows Server 2008 R2 SP1, R-patched, 32/64 bit`   | 0 | 0 | [2](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-54525c454b65356d98181ac0a41ed889) |
-| `Windows Server 2008 R2 SP1, R-devel, 32/64 bit`     | [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-ad0349623bb47eaac00991fc7d6b4fab) | 0 | 0 |
-| `macOS 10.9 Mavericks, R-oldrel` | 0 | 0 | [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-89ef6e055ca2fa9f2cc4bc2cf3c04fdb) |
-| `macOS 10.11 El Capitan, R-release (experimental)`   | [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-2ffda558566e3387bdd8a17922a4439d) | 0 | 0 |
-| `Oracle Solaris 10, x86, 32 bit, R-patched (experimental)` | [1](https://builder.r-hub.io/status/volesti_0.0.0.tar.gz-d73aee5d20526bc68f3a885bbe979e6e) | 0 | 0 |
+| Check                   | cran-name |      ERRORS   | WARNINGS  | NOTES | URL | 
+| ----------------------- |-------------|:-------------:| :-------: | :---: | -- |
+| `macOS 10.9 Mavericks, R-oldrel (experimental)` | `r-oldrel-osx-x86_64`  | 0 | 0 | 0 | [PREPERROR](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-4561558b7b96f9d9ab4662b565f1b871)* | 
+| `macOS 10.11 El Capitan, R-release (experimental)` | `r-release-osx-x86_64` | 0 | 0 | 0 | [OK](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-b02c328852acddb3fcd3048f9f327055) |
+| `Windows Server 2008 R2 SP1, R-oldrel, 32/64 bit` | `r-oldrel-windows-ix86+x86_64` | 0 | 0 | 0 | [OK](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-f43945e177bd0a39f2a4effa8f6e9c88) |
+| `Windows Server 2008 R2 SP1, R-release, 32/64 bit` | `r-release-windows-ix86+x86_64` | 0 | 0 | 0 | [OK](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-707ffbeaa5fb7f3b00a1cff357e63c7f) |
+| `Windows Server 2008 R2 SP1, R-patched, 32/64 bit` | `N/A` | 0 | 0 | 0 | [OK](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-3376f9b5f6a17ba0a2c30b0cbf0bf917) |
+| `Windows Server 2008 R2 SP1, R-devel, 32/64 bit` | `r-devel-windows-ix86+x86_64` | 0 | 0 | 0 | [OK](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-901e108dfc1802c6f8726f162c95e597) |
+| `Windows Server 2012, R-devel, Rtools4.0, 32/64 bit (experimental)` | `N/A` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-c48dc0fa6839ef8b509c73c48f0ca887) |
+| `Oracle Solaris 10, x86, 32 bit, R-patched (experimental)` | `r-patched-solaris-x86` | 0 | 0 | 0 | [OK](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-39bda3d243591a660eb3a4d2cdb4ac3f) |
+| `Debian Linux, R-devel, GCC` | `r-devel-linux-x86_64-debian-gcc` |  0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-907c4d873965c64d435bc672335063eb) |
+| `Debian Linux, R-devel, GCC, no long double` | `N/A` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-cb5a82d9e3112bb706e6c767e778e3a5) |
+| `Debian Linux, R-release, GCC` | `r-release-linux-x86_64` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-4c142b0323d2f174d53a761564e0b498) |
+| `Debian Linux, R-patched, GCC` | `r-patched-linux-x86_64` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-031047558bf41664b387180f558adfd1) |
+| `Debian Linux, R-devel, clang, ISO-8859-15 locale` | `r-devel-linux-x86_64-debian-clang` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-eecaf29af2fd88fdf148667c5463e141) |
+| `Fedora Linux, R-devel, GCC` | `r-devel-linux-x86_64-fedora-gcc` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-f919c24153e9afd09ef0654d4799fb12) |
+| `Fedora Linux, R-devel, clang, gfortran` | `r-devel-linux-x86_64-fedora-clang` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-0efbc2539568b86e2fa716db1a1231d6) |
+| `Ubuntu Linux 16.04 LTS, R-devel, GCC` | `N/A` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-7d47fbd13a90cb4c3712232cfa320fc3) |
+| `Ubuntu Linux 16.04 LTS, R-release, GCC` |`N/A` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-6911a48496c075be151e7ba5d6326fbb) |
+| `CentOS 6, stock R from EPEL` |`N/A` | 1 | 0 | 0 | [ERROR](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-6f5d27f5b548d46da8fcafab677b86e4)** |
+| `CentOS 6 with Redhat Developer Toolset, R from EPEL` | `N/A` | 0 | 0 | 1 | [NOTE](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-efce07b30b0a73c6c4f39db5fed70efa) |
+| `Debian Linux, R-devel, GCC ASAN/UBSAN` *** | `N/A` |  |  |  | [SUCCESS](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-1d695055bc3e2facdc252827c5d27f1b) |
+| `Ubuntu Linux 16.04 LTS, R-devel with rchk` *** | `N/A` |  |  |  | [SUCCESS](https://builder.r-hub.io/status/volesti_1.0.2.tar.gz-a35e57a5f29f45f2e74e07fd3b72c9e5) |
 
+All the checks above have performed via [rhub](https://cran.r-project.org/web/packages/rhub/index.html) package. For more details on system characteristics see [rhub's vignettes](https://cran.r-project.org/web/packages/rhub/vignettes/rhub.html). **cran-name** column shows the correspondance to [CRAN package check flavors](https://cran.r-project.org/web/checks/check_flavors.html)  
+  
+*The check on `macOS 10.9 Mavericks, R-oldrel (experimental)` fails because the system fails to install `RcppEigen`. You can see our [issue](https://github.com/r-hub/rhub/issues/280) at [rhub's github page](https://github.com/r-hub/rhub).
+
+** This is expected since our C++ code needs C++11 standard at least while this systems uses gcc4.4.X which does not support C++11
+
+*** Checks for compiled code

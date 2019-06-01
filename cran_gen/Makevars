@@ -2,7 +2,7 @@ PKG_CPPFLAGS=-Iexternal/lpsolve/headers/run_headers -Iexternal/minimum_ellipsoid
 PKG_CXXFLAGS= -lm -ldl -DBOOST_NO_AUTO_PTR
 CXX_STD = CXX11
 
-PKG_LIBS=-Lexternal/lpsolve/build/lp_solve -llp_solve $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(R_STRIPPER_ARGUMENT)
+PKG_LIBS=-Lexternal/lpsolve/build/lp_solve -llp_solve $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
 
 $(SHLIB): external/lpsolve/build/lp_solve/liblp_solve.a
 
@@ -10,4 +10,3 @@ external/lpsolve/build/lp_solve/liblp_solve.a:
 	@(cd external/lpsolve/build/lp_solve && $(MAKE) liblp_solve.a \
     CC="$(CC)" CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" \
     CPICFLAGS="$(CPICFLAGS)" AR="$(AR)" RANLIB="$(RANLIB)")
-R_STRIPPER_ARGUMENT = -Wl,-S
