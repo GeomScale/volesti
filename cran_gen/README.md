@@ -1,7 +1,7 @@
 # Volume computation and sampling
 
 ## About  
-The `volesti` package provides [R](www.r-project.org) with functions for volume estimation and sampling. In particular, it provides an R interface for the C++ library [**volesti**](www.github.com/GeomScale/volume_approximation). 
+The `volesti` package provides [R](https://www.r-project.org/) with functions for volume estimation and sampling. In particular, it provides an R interface for the C++ library [**volesti**](https://github.com/GeomScale/volume_approximation). 
 
 `volesti` computes approximations of volume of polytopes given as a set of points or linear inequalities or as a Minkowski sum of segments (zonotopes). There are two algorithms for volume approximation as well as algorithms for sampling, rounding and rotating polytopes.  
 
