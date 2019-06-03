@@ -4,10 +4,10 @@
 
 # volesti 1.0.1
 
-* Fix some bugs for solaris os, but still unstable.
+* Fix some bugs for solaris os.
 
 # volesti 1.0.2
 
-* Fix all bugs and CRAN policy violation.
+* Remove r-striper to avoid CRAN policy violation.
 
 
