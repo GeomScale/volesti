@@ -150,7 +150,7 @@ void read_pointset(std::istream &is,
         std::size_t found2=0;
 
         //ignore empty spaces on start of line
-        found = point.find_first_not_of(" ",found);
+        found = point.find_first_not_of(" \t",found);
 
         std::vector<NT> input;
         while (found2!=std::string::npos || point[found]=='-')
@@ -162,14 +162,14 @@ void read_pointset(std::istream &is,
 
             //std::cout<<point.substr(found,found2-found)<<" ";
             NT num = atof(point.substr(found,found2-found).c_str());
-            found=point.find_first_not_of(" ",found2);
+            found=point.find_first_not_of(" \t",found2);
             //std::cout<<"found"<<point[found]<<std::endl;
             if(point[found]=='/'){
                 found = found + 1;
                 found2=point.find_first_not_of("0123456789-./",found);
                 //std::cout<<"lala="<<point.substr(found,found2-found)<<std::endl;
                 num = num / atof(point.substr(found,found2-found).c_str());
-                found=point.find_first_not_of(" ",found2);
+                found=point.find_first_not_of(" \t",found2);
             }
             input.push_back(num);
             //std::cout<< num<<std::endl;
