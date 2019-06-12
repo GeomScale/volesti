@@ -12,6 +12,18 @@
 
 #include <cmath>
 
+template <typename T, typename T2>
+T extract(const T2& full, const T& ind)
+{
+    int num_indices = ind.innerSize();
+    T target(num_indices);
+    for (int i = 0; i < num_indices; i++)
+    {
+        target[i] = full[ind[i]];
+    }
+    return target;
+}
+
 template <class RNGType, class Polytope, class Point, class PointList, typename NT>
 void hmc_logbarrier(Polytope &P, Point &p, PointList randPoints, NT &a, int n, int N) {
 
@@ -84,26 +96,33 @@ void get_next_hmc_logbarrier(VT &x0, MT &T, VT &S, MT &M, VT &s0, VT &sv0, VT &c
     MT J = MT::Zero(m*(n+1), m*(n+1));
     VT F = VT::Zero(M*(n+1));
     VT s1(m*(n+1));
-    for (int j = 0; j < m*(n+1); ++j) {
-        s1 = rdist(rng);
-    }
+    for (int j = 0; j < m*(n+1); ++j) s1 = rdist(rng);
+
     VT s2 = 10*s1;
 
     for (int i = 0; i < m; ++i) {
         J(m * (n - 1) + i, i * (n + 1)) = 1.0;
-        for (int j = 0; j < n + 1; ++j) {
-            J(m * n + i, (i - 1) * (n + 1) + j) = S(1, j);
-        }
+        for (int j = 0; j < n + 1; ++j) J(m * n + i, (i - 1) * (n + 1) + j) = S(1, j);
+
 
         for (int j = 1; j < n - 1; ++j) {
-            for (int k = 0; k < n + 1; ++k) {
-                J((i - 1) * (n - 1) + j - 1, (i - 1) * (n + 1) + k) = T(j, k);
-            }
+            for (int k = 0; k < n + 1; ++k) J((i - 1) * (n - 1) + j - 1, (i - 1) * (n + 1) + k) = T(j, k);
+
+            for (int k = 0; k < m; ++k) vec(k) = (k - 1) * (n + 1) + j;
         }
+    }
+
+    NT pre_dif = (s1-s2).abs().MaxCoeff();
+    int count = 0, iter =0;
+    VT Jirows(n+1);//=(1:(n+1))-1;
+
+    for (int i = 0; i < n+1; ++i) {
+        Jirows(i) = i-1;
     }
 
     while ((s1-s2).abs().MaxCoeff()>=0.000001) {
 
+        iter++;
         for (int i = 0; i < m; ++i) {
 
             F(m * (n - 1) + i) = s1((i - 1) * (n + 1)) - s0(i);
@@ -112,18 +131,54 @@ void get_next_hmc_logbarrier(VT &x0, MT &T, VT &S, MT &M, VT &s0, VT &sv0, VT &c
             for (int j = 1; j < n - 1; ++j) {
                 J((i - 1) * (n - 1) + j - 1, (i - 1) * (n + 1) + j) = T(j, j) -
                         M(i, i) * a * (1 / ((b(i) - s1((i - 1) * (n + 1) + j)) * (b(i) - s1((i - 1) * (n + 1) + j))));
-                for (int k = 0; k < m; ++k) {
-                    vec(k) = a / (b(k) - s1((k - 1) * (n + 1) + j));
-                }
                 F((i - 1) * (n - 1) + j - 1) =
-                        T.row(j).dot(s1.segment(((i - 1) * (n + 1)), ((i - 1) * (n + 1) + n))) - M.row(i).dot(vec);
+                        T.row(j).dot(s1.segment(((i - 1) * (n + 1)), ((i - 1) * (n + 1) + n))) -
+                        a * M.row(i).dot(b - extract(s1, vec).pow(-1.0));
             }
         }
 
-        update_svals(s1, s2, J, F);
+        update_svals(s1, s2, J, F, Jirows, n, m);
+
+        if (std::abs(pre_dif-(s1-s2).abs().MaxCoeff())<0.000001 && (s1-s2).abs().MaxCoeff()>0.0005) {
+
+            for (int j = 0; j < m*(n+1); ++j) s1 = rdist(rng);
+
+            VT s2 = 10*s1;
+            count++;
+            iter = 0;
+        }
+        pre_dif = (s1-s2).abs().MaxCoeff();
 
     }
-    
+
+
+}
+
+
+// Newton method
+template <class VT, class MT>
+void update_svals(VT &s1, VT &s2, MT &J, VT &F, VT &Jirows, int n, int m) {
+
+
+    MT Ji(n+1,n+1);
+    VT Fi(n+1);
+
+    VT stemp = s2;
+
+    for (int i = 0; i < m; ++i) {
+
+        for (int j = 0; j < n+1; ++j) {
+
+            Ji.row(j) = J.row(Jirows(j) * m + i).segment(((i - 1) * (n + 1)), ((i - 1) * (n + 1) + n));
+            Fi(j) = F(Jirows(j) * m + i);
+
+        }
+
+        s2.segment(((i-1)*(n+1)) , ((i-1)*(n+1)+n)) = s1.segment(((i-1)*(n+1)) , ((i-1)*(n+1)+n))
+                - Ji.colPivHouseholderQr().solve(Fi);
+
+    }
+    s1 = stemp;
 
 }
 
