@@ -68,7 +68,7 @@ void hmc_logbarrier(Polytope &P, Point &p, PointList randPoints, NT &a, int n, i
 
     for (int i = 0; i < N; ++i) {
 
-        get_next_hmc_logbarrier<RNGType>(x0, T, S, M, s0, sv0, cj, pinvA, b, a);
+        get_next_hmc_logbarrier<RNGType>(x0, T, S, M, s0, sv0, cj, pinvA, A, b, a);
 
         for (int i = 0; i < d; ++i) {
             v0(i) = rdist(rng);
@@ -83,15 +83,18 @@ void hmc_logbarrier(Polytope &P, Point &p, PointList randPoints, NT &a, int n, i
 
 
 template <class RNGType, class VT, class MT, typename NT>
-void get_next_hmc_logbarrier(VT &x0, MT &T, VT &S, MT &M, VT &s0, VT &sv0, VT &cj, MT pinvA, VT &b, NT &a) {
+void get_next_hmc_logbarrier(VT &x0, MT &T, VT &S, MT &M, VT &s0, VT &sv0, VT &cj, MT pinvA, MT &A, VT &b, NT &a) {
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
     boost::normal_distribution<> rdist(0,1);
+    boost::random::uniform_real_distribution<> urdist(0,1);
 
     unsigned int m = s0.size();
     unsigned int d = x0.size();
     unsigned int n = cj.size()-1;
+
+    NT tpos = std::numeric_limits<NT>::max(), tminus = std::numeric_limits<NT>::lowest(), g, Delta, t1, t2;
 
     MT J = MT::Zero(m*(n+1), m*(n+1));
     VT F = VT::Zero(M*(n+1));
@@ -151,7 +154,44 @@ void get_next_hmc_logbarrier(VT &x0, MT &T, VT &S, MT &M, VT &s0, VT &sv0, VT &c
 
     }
 
+    MT S(m, n+1);
+    for (int i = 0; i < m; ++i) S.row(i) = s2.segment((i-1)*(n+1) , (i-1)*(n+1) + n);
 
+    MT X = pinvA * S;
+    MT abcs(d, n+1);
+    MT aa;
+    aa << cj(1)*cj(1), cj(1),
+          cj(2)*cj(2), cj(2);
+    MT bb(2);
+
+    for (int i = 0; i < d; ++i) {
+        g = X(i,0);
+        bb(0)=X(i,1) - g; b(1) = X(i,2) - g;
+        abcs.row(i) = aa..colPivHouseholderQr().solve(bb);
+    }
+    MT abc = A*abcs;
+
+    for (int i = 0; i < m; ++i) {
+
+        abc(i,3) = abc(i,2) - b(i);
+        Delta = abc(i,1)*abc(i,1)-4.0*abc(i,0)*abc(i,2);
+        if (Delta < 0.0) continue;
+
+        t1 = (-abc(i,1)-std::sqrt(Delta))/(2.0*abc(i,0));
+        if (t1>0.0 && t1<tpos) tpos = t1;
+        if (t1<0.0 && t1>tminus) tminus = t1;
+
+        t2 = (-abc(i,1)+sqrt(Delta))/(2.0*abc(i,0));
+        if (t2>0.0 && t2<tpos) tpos = t2;
+        if (t2<0.0 && t2>tminus) tminus = t2;
+
+    }
+
+    NT trand = urdist(rng)*(tpos - tminus) + tminus;
+    VT tvec(3);
+    tvec(0) = trand*trand; tvec(1) = trand; tvec(2) = 1.0;
+    x0 = abcs * tvec;
+    
 }
 
 
