@@ -167,7 +167,7 @@ void get_next_hmc_logbarrier(VT &x0, MT &T, VT &S, MT &M, VT &s0, VT &sv0, VT &c
     for (int i = 0; i < d; ++i) {
         g = X(i,0);
         bb(0)=X(i,1) - g; b(1) = X(i,2) - g;
-        abcs.row(i) = aa..colPivHouseholderQr().solve(bb);
+        abcs.row(i) = aa.colPivHouseholderQr().solve(bb);
     }
     MT abc = A*abcs;
 
