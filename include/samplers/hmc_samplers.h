@@ -25,7 +25,7 @@ T extract(const T2& full, const T& ind)
 }
 
 template <class RNGType, class Polytope, class Point, class PointList, typename NT>
-void hmc_logbarrier(Polytope &P, Point &p, PointList randPoints, NT &a, int n, int N) {
+void hmc_logbarrier(Polytope &P, Point &p, PointList &randPoints, NT &a, int n, int N) {
 
     typedef typename Polytope::VT VT;
     typedef typename Polytope::MT MT;
@@ -64,7 +64,7 @@ void hmc_logbarrier(Polytope &P, Point &p, PointList randPoints, NT &a, int n, i
     AAinv = A.inverse();
     T = T*AAinv;
     S = S*AAinv;
-    MT pinvA = A.completeOrthogonalDecomposition().pseudoInverse()
+    MT pinvA = A.completeOrthogonalDecomposition().pseudoInverse();
 
     for (int i = 0; i < N; ++i) {
 

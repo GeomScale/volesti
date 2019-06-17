@@ -10,6 +10,7 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
+#define VOLESTI_DEBUG
 #include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
@@ -19,6 +20,7 @@
 #include "polytopes.h"
 #include "samplers.h"
 #include "gaussian_samplers.h"
+#include "hmc_heur_sam.h"
 #include "sample_only.h"
 #include "simplex_samplers.h"
 #include "vpolyintersectvpoly.h"
@@ -101,7 +103,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
-    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false;
+    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false, hmc_barrier = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -187,11 +189,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         }
         if(walk_step.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_step);
 
-        NT a = 0.5;
-
-        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("variance"))
-            a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["variance"]));
-
         if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
             cdhr = true;
             rdhr = false;
@@ -200,6 +197,13 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             cdhr = false;
             rdhr = true;
             ball_walk = false;
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("HMC"))==0) {
+            if (type != 1) throw Rcpp::exception("HMC can be applies only to H-polytopes!");
+
+            cdhr = false;
+            rdhr = false;
+            ball_walk = false;
+            hmc_barrier = true;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
                 delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
@@ -211,8 +215,16 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             throw Rcpp::exception("Unknown walk type!");
         }
 
+        NT a = 0.5;
+        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("variance")) {
+            a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["variance"]));
+            if (hmc_barrier) gaussian = true;
+        }
+
         if (distribution.isNotNull()) {
             if (Rcpp::as<std::string>(distribution).compare(std::string("gaussian"))==0) {
+                gaussian = true;
+            } if (Rcpp::as<std::string>(distribution).compare(std::string("gibbs"))==0) {
                 gaussian = true;
             } else if(Rcpp::as<std::string>(distribution).compare(std::string("uniform"))!=0) {
                 throw Rcpp::exception("Wrong distribution!");
@@ -239,6 +251,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = HP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
+                if (hmc_barrier && !gaussian) a = 1.0/NT(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")).rows());
                 break;
             }
             case 2: {
@@ -298,6 +311,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
         switch (type) {
             case 1: {
+                if (hmc_barrier) {
+                    MeanPoint = get_point_in_Dsphere<RNGType, Point>(HP.dimension(), InnerBall.second);
+                    hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
+                    break;
+                }
                 sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
                                      a, MeanPoint, var1, var2);
                 break;
