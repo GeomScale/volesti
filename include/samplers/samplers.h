@@ -16,6 +16,7 @@ typedef double NT_MATRIX;
 typedef Eigen::Matrix<NT_MATRIX,Eigen::Dynamic,Eigen::Dynamic> MT;
 typedef Eigen::Matrix<NT_MATRIX,Eigen::Dynamic,1> VT;
 
+
 // Pick a random direction as a normilized vector
 template <class RNGType, class Point, typename NT>
 Point get_direction(unsigned int dim) {
@@ -155,63 +156,8 @@ void rand_point_generator(Polytope &P,
 }
 
 
-//TODO i added this
-// use hit and run and return end points of segments
-template<class Polytope, class PointList, class Parameters, class Point>
-void smart_rand_point_generator(Polytope &P,
-                                Point &p,   // a point to start
-                                unsigned int rnum,
-                                unsigned int walk_len,
-                                PointList &randPoints,
-                                PointList &endPoints,
-                                Parameters &var,
-                                MT& isotropic)  // constants for volume
-{
-    int dim = p.dimension();
-    Point p1(dim), p2(dim);
-
-    hit_and_run(p, P, var);
-
-    for (unsigned int i = 1; i <= rnum; ++i) {
-        Point p1(dim), p2(dim);
-
-        for (unsigned int j = 0; j < walk_len; ++j)
-            smart_hit_and_run(p, P, var, p1, p2, isotropic);
-
-        randPoints.push_back(p);
-        endPoints.push_back(p1);
-        endPoints.push_back(p2);
-    }
-}
-
-//TODO i added this
-// use hit and run and return end points of segments
-template<class Polytope, class PointList, class Parameters, class Point>
-void rand_point_generator(Polytope &P,
-                          Point &p,   // a point to start
-                          unsigned int rnum,
-                          unsigned int walk_len,
-                          PointList &randPoints,
-                          PointList &endPoints,
-                          Parameters &var)  // constants for volume
-{
-    int dim = p.dimension();
-    Point p1(dim), p2(dim);
-
-    hit_and_run(p, P, var);
 
 
-    for (unsigned int i = 1; i <= rnum; ++i) {
-        Point p1(dim), p2(dim);
-
-        for (unsigned int j = 0; j < walk_len; ++j)
-            hit_and_run(p, P, var, p1, p2);
-
-        randPoints.push_back(p);
-        endPoints.push_back(p1);
-        endPoints.push_back(p2);
-    }
-}
 
 
 template <class BallPoly, class PointList, class Parameters, class Point>
@@ -291,7 +237,7 @@ void hit_and_run(Point &p,
     p = ((1 - lambda) * b2) + p;
 }
 
-//TODO i added this
+//returns at b1, b2 the intersection points of the ray with the polytope
 template<class Polytope, class Point, class Parameters>
 void hit_and_run(Point &p,
                  Polytope &P,
@@ -316,16 +262,15 @@ void hit_and_run(Point &p,
     p = ((1 - lambda) * b2) + p;
 }
 
-//TODO i added this
 //hit-and-run with random directions and update
 // copied this function - need it to return the end points of the segment
 template<class Polytope, class Point, class Parameters>
-void smart_hit_and_run(Point &p,
-                       Polytope &P,
-                       Parameters &var,
-                       Point &b1,
-                       Point &b2,
-                       MT &isotropic) {
+void implicit_isotropization_hit_and_run(Point &p,
+                                         Polytope &P,
+                                         Parameters &var,
+                                         Point &b1,
+                                         Point &b2,
+                                         MT &isotropic) {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
 
@@ -339,7 +284,7 @@ void smart_hit_and_run(Point &p,
 //
     for (int i=0 ; i<l.dimension() ; i++) {
         l.set_coord(i, v(i, 0));
-        i++;
+        i++;//TODO clean up
     }
 //    l.add(isotropic*l.getCoefficients());
 
@@ -352,6 +297,50 @@ void smart_hit_and_run(Point &p,
     p = (lambda * b1);
     p = ((1 - lambda) * b2) + p;
 }
+
+//return at bpair the lambdas of the end points
+//hit-and-run with orthogonal directions and update
+template <class Polytope, class Point, typename NT>
+void hit_and_run_coord_update(Point &p,
+                              Point &p_prev,
+                              Polytope &P,
+                              unsigned int rand_coord,
+                              unsigned int rand_coord_prev,
+                              NT kapa,
+                              std::vector<NT> &lamdas,
+                              std::pair <NT, NT>& bpair) {
+    bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
+    p_prev = p;
+    p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+}
+
+//return at bpair the lambdas of the end points and the endpoints
+//hit-and-run with orthogonal directions and update
+template <class Polytope, class Point, typename NT>
+void hit_and_run_coord_update_isotropic(Point &p,
+                              Point &p_prev,
+                              Polytope &P,
+                              unsigned int rand_coord,
+                              unsigned int rand_coord_prev,
+                              NT kapa,
+                              std::vector<NT> &lamdas,
+                              std::pair <NT, NT>& bpair,
+                              Point& p1,
+                              Point& p2,
+                              VT& isotropic) {
+    Point v = Point(isotropic);
+    bpair = P.line_intersect(p,v);
+//    bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
+    p_prev = p;
+    NT min_plus = bpair.first;
+    NT max_minus = bpair.second;
+    p1 = (min_plus * v) + p;
+    p2 = (max_minus * v) + p;
+    p = (kapa * p1);
+    p = ((1 - kapa) * p2) + p;
+//    p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+}
+
 
 //hit-and-run with orthogonal directions and update
 template <class Polytope, class Point, typename NT>
@@ -366,5 +355,6 @@ void hit_and_run_coord_update(Point &p,
     p_prev = p;
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
 }
+
 
 #endif //RANDOM_SAMPLERS_H

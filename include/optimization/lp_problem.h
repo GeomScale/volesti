@@ -143,8 +143,10 @@ namespace optimization {
             Point initial = getInteriorPoint<Point, NT>(polytope);
             std::pair<Point, NT> sol;
 
+
             if (useIsotropyMatrix)
-                sol = cutting_plane_method_isotropic(polytope, objectiveFunction, parameters, error, maxSteps, initial);
+                sol = cutting_plane_method_isotropization(polytope, objectiveFunction, parameters, error, maxSteps,
+                                                          initial);
             else
                 sol = cutting_plane_method(polytope, objectiveFunction, parameters, error, maxSteps, initial);
 

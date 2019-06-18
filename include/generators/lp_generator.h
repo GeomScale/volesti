@@ -18,7 +18,7 @@ optimization::lp_problem<Point, NT> generate_lp_cube(int dim) {
     obj.resize(dim);
 
     for (int i = 0; i < dim; i++) {
-        obj(i) = rand();
+        obj(i) = -5 + ((double)rand() / RAND_MAX)*30;
     }
 
     HPolytope<Point> HP = gen_cube<HPolytope<Point> >(dim, false);
@@ -33,7 +33,7 @@ optimization::lp_problem<Point, NT> generate_lp_cross(int dim) {
     obj.resize(dim);
 
     for (int i = 0; i < dim; i++) {
-        obj(i) = rand();
+        obj(i) = -5 + ((double)rand() / RAND_MAX)*30;
     }
 
     HPolytope<Point> HP = gen_cross<HPolytope<Point> >(dim, false);
@@ -48,7 +48,7 @@ optimization::lp_problem<Point, NT> generate_lp_simplex(int dim) {
     obj.resize(dim);
 
     for (int i = 0; i < dim; i++) {
-        obj(i) = rand();
+        obj(i) = -5 + ((double)rand() / RAND_MAX)*30;
     }
 
     HPolytope<Point> HP = gen_simplex<HPolytope<Point> >(dim, false);
@@ -63,7 +63,7 @@ optimization::lp_problem<Point, NT> generate_lp_prod_simplex(int dim) {
     obj.resize(dim);
 
     for (int i = 0; i < dim; i++) {
-        obj(i) = rand();
+        obj(i) = -5 + ((double)rand() / RAND_MAX)*30;
     }
 
     HPolytope<Point> HP = gen_prod_simplex<HPolytope<Point> >(dim, false);
@@ -78,7 +78,7 @@ optimization::lp_problem<Point, NT> generate_lp_skinny_cube(int dim) {
     obj.resize(dim);
 
     for (int i = 0; i < dim; i++) {
-        obj(i) = rand();
+        obj(i) = -5 + ((double)rand() / RAND_MAX)*30;
     }
 
     HPolytope<Point> HP = gen_skinny_cube<HPolytope<Point> >(dim, false);
@@ -93,7 +93,7 @@ optimization::lp_problem<Point, NT> generate_lp_zonotope(int dim, int m) {
     obj.resize(dim);
 
     for (int i = 0; i < dim; i++) {
-        obj(i) = rand();
+        obj(i) = -5 + ((double)rand() / RAND_MAX)*30;
     }
 
     HPolytope<Point> HP = gen_zonotope<HPolytope<Point>, RNGType>(dim, m);
@@ -108,7 +108,7 @@ optimization::lp_problem<Point, NT> generate_lp(int dim, int m) {
     obj.resize(dim);
 
     for (int i = 0; i < dim; i++) {
-        obj(i) = rand();
+        obj(i) = -5 + ((double)rand() / RAND_MAX)*30;
     }
 
     HPolytope<Point> HP = random_hpoly<HPolytope<Point>, RNGType>(dim, m);

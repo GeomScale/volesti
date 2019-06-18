@@ -29,6 +29,8 @@ typedef optimization::lp_problem<Point, NT> lp_problem;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
+extern int STEPS; //TODO delete this
+
 void printHelpMessage();
 NT solveWithLPSolve(lp_problem);
 
@@ -40,7 +42,7 @@ int main(const int argc, const char **argv) {
     int dimensinon, numOfExperinments = 1, walkLength = 10, numOfRandomPoints = 16, nsam = 100, numMaxSteps = 100;
     NT e = 1;
     bool uselpSolve = false;
-    bool useIsotropyMatrix = true;
+    bool useIsotropyMatrix = false;
 
     bool verbose = false,
             rand_only = false,
@@ -78,6 +80,11 @@ int main(const int argc, const char **argv) {
             correct = true;
         }
 
+        if (!strcmp(argv[i], "-cdhr")) {
+            cdhr = true;
+            correct = true;
+            rdhr = false; // for hit and run
+        }
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
             printHelpMessage();
             return 0;
@@ -108,8 +115,8 @@ int main(const int argc, const char **argv) {
             user_walk_len = true;
             correct = true;
         }
-        if (!strcmp(argv[i], "-noISO")) {
-            useIsotropyMatrix = false;
+        if (!strcmp(argv[i], "-ISO")) {
+            useIsotropyMatrix = true;
             correct = true;
         }
 
@@ -147,8 +154,6 @@ int main(const int argc, const char **argv) {
 
         auto t2 = std::chrono::steady_clock::now();
 
-        std::cout << "Computed at: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " msecs" << std::endl;
-
         std::cout << "Min is " << min << std::endl << "Computed at: " <<  std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " msecs" << std::endl;
         return 0;
     }
@@ -179,6 +184,7 @@ int main(const int argc, const char **argv) {
     //RUN EXPERIMENTS
     std::vector<NT> results;
     std::vector<double> times;
+    std::vector<int> steps;
 
     for (unsigned int i = 0; i < numOfExperinments; ++i) {
         std::cout << "Experiment " << i + 1 << std::endl;
@@ -199,6 +205,7 @@ int main(const int argc, const char **argv) {
         }
 
         results.push_back(lp.solutionVal);
+        steps.push_back(STEPS);
         times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count());
     }
 
@@ -225,15 +232,24 @@ int main(const int argc, const char **argv) {
 
     avg_time /= (double) times.size();
 
-    std::cout.precision(7);
+    int steps_avg = 0;
 
+    for (auto x : steps)
+        steps_avg += x;
+
+    steps_avg = steps_avg / steps.size();
+
+    std::cout.precision(7);
+    double exact = solveWithLPSolve(lp);
     std::cout << "\nStatistics\n" <<
         "Average result: " << average << "\n"<<
-         "Average tine: " << avg_time << "\n" <<
+         "Average time: " << avg_time << "\n" <<
+         "Average # Steps: " << steps_avg << "\n" <<
         "Variance: " << variance << "\n" <<
         "Standard deviation: " << std_dev << "\n" <<
-        "Coefficient of variation: " << abs(std_dev / average)  << "\n";
-
+        "Coefficient of variation: " << abs(std_dev / average)  << "\n" <<
+        "Exact Solution: " << exact  << "\n" <<
+        "Relative error: " << abs((exact - average) / exact) << "\n";
     return 0;
 }
 
@@ -277,7 +293,7 @@ NT solveWithLPSolve(lp_problem lp) {
         row[j] = lp.objectiveFunction(j-1); //j must start at 1
 
     set_obj_fn(_lp, row);
-
+    set_verbose(_lp, 2);
     set_add_rowmode(_lp, TRUE);
 
     for (int i=0 ; i<A.rows() ; i++) {
@@ -290,14 +306,17 @@ NT solveWithLPSolve(lp_problem lp) {
     set_add_rowmode(_lp, FALSE);
     set_minim(_lp);
 
+    for (int j=1 ; j<=dim ; j++)
+        set_bounds(_lp, j, -std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+
     solve(_lp);
     NT ret = get_objective(_lp);
 
-    REAL solution[10];
+    REAL solution[dim];
     get_variables(_lp, solution);
-    std::cout << "Optimal solution: " << std::endl;
-    for (int i=0; i < 10; i++)
-        std::cout << "x[" << i+1 << "] = " << solution[i] << std::endl;
+//    std::cout << "Optimal solution: " << std::endl;
+//    for (int i=0; i < dim; i++)
+//        std::cout << "x[" << i+1 << "] = " << solution[i] << std::endl;
 
     delete_lp(_lp);
     return ret;
