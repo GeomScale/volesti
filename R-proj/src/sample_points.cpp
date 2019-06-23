@@ -21,6 +21,7 @@
 #include "samplers.h"
 #include "gaussian_samplers.h"
 #include "hmc_heur_sam.h"
+#include "hmc_rk4.h"
 #include "sample_only.h"
 #include "simplex_samplers.h"
 #include "vpolyintersectvpoly.h"
@@ -104,7 +105,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
     bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false, hmc_barrier = false,
-            rk4 = false;
+            rk4 = true;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -319,11 +320,19 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             case 1: {
                 if (hmc_barrier) {
                     MeanPoint = get_point_in_Dsphere<RNGType, Point>(HP.dimension(), InnerBall.second);
-                    if (rk4) {
-                        hmc_logbarrier_rk4(HP, MeanPoint, randPoints, a, numpoints,  InnerBall.second);
-                    } else {
+                    if (!rk4) {
                         hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
+                        //NT raddd = InnerBall.second;
+                        //hmc_logbarrier_rk4<RNGType>(HP, MeanPoint, randPoints, a, numpoints,  raddd);
+                        //break;
+                    } else {
+                        randPoints.clear();
+                        NT raddd = InnerBall.second;
+                        hmc_logbarrier_rk4<RNGType>(HP, MeanPoint, randPoints, a, numpoints,  raddd);
+                        //hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
+                        //break;
                     }
+                    std::cout<<"randpoints.size() = "<<randPoints.size()<<std::endl;
                     break;
                 }
                 sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
@@ -353,16 +362,36 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     }
 
-    Rcpp::NumericMatrix PointSet(dim,numpoints);
+
+
+    std::cout<<"start writing!"<<std::endl;
+    std::cout<<"dim = "<<dim<<" numpoints = "<<numpoints<<std::endl;
+    Rcpp::NumericMatrix PointSet2(dim,numpoints);
+    //return PointSet2;
     typename std::list<Point>::iterator rpit=randPoints.begin();
     typename std::vector<NT>::iterator qit;
     unsigned int j = 0, i;
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
+        std::cout<<"point dim = "<<(*rpit).dimension()<<std::endl;
+        (*rpit).print();
         qit = (*rpit).iter_begin(); i=0;
+        std::cout<<"j = "<<j<<std::endl;
         for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            PointSet(i,j)=*qit;
+            std::cout<<"i = "<<i<<std::endl;
+            PointSet2(i,j)=*qit;
         }
+        std::cout<<"writing ended!"<<std::endl;
     }
-    return PointSet;
+    std::cout<<"writing ended2222!"<<std::endl;
+    for (int l = 0; l < dim; ++l) {
+        for (int k = 0; k < numpoints; ++k) {
+            std::cout<<PointSet2(l,k)<<" ";//<<std::endl;
+        }
+        std::cout<<"\n";
+    }
+    //Rcpp::NumericMatrix PointSet2 = PointSet;
+    //randPoints.clear();
+    return PointSet2;
+
 
 }
