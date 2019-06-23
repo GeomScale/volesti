@@ -322,17 +322,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     MeanPoint = get_point_in_Dsphere<RNGType, Point>(HP.dimension(), InnerBall.second);
                     if (!rk4) {
                         hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
-                        //NT raddd = InnerBall.second;
-                        //hmc_logbarrier_rk4<RNGType>(HP, MeanPoint, randPoints, a, numpoints,  raddd);
-                        //break;
                     } else {
-                        randPoints.clear();
-                        NT raddd = InnerBall.second;
-                        hmc_logbarrier_rk4<RNGType>(HP, MeanPoint, randPoints, a, numpoints,  raddd);
-                        //hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
-                        //break;
+                        hmc_logbarrier_rk42<RNGType>(HP, MeanPoint, randPoints, a, numpoints, InnerBall.second);
                     }
-                    std::cout<<"randpoints.size() = "<<randPoints.size()<<std::endl;
                     break;
                 }
                 sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
@@ -363,35 +355,17 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
     }
 
 
+    Rcpp::NumericMatrix PointSet(dim,numpoints);
 
-    std::cout<<"start writing!"<<std::endl;
-    std::cout<<"dim = "<<dim<<" numpoints = "<<numpoints<<std::endl;
-    Rcpp::NumericMatrix PointSet2(dim,numpoints);
-    //return PointSet2;
     typename std::list<Point>::iterator rpit=randPoints.begin();
     typename std::vector<NT>::iterator qit;
     unsigned int j = 0, i;
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        std::cout<<"point dim = "<<(*rpit).dimension()<<std::endl;
-        (*rpit).print();
         qit = (*rpit).iter_begin(); i=0;
-        std::cout<<"j = "<<j<<std::endl;
-        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            std::cout<<"i = "<<i<<std::endl;
-            PointSet2(i,j)=*qit;
-        }
-        std::cout<<"writing ended!"<<std::endl;
+        for ( ; qit!=(*rpit).iter_end(); qit++, i++) PointSet(i,j)=*qit;
     }
-    std::cout<<"writing ended2222!"<<std::endl;
-    for (int l = 0; l < dim; ++l) {
-        for (int k = 0; k < numpoints; ++k) {
-            std::cout<<PointSet2(l,k)<<" ";//<<std::endl;
-        }
-        std::cout<<"\n";
-    }
-    //Rcpp::NumericMatrix PointSet2 = PointSet;
-    //randPoints.clear();
-    return PointSet2;
+
+    return PointSet;
 
 
 }
