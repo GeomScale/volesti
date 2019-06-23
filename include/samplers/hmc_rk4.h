@@ -12,7 +12,7 @@
 
 
 template <class RNGType, class VT, class MT, typename NT>
-void hmc_logbarrier_rk4(Polytope &P, Point &p, PointList &randPoints, NT &a, NT L=0.0, int N) {
+void hmc_logbarrier_rk4(Polytope &P, Point &p, PointList &randPoints, NT &a, int N,  NT radius = -1.0, NT R = -1.0) {
 
     typedef typename Polytope::VT VT;
     typedef typename Polytope::MT MT;
@@ -27,7 +27,14 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, PointList &randPoints, NT &a, NT 
     unsigned int d = P.dimension();
     unsigned int m = A.rows();
     VT b = P.get_vec(), s0(m), sv0(m), Y(2*d), Y05(2*d), mi(2*d), ms = VT::Zero(2*d), v0(d), x0(d);
-    NT sumh, h, har = 0.1, T;
+    NT sumh, h, har = 0.1, T, r = 1.0;
+
+    if (R < 0.0) R = 1.0;
+    if (radius > 0.0) {
+        std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
+        r = R * InnerBall.second;
+        A = A * (MT::Identity(d) * r);
+    }
 
     for (int i = 0; i < d; ++i) x0(i) = p[i];
 
@@ -85,7 +92,7 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, PointList &randPoints, NT &a, NT 
 
         }
         for (int k = 0; k < ; ++k) {
-            p[k] = Y(k);
+            p[k] = (1.0 / r)*Y(k);
         }
         randPoints.push_back(p);
 

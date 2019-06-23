@@ -103,7 +103,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
-    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false, hmc_barrier = false;
+    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false, hmc_barrier = false,
+            rk4 = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -221,6 +222,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             if (hmc_barrier) gaussian = true;
         }
 
+        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("rk4")) {
+            rk4 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(Parameters)["rk4"]);
+        }
+
+
         if (distribution.isNotNull()) {
             if (Rcpp::as<std::string>(distribution).compare(std::string("gaussian"))==0) {
                 gaussian = true;
@@ -313,7 +319,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             case 1: {
                 if (hmc_barrier) {
                     MeanPoint = get_point_in_Dsphere<RNGType, Point>(HP.dimension(), InnerBall.second);
-                    hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
+                    if (rk4) {
+                        hmc_logbarrier_rk4(HP, MeanPoint, randPoints, a, numpoints,  InnerBall.second);
+                    } else {
+                        hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
+                    }
                     break;
                 }
                 sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
