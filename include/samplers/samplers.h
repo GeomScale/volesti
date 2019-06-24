@@ -243,4 +243,32 @@ void hit_and_run_coord_update(Point &p,
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
 }
 
+
+template <class ConvexBody, class Point, class Parameters>
+void billiard_walk(ConvexBody &P, Point &p, NT &che_rad, Parameters &var) {
+
+    typedef typename Parameters::RNGType RNGType;
+    typedef typename Point::FT NT;
+    unsigned int n = P.dimension();
+    unsigned int m = P.num_of_hyperplanes();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    NT T = urdist(rng) * 2.0 * che_rad;
+    Point v = get_direction<RNGType, Point, NT>(n);
+
+    while (true) {
+
+        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v);
+        if (T <= pbpair.first) {
+            p = (T * v) + p;
+            break;
+        }
+
+        p = ((ΝΤ(0.99) * pbpair.first) * v) + p;
+        T -= pbpair.first;
+        P.compute_reflection(v, pbpair.second);
+    }
+}
+
+
 #endif //RANDOM_SAMPLERS_H
