@@ -109,6 +109,14 @@ public:
 
     }
 
+
+    void compute_intersection(Point &v, Point &p, int &facet) {
+
+        Point s = -p;
+        v = v - (2.0 * v.dot(s)) * s;
+
+    }
+
 private:
     Point  c; //center
     NT     R; //SQUARED radius !!!
@@ -157,7 +165,7 @@ public:
 
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v);
         NT ball_lambda = B.line_positive_intersect(r, v);
-        int facet = P.num_of_hyperplanes() + 1;
+        int facet = P.num_of_hyperplanes();
 
         if (polypair.first < ball_lambda ) facet = polypair.second;
 
@@ -193,6 +201,16 @@ public:
         std::pair <NT, NT> ballpair = B.line_intersect_coord(p, rand_coord);
         return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
+    }
+
+    void compute_reflection (Point &v, Point &p, int &facet) {
+
+        if (facet == P.num_of_hyperplanes()) {
+            B.compute_reflection(v, p, facet);
+        } else {
+            P.compute_reflection(v, p, facet);
+        }
+
     }
 
 };

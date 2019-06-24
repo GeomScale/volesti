@@ -455,6 +455,17 @@ public:
     bool get_points_for_rounding (T &randPoints) {
         return false;
     }
+
+    void compute_reflection(Point &v, Point &p, int facet) {
+
+        Point s(d);
+        for (int i = 0; i < d; ++i) {
+            s.set_coord(i, A(facet, i));
+        }
+        v = v - (2.0 * v.dot(s)) * s;
+
+    }
+
 };
 
 
@@ -804,6 +815,11 @@ public:
         }
         return true;
     }
+
+    void compute_reflection(Point &v, Point &p, int facet) {
+
+    }
+
 };
 
 
@@ -1057,6 +1073,10 @@ public:
     template <class T>
     bool get_points_for_rounding (T &randPoints) {
         return false;
+    }
+
+    void compute_reflection(Point &v, Point &p, int facet) {
+
     }
 
 };

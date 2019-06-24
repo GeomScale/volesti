@@ -263,9 +263,10 @@ void billiard_walk(ConvexBody &P, Point &p, NT &che_rad, Parameters &var) {
             break;
         }
 
-        p = ((ΝΤ(0.99) * pbpair.first) * v) + p;
+        p = (pbpair.first * v) + p;
         T -= pbpair.first;
-        //P.compute_reflection(v, pbpair.second);
+        P.compute_reflection(v, p, pbpair.second);
+        p = 0.999*p;
     }
 }
 
