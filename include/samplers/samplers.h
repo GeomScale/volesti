@@ -244,11 +244,10 @@ void hit_and_run_coord_update(Point &p,
 }
 
 
-template <class ConvexBody, class Point, class Parameters>
+template <class ConvexBody, class Point, class Parameters, typename NT>
 void billiard_walk(ConvexBody &P, Point &p, NT &che_rad, Parameters &var) {
 
     typedef typename Parameters::RNGType RNGType;
-    typedef typename Point::FT NT;
     unsigned int n = P.dimension();
     unsigned int m = P.num_of_hyperplanes();
     RNGType &rng = var.rng;
@@ -266,7 +265,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT &che_rad, Parameters &var) {
 
         p = ((ΝΤ(0.99) * pbpair.first) * v) + p;
         T -= pbpair.first;
-        P.compute_reflection(v, pbpair.second);
+        //P.compute_reflection(v, pbpair.second);
     }
 }
 

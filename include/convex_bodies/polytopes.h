@@ -287,7 +287,7 @@ public:
     }
 
 
-    // compute intersection point of ray starting from r and pointing to v
+    // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point r,
                                           Point v) {
@@ -319,6 +319,42 @@ public:
             }
         }
         return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(Point r,
+                                    Point v) {
+
+        NT lamda = 0, min_plus = NT(maxNT);
+        NT sum_nom, sum_denom;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet;
+        viterator rit, vit;
+
+        for (int i = 0; i < m; i++) {
+            sum_nom = b(i);
+            sum_denom = NT(0);
+            j = 0;
+            rit = r.iter_begin();
+            vit = v.iter_begin();
+            for ( ; rit != r.iter_end(); rit++, vit++, j++){
+                sum_nom -= A(i, j) * (*rit);
+                sum_denom += A(i, j) * (*vit);
+            }
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                }
+            }
+        }
+        return std::pair<NT, NT>(min_plus, facet);
     }
 
 

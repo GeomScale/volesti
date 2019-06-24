@@ -62,6 +62,31 @@ public:
         return std::pair<NT,NT> (lamda1,lamda2);
     }
 
+
+    std::pair<NT,NT> line_positive_intersect(Point r,
+                                    Point v){
+
+        viterator rit=r.iter_begin();
+        viterator vit=v.iter_begin();
+        viterator cit=c.iter_begin();
+
+        viterator rcit=r.iter_begin();
+        NT vrc(0);
+        NT v2(0);
+        NT rc2(0);
+        for( ; cit < c.iter_end() ; ++rcit, ++cit, ++rit, ++vit){
+            vrc += *vit * (*rcit);
+            v2 += *vit * (*vit);
+            rc2 += *rcit * (*rcit);
+        }
+
+        NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
+        NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
+        //NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
+        return lamda1;
+    }
+
+
     std::pair<NT,NT> line_intersect_coord(Point r,
                                           int rand_coord){
 
@@ -125,6 +150,18 @@ public:
         std::pair <NT, NT> ballpair = B.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
+    }
+
+    std::pair<NT,int> line_positive_intersect(Point r,
+                                    Point v) {
+
+        std::pair <NT, int> polypair = P.line_positive_intersect(r, v);
+        NT ball_lambda = B.line_positive_intersect(r, v);
+        int facet = P.num_of_hyperplanes() + 1;
+
+        if (polypair.first < ball_lambda ) facet = polypair.second;
+
+        return std::pair<NT, int>(std::min(polypair.first, ball_lambda), facet);
     }
 
     //First coordinate ray shooting intersecting convex body
