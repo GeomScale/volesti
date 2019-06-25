@@ -79,10 +79,42 @@ namespace optimization {
         }
     };
 
+    /**
+     * Returns the normal of a vector
+     *
+     * @param vector
+     * @return
+     */
+    double getNormal(VT& vector) {
+        double normal = 0;
+        for (unsigned int i=0; i<vector.rows(); i++)
+            normal += vector(i) * vector(i);
+
+        normal=std::sqrt(normal);
+
+        return normal;
+    }
+
+
+    /**
+     * Normalizes the given vector
+     *
+     * @param vector
+     * @return the norm of the input vector
+     */
+    double normalizeVector(VT& vector) {
+        double normal = getNormal(vector);
+
+        for (unsigned int i=0; i<vector.rows(); i++)
+            vector(i) = vector(i) / normal;
+
+        return normal;
+    }
+
 
     /**
      * Compute the cutting plane c (x - point) <= 0  ==>  cx <= c point
-     * and add it as a new constraint in the existing polytope, in place of its last one, which will be redundant.
+     * and add it as a new normalized constraint in the existing polytope, in place of its last one, which will be redundant.
      *
      * @tparam Point class Point
      * @tparam NT The numeric type
@@ -94,17 +126,19 @@ namespace optimization {
     void cutPolytope(VT &c, HPolytope<Point> &polytope, Point &point) {
 
         unsigned int dim = polytope.dimension();
+        VT normalizedC = c;
+        double normal = normalizeVector(normalizedC);
 
         //add cx in last row of A
         long j, i;
 
         for (j = 0, i = polytope.num_of_hyperplanes() - 1 ; j < dim; j++) {
-            polytope.put_mat_coeff(i, j, c(j));
+            polytope.put_mat_coeff(i, j, normalizedC(j));
         }
 
         //add  < c,  point >  in last row of b
         NT _b = c.dot(point.getCoefficients());
-        polytope.put_vec_coeff(polytope.num_of_hyperplanes() - 1, _b);
+        polytope.put_vec_coeff(polytope.num_of_hyperplanes() - 1, _b/normal);
     }
 
 
@@ -407,6 +441,806 @@ namespace optimization {
 
 
     /**
+    * Computes the softmax function (gradient of LogSumExp)
+    *
+    * @param input the input vector
+    * @param gradient the returned vector
+    * @param weight e = e^weight
+    */
+    void softMax(VT& input, VT& gradient, double weight) {
+        int dim = input.rows();
+        std::vector<double> exps(dim, 0);
+        double denominator = 0;
+
+        double max = input(0);
+        for (int i=1 ; i<dim ; i++)
+            if (input(i) > max)
+                max = input(i);
+
+        for (int i=0 ; i<dim ; i++) {
+            exps[i] = std::exp((input(i) - max)* weight);
+            denominator += exps[i];
+        }
+
+        gradient.setZero(dim);
+
+        for (int i=0 ; i<dim ; i++) {
+            gradient(i) = exps[i] / denominator;
+        }
+    }
+
+
+
+    /**
+     * The LogSumExp function
+     *
+     * @param input
+     * @return
+     */
+    double LogSumExp(VT& input) {
+        int dim = input.rows();
+        double sum = 0;
+
+        double max = input(0);
+        for (int i=1 ; i<dim ; i++)
+            if (input(i) > max)
+                max = input(i);
+
+        for (int i=0 ; i<dim ; i++) {
+            sum += std::exp(input(i) - max);
+        }
+
+        return max + log(sum);
+    }
+
+
+    /**
+     * Returns the index of the maximum element in the given vector
+     * @param vec
+     * @return
+     */
+    int maxElementIndex(VT& vec) {
+        int index = 0;
+        double max = vec(0);
+
+        for (int i=1 ; i<vec.rows() ; i++)
+            if (vec(i) > max) {
+                index = i;
+                max = vec(i);
+            }
+
+        return index;
+    }
+
+
+    /**
+     * Returns the index of the minimum element in the given vector
+     * @param vec
+     * @return
+     */
+    int minElementIndex(VT& vec) {
+        int index = 0;
+        double min = vec(0);
+
+        for (int i=1 ; i<vec.rows() ; i++)
+            if (vec(i) < min) {
+                index = i;
+                min = vec(i);
+            }
+
+        return index;
+    }
+
+
+
+    /**
+     * Solves the 2 dimensional LP problem
+     *
+     * max 0x + y
+     * subject to a*x + y <= b
+     *            x_min <= x <= x_max
+     *
+     * It's based on Seidel's algorithm for LP problems. The problems I solve always have a feasible solution and y is positive,
+     * so the implementation takes these into account to make it more efficient.
+     *
+     * @param a
+     * @param b
+     * @param x_min
+     * @param x_max
+     * @return the coordinates (x,y) of the optimal solution
+     */
+ //bug
+//    std::pair<double, double> Seidel2dimLP(VT &a,  VT &b, double x_min, double x_max, int indexMin, int indexMax) {
+//
+//
+//        // get the intersection points of a constraint with x = x_min, x_max
+//        typedef std::pair<double, double> point2;
+//
+//        point2 max, p, temp, leftmost, rightmost;
+//        int chosen = indexMin;
+//
+//        if (indexMin < indexMax)
+//            max = Seidel2dimLP(a, b, x_min, x_max, chosen+1, indexMax);
+//        else {
+//            rightmost.first = x_min;
+//            rightmost.second = - a(indexMax) * x_min + b(indexMax);
+//
+//            leftmost.first = x_max;
+//            leftmost.second = - a(indexMax) * x_max + b(indexMax);
+//
+//            return rightmost.second < leftmost.second ? leftmost : rightmost;
+//        }
+//
+//        if (a(chosen) * max.first + max.second - b(chosen) <= ZERO)
+//            return max;
+//
+////        p.second = - a(0)*x_min + b(0);
+//
+//        // coordinates of highest point
+////        temp.second = - a(0)*x_max + b(0);
+////        max.first = temp.second > p.second ? x_max : x_min;
+//
+//        // pick the highest y
+////        max.second = temp.second > p.second ? temp.second : p.second;
+//
+//
+////        for (int i = 0; i<chosen ; i++) {
+////
+////             check if constraint is satisfied
+////            if (a(i) * max.first + max.second - b(i) <= ZERO)
+////                continue;
+//
+//        // must compute left-most and right-most intersection points with other constraints
+//        rightmost.first = x_min;
+////            rightmost.second = - a(chosen) * x_min + b(chosen);
+//
+//        leftmost.first = x_max;
+////            leftmost.second = - a(chosen) * x_max + b(chosen);
+//
+//        for (int j=chosen+1 ; j<indexMax ; j++) {
+////                if (i == j) continue;
+//
+//            if (a(j) - a(chosen) > 0)
+//                leftmost.first = (b(j) - b(chosen)) / (a(j) - a(chosen));
+//            else
+//                rightmost.first = (b(j) - b(chosen)) / (a(j) - a(chosen));
+//
+////                 must be within boundaries
+////                if (p.first < x_min || p.first > x_max) continue;
+//
+////                p.second = b(chosen) - a(chosen) * p.first;
+//
+//            // check if constraint j faces right at constraint i
+////                temp.first = p.first + 10;
+////                temp.second = b(chosen) - a(chosen) * temp.first;
+//
+////                if (a(j) * temp.first + temp.second - b(j) <= ZERO) {
+////                     keep it if it is the most right
+////                    if (p.first > rightmost.first) {
+////                        rightmost = p;
+////                    }
+////                } else {
+//            // keep it if it is the most left
+////                    if (p.first < leftmost.first) {
+////                        leftmost = p;
+////                    }
+////                }
+//
+//        }
+//
+//        if (leftmost.first < rightmost.first) { //TODO redundant i constaint?
+////                a(i) = a(m-1);
+////                b(i) = b(m-1);
+////                a.conservativeResize(m-1);
+////                b.conservativeResize(m-1);
+////                return Seidel2dimLP(a,  b, x_min, x_max, 0, );
+////                break;
+//            std::cout << "rr\n";
+//        }
+//
+//        // get new highest point
+////            if (max.second < leftmost.second) {
+////                leftmost.second = b(chosen) - a(chosen) * leftmost.first;
+////                max = leftmost;
+////            }
+////
+////            if (max.second < rightmost.second) {
+////                rightmost.second = b(chosen) - a(chosen) * rightmost.first;
+////                max = rightmost;
+////            }
+//        if (rightmost.second < leftmost.second) {
+//            leftmost.second = b(chosen) - a(chosen) * leftmost.first;
+//            max = leftmost;
+//        }
+//        else {
+//            rightmost.second = b(chosen) - a(chosen) * rightmost.first;
+//            max = rightmost;
+//        }
+//
+//
+////        }
+//
+//        return max;
+//    }
+
+
+
+    /**
+     * Solves the 2 dimensional LP problem
+     *
+     * max 0x + y
+     * subject to a*x + y <= b
+     *            x_min <= x <= x_max
+     *
+     * @tparam NT
+     * @param A
+     * @param b
+     * @param x
+     * @param direction
+     * @param lambda_max
+     * @param lambda_min
+     * @param negativeDistances
+     */
+    template <typename NT>
+    void minimizeAndUpdate(MT &A, const VT &b,  VT &x, const VT &direction, NT lambda_max, NT lambda_min,
+                           VT &negativeDistances) {
+        VT _b = -1 * negativeDistances;
+        VT _a = A*direction;
+
+
+        double discretize = 10000;
+        double stepSize = (lambda_max - lambda_min) / discretize;
+        VT step = A * (stepSize * direction);
+
+        double minimizingStep = 1;
+        VT t = A * (x+(lambda_min+stepSize)*direction) - b;// = negativeDistances + (A * (lambda_min * direction));
+        double min = t(maxElementIndex(t));
+        negativeDistances = t;
+
+        for (double i=2 ; i<discretize ; i++) {
+            t = A * (x+((lambda_min +  i *stepSize)*direction)) - b;//+= step;
+            double n = t(maxElementIndex(t));
+//            std::cout << "D \t" << (lambda_min + i *stepSize) << "\t" << n << "\n";
+            if (n < min) {
+                min = n;
+                negativeDistances = t;
+                minimizingStep = i;
+            } else {
+//                std::cout << "D \t" << (lambda_min + i *stepSize) << "\t" << n << "\n";
+//                break;
+            }
+        }
+        ///////////////////////////////////////////////////////////////
+//
+        //        VT v = A * direction;
+//        double left = lambda_min;
+//        double right = lambda_max;
+//        double middle = (right + left) / 2;
+//        double min, previous_min;
+//
+//        VT t = negativeDistances - middle * v;
+//        previous_min = t(maxElementIndex(t));
+//
+//        do {
+//
+//        } while (relative_error(min, previous_min) < 0.0001);
+
+//        x = x + (lambda_min + minimizingStep * stepSize) * direction;
+//        std::cout << lambda_min << "\t"  << lambda_max  << "\t"<< lambda_min + minimizingStep * stepSize << "\t" <<  min << "\n";
+//        std::cout << direction.transpose() << "\n";
+
+//        VT _a(4);
+//        _a<< 3, 4, 2, -1;
+//        VT _b(4);
+//        _b << 60, 72, 100, 5;
+//        lambda_min = 0;
+//        lambda_max = 2;
+//        std::pair<double, double> res = Seidel2dimLP(_a, _b, lambda_min, lambda_max,0,_b.rows()-1);
+
+
+//        x = x + res.first * direction;
+//        VT q = -1 * _a * res.first;
+//        q = q + _b;
+//        std::cout << "\t" << res.first << "\t" <<  res.second  <<"\t" <<q(minElementIndex(q))<< "\n";
+/////////////////////////////////////////////////////////////////////////
+
+        lprec *_lp;
+        unsigned int dim = 2;
+
+        REAL row[1 + dim]; /* must be 1 more then number of columns ! */
+
+        /* Create a new LP model */
+        _lp = make_lp(0, dim);
+
+
+//        for (int j=1 ; j<=dim ; j++)
+//            row[j] = lp.objectiveFunction(j-1); //j must start at 1
+        row[1] = 0;
+        row[2] = 1;
+
+        set_obj_fn(_lp, row);
+        set_verbose(_lp, 2);
+        set_add_rowmode(_lp, TRUE);
+
+        for (int i=0 ; i<_a.rows() ; i++) {
+//            for (int j=1 ; j<=dim ; j++)
+            row[1] = _a(i); //j must start at 1
+            row[2] = 1;
+
+            add_constraint(_lp, row, LE, _b(i)); /* constructs the row: +v_1 +2 v_2 >= 3 */
+        }
+
+        row[1] = 1; //j must start at 1
+        row[2] = 0;
+
+        add_constraint(_lp, row, LE, lambda_max); /* constructs the row: +v_1 +2 v_2 >= 3 */
+        row[1] = 1; //j must start at 1
+        row[2] = 0;
+
+        add_constraint(_lp, row, GE, lambda_min); /* constructs the row: +v_1 +2 v_2 >= 3 */
+
+        set_add_rowmode(_lp, FALSE);
+        set_maxim(_lp);
+
+        for (int j=1 ; j<=dim ; j++)
+            set_bounds(_lp, j, -std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+
+        solve(_lp);
+        NT ret = get_objective(_lp);
+
+        REAL solution[dim];
+        get_variables(_lp, solution);
+//        std::cout << "Optimal solution: " << std::endl;
+//        for (int i=0; i < dim; i++)
+//            std::cout << "x[" << i+1 << "] = " << solution[i] << std::endl;
+
+        delete_lp(_lp);
+        x = x + solution[0] * direction;
+        /////////////////////////
+//        double min = negativeDistances(maxElementIndex(negativeDistances));
+//        diff += (lambda_min - lambda_max) / 25;
+
+//        while (diff > lambda_min) {
+
+//            for (int i = 0; i <  b.rows(); i++)
+//                negativeDistances(i) = A.row(i).dot(x+ diff * direction) - b(i);
+
+//                    p = Point((point.getCoefficients() + diff * direction));
+//            std::cout << "D \t" << negativeDistances(maxElementIndex(negativeDistances)) << "\t" << diff << "\n";
+
+//            if (negativeDistances(maxElementIndex(negativeDistances)) < min) {
+//                min = negativeDistances(maxElementIndex(negativeDistances));
+//                best = diff;
+//            }
+//            diff += (lambda_min - lambda_max) / 25;
+//        }
+//
+//        diff = best;
+    }
+
+
+    /**
+     * Computes the euclidean distance between two points.
+     *
+     * @param v1
+     * @param v2
+     * @return
+     */
+    double euclideanDistance(VT& v1, VT& v2) {
+        double sum = 0;
+
+        for (int i=0 ; i<v1.rows() ; i++)
+            sum += (v1(i) - v2(i))*(v1(i) - v2(i));
+
+        return sqrt(sum);
+    }
+
+
+    /**
+     * Normalize the matrix of the polytope
+     *
+     * @tparam Polytope
+     * @param polytope
+     */
+    template <class Polytope>
+    void normalizePolytope(Polytope& polytope) {
+        MT A;
+        VT b;
+
+        int m;
+        b = polytope.get_vec();
+        m = b.rows();
+        A = polytope.get_mat();
+
+        // normalize
+        for (int i = 0; i < m; i++) {
+            VT a = A.row(i);
+            double norm = getNormal(a);
+            A.row(i) /= norm;
+            b(i) /= norm;
+        }
+
+
+        polytope.set_mat(A);
+        polytope.set_vec(b);
+    }
+
+    /**
+     * The idea is to move towards the center of the Chebyshev sphere.
+     *
+     * While at point p, compute vector d = A*p - b
+     * Compute the vector s = A^T * softmax(d)
+     * Move towards s, that is next point is p' = p + k * s
+     * pick k so that you minimize max{a_i*p' - b_i}
+     *
+     * @tparam Polytope
+     * @tparam Point
+     * @param polytope
+     * @param point
+     * @param steps
+     */
+    template<class Polytope, class Point>
+    void escapeStep_ChebyshevCenter(Polytope &polytope, Point &point, int steps) {
+        typedef typename Point::FT NT;
+
+//        MT _A = polytope.get_mat();
+//        VT _b = polytope.get_vec();
+
+        MT A;
+        VT b;
+        VT x = point.getCoefficients();
+        VT negativeDistances(polytope.get_vec().rows());
+        VT gradient;
+
+
+        int m;
+        b = VT(polytope.get_vec());
+        m = b.rows();
+        A = MT(polytope.get_mat());
+
+        /*****************      INITIALIZE    *****************/
+
+
+        SlidingWindow slidingWindow(steps/10);
+
+        /*****************      COMPUTE    *****************/
+
+//        VT center = polytope.ComputeInnerBall().first.getCoefficients();
+//        VT dd = A*center - b;
+//        double radius = dd(maxElementIndex(dd));
+
+        double previous_min = 1;
+        double weight = 100;
+        bool once = false;
+
+        for (int step = 1; step <= steps; step++) {
+
+
+            negativeDistances = A * x - b;
+
+//            std::cout << "DISTANCES " << step << "\t Facet: no" << maxElementIndex(negativeDistances) << "\t dist:"
+//                      << negativeDistances(maxElementIndex(negativeDistances)) << "\t weight " << weight << "\t"
+//                      << euclideanDistance(center, x) << "\t" <<radius<< "\n";
+
+
+
+            // find direction
+            softMax(negativeDistances, gradient, weight);
+            VT direction = A.transpose() * gradient;
+
+            // how far can we travel
+            std::pair<NT, NT> dbpair = polytope.line_intersect(Point(x), Point(direction));
+            NT lambda_max = dbpair.first;
+            NT lambda_min = dbpair.second;
+
+
+//            VT _b = -1 * negativeDistances;
+//            VT _a = A*direction;
+//            std::pair<double, double> res = Seidel2dimLP(_a, _b, lambda_min, lambda_max);
+//            x = x + res.first * direction;
+            minimizeAndUpdate(A,b,  x, direction, lambda_max, lambda_min, negativeDistances);
+            double res = negativeDistances(maxElementIndex(negativeDistances));
+
+            if (previous_min == 1)
+                previous_min = res;
+            else {
+                if (relative_error(previous_min, res) < 0.1) {
+                    weight *= 10;
+
+                    if (weight > 10000) {
+                        weight = 10;
+
+//                        if (once) {
+//                        std::cout << A.row(A.rows() - 1) << "\n";
+//                        std::cout << A.row(maxElementIndex(negativeDistances)) << "\n";
+//                            VT maxFacet = A.row(maxElementIndex(negativeDistances));
+//
+//                            double sum = 0;
+//                            int nonzero = -1;
+//                            int no = 0;
+//
+//                            for (int i = 0; i < A.cols(); i++) {
+//
+//                                if (maxFacet(i) != 0 && nonzero == -1) {
+//                                    nonzero = i;
+//                                    continue;
+//                                }
+//
+//                                if (maxFacet(i) != 0) {
+//                                    sum += maxFacet(i) * 2;
+//                                    no++;
+//                                }
+//                            }
+//
+//                            if (no != 0) {
+//                                A.conservativeResize(A.rows() + 1, A.cols());
+//
+//
+//                                A(A.rows() - 1, nonzero) = sum / no;
+//                                b.conservativeResize(b.rows() + 1);
+//                                b(b.rows() - 1) = A.row(A.rows() - 1).dot(x) + 0.0001;
+//
+//                                m = b.rows();
+//
+//                                for (int i = 0; i < m; i++) {
+//                                    VT a = A.row(i);
+//                                    double norm = getNormal(a);
+//                                    A.row(i) /= norm;
+//                                    b(i) /= norm;
+//                                }
+//                            std::cout << A.row(A.rows() - 1) << "\n" << maxFacet.transpose() << "\n"
+//                                      << A.row(A.rows() - 1).dot(maxFacet) << "\n" << A.row(maxElementIndex(negativeDistances))
+//                                      << "\n";
+//                                std::cout <<  "\n\n\n";
+//                                polytope.set_mat(A);
+//                                polytope.set_vec(b);
+//                                once = false;
+//                            }
+//                        }
+
+                    }
+
+
+                }
+
+                previous_min = res;
+
+            }
+            slidingWindow.push(res);
+
+            if (slidingWindow.getRelativeError() < 0.01)
+                break;
+        }
+
+        point = Point(x);
+
+//        assert(false);
+
+//        polytope.set_mat(_A);
+//        polytope.set_vec(_b);
+
+//        assert(polytope.is_in(Point(x)));
+
+    }
+
+
+
+    /**
+     * Use billard walk as an escape step. Set the point to be the center of the longest trajectory.
+     *
+     * @tparam Polytope
+     * @tparam Point
+     * @param polytope
+     * @param point
+     * @param walkLength
+     */
+    template<class Polytope, class Point>
+    void escapeStep_BilliardWalk(Polytope& polytope, Point& point, int walkLength) {
+        typedef typename Point::FT NT;
+
+        MT A = polytope.get_mat();
+        VT b = polytope.get_vec();
+        VT x = point.getCoefficients();
+
+        VT negativeDistances = A * x - b;
+        VT gradient;
+
+        // find direction
+        softMax(negativeDistances, gradient, 10000);
+        VT direction = A.transpose() * gradient;
+
+        // the center and the length of each trajectory
+        std::vector<std::pair<VT, double> > lengths;
+
+        for (int i=0 ; i<walkLength ; i++) {
+
+            // how far can we travel
+            Point facet_first, facet_second;
+            std::pair<NT, NT> dbpair = polytope.line_intersect(Point(x), Point(direction), facet_first, facet_second);
+
+            double lambda = abs(dbpair.first) > abs(dbpair.second) ? dbpair.first : dbpair.second;
+            VT s = abs(dbpair.first) > abs(dbpair.second) ? facet_first.getCoefficients() : facet_second.getCoefficients();
+
+            VT endPoint1 = x + dbpair.first * direction;
+            VT endPoint2 = x + dbpair.second * direction;
+            double length = euclideanDistance(endPoint1, endPoint2);
+            VT center = (endPoint1 + endPoint2)/2;
+
+//            std::cout << "length = " << length << ", is in = " << polytope.is_in(Point(center)) << " lambdas:" << dbpair.first << ", " << dbpair.second << " " <<
+//                   facet_first.getCoefficients()(0) << " " << facet_second.getCoefficients()(0) << "\n";
+            lengths.push_back(std::pair<VT, double>(center, length));
+
+            x = x + 0.9*lambda* direction;
+            direction = direction - 2* direction.dot(s) * s;
+        }
+
+        double max = lengths[0].second;
+        int max_index = 0;
+
+        for (int i=0 ; i<lengths.size() ; i++){
+            if (lengths[i].second > max) {
+                max = lengths[i].second;
+                max_index = i;
+            }
+        }
+
+        point = Point(lengths[max_index].first);
+
+    }
+
+    /**
+     * Use billard walk as an escape step. Set the point to be the arithmetic mean of points sampled.
+     *
+     * @tparam Polytope
+     * @tparam Point
+     * @param polytope
+     * @param point
+     * @param walkLength
+     */
+    template<class Polytope, class Point>
+    void escapeStep_BilliardWalkCenter(Polytope& polytope, Point& point, int walkLength) {
+        typedef typename Point::FT NT;
+
+        MT A = polytope.get_mat();
+        VT b = polytope.get_vec();
+        VT x = point.getCoefficients();
+
+        VT negativeDistances = A * x - b;
+        VT gradient;
+
+        // find direction
+        softMax(negativeDistances, gradient, 10000);
+        VT direction = A.transpose() * gradient;
+
+        // the center and the length of each trajectory
+        std::vector<std::pair<VT, double> > lengths;
+
+        for (int i=0 ; i<walkLength ; i++) {
+
+            // how far can we travel
+            Point facet_first, facet_second;
+            std::pair<NT, NT> dbpair = polytope.line_intersect(Point(x), Point(direction), facet_first, facet_second);
+
+            double lambda = abs(dbpair.first) > abs(dbpair.second) ? dbpair.first : dbpair.second;
+            VT s = abs(dbpair.first) > abs(dbpair.second) ? facet_first.getCoefficients() : facet_second.getCoefficients();
+
+            VT endPoint1 = x + dbpair.first * direction;
+            VT endPoint2 = x + dbpair.second * direction;
+            double length = euclideanDistance(endPoint1, endPoint2);
+            VT center = (endPoint1 + endPoint2)/2;
+
+//            std::cout << "length = " << length << ", is in = " << polytope.is_in(Point(center)) << " lambdas:" << dbpair.first << ", " << dbpair.second << " " <<
+//                      facet_first.getCoefficients()(0) << " " << facet_second.getCoefficients()(0) << "\n";
+            lengths.push_back(std::pair<VT, double>(center, length));
+
+            x = x + 0.9*lambda* direction;
+            direction = direction - 2* direction.dot(s) * s;
+        }
+
+        VT sum;
+        sum.setZero(direction.rows());
+
+        for (int i=0 ; i<lengths.size() ; i++)
+            sum = sum + lengths[i].first;
+
+        point = Point(sum / (double) lengths.size());
+
+    }
+
+    //vectors normalized
+    VT getVectorWithAngle(VT& s, double cos) {
+        int dim = s.rows();
+        VT v(dim);
+
+        int firstNonZero = -1;
+        double sum = 0;
+
+        for (int i=0 ; i<dim; i++) {
+            v(i) = 1;
+
+            if (s(i) != 0 && firstNonZero == -1) {
+                    firstNonZero = i;
+                    continue;
+            }
+
+            sum += s(i);
+        }
+
+        v(firstNonZero) = (cos - sum) / s(firstNonZero);
+        return v;
+    }
+
+    /**
+     * Use billard walk as an escape step. Set the point to be the one that minimizes the objective function.
+     *
+     * @tparam Polytope
+     * @tparam Point
+     * @param polytope
+     * @param point
+     * @param walkLength
+     * @param c
+     */
+    template<class Polytope, class Point>
+    void escapeStep_BilliardWalk(Polytope& polytope, Point& point, int walkLength, VT c) {
+        typedef typename Point::FT NT;
+
+        MT A = polytope.get_mat();
+        VT b = polytope.get_vec();
+        VT x = point.getCoefficients();
+
+        VT negativeDistances = A * x - b;
+        VT gradient;
+
+        // find direction
+        softMax(negativeDistances, gradient, 10000);
+        VT direction = c;//A.transpose() * gradient;
+
+        // the center and the length of each trajectory
+        std::vector<std::pair<VT, VT> > lengths;
+
+        for (int i=0 ; i<walkLength ; i++) {
+
+            // how far can we travel
+            Point facet_first, facet_second;
+            std::pair<NT, NT> dbpair = polytope.line_intersect(Point(x), Point(direction), facet_first, facet_second);
+
+//            double lambda = abs(dbpair.first) > abs(dbpair.second) ? dbpair.first : dbpair.second;
+            VT s = abs(dbpair.first) > abs(dbpair.second) ? facet_first.getCoefficients() : facet_second.getCoefficients();
+
+            double lambda = (dbpair.first + dbpair.second) / 2;
+//            VT endPoint1 = x + dbpair.first * direction;
+//            VT endPoint2 = x + dbpair.second * direction;
+//            double length = euclideanDistance(endPoint1, endPoint2);
+            VT center = x + lambda * direction;
+
+//            std::cout << "length = " << length << ", is in = " << polytope.is_in(Point(center)) << " lambdas:" << dbpair.first << ", " << dbpair.second << " " <<
+//                      c.dot(endPoint1) << " " << c.dot(endPoint2) << "\n";
+
+            lengths.push_back(std::pair<VT, VT>(center, s));
+//            lengths.push_back(std::pair<VT, VT>(endPoint1, s));
+//            lengths.push_back(std::pair<VT, VT>(endPoint2, s));
+
+            x = x + 0.9*lambda* direction;
+            direction = direction - 2* direction.dot(s) * s;
+        }
+
+        double min = lengths[0].first.dot(c);
+        int min_index = 0;
+
+        for (int i=0 ; i<lengths.size() ; i++){
+            if (lengths[i].first.dot(c) < min) {
+                min = lengths[i].first.dot(c);
+                min_index = i;
+            }
+        }
+
+        point = Point(lengths[min_index].first);
+//        std::cout << lengths[min_index].first.dot(c) << "\n";
+    }
+
+
+
+    /**
      * Check if new point p is a better approximation than min1, min2 and if yes change min1, min2
      *
      *
@@ -502,7 +1336,7 @@ namespace optimization {
 
         typedef typename Parameters::RNGType RNGType;
         typedef typename Point::FT NT;
-        assert(P.is_in(p));
+//        assert(P.is_in(p));
 
         int dim = p.dimension();
         VT b = P.get_vec();
@@ -856,14 +1690,14 @@ namespace optimization {
 //            std::cout << min1.getCoefficients().dot(c) << "\t" << minProduct1 <<"\n";
         } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
 
-
+//TODO done need boundary perhaps?
         // find an interior point to start the next phase
-        Point _p =  min1*0.20;
-        Point _p1 = min2*0.40;
-        Point _p2 =  boundaryMin1*0.20;
-        Point _p3 = boundaryMin2*0.20;
+        Point _p =  min1*0.50;
+        Point _p1 = min2*0.50;
+//        Point _p2 =  boundaryMin1*0.20;
+//        Point _p3 = boundaryMin2*0.20;
 //        p = (min1 + min2)/2;
-        p = _p + _p1 + _p2 + _p3;
+        p = _p + _p1;// + _p2 + _p3;
 
 //        std::cout << min1.getCoefficients().dot(c) << "\t" << P.is_in(p) << "\t" << min2.getCoefficients().dot(c) << "\n";
 //        std::cout << min2.getCoefficients().dot(c) <<"\n";
@@ -873,6 +1707,251 @@ namespace optimization {
     }
 
 
+    template <class Point, typename NT>
+    std::pair<NT, NT>
+    getCuttingInteriorPoints(const VT &objectiveFunction, Point &interiorPoint, unsigned int rand_coord,
+                             const std::pair<NT, NT> &bpair) {
+
+        NT cutAt, diff;
+        if (objectiveFunction(rand_coord) > 0) {
+
+            if (abs(bpair.second) < ZERO)
+                return std::pair<NT, NT>(0, 0);
+
+            if (relative_error(interiorPoint[rand_coord] + bpair.second, interiorPoint[rand_coord]) > 0.001) {
+                cutAt =  0.7*bpair.second;
+                diff = 0.9 * bpair.second;
+            }
+            else {
+                cutAt =  0.3*bpair.second;
+                diff = 0.6*bpair.second;
+            }
+        } else {
+            if (abs(bpair.first) < ZERO)
+                return std::pair<NT, NT>(0, 0);
+
+            if (relative_error(interiorPoint[rand_coord] + bpair.first, interiorPoint[rand_coord]) > 0.001) {
+                cutAt = 0.7*bpair.first;
+                diff = 0.9 * bpair.first;
+            }
+            else {
+                cutAt = 0.3*bpair.first;
+                diff = 0.6*bpair.first;
+            }
+        }
+
+        return std::pair<NT, NT>(cutAt, diff);
+    }
+
+
+    /**
+     * Solve the linear program
+     *
+     *      min cx
+     *      s.t. Ax <= b
+     *
+     * In this implementation, at each phase of the algorithm, I generate a new point with the cdhr random walk and cut the polytope
+     *
+     * @tparam Parameters
+     * @tparam Point
+     * @tparam NT
+     * @param polytope
+     * @param objectiveFunction
+     * @param parameters
+     * @param error
+     * @param maxSteps
+     * @param initial
+     * @return
+     */
+    template<class Parameters, class Point, typename NT>
+    std::pair<Point, NT> cutting_plane_method_new(HPolytope<Point> polytope, VT& objectiveFunction, Parameters parameters, const NT error,
+                                                  const unsigned int maxSteps, Point& initial) {
+
+
+        typedef typename Parameters::RNGType RNGType;
+
+
+        bool verbose = parameters.verbose;
+        unsigned int rnum = parameters.m;
+        unsigned int walk_len = parameters.walk_steps;
+        bool tillConvergence = maxSteps == 0;
+        unsigned int step = 1;
+        int dim = initial.dimension();
+
+
+        SlidingWindow slidingWindow(2*dim);
+        std::pair<Point, Point> minimizingPoints;
+        bool escape = false;
+        bool escape_chebysev = false;
+        bool escape_billiard = false;
+        Point interiorPoint = initial;
+
+
+        // initialize the cdhr random walk
+        RNGType &rng = parameters.rng;
+        boost::random::uniform_real_distribution<> urdist(0, 1);
+        boost::random::uniform_int_distribution<> uidist(0, dim - 1);
+        std::vector<NT> lamdas(polytope.num_of_hyperplanes(), NT(0));
+        unsigned int rand_coord, rand_coord_prev;
+        NT kapa, ball_rad = parameters.delta;
+        rand_coord = uidist(rng);
+        kapa = urdist(rng);
+        std::pair<NT, NT> bpair = polytope.line_intersect_coord(interiorPoint, rand_coord, lamdas);
+        Point interiorPoint_prev = interiorPoint;
+
+
+        std::pair<NT, NT> res = getCuttingInteriorPoints(objectiveFunction, interiorPoint, rand_coord, bpair);
+        double cutAt = res.first;
+        NT diff = res.second;
+
+        // cut the polytope
+        interiorPoint.set_coord(rand_coord, interiorPoint[rand_coord] + cutAt);
+
+        // add one more row in polytope, where we will store the current cutting plane
+        // each time we cut the polytope we replace the previous cutting plane with the new one
+        addRowInPolytope<Point, NT>(polytope);
+
+        cutPolytope<Point, NT>(objectiveFunction, polytope, interiorPoint);
+        normalizePolytope(polytope);
+
+        // prepare point for next iteration and update min value
+        interiorPoint.set_coord(rand_coord, interiorPoint[rand_coord] - cutAt + diff);
+
+        lamdas = std::vector<double>(polytope.num_of_hyperplanes(), NT(0));
+        rand_coord = uidist(rng);
+        kapa = urdist(rng);
+        bpair = polytope.line_intersect_coord(interiorPoint, rand_coord, lamdas);
+        interiorPoint_prev = interiorPoint;
+        interiorPoint.set_coord(rand_coord, interiorPoint[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+
+        NT dotProduct = interiorPoint.getCoefficients().dot(objectiveFunction);
+        slidingWindow.push(dotProduct);
+
+
+        res = getCuttingInteriorPoints(objectiveFunction, interiorPoint, rand_coord, bpair);
+        cutAt = res.first;
+        diff = res.second;
+
+
+        double previous_dotProduct;
+        int stepsSinceLastEscape = 0;
+        double objectiveFunctionNorm = getNormal(objectiveFunction);
+        bool stuck = false;
+        int stuck_try_coord;
+        bool escapeDidntWork = false;
+        bool triedEscaping = false;
+
+        do {
+            previous_dotProduct = dotProduct;
+
+            if (escape) {
+                if (escape_chebysev)
+                    escapeStep_ChebyshevCenter(polytope, interiorPoint, 3);
+                else if (escape_billiard)
+                    escapeStep_BilliardWalk(polytope, interiorPoint, walk_len, objectiveFunction);
+
+                rand_coord = uidist(rng);
+                kapa = urdist(rng);
+                bpair = polytope.line_intersect_coord(interiorPoint, rand_coord, lamdas);
+                interiorPoint_prev = interiorPoint;
+                interiorPoint.set_coord(rand_coord, interiorPoint[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+
+                dotProduct = interiorPoint.getCoefficients().dot(objectiveFunction);
+
+                escape = false;
+                triedEscaping = true;
+                stepsSinceLastEscape = 0;
+            }
+            else {
+
+                // get next point
+                rand_coord_prev = rand_coord;
+
+                if (!stuck)
+                    rand_coord = uidist(rng);
+                else {
+                    rand_coord = stuck_try_coord;
+                    stuck_try_coord++;
+                }
+
+                kapa = urdist(rng);
+
+                bpair = polytope.line_intersect_coord(interiorPoint, interiorPoint_prev, rand_coord, rand_coord_prev,
+                                                      lamdas);
+                interiorPoint_prev = interiorPoint;
+
+                res = getCuttingInteriorPoints(objectiveFunction, interiorPoint, rand_coord, bpair);
+                cutAt = res.first;
+                diff = res.second;
+
+                if (diff != 0 && cutAt != 0) {
+
+                    polytope.put_vec_coeff(polytope.num_of_hyperplanes() - 1, (dotProduct + objectiveFunction(rand_coord) * cutAt) / objectiveFunctionNorm);
+
+                    // prepare point for next iteration and update min value
+                    interiorPoint.set_coord(rand_coord, interiorPoint[rand_coord] + diff);
+                    dotProduct += objectiveFunction(rand_coord) * diff;
+
+                    //update lambdas for random walk
+                    VT b = polytope.get_vec();
+                    MT A = polytope.get_mat();
+                    int at = b.rows() - 1;
+                    NT sum_nom = b(at);
+                    NT sum_denom = A(at, rand_coord);
+                    VT r_coeffs = interiorPoint_prev.getCoefficients();
+                    for (int j = 0; j < interiorPoint_prev.dimension(); j++) {
+                        sum_nom -= A(at, j) * r_coeffs(j);
+                    }
+                    lamdas[at] = sum_nom;
+
+                }
+            }
+
+            slidingWindow.push(dotProduct);
+
+            if (slidingWindow.getRelativeError() < error) {
+                if (triedEscaping) {
+                    if (!stuck) {
+                        stuck = true;
+                        stuck_try_coord = 0;
+                        escape = false;
+                    }
+                    else if (stuck_try_coord == dim && escape_chebysev) {
+                        escape = true;
+                        escape_chebysev = false;
+                        escape_billiard = true;
+                        stuck = false;
+                    }
+                    else if (stuck_try_coord == dim)
+                        break;
+                }
+                else {
+                    if (stuck && stuck_try_coord == dim) {
+                        escape = true;
+                        escape_chebysev = true;
+                        stuck = false;
+                    } else if (!stuck) {
+                        stuck = true;
+                        stuck_try_coord = 0;
+                    }
+                }
+            }
+            else {
+                stuck = false;
+                triedEscaping = false;
+                escape = escape_billiard = escape_chebysev = false;
+            }
+
+            stepsSinceLastEscape++;
+            step++;
+        } while (step <= maxSteps || tillConvergence);
+        STEPS = step - 1;
+
+        if (verbose) std::cout << "Ended at " << step -1<< " steps " << polytope.is_in(interiorPoint) << std::endl;
+        return std::pair<Point, NT>(interiorPoint, dotProduct);
+
+
+    }
 
 
     /**
@@ -895,16 +1974,16 @@ namespace optimization {
     template<class Parameters, class Point, typename NT>
     std::pair<Point, NT> cutting_plane_method(HPolytope<Point> polytope, VT& objectiveFunction, Parameters parameters, const NT error,
                         const unsigned int maxSteps, Point& initial) {
+        normalizePolytope(polytope);
 
         bool verbose = parameters.verbose;
         unsigned int rnum = parameters.m;
         bool tillConvergence = maxSteps == 0;
-        unsigned int step = 1;
+        unsigned int step = 0;
 
-        SlidingWindow slidingWindow(2);
+        SlidingWindow slidingWindow(3);
         std::pair<Point, Point> minimizingPoints;
-        bool escape = false;
-        int stepsSinceLastEscape = 0;
+
 
         // get an internal point so you can sample
         Point interiorPoint = initial;
@@ -930,14 +2009,19 @@ namespace optimization {
             min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
             slidingWindow.push(min);
 
-            if (slidingWindow.getRelativeError() < error) break;
+            if (slidingWindow.getRelativeError() < error)
+                    break;
+
 
             step++;
+
+
         } while (step <= maxSteps || tillConvergence);
 
-        STEPS = step - 1;
+        STEPS = step;
 
-        if (verbose) std::cout << "Ended at " << step -1<< " steps"  <<  std::endl;
+        if (verbose) std::cout << "Ended at " << step<< " steps"  <<  std::endl;
+
 
         return std::pair<Point, NT>(minimizingPoints.first, objectiveFunction.dot(minimizingPoints.first.getCoefficients()));
     }

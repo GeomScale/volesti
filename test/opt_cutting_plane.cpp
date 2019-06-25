@@ -15,6 +15,7 @@
 #include "lp_problem.h"
 #include "lp_generator.h"
 #include "interior_point.h"
+#include <iomanip>
 
 //////////////////////////////////////////////////////////
 /**** MAIN *****/
@@ -239,8 +240,12 @@ int main(const int argc, const char **argv) {
 
     steps_avg = steps_avg / steps.size();
 
-    std::cout.precision(7);
+    std::cout << std::fixed;
+    std::cout << std::setprecision(3);
+
+    auto t1 = std::chrono::steady_clock::now();
     double exact = solveWithLPSolve(lp);
+    auto t2 = std::chrono::steady_clock::now();
     std::cout << "\nStatistics\n" <<
         "Average result: " << average << "\n"<<
          "Average time: " << avg_time << "\n" <<
@@ -249,6 +254,7 @@ int main(const int argc, const char **argv) {
         "Standard deviation: " << std_dev << "\n" <<
         "Coefficient of variation: " << abs(std_dev / average)  << "\n" <<
         "Exact Solution: " << exact  << "\n" <<
+        "lpsolve time: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " \n"
         "Relative error: " << abs((exact - average) / exact) << "\n";
     return 0;
 }
@@ -314,9 +320,11 @@ NT solveWithLPSolve(lp_problem lp) {
 
     REAL solution[dim];
     get_variables(_lp, solution);
+
 //    std::cout << "Optimal solution: " << std::endl;
 //    for (int i=0; i < dim; i++)
 //        std::cout << "x[" << i+1 << "] = " << solution[i] << std::endl;
+//        std::cout << " , " <<  solution[i];
 
     delete_lp(_lp);
     return ret;

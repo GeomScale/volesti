@@ -320,6 +320,53 @@ public:
         return std::pair<NT, NT>(min_plus, max_minus);
     }
 
+    // compute intersection point of ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    // and return the norms of the facets corresponding to lambda_min and lambda_plus
+    std::pair<NT,NT> line_intersect(Point r,
+                                    Point v,
+                                    Point& facet_plus,
+                                    Point& facet_minus) {
+
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes();
+        int facet_min_index = 0;
+        int facet_plus_index = 0;
+
+        for (int i = 0; i < m; i++) {
+            sum_nom = b(i);
+            sum_denom = NT(0);
+            VT r_coeffs = r.getCoefficients();
+            VT v_coeffs = v.getCoefficients();
+            for (j=0 ; j< r.dimension();  j++){
+                sum_nom -= A(i, j) * r_coeffs(j);
+                sum_denom += A(i, j) * v_coeffs(j);
+            }
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet_plus_index = i;
+                }
+                if (lamda > max_minus && lamda < 0) {
+                    max_minus = lamda;
+                    facet_min_index = i;
+                }
+            }
+        }
+
+        facet_minus = Point(A.row(facet_min_index));
+        facet_plus = Point(A.row(facet_plus_index));
+
+        return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
 
     //First coordinate ray intersecting convex polytope
     std::pair<NT,NT> line_intersect_coord(Point &r,
