@@ -101,7 +101,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
-    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false;
+    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, billiard = false, gaussian = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -200,6 +200,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             cdhr = false;
             rdhr = true;
             ball_walk = false;
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BilW"))==0) {
+            cdhr = false;
+            rdhr = false;
+            ball_walk = false;
+            billiard = true;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
                 delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
@@ -213,6 +218,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
         if (distribution.isNotNull()) {
             if (Rcpp::as<std::string>(distribution).compare(std::string("gaussian"))==0) {
+                if (billiard) throw Rcpp::exception("Billiard walk samples from uniform distribution only!");
                 gaussian = true;
             } else if(Rcpp::as<std::string>(distribution).compare(std::string("uniform"))!=0) {
                 throw Rcpp::exception("Wrong distribution!");
@@ -292,7 +298,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
         }
         vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
-                               delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr);
+                               delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard);
         vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                                  rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
 

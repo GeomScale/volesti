@@ -458,11 +458,12 @@ public:
 
     void compute_reflection(Point &v, Point &p, int facet) {
 
-        Point s(d);
-        for (int i = 0; i < d; ++i) {
+        Point s(_d);
+        for (int i = 0; i < _d; ++i) {
             s.set_coord(i, A(facet, i));
         }
-        v = v - (2.0 * v.dot(s)) * s;
+        s = ((-2.0 * v.dot(s)) * s);
+        v = s + v;
 
     }
 
@@ -744,6 +745,13 @@ public:
     }
 
 
+    std::pair<NT, int> line_positive_intersect(Point r,
+                                                Point v) {
+
+        return std::pair<NT, int> (0.0, 0);
+    }
+
+
     // Compute the intersection of a coordinate ray
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(Point &r,
@@ -1013,6 +1021,12 @@ public:
                                     Point v) {
 
         return intersect_line_zono<NT>(V, r, v);
+    }
+
+    std::pair<NT, int> line_positive_intersect(Point r,
+                                    Point v) {
+
+        return std::pair<NT, int> (0.0, 0);
     }
 
 

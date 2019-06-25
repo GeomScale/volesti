@@ -56,7 +56,7 @@ Rcpp::List rounding (Rcpp::Reference P,
             NN=false,
             birk=false,
             verbose=false,
-            cdhr=true, rdhr = false, ball_walk = false;
+            cdhr=true, rdhr = false, ball_walk = false, billiard = false;
     NT delta = -1.0;
 
     unsigned int n = P.field("dimension");
@@ -97,6 +97,11 @@ Rcpp::List rounding (Rcpp::Reference P,
         cdhr = false;
         rdhr = true;
         ball_walk = false;
+    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BilW"))==0) {
+        cdhr = false;
+        rdhr = false;
+        ball_walk = false;
+        billiard = true;
     } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
         if(radius.isNotNull()){
             delta = Rcpp::as<NT>(radius);
@@ -118,7 +123,7 @@ Rcpp::List rounding (Rcpp::Reference P,
 
     // initialization
     vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
-                          delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr);
+                          delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr, billiard);
     std::pair <NT, NT> round_res;
 
     switch (type) {

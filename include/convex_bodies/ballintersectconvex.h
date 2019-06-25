@@ -63,7 +63,7 @@ public:
     }
 
 
-    std::pair<NT,NT> line_positive_intersect(Point r,
+    NT line_positive_intersect(Point r,
                                     Point v){
 
         viterator rit=r.iter_begin();
@@ -110,10 +110,12 @@ public:
     }
 
 
-    void compute_intersection(Point &v, Point &p, int &facet) {
+    void compute_reflection(Point &v, Point &p, int &facet) {
 
-        Point s = -p;
-        v = v - (2.0 * v.dot(s)) * s;
+        Point s = (-1.0)*p;
+        s = s * (1.0 / std::sqrt(s.squared_length()));
+        s = ((-2.0 * v.dot(s)) * s);
+        v = s + v;
 
     }
 

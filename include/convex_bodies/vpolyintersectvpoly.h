@@ -216,6 +216,13 @@ public:
     }
 
 
+    std::pair<NT, int> line_positive_intersect(Point r,
+                                                Point v) {
+
+        return std::pair<NT, int> (0.0, 0);
+    }
+
+
     // Compute the intersection of a coordinate ray
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(Point &r,
@@ -274,6 +281,8 @@ public:
 
         return true;
     }
+
+    void compute_reflection (Point &v, Point &p, int &facet) {}
 
 };
 
