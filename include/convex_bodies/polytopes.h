@@ -289,18 +289,17 @@ public:
 
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT,NT> line_intersect(Point r,
-                                          Point v) {
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom;
+        NT sum_nom, sum_denom, mult;
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes();
-        viterator rit, vit;
+        viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
-        for (int i = 0; i < m; i++) {
-            sum_nom = b(i);
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            sum_nom = NT(0);// b(i);
             sum_denom = NT(0);
             j = 0;
             rit = r.iter_begin();
@@ -309,6 +308,9 @@ public:
                 sum_nom -= A(i, j) * (*rit);
                 sum_denom += A(i, j) * (*vit);
             }
+            (*Ariter) = -sum_nom;
+            (*Aviter) = sum_denom;
+            sum_nom += b(i);
             if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
@@ -320,6 +322,38 @@ public:
         }
         return std::pair<NT, NT>(min_plus, max_minus);
     }
+
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom, mult;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes();
+        viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            (*Ariter) += lambda_prev * (*Aviter);
+            sum_nom = b(i) - (*Ariter);
+            sum_denom = NT(0);
+            j = 0;
+            rit = r.iter_begin();
+            vit = v.iter_begin();
+            for ( ; rit != r.iter_end(); rit++, vit++, j++) sum_denom += A(i, j) * (*vit);
+
+            (*Aviter) = sum_denom;
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
+            }
+        }
+        return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b

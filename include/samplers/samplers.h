@@ -117,6 +117,7 @@ void rand_point_generator(Polytope &P,
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
     std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+    std::vector <NT> Av(P.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord, rand_coord_prev;
     NT kapa, ball_rad = var.delta;
     Point p_prev = p;
