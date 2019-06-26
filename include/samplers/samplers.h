@@ -11,6 +11,7 @@
 #define RANDOM_SAMPLERS_H
 
 #include "Eigen"
+#include "spectrahedron.h"
 
 typedef double NT_MATRIX;
 typedef Eigen::Matrix<NT_MATRIX,Eigen::Dynamic,Eigen::Dynamic> MT;
@@ -237,6 +238,48 @@ void hit_and_run(Point &p,
     p = ((1 - lambda) * b2) + p;
 }
 
+template <class Point, class Parameters>
+void hit_and_run(Point& point,
+        Spectrahedron &spectrahedron,
+        Parameters &var) {
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = point.dimension();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+
+    Point l = get_direction<RNGType, Point, double>(n);
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(point.getCoefficients(), l.getCoefficients());
+    double min_plus = dbpair.first;
+    double max_minus = dbpair.second;
+    Point b1 = (min_plus * l) + point;
+    Point b2 = (max_minus * l) + point;
+    double lambda = urdist(rng);
+    point = (lambda * b1);
+    point = ((1 - lambda) * b2) + point;
+}
+
+template <class Point, class Parameters>
+void hit_and_run(Point& point,
+                 Spectrahedron &spectrahedron,
+                 Parameters &var,
+                 VT& a,
+                 double b) {
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = point.dimension();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+
+    Point l = get_direction<RNGType, Point, double>(n);
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(point.getCoefficients(), l.getCoefficients(), a, b);
+    double min_plus = dbpair.first;
+    double max_minus = dbpair.second;
+    Point b1 = (min_plus * l) + point;
+    Point b2 = (max_minus * l) + point;
+    double lambda = urdist(rng);
+    point = (lambda * b1);
+    point = ((1 - lambda) * b2) + point;
+}
+
 //returns at b1, b2 the intersection points of the ray with the polytope
 template<class Polytope, class Point, class Parameters>
 void hit_and_run(Point &p,
@@ -260,6 +303,52 @@ void hit_and_run(Point &p,
     NT lambda = urdist(rng);
     p = (lambda * b1);
     p = ((1 - lambda) * b2) + p;
+}
+
+template <class Point, class Parameters>
+void hit_and_run(Point& point,
+                 Spectrahedron &spectrahedron,
+                 Parameters &var,
+                 Point &b1,
+                 Point &b2) {
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = point.dimension();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+
+    Point l = get_direction<RNGType, Point, double>(n);
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(point.getCoefficients(), l.getCoefficients());
+    double min_plus = dbpair.first;
+    double max_minus = dbpair.second;
+    b1 = (min_plus * l) + point;
+    b2 = (max_minus * l) + point;
+    double lambda = urdist(rng);
+    point = (lambda * b1);
+    point = ((1 - lambda) * b2) + point;
+}
+
+template <class Point, class Parameters>
+void hit_and_run(Point& point,
+                 Spectrahedron &spectrahedron,
+                 Parameters &var,
+                 Point &b1,
+                 Point &b2,
+                 VT& a,
+                 double b) {
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = point.dimension();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+
+    Point l = get_direction<RNGType, Point, double>(n);
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(point.getCoefficients(), l.getCoefficients(), a, b);
+    double min_plus = dbpair.first;
+    double max_minus = dbpair.second;
+    b1 = (min_plus * l) + point;
+    b2 = (max_minus * l) + point;
+    double lambda = urdist(rng);
+    point = (lambda * b1);
+    point = ((1 - lambda) * b2) + point;
 }
 
 //hit-and-run with random directions and update

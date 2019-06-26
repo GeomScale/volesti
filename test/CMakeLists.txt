@@ -58,6 +58,7 @@ else ()
   #add_executable (volume volume_example.cpp)
   add_executable (generate generator.cpp)
   add_executable (opt_cutting_plane opt_cutting_plane.cpp)
+  add_executable (opt_cutting_plane_sdp opt_cutting_plane_sdp.cpp)
 
   add_library(test_main OBJECT test_main.cpp)
 
@@ -108,6 +109,7 @@ else ()
 
   TARGET_LINK_LIBRARIES(vol ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(opt_cutting_plane ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(opt_cutting_plane_sdp ${LP_SOLVE})
   #TARGET_LINK_LIBRARIES(volume ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(generate ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_test ${LP_SOLVE})
