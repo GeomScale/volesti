@@ -164,12 +164,12 @@ int main(const int argc, const char** argv)
           ball_walk = false;
           correct = true;
       }
-      if(!strcmp(argv[i],"-rdhr")){
+      if(!strcmp(argv[i],"-bill")){
           cdhr = false;
           rdhr = false;
           ball_walk = false;
-          correct = true;
           billiard = true;
+          correct = true;
       }
       if(!strcmp(argv[i],"-bw")){
           ball_walk = true;

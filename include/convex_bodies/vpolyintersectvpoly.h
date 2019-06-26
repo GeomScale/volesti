@@ -203,13 +203,36 @@ public:
         return Q.ComputeInnerBall();
     }*/
 
+
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(Point r,
-                                    Point v) {
+    std::pair<NT,NT> line_intersect(Point r, Point v) {
 
         std::pair <NT, NT> P1pair = P1.line_intersect(r, v);
         std::pair <NT, NT> P2pair = P2.line_intersect(r, v);
+        return std::pair<NT, NT>(std::min(P1pair.first, P2pair.first),
+                                 std::max(P1pair.second, P2pair.second));
+
+    }
+
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the V-polytope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        std::pair <NT, NT> P1pair = P1.line_intersect(r, v, Ar, Av);
+        std::pair <NT, NT> P2pair = P2.line_intersect(r, v, Ar, Av);
+        return std::pair<NT, NT>(std::min(P1pair.first, P2pair.first),
+                                 std::max(P1pair.second, P2pair.second));
+
+    }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the V-polytope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+
+        std::pair <NT, NT> P1pair = P1.line_intersect(r, v, Ar, Av);
+        std::pair <NT, NT> P2pair = P2.line_intersect(r, v, Ar, Av);
         return std::pair<NT, NT>(std::min(P1pair.first, P2pair.first),
                                  std::max(P1pair.second, P2pair.second));
 

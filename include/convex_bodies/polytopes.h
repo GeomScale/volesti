@@ -287,6 +287,41 @@ public:
     }
 
 
+    // compute intersection point of ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT,NT> line_intersect(Point r,
+                                    Point v) {
+
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes();
+        viterator rit, vit;
+
+        for (int i = 0; i < m; i++) {
+            sum_nom = b(i);
+            sum_denom = NT(0);
+            j = 0;
+            rit = r.iter_begin();
+            vit = v.iter_begin();
+            for ( ; rit != r.iter_end(); rit++, vit++, j++){
+                sum_nom -= A(i, j) * (*rit);
+                sum_denom += A(i, j) * (*vit);
+            }
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
+            }
+        }
+        return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
+
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
@@ -772,8 +807,22 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(Point r,
-                                          Point v) {
+    std::pair<NT,NT> line_intersect(Point r, Point v) {
+
+        return intersect_double_line_Vpoly<NT>(V, r, v);
+    }
+
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the V-polytope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        return intersect_double_line_Vpoly<NT>(V, r, v);
+    }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the V-polytope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v);
     }
@@ -1051,8 +1100,22 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
-    std::pair<NT,NT> line_intersect(Point r,
-                                    Point v) {
+    std::pair<NT,NT> line_intersect(Point r, Point v) {
+
+        return intersect_line_zono<NT>(V, r, v);
+    }
+
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the Zonotope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        return intersect_line_zono<NT>(V, r, v);
+    }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the Zonotope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
         return intersect_line_zono<NT>(V, r, v);
     }
