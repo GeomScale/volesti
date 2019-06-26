@@ -365,16 +365,15 @@ public:
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes();
-        viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
+        viterator vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
         for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
             (*Ariter) += lambda_prev * (*Aviter);
             sum_nom = b(i) - (*Ariter);
             sum_denom = NT(0);
             j = 0;
-            rit = r.iter_begin();
             vit = v.iter_begin();
-            for ( ; rit != r.iter_end(); rit++, vit++, j++) sum_denom += A(i, j) * (*vit);
+            for ( ; vit != v.iter_end(); vit++, j++) sum_denom += A(i, j) * (*vit);
 
             (*Aviter) = sum_denom;
             if (sum_denom == NT(0)) {
@@ -392,18 +391,17 @@ public:
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(Point r,
-                                    Point v) {
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
         NT lamda = 0, min_plus = NT(maxNT);
         NT sum_nom, sum_denom;
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes(), facet;
-        viterator rit, vit;
+        viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
-        for (int i = 0; i < m; i++) {
-            sum_nom = b(i);
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            sum_nom = NT(0);
             sum_denom = NT(0);
             j = 0;
             rit = r.iter_begin();
@@ -412,6 +410,45 @@ public:
                 sum_nom -= A(i, j) * (*rit);
                 sum_denom += A(i, j) * (*vit);
             }
+            (*Ariter) = -sum_nom;
+            (*Aviter) = sum_denom;
+            sum_nom += b(i);
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                }
+            }
+        }
+        return std::pair<NT, NT>(min_plus, facet);
+    }
+
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
+                                               NT &lambda_prev) {
+
+        NT lamda = 0, min_plus = NT(maxNT);
+        NT sum_nom, sum_denom;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet;
+        viterator vit, Ariter = Ar.begin(), Aviter = Av.begin();
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            (*Ariter) += lambda_prev * (*Aviter);
+            sum_nom = b(i) - (*Ariter);
+            sum_denom = NT(0);
+            j = 0;
+            vit = v.iter_begin();
+            for ( ; vit != v.iter_end(); vit++, j++) sum_denom += A(i, j) * (*vit);
+
+            (*Aviter) = sum_denom;
             if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
@@ -698,7 +735,8 @@ public:
 
     // take d+1 points as input and compute the chebychev ball of the defined simplex
     // done is true when the simplex is full dimensional and false if it is not
-    std::pair<Point,NT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg, typename std::vector<Point>::iterator it_end, bool &done) {
+    std::pair<Point,NT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg,
+            typename std::vector<Point>::iterator it_end, bool &done) {
 
         Point p0 = *it_beg,p1,c;
         unsigned int dim = p0.dimension();
@@ -828,8 +866,13 @@ public:
     }
 
 
-    std::pair<NT, int> line_positive_intersect(Point r,
-                                                Point v) {
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        return std::pair<NT, int> (0.0, 0);
+    }
+
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
         return std::pair<NT, int> (0.0, 0);
     }
@@ -1120,8 +1163,13 @@ public:
         return intersect_line_zono<NT>(V, r, v);
     }
 
-    std::pair<NT, int> line_positive_intersect(Point r,
-                                    Point v) {
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        return std::pair<NT, int> (0.0, 0);
+    }
+
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
         return std::pair<NT, int> (0.0, 0);
     }

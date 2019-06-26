@@ -121,7 +121,7 @@ void rand_point_generator(Polytope &P,
     unsigned int rand_coord, rand_coord_prev;
     NT kapa, ball_rad = var.delta, lambda;
     Point p_prev = p;
-    Point v(n);// = get_direction<RNGType, Point, NT>(n);
+    Point v(n);
 
 
     if (var.ball_walk) {
@@ -138,7 +138,7 @@ void rand_point_generator(Polytope &P,
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
     } else {
-        billiard_walk(P, p, var.che_rad, var);
+        billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var, true);
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -156,7 +156,7 @@ void rand_point_generator(Polytope &P,
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
                 p = (lambda * v) + p;
             } else {
-                billiard_walk(P, p, var.che_rad, var);
+                billiard_walk(P, p, var.che_rad, lamdas, Av, lambda,  var);
             }
         }
         randPoints.push_back(p);
@@ -204,7 +204,7 @@ void rand_point_generator(BallPoly &PBLarge,
         p = (lambda * v) + p;
         //hit_and_run(p, PBLarge, var);
     } else {
-        billiard_walk(PBLarge, p, var.che_rad, var);
+        billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var, true);
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -223,7 +223,7 @@ void rand_point_generator(BallPoly &PBLarge,
                 p = (lambda * v) + p;
                 //hit_and_run(p, PBLarge, var);
             } else {
-                billiard_walk(PBLarge, p, var.che_rad, var);
+                billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var);
             }
         }
         if (PBSmall.second().is_in(p) == -1) {//is in
@@ -274,7 +274,51 @@ void hit_and_run_coord_update(Point &p,
 
 
 template <class ConvexBody, class Point, class Parameters, typename NT>
-void billiard_walk(ConvexBody &P, Point &p, NT che_rad, Parameters &var) {
+void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev,
+        Parameters &var, bool first = false) {
+
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = P.dimension();
+    unsigned int m = P.num_of_hyperplanes();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    NT T = urdist(rng) * 2.0 * che_rad;
+    Point v = get_direction<RNGType, Point, NT>(n);
+
+    if (first) {
+        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av);
+        if (T <= pbpair.first) {
+            p = (T * v) + p;
+            lambda_prev = T;
+            return;
+        }
+        lambda_prev = 0.999 * pbpair.first;
+        p = (lambda_prev * v) + p;
+        T -= lambda_prev;
+        P.compute_reflection(v, p, pbpair.second);
+    }
+    //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
+
+    while (true) {
+
+        //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
+        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev);
+        if (T <= pbpair.first) {
+            p = (T * v) + p;
+            lambda_prev = T;
+            break;
+        }
+
+        lambda_prev = 0.999 * pbpair.first;
+        p = (lambda_prev * v) + p;
+        T -= lambda_prev;
+        P.compute_reflection(v, p, pbpair.second);
+    }
+}
+
+
+template <class ConvexBody, class Point, class Parameters, typename NT>
+void billiard_walk2(ConvexBody &P, Point &p, NT che_rad, Parameters &var) {
 
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = P.dimension();
