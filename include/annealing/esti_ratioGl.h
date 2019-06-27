@@ -26,8 +26,8 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
     int n = var.n, min_index = W-1, max_index = W-1, index = 0;
     bool print = var.verbose;
     NT min_val = std::numeric_limits<NT>::lowest(), max_val = std::numeric_limits<NT>::max(), val,
-            countIn = ratio*NT(Ntot), totCount = NT(Ntot);
-    std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0);
+            countIn = ratio*NT(Ntot), totCount = NT(Ntot), lambda;
+    std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0), Av(Pb1.num_of_hyperplanes(),0);
     std::list<Point> randPoints;
     typename std::vector<NT>::iterator minmaxIt;
     typename std::list<Point>::iterator rpit;
@@ -35,8 +35,8 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
     Point p_prev=p;
     unsigned int coord_prev;
 
-    if(var.cdhr_walk && !isball){
-        uniform_first_coord_point(Pb1,p,p_prev,coord_prev,var.walk_steps,lamdas,var);
+    if(!var.ball_walk && !isball){
+        uniform_first_point(Pb1,p,p_prev,coord_prev,var.walk_steps,lamdas,Av,lambda,var);
     }
 
     while(true){
@@ -44,7 +44,7 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
         } else {
-            uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps, lamdas, var);
+            uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps, lamdas, Av, lambda, var);
         }
         if(Pb2.is_in(p)==-1) countIn = countIn + 1.0;
 
@@ -88,20 +88,20 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
 
     int n = var.n, index = 0;
     bool print = var.verbose;
-    std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0);
-    NT val, countIn = ratio*NT(Ntot), totCount = NT(Ntot), sum_sq=0.0, sum=0.0;
+    std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0), Av(Pb1.num_of_hyperplanes(),0);
+    NT val, countIn = ratio*NT(Ntot), totCount = NT(Ntot), sum_sq=0.0, sum=0.0, lambda;
     Point p(n);
     Point p_prev=p;
     unsigned int coord_prev;
-    if(var.cdhr_walk && !var.ball_walk && !isball) uniform_first_coord_point(Pb1, p, p_prev, coord_prev, var.walk_steps,
-                                                                             lamdas, var);
+    if(!var.ball_walk && !isball) uniform_first_point(Pb1, p, p_prev, coord_prev, var.walk_steps,
+                                                                             lamdas, Av, lambda, var);
 
     for (int i = 0; i < W; ++i) {
 
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
         } else {
-            uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, var);
+            uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, Av, lambda, var);
         }
         if (Pb2.is_in(p) == -1) countIn = countIn + 1.0;
 
@@ -123,7 +123,7 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
         } else {
-            uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, var);
+            uniform_next_point(Pb1, p, p_prev, coord_prev, 1, lamdas, Av, lambda, var);
         }
         if (Pb2.is_in(p) == -1) countIn = countIn + 1.0;
 

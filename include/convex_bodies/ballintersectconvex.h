@@ -48,8 +48,7 @@ public:
         return 0;
     }
 
-    std::pair<NT,NT> line_intersect(Point r,
-                                          Point v){
+    std::pair<NT,NT> line_intersect(Point r, Point v){
 
         viterator rit=r.iter_begin();
         viterator vit=v.iter_begin();
@@ -72,8 +71,53 @@ public:
     }
 
 
-    NT line_positive_intersect(Point r,
-                                    Point v){
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av){
+
+        viterator rit=r.iter_begin();
+        viterator vit=v.iter_begin();
+        viterator cit=c.iter_begin();
+        //Point rc = r;// - _c;
+        viterator rcit=r.iter_begin();
+        NT vrc(0);
+        NT v2(0);
+        NT rc2(0);
+        for( ; cit < c.iter_end() ; ++rcit, ++cit, ++rit, ++vit){
+            vrc += *vit * (*rcit);
+            v2 += *vit * (*vit);
+            rc2 += *rcit * (*rcit);
+        }
+
+        NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
+        NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
+        NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
+        return std::pair<NT,NT> (lamda1,lamda2);
+    }
+
+
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev){
+
+        viterator rit=r.iter_begin();
+        viterator vit=v.iter_begin();
+        viterator cit=c.iter_begin();
+        //Point rc = r;// - _c;
+        viterator rcit=r.iter_begin();
+        NT vrc(0);
+        NT v2(0);
+        NT rc2(0);
+        for( ; cit < c.iter_end() ; ++rcit, ++cit, ++rit, ++vit){
+            vrc += *vit * (*rcit);
+            v2 += *vit * (*vit);
+            rc2 += *rcit * (*rcit);
+        }
+
+        NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
+        NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
+        NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
+        return std::pair<NT,NT> (lamda1,lamda2);
+    }
+
+
+    NT line_positive_intersect(Point r, Point v){
 
         viterator rit=r.iter_begin();
         viterator vit=v.iter_begin();
@@ -93,6 +137,52 @@ public:
         NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
         //NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
         return lamda1;
+    }
+
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av){
+
+        viterator rit=r.iter_begin();
+        viterator vit=v.iter_begin();
+        viterator cit=c.iter_begin();
+
+        viterator rcit=r.iter_begin();
+        NT vrc(0);
+        NT v2(0);
+        NT rc2(0);
+        for( ; cit < c.iter_end() ; ++rcit, ++cit, ++rit, ++vit){
+            vrc += *vit * (*rcit);
+            v2 += *vit * (*vit);
+            rc2 += *rcit * (*rcit);
+        }
+
+        NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
+        NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
+        //NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
+        return std::pair<NT,NT>(lamda1,0);
+    }
+
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev){
+
+        viterator rit=r.iter_begin();
+        viterator vit=v.iter_begin();
+        viterator cit=c.iter_begin();
+
+        viterator rcit=r.iter_begin();
+        NT vrc(0);
+        NT v2(0);
+        NT rc2(0);
+        for( ; cit < c.iter_end() ; ++rcit, ++cit, ++rit, ++vit){
+            vrc += *vit * (*rcit);
+            v2 += *vit * (*vit);
+            rc2 += *rcit * (*rcit);
+        }
+
+        NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
+        NT lamda1((NT(-1)*vrc + disc_sqrt)/v2);
+        //NT lamda2((NT(-1)*vrc - disc_sqrt)/v2);
+        return std::pair<NT,NT>(lamda1,0);
     }
 
 
@@ -214,7 +304,7 @@ public:
 
 
     std::pair<NT,int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
-            NT &lambda_prev) {
+                                              NT &lambda_prev) {
 
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev);
         NT ball_lambda = B.line_positive_intersect(r, v);

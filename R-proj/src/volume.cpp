@@ -24,7 +24,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e, Rcpp::Nulla
 {
     bool rand_only=false,
          birk=false,
-         verbose =true;
+         verbose =false;
     unsigned int n_threads=1;
 
     //unsigned int m;//=A.nrow()-1;

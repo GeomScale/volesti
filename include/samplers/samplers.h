@@ -139,6 +139,7 @@ void rand_point_generator(Polytope &P,
         p = (lambda * v) + p;
     } else {
         billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var, true);
+        //std::cout<<"is in zb_it = "<<P.is_in(p)<<std::endl;
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -157,6 +158,7 @@ void rand_point_generator(Polytope &P,
                 p = (lambda * v) + p;
             } else {
                 billiard_walk(P, p, var.che_rad, lamdas, Av, lambda,  var);
+                //std::cout<<"is in zb_it = "<<P.is_in(p)<<std::endl;
             }
         }
         randPoints.push_back(p);
@@ -211,19 +213,23 @@ void rand_point_generator(BallPoly &PBLarge,
         for (unsigned int j = 0; j < walk_len; ++j) {
             if (var.ball_walk) {
                 ball_walk<RNGType>(p, PBLarge, ball_rad);
+                //std::cout<<"is in zb_itBW = "<<PBLarge.is_in(p)<<std::endl;
             }else if (var.cdhr_walk) {
                 rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
                 hit_and_run_coord_update(p, p_prev, PBLarge, rand_coord, rand_coord_prev, kapa, lamdas);
+                //std::cout<<"is in zb_itCD = "<<PBLarge.is_in(p)<<std::endl;
             } else if (var.rdhr_walk) {
                 v = get_direction<RNGType, Point, NT>(n);
                 std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av, lambda);
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
                 p = (lambda * v) + p;
+                //std::cout<<"is in zb_itRD = "<<PBLarge.is_in(p)<<std::endl;
                 //hit_and_run(p, PBLarge, var);
             } else {
                 billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var);
+                //std::cout<<"is in zb_it = "<<PBLarge.is_in(p)<<std::endl;
             }
         }
         if (PBSmall.second().is_in(p) == -1) {//is in
@@ -235,35 +241,56 @@ void rand_point_generator(BallPoly &PBLarge,
 
 
 template <class Polytope, class Point, class Parameters, typename NT>
-void uniform_first_coord_point(Polytope &P,
+void uniform_first_point(Polytope &P,
                                Point &p,   // a point to start
                                Point &p_prev, // previous point
                                unsigned int &coord_prev, // previous coordinate ray
                                unsigned int walk_len, // number of steps for the random walk
                                std::vector<NT> &lamdas,
+                               std::vector<NT> &Av,
+                               NT &lambda,
                                Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
+    NT kapa;
+    Point v(n);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     boost::random::uniform_real_distribution<> urdist(0, 1);
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //RNGType rng(seed);
-    RNGType &rng2 = var.rng;
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    //RNGType &rng2 = var.rng;
 
-    rand_coord = uidist(rng2);
-    NT kapa = urdist(rng2);
-    std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-    p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-    //p.set_coord(rand_coord, p[rand_coord] + bpair.second + kapa * (bpair.first - bpair.second));
-    p_prev = p;
-    coord_prev = rand_coord;
+    if (var.cdhr_walk) {//Compute the first point for the CDHR
+        rand_coord = uidist(rng);
+        kapa = urdist(rng);
+        std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+        p_prev = p;
+        p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+        coord_prev = rand_coord;
+    } else if (var.rdhr_walk) {
+        v = get_direction<RNGType, Point, NT>(n);
+        std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
+        lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+        p = (lambda * v) + p;
+    } else {
+        billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var, true);
+    }
     walk_len--;
 
     for (unsigned int j = 0; j < walk_len; j++) {
-        rand_coord = uidist(rng2);
-        kapa = urdist(rng2);
-        hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, kapa, lamdas);
-        coord_prev = rand_coord;
+        if (var.cdhr_walk) {
+            rand_coord = uidist(rng);
+            kapa = urdist(rng);
+            hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, kapa, lamdas);
+            coord_prev = rand_coord;
+        } else if (var.rdhr_walk) {
+            v = get_direction<RNGType, Point, NT>(n);
+            std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
+            lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+            p = (lambda * v) + p;
+        } else {
+            billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var);
+        }
     }
 }
 
@@ -275,30 +302,36 @@ void uniform_next_point(Polytope &P,
                         unsigned int &coord_prev, // previous coordinate ray
                         unsigned int walk_len, // number of steps for the random walk
                         std::vector<NT> &lamdas,
+                        std::vector<NT> &Av,
+                        NT &lambda,
                         Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     boost::random::uniform_real_distribution<> urdist(0, 1);
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //RNGType rng(seed);
-    RNGType &rng2 = var.rng;
-    NT ball_rad = var.delta;
-    NT kapa;
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    //RNGType &rng2 = var.rng;
+    NT ball_rad = var.delta, kapa;
+    Point v(n);
 
 
     if (var.ball_walk) {
+        for (unsigned int j = 0; j < walk_len; j++) ball_walk<RNGType>(p, P, ball_rad);
+    } else if (var.rdhr_walk) {
+
         for (unsigned int j = 0; j < walk_len; j++) {
-            ball_walk<RNGType>(p, P, ball_rad);
+            v = get_direction<RNGType, Point, NT>(n);
+            std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
+            lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+            p = (lambda * v) + p;
         }
-    } else if (!var.cdhr_walk) {
+    } else if(var.bill_walk) {
+        for (unsigned int j = 0; j < walk_len; j++) billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var);
+    }else {
         for (unsigned int j = 0; j < walk_len; j++) {
-            hit_and_run(p, P, var);
-        }
-    } else {
-        for (unsigned int j = 0; j < walk_len; j++) {
-            rand_coord = uidist(rng2);
-            kapa = urdist(rng2);
+            rand_coord = uidist(rng);
+            kapa = urdist(rng);
             hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, kapa, lamdas);
             coord_prev = rand_coord;
         }
@@ -352,7 +385,6 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
 
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = P.dimension();
-    unsigned int m = P.num_of_hyperplanes();
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     NT T = urdist(rng) * 2.0 * che_rad;
@@ -376,6 +408,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
 
         //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev);
+        //std::cout<<"lambda_pos ="<<pbpair.first<<" T = "<<T<<std::endl;
         if (T <= pbpair.first) {
             p = (T * v) + p;
             lambda_prev = T;
