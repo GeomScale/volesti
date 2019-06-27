@@ -290,7 +290,7 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point r,
-                                          Point v) {
+                                    Point v) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom;
@@ -319,6 +319,148 @@ public:
             }
         }
         return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
+
+    // compute intersection points of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom, mult;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes();
+        viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            sum_nom = NT(0);// b(i);
+            sum_denom = NT(0);
+            j = 0;
+            rit = r.iter_begin();
+            vit = v.iter_begin();
+            for ( ; rit != r.iter_end(); rit++, vit++, j++){
+                sum_nom -= A(i, j) * (*rit);
+                sum_denom += A(i, j) * (*vit);
+            }
+            (*Ariter) = -sum_nom;
+            (*Aviter) = sum_denom;
+            sum_nom += b(i);
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
+            }
+        }
+        return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom, mult;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes();
+        viterator vit, Ariter = Ar.begin(), Aviter = Av.begin();
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            (*Ariter) += lambda_prev * (*Aviter);
+            sum_nom = b(i) - (*Ariter);
+            sum_denom = NT(0);
+            j = 0;
+            vit = v.iter_begin();
+            for ( ; vit != v.iter_end(); vit++, j++) sum_denom += A(i, j) * (*vit);
+
+            (*Aviter) = sum_denom;
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) min_plus = lamda;
+                if (lamda > max_minus && lamda < 0) max_minus = lamda;
+            }
+        }
+        return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        NT lamda = 0, min_plus = NT(maxNT);
+        NT sum_nom, sum_denom;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet;
+        viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            sum_nom = NT(0);
+            sum_denom = NT(0);
+            j = 0;
+            rit = r.iter_begin();
+            vit = v.iter_begin();
+            for ( ; rit != r.iter_end(); rit++, vit++, j++){
+                sum_nom -= A(i, j) * (*rit);
+                sum_denom += A(i, j) * (*vit);
+            }
+            (*Ariter) = -sum_nom;
+            (*Aviter) = sum_denom;
+            sum_nom += b(i);
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                }
+            }
+        }
+        return std::pair<NT, NT>(min_plus, facet);
+    }
+
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
+                                               NT &lambda_prev) {
+
+        NT lamda = 0, min_plus = NT(maxNT);
+        NT sum_nom, sum_denom;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet;
+        viterator vit, Ariter = Ar.begin(), Aviter = Av.begin();
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            (*Ariter) += lambda_prev * (*Aviter);
+            sum_nom = b(i) - (*Ariter);
+            sum_denom = NT(0);
+            j = 0;
+            vit = v.iter_begin();
+            for ( ; vit != v.iter_end(); vit++, j++) sum_denom += A(i, j) * (*vit);
+
+            (*Aviter) = sum_denom;
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                }
+            }
+        }
+        return std::pair<NT, NT>(min_plus, facet);
     }
 
 
@@ -420,6 +562,7 @@ public:
         return false;
     }
 
+
     void compute_eigenvectors(MT G, bool norm1, bool norm2) {
         //
     }
@@ -434,6 +577,16 @@ public:
 
     MT get_sigma() {
         return A;
+    }
+
+    void compute_reflection(Point &v, Point &p, int facet) {
+
+        Point s(_d);
+        for (int i = 0; i < _d; ++i) {
+            s.set_coord(i, A(facet, i));
+        }
+        s = ((-2.0 * v.dot(s)) * s);
+        v = s + v;
     }
 
 };
@@ -598,7 +751,8 @@ public:
 
     // take d+1 points as input and compute the chebychev ball of the defined simplex
     // done is true when the simplex is full dimensional and false if it is not
-    std::pair<Point,NT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg, typename std::vector<Point>::iterator it_end, bool &done) {
+    std::pair<Point,NT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg,
+            typename std::vector<Point>::iterator it_end, bool &done) {
 
         Point p0 = *it_beg,p1,c;
         unsigned int dim = p0.dimension();
@@ -707,10 +861,36 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(Point r,
-                                          Point v) {
+    std::pair<NT,NT> line_intersect(Point r, Point v) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v);
+    }
+
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the V-polytope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        return intersect_double_line_Vpoly<NT>(V, r, v);
+    }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the V-polytope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+
+        return intersect_double_line_Vpoly<NT>(V, r, v);
+    }
+
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        return std::pair<NT, int> (0.0, 0);
+    }
+
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+
+        return std::pair<NT, int> (0.0, 0);
     }
 
 
@@ -786,6 +966,7 @@ public:
         return true;
     }
 
+
     void compute_eigenvectors(MT G, bool norm1, bool norm2) {
         //
     }
@@ -801,6 +982,8 @@ public:
     MT get_sigma() {
         return V;
     }
+
+    void compute_reflection(Point &v, Point &p, int facet) {}
 
 };
 
@@ -1073,10 +1256,35 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
-    std::pair<NT,NT> line_intersect(Point r,
-                                    Point v) {
+    std::pair<NT,NT> line_intersect(Point r, Point v) {
 
         return intersect_line_zono<NT>(V, r, v);
+    }
+
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the Zonotope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        return intersect_line_zono<NT>(V, r, v);
+    }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the Zonotope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+
+        return intersect_line_zono<NT>(V, r, v);
+    }
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        return std::pair<NT, int> (0.0, 0);
+    }
+
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+
+        return std::pair<NT, int> (0.0, 0);
     }
 
 
@@ -1113,9 +1321,7 @@ public:
 
     // shift polytope by a point c
     // vector c has to be always the zero vector
-    void shift(VT c) {
-        return;
-    }
+    void shift(VT c) {}
 
 
     // get number of parallelopipeds
@@ -1138,6 +1344,8 @@ public:
     bool get_points_for_rounding (T &randPoints) {
         return false;
     }
+
+    void compute_reflection(Point &v, Point &p, int facet) {}
 
 };
 

@@ -4,8 +4,7 @@ License: LGPL-3
 Title: Volume Approximation and Sampling of Convex Polytopes
 Author: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com> [aut, cph, cre],
   Apostolos Chalkis <tolis.chal@gmail.com> [cph, aut],
-  lp_solve <http://lpsolve.sourceforge.net/> [ctb],
-  BNMin1 <https://www.mrao.cam.ac.uk/~bn204/oof/bnmin1.html> [ctb].
+  contributors in file inst/AUTHORS
 Copyright: file inst/COPYRIGHTS
 Description: Provides an R interface for 'volesti' C++ package. 'volesti' computes
              estimations of volume of polytopes given by a set of points or linear inequalities
@@ -15,8 +14,8 @@ Description: Provides an R interface for 'volesti' C++ package. 'volesti' comput
              rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for 
              estimating copulas (L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos (2018) 
              <arXiv:1803.05861>).
-Version: 1.0.0
-Date: 2019-04-09
+Version: 1.0.2
+Date: 2019-05-10
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: Rcpp (>= 0.12.17)
 Imports: methods

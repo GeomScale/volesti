@@ -18,33 +18,34 @@ struct vars {
 public:
     typedef RNG RNGType;
 
-    vars(unsigned int m,
-         unsigned int n,
-         unsigned int walk_steps,
-         unsigned int n_threads,
-         const NT err,
-         NT error,
-         const int lw,
-         NT up,
-         const int L,
-         NT che_rad,
-         RNG &rng,
-         boost::random::uniform_real_distribution<>(urdist),
-         boost::random::uniform_real_distribution<> urdist1,
-         NT delta,
-         bool verbose,
-         bool rand_only,
-         bool round,
-         bool NN,
-         bool birk,
-         bool ball_walk,
-         bool cdhr_walk,
-         bool rdhr_walk
+    vars( unsigned int m,
+          unsigned int n,
+          unsigned int walk_steps,
+          unsigned int n_threads,
+          const NT err,
+          NT error,
+          const int lw,
+          NT up,
+          const int L,
+          NT che_rad,
+          RNG &rng,
+          boost::random::uniform_real_distribution<>(urdist),
+          boost::random::uniform_real_distribution<> urdist1,
+          NT delta,
+          bool verbose,
+          bool rand_only,
+          bool round,
+          bool NN,
+          bool birk,
+          bool ball_walk,
+          bool cdhr_walk,
+          bool rdhr_walk,
+          bool bill_walk
     ) :
             m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
             lw(lw), up(up), L(L), che_rad(che_rad), rng(rng),
-            urdist(urdist), urdist1(urdist1), delta(delta), verbose(verbose), rand_only(rand_only), round(round),
-            NN(NN), birk(birk), ball_walk(ball_walk), cdhr_walk(cdhr_walk), rdhr_walk(rdhr_walk) {};
+            urdist(urdist), urdist1(urdist1) , delta(delta) , verbose(verbose), rand_only(rand_only), round(round),
+            NN(NN),birk(birk), ball_walk(ball_walk), cdhr_walk(cdhr_walk), rdhr_walk(rdhr_walk), bill_walk(bill_walk){};
 
     unsigned int m;
     unsigned int n;
@@ -68,6 +69,7 @@ public:
     bool ball_walk;
     bool cdhr_walk;
     bool rdhr_walk;
+    bool bill_walk;
 };
 
 template <typename NT, class RNG>

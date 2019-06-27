@@ -41,10 +41,25 @@ public:
         return Z.num_of_generators();
     }
 
-    std::pair<NT,NT> line_intersect(Point r,
-                                    Point v) {
+    std::pair<NT,NT> line_intersect(Point r, Point v) {
 
         std::pair <NT, NT> polypair = HP.line_intersect(r, v);
+        std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
+        return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
+                                 std::max(polypair.second, zonopair.second));
+    }
+
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        std::pair <NT, NT> polypair = HP.line_intersect(r, v, Av, Ar);
+        std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
+        return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
+                                 std::max(polypair.second, zonopair.second));
+    }
+
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+
+        std::pair <NT, NT> polypair = HP.line_intersect(r, v, Av, Ar, lambda_prev);
         std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
                                  std::max(polypair.second, zonopair.second));
@@ -59,6 +74,17 @@ public:
         std::pair <NT, NT> zonopair = Z.line_intersect_coord(r, rand_coord, lamdas);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
                                  std::max(polypair.second, zonopair.second));
+    }
+
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        return std::pair<NT, int> (0.0, 0);
+    }
+
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+
+        return std::pair<NT, int> (0.0, 0);
     }
 
     //Not the first coordinate ray shooting intersecting convex body
@@ -80,6 +106,8 @@ public:
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
                                  std::max(polypair.second, zonopair.second));
     }
+
+    void compute_reflection (Point &v, Point &p, int &facet) {}
 
 };
 

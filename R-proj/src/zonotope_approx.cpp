@@ -153,7 +153,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
         }
 
         vars<NT, RNGType> var(1, n, walkL, 1, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
-                               urdist, urdist1, delta, false, false, rounding, false, false, ball_walk, cdhr,rdhr);
+                               urdist, urdist1, delta, false, false, rounding, false, false, ball_walk, cdhr,rdhr, false);
         vars_ban <NT> var_ban(lb, ub, p, 0.0, alpha, win_len, NN, nu, win2);
 
         //std::list<Point> randPoints;

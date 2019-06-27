@@ -39,7 +39,7 @@ Point get_direction(unsigned int dim) {
 template <class RNGType, class Point, typename NT>
 Point get_point_on_Dsphere(unsigned int dim, NT radius){
     Point p = get_direction<RNGType, Point, NT>(dim);
-    p = (radius == 0) ? p : radius * p;
+    p = (radius == 1.0) ? p : radius * p;
     return p;
 }
 
@@ -117,9 +117,12 @@ void rand_point_generator(Polytope &P,
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
     std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+    std::vector <NT> Av(P.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord, rand_coord_prev;
-    NT kapa, ball_rad = var.delta;
+    NT kapa, ball_rad = var.delta, lambda;
     Point p_prev = p;
+    Point v(n);
+
 
     if (var.ball_walk) {
         ball_walk <RNGType> (p, P, ball_rad);
@@ -129,8 +132,14 @@ void rand_point_generator(Polytope &P,
         std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-    } else
-        hit_and_run(p, P, var);
+    } else if (var.rdhr_walk) {
+        v = get_direction<RNGType, Point, NT>(n);
+        std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
+        lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+        p = (lambda * v) + p;
+    } else {
+        billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var, true);
+    }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
         for (unsigned int j = 0; j < walk_len; ++j) {
@@ -141,8 +150,14 @@ void rand_point_generator(Polytope &P,
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
                 hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas);
-            } else
-                hit_and_run(p, P, var);
+            } else if (var.rdhr_walk) {
+                v = get_direction<RNGType, Point, NT>(n);
+                std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
+                lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+                p = (lambda * v) + p;
+            } else {
+                billiard_walk(P, p, var.che_rad, lamdas, Av, lambda,  var);
+            }
         }
         randPoints.push_back(p);
     }
@@ -168,9 +183,10 @@ void rand_point_generator(BallPoly &PBLarge,
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
     std::vector <NT> lamdas(PBLarge.num_of_hyperplanes(), NT(0));
+    std::vector <NT> Av(PBLarge.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord, rand_coord_prev;
-    NT kapa, ball_rad = var.delta;
-    Point p_prev = p;
+    NT kapa, ball_rad = var.delta, lambda;
+    Point p_prev = p, v(n);
 
     if (var.ball_walk) {
         ball_walk<RNGType>(p, PBLarge, ball_rad);
@@ -181,8 +197,14 @@ void rand_point_generator(BallPoly &PBLarge,
         std::pair <NT, NT> bpair = PBLarge.line_intersect_coord(p, rand_coord, lamdas);
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+    } else if (var.rdhr_walk) {
+        v = get_direction<RNGType, Point, NT>(n);
+        std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av);
+        lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+        p = (lambda * v) + p;
+        //hit_and_run(p, PBLarge, var);
     } else {
-        hit_and_run(p, PBLarge, var);
+        billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var, true);
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -194,8 +216,15 @@ void rand_point_generator(BallPoly &PBLarge,
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
                 hit_and_run_coord_update(p, p_prev, PBLarge, rand_coord, rand_coord_prev, kapa, lamdas);
-            } else
-                hit_and_run(p, PBLarge, var);
+            } else if (var.rdhr_walk) {
+                v = get_direction<RNGType, Point, NT>(n);
+                std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av, lambda);
+                lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+                p = (lambda * v) + p;
+                //hit_and_run(p, PBLarge, var);
+            } else {
+                billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var);
+            }
         }
         if (PBSmall.second().is_in(p) == -1) {//is in
             randPoints.push_back(p);
@@ -314,6 +343,50 @@ void hit_and_run_coord_update(Point &p,
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     p_prev = p;
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+}
+
+
+template <class ConvexBody, class Point, class Parameters, typename NT>
+void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev,
+        Parameters &var, bool first = false) {
+
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = P.dimension();
+    unsigned int m = P.num_of_hyperplanes();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    NT T = urdist(rng) * 2.0 * che_rad;
+    Point v = get_direction<RNGType, Point, NT>(n);
+
+    if (first) {
+        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av);
+        if (T <= pbpair.first) {
+            p = (T * v) + p;
+            lambda_prev = T;
+            return;
+        }
+        lambda_prev = 0.999 * pbpair.first;
+        p = (lambda_prev * v) + p;
+        T -= lambda_prev;
+        P.compute_reflection(v, p, pbpair.second);
+    }
+    //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
+
+    while (true) {
+
+        //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
+        std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev);
+        if (T <= pbpair.first) {
+            p = (T * v) + p;
+            lambda_prev = T;
+            break;
+        }
+
+        lambda_prev = 0.999 * pbpair.first;
+        p = (lambda_prev * v) + p;
+        T -= lambda_prev;
+        P.compute_reflection(v, p, pbpair.second);
+    }
 }
 
 

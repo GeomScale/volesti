@@ -65,9 +65,9 @@ news_dist = paste0(path,'/cran_gen/cran_package')
 file.copy(news_dir, news_dist, recursive=TRUE)
 
 # copy paste the cran-comments.md file
-cran_com_dir = paste0(path,'/cran_gen/cran-comments.md')
-cran_com_dist = paste0(path,'/cran_gen/cran_package')
-file.copy(cran_com_dir, cran_com_dist, recursive=TRUE)
+#cran_com_dir = paste0(path,'/cran_gen/cran-comments.md')
+#cran_com_dist = paste0(path,'/cran_gen/cran_package')
+#file.copy(cran_com_dir, cran_com_dist, recursive=TRUE)
 
 # copy paste the Rbuildignore.md file
 Rbuild_dir = paste0(path,'/cran_gen/.Rbuildignore')
