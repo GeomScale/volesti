@@ -11,7 +11,7 @@
 #include "solve_lp.h"
 
 #include "cutting_plane_sdp.h"
-
+#include "sdp_problem.h"
 #include <chrono>
 #include "Eigen"
 #include <iomanip>

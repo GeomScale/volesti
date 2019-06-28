@@ -29,9 +29,11 @@ class LMI {
 public:
     LMI() {};
 
-    LMI(MT& A0, std::vector<MT>& matrices) {
-        this->A0 = A0;
-        this->matrices = matrices;
+    LMI(std::vector<MT>& matrices) {
+        this->A0 = matrices[0];
+
+        for (int i=1 ; i<matrices.size() ; i++)
+            this->matrices.push_back(matrices[i]);
     }
 
     /**
