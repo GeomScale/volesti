@@ -31,7 +31,7 @@ private:
     unsigned int _d;  //dimension
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
-    NT *conv_comb;
+    REAL *conv_comb;
     MT Fmat;
 
 public:
@@ -134,7 +134,7 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-        conv_comb = (ΝΤ *) malloc((_d+1) * sizeof(*row));
+        conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
         Fmat.resize(_d,_d);
     }
 
@@ -150,7 +150,7 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        conv_comb = (ΝΤ *) malloc((_d+1) * sizeof(*row));
+        conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
         Fmat.resize(_d,_d);
     }
 
@@ -192,7 +192,7 @@ public:
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            min_plus = intersect_line_Vpoly<NT>(V, center, v, false, true);
+            min_plus = intersect_line_Vpoly<NT>(V, center, v, conv_comb, false, true);
             if (min_plus < radius) radius = min_plus;
         }
 
@@ -304,7 +304,7 @@ public:
 
         int count = 0;
         VT bb = VT::Ones(_d), pp(_d);
-        for (int j = 0; j < V.num_of_generators(); ++j) {
+        for (int j = 0; j < num_of_generators(); ++j) {
             if (*(conv_comb + j) > 0.0) {
                 Fmat.row(count) = V.row(j);
                 count++;

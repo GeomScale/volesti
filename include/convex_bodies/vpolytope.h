@@ -31,7 +31,7 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    NT *conv_comb;
+    REAL *conv_comb;
     MT Fmat;
 
 public:
@@ -135,7 +135,7 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-        conv_comb = (ΝΤ *) malloc((_d+1) * sizeof(*row));
+        conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
         Fmat.resize(_d,_d);
     }
 
@@ -151,7 +151,7 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        conv_comb = (ΝΤ *) malloc((_d+1) * sizeof(*row));
+        conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
         Fmat.resize(_d,_d);
     }
 
@@ -401,7 +401,7 @@ public:
 
         int count = 0;
         VT bb = VT::Ones(_d), pp(_d);
-        for (int j = 0; j < V.num_of_vertices(); ++j) {
+        for (int j = 0; j < num_of_vertices(); ++j) {
             if (*(conv_comb + j) > 0.0) {
                 Fmat.row(count) = V.row(j);
                 count++;
