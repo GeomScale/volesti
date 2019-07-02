@@ -295,7 +295,7 @@ bool memLP_Vpoly(MT V, Point q){
 // if maxi is true compute positive lambda, when the ray is p + lambda \cdot v
 // otherwise compute the negative lambda
 template <typename NT, class MT, class Point>
-NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
+NT intersect_line_Vpoly(MT V, Point &p, Point &v, NT *conv_comb, bool maxi, bool zonotope){
 
     int d=v.dimension(), i;
     lprec *lp;
@@ -433,6 +433,7 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
 
     res = NT(-get_objective(lp));
+    get_variables(lp, conv_comb);
     delete_lp(lp);
     return res;
 }
