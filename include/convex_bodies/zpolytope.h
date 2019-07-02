@@ -29,10 +29,10 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    //NT maxNT = 1.79769e+308;
-    //NT minNT = -1.79769e+308;
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
+    NT *conv_comb;
+    MT Fmat;
 
 public:
 
@@ -134,6 +134,8 @@ public:
         _d = dim;
         V = _V;
         b = _b;
+        conv_comb = (ΝΤ *) malloc((_d+1) * sizeof(*row));
+        Fmat.resize(_d,_d);
     }
 
 
@@ -148,6 +150,8 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
+        conv_comb = (ΝΤ *) malloc((_d+1) * sizeof(*row));
+        Fmat.resize(_d,_d);
     }
 
 
@@ -221,13 +225,19 @@ public:
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        return std::pair<NT, int> (0.0, 0);
+        std::pair<NT, int> vppair;
+        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, true, true);
+        vppair.second = 0;
+        return vppair;
     }
 
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
-        return std::pair<NT, int> (0.0, 0);
+        std::pair<NT, int> vppair;
+        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, true, true);
+        vppair.second = 0;
+        return vppair;
     }
 
 
@@ -292,6 +302,26 @@ public:
 
     void compute_reflection(Point &v, Point &p, int facet) {
 
+        int count = 0;
+        VT bb = VT::Ones(_d), pp(_d);
+        for (int j = 0; j < V.num_of_generators(); ++j) {
+            if (*(conv_comb + j) > 0.0) {
+                Fmat.row(count) = V.row(j);
+                count++;
+            } else {
+                pp = V.row(j);
+            }
+        }
+
+        VT a = Fmat.colPivHouseholderQr().solve(bb);
+        if (a.dot(pp) > 1.0) a = -a;
+
+        Point s(_d);
+        for (int i = 0; i < _d; ++i) {
+            s.set_coord(i, a(i));
+        }
+        s = ((-2.0 * v.dot(s)) * s);
+        v = s + v;
     }
 
 };
