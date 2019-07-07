@@ -10,6 +10,7 @@
 #include <Eigen/Eigen>
 #include <limits>
 
+const double ZERO = 0.000000000001;
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MT;
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VT;
@@ -36,6 +37,11 @@ public:
             this->matrices.push_back(matrices[i]);
     }
 
+    LMI(LMI& lmi) {
+        this->A0 = lmi.A0;
+        this->matrices = lmi.matrices;
+    }
+
     /**
      * Evaluate the lmi for vector x
      *
@@ -48,8 +54,24 @@ public:
 
        for (Iter iter=matrices.begin() ; iter!=matrices.end() ; iter++, i++)
            res += x(i) * (*iter);
+
+       return res;
     }
 
+    bool isNegativeDefinite(VT& x) {
+        MT mt = evaluate(x);
+
+        Eigen::EigenSolver<MT> solver;
+        solver.compute(mt);
+        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
+        std::cout << eivals << "\n" <<  solver.eigenvectors() << "\n";
+
+        for (int i = 1; i < eivals.rows(); i++)
+            if (eivals(i).real() > 0)
+                return false;
+
+        return true;
+    }
     /**
      * Evaluate the lmi for vector x without taking int account matrix A0
      *
@@ -64,10 +86,30 @@ public:
 
         for (Iter iter=matrices.begin() ; iter!=matrices.end() ; iter++, i++)
             res += x(i) * (*iter);
+
+        return res;
     }
 
     const MT& getA0() const {
         return A0;
+    }
+
+    void setA0(MT& A0) {
+        this->A0 = A0;
+    }
+
+    void addMatrix(MT& matrix) {
+        matrices.push_back(matrix);
+    }
+
+    void print() {
+        std::cout << "F0" << "\n" << A0 << "\n";
+        int i = 1;
+
+        for (Iter iter=matrices.begin() ; iter!=matrices.end() ; iter++, i++) {
+            std::cout << "F" << i << "\n";
+            std::cout << *iter << "\n";
+        }
     }
 
 };
@@ -85,11 +127,15 @@ class Spectrahedron {
 
 public:
 
-    Spectrahedron() {};
+    Spectrahedron() {}
+
+    Spectrahedron(Spectrahedron& spectrahedron) {
+        this->lmi = LMI(spectrahedron.lmi);
+    }
 
     Spectrahedron(LMI& lmi) {
         this->lmi = lmi;
-    };
+    }
 
     const LMI& getLMI() const {
         return lmi;
@@ -105,26 +151,36 @@ public:
      */
     std::pair<double, double> boundaryOracle(VT& position, VT& direction) {
         MT A = lmi.evaluate(position);
-
         MT B = -lmi.evaluateWithoutA0(direction);
 
-        Eigen::GeneralizedEigenSolver<MT> ges;
-        ges.compute(A, B, false);
 
-        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eigenvalues = ges.eigenvalues(); //TODO not like this check Eigen may divide by zero
+        Eigen::GeneralizedEigenSolver<MT> ges(A,B);
+        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType alphas = ges.alphas();
+        VT betas = ges.betas();
+
 
         double lambdaMaxNegative = minDouble;
         double lambdaMinPositive = maxDouble;
 
-        for (int i=0 ; i<eigenvalues.rows() ; i++) {
-            if (eigenvalues(i).imag() != 0)
+
+        for (int i=0 ; i<alphas.rows() ; i++) {
+            if (betas(i) == 0) //TODO WARNING do what here?
                 continue;
 
-            if (eigenvalues(i).real() > 0 && eigenvalues(i).real() < lambdaMinPositive)
-                lambdaMinPositive = eigenvalues(i).real();
-            if (eigenvalues(i).real() < 0 && eigenvalues(i).real() > lambdaMaxNegative)
-                lambdaMaxNegative = eigenvalues(i).real();
+            double lambda = alphas(i).real() / betas(i);
+
+            if (lambda > 0 && lambda < lambdaMinPositive)
+                lambdaMinPositive = lambda;
+            if (lambda < 0 && lambda > lambdaMaxNegative)
+                lambdaMaxNegative =lambda;
         }
+
+        // for numerical stability
+        if (lambdaMinPositive < ZERO) lambdaMinPositive = 0;
+        if (lambdaMaxNegative > -ZERO) lambdaMaxNegative = 0;
+        if (lambdaMinPositive ==  maxDouble) lambdaMinPositive = 0; //TODO b must be too small..
+        if (lambdaMaxNegative == minDouble) lambdaMaxNegative = 0;
+
 
         return {lambdaMinPositive, lambdaMaxNegative};
     }
@@ -141,37 +197,61 @@ public:
     */
     std::pair<double, double> boundaryOracle(VT& position, VT& direction, VT& a, double b) {
         MT A = lmi.evaluate(position);
-
         MT B = -lmi.evaluateWithoutA0(direction);
 
+//        std::cout << A << "\n" << B << "\n";fflush(stdout);
+//        std::cout << position<< "\n" << direction << "\n" << lmi.isNegativeDefinite(position) << "\n";fflush(stdout);
+//        std::cout << "----------------" << lmi.isNegativeDefinite(position) << "\n";fflush(stdout);
         Eigen::GeneralizedEigenSolver<MT> ges;
-        ges.compute(A, B, false);
+        ges.compute(A, B);
 
-        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eigenvalues = ges.eigenvalues(); //TODO not like this check Eigen may divide by zero
+        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType alphas = ges.alphas();
+        VT betas = ges.betas();
 
         double lambdaMaxNegative = minDouble;
         double lambdaMinPositive = maxDouble;
 
-        for (int i=0 ; i<eigenvalues.rows() ; i++) {
-            if (eigenvalues(i).imag() != 0)
+        for (int i=0 ; i<alphas.rows() ; i++) {
+            if (alphas(i).imag() != 0)
                 continue;
 
-            if (eigenvalues(i).real() > 0 && eigenvalues(i).real() < lambdaMinPositive)
-                lambdaMinPositive = eigenvalues(i).real();
-            if (eigenvalues(i).real() < 0 && eigenvalues(i).real() > lambdaMaxNegative)
-                lambdaMaxNegative = eigenvalues(i).real();
+            if (betas(i) == 0)  //TODO WARNING do what here?
+                continue;
+
+            double lambda = alphas(i).real() / betas(i);
+//            std::cout <<lambda <<  alphas(i) << " " << betas(i)<<"\n";fflush(stdout);
+
+            if (lambda > 0 && lambda < lambdaMinPositive)
+                lambdaMinPositive = lambda;
+            if (lambda < 0 && lambda > lambdaMaxNegative)
+                lambdaMaxNegative =lambda;
         }
 
-        double lambda = (b - a.dot(position)) / a.dot(direction);
 
+//        std::cout << lambdaMinPositive <<  " " <<lambdaMaxNegative <<  "...........\n";
+
+        // for numerical stability
+        if (lambdaMinPositive < ZERO) lambdaMinPositive = 0;
+        if (lambdaMaxNegative > -ZERO) lambdaMaxNegative = 0;
+        if (lambdaMinPositive ==  maxDouble) lambdaMinPositive = 0; //TODO b must be too small..
+        if (lambdaMaxNegative == minDouble) lambdaMaxNegative = 0;
+
+
+        // check the cutting plane
+        double lambda = (b - a.dot(position)) / a.dot(direction);
         if (lambda > 0 && lambda < lambdaMinPositive)
             lambdaMinPositive = lambda;
         if (lambda < 0 && lambda > lambdaMaxNegative)
             lambdaMaxNegative = lambda;
 
+//        std::cout << lambdaMinPositive << " " << lambdaMaxNegative << "...........\n";
+
         return {lambdaMinPositive, lambdaMaxNegative};
     }
 
+    void print() {
+        this->lmi.print();
+    }
 };
 
 #endif //VOLESTI_SPECTRAHEDRON_H

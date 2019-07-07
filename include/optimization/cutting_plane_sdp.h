@@ -214,7 +214,7 @@ namespace optimization {
      * @param var defines which walk to use
      * @return (p1, p2) p1 minimizes c the most and p2 follows
      */
-    template<class Polytope, class Parameters, class Point>
+    template<class Parameters, class Point>
     std::pair<Point, Point> min_rand_point_generator(Spectrahedron &spectrahedron,
                                                      VT &c,
                                                      Point &p,   // a point to start
@@ -358,7 +358,7 @@ namespace optimization {
     }
 
 
-    template<class Polytope, class Parameters, class Point>
+    template<class Parameters, class Point>
     std::pair<Point, Point> min_rand_point_generator(Spectrahedron &spectrahedron,
                                                      VT &c,
                                                      Point &p,   // a point to start
@@ -379,32 +379,14 @@ namespace optimization {
         boost::random::uniform_int_distribution<> uidist(0, dim - 1);
 
         Point p1(dim), p2(dim), min1(dim), min2(dim);
-//        std::vector<NT> lamdas(P.num_of_hyperplanes(), NT(0));
-//        unsigned int rand_coord, rand_coord_prev;
-//        NT kapa, ball_rad = var.delta;
-//        Point p_prev = p;
 
-//        if (var.cdhr_walk) {//Compute the first point for the CDHR
-//            rand_coord = uidist(rng);
-//            kapa = urdist(rng);
-//            std::pair<NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-//            p_prev = p;
-//            p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-//        } else
         hit_and_run(p, spectrahedron, var, a, b);
 
 
         // get the first two points
         min1 = p;
         NT minProduct1 = min1.getCoefficients().dot(c);
-//
-//        if (var.cdhr_walk) {//Compute the first point for the CDHR
-//            rand_coord = uidist(rng);
-//            kapa = urdist(rng);
-//            std::pair<NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-//            p_prev = p;
-//            p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-//        } else
+
         hit_and_run(p, spectrahedron, var, a, b);
 
         min2 = p;
@@ -455,73 +437,25 @@ namespace optimization {
                 // if the new point is the new min update the boundary point
 
                 boundaryMin2 = boundaryMin1;
-//                if (var.cdhr_walk) {
-//                    if (c(rand_coord) > 0) {
-//                        boundaryMin1 = p_prev;
-//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.second);
-//                    } else {
-//                        boundaryMin1 = p_prev;
-//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.first);
-//                    }
-//
-//                } else {
                 boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-//                }
             } else if (changedMin2) {
-//                if (var.cdhr_walk) {
-//                    if (c(rand_coord) > 0) {
-//                        boundaryMin2 = p_prev;
-//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.second);
-//                    } else {
-//                        boundaryMin2 = p_prev;
-//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.first);
-//                    }
-//
-//                } else {
                 boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-//                }
-            }
 
-//        assert(P.is_in(min1));
-//        assert(P.is_in(min2));
-//            std::cout << min1.getCoefficients().dot(c) << "\t" << minProduct1 <<"\n";
+            }
         } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
 
 //TODO done need boundary perhaps?
         // find an interior point to start the next phase
         Point _p = min1 * 0.50;
         Point _p1 = min2 * 0.50;
-//        Point _p2 =  boundaryMin1*0.20;
-//        Point _p3 = boundaryMin2*0.20;
-//        p = (min1 + min2)/2;
         p = _p + _p1;// + _p2 + _p3;
-
-//        std::cout << min1.getCoefficients().dot(c) << "\t" << P.is_in(p) << "\t" << min2.getCoefficients().dot(c) << "\n";
-//        std::cout << min2.getCoefficients().dot(c) <<"\n";
-//        std::cout << "b " << boundaryMin1.getCoefficients().dot(c) << " " << P.is_in(boundaryMin1) << "\n";
 
         return std::pair<Point, Point>(min1, min2);
     }
 
 
 
-    /**
-     * Solve the linear program
-     *
-     *      min cx
-     *      s.t. Ax <= b
-     *
-     * @tparam Parameters
-     * @tparam Point
-     * @tparam NT
-     * @param polytope
-     * @param objectiveFunction
-     * @param parameters
-     * @param error
-     * @param maxSteps
-     * @param initial
-     * @return
-     */
+
     template<class Parameters, class Point, typename NT>
     std::pair<Point, NT>
     cutting_plane_method(Spectrahedron &spectrahedron, VT &objectiveFunction, Parameters parameters, const NT error,
@@ -545,7 +479,7 @@ namespace optimization {
         slidingWindow.push(min);
 
         VT a  = objectiveFunction;
-        double b;
+        double b = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
 
         do {
             std::list<Point> randPoints;
@@ -555,6 +489,7 @@ namespace optimization {
                                                         parameters, a, b);
 
             min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+            b = min;
             slidingWindow.push(min);
 
             if (slidingWindow.getRelativeError() < error)
@@ -563,7 +498,7 @@ namespace optimization {
 
             step++;
 
-
+//            std::cout << min << " " << step << "+++++++++++++++++++++++++++++++++++++++++++\n";
         } while (step <= maxSteps || tillConvergence);
 
         STEPS = step;
