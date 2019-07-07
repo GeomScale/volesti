@@ -82,55 +82,6 @@ namespace optimization {
     };
 
 
-    /**
-     * Computes the quantites y = (1/N) * Sum {p | p in points}
-     * and Y = (1/N) * Sum [(p-y)* (p -y)^T], p in points
-     *
-     * These quantities will be used to set the direction vector of hit and run
-     *
-     * @tparam Point class Point
-     * @tparam NT The numeric type
-     * @param points a collection of points
-     * @param dotProducts a list with the dot products of c with all elements of points
-     * @param sum of elems in points
-     * @return sqrt(Y)
-     */
-    template<class Point, typename NT>
-    MT getIsotropicQuantities(VT &c, std::list<Point> &points, std::pair<Point, Point> &pointsPair,
-                              std::list<NT> &dotProducts) {
-        class std::list<Point>::iterator points_it = points.begin();
-        typename std::list<NT>::iterator products_it = dotProducts.begin();
-
-        int dim = points_it->dimension();
-
-        NT currentMinimum = c.dot(pointsPair.second.getCoefficients());
-        VT y;
-        y.setZero(dim);
-
-        for (auto p : points)
-            y += p.getCoefficients() / (double) points.size();
-
-        // compute Y
-        MT Y;
-        Y.setZero(dim, dim);
-        VT temp(dim);
-
-        for (auto pit = points.begin(); pit != points.end(); pit++) {
-            temp = pit->getCoefficients() - y;
-            Y = Y + (temp * temp.transpose());
-        }
-
-        Y = Y / (double) (points.size());
-
-        try {
-            Y = Y.sqrt();
-        }
-        catch (int e) {
-            throw e;
-        }
-
-        return Y;
-    }
 
 
     /**
@@ -233,32 +184,14 @@ namespace optimization {
         boost::random::uniform_int_distribution<> uidist(0, dim - 1);
 
         Point p1(dim), p2(dim), min1(dim), min2(dim);
-//        std::vector<NT> lamdas(P.num_of_hyperplanes(), NT(0));
-//        unsigned int rand_coord, rand_coord_prev;
-//        NT kapa, ball_rad = var.delta;
-//        Point p_prev = p;
 
-//        if (var.cdhr_walk) {//Compute the first point for the CDHR
-//            rand_coord = uidist(rng);
-//            kapa = urdist(rng);
-//            std::pair<NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-//            p_prev = p;
-//            p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-//        } else
         hit_and_run(p, spectrahedron, var);
 
 
         // get the first two points
         min1 = p;
         NT minProduct1 = min1.getCoefficients().dot(c);
-//
-//        if (var.cdhr_walk) {//Compute the first point for the CDHR
-//            rand_coord = uidist(rng);
-//            kapa = urdist(rng);
-//            std::pair<NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-//            p_prev = p;
-//            p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-//        } else
+
         hit_and_run(p, spectrahedron, var);
 
         min2 = p;
@@ -285,18 +218,9 @@ namespace optimization {
 
         for (unsigned int i = 1; i <= rnum; ++i) {
 
-            // get next point
-//            if (var.cdhr_walk) {
-//                rand_coord_prev = rand_coord;
-//                rand_coord = uidist(rng);
-//                kapa = urdist(rng);
-//
-//                hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas, bpair);
-//                newProduct += c(rand_coord) * (bpair.first + kapa * (bpair.second - bpair.first));
-//            } else {
             hit_and_run(p, spectrahedron, var, p1, p2);
             newProduct = p.getCoefficients().dot(c);
-//            }
+
 
 
             // get new minimizing point
@@ -309,50 +233,20 @@ namespace optimization {
                 // if the new point is the new min update the boundary point
 
                 boundaryMin2 = boundaryMin1;
-//                if (var.cdhr_walk) {
-//                    if (c(rand_coord) > 0) {
-//                        boundaryMin1 = p_prev;
-//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.second);
-//                    } else {
-//                        boundaryMin1 = p_prev;
-//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.first);
-//                    }
-//
-//                } else {
                 boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-//                }
+
             } else if (changedMin2) {
-//                if (var.cdhr_walk) {
-//                    if (c(rand_coord) > 0) {
-//                        boundaryMin2 = p_prev;
-//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.second);
-//                    } else {
-//                        boundaryMin2 = p_prev;
-//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.first);
-//                    }
-//
-//                } else {
                 boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-//                }
+
             }
 
-//        assert(P.is_in(min1));
-//        assert(P.is_in(min2));
-//            std::cout << min1.getCoefficients().dot(c) << "\t" << minProduct1 <<"\n";
         } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
 
 //TODO done need boundary perhaps?
         // find an interior point to start the next phase
         Point _p = min1 * 0.50;
         Point _p1 = min2 * 0.50;
-//        Point _p2 =  boundaryMin1*0.20;
-//        Point _p3 = boundaryMin2*0.20;
-//        p = (min1 + min2)/2;
-        p = _p + _p1;// + _p2 + _p3;
-
-//        std::cout << min1.getCoefficients().dot(c) << "\t" << P.is_in(p) << "\t" << min2.getCoefficients().dot(c) << "\n";
-//        std::cout << min2.getCoefficients().dot(c) <<"\n";
-//        std::cout << "b " << boundaryMin1.getCoefficients().dot(c) << " " << P.is_in(boundaryMin1) << "\n";
+        p = _p + _p1;
 
         return std::pair<Point, Point>(min1, min2);
     }
@@ -414,17 +308,10 @@ namespace optimization {
         for (unsigned int i = 1; i <= rnum; ++i) {
 
             // get next point
-//            if (var.cdhr_walk) {
-//                rand_coord_prev = rand_coord;
-//                rand_coord = uidist(rng);
-//                kapa = urdist(rng);
-//
-//                hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas, bpair);
-//                newProduct += c(rand_coord) * (bpair.first + kapa * (bpair.second - bpair.first));
-//            } else {
+
             hit_and_run(p, spectrahedron, var, p1, p2, a, b);
             newProduct = p.getCoefficients().dot(c);
-//            }
+
 
 
             // get new minimizing point

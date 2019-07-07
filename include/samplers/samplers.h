@@ -248,7 +248,9 @@ void hit_and_run(Point& point,
     boost::random::uniform_real_distribution<> urdist(0, 1);
 
     Point l = get_direction<RNGType, Point, double>(n);
-    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(point.getCoefficients(), l.getCoefficients());
+    VT pointVT = point.getCoefficients();
+    VT lVT = l.getCoefficients();
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(pointVT, lVT);
     double min_plus = dbpair.first;
     double max_minus = dbpair.second;
     Point b1 = (min_plus * l) + point;
@@ -270,7 +272,9 @@ void hit_and_run(Point& point,
     boost::random::uniform_real_distribution<> urdist(0, 1);
 
     Point l = get_direction<RNGType, Point, double>(n);
-    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(point.getCoefficients(), l.getCoefficients(), a, b);
+    VT pointVT = point.getCoefficients();
+    VT lVT = l.getCoefficients();
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(pointVT, lVT, a, b);
     double min_plus = dbpair.first;
     double max_minus = dbpair.second;
     Point b1 = (min_plus * l) + point;
@@ -317,7 +321,9 @@ void hit_and_run(Point& point,
     boost::random::uniform_real_distribution<> urdist(0, 1);
 
     Point l = get_direction<RNGType, Point, double>(n);
-    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(point.getCoefficients(), l.getCoefficients());
+    VT pointVT = point.getCoefficients();
+    VT lVT = l.getCoefficients();
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(pointVT, lVT);
     double min_plus = dbpair.first;
     double max_minus = dbpair.second;
     b1 = (min_plus * l) + point;
@@ -341,7 +347,9 @@ void hit_and_run(Point& point,
     boost::random::uniform_real_distribution<> urdist(0, 1);
 
     Point l = get_direction<RNGType, Point, double>(n);
-    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(point.getCoefficients(), l.getCoefficients(), a, b);
+    VT pointVT = point.getCoefficients();
+    VT lVT = l.getCoefficients();
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(pointVT, lVT, a, b);
     double min_plus = dbpair.first;
     double max_minus = dbpair.second;
     b1 = (min_plus * l) + point;

@@ -199,11 +199,7 @@ public:
         MT A = lmi.evaluate(position);
         MT B = -lmi.evaluateWithoutA0(direction);
 
-//        std::cout << A << "\n" << B << "\n";fflush(stdout);
-//        std::cout << position<< "\n" << direction << "\n" << lmi.isNegativeDefinite(position) << "\n";fflush(stdout);
-//        std::cout << "----------------" << lmi.isNegativeDefinite(position) << "\n";fflush(stdout);
-        Eigen::GeneralizedEigenSolver<MT> ges;
-        ges.compute(A, B);
+        Eigen::GeneralizedEigenSolver<MT> ges(A, B);
 
         Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType alphas = ges.alphas();
         VT betas = ges.betas();
@@ -212,14 +208,11 @@ public:
         double lambdaMinPositive = maxDouble;
 
         for (int i=0 ; i<alphas.rows() ; i++) {
-            if (alphas(i).imag() != 0)
-                continue;
 
             if (betas(i) == 0)  //TODO WARNING do what here?
                 continue;
 
             double lambda = alphas(i).real() / betas(i);
-//            std::cout <<lambda <<  alphas(i) << " " << betas(i)<<"\n";fflush(stdout);
 
             if (lambda > 0 && lambda < lambdaMinPositive)
                 lambdaMinPositive = lambda;
@@ -227,8 +220,6 @@ public:
                 lambdaMaxNegative =lambda;
         }
 
-
-//        std::cout << lambdaMinPositive <<  " " <<lambdaMaxNegative <<  "...........\n";
 
         // for numerical stability
         if (lambdaMinPositive < ZERO) lambdaMinPositive = 0;
@@ -244,7 +235,6 @@ public:
         if (lambda < 0 && lambda > lambdaMaxNegative)
             lambdaMaxNegative = lambda;
 
-//        std::cout << lambdaMinPositive << " " << lambdaMaxNegative << "...........\n";
 
         return {lambdaMinPositive, lambdaMaxNegative};
     }
