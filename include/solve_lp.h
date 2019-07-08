@@ -433,6 +433,7 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, NT *conv_comb, bool maxi, bool
     }
 
     res = NT(-get_objective(lp));
+    //std::cout<<"res = "<<res<<std::endl;
     get_variables(lp, conv_comb);
     delete_lp(lp);
     return res;

@@ -462,6 +462,10 @@ int main(const int argc, const char** argv)
       }
       double tstop11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if(verbose) std::cout << "Sampling time: " << tstop11 - tstart11 << std::endl;
+      //for(typename  std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+          //(*pit).print();
+          //std::cout<<"is in P = "<<VP.is_in(*pit)<<std::endl;
+      //}
       return 0;
   }
 

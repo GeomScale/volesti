@@ -134,7 +134,7 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-        conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
+        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
         Fmat.resize(_d,_d);
     }
 
@@ -150,7 +150,7 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
+        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
         Fmat.resize(_d,_d);
     }
 
@@ -226,8 +226,8 @@ public:
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
         std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, true, true);
-        vppair.second = 0;
+        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, true);
+        vppair.second = 1;
         return vppair;
     }
 
@@ -235,8 +235,8 @@ public:
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
         std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, true, true);
-        vppair.second = 0;
+        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, true);
+        vppair.second = 1;
         return vppair;
     }
 
@@ -315,6 +315,7 @@ public:
 
         VT a = Fmat.colPivHouseholderQr().solve(bb);
         if (a.dot(pp) > 1.0) a = -a;
+        a = a/a.norm();
 
         Point s(_d);
         for (int i = 0; i < _d; ++i) {

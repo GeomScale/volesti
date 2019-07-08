@@ -136,7 +136,7 @@ public:
         V = _V;
         b = _b;
         conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
-        Fmat.resize(_d,_d);
+        Fmat.resize(V.rows(),_d);
     }
 
 
@@ -151,7 +151,7 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
+        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
         Fmat.resize(_d,_d);
     }
 
@@ -310,8 +310,8 @@ public:
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
         std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, true, false);
-        vppair.second = 0;
+        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, false);
+        vppair.second = 1;
         return vppair;
     }
 
@@ -319,8 +319,8 @@ public:
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
         std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, true, false);
-        vppair.second = 0;
+        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, false);
+        vppair.second = 1;
         return vppair;
     }
 
@@ -403,15 +403,20 @@ public:
         VT bb = VT::Ones(_d), pp(_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
             if (*(conv_comb + j) > 0.0) {
+                //std::cout<<"get vertex "<<*(conv_comb + j)<<std::endl;
                 Fmat.row(count) = V.row(j);
                 count++;
             } else {
+                //std::cout<<"dont get vertex "<<*(conv_comb + j)<<std::endl;
                 pp = V.row(j);
             }
         }
 
+        //std::cout<<Fmat<<"\n"<<std::endl;
         VT a = Fmat.colPivHouseholderQr().solve(bb);
         if (a.dot(pp) > 1.0) a = -a;
+        a = a/a.norm();
+        //std::cout<<"a = "<<a<<"\n"<<std::endl;
 
         Point s(_d);
         for (int i = 0; i < _d; ++i) {
