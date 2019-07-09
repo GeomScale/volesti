@@ -32,7 +32,6 @@ private:
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
     REAL *conv_comb;
-    MT Fmat;
 
 public:
     VPolytope() {}
@@ -136,7 +135,6 @@ public:
         V = _V;
         b = _b;
         conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
-        Fmat.resize(V.rows(),_d);
     }
 
 
@@ -152,7 +150,6 @@ public:
             }
         }
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
-        Fmat.resize(_d,_d);
     }
 
 
@@ -401,10 +398,11 @@ public:
 
         int count = 0;
         VT bb = VT::Ones(_d), pp(_d);
+        MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
             if (*(conv_comb + j) > 0.0) {
                 //std::cout<<"get vertex "<<*(conv_comb + j)<<std::endl;
-                Fmat.row(count) = V.row(j);
+                Fmat2.row(count) = V.row(j);
                 count++;
             } else {
                 //std::cout<<"dont get vertex "<<*(conv_comb + j)<<std::endl;
@@ -412,18 +410,25 @@ public:
             }
         }
 
-        //std::cout<<Fmat<<"\n"<<std::endl;
-        VT a = Fmat.colPivHouseholderQr().solve(bb);
+        //std::cout<<Fmat2<<"\n"<<std::endl;
+        //std::cout<<bb<<"\n"<<std::endl;
+        VT a = Fmat2.colPivHouseholderQr().solve(bb);
+        //std::cout<<"a = "<<a<<"\n"<<std::endl;
         if (a.dot(pp) > 1.0) a = -a;
         a = a/a.norm();
         //std::cout<<"a = "<<a<<"\n"<<std::endl;
 
         Point s(_d);
-        for (int i = 0; i < _d; ++i) {
-            s.set_coord(i, a(i));
-        }
+        //std::cout<<"s = "<<std::endl;
+        //s.print();
+        for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
+
         s = ((-2.0 * v.dot(s)) * s);
+        //std::cout<<"s = "<<std::endl;
+        //s.print();
         v = s + v;
+        //std::cout<<"v = "<<std::endl;
+        //v.print();
 
 
     }

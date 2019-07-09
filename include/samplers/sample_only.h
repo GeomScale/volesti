@@ -31,7 +31,7 @@ void sampling_only(PointList &randPoints, Polytope &P, unsigned int walk_len,
     unsigned int n = var1.n;
     Point p = internal_point;
     Point q = get_point_in_Dsphere<RNGType, Point>(n, var1.che_rad);
-    p=p+q;
+    //p=p+q;
     //rand_point_generator(P, p, 1, 50 * n, randPoints, var1);
 
     randPoints.clear();

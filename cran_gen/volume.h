@@ -113,7 +113,7 @@ NT volume(Polytope &P,
         bool print = var.verbose;
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
         #endif
-        Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
+        Point p = get_point_in_Dsphere<RNGType , Point>(n, radius);
 
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
