@@ -336,7 +336,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     }
 
-    std::cout<<"sampling ok!"<<std::endl;
+    //std::cout<<"sampling ok!"<<std::endl;
     Rcpp::NumericMatrix PointSet(dim,numpoints);
     typename std::list<Point>::iterator rpit=randPoints.begin();
     typename std::vector<NT>::iterator qit;

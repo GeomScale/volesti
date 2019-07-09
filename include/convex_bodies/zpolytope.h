@@ -32,7 +32,6 @@ private:
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
     REAL *conv_comb;
-    MT Fmat;
 
 public:
 
@@ -135,7 +134,6 @@ public:
         V = _V;
         b = _b;
         conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
-        Fmat.resize(_d,_d);
     }
 
 
@@ -151,7 +149,6 @@ public:
             }
         }
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
-        Fmat.resize(_d,_d);
     }
 
 
@@ -303,17 +300,26 @@ public:
     void compute_reflection(Point &v, Point &p, int facet) {
 
         int count = 0;
-        VT bb = VT::Ones(_d), pp(_d);
+        VT bb = VT::Zero(_d-1), pp(_d);
+        MT Fmat(_d-1,_d);
+        NT e = 0.0000000001;
         for (int j = 0; j < num_of_generators(); ++j) {
-            if (*(conv_comb + j) > 0.0) {
+            //std::abs(*mit - *pit)> e*std::abs(*mit) || std::abs(*mit - *pit)> e*std::abs(*pit)
+            if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) ) > e*std::abs(*(conv_comb + j))) && ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
+                //std::cout<<"get vertex "<<*(conv_comb + j)<<std::endl;
                 Fmat.row(count) = V.row(j);
                 count++;
             } else {
+                //std::cout<<"dont get vertex "<<*(conv_comb + j)<<std::endl;
                 pp = V.row(j);
             }
         }
 
-        VT a = Fmat.colPivHouseholderQr().solve(bb);
+        //std::cout<<Fmat<<"\n"<<std::endl;
+        //std::cout<<bb<<"\n"<<std::endl;
+
+        VT a = Fmat.fullPivLu().kernel();
+        //std::cout<<"a = "<<a<<"\n"<<std::endl;
         if (a.dot(pp) > 1.0) a = -a;
         a = a/a.norm();
 

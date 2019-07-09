@@ -466,7 +466,7 @@ int main(const int argc, const char** argv)
       if(verbose) std::cout << "Sampling time: " << tstop11 - tstart11 << std::endl;
       //for(typename  std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
           //(*pit).print();
-          //std::cout<<"is in P = "<<VP.is_in(*pit)<<std::endl;
+          //std::cout<<"is in P = "<<ZP.is_in(*pit)<<std::endl;
       //}
       return 0;
   }
