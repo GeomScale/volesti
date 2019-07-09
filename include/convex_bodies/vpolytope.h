@@ -396,41 +396,26 @@ public:
 
     void compute_reflection(Point &v, Point &p, int facet) {
 
-        int count = 0;
-        VT bb = VT::Ones(_d), pp(_d);
+        int count = 0, outvert;
         MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
             if (*(conv_comb + j) > 0.0) {
-                //std::cout<<"get vertex "<<*(conv_comb + j)<<std::endl;
                 Fmat2.row(count) = V.row(j);
                 count++;
             } else {
-                //std::cout<<"dont get vertex "<<*(conv_comb + j)<<std::endl;
-                pp = V.row(j);
+                outvert = j;
             }
         }
 
-        //std::cout<<Fmat2<<"\n"<<std::endl;
-        //std::cout<<bb<<"\n"<<std::endl;
-        VT a = Fmat2.colPivHouseholderQr().solve(bb);
-        //std::cout<<"a = "<<a<<"\n"<<std::endl;
-        if (a.dot(pp) > 1.0) a = -a;
+        VT a = Fmat2.colPivHouseholderQr().solve(VT::Ones(_d));
+        if (a.dot(V.row(outvert)) > 1.0) a = -a;
         a = a/a.norm();
-        //std::cout<<"a = "<<a<<"\n"<<std::endl;
 
         Point s(_d);
-        //std::cout<<"s = "<<std::endl;
-        //s.print();
         for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
 
         s = ((-2.0 * v.dot(s)) * s);
-        //std::cout<<"s = "<<std::endl;
-        //s.print();
         v = s + v;
-        //std::cout<<"v = "<<std::endl;
-        //v.print();
-
-
     }
 
 };

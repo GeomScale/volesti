@@ -138,9 +138,7 @@ void rand_point_generator(Polytope &P,
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
     } else {
-        //std::cout<<"first billiard point"<<std::endl;
         billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var, true);
-        //std::cout<<"first billiard is in = "<<P.is_in(p)<<std::endl;
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -158,9 +156,7 @@ void rand_point_generator(Polytope &P,
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
                 p = (lambda * v) + p;
             } else {
-                //std::cout<<"billiard point"<<std::endl;
                 billiard_walk(P, p, var.che_rad, lamdas, Av, lambda,  var);
-                //std::cout<<"billiard is in = "<<P.is_in(p)<<std::endl;
             }
         }
         randPoints.push_back(p);
@@ -197,7 +193,6 @@ void rand_point_generator(BallPoly &PBLarge,
     }else if (var.cdhr_walk) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
-        
         std::pair <NT, NT> bpair = PBLarge.line_intersect_coord(p, rand_coord, lamdas);
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
@@ -206,7 +201,6 @@ void rand_point_generator(BallPoly &PBLarge,
         std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
-        //hit_and_run(p, PBLarge, var);
     } else {
         billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var, true);
     }
@@ -225,7 +219,6 @@ void rand_point_generator(BallPoly &PBLarge,
                 std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av, lambda);
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
                 p = (lambda * v) + p;
-                //hit_and_run(p, PBLarge, var);
             } else {
                 billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var);
             }
@@ -236,31 +229,6 @@ void rand_point_generator(BallPoly &PBLarge,
         }
     }
 }
-
-// ----- HIT AND RUN FUNCTIONS ------------ //
-
-//hit-and-run with random directions and update
-template <class Polytope, class Point, class Parameters>
-void hit_and_run(Point &p,
-                Polytope &P,
-                Parameters &var) {
-    typedef typename Parameters::RNGType RNGType;
-    typedef typename Point::FT NT;
-    unsigned int n = P.dimension();
-    RNGType &rng = var.rng;
-    boost::random::uniform_real_distribution<> urdist(0, 1);
-
-    Point l = get_direction<RNGType, Point, NT>(n);
-    std::pair <NT, NT> dbpair = P.line_intersect(p, l);
-    NT min_plus = dbpair.first;
-    NT max_minus = dbpair.second;
-    Point b1 = (min_plus * l) + p;
-    Point b2 = (max_minus * l) + p;
-    NT lambda = urdist(rng);
-    p = (lambda * b1);
-    p = ((1 - lambda) * b2) + p;
-}
-
 
 //hit-and-run with orthogonal directions and update
 template <class Polytope, class Point, typename NT>
@@ -290,9 +258,8 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
     Point v = get_direction<RNGType, Point, NT>(n);
 
     if (first) {
-        //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
+
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av);
-        //std::cout<<"after first ray shooting"<<std::endl;
         if (T <= pbpair.first) {
             p = (T * v) + p;
             lambda_prev = T;
@@ -301,17 +268,12 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
         lambda_prev = 0.999 * pbpair.first;
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
-        //std::cout<<"before first reflection"<<std::endl;
         P.compute_reflection(v, p, pbpair.second);
-        //std::cout<<"after first reflection"<<std::endl;
     }
-    //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
 
     while (true) {
 
-        //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev);
-        //std::cout<<"after ray shooting"<<std::endl;
         if (T <= pbpair.first) {
             p = (T * v) + p;
             lambda_prev = T;
@@ -321,9 +283,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
         lambda_prev = 0.999 * pbpair.first;
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
-        //std::cout<<"before reflection"<<std::endl;
         P.compute_reflection(v, p, pbpair.second);
-        //std::cout<<"after reflection"<<std::endl;
     }
 }
 
