@@ -512,8 +512,10 @@ public:
     void compute_reflection(Point &v, Point &p, int facet) {
 
         Point s(_d);
+        VT a = A.row(facet);
+        a = a / a.norm();
         for (int i = 0; i < _d; ++i) {
-            s.set_coord(i, A(facet, i));
+            s.set_coord(i, a(i));
         }
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;

@@ -134,7 +134,7 @@ public:
         _d = dim;
         V = _V;
         b = _b;
-        conv_comb = (REAL *) malloc((_d+1) * sizeof(*conv_comb));
+        conv_comb = (REAL *) malloc((V.rows()+1)* sizeof(*conv_comb));
     }
 
 
@@ -314,11 +314,7 @@ public:
 
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
-
-        std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, false);
-        vppair.second = 1;
-        return vppair;
+        return line_positive_intersect(r, v, Ar, Av);
     }
 
 
