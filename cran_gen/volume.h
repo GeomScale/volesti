@@ -25,7 +25,9 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "vars.h"
-#include "polytopes.h"
+#include "hpolytope.h"
+#include "vpolytope.h"
+#include "zpolytope.h"
 //#include "ellipsoids.h"
 #include "ballintersectconvex.h"
 #include "vpolyintersectvpoly.h"
@@ -111,7 +113,7 @@ NT volume(Polytope &P,
         bool print = var.verbose;
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
         #endif
-        Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
+        Point p = get_point_in_Dsphere<RNGType , Point>(n, radius);
 
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000

@@ -294,9 +294,8 @@ bool memLP_Vpoly(MT V, Point q){
 // compute the intersection of a ray with a V-polytope
 // if maxi is true compute positive lambda, when the ray is p + lambda \cdot v
 // otherwise compute the negative lambda
-/*
 template <typename NT, class MT, class Point>
-NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
+NT intersect_line_Vpoly(MT V, Point &p, Point &v, NT *conv_comb, bool maxi, bool zonotope){
 
     int d=v.dimension(), i;
     lprec *lp;
@@ -324,7 +323,7 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
 
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
-/*
+
     try
     {
         colno = (int *) malloc(Ncol * sizeof(*colno));
@@ -339,17 +338,17 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
-/*
+
     for (i=0; i<d; i++){
-        /* construct all rows  *//*
+        /* construct all rows  */
         for(j=0; j<m-1; j++){
-            colno[j] = j+1; /* j_th column *//*
+            colno[j] = j+1; /* j_th column */
             row[j] = V(j,i);
         }
-        colno[m-1] = m; /* last column *//*
+        colno[m-1] = m; /* last column */
         row[m-1] = v[i];
 
-        /* add the row to lpsolve *//*
+        /* add the row to lpsolve */
         try {
             if(!add_constraintex(lp, m, row, colno, EQ, p[i])) throw false;
         }
@@ -365,13 +364,13 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
 
     if(!zonotope) {
         for (j = 0; j < m - 1; j++) {
-            colno[j] = j + 1; /* j_th column *//*
+            colno[j] = j + 1; /* j_th column */
             row[j] = 1.0;
         }
-        colno[m - 1] = m; /* last column *//*
+        colno[m - 1] = m; /* last column */
         row[m - 1] = 0.0;
 
-        /* add the row to lpsolve *//*
+        /* add the row to lpsolve */
         try {
             if (!add_constraintex(lp, m, row, colno, EQ, 1.0)) throw false;
         }
@@ -384,11 +383,11 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
 
     //set the bounds
-    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model *//*
+    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
 
     // set the objective function
     for(j=0; j<m-1; j++){
-        colno[j] = j+1; /* j_th column *//*
+        colno[j] = j+1; /* j_th column */
         if (!zonotope) {
             set_bounds(lp, j + 1, 0.0, 1.0);
         } else {
@@ -396,7 +395,7 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
         }
         row[j] = 0;
     }
-    colno[m - 1] = m; /* last column *//*
+    colno[m - 1] = m; /* last column */
     row[m-1] = 1.0;
     set_bounds(lp, m, -infinite, infinite);
 
@@ -413,14 +412,14 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
         return -1.0;
     }
 
-    if(maxi) {  /* set the object direction to maximize *//*
+    if(maxi) {  /* set the object direction to maximize */
         set_maxim(lp);
-    }else{      /* set the object direction to minimize *//*
+    }else{      /* set the object direction to minimize */
         set_minim(lp);
     }
     set_verbose(lp, NEUTRAL);
 
-    /* Now let lpsolve calculate a solution *//*
+    /* Now let lpsolve calculate a solution */
     try
     {
         if (solve(lp) != OPTIMAL) throw false;
@@ -434,9 +433,11 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, bool maxi, bool zonotope){
     }
 
     res = NT(-get_objective(lp));
+    //std::cout<<"res = "<<res<<std::endl;
+    get_variables(lp, conv_comb);
     delete_lp(lp);
     return res;
-}*/
+}
 
 
 template <class MT, class Point>

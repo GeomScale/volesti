@@ -458,10 +458,16 @@ int main(const int argc, const char** argv)
       } else if (!Vpoly) {
           sampling_only<Point>(randPoints, HP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
       } else {
+          //std::cout<<"is in P = "<<VP.is_in(InnerBall.first)<<" gaussian = "<<gaussian_sam<<" nump = "<<nsam<<"walkL = "<<walk_len<<std::endl;
+          //std::cout<<" che_rad = "<<var1.che_rad<<std::endl;
           sampling_only<Point>(randPoints, VP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
       }
       double tstop11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if(verbose) std::cout << "Sampling time: " << tstop11 - tstart11 << std::endl;
+      //for(typename  std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+          //(*pit).print();
+          //std::cout<<"is in P = "<<ZP.is_in(*pit)<<std::endl;
+      //}
       return 0;
   }
 

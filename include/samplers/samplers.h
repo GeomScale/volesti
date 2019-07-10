@@ -139,7 +139,6 @@ void rand_point_generator(Polytope &P,
         p = (lambda * v) + p;
     } else {
         billiard_walk(P, p, var.che_rad, lamdas, Av, lambda, var, true);
-        //std::cout<<"is in zb_it = "<<P.is_in(p)<<std::endl;
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -158,7 +157,6 @@ void rand_point_generator(Polytope &P,
                 p = (lambda * v) + p;
             } else {
                 billiard_walk(P, p, var.che_rad, lamdas, Av, lambda,  var);
-                //std::cout<<"is in zb_it = "<<P.is_in(p)<<std::endl;
             }
         }
         randPoints.push_back(p);
@@ -195,7 +193,6 @@ void rand_point_generator(BallPoly &PBLarge,
     }else if (var.cdhr_walk) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
-        
         std::pair <NT, NT> bpair = PBLarge.line_intersect_coord(p, rand_coord, lamdas);
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
@@ -204,7 +201,6 @@ void rand_point_generator(BallPoly &PBLarge,
         std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
-        //hit_and_run(p, PBLarge, var);
     } else {
         billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var, true);
     }
@@ -225,11 +221,8 @@ void rand_point_generator(BallPoly &PBLarge,
                 std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av, lambda);
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
                 p = (lambda * v) + p;
-                //std::cout<<"is in zb_itRD = "<<PBLarge.is_in(p)<<std::endl;
-                //hit_and_run(p, PBLarge, var);
             } else {
                 billiard_walk(PBLarge, p, var.che_rad, lamdas, Av, lambda, var);
-                //std::cout<<"is in zb_it = "<<PBLarge.is_in(p)<<std::endl;
             }
         }
         if (PBSmall.second().is_in(p) == -1) {//is in
@@ -341,6 +334,7 @@ void uniform_next_point(Polytope &P,
 
 // ----- HIT AND RUN FUNCTIONS ------------ //
 
+/*
 //hit-and-run with random directions and update
 template <class Polytope, class Point, class Parameters>
 void hit_and_run(Point &p,
@@ -361,7 +355,7 @@ void hit_and_run(Point &p,
     NT lambda = urdist(rng);
     p = (lambda * b1);
     p = ((1 - lambda) * b2) + p;
-}
+}*/
 
 
 //hit-and-run with orthogonal directions and update
@@ -391,7 +385,10 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
     Point v = get_direction<RNGType, Point, NT>(n);
 
     if (first) {
+
+        //std::cout<<"[1]before line intersection"<<std::endl;
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av);
+        //std::cout<<"[1]after line intersection"<<std::endl;
         if (T <= pbpair.first) {
             p = (T * v) + p;
             lambda_prev = T;
@@ -400,14 +397,16 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
         lambda_prev = 0.999 * pbpair.first;
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
+        //std::cout<<"[1]before reflection"<<std::endl;
         P.compute_reflection(v, p, pbpair.second);
+        //std::cout<<"[1]after reflection"<<std::endl;
     }
-    //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
 
     while (true) {
 
-        //std::cout<<"is in P ="<<P.is_in(p)<<" first = "<<first<<std::endl;
+        //std::cout<<"[2]before line intersection"<<std::endl;
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev);
+        //std::cout<<"[2]after line intersection"<<std::endl;
         //std::cout<<"lambda_pos ="<<pbpair.first<<" T = "<<T<<std::endl;
         if (T <= pbpair.first) {
             p = (T * v) + p;
@@ -418,7 +417,9 @@ void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std
         lambda_prev = 0.999 * pbpair.first;
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
+        //std::cout<<"[2]before reflection"<<std::endl;
         P.compute_reflection(v, p, pbpair.second);
+        //std::cout<<"[2]after reflection"<<std::endl;
     }
 }
 

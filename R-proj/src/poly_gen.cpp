@@ -15,7 +15,9 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "polytopes.h"
+#include "hpolytope.h"
+#include "vpolytope.h"
+#include "zpolytope.h"
 #include "polytope_generators.h"
 #include "extractMatPoly.h"
 

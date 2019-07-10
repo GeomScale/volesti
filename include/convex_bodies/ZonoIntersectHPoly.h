@@ -79,12 +79,25 @@ public:
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        return std::pair<NT, int> (0.0, 0);
+        std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av);
+        std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
+        int facet = HP.num_of_hyperplanes();
+
+        if (polypair.first < zonopair.first ) facet = polypair.second;
+
+        return std::pair<NT, int>(std::min(polypair.first, zonopair.first), facet);
     }
 
-    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
+                                               NT &lambda_prev) {
 
-        return std::pair<NT, int> (0.0, 0);
+        std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev);
+        std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
+        int facet = HP.num_of_hyperplanes();
+
+        if (polypair.first < zonopair.first ) facet = polypair.second;
+
+        return std::pair<NT, int>(std::min(polypair.first, zonopair.first), facet);
     }
 
     //Not the first coordinate ray shooting intersecting convex body
@@ -107,7 +120,15 @@ public:
                                  std::max(polypair.second, zonopair.second));
     }
 
-    void compute_reflection (Point &v, Point &p, int &facet) {}
+    void compute_reflection (Point &v, Point &p, int &facet) {
+
+        if (facet == HP.num_of_hyperplanes()) {
+            Z.compute_reflection(v, p, facet);
+        } else {
+            HP.compute_reflection(v, p, facet);
+        }
+
+    }
 
 };
 

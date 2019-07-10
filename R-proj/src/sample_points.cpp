@@ -16,7 +16,9 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "vars.h"
-#include "polytopes.h"
+#include "hpolytope.h"
+#include "vpolytope.h"
+#include "zpolytope.h"
 #include "samplers.h"
 #include "gaussian_samplers.h"
 #include "sample_only.h"
@@ -309,6 +311,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 break;
             }
             case 2: {
+                //std::cout<<"is in P = "<<VP.is_in(MeanPoint)<<" gaussian = "<<gaussian<<" nump = "<<numpoints<<"walkL = "<<walkL<<std::endl;
+                //std::cout<<" che_rad = "<<var1.che_rad<<"billiad = "<<var1.bill_walk<<std::endl;
+                //std::cout<<VP.get_mat()<<"\n"<<std::endl;
                 sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
                                      a, MeanPoint, var1, var2);
                 break;
@@ -331,6 +336,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     }
 
+    //std::cout<<"sampling ok!"<<std::endl;
     Rcpp::NumericMatrix PointSet(dim,numpoints);
     typename std::list<Point>::iterator rpit=randPoints.begin();
     typename std::vector<NT>::iterator qit;

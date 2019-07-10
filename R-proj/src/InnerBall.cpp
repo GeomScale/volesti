@@ -11,7 +11,9 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "polytopes.h"
+#include "hpolytope.h"
+#include "vpolytope.h"
+#include "zpolytope.h"
 #include "vpolyintersectvpoly.h"
 
 //' Compute an inscribed ball of a convex polytope

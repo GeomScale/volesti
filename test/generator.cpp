@@ -12,7 +12,9 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-#include "convex_bodies/polytopes.h"
+#include "hpolytope.h"
+#include "vpolytope.h"
+#include "zpolytope.h"
 #include "polytope_generators.h"
 #include <fstream>
 #include <string>

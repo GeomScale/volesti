@@ -55,13 +55,14 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
             }
         }
     }
-    MT A3;
+
+    //MT A3;
     //NT volh;
     MT T = ZP.get_T();
     MT Tt = T.transpose();
     MT A2 = AA * Tt;
     MT B = G * Tt;
-    A3 = A2 * B.inverse();
+    MT A3 = A2 * B.inverse();
 
     Hpolytope HP;
     HP.init(n,A3,b);

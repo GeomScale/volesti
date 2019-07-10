@@ -31,6 +31,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
     NT l=0.0, u=1.0, med;
     VT  Zmed(m);
     int count =0;
+    Parameters variter = var;
     while(true) {
 
         count++;
@@ -38,9 +39,11 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
         med = (u + l) * 0.5;
         Zmed = Zs_min + (Zs_max-Zs_min)*med;
         HPiter.set_vec(Zmed);
-        randPoints.clear();
+        variter.che_rad = HPiter.ComputeInnerBall().second;
 
-        rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, var);
+        randPoints.clear();
+        rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, variter);
+
         too_few = false;
 
         if(check_converg001<Point>(P, randPoints, lb, up_lim, too_few, ratio, 10, 0.2, true, false)) {
