@@ -163,30 +163,37 @@ void hmc_logbarrier_rk42(Polytope &P, Point &p, PointList &randPoints, NT &a, in
     bool check;
 
     if (R < 0.0) R = 1.0;
-    if (radius > 0.0) {
+    /*if (radius > 0.0) {
         std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
         r = R * InnerBall.second;
         std::cout<<MT::Identity(d,d)<<"\n"<<r<<std::endl;
         A = A * (MT::Identity(d,d) * r);
         At = A.transpose();
-    }
+    }*/
 
-    for (int i = 0; i < d; ++i) x0(i) = (1 / r) * p[i];
-    std::cout<<"x0 = "<<x0<<"\n"<<std::endl;
-    std::cout<<"A*x0-b = "<<A*x0 - b<<"\n"<<std::endl;
+    for (int i = 0; i < d; ++i) x0(i) = p[i];
+    /*std::cout<<"r = "<<r<<"\n"<<std::endl;
+    std::cout<<"a = "<<a<<"\n"<<std::endl;
+    std::cout<<"A = "<<A<<"\n"<<std::endl;
+    std::cout<<"At = "<<At<<"\n"<<std::endl;
+    std::cout<<"b = "<<b<<"\n"<<std::endl;
+    std::cout<<"d = "<<d<<"\n"<<std::endl;
+    std::cout<<"m = "<<m<<"\n"<<std::endl;*/
 
     //for (int l = 0; l < N; ++l) {
     //     randPoints.push_back(p);
 //    }
     //return;
 
+    Y1 = x0;
     for (int i = 0; i < N; ++i) {
 
         T = urdist(rng) * L;
         for (int i = 0; i < d; ++i) v0(i) = rdist(rng);
         if (urdist(rng)>0.5) v0 = -v0;
 
-        Y1 = x0; Y2 = v0;
+        //Y1 = x0;
+        Y2 = v0;
 
         sumh = 0.0;
         if (T > har) {
@@ -205,6 +212,8 @@ void hmc_logbarrier_rk42(Polytope &P, Point &p, PointList &randPoints, NT &a, in
             m2i = -At * s0;
             ms1 += m1i;
             ms2 += m2i;
+            //std::cout<<"ms1 = "<<ms1<<"\n"<<std::endl;
+            //std::cout<<"ms2 = "<<ms2<<"\n"<<std::endl;
 
 
             //Y05 = Y + (0.5 * h) * mi;
@@ -216,6 +225,8 @@ void hmc_logbarrier_rk42(Polytope &P, Point &p, PointList &randPoints, NT &a, in
             m2i = -At * s0;
             ms1 += 2.0 * m1i;
             ms2 += 2.0 * m2i;
+            //std::cout<<"ms1 = "<<ms1<<"\n"<<std::endl;
+            //std::cout<<"ms2 = "<<ms2<<"\n"<<std::endl;
 
             Y051 = Y1 + (0.5 * h) * m1i;
             Y052 = Y2 + (0.5 * h) * m2i;
@@ -225,6 +236,8 @@ void hmc_logbarrier_rk42(Polytope &P, Point &p, PointList &randPoints, NT &a, in
             m2i = -At * s0;
             ms1 += 2.0 * m1i;
             ms2 += 2.0 * m2i;
+            //std::cout<<"ms1 = "<<ms1<<"\n"<<std::endl;
+            //std::cout<<"ms2 = "<<ms2<<"\n"<<std::endl;
 
             Y051 = Y1 + h * m1i;
             Y052 = Y2 + h * m2i;
@@ -234,11 +247,20 @@ void hmc_logbarrier_rk42(Polytope &P, Point &p, PointList &randPoints, NT &a, in
             m2i = -At * s0;
             ms1 += m1i;
             ms2 += m2i;
+            //std::cout<<"ms1 = "<<ms1<<"\n"<<std::endl;
+            //std::cout<<"ms2 = "<<ms2<<"\n"<<std::endl;
 
-            Y051 = Y1 + (h/6.0) * m1i;
-            Y052 = Y2 + (h/6.0) * m2i;
+            Y051 = Y1 + (h/6.0) * ms1;
+            Y052 = Y2 + (h/6.0) * ms2;
             s0 = A * Y051;//.segment(0,d);
+
+            //std::cout<<"Υ051 = "<<Υ051<<"\n"<<std::endl;
+            //std::cout<<"is_nan = "<<std::isnan(s0(0))<<" "<<std::isnan(NT(s0(0)))<<"\n"<<std::endl;
             //std::cout<<s0-b<<"\n"<<std::endl;
+            //if (std::isnan(s0(0))){
+                //h = h*0.5;
+                //continue;
+            //}
             //std::cout<<" T = "<<T<<", i = "<<i<<", sumh = "<<sumh<<", h = "<<h<<", maxCoeff = "<<(s0 - b).maxCoeff()<<std::endl;
             if ((s0 - b).maxCoeff() > 0.0){
                 h = h*0.5;
@@ -257,15 +279,15 @@ void hmc_logbarrier_rk42(Polytope &P, Point &p, PointList &randPoints, NT &a, in
             //std::cout<<"h = "<<h<<" sumh<T = "<<check<<std::endl;
 
         }
+        //std::cout<<"Y1 = "<<Y1<<"\n"<<std::endl;
         for (int k = 0; k < d; ++k) {
-            p.set_coord(k, r * Y1(k));
+            p.set_coord(k,  Y1(k));
         }
         //std::cout<<"is in P = "<<P.is_in(p)<<std::endl;
         randPoints.push_back(p);
 
     }
 
-    //std::cout<<"hmc_rk4 ended!"<<std::endl;
 
 }
 
