@@ -37,7 +37,7 @@ public:
             this->matrices.push_back(matrices[i]);
     }
 
-    LMI(LMI& lmi) {
+    LMI(const LMI& lmi) {
         this->A0 = lmi.A0;
         this->matrices = lmi.matrices;
     }
@@ -64,14 +64,110 @@ public:
         Eigen::EigenSolver<MT> solver;
         solver.compute(mt);
         Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
-        std::cout << eivals << "\n" <<  solver.eigenvectors() << "\n";
 
-        for (int i = 1; i < eivals.rows(); i++)
+        for (int i = 0; i < eivals.rows(); i++)
+            if (eivals(i).real() >= 0)
+                return false;
+
+        return true;
+    }
+
+    bool isNegativeSemidefinite(VT& x) {
+        MT mt = evaluate(x);
+
+        Eigen::EigenSolver<MT> solver;
+        solver.compute(mt);
+        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
+
+        for (int i = 0; i < eivals.rows(); i++)
             if (eivals(i).real() > 0)
                 return false;
 
         return true;
     }
+
+    bool isPositiveSemidefinite(VT& x) {
+        MT mt = evaluate(x);
+
+        Eigen::EigenSolver<MT> solver;
+        solver.compute(mt);
+        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
+
+        for (int i = 0; i < eivals.rows(); i++)
+            if (eivals(i).real() < 0)
+                return false;
+
+        return true;
+    }
+
+    bool isPositiveDefinite(VT& x) {
+        MT mt = evaluate(x);
+
+        Eigen::EigenSolver<MT> solver;
+        solver.compute(mt);
+        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
+
+        for (int i = 0; i < eivals.rows(); i++)
+            if (eivals(i).real() <= 0)
+                return false;
+
+        return true;
+    }
+
+
+    bool isPositiveSemidefinite(VT& x, MT& mt, VT& minEigenVector, double& minEigenvalue) {
+        bool res = true;
+
+        mt = evaluate(x);
+
+        Eigen::EigenSolver<MT> solver;
+        solver.compute(mt);
+        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
+        minEigenVector.resize(solver.eigenvectors().col(0).rows());
+
+        for (int i=0 ; i<minEigenVector.rows() ; i++) {
+            minEigenVector(i) = solver.eigenvectors().col(0)(i).real();
+
+        }
+
+        double min = eivals(0).real() / minEigenVector.norm();
+        int minIndex = 0;
+
+        for (int i = 0; i < eivals.rows(); i++) {
+            for (int j=0 ; j<minEigenVector.rows() ; j++) {
+                minEigenVector(j) = solver.eigenvectors().col(i)(j).real();
+            }
+
+            if (eivals(i).real() < 0)
+                res = false;
+
+            if (eivals(i).real() / minEigenVector.norm() < min) {
+                min = eivals(i).real() / minEigenVector.norm();
+                minIndex = i;
+            }
+        }
+
+
+        minEigenvalue = eivals(minIndex).real()  / minEigenVector.norm() ;
+
+        for (int i=0 ; i<minEigenVector.rows() ; i++) {
+            minEigenVector(i) = solver.eigenvectors().col(minIndex)(i).real();
+
+        }
+        minEigenVector.normalize();
+
+        return res;
+    }
+
+
+    int getDim() {
+        return matrices.size();
+    }
+
+    const std::vector<MT>& getMatrices() const {
+        return matrices;
+    }
+
     /**
      * Evaluate the lmi for vector x without taking int account matrix A0
      *
@@ -88,6 +184,10 @@ public:
             res += x(i) * (*iter);
 
         return res;
+    }
+
+    const MT& getAi(int i) const {
+        return matrices[i];
     }
 
     const MT& getA0() const {
@@ -112,6 +212,13 @@ public:
         }
     }
 
+    void changeInequalityDirection() {
+        A0 = -1 * A0;
+
+        for (int i=0 ; i<matrices.size() ; i++)
+            matrices[i] = -1 * matrices[i];
+    }
+
 };
 
 
@@ -129,8 +236,9 @@ public:
 
     Spectrahedron() {}
 
-    Spectrahedron(Spectrahedron& spectrahedron) {
-        this->lmi = LMI(spectrahedron.lmi);
+    Spectrahedron(const Spectrahedron& spectrahedron) {
+        LMI lmi;
+        this->lmi = LMI(spectrahedron.getLMI());
     }
 
     Spectrahedron(LMI& lmi) {
@@ -176,11 +284,10 @@ public:
         }
 
         // for numerical stability
-        if (lambdaMinPositive < ZERO) lambdaMinPositive = 0;
-        if (lambdaMaxNegative > -ZERO) lambdaMaxNegative = 0;
+//        if (lambdaMinPositive < ZERO) lambdaMinPositive = 0;
+//        if (lambdaMaxNegative > -ZERO) lambdaMaxNegative = 0;
         if (lambdaMinPositive ==  maxDouble) lambdaMinPositive = 0; //TODO b must be too small..
         if (lambdaMaxNegative == minDouble) lambdaMaxNegative = 0;
-
 
         return {lambdaMinPositive, lambdaMaxNegative};
     }
@@ -222,8 +329,8 @@ public:
 
 
         // for numerical stability
-        if (lambdaMinPositive < ZERO) lambdaMinPositive = 0;
-        if (lambdaMaxNegative > -ZERO) lambdaMaxNegative = 0;
+//        if (lambdaMinPositive < ZERO) lambdaMinPositive = 0;
+//        if (lambdaMaxNegative > -ZERO) lambdaMaxNegative = 0;
         if (lambdaMinPositive ==  maxDouble) lambdaMinPositive = 0; //TODO b must be too small..
         if (lambdaMaxNegative == minDouble) lambdaMaxNegative = 0;
 
@@ -235,12 +342,15 @@ public:
         if (lambda < 0 && lambda > lambdaMaxNegative)
             lambdaMaxNegative = lambda;
 
-
         return {lambdaMinPositive, lambdaMaxNegative};
     }
 
     void print() {
         this->lmi.print();
+    }
+
+    void changeInequalityDirection() {
+        lmi.changeInequalityDirection();
     }
 };
 

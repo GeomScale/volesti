@@ -10,6 +10,8 @@
 #include <vector>
 #include <spectrahedron.h>
 #include "lp_problem.h"
+#include "lmi_strict_feasibility.h"
+#include "interior_point_sdp.h"
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VT;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MT;
@@ -146,6 +148,11 @@ namespace optimization {
 
         sdp_problem() {}
 
+        sdp_problem(Spectrahedron& spectrahedron, VT& objectiveFunction) {
+            this->spectrahedron = spectrahedron;
+            this->objectiveFunction = objectiveFunction;
+        }
+
         sdp_problem(std::istream &is, bool dual = false) {
 
             if (!dual) {
@@ -205,6 +212,27 @@ namespace optimization {
 //            point = Point(_point);
 //        }
 
+        VT getStrictlyFeasiblePoint() {
+            VT point = getInteriorPoint(spectrahedron);//strict_feasible_point(spectrahedron, 0.00001, 0.00001, 100000);
+            return point;
+        }
+
+        bool isStrictlyFeasible(VT& point) {
+            LMI lmi;
+            lmi = spectrahedron.getLMI();
+            return lmi.isNegativeDefinite(point);
+        }
+
+        bool isFeasible(VT& point) {
+            LMI lmi;
+            lmi = spectrahedron.getLMI();
+            return lmi.isNegativeSemidefinite(point);
+        }
+
+        VT getSolution() {
+            return solution.first.getCoefficients();
+        }
+
         void transformFromLP(std::istream &is) {
             lp_problem<Point, double > lp(is);
             HPolytope<Point> polytope = lp.getHPolytope();
@@ -243,13 +271,50 @@ namespace optimization {
 
         template <class Parameters>
         void solve(Parameters &parameters, double error, unsigned int maxSteps) {
-            Point initial(objectiveFunction.rows());
+            Point initial(getStrictlyFeasiblePoint());
+            solution = cutting_plane_method(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
+        }
+
+        template <class Parameters>
+        void solve(Parameters &parameters, double error, unsigned int maxSteps, Point& initial) {
             solution = cutting_plane_method(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
         }
 
         void printSolution() {
             std::cout << "Min: " << solution.second << "\n";
-            std::cout << "Coordinates: " << solution.first.getCoefficients().transpose() << "\n";
+            std::cout << "Coordinates:\n" << solution.first.getCoefficients() << "\n";
+        }
+
+        void saveToFile(std::ofstream& os) {
+            os << "Minimize\n";
+
+            for (int i=0 ; i<objectiveFunction.rows() ; i++)
+                os << objectiveFunction(i) << " ";
+
+            os << "\nSubject to\n";
+
+            const LMI& lmi = spectrahedron.getLMI();
+            const MT& A = lmi.getA0();
+
+            for (int i=0 ; i<A.rows() ; i++) {
+                for (int j=0 ; j<A.cols() ; j++)
+                    os << A(i, j) << " ";
+
+                os << "\n";
+            }
+
+            const std::vector<MT>& matrices = lmi.getMatrices();
+
+            for (int matrix=0 ; matrix<matrices.size() ; matrix++) {
+                MT A = matrices[matrix];
+
+                for (int i=0 ; i<A.rows() ; i++) {
+                    for (int j=0 ; j<A.cols() ; j++)
+                        os << A(i, j) << " ";
+
+                    os << "\n";
+                }
+            }
         }
     };
 }
