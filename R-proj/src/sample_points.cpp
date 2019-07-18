@@ -323,7 +323,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     if (!rk4) {
                         hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
                     } else {
-                        hmc_logbarrier_rk4<RNGType>(HP, MeanPoint, walkL, randPoints, a, numpoints, InnerBall.second);
+                        hmc_logbarrier_rk2<RNGType>(HP, MeanPoint, walkL, randPoints, a, numpoints, InnerBall.second);
                     }
                     break;
                 }
