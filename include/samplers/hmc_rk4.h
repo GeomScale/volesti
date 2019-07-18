@@ -52,8 +52,8 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoi
 
             while (sumh < T) {
 
-                ms1 = VT::Zero(d);
-                ms2 = VT::Zero(d);
+                ms1 = VT::Zero(d); ms2 = VT::Zero(d);
+
                 s0 = A * Y1;
                 for (int j = 0; j < m; ++j) s0(j) = a / (b(j) - s0(j));
                 m1i = Y2;
@@ -61,35 +61,30 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoi
                 ms1 += m1i;
                 ms2 += m2i;
 
-                Y051 = Y1 + (0.5 * h) * m1i;
-                Y052 = Y2 + (0.5 * h) * m2i;
-                s0 = A * Y051;
+                s0 = A * (Y1 + (0.5 * h) * m1i);
+                m1i = Y2 + (0.5 * h) * m2i;
                 for (int j = 0; j < m; ++j) s0(j) = a / (b(j) - s0(j));
-                m1i = Y052;
                 m2i = -At * s0;
                 ms1 += 2.0 * m1i;
                 ms2 += 2.0 * m2i;
 
-                Y051 = Y1 + (0.5 * h) * m1i;
-                Y052 = Y2 + (0.5 * h) * m2i;
-                s0 = A * Y051;
+                s0 = A * (Y1 + (0.5 * h) * m1i);
+                m1i = Y2 + (0.5 * h) * m2i;
+
                 for (int j = 0; j < m; ++j) s0(j) = a / (b(j) - s0(j));
-                m1i = Y052;
+
                 m2i = -At * s0;
                 ms1 += 2.0 * m1i;
                 ms2 += 2.0 * m2i;
 
-                Y051 = Y1 + h * m1i;
-                Y052 = Y2 + h * m2i;
-                s0 = A * Y051;
+                s0 = A * (Y1 +  h * m1i);
+                m1i = Y2 + h * m2i;
                 for (int j = 0; j < m; ++j) s0(j) = a / (b(j) - s0(j));
-                m1i = Y052;
                 m2i = -At * s0;
                 ms1 += m1i;
                 ms2 += m2i;
 
                 Y051 = Y1 + (h / 6.0) * ms1;
-                //Y052 = Y2 + (h / 6.0) * ms2;
                 s0 = A * Y051;
 
                 if ((s0 - b).maxCoeff() > 0.0) {
