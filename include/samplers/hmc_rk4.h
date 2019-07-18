@@ -12,7 +12,8 @@
 
 
 template <class RNGType, class Polytope, class Point, class PointList, typename NT>
-void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoints, NT &a, int N,  NT radius = -1.0, NT R = -1.0) {
+void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoints, NT &a, int N,  NT radius = -1.0,
+                        NT R = -1.0) {
 
     typedef typename Polytope::VT VT;
     typedef typename Polytope::MT MT;
@@ -22,10 +23,9 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoi
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::normal_distribution<> rdist(0, 1);
 
-    MT A = P.get_mat();
-    MT At = A.transpose();
+    MT A = P.get_mat(), At = A.transpose();
     unsigned int d = P.dimension(), m = A.rows();
-    VT b = P.get_vec(), s0(m), sv0(m), Y1(d), Y2(d), Y051(d), Y052(d), m1i(d), m2i(d), ms1(d), ms2(d);
+    VT b = P.get_vec(), s0(m), Y1(d), Y2(d), Y051(d), m1i(d), m2i(d), ms1(d), ms2(d);
     NT sumh, h, T, r = 1.0, L = 1.0;
     const NT har = 0.1;
 
@@ -35,6 +35,7 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoi
         r = R * radius;
         A = A * (MT::Identity(d, d) * r);
         At = A.transpose();
+
     }
 
     for (int i = 0; i < d; ++i) Y1(i) = (1.0 / r) * p[i];
@@ -52,63 +53,39 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoi
 
             while (sumh < T) {
 
-                ms1 = VT::Zero(d); ms2 = VT::Zero(d);
+                ms1 = VT::Zero(d);
+                ms2 = VT::Zero(d);
+                m1i = VT::Zero(d);
+                m2i = VT::Zero(d);
 
-                s0 = A * Y1;
-                for (int j = 0; j < m; ++j) s0(j) = a / (b(j) - s0(j));
-                m1i = Y2;
-                m2i = -At * s0;
-                ms1 += m1i;
-                ms2 += m2i;
-
-                s0 = A * (Y1 + (0.5 * h) * m1i);
-                m1i = Y2 + (0.5 * h) * m2i;
-                for (int j = 0; j < m; ++j) s0(j) = a / (b(j) - s0(j));
-                m2i = -At * s0;
-                ms1 += 2.0 * m1i;
-                ms2 += 2.0 * m2i;
-
-                s0 = A * (Y1 + (0.5 * h) * m1i);
-                m1i = Y2 + (0.5 * h) * m2i;
-
-                for (int j = 0; j < m; ++j) s0(j) = a / (b(j) - s0(j));
-
-                m2i = -At * s0;
-                ms1 += 2.0 * m1i;
-                ms2 += 2.0 * m2i;
-
-                s0 = A * (Y1 +  h * m1i);
-                m1i = Y2 + h * m2i;
-                for (int j = 0; j < m; ++j) s0(j) = a / (b(j) - s0(j));
-                m2i = -At * s0;
-                ms1 += m1i;
-                ms2 += m2i;
+                for (int k = 0; k < 4; ++k) {
+                    s0 = (k < 3) ? A * (Y1 + (0.5 * h) * m1i) : A * (Y1 + h * m1i);
+                    m1i = (k < 3) ? Y2 + (0.5 * h) * m2i : Y2 + h * m2i;
+                    for (int j = 0; j < m; ++j) s0(j) = a / (b(j) - s0(j));
+                    m2i = -At * s0;
+                    ms1 += (k > 0 && k < 3) ? 2.0 * m1i : m1i;
+                    ms2 += (k > 0 && k < 3) ? 2.0 * m2i : m2i;
+                }
 
                 Y051 = Y1 + (h / 6.0) * ms1;
                 s0 = A * Y051;
 
                 if ((s0 - b).maxCoeff() > 0.0) {
                     h = h * 0.25;
-                    //std::cout<<"point out, h = "<<h<<std::endl;
                     continue;
                 }
+
                 Y1 = Y051;
                 Y2 = Y2 + (h / 6.0) * ms2;
                 sumh += h;
-                //std::cout<<"i = "<<i<<" T = "<<T<<" sumh = "<<sumh<<" h = "<<h<<std::endl;
                 h = (T - sumh > har) ? har : T - sumh;
-                //std::cout<<"h_next = "<<h<<std::endl;
-                //std::cout<<"Y1 = "<<Y1<<std::endl;
             }
-
         }
 
         for (int k = 0; k < d; ++k) p.set_coord(k, r * Y1(k));
         randPoints.push_back(p);
 
     }
-
-
 }
 
 
