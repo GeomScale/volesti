@@ -197,10 +197,22 @@ int main(const int argc, const char **argv) {
 //        results.push_back(lp.solutionVal);
 //        steps.push_back(STEPS);
 //        times.push_back(std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count());
-        sdp.solve(var, distance, numMaxSteps);
+
+
+//        VT point = sdp.getStrictlyFeasiblePoint();
+//        point.setZero(4);
+//        std::cout << point << "\n" << sdp.isStrictlyFeasible(point) << " " << sdp.isFeasible(point)<< "\n";// << sdp.isFeasible(sol)<< " ffffffff\n";
         std::cout << std::fixed;
         std::cout << std::setprecision(3);
+//        sdp.print();
+//        Point p = Point(point);
+        sdp.solve(var, distance, numMaxSteps, useIsotropyMatrix);
+//        VT sol = sdp.getSolution();
+//        Point solution(sol);
+//        point.setZero(10);
+//        std::cout <<  sdp.isFeasible(sol)<< "\n";// << sdp.isFeasible(sol)<< " ffffffff\n";
         sdp.printSolution();
+        std::cout << "STEPS " << STEPS << "\n";
     }
 
     double sum = 0;

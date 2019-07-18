@@ -284,6 +284,33 @@ void hit_and_run(Point& point,
     point = ((1 - lambda) * b2) + point;
 }
 
+template <class Point, class Parameters>
+void hit_and_run_sampled_covariance_matrix(Point& point,
+                 Spectrahedron &spectrahedron,
+                 Parameters &var,
+                 VT& a,
+                 double b,
+                 MT& covarianceMatrix) {
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = point.dimension();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+
+    Point l = get_direction<RNGType, Point, double>(n);
+    VT pointVT = point.getCoefficients();
+    VT lVT = l.getCoefficients();
+    lVT = covarianceMatrix * lVT;
+    l = Point(lVT);
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(pointVT, lVT, a, b);
+    double min_plus = dbpair.first;
+    double max_minus = dbpair.second;
+    Point b1 = (min_plus * l) + point;
+    Point b2 = (max_minus * l) + point;
+    double lambda = urdist(rng);
+    point = (lambda * b1);
+    point = ((1 - lambda) * b2) + point;
+}
+
 //returns at b1, b2 the intersection points of the ray with the polytope
 template<class Polytope, class Point, class Parameters>
 void hit_and_run(Point &p,
@@ -333,6 +360,7 @@ void hit_and_run(Point& point,
     point = ((1 - lambda) * b2) + point;
 }
 
+
 template <class Point, class Parameters>
 void hit_and_run(Point& point,
                  Spectrahedron &spectrahedron,
@@ -349,6 +377,35 @@ void hit_and_run(Point& point,
     Point l = get_direction<RNGType, Point, double>(n);
     VT pointVT = point.getCoefficients();
     VT lVT = l.getCoefficients();
+    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(pointVT, lVT, a, b);
+    double min_plus = dbpair.first;
+    double max_minus = dbpair.second;
+    b1 = (min_plus * l) + point;
+    b2 = (max_minus * l) + point;
+    double lambda = urdist(rng);
+    point = (lambda * b1);
+    point = ((1 - lambda) * b2) + point;
+}
+
+template <class Point, class Parameters>
+void hit_and_run_sampled_covariance_matrix(Point& point,
+                 Spectrahedron &spectrahedron,
+                 Parameters &var,
+                 Point &b1,
+                 Point &b2,
+                 VT& a,
+                 double b,
+                 MT& covarianceMatrix) {
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = point.dimension();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+
+    Point l = get_direction<RNGType, Point, double>(n);
+    VT pointVT = point.getCoefficients();
+    VT lVT = l.getCoefficients();
+    lVT = covarianceMatrix * lVT;
+    l = Point(lVT);
     std::pair <double, double> dbpair = spectrahedron.boundaryOracle(pointVT, lVT, a, b);
     double min_plus = dbpair.first;
     double max_minus = dbpair.second;

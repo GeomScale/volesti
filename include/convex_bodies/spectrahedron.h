@@ -10,7 +10,7 @@
 #include <Eigen/Eigen>
 #include <limits>
 
-const double ZERO = 0.000000000001;
+const double ZERO = 0.0000000001;
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MT;
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VT;
@@ -56,6 +56,20 @@ public:
            res += x(i) * (*iter);
 
        return res;
+    }
+
+    bool isSingular(VT& x) {
+        MT mt = evaluate(x);
+
+        Eigen::EigenSolver<MT> solver;
+        solver.compute(mt);
+        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
+
+        for (int i = 0; i < eivals.rows(); i++)
+            if (eivals(i).real() >= -ZERO)
+                return true;
+
+        return false;
     }
 
     bool isNegativeDefinite(VT& x) {
@@ -351,6 +365,10 @@ public:
 
     void changeInequalityDirection() {
         lmi.changeInequalityDirection();
+    }
+
+    bool isSingular(VT& x) {
+        return lmi.isSingular(x);
     }
 };
 

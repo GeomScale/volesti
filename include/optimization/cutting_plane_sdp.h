@@ -83,6 +83,36 @@ namespace optimization {
 
 
 
+    template <class Point>
+    MT sampledCovarianceMatrix(std::list<Point> &points) {
+        int dim = points.front().dimension();
+        double pointsNum = points.size();
+
+        VT y;
+        y.setZero(dim);
+
+        for (auto p : points)
+            y += p.getCoefficients() / pointsNum;
+
+        // compute Y
+        MT Y;
+        Y.setZero(dim, dim);
+        VT temp(dim);
+
+        for (auto pit = points.begin(); pit != points.end(); pit++) {
+            temp = pit->getCoefficients() - y;
+            Y = Y + ((temp * temp.transpose()) / (pointsNum - 1));
+        }
+
+        try {
+            Y = Y.sqrt();
+        }
+        catch (int e) {
+            throw e;
+        }
+
+        return Y;
+    }
 
     /**
      * Check if new point p is a better approximation than min1, min2 and if yes change min1, min2
@@ -151,6 +181,286 @@ namespace optimization {
 
     }
 
+    /**
+     * Generate random points and return the two that minimize the objective function
+     *
+     * @tparam Polytope
+     * @tparam Parameters
+     * @tparam Point
+     * @param P
+     * @param c the objective function
+     * @param p a interior point
+     * @param rnum # of points to generate
+     * @param var defines which walk to use
+     * @return (p1, p2) p1 minimizes c the most and p2 follows
+     */
+    template<class Parameters, class Point>
+    std::pair<Point, Point> min_rand_point_generator(Spectrahedron &spectrahedron,
+                                                     VT &c,
+                                                     Point &p,   // a point to start
+                                                     unsigned int rnum,
+                                                     Parameters &var,
+                                                     std::list<Point>& points)  // constants for volume
+    {
+
+        typedef typename Parameters::RNGType RNGType;
+        typedef typename Point::FT NT;
+
+        int dim = p.dimension();
+
+        // init the walks
+        RNGType &rng = var.rng;
+        boost::random::uniform_real_distribution<> urdist(0, 1);
+        boost::random::uniform_int_distribution<> uidist(0, dim - 1);
+
+        Point p1(dim), p2(dim), min1(dim), min2(dim);
+
+        hit_and_run(p, spectrahedron, var);
+
+
+        // get the first two points
+        min1 = p;
+        NT minProduct1 = min1.getCoefficients().dot(c);
+
+        hit_and_run(p, spectrahedron, var);
+
+        min2 = p;
+        NT minProduct2 = min2.getCoefficients().dot(c);
+        NT newProduct = minProduct2;
+
+        if (minProduct1 > minProduct2) {
+            NT temp = minProduct1;
+            minProduct1 = minProduct2;
+            minProduct2 = temp;
+            Point t = min1;
+            min1 = min2;
+            min2 = t;
+        }
+
+        std::pair<NT, NT> bpair;
+
+        // this point will be the end point of the segment of the minimizing point, that lies in the polytope after the cut
+        // we will use it to get an interior point to start the random walk at the next phase
+        Point boundaryMin1 = min1;
+        Point boundaryMin2 = min2;
+
+        // begin sampling
+
+        for (unsigned int i = 1; i <= rnum; ++i) {
+
+            hit_and_run(p, spectrahedron, var, p1, p2);
+            newProduct = p.getCoefficients().dot(c);
+            points.push_back(p);
+
+
+            // get new minimizing point
+            bool changedMin1 = false;
+            bool changedMin2 = false;
+
+            getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
+
+            if (changedMin1) {
+                // if the new point is the new min update the boundary point
+
+                boundaryMin2 = boundaryMin1;
+                boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+
+            } else if (changedMin2) {
+                boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+
+            }
+
+        } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
+
+//TODO done need boundary perhaps?
+        // find an interior point to start the next phase
+        Point _p = min1 * 0.50;
+        Point _p1 = min2 * 0.50;
+        p = _p + _p1;
+
+        return std::pair<Point, Point>(min1, min2);
+    }
+
+
+    template<class Parameters, class Point>
+    std::pair<Point, Point> min_rand_point_generator(Spectrahedron &spectrahedron,
+                                                     VT &c,
+                                                     Point &p,   // a point to start
+                                                     unsigned int rnum,
+                                                     Parameters &var,
+                                                     VT &a,
+                                                     double b,
+                                                     std::list<Point>& points)
+    {
+
+        typedef typename Parameters::RNGType RNGType;
+        typedef typename Point::FT NT;
+
+        int dim = p.dimension();
+
+        // init the walks
+        RNGType &rng = var.rng;
+        boost::random::uniform_real_distribution<> urdist(0, 1);
+        boost::random::uniform_int_distribution<> uidist(0, dim - 1);
+
+        Point p1(dim), p2(dim), min1(dim), min2(dim);
+
+        hit_and_run(p, spectrahedron, var, a, b);
+
+
+        // get the first two points
+        min1 = p;
+        NT minProduct1 = min1.getCoefficients().dot(c);
+
+        hit_and_run(p, spectrahedron, var, a, b);
+
+        min2 = p;
+        NT minProduct2 = min2.getCoefficients().dot(c);
+        NT newProduct = minProduct2;
+
+        if (minProduct1 > minProduct2) {
+            NT temp = minProduct1;
+            minProduct1 = minProduct2;
+            minProduct2 = temp;
+            Point t = min1;
+            min1 = min2;
+            min2 = t;
+        }
+
+        std::pair<NT, NT> bpair;
+
+        // this point will be the end point of the segment of the minimizing point, that lies in the polytope after the cut
+        // we will use it to get an interior point to start the random walk at the next phase
+        Point boundaryMin1 = min1;
+        Point boundaryMin2 = min2;
+
+        // begin sampling
+
+        for (unsigned int i = 1; i <= rnum; ++i) {
+
+            // get next point
+
+            hit_and_run(p, spectrahedron, var, p1, p2, a, b);
+            newProduct = p.getCoefficients().dot(c);
+            points.push_back(p);
+
+
+            // get new minimizing point
+            bool changedMin1 = false;
+            bool changedMin2 = false;
+
+            getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
+
+            if (changedMin1) {
+                // if the new point is the new min update the boundary point
+
+                boundaryMin2 = boundaryMin1;
+                boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+            } else if (changedMin2) {
+                boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+
+            }
+        } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
+
+//TODO done need boundary perhaps?
+        // find an interior point to start the next phase
+        Point _p = min1 * 0.50;
+        Point _p1 = min2 * 0.50;
+        p = _p + _p1;// + _p2 + _p3;
+
+        return std::pair<Point, Point>(min1, min2);
+    }
+
+    template<class Parameters, class Point>
+    std::pair<Point, Point> min_rand_point_generator(Spectrahedron &spectrahedron,
+                                                     VT &c,
+                                                     Point &p,   // a point to start
+                                                     unsigned int rnum,
+                                                     Parameters &var,
+                                                     VT &a,
+                                                     double b,
+                                                     std::list<Point>& points,
+                                                     MT& covarianceMatrix)
+    {
+
+        typedef typename Parameters::RNGType RNGType;
+        typedef typename Point::FT NT;
+
+        int dim = p.dimension();
+
+        // init the walks
+        RNGType &rng = var.rng;
+        boost::random::uniform_real_distribution<> urdist(0, 1);
+        boost::random::uniform_int_distribution<> uidist(0, dim - 1);
+
+        Point p1(dim), p2(dim), min1(dim), min2(dim);
+
+        hit_and_run_sampled_covariance_matrix(p, spectrahedron, var, a, b, covarianceMatrix);
+
+
+        // get the first two points
+        min1 = p;
+        NT minProduct1 = min1.getCoefficients().dot(c);
+
+        hit_and_run_sampled_covariance_matrix(p, spectrahedron, var, a, b, covarianceMatrix);
+
+
+        min2 = p;
+        NT minProduct2 = min2.getCoefficients().dot(c);
+        NT newProduct = minProduct2;
+
+        if (minProduct1 > minProduct2) {
+            NT temp = minProduct1;
+            minProduct1 = minProduct2;
+            minProduct2 = temp;
+            Point t = min1;
+            min1 = min2;
+            min2 = t;
+        }
+
+        std::pair<NT, NT> bpair;
+
+        // this point will be the end point of the segment of the minimizing point, that lies in the polytope after the cut
+        // we will use it to get an interior point to start the random walk at the next phase
+        Point boundaryMin1 = min1;
+        Point boundaryMin2 = min2;
+
+        // begin sampling
+
+        for (unsigned int i = 1; i <= rnum; ++i) {
+
+            // get next point
+
+            hit_and_run_sampled_covariance_matrix(p, spectrahedron, var, p1, p2, a, b, covarianceMatrix);
+            newProduct = p.getCoefficients().dot(c);
+            points.push_back(p);
+
+
+            // get new minimizing point
+            bool changedMin1 = false;
+            bool changedMin2 = false;
+
+            getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
+
+            if (changedMin1) {
+                // if the new point is the new min update the boundary point
+
+                boundaryMin2 = boundaryMin1;
+                boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+            } else if (changedMin2) {
+                boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+
+            }
+        } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
+
+//TODO done need boundary perhaps?
+        // find an interior point to start the next phase
+        Point _p = min1 * 0.50;
+        Point _p1 = min2 * 0.50;
+        p = _p + _p1;// + _p2 + _p3;
+
+        return std::pair<Point, Point>(min1, min2);
+    }
 
     /**
      * Generate random points and return the two that minimize the objective function
@@ -342,6 +652,75 @@ namespace optimization {
 
 
 
+    template<class Parameters, class Point, typename NT>
+    std::pair<Point, NT>
+    cutting_plane_method_sampled_covariance_matrix(Spectrahedron &spectrahedron, VT &objectiveFunction, Parameters parameters, const NT error,
+                         const unsigned int maxSteps, Point &initial) {
+
+        bool verbose = parameters.verbose;
+        unsigned int rnum = parameters.m;
+        bool tillConvergence = maxSteps == 0;
+        unsigned int step = 0;
+
+        SlidingWindow slidingWindow(3);
+        std::pair<Point, Point> minimizingPoints;
+        std::list<Point> points;
+
+        // get an internal point so you can sample
+        Point interiorPoint = initial;
+
+
+        minimizingPoints = min_rand_point_generator(spectrahedron, objectiveFunction, interiorPoint, rnum, parameters, points);
+
+        NT min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+        slidingWindow.push(min);
+
+        VT a  = objectiveFunction;
+        double b = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+
+        do {
+            std::list<Point> randPoints;
+
+            try {
+                MT covarianceMatrix = sampledCovarianceMatrix(points);
+                points.clear();
+//                std::cout << covarianceMatrix << "\n";
+                minimizingPoints = min_rand_point_generator(spectrahedron, objectiveFunction, interiorPoint, rnum,
+                                                            parameters, a, b, points, covarianceMatrix);
+            }
+            catch (int e) {
+                if (verbose) std::cout << "Failed to compute covariance matrix - step " << step << "\n";
+                minimizingPoints = min_rand_point_generator(spectrahedron, objectiveFunction, interiorPoint, rnum,
+                                                            parameters, a, b, points);
+            }
+
+
+            min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+            b = min;
+            slidingWindow.push(min);
+
+            if (slidingWindow.getRelativeError() < error) {
+                VT coeffs = interiorPoint.getCoefficients();
+                if (spectrahedron.isSingular(coeffs))
+                    break;
+            }
+
+            step++;
+
+//            LMI lmi;
+//            lmi = spectrahedron.getLMI();
+//            VT coeffs = minimizingPoints.first.getCoefficients();
+//            std::cout << min << " " << step << " inside " << lmi.isNegativeSemidefinite(coeffs)<< "\n";
+        } while (step <= maxSteps || tillConvergence);
+
+        STEPS = step;
+
+        if (verbose) std::cout << "Ended at " << step << " steps" << std::endl;
+
+
+        return std::pair<Point, NT>(minimizingPoints.first,
+                                    objectiveFunction.dot(minimizingPoints.first.getCoefficients()));
+    }
 
     template<class Parameters, class Point, typename NT>
     std::pair<Point, NT>
@@ -379,8 +758,11 @@ namespace optimization {
             b = min;
             slidingWindow.push(min);
 
-            if (slidingWindow.getRelativeError() < error)
-                break;
+            if (slidingWindow.getRelativeError() < error) {
+                VT coeffs = interiorPoint.getCoefficients();
+                if (spectrahedron.isSingular(coeffs))
+                    break;
+            }
 
 
             step++;

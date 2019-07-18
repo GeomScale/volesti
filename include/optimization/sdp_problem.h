@@ -153,7 +153,7 @@ namespace optimization {
             this->objectiveFunction = objectiveFunction;
         }
 
-        sdp_problem(std::istream &is, bool dual = false) {
+        sdp_problem(std::istream &is, bool dual = false) {//TODO dual
 
             if (!dual) {
                 read_inequality_formulation(is);
@@ -167,50 +167,6 @@ namespace optimization {
             this->spectrahedron.print();
         }
 
-
-//        template<class Parameters>
-//        void feasible_pont(Point &point, Parameters &parameters, double error, unsigned int maxSteps) {
-//            LMI lmi;
-//            lmi = spectrahedron.getLMI();
-//            MT A0 = lmi.getA0();
-//            int m = A0.rows();
-//
-//            Eigen::EigenSolver<MT> solver;
-//            solver.compute(A0);
-//            Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
-//
-//            double max_gamma = eivals(0).real();//TODO check if complex / real
-//            std::cout << eivals << "\n";
-//            for (int i = 1; i < eivals.rows(); i++)
-//                if (eivals(i).real() > max_gamma)
-//                    max_gamma = eivals(i).real();
-//
-//            MT matrix;
-//            matrix.setZero(m,m);
-//            for (int i=0 ; i<m ; i++)
-//                matrix(i,i) = -1;
-//
-//            lmi.addMatrix(matrix);
-//            Spectrahedron s(lmi);
-//            VT objectiveFunction;
-//            objectiveFunction.setZero(this->objectiveFunction.rows() + 1);
-//            objectiveFunction(this->objectiveFunction.rows()) = 1;
-//
-//            VT zero;
-//            zero.setZero(this->objectiveFunction.rows() + 1);
-//            zero(this->objectiveFunction.rows()) = max_gamma;
-//            Point initial(zero);
-//            std::cout << max_gamma << "\n";
-//            std::pair<Point, double> ret = cutting_plane_method(s, objectiveFunction, parameters, error, maxSteps, initial);
-//            std::cout << ret.first.getCoefficients() << "\n";
-//            assert(ret.first.getCoefficients()(ret.first.getCoefficients().rows() -1) <= 0);
-//
-//            VT _point(ret.first.getCoefficients().rows() - 1);
-//            for (int i=0 ; i<ret.first.getCoefficients().rows() - 1 ; i++)
-//                _point(i) = ret.first.getCoefficients()(i);
-//
-//            point = Point(_point);
-//        }
 
         VT getStrictlyFeasiblePoint() {
             VT point = getInteriorPoint(spectrahedron);//strict_feasible_point(spectrahedron, 0.00001, 0.00001, 100000);
@@ -270,14 +226,20 @@ namespace optimization {
         }
 
         template <class Parameters>
-        void solve(Parameters &parameters, double error, unsigned int maxSteps) {
+        void solve(Parameters &parameters, double error, unsigned int maxSteps, bool sampled_covariance_matrix=false) {
             Point initial(getStrictlyFeasiblePoint());
-            solution = cutting_plane_method(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
+            if (!sampled_covariance_matrix)
+                solution = cutting_plane_method(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
+            else
+                solution = cutting_plane_method_sampled_covariance_matrix(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
         }
 
         template <class Parameters>
-        void solve(Parameters &parameters, double error, unsigned int maxSteps, Point& initial) {
-            solution = cutting_plane_method(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
+        void solve(Parameters &parameters, double error, unsigned int maxSteps, Point& initial, bool sampled_covariance_matrix=false) {
+            if (!sampled_covariance_matrix)
+                solution = cutting_plane_method(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
+            else
+                solution = cutting_plane_method_sampled_covariance_matrix(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
         }
 
         void printSolution() {
