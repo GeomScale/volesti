@@ -24,10 +24,10 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoi
 
     MT A = P.get_mat();
     MT At = A.transpose();
-    unsigned int d = P.dimension();
-    unsigned int m = A.rows();
+    unsigned int d = P.dimension(), m = A.rows();
     VT b = P.get_vec(), s0(m), sv0(m), Y1(d), Y2(d), Y051(d), Y052(d), m1i(d), m2i(d), ms1(d), ms2(d);
-    NT sumh, h, har = 0.1, T, r = 1.0, L = 1.0;
+    NT sumh, h, T, r = 1.0, L = 1.0;
+    const NT har = 0.1;
 
     if (R < 0.0) R = 1.0;
     if (radius > 0.0) {
@@ -48,11 +48,7 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoi
             if (urdist(rng) > 0.5) Y2 = -Y2;
 
             sumh = 0.0;
-            if (T > har) {
-                h = har;
-            } else {
-                h = har - T;
-            }
+            h = (T > har) ? har : har - T;
 
             while (sumh < T) {
 
@@ -97,18 +93,17 @@ void hmc_logbarrier_rk4(Polytope &P, Point &p, int walk_step, PointList &randPoi
                 s0 = A * Y051;
 
                 if ((s0 - b).maxCoeff() > 0.0) {
-                    h = h * 0.5;
+                    h = h * 0.25;
+                    //std::cout<<"point out, h = "<<h<<std::endl;
                     continue;
                 }
                 Y1 = Y051;
                 Y2 = Y2 + (h / 6.0) * ms2;
                 sumh += h;
-                if (T - sumh > har) {
-                    h = har;
-                } else {
-                    h = T - sumh;
-                }
-
+                //std::cout<<"i = "<<i<<" T = "<<T<<" sumh = "<<sumh<<" h = "<<h<<std::endl;
+                h = (T - sumh > har) ? har : T - sumh;
+                //std::cout<<"h_next = "<<h<<std::endl;
+                //std::cout<<"Y1 = "<<Y1<<std::endl;
             }
 
         }
