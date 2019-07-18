@@ -34,7 +34,13 @@
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
 //' @param N The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.
 //' @param distribution Optional. A string that declares the target distribution: a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.
-//' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
+//' @param WalkType Optional. A string that declares the random walk method (the default random walk is Coordinate Directions Hit-and-Run):
+//  \itemize{
+//  \item{\code{'CDHR'} }{Coordinate Directions Hit-and-Run}
+//  \item{\code{'RDHR'} }{Random Directions Hit-and-Run}
+//  \item{\code{'BW'} }{Ball Walk}
+//' \item{\code{'BillW} }{Billiard walk}
+//' }
 //' @param walk_step Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.
 //' @param exact A boolean parameter. It should be used for the uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from the unit or the canonical or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies the dimension has to be declared and the type of body as well as the radius of the hypersphere.
 //' @param body A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.
@@ -202,7 +208,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             cdhr = false;
             rdhr = true;
             ball_walk = false;
-        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BilW"))==0) {
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BillW"))==0) {
             cdhr = false;
             rdhr = false;
             ball_walk = false;
@@ -311,9 +317,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 break;
             }
             case 2: {
-                //std::cout<<"is in P = "<<VP.is_in(MeanPoint)<<" gaussian = "<<gaussian<<" nump = "<<numpoints<<"walkL = "<<walkL<<std::endl;
-                //std::cout<<" che_rad = "<<var1.che_rad<<"billiad = "<<var1.bill_walk<<std::endl;
-                //std::cout<<VP.get_mat()<<"\n"<<std::endl;
                 sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
                                      a, MeanPoint, var1, var2);
                 break;
@@ -336,7 +339,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     }
 
-    //std::cout<<"sampling ok!"<<std::endl;
     Rcpp::NumericMatrix PointSet(dim,numpoints);
     typename std::list<Point>::iterator rpit=randPoints.begin();
     typename std::vector<NT>::iterator qit;

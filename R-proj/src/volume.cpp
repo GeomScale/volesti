@@ -9,7 +9,6 @@
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
-#define VOLESTI_DEBUG
 #include "volume.h"
 
 
@@ -20,13 +19,12 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
                       bool ball_walk, double delta, bool cdhr, bool rdhr, bool billiard, bool rounding)
 {
     bool rand_only=false,
-         NN=false,
-         birk=false,
-         verbose =true;
-    unsigned int n_threads=1;
+         NN = false,
+         birk = false,
+         verbose = false;
+    unsigned int n_threads = 1;
 
-    //unsigned int m;//=A.nrow()-1;
-    unsigned int n = P.dimension();//=A.ncol()-1;
+    unsigned int n = P.dimension();
     unsigned int rnum = std::pow(e,-2) * 400 * n * std::log(n);
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -80,7 +78,13 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
 //' @param InnerBall Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
 //' @param Algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian.
-//' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
+//' @param WalkType Optional. A string that declares the random walk method (the default random walk is Coordinate Directions Hit-and-Run):
+//  \itemize{
+//  \item{\code{'CDHR'} }{Coordinate Directions Hit-and-Run}
+//  \item{\code{'RDHR'} }{Random Directions Hit-and-Run}
+//  \item{\code{'BW'} }{Ball Walk}
+//' \item{\code{'BillW} }{Billiard walk}
+//' }
 //' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
 //' @param Parameters Optional. A list for the parameters of the algorithms:
 //' \itemize{
@@ -150,7 +154,7 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
         cdhr = false;
         rdhr = true;
         ball_walk = false;
-    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BilW"))==0) {
+    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BillW"))==0) {
         cdhr = false;
         rdhr = false;
         ball_walk = false;

@@ -20,7 +20,6 @@ Point get_direction(unsigned int dim) {
     NT normal = NT(0);
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
-    //RNGType rng2 = var.rng;
     for (unsigned int i=0; i<dim; i++) {
         Xs[i] = rdist(rng);
         normal += Xs[i] * Xs[i];

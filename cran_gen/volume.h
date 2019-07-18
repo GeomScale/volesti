@@ -52,13 +52,8 @@ NT volume(Polytope &P,
     typedef typename Parameters::RNGType RNGType;
     typedef typename Polytope::VT VT;
 
-    bool round = var.round;
-    bool print = var.verbose;
-    bool deltaset = false;
-    unsigned int n = var.n;
-    unsigned int rnum = var.m;
-    unsigned int walk_len = var.walk_steps;
-    unsigned int n_threads = var.n_threads;
+    bool round = var.round, print = var.verbose, deltaset = false;
+    unsigned int n = var.n, rnum = var.m, walk_len = var.walk_steps, n_threads = var.n_threads;
 
     //0. Get the Chebychev ball (largest inscribed ball) with center and radius
     Point c=InnerBall.first;
@@ -74,7 +69,6 @@ NT volume(Polytope &P,
     NT round_value=1;
     if(round){
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"\nRounding.."<<std::endl;
         double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
         #endif
@@ -82,7 +76,6 @@ NT volume(Polytope &P,
         round_value=res_round.first;
         #ifdef VOLESTI_DEBUG
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        bool print = var.verbose;
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         #endif
         std::pair<Point,NT> res=P.ComputeInnerBall();
@@ -110,7 +103,6 @@ NT volume(Polytope &P,
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
         #endif
         Point p = get_point_in_Dsphere<RNGType , Point>(n, radius);
@@ -121,14 +113,12 @@ NT volume(Polytope &P,
         // 3. Sample "rnum" points from P
         #ifdef VOLESTI_DEBUG
         double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-        bool print = var.verbose;
         if(print) std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
         #endif
         rand_point_generator(P, p, rnum-1, walk_len, randPoints, var);
 
         #ifdef VOLESTI_DEBUG
         double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
-        bool print = var.verbose;
         if(print) std::cout << "First random points construction time = " << tstop2 - tstart2 << std::endl;
         #endif
 
@@ -143,7 +133,6 @@ NT volume(Polytope &P,
         }
         max_dist=std::sqrt(max_dist);
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"\nFurthest distance from Chebychev point= "<<max_dist<<std::endl;
         #endif
 
@@ -152,7 +141,6 @@ NT volume(Polytope &P,
         int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
 
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
         #endif
 
@@ -170,7 +158,6 @@ NT volume(Polytope &P,
         }
         assert(!balls.empty());
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if (print) std::cout<<"---------"<<std::endl;
         #endif
 
@@ -189,7 +176,6 @@ NT volume(Polytope &P,
             BallPoly PBSmall(P,*bit2);
 
             #ifdef VOLESTI_DEBUG
-            bool print = var.verbose;
             if(print)
                 std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
                          <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
@@ -203,7 +189,6 @@ NT volume(Polytope &P,
             unsigned int nump_PBLarge = randPoints.size();
 
             #ifdef VOLESTI_DEBUG
-            bool print = var.verbose;
             if(print) std::cout<<"Points in PBLarge="<<randPoints.size()
                                <<std::endl;
             #endif
@@ -220,7 +205,6 @@ NT volume(Polytope &P,
             }
 
             #ifdef VOLESTI_DEBUG
-            bool print = var.verbose;
             if(print) std::cout<<"Points in PBSmall="<<randPoints.size()
                                <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
                                <<std::endl;
@@ -234,7 +218,6 @@ NT volume(Polytope &P,
 
             vol *= NT(rnum)/NT(nump_PBSmall);
             #ifdef VOLESTI_DEBUG
-            bool print = var.verbose;
             if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
                                <<"\ncurrent_vol = "<<vol
                                <<"\n--------------------------"<<std::endl;
@@ -245,7 +228,6 @@ NT volume(Polytope &P,
     }
     vol=round_value*vol;
     #ifdef VOLESTI_DEBUG
-    bool print = var.verbose;
     if(print) std::cout<<"rand points = "<<rnum<<std::endl;
     if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
     if(print) std::cout<<"round_value: "<<round_value<<std::endl;

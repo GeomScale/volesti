@@ -221,20 +221,12 @@ public:
     }
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
-
-        std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, true);
-        vppair.second = 1;
-        return vppair;
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, false, true), 1);
     }
 
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
-
-        std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, true);
-        vppair.second = 1;
-        return vppair;
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, false, true), 1);
     }
 
 
@@ -278,7 +270,7 @@ public:
 
     // get number of parallelopipeds
     // for each parallelopiped consider a lower bound for the distance from the origin
-    // useful for CV algorithm to get the first gaussian
+    // useful for CG algorithm to get the first gaussian
     std::vector<NT> get_dists(NT radius) {
         std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
@@ -303,7 +295,8 @@ public:
         MT Fmat(_d-1,_d);
         NT e = 0.0000000001;
         for (int j = 0; j < num_of_generators(); ++j) {
-            if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) ) > e*std::abs(*(conv_comb + j))) && ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
+            if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) ) > e*std::abs(*(conv_comb + j))) &&
+                ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
                 Fmat.row(count) = V.row(j);
                 count++;
             } else {

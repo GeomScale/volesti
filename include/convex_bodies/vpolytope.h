@@ -305,16 +305,12 @@ public:
 
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
-
-        std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, false);
-        vppair.second = 1;
-        return vppair;
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, false, false), 1);
     }
 
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
-        return line_positive_intersect(r, v, Ar, Av);
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, false, false), 1);
     }
 
 
@@ -362,7 +358,7 @@ public:
 
     // consider an upper bound for the number of facets of a V-polytope
     // for each facet consider a lower bound for the distance from the origin
-    // useful for CV algorithm to get the first gaussian
+    // useful for CG algorithm to get the first gaussian
     std::vector<NT> get_dists(NT radius) {
         std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
@@ -389,6 +385,7 @@ public:
         }
         return true;
     }
+
 
     void compute_reflection(Point &v, Point &p, int facet) {
 
