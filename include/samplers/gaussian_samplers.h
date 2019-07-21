@@ -22,6 +22,7 @@
 #ifndef GAUSSIAN_SAMPLERS_H
 #define GAUSSIAN_SAMPLERS_H
 
+#include "hmc_refl.h"
 
 // evaluate the pdf of point p
 template <class Point, typename NT>
@@ -201,7 +202,7 @@ void gaussian_next_point(Polytope &P,
             rand_coord = uidist(rng2);
             gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
             coord_prev = rand_coord;
-        } else {
+        } else if(var.rdhr_walk) {
             gaussian_hit_and_run(p, P, a_i, var);
         }
     }
@@ -230,6 +231,11 @@ void rand_gaussian_point_generator(Polytope &P,
     NT ball_rad = var.delta;
     Point p_prev = p;
 
+    if (var.hmc_refl) {
+        hmc_gaussian_ref<RNGType>(P, p, a_i, rnum, walk_len, randPoints, var.che_rad);
+        return;
+    }
+
     if (var.cdhr_walk) {
         rand_coord = uidist(rng2);
         std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
@@ -254,8 +260,9 @@ void rand_gaussian_point_generator(Polytope &P,
                 rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng2);
                 gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, a_i, lamdas, var);
-            } else
+            } else if (var.rdhr_walk) {
                 gaussian_hit_and_run(p, P, a_i, var);
+            }
         }
         randPoints.push_back(p);
     }

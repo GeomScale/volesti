@@ -84,7 +84,7 @@ bool compute_inter(MT &A, VT &b, VT &x0, VT &v0, NT &a, NT &t, int &facet) {
 
 template <class RNGType, class Polytope, class Point, class PointList, typename NT>
 void hmc_gaussian_ref(Polytope &P, Point &p, NT &a, int N, int walk_step, PointList &randPoints, NT radius = -1.0,
-                      NT R = -1.0) {
+                      NT R = 1.0) {
 
     typedef typename Polytope::VT VT;
     typedef typename Polytope::MT MT;
@@ -99,8 +99,7 @@ void hmc_gaussian_ref(Polytope &P, Point &p, NT &a, int N, int walk_step, PointL
     int facet;
     VT b = P.get_vec(), x0(d), v0(d);
     NT t, sumt, r = 1.0, L = 1.0, T;
-
-    if (R < 0.0) R = 1.0;
+    
     if (radius > 0.0) {
 
         r = R * radius;

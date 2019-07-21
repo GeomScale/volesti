@@ -60,7 +60,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
         vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
                                urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, cdhr,rdhr);
         vars_g<NT, RNGType> var1(n, walk_step, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
-                                 rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr);
+                                 rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr, false);
         vol = volume_gaussian_annealing(P, var1, var2, InnerB);
     } else {
         vol = volume(P, var, InnerB);
