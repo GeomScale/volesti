@@ -416,15 +416,14 @@ void hit_and_run_sampled_covariance_matrix(Point& point,
     point = ((1 - lambda) * b2) + point;
 }
 
-//hit-and-run with random directions and update
-// copied this function - need it to return the end points of the segment
+
 template<class Polytope, class Point, class Parameters>
-void implicit_isotropization_hit_and_run(Point &p,
+void hit_and_run_sampled_covariance_matrix(Point &p,
                                          Polytope &P,
                                          Parameters &var,
                                          Point &b1,
                                          Point &b2,
-                                         MT &isotropic) {
+                                         MT &covarianceMatrix) {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
 
@@ -432,21 +431,43 @@ void implicit_isotropization_hit_and_run(Point &p,
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
 
-    Point l = get_point_on_Dsphere<RNGType, Point, NT>(n, 1.0);//get_direction<RNGType, Point, NT>(n);
-    MT v(n, 1);
-    v = isotropic * l.getCoefficients();
-//
-    for (int i=0 ; i<l.dimension() ; i++) {
-        l.set_coord(i, v(i, 0));
-        i++;//TODO clean up
-    }
-//    l.add(isotropic*l.getCoefficients());
-
+    Point l = get_direction<RNGType, Point, double>(n);
+    VT lVT = l.getCoefficients();
+    lVT = covarianceMatrix * lVT;
+    l = Point(lVT);
     std::pair<NT, NT> dbpair = P.line_intersect(p, l);
     NT min_plus = dbpair.first;
     NT max_minus = dbpair.second;
     b1 = (min_plus * l) + p;
     b2 = (max_minus * l) + p;
+    NT lambda = urdist(rng);
+    p = (lambda * b1);
+    p = ((1 - lambda) * b2) + p;
+}
+
+//hit-and-run with random directions and update
+// copied this function - need it to return the end points of the segment
+template<class Polytope, class Point, class Parameters>
+void hit_and_run_sampled_covariance_matrix(Point &p,
+                                           Polytope &P,
+                                           Parameters &var,
+                                           MT &covarianceMatrix) {
+    typedef typename Parameters::RNGType RNGType;
+    typedef typename Point::FT NT;
+
+    unsigned int n = P.dimension();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+
+    Point l = get_direction<RNGType, Point, double>(n);
+    VT lVT = l.getCoefficients();
+    lVT = covarianceMatrix * lVT;
+    l = Point(lVT);
+    std::pair<NT, NT> dbpair = P.line_intersect(p, l);
+    NT min_plus = dbpair.first;
+    NT max_minus = dbpair.second;
+    Point b1 = (min_plus * l) + p;
+    Point b2 = (max_minus * l) + p;
     NT lambda = urdist(rng);
     p = (lambda * b1);
     p = ((1 - lambda) * b2) + p;

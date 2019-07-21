@@ -14,6 +14,7 @@
 #include "samplers.h"
 #include "interior_point.h"
 #include <queue>
+#include "heuristics.h"
 
 int STEPS;
 
@@ -387,57 +388,6 @@ namespace optimization {
 
         return point;
     }
-
-
-    /**
-     * Computes the quantites y = (1/N) * Sum {p | p in points}
-     * and Y = (1/N) * Sum [(p-y)* (p -y)^T], p in points
-     *
-     * These quantities will be used to set the direction vector of hit and run
-     *
-     * @tparam Point class Point
-     * @tparam NT The numeric type
-     * @param points a collection of points
-     * @param dotProducts a list with the dot products of c with all elements of points
-     * @param sum of elems in points
-     * @return sqrt(Y)
-     */
-    template<class Point, typename NT>
-    MT getIsotropicQuantities(VT &c, std::list<Point> &points, std::pair<Point, Point> &pointsPair, std::list<NT> &dotProducts) {
-        class std::list<Point>::iterator points_it = points.begin();
-        typename std::list<NT>::iterator products_it = dotProducts.begin();
-
-        int dim = points_it->dimension();
-
-        NT currentMinimum = c.dot(pointsPair.second.getCoefficients());
-        VT y;
-        y.setZero(dim);
-
-        for (auto p : points)
-            y += p.getCoefficients() / (double) points.size();
-
-        // compute Y
-        MT Y;
-        Y.setZero(dim, dim);
-        VT temp(dim);
-
-        for (auto pit = points.begin(); pit != points.end(); pit++) {
-            temp = pit->getCoefficients() - y;
-            Y = Y + (temp * temp.transpose());
-        }
-
-        Y = Y / (double) (points.size());
-
-        try {
-            Y = Y.sqrt();
-        }
-        catch (int e) {
-            throw e;
-        }
-
-        return Y;
-    }
-
 
 
     /**
@@ -1430,126 +1380,6 @@ namespace optimization {
 
 
     /**
-     * Generate random points and return the two that minimize the objective function.
-     * Also returns in list endPoints the intersection points of the polytope with each ray of the random walk
-     *
-     * @tparam Polytope
-     * @tparam PointList
-     * @tparam Parameters
-     * @tparam Point
-     * @param P
-     * @param c c the objective function
-     * @param p p a interior point
-     * @param rnum # of points to
-     * @param rnum num # of points to generate
-     * @param endPointEveryKSteps how often to collect endpoints
-     * @param endPoints
-     * @param var defines which walk to use
-     * @param isotropic the matrix from the implicit isotropization heuristic
-     * @return (p1, p2) p1 minimizes c the most and p2 follows
-     */
-    template<class Polytope, class PointList, class Parameters, class Point>
-    std::pair<Point, Point> min_rand_point_generator_iso(Polytope &P,
-                                                         VT& c,
-                                                         Point &p,
-                                                         unsigned int rnum,
-                                                         unsigned int endPointEveryKSteps,
-                                                         PointList &endPoints,
-                                                         Parameters &var,
-                                                         MT& isotropic)
-    {
-
-        typedef typename Parameters::RNGType RNGType;
-        typedef typename Point::FT NT;
-
-
-        Point boundaryMin;
-        int dim = p.dimension();
-        VT b = P.get_vec();
-
-        RNGType &rng = var.rng;
-        boost::random::uniform_real_distribution<> urdist(0, 1);
-        boost::random::uniform_int_distribution<> uidist(0, dim - 1);
-
-        Point p1(dim), p2(dim), min1(dim), min2(dim);
-        std::vector<NT> lamdas(P.num_of_hyperplanes(), NT(0));
-        unsigned int rand_coord, rand_coord_prev;
-        NT kapa, ball_rad = var.delta;
-        Point p_prev = p;
-
-        if (var.cdhr_walk) {//Compute the first point for the CDHR
-            rand_coord = uidist(rng);
-            kapa = urdist(rng);
-            std::pair<NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-            p_prev = p;
-            p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-        } else
-            hit_and_run(p, P, var);
-
-        min1 = p;
-        NT dotProduct1 = min1.getCoefficients().dot(c);
-
-        if (var.cdhr_walk) {//Compute the first point for the CDHR
-            rand_coord = uidist(rng);
-            kapa = urdist(rng);
-            std::pair<NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
-            p_prev = p;
-            p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
-        } else
-            hit_and_run(p, P, var);
-
-        min2 = p;
-        NT dotProduct2 = min2.getCoefficients().dot(c);
-        NT currentProduct = dotProduct2;
-
-        if (dotProduct1 > dotProduct2) {
-            NT temp = dotProduct1;
-            dotProduct1 = dotProduct2;
-            dotProduct2 = temp;
-            Point t = min1;
-            min1 = min2;
-            min2 = t;
-        }
-
-        std::pair<NT, NT> bpair;
-
-        int count = 0;
-
-        for (unsigned int i = 1; i <= rnum; ++i) {
-
-
-            if (var.cdhr_walk) {
-                rand_coord_prev = rand_coord;
-                rand_coord = uidist(rng);
-                kapa = urdist(rng);
-                VT iso = isotropic.col(rand_coord);
-                hit_and_run_coord_update_isotropic(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas, bpair, p1, p2, iso);
-//            NT diff = bpair.first + kapa * (bpair.second - bpair.first);
-//            currentProduct += c(rand_coord) * diff;
-            } else
-                implicit_isotropization_hit_and_run(p, P, var, p1, p2, isotropic);
-
-            count++;
-            if (count == endPointEveryKSteps) {
-                endPoints.push_back(p1);
-                endPoints.push_back(p2);
-                count = 0;
-            }
-
-            currentProduct = p.getCoefficients().dot(c);
-
-            getNewMinimizingPoints(p, dotProduct1, dotProduct2, min1, min2, currentProduct);
-        }
-
-        p = (min1 + min2)/2;
-//        std::cout << min1.getCoefficients().dot(c) <<"\n";
-        return std::pair<Point, Point>(min1, min2);
-    }
-
-
-
-
-    /**
      * Generate random points and return the two that minimize the objective function
      *
      * @tparam Polytope
@@ -1653,37 +1483,37 @@ namespace optimization {
 
             getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
 
-            if (changedMin1){
-                // if the new point is the new min update the boundary point
-
-                boundaryMin2 = boundaryMin1;
-                if (var.cdhr_walk) {
-                    if (c(rand_coord) > 0) {
-                        boundaryMin1 = p_prev;
-                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.second);
-                    } else {
-                        boundaryMin1 = p_prev;
-                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.first);
-                    }
-
-                } else {
-                    boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-                }
-            }
-            else if (changedMin2) {
-                if (var.cdhr_walk) {
-                    if (c(rand_coord) > 0) {
-                        boundaryMin2 = p_prev;
-                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.second);
-                    } else {
-                        boundaryMin2 = p_prev;
-                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.first);
-                    }
-
-                } else {
-                    boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-                }
-            }
+//            if (changedMin1){
+//                // if the new point is the new min update the boundary point
+//
+//                boundaryMin2 = boundaryMin1;
+//                if (var.cdhr_walk) {
+//                    if (c(rand_coord) > 0) {
+//                        boundaryMin1 = p_prev;
+//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.second);
+//                    } else {
+//                        boundaryMin1 = p_prev;
+//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.first);
+//                    }
+//
+//                } else {
+//                    boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+//                }
+//            }
+//            else if (changedMin2) {
+//                if (var.cdhr_walk) {
+//                    if (c(rand_coord) > 0) {
+//                        boundaryMin2 = p_prev;
+//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.second);
+//                    } else {
+//                        boundaryMin2 = p_prev;
+//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.first);
+//                    }
+//
+//                } else {
+//                    boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+//                }
+//            }
 
 //        assert(P.is_in(min1));
 //        assert(P.is_in(min2));
@@ -1702,6 +1532,286 @@ namespace optimization {
 //        std::cout << min1.getCoefficients().dot(c) << "\t" << P.is_in(p) << "\t" << min2.getCoefficients().dot(c) << "\n";
 //        std::cout << min2.getCoefficients().dot(c) <<"\n";
 //        std::cout << "b " << boundaryMin1.getCoefficients().dot(c) << " " << P.is_in(boundaryMin1) << "\n";
+
+        return std::pair<Point, Point>(min1, min2);
+    }
+
+    /**
+     * Generate random points and return the two that minimize the objective function
+     *
+     * @tparam Polytope
+     * @tparam Parameters
+     * @tparam Point
+     * @param P
+     * @param c the objective function
+     * @param p a interior point
+     * @param rnum # of points to generate
+     * @param var defines which walk to use
+     * @return (p1, p2) p1 minimizes c the most and p2 follows
+     */
+    template<class Polytope, class Parameters, class Point>
+    std::pair<Point, Point> min_rand_point_generator(Polytope &P,
+                                                     VT& c,
+                                                     Point &p,   // a point to start
+                                                     unsigned int rnum,
+                                                     Parameters &var,
+                                                     std::list<Point> points)
+    {
+
+        typedef typename Parameters::RNGType RNGType;
+        typedef typename Point::FT NT;
+
+        int dim = p.dimension();
+
+        // init the walks
+        RNGType &rng = var.rng;
+        boost::random::uniform_real_distribution<> urdist(0, 1);
+        boost::random::uniform_int_distribution<> uidist(0, dim - 1);
+
+        Point p1(dim), p2(dim), min1(dim), min2(dim);
+        std::vector<NT> lamdas(P.num_of_hyperplanes(), NT(0));
+        unsigned int rand_coord, rand_coord_prev;
+        NT kapa, ball_rad = var.delta;
+        Point p_prev = p;
+
+        if (var.cdhr_walk) {//Compute the first point for the CDHR
+            rand_coord = uidist(rng);
+            kapa = urdist(rng);
+            std::pair<NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+            p_prev = p;
+            p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+        } else
+            hit_and_run(p, P, var);
+
+
+        // get the first two points
+        min1 = p;
+        NT minProduct1 = min1.getCoefficients().dot(c);
+
+        if (var.cdhr_walk) {//Compute the first point for the CDHR
+            rand_coord = uidist(rng);
+            kapa = urdist(rng);
+            std::pair<NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+            p_prev = p;
+            p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
+        } else
+            hit_and_run(p, P, var);
+
+        min2 = p;
+        NT minProduct2 = min2.getCoefficients().dot(c);
+        NT newProduct = minProduct2;
+
+        if (minProduct1 > minProduct2) {
+            NT temp = minProduct1;
+            minProduct1 = minProduct2;
+            minProduct2 = temp;
+            Point t = min1;
+            min1 = min2;
+            min2 = t;
+        }
+
+        std::pair<NT, NT> bpair;
+
+        // this point will be the end point of the segment of the minimizing point, that lies in the polytope after the cut
+        // we will use it to get an interior point to start the random walk at the next phase
+        Point boundaryMin1 = min1;
+        Point boundaryMin2 = min2;
+
+        // begin sampling
+
+        for (unsigned int i = 1; i <= rnum ; ++i) {
+
+            // get next point
+            if (var.cdhr_walk) {
+                rand_coord_prev = rand_coord;
+                rand_coord = uidist(rng);
+                kapa = urdist(rng);
+
+                hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas, bpair);
+                newProduct += c(rand_coord) * (bpair.first + kapa * (bpair.second - bpair.first));
+            } else {
+                hit_and_run(p, P, var, p1, p2);
+                newProduct = p.getCoefficients().dot(c);
+            }
+            points.push_back(p);
+
+            // get new minimizing point
+            bool changedMin1 = false;
+            bool changedMin2 = false;
+
+            getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
+
+//            if (changedMin1){
+                // if the new point is the new min update the boundary point
+
+//                boundaryMin2 = boundaryMin1;
+//                if (var.cdhr_walk) {
+//                    if (c(rand_coord) > 0) {
+//                        boundaryMin1 = p_prev;
+//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.second);
+//                    } else {
+//                        boundaryMin1 = p_prev;
+//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.first);
+//                    }
+//
+//                } else {
+//                    boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+//                }
+//            }
+//            else if (changedMin2) {
+//                if (var.cdhr_walk) {
+//                    if (c(rand_coord) > 0) {
+//                        boundaryMin2 = p_prev;
+//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.second);
+//                    } else {
+//                        boundaryMin2 = p_prev;
+//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.first);
+//                    }
+//
+//                } else {
+//                    boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+//                }
+//            }
+
+//        assert(P.is_in(min1));
+//        assert(P.is_in(min2));
+//            std::cout << min1.getCoefficients().dot(c) << "\t" << minProduct1 <<"\n";
+        } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
+
+//TODO done need boundary perhaps?
+        // find an interior point to start the next phase
+        Point _p =  min1*0.50;
+        Point _p1 = min2*0.50;
+//        Point _p2 =  boundaryMin1*0.20;
+//        Point _p3 = boundaryMin2*0.20;
+//        p = (min1 + min2)/2;
+        p = _p + _p1;// + _p2 + _p3;
+
+//        std::cout << min1.getCoefficients().dot(c) << "\t" << P.is_in(p) << "\t" << min2.getCoefficients().dot(c) << "\n";
+//        std::cout << min2.getCoefficients().dot(c) <<"\n";
+//        std::cout << "b " << boundaryMin1.getCoefficients().dot(c) << " " << P.is_in(boundaryMin1) << "\n";
+
+        return std::pair<Point, Point>(min1, min2);
+    }
+
+    /**
+     * Generate random points and return the two that minimize the objective function
+     *
+     * @tparam Polytope
+     * @tparam Parameters
+     * @tparam Point
+     * @param P
+     * @param c the objective function
+     * @param p a interior point
+     * @param rnum # of points to generate
+     * @param var defines which walk to use
+     * @return (p1, p2) p1 minimizes c the most and p2 follows
+     */
+    template<class Polytope, class Parameters, class Point>
+    std::pair<Point, Point> min_rand_point_generator(Polytope &P,
+                                                     VT& c,
+                                                     Point &p,   // a point to start
+                                                     unsigned int rnum,
+                                                     Parameters &var,
+                                                     std::list<Point> points,
+                                                     MT& covarianceMatrix)
+    {
+
+        typedef typename Parameters::RNGType RNGType;
+        typedef typename Point::FT NT;
+
+        int dim = p.dimension();
+
+        // init the walks
+        RNGType &rng = var.rng;
+        boost::random::uniform_real_distribution<> urdist(0, 1);
+        boost::random::uniform_int_distribution<> uidist(0, dim - 1);
+
+        Point p1(dim), p2(dim), min1(dim), min2(dim);
+
+        hit_and_run_sampled_covariance_matrix(p, P, var, covarianceMatrix);
+
+
+        // get the first two points
+        min1 = p;
+        NT minProduct1 = min1.getCoefficients().dot(c);
+
+        hit_and_run_sampled_covariance_matrix(p, P, var, covarianceMatrix);
+
+        min2 = p;
+        NT minProduct2 = min2.getCoefficients().dot(c);
+        NT newProduct = minProduct2;
+
+        if (minProduct1 > minProduct2) {
+            NT temp = minProduct1;
+            minProduct1 = minProduct2;
+            minProduct2 = temp;
+            Point t = min1;
+            min1 = min2;
+            min2 = t;
+        }
+
+        std::pair<NT, NT> bpair;
+
+        // this point will be the end point of the segment of the minimizing point, that lies in the polytope after the cut
+        // we will use it to get an interior point to start the random walk at the next phase
+        Point boundaryMin1 = min1;
+        Point boundaryMin2 = min2;
+
+        // begin sampling
+
+        for (unsigned int i = 1; i <= rnum ; ++i) {
+
+            // get next point
+            hit_and_run_sampled_covariance_matrix(p, P, var, covarianceMatrix);
+            newProduct = p.getCoefficients().dot(c);
+
+            points.push_back(p);
+
+            // get new minimizing point
+            bool changedMin1 = false;
+            bool changedMin2 = false;
+
+            getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
+
+//            if (changedMin1){
+                // if the new point is the new min update the boundary point
+//
+//                boundaryMin2 = boundaryMin1;
+//                if (var.cdhr_walk) {
+//                    if (c(rand_coord) > 0) {
+//                        boundaryMin1 = p_prev;
+//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.second);
+//                    } else {
+//                        boundaryMin1 = p_prev;
+//                        boundaryMin1.set_coord(rand_coord, boundaryMin1[rand_coord] + bpair.first);
+//                    }
+//
+//                } else {
+//                    boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+//                }
+//            }
+//            else if (changedMin2) {
+//                if (var.cdhr_walk) {
+//                    if (c(rand_coord) > 0) {
+//                        boundaryMin2 = p_prev;
+//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.second);
+//                    } else {
+//                        boundaryMin2 = p_prev;
+//                        boundaryMin2.set_coord(rand_coord, boundaryMin2[rand_coord] + bpair.first);
+//                    }
+
+//                } else {
+//                    boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+//                }
+//            }
+
+        } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
+
+        // find an interior point to start the next phase
+        Point _p =  min1*0.50;
+        Point _p1 = min2*0.50;
+        p = _p + _p1;
 
         return std::pair<Point, Point>(min1, min2);
     }
@@ -1998,8 +2108,6 @@ namespace optimization {
         addRowInPolytope<Point, NT>(polytope);
 
         do {
-            std::list<Point> randPoints;
-
             // cut the polytope
             cutPolytope<Point, NT>(objectiveFunction, polytope, minimizingPoints.second);
 
@@ -2048,7 +2156,7 @@ namespace optimization {
      * @return
      */
     template<class Parameters, class Point, typename NT>
-    std::pair<Point, NT> cutting_plane_method_isotropization(HPolytope<Point> polytope, VT &objectiveFunction,
+    std::pair<Point, NT> cutting_plane_method_sampled_covariance_matrix(HPolytope<Point> polytope, VT &objectiveFunction,
                                                              Parameters parameters, const NT error,
                                                              const unsigned int maxSteps, Point &initial) {
 
@@ -2058,64 +2166,48 @@ namespace optimization {
 //        SlidingWindow slidingWindow(walk_len);
         bool tillConvergence = maxSteps == 0;
         unsigned int step = 0;
+        SlidingWindow slidingWindow(3);
 
         std::pair<Point, Point> minimizingPoints;
 
         // the intersection points between the polytope and the lines of hit and run
-        std::list<Point> intersectionPoints;
+        std::list<Point> points;
 
         // get an internal point so you can sample
         Point interiorPoint = initial;
-        minimizingPoints = min_rand_point_generator_boundary(polytope, objectiveFunction, interiorPoint, rnum, walk_len, intersectionPoints, parameters);
+//        minimizingPoints = min_rand_point_generator_boundary(polytope, objectiveFunction, interiorPoint, rnum, walk_len, intersectionPoints, parameters);
+        minimizingPoints = min_rand_point_generator(polytope, objectiveFunction, interiorPoint, rnum, parameters, points);
 
         // find where to cut the polytope
-        NT newMin = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+        NT min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+        slidingWindow.push(min);
 
         // add one more row in polytope, where we will store the current cutting plane
         // each time we cut the polytope we replace the previous cutting plane with the new one
         addRowInPolytope<Point, NT>(polytope);
 
-        NT min;
-
         do {
-
-            min = newMin;
-
             // cut the polytope
             cutPolytope<Point, NT>(objectiveFunction, polytope, minimizingPoints.second);
 
-            //TODO do we need this? it works fine as is
-            // we need this for arithmetic stability
-//            intersectionPoints.push_back(minimizingPoints.first);
-//            intersectionPoints.push_back(minimizingPoints.second);
-
-            // sample points from polytope
-            // matrix isotropic will be multiplied witch each direction vector of hit and run
-
-            std::list<NT> intersectionPointsDotProducts;
-
-            dotProducts(objectiveFunction, intersectionPoints, intersectionPointsDotProducts);
-//            interiorPoint = getArithmeticMean(objectiveFunction, intersectionPoints, minimizingPoints.second, intersectionPointsDotProducts, sum);
-
             try { // we may fail to compute square root of matrix
-                MT isotropic = getIsotropicQuantities<Point, NT>(objectiveFunction, intersectionPoints, minimizingPoints, intersectionPointsDotProducts);
-
-                intersectionPoints.clear();
-                minimizingPoints = min_rand_point_generator_iso(polytope, objectiveFunction, interiorPoint, rnum, walk_len, intersectionPoints, parameters, isotropic);
-
+                MT covarianceMatrix = sampledCovarianceMatrix(points);
+                points.clear();
+                minimizingPoints = min_rand_point_generator(polytope, objectiveFunction, interiorPoint, rnum, parameters, points, covarianceMatrix);
             }
             catch (int e) {
                 // we end up here if we fail to compute the sqaure root of a matrix
-                intersectionPoints.clear();
-                minimizingPoints = min_rand_point_generator_boundary(polytope, objectiveFunction, interiorPoint, rnum, walk_len, intersectionPoints, parameters);
+                points.clear();
+                minimizingPoints = min_rand_point_generator(polytope, objectiveFunction, interiorPoint, rnum, parameters, points);
             }
 
 
             // check for distance between successive estimations
-            newMin = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+            min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+            slidingWindow.push(min);
 
-            if (relative_error(min, objectiveFunction.dot(minimizingPoints.first.getCoefficients())) < error) break;
-
+            if (slidingWindow.getRelativeError() < error)
+                break;
 
             step++;
         } while (step <= maxSteps || tillConvergence);

@@ -14,6 +14,7 @@
 #include "samplers.h"
 #include "interior_point.h"
 #include <queue>
+#include "heuristics.h"
 
 int STEPS;
 
@@ -81,38 +82,6 @@ namespace optimization {
         }
     };
 
-
-
-    template <class Point>
-    MT sampledCovarianceMatrix(std::list<Point> &points) {
-        int dim = points.front().dimension();
-        double pointsNum = points.size();
-
-        VT y;
-        y.setZero(dim);
-
-        for (auto p : points)
-            y += p.getCoefficients() / pointsNum;
-
-        // compute Y
-        MT Y;
-        Y.setZero(dim, dim);
-        VT temp(dim);
-
-        for (auto pit = points.begin(); pit != points.end(); pit++) {
-            temp = pit->getCoefficients() - y;
-            Y = Y + ((temp * temp.transpose()) / (pointsNum - 1));
-        }
-
-        try {
-            Y = Y.sqrt();
-        }
-        catch (int e) {
-            throw e;
-        }
-
-        return Y;
-    }
 
     /**
      * Check if new point p is a better approximation than min1, min2 and if yes change min1, min2
@@ -539,16 +508,16 @@ namespace optimization {
 
             getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
 
-            if (changedMin1) {
+//            if (changedMin1) {
                 // if the new point is the new min update the boundary point
-
-                boundaryMin2 = boundaryMin1;
-                boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-
-            } else if (changedMin2) {
-                boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-
-            }
+//
+//                boundaryMin2 = boundaryMin1;
+//                boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+//
+//            } else if (changedMin2) {
+//                boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
+//
+//            }
 
         } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
 
@@ -689,7 +658,8 @@ namespace optimization {
                                                             parameters, a, b, points, covarianceMatrix);
             }
             catch (int e) {
-                if (verbose) std::cout << "Failed to compute covariance matrix - step " << step << "\n";
+//                if (verbose) std::cout << "Failed to compute covariance matrix - step " << step << "\n";
+                points.clear();
                 minimizingPoints = min_rand_point_generator(spectrahedron, objectiveFunction, interiorPoint, rnum,
                                                             parameters, a, b, points);
             }

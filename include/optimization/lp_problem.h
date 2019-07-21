@@ -139,13 +139,13 @@ namespace optimization {
 
 
         template<class Parameters>
-        void solve(bool useIsotropyMatrix, Parameters parameters, const NT error, unsigned int maxSteps) {
+        void solve(Parameters parameters, const NT error, unsigned int maxSteps, bool sampledCovarianceMatrix = false) {
             Point initial = getInteriorPoint<Point, NT>(polytope);
             std::pair<Point, NT> sol;
 
 
-            if (useIsotropyMatrix)
-                sol = cutting_plane_method_isotropization(polytope, objectiveFunction, parameters, error, maxSteps,
+            if (sampledCovarianceMatrix)
+                sol = cutting_plane_method_sampled_covariance_matrix(polytope, objectiveFunction, parameters, error, maxSteps,
                                                           initial);
             else
                 sol = cutting_plane_method(polytope, objectiveFunction, parameters, error, maxSteps, initial);

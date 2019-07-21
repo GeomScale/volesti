@@ -191,7 +191,7 @@ int main(const int argc, const char **argv) {
         std::cout << "Experiment " << i + 1 << std::endl;
         auto t1 = std::chrono::steady_clock::now();
 
-        lp.solve(useIsotropyMatrix, var, distance, numMaxSteps);
+        lp.solve(var, distance, numMaxSteps, useIsotropyMatrix);
 
         auto t2 = std::chrono::steady_clock::now();
 
