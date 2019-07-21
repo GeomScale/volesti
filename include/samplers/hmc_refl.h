@@ -33,23 +33,23 @@ void compute_tranj_params(NT xi, NT vi, NT &a, NT &omega, NT &C, NT &Phi) {
 
 }
 
-template <class VT, typename NT>
-void update_position_momenta(VT &x0, VT &v0, NT &t, NT &a) {
+template <class Point, class VT, typename NT>
+void update_position_momenta(Point &p, VT &v0, NT &t, NT &a) {
 
     NT omega, C, Phi;
 
-    for (int i = 0; i < x0.size(); ++i) {
+    for (int i = 0; i < v0.size(); ++i) {
 
-        compute_tranj_params(x0(i), v0(i) , a, omega, C, Phi);
-        x0(i) = C * std::cos(omega * t + Phi);
+        compute_tranj_params(p[i], v0(i) , a, omega, C, Phi);
+        p.set_coord(i, C * std::cos(omega * t + Phi));
         v0(i) = -omega * C * std::sin(omega * t + Phi);
 
     }
 
 }
 
-template <class MT, class VT, typename NT>
-bool compute_inter(MT &A, VT &b, VT &x0, VT &v0, NT &a, NT &t, int &facet) {
+template <class MT, class VT, class Point, typename NT>
+bool compute_inter(MT &A, VT &b, Point &p, VT &v0, NT &a, NT &t, int &facet) {
 
     bool intersection = false;
     unsigned int m = A.rows();
@@ -57,7 +57,9 @@ bool compute_inter(MT &A, VT &b, VT &x0, VT &v0, NT &a, NT &t, int &facet) {
     t = std::numeric_limits<NT>::max();
 
     for (int i = 0; i < m; ++i) {
-        compute_tranj_params(x0.dot(A.row(i)), v0.dot(A.row(i)), a, omega, C, Phi);
+
+        compute_tranj_params(A.row(i).dot(Eigen::Map<VT>(&p.get_coeffs()[0], p.dimension())), v0.dot(A.row(i)), a,
+                omega, C, Phi);
         if (C > b(i)) {
 
             intersection = true;
@@ -81,6 +83,29 @@ bool compute_inter(MT &A, VT &b, VT &x0, VT &v0, NT &a, NT &t, int &facet) {
 
 }
 
+template <class MT, class VT, class Point, typename NT>
+void next_point_hmc_refl(MT A, VT b, Point &p, VT &v0, NT &a, NT T) {
+
+    NT sumt = 0.0, t;
+    int facet;
+
+    while (T > sumt) {
+
+        if (!compute_inter(A, b, p, v0, a, t, facet)) {
+            t = T - sumt;
+            update_position_momenta(p, v0, t, a);
+            break;
+        } else {
+            t = (t > T - sumt) ? T - sumt : 0.999 * t;
+            sumt += t;
+            update_position_momenta(p, v0, t, a);
+            compute_reflection(v0, A.row(facet).transpose());
+        }
+
+    }
+
+
+}
 
 template <class RNGType, class Polytope, class Point, class PointList, typename NT>
 void hmc_gaussian_ref(Polytope &P, Point &p, NT &a, int N, int walk_step, PointList &randPoints, NT radius = -1.0,
@@ -97,48 +122,33 @@ void hmc_gaussian_ref(Polytope &P, Point &p, NT &a, int N, int walk_step, PointL
     MT A = P.get_mat();
     unsigned int d = P.dimension(), m = A.rows();
     int facet;
-    VT b = P.get_vec(), x0(d), v0(d);
+    VT b = P.get_vec(), v0(d);
     NT t, sumt, r = 1.0, L = 1.0, T;
-    
+
     if (radius > 0.0) {
 
         r = R * radius;
         A = A * (MT::Identity(d, d) * r);
 
     }
-    for (int j = 0; j < d; ++j) x0(j) = (1.0 / r) * p[j];
+
+    p = (1.0 / r) * p;
 
     for (int i = 0; i < N; ++i) {
 
         for (int l = 0; l < walk_step; ++l) {
 
             T = urdist(rng) * L;
-            sumt = 0.0;
             for (int i = 0; i < d; ++i) v0(i) = rdist(rng);
             if (urdist(rng) > 0.5) v0 = -v0;
 
-            while(T > sumt) {
-
-                if (!compute_inter(A, b, x0, v0, a, t, facet)) {
-                    t = T - sumt;
-                    update_position_momenta(x0, v0, t, a);
-                    break;
-                } else {
-                    t = (t > T - sumt) ? T - sumt : 0.999 * t;
-                    sumt += t;
-                    update_position_momenta(x0, v0, t, a);
-                    compute_reflection(v0, A.row(facet).transpose());
-                }
-
-            }
+            next_point_hmc_refl(A, b, p, v0, a, T);
 
         }
-        for (int k = 0; k < d; ++k) p.set_coord(k, r * x0(k));
-        randPoints.push_back(p);
+
+        randPoints.push_back(r * p);
 
     }
-
-
 
 }
 

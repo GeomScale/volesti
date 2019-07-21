@@ -187,23 +187,35 @@ void gaussian_next_point(Polytope &P,
                         NT a_i,
                         std::vector<NT> &lamdas,
                         Parameters &var) {
+
     typedef typename Parameters::RNGType RNGType;
-    unsigned int n = var.n, rand_coord;
+    typedef typename Polytope::VT VT;
+
+    unsigned int n = P.dimension(), rand_coord;
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //RNGType rng(seed);
-    RNGType &rng2 = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    boost::normal_distribution<> rdist(0, 1);
+
+    VT v0(n);
     NT ball_rad = var.delta;
 
     for (unsigned int j = 0; j < walk_len; j++) {
         if (var.ball_walk) {
             gaussian_ball_walk(p, P, a_i, ball_rad, var);
         } else if (var.cdhr_walk) {
-            rand_coord = uidist(rng2);
+            rand_coord = uidist(rng);
             gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
             coord_prev = rand_coord;
         } else if(var.rdhr_walk) {
             gaussian_hit_and_run(p, P, a_i, var);
+        } else if (var.hmc_refl) {
+
+            for (int i = 0; i < n; ++i) v0(i) = rdist(rng);
+            if (urdist(rng) > 0.5) v0 = -v0;
+
+            next_point_hmc_refl(P.get_mat(), P.get_vec(), p, v0, a_i, urdist(rng) * 1.0);
         }
     }
 }
@@ -333,5 +345,48 @@ void gaussian_ball_walk(Point &p,
         }
     }
 }
+
+/*
+template <class RNGType, class MT, class VT, class Point, typename NT>
+void hmc_refl2(MT A, VT b, Point &p, NT &a, int walk_step) {
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    boost::normal_distribution<> rdist(0, 1);
+
+    int d = A.cols(), m = A.rows();
+
+    VT b = P.get_vec(), x0(d), v0(d);
+    NT t, sumt, L = 1.0, T;
+
+    for (int j = 0; j < d; ++j) x0(j) = (1.0 / r) * p[j];
+
+    for (int l = 0; l < walk_step; ++l) {
+
+        T = urdist(rng) * L;
+        sumt = 0.0;
+        for (int i = 0; i < d; ++i) v0(i) = rdist(rng);
+        if (urdist(rng) > 0.5) v0 = -v0;
+
+        while(T > sumt) {
+
+            if (!compute_inter(A, b, x0, v0, a, t, facet)) {
+                t = T - sumt;
+                update_position_momenta(x0, v0, t, a);
+                break;
+            } else {
+                t = (t > T - sumt) ? T - sumt : 0.999 * t;
+                sumt += t;
+                update_position_momenta(x0, v0, t, a);
+                compute_reflection(v0, A.row(facet).transpose());
+            }
+
+        }
+
+    }
+    for (int k = 0; k < d; ++k) p.set_coord(k, r * x0(k));
+
+}*/
 
 #endif

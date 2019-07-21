@@ -308,12 +308,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
         switch (type) {
             case 1: {
-                std::cout<<"radius = "<<InnerBall.second<<std::endl;
-                std::cout<<"dimension ="<<HP.dimension()<<std::endl;
-                std::cout<<"MeanPoint = "<<std::endl;
 
                 MeanPoint = get_point_in_Dsphere<RNGType, Point>(HP.dimension(), InnerBall.second);
-                MeanPoint.print();
                 if (hmc) {
                     if (gibbs) {
                         if (!rk4) hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
