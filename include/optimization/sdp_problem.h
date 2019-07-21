@@ -12,6 +12,7 @@
 #include "lp_problem.h"
 #include "lmi_strict_feasibility.h"
 #include "interior_point_sdp.h"
+#include "SDPA_format_manager.h"
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VT;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MT;
@@ -153,7 +154,14 @@ namespace optimization {
             this->objectiveFunction = objectiveFunction;
         }
 
-        sdp_problem(std::istream &is, bool dual = false) {//TODO dual
+        sdp_problem(std::istream &is, bool SDPAformat = false, bool dual = false) {//TODO dual
+
+            if (SDPAformat) {
+                LMI lmi;
+                SDPAFormat::loadSDPAFormatFile(is, lmi, objectiveFunction);
+                this->spectrahedron = Spectrahedron(lmi);
+                return;
+            }
 
             if (!dual) {
                 read_inequality_formulation(is);
@@ -165,6 +173,12 @@ namespace optimization {
         void print() {
             std::cout << "min\n" << this->objectiveFunction.transpose() << "\n s.t.\n";
             this->spectrahedron.print();
+        }
+
+        void writeSDPAFormatFile(std::ostream& os) {
+            LMI lmi;
+            lmi = spectrahedron.getLMI();
+            SDPAFormat::writeSDPAFormatFile(os, lmi, objectiveFunction);
         }
 
 

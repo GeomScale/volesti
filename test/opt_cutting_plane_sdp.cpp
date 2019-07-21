@@ -60,7 +60,8 @@ int main(const int argc, const char **argv) {
             cdhr = false,
             rdhr = true, // for hit and run
             exact_zono = false,
-            gaussian_sam = false;
+            gaussian_sam = false,
+            SDPAFormat = false;
 
 
     sdp_problem sdp;
@@ -93,6 +94,15 @@ int main(const int argc, const char **argv) {
             std::ifstream inp;
             inp.open(argv[++i], std::ios_base::in);
             sdp = sdp_problem(inp);
+            inp.close();
+            file = true;
+            correct = true;
+        }
+
+        if (!strcmp(argv[i], "-fSDPA")) {
+            std::ifstream inp;
+            inp.open(argv[++i], std::ios_base::in);
+            sdp = sdp_problem(inp, true);
             inp.close();
             file = true;
             correct = true;
