@@ -22,6 +22,7 @@
 #include "gaussian_samplers.h"
 #include "hmc_heur_sam.h"
 #include "hmc_rk4.h"
+#include "hmc_refl.h"
 #include "sample_only.h"
 #include "simplex_samplers.h"
 #include "vpolyintersectvpoly.h"
@@ -320,6 +321,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             case 1: {
                 if (hmc_barrier) {
                     MeanPoint = get_point_in_Dsphere<RNGType, Point>(HP.dimension(), InnerBall.second);
+                    if (gaussian) {
+                        hmc_gaussian_ref<RNGType>(HP, MeanPoint, a, numpoints, walkL, randPoints, InnerBall.second);
+                        break;
+                    }
                     if (!rk4) {
                         hmc_logbarrier<RNGType>(HP, MeanPoint, randPoints, a, numpoints);
                     } else {
