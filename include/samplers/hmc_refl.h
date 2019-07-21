@@ -53,7 +53,7 @@ bool compute_inter(MT &A, VT &b, VT &x0, VT &v0, NT &a, NT &t, int &facet) {
 
     bool intersection = false;
     unsigned int m = A.rows();
-    NT omega, C, Phi, xi, vi, t1, t2, tmin;
+    NT omega, C, Phi, t1, t2, tmin;
     t = std::numeric_limits<NT>::max();
 
     for (int i = 0; i < m; ++i) {
@@ -62,11 +62,11 @@ bool compute_inter(MT &A, VT &b, VT &x0, VT &v0, NT &a, NT &t, int &facet) {
 
             intersection = true;
 
-            t1 = std::acos(b(i) / C - Phi) / omega;
+            t1 = (std::acos(b(i) / C) - Phi) / omega;
             t1 += (t1 < 0.0) ? (2.0*M_PI) / omega : 0.0;
 
-            t2 = (-std::acos(b(i) / C - Phi)) / omega;
-            t2 += (t1 < 0.0) ? (2.0*M_PI) / omega : 0.0;
+            t2 = (-std::acos(b(i) / C) - Phi) / omega;
+            t2 += (t2 < 0.0) ? (2.0*M_PI) / omega : 0.0;
 
             tmin = std::min(t1, t2);
             if (tmin < t) {
@@ -99,7 +99,6 @@ void hmc_gaussian_ref(Polytope &P, Point &p, NT &a, int N, int walk_step, PointL
     int facet;
     VT b = P.get_vec(), x0(d), v0(d);
     NT t, sumt, r = 1.0, L = 1.0, T;
-    bool check;
 
     if (R < 0.0) R = 1.0;
     if (radius > 0.0) {
@@ -119,19 +118,18 @@ void hmc_gaussian_ref(Polytope &P, Point &p, NT &a, int N, int walk_step, PointL
             for (int i = 0; i < d; ++i) v0(i) = rdist(rng);
             if (urdist(rng) > 0.5) v0 = -v0;
 
-            while(true) {
+            while(T > sumt) {
 
                 if (!compute_inter(A, b, x0, v0, a, t, facet)) {
                     t = T - sumt;
                     update_position_momenta(x0, v0, t, a);
                     break;
                 } else {
-                    compute_reflection(v0, A.row(facet));
-                    t = 0.999 * t;
+                    t = (t > T - sumt) ? T - sumt : 0.999 * t;
+                    sumt += t;
                     update_position_momenta(x0, v0, t, a);
+                    compute_reflection(v0, A.row(facet).transpose());
                 }
-
-                sumt += t;
 
             }
 

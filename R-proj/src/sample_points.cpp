@@ -230,11 +230,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
 
         if (distribution.isNotNull()) {
+            //std::cout<<Rcpp::as<std::string>(distribution)<<std::endl;
             if (Rcpp::as<std::string>(distribution).compare(std::string("gaussian"))==0) {
                 gaussian = true;
-            } if (Rcpp::as<std::string>(distribution).compare(std::string("gibbs"))==0) {
+            } else if (Rcpp::as<std::string>(distribution).compare(std::string("gibbs"))==0) {
                 gaussian = true;
             } else if(Rcpp::as<std::string>(distribution).compare(std::string("uniform"))!=0) {
+                //std::cout<<Rcpp::as<std::string>(distribution)<<" ole"<<std::endl;
+                //std::cout<<gaussian<<std::endl;
                 throw Rcpp::exception("Wrong distribution!");
             }
         }
