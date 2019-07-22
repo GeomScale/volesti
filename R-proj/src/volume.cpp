@@ -9,6 +9,7 @@
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
+#define VOLESTI_DEBUG
 #include "volume.h"
 
 

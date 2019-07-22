@@ -133,19 +133,27 @@ void hmc_gaussian_ref(Polytope &P, Point &p, NT &a, int N, int walk_step, PointL
     }
 
     p = (1.0 / r) * p;
+    Point p_prev=p;
 
     for (int i = 0; i < N; ++i) {
 
         for (int l = 0; l < walk_step; ++l) {
+            //p_prev = p;
 
             T = urdist(rng) * L;
             for (int i = 0; i < d; ++i) v0(i) = rdist(rng);
             if (urdist(rng) > 0.5) v0 = -v0;
 
             next_point_hmc_refl(A, b, p, v0, a, T);
+            if (P.is_in(p) != -1) {
+                for (int i = 0; i < d; ++i) v0(i) = rdist(rng);
+                if (urdist(rng) > 0.5) v0 = -v0;
+                continue;
+            }
 
         }
 
+        //std::cout<<"is_in = "<<P.is_in(r*p)<<std::endl;
         randPoints.push_back(r * p);
 
     }

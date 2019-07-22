@@ -87,6 +87,8 @@ public:
         return P2.get_mat();
     }
 
+    void set_mat(MT A) {};
+
     void print() {
         //std::cout<<"First polytope:\n";
         P1.print();
