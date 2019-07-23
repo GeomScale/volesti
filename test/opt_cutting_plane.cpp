@@ -27,6 +27,7 @@ typedef typename Kernel::Point Point;
 typedef boost::mt19937 RNGType;
 typedef HPolytope<Point> Hpolytope;
 typedef optimization::lp_problem<Point, NT> lp_problem;
+typedef lp_problem::Algorithm Algorithm;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
@@ -43,7 +44,7 @@ int main(const int argc, const char **argv) {
     int dimensinon, numOfExperinments = 1, walkLength = 10, numOfRandomPoints = 16, nsam = 100, numMaxSteps = 100;
     NT e = 1;
     bool uselpSolve = false;
-    bool useIsotropyMatrix = false;
+    Algorithm algorithm = Algorithm::RANDOMIZED_CUTTING_PLANE;
 
     bool verbose = false,
             rand_only = false,
@@ -117,12 +118,17 @@ int main(const int argc, const char **argv) {
             correct = true;
         }
         if (!strcmp(argv[i], "-ISO")) {
-            useIsotropyMatrix = true;
+            algorithm = Algorithm::RANDOMIZED_CUTTING_PLANE_SAMPLED_COVARIANCE_HEURISTIC;
             correct = true;
         }
 
         if (!strcmp(argv[i], "-r")) {
             numOfRandomPoints = atoi(argv[++i]);
+            correct = true;
+        }
+
+        if (!strcmp(argv[i], "-deterministic")) {
+            algorithm = Algorithm::DETERMINISTIC_CUTTING_PLANE_CHEBYSHEV_CENTER;
             correct = true;
         }
 
@@ -191,7 +197,7 @@ int main(const int argc, const char **argv) {
         std::cout << "Experiment " << i + 1 << std::endl;
         auto t1 = std::chrono::steady_clock::now();
 
-        lp.solve(var, distance, numMaxSteps, useIsotropyMatrix);
+        lp.solve(var, distance, numMaxSteps, algorithm);
 
         auto t2 = std::chrono::steady_clock::now();
 

@@ -21,6 +21,12 @@ namespace optimization {
         typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
         typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
+        typedef enum Algorithm{
+            RANDOMIZED_CUTTING_PLANE,
+            RANDOMIZED_CUTTING_PLANE_SAMPLED_COVARIANCE_HEURISTIC,
+            DETERMINISTIC_CUTTING_PLANE_CHEBYSHEV_CENTER
+        } Algorithm;
+
         HPolytope<Point> polytope;
         VT objectiveFunction;
         Goal goal;
@@ -139,16 +145,23 @@ namespace optimization {
 
 
         template<class Parameters>
-        void solve(Parameters parameters, const NT error, unsigned int maxSteps, bool sampledCovarianceMatrix = false) {
+        void solve(Parameters parameters, const NT error, unsigned int maxSteps, Algorithm algorithm = RANDOMIZED_CUTTING_PLANE) {
             Point initial = getInteriorPoint<Point, NT>(polytope);
             std::pair<Point, NT> sol;
 
 
-            if (sampledCovarianceMatrix)
-                sol = cutting_plane_method_sampled_covariance_matrix(polytope, objectiveFunction, parameters, error, maxSteps,
-                                                          initial);
-            else
-                sol = cutting_plane_method(polytope, objectiveFunction, parameters, error, maxSteps, initial);
+            switch (algorithm) {
+                case RANDOMIZED_CUTTING_PLANE:
+                    sol = cutting_plane_method(polytope, objectiveFunction, parameters, error, maxSteps, initial);
+                    break;
+                case RANDOMIZED_CUTTING_PLANE_SAMPLED_COVARIANCE_HEURISTIC:
+                    sol = cutting_plane_method_sampled_covariance_matrix(polytope, objectiveFunction, parameters, error, maxSteps,
+                                                                         initial);
+                    break;
+                case DETERMINISTIC_CUTTING_PLANE_CHEBYSHEV_CENTER:
+                    sol = cutting_plane_method_deterministic_Chebyshev(polytope, objectiveFunction, parameters, error, maxSteps, initial);
+                    break;
+            }
 
             solutionVal = sol.second;
             solution = sol.first;

@@ -2170,7 +2170,6 @@ namespace optimization {
 
         std::pair<Point, Point> minimizingPoints;
 
-        // the intersection points between the polytope and the lines of hit and run
         std::list<Point> points;
 
         // get an internal point so you can sample
@@ -2219,6 +2218,66 @@ namespace optimization {
 //        assert(polytope.is_in(minimizingPoints.first));
 
         return std::pair<Point, NT>(minimizingPoints.first, objectiveFunction.dot(minimizingPoints.first.getCoefficients()));
+    }
+
+
+    template<class Parameters, class Point, typename NT>
+    std::pair<Point, NT> cutting_plane_method_deterministic_Chebyshev(HPolytope<Point> polytope, VT &objectiveFunction,
+                                                                        Parameters parameters, const NT error,
+                                                                        const unsigned int maxSteps, Point &initial) {
+
+        bool verbose = parameters.verbose;
+        unsigned int rnum = parameters.m; // # of random points per phase
+        unsigned int walk_len = parameters.walk_steps; // mixing time for the random walk
+        bool tillConvergence = maxSteps == 0;
+        unsigned int step = 0;
+        SlidingWindow slidingWindow(3);
+
+
+        // get an internal point so you can sample
+        Point interiorPoint = initial;
+        std::cout << " " << polytope.is_in(interiorPoint) << " " << interiorPoint.getCoefficients().transpose() << "\n";
+
+        // find where to cut the polytope
+        normalizePolytope(polytope);
+        escapeStep_ChebyshevCenter(polytope, interiorPoint, rnum);
+
+        Point cutAt = interiorPoint; //TODO
+        NT min = objectiveFunction.dot(cutAt.getCoefficients());
+        slidingWindow.push(min);
+        std::cout << min << " " << polytope.is_in(interiorPoint) << " " << interiorPoint.getCoefficients().transpose() << "\n";
+
+        // add one more row in polytope, where we will store the current cutting plane
+        // each time we cut the polytope we replace the previous cutting plane with the new one
+        addRowInPolytope<Point, NT>(polytope);
+
+        do {
+            // cut the polytope
+            cutPolytope<Point, NT>(objectiveFunction, polytope, cutAt);
+            normalizePolytope(polytope);
+
+            escapeStep_ChebyshevCenter(polytope, interiorPoint, rnum);
+            cutAt = interiorPoint;
+
+            min = objectiveFunction.dot(cutAt.getCoefficients());
+
+            // check for distance between successive estimations
+            slidingWindow.push(min);
+            std::cout << min << " " << polytope.is_in(interiorPoint) << " " << interiorPoint.getCoefficients().transpose() << "\n";
+
+            if (slidingWindow.getRelativeError() < error)
+                break;
+
+            step++;
+        } while (step <= maxSteps || tillConvergence);
+
+        STEPS = step;
+
+
+        if (verbose) std::cout << "Ended at " << step  << " steps with deterministic Chebushev" << std::endl;
+//        assert(polytope.is_in(minimizingPoints.first));
+
+        return std::pair<Point, NT>(interiorPoint, objectiveFunction.dot(interiorPoint.getCoefficients()));
     }
 }
 
