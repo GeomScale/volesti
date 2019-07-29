@@ -370,6 +370,8 @@ public:
         return false;
     }
 
+    void normalize() {}
+
     void compute_reflection(Point &v, Point &p, int facet) {
 
         int count = 0, outvert;

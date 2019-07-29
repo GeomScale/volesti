@@ -330,6 +330,8 @@ public:
         return P1.get_mat();
     }
 
+    void normalize() {}
+
     void compute_reflection (Point &v, Point &p, int &facet) {}
 
 };

@@ -369,6 +369,8 @@ public:
         return res;
     }
 
+    void normalize() {}
+
 
     // in number_of_vertices<=20*dimension use the vertices for the rounding
     // otherwise you have to sample from the V-polytope

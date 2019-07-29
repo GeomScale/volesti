@@ -513,11 +513,22 @@ public:
         return A;
     }
 
+    void normalize() {
+
+        NT row_norm;
+        for (int i = 0; i < num_of_hyperplanes(); ++i) {
+            row_norm = A.row(i).norm();
+            A.row(i) = A.row(i) / row_norm;
+            b(i) = b(i) / row_norm;
+        }
+
+    }
+
     void compute_reflection(Point &v, Point &p, int facet) {
 
         Point s(_d);
         VT a = A.row(facet);
-        a = a/a.norm();
+        //a = a/a.norm();
         for (int i = 0; i < _d; ++i) {
             s.set_coord(i, a(i));
         }
