@@ -467,7 +467,6 @@ namespace optimization {
         hit_and_run(p, spectrahedron, var);
 
 
-        // get the first two points
         min1 = p;
         NT minProduct1 = min1.getCoefficients().dot(c);
 
@@ -669,11 +668,9 @@ namespace optimization {
             b = min;
             slidingWindow.push(min);
 
-            if (slidingWindow.getRelativeError() < error) {
-                VT coeffs = interiorPoint.getCoefficients();
-                if (spectrahedron.isSingular(coeffs))
+            VT coeffs = interiorPoint.getCoefficients();
+            if (slidingWindow.getRelativeError() < error || spectrahedron.isSingular(coeffs))
                     break;
-            }
 
             step++;
 
@@ -728,11 +725,9 @@ namespace optimization {
             b = min;
             slidingWindow.push(min);
 
-            if (slidingWindow.getRelativeError() < error) {
-                VT coeffs = interiorPoint.getCoefficients();
-                if (spectrahedron.isSingular(coeffs))
-                    break;
-            }
+            VT coeffs = interiorPoint.getCoefficients();
+            if (slidingWindow.getRelativeError() < error || spectrahedron.isSingular(coeffs))
+                break;
 
 
             step++;

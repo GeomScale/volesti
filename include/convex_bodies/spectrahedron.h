@@ -66,7 +66,21 @@ public:
         Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
 
         for (int i = 0; i < eivals.rows(); i++)
-            if (eivals(i).real() >= -ZERO)
+            if (eivals(i).real() == 0)
+                return true;
+
+        return false;
+    }
+
+    bool isSingular(VT& x, double approx) {
+        MT mt = evaluate(x);
+
+        Eigen::EigenSolver<MT> solver;
+        solver.compute(mt);
+        Eigen::GeneralizedEigenSolver<MT>::ComplexVectorType eivals = solver.eigenvalues();
+
+        for (int i = 0; i < eivals.rows(); i++)
+            if (abs(eivals(i).real()) <= abs(approx))
                 return true;
 
         return false;
@@ -369,6 +383,11 @@ public:
 
     bool isSingular(VT& x) {
         return lmi.isSingular(x);
+    }
+
+
+    bool isSingular(VT& x, double approx) {
+        return lmi.isSingular(x, approx);
     }
 };
 

@@ -81,7 +81,7 @@ int main(const int argc, const char** argv) {
     sdp_problem sdp;
     sdp = generateSDP<Point>(n, m);
 
-    sdp.saveToFile(os);
+    sdp.writeSDPAFormatFile(os);
     os.close();
 
 
