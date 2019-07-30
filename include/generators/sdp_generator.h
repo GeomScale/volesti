@@ -44,22 +44,12 @@ optimization::sdp_problem<Point> generateSDP(int n, int m) {
 
     for (int i=1 ; i<=n ; i++) {
         M =  2* Eigen::MatrixXd::Random(m/2,m/2) - ones;
-//        MT F = M + M.transpose();
-        MT F(m/2, m/2);
-
-        for (int j=0 ; j<m/2 ; j++)
-            for (int k=j ; k<m/2 ; k++)
-                F(j,k) = M(j,k);
-
-        MT FF = F + F.transpose();
-
-        for (int j=0 ; j<m/2 ;j++)
-            FF(j,j) -= M(j,j);
+        MT MM = M + M.transpose();
 
         MT A;
         A.setZero(m, m);
-        A.topLeftCorner(m/2, m/2) = FF;
-        A.bottomRightCorner(m/2, m/2) = -FF;
+        A.topLeftCorner(m/2, m/2) = MM;
+        A.bottomRightCorner(m/2, m/2) = -MM;
         matrices[i] = A;
     }
 
