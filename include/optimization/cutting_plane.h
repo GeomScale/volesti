@@ -2236,20 +2236,23 @@ namespace optimization {
 
         // get an internal point so you can sample
         Point interiorPoint = initial;
-        std::cout << " " << polytope.is_in(interiorPoint) << " " << interiorPoint.getCoefficients().transpose() << "\n";
 
         // find where to cut the polytope
         normalizePolytope(polytope);
         escapeStep_ChebyshevCenter(polytope, interiorPoint, rnum);
 
-        Point cutAt = interiorPoint; //TODO
+        Point cutAt = interiorPoint;
         NT min = objectiveFunction.dot(cutAt.getCoefficients());
         slidingWindow.push(min);
-        std::cout << min << " " << polytope.is_in(interiorPoint) << " " << interiorPoint.getCoefficients().transpose() << "\n";
+//        std::cout << min << " " << polytope.is_in(interiorPoint) << " " << interiorPoint.getCoefficients().transpose() << "\n";
 
         // add one more row in polytope, where we will store the current cutting plane
         // each time we cut the polytope we replace the previous cutting plane with the new one
         addRowInPolytope<Point, NT>(polytope);
+        Point obj(objectiveFunction);
+        Point dist(objectiveFunction*0.00001);
+        escapeStep_ChebyshevCenter(polytope, interiorPoint, rnum);
+        cutAt = interiorPoint + dist;
 
         do {
             // cut the polytope
@@ -2257,13 +2260,13 @@ namespace optimization {
             normalizePolytope(polytope);
 
             escapeStep_ChebyshevCenter(polytope, interiorPoint, rnum);
-            cutAt = interiorPoint;
+            cutAt = interiorPoint + dist;
 
             min = objectiveFunction.dot(cutAt.getCoefficients());
 
             // check for distance between successive estimations
             slidingWindow.push(min);
-            std::cout << min << " " << polytope.is_in(interiorPoint) << " " << interiorPoint.getCoefficients().transpose() << "\n";
+//            std::cout << min << " " << polytope.is_in(interiorPoint) << " " << interiorPoint.getCoefficients().transpose() << "\n";
 
             if (slidingWindow.getRelativeError() < error)
                 break;
