@@ -58,9 +58,8 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
 
 
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        Coeff coeffs = rpit->getCoefficients();
         for (i=0 ; i<rpit->dimension(); i++){
-            Ap(i,j)=double(coeffs(i));
+            Ap(i,j)=double((*rpit)[i]);
         }
     }
     boost::numeric::ublas::matrix<double> Q(n,n);

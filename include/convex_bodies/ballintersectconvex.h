@@ -47,7 +47,6 @@ public:
         Coeff c_coeffs = c.getCoefficients();
 
         //Point rc = r;// - _c;
-//        viterator rcit=r.iter_begin();
 
         NT vrc(0);
         NT v2(0);
