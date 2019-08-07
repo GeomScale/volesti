@@ -8,7 +8,6 @@
 #include "volume.h"
 #include "sample_only.h"
 #include "exact_vols.h"
-#include "cutting_plane.h"
 #include "solve_lp.h"
 #include <chrono>
 #include "Eigen"
@@ -132,6 +131,11 @@ int main(const int argc, const char **argv) {
             correct = true;
         }
 
+        if (!strcmp(argv[i], "-simulatedannealing")) {
+            algorithm = Algorithm::SIMULATED_ANNEALING;
+            correct = true;
+        }
+
         if (!strcmp(argv[i], "-exp")) {
             numOfExperinments = atoi(argv[++i]);
             correct = true;
@@ -184,6 +188,11 @@ int main(const int argc, const char **argv) {
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1, 1);
 
+//    for (int j = 0; j < 10; ++j) {
+//        std::cout << texp(e, numOfRandomPoints, walkLength, rng) << "\n";
+//    }
+//
+//    return 0;
     // Setup the parameters
     vars<NT, RNGType> var(numOfRandomPoints, dimensinon, walkLength, 1, err, e, 0, 0.0, 0, 0, rng,
                           urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);

@@ -10,6 +10,7 @@
 #define POINT_H
 
 #include <iostream>
+#include "Eigen"
 
 template <class K>
 class point

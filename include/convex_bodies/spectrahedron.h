@@ -48,7 +48,7 @@ public:
      * @param x
      * @return
      */
-    MT evaluate(VT& x) {
+    MT evaluate(const VT& x) {
        MT res = A0;
        int i = 0;
 
@@ -202,7 +202,7 @@ public:
      * @param x
      * @return
      */
-    MT evaluateWithoutA0(VT& x) {
+    MT evaluateWithoutA0(const VT& x) {
         long dim = A0.rows();
         MT res;
         res.setZero(dim, dim);
@@ -285,7 +285,7 @@ public:
      * @param direction
      * @return (minimum positive eigenvalue, maximum negative eigenvalue)
      */
-    std::pair<double, double> boundaryOracle(VT& position, VT& direction) {
+    std::pair<double, double> boundaryOracle(const VT& position, const VT& direction) {
         MT A = lmi.evaluate(position);
         MT B = -lmi.evaluateWithoutA0(direction);
 
@@ -330,7 +330,7 @@ public:
     * @param direction
     * @return (minimum positive eigenvalue, maximum negative eigenvalue)
     */
-    std::pair<double, double> boundaryOracle(VT& position, VT& direction, VT& a, double b) {
+    std::pair<double, double> boundaryOracle(const VT& position, const VT& direction, const VT& a, double b) {
         MT A = lmi.evaluate(position);
         MT B = -lmi.evaluateWithoutA0(direction);
 

@@ -12,6 +12,8 @@
 
 #include "Eigen"
 #include "spectrahedron.h"
+#include <cmath>
+#include "truncated_exponential.h"
 
 typedef double NT_MATRIX;
 typedef Eigen::Matrix<NT_MATRIX,Eigen::Dynamic,Eigen::Dynamic> MT;
@@ -41,6 +43,22 @@ Point get_direction(unsigned int dim) {
     return p;
 }
 
+/**
+ * Return a random vector v according to the n-dimensional normal distribution with mean 0 and covariance
+ * matrix V
+ *
+ * @tparam RNGType
+ * @tparam Point
+ * @tparam NT
+ * @param dim
+ * @param choleskyDecomp the cholesky decomposition of V
+ * @return
+ */
+template <class RNGType, class Point, typename NT>
+Point get_direction(unsigned int dim, const MT& choleskyDecomp) {
+    Point l = get_direction<RNGType, Point, NT>(dim);
+    return Point(choleskyDecomp * l.getCoefficients());
+}
 
 // Pick a random point from a d-sphere
 template <class RNGType, class Point, typename NT>
@@ -214,6 +232,47 @@ void rand_point_generator(BallPoly &PBLarge,
     }
 }
 
+
+template<class Polytope, class Parameters, class Point>
+void rand_point_generator_Boltzmann(Polytope &P,
+                                        Point& c,
+                                        Point &p,   // a point to start
+                                        unsigned int walk_length,
+                                        Parameters &var,
+                                        double temperature,
+                                        const MT& covariance_matrix) {
+
+    // begin sampling
+    for (unsigned int i = 1; i <= walk_length ; ++i) {
+        hit_and_run_Boltzmann(p, P, var, c, temperature, covariance_matrix);
+    }
+}
+
+template<class Polytope, class Parameters, class Point, class PointsList>
+void rand_point_generator_Boltzmann(Polytope &P,
+                                    Point& c,
+                                    Point &p,   // a point to start
+                                    unsigned int pointsNum,
+                                    unsigned int walk_length,
+                                    Parameters &var,
+                                    double temperature,
+                                    const MT& covariance_matrix,
+                                    PointsList& points) {
+
+    // begin sampling
+    Point temp = p;
+
+    for (int at=0 ; at<pointsNum ; at++) {
+        p = temp;
+
+        for (unsigned int i = 1; i <= walk_length; ++i) {
+            hit_and_run_Boltzmann(p, P, var, c, temperature, covariance_matrix);
+        }
+
+        points.push_back(p);
+    }
+}
+
 // ----- HIT AND RUN FUNCTIONS ------------ //
 
 //hit-and-run with random directions and update
@@ -238,6 +297,43 @@ void hit_and_run(Point &p,
     p = ((1 - lambda) * b2) + p;
 }
 
+
+template <class Polytope, class Point, class Parameters>
+void hit_and_run_Boltzmann(Point &p,
+                           Polytope &P,
+                           Parameters &var,
+                           Point& BoltzmannDirection,
+                           double BoltzmannParameter,
+                           const MT& choleskyDecomp) {
+    typedef typename Parameters::RNGType RNGType;
+    typedef typename Point::FT NT;
+    unsigned int n =p.dimension();
+    RNGType &rng = var.rng;
+
+    Point l = get_direction<RNGType, Point, NT>(n, choleskyDecomp);
+
+    std::pair <NT, NT> dbpair = P.line_intersect(p, l);
+    NT min_plus = dbpair.first;
+    NT max_minus = dbpair.second;
+    Point b1 = (min_plus * l) + p;
+    Point b2 = (max_minus * l) + p;
+    double c1 = BoltzmannDirection.dot(b1);
+    double c2 = BoltzmannDirection.dot(b2);
+
+    double lambda;
+
+    if (c1 > c2) {
+        lambda = texp((c1 - c2) / BoltzmannParameter, 0, min_plus - max_minus, rng);
+        p = b2;
+    }
+    else {
+        lambda = -texp((c2 - c1) / BoltzmannParameter, 0, min_plus - max_minus, rng);
+        p = b1;
+    }
+
+    p = (lambda * l) + p;
+}
+
 template <class Point, class Parameters>
 void hit_and_run(Point& point,
         Spectrahedron &spectrahedron,
@@ -259,6 +355,30 @@ void hit_and_run(Point& point,
     point = (lambda * b1);
     point = ((1 - lambda) * b2) + point;
 }
+
+
+//template <class Point, class Parameters>
+//void hit_and_run_Boltzmann(Point& point,
+//                 Spectrahedron &spectrahedron,
+//                 Parameters &var,
+//                 const Point& BoltzmannDirection,
+//                 double BoltzmannParameter) {
+//    typedef typename Parameters::RNGType RNGType;
+//    unsigned int n = point.dimension();
+//    RNGType &rng = var.rng;
+//
+//    Point l = get_direction<RNGType, Point, double>(n);
+////    VT pointVT = point.getCoefficients();
+////    VT lVT = l.getCoefficients();
+//    std::pair <double, double> dbpair = spectrahedron.boundaryOracle(point.getCoefficients(), l.getCoefficients());
+//    double min_plus = dbpair.first;
+//    double max_minus = dbpair.second;
+//    Point b1 = (min_plus * l) + point;
+//    Point b2 = (max_minus * l) + point;
+//    double lambda = boltzmann_distribution(BoltzmannDirection.getCoefficients(), point.getCoefficients(), BoltzmannParameter);
+//    point = (lambda * b1);
+//    point = ((1 - lambda) * b2) + point;
+//}
 
 template <class Point, class Parameters>
 void hit_and_run(Point& point,

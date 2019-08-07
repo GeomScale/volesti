@@ -8,6 +8,8 @@
 #include "polytopes.h"
 #include "Eigen"
 #include "interior_point.h"
+#include "cutting_plane.h"
+#include "simulated_annealing.h"
 
 namespace optimization {
 
@@ -24,7 +26,8 @@ namespace optimization {
         typedef enum Algorithm{
             RANDOMIZED_CUTTING_PLANE,
             RANDOMIZED_CUTTING_PLANE_SAMPLED_COVARIANCE_HEURISTIC,
-            DETERMINISTIC_CUTTING_PLANE_CHEBYSHEV_CENTER
+            DETERMINISTIC_CUTTING_PLANE_CHEBYSHEV_CENTER,
+            SIMULATED_ANNEALING
         } Algorithm;
 
         HPolytope<Point> polytope;
@@ -160,6 +163,10 @@ namespace optimization {
                     break;
                 case DETERMINISTIC_CUTTING_PLANE_CHEBYSHEV_CENTER:
                     sol = cutting_plane_method_deterministic_Chebyshev(polytope, objectiveFunction, parameters, error, maxSteps, initial);
+                    break;
+                case SIMULATED_ANNEALING:
+                    Point obj(objectiveFunction);
+                    sol = simulated_annealing(polytope, obj, parameters, error, maxSteps, initial);
                     break;
             }
 

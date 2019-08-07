@@ -287,6 +287,38 @@ public:
     }
 
 
+    //return distance to closest/farthest facets
+    std::pair<double, double> farthest_closest_distances(Point& center) {
+        double farthest = 0, closest = maxNT;
+
+        NT sum_nom, sum_denom;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes();
+        double lambda;
+
+        for (int i = 0; i < m; i++) {
+            sum_nom = b(i);
+            sum_denom = NT(0);
+
+            for (j=0 ; j< center.dimension();  j++){
+                sum_nom -= A(i, j) * center[j];
+                sum_denom += A(i, j) * A(i, j);
+            }
+
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lambda = std::abs(sum_nom / sum_denom);
+                if (lambda < closest) closest = lambda;
+                if (lambda > farthest) farthest = lambda;
+            }
+        }
+
+        return {farthest, closest};
+    }
+
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point r,
