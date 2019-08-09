@@ -138,6 +138,10 @@ namespace optimization {
                         const unsigned int maxSteps, Point &initial) {
 
 
+        VT obj = objectiveFunction.getCoefficients();
+        double normal = obj.norm();
+        obj.normalize();
+        Point objFunction = Point(obj);
         bool verbose = parameters.verbose;
         unsigned int rnum = parameters.m;
         unsigned int walk_length = parameters.walk_steps;
@@ -157,21 +161,21 @@ namespace optimization {
 
         double tempDescentFactor = 1 - 1/(double) std::sqrt(dim);
         temperature = radii.first;
-        double min = interiorPoint.dot(objectiveFunction);
+        double min = interiorPoint.dot(objFunction);
         Point minPoint = interiorPoint;
 
         std::cout << covarianceMatrix << "\n";
         do {
             temperature *= tempDescentFactor;
 
-            min_rand_point_generator_Boltzmann(polytope, objectiveFunction, interiorPoint, walk_length, parameters, temperature, covarianceMatrix, minPoint, min);
+            min_rand_point_generator_Boltzmann(polytope, objFunction, interiorPoint, walk_length, parameters, temperature, covarianceMatrix, minPoint, min);
             slidingWindow.push(min);
 
-            std::cout << "========= step " << step  << " cost " << interiorPoint.dot(objectiveFunction) << " " << temperature << "=============\n";
+            std::cout << "========= step " << step  << " cost " << interiorPoint.dot(objFunction) << " " << temperature << "=============\n";
 
             if (slidingWindow.getRelativeError() < error) {
                     Point temp = interiorPoint;
-                    update_convariance_matrix(polytope, objectiveFunction, temperature, temp, parameters, rnum, walk_length, covarianceMatrix);
+                    update_convariance_matrix(polytope, objFunction, temperature, temp, parameters, rnum, walk_length, covarianceMatrix);
                     choleskyDecomposition(covarianceMatrix);
             }
 
@@ -188,7 +192,7 @@ namespace optimization {
 
         if (verbose) std::cout << "Ended at " << step<< " steps"  <<  std::endl;
 
-        return {minPoint, min};
+        return {minPoint, minPoint.dot(objectiveFunction)};
     }
 
 }
