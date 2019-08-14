@@ -121,6 +121,7 @@ int main(const int argc, const char **argv) {
             correct = true;
         }
 
+
         if (!strcmp(argv[i], "-r")) {
             numOfRandomPoints = atoi(argv[++i]);
             correct = true;
@@ -133,6 +134,16 @@ int main(const int argc, const char **argv) {
 
         if (!strcmp(argv[i], "-simulatedannealing")) {
             algorithm = Algorithm::SIMULATED_ANNEALING;
+            correct = true;
+        }
+
+        if (!strcmp(argv[i], "-saec")) {
+            algorithm = Algorithm::SIMULATED_ANNEALING_EFICIENT_COVARIANCE;
+            correct = true;
+        }
+
+        if (!strcmp(argv[i], "-sasd")) {
+            algorithm = Algorithm::SIMULATED_ANNEALING_SET_DIRECTIONS;
             correct = true;
         }
 
@@ -255,8 +266,8 @@ int main(const int argc, const char **argv) {
 
     steps_avg = steps_avg / steps.size();
 
-    std::cout << std::fixed;
-    std::cout << std::setprecision(3);
+//    std::cout << std::fixed;
+//    std::cout << std::setprecision(3);
 
     auto t1 = std::chrono::steady_clock::now();
     double exact = solveWithLPSolve(lp);

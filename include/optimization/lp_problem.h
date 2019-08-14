@@ -27,7 +27,9 @@ namespace optimization {
             RANDOMIZED_CUTTING_PLANE,
             RANDOMIZED_CUTTING_PLANE_SAMPLED_COVARIANCE_HEURISTIC,
             DETERMINISTIC_CUTTING_PLANE_CHEBYSHEV_CENTER,
-            SIMULATED_ANNEALING
+            SIMULATED_ANNEALING,
+            SIMULATED_ANNEALING_EFICIENT_COVARIANCE,
+            SIMULATED_ANNEALING_SET_DIRECTIONS
         } Algorithm;
 
         HPolytope<Point> polytope;
@@ -151,7 +153,7 @@ namespace optimization {
         void solve(Parameters parameters, const NT error, unsigned int maxSteps, Algorithm algorithm = RANDOMIZED_CUTTING_PLANE) {
             Point initial = getInteriorPoint<Point, NT>(polytope);
             std::pair<Point, NT> sol;
-
+            Point obj;
 
             switch (algorithm) {
                 case RANDOMIZED_CUTTING_PLANE:
@@ -165,8 +167,16 @@ namespace optimization {
                     sol = cutting_plane_method_deterministic_Chebyshev(polytope, objectiveFunction, parameters, error, maxSteps, initial);
                     break;
                 case SIMULATED_ANNEALING:
-                    Point obj(objectiveFunction);
+                    obj = Point(objectiveFunction);
                     sol = simulated_annealing(polytope, obj, parameters, error, maxSteps, initial);
+                    break;
+                case SIMULATED_ANNEALING_EFICIENT_COVARIANCE:
+                    obj = Point(objectiveFunction);
+                    sol = simulated_annealing_efficient_covariance(polytope, obj, parameters, error, maxSteps, initial);
+                    break;
+                case SIMULATED_ANNEALING_SET_DIRECTIONS:
+                    obj = Point(objectiveFunction);
+                    sol = simulated_annealing_set_directions(polytope, obj, parameters, error, maxSteps, initial);
                     break;
             }
 
