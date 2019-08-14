@@ -296,6 +296,38 @@ namespace optimization {
         }
     }
 
+    template<class Polytope, class Parameters, class Point>
+    void min_rand_point_generator_Boltzmann_window(Polytope &P,
+                                            Point& c,
+                                            Point &p,   // a point to start
+                                            double error,
+                                            Parameters &var,
+                                            double temperature,
+                                            const MT& covariance_matrix,
+                                            Point &minPoint,
+                                            double& minValue,
+                                            std::list<Point>& points,
+                                            double& avgMinPerPhase) {
+
+
+        int d = p.dimension();
+        SlidingWindow slidingWindow(100 + sqrt(d)*d*d);
+        int count = 1;
+
+        min_hit_and_run_Boltzmann(p, P, var, c, temperature, covariance_matrix, minPoint, minValue, avgMinPerPhase);
+        slidingWindow.push(avgMinPerPhase);
+        points.push_back(p);
+
+        while (slidingWindow.getRelativeError() > 0.00001) {
+            min_hit_and_run_Boltzmann(p, P, var, c, temperature, covariance_matrix, minPoint, minValue, avgMinPerPhase);
+            count++;
+            slidingWindow.push(avgMinPerPhase / (double) count);
+            points.push_back(p);
+        }
+
+//        std::cout << "-"<<count ;
+    }
+
 
     template<class Polytope, class Parameters, class Point>
     void min_rand_point_generator_Boltzmann_set_directions(Polytope &P,
@@ -494,7 +526,8 @@ namespace optimization {
             }
 
             avgMinPerPhase = 0;
-            min_rand_point_generator_Boltzmann(polytope, objFunction, interiorPoint, walk_length, parameters, temperature, covarianceMatrix, minPoint, min, points, avgMinPerPhase);
+//            min_rand_point_generator_Boltzmann(polytope, objFunction, interiorPoint, walk_length, parameters, temperature, covarianceMatrix, minPoint, min, points, avgMinPerPhase);
+            min_rand_point_generator_Boltzmann_window(polytope, objFunction, interiorPoint, error, parameters, temperature, covarianceMatrix, minPoint, min, points, avgMinPerPhase);
 
             slidingWindowComputeCovariance.push(min);
             slidingWindowStop.push(avgMinPerPhase / (double) walk_length);
@@ -508,7 +541,7 @@ namespace optimization {
             if (slidingWindowStop.getRelativeError() < error)
                 break;
 
-//            std::cout << interiorPoint.dot(objectiveFunction) << ", ";
+//            std::cout << " $ " << interiorPoint.dot(objectiveFunction) << "\n";
 
             step++;
         } while (step <= maxSteps || tillConvergence);
