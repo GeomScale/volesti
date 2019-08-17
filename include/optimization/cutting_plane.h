@@ -786,6 +786,16 @@ namespace optimization {
     }
 
 
+    template <class Point>
+    double euclideanDistance(Point& v1, Point& v2) {
+        double sum = 0;
+
+        for (int i=0 ; i<v1.dimension() ; i++)
+            sum += (v1[i] - v2[i])*(v1[i] - v2[i]);
+
+        return sqrt(sum);
+    }
+
     /**
      * Normalize the matrix of the polytope
      *
@@ -1817,6 +1827,98 @@ namespace optimization {
     }
 
 
+    /**
+ * Generate random points and return the two that minimize the objective function
+ *
+ * @tparam Polytope
+ * @tparam Parameters
+ * @tparam Point
+ * @param P
+ * @param c the objective function
+ * @param p a interior point
+ * @param rnum # of points to generate
+ * @param var defines which walk to use
+ * @return (p1, p2) p1 minimizes c the most and p2 follows
+ */
+    template<class Polytope, class Parameters, class Point>
+    std::pair<Point, Point> min_rand_point_generator_billiard(Polytope &P,
+                                                     VT& c,
+                                                     Point &p,   // a point to start
+                                                     unsigned int rnum,
+                                                     Parameters &var,
+                                                      double diameter)  // constants for volume
+    {
+
+        typedef typename Parameters::RNGType RNGType;
+        typedef typename Point::FT NT;
+
+        int dim = p.dimension();
+
+        // init the walks
+        RNGType &rng = var.rng;
+        boost::random::uniform_real_distribution<> urdist(0, 1);
+        boost::random::uniform_int_distribution<> uidist(0, dim - 1);
+        std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+        std::vector <NT> Av(P.num_of_hyperplanes(), NT(0));
+        double lambda;
+
+        Point p1(dim), p2(dim), min1(dim), min2(dim);
+        unsigned int rand_coord, rand_coord_prev;
+        NT kapa, ball_rad = var.delta;
+        Point p_prev = p;
+
+
+        billiard_walk(P, p, diameter, lamdas, Av, lambda, var, true);
+
+
+        // get the first two points
+        min1 = p;
+        NT minProduct1 = min1.getCoefficients().dot(c);
+
+
+        billiard_walk(P, p, diameter, lamdas, Av, lambda,  var);
+
+        min2 = p;
+        NT minProduct2 = min2.getCoefficients().dot(c);
+        NT newProduct = minProduct2;
+
+        if (minProduct1 > minProduct2) {
+            NT temp = minProduct1;
+            minProduct1 = minProduct2;
+            minProduct2 = temp;
+            Point t = min1;
+            min1 = min2;
+            min2 = t;
+        }
+
+        std::pair<NT, NT> bpair;
+
+        // begin sampling
+
+        for (unsigned int i = 1; i <= rnum ; ++i) {
+
+
+            billiard_walk(P, p, diameter, lamdas, Av, lambda,  var);
+            newProduct = p.getCoefficients().dot(c);
+
+
+            // get new minimizing point
+            bool changedMin1 = false;
+            bool changedMin2 = false;
+
+            getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
+
+        } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
+
+        // find an interior point to start the next phase
+        Point _p =  min1*0.50;
+        Point _p1 = min2*0.50;
+
+        p = _p + _p1;// + _p2 + _p3;
+
+        return std::pair<Point, Point>(min1, min2);
+    }
+
     template <class Point, typename NT>
     std::pair<NT, NT>
     getCuttingInteriorPoints(const VT &objectiveFunction, Point &interiorPoint, unsigned int rand_coord,
@@ -2064,6 +2166,7 @@ namespace optimization {
     }
 
 
+
     /**
      * Solve the linear program
      *
@@ -2090,8 +2193,9 @@ namespace optimization {
         unsigned int rnum = parameters.m;
         bool tillConvergence = maxSteps == 0;
         unsigned int step = 0;
+        int dim = objectiveFunction.rows();
 
-        SlidingWindow slidingWindow(3);
+        SlidingWindow slidingWindow(5 + sqrt(dim));
         std::pair<Point, Point> minimizingPoints;
 
 
@@ -2122,6 +2226,7 @@ namespace optimization {
 
 
             step++;
+            std::cout << min << ", ";
 
 
         } while (step <= maxSteps || tillConvergence);
@@ -2135,6 +2240,83 @@ namespace optimization {
     }
 
 
+    /**
+     * Solve the linear program
+     *
+     *      min cx
+     *      s.t. Ax <= b
+     *
+     * @tparam Parameters
+     * @tparam Point
+     * @tparam NT
+     * @param polytope
+     * @param objectiveFunction
+     * @param parameters
+     * @param error
+     * @param maxSteps
+     * @param initial
+     * @return
+     */
+    template<class Parameters, class Point, typename NT>
+    std::pair<Point, NT> cutting_plane_method_billiard(HPolytope<Point> polytope, VT& objectiveFunction, Parameters parameters, const NT error,
+                                              const unsigned int maxSteps, Point& initial) {
+        normalizePolytope(polytope);
+
+        bool verbose = parameters.verbose;
+        unsigned int rnum = parameters.m;
+        bool tillConvergence = maxSteps == 0;
+        unsigned int step = 0;
+        int dim = objectiveFunction.rows();
+        SlidingWindow slidingWindow(5 + sqrt(dim));
+        std::pair<Point, Point> minimizingPoints;
+
+
+        // get an internal point so you can sample
+        Point interiorPoint = initial;
+
+        minimizingPoints = min_rand_point_generator(polytope, objectiveFunction, interiorPoint, rnum, parameters);
+
+        NT min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+        slidingWindow.push(min);
+
+
+        double diameter;
+
+        // add one more row in polytope, where we will store the current cutting plane
+        // each time we cut the polytope we replace the previous cutting plane with the new one
+        addRowInPolytope<Point, NT>(polytope);
+        Point previousMinimizingSecond = initial;
+
+        do {
+            // cut the polytope
+            cutPolytope<Point, NT>(objectiveFunction, polytope, minimizingPoints.second);
+            diameter = euclideanDistance(previousMinimizingSecond, minimizingPoints.second);
+
+            previousMinimizingSecond = minimizingPoints.second;
+
+            // find where to cut the polytope
+            minimizingPoints = min_rand_point_generator_billiard(polytope, objectiveFunction, interiorPoint, rnum, parameters, diameter);
+
+            min = objectiveFunction.dot(minimizingPoints.second.getCoefficients());
+            slidingWindow.push(min);
+
+            if (slidingWindow.getRelativeError() < error)
+                break;
+
+//            std::cout << min << ", ";
+
+            step++;
+
+
+        } while (step <= maxSteps || tillConvergence);
+
+        STEPS = step;
+
+        if (verbose) std::cout << "Ended at " << step<< " steps"  <<  std::endl;
+
+
+        return std::pair<Point, NT>(minimizingPoints.first, objectiveFunction.dot(minimizingPoints.first.getCoefficients()));
+    }
 
     /**
      * Solve the linear program

@@ -25,6 +25,7 @@ namespace optimization {
 
         typedef enum Algorithm{
             RANDOMIZED_CUTTING_PLANE,
+            RANDOMIZED_CUTTING_PLANE_BILLIARD,
             RANDOMIZED_CUTTING_PLANE_SAMPLED_COVARIANCE_HEURISTIC,
             DETERMINISTIC_CUTTING_PLANE_CHEBYSHEV_CENTER,
             SIMULATED_ANNEALING,
@@ -158,6 +159,9 @@ namespace optimization {
             switch (algorithm) {
                 case RANDOMIZED_CUTTING_PLANE:
                     sol = cutting_plane_method(polytope, objectiveFunction, parameters, error, maxSteps, initial);
+                    break;
+                case RANDOMIZED_CUTTING_PLANE_BILLIARD:
+                    sol = cutting_plane_method_billiard(polytope, objectiveFunction, parameters, error, maxSteps, initial);
                     break;
                 case RANDOMIZED_CUTTING_PLANE_SAMPLED_COVARIANCE_HEURISTIC:
                     sol = cutting_plane_method_sampled_covariance_matrix(polytope, objectiveFunction, parameters, error, maxSteps,

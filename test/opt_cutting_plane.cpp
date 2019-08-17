@@ -64,7 +64,8 @@ int main(const int argc, const char **argv) {
             cdhr = false,
             rdhr = true, // for hit and run
             exact_zono = false,
-            gaussian_sam = false;
+            gaussian_sam = false,
+            billiard = false;
 
 
     lp_problem lp;
@@ -86,6 +87,14 @@ int main(const int argc, const char **argv) {
             correct = true;
             rdhr = false; // for hit and run
         }
+
+        if (!strcmp(argv[i], "-billiard")) {
+            algorithm = Algorithm::RANDOMIZED_CUTTING_PLANE_BILLIARD;
+            correct = true;
+            rdhr = false; // for hit and run
+        }
+
+
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
             printHelpMessage();
             return 0;

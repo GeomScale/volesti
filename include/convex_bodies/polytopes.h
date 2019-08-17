@@ -400,6 +400,91 @@ public:
     }
 
 
+    // compute intersection points of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, bool pos = false) {
+
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom, mult;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet;
+        viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            sum_nom = NT(0);// b(i);
+            sum_denom = NT(0);
+            j = 0;
+            for (; j < r.dimension(); j++){
+                sum_nom -= A(i, j) * r[j];
+                sum_denom += A(i, j) * v[j];
+            }
+            (*Ariter) = -sum_nom;
+            (*Aviter) = sum_denom;
+            sum_nom += b(i);
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    if (pos) facet = i;
+                }else if (lamda > max_minus && lamda < 0) max_minus = lamda;
+            }
+        }
+        if (pos) return std::pair<NT, NT>(min_plus, facet);
+        return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev,
+                                    bool pos = false) {
+
+        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT sum_nom, sum_denom, mult;
+        //unsigned int i, j;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet;
+        viterator vit, Ariter = Ar.begin(), Aviter = Av.begin();
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+            (*Ariter) += lambda_prev * (*Aviter);
+            sum_nom = b(i) - (*Ariter);
+            sum_denom = NT(0);
+            j = 0;
+            for ( ; j<v.dimension(); j++) sum_denom += A(i, j) * v[j];
+
+            (*Aviter) = sum_denom;
+            if (sum_denom == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = sum_nom / sum_denom;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    if (pos) facet = i;
+                }else if (lamda > max_minus && lamda < 0) max_minus = lamda;
+            }
+        }
+        if (pos) return std::pair<NT, NT>(min_plus, facet);
+        return std::pair<NT, NT>(min_plus, max_minus);
+    }
+
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+        return line_intersect(r, v, Ar, Av, true);
+    }
+
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
+                                               NT &lambda_prev) {
+        return line_intersect(r, v, Ar, Av, lambda_prev, true);
+    }
+
     //First coordinate ray intersecting convex polytope
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           unsigned int rand_coord,
@@ -495,6 +580,31 @@ public:
     template <class T>
     bool get_points_for_rounding (T &randPoints) {
         return false;
+    }
+
+
+    void normalize() {
+
+        NT row_norm;
+        for (int i = 0; i < num_of_hyperplanes(); ++i) {
+            row_norm = A.row(i).norm();
+            A.row(i) = A.row(i) / row_norm;
+            b(i) = b(i) / row_norm;
+        }
+
+    }
+
+    void compute_reflection(Point &v, Point &p, int facet) {
+
+        Point s(_d);
+        VT a = A.row(facet);
+        //a = a/a.norm();
+        for (int i = 0; i < _d; ++i) {
+            s.set_coord(i, a(i));
+        }
+        s = ((-2.0 * v.dot(s)) * s);
+        v = s + v;
+
     }
 };
 

@@ -651,5 +651,98 @@ void hit_and_run_coord_update(Point &p,
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
 }
 
+template <class ConvexBody, class Point, class Parameters, typename NT>
+void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev,
+                   Parameters &var, bool first = false) {
+
+    typedef typename Parameters::RNGType RNGType;
+    unsigned int n = P.dimension();
+    RNGType &rng = var.rng;
+    boost::random::uniform_real_distribution<> urdist(0, 1);
+    NT T = urdist(rng) * che_rad;
+    Point v = get_direction<RNGType, Point, NT>(n);
+    Point p0=p, v_prev=v;
+    std::pair<NT, int> pbpair;
+    int it=0;
+
+    NT lambda_max=0.0;
+    if (first) {
+
+        //p.print();
+        //std::cout<<"[first][in bill] is_in = "<<P.is_in(p)<<std::endl;
+        //std::cout<<"[1]before line intersection"<<std::endl;
+        pbpair = P.line_positive_intersect(p, v, Ar, Av);
+        //while(pbpair.first < 0.00001 && pbpair.second != P.num_of_hyperplanes()){
+        // /   std::cout<<"lambda_prev = "<<pbpair.first<<std::endl;
+        //    v = get_direction<RNGType, Point, NT>(n);
+        //    //p = ((-0.01*lambda_prev)*v)+p;
+        //    pbpair = P.line_positive_intersect(p, v, Ar, Av);
+        //    std::cout<<"lambda_meta = "<<pbpair.first<<std::endl;
+        //    sleep(3);
+        //}
+        //std::cout<<"[1]after line intersection"<<std::endl;
+        if (T <= pbpair.first) {
+            p = (T * v) + p;
+            lambda_prev = T;
+            return;
+        }
+        lambda_prev = 0.995 * pbpair.first;
+        //std::cout<<"[first]lambda_pos ="<<lambda_prev<<" T = "<<T<<std::endl;
+        p = (lambda_prev * v) + p;
+        T -= lambda_prev;
+        //std::cout<<"[1]before reflection"<<std::endl;
+        v_prev=v;
+        P.compute_reflection(v, p, pbpair.second);
+        //if(P.is_in(p)==0) throw "Point out!";
+        //if (lambda_prev<0.0000000001) throw "small lambda!";
+        //std::cout<<"[1]after reflection"<<std::endl;
+    }
+
+    while (it<3*n) {
+
+        //p.print();
+        //std::cout<<"bef [in bill] is_in = "<<P.is_in(p)<<std::endl;
+        //std::cout<<"[2]before line intersection"<<std::endl;
+        pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev);
+        //while(pbpair.first < 0.00001 && pbpair.second != P.num_of_hyperplanes()){
+        //std::cout<<"lambda_prev = "<<pbpair.first<<std::endl;
+        //p = ((-0.01*lambda_prev)*v_prev)+p;
+        //pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev);
+        //std::cout<<"lambda_meta = "<<pbpair.first<<std::endl;
+        //sleep(3);
+        //}
+
+        //std::cout<<"[2]after line intersection"<<std::endl;
+        //std::cout<<"lambda_pos ="<<pbpair.first<<" T = "<<T<<std::endl;
+        if (T <= pbpair.first) {
+            p = (T * v) + p;
+            lambda_prev = T;
+            break;
+        }
+
+        lambda_prev = 0.995 * pbpair.first;
+        //std::cout<<"lambda_pos ="<<lambda_prev<<" T = "<<T<<std::endl;
+        p = (lambda_prev * v) + p;
+
+        T -= lambda_prev;
+        //std::cout<<"[2]before reflection"<<std::endl;
+        v_prev=v;
+        P.compute_reflection(v, p, pbpair.second);
+        //std::cout<<"[in bill] is_in = "<<P.is_in(p)<<std::endl;
+        //if(P.is_in(p)==0) throw "Point out!";
+        //if (lambda_prev<0.00000000001) throw "small lambda!";
+        it++;
+        //std::cout<<"[2]after reflection"<<std::endl;
+    }
+//    if(it==10*n){
+        //for (int i = 0; i < 1; ++i) std::cout<<"IT IS 10*N!!!!!!!!"<<std::endl;
+        //for (int i = 0; i < 1; ++i) std::cout<<"lambda_pos ="<<lambda_prev<<" T = "<<T<<std::endl;
+        //std::cout<<"first = "<<first<<std::endl;
+        //sleep(3);
+        //throw "Point out!";
+//        p=p0;
+//    }
+}
+
 
 #endif //RANDOM_SAMPLERS_H
