@@ -311,7 +311,11 @@ namespace optimization {
 
 
         int d = p.dimension();
-        SlidingWindow slidingWindow(100 + sqrt(d)*d*d);
+        double sqrtd = sqrt(d);
+        int pointsSize = 1000 + 10*d*sqrtd;
+        int slidingWindowSize = 1000 + sqrtd*d*d;
+        int pickEverySteps = slidingWindowSize / pointsSize;
+        SlidingWindow slidingWindow(slidingWindowSize);
         int count = 1;
 
         min_hit_and_run_Boltzmann(p, P, var, c, temperature, covariance_matrix, minPoint, minValue, avgMinPerPhase);
@@ -322,7 +326,7 @@ namespace optimization {
             min_hit_and_run_Boltzmann(p, P, var, c, temperature, covariance_matrix, minPoint, minValue, avgMinPerPhase);
             count++;
             slidingWindow.push(avgMinPerPhase / (double) count);
-            points.push_back(p);
+            if (count % pickEverySteps == 0) points.push_back(p);
         }
 
 //        std::cout << "-"<<count ;

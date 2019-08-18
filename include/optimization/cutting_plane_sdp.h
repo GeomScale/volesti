@@ -16,12 +16,12 @@
 #include <queue>
 #include "heuristics.h"
 
-int STEPS;
+//int STEPS;
 
 namespace optimization {
 
 
-    const double ZERO = 0.000000000001;
+//    const double ZERO = 0.000000000001;
 
     /**
      * For the Eigen library
@@ -37,50 +37,50 @@ namespace optimization {
      * @param exact
      * @return
      */
-    double relative_error(double approx, double exact) {
-        return abs((exact - approx) / exact);
-    }
+//    double relative_error(double approx, double exact) {
+//        return abs((exact - approx) / exact);
+//    }
 
 
     /**
      * A class to save successive approximation values
      */
-    class SlidingWindow {
-    public:
-        std::queue<double> evals;
-        int evalsSize; // how many values to store
-        int count;
-        double min;
-
-        SlidingWindow(int evalSize) {
-            this->evalsSize = evalSize;
-            count = 0;
-        }
-
-        void push(double eval) {
-            if (count >= evalsSize) {
-                evals.pop();
-            } else
-                count++;
-
-            evals.push(eval);
-            min = eval;
-        }
-
-        double getRelativeError() {
-            if (count < evalsSize)
-                return 1;
-
-            return abs((min - evals.front()) / min);
-        }
-
-        void half() {
-            for (int i = 0; i < evals.size() / 2; i++) {
-                evals.pop();
-                count--;
-            }
-        }
-    };
+//    class SlidingWindow {
+//    public:
+//        std::queue<double> evals;
+//        int evalsSize; // how many values to store
+//        int count;
+//        double min;
+//
+//        SlidingWindow(int evalSize) {
+//            this->evalsSize = evalSize;
+//            count = 0;
+//        }
+//
+//        void push(double eval) {
+//            if (count >= evalsSize) {
+//                evals.pop();
+//            } else
+//                count++;
+//
+//            evals.push(eval);
+//            min = eval;
+//        }
+//
+//        double getRelativeError() {
+//            if (count < evalsSize)
+//                return 1;
+//
+//            return abs((min - evals.front()) / min);
+//        }
+//
+//        void half() {
+//            for (int i = 0; i < evals.size() / 2; i++) {
+//                evals.pop();
+//                count--;
+//            }
+//        }
+//    };
 
 
     /**
@@ -98,26 +98,26 @@ namespace optimization {
      * @param changedMin1 set true if changed min1
      * @param changedMin2 set true if changed min2
      */
-    template<class Point, typename NT>
-    void
-    getNewMinimizingPoints(const Point &p, NT &dotProduct1, NT &dotProduct2, Point &min1, Point &min2, NT newProduct,
-                           bool &changedMin1, bool &changedMin2) {
-
-        if (newProduct < dotProduct2) {
-            if (newProduct < dotProduct1) {
-                dotProduct2 = dotProduct1;
-                min2 = min1;
-                dotProduct1 = newProduct;
-                min1 = p;
-                changedMin1 = true;
-            } else {
-                dotProduct2 = newProduct;
-                min2 = p;
-                changedMin2 = true;
-            }
-        }
-
-    }
+//    template<class Point, typename NT>
+//    void
+//    getNewMinimizingPoints(const Point &p, NT &dotProduct1, NT &dotProduct2, Point &min1, Point &min2, NT newProduct,
+//                           bool &changedMin1, bool &changedMin2) {
+//
+//        if (newProduct < dotProduct2) {
+//            if (newProduct < dotProduct1) {
+//                dotProduct2 = dotProduct1;
+//                min2 = min1;
+//                dotProduct1 = newProduct;
+//                min1 = p;
+//                changedMin1 = true;
+//            } else {
+//                dotProduct2 = newProduct;
+//                min2 = p;
+//                changedMin2 = true;
+//            }
+//        }
+//
+//    }
 
     /**
      * Check if new point p is a better approximation than min1, min2 and if yes change min1, min2
@@ -132,23 +132,23 @@ namespace optimization {
      * @param min2 the second best point
      * @param newProduct dot product of p with objective function
      */
-    template<class Point, typename NT>
-    void
-    getNewMinimizingPoints(const Point &p, NT &dotProduct1, NT &dotProduct2, Point &min1, Point &min2, NT newProduct) {
-
-        if (newProduct < dotProduct2) {
-            if (newProduct < dotProduct1) {
-                dotProduct2 = dotProduct1;
-                min2 = min1;
-                dotProduct1 = newProduct;
-                min1 = p;
-            } else {
-                dotProduct2 = newProduct;
-                min2 = p;
-            }
-        }
-
-    }
+//    template<class Point, typename NT>
+//    void
+//    getNewMinimizingPoints(const Point &p, NT &dotProduct1, NT &dotProduct2, Point &min1, Point &min2, NT newProduct) {
+//
+//        if (newProduct < dotProduct2) {
+//            if (newProduct < dotProduct1) {
+//                dotProduct2 = dotProduct1;
+//                min2 = min1;
+//                dotProduct1 = newProduct;
+//                min1 = p;
+//            } else {
+//                dotProduct2 = newProduct;
+//                min2 = p;
+//            }
+//        }
+//
+//    }
 
     /**
      * Generate random points and return the two that minimize the objective function
@@ -298,12 +298,9 @@ namespace optimization {
 
         std::pair<NT, NT> bpair;
 
-        // this point will be the end point of the segment of the minimizing point, that lies in the polytope after the cut
-        // we will use it to get an interior point to start the random walk at the next phase
-        Point boundaryMin1 = min1;
-        Point boundaryMin2 = min2;
 
         // begin sampling
+        int addPointEverySteps = rnum / (1000 + dim*sqrt(dim));
 
         for (unsigned int i = 1; i <= rnum; ++i) {
 
@@ -311,8 +308,9 @@ namespace optimization {
 
             hit_and_run(p, spectrahedron, var, p1, p2, a, b);
             newProduct = p.getCoefficients().dot(c);
-            points.push_back(p);
 
+            if (i % addPointEverySteps == 0)
+                points.push_back(p);
 
             // get new minimizing point
             bool changedMin1 = false;
@@ -320,22 +318,12 @@ namespace optimization {
 
             getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
 
-            if (changedMin1) {
-                // if the new point is the new min update the boundary point
-
-                boundaryMin2 = boundaryMin1;
-                boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-            } else if (changedMin2) {
-                boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-
-            }
         } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
 
-//TODO done need boundary perhaps?
         // find an interior point to start the next phase
         Point _p = min1 * 0.50;
         Point _p1 = min2 * 0.50;
-        p = _p + _p1;// + _p2 + _p3;
+        p = _p + _p1;
 
         return std::pair<Point, Point>(min1, min2);
     }
@@ -389,12 +377,9 @@ namespace optimization {
 
         std::pair<NT, NT> bpair;
 
-        // this point will be the end point of the segment of the minimizing point, that lies in the polytope after the cut
-        // we will use it to get an interior point to start the random walk at the next phase
-        Point boundaryMin1 = min1;
-        Point boundaryMin2 = min2;
-
         // begin sampling
+
+        int addPointEverySteps = rnum / (1000 + dim*sqrt(dim));
 
         for (unsigned int i = 1; i <= rnum; ++i) {
 
@@ -402,7 +387,9 @@ namespace optimization {
 
             hit_and_run_sampled_covariance_matrix(p, spectrahedron, var, p1, p2, a, b, covarianceMatrix);
             newProduct = p.getCoefficients().dot(c);
-            points.push_back(p);
+
+            if (i % addPointEverySteps == 0)
+                points.push_back(p);
 
 
             // get new minimizing point
@@ -411,15 +398,7 @@ namespace optimization {
 
             getNewMinimizingPoints(p, minProduct1, minProduct2, min1, min2, newProduct, changedMin1, changedMin2);
 
-            if (changedMin1) {
-                // if the new point is the new min update the boundary point
 
-                boundaryMin2 = boundaryMin1;
-                boundaryMin1 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-            } else if (changedMin2) {
-                boundaryMin2 = p1.getCoefficients().dot(c) < p2.getCoefficients().dot(c) ? p1 : p2;
-
-            }
         } /*  for (unsigned int i = 1; i <= rnum ; ++i)  */
 
 //TODO done need boundary perhaps?
@@ -629,8 +608,9 @@ namespace optimization {
         unsigned int rnum = parameters.m;
         bool tillConvergence = maxSteps == 0;
         unsigned int step = 0;
+        int dim = objectiveFunction.rows();
 
-        SlidingWindow slidingWindow(3);
+        SlidingWindow slidingWindow(5 + sqrt(dim));
         std::pair<Point, Point> minimizingPoints;
         std::list<Point> points;
 
@@ -677,7 +657,7 @@ namespace optimization {
 //            LMI lmi;
 //            lmi = spectrahedron.getLMI();
 //            VT coeffs = minimizingPoints.first.getCoefficients();
-//            std::cout << min << " " << step << " inside " << lmi.isNegativeSemidefinite(coeffs)<< "\n";
+//            std::cout << min << ", ";
         } while (step <= maxSteps || tillConvergence);
 
         STEPS = step;
