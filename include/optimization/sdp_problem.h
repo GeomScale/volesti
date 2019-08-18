@@ -8,11 +8,13 @@
 #include "Eigen"
 #include "spectrahedron.h"
 #include <vector>
-#include <spectrahedron.h>
+#include "spectrahedron.h"
 #include "lp_problem.h"
 #include "lmi_strict_feasibility.h"
 #include "interior_point_sdp.h"
 #include "SDPA_format_manager.h"
+#include "cutting_plane_sdp.h"
+#include "simulated_annealing_sdp.h"
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> VT;
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> MT;
@@ -147,6 +149,12 @@ namespace optimization {
 
     public:
 
+        typedef enum Algorithm{
+            RANDOMIZED_CUTTING_PLANE,
+            RANDOMIZED_CUTTING_PLANE_COVARIANCE_MATRIX,
+            SIMULATED_ANNEALING_EFICIENT_COVARIANCE,
+        } Algorithm;
+
         sdp_problem() {}
 
         sdp_problem(Spectrahedron& spectrahedron, VT& objectiveFunction) {
@@ -240,12 +248,21 @@ namespace optimization {
         }
 
         template <class Parameters>
-        void solve(Parameters &parameters, double error, unsigned int maxSteps, bool sampled_covariance_matrix=false) {
+        void solve(Parameters &parameters, double error, unsigned int maxSteps, Algorithm algorithm) {
             Point initial(getStrictlyFeasiblePoint());
-            if (!sampled_covariance_matrix)
-                solution = cutting_plane_method(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
-            else
-                solution = cutting_plane_method_sampled_covariance_matrix(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
+
+            switch (algorithm) {
+                case RANDOMIZED_CUTTING_PLANE:
+                    solution = cutting_plane_method(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
+                    break;
+                case RANDOMIZED_CUTTING_PLANE_COVARIANCE_MATRIX:
+                    solution = cutting_plane_method_sampled_covariance_matrix(spectrahedron, objectiveFunction, parameters, error, maxSteps, initial);
+                    break;
+                case SIMULATED_ANNEALING_EFICIENT_COVARIANCE:
+                    Point obj(objectiveFunction);
+                    solution = simulated_annealing_efficient_covariance(spectrahedron, obj, parameters, error, maxSteps, initial);
+                    break;
+            }
         }
 
         template <class Parameters>

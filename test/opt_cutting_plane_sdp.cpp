@@ -10,7 +10,6 @@
 #include "exact_vols.h"
 #include "solve_lp.h"
 
-#include "cutting_plane_sdp.h"
 #include "sdp_problem.h"
 #include <chrono>
 #include "Eigen"
@@ -48,16 +47,16 @@ int main(const int argc, const char **argv) {
             round = false,
             NN = false,
             user_walk_len = false,
-            linear_extensions = false,
             birk = false,
-            rotate = false,
             ball_walk = false,
             ball_rad = false,
-            experiments = true,
             annealing = false,
             Vpoly = false,
             Zono = false,
             cdhr = false,
+            billiard = false,
+            linear_extensions = false,
+            experiments = true,
             rdhr = true, // for hit and run
             exact_zono = false,
             gaussian_sam = false,
@@ -65,7 +64,7 @@ int main(const int argc, const char **argv) {
 
 
     sdp_problem sdp;
-
+    sdp_problem::Algorithm algorithm = sdp_problem::Algorithm::RANDOMIZED_CUTTING_PLANE;
     NT delta = -1.0, error = 0.2;
     NT distance = 0.0001;
 
@@ -73,12 +72,7 @@ int main(const int argc, const char **argv) {
     for (int i = 1; i < argc; ++i) {
         bool correct = false;
 
-
-        if (!strcmp(argv[i], "-cdhr")) {
-            cdhr = true;
-            correct = true;
-            rdhr = false; // for hit and run
-        }
+        
         if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")) {
             printHelpMessage();
             return 0;
@@ -128,8 +122,13 @@ int main(const int argc, const char **argv) {
             user_walk_len = true;
             correct = true;
         }
-        if (!strcmp(argv[i], "-ISO")) {
-            useIsotropyMatrix = true;
+        if (!strcmp(argv[i], "-covariance")) {
+            algorithm = sdp_problem::Algorithm::RANDOMIZED_CUTTING_PLANE_COVARIANCE_MATRIX;
+            correct = true;
+        }
+
+        if (!strcmp(argv[i], "-simulatedannealing")) {
+            algorithm = sdp_problem::Algorithm::SIMULATED_ANNEALING_EFICIENT_COVARIANCE;
             correct = true;
         }
 
@@ -188,11 +187,10 @@ int main(const int argc, const char **argv) {
 
     for (unsigned int i = 0; i < numOfExperinments; ++i) {
 //        std::cout << "Experiment " << i + 1 << std::endl;
-//        auto t1 = std::chrono::steady_clock::now();
+        auto t1 = std::chrono::steady_clock::now();
 //
 //        lp.solve(useIsotropyMatrix, var, distance, numMaxSteps);
 //
-//        auto t2 = std::chrono::steady_clock::now();
 //
 //        std::cout << std::fixed;
 //        lp.printSolution();
@@ -212,11 +210,18 @@ int main(const int argc, const char **argv) {
 //        VT point = sdp.getStrictlyFeasiblePoint();
 //        point.setZero(4);
 //        std::cout << point << "\n" << sdp.isStrictlyFeasible(point) << " " << sdp.isFeasible(point)<< "\n";// << sdp.isFeasible(sol)<< " ffffffff\n";
-        std::cout << std::fixed;
-        std::cout << std::setprecision(3);
+//        std::cout << std::fixed;
+//        std::cout << std::setprecision(3);
 //        sdp.print();
 //        Point p = Point(point);
-        sdp.solve(var, distance, numMaxSteps, useIsotropyMatrix);
+        sdp.solve(var, distance, numMaxSteps, algorithm);
+        auto t2 = std::chrono::steady_clock::now();
+        if ( std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() < 10000 ) {
+            std::cout << "Computed at " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " msecs" << std::endl << std::endl;
+        }
+        else {
+            std::cout << "Computed at " << std::chrono::duration_cast<std::chrono::seconds>(t2 - t1).count() << " secs" << std::endl << std::endl;
+        }
 //        VT sol = sdp.getSolution();
 //        Point solution(sol);
 //        point.setZero(10);
@@ -255,8 +260,8 @@ int main(const int argc, const char **argv) {
 
     steps_avg = steps_avg / steps.size();
 
-    std::cout << std::fixed;
-    std::cout << std::setprecision(3);
+//    std::cout << std::fixed;
+//    std::cout << std::setprecision(3);
 
 //    auto t1 = std::chrono::steady_clock::now();
 //    double exact = solveWithLPSolve(lp);
