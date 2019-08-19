@@ -47,7 +47,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
     int n = Rcpp::as<int>(Z.field("dimension")), k = Rcpp::as<MT>(Z.field("G")).rows();
     double e = 0.1, delta = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2;
     int win_len = 2 * n * n + 250, NN = 220 + (n * n) / 10, nu =10, walkL = 1;
-    bool ball_walk = false, verbose = false, cdhr = false, rdhr = true, round = false, win2 = false, hpoly = false;
+    bool ball_walk = false, verbose = false, cdhr = false, rdhr = false, round = false, win2 = false, hpoly = false;
 
 
     NT ratio = 0.0;
@@ -110,16 +110,10 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
         if (walk_step.isNotNull()) walkL = Rcpp::as<int>(walk_step);
         if (rounding.isNotNull()) round = Rcpp::as<bool>(rounding);
         if (!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("RDHR")) == 0) {
-            cdhr = false;
             rdhr = true;
-            ball_walk = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("CDHR")) == 0) {
             cdhr = true;
-            rdhr = false;
-            ball_walk = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW")) == 0) {
-            cdhr = false;
-            rdhr = false;
             ball_walk = true;
         } else {
             throw Rcpp::exception("Unknown walk type!");
@@ -141,9 +135,8 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             // store internal point hat is given as input
             Rcpp::NumericVector InnerVec = Rcpp::as<Rcpp::NumericVector>(InnerBall);
             std::vector<NT> temp_p;
-            for (unsigned int j=0; j<n; j++){
-                temp_p.push_back(InnerVec[j]);
-            }
+            for (unsigned int j=0; j<n; j++) temp_p.push_back(InnerVec[j]);
+
             InnerB.first = Point( n , temp_p.begin() , temp_p.end() );
             // store the radius of the internal ball that is given as input
             InnerB.second = InnerVec[n];
@@ -152,18 +145,10 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             InnerB = ZP.ComputeInnerBall();
         }
 
-        vars<NT, RNGType> var(1, n, walkL, 1, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
-                               urdist, urdist1, delta, false, false, rounding, false, false, ball_walk, cdhr,rdhr, false);
+        vars<NT, RNGType> var(1, n, walkL, 1, 0.0, e, 0, 0.0, 0, InnerB.second, 0.0, rng,
+                               urdist, urdist1, delta, false, false, round, false, false, ball_walk, cdhr,rdhr, false);
         vars_ban <NT> var_ban(lb, ub, p, 0.0, alpha, win_len, NN, nu, win2);
 
-        //std::list<Point> randPoints;
-        //Point q(n);
-        //rand_point_generator(ZP, q, 1000, 1, randPoints, var);
-        //int count = 0;
-        //for (typename std::list<Point>::iterator pit = randPoints.begin();  pit!=randPoints.end(); ++pit) {
-            //if (HP.is_in(*pit)==-1) count++;
-        //}
-        //std::cout<<"points in HP = "<<count<<std::endl;
 
         NT vol;
         if (!hpoly) {

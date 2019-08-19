@@ -11,6 +11,18 @@
 #include <exception>
 #include "samplers.h"
 
+template <class MT>
+void removeRow(MT &matrix, unsigned int rowToRemove)
+{
+    unsigned int numRows = matrix.rows()-1;
+    unsigned int numCols = matrix.cols();
+
+    if( rowToRemove < numRows )
+        matrix.block(rowToRemove,0,numRows-rowToRemove,numCols) = matrix.bottomRows(numRows-rowToRemove);
+
+    matrix.conservativeResize(numRows,numCols);
+}
+
 template <class Polytope>
 Polytope gen_cube(unsigned int dim, bool Vpoly) {
 
@@ -368,6 +380,87 @@ Polytope random_vpoly(unsigned int dim, unsigned int k) {
 
 }
 
+
+template <class Polytope, class RNGType>
+Polytope random_vpoly_incube(unsigned int d, unsigned int k) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+    typedef typename Polytope::PolytopePoint Point;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::random::uniform_real_distribution<> urdist1(-1, 1);
+
+    Point p(d);
+    typename std::vector<NT>::iterator pit;
+    MT V(k, d);
+    unsigned int j, count_row,it=0;
+    std::vector<int> indices;
+    Polytope VP;
+    VT b = VT::Ones(k);
+
+    for (unsigned int i = 0; i < k; ++i) {
+        for (int j = 0; j < d; ++j) {
+            V(i, j) = urdist1(rng);
+        }
+    }
+    if(k==d+1){
+        VP.init(d, V, b);
+        return VP;
+    }
+
+    MT V2(k,d);
+    V2 = V;
+    indices.clear();
+    while(it<20) {
+        V.resize(V2.rows(), d);
+        V = V2;
+        for (int i = 0; i < indices.size(); ++i) {
+            V.conservativeResize(V.rows()+1, d);
+            for (int j = 0; j < d; ++j) {
+                V(V.rows()-1, j) = urdist1(rng);
+            }
+        }
+        indices.clear();
+        V2.resize(k, d);
+        V2 = V;
+
+        for (int i = 0; i < k; ++i) {
+            for (int j = 0; j < d; ++j) {
+                p.set_coord(j, V(i, j));
+            }
+            removeRow(V2, i);
+            if (memLP_Vpoly(V2, p)){
+                indices.push_back(i);
+            }
+            V2.resize(k, d);
+            V2 = V;
+        }
+        if (indices.size()==0) {
+            VP.init(d, V, b);
+            return VP;
+        }
+        V2.resize(k - indices.size(), d);
+        count_row =0;
+        for (int i = 0; i < k; ++i) {
+            if(std::find(indices.begin(), indices.end(), i) != indices.end()) {
+                continue;
+            } else {
+                for (int j = 0; j < d; ++j) V2(count_row, j) = V(i,j);
+                count_row++;
+            }
+        }
+        it++;
+    }
+
+    VP.init(d, V2, VT::Ones(V2.rows()));
+    return VP;
+
+}
+
+
 template <class Polytope, class RNGType>
 Polytope random_hpoly(unsigned int dim, unsigned int m) {
 
@@ -401,6 +494,115 @@ Polytope random_hpoly(unsigned int dim, unsigned int m) {
     return HP;
 }
 
+
+template <class Polytope, class RNGType>
+Polytope gen_zonotope_gaussian(unsigned int dim, unsigned int m) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::normal_distribution<> rdist(0, 1);
+    boost::normal_distribution<> rdist2(50, 33.3);
+
+    MT A;
+    VT b;
+    A.resize(m, dim);
+    b.resize(m);
+    Polytope P;
+    NT rand_gaus;
+
+    for (unsigned int i = 0; i < m; ++i) {
+        b(i) = 1.0;
+        for (unsigned int j = 0; j < dim; ++j) {
+            A(i,j) = rdist(rng);
+        }
+        A.row(i)=A.row(i)/A.row(i).norm();
+        while(true){
+            rand_gaus = rdist2(rng);
+            if (rand_gaus > 0.0 && rand_gaus<100.0){
+                A.row(i) = A.row(i) * rand_gaus;
+                break;
+            }
+        }
+    }
+
+    P.init(dim, A, b);
+    return P;
+}
+
+
+template <class Polytope, class RNGType>
+Polytope gen_zonotope_uniform(unsigned int dim, unsigned int m) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::normal_distribution<> rdist(0, 1);
+    boost::random::uniform_real_distribution<> urdist1(0, 100);
+
+    MT A;
+    VT b;
+    A.resize(m, dim);
+    b.resize(m);
+    Polytope P;
+
+    for (unsigned int i = 0; i < m; ++i) {
+        b(i) = 1.0;
+        for (unsigned int j = 0; j < dim; ++j) {
+            A(i,j) = rdist(rng);
+        }
+        A.row(i)=A.row(i)/A.row(i).norm();
+        A.row(i) = A.row(i) * urdist1(rng);
+    }
+
+    P.init(dim, A, b);
+    return P;
+}
+
+
+template <class Polytope, class RNGType>
+Polytope gen_zonotope_exponential(unsigned int dim, unsigned int m) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::VT    VT;
+    typedef typename Polytope::NT    NT;
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::normal_distribution<> rdist(0, 1);
+    boost::normal_distribution<> expdist(1.0/30.0);
+
+    MT A;
+    VT b;
+    A.resize(m, dim);
+    b.resize(m);
+    Polytope P;
+    NT rand_exp;
+
+    for (unsigned int i = 0; i < m; ++i) {
+        b(i) = 1.0;
+        for (unsigned int j = 0; j < dim; ++j) {
+            A(i,j) = rdist(rng);
+        }
+        A.row(i)=A.row(i)/A.row(i).norm();
+        while(true){
+            rand_exp = expdist(rng);
+            if (rand_exp > 0.0 && rand_exp<100.0){
+                A.row(i) = A.row(i) * rand_exp;
+                break;
+            }
+        }
+    }
+
+    P.init(dim, A, b);
+    return P;
+}
 
 
 /*

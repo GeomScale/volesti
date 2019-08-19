@@ -144,8 +144,8 @@ exact_vol <- function(P = NULL, body = NULL, Parameters = NULL) {
 #' Do not use this function.
 #'
 #' @return A numerical matrix describing the requested polytope
-poly_gen <- function(kind_gen, Vpoly_gen, dim_gen, m_gen) {
-    .Call(`_volesti_poly_gen`, kind_gen, Vpoly_gen, dim_gen, m_gen)
+poly_gen <- function(kind_gen, zono_gen, Vpoly_gen, dim_gen, m_gen) {
+    .Call(`_volesti_poly_gen`, kind_gen, zono_gen, Vpoly_gen, dim_gen, m_gen)
 }
 
 #'  An internal Rccp function for the random rotation of a convex polytope
@@ -223,8 +223,8 @@ rounding <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL) {
 #' P = Vpolytope$new(V)
 #' points = sample_points(P, N = 10000, exact = TRUE)
 #' @export
-sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL, Parameters = NULL, InnerPoint = NULL) {
-    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_step, exact, body, Parameters, InnerPoint)
+sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL, boundary = NULL, Parameters = NULL, InnerPoint = NULL) {
+    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_step, exact, body, boundary, Parameters, InnerPoint)
 }
 
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)

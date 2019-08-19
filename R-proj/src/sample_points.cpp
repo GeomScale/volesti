@@ -82,6 +82,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                                   Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
                                   Rcpp::Nullable<bool> exact = R_NilValue,
                                   Rcpp::Nullable<std::string> body = R_NilValue,
+                                  Rcpp::Nullable<bool> boundary = R_NilValue,
                                   Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue,
                                   Rcpp::Nullable<Rcpp::NumericVector> InnerPoint = R_NilValue){
 
@@ -103,7 +104,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
-    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, billiard = false, gaussian = false;
+    bool set_mean_point = false, cdhr = false, rdhr = false, ball_walk = false, billiard = false, gaussian = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -196,23 +197,12 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
         if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
             cdhr = true;
-            rdhr = false;
-            ball_walk = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
-            cdhr = false;
             rdhr = true;
-            ball_walk = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BilW"))==0) {
-            cdhr = false;
-            rdhr = false;
-            ball_walk = false;
             billiard = true;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
-                delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
-            }
-            cdhr = false;
-            rdhr = false;
+            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
             ball_walk = true;
         } else {
             throw Rcpp::exception("Unknown walk type!");
@@ -236,6 +226,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         RNGType rng(seed);
         boost::random::uniform_real_distribution<>(urdist);
         boost::random::uniform_real_distribution<> urdist1(-1,1);
+
+        if (boundary.isNotNull() && Rcpp::as<bool>(boundary)){
+            if (ball_walk || billiard) throw Rcpp::exception("Only Hit-an-Run can be used for boundary sampling!");
+        }
+
 
         switch(type) {
             case 1: {
@@ -299,33 +294,46 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 delta = 4.0 * InnerBall.second / std::sqrt(NT(dim));
             }
         }
-        vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
+        vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,0.0,rng,urdist,urdist1,
                                delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard);
         vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                                  rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
 
         switch (type) {
             case 1: {
-                sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
-                                     a, MeanPoint, var1, var2);
+                if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
+                    boundary_rand_point_generator(HP, MeanPoint, numpoints / 2, walkL, randPoints, var1);
+                } else {
+                    sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
+                                         a, MeanPoint, var1, var2);
+                }
                 break;
             }
             case 2: {
-                //std::cout<<"is in P = "<<VP.is_in(MeanPoint)<<" gaussian = "<<gaussian<<" nump = "<<numpoints<<"walkL = "<<walkL<<std::endl;
-                //std::cout<<" che_rad = "<<var1.che_rad<<"billiad = "<<var1.bill_walk<<std::endl;
-                //std::cout<<VP.get_mat()<<"\n"<<std::endl;
-                sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
-                                     a, MeanPoint, var1, var2);
+                if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
+                    boundary_rand_point_generator(VP, MeanPoint, numpoints / 2, walkL, randPoints, var1);
+                } else {
+                    sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
+                                         a, MeanPoint, var1, var2);
+                }
                 break;
             }
             case 3: {
-                sampling_only<Point>(randPoints, ZP, walkL, numpoints, gaussian,
-                                     a, MeanPoint, var1, var2);
+                if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
+                    boundary_rand_point_generator(ZP, MeanPoint, numpoints / 2, walkL, randPoints, var1);
+                } else {
+                    sampling_only<Point>(randPoints, ZP, walkL, numpoints, gaussian,
+                                         a, MeanPoint, var1, var2);
+                }
                 break;
             }
             case 4: {
-                sampling_only<Point>(randPoints, VPcVP, walkL, numpoints, gaussian,
-                                     a, MeanPoint, var1, var2);
+                if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
+                    boundary_rand_point_generator(VPcVP, MeanPoint, numpoints / 2, walkL, randPoints, var1);
+                } else {
+                    sampling_only<Point>(randPoints, VPcVP, walkL, numpoints, gaussian,
+                                         a, MeanPoint, var1, var2);
+                }
                 break;
             }
         }

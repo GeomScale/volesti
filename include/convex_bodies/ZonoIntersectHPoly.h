@@ -14,6 +14,8 @@ private:
     HPolytope HP;
 public:
     typedef typename HPolytope::NT NT;
+    typedef typename HPolytope::VT VT;
+    typedef typename HPolytope::MT MT;
     typedef typename HPolytope::PolytopePoint Point;
 
     ZonoIntersectHPoly() {}
@@ -39,6 +41,14 @@ public:
 
     unsigned int num_of_generators(){
         return Z.num_of_generators();
+    }
+
+    MT get_mat() {
+        return HP.get_mat();
+    }
+
+    MT get_vec() {
+        return HP.get_vec();
     }
 
     std::pair<NT,NT> line_intersect(Point r, Point v) {

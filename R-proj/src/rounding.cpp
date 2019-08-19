@@ -124,7 +124,7 @@ Rcpp::List rounding (Rcpp::Reference P,
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
     // initialization
-    vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
+    vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,0.0,rng,urdist,urdist1,
                           delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr, billiard);
     std::pair <NT, NT> round_res;
 

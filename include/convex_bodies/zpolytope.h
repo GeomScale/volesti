@@ -31,7 +31,8 @@ private:
     unsigned int _d;  //dimension
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
-    REAL *conv_comb;
+    REAL *conv_comb, *row;
+    int *colno;
     MT sigma;
     MT Q0;
     MT T;
@@ -197,6 +198,54 @@ public:
         b(i) = value;
     }
 
+    Point get_mean_of_vertices() {
+        return Point(_d);
+    }
+
+
+    NT get_max_vert_norm() {
+        return 0.0;
+    }
+
+    void comp_diam(NT &diam) {
+
+        int k = V.rows();
+
+        MT D = V.transpose() * V;
+        D = (D + D.transpose()) / 2.0;
+
+        Eigen::SelfAdjointEigenSolver<MT> es(D);
+
+        MT D2 = es.eigenvalues().asDiagonal();
+        MT Q = es.eigenvectors();
+
+        NT max_eig = 0.0;
+        int max_index = -1;
+        for (int i = 0; i < _d; ++i) {
+            if (es.eigenvalues()[i] > max_eig) {
+                max_eig = es.eigenvalues()[i];
+                max_index = i;
+            }
+        }
+
+        VT max_eigvec = -1.0*Q.col(max_index);
+
+
+        VT obj_fun = max_eigvec.transpose() * V.transpose();
+        VT x0(k);
+
+        for (int j = 0; j < k; ++j) { //x0(j) = (obj_fun(j) < 0.0) ? -1.0 : 1.0;
+            if(obj_fun(j) < 0.0){
+                x0(j) = -1.0;
+            } else {
+                x0(j) = 1.0;
+            }
+        }
+
+        diam = 2.0 * (V.transpose() * x0).norm();
+
+    }
+
 
     // define zonotope using Eigen matrix V. Vector b is neded in order the code to compatible with Hpolytope class
     void init(unsigned int dim, MT _V, VT _b) {
@@ -204,6 +253,8 @@ public:
         V = _V;
         b = _b;
         conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
         bool normalization1=true;
         bool normalization2=false;
         compute_eigenvectors(V.transpose(),normalization1,normalization2);
@@ -222,6 +273,8 @@ public:
             }
         }
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
         bool normalization1=true;
         bool normalization2=false;
         compute_eigenvectors(V.transpose(),normalization1,normalization2);
@@ -265,7 +318,7 @@ public:
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            min_plus = intersect_line_Vpoly<NT>(V, center, v, conv_comb, false, true);
+            min_plus = intersect_line_Vpoly<NT>(V, center, v, conv_comb, row, colno, false, true);
             if (min_plus < radius) radius = min_plus;
         }
 
@@ -298,10 +351,7 @@ public:
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        std::pair<NT, int> vppair;
-        vppair.first = intersect_line_Vpoly(V, r, v, conv_comb, false, true);
-        vppair.second = 1;
-        return vppair;
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, true), 1);
     }
 
 
@@ -374,20 +424,22 @@ public:
 
     void compute_reflection(Point &v, Point &p, int facet) {
 
-        int count = 0, outvert;
+        int count = 0;
         MT Fmat(_d-1,_d);
         NT e = 0.0000000001;
         for (int j = 0; j < num_of_generators(); ++j) {
             if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) ) > e*std::abs(*(conv_comb + j))) && ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
                 Fmat.row(count) = V.row(j);
                 count++;
-            } else {
-                outvert = j;
             }
         }
 
         VT a = Fmat.fullPivLu().kernel();
-        if (a.dot(V.row(outvert)) > 1.0) a = -a;
+        NT sum = 0.0;
+        for (int k = 0; k < _d; ++k) sum += a(k)*p[k];
+
+        if(sum<0.0) a = -1.0*a;
+
         a = a/a.norm();
 
         Point s(_d);
@@ -396,6 +448,12 @@ public:
         }
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
+    }
+
+    void free_them_all() {
+        free(row);
+        free(colno);
+        free(conv_comb);
     }
 
 };

@@ -129,6 +129,17 @@ public:
     }
 
 
+    Point get_mean_of_vertices() {
+        return Point(_d);
+    }
+
+
+    NT get_max_vert_norm() {
+        return 0.0;
+    }
+
+    void comp_diam(NT &diam) {}
+
     void init(unsigned int dim, MT _A, VT _b) {
         _d = dim;
         A = _A;
@@ -536,6 +547,8 @@ public:
         v = s + v;
 
     }
+
+    void free_them_all() {}
 
 };
 

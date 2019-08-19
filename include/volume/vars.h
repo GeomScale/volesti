@@ -28,6 +28,7 @@ public:
           NT up,
           const int L,
           NT che_rad,
+          NT diameter,
           RNG &rng,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
@@ -43,7 +44,7 @@ public:
           bool bill_walk
     ) :
             m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
-            lw(lw), up(up), L(L), che_rad(che_rad), rng(rng),
+            lw(lw), up(up), L(L), che_rad(che_rad), diameter(diameter), rng(rng),
             urdist(urdist), urdist1(urdist1) , delta(delta) , verbose(verbose), rand_only(rand_only), round(round),
             NN(NN),birk(birk), ball_walk(ball_walk), cdhr_walk(cdhr_walk), rdhr_walk(rdhr_walk), bill_walk(bill_walk){};
 
@@ -57,6 +58,7 @@ public:
     NT up;
     const int L;
     NT che_rad;
+    NT diameter;
     RNG &rng;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;

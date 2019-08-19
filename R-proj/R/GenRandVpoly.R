@@ -10,12 +10,19 @@
 #' # generate a 10-dimensional polytope defined as the convex hull of 25 random vertices
 #' P = GenRandVpoly(10, 25)
 #' @export
-GenRandVpoly <- function(dimension, m) {
+GenRandVpoly <- function(dimension, m, body = NULL) {
   
-  kind_gen = 4
+  if (is.null(body) || body == 'sphere'){
+    kind_gen = 4
+  } else if (body == 'cube') {
+    kind_gen = 5
+  } else {
+    warning("Generators use only random points from the unit cube or the unit sphere")
+    return(Vpolytope$new())
+  }
   Vpoly_gen = TRUE
   
-  Mat = poly_gen(kind_gen, Vpoly_gen, dimension, m)
+  Mat = poly_gen(kind_gen, FALSE, Vpoly_gen, dimension, m)
 
   # first column is the vector b
   b = Mat[,1]

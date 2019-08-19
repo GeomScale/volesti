@@ -83,6 +83,17 @@ public:
         return P2.get_mat();
     }
 
+    Point get_mean_of_vertices() {
+        return Point(P1.dimension());
+    }
+
+
+    NT get_max_vert_norm() {
+        return 0.0;
+    }
+
+    void comp_diam(NT &diam) {}
+
     void print() {
         //std::cout<<"First polytope:\n";
         P1.print();
@@ -314,9 +325,7 @@ public:
         return true;
     }
 
-    void compute_eigenvectors(MT G, bool norm1, bool norm2) {
-        //
-    }
+    void compute_eigenvectors(MT G, bool norm1, bool norm2) {}
 
     MT get_T() {
         return P1.get_mat();
@@ -333,6 +342,11 @@ public:
     void normalize() {}
 
     void compute_reflection (Point &v, Point &p, int &facet) {}
+
+    void free_them_all() {
+        P1.free_them_all();
+        P2.free_them_all();
+    }
 
 };
 

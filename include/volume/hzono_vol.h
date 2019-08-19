@@ -20,7 +20,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     typedef typename Zonotope::MT MT;
     typedef typename UParameters::RNGType RNGType;
 
-    NT lb = var_ban.lb, ub = var_ban.ub, prob = var_ban.p, rmax = var_ban.rmax,
+    NT lb = var_ban.lb, ub = var_ban.ub, prob = var_ban.p, rmax = var_ban.rmax, diam0 = var.diameter,
             radius = InnerB.second, round_value = 1.0, e = var.error, ratio, vol, alpha = var_ban.alpha;
     int n = var.n, win_len = var_ban.win_len, N = var_ban.N, nu = var_ban.nu;
 
@@ -64,11 +64,26 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     MT B = G * Tt;
     MT A3 = A2 * B.inverse();
 
+    NT row_norm;
+    for (int i = 0; i < A3.rows(); ++i) {
+        row_norm = A3.row(i).norm();
+        A3.row(i) = A3.row(i) / row_norm;
+        b(i) = b(i) / row_norm;
+    }
+
+    MT A = A3*G;
+
     Hpolytope HP;
     HP.init(n,A3,b);
 
     VT Zs_max(2*m);
-    get_hdelta(ZP, HP, Zs_max, lb, ub, ratio, var);
+    if(verbose) std::cout<<"get first hpoly.. = "<<vol<<"\n"<<std::endl;
+    UParameters var3 = var;
+    var3.cdhr_walk = true;
+    var3.ball_walk = false;
+    var3.rdhr_walk = false;
+    var3.bill_walk = false;
+    get_hdelta(ZP, HP, Zs_max, lb, ub, ratio, var3);
     Hpolytope HP2=HP;
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
@@ -79,7 +94,13 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     NT p_value = 0.1;
     ZonoHP zb1, zb2;
 
-    get_sequence_of_zonopolys<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var);
+    std::vector<NT> diams_inter;
+
+    //var3.walk_steps = 1;
+
+    if(verbose) std::cout<<"computing hpoly annealing.. = "<<vol<<"\n"<<std::endl;
+    get_sequence_of_zonopolys<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
+    var.diameter = diam0;
 
     int mm=HPolySet.size()+2;
     int mm2=mm+1;
@@ -93,7 +114,13 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
 
     if(verbose) std::cout<<"\nvol of h-polytope = "<<vol<<"\n"<<std::endl;
     if (!window2) {
-        vol *= esti_ratio_interval<RNGType, Point>(HP2, ZP, ratio, er0, win_len, N*nu, prob, var);
+        UParameters var2 = var;
+        var2.cdhr_walk = true;
+        var2.ball_walk = false;
+        var2.rdhr_walk = false;
+        var2.bill_walk = false;
+        var2.walk_steps = 10+2*n;
+        vol *= esti_ratio_interval<RNGType, Point>(HP2, ZP, ratio, er0, win_len, N*nu, prob, var2);
     } else {
         vol *= esti_ratio<RNGType, Point>(HP2, ZP, ratio, er0, var_g.W, N*nu, var);
     }
@@ -121,6 +148,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
         for (int i = 0; i < HPolySet.size()-1; ++i) {
             zb1 = ZonoHP(ZP,HPolySet[i]);
             b2 = HPolySet[i+1];
+            var.diameter = diams_inter[i];
             if(!window2) {
                 vol = vol / esti_ratio_interval<RNGType, Point>(zb1, b2, ratios[i], er1, win_len, N*nu, prob, var);
             } else {
@@ -129,12 +157,15 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
         }
 
         zb1 = ZonoHP(ZP,HPolySet[HPolySet.size()-1]);
+        var.diameter = diams_inter[diams_inter.size()-1];
         if (!window2) {
             vol = vol / esti_ratio_interval<RNGType, Point>(zb1, HP2, ratios[ratios.size() - 1], er1, win_len, N*nu, prob, var);
         } else {
             vol = vol / esti_ratio<RNGType, Point>(zb1, HP2, ratios[ratios.size() - 1], er1, var_g.W, N*nu, var);
         }
     }
+
+    ZP.free_them_all();
 
     return vol;
 

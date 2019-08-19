@@ -7,6 +7,47 @@
 #define BALL_ANNEALING_H
 
 
+
+template <class Hpolytope, class ZonoHP, class MT, class VT, class Parameters, typename NT>
+void comp_diam_hpoly_zono_inter2(ZonoHP &ZHP, MT G, MT AG, VT b, Parameters &var, std::vector<NT> &diams_inter) {
+
+    typedef typename Hpolytope::PolytopePoint Point;
+    //typedef typename ZonoHP::NT NT;
+
+    int k = G.cols(), d= ZHP.dimension();
+
+    MT eyes1(k, 2*k);
+    eyes1 << MT::Identity(k,k), -1.0*MT::Identity(k,k);
+
+    //MT eyes = eyes1.transpose();
+
+    MT M1(k, 4*k);
+
+    M1 << AG.transpose(), eyes1;
+    MT M = M1.transpose();
+
+    VT bb(4*k);
+    for (int i = 0; i < 4*k; ++i) bb(i) = (i < 2*k) ? b(i) : 1.0;
+
+    Hpolytope HP;
+    HP.init(d, M, bb);
+
+    std::list<Point> randPoints;
+    std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
+    boundary_rand_point_generator(HP, InnerBall.first, 2*d*d, 1, randPoints, var);
+
+    typename std::list<Point>::iterator rpit=randPoints.begin();
+    NT max_norm = 0.0, iter_norm;
+    for ( ; rpit!=randPoints.end(); rpit++) {
+        //std::cout<<" p ="<<Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension())<<std::endl;
+        iter_norm = (G*Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension())).norm();
+        if (iter_norm > max_norm) max_norm = iter_norm;
+    }
+    diams_inter.push_back(2.0 * max_norm);
+
+}
+
+
 template <class Polytope, class HPolytope, class VT, typename NT, class Parameters>
 void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT &ratio, Parameters &var){
 
@@ -37,9 +78,10 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
         count++;
         q=Point(n);
         med = (u + l) * 0.5;
+        std::cout<<"u = "<<u<<" l = "<<l<<" med = "<<med<<std::endl;
         Zmed = Zs_min + (Zs_max-Zs_min)*med;
         HPiter.set_vec(Zmed);
-        variter.che_rad = HPiter.ComputeInnerBall().second;
+        //variter.che_rad = HPiter.ComputeInnerBall().second;
 
         randPoints.clear();
         rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, variter);
@@ -103,16 +145,25 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
 template <class ZonoHP,class Zonotope, class HPolytope, class VT, class Parameters, typename NT>
 void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope> &HPolySet,
                                VT Zs_max, std::vector<NT> &ratios, int Ntot, int nu,
-                               NT &p_value, NT up_lim, NT alpha, Parameters &var) {
+                               NT &p_value, NT up_lim, NT alpha, Parameters &var, Parameters &var2,
+                               std::vector<NT> &diams_inter) {
 
     bool print = var.verbose, too_few=false;
     typedef typename Zonotope::PolytopePoint Point;
     typedef typename Zonotope::MT MT;
+
     int n = var.n;
+
+    MT G = Z.get_mat().transpose();
+    MT AG = HP.get_mat()*G;
+
     NT ratio;
     std::list<Point> randPoints;
     Point q(n);
+    std::cout<<"sample = "<<Ntot<<" points"<<std::endl;
+    std::cout<<"walk_step = "<<var.walk_steps<<std::endl;
     rand_point_generator(Z, q, Ntot, var.walk_steps, randPoints, var);
+    std::cout<<"points sampled"<<std::endl;
     HPolytope HP2 = HP;
     if (check_converg001<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true)) {
         ratios.push_back(ratio);
@@ -131,6 +182,10 @@ void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
         ZHP2 = ZonoHP(Z,HP2);
         q=Point(n);
         randPoints.clear();
+        std::cout<<"computing new diameter"<<std::endl;
+        comp_diam_hpoly_zono_inter2<HPolytope>(ZHP2, G, AG, HP2.get_vec(), var2, diams_inter);
+        std::cout<<"[annealing] diameter = "<<diams_inter[diams_inter.size()-1]<<std::endl;
+        var.diameter = diams_inter[diams_inter.size()-1];
         rand_point_generator(ZHP2, q, Ntot, var.walk_steps, randPoints, var);
         if (check_converg001<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true)) {
             ratios.push_back(ratio);
