@@ -449,14 +449,14 @@ void hit_and_run_coord_update(Point &p,
 
 
 template <class ConvexBody, class Point, class Parameters, typename NT>
-void billiard_walk(ConvexBody &P, Point &p, NT che_rad, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev,
+void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev,
         Parameters &var, bool first = false) {
 
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = P.dimension();
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
-    NT T = urdist(rng) * 2.0 * che_rad;
+    NT T = urdist(rng) * diameter;
     Point v = get_direction<RNGType, Point, NT>(n);
     Point p0 = p;
     int it = 0;

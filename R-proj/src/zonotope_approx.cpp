@@ -45,9 +45,9 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
     int n = Rcpp::as<int>(Z.field("dimension")), k = Rcpp::as<MT>(Z.field("G")).rows();
-    double e = 0.1, delta = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2;
+    double e = 0.1, delta = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, diam = -1.0;
     int win_len = 2 * n * n + 250, NN = 220 + (n * n) / 10, nu =10, walkL = 1;
-    bool ball_walk = false, verbose = false, cdhr = false, rdhr = false, round = false, win2 = false, hpoly = false;
+    bool ball_walk = false, verbose = false, cdhr = false, rdhr = false, billiard = false, round = false, win2 = false, hpoly = false;
 
 
     NT ratio = 0.0;
@@ -73,6 +73,21 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             vol_red *= 2.0 * Gred_ii(i);
         }
 
+        if (error.isNotNull()) e = Rcpp::as<NT>(error);
+        if (walk_step.isNotNull()) walkL = Rcpp::as<int>(walk_step);
+        if (rounding.isNotNull()) round = Rcpp::as<bool>(rounding);
+        if (!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("BilW")) == 0) {
+            billiard = true;
+        } else if(Rcpp::as<std::string>(WalkType).compare(std::string("RDHR")) == 0) {
+            rdhr = true;
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("CDHR")) == 0) {
+            cdhr = true;
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW")) == 0) {
+            ball_walk = true;
+        }else {
+            throw Rcpp::exception("Unknown walk type!");
+        }
+
         if(Parameters.isNotNull()) {
 
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
@@ -80,6 +95,8 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             }
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("Window")) {
                 win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["Window"]);
+            }  else if (billiard) {
+                win_len = 150;
             }
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("lb")) {
                 lb = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["lb"]);
@@ -92,6 +109,8 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             }
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("N")) {
                 NN = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["N"]);
+            } else if (billiard) {
+                NN = 125;
             }
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("minmaxW")) {
                 win2 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(Parameters)["minmaxW"]);
@@ -105,22 +124,15 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("hpoly")) {
                 hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(Parameters)["hpoly"]);
             }
-        }
-        if (error.isNotNull()) e = Rcpp::as<NT>(error);
-        if (walk_step.isNotNull()) walkL = Rcpp::as<int>(walk_step);
-        if (rounding.isNotNull()) round = Rcpp::as<bool>(rounding);
-        if (!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("RDHR")) == 0) {
-            rdhr = true;
-        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("CDHR")) == 0) {
-            cdhr = true;
-        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW")) == 0) {
-            ball_walk = true;
-        } else {
-            throw Rcpp::exception("Unknown walk type!");
+            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("diameter")) {
+                diam = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["diameter"]);
+            }
         }
 
         zonotope ZP;
         ZP.init(n, Rcpp::as<MT>(Z.field("G")), VT::Ones(Rcpp::as<MT>(Z.field("G")).rows()));
+
+        if (billiard && diam < 0.0) ZP.comp_diam(diam);
 
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         // the random engine with this seed
@@ -145,8 +157,8 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             InnerB = ZP.ComputeInnerBall();
         }
 
-        vars<NT, RNGType> var(1, n, walkL, 1, 0.0, e, 0, 0.0, 0, InnerB.second, 0.0, rng,
-                               urdist, urdist1, delta, false, false, round, false, false, ball_walk, cdhr,rdhr, false);
+        vars<NT, RNGType> var(1, n, walkL, 1, 0.0, e, 0, 0.0, 0, InnerB.second, diam, rng,
+                               urdist, urdist1, delta, false, false, round, false, false, ball_walk, cdhr,rdhr, billiard);
         vars_ban <NT> var_ban(lb, ub, p, 0.0, alpha, win_len, NN, nu, win2);
 
 

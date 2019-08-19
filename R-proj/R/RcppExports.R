@@ -253,6 +253,7 @@ sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NU
 #'  \item{\code{alpha} }{ The significance level for the t-tests in BAN algorithm. The default values is 0.2.}
 #'  \item{\code{prob} }{ The probability is used for the empirical confidence interval in ratio estimation of BAN algorithm. The default value is \eqn{0.75}.}
 #'  \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of BAN algorithm. The default value is \code{FALSE}.}
+#'  \item{\code{diameter} }{ The diameter of P. It is used for Billiard walk. Optional}
 #'  \item{\code{minmaxW} }{ A boolean parameter to use the sliding window with a minmax values stopping criterion.}
 #'
 #' }

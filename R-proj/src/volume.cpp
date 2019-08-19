@@ -27,7 +27,7 @@ NT generic_volume(Polytope& P, unsigned int walk_step, NT e, Rcpp::Nullable<Rcpp
 
     bool rand_only=false,
          birk=false,
-         verbose =true;
+         verbose =false;
     unsigned int n_threads=1, n = P.dimension();;
     unsigned int rnum = std::pow(e,-2) * 400 * n * std::log(n);
     NT round_val = 1.0, rmax = 0.0;
@@ -41,7 +41,6 @@ NT generic_volume(Polytope& P, unsigned int walk_step, NT e, Rcpp::Nullable<Rcpp
 
     std::pair<Point,NT> InnerB;
 
-    //std::cout<<"walk_step = "<<walk_step<<std::endl;
     if(InnerBall.isNotNull()) { //if it is given as an input
         // store internal point hat is given as input
         Rcpp::NumericVector InnerVec = Rcpp::as<Rcpp::NumericVector>(InnerBall);
@@ -78,12 +77,10 @@ NT generic_volume(Polytope& P, unsigned int walk_step, NT e, Rcpp::Nullable<Rcpp
         // no internal ball or point is given as input
         InnerB = P.ComputeInnerBall();
     }
-    //std::cout<<"walk_step = "<<walk_step<<std::endl;
+
     if (billiard && diam < 0.0) {
         diam = 2.0 * InnerB.second;
-        std::cout<<"calling diameter computation"<<std::endl;
         P.comp_diam(diam);
-        std::cout<<"diameter of P = "<<diam<<std::endl;
     }
 
     // initialization
@@ -100,7 +97,6 @@ NT generic_volume(Polytope& P, unsigned int walk_step, NT e, Rcpp::Nullable<Rcpp
     } else if (BAN) {
         vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, win_len, NN, nu, win2);
         if (!hpoly) {
-            //vars_ban <NT> var_ban(0.1, 0.15, 0.75, 0.0, 0.0, 0.0, 2 * n * n + 250, 220 + (n * n) / 10, 10, false);
             vol = volesti_ball_ann(P, var, var_ban, InnerB);
         } else {
             vars_g<NT, RNGType> varg(n, 1, N, 6*n*n+500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
@@ -140,6 +136,7 @@ NT generic_volume(Polytope& P, unsigned int walk_step, NT e, Rcpp::Nullable<Rcpp
 //'  \item{\code{alpha} }{ The significance level for the t-tests in BAN algorithm. The default values is 0.2.}
 //'  \item{\code{prob} }{ The probability is used for the empirical confidence interval in ratio estimation of BAN algorithm. The default value is \eqn{0.75}.}
 //'  \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of BAN algorithm. The default value is \code{FALSE}.}
+//'  \item{\code{diameter} }{ The diameter of P. It is used for Billiard walk. Optional}
 //'  \item{\code{minmaxW} }{ A boolean parameter to use the sliding window with a minmax values stopping criterion.}
 //'
 //' }
@@ -184,17 +181,14 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     unsigned int n = P.field("dimension"), walkL;
 
-    bool CG, BAN, cdhr = false, rdhr = false, ball_walk = false, billiard = false, round, win2 = false, hpoly = false;
+    bool CG = false, BAN = false, cdhr = false, rdhr = false, ball_walk = false, billiard = false, round, win2 = false,
+            hpoly = false;
     unsigned int win_len = 4 * n * n + 500, N = 500 * 2 + n * n / 2, NN = 120 + (n*n)/10, nu = 10;
 
     double C = 2.0, ratio = 1.0 - 1.0 / (NT(n)), frac = 0.1, e, delta = -1.0,
             lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, diam = -1.0;
 
-    if (!rounding.isNotNull()) {
-        round = false;
-    } else {
-        round = Rcpp::as<bool>(rounding);
-    }
+    round = (!rounding.isNotNull()) ? false : true;
 
     if (!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR")) == 0) {
         cdhr = true;
@@ -210,51 +204,20 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
 
     if (!Algo.isNotNull() || Rcpp::as<std::string>(Algo).compare(std::string("SOB")) == 0) {
 
-        CG = false;
-        BAN = false;
-
-        if (!walk_step.isNotNull()) {
-            walkL = 10 + n / 10;
-        } else {
-            walkL = Rcpp::as<unsigned int>(walk_step);
-        }
-
-        if (!error.isNotNull()) {
-            e = 1.0;
-        } else {
-            e = Rcpp::as<NT>(error);
-        }
+        walkL = (!walk_step.isNotNull()) ? 10 + n / 10 : Rcpp::as<int>(walk_step);
+        e = (!error.isNotNull()) ? 1.0 : Rcpp::as<NT>(error);
 
     } else if (Rcpp::as<std::string>(Algo).compare(std::string("CG")) == 0) {
 
         CG = true;
-        BAN = false;
-
-        if (!error.isNotNull()) {
-            e = 0.1;
-        } else {
-            e = Rcpp::as<NT>(error);
-        }
-
-        if (!walk_step.isNotNull()) {
-            walkL = 1;
-        } else {
-            walkL = Rcpp::as<int>(walk_step);
-        }
+        e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);
+        walkL = (!walk_step.isNotNull()) ? 1 : Rcpp::as<int>(walk_step);
 
     } else if (Rcpp::as<std::string>(Algo).compare(std::string("BAN")) == 0) {
-        CG = false;
+
         BAN = true;
-        if (!error.isNotNull()) {
-            e = 0.1;
-        } else {
-            e = Rcpp::as<NT>(error);
-        }
-        if (!walk_step.isNotNull()) {
-            walkL = 1;
-        } else {
-            walkL = Rcpp::as<int>(walk_step);
-        }
+        e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);
+        walkL = (!walk_step.isNotNull()) ? 1 : Rcpp::as<int>(walk_step);
 
     }else {
         throw Rcpp::exception("Unknown method!");
@@ -300,6 +263,8 @@ double volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_step = R_Nil
         }
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("N")) {
             NN = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["N"]);
+        } else if (billiard) {
+            NN = 125;
         }
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("minmaxW")) {
             win2 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(Parameters)["minmaxW"]);

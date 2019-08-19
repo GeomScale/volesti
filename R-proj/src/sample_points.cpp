@@ -103,7 +103,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
     InterVP VPcVP;
 
     int type, dim, numpoints;
-    NT radius = 1.0, delta = -1.0;
+    NT radius = 1.0, delta = -1.0, diam = -1.0;
     bool set_mean_point = false, cdhr = false, rdhr = false, ball_walk = false, billiard = false, gaussian = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
@@ -188,24 +188,37 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                         Rcpp::as<std::vector<NT> >(InnerPoint).end() );
             }
         }
-        if(walk_step.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_step);
 
         NT a = 0.5;
 
         if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("variance"))
             a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["variance"]));
 
-        if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
+        if(!WalkType.isNotNull()) {
+            if (type == 1) {
+                cdhr = true;
+            } else {
+                billiard = true;
+                walkL = 5;
+            }
+        } else if(Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
             cdhr = true;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
             rdhr = true;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BilW"))==0) {
             billiard = true;
+            walkL = 5;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
             ball_walk = true;
         } else {
             throw Rcpp::exception("Unknown walk type!");
+        }
+
+        if(walk_step.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_step);
+
+        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("diameter")) {
+            diam = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["diameter"]);
         }
 
         if (distribution.isNotNull()) {
@@ -242,6 +255,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = HP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
+                HP.normalize();
+                if (billiard && diam < 0.0) diam = 2.0 * InnerBall.second;
+
                 break;
             }
             case 2: {
@@ -253,6 +269,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = VP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
+                if (billiard && diam < 0.0) VP.comp_diam(diam);
+
                 break;
             }
             case 3: {
@@ -264,6 +282,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = ZP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
+                if (billiard && diam < 0.0) ZP.comp_diam(diam);
+
                 break;
             }
             case 4: {
@@ -283,18 +303,21 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     return Rcpp::NumericMatrix(0,0);
                 }
                 if (!set_mean_point) MeanPoint = InnerBall.first;
+                if (billiard && diam < 0.0) VP1.comp_diam(diam);
+
                 break;
             }
         }
 
-        if (ball_walk) {
+        if (ball_walk && delta < 0.0) {
             if (gaussian) {
                 delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(dim));
             } else {
                 delta = 4.0 * InnerBall.second / std::sqrt(NT(dim));
             }
         }
-        vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,0.0,rng,urdist,urdist1,
+
+        vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,diam,rng,urdist,urdist1,
                                delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard);
         vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                                  rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
@@ -344,17 +367,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     }
 
-    //std::cout<<"sampling ok!"<<std::endl;
-    Rcpp::NumericMatrix PointSet(dim,numpoints);
-    typename std::list<Point>::iterator rpit=randPoints.begin();
-    typename std::vector<NT>::iterator qit;
-    unsigned int j = 0, i;
-    for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        qit = (*rpit).iter_begin(); i=0;
-        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            PointSet(i,j)=*qit;
-        }
-    }
-    return PointSet;
+    MT RetMat(dim, numpoints);
+    unsigned int jj = 0;
+
+    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++)
+        RetMat.col(jj) = Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension());
+    return Rcpp::wrap(RetMat);
 
 }
