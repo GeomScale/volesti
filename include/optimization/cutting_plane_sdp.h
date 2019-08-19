@@ -678,8 +678,9 @@ namespace optimization {
         unsigned int rnum = parameters.m;
         bool tillConvergence = maxSteps == 0;
         unsigned int step = 0;
+        int dim = objectiveFunction.rows();
 
-        SlidingWindow slidingWindow(3);
+        SlidingWindow slidingWindow(5 + sqrt(dim));
         std::pair<Point, Point> minimizingPoints;
 
 
