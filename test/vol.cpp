@@ -23,6 +23,8 @@
 #define VOLESTI_DEBUG
 #include <fstream>
 #include "volume.h"
+//#include "ball_ann_vol.h"
+//#include "hzono_vol.h"
 #include "sample_only.h"
 #include "exact_vols.h"
 
@@ -53,7 +55,7 @@ int main(const int argc, const char** argv)
     typedef Zonotope<Point> Zonotope;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     int n, nexp=1, n_threads=1, W;
-    int walk_len,N, nsam = 100;
+    int walk_len,N, nsam = 100, nu = 10;
     NT e=1;
     NT exactvol(-1.0), a=0.5;
     bool verbose=false, 
@@ -70,13 +72,17 @@ int main(const int argc, const char** argv)
          ball_rad=false,
          experiments=true,
          annealing = false,
+         BAN = false,
+         hpoly = false,
          Vpoly=false,
          Zono=false,
          cdhr=true,
          rdhr=false,
          billiard=false,
          exact_zono = false,
-         gaussian_sam = false;
+         gaussian_sam = false,
+         user_randwalk = false,
+         win2 = false;
 
     //this is our polytope
     Hpolytope HP;
@@ -85,7 +91,7 @@ int main(const int argc, const char** argv)
 
     // parameters of CV algorithm
     bool user_W=false, user_N=false, user_ratio=false;
-    NT ball_radius=0.0;
+    NT ball_radius=0.0, diameter = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, round_val = 1.0;
     NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
 
   if(argc<2){
@@ -161,20 +167,19 @@ int main(const int argc, const char** argv)
       if(!strcmp(argv[i],"-rdhr")){
           cdhr = false;
           rdhr = true;
-          ball_walk = false;
+          user_randwalk = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-bill")){
           cdhr = false;
-          rdhr = false;
-          ball_walk = false;
           billiard = true;
+          user_randwalk = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-bw")){
           ball_walk = true;
           cdhr = false;
-          rdhr = false;
+          user_randwalk = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-bwr")){
@@ -345,6 +350,34 @@ int main(const int argc, const char** argv)
           annealing = true;
           correct = true;
       }
+      if(!strcmp(argv[i],"-ban")){
+          BAN = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-hpoly")){
+          hpoly = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-lb")){
+          lb = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-ub")){
+          ub = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-prob")){
+          p = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-alpha")){
+          alpha = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-nu")){
+          nu = atof(argv[++i]);
+          correct = true;
+      }
       if(correct==false){
           std::cerr<<"unknown parameters \'"<<argv[i]<<
                      "\', try "<<argv[0]<<" --help"<<std::endl;
@@ -358,16 +391,58 @@ int main(const int argc, const char** argv)
       std::cout<<"Zonotope's exact volume = "<<vol_ex<<std::endl;
       return 0;
   }
+   /* RANDOM NUMBERS */
+   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+   RNGType rng(seed);
+   boost::normal_distribution<> rdist(0,1);
+   boost::random::uniform_real_distribution<>(urdist);
+   boost::random::uniform_real_distribution<> urdist1(-1,1);
 
   //Compute chebychev ball//
   std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if (Zono) {
       InnerBall = ZP.ComputeInnerBall();
+      if (!user_randwalk) {
+          cdhr = false;
+          billiard = true;
+      }
+      if (billiard && diameter < 0.0) ZP.comp_diam(diameter);
+
   } else if(!Vpoly) {
       InnerBall = HP.ComputeInnerBall();
+      if (billiard && diameter < 0.0) diameter = 2.0 * InnerBall.second;
   }else{
-      InnerBall = VP.ComputeInnerBall();
+
+      if(BAN) {
+          if (round) {
+              InnerBall.first = VP.get_mean_of_vertices();
+              InnerBall.second = 0.0;
+              vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second, 2 * VP.get_max_vert_norm(),
+                                      rng, urdist, urdist1,
+                                      -1, verbose, rand_only, round, NN, birk, false, false, true, false);
+              std::pair <NT, NT> res_round = rounding_min_ellipsoid(VP, InnerBall, var2);
+              round_val = res_round.first;
+              round = false;
+              InnerBall.second = 0.0;
+              InnerBall.first = Point(n);
+              get_vpoly_center(VP);
+              rmax = VP.get_max_vert_norm();
+          } else {
+              InnerBall.second = 0.0;
+              InnerBall.first = Point(n);
+              get_vpoly_center(VP);
+              rmax = VP.get_max_vert_norm();
+          }
+      } else {
+          InnerBall = VP.ComputeInnerBall();
+      }
+      if (!user_randwalk) {
+          cdhr = false;
+          billiard = true;
+      }
+      if (billiard && diameter < 0.0) VP.comp_diam(diameter);
+
   }
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Inner ball time: " << tstop1 - tstart1 << std::endl;
@@ -388,12 +463,24 @@ int main(const int argc, const char** argv)
           walk_len = 1;
       }
   }
-  if(!user_N)
-      N = 500 * ((int) C) + ((int) (n * n / 2));
+  if(!user_N) {
+      if (BAN) {
+          N = (billiard) ? 125 : 120 + 2*n*n ;
+      } else {
+          N = 500 * ((int) C) + ((int) (n * n / 2));
+      }
+  }
   if(!user_ratio)
       ratio = 1.0-1.0/(NT(n));
-  if(!user_W)
-      W = 4*n*n+500;
+  if(!user_W) {
+      if (BAN){
+          W = (billiard) ? 150 : 2*n*n+250;
+      } else {
+          W = 4 * n * n + 500;
+      }
+
+  }
+
 
 
   // Timings
@@ -407,12 +494,7 @@ int main(const int argc, const char** argv)
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
   
-   /* RANDOM NUMBERS */
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  RNGType rng(seed);
-  boost::normal_distribution<> rdist(0,1);
-  boost::random::uniform_real_distribution<>(urdist);
-  boost::random::uniform_real_distribution<> urdist1(-1,1);
+
 
   // If no file specified construct a default polytope
   if(!file){
@@ -447,7 +529,7 @@ int main(const int argc, const char** argv)
               }
           }
       }
-      vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, rng,
+      vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, diameter, rng,
                 urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr,billiard);
       vars_g<NT, RNGType> var2(n, walk_len, N, W, 1, 0, InnerBall.second, rng, C, frac, ratio, delta,
                   false, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
@@ -488,7 +570,7 @@ int main(const int argc, const char** argv)
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,diameter,rng,
                urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr,billiard);
 
       if(round_only) {
@@ -514,7 +596,7 @@ int main(const int argc, const char** argv)
           if (annealing) {
 
               // setup the parameters
-              vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
+              vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,diameter,rng,
                        urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr,billiard);
 
               vars_g<NT, RNGType> var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
@@ -528,6 +610,22 @@ int main(const int argc, const char** argv)
                   vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
               }
 
+          } else if (BAN) {
+              vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, W, N, nu, win2);
+              if (Zono) {
+                  if (!hpoly) {
+                      //vol = volesti_ball_ann(ZP, var, var_ban, InnerBall);
+                  } else {
+                      vars_g <NT, RNGType> varg(n, 1, N, 6 * n * n + 500, 1, e, InnerBall.second, rng, C, frac, ratio, delta,
+                                                false, verbose,
+                                                rand_only, false, false, birk, false, true, false);
+                      //vol = vol_hzono < HPolytope < Point > > (ZP, var, var_ban, varg, InnerBall);
+                  }
+              } else if (!Vpoly) {
+                  //vol = volesti_ball_ann(HP, var, var_ban, InnerBall);
+              } else {
+                 // vol = round_val * volesti_ball_ann(VP, var, var_ban, InnerBall);
+              }
           } else {
               if (Zono) {
                   vol = volume(ZP, var, InnerBall);
