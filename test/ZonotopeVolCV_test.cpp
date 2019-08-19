@@ -8,6 +8,7 @@
 #include "doctest.h"
 #include <unistd.h>
 #include "Eigen/Eigen"
+#define VOLESTI_DEBUG
 #include "volume.h"
 #include "polytope_generators.h"
 #include "exact_vols.h"
@@ -55,18 +56,30 @@ void test_zono_volume(int n, int m, NT tolerance = 0.3)
     std::cout << "--- Testing volume of Zonotope in dimension: " << n <<" and number of generators: "<< m << std::endl;
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol_exact = exact_zonotope_vol<NT>(ZP);
+    std::cout<<"exact vol = "<<vol_exact<<std::endl;
     //res_round = rounding_min_ellipsoid(ZP, CheBall, var);
     //round_value = round_value * res_round.first;
     NT vol = 0;
     unsigned int const num_of_exp = 10;
+    CheBall = ZP.ComputeInnerBall();
+    Zonotope ZPiter;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
-        CheBall = ZP.ComputeInnerBall();
-        vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,0.0,rng,
-                               urdist,urdist1,-1.0,false,false,false,false,false,false,true,false,false);
-        vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
-                                 false,false,false,false,false,false,true,false);
-        vol += volume_gaussian_annealing(ZP, var1, var2, CheBall);
+
+        ZPiter = ZP;
+        //vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,0.0,rng,
+        //                       urdist,urdist1,-1.0,true,false,false,false,false,false,true,false,false);
+        //vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
+         //                        false,false,false,false,false,false,true,false);
+        std::cout<<"call volume function"<<std::endl;
+
+        vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,CheBall.second,0.0,rng,
+                               urdist,urdist1,-1.0,true,false,false,false,false,false,true,false,false);
+
+        vars_g<NT, RNGType> var1(n,walk_len,N,W,1,0.1,CheBall.second,rng,C,frac,ratio,-1.0,false,
+                                 true,false,false,false,false,false,true,false);
+
+        vol += volume_gaussian_annealing(ZPiter, var1, var2, CheBall);
     }
     NT error = std::abs(((vol/num_of_exp)-vol_exact))/vol_exact;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
