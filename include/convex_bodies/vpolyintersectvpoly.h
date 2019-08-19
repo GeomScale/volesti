@@ -71,6 +71,10 @@ public:
         return rad;
     }
 
+    MT get_mat() {
+        return P1.get_mat();
+    }
+
     MT get_mat1() {
         return P1.get_mat();
     }
@@ -78,6 +82,17 @@ public:
     MT get_mat2() {
         return P2.get_mat();
     }
+
+    Point get_mean_of_vertices() {
+        return Point(P1.dimension());
+    }
+
+
+    NT get_max_vert_norm() {
+        return 0.0;
+    }
+
+    void comp_diam(NT &diam) {}
 
     void print() {
         //std::cout<<"First polytope:\n";
@@ -310,7 +325,28 @@ public:
         return true;
     }
 
+    void compute_eigenvectors(MT G, bool norm1, bool norm2) {}
+
+    MT get_T() {
+        return P1.get_mat();
+    }
+
+    MT get_Q0(){
+        return P1.get_mat();
+    }
+
+    MT get_sigma() {
+        return P1.get_mat();
+    }
+
+    void normalize() {}
+
     void compute_reflection (Point &v, Point &p, int &facet) {}
+
+    void free_them_all() {
+        P1.free_them_all();
+        P2.free_them_all();
+    }
 
 };
 

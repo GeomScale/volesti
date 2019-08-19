@@ -25,7 +25,7 @@ GenCube <- function(dimension, repr) {
     stop('Not a known representation.')
   }
   
-  Mat = poly_gen(kind_gen, Vpoly_gen, dimension, m_gen)
+  Mat = poly_gen(kind_gen, FALSE, Vpoly_gen, dimension, m_gen)
   
   # first column is the vector b
   b = Mat[,1]

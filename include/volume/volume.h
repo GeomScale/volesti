@@ -104,6 +104,7 @@ NT volume(Polytope &P,
     }
     P.shift(c_e);
     c=Point(n);
+    P.normalize();
 
     rnum=rnum/n_threads;
     NT vol=0;
@@ -256,6 +257,7 @@ NT volume(Polytope &P,
     if(print) std::cout<<"volume computed: "<<vol<<std::endl;
     #endif
 
+    P.free_them_all();
     return vol;
 }
 
@@ -440,6 +442,8 @@ NT volume_gaussian_annealing(Polytope &P,
         std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
     }
     #endif
+
+    P.free_them_all();
 
     return vol;
 }

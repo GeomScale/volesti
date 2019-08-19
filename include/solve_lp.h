@@ -295,14 +295,13 @@ bool memLP_Vpoly(MT V, Point q){
 // if maxi is true compute positive lambda, when the ray is p + lambda \cdot v
 // otherwise compute the negative lambda
 template <typename NT, class MT, class Point>
-NT intersect_line_Vpoly(MT V, Point &p, Point &v, NT *conv_comb, bool maxi, bool zonotope){
+NT intersect_line_Vpoly(MT V, Point &p, Point &v, NT *conv_comb, NT *row, int *colno,  bool maxi, bool zonotope){
 
     int d=v.dimension(), i;
     lprec *lp;
     int m=V.rows();
     m++;
-    int Ncol=m, *colno = NULL, j, Nrows;
-    REAL *row = NULL;
+    int Ncol=m, j, Nrows;
     NT res;
     if(!zonotope) {
         Nrows = d+1;
@@ -323,19 +322,6 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, NT *conv_comb, bool maxi, bool
     }
 
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
-
-    try
-    {
-        colno = (int *) malloc(Ncol * sizeof(*colno));
-        row = (REAL *) malloc(Ncol * sizeof(*row));
-    }
-    catch (std::exception &e)
-    {
-#ifdef VOLESTI_DEBUG
-        std::cout<<"Linear Program for ray-shooting failed "<<e.what()<<std::endl;
-#endif
-        return -1.0;
-    }
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 

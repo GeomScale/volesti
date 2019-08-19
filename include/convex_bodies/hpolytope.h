@@ -129,6 +129,17 @@ public:
     }
 
 
+    Point get_mean_of_vertices() {
+        return Point(_d);
+    }
+
+
+    NT get_max_vert_norm() {
+        return 0.0;
+    }
+
+    void comp_diam(NT &diam) {}
+
     void init(unsigned int dim, MT _A, VT _b) {
         _d = dim;
         A = _A;
@@ -266,12 +277,10 @@ public:
         int m = A.rows();
         for (int i = 0; i < m; i++) {
             sum = b(i);
-            for (unsigned int j = 0; j < _d; j++) {
-                sum -= A(i, j) * p[j];
-            }
-            if (sum < NT(0)) { //Check if corresponding hyperplane is violated
-                return 0;
-            }
+            for (unsigned int j = 0; j < _d; j++) sum -= A(i, j) * p[j];
+
+            //Check if corresponding hyperplane is violated
+            if (sum < NT(0)) return 0;
         }
         return -1;
     }
@@ -281,9 +290,8 @@ public:
     //Use LpSolve library
     std::pair<Point,NT> ComputeInnerBall() {
 
-        std::pair <Point,NT> res;
-        res = ComputeChebychevBall<NT, Point>(A, b);  //lpSolve lib for the linear program
-        return res;
+        //lpSolve lib for the linear program
+        return ComputeChebychevBall<NT, Point>(A, b);
     }
 
 
@@ -334,7 +342,7 @@ public:
         viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
         for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
-            sum_nom = NT(0);// b(i);
+            sum_nom = NT(0);
             sum_denom = NT(0);
             j = 0;
             rit = r.iter_begin();
@@ -509,18 +517,34 @@ public:
         return false;
     }
 
+    MT get_T() {
+        return A;
+    }
+
+    void normalize() {
+
+        NT row_norm;
+        for (int i = 0; i < num_of_hyperplanes(); ++i) {
+            row_norm = A.row(i).norm();
+            A.row(i) = A.row(i) / row_norm;
+            b(i) = b(i) / row_norm;
+        }
+
+    }
+
     void compute_reflection(Point &v, Point &p, int facet) {
 
         Point s(_d);
         VT a = A.row(facet);
-        a = a / a.norm();
-        for (int i = 0; i < _d; ++i) {
-            s.set_coord(i, a(i));
-        }
+
+        for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
+
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
 
     }
+
+    void free_them_all() {}
 
 };
 

@@ -1,0 +1,16 @@
+birk3.ine
+H-representation
+begin
+ 9 5 integer
+ -1  1  1  1  1 
+  1 -1  0 -1  0 
+  1  0 -1  0 -1 
+  1 -1 -1  0  0 
+  1  0  0 -1 -1 
+  0  1  0  0  0 
+  0  0  1  0  0 
+  0  0  0  1  0 
+  0  0  0  0  1 
+end
+input_incidence		
+	

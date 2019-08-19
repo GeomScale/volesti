@@ -31,7 +31,11 @@ private:
     unsigned int _d;  //dimension
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
-    REAL *conv_comb;
+    REAL *conv_comb, *row;
+    int *colno;
+    MT sigma;
+    MT Q0;
+    MT T;
 
 public:
 
@@ -67,6 +71,61 @@ public:
         return res;
     }
 
+    void compute_eigenvectors(MT G, bool norm1, bool norm2) {
+
+        int k = G.cols();
+        MT ps = G;
+        sigma.resize(k,k);
+        sigma = ps.transpose()*ps;
+        if (norm1) {
+            sigma = (sigma + sigma.transpose()) / 2;
+        }
+        if (norm2) {
+            for (int i1 = 0; i1 < k; ++i1) {
+                sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
+            }
+        }
+
+        Eigen::SelfAdjointEigenSolver<MT> es(sigma);
+
+        MT D = es.eigenvalues().asDiagonal();
+        MT Q2 = es.eigenvectors();
+
+        Q0.resize(k,k-_d);
+        int count=0;
+        for (int i = 0; i < k; ++i) {
+            if(es.eigenvalues()[i]<0.0000001) {
+                for (int j = 0; j < k; ++j) {
+                    Q0(j, count) = Q2(j, i);
+                }
+                count++;
+            }
+        }
+        Eigen::JacobiSVD<MT> svd(Q0, Eigen::ComputeFullU | Eigen::ComputeFullV);
+        MT T2 = svd.matrixU().transpose();
+        T.resize(_d,k);
+        for (int i = k-_d; i < k; ++i) {
+            for (int j = 0; j < k; ++j) {
+                T(i-k+_d,j) = T2(i,j);
+            }
+        }
+
+        for (int i1 = 0; i1 < k; ++i1) sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
+
+
+    }
+
+    MT get_T() {
+        return T;
+    }
+
+    MT get_Q0(){
+        return Q0;
+    }
+
+    MT get_sigma() {
+        return sigma;
+    }
 
     // return the number of vertices
     int num_of_vertices() {
@@ -127,6 +186,48 @@ public:
         b(i) = value;
     }
 
+    Point get_mean_of_vertices() {
+        return Point(_d);
+    }
+
+
+    NT get_max_vert_norm() {
+        return 0.0;
+    }
+
+    void comp_diam(NT &diam) {
+
+        int k = V.rows();
+
+        MT D = V.transpose() * V;
+        D = (D + D.transpose()) / 2.0;
+
+        Eigen::SelfAdjointEigenSolver<MT> es(D);
+
+        MT D2 = es.eigenvalues().asDiagonal();
+        MT Q = es.eigenvectors();
+
+        NT max_eig = 0.0;
+        int max_index = -1;
+        for (int i = 0; i < _d; ++i) {
+            if (es.eigenvalues()[i] > max_eig) {
+                max_eig = es.eigenvalues()[i];
+                max_index = i;
+            }
+        }
+
+        VT max_eigvec = -1.0*Q.col(max_index);
+
+
+        VT obj_fun = max_eigvec.transpose() * V.transpose();
+        VT x0(k);
+
+        for (int j = 0; j < k; ++j) x0(j) = (obj_fun(j) < 0.0) ? -1.0 : 1.0;
+
+        diam = 2.0 * (V.transpose() * x0).norm();
+
+    }
+
 
     // define zonotope using Eigen matrix V. Vector b is neded in order the code to compatible with Hpolytope class
     void init(unsigned int dim, MT _V, VT _b) {
@@ -134,6 +235,11 @@ public:
         V = _V;
         b = _b;
         conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        bool normalization1=true;
+        bool normalization2=false;
+        compute_eigenvectors(V.transpose(),normalization1,normalization2);
     }
 
 
@@ -149,6 +255,11 @@ public:
             }
         }
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        bool normalization1=true;
+        bool normalization2=false;
+        compute_eigenvectors(V.transpose(),normalization1,normalization2);
     }
 
 
@@ -189,7 +300,7 @@ public:
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            min_plus = intersect_line_Vpoly<NT>(V, center, v, conv_comb, false, true);
+            min_plus = intersect_line_Vpoly<NT>(V, center, v, conv_comb, row, colno, false, true);
             if (min_plus < radius) radius = min_plus;
         }
 
@@ -221,12 +332,13 @@ public:
     }
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
-        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, false, true), 1);
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, true), 1);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
-        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, false, true), 1);
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
+                                               NT &lambda_prev) {
+        return line_positive_intersect(r, v, Ar, Av);
     }
 
 
@@ -289,9 +401,11 @@ public:
         return false;
     }
 
+    void normalize() {}
+
     void compute_reflection(Point &v, Point &p, int facet) {
 
-        int count = 0, outvert;
+        int count = 0;
         MT Fmat(_d-1,_d);
         NT e = 0.0000000001;
         for (int j = 0; j < num_of_generators(); ++j) {
@@ -299,21 +413,28 @@ public:
                 ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
                 Fmat.row(count) = V.row(j);
                 count++;
-            } else {
-                outvert = j;
             }
         }
 
         VT a = Fmat.fullPivLu().kernel();
-        if (a.dot(V.row(outvert)) > 1.0) a = -a;
+        NT sum = 0.0;
+        for (int k = 0; k < _d; ++k) sum += a(k)*p[k];
+
+        if(sum<0.0) a = -1.0*a;
+
         a = a/a.norm();
 
         Point s(_d);
-        for (int i = 0; i < _d; ++i) {
-            s.set_coord(i, a(i));
-        }
+        for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
+
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
+    }
+
+    void free_them_all() {
+        free(row);
+        free(colno);
+        free(conv_comb);
     }
 
 };

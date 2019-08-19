@@ -11,12 +11,25 @@
 #' # generate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
 #' P = GenZonotope(10, 20)
 #' @export
-GenZonotope <- function(dimension, NumGen) {
+GenRandZonotope <- function(dimension, NumGen, dist = NULL) {
   
   kind_gen = 0
   Vpoly_gen = FALSE
+  zono_gen = TRUE
   
-  Mat = poly_gen(kind_gen, Vpoly_gen, dimension, NumGen)
+  if (is.null(dist)){
+    kind_gen = 1
+  } else if(dist == 'gaussian'){
+    kind_gen = 2
+  } else if(dist == 'uniform') {
+    kind_gen = 3
+  } else if(dist == 'exponential') {
+    kind_gen = 4
+  } else {
+    return(0)
+  }
+  
+  Mat = poly_gen(kind_gen, zono_gen, Vpoly_gen, dimension, NumGen)
   
   # first column is the vector b
   b = Mat[,1]

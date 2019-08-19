@@ -144,8 +144,8 @@ exact_vol <- function(P = NULL, body = NULL, Parameters = NULL) {
 #' Do not use this function.
 #'
 #' @return A numerical matrix describing the requested polytope
-poly_gen <- function(kind_gen, Vpoly_gen, dim_gen, m_gen) {
-    .Call(`_volesti_poly_gen`, kind_gen, Vpoly_gen, dim_gen, m_gen)
+poly_gen <- function(kind_gen, zono_gen, Vpoly_gen, dim_gen, m_gen) {
+    .Call(`_volesti_poly_gen`, kind_gen, zono_gen, Vpoly_gen, dim_gen, m_gen)
 }
 
 #'  An internal Rccp function for the random rotation of a convex polytope
@@ -170,7 +170,7 @@ rotating <- function(P) {
 #' @section warning:
 #' Do not use this function.
 #'
-#' @return A numerical matrix that describes the rounded polytope and contains the round value.
+#' @return A List that contains a numerical matrix that describes the rounded polytope and the round value.
 rounding <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL) {
     .Call(`_volesti_rounding`, P, WalkType, walk_step, radius)
 }
@@ -227,8 +227,8 @@ NULL
 #' P = Vpolytope$new(V)
 #' points = sample_points(P, N = 10000, exact = TRUE)
 #' @export
-sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL, Parameters = NULL, InnerPoint = NULL) {
-    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_step, exact, body, Parameters, InnerPoint)
+sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL, boundary = NULL, Parameters = NULL, InnerPoint = NULL) {
+    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_step, exact, body, boundary, Parameters, InnerPoint)
 }
 
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
@@ -239,7 +239,7 @@ sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NU
 #' @param walk_step Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
 #' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
 #' @param InnerBall Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
-#' @param Algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian.
+#' @param Algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian or c) \code{'BAN'} for CoolingBodies..
 #' @param WalkType Optional. A string that declares the random walk method (the default random walk is Coordinate Directions Hit-and-Run):
 NULL
 
@@ -250,10 +250,20 @@ NULL
 #' \itemize{
 #' \item{\code{Window} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
 #'  \item{\code{C} }{ A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. The default value is \eqn{2}.}
-#'  \item{\code{N} }{ The number of points we sample in each step of schedule annealing in CG algorithm. The default value is \eqn{500C + dimension^2 / 2}.}
+#'  \item{\code{M} }{ The number of points we sample in each step of schedule annealing in CG algorithm. The default value is \eqn{500C + dimension^2 / 2}.}
 #'  \item{\code{ratio} }{ Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. The default value is \eqn{1 - 1/dimension}.}
 #'  \item{\code{frac} }{ The fraction of the total error to spend in the first gaussian in CG algorithm. The default value is \eqn{0.1}.}
 #'  \item{\code{BW_rad} }{ The radius for the ball walk. The default value is \eqn{4r/dimension}, where \eqn{r} is the radius of the inscribed ball of the polytope.}
+#'  \item{\code{ub} }{ The lower bound for the ratios in MMC in BAN algorithm. The default value is \eqn{0.1}.}
+#'  \item{\code{lb} }{ The upper bound for the ratios in MMC in BAN algorithm. The default value is \eqn{0.15}.}
+#'  \item{\code{N} }{ An integer that controls the number of points \eqn{\nu N} generated in each convex body in annealing schedule.}
+#'  \item{\code{nu} }{ The degrees of freedom for the t-student distribution in t-tests in BAN algorithm. The default value is \eqn{10}.}
+#'  \item{\code{alpha} }{ The significance level for the t-tests in BAN algorithm. The default values is 0.2.}
+#'  \item{\code{prob} }{ The probability is used for the empirical confidence interval in ratio estimation of BAN algorithm. The default value is \eqn{0.75}.}
+#'  \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of BAN algorithm. The default value is \code{FALSE}.}
+#'  \item{\code{diameter} }{ The diameter of P. It is used for Billiard walk. Optional}
+#'  \item{\code{minmaxW} }{ A boolean parameter to use the sliding window with a minmax values stopping criterion.}
+#'
 #' }
 #'
 #' @references \cite{I.Z.Emiris and V. Fisikopoulos,
@@ -277,5 +287,24 @@ NULL
 #' @export
 volume <- function(P, walk_step = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
     .Call(`_volesti_volume`, P, walk_step, error, InnerBall, Algo, WalkType, rounding, Parameters)
+}
+
+#' An internal Rccp function for the over-approximation of a zonotope
+#'
+#' @param Z A zonotope.
+#' @param fit_ratio Optional. A boolean parameter to request the computation of the ratio of fitness.
+#' @param walk_step Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
+#' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
+#' @param InnerBall Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
+#' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
+#' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
+#' @param Parameters Optional. A list for the parameters of the volume algorithm
+#'
+#' @section warning:
+#' Do not use this function.
+#'
+#' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
+zono_approx <- function(Z, fit_ratio = NULL, walk_step = NULL, error = NULL, InnerBall = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
+    .Call(`_volesti_zono_approx`, Z, fit_ratio, walk_step, error, InnerBall, WalkType, rounding, Parameters)
 }
 

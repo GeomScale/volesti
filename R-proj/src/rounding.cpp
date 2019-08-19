@@ -33,7 +33,7 @@
 //' @section warning:
 //' Do not use this function.
 //'
-//' @return A numerical matrix that describes the rounded polytope and contains the round value.
+//' @return A List that contains a numerical matrix that describes the rounded polytope and the round value.
 // [[Rcpp::export]]
 Rcpp::List rounding (Rcpp::Reference P,
                               Rcpp::Nullable<std::string> WalkType = R_NilValue,
@@ -124,7 +124,7 @@ Rcpp::List rounding (Rcpp::Reference P,
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
     // initialization
-    vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
+    vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,0.0,rng,urdist,urdist1,
                           delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr, billiard);
     std::pair <NT, NT> round_res;
 

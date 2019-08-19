@@ -31,7 +31,8 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    REAL *conv_comb;
+    REAL *conv_comb, *row;
+    int *colno;
 
 public:
     VPolytope() {}
@@ -130,11 +131,54 @@ public:
     }
 
 
+    Point get_mean_of_vertices() {
+        std::vector<NT> vec(_d);
+        Point xc(_d), temp(_d);
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            for (int j = 0; j < _d; ++j) vec[j] = V(i,j);
+
+            temp = Point(_d, vec.begin(), vec.end());
+            xc = xc + temp;
+        }
+        xc = xc * (1.0/NT(num_of_vertices()));
+
+        return xc;
+    }
+
+
+    NT get_max_vert_norm() {
+        NT rad =0.0;
+        NT rad_iter;
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            rad_iter = V.row(i).norm();
+            if(rad_iter>rad)rad = rad_iter;
+        }
+        return rad;
+    }
+
+
+    void comp_diam(NT &diam) {
+        diam = 0.0;
+        NT diam_iter;
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            for (int j = 0; j < num_of_vertices(); ++j) {
+                if(i != j) {
+                    diam_iter = (V.row(i) - V.row(j)).norm();
+                    if (diam_iter > diam) diam = diam_iter;
+                }
+            }
+        }
+
+    }
+
+
     void init(unsigned int dim, MT _V, VT _b) {
         _d = dim;
         V = _V;
         b = _b;
-        conv_comb = (REAL *) malloc((V.rows()+1)* sizeof(*conv_comb));
+        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
 
 
@@ -150,6 +194,8 @@ public:
             }
         }
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
 
 
@@ -305,12 +351,13 @@ public:
 
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
-        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, false, false), 1);
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
-        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, false, false), 1);
+    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
+                                               NT &lambda_prev) {
+        return line_positive_intersect(r, v, Ar, Av);
     }
 
 
@@ -364,6 +411,8 @@ public:
         return res;
     }
 
+    void normalize() {}
+
 
     // in number_of_vertices<=20*dimension use the vertices for the rounding
     // otherwise you have to sample from the V-polytope
@@ -386,6 +435,9 @@ public:
         return true;
     }
 
+    MT get_T() {
+        return V;
+    }
 
     void compute_reflection(Point &v, Point &p, int facet) {
 
@@ -409,6 +461,12 @@ public:
 
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
+    }
+
+    void free_them_all() {
+        free(row);
+        free(colno);
+        free(conv_comb);
     }
 
 };
