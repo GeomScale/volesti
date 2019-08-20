@@ -1,3 +1,7 @@
+// Code from https://github.com/rzrsk/vaidya-walk
+
+// Modified by Apostolos Chalkis, as part of Google Summer of Code 2019 program.
+
 #ifndef PWALK_WALK_HPP_
 #define PWALK_WALK_HPP_
 

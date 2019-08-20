@@ -1,12 +1,6 @@
-// VolEsti (volume computation and sampling library)
+// Code from https://github.com/rzrsk/vaidya-walk
 
-// Copyright (c) 2012-2019 Vissarion Fisikopoulos
-
-// Copyright (c) 2018-2019 Vissarion Fisikopoulos, Apostolos Chalkis
-
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
-
-// Licensed under GNU LGPL.3, see LICENCE file
+// Modified by Apostolos Chalkis, as part of Google Summer of Code 2019 program.
 
 #ifndef PWALK_JOHN_WALKER_HPP_
 #define PWALK_JOHN_WALKER_HPP_
