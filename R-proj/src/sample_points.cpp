@@ -22,6 +22,9 @@
 #include "sample_only.h"
 #include "simplex_samplers.h"
 #include "vpolyintersectvpoly.h"
+#include "dikin_walker.h"
+#include "vaidya_walker.h"
+#include "john_walker.h"
 
 
 //' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere
@@ -101,7 +104,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
-    bool set_mean_point = false, cdhr = true, rdhr = false, ball_walk = false, gaussian = false;
+    bool set_mean_point = false, cdhr = false, rdhr = false, ball_walk = false, gaussian = false,
+            dikin = false, john = false, vaidya = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -194,18 +198,18 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
         if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
             cdhr = true;
-            rdhr = false;
-            ball_walk = false;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
-            cdhr = false;
             rdhr = true;
-            ball_walk = false;
+        }else if (Rcpp::as<std::string>(WalkType).compare(std::string("Dikin"))==0) {
+            dikin = true;
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("John"))==0) {
+            john = true;
+        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("Vaidya"))==0) {
+            vaidya = true;
         } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
             if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
                 delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
             }
-            cdhr = false;
-            rdhr = false;
             ball_walk = true;
         } else {
             throw Rcpp::exception("Unknown walk type!");
@@ -234,6 +238,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 // Hpolytope
                 HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                         Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
+
+                HP.normalize();
 
                 if (!set_mean_point || ball_walk) {
                     InnerBall = HP.ComputeInnerBall();
@@ -298,6 +304,41 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
         switch (type) {
             case 1: {
+
+                if (dikin || john || vaidya) {
+
+                    MT A = HP.get_mat(), samples = MT::Zero(A.cols(), numpoints);
+                    VT b = HP.get_vec(), new_sample = VT::Zero(A.cols()), p0 = Eigen::Map<VT>(&InnerBall.first.get_coeffs()[0], A.cols());
+                    NT r = InnerBall.second;
+
+                    if (dikin) {
+                        DikinWalker <NT> dikinw = DikinWalker<NT>(p0, A, b, r);
+                        for (int i = 0; i < numpoints; ++i) {
+                            for (int j = 0; j < walkL; ++j) {
+                                dikinw.doSample(new_sample);
+                            }
+                            samples.col(i) = new_sample;
+                        }
+                    } else if (john) {
+                        JohnWalker<NT> johnw = JohnWalker<NT>(p0, A, b, r);
+                        for (int i = 0; i < numpoints; ++i) {
+                            for (int j = 0; j < walkL; ++j) {
+                                johnw.doSample(new_sample);
+                            }
+                            samples.col(i) = new_sample;
+                        }
+                    } else {
+                        VaidyaWalker<NT> vaidyaw = VaidyaWalker<NT>(p0, A, b, r);
+                        for (int i = 0; i < numpoints; ++i) {
+                            for (int j = 0; j < walkL; ++j) {
+                                vaidyaw.doSample(new_sample);
+                            }
+                            samples.col(i) = new_sample;
+                        }
+                    }
+                    return Rcpp::wrap(samples);
+                }
+
                 sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
                                      a, MeanPoint, var1, var2);
                 break;

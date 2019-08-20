@@ -390,6 +390,18 @@ public:
     }
 
 
+    void normalize() {
+
+        NT row_norm;
+        for (int i = 0; i < num_of_hyperplanes(); ++i) {
+            row_norm = A.row(i).norm();
+            A.row(i) = A.row(i) / row_norm;
+            b(i) = b(i) / row_norm;
+        }
+
+    }
+
+
     // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
     void linear_transformIt(MT T) {
         A = A * T;
