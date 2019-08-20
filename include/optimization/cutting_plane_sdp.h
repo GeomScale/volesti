@@ -302,6 +302,9 @@ namespace optimization {
         // begin sampling
         int addPointEverySteps = rnum / (1000 + dim*sqrt(dim));
 
+        if (addPointEverySteps == 0)
+            addPointEverySteps = 1;
+
         for (unsigned int i = 1; i <= rnum; ++i) {
 
             // get next point
@@ -380,6 +383,9 @@ namespace optimization {
         // begin sampling
 
         int addPointEverySteps = rnum / (1000 + dim*sqrt(dim));
+
+        if (addPointEverySteps == 0)
+            addPointEverySteps = 1;
 
         for (unsigned int i = 1; i <= rnum; ++i) {
 

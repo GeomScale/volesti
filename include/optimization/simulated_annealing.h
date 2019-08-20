@@ -315,6 +315,10 @@ namespace optimization {
         int pointsSize = 1000 + 10*d*sqrtd;
         int slidingWindowSize = 1000 + sqrtd*d*d;
         int pickEverySteps = slidingWindowSize / pointsSize;
+
+        if (pickEverySteps == 0)
+            pickEverySteps = 1;
+
         SlidingWindow slidingWindow(slidingWindowSize);
         int count = 1;
 
