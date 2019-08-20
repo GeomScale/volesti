@@ -33,6 +33,11 @@ public:
         d = dim;
         coeffs = Coeff(begin,endit);
     }
+
+    point(const unsigned int dim, Coeff cofs) {
+        d = dim;
+        coeffs.assign(cofs.begin(), cofs.end());
+    }
     
     int dimension() {
         return d;
@@ -44,6 +49,10 @@ public:
     
     void set_coord(const unsigned int i, FT coord) {
         coeffs[i] = coord;
+    }
+
+    void set_coeffs(Coeff &cofs) {
+        coeffs.assign(cofs.begin(), cofs.end());
     }
 
     Coeff get_coeffs() {

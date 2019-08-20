@@ -282,7 +282,7 @@ NULL
 #' vol = volume(P, Algo = "CG")
 #'
 #' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
-#' Z = GenZonotope(2, 4)
+#' Z = GenZonotope(2, 4, dist = "uniform")
 #' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 #' @export
 volume <- function(P, walk_step = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {

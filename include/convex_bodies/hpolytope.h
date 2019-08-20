@@ -534,10 +534,15 @@ public:
 
     void compute_reflection(Point &v, Point &p, int facet) {
 
-        Point s(_d);
+        //Point s(_d);
         VT a = A.row(facet);
+        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
 
-        for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
+        //std::vector<NT> siter(&a[0], a.data()+a.cols()*a.rows());
+        //s.set_coeffs(siter);
+        //s.get_coeffs().assign(siter.begin(), siter.end());
+        //std::copy(siter.begin(), siter.end(), back_inserter(s.get_coeffs()));
+        //for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
 
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;

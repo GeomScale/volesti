@@ -424,8 +424,9 @@ public:
 
         a = a/a.norm();
 
-        Point s(_d);
-        for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
+        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
+        //Point s(_d);
+        //for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
 
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
