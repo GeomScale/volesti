@@ -237,7 +237,7 @@ namespace optimization {
             if (slidingWindowStop.getRelativeError() < error)
                 break;
 
-            std::cout << " $ " << interiorPoint.dot(objectiveFunction) << "\n";
+//            std::cout << " $ " << interiorPoint.dot(objectiveFunction) << "\n";
 
             step++;
         } while (step <= maxSteps || tillConvergence);
