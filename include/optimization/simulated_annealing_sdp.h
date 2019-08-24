@@ -5,6 +5,11 @@
 #ifndef VOLESTI_SIMULATED_ANNEALING_SDP_H
 #define VOLESTI_SIMULATED_ANNEALING_SDP_H
 
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+#include "truncated_exponential.h"
 #include "spectrahedron.h"
 #include "samplers.h"
 #include "Eigen"

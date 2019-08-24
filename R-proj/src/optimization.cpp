@@ -11,6 +11,38 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "vars.h"
 
+//' The function for linear proramming, i.e.
+//'
+//' min \eqn{cx}
+//' s.t. \eqn{Ax\leq b}
+//'
+//' There are two available algorithms, the randomized cutting plane and the simulated annealing. The constraints of the linear program describe an H-polytope with \eqn{m} facets.
+//'
+//' @param P. An object from class Hpolytope.
+//' @param objectiveFunction. A numerical vector with the coefficients of the objective function.
+//' @param algorithm Optional. A string specifying which algorithm to use:
+//' \itemize{
+//' \item{\code{'RCP'} }{The randomized cutting plane method}
+//' \item{\code{'RCPS'} }{The randomized cutting plane method with the implicit isotropization heuristic}
+//' \item{\code{'SA'} }{The simulated annealing algorithm}
+//' }
+//' @param randomWalk Optional. A string specifying which random walk to use to use:
+//' \itemize{
+//' \item{\code{'BW'} }{The billiard walk, available only for \code{RCP}}
+//' \item{\code{'CDHR'} }{Hit & Run with coordinate directions, available only for \code{RCP}}
+//' \item{\code{'RDHR'} }{Hit & Run with random directions, available for \code{RCP}, \code{RCPS}, \code{SA}}
+//' }
+//' @param numMaxSteps Optional. The maximum number of iterations of the algorithm.
+//' @param pointsNum Optional. The number of points to sample per iteration.
+//' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{0.000001}.
+//'
+//'
+//' @return A list with the minimum value and the values of x.
+//' @examples
+//' # calling RCP algorithm for a H-polytope (10d unit simplex)
+//' P = volesti::GenSimplex(10, "H")
+//' obj = c(1.80429, -8.46931, -1.68169, -1.71464, -1.95775, -4.24238, -7.19885, -1.64979, -5.9658, -1.189649)
+//' volesti::lp_optimization(P, obj, algorithm = "SA", pointsNum=500)
 //' @export
 // [[Rcpp::export]]
 Rcpp::List lp_optimization(Rcpp::Reference P,
@@ -134,7 +166,7 @@ Rcpp::List lp_optimization(Rcpp::Reference P,
             case Algorithm::RANDOMIZED_CUTTING_PLANE:
             case Algorithm::RANDOMIZED_CUTTING_PLANE_SAMPLED_COVARIANCE_HEURISTIC:
             case Algorithm::SIMULATED_ANNEALING_EFICIENT_COVARIANCE:
-                rnum = 500 + dimension*dimension;
+                rnum = 1000 + dimension*dimension;
                 break;
             case Algorithm::RANDOMIZED_CUTTING_PLANE_BILLIARD:
                 rnum = 10;
@@ -170,6 +202,24 @@ Rcpp::List lp_optimization(Rcpp::Reference P,
 }
 
 
+//' The function for semidefinite proramming, i.e.
+//'
+//' There are two available algorithms, the randomized cutting plane and the simulated annealing.
+//'
+//' @param S. An object from class Spectrahedron.
+//' @param objectiveFunction. A numerical vector with the coefficients of the objective function.
+//' @param algorithm Optional. A string specifying which algorithm to use:
+//' \itemize{
+//' \item{\code{'RCP'} }{The randomized cutting plane method}
+//' \item{\code{'RCPS'} }{The randomized cutting plane method with the implicit isotropisation heuristic}
+//' \item{\code{'SA'} }{The simulated annealing algorithm}
+//' }
+//' @param numMaxSteps Optional. The maximum number of iterations of the algorithm.
+//' @param pointsNum Optional. The number of points to sample per iteration.
+//' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{0.000001}.
+//'
+//'
+//' @return A list with the minimum value and the values of x.
 //' @export
 // [[Rcpp::export]]
 Rcpp::List sdp_optimization(Rcpp::Reference S,
@@ -278,7 +328,7 @@ Rcpp::List sdp_optimization(Rcpp::Reference S,
             case Algorithm::RANDOMIZED_CUTTING_PLANE:
             case Algorithm::RANDOMIZED_CUTTING_PLANE_COVARIANCE_MATRIX:
             case Algorithm::SIMULATED_ANNEALING_EFICIENT_COVARIANCE:
-                rnum = 500 + dimension*dimension;
+                rnum = 1000 + dimension*dimension;
                 break;
         }
     }
