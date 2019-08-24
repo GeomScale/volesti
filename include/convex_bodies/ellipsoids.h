@@ -40,9 +40,9 @@ public:
     NT mat_mult(Point p) {
         VT q(dim);
         unsigned int i = 0;
-        viterator pit = p.iter_begin();
-        for ( ; pit!=p.iter_end(); ++pit, ++i){
-            q(i)=(*pit);
+
+        for ( ; i<p.dimension(); ++i){
+            q(i)=p[i];
         }
         return q.transpose()*G*q;
     }

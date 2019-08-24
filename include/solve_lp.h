@@ -854,10 +854,9 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
     set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
 
     // set the bounds
-    typename std::vector<NT>::iterator pit = direction.iter_begin();
-    for(j=0; j<Ncol; ++j, ++pit){
+    for(j=0; j<Ncol; ++j){
         colno[j] = j+1; /* j_th column */
-        row[j] = (*pit);
+        row[j] = direction[j];
         set_bounds(lp, j+1, 0.0, infinite);
     }
 
@@ -893,11 +892,13 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
     }
     VT cb2(d);
     cb2 = V1.transpose()*cb;
-    pit = p.iter_begin();
-    j = 0;
-    for ( ; pit!=p.iter_end(); ++pit, ++j) {
-        *pit = cb2(j);
-    }
+
+//    pit = p.iter_begin();
+//    j = 0;
+//    for ( ; pit!=p.iter_end(); ++pit, ++j) {
+//        *pit = cb2(j);
+//    }
+    p = Point(cb2);
 
     empty = false;
     return p;

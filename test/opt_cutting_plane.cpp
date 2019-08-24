@@ -5,6 +5,11 @@
 
 
 #include <fstream>
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+#include "truncated_exponential.h"
 #include "volume.h"
 #include "sample_only.h"
 #include "exact_vols.h"

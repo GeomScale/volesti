@@ -2226,7 +2226,7 @@ namespace optimization {
 
 
             step++;
-            std::cout << min << ", ";
+//            std::cout << min << ", ";
 
 
         } while (step <= maxSteps || tillConvergence);

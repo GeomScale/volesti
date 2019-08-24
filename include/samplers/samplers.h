@@ -13,7 +13,6 @@
 #include "Eigen"
 #include "spectrahedron.h"
 #include <cmath>
-#include "truncated_exponential.h"
 
 typedef double NT_MATRIX;
 typedef Eigen::Matrix<NT_MATRIX,Eigen::Dynamic,Eigen::Dynamic> MT;

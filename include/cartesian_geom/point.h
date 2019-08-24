@@ -101,8 +101,8 @@ public:
     bool operator== (point& p) {//TODO check dim?
         int i=0;
 
-        for (auto x : p.getCoefficients()) {
-            if (x != coeffs(i++)) return false;
+        for (i=0 ; i<d ; i++) {
+            if (coeffs(i) != p[i]) return false;
         }
 
         return true;

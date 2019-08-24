@@ -26,7 +26,7 @@ namespace optimization {
     private:
         Spectrahedron spectrahedron;
         VT objectiveFunction;
-        std::pair<Point, double> solution;
+
 
         void read_inequality_formulation(std::istream &is) {
             std::string line;
@@ -148,6 +148,8 @@ namespace optimization {
         }
 
     public:
+
+        std::pair<Point, double> solution;
 
         typedef enum Algorithm{
             RANDOMIZED_CUTTING_PLANE,
