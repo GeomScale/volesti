@@ -360,3 +360,88 @@ Rcpp::List sdp_optimization(Rcpp::Reference S,
                               Rcpp::Named("coordinates") = sdp.solution.first.getCoefficients());
 
 }
+
+
+//' @export
+// [[Rcpp::export]]
+Rcpp::NumericMatrix sample_spectrahedron(Rcpp::Nullable<Rcpp::Reference> S = R_NilValue,
+                                         Rcpp::Nullable<unsigned int> N = R_NilValue,
+                                         Rcpp::Nullable<unsigned int> walk_step = R_NilValue){
+    typedef double NT;
+    typedef Cartesian<NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef boost::mt19937 RNGType;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+
+    /* CONSTANTS */
+    //error in hit-and-run bisection of P
+    const NT err = 0.0000000001;
+
+    bool verbose = false,
+            rand_only = false,
+            round_only = false,
+            file = false,
+            round = false,
+            NN = false,
+            user_walk_len = false,
+            linear_extensions = false,
+            birk = false,
+            rotate = false,
+            ball_walk = false,
+            ball_rad = false,
+            experiments = true,
+            annealing = false,
+            Vpoly = false,
+            Zono = false,
+            cdhr = false,
+            rdhr = true,
+            exact_zono = false,
+            gaussian_sam = false,
+            billiard = false;
+
+    int rnum, maxSteps;
+
+    NT e = 1;
+    NT distance = 0.0001;
+    NT delta = -1.0;
+
+    /** CHECK SCPECTRAHEDRON **/
+
+    Spectrahedron spectrahedron;
+    std::vector<MT> matrices = Rcpp::as<Rcpp::Reference>(S).field("matrices");
+    LMI lmi;
+    lmi = LMI(matrices);
+    spectrahedron = Spectrahedron(lmi);
+    int dimension = Rcpp::as<Rcpp::Reference>(S).field("dimension");
+
+
+
+    /* RANDOM NUMBERS */
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+    boost::normal_distribution<> rdist(0, 1);
+    boost::random::uniform_real_distribution<>(urdist);
+    boost::random::uniform_real_distribution<> urdist1(-1, 1);
+
+    vars<NT, RNGType> var(Rcpp::as<unsigned int>(N), dimension, Rcpp::as<unsigned int>(walk_step), 1, err, e, 0, 0.0, 0, 0, rng,
+                          urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
+
+
+    std::list<Point> points;
+    Point initial(getInteriorPoint(spectrahedron));
+    rand_point_generator(spectrahedron, initial, Rcpp::as<unsigned int>(N), Rcpp::as<unsigned int>(walk_step), points, var);
+    int numpoints = points.size();
+
+    Rcpp::NumericMatrix PointSet(dimension,numpoints);
+    typename std::list<Point>::iterator rpit=points.begin();
+    unsigned int j = 0, i;
+    for ( ; rpit!=points.end(); rpit++, j++) {
+        i=0;
+        for ( ; i<(*rpit).dimension(); i++){
+            PointSet(i,j)=(*rpit)[i];
+        }
+    }
+    return PointSet;
+}
+

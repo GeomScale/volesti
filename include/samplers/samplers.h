@@ -175,7 +175,21 @@ void rand_point_generator(Polytope &P,
 
 
 
+template <class PointList, class Parameters, class Point>
+void rand_point_generator(Spectrahedron &spectrahedron,
+                          Point &p,   // a point to start
+                          unsigned int rnum,
+                          unsigned int walk_len,
+                          PointList &randPoints,
+                          Parameters &var)  {
 
+    for (unsigned int i = 1; i <= rnum; ++i) {
+        for (unsigned int j = 0; j < walk_len; ++j) {
+            hit_and_run(p, spectrahedron, var);
+        }
+        randPoints.push_back(p);
+    }
+}
 
 
 template <class BallPoly, class PointList, class Parameters, class Point>
