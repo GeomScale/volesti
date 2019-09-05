@@ -1,4 +1,4 @@
-compute_indicators <- function(MatReturns, win_len = NULL, numSlices = NULL, N = NULL) {
+ComputeIndicators <- function(MatReturns, win_len = NULL, numSlices = NULL, n = NULL) {
   
   if (is.null(win_len)) win_len = 60
   if (is.null(numSlices)) numSlices = 100

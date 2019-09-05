@@ -16,20 +16,20 @@
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
 #' P = GenSimplex(2,'H')
-#' poly_matrix_list = rand_rotate(P)
+#' poly_matrix_list = rotate(P)
 #' 
 #' # rotate a V-polytope (3d cube)
 #' P = GenCube(3, 'V')
-#' poly_matrix_list = rand_rotate(P)
+#' poly_matrix_list = rotate(P)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
 #' Z = GenZonotope(3,6)
-#' poly_matrix_list = rand_rotate(Z)
+#' poly_matrix_list = rotate(Z)
 #' @export
-rand_rotate <- function(P){
+rotate <- function(P, T = NULL){
   
   #call rcpp rotating function
-  Mat = rotating(P)
+  Mat = rotating(P, T)
   
   n = P$dimension
   m=dim(Mat)[2]-n

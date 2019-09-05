@@ -25,13 +25,14 @@
 //'  An internal Rccp function for the random rotation of a convex polytope
 //'
 //' @param P A convex polytope (H-, V-polytope or a zonotope).
+//' @param T A matrix of a linear map.
 //'
 //' @section warning:
 //' Do not use this function.
 //'
 //' @return A matrix that describes the rotated polytope
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rotating (Rcpp::Reference P){
+Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMatrix> T = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -57,7 +58,12 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            TransorfMat = rotating < MT > (HP);
+            if (!T.isNotNull()) {
+                HP.linear_transformIt(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(T)).inverse());
+                TransorfMat = Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(T));
+            } else {
+                TransorfMat = rotating < MT > (HP);
+            }
             Mat = extractMatPoly(HP);
             break;
         }
@@ -65,7 +71,12 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            TransorfMat = rotating< MT >(VP);
+            if (!T.isNotNull()) {
+                VP.linear_transformIt(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(T)).inverse());
+                TransorfMat = Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(T));
+            }else {
+                TransorfMat = rotating < MT > (VP);
+            }
             Mat = extractMatPoly(VP);
             break;
         }
@@ -73,7 +84,12 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             // Zonotope
             zonotope ZP;
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-            TransorfMat = rotating < MT > (ZP);
+            if (!T.isNotNull()) {
+                ZP.linear_transformIt(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(T)).inverse());
+                TransorfMat = Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(T));
+            }else {
+                TransorfMat = rotating < MT > (ZP);
+            }
             Mat = extractMatPoly(ZP);
             break;
         }

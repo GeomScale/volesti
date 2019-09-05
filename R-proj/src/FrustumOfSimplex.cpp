@@ -27,17 +27,18 @@
 //' # compute the frustum of H: -x1+x2<=0
 //' a=c(-1,1)
 //' z0=0
-//' frustum = SliceOfSimplex(a, z0)
+//' frustum = FrustumOfSimplex(a, z0)
 //' @export
 // [[Rcpp::export]]
-double SliceOfSimplex(Rcpp::NumericVector a, double z0){
+double FrustumOfSimplex(Rcpp::Nullable<Rcpp::NumericVector> a = R_NilValue, Rcpp::Nullable<double> z0 = R_NilValue){
 
-    unsigned int dim = a.size();
-    if (dim < 2) {
-        throw Rcpp::exception("Dimension has to be greater than 2");
-    }
+    if (!a.isNotNull() || !z0.isNotNull()) throw Rcpp::exception("Input missing!");
+
     std::vector<double> hyp = Rcpp::as<std::vector<double> >(a);
+    unsigned int dim = hyp.size();
 
-    return vol_Ali(hyp, -z0, dim);
+    if (dim < 2) throw Rcpp::exception("Dimension has to be greater than 2");
+
+    return vol_Ali(hyp, -Rcpp::as<double>(z0), dim);
 
 }

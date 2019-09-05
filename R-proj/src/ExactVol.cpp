@@ -32,7 +32,7 @@ FT factorial(FT n)
 //'
 //' @param P A zonotope or a simplex in V-representation.
 //' @param body A string that declares the type of the body for the exact sampling: a) \code{'simplex'} for the unit simplex, b) \code{'cross'} for the cross polytope, c) \code{'hypersphere'} for the hypersphere, d) \code{'cube'} for the unit cube.
-//' @param Parameters A list for the parameters of the methods:
+//' @param parameters A list for the parameters of the methods:
 //' \itemize{
 //' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 //' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
@@ -43,20 +43,20 @@ FT factorial(FT n)
 //'
 //' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
 //' Z = GenZonotope(5, 10)
-//' vol = exact_vol(Z)
+//' vol = ExactVol(Z)
 //'
 //' \donttest{# compute the exact volume of a 2-d arbitrary simplex
 //' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
 //' P = Vpolytope$new(V)
-//' vol = exact_vol(P)
+//' vol = ExactVol(P)
 //' }
 //'
 //' # compute the exact volume the 10-dimensional cross polytope
-//' vol = exact_vol(body = "cross", Parameters = list("dimension" = 10))
+//' vol = ExactVol(body = "cross", parameters = list("dimension" = 10))
 //' @export
 // [[Rcpp::export]]
-double exact_vol(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue, Rcpp::Nullable<std::string> body = R_NilValue,
-                 Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue){
+double ExactVol(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue, Rcpp::Nullable<std::string> body = R_NilValue,
+                 Rcpp::Nullable<Rcpp::List> parameters = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -100,9 +100,9 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue, Rcpp::Nullable<
         }
     } else {
         if (body.isNotNull()) {
-            if (Parameters.isNotNull()) {
-                if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("dimension")) {
-                    dim = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["dimension"]);
+            if (parameters.isNotNull()) {
+                if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("dimension")) {
+                    dim = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["dimension"]);
                 } else {
                     throw Rcpp::exception("You have to declare the dimension!");
                 }
@@ -117,8 +117,8 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue, Rcpp::Nullable<
             } else if (Rcpp::as<std::string>(body).compare(std::string("cube"))==0) {
                 vol = std::pow(2.0, NT(dim));
             } else if (Rcpp::as<std::string>(body).compare(std::string("hypersphere"))==0) {
-                if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("radius")) {
-                    rad = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["radius"]);
+                if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("radius")) {
+                    rad = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["radius"]);
                 } else {
                     throw Rcpp::exception("You have to declare the dimension!");
                 }

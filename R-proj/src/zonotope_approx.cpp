@@ -15,12 +15,12 @@
 //'
 //' @param Z A zonotope.
 //' @param fit_ratio Optional. A boolean parameter to request the computation of the ratio of fitness.
-//' @param walk_step Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
+//' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
 //' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
-//' @param InnerBall Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
-//' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
+//' @param inner_ball Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
+//' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
 //' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
-//' @param Parameters Optional. A list for the parameters of the volume algorithm
+//' @param parameters Optional. A list for the parameters of the volume algorithm
 //'
 //' @section warning:
 //' Do not use this function.
@@ -28,12 +28,12 @@
 //' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
 // [[Rcpp::export]]
 Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_NilValue,
-                        Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
+                        Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
                         Rcpp::Nullable<double> error = R_NilValue,
-                        Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
-                        Rcpp::Nullable<std::string> WalkType = R_NilValue,
+                        Rcpp::Nullable<Rcpp::NumericVector> inner_ball = R_NilValue,
+                        Rcpp::Nullable<std::string> random_walk = R_NilValue,
                         Rcpp::Nullable<bool> rounding = R_NilValue,
-                        Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue) {
+                        Rcpp::Nullable<Rcpp::List> parameters = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -74,58 +74,58 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
         }
 
         if (error.isNotNull()) e = Rcpp::as<NT>(error);
-        if (walk_step.isNotNull()) walkL = Rcpp::as<int>(walk_step);
+        if (walk_length.isNotNull()) walkL = Rcpp::as<int>(walk_length);
         if (rounding.isNotNull()) round = Rcpp::as<bool>(rounding);
-        if (!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("BilW")) == 0) {
+        if (!random_walk.isNotNull() || Rcpp::as<std::string>(random_walk).compare(std::string("BilW")) == 0) {
             billiard = true;
-        } else if(Rcpp::as<std::string>(WalkType).compare(std::string("RDHR")) == 0) {
+        } else if(Rcpp::as<std::string>(random_walk).compare(std::string("RDHR")) == 0) {
             rdhr = true;
-        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("CDHR")) == 0) {
+        } else if (Rcpp::as<std::string>(random_walk).compare(std::string("CDHR")) == 0) {
             cdhr = true;
-        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW")) == 0) {
+        } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BW")) == 0) {
             ball_walk = true;
         }else {
             throw Rcpp::exception("Unknown walk type!");
         }
 
-        if(Parameters.isNotNull()) {
+        if(parameters.isNotNull()) {
 
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
-                delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("BW_rad")) {
+                delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["BW_rad"]);
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("Window")) {
-                win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["Window"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("Window")) {
+                win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["Window"]);
             }  else if (billiard) {
                 win_len = 150;
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("lb")) {
-                lb = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["lb"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("lb")) {
+                lb = Rcpp::as<double>(Rcpp::as<Rcpp::List>(parameters)["lb"]);
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("ub")) {
-                ub = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["ub"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("ub")) {
+                ub = Rcpp::as<double>(Rcpp::as<Rcpp::List>(parameters)["ub"]);
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("nu")) {
-                nu = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["nu"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("nu")) {
+                nu = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["nu"]);
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("N")) {
-                NN = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["N"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("N")) {
+                NN = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["N"]);
             } else if (billiard) {
                 NN = 125;
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("minmaxW")) {
-                win2 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(Parameters)["minmaxW"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("minmaxW")) {
+                win2 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(parameters)["minmaxW"]);
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("prob")) {
-                p = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["prob"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("prob")) {
+                p = Rcpp::as<double>(Rcpp::as<Rcpp::List>(parameters)["prob"]);
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("alpha")) {
-                alpha = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["alpha"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("alpha")) {
+                alpha = Rcpp::as<double>(Rcpp::as<Rcpp::List>(parameters)["alpha"]);
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("hpoly")) {
-                hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(Parameters)["hpoly"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("hpoly")) {
+                hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(parameters)["hpoly"]);
             }
-            if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("diameter")) {
-                diam = Rcpp::as<double>(Rcpp::as<Rcpp::List>(Parameters)["diameter"]);
+            if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("diameter")) {
+                diam = Rcpp::as<double>(Rcpp::as<Rcpp::List>(parameters)["diameter"]);
             }
         }
 
@@ -143,9 +143,9 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
 
         std::pair<Point,NT> InnerB;
 
-        if(InnerBall.isNotNull()) { //if it is given as an input
+        if(inner_ball.isNotNull()) { //if it is given as an input
             // store internal point hat is given as input
-            Rcpp::NumericVector InnerVec = Rcpp::as<Rcpp::NumericVector>(InnerBall);
+            Rcpp::NumericVector InnerVec = Rcpp::as<Rcpp::NumericVector>(inner_ball);
             std::vector<NT> temp_p;
             for (unsigned int j=0; j<n; j++) temp_p.push_back(InnerVec[j]);
 
