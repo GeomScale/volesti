@@ -10,4 +10,6 @@
 
 * Remove r-striper to avoid CRAN policy violation.
 
+# volesti 1.0.3
 
+* Fix CRAN warnings.
