@@ -38,4 +38,4 @@
 #define FREE(ptr) if (ptr != NULL) {free(ptr), ptr = NULL;} else
 
 #define MALLOCCPY(nptr, optr, nr, type)\
-  (MALLOC(nptr, nr, type), (nptr != NULL) ? memcpy(nptr, optr, (size_t)((nr) * sizeof(*optr))) : 0, nptr)
+  (MALLOC(nptr, nr, type), (nptr != NULL) ? memcpy(nptr, optr, (size_t)((nr) * sizeof(*optr))) : 0)
