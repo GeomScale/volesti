@@ -49,7 +49,7 @@ void test_CV_volume(Polytope &HP, NT expected, NT tolerance=0.3)
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol = 0;
-    unsigned int const num_of_exp = 15;
+    unsigned int const num_of_exp = 20;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
         CheBall = HP.ComputeInnerBall();
@@ -166,11 +166,11 @@ void call_test_simplex() {
 
     std::cout << "--- Testing volume of H-simplex10" << std::endl;
     P = gen_simplex<Hpolytope>(10, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(10.0));
+    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(10.0), 0.2);
 
     std::cout << "--- Testing volume of H-simplex20" << std::endl;
     P = gen_simplex<Hpolytope>(20, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(20.0));
+    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(20.0), 0.2);
 
     std::cout << "--- Testing volume of H-simplex30" << std::endl;
     P = gen_simplex<Hpolytope>(30, false);
