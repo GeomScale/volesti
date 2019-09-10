@@ -15,7 +15,7 @@ Description: Provides an R interface for 'volesti' C++ package. 'volesti' comput
              estimating copulas (L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos (2018) 
              <arXiv:1803.05861>).
 Version: 1.0.3
-Date: 2019-05-10
+Date: 2019-09-10
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: Rcpp (>= 0.12.17)
 Imports: methods
