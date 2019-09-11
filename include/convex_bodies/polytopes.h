@@ -14,6 +14,7 @@
 
 #include <iostream>
 #include "solve_lp.h"
+#include "khach.h"
 
 //min and max values for the Hit and Run functions
 
@@ -638,6 +639,7 @@ public:
     }
 
 
+    /*
     // pick d+1 random vertices until they define a full dimensional simplex and then
     // compute the chebychev ball of that simplex
     std::pair<Point,NT> ComputeInnerBall() {
@@ -676,6 +678,48 @@ public:
             res=get_center_radius_inscribed_simplex(verts.begin(), verts.end(), done);
         }
         return res;
+    }*/
+
+
+    std::pair<Point,NT> ComputeInnerBall() {
+        std::vector<NT> temp(_d,0);
+        NT radius =  std::numeric_limits<NT>::max(), min_plus;
+        Point center(_d);
+
+
+        std::list<Point> randPoints;
+        get_points_for_rounding(randPoints);
+
+        boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
+        typename std::list<Point>::iterator rpit=randPoints.begin();
+        typename std::vector<NT>::iterator qit;
+        unsigned int i, j = 0;
+        for ( ; rpit!=randPoints.end(); rpit++, j++) {
+            qit = (*rpit).iter_begin(); i=0;
+            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
+                Ap(i,j)=double(*qit);
+            }
+        }
+        boost::numeric::ublas::matrix<double> Q(_d, _d);
+        boost::numeric::ublas::vector<double> c2(_d);
+        size_t w=1000;
+        KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+
+        //Get ellipsoid matrix and center as Eigen objects
+        for(unsigned int i=0; i<_d; i++) center.set_coord(i, NT(c2(i)));
+
+        std::pair<NT,NT> res;
+        for (unsigned int i = 0; i < _d; ++i) {
+            temp.assign(_d,0);
+            temp[i] = 1.0;
+            Point v(_d,temp.begin(), temp.end());
+            res = intersect_double_line_Vpoly<NT>(V, center, v);
+            min_plus = std::min(res.first, -1.0*res.second);
+            if (min_plus < radius) radius = min_plus;
+        }
+
+        radius = radius / std::sqrt(NT(_d));
+        return std::pair<Point, NT> (center, radius);
     }
 
 
