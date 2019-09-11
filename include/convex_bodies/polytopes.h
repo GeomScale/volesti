@@ -462,28 +462,7 @@ public:
     // compute the number of facets of the cyclic polytope in dimension _d with the same number of vertices
     // this is an upper bound for the number of the facets from McMullen's Upper Bound Theorem
     unsigned int upper_bound_of_hyperplanes() {
-        unsigned int k = num_of_vertices(), d1 = std::floor((_d + 1) / 2), d2 = std::floor((_d + 2) / 2), res;
-        long double num_of_hyp = 0.0, nom = 1.0, denom = 1.0;
-        for (unsigned int i = (k - _d + 1); i <= k - d1; i++) {
-            nom *= i;
-        }
-        for (unsigned int i = 1; i <= _d - d1; i++) {
-            denom *= i;
-        }
-        num_of_hyp += nom / denom;
-        nom = 1.0;
-        denom = 1.0;
-
-        for (unsigned int i = (k - _d + 1); i <= k - d2; i++) {
-            nom *= i;
-        }
-        for (unsigned int i = 1; i <= _d - d2; i++) {
-            denom *= i;
-        }
-        num_of_hyp += nom / denom;
-
-        res = num_of_hyp;
-        return res;
+        return 2 * _d;
     }
 
 
@@ -582,55 +561,40 @@ public:
 
     // take d+1 points as input and compute the chebychev ball of the defined simplex
     // done is true when the simplex is full dimensional and false if it is not
-    std::pair<Point,NT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg, typename std::vector<Point>::iterator it_end, bool &done) {
+    std::pair<Point,NT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg,
+                                                            typename std::vector<Point>::iterator it_end) {
 
         Point p0 = *it_beg,p1,c;
-        unsigned int dim = p0.dimension();
-        unsigned int i,j;
+        unsigned int dim = p0.dimension(), i, j;
         std::vector <NT> temp_p;
         NT radius = 0.0, gi, sum = 0.0;
-        MT B(dim,dim);
-        MT Bg(dim,dim);
-        MT e(1,dim);
-        VT row(dim);
-        VT g(dim);
+        MT B(dim,dim), Bg(dim,dim), e(1,dim);
+        VT row(dim), g(dim);
         std::pair <Point,NT> result;
 
         for (j=1; j<dim+1; j++) {
             Point pk = *(it_beg + j);
             e(j - 1) = 1.0;
-            for (i = 0; i < dim; i++) {
-                B(i, j - 1) = pk[i] - p0[i];
-            }
+            for (i = 0; i < dim; i++) B(i, j - 1) = pk[i] - p0[i];
         }
+
         Bg = B;
-        Eigen::FullPivLU <MT> lu_decomp(B);
-        int rank = lu_decomp.rank();
-        if(rank==dim) {  // check if the simplex is full dimensional
-            done = true;
-        }else {
-            return result;
-        }
         B = B.inverse();
         for (i=0; i<dim; i++) {
-            for (j = 0; j < dim; j++) {
-                row(j) = B(i, j);
-            }
+            for (j = 0; j < dim; j++) row(j) = B(i, j);
+
             gi = row.norm();
             radius += gi;
             g(i) = gi;
-            if (i < dim - 1) {
-                sum += gi;
-            }
+            if (i < dim - 1) sum += gi;
         }
         e = e * B;
         radius += e.norm();
         radius = 1.0 / radius;
         g = Bg * g;
         g = radius * g;
-        for (i=0; i<dim; i++) {
-            temp_p.push_back(p0[i] + g(i));
-        }
+        for (i=0; i<dim; i++) temp_p.push_back(p0[i] + g(i));
+
         c = Point(dim, temp_p.begin(), temp_p.end());
         result.first = c;
         result.second = radius;
@@ -854,20 +818,7 @@ public:
 
     // return the number of parallelopipeds. Used in get_dists fnction.
     unsigned int upper_bound_of_hyperplanes() {
-        unsigned int m = V.rows(), d = _d, res;
-        long double nom = 1.0, denom = 1.0, num_of_hyp = 0.0;
-
-        for (unsigned int i = d+1 ; i <= m; ++i) {
-            nom *= i;
-        }
-        for (unsigned int i = 1 ; i <= m-d; ++i) {
-            denom *= i;
-        }
-
-        num_of_hyp = nom / denom;
-
-        res = 2*_d;
-        return res;
+        return 2*_d;
     }
 
 

@@ -92,10 +92,13 @@ public:
 
         typename Coeff::iterator pit = p.iter_begin();
         typename Coeff::iterator mit = coeffs.begin();
-        FT e = 0.00000000001;
+        FT e = 0.00000000001; // degree of approximation
+        //e = std::numeric_limits<FT>::epsilon(); //does not work
 
         for ( ;  pit!=p.iter_end(); ++pit, ++mit) {
-            if (std::abs(*mit - *pit)> e*std::abs(*mit) || std::abs(*mit - *pit)> e*std::abs(*pit) ) return false;
+            if (std::abs(*mit - *pit) > e * std::abs(*mit) ||
+                std::abs(*mit - *pit) > e * std::abs(*pit))
+                return false;
         }
 
         return true;
