@@ -1,5 +1,5 @@
 PKG_CPPFLAGS=-Iexternal/lpsolve/headers/run_headers -Iexternal/minimum_ellipsoid -Iinclude -Iinclude/volume -Iinclude/generators -Iinclude/samplers -Iinclude/annealing -Iinclude/convex_bodies
-PKG_CXXFLAGS= -lm -ldl -DBOOST_NO_AUTO_PTR
+PKG_CXXFLAGS= -DBOOST_NO_AUTO_PTR
 CXX_STD = CXX11
 
 PKG_LIBS=-Lexternal/lpsolve/build/lp_solve -llp_solve $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
