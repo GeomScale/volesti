@@ -83,20 +83,15 @@ Rcpp::NumericVector InnerBall(Rcpp::Reference P) {
             VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
             VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
             VPcVP.init(VP1, VP2);
-            bool empty;
-            InnerBall = VPcVP.getInnerPoint_rad(empty);
-            if (empty) {
-                Rf_warning("Empty set");
-                return Rcpp::NumericVector(0);
-            }
+            if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
+            InnerBall = VPcVP.ComputeInnerBall();
             break;
         }
     }
 
     Rcpp::NumericVector vec(n + 1);
-    for (unsigned int k = 0; k < n; ++k) {
-        vec[k] = InnerBall.first[k];
-    }
+    for (unsigned int k = 0; k < n; ++k) vec[k] = InnerBall.first[k];
+
     vec[n] = InnerBall.second;
     return vec;
 
