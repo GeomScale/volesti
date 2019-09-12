@@ -248,18 +248,6 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
             VPcVP.init(VP1, VP2);
             Rcpp::NumericVector InnerVec(n + 1);
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-
-            /*
-            if (!InnerBall.isNotNull()) {
-                std::pair <Point, NT> InnerB = VPcVP.ComputeInnerBall();
-                for (int i = 0; i < n; ++i) InnerVec[i] = InnerB.first[i];
-
-                InnerVec[n] = InnerB.second;
-            } else {
-
-                InnerVec = Rcpp::as<Rcpp::NumericVector>(InnerBall);
-
-            }*/
             return generic_volume<Point, NT>(VPcVP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk,
                                              delta, cdhr, rdhr, round);
         }
