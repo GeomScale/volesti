@@ -273,12 +273,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                          VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
                 VPcVP.init(VP1, VP2);
 
-                bool empty;
-                InnerBall = VPcVP.getInnerPoint_rad(empty);
-                if (empty) {
-                    Rf_warning("Empty set");
-                    return Rcpp::NumericMatrix(0,0);
-                }
+                if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
+                InnerBall = VPcVP.ComputeInnerBall();
                 if (!set_mean_point) MeanPoint = InnerBall.first;
                 break;
             }
