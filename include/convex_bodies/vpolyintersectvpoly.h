@@ -59,7 +59,7 @@ public:
     }
 
     unsigned int upper_bound_of_hyperplanes() {
-        return P1.upper_bound_of_hyperplanes() + P2.upper_bound_of_hyperplanes() ;
+        return dimension() + 1;
         //return 4;
     }
 
@@ -80,78 +80,51 @@ public:
     }
 
     void print() {
-        //std::cout<<"First polytope:\n";
         P1.print();
-        //std::cout<<"\n";
-        //std::cout<<"Second polytope:\n";
         P2.print();
     }
 
-    std::pair<Point,NT> getInnerPoint_rad(bool &empty) {
-
-        unsigned int num = 0;
-        unsigned int d = P1.dimension();
-        MT V1 = P1.get_mat();
-        MT V2 = P2.get_mat();
-        Point p(d);//, direction;
-        int k1 = V1.rows();
-        int k2 = V2.rows();
-        int k = k1 + k2;
-        Point direction(k);
-        std::pair<Point, NT> cheball;
-        std::vector<Point> vertices;
-        typename std::vector<Point>::iterator rvert;
-        bool same, done = false;
-
-        while(true) {
-
-            while(num<d+1){
-
-                direction = get_direction<RNGType, Point, NT>(k);
-                p = PointInIntersection<VT>(V1, V2, direction, empty);
-
-                if (empty) {
-                    return cheball;
-                }
-
-                same = false;
-                rvert = vertices.begin();
-                for ( ;  rvert!=vertices.end(); ++rvert) {
-                    if (p==(*rvert)) {
-                        same = true;
-                        break;
-                    }
-                }
-                if (same) continue;
-                vertices.push_back(p);
-                num++;
-
-            }
-
-            cheball = P1.get_center_radius_inscribed_simplex(vertices.begin(), vertices.end(), done);
-            if (done) {
-                vecV = vertices;
-                rad = cheball.second;
-                return cheball;
-            }
-            vertices.clear();
-
-            num = 0;
-
-        }
-
-
-
+    bool is_feasible() {
+        bool empty;
+        PointInIntersection<VT>(P1.get_mat(), P2.get_mat(),
+                                get_direction<RNGType, Point, NT>(P1.get_mat().rows() + P2.get_mat().rows()), empty);
+        return !empty;
     }
-
-
 
     std::pair<Point,NT> ComputeInnerBall() {
 
-        std::pair<Point,NT> res;
-        return res;
+        unsigned int num = 0, d = P1.dimension();
+        MT V1 = P1.get_mat(), V2 = P2.get_mat();
+        int k1 = V1.rows(), k2 = V2.rows();
+        int k = k1 + k2;
+        Point direction(k), p(d);
+        std::vector<Point> vertices;
+        typename std::vector<Point>::iterator rvert;
+        bool same;
+
+        while(num<d+1){
+
+            direction = get_direction<RNGType, Point, NT>(k);
+            p = PointInIntersection<VT>(V1, V2, direction, same);
+
+            same = false;
+            rvert = vertices.begin();
+            for ( ;  rvert!=vertices.end(); ++rvert) {
+                if (p==(*rvert)) {
+                    same = true;
+                    break;
+                }
+            }
+            if (same) continue;
+            vertices.push_back(p);
+            num++;
+
+        }
+
+        return P1.get_center_radius_inscribed_simplex(vertices.begin(), vertices.end());
 
     }
+
 /*
         unsigned int num_of_v = 0;
         unsigned int d = dimension();

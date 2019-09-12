@@ -93,8 +93,14 @@ public:
         typename Coeff::iterator pit = p.iter_begin();
         typename Coeff::iterator mit = coeffs.begin();
 
+        /* degree of approximation in
+        "The art of computer programming" (vol II), p. 234, Donald. E. Knuth. */
+        FT e = 0.00000000001;
+
         for ( ;  pit!=p.iter_end(); ++pit, ++mit) {
-            if (*mit!=*pit) return false;
+            if (std::abs(*mit - *pit) > e * std::abs(*mit) ||
+                std::abs(*mit - *pit) > e * std::abs(*pit))
+                return false;
         }
 
         return true;
