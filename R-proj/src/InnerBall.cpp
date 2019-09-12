@@ -90,7 +90,9 @@ Rcpp::NumericVector InnerBall(Rcpp::Reference P) {
     }
 
     Rcpp::NumericVector vec(n + 1);
-    for (unsigned int k = 0; k < n; ++k) vec[k] = InnerBall.first[k];
+    for (unsigned int k = 0; k < n; ++k){
+        vec[k] = InnerBall.first[k];
+    }
 
     vec[n] = InnerBall.second;
     return vec;

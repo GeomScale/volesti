@@ -92,8 +92,10 @@ public:
 
         typename Coeff::iterator pit = p.iter_begin();
         typename Coeff::iterator mit = coeffs.begin();
-        FT e = 0.00000000001; // degree of approximation
-        //e = std::numeric_limits<FT>::epsilon(); //does not work
+
+        /* degree of approximation in
+        "The art of computer programming" (vol II), p. 234, Donald. E. Knuth. */
+        FT e = 0.00000000001;
 
         for ( ;  pit!=p.iter_end(); ++pit, ++mit) {
             if (std::abs(*mit - *pit) > e * std::abs(*mit) ||
