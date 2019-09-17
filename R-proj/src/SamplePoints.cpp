@@ -24,6 +24,7 @@
 #include "sample_only.h"
 #include "simplex_samplers.h"
 #include "vpolyintersectvpoly.h"
+#include "low_dimensional_sampling.h"
 
 
 //' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere
@@ -82,15 +83,19 @@
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
-                                  Rcpp::Nullable<unsigned int> n = R_NilValue,
-                                  Rcpp::Nullable<std::string> distribution = R_NilValue,
-                                  Rcpp::Nullable<std::string> random_walk = R_NilValue,
-                                  Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
-                                  Rcpp::Nullable<bool> exact = R_NilValue,
-                                  Rcpp::Nullable<std::string> body = R_NilValue,
-                                  Rcpp::Nullable<bool> boundary = R_NilValue,
-                                  Rcpp::Nullable<Rcpp::List> parameters = R_NilValue,
-                                  Rcpp::Nullable<Rcpp::NumericVector> inner_point = R_NilValue){
+                                 Rcpp::Nullable<unsigned int> n = R_NilValue,
+                                 Rcpp::Nullable<std::string> distribution = R_NilValue,
+                                 Rcpp::Nullable<std::string> random_walk = R_NilValue,
+                                 Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
+                                 Rcpp::Nullable<bool> exact = R_NilValue,
+                                 Rcpp::Nullable<std::string> body = R_NilValue,
+                                 Rcpp::Nullable<bool> boundary = R_NilValue,
+                                 Rcpp::Nullable<Rcpp::List> parameters = R_NilValue,
+                                 Rcpp::Nullable<Rcpp::NumericVector> inner_point = R_NilValue,
+                                 Rcpp::Nullable<Rcpp::NumericMatrix> A = R_NilValue,
+                                 Rcpp::Nullable<Rcpp::NumericVector> b = R_NilValue,
+                                 Rcpp::Nullable<Rcpp::NumericMatrix> Aeq = R_NilValue,
+                                 Rcpp::Nullable<Rcpp::NumericVector> beq = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -179,10 +184,16 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
 
             }
         }
-    } else if (P.isNotNull()) {
+    } else if (P.isNotNull() || (A.isNotNull() && Aeq.isNotNull() && b.isNotNull() && beq.isNotNull())) {
 
-        type = Rcpp::as<Rcpp::Reference>(P).field("type");
-        dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
+        if (P.isNotNull()) {
+            type = Rcpp::as<Rcpp::Reference>(P).field("type");
+            dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
+        } else {
+            type = 5;
+            dim = Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)).cols();
+        }
+
         unsigned int walkL = 10+dim/10;
         Point MeanPoint;
         if (inner_point.isNotNull()) {
@@ -201,7 +212,7 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
             a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["variance"]));
 
         if(!random_walk.isNotNull()) {
-            if (type == 1) {
+            if (type == 1 || type == 5) {
                 cdhr = true;
             } else {
                 billiard = true;
@@ -250,70 +261,89 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
             if (ball_walk || billiard) throw Rcpp::exception("Only Hit-an-Run can be used for boundary sampling!");
         }
 
+        Hpolytope HP2;
+        std::pair<Hpolytope,MT> ret;
+        if (!P.isNotNull()) {
 
-        switch(type) {
-            case 1: {
-                // Hpolytope
-                HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
-                        Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
-
-                if (!set_mean_point || ball_walk) {
-                    InnerBall = HP.ComputeInnerBall();
-                    if (!set_mean_point) MeanPoint = InnerBall.first;
-                }
-                HP.normalize();
-                if (billiard && diam < 0.0) diam = 2.0 * InnerBall.second;
-
-                break;
-            }
-            case 2: {
-                // Vpolytope
-                VP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
-                        VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
-
-                if (!set_mean_point || ball_walk) {
-                    InnerBall = VP.ComputeInnerBall();
-                    if (!set_mean_point) MeanPoint = InnerBall.first;
-                }
-                if (billiard && diam < 0.0) VP.comp_diam(diam);
-
-                break;
-            }
-            case 3: {
-                // Zonotope
-                ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
-                        VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
-
-                if (!set_mean_point || ball_walk) {
-                    InnerBall = ZP.ComputeInnerBall();
-                    if (!set_mean_point) MeanPoint = InnerBall.first;
-                }
-                if (billiard && diam < 0.0) ZP.comp_diam(diam);
-
-                break;
-            }
-            case 4: {
-                // Intersection of two V-polytopes
-                Vpolytope VP1;
-                Vpolytope VP2;
-                VP1.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
-                         VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
-                VP2.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
-                         VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
-                VPcVP.init(VP1, VP2);
-
-                bool empty;
-                InnerBall = VPcVP.getInnerPoint_rad(empty);
-                if (empty) {
-                    Rf_warning("Empty set");
-                    return Rcpp::NumericMatrix(0,0);
-                }
-                if (!set_mean_point) MeanPoint = InnerBall.first;
-                if (billiard && diam < 0.0) VP1.comp_diam(diam);
-
-                break;
-            }
+            ret = get_poly_and_mat_transform< Hpolytope >(Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(A)),
+                                                                     Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(b)),
+                                                                     Rcpp::as<MT>(Rcpp::as<Rcpp::NumericMatrix>(Aeq)),
+                                                                     Rcpp::as<VT>(Rcpp::as<Rcpp::NumericVector>(beq)));
+            HP2 = ret.first;
         }
+
+            switch (type) {
+                case 1: {
+                    // Hpolytope
+                    HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
+                            Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
+
+                    if (!set_mean_point || ball_walk) {
+                        InnerBall = HP.ComputeInnerBall();
+                        if (!set_mean_point) MeanPoint = InnerBall.first;
+                    }
+                    HP.normalize();
+                    if (billiard && diam < 0.0) diam = 4.0 * InnerBall.second;
+
+                    break;
+                }
+                case 2: {
+                    // Vpolytope
+                    VP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
+                            VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
+
+                    if (!set_mean_point || ball_walk) {
+                        InnerBall = VP.ComputeInnerBall();
+                        if (!set_mean_point) MeanPoint = InnerBall.first;
+                    }
+                    if (billiard && diam < 0.0) VP.comp_diam(diam);
+
+                    break;
+                }
+                case 3: {
+                    // Zonotope
+                    ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
+                            VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
+
+                    if (!set_mean_point || ball_walk) {
+                        InnerBall = ZP.ComputeInnerBall();
+                        if (!set_mean_point) MeanPoint = InnerBall.first;
+                    }
+                    if (billiard && diam < 0.0) ZP.comp_diam(diam);
+
+                    break;
+                }
+                case 4: {
+                    // Intersection of two V-polytopes
+                    Vpolytope VP1;
+                    Vpolytope VP2;
+                    VP1.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
+                             VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
+                    VP2.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
+                             VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
+                    VPcVP.init(VP1, VP2);
+
+                    bool empty;
+                    InnerBall = VPcVP.getInnerPoint_rad(empty);
+                    if (empty) {
+                        Rf_warning("Empty set");
+                        return Rcpp::NumericMatrix(0, 0);
+                    }
+                    if (!set_mean_point) MeanPoint = InnerBall.first;
+                    if (billiard && diam < 0.0) VP1.comp_diam(diam);
+
+                    break;
+                }
+                case 5:
+
+                    InnerBall = HP2.ComputeInnerBall();
+                    MeanPoint = InnerBall.first;
+                    HP2.normalize();
+                    if (billiard && diam < 0.0) diam = 4.0 * InnerBall.second;
+
+                    break;
+            }
+
 
         if (ball_walk && delta < 0.0) {
             if (gaussian) {
@@ -333,8 +363,7 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                 if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
                     boundary_rand_point_generator(HP, MeanPoint, numpoints / 2, walkL, randPoints, var1);
                 } else {
-                    sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
-                                         a, MeanPoint, var1, var2);
+                    sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian, a, MeanPoint, var1, var2);
                 }
                 break;
             }
@@ -342,8 +371,7 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                 if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
                     boundary_rand_point_generator(VP, MeanPoint, numpoints / 2, walkL, randPoints, var1);
                 } else {
-                    sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
-                                         a, MeanPoint, var1, var2);
+                    sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian, a, MeanPoint, var1, var2);
                 }
                 break;
             }
@@ -351,8 +379,7 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                 if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
                     boundary_rand_point_generator(ZP, MeanPoint, numpoints / 2, walkL, randPoints, var1);
                 } else {
-                    sampling_only<Point>(randPoints, ZP, walkL, numpoints, gaussian,
-                                         a, MeanPoint, var1, var2);
+                    sampling_only<Point>(randPoints, ZP, walkL, numpoints, gaussian, a, MeanPoint, var1, var2);
                 }
                 break;
             }
@@ -360,11 +387,31 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                 if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
                     boundary_rand_point_generator(VPcVP, MeanPoint, numpoints / 2, walkL, randPoints, var1);
                 } else {
-                    sampling_only<Point>(randPoints, VPcVP, walkL, numpoints, gaussian,
-                                         a, MeanPoint, var1, var2);
+                    sampling_only<Point>(randPoints, VPcVP, walkL, numpoints, gaussian, a, MeanPoint, var1, var2);
                 }
                 break;
             }
+            case 5:
+                if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
+                    boundary_rand_point_generator(HP2, MeanPoint, numpoints / 2, walkL, randPoints, var1);
+                } else {
+                    sampling_only<Point>(randPoints, HP2, walkL, numpoints, gaussian, a, MeanPoint, var1, var2);
+                }
+
+                MT T(ret.second.rows(), ret.second.cols()-1);
+                for (int i = 0; i < ret.second.cols()-1; ++i) {
+                    T.col(i) = ret.second.col(i);
+                }
+                VT translation = ret.second.col(ret.second.cols()-1);
+
+                MT RetMat(dim, numpoints);
+                unsigned int jj = 0;
+
+                for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++)
+                    RetMat.col(jj) = (T * Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension())) + translation;
+
+
+                return Rcpp::wrap(RetMat);
         }
 
     } else {

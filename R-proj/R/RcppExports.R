@@ -135,8 +135,8 @@ NULL
 #' P = Vpolytope$new(V)
 #' points = SamplePoints(P, n = 10000, exact = TRUE)
 #' @export
-SamplePoints <- function(P = NULL, n = NULL, distribution = NULL, random_walk = NULL, walk_length = NULL, exact = NULL, body = NULL, boundary = NULL, parameters = NULL, inner_point = NULL) {
-    .Call(`_volesti_SamplePoints`, P, n, distribution, random_walk, walk_length, exact, body, boundary, parameters, inner_point)
+SamplePoints <- function(P = NULL, n = NULL, distribution = NULL, random_walk = NULL, walk_length = NULL, exact = NULL, body = NULL, boundary = NULL, parameters = NULL, inner_point = NULL, A = NULL, b = NULL, Aeq = NULL, beq = NULL) {
+    .Call(`_volesti_SamplePoints`, P, n, distribution, random_walk, walk_length, exact, body, boundary, parameters, inner_point, A, b, Aeq, beq)
 }
 
 #' Construct a copula using uniform sampling from the unit simplex
