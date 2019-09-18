@@ -1,6 +1,23 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
+
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Panagiotis Repouskos, as part of Google Summer of Code 2019 program.
+
+// VolEsti is free software: you can redistribute it and/or modify it
+// under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or (at
+// your option) any later version.
 //
-// Created by panagiotis on 28/5/2019.
+// VolEsti is distributed in the hope that it will be useful, but WITHOUT
+// ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+// FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+// for more details.
 //
+// See the file COPYING.LESSER for the text of the GNU Lesser General
+// Public License.  If you did not receive this file along with HeaDDaCHe,
+// see <http://www.gnu.org/licenses/>.
 
 #include "Eigen/Eigen"
 #include <chrono>
@@ -152,54 +169,6 @@ int main(const int argc, const char** argv) {
     lp.saveToFile(os);
     os.close();
 
-//    if (Zono) {
-//        if (m > 0) {
-//            Zonotope ZP = gen_zonotope<Zonotope, RNGType>(d, m);
-//            create_txt(ZP.get_mat(), ZP.get_vec(), kind, true);
-//        } else {
-//            std::cout << "Wrong inputs, try -help" << std::endl;
-//            exit(-1);
-//        }
-//    } else if (Hpoly) {
-//        Hpolytope HP;
-//        if (cube) {
-//            HP = gen_cube<Hpolytope>(d, false);
-//        } else if (cross) {
-//            HP = gen_cross<Hpolytope>(d, false);
-//        } else if (simplex) {
-//            HP = gen_simplex<Hpolytope>(d, false);
-//        } else if (prod_simplex) {
-//            HP = gen_prod_simplex<Hpolytope>(d);
-//        } else if (skinny_cube) {
-//            HP = gen_skinny_cube<Hpolytope>(d);
-//        } else {
-//            std::cout << "Wrong inputs, try -help" << std::endl;
-//            exit(-1);
-//        }
-//        create_txt(HP.get_mat(), HP.get_vec(), kind, false);
-//    } else if (Vpoly) {
-//        Vpolytope VP;
-//        if (cube) {
-//            VP = gen_cube<Vpolytope>(d, true);
-//        } else if (cross) {
-//            VP = gen_cross<Vpolytope>(d, true);
-//        } else if (simplex) {
-//            VP = gen_simplex<Vpolytope>(d, true);
-//        } else if (prod_simplex) {
-//            std::cout<<"No prod_simplex in V-representation can be generated, try -help"<<std::endl;
-//            exit(-1);
-//        } else if (skinny_cube) {
-//            std::cout<<"No skinny_cube in V-representation can be generated, try -help"<<std::endl;
-//            exit(-1);
-//        } else {
-//            std::cout<<"Wrong inputs, try -help"<<std::endl;
-//            exit(-1);
-//        }
-//        create_txt(VP.get_mat(), VP.get_vec(), kind, true);
-//    } else {
-//        std::cout<<"Wrong inputs, try -help"<<std::endl;
-//        exit(-1);
-//    }
 
     return 0;
 }
