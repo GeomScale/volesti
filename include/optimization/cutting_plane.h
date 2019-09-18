@@ -51,7 +51,7 @@ namespace optimization {
      * @param exact
      * @return
      */
-    double relative_error(double approx, double exact) {
+    double relative_error(const double& approx, const double& exact) {
         return abs((exact - approx) / exact);
     }
 
@@ -182,42 +182,38 @@ namespace optimization {
      */
     template<class Point, typename NT>
     std::pair<Point, Point> getPairMinimizingPoint(VT &c, std::list<Point> &randPoints) {
-        class std::list<Point>::iterator points_it = randPoints.begin();
+        class std::list<Point>::iterator it = randPoints.begin();
         class std::list<Point>::iterator minPoint, minPoint2;
 
         NT temp, min, min2;
-        minPoint = points_it;
+        minPoint = it;
 
-        min = c.dot(points_it->getCoefficients());
+        min = c.dot(it->getCoefficients());
 
-        points_it++;
+        it++;
 
-        min2 = c.dot(points_it->getCoefficients());
-        minPoint2 = points_it;
+        min2 = c.dot(it->getCoefficients());
+        minPoint2 = it;
 
         if (min2 < min) {
-            temp = min2;
-            min2 = min;
-            min = temp;
-            typename std::list<Point>::iterator tempPoint = minPoint;
-            minPoint = minPoint2;
-            minPoint2 = tempPoint;
+            std::swap(min, min2);
+            std::swap(minPoint, minPoint2);
         }
 
-        points_it++;
+        it++;
 
-        for (; points_it != randPoints.end(); points_it++) {
-            temp = c.dot(points_it->getCoefficients());
+        for (; it != randPoints.end(); it++) {
+            temp = c.dot(it->getCoefficients());
 
             if (temp < min2) {
                 if (temp > min) {
                     min2 = temp;
-                    minPoint2 = points_it;
+                    minPoint2 = it;
                 } else {
                     min2 = min;
                     min = temp;
                     minPoint2 = minPoint;
-                    minPoint = points_it;
+                    minPoint = it;
                 }
             }
         }
@@ -272,102 +268,26 @@ namespace optimization {
      */
     template<class Point, typename NT>
     Point getArithmeticMean(VT &c, std::list<Point> &points, Point& p) {
-        class std::list<Point>::iterator points_it = points.begin();
+        class std::list<Point>::iterator it = points.begin();
 
         NT b = c.dot(p.getCoefficients());
 
-        Point point(points_it->dimension());
+        Point point(it->dimension());
 
         int i = 0;
 
-        for (; points_it != points.end(); points_it++)
-            if (c.dot(points_it->getCoefficients()) <= b) {
-                point = point + *points_it;
+        for (; it != points.end(); it++)
+            if (c.dot(it->getCoefficients()) <= b) {
+                point = point + *it;
                 i++;
             }
 
-        point = point  / (double) i;
+        point = point  / (NT) i;
 
         return point;
     }
 
 
-    /**
-     * Returns the arithmetic mean of points only in the new region of the polytope after cutting it at point p
-     *
-     * @tparam Point Class Point
-     * @tparam NT The numeric type
-     * @param c c a vector holding the coefficients of the object function
-     * @param points A collection of points
-     * @param p the point at which we cut the polytope
-     * @param dotProducts a list with the dot products of c with all elements of points
-     */
-    template<class Point, typename NT>
-    Point getArithmeticMean(VT &c, std::list<Point> &points, Point& p, std::list<NT> &dotProducts) {
-        class std::list<Point>::iterator points_it = points.begin();
-        typename std::list<NT>::iterator products_it = dotProducts.begin();
-
-        NT b = c.dot(p.getCoefficients());
-
-        Point point(points_it->dimension());
-
-        int i = 0;
-
-        for (; points_it != points.end(); points_it++, products_it++)
-            if (*products_it <= b) {
-                point = point + *points_it;
-                i++;
-            }
-
-        point = point / (double) i;
-
-        return point;
-    }
-
-
-    /**
-     * Returns the arithmetic mean of points only in the new region of the polytope after cutting it at point p
-     *
-     * @tparam Point Class Point
-     * @tparam NT The numeric type
-     * @param c c a vector holding the coefficients of the object function
-     * @param points A collection of points
-     * @param p the point at which we cut the polytope
-     * @param dotProducts a list with the dot products of c with all elements of points
-     * @param sum return the sum of all vectors in points
-     */
-    template<class Point, typename NT>
-    Point getArithmeticMean(VT &c, std::list<Point> &points, Point& p, std::list<NT> &dotProducts, VT &sum) {
-        class std::list<Point>::iterator points_it = points.begin();
-        typename std::list<NT>::iterator products_it = dotProducts.begin();
-
-        NT b = c.dot(p.getCoefficients());
-
-        VT sum_PointsInNewRegion;
-        sum_PointsInNewRegion.setZero(points_it->dimension());
-        VT sum_PointsInCutRegion;
-        sum_PointsInCutRegion.setZero(points_it->dimension());
-
-        int i = 0;
-
-        for (; points_it != points.end(); points_it++, products_it++) {
-            if (*products_it <= b) {
-                sum_PointsInNewRegion = sum_PointsInNewRegion + points_it->getCoefficients();
-                i++;
-            }
-            else {
-                sum_PointsInCutRegion = sum_PointsInCutRegion + points_it->getCoefficients();
-            }
-        }
-
-
-        sum = sum_PointsInCutRegion + sum_PointsInNewRegion;
-        sum_PointsInNewRegion /= (double) i;
-        
-        Point point(sum_PointsInNewRegion);
-
-        return point;
-    }
 
 
     /**
@@ -437,7 +357,7 @@ namespace optimization {
      * @param changedMin2 set true if changed min2
      */
     template <class Point, typename NT>
-    void getNewMinimizingPoints(const Point &p, NT& dotProduct1, NT& dotProduct2, Point &min1, Point &min2, NT newProduct, bool& changedMin1, bool& changedMin2) {
+    void getNewMinimizingPoints(const Point &p, NT& dotProduct1, NT& dotProduct2, Point &min1, Point &min2, const NT& newProduct, bool& changedMin1, bool& changedMin2) {
 
         if (newProduct < dotProduct2) {
             if (newProduct < dotProduct1) {
@@ -469,7 +389,7 @@ namespace optimization {
      * @param newProduct dot product of p with objective function
      */
     template <class Point, typename NT>
-    void getNewMinimizingPoints(const Point &p, NT& dotProduct1, NT& dotProduct2, Point &min1, Point &min2, NT newProduct) {
+    void getNewMinimizingPoints(const Point &p, NT& dotProduct1, NT& dotProduct2, Point &min1, Point &min2, const NT& newProduct) {
 
         if (newProduct < dotProduct2) {
             if (newProduct < dotProduct1) {
@@ -509,8 +429,8 @@ namespace optimization {
     std::pair<Point, Point> min_rand_point_generator_boundary(Polytope &P,
                                                               VT& c,
                                                               Point &p,   // a point to start
-                                                              unsigned int rnum,
-                                                              unsigned int endPointEveryKSteps,
+                                                              const unsigned int& rnum,
+                                                              const unsigned int& endPointEveryKSteps,
                                                               PointList &endPoints,
                                                               Parameters &var)  // constants for volume
     {
@@ -633,8 +553,8 @@ namespace optimization {
     std::pair<Point, Point> min_rand_point_generator_iso(Polytope &P,
                                                          VT& c,
                                                          Point &p,
-                                                         unsigned int rnum,
-                                                         unsigned int endPointEveryKSteps,
+                                                         const unsigned int& rnum,
+                                                         const unsigned int& endPointEveryKSteps,
                                                          PointList &endPoints,
                                                          Parameters &var,
                                                          MT& isotropic)
@@ -747,7 +667,7 @@ namespace optimization {
     std::pair<Point, Point> min_rand_point_generator(Polytope &P,
                                                      VT& c,
                                                      Point &p,   // a point to start
-                                                     unsigned int rnum,
+                                                     const unsigned int& rnum,
                                                      Parameters &var)  // constants for volume
     {
 
