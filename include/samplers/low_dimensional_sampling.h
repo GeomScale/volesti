@@ -13,8 +13,8 @@ std::pair<MT,VT> get_basis(MT Aeq, VT beq) {
     int d = Aeq.cols();
 
     MT AA = MT::Identity(d, d) - Ainv * Aeq;
-    std::cout<<"Ainv = "<<Ainv<<"\n"<<std::endl;
-    std::cout<<"AA = "<<AA<<"\n"<<std::endl;
+    std::cout<<"Ainv = "<<Ainv.rows()<<" "<<Ainv.cols()<<"\n"<<std::endl;
+    //std::cout<<"AA = "<<AA<<"\n"<<std::endl;
 
     Eigen::ColPivHouseholderQR <MT> qrdecomp(AA);
     MT Q = qrdecomp.householderQ();
@@ -27,8 +27,8 @@ std::pair<MT,VT> get_basis(MT Aeq, VT beq) {
         retMat.col(i) = Q.col(i);
     }
 
-    std::cout<<"basis = "<<retMat<<"\n"<<std::endl;
-    std::cout<<"translation = "<<Ainv * beq<<"\n"<<std::endl;
+    std::cout<<"basis = "<<retMat.rows()<<" "<<retMat.cols()<<"\n"<<std::endl;
+    std::cout<<"translation = "<<(Ainv * beq).size()<<"\n"<<std::endl;
     return std::pair<MT, VT>(retMat, Ainv * beq);
 
 }
@@ -50,14 +50,14 @@ MT get_transformation(MT basis, VT translation) {
     for (int i = 0; i < basis.rows()-1; ++i) {
         elimHom(i,i) = 1;
     }
-    std::cout<<"elimHom = "<<elimHom<<"\n"<<std::endl;
+    std::cout<<"elimHom = "<<elimHom.rows()<<" "<<elimHom.cols()<<"\n"<<std::endl;
 
     MT trans = MT::Identity(d+1, d+1);
     for (int j = 0; j < d; ++j) {
         trans(j, d) = translation(j);
     }
 
-    std::cout<<"trans = "<<trans<<"\n"<<std::endl;
+    std::cout<<"trans = "<<trans.rows()<<" "<<trans.cols()<<"\n"<<std::endl;
     return (elimHom * trans * basis);
 
 }
@@ -84,14 +84,14 @@ std::pair<Hpolytope,MT> get_poly_and_mat_transform(MT A, VT b, MT Aeq, VT beq) {
     std::pair <MT, VT> basis = get_basis(Aeq, beq);
 
     MT T = get_transformation(basis.first, basis.second);
-    std::cout<<"transformation = "<<T<<"\n"<<std::endl;
+    std::cout<<"transformation = "<<T.rows()<<" "<<T.cols()<<"\n"<<std::endl;
 
     MT A2 = A * T;
-    std::cout<<"A%*%transformation = "<<A2<<"\n"<<std::endl;
+    std::cout<<"A%*%transformation = "<<A2.rows()<<" "<<A2.cols()<<"\n"<<std::endl;
 
     basis = change2_homogeneous(A2, b);
-    std::cout<<"[d-1] A = "<<basis.first<<"\n"<<std::endl;
-    std::cout<<"[d-1] b = "<<basis.second<<"\n"<<std::endl;
+    std::cout<<"[d-1] A = "<<basis.first.rows()<<" "<<basis.first.cols()<<"\n"<<std::endl;
+    std::cout<<"[d-1] b = "<<basis.second.size()<<"\n"<<std::endl;
 
     Hpolytope HP;
     HP.init(basis.first.cols(), basis.first, basis.second);

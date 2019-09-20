@@ -126,6 +126,7 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
     }
 
     if (exact.isNotNull()) {
+        std::cout<<"hello"<<std::endl;
         if (P.isNotNull()) {
             type = Rcpp::as<Rcpp::Reference>(P).field("type");
             dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
@@ -336,8 +337,11 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                 }
                 case 5:
 
+                    std::cout<<"hello"<<std::endl;
                     InnerBall = HP2.ComputeInnerBall();
+                    std::cout<<"InnerBall Computed"<<std::endl;
                     MeanPoint = InnerBall.first;
+                    std::cout<<"InnerBall rad = "<<InnerBall.second<<std::endl;
                     HP2.normalize();
                     if (billiard && diam < 0.0) diam = 4.0 * InnerBall.second;
 
@@ -392,10 +396,22 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                 break;
             }
             case 5:
+                vars<NT, RNGType> var11(1,HP2.dimension(),walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,diam,rng,urdist,urdist1,
+                                       delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard);
+                vars_g<NT, RNGType> var22(HP2.dimension(), walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
+                                         rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
                 if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
                     boundary_rand_point_generator(HP2, MeanPoint, numpoints / 2, walkL, randPoints, var1);
                 } else {
-                    sampling_only<Point>(randPoints, HP2, walkL, numpoints, gaussian, a, MeanPoint, var1, var2);
+                    std::cout<<"hello2"<<std::endl;
+                    std::cout<<"che point dim = "<<MeanPoint.dimension()<<std::endl;
+                    std::cout<<"HP2 dim = "<<HP2.dimension()<<std::endl;
+                    for (int i = 0; i < HP2.dimension(); ++i) {
+                        std::cout<<MeanPoint[i]<<" ";
+                    }
+                    std::cout<<"\n";
+                    sampling_only<Point>(randPoints, HP2, walkL, numpoints, gaussian, a, MeanPoint, var11, var22);
+                    std::cout<<"points sampled"<<std::endl;
                 }
 
                 MT T(ret.second.rows(), ret.second.cols()-1);
@@ -416,7 +432,7 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
 
     } else {
 
-        throw Rcpp::exception("Wrong input!");
+        throw Rcpp::exception("Wrong inputzfgzdfg!");
 
     }
 
