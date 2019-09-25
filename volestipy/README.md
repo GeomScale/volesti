@@ -15,6 +15,7 @@ Before you use the python library make sure the `liblpsolve55.so` library is pre
 export LD_LIBRARY_PATH=$usr/lib/lpsolve:$LD_LIBRARY_PATH
 
 ```
+You shoudl now be able to run the two test files, e.g.:
 
 ```
 python test1.py
