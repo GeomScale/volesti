@@ -10,9 +10,6 @@ from setuptools.extension import Extension
 import numpy
 
 
-
-
-
 version = "0.1"
 license='Apache 2.0',
 packages = ["volestipy"]
