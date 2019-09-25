@@ -10,6 +10,11 @@ python setup.py install -f
 ```
 
 ## Run an example
+Before you use the python library make sure the `liblpsolve55.so` library is present in `LD_PATH_LIBRARY`, for example by adding the following line to your `.bashrc` file:
+```
+export LD_LIBRARY_PATH=$usr/lib/lpsolve:$LD_LIBRARY_PATH
+
+```
 
 ```
 python test1.py
