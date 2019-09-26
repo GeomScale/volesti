@@ -6,37 +6,37 @@ using namespace std;
 
 
 HPolytopeCPP::HPolytopeCPP() {}
-HPolytopeCPP::HPolytopeCPP(double *polytope, double *bias, int n_hyperplanes, int n_variables) {
-    MT A;
-    VT b;
-    A.resize(n_hyperplanes,n_variables);
-    b.resize(n_hyperplanes);
+HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_variables){
+   MT A;
+   VT b;
+   A.resize(n_hyperplanes,n_variables);
+   b.resize(n_hyperplanes);
 
-    int index=0;
-    for (int i=0; i<n_hyperplanes; i++){
-      b(i) = bias[i];
+   int index=0;
+   for (int i=0; i<n_hyperplanes; i++){
+      b(i) = b_np[i];
       for (int j=0; j<n_variables; j++){
-         A(i,j) = polytope[index];
+         A(i,j) = A_np[index];
          index++;
       }
    }
 
-    HP.init(n_variables,A,b);
-    CheBall = HP.ComputeInnerBall();
+   HP.init(n_variables,A,b);
+   CheBall = HP.ComputeInnerBall();
 }
 
 HPolytopeCPP::~HPolytopeCPP(){}
 
 
 double HPolytopeCPP::compute_volume(int walk_len, double epsilon, uint seed){
-    //Parameter setup
-    int n = HP.dimension();
+   //Parameter setup
+   int n = HP.dimension();
 
-    int rnum = std::pow(1,-2) * 400 * n * std::log(n);
-    NT C=2;
-    NT ratio = 1.0-1.0/(NT(n));
-    int N = 500 * ((int) C) + ((int) (n * n / 2));
-    int W = 4*n*n+500;
+   int rnum = std::pow(1,-2) * 400 * n * std::log(n);
+   NT C=2;
+   NT ratio = 1.0-1.0/(NT(n));
+   int N = 500 * ((int) C) + ((int) (n * n / 2));
+   int W = 4*n*n+500;
 
    RNGType rng(seed);
    // boost::normal_distribution<> rdist(0,1);
@@ -44,9 +44,9 @@ double HPolytopeCPP::compute_volume(int walk_len, double epsilon, uint seed){
    boost::random::uniform_real_distribution<> urdist1(-1,1);
 
    vars<NT, RNGType> var1(rnum,n,walk_len,1,0,1,0,0,0,0,rng,
-          urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
+      urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
    vars_g<NT, RNGType> var2(n,walk_len,N,W,1,epsilon,CheBall.second,rng,C,0.1,ratio,-1,false,
-                 false,false,false,false,false,false,true,false);
+      false,false,false,false,false,false,true,false);
 
    Hpolytope HP_copy;
    HP_copy.init(HP.dimension(), HP.get_mat(), HP.get_vec());
@@ -58,16 +58,16 @@ double HPolytopeCPP::compute_volume(int walk_len, double epsilon, uint seed){
 
 
 void HPolytopeCPP::generate_samples(int walk_len, int n_samples, double* samples, uint seed){
-    //Parameter setup
-    int n = HP.dimension();
+   //Parameter setup
+   int n = HP.dimension();
 
-    int rnum = std::pow(1,-2) * 400 * n * std::log(n);
-    NT C=2;
-    NT ratio = 1.0-1.0/(NT(n));
-    int N = 500 * ((int) C) + ((int) (n * n / 2));
-    int W = 4*n*n+500;
+   int rnum = std::pow(1,-2) * 400 * n * std::log(n);
+   NT C=2;
+   NT ratio = 1.0-1.0/(NT(n));
+   int N = 500 * ((int) C) + ((int) (n * n / 2));
+   int W = 4*n*n+500;
 
-    double epsilon_dummy = 0.1;
+   double epsilon_dummy = 0.1;
 
    RNGType rng(seed);
    // boost::normal_distribution<> rdist(0,1);
@@ -90,8 +90,7 @@ void HPolytopeCPP::generate_samples(int walk_len, int n_samples, double* samples
    for (auto it_s = randPoints.begin(); it_s != randPoints.end(); it_s++){
       auto s = *it_s;
       for (auto i = 0; i != it_s->dimension(); i++){
-         samples[n_si] = s[i];
-         n_si++;
+         samples[n_si++] = (*it_s)[i];
       }
    }
 }

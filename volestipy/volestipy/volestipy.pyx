@@ -6,8 +6,14 @@
 import os
 import sys
 
+
 import numpy as np
 cimport numpy as np
+
+def get_time_seed():
+   import random
+   import time
+   return int(time.time())
 
 cdef extern from "bindings.h":
    cdef cppclass HPolytopeCPP:
@@ -31,13 +37,13 @@ cdef class HPolytope:
       n_hyperplanes, n_variables = A.shape[0], A.shape[1]
       self.polytope_cpp = HPolytopeCPP(&A[0,0], &b[0], n_hyperplanes, n_variables)
 
-   def compute_volume(self, int walk_len=2, double epsilon=0.05, method="gaussian_annealing", np.npy_int32 seed=42):
+   def compute_volume(self, int walk_len=2, double epsilon=0.05, method="gaussian_annealing", np.npy_int32 seed=get_time_seed()):
       if method=="gaussian_annealing":
          return self.polytope_cpp.compute_volume(walk_len, epsilon, seed)
       else:
-         raise Exception('"{}" is not implemented to calculate volume'.format(method))
+         raise Exception('"{}" is not implemented to compute volume'.format(method))
 
-   def generate_samples(self, int walk_len=2, int n_samples=1000, np.npy_int32 seed=42):
+   def generate_samples(self, int walk_len=2, int n_samples=1000, np.npy_int32 seed=get_time_seed()):
          n_variables = self._A.shape[1]
          cdef double[:,::1] samples = np.zeros((n_samples,  n_variables), dtype=np.float64, order="C")
          self.polytope_cpp.generate_samples(walk_len, n_samples, &samples[0,0], seed)
