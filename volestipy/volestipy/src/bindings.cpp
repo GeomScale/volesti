@@ -88,7 +88,6 @@ void HPolytopeCPP::generate_samples(int walk_len, int n_samples, double* samples
 
    auto n_si=0;
    for (auto it_s = randPoints.begin(); it_s != randPoints.end(); it_s++){
-      auto s = *it_s;
       for (auto i = 0; i != it_s->dimension(); i++){
          samples[n_si++] = (*it_s)[i];
       }
