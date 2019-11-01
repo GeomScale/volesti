@@ -203,6 +203,7 @@ void gaussian_next_point(Polytope &P,
             coord_prev = rand_coord;
         } else {
             gaussian_hit_and_run(p, P, a_i, var);
+            var.BoundCalls = var.BoundCalls + 2.0;
         }
     }
 }
@@ -254,8 +255,11 @@ void rand_gaussian_point_generator(Polytope &P,
                 rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng2);
                 gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, a_i, lamdas, var);
-            } else
+            } else {
                 gaussian_hit_and_run(p, P, a_i, var);
+                var.BoundCalls = var.BoundCalls + 2.0;
+            }
+
         }
         randPoints.push_back(p);
     }

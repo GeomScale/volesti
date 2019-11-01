@@ -270,7 +270,7 @@ template <class Polytope, class UParameters, class GParameters, class Point, typ
 NT volume_gaussian_annealing(Polytope &P,
                              GParameters &var,  // constans for volume
                              UParameters &var2,
-                             std::pair<Point,NT> InnerBall) {
+                             std::pair<Point,NT> InnerBall, NT &nballs) {
     //typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
     typedef typename UParameters::RNGType RNGType;
@@ -343,6 +343,7 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     unsigned int mm = a_vals.size()-1, j=0;
+    nballs = NT(mm);
 
     #ifdef VOLESTI_DEBUG
     if(print){

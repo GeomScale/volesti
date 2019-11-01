@@ -90,7 +90,8 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
                                cdhr,rdhr,billiard, 0.0, 0.0, 0.0);
         vars_g<NT, RNGType> var1(n, walk_length, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                  rand_only, rounding, false, birk, ball_walk, cdhr, rdhr, 0.0, 0.0);
-        vol = volume_gaussian_annealing(P, var1, var2, InnerB);
+        vol = volume_gaussian_annealing(P, var1, var2, InnerB, nballs);
+        var.BoundCalls = var1.BoundCalls;
     } else if (CB) {
         vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, win_len, NN, nu, win2);
         if (!hpoly) {

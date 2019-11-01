@@ -265,6 +265,7 @@ void rand_point_generator(BallPoly &PBLarge,
     } else if (var.rdhr_walk) {
         v = get_direction<RNGType, Point, NT>(n);
         std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av);
+        var.BoundCalls = var.BoundCalls + 2.0;
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
     } else {
@@ -283,6 +284,7 @@ void rand_point_generator(BallPoly &PBLarge,
             } else if (var.rdhr_walk) {
                 v = get_direction<RNGType, Point, NT>(n);
                 std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av, lambda);
+                var.BoundCalls = var.BoundCalls + 2.0;
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
                 p = (lambda * v) + p;
             } else {
@@ -326,6 +328,7 @@ void uniform_first_point(Polytope &P,
     } else if (var.rdhr_walk) {
         v = get_direction<RNGType, Point, NT>(n);
         std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
+        var.BoundCalls = var.BoundCalls + 2.0;
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
         p = (lambda * v) + p;
     } else {
@@ -342,6 +345,7 @@ void uniform_first_point(Polytope &P,
         } else if (var.rdhr_walk) {
             v = get_direction<RNGType, Point, NT>(n);
             std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
+            var.BoundCalls = var.BoundCalls + 2.0;
             lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
             p = (lambda * v) + p;
         } else {
@@ -378,6 +382,7 @@ void uniform_next_point(Polytope &P,
         for (unsigned int j = 0; j < walk_len; j++) {
             v = get_direction<RNGType, Point, NT>(n);
             std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
+            var.BoundCalls = var.BoundCalls + 2.0;
             lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
             p = (lambda * v) + p;
         }
@@ -451,6 +456,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
     if (first) {
 
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av);
+        var.BoundCalls = var.BoundCalls + 1.0;
         if (T <= pbpair.first) {
             p = (T * v) + p;
             lambda_prev = T;
@@ -465,6 +471,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
     while (it<10*n) {
 
         std::pair<NT, int> pbpair = P.line_positive_intersect(p, v, Ar, Av, lambda_prev);
+        var.BoundCalls = var.BoundCalls + 1.0;
         if (T <= pbpair.first) {
             p = (T * v) + p;
             lambda_prev = T;
