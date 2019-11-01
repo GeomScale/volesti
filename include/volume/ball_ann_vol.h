@@ -21,7 +21,7 @@
 #include "esti_ratioGl.h"
 
 template <class Polytope, class Point, class UParameters, class AParameters, typename NT>
-NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall) {
+NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall, NT &nballs) {
 
     typedef Ball <Point> ball;
     typedef BallIntersectPolytope <Polytope, ball> PolyBall;
@@ -66,12 +66,14 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
     P.normalize();
 
     if (verbose) std::cout << "Computing ball annealing..." << std::endl;
+    std::cout<<"N = "<<N<<" nu = "<< nu<<std::endl;
     get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var, rmax);
     var.diameter = diam;
 
     NT vol = (std::pow(M_PI, n / 2.0) * (std::pow((*(BallSet.end() - 1)).radius(), n))) / (tgamma(n / 2.0 + 1));
 
     int mm = BallSet.size() + 1;
+    nballs = NT(mm - 1);
     prob = std::pow(prob, 1.0 / NT(mm));
     NT er0 = e / (2.0 * std::sqrt(NT(mm))), er1 = (e * std::sqrt(4.0 * NT(mm) - 1)) / (2.0 * std::sqrt(NT(mm)));
 

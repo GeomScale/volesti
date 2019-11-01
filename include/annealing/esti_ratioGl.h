@@ -93,15 +93,17 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
     Point p(n);
     Point p_prev=p;
     unsigned int coord_prev;
-    if(!var.ball_walk && !isball) uniform_first_point(Pb1, p, p_prev, coord_prev, var.walk_steps,
+    if(!var.ball_walk && !isball) uniform_first_point(Pb1, p, p_prev, coord_prev, 1,
                                                                              lamdas, Av, lambda, var);
 
     for (int i = 0; i < W; ++i) {
 
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
+            var.MemLps = var.MemLps + 1.0;
         } else {
             uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps, lamdas, Av, lambda, var);
+            var.TotSteps = var.TotSteps + 1.0;
         }
         if (Pb2.is_in(p) == -1) countIn = countIn + 1.0;
 
@@ -122,8 +124,10 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
 
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
+            var.MemLps = var.MemLps + 1.0;
         } else {
             uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps, lamdas, Av, lambda, var);
+            var.TotSteps = var.TotSteps + 1.0;
         }
         if (Pb2.is_in(p) == -1) countIn = countIn + 1.0;
 

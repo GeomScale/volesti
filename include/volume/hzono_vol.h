@@ -14,7 +14,7 @@
 
 template <class Hpolytope, class Zonotope, class UParameters, class AParameters, class GParameters, class Point, typename NT>
 NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters &var_g,
-              std::pair<Point,NT> &InnerB) {
+              std::pair<Point,NT> &InnerB, NT &nballs) {
 
     typedef typename Zonotope::VT VT;
     typedef typename Zonotope::MT MT;
@@ -84,6 +84,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     var3.rdhr_walk = false;
     var3.bill_walk = false;
     get_hdelta(ZP, HP, Zs_max, lb, ub, ratio, var3);
+    var.MemLps = var.MemLps + var3.MemLps;
     Hpolytope HP2=HP;
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
@@ -99,8 +100,10 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     //var3.walk_steps = 1;
 
     if(verbose) std::cout<<"computing hpoly annealing.. = "<<vol<<"\n"<<std::endl;
+    std::cout<<"N = "<<N<<" nu = "<< nu<<std::endl;
     get_sequence_of_zonopolys<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
     var.diameter = diam0;
+    nballs = NT(HPolySet.size()+1);
 
     int mm=HPolySet.size()+2;
     int mm2=mm+1;
@@ -110,6 +113,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     NT Her = e/(2.0*std::sqrt(NT(mm2)));
 
     var_g.error = Her/2.0;
+    std::cout<<"computing vol of h-polytope = "<<vol<<std::endl;
     vol = volume_gaussian_annealing(HP, var_g, var, InnerBall);
 
     if(verbose) std::cout<<"\nvol of h-polytope = "<<vol<<"\n"<<std::endl;

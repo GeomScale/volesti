@@ -158,18 +158,19 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
         }
 
         vars<NT, RNGType> var(1, n, walkL, 1, 0.0, e, 0, 0.0, 0, InnerB.second, diam, rng,
-                               urdist, urdist1, delta, false, false, round, false, false, ball_walk, cdhr,rdhr, billiard);
+                               urdist, urdist1, delta, false, false, round, false, false, ball_walk, cdhr,rdhr, billiard,
+                               0.0, 0.0, 0.0);
         vars_ban <NT> var_ban(lb, ub, p, 0.0, alpha, win_len, NN, nu, win2);
 
 
-        NT vol;
+        NT vol, nballs;
         if (!hpoly) {
-            vol = volesti_ball_ann(ZP, var, var_ban, InnerB);
+            vol = volesti_ball_ann(ZP, var, var_ban, InnerB, nballs);
         } else {
             vars_g<NT, RNGType> varg(n, 1, 1000 + n * n / 2, 6*n*n+500, 1, e, InnerB.second, rng, 2.0, 0.1,
                                      1.0 - 1.0 / (NT(n)), delta, false, false, false, false, false, false,
-                                     false, true, false);
-            vol = vol_hzono<Hpolytope> (ZP, var, var_ban, varg, InnerB);
+                                     false, true, false, 0.0, 0.0);
+            vol = vol_hzono<Hpolytope> (ZP, var, var_ban, varg, InnerB, nballs);
         }
         ratio = std::pow(vol_red / vol, 1.0/NT(n));
     }

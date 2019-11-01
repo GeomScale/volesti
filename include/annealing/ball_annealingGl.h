@@ -94,8 +94,8 @@ void get_next_zonoball(std::vector<ball> &BallSet,
 
 }
 
-template <class RNGType,class ball, class Polytope, typename NT>
-void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, NT alpha, NT rmax){
+template <class RNGType,class ball, class Polytope, class Parameters, typename NT>
+void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, NT alpha, NT rmax, Parameters &var){
 
     typedef typename Polytope::PolytopePoint Point;
     int n = P.dimension();
@@ -108,6 +108,7 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
         for (int i = 0; i < 1200; ++i) {
             randPoints.push_back(get_point_in_Dsphere<RNGType, Point>(n, rmax));
         }
+        var.MemLps = var.MemLps + 1200.0;
         pass = check_converg001<Point>(P, randPoints, lb, ub, too_few, ratio, 10, alpha, true, false);
         if (pass || !too_few) {
             B0 = ball(Point(n), rmax*rmax);
@@ -118,6 +119,7 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
         rmax = 2 * std::sqrt(NT(n)) * radius;
     }
     NT rad1 = radius;
+    std::cout<<"rmax = "<<rmax<<" rad1 = "<<rad1<<std::endl;
 
     //std::cout<<"rad1 = "<<rad1<<" rmax = "<<rmax<<std::endl;
     while(!bisection_int) {
@@ -126,6 +128,7 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
         too_few = false;
 
         for (int i = 0; i < 1200; ++i) randPoints.push_back(get_point_in_Dsphere<RNGType, Point>(n, rmax));
+        var.MemLps = var.MemLps + 1200.0;
 
         if(check_converg001<Point>(P, randPoints, lb, ub, too_few, ratio, 10, alpha, true, false)) {
             B0 = ball(Point(n), rmax*rmax);
@@ -137,16 +140,17 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
         rmax = rmax + 2*std::sqrt(NT(n))*radius;
     }
 
-    NT rad_med;
+    NT rad_med, rad0=rad1, rad_m = rmax;;
 
     while(true) {
 
         rad_med = 0.5*(rad1+rmax);
-        //std::cout<<"rad1 = "<<rad1<<" rmax = "<<rmax<<" rad_med = "<<rad_med<<std::endl;
+        std::cout << "rmax = " << rmax << " rad1 = " << rad1 << " rad_med = " << rad_med << std::endl;
         randPoints.clear();
         too_few = false;
 
         for (int i = 0; i < 1200; ++i) randPoints.push_back(get_point_in_Dsphere<RNGType, Point>(n, rad_med));
+        var.MemLps = var.MemLps + 1200.0;
 
         if(check_converg001<Point>(P, randPoints, lb, ub, too_few, ratio, 10, alpha, true, false)) {
             B0 = ball(Point(n), rad_med*rad_med);
@@ -157,6 +161,13 @@ void get_first_ball(Polytope &P, ball &B0, NT &ratio, NT radius, NT lb, NT ub, N
             rmax = rad_med;
         } else {
             rad1 = rad_med;
+        }
+
+        if(rmax-rad1<0.000000001) {
+            std::cout << "fail to find first ball in 30 iterations...repeat proccess" << std::endl;
+            std::cout<<"origin is in = "<<P.is_in(Point(n))<<std::endl;
+            rad1 = rad0;
+            rmax = rad_m;
         }
 
     }
@@ -176,11 +187,12 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
     ball B0;
     Point q(n);
     PolyBall zb_it;
-    get_first_ball<RNGType>(P, B0, ratio, radius, lb, ub, alpha, rmax);
-    //std::cout<<"first ball computed"<<std::endl;
+    get_first_ball<RNGType>(P, B0, ratio, radius, lb, ub, alpha, rmax, var);
+    std::cout<<"first ball computed"<<std::endl;
     ratio0 = ratio;
     rand_point_generator(P, q, Ntot, var.walk_steps, randPoints, var);
-    //std::cout<<"N points sampled from P"<<std::endl;
+    var.TotSteps = var.TotSteps + NT(Ntot);
+    std::cout<<Ntot<<" points sampled from P"<<std::endl;
 
     if (check_converg001<Point>(B0, randPoints, lb, ub, fail, ratio, nu, alpha, false, true)) {
         ratios.push_back(ratio);
@@ -199,6 +211,7 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
         randPoints.clear();
         zb_it.comp_diam(var.diameter);
         rand_point_generator(zb_it, q, Ntot, var.walk_steps, randPoints,var);
+        var.TotSteps = var.TotSteps + NT(Ntot);
         //std::cout<<"N points sampled from BP"<<std::endl;
 
         if (check_converg001<Point>(B0, randPoints, lb, ub, fail, ratio, nu, alpha, false, true)) {

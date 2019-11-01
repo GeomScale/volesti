@@ -358,9 +358,9 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
         }
 
         vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,diam,rng,urdist,urdist1,
-                               delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard);
+                               delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard, 0.0, 0.0, 0.0);
         vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
-                                 rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
+                                 rand_only, false, NN, birk, ball_walk, cdhr, rdhr, 0.0, 0.0);
 
         switch (type) {
             case 1: {
@@ -397,9 +397,9 @@ Rcpp::NumericMatrix SamplePoints(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
             }
             case 5:
                 vars<NT, RNGType> var11(1,HP2.dimension(),walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,diam,rng,urdist,urdist1,
-                                       delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard);
+                                       delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard, 0.0, 0.0, 0.0);
                 vars_g<NT, RNGType> var22(HP2.dimension(), walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
-                                         rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
+                                         rand_only, false, NN, birk, ball_walk, cdhr, rdhr, 0.0, 0.0);
                 if (boundary.isNotNull() && Rcpp::as<bool>(boundary)) {
                     boundary_rand_point_generator(HP2, MeanPoint, numpoints / 2, walkL, randPoints, var1);
                 } else {
