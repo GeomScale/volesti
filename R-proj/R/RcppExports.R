@@ -286,8 +286,8 @@ NULL
 #' Z = GenZonotope(2, 4, dist = "uniform")
 #' vol = volume(Z, random_walk = "RDHR", walk_length = 5)
 #' @export
-volume <- function(P, walk_length = NULL, error = NULL, inner_ball = NULL, algo = NULL, random_walk = NULL, rounding = NULL, parameters = NULL) {
-    .Call(`_volesti_volume`, P, walk_length, error, inner_ball, algo, random_walk, rounding, parameters)
+volume <- function(P, walk_length = NULL, projection_mat = NULL, error = NULL, inner_ball = NULL, algo = NULL, random_walk = NULL, rounding = NULL, parameters = NULL) {
+    .Call(`_volesti_volume`, P, walk_length, projection_mat, error, inner_ball, algo, random_walk, rounding, parameters)
 }
 
 #' An internal Rccp function for the over-approximation of a zonotope

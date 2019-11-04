@@ -173,6 +173,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
+                            Rcpp::Nullable<Rcpp::NumericMatrix> projection_mat = R_NilValue,
                 Rcpp::Nullable<double> error = R_NilValue,
                 Rcpp::Nullable<Rcpp::NumericVector> inner_ball = R_NilValue,
                 Rcpp::Nullable<std::string> algo = R_NilValue,
@@ -187,6 +188,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
     typedef HPolytope <Point> Hpolytope;
     typedef VPolytope <Point, RNGType> Vpolytope;
     typedef Zonotope <Point> zonotope;
+    typedef ProjPoly <Point, RNGType> IntPoly;
     typedef IntersectionOfVpoly <Vpolytope> InterVP;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
@@ -345,6 +347,14 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume(VPcVP, walkL, e, InnerVec, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
                                              alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, diam, round, type);
+        }
+        case 5: {
+            // Zonotope
+            IntPoly interP;
+            interP.init(n, Rcpp::as<MT>(P.field("T")), Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+
+            return generic_volume(interP, walkL, e, inner_ball, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+                                  alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, diam, round, type);
         }
     }
 

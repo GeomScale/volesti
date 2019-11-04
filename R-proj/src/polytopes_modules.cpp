@@ -43,6 +43,19 @@ public:
 
 };
 
+class InterPoly {
+public:
+    InterPoly() {}
+    InterPoly(Rcpp::NumericMatrix _T, Rcpp::NumericMatrix _A, Rcpp::NumericVector _b) : T(_T), A(_A), b(_b) {
+        dimension = _T.nrow();
+    }
+    int type = 5;
+    unsigned int dimension;
+    Rcpp::NumericMatrix T, A;
+    Rcpp::NumericVector b;
+
+};
+
 class VPinterVP {
 public:
     VPinterVP() {}
@@ -129,6 +142,33 @@ RCPP_MODULE(yada){
     .field( "type", &Zonotope::type )
     .field( "dimension", &Zonotope::dimension )
     .field( "G", &Zonotope::G );
+
+    //' An exposed C++ class to represent a projection of a convex polytope
+    //'
+    //' @description A projection of a convex polytope is given as an H-polytope an a projection
+    //'
+    //' @field T \eqn{m\times d} numerical matrix that contains the segments (or generators) row-wise
+    //' @field A matrix
+    //' @field b vector
+    //' @field type An integer that declares the representation of the polytope. For H-representation the default value is 4. It has not be given to the constructor.
+    //' @field An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //'
+    //' @example
+    //' # define the intwrsection of a 2-d simplex with a 2-d cross polytope
+    //' P1 = GenSimplex(2,'V')
+    //' P2 = GenCross(2,'V')
+    //' P = IntPoly$new(P1$V, P2$V, c(1,4,5))
+    //' @export
+    class_<InterPoly>("IntPoly")
+    // expose the default constructor
+    .constructor()
+    .constructor<Rcpp::NumericMatrix, Rcpp::NumericMatrix, Rcpp::NumericVector>()
+
+    .field( "type", &InterPoly::type )
+    .field( "dimension", &InterPoly::dimension )
+    .field( "T", &InterPoly::T )
+    .field( "A", &InterPoly::A )
+    .field( "b", &InterPoly::b );
 
     //' An exposed C++ class to represent an intersection of two V-polytopes
     //'
