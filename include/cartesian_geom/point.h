@@ -106,8 +106,12 @@ public:
         typename Coeff::iterator pit = p.iter_begin();
         typename Coeff::iterator mit = coeffs.begin();
 
+        FT e = 0.00000000001;
+
         for ( ;  pit!=p.iter_end(); ++pit, ++mit) {
-            if (*mit!=*pit) return false;
+            if (std::abs(*mit - *pit) > e * std::abs(*mit) ||
+                std::abs(*mit - *pit) > e * std::abs(*pit))
+                return false;
         }
 
         return true;

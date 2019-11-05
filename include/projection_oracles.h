@@ -134,7 +134,7 @@ NT intersect_line_proj_poly(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_c
     }
 
     res = NT(-get_objective(lp));
-    std::cout<<"res = "<<res<<std::endl;
+    //std::cout<<"res = "<<res<<std::endl;
     get_variables(lp, conv_comb);
     delete_lp(lp);
     return res;
@@ -248,6 +248,8 @@ std::pair<NT,NT> intersect_double_line_proj_poly(MT &T, MT &A, VT &b, Point &r, 
     set_minim(lp);
     solve(lp);
     res_pair.first = NT(-get_objective(lp));
+    get_variables(lp, conv_comb);
+    NT sum;
 
     delete_lp(lp);
 
