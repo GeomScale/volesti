@@ -99,6 +99,96 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
 }
 
 
+template <class Polytope, class Point, class Parameters, typename NT>
+void round_projection_of_poly(Polytope &P, Point &p, Parameters &var, NT &rand_value, NT &diam) {
+
+    //typedef typename Polytope::NT 	NT;
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    //typedef typename Polytope::PolytopePoint 	Point;
+
+    unsigned int n=var.n, walk_len=5, i, j;
+    std::list<Point> randPoints;
+    rand_value = 1.0;
+    //var.cdhr_walk = false;
+    MT E(n,n);
+    VT e(n);
+    boost::numeric::ublas::matrix<double> Ap(n,100*n);
+    NT max_diam = 0.0, diam_iter, ratio1 = 0.0;
+
+    int count = 1;
+    while (count < 5) {
+
+        randPoints.clear();
+        boundary_rand_point_generator(P, p, 50*n, walk_len, randPoints, var);
+
+        typename std::list<Point>::iterator rpit=randPoints.begin();
+        typename std::vector<NT>::iterator qit;
+        j=0, i=0;
+        for ( ; rpit!=randPoints.end(); rpit++, j++) {
+            qit = (*rpit).iter_begin(); i=0;
+            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
+                Ap(i,j)=double(*qit);
+            }
+        }
+        boost::numeric::ublas::matrix<double> Q(n,n);
+        boost::numeric::ublas::vector<double> c2(n);
+        size_t w=1000;
+        KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+
+
+
+        //Get ellipsoid matrix and center as Eigen objects
+        for(unsigned int i=0; i<n; i++){
+            e(i)=NT(c2(i));
+            for (unsigned int j=0; j<n; j++){
+                E(i,j)=NT(Q(i,j));
+            }
+        }
+
+        Eigen::SelfAdjointEigenSolver<MT> es(E);
+        MT D = es.eigenvalues().asDiagonal();
+        //std::cout<<"D = "<<D<<"\n"<<"D(n,n) = "<<D(n-1,n-1)<<" D(0,0) = "<<D(0,0)<<std::endl;
+        std::cout<<"max/min = "<<D(n-1,n-1)/D(0,0)<<std::endl;
+        if (D(n-1,n-1)/D(0,0)<ratio1/3.0 || count==2){
+            std::cout<<"computing distances"<<std::endl;
+            typename std::list<Point>::iterator rpit=randPoints.begin();
+            typename std::list<Point>::iterator rpit2=randPoints.begin();
+            j=0;
+            //max_diam = 0.0;
+            while(rpit!=randPoints.end()) {
+                j++;
+                if (j==1){
+                    rpit++;
+                    continue;
+                }
+                diam_iter = std::sqrt(((*rpit)-(*rpit2)).squared_length());
+                if (max_diam < diam_iter) max_diam = diam_iter;
+                rpit++;
+                rpit2++;
+            }
+            std::cout<<"diam = "<<diam<<std::endl;
+            diam = max_diam;
+            return;
+        }
+        if (count == 1) ratio1 = D(n-1,n-1)/D(0,0);
+
+        Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
+        MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
+        MT L_1 = L.inverse();
+
+
+
+        rand_value *= L_1.determinant();
+        P.linear_transformIt(L_1.transpose());
+        count++;
+
+    }
+
+
+}
+
+
 template <class Polytope>
 void get_vpoly_center(Polytope &P) {
 

@@ -169,6 +169,7 @@ public:
     std::pair<Point,NT> ComputeInnerBall() {
 
         std::pair<Point, NT> che_up = ComputeChebychevBall<NT, Point>(A, b);
+        std::cout<<"rad = "<<che_up.second<<std::endl;
         b = b - A*Eigen::Map<VT>(&(che_up.first).get_coeffs()[0], (che_up.first).dimension());
 
         std::vector<NT> temp(_d,0);
@@ -182,6 +183,7 @@ public:
             Point v(_d,temp.begin(), temp.end());
             min_max = intersect_double_line_proj_poly(T, A, b, center, v, conv_comb, row, colno);
 
+            std::cout<<"pos = "<<min_max.first<<"minus = "<<min_max.second;
             if (radius > min_max.first) radius = min_max.first;
             if (radius > -min_max.second) radius = -min_max.second;
         }
@@ -270,7 +272,9 @@ public:
 
     // apply linear transformation, of square matrix T, to the V-Polytope
     void linear_transformIt(MT _T) {
-        T = _T*T;
+        std::cout<<"_T.inverse() = "<<_T.inverse()<<std::endl;
+        T = _T.inverse()*T;
+        std::cout<<"\nT = "<<T<<std::endl;
     }
 
     Point get_mean_of_vertices() {

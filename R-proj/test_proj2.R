@@ -1,8 +1,8 @@
 library(volesti)
 
-d =12
-k = 18
-m = 60
+d =10
+k = 20
+m = 40
 P = GenRandZonotope(d, k, dist = "uniform")
 
 T = P$G
@@ -16,6 +16,10 @@ P3 = IntPoly$new(T=t(T), A=A, b=b)
 
 #vol1 = volume(P, algo = "CB", random_walk = "BilW")
 
-vol1 = volume(P3, algo = "CB", random_walk = "RDHR")
+#vol1 = volume(P3, algo = "CB", random_walk = "RDHR")
 
-vol2 = volume(P3, algo = "CB", random_walk = "BilW")
+vol2 = volume(P3, algo = "CB", random_walk = "BilW", rounding= FALSE)
+
+#print(vol1)
+
+print(vol2)
