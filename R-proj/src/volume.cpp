@@ -298,6 +298,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
     }
 
     int type = P.field("type");
+    std::cout<<"type = "<<type<<std::endl;
     switch(type) {
         case 1: {
             // Hpolytope

@@ -57,7 +57,7 @@ NT intersect_line_proj_poly(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_c
 
         /* add the row to lpsolve */
         try {
-            if(!add_constraintex(lp, Ncol, row, colno, EQ, p[i])) throw false;
+            if(!add_constraintex(lp, Ncol, row, colno, EQ, r[i])) throw false;
         }
         catch (bool e)
         {
@@ -80,7 +80,7 @@ NT intersect_line_proj_poly(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_c
 
         /* add the row to lpsolve */
         try {
-            if(!add_constraintex(lp, Ncol, row, colno, EQ, b(i))) throw false;
+            if(!add_constraintex(lp, Ncol, row, colno, LE, b(i))) throw false;
         }
         catch (bool e)
         {
@@ -143,12 +143,13 @@ NT intersect_line_proj_poly(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_c
 
 
 template <class MT, class VT, class Point, typename NT>
-NT intersect_double_line_proj_poly<(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_comb, NT *row, int *colno) {
+std::pair<NT,NT> intersect_double_line_proj_poly(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_comb, NT *row, int *colno) {
 
     int d = v.dimension(), m = A.rows(), i, Ncol = T.cols()+1, j, Nrows, k = T.cols();
     lprec *lp;
     NT res;
     Nrows = m + d;
+    std::pair<NT,NT> exc_res(0,0);
 
     try
     {
@@ -159,7 +160,7 @@ NT intersect_double_line_proj_poly<(MT &T, MT &A, VT &b, Point &r, Point &v,  NT
 #ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct Linear Program for ray-shooting "<<e<<std::endl;
 #endif
-        return -1.0;
+        return exc_res;
     }
 
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
@@ -177,14 +178,14 @@ NT intersect_double_line_proj_poly<(MT &T, MT &A, VT &b, Point &r, Point &v,  NT
 
         /* add the row to lpsolve */
         try {
-            if(!add_constraintex(lp, Ncol, row, colno, EQ, p[i])) throw false;
+            if(!add_constraintex(lp, Ncol, row, colno, EQ, r[i])) throw false;
         }
         catch (bool e)
         {
 #ifdef VOLESTI_DEBUG
             std::cout<<"Could not construct constaints for the Linear Program for ray-shooting "<<e<<std::endl;
 #endif
-            return -1.0;
+            return exc_res;
         }
 
     }
@@ -200,14 +201,14 @@ NT intersect_double_line_proj_poly<(MT &T, MT &A, VT &b, Point &r, Point &v,  NT
 
         /* add the row to lpsolve */
         try {
-            if(!add_constraintex(lp, Ncol, row, colno, EQ, b(i))) throw false;
+            if(!add_constraintex(lp, Ncol, row, colno, LE, b(i))) throw false;
         }
         catch (bool e)
         {
 #ifdef VOLESTI_DEBUG
             std::cout<<"Could not construct constaints for the Linear Program for ray-shooting "<<e<<std::endl;
 #endif
-            return -1.0;
+            return exc_res;
         }
 
     }
@@ -233,7 +234,7 @@ NT intersect_double_line_proj_poly<(MT &T, MT &A, VT &b, Point &r, Point &v,  NT
 #ifdef VOLESTI_DEBUG
         std::cout<<"Could not construct objective function for the Linear Program for ray-shooting "<<e<<std::endl;
 #endif
-        return -1.0;
+        return exc_res;
     }
 
     std::pair<NT,NT> res_pair;
@@ -250,14 +251,14 @@ NT intersect_double_line_proj_poly<(MT &T, MT &A, VT &b, Point &r, Point &v,  NT
 
     delete_lp(lp);
 
-    std::cout<<"l1 = "<<res_pair.first<<" l2 = "<<res_pair.second<<std::endl;
+    //std::cout<<"l1 = "<<res_pair.first<<" l2 = "<<res_pair.second<<std::endl;
     return res_pair;
 
 }
 
 
 
-template <class MT, class VT, class point)
+template <class MT, class VT, class Point>
 bool memLP_proj_poly(MT &T, MT &A, VT &b, Point &q) {
 
     typedef typename Point::FT NT;

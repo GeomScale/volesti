@@ -34,6 +34,7 @@ private:
     unsigned int _d;  //dimension
     REAL *conv_comb, *row;
     int *colno;
+    NT maxNT = std::numeric_limits<NT>::max();
 
 public:
     ProjPoly() {}
@@ -54,19 +55,19 @@ public:
     // this is an upper bound for the number of the facets from McMullen's Upper Bound Theorem
     unsigned int upper_bound_of_hyperplanes() {
 
-        return 2*d;
+        return 2*_d;
     }
 
 
     // return the number of vertices
     int num_of_vertices() {
-        return V.rows();
+        return T.rows();
     }
 
 
     // return the matrix V
     MT get_mat() {
-        return V;
+        return T;
     }
 
 
@@ -78,7 +79,7 @@ public:
 
     // change the matrix V
     void set_mat(MT V2) {
-        V = V2;
+        T = V2;
     }
 
 
@@ -90,7 +91,7 @@ public:
 
     // get a specific coeff of matrix V
     NT get_mat_coeff(unsigned int i, unsigned int j) {
-        return V(i,j);
+        return T(i,j);
     }
 
 
@@ -102,7 +103,7 @@ public:
 
     // set a specific coeff of matrix V
     void put_mat_coeff(unsigned int i, unsigned int j, NT value) {
-        V(i,j) = value;
+        T(i,j) = value;
     }
 
 
@@ -149,7 +150,7 @@ public:
 #ifdef VOLESTI_DEBUG
         std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
 #endif
-        for (unsigned int i = 0; i < V.rows(); i++) {
+        for (unsigned int i = 0; i < T.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
 #ifdef VOLESTI_DEBUG
                 std::cout << V(i, j) << " ";
@@ -172,14 +173,17 @@ public:
 
         std::vector<NT> temp(_d,0);
         NT radius =  maxNT, min_plus;
+        std::pair<NT,NT> min_max;
         Point center(_d);
 
         for (unsigned int i = 0; i < _d; ++i) {
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            min_plus = intersect_line_proj_poly<NT>(T, A, b, center, v, conv_comb, row, colno);
-            if (min_plus < radius) radius = min_plus;
+            min_max = intersect_double_line_proj_poly(T, A, b, center, v, conv_comb, row, colno);
+            
+            if (radius > min_max.first) radius = min_max.first;
+            if (radius > -min_max.second) radius = -min_max.second;
         }
 
         radius = radius / std::sqrt(NT(_d));
@@ -200,7 +204,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v) {
 
-        return intersect_double_line_proj_poly<NT>(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
@@ -208,14 +212,14 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        return intersect_double_line_proj_poly<NT>(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
-        return intersect_double_line_proj_poly<NT>(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
@@ -239,7 +243,7 @@ public:
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-        return intersect_double_line_proj_poly<NT>(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
@@ -254,7 +258,7 @@ public:
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-        return intersect_double_line_proj_poly<NT>(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
@@ -269,6 +273,13 @@ public:
         T = _T*T;
     }
 
+    Point get_mean_of_vertices() {
+        return Point(_d);
+    }
+
+    NT get_max_vert_norm() {
+        return 0.0;
+    }
 
     // consider an upper bound for the number of facets of a V-polytope
     // for each facet consider a lower bound for the distance from the origin
