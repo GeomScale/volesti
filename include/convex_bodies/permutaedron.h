@@ -127,10 +127,12 @@ public:
             for (int j = 0; j < d; ++j) {
                 A(i, d*i+j) = 1.0;
             }
+            if(i<d){
+                for (int j = 0; j < d; ++j) {
+                    T(i, d*i+j) = j+1;
+                }
+            }
         }
-        T = _T;
-        A = _A;
-        b = _b;
         conv_comb = (REAL *) malloc((T.cols()+1) * sizeof(*conv_comb));
         colno = (int *) malloc((T.cols()+1) * sizeof(*colno));
         row = (REAL *) malloc((T.cols()+1) * sizeof(*row));
