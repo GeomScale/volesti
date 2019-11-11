@@ -181,7 +181,7 @@ public:
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            min_max = intersect_double_line_proj_poly(T, A, b, center, v, conv_comb, row, colno);
+            min_max = intersect_double_line_permutaedron(T, A, b, center, v, conv_comb, row, colno);
 
             std::cout<<"pos = "<<min_max.first<<"minus = "<<min_max.second;
             if (radius > min_max.first) radius = min_max.first;
@@ -195,7 +195,7 @@ public:
 
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point p) {
-        if(memLP_proj_poly(T, A, b, p)){
+        if(memLP_permutaedron(T, A, b, p)){
             return -1;
         }
         return 0;
@@ -206,7 +206,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v) {
 
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
@@ -214,19 +214,19 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
-        return std::pair<NT, int> (intersect_line_proj_poly(T, A, b, r, v, conv_comb, row, colno), 1);
+        return std::pair<NT, int> (intersect_line_permutaedron(T, A, b, r, v, conv_comb, row, colno), 1);
     }
 
 
@@ -245,7 +245,7 @@ public:
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
@@ -260,7 +260,7 @@ public:
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
 

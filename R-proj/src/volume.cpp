@@ -76,7 +76,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
     }
 
     if (billiard && diam < 0.0) {
-        if(type==5) {
+        if(type==5 || type==6) {
             diam = 2.0 * n*InnerB.second;
         }else {
             diam = 2.0 * InnerB.second;
@@ -204,6 +204,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
     typedef VPolytope <Point, RNGType> Vpolytope;
     typedef Zonotope <Point> zonotope;
     typedef ProjPoly <Point, RNGType> IntPoly;
+    typedef Permutaedron <Point, RNGType> Permut;
     typedef IntersectionOfVpoly <Vpolytope> InterVP;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
@@ -370,6 +371,14 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
             interP.init(n, Rcpp::as<MT>(P.field("T")), Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
 
             return generic_volume(interP, walkL, e, inner_ball, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+                                  alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, diam, round, type);
+        }
+        case 6: {
+            // Zonotope
+            Permut P;
+            P.init(n);
+
+            return generic_volume(P, walkL, e, inner_ball, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
                                   alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, diam, round, type);
         }
     }

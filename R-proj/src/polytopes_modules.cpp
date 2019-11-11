@@ -69,6 +69,17 @@ public:
 
 };
 
+class permutaedron {
+public:
+    permutaedron() {}
+    permutaedron(unsigned int d) {
+      dimension = d;
+    }
+    int type = 6;
+    unsigned int dimension;
+
+};
+
 
 RCPP_MODULE(yada){
     using namespace Rcpp ;
@@ -169,6 +180,27 @@ RCPP_MODULE(yada){
     .field( "T", &InterPoly::T )
     .field( "A", &InterPoly::A )
     .field( "b", &InterPoly::b );
+
+    //' An exposed C++ class to represent a permutaedron of a convex polytope
+    //'
+    //' @description A projection of the birkhoff polytope
+    //'
+    //' @field type An integer that declares the representation of the polytope. For H-representation the default value is 4. It has not be given to the constructor.
+    //' @field An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //'
+    //' @example
+    //' # define the intwrsection of a 2-d simplex with a 2-d cross polytope
+    //' P1 = GenSimplex(2,'V')
+    //' P2 = GenCross(2,'V')
+    //' P = IntPoly$new(P1$V, P2$V, c(1,4,5))
+    //' @export
+    class_<permutaedron>("Permutaedron")
+    // expose the default constructor
+    .constructor()
+    .constructor<unsigned int>()
+
+    .field( "type", &permutaedron::type )
+    .field( "dimension", &permutaedron::dimension );
 
     //' An exposed C++ class to represent an intersection of two V-polytopes
     //'

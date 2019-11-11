@@ -6,14 +6,14 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef PROJECTION_POLY_H
-#define PROJECTION_POLY_H
+#ifndef PERMUTAEDRON_H
+#define PERMUTAEDRON_H
 
 #include <limits>
 
 #include <iostream>
 #include "solve_lp.h"
-#include "projection_oracles.h"
+#include "permutaedron_oracles.h"
 
 //min and max values for the Hit and Run functions
 
@@ -54,7 +54,6 @@ public:
     // compute the number of facets of the cyclic polytope in dimension _d with the same number of vertices
     // this is an upper bound for the number of the facets from McMullen's Upper Bound Theorem
     unsigned int upper_bound_of_hyperplanes() {
-
         return 2*_d;
     }
 
@@ -120,19 +119,26 @@ public:
     void init(unsigned int dim) {
         _d = dim;
         unsigned int k = dim*dim;
-        Τ.resize(_d, k);
-        A.resize(2*d, k);
-        b = VT::Ones(2*d);
-        for (int i = 0; i < 2*d; ++i) {
-            for (int j = 0; j < d; ++j) {
-                A(i, d*i+j) = 1.0;
-            }
-            if(i<d){
-                for (int j = 0; j < d; ++j) {
-                    T(i, d*i+j) = j+1;
+        T.resize(_d, k);
+        T.setConstant(0);
+        A.resize(2*_d, k);
+        A.setConstant(0);
+        b = VT::Ones(2*_d);
+        for (int i = 0; i < 2*_d; ++i) {
+            if(i<_d){
+                for (int j = 0; j < _d; ++j) {
+                    A(i, _d*i+j) = 1.0;
+                    T(i, _d*i+j) = j+1;
+                }
+            } else {
+                for (int j = 0; j < _d; ++j) {
+                    A(i,j*_d + i-_d) = 1.0;
                 }
             }
         }
+        std::cout<<"A = "<<A<<"\n"<<std::endl;
+        std::cout<<"T = "<<T<<"\n"<<std::endl;
+        std::cout<<"b = "<<b<<"\n"<<std::endl;
         conv_comb = (REAL *) malloc((T.cols()+1) * sizeof(*conv_comb));
         colno = (int *) malloc((T.cols()+1) * sizeof(*colno));
         row = (REAL *) malloc((T.cols()+1) * sizeof(*row));
@@ -179,26 +185,41 @@ public:
     // compute the chebychev ball of that simplex
     std::pair<Point,NT> ComputeInnerBall() {
 
-        std::pair<Point, NT> che_up = ComputeChebychevBall<NT, Point>(A, b);
-        std::cout<<"rad = "<<che_up.second<<std::endl;
-        b = b - A*Eigen::Map<VT>(&(che_up.first).get_coeffs()[0], (che_up.first).dimension());
+        //std::pair<Point, NT> che_up = ComputeChebychevBall<NT, Point>(A, b);
+        //std::cout<<"rad = "<<che_up.second<<std::endl;
+        VT p_in_B = VT::Ones(_d*_d)*(1.0/(NT(_d)));
+        VT p_in_P = T*p_in_B;
+        std::cout<<p_in_B<<"\n"<<std::endl;
+        std::cout<<A*p_in_B<<"\n"<<std::endl;
+        std::cout<<T*p_in_B<<"\n"<<std::endl;
+        Point center(_d);
+        for (int j = 0; j < _d; ++j) {
+            center.set_coord(j, p_in_P(j));
+            std::cout<<center[j]<<std::endl;
+        }
+        std::cout<<"\n";
+        //b = b - A*p_in_B;
+        std::cout<<"is in center = "<<is_in(center)<<std::endl;
+
 
         std::vector<NT> temp(_d,0);
         NT radius =  maxNT, min_plus;
         std::pair<NT,NT> min_max;
-        Point center(_d);
+
 
         for (unsigned int i = 0; i < _d; ++i) {
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            min_max = intersect_double_line_proj_poly(T, A, b, center, v, conv_comb, row, colno);
+            min_max = intersect_double_line_permutaedron(T, A, b, center, v, conv_comb, row, colno);
+            //std::cout<<"pos2 = "<<intersect_line_permutaedron(T, A, b, center, v, conv_comb, row, colno)<<std::endl;
 
             std::cout<<"pos = "<<min_max.first<<"minus = "<<min_max.second;
             if (radius > min_max.first) radius = min_max.first;
             if (radius > -min_max.second) radius = -min_max.second;
         }
 
+        throw false;
         radius = radius / std::sqrt(NT(_d));
         return std::pair<Point, NT> (center, radius);
     }
@@ -206,7 +227,7 @@ public:
 
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point p) {
-        if(memLP_proj_poly(T, A, b, p)){
+        if(memLP_permutaedron(T, A, b, p)){
             return -1;
         }
         return 0;
@@ -217,7 +238,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v) {
 
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
@@ -225,19 +246,19 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
-        return std::pair<NT, int> (intersect_line_proj_poly(T, A, b, r, v, conv_comb, row, colno), 1);
+        return std::pair<NT, int> (intersect_line_permutaedron(T, A, b, r, v, conv_comb, row, colno), 1);
     }
 
 
@@ -256,7 +277,7 @@ public:
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
@@ -271,7 +292,7 @@ public:
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-        return intersect_double_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
     }
 
 
@@ -331,15 +352,15 @@ public:
                 sum += A(i,j)* (*(conv_comb+j));
             }
             if (std::abs(b(i) - sum)  < e*std::abs(b(i)) && std::abs(b(i) - sum)  < e*std::abs(sum)) {
-                //std::cout<<"a_"<<i<<"x = "<<sum<<" b("<<i<<") = "<<b(i)<<std::endl;
+                std::cout<<"a_"<<i<<"x = "<<sum<<" b("<<i<<") = "<<b(i)<<std::endl;
                 Fmat.row(count) = A.row(i);
                 beq(count) = b(i);
                 count++;
             }
 
         }
-        //std::cout<<"rows equal to b = "<<count<<std::endl;
-        //std::cout<<"\n"<<std::endl;
+        std::cout<<"rows equal to b = "<<count<<std::endl;
+        std::cout<<"\n"<<std::endl;
 
         Eigen::FullPivLU<MT> lu(Fmat);
         MT NS = lu.kernel();

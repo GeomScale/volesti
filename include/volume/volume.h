@@ -28,6 +28,7 @@
 #include "vpolytope.h"
 #include "zpolytope.h"
 #include "projection_poly.h"
+#include "permutaedron.h"
 //#include "ellipsoids.h"
 #include "ballintersectconvex.h"
 #include "vpolyintersectvpoly.h"
