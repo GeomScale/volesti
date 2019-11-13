@@ -23,7 +23,7 @@
 #define PERMUTAEDRON_ORACLES_H
 
 template <class MT, class VT, class Point, typename NT>
-NT intersect_line_permutaedron(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_comb, NT *row, int *colno) {
+NT intersect_line_permutaedron(MT &T, MT &A, VT &b, MT &Aeq, MT &beq, Point &r, Point &v,  NT *conv_comb, NT *row, int *colno) {
 
     int d = v.dimension(), m = A.rows(), i, Ncol = T.cols()+1, j, Nrows, k = T.cols();
     lprec *lp;
@@ -144,7 +144,7 @@ NT intersect_line_permutaedron(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *con
 
 
 template <class MT, class VT, class Point, typename NT>
-std::pair<NT,NT> intersect_double_line_permutaedron(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_comb, NT *row, int *colno) {
+std::pair<NT,NT> intersect_double_line_permutaedron2(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_comb, NT *row, int *colno) {
 
     int d = v.dimension(), m = A.rows(), i, Ncol = T.cols()+1, j, Nrows, k = T.cols();
     lprec *lp;
@@ -260,7 +260,7 @@ std::pair<NT,NT> intersect_double_line_permutaedron(MT &T, MT &A, VT &b, Point &
     res_pair.first = NT(-get_objective(lp));
     get_variables(lp, conv_comb);
     for (int l = 0; l < Ncol; ++l) {
-        std::cout<<"convcomb["<<l<<"] = "<<conv_comb[l]<<std::endl;
+        //std::cout<<"convcomb["<<l<<"] = "<<conv_comb[l]<<std::endl;
     }
     //NT sum;
 
@@ -273,9 +273,9 @@ std::pair<NT,NT> intersect_double_line_permutaedron(MT &T, MT &A, VT &b, Point &
 
 
 template <class MT, class VT, class Point, typename NT>
-std::pair<NT,NT> intersect_double_line_permutaedron2(MT &T, MT &A, VT &b, Point &r, Point &v,  NT *conv_comb, NT *row, int *colno) {
+std::pair<NT,NT> intersect_double_line_permutaedron(MT &T, MT &A, VT &b, MT &Aeq, VT &beq, Point &r, Point &v,  NT *conv_comb, NT *row, int *colno) {
 
-    int d = v.dimension(), m = A.rows(), i, Ncol = T.cols()+1, j, Nrows, k = T.cols();
+    int d = v.dimension(), m = Aeq.rows(), i, Ncol = T.cols()+1, j, Nrows, k = T.cols();
     lprec *lp;
     NT res;
     Nrows = m + d + d*d;
@@ -324,14 +324,14 @@ std::pair<NT,NT> intersect_double_line_permutaedron2(MT &T, MT &A, VT &b, Point 
         /* construct all rows  */
         for(j=0; j<k; j++){
             //colno[j] = j+1; /* j_th column */
-            row[j] = A(i,j);
+            row[j] = Aeq(i,j);
         }
         //colno[k] = k + 1; /* last column */
         row[k] = 0.0;
 
         /* add the row to lpsolve */
         try {
-            if(!add_constraintex(lp, Ncol, row, colno, EQ, b(i))) throw false;
+            if(!add_constraintex(lp, Ncol, row, colno, EQ, beq(i))) throw false;
         }
         catch (bool e)
         {
@@ -347,11 +347,7 @@ std::pair<NT,NT> intersect_double_line_permutaedron2(MT &T, MT &A, VT &b, Point 
     for (i=0; i<d*d; i++){
         /* construct all rows  */
         for(j=0; j<k; j++){
-            if(j==count) {
-                row[j] = -1.0;
-            }else {
-                row[j] = 0.0;
-            }
+            row[j] = A(i,j);
         }
         count++;
         //colno[k] = k + 1; /* last column */
@@ -359,7 +355,7 @@ std::pair<NT,NT> intersect_double_line_permutaedron2(MT &T, MT &A, VT &b, Point 
 
         /* add the row to lpsolve */
         try {
-            if(!add_constraintex(lp, Ncol, row, colno, LE, 0.0)) throw false;
+            if(!add_constraintex(lp, Ncol, row, colno, LE, b(i))) throw false;
         }
         catch (bool e)
         {
@@ -417,7 +413,7 @@ std::pair<NT,NT> intersect_double_line_permutaedron2(MT &T, MT &A, VT &b, Point 
     res_pair.first = NT(-get_objective(lp));
     get_variables(lp, conv_comb);
     for (int l = 0; l < Ncol; ++l) {
-        std::cout<<"convcomb["<<l<<"] = "<<conv_comb[l]<<std::endl;
+        //std::cout<<"convcomb["<<l<<"] = "<<conv_comb[l]<<std::endl;
     }
     //NT sum;
 
@@ -430,19 +426,19 @@ std::pair<NT,NT> intersect_double_line_permutaedron2(MT &T, MT &A, VT &b, Point 
 
 
 
-template <class MT, class VT, class Point>
-bool memLP_permutaedron(MT &T, MT &A, VT &b, Point &q) {
+template <class MT, class VT, class Point, typename NT2>
+bool memLP_permutaedron(MT &T, MT &A, VT &b, MT &Aeq, VT &beq, Point &q, NT2 *mem_comb) {
 
     typedef typename Point::FT NT;
-    int d=q.dimension(), m = A.rows(), k = T.cols();
+    int d=q.dimension(), m = Aeq.rows(), k = T.cols(), m2 = A.rows();
     lprec *lp;
-    int Ncol=k, *colno = NULL, j, i;
+    int Ncol=k, *colno = NULL, j, i, Nrows = d+m+m2;
 
-    REAL *row = NULL;
+    //REAL *row = NULL;
 
     try
     {
-        lp = make_lp(m, Ncol);
+        lp = make_lp(Nrows, Ncol);
         if(lp == NULL) throw false;
     }
     catch (bool e) {
@@ -457,7 +453,7 @@ bool memLP_permutaedron(MT &T, MT &A, VT &b, Point &q) {
     try
     {
         colno = (int *) malloc(Ncol * sizeof(*colno));
-        row = (REAL *) malloc(Ncol * sizeof(*row));
+        //row = (REAL *) malloc(Ncol * sizeof(*row));
     }
     catch (std::exception &e)
     {
@@ -473,12 +469,12 @@ bool memLP_permutaedron(MT &T, MT &A, VT &b, Point &q) {
         /* construct all rows */
         for(j=0; j<k; j++){
             colno[j] = j+1;
-            row[j] = T(i,j);
+            mem_comb[j] = T(i,j);
         }
 
         /* add the row to lpsolve */
         try {
-            if(!add_constraintex(lp, k, row, colno, EQ, q[i])) throw false;
+            if(!add_constraintex(lp, k, mem_comb, colno, EQ, q[i])) throw false;
         }
         catch (bool e)
         {
@@ -493,12 +489,32 @@ bool memLP_permutaedron(MT &T, MT &A, VT &b, Point &q) {
         /* construct all rows */
         for(j=0; j<k; j++){
             //colno[j] = j+1;
-            row[j] = A(i,j);
+            mem_comb[j] = Aeq(i,j);
         }
 
         /* add the row to lpsolve */
         try {
-            if(!add_constraintex(lp, k, row, colno, EQ, b(i))) throw false;
+            if(!add_constraintex(lp, k, mem_comb, colno, EQ, beq(i))) throw false;
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+#endif
+            return false;
+        }
+    }
+
+    for (i = 0;  i< m2; ++i) {
+        /* construct all rows */
+        for(j=0; j<k; j++){
+            //colno[j] = j+1;
+            mem_comb[j] = A(i,j);
+        }
+
+        /* add the row to lpsolve */
+        try {
+            if(!add_constraintex(lp, k, mem_comb, colno, LE, b(i))) throw false;
         }
         catch (bool e)
         {
@@ -513,13 +529,13 @@ bool memLP_permutaedron(MT &T, MT &A, VT &b, Point &q) {
 
     for(j=0; j<k; j++){
         //colno[j] = j+1; // last column
-        row[j] = 0.0;
-        set_bounds(lp, j+1, 0.0, infinite);
+        mem_comb[j] = 0.0;
+        set_bounds(lp, j+1, -infinite, infinite);
     }
 
     /* add the row to lpsolve */
     try {
-        if(!set_obj_fnex(lp, k, row, colno)) throw false;
+        if(!set_obj_fnex(lp, k, mem_comb, colno)) throw false;
     }
     catch (bool e)
     {
@@ -542,15 +558,161 @@ bool memLP_permutaedron(MT &T, MT &A, VT &b, Point &q) {
         delete_lp(lp);
         return false;
     }
-    get_variables(lp, row);
+    get_variables(lp, mem_comb);
     for (int l = 0; l < k; ++l) {
-        //std::cout<<"row["<<l<<"] = "<<row[l]<<std::endl;
+        //std::cout<<"row["<<l<<"] = "<<mem_comb[l]<<std::endl;
     }
     //std::cout<<"\n";
     delete_lp(lp);
     return true;
 
 }
+
+
+
+template <class MT, class VT, class Point, typename NT2>
+void get_feas_point(MT &T, MT &A, VT &b, MT &Aeq, VT &beq, Point &q, NT2 *mem_comb) {
+
+    typedef typename Point::FT NT;
+    int d=q.dimension(), m = Aeq.rows(), k = T.cols(), m2 = A.rows();
+    lprec *lp;
+    int Ncol=k, *colno = NULL, j, i, Nrows = d+m+m2;
+
+    //REAL *row = NULL;
+
+    try
+    {
+        lp = make_lp(Nrows, Ncol);
+        if(lp == NULL) throw false;
+    }
+    catch (bool e) {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct Linear Program for membership "<<e<<std::endl;
+#endif
+        return;
+    }
+
+    REAL infinite = get_infinite(lp); /* will return 1.0e30 */
+
+    try
+    {
+        colno = (int *) malloc(Ncol * sizeof(*colno));
+        //row = (REAL *) malloc(Ncol * sizeof(*row));
+    }
+    catch (std::exception &e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
+#endif
+        return;
+    }
+
+    set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
+
+    for (i = 0;  i< d; ++i) {
+        /* construct all rows */
+        for(j=0; j<k; j++){
+            colno[j] = j+1;
+            mem_comb[j] = T(i,j);
+        }
+
+        /* add the row to lpsolve */
+        try {
+            if(!add_constraintex(lp, k, mem_comb, colno, EQ, q[i])) throw false;
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+#endif
+            return;
+        }
+    }
+
+    for (i = 0;  i< m; ++i) {
+        /* construct all rows */
+        for(j=0; j<k; j++){
+            //colno[j] = j+1;
+            mem_comb[j] = Aeq(i,j);
+        }
+
+        /* add the row to lpsolve */
+        try {
+            if(!add_constraintex(lp, k, mem_comb, colno, EQ, beq(i))) throw false;
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+#endif
+            return;
+        }
+    }
+
+    for (i = 0;  i< m2; ++i) {
+        /* construct all rows */
+        for(j=0; j<k; j++){
+            //colno[j] = j+1;
+            mem_comb[j] = A(i,j);
+        }
+
+        /* add the row to lpsolve */
+        try {
+            if(!add_constraintex(lp, k, mem_comb, colno, LE, b(i))) throw false;
+        }
+        catch (bool e)
+        {
+#ifdef VOLESTI_DEBUG
+            std::cout<<"Could not construct constaints for the Linear Program for membership "<<e<<std::endl;
+#endif
+            return;
+        }
+    }
+
+    set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
+
+    for(j=0; j<k; j++){
+        //colno[j] = j+1; // last column
+        mem_comb[j] = 0.0;
+        set_bounds(lp, j+1, -infinite, infinite);
+    }
+
+    /* add the row to lpsolve */
+    try {
+        if(!set_obj_fnex(lp, k, mem_comb, colno)) throw false;
+    }
+    catch (bool e)
+    {
+#ifdef VOLESTI_DEBUG
+        std::cout<<"Could not construct objective function for the Linear Program for membership "<<e<<std::endl;
+#endif
+        return;
+    }
+
+    //set the bounds
+
+    /* set the object direction to maximize */
+    set_maxim(lp);
+
+    /* I only want to see important messages on screen while solving */
+    set_verbose(lp, NEUTRAL);
+
+    /* Now let lpsolve calculate a solution */
+    if (solve(lp) != OPTIMAL){
+        std::cout<<"not feasible"<<std::endl;
+        delete_lp(lp);
+        return;
+    }
+    get_variables(lp, mem_comb);
+    for (int l = 0; l < k; ++l) {
+        std::cout<<"feas_point_row["<<l<<"] = "<<mem_comb[l]<<std::endl;
+    }
+    std::cout<<"\n";
+    delete_lp(lp);
+    return;
+
+}
+
 
 
 #endif

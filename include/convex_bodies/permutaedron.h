@@ -29,10 +29,10 @@ public:
 
 private:
     MT T;  //matrix V. Each row contains a vertex
-    VT b;  // vector b that contains first column of ine file
-    MT A;
+    VT b, beq, interior_point;  // vector b that contains first column of ine file
+    MT A, Aeq;
     unsigned int _d;  //dimension
-    REAL *conv_comb, *row;
+    REAL *conv_comb, *row, *mem_comb;
     int *colno;
     NT maxNT = std::numeric_limits<NT>::max();
 
@@ -122,30 +122,68 @@ public:
         MT TT(dim,k);
         T.resize(_d, k);
         TT.setConstant(0);
-        A.resize(2*dim, k);
+        Aeq.resize(2*dim, k);
+        Aeq.setConstant(0);
+        beq = VT::Ones(2*dim);
+        A.resize(k,k);
         A.setConstant(0);
-        b = VT::Ones(2*dim);
+        b = VT::Zero(k);
+        for (int i = 0; i < k; ++i) {
+            A(i,i) = -1.0;
+        }
         for (int i = 0; i < 2*dim; ++i) {
             if(i<dim){
                 for (int j = 0; j < dim; ++j) {
-                    A(i, dim*i+j) = 1.0;
+                    Aeq(i, dim*i+j) = 1.0;
                     TT(i, dim*i+j) = j+1;
                 }
             } else {
                 for (int j = 0; j < dim; ++j) {
-                    A(i,j*dim + i-dim) = 1.0;
+                    Aeq(i,j*dim + i-dim) = 1.0;
                 }
             }
         }
-        MT Aeq(1,dim);
+        MT Aeq2(1,dim);
         for (int l = 0; l < dim; ++l) {
-            Aeq(0,l) = l+1;
+            Aeq2(0,l) = l+1;
         }
-        Eigen::FullPivLU<MT> lu(Aeq);
+        Eigen::FullPivLU<MT> lu(Aeq2);
         MT N = lu.kernel();
         std::cout<<"N = "<<N<<"\n"<<std::endl;
         T = N.transpose()*TT;
-        std::cout<<"A = "<<A<<"\n"<<std::endl;
+        std::cout<<"T = "<<T<<"\n"<<std::endl;
+
+        VT bbb(1); bbb(0) = (dim*(dim+1))/2;
+        VT q = Aeq2.colPivHouseholderQr().solve(bbb);
+        std::cout<<"q = "<<q<<"\n"<<std::endl;
+        Point center(dim);
+        for (int j = 0; j < dim; ++j) {
+            center.set_coord(j, j+1);
+            std::cout<<center[j]<<std::endl;
+        }
+        std::cout<<"\n";
+        mem_comb = (REAL *) malloc((T.cols()) * sizeof(*mem_comb));
+        std::cout<<"get feas point"<<std::endl;
+        get_feas_point(TT, A, b, Aeq, beq, center, mem_comb);
+        VT qq(k);
+        for (int m = 0; m < k; ++m) {
+            qq(m) = *(mem_comb+m);
+        }
+        std::cout<<"qq = "<<qq<<"\n"<<std::endl;
+        b = b - A*qq;
+        beq = beq - Aeq*qq;
+        interior_point.resize(_d);
+        for (int i = 0; i < k; ++i) {
+            qq(i) = 1.0/(NT(dim)) - qq(i);
+        }
+        std::cout<<"qq = "<<qq<<"\n"<<std::endl;
+        std::cout<<"A*qq = "<<A*qq<<"\n"<<std::endl;
+        std::cout<<"b = "<<b<<"\n"<<std::endl;
+        b = b - A*qq;
+        beq = beq - Aeq*qq;
+        interior_point.setConstant(0);
+
+        //std::cout<<"A = "<<A<<"\n"<<std::endl;
         std::cout<<"T = "<<T<<"\n"<<std::endl;
         std::cout<<"b = "<<b<<"\n"<<std::endl;
         conv_comb = (REAL *) malloc((T.cols()+1) * sizeof(*conv_comb));
@@ -196,21 +234,19 @@ public:
 
         //std::pair<Point, NT> che_up = ComputeChebychevBall<NT, Point>(A, b);
         //std::cout<<"rad = "<<che_up.second<<std::endl;
-        VT p_in_B = VT::Ones((_d+1)*(_d+1))*(1.0/(NT((_d+1))));
-        VT p_in_P = T*p_in_B;
-        std::cout<<p_in_B<<"\n"<<std::endl;
-        std::cout<<A*p_in_B<<"\n"<<std::endl;
-        std::cout<<T*p_in_B<<"\n"<<std::endl;
+        //VT p_in_B = VT::Ones((_d+1)*(_d+1))*(1.0/(NT((_d+1))));
+        //VT p_in_P = T*p_in_B;
+        //std::cout<<p_in_B<<"\n"<<std::endl;
+        //std::cout<<A*p_in_B<<"\n"<<std::endl;
+        //std::cout<<T*p_in_B<<"\n"<<std::endl;
         Point center(_d);
         for (int j = 0; j < _d; ++j) {
-            center.set_coord(j, p_in_P(j));
+            center.set_coord(j, interior_point(j));
             std::cout<<center[j]<<std::endl;
         }
         std::cout<<"\n";
         //b = b - A*p_in_B;
         std::cout<<"is in center = "<<is_in(center)<<std::endl;
-
-
         std::vector<NT> temp(_d,0);
         NT radius =  maxNT, min_plus;
         std::pair<NT,NT> min_max;
@@ -220,7 +256,7 @@ public:
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            min_max = intersect_double_line_permutaedron(T, A, b, center, v, conv_comb, row, colno);
+            min_max = intersect_double_line_permutaedron(T, A, b, Aeq, beq, center, v, conv_comb, row, colno);
             //std::cout<<"pos2 = "<<intersect_line_permutaedron(T, A, b, center, v, conv_comb, row, colno)<<std::endl;
 
             std::cout<<"pos = "<<min_max.first<<"minus = "<<min_max.second;
@@ -236,7 +272,7 @@ public:
 
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point p) {
-        if(memLP_permutaedron(T, A, b, p)){
+        if(memLP_permutaedron(T, A, b, Aeq, beq, p, mem_comb)){
             return -1;
         }
         return 0;
@@ -247,7 +283,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v) {
 
-        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, Aeq, beq, r, v, conv_comb, row, colno);
     }
 
 
@@ -255,19 +291,21 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, Aeq, beq, r, v, conv_comb, row, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
-        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, Aeq, beq, r, v, conv_comb, row, colno);
     }
 
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
-        return std::pair<NT, int> (intersect_line_permutaedron(T, A, b, r, v, conv_comb, row, colno), 1);
+        //intersect_line_permutaedron(MT &T, MT &A, VT &b, MT &Aeq, MT &beq, Point &r, Point &v,  NT *conv_comb, NT *row, int *colno)
+        //return std::pair<NT, int> (intersect_line_permutaedron(T, A, b, Aeq, beq, r, v, conv_comb, row, colno), 1);
+        return std::pair<NT, int> (0.5,1);
     }
 
 
@@ -286,7 +324,7 @@ public:
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, Aeq, beq, r, v, conv_comb, row, colno);
     }
 
 
@@ -301,7 +339,7 @@ public:
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
-        return intersect_double_line_permutaedron(T, A, b, r, v, conv_comb, row, colno);
+        return intersect_double_line_permutaedron(T, A, b, Aeq, beq, r, v, conv_comb, row, colno);
     }
 
 

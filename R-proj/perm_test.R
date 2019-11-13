@@ -1,6 +1,6 @@
 library(volesti)
 
-d =5
+d =4
 k = 20
 m = 40
 P = Permutaedron$new(d)
