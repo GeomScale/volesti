@@ -376,7 +376,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
         case 6: {
             // Zonotope
             Permut P;
-            P.init(n);
+            P.init(n+1);
 
             return generic_volume(P, walkL, e, inner_ball, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
                                   alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, diam, round, type);

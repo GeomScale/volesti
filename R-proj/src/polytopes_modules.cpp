@@ -73,7 +73,7 @@ class permutaedron {
 public:
     permutaedron() {}
     permutaedron(unsigned int d) {
-      dimension = d;
+      dimension = d-1;
     }
     int type = 6;
     unsigned int dimension;

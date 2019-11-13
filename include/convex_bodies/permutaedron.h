@@ -117,25 +117,34 @@ public:
 
 
     void init(unsigned int dim) {
-        _d = dim;
+        _d = dim-1;
         unsigned int k = dim*dim;
+        MT TT(dim,k);
         T.resize(_d, k);
-        T.setConstant(0);
-        A.resize(2*_d, k);
+        TT.setConstant(0);
+        A.resize(2*dim, k);
         A.setConstant(0);
-        b = VT::Ones(2*_d);
-        for (int i = 0; i < 2*_d; ++i) {
-            if(i<_d){
-                for (int j = 0; j < _d; ++j) {
-                    A(i, _d*i+j) = 1.0;
-                    T(i, _d*i+j) = j+1;
+        b = VT::Ones(2*dim);
+        for (int i = 0; i < 2*dim; ++i) {
+            if(i<dim){
+                for (int j = 0; j < dim; ++j) {
+                    A(i, dim*i+j) = 1.0;
+                    TT(i, dim*i+j) = j+1;
                 }
             } else {
-                for (int j = 0; j < _d; ++j) {
-                    A(i,j*_d + i-_d) = 1.0;
+                for (int j = 0; j < dim; ++j) {
+                    A(i,j*dim + i-dim) = 1.0;
                 }
             }
         }
+        MT Aeq(1,dim);
+        for (int l = 0; l < dim; ++l) {
+            Aeq(0,l) = l+1;
+        }
+        Eigen::FullPivLU<MT> lu(Aeq);
+        MT N = lu.kernel();
+        std::cout<<"N = "<<N<<"\n"<<std::endl;
+        T = N.transpose()*TT;
         std::cout<<"A = "<<A<<"\n"<<std::endl;
         std::cout<<"T = "<<T<<"\n"<<std::endl;
         std::cout<<"b = "<<b<<"\n"<<std::endl;
@@ -187,7 +196,7 @@ public:
 
         //std::pair<Point, NT> che_up = ComputeChebychevBall<NT, Point>(A, b);
         //std::cout<<"rad = "<<che_up.second<<std::endl;
-        VT p_in_B = VT::Ones(_d*_d)*(1.0/(NT(_d)));
+        VT p_in_B = VT::Ones((_d+1)*(_d+1))*(1.0/(NT((_d+1))));
         VT p_in_P = T*p_in_B;
         std::cout<<p_in_B<<"\n"<<std::endl;
         std::cout<<A*p_in_B<<"\n"<<std::endl;
@@ -219,7 +228,7 @@ public:
             if (radius > -min_max.second) radius = -min_max.second;
         }
 
-        throw false;
+        //throw false;
         radius = radius / std::sqrt(NT(_d));
         return std::pair<Point, NT> (center, radius);
     }
