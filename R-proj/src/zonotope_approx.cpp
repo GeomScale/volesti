@@ -127,7 +127,10 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("diameter")) {
                 diam = Rcpp::as<double>(Rcpp::as<Rcpp::List>(parameters)["diameter"]);
             }
-        }
+        }else if(billiard) {
+			win_len = 150;
+			NN = 125;
+		}
 
         zonotope ZP;
         ZP.init(n, Rcpp::as<MT>(Z.field("G")), VT::Ones(Rcpp::as<MT>(Z.field("G")).rows()));
