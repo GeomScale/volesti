@@ -162,6 +162,7 @@ void gaussian_first_coord_point(Polytope &P,
 
     rand_coord = uidist(rng2);
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+    var.BoundCalls += 2.0;
     NT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
     p_prev = p;
     coord_prev = rand_coord;
@@ -171,6 +172,7 @@ void gaussian_first_coord_point(Polytope &P,
     for (unsigned int j = 0; j < walk_len; j++) {
         rand_coord = uidist(rng2);
         gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
+        var.BoundCalls += 2.0;
         coord_prev = rand_coord;
     }
 }
@@ -200,6 +202,7 @@ void gaussian_next_point(Polytope &P,
         } else if (var.cdhr_walk) {
             rand_coord = uidist(rng2);
             gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
+            var.BoundCalls += 2.0;
             coord_prev = rand_coord;
         } else {
             gaussian_hit_and_run(p, P, a_i, var);
@@ -234,6 +237,7 @@ void rand_gaussian_point_generator(Polytope &P,
     if (var.cdhr_walk) {
         rand_coord = uidist(rng2);
         std::pair <NT, NT> bpair = P.line_intersect_coord(p, rand_coord, lamdas);
+        var.BoundCalls += 2.0;
         NT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
         p_prev = p;
         coord_prev = rand_coord;
@@ -241,6 +245,7 @@ void rand_gaussian_point_generator(Polytope &P,
         for (unsigned int j = 0; j < walk_len - 1; ++j) {
             rand_coord = uidist(rng2);
             gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, coord_prev, a_i, lamdas, var);
+            var.BoundCalls += 2.0;
             coord_prev = rand_coord;
         }
         randPoints.push_back(p);
@@ -255,6 +260,7 @@ void rand_gaussian_point_generator(Polytope &P,
                 rand_coord_prev = rand_coord;
                 rand_coord = uidist(rng2);
                 gaussian_hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, a_i, lamdas, var);
+                var.BoundCalls += 2.0;
             } else {
                 gaussian_hit_and_run(p, P, a_i, var);
                 var.BoundCalls = var.BoundCalls + 2.0;

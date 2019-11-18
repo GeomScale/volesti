@@ -28,7 +28,7 @@
 #include "vpolytope.h"
 #include "zpolytope.h"
 #include "projection_poly.h"
-#include "permutaedron.h"
+//#include "permutaedron.h"
 //#include "ellipsoids.h"
 #include "ballintersectconvex.h"
 #include "vpolyintersectvpoly.h"
@@ -374,6 +374,7 @@ NT volume_gaussian_annealing(Polytope &P,
     // Compute the first point if CDHR is requested
     if(var.cdhr_walk){
         gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
+        var.TotSteps += 1.0;
     }
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++) { //iterate over the number of ratios
         //initialize convergence test
@@ -397,6 +398,7 @@ NT volume_gaussian_annealing(Polytope &P,
         while(!done || (*itsIt)<min_steps){
 
             gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
+            var.TotSteps += 1.0;
 
             *itsIt = *itsIt + 1.0;
             *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);

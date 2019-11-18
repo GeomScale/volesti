@@ -109,12 +109,13 @@ public:
            bool rdhr_walk,
            NT BoundCalls,
            NT TotSteps
+           //NT gaussians
     ) :
             n(n), walk_steps(walk_steps), N(N), W(W), n_threads(n_threads), error(error),
             che_rad(che_rad), rng(rng), C(C), frac(frac), ratio(ratio), delta(delta),
             deltaset(deltaset), verbose(verbose), rand_only(rand_only), round(round),
             NN(NN), birk(birk), ball_walk(ball_walk), cdhr_walk(cdhr_walk), rdhr_walk(rdhr_walk),
-            BoundCalls(BoundCalls), TotSteps(TotSteps){};
+            BoundCalls(BoundCalls), TotSteps(TotSteps){};//, gaussians(gaussians){};
 
     unsigned int n;
     unsigned int walk_steps;
@@ -139,6 +140,7 @@ public:
     bool rdhr_walk;
     NT BoundCalls;
     NT TotSteps;
+    //NT gaussians;
 };
 
 
