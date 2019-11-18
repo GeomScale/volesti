@@ -50,7 +50,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
     bool ball_walk = false, verbose = false, cdhr = false, rdhr = false, billiard = false, round = false, win2 = false, hpoly = false;
 
 
-    NT ratio = 0.0;
+    NT ratio = 0.0, vol_red = 0.0, vol = 0.0;
 
     MT X(n, 2*k);
     X << Rcpp::as<MT>(Z.field("G")).transpose(), -Rcpp::as<MT>(Z.field("G")).transpose();
@@ -68,7 +68,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
     HP.init(n, A.transpose()*svd.matrixU().transpose(), Gred_ii);
 
     if (fit_ratio.isNotNull() && Rcpp::as<bool>(fit_ratio)) {
-        NT vol_red = std::abs(svd.matrixU().determinant());
+        vol_red = std::abs(svd.matrixU().determinant());
         for (int i = 0; i < n; ++i) {
             vol_red *= 2.0 * Gred_ii(i);
         }
@@ -163,7 +163,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
         vars_ban <NT> var_ban(lb, ub, p, 0.0, alpha, win_len, NN, nu, win2);
 
 
-        NT vol, nballs;
+        NT nballs;
         if (!hpoly) {
             vol = volesti_ball_ann(ZP, var, var_ban, InnerB, nballs);
         } else {
@@ -175,7 +175,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
         ratio = std::pow(vol_red / vol, 1.0/NT(n));
     }
 
-    return Rcpp::List::create(Rcpp::Named("Mat") = Rcpp::wrap(Mat) , Rcpp::Named("fit_ratio") = ratio);
+    return Rcpp::List::create(Rcpp::Named("Mat") = Rcpp::wrap(Mat) , Rcpp::Named("fit_ratio") = ratio, Rcpp::Named("vol") = vol, Rcpp::Named("vol_red") = vol_red);
 
 }
 
