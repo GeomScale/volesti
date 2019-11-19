@@ -31,8 +31,8 @@ private:
     unsigned int _d;  //dimension
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
-    REAL *conv_comb, *row;
-    int *colno;
+    REAL *conv_comb, *row, *row_mem;
+    int *colno, *colno_mem;
     MT sigma;
     MT Q0;
     MT T;
@@ -237,6 +237,8 @@ public:
         conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
         colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
         row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
+        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
         bool normalization1=true;
         bool normalization2=false;
         compute_eigenvectors(V.transpose(),normalization1,normalization2);
@@ -283,7 +285,7 @@ public:
 
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point p) {
-        if(memLP_Zonotope(V, p)){
+        if(memLP_Zonotope(V, p, row_mem, colno_mem)){
             return -1;
         }
         return 0;
@@ -436,6 +438,8 @@ public:
         free(row);
         free(colno);
         free(conv_comb);
+        free(row_mem);
+        free(colno_mem);
     }
 
 };

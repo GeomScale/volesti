@@ -426,14 +426,13 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, NT *conv_comb, NT *row, int *c
 }
 
 
-template <class MT, class Point>
-bool memLP_Zonotope(MT V, Point q){
+template <class MT, class Point, typename NT>
+bool memLP_Zonotope(MT V, Point q, NT *row, int *colno){
 
     //typedef typename Point::FT NT;
     int d=q.dimension();
     lprec *lp;
-    int Ncol=V.rows(), *colno = NULL, j, i;
-    REAL *row = NULL;
+    int Ncol=V.rows(), j, i;
 
     try
     {
@@ -449,18 +448,18 @@ bool memLP_Zonotope(MT V, Point q){
 
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
 
-    try
-    {
-        colno = (int *) malloc(Ncol * sizeof(*colno));
-        row = (REAL *) malloc(Ncol * sizeof(*row));
-    }
-    catch (std::exception &e)
-    {
+    //try
+    //{
+        //colno = (int *) malloc(Ncol * sizeof(*colno));
+        //row = (REAL *) malloc(Ncol * sizeof(*row));
+    //}
+    //catch (std::exception &e)
+    //{
         #ifdef VOLESTI_DEBUG
         std::cout<<"Linear Program for membership failed "<<e.what()<<std::endl;
         #endif
-        return false;
-    }
+        //return false;
+    //}
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 
@@ -489,7 +488,7 @@ bool memLP_Zonotope(MT V, Point q){
 
     // set the bounds
     for(j=0; j<Ncol; j++){
-        colno[j] = j+1; /* j_th column */
+        //colno[j] = j+1; /* j_th column */
         row[j] = 0.0;
         set_bounds(lp, j+1, -1.0, 1.0);
     }
