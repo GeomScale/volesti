@@ -86,6 +86,7 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     get_hdelta(ZP, HP, Zs_max, lb, ub, ratio, var3);
     var.MemLps = var.MemLps + var3.MemLps;
     Hpolytope HP2=HP;
+    HP2.normalize();
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
 

@@ -49,6 +49,7 @@ NT hvol_vpoly (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameter
     HP3.init(n,HP.get_mat(),HP.get_vec());
     //HP3.print();
     get_first_poly(VP, HP3, lb, ub, ratio, var3);
+    HP3.normalize();
 
     var.MemLps = var.MemLps + var3.MemLps;
    // Hpolytope HP2=HP;

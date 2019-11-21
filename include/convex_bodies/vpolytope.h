@@ -31,8 +31,8 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    REAL *conv_comb, *row, *conv_comb2;
-    int *colno;
+    REAL *conv_comb, *row, *conv_comb2, *conv_mem;
+    int *colno, *colno_mem;
 
 public:
     VPolytope() {}
@@ -178,7 +178,9 @@ public:
         b = _b;
         conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
         conv_comb2 = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb2));
+        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
         colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
         row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
 
@@ -322,7 +324,7 @@ public:
 
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(Point p) {
-        if(memLP_Vpoly(V, p)){
+        if(memLP_Vpoly(V, p, conv_mem, colno_mem)){
             return -1;
         }
         return 0;
@@ -484,6 +486,9 @@ public:
         free(row);
         free(colno);
         free(conv_comb);
+        free(colno_mem);
+        free(conv_comb2);
+        free(conv_mem);
     }
 
 };

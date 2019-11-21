@@ -315,7 +315,7 @@ public:
     // with the Zonotope
     std::pair<NT,NT> line_intersect(Point r, Point v) {
 
-        return intersect_line_zono<NT>(V, r, v);
+        return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
 
@@ -323,14 +323,14 @@ public:
     // with the Zonotope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
 
-        return intersect_line_zono<NT>(V, r, v);
+        return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
     std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
 
-        return intersect_line_zono<NT>(V, r, v);
+        return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
     std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
@@ -354,7 +354,7 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        return intersect_line_zono<NT>(V, r, v);
+        return intersect_line_zono(V, r, v, conv_comb, colno);
 
     }
 
@@ -371,7 +371,7 @@ public:
         temp[rand_coord]=1.0;
         Point v(_d,temp.begin(), temp.end());
 
-        return intersect_line_zono<NT>(V, r, v);
+        return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
     void intersect_double_line_Vpoly_return(Point &r, Point &v, std::vector<NT> &lambdas1, std::vector<NT> &lambdas2){}
