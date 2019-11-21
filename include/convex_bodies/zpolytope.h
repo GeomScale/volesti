@@ -374,6 +374,7 @@ public:
         return intersect_line_zono<NT>(V, r, v);
     }
 
+    void intersect_double_line_Vpoly_return(Point &r, Point &v, std::vector<NT> &lambdas1, std::vector<NT> &lambdas2){}
 
     // shift polytope by a point c
     // vector c has to be always the zero vector
@@ -433,6 +434,8 @@ public:
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
     }
+
+    void add_facet(VT a, NT z0){}
 
     void free_them_all() {
         free(row);

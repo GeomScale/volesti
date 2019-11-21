@@ -31,7 +31,7 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
-    REAL *conv_comb, *row;
+    REAL *conv_comb, *row, *conv_comb2;
     int *colno;
 
 public:
@@ -177,6 +177,7 @@ public:
         V = _V;
         b = _b;
         conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        conv_comb2 = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb2));
         colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
         row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
@@ -194,6 +195,7 @@ public:
             }
         }
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        conv_comb2 = (REAL *) malloc(Pin.size() * sizeof(*conv_comb2));
         colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
         row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
@@ -389,6 +391,18 @@ public:
     }
 
 
+    void intersect_double_line_Vpoly_return(Point &r, Point &v, std::vector<NT> &lambdas1, std::vector<NT> &lambdas2){
+
+        intersect_double_line_Vpoly22(V, r, v, colno, conv_comb, conv_comb2);
+
+        for (int i = 0; i < V.rows(); ++i) {
+            lambdas1[i] = NT(*(conv_comb2 + i));
+            lambdas2[i] = NT(*(conv_comb + i));
+        }
+
+    }
+
+
     // shift polytope by a point c
     void shift(VT c) {
         MT V2 = V.transpose().colwise() - c;
@@ -438,6 +452,8 @@ public:
     MT get_T() {
         return V;
     }
+
+    void add_facet(VT a, NT z0){}
 
     void compute_reflection(Point &v, Point &p, int facet) {
 

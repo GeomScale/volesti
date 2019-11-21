@@ -245,6 +245,7 @@ private:
 public:
     typedef typename CBall::NT NT;
     typedef typename CBall::BallPoint Point;
+    typedef typename Polytope::VT VT;
 
     BallIntersectPolytope() {}
 
@@ -273,6 +274,16 @@ public:
 
     void comp_diam(NT &diam) {
         diam = 2.0*B.radius();
+    }
+
+    void add_facet(VT a, NT z0){
+        P.add_facet(a, z0);
+    }
+
+    std::pair<Point,NT> ComputeInnerBall() {
+
+        //lpSolve lib for the linear program
+        return  P.ComputeInnerBall();//ComputeChebychevBall<NT, Point>(A, b);
     }
 
     std::pair<NT,NT> line_intersect(Point r, Point v) {
@@ -364,6 +375,8 @@ public:
         }
 
     }
+
+    void shift(VT et){}
 
 };
 

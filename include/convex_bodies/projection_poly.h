@@ -148,12 +148,12 @@ public:
     // print polytope in input format
     void print() {
 #ifdef VOLESTI_DEBUG
-        std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
+        //std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
 #endif
         for (unsigned int i = 0; i < T.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
 #ifdef VOLESTI_DEBUG
-                std::cout << V(i, j) << " ";
+                //std::cout << V(i, j) << " ";
 #endif
             }
 #ifdef VOLESTI_DEBUG
@@ -264,6 +264,9 @@ public:
     }
 
 
+    void intersect_double_line_Vpoly_return(Point &r, Point &v, std::vector<NT> &lambdas1, std::vector<NT> &lambdas2){}
+
+
     // shift polytope by a point c
     void shift(VT c) {
        return;
@@ -368,6 +371,8 @@ public:
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
     }
+
+    void add_facet(VT a, NT z0){}
 
     void free_them_all() {
         free(row);

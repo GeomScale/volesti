@@ -7,6 +7,7 @@
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
+#include "low_dimensional_sampling.h"
 #include "volume.h"
 #include "ball_ann_vol.h"
 #include "hzono_vol.h"

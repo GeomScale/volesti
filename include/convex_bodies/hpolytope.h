@@ -42,8 +42,14 @@ private:
 public:
     HPolytope() {}
 
+    HPolytope(unsigned int dim) {
+        _d = dim;
+        A.resize(0,_d);
+        b.resize(0);
+    }
+
     // constructor: cube(d)
-    HPolytope(unsigned int d): _d(d) {
+    /*HPolytope(unsigned int d): _d(d) {
         A.resize(2 * d, d);
         b.resize(2 * d);
         for (unsigned int i = 0; i < d; ++i) {
@@ -66,7 +72,7 @@ public:
                 }
             }
         }
-    }
+    }*/
 
 
     // return dimension
@@ -80,6 +86,9 @@ public:
         return A.rows();
     }
 
+    int num_of_vertices(){
+        return 0;
+    }
 
     // return the matrix A
     MT get_mat() {
@@ -190,18 +199,18 @@ public:
 
     // print polytope in input format
     void print() {
-#ifdef VOLESTI_DEBUG
+//#ifdef VOLESTI_DEBUG
         std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
-#endif
+//#endif
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                #ifdef VOLESTI_DEBUG
+                //#ifdef VOLESTI_DEBUG
                 std::cout << -A(i, j) << " ";
-                #endif
+                //#endif
             }
-            #ifdef VOLESTI_DEBUG
+            //#ifdef VOLESTI_DEBUG
             std::cout << "<= " << b(i) << std::endl;
-            #endif
+            //#endif
         }
     }
 
@@ -292,6 +301,15 @@ public:
 
         //lpSolve lib for the linear program
         return ComputeChebychevBall<NT, Point>(A, b);
+    }
+
+
+    void add_facet(VT coeffs, NT constant) {
+        A.conservativeResize(A.rows()+1 , A.cols());
+        A.row(A.rows()-1) = coeffs;
+
+        b.conservativeResize(b.size()+1);
+        b(b.size()-1) = constant;
     }
 
 
@@ -485,6 +503,8 @@ public:
         }
         return std::pair<NT, NT>(min_plus, max_minus);
     }
+
+    void intersect_double_line_Vpoly_return(Point &r, Point &v, std::vector<NT> &lambdas1, std::vector<NT> &lambdas2){}
 
 
     // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
