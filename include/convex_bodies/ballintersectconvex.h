@@ -10,6 +10,8 @@
 #ifndef BALLINTERSECTCONVEX_H
 #define BALLINTERSECTCONVEX_H
 
+#include "solve_lp.h"
+
 // ball type
 template <class Point>
 struct Ball{
@@ -36,6 +38,10 @@ public:
 
     NT radius(){
         return std::sqrt(R);
+    }
+
+    void set_radius(NT rad) {
+        R = rad * rad;
     }
 
     int is_in(Point p){
@@ -246,6 +252,8 @@ public:
     typedef typename CBall::NT NT;
     typedef typename CBall::BallPoint Point;
     typedef typename Polytope::VT VT;
+    typedef typename Polytope::MT MT;
+    typedef Polytope Hpoly;
 
     BallIntersectPolytope() {}
 
@@ -268,8 +276,20 @@ public:
         return P.dimension();
     }
 
+    void set_vec(VT bb) {
+        P.set_vec(bb);
+    }
+
+    VT get_vec() {
+        return P.get_vec();
+    }
+
     NT radius() {
-        B.radius();
+        return B.radius();
+    }
+
+    void set_radius(NT rad) {
+        B.set_radius(rad);
     }
 
     void comp_diam(NT &diam) {
@@ -282,8 +302,17 @@ public:
 
     std::pair<Point,NT> ComputeInnerBall() {
 
-        //lpSolve lib for the linear program
-        return  P.ComputeInnerBall();//ComputeChebychevBall<NT, Point>(A, b);
+        VT b = P.get_vec();
+        int m = P.get_mat().rows(), d = P.get_mat().cols();
+        NT rad = std::numeric_limits<NT>::max();
+        std::cout<<"m = "<<m<<std::endl;
+        for (int i = 0; i < m; ++i) {
+
+            if (b(i) < rad) rad = b(i);
+        }
+        std::cout<<"CHeb radius of BP = "<<rad<<std::endl;
+        return std::pair<Point, NT> (Point(d), rad);
+        //return  ComputeChebychevBall2<Point>(P.get_mat(), P.get_vec(), radius());//ComputeChebychevBall<NT, Point>(A, b);
     }
 
     std::pair<NT,NT> line_intersect(Point r, Point v) {
@@ -378,6 +407,24 @@ public:
 
     void shift(VT et){}
 
+    void normalize() {
+        P. normaize();
+    }
+
+    template <class T>
+    bool get_points_for_rounding (T &randPoints) {
+        return false;
+    }
+
+    std::vector<NT> get_dists(NT radius){
+        return P.get_dists(radius);
+    }
+
+    void linear_transformIt(MT T) {}
+
+    void free_them_all(){
+        P.free_them_all();
+    }
 };
 
 

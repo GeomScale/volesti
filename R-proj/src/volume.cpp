@@ -16,6 +16,7 @@
 #include "ball_ann_vol.h"
 #include "hzono_vol.h"
 #include "hvol_vpoly.h"
+#include "ball_hvol_vpoly.h"
 
 
 template <class Polytope, typename NT>
@@ -122,7 +123,8 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
             if(type == 3) {
                 vol = vol_hzono < HPolytope < Point > > (P, var, var_ban, varg, InnerB, nballs);
             } else {
-                vol = hvol_vpoly < HPolytope < Point > > (P, var, var_ban, varg, InnerB, nballs, nfacets);
+                std::cout<<"nfacets = "<<nfacets<<std::endl;
+                vol = ball_hvol_vpoly < HPolytope < Point > > (P, var, var_ban, varg, InnerB, nballs, nfacets);
             }
         }
     }else {

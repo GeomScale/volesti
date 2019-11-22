@@ -569,6 +569,10 @@ public:
 
     }
 
+    NT radius() {
+        return 0.0;
+    }
+
     void free_them_all() {}
 
 };

@@ -162,11 +162,11 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
 
 
 // Compute the sequence of spherical gaussians
-template <class Polytope, class Parameters, typename NT>
+template <class Point, class Polytope, class Parameters, typename NT>
 void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, unsigned int N,
                             Parameters var, NT &error, std::vector<NT> &a_vals){
 
-    typedef typename Polytope::PolytopePoint Point;
+    //typedef typename Polytope::PolytopePoint Point;
     // Compute the first gaussian
     get_first_gaussian(P, radius, frac, var, error, a_vals);
     #ifdef VOLESTI_DEBUG

@@ -16,7 +16,7 @@ public:
     typedef typename HPolytope::NT NT;
     typedef typename HPolytope::VT VT;
     typedef typename HPolytope::MT MT;
-    typedef typename HPolytope::PolytopePoint Point;
+    typedef typename Zonotope::PolytopePoint Point;
 
     ZonoIntersectHPoly() {}
 
@@ -41,6 +41,10 @@ public:
 
     unsigned int num_of_generators(){
         return Z.num_of_generators();
+    }
+
+    NT radius() {
+        return HP.radius();
     }
 
     MT get_mat() {
@@ -91,7 +95,7 @@ public:
 
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av);
         std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
-        int facet = HP.num_of_hyperplanes();
+        int facet = HP.num_of_hyperplanes()+1;
 
         if (polypair.first < zonopair.first ) facet = polypair.second;
 
@@ -103,7 +107,7 @@ public:
 
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
-        int facet = HP.num_of_hyperplanes();
+        int facet = HP.num_of_hyperplanes() + 1;
 
         if (polypair.first < zonopair.first ) facet = polypair.second;
 
@@ -132,7 +136,7 @@ public:
 
     void compute_reflection (Point &v, Point &p, int &facet) {
 
-        if (facet == HP.num_of_hyperplanes()) {
+        if (facet == (HP.num_of_hyperplanes()+1)) {
             Z.compute_reflection(v, p, facet);
         } else {
             HP.compute_reflection(v, p, facet);

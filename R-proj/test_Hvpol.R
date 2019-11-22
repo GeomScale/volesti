@@ -1,12 +1,14 @@
 library(volesti)
 
 #P=GenCross(10,'V')
-P=GenRandVpoly(30,60)
+d=40
+k=80
+P=GenRandVpoly(d,k, body = "cube")
 
-vol = volume(P, algo = "CB", random_walk = "BilW",rounding = TRUE, parameters = list("hpoly"=TRUE, "nfacets"=220))
+vol = volume(P, algo = "CB", random_walk = "BilW", rounding = TRUE, parameters = list("hpoly"=TRUE, "nfacets"=8*k))
 
 print(vol)
 
-vol = volume(P, algo = "CB", random_walk = "BilW", rounding = TRUE)
+vol = volume(P, algo = "CB", rounding=TRUE, random_walk = "BilW")
 
 print(vol)

@@ -338,7 +338,7 @@ NT volume_gaussian_annealing(Polytope &P,
     if(print) std::cout<<"\n\nComputing annealing...\n"<<std::endl;
     #endif
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-    get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals);
+    get_annealing_schedule<Point>(P, radius, ratio, C, frac, N, var, error, a_vals);
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
     #ifdef VOLESTI_DEBUG
     if(print) std::cout<<"All the variances of schedule_annealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;

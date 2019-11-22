@@ -45,7 +45,7 @@ void enclosing_ball(Polytope &P, Ball &B0, Parameters &var) {
             rad = nr;
         }
     }
-    rad = rad*1.1;
+    rad = rad*1.000001;
     //std::cout<<"radius of minim ball = "<<rad<<std::endl;
     //Point xc = Point(n);
     //std::vector<Ball> S0;
