@@ -16,7 +16,7 @@
 
 template <class Hpolytope, class Vpolytope, class UParameters, class AParameters, class GParameters, class Point, typename NT>
 NT hvol_vpoly (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameters &var_g,
-              std::pair<Point,NT> &InnerB, NT &nballs, int k = 0) {
+              std::pair<Point,NT> &InnerB, NT &nballs, int k = 0, bool only_balls = false) {
 
     typedef typename Vpolytope::VT VT;
     typedef typename Vpolytope::MT MT;
@@ -41,10 +41,10 @@ NT hvol_vpoly (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameter
 
     Hpolytope HP(n);
     ball1 B0;
-    enclosing_ball(VP, B0, var);
+    enclosing_ball(VP, B0, var3);
     std::cout<<"B0.rad = "<<B0.radius()<<std::endl;
     BallPoly BP(HP, B0);
-    construct_hpoly(VP, HP, BP, 10*n, k, var3);
+    construct_hpoly(VP, HP, BP, 10+n, k, var3);
     Hpolytope HP3;
     HP3.init(n,HP.get_mat(),HP.get_vec());
     //HP3.print();
@@ -75,6 +75,7 @@ NT hvol_vpoly (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameter
     get_sequence_of_vpoly_hpolys<ZonoHP>(VP, HP3, HPolySet, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
     var.diameter = diam0;
     nballs = NT(HPolySet.size()+1);
+    if (only_balls) return vol;
 
     int mm=HPolySet.size()+2;
     int mm2=mm+1;
