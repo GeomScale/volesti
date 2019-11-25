@@ -75,7 +75,10 @@ NT hvol_vpoly (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameter
     get_sequence_of_vpoly_hpolys<ZonoHP>(VP, HP3, HPolySet, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
     var.diameter = diam0;
     nballs = NT(HPolySet.size()+1);
-    if (only_balls) return vol;
+    if (only_balls){
+        VP.free_them_all();
+        return vol;
+    }
 
     int mm=HPolySet.size()+2;
     int mm2=mm+1;

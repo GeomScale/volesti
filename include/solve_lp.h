@@ -151,6 +151,8 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b){
     NT r=NT(get_objective(lp));
     res = std::pair<Point,NT> (xc,r);
     delete_lp(lp);
+    free(row);
+    free(colno);
 
     return res;
 }
@@ -735,6 +737,8 @@ std::pair<NT,NT> intersect_double_line_Vpoly(MT V, Point &p, Point &v){
 
 
     delete_lp(lp);
+    free(row);
+    free(colno);
     return res_pair;
 }
 

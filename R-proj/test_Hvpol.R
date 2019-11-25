@@ -5,7 +5,7 @@ d=40
 k=80
 P=GenRandVpoly(d,k, body = "cube")
 
-vol = volume(P, algo = "CB", random_walk = "BilW", parameters = list("hpoly"=TRUE, "nfacets"=5*d))
+vol = volume(P, algo = "CB", random_walk = "BilW", parameters = list("hpoly"=TRUE, "nfacets"=10*d))
 
 print(vol)
 
