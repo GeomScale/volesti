@@ -14,7 +14,7 @@
 
 template <class Hpolytope, class Zonotope, class UParameters, class AParameters, class GParameters, class Point, typename NT>
 NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters &var_g,
-              std::pair<Point,NT> &InnerB, NT &nballs) {
+              std::pair<Point,NT> &InnerB, NT &nballs, bool only_phases = false) {
 
     typedef typename Zonotope::VT VT;
     typedef typename Zonotope::MT MT;
@@ -105,6 +105,10 @@ NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters 
     get_sequence_of_zonopolys<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
     var.diameter = diam0;
     nballs = NT(HPolySet.size()+1);
+    if (only_phases){
+        ZP.free_them_all();
+        return vol;
+    }
 
     int mm=HPolySet.size()+2;
     int mm2=mm+1;

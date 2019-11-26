@@ -116,12 +116,12 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
     } else if (CB) {
         vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, win_len, NN, nu, win2);
         if (!hpoly) {
-            vol = volesti_ball_ann(P, var, var_ban, InnerB, nballs);
+            vol = volesti_ball_ann(P, var, var_ban, InnerB, nballs, only_balls);
         } else {
             vars_g<NT, RNGType> varg(n, 1, N, 5*n*n+500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                      rand_only, false, false, birk, false, true, false, 0.0, 0.0);
             if(type == 3) {
-                vol = vol_hzono < HPolytope < Point > > (P, var, var_ban, varg, InnerB, nballs);
+                vol = vol_hzono < HPolytope < Point > > (P, var, var_ban, varg, InnerB, nballs, only_balls);
             } else {
                 std::cout<<"nfacets = "<<nfacets<<std::endl;
                 vol = hvol_vpoly < HPolytope < Point > > (P, var, var_ban, varg, InnerB, nballs, nfacets, only_balls);

@@ -21,7 +21,8 @@
 #include "esti_ratioGl.h"
 
 template <class Polytope, class Point, class UParameters, class AParameters, typename NT>
-NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall, NT &nballs) {
+NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall, NT &nballs,
+                     bool only_phases = false) {
 
     typedef Ball <Point> ball;
     typedef BallIntersectPolytope <Polytope, ball> PolyBall;
@@ -75,6 +76,10 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
 
     int mm = BallSet.size() + 1;
     nballs = NT(mm - 1);
+    if (only_phases) {
+        P.free_them_all();
+        return vol;
+    }
     prob = std::pow(prob, 1.0 / NT(mm));
     NT er0 = e / (2.0 * std::sqrt(NT(mm))), er1 = (e * std::sqrt(4.0 * NT(mm) - 1)) / (2.0 * std::sqrt(NT(mm)));
 
