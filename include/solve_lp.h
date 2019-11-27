@@ -617,14 +617,13 @@ std::pair<NT,NT> intersect_line_zono(MT V, Point &p, Point &v, NT *row, int *col
 
 
 template <typename NT, class MT, class Point>
-std::pair<NT,NT> intersect_double_line_Vpoly(MT V, Point &p, Point &v){
+std::pair<NT,NT> intersect_double_line_Vpoly(MT V, Point &p, Point &v, NT *row, int *colno){
 
     int d=v.dimension(), i;
     lprec *lp;
     int m=V.rows();
     m++;
-    int Ncol=m, *colno = NULL, j, Nrows;
-    REAL *row = NULL;
+    int Ncol=m, j, Nrows;
     NT res;
     Nrows = d+1;
     std::pair<NT,NT> res_pair;
@@ -643,18 +642,18 @@ std::pair<NT,NT> intersect_double_line_Vpoly(MT V, Point &p, Point &v){
 
     REAL infinite = get_infinite(lp); /* will return 1.0e30 */
 
-    try
-    {
-        colno = (int *) malloc(Ncol * sizeof(*colno));
-        row = (REAL *) malloc(Ncol * sizeof(*row));
-    }
-    catch (std::exception &e)
-    {
-#ifdef VOLESTI_DEBUG
-        std::cout<<"Linear Program for ray-shooting failed "<<e.what()<<std::endl;
-#endif
-        return res_pair;
-    }
+    //try
+    //{
+        //colno = (int *) malloc(Ncol * sizeof(*colno));
+        //row = (REAL *) malloc(Ncol * sizeof(*row));
+    //}
+    //catch (std::exception &e)
+    //{
+//#ifdef VOLESTI_DEBUG
+    //    std::cout<<"Linear Program for ray-shooting failed "<<e.what()<<std::endl;
+//#endif
+  //      return res_pair;
+    //}
 
     set_add_rowmode(lp, TRUE);  /* makes building the model faster if it is done rows by row */
 
@@ -737,8 +736,6 @@ std::pair<NT,NT> intersect_double_line_Vpoly(MT V, Point &p, Point &v){
 
 
     delete_lp(lp);
-    free(row);
-    free(colno);
     return res_pair;
 }
 

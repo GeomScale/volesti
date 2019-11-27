@@ -65,7 +65,6 @@ NT hvol_vpoly (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameter
     typedef ZonoIntersectHPoly<Vpolytope, Hpolytope > ZonoHP;
     std::vector<Hpolytope > HPolySet;
     std::vector<NT> ratios;
-    ZonoHP zb1, zb2;
     std::vector<NT> diams_inter;
 
     //var3.walk_steps = 1;
@@ -76,9 +75,12 @@ NT hvol_vpoly (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameter
     var.diameter = diam0;
     nballs = NT(HPolySet.size()+1);
     if (only_balls){
+        HPolySet.clear();
         VP.free_them_all();
         return vol;
     }
+
+    ZonoHP zb1, zb2;
 
     int mm=HPolySet.size()+2;
     int mm2=mm+1;
