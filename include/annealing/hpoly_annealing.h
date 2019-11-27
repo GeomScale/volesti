@@ -387,6 +387,9 @@ void get_sequence_of_vpoly_hpolys(Vpolytope &VP, HPolytope &HP, std::vector<HPol
         pair_diam = HP2.ComputeInnerBall();
         diams_inter.push_back(2.0*std::sqrt(NT(n))*pair_diam.second);
         std::cout<<"[annealing] diameter = "<<diams_inter[diams_inter.size()-1]<<std::endl;
+        if (pair_diam.second <= 0.0) {
+            throw "unbounded";
+        }
         var.diameter = diams_inter[diams_inter.size()-1];
         std::cout<<"sampling N points from ZHP2, walk_length ="<<var.walk_steps<<std::endl;
         rand_point_generator(ZHP2, q, Ntot, var.walk_steps, randPoints, var);
