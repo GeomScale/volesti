@@ -71,6 +71,11 @@ NT hvol_vpoly (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameter
 
     if(verbose) std::cout<<"computing hpoly annealing.. = "<<vol<<"\n"<<std::endl;
     std::cout<<"N = "<<N<<" nu = "<< nu<<std::endl;
+    if (HP3.is_all_positive()){
+        std::cout<<"all bi positives"<<std::endl;
+    } else {
+        std::cout<<"NOT all bi positives!!"<<std::endl;
+    }
     get_sequence_of_vpoly_hpolys<ZonoHP>(VP, HP3, HPolySet, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
     var.diameter = diam0;
     nballs = NT(HPolySet.size()+1);

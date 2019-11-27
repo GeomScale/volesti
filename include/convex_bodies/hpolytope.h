@@ -80,6 +80,12 @@ public:
         return _d;
     }
 
+    bool is_all_positive() {
+        for (int i = 0; i < num_of_hyperplanes(); ++i) {
+            if (b(i)<0.0) return false;
+        }
+        return true;
+    }
 
     // return the number of facets
     int num_of_hyperplanes() {

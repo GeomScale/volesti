@@ -106,23 +106,32 @@ void construct_hpoly(Vpolytope &VP, Hpolytope &HP, PolyBall &PB, int walkL, int 
 
     //uniform_first_point(PB, p, p_prev, coord_prev, walkL, lamdas, Av, lambda, var);
     std::list<Point> randPoints;
-    for (int i = 0; i < k; ++i) {
+    int counter=1;
+    NT rad =-1.0;
+    std::pair<Point , NT> pair_rad;
+    while (counter<=k || rad<0.0){
 
         //std::cout<<"sampling new point, walkL ="<<walkL<<std::endl;
         p = Point(n);
-        do {
-            rand_point_generator(PB, p, 1, walkL, randPoints, var);
+        //do {
+        rand_point_generator(PB, p, 1, walkL, randPoints, var);
             //for (int i = 0; i < walkL; ++i) {
                 //hit_and_run(p, PB, var);
             //}
-        }while(VP.is_in(p)==-1);
+        //}while(VP.is_in(p)==-1);
         //std::cout<<"p in VP = "<<VP.is_in(p)<<std::endl;
         //uniform_next_point(PB, p, p_prev, coord_prev, walkL, lamdas, Av, lambda, var);
         //std::cout<<"adding new facet"<<std::endl;
         add_new_facet(PB, VP, HP, p, var);
         randPoints.clear();
+        counter++;
+        if (counter>k) {
+            pair_rad = HP.ComputeInnerBall();
+            rad = pair_rad.second;
+        }
 
     }
+    std::cout<<"\nChebychev radius in hpoly construction = "<<rad<<", num_of_hyps = "<<HP.num_of_hyperplanes()<<"\n"<<std::endl;
 
 }
 
