@@ -309,6 +309,14 @@ public:
         return ComputeChebychevBall<NT, Point>(A, b);
     }
 
+    std::pair<Point,NT> ComputeInnerBall_from_origin() {
+
+        NT rad=-1000000000.0;
+        for (int i = 0; i < num_of_hyperplanes(); ++i) {
+            if (b(i) > rad) rad = b(i);
+        }
+        return std::pair<Point,NT> (Point(_d), rad);
+    }
 
     void add_facet(VT coeffs, NT constant) {
         A.conservativeResize(A.rows()+1 , A.cols());

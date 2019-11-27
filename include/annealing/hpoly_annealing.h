@@ -350,8 +350,8 @@ void get_sequence_of_vpoly_hpolys(Vpolytope &VP, HPolytope &HP, std::vector<HPol
 
     int n = var.n;
 
-    MT V = VP.get_mat().transpose();
-    MT AV = HP.get_mat()*V;
+    //MT V = VP.get_mat().transpose();
+    //MT AV = HP.get_mat()*V;
     VT Zs_max = VT::Ones(HP.num_of_hyperplanes());
 
     NT ratio;
@@ -374,7 +374,7 @@ void get_sequence_of_vpoly_hpolys(Vpolytope &VP, HPolytope &HP, std::vector<HPol
 
     ZonoHP ZHP2;
     VT Zs_min = HP.get_vec();
-    std::pair<Point, NT> pair_diam;
+    std::pair<Point, NT> pair_diam, pair_diam2;
 
     while (true) {
 
@@ -384,11 +384,20 @@ void get_sequence_of_vpoly_hpolys(Vpolytope &VP, HPolytope &HP, std::vector<HPol
         std::cout<<"computing new diameter"<<std::endl;
         //comp_diam_hpoly_vpoly_inter2(ZonoHP &ZHP, MT V, NT AV, VT b, int m, Parameters &var, std::vector<NT> &diams_inter)
         //comp_diam_hpoly_vpoly_inter2<HPolytope>(ZHP2, V, AV, HP2.get_vec(), HP.num_of_hyperplanes(), var2, diams_inter);
-        pair_diam = HP2.ComputeInnerBall();
+        pair_diam = HP2.ComputeInnerBall_from_origin();
+        if (HP2.is_all_positive()){
+            std::cout<<"{ANN} all bi positives"<<std::endl;
+        } else {
+            std::cout<<"{ANN} NOT all bi positives!!"<<std::endl;
+        }
         diams_inter.push_back(2.0*std::sqrt(NT(n))*pair_diam.second);
         std::cout<<"[annealing] diameter = "<<diams_inter[diams_inter.size()-1]<<std::endl;
         if (pair_diam.second <= 0.0) {
             throw "unbounded";
+        }
+        pair_diam2 = HP2.ComputeInnerBall();
+        if (pair_diam2.second <= 0.0) {
+            std::cout<<"radius_from_LP = "<<pair_diam2.second<<std::endl;
         }
         var.diameter = diams_inter[diams_inter.size()-1];
         std::cout<<"sampling N points from ZHP2, walk_length ="<<var.walk_steps<<std::endl;
