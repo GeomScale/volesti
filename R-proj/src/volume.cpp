@@ -16,6 +16,7 @@
 #include "ball_ann_vol.h"
 #include "hzono_vol.h"
 #include "hvol_vpoly.h"
+#include "hvol_proj.h"
 //#include "ball_hvol_vpoly.h"
 
 
@@ -118,14 +119,19 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
         if (!hpoly) {
             vol = volesti_ball_ann(P, var, var_ban, InnerB, nballs, only_balls);
         } else {
-            vars_g<NT, RNGType> varg(n, 1, N, 5*n*n+500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
-                                     rand_only, false, false, birk, false, true, false, 0.0, 0.0);
-            if(type == 3) {
+            vars_g <NT, RNGType> varg(n, 1, N, 5 * n * n + 500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false,
+                                      verbose,
+                                      rand_only, false, false, birk, false, true, false, 0.0, 0.0);
+            if (type == 3) {
                 vol = vol_hzono < HPolytope < Point > > (P, var, var_ban, varg, InnerB, nballs, only_balls);
-            } else {
+            } else if(type == 5) {
+                std::cout<<"nfacets = "<<nfacets<<std::endl;
+                vol = hvol_proj < HPolytope < Point > > (P, var, var_ban, varg, InnerB, nballs, nfacets, only_balls);
+            }else {
                 std::cout<<"nfacets = "<<nfacets<<std::endl;
                 vol = hvol_vpoly < HPolytope < Point > > (P, var, var_ban, varg, InnerB, nballs, nfacets, only_balls);
             }
+
         }
     }else {
         vol = volume(P, var, InnerB);

@@ -67,7 +67,7 @@ public:
 
     // return the matrix V
     MT get_mat() {
-        return T;
+        return A;
     }
 
 
@@ -265,6 +265,16 @@ public:
 
 
     void intersect_double_line_Vpoly_return(Point &r, Point &v, std::vector<NT> &lambdas1, std::vector<NT> &lambdas2){}
+
+
+    void intersect_double_line_Vpoly_return(Point &p, Point &v, std::vector<NT> &lambdas1) {
+
+        intersect_line_proj_poly(T, A, b, p, v, conv_comb, row, colno);
+        for (int i = 0; i < T.cols(); ++i) {
+            lambdas1[i] = *(conv_comb + i);
+        }
+
+    }
 
 
     // shift polytope by a point c

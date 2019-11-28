@@ -50,6 +50,10 @@ public:
         return 0;
     }
 
+    VT get_vec() {
+        return P1.get_vec();
+    }
+
     unsigned int dimension() {
         return P1.dimension();
     }
