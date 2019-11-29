@@ -17,9 +17,17 @@ P3 = IntPoly$new(T=t(T), A=A, b=b)
 #vol1 = volume(P, algo = "CB", random_walk = "BilW")
 
 #vol1 = volume(P3, algo = "CB", random_walk = "RDHR")
-
-vol2 = volume(P3, algo = "CB", random_walk = "BilW", rounding= FALSE)
-
+#vol2 = volume(P3, algo = "CB", random_walk = "BilW", rounding= FALSE)
+vol2=0
+vol3=0
+vol4=0
+if(ball[k+1]>0){
+  vol2 = volume(P3, algo = "CB", random_walk = "BilW", rounding= FALSE, parameters=list("hpoly"=TRUE,"nfacets"=100))
+  vol3 = volume(P3, algo = "CB", random_walk = "BilW", rounding= FALSE)
+  vol4 = volume(P3, algo = "CB", random_walk = "BilW", rounding= TRUE)
+}
 #print(vol1)
 
 print(vol2)
+print(vol3)
+print(vol4)

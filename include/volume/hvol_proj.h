@@ -12,6 +12,7 @@
 #include "esti_ratioGl.h"
 #include "ZonoIntersectHPoly.h"
 #include "hpoly_mmc_proj.h"
+#include "hpoly_ann_proj.h"
 
 
 template <class Hpolytope, class Vpolytope, class UParameters, class AParameters, class GParameters, class Point, typename NT>
@@ -40,27 +41,30 @@ NT hvol_proj (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameters
     var3.bill_walk = false;
 
     Hpolytope HP(n);
-    ball1 B0;
-    enclosing_ball(VP, B0, var3);
+    ball1 B0(Point(n), 100000.0*NT(n)*NT(n)*NT(n));
+    //enclosing_ball(VP, B0, var3);
     std::cout<<"B0.rad = "<<B0.radius()<<std::endl;
     BallPoly BP(HP, B0);
     construct_hpoly2(VP, HP, BP, 10+n, k, var3);
     Hpolytope HP3;
     HP3.init(n,HP.get_mat(),HP.get_vec());
     //HP3.print();
-    get_first_poly(VP, HP3, lb, ub, ratio, var3);
-    HP3.normalize();
+    //HP3.normalize();
+    //HP3.print();
+    get_first_poly33(VP, HP3, lb, ub, ratio, var3);
+
+    //HP3.normalize();
 
     var.MemLps = var.MemLps + var3.MemLps;
     // Hpolytope HP2=HP;
 
     //std::cout<<"facets of HP = "<<HP.num_of_hyperplanes()<<"\nA="<<HP.get_mat()<<"\n b="<<HP.get_vec()<<std::endl;
     std::pair<Point, NT> InnerBall = HP3.ComputeInnerBall();
-    //std::cout<<"Cheb center = "<<std::endl;
-    //for (int j = 0; j < n; ++j) {
-    //std::cout<<InnerBall.first[j]<<" ";
-    //}
-    //std::cout<<"\n";
+    std::cout<<"Cheb center = "<<std::endl;
+    for (int j = 0; j < n; ++j) {
+    std::cout<<InnerBall.first[j]<<" ";
+    }
+    std::cout<<"\n";
 
     typedef ZonoIntersectHPoly<Vpolytope, Hpolytope > ZonoHP;
     std::vector<Hpolytope > HPolySet;
@@ -76,7 +80,7 @@ NT hvol_proj (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameters
     } else {
         std::cout<<"NOT all bi positives!!"<<std::endl;
     }
-    get_sequence_of_vpoly_hpolys<ZonoHP>(VP, HP3, HPolySet, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
+    get_sequence_of_vpoly_hpolys33<ZonoHP>(VP, HP3, HPolySet, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
     var.diameter = diam0;
     nballs = NT(HPolySet.size()+1);
     if (only_balls){

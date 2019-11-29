@@ -264,12 +264,9 @@ public:
     }
 
 
-    void intersect_double_line_Vpoly_return(Point &r, Point &v, std::vector<NT> &lambdas1, std::vector<NT> &lambdas2){}
+    void intersect_double_line_Vpoly_return(Point &r, Point &v, std::vector<NT> &lambdas1, std::vector<NT> &lambdas2){
 
-
-    void intersect_double_line_Vpoly_return(Point &p, Point &v, std::vector<NT> &lambdas1) {
-
-        intersect_line_proj_poly(T, A, b, p, v, conv_comb, row, colno);
+        intersect_line_proj_poly(T, A, b, r, v, conv_comb, row, colno);
         for (int i = 0; i < T.cols(); ++i) {
             lambdas1[i] = *(conv_comb + i);
         }
@@ -368,6 +365,8 @@ public:
         }
 
         VT a = HypMat.colPivHouseholderQr().solve(VT::Ones(_d));
+        //std::cout<<"HypMat = \n"<<HypMat<<"\n"<<std::endl;
+        //std::cout<<"a = "<<a<<std::endl;
         sum = 0.0;
         for (int i = 0; i < _d; ++i) sum += a(i)*p[i];
         if(sum<0.0) a = -1.0*a;

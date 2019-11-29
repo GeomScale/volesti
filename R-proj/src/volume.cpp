@@ -81,9 +81,11 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
         InnerB = P.ComputeInnerBall();
     }
 
+    std::cout<<"diam[out1] = "<<diam<<std::endl;
     if (billiard && diam < 0.0) {
         if(type==5 || type==6) {
             diam = 2.0 * n*InnerB.second;
+            std::cout<<"diam = "<<diam<<std::endl;
         }else {
             diam = 2.0 * InnerB.second;
             P.comp_diam(diam);
@@ -97,8 +99,10 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
         Point p = InnerB.first;
         round_projection_of_poly(P, p, var11, round_val, diam);
         InnerB = P.ComputeInnerBall();
+        diam = 2.0 * n*InnerB.second;
         rounding = false;
     }
+    std::cout<<"diam[out] = "<<diam<<std::endl;
 
     // initialization
     vars<NT, RNGType> var(rnum,n,walk_length,n_threads,0.0,e,0,0.0,0, InnerB.second,diam,rng,urdist,urdist1,

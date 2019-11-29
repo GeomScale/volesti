@@ -117,10 +117,11 @@ void round_projection_of_poly(Polytope &P, Point &p, Parameters &var, NT &rand_v
     NT max_diam = 0.0, diam_iter, ratio1 = 0.0;
 
     int count = 1;
-    while (count < 5) {
+    while (count < 2) {
 
         randPoints.clear();
-        boundary_rand_point_generator(P, p, 50*n, walk_len, randPoints, var);
+        rand_point_generator(P, p, 50*n, 2, randPoints, var);
+        //boundary_rand_point_generator(P, p, 50*n, walk_len, randPoints, var);
 
         typename std::list<Point>::iterator rpit=randPoints.begin();
         typename std::vector<NT>::iterator qit;
@@ -146,8 +147,8 @@ void round_projection_of_poly(Polytope &P, Point &p, Parameters &var, NT &rand_v
             }
         }
 
-        Eigen::SelfAdjointEigenSolver<MT> es(E);
-        MT D = es.eigenvalues().asDiagonal();
+        //Eigen::SelfAdjointEigenSolver<MT> es(E);
+        /*MT D = es.eigenvalues().asDiagonal();
         //std::cout<<"D = "<<D<<"\n"<<"D(n,n) = "<<D(n-1,n-1)<<" D(0,0) = "<<D(0,0)<<std::endl;
         std::cout<<"max/min = "<<D(n-1,n-1)/D(0,0)<<std::endl;
         if (D(n-1,n-1)/D(0,0)<ratio1/3.0 || count==2){
@@ -171,7 +172,7 @@ void round_projection_of_poly(Polytope &P, Point &p, Parameters &var, NT &rand_v
             diam = max_diam;
             return;
         }
-        if (count == 1) ratio1 = D(n-1,n-1)/D(0,0);
+        if (count == 1) ratio1 = D(n-1,n-1)/D(0,0);*/
 
         Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
         MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition

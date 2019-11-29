@@ -34,6 +34,7 @@ void add_new_facet2(HPolyBall &PB, VPolytope &VP, Hpolytope &HP, Point &q, Param
     std::vector <NT> lambdas1(k), lamdas2(k);//, lambdas2(VP.num_of_vertices());
     NT z0 = 1.0;
     Point v = q * (1.0 / std::sqrt(q.squared_length()));
+    //v = -1.0*v;
     VP.intersect_double_line_Vpoly_return(center, v, lambdas1, lamdas2);
 
     NT sum, e = 0.0000000001;
@@ -46,7 +47,7 @@ void add_new_facet2(HPolyBall &PB, VPolytope &VP, Hpolytope &HP, Point &q, Param
     for (int i = 0; i < A.rows(); ++i) {
         sum = 0.0;
         for (int j = 0; j < k; ++j) {
-            sum += A(i,j)* lambdas1[i];
+            sum += A(i,j)* lambdas1[j];
         }
         if (std::abs(b(i) - sum)  < e*std::abs(b(i)) && std::abs(b(i) - sum)  < e*std::abs(sum)) {
             //std::cout<<"a_"<<i<<"x = "<<sum<<" b("<<i<<") = "<<b(i)<<std::endl;
@@ -84,6 +85,10 @@ void add_new_facet2(HPolyBall &PB, VPolytope &VP, Hpolytope &HP, Point &q, Param
     }
 
     VT a = HypMat.colPivHouseholderQr().solve(VT::Ones(_d));
+    //z0 = z0/a.norm();
+    //a = a/a.norm();
+    //std::cout<<"HypMat = \n"<<HypMat<<"\n"<<std::endl;
+    //std::cout<<"a = "<<a(0)<<std::endl;
     //sum = 0.0;
     //for (int i = 0; i < _d; ++i) sum += a(i)*p[i];
     //if(sum<0.0){
@@ -116,16 +121,17 @@ void construct_hpoly2(Vpolytope &VP, Hpolytope &HP, PolyBall &PB, int walkL, int
     int counter=1;
     NT rad =-1.0;
     std::pair<Point , NT> pair_rad;
-    while (counter<=k || rad<0.0){
+    while (counter<=k){
 
         //std::cout<<"sampling new point, walkL ="<<walkL<<std::endl;
         p = Point(n);
-        //do {
-        rand_point_generator(PB, p, 1, walkL, randPoints, var);
+        do {
+            rand_point_generator(PB, p, 1, walkL, randPoints, var);
+            //std::cout<<"p in VP = "<<VP.is_in(p)<<std::endl;
         //for (int i = 0; i < walkL; ++i) {
         //hit_and_run(p, PB, var);
         //}
-        //}while(VP.is_in(p)==-1);
+        }while(VP.is_in(p)==-1);
         //std::cout<<"p in VP = "<<VP.is_in(p)<<std::endl;
         //uniform_next_point(PB, p, p_prev, coord_prev, walkL, lamdas, Av, lambda, var);
         //std::cout<<"adding new facet"<<std::endl;
