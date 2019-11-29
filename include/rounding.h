@@ -113,14 +113,14 @@ void round_projection_of_poly(Polytope &P, Point &p, Parameters &var, NT &rand_v
     //var.cdhr_walk = false;
     MT E(n,n);
     VT e(n);
-    boost::numeric::ublas::matrix<double> Ap(n,100*n);
+    boost::numeric::ublas::matrix<double> Ap(n,30*n);
     NT max_diam = 0.0, diam_iter, ratio1 = 0.0;
 
     int count = 1;
     while (count < 2) {
 
         randPoints.clear();
-        rand_point_generator(P, p, 50*n, 2, randPoints, var);
+        rand_point_generator(P, p, 30*n, 2, randPoints, var);
         //boundary_rand_point_generator(P, p, 50*n, walk_len, randPoints, var);
 
         typename std::list<Point>::iterator rpit=randPoints.begin();
@@ -174,9 +174,12 @@ void round_projection_of_poly(Polytope &P, Point &p, Parameters &var, NT &rand_v
         }
         if (count == 1) ratio1 = D(n-1,n-1)/D(0,0);*/
 
+        std::cout<<"E = "<<E<<std::endl;
         Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
         MT L = lltOfA.matrixL(); // retrieve factor L  in the decomposition
         MT L_1 = L.inverse();
+        std::cout<<"L = "<<L<<std::endl;
+        std::cout<<"L_1 = "<<L_1<<std::endl;
 
 
 

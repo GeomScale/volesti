@@ -55,6 +55,9 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
         std::pair <Point, NT> res = P.ComputeInnerBall();
         c = res.first;
         radius = res.second;
+        var.diameter = 2.0 * std::sqrt(NT(n))*radius;
+        P.comp_diam(var.diameter);
+        diam = var.diameter;
     }
 
     // Save the radius of the Chebychev ball

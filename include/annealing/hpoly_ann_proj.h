@@ -43,16 +43,16 @@ void get_first_poly33(VPolytope &VP, HPolytope &HP, NT lb, NT &up_lim, NT &ratio
         //variter.che_rad = HPiter.ComputeInnerBall().second;
 
         randPoints.clear();
-        rand_point_generator(HPiter, q, 1200, 10+2*n*n*n, randPoints, variter);
+        rand_point_generator(HPiter, q, 1200, n, randPoints, variter);
         var.MemLps = var.MemLps + 1200.0;
         too_few = false;
 
-        //check_converg001<Point>(VP, randPoints, lb, up_lim, too_few, ratio, 10, 0.2, false, false);
-        count2 = 0;
-        for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit) {
-            if(VP.is_in(*pit)==-1) count2++;
-        }
-        ratio = NT(count2)/NT(1200.0);
+        check_converg001<Point>(VP, randPoints, lb, up_lim, too_few, ratio, 10, 0.2, false, false);
+        //count2 = 0;
+        //for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit) {
+            //if(VP.is_in(*pit)==-1) count2++;
+        //}
+        //ratio = NT(count2)/NT(1200.0);
         std::cout << "ratio = "<<ratio<< std::endl;
         if(ratio>0.09 && ratio<0.12) {
             HP.set_vec(Zmed);
