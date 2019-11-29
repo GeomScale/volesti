@@ -25,7 +25,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
                       bool CG, bool CB, bool hpoly, unsigned int win_len, unsigned int N, NT C, NT ratio,
                       NT frac, NT lb, NT ub, NT p, NT alpha, unsigned int NN,
                       unsigned int nu, bool win2, bool ball_walk, NT delta, bool cdhr, bool rdhr, bool billiard,
-                      NT diam, bool rounding, int type, unsigned int nfacets, bool only_balls)
+                      NT diam, bool rounding, int type, unsigned int nfacets, bool only_balls, bool test_round = false)
 {
 
     typedef typename Polytope::PolytopePoint Point;
@@ -58,13 +58,26 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
         InnerB.second = InnerVec[n];
     } else if(type == 2 && CB) {
         if (rounding) {
-            InnerB.first = P.get_mean_of_vertices();
-            InnerB.second = 0.0;
-            vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, 2 * P.get_max_vert_norm(),
-                                    rng, urdist, urdist1, -1, verbose, rand_only, rounding, NN, birk, ball_walk, cdhr,
-                                    rdhr, billiard, 0.0, 0.0, 0.0);
-            std::pair <NT, NT> res_round = rounding_min_ellipsoid(P, InnerB, var2);
-            round_val = res_round.first;
+            if(test_round) {
+
+                //std::cout<<"hello"<<std::endl;
+                vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, 2 * P.get_max_vert_norm(),
+                                        rng, urdist, urdist1, -1, verbose, rand_only, rounding, NN, birk, ball_walk,
+                                        cdhr, rdhr, billiard, 0.0, 0.0, 0.0);
+                Point pp =  P.get_mean_of_vertices();
+                NT diam_test;
+                round_projection_of_poly(P, pp, var2, round_val, diam_test);
+
+            } else {
+                //std::cout<<"hello2"<<std::endl;
+                InnerB.first = P.get_mean_of_vertices();
+                InnerB.second = 0.0;
+                vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, 2 * P.get_max_vert_norm(),
+                                        rng, urdist, urdist1, -1, verbose, rand_only, rounding, NN, birk, ball_walk,
+                                        cdhr, rdhr, billiard, 0.0, 0.0, 0.0);
+                std::pair <NT, NT> res_round = rounding_min_ellipsoid(P, InnerB, var2);
+                round_val = res_round.first;
+            }
             rounding = false;
             InnerB.second = 0.0;
             InnerB.first = Point(n);
@@ -232,7 +245,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
     unsigned int n = P.field("dimension"), walkL;
 
     bool CG = false, CB = false, cdhr = false, rdhr = false, ball_walk = false, billiard = false, round, win2 = false,
-            hpoly = false, only_balls = false;
+            hpoly = false, only_balls = false, round_test=false;
     unsigned int win_len = 4 * n * n + 500, N = 500 * 2 + n * n / 2, NN = 120 + (n*n)/10, nu = 10, nfacets = 0;
 
     double C = 2.0, ratio = 1.0 - 1.0 / (NT(n)), frac = 0.1, e, delta = -1.0,
@@ -335,6 +348,9 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
         if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("only_balls")) {
             only_balls = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(parameters)["only_balls"]);
         }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("test_round")) {
+            round_test = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(parameters)["test_round"]);
+        }
     } else if (billiard) {
         NN = 125;
         win_len = 150;
@@ -359,7 +375,7 @@ Rcpp::NumericVector volume (Rcpp::Reference P, Rcpp::Nullable<unsigned int> walk
 
             return generic_volume(VP, walkL, e, inner_ball, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
                                              alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, billiard, diam, round,
-                                             type, nfacets, only_balls);
+                                             type, nfacets, only_balls, round_test);
         }
         case 3: {
             // Zonotope
