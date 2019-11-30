@@ -94,7 +94,7 @@ NT hvol_vpoly (Vpolytope &VP, UParameters &var, AParameters &var_ban, GParameter
     NT er1 = (e*std::sqrt(2.0*NT(mm2)-1))/(std::sqrt(2.0*NT(mm2)));
     NT Her = e/(2.0*std::sqrt(NT(mm2)));
 
-    var_g.error = Her/2.0;
+    var_g.error = Her;
     std::cout<<"computing vol of h-polytope = "<<vol<<std::endl;
     NT fake_nballs;
     //BallPoly BP2(HP, B0);

@@ -45,6 +45,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
     std::pair<Point,NT> InnerB;
+    NT bd_plus = 0.0;
 
     if(inner_ball.isNotNull()) { //if it is given as an input
         // store internal point hat is given as input
@@ -67,6 +68,8 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
                 Point pp =  P.get_mean_of_vertices();
                 NT diam_test;
                 round_projection_of_poly(P, pp, var2, round_val, diam_test);
+                bd_plus += var2.BoundCalls;
+                std::cout<<"bd_plus = "<<bd_plus<<std::endl;
 
             } else {
                 //std::cout<<"hello2"<<std::endl;
@@ -136,7 +139,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
         if (!hpoly) {
             vol = volesti_ball_ann(P, var, var_ban, InnerB, nballs, only_balls);
         } else {
-            vars_g <NT, RNGType> varg(n, 1, N, 5 * n * n + 500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false,
+            vars_g <NT, RNGType> varg(n, 1, N, 4 * n * n + 500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false,
                                       verbose,
                                       rand_only, false, false, birk, false, true, false, 0.0, 0.0);
             if (type == 3) {
@@ -157,7 +160,7 @@ Rcpp::NumericVector generic_volume(Polytope& P, unsigned int walk_length, NT e, 
     Rcpp::NumericVector res(5);
     res[0] = vol*round_val;
     res[1] = nballs;
-    res[2] = var.BoundCalls;
+    res[2] = var.BoundCalls + bd_plus;
     res[3] = var.MemLps;
     res[4] = var.TotSteps;
 
