@@ -61,8 +61,12 @@ std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
 
 // Compute the first variance a_0 for the starting gaussian
 template <class Polytope, class Parameters, typename NT>
-void get_first_gaussian(Polytope &P, NT radius, NT frac,
-                        Parameters var, NT &error, std::vector<NT> &a_vals) {
+void get_first_gaussian(Polytope & P, 
+			NT const& radius, 
+			NT const& frac,
+                        Parameters const& var, 
+			NT & error, 
+  			std::vector<NT> & a_vals) {
 
     unsigned int i;
     const unsigned int maxiter = 10000;
