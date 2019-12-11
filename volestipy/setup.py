@@ -1,9 +1,4 @@
-import os
-from os.path import split, join
-from glob import glob
-
-from itertools import chain
-
+from os.path import join
 from setuptools import setup
 from Cython.Build import cythonize
 from setuptools.extension import Extension
