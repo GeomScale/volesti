@@ -61,7 +61,7 @@ NT get_max_coord(NT l, NT u, NT a_i) {
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
 template <class Parameters, class Point, typename NT>
-void rand_exp_range(Point lower, Point upper, NT a_i, Point &p, Parameters &var) {
+void rand_exp_range(Point lower, Point upper, NT a_i, Point &p, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn;
     const NT tol = 0.00000001;
@@ -106,7 +106,7 @@ void rand_exp_range(Point lower, Point upper, NT a_i, Point &p, Parameters &var)
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
 template <class Parameters, typename NT>
-NT rand_exp_range_coord(NT l, NT u, NT a_i, Parameters &var) {
+NT rand_exp_range_coord(NT l, NT u, NT a_i, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn, dis;
     const NT tol = 0.00000001;
@@ -152,7 +152,7 @@ void gaussian_first_coord_point(Polytope &P,
                          unsigned int walk_len, // number of steps for the random walk
                          NT a_i,
                          std::vector<NT> &lamdas,
-                         Parameters &var) {
+                         Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
@@ -185,7 +185,7 @@ void gaussian_next_point(Polytope &P,
                         unsigned int walk_len, // number of steps for the random walk
                         NT a_i,
                         std::vector<NT> &lamdas,
-                        Parameters &var) {
+                        Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
@@ -216,7 +216,7 @@ void rand_gaussian_point_generator(Polytope &P,
                          unsigned int walk_len,  // number of stpes for the random walk
                          PointList &randPoints,  // list to store the sampled points
                          NT a_i,
-                         Parameters &var)  // constans for volume
+                         Parameters const& var)  // constans for volume
 {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n;
@@ -267,7 +267,7 @@ template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_hit_and_run(Point &p,
                 Polytope &P,
                 NT a_i,
-                Parameters &var) {
+                Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n;
     RNGType rng2 = var.rng;
@@ -292,7 +292,7 @@ void gaussian_hit_and_run_coord_update(Point &p,
                              unsigned int rand_coord_prev,
                              NT a_i,
                              std::vector<NT> &lamdas,
-                             Parameters var) {
+                             Parameters const& var) {
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     NT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
     p_prev = p;
@@ -307,7 +307,7 @@ void gaussian_ball_walk(Point &p,
               Polytope &P,
               NT a_i,
               NT ball_rad,
-              Parameters var) {
+              Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = P.dimension();
     NT f_x, f_y, rnd;
