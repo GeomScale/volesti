@@ -304,10 +304,10 @@ void gaussian_hit_and_run_coord_update(Point &p,
 // ball walk and update
 template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_ball_walk(Point & p,
-              		Polytope & P,
-              		NT const& a_i,
-              		NT const& ball_rad,
-              		Parameters const& var) {
+                        Polytope & P,
+                        NT const& a_i,
+                        NT const& ball_rad,
+                        Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = P.dimension();
     NT f_x, f_y, rnd;

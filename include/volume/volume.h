@@ -44,8 +44,8 @@
 
 template <class Polytope, class Parameters, class Point, typename NT>
 NT volume(Polytope &P,
-                  Parameters &var,  // constans for volume
-                  std::pair<Point,NT> InnerBall)  //Chebychev ball
+          Parameters & var,  // constans for volume
+          std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
  
     typedef Ball<Point> Ball;
@@ -264,8 +264,8 @@ NT volume(Polytope &P,
 // Ben Cousins, Santosh Vempala
 template <class Polytope, class UParameters, class GParameters, class Point, typename NT>
 NT volume_gaussian_annealing(Polytope &P,
-                             GParameters &var,  // constans for volume
-                             UParameters &var2,
+                             GParameters & var,  // constans for volume
+                             UParameters & var2,
                              std::pair<Point,NT> InnerBall) {
     //typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;

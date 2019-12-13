@@ -25,7 +25,7 @@
 template <class Point, typename NT, class PointList, class Polytope, class UParameters, class GParameters>
 void sampling_only(PointList &randPoints, Polytope &P, unsigned int walk_len,
                    unsigned int rnum, bool gaussian, NT a, Point internal_point,
-                   UParameters var1, GParameters var2) {
+                   UParameters const& var1, GParameters const& var2) {
 
     typedef typename UParameters::RNGType RNGType;
     unsigned int n = var1.n;

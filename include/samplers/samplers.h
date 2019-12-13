@@ -107,7 +107,7 @@ void rand_point_generator(Polytope &P,
                          unsigned int rnum,
                          unsigned int walk_len,
                          PointList &randPoints,
-                         Parameters &var)  // constants for volume
+                         Parameters const& var)  // constants for volume
 {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
@@ -159,7 +159,7 @@ void rand_point_generator(BallPoly &PBLarge,
                          PointList &randPoints,
                          BallPoly &PBSmall,
                          unsigned int &nump_PBSmall,
-                         Parameters &var) {  // constants for volume
+                         Parameters const& var) {  // constants for volume
 
     typedef typename Point::FT NT;
     typedef typename Parameters::RNGType RNGType;
@@ -210,7 +210,7 @@ void rand_point_generator(BallPoly &PBLarge,
 template <class Polytope, class Point, class Parameters>
 void hit_and_run(Point &p,
                 Polytope &P,
-                Parameters &var) {
+                Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
     unsigned int n = P.dimension();
