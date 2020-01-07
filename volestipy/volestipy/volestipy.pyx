@@ -19,10 +19,10 @@ cdef extern from "bindings.h":
    cdef cppclass HPolytopeCPP:
       HPolytopeCPP() except +
       HPolytopeCPP(double  *A, double *b, int n_varibles, int n_hyperplanes) except +
-      double compute_volume(int walk_len, double epsilon, np.npy_int32 seed)
+      double compute_volume(char* method, int walk_len, double epsilon, np.npy_int32 seed)
       double generate_samples(int walk_len, int n_samples, double* samples, np.npy_int32 seed)
 
-
+volume_methods = ["sequence_of_balls".encode("UTF-8"), "gaussian_annealing".encode("UTF-8")]
 cdef class HPolytope:
    cdef HPolytopeCPP polytope_cpp
    cdef double[:,::1] _A
@@ -37,11 +37,12 @@ cdef class HPolytope:
       n_hyperplanes, n_variables = A.shape[0], A.shape[1]
       self.polytope_cpp = HPolytopeCPP(&A[0,0], &b[0], n_hyperplanes, n_variables)
 
-   def compute_volume(self, int walk_len=2, double epsilon=0.05, method="gaussian_annealing", np.npy_int32 seed=get_time_seed()):
-      if method=="gaussian_annealing":
-         return self.polytope_cpp.compute_volume(walk_len, epsilon, seed)
+   def compute_volume(self, int walk_len=2, double epsilon=0.05, method="sequence_of_balls", np.npy_int32 seed=get_time_seed()):
+      method = method.encode("UTF-8")
+      if method  in volume_methods:
+         return self.polytope_cpp.compute_volume(method, walk_len, epsilon, seed)
       else:
-         raise Exception('"{}" is not implemented to compute volume'.format(method))
+         raise Exception('"{}" is not implemented to compute volume. Possbile methods are: {}'.format(method, volume_methods))
 
    def generate_samples(self, int walk_len=2, int n_samples=1000, np.npy_int32 seed=get_time_seed()):
          n_variables = self._A.shape[1]
