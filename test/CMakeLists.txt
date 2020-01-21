@@ -40,6 +40,8 @@ else ()
   include_directories (BEFORE ../include/convex_bodies)
   include_directories (BEFORE ../include/annealing)
   include_directories (BEFORE ../include/samplers)
+  include_directories (BEFORE ../include/lp_oracles)
+  include_directories (BEFORE ../include/misc)
 
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
