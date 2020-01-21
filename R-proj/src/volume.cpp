@@ -10,19 +10,23 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "volume.h"
+#include "cooling_bodies.h"
+#include "cooling_hpoly.h"
 
 
 template <class Point, class NT, class Polytope>
 double generic_volume(Polytope& P, unsigned int walk_step, double e,
-                      Rcpp::Nullable<Rcpp::NumericVector> InnerBall, bool CG, unsigned int win_len,
-                      unsigned int N, double C, double ratio, double frac,
-                      bool ball_walk, double delta, bool cdhr, bool rdhr, bool rounding)
+                      Rcpp::Nullable<Rcpp::NumericVector> InnerBall, bool CG, bool CB, bool hpoly, unsigned int win_len,
+                      unsigned int N, double C, double ratio, double frac,  NT lb, NT ub, NT p, NT alpha,
+                      unsigned int NN, unsigned int nu, bool win2, bool ball_walk, double delta, bool cdhr,
+                      bool rdhr, bool rounding, int type)
 {
     bool rand_only=false,
-         NN=false,
+         NNN=false,
          birk=false,
          verbose =false;
     unsigned int n_threads=1;
+    NT round_val = 1.0, rmax = 0.0;
 
     //unsigned int m;//=A.nrow()-1;
     unsigned int n = P.dimension();//=A.ncol()-1;
@@ -47,26 +51,58 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
         InnerB.first = Point( n , temp_p.begin() , temp_p.end() );
         // store the radius of the internal ball that is given as input
         InnerB.second = InnerVec[n];
+    } else if(type == 2 && CB) {
+        if (rounding) {
+
+            //std::cout<<"hello2"<<std::endl;
+            InnerB.first = P.get_mean_of_vertices();
+            InnerB.second = 0.0;
+            vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, 2 * P.get_max_vert_norm(),
+                                    rng, urdist, urdist1, -1, verbose, rand_only, rounding, NNN, birk, ball_walk,
+                                    cdhr, rdhr);
+            std::pair <NT, NT> res_round = rounding_min_ellipsoid(P, InnerB, var2);
+            round_val = res_round.first;
+
+            rounding = false;
+            InnerB.second = 0.0;
+            InnerB.first = Point(n);
+            get_vpoly_center(P);
+            rmax = P.get_max_vert_norm();
+        } else {
+            InnerB.second = 0.0;
+            InnerB.first = Point(n);
+            get_vpoly_center(P);
+            rmax = P.get_max_vert_norm();
+        }
     } else {
         // no internal ball or point is given as input
         InnerB = P.ComputeInnerBall();
     }
 
     // initialization
-    vars<NT, RNGType> var(rnum,n,walk_step,n_threads,0.0,e,0,0.0,0, InnerB.second,rng,urdist,urdist1,
-                          delta,verbose,rand_only,rounding,NN,birk,ball_walk,cdhr,rdhr);
+    vars<NT, RNGType> var(rnum,n,walk_step,n_threads,0.0,e,0,0.0,0, InnerB.second, 0.0, rng,urdist,urdist1,
+                          delta,verbose,rand_only,rounding,NNN,birk,ball_walk,cdhr,rdhr);
     NT vol;
     if (CG) {
-        vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, rng,
-                               urdist, urdist1, delta, verbose, rand_only, rounding, NN, birk, ball_walk, cdhr,rdhr);
+        vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, 0.0, rng,
+                               urdist, urdist1, delta, verbose, rand_only, rounding, NNN, birk, ball_walk, cdhr,rdhr);
         vars_g<NT, RNGType> var1(n, walk_step, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
                                  rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr);
         vol = volume_gaussian_annealing(P, var1, var2, InnerB);
-    } else {
+    } else if (CB) {
+        vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, win_len, NN, nu, win2);
+        if (!hpoly) {
+            vol = volesti_ball_ann(P, var, var_ban, InnerB);
+        } else {
+            vars_g <NT, RNGType> varg(n, 1, N, 4 * n * n + 500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false,
+                                      verbose, rand_only, false, false, birk, false, true, false);
+            vol = vol_hzono < HPolytope < Point > > (P, var, var_ban, varg, InnerB);
+        }
+    }else {
         vol = volume(P, var, InnerB);
     }
 
-     return vol;
+     return vol * round_val;
 }
 
 //' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
@@ -80,7 +116,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //' @param Algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian.
 //' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
 //' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
-//' @param Parameters Optional. A list for the parameters of the algorithms:
+//' @param parameters Optional. A list for the parameters of the algorithms:
 //' \itemize{
 //' \item{\code{Window} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
 //'  \item{\code{C} }{ A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. The default value is \eqn{2}.}
@@ -110,12 +146,13 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 //' @export
 // [[Rcpp::export]]
-double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
+double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
                 Rcpp::Nullable<double> error = R_NilValue,
                 Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
                 Rcpp::Nullable<std::string> Algo = R_NilValue,
-                Rcpp::Nullable<std::string> WalkType = R_NilValue, Rcpp::Nullable<bool> rounding = R_NilValue,
-                Rcpp::Nullable<Rcpp::List> Parameters = R_NilValue) {
+                Rcpp::Nullable<std::string> WalkType = R_NilValue,
+                Rcpp::Nullable<bool> rounding = R_NilValue,
+                Rcpp::Nullable<Rcpp::List> parameters = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -128,29 +165,27 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     unsigned int n = P.field("dimension"), walkL;
+    int type = P.field("type");
 
-    bool CG, cdhr = true, rdhr = false, ball_walk = false, round;
-    unsigned int win_len = 4*n*n+500, N = 500 * 2 +  n * n / 2;
+    bool CG = false, CB = false, cdhr = false, rdhr = false, ball_walk = false, round, win2 = false, hpoly = false;
+    unsigned int win_len = 4*n*n+500, N = 500 * 2 +  n * n / 2, NN = 120 + (n*n)/10, nu = 10;
 
-    double C = 2.0, ratio = 1.0-1.0/(NT(n)), frac = 0.1, e, delta = -1.0;
+    double C = 2.0, ratio = 1.0-1.0/(NT(n)), frac = 0.1, e, delta = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0,
+            alpha = 0.2, diam = -1.0;
 
-    if(!rounding.isNotNull()){
-        round = false;
-    } else {
-        round = Rcpp::as<bool>(rounding);
-    }
+    round = (!rounding.isNotNull()) ? false : Rcpp::as<bool>(rounding);
 
-    if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
+    if (!WalkType.isNotNull()) {
+        if ( type == 1 ){
+            cdhr = true;
+        } else {
+            rdhr = true;
+        }
+    }else if (Rcpp::as<std::string>(WalkType).compare(std::string("CDHR")) == 0) {
         cdhr = true;
-        rdhr = false;
-        ball_walk = false;
-    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
-        cdhr = false;
+    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR")) == 0) {
         rdhr = true;
-        ball_walk = false;
     } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
-        cdhr = false;
-        rdhr = false;
         ball_walk = true;
     } else {
         throw Rcpp::exception("Unknown walk type!");
@@ -158,85 +193,100 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
 
     if(!Algo.isNotNull() || Rcpp::as<std::string>(Algo).compare(std::string("SOB"))==0){
 
-        CG = false;
-
-        if(!walk_step.isNotNull()){
-            walkL= 10+n/10;
-        } else {
-            walkL = Rcpp::as<unsigned int>(walk_step);
-        }
-
-        if(!error.isNotNull()){
-            e = 1.0;
-        } else {
-            e = Rcpp::as<NT>(error);
-        }
+        walkL = (!walk_length.isNotNull()) ? 10 + n / 10 : Rcpp::as<int>(walk_length);
+        e = (!error.isNotNull()) ? 1.0 : Rcpp::as<NT>(error);
 
     } else if (Rcpp::as<std::string>(Algo).compare(std::string("CG"))==0) {
 
         CG = true;
+        e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);
+        walkL = (!walk_length.isNotNull()) ? 1 : Rcpp::as<int>(walk_length);
 
-        if (!error.isNotNull()) {
-            e = 0.1;
-        } else {
-            e = Rcpp::as<NT>(error);
-        }
+    } else if (Rcpp::as<std::string>(Algo).compare(std::string("CB")) == 0) {
 
-        if (!walk_step.isNotNull()) {
-            walkL = 1;
-        } else {
-            walkL = Rcpp::as<int>(walk_step);
-        }
+        CB = true;
+        e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);
+        walkL = (!walk_length.isNotNull()) ? 1 : Rcpp::as<int>(walk_length);
+        win_len = 2*n*n+250;
 
     } else {
         throw Rcpp::exception("Unknown method!");
     }
 
-    if(Parameters.isNotNull()) {
+    if(parameters.isNotNull()) {
 
-        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("BW_rad")) {
-            delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["BW_rad"]);
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("BW_rad")) {
+            delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["BW_rad"]);
         }
-        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("C")) {
-            C = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["C"]);
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("C")) {
+            C = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["C"]);
             N = 500 * ((int) C) + n * n / 2;
         }
-        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("N")) {
-            N = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["N"]);
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("N")) {
+            N = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["N"]);
         }
-        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("Window")) {
-            win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(Parameters)["Window"]);
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("Window")) {
+            win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["Window"]);
         }
-        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("frac")) {
-            frac = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["frac"]);
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("frac")) {
+            frac = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["frac"]);
         }
-        if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("ratio")) {
-            ratio = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(Parameters)["ratio"]);
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("ratio")) {
+            ratio = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["ratio"]);
+        }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("hpoly")) {
+            hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(parameters)["hpoly"]);
+            if ((hpoly && !CB) || (type != 3 && CB && hpoly))
+                Rf_warning("flag 'hpoly' can be used to only in MMC of CB algorithm for zonotopes.");
+        }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("lb")) {
+            lb = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["lb"]);
+        }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("ub")) {
+            ub = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["ub"]);
+        }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("nu")) {
+            nu = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["nu"]);
+        }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("N")) {
+            NN = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["N"]);
+        }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("minmaxW")) {
+            win2 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(parameters)["minmaxW"]);
+        }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("prob")) {
+            p = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["prob"]);
+        }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("alpha")) {
+            alpha = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["alpha"]);
+        }
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("diameter")) {
+            diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["diameter"]);
         }
     }
 
-    int type = P.field("type");
+
     switch(type) {
         case 1: {
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
-                                             cdhr, rdhr, round);
+            return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+                                             alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, round, type);
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
-                                             cdhr, rdhr, round);
+            return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+                                             alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, round, type);
         }
         case 3: {
             // Zonotope
             zonotope ZP;
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-            return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk, delta,
-                                             cdhr, rdhr, round);
+            return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+                                             alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, round, type);
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -248,8 +298,8 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_step = R_Ni
             VPcVP.init(VP1, VP2);
             Rcpp::NumericVector InnerVec(n + 1);
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-            return generic_volume<Point, NT>(VPcVP, walkL, e, InnerBall, CG, win_len, N, C, ratio, frac, ball_walk,
-                                             delta, cdhr, rdhr, round);
+            return generic_volume<Point, NT>(VPcVP, walkL, e, InnerBall, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+                                             alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, round, type);
         }
     }
 

@@ -171,8 +171,8 @@ rotating <- function(P) {
 #' Do not use this function.
 #'
 #' @return A numerical matrix that describes the rounded polytope and contains the round value.
-rounding <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL) {
-    .Call(`_volesti_rounding`, P, WalkType, walk_step, radius)
+rounding <- function(P, WalkType = NULL, walk_length = NULL, radius = NULL) {
+    .Call(`_volesti_rounding`, P, WalkType, walk_length, radius)
 }
 
 #' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere
@@ -184,10 +184,10 @@ rounding <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL) {
 #' @param N The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.
 #' @param distribution Optional. A string that declares the target distribution: a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.
 #' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
-#' @param walk_step Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.
+#' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.
 #' @param exact A boolean parameter. It should be used for the uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from the unit or the canonical or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies the dimension has to be declared and the type of body as well as the radius of the hypersphere.
 #' @param body A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.
-#' @param Parameters A list for the parameters of the methods:
+#' @param parameters A list for the parameters of the methods:
 #' \itemize{
 #' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
 #' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
@@ -207,24 +207,24 @@ rounding <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL) {
 #' @examples
 #' # uniform distribution from the 3d unit cube in V-representation using ball walk
 #' P = GenCube(3, 'V')
-#' points = sample_points(P, WalkType = "BW", walk_step = 5)
+#' points = sample_points(P, WalkType = "BW", walk_length = 5)
 #'
 #' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
 #' P = Hpolytope$new(A,b)
-#' points = sample_points(P, distribution = "gaussian", Parameters = list("variance" = 2))
+#' points = sample_points(P, distribution = "gaussian", parameters = list("variance" = 2))
 #'
 #' # uniform points from the boundary of a 10-dimensional hypersphere
-#' points = sample_points(exact = TRUE, body = "hypersphere", Parameters = list("dimension" = 10))
+#' points = sample_points(exact = TRUE, body = "hypersphere", parameters = list("dimension" = 10))
 #'
 #' # 10000 uniform points from a 2-d arbitrary simplex
 #' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
 #' P = Vpolytope$new(V)
 #' points = sample_points(P, N = 10000, exact = TRUE)
 #' @export
-sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL, Parameters = NULL, InnerPoint = NULL) {
-    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_step, exact, body, Parameters, InnerPoint)
+sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NULL, walk_length = NULL, exact = NULL, body = NULL, parameters = NULL, InnerPoint = NULL) {
+    .Call(`_volesti_sample_points`, P, N, distribution, WalkType, walk_length, exact, body, parameters, InnerPoint)
 }
 
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
@@ -238,7 +238,7 @@ sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NU
 #' @param Algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian.
 #' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
 #' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
-#' @param Parameters Optional. A list for the parameters of the algorithms:
+#' @param parameters Optional. A list for the parameters of the algorithms:
 #' \itemize{
 #' \item{\code{Window} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
 #'  \item{\code{C} }{ A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. The default value is \eqn{2}.}
@@ -267,7 +267,7 @@ sample_points <- function(P = NULL, N = NULL, distribution = NULL, WalkType = NU
 #' Z = GenZonotope(2, 4)
 #' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
 #' @export
-volume <- function(P, walk_step = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, Parameters = NULL) {
-    .Call(`_volesti_volume`, P, walk_step, error, InnerBall, Algo, WalkType, rounding, Parameters)
+volume <- function(P, walk_length = NULL, error = NULL, InnerBall = NULL, Algo = NULL, WalkType = NULL, rounding = NULL, parameters = NULL) {
+    .Call(`_volesti_volume`, P, walk_length, error, InnerBall, Algo, WalkType, rounding, parameters)
 }
 

@@ -256,6 +256,7 @@ NT volume(Polytope &P,
     if(print) std::cout<<"volume computed: "<<vol<<std::endl;
     #endif
 
+    P.free_them_all();
     return vol;
 }
 
@@ -441,6 +442,7 @@ NT volume_gaussian_annealing(Polytope &P,
     }
     #endif
 
+    P.free_them_all();
     return vol;
 }
 

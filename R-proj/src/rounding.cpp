@@ -37,7 +37,7 @@
 // [[Rcpp::export]]
 Rcpp::List rounding (Rcpp::Reference P,
                               Rcpp::Nullable<std::string> WalkType = R_NilValue,
-                              Rcpp::Nullable<unsigned int> walk_step = R_NilValue,
+                              Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
                               Rcpp::Nullable<double> radius = R_NilValue) {
 
     typedef double NT;
@@ -64,7 +64,7 @@ Rcpp::List rounding (Rcpp::Reference P,
     unsigned int n = P.field("dimension");
     unsigned int rnum = std::pow(1.0,-2.0) * 400 * n * std::log(n);
     unsigned int walkL = 10+n/10;
-    if(walk_step.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_step);
+    if(walk_length.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_length);
 
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;
@@ -91,22 +91,18 @@ Rcpp::List rounding (Rcpp::Reference P,
         //default: throw Rcpp::exception("Wrong polytope input");
     }
 
-    if(!WalkType.isNotNull() || Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
-        cdhr = true;
-        rdhr = false;
-        ball_walk = false;
-    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
-        cdhr = false;
-        rdhr = true;
-        ball_walk = false;
-    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
-        if(radius.isNotNull()){
-            delta = Rcpp::as<NT>(radius);
+    if(!WalkType.isNotNull()) {
+        if (type == 1) {
+            cdhr = true;
         } else {
-            delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
+            rdhr = true;
         }
-        cdhr = false;
-        rdhr = false;
+    } else if(Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0) {
+        cdhr = true;
+    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
+        rdhr = true;
+    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
+        delta = (!radius.isNotNull()) ? delta = 4.0 * InnerBall.second / std::sqrt(NT(n)) : Rcpp::as<NT>(radius);
         ball_walk = true;
     } else {
         throw Rcpp::exception("Unknown walk type!");
@@ -119,7 +115,7 @@ Rcpp::List rounding (Rcpp::Reference P,
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
     // initialization
-    vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,rng,urdist,urdist1,
+    vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,0.0,rng,urdist,urdist1,
                           delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr);
     std::pair <NT, NT> round_res;
 
