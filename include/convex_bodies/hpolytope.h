@@ -146,34 +146,6 @@ public:
         b = _b;
     }
 
-
-    // default initialize: cube(d)
-    void init(unsigned int d) {
-        A.resize(2 * d, d);
-        b.resize(2 * d);
-        for (unsigned int i = 0; i < d; ++i) {
-            b(i) = 1;
-            for (unsigned int j = 0; j < d; ++j) {
-                if (i == j) {
-                    A(i, j) = 1;
-                } else {
-                    A(i, j) = 0;
-                }
-            }
-        }
-        for (unsigned int i = 0; i < d; ++i) {
-            b(i + d) = 1;
-            for (unsigned int j = 0; j < d; ++j) {
-                if (i == j) {
-                    A(i + d, j) = -1;
-                } else {
-                    A(i + d, j) = 0;
-                }
-            }
-        }
-    }
-
-
     //define matrix A and vector b, s.t. Ax<=b and the dimension
     void init(std::vector<std::vector<NT> > Pin) {
         _d = Pin[0][1] - 1;
@@ -534,16 +506,8 @@ public:
 
     void compute_reflection(Point &v, Point &p, int facet) {
 
-        //Point s(_d);
         VT a = A.row(facet);
         Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
-
-        //std::vector<NT> siter(&a[0], a.data()+a.cols()*a.rows());
-        //s.set_coeffs(siter);
-        //s.get_coeffs().assign(siter.begin(), siter.end());
-        //std::copy(siter.begin(), siter.end(), back_inserter(s.get_coeffs()));
-        //for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
-
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
 

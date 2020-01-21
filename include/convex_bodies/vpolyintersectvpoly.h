@@ -71,13 +71,28 @@ public:
         return rad;
     }
 
-    MT get_mat1() {
+    MT get_mat() {
+        return P1.get_mat();
+    }
+
+    MT get_T() {
         return P1.get_mat();
     }
 
     MT get_mat2() {
         return P2.get_mat();
     }
+
+    Point get_mean_of_vertices() {
+        return Point(P1.dimension());
+    }
+
+
+    NT get_max_vert_norm() {
+        return 0.0;
+    }
+
+    void comp_diam(NT &diam) {}
 
     void print() {
         P1.print();
@@ -178,14 +193,19 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(Point r,
-                                    Point v) {
+    std::pair<NT,NT> line_intersect(Point r, Point v) {
 
         std::pair <NT, NT> P1pair = P1.line_intersect(r, v);
         std::pair <NT, NT> P2pair = P2.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(P1pair.first, P2pair.first),
                                  std::max(P1pair.second, P2pair.second));
 
+    }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with the V-polytope
+    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+        return line_intersect(r, v);
     }
 
 
@@ -247,6 +267,10 @@ public:
 
         return true;
     }
+
+    void free_them_all() {}
+
+    void normalize() {}
 
 };
 

@@ -111,6 +111,9 @@ public:
         b(i) = value;
     }
 
+    MT get_T() {
+        return V;
+    }
 
     void init(unsigned int dim, MT _V, VT _b) {
         _d = dim;
@@ -160,6 +163,46 @@ public:
         }
     }
 
+    Point get_mean_of_vertices() {
+        std::vector<NT> vec(_d);
+        Point xc(_d), temp(_d);
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            for (int j = 0; j < _d; ++j) vec[j] = V(i,j);
+
+            temp = Point(_d, vec.begin(), vec.end());
+            xc = xc + temp;
+        }
+        xc = xc * (1.0/NT(num_of_vertices()));
+
+        return xc;
+    }
+
+
+    NT get_max_vert_norm() {
+        NT rad =0.0;
+        NT rad_iter;
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            rad_iter = V.row(i).norm();
+            if(rad_iter>rad)rad = rad_iter;
+        }
+        return rad;
+    }
+
+    void comp_diam(NT &diam) {
+        diam = 0.0;
+        NT diam_iter;
+        for (int i = 0; i < num_of_vertices(); ++i) {
+            for (int j = 0; j < num_of_vertices(); ++j) {
+                if(i != j) {
+                    diam_iter = (V.row(i) - V.row(j)).norm();
+                    if (diam_iter > diam) diam = diam_iter;
+                }
+            }
+        }
+
+    }
+
+    void normalize() {}
 
     // take d+1 points as input and compute the chebychev ball of the defined simplex
     // done is true when the simplex is full dimensional and false if it is not
