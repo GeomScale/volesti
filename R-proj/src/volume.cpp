@@ -110,9 +110,9 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 //'
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
-//' @param walk_step Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
+//' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
 //' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
-//' @param InnerBall Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
+//' @param inner_ball Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
 //' @param algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian or c) \code{'CB'} for cooling bodies.
 //' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
 //' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
@@ -158,7 +158,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 // [[Rcpp::export]]
 double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
                 Rcpp::Nullable<double> error = R_NilValue,
-                Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
+                Rcpp::Nullable<Rcpp::NumericVector> inner_ball = R_NilValue,
                 Rcpp::Nullable<std::string> algo = R_NilValue,
                 Rcpp::Nullable<std::string> random_walk = R_NilValue,
                 Rcpp::Nullable<bool> rounding = R_NilValue,
@@ -201,7 +201,18 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
         throw Rcpp::exception("Unknown walk type!");
     }
 
-    if(!algo.isNotNull() || Rcpp::as<std::string>(algo).compare(std::string("SOB"))==0){
+    if(!algo.isNotNull()){
+
+        if (type == 2 || type == 3) {
+            CB = true;
+        } else if (n<=200) {
+            CB = true;
+        } else {
+            CG = true;
+        }
+        e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);
+
+    }else if (Rcpp::as<std::string>(algo).compare(std::string("SOB"))==0){
 
         walkL = (!walk_length.isNotNull()) ? 10 + n / 10 : Rcpp::as<int>(walk_length);
         e = (!error.isNotNull()) ? 1.0 : Rcpp::as<NT>(error);
@@ -281,21 +292,21 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            return generic_volume<Point, NT>(HP, walkL, e, InnerBall, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+            return generic_volume<Point, NT>(HP, walkL, e, inner_ball, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
                                              alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, round, type);
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            return generic_volume<Point, NT>(VP, walkL, e, InnerBall, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+            return generic_volume<Point, NT>(VP, walkL, e, inner_ball, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
                                              alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, round, type);
         }
         case 3: {
             // Zonotope
             zonotope ZP;
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-            return generic_volume<Point, NT>(ZP, walkL, e, InnerBall, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+            return generic_volume<Point, NT>(ZP, walkL, e, inner_ball, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
                                              alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, round, type);
         }
         case 4: {
@@ -308,7 +319,7 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
             VPcVP.init(VP1, VP2);
             Rcpp::NumericVector InnerVec(n + 1);
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-            return generic_volume<Point, NT>(VPcVP, walkL, e, InnerBall, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
+            return generic_volume<Point, NT>(VPcVP, walkL, e, inner_ball, CG, CB, hpoly, win_len, N, C, ratio, frac, lb, ub, p,
                                              alpha, NN, nu, win2, ball_walk, delta, cdhr, rdhr, round, type);
         }
     }

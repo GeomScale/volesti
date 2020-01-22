@@ -1,5 +1,5 @@
-\name{IntVP}
-\alias{IntVP}
+\name{VPolyintersectVPoly}
+\alias{VPolyintersectVPoly}
 \title{An \code{R} class to represent the intersection of two V-polytopes.}
 
 \description{
