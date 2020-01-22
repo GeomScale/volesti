@@ -8,9 +8,9 @@
 #'
 #' @examples
 #' # generate a 10-dimensional skinny hypercube.
-#' P = GenSkinnyCube(10)
+#' P = gen_skinny_cube(10)
 #' @export
-GenSkinnyCube <- function(dimension) {
+gen_skinny_cube <- function(dimension) {
   
   kind_gen = 5
   m_gen = 0

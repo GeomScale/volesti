@@ -144,7 +144,7 @@ RCPP_MODULE(yada){
     //' P2 = GenCross(2,'V')
     //' P = IntP$new(P1$V, P2$V)
     //' @export
-    class_<VPinterVP>("IntVP")
+    class_<VPinterVP>("VPolyintersectVPoly")
     // expose the default constructor
     .constructor()
     .constructor<Rcpp::NumericMatrix, Rcpp::NumericMatrix>()

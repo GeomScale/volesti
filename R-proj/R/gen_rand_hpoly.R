@@ -8,9 +8,9 @@
 #' @return A polytope class representing a H-polytope.
 #' @examples 
 #' # generate a 10-dimensional polytope with 50 facets
-#' P = GenRandVpoly(10, 50)
+#' P = gen_rand_hpoly(10, 50)
 #' @export
-GenRandHpoly <- function(dimension, m) {
+gen_rand_hpoly <- function(dimension, m) {
   
   kind_gen = 6
   Vpoly_gen = FALSE

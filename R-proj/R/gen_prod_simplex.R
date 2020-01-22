@@ -8,9 +8,9 @@
 #' 
 #' @examples
 #' # generate a product of two 5-dimensional simplices.
-#' P = GenProdSimplex(5)
+#' P = gen_prod_simplex(5)
 #' @export
-GenProdSimplex <- function(dimension) {
+gen_prod_simplex <- function(dimension) {
   
   kind_gen = 4
   m_gen = 0

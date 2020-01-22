@@ -29,14 +29,14 @@
 //' @examples
 //' # compute the Chebychev ball of the 2d unit simplex
 //' P = GenSimplex(2,'H')
-//' ball_vec = InnerBall(P)
+//' ball_vec = inner_ball(P)
 //'
 //' # compute an inscribed ball of the 3-dimensional unit cube in V-representation
 //' P = GenCube(3, 'V')
-//' ball_vec = InnerBall(P)
+//' ball_vec = inner_ball(P)
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector InnerBall(Rcpp::Reference P) {
+Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;

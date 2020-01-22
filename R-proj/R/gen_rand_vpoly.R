@@ -8,9 +8,9 @@
 #' @return A polytope class representing a V-polytope.
 #' @examples 
 #' # generate a 10-dimensional polytope defined as the convex hull of 25 random vertices
-#' P = GenRandVpoly(10, 25)
+#' P = gen_rand_vpoly(10, 25)
 #' @export
-GenRandVpoly <- function(dimension, m) {
+gen_rand_vpoly <- function(dimension, m) {
   
   kind_gen = 4
   Vpoly_gen = TRUE
