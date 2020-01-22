@@ -81,7 +81,7 @@ else ()
   add_test(NAME volumeCV_prod_simplex COMMAND volumeCV_test -tc=prod_simplex)
   add_test(NAME volumeCV_simplex COMMAND volumeCV_test -tc=simplex)
 
-  add_test(NAME VpolyCV_cube COMMAND VpolyCV_test -tc=cube)
+  #add_test(NAME VpolyCV_cube COMMAND VpolyCV_test -tc=cube)
   add_test(NAME VpolyCV_cross COMMAND VpolyCV_test -tc=cross)
   add_test(NAME VpolyCV_simplex COMMAND VpolyCV_test -tc=simplex)
   

@@ -12,7 +12,7 @@ testRound <- function(P, exactvol, tol, name_string, num_of_exps, algo, rotation
   }
   vol = 0
   for (j in 1:num_of_exps) {
-    if (algo == "SOB") {
+    if (algo == "CB") {
       vol = vol + listHpoly$round_value * volume(listHpoly$P)
     } else {
       vol = vol + listHpoly$round_value * volume(listHpoly$P, error=0.1, algo=list("CG"=TRUE))
@@ -40,7 +40,7 @@ for (i in 1:2) {
   
   test_that("Rounding H-skinny_cube10", {
     P = gen_skinny_cube(10)
-    res = testRound(P, 102400, 0.3, 'H-skinny_cube10', num_of_exps, 'SOB', FALSE)
+    res = testRound(P, 102400, 0.3, 'H-skinny_cube10', num_of_exps, 'CB', FALSE)
     expect_equal(res, 1)
   })
   

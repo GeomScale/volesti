@@ -71,7 +71,7 @@ for (i in 1:2) {
   })
   
   test_that("Sampling test", {
-    P = GenSkinnyCube(20)
+    P = gen_skinny_cube(20)
     res = runsample(P, 'H-skinny_cube20', distribution)
     expect_equal(res, 1)
   })

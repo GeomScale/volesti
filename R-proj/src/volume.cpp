@@ -24,7 +24,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
     bool rand_only=false,
          NNN=false,
          birk=false,
-         verbose =false;
+         verbose =true;
     unsigned int n_threads=1;
     NT round_val = 1.0, rmax = 0.0;
 
@@ -205,12 +205,15 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
 
         if (type == 2 || type == 3) {
             CB = true;
+            win_len = 2*n*n+250;
         } else if (n<=200) {
             CB = true;
+            win_len = 2*n*n+250;
         } else {
             CG = true;
         }
         e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);
+        walkL = (!walk_length.isNotNull()) ? 1 : Rcpp::as<int>(walk_length);
 
     }else if (Rcpp::as<std::string>(algo).compare(std::string("SOB"))==0){
 

@@ -2,14 +2,14 @@ context("V-polytopes' volume test")
 
 library(volesti)
 
-Vruntest <- function(P, name_string, exactvol, tol, num_of_exps, algo){
+Vruntest <- function(P, name_string, exactvol, tol, num_of_exps, algorithm){
   
   vol = 0
   for (j in 1:num_of_exps) {
-    if (algo == "SOB") {
+    if (algorithm == "CB") {
       vol = vol + volume(P)
     } else {
-      vol = vol + volume(P, error=0.1, Algo = "CG")
+      vol = vol + volume(P, error=0.1, algo = "CG")
     }
   }
   vol = vol / num_of_exps
@@ -31,7 +31,7 @@ for (i in 1:2) {
     algo = 'CG'
     tol = 0.4
   } else {
-    algo = 'SOB'
+    algo = 'CB'
     tol = 0.3
   }
   

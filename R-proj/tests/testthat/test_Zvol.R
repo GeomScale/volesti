@@ -7,7 +7,7 @@ Zruntest <- function(P, name_string, tol, num_of_exps, algo){
   exactvol = exact_vol(P)
   vol = 0
   for (j in 1:num_of_exps) {
-    if (algo == "SOB") {
+    if (algo == "CB") {
       vol = vol + volume(P, rounding=TRUE)
     } else {
       vol = vol + volume(P, error=0.1, algo = "CG", rounding=TRUE)
@@ -31,7 +31,7 @@ for (i in 1:2) {
     algo = 'CG'
     tol = 0.4
   } else {
-    algo = 'SOB'
+    algo = 'CB'
     tol = 0.3
   }
 

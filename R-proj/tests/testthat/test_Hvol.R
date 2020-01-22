@@ -7,7 +7,7 @@ Hruntest <- function(P, name_string, exactvol, tol, num_of_exps, alg){
   
   vol = 0
   for (j in 1:num_of_exps) {
-    if (alg == "SOB") {
+    if (alg == "CB") {
       vol = vol + volume(P)
     } else {
       vol = vol + volume(P, algo = "CG")
@@ -32,7 +32,7 @@ for (i in 1:2) {
     algo = 'CG'
     num_of_exps = 20
   } else {
-    algo = 'SOB'
+    algo = 'CB'
     num_of_exps = 10
   }
 
