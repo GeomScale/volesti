@@ -10,7 +10,7 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "volume.h"
-#include "cooling_bodies.h"
+#include "cooling_balls.h"
 #include "cooling_hpoly.h"
 
 
@@ -92,11 +92,11 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
     } else if (CB) {
         vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, win_len, NN, nu, win2);
         if (!hpoly) {
-            vol = volesti_ball_ann(P, var, var_ban, InnerB);
+            vol = vol_cooling_balls(P, var, var_ban, InnerB);
         } else {
             vars_g <NT, RNGType> varg(n, 1, N, 4 * n * n + 500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false,
                                       verbose, rand_only, false, false, birk, false, true, false);
-            vol = vol_hzono < HPolytope < Point > > (P, var, var_ban, varg, InnerB);
+            vol = vol_cooling_hpoly < HPolytope < Point > > (P, var, var_ban, varg, InnerB);
         }
     }else {
         vol = volume(P, var, InnerB);

@@ -13,7 +13,7 @@
 
 
 template <class Hpolytope, class Zonotope, class UParameters, class AParameters, class GParameters, class Point, typename NT>
-NT vol_hzono (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters &var_g,
+NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters &var_g,
               std::pair<Point,NT> &InnerB) {
 
     typedef typename Zonotope::VT VT;
