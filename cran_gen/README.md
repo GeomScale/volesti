@@ -22,17 +22,17 @@ install.packages("volesti")
 * `sample_points()` can be used to sample points from a convex polytope approximating uniform or multidimensional spherical gaussian target distribution using: (a) coordinate directions hit-and-run (default), (b) random directions hit-and-run or (c) ball walk. This function can be used as well in order to sample exact uniform points from simplices and the boundary or the interior of hyperspheres.  
 * `round_polytope()` can be used to round a convex polytope.  
 * `rand_rotate()` can be used to apply a random rotation to a convex polytope.  
-* `GenCross()` can be used to generate a d-dimensional cross polytope.  
-* `GenCube()` can be used to generate a d-dimensional unit cube.  
-* `GenProdSimplex()` can be used to generate a 2d-dimensional polytope that is defined as the product of two d-dimensional unit simplices.  
-* `GenSimplex()` can be used to generate the d-dimensional unit simplex.  
-* `GenSkinnyCube()` can be used to generate a d-dimensional skinny hypercube.  
-* `GenRandHpoly()` can be used to generate a d-dimensional polytope in H-representation with m facets.  
-* `GenRandVpoly()` can be used to generate a d-dimensional polytope in V-representation with m vertices.  
-* `GenZonotope()` can be used to generate a random d-dimensional zonotope defined by the Minkowski sum of m d-dimensional segments.  
-* `fileToMatrix()` takes the path for an ine or an ext file and returns the corresponding polytope.  
-* `SliceOfSimplex()` can be used to evaluate the portion of of the d-dimensional unit simplex contained in a given half-space using M. Ali's version of G. Varsi's iterative formula.  
-* `InnerBall()` can be used to compute an inscribed ball of a convex polytope (works for all the representations).  
+* `gen_cross()` can be used to generate a d-dimensional cross polytope.  
+* `gen_cube()` can be used to generate a d-dimensional unit cube.  
+* `gen_prod_simplex()` can be used to generate a 2d-dimensional polytope that is defined as the product of two d-dimensional unit simplices.  
+* `gen_simplex()` can be used to generate the d-dimensional unit simplex.  
+* `gen_skinny_cube()` can be used to generate a d-dimensional skinny hypercube.  
+* `gen_rand_hpoly()` can be used to generate a d-dimensional polytope in H-representation with m facets.  
+* `gen_rand_vpoly()` can be used to generate a d-dimensional polytope in V-representation with m vertices.  
+* `gen_rand_zonotope()` can be used to generate a random d-dimensional zonotope defined by the Minkowski sum of m d-dimensional segments.  
+* `file_to_polytope()` takes the path for an ine or an ext file and returns the corresponding polytope.  
+* `frustum_of_simplex()` can be used to evaluate the portion of of the d-dimensional unit simplex contained in a given half-space using M. Ali's version of G. Varsi's iterative formula.  
+* `inner_ball()` can be used to compute an inscribed ball of a convex polytope (works for all the representations).  
 * `copula1()` can be used to compute the copula when two families of parallel hyperplanes are given.  
 * `copula2()` can be used to compute the copula when one familiy of parallel hyperplanes  and a family of concentric ellipsoids are given.  
 
@@ -40,8 +40,8 @@ For more details, features, examples and references you can read the documentati
 
 ## Credits
 
-Copyright (c) 2012-2019 Vissarion Fisikopoulos  
-Copyright (c) 2018-2019 Apostolos Chalkis  
+Copyright (c) 2012-2020 Vissarion Fisikopoulos  
+Copyright (c) 2018-2020 Apostolos Chalkis  
 
 You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.   
 
