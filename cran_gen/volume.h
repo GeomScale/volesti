@@ -25,7 +25,9 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "vars.h"
-#include "polytopes.h"
+#include "hpolytope.h"
+#include "vpolytope.h"
+#include "zpolytope.h"
 //#include "ellipsoids.h"
 #include "ballintersectconvex.h"
 #include "vpolyintersectvpoly.h"
