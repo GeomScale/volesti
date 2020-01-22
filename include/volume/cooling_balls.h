@@ -3,8 +3,8 @@
 // Copyright (c) 20012-2019 Vissarion Fisikopoulos
 // Copyright (c) 2018-2019 Apostolos Chalkis
 
-#ifndef BALL_ANN_VOL_H
-#define BALL_ANN_VOL_H
+#ifndef COOLING_BALLS_H
+#define COOLING_BALLS_H
 
 #include "cartesian_geom/cartesian_kernel.h"
 #include "vars.h"
@@ -21,7 +21,7 @@
 #include "ratio_estimation.h"
 
 template <class Polytope, class Point, class UParameters, class AParameters, typename NT>
-NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall) {
+NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall) {
 
     typedef Ball <Point> ball;
     typedef BallIntersectPolytope <Polytope, ball> PolyBall;

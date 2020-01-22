@@ -66,7 +66,7 @@ else ()
   add_executable (VpolyCV_test VpolyCV_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (VpolyVol_test VpolyVol_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (ZonotopeVol_test ZonotopeVol_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_executable (ZonotopeVolCV_test ZonotopeVolCV_test.cpp $<TARGET_OBJECTS:test_main>)
+  #add_executable (ZonotopeVolCV_test ZonotopeVolCV_test.cpp $<TARGET_OBJECTS:test_main>)
   
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
@@ -91,8 +91,8 @@ else ()
 
   add_test(NAME ZonotopeVol4 COMMAND ZonotopeVol_test -tc=4_dimensional)
 
-  add_test(NAME ZonotopeVolCV4 COMMAND ZonotopeVolCV_test -tc=4_dimensional)
-  add_test(NAME ZonotopeVolCV5 COMMAND ZonotopeVolCV_test -tc=5_dimensional)
+  #add_test(NAME ZonotopeVolCV4 COMMAND ZonotopeVolCV_test -tc=4_dimensional)
+  #add_test(NAME ZonotopeVolCV5 COMMAND ZonotopeVolCV_test -tc=5_dimensional)
 
   add_test(NAME cheb_cube COMMAND cheb_test -tc=cheb_cube)
   add_test(NAME cheb_cross COMMAND cheb_test -tc=cheb_cross)
@@ -114,7 +114,7 @@ else ()
   TARGET_LINK_LIBRARIES(VpolyCV_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(VpolyVol_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(ZonotopeVol_test ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(ZonotopeVolCV_test ${LP_SOLVE})
+  #TARGET_LINK_LIBRARIES(ZonotopeVolCV_test ${LP_SOLVE})
 
 endif()
 

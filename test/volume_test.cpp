@@ -37,7 +37,7 @@ void test_volume(Polytope &HP, NT expected, NT tolerance=0.1)
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
     
-    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
+    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,0.0,rng,
              urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
 
     //Compute chebychev ball//
