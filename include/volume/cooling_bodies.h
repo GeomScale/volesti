@@ -54,9 +54,9 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
         std::pair <Point, NT> res = P.ComputeInnerBall();
         c = res.first;
         radius = res.second;
-        var.diameter = 2.0 * std::sqrt(NT(n))*radius;
-        P.comp_diam(var.diameter);
-        diam = var.diameter;
+        //var.diameter = 2.0 * std::sqrt(NT(n))*radius;
+        //P.comp_diam(var.diameter);
+        //diam = var.diameter;
     }
 
     // Save the radius of the Chebychev ball
@@ -68,10 +68,10 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
     P.shift(c_e);
     P.normalize();
 
-    if (verbose) std::cout << "Computing ball annealing..." << std::endl;
+    //if (verbose) std::cout << "Computing ball annealing..." << std::endl;
     //std::cout<<"N = "<<N<<" nu = "<< nu<<std::endl;
     get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var, rmax);
-    var.diameter = diam;
+    //var.diameter = diam;
 
     NT vol = (std::pow(M_PI, n / 2.0) * (std::pow((*(BallSet.end() - 1)).radius(), n))) / (tgamma(n / 2.0 + 1));
     //std::cout<<"rad of B_m = "<<(*(BallSet.end() - 1)).radius()<<", vol of B_m = "<<vol<<std::endl;
@@ -96,7 +96,7 @@ NT volesti_ball_ann(Polytope &P, UParameters &var, AParameters &var_ban, std::pa
                                                                          var);
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter) {
         Pb = PolyBall(P, *balliter);
-        Pb.comp_diam(var.diameter);
+        //Pb.comp_diam(var.diameter);
         vol *= (!window2) ? 1 / esti_ratio_interval<RNGType, Point>(Pb, *(balliter + 1), *(ratioiter + 1), er1,
                 win_len, N * nu, prob, var) : 1 / esti_ratio<RNGType, Point>(Pb, *balliter, *ratioiter, er1,
                                                                              win_len, N * nu, var);
