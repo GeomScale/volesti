@@ -113,37 +113,47 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //' @param walk_step Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
 //' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
 //' @param InnerBall Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
-//' @param algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian.
+//' @param algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian or c) \code{'CB'} for cooling bodies.
 //' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
 //' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
 //' @param parameters Optional. A list for the parameters of the algorithms:
 //' \itemize{
 //' \item{\code{Window} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
 //'  \item{\code{C} }{ A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. The default value is \eqn{2}.}
-//'  \item{\code{N} }{ The number of points we sample in each step of schedule annealing in CG algorithm. The default value is \eqn{500C + dimension^2 / 2}.}
+//'  \item{\code{M} }{ The number of points we sample in each step of schedule annealing in CG algorithm. The default value is \eqn{500C + dimension^2 / 2}.}
 //'  \item{\code{ratio} }{ Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. The default value is \eqn{1 - 1/dimension}.}
 //'  \item{\code{frac} }{ The fraction of the total error to spend in the first gaussian in CG algorithm. The default value is \eqn{0.1}.}
 //'  \item{\code{BW_rad} }{ The radius for the ball walk. The default value is \eqn{4r/dimension}, where \eqn{r} is the radius of the inscribed ball of the polytope.}
+//'  \item{\code{ub} }{ The lower bound for the ratios in MMC in CB algorithm. The default value is \eqn{0.1}.}
+//'  \item{\code{lb} }{ The upper bound for the ratios in MMC in CB algorithm. The default value is \eqn{0.15}.}
+//'  \item{\code{N} }{ An integer that controls the number of points \eqn{\nu N} generated in each convex body in annealing schedule of algorithm CB.}
+//'  \item{\code{nu} }{ The degrees of freedom for the t-student distribution in t-tests in CB algorithm. The default value is \eqn{10}.}
+//'  \item{\code{alpha} }{ The significance level for the t-tests in CB algorithm. The default values is 0.2.}
+//'  \item{\code{prob} }{ The probability is used for the empirical confidence interval in ratio estimation of CB algorithm. The default value is \eqn{0.75}.}
+//'  \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm. The default value is \code{FALSE}.}
+//'  \item{\code{minmaxW} }{ A boolean parameter to use the sliding window with a minmax values stopping criterion.}
 //' }
 //'
 //' @references \cite{I.Z.Emiris and V. Fisikopoulos,
 //' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2014.},
+//' @references \cite{A. Chalkis and I.Z.Emiris and V. Fisikopoulos,
+//' \dQuote{Practical Volume Estimation by a New Annealing Schedule for Cooling Convex Bodies,} \emph{CoRR, abs/1905.05494,} 2019.},
 //' @references \cite{B. Cousins and S. Vempala, \dQuote{A practical volume algorithm,} \emph{Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society,} 2015.}
 //'
 //'
 //' @return The approximation of the volume of a convex polytope.
 //' @examples
 //' # calling SOB algorithm for a H-polytope (2d unit simplex)
-//' P = GenSimplex(2,'H')
+//' P = gen_simplex(2,'H')
 //' vol = volume(P)
 //'
 //' # calling CG algorithm for a V-polytope (3d simplex)
-//' P = GenSimplex(2,'V')
+//' P = gen_simplex(2,'V')
 //' vol = volume(P, algo = "CG")
 //'
 //' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
-//' Z = GenZonotope(2, 4)
-//' vol = volume(Z, random_walk = "RDHR", walk_step = 5)
+//' Z = gen_rand_zonotope(2, 4)
+//' vol = volume(Z, random_walk = "RDHR", walk_length = 5)
 //' @export
 // [[Rcpp::export]]
 double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
@@ -222,8 +232,8 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
             C = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["C"]);
             N = 500 * ((int) C) + n * n / 2;
         }
-        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("N")) {
-            N = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["N"]);
+        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("M")) {
+            N = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["M"]);
         }
         if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("Window")) {
             win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(parameters)["Window"]);
@@ -260,9 +270,9 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
         if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("alpha")) {
             alpha = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["alpha"]);
         }
-        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("diameter")) {
-            diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["diameter"]);
-        }
+        //if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("diameter")) {
+            //diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["diameter"]);
+        //}
     }
 
 

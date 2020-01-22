@@ -57,7 +57,7 @@
 //' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope P.
 //' @examples
 //' # uniform distribution from the 3d unit cube in V-representation using ball walk
-//' P = GenCube(3, 'V')
+//' P = gen_cube(3, 'V')
 //' points = sample_points(P, WalkType = "BW", walk_length = 5)
 //'
 //' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
