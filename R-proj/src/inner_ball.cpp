@@ -28,11 +28,11 @@
 //'
 //' @examples
 //' # compute the Chebychev ball of the 2d unit simplex
-//' P = GenSimplex(2,'H')
+//' P = gen_simplex(2,'H')
 //' ball_vec = inner_ball(P)
 //'
 //' # compute an inscribed ball of the 3-dimensional unit cube in V-representation
-//' P = GenCube(3, 'V')
+//' P = gen_cube(3, 'V')
 //' ball_vec = inner_ball(P)
 //' @export
 // [[Rcpp::export]]
