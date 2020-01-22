@@ -8,12 +8,12 @@
 #' @return A polytope class representing the \eqn{d}-dimensional unit simplex in H- or V-representation.
 #' @examples
 #' # generate a 10-dimensional simplex in H-representation
-#' PolyList = GenSimplex(10, 'H')
+#' PolyList = gen_simplex(10, 'H')
 #' 
 #' # generate a 20-dimensional simplex in V-representation
-#' P = GenSimplex(20, 'V')
+#' P = gen_simplex(20, 'V')
 #' @export
-GenSimplex <- function(dimension, repr) {
+gen_simplex <- function(dimension, repr) {
   
   kind_gen = 3
   m_gen = 0

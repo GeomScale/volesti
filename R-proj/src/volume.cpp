@@ -113,8 +113,8 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //' @param walk_step Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
 //' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
 //' @param InnerBall Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
-//' @param Algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian.
-//' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
+//' @param algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian.
+//' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
 //' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
 //' @param parameters Optional. A list for the parameters of the algorithms:
 //' \itemize{
@@ -139,18 +139,18 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //'
 //' # calling CG algorithm for a V-polytope (3d simplex)
 //' P = GenSimplex(2,'V')
-//' vol = volume(P, Algo = "CG")
+//' vol = volume(P, algo = "CG")
 //'
 //' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 //' Z = GenZonotope(2, 4)
-//' vol = volume(Z, WalkType = "RDHR", walk_step = 5)
+//' vol = volume(Z, random_walk = "RDHR", walk_step = 5)
 //' @export
 // [[Rcpp::export]]
 double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
                 Rcpp::Nullable<double> error = R_NilValue,
                 Rcpp::Nullable<Rcpp::NumericVector> InnerBall = R_NilValue,
-                Rcpp::Nullable<std::string> Algo = R_NilValue,
-                Rcpp::Nullable<std::string> WalkType = R_NilValue,
+                Rcpp::Nullable<std::string> algo = R_NilValue,
+                Rcpp::Nullable<std::string> random_walk = R_NilValue,
                 Rcpp::Nullable<bool> rounding = R_NilValue,
                 Rcpp::Nullable<Rcpp::List> parameters = R_NilValue) {
 
@@ -175,34 +175,34 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
 
     round = (!rounding.isNotNull()) ? false : Rcpp::as<bool>(rounding);
 
-    if (!WalkType.isNotNull()) {
+    if (!random_walk.isNotNull()) {
         if ( type == 1 ){
             cdhr = true;
         } else {
             rdhr = true;
         }
-    }else if (Rcpp::as<std::string>(WalkType).compare(std::string("CDHR")) == 0) {
+    }else if (Rcpp::as<std::string>(random_walk).compare(std::string("CDHR")) == 0) {
         cdhr = true;
-    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR")) == 0) {
+    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("RDHR")) == 0) {
         rdhr = true;
-    } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
+    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BW"))==0) {
         ball_walk = true;
     } else {
         throw Rcpp::exception("Unknown walk type!");
     }
 
-    if(!Algo.isNotNull() || Rcpp::as<std::string>(Algo).compare(std::string("SOB"))==0){
+    if(!algo.isNotNull() || Rcpp::as<std::string>(algo).compare(std::string("SOB"))==0){
 
         walkL = (!walk_length.isNotNull()) ? 10 + n / 10 : Rcpp::as<int>(walk_length);
         e = (!error.isNotNull()) ? 1.0 : Rcpp::as<NT>(error);
 
-    } else if (Rcpp::as<std::string>(Algo).compare(std::string("CG"))==0) {
+    } else if (Rcpp::as<std::string>(algo).compare(std::string("CG"))==0) {
 
         CG = true;
         e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);
         walkL = (!walk_length.isNotNull()) ? 1 : Rcpp::as<int>(walk_length);
 
-    } else if (Rcpp::as<std::string>(Algo).compare(std::string("CB")) == 0) {
+    } else if (Rcpp::as<std::string>(algo).compare(std::string("CB")) == 0) {
 
         CB = true;
         e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);

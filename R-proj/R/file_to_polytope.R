@@ -10,7 +10,7 @@
 #' @examples
 #' # give the path to birk4.ine
 #' path = system.file('extdata', package = 'volesti')
-#' P = fileToMatrix(paste0(path,'/birk4.ine'))
+#' P = file_to_polytope(paste0(path,'/birk4.ine'))
 #' @export
 #' @useDynLib volesti, .registration=TRUE
 #' @importFrom Rcpp evalCpp
@@ -18,7 +18,7 @@
 #' @importFrom "utils" "read.csv"
 #' @importFrom "methods" "new"
 #' @exportPattern "^[[:alpha:]]+"
-fileToMatrix <- function(path, zonotope){
+file_to_polytope <- function(path, zonotope){
   
   ineorext=substr(path, start = nchar(path) - 2, stop = nchar(path))
   if(ineorext!="ine" && ineorext!="ext") {

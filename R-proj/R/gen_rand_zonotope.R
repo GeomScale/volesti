@@ -9,9 +9,9 @@
 #'
 #' @examples 
 #' # generate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
-#' P = GenZonotope(10, 20)
+#' P = gen_rand_zonotope(10, 20)
 #' @export
-GenZonotope <- function(dimension, NumGen) {
+gen_rand_zonotope <- function(dimension, NumGen) {
   
   kind_gen = 0
   Vpoly_gen = FALSE
