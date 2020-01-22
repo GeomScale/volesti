@@ -19,7 +19,7 @@
 #' poly_matrix_list = rand_rotate(P)
 #' 
 #' # rotate a V-polytope (3d cube)
-#' P = G=gen_cube(3, 'V')
+#' P = gen_cube(3, 'V')
 #' poly_matrix_list = rand_rotate(P)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments

@@ -17,11 +17,11 @@
 #' listHpoly = round_polytope(P)
 #' 
 #' # rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50
-#' P = GenCube(3, 'V')
+#' P = gen_cube(3, 'V')
 #' ListVpoly = round_polytope(P, WalkType = 'RDHR', walk_step = 50)
 #' 
 #' # round a 2-dimensional zonotope defined by 6 generators using ball walk
-#' Z = GenZonotope(2,6)
+#' Z = gen_rand_zonotope(2,6)
 #' ListZono = round_polytope(Z, WalkType = 'BW')
 #' @export
 round_polytope <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL){
