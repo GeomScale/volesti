@@ -56,20 +56,7 @@ public:
 
     // return the number of parallelopipeds. Used in get_dists fnction.
     unsigned int upper_bound_of_hyperplanes() {
-        unsigned int m = V.rows(), d = _d, res;
-        long double nom = 1.0, denom = 1.0, num_of_hyp = 0.0;
-
-        for (unsigned int i = d+1 ; i <= m; ++i) {
-            nom *= i;
-        }
-        for (unsigned int i = 1 ; i <= m-d; ++i) {
-            denom *= i;
-        }
-
-        num_of_hyp = nom / denom;
-
-        res = 2*_d;
-        return res;
+        return 2*_d;
     }
 
     void compute_eigenvectors(MT G, bool norm1, bool norm2) {

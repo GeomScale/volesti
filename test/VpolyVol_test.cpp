@@ -46,9 +46,12 @@ void test_volume(Polytope &VP, NT expected, NT tolerance=0.1)
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol = 0;
     unsigned int const num_of_exp = 10;
+    CheBall = VP.ComputeInnerBall();
+    Polytope VP2 = VP;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
-        CheBall = VP.ComputeInnerBall();
+
+        VP.init(n, VP2.get_mat(), VP2.get_vec());
         vol += volume(VP,var,CheBall);
     }
     NT error = std::abs(((vol/num_of_exp)-expected))/expected;
