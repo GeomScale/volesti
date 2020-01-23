@@ -14,7 +14,7 @@
 
 * Fix CRAN warnings.
 
-# volesti 2.0.0
+# volesti 1.1.0
 
 * New volume computation algorithm.
 * Improved names for functions and input variables.

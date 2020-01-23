@@ -15,7 +15,7 @@ Description: Provides an R interface for 'volesti' C++ package. 'volesti' comput
              rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for 
              estimating copulas (L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos (2018) 
              <arXiv:1803.05861>).
-Version: 2.0.0
+Version: 1.1.0
 Date: 2020-01-23
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: Rcpp (>= 0.12.17)
