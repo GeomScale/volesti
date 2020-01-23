@@ -54,10 +54,13 @@ void test_zono_volume(int n, int m, NT tolerance = 0.15)
     round_value = round_value * res_round.first;
     NT vol = 0;
     unsigned int const num_of_exp = 10;
+    Zonotope ZP2 = ZP;
+    CheBall = ZP.ComputeInnerBall();
     for (unsigned int i=0; i<num_of_exp; i++)
     {
-        CheBall = ZP.ComputeInnerBall();
+        ZP.init(n, ZP2.get_mat(), ZP2.get_vec());
         vol += round_value * volume(ZP,var,CheBall);
+        std::cout << "volume of iteration"<<i<<" = " << round_value*vol << std::endl;
     }
     NT error = std::abs(((vol/num_of_exp)-vol_exact))/vol_exact;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;

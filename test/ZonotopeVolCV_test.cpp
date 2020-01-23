@@ -45,8 +45,8 @@ void test_zono_volume(int n, int m, NT tolerance = 0.3)
     std::pair<NT,NT> res_round;
 
 
-    vars <NT, RNGType> var(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,0.0,rng,
-                          urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
+     vars<NT, RNGType> var(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,0.0,rng,
+                               urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
 
     //Compute chebychev ball//
     std::pair<Point,NT> CheBall;
