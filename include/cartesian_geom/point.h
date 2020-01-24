@@ -24,25 +24,25 @@ public:
 
     point() {}
     
-    point(const unsigned int dim) {
+    point(const unsigned int &dim) {
         d = dim;
         coeffs = Coeff(d,0);
     }
     
-    point(const unsigned int dim, iter begin, iter endit) {
+    point(const unsigned int &dim, iter begin, iter endit) {
         d = dim;
         coeffs = Coeff(begin,endit);
     }
     
-    int dimension() {
+    int dimension() const {
         return d;
     }
     
-    void set_dimension(const unsigned int dim) {
+    void set_dimension(const unsigned int &dim) {
         d = dim;
     }
     
-    void set_coord(const unsigned int i, FT coord) {
+    void set_coord(const unsigned int &i, const FT &coord) {
         coeffs[i] = coord;
     }
 
@@ -50,7 +50,7 @@ public:
         return coeffs;
     }
     
-    FT operator[] (const unsigned int i) {
+    FT operator[] (const unsigned int &i) const {
         return coeffs[i];
     }
     
@@ -158,7 +158,7 @@ public:
 };
 
 template<class K>
-point<K> operator* (const typename K::FT& k, point<K>& p) {
+point<K> operator* (typename K::FT const& k, point<K>& p) {
     return p * k;
 }
 

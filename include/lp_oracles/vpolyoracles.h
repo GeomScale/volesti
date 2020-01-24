@@ -13,7 +13,7 @@
 // return true if q belongs to the convex hull of the V-polytope described by matrix V
 // otherwise return false
 template <class MT, class Point, typename NT>
-bool memLP_Vpoly(MT V, Point q, NT *row, int *colno){
+bool memLP_Vpoly(const MT &V, const Point &q, NT *row, int *colno){
 
     //typedef typename Point::FT NT;
     int d=q.dimension();
@@ -149,7 +149,8 @@ bool memLP_Vpoly(MT V, Point q, NT *row, int *colno){
 // if maxi is true compute positive lambda, when the ray is p + lambda \cdot v
 // otherwise compute the negative lambda
 template <typename NT, class MT, class Point>
-NT intersect_line_Vpoly(MT V, Point &p, Point &v, NT *conv_comb, NT *row, int *colno,  bool maxi, bool zonotope){
+NT intersect_line_Vpoly(const MT &V, const Point &p, const Point &v,
+        NT *conv_comb, NT *row, int *colno,  bool maxi, bool zonotope){
 
     int d=v.dimension(), i;
     lprec *lp;
@@ -281,7 +282,7 @@ NT intersect_line_Vpoly(MT V, Point &p, Point &v, NT *conv_comb, NT *row, int *c
 
 
 template <typename NT, class MT, class Point>
-std::pair<NT,NT> intersect_double_line_Vpoly(MT V, Point &p, Point &v, NT *row, int *colno){
+std::pair<NT,NT> intersect_double_line_Vpoly(const MT &V, const Point &p, const Point &v, NT *row, int *colno){
 
     int d=v.dimension(), i;
     lprec *lp;

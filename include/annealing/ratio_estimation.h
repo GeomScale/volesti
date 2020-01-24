@@ -9,7 +9,7 @@
 
 
 template <typename NT>
-bool check_max_error123(NT a, NT b, NT error) {
+bool check_max_error(const NT &a, const NT &b, const NT &error) {
 
     if((b-a)/a<error/2.0) {
         return true;
@@ -20,13 +20,13 @@ bool check_max_error123(NT a, NT b, NT error) {
 
 
 template <class RNGType, class Point, class PolyBall1, class PolyBall2, typename NT, class Parameters>
-NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot, Parameters &var,
-              bool isball = false, NT radius = 0.0) {
+NT esti_ratio(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, const int &W,
+        const int &Ntot, const Parameters &var, bool isball = false, NT radius = 0.0) {
 
     int n = var.n, min_index = W-1, max_index = W-1, index = 0;
     bool print = var.verbose;
-    NT min_val = std::numeric_limits<NT>::lowest(), max_val = std::numeric_limits<NT>::max(), val,
-            countIn = ratio*NT(Ntot), totCount = NT(Ntot), lambda;
+    NT min_val = std::numeric_limits<NT>::lowest(), max_val = std::numeric_limits<NT>::max(), val, lambda;
+    size_t totCount = Ntot, countIn = Ntot * ratio;
     std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0), Av(Pb1.num_of_hyperplanes(),0);
     std::list<Point> randPoints;
     typename std::vector<NT>::iterator minmaxIt;
@@ -49,7 +49,7 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
         if(Pb2.is_in(p)==-1) countIn = countIn + 1.0;
 
         totCount = totCount + 1.0;
-        val = countIn / totCount;
+        val = NT(countIn) / NT(totCount);
         last_W[index] = val;
 
         if(val<=min_val){
@@ -71,8 +71,7 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
         }
 
         if( (max_val-min_val)/max_val<=error/2.0 ){
-            //if (print) std::cout<<"final rejection ratio = "<<val<< " | total points = "<<totCount<<std::endl;
-            return val;
+            break;
         }
 
         index = index%W+1;
@@ -83,13 +82,16 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot
 
 
 template <class RNGType, class Point, class PolyBall1, class PolyBall2, typename NT, class Parameters>
-NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W, int Ntot, NT prob,
-                       Parameters &var, bool isball = false, NT radius = 0.0) {
+NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, const int &W,
+        const int &Ntot, const NT &prob, const Parameters &var, bool isball = false, NT radius = 0.0) {
 
     int n = var.n, index = 0;
     bool print = var.verbose;
     std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0), Av(Pb1.num_of_hyperplanes(),0);
-    NT val, countIn = ratio*NT(Ntot), totCount = NT(Ntot), sum_sq=0.0, sum=0.0, lambda;
+    NT val, sum_sq=0.0, sum=0.0, lambda;
+    size_t totCount = Ntot, countIn = Ntot * ratio;
+    //std::cout<<"countIn = "<<countIn<<", totCount = "<<totCount<<std::endl;
+
     Point p(n);
     Point p_prev=p;
     unsigned int coord_prev;
@@ -103,10 +105,10 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
         } else {
             uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps, lamdas, Av, lambda, var);
         }
-        if (Pb2.is_in(p) == -1) countIn = countIn + 1.0;
+        if (Pb2.is_in(p) == -1) countIn = countIn + 1;
 
-        totCount = totCount + 1.0;
-        val = countIn / totCount;
+        totCount = totCount + 1;
+        val = NT(countIn) / NT(totCount);
         sum += val;
         sum_sq += val * val;
         last_W[index] = val;
@@ -125,10 +127,10 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
         } else {
             uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps, lamdas, Av, lambda, var);
         }
-        if (Pb2.is_in(p) == -1) countIn = countIn + 1.0;
+        if (Pb2.is_in(p) == -1) countIn = countIn + 1;
 
-        totCount = totCount + 1.0;
-        val = countIn / totCount;
+        totCount = totCount + 1;
+        val = NT(countIn) / NT(totCount);
 
         m = (m - last_W[index] / NT(W)) + val / NT(W);
         sum_sq = (sum_sq - last_W[index] * last_W[index]) + val * val;
@@ -138,9 +140,9 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
         index = index % W + 1;
 
         if (index == W) index = 0;
-        if (check_max_error123(val - zp * s, val + zp * s, error)) {
+        if (check_max_error(val - zp * s, val + zp * s, error)) {
             //if (print) std::cout << "final rejection ratio = " << val << " | total points = " << totCount << std::endl;
-            return val;
+            break;
         }
 
     }

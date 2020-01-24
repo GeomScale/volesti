@@ -25,20 +25,18 @@
 
 // evaluate the pdf of point p
 template <class Point, typename NT>
-NT eval_exp(Point p, NT a) {
+NT eval_exp(Point &p, const NT &a) {
     return std::exp(-a * p.squared_length());
 }
 
 
 template <class Point, typename NT>
-NT get_max(Point l, Point u, NT a_i) {
+NT get_max(Point &l, Point &u, const NT &a_i) {
     NT res;
-    Point a = -1.0 * l;
-    Point bef = u - l;
+    Point a = -1.0 * l, bef = u - l;
     Point b = (1.0 / std::sqrt((bef).squared_length())) * bef;
     Point z = (a.dot(b) * b) + l;
-    NT low_bd = (l[0] - z[0]) / b[0];
-    NT up_bd = (u[0] - z[0]) / b[0];
+    NT low_bd = (l[0] - z[0]) / b[0], up_bd = (u[0] - z[0]) / b[0];
     if (low_bd * up_bd > 0) {
         //if(std::signbit(low_bd)==std::signbit(up_bd)){
         res = std::max(eval_exp(u, a_i), eval_exp(l, a_i));
@@ -51,7 +49,7 @@ NT get_max(Point l, Point u, NT a_i) {
 
 
 template <typename NT>
-NT get_max_coord(NT l, NT u, NT a_i) {
+NT get_max_coord(const NT &l, const NT &u, const NT &a_i) {
     if (l < 0.0 && u > 0.0) {
         return 1.0;
     }
@@ -61,7 +59,7 @@ NT get_max_coord(NT l, NT u, NT a_i) {
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
 template <class Parameters, class Point, typename NT>
-void rand_exp_range(Point lower, Point upper, NT a_i, Point &p, Parameters const& var) {
+void rand_exp_range(Point &lower, Point &upper, const NT &a_i, Point &p, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn;
     const NT tol = 0.00000001;
@@ -106,7 +104,7 @@ void rand_exp_range(Point lower, Point upper, NT a_i, Point &p, Parameters const
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
 template <class Parameters, typename NT>
-NT rand_exp_range_coord(NT l, NT u, NT a_i, Parameters const& var) {
+NT rand_exp_range_coord(const NT &l, const NT &u, const NT &a_i, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn, dis;
     const NT tol = 0.00000001;
@@ -150,7 +148,7 @@ void gaussian_first_coord_point(Polytope &P,
                          Point &p_prev, // previous point
                          unsigned int &coord_prev, // previous coordinate ray
                          unsigned int walk_len, // number of steps for the random walk
-                         NT a_i,
+                         const NT &a_i,
                          std::vector<NT> &lamdas,
                          Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
@@ -182,8 +180,8 @@ void gaussian_next_point(Polytope &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
                         unsigned int &coord_prev, // previous coordinate ray
-                        unsigned int walk_len, // number of steps for the random walk
-                        NT a_i,
+                        const unsigned int walk_len, // number of steps for the random walk
+                        const NT &a_i,
                         std::vector<NT> &lamdas,
                         Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
@@ -213,9 +211,9 @@ template <class Polytope, class Parameters, class Point, class PointList, typena
 void rand_gaussian_point_generator(Polytope &P,
                          Point &p,   // a point to start
                          unsigned int rnum,   // number of points to sample
-                         unsigned int walk_len,  // number of stpes for the random walk
+                         const unsigned int walk_len,  // number of stpes for the random walk
                          PointList &randPoints,  // list to store the sampled points
-                         NT a_i,
+                         const NT &a_i,
                          Parameters const& var)  // constans for volume
 {
     typedef typename Parameters::RNGType RNGType;
@@ -266,7 +264,7 @@ void rand_gaussian_point_generator(Polytope &P,
 template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_hit_and_run(Point &p,
                 Polytope &P,
-                NT a_i,
+                const NT &a_i,
                 Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n;
@@ -290,7 +288,7 @@ void gaussian_hit_and_run_coord_update(Point &p,
                              Polytope &P,
                              unsigned int rand_coord,
                              unsigned int rand_coord_prev,
-                             NT a_i,
+                             const NT &a_i,
                              std::vector<NT> &lamdas,
                              Parameters const& var) {
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);

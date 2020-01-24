@@ -201,7 +201,7 @@ void Sam_Canon_Unit(unsigned int dim, unsigned int num, std::list<Point> &points
 
 //Owen mapping for sample from an arbitrary simplex given in V-represantation
 template <class Vpolytope, class PointList>
-void Sam_arb_simplex(Vpolytope P, unsigned int num, PointList &points){
+void Sam_arb_simplex(const Vpolytope &P, unsigned int num, PointList &points){
 
     typedef typename Vpolytope::MT MT;
     typedef typename Vpolytope::NT NT;

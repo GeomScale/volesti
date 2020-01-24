@@ -1,7 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
-// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
@@ -9,97 +9,6 @@
 
 #ifndef BALLINTERSECTCONVEX_H
 #define BALLINTERSECTCONVEX_H
-
-// ball type
-template <class Point>
-struct Ball{
-public:
-    typedef Point BallPoint;
-    typedef typename Point::FT NT;
-    typedef typename std::vector<NT>::iterator viterator;
-
-    Ball() {}
-
-    Ball(Point cc, NT RR) : c(cc),	 R(RR) {}
-
-    Point center(){
-        return c;
-    }
-
-    NT squared_radius(){
-        return R;
-    }
-
-    NT radius(){
-        return std::sqrt(R);
-    }
-
-    int is_in(Point p){
-        if (p.squared_length() <= R)
-            return -1;
-        else return 0;
-    }
-
-    std::pair<NT,NT> line_intersect(Point r,
-                                          Point v){
-
-        viterator rit=r.iter_begin(), vit=v.iter_begin(), cit=c.iter_begin(), rcit=r.iter_begin();
-        NT vrc(0), v2(0), rc2(0);
-        for( ; cit < c.iter_end() ; ++rcit, ++cit, ++rit, ++vit){
-            vrc += *vit * (*rcit);
-            v2 += *vit * (*vit);
-            rc2 += *rcit * (*rcit);
-        }
-
-        NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
-        return std::pair<NT,NT> ((NT(-1)*vrc + disc_sqrt)/v2, (NT(-1)*vrc - disc_sqrt)/v2);
-    }
-
-    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av){
-        return line_intersect(r, v);
-    }
-
-
-    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
-        return line_intersect(r, v);
-    }
-
-    std::pair<NT,NT> line_intersect_coord(Point r,
-                                          int rand_coord){
-        viterator rcit=r.iter_begin();
-        NT vrc = *(rcit + rand_coord);
-        NT rc2(R);
-        for( ; rcit < r.iter_end() ; ++rcit){
-            rc2 -= *rcit * (*rcit);
-        }
-
-        NT disc_sqrt = std::sqrt(std::pow(vrc,2) + rc2);
-        return std::pair<NT,NT> (NT(-1)*vrc + disc_sqrt, NT(-1)*vrc - disc_sqrt);
-
-    }
-
-    std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          unsigned int rand_coord,
-                                          std::vector<NT> &lamdas) {
-        return std::pair<NT,NT> (0.0, 0.0);
-    }
-
-    std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          Point &r_prev,
-                                          unsigned int rand_coord,
-                                          unsigned int rand_coord_prev,
-                                          std::vector<NT> &lamdas){
-        return std::pair<NT,NT> (0.0, 0.0);
-    }
-
-    int num_of_hyperplanes() {
-        return 0;
-    }
-
-private:
-    Point  c; //center
-    NT     R; //SQUARED radius !!!
-};
 
 
 template <class Polytope, class CBall>
@@ -115,28 +24,28 @@ public:
 
     BallIntersectPolytope(Polytope &PP, CBall &BB) : P(PP), B(BB) {};
     
-    Polytope first() { return P; }
-    CBall second() { return B; }
+    Polytope first() const { return P; }
+    CBall second() const { return B; }
 
-    int is_in(Point p){
+    int is_in(Point &p){
         if(B.is_in(p)==-1)
             return P.is_in(p);
         return 0;
     }
 
-    int num_of_hyperplanes(){
+    int num_of_hyperplanes() const {
         return P.num_of_hyperplanes();
     }
 
-    unsigned int dimension(){
+    unsigned int dimension() const {
         return P.dimension();
     }
 
-    void comp_diam(NT &diam) {
+    void comp_diam(NT &diam) const {
         diam = 2.0*B.radius();
     }
 
-    std::pair<NT,NT> line_intersect(Point r, Point v) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v) {
 
         std::pair <NT, NT> polypair = P.line_intersect(r, v);
         std::pair <NT, NT> ballpair = B.line_intersect(r, v);
@@ -144,13 +53,14 @@ public:
                                  std::max(polypair.second, ballpair.second));
     }
 
-    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
+            const std::vector<NT> &Av) {
         return line_intersect(r, v);
     }
 
     //First coordinate ray shooting intersecting convex body
     std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          unsigned int rand_coord,
+                                          const unsigned int &rand_coord,
                                           std::vector<NT> &lamdas) {
 
         std::pair <NT, NT> polypair = P.line_intersect_coord(r, rand_coord, lamdas);
@@ -161,9 +71,9 @@ public:
 
     //Not the first coordinate ray shooting intersecting convex body
     std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          Point &r_prev,
-                                          unsigned int rand_coord,
-                                          unsigned int rand_coord_prev,
+                                          const Point &r_prev,
+                                          const unsigned int &rand_coord,
+                                          const unsigned int &rand_coord_prev,
                                           std::vector<NT> &lamdas) {
 
         std::pair <NT, NT> polypair = P.line_intersect_coord(r, r_prev, rand_coord, rand_coord_prev, lamdas);
@@ -172,7 +82,7 @@ public:
                                  std::max(polypair.second, ballpair.second));
     }
 
-    std::pair<NT,NT> query_dual(Point &p, unsigned int rand_coord) {
+    std::pair<NT,NT> query_dual(const Point &p, const unsigned int &rand_coord) {
         std::pair <NT, NT> polypair = P.query_dual(p, rand_coord);
         std::pair <NT, NT> ballpair = B.line_intersect_coord(p, rand_coord);
         return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),

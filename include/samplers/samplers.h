@@ -13,7 +13,7 @@
 
 // Pick a random direction as a normilized vector
 template <class RNGType, class Point, typename NT>
-Point get_direction(unsigned int dim) {
+Point get_direction(const unsigned int dim) {
 
     boost::normal_distribution<> rdist(0,1);
     std::vector<NT> Xs(dim,0);
@@ -37,7 +37,7 @@ Point get_direction(unsigned int dim) {
 
 // Pick a random point from a d-sphere
 template <class RNGType, class Point, typename NT>
-Point get_point_on_Dsphere(unsigned int dim, NT radius){
+Point get_point_on_Dsphere(const unsigned int dim, const NT &radius){
     Point p = get_direction<RNGType, Point, NT>(dim);
     p = (radius == 0) ? p : radius * p;
     return p;
@@ -46,7 +46,7 @@ Point get_point_on_Dsphere(unsigned int dim, NT radius){
 
 // Pick a random point from a d-ball
 template <class RNGType, class Point, typename NT>
-Point get_point_in_Dsphere(unsigned int dim, NT radius){
+Point get_point_in_Dsphere(const unsigned int dim, const NT &radius){
 
     boost::random::uniform_real_distribution<> urdist(0,1);
     NT U;
@@ -63,7 +63,7 @@ Point get_point_in_Dsphere(unsigned int dim, NT radius){
 template <class RNGType, class Point, class Polytope, typename NT>
 void ball_walk(Point &p,
                Polytope &P,
-               NT delta)
+               const NT &delta)
 {
     //typedef typename Parameters::RNGType RNGType;
     Point y = get_point_in_Dsphere<RNGType, Point>(p.dimension(), delta);
@@ -104,10 +104,10 @@ int birk_sym(T &P, K &randPoints, Point &p) {
 template <class Polytope, class PointList, class Parameters, class Point>
 void boundary_rand_point_generator(Polytope &P,
                                    Point &p,   // a point to start
-                                   unsigned int rnum,
-                                   unsigned int walk_len,
+                                   const unsigned int rnum,
+                                   const unsigned int walk_len,
                                    PointList &randPoints,
-                                   Parameters &var)  // constants for volume
+                                   const Parameters &var)  // constants for volume
 {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
@@ -172,15 +172,15 @@ void boundary_rand_point_generator(Polytope &P,
 template <class Polytope, class PointList, class Parameters, class Point>
 void rand_point_generator(Polytope &P,
                          Point &p,   // a point to start
-                         unsigned int rnum,
-                         unsigned int walk_len,
+                         const unsigned int rnum,
+                         const unsigned int walk_len,
                          PointList &randPoints,
-                         Parameters const& var)  // constants for volume
+                         const Parameters &var)  // constants for volume
 {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
     unsigned int n = var.n;
-    RNGType &rng = var.rng;
+    RNGType &rng = var.rng; 
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
@@ -224,12 +224,12 @@ void rand_point_generator(Polytope &P,
 template <class BallPoly, class PointList, class Parameters, class Point>
 void rand_point_generator(BallPoly &PBLarge,
                          Point &p,   // a point to start
-                         unsigned int rnum,
-                         unsigned int walk_len,
+                         const unsigned int rnum,
+                         const unsigned int walk_len,
                          PointList &randPoints,
-                         BallPoly &PBSmall,
+                         const BallPoly &PBSmall,
                          unsigned int &nump_PBSmall,
-                         Parameters const& var) {  // constants for volume
+                         const Parameters &var) {  // constants for volume
 
     typedef typename Point::FT NT;
     typedef typename Parameters::RNGType RNGType;
@@ -283,7 +283,7 @@ void uniform_first_point(Polytope &P,
                          std::vector<NT> &lamdas,
                          std::vector<NT> &Av,
                          NT &lambda,
-                         Parameters &var) {
+                         const Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
     NT kapa, ball_rad = var.delta;
@@ -339,11 +339,11 @@ void uniform_next_point(Polytope &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
                         unsigned int &coord_prev, // previous coordinate ray
-                        unsigned int walk_len, // number of steps for the random walk
+                        const unsigned int walk_len, // number of steps for the random walk
                         std::vector<NT> &lamdas,
                         std::vector<NT> &Av,
                         NT &lambda,
-                        Parameters &var) {
+                        const Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
@@ -401,7 +401,7 @@ void hit_and_run_coord_update(Point &p,
                              Polytope &P,
                              unsigned int rand_coord,
                              unsigned int rand_coord_prev,
-                             NT kapa,
+                             const NT &kapa,
                              std::vector<NT> &lamdas) {
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     p_prev = p;

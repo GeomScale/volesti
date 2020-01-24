@@ -11,7 +11,7 @@
 
 
 template <class MT, class Point, typename NT>
-bool memLP_Zonotope(MT V, Point q, NT *row, int *colno){
+bool memLP_Zonotope(const MT &V, const Point &q, NT *row, int *colno){
 
     //typedef typename Point::FT NT;
     int d=q.dimension();
@@ -110,7 +110,7 @@ bool memLP_Zonotope(MT V, Point q, NT *row, int *colno){
 // if maxi is true compute positive lambda, when the ray is p + lambda \cdot v
 // otherwise compute the negative lambda
 template <typename NT, class MT, class Point>
-std::pair<NT,NT> intersect_line_zono(MT V, Point &p, Point &v, NT *row, int *colno){
+std::pair<NT,NT> intersect_line_zono(const MT &V, const Point &p, const Point &v, NT *row, int *colno){
 
     std::pair<NT,NT> pair_res;
     int d=v.dimension(), i;

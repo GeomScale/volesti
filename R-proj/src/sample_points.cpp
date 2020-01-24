@@ -34,7 +34,7 @@
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
 //' @param N The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.
 //' @param distribution Optional. A string that declares the target distribution: a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.
-//' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
+//' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
 //' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.
 //' @param exact A boolean parameter. It should be used for the uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from the unit or the canonical or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies the dimension has to be declared and the type of body as well as the radius of the hypersphere.
 //' @param body A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.
@@ -58,7 +58,7 @@
 //' @examples
 //' # uniform distribution from the 3d unit cube in V-representation using ball walk
 //' P = gen_cube(3, 'V')
-//' points = sample_points(P, WalkType = "BW", walk_length = 5)
+//' points = sample_points(P, random_walk = "BW", walk_length = 5)
 //'
 //' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 //' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
@@ -78,7 +78,7 @@
 Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                                   Rcpp::Nullable<unsigned int> N = R_NilValue,
                                   Rcpp::Nullable<std::string> distribution = R_NilValue,
-                                  Rcpp::Nullable<std::string> WalkType = R_NilValue,
+                                  Rcpp::Nullable<std::string> random_walk = R_NilValue,
                                   Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
                                   Rcpp::Nullable<bool> exact = R_NilValue,
                                   Rcpp::Nullable<std::string> body = R_NilValue,
@@ -190,17 +190,17 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("variance"))
             a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["variance"]));
 
-        if(!WalkType.isNotNull()) {
+        if(!random_walk.isNotNull()) {
             if (type == 1) {
                 cdhr = true;
             } else {
                 rdhr = true;
             }
-        } else if(Rcpp::as<std::string>(WalkType).compare(std::string("CDHR"))==0){
+        } else if(Rcpp::as<std::string>(random_walk).compare(std::string("CDHR"))==0){
             cdhr = true;
-        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("RDHR"))==0) {
+        } else if (Rcpp::as<std::string>(random_walk).compare(std::string("RDHR"))==0) {
             rdhr = true;
-        } else if (Rcpp::as<std::string>(WalkType).compare(std::string("BW"))==0) {
+        } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BW"))==0) {
             if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("BW_rad")) delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["BW_rad"]);
             ball_walk = true;
         } else {

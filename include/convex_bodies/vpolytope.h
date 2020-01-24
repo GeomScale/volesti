@@ -40,82 +40,82 @@ public:
     VPolytope() {}
 
     // return dimension
-    unsigned int dimension() {
+    unsigned int dimension() const {
         return _d;
     }
 
 
     // this function returns 0. The main sampler requests this function to set the length of lambdas vector
-    int num_of_hyperplanes() {
+    int num_of_hyperplanes() const {
         return 0;
     }
 
 
     // compute the number of facets of the cyclic polytope in dimension _d with the same number of vertices
     // this is an upper bound for the number of the facets from McMullen's Upper Bound Theorem
-    unsigned int upper_bound_of_hyperplanes() {
+    unsigned int upper_bound_of_hyperplanes() const {
         return 2 * _d;
     }
 
 
     // return the number of vertices
-    int num_of_vertices() {
+    int num_of_vertices() const {
         return V.rows();
     }
 
 
     // return the matrix V
-    MT get_mat() {
+    MT get_mat() const {
         return V;
     }
 
 
     // return the vector b
-    VT get_vec() {
+    VT get_vec() const {
         return b;
     }
 
 
     // change the matrix V
-    void set_mat(MT V2) {
+    void set_mat(const MT &V2) {
         V = V2;
     }
 
 
     // change the vector b
-    void set_vec(VT b2) {
+    void set_vec(const VT &b2) {
         b = b2;
     }
 
 
     // get a specific coeff of matrix V
-    NT get_mat_coeff(unsigned int i, unsigned int j) {
+    NT get_mat_coeff(const unsigned int &i, const unsigned int &j) const {
         return V(i,j);
     }
 
 
     // get a specific coeff of vector b
-    NT get_vec_coeff(unsigned int i) {
+    NT get_vec_coeff(const unsigned int &i) const {
         return b(i);
     }
 
 
     // set a specific coeff of matrix V
-    void put_mat_coeff(unsigned int i, unsigned int j, NT value) {
+    void put_mat_coeff(const unsigned int &i, const unsigned int &j, const NT &value) {
         V(i,j) = value;
     }
 
 
     // set a specific coeff of vector b
-    void put_vec_coeff(unsigned int i, NT value) {
+    void put_vec_coeff(const unsigned int &i, const NT &value) {
         b(i) = value;
     }
 
-    MT get_T() {
+    MT get_T() const {
         return V;
     }
 
-    void init(unsigned int dim, MT _V, VT _b) {
+    void init(const unsigned int &dim, const MT &_V, const VT &_b) {
         _d = dim;
         V = _V;
         b = _b;
@@ -129,7 +129,7 @@ public:
 
 
     // Construct matrix V which contains the vertices row-wise
-    void init(std::vector<std::vector<NT> > Pin) {
+    void init(const std::vector<std::vector<NT> > &Pin) {
         _d = Pin[0][1] - 1;
         V.resize(Pin.size() - 1, _d);
         b.resize(Pin.size() - 1);
@@ -206,8 +206,8 @@ public:
 
     // take d+1 points as input and compute the chebychev ball of the defined simplex
     // done is true when the simplex is full dimensional and false if it is not
-    std::pair<Point,NT> get_center_radius_inscribed_simplex(typename std::vector<Point>::iterator it_beg,
-                                                            typename std::vector<Point>::iterator it_end) {
+    std::pair<Point,NT> get_center_radius_inscribed_simplex(const typename std::vector<Point>::iterator it_beg,
+                                                            const typename std::vector<Point>::iterator it_end) {
 
         Point p0 = *it_beg,p1,c;
         unsigned int dim = p0.dimension(), i, j;
@@ -322,7 +322,7 @@ public:
             temp.assign(_d,0);
             temp[i] = 1.0;
             Point v(_d,temp.begin(), temp.end());
-            res = intersect_double_line_Vpoly<NT>(V, center, v);
+            res = intersect_double_line_Vpoly<NT>(V, center, v, row, colno);
             min_plus = std::min(res.first, -1.0*res.second);
             if (min_plus < radius) radius = min_plus;
         }
@@ -333,7 +333,7 @@ public:
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(Point p) {
+    int is_in(const Point &p) {
         if(memLP_Vpoly(V, p, conv_mem, colno_mem)){
             return -1;
         }
@@ -343,7 +343,7 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(Point r, Point v) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v, row, colno);
     }
@@ -351,35 +351,38 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+            const std::vector<NT> &Av) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+                                    const std::vector<NT> &Av, const NT &lambda_prev) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+                                               const std::vector<NT> &Av) {
         return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
-                                               NT &lambda_prev) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+                                               const std::vector<NT> &Av, const NT &lambda_prev) {
         return line_positive_intersect(r, v, Ar, Av);
     }
 
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
-    std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          unsigned int rand_coord,
-                                          std::vector<NT> &lamdas) {
+    std::pair<NT,NT> line_intersect_coord(const Point &r,
+                                          const unsigned int rand_coord,
+                                          const std::vector<NT> &lamdas) {
 
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
@@ -390,28 +393,24 @@ public:
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
-    std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          Point &r_prev,
-                                          unsigned int rand_coord,
-                                          unsigned int rand_coord_prev,
-                                          std::vector<NT> &lamdas) {
-
-        std::vector<NT> temp(_d);
-        temp[rand_coord]=1.0;
-        Point v(_d,temp.begin(), temp.end());
-        return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
+    std::pair<NT,NT> line_intersect_coord(const Point &r,
+                                          const Point &r_prev,
+                                          const unsigned int rand_coord,
+                                          const unsigned int rand_coord_prev,
+                                          const std::vector<NT> &lamdas) {
+        return line_intersect_coord(r, rand_coord, lamdas);
     }
 
 
     // shift polytope by a point c
-    void shift(VT c) {
+    void shift(const VT &c) {
         MT V2 = V.transpose().colwise() - c;
         V = V2.transpose();
     }
 
 
     // apply linear transformation, of square matrix T, to the V-Polytope
-    void linear_transformIt(MT T) {
+    void linear_transformIt(const MT &T) {
         MT V2 = T.inverse() * V.transpose();
         V = V2.transpose();
     }
@@ -420,7 +419,7 @@ public:
     // consider an upper bound for the number of facets of a V-polytope
     // for each facet consider a lower bound for the distance from the origin
     // useful for CV algorithm to get the first gaussian
-    std::vector<NT> get_dists(NT radius) {
+    std::vector<NT> get_dists(const NT &radius) {
         std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }
