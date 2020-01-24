@@ -8,7 +8,8 @@
 
 
 template <class Hpolytope, class ZonoHP, class MT, class VT, class Parameters, typename NT>
-void comp_diam_hpoly_zono_inter2(ZonoHP &ZHP, MT G, MT AG, VT b, Parameters &var, std::vector<NT> &diams_inter) {
+void comp_diam_hpoly_zono_inter(ZonoHP &ZHP, const MT &G, const MT &AG, const VT &b, const Parameters &var,
+        std::vector<NT> &diams_inter) {
 
     typedef typename Hpolytope::PolytopePoint Point;
     //typedef typename ZonoHP::NT NT;
@@ -44,7 +45,7 @@ void comp_diam_hpoly_zono_inter2(ZonoHP &ZHP, MT G, MT AG, VT b, Parameters &var
 }
 
 template <class VPolytope, class HPolytope, typename NT, class Parameters>
-void get_first_poly(VPolytope &VP, HPolytope &HP, NT lb, NT &up_lim, NT &ratio, Parameters &var){
+void get_first_poly(VPolytope &VP, HPolytope &HP, const NT &lb, const NT &up_lim, NT &ratio, const Parameters &var){
 
     typedef typename VPolytope::PolytopePoint Point;
     typedef typename VPolytope::MT MT;
@@ -63,7 +64,6 @@ void get_first_poly(VPolytope &VP, HPolytope &HP, NT lb, NT &up_lim, NT &ratio, 
     NT l=0.0, u=1.0, med;
     VT  Zmed(m);
     int count =0;
-    Parameters variter = var;
     while(true) {
 
         count++;
@@ -73,11 +73,10 @@ void get_first_poly(VPolytope &VP, HPolytope &HP, NT lb, NT &up_lim, NT &ratio, 
         HPiter.set_vec(Zmed);
 
         randPoints.clear();
-        rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, variter);
-        var.MemLps = var.MemLps + 1200.0;
+        rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, var);
         too_few = false;
 
-        if(check_converg001<Point>(VP, randPoints, lb, up_lim, too_few, ratio, 10, 0.2, true, false)) {
+        if(check_convergence<Point>(VP, randPoints, lb, up_lim, too_few, ratio, 10, 0.2, true, false)) {
             HP.set_vec(Zmed);
             return;
         }
@@ -101,7 +100,8 @@ void get_first_poly(VPolytope &VP, HPolytope &HP, NT lb, NT &up_lim, NT &ratio, 
 
 
 template <class Polytope, class HPolytope, class VT, typename NT, class Parameters>
-void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT &ratio, Parameters &var){
+void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, const NT &lb, const NT &up_lim, NT &ratio,
+        const Parameters &var){
 
     typedef typename Polytope::PolytopePoint Point;
     typedef typename Polytope::MT MT;
@@ -124,7 +124,7 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
     NT l=0.0, u=1.0, med;
     VT  Zmed(m);
     int count =0;
-    Parameters variter = var;
+
     while(true) {
 
         count++;
@@ -134,10 +134,10 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
         HPiter.set_vec(Zmed);
 
         randPoints.clear();
-        rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, variter);
+        rand_point_generator(HPiter, q, 1200, 10+2*n, randPoints, var);
         too_few = false;
 
-        if(check_converg001<Point>(P, randPoints, lb, up_lim, too_few, ratio, 10, 0.2, true, false)) {
+        if(check_convergence<Point>(P, randPoints, lb, up_lim, too_few, ratio, 10, 0.2, true, false)) {
             HP.set_vec(Zmed);
             return;
         }
@@ -160,9 +160,9 @@ void get_hdelta(Polytope &P, HPolytope &HP, VT &Zs_max_gl, NT lb, NT &up_lim, NT
 
 
 template <class Zonotope, class HPolytope, class VT, class PointList, typename NT>
-void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
-                         HPolytope &HP2, VT Zs_max, VT Zs_min, PointList randPoints,
-                        std::vector<NT> &ratios, NT p_value, NT up_lim, int nu, NT alpha){
+void get_next_zonoball(Zonotope &Z, std::vector<HPolytope> &HPolySet,
+                         HPolytope &HP2, const VT &Zs_max, const VT &Zs_min, PointList &randPoints,
+                        std::vector<NT> &ratios, const NT &p_value, const NT &up_lim, const int &nu, const NT &alpha){
 
     typedef typename Zonotope::PolytopePoint Point;
     int n = Z.dimension();
@@ -182,7 +182,7 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
         HP2.set_vec(Zmed);
         too_few = false;
 
-        if(check_converg001<Point>(HP2, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, false)){
+        if(check_convergence<Point>(HP2, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, false)){
             HPolySet.push_back(HP2);
             ratios.push_back(ratio);
             return;
@@ -196,9 +196,9 @@ void get_next_zonoball22(Zonotope &Z, std::vector<HPolytope> &HPolySet,
 }
 
 template <class ZonoHP,class Zonotope, class HPolytope, class VT, class Parameters, typename NT>
-void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope> &HPolySet,
-                               VT Zs_max, std::vector<NT> &ratios, int Ntot, int nu,
-                               NT &p_value, NT up_lim, NT alpha, Parameters &var, Parameters &var2,
+void get_sequence_of_zonopolys(Zonotope &Z, const HPolytope &HP, std::vector<HPolytope> &HPolySet,
+                               const VT &Zs_max, std::vector<NT> &ratios, const int &Ntot, const int &nu,
+                               const NT &p_value, const NT &up_lim, const NT &alpha, Parameters &var, const Parameters &var2,
                                std::vector<NT> &diams_inter) {
 
     bool print = var.verbose, too_few=false;
@@ -213,11 +213,11 @@ void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
 
     rand_point_generator(Z, q, Ntot, var.walk_steps, randPoints, var);
     HPolytope HP2 = HP;
-    if (check_converg001<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true)) {
+    if (check_convergence<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true)) {
         ratios.push_back(ratio);
         return;
     }
-    get_next_zonoball22(Z, HPolySet, HP2, Zs_max, HP.get_vec(), randPoints, ratios, p_value, up_lim, nu, alpha);
+    get_next_zonoball(Z, HPolySet, HP2, Zs_max, HP.get_vec(), randPoints, ratios, p_value, up_lim, nu, alpha);
 
     ZonoHP ZHP2;
     VT Zs_min = HP.get_vec();
@@ -227,14 +227,14 @@ void get_sequence_of_zonopolys(Zonotope &Z, HPolytope &HP, std::vector<HPolytope
         ZHP2 = ZonoHP(Z,HP2);
         q=Point(n);
         randPoints.clear();
-        comp_diam_hpoly_zono_inter2<HPolytope>(ZHP2, G, AG, HP2.get_vec(), var2, diams_inter);
+        comp_diam_hpoly_zono_inter<HPolytope>(ZHP2, G, AG, HP2.get_vec(), var2, diams_inter);
         var.diameter = diams_inter[diams_inter.size()-1];
         rand_point_generator(ZHP2, q, Ntot, var.walk_steps, randPoints, var);
-        if (check_converg001<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true)) {
+        if (check_convergence<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true)) {
             ratios.push_back(ratio);
             return;
         }
-        get_next_zonoball22(Z, HPolySet, HP2, HP2.get_vec(), Zs_min, randPoints, ratios, p_value, up_lim, nu, alpha);
+        get_next_zonoball(Z, HPolySet, HP2, HP2.get_vec(), Zs_min, randPoints, ratios, p_value, up_lim, nu, alpha);
     }
 }
 

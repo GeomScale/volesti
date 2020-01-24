@@ -12,7 +12,7 @@
 #include "samplers.h"
 
 template <class Polytope>
-Polytope gen_cube(unsigned int dim, bool Vpoly) {
+Polytope gen_cube(const unsigned int &dim, const bool &Vpoly) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -75,7 +75,7 @@ Polytope gen_cube(unsigned int dim, bool Vpoly) {
 
 
 template <class Polytope>
-Polytope gen_cross(unsigned int dim, bool Vpoly) {
+Polytope gen_cross(const unsigned int &dim, const bool &Vpoly) {
 
     unsigned int m;
     typedef typename Polytope::MT    MT;
@@ -137,7 +137,7 @@ Polytope gen_cross(unsigned int dim, bool Vpoly) {
 
 
 template <class Polytope>
-Polytope gen_simplex(unsigned int dim, bool Vpoly){
+Polytope gen_simplex(const unsigned int &dim, const bool &Vpoly){
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
@@ -176,7 +176,7 @@ Polytope gen_simplex(unsigned int dim, bool Vpoly){
 
 
 template <class Polytope>
-Polytope gen_prod_simplex(unsigned int dim, bool Vpoly = false){
+Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
 
     Polytope Perr;
     try
@@ -250,7 +250,7 @@ Polytope gen_prod_simplex(unsigned int dim, bool Vpoly = false){
 
 
 template <class Polytope>
-Polytope gen_skinny_cube(unsigned int dim, bool Vpoly = false) {
+Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
 
     Polytope Perr;
     try
@@ -308,7 +308,7 @@ Polytope gen_skinny_cube(unsigned int dim, bool Vpoly = false) {
 
 
 template <class Polytope, class RNGType>
-Polytope gen_zonotope(unsigned int dim, unsigned int m) {
+Polytope gen_zonotope(const unsigned int &dim, const unsigned int &m) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -336,7 +336,7 @@ Polytope gen_zonotope(unsigned int dim, unsigned int m) {
 }
 
 template <class Polytope, class RNGType>
-Polytope random_vpoly(unsigned int dim, unsigned int k) {
+Polytope random_vpoly(const unsigned int &dim, const unsigned int &k) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -369,7 +369,7 @@ Polytope random_vpoly(unsigned int dim, unsigned int k) {
 }
 
 template <class Polytope, class RNGType>
-Polytope random_hpoly(unsigned int dim, unsigned int m) {
+Polytope random_hpoly(const unsigned int &dim, const unsigned int &m) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;

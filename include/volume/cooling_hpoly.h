@@ -56,8 +56,8 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
     var3.cdhr_walk = true;
     var3.ball_walk = var3.rdhr_walk = false;
     get_hdelta(ZP, HP, Zs_max, lb, ub, ratio, var3);
-    Hpolytope HP2 = HP;
-    HP2.normalize();
+    //Hpolytope HP2 = HP;
+    HP.normalize();
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
 
@@ -68,7 +68,7 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
     ZonoHP zb1, zb2;
     std::vector<NT> diams_inter;
 
-    get_sequence_of_zonopolys<ZonoHP>(ZP, HP2, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
+    get_sequence_of_zonopolys<ZonoHP>(ZP, HP, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
     //var.diameter = diam0;
 
     int mm=HPolySet.size()+2;
@@ -85,18 +85,18 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
         var2.cdhr_walk = true;
         var2.ball_walk = var2.rdhr_walk = false;
         var2.walk_steps = 10+2*n;
-        vol *= esti_ratio_interval<RNGType, Point>(HP2, ZP, ratio, er0, win_len, N*nu, prob, var2);
+        vol *= esti_ratio_interval<RNGType, Point>(HP, ZP, ratio, er0, win_len, N*nu, prob, var2);
     } else {
-        vol *= esti_ratio<RNGType, Point>(HP2, ZP, ratio, er0, var_g.W, N*nu, var);
+        vol *= esti_ratio<RNGType, Point>(HP, ZP, ratio, er0, var_g.W, N*nu, var);
     }
 
     Hpolytope b1, b2;
     if (HPolySet.size()==0) {
         if (ratios[0]!=1) {
             if(!window2) {
-                vol = vol / esti_ratio_interval<RNGType, Point>(ZP, HP2, ratios[0], er1, win_len, N*nu, prob, var);
+                vol = vol / esti_ratio_interval<RNGType, Point>(ZP, HP, ratios[0], er1, win_len, N*nu, prob, var);
             } else {
-                vol = vol / esti_ratio<RNGType, Point>(ZP, HP2, ratios[0], er1, var_g.W, N*nu, var);
+                vol = vol / esti_ratio<RNGType, Point>(ZP, HP, ratios[0], er1, var_g.W, N*nu, var);
             }
         }
     } else {
@@ -122,9 +122,9 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
         zb1 = ZonoHP(ZP,HPolySet[HPolySet.size()-1]);
         //var.diameter = diams_inter[diams_inter.size()-1];
         if (!window2) {
-            vol = vol / esti_ratio_interval<RNGType, Point>(zb1, HP2, ratios[ratios.size() - 1], er1, win_len, N*nu, prob, var);
+            vol = vol / esti_ratio_interval<RNGType, Point>(zb1, HP, ratios[ratios.size() - 1], er1, win_len, N*nu, prob, var);
         } else {
-            vol = vol / esti_ratio<RNGType, Point>(zb1, HP2, ratios[ratios.size() - 1], er1, var_g.W, N*nu, var);
+            vol = vol / esti_ratio<RNGType, Point>(zb1, HP, ratios[ratios.size() - 1], er1, var_g.W, N*nu, var);
         }
     }
 

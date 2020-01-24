@@ -43,37 +43,29 @@ public:
     Zonotope() {}
 
     // return the dimension
-    unsigned int dimension() {
+    unsigned int dimension() const {
         return _d;
     }
 
 
     // this function returns 0. The main sampler requests this function to set the length of lambdas vector
-    int num_of_hyperplanes() {
+    int num_of_hyperplanes() const {
         return 0;
     }
 
 
     // return the number of parallelopipeds. Used in get_dists fnction.
-    unsigned int upper_bound_of_hyperplanes() {
+    unsigned int upper_bound_of_hyperplanes() const {
         return 2*_d;
     }
 
-    void compute_eigenvectors(MT G, bool norm1, bool norm2) {
+    void compute_eigenvectors(const MT &G) {
 
         int k = G.cols();
         MT ps = G;
         sigma.resize(k,k);
         sigma = ps.transpose()*ps;
-        if (norm1) {
-            sigma = (sigma + sigma.transpose()) / 2;
-        }
-        if (norm2) {
-            for (int i1 = 0; i1 < k; ++i1) {
-                sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
-            }
-        }
-
+        sigma = (sigma + sigma.transpose()) / 2;
         Eigen::SelfAdjointEigenSolver<MT> es(sigma);
 
         MT D = es.eigenvalues().asDiagonal();
@@ -100,86 +92,85 @@ public:
 
         for (int i1 = 0; i1 < k; ++i1) sigma(i1,i1) = sigma(i1,i1) + 0.00000001;
 
-
     }
 
-    MT get_T() {
+    MT get_T() const {
         return T;
     }
 
-    MT get_Q0(){
+    MT get_Q0() const {
         return Q0;
     }
 
-    MT get_sigma() {
+    MT get_sigma() const {
         return sigma;
     }
 
     // return the number of vertices
-    int num_of_vertices() {
+    int num_of_vertices() const  {
         return V.rows();
     }
 
 
     // return the number of generators
-    int num_of_generators() {
+    int num_of_generators() const {
         return V.rows();
     }
 
 
     // return the matrix V
-    MT get_mat() {
+    MT get_mat() const {
         return V;
     }
 
 
     // return the vector b
-    VT get_vec() {
+    VT get_vec() const {
         return b;
     }
 
 
     // change the matrix V
-    void set_mat(MT V2) {
+    void set_mat(const MT &V2) {
         V = V2;
     }
 
 
     // change the vector b
-    void set_vec(VT b2) {
+    void set_vec(const VT &b2) {
         b = b2;
     }
 
 
     // get a specific coeff of matrix V
-    NT get_mat_coeff(unsigned int i, unsigned int j) {
+    NT get_mat_coeff(const unsigned int i, const unsigned int j) const {
         return V(i,j);
     }
 
 
     // get a specific coeff of vector b
-    NT get_vec_coeff(unsigned int i) {
+    NT get_vec_coeff(const unsigned int i) const {
         return b(i);
     }
 
 
     // set a specific coeff of matrix V
-    void put_mat_coeff(unsigned int i, unsigned int j, NT value) {
+    void put_mat_coeff(const unsigned int i, const unsigned int j, const NT &value) {
         V(i,j) = value;
     }
 
 
     // set a specific coeff of vector b
-    void put_vec_coeff(unsigned int i, NT value) {
+    void put_vec_coeff(const unsigned int i, const NT &value) {
         b(i) = value;
     }
 
-    Point get_mean_of_vertices() {
+    Point get_mean_of_vertices() const {
         return Point(_d);
     }
 
 
-    NT get_max_vert_norm() {
+    NT get_max_vert_norm() const {
         return 0.0;
     }
 
@@ -218,7 +209,7 @@ public:
 
 
     // define zonotope using Eigen matrix V. Vector b is neded in order the code to compatible with Hpolytope class
-    void init(unsigned int dim, MT _V, VT _b) {
+    void init(const unsigned int dim, const MT &_V, const VT &_b) {
         _d = dim;
         V = _V;
         b = _b;
@@ -227,14 +218,12 @@ public:
         row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
         colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
         row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
-        bool normalization1=true;
-        bool normalization2=false;
-        compute_eigenvectors(V.transpose(),normalization1,normalization2);
+        compute_eigenvectors(V.transpose());
     }
 
 
     // Construct matrix V which contains the vertices row-wise
-    void init(std::vector<std::vector<NT> > Pin) {
+    void init(const std::vector<std::vector<NT> > &Pin) {
         _d = Pin[0][1] - 1;
         V.resize(Pin.size() - 1, _d);
         b.resize(Pin.size() - 1);
@@ -247,9 +236,7 @@ public:
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
         colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
         row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-        bool normalization1=true;
-        bool normalization2=false;
-        compute_eigenvectors(V.transpose(),normalization1,normalization2);
+        compute_eigenvectors(V.transpose());
     }
 
 
@@ -272,7 +259,7 @@ public:
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(Point p) {
+    int is_in(const Point &p) {
         if(memLP_Zonotope(V, p, row_mem, colno_mem)){
             return -1;
         }
@@ -302,7 +289,7 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
-    std::pair<NT,NT> line_intersect(Point r, Point v) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v) {
 
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
@@ -310,34 +297,37 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
-    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+            const std::vector<NT> &Av) {
 
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
-    std::pair<NT,NT> line_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+                                    const std::vector<NT> &Av, const NT &lambda_prev) {
 
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
-    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+                                               const std::vector<NT> &Av) {
         return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, true), 1);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(Point r, Point v, std::vector<NT> &Ar, std::vector<NT> &Av,
-                                               NT &lambda_prev) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+                                               const std::vector<NT> &Av, const NT &lambda_prev) {
         return line_positive_intersect(r, v, Ar, Av);
     }
 
 
     // Compute the intersection of a coordinate ray
     // with the Zonotope
-    std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          unsigned int rand_coord,
-                                          std::vector<NT> &lamdas) {
+    std::pair<NT,NT> line_intersect_coord(const Point &r,
+                                          const unsigned int rand_coord,
+                                          const std::vector<NT> &lamdas) {
 
         std::vector<NT> temp(_d,0);
         temp[rand_coord]=1.0;
@@ -350,23 +340,18 @@ public:
 
     // Compute the intersection of a coordinate ray
     // with the Zonotope
-    std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          Point &r_prev,
-                                          unsigned int rand_coord,
-                                          unsigned int rand_coord_prev,
-                                          std::vector<NT> &lamdas) {
-
-        std::vector<NT> temp(_d,0);
-        temp[rand_coord]=1.0;
-        Point v(_d,temp.begin(), temp.end());
-
-        return intersect_line_zono(V, r, v, conv_comb, colno);
+    std::pair<NT,NT> line_intersect_coord(const Point &r,
+                                          const Point &r_prev,
+                                          const unsigned int rand_coord,
+                                          const unsigned int rand_coord_prev,
+                                          const std::vector<NT> &lamdas) {
+        return line_intersect_coord(r, rand_coord, lamdas);
     }
 
 
     // shift polytope by a point c
     // vector c has to be always the zero vector
-    void shift(VT c) {
+    void shift(const VT &c) {
         return;
     }
 
@@ -374,13 +359,13 @@ public:
     // get number of parallelopipeds
     // for each parallelopiped consider a lower bound for the distance from the origin
     // useful for CG algorithm to get the first gaussian
-    std::vector<NT> get_dists(NT radius) {
+    std::vector<NT> get_dists(const NT &radius) {
         std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }
 
     // apply linear transformation, of square matrix T, to thr Zonotope
-    void linear_transformIt(MT T) {
+    void linear_transformIt(const MT &T) {
         MT V2 = T.inverse() * V.transpose();
         V = V2.transpose();
     }
@@ -388,13 +373,13 @@ public:
     // return false to the rounding function
     // no points are given so they have o be sampled
     template <class T>
-    bool get_points_for_rounding (T &randPoints) {
+    bool get_points_for_rounding (const T &randPoints) {
         return false;
     }
 
     void normalize() {}
 
-    void compute_reflection(Point &v, Point &p, int facet) {
+    void compute_reflection(Point &v, const Point &p, const int facet) {
 
         int count = 0;
         MT Fmat(_d-1,_d);

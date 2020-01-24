@@ -23,7 +23,8 @@
 
 
 template <class Point, class RNGType, typename NT>
-std::vector<std::vector<NT> > twoParHypFam(int dim, int num, int num_slices, std::vector<NT>  pl1, std::vector<NT> pl2){
+std::vector<std::vector<NT> > twoParHypFam(const int dim, const int num, const int num_slices,
+        const std::vector<NT> &pl1, const std::vector<NT> &pl2){
 
     int i,j,col,row;
     std::vector<NT> vec1,vec2,Zs1,Zs2;

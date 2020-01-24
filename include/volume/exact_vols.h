@@ -40,7 +40,7 @@ inline std::vector< std::vector<int> > comb(int N, int K)
 
 
 template <typename NT, class Polytope>
-NT exact_zonotope_vol(Polytope ZP){
+NT exact_zonotope_vol(const Polytope &ZP){
 
     typedef typename Polytope::MT 	MT;
     typedef std::vector< std::vector<int> >::iterator  IntMatIt;
@@ -74,7 +74,7 @@ NT exact_zonotope_vol(Polytope ZP){
 }
 
 template <typename NT>
-NT vol_Ali(std::vector<NT> plane, NT zit, unsigned int dim){
+NT vol_Ali(std::vector<NT> &plane, const NT &zit, const unsigned int dim){
 
     NT vol;
     unsigned int i,J,counter,K,k;
