@@ -105,14 +105,13 @@ bool get_next_zonoball(std::vector<ball> &BallSet, PointList &randPoints, NT rad
     return false;
 }
 
+
 template <class RNGType, class Polytope, class ball, typename NT>
-bool get_first_ball(Polytope &P, ball &B0, NT &ratio, NT &radius, const NT &lb, const NT &ub, const NT &alpha,
-        NT &rmax){//}, Parameters &var){
+bool get_first_ball(Polytope &P, ball &B0, NT &ratio, NT rad1, const NT &lb, const NT &ub, const NT &alpha, NT &rmax){
 
     typedef typename Polytope::PolytopePoint Point;
     int n = P.dimension(), iter = 1;
     bool bisection_int = false, pass = false, too_few = false;
-    bool print = true;
     std::list<Point> randPoints;
     Point p(n);
 
@@ -127,9 +126,9 @@ bool get_first_ball(Polytope &P, ball &B0, NT &ratio, NT &radius, const NT &lb, 
         }
         bisection_int = true;
     } else {
-        rmax = 2 * std::sqrt(NT(n)) * radius;
+        rmax = 2 * std::sqrt(NT(n)) * rad1;
     }
-    NT rad1 = radius;
+    NT radius = rad1;
 
     while(!bisection_int) {
 
@@ -181,11 +180,11 @@ bool get_first_ball(Polytope &P, ball &B0, NT &ratio, NT &radius, const NT &lb, 
 
 template <class PolyBall, class RNGType,class ball, class Polytope, class Parameters, typename NT>
 bool get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vector<NT> &ratios, const int &Ntot, const int &nu,
-                               const NT &lb, const NT &ub, NT &radius, NT &alpha, Parameters &var, NT &rmax) {
+                               const NT &lb, const NT &ub, NT radius, NT &alpha, Parameters &var, NT &rmax) {
 
     typedef typename Polytope::PolytopePoint Point;
     typedef typename Polytope::MT MT;
-    bool print = var.verbose, fail;
+    bool fail;
     int n = P.dimension();
     NT ratio, ratio0;
     std::list<Point> randPoints;

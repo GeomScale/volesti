@@ -13,7 +13,7 @@ Description: Provides an R interface for 'volesti' C++ package. 'volesti' comput
              A. Chalkis and I.Z.Emiris and V. Fisikopoulos (2019) <arXiv:1905.05494> and
              B. Cousins, S. Vempala (2016) <arXiv:1409.6011>) as well as algorithms for sampling, 
              rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for 
-             estimating copulas (L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos (2018) 
+             estimating copulas useful in computational finance (L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos (2018) 
              <arXiv:1803.05861>).
 Version: 1.1.0
 Date: 2020-01-23
