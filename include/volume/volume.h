@@ -27,7 +27,6 @@
 #include "hpolytope.h"
 #include "vpolytope.h"
 #include "zpolytope.h"
-//#include "ellipsoids.h"
 #include "ball.h"
 #include "ballintersectconvex.h"
 #include "vpolyintersectvpoly.h"

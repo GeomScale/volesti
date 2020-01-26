@@ -628,6 +628,10 @@ int main(const int argc, const char** argv)
               } else {
                   vol = vol_cooling_balls(VP, var, var_ban, InnerBall);
               }
+              if (vol < 0.0) {
+                  throw "Simulated annealing failed! Try to increase the walk length.";
+                  return vol;
+              }
           } else {
               if (Zono) {
                   vol = volume(ZP, var, InnerBall);
