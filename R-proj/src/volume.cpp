@@ -98,11 +98,14 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
                                       verbose, rand_only, false, false, birk, false, true, false);
             vol = vol_cooling_hpoly < HPolytope < Point > > (P, var, var_ban, varg, InnerB);
         }
+        if (vol < 0.0) {
+            throw Rcpp::exception("Simulated annealing failed! Try to increase the walk length.");
+        }
     }else {
         vol = volume(P, var, InnerB);
     }
 
-     return vol * round_val;
+    return vol * round_val;
 }
 
 //' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)

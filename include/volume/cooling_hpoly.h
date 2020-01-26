@@ -55,7 +55,9 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
     UParameters var3 = var;
     var3.cdhr_walk = true;
     var3.ball_walk = var3.rdhr_walk = false;
-    get_hdelta(ZP, HP, Zs_max, lb, ub, ratio, var3);
+    if ( !get_first_poly(ZP, HP, Zs_max, lb, ub, ratio, var3) ) {
+        return -1.0;
+    }
     //Hpolytope HP2 = HP;
     HP.normalize();
 
@@ -68,7 +70,9 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
     ZonoHP zb1, zb2;
     std::vector<NT> diams_inter;
 
-    get_sequence_of_zonopolys<ZonoHP>(ZP, HP, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter);
+    if ( !get_sequence_of_zonopolys<ZonoHP>(ZP, HP, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter) ){
+        return -1.0;
+    }
     //var.diameter = diam0;
 
     int mm=HPolySet.size()+2;

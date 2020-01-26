@@ -5,8 +5,8 @@
 \title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere}
 \usage{
 sample_points(P = NULL, N = NULL, distribution = NULL,
-  WalkType = NULL, walk_length = NULL, exact = NULL, body = NULL,
-  parameters = NULL, InnerPoint = NULL)
+  random_walk = NULL, walk_length = NULL, exact = NULL,
+  body = NULL, parameters = NULL, InnerPoint = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
@@ -15,7 +15,7 @@ sample_points(P = NULL, N = NULL, distribution = NULL,
 
 \item{distribution}{Optional. A string that declares the target distribution: a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
 
-\item{WalkType}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.}
+\item{random_walk}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.}
 
 \item{walk_length}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.}
 
@@ -43,7 +43,7 @@ The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d},
 \examples{
 # uniform distribution from the 3d unit cube in V-representation using ball walk
 P = gen_cube(3, 'V')
-points = sample_points(P, WalkType = "BW", walk_length = 5)
+points = sample_points(P, random_walk = "BW", walk_length = 5)
 
 # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)

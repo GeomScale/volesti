@@ -70,10 +70,12 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
 
     //if (verbose) std::cout << "Computing ball annealing..." << std::endl;
     //std::cout<<"N = "<<N<<" nu = "<< nu<<std::endl;
-    get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var, rmax);
+    if ( !get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var, rmax) ){
+        return -1.0;
+    }
     //var.diameter = diam;
 
-    //NT vol = (std::pow(M_PI, n / 2.0) * (std::pow((*(BallSet.end() - 1)).radius(), n))) / (tgamma(n / 2.0 + 1));
+    NT vol = (std::pow(M_PI, n / 2.0) * (std::pow((*(BallSet.end() - 1)).radius(), n))) / (tgamma(n / 2.0 + 1));
     //std::cout<<"rad of B_m = "<<(*(BallSet.end() - 1)).radius()<<", vol of B_m = "<<vol<<std::endl;
 
     int mm = BallSet.size() + 1;

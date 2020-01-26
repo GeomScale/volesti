@@ -7,6 +7,7 @@
 #ifndef RATIO_ESTIMATION_H
 #define RATIO_ESTIMATION_H
 
+#define MAX_ITER_ESTI 500000
 
 template <typename NT>
 bool check_max_error(const NT &a, const NT &b, const NT &error) {
@@ -23,7 +24,7 @@ template <class RNGType, class Point, class PolyBall1, class PolyBall2, typename
 NT esti_ratio(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, const int &W,
         const int &Ntot, const Parameters &var, bool isball = false, NT radius = 0.0) {
 
-    int n = var.n, min_index = W-1, max_index = W-1, index = 0;
+    int n = var.n, min_index = W-1, max_index = W-1, index = 0, iter = 1;
     bool print = var.verbose;
     NT min_val = std::numeric_limits<NT>::lowest(), max_val = std::numeric_limits<NT>::max(), val, lambda;
     size_t totCount = Ntot, countIn = Ntot * ratio;
@@ -39,7 +40,8 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, 
         uniform_first_point(Pb1,p,p_prev,coord_prev,var.walk_steps,lamdas,Av,lambda,var);
     }
 
-    while(true){
+    while(iter <= MAX_ITER_ESTI){
+        iter++;
 
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
@@ -76,6 +78,7 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, 
 
         index = index%W+1;
         if(index==W) index=0;
+
     }
     return val;
 }
@@ -85,7 +88,7 @@ template <class RNGType, class Point, class PolyBall1, class PolyBall2, typename
 NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, const int &W,
         const int &Ntot, const NT &prob, const Parameters &var, bool isball = false, NT radius = 0.0) {
 
-    int n = var.n, index = 0;
+    int n = var.n, index = 0, iter = 1;
     bool print = var.verbose;
     std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0), Av(Pb1.num_of_hyperplanes(),0);
     NT val, sum_sq=0.0, sum=0.0, lambda;
@@ -120,7 +123,8 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT
     boost::math::normal dist(0.0, 1.0);
     NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0)), m=sum/NT(W), s;
 
-    while(true) {
+    while(iter <= MAX_ITER_ESTI) {
+        iter++;
 
         if (isball) {
             p = get_point_in_Dsphere<RNGType, Point>(n, radius);
