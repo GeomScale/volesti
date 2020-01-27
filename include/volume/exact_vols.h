@@ -46,19 +46,14 @@ NT exact_zonotope_vol(const Polytope &ZP){
     typedef std::vector< std::vector<int> >::iterator  IntMatIt;
     typedef std::vector<int>::iterator  IntIt;
 
-    int n = ZP.dimension();
-    int k = ZP.num_of_generators();
-    MT V1 = ZP.get_mat().transpose();
-    MT V(n, 2*k);
+    int n = ZP.dimension(), col, k = ZP.num_of_generators();
+    MT V1 = ZP.get_mat().transpose(), SubV(n,n), V(n, 2*k);
     V << V1, -V1;
     NT vol = 0.0;
 
     std::vector< std::vector<int> > combs = comb(2*k, n);
     IntMatIt iter_combs;
     IntIt it;
-
-    int col;
-    MT SubV(n,n);
 
     iter_combs = combs.begin();
     for ( ;  iter_combs!=combs.end(); ++iter_combs) {
@@ -74,42 +69,42 @@ NT exact_zonotope_vol(const Polytope &ZP){
 }
 
 template <typename NT>
-NT vol_Ali(std::vector<NT> &plane, const NT &zit, const unsigned int dim){
+NT vol_Ali(std::vector<NT> &plane, const NT &zit, const unsigned int dim) {
 
-    NT vol;
-    unsigned int i,J,counter,K,k;
-    std::vector<NT> Y(dim+2 , 0.0), X(dim+2 , 0.0), a(dim+2 , 0.0);
+    unsigned int i, J = 0, counter = 0, K = 0, k;
+    std::vector <NT> Y(dim + 2, 0.0), X(dim + 2, 0.0), a(dim + 2, 0.0);
 
-    J=0; K=0; counter=0;
-    if (zit<0){
-        X[0]=zit; J++;
-    }else{
-        Y[0]=zit; counter++;
+    if (zit < 0) {
+        X[0] = zit;
+        J++;
+    } else {
+        Y[0] = zit;
+        counter++;
     }
 
-    for (i=0; i<dim; i++){
+    for (i = 0; i < dim; i++) {
 
-        a[i]=0.0;
+        a[i] = 0.0;
 
-        if (plane[i]+zit<0){
-            X[J]=plane[i]+zit;
+        if (plane[i] + zit < 0) {
+            X[J] = plane[i] + zit;
             J++;
-        }else{
-            Y[counter]=plane[i]+zit;
+        } else {
+            Y[counter] = plane[i] + zit;
             counter++;
         }
     }
-    K=dim+1-J;
-    a[0]=1.0; a[dim]=0.0; a[dim+1]=0.0;
+    K = dim + 1 - J;
+    a[0] = 1.0;
+    a[dim] = 0.0;
+    a[dim + 1] = 0.0;
 
-    for (i=0; i<J; i++){
-        for (k=1; k<K+1; k++){
-            a[k]=( Y[k-1]*a[k] - X[i]*a[k-1] ) / ( Y[k-1]-X[i] );
+    for (i = 0; i < J; i++) {
+        for (k = 1; k < K + 1; k++) {
+            a[k] = (Y[k - 1] * a[k] - X[i] * a[k - 1]) / (Y[k - 1] - X[i]);
         }
     }
-
-    vol=a[K];
-    return vol;
+    return a[K];
 }
 
 #endif
