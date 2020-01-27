@@ -12,7 +12,7 @@
 
 
 // Pick a random direction as a normilized vector
-template <class RNGType, class Point, typename NT>
+template <typename RNGType, typename Point, typename NT>
 Point get_direction(const unsigned int dim) {
 
     boost::normal_distribution<> rdist(0,1);
@@ -36,7 +36,7 @@ Point get_direction(const unsigned int dim) {
 
 
 // Pick a random point from a d-sphere
-template <class RNGType, class Point, typename NT>
+template <typename RNGType, typename Point, typename NT>
 Point get_point_on_Dsphere(const unsigned int dim, const NT &radius){
     Point p = get_direction<RNGType, Point, NT>(dim);
     p = (radius == 0) ? p : radius * p;
@@ -45,7 +45,7 @@ Point get_point_on_Dsphere(const unsigned int dim, const NT &radius){
 
 
 // Pick a random point from a d-ball
-template <class RNGType, class Point, typename NT>
+template <typename RNGType, typename Point, typename NT>
 Point get_point_in_Dsphere(const unsigned int dim, const NT &radius){
 
     boost::random::uniform_real_distribution<> urdist(0,1);
@@ -60,7 +60,7 @@ Point get_point_in_Dsphere(const unsigned int dim, const NT &radius){
 }
 
 // ball walk with uniform target distribution
-template <class RNGType, class Point, class Polytope, typename NT>
+template <typename RNGType, typename Point, typename Polytope, typename NT>
 void ball_walk(Point &p,
                Polytope &P,
                const NT &delta)
@@ -101,7 +101,7 @@ int birk_sym(T &P, K &randPoints, Point &p) {
 
 // ----- RANDOM POINT GENERATION FUNCTIONS ------------ //
 
-template <class Polytope, class PointList, class Parameters, class Point>
+template <typename Polytope, typename PointList, typename Parameters, typename Point>
 void boundary_rand_point_generator(Polytope &P,
                                    Point &p,   // a point to start
                                    const unsigned int rnum,
@@ -169,7 +169,7 @@ void boundary_rand_point_generator(Polytope &P,
 }
 
 
-template <class Polytope, class PointList, class Parameters, class Point>
+template <typename Polytope, typename PointList, typename Parameters, typename Point>
 void rand_point_generator(Polytope &P,
                          Point &p,   // a point to start
                          const unsigned int rnum,
@@ -221,7 +221,7 @@ void rand_point_generator(Polytope &P,
 
 
 
-template <class BallPoly, class PointList, class Parameters, class Point>
+template <typename BallPoly, typename PointList, typename Parameters, typename Point>
 void rand_point_generator(BallPoly &PBLarge,
                          Point &p,   // a point to start
                          const unsigned int rnum,
@@ -274,7 +274,7 @@ void rand_point_generator(BallPoly &PBLarge,
     }
 }
 
-template <class Polytope, class Point, class Parameters, typename NT>
+template <typename Polytope, typename Point, typename Parameters, typename NT>
 void uniform_first_point(Polytope &P,
                          Point &p,   // a point to start
                          Point &p_prev, // previous point
@@ -334,7 +334,7 @@ void uniform_first_point(Polytope &P,
 
 
 
-template <class Polytope, class Point, class Parameters, typename NT>
+template <typename Polytope, typename Point, typename Parameters, typename NT>
 void uniform_next_point(Polytope &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
@@ -376,7 +376,7 @@ void uniform_next_point(Polytope &P,
 // ----- HIT AND RUN FUNCTIONS ------------ //
 
 //hit-and-run with random directions and update
-template <class Polytope, class Point, class Parameters>
+template <typename Polytope, typename Point, typename Parameters>
 void hit_and_run(Point &p,
                 Polytope &P,
                 Parameters const& var) {
@@ -395,7 +395,7 @@ void hit_and_run(Point &p,
 
 
 //hit-and-run with orthogonal directions and update
-template <class Polytope, class Point, typename NT>
+template <typename Polytope, typename Point, typename NT>
 void hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              Polytope &P,

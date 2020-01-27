@@ -9,7 +9,7 @@
 #define BALL_H
 
 // ball type
-template <class Point>
+template <typename Point>
 struct Ball{
 public:
     typedef Point BallPoint;

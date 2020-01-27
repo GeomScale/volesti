@@ -16,7 +16,7 @@
 
 // ----- ROUNDING ------ //
 // main rounding function
-template <class Polytope, class Point, class Parameters, typename NT>
+template <typename Polytope, typename Point, typename Parameters, typename NT>
 std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT> &InnerBall, const Parameters &var) {
 
     typedef typename Polytope::MT 	MT;
@@ -99,7 +99,7 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT
 }
 
 
-template <class Polytope>
+template <typename Polytope>
 void get_vpoly_center(Polytope &P) {
 
     typedef typename Polytope::NT 	NT;

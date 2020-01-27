@@ -11,7 +11,7 @@
 #define BALLINTERSECTCONVEX_H
 
 
-template <class Polytope, class CBall>
+template <typename Polytope, typename CBall>
 class BallIntersectPolytope {
 private:
     Polytope    P;

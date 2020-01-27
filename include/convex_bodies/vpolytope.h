@@ -19,8 +19,7 @@
 //min and max values for the Hit and Run functions
 
 // V-Polytope class
-// V-Polytope class
-template <class Point, class  RNGType>
+template <typename Point, typename  RNGType>
 class VPolytope{
 public:
     typedef Point PolytopePoint;

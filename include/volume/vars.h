@@ -13,7 +13,7 @@
 #define VARS_H
 
 //structs with variables and random generators
-template <typename NT, class RNG>
+template <typename NT, typename RNG>
 struct vars{
 public:
     typedef RNG RNGType;
@@ -71,7 +71,7 @@ public:
     bool rdhr_walk;
 };
 
-template <typename NT, class RNG>
+template <typename NT, typename RNG>
 struct vars_g{
 public:
     typedef RNG RNGType;

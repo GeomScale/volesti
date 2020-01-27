@@ -7,7 +7,7 @@
 #define ZONOINTERSECTHPOLY_H
 
 
-template <class Zonotope, class HPolytope>
+template <typename Zonotope, typename HPolytope>
 class ZonoIntersectHPoly {
 private:
     Zonotope    Z;

@@ -44,7 +44,7 @@
 //#include "copulas.h"
 
 
-template <class Polytope, class Parameters, class Point, typename NT>
+template <typename Polytope, typename Parameters, typename Point, typename NT>
 NT volume(Polytope &P,
           Parameters & var,  // constans for volume
           std::pair<Point,NT> InnerBall)  //Chebychev ball
@@ -265,7 +265,7 @@ NT volume(Polytope &P,
 // Implementation is based on algorithm from paper "A practical volume algorithm",
 // Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
 // Ben Cousins, Santosh Vempala
-template <class Polytope, class UParameters, class GParameters, class Point, typename NT>
+template <typename Polytope, typename UParameters, typename GParameters, typename Point, typename NT>
 NT volume_gaussian_annealing(Polytope &P,
                              GParameters & var,  // constans for volume
                              UParameters & var2,

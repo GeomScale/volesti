@@ -22,7 +22,7 @@
 #define COPULAS_H
 
 
-template <class Point, class RNGType, typename NT>
+template <typename Point, typename RNGType, typename NT>
 std::vector<std::vector<NT> > twoParHypFam(const int dim, const int num, const int num_slices,
         const std::vector<NT> &pl1, const std::vector<NT> &pl2){
 
@@ -127,7 +127,7 @@ std::vector<std::vector<NT> > twoParHypFam(const int dim, const int num, const i
 }
 
 
-template <class Point, class RNGType, class ellipsoid, typename NT>
+template <typename Point, typename RNGType, typename ellipsoid, typename NT>
 std::vector<std::vector<NT> > hypfam_ellfam(int dim, int num, int num_slices, std::vector<NT>  pl, ellipsoid G){
 
     int i,j,col,row;

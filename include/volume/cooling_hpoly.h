@@ -12,7 +12,7 @@
 #include "zonoIntersecthpoly.h"
 
 
-template <class Hpolytope, class Zonotope, class UParameters, class AParameters, class GParameters, class Point, typename NT>
+template <typename Hpolytope, typename Zonotope, typename UParameters, typename AParameters, typename GParameters, typename Point, typename NT>
 NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GParameters &var_g,
               std::pair<Point,NT> &InnerB) {
 

@@ -11,7 +11,7 @@
 #include <exception>
 #include "samplers.h"
 
-template <class Polytope>
+template <typename Polytope>
 Polytope gen_cube(const unsigned int &dim, const bool &Vpoly) {
 
     typedef typename Polytope::MT    MT;
@@ -74,7 +74,7 @@ Polytope gen_cube(const unsigned int &dim, const bool &Vpoly) {
 }
 
 
-template <class Polytope>
+template <typename Polytope>
 Polytope gen_cross(const unsigned int &dim, const bool &Vpoly) {
 
     unsigned int m;
@@ -136,7 +136,7 @@ Polytope gen_cross(const unsigned int &dim, const bool &Vpoly) {
 }
 
 
-template <class Polytope>
+template <typename Polytope>
 Polytope gen_simplex(const unsigned int &dim, const bool &Vpoly){
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -175,7 +175,7 @@ Polytope gen_simplex(const unsigned int &dim, const bool &Vpoly){
 }
 
 
-template <class Polytope>
+template <typename Polytope>
 Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
 
     Polytope Perr;
@@ -249,7 +249,7 @@ Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
 }
 
 
-template <class Polytope>
+template <typename Polytope>
 Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
 
     Polytope Perr;
@@ -307,7 +307,7 @@ Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
 }
 
 
-template <class Polytope, class RNGType>
+template <typename Polytope, typename RNGType>
 Polytope gen_zonotope(const unsigned int &dim, const unsigned int &m) {
 
     typedef typename Polytope::MT    MT;
@@ -335,7 +335,7 @@ Polytope gen_zonotope(const unsigned int &dim, const unsigned int &m) {
     return P;
 }
 
-template <class Polytope, class RNGType>
+template <typename Polytope, typename RNGType>
 Polytope random_vpoly(const unsigned int &dim, const unsigned int &k) {
 
     typedef typename Polytope::MT    MT;
@@ -368,7 +368,7 @@ Polytope random_vpoly(const unsigned int &dim, const unsigned int &k) {
 
 }
 
-template <class Polytope, class RNGType>
+template <typename Polytope, typename RNGType>
 Polytope random_hpoly(const unsigned int &dim, const unsigned int &m) {
 
     typedef typename Polytope::MT    MT;

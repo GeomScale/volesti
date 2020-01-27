@@ -19,7 +19,7 @@
 
 
 // H-polytope class
-template <class Point>
+template <typename Point>
 class HPolytope{
 public:
     typedef Point PolytopePoint;
@@ -483,7 +483,7 @@ public:
 
 
     // no points given for the rounding, you have to sample from the polytope
-    template <class T>
+    template <typename T>
     bool get_points_for_rounding (const T &randPoints) {
         return false;
     }
