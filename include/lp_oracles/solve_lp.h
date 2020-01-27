@@ -32,7 +32,7 @@
 
 
 // compute the chebychev ball of an H-polytope described by a dxd matrix A and  d-dimensional vector b, s.t.: Ax<=b
-template <typename NT, class Point, class MT, class VT>
+template <typename NT, typename Point, typename MT, typename VT>
 std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b){
 
     lprec *lp;
@@ -156,7 +156,7 @@ std::pair<Point,NT> ComputeChebychevBall(MT &A, VT &b){
 }
 
 
-template <class VT, class MT, class Point>
+template <typename VT, typename MT, typename Point>
 Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
 
     typedef typename Point::FT NT;

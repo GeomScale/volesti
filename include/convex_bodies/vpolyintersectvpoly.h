@@ -14,7 +14,7 @@
 #include <iterator>
 #include <vector>
 
-template <class VPolytope>
+template <typename VPolytope>
 class IntersectionOfVpoly {
 public:
     typedef typename VPolytope::NT NT;
@@ -251,7 +251,7 @@ public:
         return res;
     }
 
-    template <class PointList>
+    template <typename PointList>
     bool get_points_for_rounding (PointList &randPoints) {
         if (num_of_vertices()>40*dimension()) {
             return false;

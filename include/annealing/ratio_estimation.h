@@ -20,7 +20,7 @@ bool check_max_error(const NT &a, const NT &b, const NT &error) {
 }
 
 
-template <class RNGType, class Point, class PolyBall1, class PolyBall2, typename NT, class Parameters>
+template <typename RNGType, typename Point, typename PolyBall1, typename PolyBall2, typename NT, typename Parameters>
 NT esti_ratio(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, const int &W,
         const int &Ntot, const Parameters &var, bool isball = false, NT radius = 0.0) {
 
@@ -28,7 +28,7 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, 
     bool print = var.verbose;
     NT min_val = std::numeric_limits<NT>::lowest(), max_val = std::numeric_limits<NT>::max(), val, lambda;
     size_t totCount = Ntot, countIn = Ntot * ratio;
-    std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0), Av(Pb1.num_of_hyperplanes(),0);
+    std::vector<NT> last_W(W), lamdas(Pb1.num_of_hyperplanes()), Av(Pb1.num_of_hyperplanes());
     std::list<Point> randPoints;
     typename std::vector<NT>::iterator minmaxIt;
     typename std::list<Point>::iterator rpit;
@@ -73,7 +73,7 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, 
         }
 
         if( (max_val-min_val)/max_val<=error/2.0 ){
-            break;
+            return val;
         }
 
         index = index%W+1;
@@ -84,13 +84,13 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, 
 }
 
 
-template <class RNGType, class Point, class PolyBall1, class PolyBall2, typename NT, class Parameters>
+template <typename RNGType, typename Point, typename PolyBall1, typename PolyBall2, typename NT, typename Parameters>
 NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, const int &W,
         const int &Ntot, const NT &prob, const Parameters &var, bool isball = false, NT radius = 0.0) {
 
     int n = var.n, index = 0, iter = 1;
     bool print = var.verbose;
-    std::vector<NT> last_W(W,0), lamdas(Pb1.num_of_hyperplanes(),0), Av(Pb1.num_of_hyperplanes(),0);
+    std::vector<NT> last_W(W), lamdas(Pb1.num_of_hyperplanes()), Av(Pb1.num_of_hyperplanes());
     NT val, sum_sq=0.0, sum=0.0, lambda;
     size_t totCount = Ntot, countIn = Ntot * ratio;
     //std::cout<<"countIn = "<<countIn<<", totCount = "<<totCount<<std::endl;
@@ -100,7 +100,6 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT
     unsigned int coord_prev;
     if(!var.ball_walk && !isball) uniform_first_point(Pb1, p, p_prev, coord_prev, 1,
                                                                              lamdas, Av, lambda, var);
-
     for (int i = 0; i < W; ++i) {
 
         if (isball) {
@@ -146,7 +145,7 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT
         if (index == W) index = 0;
         if (check_max_error(val - zp * s, val + zp * s, error)) {
             //if (print) std::cout << "final rejection ratio = " << val << " | total points = " << totCount << std::endl;
-            break;
+            return val;
         }
 
     }

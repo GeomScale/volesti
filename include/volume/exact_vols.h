@@ -39,7 +39,7 @@ inline std::vector< std::vector<int> > comb(int N, int K)
 }
 
 
-template <typename NT, class Polytope>
+template <typename NT, typename Polytope>
 NT exact_zonotope_vol(const Polytope &ZP){
 
     typedef typename Polytope::MT 	MT;

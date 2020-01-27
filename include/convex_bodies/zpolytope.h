@@ -18,7 +18,7 @@
 
 //min and max values for the Hit and Run functions
 
-template <class Point>
+template <typename Point>
 class Zonotope {
 public:
     typedef Point PolytopePoint;
@@ -372,7 +372,7 @@ public:
 
     // return false to the rounding function
     // no points are given so they have o be sampled
-    template <class T>
+    template <typename T>
     bool get_points_for_rounding (const T &randPoints) {
         return false;
     }

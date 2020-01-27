@@ -20,7 +20,7 @@
 #include "ball_annealing.h"
 #include "ratio_estimation.h"
 
-template <class Polytope, class Point, class UParameters, class AParameters, typename NT>
+template <typename Polytope, typename Point, typename UParameters, typename AParameters, typename NT>
 NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::pair<Point,NT> &InnerBall) {
 
     typedef Ball <Point> ball;

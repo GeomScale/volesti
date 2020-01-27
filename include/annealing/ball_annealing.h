@@ -10,7 +10,7 @@
 #define TOL 0.00000000001
 
 
-template <class Point, class ConvexBody, class PointList, typename NT>
+template <typename Point, typename ConvexBody, typename PointList, typename NT>
 bool check_convergence(ConvexBody &P, PointList &randPoints, const NT &lb, const NT &ub, bool &too_few, NT &ratio,
                       const int &nu, NT alpha, const bool &precheck, const bool &lastball) {
 
@@ -62,51 +62,7 @@ bool check_convergence(ConvexBody &P, PointList &randPoints, const NT &lb, const
 }
 
 
-template <class Point, class ball, class PointList, typename NT>
-bool get_next_zonoball(std::vector<ball> &BallSet, PointList &randPoints, NT rad_min, std::vector<NT> &ratios,
-                       const NT &lb, const NT &ub, NT &alpha, const int &nu){
-
-    int n = (*randPoints.begin()).dimension(), iter = 1;
-    bool too_few;
-    NT radmax = 0.0, rad, pnorm, ratio;
-
-    for (typename PointList::iterator rpit = randPoints.begin();  rpit!=randPoints.end(); ++rpit) {
-        pnorm = (*rpit).squared_length();
-        if (pnorm > radmax) radmax = pnorm;
-    }
-    ball Biter;
-    radmax=std::sqrt(radmax);
-    NT rad0 = rad_min, rad_m = radmax;
-
-    while (iter <= MAX_ITER) {
-        rad = 0.5 * (rad_min + radmax);
-        Biter = ball(Point(n), rad * rad);
-        too_few = false;
-
-        if (check_convergence<Point>(Biter, randPoints, lb, ub, too_few, ratio, nu, alpha, false, false)) {
-            BallSet.push_back(Biter);
-            ratios.push_back(ratio);
-            return true;
-        }
-
-        if (too_few) {
-            rad_min = rad;
-        } else {
-            radmax = rad;
-        }
-
-        if(radmax-rad_min < TOL) {
-            rad_min = rad0;
-            radmax = rad_m;
-            iter++;
-        }
-
-    }
-    return false;
-}
-
-
-template <class RNGType, class Polytope, class ball, typename NT>
+template <typename RNGType, typename Polytope, typename ball, typename NT>
 bool get_first_ball(Polytope &P, ball &B0, NT &ratio, NT rad1, const NT &lb, const NT &ub, const NT &alpha, NT &rmax){
 
     typedef typename Polytope::PolytopePoint Point;
@@ -178,7 +134,52 @@ bool get_first_ball(Polytope &P, ball &B0, NT &ratio, NT rad1, const NT &lb, con
     return false;
 }
 
-template <class PolyBall, class RNGType,class ball, class Polytope, class Parameters, typename NT>
+
+template <typename Point, typename ball, typename PointList, typename NT>
+bool get_next_zonoball(std::vector<ball> &BallSet, PointList &randPoints, NT rad_min, std::vector<NT> &ratios,
+                       const NT &lb, const NT &ub, NT &alpha, const int &nu){
+
+    int n = (*randPoints.begin()).dimension(), iter = 1;
+    bool too_few;
+    NT radmax = 0.0, rad, pnorm, ratio;
+
+    for (typename PointList::iterator rpit = randPoints.begin();  rpit!=randPoints.end(); ++rpit) {
+        pnorm = (*rpit).squared_length();
+        if (pnorm > radmax) radmax = pnorm;
+    }
+    ball Biter;
+    radmax=std::sqrt(radmax);
+    NT rad0 = rad_min, rad_m = radmax;
+
+    while (iter <= MAX_ITER) {
+        rad = 0.5 * (rad_min + radmax);
+        Biter = ball(Point(n), rad * rad);
+        too_few = false;
+
+        if (check_convergence<Point>(Biter, randPoints, lb, ub, too_few, ratio, nu, alpha, false, false)) {
+            BallSet.push_back(Biter);
+            ratios.push_back(ratio);
+            return true;
+        }
+
+        if (too_few) {
+            rad_min = rad;
+        } else {
+            radmax = rad;
+        }
+
+        if(radmax-rad_min < TOL) {
+            rad_min = rad0;
+            radmax = rad_m;
+            iter++;
+        }
+
+    }
+    return false;
+}
+
+
+template <typename PolyBall, typename RNGType,class ball, typename Polytope, typename Parameters, typename NT>
 bool get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vector<NT> &ratios, const int &Ntot, const int &nu,
                                const NT &lb, const NT &ub, NT radius, NT &alpha, Parameters &var, NT &rmax) {
 

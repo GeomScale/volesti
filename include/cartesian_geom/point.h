@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-template <class K>
+template <typename K>
 class point
 {
 private:
@@ -157,7 +157,7 @@ public:
     
 };
 
-template<class K>
+template<typename K>
 point<K> operator* (typename K::FT const& k, point<K>& p) {
     return p * k;
 }

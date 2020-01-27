@@ -7,7 +7,7 @@
 #define HPOLY_ANNEALING_H
 
 
-template <class Hpolytope, class ZonoHP, class MT, class VT, class Parameters, typename NT>
+template <typename Hpolytope, typename ZonoHP, typename MT, typename VT, typename Parameters, typename NT>
 void comp_diam_hpoly_zono_inter(ZonoHP &ZHP, const MT &G, const MT &AG, const VT &b, const Parameters &var,
         std::vector<NT> &diams_inter) {
 
@@ -45,7 +45,7 @@ void comp_diam_hpoly_zono_inter(ZonoHP &ZHP, const MT &G, const MT &AG, const VT
 }
 
 
-template <class Polytope, class HPolytope, class VT, typename NT, class Parameters>
+template <typename Polytope, typename HPolytope, typename VT, typename NT, typename Parameters>
 bool get_first_poly(Polytope &P, HPolytope &HP, VT &Zs_max_gl, const NT &lb, const NT &up_lim, NT &ratio,
         const Parameters &var){
 
@@ -99,7 +99,7 @@ bool get_first_poly(Polytope &P, HPolytope &HP, VT &Zs_max_gl, const NT &lb, con
 }
 
 
-template <class Zonotope, class HPolytope, class VT, class PointList, typename NT>
+template <typename Zonotope, typename HPolytope, typename VT, typename PointList, typename NT>
 bool get_next_zonoball(Zonotope &Z, std::vector<HPolytope> &HPolySet,
                          HPolytope &HP2, const VT &Zs_max, const VT &Zs_min, PointList &randPoints,
                         std::vector<NT> &ratios, const NT &p_value, const NT &up_lim, const int &nu, const NT &alpha){
@@ -136,7 +136,7 @@ bool get_next_zonoball(Zonotope &Z, std::vector<HPolytope> &HPolySet,
     return false;
 }
 
-template <class ZonoHP,class Zonotope, class HPolytope, class VT, class Parameters, typename NT>
+template <typename ZonoHP, typename Zonotope, typename HPolytope, typename VT, typename Parameters, typename NT>
 bool get_sequence_of_zonopolys(Zonotope &Z, const HPolytope &HP, std::vector<HPolytope> &HPolySet,
                                const VT &Zs_max, std::vector<NT> &ratios, const int &Ntot, const int &nu,
                                const NT &p_value, const NT &up_lim, const NT &alpha, Parameters &var, const Parameters &var2,

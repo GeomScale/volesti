@@ -10,7 +10,7 @@
 #include "lp_lib.h"
 
 
-template <class MT, class Point, typename NT>
+template <typename MT, typename Point, typename NT>
 bool memLP_Zonotope(const MT &V, const Point &q, NT *row, int *colno){
 
     //typedef typename Point::FT NT;
@@ -109,7 +109,7 @@ bool memLP_Zonotope(const MT &V, const Point &q, NT *row, int *colno){
 // compute the intersection of a ray with a V-polytope
 // if maxi is true compute positive lambda, when the ray is p + lambda \cdot v
 // otherwise compute the negative lambda
-template <typename NT, class MT, class Point>
+template <typename NT, typename MT, typename Point>
 std::pair<NT,NT> intersect_line_zono(const MT &V, const Point &p, const Point &v, NT *row, int *colno){
 
     std::pair<NT,NT> pair_res;

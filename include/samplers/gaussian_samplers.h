@@ -24,13 +24,13 @@
 
 
 // evaluate the pdf of point p
-template <class Point, typename NT>
+template <typename Point, typename NT>
 NT eval_exp(Point &p, const NT &a) {
     return std::exp(-a * p.squared_length());
 }
 
 
-template <class Point, typename NT>
+template <typename Point, typename NT>
 NT get_max(Point &l, Point &u, const NT &a_i) {
     NT res;
     Point a = -1.0 * l, bef = u - l;
@@ -58,7 +58,7 @@ NT get_max_coord(const NT &l, const NT &u, const NT &a_i) {
 
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
-template <class Parameters, class Point, typename NT>
+template <typename Parameters, typename Point, typename NT>
 void rand_exp_range(Point &lower, Point &upper, const NT &a_i, Point &p, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn;
@@ -103,7 +103,7 @@ void rand_exp_range(Point &lower, Point &upper, const NT &a_i, Point &p, Paramet
 
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
-template <class Parameters, typename NT>
+template <typename Parameters, typename NT>
 NT rand_exp_range_coord(const NT &l, const NT &u, const NT &a_i, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn, dis;
@@ -142,7 +142,7 @@ NT rand_exp_range_coord(const NT &l, const NT &u, const NT &a_i, Parameters cons
 
 
 // compute the first coordinate point
-template <class Polytope, class Point, class Parameters, typename NT>
+template <typename Polytope, typename Point, typename Parameters, typename NT>
 void gaussian_first_coord_point(Polytope &P,
                          Point &p,   // a point to start
                          Point &p_prev, // previous point
@@ -175,7 +175,7 @@ void gaussian_first_coord_point(Polytope &P,
 
 
 // Compute the next point with target distribution the gaussian
-template <class Polytope, class Point, class Parameters, typename NT>
+template <typename Polytope, typename Point, typename Parameters, typename NT>
 void gaussian_next_point(Polytope &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
@@ -207,7 +207,7 @@ void gaussian_next_point(Polytope &P,
 
 
 // Sample N points with target distribution the gaussian
-template <class Polytope, class Parameters, class Point, class PointList, typename NT>
+template <typename Polytope, typename Parameters, typename Point, typename PointList, typename NT>
 void rand_gaussian_point_generator(Polytope &P,
                          Point &p,   // a point to start
                          unsigned int rnum,   // number of points to sample
@@ -261,7 +261,7 @@ void rand_gaussian_point_generator(Polytope &P,
 
 
 // hit-and-run with random directions and update
-template <class Polytope, class Parameters, class Point, typename NT>
+template <typename Polytope, typename Parameters, typename Point, typename NT>
 void gaussian_hit_and_run(Point &p,
                 Polytope &P,
                 const NT &a_i,
@@ -300,7 +300,7 @@ void gaussian_hit_and_run_coord_update(Point &p,
 
 
 // ball walk and update
-template <class Polytope, class Parameters, class Point, typename NT>
+template <typename Polytope, typename Parameters, typename Point, typename NT>
 void gaussian_ball_walk(Point & p,
                         Polytope & P,
                         NT const& a_i,
