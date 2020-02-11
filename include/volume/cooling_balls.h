@@ -30,9 +30,7 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
     typedef std::list <Point> PointList;
 
     int n = var.n, win_len = var_ban.win_len, N = var_ban.N, nu = var_ban.nu;
-    //var.verbose = true;
     bool verbose = var.verbose, round = var.round, window2 = var_ban.window2;
-    //verbose =true, var.verbose = true;
     NT lb = var_ban.lb, ub = var_ban.ub, prob = var_ban.p, rmax = var_ban.rmax, radius = InnerBall.second,
             round_value = 1.0, e = var.error, alpha = var_ban.alpha, diam = var.diameter;
 
@@ -68,15 +66,12 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
     P.shift(c_e);
     P.normalize();
 
-    //if (verbose) std::cout << "Computing ball annealing..." << std::endl;
-    //std::cout<<"N = "<<N<<" nu = "<< nu<<std::endl;
     if ( !get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var, rmax) ){
         return -1.0;
     }
     //var.diameter = diam;
 
     NT vol = (std::pow(M_PI, n / 2.0) * (std::pow((*(BallSet.end() - 1)).radius(), n))) / (tgamma(n / 2.0 + 1));
-    //std::cout<<"rad of B_m = "<<(*(BallSet.end() - 1)).radius()<<", vol of B_m = "<<vol<<std::endl;
 
     int mm = BallSet.size() + 1;
     prob = std::pow(prob, 1.0 / NT(mm));
