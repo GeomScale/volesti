@@ -140,6 +140,10 @@ public:
 
     }
 
+    void comp_diam(NT &diam) {
+        diam = std::sqrt(P1.dimension()) * diam;
+    }
+
 /*
         unsigned int num_of_v = 0;
         unsigned int d = dimension();
@@ -217,6 +221,28 @@ public:
         return line_intersect(r, v);
     }
 
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v) {
+
+        std::pair<NT, int> P1pair = P1.line_positive_intersect(r, v);
+        std::pair<NT, int> P2pair = P2.line_positive_intersect(r, v);
+
+        if(P1pair.first < P2pair.first) {
+            return std::pair<NT, int>(P1pair.first, 1);
+        }
+        return std::pair<NT, int>(P2pair.first, 2);
+    }
+
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+            const std::vector<NT> &Av) {
+        return line_positive_intersect(r, v);
+    }
+
+
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+                                               const std::vector<NT> &Av, const NT &lambda_prev) {
+        return line_positive_intersect(r, v);//, Ar, Av);
+    }
+
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
@@ -274,9 +300,22 @@ public:
         return true;
     }
 
-    void free_them_all() {}
+    void free_them_all() {
+        P1.free_them_all();
+        P2.free_them_all();
+    }
 
     void normalize() {}
+
+    void compute_reflection (Point &v, const Point &p, const int &facet) {
+
+        if (facet == 1) {
+            P1.compute_reflection (v, p, facet);
+        } else {
+            P1.compute_reflection (v, p, facet);
+        }
+
+    }
 
 };
 

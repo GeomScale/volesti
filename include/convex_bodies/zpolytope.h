@@ -174,40 +174,6 @@ public:
         return 0.0;
     }
 
-    void comp_diam(NT &diam) {
-
-        int k = V.rows();
-
-        MT D = V.transpose() * V;
-        D = (D + D.transpose()) / 2.0;
-
-        Eigen::SelfAdjointEigenSolver<MT> es(D);
-
-        MT D2 = es.eigenvalues().asDiagonal();
-        MT Q = es.eigenvectors();
-
-        NT max_eig = 0.0;
-        int max_index = -1;
-        for (int i = 0; i < _d; ++i) {
-            if (es.eigenvalues()[i] > max_eig) {
-                max_eig = es.eigenvalues()[i];
-                max_index = i;
-            }
-        }
-
-        VT max_eigvec = -1.0*Q.col(max_index);
-
-
-        VT obj_fun = max_eigvec.transpose() * V.transpose();
-        VT x0(k);
-
-        for (int j = 0; j < k; ++j) x0(j) = (obj_fun(j) < 0.0) ? -1.0 : 1.0;
-
-        diam = 2.0 * (V.transpose() * x0).norm();
-
-    }
-
-
     // define zonotope using Eigen matrix V. Vector b is neded in order the code to compatible with Hpolytope class
     void init(const unsigned int dim, const MT &_V, const VT &_b) {
         _d = dim;
@@ -286,11 +252,36 @@ public:
     }
 
 
+    void comp_diam(NT &diam) {
+
+        int k = V.rows(), max_index = -1;
+
+        MT D = V.transpose() * V;
+        D = (D + D.transpose()) / 2.0;
+
+        Eigen::SelfAdjointEigenSolver<MT> es(D);
+        MT D2 = es.eigenvalues().asDiagonal(), Q = es.eigenvectors();
+
+        NT max_eig = 0.0;
+        for (int i = 0; i < _d; ++i) {
+            if (es.eigenvalues()[i] > max_eig) {
+                max_eig = es.eigenvalues()[i];
+                max_index = i;
+            }
+        }
+
+        VT max_eigvec = -1.0*Q.col(max_index);
+        VT obj_fun = max_eigvec.transpose() * V.transpose(), x0(k);
+
+        for (int j = 0; j < k; ++j) x0(j) = (obj_fun(j) < 0.0) ? -1.0 : 1.0;
+
+        diam = 2.0 * (V.transpose() * x0).norm();
+
+    }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v) {
-
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
@@ -299,7 +290,6 @@ public:
     // with the Zonotope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
             const std::vector<NT> &Av) {
-
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
@@ -379,7 +369,7 @@ public:
 
     void normalize() {}
 
-    void compute_reflection(Point &v, const Point &p, const int facet) {
+    void compute_reflection(Point &v, const Point &p, const int &facet) {
 
         int count = 0;
         MT Fmat(_d-1,_d);
@@ -401,8 +391,6 @@ public:
         a = a/a.norm();
 
         Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
-        //Point s(_d);
-        //for (int i = 0; i < _d; ++i) s.set_coord(i, a(i));
 
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
