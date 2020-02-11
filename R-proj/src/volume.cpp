@@ -119,12 +119,12 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 //'
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
-//' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
-//' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
+//' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} otherwise.
+//' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} otherwise.
 //' @param inner_ball Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
 //' @param algo Optional. A string that declares which algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian or c) \code{'CB'} for cooling bodies.
 //' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW} for Billiard walk. The default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations.
-//' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
+//' @param rounding Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.
 //' @param parameters Optional. A list for the parameters of the algorithms:
 //' \itemize{
 //' \item{\code{Window} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
@@ -187,14 +187,12 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
     unsigned int n = P.field("dimension"), walkL;
     int type = P.field("type");
 
-    bool CG = false, CB = false, cdhr = false, rdhr = false, ball_walk = false, round, win2 = false, hpoly = false,
+    bool CG = false, CB = false, cdhr = false, rdhr = false, ball_walk = false, round = false, win2 = false, hpoly = false,
           billiard = false;
     unsigned int win_len = 4*n*n+500, N = 500 * 2 +  n * n / 2, NN = 120 + (n*n)/10, nu = 10;
 
     NT C = 2.0, ratio = 1.0-1.0/(NT(n)), frac = 0.1, e, delta = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0,
             alpha = 0.2, diam = -1.0;
-
-    round = (!rounding.isNotNull()) ? false : Rcpp::as<bool>(rounding);
 
     if (!random_walk.isNotNull()) {
         if ( type == 1 ){
@@ -217,6 +215,12 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
         NN = 125;
     }else {
         throw Rcpp::exception("Unknown walk type!");
+    }
+
+    if (!rounding.isNotNull() && type == 2){
+        round = true;
+    } else {
+        round = (!rounding.isNotNull()) ? false : Rcpp::as<bool>(rounding);
     }
 
     if(!algo.isNotNull()){

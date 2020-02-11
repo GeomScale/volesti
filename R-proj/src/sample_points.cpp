@@ -35,7 +35,7 @@
 //' @param N The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.
 //' @param distribution Optional. A string that declares the target distribution: a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.
 //' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk or d) \code{'BiW'} for Billiard walk. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Normal distribution.
-//' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.
+//' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{1} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise, where \eqn{d} is the dimension that the polytope lies.
 //' @param exact A boolean parameter. It should be used for the uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from the unit or the canonical or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies the dimension has to be declared and the type of body as well as the radius of the hypersphere.
 //' @param body A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.
 //' @param parameters A list for the parameters of the methods:
@@ -175,17 +175,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
         unsigned int walkL = 10 + dim / 10;
 
-        if (distribution.isNotNull()) {
-            if (Rcpp::as<std::string>(distribution).compare(std::string("gaussian")) == 0) {
-                gaussian = true;
-                cdhr = true;
-            } else if (!distribution.isNotNull() ||
-                       Rcpp::as<std::string>(distribution).compare(std::string("uniform")) == 0) {
-                walkL = 3;
-                billiard = true;
-            } else {
-                throw Rcpp::exception("Wrong distribution!");
-            }
+        if (!distribution.isNotNull() || Rcpp::as<std::string>(distribution).compare(std::string("uniform")) == 0) {
+            walkL = 3;
+            billiard = true;
+        } else if (Rcpp::as<std::string>(distribution).compare(std::string("gaussian")) == 0) {
+            gaussian = true;
+            cdhr = true;
+        } else {
+            throw Rcpp::exception("Wrong distribution!");
         }
 
         Point MeanPoint;
@@ -205,7 +202,13 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("variance"))
             a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["variance"]));
 
-        if (Rcpp::as<std::string>(random_walk).compare(std::string("CDHR")) == 0) {
+        if (!random_walk.isNotNull()) {
+            if (gaussian) {
+                cdhr = true;
+            } else {
+                billiard = true;
+            }
+        } else if (Rcpp::as<std::string>(random_walk).compare(std::string("CDHR")) == 0) {
             cdhr = true;
         } else if (Rcpp::as<std::string>(random_walk).compare(std::string("RDHR")) == 0) {
             rdhr = true;
@@ -214,7 +217,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["BW_rad"]);
             ball_walk = true;
         } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BiW")) == 0) {
-            if (gaussian)  throw Rcpp::exception("Billiars walk can be used only for uniform sampling!");
+            if (gaussian) throw Rcpp::exception("Billiard walk can be used only for uniform sampling!");
             billiard = true;
             if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("diameter"))
                 diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["diameter"]);
@@ -243,7 +246,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = HP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
-                if (diam < 0.0) diam = 2.0 * std::sqrt(NT(n)) * InnerBall.second;
+                if (diam < 0.0) diam = 2.0 * std::sqrt(NT(dim)) * InnerBall.second;
                 break;
             }
             case 2: {
@@ -284,14 +287,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 InnerBall = VPcVP.ComputeInnerBall();
                 if (!set_mean_point) MeanPoint = InnerBall.first;
                 if (diam < 0.0) {
-                    diam = 2.0 * std::sqrt(NT(n)) * InnerBall.second;
+                    diam = 2.0 * std::sqrt(NT(dim)) * InnerBall.second;
                     VPcVP.comp_diam(diam);
                 }
                 break;
             }
         }
 
-        if (ball_walk) {
+        if (ball_walk && delta < 0.0) {
             if (gaussian) {
                 delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(dim));
             } else {
