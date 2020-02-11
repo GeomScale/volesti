@@ -81,6 +81,7 @@ int main(const int argc, const char** argv)
          exact_zono = false,
          gaussian_sam = false,
          hpoly = false,
+         billiard=false,
          win2 = false;
 
     //this is our polytope
@@ -173,7 +174,12 @@ int main(const int argc, const char** argv)
           cdhr = true;
           correct = true;
       }
-      if(!strcmp(argv[i],"-bw")){
+      if(!strcmp(argv[i],"-BiW")){
+          user_randwalk = true;
+          billiard = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-BaW")){
           user_randwalk = true;
           ball_walk = true;
           correct = true;
@@ -331,6 +337,10 @@ int main(const int argc, const char** argv)
           nexp = atof(argv[++i]);
           correct = true;
       }
+      if(!strcmp(argv[i],"-diameter")){
+          diameter = atof(argv[++i]);
+          correct = true;
+      }
       if(!strcmp(argv[i],"-lb")){
           lb = atof(argv[++i]);
           correct = true;
@@ -413,11 +423,17 @@ int main(const int argc, const char** argv)
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if (Zono) {
       InnerBall = ZP.ComputeInnerBall();
+      if(diameter < 0.0){
+          ZP.comp_diam(diameter);
+      }
   } else if(!Vpoly) {
       InnerBall = HP.ComputeInnerBall();
       if (InnerBall.second < 0.0) {
           std::cout<<"Polytope is unbounded!"<<std::endl;
           return -1.0;
+      }
+      if(diameter < 0.0){
+          diameter = 2.0 * InnerBall.second * std::sqrt(NT(n));
       }
   }else{
       if(CB) {
@@ -428,7 +444,7 @@ int main(const int argc, const char** argv)
               InnerBall.second = 0.0;
               vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second,
                                       2 * VP.get_max_vert_norm(), rng, urdist, urdist1, -1, verbose, rand_only, round,
-                                      NN, birk, false, false, true);
+                                      NN, birk, false, false, true,false);
               std::pair <NT, NT> res_round = rounding_min_ellipsoid(VP, InnerBall, var2);
               round_val = res_round.first;
 
@@ -437,14 +453,22 @@ int main(const int argc, const char** argv)
               InnerBall.first = Point(n);
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
+              VP.comp_diam(diameter);
+
           } else {
               InnerBall.second = 0.0;
               InnerBall.first = Point(n);
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
+              if(diameter < 0.0){
+                  VP.comp_diam(diameter);
+              }
           }
       } else {
           InnerBall = VP.ComputeInnerBall();
+          if(diameter < 0.0){
+              VP.comp_diam(diameter);
+          }
       }
   }
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -536,8 +560,8 @@ int main(const int argc, const char** argv)
               }
           }
       }
-      vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, 0.0, rng,
-                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
+      vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, diameter, rng,
+                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr,billiard);
       vars_g<NT, RNGType> var2(n, walk_len, N, W, 1, 0, InnerBall.second, rng, C, frac, ratio, delta,
                   false, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
@@ -571,8 +595,8 @@ int main(const int argc, const char** argv)
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,0.0,rng,
-               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr);
+      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,diameter,rng,
+               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr,billiard);
 
       if(round_only) {
           // Round the polytope and exit
@@ -597,13 +621,12 @@ int main(const int argc, const char** argv)
           if (CG) {
 
               // setup the parameters
-              vars <NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, err, e, 0, 0.0, 0, InnerBall.second, 0.0, rng,
+              vars <NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, err, e, 0, 0.0, 0, InnerBall.second, diameter, rng,
                                       urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr,
-                                      rdhr);
+                                      rdhr,billiard);
 
               vars_g <NT, RNGType> var1(n, walk_len, N, W, 1, error, InnerBall.second, rng, C, frac, ratio, delta,
-                                        false,
-                                        verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
+                                        false, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
               if (Zono) {
                   vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
