@@ -211,7 +211,7 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
             win_len = 2*n*n+250;
         } else if (n<=200) {
             CB = true;
-            win_len = 2*n*n+250;
+            win_len = (cdhr) ? 3*n*n+400 : 2*n*n+250;
         } else {
             CG = true;
         }
@@ -234,7 +234,7 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
         CB = true;
         e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);
         walkL = (!walk_length.isNotNull()) ? 1 : Rcpp::as<int>(walk_length);
-        win_len = 2*n*n+250;
+        win_len = (cdhr) ? 3*n*n+400 : 2*n*n+250;
 
     } else {
         throw Rcpp::exception("Unknown method!");

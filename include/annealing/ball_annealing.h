@@ -17,17 +17,15 @@ bool check_convergence(ConvexBody &P, PointList &randPoints, const NT &lb, const
     std::vector<NT> ratios;
     std::pair<NT,NT> mv;
     int m = randPoints.size()/nu;
-    NT T, rs, alpha_check = 0.01, countsIn = 0.0;
+    NT T, rs, alpha_check = 0.01;
+    size_t countsIn = 0;
 
-    bool print = true;
+    for(typename PointList::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
 
-    int i = 1;
-    for(typename PointList::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
-
-        if (P.is_in(*pit)==-1) countsIn += 1.0;
-        if (i % m == 0) {
-            ratios.push_back(countsIn/m);
-            countsIn = 0.0;
+        if (P.is_in(*pit)==-1) countsIn++;
+        if ((std::distance(randPoints.begin(), pit)+1) % m == 0) {
+            ratios.push_back(NT(countsIn)/m);
+            countsIn = 0;
             if (ratios.size()>1 && precheck) {
                 boost::math::students_t dist(ratios.size() - 1);
                 mv = getMeanVariance(ratios);
@@ -49,8 +47,7 @@ bool check_convergence(ConvexBody &P, PointList &randPoints, const NT &lb, const
     ratio = mv.first;
     rs = std::sqrt(mv.second);
     boost::math::students_t dist(nu - 1);
-    T = rs*(boost::math::quantile(boost::math::complement(dist, alpha))
-              / std::sqrt(NT(nu)));
+    T = rs*(boost::math::quantile(boost::math::complement(dist, alpha)) / std::sqrt(NT(nu)));
     if (ratio > lb + T) {
         if (lastball) return true;
         if ((precheck && ratio < ub - T) || (!precheck && ratio < ub + T)) return true;
@@ -192,49 +189,39 @@ bool get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
     ball B0;
     Point q(n);
     PolyBall zb_it;
-    //get_first_ball(Polytope &P, ball &B0, NT &ratio, NT &radius, const NT &lb, const NT &ub, const NT &alpha,NT &rmax)
+
     if( !get_first_ball<RNGType>(P, B0, ratio, radius, lb, ub, alpha, rmax) ) {
         return false;
     }
-    //NT rad_min = B0.radius();
-    //std::cout<<"first ball computed"<<std::endl;
+
     ratio0 = ratio;
     rand_point_generator(P, q, Ntot, var.walk_steps, randPoints, var);
-    //std::cout<<Ntot<<" points sampled from P"<<std::endl;
 
     if (check_convergence<Point>(B0, randPoints, lb, ub, fail, ratio, nu, alpha, false, true)) {
         ratios.push_back(ratio);
         BallSet.push_back(B0);
         ratios.push_back(ratio0);
-        //if(print) std::cout<<"one ball and ratio = "<<ratio<<std::endl;
         return true;
     }
-    //if(print) std::cout<<"not the last ball, ratio = "<<ratio<<std::endl;
     if ( !get_next_zonoball<Point>(BallSet, randPoints, B0.radius(), ratios, lb, ub, alpha, nu) ){
         return false;
     }
-    //if(print) std::cout<<"number of balls = "<<BallSet.size()+1<<std::endl;
 
     while (true) {
         zb_it = PolyBall(P, BallSet[BallSet.size()-1]);
         q=Point(n);
         randPoints.clear();
-        //zb_it.comp_diam(var.diameter);
         rand_point_generator(zb_it, q, Ntot, var.walk_steps, randPoints,var);
-        //std::cout<<"N points sampled from BP"<<std::endl;
 
         if (check_convergence<Point>(B0, randPoints, lb, ub, fail, ratio, nu, alpha, false, true)) {
             ratios.push_back(ratio);
             BallSet.push_back(B0);
             ratios.push_back(ratio0);
-            //if(print) std::cout<<"annealing stoped, last ratio = "<<ratio<<std::endl;
             return true;
         }
-        //if(print) std::cout<<"compute new ball"<<std::endl;
         if ( !get_next_zonoball<Point>(BallSet, randPoints, B0.radius(), ratios, lb, ub, alpha, nu) ) {
             return false;
         }
-        //if(print) std::cout<<"number of balls = "<<BallSet.size()+1<<std::endl;
     }
 }
 
