@@ -70,10 +70,11 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
     ZonoHP zb1, zb2;
     std::vector<NT> diams_inter;
 
-    if ( !get_sequence_of_zonopolys<ZonoHP>(ZP, HP, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var, var3, diams_inter) ){
+    if ( !get_sequence_of_zonopolys<ZonoHP>(ZP, HP, HPolySet, Zs_max, ratios, N*nu, nu, lb, ub, alpha, var,
+            var3, diams_inter) ){
         return -1.0;
     }
-    //var.diameter = diam0;
+    var.diameter = diam0;
 
     int mm=HPolySet.size()+2;
     int mm2=mm+1;
@@ -115,7 +116,7 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
         for (int i = 0; i < HPolySet.size()-1; ++i) {
             zb1 = ZonoHP(ZP,HPolySet[i]);
             b2 = HPolySet[i+1];
-            //var.diameter = diams_inter[i];
+            var.diameter = diams_inter[i];
             if(!window2) {
                 vol = vol / esti_ratio_interval<RNGType, Point>(zb1, b2, ratios[i], er1, win_len, N*nu, prob, var);
             } else {
@@ -124,7 +125,7 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
         }
 
         zb1 = ZonoHP(ZP,HPolySet[HPolySet.size()-1]);
-        //var.diameter = diams_inter[diams_inter.size()-1];
+        var.diameter = diams_inter[diams_inter.size()-1];
         if (!window2) {
             vol = vol / esti_ratio_interval<RNGType, Point>(zb1, HP, ratios[ratios.size() - 1], er1, win_len, N*nu, prob, var);
         } else {

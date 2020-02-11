@@ -33,6 +33,11 @@ public:
         d = dim;
         coeffs = Coeff(begin,endit);
     }
+
+    point(const unsigned int dim, Coeff cofs) {
+        d = dim;
+        coeffs.assign(cofs.begin(), cofs.end());
+    }
     
     int dimension() const {
         return d;

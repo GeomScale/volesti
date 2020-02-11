@@ -103,7 +103,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0;
-    bool set_mean_point = false, cdhr = false, rdhr = false, ball_walk = false, gaussian = false;
+    bool set_mean_point = false, cdhr = false, rdhr = false, ball_walk = false, gaussian = false, billiard = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -285,7 +285,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
         }
         vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,0.0,rng,urdist,urdist1,
-                               delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr);
+                               delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr, billiard);
         vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
                                  rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
 

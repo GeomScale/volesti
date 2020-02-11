@@ -42,7 +42,7 @@ public:
     }
 
     void comp_diam(NT &diam) const {
-        diam = 2.0*B.radius();
+        diam = 2.0 * B.radius();
     }
 
     std::pair<NT,NT> line_intersect(Point &r, Point &v) {
@@ -67,6 +67,30 @@ public:
         std::pair <NT, NT> ballpair = B.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
+    }
+
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar, std::vector<NT> &Av) {
+
+        std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av);
+        std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
+        int facet = P.num_of_hyperplanes();
+
+        if (polypair.first < ball_lambda.first ) facet = polypair.second;
+
+        return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
+    }
+
+
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar, std::vector<NT> &Av,
+                                              NT &lambda_prev) {
+
+        std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev);
+        std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
+        int facet = P.num_of_hyperplanes();
+
+        if (polypair.first < ball_lambda.first ) facet = polypair.second;
+
+        return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
     }
 
     //First coordinate ray shooting intersecting convex body
@@ -98,6 +122,16 @@ public:
         std::pair <NT, NT> ballpair = B.line_intersect_coord(p, rand_coord);
         return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
+    }
+
+    void compute_reflection (Point &v, Point &p, int &facet) {
+
+        if (facet == P.num_of_hyperplanes()) {
+            B.compute_reflection(v, p, facet);
+        } else {
+            P.compute_reflection(v, p, facet);
+        }
+
     }
 
 };

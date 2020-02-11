@@ -170,8 +170,8 @@ bool get_sequence_of_zonopolys(Zonotope &Z, const HPolytope &HP, std::vector<HPo
         ZHP2 = ZonoHP(Z,HP2);
         q=Point(n);
         randPoints.clear();
-        //comp_diam_hpoly_zono_inter<HPolytope>(ZHP2, G, AG, HP2.get_vec(), var2, diams_inter);
-        //var.diameter = diams_inter[diams_inter.size()-1];
+        comp_diam_hpoly_zono_inter<HPolytope>(ZHP2, G, AG, HP2.get_vec(), var2, diams_inter);
+        var.diameter = diams_inter[diams_inter.size()-1];
         rand_point_generator(ZHP2, q, Ntot, var.walk_steps, randPoints, var);
         if (check_convergence<Point>(HP, randPoints, p_value, up_lim, too_few, ratio, nu, alpha, false, true)) {
             ratios.push_back(ratio);

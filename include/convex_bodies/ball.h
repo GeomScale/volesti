@@ -32,6 +32,10 @@ public:
         return std::sqrt(R);
     }
 
+    int dimension() const {
+        return c.dimension();
+    }
+
     int is_in(Point &p) {
         if (p.squared_length() <= R)
             return -1;
@@ -63,6 +67,20 @@ public:
         return line_intersect(r, v);
     }
 
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v){
+        return std::pair<NT,NT>(line_intersect(r, v).first, 0);
+    }
+
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
+                                             const std::vector<NT> &Av){
+        return line_positive_intersect(r, v);
+    }
+
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
+                                             const std::vector<NT> &Av, NT &lambda_prev){
+        return line_positive_intersect(r, v);
+    }
+
     std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord) {
 
         viterator rcit=r.iter_begin();
@@ -92,6 +110,15 @@ public:
 
     int num_of_hyperplanes() {
         return 0;
+    }
+
+    void compute_reflection (Point &v, const Point &p, const int &facet) {
+
+        Point s = p;
+        s = s * (1.0 / std::sqrt(s.squared_length()));
+        s = ((-2.0 * v.dot(s)) * s);
+        v = s + v;
+
     }
 
 private:
