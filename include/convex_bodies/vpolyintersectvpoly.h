@@ -210,6 +210,14 @@ public:
     }
 
 
+    // compute intersection point of ray starting from r and pointing to v
+    // with the V-polytope
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
+                                    const std::vector<NT> &Av, const NT &lambda) {
+        return line_intersect(r, v);
+    }
+
+
     // Compute the intersection of a coordinate ray
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(const Point &r,

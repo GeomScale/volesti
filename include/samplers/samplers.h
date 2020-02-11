@@ -184,10 +184,10 @@ void rand_point_generator(Polytope &P,
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0)), Av(P.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord, rand_coord_prev;
-    NT kapa, ball_rad = var.delta;
-    Point p_prev = p;
+    NT kapa, ball_rad = var.delta, lambda;
+    Point p_prev = p, v(n);
 
     if (var.ball_walk) {
         ball_walk <RNGType> (p, P, ball_rad);
@@ -198,7 +198,11 @@ void rand_point_generator(Polytope &P,
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
     } else {
-        hit_and_run(p, P, var);
+        v = get_direction<RNGType, Point, NT>(n);
+        std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
+        lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+        p = (lambda * v) + p;
+        //hit_and_run(p, P, var);
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -211,7 +215,11 @@ void rand_point_generator(Polytope &P,
                 kapa = urdist(rng);
                 hit_and_run_coord_update(p, p_prev, P, rand_coord, rand_coord_prev, kapa, lamdas);
             } else {
-                hit_and_run(p, P, var);
+                v = get_direction<RNGType, Point, NT>(n);
+                std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
+                lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+                p = (lambda * v) + p;
+                //hit_and_run(p, P, var);
             }
         }
         randPoints.push_back(p);
@@ -237,10 +245,10 @@ void rand_point_generator(BallPoly &PBLarge,
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
-    std::vector <NT> lamdas(PBLarge.num_of_hyperplanes(), NT(0));
+    std::vector <NT> lamdas(PBLarge.num_of_hyperplanes(), NT(0)), Av(PBLarge.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord, rand_coord_prev;
-    NT kapa, ball_rad = var.delta;
-    Point p_prev = p;
+    NT kapa, ball_rad = var.delta, lambda;
+    Point p_prev = p, v(n);
 
     if (var.ball_walk) {
         ball_walk<RNGType>(p, PBLarge, ball_rad);
@@ -252,7 +260,11 @@ void rand_point_generator(BallPoly &PBLarge,
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
     } else {
-        hit_and_run(p, PBLarge, var);
+        v = get_direction<RNGType, Point, NT>(n);
+        std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av);
+        lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+        p = (lambda * v) + p;
+        //hit_and_run(p, PBLarge, var);
     }
 
     for (unsigned int i = 1; i <= rnum; ++i) {
@@ -264,8 +276,13 @@ void rand_point_generator(BallPoly &PBLarge,
                 rand_coord = uidist(rng);
                 kapa = urdist(rng);
                 hit_and_run_coord_update(p, p_prev, PBLarge, rand_coord, rand_coord_prev, kapa, lamdas);
-            } else
-                hit_and_run(p, PBLarge, var);
+            } else {
+                v = get_direction<RNGType, Point, NT>(n);
+                std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av, lambda);
+                lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+                p = (lambda * v) + p;
+                //hit_and_run(p, PBLarge, var);
+            }
         }
         if (PBSmall.second().is_in(p) == -1) {//is in
             randPoints.push_back(p);
@@ -325,7 +342,7 @@ void uniform_first_point(Polytope &P,
     } else if (var.rdhr_walk) {
         for (unsigned int j = 0; j < walk_len; j++) {
             v = get_direction<RNGType, Point, NT>(n);
-            std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
+            std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
             lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
             p = (lambda * v) + p;
         }
@@ -359,7 +376,7 @@ void uniform_next_point(Polytope &P,
     } else if (var.rdhr_walk) {
         for (unsigned int j = 0; j < walk_len; j++) {
             v = get_direction<RNGType, Point, NT>(n);
-            std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
+            std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
             lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
             p = (lambda * v) + p;
         }
@@ -374,7 +391,7 @@ void uniform_next_point(Polytope &P,
 }
 
 // ----- HIT AND RUN FUNCTIONS ------------ //
-
+/*
 //hit-and-run with random directions and update
 template <typename Polytope, typename Point, typename Parameters>
 void hit_and_run(Point &p,
@@ -391,7 +408,7 @@ void hit_and_run(Point &p,
     //NT lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
     p = (( urdist(rng) * (bpair.first - bpair.second) + bpair.second) * v) + p;
 
-}
+}*/
 
 
 //hit-and-run with orthogonal directions and update
