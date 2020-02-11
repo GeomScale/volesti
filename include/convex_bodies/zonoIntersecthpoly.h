@@ -63,14 +63,20 @@ public:
                                  std::max(polypair.second, zonopair.second));
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av) {
-        return line_intersect(r, v);
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
+            std::vector<NT> &Av) {
+        std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av);
+        std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
+        return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
+                                 std::max(polypair.second, zonopair.second));
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av, const NT &lambda_prev) {
-        return line_intersect(r, v);
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
+            std::vector<NT> &Av, NT &lambda_prev) {
+        std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av, lambda_prev);
+        std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
+        return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
+                                 std::max(polypair.second, zonopair.second));
     }
 
     //First coordinate ray shooting intersecting convex body
