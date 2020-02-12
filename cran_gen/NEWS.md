@@ -13,3 +13,8 @@
 # volesti 1.0.3
 
 * Fix CRAN warnings.
+
+# volesti 1.1.0
+
+* New volume computation algorithm.
+* Improved names for functions and input variables.

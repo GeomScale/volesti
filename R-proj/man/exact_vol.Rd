@@ -28,7 +28,7 @@ For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this functio
 \examples{
 
 # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
-Z = GenZonotope(5, 10)
+Z = gen_rand_zonotope(5, 10)
 vol = exact_vol(Z)
 
 \donttest{# compute the exact volume of a 2-d arbitrary simplex

@@ -4,14 +4,14 @@
 \alias{rounding}
 \title{Internal rcpp function for the rounding of a convex polytope}
 \usage{
-rounding(P, WalkType = NULL, walk_step = NULL, radius = NULL)
+rounding(P, random_walk = NULL, walk_length = NULL, radius = NULL)
 }
 \arguments{
 \item{P}{A convex polytope (H- or V-representation or zonotope).}
 
-\item{WalkType}{Optional. A string that declares the random walk.}
+\item{random_walk}{Optional. A string that declares the random walk.}
 
-\item{walk_step}{Optional. The number of the steps for the random walk.}
+\item{walk_length}{Optional. The number of the steps for the random walk.}
 
 \item{radius}{Optional. The radius for the ball walk.}
 }

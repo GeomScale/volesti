@@ -60,7 +60,7 @@ std::pair<NT, NT> getMeanVariance(std::vector<NT>& vec) {
 
 
 // Compute the first variance a_0 for the starting gaussian
-template <class Polytope, class Parameters, typename NT>
+template <typename Polytope, typename Parameters, typename NT>
 void get_first_gaussian(Polytope & P, 
 			NT const& radius, 
 			NT const& frac,
@@ -123,9 +123,9 @@ void get_first_gaussian(Polytope & P,
 
 
 // Compute a_{i+1} when a_i is given
-template <class Polytope, class Parameters, class Point, typename NT>
-NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
-                     NT ratio, NT C, Parameters const& var){
+template <typename Polytope, typename Parameters, typename Point, typename NT>
+NT get_next_gaussian(Polytope &P, Point &p, NT a, const unsigned int &N,
+                     const NT &ratio, const NT &C, Parameters const& var){
 
     NT last_a = a, last_ratio = 0.1;
     //k is needed for the computation of the next variance a_{i+1} = a_i * (1-1/d)^k
@@ -165,9 +165,9 @@ NT get_next_gaussian(Polytope &P, Point &p, NT a, unsigned int N,
 
 
 // Compute the sequence of spherical gaussians
-template <class Polytope, class Parameters, typename NT>
-void get_annealing_schedule(Polytope &P, NT radius, NT ratio, NT C, NT frac, unsigned int N,
-                            Parameters & var, NT &error, std::vector<NT> &a_vals){
+template <typename Polytope, typename Parameters, typename NT>
+void get_annealing_schedule(Polytope &P, const NT &radius, const NT &ratio, const NT &C, const NT &frac,
+        const unsigned int &N, Parameters &var, NT &error, std::vector<NT> &a_vals){
 
     typedef typename Polytope::PolytopePoint Point;
     // Compute the first gaussian

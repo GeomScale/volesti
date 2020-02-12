@@ -15,6 +15,12 @@ if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+#if(NOT DEFINED BOOST)
+#  message(FATAL_ERROR "This program requires the boost library, and will not be compiled.")
+#else()
+#  message(STATUS "BOOST is DEFINED")
+#endif()
+
 find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
 
 if (NOT LP_SOLVE)
@@ -34,12 +40,15 @@ else ()
   #include_directories (BEFORE ../include/convex_bodies)
   include_directories (BEFORE ../external/LPsolve_src/run_headers)
   include_directories (BEFORE ../external/boost)
+  #include_directories (BEFORE BOOST)
   include_directories (BEFORE ../include/generators)
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
   include_directories (BEFORE ../include/convex_bodies)
   include_directories (BEFORE ../include/annealing)
   include_directories (BEFORE ../include/samplers)
+  include_directories (BEFORE ../include/lp_oracles)
+  include_directories (BEFORE ../include/misc)
 
 
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
@@ -64,7 +73,7 @@ else ()
   add_executable (VpolyCV_test VpolyCV_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (VpolyVol_test VpolyVol_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (ZonotopeVol_test ZonotopeVol_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_executable (ZonotopeVolCV_test ZonotopeVolCV_test.cpp $<TARGET_OBJECTS:test_main>)
+  #add_executable (ZonotopeVolCV_test ZonotopeVolCV_test.cpp $<TARGET_OBJECTS:test_main>)
   
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
@@ -79,7 +88,7 @@ else ()
   add_test(NAME volumeCV_prod_simplex COMMAND volumeCV_test -tc=prod_simplex)
   add_test(NAME volumeCV_simplex COMMAND volumeCV_test -tc=simplex)
 
-  add_test(NAME VpolyCV_cube COMMAND VpolyCV_test -tc=cube)
+  #add_test(NAME VpolyCV_cube COMMAND VpolyCV_test -tc=cube)
   add_test(NAME VpolyCV_cross COMMAND VpolyCV_test -tc=cross)
   add_test(NAME VpolyCV_simplex COMMAND VpolyCV_test -tc=simplex)
   
@@ -89,8 +98,8 @@ else ()
 
   add_test(NAME ZonotopeVol4 COMMAND ZonotopeVol_test -tc=4_dimensional)
 
-  add_test(NAME ZonotopeVolCV4 COMMAND ZonotopeVolCV_test -tc=4_dimensional)
-  add_test(NAME ZonotopeVolCV5 COMMAND ZonotopeVolCV_test -tc=5_dimensional)
+  #add_test(NAME ZonotopeVolCV4 COMMAND ZonotopeVolCV_test -tc=4_dimensional)
+  #add_test(NAME ZonotopeVolCV5 COMMAND ZonotopeVolCV_test -tc=5_dimensional)
 
   add_test(NAME cheb_cube COMMAND cheb_test -tc=cheb_cube)
   add_test(NAME cheb_cross COMMAND cheb_test -tc=cheb_cross)
@@ -112,7 +121,7 @@ else ()
   TARGET_LINK_LIBRARIES(VpolyCV_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(VpolyVol_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(ZonotopeVol_test ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(ZonotopeVolCV_test ${LP_SOLVE})
+  #TARGET_LINK_LIBRARIES(ZonotopeVolCV_test ${LP_SOLVE})
 
 endif()
 

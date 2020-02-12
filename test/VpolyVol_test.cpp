@@ -36,7 +36,7 @@ void test_volume(Polytope &VP, NT expected, NT tolerance=0.1)
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
-    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
+    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,0.0,rng,
                           urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
 
     //Compute chebychev ball//
@@ -46,9 +46,12 @@ void test_volume(Polytope &VP, NT expected, NT tolerance=0.1)
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol = 0;
     unsigned int const num_of_exp = 10;
+    CheBall = VP.ComputeInnerBall();
+    Polytope VP2 = VP;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
-        CheBall = VP.ComputeInnerBall();
+
+        VP.init(n, VP2.get_mat(), VP2.get_vec());
         vol += volume(VP,var,CheBall);
     }
     NT error = std::abs(((vol/num_of_exp)-expected))/expected;

@@ -13,7 +13,9 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "polytopes.h"
+#include "hpolytope.h"
+#include "vpolytope.h"
+#include "zpolytope.h"
 #include "exact_vols.h"
 
 template <typename FT>
@@ -40,7 +42,7 @@ FT factorial(FT n)
 //' @examples
 //'
 //' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
-//' Z = GenZonotope(5, 10)
+//' Z = gen_rand_zonotope(5, 10)
 //' vol = exact_vol(Z)
 //'
 //' \donttest{# compute the exact volume of a 2-d arbitrary simplex

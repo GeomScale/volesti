@@ -16,8 +16,8 @@
 
 // ----- ROUNDING ------ //
 // main rounding function
-template <class Polytope, class Point, class Parameters, typename NT>
-std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> InnerBall, Parameters &var) {
+template <typename Polytope, typename Point, typename Parameters, typename NT>
+std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT> &InnerBall, const Parameters &var) {
 
     typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
@@ -97,5 +97,49 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
 
     return std::pair<NT, NT> (L_1.determinant(),rel/Rel);
 }
+
+
+template <typename Polytope>
+void get_vpoly_center(Polytope &P) {
+
+    typedef typename Polytope::NT 	NT;
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    typedef typename Polytope::PolytopePoint 	Point;
+
+    unsigned int n = P.dimension(), i, j = 0;
+
+    std::list<Point> randPoints; //ds for storing rand points
+    P.get_points_for_rounding(randPoints);
+
+    boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
+    typename std::list<Point>::iterator rpit=randPoints.begin();
+    typename std::vector<NT>::iterator qit;
+    for ( ; rpit!=randPoints.end(); rpit++, j++) {
+        qit = (*rpit).iter_begin(); i=0;
+        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
+            Ap(i,j)=double(*qit);
+        }
+    }
+    boost::numeric::ublas::matrix<double> Q(n,n);
+    boost::numeric::ublas::vector<double> c2(n);
+    size_t w=1000;
+    KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+
+    MT E(n,n);
+    VT e(n);
+
+    //Get ellipsoid matrix and center as Eigen objects
+    for(unsigned int i=0; i<n; i++){
+        e(i)=NT(c2(i));
+        for (unsigned int j=0; j<n; j++){
+            E(i,j)=NT(Q(i,j));
+        }
+    }
+
+    P.shift(e);
+
+}
+
 
 #endif

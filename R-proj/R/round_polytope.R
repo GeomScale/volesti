@@ -3,8 +3,8 @@
 #' Given a convex H or V polytope or a zonotope as input this functionbrings the polytope in well rounded position based on minimum volume enclosing ellipsoid of a pointset.
 #' 
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
-#' @param WalkType Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
-#' @param walk_step Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.
+#' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
+#' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.
 #' @param radius Optional. The radius for the ball walk.
 #' 
 #' @return A list with 2 elements: (a) a polytope of the same class as the input polytope class and (b) the element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
@@ -17,16 +17,16 @@
 #' listHpoly = round_polytope(P)
 #' 
 #' # rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50
-#' P = GenCube(3, 'V')
-#' ListVpoly = round_polytope(P, WalkType = 'RDHR', walk_step = 50)
+#' P = gen_cube(3, 'V')
+#' ListVpoly = round_polytope(P, random_walk = 'RDHR', walk_length = 50)
 #' 
 #' # round a 2-dimensional zonotope defined by 6 generators using ball walk
-#' Z = GenZonotope(2,6)
-#' ListZono = round_polytope(Z, WalkType = 'BW')
+#' Z = gen_rand_zonotope(2,6)
+#' ListZono = round_polytope(Z, random_walk = 'BW')
 #' @export
-round_polytope <- function(P, WalkType = NULL, walk_step = NULL, radius = NULL){
+round_polytope <- function(P, random_walk = NULL, walk_length = NULL, radius = NULL){
   
-  ret_list = rounding(P, WalkType, walk_step, radius)
+  ret_list = rounding(P, random_walk, walk_length, radius)
   
   #get the matrix that describes the polytope
   Mat = ret_list$Mat
