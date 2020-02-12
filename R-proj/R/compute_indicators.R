@@ -26,7 +26,7 @@ compute_indicators <- function(MatReturns, W = NULL, M = NULL, N = NULL) {
   wl = W-1
   
   indicators = c()
-  print(nrows-wl)
+  #print(nrows-wl)
   for (i in 1:(nrows-wl)) {
     
     Win=i:(i+wl)
@@ -62,7 +62,7 @@ compute_indicators <- function(MatReturns, W = NULL, M = NULL, N = NULL) {
       }
     }
     indicators = c(indicators, blue_mass / red_mass)
-    print(length(indicators))
+    #print(length(indicators))
   }
 
   n = length(indicators)
@@ -88,6 +88,6 @@ compute_indicators <- function(MatReturns, W = NULL, M = NULL, N = NULL) {
     }
   }
   
-  return(list("indicators" = indicatos, market_states = col)
+  return(list("indicators" = indicatos, market_states = col))
   
 }

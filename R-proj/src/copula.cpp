@@ -8,6 +8,7 @@
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
 #include <Rcpp.h>
+#include <RcppEigen.h>
 #include <chrono>
 #include "ellipsoids.h"
 #include "cartesian_geom/cartesian_kernel.h"
@@ -47,15 +48,19 @@
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericMatrix copula (Rcpp::NumericVector R1 = R_NilValue, Rcpp::NumericVector R2 = R_NilValue,
-        Rcpp::NumericMatrix Sigma = R_NilValue, Rcpp::Nullable<unsigned int> M = R_NilValue,
-        Rcpp::Nullable<unsigned int> N = R_NilValue){
+Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> R1 = R_NilValue,
+                            Rcpp::Nullable<Rcpp::NumericVector> R2 = R_NilValue,
+                            Rcpp::Nullable<Rcpp::NumericMatrix> Sigma = R_NilValue,
+                            Rcpp::Nullable<unsigned int> M = R_NilValue,
+                            Rcpp::Nullable<unsigned int> N = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937    RNGType;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef copula_ellipsoid<Point, MT, VT> CopEll;
     unsigned int num_slices = 100, numpoints = 500000;
 
     if (M.isNotNull()) {
@@ -68,7 +73,7 @@ Rcpp::NumericMatrix copula (Rcpp::NumericVector R1 = R_NilValue, Rcpp::NumericVe
 
     Rcpp::NumericMatrix copula(num_slices, num_slices);
     std::vector<std::vector<NT> > StdCopula;
-    unsigned int dim = Rcpp::as<std::vector<NT> >(h1).size(), i, j;
+    unsigned int dim = Rcpp::as<std::vector<NT> >(R1).size(), i, j;
 
     if(!R1.isNotNull()) {
 
@@ -86,8 +91,8 @@ Rcpp::NumericMatrix copula (Rcpp::NumericVector R1 = R_NilValue, Rcpp::NumericVe
 
         std::vector<std::vector<NT> > Gin(dim, std::vector<NT>(dim));
         MT EE = Rcpp::as<MT>(Sigma);
-        for (i=0; i<dim; i++) {
-            for (j = 0; j < dim; j++) {
+        for (int i=0; i<dim; i++) {
+            for (int j = 0; j < dim; j++) {
                 Gin[i][j] = EE(i, j);
             }
         }
@@ -99,8 +104,8 @@ Rcpp::NumericMatrix copula (Rcpp::NumericVector R1 = R_NilValue, Rcpp::NumericVe
 
     }
 
-    for(i=0; i<num_slices; i++) {
-        for(j=0; j<num_slices; j++){
+    for(int i=0; i<num_slices; i++) {
+        for(int j=0; j<num_slices; j++){
             copula(i,j) = StdCopula[i][j];
         }
     }

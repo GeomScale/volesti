@@ -3,12 +3,13 @@
 
 #' Construct a copula using uniform sampling from the unit simplex
 #'
-#' Given two families of parallel hyperplanes intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
+#' Given two families of parallel hyperplanes or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
 #'
 #' @param h1 A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
-#' @param h2 A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.
-#' @param numSlices The number of the slices for the copula. Default value is 100.
-#' @param N The number of points to sample. Default value is \eqn{4\cdot 10^6}.
+#' @param h2 Optional. A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.
+#' @param E Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
+#' @param M The number of the slices for the copula. The default value is 100.
+#' @param N The number of points to sample. The default value is \eqn{5\cdot 10^5}.
 #'
 #' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 #' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
@@ -20,35 +21,18 @@
 #' h1 = h1 / 1000
 #' h2=runif(n = 10, min = 1, max = 1000)
 #' h2 = h2 / 1000
-#' cop = copula1(h1=h1, h2=h2, numSlices = 10, N = 100000)
-#' @export
-copula1 <- function(h1, h2, numSlices, N) {
-    .Call(`_volesti_copula1`, h1, h2, numSlices, N)
-}
-
-#' Construct a copula using uniform sampling from the unit simplex
+#' cop = copula(R1 = h1, R2 = h2, M = 10, N = 100000)
 #'
-#' Given a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
-#'
-#' @param h A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
-#' @param E The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
-#' @param numSlices The number of the slices for the copula. Default value is 100.
-#' @param N The number of points to sample. Default value is \eqn{4\cdot 10^6}.
-#'
-#' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
-#' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
-#'
-#' @return A \eqn{numSlices\times numSlices} numerical matrix that corresponds to a copula.
-#' @examples
 #' # compute a copula for a family of parallel hyperplanes and a family of conentric ellipsoids
 #' h = runif(n = 10, min = 1, max = 1000)
 #' h = h / 1000
 #' E = replicate(10, rnorm(20))
 #' E = cov(E)
-#' cop = copula2(h=h, E=E, numSlices=10, N=100000)
+#' cop = copula(R1 = h, Sigma = E, M = 10, N = 100000)
+#'
 #' @export
-copula2 <- function(h, E, numSlices, N) {
-    .Call(`_volesti_copula2`, h, E, numSlices, N)
+copula <- function(R1 = NULL, R2 = NULL, Sigma = NULL, M = NULL, N = NULL) {
+    .Call(`_volesti_copula`, R1, R2, Sigma, M, N)
 }
 
 #' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex (c) a unit simplex (d) a cross polytope (e) a hypercube
