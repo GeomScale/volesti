@@ -38,13 +38,13 @@
 //' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{1} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise, where \eqn{d} is the dimension that the polytope lies.
 //' @param exact A boolean parameter. It should be used for the uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from the unit or the canonical or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies the dimension has to be declared and the type of body as well as the radius of the hypersphere.
 //' @param body A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.
-//' @param parameters A list for the parameters of the methods:
+//' @param parameters Optional. A list for the parameters of the methods:
 //' \itemize{
 //' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
 //' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 //' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
 //' \item{\code{BW_rad} }{ The radius for the ball walk.}
-//' \item{\code{diameter} }{ The diameter of the polytope.}
+//' \item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
 //' }
 //' @param InnerPoint A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.
 //'
@@ -246,7 +246,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = HP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
-                if (diam < 0.0) diam = 2.0 * std::sqrt(NT(dim)) * InnerBall.second;
+                if (billiard && diam < 0.0) diam = 2.0 * std::sqrt(NT(dim)) * InnerBall.second;
                 break;
             }
             case 2: {
@@ -258,7 +258,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = VP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
-                if (diam < 0.0) VP.comp_diam(diam);
+                if (billiard && diam < 0.0) VP.comp_diam(diam);
                 break;
             }
             case 3: {
@@ -270,7 +270,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = ZP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
-                if (diam < 0.0) ZP.comp_diam(diam);
+                if (billiard && diam < 0.0) ZP.comp_diam(diam);
                 break;
             }
             case 4: {
@@ -304,7 +304,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
         vars<NT, RNGType> var1(1,dim,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,diam,rng,urdist,urdist1,
                                delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr, billiard);
-        vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, false, verbose,
+        vars_g<NT, RNGType> var2(dim, walkL, 0, 0, 1, 0, InnerBall.second, rng, 0, 0, 0, delta, verbose,
                                  rand_only, false, NN, birk, ball_walk, cdhr, rdhr);
 
         switch (type) {

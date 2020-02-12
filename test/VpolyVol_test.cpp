@@ -8,6 +8,10 @@
 #include "doctest.h"
 #include <unistd.h>
 #include "Eigen/Eigen"
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
 #include "volume.h"
 #include "polytope_generators.h"
 #include <typeinfo>

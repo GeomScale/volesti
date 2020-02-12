@@ -29,7 +29,7 @@
 //' @param P A convex polytope (H- or V-representation or zonotope).
 //' @param random_walk Optional. A string that declares the random walk.
 //' @param walk_length Optional. The number of the steps for the random walk.
-//' @param radius Optional. The radius for the ball walk.
+//' @param parameters Optional. A list for the parameters of the methods:
 //'
 //' @section warning:
 //' Do not use this function.

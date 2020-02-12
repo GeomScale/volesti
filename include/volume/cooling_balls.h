@@ -55,6 +55,9 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
         var.diameter = 2.0 * std::sqrt(NT(n))*radius;
         P.comp_diam(var.diameter);
         diam = var.diameter;
+        if (var.ball_walk){
+            var.delta = 4.0 * radius / NT(n);
+        }
     }
 
     // Save the radius of the Chebychev ball

@@ -22,7 +22,14 @@
 #include "Eigen/Eigen"
 #define VOLESTI_DEBUG
 #include <fstream>
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
 #include "volume.h"
+#include "rotating.h"
+#include "misc.h"
+#include "linear_extensions.h"
 #include "cooling_balls.h"
 #include "cooling_hpoly.h"
 #include "sample_only.h"
@@ -423,7 +430,7 @@ int main(const int argc, const char** argv)
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if (Zono) {
       InnerBall = ZP.ComputeInnerBall();
-      if(diameter < 0.0){
+      if(billiard && diameter < 0.0){
           ZP.comp_diam(diameter);
       }
   } else if(!Vpoly) {
@@ -432,7 +439,7 @@ int main(const int argc, const char** argv)
           std::cout<<"Polytope is unbounded!"<<std::endl;
           return -1.0;
       }
-      if(diameter < 0.0){
+      if(billiard && diameter < 0.0){
           diameter = 2.0 * InnerBall.second * std::sqrt(NT(n));
       }
   }else{
@@ -453,24 +460,35 @@ int main(const int argc, const char** argv)
               InnerBall.first = Point(n);
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
-              VP.comp_diam(diameter);
+              if(billiard && diameter < 0.0) {
+                  VP.comp_diam(diameter);
+              }
 
           } else {
               InnerBall.second = 0.0;
               InnerBall.first = Point(n);
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
-              if(diameter < 0.0){
+              if(billiard &&  diameter < 0.0){
                   VP.comp_diam(diameter);
               }
           }
       } else {
           InnerBall = VP.ComputeInnerBall();
-          if(diameter < 0.0){
+          if(billiard && diameter < 0.0){
               VP.comp_diam(diameter);
           }
       }
   }
+
+  if (ball_walk && delta < 0.0) {
+      if (CG || gaussian_sam) {
+          delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
+      } else {
+          delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
+      }
+  }
+
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Inner ball time: " << tstop1 - tstart1 << std::endl;
   if(verbose){
@@ -551,19 +569,11 @@ int main(const int argc, const char** argv)
   }
   if (rand_only) {
       std::list <Point> randPoints;
-      if (ball_walk) {
-          if (delta < 0.0) { // set the radius for the ball walk if is not set by the user
-              if (gaussian_sam) {
-                  delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
-              } else {
-                  delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
-              }
-          }
-      }
+
       vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, diameter, rng,
                 urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr,billiard);
       vars_g<NT, RNGType> var2(n, walk_len, N, W, 1, 0, InnerBall.second, rng, C, frac, ratio, delta,
-                  false, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
+              verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
       double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if (Zono) {
@@ -626,7 +636,7 @@ int main(const int argc, const char** argv)
                                       rdhr,billiard);
 
               vars_g <NT, RNGType> var1(n, walk_len, N, W, 1, error, InnerBall.second, rng, C, frac, ratio, delta,
-                                        false, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
+                                        verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
               if (Zono) {
                   vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
@@ -643,7 +653,7 @@ int main(const int argc, const char** argv)
                       vol = vol_cooling_balls(ZP, var, var_ban, InnerBall);
                   } else {
                       vars_g <NT, RNGType> varg(n, 1, 500 * 2.0 +  NT(n * n) / 2.0, 6 * n * n + 500, 1, e, InnerBall.second, rng, C, frac, ratio, delta,
-                                                false, verbose, rand_only, false, false, birk, false, true, false);
+                                                verbose, rand_only, false, false, birk, false, true, false);
                       vol = vol_cooling_hpoly < HPolytope < Point > > (ZP, var, var_ban, varg, InnerBall);
                   }
               } else if (!Vpoly) {

@@ -5,7 +5,7 @@
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
 round_polytope(P, random_walk = NULL, walk_length = NULL,
-  radius = NULL)
+  parameters = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
@@ -14,10 +14,10 @@ round_polytope(P, random_walk = NULL, walk_length = NULL,
 
 \item{walk_length}{Optional. The number of the steps for the random walk. The default value is \eqn{1} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
 
-\item{parameters}{A list for the parameters of the methods:
+\item{parameters}{Optional. A list for the parameters of the methods:
 \itemize{
   \item{\code{BW_rad} }{ The radius for the ball walk.}
-  \item{\code{diameter} }{ The diameter of the polytope.}
+  \item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
 }}
 }
 \value{
