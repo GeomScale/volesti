@@ -13,22 +13,15 @@
 
 
 #include <iterator>
-//#include <fstream>
 #include <vector>
 #include <list>
-//#include <algorithm>
 #include <math.h>
 #include <chrono>
 #include "cartesian_geom/cartesian_kernel.h"
-#include <boost/random.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/uniform_real_distribution.hpp>
 #include "vars.h"
 #include "hpolytope.h"
 #include "vpolytope.h"
 #include "zpolytope.h"
-//#include "ellipsoids.h"
 #include "ball.h"
 #include "ballintersectconvex.h"
 #include "vpolyintersectvpoly.h"
@@ -36,18 +29,14 @@
 #include "rounding.h"
 #include "gaussian_samplers.h"
 #include "gaussian_annealing.h"
-//#include "sample_only.h"
-//#include "polytope_generators.h"
-//#include "exact_vols.h"
-//#include "simplex_samplers.h"
-//#include "copulas.h"
 
 
-template <class Polytope, class Parameters, class Point, typename NT>
+template <typename Polytope, typename Parameters, typename Point, typename NT>
 NT volume(Polytope &P,
-          Parameters &var,  // constans for volume
+          Parameters & var,  // constans for volume
           std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
+ 
     typedef Ball<Point> Ball;
     typedef BallIntersectPolytope<Polytope,Ball> BallPoly;
     typedef typename Parameters::RNGType RNGType;
@@ -55,43 +44,34 @@ NT volume(Polytope &P,
 
     bool round = var.round;
     bool print = var.verbose;
-    bool deltaset = false;
+    bool rand_only = var.rand_only, deltaset = false;
     unsigned int n = var.n;
     unsigned int rnum = var.m;
     unsigned int walk_len = var.walk_steps;
     unsigned int n_threads = var.n_threads;
+    const NT err = var.err;
+    RNGType &rng = var.rng;
 
     //0. Get the Chebychev ball (largest inscribed ball) with center and radius
     Point c=InnerBall.first;
     NT radius=InnerBall.second;
-    if (var.ball_walk){
-        if(var.delta<0.0){
-            var.delta = 4.0 * radius / NT(n);
-            deltaset = true;
-        }
-    }
-
+    
     //1. Rounding of the polytope if round=true
     NT round_value=1;
     if(round){
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"\nRounding.."<<std::endl;
-        double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
         #endif
+        double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
         std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,InnerBall,var);
         round_value=res_round.first;
-        #ifdef VOLESTI_DEBUG
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        bool print = var.verbose;
+        #ifdef VOLESTI_DEBUG
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         #endif
         std::pair<Point,NT> res=P.ComputeInnerBall();
         c=res.first; radius=res.second;
-    }
-
-    if (var.ball_walk){
-        if(deltaset){
+        if (var.ball_walk){
             var.delta = 4.0 * radius / NT(n);
         }
     }
@@ -105,31 +85,33 @@ NT volume(Polytope &P,
 
     rnum=rnum/n_threads;
     NT vol=0;
-
+        
     // Perform the procedure for a number of threads and then take the average
     for(unsigned int t=0; t<n_threads; t++){
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
         #endif
+        
         Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
-
+        //p=p+c;
+        
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
+        
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
+        double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
+        
+        
         // 3. Sample "rnum" points from P
         #ifdef VOLESTI_DEBUG
-        double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
-        bool print = var.verbose;
         if(print) std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
         #endif
         rand_point_generator(P, p, rnum-1, walk_len, randPoints, var);
-
-        #ifdef VOLESTI_DEBUG
+        
         double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
-        bool print = var.verbose;
+        #ifdef VOLESTI_DEBUG
         if(print) std::cout << "First random points construction time = " << tstop2 - tstart2 << std::endl;
         #endif
 
@@ -144,21 +126,20 @@ NT volume(Polytope &P,
         }
         max_dist=std::sqrt(max_dist);
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"\nFurthest distance from Chebychev point= "<<max_dist<<std::endl;
         #endif
 
+        //
         // 4b. Number of balls
         int nb1 = n * (std::log(radius)/std::log(2.0));
         int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
 
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
         #endif
 
         std::vector<Ball> balls;
-
+        
         for(int i=nb1; i<=nb2; ++i){
 
             if(i==nb1){
@@ -170,8 +151,8 @@ NT volume(Polytope &P,
 
         }
         assert(!balls.empty());
+
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if (print) std::cout<<"---------"<<std::endl;
         #endif
 
@@ -190,10 +171,9 @@ NT volume(Polytope &P,
             BallPoly PBSmall(P,*bit2);
 
             #ifdef VOLESTI_DEBUG
-            bool print = var.verbose;
             if(print)
                 std::cout<<"("<<balls.end()-bit2<<"/"<<balls.end()-balls.begin()<<") Ball ratio radius="
-                         <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
+                        <<PBLarge.second().radius()<<","<<PBSmall.second().radius()<<std::endl;
             #endif
 
             // choose a point in PBLarge to be used to generate more rand points
@@ -204,9 +184,8 @@ NT volume(Polytope &P,
             unsigned int nump_PBLarge = randPoints.size();
 
             #ifdef VOLESTI_DEBUG
-            bool print = var.verbose;
             if(print) std::cout<<"Points in PBLarge="<<randPoints.size()
-                               <<std::endl;
+                              <<std::endl;
             #endif
 
             //keep the points in randPoints that fall in PBSmall
@@ -221,24 +200,25 @@ NT volume(Polytope &P,
             }
 
             #ifdef VOLESTI_DEBUG
-            bool print = var.verbose;
             if(print) std::cout<<"Points in PBSmall="<<randPoints.size()
-                               <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
-                               <<std::endl;
+                              <<"\nRatio= "<<NT(nump_PBLarge)/NT(nump_PBSmall)
+                             <<std::endl;
+            #endif
 
+            #ifdef VOLESTI_DEBUG
             if(print) std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
-                               <<std::endl;
+                              <<std::endl;
             #endif
 
             //generate more random points in PBLarge to have "rnum" in total
             rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
 
             vol *= NT(rnum)/NT(nump_PBSmall);
+
             #ifdef VOLESTI_DEBUG
-            bool print = var.verbose;
             if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
-                               <<"\ncurrent_vol = "<<vol
-                               <<"\n--------------------------"<<std::endl;
+                              <<"\ncurrent_vol = "<<vol
+                            <<"\n--------------------------"<<std::endl;
             #endif
 
             //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2
@@ -246,13 +226,13 @@ NT volume(Polytope &P,
     }
     vol=round_value*vol;
     #ifdef VOLESTI_DEBUG
-    bool print = var.verbose;
     if(print) std::cout<<"rand points = "<<rnum<<std::endl;
     if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
     if(print) std::cout<<"round_value: "<<round_value<<std::endl;
     if(print) std::cout<<"volume computed: "<<vol<<std::endl;
     #endif
 
+    P.free_them_all();
     return vol;
 }
 
@@ -261,10 +241,10 @@ NT volume(Polytope &P,
 // Implementation is based on algorithm from paper "A practical volume algorithm",
 // Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
 // Ben Cousins, Santosh Vempala
-template <class Polytope, class UParameters, class GParameters, class Point, typename NT>
+template <typename Polytope, typename UParameters, typename GParameters, typename Point, typename NT>
 NT volume_gaussian_annealing(Polytope &P,
-                             GParameters &var,  // constants for volume
-                             UParameters &var2,
+                             GParameters & var,  // constans for volume
+                             UParameters & var2,
                              std::pair<Point,NT> InnerBall) {
     //typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
@@ -273,40 +253,38 @@ NT volume_gaussian_annealing(Polytope &P,
     const NT minNT = -1.79769e+308;
     NT vol;
     bool round = var.round, done;
-    unsigned int n = var.n;
-    unsigned int m=P.num_of_hyperplanes();
-    unsigned int min_index, max_index, index, min_steps;
+    bool print = var.verbose;
+    bool rand_only = var.rand_only, deltaset = false;
+    unsigned int n = var.n, steps;
+    unsigned int walk_len = var.walk_steps, m = P.num_of_hyperplanes();
+    unsigned int n_threads = var.n_threads, min_index, max_index, index, min_steps;
     NT error = var.error, curr_eps, min_val, max_val, val;
     NT frac = var.frac;
+    RNGType &rng = var.rng;
     typedef typename std::vector<NT>::iterator viterator;
 
     // Consider Chebychev center as an internal point
     Point c=InnerBall.first;
     NT radius=InnerBall.second;
-    if (var.ball_walk){
-        if(var.delta<0.0){
-            var.delta = 4.0 * radius / NT(n);
-            var.deltaset = true;
-        }
-    }
 
     // rounding of the polytope if round=true
     NT round_value=1;
     if(round){
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"\nRounding.."<<std::endl;
-        double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
         #endif
+        double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
         std::pair<NT,NT> res_round = rounding_min_ellipsoid(P,InnerBall,var2);
-        #ifdef VOLESTI_DEBUG
         double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
-        bool print = var.verbose;
+        #ifdef VOLESTI_DEBUG
         if(print) std::cout << "Rounding time = " << tstop1 - tstart1 << std::endl;
         #endif
-        round_value=res_round.first;
-        std::pair<Point,NT> res=P.ComputeInnerBall();
-        c=res.first; radius=res.second;
+        round_value = res_round.first;
+        std::pair<Point,NT> res = P.ComputeInnerBall();
+        c = res.first; radius = res.second;
+        if (var.ball_walk){
+            var.delta = 4.0 * radius / NT(n);
+        }
     }
 
     // Save the radius of the Chebychev ball
@@ -327,21 +305,18 @@ NT volume_gaussian_annealing(Polytope &P,
 
     // Computing the sequence of gaussians
     #ifdef VOLESTI_DEBUG
-    bool print = var.verbose;
     if(print) std::cout<<"\n\nComputing annealing...\n"<<std::endl;
-    double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
     #endif
+    double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
     get_annealing_schedule(P, radius, ratio, C, frac, N, var, error, a_vals);
-    #ifdef VOLESTI_DEBUG
-    bool print = var.verbose;
     double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
+    #ifdef VOLESTI_DEBUG
     if(print) std::cout<<"All the variances of schedule_annealing computed in = "<<tstop2-tstart2<<" sec"<<std::endl;
     #endif
 
-    unsigned int mm = a_vals.size()-1;
+    unsigned int mm = a_vals.size()-1, j=0;
+
     #ifdef VOLESTI_DEBUG
-    bool print = var.verbose;
-    unsigned int j = 0;
     if(print){
         for (viterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
             std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
@@ -351,17 +326,13 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     // Initialization for the approximation of the ratios
-    std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
-    unsigned int W = var.W;
-    std::vector<NT> last_W2(W,0);
+    unsigned int W = var.W, coord_prev, i=0;
+    std::vector<NT> last_W2(W,0), fn(mm,0), its(mm,0), lamdas(m,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
-    Point p(n); // The origin is in the Chebychev center of the Polytope
-    Point p_prev=p;
-    unsigned int coord_prev, i=0;
+    Point p(n), p_prev(n); // The origin is the Chebychev center of the Polytope
     viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
 
     #ifdef VOLESTI_DEBUG
-    bool print = var.verbose;
     if(print) std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
     if(print) std::cout<<"computing ratios..\n"<<std::endl;
     #endif
@@ -384,9 +355,7 @@ NT volume_gaussian_annealing(Polytope &P,
 
         // Set the radius for the ball walk if it is requested
         if (var.ball_walk) {
-            if (var.deltaset) {
-                var.delta = 4.0 * radius / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n));
-            }
+            var.delta = 4.0 * radius / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n));
         }
 
         while(!done || (*itsIt)<min_steps){
@@ -425,14 +394,12 @@ NT volume_gaussian_annealing(Polytope &P,
             if(index==W) index=0;
         }
         #ifdef VOLESTI_DEBUG
-        bool print = var.verbose;
         if(print) std::cout<<"ratio "<<i<<" = "<<(*fnIt) / (*itsIt)<<" N_"<<i<<" = "<<*itsIt<<std::endl;
         #endif
         vol = vol*((*fnIt) / (*itsIt));
     }
     // Compute and print total number of steps in verbose mode only
     #ifdef VOLESTI_DEBUG
-    bool print = var.verbose;
     if (print) {
         NT sum_of_steps = 0.0;
         for(viterator it = its.begin(); it != its.end(); ++it) {
@@ -443,6 +410,7 @@ NT volume_gaussian_annealing(Polytope &P,
     }
     #endif
 
+    P.free_them_all();
     return vol;
 }
 

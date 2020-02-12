@@ -14,7 +14,7 @@ rounding(P, random_walk = NULL, walk_length = NULL,
 
 \item{walk_length}{Optional. The number of the steps for the random walk.}
 
-\item{radius}{Optional. The radius for the ball walk.}
+\item{parameters}{Optional. A list for the parameters of the methods:}
 }
 \value{
 A numerical matrix that describes the rounded polytope and contains the round value.

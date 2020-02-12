@@ -165,7 +165,7 @@ rotating <- function(P) {
 #' @param P A convex polytope (H- or V-representation or zonotope).
 #' @param random_walk Optional. A string that declares the random walk.
 #' @param walk_length Optional. The number of the steps for the random walk.
-#' @param radius Optional. The radius for the ball walk.
+#' @param parameters Optional. A list for the parameters of the methods:
 #'
 #' @section warning:
 #' Do not use this function.
@@ -187,13 +187,13 @@ rounding <- function(P, random_walk = NULL, walk_length = NULL, parameters = NUL
 #' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{1} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise, where \eqn{d} is the dimension that the polytope lies.
 #' @param exact A boolean parameter. It should be used for the uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from the unit or the canonical or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies the dimension has to be declared and the type of body as well as the radius of the hypersphere.
 #' @param body A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.
-#' @param parameters A list for the parameters of the methods:
+#' @param parameters Optional. A list for the parameters of the methods:
 #' \itemize{
 #' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
 #' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 #' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
 #' \item{\code{BW_rad} }{ The radius for the ball walk.}
-#' \item{\code{diameter} }{ The diameter of the polytope.}
+#' \item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
 #' }
 #' @param InnerPoint A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.
 #'
@@ -208,7 +208,7 @@ rounding <- function(P, random_walk = NULL, walk_length = NULL, parameters = NUL
 #' @examples
 #' # uniform distribution from the 3d unit cube in V-representation using ball walk
 #' P = gen_cube(3, 'V')
-#' points = sample_points(P, random_walk = "BW", walk_length = 5)
+#' points = sample_points(P, random_walk = "BaW", walk_length = 5)
 #'
 #' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
@@ -255,7 +255,7 @@ sample_points <- function(P = NULL, N = NULL, distribution = NULL, random_walk =
 #'  \item{\code{prob} }{ The probability is used for the empirical confidence interval in ratio estimation of CB algorithm. The default value is \eqn{0.75}.}
 #'  \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm. The default value is \code{FALSE}.}
 #'  \item{\code{minmaxW} }{ A boolean parameter to use the sliding window with a minmax values stopping criterion.}
-#'  \item{\code{diameter} }{ The diameter of the polytope.}
+#'  \item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
 #' }
 #'
 #' @references \cite{I.Z.Emiris and V. Fisikopoulos,

@@ -9,6 +9,10 @@
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 #include "volume.h"
 #include "cooling_balls.h"
 #include "cooling_hpoly.h"
@@ -79,9 +83,12 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
         InnerB = P.ComputeInnerBall();
     }
 
+    //set parameters for billiard and ball walk
     if (billiard && diam < 0.0) {
         diam = 2.0 * std::sqrt(NT(n)) * InnerB.second;
         P.comp_diam(diam);
+    } else if (ball_walk && delta < 0.0) {
+        delta = 4.0 * InnerB.second / NT(n);
     }
 
     // initialization
@@ -92,7 +99,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
         vars<NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, 0.0, e, 0, 0.0, 0, InnerB.second, diam, rng,
                                urdist, urdist1, delta, verbose, rand_only, rounding, NNN, birk, ball_walk, cdhr,
                                rdhr, billiard);
-        vars_g<NT, RNGType> var1(n, walk_step, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, false, verbose,
+        vars_g<NT, RNGType> var1(n, walk_step, N, win_len, 1, e, InnerB.second, rng, C, frac, ratio, delta, verbose,
                                  rand_only, rounding, NN, birk, ball_walk, cdhr, rdhr);
         vol = volume_gaussian_annealing(P, var1, var2, InnerB);
     } else if (CB) {
@@ -100,7 +107,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
         if (!hpoly) {
             vol = vol_cooling_balls(P, var, var_ban, InnerB);
         } else {
-            vars_g <NT, RNGType> varg(n, 1, N, 4 * n * n + 500, 1, e, InnerB.second, rng, C, frac, ratio, delta, false,
+            vars_g <NT, RNGType> varg(n, 1, N, 4 * n * n + 500, 1, e, InnerB.second, rng, C, frac, ratio, delta,
                                       verbose, rand_only, false, false, birk, false, true, false);
             vol = vol_cooling_hpoly < HPolytope < Point > > (P, var, var_ban, varg, InnerB);
         }
@@ -141,7 +148,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //'  \item{\code{prob} }{ The probability is used for the empirical confidence interval in ratio estimation of CB algorithm. The default value is \eqn{0.75}.}
 //'  \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm. The default value is \code{FALSE}.}
 //'  \item{\code{minmaxW} }{ A boolean parameter to use the sliding window with a minmax values stopping criterion.}
-//'  \item{\code{diameter} }{ The diameter of the polytope.}
+//'  \item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
 //' }
 //'
 //' @references \cite{I.Z.Emiris and V. Fisikopoulos,
