@@ -72,52 +72,6 @@ Rcpp::List rounding (Rcpp::Reference P,
     Rcpp::NumericMatrix Mat;
     int type = P.field("type");
 
-    switch (type) {
-        case 1: {
-            // Hpolytope
-            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            InnerBall = HP.ComputeInnerBall();
-            diam = 2.0 * std::sqrt(NT(n)) * InnerBall.second;
-            delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
-            break;
-        }
-        case 2: {
-            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            InnerBall = VP.ComputeInnerBall();
-            VP.comp_diam(diam);
-            delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
-            break;
-        }
-        case 3: {
-            // Zonotope
-            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-            InnerBall = ZP.ComputeInnerBall();
-            ZP.comp_diam(diam);
-            delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
-            break;
-        }
-        case 4: {
-            throw Rcpp::exception("volesti does not support rounding for this representation currently.");
-            /*
-            Vpolytope VP1;
-            Vpolytope VP2;
-            VP1.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
-                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
-            VP2.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
-                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
-            VPcVP.init(VP1, VP2);
-
-            if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-            InnerBall = VPcVP.ComputeInnerBall();
-
-            diam = 2.0 * std::sqrt(NT(n)) * InnerBall.second;
-            VPcVP.comp_diam(diam);
-            delta = 4.0 * InnerBall.second / std::sqrt(NT(n));*/
-
-        }
-        //default: throw Rcpp::exception("Wrong polytope input");
-    }
-
     if(!random_walk.isNotNull()) {
         if (type == 1) {
             cdhr = true;
@@ -142,7 +96,54 @@ Rcpp::List rounding (Rcpp::Reference P,
         throw Rcpp::exception("Unknown walk type!");
     }
 
+    switch (type) {
+        case 1: {
+            // Hpolytope
+            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            InnerBall = HP.ComputeInnerBall();
+            if (billiard && diam < 0.0) HP.comp_diam(diam, InnerBall.second);
+            break;
+        }
+        case 2: {
+            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            InnerBall = VP.ComputeInnerBall();
+            if (billiard && diam < 0.0) VP.comp_diam(diam, 0.0);
+            break;
+        }
+        case 3: {
+            // Zonotope
+            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            InnerBall = ZP.ComputeInnerBall();
+            if (billiard && diam < 0.0) ZP.comp_diam(diam, 0.0);
+            break;
+        }
+        case 4: {
+            throw Rcpp::exception("volesti does not support rounding for this representation currently.");
+            /*
+            Vpolytope VP1;
+            Vpolytope VP2;
+            VP1.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
+                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
+            VP2.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
+                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
+            VPcVP.init(VP1, VP2);
+
+            if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
+            InnerBall = VPcVP.ComputeInnerBall();
+
+            diam = 2.0 * std::sqrt(NT(n)) * InnerBall.second;
+            VPcVP.comp_diam(diam);
+            delta = 4.0 * InnerBall.second / std::sqrt(NT(n));*/
+
+        }
+        //default: throw Rcpp::exception("Wrong polytope input");
+    }
+
     if(walk_length.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_length);
+
+    if (ball_walk && delta < 0.0) {
+        delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
+    }
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     // the random engine with this seed

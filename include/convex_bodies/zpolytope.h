@@ -252,7 +252,7 @@ public:
     }
 
 
-    void comp_diam(NT &diam) {
+    void comp_diam(NT &diam, const NT &cheb_rad) {
 
         int k = V.rows(), max_index = -1;
 

@@ -92,7 +92,9 @@ public:
         return 0.0;
     }
 
-    void comp_diam(const NT &diam) const {}
+    void comp_diam(NT &diam, const NT &cheb_rad) const {
+        diam = 2.0 * std::sqrt(NT(dimension())) * cheb_rad;
+    }
 
     void print() {
         P1.print();
