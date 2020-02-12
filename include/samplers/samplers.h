@@ -449,6 +449,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     NT T = urdist(rng) * diameter;
+    const NT dl = 0.995;
     Point v = get_direction<RNGType, Point, NT>(n), p0 = p;
     int it = 0;
 
@@ -460,7 +461,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
             lambda_prev = T;
             return;
         }
-        lambda_prev = 0.995 * pbpair.first;
+        lambda_prev = dl * pbpair.first;
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
         P.compute_reflection(v, p, pbpair.second);
@@ -475,7 +476,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, st
             break;
         }
 
-        lambda_prev = 0.995 * pbpair.first;
+        lambda_prev = dl * pbpair.first;
         p = (lambda_prev * v) + p;
         T -= lambda_prev;
         P.compute_reflection(v, p, pbpair.second);

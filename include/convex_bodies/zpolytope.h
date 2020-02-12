@@ -373,7 +373,7 @@ public:
 
         int count = 0;
         MT Fmat(_d-1,_d);
-        NT e = 0.0000000001;
+        const NT e = 0.0000000001;
         for (int j = 0; j < num_of_generators(); ++j) {
             if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) ) > e*std::abs(*(conv_comb + j))) &&
                 ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
