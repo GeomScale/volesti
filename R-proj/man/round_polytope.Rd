@@ -10,11 +10,15 @@ round_polytope(P, random_walk = NULL, walk_length = NULL,
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
 
-\item{random_walk}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.}
+\item{random_walk}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk or d) \code{'BiW'} for Billiard walk. The default walk is \code{'CDHR'} for H-polytope and \code{'BiW'} for the other representations.}
 
-\item{walk_length}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.}
+\item{walk_length}{Optional. The number of the steps for the random walk. The default value is \eqn{1} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
 
-\item{radius}{Optional. The radius for the ball walk.}
+\item{parameters}{A list for the parameters of the methods:
+\itemize{
+  \item{\code{BW_rad} }{ The radius for the ball walk.}
+  \item{\code{diameter} }{ The diameter of the polytope.}
+}}
 }
 \value{
 A list with 2 elements: (a) a polytope of the same class as the input polytope class and (b) the element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
