@@ -59,7 +59,7 @@
 //' @examples
 //' # uniform distribution from the 3d unit cube in V-representation using ball walk
 //' P = gen_cube(3, 'V')
-//' points = sample_points(P, random_walk = "BW", walk_length = 5)
+//' points = sample_points(P, random_walk = "BaW", walk_length = 5)
 //'
 //' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 //' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
