@@ -17,4 +17,5 @@
 # volesti 1.1.0
 
 * New volume computation algorithm.
+* Billiard walk for uniform sampling.
 * Improved names for functions and input variables.
