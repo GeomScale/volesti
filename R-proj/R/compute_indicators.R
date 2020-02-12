@@ -1,6 +1,8 @@
 #' Compute an indicator for each time period that describes the state of a market.
 #'
-#' Given a matrix that contains row-wise the assets' returns and a sliding window W, this function computes an approximation of the joint distribution (copula) between portfolios' return and volatility in each time period implied by W. For each copula it computes an indicator: large value corresponds to a crisis period and a small value to a normal period. If 60 consecutive indicators are larger than 1.
+#' Given a matrix that contains row-wise the assets' returns and a sliding window W, this function computes an approximation of the joint distribution (copula) between portfolios' return and volatility in each time period implied by W. 
+#' For each copula it computes an indicator: large value corresponds to a crisis period and a small value to a normal period. 
+#' The periods over which the indicator is greater than 1 for more than 60 consecutives sliding windows are warnings and for more than 100 are crisis. The sliding window is shifted by one day.
 #'
 #' @param MatReturns A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
 #' @param W Optional. The length of the sliding window. The default value is 60.
@@ -42,7 +44,7 @@ compute_indicators <- function(MatReturns, W = NULL, M = NULL, N = NULL) {
       compRet[j] = compRet[j] - 1
     }
     
-    cop = copula(h1 = compRet, E = E, numSlices = M, N = N)
+    cop = copula(R1 = compRet, Sigma = E, M = M, N = N)
     blue_mass = 0
     red_mass = 0
     
