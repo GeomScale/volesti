@@ -22,9 +22,9 @@
 #ifndef SAMPLE_ONLY_H
 #define SAMPLE_ONLY_H
 
-template <class Point, typename NT, class PointList, class Polytope, class UParameters, class GParameters>
-void sampling_only(PointList &randPoints, Polytope &P, unsigned int walk_len,
-                   unsigned int rnum, bool gaussian, NT a, Point internal_point,
+template <typename Point, typename NT, typename PointList, typename Polytope, typename UParameters, typename GParameters>
+void sampling_only(PointList &randPoints, Polytope &P, const unsigned int walk_len,
+                   const unsigned int rnum, bool gaussian, const NT &a, const Point &internal_point,
                    UParameters const& var1, GParameters const& var2) {
 
     typedef typename UParameters::RNGType RNGType;

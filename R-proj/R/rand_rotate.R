@@ -15,15 +15,15 @@
 #' }
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
-#' P = GenSimplex(2,'H')
+#' P = gen_simplex(2,'H')
 #' poly_matrix_list = rand_rotate(P)
 #' 
 #' # rotate a V-polytope (3d cube)
-#' P = GenCube(3, 'V')
+#' P = gen_cube(3, 'V')
 #' poly_matrix_list = rand_rotate(P)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
-#' Z = GenZonotope(3,6)
+#' Z = gen_rand_zonotope(3,6)
 #' poly_matrix_list = rand_rotate(Z)
 #' @export
 rand_rotate <- function(P){

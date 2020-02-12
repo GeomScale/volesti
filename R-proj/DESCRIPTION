@@ -6,16 +6,13 @@ Author: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com> [aut, cph, cre
   Apostolos Chalkis <tolis.chal@gmail.com> [cph, aut],
   contributors in file inst/AUTHORS
 Copyright: file inst/COPYRIGHTS
-Description: Provides an R interface for 'volesti' C++ package. 'volesti' computes
-             estimations of volume of polytopes given by a set of points or linear inequalities
-             or Minkowski sum of segments (zonotopes). There are two algorithms for volume
-             estimation (I.Z. Emiris and V. Fisikopoulos (2014) <arXiv:1312.2873> and 
-             B. Cousins, S. Vempala (2016) <arXiv:1409.6011>) as well as algorithms for sampling, 
-             rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for 
-             estimating copulas (L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos (2018) 
-             <arXiv:1803.05861>).
-Version: 1.0.3
-Date: 2019-09-10
+Description: Provides an R interface for 'volesti' C++ package. 'volesti' computes estimations of volume 
+             of polytopes given by (i) a set of points, (ii) linear inequalities or (iii) Minkowski sum of segments 
+             (a.k.a. zonotopes). There are three algorithms for volume estimation as well as algorithms 
+             for sampling, rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for 
+             estimating copulas useful in computational finance.
+Version: 1.1.0
+Date: 2020-01-23
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: Rcpp (>= 0.12.17)
 Imports: methods
