@@ -23,8 +23,8 @@
 //' @param h1 A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
 //' @param h2 Optional. A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.
 //' @param E Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
-//' @param numSlices The number of the slices for the copula. Default value is 100.
-//' @param N The number of points to sample. Default value is \eqn{4\cdot 10^6}.
+//' @param numSlices The number of the slices for the copula. The default value is 100.
+//' @param N The number of points to sample. The default value is \eqn{5\cdot 10^5}.
 //'
 //' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 //' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
@@ -56,7 +56,7 @@ Rcpp::NumericMatrix copula (Rcpp::NumericVector h1 = R_NilValue, Rcpp::NumericVe
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937    RNGType;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    unsigned int num_slices = 100, numpoints = 4000000;
+    unsigned int num_slices = 100, numpoints = 500000;
 
     if (numSlices.isNotNull()) {
         num_slices = Rcpp::as<unsigned int>(numSlices);

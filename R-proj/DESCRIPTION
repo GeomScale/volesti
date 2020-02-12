@@ -17,7 +17,7 @@ Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: Rcpp (>= 0.12.17)
 Imports: methods
 LinkingTo: Rcpp, RcppEigen, BH
-Suggests: testthat
+Suggests: testthat, tawny
 Encoding: UTF-8
 RoxygenNote: 6.1.1
 BugReports: https://github.com/GeomScale/volume_approximation/issues
