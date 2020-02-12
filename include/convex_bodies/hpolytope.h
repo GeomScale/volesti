@@ -138,7 +138,13 @@ public:
         return 0.0;
     }
 
-    void comp_diam(const NT &diam) {}
+    void comp_diam(NT &diam, const NT &cheb_rad) {
+        if(cheb_rad < 0.0) {
+            diam = 2.0 * std::sqrt(NT(_d)) * ComputeInnerBall().second;
+        } else {
+            diam = 2.0 * std::sqrt(NT(_d)) * cheb_rad;
+        }
+    }
 
     void init(const unsigned int dim, const MT &_A, const VT &_b) {
         _d = dim;

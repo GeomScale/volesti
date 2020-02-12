@@ -71,15 +71,17 @@ NT volume(Polytope &P,
         #endif
         std::pair<Point,NT> res=P.ComputeInnerBall();
         c=res.first; radius=res.second;
+        P.comp_diam(var.diameter, radius);
         if (var.ball_walk){
             var.delta = 4.0 * radius / NT(n);
         }
     }
 
-    VT c_e(n);
-    for(unsigned int i=0; i<n; i++){
-        c_e(i)=c[i];  // write chebychev center in an eigen vector
-    }
+    VT c_e = Eigen::Map<VT>(&c.get_coeffs()[0], c.dimension());
+    //VT c_e(n);
+    //for(unsigned int i=0; i<n; i++){
+    //    c_e(i)=c[i];  // write chebychev center in an eigen vector
+    //}
     P.shift(c_e);
     c=Point(n);
 
@@ -291,10 +293,11 @@ NT volume_gaussian_annealing(Polytope &P,
     var.che_rad = radius;
 
     // Move chebychev center to origin and apply the same shifting to the polytope
-    VT c_e(n);
-    for(unsigned int i=0; i<n; i++){
-        c_e(i)=c[i];  // write chebychev center in an eigen vector
-    }
+    VT c_e = Eigen::Map<VT>(&c.get_coeffs()[0], c.dimension());
+    //VT c_e(n);
+    //for(unsigned int i=0; i<n; i++){
+    //    c_e(i)=c[i];  // write chebychev center in an eigen vector
+    //}
     P.shift(c_e);
 
     // Initialization for the schedule annealing

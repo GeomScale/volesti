@@ -242,11 +242,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                         Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
 
-                if (!set_mean_point || ball_walk) {
+                if (!set_mean_point || ball_walk || billiard) {
                     InnerBall = HP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
-                if (billiard && diam < 0.0) diam = 2.0 * std::sqrt(NT(dim)) * InnerBall.second;
+                if (billiard && diam < 0.0) HP.comp_diam(diam, InnerBall.second);
                 break;
             }
             case 2: {
@@ -258,7 +258,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = VP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
-                if (billiard && diam < 0.0) VP.comp_diam(diam);
+                if (billiard && diam < 0.0) VP.comp_diam(diam, 0.0);
                 break;
             }
             case 3: {
@@ -270,7 +270,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                     InnerBall = ZP.ComputeInnerBall();
                     if (!set_mean_point) MeanPoint = InnerBall.first;
                 }
-                if (billiard && diam < 0.0) ZP.comp_diam(diam);
+                if (billiard && diam < 0.0) ZP.comp_diam(diam, 0.0);
                 break;
             }
             case 4: {
@@ -286,9 +286,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
                 InnerBall = VPcVP.ComputeInnerBall();
                 if (!set_mean_point) MeanPoint = InnerBall.first;
-                if (diam < 0.0) {
-                    diam = 2.0 * std::sqrt(NT(dim)) * InnerBall.second;
-                    VPcVP.comp_diam(diam);
+                if (billiard && diam < 0.0) {
+                    VPcVP.comp_diam(diam, InnerBall.second);
                 }
                 break;
             }

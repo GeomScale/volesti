@@ -14,6 +14,7 @@
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "volume.h"
+#include "misc.h"
 #include "polytope_generators.h"
 
 template <typename NT>

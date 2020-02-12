@@ -41,7 +41,7 @@ public:
         return P.dimension();
     }
 
-    void comp_diam(NT &diam) const {
+    void comp_diam(NT &diam, const NT &cheb_rad) const {
         diam = 2.0 * B.radius();
     }
 

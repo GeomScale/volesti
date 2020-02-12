@@ -52,9 +52,7 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
         std::pair <Point, NT> res = P.ComputeInnerBall();
         c = res.first;
         radius = res.second;
-        var.diameter = 2.0 * std::sqrt(NT(n))*radius;
-        P.comp_diam(var.diameter);
-        diam = var.diameter;
+        P.comp_diam(var.diameter, radius);
         if (var.ball_walk){
             var.delta = 4.0 * radius / NT(n);
         }
@@ -62,10 +60,11 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
 
     // Save the radius of the Chebychev ball
     var.che_rad = radius;
-    VT c_e(n);
-    for (unsigned int i = 0; i < n; i++) {
-        c_e(i) = c[i];  // write chebychev center in an eigen vector
-    }
+    VT c_e = Eigen::Map<VT>(&c.get_coeffs()[0], c.dimension());
+    //VT c_e(n);
+    //for (unsigned int i = 0; i < n; i++) {
+    //    c_e(i) = c[i];  // write chebychev center in an eigen vector
+    //}
     P.shift(c_e);
     P.normalize();
 
@@ -96,7 +95,7 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
                                                                          var);
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter) {
         Pb = PolyBall(P, *balliter);
-        Pb.comp_diam(var.diameter);
+        Pb.comp_diam(var.diameter, 0.0);
         vol *= (!window2) ? 1 / esti_ratio_interval<RNGType, Point>(Pb, *(balliter + 1), *(ratioiter + 1), er1,
                 win_len, N * nu, prob, var) : 1 / esti_ratio<RNGType, Point>(Pb, *balliter, *ratioiter, er1,
                                                                              win_len, N * nu, var);

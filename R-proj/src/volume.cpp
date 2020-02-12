@@ -85,8 +85,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 
     //set parameters for billiard and ball walk
     if (billiard && diam < 0.0) {
-        diam = 2.0 * std::sqrt(NT(n)) * InnerB.second;
-        P.comp_diam(diam);
+        P.comp_diam(diam, InnerB.second);
     } else if (ball_walk && delta < 0.0) {
         delta = 4.0 * InnerB.second / NT(n);
     }

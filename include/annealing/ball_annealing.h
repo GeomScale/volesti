@@ -211,7 +211,7 @@ bool get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
         zb_it = PolyBall(P, BallSet[BallSet.size()-1]);
         q=Point(n);
         randPoints.clear();
-        zb_it.comp_diam(var.diameter);
+        zb_it.comp_diam(var.diameter, 0.0);
         rand_point_generator(zb_it, q, Ntot, var.walk_steps, randPoints,var);
 
         if (check_convergence<Point>(B0, randPoints, lb, ub, fail, ratio, nu, alpha, false, true)) {

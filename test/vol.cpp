@@ -431,7 +431,7 @@ int main(const int argc, const char** argv)
   if (Zono) {
       InnerBall = ZP.ComputeInnerBall();
       if(billiard && diameter < 0.0){
-          ZP.comp_diam(diameter);
+          ZP.comp_diam(diameter, 0.0);
       }
   } else if(!Vpoly) {
       InnerBall = HP.ComputeInnerBall();
@@ -440,7 +440,7 @@ int main(const int argc, const char** argv)
           return -1.0;
       }
       if(billiard && diameter < 0.0){
-          diameter = 2.0 * InnerBall.second * std::sqrt(NT(n));
+          HP.comp_diam(diameter, InnerBall.second);
       }
   }else{
       if(CB) {
@@ -461,7 +461,7 @@ int main(const int argc, const char** argv)
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
               if(billiard && diameter < 0.0) {
-                  VP.comp_diam(diameter);
+                  VP.comp_diam(diameter, 0.0);
               }
 
           } else {
@@ -470,13 +470,13 @@ int main(const int argc, const char** argv)
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
               if(billiard &&  diameter < 0.0){
-                  VP.comp_diam(diameter);
+                  VP.comp_diam(diameter, 0.0);
               }
           }
       } else {
           InnerBall = VP.ComputeInnerBall();
           if(billiard && diameter < 0.0){
-              VP.comp_diam(diameter);
+              VP.comp_diam(diameter, 0.0);
           }
       }
   }
