@@ -300,12 +300,9 @@ public:
 
 
         for (int i = 0; i < m; i++) {
-            sum_nom = b(i);
-            sum_denom = NT(0);
-            for (j=0 ; j< r.dimension();  j++){
-                sum_nom -= A(i, j) * r[j];
-                sum_denom += A(i, j) * v[j];
-            }
+            sum_nom = b(i) - r.dot(A.row(i));
+            sum_denom = v.dot(A.row(i));
+
             if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
@@ -331,12 +328,10 @@ public:
 
 
         for (int i = 0; i < m; i++) {
-            sum_nom = b(i);
+            sum_nom = b(i) - r.dot(A.row(i));
             sum_denom = A(i, rand_coord);
 
-            for (j=0; j< r.dimension(); j++) {
-                sum_nom -= A(i, j) * r[j];
-            }
+
             lamdas[i] = sum_nom;
             if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<sum_denom<<std::endl;

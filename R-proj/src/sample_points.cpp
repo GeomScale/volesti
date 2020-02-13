@@ -327,12 +327,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     Rcpp::NumericMatrix PointSet(dim,numpoints);
     typename std::list<Point>::iterator rpit=randPoints.begin();
-    typename std::vector<NT>::iterator qit;
     unsigned int j = 0, i;
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        qit = (*rpit).iter_begin(); i=0;
-        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            PointSet(i,j)=*qit;
+        for (i=0 ; i<rpit->dimension() ; i++){
+            PointSet(i,j)= (*rpit)[i];
         }
     }
     return PointSet;

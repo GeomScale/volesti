@@ -10,6 +10,7 @@
 #define POINT_H
 
 #include <iostream>
+#include "../external/Eigen/Eigen"
 
 template <class K>
 class point
@@ -44,7 +45,7 @@ public:
         return coeffs;
     }
 
-    int dimension() {
+    int dimension() const {
         return d;
     }
 
@@ -56,59 +57,79 @@ public:
         coeffs(i) = coord;
     }
 
-    FT operator[] (const unsigned int i) {
+    FT operator[] (const unsigned int i) const {
         return coeffs(i);
     }
 
-    point operator+ (point& p) {
+    point operator+ (const point& p) const {
         point temp;
         temp.d = d;
         temp.coeffs = coeffs + p.getCoefficients();
         return temp;
     }
 
-    void add(Coeff coeffs) {
+    void operator+= (const point& p) {
+        coeffs += p.getCoefficients();
+    }
+
+    void operator+= (const Coeff& coeffs) {
         this->coeffs = coeffs + this->coeffs;
     }
 
-    point operator- (point& p) {
+    void operator= (const Coeff& coeffs) {
+        this->coeffs = coeffs;
+    }
+
+    point operator- (const point& p) const {
         point temp;
         temp.d = d;
         temp.coeffs = coeffs - p.getCoefficients();
         return temp;
     }
 
-    point operator* (const FT& k) {
+    point operator* (const FT k) const {
         point temp;
         temp.d = d;
         temp.coeffs = coeffs * k;
         return temp;
     }
 
-    point operator/ (const FT& k) {
+    void operator*= (const FT k) {
+        coeffs *= k;
+    }
+
+    point operator/ (const FT k) const {
         point temp;
         temp.d = d;
         temp.coeffs = coeffs / k;
         return temp;
     }
 
-    bool operator== (point& p) {//TODO check dim?
+    void operator/= (const FT k)  {
+        coeffs /= k;
+    }
+
+    bool operator== (point& p) const {
         int i=0;
 
-        for (auto x : p.getCoefficients()) {
-            if (x != coeffs(i++)) return false;
+        for (i=0 ; i<d ; i++) {
+            if (this->coeffs(i) != coeffs(i)) return false;
         }
 
         return true;
     }
 
 
-    FT dot(point& p){
+    FT dot(const point& p) const {
         return coeffs.dot(p.getCoefficients());
     }
 
+    FT dot(const Coeff& coeffs) const {
+        return this->coeffs.dot(coeffs);
+    }
 
-    FT squared_length() {
+
+    FT squared_length() const {
 
         FT lsq = FT(0.0);
 
@@ -118,7 +139,7 @@ public:
         return lsq;
     }
 
-    void print(){
+    void print() const{
         for(unsigned int i=0; i<d; i++){
 #ifdef VOLESTI_DEBUG
             std::cout<<coeffs(i)<<" ";

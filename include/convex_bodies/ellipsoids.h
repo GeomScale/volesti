@@ -38,13 +38,7 @@ public:
     }
 
     NT mat_mult(Point p) {
-        VT q(dim);
-        unsigned int i = 0;
-        viterator pit = p.iter_begin();
-        for ( ; pit!=p.iter_end(); ++pit, ++i){
-            q(i)=(*pit);
-        }
-        return q.transpose()*G*q;
+         return p.getCoefficients().transpose()*G*p.getCoefficients();
     }
 
 };

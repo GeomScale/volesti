@@ -12,7 +12,7 @@
 
 
 #include "khach.h"
-#include "Eigen"
+#include "../external/Eigen/Eigen"
 
 // ----- ROUNDING ------ //
 // main rounding function
