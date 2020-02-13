@@ -30,11 +30,11 @@ compute_indicators <- function(MatReturns, W = NULL, M = NULL, N = NULL) {
   for (i in 1:(nrows-wl)) {
     
     Win=i:(i+wl)
-    if("tawny" %in% rownames(installed.packages()) == FALSE) {
-      E = cov(MatReturns[Win,])
-    } else {
-      E = tawny::cov.shrink(MatReturns[Win,])
-    }
+    #if("tawny" %in% rownames(installed.packages()) == FALSE && FALSE) {
+    E = cov(MatReturns[Win,])
+    #} else {
+      #E = tawny::cov.shrink(MatReturns[Win,])
+    #}
     
     compRet = rep(1,nassets)
     for (j in 1:nassets) {
@@ -61,8 +61,8 @@ compute_indicators <- function(MatReturns, W = NULL, M = NULL, N = NULL) {
         }
       }
     }
-    indicators = c(indicators, blue_mass / red_mass)
-    #print(length(indicators))
+    #indicators = c(indicators, blue_mass / red_mass)
+    print(length(indicators))
   }
 
   n = length(indicators)
@@ -88,6 +88,6 @@ compute_indicators <- function(MatReturns, W = NULL, M = NULL, N = NULL) {
     }
   }
   
-  return(list("indicators" = indicatos, market_states = col))
+  return(list("indicators" = indicators, market_states = col))
   
 }
