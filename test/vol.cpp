@@ -505,7 +505,11 @@ int main(const int argc, const char** argv)
       if (Zono || Vpoly) {
           CB = true;
       } else {
-          CG = true;
+          if (n <= 200) {
+              CB = true;
+          } else {
+              CG = true;
+          }
       }
   } else{
       if (!CB && !CG) {
@@ -523,14 +527,29 @@ int main(const int argc, const char** argv)
           walk_len = 1;
       }
   }
-  if(!user_NN)
-      NNu = 120 + (n*n)/10;
+  if(!user_NN) {
+      if(billiard) {
+          NNu = 125;
+      } else {
+          NNu = 120 + (n * n) / 10;
+      }
+  }
   if(!user_N)
       N = 500 * ((int) C) + ((int) (n * n / 2));
   if(!user_ratio)
       ratio = 1.0-1.0/(NT(n));
-  if(!user_W)
-      W = 4*n*n+500;
+  if(!user_W){
+      if (CB) {
+          if (billiard) {
+              W = 150;
+          } else {
+              W = 2 * n * n + 250;
+          }
+      } else if (CG) {
+          W = 4 * n * n + 500;
+      }
+  }
+
 
 
   // Timings
