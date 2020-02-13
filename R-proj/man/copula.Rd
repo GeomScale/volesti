@@ -4,18 +4,18 @@
 \alias{copula}
 \title{Construct a copula using uniform sampling from the unit simplex}
 \usage{
-copula(R1 = NULL, R2 = NULL, Sigma = NULL, M = NULL, N = NULL)
+copula(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL)
 }
 \arguments{
-\item{M}{The number of the slices for the copula. The default value is 100.}
+\item{r1}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
 
-\item{N}{The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
+\item{r2}{Optional. A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.}
 
-\item{h1}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
+\item{sigma}{Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.}
 
-\item{h2}{Optional. A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.}
+\item{m}{The number of the slices for the copula. The default value is 100.}
 
-\item{E}{Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.}
+\item{n}{The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
 }
 \value{
 A \eqn{numSlices\times numSlices} numerical matrix that corresponds to a copula.
@@ -29,14 +29,14 @@ h1 = runif(n = 10, min = 1, max = 1000)
 h1 = h1 / 1000
 h2=runif(n = 10, min = 1, max = 1000)
 h2 = h2 / 1000
-cop = copula(R1 = h1, R2 = h2, M = 10, N = 100000)
+cop = copula(r1 = h1, r2 = h2, m = 10, n = 100000)
 
 # compute a copula for a family of parallel hyperplanes and a family of conentric ellipsoids
 h = runif(n = 10, min = 1, max = 1000)
 h = h / 1000
 E = replicate(10, rnorm(20))
 E = cov(E)
-cop = copula(R1 = h, Sigma = E, M = 10, N = 100000)
+cop = copula(r1 = h, sigma = E, m = 10, n = 100000)
 
 }
 \references{

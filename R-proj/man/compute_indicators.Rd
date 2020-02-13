@@ -4,16 +4,16 @@
 \alias{compute_indicators}
 \title{Compute an indicator for each time period that describes the state of a market.}
 \usage{
-compute_indicators(MatReturns, W = NULL, M = NULL, N = NULL)
+compute_indicators(returns, win_length = NULL, m = NULL, n = NULL)
 }
 \arguments{
-\item{MatReturns}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
+\item{returns}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
 
-\item{W}{Optional. The length of the sliding window. The default value is 60.}
+\item{win_length}{Optional. The length of the sliding window. The default value is 60.}
 
-\item{M}{Optional. The number of slices for the copula. The default value is 100.}
+\item{m}{Optional. The number of slices for the copula. The default value is 100.}
 
-\item{N}{Optional. The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
+\item{n}{Optional. The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
 }
 \value{
 A list that contains the indicators and the corresponding vector that label each time period with respect to the market state: a) normal, b) crisis, c) warning.
