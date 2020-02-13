@@ -199,9 +199,7 @@ void get_annealing_schedule(Polytope &P, const NT &radius, const NT &ratio, cons
     while (true) {
 
         if (var.ball_walk) {
-            if (var.deltaset) {
-                var.delta = 4.0 * var.che_rad / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n));
-            }
+            var.delta = 4.0 * var.che_rad / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n));
         }
         // Compute the next gaussian
         next_a = get_next_gaussian(P, p, a_vals[it], N, ratio, C, var);

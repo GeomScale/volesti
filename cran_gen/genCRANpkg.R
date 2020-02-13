@@ -85,9 +85,9 @@ makevarswin_dist = paste0(path, '/cran_gen/cran_package/src')
 file.copy(makevarswin_dir, makevarswin_dist, recursive=TRUE)
 
 # replace the volume.h 
-volume_dir = paste0(path,'/cran_gen/volume.h')
-volume_dist = paste0(path,'/cran_gen/cran_package/src/include/volume')
-file.copy(volume_dir, volume_dist, recursive=TRUE)
+#volume_dir = paste0(path,'/cran_gen/volume.h')
+#volume_dist = paste0(path,'/cran_gen/cran_package/src/include/volume')
+#file.copy(volume_dir, volume_dist, recursive=TRUE)
 
 # copy paste the LICENCE
 dir_lic = paste0(path,'/LICENSE')
