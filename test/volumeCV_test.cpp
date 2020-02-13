@@ -177,9 +177,9 @@ void call_test_simplex() {
     P = gen_simplex<Hpolytope>(20, false);
     test_CV_volume<NT, RNGType>(P, 1.0 / factorial(20.0), 0.2);
 
-    std::cout << "--- Testing volume of H-simplex30" << std::endl;
-    P = gen_simplex<Hpolytope>(30, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(30.0), 0.3);
+    //std::cout << "--- Testing volume of H-simplex30" << std::endl;
+    //P = gen_simplex<Hpolytope>(30, false);
+    //test_CV_volume<NT, RNGType>(P, 1.0 / factorial(30.0), 0.3);
 
     //std::cout << "--- Testing volume of H-simplex40" << std::endl;
     //P = gen_simplex<Hpolytope>(40, false);
