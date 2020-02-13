@@ -3,9 +3,13 @@
 #' Given a convex H or V polytope or a zonotope as input this functionbrings the polytope in well rounded position based on minimum volume enclosing ellipsoid of a pointset.
 #' 
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
-#' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
-#' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.
-#' @param radius Optional. The radius for the ball walk.
+#' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk or d) \code{'BiW'} for Billiard walk. The default walk is \code{'CDHR'} for H-polytope and \code{'BiW'} for the other representations.
+#' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{1} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.
+#' @param parameters Optional. A list for the parameters of the methods:
+#' \itemize{
+#'   \item{\code{BW_rad} }{ The radius for the ball walk.}
+#'   \item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
+#' }
 #' 
 #' @return A list with 2 elements: (a) a polytope of the same class as the input polytope class and (b) the element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
 #'
@@ -24,9 +28,9 @@
 #' Z = gen_rand_zonotope(2,6)
 #' ListZono = round_polytope(Z, random_walk = 'BW')
 #' @export
-round_polytope <- function(P, random_walk = NULL, walk_length = NULL, radius = NULL){
+round_polytope <- function(P, random_walk = NULL, walk_length = NULL, parameters = NULL){
   
-  ret_list = rounding(P, random_walk, walk_length, radius)
+  ret_list = rounding(P, random_walk, walk_length, parameters)
   
   #get the matrix that describes the polytope
   Mat = ret_list$Mat
@@ -41,8 +45,10 @@ round_polytope <- function(P, random_walk = NULL, walk_length = NULL, radius = N
     PP = list("P" = Vpolytope$new(A), "round_value" = ret_list$round_value)
   }else if (type == 3) {
     PP = list("P" = Zonotope$new(A), "round_value" = ret_list$round_value)
-  } else {
+  } else if(type == 1) {
     PP = list("P" = Hpolytope$new(A,b), "round_value" = ret_list$round_value)
+  } else {
+    PP = list("P" = VPolyintersectVPoly$new(V1 = t(Mat[,dim(P$V1)[1]]), V2 = t(Mat[,dim(P$V2)[1]])), "round_value" = ret_list$round_value)
   }
   return(PP)
 }

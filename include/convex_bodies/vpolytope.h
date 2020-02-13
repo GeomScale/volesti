@@ -187,7 +187,7 @@ public:
         return rad;
     }
 
-    void comp_diam(NT &diam) {
+    void comp_diam(NT &diam, const NT &cheb_rad) {
         diam = 0.0;
         NT diam_iter;
         for (int i = 0; i < num_of_vertices(); ++i) {
@@ -365,15 +365,19 @@ public:
     }
 
 
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v){
+        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
+    }
+
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
                                                const std::vector<NT> &Av) {
-        return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
+        return line_positive_intersect(r, v);
     }
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
                                                const std::vector<NT> &Av, const NT &lambda_prev) {
-        return line_positive_intersect(r, v, Ar, Av);
+        return line_positive_intersect(r, v);//, Ar, Av);
     }
 
 
@@ -443,6 +447,29 @@ public:
             randPoints.push_back(p);
         }
         return true;
+    }
+
+    void compute_reflection(Point &v, const Point &p, const int &facet) {
+
+        int count = 0, outvert;
+        MT Fmat2(_d,_d);
+        for (int j = 0; j < num_of_vertices(); ++j) {
+            if (*(conv_comb + j) > 0.0) {
+                Fmat2.row(count) = V.row(j);
+                count++;
+            } else {
+                outvert = j;
+            }
+        }
+
+        VT a = Fmat2.colPivHouseholderQr().solve(VT::Ones(_d));
+        if (a.dot(V.row(outvert)) > 1.0) a = -a;
+        a = a/a.norm();
+
+        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
+
+        s = ((-2.0 * v.dot(s)) * s);
+        v = s + v;
     }
 
     void free_them_all() {

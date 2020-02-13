@@ -22,7 +22,14 @@
 #include "Eigen/Eigen"
 #define VOLESTI_DEBUG
 #include <fstream>
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
 #include "volume.h"
+#include "rotating.h"
+#include "misc.h"
+#include "linear_extensions.h"
 #include "cooling_balls.h"
 #include "cooling_hpoly.h"
 #include "sample_only.h"
@@ -81,6 +88,7 @@ int main(const int argc, const char** argv)
          exact_zono = false,
          gaussian_sam = false,
          hpoly = false,
+         billiard=false,
          win2 = false;
 
     //this is our polytope
@@ -173,7 +181,12 @@ int main(const int argc, const char** argv)
           cdhr = true;
           correct = true;
       }
-      if(!strcmp(argv[i],"-bw")){
+      if(!strcmp(argv[i],"-BiW")){
+          user_randwalk = true;
+          billiard = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-BaW")){
           user_randwalk = true;
           ball_walk = true;
           correct = true;
@@ -331,6 +344,10 @@ int main(const int argc, const char** argv)
           nexp = atof(argv[++i]);
           correct = true;
       }
+      if(!strcmp(argv[i],"-diameter")){
+          diameter = atof(argv[++i]);
+          correct = true;
+      }
       if(!strcmp(argv[i],"-lb")){
           lb = atof(argv[++i]);
           correct = true;
@@ -413,11 +430,17 @@ int main(const int argc, const char** argv)
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if (Zono) {
       InnerBall = ZP.ComputeInnerBall();
+      if(billiard && diameter < 0.0){
+          ZP.comp_diam(diameter, 0.0);
+      }
   } else if(!Vpoly) {
       InnerBall = HP.ComputeInnerBall();
       if (InnerBall.second < 0.0) {
           std::cout<<"Polytope is unbounded!"<<std::endl;
           return -1.0;
+      }
+      if(billiard && diameter < 0.0){
+          HP.comp_diam(diameter, InnerBall.second);
       }
   }else{
       if(CB) {
@@ -428,7 +451,7 @@ int main(const int argc, const char** argv)
               InnerBall.second = 0.0;
               vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second,
                                       2 * VP.get_max_vert_norm(), rng, urdist, urdist1, -1, verbose, rand_only, round,
-                                      NN, birk, false, false, true);
+                                      NN, birk, false, false, true,false);
               std::pair <NT, NT> res_round = rounding_min_ellipsoid(VP, InnerBall, var2);
               round_val = res_round.first;
 
@@ -437,16 +460,35 @@ int main(const int argc, const char** argv)
               InnerBall.first = Point(n);
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
+              if(billiard && diameter < 0.0) {
+                  VP.comp_diam(diameter, 0.0);
+              }
+
           } else {
               InnerBall.second = 0.0;
               InnerBall.first = Point(n);
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
+              if(billiard &&  diameter < 0.0){
+                  VP.comp_diam(diameter, 0.0);
+              }
           }
       } else {
           InnerBall = VP.ComputeInnerBall();
+          if(billiard && diameter < 0.0){
+              VP.comp_diam(diameter, 0.0);
+          }
       }
   }
+
+  if (ball_walk && delta < 0.0) {
+      if (CG || gaussian_sam) {
+          delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
+      } else {
+          delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
+      }
+  }
+
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Inner ball time: " << tstop1 - tstart1 << std::endl;
   if(verbose){
@@ -463,7 +505,11 @@ int main(const int argc, const char** argv)
       if (Zono || Vpoly) {
           CB = true;
       } else {
-          CG = true;
+          if (n <= 200) {
+              CB = true;
+          } else {
+              CG = true;
+          }
       }
   } else{
       if (!CB && !CG) {
@@ -481,14 +527,29 @@ int main(const int argc, const char** argv)
           walk_len = 1;
       }
   }
-  if(!user_NN)
-      NNu = 120 + (n*n)/10;
+  if(!user_NN) {
+      if(billiard) {
+          NNu = 125;
+      } else {
+          NNu = 120 + (n * n) / 10;
+      }
+  }
   if(!user_N)
       N = 500 * ((int) C) + ((int) (n * n / 2));
   if(!user_ratio)
       ratio = 1.0-1.0/(NT(n));
-  if(!user_W)
-      W = 4*n*n+500;
+  if(!user_W){
+      if (CB) {
+          if (billiard) {
+              W = 150;
+          } else {
+              W = 2 * n * n + 250;
+          }
+      } else if (CG) {
+          W = 4 * n * n + 500;
+      }
+  }
+
 
 
   // Timings
@@ -527,19 +588,11 @@ int main(const int argc, const char** argv)
   }
   if (rand_only) {
       std::list <Point> randPoints;
-      if (ball_walk) {
-          if (delta < 0.0) { // set the radius for the ball walk if is not set by the user
-              if (gaussian_sam) {
-                  delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
-              } else {
-                  delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
-              }
-          }
-      }
-      vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, 0.0, rng,
-                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
+
+      vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, diameter, rng,
+                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr,billiard);
       vars_g<NT, RNGType> var2(n, walk_len, N, W, 1, 0, InnerBall.second, rng, C, frac, ratio, delta,
-                  false, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
+              verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
       double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if (Zono) {
@@ -571,8 +624,8 @@ int main(const int argc, const char** argv)
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,0.0,rng,
-               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr);
+      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,diameter,rng,
+               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr,billiard);
 
       if(round_only) {
           // Round the polytope and exit
@@ -597,12 +650,11 @@ int main(const int argc, const char** argv)
           if (CG) {
 
               // setup the parameters
-              vars <NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, err, e, 0, 0.0, 0, InnerBall.second, 0.0, rng,
+              vars <NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, err, e, 0, 0.0, 0, InnerBall.second, diameter, rng,
                                       urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr,
-                                      rdhr);
+                                      rdhr,billiard);
 
               vars_g <NT, RNGType> var1(n, walk_len, N, W, 1, error, InnerBall.second, rng, C, frac, ratio, delta,
-                                        false,
                                         verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
               if (Zono) {
@@ -620,7 +672,7 @@ int main(const int argc, const char** argv)
                       vol = vol_cooling_balls(ZP, var, var_ban, InnerBall);
                   } else {
                       vars_g <NT, RNGType> varg(n, 1, 500 * 2.0 +  NT(n * n) / 2.0, 6 * n * n + 500, 1, e, InnerBall.second, rng, C, frac, ratio, delta,
-                                                false, verbose, rand_only, false, false, birk, false, true, false);
+                                                verbose, rand_only, false, false, birk, false, true, false);
                       vol = vol_cooling_hpoly < HPolytope < Point > > (ZP, var, var_ban, varg, InnerBall);
                   }
               } else if (!Vpoly) {
