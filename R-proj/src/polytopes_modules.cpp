@@ -17,7 +17,7 @@ public:
     }
     int type = 1;
     unsigned int dimension;
-    double vol = -1.0;
+    double vol = std::numeric_limits<double>::signaling_NaN();
     Rcpp::NumericMatrix A;
     Rcpp::NumericVector b;
 
@@ -34,7 +34,7 @@ public:
     }
     int type = 2;
     unsigned int dimension;
-    double vol = -1.0;
+    double vol = std::numeric_limits<double>::signaling_NaN();
     Rcpp::NumericMatrix V;
 
 };
@@ -50,7 +50,7 @@ public:
     }
     int type = 3;
     unsigned int dimension;
-    double vol = -1.0;
+    double vol = std::numeric_limits<double>::signaling_NaN();
     Rcpp::NumericMatrix G;
 
 };
@@ -66,7 +66,7 @@ public:
     }
     int type = 4;
     unsigned int dimension;
-    double vol = -1.0;
+    double vol = std::numeric_limits<double>::signaling_NaN();
     Rcpp::NumericMatrix V1;
     Rcpp::NumericMatrix V2;
 

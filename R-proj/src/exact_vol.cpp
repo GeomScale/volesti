@@ -76,7 +76,7 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
 
             MT V = Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).transpose(), V2(dim,dim);
             VT v0 = V.col(dim);
-            
+
             for (int i = 0; i < dim; ++i) {
                 V2.col(i) = V.col(i) - v0;
             }
