@@ -14,13 +14,13 @@
 #include <iostream>
 
 
-template <class Point>
+template <class Point, class MT, class VT>
 class copula_ellipsoid{
 private:
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    //typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    //typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     MT G;
     unsigned int dim;
 public:
