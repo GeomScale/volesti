@@ -22,7 +22,16 @@
 #include "Eigen/Eigen"
 #define VOLESTI_DEBUG
 #include <fstream>
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
 #include "volume.h"
+#include "rotating.h"
+#include "misc.h"
+#include "linear_extensions.h"
+#include "cooling_balls.h"
+#include "cooling_hpoly.h"
 #include "sample_only.h"
 #include "exact_vols.h"
 
@@ -53,8 +62,8 @@ int main(const int argc, const char** argv)
     typedef Zonotope<Point> Zonotope;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     int n, nexp=1, n_threads=1, W;
-    int walk_len,N, nsam = 100;
-    NT e=1;
+    int walk_len,N, nsam = 100, nu = 10, NNu;
+    NT e=0.1;
     NT exactvol(-1.0), a=0.5;
     bool verbose=false, 
 	 rand_only=false, 
@@ -64,18 +73,23 @@ int main(const int argc, const char** argv)
 	 NN=false,
 	 user_walk_len=false,
 	 linear_extensions=false,
+	 CB = false,
          birk=false,
          rotate=false,
          ball_walk=false,
          ball_rad=false,
          experiments=true,
-         annealing = false,
+         CG = false,
          Vpoly=false,
          Zono=false,
-         cdhr=true,
+         cdhr=false,
          rdhr=false,
+         user_randwalk = false,
          exact_zono = false,
-         gaussian_sam = false;
+         gaussian_sam = false,
+         hpoly = false,
+         billiard=false,
+         win2 = false;
 
     //this is our polytope
     Hpolytope HP;
@@ -83,9 +97,9 @@ int main(const int argc, const char** argv)
     Zonotope  ZP;
 
     // parameters of CV algorithm
-    bool user_W=false, user_N=false, user_ratio=false;
-    NT ball_radius=0.0;
-    NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.2;
+    bool user_W=false, user_N=false, user_ratio=false, user_NN = false, set_algo = false, set_error = false;
+    NT ball_radius=0.0, diameter = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, round_val = 1.0;
+    NT C=2.0,ratio,frac=0.1,delta=-1.0,error=0.1;
 
   if(argc<2){
     std::cout<<"Use -h for help"<<std::endl;
@@ -158,22 +172,34 @@ int main(const int argc, const char** argv)
           correct = true;
       }
       if(!strcmp(argv[i],"-rdhr")){
-          cdhr = false;
+          user_randwalk = true;
           rdhr = true;
-          ball_walk = false;
           correct = true;
       }
-      if(!strcmp(argv[i],"-bw")){
+      if(!strcmp(argv[i],"-cdhr")){
+          user_randwalk = true;
+          cdhr = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-BiW")){
+          user_randwalk = true;
+          billiard = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-BaW")){
+          user_randwalk = true;
           ball_walk = true;
-          cdhr = false;
-          rdhr = false;
           correct = true;
       }
       if(!strcmp(argv[i],"-bwr")){
           delta = atof(argv[++i]);
           correct = true;
       }
-      if(!strcmp(argv[i],"-Win")){
+      if(!strcmp(argv[i],"-hpoly")){
+          hpoly = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-WinLen")){
           W = atof(argv[++i]);
           user_W = true;
           correct = true;
@@ -194,6 +220,12 @@ int main(const int argc, const char** argv)
       if(!strcmp(argv[i],"-N_an")){
           N = atof(argv[++i]);
           user_N = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-nuN")){
+          NNu = atof(argv[++i]);
+          nu = atof(argv[++i]);
+          user_NN = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-nsample")){
@@ -300,6 +332,7 @@ int main(const int argc, const char** argv)
       if(!strcmp(argv[i],"-e")||!strcmp(argv[i],"--error")){
           e = atof(argv[++i]);
           error = e;
+          set_error = true;
           correct = true;
       }
       if(!strcmp(argv[i],"-w")||!strcmp(argv[i],"--walk_len")){
@@ -309,6 +342,30 @@ int main(const int argc, const char** argv)
       }
       if(!strcmp(argv[i],"-exp")){
           nexp = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-diameter")){
+          diameter = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-lb")){
+          lb = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-ub")){
+          ub = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-prob")){
+          p = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-alpha")){
+          alpha = atof(argv[++i]);
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-nu")){
+          nu = atof(argv[++i]);
           correct = true;
       }
       if(!strcmp(argv[i],"-t")||!strcmp(argv[i],"--threads")){
@@ -334,7 +391,17 @@ int main(const int argc, const char** argv)
           correct = true;
       }
       if(!strcmp(argv[i],"-cg")){
-          annealing = true;
+          CG = true;
+          set_algo = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-cb")){
+          CB = true;
+          set_algo = true;
+          correct = true;
+      }
+      if(!strcmp(argv[i],"-sob")){
+          set_algo = true;
           correct = true;
       }
       if(correct==false){
@@ -351,16 +418,77 @@ int main(const int argc, const char** argv)
       return 0;
   }
 
+  /* RANDOM NUMBERS */
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  RNGType rng(seed);
+  boost::normal_distribution<> rdist(0,1);
+  boost::random::uniform_real_distribution<>(urdist);
+  boost::random::uniform_real_distribution<> urdist1(-1,1);
+
   //Compute chebychev ball//
   std::pair<Point, NT> InnerBall;
   double tstart1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if (Zono) {
       InnerBall = ZP.ComputeInnerBall();
+      if(billiard && diameter < 0.0){
+          ZP.comp_diam(diameter, 0.0);
+      }
   } else if(!Vpoly) {
       InnerBall = HP.ComputeInnerBall();
+      if (InnerBall.second < 0.0) {
+          std::cout<<"Polytope is unbounded!"<<std::endl;
+          return -1.0;
+      }
+      if(billiard && diameter < 0.0){
+          HP.comp_diam(diameter, InnerBall.second);
+      }
   }else{
-      InnerBall = VP.ComputeInnerBall();
+      if(CB) {
+          if (round) {
+
+              //std::cout<<"rounding is on"<<std::endl;
+              InnerBall.first = VP.get_mean_of_vertices();
+              InnerBall.second = 0.0;
+              vars <NT, RNGType> var2(1, n, 1, n_threads, 0.0, e, 0, 0.0, 0, InnerBall.second,
+                                      2 * VP.get_max_vert_norm(), rng, urdist, urdist1, -1, verbose, rand_only, round,
+                                      NN, birk, false, false, true,false);
+              std::pair <NT, NT> res_round = rounding_min_ellipsoid(VP, InnerBall, var2);
+              round_val = res_round.first;
+
+              round = false;
+              InnerBall.second = 0.0;
+              InnerBall.first = Point(n);
+              get_vpoly_center(VP);
+              rmax = VP.get_max_vert_norm();
+              if(billiard && diameter < 0.0) {
+                  VP.comp_diam(diameter, 0.0);
+              }
+
+          } else {
+              InnerBall.second = 0.0;
+              InnerBall.first = Point(n);
+              get_vpoly_center(VP);
+              rmax = VP.get_max_vert_norm();
+              if(billiard &&  diameter < 0.0){
+                  VP.comp_diam(diameter, 0.0);
+              }
+          }
+      } else {
+          InnerBall = VP.ComputeInnerBall();
+          if(billiard && diameter < 0.0){
+              VP.comp_diam(diameter, 0.0);
+          }
+      }
   }
+
+  if (ball_walk && delta < 0.0) {
+      if (CG || gaussian_sam) {
+          delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
+      } else {
+          delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
+      }
+  }
+
   double tstop1 = (double)clock()/(double)CLOCKS_PER_SEC;
   if(verbose) std::cout << "Inner ball time: " << tstop1 - tstart1 << std::endl;
   if(verbose){
@@ -373,19 +501,55 @@ int main(const int argc, const char** argv)
   
   // Set the number of random walk steps
 
+  if (!set_algo) {
+      if (Zono || Vpoly) {
+          CB = true;
+      } else {
+          if (n <= 200) {
+              CB = true;
+          } else {
+              CG = true;
+          }
+      }
+  } else{
+      if (!CB && !CG) {
+          if (!set_error) {
+              e = 1.0;
+              error = 1.0;
+          }
+      }
+  }
+
   if(!user_walk_len) {
-      if(!annealing) {
+      if(!CG && !CB) {
           walk_len = 10 + n / 10;
       }else{
           walk_len = 1;
+      }
+  }
+  if(!user_NN) {
+      if(billiard) {
+          NNu = 125;
+      } else {
+          NNu = 120 + (n * n) / 10;
       }
   }
   if(!user_N)
       N = 500 * ((int) C) + ((int) (n * n / 2));
   if(!user_ratio)
       ratio = 1.0-1.0/(NT(n));
-  if(!user_W)
-      W = 4*n*n+500;
+  if(!user_W){
+      if (CB) {
+          if (billiard) {
+              W = 150;
+          } else {
+              W = 2 * n * n + 250;
+          }
+      } else if (CG) {
+          W = 4 * n * n + 500;
+      }
+  }
+
 
 
   // Timings
@@ -398,17 +562,11 @@ int main(const int argc, const char** argv)
 
   //bounds for the cube	
   const int lw=0, up=10000, R=up-lw;
-  
-   /* RANDOM NUMBERS */
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  RNGType rng(seed);
-  boost::normal_distribution<> rdist(0,1);
-  boost::random::uniform_real_distribution<>(urdist);
-  boost::random::uniform_real_distribution<> urdist1(-1,1);
 
   // If no file specified construct a default polytope
   if(!file){
-      HP.init(n);
+      std::cout << "A file has to be given as input!\n" << std::endl;
+      return -1.0;
   }
 
   // If rotate flag is on rotate the polytope
@@ -430,19 +588,11 @@ int main(const int argc, const char** argv)
   }
   if (rand_only) {
       std::list <Point> randPoints;
-      if (ball_walk) {
-          if (delta < 0.0) { // set the radius for the ball walk if is not set by the user
-              if (gaussian_sam) {
-                  delta = 4.0 * InnerBall.second / std::sqrt(std::max(NT(1.0), a) * NT(n));
-              } else {
-                  delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
-              }
-          }
-      }
-      vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, rng,
-                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
+
+      vars<NT, RNGType> var1(0, n, walk_len, 1, 0, 0, 0, 0.0, 0, InnerBall.second, diameter, rng,
+                urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr,billiard);
       vars_g<NT, RNGType> var2(n, walk_len, N, W, 1, 0, InnerBall.second, rng, C, frac, ratio, delta,
-                  false, verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
+              verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
       double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if (Zono) {
@@ -474,8 +624,8 @@ int main(const int argc, const char** argv)
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
       // Setup the parameters
-      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
-               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr);
+      vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,diameter,rng,
+               urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr,billiard);
 
       if(round_only) {
           // Round the polytope and exit
@@ -497,14 +647,15 @@ int main(const int argc, const char** argv)
           return 0;
       } else {
           // Estimate the volume
-          if (annealing) {
+          if (CG) {
 
               // setup the parameters
-              vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0.0,0,InnerBall.second,rng,
-                       urdist,urdist1,delta,verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr);
+              vars <NT, RNGType> var2(rnum, n, 10 + n / 10, n_threads, err, e, 0, 0.0, 0, InnerBall.second, diameter, rng,
+                                      urdist, urdist1, delta, verbose, rand_only, round, NN, birk, ball_walk, cdhr,
+                                      rdhr,billiard);
 
-              vars_g<NT, RNGType> var1(n,walk_len,N,W,1,error,InnerBall.second,rng,C,frac,ratio,delta,false,
-                          verbose,rand_only,round,NN,birk,ball_walk,cdhr,rdhr);
+              vars_g <NT, RNGType> var1(n, walk_len, N, W, 1, error, InnerBall.second, rng, C, frac, ratio, delta,
+                                        verbose, rand_only, round, NN, birk, ball_walk, cdhr, rdhr);
 
               if (Zono) {
                   vol = volume_gaussian_annealing(ZP, var1, var2, InnerBall);
@@ -514,6 +665,25 @@ int main(const int argc, const char** argv)
                   vol = volume_gaussian_annealing(VP, var1, var2, InnerBall);
               }
 
+          } else if (CB) {
+              vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, W, NNu, nu, win2);
+              if (Zono) {
+                  if (!hpoly) {
+                      vol = vol_cooling_balls(ZP, var, var_ban, InnerBall);
+                  } else {
+                      vars_g <NT, RNGType> varg(n, 1, 500 * 2.0 +  NT(n * n) / 2.0, 6 * n * n + 500, 1, e, InnerBall.second, rng, C, frac, ratio, delta,
+                                                verbose, rand_only, false, false, birk, false, true, false);
+                      vol = vol_cooling_hpoly < HPolytope < Point > > (ZP, var, var_ban, varg, InnerBall);
+                  }
+              } else if (!Vpoly) {
+                  vol = vol_cooling_balls(HP, var, var_ban, InnerBall);
+              } else {
+                  vol = vol_cooling_balls(VP, var, var_ban, InnerBall);
+              }
+              if (vol < 0.0) {
+                  throw "Simulated annealing failed! Try to increase the walk length.";
+                  return vol;
+              }
           } else {
               if (Zono) {
                   vol = volume(ZP, var, InnerBall);

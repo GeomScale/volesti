@@ -41,6 +41,16 @@ public:
             coeffs(i++) = *it;
     }
 
+    point(const unsigned int dim, std::vector<typename K::FT> cofs) {
+        d = dim;
+        iter it = cofs.begin();
+        int i=0;
+
+        for (; it != cofs.end(); it++,i++)
+            coeffs(i) = *it;
+
+    }
+
     const Coeff& getCoefficients() const {
         return coeffs;
     }
@@ -109,11 +119,16 @@ public:
         coeffs /= k;
     }
 
+
+
     bool operator== (point& p) const {
         int i=0;
-
+        const Coeff & coeffs = p.getCoefficients();
+        FT e = 0.00000000001;
         for (i=0 ; i<d ; i++) {
-            if (this->coeffs(i) != coeffs(i)) return false;
+            if (std::abs(this->coeffs(i) - coeffs(i)) > e *std::abs(this->coeffs(i)) ||
+                    std::abs(this->coeffs(i) - coeffs(i)) > e *std::abs(coeffs(i)))
+                return false;
         }
 
         return true;
@@ -167,3 +182,5 @@ point<K> operator* (const typename K::FT& k, point<K>& p) {
 }
 
 #endif
+
+

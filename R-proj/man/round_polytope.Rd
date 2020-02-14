@@ -4,16 +4,21 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-round_polytope(P, WalkType = NULL, walk_step = NULL, radius = NULL)
+round_polytope(P, random_walk = NULL, walk_length = NULL,
+  parameters = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
 
-\item{WalkType}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.}
+\item{random_walk}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk or d) \code{'BiW'} for Billiard walk. The default walk is \code{'CDHR'} for H-polytope and \code{'BiW'} for the other representations.}
 
-\item{walk_step}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.}
+\item{walk_length}{Optional. The number of the steps for the random walk. The default value is \eqn{1} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
 
-\item{radius}{Optional. The radius for the ball walk.}
+\item{parameters}{Optional. A list for the parameters of the methods:
+\itemize{
+  \item{\code{BW_rad} }{ The radius for the ball walk.}
+  \item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
+}}
 }
 \value{
 A list with 2 elements: (a) a polytope of the same class as the input polytope class and (b) the element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
@@ -29,10 +34,10 @@ P = Hpolytope$new(A, b)
 listHpoly = round_polytope(P)
 
 # rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50
-P = GenCube(3, 'V')
-ListVpoly = round_polytope(P, WalkType = 'RDHR', walk_step = 50)
+P = gen_cube(3, 'V')
+ListVpoly = round_polytope(P, random_walk = 'RDHR', walk_length = 50)
 
 # round a 2-dimensional zonotope defined by 6 generators using ball walk
-Z = GenZonotope(2,6)
-ListZono = round_polytope(Z, WalkType = 'BW')
+Z = gen_rand_zonotope(2,6)
+ListZono = round_polytope(Z, random_walk = 'BW')
 }

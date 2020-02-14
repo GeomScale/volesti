@@ -10,7 +10,7 @@
 
 
 
-template <class MT, class Polytope>
+template <typename MT, typename Polytope>
 MT rotating(Polytope &P){
 
     typedef boost::mt19937    RNGType;

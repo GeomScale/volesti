@@ -1259,7 +1259,8 @@ static void number(char *str,LPSREAL value)
       *(--_str)=' ';
      }
     }
-  strncpy(str,_str,12);
+  //strncpy(str,_str,12);
+  _str[12] ='\0'; strcpy(str, _str);
  }
 
 static char *formatnumber12(char *numberbuffer, double a)

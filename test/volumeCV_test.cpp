@@ -9,7 +9,12 @@
 #include <unistd.h>
 #include "Eigen/Eigen"
 #include <fstream>
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
 #include "volume.h"
+#include "misc.h"
 #include "polytope_generators.h"
 #include <string>
 #include <typeinfo>
@@ -49,13 +54,13 @@ void test_CV_volume(Polytope &HP, NT expected, NT tolerance=0.3)
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol = 0;
-    unsigned int const num_of_exp = 15;
+    unsigned int const num_of_exp = 20;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
         CheBall = HP.ComputeInnerBall();
-        vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,rng,
-                 urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
-        vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,false,
+        vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,0.0,rng,
+                 urdist,urdist1,-1.0,false,false,false,false,false,false,true,false,false);
+        vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
                     false,false,false,false,false,false,true,false);
         vol += volume_gaussian_annealing(HP, var1, var2, CheBall);
     }
@@ -166,15 +171,15 @@ void call_test_simplex() {
 
     std::cout << "--- Testing volume of H-simplex10" << std::endl;
     P = gen_simplex<Hpolytope>(10, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(10.0));
+    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(10.0), 0.2);
 
     std::cout << "--- Testing volume of H-simplex20" << std::endl;
     P = gen_simplex<Hpolytope>(20, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(20.0));
+    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(20.0), 0.2);
 
-    std::cout << "--- Testing volume of H-simplex30" << std::endl;
-    P = gen_simplex<Hpolytope>(30, false);
-    test_CV_volume<NT, RNGType>(P, 1.0 / factorial(30.0), 0.3);
+    //std::cout << "--- Testing volume of H-simplex30" << std::endl;
+    //P = gen_simplex<Hpolytope>(30, false);
+    //test_CV_volume<NT, RNGType>(P, 1.0 / factorial(30.0), 0.3);
 
     //std::cout << "--- Testing volume of H-simplex40" << std::endl;
     //P = gen_simplex<Hpolytope>(40, false);

@@ -21,7 +21,7 @@
 #ifndef SIMPLEX_SAMPLERS_H
 #define SIMPLEX_SAMPLERS_H
 
-template <typename NT, class RNGType, class Point>
+template <typename NT, typename RNGType, typename Point>
 void Sam_Unit(unsigned int dim, unsigned int num, std::list<Point> &points){
 
     unsigned int j,i,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
@@ -153,7 +153,7 @@ void Sam_Unit(unsigned int dim, unsigned int num, std::list<Point> &points){
 
 }
 
-template <typename NT, class RNGType, class Point>
+template <typename NT, typename RNGType, typename Point>
 void Sam_Canon_Unit(unsigned int dim, unsigned int num, std::list<Point> &points){
 
     unsigned int j,i,x_rand,M=2147483647,pointer;  // M is the largest possible integer
@@ -200,8 +200,8 @@ void Sam_Canon_Unit(unsigned int dim, unsigned int num, std::list<Point> &points
 
 
 //Owen mapping for sample from an arbitrary simplex given in V-represantation
-template <class Vpolytope, class PointList>
-void Sam_arb_simplex(Vpolytope P, unsigned int num, PointList &points){
+template <typename Vpolytope, typename PointList>
+void Sam_arb_simplex(const Vpolytope &P, unsigned int num, PointList &points){
 
     typedef typename Vpolytope::MT MT;
     typedef typename Vpolytope::NT NT;

@@ -1,9 +1,12 @@
 ## Volume computation and sampling
 
-|         | Build           
-| ------------- |:-------------:| 
-| **master** |[![CircleCI](https://circleci.com/gh/GeomScale/volume_approximation/tree/master.svg?style=svg)](https://circleci.com/gh/GeomScale/volume_approximation/tree/master)
-|**develop** |[![CircleCI](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=svg)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
+[![CRAN status](https://www.r-pkg.org/badges/version/volesti)](https://cran.r-project.org/package=volesti)
+[![CRAN check](https://cranchecks.info/badges/worst/volesti)](https://cran.r-project.org/web/checks/check_results_volesti.html)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/volesti)](https://cran.r-project.org/package=volesti)
+[![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/master.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/master)
+[![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
+![CRAN/METACRAN](https://img.shields.io/cran/l/volesti)
+
 
 **VolEsti** is a C++ library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an *R* interface.
 

@@ -11,41 +11,30 @@
 #ifndef VOLUME_H
 #define VOLUME_H
 
+
 #include <iterator>
-//#include <fstream>
 #include <vector>
 #include <list>
-//#include <algorithm>
 #include <math.h>
 #include <chrono>
 #include "cartesian_geom/cartesian_kernel.h"
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
 #include "vars.h"
-#include "polytopes.h"
-//#include "ellipsoids.h"
+#include "hpolytope.h"
+#include "vpolytope.h"
+#include "zpolytope.h"
+#include "ball.h"
 #include "ballintersectconvex.h"
 #include "vpolyintersectvpoly.h"
 #include "samplers.h"
 #include "rounding.h"
-#include "rotating.h"
 #include "gaussian_samplers.h"
 #include "gaussian_annealing.h"
-//#include "sample_only.h"
-#include "misc.h"
-#include "linear_extensions.h"
-//#include "polytope_generators.h"
-//#include "exact_vols.h"
-//#include "simplex_samplers.h"
-//#include "copulas.h"
 
 
-template <class Polytope, class Parameters, class Point, typename NT>
+template <typename Polytope, typename Parameters, typename Point, typename NT>
 NT volume(Polytope &P,
-                  Parameters &var,  // constans for volume
-                  std::pair<Point,NT> InnerBall)  //Chebychev ball
+          Parameters & var,  // constans for volume
+          std::pair<Point,NT> InnerBall)  //Chebychev ball
 {
  
     typedef Ball<Point> Ball;
@@ -66,12 +55,6 @@ NT volume(Polytope &P,
     //0. Get the Chebychev ball (largest inscribed ball) with center and radius
     Point c=InnerBall.first;
     NT radius=InnerBall.second;
-    if (var.ball_walk){
-        if(var.delta<0.0){
-            var.delta = 4.0 * radius / NT(n);
-            deltaset = true;
-        }
-    }
     
     //1. Rounding of the polytope if round=true
     NT round_value=1;
@@ -88,25 +71,18 @@ NT volume(Polytope &P,
         #endif
         std::pair<Point,NT> res=P.ComputeInnerBall();
         c=res.first; radius=res.second;
-    }
-
-    if (var.ball_walk){
-        if(deltaset){
+        P.comp_diam(var.diameter, radius);
+        if (var.ball_walk){
             var.delta = 4.0 * radius / NT(n);
         }
     }
 
-    VT c_e(n);
-    for(unsigned int i=0; i<n; i++){
-        c_e(i)=c[i];  // write chebychev center in an eigen vector
-    }
-    P.shift(c_e);
+    // Move the chebychev center to the origin and apply the same shifting to the polytope
+    P.shift(c.getCoefficients());
     c=Point(n);
 
     rnum=rnum/n_threads;
     NT vol=0;
-        
-        
         
     // Perform the procedure for a number of threads and then take the average
     for(unsigned int t=0; t<n_threads; t++){
@@ -117,8 +93,6 @@ NT volume(Polytope &P,
         #endif
         
         Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
-        //p=p+c;
-        
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
         
@@ -254,6 +228,7 @@ NT volume(Polytope &P,
     if(print) std::cout<<"volume computed: "<<vol<<std::endl;
     #endif
 
+    P.free_them_all();
     return vol;
 }
 
@@ -262,10 +237,10 @@ NT volume(Polytope &P,
 // Implementation is based on algorithm from paper "A practical volume algorithm",
 // Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
 // Ben Cousins, Santosh Vempala
-template <class Polytope, class UParameters, class GParameters, class Point, typename NT>
+template <typename Polytope, typename UParameters, typename GParameters, typename Point, typename NT>
 NT volume_gaussian_annealing(Polytope &P,
-                             GParameters &var,  // constans for volume
-                             UParameters &var2,
+                             GParameters & var,  // constans for volume
+                             UParameters & var2,
                              std::pair<Point,NT> InnerBall) {
     //typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
@@ -287,12 +262,6 @@ NT volume_gaussian_annealing(Polytope &P,
     // Consider Chebychev center as an internal point
     Point c=InnerBall.first;
     NT radius=InnerBall.second;
-    if (var.ball_walk){
-        if(var.delta<0.0){
-            var.delta = 4.0 * radius / NT(n);
-            var.deltaset = true;
-        }
-    }
 
     // rounding of the polytope if round=true
     NT round_value=1;
@@ -309,17 +278,16 @@ NT volume_gaussian_annealing(Polytope &P,
         round_value = res_round.first;
         std::pair<Point,NT> res = P.ComputeInnerBall();
         c = res.first; radius = res.second;
+        if (var.ball_walk){
+            var.delta = 4.0 * radius / NT(n);
+        }
     }
 
     // Save the radius of the Chebychev ball
     var.che_rad = radius;
 
-    // Move chebychev center to origin and apply the same shifting to the polytope
-    VT c_e(n);
-    for(unsigned int i=0; i<n; i++){
-        c_e(i)=c[i];  // write chebychev center in an eigen vector
-    }
-    P.shift(c_e);
+    // Move the chebychev center to the origin and apply the same shifting to the polytope
+    P.shift(c.getCoefficients());
 
     // Initialization for the schedule annealing
     std::vector<NT> a_vals;
@@ -350,13 +318,10 @@ NT volume_gaussian_annealing(Polytope &P,
     #endif
 
     // Initialization for the approximation of the ratios
-    std::vector<NT> fn(mm,0), its(mm,0), lamdas(m,0);
-    unsigned int W = var.W;
-    std::vector<NT> last_W2(W,0);
+    unsigned int W = var.W, coord_prev, i=0;
+    std::vector<NT> last_W2(W,0), fn(mm,0), its(mm,0), lamdas(m,0);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
-    Point p(n); // The origin is in the Chebychev center of the Polytope
-    Point p_prev=p;
-    unsigned int coord_prev, i=0;
+    Point p(n), p_prev(n); // The origin is the Chebychev center of the Polytope
     viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
 
     #ifdef VOLESTI_DEBUG
@@ -382,9 +347,7 @@ NT volume_gaussian_annealing(Polytope &P,
 
         // Set the radius for the ball walk if it is requested
         if (var.ball_walk) {
-            if (var.deltaset) {
-                var.delta = 4.0 * radius / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n));
-            }
+            var.delta = 4.0 * radius / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n));
         }
 
         while(!done || (*itsIt)<min_steps){
@@ -439,6 +402,7 @@ NT volume_gaussian_annealing(Polytope &P,
     }
     #endif
 
+    P.free_them_all();
     return vol;
 }
 

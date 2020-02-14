@@ -8,6 +8,10 @@
 #include "doctest.h"
 #include <unistd.h>
 #include "Eigen/Eigen"
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
 #include "volume.h"
 #include "polytope_generators.h"
 #include "exact_vols.h"
@@ -39,8 +43,8 @@ void test_zono_volume(int n, int m, NT tolerance = 0.15)
     boost::random::uniform_real_distribution<> urdist1(-1,1);
     std::pair<NT,NT> res_round;
 
-    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,rng,
-                          urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
+    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,0.0,rng,
+                          urdist,urdist1,-1.0,false,false,false,false,false,false,true,false,false);
 
     //Compute chebychev ball//
     std::pair<Point,NT> CheBall;
@@ -54,10 +58,13 @@ void test_zono_volume(int n, int m, NT tolerance = 0.15)
     round_value = round_value * res_round.first;
     NT vol = 0;
     unsigned int const num_of_exp = 10;
+    Zonotope ZP2 = ZP;
+    CheBall = ZP.ComputeInnerBall();
     for (unsigned int i=0; i<num_of_exp; i++)
     {
-        CheBall = ZP.ComputeInnerBall();
+        ZP.init(n, ZP2.get_mat(), ZP2.get_vec());
         vol += round_value * volume(ZP,var,CheBall);
+        std::cout << "volume of iteration"<<i<<" = " << round_value*vol << std::endl;
     }
     NT error = std::abs(((vol/num_of_exp)-vol_exact))/vol_exact;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;

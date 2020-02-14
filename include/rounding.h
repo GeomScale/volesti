@@ -16,8 +16,8 @@
 
 // ----- ROUNDING ------ //
 // main rounding function
-template <class Polytope, class Point, class Parameters, typename NT>
-std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> InnerBall, Parameters &var) {
+template <typename Polytope, typename Point, typename Parameters, typename NT>
+std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT> &InnerBall, const Parameters &var) {
 
     typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
@@ -100,32 +100,47 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , std::pair<Point,NT> Inne
     return std::pair<NT, NT> (L_1.determinant(),rel/Rel);
 }
 
-// -------- ROTATION ---------- //
-/*template <class MT, class Polytope>
-MT rotating(Polytope &P){
 
-    typedef boost::mt19937    RNGType;
-    //typedef typename Polytope::MT 	MT;
+template <typename Polytope>
+void get_vpoly_center(Polytope &P) {
 
-    boost::random::uniform_real_distribution<> urdist(-1.0, 1.0);
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
-    unsigned int n = P.dimension();
+    typedef typename Polytope::NT 	NT;
+    typedef typename Polytope::MT 	MT;
+    typedef typename Polytope::VT 	VT;
+    typedef typename Polytope::PolytopePoint 	Point;
 
-    // pick a random rotation
-    MT R(n,n);
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            R(i,j) = urdist(rng);
+    unsigned int n = P.dimension(), i, j = 0;
+
+    std::list<Point> randPoints; //ds for storing rand points
+    P.get_points_for_rounding(randPoints);
+
+    boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
+    typename std::list<Point>::iterator rpit=randPoints.begin();
+    for ( ; rpit!=randPoints.end(); rpit++, j++) {
+        i=0;
+        for ( ; i<rpit->dimension(); i++){
+            Ap(i,j)=double((*rpit)[i]);
+        }
+    }
+    boost::numeric::ublas::matrix<double> Q(n,n);
+    boost::numeric::ublas::vector<double> c2(n);
+    size_t w=1000;
+    KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+
+    MT E(n,n);
+    VT e(n);
+
+    //Get ellipsoid matrix and center as Eigen objects
+    for(unsigned int i=0; i<n; i++){
+        e(i)=NT(c2(i));
+        for (unsigned int j=0; j<n; j++){
+            E(i,j)=NT(Q(i,j));
         }
     }
 
-    Eigen::JacobiSVD<MT> svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    P.shift(e);
 
-    // apply rotation to the polytope P
-    P.linear_transformIt(svd.matrixU());
+}
 
-    return svd.matrixU().inverse();
-}*/
 
 #endif
