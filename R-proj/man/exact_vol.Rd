@@ -2,28 +2,19 @@
 % Please edit documentation in R/RcppExports.R
 \name{exact_vol}
 \alias{exact_vol}
-\title{Compute the exact volume of (a) a zonotope (b) an arbitrary simplex (c) a unit simplex (d) a cross polytope (e) a hypercube}
+\title{Compute the exact volume of (a) a zonotope (b) an arbitrary simplex in V-representation or (c) if the volume is known and declared by the input object.}
 \usage{
-exact_vol(P = NULL, body = NULL, Parameters = NULL)
+exact_vol(P)
 }
 \arguments{
-\item{P}{A zonotope or a simplex in V-representation.}
-
-\item{body}{A string that declares the type of the body for the exact sampling: a) \code{'simplex'} for the unit simplex, b) \code{'cross'} for the cross polytope, c) \code{'hypersphere'} for the hypersphere, d) \code{'cube'} for the unit cube.}
-
-\item{Parameters}{A list for the parameters of the methods:
-\itemize{
-\item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
-\item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
-}}
+\item{P}{A polytope}
 }
 \value{
-The exact volume of the zonotope
+The exact volume of the input polytope, for zonotopes, simplices in V-representation and polytopes with known exact volume
 }
 \description{
 Given a zonotope (as an object of class Zonotope), this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices of the \eqn{m\times d} matrix \eqn{G} that contains row-wise the \eqn{m} \eqn{d}-dimensional segments that define the zonotope.
 For an arbitrary simplex that is given in V-representation this function computes the absolute value of the determinant formed by the simplex's points assuming it is shifted to the origin.
-For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this function computes the exact well known formulas.
 }
 \examples{
 
@@ -38,5 +29,6 @@ vol = exact_vol(P)
 }
 
 # compute the exact volume the 10-dimensional cross polytope
-vol = exact_vol(body = "cross", Parameters = list("dimension" = 10))
+P = gen_cross(10,'V')
+vol = exact_vol(P)
 }

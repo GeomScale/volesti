@@ -18,4 +18,6 @@
 
 * New volume computation algorithm.
 * Billiard walk for uniform sampling.
+* Modified exact volume computation function.
+* Improved functionality for finance applications.
 * Improved names for functions and input variables.

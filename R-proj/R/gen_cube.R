@@ -31,9 +31,9 @@ gen_cube <- function(dimension, repr) {
   b = Mat[,1]
   Mat = Mat[,-c(1)]
   if (Vpoly_gen) {
-    P = Vpolytope$new(Mat)
+    P = Vpolytope$new(Mat, 2^dimension)
   } else {
-    P = Hpolytope$new(-Mat, b)
+    P = Hpolytope$new(-Mat, b, 2^dimension)
   }
   
   return(P)
