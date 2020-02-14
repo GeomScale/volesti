@@ -35,21 +35,14 @@ copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL) {
     .Call(`_volesti_copula`, r1, r2, sigma, m, n)
 }
 
-#' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex (c) a unit simplex (d) a cross polytope (e) a hypercube
+#' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex in V-representation or (c) if the volume is known and declared by the input object.
 #'
 #' Given a zonotope (as an object of class Zonotope), this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices of the \eqn{m\times d} matrix \eqn{G} that contains row-wise the \eqn{m} \eqn{d}-dimensional segments that define the zonotope.
 #' For an arbitrary simplex that is given in V-representation this function computes the absolute value of the determinant formed by the simplex's points assuming it is shifted to the origin.
-#' For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this function computes the exact well known formulas.
 #'
-#' @param P A zonotope or a simplex in V-representation.
-#' @param body A string that declares the type of the body for the exact sampling: a) \code{'simplex'} for the unit simplex, b) \code{'cross'} for the cross polytope, c) \code{'hypersphere'} for the hypersphere, d) \code{'cube'} for the unit cube.
-#' @param Parameters A list for the parameters of the methods:
-#' \itemize{
-#' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
-#' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
-#' }
+#' @param P A polytope
 #'
-#' @return The exact volume of the zonotope
+#' @return The exact volume of the input polytope, for zonotopes, simplices in V-representation and polytopes with known exact volume
 #' @examples
 #'
 #' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
@@ -63,10 +56,11 @@ copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL) {
 #' }
 #'
 #' # compute the exact volume the 10-dimensional cross polytope
-#' vol = exact_vol(body = "cross", Parameters = list("dimension" = 10))
+#' P = gen_cross(10,'V')
+#' vol = exact_vol(P)
 #' @export
-exact_vol <- function(P = NULL, body = NULL, Parameters = NULL) {
-    .Call(`_volesti_exact_vol`, P, body, Parameters)
+exact_vol <- function(P) {
+    .Call(`_volesti_exact_vol`, P)
 }
 
 #' Compute the percentage of the volume of the unit simplex that is contained in the intersection of a half-space and the unit simplex.
