@@ -26,15 +26,10 @@ compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL) {
   wl = win_length-1
   
   indicators = c()
-  #print(nrows-wl)
   for (i in 1:(nrows-wl)) {
     
     Win=i:(i+wl)
-    #if("tawny" %in% rownames(installed.packages()) == FALSE && FALSE) {
-    #E = cov(returns[Win,])
-    #} else {
-    E = tawny::cov.shrink(returns[Win,])
-    #}
+    E = cov(returns[Win,])
     
     compRet = rep(1,nassets)
     for (j in 1:nassets) {
@@ -55,14 +50,13 @@ compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL) {
             red_mass = red_mass + cop[row,col]
           }
         } else {
-          if (row+col>=0.8*m && row+col<=1.2*m) {
+          if (row+col>=0.8*m+1 && row+col<=1.2*m+1) {
             blue_mass = blue_mass + cop[row,col]
           }
         }
       }
     }
     indicators = c(indicators, blue_mass / red_mass)
-    #print(length(indicators))
   }
 
   N = length(indicators)
