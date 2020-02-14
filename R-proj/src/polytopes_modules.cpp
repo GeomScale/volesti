@@ -12,8 +12,12 @@ public:
     Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b) : A(_A), b(_b) {
         dimension = _A.ncol();
     }
+    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, double volume) : A(_A), b(_b), vol(volume) {
+        dimension = _A.ncol();
+    }
     int type = 1;
     unsigned int dimension;
+    double vol = -1.0;
     Rcpp::NumericMatrix A;
     Rcpp::NumericVector b;
 
@@ -25,8 +29,12 @@ public:
     Vpolytope(Rcpp::NumericMatrix _V) : V(_V) {
         dimension = _V.ncol();
     }
+    Vpolytope(Rcpp::NumericMatrix _V, double volume) : V(_V), vol(volume) {
+        dimension = _V.ncol();
+    }
     int type = 2;
     unsigned int dimension;
+    double vol = -1.0;
     Rcpp::NumericMatrix V;
 
 };
@@ -37,8 +45,12 @@ public:
     Zonotope(Rcpp::NumericMatrix _G) : G(_G) {
         dimension = _G.ncol();
     }
+    Zonotope(Rcpp::NumericMatrix _G, double volume) : G(_G), vol(volume) {
+        dimension = _G.ncol();
+    }
     int type = 3;
     unsigned int dimension;
+    double vol = -1.0;
     Rcpp::NumericMatrix G;
 
 };
@@ -49,8 +61,12 @@ public:
     VPinterVP(Rcpp::NumericMatrix _V1, Rcpp::NumericMatrix _V2) : V1(_V1), V2(_V2) {
         dimension = _V1.ncol();
     }
+    VPinterVP(Rcpp::NumericMatrix _V1, Rcpp::NumericMatrix _V2, double volume) : V1(_V1), V2(_V2),vol(volume) {
+        dimension = _V1.ncol();
+    }
     int type = 4;
     unsigned int dimension;
+    double vol = -1.0;
     Rcpp::NumericMatrix V1;
     Rcpp::NumericMatrix V2;
 
@@ -68,7 +84,8 @@ RCPP_MODULE(yada){
     //' @field A \eqn{m\times d} numerical matrix A
     //' @field b \eqn{m}-dimensional vector b
     //' @field type An integer that declares the representation of the polytope. For H-representation the default value is 1. It has not be given to the constructor.
-    //' @field An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //' @field dimension An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //' @field volume The volume of the polytope.
     //'
     //' @example
     //' # create a 2-d unit simplex
@@ -80,9 +97,11 @@ RCPP_MODULE(yada){
     // expose the default constructor
     .constructor()
     .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector>()
+    .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector, double>()
 
     .field( "type", &Hpolytope::type )
     .field( "dimension", &Hpolytope::dimension )
+    .field( "volume", &Hpolytope::vol )
     .field( "b", &Hpolytope::b )
     .field( "A", &Hpolytope::A );
 
@@ -92,7 +111,8 @@ RCPP_MODULE(yada){
     //'
     //' @field V \eqn{m\times d} numerical matrix that contains the vertices row-wise
     //' @field type An integer that declares the representation of the polytope. For H-representation the default value is 2. It has not be given to the constructor.
-    //' @field An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //' @field dimension An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //' @field volume The volume of the polytope.
     //'
     //' @example
     //' # Create a 2-d cube in V-representation
@@ -103,9 +123,11 @@ RCPP_MODULE(yada){
     // expose the default constructor
     .constructor()
     .constructor<Rcpp::NumericMatrix>()
+    .constructor<Rcpp::NumericMatrix, double>()
 
     .field( "type", &Vpolytope::type )
     .field( "dimension", &Vpolytope::dimension )
+    .field( "volume", &Vpolytope::vol )
     .field( "V", &Vpolytope::V );
 
     //' An exposed C++ class to represent a zonotope
@@ -114,7 +136,8 @@ RCPP_MODULE(yada){
     //'
     //' @field G \eqn{m\times d} numerical matrix that contains the segments (or generators) row-wise
     //' @field type An integer that declares the representation of the polytope. For H-representation the default value is 3. It has not be given to the constructor.
-    //' @field An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //' @field dimension An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //' @field volume The volume of the polytope.
     //'
     //' @example
     //' # Create a 2-d zonotope with 4 generators
@@ -125,9 +148,11 @@ RCPP_MODULE(yada){
     // expose the default constructor
     .constructor()
     .constructor<Rcpp::NumericMatrix>()
+    .constructor<Rcpp::NumericMatrix, double>()
 
     .field( "type", &Zonotope::type )
     .field( "dimension", &Zonotope::dimension )
+    .field( "volume", &Zonotope::vol )
     .field( "G", &Zonotope::G );
 
     //' An exposed C++ class to represent an intersection of two V-polytopes
@@ -136,7 +161,8 @@ RCPP_MODULE(yada){
     //'
     //' @field G \eqn{m\times d} numerical matrix that contains the segments (or generators) row-wise
     //' @field type An integer that declares the representation of the polytope. For H-representation the default value is 4. It has not be given to the constructor.
-    //' @field An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //' @field dimension An integer that declares the dimension of the polytope. It has not be given to the constructor.
+    //' @field volume The volume of the polytope.
     //'
     //' @example
     //' # define the intwrsection of a 2-d simplex with a 2-d cross polytope
@@ -148,9 +174,11 @@ RCPP_MODULE(yada){
     // expose the default constructor
     .constructor()
     .constructor<Rcpp::NumericMatrix, Rcpp::NumericMatrix>()
+    .constructor<Rcpp::NumericMatrix, Rcpp::NumericMatrix, double>()
 
     .field( "type", &VPinterVP::type )
     .field( "dimension", &VPinterVP::dimension )
+    .field( "volume", &VPinterVP::vol )
     .field( "V1", &VPinterVP::V1 )
     .field( "V2", &VPinterVP::V2 );
 }
