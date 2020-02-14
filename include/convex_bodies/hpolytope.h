@@ -27,7 +27,7 @@ public:
     typedef typename std::vector<NT>::iterator viterator;
     //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
     //typedef RowMatrixXd MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic, Eigen::RowMajor> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
 private:
@@ -277,21 +277,22 @@ public:
     std::pair<NT,NT> line_intersect(Point &r, Point &v) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom;
+        VT sum_nom, sum_denom;
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes();
-        viterator rit, vit;
+
+
+        sum_nom = b - A * r.getCoefficients();
+        sum_denom = A * v.getCoefficients();
 
         for (int i = 0; i < m; i++) {
-            sum_nom = b(i) - A.row(i) * r.getCoefficients();
-            sum_denom = A.row(i) * v.getCoefficients();
 
-            if (sum_denom == NT(0)) {
+            if (sum_denom[i] == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = sum_nom / sum_denom;
+                lamda = sum_nom[i] / sum_denom[i];
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
@@ -306,24 +307,29 @@ public:
             std::vector<NT> &Av, bool pos = false) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom, mult;
+        VT sum_nom, sum_denom;
+        NT mult;
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes(), facet;
         viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
-        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
-            sum_nom = -A.row(i) * r.getCoefficients();
-            sum_denom = A.row(i) * v.getCoefficients();
+        sum_nom.setZero(m);
+        sum_denom.setZero(m);
 
-            (*Ariter) = -sum_nom;
-            (*Aviter) = sum_denom;
-            sum_nom += b(i);
-            if (sum_denom == NT(0)) {
+        sum_nom = b + A * r.getCoefficients();
+        sum_denom = A * v.getCoefficients();
+
+        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
+
+            (*Ariter) = -sum_nom[i];
+            (*Aviter) = sum_denom[i];
+
+            if (sum_denom[i] == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = sum_nom / sum_denom;
+                lamda = sum_nom[i] / sum_denom[i];
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     if (pos) facet = i;
@@ -338,23 +344,26 @@ public:
             std::vector<NT> &Av, const NT &lambda_prev, bool pos = false) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom, mult;
+        VT sum_denom;
+        NT sum_nom, mult;
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes(), facet;
         viterator vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
+        sum_denom = A * v.getCoefficients();
+
         for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
             (*Ariter) += lambda_prev * (*Aviter);
             sum_nom = b(i) - (*Ariter);
-            sum_denom = A.row(i) * v.getCoefficients();
 
-            (*Aviter) = sum_denom;
-            if (sum_denom == NT(0)) {
+
+            (*Aviter) = sum_denom[i];
+            if (sum_denom[i] == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = sum_nom / sum_denom;
+                lamda = sum_nom / sum_denom[i];
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     if (pos) facet = i;
@@ -387,20 +396,24 @@ public:
                                           std::vector<NT> &lamdas) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom;
+        VT sum_nom;
+        NT sum_denom;
         unsigned int j;
         int m = num_of_hyperplanes();
         viterator rit;
 
+        sum_nom = b - A * r.getCoefficients();
+
         for (int i = 0; i < m; i++) {
-            sum_nom = b(i) - A.row(i)*r.getCoefficients();
             sum_denom = A(i, rand_coord);
-            lamdas[i] = sum_nom;
+
+            lamdas[i] = sum_nom[i];
+
             if (sum_denom == NT(0)) {
                 //std::cout<<"div0"<<sum_denom<<std::endl;
                 ;
             } else {
-                lamda = sum_nom * (1 / sum_denom);
+                lamda = sum_nom[i] * (1 / sum_denom);
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
 
@@ -492,8 +505,8 @@ public:
 
         VT a = A.row(facet);
         Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
-        s = ((-2.0 * v.dot(s)) * s);
-        v = s + v;
+        s *= (-2.0 * v.dot(s));
+        v += s;
 
     }
 
