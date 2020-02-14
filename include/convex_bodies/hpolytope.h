@@ -254,8 +254,7 @@ public:
         NT sum;
         int m = A.rows();
         for (int i = 0; i < m; i++) {
-            sum = b(i);
-            for (unsigned int j = 0; j < _d; j++) sum -= A(i, j) * p[j];
+            sum = b(i) - A.row(i) * p.getCoefficients();
 
             //Check if corresponding hyperplane is violated
             if (sum < NT(0)) return 0;

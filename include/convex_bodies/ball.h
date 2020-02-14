@@ -111,10 +111,9 @@ public:
     void compute_reflection (Point &v, const Point &p, const int &facet) {
 
         Point s = p;
-        s = s * (1.0 / std::sqrt(s.squared_length()));
-        s = ((-2.0 * v.dot(s)) * s);
-        v = s + v;
-
+        s *= (1.0 / std::sqrt(s.squared_length()));
+        s *= (-2.0 * v.dot(s));
+        v += s;
     }
 
 private:

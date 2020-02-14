@@ -41,6 +41,11 @@ public:
             coeffs(i++) = *it;
     }
 
+    point(const Coeff& coeffs) {
+            d = coeffs.rows();
+            this->coeffs = coeffs;
+    }
+
     point(const unsigned int dim, std::vector<typename K::FT> cofs) {
         d = dim;
         iter it = cofs.begin();
@@ -49,6 +54,10 @@ public:
         for (; it != cofs.end(); it++,i++)
             coeffs(i) = *it;
 
+    }
+
+    void add(const Coeff& coeffs) {
+        this->coeffs += coeffs;
     }
 
     const Coeff& getCoefficients() const {

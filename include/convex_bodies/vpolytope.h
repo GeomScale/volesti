@@ -163,15 +163,11 @@ public:
     }
 
     Point get_mean_of_vertices() {
-        std::vector<NT> vec(_d);
-        Point xc(_d), temp(_d);
+        Point xc(_d);
         for (int i = 0; i < num_of_vertices(); ++i) {
-            for (int j = 0; j < _d; ++j) vec[j] = V(i,j);
-
-            temp = Point(_d, vec.begin(), vec.end());
-            xc = xc + temp;
+            xc.add(V.row(i));
         }
-        xc = xc * (1.0/NT(num_of_vertices()));
+        xc *= (1.0/NT(num_of_vertices()));
 
         return xc;
     }
@@ -217,17 +213,15 @@ public:
         std::pair <Point,NT> result;
 
         for (j=1; j<dim+1; j++) {
-            Point pk = *(it_beg + j);
+            Point* pk = &(*(it_beg + j));
             e(j - 1) = 1.0;
-            for (i = 0; i < dim; i++) B(i, j - 1) = pk[i] - p0[i];
+            B.col(j-1) = pk->getCoefficients() - p0.getCoefficients();
         }
 
         Bg = B;
         B = B.inverse();
         for (i=0; i<dim; i++) {
-            for (j = 0; j < dim; j++) row(j) = B(i, j);
-
-            gi = row.norm();
+            gi = B.row(i).norm();
             radius += gi;
             g(i) = gi;
             if (i < dim - 1) sum += gi;
@@ -435,14 +429,10 @@ public:
             return false;
         }
         unsigned int j;
-        std::vector<NT> temp(_d,NT(0));
+
         typename std::vector<NT>::iterator pointIt;
         for (int i=0; i<num_of_vertices(); i++) {
-            pointIt = temp.begin(); j=0;
-            for ( ; pointIt!=temp.end(); pointIt++, j++){
-                *pointIt = V(i,j);
-            }
-            Point p(_d, temp.begin(), temp.end());
+            Point p(V.row(i));
             randPoints.push_back(p);
         }
         return true;
@@ -463,7 +453,7 @@ public:
 
         VT a = Fmat2.colPivHouseholderQr().solve(VT::Ones(_d));
         if (a.dot(V.row(outvert)) > 1.0) a = -a;
-        a = a/a.norm();
+        a /= a.norm();
 
         Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
 
