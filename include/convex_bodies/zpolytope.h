@@ -389,7 +389,7 @@ public:
 
         a = a/a.norm();
 
-        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
+        Point s(a);
 
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;
