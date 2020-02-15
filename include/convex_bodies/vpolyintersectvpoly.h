@@ -210,16 +210,16 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
+            const VT &Av) {
         return line_intersect(r, v);
     }
 
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                    const std::vector<NT> &Av, const NT &lambda) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
+                                    const VT &Av, const NT &lambda) {
         return line_intersect(r, v);
     }
 
@@ -234,14 +234,14 @@ public:
         return std::pair<NT, int>(P2pair.first, 2);
     }
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
+            const VT &Av) {
         return line_positive_intersect(r, v);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av, const NT &lambda_prev) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
+                                               const VT &Av, const NT &lambda_prev) {
         return line_positive_intersect(r, v);//, Ar, Av);
     }
 
@@ -250,7 +250,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(const Point &r,
                                           const unsigned int &rand_coord,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
         std::pair <NT, NT> P1pair = P1.line_intersect_coord(r, rand_coord, lamdas);
         std::pair <NT, NT> P2pair = P2.line_intersect_coord(r, rand_coord, lamdas);
         return std::pair<NT, NT>(std::min(P1pair.first, P2pair.first),
@@ -264,7 +264,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int &rand_coord,
                                           const unsigned int &rand_coord_prev,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
         return line_intersect_coord(r, rand_coord, lamdas);
     }
 

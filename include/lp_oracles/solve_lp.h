@@ -242,10 +242,15 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
 
     set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
 
+    const NT* direction_data = direction.getCoefficients().data();
+    REAL* row_temp = row;
+
     // set the bounds
     for(j=0; j<Ncol; ++j){
         colno[j] = j+1; /* j_th column */
-        row[j] = direction[i];
+        *row_temp = *direction_data;
+        row_temp++;
+        direction_data++;
         set_bounds(lp, j+1, 0.0, infinite);
     }
 

@@ -50,7 +50,8 @@ else ()
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/misc)
 
-
+  #for Eigen
+  add_compile_definitions("EIGEN_NO_DEBUG")
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
@@ -67,6 +68,9 @@ else ()
   add_library(test_main OBJECT test_main.cpp)
 
   add_executable (volume_test volume_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (volume_test_billiard volume_test_billiard.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (volume_test_rdhr volume_test_rdhr.cpp $<TARGET_OBJECTS:test_main>)
+
   add_executable (cheb_test chebychev_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (rounding_test rounding_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (volumeCV_test volumeCV_test.cpp $<TARGET_OBJECTS:test_main>)
@@ -115,6 +119,8 @@ else ()
   #TARGET_LINK_LIBRARIES(volume ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(generate ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(volume_test_rdhr ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(volume_test_billiard ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(cheb_test ${LP_SOLVE})
   #TARGET_LINK_LIBRARIES(rounding_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volumeCV_test ${LP_SOLVE})

@@ -11,6 +11,8 @@
 #define RANDOM_SAMPLERS_H
 
 
+
+
 // Pick a random direction as a normilized vector
 template <typename RNGType, typename Point, typename NT>
 Point get_direction(const unsigned int dim) {
@@ -111,12 +113,20 @@ void boundary_rand_point_generator(Polytope &P,
 {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     unsigned int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0)), Av(P.num_of_hyperplanes(), NT(0));
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    VT lamdas, Av;
+
+    lamdas.setZero(P.num_of_hyperplanes());
+    Av.setZero(P.num_of_hyperplanes());
+
+
+
     unsigned int rand_coord, rand_coord_prev;
     NT kapa, lambda;
     Point p_prev = p, p1(n), p2(n), v(n);
@@ -184,7 +194,12 @@ void rand_point_generator(Polytope &P,
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0)), Av(P.num_of_hyperplanes(), NT(0));
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    VT lamdas, Av;
+
+    lamdas.setZero(P.num_of_hyperplanes());
+    Av.setZero(P.num_of_hyperplanes());
+
     unsigned int rand_coord, rand_coord_prev;
     NT kapa, ball_rad = var.delta, lambda;
     Point p_prev = p, v(n);
@@ -249,7 +264,13 @@ void rand_point_generator(BallPoly &PBLarge,
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
-    std::vector <NT> lamdas(PBLarge.num_of_hyperplanes(), NT(0)), Av(PBLarge.num_of_hyperplanes(), NT(0));
+
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    VT lamdas, Av;
+
+    lamdas.setZero(PBLarge.num_of_hyperplanes());
+    Av.setZero(PBLarge.num_of_hyperplanes());
+
     unsigned int rand_coord, rand_coord_prev;
     NT kapa, ball_rad = var.delta, lambda;
     Point p_prev = p, v(n);
@@ -299,14 +320,14 @@ void rand_point_generator(BallPoly &PBLarge,
     }
 }
 
-template <typename Polytope, typename Point, typename Parameters, typename NT>
+template <typename Polytope, typename Point, typename Parameters, typename NT, typename VT>
 void uniform_first_point(Polytope &P,
                          Point &p,   // a point to start
                          Point &p_prev, // previous point
                          unsigned int &coord_prev, // previous coordinate ray
                          unsigned int walk_len, // number of steps for the random walk
-                         std::vector<NT> &lamdas,
-                         std::vector<NT> &Av,
+                         VT &lamdas,
+                         VT &Av,
                          NT &lambda,
                          const Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
@@ -363,14 +384,14 @@ void uniform_first_point(Polytope &P,
 
 
 
-template <typename Polytope, typename Point, typename Parameters, typename NT>
+template <typename Polytope, typename Point, typename Parameters, typename NT, typename VT>
 void uniform_next_point(Polytope &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
                         unsigned int &coord_prev, // previous coordinate ray
                         const unsigned int walk_len, // number of steps for the random walk
-                        std::vector<NT> &lamdas,
-                        std::vector<NT> &Av,
+                        VT &lamdas,
+                        VT &Av,
                         NT &lambda,
                         const Parameters &var) {
     typedef typename Parameters::RNGType RNGType;
@@ -426,22 +447,22 @@ void hit_and_run(Point &p,
 
 
 //hit-and-run with orthogonal directions and update
-template <typename Polytope, typename Point, typename NT>
+template <typename Polytope, typename Point, typename NT, typename VT>
 void hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              Polytope &P,
                              unsigned int rand_coord,
                              unsigned int rand_coord_prev,
                              const NT &kapa,
-                             std::vector<NT> &lamdas) {
+                             VT &lamdas) {
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     p_prev = p;
     p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
 }
 
 
-template <class ConvexBody, class Point, class Parameters, typename NT>
-void billiard_walk(ConvexBody &P, Point &p, NT diameter, std::vector<NT> &Ar, std::vector<NT> &Av, NT &lambda_prev,
+template <class ConvexBody, class Point, class Parameters, typename NT, typename VT>
+void billiard_walk(ConvexBody &P, Point &p, NT diameter, VT &Ar, VT &Av, NT &lambda_prev,
                    Parameters &var, bool first = false) {
 
     typedef typename Parameters::RNGType RNGType;

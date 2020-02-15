@@ -15,6 +15,7 @@ public:
     typedef Point BallPoint;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
     Ball() {}
 
@@ -54,14 +55,14 @@ public:
         return std::pair<NT,NT> ((NT(-1)*vrc + disc_sqrt)/v2, (NT(-1)*vrc - disc_sqrt)/v2);
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av){
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar,
+            const VT &Av){
         return line_intersect(r, v);
     }
 
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av, NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar,
+            const VT &Av, NT &lambda_prev) {
         return line_intersect(r, v);
     }
 
@@ -69,13 +70,13 @@ public:
         return std::pair<NT,NT>(line_intersect(r, v).first, 0);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-                                             const std::vector<NT> &Av){
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const VT &Ar,
+                                             const VT &Av){
         return line_positive_intersect(r, v);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-                                             const std::vector<NT> &Av, NT &lambda_prev){
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const VT &Ar,
+                                             const VT &Av, NT &lambda_prev){
         return line_positive_intersect(r, v);
     }
 
@@ -92,7 +93,7 @@ public:
     }
 
     std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
         return line_intersect_coord(r, rand_coord);
     }
 
@@ -100,7 +101,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int &rand_coord,
                                           const unsigned int &rand_coord_prev,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
         return line_intersect_coord(r, rand_coord);
     }
 

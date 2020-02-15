@@ -295,10 +295,15 @@ public:
         boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
         typename std::list<Point>::iterator rpit=randPoints.begin();
 
+
+
         unsigned int i, j = 0;
         for ( ; rpit!=randPoints.end(); rpit++, j++) {
+            const NT* point_data = rpit->getCoefficients().data();
+
             for ( i=0; i < rpit->dimension(); i++){
-                Ap(i,j)=double((*rpit)[i]);
+                Ap(i,j)=double(*point_data);
+                point_data++;
             }
         }
         boost::numeric::ublas::matrix<double> Q(_d, _d);
@@ -343,16 +348,16 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
+            const VT &Av) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                    const std::vector<NT> &Av, const NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
+                                    const VT &Av, const NT &lambda_prev) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
@@ -362,14 +367,14 @@ public:
         return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
     }
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
+                                               const VT &Av) {
         return line_positive_intersect(r, v);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av, const NT &lambda_prev) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
+                                               const VT &Av, const NT &lambda_prev) {
         return line_positive_intersect(r, v);//, Ar, Av);
     }
 
@@ -378,7 +383,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(const Point &r,
                                           const unsigned int rand_coord,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
 
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
@@ -393,7 +398,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int rand_coord,
                                           const unsigned int rand_coord_prev,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
         return line_intersect_coord(r, rand_coord, lamdas);
     }
 

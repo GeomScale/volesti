@@ -319,7 +319,9 @@ NT volume_gaussian_annealing(Polytope &P,
 
     // Initialization for the approximation of the ratios
     unsigned int W = var.W, coord_prev, i=0;
-    std::vector<NT> last_W2(W,0), fn(mm,0), its(mm,0), lamdas(m,0);
+    std::vector<NT> last_W2(W,0), fn(mm,0), its(mm,0);
+    VT lamdas;
+    lamdas.setZero(m);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
     Point p(n), p_prev(n); // The origin is the Chebychev center of the Polytope
     viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;

@@ -63,16 +63,16 @@ public:
                                  std::max(polypair.second, zonopair.second));
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, VT &Ar,
+            VT &Av) {
         std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av);
         std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
                                  std::max(polypair.second, zonopair.second));
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, VT &Ar,
+            VT &Av, NT &lambda_prev) {
         std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
@@ -81,7 +81,7 @@ public:
 
     //First coordinate ray shooting intersecting convex body
     std::pair<NT,NT> line_intersect_coord(Point &r,const unsigned int &rand_coord,
-                                          std::vector<NT> &lamdas) {
+                                          VT &lamdas) {
 
         std::pair <NT, NT> polypair = HP.line_intersect_coord(r, rand_coord, lamdas);
         std::pair <NT, NT> zonopair = Z.line_intersect_coord(r, rand_coord, lamdas);
@@ -90,8 +90,8 @@ public:
     }
 
 
-    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-                                               std::vector<NT> &Av) {
+    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, VT &Ar,
+                                               VT &Av) {
 
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av);
         std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
@@ -102,8 +102,8 @@ public:
         return std::pair<NT, int>(std::min(polypair.first, zonopair.first), facet);
     }
 
-    std::pair<NT, int> line_positive_intersect(Point &r, Point &v,  std::vector<NT> &Ar,
-                                               std::vector<NT> &Av, NT &lambda_prev) {
+    std::pair<NT, int> line_positive_intersect(Point &r, Point &v,  VT &Ar,
+                                               VT &Av, NT &lambda_prev) {
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
         int facet = HP.num_of_hyperplanes()+1;
@@ -118,7 +118,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int &rand_coord,
                                           const unsigned int &rand_coord_prev,
-                                          std::vector<NT> &lamdas) {
+                                          VT &lamdas) {
 
         std::pair <NT, NT> polypair = HP.line_intersect_coord(r, r_prev, rand_coord, rand_coord_prev, lamdas);
         std::pair <NT, NT> zonopair = Z.line_intersect_coord(r, rand_coord, lamdas);
