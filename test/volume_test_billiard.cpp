@@ -5,8 +5,21 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#include "doctest.h"
-#include <unistd.h>
+#include "Eigen/Eigen"
+#define VOLESTI_DEBUG
+#include <fstream>
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
+#include "volume.h"
+#include "rotating.h"
+#include "misc.h"
+#include "linear_extensions.h"
+#include "cooling_balls.h"
+#include "cooling_hpoly.h"
+#include "sample_only.h"
+#include "exact_vols.h"
 #include "Eigen/Eigen"
 #include <fstream>
 #include "random.hpp"
@@ -14,9 +27,23 @@
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "volume.h"
+#include "rotating.h"
+#include "misc.h"
+#include "doctest.h"
+#include <unistd.h>
+#include <fstream>
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
+#include "volume.h"
+#include "cooling_hpoly.h"
+#include "cooling_balls.h"
 #include "misc.h"
 #include "polytope_generators.h"
 #include <typeinfo>
+#include "sample_only.h"
+#include "exact_vols.h"
 
 template <typename NT>
 NT factorial(NT n)
@@ -32,7 +59,7 @@ void test_volume(Polytope &HP, NT expected, NT tolerance=0.1)
 
     // Setup the parameters
     int n = HP.dimension();
-    int walk_len=10 + n/10;
+    int walk_len=1;
     int nexp=1, n_threads=1;
     NT e=1, err=0.0000000001;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
@@ -56,11 +83,15 @@ void test_volume(Polytope &HP, NT expected, NT tolerance=0.1)
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol = 0;
+    NT ball_radius=0.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, round_val = 1.0;
+    NT C=2.0,ratio,frac=0.1,delta=-1.0;
+    vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, 150, 125, 10, false);
+
     unsigned int const num_of_exp = 10;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
         CheBall = HP.ComputeInnerBall();
-        vol += volume(HP,var,CheBall);
+        vol += vol_cooling_balls(HP, var, var_ban, InnerBall);
     }
     NT error = std::abs(((vol/num_of_exp)-expected))/expected;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
