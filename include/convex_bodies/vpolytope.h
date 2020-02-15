@@ -460,7 +460,7 @@ public:
         if (a.dot(V.row(outvert)) > 1.0) a = -a;
         a /= a.norm();
 
-        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
+        Point s(a);
 
         s = ((-2.0 * v.dot(s)) * s);
         v = s + v;

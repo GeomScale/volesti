@@ -483,7 +483,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, VT &Ar, VT &Av, NT &lam
             return;
         }
         lambda_prev = dl * pbpair.first;
-        p = (lambda_prev * v) + p;
+        p += (lambda_prev * v);
         T -= lambda_prev;
         P.compute_reflection(v, p, pbpair.second);
     }
@@ -498,7 +498,7 @@ void billiard_walk(ConvexBody &P, Point &p, NT diameter, VT &Ar, VT &Av, NT &lam
         }
 
         lambda_prev = dl * pbpair.first;
-        p = (lambda_prev * v) + p;
+        p += (lambda_prev * v);
         T -= lambda_prev;
         P.compute_reflection(v, p, pbpair.second);
         it++;
