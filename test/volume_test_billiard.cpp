@@ -61,21 +61,22 @@ void test_volume(Polytope &HP, NT expected, NT tolerance=0.1)
     int n = HP.dimension();
     int walk_len=1;
     int nexp=1, n_threads=1;
-    NT e=1, err=0.0000000001;
+    NT e=0.1, err=0.0000000001;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
-    boost::normal_distribution<> rdist(0,1);
+
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1(-1,1);
+
+
 
     std::pair<Point, NT> InnerBall;
     InnerBall = HP.ComputeInnerBall();
     NT diameter;
     HP.comp_diam(diameter, InnerBall.second);
 
-    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,InnerBall.second,diameter,rng,
-             urdist,urdist1,-1.0,false,false,false,false,false,false,false,false,true);
+
 
     //Compute chebychev ball//
     std::pair<Point,NT> CheBall;
@@ -85,13 +86,21 @@ void test_volume(Polytope &HP, NT expected, NT tolerance=0.1)
     NT vol = 0;
     NT ball_radius=0.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2, round_val = 1.0;
     NT C=2.0,ratio,frac=0.1,delta=-1.0;
+
+    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0.0,0,InnerBall.second,diameter,rng,
+                          urdist,urdist1,-1.0,false,false,false,false,false,false,false, true,true);
     vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, 150, 125, 10, false);
 
+    Polytope  HP2 = HP;
     unsigned int const num_of_exp = 10;
     for (unsigned int i=0; i<num_of_exp; i++)
     {
-        CheBall = HP.ComputeInnerBall();
-        vol += vol_cooling_balls(HP, var, var_ban, InnerBall);
+        HP=HP2;
+        //CheBall = HP.ComputeInnerBall();
+
+        NT _vol = vol_cooling_balls(HP, var, var_ban, InnerBall);
+        std::cout << _vol << "\n";
+        vol += _vol;
     }
     NT error = std::abs(((vol/num_of_exp)-expected))/expected;
     std::cout << "Computed volume (average) = " << vol/num_of_exp << std::endl;
