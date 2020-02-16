@@ -181,12 +181,12 @@ int main(const int argc, const char** argv)
           cdhr = true;
           correct = true;
       }
-      if(!strcmp(argv[i],"-BiW")){
+      if(!strcmp(argv[i],"-biw")){
           user_randwalk = true;
           billiard = true;
           correct = true;
       }
-      if(!strcmp(argv[i],"-BaW")){
+      if(!strcmp(argv[i],"-baw")){
           user_randwalk = true;
           ball_walk = true;
           correct = true;
@@ -199,7 +199,7 @@ int main(const int argc, const char** argv)
           hpoly = true;
           correct = true;
       }
-      if(!strcmp(argv[i],"-WinLen")){
+      if(!strcmp(argv[i],"-win_len")){
           W = atof(argv[++i]);
           user_W = true;
           correct = true;
@@ -335,7 +335,7 @@ int main(const int argc, const char** argv)
           set_error = true;
           correct = true;
       }
-      if(!strcmp(argv[i],"-w")||!strcmp(argv[i],"--walk_len")){
+      if(!strcmp(argv[i],"-w")||!strcmp(argv[i],"-walk_len")){
           walk_len = atof(argv[++i]);
           user_walk_len = true;
           correct = true;
@@ -416,6 +416,14 @@ int main(const int argc, const char** argv)
       NT vol_ex = exact_zonotope_vol<NT>(ZP);
       std::cout<<"Zonotope's exact volume = "<<vol_ex<<std::endl;
       return 0;
+  }
+
+  if (!user_randwalk) {
+      if (Zono || Vpoly) {
+          billiard = true;
+      } else {
+          cdhr = true;
+      }
   }
 
   /* RANDOM NUMBERS */
@@ -543,7 +551,7 @@ int main(const int argc, const char** argv)
           if (billiard) {
               W = 150;
           } else {
-              W = 2 * n * n + 250;
+              W = 3 * n * n + 400;
           }
       } else if (CG) {
           W = 4 * n * n + 500;

@@ -96,7 +96,7 @@ NT volume(Polytope &P,
         Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
-        
+
         rand_point_generator(P, p, 1, 50*n, randPoints, var);
         double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
         
@@ -206,6 +206,10 @@ NT volume(Polytope &P,
             if(print) std::cout<<"Generate "<<rnum-nump_PBLarge<<  " more "
                               <<std::endl;
             #endif
+
+            //if(var.bill_walk) {
+            //    PBLarge.comp_diam(var.diameter, 0.0);
+            //}
 
             //generate more random points in PBLarge to have "rnum" in total
             rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
