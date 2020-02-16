@@ -15,7 +15,7 @@ Version: 1.1.0
 Date: 2020-01-23
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: Rcpp (>= 0.12.17)
-Imports: methods
+Imports: methods, stats
 LinkingTo: Rcpp, RcppEigen, BH
 Suggests: testthat
 Encoding: UTF-8

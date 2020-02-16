@@ -3,12 +3,13 @@
 
 #' Construct a copula using uniform sampling from the unit simplex
 #'
-#' Given two families of parallel hyperplanes intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
+#' Given two families of parallel hyperplanes or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
 #'
-#' @param h1 A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
-#' @param h2 A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.
-#' @param numSlices The number of the slices for the copula. Default value is 100.
-#' @param N The number of points to sample. Default value is \eqn{4\cdot 10^6}.
+#' @param r1 A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
+#' @param r2 Optional. A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.
+#' @param sigma Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
+#' @param m The number of the slices for the copula. The default value is 100.
+#' @param n The number of points to sample. The default value is \eqn{5\cdot 10^5}.
 #'
 #' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 #' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
@@ -20,52 +21,28 @@
 #' h1 = h1 / 1000
 #' h2=runif(n = 10, min = 1, max = 1000)
 #' h2 = h2 / 1000
-#' cop = copula1(h1=h1, h2=h2, numSlices = 10, N = 100000)
-#' @export
-copula1 <- function(h1, h2, numSlices, N) {
-    .Call(`_volesti_copula1`, h1, h2, numSlices, N)
-}
-
-#' Construct a copula using uniform sampling from the unit simplex
+#' cop = copula(r1 = h1, r2 = h2, m = 10, n = 100000)
 #'
-#' Given a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
-#'
-#' @param h A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
-#' @param E The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
-#' @param numSlices The number of the slices for the copula. Default value is 100.
-#' @param N The number of points to sample. Default value is \eqn{4\cdot 10^6}.
-#'
-#' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
-#' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
-#'
-#' @return A \eqn{numSlices\times numSlices} numerical matrix that corresponds to a copula.
-#' @examples
 #' # compute a copula for a family of parallel hyperplanes and a family of conentric ellipsoids
 #' h = runif(n = 10, min = 1, max = 1000)
 #' h = h / 1000
 #' E = replicate(10, rnorm(20))
 #' E = cov(E)
-#' cop = copula2(h=h, E=E, numSlices=10, N=100000)
+#' cop = copula(r1 = h, sigma = E, m = 10, n = 100000)
+#'
 #' @export
-copula2 <- function(h, E, numSlices, N) {
-    .Call(`_volesti_copula2`, h, E, numSlices, N)
+copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL) {
+    .Call(`_volesti_copula`, r1, r2, sigma, m, n)
 }
 
-#' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex (c) a unit simplex (d) a cross polytope (e) a hypercube
+#' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex in V-representation or (c) if the volume is known and declared by the input object.
 #'
 #' Given a zonotope (as an object of class Zonotope), this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices of the \eqn{m\times d} matrix \eqn{G} that contains row-wise the \eqn{m} \eqn{d}-dimensional segments that define the zonotope.
 #' For an arbitrary simplex that is given in V-representation this function computes the absolute value of the determinant formed by the simplex's points assuming it is shifted to the origin.
-#' For a \eqn{d}-dimensional unit simplex, hypercube or cross polytope this function computes the exact well known formulas.
 #'
-#' @param P A zonotope or a simplex in V-representation.
-#' @param body A string that declares the type of the body for the exact sampling: a) \code{'simplex'} for the unit simplex, b) \code{'cross'} for the cross polytope, c) \code{'hypersphere'} for the hypersphere, d) \code{'cube'} for the unit cube.
-#' @param Parameters A list for the parameters of the methods:
-#' \itemize{
-#' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
-#' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. Default value is \eqn{1}.}
-#' }
+#' @param P A polytope
 #'
-#' @return The exact volume of the zonotope
+#' @return The exact volume of the input polytope, for zonotopes, simplices in V-representation and polytopes with known exact volume
 #' @examples
 #'
 #' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
@@ -79,10 +56,11 @@ copula2 <- function(h, E, numSlices, N) {
 #' }
 #'
 #' # compute the exact volume the 10-dimensional cross polytope
-#' vol = exact_vol(body = "cross", Parameters = list("dimension" = 10))
+#' P = gen_cross(10,'V')
+#' vol = exact_vol(P)
 #' @export
-exact_vol <- function(P = NULL, body = NULL, Parameters = NULL) {
-    .Call(`_volesti_exact_vol`, P, body, Parameters)
+exact_vol <- function(P) {
+    .Call(`_volesti_exact_vol`, P)
 }
 
 #' Compute the percentage of the volume of the unit simplex that is contained in the intersection of a half-space and the unit simplex.
