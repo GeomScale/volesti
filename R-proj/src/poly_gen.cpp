@@ -18,7 +18,10 @@
 #include "hpolytope.h"
 #include "vpolytope.h"
 #include "zpolytope.h"
-#include "polytope_generators.h"
+#include "known_polytope_generators.h"
+#include "h_polytopes_gen.h"
+#include "v_polytopes_gen.h"
+#include "z_polytopes_gen.h"
 #include "extractMatPoly.h"
 
 //' An internal Rccp function as a polytope generator
@@ -33,7 +36,7 @@
 //'
 //' @return A numerical matrix describing the requested polytope
 // [[Rcpp::export]]
-Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_gen) {
+Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int dim_gen, int m_gen) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -43,9 +46,17 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
     typedef VPolytope <Point, RNGType> Vpolytope;
     typedef Zonotope <Point> zonotope;
 
-    if (kind_gen == 0) {
+    if (Zono_gen) {
+        switch (kind_gen) {
 
-        return extractMatPoly(gen_zonotope<zonotope, RNGType>(dim_gen, m_gen));
+            case 1:
+                return extractMatPoly(gen_zonotope_uniform<zonotope, RNGType>(dim_gen, m_gen));
+            case 2:
+                return extractMatPoly(gen_zonotope_gaussian<zonotope, RNGType>(dim_gen, m_gen));
+            case 3:
+                return extractMatPoly(gen_zonotope_exponential<zonotope, RNGType>(dim_gen, m_gen));
+              
+        }
 
     } else if (Vpoly_gen) {
         switch (kind_gen) {
@@ -61,6 +72,9 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
 
             case 4:
                 return extractMatPoly(random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen));
+
+            case 5:
+                return extractMatPoly(random_vpoly_incube<Vpolytope, RNGType>(dim_gen, m_gen));
 
         }
     } else {
@@ -87,6 +101,6 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, int dim_gen, int m_g
         }
     }
 
-    return Rcpp::NumericMatrix(0, 0);
+    throw Rcpp::exception("Wrong inputs!");
 
 }

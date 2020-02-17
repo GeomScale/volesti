@@ -206,7 +206,7 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
             win_len = 3*n*n+400;
         } else {
             billiard = true;
-            win_len = 150;
+            win_len = 170;
             NN = 125;
         }
     }else if (Rcpp::as<std::string>(random_walk).compare(std::string("CDHR")) == 0) {
@@ -218,7 +218,7 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
         ball_walk = true;
     } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BiW"))==0) {
         billiard = true;
-        win_len = 150;
+        win_len = 170;
         NN = 125;
     }else {
         throw Rcpp::exception("Unknown walk type!");

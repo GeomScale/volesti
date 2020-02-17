@@ -12,7 +12,7 @@
 #include "samplers.h"
 
 template <class Polytope, class RNGType>
-Polytope gen_zonotope_gaussian(unsigned int dim, unsigned int m) {
+Polytope gen_zonotope_gaussian(int dim, int m) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -51,7 +51,7 @@ Polytope gen_zonotope_gaussian(unsigned int dim, unsigned int m) {
 
 
 template <class Polytope, class RNGType>
-Polytope gen_zonotope_uniform(unsigned int dim, unsigned int m) {
+Polytope gen_zonotope_uniform(int dim, int m) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -83,7 +83,7 @@ Polytope gen_zonotope_uniform(unsigned int dim, unsigned int m) {
 
 
 template <class Polytope, class RNGType>
-Polytope gen_zonotope_exponential(unsigned int dim, unsigned int m) {
+Polytope gen_zonotope_exponential(int dim, int m) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
