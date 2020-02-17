@@ -54,7 +54,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
     bool ball_walk = false, verbose = false, cdhr = false, rdhr = false, billiard = false, round = false, win2 = false, hpoly = false;
 
 
-    NT ratio = std::numeric_limits<double>::signaling_NaN();;
+    NT ratio = std::numeric_limits<double>::signaling_NaN();
 
     MT X(n, 2*k);
     X << Rcpp::as<MT>(Z.field("G")).transpose(), -Rcpp::as<MT>(Z.field("G")).transpose();
@@ -134,8 +134,6 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
         zonotope ZP;
         ZP.init(n, Rcpp::as<MT>(Z.field("G")), VT::Ones(Rcpp::as<MT>(Z.field("G")).rows()));
 
-        if (billiard && diam < 0.0) ZP.comp_diam(diam, 0.0);
-
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         // the random engine with this seed
         typedef boost::mt19937    RNGType;
@@ -159,17 +157,22 @@ Rcpp::List zono_approx (Rcpp::Reference Z, Rcpp::Nullable<bool> fit_ratio = R_Ni
             InnerB = ZP.ComputeInnerBall();
         }
 
+        if (billiard && diam < 0.0){
+            ZP.comp_diam(diam, 0.0);
+        } else if (ball_walk && delta < 0.0) {
+            delta = 4.0 * InnerB.second / NT(n);
+        }
+
         vars<NT, RNGType> var(1, n, walkL, 1, 0.0, e, 0, 0.0, 0, InnerB.second, diam, rng,
                                urdist, urdist1, delta, false, false, round, false, false, ball_walk, cdhr,rdhr, billiard);
         vars_ban <NT> var_ban(lb, ub, p, 0.0, alpha, win_len, NN, nu, win2);
-
 
         NT vol;
         if (!hpoly) {
             vol = vol_cooling_balls(ZP, var, var_ban, InnerB);
         } else {
-            vars_g <NT, RNGType> varg(n, 1, 1000 + n * n / 2, 6 * n * n + 500, 1, e, InnerB.second, rng, 2.0, 0.1, ratio, delta,
-                                      false, false, false, false, false, false, true, false);
+            vars_g <NT, RNGType> varg(n, 1, 1000 + n * n / 2, 6 * n * n + 500, 1, e, InnerB.second, rng, 2.0, 0.1,
+                                      1.0-1.0/(NT(n)), delta, false, false, false, false, false, false, true, false);
             vol = vol_cooling_hpoly<Hpolytope> (ZP, var, var_ban, varg, InnerB);
         }
         ratio = std::pow(vol_red / vol, 1.0/NT(n));
