@@ -29,7 +29,7 @@
 #include "cooling_balls.h"
 #include "cooling_hpoly.h"
 #include "misc.h"
-#include "polytope_generators.h"
+#include "known_polytope_generators.h"
 #include <typeinfo>
 
 template <typename NT>

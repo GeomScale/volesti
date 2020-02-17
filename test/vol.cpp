@@ -439,7 +439,11 @@ int main(const int argc, const char** argv)
 
   if (!user_randwalk) {
       if (Zono || Vpoly) {
-          billiard = true;
+          if (CB) {
+              billiard = true;
+          } else {
+              rdhr = true;
+          }
       } else {
           cdhr = true;
       }
@@ -447,6 +451,15 @@ int main(const int argc, const char** argv)
       std::cout<<"Billiard is not supported for SOB algorithm. CDHR is used."<<std::endl;
       billiard = false;
       cdhr = true;
+  } else if (CG && billiard) {
+      billiard = false;
+      if (Zono || Vpoly) {
+          std::cout<<"Billiard is not supported for CG algorithm. RDHR is used."<<std::endl;
+          rdhr = true;
+      } else {
+          std::cout<<"Billiard is not supported for CG algorithm. CDHR is used."<<std::endl;
+          cdhr = true;
+      }
   }
 
   /* RANDOM NUMBERS */
@@ -553,7 +566,7 @@ int main(const int argc, const char** argv)
   if(!user_W){
       if (CB) {
           if (billiard) {
-              W = 150;
+              W = 170;
           } else {
               W = 3 * n * n + 400;
           }
@@ -628,7 +641,7 @@ int main(const int argc, const char** argv)
   NT average, std_dev;
   double Chebtime, sum_Chebtime=double(0);
   NT vol;
-  
+
   for(unsigned int i=0; i<num_of_exp; ++i){
       std::cout<<"Experiment "<<i+1<<" ";
       tstart = (double)clock()/(double)CLOCKS_PER_SEC;

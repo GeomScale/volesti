@@ -141,6 +141,8 @@ public:
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
         conv_comb2 = (REAL *) malloc(Pin.size() * sizeof(*conv_comb2));
         colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
+        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
         row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
 

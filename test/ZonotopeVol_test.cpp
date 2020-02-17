@@ -13,7 +13,7 @@
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "volume.h"
-#include "polytope_generators.h"
+#include "z_polytopes_gen.h"
 #include "exact_vols.h"
 #include <typeinfo>
 
@@ -30,7 +30,7 @@ void test_zono_volume(int n, int m, NT tolerance = 0.15)
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937    RNGType;
     typedef Zonotope<Point> Zonotope;
-    Zonotope ZP = gen_zonotope<Zonotope, RNGType>(n, m);
+    Zonotope ZP = gen_zonotope_uniform<Zonotope, RNGType>(n, m);
 
     // Setup the parameters
     int walk_len=10 + n/10;
