@@ -125,27 +125,32 @@ int main(const int argc, const char** argv)
                       "-f3, --file3 [filename_type_G] [epsilon] [walk_length] [threads] [num_of_experiments], for Zonotopes\n"<<
                       "-fle, --filele : counting linear extensions of a poset\n"<<
                       //"-c, --cube [dimension] [epsilon] [walk length] [threads] [num_of_experiments]\n"<<
-                      "--exact : the exact volume\n"<<
-                      "--cube : input polytope is a cube\n"<<
-                      "-exact_zono : compute the exact volume of a zonotope\n"<<
+                      "-exact_vol : the exact volume. Only fo zonotopes\n"<<
                       "-r, --round : enables rounding of the polytope as a preprocess\n"<<
                       "-e, --error epsilon : the goal error of approximation\n"<<
-                      "-w, --walk_len [walk_len] : the random walk length (default 10)\n"<<
+                      "-w, --walk_len [walk_len] : the random walk length. The default value is 1 for CB and CG and 10+d/10 for SOB\n"<<
                       "-exp [#exps] : number of experiments (default 1)\n"<<
-                      "-t, --threads #threads : the number of threads to be used\n"<<
-                      "-ΝΝ : use Nearest Neighbor search to compute the boundary oracles\n"<<
-                      "-birk_sym : use symmetry to compute more random points (only for Birkhoff polytopes)\n"<<
-                      "\n-cg : use the practical CG algo\n"<<
+                      "-cg : use Cooling Gaussians algorithm for volume computation. This is the default choice for H-polytopes in dimension >200\n"<<
+                      "-cb : use Cooling Bodies algorithm for volume computation. This is the default choice for V-polytopes, Zonotopes and H-polytopes in dimension <=200\n"<<
+                      "-sob : use Sequence of Balls algorithm for volume computation\n"<<
                       "-w, --walk_len [walk_len] : the random walk length (default 1)\n"<<
-                      "-rdhr : use random directions HnR, default is coordinate directions HnR\n"
-                      "-e, --error epsilon : the goal error of approximation\n"<<
-                      "-bw : use ball walk for sampling\n"<<
+                      "-rdhr : use random directions HnR\n"<<
+                      "-cdhr : use coordinate directions HnR. This is the default choice for H-polytopes\n"<<
+                      "-biw : use Billiard walk. This is the default choice for V-polytopes and zonotopes\n"<<
+                      "-L : the maximum length of the billiard trajectory\n"<<
+                      "-baw : use ball walk\n"<<
                       "-bwr : the radius of the ball walk (default r*chebychev_radius/sqrt(max(1.0, a_i)*dimension\n"<<
-                      "-Win : the size of the open window for the ratios convergence\n"<<
-                      "-C : a constant for the upper boud of variance/mean^2 in schedule annealing\n"
-                      "-N : the number of points to sample in each step of schedule annealing. Default value N = 500*C + dimension^2/2\n"<<
-                      "-frac : the fraction of the total error to spend in the first gaussian (default frac=0.1)\n"<<
-                      "-ratio : parameter of schedule annealing, larger ratio means larger steps in schedule annealing (default 1-1/dimension)\n"<<
+                      "-e, --error epsilon : the goal error of approximation\n"<<
+                      "-win_len : the size of the open window for the ratios convergence (for CB and CG algorithms)\n"<<
+                      "-C : a constant for the upper boud of variance/mean^2 in schedule annealing. The default values is 2 (for CG algorithm)\n"
+                      "-N : the number of points to sample in each step of schedule annealing. The default value N = 500*C + dimension^2/2 (for CG algorithm)\n"<<
+                      "-frac : the fraction of the total error to spend in the first gaussian. The default frac=0.1 (for CG algo)\n"<<
+                      "-ratio : parameter of schedule annealing, larger ratio means larger steps in schedule annealing. The default 1-1/dimension (for CG algorithm)\n"<<
+                      "-lb : lower bound for the volume ratios in CB algorithm. The default values is 0.1\n"<<
+                      "-ub : upper bound for the volume ratios in CB algorithm. The default values is 0.15\n"<<
+                      "-alpha : the significance level for the statistical test in CB algorithm\n"<<
+                      "-nu : the degrees of freedom of t-student to use in the t-tests in CB algorithm. The default value is 10\n"<<
+                      "-nuN : the degrees of freedom of t-student to use in the t-tests and the number of samples to perform the statistical tests in CB algorithm. The default values is 10 and 125 (when -biw is used) or 120 + d*d/10 (when other random walks are used)\n"<<
                       std::endl;
           return 0;
       }
@@ -344,7 +349,7 @@ int main(const int argc, const char** argv)
           nexp = atof(argv[++i]);
           correct = true;
       }
-      if(!strcmp(argv[i],"-diameter")){
+      if(!strcmp(argv[i],"-L")){
           diameter = atof(argv[++i]);
           correct = true;
       }
