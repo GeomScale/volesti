@@ -169,7 +169,7 @@ int main(const int argc, const char** argv) {
     bool Hpoly = false, Vpoly = false, Zono = false,
             cube = false, cross = false, simplex = false, rand = false,
             prod_simplex = false, skinny_cube = false;
-    int d = 0, m = 0, kind = -1, body = -1;
+    int d = 0, m = 0, kind = -1;
 
     for(int i=1;i<argc;++i) {
         bool correct = false;
@@ -198,7 +198,7 @@ int main(const int argc, const char** argv) {
 
         if(!strcmp(argv[i],"-zonotope")) {
             Zono = true;
-            Vpoly = true;
+            Vpoly = false;
             kind = 1;
             correct = true;
         }
@@ -238,22 +238,19 @@ int main(const int argc, const char** argv) {
         if(!strcmp(argv[i],"-rvc")) {
             rand = true;
             Vpoly = true;
-            body = 2;
-            //if (body<0) body = 1;
+            kind = 4;
             correct = true;
         }
         if(!strcmp(argv[i],"-rvs")) {
             rand = true;
             Vpoly = true;
-            body = 1;
-            //if (body<0) body = 1;
+            kind = 5;
             correct = true;
         }
         if(!strcmp(argv[i],"-rz")) {
             rand = true;
             Zono = true;
             Vpoly = true;
-            if (body<0) body = 1;
             correct = true;
         }
         if(!strcmp(argv[i],"-rh")) {
@@ -261,7 +258,6 @@ int main(const int argc, const char** argv) {
             Zono = false;
             Vpoly = false;
             Hpoly = true;
-            if (body<0) body = 1;
             correct = true;
         }
         if(!strcmp(argv[i],"-d")) {
@@ -272,10 +268,6 @@ int main(const int argc, const char** argv) {
             kind = atof(argv[++i]);
             correct = true;
         }
-        //if(!strcmp(argv[i],"-body")) {
-        //    body = atof(argv[++i]);
-        //    correct = true;
-        //}
         if(!strcmp(argv[i],"-m")) {
             m = atof(argv[++i]);
             correct = true;
@@ -289,10 +281,7 @@ int main(const int argc, const char** argv) {
 
     }
 
-    if (d < 1 || (body<0 && kind<0) ) {
-        std::cout<<"Wrong inputs, try -help"<<std::endl;
-        exit(-1);
-    } else if (m < 1){
+    if (d < 1) {
         std::cout<<"Wrong inputs, try -help"<<std::endl;
         exit(-1);
     }
@@ -303,24 +292,19 @@ int main(const int argc, const char** argv) {
             Zonotope ZP;
             switch (kind) {
                 case -1:
-                    //std::cout<<"uniform"<<std::endl;
                     kind = 1;
                     ZP = gen_zonotope_uniform<Zonotope, RNGType>(d, m);
                     break;
                 case 1:
-                    //std::cout<<"uniform"<<std::endl;
                     ZP = gen_zonotope_uniform<Zonotope, RNGType>(d, m);
                     break;
                 case 2:
-                    //std::cout<<"gaussian"<<std::endl;
                     ZP = gen_zonotope_gaussian<Zonotope, RNGType>(d, m);
                     break;
                 case 3:
-                    //std::cout<<"exponential"<<std::endl;
                     ZP = gen_zonotope_exponential<Zonotope, RNGType>(d, m);
                     break;
             }
-            //Zonotope ZP = gen_zonotope<Zonotope, RNGType>(d, m);
             create_txt(ZP.get_mat(), ZP.get_vec(), kind, false, true);
         } else {
             std::cout << "Wrong inputs, try -help" << std::endl;
@@ -332,7 +316,7 @@ int main(const int argc, const char** argv) {
             if(m>d+1) {
                 HP = random_hpoly<Hpolytope, RNGType>(d, m);
             }else {
-                std::cout << "the number of facets has to be >=d" << std::endl;
+                std::cout << "the number of facets has to be >= d+1" << std::endl;
                 exit(-1);
             }
         }else if (cube) {
@@ -353,14 +337,17 @@ int main(const int argc, const char** argv) {
     } else if (Vpoly) {
         Vpolytope VP;
         if (rand) {
-            if (body < 0 || body == 1) {
-                VP = random_vpoly<Vpolytope, RNGType>(d, m);
-                kind = 5;
-            } else if (body == 2) {
-                VP = random_vpoly_incube<Vpolytope, RNGType>(d, m);
-                kind = 4;
+            if (m > 0) {
+                if (kind == 5) {
+                    VP = random_vpoly<Vpolytope, RNGType>(d, m);
+                } else if (kind == 4) {
+                    VP = random_vpoly_incube<Vpolytope, RNGType>(d, m);
+                } else {
+                    std::cout << "Wrong inputs, try -help" << std::endl;
+                    exit(-1);
+                }
             } else {
-                std::cout<<"Wrong inputs, try -help"<<std::endl;
+                std::cout << "Wrong inputs, try -help" << std::endl;
                 exit(-1);
             }
         } else if (cube) {

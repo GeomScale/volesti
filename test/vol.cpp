@@ -157,7 +157,7 @@ int main(const int argc, const char** argv)
           exactvol = atof(argv[++i]);
           correct = true;
       }
-      if(!strcmp(argv[i],"-exact_zono")){
+      if(!strcmp(argv[i],"-exact_vol")){
           exact_zono = true;
           correct = true;
       }
@@ -413,6 +413,10 @@ int main(const int argc, const char** argv)
   }
 
   if (exact_zono) {
+      if (!Zono) {
+          std::cout<<"Exact volume computation is available only for zonotopes."<<std::endl;
+          exit(-1);
+      }
       NT vol_ex = exact_zonotope_vol<NT>(ZP);
       std::cout<<"Zonotope's exact volume = "<<vol_ex<<std::endl;
       return 0;

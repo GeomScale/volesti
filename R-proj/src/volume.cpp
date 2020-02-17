@@ -255,11 +255,21 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
         ball_walk = true;
     } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BiW"))==0) {
         if (CG) {
-            Rcpp::Rcout << "Billiard walk is not supported for CG algorithm. RDHR is used."<<std::endl;
-            rdhr = true;
-        } else if (SOB) {
-            Rcpp::Rcout << "Billiard walk is not supported for SOB algorithm. RDHR is used."<<std::endl;
-            rdhr = true;
+            if (type !=1){
+                Rcpp::Rcout << "Billiard walk is not supported for CG algorithm. RDHR is used."<<std::endl;
+                rdhr = true;
+            } else {
+                Rcpp::Rcout << "Billiard walk is not supported for CG algorithm. CDHR is used."<<std::endl;
+                cdhr = true;
+            }
+        } else if (!CB) {
+            if (type !=1){
+                Rcpp::Rcout << "Billiard walk is not supported for SOB algorithm. RDHR is used."<<std::endl;
+                rdhr = true;
+            } else {
+                Rcpp::Rcout << "Billiard walk is not supported for SOB algorithm. CDHR is used."<<std::endl;
+                cdhr = true;
+            }
         } else {
             billiard = true;
             win_len = 170;

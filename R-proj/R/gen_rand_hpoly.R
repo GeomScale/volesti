@@ -15,7 +15,7 @@ gen_rand_hpoly <- function(dimension, m) {
   kind_gen = 6
   Vpoly_gen = FALSE
   
-  Mat = poly_gen(kind_gen, Vpoly_gen, dimension, m)
+  Mat = poly_gen(kind_gen, Vpoly_gen, FALSE, dimension, m)
   
   # first column is the vector b
   b = Mat[,1]
