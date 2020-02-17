@@ -200,36 +200,6 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
     NT C = 2.0, ratio = 1.0-1.0/(NT(n)), frac = 0.1, e, delta = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0,
             alpha = 0.2, diam = -1.0;
 
-    if (!random_walk.isNotNull()) {
-        if ( type == 1 ){
-            cdhr = true;
-            win_len = 3*n*n+400;
-        } else {
-            billiard = true;
-            win_len = 170;
-            NN = 125;
-        }
-    }else if (Rcpp::as<std::string>(random_walk).compare(std::string("CDHR")) == 0) {
-        cdhr = true;
-        win_len = 3*n*n+400;
-    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("RDHR")) == 0) {
-        rdhr = true;
-    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BaW"))==0) {
-        ball_walk = true;
-    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BiW"))==0) {
-        billiard = true;
-        win_len = 170;
-        NN = 125;
-    }else {
-        throw Rcpp::exception("Unknown walk type!");
-    }
-
-    if (!rounding.isNotNull() && type == 2){
-        round = true;
-    } else {
-        round = (!rounding.isNotNull()) ? false : Rcpp::as<bool>(rounding);
-    }
-
     if(!algo.isNotNull()){
 
         if (type == 2 || type == 3) {
@@ -261,6 +231,48 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
 
     } else {
         throw Rcpp::exception("Unknown method!");
+    }
+
+    if (!random_walk.isNotNull()) {
+        if ( type == 1 ){
+            cdhr = true;
+            if (CB) win_len = 3*n*n+400;
+        } else {
+            if (CB) {
+                billiard = true;
+                win_len = 170;
+                NN = 125;
+            } else {
+                rdhr = true;
+            }
+        }
+    }else if (Rcpp::as<std::string>(random_walk).compare(std::string("CDHR")) == 0) {
+        cdhr = true;
+        if (CB) win_len = 3*n*n+400;
+    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("RDHR")) == 0) {
+        rdhr = true;
+    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BaW"))==0) {
+        ball_walk = true;
+    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BiW"))==0) {
+        if (CG) {
+            Rcpp::Rcout << "Billiard walk is not supported for CG algorithm. RDHR is used."<<std::endl;
+            rdhr = true;
+        } else if (SOB) {
+            Rcpp::Rcout << "Billiard walk is not supported for SOB algorithm. RDHR is used."<<std::endl;
+            rdhr = true;
+        } else {
+            billiard = true;
+            win_len = 170;
+            NN = 125;
+        }
+    }else {
+        throw Rcpp::exception("Unknown walk type!");
+    }
+
+    if (!rounding.isNotNull() && type == 2){
+        round = true;
+    } else {
+        round = (!rounding.isNotNull()) ? false : Rcpp::as<bool>(rounding);
     }
 
     if(parameters.isNotNull()) {
