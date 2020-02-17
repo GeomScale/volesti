@@ -112,7 +112,7 @@ else ()
   add_test(NAME cool_bodies_cube COMMAND cool_bodies_bill_test -tc=cube)
   add_test(NAME cool_bodies_cross COMMAND cool_bodies_bill_test -tc=cross)
   add_test(NAME cool_bodies_birkhoff COMMAND cool_bodies_bill_test -tc=birk)
-  add_test(NAME cool_bodies_prod_simplex COMMAND cool_bodies_bill_test -tc=prod_simplex)
+  #add_test(NAME cool_bodies_prod_simplex COMMAND cool_bodies_bill_test -tc=prod_simplex)
   add_test(NAME cool_bodies_simplex COMMAND cool_bodies_bill_test -tc=simplex)
   add_test(NAME cool_bodies_skinny_cube COMMAND cool_bodies_bill_test -tc=skinny_cube)
 
