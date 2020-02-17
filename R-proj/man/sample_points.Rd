@@ -5,8 +5,8 @@
 \title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere}
 \usage{
 sample_points(P = NULL, N = NULL, distribution = NULL,
-  random_walk = NULL, walk_length = NULL, exact = NULL,
-  body = NULL, parameters = NULL, InnerPoint = NULL)
+  random_walk = NULL, walk_length = NULL, exact = NULL, body = NULL,
+  parameters = NULL, InnerPoint = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
@@ -29,7 +29,7 @@ sample_points(P = NULL, N = NULL, distribution = NULL,
 \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
 \item{\code{BW_rad} }{ The radius for the ball walk.}
-\item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
+\item{\code{L} }{The maximum length of the billiard trajectory.}
 }}
 
 \item{InnerPoint}{A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.}
