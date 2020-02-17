@@ -203,6 +203,7 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
     if (!random_walk.isNotNull()) {
         if ( type == 1 ){
             cdhr = true;
+            win_len = 3*n*n+400;
         } else {
             billiard = true;
             win_len = 150;
@@ -257,11 +258,6 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
         CB = true;
         e = (!error.isNotNull()) ? 0.1 : Rcpp::as<NT>(error);
         walkL = (!walk_length.isNotNull()) ? 1 : Rcpp::as<int>(walk_length);
-        win_len = (cdhr) ? 3*n*n+400 : 2*n*n+250;
-        if (billiard){
-            win_len = 150;
-            NN = 125;
-        }
 
     } else {
         throw Rcpp::exception("Unknown method!");
@@ -318,8 +314,6 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
             diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["diameter"]);
         }
     }
-
-    //std::cout<<"Wlen = "<<win_len<<", NN = "<<NN<<", nu = "<<nu<<", lb = "<<lb<<", ub = "<<ub<<", alpha = "<<alpha<<", p = "<<p<<", W = "<<walkL<<", billiard = "<<billiard<<std::endl;
 
     switch(type) {
         case 1: {

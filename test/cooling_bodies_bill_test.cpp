@@ -46,7 +46,7 @@ void test_cool_bodies(Polytope &HP, NT expected, NT tolerance=0.1, bool round = 
 
     // Setup the parameters
     int n = HP.dimension();
-    int walk_len=10 + n/10;
+    int walk_len=1;
     int nexp=1, n_threads=1;
     NT e=0.1, err=0.0000000001, diameter = diam, round_val = 1.0;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
@@ -69,6 +69,7 @@ void test_cool_bodies(Polytope &HP, NT expected, NT tolerance=0.1, bool round = 
     InnerBall = HP.ComputeInnerBall();
     if(diameter < 0.0) {
         HP.comp_diam(diameter, InnerBall.second);
+        if (round) diameter*=2.0;
     }
 
     vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,InnerBall.second,diameter,rng,
@@ -194,7 +195,7 @@ void call_test_prod_simplex() {
 
     std::cout << "--- Testing volume of H-prod_simplex20" << std::endl;
     P = gen_prod_simplex<Hpolytope>(20);
-    test_cool_bodies<NT, RNGType>(P, std::pow(1.0 / factorial(20.0), 2.0), 0.25, true);
+    test_cool_bodies<NT, RNGType>(P, std::pow(1.0 / factorial(20.0), 2.0), 0.2, true);
 }
 
 template <typename NT>
