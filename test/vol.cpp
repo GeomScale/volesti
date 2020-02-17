@@ -418,12 +418,35 @@ int main(const int argc, const char** argv)
       return 0;
   }
 
+  if (!set_algo) {
+      if (Zono || Vpoly) {
+          CB = true;
+      } else {
+          if (n <= 200) {
+              CB = true;
+          } else {
+              CG = true;
+          }
+      }
+  } else {
+      if (!CB && !CG) {
+          if (!set_error) {
+              e = 1.0;
+              error = 1.0;
+          }
+      }
+  }
+
   if (!user_randwalk) {
       if (Zono || Vpoly) {
           billiard = true;
       } else {
           cdhr = true;
       }
+  } else if (!CB && !CG && billiard) {
+      std::cout<<"Billiard is not supported for SOB algorithm. CDHR is used."<<std::endl;
+      billiard = false;
+      cdhr = true;
   }
 
   /* RANDOM NUMBERS */
@@ -509,25 +532,6 @@ int main(const int argc, const char** argv)
   
   // Set the number of random walk steps
 
-  if (!set_algo) {
-      if (Zono || Vpoly) {
-          CB = true;
-      } else {
-          if (n <= 200) {
-              CB = true;
-          } else {
-              CG = true;
-          }
-      }
-  } else{
-      if (!CB && !CG) {
-          if (!set_error) {
-              e = 1.0;
-              error = 1.0;
-          }
-      }
-  }
-
   if(!user_walk_len) {
       if(!CG && !CB) {
           walk_len = 10 + n / 10;
@@ -557,8 +561,6 @@ int main(const int argc, const char** argv)
           W = 4 * n * n + 500;
       }
   }
-
-
 
   // Timings
   double tstart, tstop;

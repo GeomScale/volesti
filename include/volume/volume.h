@@ -207,10 +207,6 @@ NT volume(Polytope &P,
                               <<std::endl;
             #endif
 
-            //if(var.bill_walk) {
-            //    PBLarge.comp_diam(var.diameter, 0.0);
-            //}
-
             //generate more random points in PBLarge to have "rnum" in total
             rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
 
