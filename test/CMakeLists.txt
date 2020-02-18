@@ -51,7 +51,12 @@ else ()
   include_directories (BEFORE ../include/misc)
 
   #for Eigen
-  add_compile_definitions("EIGEN_NO_DEBUG")
+  if (${CMAKE_VERSION} VERSION_LESS "3.12.0") 
+    add_compile_options(-D "EIGEN_NO_DEBUG")
+  else ()
+    add_compile_definitions("EIGEN_NO_DEBUG")
+  endif ()
+  
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
