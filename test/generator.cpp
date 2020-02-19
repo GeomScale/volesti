@@ -27,92 +27,62 @@ template <class MT, class VT>
 void create_txt(MT A, VT b, int kind, bool Vpoly, bool Zono) {
 
     int d = A.cols(), m = A.rows();
-    std::string bar = "_", ext = ".ext", ine = ".ine", name, poly;
+    std::string bar = "_", ext = ".ext", ine = ".ine", name;
 
     std::ofstream outputFile;
     if (Zono) {
-        poly = "zonotope";
-        name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
+        name = "zonotope" + bar + std::to_string(d) + bar + std::to_string(m) + ext;
         outputFile.open(name);
         outputFile << name << "\n";
         outputFile << "Zonotope\n";
     } else if (Vpoly) {
         switch (kind) {
             case 1:
-                poly = "cube";
-                name = poly + bar + std::to_string(d) + ext;
-                outputFile.open(name);
-                outputFile << "cube_" << d << ".ext\n";
+                name = "cube" + bar + std::to_string(d) + ext;
                 break;
             case 2:
-                poly = "cross";
-                name = poly + bar + std::to_string(d) + ext;
-                outputFile.open(name);
-                outputFile << "cross_" << d << ".ext\n";
+                name = "cross" + bar + std::to_string(d) + ext;
                 break;
             case 3:
-                poly = "simplex";
-                name = poly + bar + std::to_string(d) + ext;
-                outputFile.open(name);
-                outputFile << "simplex_" << d << ".ext\n";
+                name = "simplex" + bar + std::to_string(d) + ext;
                 break;
             case 4:
-                poly = "rvc";
-                name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
-                outputFile.open(name);
-                outputFile << name << "\n";
+                name = "rvc" + bar + std::to_string(d) + bar + std::to_string(m) + ext;
                 break;
             case 5:
-                poly = "rvs";
-                name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
-                outputFile.open(name);
-                outputFile << name << "\n";
+                name = "rvs" + bar + std::to_string(d) + bar + std::to_string(m) + ext;
                 break;
             default:
                 return;
         }
+        outputFile.open(name);
+        outputFile << name << "\n";
         outputFile << "V-representation\n";
     } else {
         switch (kind) {
             case 1:
-                poly = "cube";
-                name = poly + bar + std::to_string(d) + ine;
-                outputFile.open(name);
-                outputFile << "cube_" << d << ".ine\n";
+                name = "cube" + bar + std::to_string(d) + ine;
                 break;
             case 2:
-                poly = "cross";
-                name = poly + bar + std::to_string(d) + ine;
-                outputFile.open(name);
-                outputFile << "cross_" << d << ".ine\n";
+                name = "cross" + bar + std::to_string(d) + ine;
                 break;
             case 3:
-                poly = "simplex";
-                name = poly + bar + std::to_string(d) + ine;
-                outputFile.open(name);
-                outputFile << "simplex_" << d << ".ine\n";
+                name = "simplex" + bar + std::to_string(d) + ine;
                 break;
             case 4:
-                poly = "prod_simplex";
-                name = poly + bar + std::to_string(d / 2) + bar + std::to_string(d / 2) + ine;
-                outputFile.open(name);
-                outputFile << "prod_simplex_" << d / 2 << "_" << d / 2 << ".ine\n";
+                name = "prod_simplex" + bar + std::to_string(d / 2) + bar + std::to_string(d / 2) + ine;
                 break;
             case 5:
-                poly = "skinny_cube";
-                name = poly + bar + std::to_string(d) + ine;
-                outputFile.open(name);
-                outputFile << "skinny_cube_" << d << ".ine\n";
+                name = "skinny_cube" + bar + std::to_string(d) + ine;
                 break;
             case 6:
-                poly = "rhs";
-                name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ine;
-                outputFile.open(name);
-                outputFile << "rhs_" << d << "_" << m << ".ine\n";
+                name = "rhs" + bar + std::to_string(d) + bar + std::to_string(m) + ine;
                 break;
             default:
                 return;
         }
+        outputFile.open(name);
+        outputFile << name << "\n";
         outputFile << "H-representation\n";
     }
     outputFile << "begin\n";
