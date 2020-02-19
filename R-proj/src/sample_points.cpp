@@ -44,7 +44,7 @@
 //' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 //' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
 //' \item{\code{BW_rad} }{ The radius for the ball walk.}
-//' \item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
+//' \item{\code{L} }{The maximum length of the billiard trajectory.}
 //' }
 //' @param InnerPoint A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.
 //'
