@@ -30,6 +30,7 @@ void create_txt(MT A, VT b, int kind, bool Vpoly, bool Zono) {
     std::string bar = "_", ext = ".ext", ine = ".ine", name;
 
     std::ofstream outputFile;
+
     if (Zono) {
         name = "zonotope" + bar + std::to_string(d) + bar + std::to_string(m) + ext;
         outputFile.open(name);
@@ -237,6 +238,7 @@ int main(const int argc, const char** argv) {
         std::cout << "Wrong inputs, try -help" << std::endl;
         exit(-1);
     }
+    if (Hpoly && rand) kind = 6;
 
     if (Zono) {
         if (kind > 3 || kind <1) std::cout << "Wrong declaration of zonotope's generator, try -help" << std::endl;
@@ -338,7 +340,5 @@ int main(const int argc, const char** argv) {
         std::cout << "Wrong inputs, try -help" << std::endl;
         exit(-1);
     }
-
     return 0;
-
 }
