@@ -45,10 +45,8 @@ round_polytope <- function(P, random_walk = NULL, walk_length = NULL, parameters
     PP = list("P" = Vpolytope$new(A), "round_value" = ret_list$round_value)
   }else if (type == 3) {
     PP = list("P" = Zonotope$new(A), "round_value" = ret_list$round_value)
-  } else if(type == 1) {
-    PP = list("P" = Hpolytope$new(A,b), "round_value" = ret_list$round_value)
   } else {
-    PP = list("P" = VPolyintersectVPoly$new(V1 = t(Mat[,dim(P$V1)[1]]), V2 = t(Mat[,dim(P$V2)[1]])), "round_value" = ret_list$round_value)
+    PP = list("P" = Hpolytope$new(A,b), "round_value" = ret_list$round_value)
   }
   return(PP)
 }
