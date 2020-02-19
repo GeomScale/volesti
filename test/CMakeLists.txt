@@ -79,7 +79,7 @@ else ()
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
   add_test(NAME volume_birkhoff COMMAND volume_test -tc=birk)
-  add_test(NAME volume_prod_simplex COMMAND volume_test -tc=prod_simplex)
+  #add_test(NAME volume_prod_simplex COMMAND volume_test -tc=prod_simplex)
   add_test(NAME volume_simplex COMMAND volume_test -tc=simplex)
   add_test(NAME volume_skinny_cube COMMAND volume_test -tc=skinny_cube)
 
