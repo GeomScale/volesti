@@ -5,8 +5,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef POLYTOPE_GENERATORS_H
-#define POLYTOPE_GENERATORS_H
+#ifndef KNOWN_POLYTOPE_GENERATORS_H
+#define KNOWN_POLYTOPE_GENERATORS_H
 
 #include <exception>
 #include "samplers.h"
@@ -305,103 +305,6 @@ Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
 
     return P;
 }
-
-
-template <typename Polytope, typename RNGType>
-Polytope gen_zonotope(const unsigned int &dim, const unsigned int &m) {
-
-    typedef typename Polytope::MT    MT;
-    typedef typename Polytope::VT    VT;
-    typedef typename Polytope::NT    NT;
-
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
-    boost::normal_distribution<> rdist(0, 1);
-
-    MT A;
-    VT b;
-    A.resize(m, dim);
-    b.resize(m);
-    Polytope P;
-
-    for (unsigned int i = 0; i < m; ++i) {
-        b(i) = 1.0;
-        for (unsigned int j = 0; j < dim; ++j) {
-            A(i,j) = rdist(rng);
-        }
-    }
-
-    P.init(dim, A, b);
-    return P;
-}
-
-template <typename Polytope, typename RNGType>
-Polytope random_vpoly(const unsigned int &dim, const unsigned int &k) {
-
-    typedef typename Polytope::MT    MT;
-    typedef typename Polytope::VT    VT;
-    typedef typename Polytope::NT    NT;
-    typedef typename Polytope::PolytopePoint Point;
-
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
-
-    Point p;
-    typename std::vector<NT>::iterator pit;
-    MT V(k, dim);
-    unsigned int j;
-
-    for (unsigned int i = 0; i < k; ++i) {
-        p = get_direction<RNGType, Point, NT>(dim);
-        pit = p.iter_begin();
-        j = 0;
-        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
-            V(i,j) = *pit;
-        }
-    }
-
-    Polytope VP;
-    VT b = VT::Ones(k);
-    VP.init(dim, V, b);
-
-    return VP;
-
-}
-
-template <typename Polytope, typename RNGType>
-Polytope random_hpoly(const unsigned int &dim, const unsigned int &m) {
-
-    typedef typename Polytope::MT    MT;
-    typedef typename Polytope::VT    VT;
-    typedef typename Polytope::NT    NT;
-    typedef typename Polytope::PolytopePoint Point;
-
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
-    boost::random::uniform_real_distribution<> urdist1(-10, 10);
-    Point p(dim);
-    typename std::vector<NT>::iterator pit;
-    MT A(m, dim);
-    VT b(m);
-    unsigned int j;
-
-    for(unsigned int i=0; i<m; ++i){
-        p = get_direction<RNGType, Point, NT>(dim);
-        pit = p.iter_begin();
-        j = 0;
-        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
-            A(i,j) = *pit;
-        }
-        b(i) = 10.0;
-
-    }
-    Polytope HP;
-    HP.init(dim, A, b);
-
-    return HP;
-}
-
-
 
 /*
  * ToDo: brkhoff polytope generator

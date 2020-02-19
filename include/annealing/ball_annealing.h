@@ -16,14 +16,14 @@ bool check_convergence(ConvexBody &P, PointList &randPoints, const NT &lb, const
 
     std::vector<NT> ratios;
     std::pair<NT,NT> mv;
-    int m = randPoints.size()/nu;
+    int m = randPoints.size()/nu, i = 1;
     NT T, rs, alpha_check = 0.01;
     size_t countsIn = 0;
 
-    for(typename PointList::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
+    for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++){
 
         if (P.is_in(*pit)==-1) countsIn++;
-        if ((std::distance(randPoints.begin(), pit)+1) % m == 0) {
+        if (i % m == 0) {
             ratios.push_back(NT(countsIn)/m);
             countsIn = 0;
             if (ratios.size()>1 && precheck) {
@@ -47,7 +47,8 @@ bool check_convergence(ConvexBody &P, PointList &randPoints, const NT &lb, const
     ratio = mv.first;
     rs = std::sqrt(mv.second);
     boost::math::students_t dist(nu - 1);
-    T = rs*(boost::math::quantile(boost::math::complement(dist, alpha)) / std::sqrt(NT(nu)));
+    T = rs*(boost::math::quantile(boost::math::complement(dist, alpha))
+            / std::sqrt(NT(nu)));
     if (ratio > lb + T) {
         if (lastball) return true;
         if ((precheck && ratio < ub - T) || (!precheck && ratio < ub + T)) return true;
