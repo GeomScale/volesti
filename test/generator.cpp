@@ -27,110 +27,96 @@ template <class MT, class VT>
 void create_txt(MT A, VT b, int kind, bool Vpoly, bool Zono) {
 
     int d = A.cols(), m = A.rows();
-    std::string bar = "_";
-    std::string ext = ".ext";
-    std::string ine = ".ine";
-    std::string name;
+    std::string bar = "_", ext = ".ext", ine = ".ine", name, poly;
 
     std::ofstream outputFile;
-    if(Zono) {
-        if (kind == 1) {
-            std::string poly = "zonotope";
-            name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
-            outputFile.open(name);
-            outputFile << name << "\n";
-            outputFile << "Zonotpe\n";
-        } else if (kind == 2) {
-            std::string poly = "zonotope";
-            name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
-            outputFile.open(name);
-            outputFile << name << "\n";
-            outputFile << "Zonotpe\n";
-        } else if (kind == 3) {
-            std::string poly = "zonotope";
-            name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
-            outputFile.open(name);
-            outputFile << name << "\n";
-            outputFile << "Zonotpe\n";
-        } else if (kind == 4) {
-            std::string poly = "zonotope";
-            name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
-            outputFile.open(name);
-            outputFile << name << "\n";
-            outputFile << "Zonotpe\n";
+    if (Zono) {
+        poly = "zonotope";
+        name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
+        outputFile.open(name);
+        outputFile << name << "\n";
+        outputFile << "Zonotope\n";
+    } else if (Vpoly) {
+        switch (kind) {
+            case 1:
+                poly = "cube";
+                name = poly + bar + std::to_string(d) + ext;
+                outputFile.open(name);
+                outputFile << "cube_" << d << ".ext\n";
+                break;
+            case 2:
+                poly = "cross";
+                name = poly + bar + std::to_string(d) + ext;
+                outputFile.open(name);
+                outputFile << "cross_" << d << ".ext\n";
+                break;
+            case 3:
+                poly = "simplex";
+                name = poly + bar + std::to_string(d) + ext;
+                outputFile.open(name);
+                outputFile << "simplex_" << d << ".ext\n";
+                break;
+            case 4:
+                poly = "rvc";
+                name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
+                outputFile.open(name);
+                outputFile << name << "\n";
+                break;
+            case 5:
+                poly = "rvs";
+                name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
+                outputFile.open(name);
+                outputFile << name << "\n";
+                break;
+            default:
+                return;
         }
-    }else if(Vpoly) {
-        if (kind == 4) {
-            std::string poly = "rvc";
-            name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
-            outputFile.open(name);
-            outputFile << name << "\n";
-            outputFile << "V-representation\n";
-        } else if (kind == 5) {
-            std::string poly = "rvs";
-            name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ext;
-            outputFile.open(name);
-            outputFile << name << "\n";
-            outputFile << "V-representation\n";
-        }else if (kind == 1) {
-            std::string poly = "cube";
-            name = poly + bar + std::to_string(d) + ext;
-            outputFile.open(name);
-            outputFile<<"cube_"<<d<<".ext\n";
-            outputFile<<"V-representation\n";
-        } else if (kind == 2) {
-            std::string poly = "cross";
-            name = poly + bar + std::to_string(d) + ext;
-            outputFile.open(name);
-            outputFile<<"cross_"<<d<<".ext\n";
-            outputFile<<"V-representation\n";
-        } else if (kind == 3) {
-            std::string poly = "simplex";
-            name = poly + bar + std::to_string(d) + ext;
-            outputFile.open(name);
-            outputFile<<"simplex_"<<d<<".ext\n";
-            outputFile<<"V-representation\n";
-        } else {
-            return;
-        }
+        outputFile << "V-representation\n";
     } else {
-        if (kind == 1) {
-            std::string poly = "cube";
-            name = poly + bar + std::to_string(d) + ine;
-            outputFile.open(name);
-            outputFile<<"cube_"<<d<<".ine\n";
-        } else if (kind == 2) {
-            std::string poly = "cross";
-            name = poly + bar + std::to_string(d) + ine;
-            outputFile.open(name);
-            outputFile<<"cross_"<<d<<".ine\n";
-        } else if (kind == 3) {
-            std::string poly = "simplex";
-            name = poly + bar + std::to_string(d) + ine;
-            outputFile.open(name);
-            outputFile<<"simplex_"<<d<<".ine\n";
-        } else if (kind == 4) {
-            std::string poly = "prod_simplex";
-            name = poly + bar + std::to_string(d/2) + bar + std::to_string(d/2) + ine;
-            outputFile.open(name);
-            outputFile<<"prod_simplex_"<<d/2<<"_"<<d/2<<".ine\n";
-        } else if (kind == 5) {
-            std::string poly = "skinny_cube";
-            name = poly + bar + std::to_string(d) + ine;
-            outputFile.open(name);
-            outputFile<<"skinny_cube_"<<d<<".ine\n";
-        } else if (kind == 6) {
-            std::string poly = "rhs";
-            name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ine;
-            outputFile.open(name);
-            outputFile<<"rhs_"<<d<<"_"<<m<<".ine\n";
-        } else {
-            return;
+        switch (kind) {
+            case 1:
+                poly = "cube";
+                name = poly + bar + std::to_string(d) + ine;
+                outputFile.open(name);
+                outputFile << "cube_" << d << ".ine\n";
+                break;
+            case 2:
+                poly = "cross";
+                name = poly + bar + std::to_string(d) + ine;
+                outputFile.open(name);
+                outputFile << "cross_" << d << ".ine\n";
+                break;
+            case 3:
+                poly = "simplex";
+                name = poly + bar + std::to_string(d) + ine;
+                outputFile.open(name);
+                outputFile << "simplex_" << d << ".ine\n";
+                break;
+            case 4:
+                poly = "prod_simplex";
+                name = poly + bar + std::to_string(d / 2) + bar + std::to_string(d / 2) + ine;
+                outputFile.open(name);
+                outputFile << "prod_simplex_" << d / 2 << "_" << d / 2 << ".ine\n";
+                break;
+            case 5:
+                poly = "skinny_cube";
+                name = poly + bar + std::to_string(d) + ine;
+                outputFile.open(name);
+                outputFile << "skinny_cube_" << d << ".ine\n";
+                break;
+            case 6:
+                poly = "rhs";
+                name = poly + bar + std::to_string(d) + bar + std::to_string(m) + ine;
+                outputFile.open(name);
+                outputFile << "rhs_" << d << "_" << m << ".ine\n";
+                break;
+            default:
+                return;
         }
-        outputFile<<"H-representation\n";
+        outputFile << "H-representation\n";
     }
-    outputFile<<"begin\n";
-    if(kind == 0){
+    outputFile << "begin\n";
+    if (kind == 0) {
         outputFile << " " << m << " " << d + 1 << " real\n";
     } else {
         outputFile << " " << m << " " << d + 1 << " integer\n";
@@ -139,7 +125,7 @@ void create_txt(MT A, VT b, int kind, bool Vpoly, bool Zono) {
     for (int i = 0; i < m; ++i) {
         outputFile << " " << b(i);
         for (int j = 0; j < d; ++j) {
-            outputFile << " " << A(i,j);
+            outputFile << " " << A(i, j);
         }
         outputFile << "\n";
     }
@@ -166,114 +152,110 @@ int main(const int argc, const char** argv) {
 
     Vpolytope VP;
 
-    bool Hpoly = false, Vpoly = false, Zono = false,
-            cube = false, cross = false, simplex = false, rand = false,
-            prod_simplex = false, skinny_cube = false;
+    bool Hpoly = false, Vpoly = false, Zono = false, cube = false, cross = false, simplex = false, prod_simplex = false,
+            skinny_cube = false, randv = false;
     int d = 0, m = 0, kind = -1;
 
-    for(int i=1;i<argc;++i) {
+    for (int i = 1; i < argc; ++i) {
         bool correct = false;
 
-        if(!strcmp(argv[i],"-help")){
-            std::cerr<<
-                     "Usage:\n"<<
-                     "-rz : generate a random zonotope\n"<<
-                     "-dist : distribution to pick the length in [0,100] of each segment of a random zonotope\n"<<
-                     "-rvc : generate a random V-polytope. The generator Samples uniformly distributed vertices from the boundary of a hypershere\n"<<
-                     "-rvs : generate a random V-polytope. The generator Samples uniformly distributed vertices from \"\n"
-                     "                     \"the interior of the unit cube\\n\"<<\n"<<
-                     "-rh : generate a random H-polytope\n"<<
-                     "-cube : generate a hypercube\n"<<
-                     "-cross : generate a cross polytope\n"<<
-                     "-simplex : generate a simplex\n"<<
-                     "-prod_simplex : generate a product of two simplices\n"<<
-                     "-skinny_cube : generate a skinny hypercube\n"<<
-                     "-h : generate a known polytope in H-representation\n"<<
-                     "-v : generate a known polytope in V-representation\n"<<
-                     "-d : the dimension\n"<<
-                     "-m : number of zonotope's segments or V-polytope's vertices or H-polytope's facets\n"<<
-                     std::endl;
+        if (!strcmp(argv[i], "-help")) {
+            std::cerr <<
+                      "Usage:\n" <<
+                      "-rz : generate a random zonotope\n" <<
+                      "-dist : distribution to pick the length from [0,100] of each segment of a random zonotope: '1' for uniform , '2' for gaussian, '3' for exponential. The default generator is the uniform\n"
+                      <<
+                      "-rvc : generate a random V-polytope. The generator Samples uniformly distributed vertices from the boundary of a hypershere\n"
+                      <<
+                      "-rvs : generate a random V-polytope. The generator Samples uniformly distributed vertices from the interior of the unit cube\n"
+                      <<
+                      "-rhs : generate a random H-polytope\n" <<
+                      "-cube : generate a hypercube\n" <<
+                      "-cross : generate a cross polytope\n" <<
+                      "-simplex : generate a simplex\n" <<
+                      "-prod_simplex : generate a product of two simplices\n" <<
+                      "-skinny_cube : generate a skinny hypercube\n" <<
+                      "-h : generate a known polytope in H-representation\n" <<
+                      "-v : generate a known polytope in V-representation\n" <<
+                      "-d : the dimension\n" <<
+                      "-m : number of zonotope's segments or V-polytope's vertices or H-polytope's facets\n" <<
+                      std::endl;
             return 0;
         }
 
-        if(!strcmp(argv[i],"-zonotope")) {
+        if (!strcmp(argv[i], "-zonotope")) {
             Zono = true;
-            Vpoly = false;
             kind = 1;
             correct = true;
         }
-        if(!strcmp(argv[i],"-cube")) {
+        if (!strcmp(argv[i], "-cube")) {
             cube = true;
             kind = 1;
             correct = true;
         }
-        if(!strcmp(argv[i],"-cross")) {
+        if (!strcmp(argv[i], "-cross")) {
             cross = true;
             kind = 2;
             correct = true;
         }
-        if(!strcmp(argv[i],"-simplex")) {
+        if (!strcmp(argv[i], "-simplex")) {
             simplex = true;
             kind = 3;
             correct = true;
         }
-        if(!strcmp(argv[i],"-prod_simplex")) {
+        if (!strcmp(argv[i], "-prod_simplex")) {
             prod_simplex = true;
             kind = 4;
             correct = true;
         }
-        if(!strcmp(argv[i],"-skinny_cube")) {
+        if (!strcmp(argv[i], "-skinny_cube")) {
             skinny_cube = true;
             kind = 5;
             correct = true;
         }
-        if(!strcmp(argv[i],"-h")) {
+        if (!strcmp(argv[i], "-h")) {
             Hpoly = true;
             correct = true;
         }
-        if(!strcmp(argv[i],"-v")) {
+        if (!strcmp(argv[i], "-v")) {
             Vpoly = true;
             correct = true;
         }
-        if(!strcmp(argv[i],"-rvc")) {
-            rand = true;
+        if (!strcmp(argv[i], "-rvc")) {
             Vpoly = true;
             kind = 4;
+            randv = true;
             correct = true;
         }
-        if(!strcmp(argv[i],"-rvs")) {
-            rand = true;
+        if (!strcmp(argv[i], "-rvs")) {
             Vpoly = true;
             kind = 5;
+            randv = true;
             correct = true;
         }
-        if(!strcmp(argv[i],"-rz")) {
-            rand = true;
+        if (!strcmp(argv[i], "-rz")) {
             Zono = true;
-            Vpoly = true;
             correct = true;
         }
-        if(!strcmp(argv[i],"-rh")) {
-            rand = true;
-            Zono = false;
-            Vpoly = false;
+        if (!strcmp(argv[i], "-rhs")) {
             Hpoly = true;
+            kind = 6;
             correct = true;
         }
-        if(!strcmp(argv[i],"-d")) {
+        if (!strcmp(argv[i], "-d")) {
             d = atof(argv[++i]);
             correct = true;
         }
-        if(!strcmp(argv[i],"-dist")) {
+        if (!strcmp(argv[i], "-dist")) {
             kind = atof(argv[++i]);
             correct = true;
         }
-        if(!strcmp(argv[i],"-m")) {
+        if (!strcmp(argv[i], "-m")) {
             m = atof(argv[++i]);
             correct = true;
         }
 
-        if(correct==false) {
+        if (correct == false) {
             std::cerr << "unknown parameters \'" << argv[i] <<
                       "\', try " << argv[0] << " --help" << std::endl;
             exit(-2);
@@ -282,19 +264,15 @@ int main(const int argc, const char** argv) {
     }
 
     if (d < 1) {
-        std::cout<<"Wrong inputs, try -help"<<std::endl;
+        std::cout << "Wrong inputs, try -help" << std::endl;
         exit(-1);
     }
-    if (Hpoly && rand) kind = 6;
 
     if (Zono) {
+        if (kind > 3 || kind <1) std::cout << "Wrong declaration of zonotope's generator, try -help" << std::endl;
         if (m > 0) {
             Zonotope ZP;
             switch (kind) {
-                case -1:
-                    kind = 1;
-                    ZP = gen_zonotope_uniform<Zonotope, RNGType>(d, m);
-                    break;
                 case 1:
                     ZP = gen_zonotope_uniform<Zonotope, RNGType>(d, m);
                     break;
@@ -304,6 +282,10 @@ int main(const int argc, const char** argv) {
                 case 3:
                     ZP = gen_zonotope_exponential<Zonotope, RNGType>(d, m);
                     break;
+                default:
+                    kind = 1;
+                    ZP = gen_zonotope_uniform<Zonotope, RNGType>(d, m);
+                    break;
             }
             create_txt(ZP.get_mat(), ZP.get_vec(), kind, false, true);
         } else {
@@ -312,65 +294,81 @@ int main(const int argc, const char** argv) {
         }
     } else if (Hpoly) {
         Hpolytope HP;
-        if (rand) {
-            if(m>d+1) {
-                HP = random_hpoly<Hpolytope, RNGType>(d, m);
-            }else {
-                std::cout << "the number of facets has to be >= d+1" << std::endl;
+        switch (kind) {
+            case 1:
+                HP = gen_cube<Hpolytope>(d, false);
+                break;
+            case 2:
+                HP = gen_cross<Hpolytope>(d, false);
+                break;
+            case 3:
+                HP = gen_simplex<Hpolytope>(d, false);
+                break;
+            case 4:
+                HP = gen_prod_simplex<Hpolytope>(d);
+                break;
+            case 5:
+                HP = gen_skinny_cube<Hpolytope>(d);
+                break;
+            case 6:
+                if (m > d + 1) {
+                    HP = random_hpoly<Hpolytope, RNGType>(d, m);
+                } else {
+                    std::cout << "The number of facets has to be >= d+1" << std::endl;
+                    exit(-1);
+                }
+                break;
+            default:
+                std::cout << "Wrong inputs, try -help" << std::endl;
                 exit(-1);
-            }
-        }else if (cube) {
-            HP = gen_cube<Hpolytope>(d, false);
-        } else if (cross) {
-            HP = gen_cross<Hpolytope>(d, false);
-        } else if (simplex) {
-            HP = gen_simplex<Hpolytope>(d, false);
-        } else if (prod_simplex) {
-            HP = gen_prod_simplex<Hpolytope>(d);
-        } else if (skinny_cube) {
-            HP = gen_skinny_cube<Hpolytope>(d);
-        } else {
-            std::cout << "Wrong inputs, try -help" << std::endl;
-            exit(-1);
         }
         create_txt(HP.get_mat(), HP.get_vec(), kind, false, false);
     } else if (Vpoly) {
         Vpolytope VP;
-        if (rand) {
-            if (m > 0) {
-                if (kind == 5) {
-                    VP = random_vpoly<Vpolytope, RNGType>(d, m);
-                } else if (kind == 4) {
-                    VP = random_vpoly_incube<Vpolytope, RNGType>(d, m);
-                } else {
-                    std::cout << "Wrong inputs, try -help" << std::endl;
+        switch (kind) {
+            case 1:
+                VP = gen_cube<Vpolytope>(d, true);
+                break;
+            case 2:
+                VP = gen_cross<Vpolytope>(d, true);
+                break;
+            case 3:
+                VP = gen_simplex<Vpolytope>(d, true);
+                break;
+            case 4:
+                if (!randv) {
+                    std::cout<<"No prod_simplex in V-representation can be generated, try -help"<<std::endl;
                     exit(-1);
                 }
-            } else {
+                if (m > d) {
+                    VP = random_vpoly_incube<Vpolytope, RNGType>(d, m);
+                } else {
+                    std::cout << "The number of vertices has to be >=d+1" << std::endl;
+                    exit(-1);
+                }
+                break;
+            case 5:
+                if (!randv) {
+                    std::cout<<"No skinny_cube in V-representation can be generated, try -help"<<std::endl;
+                    exit(-1);
+                }
+                if (m > d) {
+                    VP = random_vpoly<Vpolytope, RNGType>(d, m);
+                } else {
+                    std::cout << "The number of vertices has to be >=d+1" << std::endl;
+                    exit(-1);
+                }
+                break;
+            default:
                 std::cout << "Wrong inputs, try -help" << std::endl;
                 exit(-1);
-            }
-        } else if (cube) {
-            VP = gen_cube<Vpolytope>(d, true);
-        } else if (cross) {
-            VP = gen_cross<Vpolytope>(d, true);
-        } else if (simplex) {
-            VP = gen_simplex<Vpolytope>(d, true);
-        } else if (prod_simplex) {
-            std::cout<<"No prod_simplex in V-representation can be generated, try -help"<<std::endl;
-            exit(-1);
-        } else if (skinny_cube) {
-            std::cout<<"No skinny_cube in V-representation can be generated, try -help"<<std::endl;
-            exit(-1);
-        } else {
-            std::cout<<"Wrong inputs, try -help"<<std::endl;
-            exit(-1);
         }
         create_txt(VP.get_mat(), VP.get_vec(), kind, true, false);
     } else {
-        std::cout<<"Wrong inputs, try -help"<<std::endl;
+        std::cout << "Wrong inputs, try -help" << std::endl;
         exit(-1);
     }
 
     return 0;
+
 }
