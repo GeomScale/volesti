@@ -285,8 +285,8 @@ public:
         int m = num_of_hyperplanes();
 
 
-        sum_nom = b - A * r.getCoefficients();
-        sum_denom = A * v.getCoefficients();
+        sum_nom.noalias() = b - A * r.getCoefficients();
+        sum_denom.noalias() = A * v.getCoefficients();
 
         NT* sum_nom_data = sum_nom.data();
         NT* sum_denom_data = sum_denom.data();
@@ -321,9 +321,9 @@ public:
         unsigned int j;
         int m = num_of_hyperplanes(), facet;
 
-        Ar = A * r.getCoefficients();
+        Ar.noalias() = A * r.getCoefficients();
         sum_nom = b - Ar;
-        Av = A * v.getCoefficients();;
+        Av.noalias() = A * v.getCoefficients();;
 
 
         NT* Av_data = Av.data();
@@ -358,9 +358,9 @@ public:
         unsigned int j;
         int m = num_of_hyperplanes(), facet;
 
-        Ar += lambda_prev*Av;
+        Ar.noalias() += lambda_prev*Av;
         sum_nom = b - Ar;
-        Av = A * v.getCoefficients();
+        Av.noalias() = A * v.getCoefficients();
 
         NT* sum_nom_data = sum_nom.data();
         NT* Av_data = Av.data();
@@ -411,7 +411,7 @@ public:
         viterator rit;
 
         sum_denom = A.col(rand_coord);
-        lamdas = b - A * r.getCoefficients();
+        lamdas.noalias() = b - A * r.getCoefficients();
 
         NT* lamda_data = lamdas.data();
         NT* sum_denom_data = sum_denom.data();
@@ -445,7 +445,7 @@ public:
 
         int m = num_of_hyperplanes();
 
-        lamdas += A.col(rand_coord_prev)* (r_prev[rand_coord_prev] - r[rand_coord_prev]);
+        lamdas.noalias() += A.col(rand_coord_prev)* (r_prev[rand_coord_prev] - r[rand_coord_prev]);
         NT* data = lamdas.data();
 
         for (int i = 0; i < m; i++) {
@@ -515,10 +515,9 @@ public:
 
 //        VT a = A.row(facet);
 //        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
-        Point s(A.row(facet));
-        s *= (-2.0 * v.dot(s));
-        v += s;
-
+//        Point s(A.row(facet));
+//        s *= (-2.0 * v.dot(s));
+        v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
 
     void free_them_all() {}

@@ -18,21 +18,23 @@ template <typename RNGType, typename Point, typename NT>
 Point get_direction(const unsigned int dim) {
 
     boost::normal_distribution<> rdist(0,1);
-    std::vector<NT> Xs(dim,0);
     NT normal = NT(0);
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
+
+    Point p(dim);
+    NT* data = p.pointerToData();
+
     //RNGType rng2 = var.rng;
     for (unsigned int i=0; i<dim; i++) {
-        Xs[i] = rdist(rng);
-        normal += Xs[i] * Xs[i];
+        *data = rdist(rng);
+        normal += *data * *data;
+        data++;
     }
-    normal=1.0/std::sqrt(normal);
 
-    for (unsigned int i=0; i<dim; i++) {
-        Xs[i] = Xs[i] * normal;
-    }
-    Point p(dim, Xs.begin(), Xs.end());
+    normal=1.0/std::sqrt(normal);
+    p *= normal;
+
     return p;
 }
 

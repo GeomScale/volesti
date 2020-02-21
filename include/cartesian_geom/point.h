@@ -48,6 +48,7 @@ public:
 
     point(const unsigned int dim, std::vector<typename K::FT> cofs) {
         d = dim;
+        coeffs.resize(d);
         iter it = cofs.begin();
         int i=0;
 
@@ -80,12 +81,17 @@ public:
         return coeffs(i);
     }
 
+    FT* pointerToData() {
+        return coeffs.data();
+    }
+
     point operator+ (const point& p) const {
         point temp;
         temp.d = d;
         temp.coeffs = coeffs + p.getCoefficients();
         return temp;
     }
+
 
     void operator+= (const point& p) {
         coeffs += p.getCoefficients();
@@ -128,8 +134,6 @@ public:
         coeffs /= k;
     }
 
-
-
     bool operator== (point& p) const {
         int i=0;
         const Coeff & coeffs = p.getCoefficients();
@@ -142,7 +146,6 @@ public:
 
         return true;
     }
-
 
     FT dot(const point& p) const {
         return coeffs.dot(p.getCoefficients());
