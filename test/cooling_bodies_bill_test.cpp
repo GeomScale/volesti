@@ -46,7 +46,7 @@ void test_cool_bodies(Polytope &HP, NT expected, NT tolerance=0.1, bool round = 
 
     // Setup the parameters
     int n = HP.dimension();
-    int walk_len=1;
+    int walk_len=3;
     int nexp=1, n_threads=1;
     NT e=0.1, err=0.0000000001, diameter = diam, round_val = 1.0;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
@@ -76,7 +76,7 @@ void test_cool_bodies(Polytope &HP, NT expected, NT tolerance=0.1, bool round = 
                           urdist,urdist1,-1.0,false,false,false,false,false,false,false,false,true);
 
     NT lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2;
-    int W = 250, NNu = 140, nu =10;
+    int W = 500, NNu = 150, nu =10;
     bool win2 = false;
     vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, W, NNu, nu, win2);
 
@@ -193,9 +193,9 @@ void call_test_prod_simplex() {
     //P = gen_prod_simplex<Hpolytope>(15);
     //test_volume<NT, RNGType>(P, std::pow(1.0 / factorial(15.0), 2));
 
-    std::cout << "--- Testing volume of H-prod_simplex20" << std::endl;
-    P = gen_prod_simplex<Hpolytope>(20);
-    test_cool_bodies<NT, RNGType>(P, std::pow(1.0 / factorial(20.0), 2.0), 0.2, true);
+    //std::cout << "--- Testing volume of H-prod_simplex20" << std::endl;
+    //P = gen_prod_simplex<Hpolytope>(20);
+    //test_cool_bodies<NT, RNGType>(P, std::pow(1.0 / factorial(20.0), 2.0), 0.2, true);
 }
 
 template <typename NT>
@@ -208,15 +208,15 @@ void call_test_simplex() {
 
     std::cout << "--- Testing volume of H-simplex10" << std::endl;
     P = gen_simplex<Hpolytope>(10, false);
-    test_cool_bodies<NT, RNGType>(P, 1.0 / factorial(10.0), 0.1, false, 1.5);
+    test_cool_bodies<NT, RNGType>(P, 1.0 / factorial(10.0), 0.2, false, 2.0);
 
     std::cout << "--- Testing volume of H-simplex20" << std::endl;
     P = gen_simplex<Hpolytope>(20, false);
-    test_cool_bodies<NT, RNGType>(P, 1.0 / factorial(20.0), 0.1, false, 1.5);
+    test_cool_bodies<NT, RNGType>(P, 1.0 / factorial(20.0), 0.2, false, 2.0);
 
     std::cout << "--- Testing volume of H-simplex30" << std::endl;
     P = gen_simplex<Hpolytope>(30, false);
-    test_cool_bodies<NT, RNGType>(P, 1.0 / factorial(30.0), 0.1, false, 1.5);
+    test_cool_bodies<NT, RNGType>(P, 1.0 / factorial(30.0), 0.2, false, 2.0);
 
     //std::cout << "--- Testing volume of H-simplex40" << std::endl;
     //P = gen_simplex<Hpolytope>(40, false);
