@@ -279,6 +279,10 @@ double volume (Rcpp::Reference P,  Rcpp::Nullable<unsigned int> walk_length = R_
         throw Rcpp::exception("Unknown walk type!");
     }
 
+    if (e <= 0.0) {
+        throw Rcpp::exception("The error parameter has to be a positive number!");
+    }
+
     if (!rounding.isNotNull() && type == 2){
         round = true;
     } else {
