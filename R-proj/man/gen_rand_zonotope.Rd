@@ -4,12 +4,12 @@
 \alias{gen_rand_zonotope}
 \title{Generator function for zonotopes}
 \usage{
-gen_rand_zonotope(dimension, n_segments, generator = NULL)
+gen_rand_zonotope(dimension, nsegments, generator = NULL)
 }
 \arguments{
 \item{dimension}{The dimension of the zonotope.}
 
-\item{n_segments}{The number of segments that generate the zonotope.}
+\item{nsegments}{The number of segments that generate the zonotope.}
 
 \item{generator}{The distribution to pick the length of each segment from \eqn{[0,100]}: (a) 'uniform', (b) 'gaussian' or (c) 'exponential'.}
 }

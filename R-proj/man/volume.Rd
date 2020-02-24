@@ -5,7 +5,8 @@
 \title{The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
 volume(P, walk_length = NULL, error = NULL, inner_ball = NULL,
-  algo = NULL, random_walk = NULL, rounding = NULL, parameters = NULL)
+  algo = NULL, random_walk = NULL, rounding = NULL,
+  parameters = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
