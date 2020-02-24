@@ -28,11 +28,11 @@
 
 //' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere
 //'
-//' Sample N points with uniform or multidimensional spherical gaussian -centered in an internal point- target distribution.
+//' Sample n points with uniform or multidimensional spherical gaussian -centered in an internal point- target distribution.
 //' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
 //'
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
-//' @param N The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.
+//' @param n The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.
 //' @param distribution Optional. A string that declares the target distribution: a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.
 //' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk or d) \code{'BiW'} for Billiard walk. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Normal distribution.
 //' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{1} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise, where \eqn{d} is the dimension that the polytope lies.
@@ -55,7 +55,7 @@
 //' @references \cite{Art B. Owen,
 //' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Art Owen,} 2009.}
 //'
-//' @return A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope P.
+//' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 //' @examples
 //' # uniform distribution from the 3d unit cube in V-representation using ball walk
 //' P = gen_cube(3, 'V')
@@ -73,11 +73,11 @@
 //' # 10000 uniform points from a 2-d arbitrary simplex
 //' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
 //' P = Vpolytope$new(V)
-//' points = sample_points(P, N = 10000, exact = TRUE)
+//' points = sample_points(P, n = 10000, exact = TRUE)
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
-                                  Rcpp::Nullable<unsigned int> N = R_NilValue,
+                                  Rcpp::Nullable<unsigned int> n = R_NilValue,
                                   Rcpp::Nullable<std::string> distribution = R_NilValue,
                                   Rcpp::Nullable<std::string> random_walk = R_NilValue,
                                   Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
@@ -108,7 +108,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
-    numpoints = (!N.isNotNull()) ? 100 : Rcpp::as<unsigned int>(N);
+    numpoints = (!n.isNotNull()) ? 100 : Rcpp::as<unsigned int>(n);
 
     if (exact.isNotNull()) {
         if (P.isNotNull()) {

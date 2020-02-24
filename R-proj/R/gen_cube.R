@@ -3,7 +3,7 @@
 #' This function can be used to generate the \eqn{d}-dimensional unit hypercube \eqn{[-1,1]^d} in H- or V-representation.
 #' 
 #' @param dimension The dimension of the hypercube
-#' @param repr A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.
+#' @param rep A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.
 #' 
 #' @return A polytope class representing the unit \eqn{d}-dimensional hypercube in H- or V-representation.
 #' @examples 
@@ -13,13 +13,13 @@
 #' # generate a 15-dimension hypercube in V-representation
 #' P = gen_cube(15, 'V')
 #' @export
-gen_cube <- function(dimension, repr) {
+gen_cube <- function(dimension, rep) {
   
   kind_gen = 1
   m_gen = 0
-  if (repr == "V") {
+  if (rep == "V") {
     Vpoly_gen = TRUE
-  } else if (repr == "H") {
+  } else if (rep == "H") {
     Vpoly_gen = FALSE
   } else {
     stop('Not a known representation.')
