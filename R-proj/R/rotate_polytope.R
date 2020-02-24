@@ -1,10 +1,11 @@
-#' Apply a random rotation to a convex polytope (H-polytope, V-polytope or a zonotope)
+#' Apply a random rotation to a convex polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)
 #' 
-#' Given a convex H or V polytope or a zonotope as input this function applies a random rotation.
+#' Given a convex H- or V- polytope or a zonotope or an intersection of two V-polytopes as input, this function applies (a) a random rotation or (b) a given rotation by an input matrix \eqn[T}.
 #' 
-#' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
+#' @param P A convex polytope. It is an object from class (a) Hpolytope, (b) Vpolytope, (c) Zonotope, (d) intersection of two V-polytopes.
+#' @param T Optional. A \eqn{d\times d} rotation matrix.
 #' 
-#' @return A list that contains the rotated polytope and the matrix of the linear transformation.
+#' @return A list that contains the rotated polytope and the matrix \eqn{T} of the linear transformation.
 #'
 #' @details Let \eqn{P} be the given polytope and \eqn{Q} the rotated one and \eqn{T} be the matrix of the linear transformation. 
 #' \itemize{
@@ -16,20 +17,20 @@
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
 #' P = gen_simplex(2,'H')
-#' poly_matrix_list = rand_rotate(P)
+#' poly_matrix_list = rotate_polytope(P)
 #' 
 #' # rotate a V-polytope (3d cube)
 #' P = gen_cube(3, 'V')
-#' poly_matrix_list = rand_rotate(P)
+#' poly_matrix_list = rotate_polytope(P)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
 #' Z = gen_rand_zonotope(3,6)
-#' poly_matrix_list = rand_rotate(Z)
+#' poly_matrix_list = rotate_polytope(Z)
 #' @export
-rand_rotate <- function(P){
+rotate_polytope <- function(P, T = NULL){
   
   #call rcpp rotating function
-  Mat = rotating(P)
+  Mat = rotating(P, T)
   
   n = P$dimension
   m=dim(Mat)[2]-n
