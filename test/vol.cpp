@@ -446,6 +446,11 @@ int main(const int argc, const char** argv)
       }
   }
 
+  if ( e*error <= 0.0) {
+      std::cout << "The error parameter has to be a positive number!\n" << std::endl;
+      exit(-1);
+  }
+
   if (!user_randwalk) {
       if (Zono || Vpoly) {
           if (CB) {

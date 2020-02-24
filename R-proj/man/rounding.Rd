@@ -4,7 +4,8 @@
 \alias{rounding}
 \title{Internal rcpp function for the rounding of a convex polytope}
 \usage{
-rounding(P, random_walk = NULL, walk_length = NULL, parameters = NULL)
+rounding(P, random_walk = NULL, walk_length = NULL,
+  parameters = NULL)
 }
 \arguments{
 \item{P}{A convex polytope (H- or V-representation or zonotope).}

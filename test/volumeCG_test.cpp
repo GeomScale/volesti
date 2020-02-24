@@ -33,13 +33,13 @@ void test_CV_volume(Polytope &HP, NT expected, NT tolerance=0.3)
 
     // Setup the parameters
     int n = HP.dimension();
-    int walk_len=1;
+    int walk_len=3;
     int nexp=1, n_threads=1;
     NT e=0.1, err=0.0000000001;
     NT C=2.0,ratio,frac=0.1,delta=-1.0;
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
     int N = 500 * ((int) C) + ((int) (n * n / 2));
-    int W = 4*n*n+500;
+    int W = 6*n*n+800;
     ratio = 1.0-1.0/(NT(n));
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);

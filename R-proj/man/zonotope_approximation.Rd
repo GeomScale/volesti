@@ -5,8 +5,8 @@
 \title{A function to over-approximate a zonotope with PCA method and to evaluate the approximation by computing a ratio of fitness.}
 \usage{
 zonotope_approximation(Z, fit_ratio = NULL, walk_length = NULL,
-  error = NULL, inner_ball = NULL, random_walk = NULL, rounding = NULL,
-  parameters = NULL)
+  error = NULL, inner_ball = NULL, random_walk = NULL,
+  rounding = NULL, parameters = NULL)
 }
 \arguments{
 \item{Z}{A zonotope.}

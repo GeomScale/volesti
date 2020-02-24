@@ -3,19 +3,19 @@
 #' This function can be used to generate a \eqn{d}-dimensional polytope in H-representation with \eqn{m} facets. We pick \eqn{m} random hyperplanes tangent on the \eqn{d}-dimensional unit hypersphere as facets.
 #' 
 #' @param dimension The dimension of the convex polytope.
-#' @param m The number of the facets.
+#' @param nfacets The number of the facets.
 #' 
 #' @return A polytope class representing a H-polytope.
 #' @examples 
 #' # generate a 10-dimensional polytope with 50 facets
 #' P = gen_rand_hpoly(10, 50)
 #' @export
-gen_rand_hpoly <- function(dimension, m) {
+gen_rand_hpoly <- function(dimension, nfacets) {
   
   kind_gen = 6
   Vpoly_gen = FALSE
   
-  Mat = poly_gen(kind_gen, Vpoly_gen, FALSE, dimension, m)
+  Mat = poly_gen(kind_gen, Vpoly_gen, FALSE, dimension, nfacets)
   
   # first column is the vector b
   b = Mat[,1]
