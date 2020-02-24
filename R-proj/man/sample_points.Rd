@@ -4,14 +4,14 @@
 \alias{sample_points}
 \title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere}
 \usage{
-sample_points(P = NULL, N = NULL, distribution = NULL,
-  random_walk = NULL, walk_length = NULL, exact = NULL, body = NULL,
-  parameters = NULL, InnerPoint = NULL)
+sample_points(P = NULL, n = NULL, distribution = NULL,
+  random_walk = NULL, walk_length = NULL, exact = NULL,
+  body = NULL, parameters = NULL, InnerPoint = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
 
-\item{N}{The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.}
+\item{n}{The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.}
 
 \item{distribution}{Optional. A string that declares the target distribution: a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
 
@@ -35,10 +35,10 @@ sample_points(P = NULL, N = NULL, distribution = NULL,
 \item{InnerPoint}{A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.}
 }
 \value{
-A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope P.
+A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 }
 \description{
-Sample N points with uniform or multidimensional spherical gaussian -centered in an internal point- target distribution.
+Sample n points with uniform or multidimensional spherical gaussian -centered in an internal point- target distribution.
 The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
 }
 \examples{
@@ -58,7 +58,7 @@ points = sample_points(exact = TRUE, body = "hypersphere", parameters = list("di
 # 10000 uniform points from a 2-d arbitrary simplex
 V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
 P = Vpolytope$new(V)
-points = sample_points(P, N = 10000, exact = TRUE)
+points = sample_points(P, n = 10000, exact = TRUE)
 }
 \references{
 \cite{R.Y. Rubinstein and B. Melamed,

@@ -3,7 +3,7 @@
 #' This function can be used to generate the \eqn{d}-dimensional cross polytope in H- or V-representation.
 #' 
 #' @param dimension The dimension of the cross polytope.
-#' @param repr A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.
+#' @param rep A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.
 #' 
 #' @return A polytope class representing a cross polytope in H- or V-representation.
 #' @examples 
@@ -13,13 +13,13 @@
 #' # generate a 15-dimension cross polytope in V-representation
 #' P = gen_cross(15, 'V')
 #' @export
-gen_cross <- function(dimension, repr) {
+gen_cross <- function(dimension, rep) {
   
   kind_gen = 2
   m_gen = 0
-  if (repr == "V") {
+  if (rep == "V") {
     Vpoly_gen = TRUE
-  } else if (repr == "H") {
+  } else if (rep == "H") {
     Vpoly_gen = FALSE
   } else {
     stop('Not a known representation.')

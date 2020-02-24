@@ -4,12 +4,12 @@
 \alias{gen_simplex}
 \title{Generator function for simplices}
 \usage{
-gen_simplex(dimension, repr)
+gen_simplex(dimension, rep)
 }
 \arguments{
 \item{dimension}{The dimension of the unit simplex.}
 
-\item{repr}{A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.}
+\item{rep}{A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.}
 }
 \value{
 A polytope class representing the \eqn{d}-dimensional unit simplex in H- or V-representation.
