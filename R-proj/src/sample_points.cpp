@@ -109,6 +109,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
     std::pair<Point, NT> InnerBall;
 
     Point shift(dim);
+    numpoints = (!n.isNotNull()) ? 100 : Rcpp::as<unsigned int>(n);
 
     if (!n.isNotNull()) {
       throw Rcpp::exception("The number of samples is not declared!");
