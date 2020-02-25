@@ -4,26 +4,14 @@
 \alias{zono_approx}
 \title{An internal Rccp function for the over-approximation of a zonotope}
 \usage{
-zono_approx(Z, fit_ratio = NULL, walk_length = NULL, error = NULL,
-  inner_ball = NULL, random_walk = NULL, rounding = NULL,
-  parameters = NULL)
+zono_approx(Z, fit_ratio = NULL, algo_parameters = NULL)
 }
 \arguments{
 \item{Z}{A zonotope.}
 
 \item{fit_ratio}{Optional. A boolean parameter to request the computation of the ratio of fitness.}
 
-\item{walk_length}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.}
-
-\item{error}{Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.}
-
-\item{inner_ball}{Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.}
-
-\item{random_walk}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.}
-
-\item{rounding}{Optional. A boolean parameter for rounding. The default value is \code{FALSE}.}
-
-\item{parameters}{Optional. A list for the parameters of the volume algorithm}
+\item{algo_parameters}{Optional. A list that declares the values of the parameters of CB algorithm.}
 }
 \value{
 A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.

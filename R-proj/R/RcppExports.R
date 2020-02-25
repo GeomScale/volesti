@@ -270,18 +270,13 @@ volume <- function(P, algo = NULL, rounding = NULL) {
 #'
 #' @param Z A zonotope.
 #' @param fit_ratio Optional. A boolean parameter to request the computation of the ratio of fitness.
-#' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for SequenceOfBalls and \eqn{1} for CoolingGaussian.
-#' @param error Optional. Declare the upper bound for the approximation error. The default value is \eqn{1} for SequenceOfBalls and \eqn{0.1} for CoolingGaussian.
-#' @param inner_ball Optional. A \eqn{d+1} vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.
-#' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.
-#' @param rounding Optional. A boolean parameter for rounding. The default value is \code{FALSE}.
-#' @param parameters Optional. A list for the parameters of the volume algorithm
+#' @param algo_parameters Optional. A list that declares the values of the parameters of CB algorithm.
 #'
 #' @section warning:
 #' Do not use this function.
 #'
 #' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
-zono_approx <- function(Z, fit_ratio = NULL, walk_length = NULL, error = NULL, inner_ball = NULL, random_walk = NULL, rounding = NULL, parameters = NULL) {
-    .Call(`_volesti_zono_approx`, Z, fit_ratio, walk_length, error, inner_ball, random_walk, rounding, parameters)
+zono_approx <- function(Z, fit_ratio = NULL, algo_parameters = NULL) {
+    .Call(`_volesti_zono_approx`, Z, fit_ratio, algo_parameters)
 }
 
