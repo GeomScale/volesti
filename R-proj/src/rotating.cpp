@@ -26,6 +26,7 @@
 //'  An internal Rccp function for the random rotation of a convex polytope
 //'
 //' @param P A convex polytope (H-, V-polytope or a zonotope).
+//' @param T Optional. A rotation matrix.
 //'
 //' @section warning:
 //' Do not use this function.
