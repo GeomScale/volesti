@@ -44,20 +44,19 @@ The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d},
 \examples{
 # uniform distribution from the 3d unit cube in V-representation using ball walk
 P = gen_cube(3, 'V')
-points = sample_points(P, random_walk = list("walk" = "BaW", "walk_length" = 5))
+points = sample_points(P, n = 100, random_walk = list("walk" = "BaW", "walk_length" = 5))
 
 # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
 P = Hpolytope$new(A,b)
-points = sample_points(P, distribution = list("density" = "gaussian", "variance" = 2))
+points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "variance" = 2))
 
 # uniform points from the boundary of a 10-dimensional hypersphere
 points = sample_points(exact = TRUE, body = "hypersphere", parameters = list("dimension" = 10))
 
-# 10000 uniform points from the 2-d unit ball
-P = Vpolytope$new(V)
-points = sample_points(P, n = 10000, known_body = list("body" = "ball", "dimension" = 2))
+# 100 uniform points from the 2-d unit ball
+points = sample_points(n = 100, known_body = list("body" = "ball", "dimension" = 2))
 }
 \references{
 \cite{R.Y. Rubinstein and B. Melamed,

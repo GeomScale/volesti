@@ -4,7 +4,7 @@
 \alias{poly_gen}
 \title{An internal Rccp function as a polytope generator}
 \usage{
-poly_gen(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen)
+poly_gen(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL)
 }
 \arguments{
 \item{kind_gen}{An integer to declare the type of the polytope.}

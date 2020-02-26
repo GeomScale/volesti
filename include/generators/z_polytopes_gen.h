@@ -12,14 +12,18 @@
 #include "samplers.h"
 
 template <class Polytope, class RNGType>
-Polytope gen_zonotope_gaussian(int dim, int m) {
+Polytope gen_zonotope_gaussian(int dim, int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!std::isnan(seed)) {
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
     boost::normal_distribution<> rdist(0, 1);
     boost::normal_distribution<> rdist2(50, 33.3);
 
@@ -51,14 +55,18 @@ Polytope gen_zonotope_gaussian(int dim, int m) {
 
 
 template <class Polytope, class RNGType>
-Polytope gen_zonotope_uniform(int dim, int m) {
+Polytope gen_zonotope_uniform(int dim, int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!std::isnan(seed)) {
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
     boost::normal_distribution<> rdist(0, 1);
     boost::random::uniform_real_distribution<> urdist1(0, 100);
 
@@ -83,14 +91,18 @@ Polytope gen_zonotope_uniform(int dim, int m) {
 
 
 template <class Polytope, class RNGType>
-Polytope gen_zonotope_exponential(int dim, int m) {
+Polytope gen_zonotope_exponential(int dim, int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!std::isnan(seed)) {
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
     boost::normal_distribution<> rdist(0, 1);
     boost::normal_distribution<> expdist(1.0/30.0);
 

@@ -25,27 +25,44 @@ void removeRow(MT &matrix, unsigned int rowToRemove)
 }
 
 template <class Polytope, class RNGType>
-Polytope random_vpoly(unsigned int dim, unsigned int k) {
+Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
     typedef typename Polytope::PolytopePoint Point;
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!std::isnan(seed)) {
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
+    boost::normal_distribution<> rdist(0,1);
 
-    Point p;
     typename std::vector<NT>::iterator pit;
     MT V(k, dim);
     unsigned int j;
 
+
+    std::vector<NT> Xs(dim,0);
+    NT normal = NT(0);
+
     for (unsigned int i = 0; i < k; ++i) {
-        p = get_direction<RNGType, Point, NT>(dim);
-        pit = p.iter_begin();
-        j = 0;
-        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
-            V(i,j) = *pit;
+
+        normal = NT(0);
+        for (unsigned int i=0; i<dim; i++) {
+            Xs[i] = rdist(rng);
+            normal += Xs[i] * Xs[i];
+        }
+        normal = 1.0 / std::sqrt(normal);
+
+        for (unsigned int i=0; i<dim; i++) {
+            Xs[i] = Xs[i] * normal;
+        }
+
+        for (unsigned int j=0; j<dim; j++) {
+            V(i,j) = Xs[j];
         }
     }
 
@@ -59,7 +76,7 @@ Polytope random_vpoly(unsigned int dim, unsigned int k) {
 
 
 template <class Polytope, class RNGType>
-Polytope random_vpoly_incube(unsigned int d, unsigned int k) {
+Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -72,8 +89,12 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k) {
     conv_mem = (REAL *) malloc(k * sizeof(*conv_mem));
     colno_mem = (int *) malloc(k * sizeof(*colno_mem));
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!std::isnan(seed)) {
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
     boost::random::uniform_real_distribution<> urdist1(-1, 1);
 
     Point p(d);

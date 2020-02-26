@@ -123,8 +123,8 @@ inner_ball <- function(P) {
 #' Do not use this function.
 #'
 #' @return A numerical matrix describing the requested polytope
-poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen) {
-    .Call(`_volesti_poly_gen`, kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen)
+poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL) {
+    .Call(`_volesti_poly_gen`, kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed)
 }
 
 #'  An internal Rccp function for the random rotation of a convex polytope

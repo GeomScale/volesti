@@ -37,7 +37,8 @@
 //'
 //' @return A numerical matrix describing the requested polytope
 // [[Rcpp::export]]
-Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int dim_gen, int m_gen) {
+Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int dim_gen, int m_gen,
+             Rcpp::Nullable<double> seed = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -47,16 +48,18 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
     typedef VPolytope <Point, RNGType> Vpolytope;
     typedef Zonotope <Point> zonotope;
 
+    double seed2 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
+
     if (Zono_gen) {
         switch (kind_gen) {
 
             case 1:
-                return extractMatPoly(gen_zonotope_uniform<zonotope, RNGType>(dim_gen, m_gen));
+                return extractMatPoly(gen_zonotope_uniform<zonotope, RNGType>(dim_gen, m_gen, seed2));
             case 2:
-                return extractMatPoly(gen_zonotope_gaussian<zonotope, RNGType>(dim_gen, m_gen));
+                return extractMatPoly(gen_zonotope_gaussian<zonotope, RNGType>(dim_gen, m_gen, seed2));
             case 3:
-                return extractMatPoly(gen_zonotope_exponential<zonotope, RNGType>(dim_gen, m_gen));
-              
+                return extractMatPoly(gen_zonotope_exponential<zonotope, RNGType>(dim_gen, m_gen, seed2));
+
         }
 
     } else if (Vpoly_gen) {
@@ -72,10 +75,10 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
                 return extractMatPoly(gen_simplex<Vpolytope>(dim_gen, true));
 
             case 4:
-                return extractMatPoly(random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen));
+                return extractMatPoly(random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen, seed2));
 
             case 5:
-                return extractMatPoly(random_vpoly_incube<Vpolytope, RNGType>(dim_gen, m_gen));
+                return extractMatPoly(random_vpoly_incube<Vpolytope, RNGType>(dim_gen, m_gen, seed2));
 
         }
     } else {
@@ -97,7 +100,7 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
                 return extractMatPoly(gen_skinny_cube<Hpolytope>(dim_gen));
 
             case 6:
-                return extractMatPoly(random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen));
+                return extractMatPoly(random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen, seed2));
 
         }
     }
