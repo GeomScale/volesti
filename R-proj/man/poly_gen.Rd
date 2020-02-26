@@ -16,6 +16,8 @@ poly_gen(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL)
 \item{dim_gen}{An integer to declare the dimension of the requested polytope.}
 
 \item{m_gen}{An integer to declare the number of generators for the requested random zonotope or the number of vertices for a V-polytope.}
+
+\item{seed}{This variable can be used to set a seed for the random polytope generator.}
 }
 \value{
 A numerical matrix describing the requested polytope

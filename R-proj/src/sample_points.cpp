@@ -73,7 +73,7 @@
 //' points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "variance" = 2))
 //'
 //' # uniform points from the boundary of a 10-dimensional hypersphere
-//' points = sample_points(exact = TRUE, body = "hypersphere", parameters = list("dimension" = 10))
+//' points = sample_points(n = 5000, known_body = list("body" = "hypersphere", "dimension" = 10))
 //'
 //' # 100 uniform points from the 2-d unit ball
 //' points = sample_points(n = 100, known_body = list("body" = "ball", "dimension" = 2))
