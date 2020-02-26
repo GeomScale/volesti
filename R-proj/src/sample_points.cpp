@@ -72,8 +72,9 @@
 //' P = Hpolytope$new(A,b)
 //' points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "variance" = 2))
 //'
-//' # uniform points from the boundary of a 10-dimensional hypersphere
-//' points = sample_points(n = 5000, known_body = list("body" = "hypersphere", "dimension" = 10))
+//' # uniform points from the boundary of a 2-dimensional random H-polytope
+//' P = gen_rand_hpoly(2,20)
+//' points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
 //'
 //' # 100 uniform points from the 2-d unit ball
 //' points = sample_points(n = 100, known_body = list("body" = "ball", "dimension" = 2))
@@ -103,7 +104,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     int type, dim, numpoints;
     NT radius = 1.0, delta = -1.0, diam = -1.0;
-    bool set_mean_point = false, cdhr = false, rdhr = false, ball_walk = false, gaussian = false, billiard = false;
+    bool set_mean_point = false, cdhr = false, rdhr = false, ball_walk = false, gaussian = false,
+          billiard = false, boundary = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
 
@@ -173,9 +175,13 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
         if (!distribution.isNotNull() || !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("density")) {
             billiard = true;
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("uniform")) == 0) {
+        } else if (
+                Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("uniform")) ==
+                0) {
             billiard = true;
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("gaussian")) == 0) {
+        } else if (
+                Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("gaussian")) ==
+                0) {
             gaussian = true;
         } else {
             throw Rcpp::exception("Wrong distribution!");
@@ -188,15 +194,15 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             } else {
                 set_mean_point = true;
                 VT temp = Rcpp::as<VT>(Rcpp::as<Rcpp::List>(distribution)["inner_point"]);
-                MeanPoint = Point(dim, std::vector<NT>(&temp[0], temp.data()+temp.cols()*temp.rows()));
+                MeanPoint = Point(dim, std::vector<NT>(&temp[0], temp.data() + temp.cols() * temp.rows()));
                 //MeanPoint = Point(dim, Rcpp::as < std::vector < NT > > (Rcpp::as<Rcpp::List>(distribution)["inner_point"]).begin(),
-                  //                Rcpp::as < std::vector < NT > > (Rcpp::as<Rcpp::List>(distribution)["inner_point"]).end());
+                //                Rcpp::as < std::vector < NT > > (Rcpp::as<Rcpp::List>(distribution)["inner_point"]).end());
             }
         }
 
         NT a = 0.5;
         if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("variance")) {
-            a = 1.0 / (2.0 *Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]));
+            a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]));
             if (!gaussian) {
                 Rcpp::warning("The variance can be set only for Gaussian sampling!");
             } else if (a <= 0.0) {
@@ -225,7 +231,15 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             walkL = 5;
             if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("L"))
                 diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["L"]);
-        } else {
+        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BRDHR")) == 0) {
+            if (gaussian) throw Rcpp::exception("Gaussian sampling from the boundary is not supported!");
+            rdhr = true;
+            boundary = true;
+        }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BCDHR")) == 0) {
+            if (gaussian) throw Rcpp::exception("Gaussian sampling from the boundary is not supported!");
+            cdhr = true;
+            boundary = true;
+        }else {
             throw Rcpp::exception("Unknown walk type!");
         }
 
@@ -349,22 +363,22 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         switch (type) {
             case 1: {
                 sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
-                                     a, MeanPoint, var1, var2);
+                                     a, boundary, MeanPoint, var1, var2);
                 break;
             }
             case 2: {
                 sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
-                                     a, MeanPoint, var1, var2);
+                                     a, boundary, MeanPoint, var1, var2);
                 break;
             }
             case 3: {
                 sampling_only<Point>(randPoints, ZP, walkL, numpoints, gaussian,
-                                     a, MeanPoint, var1, var2);
+                                     a, boundary, MeanPoint, var1, var2);
                 break;
             }
             case 4: {
                 sampling_only<Point>(randPoints, VPcVP, walkL, numpoints, gaussian,
-                                     a, MeanPoint, var1, var2);
+                                     a, boundary, MeanPoint, var1, var2);
                 break;
             }
         }
@@ -375,6 +389,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     }
 
+    if (numpoints % 2 == 1 && boundary) numpoints--;
     MT RetMat(dim, numpoints);
     unsigned int jj = 0;
 

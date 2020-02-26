@@ -199,8 +199,9 @@ rounding <- function(P) {
 #' P = Hpolytope$new(A,b)
 #' points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "variance" = 2))
 #'
-#' # uniform points from the boundary of a 10-dimensional hypersphere
-#' points = sample_points(exact = TRUE, body = "hypersphere", parameters = list("dimension" = 10))
+#' # uniform points from the boundary of a 2-dimensional random H-polytope
+#' P = gen_rand_hpoly(2,20)
+#' points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
 #'
 #' # 100 uniform points from the 2-d unit ball
 #' points = sample_points(n = 100, known_body = list("body" = "ball", "dimension" = 2))
