@@ -115,8 +115,9 @@ inner_ball <- function(P) {
 #'
 #' @param kind_gen An integer to declare the type of the polytope.
 #' @param Vpoly_gen A boolean parameter to declare if the requested polytope has to be in V-representation.
+#' @param Zono_gen A boolean parameter to declare if the requested polytope has to be a zonotope.
 #' @param dim_gen An integer to declare the dimension of the requested polytope.
-#' @param m_gen An integer to declare the number of generators for the requested random zonotope.
+#' @param m_gen An integer to declare the number of generators for the requested random zonotope or the number of vertices for a V-polytope.
 #'
 #' @section warning:
 #' Do not use this function.
@@ -192,7 +193,7 @@ rounding <- function(P, random_walk = NULL, walk_length = NULL, parameters = NUL
 #' @examples
 #' # uniform distribution from the 3d unit cube in V-representation using ball walk
 #' P = gen_cube(3, 'V')
-#' points = sample_points(P, random_walk = list("walk' = "BaW", "walk_length" = 5))
+#' points = sample_points(P, random_walk = list("walk" = "BaW", "walk_length" = 5))
 #'
 #' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)

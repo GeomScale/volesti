@@ -4,9 +4,9 @@ library(volesti)
 
 runsample <- function(P, name_string, dist){
   if (dist == "uniform") {
-    p = sample_points(P)
+    p = sample_points(P, n = 100)
   } else {
-    p = sample_points(P, distribution = "gaussian")
+    p = sample_points(P, n = 100, distribution = list("density" = "gaussian"))
   }
   if (length(p[is.nan(p)])>0 | length(p[is.infinite(p)])>0) {
     res = 0

@@ -9,7 +9,7 @@ Vruntest <- function(P, name_string, exactvol, tol, num_of_exps, algorithm){
     if (algorithm == "CB") {
       vol = vol + volume(P)
     } else {
-      vol = vol + volume(P, error=0.1, algo = "CG")
+      vol = vol + volume(P, algo = list("algorithm" = "CG", "error" = 0.1))
     }
   }
   vol = vol / num_of_exps

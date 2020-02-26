@@ -11,9 +11,11 @@ poly_gen(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen)
 
 \item{Vpoly_gen}{A boolean parameter to declare if the requested polytope has to be in V-representation.}
 
+\item{Zono_gen}{A boolean parameter to declare if the requested polytope has to be a zonotope.}
+
 \item{dim_gen}{An integer to declare the dimension of the requested polytope.}
 
-\item{m_gen}{An integer to declare the number of generators for the requested random zonotope.}
+\item{m_gen}{An integer to declare the number of generators for the requested random zonotope or the number of vertices for a V-polytope.}
 }
 \value{
 A numerical matrix describing the requested polytope

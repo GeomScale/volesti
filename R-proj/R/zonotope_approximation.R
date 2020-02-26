@@ -28,7 +28,7 @@
 #' 
 #' @examples 
 #' # over-approximate a 2-dimensional zonotope with 10 generators and compute the ratio of fitness
-#' Z = GenZonotope(2,10)
+#' Z = gen_rand_zonotope(2,10)
 #' retList = zonotope_approximation(Z = Z, fit_ratio = TRUE)
 #' 
 #' @export

@@ -28,8 +28,9 @@
 //'
 //' @param kind_gen An integer to declare the type of the polytope.
 //' @param Vpoly_gen A boolean parameter to declare if the requested polytope has to be in V-representation.
+//' @param Zono_gen A boolean parameter to declare if the requested polytope has to be a zonotope.
 //' @param dim_gen An integer to declare the dimension of the requested polytope.
-//' @param m_gen An integer to declare the number of generators for the requested random zonotope.
+//' @param m_gen An integer to declare the number of generators for the requested random zonotope or the number of vertices for a V-polytope.
 //'
 //' @section warning:
 //' Do not use this function.
