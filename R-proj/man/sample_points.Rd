@@ -41,6 +41,24 @@ A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the
 Sample n points with uniform or multidimensional spherical gaussian -centered in an internal point- target distribution.
 The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
 }
+\examples{
+# uniform distribution from the 3d unit cube in V-representation using ball walk
+P = gen_cube(3, 'V')
+points = sample_points(P, random_walk = list("walk" = "BaW", "walk_length" = 5))
+
+# gaussian distribution from the 2d unit simplex in H-representation with variance = 2
+A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
+b = c(0,0,1)
+P = Hpolytope$new(A,b)
+points = sample_points(P, distribution = list("density" = "gaussian", "variance" = 2))
+
+# uniform points from the boundary of a 10-dimensional hypersphere
+points = sample_points(exact = TRUE, body = "hypersphere", parameters = list("dimension" = 10))
+
+# 10000 uniform points from the 2-d unit ball
+P = Vpolytope$new(V)
+points = sample_points(P, n = 10000, known_body = list("body" = "ball", "dimension" = 2))
+}
 \references{
 \cite{R.Y. Rubinstein and B. Melamed,
 \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}

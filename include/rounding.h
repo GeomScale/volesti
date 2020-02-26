@@ -30,27 +30,19 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT
         // If P is not a V-Polytope or number_of_vertices>20*domension
         // 2. Generate the first random point in P
         // Perform random walk on random point in the Chebychev ball
-        Point p = get_point_on_Dsphere<RNGType, Point>(n, radius);
+        Point p = get_point_in_Dsphere<RNGType, Point>(n, radius);
         p = p + c;
 
         //use a large walk length e.g. 1000
-        Parameters var2 = var;
-        var2.cdhr_walk = true;
-        var2.ball_walk = var2.rdhr_walk = var2.bill_walk = false;
-        rand_point_generator(P, p, 1, 50*n, randPoints, var2);
+        rand_point_generator(P, p, 1, 10*n, randPoints, var);
         // 3. Sample points from P
         unsigned int num_of_samples = 10*n;//this is the number of sample points will used to compute min_ellipoid
         randPoints.clear();
-        rand_point_generator(P, p, num_of_samples, 10 + n/10, randPoints, var2);
-        /*NT current_dist, max_dist;
-        for(typename std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-            current_dist=(*pit-c).squared_length();
-            if(current_dist>max_dist){
-                max_dist=current_dist;
-            }
+        if (var.bill_walk) {
+            rand_point_generator(P, p, num_of_samples, 5, randPoints, var);
+        } else {
+            rand_point_generator(P, p, num_of_samples, 10 + n / 10, randPoints, var);
         }
-        max_dist=std::sqrt(max_dist);
-        R=max_dist/radius;*/
     }
 
     // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
