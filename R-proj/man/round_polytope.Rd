@@ -30,3 +30,7 @@ ListVpoly = round_polytope(P)
 Z = gen_rand_zonotope(2,6)
 ListZono = round_polytope(Z)
 }
+\references{
+\cite{Michael J. Todd and E. Alper Yildirim,
+\dQuote{On Khachiyan’s Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids,} \emph{Discrete Applied Mathematics,} 2007.}
+}

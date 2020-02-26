@@ -5,6 +5,10 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
+// The functions in this header file call Bojan Nikolic <bojan@bnikolic.co.uk> implementation
+// of Todd and Yildirim algorithm in "On Khachiyan's Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids", 2005
+// Initial version 2010, part of BNMin1 and is licensed under GNU General Public License version 2
+
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef ROUNDING_H
