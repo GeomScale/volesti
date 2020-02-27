@@ -8,6 +8,8 @@
 #' @param win_length Optional. The length of the sliding window. The default value is 60.
 #' @param m Optional. The number of slices for the copula. The default value is 100.
 #' @param n Optional. The number of points to sample. The default value is \eqn{5\cdot 10^5}.
+#' @param nwarning Optional. The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.
+#' @param ncrisis Optional. The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.
 #'
 #' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 #' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
@@ -15,11 +17,13 @@
 #' @return A list that contains the indicators and the corresponding vector that label each time period with respect to the market state: a) normal, b) crisis, c) warning.
 #'
 #' @export
-compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL) {
+compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, nwarning = NULL, ncrisis = NULL) {
   
   if (is.null(win_length)) win_length = 60
   if (is.null(m)) m = 100
   if (is.null(n)) n = 500000
+  if (is.null(nwarning)) nwarning = 60
+  if (is.null(ncrisis)) ncrisis = 100
   
   nrows = dim(returns)[1]
   nassets = dim(returns)[2]
@@ -72,9 +76,9 @@ compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL) {
       set_index = TRUE
     } else if (indicators[i]<1) {
       if(set_index){
-        if(i-index+1>30 && i-index+1<60){
+        if(i-index+1 > nwarning && i-index+1 < ncrisis){
           col[index:i] = "warning"
-        } else if(i-index+1>60) {
+        } else if(i-index+1 > ncrisis) {
           col[index:i] = "crisis"
         }
       }

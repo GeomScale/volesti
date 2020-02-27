@@ -12,15 +12,19 @@
 #include "samplers.h"
 
 template <class Polytope, class RNGType>
-Polytope random_hpoly(unsigned int dim, unsigned int m) {
+Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
     typedef typename Polytope::PolytopePoint Point;
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!std::isnan(seed)) {
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
     boost::random::uniform_real_distribution<> urdist1(-10, 10);
     Point p(dim);
     typename std::vector<NT>::iterator pit;

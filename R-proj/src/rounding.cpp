@@ -27,19 +27,13 @@
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
-//' @param random_walk Optional. A string that declares the random walk.
-//' @param walk_length Optional. The number of the steps for the random walk.
-//' @param parameters Optional. A list for the parameters of the methods:
 //'
 //' @section warning:
 //' Do not use this function.
 //'
 //' @return A numerical matrix that describes the rounded polytope and contains the round value.
 // [[Rcpp::export]]
-Rcpp::List rounding (Rcpp::Reference P,
-                              Rcpp::Nullable<std::string> random_walk = R_NilValue,
-                              Rcpp::Nullable<unsigned int> walk_length = R_NilValue,
-                     Rcpp::Nullable<Rcpp::List> parameters = R_NilValue){
+Rcpp::List rounding (Rcpp::Reference P){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -61,7 +55,7 @@ Rcpp::List rounding (Rcpp::Reference P,
             NN=false,
             birk=false,
             verbose=false,
-            cdhr=true, rdhr = false, ball_walk = false, billiard = false;
+            cdhr=false, rdhr = false, ball_walk = false, billiard = false;
     NT delta = -1.0, diam = -1.0;
 
     unsigned int n = P.field("dimension");
@@ -72,28 +66,12 @@ Rcpp::List rounding (Rcpp::Reference P,
     Rcpp::NumericMatrix Mat;
     int type = P.field("type");
 
-    if(!random_walk.isNotNull()) {
-        if (type == 1) {
-            cdhr = true;
-        } else {
-            billiard = true;
-        }
-    } else if(Rcpp::as<std::string>(random_walk).compare(std::string("CDHR"))==0) {
+    if (type == 1) {
+        walkL = 10 + 10/n;
         cdhr = true;
-    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("RDHR"))==0) {
-        rdhr = true;
-    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BW"))==0) {
-        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("BW_rad")) {
-            delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["BW_rad"]);
-        }
-        ball_walk = true;
-    } else if (Rcpp::as<std::string>(random_walk).compare(std::string("BiW")) == 0) {
-        billiard = true;
-        walkL = 1;
-        if (Rcpp::as<Rcpp::List>(parameters).containsElementNamed("diameter"))
-            diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(parameters)["diameter"]);
     } else {
-        throw Rcpp::exception("Unknown walk type!");
+        walkL = 5;
+        billiard = true;
     }
 
     switch (type) {
@@ -101,20 +79,20 @@ Rcpp::List rounding (Rcpp::Reference P,
             // Hpolytope
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             InnerBall = HP.ComputeInnerBall();
-            if (billiard && diam < 0.0) HP.comp_diam(diam, InnerBall.second);
+            //if (billiard && diam < 0.0) HP.comp_diam(diam, InnerBall.second);
             break;
         }
         case 2: {
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
-            if (billiard && diam < 0.0) VP.comp_diam(diam, 0.0);
+            VP.comp_diam(diam, 0.0);
             break;
         }
         case 3: {
             // Zonotope
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
-            if (billiard && diam < 0.0) ZP.comp_diam(diam, 0.0);
+            ZP.comp_diam(diam, 0.0);
             break;
         }
         case 4: {
@@ -137,12 +115,6 @@ Rcpp::List rounding (Rcpp::Reference P,
 
         }
         //default: throw Rcpp::exception("Wrong polytope input");
-    }
-
-    if(walk_length.isNotNull()) walkL = Rcpp::as<unsigned int>(walk_length);
-
-    if (ball_walk && delta < 0.0) {
-        delta = 4.0 * InnerBall.second / std::sqrt(NT(n));
     }
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();

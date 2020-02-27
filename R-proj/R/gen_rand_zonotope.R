@@ -5,14 +5,15 @@
 #' @param dimension The dimension of the zonotope.
 #' @param nsegments The number of segments that generate the zonotope.
 #' @param generator The distribution to pick the length of each segment from \eqn{[0,100]}: (a) 'uniform', (b) 'gaussian' or (c) 'exponential'.
-#' 
+#' @param seed Optional. A fixed seed for the generator.
+#'  
 #' @return A polytope class representing a zonotope.
 #'
 #' @examples 
 #' # generate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
 #' P = gen_rand_zonotope(10, 20)
 #' @export
-gen_rand_zonotope <- function(dimension, nsegments, generator = NULL) {
+gen_rand_zonotope <- function(dimension, nsegments, generator = NULL, seed = NULL) {
   
   kind_gen = 1
   
@@ -26,7 +27,7 @@ gen_rand_zonotope <- function(dimension, nsegments, generator = NULL) {
     }
   }
   
-  Mat = poly_gen(kind_gen, FALSE, TRUE, dimension, nsegments)
+  Mat = poly_gen(kind_gen, FALSE, TRUE, dimension, nsegments, seed)
   
   # first column is the vector b
   b = Mat[,1]

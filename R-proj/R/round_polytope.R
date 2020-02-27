@@ -3,15 +3,11 @@
 #' Given a convex H or V polytope or a zonotope as input this functionbrings the polytope in well rounded position based on minimum volume enclosing ellipsoid of a pointset.
 #' 
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
-#' @param random_walk Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk or d) \code{'BiW'} for Billiard walk. The default walk is \code{'CDHR'} for H-polytope and \code{'BiW'} for the other representations.
-#' @param walk_length Optional. The number of the steps for the random walk. The default value is \eqn{1} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.
-#' @param parameters Optional. A list for the parameters of the methods:
-#' \itemize{
-#'   \item{\code{BW_rad} }{ The radius for the ball walk.}
-#'   \item{\code{diameter} }{ The diameter of the polytope. It is used to set the maximum length of the trajectory in billiard walk.}
-#' }
 #' 
 #' @return A list with 2 elements: (a) a polytope of the same class as the input polytope class and (b) the element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
+#'
+#' @references \cite{Michael J. Todd and E. Alper Yildirim,
+#' \dQuote{On Khachiyan’s Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids,} \emph{Discrete Applied Mathematics,} 2007.}
 #'
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
@@ -22,15 +18,15 @@
 #' 
 #' # rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50
 #' P = gen_cube(3, 'V')
-#' ListVpoly = round_polytope(P, random_walk = 'RDHR', walk_length = 50)
+#' ListVpoly = round_polytope(P)
 #' 
 #' # round a 2-dimensional zonotope defined by 6 generators using ball walk
 #' Z = gen_rand_zonotope(2,6)
-#' ListZono = round_polytope(Z, random_walk = 'BW')
+#' ListZono = round_polytope(Z)
 #' @export
-round_polytope <- function(P, random_walk = NULL, walk_length = NULL, parameters = NULL){
+round_polytope <- function(P){
   
-  ret_list = rounding(P, random_walk, walk_length, parameters)
+  ret_list = rounding(P)
   
   #get the matrix that describes the polytope
   Mat = ret_list$Mat

@@ -59,11 +59,16 @@ void test_cool_bodies(Polytope &HP, NT expected, NT tolerance=0.1, bool round = 
 
     std::pair<Point,NT> InnerBall;
     if (round) {
+        HP.normalize();
         InnerBall = HP.ComputeInnerBall();
-        vars<NT, RNGType> var2(rnum,n,walk_len,n_threads,err,e,0,0,0,0,0.0,rng,
+        HP.comp_diam(diameter, InnerBall.second);
+        diameter*=2.0;
+
+        vars<NT, RNGType> var2(rnum,n,walk_len,n_threads,err,e,0,0,0,0,diameter,rng,
                               urdist,urdist1,-1.0,false,false,false,false,false,false,false,false,true);
         std::pair<NT,NT> res_round = rounding_min_ellipsoid(HP , InnerBall, var2);
         round_val = res_round.first;
+        diameter = -1.0;
     }
 
     InnerBall = HP.ComputeInnerBall();

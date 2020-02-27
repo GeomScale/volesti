@@ -24,18 +24,16 @@
 
 template <typename Point, typename NT, typename PointList, typename Polytope, typename UParameters, typename GParameters>
 void sampling_only(PointList &randPoints, Polytope &P, const unsigned int walk_len,
-                   const unsigned int rnum, bool gaussian, const NT &a, const Point &internal_point,
-                   UParameters const& var1, GParameters const& var2) {
+                   const unsigned int rnum, bool gaussian, const NT &a, const bool boundary,
+                   const Point &internal_point, UParameters const& var1, GParameters const& var2) {
 
     typedef typename UParameters::RNGType RNGType;
-    unsigned int n = var1.n;
     Point p = internal_point;
-    Point q = get_point_on_Dsphere<RNGType, Point>(n, var1.che_rad);
-    p=p+q;
-    rand_point_generator(P, p, 1, 50 * n, randPoints, var1);
 
     randPoints.clear();
-    if (!gaussian){
+    if (boundary) {
+        boundary_rand_point_generator(P, p, rnum/2, walk_len, randPoints, var1);
+    } else if (!gaussian){
         rand_point_generator(P, p, rnum, walk_len, randPoints, var1);
     } else {
         rand_gaussian_point_generator(P, p, rnum, walk_len, randPoints, a, var2);
