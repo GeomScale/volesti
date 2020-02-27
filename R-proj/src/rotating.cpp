@@ -18,6 +18,7 @@
 #include "hpolytope.h"
 #include "vpolytope.h"
 #include "zpolytope.h"
+#include "vpolyintersectvpoly.h"
 #include "samplers.h"
 #include "rotating.h"
 #include "extractMatPoly.h"
@@ -25,13 +26,14 @@
 //'  An internal Rccp function for the random rotation of a convex polytope
 //'
 //' @param P A convex polytope (H-, V-polytope or a zonotope).
+//' @param T Optional. A rotation matrix.
 //'
 //' @section warning:
 //' Do not use this function.
 //'
 //' @return A matrix that describes the rotated polytope
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rotating (Rcpp::Reference P){
+Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMatrix> T = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -40,12 +42,9 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef Zonotope<Point> zonotope;
+    typedef IntersectionOfVpoly<Vpolytope> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-
-    Hpolytope HP;
-    Vpolytope VP;
-    zonotope ZP;
 
     MT TransorfMat;
     Rcpp::NumericMatrix Mat;
@@ -57,7 +56,12 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            TransorfMat = rotating < MT > (HP);
+            if (T.isNotNull()) {
+                TransorfMat = Rcpp::as<MT>(T);
+                HP.linear_transformIt(TransorfMat.inverse());
+            } else {
+                TransorfMat = rotating < MT > (HP);
+            }
             Mat = extractMatPoly(HP);
             break;
         }
@@ -65,7 +69,12 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            TransorfMat = rotating< MT >(VP);
+            if (T.isNotNull()) {
+                TransorfMat = Rcpp::as<MT>(T);
+                VP.linear_transformIt(TransorfMat.inverse());
+            } else {
+                TransorfMat = rotating < MT > (VP);
+            }
             Mat = extractMatPoly(VP);
             break;
         }
@@ -73,11 +82,32 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P){
             // Zonotope
             zonotope ZP;
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-            TransorfMat = rotating < MT > (ZP);
+            if (T.isNotNull()) {
+                TransorfMat = Rcpp::as<MT>(T);
+                ZP.linear_transformIt(TransorfMat.inverse());
+            } else {
+                TransorfMat = rotating < MT > (ZP);
+            }
             Mat = extractMatPoly(ZP);
             break;
         }
+        case 4: {
+            Vpolytope VP1;
+            Vpolytope VP2;
+            InterVP VPcVP;
+            VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
+            VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
+            VPcVP.init(VP1, VP2);
+            if (T.isNotNull()) {
+                TransorfMat = Rcpp::as<MT>(T);
+                VPcVP.linear_transformIt(TransorfMat.inverse());
+            } else {
+                TransorfMat = rotating < MT > (VPcVP);
+            }
+        }
     }
+
+
 
     TransorfMat.conservativeResize(n+1, n);
     TransorfMat.row(n) = VT::Ones(n);

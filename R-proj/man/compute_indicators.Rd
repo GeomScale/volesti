@@ -4,7 +4,8 @@
 \alias{compute_indicators}
 \title{Compute an indicator for each time period that describes the state of a market.}
 \usage{
-compute_indicators(returns, win_length = NULL, m = NULL, n = NULL)
+compute_indicators(returns, win_length = NULL, m = NULL, n = NULL,
+  nwarning = NULL, ncrisis = NULL)
 }
 \arguments{
 \item{returns}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
@@ -14,6 +15,10 @@ compute_indicators(returns, win_length = NULL, m = NULL, n = NULL)
 \item{m}{Optional. The number of slices for the copula. The default value is 100.}
 
 \item{n}{Optional. The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
+
+\item{nwarning}{Optional. The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.}
+
+\item{ncrisis}{Optional. The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.}
 }
 \value{
 A list that contains the indicators and the corresponding vector that label each time period with respect to the market state: a) normal, b) crisis, c) warning.

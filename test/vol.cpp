@@ -89,7 +89,8 @@ int main(const int argc, const char** argv)
          gaussian_sam = false,
          hpoly = false,
          billiard=false,
-         win2 = false;
+         win2 = false,
+         boundary = false;
 
     //this is our polytope
     Hpolytope HP;
@@ -633,11 +634,11 @@ int main(const int argc, const char** argv)
 
       double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if (Zono) {
-          sampling_only<Point>(randPoints, ZP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+          sampling_only<Point>(randPoints, ZP, walk_len, nsam, gaussian_sam, a, boundary, InnerBall.first, var1, var2);
       } else if (!Vpoly) {
-          sampling_only<Point>(randPoints, HP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+          sampling_only<Point>(randPoints, HP, walk_len, nsam, gaussian_sam, a, boundary, InnerBall.first, var1, var2);
       } else {
-          sampling_only<Point>(randPoints, VP, walk_len, nsam, gaussian_sam, a, InnerBall.first, var1, var2);
+          sampling_only<Point>(randPoints, VP, walk_len, nsam, gaussian_sam, a, boundary, InnerBall.first, var1, var2);
       }
       double tstop11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if(verbose) std::cout << "Sampling time: " << tstop11 - tstart11 << std::endl;
