@@ -17,7 +17,7 @@
  
 * Install package-dependencies: `Rcpp`, `RcppEigen`, `BH`, `lpSolveAPI`.  
 
-1. Then use devtools package to install `volesti` Rcpp package. In folder /root/R-prog Run:
+1. Then use devtools package to install `volesti` Rcpp package. In folder /root/R-proj Run:
 ```r
 Rcpp::compileAttributes()  
 library(devtools)  
