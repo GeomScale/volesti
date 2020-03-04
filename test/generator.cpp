@@ -228,7 +228,7 @@ int main(const int argc, const char** argv) {
 
         if (correct == false) {
             std::cerr << "unknown parameters \'" << argv[i] <<
-                      "\', try " << argv[0] << " --help" << std::endl;
+                      "\', try " << argv[0] << " -help" << std::endl;
             exit(-2);
         }
 
