@@ -148,7 +148,7 @@ which returns 17 numbers:
   
 To use CoolingGaussian (CG) algorithm run the following command:  
 ```
-./vol -f1 cube_10.ine -CG  
+./vol -f1 cube_10.ine -cg  
 ```
 which returns the same output as before.  
 
