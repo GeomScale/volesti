@@ -206,8 +206,9 @@ void rand_point_generator(Polytope &P,
     } else {
         billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var, true);
     }
+    randPoints.push_back(p);
 
-    for (unsigned int i = 1; i <= rnum; ++i) {
+    for (unsigned int i = 1; i <= rnum-1; ++i) {
         for (unsigned int j = 0; j < walk_len; ++j) {
             if (var.ball_walk) {
                 ball_walk<RNGType>(p, P, ball_rad);
