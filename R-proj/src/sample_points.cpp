@@ -37,14 +37,16 @@
 //' \itemize{
 //' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
 //' \item{\code{walk_length} }{ The number of the steps for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
+//' \item{\code{nburns} }{ The number of points to burn before start sampling.}
 //' \item{\code{BaW_rad} }{ The radius for the ball walk.}
-//' \item{\code{L} }{The maximum length of the billiard trajectory.}
+//' \item{\code{L} }{ The maximum length of the billiard trajectory.}
 //' }
 //' @param distribution Optional. A list that declares the target density and some related parameters as follows:
 //' \itemize{
 //' \item{\code{density}}{A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
 //' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
-//' \item{\code{InnerPoint} }{ A \eqn{d}-dimensional numerical vector that defines a starting point in the interior of the polytope for the random walk and the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
+//' \item{\code{StartingPoint} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
+//'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
 //' }
 //' @param known_body A list to request exact uniform sampling from special well known convex bodies through the following input parameters:
 //' \itemize{
@@ -83,7 +85,7 @@
 Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue,
                                   Rcpp::Nullable<unsigned int> n = R_NilValue,
                                   Rcpp::Nullable<Rcpp::List> random_walk = R_NilValue,
-                                  Rcpp::Nullable<std::string> distribution = R_NilValue,
+                                  Rcpp::Nullable<Rcpp::List> distribution = R_NilValue,
                                   Rcpp::Nullable<Rcpp::List> known_body = R_NilValue){
 
     typedef double NT;
@@ -102,14 +104,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
     zonotope ZP;
     InterVP VPcVP;
 
-    int type, dim, numpoints;
+    int type, dim, numpoints, nburns = 0;
     NT radius = 1.0, delta = -1.0, diam = -1.0;
-    bool set_mean_point = false, cdhr = false, rdhr = false, ball_walk = false, gaussian = false,
-          billiard = false, boundary = false;
+    bool set_mode = false, cdhr = false, rdhr = false, ball_walk = false, gaussian = false,
+          billiard = false, boundary = false, set_starting_point = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
+    Point mode(dim);
 
-    Point shift(dim);
     numpoints = (!n.isNotNull()) ? 100 : Rcpp::as<unsigned int>(n);
 
     if (!n.isNotNull()) {
@@ -169,9 +171,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
         type = Rcpp::as<Rcpp::Reference>(P).field("type");
         dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
-        unsigned int walkL = 10 + dim / 10;
-
-        //std::cout<< Rcpp::as<Rcpp::List>(distribution).containsElementNamed("density") <<Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("uniform"))<<std::endl;
+        int walkL = 10 + dim / 10;
 
         if (!distribution.isNotNull() || !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("density")) {
             billiard = true;
@@ -187,16 +187,25 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             throw Rcpp::exception("Wrong distribution!");
         }
 
-        Point MeanPoint;
-        if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("inner_point")) {
-            if (Rcpp::as<VT>(Rcpp::as<Rcpp::List>(distribution)["inner_point"]).size() != dim) {
-                throw Rcpp::exception("Internal Point has to lie in the same dimension as the polytope P");
+        Point StartingPoint;
+        if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("starting_point")) {
+            if (Rcpp::as<VT>(Rcpp::as<Rcpp::List>(distribution)["starting_point"]).size() != dim) {
+                throw Rcpp::exception("Starting Point has to lie in the same dimension as the polytope P");
             } else {
-                set_mean_point = true;
-                VT temp = Rcpp::as<VT>(Rcpp::as<Rcpp::List>(distribution)["inner_point"]);
-                MeanPoint = Point(dim, std::vector<NT>(&temp[0], temp.data() + temp.cols() * temp.rows()));
-                //MeanPoint = Point(dim, Rcpp::as < std::vector < NT > > (Rcpp::as<Rcpp::List>(distribution)["inner_point"]).begin(),
-                //                Rcpp::as < std::vector < NT > > (Rcpp::as<Rcpp::List>(distribution)["inner_point"]).end());
+                set_starting_point = true;
+                VT temp = Rcpp::as<VT>(Rcpp::as<Rcpp::List>(distribution)["starting_point"]);
+                StartingPoint = Point(dim, std::vector<NT>(&temp[0], temp.data() + temp.cols() * temp.rows()));
+            }
+        }
+
+        if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("mode")) {
+            if (!gaussian) throw Rcpp::exception("Mode is given only for Gaussian sampling!");
+            if (Rcpp::as<VT>(Rcpp::as<Rcpp::List>(distribution)["mode"]).size() != dim) {
+                throw Rcpp::exception("Mode has to be a point in the same dimension as the polytope P");
+            } else {
+                set_mode = true;
+                VT temp = Rcpp::as<VT>(Rcpp::as<Rcpp::List>(distribution)["mode"]);
+                mode = Point(dim, std::vector<NT>(&temp[0], temp.data() + temp.cols() * temp.rows()));
             }
         }
 
@@ -210,7 +219,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
         }
 
-        if (!random_walk.isNotNull()) {
+        if (!random_walk.isNotNull() || !Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("walk")) {
             if (gaussian) {
                 cdhr = true;
             } else {
@@ -244,9 +253,16 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         }
 
         if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("walk_length")) {
-            walkL = Rcpp::as<unsigned int>(Rcpp::as<Rcpp::List>(random_walk)["walk_length"]);
+            walkL = Rcpp::as<int>(Rcpp::as<Rcpp::List>(random_walk)["walk_length"]);
             if (walkL <= 0) {
                 throw Rcpp::exception("The walk length has to be a positive integer!");
+            }
+        }
+
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("nburns")) {
+            nburns = Rcpp::as<int>(Rcpp::as<Rcpp::List>(random_walk)["nburns"]);
+            if (nburns < 0) {
+                throw Rcpp::exception("The number of points to burn before sampling has to be a positive integer!");
             }
         }
 
@@ -267,18 +283,19 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                         Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
 
-                if (!set_mean_point || ball_walk || billiard) {
+                if (!set_starting_point || (!set_mode && gaussian) || ball_walk || billiard) {
                     InnerBall = HP.ComputeInnerBall();
-                    if (!set_mean_point) MeanPoint = InnerBall.first;
+                    if (!set_starting_point) StartingPoint = InnerBall.first;
+                    if (!set_mode && gaussian) mode = InnerBall.first;
                 }
-                if (HP.is_in(MeanPoint) == 0)
+                if (HP.is_in(StartingPoint) == 0)
                     throw Rcpp::exception("The given point is not in the interior of the polytope!");
                 if (billiard && diam < 0.0) HP.comp_diam(diam, InnerBall.second);
                 HP.normalize();
                 if (gaussian) {
-                    shift = MeanPoint;
-                    HP.shift(Eigen::Map<VT>(&MeanPoint.get_coeffs()[0], MeanPoint.dimension()));
-                    MeanPoint = Point(dim);
+                    //shift = mode;
+                    StartingPoint = StartingPoint - mode;
+                    HP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));
                 }
                 break;
             }
@@ -287,17 +304,18 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 VP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
                         VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
 
-                if (!set_mean_point || ball_walk) {
+                if (!set_starting_point || (!set_mode && gaussian) || ball_walk) {
                     InnerBall = VP.ComputeInnerBall();
-                    if (!set_mean_point) MeanPoint = InnerBall.first;
+                    if (!set_starting_point) StartingPoint = InnerBall.first;
+                    if (!set_mode && gaussian) mode = InnerBall.first;
                 }
-                if (VP.is_in(MeanPoint) == 0)
+                if (VP.is_in(StartingPoint) == 0)
                     throw Rcpp::exception("The given point is not in the interior of the polytope!");
                 if (billiard && diam < 0.0) VP.comp_diam(diam, 0.0);
                 if (gaussian) {
-                    shift = MeanPoint;
-                    VP.shift(Eigen::Map<VT>(&MeanPoint.get_coeffs()[0], MeanPoint.dimension()));
-                    MeanPoint = Point(dim);
+                    //shift = mode;
+                    StartingPoint = StartingPoint - mode;
+                    VP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));
                 }
                 break;
             }
@@ -306,17 +324,18 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
                 ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
                         VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
 
-                if (!set_mean_point || ball_walk) {
+                if (!set_starting_point || (!set_mode && gaussian) || ball_walk) {
                     InnerBall = ZP.ComputeInnerBall();
-                    if (!set_mean_point) MeanPoint = InnerBall.first;
+                    if (!set_starting_point) StartingPoint = InnerBall.first;
+                    if (!set_mode && gaussian) mode = InnerBall.first;
                 }
-                if (ZP.is_in(MeanPoint) == 0)
+                if (ZP.is_in(StartingPoint) == 0)
                     throw Rcpp::exception("The given point is not in the interior of the polytope!");
                 if (billiard && diam < 0.0) ZP.comp_diam(diam, 0.0);
                 if (gaussian) {
-                    shift = MeanPoint;
-                    ZP.shift(Eigen::Map<VT>(&MeanPoint.get_coeffs()[0], MeanPoint.dimension()));
-                    MeanPoint = Point(dim);
+                    //shift = mode;
+                    StartingPoint = StartingPoint - mode;
+                    ZP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));
                 }
                 break;
             }
@@ -332,16 +351,17 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
                 if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
                 InnerBall = VPcVP.ComputeInnerBall();
-                if (!set_mean_point) MeanPoint = InnerBall.first;
-                if (VPcVP.is_in(MeanPoint) == 0)
+                if (!set_starting_point) StartingPoint = InnerBall.first;
+                if (!set_mode && gaussian) mode = InnerBall.first;
+                if (VPcVP.is_in(StartingPoint) == 0)
                     throw Rcpp::exception("The given point is not in the interior of the polytope!");
                 if (billiard && diam < 0.0) {
                     VPcVP.comp_diam(diam, InnerBall.second);
                 }
                 if (gaussian) {
-                    shift = MeanPoint;
-                    VPcVP.shift(Eigen::Map<VT>(&MeanPoint.get_coeffs()[0], MeanPoint.dimension()));
-                    MeanPoint = Point(dim);
+                    //shift = mode;
+                    StartingPoint = StartingPoint - mode;
+                    VPcVP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));
                 }
                 break;
             }
@@ -363,22 +383,22 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         switch (type) {
             case 1: {
                 sampling_only<Point>(randPoints, HP, walkL, numpoints, gaussian,
-                                     a, boundary, MeanPoint, var1, var2);
+                                     a, boundary, StartingPoint, nburns, var1, var2);
                 break;
             }
             case 2: {
                 sampling_only<Point>(randPoints, VP, walkL, numpoints, gaussian,
-                                     a, boundary, MeanPoint, var1, var2);
+                                     a, boundary, StartingPoint, nburns, var1, var2);
                 break;
             }
             case 3: {
                 sampling_only<Point>(randPoints, ZP, walkL, numpoints, gaussian,
-                                     a, boundary, MeanPoint, var1, var2);
+                                     a, boundary, StartingPoint, nburns, var1, var2);
                 break;
             }
             case 4: {
                 sampling_only<Point>(randPoints, VPcVP, walkL, numpoints, gaussian,
-                                     a, boundary, MeanPoint, var1, var2);
+                                     a, boundary, StartingPoint, nburns, var1, var2);
                 break;
             }
         }
@@ -395,7 +415,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
         if (gaussian) {
-            RetMat.col(jj) = Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension()) + Eigen::Map<VT>(&shift.get_coeffs()[0], shift.dimension());
+            RetMat.col(jj) = Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension()) + Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension());
         } else {
             RetMat.col(jj) = Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension());
         }

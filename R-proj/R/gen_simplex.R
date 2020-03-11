@@ -3,7 +3,7 @@
 #' This function can be used to generate the \eqn{d}-dimensional unit simplex in H- or V-representation.
 #' 
 #' @param dimension The dimension of the unit simplex.
-#' @param rep A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.
+#' @param representation A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.
 #' 
 #' @return A polytope class representing the \eqn{d}-dimensional unit simplex in H- or V-representation.
 #' @examples
@@ -13,13 +13,13 @@
 #' # generate a 20-dimensional simplex in V-representation
 #' P = gen_simplex(20, 'V')
 #' @export
-gen_simplex <- function(dimension, rep) {
+gen_simplex <- function(dimension, representation) {
   
   kind_gen = 3
   m_gen = 0
-  if (rep == "V") {
+  if (representation == "V") {
     Vpoly_gen = TRUE
-  } else if (rep == "H") {
+  } else if (representation == "H") {
     Vpoly_gen = FALSE
   } else {
     stop('Not a known representation.')

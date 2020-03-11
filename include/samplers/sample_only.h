@@ -25,10 +25,12 @@
 template <typename Point, typename NT, typename PointList, typename Polytope, typename UParameters, typename GParameters>
 void sampling_only(PointList &randPoints, Polytope &P, const unsigned int walk_len,
                    const unsigned int rnum, bool gaussian, const NT &a, const bool boundary,
-                   const Point &internal_point, UParameters const& var1, GParameters const& var2) {
+                   const Point &starting_point, int nburns, UParameters const& var1, GParameters const& var2) {
 
     typedef typename UParameters::RNGType RNGType;
-    Point p = internal_point;
+    Point p = starting_point;
+
+    if (nburns > 0 ) rand_point_generator(P, p, 1, nburns, randPoints, var1);
 
     randPoints.clear();
     if (boundary) {
