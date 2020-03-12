@@ -238,7 +238,6 @@ int main(const int argc, const char** argv) {
         std::cout << "Wrong inputs, try -help" << std::endl;
         exit(-1);
     }
-    if (Hpoly && rand) kind = 6;
 
     if (Zono) {
         if (kind > 3 || kind <1) std::cout << "Wrong declaration of zonotope's generator, try -help" << std::endl;
