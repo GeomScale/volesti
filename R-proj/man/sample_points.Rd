@@ -2,10 +2,10 @@
 % Please edit documentation in R/RcppExports.R
 \name{sample_points}
 \alias{sample_points}
-\title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere}
+\title{Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope or a zonotope).}
 \usage{
 sample_points(P = NULL, n = NULL, random_walk = NULL,
-  distribution = NULL, known_body = NULL)
+  distribution = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) an intersection of two V-polytopes.}
@@ -28,20 +28,12 @@ sample_points(P = NULL, n = NULL, random_walk = NULL,
 \item{\code{StartingPoint} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
 }}
-
-\item{known_body}{A list to request exact uniform sampling from special well known convex bodies through the following input parameters:
-\itemize{
-\item{\code{body} }{ A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
-\item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
-\item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
-}}
 }
 \value{
 A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 }
 \description{
-Sample n points with uniform or multidimensional spherical gaussian -centered in an internal point- target distribution.
-The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
+Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- target distribution.
 }
 \examples{
 # uniform distribution from the 3d unit cube in V-representation using ball walk
@@ -58,16 +50,4 @@ points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "
 P = gen_rand_hpoly(2,20)
 points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
 
-# 100 uniform points from the 2-d unit ball
-points = sample_points(n = 100, known_body = list("body" = "ball", "dimension" = 2))
-}
-\references{
-\cite{R.Y. Rubinstein and B. Melamed,
-\dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
-
-\cite{A Smith, Noah and W Tromble, Roy,
-\dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
-
-\cite{Art B. Owen,
-\dQuote{Monte Carlo theory, methods and examples,} \emph{ Art Owen,} 2009.}
 }

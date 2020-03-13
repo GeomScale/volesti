@@ -35,6 +35,32 @@ copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL) {
     .Call(`_volesti_copula`, r1, r2, sigma, m, n)
 }
 
+#' Sample perfect uniformly distributed points from well known convex bodies: (a) the unit simplex, (b) the canonical simplex, (c) the boundary of a hypersphere or (d) the interior of a hypersphere.
+#'
+#' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
+#'
+#' @param body A list to request exact uniform sampling from special well known convex bodies through the following input parameters:
+#' \itemize{
+#' \item{\code{type} }{ A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
+#' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+#' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
+#' }
+#' @param n The number of points that the function is going to sample.
+#'
+#' @references \cite{R.Y. Rubinstein and B. Melamed,
+#' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
+#' @references \cite{A Smith, Noah and W Tromble, Roy,
+#' \dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
+#'
+#' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
+#' @examples
+#' # 100 uniform points from the 2-d unit ball
+#' points = direct_sampling(n = 100, body = list("type" = "ball", "dimension" = 2))
+#' @export
+direct_sampling <- function(body = NULL, n = NULL) {
+    .Call(`_volesti_direct_sampling`, body, n)
+}
+
 #' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex in V-representation or (c) if the volume is known and declared by the input object.
 #'
 #' Given a zonotope (as an object of class Zonotope), this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices of the \eqn{m\times d} matrix \eqn{G} that contains row-wise the \eqn{m} \eqn{d}-dimensional segments that define the zonotope.
@@ -153,10 +179,9 @@ rounding <- function(P) {
     .Call(`_volesti_rounding`, P)
 }
 
-#' Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere
+#' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope or a zonotope).
 #'
-#' Sample n points with uniform or multidimensional spherical gaussian -centered in an internal point- target distribution.
-#' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
+#' Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- target distribution.
 #'
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) an intersection of two V-polytopes.
 #' @param n The number of points that the function is going to sample from the convex polytope.
@@ -175,19 +200,6 @@ rounding <- function(P) {
 #' \item{\code{StartingPoint} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
 #'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
 #' }
-#' @param known_body A list to request exact uniform sampling from special well known convex bodies through the following input parameters:
-#' \itemize{
-#' \item{\code{body} }{ A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
-#' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
-#' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
-#' }
-#'
-#' @references \cite{R.Y. Rubinstein and B. Melamed,
-#' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
-#' @references \cite{A Smith, Noah and W Tromble, Roy,
-#' \dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
-#' @references \cite{Art B. Owen,
-#' \dQuote{Monte Carlo theory, methods and examples,} \emph{ Art Owen,} 2009.}
 #'
 #' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples
@@ -205,11 +217,9 @@ rounding <- function(P) {
 #' P = gen_rand_hpoly(2,20)
 #' points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
 #'
-#' # 100 uniform points from the 2-d unit ball
-#' points = sample_points(n = 100, known_body = list("body" = "ball", "dimension" = 2))
 #' @export
-sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution = NULL, known_body = NULL) {
-    .Call(`_volesti_sample_points`, P, n, random_walk, distribution, known_body)
+sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution = NULL) {
+    .Call(`_volesti_sample_points`, P, n, random_walk, distribution)
 }
 
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
