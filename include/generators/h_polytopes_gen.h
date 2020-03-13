@@ -34,13 +34,8 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
 
     for(unsigned int i=0; i<m; ++i){
         p = get_direction<RNGType, Point, NT>(dim);
-        pit = p.iter_begin();
-        j = 0;
-        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
-            A(i,j) = *pit;
-        }
+        A.row(i) = p.getCoefficients();
         b(i) = 10.0;
-
     }
     Polytope HP;
     HP.init(dim, A, b);

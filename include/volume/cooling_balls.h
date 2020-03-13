@@ -66,7 +66,7 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
     var.che_rad = radius;
     // Move the chebychev center to the origin and apply the same shifting to the polytope
 
-    VT c_e = Eigen::Map<VT>(&c.get_coeffs()[0], c.dimension());
+    VT c_e = c.getCoefficients();
     P.shift(c_e);
 
 
