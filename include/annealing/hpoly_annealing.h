@@ -147,7 +147,8 @@ bool get_sequence_of_zonopolys(Zonotope &Z, const HPolytope &HP, std::vector<HPo
     typedef typename Zonotope::MT MT;
 
     int n = var.n;
-    MT G = Z.get_mat().transpose(), AG = HP.get_mat()*G;
+    MT G = Z.get_mat().transpose();
+    MT AG = HP.get_mat()*G;
     NT ratio;
     std::list<Point> randPoints;
     Point q(n);

@@ -7,7 +7,7 @@
 #ifndef RATIO_ESTIMATION_H
 #define RATIO_ESTIMATION_H
 
-#define MAX_ITER_ESTI 500000
+#define MAX_ITER_ESTI 10000000
 
 template <typename NT>
 bool check_max_error(const NT &a, const NT &b, const NT &error) {

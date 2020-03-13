@@ -37,6 +37,7 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
     std::vector <ball> BallSet;
     std::vector <NT> ratios;
     Point c = InnerBall.first;
+    P.normalize();
 
     if (round) {
 #ifdef VOLESTI_DEBUG
@@ -52,7 +53,10 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
         std::pair <Point, NT> res = P.ComputeInnerBall();
         c = res.first;
         radius = res.second;
-        P.comp_diam(var.diameter, radius);
+        P.normalize();
+        if (var.bill_walk) {
+            P.comp_diam(var.diameter, radius);
+        }
         if (var.ball_walk){
             var.delta = 4.0 * radius / NT(n);
         }
@@ -61,8 +65,10 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
     // Save the radius of the Chebychev ball
     var.che_rad = radius;
     // Move the chebychev center to the origin and apply the same shifting to the polytope
-    P.shift(c.getCoefficients());
-    P.normalize();
+
+    VT c_e = Eigen::Map<VT>(&c.get_coeffs()[0], c.dimension());
+    P.shift(c_e);
+
 
     if ( !get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var, rmax) ){
         return -1.0;

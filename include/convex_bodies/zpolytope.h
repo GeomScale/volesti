@@ -202,6 +202,8 @@ public:
         conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
         colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
         row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
+        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
         compute_eigenvectors(V.transpose());
     }
 

@@ -4,12 +4,14 @@
 \alias{gen_rand_hpoly}
 \title{Generator function for random H-polytopes}
 \usage{
-gen_rand_hpoly(dimension, m)
+gen_rand_hpoly(dimension, nfacets, seed = NULL)
 }
 \arguments{
 \item{dimension}{The dimension of the convex polytope.}
 
-\item{m}{The number of the facets.}
+\item{nfacets}{The number of the facets.}
+
+\item{seed}{Optional. A fixed seed for the generator.}
 }
 \value{
 A polytope class representing a H-polytope.

@@ -17,7 +17,7 @@
  
 * Install package-dependencies: `Rcpp`, `RcppEigen`, `BH`, `lpSolveAPI`.  
 
-1. Then use devtools package to install `volesti` Rcpp package. In folder /root/R-prog Run:
+1. Then use devtools package to install `volesti` Rcpp package. In folder /root/R-proj Run:
 ```r
 Rcpp::compileAttributes()  
 library(devtools)  
@@ -63,7 +63,7 @@ system(paste(shQuote(file.path(R.home("bin"), "R")),
 
 ####  Compile C++ sources and run tests 
 
-To compile the C++ code you have to specify the path to external library `liblpsolve55.so`, by running, in folder test:  
+To compile the C++ code you need the [lp_solve](http://lpsolve.sourceforge.net/5.5/) library. For example, for Unix/Linux you need `liblpsolve55.so` (this is available from the library's [webpage](http://lpsolve.sourceforge.net/5.5/) as well as a package in several linux distributions e.g. [debian](https://packages.debian.org/stretch/liblpsolve55-dev)). You have to specify the path to `liblpsolve55.so`, by running, in folder test:  
 ```
 cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ .  
 make  
@@ -148,7 +148,7 @@ which returns 17 numbers:
   
 To use CoolingGaussian (CG) algorithm run the following command:  
 ```
-./vol -f1 cube_10.ine -CG  
+./vol -f1 cube_10.ine -cg  
 ```
 which returns the same output as before.  
 

@@ -140,9 +140,9 @@ public:
 
     void comp_diam(NT &diam, const NT &cheb_rad) {
         if(cheb_rad < 0.0) {
-            diam = 2.0 * std::sqrt(NT(_d)) * ComputeInnerBall().second;
+            diam = 4.0 * std::sqrt(NT(_d)) * ComputeInnerBall().second;
         } else {
-            diam = 2.0 * std::sqrt(NT(_d)) * cheb_rad;
+            diam = 4.0 * std::sqrt(NT(_d)) * cheb_rad;
         }
     }
 

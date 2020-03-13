@@ -4,12 +4,16 @@
 \alias{gen_rand_vpoly}
 \title{Generator function for random V-polytopes}
 \usage{
-gen_rand_vpoly(dimension, m)
+gen_rand_vpoly(dimension, nvertices, generator = NULL, seed = NULL)
 }
 \arguments{
 \item{dimension}{The dimension of the convex polytope.}
 
-\item{m}{The number of the vertices.}
+\item{nvertices}{The number of the vertices.}
+
+\item{generator}{The body that the generator samples uniformly the vertices from: (a) 'cube' or (b) 'sphere'.}
+
+\item{seed}{Optional. A fixed seed for the generator.}
 }
 \value{
 A polytope class representing a V-polytope.

@@ -54,7 +54,7 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
     VT Zs_max(2*m);
     UParameters var3 = var;
     var3.cdhr_walk = true;
-    var3.ball_walk = var3.rdhr_walk = false;
+    var3.ball_walk = var3.rdhr_walk = var3.bill_walk = false;
     if ( !get_first_poly(ZP, HP, Zs_max, lb, ub, ratio, var3) ) {
         return -1.0;
     }
@@ -88,7 +88,7 @@ NT vol_cooling_hpoly (Zonotope &ZP, UParameters &var, AParameters &var_ban, GPar
     if (!window2) {
         UParameters var2 = var;
         var2.cdhr_walk = true;
-        var2.ball_walk = var2.rdhr_walk = false;
+        var2.ball_walk = var2.rdhr_walk = var2.bill_walk = false;
         var2.walk_steps = 10+2*n;
         vol *= esti_ratio_interval<RNGType, Point>(HP, ZP, ratio, er0, win_len, N*nu, prob, var2);
     } else {

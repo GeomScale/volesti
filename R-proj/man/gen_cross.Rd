@@ -4,12 +4,12 @@
 \alias{gen_cross}
 \title{Generator function for cross polytopes}
 \usage{
-gen_cross(dimension, repr)
+gen_cross(dimension, rep)
 }
 \arguments{
 \item{dimension}{The dimension of the cross polytope.}
 
-\item{repr}{A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.}
+\item{rep}{A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.}
 }
 \value{
 A polytope class representing a cross polytope in H- or V-representation.
