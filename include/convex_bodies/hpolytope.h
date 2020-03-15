@@ -11,7 +11,6 @@
 #define HPOLYTOPE_H
 
 #include <limits>
-
 #include <iostream>
 #include "solve_lp.h"
 
@@ -138,12 +137,12 @@ public:
         return 0.0;
     }
 
+    void comp_diam(NT &diam) {
+        diam = 4.0 * std::sqrt(NT(_d)) * ComputeInnerBall().second;
+    }
+
     void comp_diam(NT &diam, const NT &cheb_rad) {
-        if(cheb_rad < 0.0) {
-            diam = 4.0 * std::sqrt(NT(_d)) * ComputeInnerBall().second;
-        } else {
-            diam = 4.0 * std::sqrt(NT(_d)) * cheb_rad;
-        }
+        diam = 4.0 * std::sqrt(NT(_d)) * cheb_rad;
     }
 
     void init(const unsigned int dim, const MT &_A, const VT &_b) {
