@@ -253,9 +253,7 @@ public:
         return std::pair<Point, NT> (center, radius);
     }
 
-
-    void comp_diam(NT &diam, const NT &cheb_rad) {
-
+    void comp_diam(NT &diam) {
         int k = V.rows(), max_index = -1;
 
         MT D = V.transpose() * V;
@@ -272,13 +270,16 @@ public:
             }
         }
 
-        VT max_eigvec = -1.0*Q.col(max_index);
+        VT max_eigvec = -1.0 * Q.col(max_index);
         VT obj_fun = max_eigvec.transpose() * V.transpose(), x0(k);
 
         for (int j = 0; j < k; ++j) x0(j) = (obj_fun(j) < 0.0) ? -1.0 : 1.0;
 
         diam = 2.0 * (V.transpose() * x0).norm();
+    }
 
+    void comp_diam(NT &diam, const NT &cheb_rad) {
+        comp_diam(diam);
     }
 
     // compute intersection point of ray starting from r and pointing to v

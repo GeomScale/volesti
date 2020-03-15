@@ -189,7 +189,7 @@ public:
         return rad;
     }
 
-    void comp_diam(NT &diam, const NT &cheb_rad) {
+    void comp_diam(NT &diam) {
         diam = 0.0;
         NT diam_iter;
         for (int i = 0; i < num_of_vertices(); ++i) {
@@ -200,7 +200,10 @@ public:
                 }
             }
         }
+    }
 
+    void comp_diam(NT &diam, const NT &cheb_rad) {
+        comp_diam(diam);
     }
 
     void normalize() {}

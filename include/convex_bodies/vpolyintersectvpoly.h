@@ -92,6 +92,10 @@ public:
         return 0.0;
     }
 
+    void comp_diam(NT &diam){
+        diam = 2.0 * std::sqrt(NT(dimension())) * ComputeInnerBall().second;
+    }
+
     void comp_diam(NT &diam, const NT &cheb_rad) const {
         diam = 2.0 * std::sqrt(NT(dimension())) * cheb_rad;
     }
@@ -140,10 +144,6 @@ public:
 
         return P1.get_center_radius_inscribed_simplex(vertices.begin(), vertices.end());
 
-    }
-
-    void comp_diam(NT &diam) {
-        diam = std::sqrt(P1.dimension()) * diam;
     }
 
 /*
