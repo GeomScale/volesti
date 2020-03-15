@@ -249,9 +249,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
             if (VP.is_in(StartingPoint) == 0)
                 throw Rcpp::exception("The given point is not in the interior of the polytope!");
-            if (billiard && diam < 0.0) VP.comp_diam(diam, 0.0);
+            if (billiard && diam < 0.0) VP.comp_diam(diam);
             if (gaussian) {
-                //shift = mode;
                 StartingPoint = StartingPoint - mode;
                 VP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));
             }
@@ -269,7 +268,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
             if (ZP.is_in(StartingPoint) == 0)
                 throw Rcpp::exception("The given point is not in the interior of the polytope!");
-            if (billiard && diam < 0.0) ZP.comp_diam(diam, 0.0);
+            if (billiard && diam < 0.0) ZP.comp_diam(diam);
             if (gaussian) {
                 StartingPoint = StartingPoint - mode;
                 ZP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));

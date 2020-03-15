@@ -490,7 +490,7 @@ int main(const int argc, const char** argv)
   if (Zono) {
       InnerBall = ZP.ComputeInnerBall();
       if(billiard && diameter < 0.0){
-          ZP.comp_diam(diameter, 0.0);
+          ZP.comp_diam(diameter);
       }
   } else if(!Vpoly) {
       InnerBall = HP.ComputeInnerBall();
@@ -520,7 +520,7 @@ int main(const int argc, const char** argv)
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
               if(billiard && diameter < 0.0) {
-                  VP.comp_diam(diameter, 0.0);
+                  VP.comp_diam(diameter);
               }
 
           } else {
@@ -529,13 +529,13 @@ int main(const int argc, const char** argv)
               get_vpoly_center(VP);
               rmax = VP.get_max_vert_norm();
               if(billiard &&  diameter < 0.0){
-                  VP.comp_diam(diameter, 0.0);
+                  VP.comp_diam(diameter);
               }
           }
       } else {
           InnerBall = VP.ComputeInnerBall();
           if(billiard && diameter < 0.0){
-              VP.comp_diam(diameter, 0.0);
+              VP.comp_diam(diameter);
           }
       }
   }
