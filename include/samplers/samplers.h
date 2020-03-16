@@ -123,7 +123,6 @@ void boundary_rand_point_generator(Polytope &P,
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     VT lamdas, Av;
 
     lamdas.setZero(P.num_of_hyperplanes());
