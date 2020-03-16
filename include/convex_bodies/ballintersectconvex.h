@@ -43,8 +43,12 @@ public:
         return P.dimension();
     }
 
-    void comp_diam(NT &diam, const NT &cheb_rad) const {
+    void comp_diam(NT &diam) {
         diam = 2.0 * B.radius();
+    }
+
+    void comp_diam(NT &diam, const NT &cheb_rad) const {
+        comp_diam(diam);
     }
 
     std::pair<NT,NT> line_intersect(Point &r, Point &v) {

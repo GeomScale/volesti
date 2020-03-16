@@ -99,7 +99,7 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
                                                                          var);
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter) {
         Pb = PolyBall(P, *balliter);
-        Pb.comp_diam(var.diameter, 0.0);
+        Pb.comp_diam(var.diameter);
         vol *= (!window2) ? 1 / esti_ratio_interval<RNGType, Point>(Pb, *(balliter + 1), *(ratioiter + 1), er1,
                 win_len, N * nu, prob, var) : 1 / esti_ratio<RNGType, Point>(Pb, *balliter, *ratioiter, er1,
                                                                              win_len, N * nu, var);

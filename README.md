@@ -1,16 +1,17 @@
-## Volume computation and sampling
+**VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R` and limited `python` interface.
 
 [![CRAN status](https://www.r-pkg.org/badges/version/volesti)](https://cran.r-project.org/package=volesti)
-[![CRAN check](https://cranchecks.info/badges/worst/volesti)](https://cran.r-project.org/web/checks/check_results_volesti.html)
 [![CRAN downloads](https://cranlogs.r-pkg.org/badges/volesti)](https://cran.r-project.org/package=volesti)
+![CRAN/METACRAN](https://img.shields.io/cran/l/volesti)
+[![Chat](https://badges.gitter.im/boostorg/geometry.png)](https://gitter.im/GeomScale/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+
+### Test results
+
+[![CRAN check](https://cranchecks.info/badges/worst/volesti)](https://cran.r-project.org/web/checks/check_results_volesti.html)
 [![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/master.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/master)
 [![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
-![CRAN/METACRAN](https://img.shields.io/cran/l/volesti)
 
-
-**VolEsti** is a C++ library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an *R* interface.
-
-### - R Interface
+###  R Interface
 ------------
 
 ####  Install Rcpp package  
@@ -58,7 +59,7 @@ system(paste(shQuote(file.path(R.home("bin"), "R")),
 * The pdf will be created and saved in R-proj folder.  
 * We give such a documentation in /R-proj/doc folder.
 
-### - C++ Interface
+### C++ Interface
 ------------
 
 ####  Compile C++ sources and run tests 
@@ -89,7 +90,7 @@ The `.ext` file is described as follows:
 ```  
 various comments  
 begin  
-m d numbertype  
+m d+1 numbertype  
 1 v_1  
 .. ...  
 1 v_m  
@@ -255,7 +256,7 @@ Flag `-variance` declares the variance (default is 1.0). The center of the spher
 ```
 For V-polytopes use flag `-f2` before the `.ext` file. In all cases use flag `-v` to print the excecutional time.  
 
-#### Credits
+### Credits
 
 Copyright (c) 2012-2018 Vissarion Fisikopoulos  
 Copyright (c) 2018 Apostolos Chalkis  
@@ -264,7 +265,7 @@ You may redistribute or modify the software under the GNU Lesser General Public 
 
 Main development by Vissarion Fisikopoulos while he was affiliated with University of Athens (UoA, Greece), University of Brussels (ULB, Belgium), and Chalkis Apostolos affiliated with University of Athens (UoA, Greece).  
 
-#### Publications
+### Publications
 
 1. I.Z. Emiris and V. Fisikopoulos, *Efficient random-walk methods for approximating polytope volume*, In Proc. ACM Symposium on Computational Geometry, Kyoto, Japan, p.318-325, 2014.  
 2. I.Z. Emiris and V. Fisikopoulos, *Practical polytope volume approximation*, ACM Transactions on Mathematical Software, vol 44, issue 4, 2018.
