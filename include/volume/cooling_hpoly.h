@@ -3,6 +3,8 @@
 // Copyright (c) 20012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
 #ifndef COOLING_HPOLY_H
 #define COOLING_HPOLY_H
 

@@ -3,6 +3,8 @@
 // Copyright (c) 20012-2019 Vissarion Fisikopoulos
 // Copyright (c) 2019 Apostolos Chalkis
 
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef ROTATING_H

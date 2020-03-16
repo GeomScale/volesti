@@ -4,6 +4,7 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // The functions in this header file call Bojan Nikolic <bojan@bnikolic.co.uk> implementation
 // of Todd and Yildirim algorithm in "On Khachiyan's Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids", 2005

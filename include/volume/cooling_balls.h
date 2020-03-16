@@ -3,6 +3,8 @@
 // Copyright (c) 20012-2019 Vissarion Fisikopoulos
 // Copyright (c) 2018-2019 Apostolos Chalkis
 
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
 #ifndef COOLING_BALLS_H
 #define COOLING_BALLS_H
 
