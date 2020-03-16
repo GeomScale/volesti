@@ -89,7 +89,7 @@ The `.ext` file is described as follows:
 ```  
 various comments  
 begin  
-m d numbertype  
+m d+1 numbertype  
 1 v_1  
 .. ...  
 1 v_m  
