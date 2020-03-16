@@ -18,11 +18,10 @@ class point
 private:
     unsigned int d;
 
-    typedef Eigen::Matrix<typename K::FT, Eigen::Dynamic,1> Coeff;
-
-    Coeff coeffs;
+    Eigen::Matrix<typename K::FT, Eigen::Dynamic,1> coeffs;
     typedef typename std::vector<typename K::FT>::iterator iter;
 public:
+    typedef Eigen::Matrix<typename K::FT, Eigen::Dynamic,1> Coeff;
     typedef typename K::FT 	FT;
 
     point() {}

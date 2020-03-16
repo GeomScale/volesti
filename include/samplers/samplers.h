@@ -115,7 +115,8 @@ void boundary_rand_point_generator(Polytope &P,
 {
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef typename Point::Coeff VT;
+
     unsigned int n = var.n;
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
@@ -196,7 +197,7 @@ void rand_point_generator(Polytope &P,
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef typename Point::Coeff VT;
     VT lamdas, Av;
 
     lamdas.setZero(P.num_of_hyperplanes());
@@ -267,7 +268,7 @@ void rand_point_generator(BallPoly &PBLarge,
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef typename Point::Coeff VT;
     VT lamdas, Av;
 
     lamdas.setZero(PBLarge.num_of_hyperplanes());

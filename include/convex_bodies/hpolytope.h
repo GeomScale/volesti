@@ -256,10 +256,11 @@ public:
         const NT* b_data = b.data();
 
         for (int i = 0; i < m; i++) {
-            sum = *b_data - A.row(i) * p.getCoefficients();
-            b_data++;
             //Check if corresponding hyperplane is violated
-            if (sum < NT(0)) return 0;
+            if (*b_data - A.row(i) * p.getCoefficients() < NT(0))
+                return 0;
+
+            b_data++;
         }
         return -1;
     }
@@ -408,7 +409,6 @@ public:
         VT sum_denom;
         unsigned int j;
         int m = num_of_hyperplanes();
-        viterator rit;
 
         sum_denom = A.col(rand_coord);
         lamdas.noalias() = b - A * r.getCoefficients();

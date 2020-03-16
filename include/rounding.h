@@ -16,7 +16,7 @@
 
 
 #include "khach.h"
-#include "../external/Eigen/Eigen"
+
 
 // ----- ROUNDING ------ //
 // main rounding function
@@ -26,7 +26,6 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT
     typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
     typedef typename Parameters::RNGType RNGType;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic,1> Coeff;
 
     unsigned int n=var.n, walk_len=var.walk_steps, i, j = 0;
     Point c = InnerBall.first;

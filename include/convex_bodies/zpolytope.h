@@ -385,9 +385,8 @@ public:
         }
 
         VT a = Fmat.fullPivLu().kernel();
-        NT sum = p.getCoefficients().dot(a);
 
-        if(sum<0.0) a = -1.0*a;
+        if(p.getCoefficients().dot(a) < 0.0) a = -1.0*a;
 
         a = a/a.norm();
 
