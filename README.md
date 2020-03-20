@@ -12,7 +12,7 @@
 [![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
 
 ###  Documentation
-------------
+
 * [Using the R interface](doc/r_interface.md)
 * [Using the C++ Interface](doc/cpp_interface.md)
 * [Wikipage with tutorials and demos](https://github.com/GeomScale/volume_approximation/wiki)
