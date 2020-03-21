@@ -68,8 +68,7 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
     var.che_rad = radius;
     // Move the chebychev center to the origin and apply the same shifting to the polytope
 
-    VT c_e = c.getCoefficients();
-    P.shift(c_e);
+    P.shift(c.getCoefficients());
 
 
     if ( !get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var, rmax) ){

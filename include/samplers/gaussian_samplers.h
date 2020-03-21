@@ -286,7 +286,7 @@ void gaussian_hit_and_run(Point &p,
 
 
 // hit-and-run with orthogonal directions and update
-template <class Polytope, class Parameters, class Point, typename NT, typename VT>
+template <typename Polytope, typename Parameters, typename Point, typename NT, typename VT>
 void gaussian_hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              Polytope &P,

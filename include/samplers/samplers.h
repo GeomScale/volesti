@@ -27,7 +27,7 @@ Point get_direction(const unsigned int dim) {
     NT* data = p.pointerToData();
 
     //RNGType rng2 = var.rng;
-    for (unsigned int i=0; i<dim; i++) {
+    for (unsigned int i=0; i<dim; ++i) {
         *data = rdist(rng);
         normal += *data * *data;
         data++;
@@ -127,8 +127,6 @@ void boundary_rand_point_generator(Polytope &P,
 
     lamdas.setZero(P.num_of_hyperplanes());
     Av.setZero(P.num_of_hyperplanes());
-
-
 
     unsigned int rand_coord, rand_coord_prev;
     NT kapa, lambda;

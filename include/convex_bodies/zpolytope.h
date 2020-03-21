@@ -392,10 +392,9 @@ public:
 
         a = a/a.norm();
 
-        Point s(a);
-
-        s = ((-2.0 * v.dot(s)) * s);
-        v = s + v;
+        // compute reflection
+        a *= (-2.0 * v.dot(a));
+        v += a;
     }
 
     void free_them_all() {

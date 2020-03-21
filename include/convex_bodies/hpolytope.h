@@ -474,7 +474,7 @@ public:
 
     // shift polytope by a point c
     void shift(const VT &c){
-        b = b - A*c;
+        b -= A*c;
     }
 
 

@@ -57,14 +57,12 @@ public:
         return std::pair<NT,NT> ((NT(-1)*vrc + disc_sqrt)/v2, (NT(-1)*vrc - disc_sqrt)/v2);
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar,
-            const VT &Av){
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar, const VT &Av){
         return line_intersect(r, v);
     }
 
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar,
-            const VT &Av, NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar, const VT &Av, NT &lambda_prev) {
         return line_intersect(r, v);
     }
 

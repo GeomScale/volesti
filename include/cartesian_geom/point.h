@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-template <class K>
+template <typename K>
 class point
 {
 private:
@@ -136,6 +136,9 @@ public:
     bool operator== (point& p) const {
         int i=0;
         const Coeff & coeffs = p.getCoefficients();
+
+        /* degree of approximation in
+        "The art of computer programming" (vol II), p. 234, Donald. E. Knuth. */
         FT e = 0.00000000001;
         for (i=0 ; i<d ; i++) {
             if (std::abs(this->coeffs(i) - coeffs(i)) > e *std::abs(this->coeffs(i)) ||
@@ -176,18 +179,9 @@ public:
 #endif
     }
 
-
-//    iter iter_begin() {
-//        return coeffs.begin();
-//    }
-//
-//    iter iter_end() {
-//        return coeffs.end();
-//    }
-
 };
 
-template<class K>
+template<typename K>
 point<K> operator* (const typename K::FT& k, point<K>& p) {
     return p * k;
 }

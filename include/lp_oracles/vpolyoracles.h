@@ -1,7 +1,6 @@
 #ifndef VPOLYORACLES_H
 #define VPOLYORACLES_H
 
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 #include <stdio.h>
 #include <cmath>

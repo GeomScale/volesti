@@ -55,13 +55,12 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT
     boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
     typename std::list<Point>::iterator rpit=randPoints.begin();
 
-
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
         for (i=0 ; i<rpit->dimension(); i++){
             Ap(i,j)=double((*rpit)[i]);
         }
     }
-    boost::numeric::ublas::matrix<double> Q(n,n);
+    boost::numeric::ublas::matrix<double> Q(n,n); //TODO: remove dependence on ublas and copy to eigen
     boost::numeric::ublas::vector<double> c2(n);
     size_t w=1000;
     KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
@@ -108,16 +107,15 @@ void get_vpoly_center(Polytope &P) {
     typedef typename Polytope::VT 	VT;
     typedef typename Polytope::PolytopePoint 	Point;
 
-    unsigned int n = P.dimension(), i, j = 0;
+    unsigned int n = P.dimension();
 
     std::list<Point> randPoints; //ds for storing rand points
     P.get_points_for_rounding(randPoints);
 
     boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
     typename std::list<Point>::iterator rpit=randPoints.begin();
-    for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        i=0;
-        for ( ; i<rpit->dimension(); i++){
+    for (int j=0 ; rpit!=randPoints.end(); rpit++, j++) {
+        for (int i=0 ; i<rpit->dimension(); i++){
             Ap(i,j)=double((*rpit)[i]);
         }
     }

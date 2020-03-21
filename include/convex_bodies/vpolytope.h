@@ -301,8 +301,6 @@ public:
         boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
         typename std::list<Point>::iterator rpit=randPoints.begin();
 
-
-
         unsigned int i, j = 0;
         for ( ; rpit!=randPoints.end(); rpit++, j++) {
             const NT* point_data = rpit->getCoefficients().data();
@@ -466,10 +464,9 @@ public:
         if (a.dot(V.row(outvert)) > 1.0) a = -a;
         a /= a.norm();
 
-        Point s(a);
-
-        s = ((-2.0 * v.dot(s)) * s);
-        v = s + v;
+        // compute reflection
+        a *= (-2.0 * v.dot(a));
+        v += a;
     }
 
     void free_them_all() {
