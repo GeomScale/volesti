@@ -44,7 +44,7 @@ Point get_direction(const unsigned int dim) {
 template <typename RNGType, typename Point, typename NT>
 Point get_point_on_Dsphere(const unsigned int dim, const NT &radius){
     Point p = get_direction<RNGType, Point, NT>(dim);
-    p = (radius == 0) ? p : radius * p;
+    if (radius != 0) p *= radius;
     return p;
 }
 

@@ -60,7 +60,7 @@ NT get_max_coord(const NT &l, const NT &u, const NT &a_i) {
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
 template <typename Parameters, typename Point, typename NT>
-void rand_exp_range(Point &lower, Point &upper, const NT &a_i, Point &p, Parameters const& var) {
+void rand_exp_range(Point const &lower, Point const & upper, const NT &a_i, Point &p, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn;
     const NT tol = 0.00000001;
@@ -314,7 +314,7 @@ void gaussian_ball_walk(Point & p,
     unsigned int n = P.dimension();
     NT f_x, f_y, rnd;
     Point y = get_point_in_Dsphere<RNGType, Point>(n, ball_rad);
-    y = y + p;
+    y += p;
     f_x = eval_exp(p, a_i);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
