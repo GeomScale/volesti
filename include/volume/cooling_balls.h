@@ -3,6 +3,8 @@
 // Copyright (c) 20012-2019 Vissarion Fisikopoulos
 // Copyright (c) 2018-2019 Apostolos Chalkis
 
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
 #ifndef COOLING_BALLS_H
 #define COOLING_BALLS_H
 
@@ -65,8 +67,9 @@ NT vol_cooling_balls(Polytope &P, UParameters &var, AParameters &var_ban, std::p
     // Save the radius of the Chebychev ball
     var.che_rad = radius;
     // Move the chebychev center to the origin and apply the same shifting to the polytope
-    VT c_e = Eigen::Map<VT>(&c.get_coeffs()[0], c.dimension());
-    P.shift(c_e);
+
+    P.shift(c.getCoefficients());
+
 
     if ( !get_sequence_of_polyballs<PolyBall, RNGType>(P, BallSet, ratios, N * nu, nu, lb, ub, radius, alpha, var, rmax) ){
         return -1.0;

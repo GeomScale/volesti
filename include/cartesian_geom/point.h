@@ -3,6 +3,7 @@
 // Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -16,155 +17,175 @@ class point
 {
 private:
     unsigned int d;
-    typedef std::vector<typename K::FT> Coeff;
-    Coeff coeffs;
+
+    Eigen::Matrix<typename K::FT, Eigen::Dynamic,1> coeffs;
     typedef typename std::vector<typename K::FT>::iterator iter;
 public:
+    typedef Eigen::Matrix<typename K::FT, Eigen::Dynamic,1> Coeff;
     typedef typename K::FT 	FT;
 
     point() {}
-    
-    point(const unsigned int &dim) {
+
+    point(const unsigned int dim) {
         d = dim;
-        coeffs = Coeff(d,0);
-    }
-    
-    point(const unsigned int &dim, iter begin, iter endit) {
-        d = dim;
-        coeffs = Coeff(begin,endit);
+        coeffs.setZero(d);
     }
 
-    point(const unsigned int dim, Coeff cofs) {
+    point(const unsigned int dim, iter begin, iter endit) {
         d = dim;
-        coeffs.assign(cofs.begin(), cofs.end());
+        coeffs.resize(d);
+        int i = 0;
+
+        for (iter it=begin ; it != endit ; it++)
+            coeffs(i++) = *it;
     }
-    
+
+    point(const Coeff& coeffs) {
+            d = coeffs.rows();
+            this->coeffs = coeffs;
+    }
+
+    point(const unsigned int dim, std::vector<typename K::FT> cofs) {
+        d = dim;
+        coeffs.resize(d);
+        iter it = cofs.begin();
+        int i=0;
+
+        for (; it != cofs.end(); it++,i++)
+            coeffs(i) = *it;
+
+    }
+
+    void add(const Coeff& coeffs) {
+        this->coeffs += coeffs;
+    }
+
+    const Coeff& getCoefficients() const {
+        return coeffs;
+    }
+
     int dimension() const {
         return d;
     }
-    
-    void set_dimension(const unsigned int &dim) {
+
+    void set_dimension(const unsigned int dim) {
         d = dim;
     }
-    
-    void set_coord(const unsigned int &i, const FT &coord) {
-        coeffs[i] = coord;
+
+    void set_coord(const unsigned int i, FT coord) {
+        coeffs(i) = coord;
     }
 
-    Coeff get_coeffs() {
-        return coeffs;
-    }
-    
-    FT operator[] (const unsigned int &i) const {
-        return coeffs[i];
-    }
-    
-    point operator+ (point& p) {
-        point temp(p.dimension());
-
-        typename Coeff::iterator tmit = temp.iter_begin();
-        typename Coeff::iterator pit = p.iter_begin();
-        typename Coeff::iterator mit = coeffs.begin();
-
-        for (; pit < p.iter_end(); ++pit, ++mit, ++tmit) {
-            (*tmit) = (*pit) + (*mit);
-        }
-        return temp;
-    }
-    
-    point operator- (point& p) {
-        point temp(p.dimension());
-
-        typename Coeff::iterator tmit = temp.iter_begin();
-        typename Coeff::iterator pit = p.iter_begin();
-        typename Coeff::iterator mit = coeffs.begin();
-
-        for (; pit < p.iter_end(); ++pit, ++mit, ++tmit) {
-            (*tmit) = (*mit) - (*pit);
-        }
-        return temp;
+    FT operator[] (const unsigned int i) const {
+        return coeffs(i);
     }
 
-    point operator* (const FT& k) {
-        point temp(d, iter_begin(), iter_end());
+    FT* pointerToData() {
+        return coeffs.data();
+    }
 
-        typename Coeff::iterator tmit = temp.iter_begin();
-
-        for (; tmit < temp.iter_end(); ++tmit) {
-            (*tmit) *= k;
-        }
+    point operator+ (const point& p) const {
+        point temp;
+        temp.d = d;
+        temp.coeffs = coeffs + p.getCoefficients();
         return temp;
     }
 
 
-    bool operator== (point& p) {
+    void operator+= (const point& p) {
+        coeffs += p.getCoefficients();
+    }
 
-        typename Coeff::iterator pit = p.iter_begin();
-        typename Coeff::iterator mit = coeffs.begin();
+    void operator+= (const Coeff& coeffs) {
+        this->coeffs = coeffs + this->coeffs;
+    }
+
+    void operator= (const Coeff& coeffs) {
+        this->coeffs = coeffs;
+    }
+
+    point operator- (const point& p) const {
+        point temp;
+        temp.d = d;
+        temp.coeffs = coeffs - p.getCoefficients();
+        return temp;
+    }
+
+    point operator* (const FT k) const {
+        point temp;
+        temp.d = d;
+        temp.coeffs = coeffs * k;
+        return temp;
+    }
+
+    void operator*= (const FT k) {
+        coeffs *= k;
+    }
+
+    point operator/ (const FT k) const {
+        point temp;
+        temp.d = d;
+        temp.coeffs = coeffs / k;
+        return temp;
+    }
+
+    void operator/= (const FT k)  {
+        coeffs /= k;
+    }
+
+    bool operator== (point& p) const {
+        int i=0;
+        const Coeff & coeffs = p.getCoefficients();
 
         /* degree of approximation in
         "The art of computer programming" (vol II), p. 234, Donald. E. Knuth. */
         FT e = 0.00000000001;
-
-        for ( ;  pit!=p.iter_end(); ++pit, ++mit) {
-            if (std::abs(*mit - *pit) > e * std::abs(*mit) ||
-                std::abs(*mit - *pit) > e * std::abs(*pit))
+        for (i=0 ; i<d ; i++) {
+            if (std::abs(this->coeffs(i) - coeffs(i)) > e *std::abs(this->coeffs(i)) ||
+                    std::abs(this->coeffs(i) - coeffs(i)) > e *std::abs(coeffs(i)))
                 return false;
         }
 
         return true;
     }
 
-
-    FT dot(point& p){
-        FT res=FT(0.0);
-
-        typename Coeff::iterator pit=p.iter_begin();
-        typename Coeff::iterator mit=coeffs.begin();
-        for( ; pit<p.iter_end(); ++pit, ++mit){
-            res+=(*mit)*(*pit);
-        }
-        return res;
+    FT dot(const point& p) const {
+        return coeffs.dot(p.getCoefficients());
     }
-    
-    
-    FT squared_length() {
+
+    FT dot(const Coeff& coeffs) const {
+        return this->coeffs.dot(coeffs);
+    }
+
+
+    FT squared_length() const {
 
         FT lsq = FT(0.0);
 
-        typename Coeff::iterator mit=coeffs.begin();
-        for ( ; mit != coeffs.end(); mit++){
-            lsq += (*mit)*(*mit);
+        for (int i=0; i<d ; i++){
+            lsq += coeffs(i) * coeffs(i);
         }
         return lsq;
     }
 
-    void print(){
+    void print() const{
         for(unsigned int i=0; i<d; i++){
-            #ifdef VOLESTI_DEBUG
-            std::cout<<coeffs[i]<<" ";
-            #endif
+#ifdef VOLESTI_DEBUG
+            std::cout<<coeffs(i)<<" ";
+#endif
         }
-        #ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
         std::cout<<"\n";
-        #endif
+#endif
     }
-    
-    
-    iter iter_begin() {
-        return coeffs.begin();
-    }
-    
-    iter iter_end() {
-        return coeffs.end();
-    }
-    
-    
+
 };
 
 template<typename K>
-point<K> operator* (typename K::FT const& k, point<K>& p) {
+point<K> operator* (const typename K::FT& k, point<K>& p) {
     return p * k;
 }
 
 #endif
+
+

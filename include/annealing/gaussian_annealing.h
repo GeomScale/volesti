@@ -195,7 +195,10 @@ void get_annealing_schedule(Polytope &P, const NT &radius, const NT &ratio, cons
 
     Point p_prev=p;
 
-    std::vector<NT> lamdas(P.num_of_hyperplanes(), NT(0));
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    VT lamdas;
+    lamdas.setZero(P.num_of_hyperplanes());
+
     while (true) {
 
         if (var.ball_walk) {
@@ -206,7 +209,7 @@ void get_annealing_schedule(Polytope &P, const NT &radius, const NT &ratio, cons
 
         curr_fn = 0;
         curr_its = 0;
-        std::fill(lamdas.begin(), lamdas.end(), NT(0));
+        lamdas.setConstant(NT(0));
         steps = totalSteps;
 
         if (var.cdhr_walk){
