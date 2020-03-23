@@ -60,7 +60,7 @@ Point get_point_in_Dsphere(const unsigned int dim, const NT &radius){
     Point p = get_direction<RNGType, Point, NT>(dim);
     U = urdist(rng2);
     U = std::pow(U, 1.0/(NT(dim)));
-    p = (radius*U)*p;
+    p *= (radius*U);
     return p;
 }
 
@@ -72,7 +72,7 @@ void ball_walk(Point &p,
 {
     //typedef typename Parameters::RNGType RNGType;
     Point y = get_point_in_Dsphere<RNGType, Point>(p.dimension(), delta);
-    y = y + p;
+    y +=  p;
     if (P.is_in(y)==-1) p = y;
 }
 
@@ -143,7 +143,7 @@ void boundary_rand_point_generator(Polytope &P,
         v = get_direction<RNGType, Point, NT>(n);
         std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-        p = (lambda * v) + p;
+        p += (lambda * v);
     }
     //hit_and_run(p, P, var);
 
@@ -169,7 +169,7 @@ void boundary_rand_point_generator(Polytope &P,
                 p1 = (bpair.first * v) + p;
                 p2 = (bpair.second * v) + p;
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-                p = (lambda * v) + p;
+                p += (lambda * v);
 
             }
         }
@@ -217,7 +217,7 @@ void rand_point_generator(Polytope &P,
         v = get_direction<RNGType, Point, NT>(n);
         std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-        p = (lambda * v) + p;
+        p += (lambda * v);
         //hit_and_run(p, P, var);
     } else {
         billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var, true);
@@ -237,7 +237,7 @@ void rand_point_generator(Polytope &P,
                 v = get_direction<RNGType, Point, NT>(n);
                 std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-                p = (lambda * v) + p;
+                p += (lambda * v);
                 //hit_and_run(p, P, var);
             } else {
                 billiard_walk(P, p, var.diameter, lamdas, Av, lambda,  var);
@@ -290,7 +290,7 @@ void rand_point_generator(BallPoly &PBLarge,
         v = get_direction<RNGType, Point, NT>(n);
         std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-        p = (lambda * v) + p;
+        p += (lambda * v);
         //hit_and_run(p, PBLarge, var);
     } else {
         billiard_walk(PBLarge, p, var.diameter, lamdas, Av, lambda, var, true);
@@ -309,7 +309,7 @@ void rand_point_generator(BallPoly &PBLarge,
                 v = get_direction<RNGType, Point, NT>(n);
                 std::pair <NT, NT> bpair = PBLarge.line_intersect(p, v, lamdas, Av, lambda);
                 lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-                p = (lambda * v) + p;
+                p += (lambda * v);
                 //hit_and_run(p, PBLarge, var);
             } else {
                 billiard_walk(PBLarge, p, var.diameter, lamdas, Av, lambda, var);
@@ -354,7 +354,7 @@ void uniform_first_point(Polytope &P,
         v = get_direction<RNGType, Point, NT>(n);
         std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av);
         lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-        p = (lambda * v) + p;
+        p += (lambda * v);
     } else {
         billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var, true);
     }
@@ -377,7 +377,7 @@ void uniform_first_point(Polytope &P,
             v = get_direction<RNGType, Point, NT>(n);
             std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
             lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-            p = (lambda * v) + p;
+            p += (lambda * v);
         }
     } else {
         billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var);
@@ -413,7 +413,7 @@ void uniform_next_point(Polytope &P,
             v = get_direction<RNGType, Point, NT>(n);
             std::pair <NT, NT> bpair = P.line_intersect(p, v, lamdas, Av, lambda);
             lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
-            p = (lambda * v) + p;
+            p += (lambda * v);
         }
     } else if (var.bill_walk) {
         for (unsigned int j = 0; j < walk_len; j++) billiard_walk(P, p, var.diameter, lamdas, Av, lambda, var);
