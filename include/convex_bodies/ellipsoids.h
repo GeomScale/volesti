@@ -4,6 +4,7 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -38,13 +39,7 @@ public:
     }
 
     NT mat_mult(Point p) {
-        VT q(dim);
-        unsigned int i = 0;
-        viterator pit = p.iter_begin();
-        for ( ; pit!=p.iter_end(); ++pit, ++i){
-            q(i)=(*pit);
-        }
-        return q.transpose()*G*q;
+         return p.getCoefficients().transpose()*G*p.getCoefficients();
     }
 
 };
