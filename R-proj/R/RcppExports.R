@@ -222,6 +222,11 @@ sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution =
     .Call(`_volesti_sample_points`, P, n, random_walk, distribution)
 }
 
+#' @export
+writeSdpaFile <- function(spectrahedron = NULL, objectiveFunction = NULL, outputFile = NULL) {
+    invisible(.Call(`_volesti_writeSdpaFile`, spectrahedron, objectiveFunction, outputFile))
+}
+
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
 #'
 #' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
