@@ -142,30 +142,6 @@ public:
         b = b2;
     }
 
-
-    // get a specific coeff of matrix V
-    NT get_mat_coeff(const unsigned int i, const unsigned int j) const {
-        return V(i,j);
-    }
-
-
-    // get a specific coeff of vector b
-    NT get_vec_coeff(const unsigned int i) const {
-        return b(i);
-    }
-
-
-    // set a specific coeff of matrix V
-    void put_mat_coeff(const unsigned int i, const unsigned int j, const NT &value) {
-        V(i,j) = value;
-    }
-
-
-    // set a specific coeff of vector b
-    void put_vec_coeff(const unsigned int i, const NT &value) {
-        b(i) = value;
-    }
-
     Point get_mean_of_vertices() const {
         return Point(_d);
     }
@@ -388,7 +364,7 @@ public:
 
         VT a = Fmat.fullPivLu().kernel();
 
-        if(p.getCoefficients().dot(a) < 0.0) a = -1.0*a;
+        if(p.getCoefficients().dot(a) < 0.0) a *= -1.0;
 
         a = a/a.norm();
 

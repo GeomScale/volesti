@@ -102,31 +102,6 @@ public:
         b = b2;
     }
 
-
-    // set a specific coeff of matrix A
-    NT get_mat_coeff(const unsigned int &i, const unsigned int &j) const {
-        return A(i,j);
-    }
-
-
-    // get a spesific coeff of vector b
-    NT get_vec_coeff(const unsigned int &i) const {
-        return b(i);
-    }
-
-
-    // get a specific coeff of matrix A
-    void put_mat_coeff(const unsigned int &i, const unsigned int &j, const NT &value) {
-        A(i,j) = value;
-    }
-
-
-    // set a spesific coeff of vector b
-    void put_vec_coeff(const unsigned int &i, const NT &value) {
-        b(i) = value;
-    }
-
-
     Point get_mean_of_vertices() const {
         return Point(_d);
     }
@@ -246,7 +221,7 @@ public:
         return 1;
     }*/
 
-    
+
     //Check if Point p is in H-polytope P:= Ax<=b
     int is_in(const Point &p) const {
         NT sum;
@@ -508,11 +483,6 @@ public:
     }
 
     void compute_reflection(Point &v, const Point &p, const int facet) {
-
-//        VT a = A.row(facet);
-//        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
-//        Point s(A.row(facet));
-//        s *= (-2.0 * v.dot(s));
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
 
