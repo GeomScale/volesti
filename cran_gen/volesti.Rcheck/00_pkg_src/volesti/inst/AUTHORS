@@ -1,0 +1,4 @@
+1. Bojan Nikolic <bojan@bnikolic.co.uk>. We have modified the implementations of Khachiyan's Algorithm by B. Nikolic from bnmin1-1.11 package <https://www.mrao.cam.ac.uk/~bn204/oof/bnmin1.html> for the Computation of Minimum Volume Enclosing Ellipsoids in /src/external/minimum_ellipsoid.
+
+2. Kjell Konis <kjell.konis@me.com>, Stefan I. Larimore and Timothy A. Davis <davis@cise.ufl.edu>, Kjell Eikland, Michel Berkelaar, Richard Stallman, Authors of lpsolve package <http://lpsolve.sourceforge.net/>, in /src/external/lpsolve.
+

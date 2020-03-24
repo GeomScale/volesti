@@ -1,0 +1,26 @@
+Package: volesti
+Type: Package
+License: LGPL-3
+Title: Volume Approximation and Sampling of Convex Polytopes
+Author: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com> [aut, cph, cre],
+  Apostolos Chalkis <tolis.chal@gmail.com> [cph, aut],
+  contributors in file inst/AUTHORS
+Copyright: file inst/COPYRIGHTS
+Description: Provides an R interface for 'volesti' C++ package. 'volesti' computes estimations of volume 
+             of polytopes given by (i) a set of points, (ii) linear inequalities or (iii) Minkowski sum of segments 
+             (a.k.a. zonotopes). There are three algorithms for volume estimation as well as algorithms 
+             for sampling, rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for 
+             estimating copulas useful in computational finance.
+Version: 1.1.0
+Date: 2020-01-23
+Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
+Depends: Rcpp (>= 0.12.17)
+Imports: methods, stats
+LinkingTo: Rcpp, RcppEigen, BH
+Suggests: testthat
+Encoding: UTF-8
+RoxygenNote: 6.1.1
+BugReports: https://github.com/GeomScale/volume_approximation/issues
+NeedsCompilation: yes
+Packaged: 2020-03-24 19:41:58 UTC; tolis
+Built: R 3.4.4; x86_64-pc-linux-gnu; 2020-03-24 20:08:11 UTC; unix
