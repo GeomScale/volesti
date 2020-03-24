@@ -10,7 +10,7 @@ Hruntest <- function(P, name_string, exactvol, tol, num_of_exps, alg){
     if (alg == "CB") {
       vol = vol + volume(P)
     } else {
-      vol = vol + volume(P, algo = list("algorithm" = "CG"))
+      vol = vol + volume(P, settings = list("algorithm" = "CG"))
     }
   }
   vol = vol / num_of_exps
