@@ -166,8 +166,8 @@ RCPP_MODULE(yada){
     //'
     //' @example
     //' # define the intwrsection of a 2-d simplex with a 2-d cross polytope
-    //' P1 = GenSimplex(2,'V')
-    //' P2 = GenCross(2,'V')
+    //' P1 = gen_simplex(2,'V')
+    //' P2 = gen_cross(2,'V')
     //' P = VpolytopeIntersection$new(P1$V, P2$V)
     //' @export
     class_<VPinterVP>("VpolytopeIntersection")

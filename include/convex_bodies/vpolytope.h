@@ -87,30 +87,6 @@ public:
         b = b2;
     }
 
-
-    // get a specific coeff of matrix V
-    NT get_mat_coeff(const unsigned int &i, const unsigned int &j) const {
-        return V(i,j);
-    }
-
-
-    // get a specific coeff of vector b
-    NT get_vec_coeff(const unsigned int &i) const {
-        return b(i);
-    }
-
-
-    // set a specific coeff of matrix V
-    void put_mat_coeff(const unsigned int &i, const unsigned int &j, const NT &value) {
-        V(i,j) = value;
-    }
-
-
-    // set a specific coeff of vector b
-    void put_vec_coeff(const unsigned int &i, const NT &value) {
-        b(i) = value;
-    }
-
     MT get_T() const {
         return V;
     }
@@ -379,7 +355,7 @@ public:
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
                                                const VT &Av, const NT &lambda_prev) {
-        return line_positive_intersect(r, v);//, Ar, Av);
+        return line_positive_intersect(r, v);
     }
 
 
