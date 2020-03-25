@@ -222,9 +222,39 @@ sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution =
     .Call(`_volesti_sample_points`, P, n, random_walk, distribution)
 }
 
+#' Write a SDPA format file
+#'
+#' Outputs a spectrahedron (the matrices defining a linear matrix inequality) and a vector (the objective function)
+#' to a SDPA format file.
+#'
+#' @field spectrahedron A spectrahedron in n dimensions; must be an object of class Spectrahedron
+#' @field objectiveFunction A numerical vector of length n
+#' @field outputFile Name of the output file
+#'
+#' @examples
+#' A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
+#' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
+#' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
+#' lmi = list(M0, M1,M2)
+#' S = Spectrahedron$new(lmi);
+#' objFunction = c(1,1)
+#' writeSdpaFormatFile(S, objFunction, "output.txt")
 #' @export
-writeSdpaFile <- function(spectrahedron = NULL, objectiveFunction = NULL, outputFile = NULL) {
-    invisible(.Call(`_volesti_writeSdpaFile`, spectrahedron, objectiveFunction, outputFile))
+writeSdpaFormatFile <- function(spectrahedron = NULL, objectiveFunction = NULL, outputFile = NULL) {
+    invisible(.Call(`_volesti_writeSdpaFormatFile`, spectrahedron, objectiveFunction, outputFile))
+}
+
+#' Read a SDPA format file
+#'
+#' @field inputFile Name of the input file
+#'
+#' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
+#'
+#' @examples
+#' l = loadSdpaFormatFile("input.txt")
+#' @export
+loadSdpaFormatFile <- function(inputFile = NULL) {
+    .Call(`_volesti_loadSdpaFormatFile`, inputFile)
 }
 
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)

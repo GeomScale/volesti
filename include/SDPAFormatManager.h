@@ -1,6 +1,4 @@
-//
-// Created by panagiotis on 20/7/2019.
-//
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 #ifndef VOLESTI_SDPA_FORMAT_MANAGER_H
 #define VOLESTI_SDPA_FORMAT_MANAGER_H
@@ -244,7 +242,7 @@ public:
         loadSDPAFormatFile(is, matrices, coeffs);
         LMI<NT, MT, VT> lmi(matrices);
         spectrahedron = Spectrahedron<NT, MT, VT>(lmi);
-         objectiveFunction = Point(coeffs);
+        objectiveFunction = Point(coeffs);
     }
 
 

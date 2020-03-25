@@ -1,6 +1,4 @@
-//
-// Created by panagiotis on 2/23/20.
-//
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
@@ -14,11 +12,26 @@
 #include "spectrahedron.h"
 #include "SDPAFormatManager.h"
 
-
-
+//' Write a SDPA format file
+//'
+//' Outputs a spectrahedron (the matrices defining a linear matrix inequality) and a vector (the objective function)
+//' to a SDPA format file.
+//'
+//' @field spectrahedron A spectrahedron in n dimensions; must be an object of class Spectrahedron
+//' @field objectiveFunction A numerical vector of length n
+//' @field outputFile Name of the output file
+//'
+//' @examples
+//' A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
+//' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
+//' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
+//' lmi = list(M0, M1,M2)
+//' S = Spectrahedron$new(lmi);
+//' objFunction = c(1,1)
+//' writeSdpaFormatFile(S, objFunction, "output.txt")
 //' @export
 // [[Rcpp::export]]
-void writeSdpaFile(Rcpp::Nullable<Rcpp::Reference> spectrahedron = R_NilValue,
+void writeSdpaFormatFile(Rcpp::Nullable<Rcpp::Reference> spectrahedron = R_NilValue,
                Rcpp::Nullable<Rcpp::NumericVector> objectiveFunction = R_NilValue,
                Rcpp::Nullable<std::string> outputFile = R_NilValue) {
 
@@ -44,4 +57,58 @@ void writeSdpaFile(Rcpp::Nullable<Rcpp::Reference> spectrahedron = R_NilValue,
     sdpaFormatManager.writeSDPAFormatFile(os, _spectrahedron, c);
 
     return;
+}
+
+// need this to return a spectrahedron in R
+// in function readSdpaFormatManager
+class _Spectrahedron {
+public:
+    /// A list with the matrices A0, ..., An
+    Rcpp::List matrices;
+
+    _Spectrahedron(Rcpp::List _matrices) : matrices(_matrices) {}
+};
+
+//' Read a SDPA format file
+//'
+//' @field inputFile Name of the input file
+//'
+//' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
+//'
+//' @examples
+//' l = loadSdpaFormatFile("input.txt")
+//' @export
+// [[Rcpp::export]]
+Rcpp::List loadSdpaFormatFile(Rcpp::Nullable<std::string> inputFile = R_NilValue) {
+
+    typedef double NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+    typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point Point;
+    typedef boost::mt19937 RNGType;
+    typedef LMI <NT, MT, VT> LMI;
+    typedef Spectrahedron <NT, MT, VT> SPECTRAHEDRON;
+
+    SPECTRAHEDRON _spectrahedron;
+    Point c;
+
+    // open stream
+    std::ifstream os;
+    os.open(Rcpp::as<std::string> (inputFile),std::ifstream::in);
+
+    // read file
+    SdpaFormatManager<NT> sdpaFormatManager;
+    sdpaFormatManager.loadSDPAFormatFile(os, _spectrahedron, c);
+
+    std::vector<MT> const & matrices = _spectrahedron.getLMI().getMatrices();
+
+    // return spectrahedron and objective function
+    Rcpp::List _matrices;
+
+    for (auto matrix : matrices)
+        _matrices.push_back(Rcpp::wrap(matrix));
+
+    Rcpp::List retList = Rcpp::List::create(Rcpp::Named("matrices") = _matrices , Rcpp::_["objFunction"] = Rcpp::wrap(c.getCoefficients()));
+    return Rcpp::wrap(retList);
 }
