@@ -4,12 +4,12 @@
 \alias{volume}
 \title{The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-volume(P, algo = NULL, rounding = NULL)
+volume(P, settings = NULL, rounding = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
 
-\item{algo}{Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
+\item{settings}{Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
 \itemize{
 \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian or c) \code{'CB'} for cooling bodies. The defalut algorithm for H-polytopes is \code{'CB'} when \eqn{d\leq 200} and \code{'CG'} when \eqn{d>200}. For the other representations the default algorithm is \code{'CB'}.}
 \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for \code{'SOB'} and \eqn{0.1} otherwise.}
@@ -48,11 +48,11 @@ vol = volume(P)
 
 # calling CG algorithm for a V-polytope (3d simplex)
 P = gen_simplex(2,'V')
-vol = volume(P, algo = list("algorithm" = "CG"))
+vol = volume(P, settings = list("algorithm" = "CG"))
 
 # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 Z = gen_rand_zonotope(2, 4)
-vol = volume(Z, algo = list("random_walk" = "RDHR", "walk_length" = 5))
+vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 5))
 }
 \references{
 \cite{I.Z.Emiris and V. Fisikopoulos,
