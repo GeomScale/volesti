@@ -20,5 +20,8 @@ the linear matrix inequality in the input file, and the objective function.
 }}
 
 \examples{
-l = loadSdpaFormatFile("input.txt")
+path = system.file('extdata', package = 'volesti')
+l = readSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
+Spectrahedron = l$spectrahedron
+objFunction = l$objFunction
 }

@@ -8,7 +8,10 @@
 #' @return A list with two named items: an item "matrices" which is an object of class Spectrahedron and an vector "objFunction"
 #'
 #' @examples
-#' l = loadSdpaFormatFile("input.txt")
+#' path = system.file('extdata', package = 'volesti')
+#' l = readSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
+#' Spectrahedron = l$spectrahedron
+#' objFunction = l$objFunction
 #' @export
 #' @useDynLib volesti, .registration=TRUE
 #' @importFrom Rcpp evalCpp

@@ -19,5 +19,6 @@ Read a SDPA format file
 }}
 
 \examples{
-l = loadSdpaFormatFile("input.txt")
+path = system.file('extdata', package = 'volesti')
+l = loadSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
 }
