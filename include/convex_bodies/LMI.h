@@ -168,6 +168,16 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
     MT* const getMatrix(const int i) {
         return &(matrices[i]);
     }
+
+    /// Prints the matrices A0, ..., An
+    void print() const {
+        int i = 0;
+
+        for (auto iter = matrices.begin(); iter != matrices.end(); iter++, i++) {
+            std::cout << "A" << i << "\n";
+            std::cout << *iter << "\n\n";
+        }
+    }
 };
 
 #endif //VOLESTI_LMI_H
