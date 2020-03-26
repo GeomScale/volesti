@@ -1,6 +1,11 @@
-//
-// Created by panagiotis on 2/22/20.
-//
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef VOLESTI_LMI_H
 #define VOLESTI_LMI_H
@@ -112,17 +117,6 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
     /// \param[in] x Input vector
     /// \param[out] res Output matrix
     void evaluateWithoutA0(const VT& x, MT& res)  {
-//#define EVALUATE_WITHOUT_A0_NAIVE
-#if defined(EVALUATE_WITHOUT_A0_NAIVE)
-        res = MT::Zero(m, m);
-        typename std::vector<MT>::iterator it;
-
-        int i = 0;
-        it = matrices.begin();
-        ++it; // skip A0
-        for (; it != matrices.end(); it++, i++)
-            res.noalias() += x(i) * (*it);
-#else
         VT a = vectorMatrix * x;
         res.resize(m,m);
 
@@ -152,7 +146,6 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
                 target = target + m;
             }
         }
-#endif
     }
 
     /// Compute the gradient of the determinant of the LMI at p

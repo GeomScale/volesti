@@ -1,6 +1,11 @@
-//
-// Created by panagiotis on 2/22/20.
-//
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef VOLESTI_SPECTRAHEDRON_H
 #define VOLESTI_SPECTRAHEDRON_H

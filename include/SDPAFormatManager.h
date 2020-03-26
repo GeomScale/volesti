@@ -1,4 +1,11 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2018 Apostolos Chalkis
+
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef VOLESTI_SDPA_FORMAT_MANAGER_H
 #define VOLESTI_SDPA_FORMAT_MANAGER_H
@@ -109,29 +116,30 @@ public:
         int variablesNum = fetchNumber(line);
 
         if (std::getline(is, line, '\n').eof())
-            throw 1;
+            throw std::runtime_error("Unexpected end of file");
 
         //read number of blocks
         int blocksNum = fetchNumber(line);
 
         if (std::getline(is, line, '\n').eof())
-            throw 1;
+            throw std::runtime_error("Unexpected end of file");
 
         //read block structure vector
         listVector blockStructure = readVector(line);
 
         if (blockStructure.size() != blocksNum)
-            throw 1;
+            throw std::runtime_error("Wrong number of blocks");
 
         if (std::getline(is, line, '\n').eof())
-            throw 1;
+            throw std::runtime_error("Unexpected end of file");
 
         //read constant vector
         listVector constantVector = readVector(line);
 
         while (constantVector.size() < variablesNum) {
             if (std::getline(is, line, '\n').eof())
-                throw 1;
+                throw std::runtime_error("Unexpected end of file");
+
             listVector t = readVector(line);
             constantVector.insert(std::end(constantVector), std::begin(t), std::end(t));
         }

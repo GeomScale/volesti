@@ -73,7 +73,7 @@ else ()
   add_library(test_main OBJECT test_main.cpp)
 
   add_executable (volume_test volume_test.cpp $<TARGET_OBJECTS:test_main>)
-
+  add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (cheb_test chebychev_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (rounding_test rounding_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (volumeCG_test volumeCG_test.cpp $<TARGET_OBJECTS:test_main>)
@@ -82,7 +82,9 @@ else ()
   add_executable (ZonotopeVol_test ZonotopeVol_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (cool_bodies_bill_test cooling_bodies_bill_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (ZonotopeVolCG_test ZonotopeVolCG_test.cpp $<TARGET_OBJECTS:test_main>)
-  
+
+  add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
+
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
   add_test(NAME volume_birkhoff COMMAND volume_test -tc=birk)
