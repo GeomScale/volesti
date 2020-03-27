@@ -259,14 +259,6 @@ double volume (Rcpp::Reference P,
                 Rcpp::Rcout << "Billiard walk is not supported for CG algorithm. CDHR is used."<<std::endl;
                 cdhr = true;
             }
-        } else if (!CB) {
-            if (type !=1){
-                Rcpp::Rcout << "Billiard walk is not supported for SOB algorithm. RDHR is used."<<std::endl;
-                rdhr = true;
-            } else {
-                Rcpp::Rcout << "Billiard walk is not supported for SOB algorithm. CDHR is used."<<std::endl;
-                cdhr = true;
-            }
         } else {
             billiard = true;
             win_len = 170;
@@ -346,7 +338,6 @@ double volume (Rcpp::Reference P,
     }
     if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("L")) {
         diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["L"]);
-        cb_params++;
     }
 
     if ((CB && cg_params > 0) || (CG && cb_params > 0) || (!CB & !CG && (cg_params > 0 || cb_params > 0))){
