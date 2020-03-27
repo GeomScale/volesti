@@ -119,7 +119,7 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 //'
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
-//' @param algo Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
+//' @param settings Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
 //' \itemize{
 //' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian or c) \code{'CB'} for cooling bodies. The defalut algorithm for H-polytopes is \code{'CB'} when \eqn{d\leq 200} and \code{'CG'} when \eqn{d>200}. For the other representations the default algorithm is \code{'CB'}.}
 //' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for \code{'SOB'} and \eqn{0.1} otherwise.}
@@ -159,15 +159,15 @@ double generic_volume(Polytope& P, unsigned int walk_step, double e,
 //'
 //' # calling CG algorithm for a V-polytope (3d simplex)
 //' P = gen_simplex(2,'V')
-//' vol = volume(P, algo = list("algorithm" = "CG"))
+//' vol = volume(P, settings = list("algorithm" = "CG"))
 //'
 //' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 //' Z = gen_rand_zonotope(2, 4)
-//' vol = volume(Z, algo = list("random_walk" = "RDHR", "walk_length" = 5))
+//' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 5))
 //' @export
 // [[Rcpp::export]]
 double volume (Rcpp::Reference P,
-               Rcpp::Nullable<Rcpp::List> algo = R_NilValue,
+               Rcpp::Nullable<Rcpp::List> settings = R_NilValue,
                Rcpp::Nullable<bool> rounding = R_NilValue) {
 
     typedef double NT;
@@ -190,7 +190,7 @@ double volume (Rcpp::Reference P,
     NT C = 2.0, ratio = 1.0-1.0/(NT(n)), frac = 0.1, e, delta = -1.0, lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0,
             alpha = 0.2, diam = -1.0;
 
-    if (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("algorithm")) {
+    if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("algorithm")) {
         if (type == 2 || type == 3) {
             CB = true;
         } else if (n <= 200) {
@@ -198,39 +198,39 @@ double volume (Rcpp::Reference P,
         } else {
             CG = true;
         }
-        walkL = (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
-                Rcpp::as<Rcpp::List>(algo)["walk_length"]);
-        e = (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
-                Rcpp::as<Rcpp::List>(algo)["error"]);
-    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo)["algorithm"]).compare(std::string("SOB")) == 0) {
+        walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
+                Rcpp::as<Rcpp::List>(settings)["walk_length"]);
+        e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
+                Rcpp::as<Rcpp::List>(settings)["error"]);
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["algorithm"]).compare(std::string("SOB")) == 0) {
 
-        walkL = (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("walk_length")) ? 10 + n / 10 : Rcpp::as<int>(
-                Rcpp::as<Rcpp::List>(algo)["walk_length"]);
-        e = (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("error")) ? 1.0 : Rcpp::as<NT>(
-                Rcpp::as<Rcpp::List>(algo)["error"]);
+        walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 10 + n / 10 : Rcpp::as<int>(
+                Rcpp::as<Rcpp::List>(settings)["walk_length"]);
+        e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 1.0 : Rcpp::as<NT>(
+                Rcpp::as<Rcpp::List>(settings)["error"]);
 
-    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo)["algorithm"]).compare(std::string("CG")) == 0) {
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["algorithm"]).compare(std::string("CG")) == 0) {
 
         CG = true;
-        walkL = (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
-                Rcpp::as<Rcpp::List>(algo)["walk_length"]);
-        e = (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
-                Rcpp::as<Rcpp::List>(algo)["error"]);
+        walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
+                Rcpp::as<Rcpp::List>(settings)["walk_length"]);
+        e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
+                Rcpp::as<Rcpp::List>(settings)["error"]);
 
-    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo)["algorithm"]).compare(std::string("CB")) == 0) {
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["algorithm"]).compare(std::string("CB")) == 0) {
 
         CB = true;
-        walkL = (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
-                Rcpp::as<Rcpp::List>(algo)["walk_length"]);
-        e = (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
-                Rcpp::as<Rcpp::List>(algo)["error"]);
+        walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
+                Rcpp::as<Rcpp::List>(settings)["walk_length"]);
+        e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
+                Rcpp::as<Rcpp::List>(settings)["error"]);
 
     } else {
         throw Rcpp::exception("Unknown method!");
     }
 
 
-    if (!Rcpp::as<Rcpp::List>(algo).containsElementNamed("random_walk")) {
+    if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("random_walk")) {
         if ( type == 1 ){
             cdhr = true;
             if (CB) win_len = 3*n*n+400;
@@ -243,14 +243,15 @@ double volume (Rcpp::Reference P,
                 rdhr = true;
             }
         }
-    }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo)["random_walk"]).compare(std::string("CDHR")) == 0) {
+    }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("CDHR")) == 0) {
         cdhr = true;
         if (CB) win_len = 3*n*n+400;
-    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo)["random_walk"]).compare(std::string("RDHR")) == 0) {
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("RDHR")) == 0) {
         rdhr = true;
-    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo)["random_walk"]).compare(std::string("BaW")) == 0) {
+        if (CB) win_len = 3*n*n+400;
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("BaW")) == 0) {
         ball_walk = true;
-    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo)["random_walk"]).compare(std::string("BiW")) == 0) {
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("BiW")) == 0) {
         if (CG) {
             if (type !=1){
                 Rcpp::Rcout << "Billiard walk is not supported for CG algorithm. RDHR is used."<<std::endl;
@@ -278,62 +279,62 @@ double volume (Rcpp::Reference P,
         round = (!rounding.isNotNull()) ? false : Rcpp::as<bool>(rounding);
     }
 
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("BW_rad")) {
-        delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["BW_rad"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("BW_rad")) {
+        delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["BW_rad"]);
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("C")) {
-        C = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["C"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("C")) {
+        C = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["C"]);
         N = 500 * ((int) C) + n * n / 2;
         cg_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("M")) {
-        N = Rcpp::as<int>(Rcpp::as<Rcpp::List>(algo)["M"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("M")) {
+        N = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["M"]);
         cg_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("len_win")) {
-        win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(algo)["len_win"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("len_win")) {
+        win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["len_win"]);
         if (!CB && !CG) Rf_warning("flag 'len_win' can be used only for CG or CB algorithms.");
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("frac")) {
-        frac = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["frac"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("frac")) {
+        frac = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["frac"]);
         cg_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("ratio")) {
-        ratio = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["ratio"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("ratio")) {
+        ratio = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["ratio"]);
         cg_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("hpoly")) {
-        hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(algo)["hpoly"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("hpoly")) {
+        hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["hpoly"]);
         cb_params++;
         if ((hpoly && !CB) || (type != 3 && CB && hpoly))
             Rf_warning("flag 'hpoly' can be used to only in MMC of CB algorithm for zonotopes.");
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("lb")) {
-        lb = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["lb"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("lb")) {
+        lb = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["lb"]);
         cb_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("ub")) {
-        ub = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["ub"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("ub")) {
+        ub = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["ub"]);
         cb_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("nu")) {
-        nu = Rcpp::as<int>(Rcpp::as<Rcpp::List>(algo)["nu"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("nu")) {
+        nu = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["nu"]);
         cb_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("N")) {
-        NN = Rcpp::as<int>(Rcpp::as<Rcpp::List>(algo)["N"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("N")) {
+        NN = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["N"]);
         cb_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("minmaxW")) {
-        win2 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(algo)["minmaxW"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("minmaxW")) {
+        win2 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["minmaxW"]);
         cb_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("prob")) {
-        p = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["prob"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("prob")) {
+        p = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["prob"]);
         cb_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("alpha")) {
-        alpha = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["alpha"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("alpha")) {
+        alpha = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["alpha"]);
         cb_params++;
     }
     if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("L")) {
@@ -346,12 +347,12 @@ double volume (Rcpp::Reference P,
 
     std::pair<Point, NT> inner_ball;
     inner_ball.second = -1.0;
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("inner_ball")) {
-        if (Rcpp::as<VT>(Rcpp::as<Rcpp::List>(algo)["inner_ball"]).size() != n+1) {
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("inner_ball")) {
+        if (Rcpp::as<VT>(Rcpp::as<Rcpp::List>(settings)["inner_ball"]).size() != n+1) {
             throw Rcpp::exception("Inscribed ball has to lie in the same dimension as the polytope P");
         } else {
             set_mean_point = true;
-            VT temp = Rcpp::as<VT>(Rcpp::as<Rcpp::List>(algo)["inner_ball"]);
+            VT temp = Rcpp::as<VT>(Rcpp::as<Rcpp::List>(settings)["inner_ball"]);
             inner_ball.first = Point(n, std::vector<NT>(&temp[0], temp.data()+temp.cols()*temp.rows()-1));
             inner_ball.second = temp(n);
             if (inner_ball.second <= 0.0) throw Rcpp::exception("The radius of the given inscribed ball has to be a positive number.");

@@ -17,6 +17,7 @@ sample_points(P = NULL, n = NULL, random_walk = NULL,
 \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
 \item{\code{walk_length} }{ The number of the steps for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
 \item{\code{nburns} }{ The number of points to burn before start sampling.}
+\item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
 \item{\code{BaW_rad} }{ The radius for the ball walk.}
 \item{\code{L} }{ The maximum length of the billiard trajectory.}
 }}
@@ -25,7 +26,6 @@ sample_points(P = NULL, n = NULL, random_walk = NULL,
 \itemize{
 \item{\code{density}}{A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
 \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
-\item{\code{StartingPoint} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
 }}
 }

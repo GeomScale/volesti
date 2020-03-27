@@ -4,7 +4,7 @@
 #' 
 #' @param Z A zonotope.
 #' @param fit_ratio Optional. A boolean parameter to request the computation of the ratio of fitness.
-#' @param algo_parameters Optional. A list that declares the values of the parameters of CB algorithm as follows:
+#' @param settings Optional. A list that declares the values of the parameters of CB algorithm as follows:
 #' \itemize{
 #' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for \code{'SOB'} and \eqn{0.1} otherwise.}
 #' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. The default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations.}
@@ -32,9 +32,9 @@
 #' retList = zonotope_approximation(Z = Z, fit_ratio = TRUE)
 #' 
 #' @export
-zonotope_approximation <- function(Z, fit_ratio = NULL, algo_parameters = NULL){
+zonotope_approximation <- function(Z, fit_ratio = NULL, settings = NULL){
   
-  ret_list = zono_approx(Z, fit_ratio, algo_parameters)
+  ret_list = zono_approx(Z, fit_ratio, settings)
   
   Mat = ret_list$Mat
   
