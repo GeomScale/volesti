@@ -462,10 +462,6 @@ int main(const int argc, const char** argv)
       } else {
           cdhr = true;
       }
-  } else if (!CB && !CG && billiard) {
-      std::cout<<"Billiard is not supported for SOB algorithm. CDHR is used."<<std::endl;
-      billiard = false;
-      cdhr = true;
   } else if (CG && billiard) {
       billiard = false;
       if (Zono || Vpoly) {
