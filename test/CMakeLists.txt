@@ -63,6 +63,7 @@ else ()
   add_executable (vol vol.cpp)
   #add_executable (volume volume_example.cpp)
   add_executable (generate generator.cpp)
+  add_executable (new_volume_example new_volume_example.cpp)
 
   add_library(test_main OBJECT test_main.cpp)
 
@@ -75,6 +76,7 @@ else ()
   add_executable (ZonotopeVol_test ZonotopeVol_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (cool_bodies_bill_test cooling_bodies_bill_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (ZonotopeVolCG_test ZonotopeVolCG_test.cpp $<TARGET_OBJECTS:test_main>)
+
   
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
@@ -131,6 +133,7 @@ else ()
   TARGET_LINK_LIBRARIES(ZonotopeVol_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(cool_bodies_bill_test ${LP_SOLVE})
   #TARGET_LINK_LIBRARIES(ZonotopeVolCG_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
 
 endif()
 

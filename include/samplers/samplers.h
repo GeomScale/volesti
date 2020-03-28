@@ -236,13 +236,13 @@ void rand_point_generator(Polytope &P,
 
 template <typename BallPoly, typename PointList, typename Parameters, typename Point>
 void rand_point_generator(BallPoly &PBLarge,
-                         Point &p,   // a point to start
-                         const unsigned int rnum,
-                         const unsigned int walk_len,
-                         PointList &randPoints,
-                         const BallPoly &PBSmall,
-                         unsigned int &nump_PBSmall,
-                         const Parameters &var) {  // constants for volume
+                          Point &p,   // a point to start
+                          const unsigned int rnum,
+                          const unsigned int walk_len,
+                          PointList &randPoints,
+                          const BallPoly &PBSmall,
+                          unsigned int &nump_PBSmall,
+                          const Parameters &var) {  // constants for volume
 
     typedef typename Point::FT NT;
     typedef typename Parameters::RNGType RNGType;

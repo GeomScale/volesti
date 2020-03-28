@@ -27,6 +27,16 @@ public:
     Polytope first() const { return P; }
     CBall second() const { return B; }
 
+    std::pair<Point,NT> InnerBall()
+    {
+        return P.InnerBall();
+    }
+
+    NT ComputeDiameter()
+    {
+        return NT(4) * B.radius();
+    }
+
     int is_in(Point &p){
         if(B.is_in(p)==-1)
             return P.is_in(p);
