@@ -33,40 +33,38 @@ private:
     MT A; //matrix A
     VT b; // vector b, s.t.: Ax<=b
     unsigned int            _d; //dimension
+    std::pair<Point,NT> inner_ball;
     //NT maxNT = 1.79769e+308;
     //NT minNT = -1.79769e+308;
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
 
 public:
-    HPolytope() {}
 
-    // constructor: cube(d)
-    HPolytope(unsigned int d): _d(d) {
-        A.resize(2 * d, d);
-        b.resize(2 * d);
-        for (unsigned int i = 0; i < d; ++i) {
-            b(i) = 1;
-            for (unsigned int j = 0; j < d; ++j) {
-                if (i == j) {
-                    A(i, j) = 1;
-                } else {
-                    A(i, j) = 0;
-                }
-            }
-        }
-        for (unsigned int i = 0; i < d; ++i) {
-            b(i + d) = 1;
-            for (unsigned int j = 0; j < d; ++j) {
-                if (i == j) {
-                    A(i + d, j) = -1;
-                } else {
-                    A(i + d, j) = 0;
-                }
-            }
-        }
+    HPolytope()
+    {
+        typedef Point PolytopePoint;
+        typedef typename Point::FT NT;
+        inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
 
+    std::pair<Point,NT> InnerBall()
+    {
+        return inner_ball;
+    }
+
+    //Compute Chebyshev ball of H-polytope P:= Ax<=b
+    //Use LpSolve library
+    std::pair<Point,NT> ComputeInnerBall()
+    {
+        inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+        return inner_ball;
+    }
+
+    NT ComputeDiameter()
+    {
+        return NT(4) * std::sqrt(NT(_d)) * inner_ball.second;
+    }
 
     // return dimension
     unsigned int dimension() const {
@@ -263,15 +261,6 @@ public:
     }
 
 
-    //Compute Chebyshev ball of H-polytope P:= Ax<=b
-    //Use LpSolve library
-    std::pair<Point,NT> ComputeInnerBall() {
-
-        //lpSolve lib for the linear program
-        return ComputeChebychevBall<NT, Point>(A, b);
-    }
-
-
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point &r, Point &v) {
@@ -308,8 +297,11 @@ public:
 
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, bool pos = false) {
+    std::pair<NT,NT> line_intersect(Point &r,
+                                    Point &v,
+                                    std::vector<NT> &Ar,
+                                    std::vector<NT> &Av,
+                                    bool pos = false) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom, mult;
@@ -346,8 +338,12 @@ public:
         return std::pair<NT, NT>(min_plus, max_minus);
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, const NT &lambda_prev, bool pos = false) {
+    std::pair<NT,NT> line_intersect(Point &r,
+                                    Point &v,
+                                    std::vector<NT> &Ar,
+                                    std::vector<NT> &Av,
+                                    const NT &lambda_prev,
+                                    bool pos = false) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         NT sum_nom, sum_denom, mult;
