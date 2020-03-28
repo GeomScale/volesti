@@ -19,7 +19,7 @@
 //'
 //' @param Z A zonotope.
 //' @param fit_ratio Optional. A boolean parameter to request the computation of the ratio of fitness.
-//' @param algo_parameters Optional. A list that declares the values of the parameters of CB algorithm.
+//' @param settings Optional. A list that declares the values of the parameters of CB algorithm.
 //'
 //' @section warning:
 //' Do not use this function.
@@ -28,7 +28,7 @@
 // [[Rcpp::export]]
 Rcpp::List zono_approx (Rcpp::Reference Z,
                         Rcpp::Nullable<bool> fit_ratio = R_NilValue,
-                        Rcpp::Nullable<Rcpp::List> algo_parameters = R_NilValue) {
+                        Rcpp::Nullable<Rcpp::List> settings = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -69,64 +69,64 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
             vol_red *= 2.0 * Gred_ii(i);
         }
 
-        walkL = (!Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
-                Rcpp::as<Rcpp::List>(algo_parameters)["walk_length"]);
-        e = (!Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
-                Rcpp::as<Rcpp::List>(algo_parameters)["error"]);
-        round = (!Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("rounding")) ? false : Rcpp::as<bool>(
-                Rcpp::as<Rcpp::List>(algo_parameters)["rounding"]);
+        walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
+                Rcpp::as<Rcpp::List>(settings)["walk_length"]);
+        e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
+                Rcpp::as<Rcpp::List>(settings)["error"]);
+        round = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("rounding")) ? false : Rcpp::as<bool>(
+                Rcpp::as<Rcpp::List>(settings)["rounding"]);
         //if (rounding.isNotNull()) round = Rcpp::as<bool>(rounding);
-        if (!Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("random_walk")) {
+        if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("random_walk")) {
             billiard = true;
             win_len = 170;
             NN = 125;
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo_parameters)["random_walk"]).compare(std::string("BiW")) == 0) {
+        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("BiW")) == 0) {
             billiard = true;
             win_len = 170;
             NN = 125;
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo_parameters)["random_walk"]).compare(std::string("RDHR")) == 0) {
+        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("RDHR")) == 0) {
             rdhr = true;
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo_parameters)["random_walk"]).compare(std::string("CDHR")) == 0) {
+        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("CDHR")) == 0) {
             cdhr = true;
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(algo_parameters)["random_walk"]).compare(std::string("Baw")) == 0) {
+        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("Baw")) == 0) {
             ball_walk = true;
         } else {
             throw Rcpp::exception("Unknown walk type!");
         }
 
 
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("BW_rad")) {
-            delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo_parameters)["BW_rad"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("BW_rad")) {
+            delta = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["BW_rad"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("len_win")) {
-            win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(algo_parameters)["len_win"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("len_win")) {
+            win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["len_win"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("lb")) {
-            lb = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo_parameters)["lb"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("lb")) {
+            lb = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["lb"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("ub")) {
-            ub = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo_parameters)["ub"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("ub")) {
+            ub = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["ub"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("nu")) {
-            nu = Rcpp::as<int>(Rcpp::as<Rcpp::List>(algo_parameters)["nu"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("nu")) {
+            nu = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["nu"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("N")) {
-            NN = Rcpp::as<int>(Rcpp::as<Rcpp::List>(algo_parameters)["N"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("N")) {
+            NN = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["N"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("minmaxW")) {
-            win2 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(algo_parameters)["minmaxW"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("minmaxW")) {
+            win2 = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["minmaxW"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("prob")) {
-            p = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo_parameters)["prob"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("prob")) {
+            p = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["prob"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("alpha")) {
-            alpha = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo_parameters)["alpha"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("alpha")) {
+            alpha = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["alpha"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("hpoly")) {
-            hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(algo_parameters)["hpoly"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("hpoly")) {
+            hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["hpoly"]);
         }
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("L")) {
-            diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo_parameters)["L"]);
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("L")) {
+            diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["L"]);
         }
 
         zonotope ZP;
@@ -142,12 +142,12 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
 
         std::pair <Point, NT> InnerB;
         InnerB.second = -1.0;
-        if (Rcpp::as<Rcpp::List>(algo_parameters).containsElementNamed("inner_ball")) {
-            if (Rcpp::as<VT>(Rcpp::as<Rcpp::List>(algo_parameters)["inner_ball"]).size() != n + 1) {
+        if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("inner_ball")) {
+            if (Rcpp::as<VT>(Rcpp::as<Rcpp::List>(settings)["inner_ball"]).size() != n + 1) {
                 throw Rcpp::exception("Inscribed ball has to lie in the same dimension as the polytope P");
             } else {
                 set_mean_point = true;
-                VT temp = Rcpp::as<VT>(Rcpp::as<Rcpp::List>(algo_parameters)["inner_ball"]);
+                VT temp = Rcpp::as<VT>(Rcpp::as<Rcpp::List>(settings)["inner_ball"]);
                 InnerB.first = Point(n, std::vector<NT>(&temp[0], temp.data() + temp.cols() * temp.rows() - 1));
                 InnerB.second = temp(n);
                 if (InnerB.second <= 0.0)
