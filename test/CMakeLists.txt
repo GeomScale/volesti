@@ -34,6 +34,7 @@ else ()
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
   include_directories (BEFORE ../external/Eigen)
+  include_directories (BEFORE ../external/Spectra/include)
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
   #include_directories (BEFORE ../include/cartesian_geom)
@@ -49,6 +50,7 @@ else ()
   include_directories (BEFORE ../include/samplers)
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/misc)
+  include_directories (BEFORE ../include/matrices)
 
   #for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0") 
@@ -74,6 +76,7 @@ else ()
 
   add_executable (volume_test volume_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable(test_spec_oracles test_spec_oracles.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (cheb_test chebychev_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (rounding_test rounding_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (volumeCG_test volumeCG_test.cpp $<TARGET_OBJECTS:test_main>)
@@ -84,6 +87,7 @@ else ()
   #add_executable (ZonotopeVolCG_test ZonotopeVolCG_test.cpp $<TARGET_OBJECTS:test_main>)
 
   add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
+  add_test(NAME test_spec_oracles COMMAND test_spec_oracles -tc=test_spec_oracles)
 
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
