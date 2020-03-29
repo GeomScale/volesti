@@ -42,6 +42,7 @@ else ()
   include_directories (BEFORE ../include/samplers)
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/misc)
+  include_directories (BEFORE ../include/convex_bodies/spectrahedra)
 
   # for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
