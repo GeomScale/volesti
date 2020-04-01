@@ -1,7 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
-// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
 
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
@@ -40,8 +40,8 @@ private:
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
     /// Return the first non white space/tab character and advance the iterator one position
-    /// @param[in, out] it current position
-    /// @param[in] end end of string
+    /// @param[in, out] it Current position
+    /// @param[in] end End of string
     /// @return First non white space/tab character
     char consumeSymbol(string_it &at, string_it & end) {
         while (at != end) {

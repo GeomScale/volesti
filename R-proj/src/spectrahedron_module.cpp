@@ -1,7 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
-// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
 
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
@@ -20,7 +20,7 @@ public:
 };
 
 
-RCPP_MODULE(spec){
+RCPP_MODULE(spectrahedron){
         using namespace Rcpp ;
 
         //' An exposed class to represent a spectrahedron
@@ -45,4 +45,4 @@ RCPP_MODULE(spec){
         .field( "matrices", &Spectrahedron::matrices);
 }
 
-extern SEXP _rcpp_module_boot_spec(void);
+extern SEXP _rcpp_module_boot_spectrahedron(void);
