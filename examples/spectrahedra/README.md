@@ -1,6 +1,6 @@
-#Examples for Spectrahedra
+# Examples for Spectrahedra
 
-##Compilation
+## Compilation
 In folder examples, first run cmake, to create the makefile:
 
 ```bash
