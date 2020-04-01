@@ -6,18 +6,15 @@
 \usage{
 loadSdpaFormatFile(inputFile = NULL)
 }
+\arguments{
+\item{inputFile}{Name of the input file}
+}
 \value{
 A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
 }
 \description{
 Read a SDPA format file
 }
-\section{Fields}{
-
-\describe{
-\item{\code{inputFile}}{Name of the input file}
-}}
-
 \examples{
 path = system.file('extdata', package = 'volesti')
 l = loadSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))

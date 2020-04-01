@@ -6,6 +6,9 @@
 \usage{
 readSdpaFormatFile(path)
 }
+\arguments{
+\item{path}{Name of the input file}
+}
 \value{
 A list with two named items: an item "matrices" which is an object of class Spectrahedron and an vector "objFunction"
 }
@@ -13,12 +16,6 @@ A list with two named items: an item "matrices" which is an object of class Spec
 Read a SDPA format file and return a spectrahedron (an object of class Spectrahedron) which is defined by
 the linear matrix inequality in the input file, and the objective function.
 }
-\section{Fields}{
-
-\describe{
-\item{\code{path}}{Name of the input file}
-}}
-
 \examples{
 path = system.file('extdata', package = 'volesti')
 l = readSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))

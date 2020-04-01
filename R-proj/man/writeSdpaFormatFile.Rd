@@ -10,20 +10,17 @@ writeSdpaFormatFile(
   outputFile = NULL
 )
 }
+\arguments{
+\item{spectrahedron}{A spectrahedron in n dimensions; must be an object of class Spectrahedron}
+
+\item{objectiveFunction}{A numerical vector of length n}
+
+\item{outputFile}{Name of the output file}
+}
 \description{
 Outputs a spectrahedron (the matrices defining a linear matrix inequality) and a vector (the objective function)
 to a SDPA format file.
 }
-\section{Fields}{
-
-\describe{
-\item{\code{spectrahedron}}{A spectrahedron in n dimensions; must be an object of class Spectrahedron}
-
-\item{\code{objectiveFunction}}{A numerical vector of length n}
-
-\item{\code{outputFile}}{Name of the output file}
-}}
-
 \examples{
 A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
 A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)

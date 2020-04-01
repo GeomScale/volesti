@@ -93,12 +93,14 @@ void call_test_sdpa_format() {
         std::vector<MT> matrices1 = spectrahedron1.getLMI().getMatrices();
 
         int atMatrix1 = 0;
-        for (auto matrix : spectrahedron.getLMI().getMatrices()) {
+        std::vector<MT> const & _matrices = spectrahedron.getLMI().getMatrices();
+
+        for (auto matrix = _matrices.begin(); matrix != _matrices.end() ; matrix++) {
             MT matrix1 = matrices1[atMatrix1++];
 
-            for (int i = 0; i < matrix.rows(); ++i) {
-                for (int j = 0; j < matrix.cols(); ++j) {
-                    if (matrix(i, j) != matrix1(i, j)) {
+            for (int i = 0; i < matrix->rows(); ++i) {
+                for (int j = 0; j < matrix->cols(); ++j) {
+                    if ((*matrix)(i, j) != matrix1(i, j)) {
                         areTheSame = false;
                         break;
                     }
@@ -107,10 +109,10 @@ void call_test_sdpa_format() {
         }
 
         break;
-    } 
+    }
 
 
-            CHECK(areTheSame);
+    CHECK(areTheSame);
 }
 
 

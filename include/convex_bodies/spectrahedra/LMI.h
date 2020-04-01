@@ -94,7 +94,7 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
     }
 
     /// \return The matrices A0, A1, ..., Ad
-    std::vector<MT> getMatrices() const {
+    std::vector<MT> const & getMatrices() const {
         return matrices;
     }
 

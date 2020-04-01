@@ -24,9 +24,9 @@
 //' Outputs a spectrahedron (the matrices defining a linear matrix inequality) and a vector (the objective function)
 //' to a SDPA format file.
 //'
-//' @field spectrahedron A spectrahedron in n dimensions; must be an object of class Spectrahedron
-//' @field objectiveFunction A numerical vector of length n
-//' @field outputFile Name of the output file
+//' @param spectrahedron A spectrahedron in n dimensions; must be an object of class Spectrahedron
+//' @param objectiveFunction A numerical vector of length n
+//' @param outputFile Name of the output file
 //'
 //' @examples
 //' A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
@@ -78,7 +78,7 @@ public:
 
 //' Read a SDPA format file
 //'
-//' @field inputFile Name of the input file
+//' @param inputFile Name of the input file
 //'
 //' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
 //'
@@ -109,7 +109,7 @@ Rcpp::List loadSdpaFormatFile(Rcpp::Nullable<std::string> inputFile = R_NilValue
     SdpaFormatManager<NT> sdpaFormatManager;
     sdpaFormatManager.loadSDPAFormatFile(os, _spectrahedron, c);
 
-    std::vector<MT> const & matrices = _spectrahedron.getLMI().getMatrices();
+    std::vector<MT> matrices = _spectrahedron.getLMI().getMatrices();
 
     // return spectrahedron and objective function
     Rcpp::List _matrices;
