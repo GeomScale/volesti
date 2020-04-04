@@ -443,13 +443,15 @@ public:
 
 
     // shift polytope by a point c
-    void shift(const VT &c){
+    void shift(const VT &c)
+    {
         b -= A*c;
     }
 
 
     // return for each facet the distance from the origin
-    std::vector<NT> get_dists(const NT &radius){
+    std::vector<NT> get_dists(const NT &radius) const
+    {
         unsigned int i=0;
         std::vector <NT> dists(num_of_hyperplanes(), NT(0));
         typename std::vector<NT>::iterator disit = dists.begin();
