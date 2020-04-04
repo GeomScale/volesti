@@ -170,13 +170,9 @@ public:
 
     void print() const{
         for(unsigned int i=0; i<d; i++){
-#ifdef VOLESTI_DEBUG
             std::cout<<coeffs(i)<<" ";
-#endif
         }
-#ifdef VOLESTI_DEBUG
         std::cout<<"\n";
-#endif
     }
 
 };

@@ -14,7 +14,7 @@
 template <typename Point>
 struct Ball{
 public:
-    typedef Point BallPoint;
+    typedef Point PointType;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;

@@ -22,7 +22,7 @@
 template <typename Point>
 class HPolytope{
 public:
-    typedef Point PolytopePoint;
+    typedef Point PointType;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
     //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
@@ -44,7 +44,7 @@ public:
 
     HPolytope()
     {
-        typedef Point PolytopePoint;
+        typedef Point PointType;
         typedef typename Point::FT NT;
         inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
@@ -141,18 +141,12 @@ public:
 
     // print polytope in input format
     void print() {
-#ifdef VOLESTI_DEBUG
         std::cout << " " << A.rows() << " " << _d << " float" << std::endl;
-#endif
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                #ifdef VOLESTI_DEBUG
                 std::cout << A(i, j) << " ";
-                #endif
             }
-            #ifdef VOLESTI_DEBUG
             std::cout << "<= " << b(i) << std::endl;
-            #endif
         }
     }
 

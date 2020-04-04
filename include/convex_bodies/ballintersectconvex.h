@@ -19,7 +19,7 @@ private:
     CBall B;
 public:
     typedef typename CBall::NT NT;
-    typedef typename CBall::BallPoint Point;
+    typedef typename CBall::PointType PointType;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
     BallIntersectPolytope() {}
@@ -29,17 +29,17 @@ public:
     Polytope first() const { return P; }
     CBall second() const { return B; }
 
-    std::pair<Point,NT> InnerBall()
+    std::pair<PointType,NT> InnerBall()
     {
         return P.InnerBall();
     }
 
     NT ComputeDiameter()
     {
-        return NT(4) * B.radius();
+        return NT(2) * B.radius();
     }
 
-    int is_in(Point &p){
+    int is_in(PointType &p){
         if(B.is_in(p)==-1)
             return P.is_in(p);
         return 0;
@@ -61,7 +61,7 @@ public:
         comp_diam(diam);
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v) {
+    std::pair<NT,NT> line_intersect(PointType &r, PointType &v) {
 
         std::pair <NT, NT> polypair = P.line_intersect(r, v);
         std::pair <NT, NT> ballpair = B.line_intersect(r, v);
@@ -69,7 +69,7 @@ public:
                                  std::max(polypair.second, ballpair.second));
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, VT &Ar,
+    std::pair<NT,NT> line_intersect(PointType &r, PointType &v, VT &Ar,
             VT &Av) {
         std::pair <NT, NT> polypair = P.line_intersect(r, v, Ar, Av);
         std::pair <NT, NT> ballpair = B.line_intersect(r, v);
@@ -77,7 +77,7 @@ public:
                                  std::max(polypair.second, ballpair.second));
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, VT &Ar, VT &Av, NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(PointType &r, PointType &v, VT &Ar, VT &Av, NT &lambda_prev) {
 
         std::pair <NT, NT> polypair = P.line_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, NT> ballpair = B.line_intersect(r, v);
@@ -85,7 +85,7 @@ public:
                                  std::max(polypair.second, ballpair.second));
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, VT &Ar, VT &Av) {
+    std::pair<NT,int> line_positive_intersect(PointType &r, PointType &v, VT &Ar, VT &Av) {
 
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av);
         std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
@@ -97,7 +97,7 @@ public:
     }
 
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, VT &Ar, VT &Av,
+    std::pair<NT,int> line_positive_intersect(PointType &r, PointType &v, VT &Ar, VT &Av,
                                               NT &lambda_prev) {
 
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev);
@@ -110,7 +110,7 @@ public:
     }
 
     //First coordinate ray shooting intersecting convex body
-    std::pair<NT,NT> line_intersect_coord(Point &r,
+    std::pair<NT,NT> line_intersect_coord(PointType &r,
                                           const unsigned int &rand_coord,
                                           VT &lamdas) {
 
@@ -121,8 +121,8 @@ public:
     }
 
     //Not the first coordinate ray shooting intersecting convex body
-    std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          const Point &r_prev,
+    std::pair<NT,NT> line_intersect_coord(PointType &r,
+                                          const PointType &r_prev,
                                           const unsigned int &rand_coord,
                                           const unsigned int &rand_coord_prev,
                                           VT &lamdas) {
@@ -133,14 +133,14 @@ public:
                                  std::max(polypair.second, ballpair.second));
     }
 
-    std::pair<NT,NT> query_dual(const Point &p, const unsigned int &rand_coord) {
+    std::pair<NT,NT> query_dual(const PointType &p, const unsigned int &rand_coord) {
         std::pair <NT, NT> polypair = P.query_dual(p, rand_coord);
         std::pair <NT, NT> ballpair = B.line_intersect_coord(p, rand_coord);
         return std::pair<NT, NT>(std::min(polypair.first, ballpair.first),
                                  std::max(polypair.second, ballpair.second));
     }
 
-    void compute_reflection (Point &v, Point &p, int &facet) {
+    void compute_reflection (PointType &v, PointType &p, int &facet) {
 
         if (facet == P.num_of_hyperplanes()) {
             B.compute_reflection(v, p, facet);
