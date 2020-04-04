@@ -511,9 +511,9 @@ struct RandomPointGenerator
                       const unsigned int rnum,
                       const unsigned int walk_length,
                       PointList &randPoints,
-                      WalkPolicy &policy)
+                      WalkPolicy &policy,
+                      unsigned seed)
     {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         Walk walk(P, seed);
         for (auto i=0; i<rnum; ++i)
         {
@@ -538,7 +538,8 @@ template
 >
 double volume(Polytope &P,
               double error = 1.0,
-              unsigned int walk_length = 1)
+              unsigned int walk_length = 1,
+              unsigned seed = 1)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
@@ -575,7 +576,7 @@ double volume(Polytope &P,
         std::list<Point> randPoints; //ds for storing rand points
 
         PushBackWalkPolicy push_back_policy;
-        RandomPointGenerator::apply(P, p, 1, 50*n, randPoints, push_back_policy);
+        RandomPointGenerator::apply(P, p, 1, 50*n, randPoints, push_back_policy, seed);
 
         // Sample "rnum" points from P
 #ifdef VOLESTI_DEBUG
@@ -583,7 +584,7 @@ double volume(Polytope &P,
         std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
 #endif
         RandomPointGenerator::apply(P, p, rnum-1, walk_length, randPoints,
-                                    push_back_policy);
+                                    push_back_policy, seed);
 
 #ifdef VOLESTI_DEBUG
         double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -685,7 +686,7 @@ double volume(Polytope &P,
             CountingWalkPolicy<BallPoly> counting_policy(nump_PBSmall, PBSmall);
             RandomPointGenerator::apply(PBLarge, p_gen, rnum-nump_PBLarge,
                              walk_length, randPoints,
-                             counting_policy);
+                             counting_policy, seed);
 
             nump_PBSmall = counting_policy.get_nump_PBSmall();
 
