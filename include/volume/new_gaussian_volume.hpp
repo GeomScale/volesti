@@ -128,7 +128,7 @@ NT chord_random_point_generator_exp_coord(const NT &l,
 
 /////////////////// Random Walks
 
-// ball walk with gaussian target distribution
+// ball walk with spherical Gaussian target distribution
 struct GaussianBallWalk
 {
 
@@ -142,8 +142,10 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    Walk (Polytope const&, Point&, NT const&, RandomNumberGenerator&)
-    {}
+    Walk (Polytope const& P, Point&, NT const&, RandomNumberGenerator&)
+    {
+        _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+    }
 
     template<typename BallPolytope>
     inline void apply(BallPolytope const& P,
@@ -152,12 +154,10 @@ struct Walk
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
-        const NT delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-
         for (auto j=0u; j<walk_length; ++j)
         {
             Point y = GetPointInDsphere<Point>::apply(P.dimension(),
-                                                      delta,
+                                                      _delta,
                                                       rng);
             y += p;
             if (P.is_in(y) == -1)
@@ -171,11 +171,19 @@ struct Walk
             }
         }
     }
+
+    inline void update_delta(NT delta)
+    {
+        _delta = delta;
+    }
+
+private :
+    NT _delta;
 };
 
 };
 
-// random directions hit-and-run walk with uniform target distribution
+// random directions hit-and-run walk with spherical Gaussian target distribution
 struct GaussianRDHRWalk
 {
 
@@ -219,7 +227,7 @@ struct Walk
 
 };
 
-// random directions hit-and-run walk with uniform target distribution
+// coordinate directions hit-and-run walk with spherical Gaussian target distribution
 struct GaussianCDHRWalk
 {
 
@@ -319,6 +327,26 @@ private :
 
 };
 
+/////////////////// Helpers for random walks
+
+template <typename WalkType>
+struct update_delta
+{
+    template <typename NT>
+    static void apply(WalkType, NT) {}
+};
+
+template <typename Polytope, typename RandomNumberGenerator>
+struct update_delta<GaussianBallWalk::Walk<Polytope, RandomNumberGenerator>>
+{
+    template <typename NT>
+    static void apply(GaussianBallWalk::Walk<Polytope, RandomNumberGenerator> walk,
+                      NT delta)
+    {
+        walk.update_delta(delta);
+    }
+};
+
 
 ////////////////////////////// Random Point Generators
 ///
@@ -359,11 +387,8 @@ struct GaussianRandomPointGenerator
 
 ////////////////////////////// Algorithms
 
-
-
 ///////////////////////////////////////////
 // Gaussian Anealling
-
 
 // Implementation is based on algorithm from paper "A practical volume algorithm",
 // Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society 2015
@@ -385,17 +410,16 @@ std::pair<NT, NT> getMeanVariance2(std::vector<NT>& vec)
         M2 += delta * (*vecit - mean);
         variance = M2 / (i + 1);
     }
-
     return std::pair<NT, NT> (mean, variance);
 }
 
 
 // Compute the first variance a_0 for the starting gaussian
-template <typename Polytope, typename Parameters, typename NT>
+template <typename Polytope, typename NT>
 void get_first_gaussian(Polytope & P,
                         NT const& frac,
-                        Parameters const& var,
-                        NT & error,
+                        NT const& chebychev_radius,
+                        NT const& error,
                         std::vector<NT> & a_vals)
 {
 
@@ -411,7 +435,7 @@ void get_first_gaussian(Polytope & P,
     }
 
     NT sum, lower = 0.0, upper = 1.0, mid;
-    std::vector <NT> dists = P.get_dists(var.che_rad);
+    std::vector <NT> dists = P.get_dists(chebychev_radius);
 
     // Compute an upper bound for a_0
     for (i= 1; i <= maxiter; ++i) {
@@ -438,7 +462,8 @@ void get_first_gaussian(Polytope & P,
     }
 
     //get a_0 with binary search
-    while (upper - lower > tol) {
+    while (upper - lower > tol)
+    {
         mid = (upper + lower) / 2.0;
         sum = 0.0;
         for (viterator it = dists.begin(); it != dists.end(); ++it) {
@@ -452,9 +477,7 @@ void get_first_gaussian(Polytope & P,
             lower = mid;
         }
     }
-
     a_vals.push_back((upper + lower) / NT(2.0));
-    error = (1.0 - frac) * error;
 }
 
 
@@ -463,7 +486,6 @@ template
 <
     typename RandomPointGenerator,
     typename Polytope,
-    typename Parameters,
     typename Point,
     typename NT,
     typename RandomNumberGenerator
@@ -474,7 +496,7 @@ NT get_next_gaussian2(Polytope &P,
                       const unsigned int &N,
                       const NT &ratio,
                       const NT &C,
-                      Parameters const& var,
+                      const unsigned int& walk_length,
                       RandomNumberGenerator& rng)
 {
 
@@ -488,11 +510,9 @@ NT get_next_gaussian2(Polytope &P,
     std::list<Point> randPoints;
     typedef typename std::vector<NT>::iterator viterator;
 
-    //sample N points using hit and run or ball walk
-    //rand_gaussian_point_generator(P, p, N, var.walk_steps, randPoints, last_a, var);
-
+    //sample N points
     PushBackWalkPolicy push_back_policy;
-    RandomPointGenerator::apply(P, p, last_a, N, var.walk_steps, randPoints,
+    RandomPointGenerator::apply(P, p, last_a, N, walk_length, randPoints,
                                 push_back_policy, rng);
 
     viterator fnit;
@@ -528,7 +548,6 @@ template
 <
     typename RandomPointGenerator,
     typename Polytope,
-    typename Parameters,
     typename NT,
     typename RandomNumberGenerator,
     typename WalkType
@@ -537,9 +556,10 @@ void get_annealing_schedule2(Polytope &P,
                             const NT &ratio,
                             const NT &C,
                             const NT &frac,
-                            const unsigned int &N,
-                            Parameters &var,
-                            NT &error,
+                            const unsigned int& N,
+                            const unsigned int& walk_length,
+                            NT const& chebychev_radius,
+                            NT const& error,
                             std::vector<NT> &a_vals,
                             RandomNumberGenerator& rng,
                             WalkType& walk)
@@ -548,7 +568,7 @@ void get_annealing_schedule2(Polytope &P,
     typedef typename Polytope::PointType Point;
 
     // Compute the first gaussian
-    get_first_gaussian(P, frac, var, error, a_vals);
+    get_first_gaussian(P, frac, chebychev_radius, error, a_vals);
 
 #ifdef VOLESTI_DEBUG
     std::cout<<"first gaussian computed\n"<<std::endl;
@@ -560,10 +580,9 @@ void get_annealing_schedule2(Polytope &P,
     NT next_a;
     const NT tol = 0.001;
     unsigned int it = 0;
-    unsigned int n = var.n;
+    unsigned int n = P.dimension();
     unsigned int steps;
-    unsigned int coord_prev;
-    const unsigned int totalSteps= ((int)150/error)+1;
+    const unsigned int totalSteps= ((int)150/((1.0 - frac) * error))+1;
 
     if (a_vals[0]<a_stop) a_vals[0] = a_stop;
 
@@ -573,44 +592,29 @@ void get_annealing_schedule2(Polytope &P,
 #endif
 
     Point p(n);
-    Point p_prev=p;
-
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     VT lamdas;
     lamdas.setZero(P.num_of_hyperplanes());
 
     while (true)
     {
-        if (var.ball_walk) {
-            var.delta = 4.0 * var.che_rad
-                    / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n));
-        }
+        update_delta<WalkType>
+                ::apply(walk, 4.0 * chebychev_radius
+                        / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
+
         // Compute the next gaussian
-        //next_a = get_next_gaussian2(P, p, a_vals[it], N, ratio, C, var);
         next_a = get_next_gaussian2<RandomPointGenerator>
-                      (P, p, a_vals[it], N, ratio, C, var, rng);
+                      (P, p, a_vals[it], N, ratio, C, walk_length, rng);
 
         curr_fn = 0;
         curr_its = 0;
         lamdas.setConstant(NT(0));
         steps = totalSteps;
 
-        /*
-        if (var.cdhr_walk){
-            gaussian_first_coord_point(P, p, p_prev, coord_prev, var.walk_steps,
-                                       a_vals[it], lamdas, var);
-            curr_its += 1.0;
-            curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
-            steps--;
-        }*/
-
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++)
         {
-            //gaussian_next_point(P, p, p_prev, coord_prev, var.walk_steps,
-            //                    a_vals[it], lamdas, var);
-
-            walk.template apply(P, p, a_vals[it], var.walk_steps, rng);
+            walk.template apply(P, p, a_vals[it], walk_length, rng);
 
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
@@ -635,57 +639,74 @@ void get_annealing_schedule2(Polytope &P,
 
 }
 
+template <typename NT>
+struct gaussian_annealing_parameters
+{
+    gaussian_annealing_parameters(unsigned int d)
+        :   frac(0.1)
+        ,   ratio(NT(1)-NT(1)/(NT(d)))
+        ,   C(NT(2))
+        ,   N(500 * ((int) C) + ((int) (d * d / 2)))
+        ,   W(6*d*d+800)
+    {}
+
+    NT frac;
+    NT ratio;
+    NT C;
+    unsigned int N;
+    unsigned int W;
+};
+
 template
 <
-    typename RNGType,
-    typename WalkTypePolicy = GaussianBallWalk,
+    typename WalkTypePolicy = GaussianCDHRWalk,
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, double>,
-    typename Polytope,
-    typename GParameters,
-    typename Point,
-    typename NT
+    typename Polytope
 >
-NT volume_gaussian_annealing(Polytope &P,
-                             GParameters & var,
-                             std::pair<Point,NT> InnerBall)
+double volume_gaussian_annealing(Polytope &P,
+                                 double const& error = 1.0,
+                                 unsigned int const& walk_length = 1)
 {
-
+    typedef typename Polytope::PointType Point;
+    typedef typename Point::FT NT;
+    gaussian_annealing_parameters<NT> parameters(P.dimension());
     typedef typename Polytope::VT 	VT;
     const NT maxNT = 1.79769e+308;
     const NT minNT = -1.79769e+308;
     NT vol;
     bool done;
-    unsigned int n = var.n;
+    unsigned int n = P.dimension();
     unsigned int m = P.num_of_hyperplanes();
     unsigned int min_index, max_index, index, min_steps;
-    NT error = var.error, curr_eps, min_val, max_val, val;
-    NT frac = var.frac;
+    NT curr_eps;
+    NT min_val;
+    NT max_val;
+    NT val;
+    NT frac = parameters.frac;
     typedef typename std::vector<NT>::iterator viterator;
 
     typedef typename WalkTypePolicy::template Walk
                                               <
-                                                Polytope,
-                                                RandomNumberGenerator
+                                                    Polytope,
+                                                    RandomNumberGenerator
                                               > WalkType;
     typedef GaussianRandomPointGenerator<WalkType> RandomPointGenerator;
 
     RandomNumberGenerator rng(P.dimension());
 
     // Consider Chebychev center as an internal point
+    auto InnerBall = P.InnerBall();
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
-
-    // Save the radius of the Chebychev ball
-    var.che_rad = radius;
 
     // Move the chebychev center to the origin and apply the same shifting to the polytope
     P.shift(c.getCoefficients());
 
     // Initialization for the schedule annealing
     std::vector<NT> a_vals;
-    NT ratio = var.ratio;
-    NT C = var.C;
-    unsigned int N = var.N;
+    NT ratio = parameters.ratio;
+    NT C = parameters.C;
+    unsigned int N = parameters.N;
 
     // Computing the sequence of gaussians
 #ifdef VOLESTI_DEBUG
@@ -695,7 +716,8 @@ NT volume_gaussian_annealing(Polytope &P,
 
     WalkType walk(P, c, 1, rng);
     get_annealing_schedule2<RandomPointGenerator>(P, ratio, C, frac,
-                                                  N, var, error, a_vals, rng, walk);
+                                                  N, walk_length, radius, error,
+                                                  a_vals, rng, walk);
 
 #ifdef VOLESTI_DEBUG
     std::cout<<"All the variances of schedule_annealing computed in = "
@@ -708,13 +730,13 @@ NT volume_gaussian_annealing(Polytope &P,
     unsigned int mm = a_vals.size()-1;
 
     // Initialization for the approximation of the ratios
-    unsigned int W = var.W;
-    unsigned int coord_prev, i=0;
+    unsigned int W = parameters.W;
+    unsigned int i=0;
     std::vector<NT> last_W2(W,0), fn(mm,0), its(mm,0);
     VT lamdas;
     lamdas.setZero(m);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0);
-    Point p(n), p_prev(n); // The origin is the Chebychev center of the Polytope
+    Point p(n); // The origin is the Chebychev center of the Polytope
     viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
 
 #ifdef VOLESTI_DEBUG
@@ -722,13 +744,9 @@ NT volume_gaussian_annealing(Polytope &P,
     std::cout<<"computing ratios..\n"<<std::endl;
 #endif
 
-    // Compute the first point if CDHR is requested
-    //if(var.cdhr_walk){
-    //    gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
-    //}
-
+    //iterate over the number of ratios
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++)
-    { //iterate over the number of ratios
+    {
         //initialize convergence test
         curr_eps = error/std::sqrt((NT(mm)));
         done=false;
@@ -740,17 +758,14 @@ NT volume_gaussian_annealing(Polytope &P,
         min_steps=0;
         std::vector<NT> last_W=last_W2;
 
-        // Set the radius for the ball walk if it is requested
-        if (var.ball_walk) {
-            var.delta = 4.0 * radius / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n));
-        }
+        // Set the radius for the ball walk
+        update_delta<WalkType>
+                ::apply(walk, 4.0 * radius
+                         / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n)));
 
-        while(!done || (*itsIt)<min_steps)
+        while (!done || (*itsIt)<min_steps)
         {
-
-            //gaussian_next_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
-
-            walk.template apply(P, p, *avalsIt, var.walk_steps, rng);
+            walk.template apply(P, p, *avalsIt, walk_length, rng);
 
             *itsIt = *itsIt + 1.0;
             *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);
