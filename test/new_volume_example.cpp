@@ -155,6 +155,12 @@ int main()
               << volume_gaussian_annealing<RNGType, GaussianRDHRWalk>(HP, var1, CheBall) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "new GC CDHR (cube) = "
+              << volume_gaussian_annealing<RNGType, GaussianCDHRWalk>(HP, var1, CheBall) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+
 /*
     {
         tstart = (double)clock()/(double)CLOCKS_PER_SEC;

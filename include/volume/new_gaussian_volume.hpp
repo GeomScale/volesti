@@ -81,6 +81,51 @@ void chord_random_point_generator_exp(Point &lower,
     }
 }
 
+// Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
+template
+<
+    typename NT,
+    typename RandomNumberGenerator
+>
+NT chord_random_point_generator_exp_coord(const NT &l,
+                                          const NT &u,
+                                          const NT &a_i,
+                                          RandomNumberGenerator& rng)
+{
+    NT r, r_val, fn, dis;
+    const NT tol = 0.00000001;
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
+    //RNGType &rng2 = var.rng;
+    // pick from 1-dimensional gaussian if enough weight is inside polytope P
+    if (a_i > tol && u - l >= 2.0 / std::sqrt(2.0 * a_i)) {
+        //boost::normal_distribution<> rdist(0, 1);
+        while (true) {
+            r = rng.sample_ndist();//rdist(rng2);
+            r = r / std::sqrt(2.0 * a_i);
+            if (r >= l && r <= u) {
+                break;
+            }
+        }
+        dis = r;
+
+    // select using rejection sampling from a bounding rectangle
+    } else {
+        //boost::random::uniform_real_distribution<> urdist(0, 1);
+        NT M = get_max_coord(l, u, a_i);
+        while (true) {
+            r = rng.sample_urdist();//urdist(rng2);
+            dis = (1.0 - r) * l + r * u;
+            r_val = M * rng.sample_urdist();//urdist(rng2);
+            fn = std::exp(-a_i * dis * dis);
+            if (r_val < fn) {
+                break;
+            }
+        }
+    }
+    return dis;
+}
+
 /////////////////// Random Walks
 
 // ball walk with gaussian target distribution
@@ -96,13 +141,8 @@ struct Walk
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef Ball<Point> BallType;
-    typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    Walk (Polytope const&, Point&, RandomNumberGenerator&)
-    {}
-
-    Walk (BallPolytope const&, Point &, RandomNumberGenerator &)
+    Walk (Polytope const&, Point&, NT const&, RandomNumberGenerator&)
     {}
 
     template<typename BallPolytope>
@@ -149,7 +189,7 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng)
+    Walk(Polytope const&, Point &, NT const&, RandomNumberGenerator &)
     {}
 
     template
@@ -195,14 +235,9 @@ struct Walk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng)
+    Walk(Polytope const& P, Point & p, NT const& a_i, RandomNumberGenerator &rng)
     {
-        initialize(P, p, rng);
-    }
-
-    Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng)
-    {
-        initialize(P, p, rng);
+        initialize(P, p, a_i, rng);
     }
 
     template
@@ -211,11 +246,25 @@ struct Walk
     >
     inline void apply(BallPolytope const& P,
                       Point &p,   // a point to start
+                      NT const& a_i,
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
         for (auto j=0u; j<walk_length; ++j)
         {
+            auto rand_coord_prev = _rand_coord;
+            _rand_coord = rng.sample_uidist();
+            std::pair <NT, NT> bpair =
+                    P.line_intersect_coord(_p, _p_prev, _rand_coord,
+                                           rand_coord_prev, _lamdas);
+            NT dis = chord_random_point_generator_exp_coord
+                        (_p[_rand_coord] + bpair.second,
+                         _p[_rand_coord] + bpair.first,
+                         a_i,
+                         rng);
+            _p_prev = _p;
+            _p.set_coord(_rand_coord, dis);
+            /*
             auto rand_coord_prev = _rand_coord;
             _rand_coord = rng.sample_uidist();
             NT kapa = rng.sample_urdist();
@@ -227,6 +276,7 @@ struct Walk
             _p_prev = _p;
             _p.set_coord(_rand_coord, _p[_rand_coord] + bpair.first + kapa
                          * (bpair.second - bpair.first));
+            */
         }
         p = _p;
     }
@@ -236,8 +286,20 @@ private :
     template <typename BallPolytope>
     inline void initialize(BallPolytope const& P,
                            Point &p,
+                           NT const& a_i,
                            RandomNumberGenerator &rng)
     {
+        _lamdas.setZero(P.num_of_hyperplanes());
+        _rand_coord = rng.sample_uidist();//(rng2);
+        _p = p;
+        std::pair <NT, NT> bpair = P.line_intersect_coord(_p, _rand_coord, _lamdas);
+        NT dis = chord_random_point_generator_exp_coord
+                    (_p[_rand_coord] + bpair.second,
+                     _p[_rand_coord] + bpair.first,
+                     a_i, rng);
+        _p_prev = p;
+        _p.set_coord(_rand_coord, dis);
+        /*
         _lamdas.setZero(P.num_of_hyperplanes());
         _rand_coord = rng.sample_uidist();
         NT kapa = rng.sample_urdist();
@@ -246,6 +308,7 @@ private :
         _p_prev = _p;
         _p.set_coord(_rand_coord, _p[_rand_coord] + bpair.first + kapa
                     * (bpair.second - bpair.first));
+        */
     }
 
     unsigned int _rand_coord;
@@ -284,7 +347,7 @@ struct GaussianRandomPointGenerator
                       WalkPolicy &policy,
                       RandomNumberGenerator &rng)
     {
-        Walk walk(P, p, rng);
+        Walk walk(P, p, a_i, rng);
         for (unsigned int i=0; i<rnum; ++i)
         {
             walk.template apply(P, p, a_i, walk_length, rng);
@@ -630,7 +693,7 @@ NT volume_gaussian_annealing(Polytope &P,
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
 #endif
 
-    WalkType walk(P, c, rng);
+    WalkType walk(P, c, 1, rng);
     get_annealing_schedule2<RandomPointGenerator>(P, ratio, C, frac,
                                                   N, var, error, a_vals, rng, walk);
 
