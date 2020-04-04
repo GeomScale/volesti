@@ -11,7 +11,6 @@
 #ifndef NEW_VOLUME_H
 #define NEW_VOLUME_H
 
-
 #include <iterator>
 #include <vector>
 #include <list>
@@ -31,6 +30,105 @@
 #include "gaussian_annealing.h"
 
 #include "khach.h"
+
+/////////////////// Random walk helpers
+///
+/*
+// Pick a random direction as a normilized vector
+template <typename RNGType, typename Point, typename NT>
+Point get_direction(const unsigned int dim) {
+
+    boost::normal_distribution<> rdist(0,1);
+    NT normal = NT(0);
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(seed);
+
+    Point p(dim);
+    NT* data = p.pointerToData();
+
+    //RNGType rng2 = var.rng;
+    for (unsigned int i=0; i<dim; ++i) {
+        *data = rdist(rng);
+        normal += *data * *data;
+        data++;
+    }
+
+    normal=1.0/std::sqrt(normal);
+    p *= normal;
+
+    return p;
+}
+
+
+// Pick a random point from a d-sphere
+template <typename RNGType, typename Point, typename NT>
+Point get_point_on_Dsphere(const unsigned int dim, const NT &radius){
+    Point p = get_direction<RNGType, Point, NT>(dim);
+    if (radius != 0) p *= radius;
+    return p;
+}
+*/
+
+template <typename RNGType, typename Point>
+struct GetDirection
+{
+    typedef typename Point::FT NT;
+
+    GetDirection(unsigned seed = 1)
+        :   _rng(seed)
+        ,   _ndist(0,1)
+    {}
+
+    Point apply(unsigned int const& dim)
+    {
+        NT normal = NT(0);
+        Point p(dim);
+        NT* data = p.pointerToData();
+
+        for (unsigned int i=0; i<dim; ++i)
+        {
+            *data = _ndist(_rng);
+            normal += *data * *data;
+            data++;
+        }
+
+        normal = NT(1)/std::sqrt(normal);
+        p *= normal;
+
+        return p;
+    }
+
+private :
+    RNGType _rng;
+    boost::normal_distribution<> _ndist;
+};
+
+template <typename RNGType, typename Point>
+struct GetPointInDsphere
+{
+    GetPointInDsphere(unsigned seed = 1)
+        :   _rng(seed)
+        ,   _urdist(0,1)
+    {}
+
+    template <typename NT>
+    Point apply(unsigned int const& dim,
+                NT const& radius)
+    {
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        GetDirection<RNGType, Point> generator(seed);
+        Point p = generator.apply(dim);
+        NT U = _urdist(_rng);
+        U = std::pow(U, NT(1)/(NT(dim)));
+        p *= radius * U;
+        return p;
+    }
+
+private :
+    RNGType _rng;
+    boost::random::uniform_real_distribution<> _urdist;
+};
+
 
 /////////////////// Random Walks
 
@@ -66,9 +164,10 @@ struct BallWalk
 
         for (auto j=0; j<walk_length; ++j)
         {
-            Point y = get_point_in_Dsphere<RNGType, Point>(p.dimension(), delta);
-            y = y + p;
-            if (P.is_in(y)==-1) p = y;
+            GetPointInDsphere<RNGType, Point> generator;
+            Point y = generator.apply(p.dimension(), delta);
+            y += p;
+            if (P.is_in(y) == -1) p = y;
         }
     }
 };
@@ -86,13 +185,17 @@ struct RDHRWalk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    RDHRWalk(Polytope P)
+    RDHRWalk(Polytope P, unsigned seed = 1)
+        :   _rng(seed)
+        ,   _urdist(0,1)
     {
         Point center = P.InnerBall().first;
         initialize(P, center);
     }
 
-    RDHRWalk(BallPolytope P)
+    RDHRWalk(BallPolytope P, unsigned seed = 1)
+        :   _rng(seed)
+        ,   _urdist(0,1)
     {
         Point center = P.InnerBall().first;
         initialize(P, center);
@@ -106,18 +209,14 @@ struct RDHRWalk
                Point &p,   // a point to start
                const unsigned int walk_length)
     {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        RNGType rng(seed);
-        boost::random::uniform_real_distribution<> urdist(0, 1);
-
         for (auto j=0; j<walk_length; ++j)
         {
             Point v = get_direction<RNGType, Point, NT>(p.dimension());
             std::pair<NT, NT> bpair = P.line_intersect(_p, v, _lamdas, _Av,
                                                        _lambda);
-            _lambda = urdist(rng) * (bpair.first - bpair.second)
+            _lambda = _urdist(_rng) * (bpair.first - bpair.second)
                     + bpair.second;
-            _p = (_lambda * v) + _p;
+            _p += (_lambda * v);
         }
         p = _p;
     }
@@ -127,22 +226,21 @@ private :
     template <typename BallPolytope>
     void initialize(BallPolytope &P, Point &p)
     {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        RNGType rng(seed);
-        boost::random::uniform_real_distribution<> urdist(0, 1);
+        _lamdas.setZero(P.num_of_hyperplanes());
+        _Av.setZero(P.num_of_hyperplanes());
 
-        _lamdas.resize(P.num_of_hyperplanes(), NT(0));
-        _Av.resize(P.num_of_hyperplanes(), NT(0));
         Point v = get_direction<RNGType, Point, NT>(p.dimension());
         std::pair<NT, NT> bpair = P.line_intersect(p, v, _lamdas, _Av);
-        _lambda = urdist(rng) * (bpair.first - bpair.second) + bpair.second;
+        _lambda = _urdist(_rng) * (bpair.first - bpair.second) + bpair.second;
         _p = (_lambda * v) + p;
     }
 
     Point _p;
     NT _lambda;
-    std::vector<NT> _lamdas;
-    std::vector<NT> _Av;
+    typename Point::Coeff _lamdas;
+    typename Point::Coeff _Av;
+    RNGType _rng;
+    boost::random::uniform_real_distribution<> _urdist;
 };
 
 
@@ -159,13 +257,19 @@ struct CDHRWalk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    CDHRWalk(Polytope P)
+    CDHRWalk(Polytope P, unsigned seed = 1)
+        :   _rng(seed)
+        ,   _urdist(0,1)
+        ,   _uidist(0, P.dimension()-1)
     {
         Point center = P.InnerBall().first;
         initialize(P, center);
     }
 
-    CDHRWalk(BallPolytope P)
+    CDHRWalk(BallPolytope P, unsigned seed = 1)
+        :   _rng(seed)
+        ,   _urdist(0,1)
+        ,   _uidist(0, P.dimension()-1)
     {
         Point center = P.InnerBall().first;
         initialize(P, center);
@@ -179,16 +283,11 @@ struct CDHRWalk
                Point &p,   // a point to start
                const unsigned int walk_length)
     {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        RNGType rng(seed);
-        boost::random::uniform_real_distribution<> urdist(0, 1);
-        boost::random::uniform_int_distribution<> uidist(0, p.dimension()-1);
-
         for (auto j=0; j<walk_length; ++j)
         {
             auto rand_coord_prev = _rand_coord;
-            _rand_coord = uidist(rng);
-            NT kapa = urdist(rng);
+            _rand_coord = _uidist(_rng);
+            NT kapa = _urdist(_rng);
             std::pair<NT, NT> bpair = P.line_intersect_coord(_p,
                                                              _p_prev,
                                                              _rand_coord,
@@ -206,14 +305,9 @@ private :
     template <typename BallPolytope>
     void initialize(BallPolytope &P, Point &p)
     {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        RNGType rng(seed);
-        boost::random::uniform_real_distribution<> urdist(0, 1);
-        boost::random::uniform_int_distribution<> uidist(0, p.dimension()-1);
-
-        _lamdas.resize(P.num_of_hyperplanes(), NT(0));
-        _rand_coord = uidist(rng);
-        NT kapa = urdist(rng);
+        _lamdas.setZero(P.num_of_hyperplanes());
+        _rand_coord = _uidist(_rng);
+        NT kapa = _urdist(_rng);
         _p = p;
         std::pair<NT, NT> bpair = P.line_intersect_coord(_p, _rand_coord, _lamdas);
         _p_prev = _p;
@@ -224,7 +318,10 @@ private :
     unsigned int _rand_coord;
     Point _p;
     Point _p_prev;
-    std::vector<NT> _lamdas;
+    typename Point::Coeff _lamdas;
+    RNGType _rng;
+    boost::random::uniform_real_distribution<> _urdist;
+    boost::random::uniform_int_distribution<> _uidist;
 };
 
 
@@ -241,13 +338,17 @@ struct BilliardWalk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    BilliardWalk(Polytope P)
+    BilliardWalk(Polytope P, unsigned seed = 1)
+        :   _rng(seed)
+        ,   _urdist(0,1)
     {
         Point center = P.InnerBall().first;
         initialize(P, center);
     }
 
-    BilliardWalk(BallPolytope P)
+    BilliardWalk(BallPolytope P, unsigned seed = 1)
+        :   _rng(seed)
+        ,   _urdist(0,1)
     {
         Point center = P.InnerBall().first;
         initialize(P, center);
@@ -261,18 +362,14 @@ struct BilliardWalk
                Point &p,   // a point to start
                const unsigned int walk_length)
     {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        RNGType rng(seed);
-        boost::random::uniform_real_distribution<> urdist(0, 1);
-
         unsigned int n = P.dimension();
         NT diameter = P.ComputeDiameter();
-        NT T = urdist(rng) * diameter;
+        NT T = _urdist(_rng) * diameter;
         const NT dl = 0.995;
 
         for (auto j=0; j<walk_length; ++j)
         {
-            T = urdist(rng) * diameter;
+            T = _urdist(_rng) * diameter;
             _v = get_direction<RNGType, Point, NT>(n);
             Point p0 = _p;
             auto it = 0;
@@ -281,12 +378,12 @@ struct BilliardWalk
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev);
                 if (T <= pbpair.first) {
-                    _p = (T * _v) + _p;
+                    _p += (T * _v);
                     _lambda_prev = T;
                     break;
                 }
                 _lambda_prev = dl * pbpair.first;
-                _p = (_lambda_prev * _v) + _p;
+                _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
@@ -305,10 +402,6 @@ private :
     void initialize(GenericPolytope &P,
                     Point &p)
     {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        RNGType rng(seed);
-        boost::random::uniform_real_distribution<> urdist(0, 1);
-
         unsigned int n = P.dimension();
         const NT dl = 0.995;
         NT diameter = P.ComputeDiameter();
@@ -318,16 +411,16 @@ private :
         _p = p;
         _v = get_direction<RNGType, Point, NT>(n);
 
-        NT T = urdist(rng) * diameter;
+        NT T = _urdist(_rng) * diameter;
         std::pair<NT, int> pbpair
                 = P.line_positive_intersect(_p, _v, _lambdas, _Av);
         if (T <= pbpair.first) {
-            _p = (T * _v) + _p;
+            _p += (T * _v);
             _lambda_prev = T;
             return;
         }
         _lambda_prev = dl * pbpair.first;
-        _p = (_lambda_prev * _v) + _p;
+        _p += (_lambda_prev * _v);
         T -= _lambda_prev;
         P.compute_reflection(_v, _p, pbpair.second);
     }
@@ -335,8 +428,10 @@ private :
     Point _p;
     Point _v;
     NT _lambda_prev;
-    std::vector<NT> _lambdas;
-    std::vector<NT> _Av;
+    typename Point::Coeff _lambdas;
+    typename Point::Coeff _Av;
+    RNGType _rng;
+    boost::random::uniform_real_distribution<> _urdist;
 };
 
 
@@ -407,6 +502,8 @@ struct RandomPointGenerator
                       PointList &randPoints,
                       WalkPolicy &policy)
     {
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+
         Walk walk(P);
         for (auto i=0; i<rnum; ++i)
         {
