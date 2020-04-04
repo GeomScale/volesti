@@ -9,7 +9,11 @@
 #include <unistd.h>
 #include "Eigen/Eigen"
 #include "volume.h"
-#include "polytope_generators.h"
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
+#include "generators/known_polytope_generators.h"
 
 template <typename NT>
 NT factorial(NT n)
