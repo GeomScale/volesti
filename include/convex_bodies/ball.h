@@ -23,6 +23,16 @@ public:
 
     Ball(Point cc, NT RR) : c(cc),	 R(RR) {}
 
+    NT ComputeDiameter() const
+    {
+        return std::sqrt(R) * 2;
+    }
+
+    std::pair<Point,NT> InnerBall() const
+    {
+        return std::pair<Point,NT>(c, R);
+    }
+
     Point center() const
     {
         return c;
