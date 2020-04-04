@@ -391,7 +391,7 @@ struct GaussianRandomPointGenerator
 
 //An implementation of Welford's algorithm for mean and variance.
 template <typename NT>
-std::pair<NT, NT> getMeanVariance2(std::vector<NT>& vec)
+std::pair<NT, NT> get_mean_variance(std::vector<NT>& vec)
 {
     NT mean = 0;
     NT M2 = 0;
@@ -399,7 +399,8 @@ std::pair<NT, NT> getMeanVariance2(std::vector<NT>& vec)
     NT delta;
 
     unsigned int i=0;
-    for (auto vecit = vec.begin(); vecit!=vec.end(); vecit++, i++){
+    for (auto vecit = vec.begin(); vecit!=vec.end(); vecit++, i++)
+    {
         delta = *vecit - mean;
         mean += delta / (i + 1);
         M2 += delta * (*vecit - mean);
@@ -411,31 +412,24 @@ std::pair<NT, NT> getMeanVariance2(std::vector<NT>& vec)
 
 // Compute the first variance a_0 for the starting gaussian
 template <typename Polytope, typename NT>
-void get_first_gaussian(Polytope & P,
+void get_first_gaussian(Polytope const& P,
                         NT const& frac,
                         NT const& chebychev_radius,
                         NT const& error,
                         std::vector<NT> & a_vals)
 {
-
-    unsigned int i;
-    const unsigned int maxiter = 10000;
-    typedef typename std::vector<NT>::iterator viterator;
-    NT tol;
     // if tol is smaller than 1e-6 no convergence can be obtained when float is used
-    if (eqTypes<float, NT>()) {
-        tol = 0.001;
-    } else {
-        tol = 0.0000001;
-    }
-
-    NT sum, lower = 0.0, upper = 1.0, mid;
+    NT tol = eqTypes<float, NT>() ? 0.001 : 0.0000001;
     std::vector <NT> dists = P.get_dists(chebychev_radius);
+    NT lower = 0.0;
+    NT upper = 1.0;
 
     // Compute an upper bound for a_0
+    unsigned int i;
+    const unsigned int maxiter = 10000;
     for (i= 1; i <= maxiter; ++i) {
-        sum = 0.0;
-        for (viterator it = dists.begin(); it != dists.end(); ++it)
+        NT sum = 0.0;
+        for (auto it = dists.begin(); it != dists.end(); ++it)
         {
             sum += std::exp(-upper * std::pow(*it, 2.0))
                     / (2.0 * (*it) * std::sqrt(M_PI * upper));
@@ -459,9 +453,9 @@ void get_first_gaussian(Polytope & P,
     //get a_0 with binary search
     while (upper - lower > tol)
     {
-        mid = (upper + lower) / 2.0;
-        sum = 0.0;
-        for (viterator it = dists.begin(); it != dists.end(); ++it) {
+        NT mid = (upper + lower) / 2.0;
+        NT sum = 0.0;
+        for (auto it = dists.begin(); it != dists.end(); ++it) {
             sum += std::exp(-mid * std::pow(*it, 2.0))
                     / (2.0 * (*it) * std::sqrt(M_PI * mid));
         }
@@ -485,14 +479,14 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-NT get_next_gaussian2(Polytope &P,
-                      Point &p,
-                      NT a,
-                      const unsigned int &N,
-                      const NT &ratio,
-                      const NT &C,
-                      const unsigned int& walk_length,
-                      RandomNumberGenerator& rng)
+NT get_next_gaussian(Polytope const& P,
+                     Point &p,
+                     NT const& a,
+                     const unsigned int &N,
+                     const NT &ratio,
+                     const NT &C,
+                     const unsigned int& walk_length,
+                     RandomNumberGenerator& rng)
 {
 
     NT last_a = a;
@@ -510,17 +504,16 @@ NT get_next_gaussian2(Polytope &P,
     RandomPointGenerator::apply(P, p, last_a, N, walk_length, randPoints,
                                 push_back_policy, rng);
 
-    viterator fnit;
     while (!done)
     {
-        a = last_a*std::pow(ratio,k);
+        NT new_a = last_a * std::pow(ratio,k);
 
-        fnit = fn.begin();
+        auto fnit = fn.begin();
         for (auto pit=randPoints.begin(); pit!=randPoints.end(); ++pit, fnit++)
         {
-            *fnit = eval_exp(*pit,a)/eval_exp(*pit, last_a);
+            *fnit = eval_exp(*pit, new_a)/eval_exp(*pit, last_a);
         }
-        std::pair<NT, NT> mv = getMeanVariance(fn);
+        std::pair<NT, NT> mv = get_mean_variance(fn);
 
         // Compute a_{i+1}
         if (mv.second/(mv.first * mv.first)>=C || mv.first/last_ratio<1.0+tol)
@@ -529,7 +522,7 @@ NT get_next_gaussian2(Polytope &P,
             {
                 k = k / 2;
             }
-            done=true;
+            done = true;
         } else {
             k = 2 * k;
         }
@@ -547,20 +540,20 @@ template
     typename RandomNumberGenerator,
     typename WalkType
 >
-void get_annealing_schedule2(Polytope &P,
-                            const NT &ratio,
-                            const NT &C,
-                            const NT &frac,
-                            const unsigned int& N,
-                            const unsigned int& walk_length,
+void get_annealing_schedule(Polytope const& P,
+                            NT const& ratio,
+                            NT const& C,
+                            NT const& frac,
+                            unsigned int const& N,
+                            unsigned int const& walk_length,
                             NT const& chebychev_radius,
                             NT const& error,
-                            std::vector<NT> &a_vals,
+                            std::vector<NT>& a_vals,
                             RandomNumberGenerator& rng,
                             WalkType& walk)
 {
-
     typedef typename Polytope::PointType Point;
+    typedef typename Polytope::VT VT;
 
     // Compute the first gaussian
     get_first_gaussian(P, frac, chebychev_radius, error, a_vals);
@@ -570,8 +563,6 @@ void get_annealing_schedule2(Polytope &P,
 #endif
 
     NT a_stop = 0.0;
-    NT curr_fn = 2.0;
-    NT curr_its = 1.0;
     const NT tol = 0.001;
     unsigned int it = 0;
     unsigned int n = P.dimension();
@@ -584,7 +575,6 @@ void get_annealing_schedule2(Polytope &P,
 #endif
 
     Point p(n);
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     VT lamdas;
     lamdas.setZero(P.num_of_hyperplanes());
 
@@ -595,11 +585,11 @@ void get_annealing_schedule2(Polytope &P,
                         / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
 
         // Compute the next gaussian
-        NT next_a = get_next_gaussian2<RandomPointGenerator>
+        NT next_a = get_next_gaussian<RandomPointGenerator>
                       (P, p, a_vals[it], N, ratio, C, walk_length, rng);
 
-        curr_fn = 0;
-        curr_its = 0;
+        NT curr_fn = 0;
+        NT curr_its = 0;
         lamdas.setConstant(NT(0));
         auto steps = totalSteps;
 
@@ -607,7 +597,6 @@ void get_annealing_schedule2(Polytope &P,
         for (unsigned  int j = 0; j < steps; j++)
         {
             walk.template apply(P, p, a_vals[it], walk_length, rng);
-
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
         }
@@ -617,7 +606,7 @@ void get_annealing_schedule2(Polytope &P,
         if (next_a>0 && curr_fn/curr_its>(1.0+tol))
         {
             a_vals.push_back(next_a);
-            it ++;
+            it++;
         } else if (next_a <= 0)
         {
             a_vals.push_back(a_stop);
@@ -628,7 +617,6 @@ void get_annealing_schedule2(Polytope &P,
             break;
         }
     }
-
 }
 
 template <typename NT>
@@ -655,7 +643,7 @@ template
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, double>,
     typename Polytope
 >
-double volume_gaussian_annealing(Polytope &P,
+double volume_gaussian_annealing(Polytope const& Pin,
                                  double const& error = 1.0,
                                  unsigned int const& walk_length = 1)
 {
@@ -672,6 +660,7 @@ double volume_gaussian_annealing(Polytope &P,
     //const NT maxNT = std::numeric_limits<NT>::max();//1.79769e+308;
     //const NT minNT = std::numeric_limits<NT>::min();//-1.79769e+308;
 
+    auto P(Pin); //copy and work with P because we are going to shift
     unsigned int n = P.dimension();
     unsigned int m = P.num_of_hyperplanes();
     gaussian_annealing_parameters<NT> parameters(P.dimension());
@@ -697,7 +686,7 @@ double volume_gaussian_annealing(Polytope &P,
     NT C = parameters.C;
     unsigned int N = parameters.N;
     WalkType walk(P, c, 1, rng);
-    get_annealing_schedule2<RandomPointGenerator>(P, ratio, C, parameters.frac,
+    get_annealing_schedule<RandomPointGenerator>(P, ratio, C, parameters.frac,
                                                   N, walk_length, radius, error,
                                                   a_vals, rng, walk);
 
