@@ -162,7 +162,7 @@ public:
 
         FT lsq = FT(0.0);
 
-        for (int i=0; i<d ; i++){
+        for (auto i=0u; i<d ; i++){
             lsq += coeffs(i) * coeffs(i);
         }
         return lsq;
