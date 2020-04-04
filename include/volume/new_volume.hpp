@@ -35,11 +35,14 @@
 /////////////////// Random numbers generator
 ///
 
+template <typename RNGType, typename NT, int ... Ts>
+struct BoostRandomNumberGenerator;
+
 template <typename RNGType, typename NT>
-struct BoostRandomNumberGenerator
+struct BoostRandomNumberGenerator<RNGType, NT>
 {
-    BoostRandomNumberGenerator(int d, unsigned seed = 1)
-        :   _rng(seed)
+    BoostRandomNumberGenerator(int d)
+        :   _rng(std::chrono::system_clock::now().time_since_epoch().count())
         ,   _urdist(0, 1)
         ,   _uidist(0, d-1)
         ,   _ndist(0, 1)
@@ -66,6 +69,40 @@ private :
     boost::random::uniform_int_distribution<> _uidist;
     boost::random::normal_distribution<NT> _ndist;
 };
+
+
+template <typename RNGType, typename NT, int Seed>
+struct BoostRandomNumberGenerator<RNGType, NT, Seed>
+{
+    BoostRandomNumberGenerator(int d)
+        :   _rng(Seed)
+        ,   _urdist(0, 1)
+        ,   _uidist(0, d-1)
+        ,   _ndist(0, 1)
+    {}
+
+    NT sample_urdist()
+    {
+        return _urdist(_rng);
+    }
+
+    NT sample_uidist()
+    {
+        return _uidist(_rng);
+    }
+
+    NT sample_ndist()
+    {
+        return _ndist(_rng);
+    }
+
+private :
+    RNGType _rng;
+    boost::random::uniform_real_distribution<NT> _urdist;
+    boost::random::uniform_int_distribution<> _uidist;
+    boost::random::normal_distribution<NT> _ndist;
+};
+
 
 
 
@@ -495,11 +532,10 @@ struct RandomPointGenerator
 template
 <
     typename WalkType,// = BallWalk<Polytope,RNGType>
-    typename Polytope,
-    typename RandomNumberGenerator
+    typename RandomNumberGenerator,// = BoostRandomNumberGenerator<boost::mt19937, double>
+    typename Polytope
 >
 double volume(Polytope &P,
-              RandomNumberGenerator rng,
               double error = 1.0,
               unsigned int walk_length = 1,
               unsigned seed = 1)
@@ -514,6 +550,7 @@ double volume(Polytope &P,
     unsigned int n = P.dimension();
     unsigned int rnum = std::pow(error, -2) * 400 * n * std::log(n);
     unsigned int n_threads = 1;
+    RandomNumberGenerator rng(P.dimension());
 
     //Get the Chebychev ball (largest inscribed ball) with center and radius
     auto InnerBall = P.ComputeInnerBall();
