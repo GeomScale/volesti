@@ -23,29 +23,35 @@ public:
 
     Ball(Point cc, NT RR) : c(cc),	 R(RR) {}
 
-    Point center() const {
+    Point center() const
+    {
         return c;
     }
 
-    NT squared_radius() const {
+    NT squared_radius() const
+    {
         return R;
     }
 
-    NT radius() const {
+    NT radius() const
+    {
         return std::sqrt(R);
     }
 
-    int dimension() const {
+    int dimension() const
+    {
         return c.dimension();
     }
 
-    int is_in(Point &p) {
+    int is_in(Point &p) const
+    {
         if (p.squared_length() <= R)
             return -1;
         else return 0;
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v) const
+    {
 
         NT vrc(0), v2(0), rc2(0);
 
@@ -57,30 +63,48 @@ public:
         return std::pair<NT,NT> ((NT(-1)*vrc + disc_sqrt)/v2, (NT(-1)*vrc - disc_sqrt)/v2);
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar, const VT &Av){
+    std::pair<NT,NT> line_intersect(Point &r,
+                                    Point &v,
+                                    const VT &Ar,
+                                    const VT &Av) const
+    {
         return line_intersect(r, v);
     }
 
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar, const VT &Av, NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(Point &r,
+                                    Point &v,
+                                    const VT &Ar,
+                                    const VT &Av,
+                                    NT &lambda_prev) const
+    {
         return line_intersect(r, v);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v){
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v) const
+    {
         return std::pair<NT,NT>(line_intersect(r, v).first, 0);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const VT &Ar,
-                                             const VT &Av){
+    std::pair<NT,int> line_positive_intersect(Point &r,
+                                              Point &v,
+                                              const VT &Ar,
+                                              const VT &Av) const
+    {
         return line_positive_intersect(r, v);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const VT &Ar,
-                                             const VT &Av, NT &lambda_prev){
+    std::pair<NT,int> line_positive_intersect(Point &r,
+                                              Point &v,
+                                              const VT &Ar,
+                                             const VT &Av,
+                                              NT &lambda_prev) const
+    {
         return line_positive_intersect(r, v);
     }
 
-    std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord) {
+    std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord) const
+    {
 
         NT vrc = r[rand_coord];
         NT rc2(R);
@@ -93,7 +117,8 @@ public:
     }
 
     std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord,
-                                          const VT &lamdas) {
+                                          const VT &lamdas) const
+    {
         return line_intersect_coord(r, rand_coord);
     }
 
@@ -101,15 +126,18 @@ public:
                                           const Point &r_prev,
                                           const unsigned int &rand_coord,
                                           const unsigned int &rand_coord_prev,
-                                          const VT &lamdas) {
+                                          const VT &lamdas) const
+    {
         return line_intersect_coord(r, rand_coord);
     }
 
-    int num_of_hyperplanes() {
+    int num_of_hyperplanes() const
+    {
         return 0;
     }
 
-    void compute_reflection (Point &v, const Point &p, const int &facet) {
+    void compute_reflection (Point &v, const Point &p, const int &facet) const
+    {
 
         Point s = p;
         s *= (1.0 / std::sqrt(s.squared_length()));
