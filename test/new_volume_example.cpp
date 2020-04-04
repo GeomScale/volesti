@@ -89,6 +89,9 @@ int main()
     Hpolytope P = gen_skinny_cube<Hpolytope>(5);
     P.ComputeInnerBall();
 
+    //Hpolytope P40 = gen_cube<Hpolytope>(40, false);
+    //CheBall = P40.ComputeInnerBall();
+
     // Estimate the volume
     NT vol1;
     double tstart, tstop;
@@ -96,29 +99,42 @@ int main()
     //std::cout << "Default (cube) = " << volume(HP, 0.5) << std::endl;
     //std::cout << "Default (cube) = " << volume(HP, 0.5, 2) << std::endl;
 
-    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNG;
-    //typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNG;
+    //typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNG;
+    typedef BoostRandomNumberGenerator<boost::mt11213b, NT> RNG;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGFixed;
     //RNG boost_rng(HP.dimension());
     //RNG3 boost_rng3(HP.dimension());
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
-              << volume<BallWalk<Hpolytope,RNG>, RNG>(HP, e, walk_len) << " , ";
-    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+              << volume<BallWalk, RNG>(HP, e, walk_len) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "BallWalk (cube) = "
+              << volume<BallWalk, RNGFixed>(HP, e, walk_len) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "BallWalk (cube) = "
+              << volume<BallWalk>(HP, e, walk_len) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHRWalk (cube) = "
-              << volume<CDHRWalk<Hpolytope,RNG>, RNG>(HP, e, walk_len) << " , ";
+              << volume<CDHRWalk>(HP, e, walk_len) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "default (cube) = "
+              << volume<>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHRWalk (cube) = "
-              << volume<RDHRWalk<Hpolytope,RNG>, RNG>(HP, e, walk_len) << " , ";
+              << volume<RDHRWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BilliardWalk (cube) = "
-              << volume<BilliardWalk<Hpolytope,RNG>, RNG>(HP, e, walk_len) << " , ";
+              << volume<BilliardWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     //std::cout << "Default (cube) = " << volume_old(P, var, 1.0, walk_len, BilliardWalkOld<Point>()) << std::endl;

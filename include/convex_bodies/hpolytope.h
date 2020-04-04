@@ -44,12 +44,11 @@ public:
 
     HPolytope()
     {
-        typedef Point PointType;
         typedef typename Point::FT NT;
         inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
 
-    std::pair<Point,NT> InnerBall()
+    std::pair<Point,NT> InnerBall() const
     {
         return inner_ball;
     }
@@ -62,7 +61,7 @@ public:
         return inner_ball;
     }
 
-    NT ComputeDiameter()
+    NT ComputeDiameter() const
     {
         return NT(4) * std::sqrt(NT(_d)) * inner_ball.second;
     }
@@ -217,7 +216,8 @@ public:
 
 
     //Check if Point p is in H-polytope P:= Ax<=b
-    int is_in(const Point &p) const {
+    int is_in(const Point &p) const
+    {
         NT sum;
         int m = A.rows();
         const NT* b_data = b.data();
@@ -235,7 +235,8 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT,NT> line_intersect(Point &r, Point &v) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v) const
+    {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         VT sum_nom, sum_denom;
@@ -352,23 +353,31 @@ public:
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, VT& Ar,
-            VT& Av) {
+    std::pair<NT, int> line_positive_intersect(Point &r,
+                                               Point &v,
+                                               VT& Ar,
+                                               VT& Av) const {
         return line_intersect(r, v, Ar, Av, true);
     }
 
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, VT& Ar,
-            VT& Av, const NT &lambda_prev) {
+    std::pair<NT, int> line_positive_intersect(Point &r,
+                                               Point &v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               const NT &lambda_prev) const
+    {
         return line_intersect(r, v, Ar, Av, lambda_prev, true);
     }
 
 
     //First coordinate ray intersecting convex polytope
-    std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord,
-                                          VT& lamdas) {
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          const unsigned int &rand_coord,
+                                          VT& lamdas) const
+    {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         VT sum_denom;
@@ -404,8 +413,8 @@ public:
                                           const Point &r_prev,
                                           const unsigned int rand_coord,
                                           const unsigned int rand_coord_prev,
-                                          VT& lamdas) {
-        ;
+                                          VT& lamdas) const
+    {
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
 
         int m = num_of_hyperplanes();
@@ -476,7 +485,8 @@ public:
 
     }
 
-    void compute_reflection(Point &v, const Point &p, const int facet) {
+    void compute_reflection(Point &v, const Point &p, const int facet) const
+    {
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
 
