@@ -68,6 +68,8 @@ int main()
     }
     HP.init(dim,A,b);
 
+    HP = gen_cube<Hpolytope>(40, false);
+
     //Compute chebychev ball
     std::pair<Point,NT> CheBall;
     CheBall = HP.ComputeInnerBall();
@@ -108,7 +110,7 @@ int main()
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGFixed;
     //RNG boost_rng(HP.dimension());
     //RNG3 boost_rng3(HP.dimension());
-
+/*
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
               << volume_sequence_of_balls<BallWalk, RNG>(HP, e, walk_len) << " , ";
@@ -140,24 +142,22 @@ int main()
     std::cout << "BilliardWalk (cube) = "
               << volume_sequence_of_balls<BilliardWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
-
-
-    vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
-                false,false,false,false,false,false,true,false);
+    std::cout << std::endl;
+*/
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "new GC Ball (cube) = "
-              << volume_gaussian_annealing<RNGType, GaussianBallWalk>(HP, var1, CheBall) << " , ";
+              << volume_gaussian_annealing<GaussianBallWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "new GC RDHR (cube) = "
-              << volume_gaussian_annealing<RNGType, GaussianRDHRWalk>(HP, var1, CheBall) << " , ";
+              << volume_gaussian_annealing<GaussianRDHRWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "new GC CDHR (cube) = "
-              << volume_gaussian_annealing<RNGType, GaussianCDHRWalk>(HP, var1, CheBall) << " , ";
+              << volume_gaussian_annealing<GaussianCDHRWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
 
