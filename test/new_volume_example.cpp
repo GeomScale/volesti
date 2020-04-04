@@ -95,24 +95,28 @@ int main()
     //std::cout << "Default (cube) = " << volume(HP) << std::endl;
     //std::cout << "Default (cube) = " << volume(HP, 0.5) << std::endl;
     //std::cout << "Default (cube) = " << volume(HP, 0.5, 2) << std::endl;
+
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNG;
+    RNG boost_rng(HP.dimension()-1, seed);
+
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
-              << volume<Hpolytope, RNGType, BallWalk<Hpolytope,RNGType>>(HP, e, walk_len) << " , ";
+              << volume<BallWalk<Hpolytope,RNG>>(HP, boost_rng, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHRWalk (cube) = "
-              << volume<Hpolytope, RNGType, CDHRWalk<Hpolytope,RNGType>>(HP, e, walk_len) << " , ";
+              << volume<CDHRWalk<Hpolytope,RNG>>(HP, boost_rng, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHRWalk (cube) = "
-              << volume<Hpolytope, RNGType, RDHRWalk<Hpolytope,RNGType>>(HP, e, walk_len) << " , ";
+              << volume<RDHRWalk<Hpolytope,RNG>>(HP, boost_rng, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BilliardWalk (cube) = "
-              << volume<Hpolytope, RNGType, BilliardWalk<Hpolytope,RNGType>>(HP, 0.9, walk_len) << " , ";
+              << volume<BilliardWalk<Hpolytope,RNG>>(HP, boost_rng, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     //std::cout << "Default (cube) = " << volume_old(P, var, 1.0, walk_len, BilliardWalkOld<Point>()) << std::endl;

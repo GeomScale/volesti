@@ -35,53 +35,52 @@
 /////////////////// Random numbers generator
 ///
 
+template <typename RNGType, typename NT>
+struct BoostRandomNumberGenerator
+{
+    BoostRandomNumberGenerator(int d, unsigned seed = 1)
+        :   _rng(seed)
+        ,   _urdist(0, 1)
+        ,   _uidist(0, d-1)
+        ,   _ndist(0, 1)
+    {}
+
+    NT sample_urdist()
+    {
+        return _urdist(_rng);
+    }
+
+    NT sample_uidist()
+    {
+        return _uidist(_rng);
+    }
+
+    NT sample_ndist()
+    {
+        return _ndist(_rng);
+    }
+
+private :
+    RNGType _rng;
+    boost::random::uniform_real_distribution<NT> _urdist;
+    boost::random::uniform_int_distribution<> _uidist;
+    boost::random::normal_distribution<NT> _ndist;
+};
+
+
 
 /////////////////// Random walk helpers
 ///
-/*
-// Pick a random direction as a normilized vector
-template <typename RNGType, typename Point, typename NT>
-Point get_direction(const unsigned int dim) {
-
-    boost::normal_distribution<> rdist(0,1);
-    NT normal = NT(0);
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
-
-    Point p(dim);
-    NT* data = p.pointerToData();
-
-    //RNGType rng2 = var.rng;
-    for (unsigned int i=0; i<dim; ++i) {
-        *data = rdist(rng);
-        normal += *data * *data;
-        data++;
-    }
-
-    normal=1.0/std::sqrt(normal);
-    p *= normal;
-
-    return p;
-}
 
 
-// Pick a random point from a d-sphere
-template <typename RNGType, typename Point, typename NT>
-Point get_point_on_Dsphere(const unsigned int dim, const NT &radius){
-    Point p = get_direction<RNGType, Point, NT>(dim);
-    if (radius != 0) p *= radius;
-    return p;
-}
-*/
-
-template <typename RNGType, typename Point>
+template <typename Point>
 struct GetDirection
 {
     typedef typename Point::FT NT;
 
+    template <typename RandomNumberGenerator>
     static Point apply(unsigned int const& dim,
-                       RNGType& rng,
-                       boost::normal_distribution<>& ndist)
+                       RandomNumberGenerator &rng)
     {
         NT normal = NT(0);
         Point p(dim);
@@ -89,7 +88,7 @@ struct GetDirection
 
         for (unsigned int i=0; i<dim; ++i)
         {
-            *data = ndist(rng);
+            *data = rng.sample_ndist();
             normal += *data * *data;
             data++;
         }
@@ -101,18 +100,16 @@ struct GetDirection
     }
 };
 
-template <typename RNGType, typename Point>
+template <typename Point>
 struct GetPointInDsphere
 {
-    template <typename NT>
+    template <typename NT, typename RandomNumberGenerator>
     static Point apply(unsigned int const& dim,
                        NT const& radius,
-                       RNGType& rng,
-                       boost::random::uniform_real_distribution<> urdist,
-                       boost::random::normal_distribution<> ndist)
+                       RandomNumberGenerator &rng)
     {
-        Point p = GetDirection<RNGType, Point>::apply(dim, rng, ndist);
-        NT U = urdist(rng);
+        Point p = GetDirection<Point>::apply(dim, rng);
+        NT U = rng.sample_urdist();
         U = std::pow(U, NT(1)/(NT(dim)));
         p *= radius * U;
         return p;
@@ -126,7 +123,7 @@ struct GetPointInDsphere
 template
 <
     typename Polytope,
-    typename RNGType
+    typename RandomNumberGenerator
 >
 struct BallWalk
 {
@@ -135,18 +132,12 @@ struct BallWalk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    BallWalk(Polytope P, unsigned seed = 1)
-        :   _rng(seed)
-        ,   _urdist(0,1)
-        ,   _ndist(0,1)
+    BallWalk(Polytope P, RandomNumberGenerator)
     {
         P.ComputeInnerBall();
     }
 
-    BallWalk(BallPolytope, unsigned seed = 1)
-        :   _rng(seed)
-        ,   _urdist(0,1)
-        ,   _ndist(0,1)
+    BallWalk(BallPolytope, RandomNumberGenerator)
     {}
 
     template
@@ -155,33 +146,27 @@ struct BallWalk
     >
     void apply(BallPolytope &P,
                Point &p,   // a point to start
-               const unsigned int walk_length)
+               const unsigned int walk_length,
+               RandomNumberGenerator &rng)
     {
         const NT delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
 
         for (auto j=0; j<walk_length; ++j)
         {
-            Point y = GetPointInDsphere<RNGType, Point>::apply(P.dimension(),
-                                                               delta,
-                                                               _rng,
-                                                               _urdist,
-                                                               _ndist);
+            Point y = GetPointInDsphere<Point>::apply(P.dimension(),
+                                                      delta,
+                                                      rng);
             y += p;
             if (P.is_in(y) == -1) p = y;
         }
     }
-
-private :
-    RNGType _rng;
-    boost::random::uniform_real_distribution<> _urdist;
-    boost::random::normal_distribution<> _ndist;
 };
 
 // random directions hit-and-run walk with uniform target distribution
 template
 <
     typename Polytope,
-    typename RNGType
+    typename RandomNumberGenerator
 >
 struct RDHRWalk
 {
@@ -190,22 +175,16 @@ struct RDHRWalk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    RDHRWalk(Polytope P, unsigned seed = 1)
-        :   _rng(seed)
-        ,   _urdist(0,1)
-        ,   _ndist(0,1)
+    RDHRWalk(Polytope P, RandomNumberGenerator &rng)
     {
         Point center = P.InnerBall().first;
-        initialize(P, center);
+        initialize(P, center, rng);
     }
 
-    RDHRWalk(BallPolytope P, unsigned seed = 1)
-        :   _rng(seed)
-        ,   _urdist(0,1)
-        ,   _ndist(0,1)
+    RDHRWalk(BallPolytope P, RandomNumberGenerator &rng)
     {
         Point center = P.InnerBall().first;
-        initialize(P, center);
+        initialize(P, center, rng);
     }
 
     template
@@ -214,14 +193,15 @@ struct RDHRWalk
     >
     void apply(BallPolytope &P,
                Point &p,   // a point to start
-               const unsigned int walk_length)
+               const unsigned int walk_length,
+               RandomNumberGenerator &rng)
     {
         for (auto j=0; j<walk_length; ++j)
         {
-            Point v = GetDirection<RNGType, Point>::apply(p.dimension(), _rng, _ndist);
+            Point v = GetDirection<Point>::apply(p.dimension(), rng);
             std::pair<NT, NT> bpair = P.line_intersect(_p, v, _lamdas, _Av,
                                                        _lambda);
-            _lambda = _urdist(_rng) * (bpair.first - bpair.second)
+            _lambda = rng.sample_urdist() * (bpair.first - bpair.second)
                     + bpair.second;
             _p += (_lambda * v);
         }
@@ -231,14 +211,14 @@ struct RDHRWalk
 private :
 
     template <typename BallPolytope>
-    void initialize(BallPolytope &P, Point &p)
+    void initialize(BallPolytope &P, Point &p, RandomNumberGenerator &rng)
     {
         _lamdas.setZero(P.num_of_hyperplanes());
         _Av.setZero(P.num_of_hyperplanes());
 
-        Point v = GetDirection<RNGType, Point>::apply(p.dimension(), _rng, _ndist);
+        Point v = GetDirection<Point>::apply(p.dimension(), rng);
         std::pair<NT, NT> bpair = P.line_intersect(p, v, _lamdas, _Av);
-        _lambda = _urdist(_rng) * (bpair.first - bpair.second) + bpair.second;
+        _lambda = rng.sample_urdist() * (bpair.first - bpair.second) + bpair.second;
         _p = (_lambda * v) + p;
     }
 
@@ -246,9 +226,6 @@ private :
     NT _lambda;
     typename Point::Coeff _lamdas;
     typename Point::Coeff _Av;
-    RNGType _rng;
-    boost::random::uniform_real_distribution<> _urdist;
-    boost::random::normal_distribution<> _ndist;
 };
 
 
@@ -256,7 +233,7 @@ private :
 template
 <
     typename Polytope,
-    typename RNGType
+    typename RandomNumberGenerator
 >
 struct CDHRWalk
 {
@@ -265,22 +242,16 @@ struct CDHRWalk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    CDHRWalk(Polytope P, unsigned seed = 1)
-        :   _rng(seed)
-        ,   _urdist(0,1)
-        ,   _uidist(0, P.dimension()-1)
+    CDHRWalk(Polytope P, RandomNumberGenerator &rng)
     {
         Point center = P.InnerBall().first;
-        initialize(P, center);
+        initialize(P, center, rng);
     }
 
-    CDHRWalk(BallPolytope P, unsigned seed = 1)
-        :   _rng(seed)
-        ,   _urdist(0,1)
-        ,   _uidist(0, P.dimension()-1)
+    CDHRWalk(BallPolytope P, RandomNumberGenerator &rng)
     {
         Point center = P.InnerBall().first;
-        initialize(P, center);
+        initialize(P, center, rng);
     }
 
     template
@@ -289,13 +260,14 @@ struct CDHRWalk
     >
     void apply(BallPolytope &P,
                Point &p,   // a point to start
-               const unsigned int walk_length)
+               const unsigned int walk_length,
+               RandomNumberGenerator &rng)
     {
         for (auto j=0; j<walk_length; ++j)
         {
             auto rand_coord_prev = _rand_coord;
-            _rand_coord = _uidist(_rng);
-            NT kapa = _urdist(_rng);
+            _rand_coord = rng.sample_uidist();
+            NT kapa = rng.sample_urdist();
             std::pair<NT, NT> bpair = P.line_intersect_coord(_p,
                                                              _p_prev,
                                                              _rand_coord,
@@ -311,11 +283,11 @@ struct CDHRWalk
 private :
 
     template <typename BallPolytope>
-    void initialize(BallPolytope &P, Point &p)
+    void initialize(BallPolytope &P, Point &p, RandomNumberGenerator &rng)
     {
         _lamdas.setZero(P.num_of_hyperplanes());
-        _rand_coord = _uidist(_rng);
-        NT kapa = _urdist(_rng);
+        _rand_coord = rng.sample_uidist();
+        NT kapa = rng.sample_urdist();
         _p = p;
         std::pair<NT, NT> bpair = P.line_intersect_coord(_p, _rand_coord, _lamdas);
         _p_prev = _p;
@@ -327,9 +299,6 @@ private :
     Point _p;
     Point _p_prev;
     typename Point::Coeff _lamdas;
-    RNGType _rng;
-    boost::random::uniform_real_distribution<> _urdist;
-    boost::random::uniform_int_distribution<> _uidist;
 };
 
 
@@ -337,7 +306,7 @@ private :
 template
 <
     typename Polytope,
-    typename RNGType
+    typename RandomNumberGenerator
 >
 struct BilliardWalk
 {
@@ -346,22 +315,16 @@ struct BilliardWalk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    BilliardWalk(Polytope P, unsigned seed = 1)
-        :   _rng(seed)
-        ,   _urdist(0,1)
-        ,   _ndist(0,1)
+    BilliardWalk(Polytope P, RandomNumberGenerator &rng)
     {
         Point center = P.InnerBall().first;
-        initialize(P, center);
+        initialize(P, center, rng);
     }
 
-    BilliardWalk(BallPolytope P, unsigned seed = 1)
-        :   _rng(seed)
-        ,   _urdist(0,1)
-        ,   _ndist(0,1)
+    BilliardWalk(BallPolytope P, RandomNumberGenerator &rng)
     {
         Point center = P.InnerBall().first;
-        initialize(P, center);
+        initialize(P, center, rng);
     }
 
     template
@@ -370,17 +333,18 @@ struct BilliardWalk
     >
     void apply(GenericPolytope &P,
                Point &p,   // a point to start
-               const unsigned int walk_length)
+               const unsigned int walk_length,
+               RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
         NT diameter = P.ComputeDiameter();
-        NT T = _urdist(_rng) * diameter;
+        NT T = rng.sample_urdist() * diameter;
         const NT dl = 0.995;
 
         for (auto j=0; j<walk_length; ++j)
         {
-            T = _urdist(_rng) * diameter;
-            _v = GetDirection<RNGType, Point>::apply(n, _rng, _ndist);
+            T = rng.sample_urdist() * diameter;
+            _v = GetDirection<Point>::apply(n, rng);
             Point p0 = _p;
             auto it = 0;
             while (it < 10*n)
@@ -410,7 +374,8 @@ private :
         typename GenericPolytope
     >
     void initialize(GenericPolytope &P,
-                    Point &p)
+                    Point &p,
+                    RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
         const NT dl = 0.995;
@@ -419,9 +384,9 @@ private :
         _lambdas.setZero(P.num_of_hyperplanes());
         _Av.setZero(P.num_of_hyperplanes());
         _p = p;
-        _v = GetDirection<RNGType, Point>::apply(n, _rng, _ndist);
+        _v = GetDirection<Point>::apply(n, rng);
 
-        NT T = _urdist(_rng) * diameter;
+        NT T = rng.sample_urdist() * diameter;
         std::pair<NT, int> pbpair
                 = P.line_positive_intersect(_p, _v, _lambdas, _Av);
         if (T <= pbpair.first) {
@@ -440,9 +405,6 @@ private :
     NT _lambda_prev;
     typename Point::Coeff _lambdas;
     typename Point::Coeff _Av;
-    RNGType _rng;
-    boost::random::uniform_real_distribution<> _urdist;
-    boost::random::normal_distribution<> _ndist;
 };
 
 
@@ -494,8 +456,7 @@ private :
 
 template
 <
-    typename Walk,
-    typename RNGType
+    typename Walk
 >
 struct RandomPointGenerator
 {
@@ -504,7 +465,8 @@ struct RandomPointGenerator
         typename Polytope,
         typename Point,
         typename PointList,
-        typename WalkPolicy
+        typename WalkPolicy,
+        typename RandomNumberGenerator
     >
     static void apply(Polytope &P,
                       Point &p,   // a point to start
@@ -512,12 +474,12 @@ struct RandomPointGenerator
                       const unsigned int walk_length,
                       PointList &randPoints,
                       WalkPolicy &policy,
-                      unsigned seed)
+                      RandomNumberGenerator &rng)
     {
-        Walk walk(P, seed);
+        Walk walk(P, rng);
         for (auto i=0; i<rnum; ++i)
         {
-            walk.template apply(P, p, walk_length);
+            walk.template apply(P, p, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }
@@ -532,11 +494,12 @@ struct RandomPointGenerator
 
 template
 <
+    typename WalkType,// = BallWalk<Polytope,RNGType>
     typename Polytope,
-    typename RNGType = boost::mt19937,
-    typename WalkType = BallWalk<Polytope,RNGType>
+    typename RandomNumberGenerator
 >
 double volume(Polytope &P,
+              RandomNumberGenerator rng,
               double error = 1.0,
               unsigned int walk_length = 1,
               unsigned seed = 1)
@@ -546,7 +509,7 @@ double volume(Polytope &P,
     typedef Ball<Point> Ball;
     typedef BallIntersectPolytope<Polytope,Ball> BallPoly;
 
-    typedef RandomPointGenerator<WalkType, RNGType> RandomPointGenerator;
+    typedef RandomPointGenerator<WalkType> RandomPointGenerator;
 
     unsigned int n = P.dimension();
     unsigned int rnum = std::pow(error, -2) * 400 * n * std::log(n);
@@ -572,11 +535,12 @@ double volume(Polytope &P,
 #ifdef VOLESTI_DEBUG
         std::cout<<"\nGenerate the first random point in P"<<std::endl;
 #endif
-        Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
+        //Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
+        Point p = GetPointInDsphere<Point>::apply(P.dimension(), radius, rng);
         std::list<Point> randPoints; //ds for storing rand points
 
         PushBackWalkPolicy push_back_policy;
-        RandomPointGenerator::apply(P, p, 1, 50*n, randPoints, push_back_policy, seed);
+        RandomPointGenerator::apply(P, p, 1, 50*n, randPoints, push_back_policy, rng);
 
         // Sample "rnum" points from P
 #ifdef VOLESTI_DEBUG
@@ -584,7 +548,7 @@ double volume(Polytope &P,
         std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
 #endif
         RandomPointGenerator::apply(P, p, rnum-1, walk_length, randPoints,
-                                    push_back_policy, seed);
+                                    push_back_policy, rng);
 
 #ifdef VOLESTI_DEBUG
         double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -686,7 +650,7 @@ double volume(Polytope &P,
             CountingWalkPolicy<BallPoly> counting_policy(nump_PBSmall, PBSmall);
             RandomPointGenerator::apply(PBLarge, p_gen, rnum-nump_PBLarge,
                              walk_length, randPoints,
-                             counting_policy, seed);
+                             counting_policy, rng);
 
             nump_PBSmall = counting_policy.get_nump_PBSmall();
 
