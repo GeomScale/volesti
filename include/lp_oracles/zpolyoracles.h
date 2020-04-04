@@ -1,6 +1,7 @@
 #ifndef ZPOLYORACLES_H
 #define ZPOLYORACLES_H
 
+
 #include <stdio.h>
 #include <cmath>
 #include <exception>

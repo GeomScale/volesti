@@ -37,7 +37,7 @@ void comp_diam_hpoly_zono_inter(ZonoHP &ZHP, const MT &G, const MT &AG, const VT
     typename std::list<Point>::iterator rpit=randPoints.begin();
     NT max_norm = 0.0, iter_norm;
     for ( ; rpit!=randPoints.end(); rpit++) {
-        iter_norm = (G*Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension())).norm();
+        iter_norm = (G*rpit->getCoefficients()).norm();
         if (iter_norm > max_norm) max_norm = iter_norm;
     }
     diams_inter.push_back(2.0 * max_norm);

@@ -33,7 +33,7 @@ else ()
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-  #include_directories (BEFORE ../external/Eigen)
+  include_directories (BEFORE ../external/Eigen)
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
   #include_directories (BEFORE ../include/cartesian_geom)
@@ -50,7 +50,13 @@ else ()
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/misc)
 
-
+  #for Eigen
+  if (${CMAKE_VERSION} VERSION_LESS "3.12.0") 
+    add_compile_options(-D "EIGEN_NO_DEBUG")
+  else ()
+    add_compile_definitions("EIGEN_NO_DEBUG")
+  endif ()
+  
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
@@ -68,6 +74,7 @@ else ()
   add_library(test_main OBJECT test_main.cpp)
 
   add_executable (volume_test volume_test.cpp $<TARGET_OBJECTS:test_main>)
+
   add_executable (cheb_test chebychev_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (rounding_test rounding_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (volumeCG_test volumeCG_test.cpp $<TARGET_OBJECTS:test_main>)

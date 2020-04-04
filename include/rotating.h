@@ -3,6 +3,7 @@
 // Copyright (c) 20012-2019 Vissarion Fisikopoulos
 // Copyright (c) 2019 Apostolos Chalkis
 
+
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef ROTATING_H

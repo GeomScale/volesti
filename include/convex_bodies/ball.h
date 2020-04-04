@@ -3,6 +3,8 @@
 // Copyright (c) 20012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef BALL_H
@@ -15,6 +17,7 @@ public:
     typedef Point BallPoint;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
     Ball() {}
 
@@ -44,26 +47,22 @@ public:
 
     std::pair<NT,NT> line_intersect(Point &r, Point &v) {
 
-        viterator vit=v.iter_begin(), cit=c.iter_begin(), rcit=r.iter_begin();
         NT vrc(0), v2(0), rc2(0);
-        for( ; cit < c.iter_end() ; ++cit, ++rcit, ++vit){
-            vrc += *vit * (*rcit);
-            v2 += *vit * (*vit);
-            rc2 += *rcit * (*rcit);
-        }
+
+        vrc = v.dot(r);
+        v2 = v.dot(v);
+        rc2 = r.dot(r);
 
         NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
         return std::pair<NT,NT> ((NT(-1)*vrc + disc_sqrt)/v2, (NT(-1)*vrc - disc_sqrt)/v2);
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av){
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar, const VT &Av){
         return line_intersect(r, v);
     }
 
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av, NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar, const VT &Av, NT &lambda_prev) {
         return line_intersect(r, v);
     }
 
@@ -71,24 +70,22 @@ public:
         return std::pair<NT,NT>(line_intersect(r, v).first, 0);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-                                             const std::vector<NT> &Av){
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const VT &Ar,
+                                             const VT &Av){
         return line_positive_intersect(r, v);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const std::vector<NT> &Ar,
-                                             const std::vector<NT> &Av, NT &lambda_prev){
+    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const VT &Ar,
+                                             const VT &Av, NT &lambda_prev){
         return line_positive_intersect(r, v);
     }
 
     std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord) {
 
-        viterator rcit=r.iter_begin();
-        NT vrc = *(rcit + rand_coord);
+        NT vrc = r[rand_coord];
         NT rc2(R);
-        for( ; rcit < r.iter_end() ; ++rcit){
-            rc2 -= *rcit * (*rcit);
-        }
+        rc2 -=  r.dot(r);
+
 
         NT disc_sqrt = std::sqrt(std::pow(vrc,2) + rc2);
         return std::pair<NT,NT> (NT(-1)*vrc + disc_sqrt, NT(-1)*vrc - disc_sqrt);
@@ -96,7 +93,7 @@ public:
     }
 
     std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
         return line_intersect_coord(r, rand_coord);
     }
 
@@ -104,7 +101,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int &rand_coord,
                                           const unsigned int &rand_coord_prev,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
         return line_intersect_coord(r, rand_coord);
     }
 
@@ -115,10 +112,9 @@ public:
     void compute_reflection (Point &v, const Point &p, const int &facet) {
 
         Point s = p;
-        s = s * (1.0 / std::sqrt(s.squared_length()));
-        s = ((-2.0 * v.dot(s)) * s);
-        v = s + v;
-
+        s *= (1.0 / std::sqrt(s.squared_length()));
+        s *= (-2.0 * v.dot(s));
+        v += s;
     }
 
 private:

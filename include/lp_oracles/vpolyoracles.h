@@ -1,6 +1,7 @@
 #ifndef VPOLYORACLES_H
 #define VPOLYORACLES_H
 
+
 #include <stdio.h>
 #include <cmath>
 #include <exception>

@@ -3,6 +3,7 @@
 // Copyright (c) 20012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
+
 #ifndef COOLING_HPOLY_H
 #define COOLING_HPOLY_H
 
