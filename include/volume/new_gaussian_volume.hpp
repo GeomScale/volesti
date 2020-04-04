@@ -32,7 +32,54 @@
 #include "new_volume.hpp"
 
 
+// Pick a point from the distribution exp(-a_i||x||^2) on the chord
+template
+<
+    typename Point,
+    typename NT,
+    typename RandomNumberGenerator
+>
+void chord_random_point_generator_exp(Point &lower,
+                                      Point & upper,
+                                      const NT &a_i,
+                                      Point &p,
+                                      RandomNumberGenerator& rng)
+{
+    NT r, r_val, fn;
+    const NT tol = 0.00000001;
+    Point bef = upper - lower;
+    // pick from 1-dimensional gaussian if enough weight is inside polytope P
+    if (a_i > tol && std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i)))
+    {
+        Point a = -1.0 * lower;
+        Point b = (1.0 / std::sqrt(bef.squared_length())) * bef;
+        Point z = (a.dot(b) * b) + lower;
+        NT low_bd = (lower[0] - z[0]) / b[0];
+        NT up_bd = (upper[0] - z[0]) / b[0];
+        while (true) {
+            r = rng.sample_ndist();//rdist(rng2);
+            r = r / std::sqrt(2.0 * a_i);
+            if (r >= low_bd && r <= up_bd) {
+                break;
+            }
+        }
+        p = (r * b) + z;
 
+    // select using rejection sampling from a bounding rectangle
+    } else {
+        NT M = get_max(lower, upper, a_i);
+        while (true) {
+            r = rng.sample_urdist();//urdist(rng2);
+            Point pef = r * upper;
+            p = ((1.0 - r) * lower) + pef;
+            r_val = M * rng.sample_urdist();//urdist(var.rng);
+            fn = eval_exp(p, a_i);
+            if (r_val < fn) {
+                break;
+            }
+        }
+    }
+}
 
 /////////////////// Random Walks
 
@@ -101,18 +148,9 @@ struct Walk
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef Ball<Point> BallType;
-    typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
     Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng)
-    {
-        initialize(P, p, rng);
-    }
-
-    Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng)
-    {
-        initialize(P, p, rng);
-    }
+    {}
 
     template
     <
@@ -120,41 +158,23 @@ struct Walk
     >
     inline void apply(BallPolytope const& P,
                       Point &p,   // a point to start
+                      NT const& a_i,
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
         for (auto j=0u; j<walk_length; ++j)
         {
             Point v = GetDirection<Point>::apply(p.dimension(), rng);
-            std::pair<NT, NT> bpair = P.line_intersect(_p, v, _lamdas, _Av,
-                                                       _lambda);
-            _lambda = rng.sample_urdist() * (bpair.first - bpair.second)
-                    + bpair.second;
-            _p += (_lambda * v);
+            std::pair <NT, NT> dbpair = P.line_intersect(p, v);
+
+            NT min_plus = dbpair.first;
+            NT max_minus = dbpair.second;
+            Point upper = (min_plus * v) + p;
+            Point lower = (max_minus * v) + p;
+
+            chord_random_point_generator_exp(lower, upper, a_i, p, rng);
         }
-        p = _p;
     }
-
-private :
-
-    template <typename BallPolytope>
-    inline void initialize(BallPolytope const& P,
-                           Point &p,
-                           RandomNumberGenerator &rng)
-    {
-        _lamdas.setZero(P.num_of_hyperplanes());
-        _Av.setZero(P.num_of_hyperplanes());
-
-        Point v = GetDirection<Point>::apply(p.dimension(), rng);
-        std::pair<NT, NT> bpair = P.line_intersect(p, v, _lamdas, _Av);
-        _lambda = rng.sample_urdist() * (bpair.first - bpair.second) + bpair.second;
-        _p = (_lambda * v) + p;
-    }
-
-    Point _p;
-    NT _lambda;
-    typename Point::Coeff _lamdas;
-    typename Point::Coeff _Av;
 };
 
 };
@@ -533,9 +553,6 @@ void get_annealing_schedule2(Polytope &P,
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
         }
 
-
-
-
         // Remove the last gaussian.
         // Set the last a_i equal to zero
         if (next_a>0 && curr_fn/curr_its>(1.0+tol))
@@ -615,7 +632,7 @@ NT volume_gaussian_annealing(Polytope &P,
 
     WalkType walk(P, c, rng);
     get_annealing_schedule2<RandomPointGenerator>(P, ratio, C, frac,
-                                                 N, var, error, a_vals, rng, walk);
+                                                  N, var, error, a_vals, rng, walk);
 
 #ifdef VOLESTI_DEBUG
     std::cout<<"All the variances of schedule_annealing computed in = "
@@ -643,9 +660,10 @@ NT volume_gaussian_annealing(Polytope &P,
 #endif
 
     // Compute the first point if CDHR is requested
-    if(var.cdhr_walk){
-        gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
-    }
+    //if(var.cdhr_walk){
+    //    gaussian_first_coord_point(P,p,p_prev,coord_prev,var.walk_steps,*avalsIt,lamdas,var);
+    //}
+
     for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++)
     { //iterate over the number of ratios
         //initialize convergence test
