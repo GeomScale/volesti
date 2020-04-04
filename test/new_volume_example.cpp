@@ -112,7 +112,7 @@ int main()
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BilliardWalk (cube) = "
-              << volume<Hpolytope, RNGType, BilliardWalk<Hpolytope,RNGType>>(HP, e, walk_len) << " , ";
+              << volume<Hpolytope, RNGType, BilliardWalk<Hpolytope,RNGType>>(HP, 0.9, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     //std::cout << "Default (cube) = " << volume_old(P, var, 1.0, walk_len, BilliardWalkOld<Point>()) << std::endl;
