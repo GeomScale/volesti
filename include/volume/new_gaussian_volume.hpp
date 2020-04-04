@@ -94,12 +94,8 @@ NT chord_random_point_generator_exp_coord(const NT &l,
 {
     NT r, r_val, fn, dis;
     const NT tol = 0.00000001;
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //RNGType rng(seed);
-    //RNGType &rng2 = var.rng;
     // pick from 1-dimensional gaussian if enough weight is inside polytope P
     if (a_i > tol && u - l >= 2.0 / std::sqrt(2.0 * a_i)) {
-        //boost::normal_distribution<> rdist(0, 1);
         while (true) {
             r = rng.sample_ndist();//rdist(rng2);
             r = r / std::sqrt(2.0 * a_i);
@@ -111,12 +107,11 @@ NT chord_random_point_generator_exp_coord(const NT &l,
 
     // select using rejection sampling from a bounding rectangle
     } else {
-        //boost::random::uniform_real_distribution<> urdist(0, 1);
         NT M = get_max_coord(l, u, a_i);
         while (true) {
-            r = rng.sample_urdist();//urdist(rng2);
+            r = rng.sample_urdist();
             dis = (1.0 - r) * l + r * u;
-            r_val = M * rng.sample_urdist();//urdist(rng2);
+            r_val = M * rng.sample_urdist();
             fn = std::exp(-a_i * dis * dis);
             if (r_val < fn) {
                 break;
@@ -577,15 +572,12 @@ void get_annealing_schedule2(Polytope &P,
     NT a_stop = 0.0;
     NT curr_fn = 2.0;
     NT curr_its = 1.0;
-    NT next_a;
     const NT tol = 0.001;
     unsigned int it = 0;
     unsigned int n = P.dimension();
-    unsigned int steps;
-    const unsigned int totalSteps= ((int)150/((1.0 - frac) * error))+1;
+    const unsigned int totalSteps = ((int)150/((1.0 - frac) * error))+1;
 
     if (a_vals[0]<a_stop) a_vals[0] = a_stop;
-
 
 #ifdef VOLESTI_DEBUG
     std::cout<<"Computing the sequence of gaussians..\n"<<std::endl;
@@ -603,13 +595,13 @@ void get_annealing_schedule2(Polytope &P,
                         / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
 
         // Compute the next gaussian
-        next_a = get_next_gaussian2<RandomPointGenerator>
+        NT next_a = get_next_gaussian2<RandomPointGenerator>
                       (P, p, a_vals[it], N, ratio, C, walk_length, rng);
 
         curr_fn = 0;
         curr_its = 0;
         lamdas.setConstant(NT(0));
-        steps = totalSteps;
+        auto steps = totalSteps;
 
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++)
@@ -669,22 +661,7 @@ double volume_gaussian_annealing(Polytope &P,
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    gaussian_annealing_parameters<NT> parameters(P.dimension());
     typedef typename Polytope::VT 	VT;
-    const NT maxNT = 1.79769e+308;
-    const NT minNT = -1.79769e+308;
-    NT vol;
-    bool done;
-    unsigned int n = P.dimension();
-    unsigned int m = P.num_of_hyperplanes();
-    unsigned int min_index, max_index, index, min_steps;
-    NT curr_eps;
-    NT min_val;
-    NT max_val;
-    NT val;
-    NT frac = parameters.frac;
-    typedef typename std::vector<NT>::iterator viterator;
-
     typedef typename WalkTypePolicy::template Walk
                                               <
                                                     Polytope,
@@ -692,7 +669,13 @@ double volume_gaussian_annealing(Polytope &P,
                                               > WalkType;
     typedef GaussianRandomPointGenerator<WalkType> RandomPointGenerator;
 
-    RandomNumberGenerator rng(P.dimension());
+    //const NT maxNT = std::numeric_limits<NT>::max();//1.79769e+308;
+    //const NT minNT = std::numeric_limits<NT>::min();//-1.79769e+308;
+
+    unsigned int n = P.dimension();
+    unsigned int m = P.num_of_hyperplanes();
+    gaussian_annealing_parameters<NT> parameters(P.dimension());
+    RandomNumberGenerator rng(n);
 
     // Consider Chebychev center as an internal point
     auto InnerBall = P.InnerBall();
@@ -702,20 +685,19 @@ double volume_gaussian_annealing(Polytope &P,
     // Move the chebychev center to the origin and apply the same shifting to the polytope
     P.shift(c.getCoefficients());
 
-    // Initialization for the schedule annealing
-    std::vector<NT> a_vals;
-    NT ratio = parameters.ratio;
-    NT C = parameters.C;
-    unsigned int N = parameters.N;
-
     // Computing the sequence of gaussians
 #ifdef VOLESTI_DEBUG
     std::cout<<"\n\nComputing annealing...\n"<<std::endl;
     double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
 #endif
 
+    // Initialization for the schedule annealing
+    std::vector<NT> a_vals;
+    NT ratio = parameters.ratio;
+    NT C = parameters.C;
+    unsigned int N = parameters.N;
     WalkType walk(P, c, 1, rng);
-    get_annealing_schedule2<RandomPointGenerator>(P, ratio, C, frac,
+    get_annealing_schedule2<RandomPointGenerator>(P, ratio, C, parameters.frac,
                                                   N, walk_length, radius, error,
                                                   a_vals, rng, walk);
 
@@ -727,17 +709,23 @@ double volume_gaussian_annealing(Polytope &P,
     }
     std::cout<<std::endl<<std::endl;
 #endif
-    unsigned int mm = a_vals.size()-1;
 
     // Initialization for the approximation of the ratios
     unsigned int W = parameters.W;
-    unsigned int i=0;
-    std::vector<NT> last_W2(W,0), fn(mm,0), its(mm,0);
+    unsigned int mm = a_vals.size()-1;
+    std::vector<NT> last_W2(W,0);
+    std::vector<NT> fn(mm,0);
+    std::vector<NT> its(mm,0);
     VT lamdas;
     lamdas.setZero(m);
-    vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0);
+    NT vol = std::pow(M_PI/a_vals[0], (NT(n))/2.0);
     Point p(n); // The origin is the Chebychev center of the Polytope
-    viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;
+    unsigned int i=0;
+
+    typedef typename std::vector<NT>::iterator viterator;
+    viterator itsIt = its.begin();
+    viterator avalsIt = a_vals.begin();
+    viterator minmaxIt;
 
 #ifdef VOLESTI_DEBUG
     std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
@@ -745,18 +733,20 @@ double volume_gaussian_annealing(Polytope &P,
 #endif
 
     //iterate over the number of ratios
-    for ( ; fnIt != fn.end(); fnIt++, itsIt++, avalsIt++, i++)
+    for (viterator fnIt = fn.begin();
+         fnIt != fn.end();
+         fnIt++, itsIt++, avalsIt++, i++)
     {
         //initialize convergence test
-        curr_eps = error/std::sqrt((NT(mm)));
-        done=false;
-        min_val = minNT;
-        max_val = maxNT;
-        min_index = W-1;
-        max_index = W-1;
-        index = 0;
-        min_steps=0;
-        std::vector<NT> last_W=last_W2;
+        bool done = false;
+        NT curr_eps = error/std::sqrt((NT(mm)));
+        NT min_val = std::numeric_limits<NT>::min();
+        NT max_val = std::numeric_limits<NT>::max();
+        unsigned int min_index = W-1;
+        unsigned int max_index = W-1;
+        unsigned int index = 0;
+        unsigned int min_steps = 0;
+        std::vector<NT> last_W = last_W2;
 
         // Set the radius for the ball walk
         update_delta<WalkType>
@@ -769,40 +759,43 @@ double volume_gaussian_annealing(Polytope &P,
 
             *itsIt = *itsIt + 1.0;
             *fnIt = *fnIt + eval_exp(p,*(avalsIt+1)) / eval_exp(p,*avalsIt);
-            val = (*fnIt) / (*itsIt);
+            NT val = (*fnIt) / (*itsIt);
 
             last_W[index] = val;
-            if(val<=min_val){
+            if (val <= min_val)
+            {
                 min_val = val;
                 min_index = index;
-            }else if(min_index==index){
+            } else if (min_index == index)
+            {
                 minmaxIt = std::min_element(last_W.begin(), last_W.end());
                 min_val = *minmaxIt;
                 min_index = std::distance(last_W.begin(), minmaxIt);
             }
 
-            if(val>=max_val){
+            if (val >= max_val)
+            {
                 max_val = val;
                 max_index = index;
-            }else if(max_index==index){
+            } else if (max_index == index)
+            {
                 minmaxIt = std::max_element(last_W.begin(), last_W.end());
                 max_val = *minmaxIt;
                 max_index = std::distance(last_W.begin(), minmaxIt);
             }
 
-            if( (max_val-min_val)/max_val<=curr_eps/2.0 ){
+            if ( (max_val-min_val)/max_val <= curr_eps/2.0 )
+            {
                 done=true;
             }
 
-            index = index%W+1;
-
-            if(index==W) index=0;
+            index = index==W ? 0 : index%W + 1;
         }
 #ifdef VOLESTI_DEBUG
         std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
                   << " N_" << i << " = " << *itsIt << std::endl;
 #endif
-        vol = vol*((*fnIt) / (*itsIt));
+        vol *= ((*fnIt) / (*itsIt));
     }
 
 #ifdef VOLESTI_DEBUG
