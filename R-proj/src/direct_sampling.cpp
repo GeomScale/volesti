@@ -117,7 +117,7 @@ Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body = R_NilValue
     unsigned int jj = 0;
 
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
-        RetMat.col(jj) = Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension());
+        RetMat.col(jj) = rpit->getCoefficients();
     }
     return Rcpp::wrap(RetMat);
 }

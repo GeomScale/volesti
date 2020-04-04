@@ -3,6 +3,7 @@
 // Copyright (c) 20012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 #ifndef RATIO_ESTIMATION_H
 #define RATIO_ESTIMATION_H
@@ -28,7 +29,12 @@ NT esti_ratio(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT &error, 
     bool print = var.verbose;
     NT min_val = std::numeric_limits<NT>::lowest(), max_val = std::numeric_limits<NT>::max(), val, lambda;
     size_t totCount = Ntot, countIn = Ntot * ratio;
-    std::vector<NT> last_W(W), lamdas(Pb1.num_of_hyperplanes()), Av(Pb1.num_of_hyperplanes());
+    std::vector<NT> last_W(W);
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    VT lamdas, Av;
+    lamdas.setZero(Pb1.num_of_hyperplanes());
+    Av.setZero(Pb1.num_of_hyperplanes());
+
     std::list<Point> randPoints;
     typename std::vector<NT>::iterator minmaxIt;
     typename std::list<Point>::iterator rpit;
@@ -90,7 +96,11 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 &Pb2, const NT &ratio, const NT
 
     int n = var.n, index = 0, iter = 1;
     bool print = var.verbose;
-    std::vector<NT> last_W(W), lamdas(Pb1.num_of_hyperplanes()), Av(Pb1.num_of_hyperplanes());
+    std::vector<NT> last_W(W);
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    VT lamdas, Av;
+    Av.setZero(Pb1.num_of_hyperplanes());
+    lamdas.setZero(Pb1.num_of_hyperplanes());
     NT val, sum_sq=0.0, sum=0.0, lambda;
     size_t totCount = Ntot, countIn = Ntot * ratio;
     //std::cout<<"countIn = "<<countIn<<", totCount = "<<totCount<<std::endl;

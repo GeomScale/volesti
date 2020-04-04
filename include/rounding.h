@@ -4,6 +4,7 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // The functions in this header file call Bojan Nikolic <bojan@bnikolic.co.uk> implementation
 // of Todd and Yildirim algorithm in "On Khachiyan's Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids", 2005
@@ -26,6 +27,7 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT
     typedef typename Polytope::MT 	MT;
     typedef typename Polytope::VT 	VT;
     typedef typename Parameters::RNGType RNGType;
+
     unsigned int n=var.n, walk_len=var.walk_steps, i, j = 0;
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
@@ -52,14 +54,13 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT
     // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
     boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
     typename std::list<Point>::iterator rpit=randPoints.begin();
-    typename std::vector<NT>::iterator qit;
+
     for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        qit = (*rpit).iter_begin(); i=0;
-        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            Ap(i,j)=double(*qit);
+        for (i=0 ; i<rpit->dimension(); i++){
+            Ap(i,j)=double((*rpit)[i]);
         }
     }
-    boost::numeric::ublas::matrix<double> Q(n,n);
+    boost::numeric::ublas::matrix<double> Q(n,n); //TODO: remove dependence on ublas and copy to eigen
     boost::numeric::ublas::vector<double> c2(n);
     size_t w=1000;
     KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
@@ -106,18 +107,16 @@ void get_vpoly_center(Polytope &P) {
     typedef typename Polytope::VT 	VT;
     typedef typename Polytope::PolytopePoint 	Point;
 
-    unsigned int n = P.dimension(), i, j = 0;
+    unsigned int n = P.dimension();
 
     std::list<Point> randPoints; //ds for storing rand points
     P.get_points_for_rounding(randPoints);
 
     boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
     typename std::list<Point>::iterator rpit=randPoints.begin();
-    typename std::vector<NT>::iterator qit;
-    for ( ; rpit!=randPoints.end(); rpit++, j++) {
-        qit = (*rpit).iter_begin(); i=0;
-        for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-            Ap(i,j)=double(*qit);
+    for (int j=0 ; rpit!=randPoints.end(); rpit++, j++) {
+        for (int i=0 ; i<rpit->dimension(); i++){
+            Ap(i,j)=double((*rpit)[i]);
         }
     }
     boost::numeric::ublas::matrix<double> Q(n,n);

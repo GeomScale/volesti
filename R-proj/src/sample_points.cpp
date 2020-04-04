@@ -197,6 +197,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
         }
     }
 
+
     if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("nburns")) {
         nburns = Rcpp::as<int>(Rcpp::as<Rcpp::List>(random_walk)["nburns"]);
         if (nburns < 0) {
@@ -233,7 +234,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             HP.normalize();
             if (gaussian) {
                 StartingPoint = StartingPoint - mode;
-                HP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));
+                HP.shift(mode.getCoefficients());
+
             }
             break;
         }
@@ -252,7 +254,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             if (billiard && diam < 0.0) VP.comp_diam(diam);
             if (gaussian) {
                 StartingPoint = StartingPoint - mode;
-                VP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));
+                VP.shift(mode.getCoefficients());
             }
             break;
         }
@@ -271,7 +273,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             if (billiard && diam < 0.0) ZP.comp_diam(diam);
             if (gaussian) {
                 StartingPoint = StartingPoint - mode;
-                ZP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));
+                ZP.shift(mode.getCoefficients());
             }
             break;
         }
@@ -296,7 +298,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             }
             if (gaussian) {
                 StartingPoint = StartingPoint - mode;
-                VPcVP.shift(Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension()));
+                VPcVP.shift(mode.getCoefficients());
             }
             break;
         }
@@ -342,14 +344,17 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
     MT RetMat(dim, numpoints);
     unsigned int jj = 0;
 
+
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
         if (gaussian) {
-            RetMat.col(jj) = Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension()) +
-                             Eigen::Map<VT>(&mode.get_coeffs()[0], mode.dimension());
+
+            RetMat.col(jj) = rpit->getCoefficients() + mode.getCoefficients();
+
         } else {
-            RetMat.col(jj) = Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension());
+            RetMat.col(jj) = (*rpit).getCoefficients();
         }
     }
+
     return Rcpp::wrap(RetMat);
 
 }
