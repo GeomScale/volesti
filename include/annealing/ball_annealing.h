@@ -182,7 +182,6 @@ bool get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
                                const NT &lb, const NT &ub, NT radius, NT &alpha, Parameters &var, NT &rmax) {
 
     typedef typename Polytope::PolytopePoint Point;
-    typedef typename Polytope::MT MT;
     bool fail;
     int n = P.dimension();
     NT ratio, ratio0;

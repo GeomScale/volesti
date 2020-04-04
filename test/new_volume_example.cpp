@@ -16,11 +16,12 @@
 #include "random/uniform_real_distribution.hpp"
 #include "volume.h"
 #include "new_volume.hpp"
+#include "new_gaussian_volume.hpp"
 #include "rotating.h"
 #include "misc.h"
 #include "linear_extensions.h"
-#include "cooling_balls.h"
-#include "cooling_hpoly.h"
+//#include "cooling_balls.h"
+//#include "cooling_hpoly.h"
 #include "sample_only.h"
 #include "exact_vols.h"
 #include "generators/known_polytope_generators.h"
@@ -41,7 +42,6 @@ int main()
     typedef typename Hpolytope::VT    VT;
     MT A;
     VT b;
-    unsigned int m;
     unsigned int dim=10;
 
     A.resize(2 * dim, dim);
@@ -75,8 +75,13 @@ int main()
     // Setup the parameters
     int n = HP.dimension();
     int walk_len=10 + n/10;
-    int nexp=1, n_threads=1;
-    NT e=1, err=0.0000000001;
+    int n_threads=1;
+    NT e=1, err=0.1;
+    NT C=2.0,ratio,frac=0.1,delta=-1.0;
+    int N = 500 * ((int) C) + ((int) (n * n / 2));
+    int W = 6*n*n+800;
+    ratio = 1.0-1.0/(NT(n));
+
     int rnum = std::pow(e,-2) * 400 * n * std::log(n);
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(seed);
@@ -93,8 +98,7 @@ int main()
     //CheBall = P40.ComputeInnerBall();
 
     // Estimate the volume
-    NT vol1;
-    double tstart, tstop;
+    double tstart;
     //std::cout << "Default (cube) = " << volume(HP) << std::endl;
     //std::cout << "Default (cube) = " << volume(HP, 0.5) << std::endl;
     //std::cout << "Default (cube) = " << volume(HP, 0.5, 2) << std::endl;
@@ -107,57 +111,46 @@ int main()
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
-              << volume<BallWalk, RNG>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<BallWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
-              << volume<BallWalk, RNGFixed>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<BallWalk, RNGFixed>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
-              << volume<BallWalk>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<BallWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHRWalk (cube) = "
-              << volume<CDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<CDHRWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "default (cube) = "
-              << volume<>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHRWalk (cube) = "
-              << volume<RDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<RDHRWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BilliardWalk (cube) = "
-              << volume<BilliardWalk>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<BilliardWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
-    //std::cout << "Default (cube) = " << volume_old(P, var, 1.0, walk_len, BilliardWalkOld<Point>()) << std::endl;
-/*    vol1 = volume(HP, 1, walk_len, BallWalk<Point>());
-    std::cout << "Ball (cube) = " << vol1 << std::endl;
-    vol1 = volume(P, 1, walk_len, BallWalk<Point>());
-    std::cout << "     (skinny) = " << vol1 << std::endl;
 
-    vol1 = volume(HP, 1, walk_len, RDHRWalk<Point>());
-    std::cout << "RDHNR (cube) = " << vol1 << std::endl;
-    vol1 = volume(P, 1, walk_len, RDHRWalk<Point>());
-    std::cout << "      (skinny) = " << vol1 << std::endl;
+    vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
+                false,false,false,false,false,false,true,false);
 
-    vol1 = volume(HP, 1, walk_len, CDHRWalk<Point>());
-    std::cout << "CDHNR (cube) = " << vol1 << std::endl;
-    vol1 = volume(P, 1, walk_len, CDHRWalk<Point>());
-    std::cout << "      (skinny) = " << vol1 << std::endl;
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "new GC Ball (cube) = "
+              << volume_gaussian_annealing<RNGType>(HP, var1, CheBall) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
-    vol1 = volume(HP, 1, walk_len, BilliardWalk<Point>());
-    std::cout << "Billiard (cube) = " << vol1 << std::endl;
-    //vol1 = volume(P, 1, walk_len, BilliardWalk<Point>());
-    std::cout << "         (skinny) = " << vol1 << std::endl;
-*/
+/*
     {
         tstart = (double)clock()/(double)CLOCKS_PER_SEC;
         vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,0.0,rng,
@@ -184,6 +177,39 @@ int main()
         vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,0,0.0,rng,
                  urdist,urdist1,-1.0,false,false,false,false,false,false,false,false,true);
         //std::cout << "OLD (cube) = " << volume(HP, var, CheBall) << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }*/
+    {
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,0.0,rng,
+                 urdist,urdist1,-1.0,false,false,false,false,false,true,false,false,false);
+        vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
+                    false,false,false,false,true,false,false,false);
+        std::cout << "old GC Ball (cube) = "
+                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+    {
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,0.0,rng,
+                 urdist,urdist1,-1.0,false,false,false,false,false,false,true,false,false);
+        vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
+                    false,false,false,false,false,true,false,false);
+        std::cout << "old GC CDHR (cube) = "
+                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+    {
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,0.0,rng,
+                 urdist,urdist1,-1.0,false,false,false,false,false,false,false,true,false);
+        vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
+                    false,false,false,false,false,false,true,false);
+        std::cout << "old GC RDHR (cube) = "
+                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
 

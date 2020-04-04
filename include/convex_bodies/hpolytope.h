@@ -279,9 +279,6 @@ public:
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         VT sum_nom;
-        NT mult;
-        //unsigned int i, j;
-        unsigned int j;
         int m = num_of_hyperplanes(), facet;
 
         Ar.noalias() = A * r.getCoefficients();
@@ -381,7 +378,6 @@ public:
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         VT sum_denom;
-        unsigned int j;
         int m = num_of_hyperplanes();
 
         sum_denom = A.col(rand_coord);
@@ -485,7 +481,7 @@ public:
 
     }
 
-    void compute_reflection(Point &v, const Point &p, const int facet) const
+    void compute_reflection(Point &v, const Point &, const int facet) const
     {
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }

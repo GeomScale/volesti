@@ -169,7 +169,7 @@ template <typename Polytope, typename Parameters, typename NT>
 void get_annealing_schedule(Polytope &P, const NT &radius, const NT &ratio, const NT &C, const NT &frac,
         const unsigned int &N, Parameters &var, NT &error, std::vector<NT> &a_vals){
 
-    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Polytope::PointType Point;
     // Compute the first gaussian
     get_first_gaussian(P, radius, frac, var, error, a_vals);
     #ifdef VOLESTI_DEBUG
