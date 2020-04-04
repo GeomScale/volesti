@@ -17,10 +17,11 @@
 #include "volume.h"
 #include "new_volume.hpp"
 #include "new_gaussian_volume.hpp"
+#include "new_cooling_balls.hpp"
 #include "rotating.h"
 #include "misc.h"
 #include "linear_extensions.h"
-//#include "cooling_balls.h"
+#include "cooling_balls.h"
 //#include "cooling_hpoly.h"
 #include "sample_only.h"
 #include "exact_vols.h"
@@ -145,6 +146,9 @@ int main()
     std::cout << std::endl;
 */
 
+/*
+ * Gaussian annealing
+ *
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "new GC Ball (cube) = "
               << volume_gaussian_annealing<GaussianBallWalk>(HP, e, walk_len) << " , ";
@@ -159,7 +163,7 @@ int main()
     std::cout << "new GC CDHR (cube) = "
               << volume_gaussian_annealing<GaussianCDHRWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
-
+*/
 
 /*
     {
@@ -190,6 +194,7 @@ int main()
         //std::cout << "OLD (cube) = " << volume(HP, var, CheBall) << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }*/
+    /*
     {
         tstart = (double)clock()/(double)CLOCKS_PER_SEC;
         vars<NT, RNGType> var2(rnum,n,10 + n/10,n_threads,err,e,0,0,0,0,0.0,rng,
@@ -223,6 +228,90 @@ int main()
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
+*/
+    NT diameter;
+    HP.comp_diam(diameter, CheBall.second);
+
+
+    NT lb = 0.1, ub = 0.15, p = 0.75, rmax = 0.0, alpha = 0.2;
+    int W2 = 500, NNu = 150, nu =10;
+    bool win2 = false;
+    vars_ban <NT> var_ban(lb, ub, p, rmax, alpha, W2, NNu, nu, win2);
+
+    vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                          CheBall.second,diameter,rng,
+                          urdist,urdist1,-1.0,false,false,false,
+                          false,false,false,false,false,true);
+
+
+    {
+        vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                              CheBall.second,diameter,rng,
+                              urdist,urdist1,-1.0,false,false,false,
+                              false,false,true,false,false,false);
+
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        std::cout << "OLD Ball = " << vol_cooling_balls(HP, var, var_ban, CheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+    {
+        vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                              CheBall.second,diameter,rng,
+                              urdist,urdist1,-1.0,false,false,false,
+                              false,false,false,false,true,false);
+
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        std::cout << "OLD RDHR = " << vol_cooling_balls(HP, var, var_ban, CheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+    {
+        vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                              CheBall.second,diameter,rng,
+                              urdist,urdist1,-1.0,false,false,false,
+                              false,false,false,true,false,false);
+
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        std::cout << "OLD CDHR = " << vol_cooling_balls(HP, var, var_ban, CheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+    {
+        vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                              CheBall.second,diameter,rng,
+                              urdist,urdist1,-1.0,false,false,false,
+                              false,false,false,false,false,true);
+
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        std::cout << "OLD Blrd = " << vol_cooling_balls(HP, var, var_ban, CheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "NEW Ball = "
+              << volume_cooling_balls<BallWalk>(HP, var_ban, e, walk_len)
+              << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "NEW RDHR = "
+              << volume_cooling_balls<RDHRWalk>(HP, var_ban, e, walk_len)
+              << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "NEW CDHR = "
+              << volume_cooling_balls<CDHRWalk>(HP, var_ban, e, walk_len)
+              << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "NEW Blrd = "
+              << volume_cooling_balls<BilliardWalk>(HP, var_ban, e, walk_len)
+              << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     return 0;
 }

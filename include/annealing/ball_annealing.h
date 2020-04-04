@@ -63,7 +63,7 @@ bool check_convergence(ConvexBody &P, PointList &randPoints, const NT &lb, const
 template <typename RNGType, typename Polytope, typename ball, typename NT>
 bool get_first_ball(Polytope &P, ball &B0, NT &ratio, NT rad1, const NT &lb, const NT &ub, const NT &alpha, NT &rmax){
 
-    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Polytope::PointType Point;
     int n = P.dimension(), iter = 1;
     bool bisection_int = false, pass = false, too_few = false;
     std::list<Point> randPoints;
@@ -181,7 +181,7 @@ template <typename PolyBall, typename RNGType,class ball, typename Polytope, typ
 bool get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vector<NT> &ratios, const int &Ntot, const int &nu,
                                const NT &lb, const NT &ub, NT radius, NT &alpha, Parameters &var, NT &rmax) {
 
-    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Polytope::PointType Point;
     bool fail;
     int n = P.dimension();
     NT ratio, ratio0;
