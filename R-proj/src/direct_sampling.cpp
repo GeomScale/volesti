@@ -25,7 +25,7 @@
 //'
 //' @param body A list to request exact uniform sampling from special well known convex bodies through the following input parameters:
 //' \itemize{
-//' \item{\code{type} }{ A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
+//' \item{\code{type} }{ A string that declares the type of the body for the exact sampling: a) \code{'unit_simplex'} for the unit simplex, b) \code{'canonical_simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
 //' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 //' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
 //' }
@@ -96,11 +96,11 @@ Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body = R_NilValue
                 randPoints.push_back(get_point_in_Dsphere<RNGType , Point >(dim, radius));
             }
 
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("unit simplex"))==0) {
+        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("unit_simplex"))==0) {
 
             Sam_Unit<NT, RNGType >(dim, numpoints, randPoints);
 
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("canonical simplex"))==0) {
+        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("canonical_simplex"))==0) {
 
             Sam_Canon_Unit<NT, RNGType >(dim, numpoints, randPoints);
 
@@ -117,7 +117,7 @@ Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body = R_NilValue
     unsigned int jj = 0;
 
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
-        RetMat.col(jj) = Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension());
+        RetMat.col(jj) = rpit->getCoefficients();
     }
     return Rcpp::wrap(RetMat);
 }

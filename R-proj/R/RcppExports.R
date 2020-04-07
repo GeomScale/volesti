@@ -41,7 +41,7 @@ copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL) {
 #'
 #' @param body A list to request exact uniform sampling from special well known convex bodies through the following input parameters:
 #' \itemize{
-#' \item{\code{type} }{ A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
+#' \item{\code{type} }{ A string that declares the type of the body for the exact sampling: a) \code{'unit_simplex'} for the unit simplex, b) \code{'canonical_simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
 #' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 #' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
 #' }
@@ -190,6 +190,7 @@ rounding <- function(P) {
 #' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
 #' \item{\code{walk_length} }{ The number of the steps for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
 #' \item{\code{nburns} }{ The number of points to burn before start sampling.}
+#' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
 #' \item{\code{BaW_rad} }{ The radius for the ball walk.}
 #' \item{\code{L} }{ The maximum length of the billiard trajectory.}
 #' }
@@ -197,7 +198,6 @@ rounding <- function(P) {
 #' \itemize{
 #' \item{\code{density}}{A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
 #' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
-#' \item{\code{StartingPoint} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
 #'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
 #' }
 #'
@@ -227,7 +227,7 @@ sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution =
 #' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 #'
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
-#' @param algo Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
+#' @param settings Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
 #' \itemize{
 #' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian or c) \code{'CB'} for cooling bodies. The defalut algorithm for H-polytopes is \code{'CB'} when \eqn{d\leq 200} and \code{'CG'} when \eqn{d>200}. For the other representations the default algorithm is \code{'CB'}.}
 #' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for \code{'SOB'} and \eqn{0.1} otherwise.}
@@ -267,27 +267,27 @@ sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution =
 #'
 #' # calling CG algorithm for a V-polytope (3d simplex)
 #' P = gen_simplex(2,'V')
-#' vol = volume(P, algo = list("algorithm" = "CG"))
+#' vol = volume(P, settings = list("algorithm" = "CG"))
 #'
 #' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 #' Z = gen_rand_zonotope(2, 4)
-#' vol = volume(Z, algo = list("random_walk" = "RDHR", "walk_length" = 5))
+#' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 5))
 #' @export
-volume <- function(P, algo = NULL, rounding = NULL) {
-    .Call(`_volesti_volume`, P, algo, rounding)
+volume <- function(P, settings = NULL, rounding = NULL) {
+    .Call(`_volesti_volume`, P, settings, rounding)
 }
 
 #' An internal Rccp function for the over-approximation of a zonotope
 #'
 #' @param Z A zonotope.
 #' @param fit_ratio Optional. A boolean parameter to request the computation of the ratio of fitness.
-#' @param algo_parameters Optional. A list that declares the values of the parameters of CB algorithm.
+#' @param settings Optional. A list that declares the values of the parameters of CB algorithm.
 #'
 #' @section warning:
 #' Do not use this function.
 #'
 #' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
-zono_approx <- function(Z, fit_ratio = NULL, algo_parameters = NULL) {
-    .Call(`_volesti_zono_approx`, Z, fit_ratio, algo_parameters)
+zono_approx <- function(Z, fit_ratio = NULL, settings = NULL) {
+    .Call(`_volesti_zono_approx`, Z, fit_ratio, settings)
 }
 

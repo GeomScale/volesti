@@ -3,6 +3,7 @@
 // Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
@@ -59,7 +60,7 @@ NT get_max_coord(const NT &l, const NT &u, const NT &a_i) {
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
 template <typename Parameters, typename Point, typename NT>
-void rand_exp_range(Point &lower, Point &upper, const NT &a_i, Point &p, Parameters const& var) {
+void rand_exp_range(Point &lower, Point & upper, const NT &a_i, Point &p, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn;
     const NT tol = 0.00000001;
@@ -142,14 +143,14 @@ NT rand_exp_range_coord(const NT &l, const NT &u, const NT &a_i, Parameters cons
 
 
 // compute the first coordinate point
-template <typename Polytope, typename Point, typename Parameters, typename NT>
+template <typename Polytope, typename Point, typename Parameters, typename NT, typename VT>
 void gaussian_first_coord_point(Polytope &P,
                          Point &p,   // a point to start
                          Point &p_prev, // previous point
                          unsigned int &coord_prev, // previous coordinate ray
                          unsigned int walk_len, // number of steps for the random walk
                          const NT &a_i,
-                         std::vector<NT> &lamdas,
+                         VT &lamdas,
                          Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
@@ -175,14 +176,14 @@ void gaussian_first_coord_point(Polytope &P,
 
 
 // Compute the next point with target distribution the gaussian
-template <typename Polytope, typename Point, typename Parameters, typename NT>
+template <typename Polytope, typename Point, typename Parameters, typename NT, typename VT>
 void gaussian_next_point(Polytope &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
                         unsigned int &coord_prev, // previous coordinate ray
                         const unsigned int walk_len, // number of steps for the random walk
                         const NT &a_i,
-                        std::vector<NT> &lamdas,
+                        VT &lamdas,
                         Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
@@ -223,7 +224,10 @@ void rand_gaussian_point_generator(Polytope &P,
     RNGType &rng2 = var.rng;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    VT lamdas;
+    lamdas.setZero(P.num_of_hyperplanes());
+
     unsigned int rand_coord = uidist(rng2), coord_prev, rand_coord_prev;
     NT ball_rad = var.delta;
     Point p_prev = p;
@@ -282,14 +286,14 @@ void gaussian_hit_and_run(Point &p,
 
 
 // hit-and-run with orthogonal directions and update
-template <class Polytope, class Parameters, class Point, typename NT>
+template <typename Polytope, typename Parameters, typename Point, typename NT, typename VT>
 void gaussian_hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              Polytope &P,
                              unsigned int rand_coord,
                              unsigned int rand_coord_prev,
                              const NT &a_i,
-                             std::vector<NT> &lamdas,
+                             VT &lamdas,
                              Parameters const& var) {
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     NT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
@@ -310,7 +314,7 @@ void gaussian_ball_walk(Point & p,
     unsigned int n = P.dimension();
     NT f_x, f_y, rnd;
     Point y = get_point_in_Dsphere<RNGType, Point>(n, ball_rad);
-    y = y + p;
+    y += p;
     f_x = eval_exp(p, a_i);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
