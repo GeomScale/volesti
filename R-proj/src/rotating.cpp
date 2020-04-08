@@ -27,13 +27,15 @@
 //'
 //' @param P A convex polytope (H-, V-polytope or a zonotope).
 //' @param T Optional. A rotation matrix.
+//' @param seed Optional. A fixed seed for the random linear map generator.
 //'
 //' @section warning:
 //' Do not use this function.
 //'
 //' @return A matrix that describes the rotated polytope
 // [[Rcpp::export]]
-Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMatrix> T = R_NilValue){
+Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMatrix> T = R_NilValue,
+                              Rcpp::Nullable<double> seed = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -51,6 +53,8 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
     unsigned int n = P.field("dimension");
     int type = P.field("type");
 
+    double seed2 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
+
     switch (type) {
         case 1: {
             // Hpolytope
@@ -60,7 +64,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
                 TransorfMat = Rcpp::as<MT>(T);
                 HP.linear_transformIt(TransorfMat.inverse());
             } else {
-                TransorfMat = rotating < MT > (HP);
+                TransorfMat = rotating < MT > (HP, seed2);
             }
             Mat = extractMatPoly(HP);
             break;
@@ -73,7 +77,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
                 TransorfMat = Rcpp::as<MT>(T);
                 VP.linear_transformIt(TransorfMat.inverse());
             } else {
-                TransorfMat = rotating < MT > (VP);
+                TransorfMat = rotating < MT > (VP, seed2);
             }
             Mat = extractMatPoly(VP);
             break;
@@ -86,7 +90,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
                 TransorfMat = Rcpp::as<MT>(T);
                 ZP.linear_transformIt(TransorfMat.inverse());
             } else {
-                TransorfMat = rotating < MT > (ZP);
+                TransorfMat = rotating < MT > (ZP, seed2);
             }
             Mat = extractMatPoly(ZP);
             break;
@@ -102,7 +106,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
                 TransorfMat = Rcpp::as<MT>(T);
                 VPcVP.linear_transformIt(TransorfMat.inverse());
             } else {
-                TransorfMat = rotating < MT > (VPcVP);
+                TransorfMat = rotating < MT > (VPcVP, seed2);
             }
         }
     }
