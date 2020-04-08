@@ -44,7 +44,7 @@ rotate_polytope <- function(P, T = NULL, seed = NULL){
   
   # remove first column
   A = Mat[,-c(1)]
-  #A = Mat[,-c(1)]
+  
   type = P$type
   if (type == 2) {
     PP = Vpolytope$new(A)

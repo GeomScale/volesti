@@ -96,7 +96,8 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
             break;
         }
         case 4: {
-            Vpolytope VP1;
+            throw Rcpp::exception("volesti does not support rotation for this representation currently.");
+            /*Vpolytope VP1;
             Vpolytope VP2;
             InterVP VPcVP;
             VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
@@ -107,7 +108,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
                 VPcVP.linear_transformIt(TransorfMat.inverse());
             } else {
                 TransorfMat = rotating < MT > (VPcVP, seed2);
-            }
+            }*/
         }
     }
 
