@@ -189,32 +189,34 @@ void get_vpoly_center(Polytope &P) {
     unsigned int n = P.dimension();
 
     std::list<Point> randPoints; //ds for storing rand points
-    P.get_points_for_rounding(randPoints);
+    if (!P.get_points_for_rounding(randPoints)) {
+        P.shift(P.get_mean_of_vertices().getCoefficients());
+    } else {
 
-    boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
-    typename std::list<Point>::iterator rpit=randPoints.begin();
-    for (int j=0 ; rpit!=randPoints.end(); rpit++, j++) {
-        for (int i=0 ; i<rpit->dimension(); i++){
-            Ap(i,j)=double((*rpit)[i]);
+        boost::numeric::ublas::matrix<double> Ap(n,randPoints.size());
+        typename std::list<Point>::iterator rpit=randPoints.begin();
+        for (int j=0 ; rpit!=randPoints.end(); rpit++, j++) {
+            for (int i=0 ; i<rpit->dimension(); i++){
+                Ap(i,j)=double((*rpit)[i]);
+            }
         }
-    }
-    boost::numeric::ublas::matrix<double> Q(n,n);
-    boost::numeric::ublas::vector<double> c2(n);
-    size_t w=1000;
-    KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+        boost::numeric::ublas::matrix<double> Q(n,n);
+        boost::numeric::ublas::vector<double> c2(n);
+        size_t w=1000;
+        KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
-    MT E(n,n);
-    VT e(n);
+        //MT E(n,n);
+        VT e(n);
 
-    //Get ellipsoid matrix and center as Eigen objects
-    for(unsigned int i=0; i<n; i++){
-        e(i)=NT(c2(i));
-        for (unsigned int j=0; j<n; j++){
-            E(i,j)=NT(Q(i,j));
+        //Get ellipsoid matrix and center as Eigen objects
+        for(unsigned int i=0; i<n; i++){
+            e(i)=NT(c2(i));
+        //for (unsigned int j=0; j<n; j++){
+            //E(i,j)=NT(Q(i,j));
+        //}
         }
+        P.shift(e);
     }
-
-    P.shift(e);
 
 }
 
