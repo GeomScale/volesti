@@ -144,7 +144,7 @@ inner_ball <- function(P) {
 #' @param Zono_gen A boolean parameter to declare if the requested polytope has to be a zonotope.
 #' @param dim_gen An integer to declare the dimension of the requested polytope.
 #' @param m_gen An integer to declare the number of generators for the requested random zonotope or the number of vertices for a V-polytope.
-#' @param seed This variable can be used to set a seed for the random polytope generator.
+#' @param seed Optional. A fixed seed for the random polytope generator.
 #'
 #' @section warning:
 #' Do not use this function.
@@ -158,13 +158,14 @@ poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL)
 #'
 #' @param P A convex polytope (H-, V-polytope or a zonotope).
 #' @param T Optional. A rotation matrix.
+#' @param seed Optional. A fixed seed for the random linear map generator.
 #'
 #' @section warning:
 #' Do not use this function.
 #'
 #' @return A matrix that describes the rotated polytope
-rotating <- function(P, T = NULL) {
-    .Call(`_volesti_rotating`, P, T)
+rotating <- function(P, T = NULL, seed = NULL) {
+    .Call(`_volesti_rotating`, P, T, seed)
 }
 
 #' Internal rcpp function for the rounding of a convex polytope
