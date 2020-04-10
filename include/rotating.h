@@ -12,14 +12,19 @@
 
 
 template <typename MT, typename Polytope>
-MT rotating(Polytope &P){
+MT rotating(Polytope &P, double seed = std::numeric_limits<double>::signaling_NaN()){
 
     typedef boost::mt19937    RNGType;
-    //typedef typename Polytope::MT 	MT;
 
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!std::isnan(seed)) {
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
     boost::random::uniform_real_distribution<> urdist(-1.0, 1.0);
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
     unsigned int n = P.dimension();
 
     // pick a random rotation

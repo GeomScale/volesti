@@ -126,26 +126,28 @@ Rcpp::List rounding (Rcpp::Reference P){
     // initialization
     vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,diam,rng,urdist,urdist1,
                           delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard);
-    std::pair <NT, NT> round_res;
+    std::pair< std::pair<MT, VT>, NT > round_res;
 
     switch (type) {
         case 1: {
-            round_res = rounding_min_ellipsoid(HP, InnerBall, var);
+            round_res = rounding_min_ellipsoid<MT, VT>(HP, InnerBall, var);
             Mat = extractMatPoly(HP);
             break;
         }
         case 2: {
-            round_res = rounding_min_ellipsoid(VP, InnerBall, var);
+            round_res = rounding_min_ellipsoid<MT, VT>(VP, InnerBall, var);
             Mat = extractMatPoly(VP);
             break;
         }
         case 3: {
-            round_res = rounding_min_ellipsoid(ZP, InnerBall, var);
+            round_res = rounding_min_ellipsoid<MT, VT>(ZP, InnerBall, var);
             Mat = extractMatPoly(ZP);
             break;
         }
     }
 
-    return Rcpp::List::create(Rcpp::Named("Mat") = Mat , Rcpp::Named("round_value") = round_res.first);
+    return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(round_res.first.first),
+                              Rcpp::Named("shift") = Rcpp::wrap(round_res.first.second),
+                              Rcpp::Named("round_value") = round_res.second);
 
 }
