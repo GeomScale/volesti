@@ -102,7 +102,8 @@ std::pair <NT, NT> rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT
 // ----- ROUNDING ------ //
 // main rounding function
 template <typename MT, typename VT, typename Polytope, typename Point, typename Parameters, typename NT>
-std::pair< std::pair<MT, VT>, NT >  rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT> &InnerBall, const Parameters &var) {
+std::pair< std::pair<MT, VT>, NT >  rounding_min_ellipsoid(Polytope &P , const std::pair<Point,NT> &InnerBall,
+                                         const Parameters &var) {
 
     //typedef typename Polytope::VT 	VT;
     typedef typename Parameters::RNGType RNGType;
@@ -205,15 +206,10 @@ void get_vpoly_center(Polytope &P) {
         size_t w=1000;
         KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
-        //MT E(n,n);
         VT e(n);
-
         //Get ellipsoid matrix and center as Eigen objects
         for(unsigned int i=0; i<n; i++){
             e(i)=NT(c2(i));
-        //for (unsigned int j=0; j<n; j++){
-            //E(i,j)=NT(Q(i,j));
-        //}
         }
         P.shift(e);
     }
