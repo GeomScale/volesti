@@ -35,7 +35,7 @@
 //' @return A matrix that describes the rotated polytope
 // [[Rcpp::export]]
 Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMatrix> T = R_NilValue,
-                              Rcpp::Nullable<double> seed = R_NilValue){
+                              Rcpp::Nullable<int> seed = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -53,7 +53,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
     unsigned int n = P.field("dimension");
     int type = P.field("type");
 
-    double seed2 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
+    int seed2 = (!seed.isNotNull()) ? std::chrono::system_clock::now().time_since_epoch().count() : Rcpp::as<int>(seed);
 
     switch (type) {
         case 1: {
@@ -97,18 +97,6 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
         }
         case 4: {
             throw Rcpp::exception("volesti does not support rotation for this representation currently.");
-            /*Vpolytope VP1;
-            Vpolytope VP2;
-            InterVP VPcVP;
-            VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
-            VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
-            VPcVP.init(VP1, VP2);
-            if (T.isNotNull()) {
-                TransorfMat = Rcpp::as<MT>(T);
-                VPcVP.linear_transformIt(TransorfMat.inverse());
-            } else {
-                TransorfMat = rotating < MT > (VPcVP, seed2);
-            }*/
         }
     }
 

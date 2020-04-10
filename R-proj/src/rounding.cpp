@@ -97,24 +97,7 @@ Rcpp::List rounding (Rcpp::Reference P){
         }
         case 4: {
             throw Rcpp::exception("volesti does not support rounding for this representation currently.");
-            /*
-            Vpolytope VP1;
-            Vpolytope VP2;
-            VP1.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
-                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
-            VP2.init(n, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
-                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
-            VPcVP.init(VP1, VP2);
-
-            if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-            InnerBall = VPcVP.ComputeInnerBall();
-
-            diam = 2.0 * std::sqrt(NT(n)) * InnerBall.second;
-            VPcVP.comp_diam(diam);
-            delta = 4.0 * InnerBall.second / std::sqrt(NT(n));*/
-
         }
-        //default: throw Rcpp::exception("Wrong polytope input");
     }
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
