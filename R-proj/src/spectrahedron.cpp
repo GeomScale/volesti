@@ -44,16 +44,16 @@ void writeSdpaFormatFile(Rcpp::Nullable<Rcpp::Reference> spectrahedron = R_NilVa
 
     typedef double NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-    typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    typedef Cartesian <NT> Kernel;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Cartesian<NT> Kernel;
     typedef typename Kernel::Point Point;
     typedef boost::mt19937 RNGType;
-    typedef LMI <NT, MT, VT> LMI;
-    typedef Spectrahedron <NT, MT, VT> SPECTRAHEDRON;
+    typedef LMI<NT, MT, VT> LMI;
+    typedef Spectrahedron<NT, MT, VT> Spectrahedron;
 
     std::vector<MT> matrices = Rcpp::as<std::vector<MT> > (Rcpp::as<Rcpp::Reference> (spectrahedron).field("matrices"));
     LMI lmi(matrices);
-    SPECTRAHEDRON _spectrahedron(lmi);
+    Spectrahedron _spectrahedron(lmi);
     Point c(Rcpp::as<VT> (objectiveFunction));
 
     std::filebuf fb;
@@ -66,15 +66,7 @@ void writeSdpaFormatFile(Rcpp::Nullable<Rcpp::Reference> spectrahedron = R_NilVa
     return;
 }
 
-// need this to return a spectrahedron in R
-// in function readSdpaFormatManager
-class _Spectrahedron {
-public:
-    /// A list with the matrices A0, ..., An
-    Rcpp::List matrices;
 
-    _Spectrahedron(Rcpp::List _matrices) : matrices(_matrices) {}
-};
 
 //' Read a SDPA format file
 //'
@@ -91,14 +83,14 @@ Rcpp::List loadSdpaFormatFile(Rcpp::Nullable<std::string> inputFile = R_NilValue
 
     typedef double NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-    typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    typedef Cartesian <NT> Kernel;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Cartesian<NT> Kernel;
     typedef typename Kernel::Point Point;
     typedef boost::mt19937 RNGType;
-    typedef LMI <NT, MT, VT> LMI;
-    typedef Spectrahedron <NT, MT, VT> SPECTRAHEDRON;
+    typedef LMI<NT, MT, VT> LMI;
+    typedef Spectrahedron<NT, MT, VT> Spectrahedron;
 
-    SPECTRAHEDRON _spectrahedron;
+    Spectrahedron _spectrahedron;
     Point c;
 
     // open stream
