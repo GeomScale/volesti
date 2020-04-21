@@ -23,8 +23,14 @@ public:
 
     Ball(Point cc, NT RR) : c(cc),	 R(RR) {}
 
-    NT ComputeDiameter() const
+    NT ComputeDiameter()
     {
+        return std::sqrt(R) * 2;
+    }
+
+    void set_diameter(const NT &diam) {}
+
+    NT get_diameter() const {
         return std::sqrt(R) * 2;
     }
 

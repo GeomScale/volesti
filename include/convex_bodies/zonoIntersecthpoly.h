@@ -18,7 +18,8 @@ public:
     typedef typename HPolytope::NT NT;
     typedef typename HPolytope::VT VT;
     typedef typename HPolytope::MT MT;
-    typedef typename Zonotope::PolytopePoint Point;
+    typedef typename Zonotope::PointType Point;
+    NT diameter;
 
     ZonoIntersectHPoly() {}
 
@@ -57,7 +58,20 @@ public:
         return HP.get_vec();
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v) {
+    NT ComputeDiameter() const
+    {
+        return diameter;
+    }
+
+    void set_diameter(const NT &diam) {
+        diameter = diam;
+    }
+
+    NT get_diameter() const {
+        return diameter;
+    }
+
+    std::pair<NT,NT> line_intersect(Point &r, Point &v) const {
 
         std::pair <NT, NT> polypair = HP.line_intersect(r, v);
         std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
@@ -66,7 +80,7 @@ public:
     }
 
     std::pair<NT,NT> line_intersect(Point &r, Point &v, VT &Ar,
-            VT &Av) {
+            VT &Av) const {
         std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av);
         std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
@@ -74,7 +88,7 @@ public:
     }
 
     std::pair<NT,NT> line_intersect(Point &r, Point &v, VT &Ar,
-            VT &Av, NT &lambda_prev) {
+            VT &Av, NT &lambda_prev) const {
         std::pair <NT, NT> polypair = HP.line_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, NT> zonopair = Z.line_intersect(r, v);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
@@ -83,7 +97,7 @@ public:
 
     //First coordinate ray shooting intersecting convex body
     std::pair<NT,NT> line_intersect_coord(Point &r,const unsigned int &rand_coord,
-                                          VT &lamdas) {
+                                          VT &lamdas) const {
 
         std::pair <NT, NT> polypair = HP.line_intersect_coord(r, rand_coord, lamdas);
         std::pair <NT, NT> zonopair = Z.line_intersect_coord(r, rand_coord, lamdas);
@@ -93,7 +107,7 @@ public:
 
 
     std::pair<NT, int> line_positive_intersect(Point &r, Point &v, VT &Ar,
-                                               VT &Av) {
+                                               VT &Av) const {
 
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av);
         std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
@@ -105,7 +119,7 @@ public:
     }
 
     std::pair<NT, int> line_positive_intersect(Point &r, Point &v,  VT &Ar,
-                                               VT &Av, NT &lambda_prev) {
+                                               VT &Av, NT &lambda_prev) const {
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, int> zonopair  = Z.line_positive_intersect(r, v, Ar, Av);
         int facet = HP.num_of_hyperplanes()+1;
@@ -120,7 +134,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int &rand_coord,
                                           const unsigned int &rand_coord_prev,
-                                          VT &lamdas) {
+                                          VT &lamdas) const {
 
         std::pair <NT, NT> polypair = HP.line_intersect_coord(r, r_prev, rand_coord, rand_coord_prev, lamdas);
         std::pair <NT, NT> zonopair = Z.line_intersect_coord(r, rand_coord, lamdas);
@@ -128,14 +142,14 @@ public:
                                  std::max(polypair.second, zonopair.second));
     }
 
-    std::pair<NT,NT> query_dual(Point &p, const unsigned int &rand_coord) {
+    std::pair<NT,NT> query_dual(Point &p, const unsigned int &rand_coord) const {
         std::pair <NT, NT> polypair = HP.query_dual(p, rand_coord);
         std::pair <NT, NT> zonopair = Z.line_intersect_coord(p, rand_coord);
         return std::pair<NT, NT>(std::min(polypair.first, zonopair.first),
                                  std::max(polypair.second, zonopair.second));
     }
 
-    void compute_reflection (Point &v, const Point &p, const int &facet) {
+    void compute_reflection (Point &v, const Point &p, const int &facet) const {
 
         if (facet == (HP.num_of_hyperplanes()+1)) {
             Z.compute_reflection(v, p, facet);

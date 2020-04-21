@@ -337,8 +337,8 @@ double volume (Rcpp::Reference P,
         alpha = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["alpha"]);
         cb_params++;
     }
-    if (Rcpp::as<Rcpp::List>(algo).containsElementNamed("L")) {
-        diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(algo)["L"]);
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("L")) {
+        diam = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(settings)["L"]);
     }
 
     if ((CB && cg_params > 0) || (CG && cb_params > 0) || (!CB & !CG && (cg_params > 0 || cb_params > 0))){
