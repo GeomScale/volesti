@@ -22,7 +22,7 @@
 template <typename Point>
 class Zonotope {
 public:
-    typedef Point PolytopePoint;
+    typedef Point PointType;
     typedef typename Point::FT NT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
@@ -31,6 +31,8 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
+    std::pair<Point,NT> _inner_ball;
+    NT diameter;
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
     REAL *conv_comb, *row, *row_mem;
@@ -204,7 +206,7 @@ public:
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(const Point &p) {
+    int is_in(const Point &p) const {
         if(memLP_Zonotope(V, p, row_mem, colno_mem)){
             return -1;
         }
@@ -227,10 +229,11 @@ public:
         }
 
         radius = radius / std::sqrt(NT(_d));
-        return std::pair<Point, NT> (center, radius);
+        _inner_ball = std::pair<Point, NT> (center, radius);
+        return _inner_ball;
     }
 
-    void comp_diam(NT &diam) {
+    void comp_diam(NT &diam) const {
         int k = V.rows(), max_index = -1;
 
         MT D = V.transpose() * V;
@@ -255,13 +258,27 @@ public:
         diam = 2.0 * (V.transpose() * x0).norm();
     }
 
-    void comp_diam(NT &diam, const NT &cheb_rad) {
+    void comp_diam(NT &diam, const NT &cheb_rad) const {
         comp_diam(diam);
+    }
+
+    NT ComputeDiameter() const {
+        NT diam;
+        comp_diam(diam);
+        return diam;
+    }
+
+    void set_diameter(const NT &diam) {
+        diameter = diam;
+    }
+
+    NT get_diameter() const {
+        return diameter;
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v) const {
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
@@ -269,26 +286,26 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT& Ar,
-            const VT& Av) {
+            const VT& Av) const {
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-                                    const VT &Av, const NT &lambda_prev) {
+                                    const VT &Av, const NT &lambda_prev) const {
 
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
-                                               const VT &Av) {
+                                               const VT &Av) const {
         return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, true), 1);
     }
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
-                                               const VT &Av, const NT &lambda_prev) {
+                                               const VT &Av, const NT &lambda_prev) const {
         return line_positive_intersect(r, v, Ar, Av);
     }
 
@@ -297,7 +314,7 @@ public:
     // with the Zonotope
     std::pair<NT,NT> line_intersect_coord(const Point &r,
                                           const unsigned int rand_coord,
-                                          const VT &lamdas) {
+                                          const VT &lamdas) const {
 
         std::vector<NT> temp(_d,0);
         temp[rand_coord]=1.0;
@@ -314,7 +331,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int rand_coord,
                                           const unsigned int rand_coord_prev,
-                                          const VT &lamdas) {
+                                          const VT &lamdas) const {
         return line_intersect_coord(r, rand_coord, lamdas);
     }
 
@@ -329,7 +346,7 @@ public:
     // get number of parallelopipeds
     // for each parallelopiped consider a lower bound for the distance from the origin
     // useful for CG algorithm to get the first gaussian
-    std::vector<NT> get_dists(const NT &radius) {
+    std::vector<NT> get_dists(const NT &radius) const {
         std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }
@@ -349,7 +366,7 @@ public:
 
     void normalize() {}
 
-    void compute_reflection(Point &v, const Point &p, const int &facet) {
+    void compute_reflection(Point &v, const Point &p, const int &facet) const {
 
         int count = 0;
         MT Fmat(_d-1,_d);

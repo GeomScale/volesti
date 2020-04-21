@@ -34,6 +34,7 @@ private:
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
     std::pair<Point,NT> _inner_ball;
+    NT diameter;
     REAL *conv_comb, *row, *conv_comb2, *conv_mem;
     int *colno, *colno_mem;
 
@@ -50,8 +51,16 @@ public:
 
     NT ComputeDiameter() const
     {
-        NT diameter;
-        comp_diam(diameter);
+        NT diam;
+        comp_diam(diam);
+        return diam;
+    }
+
+    void set_diameter(const NT &diam) {
+        diameter = diam;
+    }
+
+    NT get_diameter() const {
         return diameter;
     }
 
@@ -191,7 +200,7 @@ public:
         }
     }
 
-    void comp_diam(NT &diam, const NT &cheb_rad) {
+    void comp_diam(NT &diam, const NT &cheb_rad) const {
         comp_diam(diam);
     }
 
@@ -287,27 +296,30 @@ public:
         Point center(_d);
 
         std::list<Point> randPoints;
-        get_points_for_rounding(randPoints);
+        if (!get_points_for_rounding(randPoints)) {
+            center = get_mean_of_vertices();
+        } else {
 
-        boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
-        typename std::list<Point>::iterator rpit=randPoints.begin();
+            boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
+            typename std::list<Point>::iterator rpit=randPoints.begin();
 
-        unsigned int i, j = 0;
-        for ( ; rpit!=randPoints.end(); rpit++, j++) {
-            const NT* point_data = rpit->getCoefficients().data();
+            unsigned int i, j = 0;
+            for ( ; rpit!=randPoints.end(); rpit++, j++) {
+                const NT* point_data = rpit->getCoefficients().data();
 
-            for ( i=0; i < rpit->dimension(); i++){
-                Ap(i,j)=double(*point_data);
-                point_data++;
+                for ( i=0; i < rpit->dimension(); i++){
+                    Ap(i,j)=double(*point_data);
+                    point_data++;
+                }
             }
-        }
-        boost::numeric::ublas::matrix<double> Q(_d, _d);
-        boost::numeric::ublas::vector<double> c2(_d);
-        size_t w=1000;
-        KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+            boost::numeric::ublas::matrix<double> Q(_d, _d);
+            boost::numeric::ublas::vector<double> c2(_d);
+            size_t w=1000;
+            KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
-        //Get ellipsoid matrix and center as Eigen objects
-        for(unsigned int i=0; i<_d; i++) center.set_coord(i, NT(c2(i)));
+            //Get ellipsoid matrix and center as Eigen objects
+            for(unsigned int i=0; i<_d; i++) center.set_coord(i, NT(c2(i)));
+        }
 
         std::pair<NT,NT> res;
         for (unsigned int i = 0; i < _d; ++i) {

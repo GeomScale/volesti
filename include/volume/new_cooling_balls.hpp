@@ -35,7 +35,7 @@ struct cooling_ball_parameters
         ,   p(0.75)
         ,   rmax(0)
         ,   alpha(0.2)
-        ,   win_len(500)
+        ,   win_len(1000)
         ,   N(150)
         ,   nu(10)
         ,   window2(false)
@@ -289,7 +289,7 @@ template
     typename NT,
     typename RNG
 >
-bool get_sequence_of_polytopeballs(Polytope const& P,
+bool get_sequence_of_polytopeballs(Polytope& P,
                                    std::vector<ball>& BallSet,
                                    std::vector<NT>& ratios,
                                    int const& Ntot,
@@ -341,7 +341,7 @@ bool get_sequence_of_polytopeballs(Polytope const& P,
         zb_it = PolyBall(P, BallSet[BallSet.size()-1]);
         q = Point(n);
         randPoints.clear();
-        zb_it.comp_diam(diameter);
+        //zb_it.comp_diam(diameter);
 
         RandomPointGenerator::apply(zb_it, q, Ntot, walk_length,
                                     randPoints, push_back_policy, rng);
@@ -381,7 +381,7 @@ template
     typename NT,
     typename RNG
 >
-NT estimate_ratio(PolyBall1 const& Pb1,
+NT estimate_ratio(PolyBall1& Pb1,
                   PolyBall2 const& Pb2,
                   NT const& ratio,
                   NT const& error,
@@ -466,7 +466,7 @@ template
     typename NT,
     typename RNG
 >
-NT estimate_ratio_interval(PolyBall1 const& Pb1,
+NT estimate_ratio_interval(PolyBall1& Pb1,
                            PolyBall2 const& Pb2,
                            NT const& ratio,
                            NT const& error,
