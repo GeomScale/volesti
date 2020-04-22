@@ -2,7 +2,7 @@ library(volesti)
 
 
 N = 10
-dims = seq(from = 40, to = 200, by=20)
+dims = seq(from = 20, to = 200, by=20)
 
 vol_vec=matrix(0,length(dims),N)
 steps_vec = matrix(0,length(dims),N)

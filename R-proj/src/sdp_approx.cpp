@@ -255,7 +255,7 @@ Rcpp::NumericVector sdp_approx(Rcpp::Nullable<Rcpp::CharacterVector> file = R_Ni
     NT nballs2, diam_spec, vol_spec, rad, round_value = 1.0;
     InnerB.first = p;// = SP.ComputeInnerBall(diam_spec);
 
-    vars <NT, RNGType> var(0, n, 1, 1, 0.0, 0.1, 0, 0.0, 0, InnerB.second, diam_spec, 0, rng, urdist,
+    vars <NT, RNGType> var(0, n, 1, 1, 0.0, 0.1, 0, 0.0, 0, InnerB.second, diam_spec, 0, false, rng, urdist,
                            urdist1,
                            -1.0, true, false, round, false, false, false, false, false, true);
 

@@ -263,7 +263,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::CharacterVector> file = R
     std::pair<Point,NT> InnerB;
     InnerB.first = p;
 
-    vars<NT, RNGType> var(0,n, 1, 1,0.0,0.1,0,0.0,0, radius,diam,0,rng,urdist,urdist1,
+    vars<NT, RNGType> var(0,n, 1, 1,0.0,0.1,0,0.0,0, radius,diam,0,false,rng,urdist,urdist1,
                           -1.0,true,false,round,false,false,false,false,false, true);
     var.che_rad = radius;
     var.diameter = diam;

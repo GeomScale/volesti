@@ -291,7 +291,7 @@ Rcpp::NumericVector volume (Rcpp::Nullable<Rcpp::CharacterVector> file = R_NilVa
     spectaedro SP(Slmi);//, SP2;
     unsigned int n = SP.dimension();
 
-    bool CG, cdhr = true, rdhr = false, ball_walk = false, round=false;
+    bool CG, cdhr = true, rdhr = false, ball_walk = false, round=false, bref = false;
     unsigned int win_len = 4*n*n+500, N = 500 * 2 +  n * n / 2;
 
     double C = 2.0, ratio = 1.0-1.0/(NT(n)), frac = 0.1, e, delta = -1.0;
@@ -309,10 +309,16 @@ Rcpp::NumericVector volume (Rcpp::Nullable<Rcpp::CharacterVector> file = R_NilVa
     NT nballs2, diam_spec, vol_spec, rad, round_value = 1.0;
     InnerB.first = p;// = SP.ComputeInnerBall(diam_spec);
 
-    vars<NT, RNGType> var(0,n, 1, 1,0.0,0.1,0,0.0,0, InnerB.second,diam_spec,0,rng,urdist,urdist1,
+    if (Rcpp::as<Rcpp::List>(Parameters).containsElementNamed("bref")) {
+        bref = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(Parameters)["bref"]);
+    }
+
+    vars<NT, RNGType> var(0,n, 1, 1,0.0,0.1,0,0.0,0, InnerB.second,diam_spec,0,bref,rng,urdist,urdist1,
                           delta,true,false,round,false,false,false,false,false, true);
     spectaedro::BoundaryOracleBilliardSettings settings(SP.getLMI().getMatricesDim());
     settings.LMIatP = SP.getLMI().getA0();
+
+
 
     //std::cout<<"\ninitializations ok.."<<std::endl;
     //vars<NT, RNGType> var2 = var;

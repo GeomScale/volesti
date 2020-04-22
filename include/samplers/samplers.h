@@ -1126,7 +1126,12 @@ double billiard_walk(Spectrahedron &spectrahedron, Point &p, const NT& che_rad, 
     unsigned int n = spectrahedron.dimension();
     RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
-    NT T = urdist(rng) * che_rad;
+    NT T;
+    if(!var.exp_ref) {
+        T = urdist(rng) * che_rad;
+    } else {
+        T = -std::log(urdist(rng)) * che_rad;
+    }
     Point v, p0 = p;
 
     if (!shake_and_bake_directions)
@@ -1136,7 +1141,7 @@ double billiard_walk(Spectrahedron &spectrahedron, Point &p, const NT& che_rad, 
 
     NT it = 0;
     std::pair<NT, bool> pair;
-    NT factor = 100.0;
+    NT factor = 100.0*n;
 
     while (it < factor*n) {
 
