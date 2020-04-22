@@ -1,7 +1,6 @@
 #ifndef VOLESTIBINDINGS_H
 #define VOLESTIBINDINGS_H
 
-
 #include "Eigen/Eigen"
 #include "volume.h"
 #include "sample_only.h"
@@ -24,7 +23,7 @@ class HPolytopeCPP{
       Hpolytope HP;
       std::pair<Point,NT> CheBall;
       ~HPolytopeCPP();
-      double compute_volume(char* method, int walk_len, double epsilon, uint seed);
+      double compute_volume(int walk_len, double epsilon, uint seed);
       void generate_samples(int walk_len, int n_samples, double* samples, uint seed);
 
 };

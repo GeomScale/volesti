@@ -4,7 +4,6 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -15,13 +14,13 @@
 #include <iostream>
 
 
-template <class Point, class MT, class VT>
+template <class Point>
 class copula_ellipsoid{
 private:
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
-    //typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    //typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     MT G;
     unsigned int dim;
 public:
@@ -39,7 +38,13 @@ public:
     }
 
     NT mat_mult(Point p) {
-         return p.getCoefficients().transpose()*G*p.getCoefficients();
+        VT q(dim);
+        unsigned int i = 0;
+
+        for ( ; i<p.dimension(); ++i){
+            q(i)=p[i];
+        }
+        return q.transpose()*G*q;
     }
 
 };

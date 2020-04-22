@@ -1,4 +1,4 @@
-PKG_CPPFLAGS=-I../../external/boost -I../../external/LPsolve_src/run_headers -I../../external/minimum_ellipsoid -I../../include -I../../include/volume -I../../include/generators -I../../include/samplers -I../../include/annealing -I../../include/convex_bodies -I../../include/lp_oracles -I../../include/misc
+PKG_CPPFLAGS=-I../../include/optimization -I../../external/Eigen -I../../external/boost -I../../external/LPsolve_src/run_headers -I../../external/minimum_ellipsoid -I../../include -I../../include/volume -I../../include/generators -I../../include/samplers -I../../include/annealing -I../../include/convex_bodies
 PKG_CXXFLAGS= -lm -ldl -Wno-ignored-attributes -DBOOST_NO_AUTO_PTR
 CXX_STD = CXX11
 

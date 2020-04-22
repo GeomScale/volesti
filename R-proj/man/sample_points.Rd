@@ -2,52 +2,70 @@
 % Please edit documentation in R/RcppExports.R
 \name{sample_points}
 \alias{sample_points}
-\title{Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope or a zonotope).}
+\title{Sample points from a convex Polytope (H-polytope, V-polytope or a zonotope) or use direct methods for uniform sampling from the unit or the canonical or an arbitrary \eqn{d}-dimensional simplex and the boundary or the interior of a \eqn{d}-dimensional hypersphere}
 \usage{
-sample_points(P = NULL, n = NULL, random_walk = NULL,
-  distribution = NULL)
+sample_points(P = NULL, N = NULL, distribution = NULL,
+  WalkType = NULL, walk_step = NULL, exact = NULL, body = NULL,
+  Parameters = NULL, InnerPoint = NULL)
 }
 \arguments{
-\item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) an intersection of two V-polytopes.}
+\item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
 
-\item{n}{The number of points that the function is going to sample from the convex polytope.}
+\item{N}{The number of points that the function is going to sample from the convex polytope. The default value is \eqn{100}.}
 
-\item{random_walk}{Optional. A list that declares the random walk and some related parameters as follows:
+\item{distribution}{Optional. A string that declares the target distribution: a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
+
+\item{WalkType}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.}
+
+\item{walk_step}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}, where \eqn{d} implies the dimension of the polytope.}
+
+\item{exact}{A boolean parameter. It should be used for the uniform sampling from the boundary or the interior of a hypersphere centered at the origin or from the unit or the canonical or an arbitrary simplex. The arbitrary simplex has to be given as a V-polytope. For the rest well known convex bodies the dimension has to be declared and the type of body as well as the radius of the hypersphere.}
+
+\item{body}{A string that declares the type of the body for the exact sampling: a) \code{'unit simplex'} for the unit simplex, b) \code{'canonical simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
+
+\item{Parameters}{A list for the parameters of the methods:
 \itemize{
-\item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
-\item{\code{walk_length} }{ The number of the steps for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
-\item{\code{nburns} }{ The number of points to burn before start sampling.}
-\item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
-\item{\code{BaW_rad} }{ The radius for the ball walk.}
-\item{\code{L} }{ The maximum length of the billiard trajectory.}
-}}
-
-\item{distribution}{Optional. A list that declares the target density and some related parameters as follows:
-\itemize{
-\item{\code{density}}{A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
 \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
- \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
+\item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
+\item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
+\item{\code{BW_rad} }{ The radius for the ball walk.}
 }}
+
+\item{InnerPoint}{A \eqn{d}-dimensional numerical vector that defines a point in the interior of polytope P.}
 }
 \value{
-A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
+A \eqn{d\times N} matrix that contains, column-wise, the sampled points from the convex polytope P.
 }
 \description{
-Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- target distribution.
+Sample N points with uniform or multidimensional spherical gaussian -centered in an internal point- target distribution.
+The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
 }
 \examples{
 # uniform distribution from the 3d unit cube in V-representation using ball walk
-P = gen_cube(3, 'V')
-points = sample_points(P, n = 100, random_walk = list("walk" = "BaW", "walk_length" = 5))
+P = GenCube(3, 'V')
+points = sample_points(P, WalkType = "BW", walk_step = 5)
 
 # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
 P = Hpolytope$new(A,b)
-points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "variance" = 2))
+points = sample_points(P, distribution = "gaussian", Parameters = list("variance" = 2))
 
-# uniform points from the boundary of a 2-dimensional random H-polytope
-P = gen_rand_hpoly(2,20)
-points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
+# uniform points from the boundary of a 10-dimensional hypersphere
+points = sample_points(exact = TRUE, body = "hypersphere", Parameters = list("dimension" = 10))
 
+# 10000 uniform points from a 2-d arbitrary simplex
+V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
+P = Vpolytope$new(V)
+points = sample_points(P, N = 10000, exact = TRUE)
+}
+\references{
+\cite{R.Y. Rubinstein and B. Melamed,
+\dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
+
+\cite{A Smith, Noah and W Tromble, Roy,
+\dQuote{Sampling Uniformly from the Unit Simplex,} \emph{ Center for Language and Speech Processing Johns Hopkins University,} 2004.}
+
+\cite{Art B. Owen,
+\dQuote{Monte Carlo theory, methods and examples,} \emph{ Art Owen,} 2009.}
 }

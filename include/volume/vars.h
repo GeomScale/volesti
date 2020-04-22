@@ -13,7 +13,7 @@
 #define VARS_H
 
 //structs with variables and random generators
-template <typename NT, typename RNG>
+template <typename NT, class RNG>
 struct vars{
 public:
     typedef RNG RNGType;
@@ -28,6 +28,7 @@ public:
           const int L,
           NT che_rad,
           NT diameter,
+          unsigned int steps,
           RNG &rng,
           boost::random::uniform_real_distribution<>(urdist),
           boost::random::uniform_real_distribution<> urdist1,
@@ -40,12 +41,12 @@ public:
           bool ball_walk,
           bool cdhr_walk,
           bool rdhr_walk,
-          bool bill_walk
+          bool billiard
     ) :
             m(m), n(n), walk_steps(walk_steps), n_threads(n_threads), err(err), error(error),
-            lw(lw), up(up), L(L), che_rad(che_rad), diameter(diameter), rng(rng),
+            lw(lw), up(up), L(L), che_rad(che_rad), diameter(diameter), steps(steps), rng(rng),
             urdist(urdist), urdist1(urdist1) , delta(delta) , verbose(verbose), rand_only(rand_only), round(round),
-            NN(NN),birk(birk), ball_walk(ball_walk), cdhr_walk(cdhr_walk), rdhr_walk(rdhr_walk), bill_walk(bill_walk){};
+            NN(NN),birk(birk), ball_walk(ball_walk), cdhr_walk(cdhr_walk), rdhr_walk(rdhr_walk), billiard(billiard){};
 
     unsigned int m;
     unsigned int n;
@@ -58,6 +59,7 @@ public:
     const int L;
     NT che_rad;
     NT diameter;
+    unsigned int steps;
     RNG &rng;
     boost::random::uniform_real_distribution<>(urdist);
     boost::random::uniform_real_distribution<> urdist1;
@@ -70,10 +72,10 @@ public:
     bool ball_walk;
     bool cdhr_walk;
     bool rdhr_walk;
-    bool bill_walk;
+    bool billiard;
 };
 
-template <typename NT, typename RNG>
+template <typename NT, class RNG>
 struct vars_g{
 public:
     typedef RNG RNGType;
@@ -89,6 +91,7 @@ public:
            NT frac,
            NT ratio,
            NT delta,
+           bool deltaset,
            bool verbose,
            bool rand_only,
            bool round,
@@ -100,7 +103,7 @@ public:
     ) :
             n(n), walk_steps(walk_steps), N(N), W(W), n_threads(n_threads), error(error),
             che_rad(che_rad), rng(rng), C(C), frac(frac), ratio(ratio), delta(delta),
-            verbose(verbose), rand_only(rand_only), round(round),
+            deltaset(deltaset), verbose(verbose), rand_only(rand_only), round(round),
             NN(NN),birk(birk),ball_walk(ball_walk),cdhr_walk(cdhr_walk), rdhr_walk(rdhr_walk){};
 
     unsigned int n;
@@ -115,6 +118,7 @@ public:
     NT frac;
     NT ratio;
     NT delta;
+    bool deltaset;
     bool verbose;
     bool rand_only;
     bool round;
@@ -124,7 +128,6 @@ public:
     bool cdhr_walk;
     bool rdhr_walk;
 };
-
 
 template <typename NT>
 struct vars_ban {
@@ -154,7 +157,6 @@ public:
     int nu;
     bool window2;
 };
-
 
 
 #endif

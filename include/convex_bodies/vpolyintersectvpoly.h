@@ -4,7 +4,6 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -15,7 +14,7 @@
 #include <iterator>
 #include <vector>
 
-template <typename VPolytope>
+template <class VPolytope>
 class IntersectionOfVpoly {
 public:
     typedef typename VPolytope::NT NT;
@@ -36,69 +35,48 @@ public:
     VPolytope first() { return P1; }
     VPolytope second() { return P2; }
 
-    int is_in(const Point &p){
+    int is_in(Point p){
         if(P1.is_in(p)==-1)
             return P2.is_in(p);
         return 0;
     }
 
-    void init(const VPolytope &P, const VPolytope &Q) {
+    void init(VPolytope &P, VPolytope &Q) {
         P1 = P;
         P2 = Q;
     }
 
-    int num_of_hyperplanes() const {
+    int num_of_hyperplanes(){
         return 0;
     }
 
-    unsigned int dimension() const {
+    unsigned int dimension() {
         return P1.dimension();
     }
 
-    int num_of_vertices() const {
+    int num_of_vertices() {
         return P1.num_of_vertices() + P2.num_of_vertices();
     }
 
-    unsigned int upper_bound_of_hyperplanes() const {
+    unsigned int upper_bound_of_hyperplanes() {
         return dimension() + 1;
         //return 4;
     }
 
-    std::vector<Point> get_vertices() const {
+    std::vector<Point> get_vertices() {
         return vecV;
     }
 
-    NT getRad() const {
+    NT getRad() {
         return rad;
     }
 
-    MT get_mat() const {
+    MT get_mat1() {
         return P1.get_mat();
     }
 
-    MT get_T() const {
-        return P1.get_mat();
-    }
-
-    MT get_mat2() const {
+    MT get_mat2() {
         return P2.get_mat();
-    }
-
-    Point get_mean_of_vertices() const {
-        return Point(P1.dimension());
-    }
-
-
-    NT get_max_vert_norm() const {
-        return 0.0;
-    }
-
-    void comp_diam(NT &diam){
-        diam = 2.0 * std::sqrt(NT(dimension())) * ComputeInnerBall().second;
-    }
-
-    void comp_diam(NT &diam, const NT &cheb_rad) const {
-        diam = 2.0 * std::sqrt(NT(dimension())) * cheb_rad;
     }
 
     void print() {
@@ -200,7 +178,8 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v) {
+    std::pair<NT,NT> line_intersect(Point r,
+                                    Point v) {
 
         std::pair <NT, NT> P1pair = P1.line_intersect(r, v);
         std::pair <NT, NT> P2pair = P2.line_intersect(r, v);
@@ -209,49 +188,12 @@ public:
 
     }
 
-    // compute intersection point of ray starting from r and pointing to v
-    // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-            const VT &Av) {
-        return line_intersect(r, v);
-    }
-
-
-    // compute intersection point of ray starting from r and pointing to v
-    // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-                                    const VT &Av, const NT &lambda) {
-        return line_intersect(r, v);
-    }
-
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v) {
-
-        std::pair<NT, int> P1pair = P1.line_positive_intersect(r, v);
-        std::pair<NT, int> P2pair = P2.line_positive_intersect(r, v);
-
-        if(P1pair.first < P2pair.first) {
-            return std::pair<NT, int>(P1pair.first, 1);
-        }
-        return std::pair<NT, int>(P2pair.first, 2);
-    }
-
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
-            const VT &Av) {
-        return line_positive_intersect(r, v);
-    }
-
-
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
-                                               const VT &Av, const NT &lambda_prev) {
-        return line_positive_intersect(r, v);//, Ar, Av);
-    }
-
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
-    std::pair<NT,NT> line_intersect_coord(const Point &r,
-                                          const unsigned int &rand_coord,
-                                          const VT &lamdas) {
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          unsigned int rand_coord,
+                                          std::vector<NT> &lamdas) {
         std::pair <NT, NT> P1pair = P1.line_intersect_coord(r, rand_coord, lamdas);
         std::pair <NT, NT> P2pair = P2.line_intersect_coord(r, rand_coord, lamdas);
         return std::pair<NT, NT>(std::min(P1pair.first, P2pair.first),
@@ -261,34 +203,37 @@ public:
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
-    std::pair<NT,NT> line_intersect_coord(const Point &r,
-                                          const Point &r_prev,
-                                          const unsigned int &rand_coord,
-                                          const unsigned int &rand_coord_prev,
-                                          const VT &lamdas) {
-        return line_intersect_coord(r, rand_coord, lamdas);
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          Point &r_prev,
+                                          unsigned int rand_coord,
+                                          unsigned int rand_coord_prev,
+                                          std::vector<NT> &lamdas) {
+        std::pair <NT, NT> P1pair = P1.line_intersect_coord(r, r_prev, rand_coord, rand_coord_prev, lamdas);
+        std::pair <NT, NT> P2pair = P2.line_intersect_coord(r, r_prev, rand_coord, rand_coord_prev, lamdas);
+        return std::pair<NT, NT>(std::min(P1pair.first, P2pair.first),
+                                 std::max(P1pair.second, P2pair.second));
     }
 
 
     // shift polytope by a point c
-    void shift(const VT &c) {
+    void shift(VT c) {
         P1.shift(c);
         P2.shift(c);
     }
 
 
     // apply linear transformation, of square matrix T, to the V-Polytope
-    void linear_transformIt(const MT &T) {
+    void linear_transformIt(MT T) {
         P1.linear_transformIt(T);
         P2.linear_transformIt(T);
     }
 
-    std::vector<NT> get_dists(const NT &radius) {
+    std::vector<NT> get_dists(NT radius) {
         std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }
 
-    template <typename PointList>
+    template <class PointList>
     bool get_points_for_rounding (PointList &randPoints) {
         if (num_of_vertices()>40*dimension()) {
             return false;
@@ -301,23 +246,6 @@ public:
         }
 
         return true;
-    }
-
-    void free_them_all() {
-        P1.free_them_all();
-        P2.free_them_all();
-    }
-
-    void normalize() {}
-
-    void compute_reflection (Point &v, const Point &p, const int &facet) {
-
-        if (facet == 1) {
-            P1.compute_reflection (v, p, facet);
-        } else {
-            P1.compute_reflection (v, p, facet);
-        }
-
     }
 
 };

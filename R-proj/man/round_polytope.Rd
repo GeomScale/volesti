@@ -4,10 +4,16 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-round_polytope(P)
+round_polytope(P, WalkType = NULL, walk_step = NULL, radius = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
+
+\item{WalkType}{Optional. A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run or c) \code{'BW'} for Ball Walk. The default walk is \code{'CDHR'}.}
+
+\item{walk_step}{Optional. The number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor}.}
+
+\item{radius}{Optional. The radius for the ball walk.}
 }
 \value{
 A list with 2 elements: (a) a polytope of the same class as the input polytope class and (b) the element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
@@ -23,14 +29,10 @@ P = Hpolytope$new(A, b)
 listHpoly = round_polytope(P)
 
 # rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50
-P = gen_cube(3, 'V')
-ListVpoly = round_polytope(P)
+P = GenCube(3, 'V')
+ListVpoly = round_polytope(P, WalkType = 'RDHR', walk_step = 50)
 
 # round a 2-dimensional zonotope defined by 6 generators using ball walk
-Z = gen_rand_zonotope(2,6)
-ListZono = round_polytope(Z)
-}
-\references{
-\cite{Michael J. Todd and E. Alper Yildirim,
-\dQuote{On Khachiyan’s Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids,} \emph{Discrete Applied Mathematics,} 2007.}
+Z = GenZonotope(2,6)
+ListZono = round_polytope(Z, WalkType = 'BW')
 }

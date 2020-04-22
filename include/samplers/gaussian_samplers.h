@@ -3,7 +3,6 @@
 // Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
@@ -25,19 +24,21 @@
 
 
 // evaluate the pdf of point p
-template <typename Point, typename NT>
-NT eval_exp(Point &p, const NT &a) {
+template <class Point, typename NT>
+NT eval_exp(Point p, NT a) {
     return std::exp(-a * p.squared_length());
 }
 
 
-template <typename Point, typename NT>
-NT get_max(Point &l, Point &u, const NT &a_i) {
+template <class Point, typename NT>
+NT get_max(Point l, Point u, NT a_i) {
     NT res;
-    Point a = -1.0 * l, bef = u - l;
+    Point a = -1.0 * l;
+    Point bef = u - l;
     Point b = (1.0 / std::sqrt((bef).squared_length())) * bef;
     Point z = (a.dot(b) * b) + l;
-    NT low_bd = (l[0] - z[0]) / b[0], up_bd = (u[0] - z[0]) / b[0];
+    NT low_bd = (l[0] - z[0]) / b[0];
+    NT up_bd = (u[0] - z[0]) / b[0];
     if (low_bd * up_bd > 0) {
         //if(std::signbit(low_bd)==std::signbit(up_bd)){
         res = std::max(eval_exp(u, a_i), eval_exp(l, a_i));
@@ -50,7 +51,7 @@ NT get_max(Point &l, Point &u, const NT &a_i) {
 
 
 template <typename NT>
-NT get_max_coord(const NT &l, const NT &u, const NT &a_i) {
+NT get_max_coord(NT l, NT u, NT a_i) {
     if (l < 0.0 && u > 0.0) {
         return 1.0;
     }
@@ -59,8 +60,8 @@ NT get_max_coord(const NT &l, const NT &u, const NT &a_i) {
 
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
-template <typename Parameters, typename Point, typename NT>
-void rand_exp_range(Point &lower, Point & upper, const NT &a_i, Point &p, Parameters const& var) {
+template <class Parameters, class Point, typename NT>
+void rand_exp_range(Point lower, Point upper, NT a_i, Point &p, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn;
     const NT tol = 0.00000001;
@@ -104,8 +105,8 @@ void rand_exp_range(Point &lower, Point & upper, const NT &a_i, Point &p, Parame
 
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
-template <typename Parameters, typename NT>
-NT rand_exp_range_coord(const NT &l, const NT &u, const NT &a_i, Parameters const& var) {
+template <class Parameters, typename NT>
+NT rand_exp_range_coord(NT l, NT u, NT a_i, Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     NT r, r_val, fn, dis;
     const NT tol = 0.00000001;
@@ -143,14 +144,14 @@ NT rand_exp_range_coord(const NT &l, const NT &u, const NT &a_i, Parameters cons
 
 
 // compute the first coordinate point
-template <typename Polytope, typename Point, typename Parameters, typename NT, typename VT>
+template <class Polytope, class Point, class Parameters, typename NT>
 void gaussian_first_coord_point(Polytope &P,
                          Point &p,   // a point to start
                          Point &p_prev, // previous point
                          unsigned int &coord_prev, // previous coordinate ray
                          unsigned int walk_len, // number of steps for the random walk
-                         const NT &a_i,
-                         VT &lamdas,
+                         NT a_i,
+                         std::vector<NT> &lamdas,
                          Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
@@ -176,14 +177,14 @@ void gaussian_first_coord_point(Polytope &P,
 
 
 // Compute the next point with target distribution the gaussian
-template <typename Polytope, typename Point, typename Parameters, typename NT, typename VT>
+template <class Polytope, class Point, class Parameters, typename NT>
 void gaussian_next_point(Polytope &P,
                         Point &p,   // a point to start
                         Point &p_prev, // previous point
                         unsigned int &coord_prev, // previous coordinate ray
-                        const unsigned int walk_len, // number of steps for the random walk
-                        const NT &a_i,
-                        VT &lamdas,
+                        unsigned int walk_len, // number of steps for the random walk
+                        NT a_i,
+                        std::vector<NT> &lamdas,
                         Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n, rand_coord;
@@ -208,13 +209,13 @@ void gaussian_next_point(Polytope &P,
 
 
 // Sample N points with target distribution the gaussian
-template <typename Polytope, typename Parameters, typename Point, typename PointList, typename NT>
+template <class Polytope, class Parameters, class Point, class PointList, typename NT>
 void rand_gaussian_point_generator(Polytope &P,
                          Point &p,   // a point to start
                          unsigned int rnum,   // number of points to sample
-                         const unsigned int walk_len,  // number of stpes for the random walk
+                         unsigned int walk_len,  // number of stpes for the random walk
                          PointList &randPoints,  // list to store the sampled points
-                         const NT &a_i,
+                         NT a_i,
                          Parameters const& var)  // constans for volume
 {
     typedef typename Parameters::RNGType RNGType;
@@ -224,10 +225,7 @@ void rand_gaussian_point_generator(Polytope &P,
     RNGType &rng2 = var.rng;
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-    VT lamdas;
-    lamdas.setZero(P.num_of_hyperplanes());
-
+    std::vector <NT> lamdas(P.num_of_hyperplanes(), NT(0));
     unsigned int rand_coord = uidist(rng2), coord_prev, rand_coord_prev;
     NT ball_rad = var.delta;
     Point p_prev = p;
@@ -265,10 +263,10 @@ void rand_gaussian_point_generator(Polytope &P,
 
 
 // hit-and-run with random directions and update
-template <typename Polytope, typename Parameters, typename Point, typename NT>
+template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_hit_and_run(Point &p,
                 Polytope &P,
-                const NT &a_i,
+                NT a_i,
                 Parameters const& var) {
     typedef typename Parameters::RNGType RNGType;
     unsigned int n = var.n;
@@ -286,14 +284,14 @@ void gaussian_hit_and_run(Point &p,
 
 
 // hit-and-run with orthogonal directions and update
-template <typename Polytope, typename Parameters, typename Point, typename NT, typename VT>
+template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_hit_and_run_coord_update(Point &p,
                              Point &p_prev,
                              Polytope &P,
                              unsigned int rand_coord,
                              unsigned int rand_coord_prev,
-                             const NT &a_i,
-                             VT &lamdas,
+                             NT a_i,
+                             std::vector<NT> &lamdas,
                              Parameters const& var) {
     std::pair <NT, NT> bpair = P.line_intersect_coord(p, p_prev, rand_coord, rand_coord_prev, lamdas);
     NT dis = rand_exp_range_coord(p[rand_coord] + bpair.second, p[rand_coord] + bpair.first, a_i, var);
@@ -304,7 +302,7 @@ void gaussian_hit_and_run_coord_update(Point &p,
 
 
 // ball walk and update
-template <typename Polytope, typename Parameters, typename Point, typename NT>
+template <class Polytope, class Parameters, class Point, typename NT>
 void gaussian_ball_walk(Point & p,
                         Polytope & P,
                         NT const& a_i,
@@ -314,7 +312,7 @@ void gaussian_ball_walk(Point & p,
     unsigned int n = P.dimension();
     NT f_x, f_y, rnd;
     Point y = get_point_in_Dsphere<RNGType, Point>(n, ball_rad);
-    y += p;
+    y = y + p;
     f_x = eval_exp(p, a_i);
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);

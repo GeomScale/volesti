@@ -1,39 +1,138 @@
-**VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R` and limited `python` interface. **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
+## Volume computation and sampling
 
-[![CRAN status](https://www.r-pkg.org/badges/version/volesti)](https://cran.r-project.org/package=volesti)
-[![CRAN downloads](https://cranlogs.r-pkg.org/badges/volesti)](https://cran.r-project.org/package=volesti)
-![CRAN/METACRAN](https://img.shields.io/cran/l/volesti)
-[![Chat](https://badges.gitter.im/boostorg/geometry.png)](https://gitter.im/GeomScale/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+**VolEsti** is a C++ library for volume approximation and sampling of convex bodies with an *R* interface.  
 
-### Test results
+#### **This is a development branch that contains the supplementary code for paper "Sampling  the feasible sets of SDPs and volume approximation" submitted to ISSAC 2020.**   
 
-[![CRAN check](https://cranchecks.info/badges/worst/volesti)](https://cran.r-project.org/web/checks/check_results_volesti.html)
-[![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/master.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/master)
-[![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
+Authors:  
+- [Apostolos Chalkis](https://tolischal.github.io) <tolis.chal at gmail.com>  
+- [Vissarion Fisikopoulos](https://vissarion.github.io) <vissarion.fisikopoulos at gmail.com>  
+- [Panagiotis Repouskos](https://panagiotisrep.github.io/) < cs1180004 at di.uoa.gr >  
+- [Elias Tsigaridas](https://www-polsys.lip6.fr/~elias) <elias.tsigaridas at inria.fr>  
 
-###  Documentation
+### - R Interface
+------------
 
-* [Using the R interface](doc/r_interface.md)
-* [Using the C++ Interface](doc/cpp_interface.md)
-* [Wikipage with tutorials and demos](https://github.com/GeomScale/volume_approximation/wiki)
-* [Tutorial given to PyData meetup](https://vissarion.github.io/tutorials/volesti_tutorial_pydata.html)
+####  Install Rcpp package  
+ 
+* Install package-dependencies: `Rcpp`, `RcppEigen`, `BH`.  
 
-### Credits
+1. Then use devtools package to install `volesti` Rcpp package. In folder `/root/R-prog` Run:
+```r
+Rcpp::compileAttributes()  
+library(devtools)  
+devtools::build()  
+devtools::install()  
+library(volesti)  
+```
+2. You can use Rstudio as well to open `volesti.Rproj` and then click `build source Package` and then `Install and Restart` in `Build` at the menu bar.  
 
-Copyright (c) 2012-2020 Vissarion Fisikopoulos  
-Copyright (c) 2018-2020 Apostolos Chalkis  
 
-You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.  
+####  Run the code from `R`  
 
-Main development started in 2012 by Vissarion Fisikopoulos while he was affiliated with University of Athens (UoA, Greece), and then with University of Brussels (ULB, Belgium). The main sampling and volume algorithms were developed at that time. 
+* Generate a spectrahedron using the function `generator_sdp(n,m)`.  
+  - **Input**:  
+    1. `n` is the dimension the spectrahedron lies.  
+    2. `m` is the dimension of the matrices in LMI.  
+  - **Output**: A txt file with name `sdp_prob_n_m.txt` will be created in folder `/root/R-prog`. You cas use this file (or                 any other with the same format) to give it as input in the following functions.  
 
-Later, Chalkis Apostolos affiliated with University of Athens (UoA, Greece) and mentored by V.F. and partially supported by GSoC'2018, 2019 programs enhanced volesti with more algorithms for sampling and volume as well as an `R` interface.       
+* Compute the volume of a spectrahedron using the function `volume()`.  
+  - **Input**:  
+    1. `filename` is a string with the name of file in the format that the function `generator_sdp()` generates.  
+  - **Output**: The function compute the volume of the input spectrahedron by calling the algorithm described in the paper.  
+* Sample points from a spectrahedron using the function `sample_points()`.  
+  - **Input**:  
+    1. `file` is a string with the name of file in the format that the function `generator_sdp()` generates.  
+    2. `distribution` is a string to declare from which distribution to sample from: a) `uniform` or b) `boltzmann`. The default value is `uniform`.  
+    3. `N` is an integer to declare how many points to sample from the spectrahedron. The default value is `100`.  
+    4. `walk_length` is an integer to declare the walk length of the random walk. The default value is `1`.  
+    5. `Temperature` is a numeric input to declare the variance of the Boltzamann distribution. The default value is `1`.  
+    6. `random_walk` is a string to declare the random walk to use: a) `billiard` for billiard walk, b) `RDHR` for random directions Hit and Run, c) `CDHR` for coordinate directions Hit and Run or d) `HMC` for Hamiltonian Monte Carlo for reflections. The default value `billiard` for the uniform distribution and `HMC` for the Boltzmann distribution.  
+  - **Output**: A `nxN` matrix that contains the sampled points columnwise.  
 
-We acknowledge several contributions by the open-source community, most notably a `python` interface by Pedro Zuidberg Dos Martires affiliated with KU Leuven.
+* Approximate the solution of an sdp using the function `sdp_approx()`.  
+  - **Input**:  
+    1. `filename` is a string with the name of file in the format that the function `generator_sdp()` generates.  
+    2. `N`is an integer to declare how many iterations to perform. The default value is `20`.  
+    3. `random_walk` is a string to declare the random walk to use: a) `HMC` for Hamiltonian Monte Carlo for reflections or b) `RDHR` for random directions Hit and Run. The default value is `HMC`.  
+    4. `walk_length` is an integer to declare the walk length of the random walk. The default value is `1`.  
+    
+  - **Output**:  A `N`-dimensional vector with the values of the objective function of each iteration.  
 
-### Publications
+* Example:  
 
-1. I.Z. Emiris and V. Fisikopoulos, *Efficient random-walk methods for approximating polytope volume*, In Proc. ACM Symposium on Computational Geometry, Kyoto, Japan, p.318-325, 2014.  
-2. I.Z. Emiris and V. Fisikopoulos, *Practical polytope volume approximation*, ACM Transactions on Mathematical Software, vol 44, issue 4, 2018.
-3. L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos, *Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises*, Proc. of Symposium on Computational Geometry, Budapest, Hungary, 2018.  
+```{r}
+library(ggplot2)
+library(volesti)
+
+> generator_sdp(2,6)
+
+> uniform_points = sample_points('sdp_prob_2_6.txt', N=2000)
+> ggplot(data.frame(x = uniform_points[1,], y = uniform_points[2,]),aes(x=x, y=y)) +
+       geom_point(shape=20,color="red") +labs(x =" ", y = " ")+xlim(-1.6, 1.8)+ylim(-2,2.3)
+ 
+> boltz_points = sample_points('sdp_prob_2_6.txt', N=2000, distribution = 'boltzmann', Temperature = 2)
+> ggplot(data.frame(x = boltz_points[1,], y = boltz_points[2,]),aes(x=x, y=y)) +
+   geom_point(shape=20,color="red") +labs(x =" ", y = " ")+xlim(-1.6, 1.8)+ylim(-2,2.3)
+
+> volume('sdp_prob_2_6.txt')
+[1] 4.649064
+```
+
+The generated spectrahedron from the above `R` script ('sdp_prob_2_6.txt') can be found in both folders `/root/R-prog` and `/root/test`. The script generates the following figures:  
+![uniform](R-proj/inst/uniform.png)
+![boltzman](R-proj/inst/boltz.png)
+
+### - C++ Interface
+------------
+
+####  Compile C++ sources and run tests 
+
+To compile the C++ code run in folder `/root/test`:  
+```
+cmake .  
+make  
+```
+
+####  Run the code from terminal  
+
+* Generate a spectrahedron by running:  
+`
+./generate -n <dimension> -m <matrix_dimension>
+`
+A txt file with name `sdp_prob_n_m.txt` will be created in folder `/root/test`. You cas use this file (or any other with the same format) to give it as input in the following function.  
+
+* Compute the volume of a spectrahedron by running:  
+`
+./vol -file <filename>
+`
+- Example:  
+`./generate -n 2 -m 6`  
+`./vol -file sdp_prob_2_6.txt`  
+The function prints the volume.  
+
+* Sample points from a spectrahedron by running:  
+`
+./vol -file <filename> -sample
+`
+  
+- The default settings are: `100` uniformly distributed points from the uniform distribution using billiard walk with walk length `1`.  
+- You can use the following flags: i) `-walk_length <walk_length>` to set the walk length of the random walk, ii) `-N <number_of_points>` to set the number of points to sample, iii) `-boltz` to sample from the Boltzmann distribution, iv) `-rdhr` to sample with random directions Hit and Run, `-cdhr` to sample with coordinate directions Hit and Run, `-hmc` to sample with Hamiltonian Monte Carlo with reflections, `-temperature <variance_of_boltzmann_distribution>` to set the variance of the Boltzmann distribution.  
+
+- Example:  
+`./generate -n 2 -m 6`  
+`./vol -file sdp_prob_2_6.txt -sample -N 200 -rdhr -boltz -temperature 0.5`  
+The function prints the sampled points.  
+
+* Approximate the solution of an sdp by running:  
+`
+./vol -file <filename> -sdp
+`
+- The default settings are: `20` iterations are performed, with HMC sampling with walk length equal to `1`.  
+- You can use the following flags: i) `-N <number_of_iterations>` to set the number of iterations, ii) `-walk_length  <walk_length>` to set the walk length of the random walk iii) `-rdhr` to sample with random directions Hit and Run, `-hmc` to sample with Hamiltonian Monte Carlo with reflections.  
+
+- Example:  
+`./generate -n 10 -m 16`  
+`./vol -file sdp_prob_10_16.txt -sdp -N 30 -hmc -walk_length 3`  
+The function prints the values of the objective function of each iteration.
 

@@ -24,14 +24,16 @@
 
 #include "point.h"
 
-template <typename K>
+template <typename K, class MTm, class VTm>
 class Cartesian
 {
 public:
-  typedef Cartesian<K> Self;
+  typedef Cartesian<K, MTm, VTm> Self;
   typedef K                    FT;
+  typedef MTm MT;
+  typedef VTm VT;
   typedef point<Self>              Point;
-    
+
 };
 
 #endif

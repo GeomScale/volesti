@@ -4,20 +4,16 @@
 \alias{poly_gen}
 \title{An internal Rccp function as a polytope generator}
 \usage{
-poly_gen(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL)
+poly_gen(kind_gen, Vpoly_gen, dim_gen, m_gen)
 }
 \arguments{
 \item{kind_gen}{An integer to declare the type of the polytope.}
 
 \item{Vpoly_gen}{A boolean parameter to declare if the requested polytope has to be in V-representation.}
 
-\item{Zono_gen}{A boolean parameter to declare if the requested polytope has to be a zonotope.}
-
 \item{dim_gen}{An integer to declare the dimension of the requested polytope.}
 
-\item{m_gen}{An integer to declare the number of generators for the requested random zonotope or the number of vertices for a V-polytope.}
-
-\item{seed}{Optional. A fixed seed for the random polytope generator.}
+\item{m_gen}{An integer to declare the number of generators for the requested random zonotope.}
 }
 \value{
 A numerical matrix describing the requested polytope
