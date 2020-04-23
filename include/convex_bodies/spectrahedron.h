@@ -1145,7 +1145,7 @@ public:
         }
 
         radius = radius / std::sqrt(NT(dimension()));
-        diam = 1.2 * diam;
+        diam = 1.0 * diam;
 
         //std::cout<<"diam = "<<diam<<", radius = "<<radius<<std::endl;
 

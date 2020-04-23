@@ -2,7 +2,7 @@ library(volesti)
 
 
 N = 10
-dims = seq(from = 20, to = 200, by=20)
+dims = seq(from = 120, to = 120, by=20)
 
 vol_vec=matrix(0,length(dims),N)
 steps_vec = matrix(0,length(dims),N)
@@ -20,9 +20,9 @@ for (d in dims) {
     steps_vec[count,i] = vol[2]
     time_vec[count,i] = as.numeric(tim)[3]
     
-    save(vol_vec, file = "vol_cb_spectra_40_200.RData")
-    save(time_vec, file = "times_cb_spectra_40_200.RData")
-    save(steps_vec, file = "steps_cb_spectra_40_200.RData")
+    save(vol_vec, file = "vol_cb_spectra_120_120.RData")
+    save(time_vec, file = "times_cb_spectra_120_120.RData")
+    save(steps_vec, file = "steps_cb_spectra_120_120.RData")
   }
   count = count + 1
 }
