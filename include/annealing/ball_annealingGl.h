@@ -208,11 +208,11 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
     Point q(n);
     PolyBall zb_it;
     get_first_ball<RNGType>(P, B0, ratio, radius, lb, ub, alpha, rmax, var);
-   // std::cout<<"C' computed... ratio_m = "<<ratio<<std::endl;
+    std::cout<<"C' computed... ratio_m = "<<ratio<<std::endl;
     ratio0 = ratio;
     rand_point_generator_spec(P, q, Ntot, var.walk_steps, randPoints, var, settings);
     //var.TotSteps = var.TotSteps + NT(Ntot);
-    //std::cout<<Ntot<<" points sampled from P"<<std::endl;
+    std::cout<<Ntot<<" points sampled from P"<<std::endl;
 
     if (check_converg001<Point>(B0, randPoints, lb, ub, fail, ratio, nu, alpha, false, true)) {
         ratios.push_back(ratio);
@@ -239,13 +239,13 @@ void get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
             ratios.push_back(ratio);
             BallSet.push_back(B0);
             ratios.push_back(ratio0);
-            if(print) std::cout<<"number of balls = "<<BallSet.size()+1<<std::endl;
+            std::cout<<"number of balls = "<<BallSet.size()+1<<std::endl;
             return;
         }
         //if(print) std::cout<<"ratio = "<<ratio<<std::endl;
-        //if(print) std::cout<<"computing new ball.."<<std::endl;
+        if(print) std::cout<<"computing new ball.."<<std::endl;
         get_next_zonoball<Point>(BallSet, randPoints, B0.radius(), ratios, lb, ub, alpha, nu);
-        //if(print) std::cout<<"number of balls = "<<BallSet.size()+1<<std::endl;
+        std::cout<<"number of balls = "<<BallSet.size()+1<<std::endl;
     }
 }
 

@@ -1172,9 +1172,14 @@ public:
 
     void linear_transformIt(const MT &T){
 
+        std::vector<MT> matrices;
         for (int i = 0; i < dimension(); ++i) {
-            lmi.evaluateWithoutA0_revised(T.col(i), LMIatP);
-            lmi.set_Ai(LMIatP, i);
+            //lmi.evaluateWithoutA0_revised(T.col(i), LMIatP);
+            lmi.evaluateWithoutA0(T.col(i), LMIatP);
+            matrices.push_back(LMIatP);
+        }
+        for (int j = 0; j < dimension(); ++j) {
+            lmi.set_Ai(matrices[j], j);
         }
 
     }

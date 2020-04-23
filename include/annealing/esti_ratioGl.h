@@ -146,7 +146,7 @@ NT esti_ratio_interval(PolyBall1 &Pb1, PolyBall2 Pb2, NT ratio, NT error, int W,
 
         if (index == W) index = 0;
         if (check_max_error123(val - zp * s, val + zp * s, error)) {
-            //if (print) std::cout << "final rejection ratio = " << val << " | total points = " << totCount << std::endl;
+            std::cout << "final rejection ratio = " << val << " | total points = " << totCount << std::endl;
             return val;
         }
 

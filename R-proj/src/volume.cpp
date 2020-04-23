@@ -313,6 +313,8 @@ Rcpp::NumericVector volume (Rcpp::Nullable<Rcpp::CharacterVector> file = R_NilVa
         bref = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(Parameters)["bref"]);
     }
 
+    round = (!rounding.isNotNull()) ? false : Rcpp::as<bool>(rounding);
+
     vars<NT, RNGType> var(0,n, 1, 1,0.0,0.1,0,0.0,0, InnerB.second,diam_spec,0,bref,rng,urdist,urdist1,
                           delta,true,false,round,false,false,false,false,false, true);
     spectaedro::BoundaryOracleBilliardSettings settings(SP.getLMI().getMatricesDim());
@@ -320,14 +322,14 @@ Rcpp::NumericVector volume (Rcpp::Nullable<Rcpp::CharacterVector> file = R_NilVa
 
 
 
-    //std::cout<<"\ninitializations ok.."<<std::endl;
+    std::cout<<"\ninitializations ok.."<<std::endl;
     //vars<NT, RNGType> var2 = var;
     preproccess_spectrahedron(SP, p, var, settings, round_value, diam_spec, rad, round);
-    //std::cout<<"preproccessing ok.."<<std::endl;
+    std::cout<<"preproccessing ok.."<<std::endl;
     InnerB.second = rad;
 
     var.steps=0;
-    vol_spec = volesti_ball_ann(SP, var, var_ban, settings, InnerB, nballs2, false);
+    vol_spec = round_value * volesti_ball_ann(SP, var, var_ban, settings, InnerB, nballs2, false);
 
     Rcpp::NumericVector res(2);
     res[0] = vol_spec;

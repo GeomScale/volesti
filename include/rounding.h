@@ -133,7 +133,7 @@ void preproccess_spectrahedron(Spectrahedron &SP, Point &p, Parameters &var, Spe
 
         randPoints.clear();
         //std::cout<<"Sampling 10d points from P.."<<std::endl;
-        rand_point_generator_spec(SP, p, 10 * n, 1, randPoints, var, settings);
+        rand_point_generator_spec(SP, p, 10 * n, 2, randPoints, var, settings);
         //std::cout<<"points sampled.."<<std::endl;
         //boundary_rand_point_generator(P, p, 50*n, walk_len, randPoints, var);
 
@@ -191,7 +191,7 @@ void preproccess_spectrahedron(Spectrahedron &SP, Point &p, Parameters &var, Spe
     SP.ComputeInnerBall(diam, radius);
     var.che_rad = radius;
     var.diameter = diam;
-    //std::cout<<"preproccess completed.."<<std::endl;
+    std::cout<<"round val = "<<rand_value<<std::endl;
 
 }
 

@@ -68,8 +68,8 @@ NT volesti_ball_ann(Spectrahedron &P, UParameters &var, AParameters &var_ban, Sp
     P.shift(c.getCoefficients()); // TODO we need to shift the spectrahedron s.t. the center of balls to be the origin
     //P.normalize();
 
-    //std::cout << "\nComputing ball annealing..." << std::endl;
-    //std::cout<<"N = "<<N<<" nu = "<< nu<<" e = "<<e<<std::endl;
+    std::cout << "\nComputing ball annealing..." << std::endl;
+    std::cout<<"N = "<<N<<" nu = "<< nu<<" e = "<<e<<std::endl;
 
     //MT LMIatP(P.getLMI().getMatricesDim(), P.getLMI().getMatricesDim());
     // TODO CHECK the settings!!!
@@ -77,7 +77,7 @@ NT volesti_ball_ann(Spectrahedron &P, UParameters &var, AParameters &var_ban, Sp
     var.diameter = diam;
 
     NT vol = (std::pow(M_PI, n / 2.0) * (std::pow((*(BallSet.end() - 1)).radius(), n))) / (tgamma(n / 2.0 + 1));
-    //std::cout<<"rad of C_m = "<<(*(BallSet.end() - 1)).radius()<<", vol of B_m = "<<vol<<std::endl;
+    std::cout<<"rad of C_m = "<<(*(BallSet.end() - 1)).radius()<<", vol of B_m = "<<vol<<std::endl;
 
     int mm = BallSet.size() + 1;
     nballs = NT(mm - 1);
@@ -88,9 +88,9 @@ NT volesti_ball_ann(Spectrahedron &P, UParameters &var, AParameters &var_ban, Sp
     prob = std::pow(prob, 1.0 / NT(mm));
     NT er0 = e / (2.0 * std::sqrt(NT(mm))), er1 = (e * std::sqrt(4.0 * NT(mm) - 1)) / (2.0 * std::sqrt(NT(mm)));
 
-    //std::cout<<"Estimating the ratios...\n"<<std::endl;
+    std::cout<<"Estimating the ratios...\n"<<std::endl;
     P.set_LMIatP_A0(settings);
-    //std::cout<<"ratio_m = "<<*(ratios.end() - 1)<<std::endl;
+    std::cout<<"ratio_m = "<<*(ratios.end() - 1)<<std::endl;
     vol *= (window2) ? esti_ratio<RNGType, Point>(*(BallSet.end() - 1), P, *(ratios.end() - 1), er0, win_len, 1200, var,
             true, (*(BallSet.end() - 1)).radius()) :
            esti_ratio_interval<RNGType, Point>(*(BallSet.end() - 1), P, *(ratios.end() - 1), er0, win_len, 1200, prob,
