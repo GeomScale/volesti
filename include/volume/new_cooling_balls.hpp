@@ -295,8 +295,7 @@ bool get_sequence_of_polytopeballs(Polytope& P,
                                    int const& Ntot,
                                    NT const& radius,
                                    unsigned int const& walk_length,
-                                   NT& diameter,
-                                   cooling_ball_parameters<NT> parameters,
+                                   cooling_ball_parameters<NT> const& parameters,
                                    RNG& rng)
 {
 
@@ -369,103 +368,265 @@ bool get_sequence_of_polytopeballs(Polytope& P,
 template <typename NT>
 bool is_max_error(NT const& a, NT const& b, NT const& error)
 {
+    std::cout<<"(b-a)/a = "<<(b-a)/a<<", error = "<<error<<std::endl;
     return ((b-a)/a<error/2.0) ? true : false;
 }
 
+template <typename NT>
+struct estimate_ratio_parameters
+{
+public:
+    estimate_ratio_parameters(unsigned int W_len, unsigned int N, NT ratio):
+    min_val(std::numeric_limits<NT>::lowest()),   max_val(std::numeric_limits<NT>::max()),
+    max_iterations_estimation(10000000), min_index(W_len-1), max_index(W_len-1), W(W_len),
+    index(0), tot_count(N), count_in(N * ratio), iter(0), last_W(std::vector<NT>(W_len)), minmaxIt(last_W.begin()) {};
+
+    NT min_val;
+    NT max_val;
+    const unsigned int max_iterations_estimation;
+    unsigned int min_index;
+    unsigned int max_index;
+    unsigned int W;
+    unsigned int index;
+    size_t tot_count;
+    size_t count_in;
+    unsigned int iter;
+    std::vector<NT> last_W;
+    typename std::vector<NT>::iterator minmaxIt;
+};
+
+template <typename Pollyball, typename Point, typename NT>
+bool estimate_ratio_generic(Pollyball const& Pb2, Point const& p, NT const& error,
+       estimate_ratio_parameters<NT> &ratio_parameters)
+{
+    if (ratio_parameters.iter++ <= ratio_parameters.max_iterations_estimation)
+    {
+        if (Pb2.is_in(p) == -1) ratio_parameters.count_in = ratio_parameters.count_in + 1.0;
+
+        ratio_parameters.tot_count = ratio_parameters.tot_count + 1.0;
+        NT val = NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
+        ratio_parameters.last_W[ratio_parameters.index] = val;
+
+        if (val <= ratio_parameters.min_val)
+        {
+            ratio_parameters.min_val = val;
+            ratio_parameters.min_index = ratio_parameters.index;
+        } else if (ratio_parameters.min_index == ratio_parameters.index)
+        {
+            ratio_parameters.minmaxIt = std::min_element(ratio_parameters.last_W.begin(), ratio_parameters.last_W.end());
+            ratio_parameters.min_val = (*ratio_parameters.minmaxIt);
+            ratio_parameters.min_index = std::distance(ratio_parameters.last_W.begin(), ratio_parameters.minmaxIt);
+        }
+
+        if (val >= ratio_parameters.max_val)
+        {
+            ratio_parameters.max_val = val;
+            ratio_parameters.max_index = ratio_parameters.index;
+        } else if (ratio_parameters.max_index == ratio_parameters.index)
+        {
+            ratio_parameters.minmaxIt = std::max_element(ratio_parameters.last_W.begin(), ratio_parameters.last_W.end());
+            ratio_parameters.max_val = (*ratio_parameters.minmaxIt);
+            ratio_parameters.max_index = std::distance(ratio_parameters.last_W.begin(), ratio_parameters.minmaxIt);
+        }
+
+        if ( (ratio_parameters.max_val - ratio_parameters.min_val) / ratio_parameters.max_val <= error/2.0 )
+        {
+            return true;
+        }
+
+        ratio_parameters.index = ratio_parameters.index % ratio_parameters.W + 1;
+        if (ratio_parameters.index == ratio_parameters.W) ratio_parameters.index = 0;
+
+        return false;
+    }
+    return true;
+}
+
+
 template
-<
-    typename WalkType,
-    typename Point,
-    typename PolyBall1,
-    typename PolyBall2,
-    typename NT,
-    typename RNG
->
+        <
+                typename WalkType,
+                typename Point,
+                typename PolyBall1,
+                typename PolyBall2,
+                typename NT,
+                typename RNG
+        >
 NT estimate_ratio(PolyBall1& Pb1,
                   PolyBall2 const& Pb2,
                   NT const& ratio,
                   NT const& error,
-                  int const& W,
-                  int const& Ntot,
+                  unsigned int const& W,
+                  unsigned int const& Ntot,
                   unsigned int const& walk_length,
-                  RNG& rng,
-                  bool isball = false,
-                  NT radius = 0.0)
+                  RNG& rng)
 {
-    const unsigned max_iterations_estimation = 10000000;
-    int n = Pb1.dimension();
-    int min_index = W-1;
-    int max_index = W-1;
-    int index = 0;
-    int iter = 1;
-    NT min_val = std::numeric_limits<NT>::lowest();
-    NT max_val = std::numeric_limits<NT>::max();
-    NT val;
-    size_t totCount = Ntot;
-    size_t countIn = Ntot * ratio;
-    std::vector<NT> last_W(W);
-
-    typename std::vector<NT>::iterator minmaxIt;
+    estimate_ratio_parameters<NT> ratio_parameters(W, Ntot, ratio);
+    unsigned int n = Pb1.dimension();
     Point p(n);
     WalkType walk(Pb1, p, rng);
 
-    while (iter++ <= max_iterations_estimation)
+    do
     {
-        if (isball)
-        {
-            p = GetPointInDsphere<Point>::apply(n, radius, rng);
-        } else {
-            walk.template apply(Pb1, p, walk_length, rng);
-        }
-        if (Pb2.is_in(p)==-1) countIn = countIn + 1.0;
+        walk.template apply(Pb1, p, walk_length, rng);
+    } while(!estimate_ratio_generic(Pb2, p, error, ratio_parameters));
 
-        totCount = totCount + 1.0;
-        val = NT(countIn) / NT(totCount);
-        last_W[index] = val;
-
-        if (val<=min_val)
-        {
-            min_val = val;
-            min_index = index;
-        } else if (min_index==index)
-        {
-            minmaxIt = std::min_element(last_W.begin(), last_W.end());
-            min_val = *minmaxIt;
-            min_index = std::distance(last_W.begin(), minmaxIt);
-        }
-
-        if (val>=max_val)
-        {
-            max_val = val;
-            max_index = index;
-        } else if (max_index==index)
-        {
-            minmaxIt = std::max_element(last_W.begin(), last_W.end());
-            max_val = *minmaxIt;
-            max_index = std::distance(last_W.begin(), minmaxIt);
-        }
-
-        if ( (max_val-min_val)/max_val<=error/2.0 )
-        {
-            return val;
-        }
-
-        index = index%W + 1;
-        if (index==W) index=0;
-    }
-    return val;
+    return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
 }
 
+template
+        <       typename Point,
+                typename ball,
+                typename PolyBall,
+                typename NT,
+                typename RNG
+        >
+NT estimate_ratio(ball const& B,
+                  PolyBall const& Pb2,
+                  NT const& ratio,
+                  NT const& error,
+                  int const& W,
+                  int const& Ntot,
+                  RNG& rng)
+{
+    estimate_ratio_parameters<NT> ratio_parameters(W, Ntot, ratio);
+    unsigned int n = B.dimension();
+    Point p(n);
+    NT radius = B.radius();
+
+    do
+    {
+        p = GetPointInDsphere<Point>::apply(n, radius, rng);
+    } while(!estimate_ratio_generic(Pb2, p, error, ratio_parameters));
+
+    return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
+}
+
+//--------------------------------------------------------------------------
+
+template <typename NT>
+struct estimate_ratio_interval_parameters
+{
+public:
+    estimate_ratio_interval_parameters(unsigned int W_len, unsigned int N, NT ratio):
+            mean(0), sum_sq(0), sum(0), s(0),
+            max_iterations_estimation(10000000), W(W_len),
+            index(0), tot_count(N), count_in(N * ratio), iter(0), last_W(std::vector<NT>(W_len)) {};
+
+    NT mean;
+    NT sum_sq;
+    NT sum;
+    NT s;
+    const unsigned int max_iterations_estimation;
+    unsigned int W;
+    unsigned int index;
+    size_t tot_count;
+    size_t count_in;
+    unsigned int iter;
+    std::vector<NT> last_W;
+};
+
+template <typename Pollyball, typename Point, typename NT>
+void full_sliding_window(Pollyball const& Pb2, Point const& p, estimate_ratio_interval_parameters<NT> &ratio_parameters)
+{
+    if (Pb2.is_in(p) == -1) ratio_parameters.count_in = ratio_parameters.count_in + 1.0;
+
+    ratio_parameters.tot_count = ratio_parameters.tot_count + 1.0;
+    NT val = NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
+    ratio_parameters.sum += val;
+    ratio_parameters.sum_sq += val * val;
+    ratio_parameters.last_W[ratio_parameters.index] = val;
+    ratio_parameters.index = ratio_parameters.index % ratio_parameters.W + 1;
+    if (ratio_parameters.index == ratio_parameters.W) ratio_parameters.index = 0;
+}
+
+template <typename Pollyball, typename Point, typename NT>
+bool estimate_ratio_interval_generic(Pollyball const& Pb2, Point const& p, NT const& error,
+        NT const& zp, estimate_ratio_interval_parameters<NT> &ratio_parameters)
+{
+    if (ratio_parameters.iter++ <= ratio_parameters.max_iterations_estimation)
+    {
+        if (Pb2.is_in(p) == -1) ratio_parameters.count_in = ratio_parameters.count_in + 1.0;
+
+        ratio_parameters.tot_count = ratio_parameters.tot_count + 1.0;
+        NT val = NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
+
+        ratio_parameters.mean = (ratio_parameters.mean - ratio_parameters.last_W[ratio_parameters.index] /
+                NT(ratio_parameters.W)) + val / NT(ratio_parameters.W);
+
+        ratio_parameters.sum_sq = (ratio_parameters.sum_sq -
+                ratio_parameters.last_W[ratio_parameters.index] * ratio_parameters.last_W[ratio_parameters.index]) +
+                        val * val;
+
+        ratio_parameters.sum = (ratio_parameters.sum - ratio_parameters.last_W[ratio_parameters.index]) + val;
+
+        ratio_parameters.s = std::sqrt((ratio_parameters.sum_sq + NT(ratio_parameters.W) *
+                ratio_parameters.mean * ratio_parameters.mean - NT(2) * ratio_parameters.mean * ratio_parameters.sum) /
+                        NT(ratio_parameters.W));
+
+        ratio_parameters.last_W[ratio_parameters.index] = val;
+
+        ratio_parameters.index = ratio_parameters.index % ratio_parameters.W + 1;
+        if (ratio_parameters.index == ratio_parameters.W) ratio_parameters.index = 0;
+
+        if (is_max_error(val - zp * ratio_parameters.s, val + zp * ratio_parameters.s, error))
+        {
+            return true;
+        }
+        return false;
+    }
+    return true;
+}
 
 template
 <
-    typename WalkType,
     typename Point,
-    typename PolyBall1,
+    typename ball,
     typename PolyBall2,
     typename NT,
     typename RNG
 >
+NT estimate_ratio_interval(ball const& B,
+                           PolyBall2 const& Pb2,
+                           NT const& ratio,
+                           NT const& error,
+                           int const& W,
+                           int const& Ntot,
+                           NT const& prob,
+                           RNG& rng)
+{
+    estimate_ratio_interval_parameters<NT> ratio_parameters(W, Ntot, ratio);
+    boost::math::normal dist(0.0, 1.0);
+    NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0)), radius = B.radius();
+
+    unsigned int n = Pb2.dimension();
+    Point p(n);
+
+    for (int i = 0; i < ratio_parameters.W; ++i)
+    {
+        p = GetPointInDsphere<Point>::apply(n, radius, rng);
+        full_sliding_window(Pb2, p, ratio_parameters);
+    }
+
+    ratio_parameters.mean = ratio_parameters.sum / NT(ratio_parameters.W);
+
+    do {
+        p = GetPointInDsphere<Point>::apply(n, radius, rng);
+    }while (!estimate_ratio_interval_generic(Pb2, p, error, zp, ratio_parameters));
+
+    return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
+}
+
+
+template
+        <
+                typename WalkType,
+                typename Point,
+                typename PolyBall1,
+                typename PolyBall2,
+                typename NT,
+                typename RNG
+        >
 NT estimate_ratio_interval(PolyBall1& Pb1,
                            PolyBall2 const& Pb2,
                            NT const& ratio,
@@ -474,76 +635,29 @@ NT estimate_ratio_interval(PolyBall1& Pb1,
                            int const& Ntot,
                            NT const& prob,
                            unsigned int const& walk_length,
-                           RNG& rng,
-                           bool isball = false,
-                           NT const& radius = 0)
+                           RNG& rng)
 {
-    const unsigned max_iterations_estimation = 10000000;
-    int n = Pb1.dimension();
-    int index = 0;
-    int iter = 1;
-    std::vector<NT> last_W(W);
-    NT val;
-    NT sum_sq = NT(0);
-    NT sum = NT(0);
-    size_t totCount = Ntot;
-    size_t countIn = Ntot * ratio;
+    estimate_ratio_interval_parameters<NT> ratio_parameters(W, Ntot, ratio);
+    boost::math::normal dist(0.0, 1.0);
+    NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0));
+
+    unsigned int n = Pb1.dimension();
     Point p(n);
     WalkType walk(Pb1, p, rng);
 
-    for (int i = 0; i < W; ++i)
+    for (int i = 0; i < ratio_parameters.W; ++i)
     {
-        if (isball)
-        {
-            p = GetPointInDsphere<Point>::apply(n, radius, rng);
-        } else
-        {
-            walk.template apply(Pb1, p, walk_length, rng);
-        }
-        if (Pb2.is_in(p) == -1) countIn = countIn + 1;
-
-        totCount = totCount + 1;
-        val = NT(countIn) / NT(totCount);
-        sum += val;
-        sum_sq += val * val;
-        last_W[index] = val;
-        index = index % W + 1;
-        if (index == W) index = 0;
+        walk.template apply(Pb1, p, walk_length, rng);
+        full_sliding_window(Pb2, p, ratio_parameters);
     }
 
-    boost::math::normal dist(0.0, 1.0);
-    NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0));
-    NT m=sum/NT(W);
-    NT s;
+    ratio_parameters.mean = ratio_parameters.sum / NT(ratio_parameters.W);
 
-    while (iter++ <= max_iterations_estimation)
-    {
-        if (isball) {
-            p = GetPointInDsphere<Point>::apply(n, radius, rng);
-        } else
-        {
-            walk.template apply(Pb1, p, walk_length, rng);
-        }
-        if (Pb2.is_in(p) == -1) countIn = countIn + 1;
+    do {
+        walk.template apply(Pb1, p, walk_length, rng);
+    }while (!estimate_ratio_interval_generic(Pb2, p, error, zp, ratio_parameters));
 
-        totCount = totCount + 1;
-        val = NT(countIn) / NT(totCount);
-
-        m = (m - last_W[index] / NT(W)) + val / NT(W);
-        sum_sq = (sum_sq - last_W[index] * last_W[index]) + val * val;
-        sum = (sum - last_W[index]) + val;
-        s = std::sqrt((sum_sq + NT(W) * m * m - 2.0 * m * sum) / NT(W));
-        last_W[index] = val;
-
-        index = index % W + 1;
-        if (index == W) index = 0;
-
-        if (is_max_error(val - zp * s, val + zp * s, error))
-        {
-            return val;
-        }
-    }
-    return val;
+    return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
 }
 
 
@@ -572,7 +686,6 @@ double volume_cooling_balls(Polytope const& Pin,
                                               > WalkType;
     typedef RandomPointGenerator<WalkType> RandomPointGenerator;
 
-
     auto P(Pin);
     RandomNumberGenerator rng(P.dimension());
     cooling_ball_parameters<NT> parameters;
@@ -585,7 +698,6 @@ double volume_cooling_balls(Polytope const& Pin,
     auto InnerBall = P.ComputeInnerBall();
     NT radius = InnerBall.second;
     Point c = InnerBall.first;
-    NT diameter = P.ComputeDiameter();
 
     std::vector<BallType> BallSet;
     std::vector<NT> ratios;
@@ -595,15 +707,12 @@ double volume_cooling_balls(Polytope const& Pin,
     P.normalize();
     P.shift(c.getCoefficients());
 
-    //Point new_c(n); //origin
-    //WalkType walk(P, new_c, rng);
-
     if ( !get_sequence_of_polytopeballs
           <
             RandomPointGenerator,
             PolyBall
           >(P, BallSet, ratios,
-            N_times_nu, radius, walk_length, diameter,
+            N_times_nu, radius, walk_length,
             parameters, rng) )
     {
         return -1.0;
@@ -619,20 +728,13 @@ double volume_cooling_balls(Polytope const& Pin,
     NT er1 = (error * std::sqrt(4.0 * NT(mm) - 1)) / (2.0 * std::sqrt(NT(mm)));
 
     vol *= (parameters.window2) ?
-                estimate_ratio<WalkType, Point>(*(BallSet.end() - 1),
-                                      P,
-                                      *(ratios.end() - 1),
-                                      er0, parameters.win_len, 1200, walk_length,
-                                      rng,
-                                      true,
-                                      (*(BallSet.end() - 1)).radius())
-              : estimate_ratio_interval<WalkType, Point>(*(BallSet.end() - 1),
-                                               P,
-                                               *(ratios.end() - 1),
-                                               er0, parameters.win_len, 1200, prob,
-                                               walk_length, rng,
-                                               true,
-                                               (*(BallSet.end() - 1)).radius());
+                estimate_ratio<Point>(*(BallSet.end() - 1),
+                                      P, *(ratios.end() - 1),
+                                      er0, parameters.win_len, 1200, rng)
+              : estimate_ratio_interval<Point>(*(BallSet.end() - 1),
+                                               P, *(ratios.end() - 1),
+                                               er0, parameters.win_len, 1200,
+                                               prob, rng);
 
     PolyBall Pb;
     auto balliter = BallSet.begin();
@@ -657,7 +759,6 @@ double volume_cooling_balls(Polytope const& Pin,
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter)
     {
         Pb = PolyBall(P, *balliter);
-        Pb.comp_diam(diameter);
         vol *= (!parameters.window2) ?
                     1 / estimate_ratio_interval<WalkType, Point>(Pb,
                                                        *(balliter + 1),

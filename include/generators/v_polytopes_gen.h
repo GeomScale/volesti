@@ -30,7 +30,8 @@ Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numer
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
-    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Polytope::PointType PointType;
+    typedef PointType Point;
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
@@ -81,7 +82,8 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
-    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Polytope::PointType PointType;
+    typedef PointType Point;
 
     REAL *conv_mem;
     int *colno_mem;

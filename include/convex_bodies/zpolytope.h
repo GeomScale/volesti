@@ -50,7 +50,6 @@ public:
         return _d;
     }
 
-
     // this function returns 0. The main sampler requests this function to set the length of lambdas vector
     int num_of_hyperplanes() const {
         return 0;
@@ -114,6 +113,10 @@ public:
         return V.rows();
     }
 
+    std::pair<Point,NT> InnerBall() const
+    {
+        return _inner_ball;
+    }
 
     // return the number of generators
     int num_of_generators() const {
@@ -151,6 +154,10 @@ public:
 
     NT get_max_vert_norm() const {
         return 0.0;
+    }
+
+    NT radius() const {
+        return NT(0);
     }
 
     // define zonotope using Eigen matrix V. Vector b is neded in order the code to compatible with Hpolytope class
