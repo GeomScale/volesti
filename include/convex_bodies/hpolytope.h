@@ -128,6 +128,10 @@ public:
         diam = 4.0 * std::sqrt(NT(_d)) * cheb_rad;
     }
 
+    NT radius() const {
+        return NT(0);
+    }
+
     void init(const unsigned int dim, const MT &_A, const VT &_b) {
         _d = dim;
         A = _A;

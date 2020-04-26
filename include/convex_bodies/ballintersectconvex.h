@@ -18,9 +18,10 @@ private:
     Polytope    P;
     CBall B;
 public:
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
     typedef typename CBall::NT NT;
     typedef typename CBall::PointType PointType;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     NT diameter;
 
     BallIntersectPolytope() {}
@@ -53,6 +54,18 @@ public:
         return diameter;
     }
 
+    MT get_mat() const {
+        return P.get_mat();
+    }
+
+    MT get_T() const {
+        return P.get_mat();
+    }
+
+    MT get_vec() const {
+        return P.get_vec();
+    }
+
     int is_in(PointType &p) const
     {
         if (B.is_in(p)==-1)
@@ -75,6 +88,10 @@ public:
     void comp_diam(NT &diam, const NT &cheb_rad) const
     {
         comp_diam(diam);
+    }
+
+    NT radius() {
+        return B.radius();
     }
 
     std::pair<NT,NT> line_intersect(PointType &r, PointType &v) const

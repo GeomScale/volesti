@@ -74,7 +74,7 @@ void call_test_cube(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937 RNGType;
-    typedef VPolytope<Point, RNGType> Vpolytope;
+    typedef VPolytope<Point> Vpolytope;
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cube10" << std::endl;
@@ -96,7 +96,7 @@ void call_test_cube_float(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937 RNGType;
-    typedef VPolytope<Point, RNGType> Vpolytope;
+    typedef VPolytope<Point> Vpolytope;
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cube10 (float)" << std::endl;
@@ -117,7 +117,7 @@ void call_test_cross(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937 RNGType;
-    typedef VPolytope<Point, RNGType> Vpolytope;
+    typedef VPolytope<Point> Vpolytope;
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cross5" << std::endl;
@@ -154,7 +154,7 @@ void call_test_simplex() {
     typedef typename Kernel::Point    Point;
 
     typedef boost::mt19937 RNGType;
-    typedef VPolytope<Point, RNGType> Vpolytope;
+    typedef VPolytope<Point> Vpolytope;
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-simplex5" << std::endl;

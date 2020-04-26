@@ -34,15 +34,20 @@ int main()
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937    RNGType;
     typedef HPolytope<Point> Hpolytope;
-    typedef VPolytope<Point, RNGType> Vpolytope;
+    typedef VPolytope<Point> Vpolytope;
 
     Hpolytope HPoly = gen_cube<Hpolytope>(10, false);
     BallWalk BW(3);
 
     // Estimate the volume
-    double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-    std::cout << "Ball = "
-              << volume_sequence_of_balls<>(HPoly, BW) << " , ";
+    double tstart;
+    VPolytope<Point> VP2 = VP;
+
+    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Ball (cross) = "
+              << volume_cooling_balls<BallWalk>(VP) << " , ";
+
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     return 0;

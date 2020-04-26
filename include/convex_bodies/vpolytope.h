@@ -20,14 +20,14 @@
 //min and max values for the Hit and Run functions
 
 // V-Polytope class
-template <typename Point, typename  RNGType>
+template <typename Point>
 class VPolytope{
 public:
     typedef Point PointType;
     typedef typename Point::FT NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-    typedef RNGType rngtype;
+    //typedef RNGType rngtype;
 
 private:
     MT V;  //matrix V. Each row contains a vertex
@@ -75,7 +75,6 @@ public:
         return 0;
     }
 
-
     // compute the number of facets of the cyclic polytope in dimension _d with the same number of vertices
     // this is an upper bound for the number of the facets from McMullen's Upper Bound Theorem
     unsigned int upper_bound_of_hyperplanes() const {
@@ -114,6 +113,10 @@ public:
 
     MT get_T() const {
         return V;
+    }
+
+    NT radius() const {
+        return NT(0);
     }
 
     void init(const unsigned int &dim, const MT &_V, const VT &_b) {
