@@ -291,25 +291,25 @@ int main()
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "NEW Ball = "
-              << volume_cooling_balls<BallWalk>(HP, var_ban, e, walk_len)
+              << volume_cooling_balls<BallWalk>(HP, e, walk_len)
               << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "NEW RDHR = "
-              << volume_cooling_balls<RDHRWalk>(HP, var_ban, e, walk_len)
+              << volume_cooling_balls<RDHRWalk>(HP, e, walk_len)
               << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "NEW CDHR = "
-              << volume_cooling_balls<CDHRWalk>(HP, var_ban, e, walk_len)
+              << volume_cooling_balls<CDHRWalk>(HP, e, walk_len)
               << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "NEW Blrd = "
-              << volume_cooling_balls<BilliardWalk>(HP, var_ban, e, walk_len)
+              << volume_cooling_balls<BilliardWalk>(HP, e, walk_len)
               << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
