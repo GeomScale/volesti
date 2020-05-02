@@ -59,12 +59,10 @@ void call_test_cube(){
 
     std::cout << "--- Testing volume of H-cube10" << std::endl;
     P = gen_cube<Hpolytope>(10, false);
-    P.ComputeInnerBall();
     test_volume(P, 1102.47, 1024);
 
     std::cout << "--- Testing volume of H-cube20" << std::endl;
     P = gen_cube<Hpolytope>(20, false);
-    P.ComputeInnerBall();
     test_volume(P, 1104980, 1048576);
 }
 

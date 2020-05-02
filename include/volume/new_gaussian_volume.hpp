@@ -685,7 +685,10 @@ double volume_gaussian_annealing(Polytope const& Pin,
     NT ratio = parameters.ratio;
     NT C = parameters.C;
     unsigned int N = parameters.N;
-    WalkType walk(P, c, 1, rng);
+
+    Point new_c(n); //origin
+    WalkType walk(P, new_c, 1, rng);
+
     compute_annealing_schedule<RandomPointGenerator>(P, ratio, C, parameters.frac,
                                                      N, walk_length, radius, error,
                                                      a_vals, rng, walk);
