@@ -29,6 +29,11 @@
 #include "gaussian_samplers.h"
 #include "gaussian_annealing.h"
 
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
+
 #include "khach.h"
 
 

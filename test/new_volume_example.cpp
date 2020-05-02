@@ -39,7 +39,37 @@ int main()
     Vpolytope VP;
     VP = gen_cross<Vpolytope>(10, true);
 
-    auto VPCheBall = VP.ComputeInnerBall();
+    // Estimate the volume
+    double tstart;
+    VPolytope<Point, RNGType> VP2 = VP;
+
+    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Ball (cross) = "
+              << volume_cooling_balls<BallWalk>(VP) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    return 0;
+
+    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "RDHR (cross) = "
+              << volume_sequence_of_balls<RDHRWalk>(VP) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "CDHR (cross) = "
+              << volume_sequence_of_balls<CDHRWalk>(VP) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Blrd (cross) = "
+              << volume_sequence_of_balls<BilliardWalk>(VP) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+
 
     Hpolytope HP;
 
@@ -100,6 +130,71 @@ int main()
     boost::random::uniform_real_distribution<> urdist1(-1,1);
 
 
+    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    auto VPCheBall = VP.ComputeInnerBall();
+    {
+        NT diameter;
+        VP.comp_diam(diameter, VPCheBall.second);
+        vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                              VPCheBall.second,diameter,rng,
+                              urdist,urdist1,-1.0,false,false,false,
+                              false,false,true,false,false,false);
+
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+        std::cout << "OLD Ball = " << volume(VP, var, VPCheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    VPCheBall = VP.ComputeInnerBall();
+    {
+        NT diameter;
+        VP.comp_diam(diameter, VPCheBall.second);
+        vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                              VPCheBall.second,diameter,rng,
+                              urdist,urdist1,-1.0,false,false,false,
+                              false,false,false,true,false,false);
+
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+        std::cout << "OLD RDHR = " << volume(VP, var, VPCheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    VPCheBall = VP.ComputeInnerBall();
+    {
+        NT diameter;
+        VP.comp_diam(diameter, VPCheBall.second);
+        vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                              VPCheBall.second,diameter,rng,
+                              urdist,urdist1,-1.0,false,false,false,
+                              false,false,false,false,true,false);
+
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+        std::cout << "OLD CDHR = " << volume(VP, var, VPCheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    VPCheBall = VP.ComputeInnerBall();
+    {
+        NT diameter;
+        VP.comp_diam(diameter, VPCheBall.second);
+        vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                              VPCheBall.second,diameter,rng,
+                              urdist,urdist1,-1.0,false,false,false,
+                              false,false,false,false,false,true);
+
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+        std::cout << "OLD Blrd = " << volume(VP, var, VPCheBall)
+                  << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+    return 0;
 
     Hpolytope P = gen_skinny_cube<Hpolytope>(5);
     P.ComputeInnerBall();
@@ -108,7 +203,7 @@ int main()
     //CheBall = P40.ComputeInnerBall();
 
     // Estimate the volume
-    double tstart;
+
     //std::cout << "Default (cube) = " << volume(HP) << std::endl;
     //std::cout << "Default (cube) = " << volume(HP, 0.5) << std::endl;
     //std::cout << "Default (cube) = " << volume(HP, 0.5, 2) << std::endl;
