@@ -169,7 +169,7 @@ void call_test_birk()
                 7.24084 * std::pow(10,-13),
                 5.73665 * std::pow(10,-13),
                 1.0156 * std::pow(10,-12),
-                0.0000000000009455459196);
+                9.455459196 * std::pow(10,-13));
 }
 
 template <typename NT>
