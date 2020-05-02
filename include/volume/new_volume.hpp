@@ -567,8 +567,8 @@ double volume_sequence_of_balls(Polytope const& Pin,
     unsigned int rnum = std::pow(error, -2) * 400 * n * std::log(n);
     RandomNumberGenerator rng(P.dimension());
 
-    //Get the Chebychev ball (largest inscribed ball) with center and radius
-    auto InnerBall = P.InnerBall();
+    //Compute the Chebychev ball (largest inscribed ball) with center and radius
+    auto InnerBall = P.ComputeInnerBall();
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
 

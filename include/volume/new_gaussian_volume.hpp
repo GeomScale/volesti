@@ -693,7 +693,8 @@ double volume_gaussian_annealing(Polytope const& Pin,
 #ifdef VOLESTI_DEBUG
     std::cout<<"All the variances of schedule_annealing computed in = "
             << (double)clock()/(double)CLOCKS_PER_SEC-tstart2<<" sec"<<std::endl;
-    for (viterator avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
+    auto j=0;
+    for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++){
         std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
     }
     std::cout<<std::endl<<std::endl;
@@ -792,7 +793,7 @@ double volume_gaussian_annealing(Polytope const& Pin,
         for(viterator it = its.begin(); it != its.end(); ++it) {
             sum_of_steps += *it;
         }
-        steps= int(sum_of_steps);
+        auto steps= int(sum_of_steps);
         std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
 #endif
 

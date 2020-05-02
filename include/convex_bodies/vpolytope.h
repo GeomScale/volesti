@@ -23,7 +23,7 @@
 template <typename Point, typename  RNGType>
 class VPolytope{
 public:
-    typedef Point PolytopePoint;
+    typedef Point PointType;
     typedef typename Point::FT NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -33,11 +33,27 @@ private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
+    std::pair<Point,NT> _inner_ball;
     REAL *conv_comb, *row, *conv_comb2, *conv_mem;
     int *colno, *colno_mem;
 
 public:
-    VPolytope() {}
+    VPolytope()
+    {
+        //_inner_ball = ComputeInnerBall();
+    }
+
+    std::pair<Point,NT> InnerBall() const
+    {
+        return _inner_ball;
+    }
+
+    NT ComputeDiameter() const
+    {
+        NT diameter;
+        comp_diam(diameter);
+        return diameter;
+    }
 
     // return dimension
     unsigned int dimension() const {
@@ -162,7 +178,7 @@ public:
         return rad;
     }
 
-    void comp_diam(NT &diam) {
+    void comp_diam(NT &diam) const {
         diam = 0.0;
         NT diam_iter;
         for (int i = 0; i < num_of_vertices(); ++i) {
@@ -305,12 +321,13 @@ public:
         }
 
         radius = radius / std::sqrt(NT(_d));
+        _inner_ball = std::pair<Point, NT> (center, radius);
         return std::pair<Point, NT> (center, radius);
     }
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(const Point &p) {
+    int is_in(const Point &p) const {
         if(memLP_Vpoly(V, p, conv_mem, colno_mem)){
             return -1;
         }
@@ -329,7 +346,7 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-            const VT &Av) {
+            const VT &Av) const {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
@@ -337,24 +354,24 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-                                    const VT &Av, const NT &lambda_prev) {
+                                    const VT &Av, const NT &lambda_prev) const {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v){
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v) const {
         return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
     }
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
-                                               const VT &Av) {
+                                               const VT &Av) const {
         return line_positive_intersect(r, v);
     }
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
-                                               const VT &Av, const NT &lambda_prev) {
+                                               const VT &Av, const NT &lambda_prev) const {
         return line_positive_intersect(r, v);
     }
 
@@ -363,7 +380,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(const Point &r,
                                           const unsigned int rand_coord,
-                                          const VT &lamdas) {
+                                          const VT &lamdas) const {
 
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
@@ -378,7 +395,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int rand_coord,
                                           const unsigned int rand_coord_prev,
-                                          const VT &lamdas) {
+                                          const VT &lamdas) const {
         return line_intersect_coord(r, rand_coord, lamdas);
     }
 
@@ -423,7 +440,7 @@ public:
         return true;
     }
 
-    void compute_reflection(Point &v, const Point &p, const int &facet) {
+    void compute_reflection(Point &v, const Point &p, const int &facet) const {
 
         int count = 0, outvert;
         MT Fmat2(_d,_d);

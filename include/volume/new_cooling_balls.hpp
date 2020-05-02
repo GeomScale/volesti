@@ -572,6 +572,7 @@ double volume_cooling_balls(Polytope const& Pin,
                                               > WalkType;
     typedef RandomPointGenerator<WalkType> RandomPointGenerator;
 
+
     auto P(Pin);
     RandomNumberGenerator rng(P.dimension());
     cooling_ball_parameters<NT> parameters;
@@ -579,6 +580,7 @@ double volume_cooling_balls(Polytope const& Pin,
     int n = P.dimension();
     NT prob = parameters.p;
     int N_times_nu = parameters.N * parameters.nu;
+
 
     auto InnerBall = P.InnerBall();
     NT radius = InnerBall.second;
