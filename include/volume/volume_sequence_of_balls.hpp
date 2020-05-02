@@ -22,19 +22,17 @@
 //#include "random/uniform_real_distribution.hpp"
 
 #include "cartesian_geom/cartesian_kernel.h"
-//#include "vars.h"
-#include "new_basic_sampling_features.hpp"
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "ball.h"
-#include "ballintersectconvex.h"
-#include "zonoIntersecthpoly.h"
-#include "vpolyintersectvpoly.h"
-#include "rounding.hpp"
-
+#include "generators/boost_random_number_generator.hpp"
+#include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
+#include "convex_bodies/zpolytope.h"
+#include "convex_bodies/ball.h"
+#include "convex_bodies/ballintersectconvex.h"
+#include "convex_bodies/zonoIntersecthpoly.h"
+#include "convex_bodies/vpolyintersectvpoly.h"
+#include "volume/rounding.hpp"
 #include "random_walks/uniform_cdhr_walk.hpp"
-#include "samplers/random_point_generators.hpp"
+#include "sampling/random_point_generators.hpp"
 
 
 ////////////////////////////// Algorithms

@@ -8,7 +8,7 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_BALL_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_BALL_WALK_HPP
 
-#include "volume/new_basic_sampling_features.hpp"
+#include "sampling/sphere.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 
 // Ball walk with spherical Gaussian target distribution

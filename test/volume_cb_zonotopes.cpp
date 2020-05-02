@@ -22,7 +22,7 @@
 #include "volume/volume_cooling_hpoly.hpp"
 
 #include "exact_vols.h"
-#include "z_polytopes_gen.h"
+#include "z_polytopes_generators.h"
 
 template <typename NT>
 NT factorial(NT n)

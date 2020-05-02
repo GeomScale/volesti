@@ -17,8 +17,10 @@
 #include "convex_bodies/vpolyintersectvpoly.h"
 #include "convex_bodies/zpolytope.h"
 #include "convex_bodies/zonoIntersecthpoly.h"
-#include "volume/new_basic_sampling_features.hpp"
-#include "samplers/random_point_generators.hpp"
+#include "generators/boost_random_number_generator.hpp"
+#include "sampling/random_point_generators.hpp"
+#include "sampling/sphere.hpp"
+#include "volume/sampling_policies.hpp"
 
 template <typename GenericPolytope>
 struct compute_diameter

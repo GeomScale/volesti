@@ -17,25 +17,12 @@
 #include <list>
 #include <math.h>
 #include <chrono>
-#include "cartesian_geom/cartesian_kernel.h"
-/*
-#include "vars.h"
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "ball.h"
-#include "ballintersectconvex.h"
-#include "vpolyintersectvpoly.h"
-#include "samplers.h"
-#include "rounding.h"
-#include "gaussian_samplers.h"
-#include "gaussian_annealing.h"
-*/
 
+#include "cartesian_geom/cartesian_kernel.h"
 #include "random_walks/gaussian_helpers.hpp"
 #include "random_walks/gaussian_ball_walk.hpp"
 #include "random_walks/gaussian_cdhr_walk.hpp"
-#include "samplers/random_point_generators.hpp"
+#include "sampling/random_point_generators.hpp"
 
 
 /////////////////// Helpers for random walks

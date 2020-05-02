@@ -98,9 +98,11 @@ void HPolytopeCPP::generate_samples(int walk_len, int n_samples, double* samples
 
    std::list <Point> randPoints;
    bool gaussian_samples = false;
-   double a_dummy = 1.0; //make this a parameter once gaussian_samples if a parameter too and can be true also.
+   //make this a parameter once gaussian_samples if a parameter too and can be true also.
+   double a_dummy = 1.0;
 
-   sampling_only<Point>(randPoints, HP, walk_len, n_samples, gaussian_samples, a_dummy, CheBall.first, var1, var2);
+   uniform_sampling<Point>(randPoints, HP, walk_len, n_samples, gaussian_samples,
+                           a_dummy, CheBall.first, var1, var2);
 
    auto n_si=0;
    for (auto it_s = randPoints.begin(); it_s != randPoints.end(); it_s++){

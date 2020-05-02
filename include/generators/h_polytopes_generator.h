@@ -9,7 +9,6 @@
 #define H_POLYTOPES_GEN_H
 
 #include <exception>
-#include "samplers.h"
 
 template <class Polytope, class RNGType>
 Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {

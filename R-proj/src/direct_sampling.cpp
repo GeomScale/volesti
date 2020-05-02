@@ -15,8 +15,8 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "volume_sequence_of_balls.hpp"
-#include "simplex_samplers.h"
+#include "volume/volume_sequence_of_balls.hpp"
+#include "sampling/simplex.hpp"
 
 
 //' Sample perfect uniformly distributed points from well known convex bodies: (a) the unit simplex, (b) the canonical simplex, (c) the boundary of a hypersphere or (d) the interior of a hypersphere.

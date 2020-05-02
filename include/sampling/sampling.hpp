@@ -28,8 +28,14 @@ template <typename WalkTypePolicy,
         typename Polytope,
         typename Point
         >
-void sampling_only(PointList &randPoints, Polytope &P, RandomNumberGenerator &rng, const unsigned int &walk_len,
-                   const unsigned int &rnum, const Point &starting_point, unsigned int const& nburns) {
+void uniform_sampling(PointList &randPoints,
+                   Polytope &P,
+                   RandomNumberGenerator &rng,
+                   const unsigned int &walk_len,
+                   const unsigned int &rnum,
+                   const Point &starting_point,
+                   unsigned int const& nburns)
+{
 
     typedef typename WalkTypePolicy::template Walk
             <
@@ -59,9 +65,14 @@ template <
         typename WalkTypePolicy,
         typename Point
 >
-void sampling_only(PointList &randPoints, Polytope &P, RandomNumberGenerator &rng, WalkTypePolicy &WalkType, const unsigned int &walk_len,
+void uniform_sampling(PointList &randPoints,
+                   Polytope &P,
+                   RandomNumberGenerator &rng,
+                   WalkTypePolicy &WalkType,
+                   const unsigned int &walk_len,
                    const unsigned int &rnum,
-                   const Point &starting_point, unsigned int const& nburns)
+                   const Point &starting_point,
+                   unsigned int const& nburns)
 {
     typedef typename WalkTypePolicy::template Walk
             <
@@ -82,16 +93,23 @@ void sampling_only(PointList &randPoints, Polytope &P, RandomNumberGenerator &rn
                                 push_back_policy, rng, WalkType.param);
 }
 
-//----------------------------------------------------------------------------------
 
-template <typename WalkTypePolicy,
+template
+<
+        typename WalkTypePolicy,
         typename RandomNumberGenerator,
         typename PointList,
         typename Polytope,
         typename Point
 >
-void sampling_only_boundary(PointList &randPoints, Polytope &P, RandomNumberGenerator &rng, const unsigned int &walk_len,
-                   const unsigned int &rnum, const Point &starting_point, unsigned int const& nburns) {
+void uniform_sampling_boundary(PointList &randPoints,
+                            Polytope &P,
+                            RandomNumberGenerator &rng,
+                            const unsigned int &walk_len,
+                            const unsigned int &rnum,
+                            const Point &starting_point,
+                            unsigned int const& nburns)
+{
     typedef typename WalkTypePolicy::template Walk
             <
                     Polytope,
@@ -113,17 +131,24 @@ void sampling_only_boundary(PointList &randPoints, Polytope &P, RandomNumberGene
 }
 
 
-template <
+template
+<
         typename WalkTypePolicy,
         typename RandomNumberGenerator,
         typename PointList,
         typename Polytope,
         typename NT,
         typename Point
-        >
-void sampling_only_gaussian(PointList &randPoints, Polytope &P, RandomNumberGenerator &rng, const unsigned int &walk_len,
-                   const unsigned int &rnum, const NT &a,
-                   const Point &starting_point, unsigned int const& nburns) {
+>
+void gaussian_sampling(PointList &randPoints,
+                       Polytope &P,
+                       RandomNumberGenerator &rng,
+                       const unsigned int &walk_len,
+                       const unsigned int &rnum,
+                       const NT &a,
+                       const Point &starting_point,
+                       unsigned int const& nburns)
+{
 
     typedef typename WalkTypePolicy::template Walk
             <
@@ -155,9 +180,16 @@ template <
         typename NT,
         typename Point
         >
-void sampling_only_gaussian(PointList &randPoints, Polytope &P, RandomNumberGenerator &rng, WalkTypePolicy &WalkType, const unsigned int &walk_len,
-                   const unsigned int &rnum, const NT &a,
-                   const Point &starting_point, unsigned int const& nburns) {
+void gaussian_sampling(PointList &randPoints,
+                       Polytope &P,
+                       RandomNumberGenerator &rng,
+                       WalkTypePolicy &WalkType,
+                       const unsigned int &walk_len,
+                       const unsigned int &rnum,
+                       const NT &a,
+                       const Point &starting_point,
+                       unsigned int const& nburns)
+{
 
     typedef typename WalkTypePolicy::template Walk
             <

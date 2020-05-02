@@ -8,7 +8,7 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_CDHR_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_CDHR_WALK_HPP
 
-#include "volume/new_basic_sampling_features.hpp"
+#include "generators/boost_random_number_generator.hpp"
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
 template

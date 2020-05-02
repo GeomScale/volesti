@@ -9,8 +9,6 @@
 #define V_POLYTOPES_GEN_H
 
 #include <exception>
-#include "samplers.h"
-
 
 template <class MT>
 void removeRow(MT &matrix, unsigned int rowToRemove)

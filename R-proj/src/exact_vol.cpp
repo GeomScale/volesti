@@ -8,15 +8,15 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
-#include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "exact_vols.h"
+#include "cartesian_geom/cartesian_kernel.h"
+#include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
+#include "convex_bodies/zpolytope.h"
+#include "volume/exact_vols.h"
 
 template <typename FT>
 FT factorial(FT n)

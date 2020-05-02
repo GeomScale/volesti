@@ -11,7 +11,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "volume_sequence_of_balls.hpp"
+#include "volume/volume_sequence_of_balls.hpp"
 
 //' Compute an inscribed ball of a convex polytope
 //'

@@ -15,8 +15,8 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "volume_sequence_of_balls.hpp"
-#include "rotating.h"
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/rotating.hpp"
 #include "extractMatPoly.h"
 
 //'  An internal Rccp function for the random rotation of a convex polytope
