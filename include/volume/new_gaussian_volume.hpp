@@ -534,11 +534,11 @@ NT get_next_gaussian(Polytope const& P,
 // Compute the sequence of spherical gaussians
 template
 <
+    typename WalkType,
     typename RandomPointGenerator,
     typename Polytope,
     typename NT,
-    typename RandomNumberGenerator,
-    typename WalkType
+    typename RandomNumberGenerator
 >
 void compute_annealing_schedule(Polytope const& P,
                                 NT const& ratio,
@@ -549,8 +549,7 @@ void compute_annealing_schedule(Polytope const& P,
                                 NT const& chebychev_radius,
                                 NT const& error,
                                 std::vector<NT>& a_vals,
-                                RandomNumberGenerator& rng,
-                                WalkType& walk)
+                                RandomNumberGenerator& rng)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Polytope::VT VT;
@@ -580,9 +579,7 @@ void compute_annealing_schedule(Polytope const& P,
 
     while (true)
     {
-        update_delta<WalkType>
-                ::apply(walk, 4.0 * chebychev_radius
-                        / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
+        //TODO: test update delta here?
 
         // Compute the next gaussian
         NT next_a = get_next_gaussian<RandomPointGenerator>
@@ -592,6 +589,11 @@ void compute_annealing_schedule(Polytope const& P,
         NT curr_its = 0;
         lamdas.setConstant(NT(0));
         auto steps = totalSteps;
+
+        WalkType walk(P, p, next_a, rng);
+        update_delta<WalkType>
+                ::apply(walk, 4.0 * chebychev_radius
+                        / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
 
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++)
@@ -686,12 +688,12 @@ double volume_gaussian_annealing(Polytope const& Pin,
     NT C = parameters.C;
     unsigned int N = parameters.N;
 
-    Point new_c(n); //origin
-    WalkType walk(P, new_c, 1, rng);
 
-    compute_annealing_schedule<RandomPointGenerator>(P, ratio, C, parameters.frac,
-                                                     N, walk_length, radius, error,
-                                                     a_vals, rng, walk);
+    compute_annealing_schedule
+    <
+        WalkType,
+        RandomPointGenerator
+    >(P, ratio, C, parameters.frac, N, walk_length, radius, error, a_vals, rng);
 
 #ifdef VOLESTI_DEBUG
     std::cout<<"All the variances of schedule_annealing computed in = "
@@ -742,9 +744,13 @@ double volume_gaussian_annealing(Polytope const& Pin,
         std::vector<NT> last_W = last_W2;
 
         // Set the radius for the ball walk
+        WalkType walk(P, p, 1, rng);
+
         update_delta<WalkType>
                 ::apply(walk, 4.0 * radius
                          / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n)));
+
+        Point new_c(n); //origin
 
         while (!done || (*itsIt)<min_steps)
         {
