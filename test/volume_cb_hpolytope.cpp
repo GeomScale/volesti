@@ -74,11 +74,11 @@ void call_test_cube(){
 
     std::cout << "--- Testing volume of H-cube10" << std::endl;
     P = gen_cube<Hpolytope>(10, false);
-    test_volume(P, 1107.81, 1199.29, 1097.47, 1097.26, 1024);
+    test_volume(P, 1087.55, 1155.24, 1078.76, 1085.12, 1024);
 
     std::cout << "--- Testing volume of H-cube20" << std::endl;
     P = gen_cube<Hpolytope>(20, false);
-    test_volume(P, 1051340, 1017430, 1083870, 1094580, 1048576);
+    test_volume(P, 1117360, 1022850, 1164010, 1099000, 1048576);
 }
 
 template <typename NT>
@@ -109,18 +109,16 @@ void call_test_cross(){
     std::cout << "--- Testing volume of H-cross10" << std::endl;
     Hpolytope P = gen_cross<Hpolytope>(10, false);
     test_volume(P,
-                0.000290427,
-                0.000283703,
-                0.000293307,
-                0.000280408,
+                0.000283841,
+                0.00031188,
+                0.000286501,
+                0.00027759,
                 0.0002821869);
 }
 
 template <typename NT>
 void call_test_birk()
 {
-    //TODO: All but Ball walk compute wrong results
-
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
@@ -134,7 +132,7 @@ void call_test_birk()
     inp.open("../R-proj/inst/extdata/birk3.ine",std::ifstream::in);
     read_pointset(inp,Pin);
     P.init(Pin);
-    test_volume(P, 0.118464, 0.115994, 0.119691, 0.12394, 0.125);
+    test_volume(P, 0.121292, 0.113264, 0.121677, 0.124617, 0.125);
 
     std::cout << "--- Testing volume of H-birk4" << std::endl;
     std::ifstream inp2;
@@ -142,7 +140,7 @@ void call_test_birk()
     inp2.open("../R-proj/inst/extdata/birk4.ine",std::ifstream::in);
     read_pointset(inp2,Pin2);
     P.init(Pin2);
-    test_volume(P, 0.000856744, 0.000840153, 0.00122184, 0.000957595,
+    test_volume(P, 0.00103909, 0.00101918, 0.0010539, 0.000954563,
                 0.000970018);
 
     std::cout << "--- Testing volume of H-birk5" << std::endl;
@@ -152,10 +150,10 @@ void call_test_birk()
     read_pointset(inp3,Pin3);
     P.init(Pin3);
     test_volume(P,
-                6.12191 * std::pow(10,-8),
-                1.97637 * std::pow(10,-7),
-                2.5704 * std::pow(10,-7),
-                2.08666 * std::pow(10,-7),
+                5.36202 * std::pow(10,-8),
+                2.37427 * std::pow(10,-7),
+                2.43087 * std::pow(10,-7),
+                2.07126 * std::pow(10,-7),
                 0.000000225);
 
     std::cout << "--- Testing volume of H-birk6" << std::endl;
@@ -165,10 +163,10 @@ void call_test_birk()
     read_pointset(inp4,Pin4);
     P.init(Pin4);
     test_volume(P,
-                1.99583 * std::pow(10,-18),
-                7.24084 * std::pow(10,-13),
-                5.73665 * std::pow(10,-13),
-                1.0156 * std::pow(10,-12),
+                3.54468 * std::pow(10,-18),
+                9.54494 * std::pow(10,-13),
+                6.16554 * std::pow(10,-13),
+                9.58638 * std::pow(10,-13),
                 9.455459196 * std::pow(10,-13));
 }
 
@@ -183,28 +181,28 @@ void call_test_prod_simplex() {
     std::cout << "--- Testing volume of H-prod_simplex5" << std::endl;
     P = gen_prod_simplex<Hpolytope>(5);
     test_volume(P,
-                7.19668 * std::pow(10,-5),
-                6.42808 * std::pow(10,-5),
-                7.3549 * std::pow(10,-5),
-                6.65353 * std::pow(10,-5),
+                7.18694 * std::pow(10,-5),
+                6.83588 * std::pow(10,-5),
+                8.25599 * std::pow(10,-5),
+                6.59118 * std::pow(10,-5),
                 std::pow(1.0 / factorial(5.0), 2));
 
     std::cout << "--- Testing volume of H-prod_simplex10" << std::endl;
     P = gen_prod_simplex<Hpolytope>(10);
     test_volume(P,
-                3.48279 * std::pow(10,-14),
-                8.06992 * std::pow(10,-14),
-                9.55515 * std::pow(10,-14),
-                7.11823 * std::pow(10,-14),
+                3.51882 * std::pow(10,-14),
+                9.11093 * std::pow(10,-14),
+                9.10933 * std::pow(10,-14),
+                8.60029 * std::pow(10,-14),
                 std::pow(1.0 / factorial(10.0), 2));
 
     std::cout << "--- Testing volume of H-prod_simplex15" << std::endl;
     P = gen_prod_simplex<Hpolytope>(15);
     test_volume(P,
-                1.12426 * std::pow(10,-25),
-                7.62343 * std::pow(10,-25),
-                4.59091 * std::pow(10,-25),
-                5.3557 * std::pow(10,-25),
+                1.41771 * std::pow(10,-25),
+                5.67561 * std::pow(10,-25),
+                5.78628 * std::pow(10,-25),
+                5.4338 * std::pow(10,-25),
                 std::pow(1.0 / factorial(15.0), 2));
 }
 
@@ -219,28 +217,28 @@ void call_test_simplex() {
     std::cout << "--- Testing volume of H-simplex10" << std::endl;
     P = gen_simplex<Hpolytope>(10, false);
     test_volume(P,
-                2.27161 * std::pow(10,-7),
-                3.18695 * std::pow(10,-7),
-                2.82644 * std::pow(10,-7),
-                2.68846 * std::pow(10,-7),
+                2.6896 * std::pow(10,-7),
+                2.9432 * std::pow(10,-7),
+                2.61284 * std::pow(10,-7),
+                2.76737 * std::pow(10,-7),
                 1.0 / factorial(10.0));
 
     std::cout << "--- Testing volume of H-simplex20" << std::endl;
     P = gen_simplex<Hpolytope>(20, false);
     test_volume(P,
-                1.62349 * std::pow(10,-19),
-                4.63344 * std::pow(10,-19),
-                4.09729 * std::pow(10,-19),
-                4.09423 * std::pow(10,-19),
+                2.17861 * std::pow(10,-19),
+                4.08949 * std::pow(10,-19),
+                4.15201 * std::pow(10,-19),
+                3.75607 * std::pow(10,-19),
                 1.0 / factorial(20.0));
 
     std::cout << "--- Testing volume of H-simplex30" << std::endl;
     P = gen_simplex<Hpolytope>(30, false);
     test_volume(P,
-                2.0167 * std::pow(10,-33),
-                3.88403 * std::pow(10,-33),
-                3.79774 * std::pow(10,-33),
-                3.57908 * std::pow(10,-33),
+                3.51893 * std::pow(10,-33),
+                3.91595 * std::pow(10,-33),
+                3.18343 * std::pow(10,-33),
+                3.36764 * std::pow(10,-33),
                 1.0 / factorial(30.0));
 }
 
