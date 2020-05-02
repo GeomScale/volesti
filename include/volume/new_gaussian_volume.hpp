@@ -373,6 +373,10 @@ struct GaussianRandomPointGenerator
                       RandomNumberGenerator &rng)
     {
         Walk walk(P, p, a_i, rng);
+        update_delta<Walk>
+                ::apply(walk, 4.0 * P.InnerBall().second
+                        / std::sqrt(std::max(NT(1.0), a_i) * NT(P.dimension())));
+
         for (unsigned int i=0; i<rnum; ++i)
         {
             walk.template apply(P, p, a_i, walk_length, rng);
@@ -588,16 +592,15 @@ void compute_annealing_schedule(Polytope const& P,
         auto steps = totalSteps;
 
         WalkType walk(P, p, a_vals[it], rng);
+        //TODO: test update delta here?
+
+        update_delta<WalkType>
+                ::apply(walk, 4.0 * chebychev_radius
+                        / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
 
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++)
         {
-            //TODO: test update delta here?
-
-            update_delta<WalkType>
-                    ::apply(walk, 4.0 * chebychev_radius
-                            / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
-
             walk.template apply(P, p, a_vals[it], walk_length, rng);
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
