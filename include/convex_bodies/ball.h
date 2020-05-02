@@ -53,7 +53,7 @@ public:
         return c.dimension();
     }
 
-    int is_in(Point &p) const
+    int is_in(Point const& p) const
     {
         if (p.squared_length() <= R)
             return -1;

@@ -26,60 +26,91 @@
 ////////////////////////////////////
 // ball annealing
 
-template <typename Point, typename ConvexBody, typename PointList, typename NT>
-bool check_convergence2(ConvexBody &P,
-                        PointList &randPoints,
-                        const NT &lb,
-                        const NT &ub,
-                        bool &too_few,
-                        NT &ratio,
-                        const int &nu,
-                        NT alpha,
-                        const bool &precheck,
-                        const bool &lastball)
+template <typename NT>
+struct cooling_ball_parameters
 {
+    cooling_ball_parameters()
+        :   lb(0.1)
+        ,   ub(0.15)
+        ,   p(0.75)
+        ,   rmax(0)
+        ,   alpha(0.2)
+        ,   win_len(500)
+        ,   N(150)
+        ,   nu(10)
+        ,   window2(false)
+    {}
 
+    NT lb;
+    NT ub;
+    NT p;
+    NT rmax;
+    NT alpha;
+    int win_len;
+    int N;
+    int nu;
+    bool window2;
+};
+
+/// Helpers
+
+template <typename Point, typename ConvexBody, typename PointList, typename NT>
+bool check_convergence(ConvexBody const& P,
+                       PointList const& randPoints,
+                       bool& too_few,
+                       NT& ratio,
+                       int const& nu,
+                       bool const& precheck,
+                       bool const& lastball,
+                       cooling_ball_parameters<NT> const& parameters)
+{
+    NT alpha = parameters.alpha;
     std::vector<NT> ratios;
     std::pair<NT,NT> mv;
-    int m = randPoints.size()/nu, i = 1;
-    NT T, rs, alpha_check = 0.01;
+    int m = randPoints.size()/nu;
+    int i = 1;
+    NT T;
+    NT rs;
+    NT alpha_check = 0.01;
     size_t countsIn = 0;
 
     for (auto pit=randPoints.begin(); pit!=randPoints.end(); ++pit, i++)
     {
-
         if (P.is_in(*pit)==-1) countsIn++;
-        if (i % m == 0) {
+        if (i % m == 0)
+        {
             ratios.push_back(NT(countsIn)/m);
             countsIn = 0;
-            if (ratios.size()>1 && precheck) {
+            if (ratios.size()>1 && precheck)
+            {
                 boost::math::students_t dist(ratios.size() - 1);
-                mv = getMeanVariance(ratios);
+                mv = get_mean_variance(ratios);
                 ratio = mv.first;
                 rs = std::sqrt(mv.second);
                 T = rs * (boost::math::quantile
                             (boost::math::complement(dist, alpha_check / 2.0))
                           / std::sqrt(NT(ratios.size())));
-                if (ratio + T < lb) {
+                if (ratio + T < parameters.lb)
+                {
                     too_few = true;
                     return false;
-                } else if (ratio - T > ub) return false;
+                } else if (ratio - T > parameters.ub) return false;
             }
         }
     }
 
-    //NT alpha = 0.25;
-    if(precheck) alpha *= 0.5;
-    mv = getMeanVariance(ratios);
+    if (precheck) alpha *= 0.5;
+    mv = get_mean_variance(ratios);
     ratio = mv.first;
     rs = std::sqrt(mv.second);
     boost::math::students_t dist(nu - 1);
-    T = rs*(boost::math::quantile(boost::math::complement(dist, alpha))
-            / std::sqrt(NT(nu)));
-    if (ratio > lb + T)
+    T = rs * (boost::math::quantile(boost::math::complement(dist, alpha))
+           / std::sqrt(NT(nu)));
+    if (ratio > parameters.lb + T)
     {
         if (lastball) return true;
-        if ((precheck && ratio < ub - T) || (!precheck && ratio < ub + T)) return true;
+        if ((precheck && ratio < parameters.ub - T)
+        || (!precheck && ratio < parameters.ub + T)) return true;
         return false;
     }
     too_few = true;
@@ -87,155 +118,163 @@ bool check_convergence2(ConvexBody &P,
 }
 
 
-template <typename Polytope, typename ball, typename NT, typename RNG>
-bool get_first_ball2(Polytope &P,
-                     ball &B0,
-                     NT &ratio,
-                     NT rad1,
-                     const NT &lb,
-                     const NT &ub,
-                     const NT &alpha,
-                     NT &rmax,
-                     RNG& rng)
+template <typename Polytope, typename Ball, typename NT, typename RNG>
+bool get_first_ball(Polytope const& P,
+                    Ball& B0,
+                    NT& ratio,
+                    NT const& radius_input,
+                    cooling_ball_parameters<NT> const& parameters,
+                    RNG& rng)
 {
-
+    const unsigned max_iterarions = 10;
+    const unsigned tolerance = 0.00000000001;
     typedef typename Polytope::PointType Point;
-    int n = P.dimension(), iter = 1;
-    bool bisection_int = false, pass = false, too_few = false;
+    int n = P.dimension();
+    int iter = 1;
+    bool bisection_int = false;
+    bool pass = false;
+    bool too_few = false;
     std::list<Point> randPoints;
-    Point p(n);
+    NT rmax = parameters.rmax;
+    NT sqrt_n = std::sqrt(NT(n));
+    NT rad1 = radius_input;
 
-    if (rmax>0.0)
+    if (rmax > 0.0)
     {
         for (int i = 0; i < 1200; ++i)
         {
-            //randPoints.push_back(get_point_in_Dsphere<RNGType, Point>(n, rmax));
             randPoints.push_back(GetPointInDsphere<Point>::apply(n, rmax, rng));
         }
-        pass = check_convergence2<Point>(P, randPoints, lb, ub, too_few, ratio,
-                                         10, alpha, true, false);
-        if (pass || !too_few) {
-            B0 = ball(Point(n), rmax*rmax);
+        pass = check_convergence<Point>(P, randPoints, too_few, ratio,
+                                        10, true, false, parameters);
+        if (pass || !too_few)
+        {
+            B0 = Ball(Point(n), rmax * rmax);
             return true;
         }
         bisection_int = true;
-    } else {
-        rmax = 2 * std::sqrt(NT(n)) * rad1;
+    } else
+    {
+        rmax = 2 * sqrt_n * rad1;
     }
     NT radius = rad1;
 
-    while(!bisection_int)
+    while (!bisection_int)
     {
-
         randPoints.clear();
         too_few = false;
 
         for (int i = 0; i < 1200; ++i)
         {
-            //randPoints.push_back(get_point_in_Dsphere<RNGType, Point>(n, rmax));
             randPoints.push_back(GetPointInDsphere<Point>::apply(n, rmax, rng));
         }
 
-        if (check_convergence2<Point>(P, randPoints, lb, ub, too_few, ratio, 10,
-                                      alpha, true, false))
+        if (check_convergence<Point>(P, randPoints, too_few, ratio, 10,
+                                     true, false, parameters))
         {
-            B0 = ball(Point(n), rmax*rmax);
+            B0 = Ball(Point(n), rmax * rmax);
             return true;
         }
 
         if (too_few) break;
         rad1 = rmax;
-        rmax = rmax + 2*std::sqrt(NT(n))*radius;
+        rmax = rmax + 2 * sqrt_n * radius;
     }
 
-    NT rad_med, rad0=rad1, rad_m = rmax;
+    NT rad_med;
+    NT rad0=rad1;
+    NT rad_m = rmax;
 
-    while(iter <= MAX_ITER)
+    while (iter <= max_iterarions)
     {
-
         rad_med = 0.5*(rad1+rmax);
         randPoints.clear();
         too_few = false;
 
         for (int i = 0; i < 1200; ++i)
         {
-            //randPoints.push_back(get_point_in_Dsphere<RNGType, Point>(n, rad_med));
             randPoints.push_back(GetPointInDsphere<Point>::apply(n, rad_med, rng));
         }
 
-        if (check_convergence2<Point>(P, randPoints, lb, ub, too_few, ratio, 10,
-                                      alpha, true, false))
+        if (check_convergence<Point>(P, randPoints, too_few, ratio, 10,
+                                     true, false, parameters))
         {
-            B0 = ball(Point(n), rad_med*rad_med);
+            B0 = Ball(Point(n), rad_med * rad_med);
             return true;
         }
 
-        if (too_few) {
+        if (too_few)
+        {
             rmax = rad_med;
         } else {
             rad1 = rad_med;
         }
 
-        if(rmax-rad1 < TOL) {
+        if (rmax-rad1 < tolerance)
+        {
             rad1 = rad0;
             rmax = rad_m;
             iter++;
         }
-
     }
     return false;
 }
 
 
 template <typename Point, typename ball, typename PointList, typename NT>
-bool get_next_zonotopeball(std::vector<ball> &BallSet,
-                           PointList &randPoints,
-                           NT rad_min,
-                           std::vector<NT> &ratios,
-                           const NT &lb,
-                           const NT &ub,
-                           NT &alpha,
-                           const int &nu)
+bool get_next_zonotopeball(std::vector<ball>& BallSet,
+                           PointList const& randPoints,
+                           NT const& rad_min,
+                           std::vector<NT>& ratios,
+                           cooling_ball_parameters<NT> const& parameters)
 {
-
-    int n = (*randPoints.begin()).dimension(), iter = 1;
+    const unsigned max_iterarions = 10;
+    const unsigned tolerance = 0.00000000001;
+    int n = (*randPoints.begin()).dimension();
+    int iter = 1;
     bool too_few;
-    NT radmax = 0.0, rad, pnorm, ratio;
+    NT radmax = NT(0);
+    NT radmin = rad_min;
 
     for (auto rpit = randPoints.begin();  rpit!=randPoints.end(); ++rpit)
     {
-        pnorm = (*rpit).squared_length();
+        NT pnorm = (*rpit).squared_length();
         if (pnorm > radmax) radmax = pnorm;
     }
     ball Biter;
-    radmax=std::sqrt(radmax);
-    NT rad0 = rad_min, rad_m = radmax;
+    radmax = std::sqrt(radmax);
+    NT radmin_init = radmin;
+    NT radmax_init = radmax;
 
-    while (iter <= MAX_ITER) {
-        rad = 0.5 * (rad_min + radmax);
+    while (iter <= max_iterarions)
+    {
+        NT rad = 0.5 * (radmin + radmax);
         Biter = ball(Point(n), rad * rad);
         too_few = false;
 
-        if (check_convergence2<Point>(Biter, randPoints, lb, ub, too_few, ratio,
-                                      nu, alpha, false, false))
+        NT ratio;
+        if (check_convergence<Point>(Biter, randPoints, too_few, ratio,
+                                     parameters.nu, false, false, parameters))
         {
             BallSet.push_back(Biter);
             ratios.push_back(ratio);
             return true;
         }
 
-        if (too_few) {
-            rad_min = rad;
-        } else {
+        if (too_few)
+        {
+            radmin = rad;
+        } else
+        {
             radmax = rad;
         }
 
-        if(radmax-rad_min < TOL) {
-            rad_min = rad0;
-            radmax = rad_m;
+        if (radmax-radmin < tolerance)
+        {
+            radmin = radmin_init;
+            radmax = radmax_init;
             iter++;
         }
-
     }
     return false;
 }
@@ -250,44 +289,41 @@ template
     typename NT,
     typename RNG
 >
-bool get_sequence_of_polytopeballs(Polytope &P,
-                                   std::vector<ball> &BallSet,
-                                   std::vector<NT> &ratios,
-                                   const int &Ntot,
-                                   const int &nu,
-                                   const NT &lb,
-                                   const NT &ub,
-                                   NT radius,
-                                   NT &alpha,
+bool get_sequence_of_polytopeballs(Polytope const& P,
+                                   std::vector<ball>& BallSet,
+                                   std::vector<NT>& ratios,
+                                   int const& Ntot,
+                                   NT const& radius,
                                    unsigned int const& walk_length,
                                    NT& diameter,
-                                   NT &rmax,
+                                   cooling_ball_parameters<NT> parameters,
                                    RNG& rng)
 {
 
     typedef typename Polytope::PointType Point;
     bool fail;
     int n = P.dimension();
-    NT ratio, ratio0;
+    NT ratio;
+    NT ratio0;
     std::list<Point> randPoints;
     ball B0;
     Point q(n);
     PolyBall zb_it;
 
-    if ( !get_first_ball2(P, B0, ratio, radius, lb, ub, alpha, rmax, rng) )
+    if ( !get_first_ball(P, B0, ratio, radius, parameters, rng) )
     {
         return false;
     }
 
     ratio0 = ratio;
-    //rand_point_generator(P, q, Ntot, var.walk_steps, randPoints, var);
 
     PushBackWalkPolicy push_back_policy;
     RandomPointGenerator::apply(P, q, Ntot, walk_length,
                                 randPoints, push_back_policy, rng);
 
-    if (check_convergence2<Point>(B0, randPoints, lb, ub, fail, ratio, nu,
-                                  alpha, false, true))
+    if (check_convergence<Point>(B0, randPoints,
+                                 fail, ratio, parameters.nu,
+                                 false, true, parameters))
     {
         ratios.push_back(ratio);
         BallSet.push_back(B0);
@@ -295,7 +331,7 @@ bool get_sequence_of_polytopeballs(Polytope &P,
         return true;
     }
     if ( !get_next_zonotopeball<Point>(BallSet, randPoints, B0.radius(), ratios,
-                                       lb, ub, alpha, nu) )
+                                       parameters) )
     {
         return false;
     }
@@ -303,15 +339,14 @@ bool get_sequence_of_polytopeballs(Polytope &P,
     while (true)
     {
         zb_it = PolyBall(P, BallSet[BallSet.size()-1]);
-        q=Point(n);
+        q = Point(n);
         randPoints.clear();
         zb_it.comp_diam(diameter);
 
-        //rand_point_generator(zb_it, q, Ntot, var.walk_steps, randPoints,var);
         RandomPointGenerator::apply(zb_it, q, Ntot, walk_length,
                                     randPoints, push_back_policy, rng);
-        if (check_convergence2<Point>(B0, randPoints, lb, ub, fail, ratio, nu,
-                                      alpha, false, true))
+        if (check_convergence<Point>(B0, randPoints, fail, ratio, parameters.nu,
+                                     false, true, parameters))
         {
             ratios.push_back(ratio);
             BallSet.push_back(B0);
@@ -319,7 +354,7 @@ bool get_sequence_of_polytopeballs(Polytope &P,
             return true;
         }
         if ( !get_next_zonotopeball<Point>(BallSet, randPoints, B0.radius(),
-                                           ratios, lb, ub, alpha, nu) )
+                                           ratios, parameters) )
         {
             return false;
         }
@@ -332,16 +367,10 @@ bool get_sequence_of_polytopeballs(Polytope &P,
 /// ratio estimation
 
 template <typename NT>
-bool check_max_error2(const NT &a, const NT &b, const NT &error)
+bool is_max_error(NT const& a, NT const& b, NT const& error)
 {
-
-    if((b-a)/a<error/2.0) {
-        return true;
-    }
-    return false;
-
+    return ((b-a)/a<error/2.0) ? true : false;
 }
-
 
 template
 <
@@ -352,19 +381,19 @@ template
     typename WalkType,
     typename RNG
 >
-NT estimate_ratio(PolyBall1 &Pb1,
-                  PolyBall2 &Pb2,
-                  const NT &ratio,
-                  const NT &error,
-                  const int &W,
-                  const int &Ntot,
-                  const unsigned int& walk_length,
+NT estimate_ratio(PolyBall1 const& Pb1,
+                  PolyBall2 const& Pb2,
+                  NT const& ratio,
+                  NT const& error,
+                  int const& W,
+                  int const& Ntot,
+                  unsigned int const& walk_length,
                   WalkType& walk,
                   RNG& rng,
                   bool isball = false,
                   NT radius = 0.0)
 {
-
+    const unsigned max_iterations_estimation = 10000000;
     int n = Pb1.dimension();
     int min_index = W-1;
     int max_index = W-1;
@@ -373,29 +402,19 @@ NT estimate_ratio(PolyBall1 &Pb1,
     NT min_val = std::numeric_limits<NT>::lowest();
     NT max_val = std::numeric_limits<NT>::max();
     NT val;
-    size_t totCount = Ntot, countIn = Ntot * ratio;
+    size_t totCount = Ntot;
+    size_t countIn = Ntot * ratio;
     std::vector<NT> last_W(W);
 
     typename std::vector<NT>::iterator minmaxIt;
     Point p(n);
 
-    //if (!var.ball_walk && !isball)
-    //{
-    //    uniform_first_point(Pb1,p,p_prev,coord_prev,var.walk_steps,
-    //                        lamdas,Av,lambda,var);
-    //}
-
-    while(iter <= MAX_ITER_ESTI)
+    while (iter++ <= max_iterations_estimation)
     {
-        iter++;
-
         if (isball)
         {
-            //p = get_point_in_Dsphere<RNGType, Point>(n, radius);
             p = GetPointInDsphere<Point>::apply(n, radius, rng);
         } else {
-            //uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps,
-            //                   lamdas, Av, lambda, var);
             walk.template apply(Pb1, p, walk_length, rng);
         }
         if (Pb2.is_in(p)==-1) countIn = countIn + 1.0;
@@ -408,7 +427,7 @@ NT estimate_ratio(PolyBall1 &Pb1,
         {
             min_val = val;
             min_index = index;
-        } else if(min_index==index)
+        } else if (min_index==index)
         {
             minmaxIt = std::min_element(last_W.begin(), last_W.end());
             min_val = *minmaxIt;
@@ -419,7 +438,7 @@ NT estimate_ratio(PolyBall1 &Pb1,
         {
             max_val = val;
             max_index = index;
-        }else if (max_index==index)
+        } else if (max_index==index)
         {
             minmaxIt = std::max_element(last_W.begin(), last_W.end());
             max_val = *minmaxIt;
@@ -431,7 +450,7 @@ NT estimate_ratio(PolyBall1 &Pb1,
             return val;
         }
 
-        index = index%W+1;
+        index = index%W + 1;
         if (index==W) index=0;
     }
     return val;
@@ -447,47 +466,38 @@ template
     typename WalkType,
     typename RNG
 >
-NT estimate_ratio_interval(PolyBall1 &Pb1,
-                           PolyBall2 &Pb2,
-                           const NT &ratio,
-                           const NT &error,
-                           const int &W,
-                           const int &Ntot,
-                           const NT &prob,
-                           const unsigned int& walk_length,
+NT estimate_ratio_interval(PolyBall1 const& Pb1,
+                           PolyBall2 const& Pb2,
+                           NT const& ratio,
+                           NT const& error,
+                           int const& W,
+                           int const& Ntot,
+                           NT const& prob,
+                           unsigned int const& walk_length,
                            WalkType& walk,
                            RNG& rng,
                            bool isball = false,
-                           NT radius = 0.0)
+                           NT const& radius = 0)
 {
-
+    const unsigned max_iterations_estimation = 10000000;
     int n = Pb1.dimension();
     int index = 0;
     int iter = 1;
     std::vector<NT> last_W(W);
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-    VT lamdas, Av;
-    Av.setZero(Pb1.num_of_hyperplanes());
-    lamdas.setZero(Pb1.num_of_hyperplanes());
-    NT val, sum_sq=0.0, sum=0.0, lambda;
-    size_t totCount = Ntot, countIn = Ntot * ratio;
-    //std::cout<<"countIn = "<<countIn<<", totCount = "<<totCount<<std::endl;
-
+    NT val;
+    NT sum_sq = NT(0);
+    NT sum = NT(0);
+    size_t totCount = Ntot;
+    size_t countIn = Ntot * ratio;
     Point p(n);
-    Point p_prev=p;
-    unsigned int coord_prev;
-    //if (!var.ball_walk && !isball) uniform_first_point(Pb1, p, p_prev, coord_prev, 1,
-    //                                                  lamdas, Av, lambda, var);
 
     for (int i = 0; i < W; ++i)
     {
         if (isball)
         {
-            //p = get_point_in_Dsphere<RNGType, Point>(n, radius);
             p = GetPointInDsphere<Point>::apply(n, radius, rng);
-        } else {
-            //uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps,
-            //                   lamdas, Av, lambda, var);
+        } else
+        {
             walk.template apply(Pb1, p, walk_length, rng);
         }
         if (Pb2.is_in(p) == -1) countIn = countIn + 1;
@@ -498,7 +508,6 @@ NT estimate_ratio_interval(PolyBall1 &Pb1,
         sum_sq += val * val;
         last_W[index] = val;
         index = index % W + 1;
-
         if (index == W) index = 0;
     }
 
@@ -507,15 +516,12 @@ NT estimate_ratio_interval(PolyBall1 &Pb1,
     NT m=sum/NT(W);
     NT s;
 
-    while(iter <= MAX_ITER_ESTI) {
-        iter++;
-
+    while (iter++ <= max_iterations_estimation)
+    {
         if (isball) {
-            //p = get_point_in_Dsphere<RNGType, Point>(n, radius);
             p = GetPointInDsphere<Point>::apply(n, radius, rng);
-        } else {
-            //uniform_next_point(Pb1, p, p_prev, coord_prev, var.walk_steps,
-            //                   lamdas, Av, lambda, var);
+        } else
+        {
             walk.template apply(Pb1, p, walk_length, rng);
         }
         if (Pb2.is_in(p) == -1) countIn = countIn + 1;
@@ -528,36 +534,34 @@ NT estimate_ratio_interval(PolyBall1 &Pb1,
         sum = (sum - last_W[index]) + val;
         s = std::sqrt((sum_sq + NT(W) * m * m - 2.0 * m * sum) / NT(W));
         last_W[index] = val;
-        index = index % W + 1;
 
+        index = index % W + 1;
         if (index == W) index = 0;
-        if (check_max_error2(val - zp * s, val + zp * s, error)) {
-            //if (print) std::cout << "final rejection ratio = " << val << " | total points = " << totCount << std::endl;
+
+        if (is_max_error(val - zp * s, val + zp * s, error))
+        {
             return val;
         }
-
     }
     return val;
-
 }
+
 
 
 template
 <
     typename WalkTypePolicy = BilliardWalk,
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, double>,
-    typename Polytope,
-    typename AParameters
+    typename Polytope
 >
-double volume_cooling_balls(Polytope &P,
-                            AParameters &var_ban,
+double volume_cooling_balls(Polytope const& Pin,
                             double const& error = 1.0,
                             unsigned int const& walk_length = 1)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef Ball<Point> ball;
-    typedef BallIntersectPolytope <Polytope, ball> PolyBall;
+    typedef Ball<Point> BallType;
+    typedef BallIntersectPolytope <Polytope, BallType> PolyBall;
     typedef typename Polytope::VT VT;
     typedef std::list <Point> PointList;
 
@@ -568,28 +572,25 @@ double volume_cooling_balls(Polytope &P,
                                               > WalkType;
     typedef RandomPointGenerator<WalkType> RandomPointGenerator;
 
+    auto P(Pin);
     RandomNumberGenerator rng(P.dimension());
+    cooling_ball_parameters<NT> parameters;
+
     int n = P.dimension();
-    int win_len = var_ban.win_len;
-    int N = var_ban.N;
-    int nu = var_ban.nu;
-    bool window2 = var_ban.window2;
-    NT lb = var_ban.lb;
-    NT ub = var_ban.ub;
-    NT prob = var_ban.p;
-    NT rmax = var_ban.rmax;
+    NT prob = parameters.p;
+    int N_times_nu = parameters.N * parameters.nu;
+
     auto InnerBall = P.InnerBall();
     NT radius = InnerBall.second;
-    NT e = error;
-    NT alpha = var_ban.alpha;
+    Point c = InnerBall.first;
     NT diameter = P.ComputeDiameter();
 
-    std::vector <ball> BallSet;
-    std::vector <NT> ratios;
-    Point c = InnerBall.first;
-    P.normalize();
+    std::vector<BallType> BallSet;
+    std::vector<NT> ratios;
 
-    // Move the chebychev center to the origin and apply the same shifting to the polytope
+    // Normalize and move the chebychev center to the origin
+    // and apply the same shifting to the polytope
+    P.normalize();
     P.shift(c.getCoefficients());
 
     WalkType walk(P, c, rng);
@@ -598,13 +599,12 @@ double volume_cooling_balls(Polytope &P,
           <
             RandomPointGenerator,
             PolyBall
-         >(P, BallSet, ratios,
-           N * nu, nu, lb, ub,
-           radius, alpha, walk_length, diameter, rmax, rng) )
+          >(P, BallSet, ratios,
+            N_times_nu, radius, walk_length, diameter,
+            parameters, rng) )
     {
         return -1.0;
     }
-    //var.diameter = diam;
 
     NT vol = (std::pow(M_PI, n / 2.0)
               * (std::pow((*(BallSet.end() - 1)).radius(), n)))
@@ -612,53 +612,61 @@ double volume_cooling_balls(Polytope &P,
 
     int mm = BallSet.size() + 1;
     prob = std::pow(prob, 1.0 / NT(mm));
-    NT er0 = e / (2.0 * std::sqrt(NT(mm)));
-    NT er1 = (e * std::sqrt(4.0 * NT(mm) - 1)) / (2.0 * std::sqrt(NT(mm)));
+    NT er0 = error / (2.0 * std::sqrt(NT(mm)));
+    NT er1 = (error * std::sqrt(4.0 * NT(mm) - 1)) / (2.0 * std::sqrt(NT(mm)));
 
-    vol *= (window2) ?
-           estimate_ratio<Point>(*(BallSet.end() - 1),
+    vol *= (parameters.window2) ?
+                estimate_ratio<Point>(*(BallSet.end() - 1),
                                       P,
                                       *(ratios.end() - 1),
-                                      er0, win_len, 1200, walk_length,
+                                      er0, parameters.win_len, 1200, walk_length,
                                       walk, rng,
                                       true,
                                       (*(BallSet.end() - 1)).radius())
-        :
-           estimate_ratio_interval<Point>(*(BallSet.end() - 1),
+              : estimate_ratio_interval<Point>(*(BallSet.end() - 1),
                                                P,
                                                *(ratios.end() - 1),
-                                               er0, win_len, 1200, prob,
+                                               er0, parameters.win_len, 1200, prob,
                                                walk_length, walk, rng,
                                                true,
                                                (*(BallSet.end() - 1)).radius());
 
     PolyBall Pb;
-    typename std::vector<ball>::iterator balliter = BallSet.begin();
-    typename std::vector<NT>::iterator ratioiter = ratios.begin();
+    auto balliter = BallSet.begin();
+    auto ratioiter = ratios.begin();
 
     er1 = er1 / std::sqrt(NT(mm) - 1.0);
 
     if (*ratioiter != 1)
     {
-        vol *= (!window2) ?
+        vol *= (!parameters.window2) ?
                1 / estimate_ratio_interval<Point>(P, *balliter, *ratioiter,
-                                                       er1, win_len, N * nu, prob,
-                                                       walk_length, walk, rng)
+                                                  er1,
+                                                  parameters.win_len,
+                                                  N_times_nu,
+                                                  prob,
+                                                  walk_length, walk, rng)
             : 1 / estimate_ratio<Point>(P, *balliter, *ratioiter,
-                                             er1, win_len, N * nu, walk_length, walk, rng);
+                                        er1, parameters.win_len,
+                                        N_times_nu,
+                                        walk_length, walk, rng);
     }
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter)
     {
         Pb = PolyBall(P, *balliter);
         Pb.comp_diam(diameter);
-        vol *= (!window2) ?
-               1 / estimate_ratio_interval<Point>(Pb,
+        vol *= (!parameters.window2) ?
+                    1 / estimate_ratio_interval<Point>(Pb,
                                                        *(balliter + 1),
                                                        *(ratioiter + 1),
-                                                       er1, win_len, N * nu,
-                                                       prob, walk_length, walk, rng)
-            : 1 / estimate_ratio<Point>(Pb, *balliter, *ratioiter, er1,
-                                             win_len, N * nu, walk_length, walk, rng);
+                                                       er1, parameters.win_len,
+                                                       N_times_nu,
+                                                       prob, walk_length,
+                                                       walk, rng)
+                  : 1 / estimate_ratio<Point>(Pb, *balliter, *ratioiter, er1,
+                                              parameters.win_len,
+                                              N_times_nu,
+                                              walk_length, walk, rng);
     }
 
     P.free_them_all();
