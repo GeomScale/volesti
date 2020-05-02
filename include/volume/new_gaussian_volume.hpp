@@ -11,6 +11,8 @@
 #ifndef NEW_GAUSSIAN_VOLUME_HPP
 #define NEW_GAUSSIAN_VOLUME_HPP
 
+//#define VOLESTI_DEBUG
+
 #include <iterator>
 #include <vector>
 #include <list>
@@ -574,30 +576,28 @@ void compute_annealing_schedule(Polytope const& P,
 #endif
 
     Point p(n);
-    VT lamdas;
-    lamdas.setZero(P.num_of_hyperplanes());
 
     while (true)
     {
-        //TODO: test update delta here?
-
         // Compute the next gaussian
         NT next_a = get_next_gaussian<RandomPointGenerator>
                       (P, p, a_vals[it], N, ratio, C, walk_length, rng);
 
         NT curr_fn = 0;
         NT curr_its = 0;
-        lamdas.setConstant(NT(0));
         auto steps = totalSteps;
 
-        WalkType walk(P, p, next_a, rng);
-        update_delta<WalkType>
-                ::apply(walk, 4.0 * chebychev_radius
-                        / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
+        WalkType walk(P, p, a_vals[it], rng);
 
         // Compute some ratios to decide if this is the last gaussian
         for (unsigned  int j = 0; j < steps; j++)
         {
+            //TODO: test update delta here?
+
+            update_delta<WalkType>
+                    ::apply(walk, 4.0 * chebychev_radius
+                            / std::sqrt(std::max(NT(1.0), a_vals[it]) * NT(n)));
+
             walk.template apply(P, p, a_vals[it], walk_length, rng);
             curr_its += 1.0;
             curr_fn += eval_exp(p, next_a) / eval_exp(p, a_vals[it]);
@@ -744,13 +744,11 @@ double volume_gaussian_annealing(Polytope const& Pin,
         std::vector<NT> last_W = last_W2;
 
         // Set the radius for the ball walk
-        WalkType walk(P, p, 1, rng);
+        WalkType walk(P, p, *avalsIt, rng);
 
         update_delta<WalkType>
                 ::apply(walk, 4.0 * radius
                          / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n)));
-
-        Point new_c(n); //origin
 
         while (!done || (*itsIt)<min_steps)
         {
