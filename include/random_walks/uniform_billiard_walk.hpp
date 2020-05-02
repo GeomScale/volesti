@@ -384,4 +384,10 @@ private :
 };
 
 
+
+
+
+
+
+
 #endif // RANDOM_WALKS_UNIFORM_BILLIARD_WALK_HPP

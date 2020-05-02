@@ -13,6 +13,8 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include "random_walks/random_walks.hpp"
+#include "volume_cooling_gaussians.hpp"
 #include "volume_sequence_of_balls.hpp"
 #include "volume_cooling_gaussians.hpp"
 #include "volume_cooling_balls.hpp"
@@ -47,11 +49,11 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
     NT vol;
     if (CG) {
         if (cdhr) {
-            vol = volume_gaussian_annealing<GaussianCDHRWalk>(P, rng, e, walk_length);
+            vol = volume_cooling_gaussians<GaussianCDHRWalk>(P, rng, e, walk_length);
         } else if (rdhr) {
-            vol = volume_gaussian_annealing<GaussianRDHRWalk>(P, rng, e, walk_length);
+            vol = volume_cooling_gaussians<GaussianRDHRWalk>(P, rng, e, walk_length);
         } else {
-            vol = volume_gaussian_annealing<GaussianBallWalk>(P, rng, e, walk_length);
+            vol = volume_cooling_gaussians<GaussianBallWalk>(P, rng, e, walk_length);
         }
     } else if (CB) {
         if (cdhr) {
@@ -261,12 +263,12 @@ double volume (Rcpp::Reference P,
                 hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["hpoly"]);
                 if (hpoly && !CB)
                     Rf_warning("flag 'hpoly' can be used to only in MMC of CB algorithm for zonotopes.");
-            } else if (ZP.num_of_generators() / ZP.dimension() < 5 ) {
+            } else if (ZP.num_of_generators() / ZP.dimension() < 5) {
                 hpoly = true;
             } else {
                 hpoly = false;
             }
-            if (hpoly) {
+            if (hpoly && CB) {
                 if (cdhr) {
                     return volume_cooling_hpoly<CDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
                 } else if (rdhr) {
