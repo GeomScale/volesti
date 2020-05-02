@@ -177,11 +177,9 @@ struct Walk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    Walk (Polytope const&, Point&, RandomNumberGenerator&)
-    {}
-
-    Walk (BallPolytope const&, Point &, RandomNumberGenerator &)
-    {}
+    Walk (Polytope const&, Point&, RandomNumberGenerator&) {}
+    Walk (BallPolytope const&, Point &, RandomNumberGenerator &) {}
+    Walk (BallType const&, Point &, RandomNumberGenerator &) {}
 
     template<typename BallPolytope>
     inline void apply(BallPolytope const& P,
@@ -229,6 +227,7 @@ struct Walk
     {
         initialize(P, p, rng);
     }
+    Walk (BallType const&, Point &, RandomNumberGenerator &) {}
 
     template
     <
@@ -300,6 +299,8 @@ struct Walk
     {
         initialize(P, p, rng);
     }
+
+    Walk (BallType const&, Point &, RandomNumberGenerator &) {}
 
     template
     <
@@ -377,6 +378,8 @@ struct Walk
     {
         initialize(P, p, rng);
     }
+
+    Walk (BallType const&, Point &, RandomNumberGenerator &) {}
 
     template
     <

@@ -374,11 +374,11 @@ bool is_max_error(NT const& a, NT const& b, NT const& error)
 
 template
 <
+    typename WalkType,
     typename Point,
     typename PolyBall1,
     typename PolyBall2,
     typename NT,
-    typename WalkType,
     typename RNG
 >
 NT estimate_ratio(PolyBall1 const& Pb1,
@@ -388,7 +388,6 @@ NT estimate_ratio(PolyBall1 const& Pb1,
                   int const& W,
                   int const& Ntot,
                   unsigned int const& walk_length,
-                  WalkType& walk,
                   RNG& rng,
                   bool isball = false,
                   NT radius = 0.0)
@@ -408,6 +407,7 @@ NT estimate_ratio(PolyBall1 const& Pb1,
 
     typename std::vector<NT>::iterator minmaxIt;
     Point p(n);
+    WalkType walk(Pb1, p, rng);
 
     while (iter++ <= max_iterations_estimation)
     {
@@ -459,11 +459,11 @@ NT estimate_ratio(PolyBall1 const& Pb1,
 
 template
 <
+    typename WalkType,
     typename Point,
     typename PolyBall1,
     typename PolyBall2,
     typename NT,
-    typename WalkType,
     typename RNG
 >
 NT estimate_ratio_interval(PolyBall1 const& Pb1,
@@ -474,7 +474,6 @@ NT estimate_ratio_interval(PolyBall1 const& Pb1,
                            int const& Ntot,
                            NT const& prob,
                            unsigned int const& walk_length,
-                           WalkType& walk,
                            RNG& rng,
                            bool isball = false,
                            NT const& radius = 0)
@@ -490,6 +489,7 @@ NT estimate_ratio_interval(PolyBall1 const& Pb1,
     size_t totCount = Ntot;
     size_t countIn = Ntot * ratio;
     Point p(n);
+    WalkType walk(Pb1, p, rng);
 
     for (int i = 0; i < W; ++i)
     {
@@ -595,7 +595,8 @@ double volume_cooling_balls(Polytope const& Pin,
     P.normalize();
     P.shift(c.getCoefficients());
 
-    WalkType walk(P, c, rng);
+    Point new_c(n); //origin
+    WalkType walk(P, new_c, rng);
 
     if ( !get_sequence_of_polytopeballs
           <
@@ -618,18 +619,18 @@ double volume_cooling_balls(Polytope const& Pin,
     NT er1 = (error * std::sqrt(4.0 * NT(mm) - 1)) / (2.0 * std::sqrt(NT(mm)));
 
     vol *= (parameters.window2) ?
-                estimate_ratio<Point>(*(BallSet.end() - 1),
+                estimate_ratio<WalkType, Point>(*(BallSet.end() - 1),
                                       P,
                                       *(ratios.end() - 1),
                                       er0, parameters.win_len, 1200, walk_length,
-                                      walk, rng,
+                                      rng,
                                       true,
                                       (*(BallSet.end() - 1)).radius())
-              : estimate_ratio_interval<Point>(*(BallSet.end() - 1),
+              : estimate_ratio_interval<WalkType, Point>(*(BallSet.end() - 1),
                                                P,
                                                *(ratios.end() - 1),
                                                er0, parameters.win_len, 1200, prob,
-                                               walk_length, walk, rng,
+                                               walk_length, rng,
                                                true,
                                                (*(BallSet.end() - 1)).radius());
 
@@ -642,33 +643,33 @@ double volume_cooling_balls(Polytope const& Pin,
     if (*ratioiter != 1)
     {
         vol *= (!parameters.window2) ?
-               1 / estimate_ratio_interval<Point>(P, *balliter, *ratioiter,
+               1 / estimate_ratio_interval<WalkType, Point>(P, *balliter, *ratioiter,
                                                   er1,
                                                   parameters.win_len,
                                                   N_times_nu,
                                                   prob,
-                                                  walk_length, walk, rng)
-            : 1 / estimate_ratio<Point>(P, *balliter, *ratioiter,
+                                                  walk_length, rng)
+            : 1 / estimate_ratio<WalkType, Point>(P, *balliter, *ratioiter,
                                         er1, parameters.win_len,
                                         N_times_nu,
-                                        walk_length, walk, rng);
+                                        walk_length, rng);
     }
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter)
     {
         Pb = PolyBall(P, *balliter);
         Pb.comp_diam(diameter);
         vol *= (!parameters.window2) ?
-                    1 / estimate_ratio_interval<Point>(Pb,
+                    1 / estimate_ratio_interval<WalkType, Point>(Pb,
                                                        *(balliter + 1),
                                                        *(ratioiter + 1),
                                                        er1, parameters.win_len,
                                                        N_times_nu,
                                                        prob, walk_length,
-                                                       walk, rng)
-                  : 1 / estimate_ratio<Point>(Pb, *balliter, *ratioiter, er1,
+                                                       rng)
+                  : 1 / estimate_ratio<WalkType, Point>(Pb, *balliter, *ratioiter, er1,
                                               parameters.win_len,
                                               N_times_nu,
-                                              walk_length, walk, rng);
+                                              walk_length, rng);
     }
 
     P.free_them_all();
