@@ -21,7 +21,7 @@
 #include "volume/volume_cooling_balls.hpp"
 #include "known_polytope_generators.h"
 
-#include "v_polytopes_gen.h"
+#include "v_polytopes_generators.h"
 
 template <typename NT>
 NT factorial(NT n)

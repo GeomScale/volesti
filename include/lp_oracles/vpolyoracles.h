@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <cmath>
 #include <exception>
-#include "samplers.h"
 #undef Realloc
 #undef Free
 #include "lp_lib.h"

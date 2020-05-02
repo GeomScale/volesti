@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
+// Copyright (c) 2018-2020 Vissarion Fisikopoulos, Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
@@ -18,12 +18,15 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
-#ifndef SIMPLEX_SAMPLERS_H
-#define SIMPLEX_SAMPLERS_H
+#ifndef SAMPLERS_SIMPLEX_HPP
+#define SAMPLERS_SIMPLEX_HPP
 
 template <typename NT, typename RNGType, typename Point>
-void Sam_Unit(unsigned int dim, unsigned int num, std::list<Point> &points,
-              double seed = std::numeric_limits<double>::signaling_NaN()){
+void Sam_Unit(unsigned int dim,
+              unsigned int num,
+              std::list<Point> &points,
+              double seed = std::numeric_limits<double>::signaling_NaN())
+{
 
     unsigned int j,i,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
     std::vector<unsigned int> x_vec;
@@ -54,7 +57,9 @@ void Sam_Unit(unsigned int dim, unsigned int num, std::list<Point> &points,
 
                 x_rand = uidist(rng);
                 // Check if this integer is selected first time
-                if ( std::find(x_vec.begin(), x_vec.begin()+pointer, x_rand) == x_vec.begin()+pointer ){
+                if ( std::find(x_vec.begin(), x_vec.begin()+pointer, x_rand)
+                     == x_vec.begin()+pointer )
+                {
                     pointer++;
                     x_vec[pointer]=x_rand;
                 }
@@ -162,8 +167,11 @@ void Sam_Unit(unsigned int dim, unsigned int num, std::list<Point> &points,
 }
 
 template <typename NT, typename RNGType, typename Point>
-void Sam_Canon_Unit(unsigned int dim, unsigned int num, std::list<Point> &points,
-                    double seed = std::numeric_limits<double>::signaling_NaN()){
+void Sam_Canon_Unit(unsigned int dim,
+                    unsigned int num,
+                    std::list<Point> &points,
+                    double seed = std::numeric_limits<double>::signaling_NaN())
+{
 
     unsigned int j,i,x_rand,M=2147483647,pointer;  // M is the largest possible integer
     //std::vector<int> x_vec;
@@ -262,7 +270,9 @@ void Sam_arb_simplex(const Vpolytope &P, unsigned int num, PointList &points){
 
                 x_rand = uidist(rng);
                 // Check if this integer is selected first time
-                if ( std::find(x_vec.begin(), x_vec.begin()+pointer, x_rand) == x_vec.begin()+pointer ){
+                if ( std::find(x_vec.begin(), x_vec.begin()+pointer, x_rand)
+                     == x_vec.begin()+pointer )
+                {
                     pointer++;
                     x_vec[pointer]=x_rand;
                 }

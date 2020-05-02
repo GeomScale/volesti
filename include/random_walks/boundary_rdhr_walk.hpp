@@ -10,7 +10,7 @@
 
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
-#include "volume/new_basic_sampling_features.hpp"
+#include "sampling/sphere.hpp"
 
 // Random directions hit-and-run walk with uniform target distribution
 

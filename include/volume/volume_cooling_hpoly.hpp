@@ -9,8 +9,10 @@
 #define VOLUME_COOLING_HPOLY_HPP
 
 #include "volume/volume_cooling_gaussians.hpp"
-#include "samplers/random_point_generators.hpp"
+#include "sampling/random_point_generators.hpp"
 
+#define MAX_ITER 20
+#define TOL 0.00000000001
 
 template
 <

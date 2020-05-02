@@ -9,7 +9,6 @@
 #define Z_POLYTOPES_GEN_H
 
 #include <exception>
-#include "samplers.h"
 
 template <class Polytope, class RNGType>
 Polytope gen_zonotope_gaussian(int dim, int m, double seed = std::numeric_limits<double>::signaling_NaN()) {

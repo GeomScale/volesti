@@ -15,13 +15,13 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "known_polytope_generators.h"
-#include "h_polytopes_gen.h"
-#include "v_polytopes_gen.h"
-#include "z_polytopes_gen.h"
+#include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
+#include "convex_bodies/zpolytope.h"
+#include "generators/known_polytope_generators.h"
+#include "generators/h_polytopes_generator.h"
+#include "generators/v_polytopes_generators.h"
+#include "generators/z_polytopes_generators.h"
 #include "extractMatPoly.h"
 
 //' An internal Rccp function as a polytope generator

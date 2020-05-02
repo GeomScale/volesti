@@ -9,7 +9,8 @@
 #define ROUNDING_HPP
 
 #include "khach.h"
-#include "samplers/random_point_generators.hpp"
+#include "sampling/random_point_generators.hpp"
+#include "volume/sampling_policies.hpp"
 
 template <
         typename WalkTypePolicy,
@@ -20,8 +21,11 @@ template <
         typename NT,
         typename RandomNumberGenerator
         >
-std::pair< std::pair<MT, VT>, NT >  round_polytope(Polytope &P, std::pair<Point,NT> &InnerBall,
-                                                   const unsigned int &walk_length, RandomNumberGenerator &rng)
+std::pair< std::pair<MT, VT>, NT >
+round_polytope(Polytope &P,
+               std::pair<Point,NT> &InnerBall,
+               const unsigned int &walk_length,
+               RandomNumberGenerator &rng)
 {
     typedef typename WalkTypePolicy::template Walk
             <
@@ -43,7 +47,8 @@ std::pair< std::pair<MT, VT>, NT >  round_polytope(Polytope &P, std::pair<Point,
     while (ratio > 6.0 && iter < 3)
     {
         randPoints.clear();
-        if (!P.get_points_for_rounding(randPoints)) {  // If P is a V-polytope then it will store its vertices in randPoints
+        if (!P.get_points_for_rounding(randPoints))
+        {  // If P is a V-polytope then it will store its vertices in randPoints
             // If P is not a V-Polytope or number_of_vertices>20*domension
             // 2. Generate the first random point in P
             // Perform random walk on random point in the Chebychev ball

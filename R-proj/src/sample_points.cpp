@@ -15,9 +15,9 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "random_walks/random_walks.hpp"
-#include "volume_sequence_of_balls.hpp"
-#include "volume_cooling_gaussians.hpp"
-#include "sample_only.h"
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "sampling/sampling.hpp"
 
 template <typename Polytope, typename RNGType, typename PointList, typename NT, typename Point>
 void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsigned int const& walkL, unsigned int const& numpoints,
@@ -26,34 +26,34 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
 {
     if (boundary) {
         if (cdhr) {
-            sampling_only_boundary <BCDHRWalk>(randPoints, P, rng, walkL, numpoints,
+            uniform_sampling_boundary <BCDHRWalk>(randPoints, P, rng, walkL, numpoints,
                      StartingPoint, nburns);
         } else {
-            sampling_only_boundary <BRDHRWalk>(randPoints, P, rng, walkL, numpoints,
+            uniform_sampling_boundary <BRDHRWalk>(randPoints, P, rng, walkL, numpoints,
                      StartingPoint, nburns);
         }
     } else if (cdhr) {
         if (gaussian) {
-            sampling_only_gaussian<GaussianCDHRWalk>(randPoints, P, rng, walkL, numpoints,
+            gaussian_sampling<GaussianCDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              a, StartingPoint, nburns);
         } else {
-            sampling_only<CDHRWalk>(randPoints, P, rng, walkL, numpoints,
+            uniform_sampling<CDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              StartingPoint, nburns);
         }
     } else if(rdhr){
         if (gaussian) {
-            sampling_only_gaussian<GaussianRDHRWalk>(randPoints, P, rng, walkL, numpoints,
+            gaussian_sampling<GaussianRDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              a, StartingPoint, nburns);
         } else {
-            sampling_only<RDHRWalk>(randPoints, P, rng, walkL, numpoints,
+            uniform_sampling<RDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              StartingPoint, nburns);
         }
     } else if (billiard) {
         if (set_L) {
             BilliardWalk WalkType(L);
-            sampling_only(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
+            uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
         } else {
-            sampling_only<BilliardWalk>(randPoints, P, rng, walkL, numpoints,
+            uniform_sampling<BilliardWalk>(randPoints, P, rng, walkL, numpoints,
                      StartingPoint, nburns);
         }
     } else {
@@ -61,19 +61,19 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
             
             if (gaussian) {
                 GaussianBallWalk WalkType(L);
-                sampling_only_gaussian(randPoints, P, rng, WalkType, walkL, numpoints, a,
+                gaussian_sampling(randPoints, P, rng, WalkType, walkL, numpoints, a,
                                        StartingPoint, nburns);
             } else {
                 BallWalk WalkType(L);
-                sampling_only(randPoints, P, rng, WalkType, walkL, numpoints,
+                uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints,
                                        StartingPoint, nburns);
             }
         } else {
             if (gaussian) {
-                sampling_only_gaussian<GaussianBallWalk>(randPoints, P, rng, walkL, numpoints,
+                gaussian_sampling<GaussianBallWalk>(randPoints, P, rng, walkL, numpoints,
                                                  a, StartingPoint, nburns);
             } else {
-                sampling_only<BallWalk>(randPoints, P, rng, walkL, numpoints,
+                uniform_sampling<BallWalk>(randPoints, P, rng, walkL, numpoints,
                                                  StartingPoint, nburns);
             }
         }

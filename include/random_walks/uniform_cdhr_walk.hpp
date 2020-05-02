@@ -17,7 +17,7 @@
 #include "convex_bodies/vpolyintersectvpoly.h"
 #include "convex_bodies/zpolytope.h"
 #include "convex_bodies/zonoIntersecthpoly.h"
-#include "volume/new_basic_sampling_features.hpp"
+#include "generators/boost_random_number_generator.hpp"
 
 // random directions hit-and-run walk with uniform target distribution
 struct CDHRWalk

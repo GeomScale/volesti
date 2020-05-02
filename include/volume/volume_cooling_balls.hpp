@@ -10,21 +10,17 @@
 #ifndef VOLUME_COOLING_BALLS_HPP
 #define VOLUME_COOLING_BALLS_HPP
 
-#include "cartesian_geom/cartesian_kernel.h"
-#include "vars.h"
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "ballintersectconvex.h"
-#include "vpolyintersectvpoly.h"
-//#include "samplers.h"
-#include "rounding.h"
 #include <boost/math/distributions/students_t.hpp>
 #include <boost/math/special_functions/erf.hpp>
-#include "ball_annealing.h"
-#include "ratio_estimation.h"
 
-#include "samplers/random_point_generators.hpp"
+#include "cartesian_geom/cartesian_kernel.h"
+#include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
+#include "convex_bodies/zpolytope.h"
+#include "convex_bodies/ballintersectconvex.h"
+#include "convex_bodies/vpolyintersectvpoly.h"
+#include "volume/rounding.hpp"
+#include "sampling/random_point_generators.hpp"
 
 
 ////////////////////////////////////
