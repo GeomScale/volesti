@@ -36,20 +36,18 @@ int main()
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point, RNGType> Vpolytope;
 
-    Vpolytope VP;
-    VP = gen_cross<Vpolytope>(10, true);
+    Hpolytope HPoly = gen_cube<Hpolytope>(10, false);
+    BallWalk BW(3);
 
     // Estimate the volume
-    double tstart;
-    VPolytope<Point, RNGType> VP2 = VP;
-
-    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
-    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-    std::cout << "Ball (cross) = "
-              << volume_cooling_balls<BallWalk>(VP) << " , ";
+    double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Ball = "
+              << volume_sequence_of_balls<>(HPoly, BW) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     return 0;
+/*
+    Vpolytope VP, VP2;
 
     VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -331,6 +329,7 @@ int main()
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
 */
+    /*
     NT diameter;
     HP.comp_diam(diameter, CheBall.second);
 
@@ -344,7 +343,7 @@ int main()
                           CheBall.second,diameter,rng,
                           urdist,urdist1,-1.0,false,false,false,
                           false,false,false,false,false,true);
-
+*/
 /*
     {
         vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
