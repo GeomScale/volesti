@@ -51,6 +51,7 @@ void test_volume(Polytope &HP,
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 
+    //TODO: low accuracy in high dimensions
     NT volume = volume_cooling_balls<BallWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedBall, exact);
 
@@ -107,7 +108,10 @@ void call_test_cross(){
 
     std::cout << "--- Testing volume of H-cross10" << std::endl;
     Hpolytope P = gen_cross<Hpolytope>(10, false);
-    test_volume(P, 0.000290427, 0.000283703, 0.000293307,
+    test_volume(P,
+                0.000290427,
+                0.000283703,
+                0.000293307,
                 0.000280408,
                 0.0002821869);
 }
