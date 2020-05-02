@@ -103,7 +103,7 @@ std::pair< std::pair<MT, VT>, NT >  round_polytope(Polytope &P, std::pair<Point,
             shift += L_1.transpose() * e;
         }
         //shift += T.inverse() * e;
-        T.noalias() = T * L_1;
+        T *= L_1;
         P.linear_transformIt(L_1.transpose());
         InnerBall = P.ComputeInnerBall();
         round_val *= L_1.determinant();

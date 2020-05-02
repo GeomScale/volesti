@@ -15,6 +15,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include "random_walks/random_walks.hpp"
 #include "volume_sequence_of_balls.hpp"
 #include "volume_cooling_gaussians.hpp"
 #include "extractMatPoly.h"
@@ -91,10 +92,10 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
     switch (type) {
         case 1: {
             if (cdhr) {
-                std::pair <std::pair<MT, VT>, NT> res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL,
+                round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL,
                                                                                                   rng);
             } else {
-                std::pair <std::pair<MT, VT>, NT> res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL,
+                round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL,
                                                                                                   rng);
             }
             Mat = extractMatPoly(HP);
@@ -102,10 +103,10 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
         }
         case 2: {
             if (cdhr) {
-                std::pair <std::pair<MT, VT>, NT> res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL,
+                round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL,
                                                                                                   rng);
             } else {
-                std::pair <std::pair<MT, VT>, NT> res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL,
+                round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL,
                                                                                                       rng);
             }
             Mat = extractMatPoly(VP);
@@ -113,10 +114,10 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
         }
         case 3: {
             if (cdhr) {
-                std::pair <std::pair<MT, VT>, NT> res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL,
+                round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL,
                                                                                                   rng);
             } else {
-                std::pair <std::pair<MT, VT>, NT> res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL,
+                round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL,
                                                                                                       rng);
             }
             Mat = extractMatPoly(ZP);
