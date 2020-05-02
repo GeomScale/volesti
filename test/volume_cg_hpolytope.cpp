@@ -53,7 +53,6 @@ void test_volume(Polytope &HP,
     NT volume = volume_gaussian_annealing<GaussianBallWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedBall, exact);
 
-    // TODO: wrong results in same cases (e.g. simplex)
     volume = volume_gaussian_annealing<GaussianCDHRWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedCDHR, exact);
 
@@ -70,11 +69,11 @@ void call_test_cube(){
 
     std::cout << "--- Testing volume of H-cube10" << std::endl;
     P = gen_cube<Hpolytope>(10, false);
-    test_volume(P, 1102.47, 1061.48, 1037.34, 1024);
+    test_volume(P, 1102.47, 1119.38, 1037.34, 1024);
 
     std::cout << "--- Testing volume of H-cube20" << std::endl;
     P = gen_cube<Hpolytope>(20, false);
-    test_volume(P, 1104980, 1081510, 989794, 1048576);
+    test_volume(P, 1104980, 1051120, 989794, 1048576);
 }
 
 template <typename NT>
@@ -106,7 +105,7 @@ void call_test_cross(){
     Hpolytope P = gen_cross<Hpolytope>(10, false);
     test_volume(P,
                 0.000280513,
-                0.000281218,
+                0.000274237,
                 0.000296688,
                 0.0002821869);
 }
@@ -126,7 +125,7 @@ void call_test_birk() {
     inp.open("../R-proj/inst/extdata/birk3.ine",std::ifstream::in);
     read_pointset(inp,Pin);
     P.init(Pin);
-    test_volume(P, 0.101546, 0.135604, 0.117802, 0.125);
+    test_volume(P, 0.101546, 0.121466, 0.117802, 0.125);
 
     std::cout << "--- Testing volume of H-birk4" << std::endl;
     std::ifstream inp2;
@@ -136,7 +135,7 @@ void call_test_birk() {
     P.init(Pin2);
     test_volume(P,
                 0.000942906,
-                0.00109109,
+                0.00114121,
                 0.00104026,
                 0.000970018);
 
@@ -148,9 +147,9 @@ void call_test_birk() {
     P.init(Pin3);
     test_volume(P,
                 1.08184 * std::pow(10,-7),
-                2.2124 * std::pow(10,-7),
+                2.31411 * std::pow(10,-7),
                 2.39421 * std::pow(10,-7),
-                0.000000225);
+                2.25  * std::pow(10,-7));
 
     std::cout << "--- Testing volume of H-birk6" << std::endl;
     std::ifstream inp4;
@@ -160,9 +159,9 @@ void call_test_birk() {
     P.init(Pin4);
     test_volume(P,
                 5.35067 * std::pow(10,-17),
-                9.64262 * std::pow(10,-13),
+                8.44699 * std::pow(10,-13),
                 9.58445 * std::pow(10,-13),
-                0.0000000000009455459196);
+                9.455459196 * std::pow(10,-13));
 }
 
 template <typename NT>
@@ -177,7 +176,7 @@ void call_test_prod_simplex() {
     P = gen_prod_simplex<Hpolytope>(5);
     test_volume(P,
                 8.61492 * std::pow(10,-5),
-                7.48748 * std::pow(10,-5),
+                7.36265 * std::pow(10,-5),
                 7.07551 * std::pow(10,-5),
                 std::pow(1.0 / factorial(5.0), 2));
 
@@ -185,7 +184,7 @@ void call_test_prod_simplex() {
     P = gen_prod_simplex<Hpolytope>(10);
     test_volume(P,
                 8.9345 * std::pow(10,-14),
-                9.20502 * std::pow(10,-14),
+                8.49473 * std::pow(10,-14),
                 7.36811 * std::pow(10,-14),
                 std::pow(1.0 / factorial(10.0), 2));
 
@@ -193,7 +192,7 @@ void call_test_prod_simplex() {
     P = gen_prod_simplex<Hpolytope>(15);
     test_volume(P,
                 6.37869 * std::pow(10,-25),
-                6.33513 * std::pow(10,-25),
+                5.55858 * std::pow(10,-25),
                 5.93187 * std::pow(10,-25),
                 std::pow(1.0 / factorial(15.0), 2));
 }
@@ -210,7 +209,7 @@ void call_test_simplex() {
     P = gen_simplex<Hpolytope>(10, false);
     test_volume(P,
                 3.0842 * std::pow(10,-7),
-                2.89376 * std::pow(10,-7),
+                2.59229 * std::pow(10,-7),
                 2.68156 * std::pow(10,-7),
                 1.0 / factorial(10.0));
 
@@ -218,7 +217,7 @@ void call_test_simplex() {
     P = gen_simplex<Hpolytope>(20, false);
     test_volume(P,
                 3.41016 * std::pow(10,-19),
-                1.39299 * std::pow(10,-12),
+                4.16827 * std::pow(10,-19),
                 4.43788 * std::pow(10,-19),
                 1.0 / factorial(20.0));
 
@@ -226,7 +225,7 @@ void call_test_simplex() {
     P = gen_simplex<Hpolytope>(30, false);
     test_volume(P,
                 3.30097 * std::pow(10,-33),
-                1.31856 * std::pow(10,-23),
+                4.15532 * std::pow(10,-33),
                 3.54527 * std::pow(10,-33),
                 1.0 / factorial(30.0));
 }

@@ -595,8 +595,8 @@ double volume_cooling_balls(Polytope const& Pin,
     P.normalize();
     P.shift(c.getCoefficients());
 
-    Point new_c(n); //origin
-    WalkType walk(P, new_c, rng);
+    //Point new_c(n); //origin
+    //WalkType walk(P, new_c, rng);
 
     if ( !get_sequence_of_polytopeballs
           <
