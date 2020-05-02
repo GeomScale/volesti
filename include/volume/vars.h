@@ -12,6 +12,11 @@
 #ifndef VARS_H
 #define VARS_H
 
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
+
 //structs with variables and random generators
 template <typename NT, typename RNG>
 struct vars{

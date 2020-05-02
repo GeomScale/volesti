@@ -540,17 +540,17 @@ template
     typename RandomNumberGenerator,
     typename WalkType
 >
-void get_annealing_schedule(Polytope const& P,
-                            NT const& ratio,
-                            NT const& C,
-                            NT const& frac,
-                            unsigned int const& N,
-                            unsigned int const& walk_length,
-                            NT const& chebychev_radius,
-                            NT const& error,
-                            std::vector<NT>& a_vals,
-                            RandomNumberGenerator& rng,
-                            WalkType& walk)
+void compute_annealing_schedule(Polytope const& P,
+                                NT const& ratio,
+                                NT const& C,
+                                NT const& frac,
+                                unsigned int const& N,
+                                unsigned int const& walk_length,
+                                NT const& chebychev_radius,
+                                NT const& error,
+                                std::vector<NT>& a_vals,
+                                RandomNumberGenerator& rng,
+                                WalkType& walk)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Polytope::VT VT;
@@ -644,7 +644,7 @@ template
     typename Polytope
 >
 double volume_gaussian_annealing(Polytope const& Pin,
-                                 double const& error = 1.0,
+                                 double const& error = 0.1,
                                  unsigned int const& walk_length = 1)
 {
     typedef typename Polytope::PointType Point;
@@ -667,7 +667,7 @@ double volume_gaussian_annealing(Polytope const& Pin,
     RandomNumberGenerator rng(n);
 
     // Consider Chebychev center as an internal point
-    auto InnerBall = P.InnerBall();
+    auto InnerBall = P.ComputeInnerBall();
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
 
@@ -686,9 +686,9 @@ double volume_gaussian_annealing(Polytope const& Pin,
     NT C = parameters.C;
     unsigned int N = parameters.N;
     WalkType walk(P, c, 1, rng);
-    get_annealing_schedule<RandomPointGenerator>(P, ratio, C, parameters.frac,
-                                                  N, walk_length, radius, error,
-                                                  a_vals, rng, walk);
+    compute_annealing_schedule<RandomPointGenerator>(P, ratio, C, parameters.frac,
+                                                     N, walk_length, radius, error,
+                                                     a_vals, rng, walk);
 
 #ifdef VOLESTI_DEBUG
     std::cout<<"All the variances of schedule_annealing computed in = "

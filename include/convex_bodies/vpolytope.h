@@ -286,7 +286,6 @@ public:
         NT radius =  std::numeric_limits<NT>::max(), min_plus;
         Point center(_d);
 
-
         std::list<Point> randPoints;
         get_points_for_rounding(randPoints);
 
@@ -328,7 +327,7 @@ public:
 
     // check if point p belongs to the convex hull of V-Polytope P
     int is_in(const Point &p) const {
-        if(memLP_Vpoly(V, p, conv_mem, colno_mem)){
+        if (memLP_Vpoly(V, p, conv_mem, colno_mem)){
             return -1;
         }
         return 0;
@@ -337,7 +336,7 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v) const {
 
         return intersect_double_line_Vpoly<NT>(V, r, v, row, colno);
     }
@@ -417,7 +416,7 @@ public:
     // consider an upper bound for the number of facets of a V-polytope
     // for each facet consider a lower bound for the distance from the origin
     // useful for CV algorithm to get the first gaussian
-    std::vector<NT> get_dists(const NT &radius) {
+    std::vector<NT> get_dists(const NT &radius) const {
         std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }

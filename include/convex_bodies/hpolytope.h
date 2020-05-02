@@ -13,6 +13,7 @@
 
 #include <limits>
 #include <iostream>
+#include "Eigen/Eigen"
 #include "solve_lp.h"
 
 //min and max values for the Hit and Run functions

@@ -58,6 +58,7 @@ else ()
   endif ()
   
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
+  add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
   #add_definitions(${CMAKE_CXX_FLAGS} "-Wint-in-bool-context")
   #add_definitions(${CMAKE_CXX_FLAGS} "-Wall")
 
@@ -73,6 +74,9 @@ else ()
   #add_executable (volume volume_example.cpp)
   add_executable (generate generator.cpp)
   add_executable (new_volume_example new_volume_example.cpp)
+  add_executable (benchmarks_sob benchmarks_sob.cpp)
+  add_executable (benchmarks_cg benchmarks_cg.cpp)
+  add_executable (benchmarks_cb benchmarks_cb.cpp)
 
   add_library(test_main OBJECT test_main.cpp)
 
@@ -86,14 +90,27 @@ else ()
   add_executable (ZonotopeVol_test ZonotopeVol_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (cool_bodies_bill_test cooling_bodies_bill_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (ZonotopeVolCG_test ZonotopeVolCG_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
 
+  add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)
   add_test(NAME volume_sob_hpolytope_cross COMMAND volume_sob_hpolytope -tc=cross)
   add_test(NAME volume_sob_hpolytope_birkhoff COMMAND volume_sob_hpolytope -tc=birk)
   add_test(NAME volume_sob_hpolytope_prod_simplex COMMAND volume_sob_hpolytope -tc=prod_simplex)
   add_test(NAME volume_sob_hpolytope_simplex COMMAND volume_sob_hpolytope -tc=simplex)
   add_test(NAME volume_sob_hpolytope_skinny_cube COMMAND volume_sob_hpolytope -tc=skinny_cube)
+
+  add_executable (volume_sob_vpolytope volume_sob_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME volume_sob_vpolytope_cube COMMAND volume_sob_vpolytope -tc=cube)
+  add_test(NAME volume_sob_vpolytope_cross COMMAND volume_sob_vpolytope -tc=cross)
+  add_test(NAME volume_sob_vpolytope_simplex COMMAND volume_sob_vpolytope -tc=simplex)
+
+  add_executable (volume_cg_hpolytope volume_cg_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME volume_cg_hpolytope_cube COMMAND volume_cg_hpolytope -tc=cube)
+  add_test(NAME volume_cg_hpolytope_cross COMMAND volume_cg_hpolytope -tc=cross)
+  add_test(NAME volume_cg_hpolytope_birkhoff COMMAND volume_cg_hpolytope -tc=birk)
+  add_test(NAME volume_cg_hpolytope_prod_simplex COMMAND volume_cg_hpolytope -tc=prod_simplex)
+  add_test(NAME volume_cg_hpolytope_simplex COMMAND volume_cg_hpolytope -tc=simplex)
+  add_test(NAME volume_cg_hpolytope_skinny_cube COMMAND volume_cg_hpolytope -tc=skinny_cube)
 
 
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
@@ -153,6 +170,11 @@ else ()
   #TARGET_LINK_LIBRARIES(ZonotopeVolCG_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(volume_cg_hpolytope ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
 
 endif()
 
