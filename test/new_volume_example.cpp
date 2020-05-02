@@ -34,6 +34,13 @@ int main()
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937    RNGType;
     typedef HPolytope<Point> Hpolytope;
+    typedef VPolytope<Point, RNGType> Vpolytope;
+
+    Vpolytope VP;
+    VP = gen_cross<Vpolytope>(10, true);
+
+    auto VPCheBall = VP.ComputeInnerBall();
+
     Hpolytope HP;
 
     std::cout << "Testing volume of example H-polytope" << std::endl;
@@ -69,7 +76,7 @@ int main()
     }
     HP.init(dim,A,b);
 
-    HP = gen_cube<Hpolytope>(40, false);
+    HP = gen_cube<Hpolytope>(10, false);
 
     //Compute chebychev ball
     std::pair<Point,NT> CheBall;
@@ -111,7 +118,7 @@ int main()
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGFixed;
     //RNG boost_rng(HP.dimension());
     //RNG3 boost_rng3(HP.dimension());
-/*
+
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
               << volume_sequence_of_balls<BallWalk, RNG>(HP, e, walk_len) << " , ";
@@ -124,7 +131,7 @@ int main()
     std::cout << "BallWalk (cube) = "
               << volume_sequence_of_balls<BallWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-
+/*
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHRWalk (cube) = "
               << volume_sequence_of_balls<CDHRWalk>(HP, e, walk_len) << " , ";
@@ -243,7 +250,7 @@ int main()
                           urdist,urdist1,-1.0,false,false,false,
                           false,false,false,false,false,true);
 
-
+/*
     {
         vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
                               CheBall.second,diameter,rng,
@@ -312,6 +319,50 @@ int main()
               << volume_cooling_balls<BilliardWalk>(HP, e, walk_len)
               << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+*/
+/*
+    {
+        NT diameter;
+        HP.comp_diam(diameter, VPCheBall.second);
+        vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
+                              VPCheBall.second,diameter,rng,
+                              urdist,urdist1,-1.0,false,false,false,
+                              false,false,false,false,true,false);
+
+        tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+        //std::cout << "OLD CDHR = " << vol_cooling_balls(VP, var, var_ban, VPCheBall)
+        //          << " , ";
+        std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    }
+*/
+    /*
+{
+        VP.ComputeInnerBall();
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "NEW Ball Vpoly = "
+              << volume_cooling_balls<BallWalk>(VP, e, walk_len)
+              << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+}
+{
+        VP.ComputeInnerBall();
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "NEW CDHR Vpoly = "
+              << volume_cooling_balls<CDHRWalk>(VP, e, walk_len)
+              << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+}
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "NEW RDHR Vpoly = "
+              << volume_cooling_balls<RDHRWalk>(VP, e, walk_len)
+              << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "NEW Blrd Vpoly = "
+              << volume_cooling_balls<BilliardWalk>(VP, e, walk_len)
+              << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+*/
 
     return 0;
 }

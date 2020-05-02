@@ -34,7 +34,7 @@ private:
     MT A; //matrix A
     VT b; // vector b, s.t.: Ax<=b
     unsigned int            _d; //dimension
-    std::pair<Point,NT> inner_ball;
+    std::pair<Point,NT> _inner_ball;
     //NT maxNT = 1.79769e+308;
     //NT minNT = -1.79769e+308;
     NT maxNT = std::numeric_limits<NT>::max();
@@ -45,25 +45,25 @@ public:
     HPolytope()
     {
         typedef typename Point::FT NT;
-        inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
 
     std::pair<Point,NT> InnerBall() const
     {
-        return inner_ball;
+        return _inner_ball;
     }
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
     std::pair<Point,NT> ComputeInnerBall()
     {
-        inner_ball = ComputeChebychevBall<NT, Point>(A, b);
-        return inner_ball;
+        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+        return _inner_ball;
     }
 
     NT ComputeDiameter() const
     {
-        return NT(4) * std::sqrt(NT(_d)) * inner_ball.second;
+        return NT(4) * std::sqrt(NT(_d)) * _inner_ball.second;
     }
 
     // return dimension
