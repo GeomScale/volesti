@@ -306,6 +306,7 @@ Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
     return P;
 }
 
+
 /*
  * ToDo: brkhoff polytope generator
 template <class Polytope>

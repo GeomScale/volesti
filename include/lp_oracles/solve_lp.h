@@ -3,6 +3,7 @@
 // Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
@@ -242,11 +243,15 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
 
     set_add_rowmode(lp, FALSE); /* rowmode should be turned off again when done building the model */
 
+    const NT* direction_data = direction.getCoefficients().data();
+    REAL* row_temp = row;
+
     // set the bounds
-    typename std::vector<NT>::iterator pit = direction.iter_begin();
-    for(j=0; j<Ncol; ++j, ++pit){
+    for(j=0; j<Ncol; ++j){
         colno[j] = j+1; /* j_th column */
-        row[j] = (*pit);
+        *row_temp = *direction_data;
+        row_temp++;
+        direction_data++;
         set_bounds(lp, j+1, 0.0, infinite);
     }
 
@@ -280,14 +285,8 @@ Point PointInIntersection(MT V1, MT V2, Point direction, bool &empty) {
     for ( j=0; j<k1; ++j) {
         cb(j) = row[j];
     }
-    VT cb2(d);
-    cb2 = V1.transpose()*cb;
-    pit = p.iter_begin();
-    j = 0;
-    for ( ; pit!=p.iter_end(); ++pit, ++j) {
-        *pit = cb2(j);
-    }
 
+    p = V1.transpose()*cb;
     empty = false;
     return p;
 

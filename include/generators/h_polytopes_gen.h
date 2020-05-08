@@ -25,23 +25,29 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
-    boost::random::uniform_real_distribution<> urdist1(-10, 10);
-    Point p(dim);
-    typename std::vector<NT>::iterator pit;
+
     MT A(m, dim);
     VT b(m);
-    unsigned int j;
+    Point p(dim);
 
-    for(unsigned int i=0; i<m; ++i){
-        p = get_direction<RNGType, Point, NT>(dim);
-        pit = p.iter_begin();
-        j = 0;
-        for ( ;  pit!=p.iter_end(); ++pit, ++j) {
-            A(i,j) = *pit;
+    for (int i = 0; i < m; ++i) {
+        boost::normal_distribution<> rdist(0, 1);
+        NT normal = NT(0);
+        NT *data = p.pointerToData();
+
+        //RNGType rng2 = var.rng;
+        for (unsigned int i = 0; i < dim; ++i) {
+            *data = rdist(rng);
+            normal += *data * *data;
+            data++;
         }
-        b(i) = 10.0;
 
+        normal = 1.0 / std::sqrt(normal);
+        p *= normal;
+        A.row(i) = p.getCoefficients();
+        b(i) = 10.0;
     }
+
     Polytope HP;
     HP.init(dim, A, b);
 

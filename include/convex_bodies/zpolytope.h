@@ -4,6 +4,7 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -141,30 +142,6 @@ public:
         b = b2;
     }
 
-
-    // get a specific coeff of matrix V
-    NT get_mat_coeff(const unsigned int i, const unsigned int j) const {
-        return V(i,j);
-    }
-
-
-    // get a specific coeff of vector b
-    NT get_vec_coeff(const unsigned int i) const {
-        return b(i);
-    }
-
-
-    // set a specific coeff of matrix V
-    void put_mat_coeff(const unsigned int i, const unsigned int j, const NT &value) {
-        V(i,j) = value;
-    }
-
-
-    // set a specific coeff of vector b
-    void put_vec_coeff(const unsigned int i, const NT &value) {
-        b(i) = value;
-    }
-
     Point get_mean_of_vertices() const {
         return Point(_d);
     }
@@ -253,9 +230,7 @@ public:
         return std::pair<Point, NT> (center, radius);
     }
 
-
-    void comp_diam(NT &diam, const NT &cheb_rad) {
-
+    void comp_diam(NT &diam) {
         int k = V.rows(), max_index = -1;
 
         MT D = V.transpose() * V;
@@ -272,13 +247,16 @@ public:
             }
         }
 
-        VT max_eigvec = -1.0*Q.col(max_index);
+        VT max_eigvec = -1.0 * Q.col(max_index);
         VT obj_fun = max_eigvec.transpose() * V.transpose(), x0(k);
 
         for (int j = 0; j < k; ++j) x0(j) = (obj_fun(j) < 0.0) ? -1.0 : 1.0;
 
         diam = 2.0 * (V.transpose() * x0).norm();
+    }
 
+    void comp_diam(NT &diam, const NT &cheb_rad) {
+        comp_diam(diam);
     }
 
     // compute intersection point of ray starting from r and pointing to v
@@ -290,27 +268,27 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT& Ar,
+            const VT& Av) {
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                    const std::vector<NT> &Av, const NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
+                                    const VT &Av, const NT &lambda_prev) {
 
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
+                                               const VT &Av) {
         return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, true), 1);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av, const NT &lambda_prev) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
+                                               const VT &Av, const NT &lambda_prev) {
         return line_positive_intersect(r, v, Ar, Av);
     }
 
@@ -319,7 +297,7 @@ public:
     // with the Zonotope
     std::pair<NT,NT> line_intersect_coord(const Point &r,
                                           const unsigned int rand_coord,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
 
         std::vector<NT> temp(_d,0);
         temp[rand_coord]=1.0;
@@ -336,7 +314,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int rand_coord,
                                           const unsigned int rand_coord_prev,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
         return line_intersect_coord(r, rand_coord, lamdas);
     }
 
@@ -385,17 +363,14 @@ public:
         }
 
         VT a = Fmat.fullPivLu().kernel();
-        NT sum = 0.0;
-        for (int k = 0; k < _d; ++k) sum += a(k)*p[k];
 
-        if(sum<0.0) a = -1.0*a;
+        if(p.getCoefficients().dot(a) < 0.0) a *= -1.0;
 
         a = a/a.norm();
 
-        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
-
-        s = ((-2.0 * v.dot(s)) * s);
-        v = s + v;
+        // compute reflection
+        a *= (-2.0 * v.dot(a));
+        v += a;
     }
 
     void free_them_all() {

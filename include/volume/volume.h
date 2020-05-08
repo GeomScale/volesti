@@ -5,6 +5,7 @@
 // Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -53,8 +54,9 @@ NT volume(Polytope &P,
     RNGType &rng = var.rng;
 
     //0. Get the Chebychev ball (largest inscribed ball) with center and radius
-    Point c=InnerBall.first;
-    NT radius=InnerBall.second;
+    Point c = InnerBall.first;
+    NT radius = InnerBall.second;
+    P.normalize();
     
     //1. Rounding of the polytope if round=true
     NT round_value=1;
@@ -72,17 +74,17 @@ NT volume(Polytope &P,
         std::pair<Point,NT> res=P.ComputeInnerBall();
         c=res.first; radius=res.second;
         P.comp_diam(var.diameter, radius);
+        P.normalize();
         if (var.ball_walk){
             var.delta = 4.0 * radius / NT(n);
         }
     }
 
     // Move the chebychev center to the origin and apply the same shifting to the polytope
-    VT c_e = Eigen::Map<VT>(&c.get_coeffs()[0], c.dimension());
-    P.shift(c_e);
-    c=Point(n);
+    P.shift(c.getCoefficients());
+    c = Point(n);
 
-    rnum=rnum/n_threads;
+    rnum = rnum / n_threads;
     NT vol=0;
         
     // Perform the procedure for a number of threads and then take the average
@@ -93,7 +95,7 @@ NT volume(Polytope &P,
         if(print) std::cout<<"\nGenerate the first random point in P"<<std::endl;
         #endif
         
-        Point p = get_point_on_Dsphere<RNGType , Point>(n, radius);
+        Point p = get_point_in_Dsphere<RNGType , Point>(n, radius);
         std::list<Point> randPoints; //ds for storing rand points
         //use a large walk length e.g. 1000
 
@@ -115,13 +117,13 @@ NT volume(Polytope &P,
         // 4.  Construct the sequence of balls
         // 4a. compute the radius of the largest ball
         NT current_dist, max_dist=NT(0);
-        for(typename  std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit){
-            current_dist=(*pit).squared_length();
-            if(current_dist>max_dist){
-                max_dist=current_dist;
+        for(typename  std::list<Point>::iterator pit=randPoints.begin(); pit!=randPoints.end(); ++pit) {
+            current_dist = (*pit).squared_length();
+            if (current_dist > max_dist) {
+                max_dist = current_dist;
             }
         }
-        max_dist=std::sqrt(max_dist);
+        max_dist = std::sqrt(max_dist);
         #ifdef VOLESTI_DEBUG
         if(print) std::cout<<"\nFurthest distance from Chebychev point= "<<max_dist<<std::endl;
         #endif
@@ -129,7 +131,7 @@ NT volume(Polytope &P,
         //
         // 4b. Number of balls
         int nb1 = n * (std::log(radius)/std::log(2.0));
-        int nb2 = std::ceil(n * (std::log(max_dist)/std::log(2.0)));
+        int nb2 = std::ceil(n * (std::log(max_dist) / std::log(2.0)));
 
         #ifdef VOLESTI_DEBUG
         if(print) std::cout<<"\nConstructing the sequence of balls"<<std::endl;
@@ -137,15 +139,14 @@ NT volume(Polytope &P,
 
         std::vector<Ball> balls;
         
-        for(int i=nb1; i<=nb2; ++i){
+        for(int i=nb1; i<=nb2; ++i) {
 
-            if(i==nb1){
-                balls.push_back(Ball(c,radius*radius));
-                vol = (std::pow(M_PI,n/2.0)*(std::pow(balls[0].radius(), n) ) ) / (tgamma(n/2.0+1));
-            }else{
-                balls.push_back(Ball(c,std::pow(std::pow(2.0,NT(i)/NT(n)),2)));
+            if (i == nb1) {
+                balls.push_back(Ball(c, radius * radius));
+                vol = (std::pow(M_PI, n / 2.0) * (std::pow(balls[0].radius(), n))) / (tgamma(n / 2.0 + 1));
+            } else {
+                balls.push_back(Ball(c, std::pow(std::pow(2.0, NT(i) / NT(n)), 2)));
             }
-
         }
         assert(!balls.empty());
 
@@ -187,9 +188,9 @@ NT volume(Polytope &P,
 
             //keep the points in randPoints that fall in PBSmall
             typename std::list<Point>::iterator rpit=randPoints.begin();
-            while(rpit!=randPoints.end()){
-                if (PBSmall.second().is_in(*rpit) == 0){//not in
-                    rpit=randPoints.erase(rpit);
+            while(rpit!=randPoints.end()) {
+                if (PBSmall.second().is_in(*rpit) == 0) {//not in
+                    rpit = randPoints.erase(rpit);
                 } else {
                     ++nump_PBSmall;
                     ++rpit;
@@ -207,10 +208,11 @@ NT volume(Polytope &P,
                               <<std::endl;
             #endif
 
+            PBLarge.comp_diam(var.diameter);
             //generate more random points in PBLarge to have "rnum" in total
-            rand_point_generator(PBLarge,p_gen,rnum-nump_PBLarge,walk_len,randPoints,PBSmall,nump_PBSmall,var);
+            rand_point_generator(PBLarge, p_gen, rnum-nump_PBLarge, walk_len, randPoints, PBSmall, nump_PBSmall, var);
 
-            vol *= NT(rnum)/NT(nump_PBSmall);
+            vol *= NT(rnum) / NT(nump_PBSmall);
 
             #ifdef VOLESTI_DEBUG
             if(print) std::cout<<nump_PBSmall<<"/"<<rnum<<" = "<<NT(rnum)/nump_PBSmall
@@ -221,7 +223,7 @@ NT volume(Polytope &P,
             //don't continue in pairs of balls that are almost inside P, i.e. ratio ~= 2
         }
     }
-    vol=round_value*vol;
+    vol = round_value * vol;
     #ifdef VOLESTI_DEBUG
     if(print) std::cout<<"rand points = "<<rnum<<std::endl;
     if(print) std::cout<<"walk len = "<<walk_len<<std::endl;
@@ -288,8 +290,7 @@ NT volume_gaussian_annealing(Polytope &P,
     var.che_rad = radius;
 
     // Move the chebychev center to the origin and apply the same shifting to the polytope
-    VT c_e = Eigen::Map<VT>(&c.get_coeffs()[0], c.dimension());
-    P.shift(c_e);
+    P.shift(c.getCoefficients());
 
     // Initialization for the schedule annealing
     std::vector<NT> a_vals;
@@ -321,7 +322,9 @@ NT volume_gaussian_annealing(Polytope &P,
 
     // Initialization for the approximation of the ratios
     unsigned int W = var.W, coord_prev, i=0;
-    std::vector<NT> last_W2(W,0), fn(mm,0), its(mm,0), lamdas(m,0);
+    std::vector<NT> last_W2(W,0), fn(mm,0), its(mm,0);
+    VT lamdas;
+    lamdas.setZero(m);
     vol=std::pow(M_PI/a_vals[0], (NT(n))/2.0)*std::abs(round_value);
     Point p(n), p_prev(n); // The origin is the Chebychev center of the Polytope
     viterator fnIt = fn.begin(), itsIt = its.begin(), avalsIt = a_vals.begin(), minmaxIt;

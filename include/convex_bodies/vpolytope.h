@@ -4,6 +4,7 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -86,30 +87,6 @@ public:
         b = b2;
     }
 
-
-    // get a specific coeff of matrix V
-    NT get_mat_coeff(const unsigned int &i, const unsigned int &j) const {
-        return V(i,j);
-    }
-
-
-    // get a specific coeff of vector b
-    NT get_vec_coeff(const unsigned int &i) const {
-        return b(i);
-    }
-
-
-    // set a specific coeff of matrix V
-    void put_mat_coeff(const unsigned int &i, const unsigned int &j, const NT &value) {
-        V(i,j) = value;
-    }
-
-
-    // set a specific coeff of vector b
-    void put_vec_coeff(const unsigned int &i, const NT &value) {
-        b(i) = value;
-    }
-
     MT get_T() const {
         return V;
     }
@@ -165,15 +142,11 @@ public:
     }
 
     Point get_mean_of_vertices() {
-        std::vector<NT> vec(_d);
-        Point xc(_d), temp(_d);
+        Point xc(_d);
         for (int i = 0; i < num_of_vertices(); ++i) {
-            for (int j = 0; j < _d; ++j) vec[j] = V(i,j);
-
-            temp = Point(_d, vec.begin(), vec.end());
-            xc = xc + temp;
+            xc.add(V.row(i));
         }
-        xc = xc * (1.0/NT(num_of_vertices()));
+        xc *= (1.0/NT(num_of_vertices()));
 
         return xc;
     }
@@ -189,7 +162,7 @@ public:
         return rad;
     }
 
-    void comp_diam(NT &diam, const NT &cheb_rad) {
+    void comp_diam(NT &diam) {
         diam = 0.0;
         NT diam_iter;
         for (int i = 0; i < num_of_vertices(); ++i) {
@@ -200,7 +173,10 @@ public:
                 }
             }
         }
+    }
 
+    void comp_diam(NT &diam, const NT &cheb_rad) {
+        comp_diam(diam);
     }
 
     void normalize() {}
@@ -219,17 +195,15 @@ public:
         std::pair <Point,NT> result;
 
         for (j=1; j<dim+1; j++) {
-            Point pk = *(it_beg + j);
+            Point* pk = &(*(it_beg + j));
             e(j - 1) = 1.0;
-            for (i = 0; i < dim; i++) B(i, j - 1) = pk[i] - p0[i];
+            B.col(j-1) = pk->getCoefficients() - p0.getCoefficients();
         }
 
         Bg = B;
         B = B.inverse();
         for (i=0; i<dim; i++) {
-            for (j = 0; j < dim; j++) row(j) = B(i, j);
-
-            gi = row.norm();
+            gi = B.row(i).norm();
             radius += gi;
             g(i) = gi;
             if (i < dim - 1) sum += gi;
@@ -298,25 +272,30 @@ public:
 
 
         std::list<Point> randPoints;
-        get_points_for_rounding(randPoints);
+        if (!get_points_for_rounding(randPoints)) {
+            center = get_mean_of_vertices();
+        } else {
 
-        boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
-        typename std::list<Point>::iterator rpit=randPoints.begin();
-        typename std::vector<NT>::iterator qit;
-        unsigned int i, j = 0;
-        for ( ; rpit!=randPoints.end(); rpit++, j++) {
-            qit = (*rpit).iter_begin(); i=0;
-            for ( ; qit!=(*rpit).iter_end(); qit++, i++){
-                Ap(i,j)=double(*qit);
+            boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
+            typename std::list<Point>::iterator rpit=randPoints.begin();
+
+            unsigned int i, j = 0;
+            for ( ; rpit!=randPoints.end(); rpit++, j++) {
+                const NT* point_data = rpit->getCoefficients().data();
+
+                for ( i=0; i < rpit->dimension(); i++){
+                    Ap(i,j)=double(*point_data);
+                    point_data++;
+                }
             }
-        }
-        boost::numeric::ublas::matrix<double> Q(_d, _d);
-        boost::numeric::ublas::vector<double> c2(_d);
-        size_t w=1000;
-        KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+            boost::numeric::ublas::matrix<double> Q(_d, _d);
+            boost::numeric::ublas::vector<double> c2(_d);
+            size_t w=1000;
+            KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
-        //Get ellipsoid matrix and center as Eigen objects
-        for(unsigned int i=0; i<_d; i++) center.set_coord(i, NT(c2(i)));
+            //Get ellipsoid matrix and center as Eigen objects
+            for(unsigned int i=0; i<_d; i++) center.set_coord(i, NT(c2(i)));
+        }
 
         std::pair<NT,NT> res;
         for (unsigned int i = 0; i < _d; ++i) {
@@ -352,16 +331,16 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-            const std::vector<NT> &Av) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
+            const VT &Av) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                    const std::vector<NT> &Av, const NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
+                                    const VT &Av, const NT &lambda_prev) {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
@@ -371,15 +350,15 @@ public:
         return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
     }
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av) {
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
+                                               const VT &Av) {
         return line_positive_intersect(r, v);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const std::vector<NT> &Ar,
-                                               const std::vector<NT> &Av, const NT &lambda_prev) {
-        return line_positive_intersect(r, v);//, Ar, Av);
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
+                                               const VT &Av, const NT &lambda_prev) {
+        return line_positive_intersect(r, v);
     }
 
 
@@ -387,7 +366,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(const Point &r,
                                           const unsigned int rand_coord,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
 
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
@@ -402,7 +381,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int rand_coord,
                                           const unsigned int rand_coord_prev,
-                                          const std::vector<NT> &lamdas) {
+                                          const VT &lamdas) {
         return line_intersect_coord(r, rand_coord, lamdas);
     }
 
@@ -438,14 +417,10 @@ public:
             return false;
         }
         unsigned int j;
-        std::vector<NT> temp(_d,NT(0));
+
         typename std::vector<NT>::iterator pointIt;
         for (int i=0; i<num_of_vertices(); i++) {
-            pointIt = temp.begin(); j=0;
-            for ( ; pointIt!=temp.end(); pointIt++, j++){
-                *pointIt = V(i,j);
-            }
-            Point p(_d, temp.begin(), temp.end());
+            Point p(V.row(i));
             randPoints.push_back(p);
         }
         return true;
@@ -466,12 +441,11 @@ public:
 
         VT a = Fmat2.colPivHouseholderQr().solve(VT::Ones(_d));
         if (a.dot(V.row(outvert)) > 1.0) a = -a;
-        a = a/a.norm();
+        a /= a.norm();
 
-        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
-
-        s = ((-2.0 * v.dot(s)) * s);
-        v = s + v;
+        // compute reflection
+        a *= (-2.0 * v.dot(a));
+        v += a;
     }
 
     void free_them_all() {

@@ -4,6 +4,7 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -11,7 +12,6 @@
 #define HPOLYTOPE_H
 
 #include <limits>
-
 #include <iostream>
 #include "solve_lp.h"
 
@@ -104,31 +104,6 @@ public:
         b = b2;
     }
 
-
-    // set a specific coeff of matrix A
-    NT get_mat_coeff(const unsigned int &i, const unsigned int &j) const {
-        return A(i,j);
-    }
-
-
-    // get a spesific coeff of vector b
-    NT get_vec_coeff(const unsigned int &i) const {
-        return b(i);
-    }
-
-
-    // get a specific coeff of matrix A
-    void put_mat_coeff(const unsigned int &i, const unsigned int &j, const NT &value) {
-        A(i,j) = value;
-    }
-
-
-    // set a spesific coeff of vector b
-    void put_vec_coeff(const unsigned int &i, const NT &value) {
-        b(i) = value;
-    }
-
-
     Point get_mean_of_vertices() const {
         return Point(_d);
     }
@@ -138,12 +113,12 @@ public:
         return 0.0;
     }
 
+    void comp_diam(NT &diam) {
+        diam = 4.0 * std::sqrt(NT(_d)) * ComputeInnerBall().second;
+    }
+
     void comp_diam(NT &diam, const NT &cheb_rad) {
-        if(cheb_rad < 0.0) {
-            diam = 4.0 * std::sqrt(NT(_d)) * ComputeInnerBall().second;
-        } else {
-            diam = 4.0 * std::sqrt(NT(_d)) * cheb_rad;
-        }
+        diam = 4.0 * std::sqrt(NT(_d)) * cheb_rad;
     }
 
     void init(const unsigned int dim, const MT &_A, const VT &_b) {
@@ -169,12 +144,12 @@ public:
     // print polytope in input format
     void print() {
 #ifdef VOLESTI_DEBUG
-        std::cout << " " << A.rows() << " " << _d + 1 << " float" << std::endl;
+        std::cout << " " << A.rows() << " " << _d << " float" << std::endl;
 #endif
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
                 #ifdef VOLESTI_DEBUG
-                std::cout << -A(i, j) << " ";
+                std::cout << A(i, j) << " ";
                 #endif
             }
             #ifdef VOLESTI_DEBUG
@@ -248,17 +223,19 @@ public:
         return 1;
     }*/
 
-    
+
     //Check if Point p is in H-polytope P:= Ax<=b
     int is_in(const Point &p) const {
         NT sum;
         int m = A.rows();
-        for (int i = 0; i < m; i++) {
-            sum = b(i);
-            for (unsigned int j = 0; j < _d; j++) sum -= A(i, j) * p[j];
+        const NT* b_data = b.data();
 
+        for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
-            if (sum < NT(0)) return 0;
+            if (*b_data - A.row(i) * p.getCoefficients() < NT(0))
+                return 0;
+
+            b_data++;
         }
         return -1;
     }
@@ -278,30 +255,31 @@ public:
     std::pair<NT,NT> line_intersect(Point &r, Point &v) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom;
+        VT sum_nom, sum_denom;
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes();
-        viterator rit, vit;
+
+
+        sum_nom.noalias() = b - A * r.getCoefficients();
+        sum_denom.noalias() = A * v.getCoefficients();
+
+        NT* sum_nom_data = sum_nom.data();
+        NT* sum_denom_data = sum_denom.data();
 
         for (int i = 0; i < m; i++) {
-            sum_nom = b(i);
-            sum_denom = NT(0);
-            j = 0;
-            rit = r.iter_begin();
-            vit = v.iter_begin();
-            for ( ; rit != r.iter_end(); rit++, vit++, j++){
-                sum_nom -= A(i, j) * (*rit);
-                sum_denom += A(i, j) * (*vit);
-            }
-            if (sum_denom == NT(0)) {
+
+            if (*sum_denom_data == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = sum_nom / sum_denom;
+                lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
+
+            sum_nom_data++;
+            sum_denom_data++;
         }
         return std::pair<NT, NT>(min_plus, max_minus);
     }
@@ -309,73 +287,73 @@ public:
 
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, bool pos = false) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, VT& Ar,
+            VT& Av, bool pos = false) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom, mult;
+        VT sum_nom;
+        NT mult;
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes(), facet;
-        viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
-        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
-            sum_nom = NT(0);
-            sum_denom = NT(0);
-            j = 0;
-            rit = r.iter_begin();
-            vit = v.iter_begin();
-            for ( ; rit != r.iter_end(); rit++, vit++, j++){
-                sum_nom -= A(i, j) * (*rit);
-                sum_denom += A(i, j) * (*vit);
-            }
-            (*Ariter) = -sum_nom;
-            (*Aviter) = sum_denom;
-            sum_nom += b(i);
-            if (sum_denom == NT(0)) {
+        Ar.noalias() = A * r.getCoefficients();
+        sum_nom = b - Ar;
+        Av.noalias() = A * v.getCoefficients();;
+
+
+        NT* Av_data = Av.data();
+        NT* sum_nom_data = sum_nom.data();
+
+        for (int i = 0; i < m; i++) {
+            if (*Av_data == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = sum_nom / sum_denom;
+                lamda = *sum_nom_data / *Av_data;
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     if (pos) facet = i;
                 }else if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
+
+            Av_data++;
+            sum_nom_data++;
         }
         if (pos) return std::pair<NT, NT>(min_plus, facet);
         return std::pair<NT, NT>(min_plus, max_minus);
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, const NT &lambda_prev, bool pos = false) {
+    std::pair<NT,NT> line_intersect(Point &r, Point &v, VT& Ar,
+            VT& Av, const NT &lambda_prev, bool pos = false) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom, mult;
+        VT  sum_nom;
+        NT mult;
         //unsigned int i, j;
         unsigned int j;
         int m = num_of_hyperplanes(), facet;
-        viterator vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
-        for (int i = 0; i < m; i++, ++Ariter, ++Aviter) {
-            (*Ariter) += lambda_prev * (*Aviter);
-            sum_nom = b(i) - (*Ariter);
-            sum_denom = NT(0);
-            j = 0;
-            vit = v.iter_begin();
-            for ( ; vit != v.iter_end(); vit++, j++) sum_denom += A(i, j) * (*vit);
+        Ar.noalias() += lambda_prev*Av;
+        sum_nom = b - Ar;
+        Av.noalias() = A * v.getCoefficients();
 
-            (*Aviter) = sum_denom;
-            if (sum_denom == NT(0)) {
+        NT* sum_nom_data = sum_nom.data();
+        NT* Av_data = Av.data();
+
+        for (int i = 0; i < m; i++) {
+            if (*Av_data == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = sum_nom / sum_denom;
+                lamda = *sum_nom_data / *Av_data;
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     if (pos) facet = i;
                 }else if (lamda > max_minus && lamda < 0) max_minus = lamda;
             }
+            Av_data++;
+            sum_nom_data++;
         }
         if (pos) return std::pair<NT, NT>(min_plus, facet);
         return std::pair<NT, NT>(min_plus, max_minus);
@@ -384,48 +362,48 @@ public:
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av) {
+    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, VT& Ar,
+            VT& Av) {
         return line_intersect(r, v, Ar, Av, true);
     }
 
 
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, std::vector<NT> &Ar,
-            std::vector<NT> &Av, const NT &lambda_prev) {
+    std::pair<NT, int> line_positive_intersect(Point &r, Point &v, VT& Ar,
+            VT& Av, const NT &lambda_prev) {
         return line_intersect(r, v, Ar, Av, lambda_prev, true);
     }
 
 
     //First coordinate ray intersecting convex polytope
     std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord,
-                                          std::vector<NT> &lamdas) {
+                                          VT& lamdas) {
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom;
+        VT sum_denom;
         unsigned int j;
         int m = num_of_hyperplanes();
-        viterator rit;
+
+        sum_denom = A.col(rand_coord);
+        lamdas.noalias() = b - A * r.getCoefficients();
+
+        NT* lamda_data = lamdas.data();
+        NT* sum_denom_data = sum_denom.data();
 
         for (int i = 0; i < m; i++) {
-            sum_nom = b(i);
-            sum_denom = A(i, rand_coord);
-            rit = r.iter_begin();
-            j = 0;
-            for (; rit != r.iter_end(); rit++, j++) {
-                sum_nom -= A(i, j) * (*rit);
-            }
-            lamdas[i] = sum_nom;
-            if (sum_denom == NT(0)) {
+
+            if (*sum_denom_data == NT(0)) {
                 //std::cout<<"div0"<<sum_denom<<std::endl;
                 ;
             } else {
-                lamda = sum_nom * (1 / sum_denom);
+                lamda = *lamda_data * (1 / *sum_denom_data);
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
 
             }
+            lamda_data++;
+            sum_denom_data++;
         }
         return std::pair<NT, NT>(min_plus, max_minus);
     }
@@ -436,29 +414,28 @@ public:
                                           const Point &r_prev,
                                           const unsigned int rand_coord,
                                           const unsigned int rand_coord_prev,
-                                          std::vector<NT> &lamdas) {
-
-        viterator lamdait = lamdas.begin();
+                                          VT& lamdas) {
+        ;
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
-        NT sum_nom, sum_denom, c_rand_coord, c_rand_coord_prev;
+
         int m = num_of_hyperplanes();
 
-        for (int i = 0; i < m; i++) {
-            sum_denom = b(i);
-            c_rand_coord = A(i, rand_coord);
-            c_rand_coord_prev = A(i, rand_coord_prev);
+        lamdas.noalias() += A.col(rand_coord_prev)* (r_prev[rand_coord_prev] - r[rand_coord_prev]);
+        NT* data = lamdas.data();
 
-            *lamdait = *lamdait + c_rand_coord_prev * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
-            if (c_rand_coord == NT(0)) {
+        for (int i = 0; i < m; i++) {
+            NT a = A(i, rand_coord);
+
+            if (a == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
             } else {
-                lamda = (*lamdait) / c_rand_coord;
+                lamda = *data / a;
                 if (lamda < min_plus && lamda > 0) min_plus = lamda;
                 if (lamda > max_minus && lamda < 0) max_minus = lamda;
 
             }
-            ++lamdait;
+            data++;
         }
         return std::pair<NT, NT>(min_plus, max_minus);
     }
@@ -472,7 +449,7 @@ public:
 
     // shift polytope by a point c
     void shift(const VT &c){
-        b = b - A*c;
+        b -= A*c;
     }
 
 
@@ -510,12 +487,7 @@ public:
     }
 
     void compute_reflection(Point &v, const Point &p, const int facet) {
-
-        VT a = A.row(facet);
-        Point s(_d, std::vector<NT>(&a[0], a.data()+a.cols()*a.rows()));
-        s = ((-2.0 * v.dot(s)) * s);
-        v = s + v;
-
+        v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
 
     void free_them_all() {}
