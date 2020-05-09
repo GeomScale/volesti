@@ -101,7 +101,6 @@ public:
 
   void step() {
     t += h;
-    NT dl = 0.95;
 
     for (unsigned int i = 0; i < xs.size(); i++) {
       Point y = Fs[i](xs, t);
@@ -115,14 +114,14 @@ public:
         std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y);
 
         if (pbpair.first < 0) {
-          xs[i] += (dl * pbpair.first) * y;
+          xs[i] += (pbpair.first) * y;
           Ks[i]->compute_reflection(y, xs[i], pbpair.second);
         }
         else {
           xs[i] += y;
         }
       }
-      std::cout << xs[i][0] << std::endl;
+      // std::cout << xs[i][0] << std::endl;
     }
 
     counter++;
