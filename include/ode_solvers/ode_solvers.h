@@ -101,6 +101,7 @@ public:
 
   void step() {
     t += h;
+    NT dl = 0.95;
 
     for (unsigned int i = 0; i < xs.size(); i++) {
       Point y = Fs[i](xs, t);
@@ -110,21 +111,20 @@ public:
         xs[i] = xs[i] + y;
       }
       else {
-        Point v = xs[i] + y;
-        std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], v);
-        std::cout << xs[i][0] << " " <<  pbpair.first << " " << pbpair.second << std::endl;
+        // Find intersection (assuming a line trajectory) between x and y
+        std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y);
+
         if (pbpair.first < 0) {
-          std::cout << "OUTSIDE " << std::endl;
-          Point z = pbpair.first * xs[i] + (1 - pbpair.first) * v;
-          Ks[i]->compute_reflection(v, z, 0);
-          xs[i] = v;
-        } else {
-          xs[i] = v;
+          xs[i] += (dl * pbpair.first) * y;
+          Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+        }
+        else {
+          xs[i] += y;
         }
       }
-
+      std::cout << xs[i][0] << std::endl;
     }
-    // TODO add boundary reflections
+
     counter++;
   }
 
