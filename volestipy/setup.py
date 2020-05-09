@@ -38,7 +38,7 @@ extra_volesti_include_dirs = [
     join("..","external","minimum_ellipsoid"),
     join("..","external","LPsolve_src","run_headers"),
     join("..","external","boost"),
-
+    join("..","include","lp_oracles"),
     join("..","include","generators"),
     join("..","include","volume"),
     join("..","include"),

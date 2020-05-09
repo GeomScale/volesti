@@ -34,34 +34,33 @@ see <http://www.gnu.org/licenses/>.
 #define ODE_SOLVERS_H
 
 
-namespace ode_solvers {
-
-template <typename Point, typename NT, class Polytope>
+template <typename Point, typename NT>
 class EulerODESolver {
 public:
-  typedef std::vector<Point> vds;
-  typedef std::vector<std::function <Point(vds, NT)>> funcs;
+  typedef std::function <Point(Point, NT)> funcs;
+  // Polytope *K;
   NT h;
   NT t;
   unsigned int T;
   unsigned int counter;
 
-  // Holds the Fs (gradients) for each sub-state
-  // For instance for HMC the vector F sould contain
-  // F_1(x, v) = v, F_2(x, v) = - grad f(x)
   funcs F;
 
   // Contains the sub-states
-  vds x;
+  Point x;
 
-  EulerODESolver(NT initial_time, unsigned int total_steps, NT step, vds initial_state, funcs oracles) :
+  EulerODESolver(NT initial_time, unsigned int total_steps, NT step, Point initial_state, funcs oracles) :
     t(initial_time), T(total_steps), x(initial_state), F(oracles), counter(0), h(step) {};
 
   void step() {
     t += h;
-    for (unsigned int i = 0; i < x.size(); i++) {
-      x[i] += h * F[i](x, t);
-    }
+    Point y = F(x, t);
+    y = h * y;
+    x = x + y;
+
+    std::cout << x[0] << std::endl;
+
+    // TODO add boundary reflections
     counter++;
   }
 
@@ -71,6 +70,5 @@ public:
 
 };
 
-}
 
 #endif

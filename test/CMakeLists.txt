@@ -49,14 +49,15 @@ else ()
   include_directories (BEFORE ../include/samplers)
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/misc)
+  include_directories (BEFORE ../include/ode_solvers)
 
   #for Eigen
-  if (${CMAKE_VERSION} VERSION_LESS "3.12.0") 
+  if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
     add_compile_options(-D "EIGEN_NO_DEBUG")
   else ()
     add_compile_definitions("EIGEN_NO_DEBUG")
   endif ()
-  
+
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
@@ -81,8 +82,9 @@ else ()
   add_executable (VpolyVol_test VpolyVol_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (ZonotopeVol_test ZonotopeVol_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (cool_bodies_bill_test cooling_bodies_bill_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (ode_solvers_test ode_solvers_test.cpp )
   #add_executable (ZonotopeVolCG_test ZonotopeVolCG_test.cpp $<TARGET_OBJECTS:test_main>)
-  
+
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
   add_test(NAME volume_cross COMMAND volume_test -tc=cross)
   add_test(NAME volume_birkhoff COMMAND volume_test -tc=birk)
@@ -99,7 +101,7 @@ else ()
   #add_test(NAME VpolyCG_cube COMMAND VpolyCG_test -tc=cube)
   add_test(NAME VpolyCG_cross COMMAND VpolyCG_test -tc=cross)
   add_test(NAME VpolyCG_simplex COMMAND VpolyCG_test -tc=simplex)
-  
+
   add_test(NAME VpolyVol_cube COMMAND VpolyVol_test -tc=cube)
   add_test(NAME VpolyVol_cross COMMAND VpolyVol_test -tc=cross)
   add_test(NAME VpolyVol_simplex COMMAND VpolyVol_test -tc=simplex)
@@ -140,5 +142,3 @@ else ()
   #TARGET_LINK_LIBRARIES(ZonotopeVolCG_test ${LP_SOLVE})
 
 endif()
-
-
