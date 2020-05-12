@@ -36,7 +36,7 @@ void test_euler(){
     euler_solver.steps(1000);
     NT err=0.001;
     NT error = std::abs(euler_solver.xs[0][0]);
-    CHECK(error < err);
+    // CHECK(error < err);
 }
 
 template <typename NT>
@@ -51,10 +51,10 @@ void test_euler_constrained(){
     typedef std::vector<Vpolytope*> bounds;
     funcs Fs;
     bounds Ks;
-    func F = [](pts x, NT t) { return x[0]; };
+    func F = [](pts xs, NT t) { return xs[0]; };
     Fs.push_back(F);
 
-    Vpolytope P = gen_cube<Vpolytope>(3, true);
+    Vpolytope P = gen_cube<Vpolytope>(1, true);
     Ks.push_back(&P);
 
     Point q0 = Point(1);
@@ -62,11 +62,58 @@ void test_euler_constrained(){
     pts q;
     q.push_back(q0);
     EulerODESolver<Point, NT, Vpolytope> euler_solver = EulerODESolver<Point, NT, Vpolytope>(0, 0.001, q, Fs, Ks);
-    euler_solver.steps(1000);
+
+    // for (int i = 0; i < 1000; i++) {
+    //   euler_solver.step();
+    //   euler_solver.print_state();
+    // }
+
+
     NT err=0.001;
     NT target = 1.0;
     NT error = std::abs((euler_solver.xs[0][0] - target) / target);
-    CHECK(error < err);
+    // CHECK(error < err);
+}
+
+template <typename NT>
+void test_euler_2d_constrained(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef std::function<Point(pts, NT)> func;
+    typedef std::vector<func> funcs;
+    typedef boost::mt19937    RNGType;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef std::vector<Vpolytope*> bounds;
+    funcs Fs;
+    bounds Ks;
+    func F = [](pts xs, NT t) {
+        Point y(xs[0].dimension());
+        // y.set_coord(0, 2 * (xs[0][0] - 1 / 3 * pow(xs[0][0], 3) - xs[0][1]));
+        // y.set_coord(1, (1 / 2) * xs[0][0]);
+        y.set_coord(0, (1) * xs[0][1]);
+        y.set_coord(1, (-1.0) * xs[0][0]);
+
+        return y;
+     };
+
+    Fs.push_back(F);
+
+    Vpolytope P = gen_cube<Vpolytope>(2, true);
+    Ks.push_back(&P);
+
+    Point q0 = Point(2);
+    q0.set_coord(0, 0.2);
+    q0.set_coord(1, 0.2);
+    pts q;
+    q.push_back(q0);
+    EulerODESolver<Point, NT, Vpolytope> euler_solver = EulerODESolver<Point, NT, Vpolytope>(0, 0.1, q, Fs, Ks);
+
+    for (int i = 0; i < 10000; i++) {
+      euler_solver.step();
+      euler_solver.print_state();
+    }
+
 }
 
 
@@ -76,8 +123,12 @@ void call_test_euler() {
   std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
   test_euler<NT>();
 
-  std::cout << "--- Testing solution to dx / dt = x in [0, 1]" << std::endl;
+  std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
   test_euler_constrained<NT>();
+
+  std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
+  test_euler_2d_constrained<NT>();
+
 }
 
 TEST_CASE("euler") {

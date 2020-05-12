@@ -187,5 +187,3 @@ point<K> operator* (const typename K::FT& k, point<K>& p) {
 }
 
 #endif
-
-

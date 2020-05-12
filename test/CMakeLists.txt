@@ -46,10 +46,10 @@ else ()
   include_directories (BEFORE ../include)
   include_directories (BEFORE ../include/convex_bodies)
   include_directories (BEFORE ../include/annealing)
+  include_directories (BEFORE ../include/ode_solvers)
   include_directories (BEFORE ../include/samplers)
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/misc)
-  include_directories (BEFORE ../include/ode_solvers)
 
   #for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
@@ -83,6 +83,7 @@ else ()
   add_executable (ZonotopeVol_test ZonotopeVol_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (cool_bodies_bill_test cooling_bodies_bill_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (hmc_test hmc_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (ZonotopeVolCG_test ZonotopeVolCG_test.cpp $<TARGET_OBJECTS:test_main>)
 
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
@@ -125,6 +126,9 @@ else ()
   add_test(NAME cool_bodies_simplex COMMAND cool_bodies_bill_test -tc=simplex)
   add_test(NAME cool_bodies_skinny_cube COMMAND cool_bodies_bill_test -tc=skinny_cube)
 
+  add_test(NAME ode_solvers_euler COMMAND ode_solvers_test -tc=euler)
+
+
   #add_test(NAME round_skinny_cube COMMAND rounding_test -tc=round_skinny_cube)
   #add_test(NAME round_rot_skinny_cube COMMAND rounding_test -tc=round_rot_skinny_cube)
 
@@ -140,6 +144,7 @@ else ()
   TARGET_LINK_LIBRARIES(ZonotopeVol_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(cool_bodies_bill_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(hmc_test ${LP_SOLVE})
   #TARGET_LINK_LIBRARIES(ZonotopeVolCG_test ${LP_SOLVE})
 
 endif()
