@@ -14,9 +14,9 @@
 
 
 
-// Pick a random direction as a normilized vector
+// Pick a random direction as a normalized vector
 template <typename RNGType, typename Point, typename NT>
-Point get_direction(const unsigned int dim) {
+Point get_direction(const unsigned int dim, bool normalize=true) {
 
     boost::normal_distribution<> rdist(0,1);
     NT normal = NT(0);
@@ -33,8 +33,10 @@ Point get_direction(const unsigned int dim) {
         data++;
     }
 
-    normal=1.0/std::sqrt(normal);
-    p *= normal;
+    if (normalize) {
+      normal=1.0/std::sqrt(normal);
+      p *= normal;
+    }
 
     return p;
 }
@@ -191,7 +193,7 @@ void rand_point_generator(Polytope &P,
     typedef typename Parameters::RNGType RNGType;
     typedef typename Point::FT NT;
     unsigned int n = var.n;
-    RNGType &rng = var.rng; 
+    RNGType &rng = var.rng;
     boost::random::uniform_real_distribution<> urdist(0, 1);
     boost::random::uniform_int_distribution<> uidist(0, n - 1);
 
@@ -245,7 +247,7 @@ void rand_point_generator(Polytope &P,
         }
         randPoints.push_back(p);
     }
- 
+
 }
 
 
@@ -282,7 +284,7 @@ void rand_point_generator(BallPoly &PBLarge,
     }else if (var.cdhr_walk) {//Compute the first point for the CDHR
         rand_coord = uidist(rng);
         kapa = urdist(rng);
-        
+
         std::pair <NT, NT> bpair = PBLarge.line_intersect_coord(p, rand_coord, lamdas);
         p_prev = p;
         p.set_coord(rand_coord, p[rand_coord] + bpair.first + kapa * (bpair.second - bpair.first));
