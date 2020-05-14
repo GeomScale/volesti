@@ -23,7 +23,7 @@
 #ifndef GAUSSIAN_SAMPLERS_H
 #define GAUSSIAN_SAMPLERS_H
 
-
+/*
 // evaluate the pdf of point p
 template <typename Point, typename NT>
 NT eval_exp(Point &p, const NT &a) {
@@ -56,7 +56,7 @@ NT get_max_coord(const NT &l, const NT &u, const NT &a_i) {
     }
     return std::max(std::exp(-a_i * l * l), std::exp(-a_i * u * u));
 }
-
+*/
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
 template <typename Parameters, typename Point, typename NT>

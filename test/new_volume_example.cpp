@@ -15,9 +15,9 @@
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "volume.h"
-#include "new_volume.hpp"
-#include "new_gaussian_volume.hpp"
-#include "new_cooling_balls.hpp"
+#include "volume_sequence_of_balls.hpp"
+#include "volume_cooling_gaussians.hpp"
+#include "volume_cooling_balls.hpp"
 #include "rotating.h"
 #include "misc.h"
 #include "linear_extensions.h"
@@ -26,6 +26,12 @@
 #include "sample_only.h"
 #include "exact_vols.h"
 #include "generators/known_polytope_generators.h"
+
+#include "random_walks/random_walks.hpp"
+
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
 
 int main()
 {
@@ -47,9 +53,36 @@ int main()
 
     //VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
     double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
-    std::cout << "Ball (cross) = "
-              << volume_cooling_balls<BallWalk, RNG>(HPoly) << " , ";
+    std::cout << "Ball SOB = "
+              << volume_sequence_of_balls<>(HPoly) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Ball CG = "
+              << volume_cooling_gaussians<>(HPoly) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Ball CB = "
+              << volume_cooling_balls<>(HPoly) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    //
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Ball SOB = "
+              << volume_sequence_of_balls<CDHRWalk, RNG>(HPoly) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Ball CG = "
+              << volume_cooling_gaussians<GaussianCDHRWalk, RNG>(HPoly) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Ball CB = "
+              << volume_cooling_balls<CDHRWalk, RNG>(HPoly) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
 
     return 0;
 /*
@@ -257,17 +290,17 @@ int main()
  *
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "new GC Ball (cube) = "
-              << volume_gaussian_annealing<GaussianBallWalk>(HP, e, walk_len) << " , ";
+              << volume_cooling_gaussians<GaussianBallWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "new GC RDHR (cube) = "
-              << volume_gaussian_annealing<GaussianRDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_cooling_gaussians<GaussianRDHRWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "new GC CDHR (cube) = "
-              << volume_gaussian_annealing<GaussianCDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_cooling_gaussians<GaussianCDHRWalk>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 */
 
@@ -308,7 +341,7 @@ int main()
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
                     false,false,false,false,true,false,false,false);
         std::cout << "old GC Ball (cube) = "
-                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << volume_cooling_gaussians(HP, var1, var2, CheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
@@ -319,7 +352,7 @@ int main()
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
                     false,false,false,false,false,true,false,false);
         std::cout << "old GC CDHR (cube) = "
-                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << volume_cooling_gaussians(HP, var1, var2, CheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
@@ -330,7 +363,7 @@ int main()
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
                     false,false,false,false,false,false,true,false);
         std::cout << "old GC RDHR (cube) = "
-                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << volume_cooling_gaussians(HP, var1, var2, CheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }

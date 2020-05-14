@@ -1,12 +1,14 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2019 Vissarion Fisikopoulos
-// Copyright (c) 2018-2019 Apostolos Chalkis
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 
-#ifndef NEW_COOLING_BALLS_H
-#define NEW_COOLING_BALLS_H
+// Licensed under GNU LGPL.3, see LICENCE file
+
+#ifndef VOLUME_COOLING_BALLS_HPP
+#define VOLUME_COOLING_BALLS_HPP
 
 #include "cartesian_geom/cartesian_kernel.h"
 #include "vars.h"
@@ -21,6 +23,8 @@
 #include <boost/math/special_functions/erf.hpp>
 #include "ball_annealing.h"
 #include "ratio_estimation.h"
+
+#include "samplers/random_point_generators.hpp"
 
 
 ////////////////////////////////////
@@ -375,10 +379,21 @@ template <typename NT>
 struct estimate_ratio_parameters
 {
 public:
-    estimate_ratio_parameters(unsigned int W_len, unsigned int N, NT ratio):
-    min_val(std::numeric_limits<NT>::lowest()),   max_val(std::numeric_limits<NT>::max()),
-    max_iterations_estimation(10000000), min_index(W_len-1), max_index(W_len-1), W(W_len),
-    index(0), tot_count(N), count_in(N * ratio), iter(0), last_W(std::vector<NT>(W_len)), minmaxIt(last_W.begin()) {};
+
+    estimate_ratio_parameters(unsigned int W_len, unsigned int N, NT ratio)
+        :   min_val(std::numeric_limits<NT>::lowest())
+        ,   max_val(std::numeric_limits<NT>::max())
+        ,   max_iterations_estimation(10000000)
+        ,   min_index(W_len-1)
+        ,   max_index(W_len-1)
+        ,   W(W_len)
+        ,   index(0)
+        ,   tot_count(N)
+        ,   count_in(N * ratio)
+        ,   iter(0)
+        ,   last_W(std::vector<NT>(W_len))
+        ,   minmaxIt(last_W.begin())
+    {}
 
     NT min_val;
     NT max_val;
@@ -443,14 +458,14 @@ bool estimate_ratio_generic(Pollyball const& Pb2, Point const& p, NT const& erro
 
 
 template
-        <
-                typename WalkType,
-                typename Point,
-                typename PolyBall1,
-                typename PolyBall2,
-                typename NT,
-                typename RNG
-        >
+<
+        typename WalkType,
+        typename Point,
+        typename PolyBall1,
+        typename PolyBall2,
+        typename NT,
+        typename RNG
+>
 NT estimate_ratio(PolyBall1 const& Pb1,
                   PolyBall2 const& Pb2,
                   NT const& ratio,
@@ -474,12 +489,12 @@ NT estimate_ratio(PolyBall1 const& Pb1,
 }
 
 template
-        <       typename Point,
-                typename ball,
-                typename PolyBall,
-                typename NT,
-                typename RNG
-        >
+<       typename Point,
+        typename ball,
+        typename PolyBall,
+        typename NT,
+        typename RNG
+>
 NT estimate_ratio(ball const& B,
                   PolyBall const& Pb2,
                   NT const& ratio,
@@ -507,10 +522,21 @@ template <typename NT>
 struct estimate_ratio_interval_parameters
 {
 public:
-    estimate_ratio_interval_parameters(unsigned int W_len, unsigned int N, NT ratio):
-            mean(0), sum_sq(0), sum(0), s(0),
-            max_iterations_estimation(10000000), W(W_len),
-            index(0), tot_count(N), count_in(N * ratio), iter(0), last_W(std::vector<NT>(W_len)) {};
+    estimate_ratio_interval_parameters(unsigned int W_len,
+                                       unsigned int N,
+                                       NT ratio)
+        :    mean(0)
+        ,    sum_sq(0)
+        ,    sum(0)
+        ,    s(0)
+        ,    max_iterations_estimation(10000000)
+        ,    W(W_len)
+        ,    index(0)
+        ,    tot_count(N)
+        ,    count_in(N * ratio)
+        ,    iter(0)
+        ,    last_W(std::vector<NT>(W_len))
+    {}
 
     NT mean;
     NT sum_sq;
@@ -526,7 +552,9 @@ public:
 };
 
 template <typename Pollyball, typename Point, typename NT>
-void full_sliding_window(Pollyball const& Pb2, Point const& p, estimate_ratio_interval_parameters<NT> &ratio_parameters)
+void full_sliding_window(Pollyball const& Pb2,
+                         Point const& p,
+                         estimate_ratio_interval_parameters<NT>& ratio_parameters)
 {
     if (Pb2.is_in(p) == -1) ratio_parameters.count_in = ratio_parameters.count_in + 1.0;
 
@@ -540,8 +568,12 @@ void full_sliding_window(Pollyball const& Pb2, Point const& p, estimate_ratio_in
 }
 
 template <typename Pollyball, typename Point, typename NT>
-bool estimate_ratio_interval_generic(Pollyball const& Pb2, Point const& p, NT const& error,
-        NT const& zp, estimate_ratio_interval_parameters<NT> &ratio_parameters)
+bool estimate_ratio_interval_generic(Pollyball const& Pb2,
+                                     Point const& p,
+                                     NT const& error,
+                                     NT const& zp,
+                                     estimate_ratio_interval_parameters
+                                     <NT>& ratio_parameters)
 {
     if (ratio_parameters.iter++ <= ratio_parameters.max_iterations_estimation)
     {
@@ -550,25 +582,36 @@ bool estimate_ratio_interval_generic(Pollyball const& Pb2, Point const& p, NT co
         ratio_parameters.tot_count = ratio_parameters.tot_count + 1.0;
         NT val = NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
 
-        ratio_parameters.mean = (ratio_parameters.mean - ratio_parameters.last_W[ratio_parameters.index] /
+        ratio_parameters.mean = (ratio_parameters.mean
+                             - ratio_parameters.last_W[ratio_parameters.index] /
                 NT(ratio_parameters.W)) + val / NT(ratio_parameters.W);
 
         ratio_parameters.sum_sq = (ratio_parameters.sum_sq -
-                ratio_parameters.last_W[ratio_parameters.index] * ratio_parameters.last_W[ratio_parameters.index]) +
-                        val * val;
+                ratio_parameters.last_W[ratio_parameters.index]
+                * ratio_parameters.last_W[ratio_parameters.index])
+                + val * val;
 
-        ratio_parameters.sum = (ratio_parameters.sum - ratio_parameters.last_W[ratio_parameters.index]) + val;
+        ratio_parameters.sum = (ratio_parameters.sum
+                                - ratio_parameters.last_W[ratio_parameters.index])
+                               + val;
 
         ratio_parameters.s = std::sqrt((ratio_parameters.sum_sq + NT(ratio_parameters.W) *
-                ratio_parameters.mean * ratio_parameters.mean - NT(2) * ratio_parameters.mean * ratio_parameters.sum) /
-                        NT(ratio_parameters.W));
+                ratio_parameters.mean * ratio_parameters.mean - NT(2)
+                                      * ratio_parameters.mean
+                                      * ratio_parameters.sum) /
+                                       NT(ratio_parameters.W));
 
         ratio_parameters.last_W[ratio_parameters.index] = val;
 
         ratio_parameters.index = ratio_parameters.index % ratio_parameters.W + 1;
-        if (ratio_parameters.index == ratio_parameters.W) ratio_parameters.index = 0;
+        if (ratio_parameters.index == ratio_parameters.W)
+        {
+            ratio_parameters.index = 0;
+        }
 
-        if (is_max_error(val - zp * ratio_parameters.s, val + zp * ratio_parameters.s, error))
+        if (is_max_error(val - zp * ratio_parameters.s,
+                         val + zp * ratio_parameters.s,
+                         error))
         {
             return true;
         }
@@ -596,7 +639,8 @@ NT estimate_ratio_interval(ball const& B,
 {
     estimate_ratio_interval_parameters<NT> ratio_parameters(W, Ntot, ratio);
     boost::math::normal dist(0.0, 1.0);
-    NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0)), radius = B.radius();
+    NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0));
+    NT radius = B.radius();
 
     unsigned int n = Pb2.dimension();
     Point p(n);
@@ -618,14 +662,14 @@ NT estimate_ratio_interval(ball const& B,
 
 
 template
-        <
-                typename WalkType,
-                typename Point,
-                typename PolyBall1,
-                typename PolyBall2,
-                typename NT,
-                typename RNG
-        >
+<
+        typename WalkType,
+        typename Point,
+        typename PolyBall1,
+        typename PolyBall2,
+        typename NT,
+        typename RNG
+>
 NT estimate_ratio_interval(PolyBall1 const& Pb1,
                            PolyBall2 const& Pb2,
                            NT const& ratio,
@@ -746,32 +790,47 @@ double volume_cooling_balls(Polytope const& Pin,
     if (*ratioiter != 1)
     {
         vol *= (!parameters.window2) ?
-               1 / estimate_ratio_interval<WalkType, Point>(P, *balliter, *ratioiter,
-                                                  er1,
-                                                  parameters.win_len,
-                                                  N_times_nu,
-                                                  prob,
-                                                  walk_length, rng)
-            : 1 / estimate_ratio<WalkType, Point>(P, *balliter, *ratioiter,
-                                        er1, parameters.win_len,
-                                        N_times_nu,
-                                        walk_length, rng);
+               1 / estimate_ratio_interval
+                    <WalkType, Point>(P,
+                                      *balliter,
+                                      *ratioiter,
+                                      er1,
+                                      parameters.win_len,
+                                      N_times_nu,
+                                      prob,
+                                      walk_length,
+                                      rng)
+            : 1 / estimate_ratio
+                    <WalkType, Point>(P,
+                                      *balliter,
+                                      *ratioiter,
+                                      er1,
+                                      parameters.win_len,
+                                      N_times_nu,
+                                      walk_length,
+                                      rng);
     }
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter)
     {
         Pb = PolyBall(P, *balliter);
         vol *= (!parameters.window2) ?
-                    1 / estimate_ratio_interval<WalkType, Point>(Pb,
-                                                       *(balliter + 1),
-                                                       *(ratioiter + 1),
-                                                       er1, parameters.win_len,
-                                                       N_times_nu,
-                                                       prob, walk_length,
-                                                       rng)
-                  : 1 / estimate_ratio<WalkType, Point>(Pb, *balliter, *ratioiter, er1,
-                                              parameters.win_len,
-                                              N_times_nu,
-                                              walk_length, rng);
+                    1 / estimate_ratio_interval
+                                <WalkType, Point>(Pb,
+                                                  *(balliter + 1),
+                                                  *(ratioiter + 1),
+                                                  er1, parameters.win_len,
+                                                  N_times_nu,
+                                                  prob, walk_length,
+                                                  rng)
+                  : 1 / estimate_ratio
+                                <WalkType, Point>(Pb,
+                                                  *balliter,
+                                                  *ratioiter,
+                                                  er1,
+                                                  parameters.win_len,
+                                                  N_times_nu,
+                                                  walk_length,
+                                                  rng);
     }
 
     P.free_them_all();
@@ -781,11 +840,12 @@ double volume_cooling_balls(Polytope const& Pin,
 
 
 template
-        <
-                typename WalkTypePolicy,
-                typename RandomNumberGenerator,
-                typename Polytope
-        >
+<
+    typename WalkTypePolicy = CDHRWalk,
+    typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b,
+                                                                double>,
+    typename Polytope
+>
 double volume_cooling_balls(Polytope const& Pin,
                             double const& error = 0.1,
                             unsigned int const& walk_length = 1)
@@ -795,4 +855,4 @@ double volume_cooling_balls(Polytope const& Pin,
 }
 
 
-#endif
+#endif // VOLUME_COOLING_BALLS_HPP

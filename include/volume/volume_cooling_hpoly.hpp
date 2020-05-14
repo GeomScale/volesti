@@ -1,24 +1,32 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
-// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2018-2020 Apostolos Chalkis
 
+// Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef NEW_COOLING_HPOLY_H
-#define NEW_COOLING_HPOLY_H
+#ifndef VOLUME_COOLING_HPOLY_HPP
+#define VOLUME_COOLING_HPOLY_HPP
+
+#include "volume/volume_cooling_gaussians.hpp"
+#include "samplers/random_point_generators.hpp"
 
 
 template
-        <
-                typename RandomPointGenerator,
-                typename Zonotope,
-                typename HPolytope,
-                typename NT,
-                typename RNG,
-                typename VT
-        >
-bool get_first_poly(Zonotope &P, HPolytope &HP, NT &ratio, cooling_ball_parameters<NT> const& parameters, RNG& rng, VT &b_max){//} VT &Zs_max_gl, const NT &lb, const NT &up_lim, NT &ratio,
-
+<
+        typename RandomPointGenerator,
+        typename Zonotope,
+        typename HPolytope,
+        typename NT,
+        typename RNG,
+        typename VT
+>
+bool get_first_poly(Zonotope &P,
+                    HPolytope &HP,
+                    NT &ratio,
+                    cooling_ball_parameters<NT> const& parameters,
+                    RNG& rng, VT &b_max)
+{
 
     typedef typename Zonotope::PointType Point;
     typedef typename Zonotope::MT MT;
@@ -81,8 +89,13 @@ bool get_first_poly(Zonotope &P, HPolytope &HP, NT &ratio, cooling_ball_paramete
 
 template <typename Zonotope, typename HPolytope, typename VT, typename PointList, typename NT>
 bool get_next_zonoball(std::vector<HPolytope> &HPolySet,
-                       HPolytope &HP2, const VT &b_max, const VT &b_min, PointList &randPoints,
-                       std::vector<NT> &ratios, cooling_ball_parameters<NT> const& parameters){
+                       HPolytope &HP2,
+                       const VT &b_max,
+                       const VT &b_min,
+                       PointList &randPoints,
+                       std::vector<NT> &ratios,
+                       cooling_ball_parameters<NT> const& parameters)
+{
 
     typedef typename Zonotope::PointType Point;
 
@@ -126,9 +139,16 @@ template <
         typename VT,
         typename NT,
         typename RNG>
-bool get_sequence_of_zonopolys(Zonotope &Z, const HPolytope &HP, std::vector<HPolytope> &HPolySet,
-                               std::vector<NT> &ratios, const VT &b_max, unsigned int const& N_times_nu, unsigned int const& walk_length,
-                               cooling_ball_parameters<NT> const& parameters, RNG& rng) {
+bool get_sequence_of_zonopolys(Zonotope &Z,
+                               const HPolytope &HP,
+                               std::vector<HPolytope> &HPolySet,
+                               std::vector<NT> &ratios,
+                               const VT &b_max,
+                               unsigned int const& N_times_nu,
+                               unsigned int const& walk_length,
+                               cooling_ball_parameters<NT> const& parameters,
+                               RNG& rng)
+{
 
     bool too_few=false;
     typedef typename Zonotope::PointType Point;
@@ -152,7 +172,8 @@ bool get_sequence_of_zonopolys(Zonotope &Z, const HPolytope &HP, std::vector<HPo
         ratios.push_back(ratio);
         return true;
     }
-    if ( !get_next_zonoball<Zonotope>(HPolySet, HP2, b_max, HP.get_vec(), randPoints, ratios, parameters))
+    if ( !get_next_zonoball<Zonotope>(HPolySet, HP2, b_max, HP.get_vec(),
+                                      randPoints, ratios, parameters))
     {
         return false;
     }
@@ -175,7 +196,8 @@ bool get_sequence_of_zonopolys(Zonotope &Z, const HPolytope &HP, std::vector<HPo
             ratios.push_back(ratio);
             return true;
         }
-        if ( !get_next_zonoball<Zonotope>(HPolySet, HP2, HP2.get_vec(), Zs_min, randPoints, ratios, parameters) )
+        if ( !get_next_zonoball<Zonotope>(HPolySet, HP2, HP2.get_vec(),
+                                          Zs_min, randPoints, ratios, parameters) )
         {
             return false;
         }
@@ -266,7 +288,8 @@ double volume_cooling_hpoly (Zonotope const& Pin,
     HPolytope HP;
     compute_hpoly_for_mmc(P, HP);
     VT b_max(2*P.num_of_generators());
-    if ( !get_first_poly<CdhrRandomPointGenerator>(P, HP, ratio, parameters, rng, b_max) ) {
+    if ( !get_first_poly<CdhrRandomPointGenerator>(P, HP, ratio, parameters, rng, b_max) )
+    {
         return -1.0;
     }
 
@@ -276,16 +299,19 @@ double volume_cooling_hpoly (Zonotope const& Pin,
     ZonoHP zb1, zb2;
     std::vector<NT> diams_inter;
 
-    if ( !get_sequence_of_zonopolys<ZonoRandomPointGenerator, ZonoHP>(P, HP, HPolySet, ratios,
-                        b_max, N_times_nu, walk_length, parameters, rng) ){
+    if ( !get_sequence_of_zonopolys<ZonoRandomPointGenerator, ZonoHP>
+                       (P, HP, HPolySet, ratios,
+                        b_max, N_times_nu, walk_length, parameters, rng) )
+    {
         return -1.0;
     }
 
     int mm=HPolySet.size()+2;
     int mm2=mm+1;
     prob = std::pow(prob, 1.0/NT(mm2));
-    NT er0 = error/(2.0*std::sqrt(NT(mm2))), er1 = (error*std::sqrt(2.0*NT(mm2)-1))/(std::sqrt(2.0*NT(mm2))),
-            Her = error/(2.0*std::sqrt(NT(mm2)));
+    NT er0 = error/(2.0*std::sqrt(NT(mm2)));
+    NT er1 = (error*std::sqrt(2.0*NT(mm2)-1))/(std::sqrt(2.0*NT(mm2)));
+    NT Her = error/(2.0*std::sqrt(NT(mm2)));
 
 
     HPolytope HP2(HP);
@@ -294,7 +320,7 @@ double volume_cooling_hpoly (Zonotope const& Pin,
             10 + 10 * n, rng);
     //TODO: rounding to HP2
     //NT vol = res.second * volume_cooling_balls<BilliardWalk, RandomNumberGenerator>(HP2, Her, 1);
-    NT vol = res.second * volume_gaussian_annealing<GaussianCDHRWalk, RandomNumberGenerator>(HP2, Her/2.0, 1);
+    NT vol = res.second * volume_cooling_gaussians<GaussianCDHRWalk, RandomNumberGenerator>(HP2, Her/2.0, 1);
 
     if (!parameters.window2) {
         vol *= estimate_ratio_interval<CdhrWalk, Point>(HP, P, ratio, er0, parameters.win_len, 1200, prob, 10+10*n, rng);
@@ -354,12 +380,12 @@ double volume_cooling_hpoly (Zonotope const& Pin,
 
 
 template
-        <
-                typename WalkTypePolicy,
-                typename RandomNumberGenerator,
-                typename HPolytope,
-                typename Polytope
-        >
+<
+        typename WalkTypePolicy,
+        typename RandomNumberGenerator,
+        typename HPolytope,
+        typename Polytope
+>
 double volume_cooling_hpoly(Polytope const& Pin,
                                  double const& error = 0.1,
                                  unsigned int const& walk_length = 1)
@@ -368,4 +394,4 @@ double volume_cooling_hpoly(Polytope const& Pin,
     return volume_cooling_hpoly<WalkTypePolicy, HPolytope>(Pin, rng, error, walk_length);
 }
 
-#endif
+#endif // VOLUME_COOLING_HPOLY_HPP

@@ -14,16 +14,13 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-#include "volume.h"
-#include "new_volume.hpp"
-#include "new_gaussian_volume.hpp"
-#include "new_cooling_balls.hpp"
-#include "rotating.h"
-#include "misc.h"
-#include "linear_extensions.h"
-#include "cooling_balls.h"
-//#include "cooling_hpoly.h"
-#include "sample_only.h"
+
+#include "random_walks/random_walks.hpp"
+
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
+
 #include "exact_vols.h"
 #include "generators/known_polytope_generators.h"
 
@@ -77,19 +74,21 @@ int main()
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
-              << volume_gaussian_annealing<GaussianBallWalk, RNG>(HP, e, walk_len) << " , ";
+              << volume_cooling_gaussians<GaussianBallWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHRWalk (cube) = "
-              << volume_gaussian_annealing<GaussianCDHRWalk, RNG>(HP, e, walk_len) << " , ";
+              << volume_cooling_gaussians<GaussianCDHRWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHRWalk (cube) = "
-              << volume_gaussian_annealing<GaussianRDHRWalk, RNG>(HP, e, walk_len) << " , ";
+              << volume_cooling_gaussians<GaussianRDHRWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+#ifdef VOLESTI_OLD_IMPLEMENTATION
 
     // OLD Implementation
     {
@@ -99,7 +98,7 @@ int main()
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
                     false,false,false,false,false,true,false,false);
         std::cout << "old GC Ball (cube) = "
-                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << volume_cooling_gaussians(HP, var1, var2, CheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
@@ -110,7 +109,7 @@ int main()
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
                     false,false,false,false,false,false,true,false);
         std::cout << "old GC CDHR (cube) = "
-                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << volume_cooling_gaussians(HP, var1, var2, CheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
@@ -121,10 +120,11 @@ int main()
         vars_g<NT, RNGType> var1(n,walk_len,N,W,1,e,CheBall.second,rng,C,frac,ratio,delta,
                     false,false,false,false,false,false,false,true);
         std::cout << "old GC RDHR (cube) = "
-                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << volume_cooling_gaussians(HP, var1, var2, CheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
+#endif
 /*
     ////////////////////////////////////////////////////////////////
     /// V-Polytopes
@@ -145,19 +145,19 @@ int main()
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball (cross) = "
-              << volume_gaussian_annealing<GaussianBallWalk>(VP) << " , ";
+              << volume_cooling_gaussians<GaussianBallWalk>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHR (cross) = "
-              << volume_gaussian_annealing<GaussianRDHRWalk>(VP) << " , ";
+              << volume_cooling_gaussians<GaussianRDHRWalk>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHR (cross) = "
-              << volume_gaussian_annealing<GaussianCDHRWalk>(VP) << " , ";
+              << volume_cooling_gaussians<GaussianCDHRWalk>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     // OLD Implementation
@@ -172,7 +172,7 @@ int main()
                     false,false,false,false,false,true,false,false);
         VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
         std::cout << "old GC Ball (cross) = "
-                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << volume_cooling_gaussians(HP, var1, var2, CheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
@@ -186,7 +186,7 @@ int main()
                     false,false,false,false,false,false,true,false);
         VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
         std::cout << "old GC CDHR (cross) = "
-                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << volume_cooling_gaussians(HP, var1, var2, CheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
@@ -200,7 +200,7 @@ int main()
                     false,false,false,false,false,false,false,true);
         VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
         std::cout << "old GC RDHR (cross) = "
-                  << volume_gaussian_annealing(HP, var1, var2, CheBall)
+                  << volume_cooling_gaussians(HP, var1, var2, CheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }

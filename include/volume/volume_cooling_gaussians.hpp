@@ -1,15 +1,14 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2018 Vissarion Fisikopoulos
-
-// Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef NEW_GAUSSIAN_VOLUME_HPP
-#define NEW_GAUSSIAN_VOLUME_HPP
+#ifndef VOLUME_COOLING_GAUSSIANS_HPP
+#define VOLUME_COOLING_GAUSSIANS_HPP
 
 //#define VOLESTI_DEBUG
 
@@ -19,6 +18,7 @@
 #include <math.h>
 #include <chrono>
 #include "cartesian_geom/cartesian_kernel.h"
+/*
 #include "vars.h"
 #include "hpolytope.h"
 #include "vpolytope.h"
@@ -30,340 +30,13 @@
 #include "rounding.h"
 #include "gaussian_samplers.h"
 #include "gaussian_annealing.h"
+*/
 
-#include "new_volume.hpp"
+#include "random_walks/gaussian_helpers.hpp"
+#include "random_walks/gaussian_ball_walk.hpp"
+#include "random_walks/gaussian_cdhr_walk.hpp"
+#include "samplers/random_point_generators.hpp"
 
-
-// Pick a point from the distribution exp(-a_i||x||^2) on the chord
-template
-<
-    typename Point,
-    typename NT,
-    typename RandomNumberGenerator
->
-void chord_random_point_generator_exp(Point &lower,
-                                      Point & upper,
-                                      const NT &a_i,
-                                      Point &p,
-                                      RandomNumberGenerator& rng)
-{
-    NT r, r_val, fn;
-    const NT tol = 0.00000001;
-    Point bef = upper - lower;
-    // pick from 1-dimensional gaussian if enough weight is inside polytope P
-    if (a_i > tol && std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i)))
-    {
-        Point a = -1.0 * lower;
-        Point b = (1.0 / std::sqrt(bef.squared_length())) * bef;
-        Point z = (a.dot(b) * b) + lower;
-        NT low_bd = (lower[0] - z[0]) / b[0];
-        NT up_bd = (upper[0] - z[0]) / b[0];
-        while (true) {
-            r = rng.sample_ndist();//rdist(rng2);
-            r = r / std::sqrt(2.0 * a_i);
-            if (r >= low_bd && r <= up_bd) {
-                break;
-            }
-        }
-        p = (r * b) + z;
-
-    // select using rejection sampling from a bounding rectangle
-    } else {
-        NT M = get_max(lower, upper, a_i);
-        while (true) {
-            r = rng.sample_urdist();//urdist(rng2);
-            Point pef = r * upper;
-            p = ((1.0 - r) * lower) + pef;
-            r_val = M * rng.sample_urdist();//urdist(var.rng);
-            fn = eval_exp(p, a_i);
-            if (r_val < fn) {
-                break;
-            }
-        }
-    }
-}
-
-// Pick a point from the distribution exp(-a_i||x||^2) on the coordinate chord
-template
-<
-    typename NT,
-    typename RandomNumberGenerator
->
-NT chord_random_point_generator_exp_coord(const NT &l,
-                                          const NT &u,
-                                          const NT &a_i,
-                                          RandomNumberGenerator& rng)
-{
-    NT r, r_val, fn, dis;
-    const NT tol = 0.00000001;
-    // pick from 1-dimensional gaussian if enough weight is inside polytope P
-    if (a_i > tol && u - l >= 2.0 / std::sqrt(2.0 * a_i)) {
-        while (true) {
-            r = rng.sample_ndist();//rdist(rng2);
-            r = r / std::sqrt(2.0 * a_i);
-            if (r >= l && r <= u) {
-                break;
-            }
-        }
-        dis = r;
-
-    // select using rejection sampling from a bounding rectangle
-    } else {
-        NT M = get_max_coord(l, u, a_i);
-        while (true) {
-            r = rng.sample_urdist();
-            dis = (1.0 - r) * l + r * u;
-            r_val = M * rng.sample_urdist();
-            fn = std::exp(-a_i * dis * dis);
-            if (r_val < fn) {
-                break;
-            }
-        }
-    }
-    return dis;
-}
-
-/////////////////// Random Walks
-
-// ball walk with spherical Gaussian target distribution
-struct GaussianBallWalk
-{
-
-    GaussianBallWalk(double L)
-            :   param(L, true)
-    {}
-
-    GaussianBallWalk()
-            :   param(0, false)
-    {}
-
-    struct parameters
-    {
-        parameters(double L, bool set)
-                :   m_L(L), set_delta(set)
-        {}
-        double m_L;
-        bool set_delta;
-    };
-
-    parameters param;
-
-template
-<
-    typename Polytope,
-    typename RandomNumberGenerator
->
-struct Walk
-{
-    typedef typename Polytope::PointType Point;
-    typedef typename Point::FT NT;
-
-    Walk (Polytope const& P, Point &p, NT const& a, RandomNumberGenerator &rng)
-    {
-        _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-    }
-
-    Walk (Polytope const& P, Point &p, NT const& a, RandomNumberGenerator &rng, parameters const& params) {
-        if (params.set_delta) {
-            _delta = params.m_L;
-        } else {
-            _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-        }
-    }
-
-    template<typename BallPolytope>
-    inline void apply(BallPolytope const& P,
-                      Point &p,   // a point to start
-                      NT const& a_i,
-                      unsigned int const& walk_length,
-                      RandomNumberGenerator &rng)
-    {
-        for (auto j=0u; j<walk_length; ++j)
-        {
-            Point y = GetPointInDsphere<Point>::apply(P.dimension(),
-                                                      _delta,
-                                                      rng);
-            y += p;
-            if (P.is_in(y) == -1)
-            {
-                NT f_x = eval_exp(p, a_i);
-                NT f_y = eval_exp(y, a_i);
-                NT rnd = rng.sample_urdist();
-                if (rnd <= f_y / f_x) {
-                    p = y;
-                }
-            }
-        }
-    }
-
-    inline void update_delta(NT delta)
-    {
-        _delta = delta;
-    }
-
-private :
-    NT _delta;
-};
-
-};
-
-// random directions hit-and-run walk with spherical Gaussian target distribution
-struct GaussianRDHRWalk
-{
-
-    struct parameters {};
-    parameters param;
-
-template
-<
-    typename Polytope,
-    typename RandomNumberGenerator
->
-struct Walk
-{
-    typedef typename Polytope::PointType Point;
-    typedef typename Point::FT NT;
-
-    Walk(Polytope const&, Point &, NT const&, RandomNumberGenerator &)
-    {}
-
-    Walk(Polytope const&, Point &, NT const&, RandomNumberGenerator &, parameters &)
-    {}
-
-    template
-    <
-        typename BallPolytope
-    >
-    inline void apply(BallPolytope const& P,
-                      Point &p,   // a point to start
-                      NT const& a_i,
-                      unsigned int const& walk_length,
-                      RandomNumberGenerator &rng)
-    {
-        for (auto j=0u; j<walk_length; ++j)
-        {
-            Point v = GetDirection<Point>::apply(p.dimension(), rng);
-            std::pair <NT, NT> dbpair = P.line_intersect(p, v);
-
-            NT min_plus = dbpair.first;
-            NT max_minus = dbpair.second;
-            Point upper = (min_plus * v) + p;
-            Point lower = (max_minus * v) + p;
-
-            chord_random_point_generator_exp(lower, upper, a_i, p, rng);
-        }
-    }
-};
-
-};
-
-// coordinate directions hit-and-run walk with spherical Gaussian target distribution
-struct GaussianCDHRWalk
-{
-
-    struct parameters {};
-    parameters param;
-
-template
-<
-    typename Polytope,
-    typename RandomNumberGenerator
->
-struct Walk
-{
-    typedef typename Polytope::PointType Point;
-    typedef typename Point::FT NT;
-    typedef Ball<Point> BallType;
-    typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
-
-    Walk(Polytope const& P, Point & p, NT const& a_i, RandomNumberGenerator &rng)
-    {
-        initialize(P, p, a_i, rng);
-    }
-
-    Walk(Polytope const& P, Point & p, NT const& a_i, RandomNumberGenerator &rng, parameters &)
-    {
-        initialize(P, p, a_i, rng);
-    }
-
-    template
-    <
-        typename BallPolytope
-    >
-    inline void apply(BallPolytope const& P,
-                      Point &p,   // a point to start
-                      NT const& a_i,
-                      unsigned int const& walk_length,
-                      RandomNumberGenerator &rng)
-    {
-        for (auto j=0u; j<walk_length; ++j)
-        {
-            auto rand_coord_prev = _rand_coord;
-            _rand_coord = rng.sample_uidist();
-            std::pair <NT, NT> bpair =
-                    P.line_intersect_coord(_p, _p_prev, _rand_coord,
-                                           rand_coord_prev, _lamdas);
-            NT dis = chord_random_point_generator_exp_coord
-                        (_p[_rand_coord] + bpair.second,
-                         _p[_rand_coord] + bpair.first,
-                         a_i,
-                         rng);
-            _p_prev = _p;
-            _p.set_coord(_rand_coord, dis);
-            /*
-            auto rand_coord_prev = _rand_coord;
-            _rand_coord = rng.sample_uidist();
-            NT kapa = rng.sample_urdist();
-            std::pair<NT, NT> bpair = P.line_intersect_coord(_p,
-                                                             _p_prev,
-                                                             _rand_coord,
-                                                             rand_coord_prev,
-                                                             _lamdas);
-            _p_prev = _p;
-            _p.set_coord(_rand_coord, _p[_rand_coord] + bpair.first + kapa
-                         * (bpair.second - bpair.first));
-            */
-        }
-        p = _p;
-    }
-
-private :
-
-    template <typename BallPolytope>
-    inline void initialize(BallPolytope const& P,
-                           Point &p,
-                           NT const& a_i,
-                           RandomNumberGenerator &rng)
-    {
-        _lamdas.setZero(P.num_of_hyperplanes());
-        _rand_coord = rng.sample_uidist();//(rng2);
-        _p = p;
-        std::pair <NT, NT> bpair = P.line_intersect_coord(_p, _rand_coord, _lamdas);
-        NT dis = chord_random_point_generator_exp_coord
-                    (_p[_rand_coord] + bpair.second,
-                     _p[_rand_coord] + bpair.first,
-                     a_i, rng);
-        _p_prev = p;
-        _p.set_coord(_rand_coord, dis);
-        /*
-        _lamdas.setZero(P.num_of_hyperplanes());
-        _rand_coord = rng.sample_uidist();
-        NT kapa = rng.sample_urdist();
-        _p = p;
-        std::pair<NT, NT> bpair = P.line_intersect_coord(_p, _rand_coord, _lamdas);
-        _p_prev = _p;
-        _p.set_coord(_rand_coord, _p[_rand_coord] + bpair.first + kapa
-                    * (bpair.second - bpair.first));
-        */
-    }
-
-    unsigned int _rand_coord;
-    Point _p;
-    Point _p_prev;
-    typename Point::Coeff _lamdas;
-};
-
-};
 
 /////////////////// Helpers for random walks
 
@@ -385,94 +58,9 @@ struct update_delta<GaussianBallWalk::Walk<Polytope, RandomNumberGenerator>>
     }
 };
 
-template <typename Polytope, typename RandomNumberGenerator>
-struct update_delta<BilliardWalk::Walk<Polytope, RandomNumberGenerator>>
-{
-    template <typename NT>
-    static void apply(BilliardWalk::Walk<Polytope, RandomNumberGenerator> walk,
-                      NT L)
-    {
-        walk.update_delta(L);
-    }
-};
-
-
-////////////////////////////// Random Point Generators
-///
-
-template
-<
-    typename Walk
->
-struct GaussianRandomPointGenerator
-{
-    template
-    <
-        typename Polytope,
-        typename Point,
-        typename NT,
-        typename PointList,
-        typename WalkPolicy,
-        typename RandomNumberGenerator
-    >
-    static void apply(Polytope const& P,
-                      Point &p,   // a point to start
-                      NT const& a_i,
-                      unsigned int const& rnum,
-                      unsigned int const& walk_length,
-                      PointList &randPoints,
-                      WalkPolicy &policy,
-                      RandomNumberGenerator &rng)
-    {
-        Walk walk(P, p, a_i, rng);
-        //update_delta<Walk>
-        //        ::apply(walk, 4.0 * P.InnerBall().second
-        //                / std::sqrt(std::max(NT(1.0), a_i) * NT(P.dimension())));
-
-        for (unsigned int i=0; i<rnum; ++i)
-        {
-            walk.template apply(P, p, a_i, walk_length, rng);
-            policy.apply(randPoints, p);
-        }
-    }
-
-    template
-            <
-                    typename Polytope,
-                    typename Point,
-                    typename NT,
-                    typename PointList,
-                    typename WalkPolicy,
-                    typename RandomNumberGenerator,
-                    typename Parameters
-            >
-    static void apply(Polytope const& P,
-                      Point &p,   // a point to start
-                      NT const& a_i,
-                      unsigned int const& rnum,
-                      unsigned int const& walk_length,
-                      PointList &randPoints,
-                      WalkPolicy &policy,
-                      RandomNumberGenerator &rng,
-                      Parameters const& parameters)
-    {
-        Walk walk(P, p, a_i, rng, parameters);
-        //update_delta<Walk>
-        //::apply(walk, 4.0 * P.InnerBall().second
-          //            / std::sqrt(std::max(NT(1.0), a_i) * NT(P.dimension())));
-
-        for (unsigned int i=0; i<rnum; ++i)
-        {
-            walk.template apply(P, p, a_i, walk_length, rng);
-            policy.apply(randPoints, p);
-        }
-    }
-};
-
 
 ////////////////////////////// Algorithms
 
-///////////////////////////////////////////
 // Gaussian Anealling
 
 // Implementation is based on algorithm from paper "A practical volume algorithm",
@@ -509,7 +97,8 @@ void get_first_gaussian(Polytope const& P,
                         std::vector<NT> & a_vals)
 {
     // if tol is smaller than 1e-6 no convergence can be obtained when float is used
-    NT tol = eqTypes<float, NT>() ? 0.001 : 0.0000001;
+    NT tol = std::is_same<float, NT>::value ? 0.001 : 0.0000001;
+
     std::vector <NT> dists = P.get_dists(chebychev_radius);
     NT lower = 0.0;
     NT upper = 1.0;
@@ -732,10 +321,10 @@ template
     typename RandomNumberGenerator,
     typename Polytope
 >
-double volume_gaussian_annealing(Polytope const& Pin,
-                                 RandomNumberGenerator &rng,
-                                 double const& error = 0.1,
-                                 unsigned int const& walk_length = 1)
+double volume_cooling_gaussians(Polytope const& Pin,
+                                RandomNumberGenerator& rng,
+                                double const& error = 0.1,
+                                unsigned int const& walk_length = 1)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
@@ -898,18 +487,18 @@ double volume_gaussian_annealing(Polytope const& Pin,
 
 
 template
-        <
-                typename WalkTypePolicy,
-                typename RandomNumberGenerator,
-                typename Polytope
-        >
-double volume_gaussian_annealing(Polytope const& Pin,
+<
+    typename WalkTypePolicy = GaussianCDHRWalk,
+    typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
+    typename Polytope
+>
+double volume_cooling_gaussians(Polytope const& Pin,
                                  double const& error = 0.1,
                                  unsigned int const& walk_length = 1)
 {
     RandomNumberGenerator rng(Pin.dimension());
-    return volume_gaussian_annealing<WalkTypePolicy>(Pin, rng, error, walk_length);
+    return volume_cooling_gaussians<WalkTypePolicy>(Pin, rng, error, walk_length);
 }
 
 
-#endif
+#endif // VOLUME_COOLING_GAUSSIANS_HPP
