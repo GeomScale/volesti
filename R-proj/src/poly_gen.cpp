@@ -46,7 +46,7 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
     typedef typename Kernel::Point Point;
     typedef boost::mt19937 RNGType;
     typedef HPolytope <Point> Hpolytope;
-    typedef VPolytope <Point, RNGType> Vpolytope;
+    typedef VPolytope <Point> Vpolytope;
     typedef Zonotope <Point> zonotope;
 
     double seed2 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);

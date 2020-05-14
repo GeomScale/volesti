@@ -11,10 +11,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "vpolyintersectvpoly.h"
+#include "new_volume.hpp"
 
 //' Compute an inscribed ball of a convex polytope
 //'
@@ -41,18 +38,16 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
-    typedef boost::mt19937    RNGType;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     typedef HPolytope<Point> Hpolytope;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point> Vpolytope;
     typedef Zonotope<Point> zonotope;
-    typedef IntersectionOfVpoly<Vpolytope> InterVP;
+    typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    unsigned int n = P.field("dimension");
+    unsigned int n = P.field("dimension"), type = P.field("type");
 
     std::pair <Point, NT> InnerBall;
-
-    int type = P.field("type");
 
     switch (type) {
         case 1: {

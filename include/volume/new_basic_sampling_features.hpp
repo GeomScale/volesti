@@ -46,6 +46,10 @@ struct BoostRandomNumberGenerator<RNGType, NT>
         return _ndist(_rng);
     }
 
+    void set_seed(unsigned rng_seed){
+        _rng.seed(rng_seed);
+    }
+
 private :
     RNGType _rng;
     boost::random::uniform_real_distribution<NT> _urdist;
@@ -77,6 +81,10 @@ struct BoostRandomNumberGenerator<RNGType, NT, Seed>
     NT sample_ndist()
     {
         return _ndist(_rng);
+    }
+
+    void set_seed(unsigned rng_seed){
+        _rng.seed(rng_seed);
     }
 
 private :
@@ -178,6 +186,20 @@ struct GetPointInDsphere
     }
 };
 
+template <typename Point>
+struct GetPointOnDsphere
+{
+    template <typename NT, typename RandomNumberGenerator>
+    inline static Point apply(unsigned int const& dim,
+                              NT const& radius,
+                              RandomNumberGenerator &rng)
+    {
+        Point p = GetDirection<Point>::apply(dim, rng);
+        if (radius != 0) p *= radius;
+        return p;
+    }
+};
+
 
 ////////////////////////////// Random Point Generators
 ///
@@ -188,6 +210,30 @@ template
         >
 struct RandomPointGenerator
 {
+    template
+            <
+                    typename Polytope,
+                    typename Point,
+                    typename PointList,
+                    typename WalkPolicy,
+                    typename RandomNumberGenerator
+            >
+    static void apply(Polytope& P,
+                      Point &p,   // a point to start
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      PointList &randPoints,
+                      WalkPolicy &policy,
+                      RandomNumberGenerator &rng)
+    {
+        Walk walk(P, p, rng, parameters);
+        for (unsigned int i=0; i<rnum; ++i)
+        {
+            walk.template apply(P, p, walk_length, rng);
+            policy.apply(randPoints, p);
+        }
+    }
+
     template
             <
                     typename Polytope,

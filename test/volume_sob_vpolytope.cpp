@@ -9,6 +9,10 @@
 #include <fstream>
 #include <iostream>
 #include "misc.h"
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
 #include "new_volume.hpp"
 #include "known_polytope_generators.h"
 

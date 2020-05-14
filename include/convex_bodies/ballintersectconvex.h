@@ -90,7 +90,7 @@ public:
         comp_diam(diam);
     }
 
-    NT radius() {
+    NT radius() const {
         return B.radius();
     }
 

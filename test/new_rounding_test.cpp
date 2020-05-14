@@ -9,6 +9,10 @@
 #include <fstream>
 #include <iostream>
 #include "misc.h"
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
 #include "new_volume.hpp"
 #include "new_gaussian_volume.hpp"
 #include "new_cooling_balls.hpp"
@@ -51,7 +55,7 @@ void rounding_test(Polytope &HP,
     RNGType rng(d);
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::pair< std::pair<MT, VT>, NT > res = round_polytope<CDHRWalk, RNGType, MT, VT>(HP, InnerBall, 10 + 10 * d, rng);
+    std::pair< std::pair<MT, VT>, NT > res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, 10 + 10 * d, rng);
 
     // Setup the parameters
     int walk_len = 1;

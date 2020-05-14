@@ -9,6 +9,10 @@
 #include <fstream>
 #include <iostream>
 #include "misc.h"
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
 #include "new_volume.hpp"
 #include "new_gaussian_volume.hpp"
 #include "new_cooling_balls.hpp"

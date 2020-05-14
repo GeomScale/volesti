@@ -15,7 +15,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "samplers.h"
+#include "new_volume.hpp"
 #include "simplex_samplers.h"
 
 
@@ -30,6 +30,7 @@
 //' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
 //' }
 //' @param n The number of points that the function is going to sample.
+//' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @references \cite{R.Y. Rubinstein and B. Melamed,
 //' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
@@ -43,18 +44,35 @@
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body = R_NilValue,
-                                  Rcpp::Nullable<unsigned int> n = R_NilValue) {
+                                    Rcpp::Nullable<unsigned int> n = R_NilValue,
+                                    Rcpp::Nullable<double> seed = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
+    typedef boost::mt19937 RNGType2;
     typedef typename Kernel::Point Point;
-    typedef boost::mt19937 RNGType;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
 
     int dim, numpoints;
     NT radius = 1.0;
     std::list<Point> randPoints;
+
+    if (!Rcpp::as<Rcpp::List>(body).containsElementNamed("dimension")) {
+        throw Rcpp::exception("Dimension has to be given as input!");
+    }
+    dim = Rcpp::as<int>(Rcpp::as<Rcpp::List>(body)["dimension"]);
+    if (dim <=1) throw Rcpp::exception("Dimension has to be larger than 1!");
+    RNGType rng(dim);
+
+    if (seed.isNotNull()) {
+        unsigned seed2 = std::chrono::system_clock::now().time_since_epoch().count();
+        std::cout<<"seed = "<<seed2<<std::endl;
+        rng.set_seed(seed2);
+    }
+    double seed3 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
+    //RNGType rng2(5);
 
     numpoints = (!n.isNotNull()) ? 100 : Rcpp::as<unsigned int>(n);
 
@@ -66,13 +84,8 @@ Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body = R_NilValue
     }
 
     if (body.isNotNull()) {
-        if (!Rcpp::as<Rcpp::List>(body).containsElementNamed("dimension")) {
 
-            throw Rcpp::exception("Dimension has to be given as input!");
 
-        }
-        dim = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(body)["dimension"]);
-        if (dim <=1) throw Rcpp::exception("Dimension has to be larger than 1!");
         if (Rcpp::as<Rcpp::List>(body).containsElementNamed("radius")) {
 
             radius = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(body)["radius"]);
@@ -84,25 +97,26 @@ Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body = R_NilValue
             throw Rcpp::exception("The kind of body has to be given as input!");
 
         }
+        //RNGType rng(dim);
         if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("hypersphere"))==0) {
 
             for (unsigned int k = 0; k < numpoints; ++k) {
-                randPoints.push_back(get_point_on_Dsphere<RNGType , Point >(dim, radius));
+                randPoints.push_back(GetPointOnDsphere<Point>::apply(dim, radius, rng));
             }
 
         } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("ball"))==0) {
 
             for (unsigned int k = 0; k < numpoints; ++k) {
-                randPoints.push_back(get_point_in_Dsphere<RNGType , Point >(dim, radius));
+                randPoints.push_back(GetPointInDsphere<Point>::apply(dim, radius, rng));
             }
 
         } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("unit_simplex"))==0) {
 
-            Sam_Unit<NT, RNGType >(dim, numpoints, randPoints);
+            Sam_Unit<NT, RNGType2 >(dim, numpoints, randPoints, seed3);
 
         } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("canonical_simplex"))==0) {
 
-            Sam_Canon_Unit<NT, RNGType >(dim, numpoints, randPoints);
+            Sam_Canon_Unit<NT, RNGType2 >(dim, numpoints, randPoints, seed3);
 
         } else {
 

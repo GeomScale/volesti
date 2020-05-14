@@ -22,15 +22,23 @@
 #define SIMPLEX_SAMPLERS_H
 
 template <typename NT, typename RNGType, typename Point>
-void Sam_Unit(unsigned int dim, unsigned int num, std::list<Point> &points){
+void Sam_Unit(unsigned int dim, unsigned int num, std::list<Point> &points,
+              double seed = std::numeric_limits<double>::signaling_NaN()){
 
     unsigned int j,i,x_rand,M=2147483647,pr,divisors,pointer;  // M is the largest possible integer
     std::vector<unsigned int> x_vec;
     std::vector<NT> y;
 
     boost::random::uniform_int_distribution<> uidist(1,M);
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!std::isnan(seed)) {
+        std::cout<<"seed = "<<seed<<std::endl;
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
 
     if (dim<=60){
 
@@ -154,7 +162,8 @@ void Sam_Unit(unsigned int dim, unsigned int num, std::list<Point> &points){
 }
 
 template <typename NT, typename RNGType, typename Point>
-void Sam_Canon_Unit(unsigned int dim, unsigned int num, std::list<Point> &points){
+void Sam_Canon_Unit(unsigned int dim, unsigned int num, std::list<Point> &points,
+                    double seed = std::numeric_limits<double>::signaling_NaN()){
 
     unsigned int j,i,x_rand,M=2147483647,pointer;  // M is the largest possible integer
     //std::vector<int> x_vec;
@@ -162,8 +171,15 @@ void Sam_Canon_Unit(unsigned int dim, unsigned int num, std::list<Point> &points
     dim--;
     boost::random::uniform_int_distribution<> uidist(1,M);
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(seed);
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!std::isnan(seed)) {
+        std::cout<<"seed = "<<seed<<std::endl;
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
+    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    //RNGType rng(seed);
 
     std::vector<NT> x_vec2;
     NT Ti,sum;
