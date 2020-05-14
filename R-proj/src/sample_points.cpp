@@ -14,8 +14,8 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "new_volume.hpp"
-#include "new_gaussian_volume.hpp"
+#include "volume_sequence_of_balls.hpp"
+#include "volume_cooling_gaussians.hpp"
 #include "sample_only.h"
 
 template <typename Polytope, typename RNGType, typename PointList, typename NT, typename Point>

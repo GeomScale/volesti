@@ -1,7 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2020 Vissarion Fisikopoulos
-// Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2018-2020 Apostolos Chalkis
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -13,10 +13,14 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-#include "new_volume.hpp"
-#include "new_gaussian_volume.hpp"
-#include "new_cooling_balls.hpp"
-#include "new_cooling_hpoly.hpp"
+
+#include "random_walks/random_walks.hpp"
+
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
+#include "volume/volume_cooling_hpoly.hpp"
+
 #include "exact_vols.h"
 #include "z_polytopes_gen.h"
 
@@ -35,11 +39,11 @@ void test_values(NT volume, NT expected, NT exact)
               << std::abs((volume-expected)/expected) << std::endl;
     std::cout << "Relative error (exact) = "
               << std::abs((volume-exact)/exact) << std::endl;
-            CHECK(std::abs((volume - exact)/exact) < 0.12);
+    CHECK(std::abs((volume - expected)/expected) < 0.1);
 }
 
 template <class Polytope>
-void test_volume(Polytope &P,
+void test_volume_hpoly(Polytope &P,
                  double const& expectedBall,
                  double const& expectedCDHR,
                  double const& expectedRDHR,
@@ -72,8 +76,28 @@ void test_volume(Polytope &P,
     P.init(P.dimension(), P.get_mat(), P.get_vec());
     volume = volume_cooling_hpoly<BilliardWalk, RNGType, Hpolytope>(P, e, walk_len);
     test_values(volume, expectedBilliard, exact);
+}
 
-    //cooling balls//
+template <class Polytope>
+void test_volume_balls(Polytope &P,
+                       double const& expectedBall,
+                       double const& expectedCDHR,
+                       double const& expectedRDHR,
+                       double const& expectedBilliard,
+                       double const& exact)
+{
+    typedef typename Polytope::PointType Point;
+    typedef typename Point::FT NT;
+    typedef HPolytope<Point> Hpolytope;
+
+    // Setup the parameters
+    int walk_len = 1;
+    NT e = 0.1, volume;
+
+    // Estimate the volume
+    std::cout << "Number type: " << typeid(NT).name() << std::endl;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
+
     P.init(P.dimension(), P.get_mat(), P.get_vec());
     volume = volume_cooling_balls<CDHRWalk, RNGType>(P, e, walk_len);
     test_values(volume, expectedCDHR, exact);
@@ -87,6 +111,7 @@ void test_volume(Polytope &P,
     test_values(volume, expectedBilliard, exact);
 }
 
+
 template <typename NT>
 void call_test_uniform_generator(){
     typedef Cartesian<NT>    Kernel;
@@ -97,11 +122,23 @@ void call_test_uniform_generator(){
 
     P = gen_zonotope_uniform<zonotope, RNGType>(5, 10, 127);
     NT exact_vol = exact_zonotope_vol<NT>(P);
-    test_volume(P, exact_vol, exact_vol, exact_vol, exact_vol, exact_vol);
+    test_volume_hpoly(P, exact_vol, exact_vol, exact_vol, exact_vol, exact_vol);
+    test_volume_balls(P, exact_vol, exact_vol, exact_vol, exact_vol, exact_vol);
 
     P = gen_zonotope_uniform<zonotope, RNGType>(10, 15, 211);
     exact_vol = exact_zonotope_vol<NT>(P);
-    test_volume(P, exact_vol, exact_vol, exact_vol, exact_vol, exact_vol);
+    test_volume_hpoly(P,
+                      0,
+                      6.35348 * std::pow(10,20),
+                      6.46196 * std::pow(10,20),
+                      5.98586 * std::pow(10,20),
+                      exact_vol);
+    test_volume_balls(P,
+                      0,
+                      7.41071 * std::pow(10,20),
+                      7.64101 * std::pow(10,20),
+                      5.3287 * std::pow(10,20),
+                      exact_vol);
 }
 
 

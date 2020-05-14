@@ -66,7 +66,7 @@ double HPolytopeCPP::compute_volume(char* method, int walk_len, double epsilon, 
          urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
       vars_g<NT, RNGType> var2_GA(n,walk_len,N,W,1,epsilon,CheBall.second,rng,C,0.1,ratio,-1,false,
          false,false,false,false,false,false,true,false);
-      vol = volume_gaussian_annealing(HP_copy, var2_GA, var1_GA, CheBall);
+      vol = volume_cooling_gaussians(HP_copy, var2_GA, var1_GA, CheBall);
    }
    return (double)vol;
 }

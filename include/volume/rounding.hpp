@@ -1,15 +1,15 @@
 // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
-
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef NEW_ROUNDING_H
-#define NEW_ROUNDING_H
+#ifndef ROUNDING_HPP
+#define ROUNDING_HPP
 
 #include "khach.h"
+#include "samplers/random_point_generators.hpp"
 
 template <
         typename WalkTypePolicy,
@@ -114,4 +114,4 @@ std::pair< std::pair<MT, VT>, NT >  round_polytope(Polytope &P, std::pair<Point,
     return std::pair< std::pair<MT, VT>, NT > (std::pair<MT, VT>(T, shift), round_val);
 }
 
-#endif
+#endif // ROUNDING_HPP

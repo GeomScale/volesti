@@ -14,16 +14,13 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-#include "volume.h"
-#include "new_volume.hpp"
-#include "new_gaussian_volume.hpp"
-#include "new_cooling_balls.hpp"
-#include "rotating.h"
-#include "misc.h"
-#include "linear_extensions.h"
-#include "cooling_balls.h"
-//#include "cooling_hpoly.h"
-#include "sample_only.h"
+
+#include "random_walks/random_walks.hpp"
+
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
+
 #include "exact_vols.h"
 #include "generators/known_polytope_generators.h"
 
@@ -96,6 +93,8 @@ int main()
               << volume_cooling_balls<BilliardWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
+#ifdef VOLESTI_OLD_IMPLEMENTATION
+
     // OLD Implementation
 
     NT diameter;
@@ -150,6 +149,7 @@ int main()
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
+#endif
 
     ////////////////////////////////////////////////////////////////
     /// V-Polytopes
@@ -190,6 +190,8 @@ int main()
     std::cout << "Blrd (cross) = "
               << volume_cooling_balls<BilliardWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+#ifdef VOLESTI_OLD_IMPLEMENTATION
 
     // OLD Implementation
 
@@ -250,7 +252,7 @@ int main()
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
 
-
+#endif
 
     return 0;
 }

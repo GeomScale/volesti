@@ -13,9 +13,13 @@
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-#include "new_volume.hpp"
-#include "new_gaussian_volume.hpp"
-#include "new_cooling_balls.hpp"
+
+#include "random_walks/random_walks.hpp"
+
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
+
 #include "known_polytope_generators.h"
 
 template <typename NT>
@@ -33,7 +37,7 @@ void test_values(NT volume, NT expected, NT exact)
               << std::abs((volume-expected)/expected) << std::endl;
     std::cout << "Relative error (exact) = "
               << std::abs((volume-exact)/exact) << std::endl;
-            CHECK(std::abs((volume - expected)/expected) < 0.2);
+    CHECK(std::abs((volume - expected)/expected) < 0.01);
 }
 
 template <class Polytope>
@@ -89,18 +93,21 @@ void call_test_skinny_cubes() {
     typedef HPolytope <Point> Hpolytope;
     Hpolytope P;
 
-    std::cout << "\n--- Testing rounding of H-skinny_cube10" << std::endl;
+    std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
     P = gen_skinny_cube<Hpolytope>(5);
-    rounding_test(P, 3200.0, 3200.0, 3200.0, 3200.0, 3200.0);
+    rounding_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
 
     std::cout << "\n--- Testing rounding of H-skinny_cube10" << std::endl;
     P = gen_skinny_cube<Hpolytope>(10);
-    rounding_test(P, 102400.0, 102400.0, 102400.0, 102400.0, 102400.0);
+    rounding_test(P, 0, 101895, 100779.0, 105003.0, 102400.0);
 
     std::cout << "\n--- Testing rounding of H-skinny_cube20" << std::endl;
     P = gen_skinny_cube<Hpolytope>(20);
-    rounding_test(P, 104857600.0, 104857600.0, 104857600.0, 104857600.0, 104857600.0);
-
+    rounding_test(P, 0,
+                  8.26497 * std::pow(10,7),
+                  9.37982 * std::pow(10,7),
+                  1.02958 * std::pow(10,8),
+                  104857600.0);
 }
 
 

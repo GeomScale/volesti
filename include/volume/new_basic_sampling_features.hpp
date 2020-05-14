@@ -1,8 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2018 Vissarion Fisikopoulos
-
-// Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
@@ -11,6 +10,7 @@
 #ifndef NEW_BASIC_SAMPLING_FEATURES_H
 #define NEW_BASIC_SAMPLING_FEATURES_H
 
+#include <chrono>
 
 /////////////////// Random numbers generator
 ///
@@ -199,100 +199,6 @@ struct GetPointOnDsphere
         return p;
     }
 };
-
-
-////////////////////////////// Random Point Generators
-///
-
-template
-        <
-                typename Walk
-        >
-struct RandomPointGenerator
-{
-    template
-            <
-                    typename Polytope,
-                    typename Point,
-                    typename PointList,
-                    typename WalkPolicy,
-                    typename RandomNumberGenerator
-            >
-    static void apply(Polytope& P,
-                      Point &p,   // a point to start
-                      unsigned int const& rnum,
-                      unsigned int const& walk_length,
-                      PointList &randPoints,
-                      WalkPolicy &policy,
-                      RandomNumberGenerator &rng)
-    {
-        Walk walk(P, p, rng, parameters);
-        for (unsigned int i=0; i<rnum; ++i)
-        {
-            walk.template apply(P, p, walk_length, rng);
-            policy.apply(randPoints, p);
-        }
-    }
-
-    template
-            <
-                    typename Polytope,
-                    typename Point,
-                    typename PointList,
-                    typename WalkPolicy,
-                    typename RandomNumberGenerator
-            >
-    static void apply(Polytope& P,
-                      Point &p,   // a point to start
-                      unsigned int const& rnum,
-                      unsigned int const& walk_length,
-                      PointList &randPoints,
-                      WalkPolicy &policy,
-                      RandomNumberGenerator &rng)
-    {
-        Walk walk(P, p, rng);
-        for (unsigned int i=0; i<rnum; ++i)
-        {
-            walk.template apply(P, p, walk_length, rng);
-            policy.apply(randPoints, p);
-        }
-    }
-};
-
-
-template
-        <
-                typename Walk
-        >
-struct BoundaryRandomPointGenerator
-{
-    template
-            <
-                    typename Polytope,
-                    typename Point,
-                    typename PointList,
-                    typename WalkPolicy,
-                    typename RandomNumberGenerator
-            >
-    static void apply(Polytope const& P,
-                      Point &p,   // a point to start
-                      unsigned int const& rnum,
-                      unsigned int const& walk_length,
-                      PointList &randPoints,
-                      WalkPolicy &policy,
-                      RandomNumberGenerator &rng)
-    {
-        Walk walk(P, p, rng);
-        Point p1(P.dimension()), p2(P.dimension());
-        for (unsigned int i=0; i<rnum/2; ++i)
-        {
-            walk.template apply(P, p1, p2, walk_length, rng);
-            policy.apply(randPoints, p1);
-            policy.apply(randPoints, p2);
-        }
-    }
-};
-
 
 
 

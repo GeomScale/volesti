@@ -11,10 +11,10 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "new_volume.hpp"
-#include "new_gaussian_volume.hpp"
-#include "new_cooling_balls.hpp"
-#include "new_cooling_hpoly.hpp"
+#include "volume_sequence_of_balls.hpp"
+#include "volume_cooling_gaussians.hpp"
+#include "volume_cooling_balls.hpp"
+#include "volume_cooling_hpoly.hpp"
 
 //' An internal Rccp function for the over-approximation of a zonotope
 //'
