@@ -77,18 +77,18 @@ int main()
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
-              << volume_gaussian_annealing<GaussianBallWalk>(HP, e, walk_len) << " , ";
+              << volume_gaussian_annealing<GaussianBallWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHRWalk (cube) = "
-              << volume_gaussian_annealing<GaussianCDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_gaussian_annealing<GaussianCDHRWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHRWalk (cube) = "
-              << volume_gaussian_annealing<GaussianRDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_gaussian_annealing<GaussianRDHRWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     // OLD Implementation

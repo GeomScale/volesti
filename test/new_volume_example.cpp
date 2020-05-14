@@ -36,18 +36,19 @@ int main()
     typedef HPolytope<Point> Hpolytope;
     typedef VPolytope<Point> Vpolytope;
 
+
+    typedef BoostRandomNumberGenerator<boost::mt11213b, NT> RNG;
     Hpolytope HPoly = gen_cube<Hpolytope>(10, false);
     BallWalk BW(3);
 
     // Estimate the volume
-    double tstart;
-    VPolytope<Point> VP2 = VP;
 
-    VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
-    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    //VPolytope<Point> VP2 = VP;
+
+    //VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball (cross) = "
-              << volume_cooling_balls<BallWalk>(VP) << " , ";
-
+              << volume_cooling_balls<BallWalk, RNG>(HPoly) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     return 0;

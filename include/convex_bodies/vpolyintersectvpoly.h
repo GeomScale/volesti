@@ -83,6 +83,10 @@ public:
         return NT(0);
     }
 
+    int num_of_generators() const {
+        return 0;
+    }
+
     //std::vector<Point> get_vertices() const {
     //    return vecV;
     //}
@@ -310,7 +314,7 @@ public:
         P2.linear_transformIt(T);
     }
 
-    std::vector<NT> get_dists(const NT &radius) {
+    std::vector<NT> get_dists(const NT &radius) const {
         std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }

@@ -87,6 +87,10 @@ public:
         return A.rows();
     }
 
+    int num_of_generators() const {
+        return 0;
+    }
+
 
     // return the matrix A
     MT get_mat() const {

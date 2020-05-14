@@ -17,10 +17,10 @@
 #include <math.h>
 #include <chrono>
 
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
+//#include "random.hpp"
+//#include "random/uniform_int.hpp"
+//#include "random/normal_distribution.hpp"
+//#include "random/uniform_real_distribution.hpp"
 
 #include "cartesian_geom/cartesian_kernel.h"
 //#include "vars.h"
@@ -33,16 +33,13 @@
 #include "zonoIntersecthpoly.h"
 #include "vpolyintersectvpoly.h"
 #include "new_rounding.hpp"
-#include "samplers.h"
-#include "rounding.h"
-#include "gaussian_samplers.h"
-#include "gaussian_annealing.h"
+//#include "samplers.h"
+//#include "rounding.h"
+//#include "gaussian_samplers.h"
+//#include "gaussian_annealing.h"
 
 
 #include "khach.h"
-
-
-
 
 
 /////////////////// Random Walks
@@ -51,15 +48,20 @@
 struct BallWalk
 {
     BallWalk(double L)
-        :   param(L)
+        :   param(L, true)
+    {}
+
+    BallWalk()
+            :   param(0, false)
     {}
 
     struct parameters
     {
-        parameters(double L)
-            :   m_L(L)
+        parameters(double L, bool set)
+            :   m_L(L), set_delta(set)
         {}
         double m_L;
+        bool set_delta;
     };
 
     parameters param;
@@ -79,30 +81,70 @@ struct BallWalk
         typedef Zonotope<Point> zonotope;
         typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
 
-        Walk (Polytope const&, Point&, RandomNumberGenerator&) {}
-        Walk (BallPolytope const&, Point &, RandomNumberGenerator &) {}
-        Walk (BallType const&, Point &, RandomNumberGenerator &) {}
-        Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &) {}
+        Walk (Polytope const& P, Point&, RandomNumberGenerator&) {
+            _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+        }
 
-        template<typename BallPolytope, typename Parameters>
+        Walk (BallPolytope const& P, Point &, RandomNumberGenerator &) {
+            _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+        }
+
+        Walk (BallType const&, Point &, RandomNumberGenerator &) {}
+
+        Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &) {
+            _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+        }
+
+        Walk (Polytope const& P, Point&, RandomNumberGenerator&, parameters const& params) {
+            if (params.set_delta) {
+                _delta = params.m_L;
+            } else {
+                _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+            }
+        }
+        Walk (BallPolytope const& P, Point &, RandomNumberGenerator &, parameters const& params) {
+            if (params.set_delta) {
+                _delta = params.m_L;
+            } else {
+                _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+            }
+        }
+        Walk (BallType const&, Point &, RandomNumberGenerator &, parameters &) {}
+
+        Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &, parameters const& params) {
+            if (params.set_delta) {
+                _delta = params.m_L;
+            } else {
+                _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+            }
+        }
+
+        template<typename BallPolytope>
         inline void apply(BallPolytope const& P,
                           Point &p,   // a point to start
                           unsigned int const& walk_length,
-                          RandomNumberGenerator &rng,
-                          Parameters const& parameters)
+                          RandomNumberGenerator &rng)
         {
-            const NT delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+            //const NT delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
 
             for (auto j=0u; j<walk_length; ++j)
             {
                 Point y = GetPointInDsphere<Point>::apply(P.dimension(),
-                                                          delta,
+                                                          _delta,
                                                           rng);
                 y += p;
                 if (P.is_in(y) == -1) p = y;
             }
             //std::cout << "use" << parameters.m_L << std::endl;
         }
+
+        inline void update_delta(NT delta)
+        {
+            _delta = delta;
+        }
+
+    private:
+        double _delta;
     };
 
 };
@@ -111,6 +153,8 @@ struct BallWalk
 // random directions hit-and-run walk with uniform target distribution
 struct RDHRWalk
 {
+    struct parameters {};
+    parameters param;
 
 template
 <
@@ -127,22 +171,39 @@ struct Walk
     typedef Zonotope<Point> zonotope;
     typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
 
-    Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng)
+    Walk(Polytope const& P, Point &p, RandomNumberGenerator &rng)
     {
         initialize(P, p, rng);
     }
 
-    Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng)
+    Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng)
     {
         initialize(P, p, rng);
     }
 
-    Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng)
+    Walk(ZonoHPoly const& P, Point &p, RandomNumberGenerator &rng)
     {
         initialize(P, p, rng);
     }
 
     Walk (BallType const&, Point &, RandomNumberGenerator &) {}
+
+    Walk(Polytope const& P, Point &p, RandomNumberGenerator &rng, parameters &)
+    {
+        initialize(P, p, rng);
+    }
+
+    Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng, parameters &)
+    {
+        initialize(P, p, rng);
+    }
+
+    Walk(ZonoHPoly const& P, Point &p, RandomNumberGenerator &rng, parameters &)
+    {
+        initialize(P, p, rng);
+    }
+
+    Walk (BallType const&, Point &, RandomNumberGenerator &, parameters &) {}
 
     template
     <
@@ -192,6 +253,8 @@ private :
 // random directions hit-and-run walk with uniform target distribution
 struct CDHRWalk
 {
+    struct parameters {};
+    parameters param;
 
 template
 <
@@ -208,22 +271,39 @@ struct Walk
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
     typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
 
-    Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng)
+    Walk(Polytope const& P, Point &p, RandomNumberGenerator &rng)
     {
         initialize(P, p, rng);
     }
 
-    Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng)
+    Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng)
     {
         initialize(P, p, rng);
     }
 
-    Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng)
+    Walk(ZonoHPoly const& P, Point &p, RandomNumberGenerator &rng)
     {
         initialize(P, p, rng);
     }
 
     Walk (BallType const&, Point &, RandomNumberGenerator &) {}
+
+    Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
+    {
+        initialize(P, p, rng);
+    }
+
+    Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
+    {
+        initialize(P, p, rng);
+    }
+
+    Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
+    {
+        initialize(P, p, rng);
+    }
+
+    Walk (BallType const&, Point &, RandomNumberGenerator &, parameters &) {}
 
     template
     <
@@ -462,10 +542,10 @@ template <typename Point>
 struct compute_diameter<HPolytope<Point>>
 {
 template <typename NT>
-static NT compute(HPolytope<Point> &P)
+static NT compute(HPolytope<Point> const& P)
 {
     NT diameter = NT(4) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
-    P.set_diameter(diameter);
+    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -474,7 +554,7 @@ template <typename Point>
 struct compute_diameter<VPolytope<Point>>
 {
 template <typename NT>
-static NT compute(VPolytope<Point> &P)
+static NT compute(VPolytope<Point> const& P)
 {
     typedef typename VPolytope<Point>::MT MT;
     NT diameter = NT(0), diam_iter;
@@ -487,7 +567,7 @@ static NT compute(VPolytope<Point> &P)
             }
         }
     }
-    P.set_diameter(diameter);
+    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -496,7 +576,7 @@ template <typename Point>
 struct compute_diameter<Zonotope<Point>>
 {
 template <typename NT>
-static NT compute(Zonotope<Point> &P)
+static NT compute(Zonotope<Point> const& P)
 {
     typedef typename Zonotope<Point>::MT MT;
     typedef typename Zonotope<Point>::VT VT;
@@ -522,7 +602,7 @@ static NT compute(Zonotope<Point> &P)
     for (int j = 0; j < k; ++j) x0(j) = (obj_fun(j) < 0.0) ? -1.0 : 1.0;
 
     NT diameter = NT(2) * (V.transpose() * x0).norm();
-    P.set_diameter(diameter);
+    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -531,10 +611,10 @@ template <typename Point, typename RandomNumberGenerator>
 struct compute_diameter<IntersectionOfVpoly<VPolytope<Point>, RandomNumberGenerator>>
 {
 template <typename NT>
-static NT compute(IntersectionOfVpoly<VPolytope<Point>, RandomNumberGenerator> &P)
+static NT compute(IntersectionOfVpoly<VPolytope<Point>, RandomNumberGenerator> const& P)
 {
     NT diameter = NT(2) * NT(P.dimension()) * P.InnerBall().second;
-    P.set_diameter(diameter);
+    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -543,10 +623,10 @@ template <typename Polytope, typename Point>
 struct compute_diameter<BallIntersectPolytope<Polytope, Ball<Point>>>
 {
 template <typename NT>
-static NT compute(BallIntersectPolytope<Polytope, Ball<Point>> &P)
+static NT compute(BallIntersectPolytope<Polytope, Ball<Point>> const& P)
 {
     NT diameter = NT(2) * P.radius();
-    P.set_diameter(diameter);
+    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -555,7 +635,7 @@ template <typename Point>
 struct compute_diameter<ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>>>
 {
 template <typename NT>
-static NT compute(ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>> &P)
+static NT compute(ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>> const& P)
 {
     typedef typename ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>>::VT VT;
     typedef typename ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>>::MT MT;
@@ -600,7 +680,7 @@ static NT compute(ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>> &P)
         if (iter_norm > max_norm) max_norm = iter_norm;
     }
     NT diameter = NT(2) * max_norm;
-    P.set_diameter(diameter);
+    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -609,6 +689,25 @@ static NT compute(ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>> &P)
 // billiard walk for uniform distribution
 struct BilliardWalk
 {
+    BilliardWalk(double L)
+            :   param(L, true)
+    {}
+
+    BilliardWalk()
+            :   param(0, false)
+    {}
+
+    struct parameters
+    {
+        parameters(double L, bool set)
+                :   m_L(L), set_L(set)
+        {}
+        double m_L;
+        bool set_L;
+    };
+
+    parameters param;
+
 
 template
 <
@@ -625,22 +724,67 @@ struct Walk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    Walk(Polytope& P, Point & p, RandomNumberGenerator &rng)
+    Walk(Polytope const& P, Point &p, RandomNumberGenerator &rng)
     {
+        _L = compute_diameter<Polytope>::template compute<NT>(P);
         initialize(P, p, rng);
     }
 
-    Walk(BallPolytope& P, Point & p, RandomNumberGenerator &rng)
+    Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng)
     {
+        _L = compute_diameter<BallPolytope>::template compute<NT>(P);
         initialize(P, p, rng);
     }
 
-    Walk(ZonoHPoly& P, Point & p, RandomNumberGenerator &rng)
+    Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng)
     {
+        _L = compute_diameter<ZonoHPoly>::template compute<NT>(P);
         initialize(P, p, rng);
     }
+
+    Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
+    {
+        if(params.set_L)
+        {
+            _L = params.m_L;
+        }
+        else
+        {
+            _L = compute_diameter<Polytope>::template compute<NT>(P);
+        }
+        initialize(P, p, rng);
+    }
+
+    Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
+    {
+        if(params.set_L)
+        {
+            _L = params.m_L;
+        }
+        else
+        {
+            _L = compute_diameter<BallPolytope>::template compute<NT>(P);
+        }
+        initialize(P, p, rng);
+    }
+
+    Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
+    {
+        if(params.set_L)
+        {
+            _L = params.m_L;
+        }
+        else
+        {
+            _L = compute_diameter<ZonoHPoly>::template compute<NT>(P);
+        }
+        initialize(P, p, rng);
+    }
+
+    Walk (BallType const&, Point &, RandomNumberGenerator &,  parameters &) {}
 
     Walk (BallType const&, Point &, RandomNumberGenerator &) {}
+
 
     template
     <
@@ -660,16 +804,39 @@ struct Walk
                       Parameters const& parameters)
     {
         unsigned int n = P.dimension();
-        NT diameter = P.get_diameter();
-        NT T = rng.sample_urdist() * diameter;
+        //NT diameter = P.get_diameter();
+        NT T = rng.sample_urdist() * _L;
         const NT dl = 0.995;
 
         for (auto j=0u; j<walk_length; ++j)
         {
-            walk.template apply(P, p, walk_length, rng, parameters);
-            policy.apply(randPoints, p);
+            T = rng.sample_urdist() * _L;
+            _v = GetDirection<Point>::apply(n, rng);
+            Point p0 = _p;
+            int it = 0;
+            while (it < 10*n)
+            {
+                std::pair<NT, int> pbpair
+                        = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev);
+                if (T <= pbpair.first) {
+                    _p += (T * _v);
+                    _lambda_prev = T;
+                    break;
+                }
+                _lambda_prev = dl * pbpair.first;
+                _p += (_lambda_prev * _v);
+                T -= _lambda_prev;
+                P.compute_reflection(_v, _p, pbpair.second);
+                it++;
+            }
+            if (it == 30*n) _p = p0;
         }
         p = _p;
+    }
+
+    inline void update_delta(NT L)
+    {
+        _L = L;
     }
 
 private :
@@ -678,20 +845,18 @@ private :
     <
         typename GenericPolytope
     >
-    inline void initialize(GenericPolytope& P,
+    inline void initialize(GenericPolytope const& P,
                            Point &p,
                            RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
         const NT dl = 0.995;
-        NT diameter = compute_diameter<GenericPolytope>::template compute<NT>(P);
-
         _lambdas.setZero(P.num_of_hyperplanes());
         _Av.setZero(P.num_of_hyperplanes());
         _p = p;
         _v = GetDirection<Point>::apply(n, rng);
 
-        NT T = rng.sample_urdist() * diameter;
+        NT T = rng.sample_urdist() * _L;
         Point p0 = _p;
         int it = 0;
 
@@ -707,7 +872,7 @@ private :
         T -= _lambda_prev;
         P.compute_reflection(_v, _p, pbpair.second);
 
-        while (it < 10*n)
+        while (it < 30*n)
         {
             std::pair<NT, int> pbpair
                     = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev);
@@ -725,6 +890,7 @@ private :
         if (it == 10*n) _p = p0;
     }
 
+    double _L;
     Point _p;
     Point _v;
     NT _lambda_prev;
@@ -742,13 +908,12 @@ private :
 
 template
 <
-    //typename WalkTypePolicy = CDHRWalk,
-    typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, double>,
-    typename Polytope,
-    typename WalkType
+    typename WalkTypePolicy,
+    typename RandomNumberGenerator,
+    typename Polytope
 >
 double volume_sequence_of_balls(Polytope const& Pin,
-                                WalkType walk,
+                                RandomNumberGenerator &rng,
                                 double const& error = 1.0,
                                 unsigned int const& walk_length = 1,
                                 unsigned int const& n_threads = 1)
@@ -758,18 +923,18 @@ double volume_sequence_of_balls(Polytope const& Pin,
     typedef Ball<Point> Ball;
     typedef BallIntersectPolytope<Polytope,Ball> BallPoly;
 
-    typedef typename WalkType::template Walk
+    typedef typename WalkTypePolicy::template Walk
                                               <
                                                 Polytope,
                                                 RandomNumberGenerator
-                                              > WalkTypeInner;
+                                              > walk;
 
-    typedef RandomPointGenerator<WalkTypeInner> RandomPointGenerator;
+    typedef RandomPointGenerator<walk> RandomPointGenerator;
 
     auto P(Pin); //copy and work with P because we are going to shift
     unsigned int n = P.dimension();
     unsigned int rnum = std::pow(error, -2) * 400 * n * std::log(n);
-    RandomNumberGenerator rng(P.dimension());
+    //RandomNumberGenerator rng(P.dimension());
 
     //Compute the Chebychev ball (largest inscribed ball) with center and radius
     auto InnerBall = P.ComputeInnerBall();
@@ -796,14 +961,14 @@ double volume_sequence_of_balls(Polytope const& Pin,
         std::list<Point> randPoints; //ds for storing rand points
 
         PushBackWalkPolicy push_back_policy;
-        RandomPointGenerator::apply(P, p, 1, 50*n, randPoints, push_back_policy, rng, walk.param);
+        RandomPointGenerator::apply(P, p, 1, 50*n, randPoints, push_back_policy, rng);
 
 #ifdef VOLESTI_DEBUG
         double tstart2 = (double)clock()/(double)CLOCKS_PER_SEC;
         std::cout<<"\nCompute "<<rnum<<" random points in P"<<std::endl;
 #endif
         RandomPointGenerator::apply(P, p, rnum-1, walk_length, randPoints,
-                                    push_back_policy, rng, walk.param);
+                                    push_back_policy, rng);
 
 #ifdef VOLESTI_DEBUG
         double tstop2 = (double)clock()/(double)CLOCKS_PER_SEC;
@@ -902,7 +1067,7 @@ double volume_sequence_of_balls(Polytope const& Pin,
             CountingWalkPolicy<BallPoly> counting_policy(nump_PBSmall, PBSmall);
             RandomPointGenerator::apply(PBLarge, p_gen, rnum-nump_PBLarge,
                                         walk_length, randPoints,
-                                        counting_policy, rng, walk.param);
+                                        counting_policy, rng);
 
             nump_PBSmall = counting_policy.get_nump_PBSmall();
 
@@ -925,5 +1090,22 @@ double volume_sequence_of_balls(Polytope const& Pin,
     P.free_them_all();
     return vol;
 }
+
+
+template
+        <
+                typename WalkTypePolicy,
+                typename RandomNumberGenerator,
+                typename Polytope
+        >
+double volume_sequence_of_balls(Polytope const& Pin,
+                                double const& error = 1.0,
+                                unsigned int const& walk_length = 1,
+                                unsigned int const& n_threads = 1)
+{
+    RandomNumberGenerator rng(Pin.dimension());
+    return volume_sequence_of_balls<WalkTypePolicy>(Pin, rng, error, walk_length, n_threads);
+}
+
 
 #endif

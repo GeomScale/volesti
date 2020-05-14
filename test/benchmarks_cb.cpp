@@ -77,23 +77,23 @@ int main()
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BallWalk (cube) = "
-              << volume_cooling_balls<BallWalk>(HP, e, walk_len) << " , ";
+              << volume_cooling_balls<BallWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHRWalk (cube) = "
-              << volume_cooling_balls<RDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_cooling_balls<RDHRWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHRWalk (cube) = "
-              << volume_cooling_balls<CDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_cooling_balls<CDHRWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BirdWalk (cube) = "
-              << volume_cooling_balls<BilliardWalk>(HP, e, walk_len) << " , ";
+              << volume_cooling_balls<BilliardWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     // OLD Implementation
@@ -170,25 +170,25 @@ int main()
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball (cross) = "
-              << volume_cooling_balls<BallWalk>(VP) << " , ";
+              << volume_cooling_balls<BallWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHR (cross) = "
-              << volume_cooling_balls<RDHRWalk>(VP) << " , ";
+              << volume_cooling_balls<RDHRWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHR (cross) = "
-              << volume_cooling_balls<CDHRWalk>(VP) << " , ";
+              << volume_cooling_balls<CDHRWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Blrd (cross) = "
-              << volume_cooling_balls<BilliardWalk>(VP) << " , ";
+              << volume_cooling_balls<BilliardWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     // OLD Implementation

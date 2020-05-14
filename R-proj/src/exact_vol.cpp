@@ -54,7 +54,6 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
     typedef double NT;
     typedef Cartesian <NT> Kernel;
     typedef typename Kernel::Point Point;
-    typedef boost::mt19937 RNGType;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
@@ -67,8 +66,6 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
 
     if (type == 2) {
 
-        typedef VPolytope <Point, RNGType> Vpolytope;
-        Vpolytope VP;
         dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
 
         if (Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows() ==

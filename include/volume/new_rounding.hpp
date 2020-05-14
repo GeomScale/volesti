@@ -13,16 +13,15 @@
 
 template <
         typename WalkTypePolicy,
-        typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, double>,
         typename MT,
         typename VT,
         typename Polytope,
         typename Point,
         typename NT,
-        typename RNG
+        typename RandomNumberGenerator
         >
 std::pair< std::pair<MT, VT>, NT >  round_polytope(Polytope &P, std::pair<Point,NT> &InnerBall,
-                                                   const unsigned int &walk_length, RNG &rng)
+                                                   const unsigned int &walk_length, RandomNumberGenerator &rng)
 {
     typedef typename WalkTypePolicy::template Walk
             <

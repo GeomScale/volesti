@@ -221,15 +221,16 @@ void compute_hpoly_for_mmc(Zonotope &P, HPolytope &HP) {
 
 template
         <
-                typename WalkTypePolicy = BilliardWalk,
-                typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, double>,
+                typename WalkTypePolicy,
                 typename HPolytope,
-                typename Zonotope
-
+                typename Zonotope,
+                typename RandomNumberGenerator
         >
 double volume_cooling_hpoly (Zonotope const& Pin,
+                         RandomNumberGenerator &rng,
                          double const& error = 1.0,
-                         unsigned int const& walk_length = 1)
+                         unsigned int const& walk_length = 1,
+                             unsigned int const& win_len = 200)
 {
 
     typedef typename Zonotope::PointType Point;
@@ -254,9 +255,9 @@ double volume_cooling_hpoly (Zonotope const& Pin,
     typedef RandomPointGenerator<CdhrWalk> CdhrRandomPointGenerator;
 
     auto P(Pin);
-    RandomNumberGenerator rng(P.dimension());
-    RandomNumberGenerator rng_diam(P.num_of_generators());
-    cooling_ball_parameters<NT> parameters;
+    //RandomNumberGenerator rng(P.dimension());
+    //RandomNumberGenerator rng_diam(P.num_of_generators());
+    cooling_ball_parameters<NT> parameters(win_len);
 
     int n = P.dimension();
     NT prob = parameters.p, ratio;
@@ -289,7 +290,7 @@ double volume_cooling_hpoly (Zonotope const& Pin,
 
     HPolytope HP2(HP);
     std::pair<Point, NT> InnerBall = HP2.ComputeInnerBall();
-    std::pair< std::pair<MT, VT>, NT > res = round_polytope<CDHRWalk, RandomNumberGenerator, MT, VT>(HP2, InnerBall,
+    std::pair< std::pair<MT, VT>, NT > res = round_polytope<CDHRWalk, MT, VT>(HP2, InnerBall,
             10 + 10 * n, rng);
     //TODO: rounding to HP2
     //NT vol = res.second * volume_cooling_balls<BilliardWalk, RandomNumberGenerator>(HP2, Her, 1);
@@ -349,6 +350,22 @@ double volume_cooling_hpoly (Zonotope const& Pin,
 
     return vol;
 
+}
+
+
+template
+        <
+                typename WalkTypePolicy,
+                typename RandomNumberGenerator,
+                typename HPolytope,
+                typename Polytope
+        >
+double volume_cooling_hpoly(Polytope const& Pin,
+                                 double const& error = 0.1,
+                                 unsigned int const& walk_length = 1)
+{
+    RandomNumberGenerator rng(Pin.dimension());
+    return volume_cooling_hpoly<WalkTypePolicy, HPolytope>(Pin, rng, error, walk_length);
 }
 
 #endif

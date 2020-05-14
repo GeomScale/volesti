@@ -75,6 +75,10 @@ public:
         return 0;
     }
 
+    int num_of_generators() const {
+        return 0;
+    }
+
     // compute the number of facets of the cyclic polytope in dimension _d with the same number of vertices
     // this is an upper bound for the number of the facets from McMullen's Upper Bound Theorem
     unsigned int upper_bound_of_hyperplanes() const {

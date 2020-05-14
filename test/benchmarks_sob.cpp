@@ -78,17 +78,17 @@ int main()
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHRWalk (cube) = "
-              << volume_sequence_of_balls<CDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<CDHRWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHRWalk (cube) = "
-              << volume_sequence_of_balls<RDHRWalk>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<RDHRWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "BilliardWalk (cube) = "
-              << volume_sequence_of_balls<BilliardWalk>(HP, e, walk_len) << " , ";
+              << volume_sequence_of_balls<BilliardWalk, RNG>(HP, e, walk_len) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     std::cout << std::endl;
 
@@ -141,25 +141,25 @@ int main()
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball (cross) = "
-              << volume_sequence_of_balls<BallWalk>(VP) << " , ";
+              << volume_sequence_of_balls<BallWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHR (cross) = "
-              << volume_sequence_of_balls<RDHRWalk>(VP) << " , ";
+              << volume_sequence_of_balls<RDHRWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHR (cross) = "
-              << volume_sequence_of_balls<CDHRWalk>(VP) << " , ";
+              << volume_sequence_of_balls<CDHRWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Blrd (cross) = "
-              << volume_sequence_of_balls<BilliardWalk>(VP) << " , ";
+              << volume_sequence_of_balls<BilliardWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     // OLD Implementation

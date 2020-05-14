@@ -17,7 +17,7 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
     typedef typename Polytope::NT    NT;
-    typedef typename Polytope::PolytopePoint Point;
+    typedef typename Polytope::PointType Point;
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);

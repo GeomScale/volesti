@@ -29,14 +29,14 @@
 template <typename NT>
 struct cooling_ball_parameters
 {
-    cooling_ball_parameters()
+    cooling_ball_parameters(unsigned int win_len)
         :   lb(0.1)
         ,   ub(0.15)
         ,   p(0.75)
         ,   rmax(0)
         ,   alpha(0.2)
-        ,   win_len(1000)
-        ,   N(150)
+        ,   win_len(win_len)
+        ,   N(125)
         ,   nu(10)
         ,   window2(false)
     {}
@@ -368,7 +368,6 @@ bool get_sequence_of_polytopeballs(Polytope& P,
 template <typename NT>
 bool is_max_error(NT const& a, NT const& b, NT const& error)
 {
-    std::cout<<"(b-a)/a = "<<(b-a)/a<<", error = "<<error<<std::endl;
     return ((b-a)/a<error/2.0) ? true : false;
 }
 
@@ -452,7 +451,7 @@ template
                 typename NT,
                 typename RNG
         >
-NT estimate_ratio(PolyBall1& Pb1,
+NT estimate_ratio(PolyBall1 const& Pb1,
                   PolyBall2 const& Pb2,
                   NT const& ratio,
                   NT const& error,
@@ -627,7 +626,7 @@ template
                 typename NT,
                 typename RNG
         >
-NT estimate_ratio_interval(PolyBall1& Pb1,
+NT estimate_ratio_interval(PolyBall1 const& Pb1,
                            PolyBall2 const& Pb2,
                            NT const& ratio,
                            NT const& error,
@@ -664,13 +663,15 @@ NT estimate_ratio_interval(PolyBall1& Pb1,
 
 template
 <
-    typename WalkTypePolicy = BilliardWalk,
-    typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt19937, double>,
+    typename WalkTypePolicy,
+    typename RandomNumberGenerator,
     typename Polytope
 >
 double volume_cooling_balls(Polytope const& Pin,
+                            RandomNumberGenerator &rng,
                             double const& error = 1.0,
-                            unsigned int const& walk_length = 1)
+                            unsigned int const& walk_length = 1,
+                            unsigned int const& win_len = 250)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
@@ -687,8 +688,8 @@ double volume_cooling_balls(Polytope const& Pin,
     typedef RandomPointGenerator<WalkType> RandomPointGenerator;
 
     auto P(Pin);
-    RandomNumberGenerator rng(P.dimension());
-    cooling_ball_parameters<NT> parameters;
+    //RandomNumberGenerator rng(P.dimension());
+    cooling_ball_parameters<NT> parameters(win_len);
 
     int n = P.dimension();
     NT prob = parameters.p;
@@ -776,5 +777,22 @@ double volume_cooling_balls(Polytope const& Pin,
     P.free_them_all();
     return vol;
 }
+
+
+
+template
+        <
+                typename WalkTypePolicy,
+                typename RandomNumberGenerator,
+                typename Polytope
+        >
+double volume_cooling_balls(Polytope const& Pin,
+                            double const& error = 0.1,
+                            unsigned int const& walk_length = 1)
+{
+    RandomNumberGenerator rng(Pin.dimension());
+    return volume_cooling_balls<WalkTypePolicy>(Pin, rng, error, walk_length);
+}
+
 
 #endif
