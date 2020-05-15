@@ -118,7 +118,7 @@ public:
 
   Point sample(int num_solver_steps=1) {
     // Pick a random velocity
-    v = get_direction<RNGType, Point, NT>(dim);
+    v = get_direction<RNGType, Point, NT>(dim, false);
     NT H = hamiltonian(x, v);
     solver->set_state(0, x);
     solver->set_state(1, v);
@@ -132,21 +132,14 @@ public:
     NT H_tilde = hamiltonian(x_tilde, v_tilde);
 
     // Log-sum-exp trick
-    NT log_prob = H - H_tilde;
+    NT log_prob = H - H_tilde < 0 ? H - H_tilde : 0;
 
-    if (log_prob > 1) {
+    NT u_logprob = log(urdist(rng));
+    if (u_logprob < log_prob) {
       x = x_tilde;
       return x;
-    } else {
-      NT u_logprob = log(urdist(rng));
-      if (u_logprob < log_prob) {
-        x = x_tilde;
-        return x;
-      }
-      else {
-        return x;
-      }
     }
+    else return x;
   }
 
   NT hamiltonian(Point &pos, Point &vel) {
@@ -160,6 +153,11 @@ public:
       result.push_back(sample(num_solver_steps));
     }
     return result;
+  }
+
+  void mix() {
+    int steps = (int) (kappa * x.dimension() * log(1 / epsilon) * log(x.dimension() * log(kappa / epsilon)));
+    samples(steps);
   }
 
 

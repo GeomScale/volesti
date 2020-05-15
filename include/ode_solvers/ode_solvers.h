@@ -190,16 +190,16 @@ public:
       else {
         // Find intersection (assuming a line trajectory) between x and y
         do {
-          std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[x_index], y);
+          std::pair<NT, int> pbpair = Ks[x_index]->line_positive_intersect(xs[x_index], y);
 
           if (pbpair.first < 0) {
             xs[x_index] += (pbpair.first * 0.99) * y;
-            Ks[v_index]->compute_reflection(y, xs[x_index], pbpair.second);
+            Ks[x_index]->compute_reflection(y, xs[x_index], pbpair.second);
           }
           else {
             xs[x_index] += y;
           }
-        } while (!Ks[v_index]->is_in(xs[x_index]));
+        } while (!Ks[x_index]->is_in(xs[x_index]));
       }
 
       // tilde v <- v + eta / 2 F(x)
