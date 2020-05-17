@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
@@ -27,14 +27,13 @@ public:
     typedef typename Point::FT NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-    //typedef RNGType rngtype;
 
 private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
     std::pair<Point,NT> _inner_ball;
-    NT diameter;
+
     REAL *conv_comb, *row, *conv_comb2, *conv_mem;
     int *colno, *colno_mem;
 
@@ -47,21 +46,6 @@ public:
     std::pair<Point,NT> InnerBall() const
     {
         return _inner_ball;
-    }
-
-    NT ComputeDiameter() const
-    {
-        NT diam;
-        comp_diam(diam);
-        return diam;
-    }
-
-    void set_diameter(const NT &diam) {
-        diameter = diam;
-    }
-
-    NT get_diameter() const {
-        return diameter;
     }
 
     // return dimension
@@ -117,10 +101,6 @@ public:
 
     MT get_T() const {
         return V;
-    }
-
-    NT radius() const {
-        return NT(0);
     }
 
     void init(const unsigned int &dim, const MT &_V, const VT &_b) {
@@ -192,23 +172,6 @@ public:
             if(rad_iter>rad)rad = rad_iter;
         }
         return rad;
-    }
-
-    void comp_diam(NT &diam) const {
-        diam = 0.0;
-        NT diam_iter;
-        for (int i = 0; i < num_of_vertices(); ++i) {
-            for (int j = 0; j < num_of_vertices(); ++j) {
-                if(i != j) {
-                    diam_iter = (V.row(i) - V.row(j)).norm();
-                    if (diam_iter > diam) diam = diam_iter;
-                }
-            }
-        }
-    }
-
-    void comp_diam(NT &diam, const NT &cheb_rad) const {
-        comp_diam(diam);
     }
 
     void normalize() {}

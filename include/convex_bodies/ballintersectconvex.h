@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
@@ -22,7 +22,6 @@ public:
     typedef typename Polytope::VT VT;
     typedef typename CBall::NT NT;
     typedef typename CBall::PointType PointType;
-    NT diameter;
 
     BallIntersectPolytope() {}
 
@@ -34,24 +33,6 @@ public:
     std::pair<PointType,NT> InnerBall() const
     {
         return P.InnerBall();
-    }
-
-    //NT ComputeDiameter() const
-   // {
-     //   return NT(2) * B.radius();
-    //}
-
-    NT ComputeDiameter() const
-    {
-        return 2.0 * B.radius();
-    }
-
-    void set_diameter(const NT &diam) {
-        diameter = diam;
-    }
-
-    NT get_diameter() const {
-        return diameter;
     }
 
     MT get_mat() const {
@@ -79,15 +60,6 @@ public:
 
     unsigned int dimension() const {
         return P.dimension();
-    }
-
-    void comp_diam(NT &diam) const {
-        diam = 2.0 * B.radius();
-    }
-
-    void comp_diam(NT &diam, const NT &cheb_rad) const
-    {
-        comp_diam(diam);
     }
 
     NT radius() const {

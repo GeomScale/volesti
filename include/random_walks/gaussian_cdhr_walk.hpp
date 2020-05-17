@@ -140,16 +140,6 @@ private :
                      a_i, rng);
         _p_prev = p;
         _p.set_coord(_rand_coord, dis);
-        /*
-        _lamdas.setZero(P.num_of_hyperplanes());
-        _rand_coord = rng.sample_uidist();
-        NT kapa = rng.sample_urdist();
-        _p = p;
-        std::pair<NT, NT> bpair = P.line_intersect_coord(_p, _rand_coord, _lamdas);
-        _p_prev = _p;
-        _p.set_coord(_rand_coord, _p[_rand_coord] + bpair.first + kapa
-                    * (bpair.second - bpair.first));
-        */
     }
 
     unsigned int _rand_coord;

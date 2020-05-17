@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
@@ -26,9 +26,6 @@ public:
     typedef typename VPolytope::MT MT;
     typedef typename VPolytope::VT VT;
     std::pair<Point,NT> _inner_ball;
-    NT diameter;
-    //typedef typename VPolytope::rngtype RNGType;
-    //std::vector<Point> vecV;
     NT rad;
     VPolytope P1;
     VPolytope P2;
@@ -73,18 +70,6 @@ public:
         //return 4;
     }
 
-    void set_diameter(const NT &diam) {
-        diameter = diam;
-    }
-
-    NT get_diameter() const {
-        return diameter;
-    }
-
-    NT radius() const{
-        return NT(0);
-    }
-
     int num_of_generators() const {
         return 0;
     }
@@ -120,14 +105,6 @@ public:
 
     NT get_max_vert_norm() const {
         return 0.0;
-    }
-
-    void comp_diam(NT &diam){
-        diam = 2.0 * std::sqrt(NT(dimension())) * ComputeInnerBall().second;
-    }
-
-    void comp_diam(NT &diam, const NT &cheb_rad) const {
-        diam = 2.0 * std::sqrt(NT(dimension())) * cheb_rad;
     }
 
     void print() {

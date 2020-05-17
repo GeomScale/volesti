@@ -61,7 +61,6 @@ struct BRDHRWalk
                 p2 = _p + bpair.second * v;
                 _p += (_lambda * v);
             }
-            //p = _p;
         }
 
     private :

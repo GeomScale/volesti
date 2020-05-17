@@ -340,7 +340,6 @@ bool get_sequence_of_polytopeballs(Polytope& P,
         zb_it = PolyBall(P, BallSet[BallSet.size()-1]);
         q = Point(n);
         randPoints.clear();
-        //zb_it.comp_diam(diameter);
 
         RandomPointGenerator::apply(zb_it, q, Ntot, walk_length,
                                     randPoints, push_back_policy, rng);
