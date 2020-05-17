@@ -14,6 +14,7 @@
 #include <limits>
 
 #include <iostream>
+#include <Eigen/Eigen>
 #include "vpolyoracles.h"
 #include "khach.h"
 

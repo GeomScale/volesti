@@ -9,7 +9,7 @@
 #ifndef ROTATING_H
 #define ROTATING_H
 
-
+#include <Eigen/Eigen>
 
 template <typename MT, typename Polytope>
 MT rotating(Polytope &P){

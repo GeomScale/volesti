@@ -50,7 +50,12 @@ struct Walk
         _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
     }
 
-    Walk (Polytope const& P, Point &p, NT const& a, RandomNumberGenerator &rng, parameters const& params) {
+    Walk (Polytope const& P,
+          Point &p,
+          NT const& a,
+          RandomNumberGenerator &rng,
+          parameters const& params)
+    {
         if (params.set_delta) {
             _delta = params.m_L;
         } else {
@@ -63,9 +68,9 @@ struct Walk
                       Point &p,   // a point to start
                       NT const& a_i,
                       unsigned int const& walk_length,
-                      RandomNumberGenerator &rng)
+                      RandomNumberGenerator& rng)
     {
-        for (auto j=0u; j<walk_length; ++j)
+        for (auto j = 0u; j < walk_length; ++j)
         {
             Point y = GetPointInDsphere<Point>::apply(P.dimension(),
                                                       _delta,

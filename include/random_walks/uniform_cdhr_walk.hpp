@@ -104,7 +104,7 @@ private :
 
     template <typename BallPolytope>
     inline void initialize(BallPolytope const& P,
-                           Point &p,
+                           Point const& p,
                            RandomNumberGenerator &rng)
     {
         _lamdas.setZero(P.num_of_hyperplanes());

@@ -11,6 +11,7 @@
 #define POINT_H
 
 #include <iostream>
+#include <Eigen/Eigen>
 
 template <typename K>
 class point

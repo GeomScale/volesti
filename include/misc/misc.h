@@ -9,7 +9,6 @@
 
 #include <iostream>
 #include <vector>
-#include "Eigen/Eigen"
 
 //function to print rounding to double coordinates 
 template <class T>

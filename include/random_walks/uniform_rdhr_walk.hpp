@@ -41,17 +41,17 @@ struct Walk
     typedef Zonotope<Point> zonotope;
     typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
 
-    Walk(Polytope const& P, Point &p, RandomNumberGenerator &rng)
+    Walk(Polytope const& P, Point const& p, RandomNumberGenerator &rng)
     {
         initialize(P, p, rng);
     }
 
-    Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng)
+    Walk(BallPolytope const& P, Point const& p, RandomNumberGenerator &rng)
     {
         initialize(P, p, rng);
     }
 
-    Walk(ZonoHPoly const& P, Point &p, RandomNumberGenerator &rng)
+    Walk(ZonoHPoly const& P, Point const& p, RandomNumberGenerator &rng)
     {
         initialize(P, p, rng);
     }
@@ -80,9 +80,9 @@ struct Walk
         typename BallPolytope
     >
     inline void apply(BallPolytope const& P,
-                      Point &p,   // a point to start
+                      Point& p,   // a point to start
                       unsigned int const& walk_length,
-                      RandomNumberGenerator &rng)
+                      RandomNumberGenerator& rng)
     {
         for (auto j=0u; j<walk_length; ++j)
         {
@@ -100,7 +100,7 @@ private :
 
     template <typename BallPolytope>
     inline void initialize(BallPolytope const& P,
-                           Point &p,
+                           Point const& p,
                            RandomNumberGenerator &rng)
     {
         _lamdas.setZero(P.num_of_hyperplanes());

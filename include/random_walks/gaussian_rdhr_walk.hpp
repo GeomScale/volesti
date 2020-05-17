@@ -27,10 +27,9 @@ void chord_random_point_generator_exp(Point &lower,
                                       RandomNumberGenerator& rng)
 {
     NT r, r_val, fn;
-    const NT tol = 0.00000001;
     Point bef = upper - lower;
     // pick from 1-dimensional gaussian if enough weight is inside polytope P
-    if (a_i > tol && std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i)))
+    if (a_i > EXP_CHORD_TOLERENCE && std::sqrt(bef.squared_length()) >= (2.0 / std::sqrt(2.0 * a_i)))
     {
         Point a = -1.0 * lower;
         Point b = (1.0 / std::sqrt(bef.squared_length())) * bef;
@@ -96,7 +95,7 @@ struct Walk
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
-        for (auto j=0u; j<walk_length; ++j)
+        for (auto j = 0u; j < walk_length; ++j)
         {
             Point v = GetDirection<Point>::apply(p.dimension(), rng);
             std::pair <NT, NT> dbpair = P.line_intersect(p, v);

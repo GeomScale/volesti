@@ -8,6 +8,7 @@
 #ifndef ROUNDING_HPP
 #define ROUNDING_HPP
 
+#include <Eigen/Eigen>
 #include "khach.h"
 #include "sampling/random_point_generators.hpp"
 #include "volume/sampling_policies.hpp"

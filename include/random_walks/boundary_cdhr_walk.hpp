@@ -17,10 +17,10 @@ struct BCDHRWalk
 {
 
     template
-            <
-                    typename Polytope,
-                    typename RandomNumberGenerator
-            >
+    <
+            typename Polytope,
+            typename RandomNumberGenerator
+    >
     struct Walk
     {
         typedef typename Polytope::PointType Point;
@@ -41,9 +41,9 @@ struct BCDHRWalk
         Walk (BallType const&, Point &, RandomNumberGenerator &) {}
 
         template
-                <
-                        typename BallPolytope
-                >
+        <
+            typename BallPolytope
+        >
         inline void apply(BallPolytope const& P,
                           Point &p1,   // a point to start
                           Point &p2,
@@ -63,7 +63,7 @@ struct BCDHRWalk
                                                _lamdas);
                 _p_prev = _p;
                 _p.set_coord(_rand_coord, _p[_rand_coord] + bpair.first + kapa
-                                                                          * (bpair.second - bpair.first));
+                                          * (bpair.second - bpair.first));
             }
             p1 = _p_prev;
             p2 = _p_prev;
@@ -75,17 +75,18 @@ struct BCDHRWalk
 
         template <typename GenericBody>
         inline void initialize(GenericBody const& P,
-                               Point &p,
-                               RandomNumberGenerator &rng)
+                               Point const& p,
+                               RandomNumberGenerator& rng)
         {
             _lamdas.setZero(P.num_of_hyperplanes());
             _rand_coord = rng.sample_uidist();
             NT kapa = rng.sample_urdist();
             _p = p;
-            std::pair<NT, NT> bpair = P.line_intersect_coord(_p, _rand_coord, _lamdas);
+            std::pair<NT, NT> bpair = P.line_intersect_coord(_p, _rand_coord,
+                                                             _lamdas);
             _p_prev = _p;
             _p.set_coord(_rand_coord, _p[_rand_coord] + bpair.first + kapa
-                                                                      * (bpair.second - bpair.first));
+                                      * (bpair.second - bpair.first));
         }
 
         unsigned int _rand_coord;

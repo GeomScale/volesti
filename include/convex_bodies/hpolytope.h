@@ -13,7 +13,7 @@
 
 #include <limits>
 #include <iostream>
-#include "Eigen/Eigen"
+#include <Eigen/Eigen>
 #include "solve_lp.h"
 
 // H-polytope class
