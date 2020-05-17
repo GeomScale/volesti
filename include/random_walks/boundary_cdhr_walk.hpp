@@ -69,7 +69,6 @@ struct BCDHRWalk
             p2 = _p_prev;
             p1.set_coord(_rand_coord, bpair.first);
             p2.set_coord(_rand_coord, bpair.second);
-            //p = _p;
         }
 
     private :

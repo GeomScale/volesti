@@ -37,7 +37,6 @@ template <typename NT>
 static NT compute(HPolytope<Point> const& P)
 {
     NT diameter = NT(4) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
-    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -59,7 +58,6 @@ static NT compute(VPolytope<Point> const& P)
             }
         }
     }
-    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -94,7 +92,6 @@ static NT compute(Zonotope<Point> const& P)
     for (int j = 0; j < k; ++j) x0(j) = (obj_fun(j) < 0.0) ? -1.0 : 1.0;
 
     NT diameter = NT(2) * (V.transpose() * x0).norm();
-    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -106,7 +103,6 @@ template <typename NT>
 static NT compute(IntersectionOfVpoly<VPolytope<Point>, RandomNumberGenerator> const& P)
 {
     NT diameter = NT(2) * NT(P.dimension()) * P.InnerBall().second;
-    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -118,7 +114,6 @@ template <typename NT>
 static NT compute(BallIntersectPolytope<Polytope, Ball<Point>> const& P)
 {
     NT diameter = NT(2) * P.radius();
-    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -172,7 +167,6 @@ static NT compute(ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>> const& P
         if (iter_norm > max_norm) max_norm = iter_norm;
     }
     NT diameter = NT(2) * max_norm;
-    //P.set_diameter(diameter);
     return diameter;
 }
 };
@@ -289,7 +283,6 @@ struct Walk
                       RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
-        //NT diameter = P.get_diameter();
         NT T = rng.sample_urdist() * _L;
         const NT dl = 0.995;
 

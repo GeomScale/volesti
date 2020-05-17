@@ -46,7 +46,7 @@ int main()
 
     // Estimate the volume
 
-    VPolytope<Point> VP2 = gen_cube<Vpolytope>(10, true);
+    VPolytope<Point> VP2 = gen_cube<Vpolytope>(2, true);
 
     VP2.init(VP2.dimension(), VP2.get_mat(), VP2.get_vec());
     double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
