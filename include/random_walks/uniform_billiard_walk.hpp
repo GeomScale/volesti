@@ -10,6 +10,8 @@
 #ifndef RANDOM_WALKS_UNIFORM_BILLIARD_WALK_HPP
 #define RANDOM_WALKS_UNIFORM_BILLIARD_WALK_HPP
 
+#include <Eigen/Eigen>
+
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
@@ -278,7 +280,7 @@ struct Walk
         typename GenericPolytope
     >
     inline void apply(GenericPolytope const& P,
-                      Point &p,   // a point to start
+                      Point& p,   // a point to start
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
@@ -324,7 +326,7 @@ private :
         typename GenericPolytope
     >
     inline void initialize(GenericPolytope const& P,
-                           Point &p,
+                           Point const& p,
                            RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();

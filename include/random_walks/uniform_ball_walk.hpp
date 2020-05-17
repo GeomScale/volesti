@@ -104,7 +104,7 @@ struct BallWalk
         {
             //const NT delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
 
-            for (auto j=0u; j<walk_length; ++j)
+            for (auto j = 0u; j < walk_length; ++j)
             {
                 Point y = GetPointInDsphere<Point>::apply(P.dimension(),
                                                           _delta,

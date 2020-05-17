@@ -67,7 +67,7 @@ struct BRDHRWalk
 
         template <typename GenericBody>
         inline void initialize(GenericBody const& P,
-                               Point &p,
+                               Point const& p,
                                RandomNumberGenerator &rng)
         {
             _lamdas.setZero(P.num_of_hyperplanes());

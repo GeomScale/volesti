@@ -1,6 +1,7 @@
 #ifndef GAUSSIAN_HELPERS_HPP
 #define GAUSSIAN_HELPERS_HPP
 
+#define EXP_CHORD_TOLERENCE 0.00000001
 
 // evaluate the pdf of point p
 template <typename Point, typename NT>
