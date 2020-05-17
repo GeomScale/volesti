@@ -213,67 +213,22 @@ struct Walk
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-    Walk(Polytope const& P, Point &p, RandomNumberGenerator &rng)
+    template <typename GenericPolytope>
+    Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
     {
-        _L = compute_diameter<Polytope>::template compute<NT>(P);
+        _L = compute_diameter<GenericPolytope>::template compute<NT>(P);
         initialize(P, p, rng);
     }
 
-    Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng)
+    template <typename GenericPolytope>
+    Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng,
+         parameters const& params)
     {
-        _L = compute_diameter<BallPolytope>::template compute<NT>(P);
+        _L = params.set_L ? params.m_L
+                          : compute_diameter<GenericPolytope>
+                            ::template compute<NT>(P);
         initialize(P, p, rng);
     }
-
-    Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng)
-    {
-        _L = compute_diameter<ZonoHPoly>::template compute<NT>(P);
-        initialize(P, p, rng);
-    }
-
-    Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
-    {
-        if(params.set_L)
-        {
-            _L = params.m_L;
-        }
-        else
-        {
-            _L = compute_diameter<Polytope>::template compute<NT>(P);
-        }
-        initialize(P, p, rng);
-    }
-
-    Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
-    {
-        if(params.set_L)
-        {
-            _L = params.m_L;
-        }
-        else
-        {
-            _L = compute_diameter<BallPolytope>::template compute<NT>(P);
-        }
-        initialize(P, p, rng);
-    }
-
-    Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
-    {
-        if(params.set_L)
-        {
-            _L = params.m_L;
-        }
-        else
-        {
-            _L = compute_diameter<ZonoHPoly>::template compute<NT>(P);
-        }
-        initialize(P, p, rng);
-    }
-
-    Walk (BallType const&, Point &, RandomNumberGenerator &,  parameters &) {}
-
-    Walk (BallType const&, Point &, RandomNumberGenerator &) {}
-
 
     template
     <
@@ -296,8 +251,8 @@ struct Walk
             int it = 0;
             while (it < 10*n)
             {
-                std::pair<NT, int> pbpair
-                        = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev);
+                auto pbpair = P.line_positive_intersect(_p, _v, _lambdas,
+                                                        _Av, _lambda_prev);
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;

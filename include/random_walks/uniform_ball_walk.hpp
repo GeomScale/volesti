@@ -10,14 +10,6 @@
 #ifndef RANDOM_WALKS_UNIFORM_BALL_WALK_HPP
 #define RANDOM_WALKS_UNIFORM_BALL_WALK_HPP
 
-#include "convex_bodies/ball.h"
-#include "convex_bodies/ballintersectconvex.h"
-#include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
-#include "convex_bodies/zpolytope.h"
-#include "convex_bodies/zonoIntersecthpoly.h"
-
 #include "generators/boost_random_number_generator.hpp"
 
 // Ball walk with uniform target distribution
@@ -52,48 +44,26 @@ struct BallWalk
     {
         typedef typename Polytope::PointType Point;
         typedef typename Point::FT NT;
-        typedef Ball<Point> BallType;
-        typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
-        typedef HPolytope<Point> Hpolytope;
-        typedef Zonotope<Point> zonotope;
-        typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
 
-        Walk (Polytope const& P, Point&, RandomNumberGenerator&) {
-            _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+        template <typename GenericPolytope>
+        Walk(GenericPolytope const& P, Point const& /*p*/,
+             RandomNumberGenerator& /*rng*/)
+        {
+            _delta = compute_delta(P);
         }
 
-        Walk (BallPolytope const& P, Point &, RandomNumberGenerator &) {
-            _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+        template <typename GenericPolytope>
+        Walk(GenericPolytope const& P, Point const& /*p*/,
+             RandomNumberGenerator& /*rng*/, parameters const& params)
+        {
+            _delta = params.set_delta ? params.m_L
+                                      : compute_delta(P);
         }
 
-        Walk (BallType const&, Point &, RandomNumberGenerator &) {}
-
-        Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &) {
-            _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-        }
-
-        Walk (Polytope const& P, Point&, RandomNumberGenerator&, parameters const& params) {
-            if (params.set_delta) {
-                _delta = params.m_L;
-            } else {
-                _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-            }
-        }
-        Walk (BallPolytope const& P, Point &, RandomNumberGenerator &, parameters const& params) {
-            if (params.set_delta) {
-                _delta = params.m_L;
-            } else {
-                _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-            }
-        }
-        Walk (BallType const&, Point &, RandomNumberGenerator &, parameters &) {}
-
-        Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &, parameters const& params) {
-            if (params.set_delta) {
-                _delta = params.m_L;
-            } else {
-                _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-            }
+        template <typename GenericPolytope>
+        static inline NT compute_delta(GenericPolytope const& P)
+        {
+            return ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
         }
 
         template<typename BallPolytope>
@@ -102,8 +72,6 @@ struct BallWalk
                           unsigned int const& walk_length,
                           RandomNumberGenerator &rng)
         {
-            //const NT delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-
             for (auto j = 0u; j < walk_length; ++j)
             {
                 Point y = GetPointInDsphere<Point>::apply(P.dimension(),
@@ -112,7 +80,6 @@ struct BallWalk
                 y += p;
                 if (P.is_in(y) == -1) p = y;
             }
-            //std::cout << "use" << parameters.m_L << std::endl;
         }
 
         inline void update_delta(NT delta)

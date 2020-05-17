@@ -8,47 +8,39 @@
 #ifndef RANDOM_WALKS_BOUNDARY_RDHR_WALK_HPP
 #define RANDOM_WALKS_BOUNDARY_RDHR_WALK_HPP
 
-#include "convex_bodies/ball.h"
-#include "convex_bodies/ballintersectconvex.h"
 #include "sampling/sphere.hpp"
 
 // Random directions hit-and-run walk with uniform target distribution
+// from boundary
 
 struct BRDHRWalk
 {
 
     template
-            <
-                    typename Polytope,
-                    typename RandomNumberGenerator
-            >
+    <
+            typename Polytope,
+            typename RandomNumberGenerator
+    >
     struct Walk
     {
         typedef typename Polytope::PointType Point;
         typedef typename Point::FT NT;
-        typedef Ball<Point> BallType;
-        typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-        Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng)
+        template <typename GenericPolytope>
+        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator& rng)
         {
             initialize(P, p, rng);
         }
-
-        Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng)
-        {
-            initialize(P, p, rng);
-        }
-        Walk (BallType const&, Point &, RandomNumberGenerator &) {}
 
         template
-                <
-                        typename BallPolytope
-                >
+        <
+                typename BallPolytope
+        >
         inline void apply(BallPolytope const& P,
-                          Point &p1,   // a point to start
-                          Point &p2,
+                          Point& p1,   // a point to start
+                          Point& p2,
                           unsigned int const& walk_length,
-                          RandomNumberGenerator &rng)
+                          RandomNumberGenerator& rng)
         {
             for (auto j=0u; j<walk_length; ++j)
             {
@@ -68,7 +60,7 @@ struct BRDHRWalk
         template <typename GenericBody>
         inline void initialize(GenericBody const& P,
                                Point const& p,
-                               RandomNumberGenerator &rng)
+                               RandomNumberGenerator& rng)
         {
             _lamdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
