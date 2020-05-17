@@ -291,10 +291,10 @@ public:
     // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point &r,
                                     Point &v,
-                                    std::vector<NT> &Ar,
-                                    std::vector<NT> &Av,
-                                    bool pos = false) {
-
+                                    VT& Ar,
+                                    VT& Av,
+                                    bool pos = false) const
+    {
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
@@ -328,11 +328,11 @@ public:
 
     std::pair<NT,NT> line_intersect(Point &r,
                                     Point &v,
-                                    std::vector<NT> &Ar,
-                                    std::vector<NT> &Av,
+                                    VT& Ar,
+                                    VT& Av,
                                     const NT &lambda_prev,
-                                    bool pos = false) {
-
+                                    bool pos = false) const
+    {
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         VT  sum_nom;
         NT mult;
