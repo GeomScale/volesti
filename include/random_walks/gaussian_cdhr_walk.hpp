@@ -73,11 +73,9 @@ struct Walk
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef Ball<Point> BallType;
-    typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
     Walk(Polytope const& P,
-         Point& p,
+         Point const& p,
          NT const& a_i,
          RandomNumberGenerator &rng)
     {
@@ -85,7 +83,7 @@ struct Walk
     }
 
     Walk(Polytope const& P,
-         Point & p,
+         Point const& p,
          NT const& a_i,
          RandomNumberGenerator& rng,
          parameters&)

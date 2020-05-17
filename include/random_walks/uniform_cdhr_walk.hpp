@@ -34,45 +34,19 @@ struct Walk
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef Ball<Point> BallType;
-    typedef HPolytope<Point> Hpolytope;
-    typedef Zonotope<Point> zonotope;
-    typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
-    typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
 
-    Walk(Polytope const& P, Point &p, RandomNumberGenerator &rng)
+    template <typename GenericPolytope>
+    Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator& rng)
     {
         initialize(P, p, rng);
     }
 
-    Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng)
+    template <typename GenericPolytope>
+    Walk(GenericPolytope const& P, Point const& p,
+         RandomNumberGenerator& rng, parameters const& params)
     {
         initialize(P, p, rng);
     }
-
-    Walk(ZonoHPoly const& P, Point &p, RandomNumberGenerator &rng)
-    {
-        initialize(P, p, rng);
-    }
-
-    Walk (BallType const&, Point &, RandomNumberGenerator &) {}
-
-    Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
-    {
-        initialize(P, p, rng);
-    }
-
-    Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
-    {
-        initialize(P, p, rng);
-    }
-
-    Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng, parameters const& params)
-    {
-        initialize(P, p, rng);
-    }
-
-    Walk (BallType const&, Point &, RandomNumberGenerator &, parameters &) {}
 
     template
     <

@@ -23,10 +23,12 @@
 #include "sampling/sampling.hpp"
 #include "exact_vols.h"
 #include "generators/known_polytope_generators.h"
+#include "generators/z_polytopes_generators.h"
 
 #include "random_walks/random_walks.hpp"
 
 #include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_hpoly.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 
@@ -84,6 +86,14 @@ int main()
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball CB = "
               << volume_cooling_balls<CDHRWalk, RNG>(HPoly) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+
+    typedef Zonotope<Point> Zonotope;
+    Zonotope Z = gen_zonotope_uniform<Zonotope, RNGType>(10, 15, 211);
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Zono CB = "
+              << volume_cooling_hpoly<CDHRWalk, RNG, Hpolytope>(Z) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
 

@@ -45,22 +45,26 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    Walk (Polytope const& P, Point &p, NT const& a, RandomNumberGenerator &rng)
+    template <typename GenericPolytope>
+    static inline NT compute_delta(GenericPolytope const& P)
     {
-        _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+        return ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+    }
+
+    Walk (Polytope const& P, Point const& p, NT const& a,
+          RandomNumberGenerator &rng)
+    {
+        _delta = compute_delta(P);
     }
 
     Walk (Polytope const& P,
-          Point &p,
+          Point const& p,
           NT const& a,
           RandomNumberGenerator &rng,
           parameters const& params)
     {
-        if (params.set_delta) {
-            _delta = params.m_L;
-        } else {
-            _delta = ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-        }
+        _delta = params.set_delta ? params.m_L
+                                  : compute_delta(P);
     }
 
     template<typename BallPolytope>

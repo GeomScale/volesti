@@ -8,14 +8,13 @@
 #ifndef RANDOM_WALKS_BOUNDARY_CDHR_WALK_HPP
 #define RANDOM_WALKS_BOUNDARY_CDHR_WALK_HPP
 
-#include "convex_bodies/ball.h"
-#include "convex_bodies/ballintersectconvex.h"
 #include "sampling/sphere.hpp"
 
 // random directions hit-and-run walk with uniform target distribution
+// from boundary
+
 struct BCDHRWalk
 {
-
     template
     <
             typename Polytope,
@@ -25,33 +24,25 @@ struct BCDHRWalk
     {
         typedef typename Polytope::PointType Point;
         typedef typename Point::FT NT;
-        typedef Ball<Point> BallType;
-        typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-        Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng)
+        template <typename GenericPolytope>
+        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator& rng)
         {
             initialize(P, p, rng);
         }
-
-        Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng)
-        {
-            initialize(P, p, rng);
-        }
-
-        Walk (BallType const&, Point &, RandomNumberGenerator &) {}
 
         template
         <
             typename BallPolytope
         >
         inline void apply(BallPolytope const& P,
-                          Point &p1,   // a point to start
-                          Point &p2,
+                          Point& p1,   // a point to start
+                          Point& p2,
                           unsigned int const& walk_length,
-                          RandomNumberGenerator &rng)
+                          RandomNumberGenerator& rng)
         {
             std::pair<NT, NT> bpair;
-            for (auto j=0u; j<walk_length; ++j)
+            for (auto j = 0u; j < walk_length; ++j)
             {
                 auto rand_coord_prev = _rand_coord;
                 _rand_coord = rng.sample_uidist();
