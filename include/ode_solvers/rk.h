@@ -28,4 +28,134 @@ see <http://www.gnu.org/licenses/>.
 #ifndef RK_H
 #define RK_H
 
+
+template <typename Point, typename NT, class Polytope>
+class RKODESolver {
+public:
+  typedef std::vector<Point> pts;
+  typedef std::vector<pts> ptsv;
+  typedef std::function <Point(pts, NT)> func;
+  typedef std::vector<func> funcs;
+  typedef std::vector<Polytope*> bounds;
+  typedef std::vector<NT> coeffs;
+  typedef std::vector<coeffs> scoeffs;
+
+  unsigned int dim;
+
+  NT eta;
+  NT t, t_prev;
+
+  funcs Fs;
+  bounds Ks;
+
+  // Contains the sub-states
+  pts xs;
+  pts xs_prev;
+  ptsv ks;
+  Point y;
+
+  scoeffs as;
+  coeffs cs, bs;
+
+  RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
+    bounds boundaries, scoeffs a_coeffs, coeffs b_coeffs, coeffs c_coeffs) :
+    t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries),
+    as(a_coeffs), bs(b_coeffs), cs(c_coeffs) {
+      dim = xs[0].dimension();
+      ks = ptsv(order() + 1, pts(num_states, Point(dimension)));
+    };
+
+
+  RKODESolver(NT initial_time, NT step, int num_states, unsigned int dimension,
+    funcs oracles, bounds boundaries, scoeffs a_coeffs, coeffs b_coeffs, coeffs c_coeffs) :
+    t(initial_time), Fs(oracles), eta(step), Ks(boundaries), as(a_coeffs),
+    bs(b_coeffs), cs(c_coeffs) {
+      xs = pts(num_states, Point(dimension));
+      ks = ptsv(order() + 1, pts(num_states, Point(dimension)));
+    };
+
+
+  RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
+    scoeffs a_coeffs, coeffs b_coeffs, coeffs c_coeffs) :
+    t(initial_time), xs(initial_state), Fs(oracles), eta(step), as(a_coeffs),
+    bs(b_coeffs), cs(c_coeffs) {
+      Ks = bounds(xs.size(), NULL);
+      dim = xs[0].dimension();
+      ks = ptsv(order() + 1, pts(num_states, Point(dimension)));
+    };
+
+  unsigned int order() {
+    return bs.size();
+  }
+
+  void step() {
+    xs_prev = xs;
+    t_prev = t;
+
+    for (unsigned int ord = 0; ord < order(); ord++) {
+
+      // Initialize t to previous
+      t = t_prev;
+
+      // Initialize ks to previous solution we use order + 1 pts
+      ks[ord] = xs_prev;
+      // Initialize argument
+      if (ord > 0) {
+        t += c[ord] * eta;
+        for (int j = 0; j < ord; j++) {
+          for (int r = 0; r < xs.size(); r++) {
+            ks[ord][r] += (eta * as[ord][j]) * ks[j][r];
+          }
+        }
+      }
+
+      for (unsigned int i = 0; i < xs.size(); i++) {
+        // Calculate k_i s
+        ks[ord][i] = Fs[i](ks[ord], t);
+        y = (eta * bs[i]) * ks[ord][i];
+
+        if (Ks[i] == NULL) {
+          xs[i] = xs[i] + y;
+        }
+        else {
+          // Find intersection (assuming a line trajectory) between x and y
+          do {
+            std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y);
+
+            if (pbpair.first < 0) {
+              xs[i] += (pbpair.first * 0.99) * y;
+              Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+            }
+            else {
+              xs[i] += y;
+            }
+          } while (!Ks[i]->is_in(xs[i]));
+        }
+      }
+    }
+  }
+
+  void print_state() {
+    for (int j = 0; j < xs.size(); j++) {
+      for (unsigned int i = 0; i < xs[j].dimension(); i++) {
+        std::cout << xs[j][i] << " ";
+      }
+    }
+    std::cout << std::endl;
+  }
+
+  void steps(int num_steps) {
+    for (int i = 0; i < num_steps; i++) step();
+  }
+
+  Point get_state(int index) {
+    return xs[index];
+  }
+
+  void set_state(int index, Point p) {
+    xs[index] = p;
+  }
+};
+
+
 #endif
