@@ -25,15 +25,7 @@ Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <cmath>
-#include <functional>
-#include <vector>
-#include "euler.h"
-#include "rk.h"
-#include "leapfrog.h"
-
-#ifndef ODE_SOLVERS_H
-#define ODE_SOLVERS_H
+#ifndef RK_H
+#define RK_H
 
 #endif
