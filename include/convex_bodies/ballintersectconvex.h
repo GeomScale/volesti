@@ -27,7 +27,7 @@ public:
     BallIntersectPolytope() {}
 
     BallIntersectPolytope(Polytope const& PP, CBall &BB) : P(PP), B(BB) {};
-    
+
     Polytope first() const { return P; }
     CBall second() const { return B; }
 
@@ -213,17 +213,17 @@ private:
     typedef typename T2::K 	K;
 public:
     PolytopeIntersectEllipsoid(T1 &Pin, T2 &Ein) : P(Pin), E(Ein) {};
-    
+
     T1 first() { return P; }
     T2 second() { return E; }
-    
+
     int is_in(Point p){
         //std::cout << "calling is in"<<std::endl;
         if(P.is_in(p)==-1)
             return E.is_in(p);
         return 0;
     }
-    
+
     int num_of_hyperplanes(){
         return P.num_of_hyperplanes();
     }
@@ -231,7 +231,7 @@ public:
     int dimension(){
         return P.dimension();
     }
-    
+
     std::pair<Point,Point> line_intersect(Point r,
                                           Point v){
 
@@ -259,7 +259,7 @@ public:
         }
         return returnpair;
     }
-    
+
     std::pair<K,K> line_intersect_coord(Point &r,
                                           Point &r_prev,
                                           int rand_coord,
@@ -273,7 +273,7 @@ public:
         return std::pair<K,K> (std::min(polypair.first,ellpair.first),
                                  std::max(polypair.second,ellpair.second));
     }
-    
+
 };
 
 
@@ -285,17 +285,17 @@ private:
     typedef typename T2::K 	K;
 public:
     BallPolyIntersectEll(T1 &BPin, T2 &Ein) : BP(BPin), E(Ein) {};
-    
+
     T1 first() { return BP; }
     T2 second() { return E; }
-    
+
     int is_in(Point p){
         //std::cout << "calling is in"<<std::endl;
         if(BP.is_in(p)==-1)
             return E.is_in(p);
         return 0;
     }
-    
+
     int num_of_hyperplanes(){
         return BP.num_of_hyperplanes();
     }
@@ -303,7 +303,7 @@ public:
     int dimension(){
         return BP.dimension();
     }
-    
+
     std::pair<Point,Point> line_intersect(Point r,
                                           Point v){
 
@@ -355,9 +355,9 @@ public:
         return std::pair<K,K> (std::min(Bpolypair.first,ellpair.first),
                                  std::max(Bpolypair.second,ellpair.second));
     }
-    
-    
-    
+
+
+
 };*/
 
 #endif
