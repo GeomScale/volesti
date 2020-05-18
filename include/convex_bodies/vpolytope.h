@@ -365,7 +365,6 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
             const VT &Av) const {
-
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 

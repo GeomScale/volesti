@@ -333,6 +333,7 @@ public:
                                     const NT &lambda_prev,
                                     bool pos = false) const
     {
+
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         VT  sum_nom;
         NT mult;
@@ -384,11 +385,13 @@ public:
                                                VT& Av,
                                                const NT &lambda_prev) const
     {
+
         return line_intersect(r, v, Ar, Av, lambda_prev, true);
     }
 
 
     //First coordinate ray intersecting convex polytope
+
     std::pair<NT,NT> line_intersect_coord(Point &r,
                                           const unsigned int &rand_coord,
                                           VT& lamdas) const
@@ -396,6 +399,7 @@ public:
 
         NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
         VT sum_denom;
+
         int m = num_of_hyperplanes();
 
         sum_denom = A.col(rand_coord);
@@ -461,6 +465,7 @@ public:
 
 
     // shift polytope by a point c
+
     void shift(const VT &c)
     {
         b -= A*c;

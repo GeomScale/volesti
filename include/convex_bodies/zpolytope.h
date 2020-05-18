@@ -300,8 +300,8 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with the Zonotope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-                                    const VT &Av, const NT &lambda_prev) const {
-
+                                    const VT &Av, const NT &lambda_prev) const
+    {
         return intersect_line_zono(V, r, v, conv_comb, colno);
     }
 
