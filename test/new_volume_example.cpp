@@ -46,10 +46,16 @@ int main()
 
     // Estimate the volume
 
-    //VPolytope<Point> VP2 = VP;
+    VPolytope<Point> VP2 = gen_cube<Vpolytope>(10, true);
 
-    //VP.init(VP.dimension(), VP2.get_mat(), VP2.get_vec());
+    VP2.init(VP2.dimension(), VP2.get_mat(), VP2.get_vec());
     double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
+    std::cout << "Cube-v cb = "
+              << volume_cooling_balls<>(VP2) << " , ";
+    std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
+
+
+    tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball SOB = "
               << volume_sequence_of_balls<>(HPoly) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
