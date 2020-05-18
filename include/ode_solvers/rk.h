@@ -50,20 +50,37 @@ public:
 
   // Contains the sub-states
   pts xs;
-  pts xs_prev;
   ptsv ks;
   Point y;
 
   scoeffs as;
   coeffs cs, bs;
 
+
+  RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
+    bounds boundaries) :
+    t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries) {
+      dim = xs[0].dimension();
+      // If no coefficients are given the RK4 method is assumed
+      cs = coeffs{0, 0.5, 0.5, 1};
+      bs = coeffs{1.0/6, 1.0/3, 1.0/3, 1.0/6};
+      as = scoeffs{
+        coeffs{},
+        coeffs{0.5},
+        coeffs{0, 0.5},
+        coeffs{0, 0, 1.0}
+      };
+    };
+
+
   RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
     bounds boundaries, scoeffs a_coeffs, coeffs b_coeffs, coeffs c_coeffs) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries),
     as(a_coeffs), bs(b_coeffs), cs(c_coeffs) {
       dim = xs[0].dimension();
-      ks = ptsv(order() + 1, pts(num_states, Point(dimension)));
     };
+
+
 
 
   RKODESolver(NT initial_time, NT step, int num_states, unsigned int dimension,
@@ -71,7 +88,21 @@ public:
     t(initial_time), Fs(oracles), eta(step), Ks(boundaries), as(a_coeffs),
     bs(b_coeffs), cs(c_coeffs) {
       xs = pts(num_states, Point(dimension));
-      ks = ptsv(order() + 1, pts(num_states, Point(dimension)));
+    };
+
+  RKODESolver(NT initial_time, NT step, int num_states, unsigned int dimension,
+    funcs oracles, bounds boundaries) :
+    t(initial_time), Fs(oracles), eta(step), Ks(boundaries) {
+      xs = pts(num_states, Point(dimension));
+      // If no coefficients are given the RK4 method is assumed
+      cs = coeffs{0, 0.5, 0.5, 1};
+      bs = coeffs{1.0/6, 1.0/3, 1.0/3, 1.0/6};
+      as = scoeffs{
+        coeffs{},
+        coeffs{0.5},
+        coeffs{0, 0.5},
+        coeffs{0, 0, 1.0}
+      };
     };
 
 
@@ -81,41 +112,56 @@ public:
     bs(b_coeffs), cs(c_coeffs) {
       Ks = bounds(xs.size(), NULL);
       dim = xs[0].dimension();
-      ks = ptsv(order() + 1, pts(num_states, Point(dimension)));
     };
+
+  RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles) :
+    t(initial_time), xs(initial_state), Fs(oracles), eta(step) {
+      Ks = bounds(xs.size(), NULL);
+      dim = xs[0].dimension();
+      // If no coefficients are given the RK4 method is assumed
+      cs = coeffs{0, 0.5, 0.5, 1};
+      bs = coeffs{1.0/6, 1.0/3, 1.0/3, 1.0/6};
+      as = scoeffs{
+        coeffs{},
+        coeffs{0.5},
+        coeffs{0, 0.5},
+        coeffs{0, 0, 1.0}
+      };
+    };
+
 
   unsigned int order() {
     return bs.size();
   }
 
   void step() {
-    xs_prev = xs;
+    ks = ptsv(order(), xs);
     t_prev = t;
 
     for (unsigned int ord = 0; ord < order(); ord++) {
-
       // Initialize t to previous
       t = t_prev;
 
-      // Initialize ks to previous solution we use order + 1 pts
-      ks[ord] = xs_prev;
+      // Initialize ks to previous solution we use
       // Initialize argument
-      if (ord > 0) {
-        t += c[ord] * eta;
-        for (int j = 0; j < ord; j++) {
-          for (int r = 0; r < xs.size(); r++) {
-            ks[ord][r] += (eta * as[ord][j]) * ks[j][r];
-          }
+      for (int j = 0; j < ord; j++) {
+        t += (cs[j] * eta);
+        for (int r = 0; r < xs.size(); r++) {
+          y =  ks[j][r];
+          y = (eta * as[ord][j]) * y;
+          ks[ord][r] = ks[ord][r] + y;
         }
       }
 
       for (unsigned int i = 0; i < xs.size(); i++) {
         // Calculate k_i s
-        ks[ord][i] = Fs[i](ks[ord], t);
-        y = (eta * bs[i]) * ks[ord][i];
+        y = Fs[i](ks[ord], t);
+        ks[ord][i] = y;
+        y = (eta * bs[i]) * y;
 
         if (Ks[i] == NULL) {
           xs[i] = xs[i] + y;
+
         }
         else {
           // Find intersection (assuming a line trajectory) between x and y
@@ -133,6 +179,7 @@ public:
         }
       }
     }
+
   }
 
   void print_state() {

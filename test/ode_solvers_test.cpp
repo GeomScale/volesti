@@ -36,8 +36,39 @@ void test_euler(){
     euler_solver.steps(1000);
     NT err=0.001;
     NT error = std::abs(euler_solver.xs[0][0]);
+    CHECK(error < err);
+}
+
+
+template <typename NT>
+void test_rk4(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef std::function<Point(pts, NT)> func;
+    typedef std::vector<func> funcs;
+    typedef boost::mt19937    RNGType;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    funcs Fs;
+    func F = [](pts x, NT t) { return (-1.0) * x[0]; };
+    Fs.push_back(F);
+    Point q0 = Point(1);
+    q0.set_coord(0, 1.0);
+    pts q;
+    q.push_back(q0);
+    RKODESolver<Point, NT, Vpolytope> rk_solver = RKODESolver<Point, NT, Vpolytope>(0, 0.1, q, Fs);
+
+    for (int i = 0; i < 200; i++) {
+      rk_solver.step();
+      rk_solver.print_state();
+    }
+
+
+    NT err=0.001;
+    NT error = std::abs(rk_solver.xs[0][0]);
     // CHECK(error < err);
 }
+
 
 template <typename NT>
 void test_leapfrog_constrained(){
@@ -143,6 +174,43 @@ void test_euler_constrained(){
     // CHECK(error < err);
 }
 
+
+
+template <typename NT>
+void test_rk4_constrained(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef std::function<Point(pts, NT)> func;
+    typedef std::vector<func> funcs;
+    typedef boost::mt19937    RNGType;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef std::vector<Vpolytope*> bounds;
+    funcs Fs;
+    func F = [](pts x, NT t) { return  x[0]; };
+    Fs.push_back(F);
+    Point q0 = Point(1);
+    q0.set_coord(0, 0.2);
+    pts q;
+    q.push_back(q0);
+
+    Vpolytope P = gen_cube<Vpolytope>(2, true);
+
+    bounds Ks{&P};
+    RKODESolver<Point, NT, Vpolytope> rk_solver = RKODESolver<Point, NT, Vpolytope>(0, 0.01, q, Fs, Ks);
+
+    for (int i = 0; i < 1000; i++) {
+      rk_solver.step();
+      rk_solver.print_state();
+    }
+
+
+    NT err=0.001;
+    NT error = std::abs(rk_solver.xs[0][0]);
+    // CHECK(error < err);
+}
+
+
 template <typename NT>
 void test_euler_2d_constrained(){
     typedef Cartesian<NT>    Kernel;
@@ -188,14 +256,16 @@ void test_euler_2d_constrained(){
 
 template <typename NT>
 void call_test_euler() {
-  std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
-  test_euler<NT>();
-
-  std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
-  test_euler_constrained<NT>();
-
-  std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
-  test_euler_2d_constrained<NT>();
+  // std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
+  // test_euler<NT>();
+  // test_rk4<NT>();
+  //
+  // std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
+  // test_euler_constrained<NT>();
+  test_rk4_constrained<NT>();
+  //
+  // std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
+  // test_euler_2d_constrained<NT>();
 
 }
 
@@ -203,10 +273,10 @@ void call_test_euler() {
 template <typename NT>
 void call_test_leapfrog() {
   // std::cout << "--- Testing solution to d^2x / dt^2 = -x" << std::endl;
-  test_leapfrog<NT>();
+  // test_leapfrog<NT>();
   //
   // std::cout << "--- Testing solution to d^2x / dt^2 = x in [-1, 1]" << std::endl;
-  test_leapfrog_constrained<NT>();
+  // test_leapfrog_constrained<NT>();
   // //
   // std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
   // test_euler_2d_constrained<NT>();
@@ -218,5 +288,5 @@ TEST_CASE("euler") {
 }
 
 TEST_CASE("leapfrog") {
-  call_test_leapfrog<double>();
+  // call_test_leapfrog<double>();
 }
