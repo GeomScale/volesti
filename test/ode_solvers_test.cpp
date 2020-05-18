@@ -203,9 +203,9 @@ void call_test_euler() {
 template <typename NT>
 void call_test_leapfrog() {
   // std::cout << "--- Testing solution to d^2x / dt^2 = -x" << std::endl;
-  // test_leapfrog<NT>();
+  test_leapfrog<NT>();
   //
-  std::cout << "--- Testing solution to d^2x / dt^2 = x in [-1, 1]" << std::endl;
+  // std::cout << "--- Testing solution to d^2x / dt^2 = x in [-1, 1]" << std::endl;
   test_leapfrog_constrained<NT>();
   // //
   // std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;

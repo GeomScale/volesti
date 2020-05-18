@@ -14,7 +14,8 @@
 #include <typeinfo>
 #include "samplers.h"
 #include "doctest.h"
-#include "ode_solvers.h"
+#include "euler.h"
+#include "leapfrog.h"
 #include "hmc.h"
 
 template <typename NT>

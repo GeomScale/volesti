@@ -25,13 +25,8 @@ Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <cmath>
-#include <functional>
-#include <vector>
-
-#ifndef ODE_SOLVERS_H
-#define ODE_SOLVERS_H
+#ifndef LEAPFROG_H
+#define LEAPFROG_H
 
 template <typename Point, typename NT, class Polytope>
 class LeapfrogODESolver {
