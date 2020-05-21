@@ -9,7 +9,7 @@
 #include <unistd.h>
 #include "Eigen/Eigen"
 #include "volume.h"
-#include "z_polytopes_gen.h"
+#include "z_polytopes_generators.h"
 #include "exact_vols.h"
 #include <typeinfo>
 

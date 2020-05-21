@@ -46,6 +46,7 @@ copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL) {
 #' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
 #' }
 #' @param n The number of points that the function is going to sample.
+#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @references \cite{R.Y. Rubinstein and B. Melamed,
 #' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
@@ -57,8 +58,8 @@ copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL) {
 #' # 100 uniform points from the 2-d unit ball
 #' points = direct_sampling(n = 100, body = list("type" = "ball", "dimension" = 2))
 #' @export
-direct_sampling <- function(body = NULL, n = NULL) {
-    .Call(`_volesti_direct_sampling`, body, n)
+direct_sampling <- function(body = NULL, n = NULL, seed = NULL) {
+    .Call(`_volesti_direct_sampling`, body, n, seed)
 }
 
 #' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex in V-representation or (c) if the volume is known and declared by the input object.
@@ -171,13 +172,14 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' Internal rcpp function for the rounding of a convex polytope
 #'
 #' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @section warning:
 #' Do not use this function.
 #'
 #' @return A numerical matrix that describes the rounded polytope and contains the round value.
-rounding <- function(P) {
-    .Call(`_volesti_rounding`, P)
+rounding <- function(P, seed = NULL) {
+    .Call(`_volesti_rounding`, P, seed)
 }
 
 #' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope or a zonotope).
@@ -201,6 +203,7 @@ rounding <- function(P) {
 #' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
 #'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
 #' }
+#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples
@@ -219,8 +222,8 @@ rounding <- function(P) {
 #' points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
 #'
 #' @export
-sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution = NULL) {
-    .Call(`_volesti_sample_points`, P, n, random_walk, distribution)
+sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution = NULL, seed = NULL) {
+    .Call(`_volesti_sample_points`, P, n, random_walk, distribution, seed)
 }
 
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
@@ -234,24 +237,11 @@ sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution =
 #' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for \code{'SOB'} and \eqn{0.1} otherwise.}
 #' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. The default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations.}
 #' \item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for \code{'SOB'} and \eqn{1} otherwise.}
-#' \item{\code{inner_ball} }{  A \eqn{d+1} numeric vector that contains an inner ball. The first \eqn{d} coordinates corresponds to the center and the last one to the radius of the ball. If it is not given then for H-polytopes the Chebychev ball is computed, for V-polytopes \eqn{d+1} vertices are picked randomly and the Chebychev ball of the defined simplex is computed. For a zonotope that is defined by the Minkowski sum of \eqn{m} segments we compute the maximal \eqn{r} s.t.: \eqn{re_i\in Z} for all \eqn{i=1,\dots ,d}, then the ball centered at the origin with radius \eqn{r/\sqrt{d}} is an inscribed ball.}
-#' \item{\code{len_win} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
-#' \item{\code{C} }{ A constant for the lower bound of \eqn{variance/mean^2} in schedule annealing of CG algorithm. The default value is \eqn{2}.}
-#' \item{\code{M} }{ The number of points we sample in each step of schedule annealing in CG algorithm. The default value is \eqn{500C + dimension^2 / 2}.}
-#' \item{\code{ratio} }{ Parameter of schedule annealing of CG algorithm, larger ratio means larger steps in schedule annealing. The default value is \eqn{1 - 1/dimension}.}
-#' \item{\code{frac} }{ The fraction of the total error to spend in the first gaussian in CG algorithm. The default value is \eqn{0.1}.}
-#' \item{\code{BW_rad} }{ The radius for the ball walk. The default value is \eqn{4r/dimension}, where \eqn{r} is the radius of the inscribed ball of the polytope.}
-#' \item{\code{ub} }{ The lower bound for the ratios in MMC in CB algorithm. The default value is \eqn{0.1}.}
-#' \item{\code{lb} }{ The upper bound for the ratios in MMC in CB algorithm. The default value is \eqn{0.15}.}
-#' \item{\code{N} }{ An integer that controls the number of points \eqn{\nu N} generated in each convex body in annealing schedule of algorithm CB.}
-#' \item{\code{nu} }{ The degrees of freedom for the t-student distribution in t-tests in CB algorithm. The default value is \eqn{10}.}
-#' \item{\code{alpha} }{ The significance level for the t-tests in CB algorithm. The default values is 0.2.}
-#' \item{\code{prob} }{ The probability is used for the empirical confidence interval in ratio estimation of CB algorithm. The default value is \eqn{0.75}.}
+#' \item{\code{win_len} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
 #' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm. The default value is \code{FALSE}.}
-#' \item{\code{minmaxW} }{ A boolean parameter to use the sliding window with a minmax values as a stopping criterion.}
-#' \item{\code{L} }{The maximum length of the billiard trajectory.}
 #' }
 #' @param rounding Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.
+#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @references \cite{I.Z.Emiris and V. Fisikopoulos,
 #' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2014.},
@@ -274,8 +264,8 @@ sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution =
 #' Z = gen_rand_zonotope(2, 4)
 #' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 5))
 #' @export
-volume <- function(P, settings = NULL, rounding = NULL) {
-    .Call(`_volesti_volume`, P, settings, rounding)
+volume <- function(P, settings = NULL, rounding = NULL, seed = NULL) {
+    .Call(`_volesti_volume`, P, settings, rounding, seed)
 }
 
 #' An internal Rccp function for the over-approximation of a zonotope
@@ -283,12 +273,13 @@ volume <- function(P, settings = NULL, rounding = NULL) {
 #' @param Z A zonotope.
 #' @param fit_ratio Optional. A boolean parameter to request the computation of the ratio of fitness.
 #' @param settings Optional. A list that declares the values of the parameters of CB algorithm.
+#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @section warning:
 #' Do not use this function.
 #'
 #' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
-zono_approx <- function(Z, fit_ratio = NULL, settings = NULL) {
-    .Call(`_volesti_zono_approx`, Z, fit_ratio, settings)
+zono_approx <- function(Z, fit_ratio = NULL, settings = NULL, seed = NULL) {
+    .Call(`_volesti_zono_approx`, Z, fit_ratio, settings, seed)
 }
 

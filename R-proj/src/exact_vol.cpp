@@ -8,15 +8,15 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
-#include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "exact_vols.h"
+#include "cartesian_geom/cartesian_kernel.h"
+#include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
+#include "convex_bodies/zpolytope.h"
+#include "volume/exact_vols.h"
 
 template <typename FT>
 FT factorial(FT n)
@@ -54,7 +54,6 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
     typedef double NT;
     typedef Cartesian <NT> Kernel;
     typedef typename Kernel::Point Point;
-    typedef boost::mt19937 RNGType;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
@@ -67,8 +66,6 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
 
     if (type == 2) {
 
-        typedef VPolytope <Point, RNGType> Vpolytope;
-        Vpolytope VP;
         dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
 
         if (Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows() ==

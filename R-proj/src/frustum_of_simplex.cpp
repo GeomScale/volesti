@@ -6,7 +6,7 @@
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
-#include "exact_vols.h"
+#include "volume/exact_vols.h"
 
 //' Compute the percentage of the volume of the unit simplex that is contained in the intersection of a half-space and the unit simplex.
 //'

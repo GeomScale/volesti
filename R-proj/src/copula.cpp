@@ -14,8 +14,8 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
-#include "simplex_samplers.h"
-#include "copulas.h"
+#include "sampling/simplex.hpp"
+#include "volume/copulas.h"
 
 //' Construct a copula using uniform sampling from the unit simplex
 //'

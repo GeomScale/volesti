@@ -66,7 +66,7 @@ double HPolytopeCPP::compute_volume(char* method, int walk_len, double epsilon, 
          urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
       vars_g<NT, RNGType> var2_GA(n,walk_len,N,W,1,epsilon,CheBall.second,rng,C,0.1,ratio,-1,false,
          false,false,false,false,false,false,true,false);
-      vol = volume_gaussian_annealing(HP_copy, var2_GA, var1_GA, CheBall);
+      vol = volume_cooling_gaussians(HP_copy, var2_GA, var1_GA, CheBall);
    }
    return (double)vol;
 }
@@ -98,9 +98,11 @@ void HPolytopeCPP::generate_samples(int walk_len, int n_samples, double* samples
 
    std::list <Point> randPoints;
    bool gaussian_samples = false;
-   double a_dummy = 1.0; //make this a parameter once gaussian_samples if a parameter too and can be true also.
+   //make this a parameter once gaussian_samples if a parameter too and can be true also.
+   double a_dummy = 1.0;
 
-   sampling_only<Point>(randPoints, HP, walk_len, n_samples, gaussian_samples, a_dummy, CheBall.first, var1, var2);
+   uniform_sampling<Point>(randPoints, HP, walk_len, n_samples, gaussian_samples,
+                           a_dummy, CheBall.first, var1, var2);
 
    auto n_si=0;
    for (auto it_s = randPoints.begin(); it_s != randPoints.end(); it_s++){
