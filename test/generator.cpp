@@ -17,9 +17,9 @@
 #include "vpolytope.h"
 #include "zpolytope.h"
 #include "known_polytope_generators.h"
-#include "h_polytopes_gen.h"
-#include "v_polytopes_gen.h"
-#include "z_polytopes_gen.h"
+#include "h_polytopes_generator.h"
+#include "v_polytopes_generators.h"
+#include "z_polytopes_generators.h"
 #include <fstream>
 #include <string>
 
