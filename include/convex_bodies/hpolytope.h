@@ -14,44 +14,63 @@
 #include <limits>
 #include <iostream>
 #include <Eigen/Eigen>
-#include "solve_lp.h"
+#include "lp_oracles/solve_lp.h"
 
 // H-polytope class
 template <typename Point>
 class HPolytope{
 public:
-    typedef Point PointType;
-    typedef typename Point::FT NT;
-    typedef typename std::vector<NT>::iterator viterator;
+    typedef Point                                             PointType;
+    typedef typename Point::FT                                NT;
+    typedef typename std::vector<NT>::iterator                viterator;
     //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
     //typedef RowMatrixXd MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
-private:
-    MT A; //matrix A
-    VT b; // vector b, s.t.: Ax<=b
-    unsigned int            _d; //dimension
-    std::pair<Point,NT> _inner_ball;
-    NT maxNT = std::numeric_limits<NT>::max();
-    NT minNT = std::numeric_limits<NT>::lowest();
+public:
+    MT                   A; //matrix A
+    VT                   b; // vector b, s.t.: Ax<=b
+    unsigned int         _d; //dimension
+    std::pair<Point, NT> _inner_ball;
+    // TODO: Why the following are not static or outside the class?
+    NT                   maxNT = std::numeric_limits<NT>::max();
+    NT                   minNT = std::numeric_limits<NT>::lowest();
 
 public:
 
-    HPolytope()
+    HPolytope() {}
+
+    HPolytope(unsigned d_, const MT& A_, const VT& b_) :
+        _d{d_}, A{A_}, b{b_}, _inner_ball{ComputeChebychevBall<NT, Point>(A, b)}
     {
-        typedef typename Point::FT NT;
-        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
 
-    std::pair<Point,NT> InnerBall() const
+
+    //define matrix A and vector b, s.t. Ax<=b and the dimension
+    HPolytope(const std::vector<std::vector<NT> >& Pin)
+    {
+        _d = Pin[0][1] - 1;
+        A.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (unsigned int i = 1; i < Pin.size(); i++) {
+            b(i - 1) = Pin[i][0];
+            for (unsigned int j = 1; j < _d + 1; j++) {
+                A(i - 1, j - 1) = -Pin[i][j];
+            }
+        }
+    }
+
+
+
+    std::pair<Point, NT> InnerBall() const
     {
         return _inner_ball;
     }
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
-    std::pair<Point,NT> ComputeInnerBall()
+    std::pair<Point, NT> ComputeInnerBall()
     {
         _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
         return _inner_ball;
@@ -113,26 +132,6 @@ public:
         return 0.0;
     }
 
-    void init(unsigned int const& dim, MT const& _A, VT const& _b)
-    {
-        _d = dim;
-        A = _A;
-        b = _b;
-    }
-
-    //define matrix A and vector b, s.t. Ax<=b and the dimension
-    void init(std::vector<std::vector<NT> > const& Pin)
-    {
-        _d = Pin[0][1] - 1;
-        A.resize(Pin.size() - 1, _d);
-        b.resize(Pin.size() - 1);
-        for (unsigned int i = 1; i < Pin.size(); i++) {
-            b(i - 1) = Pin[i][0];
-            for (unsigned int j = 1; j < _d + 1; j++) {
-                A(i - 1, j - 1) = -Pin[i][j];
-            }
-        }
-    }
 
 
     // print polytope in input format
@@ -341,7 +340,7 @@ public:
             sum_nom_data++;
         }
         if (pos) return std::pair<NT, NT>(min_plus, facet);
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
