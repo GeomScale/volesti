@@ -4,10 +4,12 @@
 \alias{rounding}
 \title{Internal rcpp function for the rounding of a convex polytope}
 \usage{
-rounding(P)
+rounding(P, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope (H- or V-representation or zonotope).}
+
+\item{seed}{Optional. A fixed seed for the number generator.}
 }
 \value{
 A numerical matrix that describes the rounded polytope and contains the round value.

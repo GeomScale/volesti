@@ -5,7 +5,7 @@
 \title{Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope or a zonotope).}
 \usage{
 sample_points(P = NULL, n = NULL, random_walk = NULL,
-  distribution = NULL)
+  distribution = NULL, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) an intersection of two V-polytopes.}
@@ -28,6 +28,8 @@ sample_points(P = NULL, n = NULL, random_walk = NULL,
 \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
 }}
+
+\item{seed}{Optional. A fixed seed for the number generator.}
 }
 \value{
 A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.

@@ -68,7 +68,6 @@ Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body = R_NilValue
 
     if (seed.isNotNull()) {
         unsigned seed2 = std::chrono::system_clock::now().time_since_epoch().count();
-        std::cout<<"seed = "<<seed2<<std::endl;
         rng.set_seed(seed2);
     }
     double seed3 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
