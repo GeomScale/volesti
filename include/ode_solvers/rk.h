@@ -140,12 +140,11 @@ public:
 
     for (unsigned int ord = 0; ord < order(); ord++) {
       // Initialize t to previous
-      t = t_prev;
+      t = t_prev + cs[ord] * eta; 
 
       // Initialize ks to previous solution we use
       // Initialize argument
       for (int j = 0; j < ord; j++) {
-        t += (cs[j] * eta);
         for (int r = 0; r < xs.size(); r++) {
           y =  ks[j][r];
           y = (eta * as[ord][j]) * y;
