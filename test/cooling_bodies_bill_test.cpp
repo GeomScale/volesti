@@ -21,7 +21,6 @@
 #include "ball.h"
 #include "ballintersectconvex.h"
 #include "vpolyintersectvpoly.h"
-#include "samplers.h"
 #include "rounding.h"
 #include "rotating.h"
 #include "linear_extensions.h"

@@ -1,6 +1,6 @@
 // volesti (volume computation and sampling library)
 
-// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
@@ -10,11 +10,13 @@
 #ifndef BALL_H
 #define BALL_H
 
+#include <Eigen/Eigen>
+
 // ball type
 template <typename Point>
 struct Ball{
 public:
-    typedef Point BallPoint;
+    typedef Point PointType;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -23,29 +25,40 @@ public:
 
     Ball(Point cc, NT RR) : c(cc),	 R(RR) {}
 
-    Point center() const {
+    std::pair<Point,NT> InnerBall() const
+    {
+        return std::pair<Point,NT>(c, R);
+    }
+
+    Point center() const
+    {
         return c;
     }
 
-    NT squared_radius() const {
+    NT squared_radius() const
+    {
         return R;
     }
 
-    NT radius() const {
+    NT radius() const
+    {
         return std::sqrt(R);
     }
 
-    int dimension() const {
+    int dimension() const
+    {
         return c.dimension();
     }
 
-    int is_in(Point &p) {
+    int is_in(Point const& p) const
+    {
         if (p.squared_length() <= R)
             return -1;
         else return 0;
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v) {
+    std::pair<NT,NT> line_intersect(Point const& r, Point const& v) const
+    {
 
         NT vrc(0), v2(0), rc2(0);
 
@@ -54,33 +67,54 @@ public:
         rc2 = r.dot(r);
 
         NT disc_sqrt = std::sqrt(std::pow(vrc,2) - v2 * (rc2 - R));
-        return std::pair<NT,NT> ((NT(-1)*vrc + disc_sqrt)/v2, (NT(-1)*vrc - disc_sqrt)/v2);
+        return std::pair<NT,NT> ((NT(-1)*vrc + disc_sqrt)/v2,
+                                 (NT(-1)*vrc - disc_sqrt)/v2);
     }
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar, const VT &Av){
+    std::pair<NT,NT> line_intersect(Point const& r,
+                                    Point const& v,
+                                    const VT &Ar,
+                                    const VT &Av) const
+    {
         return line_intersect(r, v);
     }
 
 
-    std::pair<NT,NT> line_intersect(Point &r, Point &v, const VT &Ar, const VT &Av, NT &lambda_prev) {
+    std::pair<NT,NT> line_intersect(Point const& r,
+                                    Point const& v,
+                                    const VT &Ar,
+                                    const VT &Av,
+                                    NT &lambda_prev) const
+    {
         return line_intersect(r, v);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v){
+    std::pair<NT,int> line_positive_intersect(Point const& r,
+                                              Point const& v) const
+    {
         return std::pair<NT,NT>(line_intersect(r, v).first, 0);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const VT &Ar,
-                                             const VT &Av){
+    std::pair<NT,int> line_positive_intersect(Point const& r,
+                                              Point const& v,
+                                              const VT &Ar,
+                                              const VT &Av) const
+    {
         return line_positive_intersect(r, v);
     }
 
-    std::pair<NT,int> line_positive_intersect(Point &r, Point &v, const VT &Ar,
-                                             const VT &Av, NT &lambda_prev){
+    std::pair<NT,int> line_positive_intersect(Point const& r,
+                                              Point const& v,
+                                              const VT &Ar,
+                                              const VT &Av,
+                                              NT &lambda_prev) const
+    {
         return line_positive_intersect(r, v);
     }
 
-    std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord) {
+    std::pair<NT,NT> line_intersect_coord(Point const& r,
+                                          unsigned int const& rand_coord) const
+    {
 
         NT vrc = r[rand_coord];
         NT rc2(R);
@@ -92,25 +126,29 @@ public:
 
     }
 
-    std::pair<NT,NT> line_intersect_coord(Point &r, const unsigned int &rand_coord,
-                                          const VT &lamdas) {
+    std::pair<NT,NT> line_intersect_coord(Point const& r,
+                                          unsigned int const& rand_coord,
+                                          const VT &lamdas) const
+    {
         return line_intersect_coord(r, rand_coord);
     }
 
-    std::pair<NT,NT> line_intersect_coord(Point &r,
-                                          const Point &r_prev,
-                                          const unsigned int &rand_coord,
-                                          const unsigned int &rand_coord_prev,
-                                          const VT &lamdas) {
+    std::pair<NT,NT> line_intersect_coord(Point const& r,
+                                          Point const& r_prev,
+                                          unsigned int const& rand_coord,
+                                          unsigned int const& rand_coord_prev,
+                                          const VT &lamdas) const
+    {
         return line_intersect_coord(r, rand_coord);
     }
 
-    int num_of_hyperplanes() {
+    int num_of_hyperplanes() const
+    {
         return 0;
     }
 
-    void compute_reflection (Point &v, const Point &p, const int &facet) {
-
+    void compute_reflection (Point& v, Point const& p, const int &facet) const
+    {
         Point s = p;
         s *= (1.0 / std::sqrt(s.squared_length()));
         s *= (-2.0 * v.dot(s));

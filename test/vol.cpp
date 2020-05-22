@@ -32,7 +32,7 @@
 #include "linear_extensions.h"
 #include "cooling_balls.h"
 #include "cooling_hpoly.h"
-#include "sample_only.h"
+#include "sampling.hpp"
 #include "exact_vols.h"
 
 //////////////////////////////////////////////////////////
@@ -462,10 +462,6 @@ int main(const int argc, const char** argv)
       } else {
           cdhr = true;
       }
-  } else if (!CB && !CG && billiard) {
-      std::cout<<"Billiard is not supported for SOB algorithm. CDHR is used."<<std::endl;
-      billiard = false;
-      cdhr = true;
   } else if (CG && billiard) {
       billiard = false;
       if (Zono || Vpoly) {
@@ -634,11 +630,11 @@ int main(const int argc, const char** argv)
 
       double tstart11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if (Zono) {
-          sampling_only<Point>(randPoints, ZP, walk_len, nsam, gaussian_sam, a, boundary, InnerBall.first, 0, var1, var2);
+          uniform_sampling<Point>(randPoints, ZP, walk_len, nsam, gaussian_sam, a, boundary, InnerBall.first, 0, var1, var2);
       } else if (!Vpoly) {
-          sampling_only<Point>(randPoints, HP, walk_len, nsam, gaussian_sam, a, boundary, InnerBall.first, 0, var1, var2);
+          uniform_sampling<Point>(randPoints, HP, walk_len, nsam, gaussian_sam, a, boundary, InnerBall.first, 0, var1, var2);
       } else {
-          sampling_only<Point>(randPoints, VP, walk_len, nsam, gaussian_sam, a, boundary, InnerBall.first, 0, var1, var2);
+          uniform_sampling<Point>(randPoints, VP, walk_len, nsam, gaussian_sam, a, boundary, InnerBall.first, 0, var1, var2);
       }
       double tstop11 = (double)clock()/(double)CLOCKS_PER_SEC;
       if(verbose) std::cout << "Sampling time: " << tstop11 - tstart11 << std::endl;

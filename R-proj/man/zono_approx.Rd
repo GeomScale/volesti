@@ -4,14 +4,14 @@
 \alias{zono_approx}
 \title{An internal Rccp function for the over-approximation of a zonotope}
 \usage{
-zono_approx(Z, fit_ratio = NULL, algo_parameters = NULL)
+zono_approx(Z, fit_ratio = NULL, settings = NULL)
 }
 \arguments{
 \item{Z}{A zonotope.}
 
 \item{fit_ratio}{Optional. A boolean parameter to request the computation of the ratio of fitness.}
 
-\item{algo_parameters}{Optional. A list that declares the values of the parameters of CB algorithm.}
+\item{settings}{Optional. A list that declares the values of the parameters of CB algorithm.}
 }
 \value{
 A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.

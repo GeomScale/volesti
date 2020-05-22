@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
@@ -14,30 +14,40 @@
 #include <limits>
 
 #include <iostream>
+#include <Eigen/Eigen>
 #include "vpolyoracles.h"
 #include "khach.h"
 
 //min and max values for the Hit and Run functions
 
 // V-Polytope class
-template <typename Point, typename  RNGType>
+template <typename Point>
 class VPolytope{
 public:
-    typedef Point PolytopePoint;
+    typedef Point PointType;
     typedef typename Point::FT NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-    typedef RNGType rngtype;
 
 private:
     MT V;  //matrix V. Each row contains a vertex
     VT b;  // vector b that contains first column of ine file
     unsigned int _d;  //dimension
+    std::pair<Point,NT> _inner_ball;
+
     REAL *conv_comb, *row, *conv_comb2, *conv_mem;
     int *colno, *colno_mem;
 
 public:
-    VPolytope() {}
+    VPolytope()
+    {
+        //_inner_ball = ComputeInnerBall();
+    }
+
+    std::pair<Point,NT> InnerBall() const
+    {
+        return _inner_ball;
+    }
 
     // return dimension
     unsigned int dimension() const {
@@ -50,6 +60,9 @@ public:
         return 0;
     }
 
+    int num_of_generators() const {
+        return 0;
+    }
 
     // compute the number of facets of the cyclic polytope in dimension _d with the same number of vertices
     // this is an upper bound for the number of the facets from McMullen's Upper Bound Theorem
@@ -85,30 +98,6 @@ public:
     // change the vector b
     void set_vec(const VT &b2) {
         b = b2;
-    }
-
-
-    // get a specific coeff of matrix V
-    NT get_mat_coeff(const unsigned int &i, const unsigned int &j) const {
-        return V(i,j);
-    }
-
-
-    // get a specific coeff of vector b
-    NT get_vec_coeff(const unsigned int &i) const {
-        return b(i);
-    }
-
-
-    // set a specific coeff of matrix V
-    void put_mat_coeff(const unsigned int &i, const unsigned int &j, const NT &value) {
-        V(i,j) = value;
-    }
-
-
-    // set a specific coeff of vector b
-    void put_vec_coeff(const unsigned int &i, const NT &value) {
-        b(i) = value;
     }
 
     MT get_T() const {
@@ -184,23 +173,6 @@ public:
             if(rad_iter>rad)rad = rad_iter;
         }
         return rad;
-    }
-
-    void comp_diam(NT &diam) {
-        diam = 0.0;
-        NT diam_iter;
-        for (int i = 0; i < num_of_vertices(); ++i) {
-            for (int j = 0; j < num_of_vertices(); ++j) {
-                if(i != j) {
-                    diam_iter = (V.row(i) - V.row(j)).norm();
-                    if (diam_iter > diam) diam = diam_iter;
-                }
-            }
-        }
-    }
-
-    void comp_diam(NT &diam, const NT &cheb_rad) {
-        comp_diam(diam);
     }
 
     void normalize() {}
@@ -294,29 +266,31 @@ public:
         NT radius =  std::numeric_limits<NT>::max(), min_plus;
         Point center(_d);
 
-
         std::list<Point> randPoints;
-        get_points_for_rounding(randPoints);
+        if (!get_points_for_rounding(randPoints)) {
+            center = get_mean_of_vertices();
+        } else {
 
-        boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
-        typename std::list<Point>::iterator rpit=randPoints.begin();
+            boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
+            typename std::list<Point>::iterator rpit=randPoints.begin();
 
-        unsigned int i, j = 0;
-        for ( ; rpit!=randPoints.end(); rpit++, j++) {
-            const NT* point_data = rpit->getCoefficients().data();
+            unsigned int i, j = 0;
+            for ( ; rpit!=randPoints.end(); rpit++, j++) {
+                const NT* point_data = rpit->getCoefficients().data();
 
-            for ( i=0; i < rpit->dimension(); i++){
-                Ap(i,j)=double(*point_data);
-                point_data++;
+                for ( i=0; i < rpit->dimension(); i++){
+                    Ap(i,j)=double(*point_data);
+                    point_data++;
+                }
             }
-        }
-        boost::numeric::ublas::matrix<double> Q(_d, _d);
-        boost::numeric::ublas::vector<double> c2(_d);
-        size_t w=1000;
-        KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
+            boost::numeric::ublas::matrix<double> Q(_d, _d);
+            boost::numeric::ublas::vector<double> c2(_d);
+            size_t w=1000;
+            KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
-        //Get ellipsoid matrix and center as Eigen objects
-        for(unsigned int i=0; i<_d; i++) center.set_coord(i, NT(c2(i)));
+            //Get ellipsoid matrix and center as Eigen objects
+            for(unsigned int i=0; i<_d; i++) center.set_coord(i, NT(c2(i)));
+        }
 
         std::pair<NT,NT> res;
         for (unsigned int i = 0; i < _d; ++i) {
@@ -329,13 +303,14 @@ public:
         }
 
         radius = radius / std::sqrt(NT(_d));
+        _inner_ball = std::pair<Point, NT> (center, radius);
         return std::pair<Point, NT> (center, radius);
     }
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(const Point &p) {
-        if(memLP_Vpoly(V, p, conv_mem, colno_mem)){
+    int is_in(const Point &p) const {
+        if (memLP_Vpoly(V, p, conv_mem, colno_mem)){
             return -1;
         }
         return 0;
@@ -344,7 +319,7 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v) {
+    std::pair<NT,NT> line_intersect(const Point &r, const Point &v) const {
 
         return intersect_double_line_Vpoly<NT>(V, r, v, row, colno);
     }
@@ -353,33 +328,32 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-            const VT &Av) {
-
+            const VT &Av) const {
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
     std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-                                    const VT &Av, const NT &lambda_prev) {
+                                    const VT &Av, const NT &lambda_prev) const {
 
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v){
+    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v) const {
         return std::pair<NT, int> (intersect_line_Vpoly(V, r, v, conv_comb, row, colno, false, false), 1);
     }
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
-                                               const VT &Av) {
+                                               const VT &Av) const {
         return line_positive_intersect(r, v);
     }
 
 
     std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
-                                               const VT &Av, const NT &lambda_prev) {
-        return line_positive_intersect(r, v);//, Ar, Av);
+                                               const VT &Av, const NT &lambda_prev) const {
+        return line_positive_intersect(r, v);
     }
 
 
@@ -387,7 +361,7 @@ public:
     // with the V-polytope
     std::pair<NT,NT> line_intersect_coord(const Point &r,
                                           const unsigned int rand_coord,
-                                          const VT &lamdas) {
+                                          const VT &lamdas) const {
 
         std::vector<NT> temp(_d);
         temp[rand_coord]=1.0;
@@ -402,7 +376,7 @@ public:
                                           const Point &r_prev,
                                           const unsigned int rand_coord,
                                           const unsigned int rand_coord_prev,
-                                          const VT &lamdas) {
+                                          const VT &lamdas) const {
         return line_intersect_coord(r, rand_coord, lamdas);
     }
 
@@ -424,7 +398,7 @@ public:
     // consider an upper bound for the number of facets of a V-polytope
     // for each facet consider a lower bound for the distance from the origin
     // useful for CV algorithm to get the first gaussian
-    std::vector<NT> get_dists(const NT &radius) {
+    std::vector<NT> get_dists(const NT &radius) const {
         std::vector <NT> res(upper_bound_of_hyperplanes(), radius);
         return res;
     }
@@ -447,7 +421,7 @@ public:
         return true;
     }
 
-    void compute_reflection(Point &v, const Point &p, const int &facet) {
+    void compute_reflection(Point &v, const Point &p, const int &facet) const {
 
         int count = 0, outvert;
         MT Fmat2(_d,_d);
