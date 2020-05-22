@@ -25,16 +25,7 @@ Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <cmath>
-#include <functional>
-#include <vector>
-#include "euler.h"
-#include "rk.h"
-#include "leapfrog.h"
-#include "collocation.h"
-
-#ifndef ODE_SOLVERS_H
-#define ODE_SOLVERS_H
+#ifndef COLLOCATION_H
+#define COLLOCATION_H
 
 #endif
