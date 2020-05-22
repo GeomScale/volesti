@@ -34,6 +34,10 @@ public:
   typedef std::vector<Point> pts;
   typedef std::vector<pts> ptsv;
 
+  // Coefficient matrices
+  typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+  typedef std::vector<MT> MTs;
+
   // Oracles
   typedef std::function <Point(pts, NT)> func;
 
@@ -48,7 +52,7 @@ public:
   unsigned int dim;
 
   NT eta;
-  NT t, t_prev;
+  NT t, t_prev, dt;
 
   funcs Fs;
 
@@ -58,45 +62,108 @@ public:
   bounds Ks;
 
   // Contains the sub-states
-  pts xs;
+  pts xs, xs_prev;
   Point y;
 
   // Basis coefficients
-  coeffs as;
+  ptsv as;
 
   // Temporal coefficients
   coeffs cs;
 
+  // Matrices for collocation methods
+  MTs As, Bs;
+
+  // Keeps the solution to Ax = b temporarily
+  MT temp;
 
   CollocationSolver(NT initial_time, NT step, pts initial_state, funcs oracles,
-    bounds boundaries, coeffs a_coeffs, coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
+    bounds boundaries, ptsv a_coeffs, coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries),
     as(a_coeffs), cs(c_coeffs), phi(basis), grad_phi(grad_basis) {
       dim = xs[0].dimension();
+      As = MTs(xs.size());
+      bs = MTs(xs.size());
     };
 
   CollocationSolver(NT initial_time, NT step, int num_states, unsigned int dimension,
-    funcs oracles, bounds boundaries, coeffs a_coeffs, coeffs c_coeffs,
+    funcs oracles, bounds boundaries, ptsv a_coeffs, coeffs c_coeffs,
     bfunc basis, bfunc grad_basis) :
     t(initial_time), Fs(oracles), eta(step), Ks(boundaries), as(a_coeffs), cs(c_coeffs),
     phi(basis), grad_phi(grad_basis) {
       xs = pts(num_states, Point(dimension));
+      As = MTs(xs.size());
+      bs = MTs(xs.size());
     };
 
   CollocationSolver(NT initial_time, NT step, pts initial_state, funcs oracles,
-    coeffs a_coeffs, coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
+    ptsv a_coeffs, coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), as(a_coeffs),
     cs(c_coeffs), phi(basis), grad_phi(grad_basis) {
       Ks = bounds(xs.size(), NULL);
+      As = MTs(xs.size());
+      bs = MTs(xs.size());
       dim = xs[0].dimension();
     };
 
-  unsigned int order() {
+  unsigned int order() const {
     return bs.size();
   }
 
   void step() {
+    t_prev = t;
 
+    for (unsigned int ord = 0; ord < order(); ord++) {
+      // Calculate t_ord
+      t = t_prev + cs[ord] * eta;
+
+      for (int i = 0; i < xs.size(); i++) {
+        y = Fs[i](xs, t);
+
+        // a0 = F(x0, t0)
+        if (ord == 0) as[i][0] = y;
+        else {
+          // Construct matrix A
+          for (unsigned int j = 0; j < order(); j++) {
+            As[i](ord, j) = grah_phi(t, t_prev, j, order());
+          }
+
+          // Construct matrix b
+          dt = (c[ord] - c[ord-1]) * eta;
+
+          // Compute new derivative (inter-point)
+          y = dt * y;
+
+          // Do not take into account reflections
+          xs[i] += y;
+
+
+          // Add discrete temporal gradient to coefficients
+          Bs[i] = y.getCoefficients();
+        }
+      }
+    }
+
+    // Solve linear systems
+    for (int i = 0; i < xs.size(); i++) {
+      temp = As[i].colPivHouseholderQr().solve(Bs[i]);
+      for (int j = 1; j < order(); j++) {
+        as[i][j] = temp[j-1];
+      }
+    }
+
+    if (Ks[i] == NULL) {
+      // Compute next point
+      for (unsigned int i = 0; i < xs.size(); i++) {
+        for (unsigned int ord = 0; j < order(); ord++) {
+          xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
+        }
+      }
+    } else {
+      // TODO Implement intersection with polynomial
+      throw true;
+
+    }
 
   }
 
@@ -131,11 +198,6 @@ NT poly_basis(NT t, NT t0, unsigned int j, unsigned int ord) {
 template<typename NT>
 NT poly_basis_grad(NT t, NT t0, unsigned int j, unsigned int ord) {
   ((NT) j) * pow(t - t0, (NT) (j - 1));
-}
-
-template<typename NT>
-NT hermite_basis(NT t, NT t0, unsigned int ord) {
-
 }
 
 
