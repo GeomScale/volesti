@@ -260,7 +260,7 @@ public:
             sum_nom_data++;
             sum_denom_data++;
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -299,8 +299,8 @@ public:
             Av_data++;
             sum_nom_data++;
         }
-        if (pos) return std::pair<NT, NT>(min_plus, facet);
-        return std::pair<NT, NT>(min_plus, max_minus);
+        if (pos) return std::make_pair(min_plus, facet);
+        return std::make_pair(min_plus, max_minus);
     }
 
     std::pair<NT,NT> line_intersect(Point const& r,
@@ -339,7 +339,7 @@ public:
             Av_data++;
             sum_nom_data++;
         }
-        if (pos) return std::pair<NT, NT>(min_plus, facet);
+        if (pos) return std::make_pair(min_plus, facet);
         return std::make_pair(min_plus, max_minus);
     }
 
@@ -399,7 +399,7 @@ public:
             lamda_data++;
             sum_denom_data++;
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -432,7 +432,7 @@ public:
             }
             data++;
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -490,8 +490,6 @@ public:
     {
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
-
-    void free_them_all() {}
 
 };
 
