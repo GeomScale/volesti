@@ -76,14 +76,13 @@ void test_leapfrog_constrained(){
     typedef VPolytope<Point, RNGType > Vpolytope;
     typedef std::vector<Vpolytope*> bounds;
     funcs Fs;
-    bounds Ks;
     func F = [](pts x, NT t) { return (-2.0) * x[0]; };
     Fs.push_back(F);
     Fs.push_back(F);
 
+    // Solve in P x R for
     Vpolytope P = gen_cube<Vpolytope>(1, true);
-    Ks.push_back(NULL);
-    Ks.push_back(&P);
+    bounds Ks{&P, NULL};
 
     Point x0 = Point(1);
     Point v0 = Point(1);
@@ -97,9 +96,6 @@ void test_leapfrog_constrained(){
       CHECK(leapfrog_solver.xs[0].dot(leapfrog_solver.xs[0]) < 1.1);
     }
 
-    // NT err=0.001;
-    // NT error = std::abs(euler_solver.xs[0][0]);
-    // CHECK(error < err);
 }
 
 template <typename NT>
@@ -258,7 +254,7 @@ void call_test_leapfrog() {
   test_leapfrog<NT>();
   //
   std::cout << "--- Testing solution to d^2x / dt^2 = x in [-1, 1]" << std::endl;
-  // test_leapfrog_constrained<NT>();
+  test_leapfrog_constrained<NT>();
   // //
   std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
   test_euler_2d_constrained<NT>();
