@@ -44,6 +44,7 @@ NT newton_raphson(NT t0, bfunc f, bfunc grad_f, NT rtol) {
     t_prev = t;
   } while (err > rtol);
 
+  return t;
 }
 
 #endif
