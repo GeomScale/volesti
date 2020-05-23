@@ -35,7 +35,7 @@ void test_euler(){
     EulerODESolver<Point, NT, Vpolytope> euler_solver = EulerODESolver<Point, NT, Vpolytope>(0, 0.01, q, Fs);
     euler_solver.steps(1000);
     NT err=0.001;
-    NT error = std::abs(euler_solver.xs[0][0]);
+    NT error = euler_solver.xs[0].dot(euler_solver.xs[0]);
     CHECK(error < err);
 }
 
@@ -57,16 +57,11 @@ void test_rk4(){
     pts q;
     q.push_back(q0);
     RKODESolver<Point, NT, Vpolytope> rk_solver = RKODESolver<Point, NT, Vpolytope>(0, 0.1, q, Fs);
-
-    for (int i = 0; i < 200; i++) {
-      rk_solver.step();
-      rk_solver.print_state();
-    }
-
+    rk_solver.steps(1000);
 
     NT err=0.001;
-    NT error = std::abs(rk_solver.xs[0][0]);
-    // CHECK(error < err);
+    NT error = rk_solver.xs[0].dot(rk_solver.xs[0]);
+    CHECK(error < err);
 }
 
 
@@ -99,7 +94,7 @@ void test_leapfrog_constrained(){
 
     for (int i = 0; i < 1000; i++) {
       leapfrog_solver.step();
-      leapfrog_solver.print_state();
+      CHECK(leapfrog_solver.xs[0].dot(leapfrog_solver.xs[0]) < 1.1);
     }
 
     // NT err=0.001;
@@ -129,12 +124,9 @@ void test_leapfrog(){
 
     for (int i = 0; i < 1000; i++) {
       leapfrog_solver.step();
-      leapfrog_solver.print_state();
+      CHECK(leapfrog_solver.xs[0].dot(leapfrog_solver.xs[0]) < 1.1);
     }
 
-    // NT err=0.001;
-    // NT error = std::abs(euler_solver.xs[0][0]);
-    // CHECK(error < err);
 }
 
 
@@ -161,17 +153,12 @@ void test_euler_constrained(){
     pts q;
     q.push_back(q0);
     EulerODESolver<Point, NT, Vpolytope> euler_solver = EulerODESolver<Point, NT, Vpolytope>(0, 0.001, q, Fs, Ks);
+    euler_solver.steps(1000);
 
-    // for (int i = 0; i < 1000; i++) {
-    //   euler_solver.step();
-    //   euler_solver.print_state();
-    // }
-
-
-    NT err=0.001;
+    NT err=0.01;
     NT target = 1.0;
     NT error = std::abs((euler_solver.xs[0][0] - target) / target);
-    // CHECK(error < err);
+    CHECK(error < err);
 }
 
 
@@ -194,20 +181,17 @@ void test_rk4_constrained(){
     pts q;
     q.push_back(q0);
 
-    Vpolytope P = gen_cube<Vpolytope>(2, true);
+    Vpolytope P = gen_cube<Vpolytope>(1, true);
 
     bounds Ks{&P};
     RKODESolver<Point, NT, Vpolytope> rk_solver = RKODESolver<Point, NT, Vpolytope>(0, 0.01, q, Fs, Ks);
 
-    for (int i = 0; i < 1000; i++) {
-      rk_solver.step();
-      rk_solver.print_state();
-    }
+    rk_solver.steps(1000);
 
-
-    NT err=0.001;
-    NT error = std::abs(rk_solver.xs[0][0]);
-    // CHECK(error < err);
+    NT err=0.01;
+    NT target = 1.0;
+    NT error = std::abs((rk_solver.xs[0][0] - target) / target);
+    CHECK(error < err);
 }
 
 
@@ -244,11 +228,8 @@ void test_euler_2d_constrained(){
     pts q;
     q.push_back(q0);
     EulerODESolver<Point, NT, Vpolytope> euler_solver = EulerODESolver<Point, NT, Vpolytope>(0, 0.1, q, Fs, Ks);
-    //
-    // for (int i = 0; i < 10000; i++) {
-    //   euler_solver.step();
-    //   euler_solver.print_state();
-    // }
+    euler_solver.steps(1000);
+    CHECK(euler_solver.xs[0].dot(euler_solver.xs[0]) < 1.1);
 
 }
 
@@ -256,30 +237,31 @@ void test_euler_2d_constrained(){
 
 template <typename NT>
 void call_test_euler() {
-  // std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
-  // test_euler<NT>();
-  // test_rk4<NT>();
-  //
-  // std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
-  // test_euler_constrained<NT>();
+
+  std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
+  test_euler<NT>();
+  test_rk4<NT>();
+
+  std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
+  test_euler_constrained<NT>();
   test_rk4_constrained<NT>();
-  //
-  // std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
-  // test_euler_2d_constrained<NT>();
+
+  std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
+  test_euler_2d_constrained<NT>();
 
 }
 
 
 template <typename NT>
 void call_test_leapfrog() {
-  // std::cout << "--- Testing solution to d^2x / dt^2 = -x" << std::endl;
-  // test_leapfrog<NT>();
+  std::cout << "--- Testing solution to d^2x / dt^2 = -x" << std::endl;
+  test_leapfrog<NT>();
   //
-  // std::cout << "--- Testing solution to d^2x / dt^2 = x in [-1, 1]" << std::endl;
+  std::cout << "--- Testing solution to d^2x / dt^2 = x in [-1, 1]" << std::endl;
   // test_leapfrog_constrained<NT>();
   // //
-  // std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
-  // test_euler_2d_constrained<NT>();
+  std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
+  test_euler_2d_constrained<NT>();
 
 }
 
@@ -288,5 +270,5 @@ TEST_CASE("euler") {
 }
 
 TEST_CASE("leapfrog") {
-  // call_test_leapfrog<double>();
+  call_test_leapfrog<double>();
 }
