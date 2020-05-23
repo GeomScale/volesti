@@ -25,13 +25,25 @@ Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-#include <cmath>
-#include <functional>
-#include <vector>
-#include "newton_raphson.h"
+#ifndef NEWTON_RAPHSON_H
+#define NEWTON_RAPHSON_H
 
-#ifndef ROOT_FINDERS_H
-#define ROOT_FINDERS_H
+template <typename NT, class bfunc>
+NT newton_raphson(NT t0, bfunc f, bfunc grad_f, NT rtol) {
+  NT t, t_prev, err;
+  t = t0;
+
+  do {
+    t = t_prev - (f(t_prev) / grad_f(t_prev));
+    if (t_prev != 0) {
+      err = std::abs(t - t_prev) / t_prev;
+    } else {
+      err = std::abs(t - t_prev);
+    }
+
+    t_prev = t;
+  } while (err > rtol);
+
+}
 
 #endif
