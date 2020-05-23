@@ -29,11 +29,12 @@ see <http://www.gnu.org/licenses/>.
 #define NEWTON_RAPHSON_H
 
 template <typename NT, class func>
-std::pair<NT,bool> newton_raphson(NT t0, func f, func grad_f, NT rtol, NT reg=0, int max_tries=1000000) {
+std::pair<NT,bool> newton_raphson(NT t0, func f, func grad_f, const NT rtol,
+  const NT reg=0, const unsigned int max_tries=1000000) {
   NT t, t_prev, err;
   NT y, y_prime;
   t = t0;
-  int tries = 0;
+  unsigned int tries = 0;
 
   do {
     tries++;
