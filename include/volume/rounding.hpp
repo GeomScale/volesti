@@ -103,13 +103,9 @@ round_polytope(Polytope &P,
         P.shift(e);
 
         MT L_1 = L.inverse();
-        if (iter==0) {
-            shift = e;
-        } else {
-            shift += L_1.transpose() * e;
-        }
-        //shift += T.inverse() * e;
-        T *= L_1;
+        shift = shift + T * e;
+        T = T * L_1.transpose();
+
         P.linear_transformIt(L_1.transpose());
         InnerBall = P.ComputeInnerBall();
         round_val *= L_1.determinant();

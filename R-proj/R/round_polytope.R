@@ -27,7 +27,7 @@
 #' @export
 round_polytope <- function(P, seed = NULL){
   
-  ret_list = rounding(P)
+  ret_list = rounding(P, seed)
   
   #get the matrix that describes the polytope
   Mat = ret_list$Mat
