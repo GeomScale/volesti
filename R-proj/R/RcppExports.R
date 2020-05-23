@@ -10,6 +10,7 @@
 #' @param sigma Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
 #' @param m The number of the slices for the copula. The default value is 100.
 #' @param n The number of points to sample. The default value is \eqn{5\cdot 10^5}.
+#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 #' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
@@ -31,8 +32,8 @@
 #' cop = copula(r1 = h, sigma = E, m = 10, n = 100000)
 #'
 #' @export
-copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL) {
-    .Call(`_volesti_copula`, r1, r2, sigma, m, n)
+copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL, seed = NULL) {
+    .Call(`_volesti_copula`, r1, r2, sigma, m, n, seed)
 }
 
 #' Sample perfect uniformly distributed points from well known convex bodies: (a) the unit simplex, (b) the canonical simplex, (c) the boundary of a hypersphere or (d) the interior of a hypersphere.
