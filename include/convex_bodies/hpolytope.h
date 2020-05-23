@@ -16,7 +16,10 @@
 #include <Eigen/Eigen>
 #include "lp_oracles/solve_lp.h"
 
-// H-polytope class
+//! H-polytope class
+/*!
+    A class for a polytopne in H-representaion
+ */
 template <typename Point>
 class HPolytope{
 public:
@@ -28,7 +31,7 @@ public:
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
-public:
+private:
     MT                   A; //matrix A
     VT                   b; // vector b, s.t.: Ax<=b
     unsigned int         _d; //dimension
@@ -59,8 +62,8 @@ public:
                 A(i - 1, j - 1) = -Pin[i][j];
             }
         }
+        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
-
 
 
     std::pair<Point, NT> InnerBall() const
