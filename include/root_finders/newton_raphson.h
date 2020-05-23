@@ -28,13 +28,21 @@ see <http://www.gnu.org/licenses/>.
 #ifndef NEWTON_RAPHSON_H
 #define NEWTON_RAPHSON_H
 
-template <typename NT, class bfunc>
-NT newton_raphson(NT t0, bfunc f, bfunc grad_f, NT rtol) {
+template <typename NT, class func>
+std::pair<NT,bool> newton_raphson(NT t0, func f, func grad_f, NT rtol, NT reg=0, int max_tries=1000000) {
   NT t, t_prev, err;
+  NT y, y_prime;
   t = t0;
+  int tries = 0;
 
   do {
-    t = t_prev - (f(t_prev) / grad_f(t_prev));
+    tries++;
+    y = f(t_prev);
+    y_prime = grad_f(t_prev);
+
+    if (std::abs(y_prime) < rtol) y_prime += reg;
+
+    t = t_prev - y / y_prime;
     if (t_prev != 0) {
       err = std::abs(t - t_prev) / t_prev;
     } else {
@@ -42,9 +50,13 @@ NT newton_raphson(NT t0, bfunc f, bfunc grad_f, NT rtol) {
     }
 
     t_prev = t;
+
+    if (tries > max_tries) break;
+
   } while (err > rtol);
 
-  return t;
+  return std::make_pair(t, tries > max_tries);
+
 }
 
 #endif
