@@ -21,28 +21,59 @@
 //min and max values for the Hit and Run functions
 
 // V-Polytope class
-template <typename Point>
-class VPolytope{
+template<typename Point>
+class VPolytope {
 public:
-    typedef Point PointType;
-    typedef typename Point::FT NT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Point                                             PointType;
+    typedef typename Point::FT                                NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
-    MT V;  //matrix V. Each row contains a vertex
-    VT b;  // vector b that contains first column of ine file
-    unsigned int _d;  //dimension
-    std::pair<Point,NT> _inner_ball;
+    MT                   V;  //matrix V. Each row contains a vertex
+    VT                   b;  // vector b that contains first column of ine file
+    unsigned int         _d;  //dimension
+    std::pair<Point, NT> _inner_ball;
 
     REAL *conv_comb, *row, *conv_comb2, *conv_mem;
-    int *colno, *colno_mem;
+    int                  *colno, *colno_mem;
 
 public:
-    VPolytope()
-    {
+    VPolytope() {
         //_inner_ball = ComputeInnerBall();
     }
+
+    VPolytope(const unsigned int &dim, const MT &_V, const VT &_b): _d{dim}, V{_V}, b{_b}
+    {
+        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        conv_comb2 = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb2));
+        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+    }
+    
+    // Construct matrix V which contains the vertices row-wise
+    VPolytope(const std::vector<std::vector<NT> > &Pin)
+    {
+        _d = Pin[0][1] - 1;
+        V.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (unsigned int i = 1; i < Pin.size(); i++) {
+            b(i - 1) = Pin[i][0];
+            for (unsigned int j = 1; j < _d + 1; j++) {
+                V(i - 1, j - 1) = Pin[i][j];
+            }
+        }
+        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        conv_comb2 = (REAL *) malloc(Pin.size() * sizeof(*conv_comb2));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
+        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+    }
+
+
 
     std::pair<Point,NT> InnerBall() const
     {
@@ -102,38 +133,6 @@ public:
 
     MT get_T() const {
         return V;
-    }
-
-    void init(const unsigned int &dim, const MT &_V, const VT &_b) {
-        _d = dim;
-        V = _V;
-        b = _b;
-        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
-        conv_comb2 = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb2));
-        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-    }
-
-
-    // Construct matrix V which contains the vertices row-wise
-    void init(const std::vector<std::vector<NT> > &Pin) {
-        _d = Pin[0][1] - 1;
-        V.resize(Pin.size() - 1, _d);
-        b.resize(Pin.size() - 1);
-        for (unsigned int i = 1; i < Pin.size(); i++) {
-            b(i - 1) = Pin[i][0];
-            for (unsigned int j = 1; j < _d + 1; j++) {
-                V(i - 1, j - 1) = Pin[i][j];
-            }
-        }
-        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
-        conv_comb2 = (REAL *) malloc(Pin.size() * sizeof(*conv_comb2));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
-        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
 
 
