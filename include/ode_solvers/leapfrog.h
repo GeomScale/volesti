@@ -85,7 +85,7 @@ public:
       Point y = xs[v_index];
       y = (eta) * y;
 
-      if (Ks[v_index] == NULL) {
+      if (Ks[x_index] == NULL) {
         xs[x_index] = xs[x_index] + y;
       }
       else {
