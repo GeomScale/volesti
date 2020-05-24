@@ -206,13 +206,13 @@ bool get_sequence_of_zonopolys(Zonotope &Z,
     }
 }
 
-
+// TODO: Rewrite to avoid some matrix operations and improve the signature
 template
         <
                 typename Zonotope,
                 typename HPolytope
         >
-void compute_hpoly_for_mmc(Zonotope &P, HPolytope &HP) {
+HPolytope compute_hpoly_for_mmc(Zonotope &P) {
 
     typedef typename Zonotope::PointType Point;
     typedef typename Zonotope::NT NT;
@@ -239,7 +239,7 @@ void compute_hpoly_for_mmc(Zonotope &P, HPolytope &HP) {
         b(i) = b(i) / row_norm;
     }
 
-    HP.init(P.dimension(),A3,b);
+    return HPolytope(P.dimension(), A3, b);
 }
 
 
@@ -257,26 +257,18 @@ double volume_cooling_hpoly (Zonotope const& Pin,
                              unsigned int const& win_len = 200)
 {
 
-    typedef typename Zonotope::PointType Point;
-    typedef typename Point::FT NT;
-    typedef ZonoIntersectHPoly <Zonotope, HPolytope> ZonoHP;
-    typedef typename Zonotope::VT VT;
-    typedef typename Zonotope::MT MT;
-    typedef std::list <Point> PointList;
+    typedef typename Zonotope::PointType            Point;
+    typedef typename Point::FT                      NT;
+    typedef ZonoIntersectHPoly<Zonotope, HPolytope> ZonoHP;
+    typedef typename Zonotope::VT                   VT;
+    typedef typename Zonotope::MT                   MT;
+    typedef std::list<Point>                        PointList;
 
-    typedef typename WalkTypePolicy::template Walk
-            <
-                    Zonotope,
-                    RandomNumberGenerator
-            > WalkType;
-    typedef RandomPointGenerator<WalkType> ZonoRandomPointGenerator;
+    typedef typename WalkTypePolicy::template Walk<Zonotope, RandomNumberGenerator> WalkType;
+    typedef RandomPointGenerator<WalkType>                                          ZonoRandomPointGenerator;
 
-    typedef typename CDHRWalk::template Walk
-            <
-                    HPolytope,
-                    RandomNumberGenerator
-            > CdhrWalk;
-    typedef RandomPointGenerator<CdhrWalk> CdhrRandomPointGenerator;
+    typedef typename CDHRWalk::template Walk<HPolytope, RandomNumberGenerator> CdhrWalk;
+    typedef RandomPointGenerator<CdhrWalk>                                     CdhrRandomPointGenerator;
 
     auto P(Pin);
     //RandomNumberGenerator rng(P.dimension());
@@ -287,8 +279,7 @@ double volume_cooling_hpoly (Zonotope const& Pin,
     NT prob = parameters.p, ratio;
     int N_times_nu = parameters.N * parameters.nu;
 
-    HPolytope HP;
-    compute_hpoly_for_mmc(P, HP);
+    HPolytope HP = compute_hpoly_for_mmc<Zonotope, HPolytope>(P);
     VT b_max(2*P.num_of_generators());
     if ( !get_first_poly<CdhrRandomPointGenerator>(P, HP, ratio, parameters, rng, b_max) )
     {
@@ -364,13 +355,14 @@ double volume_cooling_hpoly (Zonotope const& Pin,
             }
         }
 
-        zb1 = ZonoHP(P,HPolySet[HPolySet.size()-1]);
+        zb1 = ZonoHP(P, HPolySet[HPolySet.size() - 1]);
         if (!parameters.window2) {
             vol = vol / estimate_ratio_interval<WalkType, Point>(zb1, HP, ratios[ratios.size() - 1], er1,
-                                                               parameters.win_len, N_times_nu, prob, walk_length, rng);
+                                                                 parameters.win_len, N_times_nu, prob, walk_length,
+                                                                 rng);
         } else {
             vol = vol / estimate_ratio<WalkType, Point>(zb1, HP, ratios[ratios.size() - 1], er1, parameters.win_len,
-                                                               N_times_nu, walk_length, rng);
+                                                        N_times_nu, walk_length, rng);
         }
     }
 
