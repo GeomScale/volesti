@@ -10,10 +10,10 @@
 #include "Eigen/Eigen"
 //#define VOLESTI_DEBUG
 #include <fstream>
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 
 #include "random_walks/random_walks.hpp"
 
