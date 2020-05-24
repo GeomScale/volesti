@@ -152,8 +152,7 @@ static NT compute(ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>> const& P
     VT bb(4*k);
     for (int i = 0; i < 4*k; ++i) bb(i) = (i < 2*k) ? b(i) : 1.0;
 
-    Hpolytope HP;
-    HP.init(d, M, bb);
+    Hpolytope HP(d, M, bb);
 
     RandomNumberGenerator rng(HP.dimension());
 
