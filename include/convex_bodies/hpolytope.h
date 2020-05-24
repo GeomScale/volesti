@@ -41,17 +41,53 @@ private:
     NT                   minNT = std::numeric_limits<NT>::lowest();
 
 public:
-
+    //TODO: the default implementation of the Big3 should be ok. Recheck.
     HPolytope() {}
 
     HPolytope(unsigned d_, const MT& A_, const VT& b_) :
         _d{d_}, A{A_}, b{b_}, _inner_ball{ComputeChebychevBall<NT, Point>(A, b)}
     {
+//        std::cout << "D1b " << __FUNCTION__ << "\n";
+    }
+    // Copy constructor
+    HPolytope(const HPolytope<Point>& p) :
+            _d{p._d}, A{p.A}, b{p.b},  _inner_ball{p._inner_ball}
+    {
     }
 
+    HPolytope(HPolytope&& p) :_d{p._d}
+    {
+//        std::cout << "D" << __FUNCTION__ << "\n";
+        b = std::move(p.b);
+        _inner_ball = std::move(p._inner_ball);
+    }
+
+    HPolytope& operator=(const HPolytope& p)
+    {
+//        std::cout << __FUNCTION__ << "\n";
+        if (this != &p) { // protect against invalid self-assignment
+            _d = p._d;
+            A = p.A;
+            b = p.b;
+            _inner_ball = p._inner_ball;
+        }
+        return *this;
+    }
+
+    HPolytope& operator=(HPolytope&& p)
+    {
+//        std::cout << __FUNCTION__ << "\n";
+        if (this != &p) {
+            _d = p._d;
+            A = std::move(p.A);
+            b = std::move(p.b);
+            _inner_ball = std::move(p._inner_ball);
+        }
+        return *this;
+    }
 
     //define matrix A and vector b, s.t. Ax<=b and the dimension
-    HPolytope(const std::vector<std::vector<NT> >& Pin)
+    HPolytope(const std::vector<std::vector<NT>>& Pin)
     {
         _d = Pin[0][1] - 1;
         A.resize(Pin.size() - 1, _d);
@@ -64,6 +100,8 @@ public:
         }
         _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
+
+
 
 
     std::pair<Point, NT> InnerBall() const
