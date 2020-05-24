@@ -82,11 +82,11 @@ void call_test_cube(){
     Hpolytope P;
 
     std::cout << "--- Testing volume of H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(10, false);
+    P = generate_cube<Hpolytope>(10, false);
     test_volume(P, 1096.5089688155, 1049.22, 1055.73, 1055.73, 1024);
 
     std::cout << "--- Testing volume of H-cube20" << std::endl;
-    P = gen_cube<Hpolytope>(20, false);
+    P = std::move(generate_cube<Hpolytope>(20, false));
     test_volume(P, 967353, 1056180, 1058830, 1058830, 1048576);
 }
 
@@ -144,8 +144,8 @@ void call_test_birk() {
     std::vector<std::vector<NT> > Pin;
     inp.open("../R-proj/inst/extdata/birk3.ine",std::ifstream::in);
     read_pointset(inp,Pin);
-    P.init(Pin);
-    test_volume(P,
+    Hpolytope P1(Pin);
+    test_volume(P1,
                 0.118885,
                 0.126776,
                 0.122177,
@@ -157,8 +157,8 @@ void call_test_birk() {
     std::vector<std::vector<NT> > Pin2;
     inp2.open("../R-proj/inst/extdata/birk4.ine",std::ifstream::in);
     read_pointset(inp2,Pin2);
-    P.init(Pin2);
-    test_volume(P,
+    Hpolytope P2(Pin2);
+    test_volume(P2,
                 0.00122254,
                 0.000898527,
                 0.000945447,
@@ -170,8 +170,8 @@ void call_test_birk() {
     std::vector<std::vector<NT> > Pin3;
     inp3.open("../R-proj/inst/extdata/birk5.ine",std::ifstream::in);
     read_pointset(inp3,Pin3);
-    P.init(Pin3);
-    test_volume(P,
+    Hpolytope P3(Pin3);
+    test_volume(P3,
                 2.19189 * std::pow(10,-8),
                 2.07943 * std::pow(10,-7),
                 2.28319 * std::pow(10,-7),
@@ -183,8 +183,8 @@ void call_test_birk() {
     std::vector<std::vector<NT> > Pin4;
     inp4.open("../R-proj/inst/extdata/birk6.ine",std::ifstream::in);
     read_pointset(inp4,Pin4);
-    P.init(Pin4);
-    test_volume(P,
+    Hpolytope P4(Pin4);
+    test_volume(P4,
                 5.72936 * std::pow(10,-18),
                 9.48912 * std::pow(10,-13),
                 7.05416 * std::pow(10,-13),

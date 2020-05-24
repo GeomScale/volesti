@@ -80,11 +80,11 @@ void call_test_cube(){
     Hpolytope P;
 
     std::cout << "--- Testing volume of H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(10, false);
+    P = generate_cube<Hpolytope>(10, false);
     test_volume(P, 1151.18, 1163.36, 1119.15, 1100.73, 1024);
 
     std::cout << "--- Testing volume of H-cube20" << std::endl;
-    P = gen_cube<Hpolytope>(20, false);
+    P = generate_cube<Hpolytope>(20, false);
     test_volume(P, 968319, 1051230, 1006470, 1007020, 1048576);
 }
 
@@ -129,7 +129,7 @@ void call_test_birk()
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
-    Hpolytope P;
+
 
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 123> RNGType;
 
@@ -138,16 +138,16 @@ void call_test_birk()
     std::vector<std::vector<NT> > Pin;
     inp.open("../R-proj/inst/extdata/birk3.ine",std::ifstream::in);
     read_pointset(inp,Pin);
-    P.init(Pin);
-    test_volume(P, 0.111157, 0.125548, 0.113241, 0.116259, 0.125);
+    Hpolytope P1(Pin);
+    test_volume(P1, 0.111157, 0.125548, 0.113241, 0.116259, 0.125);
 
     std::cout << "--- Testing volume of H-birk4" << std::endl;
     std::ifstream inp2;
     std::vector<std::vector<NT> > Pin2;
     inp2.open("../R-proj/inst/extdata/birk4.ine",std::ifstream::in);
     read_pointset(inp2,Pin2);
-    P.init(Pin2);
-    test_volume(P, 0.00074316, 0.00109593, 0.000881856, 0.000839499,
+    Hpolytope P2(Pin2);
+    test_volume(P2, 0.00074316, 0.00109593, 0.000881856, 0.000839499,
                 0.000970018);
 
     std::cout << "--- Testing volume of H-birk5" << std::endl;
@@ -155,8 +155,8 @@ void call_test_birk()
     std::vector<std::vector<NT> > Pin3;
     inp3.open("../R-proj/inst/extdata/birk5.ine",std::ifstream::in);
     read_pointset(inp3,Pin3);
-    P.init(Pin3);
-    test_volume(P,
+    Hpolytope P3(Pin3);
+    test_volume(P3,
                 4.1826 * std::pow(10,-9),
                 2.12236 * std::pow(10,-7),
                 1.87499 * std::pow(10,-7),
@@ -168,8 +168,8 @@ void call_test_birk()
     std::vector<std::vector<NT> > Pin4;
     inp4.open("../R-proj/inst/extdata/birk6.ine",std::ifstream::in);
     read_pointset(inp4,Pin4);
-    P.init(Pin4);
-    test_volume(P,
+    Hpolytope P4(Pin4);
+    test_volume(P4,
                 3.43196 * std::pow(10,-19),
                 6.60745 * std::pow(10,-13),
                 5.99551 * std::pow(10,-13),

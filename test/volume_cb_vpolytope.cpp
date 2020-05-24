@@ -85,11 +85,11 @@ void call_test_cube(){
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cube2" << std::endl;
-    P = gen_cube<Vpolytope>(2, true);
+    P = generate_cube<Vpolytope>(2, true);
     test_volume(P, 4.43443, 4.129, 4.43443, 4.40191, 4);
 
     std::cout << "--- Testing volume of V-cube5" << std::endl;
-    P = gen_cube<Vpolytope>(5, true);
+    P = generate_cube<Vpolytope>(5, true);
     test_volume(P, 32, 32, 32, 32, 32);
 
 
@@ -104,11 +104,11 @@ void call_test_cube_float(){
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cube10 (float)" << std::endl;
-    P = gen_cube<Vpolytope>(10, false);
+    P = generate_cube<Vpolytope>(10, false);
     test_volume(P, 1000.55, 1024, 1024, 1024, 1024);
 
     std::cout << "--- Testing volume of V-cube20 (float)" << std::endl;
-    P = gen_cube<Vpolytope>(20, false);
+    P = generate_cube<Vpolytope>(20, false);
     test_volume(P, 1114192.7854272256,
                 1048576,
                 1048576,
