@@ -10,16 +10,16 @@
 #include "Eigen/Eigen"
 //#define VOLESTI_DEBUG
 #include <fstream>
-#include "random.hpp"
+#include <boost/random.hpp>
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-#include "volume_sequence_of_balls.hpp"
-#include "volume_cooling_gaussians.hpp"
-#include "volume_cooling_balls.hpp"
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
 #include "volume/rotating.hpp"
-#include "misc.h"
-#include "linear_extensions.h"
+#include "misc/misc.h"
+#include "misc/linear_extensions.h"
 #include "sampling/sampling.hpp"
 #include "exact_vols.h"
 #include "generators/known_polytope_generators.h"
@@ -43,14 +43,14 @@ int main()
 
 
     typedef BoostRandomNumberGenerator<boost::mt11213b, NT> RNG;
-    Hpolytope HPoly = gen_cube<Hpolytope>(10, false);
+    Hpolytope HPoly = generate_cube<Hpolytope>(10, false);
     BallWalk BW(3);
 
     // Estimate the volume
 
-    VPolytope<Point> VP2 = gen_cube<Vpolytope>(2, true);
+    VPolytope<Point> VP2 = generate_cube<Vpolytope>(2, true);
 
-    VP2.init(VP2.dimension(), VP2.get_mat(), VP2.get_vec());
+    // VP2.init(VP2.dimension(), VP2.get_mat(), VP2.get_vec());
     double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Cube-v cb = "
               << volume_cooling_balls<>(VP2) << " , ";
