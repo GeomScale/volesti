@@ -35,7 +35,7 @@ int main()
 
     std::cout << "Volume algorithm: Cooling Balls" << std::endl << std::endl;
 
-    Hpolytope HP = gen_cube<Hpolytope>(10, false);
+    Hpolytope HP = generate_cube<Hpolytope>(10, false);
 
     //Compute chebychev ball
     std::pair<Point,NT> CheBall;
@@ -161,31 +161,31 @@ int main()
 
 
     Vpolytope VP;
-    VP = gen_cross<Vpolytope>(10, true);
+    VP = std::move(gen_cross<Vpolytope>(10, true));
 
     // NEW IMPLEMENTATIOM
 
     // Estimate the volume
 
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    //VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball (cross) = "
               << volume_cooling_balls<BallWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    //VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHR (cross) = "
               << volume_cooling_balls<RDHRWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    //VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHR (cross) = "
               << volume_cooling_balls<CDHRWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    // VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Blrd (cross) = "
               << volume_cooling_balls<BilliardWalk, RNG>(VP) << " , ";
