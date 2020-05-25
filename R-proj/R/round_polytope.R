@@ -3,6 +3,7 @@
 #' Given a convex H or V polytope or a zonotope as input this functionbrings the polytope in well rounded position based on minimum volume enclosing ellipsoid of a pointset.
 #' 
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
+#' @param seed Optional. A fixed seed for the number generator.
 #' 
 #' @return A list with 2 elements: (a) a polytope of the same class as the input polytope class and (b) the element "round_value" which is the determinant of the square matrix of the linear transformation that was applied on the polytope that is given as input.
 #'
@@ -24,9 +25,9 @@
 #' Z = gen_rand_zonotope(2,6)
 #' ListZono = round_polytope(Z)
 #' @export
-round_polytope <- function(P){
+round_polytope <- function(P, seed = NULL){
   
-  ret_list = rounding(P)
+  ret_list = rounding(P, seed)
   
   #get the matrix that describes the polytope
   Mat = ret_list$Mat
@@ -36,13 +37,14 @@ round_polytope <- function(P){
   
   # remove first column
   A = Mat[,-c(1)]
+  
   type = P$type
   if (type == 2) {
-    PP = list("P" = Vpolytope$new(A), "round_value" = ret_list$round_value)
+    PP = list("P" = Vpolytope$new(A), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
   }else if (type == 3) {
-    PP = list("P" = Zonotope$new(A), "round_value" = ret_list$round_value)
+    PP = list("P" = Zonotope$new(A), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
   } else {
-    PP = list("P" = Hpolytope$new(A,b), "round_value" = ret_list$round_value)
+    PP = list("P" = Hpolytope$new(A,b), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
   }
   return(PP)
 }

@@ -4,12 +4,14 @@
 \alias{rotate_polytope}
 \title{Apply a random rotation to a convex polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)}
 \usage{
-rotate_polytope(P, T = NULL)
+rotate_polytope(P, T = NULL, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope, (b) Vpolytope, (c) Zonotope, (d) intersection of two V-polytopes.}
 
 \item{T}{Optional. A \eqn{d\times d} rotation matrix.}
+
+\item{seed}{Optional. A fixed seed for the random linear map generator.}
 }
 \value{
 A list that contains the rotated polytope and the matrix \eqn{T} of the linear transformation.

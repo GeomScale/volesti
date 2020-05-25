@@ -23,8 +23,12 @@
 
 
 template <typename Point, typename RNGType, typename NT>
-std::vector<std::vector<NT> > twoParHypFam(const int dim, const int num, const int num_slices,
-        const std::vector<NT> &pl1, const std::vector<NT> &pl2){
+std::vector<std::vector<NT> > twoParHypFam(const int dim,
+                                           const int num,
+                                           const int num_slices,
+                                           const std::vector<NT> &pl1, const std::vector<NT> &pl2,
+                                           double seed = std::numeric_limits<double>::signaling_NaN())
+{
 
     int i,j,col,row;
     std::vector<NT> vec1,vec2,Zs1,Zs2;
@@ -34,7 +38,7 @@ std::vector<std::vector<NT> > twoParHypFam(const int dim, const int num, const i
     std::pair< std::vector<NT>,std::vector<NT> > result;
     Point p;
 
-    Sam_Canon_Unit<NT, RNGType> (dim, num, points);
+    Sam_Canon_Unit<NT, RNGType> (dim, num, points, seed);
 
     std::vector<std::vector<int> > Matrix(num_slices);
     std::vector<std::vector<NT> > pos_Matrix(num_slices);
@@ -128,7 +132,13 @@ std::vector<std::vector<NT> > twoParHypFam(const int dim, const int num, const i
 
 
 template <typename Point, typename RNGType, typename ellipsoid, typename NT>
-std::vector<std::vector<NT> > hypfam_ellfam(int dim, int num, int num_slices, std::vector<NT>  pl, ellipsoid G){
+std::vector<std::vector<NT> > hypfam_ellfam(int dim,
+                                            int num,
+                                            int num_slices,
+                                            std::vector<NT>  pl,
+                                            ellipsoid G,
+                                            double seed = std::numeric_limits<double>::signaling_NaN())
+{
 
     int i,j,col,row;
     std::vector<NT> vec1,vec2,Zs1,Cs;
@@ -138,7 +148,7 @@ std::vector<std::vector<NT> > hypfam_ellfam(int dim, int num, int num_slices, st
     std::pair< std::vector<NT>,std::vector<NT> > result;
     Point p;
 
-    Sam_Canon_Unit<NT, RNGType> (dim, num, points);
+    Sam_Canon_Unit<NT, RNGType> (dim, num, points, seed);
 
     std::vector<std::vector<int> > Matrix(num_slices);
     std::vector<std::vector<NT> > pos_Matrix(num_slices);

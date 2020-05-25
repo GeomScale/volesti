@@ -13,7 +13,7 @@
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "volume.h"
-#include "z_polytopes_gen.h"
+#include "z_polytopes_generators.h"
 #include "exact_vols.h"
 #include <typeinfo>
 
