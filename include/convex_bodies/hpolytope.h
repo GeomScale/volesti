@@ -21,7 +21,7 @@
     A class for a polytopne in H-representaion
  */
 template <typename Point>
-class HPolytope{
+class HPolytope {
 public:
     typedef Point                                             PointType;
     typedef typename Point::FT                                NT;
@@ -47,7 +47,6 @@ public:
     HPolytope(unsigned d_, const MT& A_, const VT& b_) :
         _d{d_}, A{A_}, b{b_}, _inner_ball{ComputeChebychevBall<NT, Point>(A, b)}
     {
-//        std::cout << "D1b " << __FUNCTION__ << "\n";
     }
     // Copy constructor
     HPolytope(const HPolytope<Point>& p) :
@@ -57,14 +56,12 @@ public:
 
     HPolytope(HPolytope&& p) :_d{p._d}
     {
-//        std::cout << "D" << __FUNCTION__ << "\n";
         b = std::move(p.b);
         _inner_ball = std::move(p._inner_ball);
     }
 
     HPolytope& operator=(const HPolytope& p)
     {
-//        std::cout << __FUNCTION__ << "\n";
         if (this != &p) { // protect against invalid self-assignment
             _d = p._d;
             A = p.A;
