@@ -10,7 +10,7 @@ Zruntest <- function(P, name_string, tol, num_of_exps, algo){
     if (algo == "CB") {
       vol = vol + volume(P, rounding=FALSE)
     } else {
-      vol = vol + volume(P, algo = list("algorithm" = "CG", "error" = 0.1), rounding=TRUE)
+      vol = vol + volume(P, settings = list("algorithm" = "CG", "error" = 0.1), rounding=TRUE)
     }
   }
   vol = vol / num_of_exps

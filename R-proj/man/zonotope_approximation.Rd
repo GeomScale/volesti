@@ -4,14 +4,14 @@
 \alias{zonotope_approximation}
 \title{A function to over-approximate a zonotope with PCA method and to evaluate the approximation by computing a ratio of fitness.}
 \usage{
-zonotope_approximation(Z, fit_ratio = NULL, algo_parameters = NULL)
+zonotope_approximation(Z, fit_ratio = NULL, settings = NULL)
 }
 \arguments{
 \item{Z}{A zonotope.}
 
 \item{fit_ratio}{Optional. A boolean parameter to request the computation of the ratio of fitness.}
 
-\item{algo_parameters}{Optional. A list that declares the values of the parameters of CB algorithm as follows:
+\item{settings}{Optional. A list that declares the values of the parameters of CB algorithm as follows:
 \itemize{
 \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for \code{'SOB'} and \eqn{0.1} otherwise.}
 \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. The default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations.}

@@ -1,11 +1,11 @@
 \docType{class}
-\name{Rcpp_VPolyintersectVPoly}
-\alias{Rcpp_VPolyintersectVPoly-class}
-\alias{[,Rcpp_VPolyintersectVPoly-method}
-\alias{[,Rcpp_VPolyintersectVPoly,ANY,ANY,ANY-method}
-\alias{$<-,Rcpp_VPolyintersectVPoly-method}
-\alias{$,Rcpp_VPolyintersectVPoly-method}
-\alias{filepaths<-,Rcpp_VPolyintersectVPoly-method}
+\name{Rcpp_VpolytopeIntersection}
+\alias{Rcpp_VpolytopeIntersection-class}
+\alias{[,Rcpp_VpolytopeIntersection-method}
+\alias{[,Rcpp_VpolytopeIntersection,ANY,ANY,ANY-method}
+\alias{$<-,Rcpp_VpolytopeIntersection-method}
+\alias{$,Rcpp_VpolytopeIntersection-method}
+\alias{filepaths<-,Rcpp_VpolytopeIntersection-method}
 \title{
 An \code{Rcpp} class to represent the intersection of two V-polytope, exposed to \code{R} via modules.
 }
