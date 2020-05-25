@@ -14,11 +14,11 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "random_walks/random_walks.hpp"
-#include "volume_cooling_gaussians.hpp"
-#include "volume_sequence_of_balls.hpp"
-#include "volume_cooling_gaussians.hpp"
-#include "volume_cooling_balls.hpp"
-#include "volume_cooling_hpoly.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
+#include "volume/volume_cooling_hpoly.hpp"
 
 
 template <typename Polytope,  typename RNGType,  typename NT>

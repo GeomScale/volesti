@@ -249,7 +249,7 @@ struct Walk
             _v = GetDirection<Point>::apply(n, rng);
             Point p0 = _p;
             int it = 0;
-            while (it < 10*n)
+            while (it < 50*n)
             {
                 auto pbpair = P.line_positive_intersect(_p, _v, _lambdas,
                                                         _Av, _lambda_prev);
@@ -264,7 +264,9 @@ struct Walk
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
-            if (it == 30*n) _p = p0;
+            if (it == 50*n){
+                _p = p0;
+            }
         }
         p = _p;
     }
@@ -307,13 +309,17 @@ private :
         T -= _lambda_prev;
         P.compute_reflection(_v, _p, pbpair.second);
 
-        while (it < 30*n)
+        while (it <= 50*n)
         {
             std::pair<NT, int> pbpair
                     = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev);
             if (T <= pbpair.first) {
                 _p += (T * _v);
                 _lambda_prev = T;
+                break;
+            }else if (it == 50*n) {
+                _lambda_prev = rng.sample_urdist() * pbpair.first;
+                _p += (_lambda_prev * _v);
                 break;
             }
             _lambda_prev = dl * pbpair.first;
@@ -322,7 +328,8 @@ private :
             P.compute_reflection(_v, _p, pbpair.second);
             it++;
         }
-        if (it == 10*n) _p = p0;
+        //if (it == 30*n) _p = p0;
+
     }
 
     double _L;
