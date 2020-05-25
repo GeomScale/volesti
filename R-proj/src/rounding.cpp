@@ -92,33 +92,27 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
     switch (type) {
         case 1: {
             if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL,
-                                                                                                  rng);
+                round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
             } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL,
-                                                                                                  rng);
+                round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
             }
             Mat = extractMatPoly(HP);
             break;
         }
         case 2: {
             if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL,
-                                                                                                  rng);
+                round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
             } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL,
-                                                                                                      rng);
+                round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
             }
             Mat = extractMatPoly(VP);
             break;
         }
         case 3: {
             if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL,
-                                                                                                  rng);
+                round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
             } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL,
-                                                                                                      rng);
+                round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
             }
             Mat = extractMatPoly(ZP);
             break;

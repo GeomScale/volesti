@@ -15,7 +15,7 @@
 
 #include <iostream>
 #include <Eigen/Eigen>
-#include "vpolyoracles.h"
+#include "lp_oracles/vpolyoracles.h"
 #include "khach.h"
 
 //min and max values for the Hit and Run functions

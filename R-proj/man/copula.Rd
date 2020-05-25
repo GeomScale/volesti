@@ -4,7 +4,8 @@
 \alias{copula}
 \title{Construct a copula using uniform sampling from the unit simplex}
 \usage{
-copula(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL)
+copula(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL,
+  seed = NULL)
 }
 \arguments{
 \item{r1}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
@@ -16,6 +17,8 @@ copula(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL)
 \item{m}{The number of the slices for the copula. The default value is 100.}
 
 \item{n}{The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
+
+\item{seed}{Optional. A fixed seed for the number generator.}
 }
 \value{
 A \eqn{numSlices\times numSlices} numerical matrix that corresponds to a copula.

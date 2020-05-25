@@ -4,7 +4,7 @@
 \alias{volume}
 \title{The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-volume(P, settings = NULL, rounding = NULL)
+volume(P, settings = NULL, rounding = NULL, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
@@ -20,6 +20,8 @@ volume(P, settings = NULL, rounding = NULL)
 }}
 
 \item{rounding}{Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.}
+
+\item{seed}{Optional. A fixed seed for the number generator.}
 }
 \value{
 The approximation of the volume of a convex polytope.

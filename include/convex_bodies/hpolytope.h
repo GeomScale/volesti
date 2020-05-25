@@ -14,7 +14,7 @@
 #include <limits>
 #include <iostream>
 #include <Eigen/Eigen>
-#include "solve_lp.h"
+#include "lp_oracles/solve_lp.h"
 
 // H-polytope class
 template <typename Point>
