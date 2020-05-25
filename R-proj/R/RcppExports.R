@@ -253,17 +253,23 @@ sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution =
 #'
 #' @return The approximation of the volume of a convex polytope.
 #' @examples
+#' \dontrun{
 #' # calling SOB algorithm for a H-polytope (3d unit simplex)
 #' HP = gen_simplex(3,'H')
 #' vol = volume(HP)
+#' }
 #'
+#' \dontrun{
 #' # calling CG algorithm for a V-polytope (2d simplex)
 #' VP = gen_simplex(2,'V')
 #' vol = volume(VP, settings = list("algorithm" = "CG"))
+#'}
 #'
+#' \dontrun{
 #' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 #' Z = gen_rand_zonotope(2, 4)
 #' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
+#'}
 #' @export
 volume <- function(P, settings = NULL, rounding = NULL, seed = NULL) {
     .Call(`_volesti_volume`, P, settings, rounding, seed)

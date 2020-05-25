@@ -30,17 +30,23 @@ The approximation of the volume of a convex polytope.
 For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 }
 \examples{
+\dontrun{
 # calling SOB algorithm for a H-polytope (3d unit simplex)
 HP = gen_simplex(3,'H')
 vol = volume(HP)
+}
 
+\dontrun{
 # calling CG algorithm for a V-polytope (2d simplex)
 VP = gen_simplex(2,'V')
 vol = volume(VP, settings = list("algorithm" = "CG"))
+}
 
+\dontrun{
 # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 Z = gen_rand_zonotope(2, 4)
 vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
+}
 }
 \references{
 \cite{I.Z.Emiris and V. Fisikopoulos,
