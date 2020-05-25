@@ -21,24 +21,24 @@
 template <typename Point>
 class Zonotope {
 public:
-    typedef Point PointType;
-    typedef typename Point::FT NT;
-    typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+    typedef Point                                             PointType;
+    typedef typename Point::FT                                NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
-    MT V;  //matrix V. Each row contains a vertex
-    VT b;  // vector b that contains first column of ine file
-    unsigned int _d;  //dimension
-    std::pair<Point,NT> _inner_ball;
-    NT maxNT = std::numeric_limits<NT>::max();
-    NT minNT = std::numeric_limits<NT>::lowest();
+    MT                   V;  //matrix V. Each row contains a vertex
+    VT                   b;  // vector b that contains first column of ine file
+    unsigned int         _d;  //dimension
+    std::pair<Point, NT> _inner_ball;
+    NT                   maxNT = std::numeric_limits<NT>::max();
+    NT                   minNT = std::numeric_limits<NT>::lowest();
 
     REAL *conv_comb, *row, *row_mem;
-    int *colno, *colno_mem;
-    MT sigma;
-    MT Q0;
-    MT T;
+    int                  *colno, *colno_mem;
+    MT                   sigma;
+    MT                   Q0;
+    MT                   T;
 
 public:
 

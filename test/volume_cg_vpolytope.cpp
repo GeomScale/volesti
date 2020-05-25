@@ -58,16 +58,16 @@ void test_volume(Polytope &P,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 
     //TODO: low accuracy in high dimensions
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    NT volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(P, e, walk_len);
+    Polytope P1(P.dimension(), P.get_mat(), P.get_vec());
+    NT volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(P1, e, walk_len);
     test_values(volume, expectedBall, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P2(P.dimension(), P.get_mat(), P.get_vec());
+    volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(P2, e, walk_len);
     test_values(volume, expectedCDHR, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_gaussians<GaussianRDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P3(P.dimension(), P.get_mat(), P.get_vec());
+    volume = volume_cooling_gaussians<GaussianRDHRWalk, RNGType>(P3, e, walk_len);
     test_values(volume, expectedRDHR, exact);
 }
 

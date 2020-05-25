@@ -59,20 +59,20 @@ void test_volume(Polytope &P,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 
     //TODO: low accuracy in high dimensions
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    NT volume = volume_cooling_balls<BallWalk, RNGType>(P, e, walk_len);
+    Polytope P1(P.dimension(), P.get_mat(), P.get_vec());
+    NT volume = volume_cooling_balls<BallWalk, RNGType>(P1, e, walk_len);
     test_values(volume, expectedBall, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<CDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P2(P.dimension(), P.get_mat(), P.get_vec());
+    volume = volume_cooling_balls<CDHRWalk, RNGType>(P2, e, walk_len);
     test_values(volume, expectedCDHR, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<RDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P3(P.dimension(), P.get_mat(), P.get_vec());
+    volume = volume_cooling_balls<RDHRWalk, RNGType>(P3, e, walk_len);
     test_values(volume, expectedRDHR, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(P, e, walk_len);
+    Polytope P4(P.dimension(), P.get_mat(), P.get_vec());
+    volume = volume_cooling_balls<BilliardWalk, RNGType>(P4, e, walk_len);
     test_values(volume, expectedBilliard, exact);
 }
 
@@ -82,15 +82,15 @@ void call_test_cube(){
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937 RNGType;
     typedef VPolytope<Point> Vpolytope;
-    Vpolytope P;
+
 
     std::cout << "--- Testing volume of V-cube2" << std::endl;
-    P = generate_cube<Vpolytope>(2, true);
-    test_volume(P, 4.43443, 4.129, 4.43443, 4.40191, 4);
+    Vpolytope P1 = generate_cube<Vpolytope>(2, true);
+    test_volume(P1, 4.43443, 4.129, 4.43443, 4.40191, 4);
 
     std::cout << "--- Testing volume of V-cube5" << std::endl;
-    P = generate_cube<Vpolytope>(5, true);
-    test_volume(P, 32, 32, 32, 32, 32);
+    Vpolytope P2 = generate_cube<Vpolytope>(5, true);
+    test_volume(P2, 32, 32, 32, 32, 32);
 
 
 }

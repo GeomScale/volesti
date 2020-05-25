@@ -65,11 +65,10 @@ Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numer
         }
     }
 
-    Polytope VP;
-    VT b = VT::Ones(k);
-    VP.init(dim, V, b);
 
-    return VP;
+    VT b = VT::Ones(k);
+    return Polytope(dim, V, b);
+//    return VP;
 
 }
 
@@ -102,7 +101,7 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
     MT V(k, d);
     unsigned int j, count_row,it=0;
     std::vector<int> indices;
-    Polytope VP;
+
     VT b = VT::Ones(k);
 
     for (unsigned int i = 0; i < k; ++i) {
@@ -111,8 +110,8 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
         }
     }
     if(k==d+1){
-        VP.init(d, V, b);
-        return VP;
+        return Polytope(d, V, b);
+        //return VP;
     }
 
     MT V2(k,d);
@@ -143,8 +142,8 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
             V2 = V;
         }
         if (indices.size()==0) {
-            VP.init(d, V, b);
-            return VP;
+            return Polytope(d, V, b);
+            //return VP;
         }
         V2.resize(k - indices.size(), d);
         count_row =0;
@@ -159,11 +158,12 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
         it++;
     }
 
-    VP.init(d, V2, VT::Ones(V2.rows()));
+
     free(colno_mem);
     free(conv_mem);
 
-    return VP;
+    return Polytope(d, V2, VT::Ones(V2.rows()));
+//    return VP;
 
 }
 
