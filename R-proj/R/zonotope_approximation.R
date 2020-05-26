@@ -16,9 +16,11 @@
 #' @return A list that contains the approximation body in H-representation and the ratio of fitness
 #' 
 #' @examples 
+#' \dontrun{
 #' # over-approximate a 2-dimensional zonotope with 10 generators and compute the ratio of fitness
 #' Z = gen_rand_zonotope(2,8)
 #' retList = zonotope_approximation(Z = Z)
+#' }
 #' 
 #' @export
 zonotope_approximation <- function(Z, fit_ratio = NULL, settings = NULL, seed = NULL){

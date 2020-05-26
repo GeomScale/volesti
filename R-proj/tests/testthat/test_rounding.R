@@ -39,6 +39,7 @@ for (i in 1:2) {
   
   
   test_that("Rounding H-skinny_cube10", {
+    skip_if(Sys.info()[["machine"]] %in% c("x86_32"))
     seed=5
     P = gen_skinny_cube(10)
     res = testRound(P, 102400, 0.3, 'H-skinny_cube10', num_of_exps, 'CB', FALSE,seed)

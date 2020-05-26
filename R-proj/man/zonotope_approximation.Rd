@@ -29,8 +29,10 @@ A list that contains the approximation body in H-representation and the ratio of
 For the evaluation of the PCA method the exact volume of the approximation body is computed and the volume of the input zonotope is computed by CoolingBodies algorithm (BAN). The ratio of fitness is \eqn{R=}.
 }
 \examples{
+\dontrun{
 # over-approximate a 2-dimensional zonotope with 10 generators and compute the ratio of fitness
 Z = gen_rand_zonotope(2,8)
 retList = zonotope_approximation(Z = Z)
+}
 
 }
