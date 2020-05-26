@@ -40,7 +40,7 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
             uniform_sampling<CDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              StartingPoint, nburns);
         }
-    } else if(rdhr){
+    } else if (rdhr){
         if (gaussian) {
             gaussian_sampling<GaussianRDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              a, StartingPoint, nburns);
@@ -58,7 +58,6 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
         }
     } else {
         if (set_L) {
-            
             if (gaussian) {
                 GaussianBallWalk WalkType(L);
                 gaussian_sampling(randPoints, P, rng, WalkType, walkL, numpoints, a,
@@ -164,7 +163,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
     numpoints = (!n.isNotNull()) ? 100 : Rcpp::as<unsigned int>(n);
 
     if (!n.isNotNull()) {
-      throw Rcpp::exception("The number of samples is not declared!");
+        throw Rcpp::exception("The number of samples is not declared!");
     } else {
         numpoints = Rcpp::as<unsigned int>(n);
         if (numpoints <= 0) throw Rcpp::exception("The number of samples has to be a positice integer!");
@@ -175,15 +174,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
     }
 
 
-
     if (!distribution.isNotNull() || !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("density")) {
         billiard = true;
     } else if (
             Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("uniform")) == 0) {
-            billiard = true;
+        billiard = true;
     } else if (
             Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("gaussian")) == 0) {
-            gaussian = true;
+        gaussian = true;
     } else {
         throw Rcpp::exception("Wrong distribution!");
     }
@@ -211,15 +209,21 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
 
     if (!random_walk.isNotNull() || !Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("walk")) {
         if (gaussian) {
-            cdhr = true;
+            if (type == 1) {
+                cdhr = true;
+            } else {
+                rdhr = true;
+            }
         } else {
             billiard = true;
             walkL = 5;
         }
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("CDHR")) == 0) {
         cdhr = true;
+        billiard = false;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("RDHR")) == 0) {
         rdhr = true;
+        billiard = false;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BaW")) == 0) {
         if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("BaW_rad")) {
             L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["BaW_rad"]);
@@ -227,6 +231,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P = R_NilValue
             if (L<=0.0) throw Rcpp::exception("BaW diameter must be a postitive number!");
         }
         ball_walk = true;
+        billiard = false;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BiW")) == 0) {
         if (gaussian) throw Rcpp::exception("Billiard walk can be used only for uniform sampling!");
         billiard = true;
