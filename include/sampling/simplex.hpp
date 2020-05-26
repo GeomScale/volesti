@@ -36,7 +36,6 @@ void Sam_Unit(unsigned int dim,
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
     if (!std::isnan(seed)) {
-        std::cout<<"seed = "<<seed<<std::endl;
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
@@ -182,7 +181,6 @@ void Sam_Canon_Unit(unsigned int dim,
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
     if (!std::isnan(seed)) {
-        std::cout<<"seed = "<<seed<<std::endl;
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }

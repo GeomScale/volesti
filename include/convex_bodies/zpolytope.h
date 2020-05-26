@@ -15,8 +15,8 @@
 
 #include <iostream>
 #include <Eigen/Eigen>
-#include "vpolyoracles.h"
-#include "zpolyoracles.h"
+#include "lp_oracles/vpolyoracles.h"
+#include "lp_oracles/zpolyoracles.h"
 
 template <typename Point>
 class Zonotope {

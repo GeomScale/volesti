@@ -10,7 +10,7 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
-#include "ellipsoids.h"
+#include "convex_bodies/ellipsoids.h"
 #include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
@@ -26,6 +26,7 @@
 //' @param sigma Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
 //' @param m The number of the slices for the copula. The default value is 100.
 //' @param n The number of points to sample. The default value is \eqn{5\cdot 10^5}.
+//' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 //' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
@@ -52,7 +53,8 @@ Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1 = R_NilValue,
                             Rcpp::Nullable<Rcpp::NumericVector> r2 = R_NilValue,
                             Rcpp::Nullable<Rcpp::NumericMatrix> sigma = R_NilValue,
                             Rcpp::Nullable<unsigned int> m = R_NilValue,
-                            Rcpp::Nullable<unsigned int> n = R_NilValue){
+                            Rcpp::Nullable<unsigned int> n = R_NilValue,
+                            Rcpp::Nullable<double> seed = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -71,6 +73,8 @@ Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1 = R_NilValue,
         numpoints = Rcpp::as<unsigned int>(n);
     }
 
+    double seed3 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
+
     Rcpp::NumericMatrix copula(num_slices, num_slices);
     std::vector<std::vector<NT> > StdCopula;
     unsigned int dim = Rcpp::as<std::vector<NT> >(r1).size(), i, j;
@@ -85,7 +89,7 @@ Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1 = R_NilValue,
     if (r2.isNotNull()) {
 
         std::vector <NT> hyp2 = Rcpp::as < std::vector < NT > > (r2);
-        StdCopula = twoParHypFam<Point, RNGType>(dim, numpoints, num_slices, hyp1, hyp2);
+        StdCopula = twoParHypFam<Point, RNGType>(dim, numpoints, num_slices, hyp1, hyp2, seed3);
 
     } else if (sigma.isNotNull()) {
 
@@ -97,7 +101,7 @@ Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1 = R_NilValue,
             }
         }
         CopEll Ell(Gin);
-        StdCopula = hypfam_ellfam<Point, RNGType >(dim, numpoints, num_slices, hyp1, Ell);
+        StdCopula = hypfam_ellfam<Point, RNGType >(dim, numpoints, num_slices, hyp1, Ell, seed3);
     } else {
 
         throw Rcpp::exception("Wrong inputs");

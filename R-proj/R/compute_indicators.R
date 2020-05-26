@@ -10,6 +10,7 @@
 #' @param n Optional. The number of points to sample. The default value is \eqn{5\cdot 10^5}.
 #' @param nwarning Optional. The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.
 #' @param ncrisis Optional. The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.
+#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 #' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
@@ -17,7 +18,7 @@
 #' @return A list that contains the indicators and the corresponding vector that label each time period with respect to the market state: a) normal, b) crisis, c) warning.
 #'
 #' @export
-compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, nwarning = NULL, ncrisis = NULL) {
+compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, nwarning = NULL, ncrisis = NULL, seed = NULL) {
   
   if (is.null(win_length)) win_length = 60
   if (is.null(m)) m = 100
@@ -43,7 +44,7 @@ compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, n
       compRet[j] = compRet[j] - 1
     }
     
-    cop = copula(r1 = compRet, sigma = E, m = m, n = n)
+    cop = copula(r1 = compRet, sigma = E, m = m, n = n, seed = seed)
     blue_mass = 0
     red_mass = 0
     

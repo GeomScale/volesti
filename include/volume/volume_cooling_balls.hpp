@@ -734,7 +734,6 @@ double volume_cooling_balls(Polytope const& Pin,
     NT prob = parameters.p;
     int N_times_nu = parameters.N * parameters.nu;
 
-
     auto InnerBall = P.ComputeInnerBall();
     NT radius = InnerBall.second;
     Point c = InnerBall.first;
