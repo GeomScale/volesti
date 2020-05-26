@@ -32,7 +32,6 @@ see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <vector>
 #include <unistd.h>
-#include "Eigen/Eigen"
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
@@ -67,6 +66,28 @@ void test_euler(){
     CHECK(error < err);
 }
 
+template <typename NT>
+void test_bs(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef std::function<Point(pts, NT)> func;
+    typedef std::vector<func> funcs;
+    typedef boost::mt19937    RNGType;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    funcs Fs;
+    func F = [](pts x, NT t) { return (-1.0) * x[0]; };
+    Fs.push_back(F);
+    Point q0 = Point(1);
+    q0.set_coord(0, 0.5);
+    pts q;
+    q.push_back(q0);
+    BSODESolver<Point, NT, Vpolytope> bs_solver = BSODESolver<Point, NT, Vpolytope>(0, 0.1, q, Fs);
+    bs_solver.steps(1000);
+    NT err=0.001;
+    NT error = bs_solver.xs[0].dot(bs_solver.xs[0]);
+    CHECK(error < err);
+}
 
 template <typename NT>
 void test_rk4(){
@@ -265,6 +286,7 @@ void call_test_euler() {
   std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
   test_euler<NT>();
   test_rk4<NT>();
+  test_bs<NT>();
 
   std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
   test_euler_constrained<NT>();
