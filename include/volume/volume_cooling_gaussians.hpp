@@ -305,8 +305,9 @@ struct gaussian_annealing_parameters
 template
 <
     typename WalkTypePolicy,
-    typename RandomNumberGenerator,
-    typename Polytope
+    typename Polytope,
+    typename RandomNumberGenerator
+
 >
 double volume_cooling_gaussians(Polytope const& Pin,
                                 RandomNumberGenerator& rng,

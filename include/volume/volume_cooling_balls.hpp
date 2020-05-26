@@ -690,8 +690,9 @@ NT estimate_ratio_interval(PolyBall1 const& Pb1,
 template
 <
     typename WalkTypePolicy,
-    typename RandomNumberGenerator,
-    typename Polytope
+    typename Polytope,
+    typename RandomNumberGenerator
+
 >
 double volume_cooling_balls(Polytope const& Pin,
                             RandomNumberGenerator &rng,
