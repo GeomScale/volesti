@@ -137,7 +137,27 @@ public:
 
       if (flag) {
         for (unsigned int i = 0; i < xs.size(); i++) {
-          xs[i] = A[j+1][j+1][i];
+          y = A[j+1][j+1][i] - xs[i];
+
+          if (Ks[i] == NULL) {
+            xs[i] = xs[i] + y;
+          }
+          else {
+            // Find intersection (assuming a line trajectory) between x and y
+            do {
+              std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y);
+
+              if (pbpair.first < 0) {
+                xs[i] += (pbpair.first * 0.99) * y;
+                Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+              }
+              else {
+                xs[i] += y;
+              }
+            } while (!Ks[i]->is_in(xs[i]));
+
+          }
+          
         }
         break;
       }
@@ -145,7 +165,27 @@ public:
 
     if (!flag) {
       for (unsigned int i = 0; i < xs.size(); i++) {
-        xs[i] = A[MAX_TRIES-1][MAX_TRIES-1][i];
+        y = A[MAX_TRIES-1][MAX_TRIES-1][i] - xs[i];
+
+        if (Ks[i] == NULL) {
+          xs[i] = xs[i] + y;
+        }
+        else {
+          // Find intersection (assuming a line trajectory) between x and y
+          do {
+            std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y);
+
+            if (pbpair.first < 0) {
+              xs[i] += (pbpair.first * 0.99) * y;
+              Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+            }
+            else {
+              xs[i] += y;
+            }
+          } while (!Ks[i]->is_in(xs[i]));
+
+        }
+
       }
     }
 
