@@ -40,14 +40,12 @@ for (i in 1:2) {
 
   
   test_that("Volume H-cube10", {
-    skip_if(Sys.info()[["machine"]] %in% c("x86_32"))
     P = gen_cube(10, 'H')
     res = Hruntest(P, 'H-cube10', 1024, 0.2, num_of_exps, algo, 5)
     expect_equal(res, 1)
   })
   
   test_that("Volume H-cross5", {
-    skip_if(Sys.info()[["machine"]] %in% c("x86_32"))
     P = gen_cross(5, 'H')
     res = Hruntest(P, 'H-cross10', 0.2666667, 0.2, num_of_exps, algo, 5)
     expect_equal(res, 1)
@@ -55,14 +53,12 @@ for (i in 1:2) {
   
 
   test_that("Volume H-prod_simplex_5_5", {
-    skip_if(Sys.info()[["machine"]] %in% c("x86_32"))
     P = gen_prod_simplex(5)
     res = Hruntest(P, 'H-prod_simplex_5_5', (1/prod(1:5))^2, 0.2, num_of_exps, algo, 5)
     expect_equal(res, 1)
   })
   
   test_that("Volume H-cube10", {
-    skip_if(Sys.info()[["machine"]] %in% c("x86_32"))
     P = gen_cube(10, 'H')
     res = Hruntest(P, 'H-cube10', 1024, 0.2, 5, "SOB", 5)
     expect_equal(res, 1)

@@ -36,7 +36,6 @@ for (i in 1:2) {
   }
   
   test_that("Volume V-simplex3", {
-    skip_if(Sys.info()[["machine"]] %in% c("x86_32"))
     P = gen_simplex(3, 'V')
     res = Vruntest(P, 'V-simplex3', 1/prod(1:3), tol, num_of_exps, algo, seed)
     expect_equal(res, 1)
