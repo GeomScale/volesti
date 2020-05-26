@@ -123,7 +123,7 @@ void call_test_cross(){
     std::cout << "--- Testing volume of V-cross5" << std::endl;
     P = gen_cross<Vpolytope>(5, true);
     test_volume(P,
-                0.274712,
+                0.261739,
                 0.27768,
                 0.251894,
                 0.266666667);
@@ -131,7 +131,7 @@ void call_test_cross(){
     std::cout << "--- Testing volume of V-cross10" << std::endl;
     P = gen_cross<Vpolytope>(10, true);
     test_volume(P,
-                0.000288736,
+                0.000317318,
                 0.000306377,
                 0.000296662,
                 0.0002821869);
@@ -157,7 +157,7 @@ void call_test_simplex() {
     std::cout << "--- Testing volume of V-simplex5" << std::endl;
     P = gen_simplex<Vpolytope>(5, true);
     test_volume(P,
-                0.00845454,
+                0.00450615,
                 0.00855895,
                 0.00837661,
                 1.0 / factorial(5.0));
