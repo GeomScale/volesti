@@ -26,3 +26,4 @@ jobs:
              cd build;
              cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} -D CMAKE_CXX_FLAGS=-fsanitize=memory ../test;
              make;
+             ctest -j8 --verbose;
