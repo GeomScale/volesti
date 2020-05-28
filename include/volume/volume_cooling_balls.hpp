@@ -125,8 +125,8 @@ bool get_first_ball(Polytope const& P,
                     NT const& radius_input,
                     cooling_ball_parameters<NT> const& parameters,
                     RNG& rng) {
-    const unsigned max_iterarions = 10;
-    const unsigned tolerance = 0.00000000001;
+    const unsigned max_iterarions = 20;
+    NT tolerance = 0.00000000001;
     typedef typename Polytope::PointType Point;
     int n = P.dimension();
     int iter = 1;
@@ -215,8 +215,8 @@ bool get_next_zonotopeball(std::vector<ball>& BallSet,
                            std::vector<NT>& ratios,
                            cooling_ball_parameters<NT> const& parameters)
 {
-    const unsigned max_iterarions = 10;
-    const unsigned tolerance = 0.00000000001;
+    const unsigned max_iterarions = 20;
+    NT tolerance = 0.00000000001;
     int n = (*randPoints.begin()).dimension();
     int iter = 1;
     bool too_few;

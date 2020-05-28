@@ -38,8 +38,8 @@ A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the
 Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- target distribution.
 }
 \examples{
-# uniform distribution from the 3d unit cube in V-representation using ball walk
-P = gen_cube(3, 'V')
+# uniform distribution from the 3d unit cube in H-representation using ball walk
+P = gen_cube(3, 'H')
 points = sample_points(P, n = 100, random_walk = list("walk" = "BaW", "walk_length" = 5))
 
 # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
@@ -50,6 +50,6 @@ points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "
 
 # uniform points from the boundary of a 2-dimensional random H-polytope
 P = gen_rand_hpoly(2,20)
-points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
+points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
 
 }

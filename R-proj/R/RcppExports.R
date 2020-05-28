@@ -208,8 +208,8 @@ rounding <- function(P, seed = NULL) {
 #'
 #' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples
-#' # uniform distribution from the 3d unit cube in V-representation using ball walk
-#' P = gen_cube(3, 'V')
+#' # uniform distribution from the 3d unit cube in H-representation using ball walk
+#' P = gen_cube(3, 'H')
 #' points = sample_points(P, n = 100, random_walk = list("walk" = "BaW", "walk_length" = 5))
 #'
 #' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
@@ -220,7 +220,7 @@ rounding <- function(P, seed = NULL) {
 #'
 #' # uniform points from the boundary of a 2-dimensional random H-polytope
 #' P = gen_rand_hpoly(2,20)
-#' points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
+#' points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
 #'
 #' @export
 sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution = NULL, seed = NULL) {
@@ -253,23 +253,19 @@ sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution =
 #'
 #' @return The approximation of the volume of a convex polytope.
 #' @examples
-#' \dontrun{
-#' # calling SOB algorithm for a H-polytope (3d unit simplex)
-#' HP = gen_simplex(3,'H')
-#' vol = volume(HP)
-#' }
 #'
-#' \dontrun{
+#' # calling SOB algorithm for a H-polytope (3d unit simplex)
+#' HP = gen_cube(3,'H')
+#' vol = volume(HP)
+#'
 #' # calling CG algorithm for a V-polytope (2d simplex)
 #' VP = gen_simplex(2,'V')
 #' vol = volume(VP, settings = list("algorithm" = "CG"))
-#'}
 #'
-#' \dontrun{
 #' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 #' Z = gen_rand_zonotope(2, 4)
 #' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
-#'}
+#'
 #' @export
 volume <- function(P, settings = NULL, rounding = NULL, seed = NULL) {
     .Call(`_volesti_volume`, P, settings, rounding, seed)

@@ -451,7 +451,9 @@ double volume_cooling_gaussians(Polytope const& Pin,
                 done=true;
             }
 
-            index = index==W ? 0 : index%W + 1;
+            index = index%W + 1;
+            if (index == W) index = 0;
+            //index = index==W ? 0 : index%W + 1;
         }
 #ifdef VOLESTI_DEBUG
         std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
