@@ -163,6 +163,10 @@ public:
         return true;
     }
 
+    FT distance(point const & p) {
+        return (this->coeffs - p.coeffs).norm();
+    }
+
     FT dot(const point& p) const
     {
         return coeffs.dot(p.getCoefficients());
