@@ -24,5 +24,5 @@ jobs:
              rm -rf build;
              mkdir build; 
              cd build;
-             cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} ../test;
+             cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} -D CMAKE_CXX_FLAGS=-fsanitize=memory ../test;
              make;
