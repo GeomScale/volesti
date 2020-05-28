@@ -11,5 +11,7 @@
   
   \item{\code{type} }{ An integer that declares the representation of the polytope. For V-representation the default value is 2.}
   
-  \item{\code{dimension} }{ An integer that declares the dimension of the polytope.}
+  \item{\code{dimension} }{ The dimension of the polytope.}
+  
+  \item{\code{volume} }{ The volume of the polytope, if it is known.}
 }}

@@ -43,8 +43,8 @@
 //' points = direct_sampling(n = 100, body = list("type" = "ball", "dimension" = 2))
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body = R_NilValue,
-                                    Rcpp::Nullable<unsigned int> n = R_NilValue,
+Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body,
+                                    Rcpp::Nullable<unsigned int> n,
                                     Rcpp::Nullable<double> seed = R_NilValue) {
 
     typedef double NT;
@@ -75,55 +75,45 @@ Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body = R_NilValue
 
     numpoints = (!n.isNotNull()) ? 100 : Rcpp::as<unsigned int>(n);
 
-    if (!n.isNotNull()) {
-        throw Rcpp::exception("The number of samples is not declared!");
-    } else {
-        numpoints = Rcpp::as<unsigned int>(n);
-        if (numpoints <= 0) throw Rcpp::exception("The number of samples has to be a positice integer!");
+    numpoints = Rcpp::as<unsigned int>(n);
+    if (numpoints <= 0) throw Rcpp::exception("The number of samples has to be a positice integer!");
+
+
+    if (Rcpp::as<Rcpp::List>(body).containsElementNamed("radius")) {
+
+        radius = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(body)["radius"]);
+        if (radius <= NT(0)) throw Rcpp::exception("Radius has to be a positive number!");
+
     }
+    if (!Rcpp::as<Rcpp::List>(body).containsElementNamed("type")) {
 
-    if (body.isNotNull()) {
+        throw Rcpp::exception("The kind of body has to be given as input!");
 
+    }
+    if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("hypersphere"))==0) {
 
-        if (Rcpp::as<Rcpp::List>(body).containsElementNamed("radius")) {
-
-            radius = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(body)["radius"]);
-            if (radius <= NT(0)) throw Rcpp::exception("Radius has to be a positive number!");
-
+        for (unsigned int k = 0; k < numpoints; ++k) {
+            randPoints.push_back(GetPointOnDsphere<Point>::apply(dim, radius, rng));
         }
-        if (!Rcpp::as<Rcpp::List>(body).containsElementNamed("type")) {
 
-            throw Rcpp::exception("The kind of body has to be given as input!");
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("ball"))==0) {
 
+        for (unsigned int k = 0; k < numpoints; ++k) {
+            randPoints.push_back(GetPointInDsphere<Point>::apply(dim, radius, rng));
         }
-        //RNGType rng(dim);
-        if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("hypersphere"))==0) {
 
-            for (unsigned int k = 0; k < numpoints; ++k) {
-                randPoints.push_back(GetPointOnDsphere<Point>::apply(dim, radius, rng));
-            }
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("unit_simplex"))==0) {
 
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("ball"))==0) {
+        Sam_Unit<NT, RNGType2 >(dim, numpoints, randPoints, seed3);
 
-            for (unsigned int k = 0; k < numpoints; ++k) {
-                randPoints.push_back(GetPointInDsphere<Point>::apply(dim, radius, rng));
-            }
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("canonical_simplex"))==0) {
 
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("unit_simplex"))==0) {
+        Sam_Canon_Unit<NT, RNGType2 >(dim, numpoints, randPoints, seed3);
 
-            Sam_Unit<NT, RNGType2 >(dim, numpoints, randPoints, seed3);
-
-        } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("canonical_simplex"))==0) {
-
-            Sam_Canon_Unit<NT, RNGType2 >(dim, numpoints, randPoints, seed3);
-
-        } else {
-
-            throw Rcpp::exception("Wrong input!");
-
-        }
     } else {
-        throw Rcpp::exception("body is null!");
+
+        throw Rcpp::exception("Wrong input!");
+
     }
 
     MT RetMat(dim, numpoints);

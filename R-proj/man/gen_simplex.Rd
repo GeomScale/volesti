@@ -15,7 +15,7 @@ gen_simplex(dimension, representation)
 A polytope class representing the \eqn{d}-dimensional unit simplex in H- or V-representation.
 }
 \description{
-This function can be used to generate the \eqn{d}-dimensional unit simplex in H- or V-representation.
+This function generates the \eqn{d}-dimensional unit simplex in H- or V-representation.
 }
 \examples{
 # generate a 10-dimensional simplex in H-representation

@@ -21,8 +21,4 @@ A List that contains a numerical matrix that describes the PCA approximation as 
 \description{
 An internal Rccp function for the over-approximation of a zonotope
 }
-\section{warning}{
-
-Do not use this function.
-}
-
+\keyword{internal}

@@ -14,10 +14,10 @@ zonotope_approximation(Z, fit_ratio = NULL, settings = NULL,
 
 \item{settings}{Optional. A list that declares the values of the parameters of CB algorithm as follows:
 \itemize{
-\item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for \code{'SOB'} and \eqn{0.1} otherwise.}
-\item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for \code{'SOB'} and \eqn{1} otherwise.}
-\item{\code{win_len} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
-\item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm. The default value is \code{FALSE}.}
+\item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{0.1}.}
+\item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{1}.}
+\item{\code{win_len} }{ The length of the sliding window for CB algorithm. The default value is \eqn{200}.}
+\item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm. The default value is \code{TRUE} when the order of the zonotope is \eqn{<5}, otherwise it is \code{FALSE}.}
 }}
 
 \item{seed}{Optional. A fixed seed for the number generator.}
@@ -26,13 +26,15 @@ zonotope_approximation(Z, fit_ratio = NULL, settings = NULL,
 A list that contains the approximation body in H-representation and the ratio of fitness
 }
 \description{
-For the evaluation of the PCA method the exact volume of the approximation body is computed and the volume of the input zonotope is computed by CoolingBodies algorithm (BAN). The ratio of fitness is \eqn{R=}.
+For the evaluation of the PCA method the exact volume of the approximation body is computed and the volume of the input zonotope is computed by CoolingBodies algorithm. The ratio of fitness is \eqn{R=vol(P) / vol(P_{red})}, where \eqn{P_{red}} is the approximate polytope.
 }
 \examples{
-\dontrun{
 # over-approximate a 2-dimensional zonotope with 10 generators and compute the ratio of fitness
 Z = gen_rand_zonotope(2,8)
 retList = zonotope_approximation(Z = Z)
-}
 
+}
+\references{
+\cite{A.K. Kopetzki and B. Schurmann and M. Althoff,
+\dQuote{Methods for Order Reduction of Zonotopes,} \emph{IEEE Conference on Decision and Control,} 2017.}
 }

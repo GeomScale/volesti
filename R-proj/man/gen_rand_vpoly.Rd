@@ -19,7 +19,7 @@ gen_rand_vpoly(dimension, nvertices, generator = NULL, seed = NULL)
 A polytope class representing a V-polytope.
 }
 \description{
-This function can be used to generate a \eqn{d}-dimensional polytope in V-representation with \eqn{m} vertices. We pick \eqn{m} random points from the boundary of the \eqn{d}-dimensional unit hypersphere as vertices.
+This function generates a \eqn{d}-dimensional polytope in V-representation with \eqn{m} vertices. We pick \eqn{m} random points from the boundary of the \eqn{d}-dimensional unit hypersphere as vertices.
 }
 \examples{
 # generate a 10-dimensional polytope defined as the convex hull of 25 random vertices
