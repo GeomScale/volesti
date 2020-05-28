@@ -235,5 +235,42 @@ NT poly_basis_grad(NT t, NT t0, unsigned int j, unsigned int ord) {
   return ((NT) j) * pow(t - t0, (NT) (j - 1));
 }
 
+template <typename NT, class bfunc>
+class RationalFunction {
+  bfunc p, q;
+  NT reg = 1e-6;
+
+  RationalFunction(bfunc num, bfunc den) : p(num), q(den) {};
+
+  NT operator()(NT t, NT t0, unsigned int j, unsigned int ord) {
+    NT num = p(t, t0, j, ord);
+    NT den = q(t, t0, j, ord);
+    if (std::abs(den) < reg) den += reg;
+    return num / den;
+  }
+
+};
+
+template <typename NT, class bfunc>
+class RationalFunctionGradient {
+  bfunc p, q;
+  bfunc grad_p, grad_q;
+  NT reg = 1e-6;
+
+  RationalFunctionGradient(bfunc num, bfunc grad_num, bfunc den, bfunc grad_den) :
+    p(num), grad_p(grad_num), q(den), grad_q(grad_den) {};
+
+  NT operator()(NT t, NT t0, unsigned int j, unsigned int ord) {
+    NT num = p(t, t0, j, ord);
+    NT grad_num = grad_p(t, t0, j, ord);
+    NT den = q(t, t0, j, ord);
+    NT grad_den = grad_q(t, t0, j, ord);
+    if (std::abs(den * den) < reg) den += reg;
+    return (grad_num * den - grad_den * num) / (den * den);
+  }
+
+};
+
+
 
 #endif
