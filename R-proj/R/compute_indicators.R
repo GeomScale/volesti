@@ -1,6 +1,6 @@
 #' Compute an indicator for each time period that describes the state of a market.
 #'
-#' Given a matrix that contains row-wise the assets' returns and a sliding window W, this function computes an approximation of the joint distribution (copula) between portfolios' return and volatility in each time period implied by W. 
+#' Given a matrix that contains row-wise the assets' returns and a sliding window win_length, this function computes an approximation of the joint distribution (copula) between portfolios' return and volatility in each time period implied by W. 
 #' For each copula it computes an indicator: large value corresponds to a crisis period and a small value to a normal period. 
 #' The periods over which the indicator is greater than 1 for more than 60 consecutives sliding windows are warnings and for more than 100 are crisis. The sliding window is shifted by one day.
 #'
