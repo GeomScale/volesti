@@ -206,6 +206,36 @@ void test_euler_constrained(){
     CHECK(error < err);
 }
 
+template <typename NT>
+void test_bs_constrained(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef std::function<Point(pts, NT)> func;
+    typedef std::vector<func> funcs;
+    typedef boost::mt19937    RNGType;
+    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef std::vector<Vpolytope*> bounds;
+    funcs Fs;
+    bounds Ks;
+    func F = [](pts xs, NT t) { return xs[0]; };
+    Fs.push_back(F);
+
+    Vpolytope P = gen_cube<Vpolytope>(1, true);
+    Ks.push_back(&P);
+
+    Point q0 = Point(1);
+    q0.set_coord(0, 0.5);
+    pts q;
+    q.push_back(q0);
+    BSODESolver<Point, NT, Vpolytope> bs_solver = BSODESolver<Point, NT, Vpolytope>(0, 0.01, q, Fs, Ks);
+    bs_solver.steps(1000);
+
+    NT err=0.01;
+    NT target = 1.0;
+    NT error = std::abs((bs_solver.xs[0][0] - target) / target);
+    CHECK(error < err);
+}
 
 
 template <typename NT>
@@ -291,6 +321,7 @@ void call_test_euler() {
   std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
   test_euler_constrained<NT>();
   test_rk4_constrained<NT>();
+  test_bs_constrained<NT>();
 
   std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
   test_euler_2d_constrained<NT>();
