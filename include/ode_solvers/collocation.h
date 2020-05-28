@@ -119,6 +119,7 @@ public:
 
   void step() {
     t_prev = t;
+    xs_prev = xs;
 
     for (unsigned int ord = 0; ord < order(); ord++) {
       // Calculate t_ord
@@ -153,19 +154,37 @@ public:
       }
     }
 
+    std::cout << "A" << std::endl << As[0] << std::endl << std::endl;
+    std::cout << "B" << std::endl << Bs[0] << std::endl;
+
+    std::cout << "SOL" << std::endl << As[0].colPivHouseholderQr().solve(Bs[0]) << std::endl;
+
+    for (unsigned int j = 0; j < order(); j++) {
+      std::cout << "COEFFS [" << j << "] " << std::endl << as[0][j].getCoefficients() << std::endl;
+    }
 
     // Solve linear systems
     for (int i = 0; i < xs.size(); i++) {
+      // temp contains solution in decreasing order of bases
       temp = As[i].colPivHouseholderQr().solve(Bs[i]);
-      for (int j = 1; j < order(); j++) {
+
+      for (int j = 0; j < order() - 1; j++) {
+        // TODO Add vectorized implementation
+        // as[i][order() - j - 1] += temp(j);
         for (int k = 0; k < xs[0].dimension(); k++) {
-          as[i][j].set_coord(k, temp(j-1, k));
+          as[i][order() - j - 1].set_coord(k, temp(j, k));
         }
+
       }
+    }
+
+    for (unsigned int j = 0; j < order(); j++) {
+      std::cout << "AFTER COEFFS [" << j << "] " << std::endl << as[0][j].getCoefficients() << std::endl;
     }
 
     // Compute next point
     for (unsigned int i = 0; i < xs.size(); i++) {
+      xs[i] = Point(xs[i].dimension());
       if (Ks[i] == NULL) {
         for (unsigned int ord = 0; ord < order(); ord++) {
           xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
@@ -177,6 +196,9 @@ public:
       }
     }
 
+    t += eta;
+
+    std::cout << "RESULT" << std::endl;
     print_state();
   }
 
