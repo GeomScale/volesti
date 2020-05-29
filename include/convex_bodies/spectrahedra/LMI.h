@@ -5,7 +5,7 @@
 #ifndef VOLESTI_LMI_H
 #define VOLESTI_LMI_H
 
-#include "matrices/EigenvaluesProblems.h"
+#include "matrix_operations/EigenvaluesProblems.h"
 
 /// This class handles a linear matrix inequality of the form \[A_0 +  \sum x_i A_i <= 0\],
 /// where <= denotes negative definiteness

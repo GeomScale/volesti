@@ -1,11 +1,18 @@
-//
-// Created by panagiotis on 2/22/20.
-//
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
+
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef VOLESTI_SPECTRAHEDRON_H
 #define VOLESTI_SPECTRAHEDRON_H
 
 #include "LMI.h"
+#include "chrono"
+#include "random.hpp"
 
 /// This class manipulates a spectrahedron, described by a LMI
 /// \tparam NT Numeric Type
@@ -14,6 +21,11 @@
 template<typename NT, typename MT, typename VT>
 class Spectrahedron {
 public:
+
+    /// The numeric/matrix/vector types we use
+    typedef NT NUMERIC_TYPE;
+    typedef MT MATRIX_TYPE;
+    typedef VT VECTOR_TYPE;
 
     /// The type of a pair of NT
     typedef std::pair<NT, NT> pairNT;
@@ -150,12 +162,12 @@ public:
     }
 
     /// \return The dimension of the spectrahedron
-    unsigned int dimension() {
+    unsigned int dimension() const {
         return d;
     }
 
     /// \return The LMI describing this spectrahedron
-    LMI<NT, MT, VT> getLMI() {
+    LMI<NT, MT, VT> getLMI() const {
         return lmi;
     }
 

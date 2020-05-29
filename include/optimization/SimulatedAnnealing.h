@@ -21,9 +21,9 @@ public:
     /// The type of the spectrahedron
     typedef Spectrahedron<NT, MT, VT> SPECTRAHEDRON;
     /// To use to generate random numbers
-    typedef boost::mt19937 RNGType;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     /// The Hamiltonian Monte Carlo random walk with reflections
-    typedef HMC_RandomWalk<Point, MT, VT, RNGType > HMC;
+    typedef BoltzmannHMCWalk::Walk<SPECTRAHEDRON, RNGType > HMC;
 
     /// Holds parameters of the algorithm
     struct Settings {
@@ -92,10 +92,10 @@ public:
     /// Initialize the hamiltonian monte carlo random walk
     /// \param[out] hmcRandomWalk
     /// \param[in] temperature
-    void initializeHMC(HMC& hmcRandomWalk, NT const temperature) {
-        typedef boost::mt19937 RNGType;
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        RNGType rng(seed);
+    /// \tparam[in] dim the dimension of the spectrahedron
+    void initializeHMC(HMC& hmcRandomWalk, NT const temperature, const int dim) {
+//        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        RNGType rng(dim);
 
         typename HMC::Settings settings = typename HMC::Settings(this->settings.walkLength, rng, objectiveFunction, temperature, diameter);
         hmcRandomWalk = HMC(settings);
@@ -159,7 +159,7 @@ public:
 
         // initialize random walk;
         HMC hmc;
-        initializeHMC(hmc, diameter);
+        initializeHMC(hmc, diameter, x.dimension());
         typename HMC::PrecomputedValues hmcPrecomputesValues;
 
         // if settings.maxNumSteps is negative there is no
@@ -170,7 +170,7 @@ public:
             std::list<Point> randPoints;
 
             while (1) {
-                hmc.sample(*spectrahedron, x, settings.walkLength, randPoints, hmcPrecomputesValues);
+                hmc.apply(*spectrahedron, x, settings.walkLength, randPoints, hmcPrecomputesValues);
 
                 // if the sampled point is not inside the spectrahedron,
                 // get a new one
