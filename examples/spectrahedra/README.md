@@ -20,7 +20,7 @@ Then, in folder examples/spectrahedra compile using the makefile:
 make
 ```
 
-###Dependencies
+### Dependencies
 To compile some programs in this folder, we need the libraries openblas, lapack and arpack. If you want to compile 
 using the provided cmakelists file, follow the next steps to install and link them. 
 
