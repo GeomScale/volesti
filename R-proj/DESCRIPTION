@@ -12,7 +12,7 @@ Description: Provides an R interface for 'volesti' C++ package. 'volesti' comput
              for sampling, rounding and rotating polytopes. Moreover, 'volesti' provides algorithms for 
              estimating copulas useful in computational finance.
 Version: 1.1.0
-Date: 2020-05-28
+Date: 2020-05-29
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: Rcpp (>= 0.12.17)
 Imports: methods, stats

@@ -151,7 +151,7 @@ double volume (Rcpp::Reference P,
     NT e;
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("algorithm")) {
-        if (type == 2 || type == 3) {
+        if (type == 2 || type == 3 || type == 4) {
             CB = true;
         } else if (n <= 200) {
             CB = true;
@@ -291,7 +291,12 @@ double volume (Rcpp::Reference P,
             InterVP VPcVP;
             VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
             VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
-            VPcVP.init(VP1, VP2);
+            if (!seed.isNotNull()) {
+                VPcVP.init(VP1, VP2);
+            } else {
+                unsigned seed3 = Rcpp::as<double>(seed);
+                VPcVP.init(VP1, VP2, seed3);
+            }
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             return generic_volume(VPcVP, rng, walkL, e, CG, CB, win_len, round,
                                              cdhr, rdhr, ball_walk, billiard, type);

@@ -123,17 +123,17 @@ void call_test_cross(){
     std::cout << "--- Testing volume of V-cross5" << std::endl;
     P = gen_cross<Vpolytope>(5, true);
     test_volume(P,
-                0.261739,
-                0.27768,
-                0.251894,
+                0.274801,
+                0.277746,
+                0.251418,
                 0.266666667);
 
     std::cout << "--- Testing volume of V-cross10" << std::endl;
     P = gen_cross<Vpolytope>(10, true);
     test_volume(P,
-                0.000317318,
-                0.000306377,
-                0.000296662,
+                0.000309838,
+                0.000311191,
+                0.000299492,
                 0.0002821869);
 // both slow and inaccurate for CG
 //    std::cout << "--- Testing volume of V-cross20" << std::endl;
@@ -157,9 +157,9 @@ void call_test_simplex() {
     std::cout << "--- Testing volume of V-simplex5" << std::endl;
     P = gen_simplex<Vpolytope>(5, true);
     test_volume(P,
-                0.00450615,
-                0.00855895,
-                0.00837661,
+                0.00694196,
+                0.00885402,
+                0.00842199,
                 1.0 / factorial(5.0));
 // too slow for CG
 /*

@@ -25,6 +25,7 @@ public:
     typedef PointType Point;
     typedef typename VPolytope::MT MT;
     typedef typename VPolytope::VT VT;
+    unsigned seed;
     std::pair<Point,NT> _inner_ball;
     NT rad;
     VPolytope P1;
@@ -51,6 +52,13 @@ public:
     void init(const VPolytope &P, const VPolytope &Q) {
         P1 = P;
         P2 = Q;
+        seed = std::chrono::system_clock::now().time_since_epoch().count();
+    }
+
+    void init(const VPolytope &P, const VPolytope &Q, unsigned &_seed) {
+        P1 = P;
+        P2 = Q;
+        seed = _seed;
     }
 
     int num_of_hyperplanes() const {
@@ -116,6 +124,7 @@ public:
         bool empty;
         int k = P1.get_mat().rows() + P2.get_mat().rows();
         RNGType rng(k);
+        rng.set_seed(seed);
         PointInIntersection<VT>(P1.get_mat(), P2.get_mat(),
                                 GetDirection<Point>::apply(k, rng), empty);
         return !empty;
@@ -128,6 +137,7 @@ public:
         int k1 = V1.rows(), k2 = V2.rows();
         int k = k1 + k2;
         RNGType rng(k);
+        rng.set_seed(seed);
         Point direction(k), p(d);
         std::vector<Point> vertices;
         typename std::vector<Point>::iterator rvert;
