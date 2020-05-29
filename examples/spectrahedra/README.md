@@ -1,5 +1,12 @@
 # Examples for Spectrahedra
 
+## Table of contents
+1. [Compilation](#compilation)
+    1. [Dependencies](#dependencies)
+2. [Examples](#examples)
+    1. [Example 1: Read/write SDPA format files](#example-1-readwrite-sdpa-format-files)
+    2. [Example 2: Sample with HMC, Boltzmann distribution](#example-2-sample-with-hmc-boltzmann-distribution)
+
 ## Compilation
 In folder examples, first run cmake, to create the makefile:
 
@@ -13,8 +20,45 @@ Then, in folder examples/spectrahedra compile using the makefile:
 make
 ```
 
-## List of examples
-- Example 1: Read/write SDPA format files
+###Dependencies
+To compile some programs in this folder, we need the libraries openblas, lapack and arpack. If you want to compile 
+using the provided cmakelists file, follow the next steps to install and link them. 
+
+
+First we will need a [Fortran compiler](https://gcc.gnu.org/wiki/GFortran) for GCC. In linux:
+```bash
+sudo apt install gfortran
+```
+
+You may have to edit the path in following line in examples/spectrahedra/CMakeLists.txt
+
+```bash
+FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran.so PATHS /usr/lib/gcc/x86_64-linux-gnu/8/)
+```
+
+to point to your installation.
+Then we can install the openblas, lapack and arpack libraries (lapack is included in openblas). 
+In the folder "examples", clone this repo:
+
+```bash
+git clone https://github.com/m-reuter/arpackpp
+cd arpackcpp
+```
+
+It has two scripts that should easily install the libraries:
+
+```bash
+./install-openblas.sh
+./install-arpack-ng.sh
+```
+
+And copy the folder external back in folder examples:
+
+```bash
+ cp -r external ../
+```
+
+<br>
 
 ## Examples
 ### Example 1: Read/write SDPA format files
@@ -63,3 +107,39 @@ It represents a spectrahedron in 2 dimensions, described by a linear matrix ineq
 - 0  1 -2: The third row of A0
 - 1 -0 -0: The first row of A1
 - and so on, till all 3 matrices are defined
+
+
+### Example 2: Sample with HMC, Boltzmann distribution
+
+In this example, we will sample a spectrahedron under the Boltsmann distribution e^(-c*x/T), using
+the hamiltonian monte carlo random walk with reflections. We will read the spectrahedron as
+in [Example 1](#example-1-readwrite-sdpa-format-files). Run the example with:
+
+```bash
+./boltzmannHmcWalk
+```
+
+#### Code Explanation
+In boltzmannHmcWalk.cpp, to use the random walk first we need to declare some parameters:
+
+```bash
+HmcWalkSettings settings(walkLength, randomNumberGenerator, objFunction, temperature, diameter);
+```
+
+- walkLength: how many points the walk will "burn" before returning a sample
+- randomNumberGenerator: a class that generates random numbers
+- objFunction: the vector c in the boltzmann distribution e^(-c*x/T)
+- temperature: T in e^(-c*x/T)
+- diameter: diameter of the spectrahedron; can estimate it with a heuristic - method of class Spectrahedron
+
+and then we can sample the spectrahedron
+
+```bash
+hmcWalk.apply(spectrahedron, initialPoint, pointsNum, points);
+```
+
+- sepctrahedron: instance of class Spectrahedron
+- initialPoint: an interior point in the spectrahedron
+- pointsNum: how many points to sample
+- points: a list to return the samples
+
