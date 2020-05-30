@@ -244,7 +244,7 @@ public:
         // the  eigenvector of A with largest real.
         ARNonSymStdEig<NT, DenseProductMatrix<NT> >
 
-        dprob(A.cols(), 1, &M, &DenseProductMatrix<NT>::MultMv, std::string ("LR"), 8, 0.000);//, 100*3);
+        dprob(A.cols(), 1, &M, &DenseProductMatrix<NT>::MultMv, std::string ("LR"), 8<A.rows() ? 8 : A.rows(), 0.000);//, 100*3);
 
         // compute
         if (dprob.FindEigenvectors() == 0) {

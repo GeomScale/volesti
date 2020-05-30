@@ -6,6 +6,7 @@
 #define VOLESTI_SIMULATEDANNEALING_H
 
 #include "SlidingWindow.h"
+#include "boltzmann_hmc_walk.hpp"
 
 /// Simulated Annealing algorithm for the semidefinite program
 /// Minimize \[ c^T x \], s.t. LMI(x) <= 0
@@ -38,7 +39,7 @@ public:
         /// \[ 1 - 1 / (dimension^k) \]. Default is 0.5
         NT k;
 
-        Settings(NT const error, int const walkLength, int const maxNumSteps = -1, NT const k = 0.5) : error(error),
+        Settings(NT const error, int const walkLength = 1, int const maxNumSteps = -1, NT const k = 0.5) : error(error),
             walkLength(walkLength), maxNumSteps(maxNumSteps), k(k) {}
     };
 
@@ -115,7 +116,7 @@ public:
 
         // initialize random walk;
         HMC hmc;
-        initializeHMC(hmc, diameter);
+        initializeHMC(hmc, diameter, x.dimension());
 
         // if settings.maxNumSteps is negative there is no
         // bound to the number of steps
@@ -123,16 +124,41 @@ public:
 
             // sample one point with current temperature
             std::list<Point> randPoints;
-            hmc.sample(*spectrahedron, x, 1, randPoints);
 
-            // update values;
-            x = randPoints.back();
-            randPoints.clear();
+            typename HMC::PrecomputedValues hmcPrecomputesValues;
+            NT previous_min = objectiveFunction.dot(x);
+
+            while (1) {
+                hmc.apply(*spectrahedron, x, settings.walkLength, randPoints, hmcPrecomputesValues);
+
+                // if the sampled point is not inside the spectrahedron,
+                // get a new one
+                if (spectrahedron->isExterior(hmcPrecomputesValues.C)) {
+                    if (verbose) std::cout << "Sampled point outside the spectrahedron.\n";
+                    randPoints.clear();
+                    hmcPrecomputesValues.resetFlags();
+                }
+                else {
+                    // update values;
+                    x = randPoints.back();
+                    randPoints.clear();
+                    break;
+                }
+            }
+
             currentMin = objectiveFunction.dot(x);
             ++stepsCount;
 
+            // compute relative error
+            NT relError = relativeError(previous_min, currentMin);
+
             if (verbose)
-                std::cout << "Step: " << stepsCount << ", Temperature: " << temperature << ", Min: " << currentMin << "\n";
+                std::cout << "Step: " << stepsCount << ", Temperature: " << temperature << ", Min: " << currentMin
+                          << ", Relative error: " << relError << "\n";
+
+            // check if we reached desired accuracy
+            if (relError < settings.error)
+                break;
 
             // decrease the temperature
             temperature *= tempDecreaseFactor;

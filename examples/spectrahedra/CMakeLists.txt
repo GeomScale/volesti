@@ -35,6 +35,9 @@ IF (OPENBLAS_LIB)
             add_executable (boltzmannHmcWalk boltzmannHmcWalk.cpp)
             TARGET_LINK_LIBRARIES(boltzmannHmcWalk ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
 
+            add_executable (semidefiniteProgramming semidefiniteProgramming.cpp)
+            TARGET_LINK_LIBRARIES(semidefiniteProgramming ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
+
         ELSE()
             MESSAGE(STATUS "gfortran is required but it could not be found")
         ENDIF ()
