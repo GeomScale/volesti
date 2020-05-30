@@ -38,7 +38,7 @@ void test_values(NT volume, NT expected, NT exact)
               << std::abs((volume-expected)/expected) << std::endl;
     std::cout << "Relative error (exact) = "
               << std::abs((volume-exact)/exact) << std::endl;
-            CHECK(std::abs((volume - expected)/expected) < 0.2);
+            CHECK(std::abs((volume - expected)/expected) < 0.3);
 }
 
 template <class VPintersection, class Polytope>
@@ -52,10 +52,8 @@ void test_volume(Polytope &P1, Polytope &P2,
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    VPintersection P;
-
     // Setup the parameters
-    int walk_len = 1;
+    int walk_len = 2;
     NT e = 0.1;
 
     // Estimate the volume
@@ -63,26 +61,26 @@ void test_volume(Polytope &P1, Polytope &P2,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 105> RNGType;
 
     //TODO: low accuracy in high dimensions
-    P.init(P1, P2);
+    VPintersection P(P1, P2);
     NT volume = volume_cooling_balls<BallWalk, RNGType>(P, e/2.0, walk_len);
     test_values(volume, expectedBall, exact);
 
     Polytope P11(P.dimension(), P1.get_mat(), P1.get_vec());
     Polytope P21(P.dimension(), P2.get_mat(), P2.get_vec());
-    P.init(P11, P21);
-    volume = volume_cooling_balls<CDHRWalk, RNGType>(P, e, walk_len);
+    VPintersection P111(P11, P21);
+    volume = volume_cooling_balls<CDHRWalk, RNGType>(P111, e/2.0, walk_len);
     test_values(volume, expectedCDHR, exact);
 
     Polytope P12(P.dimension(), P1.get_mat(), P1.get_vec());
     Polytope P22(P.dimension(), P2.get_mat(), P2.get_vec());
-    P.init(P12, P22);
-    volume = volume_cooling_balls<RDHRWalk, RNGType>(P, e, walk_len);
+    VPintersection P222(P12, P22);
+    volume = volume_cooling_balls<RDHRWalk, RNGType>(P222, e/2.0, walk_len);
     test_values(volume, expectedRDHR, exact);
 
     Polytope P13(P.dimension(), P1.get_mat(), P1.get_vec());
     Polytope P23(P.dimension(), P2.get_mat(), P2.get_vec());
-    P.init(P13, P23);
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(P, e, walk_len);
+    VPintersection P3(P13, P23);
+    volume = volume_cooling_balls<BilliardWalk, RNGType>(P3, e/2.0, walk_len);
     test_values(volume, expectedBilliard, exact);
 }
 
