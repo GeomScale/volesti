@@ -12,6 +12,7 @@
 [![CircleCI develop](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
 [![gcc-test](https://github.com/GeomScale/volume_approximation/workflows/gcc-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Agcc-test)
 [![clang-test](https://github.com/GeomScale/volume_approximation/workflows/clang-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Aclang-test)
+[![R-CMD-check](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-check)
 
 ###  Documentation
 
