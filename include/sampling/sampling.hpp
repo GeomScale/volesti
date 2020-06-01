@@ -23,9 +23,9 @@
 #define SAMPLE_ONLY_H
 
 template <typename WalkTypePolicy,
-        typename RandomNumberGenerator,
         typename PointList,
         typename Polytope,
+        typename RandomNumberGenerator,
         typename Point
         >
 void uniform_sampling(PointList &randPoints,
@@ -59,9 +59,9 @@ void uniform_sampling(PointList &randPoints,
 }
 
 template <
-        typename RandomNumberGenerator,
         typename PointList,
         typename Polytope,
+        typename RandomNumberGenerator,
         typename WalkTypePolicy,
         typename Point
 >
@@ -97,9 +97,9 @@ void uniform_sampling(PointList &randPoints,
 template
 <
         typename WalkTypePolicy,
-        typename RandomNumberGenerator,
         typename PointList,
         typename Polytope,
+        typename RandomNumberGenerator,
         typename Point
 >
 void uniform_sampling_boundary(PointList &randPoints,
@@ -124,7 +124,9 @@ void uniform_sampling_boundary(PointList &randPoints,
     typedef BoundaryRandomPointGenerator <walk> BoundaryRandomPointGenerator;
     BoundaryRandomPointGenerator::apply(P, p, nburns, walk_len,
                                         randPoints, push_back_policy, rng);
+
     randPoints.clear();
+    unsigned int n = rnum / 2;
     BoundaryRandomPointGenerator::apply(P, p, rnum / 2, walk_len,
                                         randPoints, push_back_policy, rng);
 
@@ -134,9 +136,9 @@ void uniform_sampling_boundary(PointList &randPoints,
 template
 <
         typename WalkTypePolicy,
-        typename RandomNumberGenerator,
         typename PointList,
         typename Polytope,
+        typename RandomNumberGenerator,
         typename NT,
         typename Point
 >
@@ -173,9 +175,9 @@ void gaussian_sampling(PointList &randPoints,
 
 
 template <
-        typename RandomNumberGenerator,
         typename PointList,
         typename Polytope,
+        typename RandomNumberGenerator,
         typename WalkTypePolicy,
         typename NT,
         typename Point

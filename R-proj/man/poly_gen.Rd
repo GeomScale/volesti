@@ -25,8 +25,4 @@ A numerical matrix describing the requested polytope
 \description{
 An internal Rccp function as a polytope generator
 }
-\section{warning}{
-
-Do not use this function.
-}
-
+\keyword{internal}

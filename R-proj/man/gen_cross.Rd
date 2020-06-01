@@ -15,11 +15,11 @@ gen_cross(dimension, representation)
 A polytope class representing a cross polytope in H- or V-representation.
 }
 \description{
-This function can be used to generate the \eqn{d}-dimensional cross polytope in H- or V-representation.
+This function generates the \eqn{d}-dimensional cross polytope in H- or V-representation.
 }
 \examples{
 # generate a 10-dimensional cross polytope in H-representation
-P = gen_cross(10, 'H')
+P = gen_cross(5, 'H')
 
 # generate a 15-dimension cross polytope in V-representation
 P = gen_cross(15, 'V')

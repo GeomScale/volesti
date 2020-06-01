@@ -26,9 +26,15 @@ compute_indicators(returns, win_length = NULL, m = NULL, n = NULL,
 A list that contains the indicators and the corresponding vector that label each time period with respect to the market state: a) normal, b) crisis, c) warning.
 }
 \description{
-Given a matrix that contains row-wise the assets' returns and a sliding window W, this function computes an approximation of the joint distribution (copula) between portfolios' return and volatility in each time period implied by W. 
-For each copula it computes an indicator: large value corresponds to a crisis period and a small value to a normal period. 
-The periods over which the indicator is greater than 1 for more than 60 consecutives sliding windows are warnings and for more than 100 are crisis. The sliding window is shifted by one day.
+Given a matrix that contains row-wise the assets' returns and a sliding window \code{win_length}, this function computes an approximation of the joint distribution (copula, e.g. see \url{https://en.wikipedia.org/wiki/Copula_(probability_theory)}) between portfolios' return and volatility in each time period defined by \code{win_len}. 
+For each copula it computes an indicator: If the indicator is large it corresponds to a crisis period and if it is small it corresponds to a normal period. 
+In particular, the periods over which the indicator is greater than 1 for more than 60 consecutive sliding windows are warnings and for more than 100 are crisis. The sliding window is shifted by one day.
+}
+\examples{
+# simple example on random asset returns
+asset_returns = replicate(10, rnorm(14))
+market_states_and_indicators = compute_indicators(asset_returns, 10, 10, 10000, 2, 3)
+
 }
 \references{
 \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,

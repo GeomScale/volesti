@@ -151,7 +151,7 @@ struct BoundaryRandomPointGenerator
     {
         Walk walk(P, p, rng);
         Point p1(P.dimension()), p2(P.dimension());
-        for (unsigned int i=0; i<rnum/2; ++i)
+        for (unsigned int i=0; i<rnum; ++i)
         {
             walk.template apply(P, p1, p2, walk_length, rng);
             policy.apply(randPoints, p1);

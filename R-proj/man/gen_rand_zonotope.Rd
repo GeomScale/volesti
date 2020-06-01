@@ -19,7 +19,8 @@ gen_rand_zonotope(dimension, nsegments, generator = NULL, seed = NULL)
 A polytope class representing a zonotope.
 }
 \description{
-This function can be used to generate a random \eqn{d}-dimensional zonotope defined by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments. We consider \eqn{m} random directions in \eqn{R^d} and for each direction we pick a random length in \eqn{[(,\sqrt{d}]} in order to define \eqn{m} segments.
+This function generates a random \eqn{d}-dimensional zonotope defined by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
+The function considers \eqn{m} random directions in \eqn{R^d}. There are three strategies to pick the length of each segment: a) it is uniformly sampled from \eqn{[0,100]}, b) it is random from \eqn{\mathcal{N}(50,(50/3)^2)} truncated to \eqn{[0,100]}, c) it is random from \eqn{Exp(1/30)} truncated to \eqn{[0,100]}.
 }
 \examples{
 # generate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments

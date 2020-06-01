@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{frustum_of_simplex}
 \alias{frustum_of_simplex}
-\title{Compute the percentage of the volume of the unit simplex that is contained in the intersection of a half-space and the unit simplex.}
+\title{Compute the percentage of the volume of the simplex that is contained in the intersection of a half-space and the simplex.}
 \usage{
 frustum_of_simplex(a, z0)
 }
@@ -12,10 +12,10 @@ frustum_of_simplex(a, z0)
 \item{z0}{The scalar that defines the half-space.}
 }
 \value{
-The percentage of the volume of the unit simplex that is contained in the intersection of a given half-space and the unit simplex.
+The percentage of the volume of the simplex that is contained in the intersection of a given half-space and the simplex.
 }
 \description{
-A half-space \eqn{H} is given as a pair of a vector \eqn{a\in R^d} and a scalar \eqn{z0\in R} s.t.: \eqn{a^Tx\leq z0}. This function calls the Ali's version of the Varsi formula to compute a frustum of the unit simplex.
+A half-space \eqn{H} is given as a pair of a vector \eqn{a\in R^d} and a scalar \eqn{z0\in R} s.t.: \eqn{a^Tx\leq z0}. This function calls the Ali's version of the Varsi formula to compute a frustum of the simplex.
 }
 \examples{
 # compute the frustum of H: -x1+x2<=0

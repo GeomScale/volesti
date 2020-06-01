@@ -10,7 +10,7 @@
 An \code{Rcpp} class to represent H-polytopes, exposed to \code{R} via modules.
 }
 \description{
-A H-polytope is a convex polytope defined by a set of linear inequalities or equivalently a \eqn{d}-dimensional H-polytope with \eqn{m} facets is defined by a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b, s.t.: \eqn{Ax\leq b}.
+A H-polytope is a convex polytope defined by a set of linear inequalities or equivalently a \eqn{d}-dimensional H-polytope with \eqn{m} facets is defined by a \eqn{m\times d} matrix A and a \eqn{m}-dimensional vector b, s.t.: \eqn{P=\{ Ax\leq b \} }.
 }
 \details{
 \describe{
@@ -20,7 +20,9 @@ A H-polytope is a convex polytope defined by a set of linear inequalities or equ
 
 \item{\code{type} }{ An integer that declares the representation of the polytope. For H-representation the default value is 1.}
 
-\item{\code{dimension} }{ An integer that declares the dimension of the polytope.}
+\item{\code{dimension} }{ The dimension of the polytope.}
+
+\item{\code{volume} }{ The volume of the polytope, if it is known.}
  }
 }
-
+\keyword{internal}

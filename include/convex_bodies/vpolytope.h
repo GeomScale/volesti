@@ -39,10 +39,7 @@ private:
     int *colno, *colno_mem;
 
 public:
-    VPolytope()
-    {
-        //_inner_ball = ComputeInnerBall();
-    }
+    VPolytope() {}
 
     std::pair<Point,NT> InnerBall() const
     {
