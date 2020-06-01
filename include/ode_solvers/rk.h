@@ -140,7 +140,7 @@ public:
 
     for (unsigned int ord = 0; ord < order(); ord++) {
       // Initialize t to previous
-      t = t_prev + cs[ord] * eta; 
+      t = t_prev + cs[ord] * eta;
 
       // Initialize ks to previous solution we use
       // Initialize argument
