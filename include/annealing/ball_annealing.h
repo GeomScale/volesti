@@ -229,4 +229,3 @@ bool get_sequence_of_polyballs(Polytope &P, std::vector<ball> &BallSet, std::vec
 
 
 #endif
-

@@ -23,6 +23,11 @@ for more details.
 See the file COPYING.LESSER for the text of the GNU Lesser General
 Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
+
+Resources:
+  1. https://arxiv.org/abs/2002.04121
+  2. https://arxiv.org/pdf/1801.02309
+  3. http://papers.neurips.cc/paper/5801-reflection-refraction-and-hamiltonian-monte-carlo.pdf 
 */
 
 #include <iostream>

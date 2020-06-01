@@ -23,6 +23,9 @@ for more details.
 See the file COPYING.LESSER for the text of the GNU Lesser General
 Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
+
+Resource: https://en.wikipedia.org/wiki/Euler_method
+
 */
 
 #ifndef EULER_H

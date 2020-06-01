@@ -23,6 +23,9 @@ for more details.
 See the file COPYING.LESSER for the text of the GNU Lesser General
 Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
+
+Resource: https://en.wikipedia.org/wiki/Collocation_method
+
 */
 
 #ifndef COLLOCATION_H
@@ -50,6 +53,7 @@ public:
 
   NT eta;
   NT t, t_prev, dt;
+  const NT tol = 1e-6;
 
   funcs Fs;
 
@@ -72,7 +76,7 @@ public:
   MTs As, Bs;
 
   // Keeps the solution to Ax = b temporarily
-  MT temp;
+  MTs temps;
 
   CollocationODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
     bounds boundaries,  coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
@@ -107,14 +111,15 @@ public:
   void initialize_matrices() {
     As = MTs(xs.size());
     Bs = MTs(xs.size());
+    temps = MTs(xs.size());
     as = ptsv(xs.size(), pts(order(), Point(xs[0].dimension())));
     for (unsigned int i = 0; i < xs.size(); i++) {
       // Gradient matrix is of size (order - 1) x (order - 1)
       As[i].resize(order()-1, order()-1);
       // Constants matrix is of size (order - 1) x dim
       Bs[i].resize(order()-1, xs[0].dimension());
+      temps[i].resize(order()-1, xs[0].dimension());
     }
-    temp.resize(order()-1, xs[0].dimension());
   }
 
   void step() {
@@ -131,10 +136,14 @@ public:
         // a0 = F(x0, t0)
         if (ord == 0) as[i][0] = y;
         else {
-          // Construct matrix b
-          dt = (cs[ord] - cs[ord-1]) * eta;
+
+          // Keep grads for matrix B
+          for (unsigned int j = 0; j < xs[i].dimension(); j++) {
+            Bs[i](ord-1, j) = y[j];
+          }
 
           // Compute new derivative (inter-point)
+          dt = (cs[ord] - cs[ord-1]) * eta;
           y = dt * y;
 
           // Do not take into account reflections
@@ -145,10 +154,6 @@ public:
             As[i](ord-1, j) = grad_phi(t, t_prev, order() - j - 1, order());
           }
 
-          // Keep grads for matrix B
-          for (unsigned int j = 0; j < xs[i].dimension(); j++) {
-            Bs[i](ord-1, j) = y[j];
-          }
 
         }
       }
@@ -157,22 +162,29 @@ public:
     std::cout << "A" << std::endl << As[0] << std::endl << std::endl;
     std::cout << "B" << std::endl << Bs[0] << std::endl;
 
-    std::cout << "SOL" << std::endl << As[0].colPivHouseholderQr().solve(Bs[0]) << std::endl;
 
-    for (unsigned int j = 0; j < order(); j++) {
-      std::cout << "COEFFS [" << j << "] " << std::endl << as[0][j].getCoefficients() << std::endl;
+    for (int q = 0; q < 20; q++) {
+      for (int i = 0; i < xs.size(); i++) {
+        temps[i] = As[i].colPivHouseholderQr().solve(Bs[i]);
+        temps[i].resize(order()-1, xs[0].dimension());
+        Bs[i] = as[i][0].getCoefficients();
+
+        for (unsigned int ord = 1; ord < order(); ord++) {
+            Bs[i] += temps[i](ord-1);
+        }
+      }
     }
 
     // Solve linear systems
     for (int i = 0; i < xs.size(); i++) {
       // temp contains solution in decreasing order of bases
-      temp = As[i].colPivHouseholderQr().solve(Bs[i]);
+      temps[i] = As[i].colPivHouseholderQr().solve(Bs[i]);
 
       for (int j = 0; j < order() - 1; j++) {
         // TODO Add vectorized implementation
         // as[i][order() - j - 1] += temp(j);
         for (int k = 0; k < xs[0].dimension(); k++) {
-          as[i][order() - j - 1].set_coord(k, temp(j, k));
+          as[i][order() - j - 1].set_coord(k, temps[i](j, k));
         }
 
       }
@@ -266,7 +278,7 @@ class RationalFunctionGradient {
     NT den = q(t, t0, j, ord);
     NT grad_den = grad_q(t, t0, j, ord);
     if (std::abs(den * den) < reg) den += reg;
-    return (grad_num * den - grad_den * num) / (den * den);
+    return (grad_num  / den)  - (grad_den * num) / den;
   }
 
 };
