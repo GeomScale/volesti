@@ -42,7 +42,7 @@ void test_volume(Polytope &P, double const& expected, double const& exact)
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 
     Polytope P1(P.dimension(), P.get_mat(), P.get_vec());
-    NT volume = volume_sequence_of_balls<BallWalk, RNGType>(P1, e, walk_len);
+    NT volume = volume_sequence_of_balls<RDHRWalk, RNGType>(P1, e, walk_len);
 
     //TODO: test other walks
 
@@ -98,11 +98,11 @@ void call_test_cross(){
 
     std::cout << "--- Testing volume of V-cross5" << std::endl;
     Vpolytope P1 = gen_cross<Vpolytope>(5, true);
-    test_volume(P1, 0.271736, 0.266666667);
+    test_volume(P1, 0.276845, 0.266666667);
 
     std::cout << "--- Testing volume of V-cross10" << std::endl;
     Vpolytope P2 = gen_cross<Vpolytope>(10, true);
-    test_volume(P2, 0.000280621, 0.0002821869);
+    test_volume(P2, 0.000291003, 0.0002821869);
 }
 
 template <typename NT>
@@ -116,7 +116,7 @@ void call_test_simplex() {
 
     std::cout << "--- Testing volume of V-simplex5" << std::endl;
     P = gen_simplex<Vpolytope>(5, true);
-    test_volume(P, 0.0100291, 1.0 / factorial(10.0));
+    test_volume(P, 0.00810133, 1.0 / factorial(5.0));
 
     // too slow for SoB
 //    std::cout << "--- Testing volume of V-simplex10" << std::endl;
