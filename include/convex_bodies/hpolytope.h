@@ -174,7 +174,7 @@ public:
 
     // print polytope in input format
     void print() {
-        std::cout << " " << A.rows() << " " << _d << " float" << std::endl;
+        std::cout << " " << A.rows() << " " << _d << " double" << std::endl;
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
                 std::cout << A(i, j) << " ";
