@@ -23,6 +23,9 @@ for more details.
 See the file COPYING.LESSER for the text of the GNU Lesser General
 Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
+
+Implementation source: https://en.wikipedia.org/wiki/Richardson_extrapolation
+
 */
 
 #ifndef BULIRSCH_STOER_H
@@ -66,7 +69,7 @@ public:
   BSODESolver(NT initial_time, NT step, pts initial_state, funcs oracles, bounds boundaries) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries) {
       dim = xs[0].dimension();
-      A = ptsm(MAX_TRIES, ptsv(MAX_TRIES, pts(xs.size())));
+      A = ptsm(MAX_TRIES+1, ptsv(MAX_TRIES+1, pts(xs.size())));
       initialize_solver();
     };
 
@@ -76,7 +79,7 @@ public:
         for (int i = 0; i < num_states; i++) {
           xs.push_back(Point(dimension));
         }
-        A = ptsm(MAX_TRIES, ptsv(MAX_TRIES, pts(num_states)));
+        A = ptsm(MAX_TRIES+1, ptsv(MAX_TRIES+1, pts(num_states)));
         initialize_solver();
       };
 
@@ -85,13 +88,13 @@ public:
     t(initial_time), xs(initial_state), Fs(oracles), eta(step) {
       Ks = bounds(xs.size(), NULL);
       dim = xs[0].dimension();
-      A = ptsm(MAX_TRIES, ptsv(MAX_TRIES, pts(xs.size())));
+      A = ptsm(MAX_TRIES+1, ptsv(MAX_TRIES+1, pts(xs.size())));
       initialize_solver();
     };
 
 
   void initialize_solver() {
-    solver = new RKODESolver<Point, NT, Polytope>(t, eta, xs, Fs, Ks);
+    solver = new RKODESolver<Point, NT, Polytope>(t, eta, xs, Fs);
   }
 
   void step() {
@@ -104,10 +107,10 @@ public:
     solver->t = t;
     solver->eta = eta_temp;
     solver->steps(1);
-    A[0][0] = solver->xs;
+    A[1][1] = solver->xs;
 
 
-    for (unsigned int j = 0; j < MAX_TRIES-1; j++) {
+    for (unsigned int j = 1; j <= MAX_TRIES-1; j++) {
       // Reduce step size by two
       eta_temp /= 2;
 
@@ -115,23 +118,21 @@ public:
       solver->xs = xs_prev;
       solver->t = t;
       solver->eta = eta_temp;
-      solver->steps(2*(1 + j));
-      A[j+1][0] = solver->xs;
+      solver->steps(2*j);
+      A[j+1][1] = solver->xs;
 
       // Perform Richardson extrapolation
-      for (unsigned int k = 0; k <= j; k++) {
-        den = 1.0 * ((4 << (k + 1)) - 1);
+      for (unsigned int k = 1; k <= j; k++) {
+        den = 1.0 * ((4 << k) - 1);
         for (unsigned int i = 0; i < xs.size(); i++) {
-          num =  A[j+1][k][i];
-          num = (1.0 * (4 << (k + 1))) * num;
+          num = (1.0 * (4 << k)) * A[j+1][k][i];
           num = num - A[j][k][i];
-          A[j+1][k+1][i] = (1.0 / den) * num;
+          A[j+1][k+1][i] = (1 / den) * num;
         }
       }
 
       for (unsigned int i = 0; i < xs.size(); i++) {
-        y = A[j+1][j+1][i];
-        y = y - A[j][i][i];
+        y = A[j+1][j+1][i] - A[j][j][i];
         if (sqrt(y.dot(y)) > tol) flag = false;
       }
 
@@ -157,7 +158,7 @@ public:
             } while (!Ks[i]->is_in(xs[i]));
 
           }
-          
+
         }
         break;
       }
