@@ -17,7 +17,7 @@ gen_rand_hpoly(dimension, nfacets, seed = NULL)
 A polytope class representing a H-polytope.
 }
 \description{
-This function can be used to generate a \eqn{d}-dimensional polytope in H-representation with \eqn{m} facets. We pick \eqn{m} random hyperplanes tangent on the \eqn{d}-dimensional unit hypersphere as facets.
+This function generates a \eqn{d}-dimensional polytope in H-representation with \eqn{m} facets. We pick \eqn{m} random hyperplanes tangent on the \eqn{d}-dimensional unit hypersphere as facets.
 }
 \examples{
 # generate a 10-dimensional polytope with 50 facets

@@ -18,6 +18,9 @@ A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points
   
   \item{\code{type} }{ An integer that declares the representation of the polytope. For V-representation the default value is 2.}
   
-  \item{\code{dimension} }{ An integer that declares the dimension of the polytope.}
+  \item{\code{dimension} }{ The dimension of the polytope.}
+  
+  \item{\code{volume} }{ The volume of the polytope, if it is known.}
  }
 }
+\keyword{internal}

@@ -1,6 +1,6 @@
 #' Generator function for simplices
 #' 
-#' This function can be used to generate the \eqn{d}-dimensional unit simplex in H- or V-representation.
+#' This function generates the \eqn{d}-dimensional unit simplex in H- or V-representation.
 #' 
 #' @param dimension The dimension of the unit simplex.
 #' @param representation A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.

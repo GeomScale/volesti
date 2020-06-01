@@ -62,26 +62,27 @@ void test_volume(Polytope &P1, Polytope &P2,
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 105> RNGType;
 
+    unsigned seed = 105;
     //TODO: low accuracy in high dimensions
-    P.init(P1, P2);
+    P.init(P1, P2, seed);
     NT volume = volume_cooling_balls<BallWalk, RNGType>(P, e/2.0, walk_len);
     test_values(volume, expectedBall, exact);
 
     P1.init(P.dimension(), P1.get_mat(), P1.get_vec());
     P2.init(P.dimension(), P2.get_mat(), P2.get_vec());
-    P.init(P1, P2);
+    P.init(P1, P2, seed);
     volume = volume_cooling_balls<CDHRWalk, RNGType>(P, e, walk_len);
     test_values(volume, expectedCDHR, exact);
 
     P1.init(P.dimension(), P1.get_mat(), P1.get_vec());
     P2.init(P.dimension(), P2.get_mat(), P2.get_vec());
-    P.init(P1, P2);
+    P.init(P1, P2, seed);
     volume = volume_cooling_balls<RDHRWalk, RNGType>(P, e, walk_len);
     test_values(volume, expectedRDHR, exact);
 
     P1.init(P.dimension(), P1.get_mat(), P1.get_vec());
     P2.init(P.dimension(), P2.get_mat(), P2.get_vec());
-    P.init(P1, P2);
+    P.init(P1, P2, seed);
     volume = volume_cooling_balls<BilliardWalk, RNGType>(P, e, walk_len);
     test_values(volume, expectedBilliard, exact);
 }

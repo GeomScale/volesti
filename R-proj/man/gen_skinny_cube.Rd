@@ -13,7 +13,7 @@ gen_skinny_cube(dimension)
 A polytope class representing the \eqn{d}-dimensional skinny hypercube in H-representation.
 }
 \description{
-This function can be used to generate a \eqn{d}-dimensional skinny hypercube in H-representation.
+This function generates a \eqn{d}-dimensional skinny hypercube \eqn{[-1,1]^{d-1}\times [-100,100]}.
 }
 \examples{
 # generate a 10-dimensional skinny hypercube.

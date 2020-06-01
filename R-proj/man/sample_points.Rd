@@ -2,31 +2,31 @@
 % Please edit documentation in R/RcppExports.R
 \name{sample_points}
 \alias{sample_points}
-\title{Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope or a zonotope).}
+\title{Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).}
 \usage{
-sample_points(P = NULL, n = NULL, random_walk = NULL,
-  distribution = NULL, seed = NULL)
+sample_points(P, n, random_walk = NULL, distribution = NULL,
+  seed = NULL)
 }
 \arguments{
-\item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) an intersection of two V-polytopes.}
+\item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.}
 
 \item{n}{The number of points that the function is going to sample from the convex polytope.}
 
 \item{random_walk}{Optional. A list that declares the random walk and some related parameters as follows:
 \itemize{
 \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
-\item{\code{walk_length} }{ The number of the steps for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
+\item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
 \item{\code{nburns} }{ The number of points to burn before start sampling.}
-\item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
+\item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 \item{\code{BaW_rad} }{ The radius for the ball walk.}
 \item{\code{L} }{ The maximum length of the billiard trajectory.}
 }}
 
 \item{distribution}{Optional. A list that declares the target density and some related parameters as follows:
 \itemize{
-\item{\code{density}}{A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
+\item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
 \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
- \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
+ \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
 }}
 
 \item{seed}{Optional. A fixed seed for the number generator.}
@@ -35,11 +35,11 @@ sample_points(P = NULL, n = NULL, random_walk = NULL,
 A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 }
 \description{
-Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- target distribution.
+Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- as the target distribution.
 }
 \examples{
-# uniform distribution from the 3d unit cube in V-representation using ball walk
-P = gen_cube(3, 'V')
+# uniform distribution from the 3d unit cube in H-representation using ball walk
+P = gen_cube(3, 'H')
 points = sample_points(P, n = 100, random_walk = list("walk" = "BaW", "walk_length" = 5))
 
 # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
@@ -50,6 +50,6 @@ points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "
 
 # uniform points from the boundary of a 2-dimensional random H-polytope
 P = gen_rand_hpoly(2,20)
-points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
+points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
 
 }

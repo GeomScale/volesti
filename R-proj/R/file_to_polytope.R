@@ -1,6 +1,7 @@
 #' function to get an ine or an ext file and returns the corresponding polytope
 #'
-#' For an ine file it generates the corresponding H-polytope. For an ext file it generates the corresponding V-polytope or zonotope.
+#' For an ".ine" file it generates the corresponding H-polytope. For an ".ext" file it generates the corresponding V-polytope or zonotope.
+#' For more details on those file formats see \url{https://github.com/GeomScale/volume_approximation/blob/develop/doc/cpp_interface.md#polytope-input}.
 #'
 #' @param path A string that containes the path to an ine or a ext file. The ine file desrcibes a H-polytope and ext file describes a V-polytope or a zonotope.
 #' @param zonotope A boolean parameter. It has to be TRUE when the path leads to an .ext file that describes a zonotope.
@@ -16,6 +17,7 @@
 #' @importFrom Rcpp evalCpp
 #' @importFrom Rcpp loadModule
 #' @importFrom "utils" "read.csv"
+#' @importFrom "stats" "cov"
 #' @importFrom "methods" "new"
 #' @exportPattern "^[[:alpha:]]+"
 file_to_polytope <- function(path, zonotope){

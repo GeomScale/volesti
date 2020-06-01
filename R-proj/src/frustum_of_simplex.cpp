@@ -8,9 +8,9 @@
 #include <RcppEigen.h>
 #include "volume/exact_vols.h"
 
-//' Compute the percentage of the volume of the unit simplex that is contained in the intersection of a half-space and the unit simplex.
+//' Compute the percentage of the volume of the simplex that is contained in the intersection of a half-space and the simplex.
 //'
-//' A half-space \eqn{H} is given as a pair of a vector \eqn{a\in R^d} and a scalar \eqn{z0\in R} s.t.: \eqn{a^Tx\leq z0}. This function calls the Ali's version of the Varsi formula to compute a frustum of the unit simplex.
+//' A half-space \eqn{H} is given as a pair of a vector \eqn{a\in R^d} and a scalar \eqn{z0\in R} s.t.: \eqn{a^Tx\leq z0}. This function calls the Ali's version of the Varsi formula to compute a frustum of the simplex.
 //'
 //' @param a A \eqn{d}-dimensional vector that defines the direction of the hyperplane.
 //' @param z0 The scalar that defines the half-space.
@@ -21,7 +21,7 @@
 //' @references \cite{Ali, Mir M.,
 //' \dQuote{Content of the frustum of a simplex,} \emph{ Pacific J. Math. 48, no. 2, 313--322,} 1973.}
 //'
-//' @return The percentage of the volume of the unit simplex that is contained in the intersection of a given half-space and the unit simplex.
+//' @return The percentage of the volume of the simplex that is contained in the intersection of a given half-space and the simplex.
 //'
 //' @examples
 //' # compute the frustum of H: -x1+x2<=0

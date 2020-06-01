@@ -4,7 +4,7 @@
 \alias{direct_sampling}
 \title{Sample perfect uniformly distributed points from well known convex bodies: (a) the unit simplex, (b) the canonical simplex, (c) the boundary of a hypersphere or (d) the interior of a hypersphere.}
 \usage{
-direct_sampling(body = NULL, n = NULL, seed = NULL)
+direct_sampling(body, n, seed = NULL)
 }
 \arguments{
 \item{body}{A list to request exact uniform sampling from special well known convex bodies through the following input parameters:

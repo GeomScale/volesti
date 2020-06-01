@@ -1,6 +1,6 @@
 #' Generator function for random H-polytopes
 #' 
-#' This function can be used to generate a \eqn{d}-dimensional polytope in H-representation with \eqn{m} facets. We pick \eqn{m} random hyperplanes tangent on the \eqn{d}-dimensional unit hypersphere as facets.
+#' This function generates a \eqn{d}-dimensional polytope in H-representation with \eqn{m} facets. We pick \eqn{m} random hyperplanes tangent on the \eqn{d}-dimensional unit hypersphere as facets.
 #' 
 #' @param dimension The dimension of the convex polytope.
 #' @param nfacets The number of the facets.

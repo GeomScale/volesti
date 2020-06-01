@@ -216,7 +216,8 @@ struct Walk
     template <typename GenericPolytope>
     Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
     {
-        _L = compute_diameter<GenericPolytope>::template compute<NT>(P);
+        _Len = compute_diameter<GenericPolytope>
+                ::template compute<NT>(P);
         initialize(P, p, rng);
     }
 
@@ -224,7 +225,7 @@ struct Walk
     Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng,
          parameters const& params)
     {
-        _L = params.set_L ? params.m_L
+        _Len = params.set_L ? params.m_L
                           : compute_diameter<GenericPolytope>
                             ::template compute<NT>(P);
         initialize(P, p, rng);
@@ -240,12 +241,12 @@ struct Walk
                       RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
-        NT T = rng.sample_urdist() * _L;
+        NT T = rng.sample_urdist() * _Len;
         const NT dl = 0.995;
 
         for (auto j=0u; j<walk_length; ++j)
         {
-            T = rng.sample_urdist() * _L;
+            T = rng.sample_urdist() * _Len;
             _v = GetDirection<Point>::apply(n, rng);
             Point p0 = _p;
             int it = 0;
@@ -273,7 +274,7 @@ struct Walk
 
     inline void update_delta(NT L)
     {
-        _L = L;
+        _Len = L;
     }
 
 private :
@@ -293,7 +294,7 @@ private :
         _p = p;
         _v = GetDirection<Point>::apply(n, rng);
 
-        NT T = rng.sample_urdist() * _L;
+        NT T = rng.sample_urdist() * _Len;
         Point p0 = _p;
         int it = 0;
 
@@ -332,7 +333,7 @@ private :
 
     }
 
-    double _L;
+    NT _Len;
     Point _p;
     Point _v;
     NT _lambda_prev;
