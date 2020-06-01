@@ -15,15 +15,15 @@
 
 ###  Documentation
 
-* [Using the R interface](doc/r_interface.md)
+* [Using the R Interface](doc/r_interface.md)
 * [Using the C++ Interface](doc/cpp_interface.md)
-* [Wikipage with tutorials and demos](https://github.com/GeomScale/volume_approximation/wiki)
+* [Wikipage with Tutorials and Demos](https://github.com/GeomScale/volume_approximation/wiki)
 * [Tutorial given to PyData meetup](https://vissarion.github.io/tutorials/volesti_tutorial_pydata.html)
 
 ### Credits
 
-* [Contributors and package history](doc/credits.md)
-* [Publications](doc/publications.md)
+* [Contributors and Package History](doc/credits.md)
+* [List of Publications](doc/publications.md)
 
 Copyright (c) 2012-2020 Vissarion Fisikopoulos  
 Copyright (c) 2018-2020 Apostolos Chalkis  
