@@ -11,8 +11,6 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "sampling/random_point_generators.hpp"
 
-#define MAX_ITER 20
-#define TOL 0.00000000001
 
 template
 <
@@ -36,6 +34,9 @@ bool get_first_poly(Zonotope &P,
 
     PushBackWalkPolicy push_back_policy;
 
+    const unsigned max_iterarions = 20;
+    NT tolerance = 0.00000000001;
+
     MT G = P.get_mat().transpose(), A = HP.get_mat();
     b_max = (A*G).cwiseAbs().rowwise().sum();
     VT b_min = HP.get_vec();
@@ -49,7 +50,7 @@ bool get_first_poly(Zonotope &P,
     NT l=0.0, u=1.0, med;
     VT  b_med(m);
 
-    while(iter <= MAX_ITER) {
+    while(iter <= max_iterarions) {
 
         q=Point(n);
         med = (u + l) * 0.5;
@@ -79,7 +80,7 @@ bool get_first_poly(Zonotope &P,
             HP.set_vec(b_med);
             return true;
         }
-        if(u-l < TOL) {
+        if(u-l < tolerance) {
             u=1.0;
             l=0.0;
             iter++;
@@ -101,12 +102,15 @@ bool get_next_zonoball(std::vector<HPolytope> &HPolySet,
 
     typedef typename Zonotope::PointType Point;
 
+    const unsigned max_iterarions = 20;
+    NT tolerance = 0.00000000001;
+
     int n = HP2.dimension(), iter = 1;
     bool too_few;
     VT b_med(b_max.size());
     NT ratio, med, u = 1.0, l = 0.0;
 
-    while (iter <= MAX_ITER) {
+    while (iter <= max_iterarions) {
         med = (u + l) * 0.5;
         b_med = b_min + (b_max-b_min) * med;
         HP2.set_vec(b_med);
@@ -124,7 +128,7 @@ bool get_next_zonoball(std::vector<HPolytope> &HPolySet,
         } else {
             u = med;
         }
-        if(u-l < TOL) {
+        if(u-l < tolerance) {
             u=1.0;
             l=0.0;
             iter++;
@@ -322,7 +326,7 @@ double volume_cooling_hpoly (Zonotope const& Pin,
             10 + 10 * n, rng);
     //TODO: rounding to HP2
     //NT vol = res.second * volume_cooling_balls<BilliardWalk, RandomNumberGenerator>(HP2, Her, 1);
-    NT vol = res.second * volume_cooling_gaussians<GaussianCDHRWalk, RandomNumberGenerator>(HP2, Her/2.0, 1);
+    NT vol = res.second * volume_cooling_gaussians<GaussianCDHRWalk>(HP2, rng, Her/2.0, 1);
 
     if (!parameters.window2) {
         vol *= estimate_ratio_interval<CdhrWalk, Point>(HP, P, ratio, er0, parameters.win_len, 1200, prob, 10+10*n, rng);

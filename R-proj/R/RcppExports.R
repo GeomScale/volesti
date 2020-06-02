@@ -3,10 +3,11 @@
 
 #' Construct a copula using uniform sampling from the unit simplex
 #'
-#' Given two families of parallel hyperplanes or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
+#' Given two families of parallel hyperplanes or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula (see \url{https://en.wikipedia.org/wiki/Copula_(probability_theory)}).
+#' At least two families of hyperplanes or one family of hyperplanes and one family of ellipsoids have to be given as input.
 #'
-#' @param r1 A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
-#' @param r2 Optional. A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.
+#' @param r1 The \eqn{d}-dimensional normal vector of the first family of parallel hyperplanes.
+#' @param r2 Optional. The \eqn{d}-dimensional normal vector of the second family of parallel hyperplanes.
 #' @param sigma Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
 #' @param m The number of the slices for the copula. The default value is 100.
 #' @param n The number of points to sample. The default value is \eqn{5\cdot 10^5}.
@@ -15,7 +16,7 @@
 #' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 #' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
 #'
-#' @return A \eqn{numSlices\times numSlices} numerical matrix that corresponds to a copula.
+#' @return A \eqn{m\times m} numerical matrix that corresponds to a copula.
 #' @examples
 #' # compute a copula for two random families of parallel hyperplanes
 #' h1 = runif(n = 10, min = 1, max = 1000)
@@ -32,7 +33,7 @@
 #' cop = copula(r1 = h, sigma = E, m = 10, n = 100000)
 #'
 #' @export
-copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL, seed = NULL) {
+copula <- function(r1, r2 = NULL, sigma = NULL, m = NULL, n = NULL, seed = NULL) {
     .Call(`_volesti_copula`, r1, r2, sigma, m, n, seed)
 }
 
@@ -59,7 +60,7 @@ copula <- function(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL, seed 
 #' # 100 uniform points from the 2-d unit ball
 #' points = direct_sampling(n = 100, body = list("type" = "ball", "dimension" = 2))
 #' @export
-direct_sampling <- function(body = NULL, n = NULL, seed = NULL) {
+direct_sampling <- function(body, n, seed = NULL) {
     .Call(`_volesti_direct_sampling`, body, n, seed)
 }
 
@@ -70,11 +71,14 @@ direct_sampling <- function(body = NULL, n = NULL, seed = NULL) {
 #'
 #' @param P A polytope
 #'
+#' @references \cite{E. Gover and N. Krikorian,
+#' \dQuote{Determinants and the Volumes of Parallelotopes and Zonotopes,} \emph{Linear Algebra and its Applications, 433(1), 28 - 40,} 2010.}
+#'
 #' @return The exact volume of the input polytope, for zonotopes, simplices in V-representation and polytopes with known exact volume
 #' @examples
 #'
 #' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
-#' Z = gen_rand_zonotope(5, 10)
+#' Z = gen_rand_zonotope(2, 5)
 #' vol = exact_vol(Z)
 #'
 #' \donttest{# compute the exact volume of a 2-d arbitrary simplex
@@ -91,9 +95,9 @@ exact_vol <- function(P) {
     .Call(`_volesti_exact_vol`, P)
 }
 
-#' Compute the percentage of the volume of the unit simplex that is contained in the intersection of a half-space and the unit simplex.
+#' Compute the percentage of the volume of the simplex that is contained in the intersection of a half-space and the simplex.
 #'
-#' A half-space \eqn{H} is given as a pair of a vector \eqn{a\in R^d} and a scalar \eqn{z0\in R} s.t.: \eqn{a^Tx\leq z0}. This function calls the Ali's version of the Varsi formula to compute a frustum of the unit simplex.
+#' A half-space \eqn{H} is given as a pair of a vector \eqn{a\in R^d} and a scalar \eqn{z0\in R} s.t.: \eqn{a^Tx\leq z0}. This function calls the Ali's version of the Varsi formula to compute a frustum of the simplex.
 #'
 #' @param a A \eqn{d}-dimensional vector that defines the direction of the hyperplane.
 #' @param z0 The scalar that defines the half-space.
@@ -104,7 +108,7 @@ exact_vol <- function(P) {
 #' @references \cite{Ali, Mir M.,
 #' \dQuote{Content of the frustum of a simplex,} \emph{ Pacific J. Math. 48, no. 2, 313--322,} 1973.}
 #'
-#' @return The percentage of the volume of the unit simplex that is contained in the intersection of a given half-space and the unit simplex.
+#' @return The percentage of the volume of the simplex that is contained in the intersection of a given half-space and the simplex.
 #'
 #' @examples
 #' # compute the frustum of H: -x1+x2<=0
@@ -118,13 +122,12 @@ frustum_of_simplex <- function(a, z0) {
 
 #' Compute an inscribed ball of a convex polytope
 #'
-#' For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) by solving the corresponding linear program.
-#' For a V-polytope \eqn{d+1} vertices, that define a full dimensional simplex, picked at random and the largest inscribed ball of the simplex is computed.
-#' For a zonotope \eqn{P} we compute the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
+#' For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }, this function computes the largest inscribed ball (Chebychev ball) by solving the corresponding linear program.
+#' For both zonotopes and V-polytopes the function computes the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
 #'
-#' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
+#' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
 #'
-#' @return A \eqn{d+1}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
+#' @return A \eqn{(d+1)}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
 #'
 #' @examples
 #' # compute the Chebychev ball of the 2d unit simplex
@@ -148,8 +151,7 @@ inner_ball <- function(P) {
 #' @param m_gen An integer to declare the number of generators for the requested random zonotope or the number of vertices for a V-polytope.
 #' @param seed Optional. A fixed seed for the random polytope generator.
 #'
-#' @section warning:
-#' Do not use this function.
+#' @keywords internal
 #'
 #' @return A numerical matrix describing the requested polytope
 poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL) {
@@ -162,8 +164,7 @@ poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL)
 #' @param T Optional. A rotation matrix.
 #' @param seed Optional. A fixed seed for the random linear map generator.
 #'
-#' @section warning:
-#' Do not use this function.
+#' @keywords internal
 #'
 #' @return A matrix that describes the rotated polytope
 rotating <- function(P, T = NULL, seed = NULL) {
@@ -175,41 +176,40 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' @param P A convex polytope (H- or V-representation or zonotope).
 #' @param seed Optional. A fixed seed for the number generator.
 #'
-#' @section warning:
-#' Do not use this function.
+#' @keywords internal
 #'
-#' @return A numerical matrix that describes the rounded polytope and contains the round value.
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 rounding <- function(P, seed = NULL) {
     .Call(`_volesti_rounding`, P, seed)
 }
 
-#' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope or a zonotope).
+#' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
 #'
-#' Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- target distribution.
+#' Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- as the target distribution.
 #'
-#' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) an intersection of two V-polytopes.
+#' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
 #' @param n The number of points that the function is going to sample from the convex polytope.
 #' @param random_walk Optional. A list that declares the random walk and some related parameters as follows:
 #' \itemize{
 #' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
-#' \item{\code{walk_length} }{ The number of the steps for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
+#' \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
 #' \item{\code{nburns} }{ The number of points to burn before start sampling.}
-#' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the Chebychev ball.}
+#' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 #' \item{\code{BaW_rad} }{ The radius for the ball walk.}
 #' \item{\code{L} }{ The maximum length of the billiard trajectory.}
 #' }
 #' @param distribution Optional. A list that declares the target density and some related parameters as follows:
 #' \itemize{
-#' \item{\code{density}}{A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
+#' \item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
 #' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
-#'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the Chebychev ball.}
+#'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
 #' }
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples
-#' # uniform distribution from the 3d unit cube in V-representation using ball walk
-#' P = gen_cube(3, 'V')
+#' # uniform distribution from the 3d unit cube in H-representation using ball walk
+#' P = gen_cube(3, 'H')
 #' points = sample_points(P, n = 100, random_walk = list("walk" = "BaW", "walk_length" = 5))
 #'
 #' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
@@ -220,10 +220,10 @@ rounding <- function(P, seed = NULL) {
 #'
 #' # uniform points from the boundary of a 2-dimensional random H-polytope
 #' P = gen_rand_hpoly(2,20)
-#' points = sample_points(P, n = 5000, random_walk = list("walk" = "BRDHR"))
+#' points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
 #'
 #' @export
-sample_points <- function(P = NULL, n = NULL, random_walk = NULL, distribution = NULL, seed = NULL) {
+sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = NULL) {
     .Call(`_volesti_sample_points`, P, n, random_walk, distribution, seed)
 }
 
@@ -263,25 +263,25 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
     .Call(`_volesti_loadSdpaFormatFile`, inputFile)
 }
 
-#' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
+#' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)
 #'
-#' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
+#' For the volume approximation can be used three algorithms. Either CoolingBodies (CB) or SequenceOfBalls (SOB) or CoolingGaussian (CG). An H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 #'
-#' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
+#' @param P A convex polytope. It is an object from class a) Hpolytope or b) Vpolytope or c) Zonotope or d) VpolytopeIntersection.
 #' @param settings Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
 #' \itemize{
-#' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian or c) \code{'CB'} for cooling bodies. The defalut algorithm for H-polytopes is \code{'CB'} when \eqn{d\leq 200} and \code{'CG'} when \eqn{d>200}. For the other representations the default algorithm is \code{'CB'}.}
-#' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for \code{'SOB'} and \eqn{0.1} otherwise.}
-#' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. The default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations.}
+#' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'CB'} for CB algorithm, b) \code{'SoB'} for SOB algorithm or b) \code{'CG'} for CG algorithm. The defalut algorithm for H-polytopes is \code{'CB'} when \eqn{d\leq 200} and \code{'CG'} when \eqn{d>200}. For the other representations the default algorithm is \code{'CB'}.}
+#' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for SOB algorithm and \eqn{0.1} otherwise.}
+#' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. For CB and SOB algorithms the default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations. For CG algorithm the default walk is \code{'CDHR'} for H-polytopes and \code{'RDHR'} for the other representations.}
 #' \item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for \code{'SOB'} and \eqn{1} otherwise.}
-#' \item{\code{win_len} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
-#' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm. The default value is \code{FALSE}.}
+#' \item{\code{win_len} }{ The length of the sliding window for CB or CG algorithm. The default value is \eqn{400+3d^2} for CB or \eqn{500+4d^2} for CG.}
+#' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm when the input polytope is a zonotope. The default value is \code{TRUE} when the order of the zonotope is \eqn{<5}, otherwise it is \code{FALSE}.}
 #' }
 #' @param rounding Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @references \cite{I.Z.Emiris and V. Fisikopoulos,
-#' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2014.},
+#' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2018.},
 #' @references \cite{A. Chalkis and I.Z.Emiris and V. Fisikopoulos,
 #' \dQuote{Practical Volume Estimation by a New Annealing Schedule for Cooling Convex Bodies,} \emph{CoRR, abs/1905.05494,} 2019.},
 #' @references \cite{B. Cousins and S. Vempala, \dQuote{A practical volume algorithm,} \emph{Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society,} 2015.}
@@ -289,17 +289,19 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
 #'
 #' @return The approximation of the volume of a convex polytope.
 #' @examples
-#' # calling SOB algorithm for a H-polytope (2d unit simplex)
-#' P = gen_simplex(2,'H')
-#' vol = volume(P)
 #'
-#' # calling CG algorithm for a V-polytope (3d simplex)
-#' P = gen_simplex(2,'V')
-#' vol = volume(P, settings = list("algorithm" = "CG"))
+#' # calling SOB algorithm for a H-polytope (3d unit simplex)
+#' HP = gen_cube(3,'H')
+#' vol = volume(HP)
+#'
+#' # calling CG algorithm for a V-polytope (2d simplex)
+#' VP = gen_simplex(2,'V')
+#' vol = volume(VP, settings = list("algorithm" = "CG"))
 #'
 #' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 #' Z = gen_rand_zonotope(2, 4)
-#' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 5))
+#' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
+#'
 #' @export
 volume <- function(P, settings = NULL, rounding = NULL, seed = NULL) {
     .Call(`_volesti_volume`, P, settings, rounding, seed)
@@ -312,8 +314,7 @@ volume <- function(P, settings = NULL, rounding = NULL, seed = NULL) {
 #' @param settings Optional. A list that declares the values of the parameters of CB algorithm.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
-#' @section warning:
-#' Do not use this function.
+#' @keywords internal
 #'
 #' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
 zono_approx <- function(Z, fit_ratio = NULL, settings = NULL, seed = NULL) {

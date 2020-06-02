@@ -4,13 +4,13 @@
 \alias{copula}
 \title{Construct a copula using uniform sampling from the unit simplex}
 \usage{
-copula(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL,
+copula(r1, r2 = NULL, sigma = NULL, m = NULL, n = NULL,
   seed = NULL)
 }
 \arguments{
-\item{r1}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
+\item{r1}{The \eqn{d}-dimensional normal vector of the first family of parallel hyperplanes.}
 
-\item{r2}{Optional. A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.}
+\item{r2}{Optional. The \eqn{d}-dimensional normal vector of the second family of parallel hyperplanes.}
 
 \item{sigma}{Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.}
 
@@ -21,10 +21,11 @@ copula(r1 = NULL, r2 = NULL, sigma = NULL, m = NULL, n = NULL,
 \item{seed}{Optional. A fixed seed for the number generator.}
 }
 \value{
-A \eqn{numSlices\times numSlices} numerical matrix that corresponds to a copula.
+A \eqn{m\times m} numerical matrix that corresponds to a copula.
 }
 \description{
-Given two families of parallel hyperplanes or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
+Given two families of parallel hyperplanes or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula (see \url{https://en.wikipedia.org/wiki/Copula_(probability_theory)}).
+At least two families of hyperplanes or one family of hyperplanes and one family of ellipsoids have to be given as input.
 }
 \examples{
 # compute a copula for two random families of parallel hyperplanes

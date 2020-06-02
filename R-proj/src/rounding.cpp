@@ -25,10 +25,9 @@
 //' @param P A convex polytope (H- or V-representation or zonotope).
 //' @param seed Optional. A fixed seed for the number generator.
 //'
-//' @section warning:
-//' Do not use this function.
+//' @keywords internal
 //'
-//' @return A numerical matrix that describes the rounded polytope and contains the round value.
+//' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 // [[Rcpp::export]]
 Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue){
 

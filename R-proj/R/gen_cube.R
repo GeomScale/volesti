@@ -1,6 +1,6 @@
 #' Generator function for hypercubes
 #' 
-#' This function can be used to generate the \eqn{d}-dimensional unit hypercube \eqn{[-1,1]^d} in H- or V-representation.
+#' This function generates the \eqn{d}-dimensional unit hypercube \eqn{[-1,1]^d} in H- or V-representation.
 #' 
 #' @param dimension The dimension of the hypercube
 #' @param representation A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.
@@ -11,7 +11,7 @@
 #' P = gen_cube(10, 'H')
 #' 
 #' # generate a 15-dimension hypercube in V-representation
-#' P = gen_cube(15, 'V')
+#' P = gen_cube(5, 'V')
 #' @export
 gen_cube <- function(dimension, representation) {
   

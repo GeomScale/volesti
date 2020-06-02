@@ -63,7 +63,8 @@ struct BallWalk
         template <typename GenericPolytope>
         static inline NT compute_delta(GenericPolytope const& P)
         {
-            return ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+            //return ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
+            return (NT(4) * (P.InnerBall()).second) / std::sqrt(NT(P.dimension()));
         }
 
         template<typename BallPolytope>
