@@ -264,14 +264,14 @@ public:
 
       // Helper variables for Newton-Raphson
       NT dot_u, num, den;
+      bool flag;
 
       // Regularization for NR (e.g. at critical points where grad = 0)
       NT reg = (NT) 1e-7;
       NT min_plus = NT(maxNT), max_minus = NT(minNT);
       VT u, Z;
       int m = num_of_hyperplanes();
-      int MAX_TRIES = 1000000;
-      int tries;
+      const int MAX_TRIES = 1000000;
 
       // Keeps constants A_i^T C_j
       Z.resize(coeffs.size());
@@ -285,16 +285,21 @@ public:
         }
 
         // Find point on m-th hyperplane
-        u = A(i);
-        for (int j = 0; j < u.dimension(); j++) {
-          if ((NT) std::abs(b(i)) == NT(0))
-                u(j) = (j == i) ? A(i) / b(i) : 0;
-          else
-                u(j) = (j == i) ? A(i) : 0;
+        u = 0 * A(i);
+
+        if (!(b(i) == 0)) {
+          for (unsigned int j = 0; j < u.dimesion(); j++) {
+            if (!flag && !(A(i, j) == 0)) {
+              flag = true;
+              u(j) = b(i) / A(i, j); 
+            }
+          }
         }
 
+
         dot_u = (NT) A(i).dot(u);
-        tries = 0;
+
+
         for (int tries = 0; tries < MAX_TRIES; tries++) {
 
           // Avoid NaN values
