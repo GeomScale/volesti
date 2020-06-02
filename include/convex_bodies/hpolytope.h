@@ -249,6 +249,25 @@ public:
         return ComputeChebychevBall<NT, Point>(A, b);
     }
 
+    template <class bfunc>
+    std::vector<NT> curve_intersect(Point &r, NT lambda0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+      NT lambda = lambda0; 
+      NT min_plus = NT(maxNT), max_minus = NT(minNT);
+      VT sum_nom, sum_denom;
+
+      int m = num_of_hyperplanes();
+
+      for (int i = 0; i < m; i++) {
+
+
+
+      }
+
+
+      return std::vector<NT> {0.0};
+
+    }
+
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
