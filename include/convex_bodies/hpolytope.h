@@ -268,7 +268,7 @@ public:
       NT t = t_prev;
 
       // Helper variables for Newton-Raphson
-      NT dot_u, num, den;
+      NT dot_u, num, den, den_tmp;
 
       // Regularization for NR (e.g. at critical points where grad = 0)
       NT reg = (NT) 1e-7;
@@ -316,7 +316,10 @@ public:
           // Calculate numerator f(t) and denominator f'(t)
           for (int j = 0; j < coeffs.size(); j++) {
             num += Z(j) * phi(t_prev, t0, j, coeffs.size());
-            den += Z(j) * grad_phi(t_prev + (std::abs(t_prev - t0) < 10 * reg) * reg, t0, j, coeffs.size());
+
+            // Avoid ill-posed derivative (e.g. 0^{-1})
+            den_tmp = Z(j) * grad_phi(t_prev, t0, j, coeffs.size());
+            if (!isinf(den_tmp)) den += den_tmp;
           }
 
           // Regularize denominator if near 0
