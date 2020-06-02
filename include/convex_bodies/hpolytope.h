@@ -249,22 +249,87 @@ public:
         return ComputeChebychevBall<NT, Point>(A, b);
     }
 
+    // Compute intersection of H-polytope P := Ax <= b
+    // with curve p(t) = sum a_j phi_j(t) where phi_j are basis
+    // functions (e.g. polynomials)
+    // Uses Newton-Raphson to solve the transcendental equation
     template <class bfunc>
-    std::vector<NT> curve_intersect(Point &r, NT lambda0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
-      NT lambda = lambda0; 
+    std::vector<std::pair<NT, int>> curve_intersect(Point &r, NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+
+      // Keep results in a vector (in case of multiple roots)
+      std::vector<std::pair<NT, int>> results;
+
+      // Root
+      NT t = t_prev;
+
+      // Helper variables for Newton-Raphson
+      NT dot_u, num, den;
+
+      // Regularization for NR (e.g. at critical points where grad = 0)
+      NT reg = (NT) 1e-7;
       NT min_plus = NT(maxNT), max_minus = NT(minNT);
-      VT sum_nom, sum_denom;
-
+      VT u, Z;
       int m = num_of_hyperplanes();
+      int MAX_TRIES = 1000000;
+      int tries;
 
+      // Keeps constants A_i^T C_j
+      Z.resize(coeffs.size());
+
+      // Iterate over all hyperplanes
       for (int i = 0; i < m; i++) {
 
+        // Calculate constants
+        start_iter: for (unsigned int j = 0; j < coeffs.size(); j++) {
+          Z(j) = A(i).dot(coeffs[j].getCoefficients());
+        }
 
+        // Find point on m-th hyperplane
+        u = A(i);
+        for (int j = 0; j < u.dimension(); j++) {
+          if ((NT) std::abs(b(i)) == NT(0))
+                u(j) = (j == i) ? A(i) / b(i) : 0;
+          else
+                u(j) = (j == i) ? A(i) : 0;
+        }
+
+        dot_u = (NT) A(i).dot(u);
+        tries = 0;
+        for (int tries = 0; tries < MAX_TRIES; tries++) {
+
+          // Avoid NaN values
+          if (std::abs(t_prev - t0) < 1e-6) {
+            t_prev += reg;
+          }
+
+          num = - dot_u;
+          den = NT(0);
+
+          // Calculate numerator f(t) and denominator f'(t)
+          for (int j = 0; j < coeffs.size(); j++) {
+            num += Z(j) * phi(t_prev, t0, j, coeffs.size());
+            den += Z(j) * grad_phi(t_prev, t0, j, coeffs.size());
+          }
+
+          // Regularize denominator if near 0
+          if (std::abs(den) < 1e-6) den += reg;
+
+          // Newton-Raphson Iteration t = t_old - f(t) / f'(t)
+          t = t_prev - num / den;
+
+          if (std::abs(t - t_prev) < 1e-6) {
+            // Add root (as t) and facet
+            results.push_back(make_pair(t, i));
+            goto start_iter;
+          }
+
+          t_prev = t;
+
+        }
 
       }
 
-
-      return std::vector<NT> {0.0};
+      return results;
 
     }
 
