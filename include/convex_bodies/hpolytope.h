@@ -309,10 +309,6 @@ public:
 
         for (int tries = 0; tries < MAX_TRIES; tries++) {
 
-          // Avoid NaN values
-          if (std::abs(t_prev - t0) < 10 * reg) {
-            t_prev += reg;
-          }
 
           num = - dot_u;
           den = NT(0);
@@ -320,7 +316,7 @@ public:
           // Calculate numerator f(t) and denominator f'(t)
           for (int j = 0; j < coeffs.size(); j++) {
             num += Z(j) * phi(t_prev, t0, j, coeffs.size());
-            den += Z(j) * grad_phi(t_prev, t0, j, coeffs.size());
+            den += Z(j) * grad_phi(t_prev + (std::abs(t_prev - t0) < 10 * reg) * reg, t0, j, coeffs.size());
           }
 
           // Regularize denominator if near 0
