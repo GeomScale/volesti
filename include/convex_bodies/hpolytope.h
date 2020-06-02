@@ -264,7 +264,6 @@ public:
 
       // Helper variables for Newton-Raphson
       NT dot_u, num, den;
-      bool flag;
 
       // Regularization for NR (e.g. at critical points where grad = 0)
       NT reg = (NT) 1e-7;
@@ -287,14 +286,20 @@ public:
         // Find point on m-th hyperplane
         u = 0 * A(i);
 
+        // If b[i] = 0 then point is (0, 0, ..., 0)
         if (!(b(i) == 0)) {
           for (unsigned int j = 0; j < u.dimesion(); j++) {
-            if (!flag && !(A(i, j) == 0)) {
-              flag = true;
-              u(j) = b(i) / A(i, j); 
+            // Else A(i) must have a non-zero entry
+            // Find it and set the coefficient equal to A(i, j) / b(i)
+            // Set the others to 0
+            if (!(A(i, j) == 0)) {
+              u(j) = b(i) / A(i, j);
+              break;
             }
           }
+          // The point (0, 0, ..., A(i, j) / b(i), 0, 0, ... ) is on the hyperplane
         }
+
 
 
         dot_u = (NT) A(i).dot(u);
