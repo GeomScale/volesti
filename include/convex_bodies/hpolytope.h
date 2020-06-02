@@ -254,9 +254,14 @@ public:
     // functions (e.g. polynomials)
     // Uses Newton-Raphson to solve the transcendental equation
     template <class bfunc>
-    std::vector<std::pair<NT, int>> curve_intersect(Point &r, NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+    std::vector<std::pair<NT, int>> curve_intersect(Point &r, NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, bool once=true) {
 
       // Keep results in a vector (in case of multiple roots)
+      // The problem has O(m * len(coeffs)) solutions if phi's are polys
+      // due to the Fundamental Theorem of Algebra
+      // Some roots may be common for more than one hyperplanes
+      // The equations may have complex roots as well but they do not
+      // interest us (we don't find them)
       std::vector<std::pair<NT, int>> results;
 
       // Root
@@ -297,18 +302,15 @@ public:
               break;
             }
           }
-          // The point (0, 0, ..., A(i, j) / b(i), 0, 0, ... ) is on the hyperplane
+          // The point (0, 0, ..., A(i, j) / b(i), 0, 0, ... ) is on the m-th hyperplane
         }
 
-
-
         dot_u = (NT) A(i).dot(u);
-
 
         for (int tries = 0; tries < MAX_TRIES; tries++) {
 
           // Avoid NaN values
-          if (std::abs(t_prev - t0) < 1e-6) {
+          if (std::abs(t_prev - t0) < 10 * reg) {
             t_prev += reg;
           }
 
@@ -322,14 +324,27 @@ public:
           }
 
           // Regularize denominator if near 0
-          if (std::abs(den) < 1e-6) den += reg;
+          if (std::abs(den) < 10 * reg) den += reg;
 
           // Newton-Raphson Iteration t = t_old - f(t) / f'(t)
           t = t_prev - num / den;
 
+
           if (std::abs(t - t_prev) < 1e-6) {
             // Add root (as t) and facet
-            results.push_back(make_pair(t, i));
+            // TODO check if point is on boundary
+            Point p = Point(coeffs[0].dimension());
+
+            for (unsigned int j = 0; j < coeffs.size(); j++) {
+                p += coeffs[j] * phi(t, t0, j, coeffs.size());
+            }
+
+            if (is_in(p)) {
+              // TODO add point (?)
+              results.push_back(make_pair(t, i));
+              if (once) return results;
+            }
+
             goto start_iter;
           }
 
