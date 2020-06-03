@@ -32,12 +32,11 @@ Resource: https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods
 #define RK_H
 
 
-template <typename Point, typename NT, class Polytope>
+template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
 class RKODESolver {
 public:
   typedef std::vector<Point> pts;
   typedef std::vector<pts> ptsv;
-  typedef std::function <Point(pts, NT)> func;
   typedef std::vector<func> funcs;
   typedef std::vector<Polytope*> bounds;
   typedef std::vector<NT> coeffs;

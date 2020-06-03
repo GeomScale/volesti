@@ -31,7 +31,7 @@ Resource: https://en.wikipedia.org/wiki/Collocation_method
 #ifndef COLLOCATION_H
 #define COLLOCATION_H
 
-template <typename Point, typename NT, class Polytope, class bfunc>
+template <typename Point, typename NT, class Polytope, class bfunc, class func=std::function <Point(std::vector<Point>, NT)>>
 class CollocationODESolver {
 public:
   typedef std::vector<Point> pts;
@@ -40,11 +40,6 @@ public:
   // Coefficient matrices
   typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
   typedef std::vector<MT> MTs;
-
-  // Oracles
-  typedef std::function <Point(pts, NT)> func;
-
-
   typedef std::vector<func> funcs;
   typedef std::vector<Polytope*> bounds;
   typedef std::vector<NT> coeffs;

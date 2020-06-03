@@ -31,11 +31,10 @@ Resource: https://en.wikipedia.org/wiki/Euler_method
 #ifndef EULER_H
 #define EULER_H
 
-template <typename Point, typename NT, class Polytope>
+template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
 class EulerODESolver {
 public:
   typedef std::vector<Point> pts;
-  typedef std::function <Point(pts, NT)> func;
   typedef std::vector<func> funcs;
   typedef std::vector<Polytope*> bounds;
 

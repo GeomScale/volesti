@@ -31,11 +31,10 @@ Resource: https://en.wikipedia.org/wiki/Leapfrog_integration
 #ifndef LEAPFROG_H
 #define LEAPFROG_H
 
-template <typename Point, typename NT, class Polytope>
+template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
 class LeapfrogODESolver {
 public:
   typedef std::vector<Point> pts;
-  typedef std::function <Point(pts, NT)> func;
   typedef std::vector<func> funcs;
   typedef std::vector<Polytope*> bounds;
 

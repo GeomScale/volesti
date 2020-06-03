@@ -31,11 +31,10 @@ Implementation source: https://en.wikipedia.org/wiki/Richardson_extrapolation
 #ifndef BULIRSCH_STOER_H
 #define BULIRSCH_STOER_H
 
-template <typename Point, typename NT, class Polytope>
+template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
 class BSODESolver {
 public:
   typedef std::vector<Point> pts;
-  typedef std::function <Point(pts, NT)> func;
   typedef std::vector<func> funcs;
   typedef std::vector<Polytope*> bounds;
   typedef std::vector<NT> coeffs;
