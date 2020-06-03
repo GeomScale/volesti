@@ -227,6 +227,42 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = 
     .Call(`_volesti_sample_points`, P, n, random_walk, distribution, seed)
 }
 
+#' Write a SDPA format file
+#'
+#' Outputs a spectrahedron (the matrices defining a linear matrix inequality) and a vector (the objective function)
+#' to a SDPA format file.
+#'
+#' @param spectrahedron A spectrahedron in n dimensions; must be an object of class Spectrahedron
+#' @param objectiveFunction A numerical vector of length n
+#' @param outputFile Name of the output file
+#'
+#' @examples
+#' A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
+#' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
+#' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
+#' lmi = list(A0, A1, A2)
+#' S = Spectrahedron$new(lmi);
+#' objFunction = c(1,1)
+#' writeSdpaFormatFile(S, objFunction, "output.txt")
+#' @export
+writeSdpaFormatFile <- function(spectrahedron = NULL, objectiveFunction = NULL, outputFile = NULL) {
+    invisible(.Call(`_volesti_writeSdpaFormatFile`, spectrahedron, objectiveFunction, outputFile))
+}
+
+#' Read a SDPA format file
+#'
+#' @param inputFile Name of the input file
+#'
+#' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
+#'
+#' @examples
+#' path = system.file('extdata', package = 'volesti')
+#' l = loadSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
+#' @export
+loadSdpaFormatFile <- function(inputFile = NULL) {
+    .Call(`_volesti_loadSdpaFormatFile`, inputFile)
+}
+
 #' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)
 #'
 #' For the volume approximation can be used three algorithms. Either CoolingBodies (CB) or SequenceOfBalls (SOB) or CoolingGaussian (CG). An H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
