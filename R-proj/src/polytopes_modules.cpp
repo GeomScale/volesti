@@ -53,7 +53,7 @@ public:
 };
 
 
-RCPP_MODULE(yada){
+RCPP_MODULE(polytopes){
     using namespace Rcpp ;
 
 
@@ -167,4 +167,4 @@ RCPP_MODULE(yada){
     .field( "type", &VPinterVP::type );
 }
 
-extern SEXP _rcpp_module_boot_yada(void);
+extern SEXP _rcpp_module_boot_polytopes(void);

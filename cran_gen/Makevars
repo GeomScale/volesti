@@ -1,4 +1,4 @@
-PKG_CPPFLAGS=-Iexternal -Iexternal/lpsolve/headers/run_headers -Iexternal/minimum_ellipsoid -Iinclude 
+PKG_CPPFLAGS=-Iexternal -Iexternal/lpsolve/headers/run_headers -Iexternal/minimum_ellipsoid -Iinclude -Iinclude/convex_bodies/spectrahedra
 PKG_CXXFLAGS= -DBOOST_NO_AUTO_PTR
 CXX_STD = CXX11
 
