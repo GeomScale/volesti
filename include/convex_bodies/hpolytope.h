@@ -14,6 +14,7 @@
 #include <limits>
 #include <iostream>
 #include "solve_lp.h"
+#include "nlp_hpolyoracles.h"
 
 #define MAX_NR_TRIES 1000
 
@@ -251,12 +252,17 @@ public:
         return ComputeChebychevBall<NT, Point>(A, b);
     }
 
+    template <class bfunc>
+    std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+      return curve_intersect_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, A, b, coeffs, phi, grad_phi);
+    }
+
     // Compute intersection of H-polytope P := Ax <= b
     // with curve p(t) = sum a_j phi_j(t) where phi_j are basis
     // functions (e.g. polynomials)
     // Uses Newton-Raphson to solve the transcendental equation
     template <class bfunc>
-    std::vector<std::tuple<NT, Point, int>> curve_intersect(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, bool once=true) {
+    std::tuple<NT, Point, int> curve_intersect_newton_raphson(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
 
       // Keep results in a vector (in case of multiple roots)
       // The problem has O(m * len(coeffs)) solutions if phi's are polys
@@ -264,7 +270,7 @@ public:
       // Some roots may be common for more than one hyperplanes
       // The equations may have complex roots as well but they do not
       // interest us (we don't find them)
-      std::vector<std::tuple<NT, Point, int>> results;
+      // std::vector<std::tuple<NT, Point, int>> results;
 
       // Root
       NT t = t_prev;
@@ -342,9 +348,7 @@ public:
             }
 
             if (is_in(p)) {
-              results.push_back(std::make_tuple(t, p, i));
-              if (once) return results;
-              else goto start_iter;
+              return std::make_tuple(t, p, i);
             }
 
           }
@@ -355,7 +359,7 @@ public:
 
       }
 
-      return results;
+      return std::make_tuple(-1, Point(coeffs[0].dimension()), -1);
 
     }
 
