@@ -22,14 +22,21 @@ endif(COMMAND cmake_policy)
 #endif()
 
 find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
+find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
+find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
 
 if (NOT LP_SOLVE)
 
   message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
 
+elseif (NOT IFOPT)
+
+    message(FATAL_ERROR "This program requires the ifopt library, and will not be compiled.")
+
 else ()
 
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
+  message(STATUS "Library ifopt found: ${IFOPT}")
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
@@ -50,6 +57,7 @@ else ()
   include_directories (BEFORE ../include/root_finders)
   include_directories (BEFORE ../include/samplers)
   include_directories (BEFORE ../include/lp_oracles)
+  include_directories (BEFORE ../include/nlp_oracles)
   include_directories (BEFORE ../include/misc)
 
   #for Eigen
@@ -153,6 +161,7 @@ else ()
   TARGET_LINK_LIBRARIES(root_finders_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(hmc_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(hmc_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT})
   #TARGET_LINK_LIBRARIES(ZonotopeVolCG_test ${LP_SOLVE})
 
 endif()
