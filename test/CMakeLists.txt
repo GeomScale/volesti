@@ -86,7 +86,7 @@ else ()
   add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (hmc_test hmc_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_executable (boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (ZonotopeVolCG_test ZonotopeVolCG_test.cpp $<TARGET_OBJECTS:test_main>)
 
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)

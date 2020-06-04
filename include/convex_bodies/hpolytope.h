@@ -15,6 +15,8 @@
 #include <iostream>
 #include "solve_lp.h"
 
+#define MAX_NR_TRIES 1000
+
 //min and max values for the Hit and Run functions
 
 
@@ -254,7 +256,7 @@ public:
     // functions (e.g. polynomials)
     // Uses Newton-Raphson to solve the transcendental equation
     template <class bfunc>
-    std::vector<std::pair<NT, int>> curve_intersect(Point &r, NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, bool once=true) {
+    std::vector<std::tuple<NT, Point, int>> curve_intersect(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, bool once=true) {
 
       // Keep results in a vector (in case of multiple roots)
       // The problem has O(m * len(coeffs)) solutions if phi's are polys
@@ -262,7 +264,7 @@ public:
       // Some roots may be common for more than one hyperplanes
       // The equations may have complex roots as well but they do not
       // interest us (we don't find them)
-      std::vector<std::pair<NT, int>> results;
+      std::vector<std::tuple<NT, Point, int>> results;
 
       // Root
       NT t = t_prev;
@@ -272,54 +274,56 @@ public:
 
       // Regularization for NR (e.g. at critical points where grad = 0)
       NT reg = (NT) 1e-7;
-      NT min_plus = NT(maxNT), max_minus = NT(minNT);
       VT u, Z;
       int m = num_of_hyperplanes();
-      const int MAX_TRIES = 1000000;
 
       // Keeps constants A_i^T C_j
       Z.resize(coeffs.size());
+
+      // Helper vector (lies on m-th hyperplane)
+      u.resize(_d);
 
       // Iterate over all hyperplanes
       for (int i = 0; i < m; i++) {
 
         // Calculate constants
-        start_iter: for (unsigned int j = 0; j < coeffs.size(); j++) {
-          Z(j) = A(i).dot(coeffs[j].getCoefficients());
+        start_iter: t_prev = t0 + reg;
+
+
+        for (unsigned int j = 0; j < coeffs.size(); j++) {
+          Z(j) = A.row(i) * coeffs[j].getCoefficients();
         }
 
         // Find point on m-th hyperplane
-        u = 0 * A(i);
+        for (unsigned int j = 0; j < _d; j++) u(j, 0) = 0;
 
         // If b[i] = 0 then point is (0, 0, ..., 0)
         if (!(b(i) == 0)) {
-          for (unsigned int j = 0; j < u.dimesion(); j++) {
+          for (unsigned int j = 0; j < _d; j++) {
             // Else A(i) must have a non-zero entry
             // Find it and set the coefficient equal to A(i, j) / b(i)
             // Set the others to 0
             if (!(A(i, j) == 0)) {
-              u(j) = b(i) / A(i, j);
+              u(j, 0) = b(i) / A(i, j);
               break;
             }
           }
           // The point (0, 0, ..., A(i, j) / b(i), 0, 0, ... ) is on the m-th hyperplane
         }
 
-        dot_u = (NT) A(i).dot(u);
+        NT dot_u = (NT) (A.row(i) * u.col(0));
 
-        for (int tries = 0; tries < MAX_TRIES; tries++) {
-
+        for (int tries = 0; tries < MAX_NR_TRIES; tries++) {
 
           num = - dot_u;
-          den = NT(0);
+          den = (NT) 0;
 
           // Calculate numerator f(t) and denominator f'(t)
           for (int j = 0; j < coeffs.size(); j++) {
             num += Z(j) * phi(t_prev, t0, j, coeffs.size());
 
             // Avoid ill-posed derivative (e.g. 0^{-1})
-            den_tmp = Z(j) * grad_phi(t_prev, t0, j, coeffs.size());
-            if (!isinf(den_tmp)) den += den_tmp;
+            if (j > 0) den += Z(j) * grad_phi(t_prev, t0, j, coeffs.size());
           }
 
           // Regularize denominator if near 0
@@ -327,7 +331,6 @@ public:
 
           // Newton-Raphson Iteration t = t_old - f(t) / f'(t)
           t = t_prev - num / den;
-
 
           if (std::abs(t - t_prev) < 1e-6) {
             // Add root (as t) and facet
@@ -339,12 +342,11 @@ public:
             }
 
             if (is_in(p)) {
-              // TODO add point (?)
-              results.push_back(make_pair(t, i));
+              results.push_back(std::make_tuple(t, p, i));
               if (once) return results;
+              else goto start_iter;
             }
 
-            goto start_iter;
           }
 
           t_prev = t;
