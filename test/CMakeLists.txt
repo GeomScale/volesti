@@ -86,6 +86,7 @@ else ()
   add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
   add_executable (hmc_test hmc_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_executable (boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   #add_executable (ZonotopeVolCG_test ZonotopeVolCG_test.cpp $<TARGET_OBJECTS:test_main>)
 
   add_test(NAME volume_cube COMMAND volume_test -tc=cube)
@@ -131,6 +132,8 @@ else ()
   add_test(NAME ode_solvers_euler COMMAND ode_solvers_test -tc=euler)
   add_test(NAME ode_solvers_leapfrog COMMAND ode_solvers_test -tc=leapfrog)
 
+  add_test(NAME boundary_oracles_h_poly COMMAND boundary_oracles_test -tc=h_poly_oracles)
+
 
   #add_test(NAME round_skinny_cube COMMAND rounding_test -tc=round_skinny_cube)
   #add_test(NAME round_rot_skinny_cube COMMAND rounding_test -tc=round_rot_skinny_cube)
@@ -148,6 +151,7 @@ else ()
   TARGET_LINK_LIBRARIES(cool_bodies_bill_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(root_finders_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(hmc_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(hmc_test ${LP_SOLVE})
   #TARGET_LINK_LIBRARIES(ZonotopeVolCG_test ${LP_SOLVE})
 
