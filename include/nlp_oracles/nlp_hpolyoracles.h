@@ -23,6 +23,28 @@ for more details.
 See the file COPYING.LESSER for the text of the GNU Lesser General
 Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
+
+  This file contains the implementation of boundary oracles between an
+  d-dimensional H-polytope P: Ax <= b with a curve p(t) = sum c_j phi_j(t)
+  where c_j are d-dimensional coefficients and phi_j(t) are basis functions
+  (e.g. polynomials, rational functions, splines). The boundary oracle
+  returns one root (in general multiple roots exist) assuming that for t >= t_p
+  the curve p(t) penetrates the H-polytope. The problem reduces to the following
+  non-linear optimization problem
+
+  max t
+
+  subject to
+              t >= 0
+              A p(t) <= b
+
+  The second constraint can be rewritten as (A*C) * Phi <= b which is eventually
+  the optimization problem we solve where the vector Phi contains all the basis
+  functions and C has c_j's as columns.
+
+  We use interior-point methods to solve the non-linear optimization program
+  using COIN-OR ipopt and the ifopt interface for Eigen + ipopt.
+
 */
 
 #ifndef NLP_HPOLYORACLES_H
@@ -42,6 +64,7 @@ see <http://www.gnu.org/licenses/>.
 
 using namespace ifopt;
 
+// Define the variable t we use in the optimization
 template <typename VT, typename NT>
 class HPolyOracleVariables : public VariableSet {
 public:
@@ -67,6 +90,7 @@ public:
 
 };
 
+// Define the cost function f(t) = t
 template <typename VT, typename NT>
 class HPolyOracleCost : public CostTerm {
 public:
@@ -83,6 +107,8 @@ public:
 
 };
 
+// Define the feasibility constraint A p(t) <= b which we translate
+// to (A * C) * Phi <= b
 template <typename MT, typename VT, typename NT, class bfunc>
 class HPolyOracleFeasibility : public ConstraintSet {
 public:
@@ -98,6 +124,7 @@ public:
       M = C_.cols();
     };
 
+  // Define bounds for feasibility
   VecBound GetBounds() const override {
     VecBound bounds(GetRows());
     for (int i = 0; i < m; i++) {
@@ -118,6 +145,7 @@ public:
     return C * phis;
   }
 
+  // Calculate jacobian matrix of constrants
   void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override {
 
     if (var_set == "t") {
@@ -139,6 +167,7 @@ public:
 
 };
 
+// Helper function that calls the optimization problem (called from hpolytope.h)
 template <typename MT, typename VT, typename Point, typename NT, class bfunc>
 std::tuple<NT, Point, int> curve_intersect_ipopt_helper(NT t_prev, NT t0, MT &A, VT &b, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi)
 {
