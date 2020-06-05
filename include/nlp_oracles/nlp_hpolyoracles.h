@@ -70,7 +70,7 @@ class HPolyOracleVariables : public VariableSet {
 public:
   NT t, tb;
 
-  HPolyOracleVariables(NT t_prev): VariableSet(1, "t"), t(t_prev), tb(NT(0)) {};
+  HPolyOracleVariables(NT t_prev, NT tb_=NT(0)): VariableSet(1, "t"), t(t_prev), tb(tb_) {};
 
   void SetVariables(const VT& T) override {
     t = T(0);
@@ -90,7 +90,7 @@ public:
 
 };
 
-// Define the cost function f(t) = t
+// Define the cost function f(t) = t (ipopt takes minimization so it is -t)
 template <typename VT, typename NT>
 class HPolyOracleCost : public CostTerm {
 public:
@@ -169,7 +169,7 @@ public:
 
 // Helper function that calls the optimization problem (called from hpolytope.h)
 template <typename MT, typename VT, typename Point, typename NT, class bfunc>
-std::tuple<NT, Point, int> curve_intersect_ipopt_helper(NT t_prev, NT t0, MT &A, VT &b, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi)
+std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, MT &A, VT &b, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi)
 {
 
   Problem nlp;
@@ -187,7 +187,7 @@ std::tuple<NT, Point, int> curve_intersect_ipopt_helper(NT t_prev, NT t0, MT &A,
   // C: constraints x num_coeffs
   C = A * C_tmp;
 
-  std::shared_ptr<HPolyOracleVariables<VT, NT>> hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev));
+  std::shared_ptr<HPolyOracleVariables<VT, NT>> hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t_prev));
   std::shared_ptr<HPolyOracleCost<VT, NT>> hpolyoraclecost (new HPolyOracleCost<VT, NT>());
   std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>> hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>(C, b, t0, phi, grad_phi));
 
