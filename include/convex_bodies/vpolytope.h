@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include "vpolyoracles.h"
+#include "nlp_vpolyoracles.h"
 #include "khach.h"
 
 //min and max values for the Hit and Run functions
@@ -319,6 +320,13 @@ public:
         }
         return 0;
     }
+
+    // compute intersection of curve with V-polytope
+    template <class bfunc>
+    std::pair<NT, Point> curve_intersect_ipopt(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+      return curve_intersect_vpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, V, coeffs, phi, grad_phi);
+    }
+
 
 
     // compute intersection point of ray starting from r and pointing to v

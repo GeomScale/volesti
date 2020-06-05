@@ -254,7 +254,7 @@ public:
 
     template <class bfunc>
     std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
-      return curve_intersect_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, A, b, coeffs, phi, grad_phi);
+      return curve_intersect_hpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, A, b, coeffs, phi, grad_phi);
     }
 
     // Compute intersection of H-polytope P := Ax <= b
