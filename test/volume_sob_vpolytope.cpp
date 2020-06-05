@@ -118,6 +118,7 @@ void call_test_simplex() {
     P = gen_simplex<Vpolytope>(5, true);
     test_volume(P, 0.00810133, 1.0 / factorial(5.0));
 
+
     // too slow for SoB
 //    std::cout << "--- Testing volume of V-simplex10" << std::endl;
 //    P = gen_simplex<Vpolytope>(10, true);

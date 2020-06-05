@@ -60,6 +60,7 @@ void test_volume(Polytope &P1, Polytope &P2,
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 105> RNGType;
 
+    unsigned seed = 105;
     //TODO: low accuracy in high dimensions
     VPintersection P(P1, P2);
     NT volume = volume_cooling_balls<BallWalk, RNGType>(P, e/2.0, walk_len);

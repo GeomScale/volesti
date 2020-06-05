@@ -17,7 +17,6 @@ runsample <- function(P, name_string, dist){
   
 }
 
-cran_only = TRUE
 path = system.file('extdata', package = 'volesti')
 
 for (i in 1:2) {
@@ -37,12 +36,6 @@ for (i in 1:2) {
   test_that("Sampling test", {
     P = gen_cross(10, 'H')
     res = runsample(P, 'H-cross10', distribution)
-    expect_equal(res, 1)
-  })
-  
-  test_that("Sampling test", {
-    P = file_to_polytope(paste0(path,'/birk3.ine'))
-    res = runsample(P, 'H-birk3', distribution)
     expect_equal(res, 1)
   })
   

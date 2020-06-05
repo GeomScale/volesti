@@ -43,8 +43,9 @@
 template
 <
     typename WalkTypePolicy,
-    typename RandomNumberGenerator,
-    typename Polytope
+    typename Polytope,
+    typename RandomNumberGenerator
+
 >
 double volume_sequence_of_balls(Polytope const& Pin,
                                 RandomNumberGenerator &rng,

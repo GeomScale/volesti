@@ -15,7 +15,8 @@ file_to_polytope(path, zonotope)
 A polytope class. If the path corresponds to an ine file then the return value represents a H-polytope. If it corresponds to an ext file the return value represents a V-polytope (default choice) or a zonotope if the second argument is TRUE.
 }
 \description{
-For an ine file it generates the corresponding H-polytope. For an ext file it generates the corresponding V-polytope or zonotope.
+For an ".ine" file it generates the corresponding H-polytope. For an ".ext" file it generates the corresponding V-polytope or zonotope.
+For more details on those file formats see \url{https://github.com/GeomScale/volume_approximation/blob/develop/doc/cpp_interface.md#polytope-input}.
 }
 \examples{
 # give the path to birk4.ine

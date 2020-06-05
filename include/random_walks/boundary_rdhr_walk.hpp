@@ -44,13 +44,15 @@ struct BRDHRWalk
         {
             for (auto j=0u; j<walk_length; ++j)
             {
-                Point v = GetDirection<Point>::apply(p1.dimension(), rng);
+                Point v = GetDirection<Point>::apply(P.dimension(), rng);
                 std::pair<NT, NT> bpair = P.line_intersect(_p, v, _lamdas, _Av,
                                                            _lambda);
                 _lambda = rng.sample_urdist() * (bpair.first - bpair.second)
                           + bpair.second;
-                p1 = _p + bpair.first * v;
-                p2 = _p + bpair.second * v;
+                p1 = (bpair.first * v);
+                p1 += _p;
+                p2 = (bpair.second * v);
+                p2 += _p;
                 _p += (_lambda * v);
             }
         }
@@ -65,7 +67,7 @@ struct BRDHRWalk
             _lamdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
 
-            Point v = GetDirection<Point>::apply(p.dimension(), rng);
+            Point v = GetDirection<Point>::apply(P.dimension(), rng);
             std::pair<NT, NT> bpair = P.line_intersect(p, v, _lamdas, _Av);
             _lambda = rng.sample_urdist() * (bpair.first - bpair.second) + bpair.second;
             _p = (_lambda * v) + p;

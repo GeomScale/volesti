@@ -124,95 +124,82 @@ bool get_first_ball(Polytope const& P,
                     NT& ratio,
                     NT const& radius_input,
                     cooling_ball_parameters<NT> const& parameters,
-                    RNG& rng)
-{
-    const unsigned max_iterarions = 10;
-    const unsigned tolerance = 0.00000000001;
+                    RNG& rng) {
+    const unsigned max_iterarions = 20;
+    NT tolerance = 0.00000000001;
     typedef typename Polytope::PointType Point;
     int n = P.dimension();
     int iter = 1;
     bool bisection_int = false;
     bool pass = false;
     bool too_few = false;
-    std::list<Point> randPoints;
+    std::list <Point> randPoints;
     NT rmax = parameters.rmax;
     NT sqrt_n = std::sqrt(NT(n));
-    NT rad1 = radius_input;
+    NT radius1 = radius_input;
 
-    if (rmax > 0.0)
-    {
-        for (int i = 0; i < 1200; ++i)
-        {
+    if (rmax > 0.0) {
+        for (int i = 0; i < 1200; ++i) {
             randPoints.push_back(GetPointInDsphere<Point>::apply(n, rmax, rng));
         }
         pass = check_convergence<Point>(P, randPoints, too_few, ratio,
                                         10, true, false, parameters);
-        if (pass || !too_few)
-        {
+        if (pass || !too_few) {
             B0 = Ball(Point(n), rmax * rmax);
             return true;
         }
         bisection_int = true;
-    } else
-    {
-        rmax = 2 * sqrt_n * rad1;
+    } else {
+        rmax = 2 * sqrt_n * radius1;
     }
-    NT radius = rad1;
+    NT radius = radius1;
 
-    while (!bisection_int)
-    {
+    while (!bisection_int) {
         randPoints.clear();
         too_few = false;
 
-        for (int i = 0; i < 1200; ++i)
-        {
+        for (int i = 0; i < 1200; ++i) {
             randPoints.push_back(GetPointInDsphere<Point>::apply(n, rmax, rng));
         }
 
         if (check_convergence<Point>(P, randPoints, too_few, ratio, 10,
-                                     true, false, parameters))
-        {
+                                     true, false, parameters)) {
             B0 = Ball(Point(n), rmax * rmax);
             return true;
         }
 
         if (too_few) break;
-        rad1 = rmax;
+        radius1 = rmax;
         rmax = rmax + 2 * sqrt_n * radius;
     }
 
     NT rad_med;
-    NT rad0=rad1;
+    NT rad0 = radius1;
     NT rad_m = rmax;
 
-    while (iter <= max_iterarions)
-    {
-        rad_med = 0.5*(rad1+rmax);
+    while (iter <= max_iterarions) {
+        rad_med = 0.5 * (radius1 + rmax);
         randPoints.clear();
         too_few = false;
 
-        for (int i = 0; i < 1200; ++i)
-        {
+        for (int i = 0; i < 1200; ++i) {
             randPoints.push_back(GetPointInDsphere<Point>::apply(n, rad_med, rng));
         }
 
         if (check_convergence<Point>(P, randPoints, too_few, ratio, 10,
-                                     true, false, parameters))
-        {
+                                     true, false, parameters)) {
             B0 = Ball(Point(n), rad_med * rad_med);
             return true;
         }
 
-        if (too_few)
-        {
+        if (too_few) {
             rmax = rad_med;
         } else {
-            rad1 = rad_med;
+            radius1 = rad_med;
         }
 
-        if (rmax-rad1 < tolerance)
-        {
-            rad1 = rad0;
+        if (rmax - radius1 < tolerance) {
+            radius1 = rad0;
             rmax = rad_m;
             iter++;
         }
@@ -228,8 +215,8 @@ bool get_next_zonotopeball(std::vector<ball>& BallSet,
                            std::vector<NT>& ratios,
                            cooling_ball_parameters<NT> const& parameters)
 {
-    const unsigned max_iterarions = 10;
-    const unsigned tolerance = 0.00000000001;
+    const unsigned max_iterarions = 20;
+    NT tolerance = 0.00000000001;
     int n = (*randPoints.begin()).dimension();
     int iter = 1;
     bool too_few;
@@ -703,8 +690,9 @@ NT estimate_ratio_interval(PolyBall1 const& Pb1,
 template
 <
     typename WalkTypePolicy,
-    typename RandomNumberGenerator,
-    typename Polytope
+    typename Polytope,
+    typename RandomNumberGenerator
+
 >
 double volume_cooling_balls(Polytope const& Pin,
                             RandomNumberGenerator &rng,

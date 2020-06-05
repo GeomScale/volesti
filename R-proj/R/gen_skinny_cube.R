@@ -1,6 +1,6 @@
 #' Generator function for skinny hypercubes
 #' 
-#' This function can be used to generate a \eqn{d}-dimensional skinny hypercube in H-representation.
+#' This function generates a \eqn{d}-dimensional skinny hypercube \eqn{[-1,1]^{d-1}\times [-100,100]}.
 #' 
 #' @param dimension The dimension of the skinny hypercube.
 #' 

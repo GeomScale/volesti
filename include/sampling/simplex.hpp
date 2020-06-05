@@ -36,8 +36,8 @@ void Sam_Unit(unsigned int dim,
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
     if (!std::isnan(seed)) {
-        unsigned rng_seed = seed;
-        rng.seed(rng_seed);
+        unsigned rng_seed2 = seed;
+        rng.seed(rng_seed2);
     }
     //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
     //RNGType rng(seed);
@@ -173,7 +173,6 @@ void Sam_Canon_Unit(unsigned int dim,
 {
 
     unsigned int j,i,x_rand,M=2147483647,pointer;  // M is the largest possible integer
-    //std::vector<int> x_vec;
     std::vector<NT> y;
     dim--;
     boost::random::uniform_int_distribution<> uidist(1,M);
@@ -181,11 +180,9 @@ void Sam_Canon_Unit(unsigned int dim,
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
     if (!std::isnan(seed)) {
-        unsigned rng_seed = seed;
-        rng.seed(rng_seed);
+        unsigned rng_seed2 = seed;
+        rng.seed(rng_seed2);
     }
-    //unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //RNGType rng(seed);
 
     std::vector<NT> x_vec2;
     NT Ti,sum;

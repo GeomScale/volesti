@@ -1,6 +1,6 @@
 #' Generator function for product of simplices
 #' 
-#' This function can be used to generate a \eqn{2d}-dimensional polytope that is defined as the product of two \eqn{d}-dimensional unit simplices in H-representation.
+#' This function generates a \eqn{2d}-dimensional polytope that is defined as the product of two \eqn{d}-dimensional unit simplices in H-representation.
 #' 
 #' @param dimension The dimension of the simplices.
 #' 

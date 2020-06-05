@@ -45,6 +45,7 @@ else ()
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
   include_directories (BEFORE ../include/convex_bodies)
+  include_directories (BEFORE ../include/convex_bodies/spectrahedra)
   include_directories (BEFORE ../include/annealing)
   include_directories (BEFORE ../include/samplers)
   include_directories (BEFORE ../include/lp_oracles)
@@ -76,6 +77,10 @@ else ()
   add_executable (benchmarks_cb benchmarks_cb.cpp)
 
   add_library(test_main OBJECT test_main.cpp)
+
+
+  add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
 
   add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)

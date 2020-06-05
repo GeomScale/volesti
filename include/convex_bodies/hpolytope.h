@@ -99,8 +99,6 @@ public:
     }
 
 
-
-
     std::pair<Point, NT> InnerBall() const
     {
         return _inner_ball;

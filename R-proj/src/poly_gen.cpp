@@ -33,8 +33,7 @@
 //' @param m_gen An integer to declare the number of generators for the requested random zonotope or the number of vertices for a V-polytope.
 //' @param seed Optional. A fixed seed for the random polytope generator.
 //'
-//' @section warning:
-//' Do not use this function.
+//' @keywords internal
 //'
 //' @return A numerical matrix describing the requested polytope
 // [[Rcpp::export]]
