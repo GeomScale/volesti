@@ -39,6 +39,7 @@ see <http://www.gnu.org/licenses/>.
 #include "known_polytope_generators.h"
 #include <string>
 #include <typeinfo>
+#include <chrono>
 #include "samplers.h"
 #include "doctest.h"
 
@@ -69,14 +70,32 @@ void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
 
 }
 
+template <typename NT, class Point, class bfunc>
+void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, NT t_des, int facet_des) {
+  typedef boost::mt19937    RNGType;
+  typedef VPolytope<Point, RNGType> Vpolytope;
+  typedef std::pair<NT, Point> result;
+  Vpolytope P;
+  NT tol = 1e-6;
+
+  P = gen_cube<Vpolytope>(2, true);
+
+
+  result res2 = P.curve_intersect_ipopt(0.01, 0, coeffs, phi, grad_phi);
+  NT t = res2.first;
+
+  CHECK(std::abs(std::abs(t) - t_des) / t_des < tol);
+
+}
+
 template <typename NT>
-void call_test_h_poly_oracles() {
+void call_test_poly_oracles(char typ) {
   typedef Cartesian<NT>    Kernel;
   typedef typename Kernel::Point    Point;
   typedef std::vector<Point> pts;
   typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
 
-  std::cout << "--- Testing intersection of 2D H-cube with p(t) = (t, t)" << std::endl;
+  std::cout << "--- Testing intersection of 2D cube with p(t) = (t, t)" << std::endl;
 
   Point a0(2);
   Point a1(2);
@@ -96,9 +115,13 @@ void call_test_h_poly_oracles() {
   NT t_des_line = NT(1);
   int facet_des_line = 0;
 
-  test_h_poly_oracles<NT, Point, bfunc>(line_coeffs, poly_basis, poly_basis_grad, t_des_line, facet_des_line);
+  if (typ == 'H') {
+    test_h_poly_oracles<NT, Point, bfunc>(line_coeffs, poly_basis, poly_basis_grad, t_des_line, facet_des_line);
+  } else if (typ == 'V'){
+    test_v_poly_oracles<NT, Point, bfunc>(line_coeffs, poly_basis, poly_basis_grad, t_des_line, facet_des_line);
+  }
 
-  std::cout << "--- Testing intersection of 2D H-cube with p(t) = (t, 2 * t^2)" << std::endl;
+  std::cout << "--- Testing intersection of 2D cube with p(t) = (t, 2 * t^2)" << std::endl;
 
   Point b0(2);
   Point b1(2);
@@ -110,12 +133,84 @@ void call_test_h_poly_oracles() {
   int facet_des_parabola = 1;
   pts parabola_coeffs{b0, b1, b2};
 
-  test_h_poly_oracles<NT, Point, bfunc>(parabola_coeffs, poly_basis, poly_basis_grad, t_des_parabola, facet_des_parabola);
+  if (typ == 'H') {
+    test_h_poly_oracles<NT, Point, bfunc>(parabola_coeffs, poly_basis, poly_basis_grad, t_des_parabola, facet_des_parabola);
+  } else if (typ == 'V') {
+    test_v_poly_oracles<NT, Point, bfunc>(parabola_coeffs, poly_basis, poly_basis_grad, t_des_parabola, facet_des_parabola);
+  }
+
+}
+
+template <typename NT>
+void call_benchmark_oracles() {
+  typedef Cartesian<NT>    Kernel;
+  typedef typename Kernel::Point    Point;
+  typedef boost::mt19937    RNGType;
+  typedef HPolytope<Point> Hpolytope;
+  typedef std::tuple<NT, Point, int> result;
+  typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
+  Hpolytope P;
+  NT tol = 1e-6;
+  std::pair<int, int>dims = std::make_pair(1, 10);
+  std::pair<int, int>orders = std::make_pair(2, 10);
+  result res;
+
+  long newton_runtime = 0L;
+  long ipopt_runtime = 0L;
+
+  bfunc poly_basis = [](NT t, NT t0, unsigned int j, unsigned int order) {
+    return pow(t - t0, (NT) j);
+  };
+
+  bfunc poly_basis_grad = [](NT t, NT t0, unsigned int j, unsigned int order) {
+    return ((NT) j) * pow(t - t0, (NT) (j - 1));
+  };
+
+  for (int dim = dims.first; dim <= dims.second; dim++) {
+    P = gen_cube<Hpolytope>(dim, false);
+    Point p(dim);
 
 
+    std::vector<Point> coeffs;
+
+    for (int order = orders.first; order <= orders.second; order++) {
+      coeffs.push_back(get_direction<RNGType, Point, NT>(dim, true));
+
+      auto start = std::chrono::high_resolution_clock::now();
+      res = P.curve_intersect_newton_raphson(0.01, 0, coeffs, poly_basis, poly_basis_grad);
+      auto stop = std::chrono::high_resolution_clock::now();
+
+      std::cout << "START" << std::endl;
+
+      newton_runtime += (long) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+
+      start = std::chrono::high_resolution_clock::now();
+      P.curve_intersect_ipopt(0.01, 0, coeffs, poly_basis, poly_basis_grad);
+      stop = std::chrono::high_resolution_clock::now();
+      ipopt_runtime += (long) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+
+      std::cout << std::endl;
+
+    }
+
+
+
+
+  }
+
+  std::cout << "Newton-Raphson: " << newton_runtime << " us" << std::endl;
+  std::cout << "Interior-points: " << ipopt_runtime << " us" << std::endl;
 }
 
 
 TEST_CASE("h_poly_oracles") {
-  call_test_h_poly_oracles<double>();
+  call_test_poly_oracles<double>('H');
 }
+
+TEST_CASE("benchmark_oracles") {
+  call_benchmark_oracles<double>();
+}
+
+// TEST_CASE("v_poly_oracles") {
+//   call_test_poly_oracles<double>('V');
+// }
