@@ -199,7 +199,7 @@ std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, 
   ipopt.SetOption("jacobian_approximation", "exact");
   ipopt.SetOption("tol", POLYTOL);
   ipopt.SetOption("acceptable_tol", 100 * POLYTOL);
-  ipopt.SetOption("max_iter", 100000);
+  ipopt.SetOption("max_iter", 1000000);
 
   ipopt.SetOption("print_level", 0);
   ipopt.SetOption("sb", "yes");

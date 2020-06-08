@@ -58,8 +58,6 @@ see <http://www.gnu.org/licenses/>.
 #include <ifopt/problem.h>
 #include <ifopt/ipopt_solver.h>
 
-#define TOL 1e-7
-
 using namespace ifopt;
 
 // Define the variable t we use in the optimization
@@ -88,6 +86,7 @@ public:
 
 };
 
+
 // Define the variable t we use in the optimization
 template <typename VT, typename NT>
 class VPolyOracleVariableLambdas : public VariableSet {
@@ -95,12 +94,13 @@ public:
   VectorXd lambdas;
   int m;
 
-  VPolyOracleVariableLambdas(int m_): m(m_), VariableSet(m, "lambdas") {
-    lambdas = VectorXd(m_);
+  VPolyOracleVariableLambdas(int m_): m(m_), VariableSet(m_, "lambdas") {
+    lambdas.resize(m_);
     for (int i = 0; i < m_; i++) lambdas(i) = NT(0);
   };
 
   void SetVariables(const VectorXd& lambdas_) override {
+    // for (int i = 0; i < m; i++) lambdas(i) = lambdas_(i);
     lambdas = lambdas_;
   }
 
@@ -122,7 +122,7 @@ class VPolyOracleCost : public CostTerm {
 public:
   int m;
 
-  VPolyOracleCost(int m_) : CostTerm("h_poly_cost"), m(m_) {};
+  VPolyOracleCost(int m_) : CostTerm("v_poly_cost"), m(m_) {};
 
   NT GetCost() const override {
     VectorXd T = GetVariables()->GetComponent("t")->GetValues();
@@ -131,9 +131,6 @@ public:
 
   void FillJacobianBlock (std::string var_set, Jacobian& jac) const override {
     if (var_set == "t") jac.coeffRef(0, 0) = (NT) (-1.0);
-    if (var_set == "lambdas") {
-      for (int i = 0; i < m; i++) jac.coeffRef(0, i+1) = NT(0);
-    }
   }
 
 };
@@ -145,24 +142,24 @@ public:
 
   VPolyoracleFeasibilityLambdas(int m_) : ConstraintSet(1, "lambdas_simplex"), m(m_) {};
 
+
+  VectorXd GetValues() const override {
+    VectorXd lambdas = GetVariables()->GetComponent("lambdas")->GetValues();
+    VectorXd S(1);
+    S(0) = NT(0);
+    for (int i = 0; i < m; i++) S(0) += lambdas(i);
+    return S;
+  }
+
   VecBound GetBounds() const override {
     VecBound bounds(GetRows());
     bounds.at(0) = Bounds(NT(1.0), NT(1.0));
     return bounds;
   }
 
-  VectorXd GetValues() const override {
-    VectorXd lambdas = GetVariables()->GetComponent("lambdas")->GetValues();
-    VectorXd sum(1);
-    sum(0) = NT(0);
-    for (int i = 0; i < m; i++) sum =+ lambdas(i);
-    return sum;
-  }
-
   void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override {
-    if (var_set == "t") jac_block.coeffRef(0, 0) = (NT) (0);
     if (var_set == "lambdas") {
-      for (int i = 0; i < m; i++) jac_block.coeffRef(0, i+1) = NT(1.0);
+      for (int i = 0; i < m; i++) jac_block.coeffRef(0, i) = NT(1.0);
     }
   }
 
@@ -180,8 +177,10 @@ public:
 
   bfunc phi, grad_phi;
 
+// V, coeffs, t0, phi, grad_phi
+
   VPolyOracleFeasibilityCurve(MT &V_, std::vector<Point> &coeffs_, NT t0_, bfunc basis, bfunc basis_grad) :
-    V(V_), coeffs(coeffs_), t0(t0_), phi(basis), grad_phi(basis_grad), ConstraintSet(V.cols() ,"curve_feasibility") {
+    V(V_), coeffs(coeffs_), t0(t0_), phi(basis), grad_phi(basis_grad), ConstraintSet(V_.cols() ,"curve_feasibility") {
       m = V.rows();
       M = (int) (coeffs.size());
       d_ = V.cols();
@@ -194,34 +193,33 @@ public:
   }
 
   VectorXd GetValues() const override {
-    VectorXd values(d_);
-    VectorXd lambdas = GetVariables()->GetComponent("lambdas")->GetValues();
+    VectorXd values_(d_);
     NT t = GetVariables()->GetComponent("t")->GetValues()(0);
+    VectorXd lambdas = GetVariables()->GetComponent("lambdas")->GetValues();
 
     for (int i = 0; i < d_; i++) {
-      values(i) = NT(0);
+      values_(i) = NT(0);
 
       for (int j = 0; j < m; j++) {
-        values(i) += lambdas(j) * V(j, i);
+        values_(i) += lambdas(j) * V(j, i);
       }
 
       for (int j = 0; j < M; j++) {
-        values(i) -= phi(t, t0, j, M) * coeffs[j][i];
+        values_(i) -= phi(t, t0, j, M) * coeffs[j][i];
       }
 
     }
 
-    return values;
+    return values_;
 
   }
 
   void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override {
+    for (int i = 0; i < d_; i++) jac_block.coeffRef(i, 0) = NT(0);
+
     if (var_set == "t") {
       NT t = GetVariables()->GetComponent("t")->GetValues()(0);
       for (int i = 0; i < d_; i++) {
-          // Derivative wrt to t
-          jac_block.coeffRef(i, 0) = NT(0);
-
           for (int j = 0; j < M; j++) {
             jac_block.coeffRef(i, 0) -= grad_phi(t, t0, j, M) * coeffs[j][i];
           }
@@ -229,6 +227,7 @@ public:
     }
 
     if (var_set == "lambdas") {
+      VectorXd lambdas = GetVariables()->GetComponent("lambdas")->GetValues();
       for (int i = 0; i < d_; i++) {
 
         for (int j = 0; j < m; j++) {
@@ -247,26 +246,28 @@ std::pair<NT, Point> curve_intersect_vpoly_ipopt_helper(NT t_prev, NT t0, MT &V,
 
   int m = V.rows();
 
-  std::shared_ptr<VPolyOracleVariableT<VT, NT>> vpolyoraclevariable_t (new VPolyOracleVariableT<VT, NT>(t_prev, t0));
+  std::shared_ptr<VPolyOracleVariableT<VT, NT>> vpolyoraclevariablet (new VPolyOracleVariableT<VT, NT>(t_prev, t0));
   std::shared_ptr<VPolyOracleVariableLambdas<VT, NT>> vpolyoraclevariable_lambdas (new VPolyOracleVariableLambdas<VT, NT>(m));
 
-  nlp.AddVariableSet(vpolyoraclevariable_t);
+  nlp.AddVariableSet(vpolyoraclevariablet);
   nlp.AddVariableSet(vpolyoraclevariable_lambdas);
 
-  std::shared_ptr<VPolyOracleCost<VT, NT>> vpolyoraclecost (new VPolyOracleCost<VT, NT>());
+  std::shared_ptr<VPolyOracleCost<VT, NT>> vpolyoraclecost (new VPolyOracleCost<VT, NT>(m));
 
   nlp.AddCostSet(vpolyoraclecost);
 
   std::shared_ptr<VPolyoracleFeasibilityLambdas<VT, NT>> vpolyoraclefeasibility_lambdas (new VPolyoracleFeasibilityLambdas<VT, NT>(m));
   std::shared_ptr<VPolyOracleFeasibilityCurve<MT, VT, NT, Point, bfunc>> vpolyoraclefeasibility_curve (new VPolyOracleFeasibilityCurve<MT, VT, NT, Point, bfunc>(V, coeffs, t0, phi, grad_phi));
 
-  nlp.AddConstraintSet(vpolyoraclevariable_lambdas);
+  nlp.AddConstraintSet(vpolyoraclefeasibility_lambdas);
   nlp.AddConstraintSet(vpolyoraclefeasibility_curve);
+
+  nlp.PrintCurrent();
 
   IpoptSolver ipopt;
   ipopt.SetOption("linear_solver", "mumps");
-  ipopt.SetOption("jacobian_approximation", "exact");
-  ipopt.SetOption("tol", TOL);
+  ipopt.SetOption("jacobian_approximation", "finite-difference-values");
+  ipopt.SetOption("tol", 1e-7);
   ipopt.SetOption("print_level", 0);
   ipopt.SetOption("sb", "yes");
 

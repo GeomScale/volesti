@@ -57,6 +57,7 @@ void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   NT t = std::get<0>(res);
   int facet = std::get<2>(res);
 
+  // CHECK(facet == facet_des);
   CHECK(std::abs(std::abs(t) - t_des) / t_des < tol);
 
   result res2 = P.curve_intersect_ipopt(0.01, 0, coeffs, phi, grad_phi);
@@ -64,6 +65,7 @@ void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   t = std::get<0>(res2);
   facet = std::get<2>(res2);
 
+  // CHECK(facet == facet_des);
   CHECK(std::abs(std::abs(t) - t_des) / t_des < tol);
 
 }
@@ -74,7 +76,7 @@ void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   typedef VPolytope<Point, RNGType> Vpolytope;
   typedef std::pair<NT, Point> result;
   Vpolytope P;
-  NT tol = 1e-6;
+  NT tol = 1e-4;
 
   P = gen_cube<Vpolytope>(2, true);
 
@@ -125,9 +127,9 @@ void call_test_poly_oracles(char typ) {
   Point b1(2);
   Point b2(2);
   b1.set_coord(0, 1);
-  b2.set_coord(1, 3);
+  b2.set_coord(1, 2);
 
-  NT t_des_parabola = NT(1 / sqrt(3));
+  NT t_des_parabola = NT(1 / sqrt(2));
   int facet_des_parabola = 1;
   pts parabola_coeffs{b0, b1, b2};
 
@@ -148,7 +150,7 @@ void call_benchmark_oracles() {
   typedef std::tuple<NT, Point, int> result;
   typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
   Hpolytope P;
-  NT tol = 1e-6;
+  NT tol = 1e-4;
   std::pair<int, int>dims = std::make_pair(2, 10);
   std::pair<int, int>orders = std::make_pair(2, 3);
   result res;
@@ -206,6 +208,6 @@ TEST_CASE("h_poly_oracles") {
 //   call_benchmark_oracles<double>();
 // }
 
-// TEST_CASE("v_poly_oracles") {
-//   call_test_poly_oracles<double>('V');
-// }
+TEST_CASE("v_poly_oracles") {
+  call_test_poly_oracles<double>('V');
+}

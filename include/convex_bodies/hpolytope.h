@@ -16,7 +16,7 @@
 #include "solve_lp.h"
 #include "nlp_hpolyoracles.h"
 
-#define MAX_NR_TRIES 1000
+#define MAX_NR_TRIES 10000
 
 //min and max values for the Hit and Run functions
 
