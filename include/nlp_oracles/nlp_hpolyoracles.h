@@ -60,7 +60,7 @@ see <http://www.gnu.org/licenses/>.
 #include <ifopt/problem.h>
 #include <ifopt/ipopt_solver.h>
 
-#define TOL 1e-7
+#define POLYTOL 1e-7
 
 using namespace ifopt;
 
@@ -197,7 +197,10 @@ std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, 
   IpoptSolver ipopt;
   ipopt.SetOption("linear_solver", "mumps");
   ipopt.SetOption("jacobian_approximation", "exact");
-  ipopt.SetOption("tol", TOL);
+  ipopt.SetOption("tol", POLYTOL);
+  ipopt.SetOption("acceptable_tol", 100 * POLYTOL);
+  ipopt.SetOption("max_iter", 100000);
+
   ipopt.SetOption("print_level", 0);
   ipopt.SetOption("sb", "yes");
 
@@ -216,10 +219,10 @@ std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, 
 
 
   for (int i = 0; i < A.rows(); i++) {
-    if (*b_data == 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) < NT(1000 * TOL)) {
+    if (*b_data == 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) < NT(1000 * POLYTOL)) {
       return std::make_tuple(t, p, i);
     }
-    else if (*b_data != 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) / *b_data < NT(1000 * TOL)) {
+    else if (*b_data != 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) / *b_data < NT(1000 * POLYTOL)) {
       return std::make_tuple(t, p, i);
     }
     else b_data++;
