@@ -129,9 +129,6 @@ public:
     return - T(0);
   }
 
-  void FillJacobianBlock (std::string var_set, Jacobian& jac) const override {
-    if (var_set == "t") jac.coeffRef(0, 0) = (NT) (-1.0);
-  }
 
 };
 
@@ -155,12 +152,6 @@ public:
     VecBound bounds(GetRows());
     bounds.at(0) = Bounds(NT(1.0), NT(1.0));
     return bounds;
-  }
-
-  void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override {
-    if (var_set == "lambdas") {
-      for (int i = 0; i < m; i++) jac_block.coeffRef(0, i) = NT(1.0);
-    }
   }
 
 };
@@ -214,29 +205,6 @@ public:
 
   }
 
-  void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override {
-    for (int i = 0; i < d_; i++) jac_block.coeffRef(i, 0) = NT(0);
-
-    if (var_set == "t") {
-      NT t = GetVariables()->GetComponent("t")->GetValues()(0);
-      for (int i = 0; i < d_; i++) {
-          for (int j = 0; j < M; j++) {
-            jac_block.coeffRef(i, 0) -= grad_phi(t, t0, j, M) * coeffs[j][i];
-          }
-      }
-    }
-
-    if (var_set == "lambdas") {
-      VectorXd lambdas = GetVariables()->GetComponent("lambdas")->GetValues();
-      for (int i = 0; i < d_; i++) {
-
-        for (int j = 0; j < m; j++) {
-            jac_block.coeffRef(i, j+1) = V(j, i);
-        }
-      }
-    }
-  }
-
 };
 
 template <typename MT, typename VT, typename Point, typename NT, class bfunc>
@@ -266,6 +234,8 @@ std::pair<NT, Point> curve_intersect_vpoly_ipopt_helper(NT t_prev, NT t0, MT &V,
 
   IpoptSolver ipopt;
   ipopt.SetOption("linear_solver", "mumps");
+
+  // TODO fix exact jacobian
   ipopt.SetOption("jacobian_approximation", "finite-difference-values");
   ipopt.SetOption("tol", 1e-7);
   ipopt.SetOption("print_level", 0);
