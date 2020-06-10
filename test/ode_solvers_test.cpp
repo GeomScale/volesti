@@ -363,7 +363,7 @@ void test_euler_2d_constrained(){
 
 
 template <typename NT>
-void call_test_euler() {
+void call_test_first_order() {
 
   std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
   test_euler<NT>();
@@ -383,7 +383,7 @@ void call_test_euler() {
 
 
 template <typename NT>
-void call_test_leapfrog() {
+void call_test_second_order() {
   std::cout << "--- Testing solution to d^2x / dt^2 = -x" << std::endl;
   test_leapfrog<NT>();
   //
@@ -395,10 +395,10 @@ void call_test_leapfrog() {
 
 }
 
-TEST_CASE("euler") {
-  call_test_euler<double>();
+TEST_CASE("first_order") {
+  call_test_first_order<double>();
 }
 
-TEST_CASE("leapfrog") {
-  call_test_leapfrog<double>();
+TEST_CASE("second_order") {
+  call_test_second_order<double>();
 }
