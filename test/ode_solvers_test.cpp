@@ -25,6 +25,7 @@ Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
 */
 
+#include "doctest.h"
 #include "Eigen/Eigen"
 #include "ode_solvers.h"
 #include <iostream>
@@ -32,16 +33,24 @@ see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <vector>
 #include <unistd.h>
+#include <string>
+#include <typeinfo>
+
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-#include "volume.h"
+#include "random_walks/random_walks.hpp"
+
 #include "known_polytope_generators.h"
-#include <string>
-#include <typeinfo>
-#include "samplers.h"
-#include "doctest.h"
+
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
+
+#include "exact_vols.h"
+#include "generators/known_polytope_generators.h"
+
 
 template <typename NT>
 void test_euler(){
@@ -51,7 +60,7 @@ void test_euler(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point>  Vpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -74,7 +83,7 @@ void test_bs(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point>  Vpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -104,7 +113,7 @@ void test_bs(){
 //     typedef std::vector<NT> coeffs;
 //     typedef std::vector<func> funcs;
 //     typedef boost::mt19937    RNGType;
-//     typedef VPolytope<Point, RNGType > Vpolytope;
+//     typedef VPolytope<Point>  Vpolytope;
 //     funcs Fs;
 //     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
 //     Fs.push_back(F);
@@ -139,7 +148,7 @@ void test_rk4(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point>  Vpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -164,7 +173,7 @@ void test_leapfrog_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point>  Vpolytope;
     typedef std::vector<Vpolytope*> bounds;
     funcs Fs;
     func F = [](pts x, NT t) { return (-2.0) * x[0]; };
@@ -197,7 +206,7 @@ void test_leapfrog(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point>  Vpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -225,7 +234,7 @@ void test_euler_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point>  Vpolytope;
     typedef std::vector<Vpolytope*> bounds;
     funcs Fs;
     bounds Ks;
@@ -256,7 +265,7 @@ void test_bs_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point>  Vpolytope;
     typedef std::vector<Vpolytope*> bounds;
     funcs Fs;
     bounds Ks;
@@ -289,7 +298,7 @@ void test_rk4_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point>  Vpolytope;
     typedef std::vector<Vpolytope*> bounds;
     funcs Fs;
     func F = [](pts x, NT t) { return  x[0]; };
@@ -321,7 +330,7 @@ void test_euler_2d_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point>  Vpolytope;
     typedef std::vector<Vpolytope*> bounds;
     funcs Fs;
     bounds Ks;
