@@ -114,6 +114,10 @@ public:
     return bounds;
   };
 
+  void FillJacobianBlock (std::string var_set, Jacobian& jac) const {
+    if (var_set == "t") jac.coeffRef(0, 0) = (NT) (-1.0);
+  }
+
 };
 
 // Define the cost function f(t) = t (ipopt takes minimization so it is -t)
@@ -127,6 +131,9 @@ public:
   NT GetCost() const override {
     VectorXd T = GetVariables()->GetComponent("t")->GetValues();
     return - T(0);
+  }
+
+  void FillJacobianBlock (std::string var_set, Jacobian& jac) const override {
   }
 
 
@@ -152,6 +159,9 @@ public:
     VecBound bounds(GetRows());
     bounds.at(0) = Bounds(NT(1.0), NT(1.0));
     return bounds;
+  }
+
+  void FillJacobianBlock (std::string var_set, Jacobian& jac) const override {
   }
 
 };
@@ -203,6 +213,9 @@ public:
 
     return values_;
 
+  }
+
+  void FillJacobianBlock (std::string var_set, Jacobian& jac) const override {
   }
 
 };
