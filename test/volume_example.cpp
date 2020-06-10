@@ -86,7 +86,7 @@ int main()
     NT vol1 = volume(HP, var1, CheBall);
     std::cout << "Computed volume (alg.1) = " << vol1 << std::endl;
     
-    NT vol2 = volume_gaussian_annealing(HP, var2, var1, CheBall);
+    NT vol2 = volume_cooling_gaussians(HP, var2, var1, CheBall);
     std::cout << "Computed volume (alg.2) = " << vol2 << std::endl;
        
     return 0;

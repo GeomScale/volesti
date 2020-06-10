@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2018 Vissarion Fisikopoulos, Apostolos Chalkis
+// Copyright (c) 2018-2020 Vissarion Fisikopoulos, Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
@@ -11,6 +11,7 @@
 #define POINT_H
 
 #include <iostream>
+#include <Eigen/Eigen>
 
 template <typename K>
 class point
@@ -26,12 +27,14 @@ public:
 
     point() {}
 
-    point(const unsigned int dim) {
+    point(const unsigned int dim)
+    {
         d = dim;
         coeffs.setZero(d);
     }
 
-    point(const unsigned int dim, iter begin, iter endit) {
+    point(const unsigned int dim, iter begin, iter endit)
+    {
         d = dim;
         coeffs.resize(d);
         int i = 0;
@@ -40,12 +43,14 @@ public:
             coeffs(i++) = *it;
     }
 
-    point(const Coeff& coeffs) {
+    point(const Coeff& coeffs)
+    {
             d = coeffs.rows();
             this->coeffs = coeffs;
     }
 
-    point(const unsigned int dim, std::vector<typename K::FT> cofs) {
+    point(const unsigned int dim, std::vector<typename K::FT> cofs)
+    {
         d = dim;
         coeffs.resize(d);
         iter it = cofs.begin();
@@ -56,84 +61,93 @@ public:
 
     }
 
-    void add(const Coeff& coeffs) {
+    void add(const Coeff& coeffs)
+    {
         this->coeffs += coeffs;
     }
 
-    const Coeff& getCoefficients() const {
+    const Coeff& getCoefficients() const
+    {
         return coeffs;
     }
 
-    int dimension() const {
+    int dimension() const
+    {
         return d;
     }
 
-    void set_dimension(const unsigned int dim) {
+    void set_dimension(const unsigned int dim)
+    {
         d = dim;
     }
 
-    void set_coord(const unsigned int i, FT coord) {
+    void set_coord(const unsigned int i, FT coord)
+    {
         coeffs(i) = coord;
     }
 
-    FT operator[] (const unsigned int i) const {
+    FT operator[] (const unsigned int i) const
+    {
         return coeffs(i);
     }
 
-    FT* pointerToData() {
+    FT* pointerToData()
+    {
         return coeffs.data();
     }
 
-    point operator+ (const point& p) const {
+    void operator+= (const point& p)
+    {
+        coeffs += p.getCoefficients();
+    }
+
+    void operator+= (const Coeff& coeffs)
+    {
+        this->coeffs = coeffs + this->coeffs;
+    }
+
+    void operator= (const Coeff& coeffs)
+    {
+        this->coeffs = coeffs;
+    }
+
+    //TODO: avoid point construction in operators +,-,*
+    point operator+ (const point& p) const
+    {
         point temp;
         temp.d = d;
         temp.coeffs = coeffs + p.getCoefficients();
         return temp;
     }
 
-
-    void operator+= (const point& p) {
-        coeffs += p.getCoefficients();
-    }
-
-    void operator+= (const Coeff& coeffs) {
-        this->coeffs = coeffs + this->coeffs;
-    }
-
-    void operator= (const Coeff& coeffs) {
-        this->coeffs = coeffs;
-    }
-
-    point operator- (const point& p) const {
+    point operator- (const point& p) const
+    {
         point temp;
         temp.d = d;
         temp.coeffs = coeffs - p.getCoefficients();
         return temp;
     }
 
-    point operator* (const FT k) const {
+    point operator* (const FT k) const
+    {
         point temp;
         temp.d = d;
         temp.coeffs = coeffs * k;
         return temp;
     }
 
-    void operator*= (const FT k) {
+    void operator*= (const FT k)
+    {
         coeffs *= k;
     }
 
-    point operator/ (const FT k) const {
-        point temp;
-        temp.d = d;
-        temp.coeffs = coeffs / k;
-        return temp;
-    }
-
-    void operator/= (const FT k)  {
+    void operator/= (const FT k)
+    {
         coeffs /= k;
     }
 
-    bool operator== (point& p) const {
+    bool operator== (point& p) const
+    {
         int i=0;
         const Coeff & coeffs = p.getCoefficients();
 
@@ -149,40 +163,41 @@ public:
         return true;
     }
 
-    FT dot(const point& p) const {
+    FT dot(const point& p) const
+    {
         return coeffs.dot(p.getCoefficients());
     }
 
-    FT dot(const Coeff& coeffs) const {
+    FT dot(const Coeff& coeffs) const
+    {
         return this->coeffs.dot(coeffs);
     }
 
 
-    FT squared_length() const {
+    FT squared_length() const
+    {
 
         FT lsq = FT(0.0);
 
-        for (int i=0; i<d ; i++){
+        for (auto i=0u; i<d ; i++){
             lsq += coeffs(i) * coeffs(i);
         }
         return lsq;
     }
 
-    void print() const{
+    void print() const
+    {
         for(unsigned int i=0; i<d; i++){
-#ifdef VOLESTI_DEBUG
             std::cout<<coeffs(i)<<" ";
-#endif
         }
-#ifdef VOLESTI_DEBUG
         std::cout<<"\n";
-#endif
     }
 
 };
 
 template<typename K>
-point<K> operator* (const typename K::FT& k, point<K>& p) {
+point<K> operator* (const typename K::FT& k, point<K> const& p)
+{
     return p * k;
 }
 

@@ -9,7 +9,6 @@
 #define KNOWN_POLYTOPE_GENERATORS_H
 
 #include <exception>
-#include "samplers.h"
 
 template <typename Polytope>
 Polytope gen_cube(const unsigned int &dim, const bool &Vpoly) {

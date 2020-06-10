@@ -13,7 +13,7 @@ gen_prod_simplex(dimension)
 A polytope class representing the product of the two \eqn{d}-dimensional unit simplices in H-representation.
 }
 \description{
-This function can be used to generate a \eqn{2d}-dimensional polytope that is defined as the product of two \eqn{d}-dimensional unit simplices in H-representation.
+This function generates a \eqn{2d}-dimensional polytope that is defined as the product of two \eqn{d}-dimensional unit simplices in H-representation.
 }
 \examples{
 # generate a product of two 5-dimensional simplices.

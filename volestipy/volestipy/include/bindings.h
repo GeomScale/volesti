@@ -4,7 +4,7 @@
 
 #include "Eigen/Eigen"
 #include "volume.h"
-#include "sample_only.h"
+#include "sampling.hpp"
 
 
 class HPolytopeCPP{

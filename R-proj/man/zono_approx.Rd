@@ -4,7 +4,7 @@
 \alias{zono_approx}
 \title{An internal Rccp function for the over-approximation of a zonotope}
 \usage{
-zono_approx(Z, fit_ratio = NULL, settings = NULL)
+zono_approx(Z, fit_ratio = NULL, settings = NULL, seed = NULL)
 }
 \arguments{
 \item{Z}{A zonotope.}
@@ -12,6 +12,8 @@ zono_approx(Z, fit_ratio = NULL, settings = NULL)
 \item{fit_ratio}{Optional. A boolean parameter to request the computation of the ratio of fitness.}
 
 \item{settings}{Optional. A list that declares the values of the parameters of CB algorithm.}
+
+\item{seed}{Optional. A fixed seed for the number generator.}
 }
 \value{
 A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
@@ -19,8 +21,4 @@ A List that contains a numerical matrix that describes the PCA approximation as 
 \description{
 An internal Rccp function for the over-approximation of a zonotope
 }
-\section{warning}{
-
-Do not use this function.
-}
-
+\keyword{internal}

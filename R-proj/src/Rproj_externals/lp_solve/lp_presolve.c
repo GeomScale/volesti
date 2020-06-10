@@ -32,6 +32,8 @@
                                 initial version of column aggregation code.
    ------------------------------------------------------------------------- */
 
+//Modified by Apostolos Chalkis in May of 2020.
+
 #include <string.h>
 #include "commonlib.h"
 #include "lp_lib.h"
@@ -160,7 +162,7 @@ STATIC MYBOOL presolve_fillUndo(lprec *lp, int orig_rows, int orig_cols, MYBOOL 
 STATIC MYBOOL presolve_rebuildUndo(lprec *lp, MYBOOL isprimal)
 {
   int             ik, ie, ix, j, k, *colnrDep;
-  LPSREAL             hold, *value, *solution, *slacks;
+  LPSREAL             hold, *value, *slacks, *solution;
   presolveundorec *psdata = lp->presolve_undo;
   MATrec          *mat = NULL;
 
@@ -168,13 +170,13 @@ STATIC MYBOOL presolve_rebuildUndo(lprec *lp, MYBOOL isprimal)
   if(isprimal) {
     if(psdata->primalundo != NULL)
       mat = psdata->primalundo->tracker;
-    solution = lp->full_solution + lp->presolve_undo->orig_rows;
+    //solution = lp->full_solution + lp->presolve_undo->orig_rows;  // Comment out by Apostolos Chalkis
     slacks   = lp->full_solution;
   }
   else {
     if(psdata->dualundo != NULL)
       mat = psdata->dualundo->tracker;
-    solution = lp->full_duals;
+    //solution = lp->full_duals;  // Comment out by Apostolos Chalkis
     slacks   = lp->full_duals + lp->presolve_undo->orig_rows;
   }
   if(mat == NULL)

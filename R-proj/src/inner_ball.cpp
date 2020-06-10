@@ -11,20 +11,16 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "vpolyintersectvpoly.h"
+#include "volume/volume_sequence_of_balls.hpp"
 
 //' Compute an inscribed ball of a convex polytope
 //'
-//' For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}, this function computes the largest inscribed ball (Chebychev ball) by solving the corresponding linear program.
-//' For a V-polytope \eqn{d+1} vertices, that define a full dimensional simplex, picked at random and the largest inscribed ball of the simplex is computed.
-//' For a zonotope \eqn{P} we compute the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
+//' For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }, this function computes the largest inscribed ball (Chebychev ball) by solving the corresponding linear program.
+//' For both zonotopes and V-polytopes the function computes the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
 //'
-//' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
+//' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
 //'
-//' @return A \eqn{d+1}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
+//' @return A \eqn{(d+1)}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
 //'
 //' @examples
 //' # compute the Chebychev ball of the 2d unit simplex
@@ -41,18 +37,16 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
-    typedef boost::mt19937    RNGType;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     typedef HPolytope<Point> Hpolytope;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point> Vpolytope;
     typedef Zonotope<Point> zonotope;
-    typedef IntersectionOfVpoly<Vpolytope> InterVP;
+    typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    unsigned int n = P.field("dimension");
+    unsigned int n = P.field("dimension"), type = P.field("type");
 
     std::pair <Point, NT> InnerBall;
-
-    int type = P.field("type");
 
     switch (type) {
         case 1: {

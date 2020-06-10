@@ -9,16 +9,22 @@
 
 [![CRAN check](https://cranchecks.info/badges/worst/volesti)](https://cran.r-project.org/web/checks/check_results_volesti.html)
 [![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/master.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/master)
-[![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
+[![CircleCI develop](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
+[![gcc-test](https://github.com/GeomScale/volume_approximation/workflows/gcc-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Agcc-test)
+[![clang-test](https://github.com/GeomScale/volume_approximation/workflows/clang-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Aclang-test)
+[![R-CMD-check](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-check)
 
 ###  Documentation
 
-* [Using the R interface](doc/r_interface.md)
+* [Using the R Interface](doc/r_interface.md)
 * [Using the C++ Interface](doc/cpp_interface.md)
-* [Wikipage with tutorials and demos](https://github.com/GeomScale/volume_approximation/wiki)
+* [Wikipage with Tutorials and Demos](https://github.com/GeomScale/volume_approximation/wiki)
 * [Tutorial given to PyData meetup](https://vissarion.github.io/tutorials/volesti_tutorial_pydata.html)
 
 ### Credits
+
+* [Contributors and Package History](doc/credits.md)
+* [List of Publications](doc/publications.md)
 
 Copyright (c) 2012-2020 Vissarion Fisikopoulos  
 Copyright (c) 2018-2020 Apostolos Chalkis  
@@ -26,7 +32,7 @@ Copyright (c) 2020-     Marios Papachristou
 
 You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.  
 
-Main development started in 2012 by Vissarion Fisikopoulos while he was affiliated with University of Athens (UoA, Greece), and then with University of Brussels (ULB, Belgium). The main sampling and volume algorithms were developed at that time. 
+Main development started in 2012 by Vissarion Fisikopoulos while he was affiliated with University of Athens (UoA, Greece), and then with University of Brussels (ULB, Belgium). The main sampling and volume algorithms were developed at that time.
 
 Later, Chalkis Apostolos affiliated with University of Athens (UoA, Greece) and mentored by V.F. and partially supported by GSoC'2018, 2019 programs enhanced volesti with more algorithms for sampling and volume as well as an `R` interface.       
 
@@ -48,11 +54,10 @@ More information about what has been implemented can be found [here](https://git
    * Bulirsch-Stoer-Richardson Solver
  * Ongoing
    * Collocation Methods
-   * Boundary Oracles for general curves 
- 
+   * Boundary Oracles for general curves
+
 ### Publications
 
 1. I.Z. Emiris and V. Fisikopoulos, *Efficient random-walk methods for approximating polytope volume*, In Proc. ACM Symposium on Computational Geometry, Kyoto, Japan, p.318-325, 2014.  
 2. I.Z. Emiris and V. Fisikopoulos, *Practical polytope volume approximation*, ACM Transactions on Mathematical Software, vol 44, issue 4, 2018.
 3. L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos, *Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises*, Proc. of Symposium on Computational Geometry, Budapest, Hungary, 2018.  
-

@@ -9,7 +9,11 @@
 #include <unistd.h>
 #include "Eigen/Eigen"
 #include "volume.h"
-#include "polytope_generators.h"
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
+#include "generators/known_polytope_generators.h"
 
 template <typename NT>
 NT factorial(NT n)
@@ -120,9 +124,13 @@ void call_test_skinny_cubes() {
     P = gen_skinny_cube<Hpolytope>(5);
     rounding_test<NT, RNGType>(P, false, 3200.0);
 
-    //std::cout << "\n--- Testing rounding of H-skinny_cube20" << std::endl;
-    //P = gen_skinny_cube<Hpolytope>(20);
-    //rounding_test<NT, RNGType>(P, false, 104857600.0);
+    std::cout << "\n--- Testing rounding of H-skinny_cube10" << std::endl;
+    P = gen_skinny_cube<Hpolytope>(10);
+    rounding_test<NT, RNGType>(P, false, 102400.0);
+
+    std::cout << "\n--- Testing rounding of H-skinny_cube20" << std::endl;
+    P = gen_skinny_cube<Hpolytope>(20);
+    rounding_test<NT, RNGType>(P, false, 104857600.0);
 
 }
 

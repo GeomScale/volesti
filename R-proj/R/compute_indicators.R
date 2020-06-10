@@ -1,8 +1,8 @@
 #' Compute an indicator for each time period that describes the state of a market.
 #'
-#' Given a matrix that contains row-wise the assets' returns and a sliding window W, this function computes an approximation of the joint distribution (copula) between portfolios' return and volatility in each time period implied by W. 
-#' For each copula it computes an indicator: large value corresponds to a crisis period and a small value to a normal period. 
-#' The periods over which the indicator is greater than 1 for more than 60 consecutives sliding windows are warnings and for more than 100 are crisis. The sliding window is shifted by one day.
+#' Given a matrix that contains row-wise the assets' returns and a sliding window \code{win_length}, this function computes an approximation of the joint distribution (copula, e.g. see \url{https://en.wikipedia.org/wiki/Copula_(probability_theory)}) between portfolios' return and volatility in each time period defined by \code{win_len}. 
+#' For each copula it computes an indicator: If the indicator is large it corresponds to a crisis period and if it is small it corresponds to a normal period. 
+#' In particular, the periods over which the indicator is greater than 1 for more than 60 consecutive sliding windows are warnings and for more than 100 are crisis. The sliding window is shifted by one day.
 #'
 #' @param returns A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
 #' @param win_length Optional. The length of the sliding window. The default value is 60.
@@ -10,14 +10,20 @@
 #' @param n Optional. The number of points to sample. The default value is \eqn{5\cdot 10^5}.
 #' @param nwarning Optional. The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.
 #' @param ncrisis Optional. The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.
+#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 #' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
 #'
 #' @return A list that contains the indicators and the corresponding vector that label each time period with respect to the market state: a) normal, b) crisis, c) warning.
 #'
+#' @examples 
+#' # simple example on random asset returns
+#' asset_returns = replicate(10, rnorm(14))
+#' market_states_and_indicators = compute_indicators(asset_returns, 10, 10, 10000, 2, 3)
+#'
 #' @export
-compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, nwarning = NULL, ncrisis = NULL) {
+compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, nwarning = NULL, ncrisis = NULL, seed = NULL) {
   
   if (is.null(win_length)) win_length = 60
   if (is.null(m)) m = 100
@@ -43,7 +49,7 @@ compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, n
       compRet[j] = compRet[j] - 1
     }
     
-    cop = copula(r1 = compRet, sigma = E, m = m, n = n)
+    cop = copula(r1 = compRet, sigma = E, m = m, n = n, seed = seed)
     blue_mass = 0
     red_mass = 0
     
@@ -76,13 +82,20 @@ compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, n
       set_index = TRUE
     } else if (indicators[i]<1) {
       if(set_index){
-        if(i-index+1 > nwarning && i-index+1 < ncrisis){
-          col[index:i] = "warning"
-        } else if(i-index+1 > ncrisis) {
-          col[index:i] = "crisis"
+        if(i-index > nwarning-1 && i-index <= ncrisis-1){
+          col[index:(i-1)] = "warning"
+        } else if(i-index > ncrisis-1) {
+          col[index:(i-1)] = "crisis"
         }
       }
       set_index = FALSE
+    }
+  }
+  if(set_index){
+    if(N-index+1 > nwarning-1 && N-index+1 <= ncrisis-1){
+      col[index:i] = "warning"
+    } else if(N-index+1 > ncrisis-1) {
+      col[index:i] = "crisis"
     }
   }
   

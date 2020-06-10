@@ -15,63 +15,53 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "vars.h"
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "samplers.h"
-#include "rounding.h"
-#include "vpolyintersectvpoly.h"
+#include "random_walks/random_walks.hpp"
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
 #include "extractMatPoly.h"
 
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
+//' @param seed Optional. A fixed seed for the number generator.
 //'
-//' @section warning:
-//' Do not use this function.
+//' @keywords internal
 //'
-//' @return A numerical matrix that describes the rounded polytope and contains the round value.
+//' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 // [[Rcpp::export]]
-Rcpp::List rounding (Rcpp::Reference P){
+Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
-    typedef boost::mt19937    RNGType;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     typedef HPolytope<Point> Hpolytope;
-    typedef VPolytope<Point, RNGType > Vpolytope;
+    typedef VPolytope<Point> Vpolytope;
     typedef Zonotope<Point> zonotope;
-    typedef IntersectionOfVpoly<Vpolytope> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+
+    bool cdhr = false;
+    unsigned int n = P.field("dimension"), walkL, type = P.field("type");
+
+    RNGType rng(n);
+    if (seed.isNotNull()) {
+        unsigned seed2 = Rcpp::as<double>(seed);
+        rng.set_seed(seed2);
+    }
 
     Hpolytope HP;
     Vpolytope VP;
     zonotope ZP;
-    InterVP VPcVP;
-
-    bool rand_only=false,
-            NN=false,
-            birk=false,
-            verbose=false,
-            cdhr=false, rdhr = false, ball_walk = false, billiard = false;
-    NT delta = -1.0, diam = -1.0;
-
-    unsigned int n = P.field("dimension");
-    unsigned int rnum = std::pow(1.0,-2.0) * 400 * n * std::log(n);
-    unsigned int walkL = 10+n/10;
 
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;
-    int type = P.field("type");
 
     if (type == 1) {
-        walkL = 10 + 10/n;
+        walkL = 10 + 10*n;
         cdhr = true;
     } else {
-        walkL = 5;
-        billiard = true;
+        walkL = 2;
     }
 
     switch (type) {
@@ -79,20 +69,17 @@ Rcpp::List rounding (Rcpp::Reference P){
             // Hpolytope
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             InnerBall = HP.ComputeInnerBall();
-            //if (billiard && diam < 0.0) HP.comp_diam(diam, InnerBall.second);
             break;
         }
         case 2: {
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
-            VP.comp_diam(diam, 0.0);
             break;
         }
         case 3: {
             // Zonotope
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
-            ZP.comp_diam(diam, 0.0);
             break;
         }
         case 4: {
@@ -100,30 +87,32 @@ Rcpp::List rounding (Rcpp::Reference P){
         }
     }
 
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    // the random engine with this seed
-    RNGType rng(seed);
-    boost::random::uniform_real_distribution<>(urdist);
-    boost::random::uniform_real_distribution<> urdist1(-1,1);
-
-    // initialization
-    vars<NT, RNGType> var(rnum,n,walkL,1,0.0,0.0,0,0.0,0,InnerBall.second,diam,rng,urdist,urdist1,
-                          delta,verbose,rand_only,false,NN,birk,ball_walk,cdhr,rdhr,billiard);
     std::pair< std::pair<MT, VT>, NT > round_res;
-
     switch (type) {
         case 1: {
-            round_res = rounding_min_ellipsoid<MT, VT>(HP, InnerBall, var);
+            if (cdhr) {
+                round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+            } else {
+                round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+            }
             Mat = extractMatPoly(HP);
             break;
         }
         case 2: {
-            round_res = rounding_min_ellipsoid<MT, VT>(VP, InnerBall, var);
+            if (cdhr) {
+                round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+            } else {
+                round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
+            }
             Mat = extractMatPoly(VP);
             break;
         }
         case 3: {
-            round_res = rounding_min_ellipsoid<MT, VT>(ZP, InnerBall, var);
+            if (cdhr) {
+                round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+            } else {
+                round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+            }
             Mat = extractMatPoly(ZP);
             break;
         }

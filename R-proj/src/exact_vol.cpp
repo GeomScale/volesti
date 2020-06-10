@@ -8,15 +8,15 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
-#include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "exact_vols.h"
+#include "cartesian_geom/cartesian_kernel.h"
+#include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
+#include "convex_bodies/zpolytope.h"
+#include "volume/exact_vols.h"
 
 template <typename FT>
 FT factorial(FT n)
@@ -31,11 +31,14 @@ FT factorial(FT n)
 //'
 //' @param P A polytope
 //'
+//' @references \cite{E. Gover and N. Krikorian,
+//' \dQuote{Determinants and the Volumes of Parallelotopes and Zonotopes,} \emph{Linear Algebra and its Applications, 433(1), 28 - 40,} 2010.}
+//'
 //' @return The exact volume of the input polytope, for zonotopes, simplices in V-representation and polytopes with known exact volume
 //' @examples
 //'
 //' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
-//' Z = gen_rand_zonotope(5, 10)
+//' Z = gen_rand_zonotope(2, 5)
 //' vol = exact_vol(Z)
 //'
 //' \donttest{# compute the exact volume of a 2-d arbitrary simplex
@@ -54,7 +57,6 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
     typedef double NT;
     typedef Cartesian <NT> Kernel;
     typedef typename Kernel::Point Point;
-    typedef boost::mt19937 RNGType;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
@@ -67,8 +69,6 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
 
     if (type == 2) {
 
-        typedef VPolytope <Point, RNGType> Vpolytope;
-        Vpolytope VP;
         dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
 
         if (Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows() ==

@@ -10,27 +10,29 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
-#include "ellipsoids.h"
+#include "convex_bodies/ellipsoids.h"
 #include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
-#include "simplex_samplers.h"
-#include "copulas.h"
+#include "sampling/simplex.hpp"
+#include "volume/copulas.h"
 
 //' Construct a copula using uniform sampling from the unit simplex
 //'
-//' Given two families of parallel hyperplanes or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula.
+//' Given two families of parallel hyperplanes or a family of parallel hyperplanes and a family of concentric ellispoids centered at the origin intersecting the canonical simplex, this function uniformly samples from the canonical simplex and construct an approximation of the bivariate probability distribution, called copula (see \url{https://en.wikipedia.org/wiki/Copula_(probability_theory)}).
+//' At least two families of hyperplanes or one family of hyperplanes and one family of ellipsoids have to be given as input.
 //'
-//' @param r1 A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
-//' @param r2 Optional. A \eqn{d}-dimensional vector that describes the direction of the second family of parallel hyperplanes.
+//' @param r1 The \eqn{d}-dimensional normal vector of the first family of parallel hyperplanes.
+//' @param r2 Optional. The \eqn{d}-dimensional normal vector of the second family of parallel hyperplanes.
 //' @param sigma Optional. The \eqn{d\times d} symmetric positive semidefine matrix that describes the family of concentric ellipsoids centered at the origin.
 //' @param m The number of the slices for the copula. The default value is 100.
 //' @param n The number of points to sample. The default value is \eqn{5\cdot 10^5}.
+//' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 //' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
 //'
-//' @return A \eqn{numSlices\times numSlices} numerical matrix that corresponds to a copula.
+//' @return A \eqn{m\times m} numerical matrix that corresponds to a copula.
 //' @examples
 //' # compute a copula for two random families of parallel hyperplanes
 //' h1 = runif(n = 10, min = 1, max = 1000)
@@ -48,11 +50,12 @@
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1 = R_NilValue,
+Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1,
                             Rcpp::Nullable<Rcpp::NumericVector> r2 = R_NilValue,
                             Rcpp::Nullable<Rcpp::NumericMatrix> sigma = R_NilValue,
                             Rcpp::Nullable<unsigned int> m = R_NilValue,
-                            Rcpp::Nullable<unsigned int> n = R_NilValue){
+                            Rcpp::Nullable<unsigned int> n = R_NilValue,
+                            Rcpp::Nullable<double> seed = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -71,21 +74,17 @@ Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1 = R_NilValue,
         numpoints = Rcpp::as<unsigned int>(n);
     }
 
+    double seed3 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
+
     Rcpp::NumericMatrix copula(num_slices, num_slices);
     std::vector<std::vector<NT> > StdCopula;
     unsigned int dim = Rcpp::as<std::vector<NT> >(r1).size(), i, j;
-
-    if(!r1.isNotNull()) {
-
-        throw Rcpp::exception("You have to give at least one normal of a hyperplane!");
-
-    }
 
     std::vector<NT> hyp1 = Rcpp::as<std::vector<NT> >(r1);
     if (r2.isNotNull()) {
 
         std::vector <NT> hyp2 = Rcpp::as < std::vector < NT > > (r2);
-        StdCopula = twoParHypFam<Point, RNGType>(dim, numpoints, num_slices, hyp1, hyp2);
+        StdCopula = twoParHypFam<Point, RNGType>(dim, numpoints, num_slices, hyp1, hyp2, seed3);
 
     } else if (sigma.isNotNull()) {
 
@@ -97,10 +96,10 @@ Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1 = R_NilValue,
             }
         }
         CopEll Ell(Gin);
-        StdCopula = hypfam_ellfam<Point, RNGType >(dim, numpoints, num_slices, hyp1, Ell);
+        StdCopula = hypfam_ellfam<Point, RNGType >(dim, numpoints, num_slices, hyp1, Ell, seed3);
     } else {
 
-        throw Rcpp::exception("Wrong inputs");
+        throw Rcpp::exception("You have to give as input either two families of hyperplanes or one family of hyperplanes and one family of ellipsoids!");
 
     }
 
