@@ -143,6 +143,16 @@ else ()
   add_test(NAME new_rounding_test_round_skinny_cube
            COMMAND new_rounding_test -tc=round_skinny_cube)
 
+  add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME ode_solvers_test_first_order
+          COMMAND ode_solvers_test -tc=first_order)
+  add_test(NAME ode_solvers_test_second_order
+          COMMAND ode_solvers_test -tc=second_order)
+
+  add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME root_finders_test_root_finders
+          COMMAND root_finders_test -tc=root_finders)
+
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE})
@@ -156,5 +166,6 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE})
 
 endif()
