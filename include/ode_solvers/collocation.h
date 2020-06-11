@@ -50,6 +50,16 @@ public:
   NT t, t_prev, dt;
   const NT tol = 1e-6;
 
+  // If set to true the solver assumes linearity of the field
+  // Otherwise it approximates the constant vector with Euler method
+  const bool exact = false;
+
+  // If set to true it enables memoization (does not recompute A and b at every step)
+  const bool precompute = true;
+
+  // Precomputation flag (DO NOT alter)
+  bool precomputation_flag = true;
+
   funcs Fs;
 
   // Basis functions
@@ -132,31 +142,54 @@ public:
 
       for (int i = 0; i < xs.size(); i++) {
         // a0 = F(x0, t0)
+        y = Fs[i](xs, t);
+
         if (ord == 0) {
-          y = Fs[i](xs_prev, t);
           as[i][0] = xs_prev[i];
 
-          for (unsigned int j = 0; j < order() - 1; j++) {
-            Bs[i].row(j) = y.getCoefficients();
+          if (exact) {
+            for (unsigned int j = 0; j < order() - 1; j++) {
+              Bs[i].row(j) = y.getCoefficients();
+            }
           }
 
 
         }
         // Construct matrix A
         else {
-          for (unsigned int j = 0; j < order() - 1; j++) {
-            temp_grad = grad_phi(t, t_prev, order() - j - 1, order());
-            zs[0].set_coord(0, phi(t, t_prev, order() - j - 1, order()));
-            temp_func = Fs[i](zs, t)[0];
-            As[i](ord-1, j) = temp_grad - temp_func;
+          if (exact) {
+            for (unsigned int j = 0; j < order() - 1; j++) {
+              temp_grad = grad_phi(t, t_prev, order() - j - 1, order());
+              zs[0].set_coord(0, phi(t, t_prev, order() - j - 1, order()));
+              temp_func = Fs[i](zs, t)[0];
+              As[i](ord-1, j) = temp_grad - temp_func;
+            }
+          }
+          else {
+
+            // Compute new derivative (inter-point)
+            dt = (cs[ord] - cs[ord-1]) * eta;
+            y = dt * y;
+
+
+            // Do not take into account reflections
+            xs[i] += y;
+
+            // Keep grads for matrix B
+            for (unsigned int j = 0; j < xs[i].dimension(); j++) {
+              Bs[i].row(ord-1) = y.getCoefficients().transpose();
+            }
+
+
+            // Construct matrix A that contains the gradients of the basis functions
+            for (unsigned int j = 0; j < order() - 1; j++) {
+              As[i](ord-1, j) = grad_phi(t, t_prev, order() - j - 1, order());
+            }
           }
         }
 
         }
       }
-
-    // std::cout << "A" << std::endl << As[0] << std::endl << std::endl;
-    // std::cout << std::endl << "B" << Bs[0] << std::endl << std::endl;
 
     // Solve linear systems
     for (int i = 0; i < xs.size(); i++) {
@@ -173,9 +206,6 @@ public:
       }
     }
 
-    // for (unsigned int j = 0; j < order(); j++) {
-    //   std::cout << "AFTER COEFFS [" << j << "] " << std::endl << as[0][j].getCoefficients() << std::endl;
-    // }
 
     // Compute next point
     for (unsigned int i = 0; i < xs.size(); i++) {
@@ -193,7 +223,6 @@ public:
 
     t += eta;
 
-    std::cout << "RESULT" << std::endl;
     print_state();
   }
 

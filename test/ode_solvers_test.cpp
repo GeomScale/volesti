@@ -134,7 +134,7 @@ void test_collocation(){
     coeffs cs{0.0, 0.0, 1.0};
 
     CollocationODESolver<Point, NT, Vpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Vpolytope, bfunc>(0, 1.0, q, Fs, cs, phi, grad_phi);
-    c_solver.steps(10);
+    c_solver.steps(100);
     NT err=0.001;
     NT error = c_solver.xs[0].dot(c_solver.xs[0]);
     CHECK(error < err);
