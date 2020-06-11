@@ -54,11 +54,10 @@ public:
   // Otherwise it approximates the constant vector with Euler method
   const bool exact = false;
 
-  // If set to true it enables memoization (does not recompute A and b at every step)
+  // If set to true it enables precomputation (does not recompute A and b at every step)
   const bool precompute = true;
 
-  // Precomputation flag (DO NOT alter)
-  bool precomputation_flag = true;
+  bool precompute_flag = false;
 
   funcs Fs;
 
@@ -158,12 +157,17 @@ public:
         // Construct matrix A
         else {
           if (exact) {
-            for (unsigned int j = 0; j < order() - 1; j++) {
-              temp_grad = grad_phi(t, t_prev, order() - j - 1, order());
-              zs[0].set_coord(0, phi(t, t_prev, order() - j - 1, order()));
-              temp_func = Fs[i](zs, t)[0];
-              As[i](ord-1, j) = temp_grad - temp_func;
+
+            if (!precompute || (precompute && !precompute_flag))  {
+              for (unsigned int j = 0; j < order() - 1; j++) {
+                temp_grad = grad_phi(t, t_prev, order() - j - 1, order());
+                zs[0].set_coord(0, phi(t, t_prev, order() - j - 1, order()));
+                temp_func = Fs[i](zs, t)[0];
+                As[i](ord-1, j) = temp_grad - temp_func;
+              }
             }
+
+
           }
           else {
 
@@ -182,13 +186,19 @@ public:
 
 
             // Construct matrix A that contains the gradients of the basis functions
-            for (unsigned int j = 0; j < order() - 1; j++) {
-              As[i](ord-1, j) = grad_phi(t, t_prev, order() - j - 1, order());
+            if (!precompute || (precompute && !precompute_flag)) {
+              for (unsigned int j = 0; j < order() - 1; j++) {
+                As[i](ord-1, j) = grad_phi(t, t_prev, order() - j - 1, order());
+              }
             }
+
+
           }
         }
 
         }
+
+
       }
 
     // Solve linear systems
@@ -222,6 +232,8 @@ public:
     }
 
     t += eta;
+
+    precompute_flag = true;
 
     print_state();
   }
