@@ -96,6 +96,8 @@ void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
 
   CHECK(std::abs(std::abs(t) - t_des) / t_des < tol);
 
+  
+
 }
 
 template <typename NT>

@@ -33,7 +33,7 @@ see <http://www.gnu.org/licenses/>.
 #include "rk.h"
 #include "leapfrog.h"
 #include "bulirsch_stoer.h"
-// #include "collocation.h"
+#include "collocation.h"
 
 #ifndef ODE_SOLVERS_H
 #define ODE_SOLVERS_H

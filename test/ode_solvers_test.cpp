@@ -103,42 +103,42 @@ void test_bs(){
     CHECK(error < err);
 }
 //
-// template <typename NT>
-// void test_collocation(){
-//     typedef Cartesian<NT>    Kernel;
-//     typedef typename Kernel::Point    Point;
-//     typedef std::vector<Point> pts;
-//     typedef std::function<Point(pts, NT)> func;
-//     typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
-//     typedef std::vector<NT> coeffs;
-//     typedef std::vector<func> funcs;
-//     typedef boost::mt19937    RNGType;
-//     typedef VPolytope<Point>  Vpolytope;
-//     funcs Fs;
-//     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
-//     Fs.push_back(F);
-//     Point q0 = Point(1);
-//     q0.set_coord(0, 1.0);
-//     pts q;
-//     q.push_back(q0);
-//
-//     bfunc phi = [](NT t, NT t0, unsigned int j, unsigned int order) {
-//       return pow(t - t0, (NT) j);
-//     };
-//
-//     bfunc grad_phi = [](NT t, NT t0, unsigned int j, unsigned int order) {
-//       return ((NT) j) * pow(t - t0, (NT) (j - 1));
-//     };
-//
-//     // Trapezoidal collocation
-//     coeffs cs{0, 0.0, 0.5, 0.75};
-//
-//     CollocationODESolver<Point, NT, Vpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Vpolytope, bfunc>(0, 0.1, q, Fs, cs, phi, grad_phi);
-//     c_solver.steps(10);
-//     // NT err=0.001;
-//     // NT error = c_solver.xs[0].dot(c_solver.xs[0]);
-//     // CHECK(error < err);
-// }
+template <typename NT>
+void test_collocation(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
+    typedef std::vector<NT> coeffs;
+    typedef std::vector<func> funcs;
+    typedef boost::mt19937    RNGType;
+    typedef VPolytope<Point>  Vpolytope;
+    funcs Fs;
+    func F = [](pts x, NT t) { return (-1.0) * x[0]; };
+    Fs.push_back(F);
+    Point q0 = Point(1);
+    q0.set_coord(0, 1.0);
+    pts q;
+    q.push_back(q0);
+
+    bfunc phi = [](NT t, NT t0, unsigned int j, unsigned int order) {
+      return pow(t - t0, (NT) j);
+    };
+
+    bfunc grad_phi = [](NT t, NT t0, unsigned int j, unsigned int order) {
+      return ((NT) j) * pow(t - t0, (NT) (j - 1));
+    };
+
+    // Trapezoidal collocation
+    coeffs cs{0.0, 0.0, 1.0};
+
+    CollocationODESolver<Point, NT, Vpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Vpolytope, bfunc>(0, 1.0, q, Fs, cs, phi, grad_phi);
+    c_solver.steps(10);
+    NT err=0.001;
+    NT error = c_solver.xs[0].dot(c_solver.xs[0]);
+    CHECK(error < err);
+}
 
 template <typename NT>
 void test_rk4(){
@@ -366,18 +366,18 @@ template <typename NT>
 void call_test_first_order() {
 
   std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
-  test_euler<NT>();
-  test_rk4<NT>();
-  test_bs<NT>();
-  // test_collocation<NT>();
+  // test_euler<NT>();
+  // test_rk4<NT>();
+  // test_bs<NT>();
+  test_collocation<NT>();
 
-  std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
-  test_euler_constrained<NT>();
-  test_rk4_constrained<NT>();
-  test_bs_constrained<NT>();
-
-  std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
-  test_euler_2d_constrained<NT>();
+  // std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
+  // test_euler_constrained<NT>();
+  // test_rk4_constrained<NT>();
+  // test_bs_constrained<NT>();
+  //
+  // std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
+  // test_euler_2d_constrained<NT>();
 
 }
 

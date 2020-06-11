@@ -58,8 +58,11 @@ public:
   bounds Ks;
 
   // Contains the sub-states
-  pts xs, xs_prev;
+  pts xs, xs_prev, zs;
   Point y;
+
+  NT temp_grad;
+  NT temp_func;
 
   // Basis coefficients
   ptsv as;
@@ -115,6 +118,8 @@ public:
       Bs[i].resize(order()-1, xs[0].dimension());
       temps[i].resize(order()-1, xs[0].dimension());
     }
+
+    zs = pts{Point(1)};
   }
 
   void step() {
@@ -126,49 +131,32 @@ public:
       t = t_prev + cs[ord] * eta;
 
       for (int i = 0; i < xs.size(); i++) {
-        y = Fs[i](xs, t);
-
         // a0 = F(x0, t0)
-        if (ord == 0) as[i][0] = y;
-        else {
+        if (ord == 0) {
+          y = Fs[i](xs_prev, t);
+          as[i][0] = xs_prev[i];
 
-          // Keep grads for matrix B
-          for (unsigned int j = 0; j < xs[i].dimension(); j++) {
-            Bs[i](ord-1, j) = y[j];
-          }
-
-          // Compute new derivative (inter-point)
-          dt = (cs[ord] - cs[ord-1]) * eta;
-          y = dt * y;
-
-          // Do not take into account reflections
-          xs[i] += y;
-
-          // Construct matrix A that contains the gradients of the basis functions
           for (unsigned int j = 0; j < order() - 1; j++) {
-            As[i](ord-1, j) = grad_phi(t, t_prev, order() - j - 1, order());
+            Bs[i].row(j) = y.getCoefficients();
           }
 
 
         }
-      }
-    }
+        // Construct matrix A
+        else {
+          for (unsigned int j = 0; j < order() - 1; j++) {
+            temp_grad = grad_phi(t, t_prev, order() - j - 1, order());
+            zs[0].set_coord(0, phi(t, t_prev, order() - j - 1, order()));
+            temp_func = Fs[i](zs, t)[0];
+            As[i](ord-1, j) = temp_grad - temp_func;
+          }
+        }
 
-    std::cout << "A" << std::endl << As[0] << std::endl << std::endl;
-    std::cout << "B" << std::endl << Bs[0] << std::endl;
-
-
-    for (int q = 0; q < 20; q++) {
-      for (int i = 0; i < xs.size(); i++) {
-        temps[i] = As[i].colPivHouseholderQr().solve(Bs[i]);
-        temps[i].resize(order()-1, xs[0].dimension());
-        Bs[i] = as[i][0].getCoefficients();
-
-        for (unsigned int ord = 1; ord < order(); ord++) {
-            Bs[i] += temps[i](ord-1);
         }
       }
-    }
+
+    // std::cout << "A" << std::endl << As[0] << std::endl << std::endl;
+    // std::cout << std::endl << "B" << Bs[0] << std::endl << std::endl;
 
     // Solve linear systems
     for (int i = 0; i < xs.size(); i++) {
@@ -185,9 +173,9 @@ public:
       }
     }
 
-    for (unsigned int j = 0; j < order(); j++) {
-      std::cout << "AFTER COEFFS [" << j << "] " << std::endl << as[0][j].getCoefficients() << std::endl;
-    }
+    // for (unsigned int j = 0; j < order(); j++) {
+    //   std::cout << "AFTER COEFFS [" << j << "] " << std::endl << as[0][j].getCoefficients() << std::endl;
+    // }
 
     // Compute next point
     for (unsigned int i = 0; i < xs.size(); i++) {
