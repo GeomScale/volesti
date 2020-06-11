@@ -35,12 +35,20 @@ see <http://www.gnu.org/licenses/>.
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
-#include "volume.h"
+#include "random_walks/random_walks.hpp"
+
 #include "known_polytope_generators.h"
+
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
+
+#include "exact_vols.h"
+#include "generators/known_polytope_generators.h"
+
 #include <string>
 #include <typeinfo>
 #include <chrono>
-#include "samplers.h"
 #include "doctest.h"
 
 template <typename NT, class Point, class bfunc>
@@ -73,7 +81,7 @@ void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
 template <typename NT, class Point, class bfunc>
 void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, NT t_des, int facet_des) {
   typedef boost::mt19937    RNGType;
-  typedef VPolytope<Point, RNGType> Vpolytope;
+  typedef VPolytope<Point> Vpolytope;
   typedef std::pair<NT, Point> result;
   Vpolytope P;
   NT tol = 1e-4;
@@ -83,6 +91,8 @@ void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
 
   result res2 = P.curve_intersect_ipopt(0.01, 0, coeffs, phi, grad_phi);
   NT t = res2.first;
+
+  std::cout << t << " " << t_des << std::endl;
 
   CHECK(std::abs(std::abs(t) - t_des) / t_des < tol);
 
@@ -167,15 +177,18 @@ void call_benchmark_oracles() {
     return ((NT) j) * pow(t - t0, (NT) (j - 1));
   };
 
+
+  std::vector<Point> coeffs;
+
+
   for (int dim = dims.first; dim <= dims.second; dim++) {
+    Point p;
     P = gen_cube<Hpolytope>(dim, false);
-    Point p(dim);
-
-
-    std::vector<Point> coeffs;
 
     for (int order = orders.first; order <= orders.second; order++) {
-      coeffs.push_back(get_direction<RNGType, Point, NT>(dim, true));
+      p = Point(dim);
+      p.set_coord(order, order);
+      coeffs.push_back(p);
 
       auto start = std::chrono::high_resolution_clock::now();
       res = P.curve_intersect_newton_raphson(0.01, 0, coeffs, poly_basis, poly_basis_grad);

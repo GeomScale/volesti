@@ -80,7 +80,7 @@ public:
 
   VecBound GetBounds() const override {
     VecBound bounds(GetRows());
-    bounds.at(0) = Bounds(tb, (NT) inf);
+    bounds.at(0) = Bounds(NT(0), (NT) inf);
     return bounds;
   };
 
@@ -114,10 +114,6 @@ public:
     return bounds;
   };
 
-  void FillJacobianBlock (std::string var_set, Jacobian& jac) const {
-    if (var_set == "t") jac.coeffRef(0, 0) = (NT) (-1.0);
-  }
-
 };
 
 // Define the cost function f(t) = t (ipopt takes minimization so it is -t)
@@ -134,6 +130,12 @@ public:
   }
 
   void FillJacobianBlock (std::string var_set, Jacobian& jac) const override {
+    if (var_set == "t") jac.coeffRef(0, 0) = NT(-1.0);
+    if (var_set == "lambdas") {
+      for (int i = 0; i < m; i++) {
+        jac.coeffRef(0, i) = NT(0.0);
+      }
+    }
   }
 
 
@@ -162,7 +164,13 @@ public:
   }
 
   void FillJacobianBlock (std::string var_set, Jacobian& jac) const override {
+    if (var_set == "lambdas")
+      for (int i = 0; i < m; i++) {
+        jac.coeffRef(0, i) = NT(1.0);
+      }
+    if (var_set == "t") jac.coeffRef(0, 0) = NT(0);
   }
+
 
 };
 
@@ -216,6 +224,24 @@ public:
   }
 
   void FillJacobianBlock (std::string var_set, Jacobian& jac) const override {
+    if (var_set == "t") {
+      NT t = GetVariables()->GetComponent("lambdas")->GetValues()(0);
+
+      for (int i = 0; i < d_; i++) {
+        for (int j = 0; j < M; j++) {
+          jac.coeffRef(i, 0) -= grad_phi(t, t0, j, M) * coeffs[j][i];
+        }
+      }
+    }
+
+    if (var_set == "lambdas") {
+      for (int i = 0; i < d_; i++) {
+        for (int j = 0; j < m; j++) {
+            jac.coeffRef(i, j) = V(j, i);
+        }
+      }
+    }
+
   }
 
 };

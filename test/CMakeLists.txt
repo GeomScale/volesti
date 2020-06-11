@@ -153,6 +153,9 @@ else ()
   add_test(NAME root_finders_test_root_finders
           COMMAND root_finders_test -tc=root_finders)
 
+  add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
+
+
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE})
@@ -167,5 +170,6 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT})
 
 endif()

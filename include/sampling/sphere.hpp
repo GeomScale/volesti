@@ -19,7 +19,8 @@ struct GetDirection
 
     template <typename RandomNumberGenerator>
     inline static Point apply(unsigned int const& dim,
-                              RandomNumberGenerator &rng)
+                              RandomNumberGenerator &rng,
+                              const bool normalize=false)
     {
         NT normal = NT(0);
         Point p(dim);
@@ -33,7 +34,7 @@ struct GetDirection
         }
 
         normal = NT(1)/std::sqrt(normal);
-        p *= normal;
+        if (normalize) p *= normal;
 
         return p;
     }
