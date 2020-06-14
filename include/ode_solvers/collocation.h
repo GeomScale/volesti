@@ -228,8 +228,9 @@ public:
           xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
         }
       } else {
-        // TODO implement
-        throw true;
+        std::tuple<NT, Point, int> result = curve_intersect<bfunc>(t_prev, t_prev, as[i], phi, grad_phi, "newton-raphson");
+
+
 
       }
     }

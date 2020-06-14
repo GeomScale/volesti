@@ -247,7 +247,7 @@ public:
 };
 
 template <typename MT, typename VT, typename Point, typename NT, class bfunc>
-std::pair<NT, Point> curve_intersect_vpoly_ipopt_helper(NT t_prev, NT t0, MT &V, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+std::tuple<NT, Point, int> curve_intersect_vpoly_ipopt_helper(NT t_prev, NT t0, MT &V, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
 
   Problem nlp;
 
@@ -290,7 +290,7 @@ std::pair<NT, Point> curve_intersect_vpoly_ipopt_helper(NT t_prev, NT t0, MT &V,
     p += phi(t, t0, i, coeffs.size()) * coeffs[i];
   }
 
-  return std::make_pair(t, p);
+  return std::tuple(t, p, -1);
 
 }
 
