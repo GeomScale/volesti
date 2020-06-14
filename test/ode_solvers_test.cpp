@@ -92,17 +92,13 @@ void test_bs(){
     pts q;
     q.push_back(q0);
     BSODESolver<Point, NT, Vpolytope> bs_solver = BSODESolver<Point, NT, Vpolytope>(0, 0.1, q, Fs);
-    // bs_solver.steps(1000);
+    bs_solver.steps(1000);
 
-    for (int i = 0; i < 1000; i++) {
-      bs_solver.step();
-      bs_solver.print_state();
-    }
     NT err=0.001;
     NT error = bs_solver.xs[0].dot(bs_solver.xs[0]);
     CHECK(error < err);
 }
-//
+
 template <typename NT>
 void test_collocation(){
     typedef Cartesian<NT>    Kernel;

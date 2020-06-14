@@ -34,11 +34,13 @@ Resource: https://en.wikipedia.org/wiki/Collocation_method
 template <typename Point, typename NT, class Polytope, class bfunc, class func=std::function <Point(std::vector<Point>, NT)>>
 class CollocationODESolver {
 public:
+
+  // Vectors of points
   typedef std::vector<Point> pts;
   typedef std::vector<pts> ptsv;
 
-  // Coefficient matrices
-  typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+  // typedef from existing templates
+  typedef typename Polytope::MT MT;
   typedef std::vector<MT> MTs;
   typedef std::vector<func> funcs;
   typedef std::vector<Polytope*> bounds;
@@ -59,6 +61,7 @@ public:
 
   bool precompute_flag = false;
 
+  // Function oracles x'(t) = F(x, t)
   funcs Fs;
 
   // Basis functions
@@ -235,7 +238,6 @@ public:
 
     precompute_flag = true;
 
-    print_state();
   }
 
 

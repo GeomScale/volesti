@@ -251,6 +251,8 @@ public:
       // interest us (we don't find them)
       // std::vector<std::tuple<NT, Point, int>> results;
 
+      std::tuple<NT, Point, int> result = std::make_tuple(NT(maxNT), Point(_d), -1);
+
       // Root
       NT t = t_prev;
 
@@ -317,18 +319,21 @@ public:
           // Newton-Raphson Iteration t = t_old - f(t) / f'(t)
           t = t_prev - num / den;
 
-          if (std::abs(t - t_prev) < 1e-6) {
+          if (t < 0 && t_prev < 0) continue;
+
+          if (std::abs(t - t_prev) < 1e-6 && t > 0) {
             // Add root (as t) and facet
-            // TODO check if point is on boundary
+
+
             Point p = Point(coeffs[0].dimension());
 
             for (unsigned int j = 0; j < coeffs.size(); j++) {
-                p += coeffs[j] * phi(t, t0, j, coeffs.size());
+              p += coeffs[j] * phi(t, t0, j, coeffs.size());
             }
 
-            if (is_in(p)) {
-              return std::make_tuple(t, p, i);
-            }
+            // TODO Keep largest positive root
+            if (is_in(p) && t > 0 && t < std::get<0>(result)) result =  std::make_tuple(t, p, i);
+
 
           }
 
@@ -338,7 +343,7 @@ public:
 
       }
 
-      return std::make_tuple(-1, Point(coeffs[0].dimension()), -1);
+      return result;
 
     }
 
