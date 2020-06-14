@@ -354,7 +354,10 @@ public:
 
       }
 
-      return result;
+      if (std::get<0>(result) == maxNT) {
+        return std::make_tuple(-1, Point(coeffs[0].dimension()), -1);
+      }
+      else return result;
 
     }
 

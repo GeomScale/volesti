@@ -362,18 +362,18 @@ template <typename NT>
 void call_test_first_order() {
 
   std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
-  // test_euler<NT>();
-  // test_rk4<NT>();
-  // test_bs<NT>();
+  test_euler<NT>();
+  test_rk4<NT>();
+  test_bs<NT>();
   test_collocation<NT>();
 
-  // std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
-  // test_euler_constrained<NT>();
-  // test_rk4_constrained<NT>();
-  // test_bs_constrained<NT>();
-  //
-  // std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
-  // test_euler_2d_constrained<NT>();
+  std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
+  test_euler_constrained<NT>();
+  test_rk4_constrained<NT>();
+  test_bs_constrained<NT>();
+
+  std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
+  test_euler_2d_constrained<NT>();
 
 }
 

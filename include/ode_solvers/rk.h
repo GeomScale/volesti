@@ -42,10 +42,14 @@ public:
   typedef std::vector<NT> coeffs;
   typedef std::vector<coeffs> scoeffs;
 
+  typedef typename Polytope::VT VT;
+
   unsigned int dim;
 
   NT eta;
   NT t, t_prev;
+
+  VT Ar, Av;
 
   funcs Fs;
   bounds Ks;
@@ -167,7 +171,7 @@ public:
         else {
           // Find intersection (assuming a line trajectory) between x and y
           do {
-            std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y);
+            std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
 
             if (pbpair.first < 0) {
               xs[i] += (pbpair.first * 0.99) * y;

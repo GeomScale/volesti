@@ -41,6 +41,7 @@ public:
 
   // typedef from existing templates
   typedef typename Polytope::MT MT;
+  typedef typename Polytope::VT VT;
   typedef std::vector<MT> MTs;
   typedef std::vector<func> funcs;
   typedef std::vector<Polytope*> bounds;
@@ -87,6 +88,8 @@ public:
 
   // Keeps the solution to Ax = b temporarily
   MTs temps;
+
+  VT Ar, Av;
 
   CollocationODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
     bounds boundaries,  coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
@@ -228,7 +231,31 @@ public:
           xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
         }
       } else {
-        std::tuple<NT, Point, int> result = curve_intersect<bfunc>(t_prev, t_prev, as[i], phi, grad_phi, "newton-raphson");
+        std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev, as[i], phi, grad_phi, "newton-raphson");
+
+        if (std::get<0>(result) == -1) {
+          for (unsigned int ord = 0; ord < order(); ord++) {
+            xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
+          }
+        }
+        else {
+          y = std::get<1>(result) - xs_prev[i];
+          xs[i] = std::get<1>(result);
+          Ks[i]->compute_reflection(y, xs[i], std::get<2>(result));
+
+          while (!Ks[i]->is_in(xs[i])) {
+            std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
+
+            if (pbpair.first < 0) {
+              xs[i] += (pbpair.first * 0.99) * y;
+              Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+            }
+            else {
+              xs[i] += y;
+            }
+          }
+
+        }
 
 
 

@@ -37,8 +37,11 @@ public:
   typedef std::vector<Point> pts;
   typedef std::vector<func> funcs;
   typedef std::vector<Polytope*> bounds;
+  typedef typename Polytope::VT VT;
 
   unsigned int dim;
+
+  VT Ar, Av;
 
   NT eta;
   NT t;
@@ -93,7 +96,7 @@ public:
       else {
         // Find intersection (assuming a line trajectory) between x and y
         do {
-          std::pair<NT, int> pbpair = Ks[x_index]->line_positive_intersect(xs[x_index], y);
+          std::pair<NT, int> pbpair = Ks[x_index]->line_positive_intersect(xs[x_index], y, Ar, Av);
 
           if (pbpair.first < 0) {
             xs[x_index] += (pbpair.first * 0.99) * y;

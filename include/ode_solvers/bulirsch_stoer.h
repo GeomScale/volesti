@@ -42,7 +42,7 @@ public:
   typedef std::vector<pts> ptsv;
   typedef std::vector<ptsv> ptsm;
 
-
+  typedef typename Polytope::VT VT;
 
   unsigned int dim;
   const unsigned int MAX_TRIES = 5;
@@ -52,6 +52,7 @@ public:
   NT tol = 1e-10;
   NT den;
   Point num, y;
+  VT Ar, Av;
 
   RKODESolver<Point, NT, Polytope> *solver;
 
@@ -145,7 +146,7 @@ public:
           else {
             // Find intersection (assuming a line trajectory) between x and y
             do {
-              std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y);
+              std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
 
               if (pbpair.first < 0) {
                 xs[i] += (pbpair.first * 0.99) * y;
@@ -173,7 +174,7 @@ public:
         else {
           // Find intersection (assuming a line trajectory) between x and y
           do {
-            std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y);
+            std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
 
             if (pbpair.first < 0) {
               xs[i] += (pbpair.first * 0.99) * y;

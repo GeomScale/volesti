@@ -169,7 +169,7 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT})
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT})
 
 endif()

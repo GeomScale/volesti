@@ -290,7 +290,7 @@ std::tuple<NT, Point, int> curve_intersect_vpoly_ipopt_helper(NT t_prev, NT t0, 
     p += phi(t, t0, i, coeffs.size()) * coeffs[i];
   }
 
-  return std::tuple(t, p, -1);
+  return std::make_tuple(t, p, NT(-1));
 
 }
 

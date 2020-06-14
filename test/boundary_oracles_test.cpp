@@ -82,7 +82,7 @@ template <typename NT, class Point, class bfunc>
 void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, NT t_des, int facet_des) {
   typedef boost::mt19937    RNGType;
   typedef VPolytope<Point> Vpolytope;
-  typedef std::pair<NT, Point> result;
+  typedef std::tuple<NT, Point, int> result;
   Vpolytope P;
   NT tol = 1e-4;
 
@@ -90,13 +90,13 @@ void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
 
 
   result res2 = P.curve_intersect_ipopt(0.01, 0, coeffs, phi, grad_phi);
-  NT t = res2.first;
+  NT t = std::get<0>(res2);
 
   std::cout << t << " " << t_des << std::endl;
 
   CHECK(std::abs(std::abs(t) - t_des) / t_des < tol);
 
-  
+
 
 }
 
