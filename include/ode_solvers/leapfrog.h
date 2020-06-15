@@ -104,6 +104,7 @@ public:
           }
           else {
             xs[x_index] += y;
+            // break;
           }
         } while (!Ks[x_index]->is_in(xs[x_index]));
       }

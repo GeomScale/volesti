@@ -95,6 +95,7 @@ public:
           }
           else {
             xs[i] += y;
+            // break;
           }
         } while (!Ks[i]->is_in(xs[i]));
 
