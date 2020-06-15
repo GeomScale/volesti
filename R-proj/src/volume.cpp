@@ -63,7 +63,11 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         } else if (ball_walk) {
             vol = volume_cooling_balls<BallWalk>(P, rng, e, walk_length, win_len);
         } else {
-            vol = volume_cooling_balls<BilliardWalk>(P, rng, e, walk_length, win_len);
+            if (type == 1) {
+                vol = volume_cooling_balls<ImprovedBilliardWalk>(P, rng, e, walk_length, win_len);
+            } else {
+                vol = volume_cooling_balls<BilliardWalk>(P, rng, e, walk_length, win_len);
+            }
         }
     } else {
         if (cdhr) {
@@ -73,7 +77,11 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         } else if (ball_walk) {
             vol = volume_sequence_of_balls<BallWalk>(P, rng, e, walk_length);
         } else {
-            vol = volume_sequence_of_balls<BilliardWalk>(P, rng, e, walk_length);
+            if (type == 1) {
+                vol = volume_sequence_of_balls<ImprovedBilliardWalk>(P, rng, e, walk_length);
+            } else {
+                vol = volume_sequence_of_balls<BilliardWalk>(P, rng, e, walk_length);
+            }
         }
     }
     vol *= round_val;
