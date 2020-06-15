@@ -64,25 +64,49 @@ struct ImprovedBilliardWalk
         typedef typename Polytope::PointType Point;
         typedef typename Polytope::MT MT;
         typedef typename Point::FT NT;
+        typedef HPolytope<Point> Hpolytope;
         typedef Ball<Point> BallType;
+        typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
+
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
+        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng) : _update_params()
         {
            _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
-            _AA.= P.get_AA();
+            _AA.noalias()= P.get_AA();
             initialize(P, p, rng);
         }
 
         template <typename GenericPolytope>
         Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng,
-             parameters const& params)
+             parameters const& params) : _update_params()
         {
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
             _AA.noalias()= P.get_AA();
+            initialize(P, p, rng);
+        }
+
+        Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng) : _update_params()
+        {
+            _L = compute_diameter<BallPolytope>::template compute<NT>(P);
+            _AA.noalias() = P.get_AA();
+            initialize(P, p, rng);
+        }
+
+        Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params) : _update_params()
+        {
+            if(params.set_L)
+            {
+                _L = params.m_L;
+            }
+            else
+            {
+                _L = compute_diameter<BallPolytope>::template compute<NT>(P);
+            }
+            _AA.noalias() = P.get_AA();
             initialize(P, p, rng);
         }
 
@@ -156,7 +180,7 @@ struct ImprovedBilliardWalk
                         typename GenericPolytope
                 >
         inline void initialize(GenericPolytope const& P,
-                               Point &p,
+                               Point const& p,
                                RandomNumberGenerator &rng)
         {
             //std::cout<<
@@ -191,6 +215,10 @@ struct ImprovedBilliardWalk
                     _p += (T * _v);
                     _lambda_prev = T;
                     break;
+                } else if (it == 100*n) {
+                    _lambda_prev = rng.sample_urdist() * pbpair.first;
+                    _p += (_lambda_prev * _v);
+                    break;
                 }
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
@@ -198,7 +226,7 @@ struct ImprovedBilliardWalk
                 P.compute_reflection(_v, _p, _update_params);
                 it++;
             }
-            if (it == 100*n) _p = p0;
+            //if (it == 100*n) _p = p0;
         }
 
         double _L;

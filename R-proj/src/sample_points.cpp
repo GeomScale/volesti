@@ -20,7 +20,7 @@
 #include "sampling/sampling.hpp"
 
 template <typename Polytope, typename RNGType, typename PointList, typename NT, typename Point>
-void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsigned int const& walkL, unsigned int const& numpoints,
+void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPoints, unsigned int const& walkL, unsigned int const& numpoints,
         bool const& gaussian, NT const& a, NT const& L, bool const& boundary, Point const& StartingPoint, unsigned int const& nburns,
         bool const& set_L, bool const& cdhr, bool const& rdhr, bool const& billiard, bool const& ball_walk)
 {
@@ -361,22 +361,22 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
     switch (type) {
         case 1: {
-            sample_from_polytope(HP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
+            sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
                    set_L, cdhr, rdhr, billiard, ball_walk);
             break;
         }
         case 2: {
-            sample_from_polytope(VP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
+            sample_from_polytope(VP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
                                  set_L, cdhr, rdhr, billiard, ball_walk);
             break;
         }
         case 3: {
-            sample_from_polytope(ZP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
+            sample_from_polytope(ZP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
                                  set_L, cdhr, rdhr, billiard, ball_walk);
             break;
         }
         case 4: {
-            sample_from_polytope(VPcVP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
+            sample_from_polytope(VPcVP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
                                  set_L, cdhr, rdhr, billiard, ball_walk);
             break;
         }
