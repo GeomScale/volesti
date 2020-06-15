@@ -49,12 +49,22 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
                                              StartingPoint, nburns);
         }
     } else if (billiard) {
-        if (set_L) {
+        if (type == 1) {
+            if (set_L) {
+                ImprovedBilliardWalk WalkType(L);
+                uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
+            } else {
+                uniform_sampling<ImprovedBilliardWalk>(randPoints, P, rng, walkL, numpoints,
+                         StartingPoint, nburns);
+            }
+        } else {
+            if (set_L) {
             BilliardWalk WalkType(L);
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
         } else {
             uniform_sampling<BilliardWalk>(randPoints, P, rng, walkL, numpoints,
                      StartingPoint, nburns);
+        }
         }
     } else {
         if (set_L) {
