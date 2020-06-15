@@ -39,6 +39,10 @@ public:
         return P.get_mat();
     }
 
+    MT get_AA() const {
+        return P.get_AA();
+    }
+
     MT get_T() const {
         return P.get_mat();
     }
@@ -130,6 +134,77 @@ public:
         return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
     }
 
+    //---------------------new billiard---------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(PointType &r,
+                                                     PointType &v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters &params) const
+    {
+        std::pair <NT, int> polypair = P.line_first_positive_intersect(r, v, Ar, Av, params);
+        std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
+        int facet = P.num_of_hyperplanes();
+        params.facet_prev = polypair.second;
+
+        if (polypair.first < ball_lambda.first ) {
+            facet = polypair.second;
+            params.hit_ball = false;
+        } else {
+            params.hit_ball = true;
+        }
+
+        return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType &r,
+                                               PointType &v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters &params) const
+    {
+        std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev, AA, params);
+        std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
+        int facet = P.num_of_hyperplanes();
+        params.facet_prev = polypair.second;
+
+        if (polypair.first < ball_lambda.first ) {
+            facet = polypair.second;
+            params.hit_ball = false;
+        } else {
+            params.hit_ball = true;
+        }
+
+        return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType &r,
+                                               PointType &v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters &params) const
+    {
+        std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev, params);
+        std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
+        int facet = P.num_of_hyperplanes();
+        params.facet_prev = polypair.second;
+
+        if (polypair.first < ball_lambda.first ) {
+            facet = polypair.second;
+            params.hit_ball = false;
+        } else {
+            params.hit_ball = true;
+        }
+
+        return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
+    }
+//-------------------------------------------------------------------------//
+
     //First coordinate ray shooting intersecting convex body
     std::pair<NT,NT> line_intersect_coord(PointType const& r,
                                           unsigned int const& rand_coord,
@@ -174,6 +249,16 @@ public:
             P.compute_reflection(v, p, facet);
         }
 
+    }
+
+    template <typename update_parameters>
+    void compute_reflection (PointType &v, PointType &p, update_parameters &params) const
+    {
+        if (params.hit_ball) {
+            B.compute_reflection(v, p, params);
+        } else {
+            P.compute_reflection(v, p, params);
+        }
     }
 
 };

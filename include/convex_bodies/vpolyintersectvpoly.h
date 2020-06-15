@@ -94,6 +94,11 @@ public:
         return P1.get_mat();
     }
 
+    MT get_AA() const {
+        MT N(0,0);
+        return N;
+    }
+
     VT get_vec() const {
         return P1.get_vec();
     }
@@ -266,6 +271,41 @@ public:
         return line_positive_intersect(r, v);//, Ar, Av);
     }
 
+    //------------------------------------------------------------------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(Point &r,
+                                                     Point &v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters &params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point &r,
+                                               Point &v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters &params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point &r,
+                                               Point &v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters &params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+    //------------------------------------------------------------------------------//
+
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
@@ -336,6 +376,17 @@ public:
             P1.compute_reflection (v, p, facet);
         } else {
             P1.compute_reflection (v, p, facet);
+        }
+
+    }
+
+    template <typename update_parameters>
+    void compute_reflection (Point &v, const Point &p, update_parameters const& params) const {
+
+        if (params.facet_prev == 1) {
+            P1.compute_reflection (v, p, params);
+        } else {
+            P2.compute_reflection (v, p, params);
         }
 
     }

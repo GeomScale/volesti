@@ -20,6 +20,7 @@ public:
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
     Ball() {}
 
@@ -33,6 +34,11 @@ public:
     Point center() const
     {
         return c;
+    }
+
+    MT get_AA() const {
+        MT N(0,0);
+        return N;
     }
 
     NT squared_radius() const
@@ -153,6 +159,14 @@ public:
         s *= (1.0 / std::sqrt(s.squared_length()));
         s *= (-2.0 * v.dot(s));
         v += s;
+    }
+
+    template <typename update_parameters>
+    void compute_reflection (Point &v, const Point &p, update_parameters &params) const {
+
+        params.ball_inner_norm = p.length();
+        params.inner_vi_ak = v.dot(p) / params.ball_inner_norm;
+        v += (p * (-2.0 * params.inner_vi_ak * (1.0 / params.ball_inner_norm)));
     }
 
 private:

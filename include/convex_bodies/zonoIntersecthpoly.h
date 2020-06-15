@@ -53,6 +53,11 @@ public:
         return HP.get_mat();
     }
 
+    MT get_AA() const {
+        MT N(0,0);
+        return N;
+    }
+
     MT get_T() const {
         return Z.get_mat();
     }
@@ -142,6 +147,77 @@ public:
                                   facet);
     }
 
+    //---------------------new billiard---------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(PointType &r,
+                                                     PointType &v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters &params) const
+    {
+        std::pair <NT, int> polypair = HP.line_first_positive_intersect(r, v, Ar, Av, params);
+        std::pair <NT, int> zonopair = Z.line_positive_intersect(r, v, Ar, Av);
+        int facet = HP.num_of_hyperplanes();
+        params.facet_prev = polypair.second;
+
+        if (polypair.first < zonopair.first ) {
+            facet = polypair.second;
+            params.hit_ball = false;
+        } else {
+            params.hit_ball = true;
+        }
+
+        return std::pair<NT, int>(std::min(polypair.first, zonopair.first), facet);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType &r,
+                                               PointType &v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters &params) const
+    {
+        std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev, params);
+        std::pair <NT, int> zonopair = Z.line_positive_intersect(r, v, Ar, Av);
+        int facet = HP.num_of_hyperplanes();
+        params.facet_prev = polypair.second;
+
+        if (polypair.first < zonopair.first ) {
+            facet = polypair.second;
+            params.hit_ball = false;
+        } else {
+            params.hit_ball = true;
+        }
+
+        return std::pair<NT, int>(std::min(polypair.first, zonopair.first), facet);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType &r,
+                                               PointType &v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters &params) const
+    {
+        std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev, params);
+        std::pair <NT, int> zonopair = Z.line_positive_intersect(r, v, Ar, Av);
+        int facet = HP.num_of_hyperplanes();
+        params.facet_prev = polypair.second;
+
+        if (polypair.first < zonopair.first ) {
+            facet = polypair.second;
+            params.hit_ball = false;
+        } else {
+            params.hit_ball = true;
+        }
+
+        return std::pair<NT, int>(std::min(polypair.first, zonopair.first), facet);
+    }
+//-------------------------------------------------------------------------//
+
     //Not the first coordinate ray shooting intersecting convex body
     std::pair<NT,NT> line_intersect_coord(PointType const& r,
                                           PointType const& r_prev,
@@ -177,6 +253,17 @@ public:
             Z.compute_reflection(v, p, facet);
         } else {
             HP.compute_reflection(v, p, facet);
+        }
+
+    }
+
+    template <typename update_parameters>
+    void compute_reflection (PointType &v, const PointType &p, update_parameters const& params) const {
+
+        if (params.hit_ball) {
+            Z.compute_reflection(v, p, params);
+        } else {
+            HP.compute_reflection(v, p, params.facet_prev);
         }
 
     }

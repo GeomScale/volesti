@@ -155,13 +155,11 @@ public:
         return b;
     }
 
-
     // change the matrix V
     void set_mat(MT const& V2)
     {
         V = V2;
     }
-
 
     // change the vector b
     void set_vec(VT const& b2)
