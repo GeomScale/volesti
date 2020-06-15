@@ -43,7 +43,7 @@ public:
     }
 
     /// \return The LMI describing this spectrahedron
-    LMI<NT, MT, VT> getLMI() const {
+    LMI<NT, MT, VT> const & getLMI() const {
         return lmi;
     }
 
