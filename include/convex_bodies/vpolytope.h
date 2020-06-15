@@ -356,8 +356,8 @@ public:
 
     //------------------------------------------------------------------------------//
     template <typename update_parameters>
-    std::pair<NT, int> line_first_positive_intersect(Point &r,
-                                                     Point &v,
+    std::pair<NT, int> line_first_positive_intersect(Point const& r,
+                                                     Point const& v,
                                                      VT& Ar,
                                                      VT& Av,
                                                      update_parameters &params) const
@@ -366,8 +366,8 @@ public:
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(Point &r,
-                                               Point &v,
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,
@@ -378,8 +378,8 @@ public:
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(Point &r,
-                                               Point &v,
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,
@@ -456,9 +456,9 @@ public:
 
     void compute_reflection(Point &v, const Point &p, const int &facet) const {
 
-        compute_reflection(v, p, 0.0);
+        //compute_reflection(v, p, 0.0);
 
-        /*int count = 0, outvert;
+        int count = 0, outvert;
         MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
             if (*(conv_comb + j) > 0.0) {
@@ -475,7 +475,7 @@ public:
 
         // compute reflection
         a *= (-2.0 * v.dot(a));
-        v += a;*/
+        v += a;
     }
 
     template <typename update_parameters>

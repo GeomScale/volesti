@@ -64,14 +64,15 @@ struct ImprovedBilliardWalk
         typedef typename Polytope::PointType Point;
         typedef typename Polytope::MT MT;
         typedef typename Point::FT NT;
-        typedef HPolytope<Point> Hpolytope;
-        typedef Ball<Point> BallType;
-        typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
+        //typedef HPolytope<Point> Hpolytope;
+        //typedef Ball<Point> BallType;
+        //typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng) : _update_params()
+        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
         {
+            _update_params = update_parameters();
            _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
             _AA.noalias()= P.get_AA();
@@ -80,8 +81,9 @@ struct ImprovedBilliardWalk
 
         template <typename GenericPolytope>
         Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng,
-             parameters const& params) : _update_params()
+             parameters const& params)
         {
+            _update_params = update_parameters();
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
@@ -89,7 +91,7 @@ struct ImprovedBilliardWalk
             initialize(P, p, rng);
         }
 
-        Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng) : _update_params()
+        /*Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng) : _update_params()
         {
             _L = compute_diameter<BallPolytope>::template compute<NT>(P);
             _AA.noalias() = P.get_AA();
@@ -112,7 +114,7 @@ struct ImprovedBilliardWalk
 
         Walk (BallType const&, Point &, RandomNumberGenerator &,  parameters &) {}
 
-        Walk (BallType const&, Point &, RandomNumberGenerator &) {}
+        Walk (BallType const&, Point &, RandomNumberGenerator &) {}*/
 
         template
                 <

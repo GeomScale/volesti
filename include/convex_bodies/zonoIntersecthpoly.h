@@ -149,8 +149,8 @@ public:
 
     //---------------------new billiard---------------------//
     template <typename update_parameters>
-    std::pair<NT, int> line_first_positive_intersect(PointType &r,
-                                                     PointType &v,
+    std::pair<NT, int> line_first_positive_intersect(PointType const& r,
+                                                     PointType const& v,
                                                      VT& Ar,
                                                      VT& Av,
                                                      update_parameters &params) const
@@ -171,8 +171,8 @@ public:
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(PointType &r,
-                                               PointType &v,
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,
@@ -195,8 +195,8 @@ public:
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(PointType &r,
-                                               PointType &v,
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,

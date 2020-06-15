@@ -273,8 +273,8 @@ public:
 
     //------------------------------------------------------------------------------//
     template <typename update_parameters>
-    std::pair<NT, int> line_first_positive_intersect(Point &r,
-                                                     Point &v,
+    std::pair<NT, int> line_first_positive_intersect(Point const& r,
+                                                     Point const& v,
                                                      VT& Ar,
                                                      VT& Av,
                                                      update_parameters &params) const
@@ -283,8 +283,8 @@ public:
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(Point &r,
-                                               Point &v,
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,
@@ -295,8 +295,8 @@ public:
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(Point &r,
-                                               Point &v,
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,

@@ -153,7 +153,7 @@ public:
         return 0;
     }
 
-    void compute_reflection (Point& v, Point const& p, const int &facet) const
+    void compute_reflection (Point& v, Point const& p) const
     {
         Point s = p;
         s *= (1.0 / std::sqrt(s.squared_length()));
@@ -162,7 +162,7 @@ public:
     }
 
     template <typename update_parameters>
-    void compute_reflection (Point &v, const Point &p, update_parameters &params) const {
+    void compute_reflection (Point &v, Point const& p, update_parameters &params) const {
 
         params.ball_inner_norm = p.length();
         params.inner_vi_ak = v.dot(p) / params.ball_inner_norm;

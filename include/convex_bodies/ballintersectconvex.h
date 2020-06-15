@@ -136,8 +136,8 @@ public:
 
     //---------------------new billiard---------------------//
     template <typename update_parameters>
-    std::pair<NT, int> line_first_positive_intersect(PointType &r,
-                                                     PointType &v,
+    std::pair<NT, int> line_first_positive_intersect(PointType const& r,
+                                                     PointType const& v,
                                                      VT& Ar,
                                                      VT& Av,
                                                      update_parameters &params) const
@@ -158,8 +158,8 @@ public:
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(PointType &r,
-                                               PointType &v,
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,
@@ -182,8 +182,8 @@ public:
     }
 
     template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(PointType &r,
-                                               PointType &v,
+    std::pair<NT, int> line_positive_intersect(PointType const& r,
+                                               PointType const& v,
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,
@@ -244,7 +244,7 @@ public:
     {
 
         if (facet == P.num_of_hyperplanes()) {
-            B.compute_reflection(v, p, facet);
+            B.compute_reflection(v, p);
         } else {
             P.compute_reflection(v, p, facet);
         }
@@ -252,7 +252,7 @@ public:
     }
 
     template <typename update_parameters>
-    void compute_reflection (PointType &v, PointType &p, update_parameters &params) const
+    void compute_reflection (PointType &v, PointType const& p, update_parameters &params) const
     {
         if (params.hit_ball) {
             B.compute_reflection(v, p, params);
