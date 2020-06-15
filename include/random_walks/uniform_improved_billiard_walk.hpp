@@ -64,72 +64,25 @@ struct ImprovedBilliardWalk
         typedef typename Polytope::PointType Point;
         typedef typename Polytope::MT MT;
         typedef typename Point::FT NT;
-        typedef HPolytope<Point> Hpolytope;
-        typedef Zonotope<Point> zonotope;
-        typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
         typedef Ball<Point> BallType;
-        typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
-        Walk(Polytope const& P, Point &p, RandomNumberGenerator &rng) : _update_params()
+        template <typename GenericPolytope>
+        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
         {
-            _L = compute_diameter<Polytope>::template compute<NT>(P);
-            _AA = P.get_AA();
+           _L = compute_diameter<GenericPolytope>
+                ::template compute<NT>(P);
+            _AA.= P.get_AA();
             initialize(P, p, rng);
         }
 
-        Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng) : _update_params()
+        template <typename GenericPolytope>
+        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng,
+             parameters const& params)
         {
-            _L = compute_diameter<BallPolytope>::template compute<NT>(P);
-            _AA = P.get_AA();
-            initialize(P, p, rng);
-        }
-
-        Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng) : _update_params()
-        {
-            _L = compute_diameter<ZonoHPoly>::template compute<NT>(P);
-            _AA = P.get_AA();
-            initialize(P, p, rng);
-        }
-
-        Walk(Polytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params) : _update_params()
-        {
-            if(params.set_L)
-            {
-                _L = params.m_L;
-            }
-            else
-            {
-                _L = compute_diameter<Polytope>::template compute<NT>(P);
-            }
-            _AA = P.get_AA();
-            initialize(P, p, rng);
-        }
-
-        Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params) : _update_params()
-        {
-            if(params.set_L)
-            {
-                _L = params.m_L;
-            }
-            else
-            {
-                _L = compute_diameter<BallPolytope>::template compute<NT>(P);
-            }
-            _AA = P.get_AA();
-            initialize(P, p, rng);
-        }
-
-        Walk(ZonoHPoly const& P, Point & p, RandomNumberGenerator &rng, parameters const& params) : _update_params()
-        {
-            if(params.set_L)
-            {
-                _L = params.m_L;
-            }
-            else
-            {
-                _L = compute_diameter<ZonoHPoly>::template compute<NT>(P);
-            }
-            _AA = P.get_AA();
+            _L = params.set_L ? params.m_L
+                              : compute_diameter<GenericPolytope>
+                                ::template compute<NT>(P);
+            _AA.noalias()= P.get_AA();
             initialize(P, p, rng);
         }
 
@@ -147,7 +100,6 @@ struct ImprovedBilliardWalk
                           RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
-            //NT diameter = P.get_diameter();
             NT T = -std::log(rng.sample_urdist()) * _L;
             const NT dl = 0.995;
             int it;
