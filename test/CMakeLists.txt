@@ -24,6 +24,8 @@ endif(COMMAND cmake_policy)
 find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
 find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
 find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
+find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
 
 if (NOT LP_SOLVE)
 
@@ -33,10 +35,20 @@ elseif (NOT IFOPT)
 
     message(FATAL_ERROR "This program requires the ifopt library, and will not be compiled.")
 
+elseif (NOT GMP)
+
+  message(FATAL_ERROR "This program requires the gmp library, and will not be compiled.")
+
+elseif (NOT MPSOLVE)
+
+  message(FATAL_ERROR "This program requires the mpsolve library, and will not be compiled.")
+
 else ()
 
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
   message(STATUS "Library ifopt found: ${IFOPT}")
+  message(STATUS "Library gmp found: ${GMP}")
+  message(STATUS "Library mpsolve found: ${MPSOLVE}")
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 

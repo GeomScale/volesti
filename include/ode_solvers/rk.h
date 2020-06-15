@@ -179,7 +179,7 @@ public:
             }
             else {
               xs[i] += y;
-              break;
+              // break;
             }
           } while (!Ks[i]->is_in(xs[i]));
         }
