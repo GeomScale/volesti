@@ -231,20 +231,20 @@ public:
     }
 
     template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, const std::string method="newton-raphson") {
+    std::tuple<NT, Point, int> curve_intersect(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, const std::string method="newton-raphson") {
         if (method == "newton-raphson") {
-          return curve_intersect_newton_raphson<bfunc>(t_prev, t0, coeffs, phi, grad_phi);
+          return curve_intersect_newton_raphson<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
         }
         else if (method == "ipopt") {
-          return curve_intersect_ipopt<bfunc>(t_prev, t0, coeffs, phi, grad_phi);
+          return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
         }
 
-        return curve_intersect_ipopt<bfunc>(t_prev, t0, coeffs, phi, grad_phi);
+        return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
     }
 
     template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
-      return curve_intersect_hpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, A, b, coeffs, phi, grad_phi);
+    std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+      return curve_intersect_hpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, eta, A, b, coeffs, phi, grad_phi);
     }
 
     // Compute intersection of H-polytope P := Ax <= b
@@ -252,7 +252,7 @@ public:
     // functions (e.g. polynomials)
     // Uses Newton-Raphson to solve the transcendental equation
     template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect_newton_raphson(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+    std::tuple<NT, Point, int> curve_intersect_newton_raphson(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
 
       // Keep results in a vector (in case of multiple roots)
       // The problem has O(m * len(coeffs)) solutions if phi's are polys
@@ -266,6 +266,7 @@ public:
 
       // Root
       NT t = t_prev;
+      NT tu = eta > 0 ? t0 + eta : NT(maxNT);
 
       // Helper variables for Newton-Raphson
       NT dot_u, num, den, den_tmp;
@@ -332,7 +333,7 @@ public:
 
           if (t < 0 && t_prev < 0) continue;
 
-          if (std::abs(t - t_prev) < 1e-6 && t > 0) {
+          if (std::abs(t - t_prev) < 1e-6 && t > t0) {
             // Add root (as t) and facet
 
 
@@ -343,7 +344,7 @@ public:
             }
 
             // TODO Keep largest positive root
-            if (is_in(p) && t > 0 && t < std::get<0>(result)) result =  std::make_tuple(t, p, i);
+            if (is_in(p) && t < std::get<0>(result)) result =  std::make_tuple(t, p, i);
 
 
           }

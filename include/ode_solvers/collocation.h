@@ -231,28 +231,37 @@ public:
           xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
         }
       } else {
-        std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev, as[i], phi, grad_phi, "newton-raphson");
+        std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev, 1.1 * eta, as[i], phi, grad_phi, "ipopt");
 
-        if (std::get<0>(result) == -1) {
+        if (Ks[i]->is_in(std::get<1>(result))) {
+          // std::cout << "inside" << std::endl;
           for (unsigned int ord = 0; ord < order(); ord++) {
             xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
           }
         }
         else {
+          // std::cout << "not inside" << std::endl;
+          // std::cout << "facet is " << std::get<2>(result) << std::endl;
+          // Compute ray
           y = std::get<1>(result) - xs_prev[i];
+          y = 0.99 * y;
           xs[i] = std::get<1>(result);
-          Ks[i]->compute_reflection(y, xs[i], std::get<2>(result));
+          // Reflect ray along facet
+          Ks[i]->compute_reflection(y, xs_prev[i], std::get<2>(result));
+
+
+          xs[i] += y;
+
 
           while (!Ks[i]->is_in(xs[i])) {
             std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
+            // std::cout << pbpair.first << std::endl;
 
             if (pbpair.first < 0) {
               xs[i] += (pbpair.first * 0.99) * y;
               Ks[i]->compute_reflection(y, xs[i], pbpair.second);
             }
-            else {
-              xs[i] += y;
-            }
+            else break;
           }
 
         }

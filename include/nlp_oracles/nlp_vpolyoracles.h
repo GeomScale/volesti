@@ -64,9 +64,9 @@ using namespace ifopt;
 template <typename VT, typename NT>
 class VPolyOracleVariableT : public VariableSet {
 public:
-  NT t, tb;
+  NT t, tb, eta;
 
-  VPolyOracleVariableT(NT t_prev, NT tb_=NT(0)): VariableSet(1, "t"), t(t_prev), tb(tb_) {};
+  VPolyOracleVariableT(NT t_prev, NT tb_, NT eta_=-1): VariableSet(1, "t"), t(t_prev), tb(tb_), eta(eta_) {};
 
   void SetVariables(const VT& T) override {
     t = T(0);
@@ -80,7 +80,9 @@ public:
 
   VecBound GetBounds() const override {
     VecBound bounds(GetRows());
-    bounds.at(0) = Bounds(NT(0), (NT) inf);
+    NT tu = eta > 0 ? NT(tb + eta) : NT(inf);
+
+    bounds.at(0) = Bounds(tb, tu);
     return bounds;
   };
 
@@ -247,13 +249,13 @@ public:
 };
 
 template <typename MT, typename VT, typename Point, typename NT, class bfunc>
-std::tuple<NT, Point, int> curve_intersect_vpoly_ipopt_helper(NT t_prev, NT t0, MT &V, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+std::tuple<NT, Point, int> curve_intersect_vpoly_ipopt_helper(NT t_prev, NT t0, NT eta, MT &V, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
 
   Problem nlp;
 
   int m = V.rows();
 
-  std::shared_ptr<VPolyOracleVariableT<VT, NT>> vpolyoraclevariablet (new VPolyOracleVariableT<VT, NT>(t_prev, t0));
+  std::shared_ptr<VPolyOracleVariableT<VT, NT>> vpolyoraclevariablet (new VPolyOracleVariableT<VT, NT>(t_prev, t0, eta));
   std::shared_ptr<VPolyOracleVariableLambdas<VT, NT>> vpolyoraclevariable_lambdas (new VPolyOracleVariableLambdas<VT, NT>(m));
 
   nlp.AddVariableSet(vpolyoraclevariablet);

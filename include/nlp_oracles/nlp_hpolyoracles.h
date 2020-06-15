@@ -68,9 +68,9 @@ using namespace ifopt;
 template <typename VT, typename NT>
 class HPolyOracleVariables : public VariableSet {
 public:
-  NT t, tb;
+  NT t, tb, eta;
 
-  HPolyOracleVariables(NT t_prev, NT tb_=NT(0)): VariableSet(1, "t"), t(t_prev), tb(tb_) {};
+  HPolyOracleVariables(NT t_prev, NT tb_, NT eta_=-1): VariableSet(1, "t"), t(t_prev), tb(tb_), eta(eta_) {};
 
   void SetVariables(const VT& T) override {
     t = T(0);
@@ -84,7 +84,9 @@ public:
 
   VecBound GetBounds() const override {
     VecBound bounds(GetRows());
-    bounds.at(0) = Bounds(tb, (NT) inf);
+    NT tu = eta > 0 ? NT(tb + eta) : NT(inf);
+
+    bounds.at(0) = Bounds(tb, tu);
     return bounds;
   };
 
@@ -169,7 +171,7 @@ public:
 
 // Helper function that calls the optimization problem (called from hpolytope.h)
 template <typename MT, typename VT, typename Point, typename NT, class bfunc>
-std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, MT &A, VT &b, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi)
+std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, NT eta, MT &A, VT &b, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi)
 {
 
   Problem nlp;
@@ -187,7 +189,7 @@ std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, 
   // C: constraints x num_coeffs
   C = A * C_tmp;
 
-  std::shared_ptr<HPolyOracleVariables<VT, NT>> hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t_prev));
+  std::shared_ptr<HPolyOracleVariables<VT, NT>> hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t0, eta));
   std::shared_ptr<HPolyOracleCost<VT, NT>> hpolyoraclecost (new HPolyOracleCost<VT, NT>());
   std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>> hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>(C, b, t0, phi, grad_phi));
 
@@ -217,18 +219,24 @@ std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, 
 
   const NT* b_data = b.data();
 
+  int f_min = -1;
+  NT dist_min = std::numeric_limits<NT>::max();
+
+
 
   for (int i = 0; i < A.rows(); i++) {
-    if (*b_data == 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) < NT(1000 * POLYTOL)) {
-      return std::make_tuple(t, p, i);
+    if (*b_data == 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) < dist_min) {
+      f_min = i;
+      dist_min = std::abs(*b_data - A.row(i) * p.getCoefficients());
     }
-    else if (*b_data != 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) / *b_data < NT(1000 * POLYTOL)) {
-      return std::make_tuple(t, p, i);
+    else if (*b_data != 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) / *b_data < dist_min) {
+      f_min = i;
+      dist_min = std::abs(*b_data - A.row(i) * p.getCoefficients()) / *b_data;
     }
-    else b_data++;
+    b_data++;
   }
 
-  return std::make_tuple(t, p, -1);
+  return std::make_tuple(t, p, f_min);
 }
 
 

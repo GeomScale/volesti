@@ -315,15 +315,14 @@ public:
     }
 
     template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, const std::string method="newton-raphson") {
-        // TODO correct return type
-        return curve_intersect_ipopt<bfunc>(t_prev, t0, coeffs, phi, grad_phi);
+    std::tuple<NT, Point, int> curve_intersect(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, const std::string method="newton-raphson") {
+        return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
     }
 
     // compute intersection of curve with V-polytope
     template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
-      return curve_intersect_vpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, V, coeffs, phi, grad_phi);
+    std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+      return curve_intersect_vpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, eta, V, coeffs, phi, grad_phi);
     }
 
 

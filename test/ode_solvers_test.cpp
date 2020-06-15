@@ -137,6 +137,55 @@ void test_collocation(){
 }
 
 template <typename NT>
+void test_collocation_constrained(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef std::function<Point(pts, NT)> func;
+    typedef std::vector<func> funcs;
+    typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
+    typedef std::vector<NT> coeffs;
+    typedef boost::mt19937    RNGType;
+    typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
+    funcs Fs;
+    bounds Ks;
+    func F = [](pts xs, NT t) { return xs[0]; };
+    Fs.push_back(F);
+
+    Hpolytope P = gen_cube<Hpolytope>(1, false);
+    Ks.push_back(&P);
+
+    bfunc phi = [](NT t, NT t0, unsigned int j, unsigned int order) {
+      return pow(t - t0, (NT) j);
+    };
+
+    bfunc grad_phi = [](NT t, NT t0, unsigned int j, unsigned int order) {
+      return ((NT) j) * pow(t - t0, (NT) (j - 1));
+    };
+
+    // Trapezoidal collocation
+    coeffs cs{0.0, 0.0, 1.0};
+
+    Point q0 = Point(3);
+    q0.set_coord(0, 0.5);
+    q0.set_coord(1, 0.5);
+    q0.set_coord(2, 0.5);
+    pts q;
+    q.push_back(q0);
+    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Hpolytope, bfunc>(0, 0.1, q, Fs, Ks, cs, phi, grad_phi);
+    for (int i = 0; i < 200; i++) {
+        c_solver.step();
+        c_solver.print_state();
+    }
+
+    NT err=0.01;
+    NT target = 3.0;
+    NT error = std::abs((c_solver.xs[0].dot(c_solver.xs[0]) - target) / target);
+    CHECK(error < err);
+}
+
+template <typename NT>
 void test_rk4(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
@@ -371,6 +420,7 @@ void call_test_first_order() {
   test_euler_constrained<NT>();
   test_rk4_constrained<NT>();
   test_bs_constrained<NT>();
+  test_collocation_constrained<NT>();
 
   std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
   test_euler_2d_constrained<NT>();
