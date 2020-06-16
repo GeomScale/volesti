@@ -29,8 +29,9 @@
 //'
 //' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 // [[Rcpp::export]]
-Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue){
-
+Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_NilValue, 
+                     Rcpp::Nullable<double> seed = R_NilValue)
+{
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
@@ -43,6 +44,10 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
 
     bool cdhr = false;
     unsigned int n = P.field("dimension"), walkL, type = P.field("type");
+    std::string mthd = std::string("mve_ps");
+    if(method.isNotNull()) {
+        mthd =  Rcpp::as<std::string>(method);
+    }
 
     RNGType rng(n);
     if (seed.isNotNull()) {
@@ -90,28 +95,52 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
     std::pair< std::pair<MT, VT>, NT > round_res;
     switch (type) {
         case 1: {
-            if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+            if (mthd.compare(std::string("mve_ps"))){
+                if (cdhr) {
+                    round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                }
             } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                if (cdhr) {
+                    round_res = round_isotropy<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_isotropy<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                }
             }
             Mat = extractMatPoly(HP);
             break;
         }
         case 2: {
-            if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+            if (mthd.compare(std::string("mve_ps"))){
+                if (cdhr) {
+                    round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                }
             } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
-            }
+                if (cdhr) {
+                    round_res = round_isotropy<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_isotropy<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                }
+            } 
             Mat = extractMatPoly(VP);
             break;
         }
         case 3: {
-            if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+            if (mthd.compare(std::string("mve_ps"))){
+                if (cdhr) {
+                    round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                }
             } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                if (cdhr) {
+                    round_res = round_isotropy<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_isotropy<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                }
             }
             Mat = extractMatPoly(ZP);
             break;
@@ -121,5 +150,4 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
     return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(round_res.first.first),
                               Rcpp::Named("shift") = Rcpp::wrap(round_res.first.second),
                               Rcpp::Named("round_value") = round_res.second);
-
 }

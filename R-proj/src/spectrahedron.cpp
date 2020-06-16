@@ -15,8 +15,8 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "LMI.h"
-#include "spectrahedron.h"
+#include "convex_bodies/spectrahedra/LMI.h"
+#include "convex_bodies/spectrahedra/spectrahedron.h"
 #include "SDPAFormatManager.h"
 
 //' Write a SDPA format file

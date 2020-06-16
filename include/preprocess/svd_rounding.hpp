@@ -188,7 +188,7 @@ std::pair< std::pair<MT, VT>, NT > round_isotropy(Polytope &P, std::pair<Point,N
             r_inv = VT::Ones(n).cwiseProduct(s.cwiseInverse()).asDiagonal() * V.transpose();
             std::cout<<"r_inv = "<<r_inv<<"\n"<<std::endl;
 
-            if (round_it != 1 && max_s >= NT(4) * prev_max_s) {//% || abs(det(round_mat)) >= 4*prev_det)
+            if (round_it != 1 && max_s >= NT(4) * prev_max_s) {
 
                 std::cout<<"fail"<<"\n"<<std::endl;
                 fail = true;

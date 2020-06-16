@@ -19,7 +19,8 @@
 #include "convex_bodies/zpolytope.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/vpolyintersectvpoly.h"
-#include "volume/rounding.hpp"
+#include "preprocess/mve_ps_rounding.hpp"
+#include "preprocess/svd_rounding.hpp"
 #include "sampling/random_point_generators.hpp"
 
 
