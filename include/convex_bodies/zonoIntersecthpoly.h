@@ -3,7 +3,9 @@
 // Copyright (c) 20012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 #ifndef ZONOINTERSECTHPOLY_H
 #define ZONOINTERSECTHPOLY_H
