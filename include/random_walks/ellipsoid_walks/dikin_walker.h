@@ -1,13 +1,12 @@
 // Code from https://github.com/rzrsk/vaidya-walk
 
-// Modified by Apostolos Chalkis, as part of Google Summer of Code 2019 program.
+// Modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 #ifndef PWALK_DIKIN_WALKER_HPP_
 #define PWALK_DIKIN_WALKER_HPP_
 
 #include <Eigen/Dense>
 #include "math_functions.h"
-//#include "walker.h"
 
 //namespace pwalk {
 
