@@ -10,6 +10,9 @@
 
 #include <exception>
 
+#ifdef isnan
+#undef isnan
+
 template <class MT>
 void removeRow(MT &matrix, unsigned int rowToRemove)
 {
@@ -167,4 +170,5 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
 
 }
 
+#endif
 #endif

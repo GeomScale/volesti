@@ -10,6 +10,9 @@
 
 #include <exception>
 
+#ifdef isnan
+#undef isnan
+
 template <class Polytope, class RNGType>
 Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
@@ -53,4 +56,5 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
     return HP;
 }
 
+#endif
 #endif
