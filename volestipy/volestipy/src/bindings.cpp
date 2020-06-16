@@ -28,48 +28,62 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
 HPolytopeCPP::~HPolytopeCPP(){}
 
 
-double HPolytopeCPP::compute_volume(char* method, int walk_len, double epsilon, uint seed){
-   //Parameter setup
-   int n = HP.dimension();
-   int rnum;
-   NT C;
-   NT ratio;
-   int N;
-   int W;
-
-   RNGType rng(seed);
-   // boost::normal_distribution<> rdist(0,1);
-   boost::random::uniform_real_distribution<>(urdist);
-   boost::random::uniform_real_distribution<> urdist1(-1,1);
-
-   Hpolytope HP_copy;
-   HP_copy.init(HP.dimension(), HP.get_mat(), HP.get_vec());
-   NT vol;
-
-   if (strcmp(method,"sequence_of_balls")==0){
-      rnum = std::pow(epsilon,-2) * 400 * n * std::log(n);
-      C=2;
-      ratio = 1.0-1.0/(NT(n));
-      N = 500 * ((int) C) + ((int) (n * n / 2));
-      W = 4*n*n+500;
-      vars<NT, RNGType> var1_SoB(rnum,n,walk_len,1,0,1,0,0,0,0,rng,
-         urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
-      vol = volume(HP_copy, var1_SoB, CheBall);
+double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, uint seed){
+  
+// the following command used to be like this "<boost::mt19937, NT, 3>" but we removed "3"   
+   typedef BoostRandomNumberGenerator<boost::mt19937, double> RNGType;
+   double volume;
+// strcmp returns a lexical difference (short-circuit serial byte comparator) of the two strings you have given as parameters. 0 means that both strings are equal  
+// we are about to have 3 methods for computing the volume () and a number of random walks for each of those
+   if (strcmp(vol_method,"sequence_of_balls")==0)){   // we have 
+      
+      if (strcmp(walk_method,"uniform_ball"==0)){
+         volume = volume_sequence_of_balls<BallWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"CDHR"==0)){
+         volume = volume_sequence_of_balls<CDHRWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"RDHR"==0)){
+         volume = volume_sequence_of_balls<RDHRWalk, RNGType>(HP, epsilon, walk_len);
+         
+      }
    }
-   else{//method=="gaussian_annealing"
-      rnum = std::pow(1,-2) * 400 * n * std::log(n);
-      C=2;
-      ratio = 1.0-1.0/(NT(n));
-      N = 500 * ((int) C) + ((int) (n * n / 2));
-      W = 4*n*n+500;
-      vars<NT, RNGType> var1_GA(rnum,n,walk_len,1,0,1,0,0,0,0,rng,
-         urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
-      vars_g<NT, RNGType> var2_GA(n,walk_len,N,W,1,epsilon,CheBall.second,rng,C,0.1,ratio,-1,false,
-         false,false,false,false,false,false,true,false);
-      vol = volume_cooling_gaussians(HP_copy, var2_GA, var1_GA, CheBall);
+   else if (strcmp(vol_method,"cooling_gaussian")==0){
+      if (strcmp(walk_method,"gaussian_ball"==0){
+         volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"gaussian_CDHR"==0){
+         volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"gaussian_RDHR"==0){
+         volume = volume_cooling_gaussians<GaussianRDHRWalk, RNGType>(HP, epsilon, walk_len);
+      }
+   
+   } else if (strcmp(vol_method,"cooling_balls")==0){
+       
+       if (strcmp(walk_method,"uniform_ball"==0){
+         volume = volume_cooling_balls<BallWalk, RNGType>(HP, e, walk_len);
+       } else if (strcmp(walk_method,"CDHR"==0){
+         volume = volume_cooling_balls<CDHRWalk, RNGType>(HP, e, walk_len);
+       } else if (strcmp(walk_method,"RDHR"==0){
+         volume = volume_cooling_balls<RDHRWalk, RNGType>(HP, e, walk_len);
+       } else if (strcmp(walk_method,"billiard"==0){
+         volume = volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len);
+       }
+       
+      
+      
+      
+      
+      
    }
-   return (double)vol;
+   return volume;
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -104,6 +118,8 @@ void HPolytopeCPP::generate_samples(int walk_len, int n_samples, double* samples
    uniform_sampling<Point>(randPoints, HP, walk_len, n_samples, gaussian_samples,
                            a_dummy, CheBall.first, var1, var2);
 
+
+// The following block of code should NOT be removed!
    auto n_si=0;
    for (auto it_s = randPoints.begin(); it_s != randPoints.end(); it_s++){
       for (auto i = 0; i != it_s->dimension(); i++){
