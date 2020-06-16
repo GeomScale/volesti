@@ -26,6 +26,7 @@ find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
 find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
 find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
 find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
+find_library(PTHREAD NAMES libpthread.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
 
 if (NOT LP_SOLVE)
 
@@ -183,5 +184,6 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT})
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT})
+  TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE})
 
 endif()

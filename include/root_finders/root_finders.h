@@ -27,9 +27,16 @@ see <http://www.gnu.org/licenses/>.
 
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 #include <functional>
 #include <vector>
+#include <cstdlib>
+#include <unistd.h>
+#include <pthread.h>
+#include <mps/mps.h>
+#include <gmp.h>
 #include "newton_raphson.h"
+#include "mp_solve_wrapper.h"
 
 #ifndef ROOT_FINDERS_H
 #define ROOT_FINDERS_H
