@@ -10,7 +10,7 @@
 #ifndef VOLESTI_SDPA_FORMAT_MANAGER_H
 #define VOLESTI_SDPA_FORMAT_MANAGER_H
 
-#include "spectrahedron.h"
+#include "convex_bodies/spectrahedra/spectrahedron.h"
 
 #include <string>
 #include <sstream>
