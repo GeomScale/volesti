@@ -35,7 +35,7 @@ class HPolytopeCPP{
       std::pair<Point,NT> CheBall;
       ~HPolytopeCPP();
       //double compute_volume(char* method, int walk_len, double epsilon, uint seed);
-      compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, uint seed);
+      double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, uint seed);
       void generate_samples(int walk_len, int n_samples, double* samples, uint seed);
 
 };
