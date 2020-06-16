@@ -31,34 +31,34 @@ HPolytopeCPP::~HPolytopeCPP(){}
 double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, uint seed){
   
 // the following command used to be like this "<boost::mt19937, NT, 3>" but we removed "3"   
-   typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
-   
+   typedef BoostRandomNumberGenerator<boost::mt19937, double> RNGType;
+   double volume;
 // strcmp returns a lexical difference (short-circuit serial byte comparator) of the two strings you have given as parameters. 0 means that both strings are equal  
 // we are about to have 3 methods for computing the volume () and a number of random walks for each of those
-   if (strcmp(vol_method,"sequence_of_balls")==0){   // we have 
+   if (strcmp(vol_method,"sequence_of_balls")==0)){   // we have 
       
-      if (strcmp(walk_method,"uniform_ball"==0){
-         NT volume = volume_sequence_of_balls<BallWalk, RNGType>(HP, e, walk_len);
-      } else if (strcmp(walk_method,"CDHR"==0){
-         volume = volume_sequence_of_balls<CDHRWalk, RNGType>(HP, e, walk_len);
-      } else if (strcmp(walk_method,"RDHR"==0){
-         volume = volume_sequence_of_balls<RDHRWalk, RNGType>(HP, e, walk_len);
+      if (strcmp(walk_method,"uniform_ball"==0)){
+         volume = volume_sequence_of_balls<BallWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"CDHR"==0)){
+         volume = volume_sequence_of_balls<CDHRWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"RDHR"==0)){
+         volume = volume_sequence_of_balls<RDHRWalk, RNGType>(HP, epsilon, walk_len);
          
       }
    }
    else if (strcmp(vol_method,"cooling_gaussian")==0){
       if (strcmp(walk_method,"gaussian_ball"==0){
-         NT volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, e, walk_len);
+         volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, epsilon, walk_len);
       } else if (strcmp(walk_method,"gaussian_CDHR"==0){
-         volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(HP, e, walk_len);
+         volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(HP, epsilon, walk_len);
       } else if (strcmp(walk_method,"gaussian_RDHR"==0){
-         volume = volume_cooling_gaussians<GaussianRDHRWalk, RNGType>(HP, e, walk_len);
+         volume = volume_cooling_gaussians<GaussianRDHRWalk, RNGType>(HP, epsilon, walk_len);
       }
    
    } else if (strcmp(vol_method,"cooling_balls")==0){
        
        if (strcmp(walk_method,"uniform_ball"==0){
-         NT volume = volume_cooling_balls<BallWalk, RNGType>(HP, e, walk_len);
+         volume = volume_cooling_balls<BallWalk, RNGType>(HP, e, walk_len);
        } else if (strcmp(walk_method,"CDHR"==0){
          volume = volume_cooling_balls<CDHRWalk, RNGType>(HP, e, walk_len);
        } else if (strcmp(walk_method,"RDHR"==0){
@@ -73,7 +73,7 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
       
       
    }
-   return (double)vol;
+   return volume;
 }
 
 
