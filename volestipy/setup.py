@@ -1,7 +1,7 @@
-from os.path import join
 from setuptools import setup
+from setuptools import Extension
 from Cython.Build import cythonize
-from setuptools.extension import Extension
+from os.path import join
 import numpy
 
 
@@ -9,18 +9,18 @@ version = "0.2.0"
 license='LGPL3',
 packages = ["volestipy"]
 description="volestipy: wrapper for the VolEsti library to sample from convex sets and compute volume."
-author = "Pedro Zuidberg Dos Martires"
-author_email="pedro.zuidbergdosmartires@cs.kuleuven.be"
+author = "Haris Zafeiropoulos"
+author_email="haris-zaf@hcmr.gr"
 name = 'volestipy'
-scripts = []
-url = ""
-download_url = ""
-classifiers = []
+# scripts = []
+# url = ""
+# download_url = ""
+# classifiers = []
 zip_safe=False
 
 
-source_directory_list = ['volestipy', join('volestipy','src')]
 
+source_directory_list = ['volestipy', join('volestipy','src')]
 
 compiler_args = [
     "-std=c++11",
@@ -32,44 +32,27 @@ compiler_args = [
 
 
 extra_volesti_include_dirs = [
-    join("volestipy","include"),
+# inside the volestipy directory, there is an extra volestipy folder containing a "include" folder; we add those as included dirs; the bindings.h file is located there
+	join("volestipy","include"),
 
-    join("..","external"),
-    join("..","external","minimum_ellipsoid"),
-    join("..","external","LPsolve_src","run_headers"),
-    join("..","external","boost"),
+# the volesti code uses some external classes. these are located on the "external" directory and we need to add them as well
+	join("..","external")
+	join("..","external","Eigen")
+	join("..","external","boost")
+	join("..","external","boost","random")
+	join("..","external","")
 
-    join("..","include","generators"),
-    join("..","include","volume"),
-    join("..","include"),
-    join("..","include","convex_bodies"),
-    join("..","include","annealing"),
-    join("..","include","samplers"),
+
+# finally, we also move back and include and add the directories on the "include" directory (generatorors, random_walks, sampling etc)
+	join("..","include"),
+	join("..","include", "misc"),
+	join("..","include", "random_walks"),
+	join("..","include", "volume"),
+	join("..","include","generators"),	
 ]
 
 
-src_files = ["volestipy/volestipy.pyx","volestipy/src/bindings.cpp"]
-extra_include_dirs = [numpy.get_include()]
 
 
-library_includes = ["lpsolve55"]
-ext_module = Extension(
-    "volestipy",
-    language = "c++",
-    sources = src_files,
-    include_dirs = extra_include_dirs + extra_volesti_include_dirs,
-    libraries = library_includes,
-    extra_compile_args = compiler_args,
-    # extra_link_args = link_args,
-)
-ext_modules = cythonize([ext_module], gdb_debug=False)
 
-setup(
-    version = version,
-    author = author,
-    author_email = author_email,
-    name = name,
-    packages = packages,
-    ext_modules = ext_modules,
-    zip_safe=zip_safe,
-)
+
