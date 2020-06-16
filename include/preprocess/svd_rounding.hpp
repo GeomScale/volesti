@@ -118,7 +118,6 @@ std::pair< std::pair<MT, VT>, NT > round_isotropy(Polytope &P, std::pair<Point,N
         last_round_under_p = false;
         fail = false;
         num_its = std::max(std::log(R) / std::log(20.0), 2.0);
-        p.set_to_origin();
 
         while (max_s > s_cutoff && round_it <= num_its) {
 

@@ -23,7 +23,7 @@
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
-//' @param method Optional. The method to use for rounding, a) \code{'mve_ps'} for the method based on mimi
+//' @param method Optional. The method to use for rounding, a) \code{'mve'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'svd'} for the method based on svd decomposition.
 //' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @keywords internal
