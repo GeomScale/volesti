@@ -174,6 +174,7 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' Internal rcpp function for the rounding of a convex polytope
 #'
 #' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'mve_ps'} for the method based on mimi
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @keywords internal
