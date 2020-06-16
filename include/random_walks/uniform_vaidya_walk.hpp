@@ -39,11 +39,6 @@ struct VaidyaWalk
         typedef typename Polytope::MT MT;
         typedef typename Polytope::VT VT;
         typedef typename Point::FT NT;
-        typedef HPolytope<Point> Hpolytope;
-        typedef Zonotope<Point> zonotope;
-        typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
-        typedef Ball<Point> BallType;
-        typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
         Walk(Polytope &P, Point &p, RandomNumberGenerator &)
         {
@@ -60,18 +55,6 @@ struct VaidyaWalk
             NT r = NT(2) * P.ComputeInnerBall().second;
             vaidyaw.init(p0, A, b, r);
         }
-
-        Walk(BallPolytope const& , Point &, RandomNumberGenerator &,  parameters &) {}
-
-        Walk(ZonoHPoly const& , Point &, RandomNumberGenerator &,  parameters &) {}
-
-        Walk(BallPolytope const&, Point &, RandomNumberGenerator &) {}
-
-        Walk(ZonoHPoly const&, Point &, RandomNumberGenerator &) {}
-
-        Walk (BallType const&, Point &, RandomNumberGenerator &,  parameters &) {}
-
-        Walk (BallType const&, Point &, RandomNumberGenerator &) {}
 
         template
                 <
