@@ -20,11 +20,27 @@
 #include "ellipsoid_walks/vaidya_walker.h"
 
 
-// Billiard walk for uniform distribution
+// Vaidya walk for uniform distribution
 
 struct VaidyaWalk
 {
-    struct parameters {};
+    VaidyaWalk(double L)
+            :   param(L, true)
+    {}
+
+    VaidyaWalk()
+            :   param(0, false)
+    {}
+
+    struct parameters
+    {
+        parameters(double L, bool set)
+                :   m_L(L), set_L(set)
+        {}
+        double m_L;
+        bool set_L;
+    };
+
     parameters param;
 
 
@@ -44,15 +60,16 @@ struct VaidyaWalk
         {
             MT A = P.get_mat();
             VT b = P.get_vec(), _vec_point = VT::Zero(P.dimension()), p0 = p.getCoefficients();
-            NT r = NT(2) * P.ComputeInnerBall().second;
+            NT r = P.ComputeInnerBall().second / NT(2);
             vaidyaw.init(p0, A, b, r);
         }
 
-        Walk(Polytope &P, Point & p, RandomNumberGenerator &, parameters &)
+        Walk(Polytope &P, Point & p, RandomNumberGenerator &, parameters const& params)
         {
             MT A = P.get_mat();
             VT b = P.get_vec(), _vec_point = VT::Zero(P.dimension()), p0 = p.getCoefficients();
-            NT r = NT(2) * P.ComputeInnerBall().second;
+            NT r = params.set_L ? params.m_L
+                          : P.ComputeInnerBall().second / NT(2);
             vaidyaw.init(p0, A, b, r);
         }
 

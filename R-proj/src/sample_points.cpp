@@ -22,7 +22,8 @@
 template <typename Polytope, typename RNGType, typename PointList, typename NT, typename Point>
 void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsigned int const& walkL, unsigned int const& numpoints,
         bool const& gaussian, NT const& a, NT const& L, bool const& boundary, Point const& StartingPoint, unsigned int const& nburns,
-        bool const& set_L, bool const& cdhr, bool const& rdhr, bool const& billiard, bool const& ball_walk)
+        bool const& set_L, bool const& cdhr, bool const& rdhr, bool const& billiard, bool const& ball_walk, bool const& dikin,
+        bool const& vaidya, bool const& john)
 {
     if (boundary) {
         if (cdhr) {
@@ -47,6 +48,30 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
         } else {
             uniform_sampling<RDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              StartingPoint, nburns);
+        }
+    } else if (vaidya) {
+        if (set_L) {
+            VaidyaWalk WalkType(L);
+            uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
+        } else {
+            uniform_sampling<VaidyaWalk>(randPoints, P, rng, walkL, numpoints,
+                                     StartingPoint, nburns);
+        }
+    }else if (dikin) {
+        if (set_L) {
+            DikinWalk WalkType(L);
+            uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
+        } else {
+            uniform_sampling<DikinWalk>(randPoints, P, rng, walkL, numpoints,
+                                    StartingPoint, nburns);
+        }
+    }else if (john) {
+        if (set_L) {
+            JohnWalk WalkType(L);
+            uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
+        } else {
+            uniform_sampling<JohnWalk>(randPoints, P, rng, walkL, numpoints,
+                                    StartingPoint, nburns);
         }
     } else if (billiard) {
         if (set_L) {
@@ -155,7 +180,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     unsigned int numpoints, nburns = 0;
     NT radius = 1.0, L;
     bool set_mode = false, cdhr = false, rdhr = false, ball_walk = false, gaussian = false,
-          billiard = false, boundary = false, set_starting_point = false, set_L = false;
+          billiard = false, boundary = false, set_starting_point = false, set_L = false, 
+          dikin = false, vaidya = false, john = false;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
     Point mode(dim);
@@ -210,6 +236,30 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("CDHR")) == 0) {
         cdhr = true;
         billiard = false;
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("dikin")) == 0) {
+        dikin = true;
+        billiard = false;
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("L")) {
+            L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["L"]);
+            set_L = true;
+            if (L<=0.0) throw Rcpp::exception("L must be a postitive number!");
+        }
+    }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("vaidya")) == 0) {
+        vaidya = true;
+        billiard = false;
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("L")) {
+            L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["L"]);
+            set_L = true;
+            if (L<=0.0) throw Rcpp::exception("L must be a postitive number!");
+        }
+    }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("john")) == 0) {
+        john = true;
+        billiard = false;
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("L")) {
+            L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["L"]);
+            set_L = true;
+            if (L<=0.0) throw Rcpp::exception("L must be a postitive number!");
+        }
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("RDHR")) == 0) {
         rdhr = true;
         billiard = false;
@@ -352,22 +402,22 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     switch (type) {
         case 1: {
             sample_from_polytope(HP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                   set_L, cdhr, rdhr, billiard, ball_walk);
+                   set_L, cdhr, rdhr, billiard, ball_walk, dikin, vaidya, john);
             break;
         }
         case 2: {
             sample_from_polytope(VP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                                 set_L, cdhr, rdhr, billiard, ball_walk);
+                                 set_L, cdhr, rdhr, billiard, ball_walk, dikin, vaidya, john);
             break;
         }
         case 3: {
             sample_from_polytope(ZP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                                 set_L, cdhr, rdhr, billiard, ball_walk);
+                                 set_L, cdhr, rdhr, billiard, ball_walk, dikin, vaidya, john);
             break;
         }
         case 4: {
             sample_from_polytope(VPcVP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                                 set_L, cdhr, rdhr, billiard, ball_walk);
+                                 set_L, cdhr, rdhr, billiard, ball_walk, dikin, vaidya, john);
             break;
         }
     }
