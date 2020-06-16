@@ -16,12 +16,11 @@
 #include <Eigen/Eigen>
 #include "lp_oracles/solve_lp.h"
 #include "nlp_oracles/nlp_hpolyoracles.h"
+#include "root_finders/root_finders.h"
 
 #define MAX_NR_TRIES 10000
 
 //min and max values for the Hit and Run functions
-
-
 // H-polytope class
 template <typename Point>
 class HPolytope{
