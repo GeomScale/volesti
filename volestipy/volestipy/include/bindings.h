@@ -24,7 +24,7 @@
 
 #include "known_polytope_generators.h"
 
-#include "doctest.h"
+//#include "doctest.h"
 #include "misc.h"
 
 //from generate_samples, some extra headers not already included
