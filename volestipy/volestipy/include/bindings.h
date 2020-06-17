@@ -1,24 +1,42 @@
 #ifndef VOLESTIBINDINGS_H
 #define VOLESTIBINDINGS_H
 
-
+//// I think we could remove those...
 #include "Eigen/Eigen"
-
-
-// altered by Haris at 2020_06_08
-//#include "volume.h"
-//#include "sampling.hpp"
 #include "cartesian_kernel.h"
+
+
+// from SOB volume - exactly the same for CG and CB methods 
+#include <fstream>
+#include <iostream>
+
+#include "random.hpp"
+#include "random/uniform_int.hpp"
+#include "random/uniform_int.hpp"
+#include "random/normal_distribution.hpp"
+#include "random/uniform_real_distribution.hpp"
+
+#include "random_walks.hpp"
+
+#include "volume/volume_sequence_of_balls.hpp"
+#include "volume/volume_cooling_gaussians.hpp"
+#include "volume/volume_cooling_balls.hpp"
+
+#include "known_polytope_generators.h"
+
+#include "doctest.h"
+#include "misc.h"
+
+//from generate_samples, some extra headers not already included
+#include <chrono>
+#include "sampling/sampling.hpp"
 
 
 
 class HPolytopeCPP{
    public:
 
-// ATTENTION! Only one of the following should remain. I need to talk to Tolis about this.
-      //template <typename NT>;
       typedef double NT;
-
 
       typedef Cartesian<NT>    Kernel;
       typedef typename Kernel::Point    Point;
@@ -34,9 +52,9 @@ class HPolytopeCPP{
       Hpolytope HP;
       std::pair<Point,NT> CheBall;
       ~HPolytopeCPP();
-      //double compute_volume(char* method, int walk_len, double epsilon, uint seed);
-      double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, uint seed);
-      void generate_samples(int walk_len, int n_samples, double* samples, uint seed);
+
+      double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);
+      //void generate_samples(int walk_len, int n_samples, double* samples, uint seed);
 
 };
 
