@@ -38,8 +38,8 @@ extra_volesti_include_dirs = [
 	join("..","external","LPsolve_src","include"), # ATTENTION HERE! I do not know if needed.
 	join("..","external","minimum_ellipsoid"),
 	
-# in the same way, there is a "doctest.h" file in the "tests" directory - better to discuss if this is needed
-	join("..","test"),
+# # in the same way, there is a "doctest.h" file in the "tests" directory - better to discuss if this is needed
+# 	join("..","test"),
 
 # finally, we also move back and include and add the directories on the "include" directory (generatorors, random_walks, sampling etc)
 	join("..","include"),
