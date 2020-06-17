@@ -21,7 +21,7 @@ compiler_args = [
 	"-O3",
 	"-lm",
 	"-ldl",
-	# "-DBOOST_NO_AUTO_PTR",
+	"-DBOOST_NO_AUTO_PTR",
 ]
 
 
@@ -30,19 +30,10 @@ extra_volesti_include_dirs = [
 	join("volestipy","include"),
 
 # the volesti code uses some external classes. these are located on the "external" directory and we need to add them as well
-	# join("..","external"),
-	# join("..","external","Eigen"),
-	# join("..","external","boost"),
-	# join("..","external","boost","random"),
-	# join("..","external","LPsolve_src","include"), # ATTENTION HERE! I do not know if needed.
-	# join("..","external","minimum_ellipsoid"),
     join("..","external"),
     join("..","external","minimum_ellipsoid"),
     join("..","external","LPsolve_src","run_headers"),
     join("..","external","boost"),
-
-# # in the same way, there is a "doctest.h" file in the "tests" directory - better to discuss if this is needed
-# 	join("..","test"),
 
 # finally, we also move back and include and add the directories on the "include" directory (generatorors, random_walks, sampling etc)
 	join("..","include"),
