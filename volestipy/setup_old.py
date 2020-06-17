@@ -1,3 +1,4 @@
+ 
 from os.path import join
 from setuptools import setup
 from Cython.Build import cythonize
@@ -45,9 +46,6 @@ extra_volesti_include_dirs = [
     join("..","include","convex_bodies"),
     join("..","include","annealing"),
     join("..","include","samplers"),
-    
-    ## added by Haris 2020_06_08
-    join("..","include","cartesian_geom"),    
 ]
 
 
@@ -56,7 +54,6 @@ extra_include_dirs = [numpy.get_include()]
 
 
 library_includes = ["lpsolve55"]
-
 ext_module = Extension(
     "volestipy",
     language = "c++",
@@ -66,11 +63,7 @@ ext_module = Extension(
     extra_compile_args = compiler_args,
     # extra_link_args = link_args,
 )
-
-
 ext_modules = cythonize([ext_module], gdb_debug=False)
-
-
 
 setup(
     version = version,
