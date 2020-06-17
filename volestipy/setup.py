@@ -17,11 +17,11 @@ zip_safe=False
 source_directory_list = ['volestipy', join('volestipy','src')]
 
 compiler_args = [
-    "-std=c++11",
-    "-O3",
-    "-lm",
-    "-ldl",
-    "-DBOOST_NO_AUTO_PTR",
+	"-std=c++11",
+	"-O3",
+	"-lm",
+	"-ldl",
+	# "-DBOOST_NO_AUTO_PTR",
 ]
 
 
@@ -31,13 +31,16 @@ extra_volesti_include_dirs = [
 
 # the volesti code uses some external classes. these are located on the "external" directory and we need to add them as well
 	# join("..","external"),
-	join("..","external"),
-	join("..","external","Eigen"),
-	join("..","external","boost"),
-	join("..","external","boost","random"),
-	join("..","external","LPsolve_src","include"), # ATTENTION HERE! I do not know if needed.
-	join("..","external","minimum_ellipsoid"),
-	
+	# join("..","external","Eigen"),
+	# join("..","external","boost"),
+	# join("..","external","boost","random"),
+	# join("..","external","LPsolve_src","include"), # ATTENTION HERE! I do not know if needed.
+	# join("..","external","minimum_ellipsoid"),
+    join("..","external"),
+    join("..","external","minimum_ellipsoid"),
+    join("..","external","LPsolve_src","run_headers"),
+    join("..","external","boost"),
+
 # # in the same way, there is a "doctest.h" file in the "tests" directory - better to discuss if this is needed
 # 	join("..","test"),
 
@@ -50,6 +53,8 @@ extra_volesti_include_dirs = [
 	join("..","include","generators"),
 	join("..","include","cartesian_geom"),
 ]
+
+
 
 src_files = ["volestipy/volestipy.pyx","volestipy/src/bindings.cpp"]
 extra_include_dirs = [numpy.get_include()] 
@@ -67,12 +72,10 @@ ext_module = Extension(
     libraries = library_includes,
     extra_compile_args = compiler_args,
 )
-
 print("The Extension function is OK.")
 
 
 ext_modules = cythonize([ext_module], gdb_debug=False)
-
 print("The cythonize function ran fine!")
 
 setup(
