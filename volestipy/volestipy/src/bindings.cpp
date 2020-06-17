@@ -28,7 +28,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
 HPolytopeCPP::~HPolytopeCPP(){}
 
 
-double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, uint seed){
+double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed){
   
 // the following command used to be like this "<boost::mt19937, NT, 3>" but we removed "3"   
    typedef BoostRandomNumberGenerator<boost::mt19937, double> RNGType;
@@ -81,49 +81,52 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
 
 
 
-
-
-
-
-
+/*
 
 void HPolytopeCPP::generate_samples(int walk_len, int n_samples, double* samples, uint seed){
    //Parameter setup
-   int n = HP.dimension();
+   //int n = HP.dimension();
+   //
+   //int rnum = std::pow(1,-2) * 400 * n * std::log(n);
+   //NT C=2;
+   //NT ratio = 1.0-1.0/(NT(n));
+   //int N = 500 * ((int) C) + ((int) (n * n / 2));
+   //int W = 4*n*n+500;
+   //
+   //double epsilon_dummy = 0.1;
 
-   int rnum = std::pow(1,-2) * 400 * n * std::log(n);
-   NT C=2;
-   NT ratio = 1.0-1.0/(NT(n));
-   int N = 500 * ((int) C) + ((int) (n * n / 2));
-   int W = 4*n*n+500;
-
-   double epsilon_dummy = 0.1;
-
-   RNGType rng(seed);
+   //RNGType rng(seed);
    // boost::normal_distribution<> rdist(0,1);
    boost::random::uniform_real_distribution<>(urdist);
    boost::random::uniform_real_distribution<> urdist1(-1,1);
 
 
-   vars<NT, RNGType> var1(rnum,n,walk_len,1,0,1,0,0,0,CheBall.second,rng,
-      urdist,urdist1,-1,false,false,false,false,false,false,true,false);
-   vars_g<NT, RNGType> var2(n,walk_len,N,W,1,epsilon_dummy,CheBall.second,rng,
-      C,0.1,ratio,-1,false,false,false,false,false,false,false,true,false);
+   //vars<NT, RNGType> var1(rnum,n,walk_len,1,0,1,0,0,0,CheBall.second,rng,
+   //   urdist,urdist1,-1,false,false,false,false,false,false,true,false);
+   //vars_g<NT, RNGType> var2(n,walk_len,N,W,1,epsilon_dummy,CheBall.second,rng,
+   //   C,0.1,ratio,-1,false,false,false,false,false,false,false,true,false);
 
    std::list <Point> randPoints;
    bool gaussian_samples = false;
    //make this a parameter once gaussian_samples if a parameter too and can be true also.
    double a_dummy = 1.0;
 
-   uniform_sampling<Point>(randPoints, HP, walk_len, n_samples, gaussian_samples,
-                           a_dummy, CheBall.first, var1, var2);
+   //uniform_sampling<Point>(randPoints, HP, walk_len, n_samples, gaussian_samples,
+   //                        a_dummy, CheBall.first, var1, var2);
+   
+   sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsigned int const& walkL, unsigned int const& numpoints,
+        bool const& gaussian, NT const& a, NT const& L, bool const& boundary, Point const& StartingPoint, unsigned int const& nburns,
+        bool const& set_L, bool const& cdhr, bool const& rdhr, bool */const& billiard, bool const& ball_walk)
 
 
-// The following block of code should NOT be removed!
-   auto n_si=0;
-   for (auto it_s = randPoints.begin(); it_s != randPoints.end(); it_s++){
-      for (auto i = 0; i != it_s->dimension(); i++){
-         samples[n_si++] = (*it_s)[i];
-      }
-   }
-}
+
+
+
+//// The following block of code should NOT be removed!
+//   auto n_si=0;
+//   for (auto it_s = randPoints.begin(); it_s != randPoints.end(); it_s++){
+//      for (auto i = 0; i != it_s->dimension(); i++){
+//         samples[n_si++] = (*it_s)[i];
+//      }
+//   }
+//}
