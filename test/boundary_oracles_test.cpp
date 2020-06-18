@@ -77,7 +77,7 @@ void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   res2 = P.curve_intersect_mpsolve(0.01, 0, -1, coeffs);
 
   t = std::get<0>(res2);
-  std::cout << "t is " << t << std::endl;
+  // std::cout << "t is " << t << std::endl;
   facet = std::get<2>(res2);
   CHECK(std::abs(t - t_des) / t_des < tol);
 
@@ -101,8 +101,6 @@ void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   std::cout << t << " " << t_des << std::endl;
 
   CHECK(std::abs(std::abs(t) - t_des) / t_des < tol);
-
-
 
 }
 

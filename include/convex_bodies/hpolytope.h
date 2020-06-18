@@ -251,10 +251,10 @@ public:
 
       NT tu = eta > 0 ? t0 + eta : NT(maxNT);
       NT t = tu;
-      Point dummy(_d);
+      Point dummy(coeffs[0].dimension());
 
       for (unsigned int j = 0; j < coeffs.size(); j++) {
-        dummy += coeffs[j] * pow(tu - t0, NT(j));
+        dummy = dummy + pow(tu - t0, NT(j)) * coeffs[j];
       }
 
       std::tuple<NT, Point, int> result = std::make_tuple(tu, dummy, -1);
@@ -288,19 +288,22 @@ public:
               std::cout << "Facet: " << i << " Candidate root is " << sol.first + t0 << std::endl;
             #endif
 
+            // Check if solution is in the desired range [t0, t0 + eta] and if it is the current minimum
             if (t0 + sol.first <= tu && t0 + sol.first < std::get<0>(result)) {
               t = t0 + sol.first;
 
+              // Calculate point from this root
               Point p = Point(coeffs[0].dimension());
 
               for (unsigned int j = 0; j < coeffs.size(); j++) {
-                p += coeffs[j] * pow(t - t0, NT(j));
+                p += pow(t - t0, NT(j)) * coeffs[j] ;
               }
 
               #ifdef VOLESTI_DEBUG
-                std::cout << "Calculcated point is " << p.getCoefficients() << std::endl;
+                std::cout << "Calculcated point is " << std::endl << p.getCoefficients() << std::endl;
               #endif
 
+              // Check if point satisfies Ax <= b up to some tolerance and change current solution
               if (is_in(p, 1e-6)) {
                 result =  std::make_tuple(t, p, i);
               }
@@ -334,7 +337,7 @@ public:
       NT t = t_prev;
       NT tu = eta > 0 ? t0 + eta : NT(maxNT);
 
-      Point dummy(_d);
+      Point dummy(coeffs[0].dimension());
 
       for (unsigned int j = 0; j < coeffs.size(); j++) {
         dummy += coeffs[j] * phi(tu, t0, j, coeffs.size());

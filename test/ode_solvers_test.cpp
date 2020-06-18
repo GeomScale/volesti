@@ -129,7 +129,7 @@ void test_collocation(){
     // Trapezoidal collocation
     coeffs cs{0.0, 0.0, 1.0};
 
-    CollocationODESolver<Point, NT, Vpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Vpolytope, bfunc>(0, 1.0, q, Fs, cs, phi, grad_phi);
+    CollocationODESolver<Point, NT, Vpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Vpolytope, bfunc>(0, 1.0, q, Fs, cs, phi, grad_phi, "mpsolve");
     c_solver.steps(100);
     NT err=0.001;
     NT error = c_solver.xs[0].dot(c_solver.xs[0]);
@@ -153,7 +153,7 @@ void test_collocation_constrained(){
     func F = [](pts xs, NT t) { return xs[0]; };
     Fs.push_back(F);
 
-    Hpolytope P = gen_cube<Hpolytope>(1, false);
+    Hpolytope P = gen_cube<Hpolytope>(3, false);
     Ks.push_back(&P);
 
     bfunc phi = [](NT t, NT t0, unsigned int j, unsigned int order) {
@@ -173,7 +173,7 @@ void test_collocation_constrained(){
     q0.set_coord(2, 0.5);
     pts q;
     q.push_back(q0);
-    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Hpolytope, bfunc>(0, 0.1, q, Fs, Ks, cs, phi, grad_phi);
+    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Hpolytope, bfunc>(0, 0.1, q, Fs, Ks, cs, phi, grad_phi, "mpsolve");
     for (int i = 0; i < 200; i++) {
         c_solver.step();
         c_solver.print_state();

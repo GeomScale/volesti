@@ -77,6 +77,8 @@ public:
     xs_prev = xs;
     t += eta;
 
+    bool flag = false;
+
     for (unsigned int i = 0; i < xs.size(); i++) {
       Point y = Fs[i](xs_prev, t);
       y = eta * y;
@@ -87,15 +89,22 @@ public:
       else {
         // Find intersection (assuming a line trajectory) between x and y
         do {
+          // Find line intersection between xs[i] (new position) and y
           std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
 
+          // If point is outside it would yield a negative param
           if (pbpair.first < 0) {
+            // Advance to point on the boundary
             xs[i] += (pbpair.first * 0.99) * y;
+            // Reflect ray y on the boundary point y now is the reflected ray
             Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+            // Add it to the existing (boundary) point and repeat
+            xs[i] += y;
           }
           else {
+            if (flag) break;
             xs[i] += y;
-            // break;
+            flag = true;
           }
         } while (!Ks[i]->is_in(xs[i]));
 

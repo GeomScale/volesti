@@ -31,6 +31,9 @@ Resource: https://en.wikipedia.org/wiki/Collocation_method
 #ifndef COLLOCATION_H
 #define COLLOCATION_H
 
+#include <csignal>
+
+
 template <typename Point, typename NT, class Polytope, class bfunc, class func=std::function <Point(std::vector<Point>, NT)>>
 class CollocationODESolver {
 public:
@@ -56,6 +59,9 @@ public:
   // If set to true the solver assumes linearity of the field
   // Otherwise it approximates the constant vector with Euler method
   const bool exact = false;
+
+  // Boundary oracle method
+  std::string boundary_oracle_method;
 
   // If set to true it enables precomputation (does not recompute A and b at every step)
   const bool precompute = true;
@@ -92,26 +98,26 @@ public:
   VT Ar, Av;
 
   CollocationODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
-    bounds boundaries,  coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
+    bounds boundaries,  coeffs c_coeffs, bfunc basis, bfunc grad_basis, std::string bmethod) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries),
-     cs(c_coeffs), phi(basis), grad_phi(grad_basis) {
+     cs(c_coeffs), phi(basis), grad_phi(grad_basis), boundary_oracle_method(bmethod) {
       dim = xs[0].dimension();
       initialize_matrices();
     };
 
   CollocationODESolver(NT initial_time, NT step, int num_states, unsigned int dimension,
     funcs oracles, bounds boundaries,  coeffs c_coeffs,
-    bfunc basis, bfunc grad_basis) :
+    bfunc basis, bfunc grad_basis, std::string bmethod) :
     t(initial_time), Fs(oracles), eta(step), Ks(boundaries),  cs(c_coeffs),
-    phi(basis), grad_phi(grad_basis) {
+    phi(basis), grad_phi(grad_basis), boundary_oracle_method(bmethod) {
       xs = pts(num_states, Point(dimension));
       initialize_matrices();
     };
 
   CollocationODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
-     coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
+     coeffs c_coeffs, bfunc basis, bfunc grad_basis, std::string bmethod) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step),
-    cs(c_coeffs), phi(basis), grad_phi(grad_basis) {
+    cs(c_coeffs), phi(basis), grad_phi(grad_basis), boundary_oracle_method(bmethod) {
       Ks = bounds(xs.size(), NULL);
       initialize_matrices();
       dim = xs[0].dimension();
@@ -231,20 +237,21 @@ public:
           xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
         }
       } else {
-        std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev, 1.1 * eta, as[i], phi, grad_phi, "ipopt");
+        std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev, 1.1 * eta, as[i], phi, grad_phi, boundary_oracle_method);
 
-        if (Ks[i]->is_in(std::get<1>(result))) {
-          // std::cout << "inside" << std::endl;
+        std::cout << "t is " << std::get<0>(result) << std::endl;
+        std::cout << "facet is " << std::get<2>(result) << std::endl;
+
+        if (std::get<2>(result) == -1) {
+          std::cout << "inside" << std::endl;
           for (unsigned int ord = 0; ord < order(); ord++) {
             xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
           }
         }
         else {
-          // std::cout << "not inside" << std::endl;
-          // std::cout << "facet is " << std::get<2>(result) << std::endl;
+          std::cout << "not inside" << std::endl;
           // Compute ray
           y = std::get<1>(result) - xs_prev[i];
-          y = 0.99 * y;
           xs[i] = std::get<1>(result);
           // Reflect ray along facet
           Ks[i]->compute_reflection(y, xs_prev[i], std::get<2>(result));
@@ -252,17 +259,23 @@ public:
 
           xs[i] += y;
 
+          std::cout << "new point is " << xs[i].getCoefficients().transpose() << std::endl;
+
 
           while (!Ks[i]->is_in(xs[i])) {
             std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
-            // std::cout << pbpair.first << std::endl;
 
             if (pbpair.first < 0) {
               xs[i] += (pbpair.first * 0.99) * y;
               Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+              xs[i] += y;
             }
-            else break;
+            else {
+              break;
+            }
+
           }
+
 
         }
 
