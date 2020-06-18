@@ -852,10 +852,10 @@ double timeNow(void)
   }
   return( timeBase + (double) now.QuadPart/(double) freq.QuadPart );
 #else
-  struct timeb buf;
+  struct timeval buf;
 
-  ftime(&buf);
-  return((double)buf.time+((double) buf.millitm)/1000.0);
+  gettimeofday(&buf, NULL);
+  return((double)buf.tv_sec+(double) buf.tv_usec);
 #endif
 }
 
