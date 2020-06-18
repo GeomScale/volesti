@@ -7,20 +7,18 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-// This examples illustrates how to solve a semidefinite program.
-// It will read a semidefinite program from data/sdp_n2m3.txt, solve it and print its solution (minimal value).
+// This examples illustrates how to read and write SDPA format files.
+// It will read a semidefinite program from data/sdp_n2m3.txt, print it and then write it to a new file
 
+#define VOLESTI_DEBUG
 
-//#define VOLESTI_DEBUG
-#include "Eigen/Eigen"
-#include "vector"
 #include <fstream>
+#include <iostream>
+
+#include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
-#include "spectrahedron.h"
+#include "convex_bodies/spectrahedra/spectrahedron.h"
 #include "SDPAFormatManager.h"
-#include "string"
-#include "iostream"
-#include "SimulatedAnnealing.h"
 
 typedef double NT;
 typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
@@ -28,7 +26,6 @@ typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 typedef Cartesian <NT> Kernel;
 typedef typename Kernel::Point Point;
 typedef Spectrahedron <NT, MT, VT> SPECTRAHEDRON;
-typedef SimulatedAnnealing<Point, MT, VT> SA;
 
 
 int main(int argc, char* argv[]) {
@@ -38,7 +35,9 @@ int main(int argc, char* argv[]) {
     SPECTRAHEDRON spectrahedron;
     Point objFunction;
 
-    // read the spectrahedron
+    // read the semidefinite program
+    // and create a vector (objective function) and a spectrahedron
+
     // open a stream to read the input file
     std::ifstream in;
     in.open(fileName, std::ifstream::in);
@@ -47,29 +46,19 @@ int main(int argc, char* argv[]) {
     SdpaFormatManager<NT> sdpaFormatManager;
     sdpaFormatManager.loadSDPAFormatFile(in, spectrahedron, objFunction);
 
-    // We will need an initial interior point. In this
-    // spectrahedron the origin (zero point) is interior
-    Point initialPoint(spectrahedron.getLMI().dimension());
+    // print the contents
+    std::cout << "The objective Function:\n\n";
+    objFunction.print();
+    std::cout << "\n\nThe matrices of the spectrahedron:\n\n";
+    spectrahedron.getLMI().print();
 
+    // open a stream to an output file
+    std::filebuf fb;
+    fb.open(outputFile, std::ios::out);
+    std::ostream os(&fb);
 
-    // First some parameters for the solver
-    // desired relative error
-    NT rel_error = 0.001;
-
-    // Declare settings
-    SA::Settings settings(rel_error);
-
-    // Declare the solver
-    SA simulatedAnnealing(&spectrahedron, objFunction, settings, &initialPoint);
-
-    // solve the program
-    Point sol;
-    bool verbose = true;
-    NT min = simulatedAnnealing.solve(sol ,verbose);
-
-    // print solution
-    std::cout << min << "\n" << "point: ";
-    sol.print();
+    // write a SDPA format file using the data we read before
+    sdpaFormatManager.writeSDPAFormatFile(os, spectrahedron, objFunction);
 
     return 0;
 }

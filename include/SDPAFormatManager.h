@@ -10,11 +10,11 @@
 #ifndef VOLESTI_SDPA_FORMAT_MANAGER_H
 #define VOLESTI_SDPA_FORMAT_MANAGER_H
 
-#include "spectrahedron.h"
-
+#include <fstream>
 #include <string>
 #include <sstream>
 
+#include "convex_bodies/spectrahedra/spectrahedron.h"
 
 /// Reads/writes files according to the SDPA format for sdps.
 /// Currently supported Format:

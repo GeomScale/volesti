@@ -109,6 +109,7 @@ public:
     void operator= (const Coeff& coeffs)
     {
         this->coeffs = coeffs;
+        d = coeffs.rows();
     }
 
     //TODO: avoid point construction in operators +,-,*

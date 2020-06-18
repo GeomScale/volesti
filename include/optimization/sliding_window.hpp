@@ -1,9 +1,14 @@
-//
-// Created by panagiotis on 2/28/20.
-//
+// VolEsti (volume computation and sampling library)
 
-#ifndef VOLESTI_SLIDINGWINDOW_H
-#define VOLESTI_SLIDINGWINDOW_H
+// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
+
+//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
+#ifndef VOLESTI_SLIDING_WINDOW_HPP
+#define VOLESTI_SLIDING_WINDOW_HPP
 
 
 /// Computes the relative error
@@ -58,4 +63,4 @@ public:
     }
 };
 
-#endif //VOLESTI_SLIDINGWINDOW_H
+#endif //VOLESTI_SLIDING_WINDOW_HPP

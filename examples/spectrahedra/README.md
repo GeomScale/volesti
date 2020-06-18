@@ -4,9 +4,9 @@
 1. [Compilation](#compilation)
     1. [Dependencies](#dependencies)
 2. [Examples](#examples)
-    1. [Read/write SDPA format files - readWriteSdpaFile.cpp](#readwrite-sdpa-format-files---readwritesdpafilecpp)
-    2. [Sample with HMC, Boltzmann distribution - boltzmannHmcWalk.cpp](#sample-with-hmc-boltzmann-distribution---boltzmannhmcwalkcpp)
-    3. [Randomized SDP Solver - semidefiniteProgramming.cpp](#randomized-sdp-solver---semidefiniteprogrammingcpp)
+    1. [Read/write SDPA format files - read_write_sdpa_file.cpp](#readwrite-sdpa-format-files---read_write_sdpa_filecpp)
+    2. [Sample with HMC, Boltzmann distribution - boltzmann_hmc_walk.cpp](#sample-with-hmc-boltzmann-distribution---boltzmann_hmc_walkcpp)
+    3. [Randomized SDP Solver - solve_sdp.cpp](#randomized-sdp-solver---solve_sdpcpp)
 
 
 ## Compilation
@@ -63,13 +63,13 @@ And copy the folder external back in folder examples:
 <br>
 
 ## Examples
-### Read/write SDPA format files - readWriteSdpaFile.cpp
+### Read/write SDPA format files - read_write_sdpa_file.cpp
 
 In this example, we will read a semidefinite program from a SDPA format input file, print it
 and then write it to a new SDPA format file. Run the example with:
 
 ```bash
-./readWriteSdpaFile
+./read_write_sdpa_file
 ```
 
 The input file is data/sdp_n2m3.txt. It contains a semidefinite program in SDPA format. A semidefinite program
@@ -111,14 +111,14 @@ It represents a spectrahedron in 2 dimensions, described by a linear matrix ineq
 - and so on, till all 3 matrices are defined
 
 
-### Sample with HMC, Boltzmann distribution - boltzmannHmcWalk.cpp
+### Sample with HMC, Boltzmann distribution - boltzmann_hmc_walk.cpp
 
 In this example, we will sample a spectrahedron under the Boltsmann distribution e^(-c*x/T), using
 the hamiltonian monte carlo random walk with reflections. We will read the spectrahedron as
 in [readWriteSdpaFile.cpp](#readwrite-sdpa-format-files---readwritesdpafilecpp). Run the example with:
 
 ```bash
-./boltzmannHmcWalk
+./boltzmann_hmc_walk
 ```
 
 #### Code Explanation
@@ -147,51 +147,44 @@ hmcWalk.apply(spectrahedron, initialPoint, pointsNum, points);
 - points: a list to return the samples
 
 
-### Randomized SDP Solver - semidefiniteProgramming.cpp
+### Randomized SDP Solver - solve_sdp.cpp
 
 In this example, we will solve a semidefinite program. We will read the program 
-as in [readWriteSdpaFile.cpp](#readwrite-sdpa-format-files---readwritesdpafilecpp). Run the example with:
+as in [read_write_sdpa_file.cpp](#readwrite-sdpa-format-files---read_write_sdpa_filecpp). Run the example with:
 
 ```bash
-./semidefiniteProgramming
+./solve_sdp
 ```
 
 #### Code Explanation
 To use the solver, first we declare some parameters:
 
 ```bash
-SA::Settings settings(rel_error);
+SimulatedAnnealingSettings<Point> settings(rel_error);
 ```
 
 Actually, we can further customize the algorithm. The full settings definition is:
 
 ```bash
-SA::Settings settings(rel_error, walkLength, maxNumSteps, k)
+SimulatedAnnealingSettings<Point> settings(rel_error, walkLength, maxNumSteps, k)
 ```
 
 - rel_error: The desired relative error.
-- walkLength: Default and recommended is 1. This solver uses the [HMC random walk](#sample-with-hmc-boltzmann-distribution---boltzmannhmcwalkcpp).
+- walkLength: Default and recommended is 1. This solver uses the [HMC random walk](#sample-with-hmc-boltzmann-distribution---boltzmann_hmc_walkcpp).
   How many points the walk will "burn" before returning a sample.
 - maxNumSteps: Default is -1 (infinite). How many steps we will allow the algorithm.
 - k: Default is 0.5. Lower values may achieve faster convergence.
 
-Next we declare the solver:
+Next we can solve the program:
 
 ```bash
-SA simulatedAnnealing(&spectrahedron, objFunction, settings, &initialPoint);
+NT min = solve_sdp(spectrahedron, objFunction, settings, initialPoint, sol ,verbose);
 ```
 
 - spectrahedron: Instance of class Spectrahedron (a linear matrix inequality).
 - objFunction: The objective function of the program.
 - Settings: As above.
 - initialPoint: An interior point in the spectrahedron.
-
-And then we can call the solver:
-
-```bash
-NT min = simulatedAnnealing.solve(sol, verbose);
-```
-
 - min: The estimated minimum value
 - sol: At which point in the spectrahedron (returned by the solver)
 - verbose: If true, print useful information.

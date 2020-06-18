@@ -5,7 +5,7 @@
 # Licensed under GNU LGPL.3, see LICENCE file
 
 
-add_executable (readWriteSdpaFile readWriteSdpaFile.cpp)
+add_executable (read_write_sdpa_file read_write_sdpa_file.cpp)
 
 
 # Find LAPACK and BLAS
@@ -32,11 +32,11 @@ IF (OPENBLAS_LIB)
             message( STATUS "GFORTRAN_LIB found: ${GFORTRAN_LIB}" )
 
 
-            add_executable (boltzmannHmcWalk boltzmannHmcWalk.cpp)
-            TARGET_LINK_LIBRARIES(boltzmannHmcWalk ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
+            add_executable (boltzmann_hmc_walk boltzmann_hmc_walk.cpp)
+            TARGET_LINK_LIBRARIES(boltzmann_hmc_walk ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
 
-            add_executable (semidefiniteProgramming semidefiniteProgramming.cpp)
-            TARGET_LINK_LIBRARIES(semidefiniteProgramming ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
+            add_executable (solve_sdp solve_sdp.cpp)
+            TARGET_LINK_LIBRARIES(solve_sdp ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
 
         ELSE()
             MESSAGE(STATUS "gfortran is required but it could not be found")
