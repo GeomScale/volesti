@@ -29,9 +29,16 @@ see <http://www.gnu.org/licenses/>.
 #define MP_SOLVE_WRAPPER_H
 
 template <typename NT>
-std::vector<std::pair<NT, NT>> mpsolve(NT t0, std::vector<NT> &coeffs, bool positive_real=false) {
+std::vector<std::pair<NT, NT>> mpsolve(std::vector<NT> &coeffs, bool positive_real=false) {
 
   long n = (long) coeffs.size();
+
+  while (std::abs(coeffs[n-1]) < NT(1e-9)) {
+    n--;
+
+  }
+
+
   mps_monomial_poly *p;
   mps_context *s;
 
@@ -65,6 +72,10 @@ std::vector<std::pair<NT, NT>> mpsolve(NT t0, std::vector<NT> &coeffs, bool posi
   for (long i = 0; i < n - 1; i++) {
     real = (NT) cplx_Re(*results);
     im = (NT) cplx_Im(*results);
+
+    #ifdef VOLESTI_DEBUG
+      std::cout << real << " + " << im << "i" << std::endl;
+    #endif
     results++;
     if (positive_real) {
       if (real > 0 && std::abs(im) < 1e-8) {

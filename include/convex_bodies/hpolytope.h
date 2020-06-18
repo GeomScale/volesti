@@ -214,14 +214,14 @@ public:
 
 
     //Check if Point p is in H-polytope P:= Ax<=b
-    int is_in(Point const& p) const
+    int is_in(Point const& p, NT tol=NT(0)) const
     {
         int m = A.rows();
         const NT* b_data = b.data();
 
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
-            if (*b_data - A.row(i) * p.getCoefficients() < NT(0))
+            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol))
                 return 0;
 
             b_data++;
@@ -237,8 +237,79 @@ public:
         else if (method == "ipopt") {
           return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
         }
+        else if (method == "mpsolve") {
+          return curve_intersect_mpsolve(t_prev, t0, eta, coeffs);
+        }
 
         return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
+    }
+
+    // Compute intersection of H-polytope P := Ax <= b
+    // with polynomial curve p(t) = sum a_j (t - t0)^j
+    // Uses the MPsolve library
+    std::tuple<NT, Point, int> curve_intersect_mpsolve(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs) {
+
+      NT tu = eta > 0 ? t0 + eta : NT(maxNT);
+      NT t = tu;
+      Point dummy(_d);
+
+      for (unsigned int j = 0; j < coeffs.size(); j++) {
+        dummy += coeffs[j] * pow(tu - t0, NT(j));
+      }
+
+      std::tuple<NT, Point, int> result = std::make_tuple(tu, dummy, -1);
+
+      int m = num_of_hyperplanes();
+
+      // Keeps constants A_i^T C_j
+      std::vector<NT> Z(coeffs.size(), NT(0));
+
+      // std::vector<std::pair<NT, NT>> solutions;
+
+      // Iterate over all hyperplanes
+      for (int i = 0; i < m; i++) {
+
+        for (unsigned int j = 0; j < coeffs.size(); j++) {
+          Z[j] = A.row(i) * coeffs[j].getCoefficients();
+
+          #ifdef VOLESTI_DEBUG
+            std::cout << "Z [ " << j << " ] = " << Z[j] << std::endl;
+          #endif
+        }
+
+        // Find point projection on m-th hyperplane
+        Z[0] -= b(i);
+
+        std::vector<std::pair<NT, NT>> solutions = mpsolve<NT>(Z, true);
+
+        for(std::pair<NT, NT> sol: solutions) {
+
+            #ifdef VOLESTI_DEBUG
+              std::cout << "Facet: " << i << " Candidate root is " << sol.first + t0 << std::endl;
+            #endif
+
+            if (t0 + sol.first <= tu && t0 + sol.first < std::get<0>(result)) {
+              t = t0 + sol.first;
+
+              Point p = Point(coeffs[0].dimension());
+
+              for (unsigned int j = 0; j < coeffs.size(); j++) {
+                p += coeffs[j] * pow(t - t0, NT(j));
+              }
+
+              #ifdef VOLESTI_DEBUG
+                std::cout << "Calculcated point is " << p.getCoefficients() << std::endl;
+              #endif
+
+              if (is_in(p, 1e-6)) {
+                result =  std::make_tuple(t, p, i);
+              }
+            }
+        }
+
+      }
+
+      return result;
     }
 
     template <class bfunc>
@@ -257,29 +328,31 @@ public:
       // The problem has O(m * len(coeffs)) solutions if phi's are polys
       // due to the Fundamental Theorem of Algebra
       // Some roots may be common for more than one hyperplanes
-      // The equations may have complex roots as well but they do not
-      // interest us (we don't find them)
-      // std::vector<std::tuple<NT, Point, int>> results;
 
-      std::tuple<NT, Point, int> result = std::make_tuple(NT(maxNT), Point(_d), -1);
 
       // Root
       NT t = t_prev;
       NT tu = eta > 0 ? t0 + eta : NT(maxNT);
+
+      Point dummy(_d);
+
+      for (unsigned int j = 0; j < coeffs.size(); j++) {
+        dummy += coeffs[j] * phi(tu, t0, j, coeffs.size());
+      }
+
+
+      std::tuple<NT, Point, int> result = std::make_tuple(tu, dummy, -1);
 
       // Helper variables for Newton-Raphson
       NT dot_u, num, den, den_tmp;
 
       // Regularization for NR (e.g. at critical points where grad = 0)
       NT reg = (NT) 1e-7;
-      VT u, Z;
+      VT Z;
       int m = num_of_hyperplanes();
 
       // Keeps constants A_i^T C_j
       Z.resize(coeffs.size());
-
-      // Helper vector (lies on m-th hyperplane)
-      u.resize(_d);
 
       // Iterate over all hyperplanes
       for (int i = 0; i < m; i++) {
@@ -292,28 +365,10 @@ public:
           Z(j) = A.row(i) * coeffs[j].getCoefficients();
         }
 
-        // Find point on m-th hyperplane
-        for (unsigned int j = 0; j < _d; j++) u(j, 0) = 0;
-
-        // If b[i] = 0 then point is (0, 0, ..., 0)
-        if (!(b(i) == 0)) {
-          for (unsigned int j = 0; j < _d; j++) {
-            // Else A(i) must have a non-zero entry
-            // Find it and set the coefficient equal to A(i, j) / b(i)
-            // Set the others to 0
-            if (!(A(i, j) == 0)) {
-              u(j, 0) = b(i) / A(i, j);
-              break;
-            }
-          }
-          // The point (0, 0, ..., A(i, j) / b(i), 0, 0, ... ) is on the m-th hyperplane
-        }
-
-        NT dot_u = (NT) (A.row(i) * u.col(0));
 
         for (int tries = 0; tries < MAX_NR_TRIES; tries++) {
 
-          num = - dot_u;
+          num = - b(i);
           den = (NT) 0;
 
           // Calculate numerator f(t) and denominator f'(t)
@@ -342,7 +397,7 @@ public:
               p += coeffs[j] * phi(t, t0, j, coeffs.size());
             }
 
-            // TODO Keep largest positive root
+            // TODO Keep smallest positive root
             if (is_in(p) && t < std::get<0>(result)) result =  std::make_tuple(t, p, i);
 
 
@@ -354,10 +409,7 @@ public:
 
       }
 
-      if (std::get<0>(result) == maxNT) {
-        return std::make_tuple(-1, Point(coeffs[0].dimension()), -1);
-      }
-      else return result;
+      return result;
 
     }
 

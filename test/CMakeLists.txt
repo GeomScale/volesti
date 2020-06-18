@@ -28,6 +28,7 @@ find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-l
 find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
 find_library(PTHREAD NAMES libpthread.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
 
+
 if (NOT LP_SOLVE)
 
   message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
@@ -101,6 +102,17 @@ else ()
 
   add_library(test_main OBJECT test_main.cpp)
 
+  add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME ode_solvers_test_first_order
+          COMMAND ode_solvers_test -tc=first_order)
+  add_test(NAME ode_solvers_test_second_order
+          COMMAND ode_solvers_test -tc=second_order)
+
+  add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME root_finders_test_root_finders
+          COMMAND root_finders_test -tc=root_finders)
+
+  add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
 
   add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
@@ -156,17 +168,6 @@ else ()
   add_test(NAME new_rounding_test_round_skinny_cube
            COMMAND new_rounding_test -tc=round_skinny_cube)
 
-  add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME ode_solvers_test_first_order
-          COMMAND ode_solvers_test -tc=first_order)
-  add_test(NAME ode_solvers_test_second_order
-          COMMAND ode_solvers_test -tc=second_order)
-
-  add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME root_finders_test_root_finders
-          COMMAND root_finders_test -tc=root_finders)
-
-  add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
 
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${PTHREAD} ${GMP} ${MPSOLVE})
@@ -182,8 +183,8 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} ${PTHREAD} ${GMP} ${MPSOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${PTHREAD} ${GMP} ${MPSOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${PTHREAD} ${GMP} ${MPSOLVE})
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT})
-  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT})
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE})
+  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE})
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE})
 
 endif()
