@@ -11,12 +11,18 @@ jobs:
     parallelism: 4
     steps:
        - checkout
-       - run: 
+       - run:
             sudo apt-get update || true;
-            sudo apt-get install cmake lp-solve; 
+            sudo apt-get install cmake lp-solve;
+            sudo apt-get install libeigen3-dev coinor-libipopt-dev;
+            git clone https://github.com/ethz-adrl/ifopt.git && cd ifopt
+mkdir build && cd build;
+            cmake .. && make && sudo make install;
+            git clone https://github.com/robol/MPSolve && cd MPSolve;
+            make && sudo make install;
             rm -rf build;
-            mkdir build; 
+            mkdir build;
             cd build;
             cmake ../test;
-            make; 
+            make;
             ctest -j8 --verbose;
