@@ -420,7 +420,7 @@ void call_test_first_order() {
   test_euler_constrained<NT>();
   test_rk4_constrained<NT>();
   test_bs_constrained<NT>();
-  test_collocation_constrained<NT>();
+  // test_collocation_constrained<NT>();
 
   std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
   test_euler_2d_constrained<NT>();
