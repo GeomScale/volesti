@@ -77,9 +77,10 @@ public:
     xs_prev = xs;
     t += eta;
 
-    bool flag = false;
+    bool flag;
 
     for (unsigned int i = 0; i < xs.size(); i++) {
+      flag = false;
       Point y = Fs[i](xs_prev, t);
       y = eta * y;
 

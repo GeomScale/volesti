@@ -262,7 +262,7 @@ public:
           std::cout << "new point is " << xs[i].getCoefficients().transpose() << std::endl;
 
 
-          while (!Ks[i]->is_in(xs[i])) {
+          while (!Ks[i]->is_in(xs[i]), 1e-6) {
             std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
 
             if (pbpair.first < 0) {

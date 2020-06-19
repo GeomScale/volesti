@@ -76,8 +76,10 @@ public:
     xs_prev = xs;
     t += eta;
     unsigned int x_index, v_index;
-
+    bool flag;
     for (unsigned int i = 1; i < xs.size(); i += 2) {
+      flag = false;
+
       x_index = i - 1;
       v_index = i;
 
@@ -101,10 +103,12 @@ public:
           if (pbpair.first < 0) {
             xs[x_index] += (pbpair.first * 0.99) * y;
             Ks[x_index]->compute_reflection(y, xs[x_index], pbpair.second);
+            xs[x_index] += y;
           }
           else {
+            if (flag) break;
             xs[x_index] += y;
-            // break;
+            flag = true;
           }
         } while (!Ks[x_index]->is_in(xs[x_index]));
       }
