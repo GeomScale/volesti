@@ -30,17 +30,31 @@ see <http://www.gnu.org/licenses/>.
   (e.g. polynomials, rational functions, splines). The boundary oracle
   returns one root (in general multiple roots exist) assuming that for t >= t_p
   the curve p(t) penetrates the H-polytope. The problem reduces to the following
-  non-linear optimization problem
+  non-linear optimization problem for finding the maximum t such that p(t) penetrates
+  the polytope where t lies inside [t0, t0 + eta] for some eta > 0
 
   max t
 
   subject to
-              t >= 0
+              t >= t0
+              t <= t0 + eta
               A p(t) <= b
 
   The second constraint can be rewritten as (A*C) * Phi <= b which is eventually
   the optimization problem we solve where the vector Phi contains all the basis
   functions and C has c_j's as columns.
+
+  The second optimization problem that can be solved is the following
+
+  min_i min t_i
+
+  subject to
+
+            t0 <= t_i <= t0 + eta
+            A_i^T p(t_i) = b_i
+            A_j^T p(t_i) <= b_i         j neq i
+
+
 
   We use interior-point methods to solve the non-linear optimization program
   using COIN-OR ipopt and the ifopt interface for Eigen + ipopt.
@@ -96,15 +110,21 @@ public:
 template <typename VT, typename NT>
 class HPolyOracleCost : public CostTerm {
 public:
-  HPolyOracleCost() : CostTerm("h_poly_cost") {};
+  std::string method;
+
+  HPolyOracleCost(std::string method_) : CostTerm("h_poly_cost"), method(method_) {};
 
   NT GetCost() const override {
     VectorXd T = GetVariables()->GetComponent("t")->GetValues();
-    return - T(0);
+    if (method == "max_pos") return - T(0);
+    else if (method == "min_pos") return T(0);
   }
 
   void FillJacobianBlock (std::string var_set, Jacobian& jac) const override {
-    if (var_set == "t") jac.coeffRef(0, 0) = (NT) (-1.0);
+    if (var_set == "t") {
+      if (method == "max_pos") jac.coeffRef(0, 0) = (NT) (-1.0);
+      else if (method == "min_pos")  jac.coeffRef(0, 0) = (NT) (1.0);
+    }
   }
 
 };
@@ -119,9 +139,12 @@ public:
   bfunc phi, grad_phi;
   NT t0;
   int m, M;
+  std::string method;
+  int index;
 
-  HPolyOracleFeasibility(MT &C_, VT &b_, NT t0_, bfunc basis, bfunc basis_grad) :
-    C(C_), b(b_), t0(t0_), phi(basis), grad_phi(basis_grad), ConstraintSet(C_.rows(), "h_poly_feasibility") {
+  HPolyOracleFeasibility(MT &C_, VT &b_, NT t0_, bfunc basis, bfunc basis_grad, std::string method_, int i) :
+    C(C_), b(b_), t0(t0_), phi(basis), grad_phi(basis_grad), ConstraintSet(C_.rows(), "h_poly_feasibility"),
+    method(method_), index(i) {
       m = C_.rows();
       M = C_.cols();
     };
@@ -130,7 +153,12 @@ public:
   VecBound GetBounds() const override {
     VecBound bounds(GetRows());
     for (int i = 0; i < m; i++) {
-      bounds.at(i) = Bounds((NT) (-inf), b(i));
+      if (method == "min_pos" && i == index) {
+        bounds.at(i) = Bounds(b(i), b(i));
+      }
+      else {
+        bounds.at(i) = Bounds((NT) (-inf), b(i));
+      }
     }
     return bounds;
   }
@@ -171,10 +199,9 @@ public:
 
 // Helper function that calls the optimization problem (called from hpolytope.h)
 template <typename MT, typename VT, typename Point, typename NT, class bfunc>
-std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, NT eta, MT &A, VT &b, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi)
+std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, NT eta, MT &A, VT &b, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, std::string solution="max_pos")
 {
 
-  Problem nlp;
 
   MT C, C_tmp;
   C_tmp.resize(coeffs[0].dimension(), coeffs.size());
@@ -189,13 +216,7 @@ std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, 
   // C: constraints x num_coeffs
   C = A * C_tmp;
 
-  std::shared_ptr<HPolyOracleVariables<VT, NT>> hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t0, eta));
-  std::shared_ptr<HPolyOracleCost<VT, NT>> hpolyoraclecost (new HPolyOracleCost<VT, NT>());
-  std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>> hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>(C, b, t0, phi, grad_phi));
-
-  nlp.AddVariableSet  (hpolyoraclevariables);
-  nlp.AddCostSet      (hpolyoraclecost);
-  nlp.AddConstraintSet(hpolyoraclefeasibility);
+  // Initialize COIN-OR ipopt solver
   IpoptSolver ipopt;
   ipopt.SetOption("linear_solver", "mumps");
   ipopt.SetOption("jacobian_approximation", "exact");
@@ -206,10 +227,50 @@ std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, 
   ipopt.SetOption("print_level", 0);
   ipopt.SetOption("sb", "yes");
 
-  ipopt.Solve(nlp);
+  NT t, t_tmp;
 
-  NT t = nlp.GetOptVariables()->GetValues()(0);
+  if (solution == "max_pos") {
 
+      Problem nlp;
+      std::shared_ptr<HPolyOracleVariables<VT, NT>> hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t0, eta));
+      std::shared_ptr<HPolyOracleCost<VT, NT>> hpolyoraclecost (new HPolyOracleCost<VT, NT>(solution));
+      std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>> hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>(C, b, t0, phi, grad_phi, "max_pos", 0));
+
+      nlp.AddVariableSet  (hpolyoraclevariables);
+      nlp.AddCostSet      (hpolyoraclecost);
+      nlp.AddConstraintSet(hpolyoraclefeasibility);
+
+      ipopt.Solve(nlp);
+
+      t = nlp.GetOptVariables()->GetValues()(0);
+
+  }
+
+  if (solution == "min_pos") {
+    int m = A.rows();
+
+    t = eta > 0 ? t0 + eta : std::numeric_limits<NT>::max();
+
+    for (int i = 0; i < m; i++) {
+
+      Problem nlp;
+      std::shared_ptr<HPolyOracleVariables<VT, NT>> hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t0, eta));
+      std::shared_ptr<HPolyOracleCost<VT, NT>> hpolyoraclecost (new HPolyOracleCost<VT, NT>(solution));
+      std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>> hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>(C, b, t0, phi, grad_phi, "min_pos", i));
+
+      nlp.AddVariableSet  (hpolyoraclevariables);
+      nlp.AddCostSet      (hpolyoraclecost);
+      nlp.AddConstraintSet(hpolyoraclefeasibility);
+
+      t_tmp = nlp.GetOptVariables()->GetValues()(0);
+
+      std::cout << "t is " << t_tmp << std::endl;
+
+      if (t_tmp < t && t_tmp > t0) t = t_tmp;
+
+
+    }
+  }
 
   Point p(coeffs[0].dimension());
 
@@ -221,8 +282,6 @@ std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, 
 
   int f_min = -1;
   NT dist_min = std::numeric_limits<NT>::max();
-
-
 
   for (int i = 0; i < A.rows(); i++) {
     if (*b_data == 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) < dist_min) {
@@ -238,6 +297,5 @@ std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, 
 
   return std::make_tuple(t, p, f_min);
 }
-
 
 #endif
