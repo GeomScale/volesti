@@ -143,6 +143,7 @@ public:
   void step() {
     ks = ptsv(order(), xs);
     t_prev = t;
+    bool flag = false;
 
     for (unsigned int ord = 0; ord < order(); ord++) {
       // Initialize t to previous
@@ -169,6 +170,7 @@ public:
 
         }
         else {
+          flag = false;
           // Find intersection (assuming a line trajectory) between x and y
           do {
             std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
@@ -176,10 +178,13 @@ public:
             if (pbpair.first < 0) {
               xs[i] += (pbpair.first * 0.99) * y;
               Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+
+              xs[i] += y;
             }
             else {
+              if (flag) break;
               xs[i] += y;
-              // break;
+              flag = true;
             }
           } while (!Ks[i]->is_in(xs[i]));
         }

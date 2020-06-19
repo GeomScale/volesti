@@ -270,9 +270,7 @@ public:
               Ks[i]->compute_reflection(y, xs[i], pbpair.second);
               xs[i] += y;
             }
-            else {
-              break;
-            }
+            else break;
 
           }
 
