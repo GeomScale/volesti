@@ -24,6 +24,7 @@ jobs:
             sudo make install;
             git clone https://github.com/robol/MPSolve;
             cd MPSolve;
+            ./autogen.sh;
             ./configure;
             make;
             sudo make install;
