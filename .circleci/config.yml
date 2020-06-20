@@ -22,6 +22,8 @@ jobs:
             cmake ..;
             make;
             sudo make install;
+            cd ..;
+            cd ..;
             git clone https://github.com/robol/MPSolve;
             cd MPSolve;
             ./autogen.sh;
