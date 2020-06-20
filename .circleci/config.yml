@@ -14,7 +14,7 @@ jobs:
        - run:
             sudo apt-get update || true;
             sudo apt-get install cmake lp-solve;
-            sudo apt-get install libgmp-dev libeigen3-dev coinor-libipopt-dev;
+            sudo apt-get install bison libgmp-dev libeigen3-dev coinor-libipopt-dev;
             git clone https://github.com/ethz-adrl/ifopt.git;
             cd ifopt;
             mkdir build;
