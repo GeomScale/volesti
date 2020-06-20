@@ -60,7 +60,7 @@ void test_euler(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
+    typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -68,7 +68,7 @@ void test_euler(){
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    EulerODESolver<Point, NT, Vpolytope> euler_solver = EulerODESolver<Point, NT, Vpolytope>(0, 0.01, q, Fs);
+    EulerODESolver<Point, NT, Hpolytope> euler_solver = EulerODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs);
     euler_solver.steps(1000);
     NT err=0.001;
     NT error = euler_solver.xs[0].dot(euler_solver.xs[0]);
@@ -83,7 +83,7 @@ void test_bs(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
+    typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -91,7 +91,7 @@ void test_bs(){
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    BSODESolver<Point, NT, Vpolytope> bs_solver = BSODESolver<Point, NT, Vpolytope>(0, 0.1, q, Fs);
+    BSODESolver<Point, NT, Hpolytope> bs_solver = BSODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs);
     bs_solver.steps(1000);
 
     NT err=0.001;
@@ -109,7 +109,7 @@ void test_collocation(){
     typedef std::vector<NT> coeffs;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
+    typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -129,7 +129,7 @@ void test_collocation(){
     // Trapezoidal collocation
     coeffs cs{0.0, 0.0, 1.0};
 
-    CollocationODESolver<Point, NT, Vpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Vpolytope, bfunc>(0, 1.0, q, Fs, cs, phi, grad_phi, "mpsolve");
+    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Hpolytope, bfunc>(0, 1.0, q, Fs, cs, phi, grad_phi, "mpsolve");
     c_solver.steps(100);
     NT err=0.001;
     NT error = c_solver.xs[0].dot(c_solver.xs[0]);
@@ -193,7 +193,7 @@ void test_rk4(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
+    typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -201,7 +201,7 @@ void test_rk4(){
     q0.set_coord(0, 1.0);
     pts q;
     q.push_back(q0);
-    RKODESolver<Point, NT, Vpolytope> rk_solver = RKODESolver<Point, NT, Vpolytope>(0, 0.1, q, Fs);
+    RKODESolver<Point, NT, Hpolytope> rk_solver = RKODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs);
     rk_solver.steps(1000);
 
     NT err=0.001;
@@ -218,15 +218,15 @@ void test_leapfrog_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
-    typedef std::vector<Vpolytope*> bounds;
+    typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     func F = [](pts x, NT t) { return (-2.0) * x[0]; };
     Fs.push_back(F);
     Fs.push_back(F);
 
     // Solve in P x R for
-    Vpolytope P = gen_cube<Vpolytope>(1, true);
+    Hpolytope P = gen_cube<Hpolytope>(1, true);
     bounds Ks{&P, NULL};
 
     Point x0 = Point(1);
@@ -234,7 +234,7 @@ void test_leapfrog_constrained(){
     x0.set_coord(0, 0);
     v0.set_coord(0, 2.0);
     pts q{x0, v0};
-    LeapfrogODESolver<Point, NT, Vpolytope> leapfrog_solver = LeapfrogODESolver<Point, NT, Vpolytope>(0, 0.01, q, Fs, Ks);
+    LeapfrogODESolver<Point, NT, Hpolytope> leapfrog_solver = LeapfrogODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs, Ks);
 
     for (int i = 0; i < 1000; i++) {
       leapfrog_solver.step();
@@ -251,7 +251,7 @@ void test_leapfrog(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
+    typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -261,7 +261,7 @@ void test_leapfrog(){
     x0.set_coord(0, 0);
     v0.set_coord(0, 1.0);
     pts q{x0, v0};
-    LeapfrogODESolver<Point, NT, Vpolytope> leapfrog_solver = LeapfrogODESolver<Point, NT, Vpolytope>(0, 0.01, q, Fs);
+    LeapfrogODESolver<Point, NT, Hpolytope> leapfrog_solver = LeapfrogODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs);
 
     for (int i = 0; i < 1000; i++) {
       leapfrog_solver.step();
@@ -279,21 +279,21 @@ void test_euler_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
-    typedef std::vector<Vpolytope*> bounds;
+    typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     bounds Ks;
     func F = [](pts xs, NT t) { return xs[0]; };
     Fs.push_back(F);
 
-    Vpolytope P = gen_cube<Vpolytope>(1, true);
+    Hpolytope P = gen_cube<Hpolytope>(1, true);
     Ks.push_back(&P);
 
     Point q0 = Point(1);
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    EulerODESolver<Point, NT, Vpolytope> euler_solver = EulerODESolver<Point, NT, Vpolytope>(0, 0.001, q, Fs, Ks);
+    EulerODESolver<Point, NT, Hpolytope> euler_solver = EulerODESolver<Point, NT, Hpolytope>(0, 0.001, q, Fs, Ks);
     euler_solver.steps(1000);
 
     NT err=0.01;
@@ -310,21 +310,21 @@ void test_bs_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
-    typedef std::vector<Vpolytope*> bounds;
+    typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     bounds Ks;
     func F = [](pts xs, NT t) { return xs[0]; };
     Fs.push_back(F);
 
-    Vpolytope P = gen_cube<Vpolytope>(1, true);
+    Hpolytope P = gen_cube<Hpolytope>(1, true);
     Ks.push_back(&P);
 
     Point q0 = Point(1);
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    BSODESolver<Point, NT, Vpolytope> bs_solver = BSODESolver<Point, NT, Vpolytope>(0, 0.01, q, Fs, Ks);
+    BSODESolver<Point, NT, Hpolytope> bs_solver = BSODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs, Ks);
 
     bs_solver.steps(1000);
 
@@ -343,8 +343,8 @@ void test_rk4_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
-    typedef std::vector<Vpolytope*> bounds;
+    typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     func F = [](pts x, NT t) { return  x[0]; };
     Fs.push_back(F);
@@ -353,10 +353,10 @@ void test_rk4_constrained(){
     pts q;
     q.push_back(q0);
 
-    Vpolytope P = gen_cube<Vpolytope>(1, true);
+    Hpolytope P = gen_cube<Hpolytope>(1, true);
 
     bounds Ks{&P};
-    RKODESolver<Point, NT, Vpolytope> rk_solver = RKODESolver<Point, NT, Vpolytope>(0, 0.01, q, Fs, Ks);
+    RKODESolver<Point, NT, Hpolytope> rk_solver = RKODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs, Ks);
 
     rk_solver.steps(1000);
 
@@ -375,8 +375,8 @@ void test_euler_2d_constrained(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef boost::mt19937    RNGType;
-    typedef VPolytope<Point>  Vpolytope;
-    typedef std::vector<Vpolytope*> bounds;
+    typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     bounds Ks;
     func F = [](pts xs, NT t) {
@@ -391,7 +391,7 @@ void test_euler_2d_constrained(){
 
     Fs.push_back(F);
 
-    Vpolytope P = gen_cube<Vpolytope>(2, true);
+    Hpolytope P = gen_cube<Hpolytope>(2, true);
     Ks.push_back(&P);
 
     Point q0 = Point(2);
@@ -399,7 +399,7 @@ void test_euler_2d_constrained(){
     q0.set_coord(1, 0.2);
     pts q;
     q.push_back(q0);
-    EulerODESolver<Point, NT, Vpolytope> euler_solver = EulerODESolver<Point, NT, Vpolytope>(0, 0.1, q, Fs, Ks);
+    EulerODESolver<Point, NT, Hpolytope> euler_solver = EulerODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs, Ks);
     euler_solver.steps(1000);
     CHECK(euler_solver.xs[0].dot(euler_solver.xs[0]) < 1.1);
 
@@ -409,12 +409,12 @@ void test_euler_2d_constrained(){
 
 template <typename NT>
 void call_test_first_order() {
-
+  
   std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
   test_euler<NT>();
   test_rk4<NT>();
   test_bs<NT>();
-  test_collocation<NT>();
+  // test_collocation<NT>();
 
   std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
   test_euler_constrained<NT>();
@@ -435,7 +435,7 @@ void call_test_second_order() {
   //
   std::cout << "--- Testing solution to d^2x / dt^2 = x in [-1, 1]" << std::endl;
   test_leapfrog_constrained<NT>();
-  // //
+
   std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
   test_euler_2d_constrained<NT>();
 

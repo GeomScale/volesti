@@ -95,7 +95,7 @@ public:
           std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
 
           // If point is outside it would yield a negative param
-          if (pbpair.first < 0) {
+          if (pbpair.first >= 0 && pbpair.first <= 1) {
             // Advance to point on the boundary
             xs[i] += (pbpair.first * 0.99) * y;
             // Reflect ray y on the boundary point y now is the reflected ray

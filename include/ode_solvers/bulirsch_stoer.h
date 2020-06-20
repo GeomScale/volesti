@@ -177,7 +177,7 @@ public:
           do {
             std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
 
-            if (pbpair.first < 0) {
+            if (pbpair.first >= 0 && pbpair.first <= 1) {
               xs[i] += (pbpair.first * 0.99) * y;
               Ks[i]->compute_reflection(y, xs[i], pbpair.second);
               xs[i] += y;
