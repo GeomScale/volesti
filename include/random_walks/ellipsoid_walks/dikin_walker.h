@@ -15,12 +15,8 @@ public:
 
     DikinWalker() {}
 
-    //DikinWalker(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& initialization, const Eigen::Matrix<Dtype, Eigen::Dynamic,
-    //        Eigen::Dynamic>& cons_A, const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& cons_b, const Dtype r) :
-    //        Walker<Dtype>(initialization, cons_A, cons_b), r_(r){}
-
-    void init(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &initialization, const Eigen::Matrix <Dtype,
-    Eigen::Dynamic, Eigen::Dynamic> &cons_A, const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &cons_b, const Dtype r) {
+    DikinWalker(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &initialization, const Eigen::Matrix <Dtype,
+    Eigen::Dynamic, Eigen::Dynamic> &cons_A, const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &cons_b, const Dtype r){
         nb_dim_ = cons_A.cols();
         nb_cons_ = cons_A.rows();
         nb_curr_samples_ = 1;

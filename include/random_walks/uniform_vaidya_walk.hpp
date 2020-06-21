@@ -61,7 +61,7 @@ struct VaidyaWalk
             MT A = P.get_mat();
             VT b = P.get_vec(), _vec_point = VT::Zero(P.dimension()), p0 = p.getCoefficients();
             NT r = P.ComputeInnerBall().second / NT(2);
-            vaidyaw.init(p0, A, b, r);
+            vaidyaw = VaidyaWalker<NT>(p0, A, b, r);
         }
 
         Walk(Polytope &P, Point & p, RandomNumberGenerator &, parameters const& params)
@@ -70,7 +70,7 @@ struct VaidyaWalk
             VT b = P.get_vec(), _vec_point = VT::Zero(P.dimension()), p0 = p.getCoefficients();
             NT r = params.set_L ? params.m_L
                           : P.ComputeInnerBall().second / NT(2);
-            vaidyaw.init(p0, A, b, r);
+            vaidyaw = VaidyaWalker<NT>(p0, A, b, r);
         }
 
         template

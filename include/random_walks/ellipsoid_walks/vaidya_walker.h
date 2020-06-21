@@ -15,15 +15,9 @@ public:
 
     VaidyaWalker() {}
 
-    //VaidyaWalker(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &initialization, const Eigen::Matrix <Dtype,
-    //Eigen::Dynamic, Eigen::Dynamic> &cons_A, const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &cons_b, const Dtype r) :
-    //        nb_dim_(cons_A.cols()),
-    //        nb_cons_(cons_A.rows()), nb_curr_samples_(1), initialization_(initialization), cons_A_(cons_A),
-    //        cons_b_(cons_b),
-    //        curr_sample_(initialization), r_(r) {}
-
-    void init(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &initialization, const Eigen::Matrix <Dtype,
-    Eigen::Dynamic, Eigen::Dynamic> &cons_A, const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &cons_b, const Dtype r) {
+    VaidyaWalker(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &initialization, const Eigen::Matrix <Dtype,
+    Eigen::Dynamic, Eigen::Dynamic> &cons_A, const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &cons_b, const Dtype r)
+    {
       nb_dim_ = cons_A.cols();
       nb_cons_ = cons_A.rows();
       nb_curr_samples_ = 1;
