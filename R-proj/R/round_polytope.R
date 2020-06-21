@@ -27,9 +27,9 @@
 #' Z = gen_rand_zonotope(2,6)
 #' ListZono = round_polytope(Z)
 #' @export
-round_polytope <- function(P, seed = NULL){
+round_polytope <- function(P, method = NULL, seed = NULL){
   
-  ret_list = rounding(P, seed)
+  ret_list = rounding(P, method, seed)
   
   #get the matrix that describes the polytope
   Mat = ret_list$Mat

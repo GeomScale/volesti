@@ -31,6 +31,7 @@
 #include "convex_bodies/zonoIntersecthpoly.h"
 #include "convex_bodies/vpolyintersectvpoly.h"
 #include "volume/rounding.hpp"
+#include "preprocess/mve_rounding.hpp"
 #include "random_walks/uniform_cdhr_walk.hpp"
 #include "sampling/random_point_generators.hpp"
 

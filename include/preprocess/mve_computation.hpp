@@ -21,7 +21,7 @@
 
 
 template <typename MT, typename VT, typename NT>
-std::pair<std::pair<MT, VT>, bool> mve_computation(MT const& A, VT const& b, VT const& x0,
+std::pair<std::pair<MT, VT>, bool> mve_computation(MT A, VT b, VT const& x0,
              unsigned int const& maxiter, NT const& tol, NT const& reg)
 {
     int m = A.rows(), n = A.cols();
@@ -109,7 +109,7 @@ std::pair<std::pair<MT, VT>, bool> mve_computation(MT const& A, VT const& b, VT 
         if ((res < tol * (1.0 + bnrm) && rmu <= minmu) || (i > 100 && prev_obj != std::numeric_limits<NT>::lowest() &&
                                                            (prev_obj >= (1.0 - tol) * objval ||
                                                             objval <= (1.0 - tol) * prev_obj))) {
-            std::cout<<"iteration = "<<i<<std::endl;
+            //std::cout<<"iteration = "<<i<<std::endl;
             //std::cout << "converged!" << std::endl;
             x += x0;
             converged = true;

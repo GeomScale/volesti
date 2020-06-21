@@ -174,13 +174,14 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' Internal rcpp function for the rounding of a convex polytope
 #'
 #' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'mve'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @keywords internal
 #'
 #' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
-rounding <- function(P, seed = NULL) {
-    .Call(`_volesti_rounding`, P, seed)
+rounding <- function(P, method = NULL, seed = NULL) {
+    .Call(`_volesti_rounding`, P, method, seed)
 }
 
 #' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).

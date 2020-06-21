@@ -23,13 +23,15 @@
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
+//' @param method Optional. The method to use for rounding, a) \code{'mve'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid.
 //' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @keywords internal
 //'
 //' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 // [[Rcpp::export]]
-Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue){
+Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_NilValue,
+                     Rcpp::Nullable<double> seed = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -43,6 +45,11 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
 
     bool cdhr = false;
     unsigned int n = P.field("dimension"), walkL, type = P.field("type");
+
+    std::string mthd = std::string("mve");
+    if(method.isNotNull()) {
+        mthd =  Rcpp::as<std::string>(method);
+    }
 
     RNGType rng(n);
     if (seed.isNotNull()) {
@@ -68,6 +75,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
         case 1: {
             // Hpolytope
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            HP.normalize();
             InnerBall = HP.ComputeInnerBall();
             break;
         }
@@ -90,10 +98,14 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
     std::pair< std::pair<MT, VT>, NT > round_res;
     switch (type) {
         case 1: {
-            if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
-            } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+            if (mthd.compare(std::string("mve"))==0) {
+                round_res = mve_rounding<MT, VT>(HP, InnerBall, rng);
+            } else if (mthd.compare(std::string("mve_ps"))==0) {
+                if (cdhr) {
+                    round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                }
             }
             Mat = extractMatPoly(HP);
             break;
