@@ -113,6 +113,8 @@ else ()
           COMMAND root_finders_test -tc=root_finders)
 
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME boundary_oracles_test_h_poly_oracles
+    COMMAND boundary_oracles_test -tc=h_poly_oracles)
 
   add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
