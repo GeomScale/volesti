@@ -153,7 +153,7 @@ void test_collocation_constrained(){
     func F = [](pts xs, NT t) { return xs[0]; };
     Fs.push_back(F);
 
-    Hpolytope P = gen_cube<Hpolytope>(3, false);
+    Hpolytope P = gen_cube<Hpolytope>(1, false);
     Ks.push_back(&P);
 
     bfunc phi = [](NT t, NT t0, unsigned int j, unsigned int order) {
@@ -167,20 +167,15 @@ void test_collocation_constrained(){
     // Trapezoidal collocation
     coeffs cs{0.0, 0.0, 1.0};
 
-    Point q0 = Point(3);
+    Point q0 = Point(1);
     q0.set_coord(0, 0.5);
-    q0.set_coord(1, 0.5);
-    q0.set_coord(2, 0.5);
     pts q;
     q.push_back(q0);
-    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Hpolytope, bfunc>(0, 0.1, q, Fs, Ks, cs, phi, grad_phi, "mpsolve");
-    for (int i = 0; i < 200; i++) {
-        c_solver.step();
-        c_solver.print_state();
-    }
+    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Hpolytope, bfunc>(0, 0.05, q, Fs, Ks, cs, phi, grad_phi, "mpsolve");
+    c_solver.steps(1000);
 
-    NT err=0.01;
-    NT target = 3.0;
+    NT err=0.1;
+    NT target = 1.0;
     NT error = std::abs((c_solver.xs[0].dot(c_solver.xs[0]) - target) / target);
     CHECK(error < err);
 }
@@ -409,18 +404,18 @@ void test_euler_2d_constrained(){
 
 template <typename NT>
 void call_test_first_order() {
-  
+
   std::cout << "--- Testing solution to dx / dt = -x" << std::endl;
   test_euler<NT>();
   test_rk4<NT>();
   test_bs<NT>();
-  // test_collocation<NT>();
+  test_collocation<NT>();
 
   std::cout << "--- Testing solution to dx / dt = x in [-1, 1]" << std::endl;
   test_euler_constrained<NT>();
   test_rk4_constrained<NT>();
   test_bs_constrained<NT>();
-  // test_collocation_constrained<NT>();
+  test_collocation_constrained<NT>();
 
   std::cout << "--- Testing solution to dx / dt = v, dv / dt = -x in [-1, 1]^2" << std::endl;
   test_euler_2d_constrained<NT>();

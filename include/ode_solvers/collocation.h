@@ -231,42 +231,37 @@ public:
 
     // Compute next point
     for (unsigned int i = 0; i < xs.size(); i++) {
-      xs[i] = Point(xs[i].dimension());
       if (Ks[i] == NULL) {
+        xs[i] = Point(xs[i].dimension());
         for (unsigned int ord = 0; ord < order(); ord++) {
           xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
         }
       } else {
-        std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev, 1.1 * eta, as[i], phi, grad_phi, boundary_oracle_method);
+        std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev, eta, as[i], phi, grad_phi, boundary_oracle_method);
 
-        std::cout << "t is " << std::get<0>(result) << std::endl;
-        std::cout << "facet is " << std::get<2>(result) << std::endl;
-
-        if (std::get<2>(result) == -1) {
-          std::cout << "inside" << std::endl;
+        // Point is inside polytope
+        if (std::get<2>(result) == -1 && Ks[i]->is_in(std::get<1>(result))) {
+          // std::cout << "Inside" << std::endl;
+          xs[i] = Point(xs[i].dimension());
           for (unsigned int ord = 0; ord < order(); ord++) {
             xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
           }
         }
         else {
-          std::cout << "not inside" << std::endl;
+          // std::cout << "outside" << std::endl;
           // Compute ray
-          y = std::get<1>(result) - xs_prev[i];
-          xs[i] = std::get<1>(result);
+          y = (0.95 * std::get<1>(result)) - xs_prev[i];
+          xs[i] = xs_prev[i];
+
           // Reflect ray along facet
           Ks[i]->compute_reflection(y, xs_prev[i], std::get<2>(result));
-
-
           xs[i] += y;
 
-          std::cout << "new point is " << xs[i].getCoefficients().transpose() << std::endl;
-
-
-          while (!Ks[i]->is_in(xs[i]), 1e-6) {
+          while (!Ks[i]->is_in(xs[i])) {
             std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
 
             if (pbpair.first >= 0 && pbpair.first <= 1) {
-              xs[i] += (pbpair.first * 0.99) * y;
+              xs[i] += (pbpair.first * 0.95) * y;
               Ks[i]->compute_reflection(y, xs[i], pbpair.second);
               xs[i] += y;
             }
