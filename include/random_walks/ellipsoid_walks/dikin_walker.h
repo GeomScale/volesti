@@ -8,7 +8,6 @@
 #include <Eigen/Dense>
 #include "math_functions.h"
 
-//namespace pwalk {
 
 template <typename Dtype>
 class DikinWalker {
@@ -58,11 +57,13 @@ public:
     }
 
     void proposal(Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& new_sample){
-        Eigen::Matrix<Dtype, Eigen::Dynamic, 1> gaussian_step = Eigen::Matrix<Dtype, Eigen::Dynamic, 1>::Zero(this->nb_dim_);
+        Eigen::Matrix<Dtype, Eigen::Dynamic, 1> gaussian_step =
+                        Eigen::Matrix<Dtype, Eigen::Dynamic, 1>::Zero(this->nb_dim_);
         sample_gaussian<Dtype>(this->nb_dim_, 0., 1., gaussian_step);
 
         // get hessian
-        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess = Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(this->nb_dim_, this->nb_dim_);
+        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess = 
+                        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(this->curr_sample_, new_sqrt_inv_hess);
 
         new_sample = this->curr_sample_ + r_ / std::sqrt(Dtype(this->nb_dim_))  * (new_sqrt_inv_hess * gaussian_step);
@@ -70,10 +71,12 @@ public:
 
     bool acceptRejectReverse(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& new_sample){
         // get hessian on x
-        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_x = Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(this->nb_dim_, this->nb_dim_);
+        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_x = 
+                        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(this->curr_sample_, new_sqrt_inv_hess_x);
         // get hessian on y
-        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_y = Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(this->nb_dim_, this->nb_dim_);
+        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_y = 
+                        Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(new_sample, new_sqrt_inv_hess_y);
 
         Dtype scale = r_/std::sqrt(Dtype(this->nb_dim_));
@@ -106,7 +109,9 @@ public:
         }
     }
 
-    void sqrtInvHessBarrier(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& new_sample, Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>& new_sqrt_inv_hess){
+    void sqrtInvHessBarrier(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& new_sample, Eigen::Matrix<Dtype,
+                            Eigen::Dynamic, Eigen::Dynamic>& new_sqrt_inv_hess)
+    {
         Eigen::Matrix<Dtype, Eigen::Dynamic, 1> inv_slack = (this->cons_b_ - this->cons_A_ * new_sample).cwiseInverse();
 
         Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic> half_hess = inv_slack.asDiagonal()* this->cons_A_;
@@ -139,6 +144,5 @@ private:
     Eigen::Matrix<Dtype, Eigen::Dynamic, 1> curr_sample_;
 };
 
-//} // namespace pwalk
 
 #endif // PWALK_DIKIN_WALKER_HPP_

@@ -7,9 +7,7 @@
 
 #include <Eigen/Dense>
 #include "math_functions.h"
-//#include "walker.h"
 
-//namespace pwalk {
 
 template <typename Dtype>
 class VaidyaWalker {
@@ -160,8 +158,6 @@ private:
     // Current vector
     Eigen::Matrix<Dtype, Eigen::Dynamic, 1> curr_sample_;
 };
-
-//} // namespace pwalk
 
 #endif // PWALK_VAIDYA_WALKER_HPP_
 

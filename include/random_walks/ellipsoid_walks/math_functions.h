@@ -7,8 +7,6 @@
 #include <boost/random.hpp>
 #include <cmath>
 
-//namespace pwalk {
-
 // Define random number generator type
 typedef boost::mt19937 rng_t;
 
@@ -36,7 +34,9 @@ Dtype rng_uniform(const Dtype a, const Dtype b) {
 }
 
 template <typename Dtype>
-Dtype gaussian_density(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& x, const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& mu, const Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>& sqrt_cov) {
+Dtype gaussian_density(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& x, 
+                       const Eigen::Matrix<Dtype, Eigen::Dynamic, 1>& mu,
+                       const Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>& sqrt_cov) {
     Eigen::Matrix<Dtype, Eigen::Dynamic, 1> c = sqrt_cov * (x - mu);
     return std::exp(-0.5*c.dot(c)) * sqrt_cov.determinant();
 }

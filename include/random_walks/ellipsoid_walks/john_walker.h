@@ -8,9 +8,7 @@
 #include <cmath>
 #include <Eigen/Dense>
 #include "math_functions.h"
-//#include "walker.h"
 
-//namespace pwalk {
 
 template <typename Dtype>
 class JohnWalker {
@@ -72,8 +70,9 @@ public:
         sample_gaussian<Dtype>(this->nb_dim_, 0., 1., gaussian_step);
 
         // get hessian
-        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess = Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(
-                this->nb_dim_, this->nb_dim_);
+        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess = 
+                           Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(
+                           this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(this->curr_sample_, new_sqrt_inv_hess);
 
         new_sample = this->curr_sample_ + r_ / std::sqrt(Dtype(this->nb_dim_)) * (new_sqrt_inv_hess * gaussian_step);
@@ -81,17 +80,22 @@ public:
 
     bool acceptRejectReverse(const Eigen::Matrix<Dtype, Eigen::Dynamic, 1> &new_sample) {
         // get hessian on y
-        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_y = Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(
+        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_y = 
+                Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(
                 this->nb_dim_, this->nb_dim_);
+
         sqrtInvHessBarrier(new_sample, new_sqrt_inv_hess_y);
         // get hessian on x
-        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_x = Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(
+        Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> new_sqrt_inv_hess_x = 
+                Eigen::Matrix<Dtype, Eigen::Dynamic, Eigen::Dynamic>::Zero(
                 this->nb_dim_, this->nb_dim_);
         sqrtInvHessBarrier(this->curr_sample_, new_sqrt_inv_hess_x);
 
         Dtype scale = r_ / std::sqrt(Dtype(this->nb_dim_));
-        Dtype p_y_to_x = gaussian_density<Dtype>(this->curr_sample_, new_sample, new_sqrt_inv_hess_y.inverse() / scale);
-        Dtype p_x_to_y = gaussian_density<Dtype>(new_sample, this->curr_sample_, new_sqrt_inv_hess_x.inverse() / scale);
+        Dtype p_y_to_x = gaussian_density<Dtype>(this->curr_sample_, new_sample, 
+                         new_sqrt_inv_hess_y.inverse() / scale);
+        Dtype p_x_to_y = gaussian_density<Dtype>(new_sample, this->curr_sample_, 
+                         new_sqrt_inv_hess_x.inverse() / scale);
 
         Dtype ar_ratio = std::min<Dtype>(1., p_y_to_x / p_x_to_y);
 
@@ -148,16 +152,9 @@ public:
 
             score = ((weight_half_hess * new_hess_inv).cwiseProduct(weight_half_hess)).rowwise().sum();
 
-            // gradient = Eigen::Matrix<Dtype, Eigen::Dynamic, 1>::Ones(this->nb_cons_) - (score + beta_ones).cwiseQuotient(curr_weight_);
-
-            // curr_weight_ = (curr_weight_ - 0.5 * gradient).cwiseMax(beta_ones);
             next_weight = (0.5 * (curr_weight_ + score + beta_ones)).cwiseMax(beta_ones);
 
         } while ((next_weight - curr_weight_).template lpNorm<Eigen::Infinity>() > Dtype(0.00001));
-
-        // std::cout << "inv_slack" << inv_slack.transpose() << std::endl;
-        // std::cout << "score" << score.transpose() << std::endl;
-        // std::cout << "curr_weight_ " << curr_weight_.transpose() << std::endl;
 
         // compute john hessian
         Eigen::Matrix <Dtype, Eigen::Dynamic, Eigen::Dynamic> john_new_hess =
@@ -195,8 +192,6 @@ private:
     
     Eigen::Matrix<Dtype, Eigen::Dynamic, 1> curr_weight_;
 };
-
-//} // namespace pwalk
 
 #endif // PWALK_JOHN_WALKER_HPP_
 

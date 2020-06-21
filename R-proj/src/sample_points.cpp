@@ -21,21 +21,24 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "sampling/sampling.hpp"
 
+enum random_walks {ball_walk, rdhr, cdhr, billiard, dikin_walk, vaidya_walk, john_walk, brdhr, bcdhr};
+
 template <typename Polytope, typename RNGType, typename PointList, typename NT, typename Point>
-void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsigned int const& walkL, unsigned int const& numpoints,
-        bool const& gaussian, NT const& a, NT const& L, bool const& boundary, Point const& StartingPoint, unsigned int const& nburns,
-        bool const& set_L, bool const& cdhr, bool const& rdhr, bool const& billiard, bool const& ball_walk, bool const& dikin,
-        bool const& vaidya, bool const& john)
+void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsigned int const& walkL,
+        unsigned int const& numpoints, bool const& gaussian, NT const& a, NT const& L, Point const& StartingPoint,
+        unsigned int const& nburns, bool const& set_L, random_walks walk)
 {
-    if (boundary) {
-        if (cdhr) {
-            uniform_sampling_boundary <BCDHRWalk>(randPoints, P, rng, walkL, numpoints,
+    switch (walk)
+    {
+    case brdhr:
+        uniform_sampling_boundary <BRDHRWalk>(randPoints, P, rng, walkL, numpoints,
                      StartingPoint, nburns);
-        } else {
-            uniform_sampling_boundary <BRDHRWalk>(randPoints, P, rng, walkL, numpoints,
+        break;
+    case bcdhr:
+        uniform_sampling_boundary <BCDHRWalk>(randPoints, P, rng, walkL, numpoints,
                      StartingPoint, nburns);
-        }
-    } else if (cdhr) {
+        break;
+    case cdhr:
         if (gaussian) {
             gaussian_sampling<GaussianCDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              a, StartingPoint, nburns);
@@ -43,7 +46,8 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
             uniform_sampling<CDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              StartingPoint, nburns);
         }
-    } else if (rdhr){
+        break;
+    case rdhr:
         if (gaussian) {
             gaussian_sampling<GaussianRDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              a, StartingPoint, nburns);
@@ -51,7 +55,8 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
             uniform_sampling<RDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                              StartingPoint, nburns);
         }
-    } else if (vaidya) {
+        break;
+    case vaidya_walk:
         if (set_L) {
             VaidyaWalk WalkType(L);
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
@@ -59,15 +64,17 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
             uniform_sampling<VaidyaWalk>(randPoints, P, rng, walkL, numpoints,
                                      StartingPoint, nburns);
         }
-    }else if (dikin) {
+        break;
+    case dikin_walk:
         if (set_L) {
             DikinWalk WalkType(L);
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
         } else {
             uniform_sampling<DikinWalk>(randPoints, P, rng, walkL, numpoints,
-                                    StartingPoint, nburns);
+                                     StartingPoint, nburns);
         }
-    }else if (john) {
+        break;
+    case john_walk:
         if (set_L) {
             JohnWalk WalkType(L);
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
@@ -75,7 +82,8 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
             uniform_sampling<JohnWalk>(randPoints, P, rng, walkL, numpoints,
                                     StartingPoint, nburns);
         }
-    } else if (billiard) {
+        break;
+    case billiard:
         if (set_L) {
             BilliardWalk WalkType(L);
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
@@ -83,7 +91,8 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
             uniform_sampling<BilliardWalk>(randPoints, P, rng, walkL, numpoints,
                      StartingPoint, nburns);
         }
-    } else {
+        break;
+    case ball_walk:
         if (set_L) {
             if (gaussian) {
                 GaussianBallWalk WalkType(L);
@@ -103,6 +112,9 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
                                                  StartingPoint, nburns);
             }
         }
+        break;
+    default:
+        break;
     }
 }
 
@@ -165,7 +177,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
-    unsigned int type = Rcpp::as<Rcpp::Reference>(P).field("type"),dim = Rcpp::as<Rcpp::Reference>(P).field("dimension"),
+    unsigned int type = Rcpp::as<Rcpp::Reference>(P).field("type"), dim = Rcpp::as<Rcpp::Reference>(P).field("dimension"),
           walkL = 10 + dim / 10;
 
     RNGType rng(dim);
@@ -181,9 +193,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
     unsigned int numpoints, nburns = 0;
     NT radius = 1.0, L;
-    bool set_mode = false, cdhr = false, rdhr = false, ball_walk = false, gaussian = false,
-          billiard = false, boundary = false, set_starting_point = false, set_L = false, 
-          dikin = false, vaidya = false, john = false;
+    bool set_mode = false, gaussian = false, set_starting_point = false, set_L = false;
+
+    random_walks walk;
+    
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
     Point mode(dim);
@@ -192,10 +205,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     if (numpoints <= 0) throw Rcpp::exception("The number of samples has to be a positice integer!");
 
     if (!distribution.isNotNull() || !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("density")) {
-        billiard = true;
+        walk = billiard;
     } else if (
             Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("uniform")) == 0) {
-        billiard = true;
+        walk = billiard;
     } else if (
             Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("gaussian")) == 0) {
         gaussian = true;
@@ -227,55 +240,49 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     if (!random_walk.isNotNull() || !Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("walk")) {
         if (gaussian) {
             if (type == 1) {
-                cdhr = true;
+                walk = cdhr;
             } else {
-                rdhr = true;
+                walk = rdhr;
             }
         } else {
-            billiard = true;
+            walk = billiard;
             walkL = 5;
         }
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("CDHR")) == 0) {
-        cdhr = true;
-        billiard = false;
+        walk = cdhr;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("dikin")) == 0) {
-        dikin = true;
-        billiard = false;
+        walk = dikin_walk;
         if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("L")) {
             L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["L"]);
             set_L = true;
             if (L<=0.0) throw Rcpp::exception("L must be a postitive number!");
         }
     }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("vaidya")) == 0) {
-        vaidya = true;
-        billiard = false;
+        walk = vaidya_walk;
         if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("L")) {
             L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["L"]);
             set_L = true;
             if (L<=0.0) throw Rcpp::exception("L must be a postitive number!");
         }
     }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("john")) == 0) {
-        john = true;
-        billiard = false;
+        walk = john_walk;
         if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("L")) {
             L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["L"]);
             set_L = true;
             if (L<=0.0) throw Rcpp::exception("L must be a postitive number!");
         }
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("RDHR")) == 0) {
-        rdhr = true;
-        billiard = false;
+        walk = rdhr;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BaW")) == 0) {
         if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("BaW_rad")) {
             L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["BaW_rad"]);
             set_L = true;
             if (L<=0.0) throw Rcpp::exception("BaW diameter must be a postitive number!");
         }
-        ball_walk = true;
-        billiard = false;
+        walk = ball_walk;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BiW")) == 0) {
         if (gaussian) throw Rcpp::exception("Billiard walk can be used only for uniform sampling!");
-        billiard = true;
+        walk = billiard;
         walkL = 5;
         if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("L")) {
             L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["L"]);
@@ -284,12 +291,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BRDHR")) == 0) {
         if (gaussian) throw Rcpp::exception("Gaussian sampling from the boundary is not supported!");
-        rdhr = true;
-        boundary = true;
+        walk = brdhr;
     }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BCDHR")) == 0) {
         if (gaussian) throw Rcpp::exception("Gaussian sampling from the boundary is not supported!");
-        cdhr = true;
-        boundary = true;
+        walk = bcdhr;
     }else {
         throw Rcpp::exception("Unknown walk type!");
     }
@@ -403,28 +408,28 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
     switch (type) {
         case 1: {
-            sample_from_polytope(HP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                   set_L, cdhr, rdhr, billiard, ball_walk, dikin, vaidya, john);
+            sample_from_polytope(HP, rng, randPoints, walkL, numpoints, gaussian, a, L, StartingPoint, nburns,
+                                 set_L, walk);
             break;
         }
         case 2: {
-            sample_from_polytope(VP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                                 set_L, cdhr, rdhr, billiard, ball_walk, dikin, vaidya, john);
+            sample_from_polytope(VP, rng, randPoints, walkL, numpoints, gaussian, a, L, StartingPoint, nburns,
+                                 set_L, walk);
             break;
         }
         case 3: {
-            sample_from_polytope(ZP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                                 set_L, cdhr, rdhr, billiard, ball_walk, dikin, vaidya, john);
+            sample_from_polytope(ZP, rng, randPoints, walkL, numpoints, gaussian, a, L, StartingPoint, nburns, 
+                                 set_L, walk);
             break;
         }
         case 4: {
-            sample_from_polytope(VPcVP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                                 set_L, cdhr, rdhr, billiard, ball_walk, dikin, vaidya, john);
+            sample_from_polytope(VPcVP, rng, randPoints, walkL, numpoints, gaussian, a, L, StartingPoint, nburns,
+                                 set_L, walk);
             break;
         }
     }
 
-    if (numpoints % 2 == 1 && boundary) numpoints--;
+    if (numpoints % 2 == 1 && (walk == brdhr || walk == bcdhr)) numpoints--;
     MT RetMat(dim, numpoints);
     unsigned int jj = 0;
 
