@@ -16,24 +16,16 @@
 #ifndef PRSF_HPP
 #define PRSF_HPP
 
-template <typename NT, typename MT, typename VT, typename Point, typename PointList>
-bool perform_geweke(PointList &point_list, NT frac1, NT frac2)
+template <typename NT, typename MT, typename VT>
+bool perform_geweke(MT const& samples, NT const& frac1, NT const& frac2)
 {
-    typename typename Point::FT NT;
-    typename std::list<Point>::iterator rpit = point_list.begin();
-
     unsigned int d = (*rpit).dimension(), N = point_list.size();
     unsigned int N1 = N*frac1;
     unsigned int N2 = N*frac2;
 
-    MT sigma1 = MT::(d,d), sigma2 = MT::(d,d), samples(d,N);
+    MT sigma1 = MT::(d,d), sigma2 = MT::(d,d);
     VT mean1 = VT::Zero(d), mean2 = VT::Zero(d);
     NT alpha = 0.05;
-
-    unsigned int jj = 0;
-    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
-        samples.col(jj) = (*rpit).getCoefficients();
-    }
 
     for (int i = 0; i < N1; ++i) {
         mean1 += samples.col(i);

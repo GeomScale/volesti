@@ -1,5 +1,4 @@
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
@@ -19,31 +18,26 @@
 #ifndef PSRF_HPP
 #define PSRF_HPP
 
-template <typename NT, typename MT, typename VT, typename Point, typename PointList>
-NT perform_psrf(PointList &point_list)
+template <typename NT, typename MT, typename VT, typename Point>
+NT perform_psrf(MT const& points)
 {
     typename typename Point::FT NT;
 
-    unsigned int N = point_list.size();
+    unsigned int N = points.cols(), d = points.rows();
     unsigned int N1 = N/2;
     unsigned int N2 = N - N1;
-
-    typename std::list<Point>::iterator rpit = point_list.begin();
-    unsigned int d = (*rpit).dimension();
 
     MT chain1(d, N1), chain2(d, N2), S1 = MT::Zero(d,d), S2 = MT::(d,d), S(d,d), B = MT::Zero(d,d);
     VT mean1 = VT::Zero(d), mean2 = VT::Zero(d);
 
     for (int i = 0; i < N1; ++i) {
-        mean1 += (*rpit).getCoefficients();
-        chain1.col(i) = (*rpit).getCoefficients();
-        rpit++;
+        mean1 += points.col(i);
+        chain1.col(i) = points.col(i);
     }
 
     for (int i = 0; i < N2; ++i) {
-        mean2 += (*rpit).getCoefficients();
-        chain2.col(i) = (*rpit).getCoefficients();
-        rpit++;
+        mean2 += points.col(i + N1);
+        chain2.col(i) = points.col(i + N1);
     }
 
     mean1 = mean1 / NT(N1); mean2 = mean2 / NT(N2);
