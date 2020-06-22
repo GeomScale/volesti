@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="NonSymmetricConicOptimization"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/natura/Projects/volume_approximation/include/sos"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/Users/natura/Projects/volume_approximation/include/sos"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/Users/natura/Projects/volume_approximation/include/sos"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="NonSymmetricConicOptimization">
+				<Option output="/Users/natura/Projects/volume_approximation/include/sos/NonSymmetricConicOptimization" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/natura/Projects/volume_approximation/include/sos"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/natura/Projects/volume_approximation/include/sos/../../external"/>
+					<Add directory="/Users/natura/Projects/volume_approximation/include/sos/include"/>
+					<Add directory="/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7"/>
+					<Add directory="/Library/Python/2.7/site-packages/numpy/core/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 NonSymmetricConicOptimization"/>
+					<CompileFile command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="NonSymmetricConicOptimization/fast">
+				<Option output="/Users/natura/Projects/volume_approximation/include/sos/NonSymmetricConicOptimization" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/natura/Projects/volume_approximation/include/sos"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/Users/natura/Projects/volume_approximation/include/sos/../../external"/>
+					<Add directory="/Users/natura/Projects/volume_approximation/include/sos/include"/>
+					<Add directory="/System/Library/Frameworks/Python.framework/Versions/2.7/include/python2.7"/>
+					<Add directory="/Library/Python/2.7/site-packages/numpy/core/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 NonSymmetricConicOptimization/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/Users/natura/Projects/volume_approximation/include/sos/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/EnvelopeProblemSDP.cpp">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/EnvelopeProblemSDP.h">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/EnvelopeProblemSOS.cpp">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/EnvelopeProblemSOS.h">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/LHSCB.cpp">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/LHSCB.h">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/MonomialsClass.cpp">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/MonomialsClass.h">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/NonSymmetricIPM.cpp">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/NonSymmetricIPM.h">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/main.cpp">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/utils.cpp">
+			<Option target="NonSymmetricConicOptimization"/>
+		</Unit>
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

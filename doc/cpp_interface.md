@@ -219,3 +219,37 @@ Flag `-variance` declares the variance (default is 1.0). The center of the spher
 ./vol -f3 zonotope.ext -rand -nsample 1500
 ```
 For V-polytopes use flag `-f2` before the `.ext` file. In all cases use flag `-v` to print the excecutional time.  
+
+## Using the SOS-solver to solve Polynomial Envelope Problems.
+
+Navigate to the SOS solver and compile:
+
+```
+cd include/sos/
+cmake -DCMAKE_BUILD_TYPE=Release .
+make
+```
+
+Run 
+
+```
+./NonSymmetricConicOptimization
+```
+
+See an example plot below.
+![image](../include/sos/plot.png "Example envelope")
+
+For alternative polynomials to optimize over parse a file to the executable with format
+
+file.txt
+```
+d
+c_00 c_01 c_02 ...
+c_10 c_11 c_12 c_13 ...
+...
+```
+
+where "d" is the maximal degree of the polynomial sampled and c_ij are the coefficients for the 
+monomial x^j for constraint polynomial i. An example can be found in "config/default.txt".
+
+
