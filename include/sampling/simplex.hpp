@@ -21,6 +21,9 @@
 #ifndef SAMPLERS_SIMPLEX_HPP
 #define SAMPLERS_SIMPLEX_HPP
 
+#ifdef isnan
+#undef isnan
+
 template <typename NT, typename RNGType, typename Point>
 void Sam_Unit(unsigned int dim,
               unsigned int num,
@@ -385,4 +388,5 @@ void Sam_arb_simplex(const Vpolytope &P, unsigned int num, PointList &points){
 }
 
 
+#endif
 #endif
