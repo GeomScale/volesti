@@ -19,15 +19,15 @@
 #include "convex_bodies/zonoIntersecthpoly.h"
 
 
-// Billiard walk for uniform distribution
+// Billiard walk which accelarates each step for uniform distribution
 
-struct ImprovedBilliardWalk
+struct AcceleratedBilliardWalk
 {
-    ImprovedBilliardWalk(double L)
+    AcceleratedBilliardWalk(double L)
             :   param(L, true)
     {}
 
-    ImprovedBilliardWalk()
+    AcceleratedBilliardWalk()
             :   param(0, false)
     {}
 
@@ -64,10 +64,6 @@ struct ImprovedBilliardWalk
         typedef typename Polytope::PointType Point;
         typedef typename Polytope::MT MT;
         typedef typename Point::FT NT;
-        //typedef HPolytope<Point> Hpolytope;
-        //typedef Ball<Point> BallType;
-        //typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
-
 
         template <typename GenericPolytope>
         Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
@@ -90,31 +86,6 @@ struct ImprovedBilliardWalk
             _AA.noalias()= P.get_AA();
             initialize(P, p, rng);
         }
-
-        /*Walk(BallPolytope const& P, Point &p, RandomNumberGenerator &rng) : _update_params()
-        {
-            _L = compute_diameter<BallPolytope>::template compute<NT>(P);
-            _AA.noalias() = P.get_AA();
-            initialize(P, p, rng);
-        }
-
-        Walk(BallPolytope const& P, Point & p, RandomNumberGenerator &rng, parameters const& params) : _update_params()
-        {
-            if(params.set_L)
-            {
-                _L = params.m_L;
-            }
-            else
-            {
-                _L = compute_diameter<BallPolytope>::template compute<NT>(P);
-            }
-            _AA.noalias() = P.get_AA();
-            initialize(P, p, rng);
-        }
-
-        Walk (BallType const&, Point &, RandomNumberGenerator &,  parameters &) {}
-
-        Walk (BallType const&, Point &, RandomNumberGenerator &) {}*/
 
         template
                 <
@@ -228,7 +199,6 @@ struct ImprovedBilliardWalk
                 P.compute_reflection(_v, _p, _update_params);
                 it++;
             }
-            //if (it == 100*n) _p = p0;
         }
 
         double _L;

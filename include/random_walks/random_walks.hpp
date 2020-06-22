@@ -16,6 +16,6 @@
 #include "random_walks/uniform_billiard_walk.hpp"
 #include "random_walks/uniform_cdhr_walk.hpp"
 #include "random_walks/uniform_rdhr_walk.hpp"
-#include "random_walks/uniform_improved_billiard_walk.hpp"
+#include "random_walks/uniform_accelerated_billiard_walk.hpp"
 
 #endif // RANDOM_WALKS_RANDOM_WALKS_HPP

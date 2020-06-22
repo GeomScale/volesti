@@ -51,10 +51,10 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
     } else if (billiard) {
         if (type == 1) {
             if (set_L) {
-                ImprovedBilliardWalk WalkType(L);
+                AcceleratedBilliardWalk WalkType(L);
                 uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
             } else {
-                uniform_sampling<ImprovedBilliardWalk>(randPoints, P, rng, walkL, numpoints,
+                uniform_sampling<AcceleratedBilliardWalk>(randPoints, P, rng, walkL, numpoints,
                          StartingPoint, nburns);
             }
         } else {

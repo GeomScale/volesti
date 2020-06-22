@@ -64,7 +64,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
             vol = volume_cooling_balls<BallWalk>(P, rng, e, walk_length, win_len);
         } else {
             if (type == 1) {
-                vol = volume_cooling_balls<ImprovedBilliardWalk>(P, rng, e, walk_length, win_len);
+                vol = volume_cooling_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length, win_len);
             } else {
                 vol = volume_cooling_balls<BilliardWalk>(P, rng, e, walk_length, win_len);
             }
@@ -78,7 +78,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
             vol = volume_sequence_of_balls<BallWalk>(P, rng, e, walk_length);
         } else {
             if (type == 1) {
-                vol = volume_sequence_of_balls<ImprovedBilliardWalk>(P, rng, e, walk_length);
+                vol = volume_sequence_of_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length);
             } else {
                 vol = volume_sequence_of_balls<BilliardWalk>(P, rng, e, walk_length);
             }
@@ -159,13 +159,7 @@ double volume (Rcpp::Reference P,
     NT e;
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("algorithm")) {
-        if (type == 2 || type == 3 || type == 4) {
-            CB = true;
-        } else if (n <= 200) {
-            CB = true;
-        } else {
-            CG = true;
-        }
+        CB = true;
         walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
                 Rcpp::as<Rcpp::List>(settings)["walk_length"]);
         e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
@@ -200,8 +194,8 @@ double volume (Rcpp::Reference P,
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("random_walk")) {
         if ( type == 1 ){
-            cdhr = true;
-            if (CB) win_len = 3*n*n+400;
+            billiard = true;
+            if (CB) win_len = 200;
         } else {
             if (CB) {
                 billiard = true;
@@ -212,12 +206,15 @@ double volume (Rcpp::Reference P,
         }
     }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("CDHR")) == 0) {
         cdhr = true;
+        billiard = false;
         if (CB) win_len = 3*n*n+400;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("RDHR")) == 0) {
         rdhr = true;
+        billiard = false;
         if (CB) win_len = 3*n*n+400;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("BaW")) == 0) {
         ball_walk = true;
+        billiard = false;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("BiW")) == 0) {
         if (CG) {
             if (type !=1){
