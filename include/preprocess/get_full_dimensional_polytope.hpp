@@ -1,5 +1,5 @@
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
-//Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // VolEsti is free software: you can redistribute it and/or modify it
 // under the terms of the GNU Lesser General Public License as published by
@@ -19,26 +19,23 @@
 #ifndef GET_FULL_DIMENSIONAL_POLYTOPE
 #define GET_FULL_DIMENSIONAL_POLYTOPE
 
-template <typename Hpolytope, typename Polytope>
-std::pair<Hpolytope, std::pair<MT, VT> > get_full_dimensional_polytope(Polytope &P)
+template <typename H_polytope, typename MT, typename VT>
+std::pair<Hpolytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT b, MT Aeq, VT beq)
 {
-    typedef typename Hpolytope::NT NT;
-
-    MT Aeq = P.get_Aeq();
-    MT A = P.get_mat();
-    VT b = P.get_vec();
-    VT b = P.get_beq();
-
-    FullPivLU<MatrixXd> lu(Aeq);
-    MatrixXd N = lu.kernel();
+    typedef typename H_polytope::NT NT;
 
     VT p = Aeq.colPivHouseholderQr().solve(beq);
+
+    FullPivLU<MT> lu(Aeq);
+    MatrixXd N = lu.kernel();
+
     b = b - A * p;
     A = A * N;
 
-    Hpolytope HP(P.dimension(), A, b);
+    H_polytope HP;
+    HP.init(A.cols(), A, b);
 
-    return std::pair<Hpolytope, std::pair<MT, VT> >(HP, std::pair<N, p>);
+    return std::pair<Hpolytope, std::pair<MT, VT> >(HP, std::pair<MT,VT>(N, p));
 
 }
 
