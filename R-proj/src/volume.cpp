@@ -20,12 +20,13 @@
 #include "volume/volume_cooling_balls.hpp"
 #include "volume/volume_cooling_hpoly.hpp"
 
+enum random_walks {ball_walk, rdhr, cdhr, billiard};
+enum volume_algorithms {CB, CG, SOB};
 
 template <typename Polytope,  typename RNGType,  typename NT>
 double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
-                      bool CG, bool CB, unsigned int win_len,
-                      bool rounding, bool cdhr, bool rdhr, bool ball_walk,
-                      bool billiard, int type)
+                      volume_algorithms const& algo, unsigned int win_len,
+                      bool rounding, random_walks const& walk, int type)
 {
     typedef typename Polytope::MT MT;
     typedef typename Polytope::VT VT;
@@ -47,45 +48,86 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
     }
 
     NT vol;
-    if (CG) {
-        if (cdhr) {
+    switch (algo)
+    {
+    case CG:
+        switch (walk)
+        {
+        case cdhr:
             vol = volume_cooling_gaussians<GaussianCDHRWalk>(P, rng, e, walk_length);
-        } else if (rdhr) {
+            break;
+        case rdhr:
             vol = volume_cooling_gaussians<GaussianRDHRWalk>(P, rng, e, walk_length);
-        } else {
+            break;
+        case ball_walk:
             vol = volume_cooling_gaussians<GaussianBallWalk>(P, rng, e, walk_length);
+            break;
+        default:
+            throw Rcpp::exception("This random walk can not be used by CG algorithm!");
+            break;
         }
-    } else if (CB) {
-        if (cdhr) {
+        break;
+    case CB:
+        switch (walk)
+        {
+        case cdhr:
             vol = volume_cooling_balls<CDHRWalk>(P, rng, e, walk_length, win_len);
-        } else if (rdhr) {
+            break;
+        case rdhr:
             vol = volume_cooling_balls<RDHRWalk>(P, rng, e, walk_length, win_len);
-        } else if (ball_walk) {
+            break;
+        case ball_walk:
             vol = volume_cooling_balls<BallWalk>(P, rng, e, walk_length, win_len);
-        } else {
-            if (type == 1) {
+            break;
+        case billiard:
+            switch (type)
+            {
+            case 1:
                 vol = volume_cooling_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length, win_len);
-            } else {
+                break;
+            default:
                 vol = volume_cooling_balls<BilliardWalk>(P, rng, e, walk_length, win_len);
+                break;
             }
+            break;
+        default:
+            throw Rcpp::exception("This random walk can not be used by CB algorithm!");
+            break;
         }
-    } else {
-        if (cdhr) {
+        break;
+    case SOB:
+        switch (walk)
+        {
+        case cdhr:
             vol = volume_sequence_of_balls<CDHRWalk>(P, rng, e, walk_length);
-        } else if (rdhr) {
+            break;
+        case rdhr:
             vol = volume_sequence_of_balls<RDHRWalk>(P, rng, e, walk_length);
-        } else if (ball_walk) {
+            break;
+        case ball_walk:
             vol = volume_sequence_of_balls<BallWalk>(P, rng, e, walk_length);
-        } else {
-            if (type == 1) {
+            break;
+        case billiard:
+            switch (type)
+            {
+            case 1:
                 vol = volume_sequence_of_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length);
-            } else {
+                break;
+            default:
                 vol = volume_sequence_of_balls<BilliardWalk>(P, rng, e, walk_length);
+                break;
             }
+            break;
+        default:
+            throw Rcpp::exception("This random walk can not be used by CB algorithm!");
+            break;
         }
+        break;
+    default:
+        throw Rcpp::exception("Unknown algorithm!");
+        break;
     }
-    vol *= round_val;
-    return vol;
+    return vol * round_val;
 }
 
 //' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)
@@ -152,36 +194,36 @@ double volume (Rcpp::Reference P,
         rng.set_seed(seed2);
     }
 
-    bool CG = false, CB = false, cdhr = false, rdhr = false, ball_walk = false, round = false,
-             hpoly = false, billiard = false;
-    unsigned int win_len = 4*n*n+500;
+    bool round = false, hpoly = false;
+    unsigned int win_len = 200;// 4*n*n+500;
+
+    random_walks walk;
+    volume_algorithms algo;
     
     NT e;
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("algorithm")) {
-        CB = true;
+        algo = CB;
         walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
                 Rcpp::as<Rcpp::List>(settings)["walk_length"]);
         e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
                 Rcpp::as<Rcpp::List>(settings)["error"]);
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["algorithm"]).compare(std::string("SOB")) == 0) {
-
+        algo = SOB;
         walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 10 + n / 10 : Rcpp::as<int>(
                 Rcpp::as<Rcpp::List>(settings)["walk_length"]);
         e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 1.0 : Rcpp::as<NT>(
                 Rcpp::as<Rcpp::List>(settings)["error"]);
 
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["algorithm"]).compare(std::string("CG")) == 0) {
-
-        CG = true;
+        algo = CG;
         walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
                 Rcpp::as<Rcpp::List>(settings)["walk_length"]);
         e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
                 Rcpp::as<Rcpp::List>(settings)["error"]);
 
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["algorithm"]).compare(std::string("CB")) == 0) {
-
-        CB = true;
+        algo = CB;
         walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
                 Rcpp::as<Rcpp::List>(settings)["walk_length"]);
         e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
@@ -193,40 +235,35 @@ double volume (Rcpp::Reference P,
 
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("random_walk")) {
-        if ( type == 1 ){
-            billiard = true;
-            if (CB) win_len = 200;
+        if (algo == CB) {
+            walk = billiard;
         } else {
-            if (CB) {
-                billiard = true;
-                win_len = 200;
+            win_len = 4*n*n+500;
+            if (type == 1) {
+                walk = cdhr;
             } else {
-                rdhr = true;
+                walk = rdhr;
             }
         }
     }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("CDHR")) == 0) {
-        cdhr = true;
-        billiard = false;
-        if (CB) win_len = 3*n*n+400;
+        walk = cdhr;
+        if (algo == CB) win_len = 3*n*n+400;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("RDHR")) == 0) {
-        rdhr = true;
-        billiard = false;
-        if (CB) win_len = 3*n*n+400;
+        walk = rdhr;
+        if (algo == CB) win_len = 3*n*n+400;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("BaW")) == 0) {
-        ball_walk = true;
-        billiard = false;
+        walk = ball_walk;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("BiW")) == 0) {
-        if (CG) {
+        if (algo == CG) {
             if (type !=1){
                 Rcpp::Rcout << "Billiard walk is not supported for CG algorithm. RDHR is used."<<std::endl;
-                rdhr = true;
+                walk = rdhr;
             } else {
                 Rcpp::Rcout << "Billiard walk is not supported for CG algorithm. CDHR is used."<<std::endl;
-                cdhr = true;
+                walk = cdhr;
             }
         } else {
-            billiard = true;
-            win_len = 200;
+            walk = billiard;
         }
     }else {
         throw Rcpp::exception("Unknown walk type!");
@@ -244,7 +281,7 @@ double volume (Rcpp::Reference P,
 
     if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("win_len")) {
         win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["win_len"]);
-        if (!CB && !CG) Rf_warning("flag 'win_len' can be used only for CG or CB algorithms.");
+        if (algo == SOB) Rf_warning("flag 'win_len' can be used only for CG or CB algorithms.");
     }
 
     switch(type) {
@@ -252,15 +289,13 @@ double volume (Rcpp::Reference P,
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            return generic_volume(HP, rng, walkL, e, CG, CB, win_len, round,
-                                             cdhr, rdhr, ball_walk, billiard, type);
+            return generic_volume(HP, rng, walkL, e, algo, win_len, round, walk, type);
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            return generic_volume(VP, rng, walkL, e, CG, CB, win_len, round,
-                                             cdhr, rdhr, ball_walk, billiard, type);
+            return generic_volume(VP, rng, walkL, e, algo, win_len, round, walk, type);
         }
         case 3: {
             // Zonotope
@@ -268,14 +303,14 @@ double volume (Rcpp::Reference P,
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("hpoly")) {
                 hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["hpoly"]);
-                if (hpoly && !CB)
+                if (hpoly && (algo == CG || algo == SOB))
                     Rf_warning("flag 'hpoly' can be used to only in MMC of CB algorithm for zonotopes.");
             } else if (ZP.num_of_generators() / ZP.dimension() < 5) {
                 hpoly = true;
             } else {
                 hpoly = false;
             }
-            if (hpoly && CB) {
+            if (hpoly && algo == CB) {
                 if (cdhr) {
                     return volume_cooling_hpoly<CDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
                 } else if (rdhr) {
@@ -286,8 +321,7 @@ double volume (Rcpp::Reference P,
                     return volume_cooling_hpoly<BilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
                 }
             }
-            return generic_volume(ZP, rng, walkL, e, CG, CB, win_len, round,
-                                             cdhr, rdhr, ball_walk, billiard, type);
+            return generic_volume(ZP, rng, walkL, e, algo, win_len, round, walk, type);
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -303,8 +337,7 @@ double volume (Rcpp::Reference P,
                 VPcVP.init(VP1, VP2, seed3);
             }
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-            return generic_volume(VPcVP, rng, walkL, e, CG, CB, win_len, round,
-                                             cdhr, rdhr, ball_walk, billiard, type);
+            return generic_volume(VPcVP, rng, walkL, e, algo, win_len, round, walk, type);
         }
     }
 
