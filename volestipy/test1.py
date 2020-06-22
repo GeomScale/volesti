@@ -20,16 +20,15 @@ if __name__ == "__main__":
     print(p.b)
 
 
-#(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed)
-
-
     volume_SoB = p.compute_volume(vol_method="sequence_of_balls", walk_method="uniform_ball", walk_len=5, epsilon=0.05, seed=volestipy.get_time_seed())
-#    volume_GA = p.compute_volume(method="cooling_gaussian", walk_method="gaussian_ball", walk_len=5, epsilon=0.05, seed=42)
+    volume_GA  = p.compute_volume(vol_method = "cooling_gaussian", walk_method="gaussian_CDHR", walk_len=5, epsilon=0.05, seed=42)
+    test_volume = p.compute_volume()
 ##    samples = p.generate_samples(walk_len=5, n_samples=80000, seed=42)
 
 
     print("Volume (sequence of balls): {}".format(volume_SoB))
+    print("Volume (gaussian annealing): {}".format(volume_GA))
+    print("Volume (test_volume): {}".format(test_volume))
 
-#    print("Volume (gaussian annealing): {}".format(volume_GA))
 #    print("Samples:")
  #   print(samples)
