@@ -220,7 +220,7 @@ Flag `-variance` declares the variance (default is 1.0). The center of the spher
 ```
 For V-polytopes use flag `-f2` before the `.ext` file. In all cases use flag `-v` to print the excecutional time.  
 
-## Using the SOS-solver to solve Polynomial Envelope Problems.
+## Using the SOS-solver for Polynomial Envelope problems
 
 Navigate to the SOS solver and compile:
 
@@ -237,7 +237,7 @@ Run
 ```
 
 See an example plot below.
-![image](../include/sos/plot.png "Example envelope")
+![image](../include/sos/plot_saved.png "Example envelope")
 
 For alternative polynomials to optimize over parse a file to the executable with format
 
