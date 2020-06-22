@@ -241,7 +241,12 @@ See an example plot below.
 
 For alternative polynomials to optimize over parse a file to the executable with format
 
-file.txt
+```
+./NonSymmetricConicOptimization file.txt
+```
+
+where `file.txt` has format
+
 ```
 d
 c_00 c_01 c_02 ...
@@ -249,7 +254,7 @@ c_10 c_11 c_12 c_13 ...
 ...
 ```
 
-where "d" is the maximal degree of the polynomial sampled and c_ij are the coefficients for the 
+where "d" is the maximal degree of the approximation polynomial and c_ij are the coefficients for the 
 monomial x^j for constraint polynomial i. An example can be found in "config/default.txt".
 
 
