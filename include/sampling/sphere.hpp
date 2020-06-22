@@ -20,7 +20,7 @@ struct GetDirection
     template <typename RandomNumberGenerator>
     inline static Point apply(unsigned int const& dim,
                               RandomNumberGenerator &rng,
-                              const bool normalize=false)
+                              bool normalize=true)
     {
         NT normal = NT(0);
         Point p(dim);

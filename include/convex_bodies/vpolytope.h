@@ -307,7 +307,7 @@ public:
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(const Point &p, NT tol=0) const {
+    int is_in(const Point &p, NT tol=NT(0)) const {
         if (memLP_Vpoly(V, p, conv_mem, colno_mem)){
             return -1;
         }
