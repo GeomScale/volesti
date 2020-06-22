@@ -24,6 +24,10 @@ cdef extern from "bindings.h":
 
 volume_methods = ["sequence_of_balls".encode("UTF-8"), "cooling_gaussian".encode("UTF-8"), "cooling_balls".encode("UTF-8")]
 
+walk_methods = ["uniform_ball".encode("UTF-8"), "CDHR".encode("UTF-8"), "RDHR".encode("UTF-8"), "gaussian_ball".encode("UTF-8"), "gaussian_CDHR".encode("UTF-8"), "gaussian_RDHR".encode("UTF-8"), "uniform_ball".encode("UTF-8"), "billiard".encode("UTF-8")]
+
+
+
 cdef class HPolytope:
    cdef HPolytopeCPP polytope_cpp
    cdef double[:,::1] _A
@@ -35,12 +39,18 @@ cdef class HPolytope:
       n_hyperplanes, n_variables = A.shape[0], A.shape[1]
       self.polytope_cpp = HPolytopeCPP(&A[0,0], &b[0], n_hyperplanes, n_variables)
 
-   def compute_volume(self, int walk_len=2, double epsilon=0.05, method="sequence_of_balls", walk_method="BallWalk" , np.npy_int32 seed=get_time_seed()):
-      method = method.encode("UTF-8")
-      if method  in volume_methods:
-         return self.polytope_cpp.compute_volume(method,walk_method, walk_len, epsilon, seed)
+   def compute_volume(self, int walk_len=2, double epsilon=0.05, vol_method="sequence_of_balls", walk_method="BallWalk" , np.npy_int32 seed=get_time_seed()):
+      
+      vol_method = vol_method.encode("UTF-8")
+      walk_method = walk_method.encode("UTF-8")
+      
+      if vol_method  in volume_methods:
+         if walk_method in walk_methods:
+            return self.polytope_cpp.compute_volume(vol_method, walk_method, walk_len, epsilon, seed)
+         else:
+            raise Exception('"{}" is not implemented to walk methods. Possbile methods are: {}'.format(walk_method, walk_methods))
       else:
-         raise Exception('"{}" is not implemented to compute volume. Possbile methods are: {}'.format(method, volume_methods))
+         raise Exception('"{}" is not implemented to compute volume. Possbile methods are: {}'.format(vol_method, volume_methods))
 
    # def generate_samples(self, int walk_len=2, int n_samples=1000, np.npy_int32 seed=get_time_seed()):
    #       n_variables = self._A.shape[1]
