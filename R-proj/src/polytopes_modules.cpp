@@ -9,10 +9,18 @@
 class Hpolytope {
 public:
     Hpolytope() {}
-    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b) : A(_A), b(_b), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(1) {}
-    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, double volume) : A(_A), b(_b), vol(volume), dimension(_A.ncol()), type(1) {}
+    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b) : A(_A), b(_b), Aeq(Rcpp::NumericMatrix(0,0)),
+                beq(Rcpp::NumericVector(0)), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(1) {}
+    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq) : 
+                A(_A), b(_b), Aeq(_Aeq), beq(_beq), vol(std::numeric_limits<double>::signaling_NaN()), dimension(_A.ncol()), type(1) {}
+    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, double volume) : A(_A), b(_b),
+                Aeq(Rcpp::NumericMatrix(0,0)), beq(Rcpp::NumericVector(0)), vol(volume), dimension(_A.ncol()), type(1) {}
+    Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq, 
+           double volume) : A(_A), b(_b), Aeq(_Aeq), beq(_beq), vol(volume), dimension(_A.ncol()), type(1) {}
     Rcpp::NumericMatrix A;
     Rcpp::NumericVector b;
+    Rcpp::NumericMatrix Aeq;
+    Rcpp::NumericVector beq;
     double vol;
     unsigned int dimension;
     int type;
@@ -63,6 +71,8 @@ RCPP_MODULE(polytopes){
     //'
     //' @field A \eqn{m\times d} numerical matrix A
     //' @field b \eqn{m}-dimensional vector b
+    //' @field Aeq \eqn{q\times d} numerical matrix Aeq
+    //' @field beq \eqn{q}-dimensional vector beq
     //' @field volume The volume of the polytope.
     //' @field dimension An integer that declares the dimension of the polytope. It has not be given to the constructor.
     //' @field type An integer that declares the representation of the polytope. For H-representation the default value is 1. It has not be given to the constructor.
@@ -81,6 +91,8 @@ RCPP_MODULE(polytopes){
 
     .field( "A", &Hpolytope::A )
     .field( "b", &Hpolytope::b )
+    .field( "Aeq", &Hpolytope::Aeq )
+    .field( "beq", &Hpolytope::beq )
     .field( "volume", &Hpolytope::vol )
     .field( "dimension", &Hpolytope::dimension )
     .field( "type", &Hpolytope::type );

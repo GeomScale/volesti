@@ -71,22 +71,38 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
         walkL = 2;
     }
 
+    MT N;
+    VT shift;
     switch (type) {
         case 1: {
             // Hpolytope
-            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            if (Rcpp::as<MT>(P.field("A")).rows() > 0) {
+                HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+                N = MT::Identity(n,n);
+                shift = VT::Zero(n);
+            } else {
+                std::pair<Hpolytope, std::pair<MT, VT> > temp_res = get_full_dimensional_polytope<Hpolytope>(Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")),
+                            Rcpp::as<MT>(P.field("Aeq")), Rcpp::as<VT>(P.field("b")));
+                HP = temp_res.first;
+                N = temp_res.second.first;
+                shift = temp_res.second.second;
+            }
             HP.normalize();
             InnerBall = HP.ComputeInnerBall();
             break;
         }
         case 2: {
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            N = MT::Identity(n,n);
+            shift = VT::Zero(n);
             InnerBall = VP.ComputeInnerBall();
             break;
         }
         case 3: {
             // Zonotope
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            N = MT::Identity(n,n);
+            shift = VT::Zero(n);
             InnerBall = ZP.ComputeInnerBall();
             break;
         }

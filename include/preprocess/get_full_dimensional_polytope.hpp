@@ -1,3 +1,6 @@
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2018-2020 Apostolos Chalkis
+// Copyright (c) 2020 Alexandros Manochis
 
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
@@ -20,14 +23,14 @@
 #define GET_FULL_DIMENSIONAL_POLYTOPE
 
 template <typename H_polytope, typename MT, typename VT>
-std::pair<Hpolytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT b, MT Aeq, VT beq)
+std::pair<H_polytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT b, MT Aeq, VT beq)
 {
     typedef typename H_polytope::NT NT;
 
     VT p = Aeq.colPivHouseholderQr().solve(beq);
 
-    FullPivLU<MT> lu(Aeq);
-    MatrixXd N = lu.kernel();
+    Eigen::FullPivLU<MT> lu(Aeq);
+    MT N = lu.kernel();
 
     b = b - A * p;
     A = A * N;
@@ -35,7 +38,7 @@ std::pair<Hpolytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT 
     H_polytope HP;
     HP.init(A.cols(), A, b);
 
-    return std::pair<Hpolytope, std::pair<MT, VT> >(HP, std::pair<MT,VT>(N, p));
+    return std::pair<H_polytope, std::pair<MT, VT> >(HP, std::pair<MT,VT>(N, p));
 
 }
 
