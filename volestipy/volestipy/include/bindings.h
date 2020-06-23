@@ -40,7 +40,6 @@ class HPolytopeCPP{
 
       typedef Cartesian<NT>    Kernel;
       typedef typename Kernel::Point    Point;
-      typedef boost::mt19937    RNGType;
       typedef HPolytope<Point> Hpolytope;
 
       typedef typename Hpolytope::MT    MT;
@@ -55,7 +54,7 @@ class HPolytopeCPP{
 
     
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);      
-      double generate_samples(double starting_point, int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
+      double generate_samples(double* starting_point, int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
       
 };
 
