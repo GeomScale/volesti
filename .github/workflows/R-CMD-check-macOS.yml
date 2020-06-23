@@ -63,7 +63,7 @@ jobs:
         run: cd cran_gen/;
              Rscript genCRANpkg.R;
              cd cran_package;
-             Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual', '--as-cran'), error_on = 'warning', check_dir = 'check')"
+             Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual', '--as-cran'), error_on = 'error', check_dir = 'check')"
 
       - name: Upload check results
         if: failure()
