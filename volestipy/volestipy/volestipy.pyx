@@ -22,7 +22,7 @@ cdef extern from "bindings.h":
       HPolytopeCPP() except +
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables) except +
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed); 
-      double generate_samples(double starting_point, int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
+      double generate_samples(double* starting_point, int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
 
 # with respect to the "compute_volume" def
 volume_methods = ["sequence_of_balls".encode("UTF-8"), "cooling_gaussian".encode("UTF-8"), "cooling_balls".encode("UTF-8")]
@@ -53,9 +53,13 @@ cdef class HPolytope:
          raise Exception('"{}" is not implemented to compute volume. Available methods are: {}'.format(vol_method, volume_methods))
 
 
-   def generate_samples(self, starting_point, walk_len=1, number_of_points=1000, number_of_points_to_burn=100, boundary=True, cdhr=True, rdhr=False, gaussian=False, set_L=False, billiard=False, ball_walk=False, a=0, L=0):
+# we need to build a Python function for getting a starting point depending on the polytope 
+   def generate_samples(self, walk_len=1, number_of_points=1000, number_of_points_to_burn=100, boundary=True, cdhr=True, rdhr=False, gaussian=False, set_L=False, billiard=False, ball_walk=False, a=0, L=0):
       n_variables = self._A.shape[1]
       cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype=np.float64, order="C")
+      
+      
+      
       self.polytope_cpp.generate_samples(starting_point, walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L)
       return np.asarray(samples)
 
