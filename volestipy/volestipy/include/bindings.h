@@ -54,8 +54,11 @@ class HPolytopeCPP{
       ~HPolytopeCPP();
 
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);
-      //void generate_samples(int walk_len, int n_samples, double* samples, uint seed);
-
+      
+      //void generate_samples(double const& starting_point, unsigned int const& walk_len, unsigned int const& number_of_points, unsigned int const& number_of_points_to_burn,
+      //                      bool const& boundary, bool const& cdhr, bool const& rdhr, bool const& gaussian, bool const& set_L, bool const& billiard, bool const& ball_walk,
+      //                      double const& a, double const& L)
+      
 };
 
 
