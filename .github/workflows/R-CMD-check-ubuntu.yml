@@ -8,7 +8,7 @@
 
 on: [push, pull_request]
 
-name: R-CMD-check
+name: R-CMD-check-ubuntu
 
 jobs:
   R-CMD-check:
@@ -20,10 +20,10 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macOS-latest,   r: 'devel'}
-          - {os: macOS-latest,   r: 'release'}
-          - {os: windows-latest, r: 'devel'}
-          - {os: windows-latest, r: 'release'}
+          # - {os: macOS-latest,   r: 'devel'}
+          # - {os: macOS-latest,   r: 'release'}
+          # - {os: windows-latest, r: 'devel'}
+          # - {os: windows-latest, r: 'release'}
 #          - {os: ubuntu-latest,  r: 'devel'} # error in "Run r-lib/actions/setup-r@master"
 #          - {os: ubuntu-latest,  r: 'release'} ##[error]Error in library(devtools) : there is no package called ‘devtools’
 #          - {os: ubuntu-18.04,   r: 'release'} ##[error]Error in library(devtools) : there is no package called ‘devtools’
@@ -48,6 +48,7 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@master
 
       - name: Install dependencies
+        if:
         run:  sudo apt-get install flex bison libgmp-dev libeigen3-dev coinor-libipopt-dev;
               git clone https://github.com/ethz-adrl/ifopt.git;
               cd ifopt;
