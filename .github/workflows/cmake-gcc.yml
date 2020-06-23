@@ -15,14 +15,31 @@ jobs:
     strategy:
           fail-fast: false
           matrix:
-            compilers: [g++-4.8, g++-5, g++-6, g++-7, g++-8, g++-9]    
+            compilers: [g++-4.8, g++-5, g++-6, g++-7, g++-8, g++-9]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - run: sudo apt-get update || true;
-             sudo apt-get install ${{ matrix.compilers }} lp-solve; 
+             sudo apt-get install ${{ matrix.compilers }} lp-solve;
+             sudo apt-get install flex bison libgmp-dev libeigen3-dev coinor-libipopt-dev;
+             git clone https://github.com/ethz-adrl/ifopt.git;
+             cd ifopt;
+             mkdir build;
+             cd build;
+             cmake ..;
+             make;
+             sudo make install;
+             cd ..;
+             cd ..;
+             git clone https://github.com/robol/MPSolve;
+             cd MPSolve;
+             ./autogen.sh;
+             ./configure;
+             make;
+             sudo make install;
+             cd ..;
              rm -rf build;
-             mkdir build; 
+             mkdir build;
              cd build;
              cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} ../test;
              make;
