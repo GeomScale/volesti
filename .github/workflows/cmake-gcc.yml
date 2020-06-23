@@ -26,7 +26,7 @@ jobs:
              cd ifopt;
              mkdir build;
              cd build;
-             cmake ..;
+             cmake .. -D CMAKE_CXX_COMPILER=${{ matrix.compilers }};
              make;
              sudo make install;
              cd ..;
