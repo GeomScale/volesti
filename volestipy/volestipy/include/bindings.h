@@ -53,10 +53,8 @@ class HPolytopeCPP{
       std::pair<Point,NT> CheBall;
       ~HPolytopeCPP();
 
-      //typedef double* samples;
-      
-      double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);
-      
+    
+      double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);      
       double generate_samples(double starting_point, int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
       
 };
