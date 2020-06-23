@@ -10,8 +10,9 @@
 
 #include <exception>
 
-#ifdef isnan
-#undef isnan
+#ifndef isnan
+  using std::isnan;
+#endif
 
 template <class MT>
 void removeRow(MT &matrix, unsigned int rowToRemove)
@@ -36,7 +37,7 @@ Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numer
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
@@ -94,7 +95,7 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
@@ -170,5 +171,4 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
 
 }
 
-#endif
 #endif

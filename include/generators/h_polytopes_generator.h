@@ -10,8 +10,10 @@
 
 #include <exception>
 
-#ifdef isnan
-#undef isnan
+
+#ifndef isnan
+  using std::isnan;
+#endif
 
 template <class Polytope, class RNGType>
 Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
@@ -23,7 +25,7 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
@@ -56,5 +58,4 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
     return HP;
 }
 
-#endif
 #endif

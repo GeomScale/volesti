@@ -21,8 +21,9 @@
 #ifndef SAMPLERS_SIMPLEX_HPP
 #define SAMPLERS_SIMPLEX_HPP
 
-#ifdef isnan
-#undef isnan
+#ifndef isnan
+  using std::isnan;
+#endif
 
 template <typename NT, typename RNGType, typename Point>
 void Sam_Unit(unsigned int dim,
@@ -38,7 +39,7 @@ void Sam_Unit(unsigned int dim,
     boost::random::uniform_int_distribution<> uidist(1,M);
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed2 = seed;
         rng.seed(rng_seed2);
     }
@@ -182,7 +183,7 @@ void Sam_Canon_Unit(unsigned int dim,
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed2 = seed;
         rng.seed(rng_seed2);
     }
@@ -388,5 +389,4 @@ void Sam_arb_simplex(const Vpolytope &P, unsigned int num, PointList &points){
 }
 
 
-#endif
 #endif

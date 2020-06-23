@@ -9,8 +9,10 @@
 #define Z_POLYTOPES_GEN_H
 
 #include <exception>
-#ifdef isnan
-#undef isnan
+
+#ifndef isnan
+  using std::isnan;
+#endif
 
 template <class Polytope, class RNGType>
 Polytope gen_zonotope_gaussian(int dim, int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
@@ -21,7 +23,7 @@ Polytope gen_zonotope_gaussian(int dim, int m, double seed = std::numeric_limits
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
@@ -64,7 +66,7 @@ Polytope gen_zonotope_uniform(int dim, int m, double seed = std::numeric_limits<
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
@@ -100,7 +102,7 @@ Polytope gen_zonotope_exponential(int dim, int m, double seed = std::numeric_lim
 
     unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
     RNGType rng(rng_seed);
-    if (!std::isnan(seed)) {
+    if (!isnan(seed)) {
         unsigned rng_seed = seed;
         rng.seed(rng_seed);
     }
@@ -133,5 +135,4 @@ Polytope gen_zonotope_exponential(int dim, int m, double seed = std::numeric_lim
     return P;
 }
 
-#endif
 #endif
