@@ -5,7 +5,6 @@
 #include "Eigen/Eigen"
 #include "cartesian_kernel.h"
 
-
 // from SOB volume - exactly the same for CG and CB methods 
 #include <fstream>
 #include <iostream>
@@ -24,7 +23,6 @@
 
 #include "known_polytope_generators.h"
 
-//#include "doctest.h"
 #include "misc.h"
 
 //from generate_samples, some extra headers not already included
@@ -51,11 +49,12 @@ class HPolytopeCPP{
       Hpolytope HP;
       std::pair<Point,NT> CheBall;
       ~HPolytopeCPP();
-
-    
-      double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);      
-      double generate_samples(double* starting_point, int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
       
+      //Point default_starting_point = HP.ComputeInnerBall().first;
+      
+      double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);      
+      double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
+      //double* default_starting_point    --> include it on previous line
 };
 
 
