@@ -76,72 +76,66 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
 
 
 
-////////          This is where the "GENERATE_SAMPLES" class starts  
+//////////          This is where the "GENERATE_SAMPLES" class starts  
+//// void HPolytopeCPP::generate_samples(double const& starting_point, unsigned int const& walk_len, unsigned int const& number_of_points, unsigned int const& number_of_points_to_burn, bool const& boundary, bool const& cdhr, bool const& rdhr, bool const& gaussian, bool const& set_L, bool const& billiard, bool const& ball_walk, double const& a, double const& L){
+double HPolytopeCPP::generate_samples(double starting_point, int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L){
 
+   typedef double* samples;
+   typedef BoostRandomNumberGenerator<boost::mt19937, double> RNGType;
+   typedef std::list <Point> PointList;
+   boost::random::uniform_real_distribution<>(urdist);
+   boost::random::uniform_real_distribution<> urdist1(-1,1);
+   RNGType rng;
+   PointList rand_points;
+   
+   if (boundary == true) {
+      if (cdhr == true) {
+         uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         } else {
+            uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         }
+   } else if (cdhr == true) {
+      if (gaussian == true) {
+         gaussian_sampling<GaussianCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<CDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      }
+   } else if (rdhr == true){
+      if (gaussian == true) {
+         gaussian_sampling<GaussianRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<RDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      }
+   } else if (billiard == true) {
+      if (set_L == true) {
+         BilliardWalk WalkType(L);
+         uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<BilliardWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      }
+   } else {
+      if (set_L == true) {
+         if (gaussian == true) {
+            GaussianBallWalk WalkType(L);
+            gaussian_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+            } else {
+               BallWalk WalkType(L);
+               uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+            }
+        } else {
+            if (gaussian == true) {
+               gaussian_sampling<GaussianBallWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+            } else {
+               uniform_sampling<BallWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+            }
+        }
+   }
 
-//void HPolytopeCPP::generate_samples(double const& starting_point, unsigned int const& walk_len, unsigned int const& number_of_points, unsigned int const& number_of_points_to_burn ,
-//                            bool const& boundary, bool const& cdhr, bool const& rdhr, bool const& gaussian, bool const& set_L, bool const& billiard, bool const& ball_walk,
-//                            double const& a, double const& L){
-//   
-//   typedef BoostRandomNumberGenerator<boost::mt19937, double> RNGType;
-//   typedef PointList &randPoints
-//      
-//   boost::random::uniform_real_distribution<>(urdist);
-//   boost::random::uniform_real_distribution<> urdist1(-1,1);
-//   std::list <Point> randPoints;
-//   
-//   
-//   if (boundary == true) {
-//      if (cdhr == true) {
-//         uniform_sampling_boundary <BCDHRWalk>(randPoints, HP, RNGType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//         } else {
-//            uniform_sampling_boundary <BRDHRWalk>(randPoints, HP, RNGType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//         }
-//   } else if (cdhr == true) {
-//      if (gaussian == true) {
-//         gaussian_sampling<GaussianCDHRWalk>(randPoints, HP, RNGType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
-//      } else {
-//         uniform_sampling<CDHRWalk>(randPoints, HP, RNGType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//      }
-//   } else if (rdhr == true){
-//      if (gaussian == true) {
-//         gaussian_sampling<GaussianRDHRWalk>(randPoints, HP, RNGType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
-//      } else {
-//         uniform_sampling<RDHRWalk>(randPoints, HP, RNGType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//      }
-//   } else if (billiard == true) {
-//      if (set_L == true) {
-//         BilliardWalk WalkType(L);
-//         uniform_sampling(randPoints, HP, RNGType, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//      } else {
-//         uniform_sampling<BilliardWalk>(randPoints, HP, RNGType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//      }
-//   } else {
-//      if (set_L == true) {
-//         if (gaussian == true) {
-//            
-//            GaussianBallWalk WalkType(L);
-//            gaussian_sampling(randPoints, HP, RNGType, WalkType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
-//            
-//            } else {
-//               BallWalk WalkType(L);
-//               uniform_sampling(randPoints, HP, RNGType, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//            }
-//            
-//        } else {
-//            if (gaussian == true) {
-//               gaussian_sampling<GaussianBallWalk>(randPoints, HP, RNGType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
-//            } else {
-//               uniform_sampling<BallWalk>(randPoints, HP, RNGType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//            }
-//        }
-//   }
-//
-//// The following block of code should NOT be removed!
-//   auto n_si=0;
-//   for (auto it_s = randPoints.begin(); it_s != randPoints.end(); it_s++){
-//      for (auto i = 0; i != it_s->dimension(); i++){
-//         samples[n_si++] = (*it_s)[i];
-//      }
-//   }
-//}
+// The following block of code should NOT be removed!
+   auto n_si=0;
+   for (auto it_s = rand_points.begin(); it_s != rand_points.end(); it_s++){
+      for (auto i = 0; i != it_s->dimension(); i++){
+         samples[n_si++] = (*it_s)[i];
+      }
+   }
+}
