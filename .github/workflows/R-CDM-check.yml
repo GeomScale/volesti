@@ -46,15 +46,32 @@ jobs:
           r-version: ${{ matrix.config.r }}
 
       - uses: r-lib/actions/setup-pandoc@master
-      
+
       - name: Install dependencies
-        run: Rscript -e "install.packages(c('devtools', dependencies=TRUE))" -e "install.packages(c('rcmdcheck', 'devtools', 'Rcpp', 'RcppEigen', 'BH', 'testthat'))"
-      
+        run:  sudo apt-get install flex bison libgmp-dev libeigen3-dev coinor-libipopt-dev;
+              git clone https://github.com/ethz-adrl/ifopt.git;
+              cd ifopt;
+              mkdir build;
+              cd build;
+              cmake ..;
+              make;
+              sudo make install;
+              cd ..;
+              cd ..;
+              git clone https://github.com/robol/MPSolve;
+              cd MPSolve;
+              ./autogen.sh;
+              ./configure;
+              make;
+              sudo make install;
+              cd ..;
+              Rscript -e "install.packages(c('devtools', dependencies=TRUE))" -e "install.packages(c('rcmdcheck', 'devtools', 'Rcpp', 'RcppEigen', 'BH', 'testthat'))";
+
       - name: Check
         env:
           _R_CHECK_CRAN_INCOMING_REMOTE_: false
-        run: cd cran_gen/; 
-             Rscript genCRANpkg.R; 
+        run: cd cran_gen/;
+             Rscript genCRANpkg.R;
              cd cran_package;
              Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual', '--as-cran'), error_on = 'warning', check_dir = 'check')"
 
@@ -64,4 +81,3 @@ jobs:
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
           path: check
-
