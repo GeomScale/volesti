@@ -76,7 +76,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
     switch (type) {
         case 1: {
             // Hpolytope
-            if (Rcpp::as<MT>(P.field("A")).rows() > 0) {
+            if (Rcpp::as<MT>(P.field("A")).rows() == 0) {
                 HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
                 N = MT::Identity(n,n);
                 shift = VT::Zero(n);
@@ -85,7 +85,9 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
                             Rcpp::as<MT>(P.field("Aeq")), Rcpp::as<VT>(P.field("b")));
                 HP = temp_res.first;
                 N = temp_res.second.first;
+                std::cout<<"N = "<<N<<std::endl;
                 shift = temp_res.second.second;
+                //std::cout<<"shift = "<<shift<<std::endl;
             }
             HP.normalize();
             InnerBall = HP.ComputeInnerBall();
