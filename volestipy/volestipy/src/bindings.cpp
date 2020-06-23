@@ -77,14 +77,14 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
 
 //////////          This is where the "GENERATE_SAMPLES" class starts  
 //// void HPolytopeCPP::generate_samples(double const& starting_point, unsigned int const& walk_len, unsigned int const& number_of_points, unsigned int const& number_of_points_to_burn, bool const& boundary, bool const& cdhr, bool const& rdhr, bool const& gaussian, bool const& set_L, bool const& billiard, bool const& ball_walk, double const& a, double const& L){
-double HPolytopeCPP::generate_samples(double starting_point, int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L){
+double HPolytopeCPP::generate_samples(double* starting_point, int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L){
 
+   double* samples;
    typedef BoostRandomNumberGenerator<boost::mt19937, double> RNGType;
+   std::list <Point> PointList;
    RNGType rng;
-   //double* samples;
-   //std::list <Point> PointList;
-   //PointList rand_points;
-   //
+   PointList rand_points;
+   
    if (boundary == true) {
       if (cdhr == true) {
          uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
