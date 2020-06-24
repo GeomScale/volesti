@@ -11,6 +11,38 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
+option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" OFF)
+
+if(DISABLE_NLP_ORACLES)
+  add_definitions(-DDISABLE_NLP_ORACLES)
+else()
+  find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
+  find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
+  find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+  find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
+  find_library(PTHREAD NAMES libpthread.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+
+  if (NOT IFOPT)
+
+    message(FATAL_ERROR "This program requires the ifopt library, and will not be compiled.")
+
+  elseif (NOT GMP)
+
+    message(FATAL_ERROR "This program requires the gmp library, and will not be compiled.")
+
+  elseif (NOT MPSOLVE)
+
+    message(FATAL_ERROR "This program requires the mpsolve library, and will not be compiled.")
+
+  else()
+    message(STATUS "Library ifopt found: ${IFOPT}")
+    message(STATUS "Library gmp found: ${GMP}")
+    message(STATUS "Library mpsolve found: ${MPSOLVE}")
+
+  endif(NOT IFOPT)  
+
+endif(DISABLE_NLP_ORACLES)
+
 if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
@@ -22,36 +54,14 @@ endif(COMMAND cmake_policy)
 #endif()
 
 find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
-find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
-find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
-find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
-find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
-find_library(PTHREAD NAMES libpthread.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
-
 
 if (NOT LP_SOLVE)
 
   message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
 
-elseif (NOT IFOPT)
-
-    message(FATAL_ERROR "This program requires the ifopt library, and will not be compiled.")
-
-elseif (NOT GMP)
-
-  message(FATAL_ERROR "This program requires the gmp library, and will not be compiled.")
-
-elseif (NOT MPSOLVE)
-
-  message(FATAL_ERROR "This program requires the mpsolve library, and will not be compiled.")
-
 else ()
 
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
-  message(STATUS "Library ifopt found: ${IFOPT}")
-  message(STATUS "Library gmp found: ${GMP}")
-  message(STATUS "Library mpsolve found: ${MPSOLVE}")
-
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
   include_directories (BEFORE ../external/Eigen)
