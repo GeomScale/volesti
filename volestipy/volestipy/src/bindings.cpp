@@ -72,61 +72,62 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
    double* samples;
    RNGType rng(HP.dimension());
+   std::list<Point> rand_points(number_of_points);
+   
+   //Point default_starting_point = HP.ComputeInnerBall().first;
+   Point starting_point = HP.ComputeInnerBall().first;
 
-   //std::list <Point> PointList;
-   //PointList rand_points(number_of_points);
-// 
-// 
-//   if (boundary == true) {
-//      if (cdhr == true) {
-//         uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//         } else {
-//            uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//         }
-//   } else if (cdhr == true) {
-//      if (gaussian == true) {
-//         gaussian_sampling<GaussianCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
-//      } else {
-//         uniform_sampling<CDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//      }
-//   } else if (rdhr == true){
-//      if (gaussian == true) {
-//         gaussian_sampling<GaussianRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
-//      } else {
-//         uniform_sampling<RDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//      }
-//   } else if (billiard == true) {
-//      if (set_L == true) {
-//         BilliardWalk WalkType(L);
-//         uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//      } else {
-//         uniform_sampling<BilliardWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//      }
-//   } else {
-//      if (set_L == true) {
-//         if (gaussian == true) {
-//            GaussianBallWalk WalkType(L);
-//            gaussian_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
-//            } else {
-//               BallWalk WalkType(L);
-//               uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//            }
-//        } else {
-//            if (gaussian == true) {
-//               gaussian_sampling<GaussianBallWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
-//            } else {
-//               uniform_sampling<BallWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
-//            }
-//        }
-//   }
-//
-//// The following block of code should NOT be removed!
-//   auto n_si=0;
-//   for (auto it_s = rand_points.begin(); it_s != rand_points.end(); it_s++){
-//      for (auto i = 0; i != it_s->dimension(); i++){
-//         samples[n_si++] = (*it_s)[i];
-//      }
-//   }
+ 
+   if (boundary == true) {
+      if (cdhr == true) {
+         uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         } else {
+            uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         }
+   } else if (cdhr == true) {
+      if (gaussian == true) {
+         gaussian_sampling<GaussianCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<CDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      }
+   } else if (rdhr == true){
+      if (gaussian == true) {
+         gaussian_sampling<GaussianRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<RDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      }
+   } else if (billiard == true) {
+      if (set_L == true) {
+         BilliardWalk WalkType(L);
+         uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<BilliardWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      }
+   } else {
+      if (set_L == true) {
+         if (gaussian == true) {
+            GaussianBallWalk WalkType(L);
+            gaussian_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+            } else {
+               BallWalk WalkType(L);
+               uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+            }
+        } else {
+            if (gaussian == true) {
+               gaussian_sampling<GaussianBallWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+            } else {
+               uniform_sampling<BallWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+            }
+        }
+   }
+
+// The following block of code should NOT be removed!
+   auto n_si=0;
+   for (auto it_s = rand_points.begin(); it_s != rand_points.end(); it_s++){
+      for (auto i = 0; i != it_s->dimension(); i++){
+         samples[n_si++] = (*it_s)[i];
+      }
+   }
 }
 
 
