@@ -46,7 +46,6 @@ extra_volesti_include_dirs = [
 ]
 
 
-
 src_files = ["volestipy/volestipy.pyx","volestipy/src/bindings.cpp"]
 extra_include_dirs = [numpy.get_include()] 
 # Return the directory that contains the NumPy *.h header files.
