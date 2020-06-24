@@ -34,11 +34,9 @@ class HPolytopeCPP{
       typedef typename Kernel::Point    Point;
       typedef HPolytope<Point> Hpolytope;
       typedef typename Hpolytope::MT    MT;
-      typedef typename Hpolytope::VT    VT;
-      
+      typedef typename Hpolytope::VT    VT;      
       typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
       
-      RNGType rng(int n_variables);
       
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
