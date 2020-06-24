@@ -38,6 +38,8 @@ class HPolytopeCPP{
       
       typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
       
+      RNGType rng(int n_variables);
+      
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
 
