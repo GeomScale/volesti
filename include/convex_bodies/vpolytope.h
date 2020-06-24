@@ -16,8 +16,13 @@
 #include <iostream>
 #include <Eigen/Eigen>
 #include "lp_oracles/vpolyoracles.h"
-#include "nlp_oracles/nlp_vpolyoracles.h"
 #include "khach.h"
+
+#ifndef DISABLE_NLP_ORACLES
+
+#include "nlp_oracles/nlp_vpolyoracles.h"
+
+#endif
 
 //min and max values for the Hit and Run functions
 
