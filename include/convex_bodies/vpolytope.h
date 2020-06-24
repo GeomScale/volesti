@@ -319,18 +319,6 @@ public:
         return 0;
     }
 
-    template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, const std::string method="newton-raphson") {
-        return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
-    }
-
-    // compute intersection of curve with V-polytope
-    template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
-      return curve_intersect_vpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, eta, V, coeffs, phi, grad_phi);
-    }
-
-
 
     // compute intersection point of ray starting from r and pointing to v
     // with the V-polytope
@@ -466,6 +454,21 @@ public:
         free(conv_comb2);
         free(conv_mem);
     }
+
+#ifndef DISABLE_NLP_ORACLES
+
+    template <class bfunc>
+    std::tuple<NT, Point, int> curve_intersect(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, const std::string method="newton-raphson") {
+        return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
+    }
+
+    // compute intersection of curve with V-polytope
+    template <class bfunc>
+    std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
+      return curve_intersect_vpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, eta, V, coeffs, phi, grad_phi);
+    }
+
+#endif
 
 };
 
