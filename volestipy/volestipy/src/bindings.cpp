@@ -3,7 +3,7 @@
 #include "bindings.h"
 
 using namespace std;
-unsigned int dim;
+//unsigned int dim;
 
 HPolytopeCPP::HPolytopeCPP() {}
 HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_variables){
@@ -23,7 +23,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
 
    HP.init(n_variables,A,b);
    CheBall = HP.ComputeInnerBall();
-   dim = HP.dimension();
+   //dim = HP.dimension();
 }
 HPolytopeCPP::~HPolytopeCPP(){}
 
@@ -71,7 +71,8 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
 double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L){
 
    double* samples;
-   RNGType rng(dim);
+   RNGType rng(HP.dimension());
+
    //std::list <Point> PointList;
    //PointList rand_points(number_of_points);
 // 
