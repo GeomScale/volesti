@@ -72,7 +72,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
    double* samples;
    RNGType rng(HP.dimension());
-   std::list<Point> rand_points(number_of_points);
+   std::list<Point> rand_points;
    
    //Point default_starting_point = HP.ComputeInnerBall().first;
    Point starting_point = HP.ComputeInnerBall().first;
