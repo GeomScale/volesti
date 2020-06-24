@@ -45,8 +45,6 @@ class HPolytopeCPP{
       std::pair<Point,NT> CheBall;
       ~HPolytopeCPP();
       
-      //Point default_starting_point = HP.ComputeInnerBall().first;
-
       
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);      
       double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
