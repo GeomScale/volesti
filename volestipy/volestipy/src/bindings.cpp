@@ -3,6 +3,7 @@
 #include "bindings.h"
 
 using namespace std;
+unsigned int dim;
 
 HPolytopeCPP::HPolytopeCPP() {}
 HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_variables){
@@ -22,6 +23,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
 
    HP.init(n_variables,A,b);
    CheBall = HP.ComputeInnerBall();
+   dim = HP.dimension();
 }
 HPolytopeCPP::~HPolytopeCPP(){}
 
@@ -66,11 +68,12 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
 
 //////////          This is where the "GENERATE_SAMPLES" class starts
 
-//double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L){
-//   
-//   double* samples;   
-//   std::list <Point> PointList;
-//   PointList rand_points;
+double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L){
+
+   double* samples;
+   RNGType rng(dim);
+   //std::list <Point> PointList;
+   //PointList rand_points(number_of_points);
 // 
 // 
 //   if (boundary == true) {
@@ -123,7 +126,7 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
 //         samples[n_si++] = (*it_s)[i];
 //      }
 //   }
-//}
+}
 
 
 //// void HPolytopeCPP::generate_samples(double const& starting_point, unsigned int const& walk_len, unsigned int const& number_of_points, unsigned int const& number_of_points_to_burn, bool const& boundary, bool const& cdhr, bool const& rdhr, bool const& gaussian, bool const& set_L, bool const& billiard, bool const& ball_walk, double const& a, double const& L){
