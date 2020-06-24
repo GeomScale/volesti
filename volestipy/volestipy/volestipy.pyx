@@ -54,11 +54,11 @@ cdef class HPolytope:
 
 
 # we need to build a Python function for getting a starting point depending on the polytope 
-   def generate_samples(self, walk_len=1, number_of_points=1000, number_of_points_to_burn=100, boundary=True, cdhr=True, rdhr=False, gaussian=False, set_L=False, billiard=False, ball_walk=False, a=0, L=0):
-      n_variables = self._A.shape[1]
-      cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype=np.float64, order="C")
-      self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L)
-      return np.asarray(samples)
+   # def generate_samples(self, walk_len=1, number_of_points=1000, number_of_points_to_burn=100, boundary=True, cdhr=True, rdhr=False, gaussian=False, set_L=False, billiard=False, ball_walk=False, a=0, L=0):
+   #    n_variables = self._A.shape[1]
+   #    cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype=np.float64, order="C")
+   #    self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L)
+   #    return np.asarray(samples)
 
 
 
