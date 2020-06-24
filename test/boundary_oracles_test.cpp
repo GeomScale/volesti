@@ -25,6 +25,8 @@ Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef DISABLE_NLP_ORACLES
+
 #include "Eigen/Eigen"
 #include <iostream>
 #include <cmath>
@@ -230,3 +232,5 @@ TEST_CASE("h_poly_oracles") {
 // TEST_CASE("v_poly_oracles") {
 //   call_test_poly_oracles<double>('V');
 // }
+
+#endif
