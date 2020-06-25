@@ -38,23 +38,24 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@master
 
       - name: Install dependencies
-        run:  brew install automake flex bison gmp eigen ipopt;
-              git clone https://github.com/ethz-adrl/ifopt.git;
-              cd ifopt;
-              mkdir build;
-              cd build;
-              cmake ..;
-              make;
-              sudo make install;
-              cd ..;
-              cd ..;
-              git clone https://github.com/robol/MPSolve;
-              cd MPSolve;
-              ./autogen.sh;
-              ./configure;
-              make;
-              sudo make install;
-              cd ..;
+        run:
+        #       brew install automake flex bison gmp eigen ipopt;
+        #       git clone https://github.com/ethz-adrl/ifopt.git;
+        #       cd ifopt;
+        #       mkdir build;
+        #       cd build;
+        #       cmake ..;
+        #       make;
+        #       sudo make install;
+        #       cd ..;
+        #       cd ..;
+        #       git clone https://github.com/robol/MPSolve;
+        #       cd MPSolve;
+        #       ./autogen.sh;
+        #       ./configure;
+        #       make;
+        #       sudo make install;
+        #       cd ..;
               Rscript -e "install.packages(c('devtools', dependencies=TRUE))" -e "install.packages(c('rcmdcheck', 'devtools', 'Rcpp', 'RcppEigen', 'BH', 'testthat'))";
 
       - name: Check
@@ -63,7 +64,7 @@ jobs:
         run: cd cran_gen/;
              Rscript genCRANpkg.R;
              cd cran_package;
-             Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual', '--as-cran'), error_on = 'error', check_dir = 'check')"
+             Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual', '--as-cran'), error_on = 'warning', check_dir = 'check')"
 
       - name: Upload check results
         if: failure()
