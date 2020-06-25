@@ -175,7 +175,7 @@ public:
     return C * phis;
   }
 
-  // Calculate jacobian matrix of constrants
+  // Calculate jacobian matrix of constraints
   void FillJacobianBlock (std::string var_set, Jacobian& jac_block) const override {
 
     if (var_set == "t") {
