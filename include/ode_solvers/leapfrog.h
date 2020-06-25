@@ -1,32 +1,12 @@
-/*
-GeomScale Project
+// VolEsti (volume computation and sampling library)
 
-Copyright (c) 2020
-  Vissarion Fisikopoulos
-  Apostolos Chalkis
-  Elias Tsigaridas
-  Marios Papachristou
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2018-2020 Apostolos Chalkis
+// Copyright (c) 2020-2020 Marios Papachristou
 
-Contributed and/or modified by Marios Papachristou,
-as part of Google Summer of Code 2020 program.
+// Contributed and/or modified by Marios Papachristou, as part of Google Summer of Code 2020 program.
 
-VolEsti is free software: you can redistribute it and/or modify it
-under the terms of the GNU Lesser General Public License as published by
-the Free Software Foundation, either version 3 of the License, or (at
-your option) any later version.
-
-VolEsti is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-See the file COPYING.LESSER for the text of the GNU Lesser General
-Public License.  If you did not receive this file along with HeaDDaCHe,
-see <http://www.gnu.org/licenses/>.
-
-Resource: https://en.wikipedia.org/wiki/Leapfrog_integration
-
-*/
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef LEAPFROG_H
 #define LEAPFROG_H
