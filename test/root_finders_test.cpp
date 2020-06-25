@@ -25,6 +25,7 @@ Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef DISABLE_NLP_ORACLES
 
 #include "Eigen/Eigen"
 #include <cstdlib>
@@ -101,3 +102,5 @@ void call_test_root_finders() {
 TEST_CASE("root_finders") {
   call_test_root_finders<double>();
 }
+
+#endif
