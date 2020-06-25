@@ -19,9 +19,9 @@
 #ifndef DISABLE_NLP_ORACLES
 #include "nlp_oracles/nlp_hpolyoracles.h"
 #include "root_finders/root_finders.h"
+#define MAX_NR_TRIES 10000
 #endif
 
-#define MAX_NR_TRIES 10000
 
 //min and max values for the Hit and Run functions
 // H-polytope class
