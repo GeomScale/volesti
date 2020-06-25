@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef RK_H
-#define RK_H
+#ifndef RUNGE_KUTTA_H
+#define RUNGE_KUTTA_H
 
 
 template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>

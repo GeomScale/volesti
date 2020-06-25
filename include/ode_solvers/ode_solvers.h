@@ -13,7 +13,7 @@
 #include <functional>
 #include <vector>
 #include "euler.h"
-#include "rk.h"
+#include "runge_kutta.h"
 #include "leapfrog.h"
 #include "bulirsch_stoer.h"
 
