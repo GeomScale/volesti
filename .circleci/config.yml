@@ -57,6 +57,6 @@ jobs:
             rm -rf build;
             mkdir build;
             cd build;
-            cmake ../test;
+            cmake -DDISABLE_NLP_ORACLES=ON ../test;
             make;
             ctest -j8 --verbose;
