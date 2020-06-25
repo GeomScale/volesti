@@ -59,7 +59,6 @@ void test_euler(){
     typedef std::vector<Point> pts;
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
@@ -82,7 +81,6 @@ void test_bs(){
     typedef std::vector<Point> pts;
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
@@ -107,7 +105,6 @@ void test_rk4(){
     typedef std::vector<Point> pts;
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
@@ -132,7 +129,6 @@ void test_leapfrog_constrained(){
     typedef std::vector<Point> pts;
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
@@ -165,7 +161,6 @@ void test_leapfrog(){
     typedef std::vector<Point> pts;
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
@@ -193,7 +188,6 @@ void test_euler_constrained(){
     typedef std::vector<Point> pts;
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
@@ -224,7 +218,6 @@ void test_bs_constrained(){
     typedef std::vector<Point> pts;
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
@@ -257,7 +250,6 @@ void test_rk4_constrained(){
     typedef std::vector<Point> pts;
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
@@ -289,7 +281,6 @@ void test_euler_2d_constrained(){
     typedef std::vector<Point> pts;
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
@@ -372,7 +363,6 @@ void test_collocation(){
     typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
     typedef std::vector<NT> coeffs;
     typedef std::vector<func> funcs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
@@ -409,7 +399,6 @@ void test_collocation_constrained(){
     typedef std::vector<func> funcs;
     typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
     typedef std::vector<NT> coeffs;
-    typedef boost::mt19937    RNGType;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
