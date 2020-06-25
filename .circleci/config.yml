@@ -1,3 +1,43 @@
+# # VolEsti (volume computation and sampling library)
+# # Copyright (c) 20012-2018 Vissarion Fisikopoulos
+# # Licensed under GNU LGPL.3, see LICENCE file
+#
+# version: 2
+# jobs:
+#   build:
+#     docker: # See https://docs.docker.com/get-started/#docker-concepts if you are new to Docker.
+#     #    - image: circleci/ruby:2.4.1-jessie
+#         - image: circleci/ruby:2.6-rc
+#     parallelism: 4
+#     steps:
+#        - checkout
+#        - run:
+#             sudo apt-get update || true;
+#             sudo apt-get install cmake lp-solve;
+#             # sudo apt-get install flex bison libgmp-dev libeigen3-dev coinor-libipopt-dev;
+#             # git clone https://github.com/ethz-adrl/ifopt.git;
+#             # cd ifopt;
+#             # mkdir build;
+#             # cd build;
+#             # cmake ..;
+#             # make;
+#             # sudo make install;
+#             # cd ..;
+#             # cd ..;
+#             # git clone https://github.com/robol/MPSolve;
+#             # cd MPSolve;
+#             # ./autogen.sh;
+#             # ./configure;
+#             # make;
+#             # sudo make install;
+#             # cd ..;
+#             rm -rf build;
+#             mkdir build;
+#             cd build;
+#             cmake ../test -DDISABLE_NLP_ORACLES=ON;
+#             make;
+#             ctest -j8 --verbose;
+
 # VolEsti (volume computation and sampling library)
 # Copyright (c) 20012-2018 Vissarion Fisikopoulos
 # Licensed under GNU LGPL.3, see LICENCE file
@@ -14,26 +54,9 @@ jobs:
        - run:
             sudo apt-get update || true;
             sudo apt-get install cmake lp-solve;
-            # sudo apt-get install flex bison libgmp-dev libeigen3-dev coinor-libipopt-dev;
-            # git clone https://github.com/ethz-adrl/ifopt.git;
-            # cd ifopt;
-            # mkdir build;
-            # cd build;
-            # cmake ..;
-            # make;
-            # sudo make install;
-            # cd ..;
-            # cd ..;
-            # git clone https://github.com/robol/MPSolve;
-            # cd MPSolve;
-            # ./autogen.sh;
-            # ./configure;
-            # make;
-            # sudo make install;
-            # cd ..;
             rm -rf build;
             mkdir build;
             cd build;
-            cmake ../test -DDISABLE_NLP_ORACLES=ON;
+            cmake ../test;
             make;
             ctest -j8 --verbose;
