@@ -38,11 +38,6 @@ Later, Chalkis Apostolos affiliated with University of Athens (UoA, Greece) and 
 
 We acknowledge several contributions by the open-source community, most notably a `python` interface by Pedro Zuidberg Dos Martires affiliated with KU Leuven.
 
-### Google Summer of Code 2020: Log-concave Sampling in high-dimensions
-
-Student Name: Marios Papachristou
-Mentors: A. Chalkis, V. Fisikopoulos, E. Tsigaridas
-
 #### Project Details
 
  * Timeline can be found [here](https://drive.google.com/file/d/1eshRaLnffTvHjajvDHmS6VRWaXMOlgVS/view?usp=sharing)
