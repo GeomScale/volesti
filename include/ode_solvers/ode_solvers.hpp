@@ -12,13 +12,14 @@
 #include <cmath>
 #include <functional>
 #include <vector>
-#include "euler.h"
-#include "runge_kutta.hpp"
-#include "leapfrog.h"
-#include "bulirsch_stoer.h"
+
+#include "euler.hpp"
+#include "runge_kutta.hpppp"
+#include "leapfrog.hpp"
+#include "bulirsch_stoer.hpp"
 
 #ifndef DISABLE_NLP_ORACLES
-#include "collocation.h"
+#include "collocation.hpp"
 #endif
 
 #ifndef ODE_SOLVERS_H
