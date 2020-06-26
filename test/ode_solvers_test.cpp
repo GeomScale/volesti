@@ -27,8 +27,6 @@
 #include "random/uniform_real_distribution.hpp"
 #include "random_walks/random_walks.hpp"
 
-#include "known_polytope_generators.h"
-
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
