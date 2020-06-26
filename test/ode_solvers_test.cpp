@@ -20,18 +20,14 @@
 #include "Eigen/Eigen"
 
 #include "ode_solvers.hpp"
-
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "random_walks/random_walks.hpp"
-
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
-
-#include "exact_vols.h"
 #include "generators/known_polytope_generators.h"
 
 

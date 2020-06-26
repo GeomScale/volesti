@@ -10,31 +10,28 @@
 
 #ifndef DISABLE_NLP_ORACLES
 
-#include "Eigen/Eigen"
 #include <iostream>
 #include <cmath>
 #include <functional>
 #include <vector>
 #include <unistd.h>
+#include <string>
+#include <typeinfo>
+#include <chrono>
+
+#include "Eigen/Eigen"
+#include "doctest.h"
+
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "random_walks/random_walks.hpp"
-
-#include "known_polytope_generators.h"
-
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
-
-#include "exact_vols.h"
 #include "generators/known_polytope_generators.h"
 
-#include <string>
-#include <typeinfo>
-#include <chrono>
-#include "doctest.h"
 
 template <typename NT, class Point, class bfunc>
 void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, NT t_des, int facet_des) {
