@@ -35,8 +35,9 @@ see <http://www.gnu.org/licenses/>.
 #include <pthread.h>
 #include <mps/mps.h>
 #include <gmp.h>
-#include "newton_raphson.h"
-#include "mp_solve_wrapper.h"
+
+#include "newton_raphson.hpp"
+#include "mp_solve_wrapper.hpp"
 
 #ifndef ROOT_FINDERS_H
 #define ROOT_FINDERS_H

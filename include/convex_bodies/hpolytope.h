@@ -17,8 +17,8 @@
 #include "lp_oracles/solve_lp.h"
 
 #ifndef DISABLE_NLP_ORACLES
-#include "nlp_oracles/nlp_hpolyoracles.h"
-#include "root_finders/root_finders.h"
+#include "nlp_oracles/nlp_hpolyoracles.hpp"
+#include "root_finders/root_finders.hpp"
 #define MAX_NR_TRIES 10000
 #endif
 

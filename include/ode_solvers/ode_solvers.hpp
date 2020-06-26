@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "euler.hpp"
-#include "runge_kutta.hpppp"
+#include "runge_kutta.hpp"
 #include "leapfrog.hpp"
 #include "bulirsch_stoer.hpp"
 

@@ -8,9 +8,6 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#include "doctest.h"
-#include "Eigen/Eigen"
-#include "ode_solvers.h"
 #include <iostream>
 #include <cmath>
 #include <functional>
@@ -18,6 +15,11 @@
 #include <unistd.h>
 #include <string>
 #include <typeinfo>
+
+#include "doctest.h"
+#include "Eigen/Eigen"
+
+#include "ode_solvers.hpp"
 
 #include "random.hpp"
 #include "random/uniform_int.hpp"

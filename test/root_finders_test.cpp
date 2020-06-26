@@ -27,13 +27,11 @@ see <http://www.gnu.org/licenses/>.
 
 #ifndef DISABLE_NLP_ORACLES
 
-#include "Eigen/Eigen"
 #include <cstdlib>
 #include <unistd.h>
 #include <pthread.h>
 #include <mps/mps.h>
 #include <gmp.h>
-#include "root_finders.h"
 #include <iostream>
 #include <cmath>
 #include <functional>
@@ -41,7 +39,11 @@ see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <string>
 #include <typeinfo>
+
+#include "Eigen/Eigen"
 #include "doctest.h"
+
+#include "root_finders.hpp"
 
 template<typename NT>
 void test_newton_raphson() {
