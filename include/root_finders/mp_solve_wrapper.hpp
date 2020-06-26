@@ -25,8 +25,8 @@ Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MP_SOLVE_WRAPPER_H
-#define MP_SOLVE_WRAPPER_H
+#ifndef MP_SOLVE_WRAPPER_HPP
+#define MP_SOLVE_WRAPPER_HPP
 
 template <typename NT>
 std::vector<std::pair<NT, NT>> mpsolve(std::vector<NT> &coeffs, bool positive_real=false) {

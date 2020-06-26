@@ -25,8 +25,8 @@ Public License.  If you did not receive this file along with HeaDDaCHe,
 see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEWTON_RAPHSON_H
-#define NEWTON_RAPHSON_H
+#ifndef NEWTON_RAPHSON_HPP
+#define NEWTON_RAPHSON_HPP
 
 template <typename NT, class func>
 std::pair<NT,bool> newton_raphson(NT t0, func f, func grad_f, const NT rtol,

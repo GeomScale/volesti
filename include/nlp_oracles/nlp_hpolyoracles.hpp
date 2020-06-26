@@ -61,8 +61,8 @@ see <http://www.gnu.org/licenses/>.
 
 */
 
-#ifndef NLP_HPOLYORACLES_H
-#define NLP_HPOLYORACLES_H
+#ifndef NLP_HPOLYORACLES_HPP
+#define NLP_HPOLYORACLES_HPP
 
 #include <iostream>
 #include <vector>

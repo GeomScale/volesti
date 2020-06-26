@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef EULER_H
-#define EULER_H
+#ifndef EULER_HPP
+#define EULER_HPP
 
 template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
 class EulerODESolver {

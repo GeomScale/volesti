@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef LEAPFROG_H
-#define LEAPFROG_H
+#ifndef LEAPFROG_HPP
+#define LEAPFROG_HPP
 
 template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
 class LeapfrogODESolver {

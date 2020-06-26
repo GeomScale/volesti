@@ -8,11 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef COLLOCATION_H
-#define COLLOCATION_H
-
-#include <csignal>
-
+#ifndef COLLOCATION_HPP
+#define COLLOCATION_HPP
 
 template <typename Point, typename NT, class Polytope, class bfunc, class func=std::function <Point(std::vector<Point>, NT)>>
 class CollocationODESolver {
@@ -144,7 +141,6 @@ public:
             }
           }
 
-
         }
         // Construct matrix A
         else {
@@ -158,15 +154,12 @@ public:
                 As[i](ord-1, j) = temp_grad - temp_func;
               }
             }
-
-
           }
           else {
 
             // Compute new derivative (inter-point)
             dt = (cs[ord] - cs[ord-1]) * eta;
             y = dt * y;
-
 
             // Do not take into account reflections
             xs[i] += y;
@@ -176,22 +169,17 @@ public:
               Bs[i].row(ord-1) = y.getCoefficients().transpose();
             }
 
-
             // Construct matrix A that contains the gradients of the basis functions
             if (!precompute || (precompute && !precompute_flag)) {
               for (unsigned int j = 0; j < order() - 1; j++) {
                 As[i](ord-1, j) = grad_phi(t, t_prev, order() - j - 1, order());
               }
             }
-
-
           }
         }
 
-        }
-
-
       }
+    }
 
     // Solve linear systems
     for (int i = 0; i < xs.size(); i++) {
@@ -204,10 +192,8 @@ public:
         for (int k = 0; k < xs[0].dimension(); k++) {
           as[i][order() - j - 1].set_coord(k, temps[i](j, k));
         }
-
       }
     }
-
 
     // Compute next point
     for (unsigned int i = 0; i < xs.size(); i++) {
@@ -248,12 +234,7 @@ public:
             else break;
 
           }
-
-
         }
-
-
-
       }
     }
 

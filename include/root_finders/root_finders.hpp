@@ -39,7 +39,7 @@ see <http://www.gnu.org/licenses/>.
 #include "newton_raphson.hpp"
 #include "mp_solve_wrapper.hpp"
 
-#ifndef ROOT_FINDERS_H
-#define ROOT_FINDERS_H
+#ifndef ROOT_FINDERS_HPP
+#define ROOT_FINDERS_HPP
 
 #endif

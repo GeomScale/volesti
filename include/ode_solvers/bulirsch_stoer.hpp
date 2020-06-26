@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef BULIRSCH_STOER_H
-#define BULIRSCH_STOER_H
+#ifndef BULIRSCH_STOER_HPP
+#define BULIRSCH_STOER_HPP
 
 template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
 class BSODESolver {

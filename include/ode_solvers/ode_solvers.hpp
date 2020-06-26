@@ -22,7 +22,7 @@
 #include "collocation.hpp"
 #endif
 
-#ifndef ODE_SOLVERS_H
-#define ODE_SOLVERS_H
+#ifndef ODE_SOLVERS_HPP
+#define ODE_SOLVERS_HPP
 
 #endif
