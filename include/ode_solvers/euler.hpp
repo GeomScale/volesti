@@ -59,8 +59,6 @@ public:
     xs_prev = xs;
     t += eta;
 
-    bool flag;
-
     for (unsigned int i = 0; i < xs.size(); i++) {
       Point y = Fs[i](xs_prev, t);
       y = eta * y;
@@ -69,8 +67,6 @@ public:
         xs[i] = xs[i] + y;
       }
       else {
-        flag = false;
-
         // Find intersection (assuming a line trajectory) between x and y
         do {
           // Find line intersection between xs[i] (new position) and y
@@ -86,9 +82,7 @@ public:
             xs[i] += y;
           }
           else {
-            if (flag) break;
             xs[i] += y;
-            flag = true;
           }
         } while (!Ks[i]->is_in(xs[i]));
 

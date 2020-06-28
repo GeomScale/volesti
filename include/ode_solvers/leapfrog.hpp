@@ -56,9 +56,7 @@ public:
     xs_prev = xs;
     t += eta;
     unsigned int x_index, v_index;
-    bool flag;
     for (unsigned int i = 1; i < xs.size(); i += 2) {
-      flag = false;
 
       x_index = i - 1;
       v_index = i;
@@ -72,6 +70,11 @@ public:
       Point y = xs[v_index];
       y = (eta) * y;
 
+      // tilde v <- v + eta / 2 F(x)
+      z = Fs[v_index](xs, t);
+      z = (eta / 2) * z;
+      xs[v_index] = xs[v_index] + z;
+
       if (Ks[x_index] == NULL) {
         xs[x_index] = xs[x_index] + y;
       }
@@ -84,19 +87,15 @@ public:
             xs[x_index] += (pbpair.first * 0.99) * y;
             Ks[x_index]->compute_reflection(y, xs[x_index], pbpair.second);
             xs[x_index] += y;
+
+            // Reflect velocity
+            Ks[x_index]->compute_reflection(xs[v_index], xs[x_index], pbpair.second);
           }
           else {
-            if (flag) break;
             xs[x_index] += y;
-            flag = true;
           }
         } while (!Ks[x_index]->is_in(xs[x_index]));
       }
-
-      // tilde v <- v + eta / 2 F(x)
-      z = Fs[v_index](xs, t);
-      z = (eta / 2) * z;
-      xs[v_index] = xs[v_index] + z;
 
     }
 

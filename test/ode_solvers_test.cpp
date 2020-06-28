@@ -124,10 +124,11 @@ void test_leapfrog_constrained(){
     x0.set_coord(0, 0);
     v0.set_coord(0, 2.0);
     pts q{x0, v0};
-    LeapfrogODESolver<Point, NT, Hpolytope> leapfrog_solver = LeapfrogODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs, Ks);
+    LeapfrogODESolver<Point, NT, Hpolytope> leapfrog_solver = LeapfrogODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs, Ks);
 
     for (int i = 0; i < 1000; i++) {
       leapfrog_solver.step();
+      if (i > 500) leapfrog_solver.print_state();
       CHECK(leapfrog_solver.xs[0].dot(leapfrog_solver.xs[0]) < 1.1);
     }
 
