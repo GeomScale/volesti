@@ -75,15 +75,16 @@ public:
   VT Ar, Av;
 
   CollocationODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
-    bounds boundaries,  coeffs c_coeffs, bfunc basis, bfunc grad_basis, std::string bmethod) :
+    bounds boundaries,  coeffs c_coeffs, bfunc basis, bfunc grad_basis,
+    std::string bmethod) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries),
      cs(c_coeffs), phi(basis), grad_phi(grad_basis), boundary_oracle_method(bmethod) {
       dim = xs[0].dimension();
       initialize_matrices();
     };
 
-  CollocationODESolver(NT initial_time, NT step, int num_states, unsigned int dimension,
-    funcs oracles, bounds boundaries,  coeffs c_coeffs,
+  CollocationODESolver(NT initial_time, NT step, int num_states,
+    unsigned int dimension, funcs oracles, bounds boundaries,  coeffs c_coeffs,
     bfunc basis, bfunc grad_basis, std::string bmethod) :
     t(initial_time), Fs(oracles), eta(step), Ks(boundaries),  cs(c_coeffs),
     phi(basis), grad_phi(grad_basis), boundary_oracle_method(bmethod) {

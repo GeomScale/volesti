@@ -8,11 +8,11 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef BULIRSCH_STOER_HPP
-#define BULIRSCH_STOER_HPP
+#ifndef RICHARDSON_EXTRAPOLATION_HPP
+#define RICHARDSON_EXTRAPOLATION_HPP
 
 template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
-class BSODESolver {
+class RichardsonExtrapolationODESolver {
 public:
   typedef std::vector<Point> pts;
   typedef std::vector<func> funcs;
@@ -46,7 +46,8 @@ public:
   ptsm A;
   bool flag;
 
-  BSODESolver(NT initial_time, NT step, pts initial_state, funcs oracles, bounds boundaries) :
+  RichardsonExtrapolationODESolver(NT initial_time, NT step, pts initial_state,
+    funcs oracles, bounds boundaries) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries) {
       dim = xs[0].dimension();
       A = ptsm(MAX_TRIES+1, ptsv(MAX_TRIES+1, pts(xs.size())));
@@ -54,7 +55,8 @@ public:
     };
 
 
-    BSODESolver(NT initial_time, NT step, int num_states, unsigned int dimension, funcs oracles, bounds boundaries) :
+    RichardsonExtrapolationODESolver(NT initial_time, NT step, int num_states,
+      unsigned int dimension, funcs oracles, bounds boundaries) :
       t(initial_time), Fs(oracles), eta(step), Ks(boundaries) {
         for (int i = 0; i < num_states; i++) {
           xs.push_back(Point(dimension));
@@ -64,7 +66,8 @@ public:
       };
 
 
-  BSODESolver(NT initial_time, NT step, pts initial_state, funcs oracles) :
+  RichardsonExtrapolationODESolver(NT initial_time, NT step, pts initial_state,
+    funcs oracles) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step) {
       Ks = bounds(xs.size(), NULL);
       dim = xs[0].dimension();

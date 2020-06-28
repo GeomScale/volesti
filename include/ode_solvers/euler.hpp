@@ -32,13 +32,15 @@ public:
   pts xs;
   pts xs_prev;
 
-  EulerODESolver(NT initial_time, NT step, pts initial_state, funcs oracles, bounds boundaries) :
+  EulerODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
+    bounds boundaries) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries) {
       dim = xs[0].dimension();
     };
 
 
-    EulerODESolver(NT initial_time, NT step, int num_states, unsigned int dimension, funcs oracles, bounds boundaries) :
+    EulerODESolver(NT initial_time, NT step, int num_states,
+      unsigned int dimension, funcs oracles, bounds boundaries) :
       t(initial_time), Fs(oracles), eta(step), Ks(boundaries) {
         for (int i = 0; i < num_states; i++) {
           xs.push_back(Point(dimension));

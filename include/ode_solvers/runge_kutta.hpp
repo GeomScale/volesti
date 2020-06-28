@@ -70,7 +70,8 @@ public:
 
 
   RKODESolver(NT initial_time, NT step, int num_states, unsigned int dimension,
-    funcs oracles, bounds boundaries, scoeffs a_coeffs, coeffs b_coeffs, coeffs c_coeffs) :
+    funcs oracles, bounds boundaries, scoeffs a_coeffs, coeffs b_coeffs,
+    coeffs c_coeffs) :
     t(initial_time), Fs(oracles), eta(step), Ks(boundaries), as(a_coeffs),
     bs(b_coeffs), cs(c_coeffs) {
       xs = pts(num_states, Point(dimension));

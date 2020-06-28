@@ -16,7 +16,7 @@
 #include "euler.hpp"
 #include "runge_kutta.hpp"
 #include "leapfrog.hpp"
-#include "bulirsch_stoer.hpp"
+#include "richardson_extrapolation.hpp"
 
 #ifndef DISABLE_NLP_ORACLES
 #include "collocation.hpp"

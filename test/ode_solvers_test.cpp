@@ -68,7 +68,7 @@ void test_bs(){
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    BSODESolver<Point, NT, Hpolytope> bs_solver = BSODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs);
+    RichardsonExtrapolationODESolver<Point, NT, Hpolytope> bs_solver = RichardsonExtrapolationODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs);
     bs_solver.steps(1000);
 
     NT err=0.001;
@@ -211,7 +211,7 @@ void test_bs_constrained(){
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    BSODESolver<Point, NT, Hpolytope> bs_solver = BSODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs, Ks);
+    RichardsonExtrapolationODESolver<Point, NT, Hpolytope> bs_solver = RichardsonExtrapolationODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs, Ks);
 
     bs_solver.steps(1000);
 
