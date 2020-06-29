@@ -72,6 +72,8 @@ private:
     std::vector<InterpolantVector> _polynomials_bounds;
     HyperRectangle _hyperRectangle;
     std::vector<InterpolantVector> _basis_polynomials;
+    std::shared_ptr<spdlog::logger> _logger;
+
 };
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H

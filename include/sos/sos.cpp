@@ -152,7 +152,7 @@ int main(int const argc, char **argv) {
             }
             sos_poly[idx++] = val;
         }
-        std::cout << sos_poly.transpose() << std::endl;
+//        std::cout << sos_poly.transpose() << std::endl;
         envelopeProblemSos.add_polynomial(sos_poly);
     }
 

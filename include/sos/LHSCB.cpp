@@ -456,15 +456,15 @@ Matrix InterpolantDualSOSBarrier::hessian(Vector x) {
 }
 
 bool InterpolantDualSOSBarrier::in_interior(Vector x) {
-    auto Mat = _P.transpose() * x.asDiagonal() * _P;
-    auto LLT = Mat.llt();
+    Matrix Mat = _P.transpose() * x.asDiagonal() * _P;
+    Eigen::LLT<Matrix> LLT = Mat.llt();
     if(LLT.info() != Eigen::NumericalIssue){
-        auto L = LLT.matrixL();
+//        auto L = LLT.matrixL();
 //        std::cout << "Vector is in interior with cholesky factor L: \n"
 //        << L.toDenseMatrix() << std::endl;
         return true;
     }
-    std::cout << "Matrix not positive semidefinite: \n" << Mat << std::endl;
+//    std::cout << "Matrix not positive semidefinite: \n" << Mat << std::endl;
     //Try manual symmetrization:
     auto Mat_symm = (Mat + Mat.transpose())/2;
     auto LLT_symm = Mat_symm.llt();
@@ -472,7 +472,7 @@ bool InterpolantDualSOSBarrier::in_interior(Vector x) {
         auto L_symm = LLT_symm.matrixL();
         return true;
     }
-    std::cout << "Symmetrized Matrix is also not positive semidefinite: \n" << Mat_symm << std::endl;
+//    std::cout << "Symmetrized Matrix is also not positive semidefinite: \n" << Mat_symm << std::endl;
     return false;
 }
 

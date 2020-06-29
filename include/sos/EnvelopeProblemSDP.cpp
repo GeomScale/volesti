@@ -162,7 +162,8 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
     IPMDouble x_max = _hyperRectangle[0].second;
     for (int j = 0; j < num_points; ++j) {
         IPMDouble d = x_min + j * (x_max - x_min) / (num_points - 1);
-        x[j] = InterpolantDoubletoIPMDouble(d,x[j]);
+        Double dummy_D;
+        x[j] = InterpolantDoubletoIPMDouble(d,dummy_D);
     }
 
     std::vector<PolynomialSDP> poly_plots;
@@ -183,7 +184,8 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
         for (int i = 0; i < num_points; ++i) {
             //TODO: if plots fail, check here first
             IPMDouble ipm_d = univariate_polynomial_evaluation(poly_plots[poly_idx],x[i]);
-            plots[poly_idx][i] = InterpolantDoubletoIPMDouble(ipm_d, plots[poly_idx][i]);
+            Double dummy_D;
+            plots[poly_idx][i] = InterpolantDoubletoIPMDouble(ipm_d, dummy_D);
         }
     }
 

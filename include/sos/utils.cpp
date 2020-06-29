@@ -4,13 +4,21 @@
 #include <boost/math/constants/constants.hpp>
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <cxxtimer.hpp>
+#include "spdlog/spdlog.h"
+
 
 typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<50> > BoostDouble;
 typedef BoostDouble InterpolantDouble;
 
-//Change typedef here to use diffent double type in interior point method.
+#ifdef IPM_DOUBLE
+    typedef IPM_DOUBLE Double;
+#else
+    typedef double Double;
+#endif
+
+//Change typedef here to use different double type in interior point method.
 #ifdef IPM_USE_DOUBLE
-typedef double IPMDouble;
+typedef Double IPMDouble;
 #else
 typedef BoostDouble IPMDouble;
 #endif
@@ -24,8 +32,8 @@ typedef Eigen::Matrix<BoostDouble, Eigen::Dynamic, 1> BoostVector;
 typedef Eigen::Matrix<InterpolantDouble, Eigen::Dynamic, Eigen::Dynamic>  InterpolantMatrix;
 typedef Eigen::Matrix<InterpolantDouble, Eigen::Dynamic, 1> InterpolantVector;
 
-typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>  DoubleMatrix;
-typedef Eigen::Matrix<double, Eigen::Dynamic, 1> DoubleVector;
+typedef Eigen::Matrix<Double, Eigen::Dynamic, Eigen::Dynamic>  DoubleMatrix;
+typedef Eigen::Matrix<Double, Eigen::Dynamic, 1> DoubleVector;
 
 
 //TODO: find nicer solution
@@ -34,7 +42,7 @@ inline DoubleMatrix InterpolantMatrixToMatrix(BoostMatrix &M, DoubleMatrix &){
     DoubleMatrix A(M.rows(), M.cols());
         for (int row = 0; row < M.rows(); ++row) {
             for (int col = 0; col < M.cols(); ++col) {
-               A(row,col) = M(row,col).convert_to<double>();
+               A(row,col) = M(row,col).convert_to<Double>();
             } 
         }
     return A;
@@ -47,7 +55,7 @@ inline BoostMatrix InterpolantMatrixToMatrix(BoostMatrix & M, BoostMatrix &){
 inline DoubleVector InterpolantVectortoVector(BoostVector & v, DoubleVector &){
     DoubleVector w(v.rows());
     for (int i = 0; i < v.rows(); ++i) {
-       w(i) = v(i).convert_to<double>();
+       w(i) = v(i).convert_to<Double>();
     }
     return w;
 }
@@ -56,15 +64,20 @@ inline BoostVector InterpolantVectortoVector(BoostVector & v, BoostVector &) {
     return v;
 }
 
-inline double InterpolantDoubletoIPMDouble(BoostDouble & d, double &) {
-    return d.convert_to<double>();
+inline Double InterpolantDoubletoIPMDouble(BoostDouble & d, Double &) {
+    return d.convert_to<Double>();
 }
 
 inline BoostDouble InterpolantDoubletoIPMDouble(BoostDouble & d, BoostDouble &){
     return d;
 }
 
-inline double InterpolantDoubletoIPMDouble(double & d, double &){
+inline Double InterpolantDoubletoIPMDouble(Double & d, Double &){
+    return d;
+}
+
+template<class T>
+inline T InterpolantDoubletoIPMDouble(Double & d, T){
     return d;
 }
 
@@ -113,7 +126,7 @@ public:
         dual_constraints.c = A.colPivHouseholderQr().solve(b);
 
         Matrix QR = A.transpose().householderQr().householderQ();
-        std::cout << "Q matrix \n" << QR;
+//        std::cout << "Q matrix \n" << QR;
 
         dual_constraints.A = QR.block(0,A.rows(),QR.rows(), QR.cols() - A.rows()).transpose();
         dual_constraints.b = dual_constraints.A * c;

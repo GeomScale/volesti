@@ -192,14 +192,14 @@ void NonSymmetricIPM::run_solver() {
 
     Matrix G = create_matrix_G();
 
-    _logger->info("G: \n {}", G);
+    _logger->debug("G: \n {}", G);
 
     Matrix M = create_skajaa_ye_matrix();
     _logger->debug("\n M has dimension ({}, {})", M.rows(), M.cols());
 
-    _logger->info("b: {}", b.transpose());
-    _logger->info("c: {}", c.transpose());
-    _logger->info("gradient: {}", _barrier->gradient(x).transpose());
+    _logger->debug("b: {}", b.transpose());
+    _logger->debug("c: {}", c.transpose());
+    _logger->debug("gradient: {}", _barrier->gradient(x).transpose());
 
     print();
 
@@ -207,7 +207,7 @@ void NonSymmetricIPM::run_solver() {
         _logger->debug("Begin predictor iteration {}", pred_iteration);
         _predictor_timer.start();
         if (terminate()) {
-            _logger->debug("terminate successfully with required proximity.");
+            _logger->info("Interior point method terminated successfully with required proximity.");
             break;
         }
 //        test_hessian();
@@ -320,16 +320,16 @@ void NonSymmetricIPM::initialize() {
     x = _barrier->initialize_x();
     s = _barrier->initialize_s();
 
-    std::cout << "x is initialized as: " << x.transpose() << std::endl;
-    std::cout << "s is initialized as: " << s.transpose() << std::endl;
+    _logger->trace("x is initialized as: {}", x.transpose());
+    _logger->trace("s is initialized as: {}", s.transpose());
 
     Matrix QR = A.transpose().householderQr().householderQ();
 
     _basis_ker_A = QR.block(0, A.rows(), QR.rows(), QR.cols() - A.rows());
 
-    _logger->info("Matrix A is: \n {}", A);
-    _logger->info("Basis of ker A is: \n {}", _basis_ker_A);
-    _logger->info("Check correctness: \n {}", A * _basis_ker_A);
+    _logger->trace("Matrix A is: \n {}", A);
+    _logger->trace("Basis of ker A is: \n {}", _basis_ker_A);
+    _logger->trace("Check correctness: \n {}", A * _basis_ker_A);
     //Not exactly 0 for numerical reasons.
 //    assert(A * _basis_ker_A == Matrix::Zero(A.rows(), A.cols() - A.rows()));
 
@@ -442,36 +442,75 @@ Vector NonSymmetricIPM::solve_corrector_system() {
 
 void NonSymmetricIPM::print() {
 
-    _logger->info("alpha_pred: {}", _step_length_predictor);
-    _logger->info("alpha_corrector: {}", _step_length_corrector);
+    std::string format_ = "{:<25}:{:20.2}";
+
+    Double dummy_D;
+
+    Double const step_length_predictor = InterpolantDoubletoIPMDouble(_step_length_predictor, dummy_D);
+    Double const step_length_corrector = InterpolantDoubletoIPMDouble(_step_length_corrector, dummy_D);
+
+    _logger->info(format_, "alpha_predictor", step_length_predictor);
+    _logger->info(format_, "alpha_corrector", step_length_corrector);
 
     Matrix aux(2, x.rows());
     aux.block(0, 0, 1, x.rows()) = x.transpose();
     aux.block(1, 0, 1, s.rows()) = s.transpose();
 
+
     _logger->debug("Current primal/dual x, s pair :\n{}", aux);
     _logger->debug("Current primal/dual rescaled x, s pair :\n{}", aux / tau);
 
-    _logger->info("kappa: {}, tau: {}", kappa, tau);
-    _logger->info("mu: {}", mu() / (tau * tau));
-    _logger->info("mu unscaled: {}", mu());
-    _logger->info("centrality error: {}", centrality());
-    _logger->info("duality gap: {}", kappa / tau);
-    _logger->info("centrality error induced by kappa/tau: {}", (tau * kappa - mu()) / mu());
-    _logger->trace("last predictor direction: {}", _last_predictor_direction.transpose());
-    _logger->info("primal feasibility error: {}", (A * x / tau - b).norm());
-    _logger->info("primal feasibility error unscaled: {}", (A * x - b * tau).norm());
-    _logger->info("dual feasibility error: {}", (A.transpose() * y / tau + s / tau - c).norm());
-    _logger->info("dual feasibility error unscaled: {}", (A.transpose() * y + s - c * tau).norm());
-    _logger->info("Total elapsed predictor time: {} seconds.", _predictor_timer.count<std::chrono::seconds>());
-    _logger->info("Total elapsed corrector time: {} seconds.", _corrector_timer.count<std::chrono::seconds>());
-    _logger->info("Total elapsed andersen sys solve time: {} seconds.",
-                  _andersen_sys_timer.count<std::chrono::seconds>());
-    _logger->info("Total elapsed calc centrality time: {} seconds.", _centrality_timer.count<std::chrono::seconds>());
-    _logger->debug("Total elapsed time checking if in interior: {} seconds.",_barrier->_in_interior_timer.count<std::chrono::seconds>());
+    _logger->info(format_, "kappa", InterpolantDoubletoIPMDouble(kappa, dummy_D));
+    _logger->info(format_, "tau", InterpolantDoubletoIPMDouble(tau, dummy_D));
 
-    _logger->info("Total elapsed time in general method: {} seconds.",_general_method_timer.count<std::chrono::seconds>());
-    _logger->info("Total elapsed time in specific method: {} seconds.",_specific_method_timer.count<std::chrono::seconds>());
+    IPMDouble mu_ipm_scaled = mu() / (tau * tau);
+    Double const mu_scaled = InterpolantDoubletoIPMDouble(mu_ipm_scaled, dummy_D);
+    _logger->info(format_, "mu scaled", mu_scaled);
+
+    IPMDouble mu_ipm = mu();
+    Double const mu_ = InterpolantDoubletoIPMDouble(mu_ipm, dummy_D);
+    _logger->info(format_, "mu unscaled", mu_);
+
+    IPMDouble  centrality_ipm_ = centrality();
+    Double const centrality_ = InterpolantDoubletoIPMDouble(centrality_ipm_, dummy_D);
+    _logger->info(format_, "centrality error", centrality_);
+
+    IPMDouble duality_gap_ipm_ = kappa / tau;
+    Double duality_gap_ = InterpolantDoubletoIPMDouble(duality_gap_ipm_, dummy_D);
+    _logger->info(format_, "duality gap", duality_gap_);
+
+    IPMDouble primal_inf_ipm_ = (A * x / tau - b).norm();
+    Double primal_inf_ = InterpolantDoubletoIPMDouble(primal_inf_ipm_, dummy_D);
+    _logger->info(format_, "primal infeas. ", primal_inf_);
+
+   IPMDouble primal_inf_unscaled_ipm_ = (A * x - b * tau).norm();
+   Double primal_inf_unscaled_ = InterpolantDoubletoIPMDouble(primal_inf_unscaled_ipm_, dummy_D);
+    _logger->info(format_, "primal infeas. unscaled", primal_inf_unscaled_);
+
+    IPMDouble dual_inf_ipm_ = (A.transpose() * y / tau + s / tau - c).norm();
+    Double dual_inf_ = InterpolantDoubletoIPMDouble(dual_inf_ipm_, dummy_D);
+    _logger->info(format_, "dual infeas.", dual_inf_);
+
+    IPMDouble dual_inf_unscaled_ipm_ = (A.transpose() * y + s - c * tau).norm();
+    Double dual_inf_unscaled_ = InterpolantDoubletoIPMDouble(dual_inf_unscaled_ipm_, dummy_D);
+    _logger->info(format_, "dual infeas. unscaled", dual_inf_unscaled_);
+
+    _logger->trace("last predictor direction: {}", _last_predictor_direction.transpose());
+
+    _logger->info(format_, "Predictor time in (s)", _predictor_timer.count<std::chrono::milliseconds>() / 1000.);
+    _logger->info(format_, "Corrector time in (s)", _corrector_timer.count<std::chrono::milliseconds>() / 1000.);
+
+//    _logger->info("Total andersen sys solve time: {} seconds.",
+//                  _andersen_sys_timer.count<std::chrono::seconds>());
+    _logger->info(format_, "Calc centrality time (s)",
+                  _centrality_timer.count<std::chrono::milliseconds>() / 1000.);
+    _logger->info(format_, "Time checking interior(s)",
+                  _barrier->_in_interior_timer.count<std::chrono::milliseconds>() / 1000.);
+
+//    _logger->info("Total elapsed time in general method: {} seconds.",
+//                  _general_method_timer.count<std::chrono::seconds>());
+//    _logger->info("Total elapsed time in specific method: {} seconds.",
+//                  _specific_method_timer.count<std::chrono::seconds>());
 
     _logger->info("--------------------------------------------------------------------------------------");
 

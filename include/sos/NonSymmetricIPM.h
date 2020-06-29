@@ -6,7 +6,6 @@
 #define NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H
 
 #include "LHSCB.h"
-#include "spdlog/spdlog.h"
 #include <iostream>
 #include <cxxtimer.hpp>
 
@@ -157,6 +156,7 @@ private:
     Vector solve_corrector_system();
 
     IPMDouble centrality();
+
 
     void print();
 

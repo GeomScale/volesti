@@ -193,6 +193,7 @@ public:
         //_P is used in the Interior Point Method. Therefore we need to convert the multi-precision
         // floating-point into the IPM floating point precision
 
+        //TODO: This interpolant Matrix only needs to be found once and can then be reused;
         std::cout << "Find interpolant point Matrix P..." << std::endl;
 
         for (int row = 0; row < P_interp.rows(); ++row) {
@@ -209,7 +210,7 @@ public:
         InterpolantMatrix P_intermediate = P_ortho.block(0,0,_U,_L);
         _P = InterpolantMatrixToMatrix(P_intermediate, _P);
 //        std::cout << "Orthogonalized matrix P: \n" << _P << std::endl;
-        std::cout << "Finished orthogonalization" << std::endl;
+//        std::cout << "Finished orthogonalization" << std::endl;
     };
 
     Vector gradient(Vector x) override;

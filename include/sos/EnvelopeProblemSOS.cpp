@@ -1,4 +1,6 @@
 #include "EnvelopeProblemSOS.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/fmt/ostr.h"
 
 EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperRectangle &hyperRectangle_) :
         _n(num_variables), _d(max_degree),
@@ -7,19 +9,20 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperR
     //FIXME: for now only univariate polynomials.
     assert(_n == 1);
 
+    _logger = spdlog::get("EnvelopeProblemSOS");
+    if (_logger == nullptr) {
+        _logger = spdlog::stdout_color_mt("EnvelopeProblemSOS");
+        _logger->set_level(spdlog::level::info);
+    }
+
     _L = _d + 1;
     _U = 2 * _d + 1;
 
     InterpolantDualSOSBarrier aux_interpolant_barrier(_d);
     std::vector<InterpolantDouble> &chebyshev_points = aux_interpolant_barrier.get_basis();
 
-    std::cout << "The chebyshev points are: ";
-
-    for (auto cheb : chebyshev_points) {
-        std::cout << " " << cheb;
-    }
-
-    std::cout << std::endl;
+//    _logger->debug("The chebyshev points are: ", chebyshev_points);
+    _logger->info("Construct interpolant polynomial basis...");
 
     for (int i = 0; i < _U; ++i) {
         InterpolantVector p = InterpolantVector::Zero(_U);
@@ -32,7 +35,6 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperR
                 p = prod_sos(p, fac_j);
             }
         }
-//        p /= denom;
         _basis_polynomials.push_back(p);
     }
 
@@ -54,11 +56,12 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperR
 //    std::cout << "Test lagrange basis: " << std::endl << test_matrix << std::endl;
 
     for (int k = 0; k < _basis_polynomials.size(); ++k) {
-        std::cout << "The " << k << "-th polynomial is:";
+        _logger->debug("The {}-th polynomial is:", k);
         for (int i = 0; i < _basis_polynomials[k].size(); ++i) {
-            std::cout << " " << _basis_polynomials[k][i];
+            _logger->debug("{}", _basis_polynomials[k]);
+//            std::cout << " " << _basis_polynomials[k][i];
         }
-        std::cout << std::endl;
+//        std::cout << std::endl;
     }
 
     //Alternative way of computing the bases
@@ -114,10 +117,10 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
     InterpolantMatrix Q_inv = Q.inverse();
     auto inv_error = (Q * Q_inv - InterpolantMatrix::Identity(Q.rows(), Q.cols())).norm();
     std::cout << "Inversion error is " << inv_error << std::endl;
-    std::cout << "Add polynomial with interpolant transformation matrix " << std::endl;
-    std::cout << Q << std::endl;
-    std::cout << "And inverse matrix " << std::endl;
-    std::cout << Q_inv << std::endl;
+//    std::cout << "Add polynomial with interpolant transformation matrix " << std::endl;
+//    std::cout << Q << std::endl;
+//    std::cout << "And inverse matrix " << std::endl;
+//    std::cout << Q_inv << std::endl;
     //FIXME: sys solve below does not work. Figure out why.
 //    auto sol = Q.fullPivLu().solve(polynomial);
 //    std::cout << "lin sys solution is: " << sol.transpose() << std::endl;
@@ -141,45 +144,10 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
     unsigned const NUM_POLYNOMIALS = _polynomials_bounds.size();
     unsigned const VECTOR_LENGTH = _U;
 
-    //Below commented out is the simple and for IPM troublesome formulation
-
-//        Constraints constraints;
-//        constraints.c = Vector::Zero((NUM_POLYNOMIALS + 1) * VECTOR_LENGTH);
-//        constraints.c.block(0, 0, VECTOR_LENGTH, 1) = _objectives_vector;
-//
-//        constraints.A = Matrix::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH, (NUM_POLYNOMIALS + 1) * VECTOR_LENGTH);
-//        constraints.b = Vector::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH);
-//
-//        for (int poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
-//            PolynomialSOS polynomial = _polynomials_bounds[poly_idx];
-//            Matrix poly_block = Vector::Ones(VECTOR_LENGTH).asDiagonal();
-//            //corresponds to X variables
-//            constraints.A.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, VECTOR_LENGTH) = poly_block;
-//            //corresponds to Y_i variables
-//            constraints.A.block(poly_idx * VECTOR_LENGTH, (poly_idx + 1) * VECTOR_LENGTH, VECTOR_LENGTH,
-//                                VECTOR_LENGTH) = poly_block;
-//            constraints.b.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, 1) = polynomial;
-//        }
-//
-//        std::cout << "Original system was: " << std::endl;
-//        constraints.print();
-//
-//
-//        //Construct Barrier function
-//
-//        ProductBarrier *productBarrier = new ProductBarrier;
-//        auto X_barrier = new FullSpaceBarrier(VECTOR_LENGTH);
-//        productBarrier->add_barrier(X_barrier);
-//
-//        for (int poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
-//            auto sos_barrier = new InterpolantDualSOSBarrier(_d);
-//            productBarrier->add_barrier(sos_barrier);
-//        }
-
     Constraints constraints;
     constraints.c = Vector::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH);
-    constraints.c.block(0, 0, VECTOR_LENGTH, 1) = - InterpolantVectortoVector(_objectives_vector,
-                                                                              constraints.c);
+    constraints.c.block(0, 0, VECTOR_LENGTH, 1) = -InterpolantVectortoVector(_objectives_vector,
+                                                                             constraints.c);
 
     constraints.A = Matrix::Zero((NUM_POLYNOMIALS - 1) * VECTOR_LENGTH, NUM_POLYNOMIALS * VECTOR_LENGTH);
     constraints.b = Vector::Zero((NUM_POLYNOMIALS - 1) * VECTOR_LENGTH);
@@ -198,8 +166,8 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
                 polynomial - InterpolantVectortoVector(_polynomials_bounds[0], constraints.b);
     }
 
-    std::cout << "Original system was: " << std::endl;
-    constraints.print();
+    std::cout << "Original SOS instance created." << std::endl;
+//    constraints.print();
 
     //Construct Barrier function
 
@@ -215,7 +183,9 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
     Instance instance;
     instance.constraints = dual_constraints;
     instance.barrier = productBarrier;
-    instance.constraints.print();
+
+    std::cout << "Dual formulation created." << std::endl;
+//    instance.constraints.print();
 
     return instance;
 };
@@ -227,16 +197,20 @@ void EnvelopeProblemSOS::print_solution(Solution sol) {
     assert(not _polynomials_bounds.empty());
     Vector dummy_vec;
     Matrix dummy_matrix;
-    Vector v = InterpolantVectortoVector(_polynomials_bounds[0], dummy_vec) - sol.s.segment(0, _objectives_vector.rows());
+    Vector sol_seg = sol.s.segment(0, _objectives_vector.rows());
+    InterpolantVector sol_seg_interp(sol_seg.rows());
+    for (int i = 0; i < sol_seg.rows(); i++) {
+        sol_seg_interp(i) = sol_seg(i);
+    }
+    InterpolantVector sol_vec = _polynomials_bounds[0] - sol_seg_interp;
     InterpolantMatrix Q = get_transformation_matrix();
-    Matrix Q_double = InterpolantMatrixToMatrix(Q, dummy_matrix);
-    PolynomialSOS solution = Q_double * v;
-    std::cout << "Solution polynomial is: " << solution.transpose() << std::endl;
+    InterpolantVector solution = Q * sol_vec;
+//    std::cout << "Solution polynomial is: " << solution.transpose() << std::endl;
 }
 
 void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
 
-    std::cout << "Print solution to plot.png" << std::endl;
+    std::cout << "Create solution picture at plot.png..." << std::endl;
     int num_points = 1000;
     assert(num_points > 1);
     std::vector<double> x(num_points);
@@ -245,43 +219,46 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     IPMDouble x_max = _hyperRectangle[0].second;
     for (int j = 0; j < num_points; ++j) {
         IPMDouble d = x_min + j * (x_max - x_min) / (num_points - 1);
-        x[j] = InterpolantDoubletoIPMDouble(d,x[j]);
+        Double dummy_D;
+        x[j] = InterpolantDoubletoIPMDouble(d, dummy_D);
     }
 
-    std::vector<PolynomialSOS> poly_plots;
+    std::vector<InterpolantVector> poly_plots;
     IPMDouble dummy_ipm_d;
     for (InterpolantVector &poly : _polynomials_bounds) {
         Vector poly_double(poly.rows());
-        for (int idx = 0; idx < poly.rows(); ++idx) {
-           poly_double(idx) = InterpolantDoubletoIPMDouble(poly(idx), dummy_ipm_d);
-        }
-        poly_plots.push_back(poly_double);
+        poly_plots.push_back(poly);
     }
 
     assert(not _polynomials_bounds.empty());
 
-    Vector dummy_vec;
-    Vector v = InterpolantVectortoVector(_polynomials_bounds[0],dummy_vec) - sol.s.segment(0, _objectives_vector.rows());
+    Vector seg_vec = sol.s.segment(0, _objectives_vector.rows());
+    InterpolantVector seg_interp_vec(seg_vec.rows());
+    for (int i = 0; i < seg_vec.rows(); i++) {
+        seg_interp_vec(i) = seg_vec(i);
+    }
+
+    InterpolantVector v = _polynomials_bounds[0] - seg_interp_vec;
 
     poly_plots.push_back(v);
 
     InterpolantMatrix Q_interp = get_transformation_matrix();
     Matrix dummy_matrix;
-    Matrix Q = InterpolantMatrixToMatrix(Q_interp,dummy_matrix);
+//    Matrix Q = InterpolantMatrixToMatrix(Q_interp,dummy_matrix);
 
     std::vector<std::vector<double> > plots(poly_plots.size());
     for (int poly_idx = 0; poly_idx < plots.size(); poly_idx++) {
         plots[poly_idx].resize(num_points);
-        auto poly_in_standard_basis = Q * poly_plots[poly_idx];
+        InterpolantVector poly_in_standard_basis = Q_interp * poly_plots[poly_idx];
         for (int i = 0; i < num_points; ++i) {
             //Evaluation of vector polynomial at a certain point. Extract method.
             assert(poly_in_standard_basis.size() > 0);
-            IPMDouble eval = poly_in_standard_basis[0];
+            InterpolantDouble eval = poly_in_standard_basis[0];
             for (int j = 1; j < poly_in_standard_basis.size(); ++j) {
                 eval += poly_in_standard_basis[j] * pow(x[i], j);
             }
-            double dummy_d;
-            plots[poly_idx][i] = InterpolantDoubletoIPMDouble(eval, dummy_d);
+            Double dummy_D;
+            plots[poly_idx][i] = InterpolantDoubletoIPMDouble(eval, dummy_D);
         }
     }
 
@@ -289,9 +266,7 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
 //        plt::xlim(x_min, x_max);
 //        plt::ylim(-700, 500);
 
-    for (int p_idx = 0; p_idx < poly_plots.size() - 1; ++p_idx) {
-        plt::plot(x, plots[p_idx]);
-    }
+
 
     std::vector<double> &envelope_plot = plots[plots.size() - 1];
     std::vector<double> offset_envelope(envelope_plot.size());
@@ -301,7 +276,7 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     double y_min = std::numeric_limits<double>::max();
     double y_max = std::numeric_limits<double>::min();
 
-    for (int plt_idx = 0; plt_idx < poly_plots.size(); ++plt_idx) {
+    for (int plt_idx = 0; plt_idx < poly_plots.size() - 1; ++plt_idx) {
         for (int i = 0; i < plots[plt_idx].size(); ++i) {
             y_min = std::min(y_min, plots[plt_idx][i]);
             y_max = std::max(y_max, plots[plt_idx][i]);
@@ -312,6 +287,11 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
         offset_envelope[k] = envelope_plot[k] - (y_max - y_min) / 100.;
     }
 
+    auto y_bound_offset = (y_max - y_min) / 50;
+    plt::ylim(y_min - y_bound_offset, y_max + y_bound_offset);
+    for (int p_idx = 0; p_idx < poly_plots.size() - 1; ++p_idx) {
+        plt::plot(x, plots[p_idx]);
+    }
     plt::named_plot("lower envelope", x, offset_envelope);
 
     // Plot a line whose name will show up as "log(x)" in the legend.
@@ -320,6 +300,8 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     // Enable legend.
     plt::legend();
     plt::save("plot");
+
+    std::cout << "Done." << std::endl;
 }
 
 InterpolantMatrix EnvelopeProblemSOS::get_transformation_matrix() {
