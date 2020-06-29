@@ -10,36 +10,57 @@ Vector all_ones_vector(const int n) {
 }
 
 Matrix LHSCB::inverse_hessian(Vector x) {
-    Matrix hes = hessian(x);
-    return hes.inverse();
-
-    //Below is code that uses the Cholesky decomposition of H and inverts the cholesky factor instead.
-    //As of now this seems to be numerically less stable.
-
-//    auto LLT = hes.llt();
-//    if(LLT.info() == Eigen::NumericalIssue){
-//        std::cout << "Numerical issue for matrix: \n" << hes << std::endl;
-//    }
-//    assert(LLT.info() != Eigen::NumericalIssue);
-//    Matrix L_inv = LLT.matrixLLT().inverse();
-//    Matrix H_inv = L_inv.transpose() * L_inv;
-//    //TODO: runtime test of different methods of calculating the inverse.
-//    if((H_inv - hes.inverse()).norm() >= 10e-5){
-//        std::cout << "Error in inverse Hessian for \n" << hes << "\n and inverse delta \n"
-//        << H_inv - hes.inverse() << std::endl;
-//        std::cout << "Error in original version is "
-//        << (hes.inverse() * hes - Matrix::Identity(hes.cols(), hes.cols())).norm()
-//        << ".\nError in new inverse is "
-//        << (H_inv * hes - Matrix::Identity(hes.cols(), hes.cols())).norm()
-//        << std::endl;
-//    }
-//
-//    assert((H_inv - hes.inverse()).norm() < 10e-5);
-//    return H_inv;
+    Eigen::LLT<Matrix> LLT = llt(x);
+    Matrix L_inv = LLT.matrixL().toDenseMatrix().inverse();
+    return L_inv.transpose() * L_inv;
 }
 
 unsigned int LHSCB::getNumVariables() const {
     return _num_variables;
+}
+
+//TODO: use short queue instead.
+Vector *LHSCB::find_gradient(Vector x) {
+    for(int i = _stored_gradients.size() - 1; i >=0; i--)
+    {
+        if (x == _stored_gradients[i].first){
+            return &_stored_gradients[i].second;
+        }
+    }
+    return nullptr;
+}
+
+Matrix *LHSCB::find_hessian(Vector x) {
+    for(int i = _stored_hessians.size() - 1; i >=0; i--)
+    {
+        if (x == _stored_hessians[i].first){
+            return &_stored_hessians[i].second;
+        }
+    }
+    return nullptr;
+}
+
+Eigen::LLT<Matrix> *LHSCB::find_LLT(Vector x) {
+    for(int i = _stored_LLT.size() - 1; i >=0; i--)
+    {
+        if (x == _stored_LLT[i].first){
+            return &_stored_LLT[i].second;
+        }
+    }
+    return nullptr;
+}
+
+Eigen::LLT<Matrix> LHSCB::llt(Vector x) {
+    auto * llt_ptr = find_LLT(x);
+    if(llt_ptr){
+        return *llt_ptr;
+    }
+    auto * llt_var = new Eigen::LLT<Matrix>(hessian(x).llt());
+    if(_stored_LLT.empty()){
+        _stored_LLT.resize(1);
+    }
+    _stored_LLT[0] = std::pair<Vector,Eigen::LLT<Matrix> >(x, *llt_var);
+    return *llt_var;
 }
 
 //LP Standard Log Barrier
@@ -64,7 +85,7 @@ Matrix LPStandardBarrier::inverse_hessian(Vector x) {
     return inverse_hessian;
 }
 
-Double LPStandardBarrier::concordance_parameter(Vector x) {
+IPMDouble LPStandardBarrier::concordance_parameter(Vector x) {
     return x.rows();
 }
 
@@ -116,7 +137,7 @@ Matrix SDPStandardBarrier::hessian(Vector x) {
 }
 
 //TODO: figure out what correct concordance for SDP is.
-Double SDPStandardBarrier::concordance_parameter(Vector x) {
+IPMDouble SDPStandardBarrier::concordance_parameter(Vector x) {
     return _matrix_dimension;
 }
 
@@ -171,22 +192,25 @@ Matrix ProductBarrier::hessian(Vector x) {
 }
 
 bool ProductBarrier::in_interior(Vector x) {
+    _in_interior_timer.start();
     unsigned idx = 0;
     for (int i = 0; i < _barriers.size(); ++i) {
         LHSCB *barrier = _barriers[i];
         unsigned num_variables = _num_vars_per_barrier[i];
         Vector v_segment = x.segment(idx, num_variables);
         if(not barrier->in_interior(v_segment)){
+            _in_interior_timer.stop();
             return false;
         }
         idx += num_variables;
     }
+    _in_interior_timer.stop();
     return true;
 }
 
-Double ProductBarrier::concordance_parameter(Vector x) {
+IPMDouble ProductBarrier::concordance_parameter(Vector x) {
     unsigned idx = 0;
-    Double concordance_par = 0;
+    IPMDouble concordance_par = 0;
     for (int i = 0; i < _barriers.size(); ++i) {
         LHSCB *barrier = _barriers[i];
         unsigned num_variables = _num_vars_per_barrier[i];
@@ -255,7 +279,7 @@ bool FullSpaceBarrier::in_interior(Vector x) {
     return true;
 }
 
-Double FullSpaceBarrier::concordance_parameter(Vector x) {
+IPMDouble FullSpaceBarrier::concordance_parameter(Vector x) {
     return 0;
 }
 
@@ -270,13 +294,13 @@ Vector FullSpaceBarrier::initialize_s() {
 Vector ZeroSpaceBarrier::gradient(Vector x) {
     //should not be used
     assert(false);
-    return - std::numeric_limits<Double>::infinity() * Vector::Ones(x.cols());
+    return - std::numeric_limits<IPMDouble>::infinity() * Vector::Ones(x.cols());
 }
 
 Matrix ZeroSpaceBarrier::hessian(Vector x) {
     //should not be used
     assert(false);
-    return std::numeric_limits<Double>::infinity() * Matrix::Identity(x.cols(), x.cols());
+    return std::numeric_limits<IPMDouble>::infinity() * Matrix::Identity(x.cols(), x.cols());
 }
 
 Matrix ZeroSpaceBarrier::inverse_hessian(Vector x) {
@@ -287,7 +311,7 @@ bool ZeroSpaceBarrier::in_interior(Vector x) {
     return true;
 }
 
-Double ZeroSpaceBarrier::concordance_parameter(Vector x) {
+IPMDouble ZeroSpaceBarrier::concordance_parameter(Vector x) {
     return 0;
 }
 
@@ -324,7 +348,7 @@ Matrix DualSOSConeBarrier::hessian(Vector x) {
     Matrix H = Matrix::Zero(Z.rows(), Z.cols());
     for (int u = 0; u < H.rows(); ++u) {
         for (int v = 0; v < H.cols(); ++v) {
-            Double H_uv = 0;
+            IPMDouble H_uv = 0;
             for (int a = 0; a <= u; ++a) {
                 for (int k = 0; k <= v; ++k) {
                    H_uv += Z(a,u-a) + Z(k, v- k);
@@ -335,12 +359,13 @@ Matrix DualSOSConeBarrier::hessian(Vector x) {
     return H;
 }
 
+//FIXME: Wrong implementation in in_interior method.
 bool DualSOSConeBarrier::in_interior(Vector x) {
     Matrix X = Lambda(x);
     return X.determinant() > 0;
 }
 
-Double DualSOSConeBarrier::concordance_parameter(Vector x) {
+IPMDouble DualSOSConeBarrier::concordance_parameter(Vector x) {
     return x.rows();
 }
 
@@ -366,28 +391,92 @@ Matrix DualSOSConeBarrier::Lambda(Vector x) {
 }
 
 Vector InterpolantDualSOSBarrier::gradient(Vector x) {
-    return - (_P * (_P.transpose() * x.asDiagonal() * _P).inverse() * _P.transpose()).diagonal();
+    auto * grad_ptr = find_gradient(x);
+    if(grad_ptr){
+        return *grad_ptr;
+    }
+
+    Matrix  intermediate_matrix = _P.transpose() * x.asDiagonal() * _P;
+    Eigen::LLT<Matrix>  intermediate_LLT = intermediate_matrix.llt();
+    //TODO: find way to invert lower triangular matrices more efficiently
+    Matrix V = intermediate_LLT.matrixL().toDenseMatrix().inverse() * _P.transpose();
+    Matrix Q = V.transpose() * V;
+    Vector grad = -Q.diagonal();
+
+
+
+    //    const Vector & grad = -(_P * (_P.transpose() * x.asDiagonal() * _P).inverse() * _P.transpose()).diagonal();
+    if(_stored_gradients.empty()){
+        _stored_gradients.resize(1);
+    }
+    _stored_gradients[0] = std::pair<Vector, Vector>(x, grad);
+
+    //Update hessian as well.
+    Matrix hessian = Q.cwiseProduct(Q);
+
+    if(_stored_hessians.empty()){
+        _stored_hessians.resize(1);
+    }
+    _stored_hessians[0] = std::pair<Vector, Matrix>(x, hessian);
+
+    return grad;
 }
 
 Matrix InterpolantDualSOSBarrier::hessian(Vector x) {
-    auto Q = _P * (_P.transpose() * x.asDiagonal() * _P).inverse() * _P.transpose();
-//    std::cout << "Hessian matrix is " << std::endl << Q << std::endl;
-//    std::cout << "Pointwise product is " << std::endl << Q.cwiseProduct(Q) << std::endl;
-    return Q.cwiseProduct(Q);
+    auto * hess_ptr = find_hessian(x);
+    if(hess_ptr){
+        return *hess_ptr;
+    }
+
+    Matrix  intermediate_matrix = _P.transpose() * x.asDiagonal() * _P;
+    Eigen::LLT<Matrix>  intermediate_LLT = intermediate_matrix.llt();
+    //TODO: find way to invert lower triangular matrices more efficiently
+    Matrix V = intermediate_LLT.matrixL().toDenseMatrix().inverse() * _P.transpose();
+    Matrix Q = V.transpose() * V;
+    Matrix hessian = Q.cwiseProduct(Q);
+
+
+//    auto Q = _P * (_P.transpose() * x.asDiagonal() * _P).inverse() * _P.transpose();
+//    auto hessian = Q.cwiseProduct(Q);
+    if(_stored_hessians.empty()){
+        _stored_hessians.resize(1);
+    }
+    _stored_hessians[0] = std::pair<Vector, Matrix>(x, hessian);
+
+    //Update gradient as well
+
+    Vector grad = -Q.diagonal();
+
+    if(_stored_gradients.empty()){
+        _stored_gradients.resize(1);
+    }
+    _stored_gradients[0] = std::pair<Vector, Vector>(x, grad);
+
+    return hessian;
 }
 
 bool InterpolantDualSOSBarrier::in_interior(Vector x) {
-    auto LLT = (_P.transpose() * x.asDiagonal() * _P).llt();
+    auto Mat = _P.transpose() * x.asDiagonal() * _P;
+    auto LLT = Mat.llt();
     if(LLT.info() != Eigen::NumericalIssue){
         auto L = LLT.matrixL();
 //        std::cout << "Vector is in interior with cholesky factor L: \n"
 //        << L.toDenseMatrix() << std::endl;
         return true;
     }
+    std::cout << "Matrix not positive semidefinite: \n" << Mat << std::endl;
+    //Try manual symmetrization:
+    auto Mat_symm = (Mat + Mat.transpose())/2;
+    auto LLT_symm = Mat_symm.llt();
+    if(LLT_symm.info() != Eigen::NumericalIssue){
+        auto L_symm = LLT_symm.matrixL();
+        return true;
+    }
+    std::cout << "Symmetrized Matrix is also not positive semidefinite: \n" << Mat_symm << std::endl;
     return false;
 }
 
-Double InterpolantDualSOSBarrier::concordance_parameter(Vector x) {
+IPMDouble InterpolantDualSOSBarrier::concordance_parameter(Vector x) {
     return _L;
 }
 

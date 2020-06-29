@@ -17,18 +17,24 @@ public:
 
     virtual Matrix hessian(Vector x) = 0;
 
+    Eigen::LLT<Matrix> llt(Vector x);
+
+    Vector * find_gradient(Vector x);
+    Matrix * find_hessian(Vector x);
+    Eigen::LLT<Matrix> * find_LLT(Vector x);
+
     virtual Matrix inverse_hessian(Vector x);
 
     virtual bool in_interior(Vector x) = 0;
 
-    virtual Double concordance_parameter(Vector x) = 0;
+    virtual IPMDouble concordance_parameter(Vector x) = 0;
 
-    virtual Vector initialize_x(Double parameter){
+    virtual Vector initialize_x(IPMDouble parameter){
         return parameter * initialize_x();
     }
 
     //TODO: figure out if initializing the dual is in general just - 1/mu * g(x) (i.e. whether this is in the dual cone)
-    virtual Vector initialize_s(Double parameter){
+    virtual Vector initialize_s(IPMDouble parameter){
         return initialize_s() / parameter;
     }
 
@@ -36,8 +42,14 @@ public:
 
     virtual Vector initialize_s() = 0;
 
+    cxxtimer::Timer _in_interior_timer;
+
 protected:
     unsigned _num_variables;
+    std::vector<std::pair<Vector, Vector> > _stored_gradients;
+    std::vector<std::pair<Vector, Matrix > > _stored_hessians;
+    std::vector<std::pair<Vector, Eigen::LLT<Matrix> > > _stored_LLT;
+
 public:
     unsigned int getNumVariables() const;
 };
@@ -55,7 +67,7 @@ class FullSpaceBarrier final : public LHSCB {
 
     bool in_interior(Vector x) override;
 
-    Double concordance_parameter(Vector x) override;
+    IPMDouble concordance_parameter(Vector x) override;
 
     Vector initialize_x() override;
 
@@ -77,7 +89,7 @@ class ZeroSpaceBarrier final : public LHSCB {
 
     bool in_interior(Vector x) override;
 
-    Double concordance_parameter(Vector x) override;
+    IPMDouble concordance_parameter(Vector x) override;
 
     Vector initialize_x() override;
 
@@ -106,7 +118,7 @@ public:
     bool in_interior(Vector x) override;
 
     //TODO: better solution for concordance parameter;
-    Double concordance_parameter(Vector x) override;
+    IPMDouble concordance_parameter(Vector x) override;
 
     Vector initialize_x() override;
 
@@ -133,7 +145,7 @@ public:
     bool in_interior(Vector x) override;
 
     //TODO: better solution for concordance parameter;
-    Double concordance_parameter(Vector x) override;
+    IPMDouble concordance_parameter(Vector x) override;
 
     Vector initialize_x() override;
 
@@ -168,26 +180,36 @@ public:
 
         //Chebyshev points for standard interval [-1,1]
         for (int i = 0; i < _unisolvent_basis.size(); ++i) {
-            _unisolvent_basis[i] = cos(i * M_PI / (_U - 1));
+            InterpolantDouble cos_val = boost::multiprecision::cos(i * boost::math::constants::pi<InterpolantDouble>() / (_U - 1));
+            _unisolvent_basis[i] = cos_val;
         }
 
-        _P = Matrix(_U, _L);
+         InterpolantMatrix P_interp = InterpolantMatrix(_U, _L);
 
         //TODO: Figure out how choice of P could influence condition / stability of maps.
 
-        //Use Standard basis to orthogonalize
-        for (int row = 0; row < _P.rows(); ++row) {
-            for (int col = 0; col < _P.cols(); ++col) {
-                _P(row, col) = _unisolvent_basis[row] == 0 ? 0 : pow(_unisolvent_basis[row], col);
+        //Use monomial standard basis to orthogonalize
+
+        //_P is used in the Interior Point Method. Therefore we need to convert the multi-precision
+        // floating-point into the IPM floating point precision
+
+        std::cout << "Find interpolant point Matrix P..." << std::endl;
+
+        for (int row = 0; row < P_interp.rows(); ++row) {
+            for (int col = 0; col < P_interp.cols(); ++col) {
+                //TODO: make more efficient.
+                P_interp(row, col) = col == 0 ? InterpolantDouble(1.) : pow(_unisolvent_basis[row], col);
             }
         }
 
-        std::cout << "Created matrix P: \n" << _P << std::endl;
-        Matrix P_ortho = _P.householderQr().householderQ();
-        Matrix Rect = _P.householderQr().matrixQR().triangularView<Eigen::Upper>();
+        std::cout << "Found interpolant point Matrix P. Orthogonalize..." << std::endl;
+//        std::cout << "Created matrix P: \n" << _P << std::endl;
+        InterpolantMatrix P_ortho = P_interp.householderQr().householderQ();
         P_ortho.colwise().hnormalized();
-        _P = P_ortho.block(0,0,_U,_L);
-        std::cout << "Orthogonalized matrix P: \n" << _P << std::endl;
+        InterpolantMatrix P_intermediate = P_ortho.block(0,0,_U,_L);
+        _P = InterpolantMatrixToMatrix(P_intermediate, _P);
+//        std::cout << "Orthogonalized matrix P: \n" << _P << std::endl;
+        std::cout << "Finished orthogonalization" << std::endl;
     };
 
     Vector gradient(Vector x) override;
@@ -198,19 +220,19 @@ public:
     bool in_interior(Vector x) override;
 
     //TODO: better solution for implementation concordance parameter;
-    Double concordance_parameter(Vector x) override;
+    IPMDouble concordance_parameter(Vector x) override;
 
     Vector initialize_x() override;
 
     Vector initialize_s() override;
 
-    std::vector<Double> get_basis(){
+    std::vector<InterpolantDouble> & get_basis(){
         return _unisolvent_basis;
     }
 
 private:
     unsigned _max_polynomial_degree;
-    std::vector<Double> _unisolvent_basis;
+    std::vector<InterpolantDouble> _unisolvent_basis;
     unsigned _L, _U;
     Matrix _P;
 };
@@ -244,7 +266,7 @@ public:
     bool in_interior(Vector x) override;
 
     //TODO: better solution for concordance parameter;
-    Double concordance_parameter(Vector x) override;
+    IPMDouble concordance_parameter(Vector x) override;
 
     Vector initialize_x() override;
 
@@ -274,7 +296,7 @@ public:
     bool in_interior(Vector x) override;
 
     //TODO: better solution for concordance parameter;
-    Double concordance_parameter(Vector x) override;
+    IPMDouble concordance_parameter(Vector x) override;
 
     Vector initialize_x() override;
 
@@ -282,6 +304,7 @@ public:
 
 
     Matrix Lambda(Vector x);
+
 
 private:
     unsigned _max_polynomial_degree;

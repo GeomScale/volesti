@@ -14,7 +14,7 @@
 
 namespace plt = matplotlibcpp;
 
-typedef std::vector<std::pair<Double, Double> > HyperRectangle;
+typedef std::vector<std::pair<IPMDouble, IPMDouble> > HyperRectangle;
 typedef Vector PolynomialSOS;
 
 class EnvelopeProblemSOS {
@@ -22,9 +22,9 @@ public:
     EnvelopeProblemSOS(int num_variables, int max_degree, HyperRectangle &hyperRectangle_);
 
     //FIXME: Rename as currently the degree of the polynomial remains unchanged.
-    static PolynomialSOS prod_sos(PolynomialSOS p1, PolynomialSOS p2) {
+    static InterpolantVector prod_sos(InterpolantVector p1, InterpolantVector p2) {
         assert(p1.rows() == p2.rows());
-        PolynomialSOS p = Vector::Zero(p1.rows());
+        InterpolantVector p = InterpolantVector::Zero(p1.rows());
         for (Eigen::Index i = 0; i < p.rows(); ++i) {
             for (Eigen::Index j = 0; j <= i; j++) {
                 p(i) += p1(j) * p2(i - j);
@@ -33,9 +33,27 @@ public:
         return p;
     }
 
-    PolynomialSOS generate_zero_polynomial();
+    static InterpolantVector  prod_sos(std::vector<InterpolantVector> const poly_vec){
+        auto len = poly_vec.size();
+        assert(not poly_vec.empty());
+        if(len == 1){
+            return poly_vec[0];
+        }
+        if(len == 2){
+            return prod_sos(poly_vec[0],poly_vec[1]);
+        }
+        auto mid = len / 2;
+        auto first_it = poly_vec.begin();
+        auto mid_it= poly_vec.begin() + mid;
+        auto last_it  = poly_vec.end();
+        std::vector<InterpolantVector> vec1(first_it, mid_it);
+        std::vector<InterpolantVector> vec2(mid_it, last_it);
+        return prod_sos(prod_sos(vec1), prod_sos(vec2));
+    }
 
-    void add_polynomial(PolynomialSOS &polynomial);
+    InterpolantVector generate_zero_polynomial();
+
+    void add_polynomial(InterpolantVector &polynomial);
 
     Instance construct_SOS_instance();
 
@@ -43,17 +61,17 @@ public:
 
     void plot_polynomials_and_solution(const Solution &sol);
 
-    Matrix get_transformation_matrix();
+    InterpolantMatrix get_transformation_matrix();
 
 private:
     unsigned _n;
     unsigned _d;
     unsigned _L;
     unsigned _U;
-    Vector _objectives_vector;
-    std::vector<PolynomialSOS> _polynomials_bounds;
+    InterpolantVector _objectives_vector;
+    std::vector<InterpolantVector> _polynomials_bounds;
     HyperRectangle _hyperRectangle;
-    std::vector<PolynomialSOS> _basis_polynomials;
+    std::vector<InterpolantVector> _basis_polynomials;
 };
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H

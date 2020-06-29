@@ -4,7 +4,6 @@
 
 #include "EnvelopeProblemSDP.h"
 
-
 EnvelopeProblemSDP::EnvelopeProblemSDP(int num_variables, int max_degree, HyperRectangle &hyperRectangle_) :
         _n(num_variables), _d(max_degree), monomialObject(num_variables, max_degree),
         _hyperRectangle(hyperRectangle_) {
@@ -51,16 +50,16 @@ void EnvelopeProblemSDP::construct_objective_matrix() {
     _objectives_matrix *= -1;
 }
 
-Double EnvelopeProblemSDP::calculate_objective(Monomial m) {
+IPMDouble EnvelopeProblemSDP::calculate_objective(Monomial m) {
     return calculate_objective(m, 0);
 }
 
-Double EnvelopeProblemSDP::calculate_objective(Monomial m, int var) {
+IPMDouble EnvelopeProblemSDP::calculate_objective(Monomial m, int var) {
     assert(0 <= var and var <= _n);
     if (var == _n) {
         return 1;
     }
-    Double exp = m[var] + 1;
+    IPMDouble exp = m[var] + 1;
     return 1. / exp * (pow(_hyperRectangle[var].second, exp) * calculate_objective(m, var + 1)
                        - pow(_hyperRectangle[var].first, exp) * calculate_objective(m, var + 1));
 }
@@ -124,7 +123,7 @@ void EnvelopeProblemSDP::print_polynomial(Matrix M) const {
     std::cout << "Polynomial is: " << std::endl;
     for (int row = 0; row < M.rows(); row++) {
         for (int col = 0; col <= row; col++) {
-            Double coeff = (row == col) ? M(row, col) : M(row, col) + M(col, row);
+            IPMDouble coeff = (row == col) ? M(row, col) : M(row, col) + M(col, row);
             if (coeff) {
                 std::cout << coeff << " * ";
                 monomialObject.print_human_readable(_polynomial_product_matrix[row][col]);
@@ -136,15 +135,15 @@ void EnvelopeProblemSDP::print_polynomial(Matrix M) const {
 }
 
 //Assume that monomial is ordered as 1, x, x*x, ...
-Double EnvelopeProblemSDP::univariate_monomial_evaluation(Monomial const m, Double const x) {
+IPMDouble EnvelopeProblemSDP::univariate_monomial_evaluation(Monomial const m, IPMDouble const x) {
     if (m[0] == 0) {
         return 1;
     }
     return pow(x, m[0]);
 }
 
-Double EnvelopeProblemSDP::univariate_polynomial_evaluation(PolynomialSDP const poly, Double x) {
-    Double eval = 0.;
+IPMDouble EnvelopeProblemSDP::univariate_polynomial_evaluation(PolynomialSDP const poly, IPMDouble x) {
+    IPMDouble eval = 0.;
     for (int row = 0; row < poly.rows(); ++row) {
         for (int col = 0; col < poly.cols(); ++col) {
             eval += poly(row, col) * univariate_monomial_evaluation(_polynomial_product_matrix[row][col], x);
@@ -157,12 +156,13 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
 
     int num_points = 1000;
     assert(num_points > 1);
-    std::vector<Double> x(num_points);
+    std::vector<double> x(num_points);
     assert(_hyperRectangle.size() == 1);
-    Double x_min = _hyperRectangle[0].first;
-    Double x_max = _hyperRectangle[0].second;
+    IPMDouble x_min = _hyperRectangle[0].first;
+    IPMDouble x_max = _hyperRectangle[0].second;
     for (int j = 0; j < num_points; ++j) {
-        x[j] = x_min + j * (x_max - x_min) / (num_points - 1);
+        IPMDouble d = x_min + j * (x_max - x_min) / (num_points - 1);
+        x[j] = InterpolantDoubletoIPMDouble(d,x[j]);
     }
 
     std::vector<PolynomialSDP> poly_plots;
@@ -177,11 +177,13 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
 
     poly_plots.push_back(sol_poly);
 
-    std::vector<std::vector<Double> > plots(poly_plots.size());
+    std::vector<std::vector<double> > plots(poly_plots.size());
     for (int poly_idx = 0; poly_idx < plots.size(); poly_idx++) {
         plots[poly_idx].resize(num_points);
         for (int i = 0; i < num_points; ++i) {
-            plots[poly_idx][i] = univariate_polynomial_evaluation(poly_plots[poly_idx], x[i]);
+            //TODO: if plots fail, check here first
+            IPMDouble ipm_d = univariate_polynomial_evaluation(poly_plots[poly_idx],x[i]);
+            plots[poly_idx][i] = InterpolantDoubletoIPMDouble(ipm_d, plots[poly_idx][i]);
         }
     }
 

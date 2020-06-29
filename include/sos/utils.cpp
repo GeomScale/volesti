@@ -1,10 +1,72 @@
 #include <Eigen/Dense>
 #include <iostream>
 
-typedef Eigen::MatrixXd Matrix;
-typedef Eigen::VectorXd Vector;
+#include <boost/math/constants/constants.hpp>
+#include <boost/multiprecision/cpp_dec_float.hpp>
+#include <cxxtimer.hpp>
 
-typedef double Double;
+typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<50> > BoostDouble;
+typedef BoostDouble InterpolantDouble;
+
+//Change typedef here to use diffent double type in interior point method.
+#ifdef IPM_USE_DOUBLE
+typedef double IPMDouble;
+#else
+typedef BoostDouble IPMDouble;
+#endif
+
+typedef Eigen::Matrix<IPMDouble, Eigen::Dynamic, Eigen::Dynamic> Matrix;
+typedef Eigen::Matrix<IPMDouble, Eigen::Dynamic, 1> Vector;
+
+typedef Eigen::Matrix<BoostDouble, Eigen::Dynamic, Eigen::Dynamic>  BoostMatrix;
+typedef Eigen::Matrix<BoostDouble, Eigen::Dynamic, 1> BoostVector;
+
+typedef Eigen::Matrix<InterpolantDouble, Eigen::Dynamic, Eigen::Dynamic>  InterpolantMatrix;
+typedef Eigen::Matrix<InterpolantDouble, Eigen::Dynamic, 1> InterpolantVector;
+
+typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>  DoubleMatrix;
+typedef Eigen::Matrix<double, Eigen::Dynamic, 1> DoubleVector;
+
+
+//TODO: find nicer solution
+
+inline DoubleMatrix InterpolantMatrixToMatrix(BoostMatrix &M, DoubleMatrix &){
+    DoubleMatrix A(M.rows(), M.cols());
+        for (int row = 0; row < M.rows(); ++row) {
+            for (int col = 0; col < M.cols(); ++col) {
+               A(row,col) = M(row,col).convert_to<double>();
+            } 
+        }
+    return A;
+}
+
+inline BoostMatrix InterpolantMatrixToMatrix(BoostMatrix & M, BoostMatrix &){
+    return M;
+}
+
+inline DoubleVector InterpolantVectortoVector(BoostVector & v, DoubleVector &){
+    DoubleVector w(v.rows());
+    for (int i = 0; i < v.rows(); ++i) {
+       w(i) = v(i).convert_to<double>();
+    }
+    return w;
+}
+
+inline BoostVector InterpolantVectortoVector(BoostVector & v, BoostVector &) {
+    return v;
+}
+
+inline double InterpolantDoubletoIPMDouble(BoostDouble & d, double &) {
+    return d.convert_to<double>();
+}
+
+inline BoostDouble InterpolantDoubletoIPMDouble(BoostDouble & d, BoostDouble &){
+    return d;
+}
+
+inline double InterpolantDoubletoIPMDouble(double & d, double &){
+    return d;
+}
 
 inline Vector MatrixToVector(Matrix M){
     assert(M.rows() == M.cols());
@@ -23,8 +85,8 @@ class Solution {
 public:
     Vector x;
     Vector s;
-    Double centrality;
-    Double gap;
+    IPMDouble centrality;
+    IPMDouble gap;
 };
 
 //TODO: Need full row rank matrices for IPM. Also, is preprocessing A, e.g. row-echelon form useful?

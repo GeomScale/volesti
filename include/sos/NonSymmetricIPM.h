@@ -8,6 +8,7 @@
 #include "LHSCB.h"
 #include "spdlog/spdlog.h"
 #include <iostream>
+#include <cxxtimer.hpp>
 
 
 class Instance {
@@ -30,7 +31,7 @@ public:
     friend std::ostream &operator<<(std::ostream &os, const DirectionDecomposition &dir);
 
     Vector y, x, s;
-    Double kappa, tau;
+    IPMDouble kappa, tau;
 };
 
 class NonSymmetricIPM {
@@ -47,19 +48,19 @@ public:
 
     void run_solver();
 
-    inline Double primal_error() {
+    inline IPMDouble primal_error() {
         return (A * x / tau - b).norm();
     }
 
-    inline Double dual_error() {
+    inline IPMDouble dual_error() {
         return (A.transpose() * y / tau + s / tau - c).norm();
     }
 
-    inline Double duality_gap(){
+    inline IPMDouble duality_gap(){
         return x.dot(s) / _barrier->concordance_parameter(x);
     }
 
-    bool verify_solution(Double precision = 10e-5) {
+    bool verify_solution(IPMDouble precision = 10e-5) {
         if (not _barrier->in_interior(x)) {
             return false;
         }
@@ -96,6 +97,8 @@ private:
     Vector b;
     Vector c;
 
+    Matrix _basis_ker_A;
+
     Vector x;
     Vector y;
     Vector s;
@@ -103,25 +106,35 @@ private:
     Matrix _M;
     Matrix _G;
 
-    unsigned _num_predictor_steps = 500;
+    unsigned _num_predictor_steps = 100;
     unsigned _num_corrector_steps;
-    Double _step_length_predictor;
-    Double _step_length_corrector;
+    IPMDouble _step_length_predictor;
+    IPMDouble _step_length_corrector;
 
-    Double _epsilon = 10e-10;
+    IPMDouble _epsilon = 10e-5;
+
+    cxxtimer::Timer _predictor_timer;
+    cxxtimer::Timer _corrector_timer;
+    cxxtimer::Timer _andersen_sys_timer;
+    cxxtimer::Timer _centrality_timer;
+
+    cxxtimer::Timer _general_method_timer;
+    cxxtimer::Timer _specific_method_timer;
 
     bool terminate();
 
     bool _use_line_search = true;
 
-    Double kappa, tau;
+    IPMDouble kappa, tau;
 
     //Large neighborhood
-    Double _beta;
+    IPMDouble _beta;
+    //Small neighborhood
+    IPMDouble _beta_small;
 
-    Double mu();
+    IPMDouble mu();
 
-    Vector psi(double t);
+    Vector psi(IPMDouble t);
 
     LHSCB *_barrier;
 
@@ -131,7 +144,7 @@ private:
 
     Vector andersen_andersen_solve(Vector const);
 
-    Vector solve(Matrix const, Vector const);
+    Vector solve(Matrix &, Vector const);
 
     Matrix create_matrix_G();
 
@@ -143,7 +156,7 @@ private:
 
     Vector solve_corrector_system();
 
-    Double centrality();
+    IPMDouble centrality();
 
     void print();
 

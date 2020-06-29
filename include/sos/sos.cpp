@@ -7,9 +7,11 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <fstream>
 
-//TODO: Use ARPACK for faster sparse linear algebra.
+//TODO: Use ARPACK(LAPACK?) for faster sparse linear algebra.
 
-Constraints convert_LP_to_SDP(Matrix & A, Vector & b, Vector & c) {
+void test_speed_of_types(int max_degree);
+
+Constraints convert_LP_to_SDP(Matrix &A, Vector &b, Vector &c) {
     const int m = A.rows();
     const int n = A.cols();
 
@@ -44,7 +46,7 @@ Constraints convert_LP_to_SDP(Matrix & A, Vector & b, Vector & c) {
     return SDP_constraints;
 }
 
-bool test_sdp_solver_random_lp_formulation(const int m, const int n){
+bool test_sdp_solver_random_lp_formulation(const int m, const int n) {
     Matrix A = Matrix::Random(m, n);
     Vector x0 = Vector::Random(n);
     Vector c = Vector::Random(n);
@@ -66,7 +68,7 @@ bool test_sdp_solver_random_lp_formulation(const int m, const int n){
     return ipm_sdp_solver.verify_solution();
 }
 
-bool test_lp_solver_random(const int m, const int n){
+bool test_lp_solver_random(const int m, const int n) {
     Matrix A = Matrix::Random(m, n);
     Vector x0 = Vector::Random(n);
     Vector c = Vector::Random(n);
@@ -85,30 +87,40 @@ bool test_lp_solver_random(const int m, const int n){
     return lp_solver.verify_solution(10e-5);
 }
 
+int factorial(int t) {
+    if (t == 0) {
+        return 1;
+    }
+    return t * factorial(t - 1);
+}
+
+
 int main(int const argc, char **argv) {
+
     std::ifstream file;
-    if(argc < 2){
+    if (argc < 2) {
         std::cout << "No file provided. Use default file instead." << std::endl;
         file.open("../config/default.txt");
-        if(not file.is_open()){
+        if (not file.is_open()) {
             file.open("config/default.txt");
-        } if(not file.is_open()){
+        }
+        if (not file.is_open()) {
             std::cout << "Could not locate file." << std::endl;
             return 1;
         }
 
-    } else{
+    } else {
         file.open(argv[1]);
     }
 
     srand(time(nullptr));
 
-    assert(test_lp_solver_random(2,5));
-    assert(test_sdp_solver_random_lp_formulation(2,5));
+//    assert(test_lp_solver_random(2,5));
+//    assert(test_sdp_solver_random_lp_formulation(2,5));
 
     spdlog::logger logger("main_logger");
 
-    logger.set_level(spdlog::level::info);
+    logger.set_level(spdlog::level::debug);
     logger.info("Run Solvers!");
 
     // create color multi threaded logger
@@ -117,24 +129,25 @@ int main(int const argc, char **argv) {
 
     std::string line;
     std::getline(file, line);
-    std::istringstream  iss(line);
+    std::istringstream iss(line);
     int max_degree;
     iss >> max_degree;
+//    test_speed_of_types(max_degree);
 
     HyperRectangle hyperRectangle;
     //Note: Keep interval bounds
-    hyperRectangle.push_back(std::pair<Double, Double>(-1, 1));
+    hyperRectangle.push_back(std::pair<IPMDouble, IPMDouble>(-1, 1));
 //    EnvelopeProblemSDP envelopeProblem(1, max_degree, hyperRectangle);
     EnvelopeProblemSOS envelopeProblemSos(1, max_degree, hyperRectangle);
 
-    while(std::getline(file, line)){
+    while (std::getline(file, line)) {
         std::cout << "Read line: " << line << std::endl;
         std::istringstream poly_stream(line);
-        PolynomialSOS sos_poly = envelopeProblemSos.generate_zero_polynomial();
-        Double val;
+        InterpolantVector sos_poly = envelopeProblemSos.generate_zero_polynomial();
+        IPMDouble val;
         unsigned idx = 0;
-        while(poly_stream >> val){
-            if(idx >= sos_poly.size()){
+        while (poly_stream >> val) {
+            if (idx >= sos_poly.size()) {
                 return 1;
             }
             sos_poly[idx++] = val;
@@ -204,4 +217,37 @@ int main(int const argc, char **argv) {
 //    envelopeProblem.plot_polynomials_and_solution(sos_solver.get_solution());
 //    return 0;
 
+}
+
+void test_speed_of_types(int max_degree) {//Test matrix inversion runtime
+
+    Eigen::MatrixXd double_matrix = Eigen::MatrixXd::Random(max_degree, max_degree);
+    cxxtimer::Timer t1;
+    t1.start();
+    Eigen::MatrixXd inv_double = double_matrix.inverse();
+    inv_double = inv_double.cwiseAbs();
+    t1.stop();
+//    Matrix Double_matrix = Matrix::Random(max_degree, max_degree);
+    cxxtimer::Timer t2;
+    t2.start();
+    Eigen::Matrix<double, Eigen::Dynamic, 1> sol = double_matrix.householderQr().solve
+            (Eigen::Matrix<double, Eigen::Dynamic, 1>::Random(double_matrix.rows()));
+    t2.stop();
+
+//    Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> long_double_matrix =
+//            Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> ::Random(max_degree, max_degree);
+
+    cxxtimer::Timer t3;
+    t3.start();
+//    Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic>  inv_long_double = long_double_matrix.inverse();
+//    inv_long_double = inv_long_double.cwiseAbs();
+    t3.stop();
+
+    std::cout << "double: " << std::numeric_limits<double>::max();
+    std::cout << "long double: " << std::numeric_limits<long double>::max();
+
+    std::cout << "Normal doubles took " << t1.count<std::chrono::milliseconds>() <<
+              " \nand high prec took " << t2.count<std::chrono::milliseconds>() <<
+              " \nand long double took " << t3.count<std::chrono::milliseconds>() <<
+              "\n for dim " << max_degree << std::endl;
 }

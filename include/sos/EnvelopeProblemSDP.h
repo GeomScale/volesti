@@ -14,7 +14,7 @@
 
 namespace plt = matplotlibcpp;
 
-typedef std::vector<std::pair<Double, Double> > HyperRectangle;
+typedef std::vector<std::pair<IPMDouble, IPMDouble> > HyperRectangle;
 typedef Matrix PolynomialSDP;
 
 
@@ -33,8 +33,8 @@ public:
     //Requires that polynomial matrix was already constructed
     void construct_objective_matrix();
 
-    Double calculate_objective(Monomial m);
-    Double calculate_objective(Monomial m, int var);
+    IPMDouble calculate_objective(Monomial m);
+    IPMDouble calculate_objective(Monomial m, int var);
 
     //FIXME: Remove trivial rows. Also, the variables Y might not be necessary. The whole barrier can be applied to X itself;
     Instance construct_SDP_instance();
@@ -46,9 +46,9 @@ public:
     void print_polynomial(Matrix M) const;
 
     //Assume that monomial is ordered as 1, x, x*x, ...
-    Double univariate_monomial_evaluation(Monomial const m, Double const x);
+    IPMDouble univariate_monomial_evaluation(Monomial const m, IPMDouble const x);
 
-    Double univariate_polynomial_evaluation(PolynomialSDP const poly, Double x);
+    IPMDouble univariate_polynomial_evaluation(PolynomialSDP const poly, IPMDouble x);
 
     void plot_polynomials_and_solution(const Solution &sol);
 

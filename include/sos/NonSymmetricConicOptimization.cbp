@@ -106,7 +106,7 @@
 		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/NonSymmetricIPM.h">
 			<Option target="NonSymmetricConicOptimization"/>
 		</Unit>
-		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/main.cpp">
+		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/sos.cpp">
 			<Option target="NonSymmetricConicOptimization"/>
 		</Unit>
 		<Unit filename="/Users/natura/Projects/volume_approximation/include/sos/utils.cpp">
