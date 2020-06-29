@@ -13,17 +13,19 @@
 // see <http://www.gnu.org/licenses/>.
 
 
-#ifndef PRSF_HPP
-#define PRSF_HPP
+#ifndef GEWEKE_HPP
+#define GEWEKE_HPP
 
-template <typename NT, typename MT, typename VT>
+#include <boost/math/distributions/fisher_f.hpp>
+
+template <typename VT, typename MT, typename NT>
 bool perform_geweke(MT const& samples, NT const& frac1, NT const& frac2)
 {
-    unsigned int d = (*rpit).dimension(), N = point_list.size();
+    unsigned int d = samples.rows(), N = samples.cols();
     unsigned int N1 = N*frac1;
     unsigned int N2 = N*frac2;
 
-    MT sigma1 = MT::(d,d), sigma2 = MT::(d,d);
+    MT sigma1 = MT::Zero(d,d), sigma2 = MT::Zero(d,d);
     VT mean1 = VT::Zero(d), mean2 = VT::Zero(d);
     NT alpha = 0.05;
 
@@ -50,13 +52,18 @@ bool perform_geweke(MT const& samples, NT const& frac1, NT const& frac2)
 
     MT S_pl = ((NT(N1) - 1.0)*sigma1 + (NT(N2) - 1.0)*sigma2) / (NT(N1) + NT(N2) - 2.0);
 
-    NT T2 = ((NT(N1)*NT(N2))/(NT(N1) + NT(N2))) * ((mean1 - mean2).transpose() * S_pl.inverse() * (mean1 - mean2));
+    NT T2 = (mean1 - mean2).transpose() * S_pl.inverse() * (mean1 - mean2);
+    T2 = ((NT(N1)*NT(N2))/(NT(N1) + NT(N2))) * T2;
 
-    NT U = ((NT(N1) + NT(N2) - NT(d) - 1.0) / ((NT(N1) + NT(N2) - 2.0)*NT(d))) * T;
+    NT U = ((NT(N1) + NT(N2) - NT(d) - 1.0) / ((NT(N1) + NT(N2) - 2.0)*NT(d))) * T2;
 
-    if (U > boost::quantile(fisher_f(d, N1 + N2 - d - 1), alpha)) {
+    boost::math::fisher_f dist(d, N1 + N2 - d - 1);
+
+    if (U > (boost::math::quantile(boost::math::complement(dist, alpha)))) {
         return false;
     }
     return true;
 
 }
+
+#endif

@@ -120,6 +120,15 @@ frustum_of_simplex <- function(a, z0) {
     .Call(`_volesti_frustum_of_simplex`, a, z0)
 }
 
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param samples The point set.
+#'
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+geweke <- function(samples, frac1 = NULL, frac2 = NULL) {
+    .Call(`_volesti_geweke`, samples, frac1, frac2)
+}
+
 #' Compute an inscribed ball of a convex polytope
 #'
 #' For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }, this function computes the largest inscribed ball (Chebychev ball) by solving the corresponding linear program.
@@ -156,6 +165,15 @@ inner_ball <- function(P) {
 #' @return A numerical matrix describing the requested polytope
 poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL) {
     .Call(`_volesti_poly_gen`, kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed)
+}
+
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param samples The point set.
+#'
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+psrf <- function(samples, method = NULL) {
+    .Call(`_volesti_psrf`, samples, method)
 }
 
 #'  An internal Rccp function for the random rotation of a convex polytope

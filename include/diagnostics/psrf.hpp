@@ -18,16 +18,16 @@
 #ifndef PSRF_HPP
 #define PSRF_HPP
 
-template <typename NT, typename MT, typename VT, typename Point>
+template <typename NT, typename VT, typename MT>
 NT perform_psrf(MT const& points)
 {
-    typename typename Point::FT NT;
+    //typedef double NT;
 
     unsigned int N = points.cols(), d = points.rows();
     unsigned int N1 = N/2;
     unsigned int N2 = N - N1;
 
-    MT chain1(d, N1), chain2(d, N2), S1 = MT::Zero(d,d), S2 = MT::(d,d), S(d,d), B = MT::Zero(d,d);
+    MT chain1(d, N1), chain2(d, N2), S1 = MT::Zero(d,d), S2 = MT::Zero(d,d), S(d,d), B = MT::Zero(d,d);
     VT mean1 = VT::Zero(d), mean2 = VT::Zero(d);
 
     for (int i = 0; i < N1; ++i) {
@@ -62,10 +62,10 @@ NT perform_psrf(MT const& points)
     MT SB = S.inverse() * B;
     Eigen::SelfAdjointEigenSolver <MT> eigensolver(SB);
     //rel = eigensolver.eigenvalues().minCoeff();
-    l_max = eigensolver.eigenvalues().maxCoeff();
+    NT l_max = eigensolver.eigenvalues().maxCoeff();
 
 
-    NT R = std::sqrt((NT(N1) - 1.0)/NT(N1) + 1.5*l_max);
+    NT R = std::sqrt((NT(N1) - 1.0)/NT(N1) + 1.5*(l_max)/NT(N1));
 
     return R;
 
