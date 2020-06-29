@@ -311,7 +311,7 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
     _logger = spdlog::get("NonSymmetricIPM");
     if (_logger == nullptr) {
         _logger = spdlog::stdout_color_mt("NonSymmetricIPM");
-        _logger->set_level(spdlog::level::debug);
+        _logger->set_level(spdlog::level::info);
     }
     initialize();
 }
@@ -346,8 +346,8 @@ void NonSymmetricIPM::initialize() {
 
     assert(x.rows() == _barrier->getNumVariables());
 
-    _logger->info("x is initialized as: {}", x.transpose());
-    _logger->info("s is initialized as: {}", s.transpose());
+    _logger->debug("x is initialized as: {}", x.transpose());
+    _logger->debug("s is initialized as: {}", s.transpose());
 
     Matrix QR = A.transpose().householderQr().householderQ();
 

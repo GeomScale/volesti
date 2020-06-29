@@ -10,6 +10,8 @@
 typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<50> > BoostDouble;
 typedef BoostDouble InterpolantDouble;
 
+typedef long double long_double;
+
 #ifdef IPM_DOUBLE
     typedef IPM_DOUBLE Double;
 #else

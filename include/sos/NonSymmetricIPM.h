@@ -105,7 +105,7 @@ private:
     Matrix _M;
     Matrix _G;
 
-    unsigned _num_predictor_steps = 100;
+    unsigned _num_predictor_steps = 500;
     unsigned _num_corrector_steps;
     IPMDouble _step_length_predictor;
     IPMDouble _step_length_corrector;
