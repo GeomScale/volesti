@@ -317,11 +317,37 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
 }
 
 void NonSymmetricIPM::initialize() {
+
+    //Rescale instance for stability/conditioning
+
+    IPMDouble scaling_delta_primal = 0;
+    for (int i = 0; i < A.rows(); i++) {
+        IPMDouble const row_ratio = (1. + abs(b(i))) / (1. + abs(A.row(i).sum()));
+        scaling_delta_primal = std::max(scaling_delta_primal, row_ratio);
+    }
+
     x = _barrier->initialize_x();
     s = _barrier->initialize_s();
 
-    _logger->trace("x is initialized as: {}", x.transpose());
-    _logger->trace("s is initialized as: {}", s.transpose());
+    IPMDouble scaling_delta_dual = 0;
+    for (int i = 0; i < s.rows(); i++) {
+        IPMDouble const entry_ratio = (1 + abs(s(i))) / (1 + abs(c(i)));
+        scaling_delta_dual = std::max(scaling_delta_dual, entry_ratio);
+    }
+
+    IPMDouble const scaling_delta = sqrt(scaling_delta_dual * scaling_delta_primal);
+
+    //Reinitialize with scaled values
+
+    x = _barrier->initialize_x(scaling_delta);
+    s = _barrier->initialize_s(scaling_delta);
+
+    _logger->info("Rescaled initial point by {}", scaling_delta);
+
+    assert(x.rows() == _barrier->getNumVariables());
+
+    _logger->info("x is initialized as: {}", x.transpose());
+    _logger->info("s is initialized as: {}", s.transpose());
 
     Matrix QR = A.transpose().householderQr().householderQ();
 
@@ -471,7 +497,7 @@ void NonSymmetricIPM::print() {
     Double const mu_ = InterpolantDoubletoIPMDouble(mu_ipm, dummy_D);
     _logger->info(format_, "mu unscaled", mu_);
 
-    IPMDouble  centrality_ipm_ = centrality();
+    IPMDouble centrality_ipm_ = centrality();
     Double const centrality_ = InterpolantDoubletoIPMDouble(centrality_ipm_, dummy_D);
     _logger->info(format_, "centrality error", centrality_);
 
@@ -483,8 +509,8 @@ void NonSymmetricIPM::print() {
     Double primal_inf_ = InterpolantDoubletoIPMDouble(primal_inf_ipm_, dummy_D);
     _logger->info(format_, "primal infeas. ", primal_inf_);
 
-   IPMDouble primal_inf_unscaled_ipm_ = (A * x - b * tau).norm();
-   Double primal_inf_unscaled_ = InterpolantDoubletoIPMDouble(primal_inf_unscaled_ipm_, dummy_D);
+    IPMDouble primal_inf_unscaled_ipm_ = (A * x - b * tau).norm();
+    Double primal_inf_unscaled_ = InterpolantDoubletoIPMDouble(primal_inf_unscaled_ipm_, dummy_D);
     _logger->info(format_, "primal infeas. unscaled", primal_inf_unscaled_);
 
     IPMDouble dual_inf_ipm_ = (A.transpose() * y / tau + s / tau - c).norm();
