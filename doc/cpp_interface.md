@@ -222,11 +222,12 @@ For V-polytopes use flag `-f2` before the `.ext` file. In all cases use flag `-v
 
 ## Using the SOS-solver for Polynomial Envelope problems
 
+For precise computation of Chebyshev Points and Lagrange Polynomials boost::multiprecision is used. The boost headers in this project do not contain the needed header files. Please provide the link to the boost files via thet `-DBOOST_DIR` flag.
 Navigate to the SOS solver and compile:
 
 ```
 cd include/sos/
-cmake -DCMAKE_BUILD_TYPE=Release .
+cmake -DCMAKE_BUILD_TYPE=Release_double -DBOOST_DIR=your_boost_include_directory .
 make
 ```
 
