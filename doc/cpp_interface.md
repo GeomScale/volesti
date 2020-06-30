@@ -255,6 +255,6 @@ c_10 c_11 c_12 c_13 ...
 ```
 
 where "d" is the maximal degree of the approximation polynomial and c_ij are the coefficients for the 
-monomial x^j for constraint polynomial i. An example can be found in "config/default.txt".
+monomial x^j for the i-th constraint polynomial. An example can be found in "config/default.txt".
 
 
