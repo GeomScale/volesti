@@ -27,16 +27,21 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperR
     for (int i = 0; i < _U; ++i) {
         InterpolantVector p = InterpolantVector::Zero(_U);
         p(0) = 1;
+        InterpolantDouble denom = 1.;
         for (int j = 0; j < _U; ++j) {
             if (i != j) {
                 InterpolantVector fac_j = InterpolantVector::Zero(_U);
-                fac_j(0) = -chebyshev_points[j] / (chebyshev_points[i] - chebyshev_points[j]);
-                fac_j(1) = 1 / (chebyshev_points[i] - chebyshev_points[j]);
+                denom *= chebyshev_points[i] - chebyshev_points[j];
+                fac_j(0) = -chebyshev_points[j];
+                fac_j(1) = 1.;
                 p = prod_sos(p, fac_j);
             }
         }
+        p /= denom;
         _basis_polynomials.push_back(p);
     }
+
+    _logger->info("Finished construction.");
 
     //Test basis
 
@@ -99,6 +104,8 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperR
 //
 //    std::cout << "Test alternative lagrange basis: " << std::endl << alternative_test_matrix << std::endl;
 
+
+    _logger->info("Construct objectives vector...");
     _objectives_vector.resize(_U);
     for (int i = 0; i < _U; ++i) {
         InterpolantVector &poly = _basis_polynomials[i];
@@ -110,6 +117,7 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperR
         }
         _objectives_vector[i] = -obj;
     }
+    _logger->info("Finished constructing objective vector");
 }
 
 void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {

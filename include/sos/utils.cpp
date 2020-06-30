@@ -7,7 +7,7 @@
 #include "spdlog/spdlog.h"
 
 
-typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<50> > BoostDouble;
+typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<250> > BoostDouble;
 typedef BoostDouble InterpolantDouble;
 
 typedef long double long_double;

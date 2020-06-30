@@ -209,6 +209,8 @@ public:
         P_ortho.colwise().hnormalized();
         InterpolantMatrix P_intermediate = P_ortho.block(0,0,_U,_L);
         _P = InterpolantMatrixToMatrix(P_intermediate, _P);
+        std::cout << "Orthogonalization done..." << std::endl;
+
 //        std::cout << "Orthogonalized matrix P: \n" << _P << std::endl;
 //        std::cout << "Finished orthogonalization" << std::endl;
     };

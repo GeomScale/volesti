@@ -3,6 +3,7 @@ project(NonSymmetricConicOptimization)
 
 set(CMAKE_CXX_STANDARD 14)
 
+set(CMAKE_CXX_FLAGS_DEBUG "-DIPM_USE_DOUBLE")
 set(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -mavx -DNDEBUG=1")
 set(CMAKE_CXX_FLAGS_RELEASE_DOUBLE  "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -mavx -DNDEBUG=1 -DIPM_USE_DOUBLE")
 
