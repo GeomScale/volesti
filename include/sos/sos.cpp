@@ -87,6 +87,58 @@ bool test_lp_solver_random(const int m, const int n) {
     return lp_solver.verify_solution(10e-5);
 }
 
+void test_sdp_solver(){
+//    PolynomialSDP poly1 = envelopeProblem.generate_zero_polynomial();
+//    poly1(0,0) = 1;
+//    poly1(1, 0) = 1;
+//    poly1(-0,1) = 1;
+//    poly1(1, 1) = 1;
+//    poly1(2,2) = -1;
+//    poly1(1,1) = 1;
+//
+//    Polynomial poly11 = envelopeProblem.generate_zero_polynomial();
+//    poly11(0,0) = 1;
+//    poly11(1, 0) = -1;
+//    poly11(-0,1) = -1;
+//    poly11(1, 1) = 1;
+//
+//    envelopeProblem.print_polynomial(poly1);
+//    envelopeProblem.add_polynomial(poly1);
+//
+//    envelopeProblem.print_polynomial(poly11);
+//    envelopeProblem.add_polynomial(poly11);
+//
+//
+//    PolynomialSDP p1 = Matrix::Zero(poly1.rows(), poly1.cols());
+//    p1(1,1) = 10;
+//    p1(0, 0) = -0;
+//
+//    PolynomialSDP p2 = Matrix::Zero(poly1.rows(), poly1.cols());
+//    p2(0,0) = 10;
+//    p2(0,1) = 10;
+//    for (int i = 2; i <= max_degree; ++i) {
+//        p2(i,i) = -.0001;
+//    }
+//    p2 = p2.eval() + p2.transpose().eval();
+//    PolynomialSDP p3 = Matrix::Zero(poly1.rows(), poly1.cols());
+//    p3(0,0) = 1;
+//    p3(0,1) = -1;
+//    p3 = p3.eval() + p3.transpose().eval();
+////
+//    envelopeProblem.add_polynomial(p1);
+//    envelopeProblem.add_polynomial(p2);
+//    envelopeProblem.add_polynomial(p3);
+////
+//    Instance instance = envelopeProblem.construct_SDP_instance();
+//
+//    std::cout << "Objectives Matrix: " << std::endl << envelopeProblem.get_objective_matrix() << std::endl;
+////
+//    NonSymmetricIPM sos_solver(instance);
+//    sos_solver.run_solver();
+//    envelopeProblem.print_solution(sos_solver.get_solution());
+//    envelopeProblem.plot_polynomials_and_solution(sos_solver.get_solution());
+}
+
 int factorial(int t) {
     if (t == 0) {
         return 1;
@@ -97,18 +149,20 @@ int factorial(int t) {
 
 int main(int const argc, char **argv) {
 
+    auto console = spdlog::stdout_color_mt("console");
+    console->info("Logger level is {}", console->level());
+
     std::ifstream file;
     if (argc < 2) {
-        std::cout << "No file provided. Use default file instead." << std::endl;
+        console->info("No data file provided. The default file will be used instead.");
         file.open("../config/default.txt");
         if (not file.is_open()) {
             file.open("config/default.txt");
         }
         if (not file.is_open()) {
-            std::cout << "Could not locate file." << std::endl;
+            console->error("Could not locate file.");
             return 1;
         }
-
     } else {
         file.open(argv[1]);
     }
@@ -118,14 +172,8 @@ int main(int const argc, char **argv) {
 //    assert(test_lp_solver_random(2,5));
 //    assert(test_sdp_solver_random_lp_formulation(2,5));
 
-    spdlog::logger logger("main_logger");
-
-    logger.set_level(spdlog::level::debug);
-    logger.info("Run Solvers!");
-
     // create color multi threaded logger
-    auto console = spdlog::stdout_color_mt("console");
-    console->info("Logger level is {}", console->level());
+
 
     std::string line;
     std::getline(file, line);
@@ -164,58 +212,9 @@ int main(int const argc, char **argv) {
 
     envelopeProblemSos.print_solution(sos_solver_interp.get_solution());
     envelopeProblemSos.plot_polynomials_and_solution(sos_solver_interp.get_solution());
+
+//    test_sdp_solver();
     return 0;
-
-//    PolynomialSDP poly1 = envelopeProblem.generate_zero_polynomial();
-//    poly1(0,0) = 1;
-//    poly1(1, 0) = 1;
-//    poly1(-0,1) = 1;
-//    poly1(1, 1) = 1;
-//    poly1(2,2) = -1;
-//    poly1(1,1) = 1;
-//
-//    Polynomial poly11 = envelopeProblem.generate_zero_polynomial();
-//    poly11(0,0) = 1;
-//    poly11(1, 0) = -1;
-//    poly11(-0,1) = -1;
-//    poly11(1, 1) = 1;
-//
-//    envelopeProblem.print_polynomial(poly1);
-//    envelopeProblem.add_polynomial(poly1);
-//
-//    envelopeProblem.print_polynomial(poly11);
-//    envelopeProblem.add_polynomial(poly11);
-
-
-//    PolynomialSDP p1 = Matrix::Zero(poly1.rows(), poly1.cols());
-//    p1(1,1) = 10;
-//    p1(0, 0) = -0;
-//
-//    PolynomialSDP p2 = Matrix::Zero(poly1.rows(), poly1.cols());
-//    p2(0,0) = 10;
-//    p2(0,1) = 10;
-//    for (int i = 2; i <= max_degree; ++i) {
-//        p2(i,i) = -.0001;
-//    }
-//    p2 = p2.eval() + p2.transpose().eval();
-//    PolynomialSDP p3 = Matrix::Zero(poly1.rows(), poly1.cols());
-//    p3(0,0) = 1;
-//    p3(0,1) = -1;
-//    p3 = p3.eval() + p3.transpose().eval();
-////
-//    envelopeProblem.add_polynomial(p1);
-//    envelopeProblem.add_polynomial(p2);
-//    envelopeProblem.add_polynomial(p3);
-////
-//    Instance instance = envelopeProblem.construct_SDP_instance();
-//
-//    std::cout << "Objectives Matrix: " << std::endl << envelopeProblem.get_objective_matrix() << std::endl;
-////
-//    NonSymmetricIPM sos_solver(instance);
-//    sos_solver.run_solver();
-//    envelopeProblem.print_solution(sos_solver.get_solution());
-//    envelopeProblem.plot_polynomials_and_solution(sos_solver.get_solution());
-//    return 0;
 
 }
 

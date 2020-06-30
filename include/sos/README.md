@@ -1,8 +1,6 @@
 ### Sum of Squares optimization
 
-This subproject implements the algorithm(s) in the publications:
-
-Example of usage can be found [here](../../doc/cpp_interface.md). 
+This subproject implements the algorithm(s) in [1,2,3]. Example of usage can be found [here](../../doc/cpp_interface.md). 
 #### Currently available:
 
 * The generic implementation of the algorithm in [1] with barrier methods for the following cones:
@@ -35,6 +33,9 @@ on the interval [-1,1].
 * Using double for polynomials of degree > 100 is unstable. On the other hand, high precision 
 numbers immensely slow down the IPM
 * Generation of Chebyshev Points / Interpolant Basis dominates the runtime.
+* High degree polynomial (beginning at around degree 25) lead to oscillation near the boundary. But this might be an artifact from these polynomials as opposed to a bug or lack in precision.
+
+#### References
 
 [1] A. Skajaa and Y. Ye, [A homogeneous interior-point algorithm for nonsymmetric convex conic optimization](https://web.stanford.edu/~yyye/nonsymmhsdimp.pdf), Mathematical Programming Ser. A, 150 (2015), pp. 391-422. 
 
