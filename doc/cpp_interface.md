@@ -240,7 +240,7 @@ Run
 See an example plot below.
 ![image](../include/sos/plot_saved.png "Example envelope")
 
-For alternative polynomials to optimize over parse a file to the executable with format
+To parse a custom file invoke with added file argument:
 
 ```
 ./NonSymmetricConicOptimization file.txt
