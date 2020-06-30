@@ -25,6 +25,8 @@ on the interval [-1,1].
 * Implement Lagrange polynomials more efficiently (or find C++ library with sufficient precision.)
 * Speed up with Intel MKL (considering it is not open source we miht not use it !?) or other high-performance library
 * Implementation/inspiration from  [4]. In particular interesting are:
+    * Positive definite rescaling matrix for added stability and monotonicity 
+    * Combining Predictor- and Corrector steps.
 * Writing tests
 * Interfaces for R (and Python)
     
