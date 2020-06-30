@@ -180,7 +180,9 @@ public:
 
         //Chebyshev points for standard interval [-1,1]
         for (int i = 0; i < _unisolvent_basis.size(); ++i) {
-            InterpolantDouble cos_val = boost::multiprecision::cos(i * boost::math::constants::pi<InterpolantDouble>() / (_U - 1));
+            BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / (_U - 1));
+            InterpolantDouble dummy_ipm;
+            InterpolantDouble cos_val = InterpolantDoubletoIPMDouble(cos_i, dummy_ipm);
             _unisolvent_basis[i] = cos_val;
         }
 
@@ -203,16 +205,19 @@ public:
             }
         }
 
-        std::cout << "Found interpolant point Matrix P. Orthogonalize..." << std::endl;
-//        std::cout << "Created matrix P: \n" << _P << std::endl;
+        //TODO: Figure out whehter orthogonalization could be done in double precision to speed up initialisation.
+        std::cout << "Found interpolant point Matrix P." << std::endl;
+        std::cout << "Orthogonalize..." << std::endl;
+        cxxtimer::Timer orth_timer;
+        orth_timer.start();
         InterpolantMatrix P_ortho = P_interp.householderQr().householderQ();
         P_ortho.colwise().hnormalized();
         InterpolantMatrix P_intermediate = P_ortho.block(0,0,_U,_L);
         _P = InterpolantMatrixToMatrix(P_intermediate, _P);
-        std::cout << "Orthogonalization done..." << std::endl;
-
+        orth_timer.stop();
+        std::cout << "Orthogonalization done in "  << orth_timer.count<std::chrono::milliseconds>()/ 1000.
+                << " seconds..." << std::endl;
 //        std::cout << "Orthogonalized matrix P: \n" << _P << std::endl;
-//        std::cout << "Finished orthogonalization" << std::endl;
     };
 
     Vector gradient(Vector x) override;

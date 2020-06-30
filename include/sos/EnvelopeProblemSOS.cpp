@@ -1,5 +1,6 @@
 #include "EnvelopeProblemSOS.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/fmt/ostr.h"
 
 EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperRectangle &hyperRectangle_) :
@@ -11,7 +12,10 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperR
 
     _logger = spdlog::get("EnvelopeProblemSOS");
     if (_logger == nullptr) {
-        _logger = spdlog::stdout_color_mt("EnvelopeProblemSOS");
+        std::vector<spdlog::sink_ptr> sinks;
+        sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+        sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("log.txt"));
+        _logger = std::make_shared<spdlog::logger>("EnvelopeProblemSOS", begin(sinks), end(sinks));
         _logger->set_level(spdlog::level::info);
     }
 
@@ -24,6 +28,8 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperR
 //    _logger->debug("The chebyshev points are: ", chebyshev_points);
     _logger->info("Construct interpolant polynomial basis...");
 
+    cxxtimer::Timer interp_basis_timer;
+    interp_basis_timer.start();
     for (int i = 0; i < _U; ++i) {
         InterpolantVector p = InterpolantVector::Zero(_U);
         p(0) = 1;
@@ -40,8 +46,9 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperR
         p /= denom;
         _basis_polynomials.push_back(p);
     }
-
-    _logger->info("Finished construction.");
+    interp_basis_timer.stop();
+    _logger->info("Finished construction in {} seconds.",
+            interp_basis_timer.count<std::chrono::milliseconds>()/1000.);
 
     //Test basis
 

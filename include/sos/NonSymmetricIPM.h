@@ -121,6 +121,8 @@ private:
     cxxtimer::Timer _specific_method_timer;
 
     bool terminate();
+    bool terminate_successfully();
+    bool terminate_infeasible();
 
     bool _use_line_search = true;
 

@@ -19,4 +19,4 @@ add_executable(NonSymmetricConicOptimization ${TARGETS} sos.cpp)
 target_include_directories(NonSymmetricConicOptimization PRIVATE /usr/local/Cellar/libomp/10.0.0/include /usr/local/Cellar/boost/1.72.0/include ../../external include ${Python2_INCLUDE_DIRS} ${Python2_NumPy_INCLUDE_DIRS}
         )
 
-target_link_libraries(NonSymmetricConicOptimization Python2::Python Python2::NumPy)
+target_link_libraries(NonSymmetricConicOptimization Python2::Python Python2::NumPy )

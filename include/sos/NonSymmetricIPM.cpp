@@ -206,8 +206,13 @@ void NonSymmetricIPM::run_solver() {
     for (int pred_iteration = 0; pred_iteration < _num_predictor_steps; ++pred_iteration) {
         _logger->debug("Begin predictor iteration {}", pred_iteration);
         _predictor_timer.start();
-        if (terminate()) {
+        if (terminate_successfully()) {
             _logger->info("Interior point method terminated successfully with required proximity.");
+            break;
+        }
+
+        if(terminate_infeasible()){
+            _logger->info("Interior point method terminated with infeasible solution.");
             break;
         }
 //        test_hessian();
@@ -259,7 +264,7 @@ void NonSymmetricIPM::run_solver() {
             _logger->debug("Applied {} line steps in iteration {}", num_line_steps, pred_iteration);
             apply_update(fallback_vec);
 
-            assert(terminate() or num_line_steps > 0);
+            assert(terminate_successfully() or num_line_steps > 0);
         }
 
         _logger->info("End of predictor step {} with {} line steps:", pred_iteration, num_line_steps);
@@ -542,7 +547,9 @@ void NonSymmetricIPM::print() {
 
 }
 
-bool NonSymmetricIPM::terminate() {
+//According to Skajaa-Ye
+
+bool NonSymmetricIPM::terminate_successfully() {
     //Duality
     if (x.dot(s) > _epsilon * tau * tau) {
         return false;
@@ -557,6 +564,42 @@ bool NonSymmetricIPM::terminate() {
     }
     return true;
 }
+
+bool NonSymmetricIPM::terminate_infeasible() {
+
+    //TODO: Figure out if initialization scaling (delta) should influence the termination criteria.
+
+    //Primal feasibility
+    if ((A * x - b * tau).lpNorm<Eigen::Infinity>() >
+    _epsilon * std::max(1.,A.lpNorm<Eigen::Infinity>() + b.lpNorm<Eigen::Infinity>())) {
+        return false;
+    }
+
+    //Dual feasibility
+    if ((A.transpose() * y + s - c * tau).lpNorm<Eigen::Infinity>() >
+    _epsilon * std::max(1., A.lpNorm<Eigen::Infinity>()+ c.lpNorm<Eigen::Infinity>())) {
+        return false;
+    }
+
+    //Duality gap
+    if(abs(-c.dot(x) + b.dot(y) - kappa)
+    > _epsilon * std::max(1., c.lpNorm<Eigen::Infinity>() + b.lpNorm<Eigen::Infinity>())){
+        return false;
+    };
+
+    //tiny tau
+    if(tau >  _epsilon * 10e-2 * std::max(1., kappa)){
+        return false;
+    }
+
+    return true;
+}
+
+
+bool NonSymmetricIPM::terminate(){
+    return terminate_successfully() or terminate_infeasible();
+}
+
 
 IPMDouble NonSymmetricIPM::centrality() {
 
