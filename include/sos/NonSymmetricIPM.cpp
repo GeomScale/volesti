@@ -528,8 +528,8 @@ void NonSymmetricIPM::print() {
 
     _logger->trace("last predictor direction: {}", _last_predictor_direction.transpose());
 
-    _logger->info(format_, "Predictor time in (s)", _predictor_timer.count<std::chrono::milliseconds>() / 1000.);
-    _logger->info(format_, "Corrector time in (s)", _corrector_timer.count<std::chrono::milliseconds>() / 1000.);
+    _logger->info(format_, "Predictor time (s)", _predictor_timer.count<std::chrono::milliseconds>() / 1000.);
+    _logger->info(format_, "Corrector time (s)", _corrector_timer.count<std::chrono::milliseconds>() / 1000.);
 
 //    _logger->info("Total andersen sys solve time: {} seconds.",
 //                  _andersen_sys_timer.count<std::chrono::seconds>());

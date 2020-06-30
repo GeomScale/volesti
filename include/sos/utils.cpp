@@ -7,7 +7,7 @@
 #include "spdlog/spdlog.h"
 
 
-typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<50> > BoostDouble;
+typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<150> > BoostDouble;
 typedef BoostDouble InterpolantDouble;
 
 typedef long double long_double;
@@ -38,7 +38,7 @@ typedef Eigen::Matrix<Double, Eigen::Dynamic, Eigen::Dynamic>  DoubleMatrix;
 typedef Eigen::Matrix<Double, Eigen::Dynamic, 1> DoubleVector;
 
 
-//TODO: find nicer solution
+//TODO: find nicer solution for type casting (does any of the built-in casts might work)
 
 inline DoubleMatrix InterpolantMatrixToMatrix(BoostMatrix &M, DoubleMatrix &){
     DoubleMatrix A(M.rows(), M.cols());

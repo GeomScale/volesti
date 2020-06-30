@@ -196,7 +196,7 @@ public:
         // floating-point into the IPM floating point precision
 
         //TODO: This interpolant Matrix only needs to be found once and can then be reused;
-        std::cout << "Find interpolant point Matrix P..." << std::endl;
+        std::cout << "Construct interpolant point Matrix P..." << std::endl;
 
         for (int row = 0; row < P_interp.rows(); ++row) {
             for (int col = 0; col < P_interp.cols(); ++col) {
@@ -206,7 +206,7 @@ public:
         }
 
         //TODO: Figure out whehter orthogonalization could be done in double precision to speed up initialisation.
-        std::cout << "Found interpolant point Matrix P." << std::endl;
+        std::cout << "Constructed." << std::endl;
         std::cout << "Orthogonalize..." << std::endl;
         cxxtimer::Timer orth_timer;
         orth_timer.start();
@@ -216,7 +216,7 @@ public:
         _P = InterpolantMatrixToMatrix(P_intermediate, _P);
         orth_timer.stop();
         std::cout << "Orthogonalization done in "  << orth_timer.count<std::chrono::milliseconds>()/ 1000.
-                << " seconds..." << std::endl;
+                << " seconds." << std::endl;
 //        std::cout << "Orthogonalized matrix P: \n" << _P << std::endl;
     };
 
