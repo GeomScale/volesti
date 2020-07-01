@@ -59,63 +59,12 @@ public:
     };
 
 
-  RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
-    bounds boundaries, scoeffs a_coeffs, coeffs b_coeffs, coeffs c_coeffs) :
-    t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries),
-    as(a_coeffs), bs(b_coeffs), cs(c_coeffs) {
-      dim = xs[0].dimension();
-    };
-
-
-
-
-  RKODESolver(NT initial_time, NT step, int num_states, unsigned int dimension,
-    funcs oracles, bounds boundaries, scoeffs a_coeffs, coeffs b_coeffs,
-    coeffs c_coeffs) :
-    t(initial_time), Fs(oracles), eta(step), Ks(boundaries), as(a_coeffs),
-    bs(b_coeffs), cs(c_coeffs) {
-      xs = pts(num_states, Point(dimension));
-    };
-
-  RKODESolver(NT initial_time, NT step, int num_states, unsigned int dimension,
-    funcs oracles, bounds boundaries) :
-    t(initial_time), Fs(oracles), eta(step), Ks(boundaries) {
-      xs = pts(num_states, Point(dimension));
-      // If no coefficients are given the RK4 method is assumed
-      cs = coeffs{0, 0.5, 0.5, 1};
-      bs = coeffs{1.0/6, 1.0/3, 1.0/3, 1.0/6};
-      as = scoeffs{
-        coeffs{},
-        coeffs{0.5},
-        coeffs{0, 0.5},
-        coeffs{0, 0, 1.0}
-      };
-    };
-
-
-  RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
-    scoeffs a_coeffs, coeffs b_coeffs, coeffs c_coeffs) :
-    t(initial_time), xs(initial_state), Fs(oracles), eta(step), as(a_coeffs),
-    bs(b_coeffs), cs(c_coeffs) {
-      Ks = bounds(xs.size(), NULL);
-      dim = xs[0].dimension();
-    };
-
-  RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles) :
-    t(initial_time), xs(initial_state), Fs(oracles), eta(step) {
-      Ks = bounds(xs.size(), NULL);
-      dim = xs[0].dimension();
-      // If no coefficients are given the RK4 method is assumed
-      cs = coeffs{0, 0.5, 0.5, 1};
-      bs = coeffs{1.0/6, 1.0/3, 1.0/3, 1.0/6};
-      as = scoeffs{
-        coeffs{},
-        coeffs{0.5},
-        coeffs{0, 0.5},
-        coeffs{0, 0, 1.0}
-      };
-    };
-
+  // RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
+  //   bounds boundaries, scoeffs a_coeffs, coeffs b_coeffs, coeffs c_coeffs) :
+  //   t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries),
+  //   as(a_coeffs), bs(b_coeffs), cs(c_coeffs) {
+  //     dim = xs[0].dimension();
+  //   };
 
   unsigned int order() {
     return bs.size();

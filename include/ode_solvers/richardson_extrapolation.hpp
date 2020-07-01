@@ -53,31 +53,9 @@ public:
       A = ptsm(MAX_TRIES+1, ptsv(MAX_TRIES+1, pts(xs.size())));
       initialize_solver();
     };
-
-
-    RichardsonExtrapolationODESolver(NT initial_time, NT step, int num_states,
-      unsigned int dimension, funcs oracles, bounds boundaries) :
-      t(initial_time), Fs(oracles), eta(step), Ks(boundaries) {
-        for (int i = 0; i < num_states; i++) {
-          xs.push_back(Point(dimension));
-        }
-        A = ptsm(MAX_TRIES+1, ptsv(MAX_TRIES+1, pts(num_states)));
-        initialize_solver();
-      };
-
-
-  RichardsonExtrapolationODESolver(NT initial_time, NT step, pts initial_state,
-    funcs oracles) :
-    t(initial_time), xs(initial_state), Fs(oracles), eta(step) {
-      Ks = bounds(xs.size(), NULL);
-      dim = xs[0].dimension();
-      A = ptsm(MAX_TRIES+1, ptsv(MAX_TRIES+1, pts(xs.size())));
-      initialize_solver();
-    };
-
-
+  
   void initialize_solver() {
-    solver = new RKODESolver<Point, NT, Polytope>(t, eta, xs, Fs);
+    solver = new RKODESolver<Point, NT, Polytope>(t, eta, xs, Fs, bounds{NULL});
   }
 
   void step() {

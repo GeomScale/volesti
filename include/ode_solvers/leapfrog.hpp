@@ -38,20 +38,6 @@ public:
       dim = xs[0].dimension();
     };
 
-
-  LeapfrogODESolver(NT initial_time, NT step, int num_states, unsigned int dimension, funcs oracles, bounds boundaries) :
-    t(initial_time), Fs(oracles), eta(step), Ks(boundaries) {
-      xs = pts(num_states, Point(dimension));
-    };
-
-
-  LeapfrogODESolver(NT initial_time, NT step, pts initial_state, funcs oracles) :
-    t(initial_time), xs(initial_state), Fs(oracles), eta(step) {
-      Ks = bounds(xs.size(), NULL);
-      dim = xs[0].dimension();
-    };
-
-
   void step() {
     xs_prev = xs;
     t += eta;

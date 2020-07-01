@@ -39,6 +39,8 @@ void test_euler(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
+
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -46,7 +48,8 @@ void test_euler(){
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    EulerODESolver<Point, NT, Hpolytope> euler_solver = EulerODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs);
+    EulerODESolver<Point, NT, Hpolytope> euler_solver =
+      EulerODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs, bounds{NULL});
     euler_solver.steps(1000);
     NT err=0.001;
     NT error = euler_solver.xs[0].dot(euler_solver.xs[0]);
@@ -61,6 +64,8 @@ void test_bs(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
+
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -68,7 +73,8 @@ void test_bs(){
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    RichardsonExtrapolationODESolver<Point, NT, Hpolytope> bs_solver = RichardsonExtrapolationODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs);
+    RichardsonExtrapolationODESolver<Point, NT, Hpolytope> bs_solver =
+      RichardsonExtrapolationODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs, bounds{NULL});
     bs_solver.steps(1000);
 
     NT err=0.001;
@@ -85,6 +91,7 @@ void test_rk4(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -92,7 +99,8 @@ void test_rk4(){
     q0.set_coord(0, 1.0);
     pts q;
     q.push_back(q0);
-    RKODESolver<Point, NT, Hpolytope> rk_solver = RKODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs);
+    RKODESolver<Point, NT, Hpolytope> rk_solver =
+      RKODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs, bounds{NULL});
     rk_solver.steps(1000);
 
     NT err=0.001;
@@ -124,7 +132,8 @@ void test_leapfrog_constrained(){
     x0.set_coord(0, 0);
     v0.set_coord(0, 2.0);
     pts q{x0, v0};
-    LeapfrogODESolver<Point, NT, Hpolytope> leapfrog_solver = LeapfrogODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs, Ks);
+    LeapfrogODESolver<Point, NT, Hpolytope> leapfrog_solver =
+      LeapfrogODESolver<Point, NT, Hpolytope>(0, 0.1, q, Fs, Ks);
 
     for (int i = 0; i < 1000; i++) {
       leapfrog_solver.step();
@@ -142,6 +151,8 @@ void test_leapfrog(){
     typedef std::function<Point(pts, NT)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
+
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -151,7 +162,8 @@ void test_leapfrog(){
     x0.set_coord(0, 0);
     v0.set_coord(0, 1.0);
     pts q{x0, v0};
-    LeapfrogODESolver<Point, NT, Hpolytope> leapfrog_solver = LeapfrogODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs);
+    LeapfrogODESolver<Point, NT, Hpolytope> leapfrog_solver =
+      LeapfrogODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs, bounds{NULL, NULL});
 
     for (int i = 0; i < 1000; i++) {
       leapfrog_solver.step();
@@ -182,7 +194,8 @@ void test_euler_constrained(){
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    EulerODESolver<Point, NT, Hpolytope> euler_solver = EulerODESolver<Point, NT, Hpolytope>(0, 0.001, q, Fs, Ks);
+    EulerODESolver<Point, NT, Hpolytope> euler_solver =
+      EulerODESolver<Point, NT, Hpolytope>(0, 0.001, q, Fs, Ks);
     euler_solver.steps(1000);
 
     NT err=0.01;
@@ -344,6 +357,8 @@ void test_collocation(){
     typedef std::vector<NT> coeffs;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
+    typedef std::vector<Hpolytope*> bounds;
+
     funcs Fs;
     func F = [](pts x, NT t) { return (-1.0) * x[0]; };
     Fs.push_back(F);
@@ -363,7 +378,9 @@ void test_collocation(){
     // Trapezoidal collocation
     coeffs cs{0.0, 0.0, 1.0};
 
-    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Hpolytope, bfunc>(0, 1.0, q, Fs, cs, phi, grad_phi, "mpsolve");
+    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver =
+      CollocationODESolver<Point, NT, Hpolytope, bfunc>
+      (0, 1.0, q, Fs, cs, phi, grad_phi, "mpsolve", bounds{NULL});
     c_solver.steps(100);
     NT err=0.001;
     NT error = c_solver.xs[0].dot(c_solver.xs[0]);
@@ -404,7 +421,9 @@ void test_collocation_constrained(){
     q0.set_coord(0, 0.5);
     pts q;
     q.push_back(q0);
-    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver = CollocationODESolver<Point, NT, Hpolytope, bfunc>(0, 0.05, q, Fs, Ks, cs, phi, grad_phi, "mpsolve");
+    CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver =
+      CollocationODESolver<Point, NT, Hpolytope, bfunc>
+      (0, 0.05, q, Fs, Ks, cs, phi, grad_phi, "mpsolve");
     c_solver.steps(1000);
 
     NT err=0.1;
