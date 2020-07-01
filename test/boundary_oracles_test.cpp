@@ -32,7 +32,6 @@
 #include "volume/volume_cooling_balls.hpp"
 #include "generators/known_polytope_generators.h"
 
-
 template <typename NT, class Point, class bfunc>
 void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, NT t_des, int facet_des) {
   typedef boost::mt19937    RNGType;
@@ -43,20 +42,20 @@ void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
 
   P = gen_cube<Hpolytope>(2, false);
 
-  result res = P.curve_intersect_newton_raphson(0.01, 0, -1, coeffs, phi, grad_phi);
+  result res = P.curve_intersect<bfunc, NetwonRaphsonOracle>(0.01, 0, -1, coeffs, phi, grad_phi);
   NT t = std::get<0>(res);
   int facet = std::get<2>(res);
 
   // CHECK(facet == facet_des);
   CHECK(std::abs(t - t_des) / t_des < tol);
 
-  result res2 = P.curve_intersect_ipopt(0.0, 0, -1, coeffs, phi, grad_phi);
+  result res2 = P.curve_intersect<bfunc, IpoptOracle>(0.0, 0, -1, coeffs, phi, grad_phi);
 
   t = std::get<0>(res2);
   facet = std::get<2>(res2);
   CHECK(std::abs(t - t_des) / t_des < tol);
 
-  res2 = P.curve_intersect_mpsolve(0, 0, -1, coeffs);
+  res2 = P.curve_intersect<bfunc, MPSolveOracle>(0, 0, -1, coeffs);
 
   t = std::get<0>(res2);
   // std::cout << "t is " << t << std::endl;
@@ -77,7 +76,7 @@ void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   P = gen_cube<Vpolytope>(2, true);
 
 
-  result res2 = P.curve_intersect_ipopt(0.01, 0, -1, coeffs, phi, grad_phi);
+  result res2 = P.curve_intersect<bfunc, IpoptOracle>(0.01, 0, -1, coeffs, phi, grad_phi);
   NT t = std::get<0>(res2);
 
   std::cout << t << " " << t_des << std::endl;
@@ -179,13 +178,13 @@ void call_benchmark_oracles() {
       coeffs.push_back(p);
 
       auto start = std::chrono::high_resolution_clock::now();
-      res = P.curve_intersect_newton_raphson(0.01, 0, -1, coeffs, poly_basis, poly_basis_grad);
+      res = P.curve_intersect<bfunc, NewtonRaphsonOracle>(0.01, 0, -1, coeffs, poly_basis, poly_basis_grad);
       auto stop = std::chrono::high_resolution_clock::now();
 
       newton_runtime += (long) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
 
       start = std::chrono::high_resolution_clock::now();
-      P.curve_intersect_ipopt(0, 0, -1, coeffs, poly_basis, poly_basis_grad);
+      P.curve_intersect<bfunc, IpoptOracle>(0, 0, -1, coeffs, poly_basis, poly_basis_grad);
       stop = std::chrono::high_resolution_clock::now();
       ipopt_runtime += (long) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
 

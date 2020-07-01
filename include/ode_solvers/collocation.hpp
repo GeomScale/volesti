@@ -11,7 +11,21 @@
 #ifndef COLLOCATION_HPP
 #define COLLOCATION_HPP
 
-template <typename Point, typename NT, class Polytope, class bfunc, class func=std::function <Point(std::vector<Point>, NT)>>
+#include "nlp_oracles/nlp_hpolyoracles.hpp"
+#include "nlp_oracles/nlp_vpolyoracles.hpp"
+
+template <
+  typename Point,
+  typename NT,
+  class Polytope,
+  class bfunc,
+  class func=std::function <Point(std::vector<Point>, NT)>,
+  class NontLinearOracle=MPSolveOracle<
+    typename Polytope::MT,
+    typename Polytope::VT,
+    Point, NT,
+    bfunc>
+>
 class CollocationODESolver {
 public:
 
@@ -36,9 +50,6 @@ public:
   // If set to true the solver assumes linearity of the field
   // Otherwise it approximates the constant vector with Euler method
   const bool exact = false;
-
-  // Boundary oracle method
-  std::string boundary_oracle_method;
 
   // If set to true it enables precomputation (does not recompute A and b at every step)
   const bool precompute = true;
@@ -74,11 +85,12 @@ public:
 
   VT Ar, Av;
 
+  NontLinearOracle oracle;
+
   CollocationODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
-    bounds boundaries,  coeffs c_coeffs, bfunc basis, bfunc grad_basis,
-    std::string bmethod) :
+    bounds boundaries,  coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries),
-     cs(c_coeffs), phi(basis), grad_phi(grad_basis), boundary_oracle_method(bmethod) {
+     cs(c_coeffs), phi(basis), grad_phi(grad_basis) {
       dim = xs[0].dimension();
       initialize_matrices();
     };
@@ -186,7 +198,8 @@ public:
           xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
         }
       } else {
-        std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev, eta, as[i], phi, grad_phi, boundary_oracle_method);
+        std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev,
+            eta, as[i], phi, grad_phi, oracle);
 
         // Point is inside polytope
         if (std::get<2>(result) == -1 && Ks[i]->is_in(std::get<1>(result))) {

@@ -378,9 +378,10 @@ void test_collocation(){
     // Trapezoidal collocation
     coeffs cs{0.0, 0.0, 1.0};
 
+
     CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver =
       CollocationODESolver<Point, NT, Hpolytope, bfunc>
-      (0, 1.0, q, Fs, cs, phi, grad_phi, "mpsolve", bounds{NULL});
+      (0, 1.0, q, Fs, bounds{NULL}, cs, phi, grad_phi);
     c_solver.steps(100);
     NT err=0.001;
     NT error = c_solver.xs[0].dot(c_solver.xs[0]);
@@ -423,7 +424,7 @@ void test_collocation_constrained(){
     q.push_back(q0);
     CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver =
       CollocationODESolver<Point, NT, Hpolytope, bfunc>
-      (0, 0.05, q, Fs, Ks, cs, phi, grad_phi, "mpsolve");
+      (0, 0.05, q, Fs, Ks, cs, phi, grad_phi);
     c_solver.steps(1000);
 
     NT err=0.1;

@@ -68,13 +68,26 @@ see <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <cmath>
 #include <cstdlib>
+#include <limits>
 #include <ifopt/variable_set.h>
 #include <ifopt/constraint_set.h>
 #include <ifopt/cost_term.h>
 #include <ifopt/problem.h>
 #include <ifopt/ipopt_solver.h>
 
+#include "root_finders/root_finders.hpp"
+#define MAX_NR_TRIES 10000
+
 #define POLYTOL 1e-7
+
+#ifndef isnan
+  using std::isnan;
+#endif
+
+#ifndef isinf
+  using std::isinf;
+#endif
+
 
 using namespace ifopt;
 
@@ -187,7 +200,7 @@ public:
         jac_block.coeffRef(i, 0) = NT(0);
         for (int j = 0; j < M; j++) {
           temp = grad_phi(t, t0, j, M);
-          if (std::isinf(temp)) continue;
+          if (isinf(temp)) continue;
           else jac_block.coeffRef(i, 0) += temp;
         }
       }
@@ -197,105 +210,321 @@ public:
 
 };
 
-// Helper function that calls the optimization problem (called from hpolytope.h)
 template <typename MT, typename VT, typename Point, typename NT, class bfunc>
-std::tuple<NT, Point, int> curve_intersect_hpoly_ipopt_helper(NT t_prev, NT t0, NT eta, MT &A, VT &b, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, std::string solution="max_pos")
-{
+struct IpoptOracle {
+  std::tuple<NT, Point, int> apply(
+      NT t_prev,
+      NT t0,
+      NT eta,
+      MT &A,
+      VT &b,
+      std::vector<Point> &coeffs,
+      bfunc phi,
+      bfunc grad_phi,
+      std::string solution="max_pos")
+  {
+
+    MT C, C_tmp;
+    C_tmp.resize(coeffs[0].dimension(), coeffs.size());
 
 
-  MT C, C_tmp;
-  C_tmp.resize(coeffs[0].dimension(), coeffs.size());
+    for (int i = 0; i < coeffs.size(); i++) {
+      C_tmp.col(i) = coeffs[i].getCoefficients();
+    }
+
+    // C_tmp: dimension x num_coeffs
+    // A: constraints x dimension
+    // C: constraints x num_coeffs
+    C = A * C_tmp;
+
+    // Initialize COIN-OR ipopt solver
+    IpoptSolver ipopt;
+    ipopt.SetOption("linear_solver", "mumps");
+    ipopt.SetOption("jacobian_approximation", "exact");
+    ipopt.SetOption("tol", POLYTOL);
+    ipopt.SetOption("acceptable_tol", 100 * POLYTOL);
+    ipopt.SetOption("max_iter", 1000000);
+
+    ipopt.SetOption("print_level", 0);
+    ipopt.SetOption("sb", "yes");
+
+    NT t, t_tmp;
+
+    if (solution == "max_pos") {
+
+        Problem nlp;
+        std::shared_ptr<HPolyOracleVariables<VT, NT>>
+          hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t0, eta));
+        std::shared_ptr<HPolyOracleCost<VT, NT>>
+          hpolyoraclecost (new HPolyOracleCost<VT, NT>(solution));
+        std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>>
+          hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>
+            (C, b, t0, phi, grad_phi, "max_pos", 0));
+
+        nlp.AddVariableSet  (hpolyoraclevariables);
+        nlp.AddCostSet      (hpolyoraclecost);
+        nlp.AddConstraintSet(hpolyoraclefeasibility);
+
+        ipopt.Solve(nlp);
+
+        t = nlp.GetOptVariables()->GetValues()(0);
+
+    }
+
+    if (solution == "min_pos") {
+      int m = A.rows();
+
+      t = eta > 0 ? t0 + eta : std::numeric_limits<NT>::max();
+
+      for (int i = 0; i < m; i++) {
+
+        Problem nlp;
+        std::shared_ptr<HPolyOracleVariables<VT, NT>>
+          hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t0, eta));
+        std::shared_ptr<HPolyOracleCost<VT, NT>>
+          hpolyoraclecost (new HPolyOracleCost<VT, NT>(solution));
+        std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>>
+          hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>
+            (C, b, t0, phi, grad_phi, "min_pos", i));
+
+        nlp.AddVariableSet  (hpolyoraclevariables);
+        nlp.AddCostSet      (hpolyoraclecost);
+        nlp.AddConstraintSet(hpolyoraclefeasibility);
+
+        t_tmp = nlp.GetOptVariables()->GetValues()(0);
+
+        std::cout << "t is " << t_tmp << std::endl;
+
+        if (t_tmp < t && t_tmp > t0) t = t_tmp;
 
 
-  for (int i = 0; i < coeffs.size(); i++) {
-    C_tmp.col(i) = coeffs[i].getCoefficients();
-  }
+      }
+    }
 
-  // C_tmp: dimension x num_coeffs
-  // A: constraints x dimension
-  // C: constraints x num_coeffs
-  C = A * C_tmp;
+    Point p(coeffs[0].dimension());
 
-  // Initialize COIN-OR ipopt solver
-  IpoptSolver ipopt;
-  ipopt.SetOption("linear_solver", "mumps");
-  ipopt.SetOption("jacobian_approximation", "exact");
-  ipopt.SetOption("tol", POLYTOL);
-  ipopt.SetOption("acceptable_tol", 100 * POLYTOL);
-  ipopt.SetOption("max_iter", 1000000);
+    for (unsigned int i = 0; i < coeffs.size(); i++) {
+      p += phi(t, t0, i, coeffs.size()) * coeffs[i];
+    }
 
-  ipopt.SetOption("print_level", 0);
-  ipopt.SetOption("sb", "yes");
+    const NT* b_data = b.data();
 
-  NT t, t_tmp;
+    int f_min = -1;
+    NT dist_min = std::numeric_limits<NT>::max();
 
-  if (solution == "max_pos") {
+    for (int i = 0; i < A.rows(); i++) {
+      if (*b_data == 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) < dist_min) {
+        f_min = i;
+        dist_min = std::abs(*b_data - A.row(i) * p.getCoefficients());
+      }
+      else if (*b_data != 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) / *b_data < dist_min) {
+        f_min = i;
+        dist_min = std::abs(*b_data - A.row(i) * p.getCoefficients()) / *b_data;
+      }
+      b_data++;
+    }
 
-      Problem nlp;
-      std::shared_ptr<HPolyOracleVariables<VT, NT>> hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t0, eta));
-      std::shared_ptr<HPolyOracleCost<VT, NT>> hpolyoraclecost (new HPolyOracleCost<VT, NT>(solution));
-      std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>> hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>(C, b, t0, phi, grad_phi, "max_pos", 0));
+    return std::make_tuple(t, p, f_min);
+  };
 
-      nlp.AddVariableSet  (hpolyoraclevariables);
-      nlp.AddCostSet      (hpolyoraclecost);
-      nlp.AddConstraintSet(hpolyoraclefeasibility);
+};
 
-      ipopt.Solve(nlp);
+// Compute intersection of H-polytope P := Ax <= b
+// with polynomial curve p(t) = sum a_j (t - t0)^j
+// Uses the MPsolve library
+template <typename MT, typename VT, typename Point, typename NT, class bfunc>
+struct MPSolveOracle {
 
-      t = nlp.GetOptVariables()->GetValues()(0);
+  std::tuple<NT, Point, int> apply(
+    NT t_prev,
+    NT t0,
+    NT eta,
+    MT &A,
+    VT &b,
+    std::vector<Point> &coeffs,
+    bfunc phi,
+    bfunc grad)
+  {
+    NT maxNT = std::numeric_limits<NT>::max();
+    NT minNT = std::numeric_limits<NT>::lowest();
 
-  }
+    NT tu = eta > 0 ? t0 + eta : NT(maxNT);
+    NT t = tu;
+    Point dummy(coeffs[0].dimension());
 
-  if (solution == "min_pos") {
+    for (unsigned int j = 0; j < coeffs.size(); j++) {
+      dummy = dummy + pow(tu - t0, NT(j)) * coeffs[j];
+    }
+
+    std::tuple<NT, Point, int> result = std::make_tuple(tu, dummy, -1);
+
     int m = A.rows();
 
-    t = eta > 0 ? t0 + eta : std::numeric_limits<NT>::max();
+    // Keeps constants A_i^T C_j
+    std::vector<NT> Z(coeffs.size(), NT(0));
 
+    // std::vector<std::pair<NT, NT>> solutions;
+
+    // Iterate over all hyperplanes
     for (int i = 0; i < m; i++) {
 
-      Problem nlp;
-      std::shared_ptr<HPolyOracleVariables<VT, NT>> hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t0, eta));
-      std::shared_ptr<HPolyOracleCost<VT, NT>> hpolyoraclecost (new HPolyOracleCost<VT, NT>(solution));
-      std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>> hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>(C, b, t0, phi, grad_phi, "min_pos", i));
+      for (unsigned int j = 0; j < coeffs.size(); j++) {
+        Z[j] = A.row(i) * coeffs[j].getCoefficients();
 
-      nlp.AddVariableSet  (hpolyoraclevariables);
-      nlp.AddCostSet      (hpolyoraclecost);
-      nlp.AddConstraintSet(hpolyoraclefeasibility);
+        #ifdef VOLESTI_DEBUG
+        std::cout << "Z [ " << j << " ] = " << Z[j] << std::endl;
+        #endif
+      }
 
-      t_tmp = nlp.GetOptVariables()->GetValues()(0);
+      // Find point projection on m-th hyperplane
+      Z[0] -= b(i);
 
-      std::cout << "t is " << t_tmp << std::endl;
+      std::vector<std::pair<NT, NT>> solutions = mpsolve<NT>(Z, true);
 
-      if (t_tmp < t && t_tmp > t0) t = t_tmp;
+      for(std::pair<NT, NT> sol: solutions) {
 
+        #ifdef VOLESTI_DEBUG
+        std::cout << "Facet: " << i << " Candidate root is " << sol.first + t0 << std::endl;
+        #endif
+
+        // Check if solution is in the desired range [t0, t0 + eta] and if it is the current minimum
+        if (t0 + sol.first <= tu && t0 + sol.first < std::get<0>(result)) {
+          t = t0 + sol.first;
+
+          // Calculate point from this root
+          Point p = Point(coeffs[0].dimension());
+
+          for (unsigned int j = 0; j < coeffs.size(); j++) {
+            p += pow(t - t0, NT(j)) * coeffs[j] ;
+          }
+
+          #ifdef VOLESTI_DEBUG
+          std::cout << "Calculcated point is " << std::endl << p.getCoefficients() << std::endl;
+          #endif
+
+          // Check if point satisfies Ax <= b up to some tolerance and change current solution
+          if (is_in(p, 1e-6)) {
+            result =  std::make_tuple(t, p, i);
+          }
+        }
+      }
 
     }
-  }
 
-  Point p(coeffs[0].dimension());
+    return result;
+  };
 
-  for (unsigned int i = 0; i < coeffs.size(); i++) {
-    p += phi(t, t0, i, coeffs.size()) * coeffs[i];
-  }
+};
 
-  const NT* b_data = b.data();
+// Compute intersection of H-polytope P := Ax <= b
+// with curve p(t) = sum a_j phi_j(t) where phi_j are basis
+// functions (e.g. polynomials)
+// Uses Newton-Raphson to solve the transcendental equation
+template <typename MT, typename VT, typename Point, typename NT, class bfunc>
+struct NewtonRaphsonOracle {
 
-  int f_min = -1;
-  NT dist_min = std::numeric_limits<NT>::max();
+  std::tuple<NT, Point, int> apply(
+    NT t_prev,
+    NT t0,
+    NT eta,
+    MT &A,
+    VT &b,
+    std::vector<Point> &coeffs,
+    bfunc phi,
+    bfunc grad_phi)
+  {
 
-  for (int i = 0; i < A.rows(); i++) {
-    if (*b_data == 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) < dist_min) {
-      f_min = i;
-      dist_min = std::abs(*b_data - A.row(i) * p.getCoefficients());
+    // Keep results in a vector (in case of multiple roots)
+    // The problem has O(m * len(coeffs)) solutions if phi's are polys
+    // due to the Fundamental Theorem of Algebra
+    // Some roots may be common for more than one hyperplanes
+    NT maxNT = std::numeric_limits<NT>::max();
+    NT minNT = std::numeric_limits<NT>::lowest();
+
+    // Root
+    NT t = t_prev;
+    NT tu = eta > 0 ? t0 + eta : NT(maxNT);
+
+    Point dummy(coeffs[0].dimension());
+
+    for (unsigned int j = 0; j < coeffs.size(); j++) {
+      dummy += coeffs[j] * phi(tu, t0, j, coeffs.size());
     }
-    else if (*b_data != 0 && std::abs(*b_data - A.row(i) * p.getCoefficients()) / *b_data < dist_min) {
-      f_min = i;
-      dist_min = std::abs(*b_data - A.row(i) * p.getCoefficients()) / *b_data;
-    }
-    b_data++;
-  }
 
-  return std::make_tuple(t, p, f_min);
-}
+
+    std::tuple<NT, Point, int> result = std::make_tuple(tu, dummy, -1);
+
+    // Helper variables for Newton-Raphson
+    NT dot_u, num, den, den_tmp;
+
+    // Regularization for NR (e.g. at critical points where grad = 0)
+    NT reg = (NT) 1e-7;
+    VT Z;
+    int m = A.rows();
+
+    // Keeps constants A_i^T C_j
+    Z.resize(coeffs.size());
+
+    // Iterate over all hyperplanes
+    for (int i = 0; i < m; i++) {
+
+      // Calculate constants
+      start_iter: t_prev = t0 + reg;
+
+
+      for (unsigned int j = 0; j < coeffs.size(); j++) {
+        Z(j) = A.row(i) * coeffs[j].getCoefficients();
+      }
+
+
+      for (int tries = 0; tries < MAX_NR_TRIES; tries++) {
+
+        num = - b(i);
+        den = (NT) 0;
+
+        // Calculate numerator f(t) and denominator f'(t)
+        for (int j = 0; j < coeffs.size(); j++) {
+          num += Z(j) * phi(t_prev, t0, j, coeffs.size());
+
+          // Avoid ill-posed derivative (e.g. 0^{-1})
+          if (j > 0) den += Z(j) * grad_phi(t_prev, t0, j, coeffs.size());
+        }
+
+        // Regularize denominator if near 0
+        if (std::abs(den) < 10 * reg) den += reg;
+
+        // Newton-Raphson Iteration t = t_old - f(t) / f'(t)
+        t = t_prev - num / den;
+
+        if (t < 0 && t_prev < 0) continue;
+
+        if (std::abs(t - t_prev) < 1e-6 && t > t0) {
+          // Add root (as t) and facet
+
+
+          Point p = Point(coeffs[0].dimension());
+
+          for (unsigned int j = 0; j < coeffs.size(); j++) {
+            p += coeffs[j] * phi(t, t0, j, coeffs.size());
+          }
+
+          // TODO Keep smallest positive root
+          if (is_in(p) && t < std::get<0>(result)) result =  std::make_tuple(t, p, i);
+
+
+        }
+
+        t_prev = t;
+
+      }
+
+    }
+
+    return result;
+
+  };
+
+};
+
 
 #endif

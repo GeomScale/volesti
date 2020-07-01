@@ -19,9 +19,8 @@
 #include "khach.h"
 
 #ifndef DISABLE_NLP_ORACLES
-
-#include "nlp_oracles/nlp_vpolyoracles.h"
-
+#include "nlp_oracles/nlp_vpolyoracles.hpp"
+#include "root_finders/root_finders.hpp"
 #endif
 
 //min and max values for the Hit and Run functions
