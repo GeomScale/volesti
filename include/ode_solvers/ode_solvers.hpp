@@ -8,6 +8,32 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+/*
+  Each solver solves an ODE of the form d^k x/dt^k = F(x, t)
+  The vector x can be written as x = (x_1, ...., x_n) where each
+  x_i is conditioned on a convex polytope K_i with bounary reflections
+  on the boundary of K_i for each 1 <= i <= n. Each sub-state is determined
+  by the oracle function F_i(x, t) which has range over x = (x_1, ..., x_n).
+
+  Some general parameter notations for the solvers
+
+  Templates
+      1. Polytope: The polytope type (H-Polytope, V-Polytope, Z-Polytope) K_i
+      2. NT: Number type (double, float)
+      3. Point: Point type
+      4. func: Function type for the oracle collection K_i
+      5. bfunc: Basis function type (e.g. polynomial) for non-linear trajectory
+         methods (such as collocation)
+
+  Variables
+      1. Ks: A vector of domains K_i for 1 <= i <= n
+      2. xs: A vector of substates x_i for 1 <= i <= n
+      3. xs_prev: The previous state of the solver
+      4. Fs: A vector of oracles F_i for 1 <= i <= n
+      5. eta: Step size
+      6. t: Temporal variable
+*/
+
 #include <iostream>
 #include <cmath>
 #include <functional>
