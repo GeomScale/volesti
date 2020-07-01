@@ -20,7 +20,7 @@
 
 #ifndef DISABLE_NLP_ORACLES
 
-#include "nlp_oracles/nlp_vpolyoracles.h"
+#include "nlp_oracles/nlp_vpolyoracles.hpp"
 
 #endif
 

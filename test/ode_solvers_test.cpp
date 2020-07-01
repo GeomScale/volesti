@@ -380,7 +380,7 @@ void test_collocation(){
 
     CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver =
       CollocationODESolver<Point, NT, Hpolytope, bfunc>
-      (0, 1.0, q, Fs, cs, phi, grad_phi, "mpsolve", bounds{NULL});
+      (0, 1.0, q, Fs, bounds{NULL}, cs, phi, grad_phi, "mpsolve");
     c_solver.steps(100);
     NT err=0.001;
     NT error = c_solver.xs[0].dot(c_solver.xs[0]);
