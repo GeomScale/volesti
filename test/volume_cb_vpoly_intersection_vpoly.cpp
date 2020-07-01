@@ -38,7 +38,7 @@ void test_values(NT volume, NT expected, NT exact)
               << std::abs((volume-expected)/expected) << std::endl;
     std::cout << "Relative error (exact) = "
               << std::abs((volume-exact)/exact) << std::endl;
-            CHECK(std::abs((volume - expected)/expected) < 0.2);
+            CHECK(std::abs((volume - expected)/expected) < 0.3);
 }
 
 template <class VPintersection, class Polytope>
@@ -52,10 +52,8 @@ void test_volume(Polytope &P1, Polytope &P2,
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    VPintersection P;
-
     // Setup the parameters
-    int walk_len = 1;
+    int walk_len = 2;
     NT e = 0.1;
 
     // Estimate the volume
@@ -64,26 +62,26 @@ void test_volume(Polytope &P1, Polytope &P2,
 
     unsigned seed = 105;
     //TODO: low accuracy in high dimensions
-    P.init(P1, P2, seed);
+    VPintersection P(P1, P2);
     NT volume = volume_cooling_balls<BallWalk, RNGType>(P, e/2.0, walk_len);
     test_values(volume, expectedBall, exact);
 
-    P1.init(P.dimension(), P1.get_mat(), P1.get_vec());
-    P2.init(P.dimension(), P2.get_mat(), P2.get_vec());
-    P.init(P1, P2, seed);
-    volume = volume_cooling_balls<CDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P11(P.dimension(), P1.get_mat(), P1.get_vec());
+    Polytope P21(P.dimension(), P2.get_mat(), P2.get_vec());
+    VPintersection P111(P11, P21);
+    volume = volume_cooling_balls<CDHRWalk, RNGType>(P111, e/2.0, walk_len);
     test_values(volume, expectedCDHR, exact);
 
-    P1.init(P.dimension(), P1.get_mat(), P1.get_vec());
-    P2.init(P.dimension(), P2.get_mat(), P2.get_vec());
-    P.init(P1, P2, seed);
-    volume = volume_cooling_balls<RDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P12(P.dimension(), P1.get_mat(), P1.get_vec());
+    Polytope P22(P.dimension(), P2.get_mat(), P2.get_vec());
+    VPintersection P222(P12, P22);
+    volume = volume_cooling_balls<RDHRWalk, RNGType>(P222, e/2.0, walk_len);
     test_values(volume, expectedRDHR, exact);
 
-    P1.init(P.dimension(), P1.get_mat(), P1.get_vec());
-    P2.init(P.dimension(), P2.get_mat(), P2.get_vec());
-    P.init(P1, P2, seed);
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(P, e, walk_len);
+    Polytope P13(P.dimension(), P1.get_mat(), P1.get_vec());
+    Polytope P23(P.dimension(), P2.get_mat(), P2.get_vec());
+    VPintersection P3(P13, P23);
+    volume = volume_cooling_balls<BilliardWalk, RNGType>(P3, e/2.0, walk_len);
     test_values(volume, expectedBilliard, exact);
 }
 
@@ -95,11 +93,11 @@ void call_test_vpoly_sphere(){
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 105> RNGType;
     typedef VPolytope<Point> Vpolytope;
     typedef IntersectionOfVpoly< Vpolytope, RNGType > VpIntVp;
-    Vpolytope P1, P2;
+
 
     std::cout << "--- Testing volume VP1-5-10 , VP2-5-12" << std::endl;
-    P1 = random_vpoly<Vpolytope, RNGType2 >(5, 10, 127);
-    P2 = random_vpoly<Vpolytope, RNGType2 >(5, 12, 211);
+    Vpolytope P1 = random_vpoly<Vpolytope, RNGType2 >(5, 10, 127);
+    Vpolytope P2 = random_vpoly<Vpolytope, RNGType2 >(5, 12, 211);
 
     VpIntVp P;
     P.init(P1, P2);

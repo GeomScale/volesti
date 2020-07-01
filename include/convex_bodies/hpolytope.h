@@ -16,38 +16,97 @@
 #include <Eigen/Eigen>
 #include "lp_oracles/solve_lp.h"
 
-// H-polytope class
+//! H-polytope class
+/*!
+    A class for a polytopne in H-representaion
+ */
 template <typename Point>
-class HPolytope{
+class HPolytope {
 public:
-    typedef Point PointType;
-    typedef typename Point::FT NT;
-    typedef typename std::vector<NT>::iterator viterator;
+    typedef Point                                             PointType;
+    typedef typename Point::FT                                NT;
+    typedef typename std::vector<NT>::iterator                viterator;
     //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
     //typedef RowMatrixXd MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
-    MT A; //matrix A
-    VT b; // vector b, s.t.: Ax<=b
-    unsigned int            _d; //dimension
-    std::pair<Point,NT> _inner_ball;
-    NT maxNT = std::numeric_limits<NT>::max();
-    NT minNT = std::numeric_limits<NT>::lowest();
+    MT                   A; //matrix A
+    VT                   b; // vector b, s.t.: Ax<=b
+    unsigned int         _d; //dimension
+    std::pair<Point, NT> _inner_ball;
+    // TODO: Why the following are not static or outside the class?
+    NT                   maxNT = std::numeric_limits<NT>::max();
+    NT                   minNT = std::numeric_limits<NT>::lowest();
 
 public:
-
+    //TODO: the default implementation of the Big3 should be ok. Recheck.
     HPolytope() {}
 
-    std::pair<Point,NT> InnerBall() const
+    HPolytope(unsigned d_, const MT& A_, const VT& b_) :
+        _d{d_}, A{A_}, b{b_}, _inner_ball{ComputeChebychevBall<NT, Point>(A, b)}
+    {
+    }
+    // Copy constructor
+    HPolytope(const HPolytope<Point>& p) :
+            _d{p._d}, A{p.A}, b{p.b},  _inner_ball{p._inner_ball}
+    {
+    }
+
+    HPolytope(HPolytope&& p) :_d{p._d}
+    {
+        b = std::move(p.b);
+        _inner_ball = std::move(p._inner_ball);
+    }
+
+    HPolytope& operator=(const HPolytope& p)
+    {
+        if (this != &p) { // protect against invalid self-assignment
+            _d = p._d;
+            A = p.A;
+            b = p.b;
+            _inner_ball = p._inner_ball;
+        }
+        return *this;
+    }
+
+    HPolytope& operator=(HPolytope&& p)
+    {
+//        std::cout << __FUNCTION__ << "\n";
+        if (this != &p) {
+            _d = p._d;
+            A = std::move(p.A);
+            b = std::move(p.b);
+            _inner_ball = std::move(p._inner_ball);
+        }
+        return *this;
+    }
+
+    //define matrix A and vector b, s.t. Ax<=b and the dimension
+    HPolytope(const std::vector<std::vector<NT>>& Pin)
+    {
+        _d = Pin[0][1] - 1;
+        A.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (unsigned int i = 1; i < Pin.size(); i++) {
+            b(i - 1) = Pin[i][0];
+            for (unsigned int j = 1; j < _d + 1; j++) {
+                A(i - 1, j - 1) = -Pin[i][j];
+            }
+        }
+        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+    }
+
+
+    std::pair<Point, NT> InnerBall() const
     {
         return _inner_ball;
     }
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
-    std::pair<Point,NT> ComputeInnerBall()
+    std::pair<Point, NT> ComputeInnerBall()
     {
         _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
         return _inner_ball;
@@ -109,31 +168,11 @@ public:
         return 0.0;
     }
 
-    void init(unsigned int const& dim, MT const& _A, VT const& _b)
-    {
-        _d = dim;
-        A = _A;
-        b = _b;
-    }
-
-    //define matrix A and vector b, s.t. Ax<=b and the dimension
-    void init(std::vector<std::vector<NT> > const& Pin)
-    {
-        _d = Pin[0][1] - 1;
-        A.resize(Pin.size() - 1, _d);
-        b.resize(Pin.size() - 1);
-        for (unsigned int i = 1; i < Pin.size(); i++) {
-            b(i - 1) = Pin[i][0];
-            for (unsigned int j = 1; j < _d + 1; j++) {
-                A(i - 1, j - 1) = -Pin[i][j];
-            }
-        }
-    }
 
 
     // print polytope in input format
     void print() {
-        std::cout << " " << A.rows() << " " << _d << " float" << std::endl;
+        std::cout << " " << A.rows() << " " << _d << " double" << std::endl;
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
                 std::cout << A(i, j) << " ";
@@ -257,7 +296,7 @@ public:
             sum_nom_data++;
             sum_denom_data++;
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -296,8 +335,8 @@ public:
             Av_data++;
             sum_nom_data++;
         }
-        if (pos) return std::pair<NT, NT>(min_plus, facet);
-        return std::pair<NT, NT>(min_plus, max_minus);
+        if (pos) return std::make_pair(min_plus, facet);
+        return std::make_pair(min_plus, max_minus);
     }
 
     std::pair<NT,NT> line_intersect(Point const& r,
@@ -336,8 +375,8 @@ public:
             Av_data++;
             sum_nom_data++;
         }
-        if (pos) return std::pair<NT, NT>(min_plus, facet);
-        return std::pair<NT, NT>(min_plus, max_minus);
+        if (pos) return std::make_pair(min_plus, facet);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -396,7 +435,7 @@ public:
             lamda_data++;
             sum_denom_data++;
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -429,7 +468,7 @@ public:
             }
             data++;
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -487,8 +526,6 @@ public:
     {
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
-
-    void free_them_all() {}
 
 };
 

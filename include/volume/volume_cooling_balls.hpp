@@ -815,7 +815,7 @@ double volume_cooling_balls(Polytope const& Pin,
                                                   rng);
     }
 
-    P.free_them_all();
+    // P.free_them_all();
     return vol;
 }
 

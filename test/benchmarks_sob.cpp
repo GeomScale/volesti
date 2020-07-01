@@ -10,10 +10,10 @@
 #include "Eigen/Eigen"
 //#define VOLESTI_DEBUG
 #include <fstream>
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 
 #include "random_walks/random_walks.hpp"
 
@@ -35,7 +35,7 @@ int main()
 
     std::cout << "Volume algorithm: Sequence of Balls" << std::endl << std::endl;
 
-    Hpolytope HP = gen_cube<Hpolytope>(10, false);
+    Hpolytope HP = generate_cube<Hpolytope>(10, false);
 
     //Compute chebychev ball
     std::pair<Point,NT> CheBall;
@@ -139,25 +139,25 @@ int main()
 
     // Estimate the volume
 
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    // VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball (cross) = "
               << volume_sequence_of_balls<BallWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    // VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "RDHR (cross) = "
               << volume_sequence_of_balls<RDHRWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    // VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHR (cross) = "
               << volume_sequence_of_balls<CDHRWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    // VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Blrd (cross) = "
               << volume_sequence_of_balls<BilliardWalk, RNG>(VP) << " , ";

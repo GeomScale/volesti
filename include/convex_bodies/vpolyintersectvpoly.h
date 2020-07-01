@@ -31,7 +31,7 @@ public:
     VPolytope P1;
     VPolytope P2;
 
-    IntersectionOfVpoly() {}
+    IntersectionOfVpoly(): P1(), P2() {}
 
     IntersectionOfVpoly(VPolytope &P, VPolytope &Q) : P1(P), P2(Q) {};
 
