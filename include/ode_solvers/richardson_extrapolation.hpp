@@ -11,6 +11,7 @@
 #ifndef RICHARDSON_EXTRAPOLATION_HPP
 #define RICHARDSON_EXTRAPOLATION_HPP
 
+
 template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
 class RichardsonExtrapolationODESolver {
 public:
@@ -29,7 +30,8 @@ public:
 
   NT eta, eta_temp;
   NT t, t_prev;
-  NT tol = 1e-10;
+  NT tol = 1e-7;
+  NT error = NT(-1);
   NT den;
   Point num, y;
   VT Ar, Av;
@@ -53,7 +55,7 @@ public:
       A = ptsm(MAX_TRIES+1, ptsv(MAX_TRIES+1, pts(xs.size())));
       initialize_solver();
     };
-  
+
   void initialize_solver() {
     solver = new RKODESolver<Point, NT, Polytope>(t, eta, xs, Fs, bounds{NULL});
   }
@@ -92,12 +94,15 @@ public:
         }
       }
 
+      error = NT(-1);
+
       for (unsigned int i = 0; i < xs.size(); i++) {
         y = A[j+1][j+1][i] - A[j][j][i];
-        if (sqrt(y.dot(y)) > tol) flag = false;
+        if (sqrt(y.dot(y)) > error) error = sqrt(y.dot(y));
       }
 
-      if (flag) {
+      if (error < tol || j == MAX_TRIES - 1) {
+
         for (unsigned int i = 0; i < xs.size(); i++) {
           y = A[j+1][j+1][i] - xs[i];
 
@@ -107,11 +112,17 @@ public:
           else {
             // Find intersection (assuming a line trajectory) between x and y
             do {
+              // Find line intersection between xs[i] (new position) and y
               std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
 
-              if (pbpair.first < 0) {
+              // If point is outside it would yield a negative param
+              if (pbpair.first >= 0 && pbpair.first <= 1) {
+                // Advance to point on the boundary
                 xs[i] += (pbpair.first * 0.99) * y;
+                // Reflect ray y on the boundary point y now is the reflected ray
                 Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+                // Add it to the existing (boundary) point and repeat
+                xs[i] += y;
               }
               else {
                 xs[i] += y;
@@ -122,36 +133,6 @@ public:
 
         }
         break;
-      }
-    }
-
-    if (!flag) {
-      for (unsigned int i = 0; i < xs.size(); i++) {
-        y = A[MAX_TRIES-1][MAX_TRIES-1][i] - xs[i];
-
-        if (Ks[i] == NULL) {
-          xs[i] = xs[i] + y;
-        }
-        else {
-          flag = false;
-          // Find intersection (assuming a line trajectory) between x and y
-          do {
-            std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
-
-            if (pbpair.first >= 0 && pbpair.first <= 1) {
-              xs[i] += (pbpair.first * 0.99) * y;
-              Ks[i]->compute_reflection(y, xs[i], pbpair.second);
-              xs[i] += y;
-            }
-            else {
-              if (flag) break;
-              xs[i] += y;
-              flag = true;
-            }
-          } while (!Ks[i]->is_in(xs[i]));
-
-        }
-
       }
     }
 
