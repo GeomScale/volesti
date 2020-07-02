@@ -20,7 +20,7 @@ template <
   class Polytope,
   class bfunc,
   class func=std::function <Point(std::vector<Point>, NT)>,
-  class NontLinearOracle=MPSolveOracle<
+  class NontLinearOracle=MPSolveHPolyoracle<
     Polytope,
     bfunc
   >

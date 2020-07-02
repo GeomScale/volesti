@@ -211,7 +211,7 @@ public:
 };
 
 template <typename Polytope, class bfunc>
-struct IpoptOracle {
+struct IpoptHPolyoracle {
   typedef typename Polytope::MT MT;
   typedef typename Polytope::VT VT;
   typedef typename Polytope::NT NT;
@@ -286,6 +286,8 @@ struct IpoptOracle {
 
       for (int i = 0; i < m; i++) {
 
+        if (i == ignore_facet) continue;
+
         Problem nlp;
         std::shared_ptr<HPolyOracleVariables<VT, NT>>
           hpolyoraclevariables (new HPolyOracleVariables<VT, NT>(t_prev, t0, eta));
@@ -341,7 +343,7 @@ struct IpoptOracle {
 // with polynomial curve p(t) = sum a_j (t - t0)^j
 // Uses the MPsolve library
 template <typename Polytope, class bfunc>
-struct MPSolveOracle {
+struct MPSolveHPolyoracle {
 
   typedef typename Polytope::MT MT;
   typedef typename Polytope::VT VT;
@@ -438,7 +440,7 @@ struct MPSolveOracle {
 // functions (e.g. polynomials)
 // Uses Newton-Raphson to solve the transcendental equation
 template <typename Polytope, class bfunc>
-struct NewtonRaphsonOracle {
+struct NewtonRaphsonHPolyoracle {
   typedef typename Polytope::MT MT;
   typedef typename Polytope::VT VT;
   typedef typename Polytope::NT NT;
