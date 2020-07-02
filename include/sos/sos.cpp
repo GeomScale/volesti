@@ -62,7 +62,6 @@ bool test_sdp_solver_random_lp_formulation(const int m, const int n) {
     SDPStandardBarrier sdp_barrier(n);
 
     NonSymmetricIPM ipm_sdp_solver(constraints.A, constraints.b, constraints.c, &sdp_barrier);
-    std::clock_t sdp_timer = std::clock();
     ipm_sdp_solver.run_solver();
     auto sdp_solution = ipm_sdp_solver.get_solution();
     return ipm_sdp_solver.verify_solution();

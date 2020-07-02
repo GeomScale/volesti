@@ -16,7 +16,7 @@ public:
     static Monomial prod(Monomial m1, Monomial m2) {
         assert(m1.size() == m2.size());
         Monomial m(m1.size());
-        for (int i = 0; i < m.size(); ++i) {
+        for (unsigned i = 0; i < m.size(); ++i) {
             m[i] = m1[i] + m2[i];
         }
         return m;

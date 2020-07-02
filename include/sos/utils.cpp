@@ -7,7 +7,7 @@
 #include "spdlog/spdlog.h"
 
 
-typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<150> > BoostDouble;
+typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<200> > BoostDouble;
 typedef BoostDouble InterpolantDouble;
 
 typedef long double long_double;
@@ -50,7 +50,7 @@ inline DoubleMatrix InterpolantMatrixToMatrix(BoostMatrix &M, DoubleMatrix &){
     return A;
 }
 
-inline DoubleMatrix InterpolantMatrixToMatrix(DoubleMatrix & M, DoubleMatrix &){
+inline BoostMatrix InterpolantMatrixToMatrix(BoostMatrix & M, BoostMatrix &){
     return M;
 }
 
@@ -62,7 +62,7 @@ inline DoubleVector InterpolantVectortoVector(BoostVector & v, DoubleVector &){
     return w;
 }
 
-inline DoubleVector InterpolantVectortoVector(DoubleVector & v, DoubleVector &) {
+inline BoostVector InterpolantVectortoVector(BoostVector & v, BoostVector &) {
     return v;
 }
 

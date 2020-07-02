@@ -203,6 +203,8 @@ void NonSymmetricIPM::run_solver() {
 
     print();
 
+    unsigned total_num_line_steps = 0;
+
     for (int pred_iteration = 0; pred_iteration < _num_predictor_steps; ++pred_iteration) {
         _logger->debug("Begin predictor iteration {}", pred_iteration);
         _predictor_timer.start();
@@ -211,7 +213,7 @@ void NonSymmetricIPM::run_solver() {
             break;
         }
 
-        if(terminate_infeasible()){
+        if (terminate_infeasible()) {
             _logger->info("Interior point method terminated with infeasible solution.");
             break;
         }
@@ -267,7 +269,9 @@ void NonSymmetricIPM::run_solver() {
             assert(terminate_successfully() or num_line_steps > 0);
         }
 
-        _logger->info("End of predictor step {} with {} line steps:", pred_iteration, num_line_steps);
+        total_num_line_steps += num_line_steps;
+        _logger->info("End of predictor step {} with {} line steps and total num line steps {}:",
+                      pred_iteration, num_line_steps, total_num_line_steps);
         if (_logger->level() <= spdlog::level::info) {
             print();
         }
@@ -310,7 +314,7 @@ void NonSymmetricIPM::run_solver() {
 }
 
 NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barrier_) :
-        A(A_), b(b_), c(c_), _barrier(barrier_), kappa(1.), tau(1.0) {
+        A(A_), b(b_), c(c_), kappa(1.), tau(1.), _barrier(barrier_) {
     y = Matrix::Zero(A.rows(), 1);
 
     _logger = spdlog::get("NonSymmetricIPM");
@@ -570,25 +574,27 @@ bool NonSymmetricIPM::terminate_infeasible() {
     //TODO: Figure out if initialization scaling (delta) should influence the termination criteria.
 
     //Primal feasibility
+    IPMDouble const ipm_1 = IPMDouble(1.);
     if ((A * x - b * tau).lpNorm<Eigen::Infinity>() >
-    _epsilon * std::max(1.,A.lpNorm<Eigen::Infinity>() + b.lpNorm<Eigen::Infinity>())) {
+        _epsilon * std::max(ipm_1, static_cast<IPMDouble>(A.lpNorm<Eigen::Infinity>() + b.lpNorm<Eigen::Infinity>()))) {
         return false;
     }
 
     //Dual feasibility
     if ((A.transpose() * y + s - c * tau).lpNorm<Eigen::Infinity>() >
-    _epsilon * std::max(1., A.lpNorm<Eigen::Infinity>()+ c.lpNorm<Eigen::Infinity>())) {
+        _epsilon * std::max(ipm_1, static_cast<IPMDouble>(A.lpNorm<Eigen::Infinity>() + c.lpNorm<Eigen::Infinity>()))) {
         return false;
     }
 
     //Duality gap
-    if(abs(-c.dot(x) + b.dot(y) - kappa)
-    > _epsilon * std::max(1., c.lpNorm<Eigen::Infinity>() + b.lpNorm<Eigen::Infinity>())){
+    if (abs(-c.dot(x) + b.dot(y) - kappa)
+        >
+        _epsilon * std::max(ipm_1, static_cast<IPMDouble>(c.lpNorm<Eigen::Infinity>() + b.lpNorm<Eigen::Infinity>()))) {
         return false;
     };
 
     //tiny tau
-    if(tau >  _epsilon * 10e-2 * std::max(1., kappa)){
+    if (tau > _epsilon * 10e-2 * std::max(ipm_1, static_cast<IPMDouble>(kappa))) {
         return false;
     }
 
@@ -596,7 +602,7 @@ bool NonSymmetricIPM::terminate_infeasible() {
 }
 
 
-bool NonSymmetricIPM::terminate(){
+bool NonSymmetricIPM::terminate() {
     return terminate_successfully() or terminate_infeasible();
 }
 
@@ -612,8 +618,8 @@ IPMDouble NonSymmetricIPM::centrality() {
     Eigen::LLT<Matrix> LLT = _barrier->llt(x);
 
     if (LLT.info() == Eigen::NumericalIssue) {
-        std::cout << "Issue in LLT decomposition";
-        assert(false);
+        _logger->error("Issue in LLT decompoosition. Terminate");
+        exit(1);
     }
 
     Vector LLT_sol = LLT.matrixL().solve(psi_vec.segment(0, psi_vec.rows() - 1));

@@ -179,7 +179,7 @@ public:
         _unisolvent_basis.resize(_U);
 
         //Chebyshev points for standard interval [-1,1]
-        for (int i = 0; i < _unisolvent_basis.size(); ++i) {
+        for (unsigned i = 0; i < _unisolvent_basis.size(); ++i) {
             BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / (_U - 1));
             InterpolantDouble dummy_ipm;
             InterpolantDouble cos_val = InterpolantDoubletoIPMDouble(cos_i, dummy_ipm);
@@ -198,8 +198,8 @@ public:
         //TODO: This interpolant Matrix only needs to be found once and can then be reused;
         std::cout << "Construct interpolant point Matrix P..." << std::endl;
 
-        for (int row = 0; row < P_interp.rows(); ++row) {
-            for (int col = 0; col < P_interp.cols(); ++col) {
+        for (unsigned row = 0; row < P_interp.rows(); ++row) {
+            for (unsigned col = 0; col < P_interp.cols(); ++col) {
                 //TODO: make more efficient.
                 P_interp(row, col) = col == 0 ? InterpolantDouble(1.) : pow(_unisolvent_basis[row], col);
             }
@@ -253,7 +253,7 @@ public:
 
     ProductBarrier(std::vector<LHSCB*> barriers_, std::vector<unsigned> num_variables_) {
         assert(barriers_.size() == num_variables_.size());
-        for (int j = 0; j < barriers_.size(); ++j) {
+        for (unsigned j = 0; j < barriers_.size(); ++j) {
             _barriers.push_back(barriers_[j]);
             _num_vars_per_barrier.push_back(num_variables_[j]);
         }

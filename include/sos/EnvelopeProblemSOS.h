@@ -22,7 +22,7 @@ public:
     EnvelopeProblemSOS(int num_variables, int max_degree, HyperRectangle &hyperRectangle_);
 
     //FIXME: Rename as currently the degree of the polynomial remains unchanged.
-    static InterpolantVector prod_sos(InterpolantVector p1, InterpolantVector p2) {
+    static InterpolantVector polynomial_product(InterpolantVector p1, InterpolantVector p2) {
         assert(p1.rows() == p2.rows());
         InterpolantVector p = InterpolantVector::Zero(p1.rows());
         for (Eigen::Index i = 0; i < p.rows(); ++i) {
@@ -33,14 +33,14 @@ public:
         return p;
     }
 
-    static InterpolantVector  prod_sos(std::vector<InterpolantVector> const poly_vec){
+    static InterpolantVector polynomial_product(std::vector<InterpolantVector> const poly_vec){
         auto len = poly_vec.size();
         assert(not poly_vec.empty());
         if(len == 1){
             return poly_vec[0];
         }
         if(len == 2){
-            return prod_sos(poly_vec[0],poly_vec[1]);
+            return polynomial_product(poly_vec[0], poly_vec[1]);
         }
         auto mid = len / 2;
         auto first_it = poly_vec.begin();
@@ -48,7 +48,7 @@ public:
         auto last_it  = poly_vec.end();
         std::vector<InterpolantVector> vec1(first_it, mid_it);
         std::vector<InterpolantVector> vec2(mid_it, last_it);
-        return prod_sos(prod_sos(vec1), prod_sos(vec2));
+        return polynomial_product(polynomial_product(vec1), polynomial_product(vec2));
     }
 
     InterpolantVector generate_zero_polynomial();
@@ -74,6 +74,13 @@ private:
     std::vector<InterpolantVector> _basis_polynomials;
     std::shared_ptr<spdlog::logger> _logger;
 
+    //This bool sets whether the transformation matrix from the
+    //standard monomial basis to the Lagrange basis through the
+    //Chebyshev points of second kind is calculated.
+    //Set to true if you want to save runtime but have arbitrary
+    //arbitrary polynomials plotted.
+
+    bool _input_in_interpolant_basis = false;
 };
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H
