@@ -33,11 +33,11 @@ public:
 
     IntersectionOfVpoly(): P1(), P2() {}
 
-    IntersectionOfVpoly(VPolytope &P, VPolytope &Q) : P1(P), P2(Q) {};
+    IntersectionOfVpoly(VPolytope P, VPolytope Q) : P1(P), P2(Q) {
+        seed = std::chrono::system_clock::now().time_since_epoch().count();
+    }
 
-    IntersectionOfVpoly(VPolytope &P, VPolytope &Q, unsigned &_seed) {
-        P1 = P;
-        P2 = Q;
+    IntersectionOfVpoly(VPolytope P, VPolytope Q, unsigned _seed) : P1(P), P2(Q)  {
         seed = _seed;
     }
 
