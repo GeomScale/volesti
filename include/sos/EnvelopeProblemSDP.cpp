@@ -5,7 +5,7 @@
 #include "EnvelopeProblemSDP.h"
 
 EnvelopeProblemSDP::EnvelopeProblemSDP(int num_variables, int max_degree, HyperRectangle &hyperRectangle_) :
-        monomialObject(num_variables, max_degree), _n(num_variables),  _d(max_degree),
+        monomialObject(num_variables, max_degree), _n(num_variables), _d(max_degree),
         _hyperRectangle(hyperRectangle_) {
     assert(num_variables == hyperRectangle_.size());
     construct_polynomial_matrix();

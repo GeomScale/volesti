@@ -28,12 +28,14 @@ public:
     void add_polynomial(PolynomialSDP &polynomial);
 
     PolynomialSDP generate_zero_polynomial();
+
     void construct_polynomial_matrix();
 
     //Requires that polynomial matrix was already constructed
     void construct_objective_matrix();
 
     IPMDouble calculate_objective(Monomial m);
+
     IPMDouble calculate_objective(Monomial m, unsigned var);
 
     //FIXME: Remove trivial rows. Also, the variables Y might not be necessary. The whole barrier can be applied to X itself;

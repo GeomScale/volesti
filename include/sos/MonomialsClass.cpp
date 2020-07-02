@@ -19,7 +19,6 @@ std::vector<std::vector<int> > MonomialsClass::constructAllMonomials(unsigned co
         }
         to_return.insert(to_return.end(), all_options_with_this_var_at_degree_i.begin(),
                          all_options_with_this_var_at_degree_i.end());
-
     }
     return to_return;
 }
