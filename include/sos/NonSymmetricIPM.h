@@ -74,7 +74,6 @@ public:
         if (duality_gap() > precision) {
             return false;
         }
-
         return true;
     }
 

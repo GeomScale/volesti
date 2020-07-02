@@ -19,15 +19,18 @@ on the interval [-1,1].
 #### Next steps:
 
 * Parameter tuning
+* Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
 * Higher order corrector steps
 * Add Weighted Sum-of-Squares (WSOS) support
 * Add multivariate support
 * Implement Lagrange polynomials more efficiently (or find C++ library with sufficient precision.)
 * Speed up with Intel MKL (considering it is not open source we miht not use it !?) or other high-performance library
+* Benchmarking with alfonso, SOSTOOLS, MOSEK, SeDuMi 
 * Implementation/inspiration from  [4]. In particular interesting are:
     * Positive definite rescaling matrix for added stability and monotonicity 
     * Combining Predictor- and Corrector steps.
-* Writing tests
+* Write tests
+* Include ARPACK/LAPACK. 
 * Interfaces for R (and Python)
     
 #### Current issues

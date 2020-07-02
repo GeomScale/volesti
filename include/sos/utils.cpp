@@ -1,3 +1,6 @@
+#ifndef SOS_UTILS_H
+#define SOS_UTILS_H
+
 #include <Eigen/Dense>
 #include <iostream>
 
@@ -7,7 +10,7 @@
 #include "spdlog/spdlog.h"
 
 
-typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<200> > BoostDouble;
+typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<50> > BoostDouble;
 typedef BoostDouble InterpolantDouble;
 
 typedef long double long_double;
@@ -138,6 +141,9 @@ public:
         return dual_constraints;
     }
 };
+
+#endif //SOS_UTILS_H
+
 
 
 

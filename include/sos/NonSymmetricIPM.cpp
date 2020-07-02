@@ -52,7 +52,7 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
     Matrix A_H_inv_A_top = -A * normalized_inverse_hessian * A.transpose();
 
     std::vector<std::pair<Vector, Vector> > results;
-    for (int i = 0; i < v.size(); i++) {
+    for (unsigned i = 0; i < v.size(); i++) {
         auto r1 = v[i].first;
         auto r2 = v[i].second;
         auto new_s = solve(A_H_inv_A_top, A * normalized_inverse_hessian * r2 - r1);
@@ -205,7 +205,7 @@ void NonSymmetricIPM::run_solver() {
 
     unsigned total_num_line_steps = 0;
 
-    for (int pred_iteration = 0; pred_iteration < _num_predictor_steps; ++pred_iteration) {
+    for (unsigned pred_iteration = 0; pred_iteration < _num_predictor_steps; ++pred_iteration) {
         _logger->debug("Begin predictor iteration {}", pred_iteration);
         _predictor_timer.start();
         if (terminate_successfully()) {
@@ -220,10 +220,8 @@ void NonSymmetricIPM::run_solver() {
 //        test_hessian();
         //TODO: rewrite code. Currently concatenation is not very smooth. Pass values by reference to concat.
         create_skajaa_ye_matrix();
-        //Begin Debug content
 
         assert(centrality() < _beta);
-        //End debug content
 
         _logger->trace("Begin solving predictor system");
         Vector predictor_direction = solve_predictor_system();
@@ -279,7 +277,7 @@ void NonSymmetricIPM::run_solver() {
         _predictor_timer.stop();
         _corrector_timer.start();
 
-        for (int corr_iteration = 0; corr_iteration < _num_corrector_steps; ++corr_iteration) {
+        for (unsigned corr_iteration = 0; corr_iteration < _num_corrector_steps; ++corr_iteration) {
             if (centrality() < _beta_small) {
                 break;
             }

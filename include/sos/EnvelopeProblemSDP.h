@@ -34,7 +34,7 @@ public:
     void construct_objective_matrix();
 
     IPMDouble calculate_objective(Monomial m);
-    IPMDouble calculate_objective(Monomial m, int var);
+    IPMDouble calculate_objective(Monomial m, unsigned var);
 
     //FIXME: Remove trivial rows. Also, the variables Y might not be necessary. The whole barrier can be applied to X itself;
     Instance construct_SDP_instance();

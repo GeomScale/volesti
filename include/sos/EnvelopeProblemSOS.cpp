@@ -3,7 +3,7 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/fmt/ostr.h"
 
-EnvelopeProblemSOS::EnvelopeProblemSOS(int num_variables, int max_degree, HyperRectangle &hyperRectangle_) :
+EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_) :
         _n(num_variables), _d(max_degree),
         _hyperRectangle(hyperRectangle_) {
     assert(num_variables == hyperRectangle_.size());

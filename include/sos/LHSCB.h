@@ -10,6 +10,7 @@
 class LHSCB {
 public:
     LHSCB() : _num_variables(0) {};
+
     virtual ~LHSCB() {};
 
 
@@ -19,9 +20,11 @@ public:
 
     Eigen::LLT<Matrix> llt(Vector x);
 
-    Vector * find_gradient(Vector x);
-    Matrix * find_hessian(Vector x);
-    Eigen::LLT<Matrix> * find_LLT(Vector x);
+    Vector *find_gradient(Vector x);
+
+    Matrix *find_hessian(Vector x);
+
+    Eigen::LLT<Matrix> *find_LLT(Vector x);
 
     virtual Matrix inverse_hessian(Vector x);
 
@@ -29,12 +32,12 @@ public:
 
     virtual IPMDouble concordance_parameter(Vector x) = 0;
 
-    virtual Vector initialize_x(IPMDouble parameter){
+    virtual Vector initialize_x(IPMDouble parameter) {
         return parameter * initialize_x();
     }
 
     //TODO: figure out if initializing the dual is in general just - 1/mu * g(x) (i.e. whether this is in the dual cone)
-    virtual Vector initialize_s(IPMDouble parameter){
+    virtual Vector initialize_s(IPMDouble parameter) {
         return initialize_s() / parameter;
     }
 
@@ -47,7 +50,7 @@ public:
 protected:
     unsigned _num_variables;
     std::vector<std::pair<Vector, Vector> > _stored_gradients;
-    std::vector<std::pair<Vector, Matrix > > _stored_hessians;
+    std::vector<std::pair<Vector, Matrix> > _stored_hessians;
     std::vector<std::pair<Vector, Eigen::LLT<Matrix> > > _stored_LLT;
 
 public:
@@ -74,7 +77,7 @@ class FullSpaceBarrier final : public LHSCB {
     Vector initialize_s() override;
 
 public:
-    FullSpaceBarrier(unsigned num_variables_){
+    FullSpaceBarrier(unsigned num_variables_) {
         _num_variables = num_variables_;
     }
 };
@@ -96,7 +99,7 @@ class ZeroSpaceBarrier final : public LHSCB {
     Vector initialize_s() override;
 
 public:
-    ZeroSpaceBarrier(unsigned num_variables_){
+    ZeroSpaceBarrier(unsigned num_variables_) {
         _num_variables = num_variables_;
     }
 };
@@ -105,7 +108,7 @@ class LPStandardBarrier final : public LHSCB {
 public:
     LPStandardBarrier() : LHSCB() {};
 
-    LPStandardBarrier(unsigned num_variables_)  {
+    LPStandardBarrier(unsigned num_variables_) {
         _num_variables = num_variables_;
     };
 
@@ -166,7 +169,7 @@ private:
 
 //TODO: Add WSOS barrier.
 
-class InterpolantDualSOSBarrier: public LHSCB {
+class InterpolantDualSOSBarrier : public LHSCB {
 
 public:
     InterpolantDualSOSBarrier() : LHSCB() {};
@@ -186,7 +189,7 @@ public:
             _unisolvent_basis[i] = cos_val;
         }
 
-         InterpolantMatrix P_interp = InterpolantMatrix(_U, _L);
+        InterpolantMatrix P_interp = InterpolantMatrix(_U, _L);
 
         //TODO: Figure out how choice of P could influence condition / stability of maps.
 
@@ -212,11 +215,11 @@ public:
         orth_timer.start();
         InterpolantMatrix P_ortho = P_interp.householderQr().householderQ();
         P_ortho.colwise().hnormalized();
-        InterpolantMatrix P_intermediate = P_ortho.block(0,0,_U,_L);
+        InterpolantMatrix P_intermediate = P_ortho.block(0, 0, _U, _L);
         _P = InterpolantMatrixToMatrix(P_intermediate, _P);
         orth_timer.stop();
-        std::cout << "Orthogonalization done in "  << orth_timer.count<std::chrono::milliseconds>()/ 1000.
-                << " seconds." << std::endl;
+        std::cout << "Orthogonalization done in " << orth_timer.count<std::chrono::milliseconds>() / 1000.
+                  << " seconds." << std::endl;
 //        std::cout << "Orthogonalized matrix P: \n" << _P << std::endl;
     };
 
@@ -234,7 +237,7 @@ public:
 
     Vector initialize_s() override;
 
-    std::vector<InterpolantDouble> & get_basis(){
+    std::vector<InterpolantDouble> &get_basis() {
         return _unisolvent_basis;
     }
 
@@ -248,10 +251,9 @@ private:
 class ProductBarrier : public LHSCB {
 
 public:
-    ProductBarrier()  : LHSCB()
-    {}
+    ProductBarrier() : LHSCB() {}
 
-    ProductBarrier(std::vector<LHSCB*> barriers_, std::vector<unsigned> num_variables_) {
+    ProductBarrier(std::vector<LHSCB *> barriers_, std::vector<unsigned> num_variables_) {
         assert(barriers_.size() == num_variables_.size());
         for (unsigned j = 0; j < barriers_.size(); ++j) {
             _barriers.push_back(barriers_[j]);
@@ -259,7 +261,7 @@ public:
         }
     }
 
-    void add_barrier(LHSCB * lhscb){
+    void add_barrier(LHSCB *lhscb) {
         _barriers.push_back(lhscb);
         _num_vars_per_barrier.push_back(lhscb->getNumVariables());
         _num_variables += lhscb->getNumVariables();
@@ -283,7 +285,7 @@ public:
     Matrix inverse_hessian(Vector x) override;
 
 private:
-    std::vector<LHSCB*> _barriers;
+    std::vector<LHSCB *> _barriers;
     std::vector<unsigned> _num_vars_per_barrier;
 };
 
@@ -310,13 +312,10 @@ public:
 
     Vector initialize_s() override;
 
-
     Matrix Lambda(Vector x);
-
 
 private:
     unsigned _max_polynomial_degree;
 };
-
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_LHSCB_H

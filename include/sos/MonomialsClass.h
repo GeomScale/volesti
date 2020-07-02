@@ -22,14 +22,14 @@ public:
         return m;
     }
 
-
     Monomials getMonomials() {
         return _monomials;
     }
 
-    void print_human_readable (Monomial m) const {
+    void print_human_readable(Monomial m) const {
         assert(m.size() == _n);
-        int last_non_zero = _n - 1;
+        assert(_n >= 1);
+        unsigned last_non_zero = _n - 1;
         while (last_non_zero >= 0 && m[last_non_zero] == 0) {
             last_non_zero--;
         }
@@ -37,7 +37,7 @@ public:
             std::cout << "1";
             return;
         }
-        for (int i = 0; i < _n; ++i) {
+        for (unsigned i = 0; i < _n; ++i) {
             if (m[i] > 0) {
                 std::cout << "x_" << i + 1;
                 if (m[i] > 1) {
@@ -67,10 +67,10 @@ public:
     }
 
 private:
-    Monomials constructAllMonomials(int const max_degree, int const num_variables);
+    Monomials constructAllMonomials(unsigned const max_degree, unsigned const num_variables);
 
-    int _n;
-    int _d;
+    unsigned _n;
+    unsigned _d;
     Monomials _monomials;
 };
 
