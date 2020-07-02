@@ -245,22 +245,19 @@ double volume (Rcpp::Reference P,
     switch(type) {
         case 1: {
             // Hpolytope
-            Hpolytope HP;
-            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            Hpolytope HP(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             return generic_volume(HP, rng, walkL, e, CG, CB, win_len, round,
                                              cdhr, rdhr, ball_walk, billiard, type);
         }
         case 2: {
             // Vpolytope
-            Vpolytope VP;
-            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            Vpolytope VP(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             return generic_volume(VP, rng, walkL, e, CG, CB, win_len, round,
                                              cdhr, rdhr, ball_walk, billiard, type);
         }
         case 3: {
             // Zonotope
-            zonotope ZP;
-            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            zonotope ZP(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("hpoly")) {
                 hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["hpoly"]);
                 if (hpoly && !CB)
@@ -286,16 +283,14 @@ double volume (Rcpp::Reference P,
         }
         case 4: {
             // Intersection of two V-polytopes
-            Vpolytope VP1;
-            Vpolytope VP2;
             InterVP VPcVP;
-            VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
-            VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
+            Vpolytope VP1(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
+            Vpolytope VP2(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
             if (!seed.isNotNull()) {
-                VPcVP.init(VP1, VP2);
+                InterVP VPcVP(VP1, VP2);
             } else {
                 unsigned seed3 = Rcpp::as<double>(seed);
-                VPcVP.init(VP1, VP2, seed3);
+                InterVP VPcVP(VP1, VP2, seed3);
             }
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             return generic_volume(VPcVP, rng, walkL, e, CG, CB, win_len, round,

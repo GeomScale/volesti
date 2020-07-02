@@ -125,7 +125,7 @@ void call_test_cross(){
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cross5" << std::endl;
-    P = gen_cross<Vpolytope>(5, true);
+    P = generate_cross<Vpolytope>(5, true);
     test_volume(P,
                 0.28425,
                 0.273255,
@@ -134,7 +134,7 @@ void call_test_cross(){
                 0.266666667);
 
     std::cout << "--- Testing volume of V-cross10" << std::endl;
-    P = gen_cross<Vpolytope>(10, true);
+    P = generate_cross<Vpolytope>(10, true);
     test_volume(P,
                 0.000283841,
                 0.00031188,
@@ -143,7 +143,7 @@ void call_test_cross(){
                 0.0002821869);
 
     std::cout << "--- Testing volume of V-cross20" << std::endl;
-    P = gen_cross<Vpolytope>(20, true);
+    P = generate_cross<Vpolytope>(20, true);
     test_volume(P,
                 4.16807 * std::pow(10,-13),
                 4.42692 * std::pow(10,-13),
@@ -162,7 +162,7 @@ void call_test_simplex() {
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-simplex5" << std::endl;
-    P = gen_simplex<Vpolytope>(5, true);
+    P = generate_simplex<Vpolytope>(5, true);
     test_volume(P,
                 0.00846587,
                 0.0096107,
@@ -171,7 +171,7 @@ void call_test_simplex() {
                 1.0 / factorial(5.0));
 
     std::cout << "--- Testing volume of V-simplex10" << std::endl;
-    P = gen_simplex<Vpolytope>(10, true);
+    P = generate_simplex<Vpolytope>(10, true);
     test_volume(P,
                 2.35669 * std::pow(10,-7),
                 3.00778 * std::pow(10,-7),

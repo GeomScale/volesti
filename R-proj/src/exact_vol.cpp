@@ -89,10 +89,9 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
     } else if (type == 3) {
 
         typedef Zonotope <Point> zonotope;
-        zonotope ZP;
         dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
 
-        ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
+        zonotope ZP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
                 VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
         vol = exact_zonotope_vol<NT>(ZP);
 

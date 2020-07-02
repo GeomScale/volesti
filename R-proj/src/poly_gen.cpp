@@ -66,13 +66,13 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
         switch (kind_gen) {
 
             case 1:
-                return extractMatPoly(gen_cube<Vpolytope>(dim_gen, true));
+                return extractMatPoly(generate_cube<Vpolytope>(dim_gen, true));
 
             case 2:
-                return extractMatPoly(gen_cross<Vpolytope>(dim_gen, true));
+                return extractMatPoly(generate_cross<Vpolytope>(dim_gen, true));
 
             case 3:
-                return extractMatPoly(gen_simplex<Vpolytope>(dim_gen, true));
+                return extractMatPoly(generate_simplex<Vpolytope>(dim_gen, true));
 
             case 4:
                 return extractMatPoly(random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen, seed2));
@@ -85,19 +85,19 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
         switch (kind_gen) {
 
             case 1:
-                return extractMatPoly(gen_cube<Hpolytope>(dim_gen, false));
+                return extractMatPoly(generate_cube<Hpolytope>(dim_gen, false));
 
             case 2:
-                return extractMatPoly(gen_cross<Hpolytope>(dim_gen, false));
+                return extractMatPoly(generate_cross<Hpolytope>(dim_gen, false));
 
             case 3:
-                return extractMatPoly(gen_simplex<Hpolytope>(dim_gen, false));
+                return extractMatPoly(generate_simplex<Hpolytope>(dim_gen, false));
 
             case 4:
-                return extractMatPoly(gen_prod_simplex<Hpolytope>(dim_gen));
+                return extractMatPoly(generate_prod_simplex<Hpolytope>(dim_gen));
 
             case 5:
-                return extractMatPoly(gen_skinny_cube<Hpolytope>(dim_gen));
+                return extractMatPoly(generate_skinny_cube<Hpolytope>(dim_gen));
 
             case 6:
                 return extractMatPoly(random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen, seed2));

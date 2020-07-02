@@ -16,7 +16,7 @@
 #include <Eigen/Eigen>
 
 #include "lp_oracles/vpolyoracles.h"
-#include <minimum_ellipsoid/khach.h>
+#include <khach.h>
 
 
 //min and max values for the Hit and Run functions

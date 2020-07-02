@@ -99,8 +99,7 @@ void call_test_vpoly_sphere(){
     Vpolytope P1 = random_vpoly<Vpolytope, RNGType2 >(5, 10, 127);
     Vpolytope P2 = random_vpoly<Vpolytope, RNGType2 >(5, 12, 211);
 
-    VpIntVp P;
-    P.init(P1, P2);
+    VpIntVp P(P1, P2);
     if (!P.is_feasible()) {
         std::cout<<"Empty set!"<<std::endl;
         return;

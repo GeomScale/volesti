@@ -161,7 +161,7 @@ int main()
 
 
     Vpolytope VP;
-    VP = std::move(gen_cross<Vpolytope>(10, true));
+    VP = std::move(generate_cross<Vpolytope>(10, true));
 
     // NEW IMPLEMENTATIOM
 
@@ -195,7 +195,7 @@ int main()
 
     // OLD Implementation
 
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    Vpolytope VP(VP.dimension(), VP.get_mat(), VP.get_vec());
     auto VPCheBall = VP.ComputeInnerBall();
     {
         vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
@@ -209,7 +209,7 @@ int main()
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    Vpolytope VP(VP.dimension(), VP.get_mat(), VP.get_vec());
     VPCheBall = VP.ComputeInnerBall();
     {
         vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
@@ -217,13 +217,13 @@ int main()
                               urdist,urdist1,-1.0,false,false,false,
                               false,false,false,true,false,false);
 
-        VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+        Vpolytope VP(VP.dimension(), VP.get_mat(), VP.get_vec());
         tstart = (double)clock()/(double)CLOCKS_PER_SEC;
         std::cout << "OLD CDHR = " << vol_cooling_balls(VP, var, var_ban, VPCheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    Vpolytope VP(VP.dimension(), VP.get_mat(), VP.get_vec());
     VPCheBall = VP.ComputeInnerBall();
     {
         vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
@@ -231,13 +231,13 @@ int main()
                               urdist,urdist1,-1.0,false,false,false,
                               false,false,false,false,true,false);
 
-        VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+        Vpolytope VP(VP.dimension(), VP.get_mat(), VP.get_vec());
         tstart = (double)clock()/(double)CLOCKS_PER_SEC;
         std::cout << "OLD RDHR = " << vol_cooling_balls(VP, var, var_ban, VPCheBall)
                   << " , ";
         std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
     }
-    VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+    Vpolytope VP(VP.dimension(), VP.get_mat(), VP.get_vec());
     VPCheBall = VP.ComputeInnerBall();
     {
         vars<NT, RNGType> var(rnum,n,walk_len,n_threads,err,e,0,0,0,
@@ -245,7 +245,7 @@ int main()
                               urdist,urdist1,-1.0,false,false,false,
                               false,false,false,false,false,true);
 
-        VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
+        Vpolytope VP(VP.dimension(), VP.get_mat(), VP.get_vec());
         tstart = (double)clock()/(double)CLOCKS_PER_SEC;
         std::cout << "OLD Blrd = " << vol_cooling_balls(VP, var, var_ban, VPCheBall)
                   << " , ";

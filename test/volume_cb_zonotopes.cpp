@@ -52,11 +52,15 @@ void test_volume_hpoly(Polytope &P,
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
     typedef HPolytope<Point> Hpolytope;
 
     // Setup the parameters
-    int walk_len = 1;
+    int walk_len = 1, dim = P.dimension();
     NT e = 0.1, volume;
+    MT G = P.get_mat();
+    VT b = P.get_vec();
 
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
@@ -65,16 +69,16 @@ void test_volume_hpoly(Polytope &P,
     //TODO: low accuracy in high dimensions
     //NT volume = volume_cooling_balls<BallWalk, RNGType>(HP, e, walk_len);
     //test_values(volume, expectedBall, exact);
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_hpoly<CDHRWalk, RNGType, Hpolytope>(P, e, walk_len);
+    Polytope P1(dim, G, b);
+    volume = volume_cooling_hpoly<CDHRWalk, RNGType, Hpolytope>(P1, e, walk_len);
     test_values(volume, expectedCDHR, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_hpoly<RDHRWalk, RNGType, Hpolytope>(P, e, walk_len);
+    Polytope P2(dim, G, b);
+    volume = volume_cooling_hpoly<RDHRWalk, RNGType, Hpolytope>(P2, e, walk_len);
     test_values(volume, expectedRDHR, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_hpoly<BilliardWalk, RNGType, Hpolytope>(P, e, walk_len);
+    Polytope P3(dim, G, b);
+    volume = volume_cooling_hpoly<BilliardWalk, RNGType, Hpolytope>(P3, e, walk_len);
     test_values(volume, expectedBilliard, exact);
 }
 
@@ -88,26 +92,30 @@ void test_volume_balls(Polytope &P,
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
     typedef HPolytope<Point> Hpolytope;
 
     // Setup the parameters
-    int walk_len = 1;
+    int walk_len = 1, dim = P.dimension();
     NT e = 0.1, volume;
+    MT G = P.get_mat();
+    VT b = P.get_vec();
 
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<CDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P1(dim, G, b);
+    volume = volume_cooling_balls<CDHRWalk, RNGType>(P1, e, walk_len);
     test_values(volume, expectedCDHR, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<RDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P2(dim, G, b);
+    volume = volume_cooling_balls<RDHRWalk, RNGType>(P2, e, walk_len);
     test_values(volume, expectedRDHR, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(P, e, walk_len);
+    Polytope P3(dim, G, b);
+    volume = volume_cooling_balls<BilliardWalk, RNGType>(P3, e, walk_len);
     test_values(volume, expectedBilliard, exact);
 }
 

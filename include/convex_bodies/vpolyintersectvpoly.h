@@ -35,6 +35,12 @@ public:
 
     IntersectionOfVpoly(VPolytope &P, VPolytope &Q) : P1(P), P2(Q) {};
 
+    IntersectionOfVpoly(VPolytope &P, VPolytope &Q, unsigned &_seed) {
+        P1 = P;
+        P2 = Q;
+        seed = _seed;
+    }
+
     VPolytope first() { return P1; }
     VPolytope second() { return P2; }
 
@@ -49,7 +55,7 @@ public:
         return 0;
     }
 
-    void init(const VPolytope &P, const VPolytope &Q) {
+    /*void init(const VPolytope &P, const VPolytope &Q) {
         P1 = P;
         P2 = Q;
         seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -59,7 +65,7 @@ public:
         P1 = P;
         P2 = Q;
         seed = _seed;
-    }
+    }*/
 
     int num_of_hyperplanes() const {
         return 0;

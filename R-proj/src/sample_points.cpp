@@ -271,7 +271,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     switch(type) {
         case 1: {
             // Hpolytope
-            HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
+            Hpolytope HP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                     Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
@@ -291,7 +291,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
         case 2: {
             // Vpolytope
-            VP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
+            Vpolytope VP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
@@ -309,7 +309,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
         case 3: {
             // Zonotope
-            ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
+            zonotope ZP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
@@ -327,13 +327,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
         case 4: {
             // Intersection of two V-polytopes
-            Vpolytope VP1;
-            Vpolytope VP2;
-            VP1.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
+            Vpolytope VP1(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
                      VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
-            VP2.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
+            Vpolytope VP2(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
                      VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
-            VPcVP.init(VP1, VP2);
+            InterVP VPcVP(VP1, VP2);
 
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             InnerBall = VPcVP.ComputeInnerBall();
