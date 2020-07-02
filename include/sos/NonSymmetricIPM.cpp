@@ -442,7 +442,6 @@ Vector NonSymmetricIPM::solve_corrector_system() {
 
     //show that new psi vector is pretty close to 0
 
-
     auto delta_s = andersen_dir.segment(A.rows() + A.cols() + 1, A.cols());
     auto delta_x = andersen_dir.segment(A.rows(), A.cols());
 
