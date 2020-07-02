@@ -18,14 +18,6 @@
 #include "lp_oracles/vpolyoracles.h"
 #include "khach.h"
 
-#ifndef DISABLE_NLP_ORACLES
-
-#include "nlp_oracles/nlp_vpolyoracles.hpp"
-
-#endif
-
-//min and max values for the Hit and Run functions
-
 // V-Polytope class
 template <typename Point>
 class VPolytope{
@@ -455,21 +447,19 @@ public:
         free(conv_mem);
     }
 
-#ifndef DISABLE_NLP_ORACLES
-
-    template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, const std::string method="newton-raphson") {
-        return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
-    }
-
-    // compute intersection of curve with V-polytope
-    template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
-      return curve_intersect_vpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, eta, V, coeffs, phi, grad_phi);
-    }
-
-#endif
-
+        template <class bfunc, class NonLinearOracle>
+        std::tuple<NT, Point, int> curve_intersect(
+          NT t_prev,
+          NT t0,
+          NT eta,
+          std::vector<Point> &coeffs,
+          bfunc phi,
+          bfunc grad_phi,
+          NonLinearOracle &oracle,
+          int ignore_facet=-1)
+        {
+            return oracle.apply(t_prev, t0, eta, V, *this, coeffs, phi, grad_phi, ignore_facet);
+        }
 };
 
 #endif

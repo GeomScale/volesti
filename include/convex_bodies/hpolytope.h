@@ -16,13 +16,6 @@
 #include <Eigen/Eigen>
 #include "lp_oracles/solve_lp.h"
 
-#ifndef DISABLE_NLP_ORACLES
-#include "nlp_oracles/nlp_hpolyoracles.hpp"
-#include "root_finders/root_finders.hpp"
-#define MAX_NR_TRIES 10000
-#endif
-
-
 //min and max values for the Hit and Run functions
 // H-polytope class
 template <typename Point>
@@ -497,196 +490,19 @@ public:
 
     void free_them_all() {}
 
-#ifndef DISABLE_NLP_ORACLES
-
-    template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi, const std::string method="newton-raphson") {
-        if (method == "newton-raphson") {
-          return curve_intersect_newton_raphson<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
-        }
-        else if (method == "ipopt") {
-          return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
-        }
-        else if (method == "mpsolve") {
-          return curve_intersect_mpsolve(t_prev, t0, eta, coeffs);
-        }
-
-        return curve_intersect_ipopt<bfunc>(t_prev, t0, eta, coeffs, phi, grad_phi);
+    template <class bfunc, class NonLinearOracle>
+    std::tuple<NT, Point, int> curve_intersect(
+      NT t_prev,
+      NT t0,
+      NT eta,
+      std::vector<Point> &coeffs,
+      bfunc phi,
+      bfunc grad_phi,
+      NonLinearOracle &oracle,
+      int ignore_facet=-1)
+    {
+        return oracle.apply(t_prev, t0, eta, A, b, *this, coeffs, phi, grad_phi, ignore_facet);
     }
-
-    // Compute intersection of H-polytope P := Ax <= b
-    // with polynomial curve p(t) = sum a_j (t - t0)^j
-    // Uses the MPsolve library
-    std::tuple<NT, Point, int> curve_intersect_mpsolve(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs) {
-
-      NT tu = eta > 0 ? t0 + eta : NT(maxNT);
-      NT t = tu;
-      Point dummy(coeffs[0].dimension());
-
-      for (unsigned int j = 0; j < coeffs.size(); j++) {
-        dummy = dummy + pow(tu - t0, NT(j)) * coeffs[j];
-      }
-
-      std::tuple<NT, Point, int> result = std::make_tuple(tu, dummy, -1);
-
-      int m = num_of_hyperplanes();
-
-      // Keeps constants A_i^T C_j
-      std::vector<NT> Z(coeffs.size(), NT(0));
-
-      // std::vector<std::pair<NT, NT>> solutions;
-
-      // Iterate over all hyperplanes
-      for (int i = 0; i < m; i++) {
-
-        for (unsigned int j = 0; j < coeffs.size(); j++) {
-          Z[j] = A.row(i) * coeffs[j].getCoefficients();
-
-          #ifdef VOLESTI_DEBUG
-            std::cout << "Z [ " << j << " ] = " << Z[j] << std::endl;
-          #endif
-        }
-
-        // Find point projection on m-th hyperplane
-        Z[0] -= b(i);
-
-        std::vector<std::pair<NT, NT>> solutions = mpsolve<NT>(Z, true);
-
-        for(std::pair<NT, NT> sol: solutions) {
-
-            #ifdef VOLESTI_DEBUG
-              std::cout << "Facet: " << i << " Candidate root is " << sol.first + t0 << std::endl;
-            #endif
-
-            // Check if solution is in the desired range [t0, t0 + eta] and if it is the current minimum
-            if (t0 + sol.first <= tu && t0 + sol.first < std::get<0>(result)) {
-              t = t0 + sol.first;
-
-              // Calculate point from this root
-              Point p = Point(coeffs[0].dimension());
-
-              for (unsigned int j = 0; j < coeffs.size(); j++) {
-                p += pow(t - t0, NT(j)) * coeffs[j] ;
-              }
-
-              #ifdef VOLESTI_DEBUG
-                std::cout << "Calculcated point is " << std::endl << p.getCoefficients() << std::endl;
-              #endif
-
-              // Check if point satisfies Ax <= b up to some tolerance and change current solution
-              if (is_in(p, 1e-6)) {
-                result =  std::make_tuple(t, p, i);
-              }
-            }
-        }
-
-      }
-
-      return result;
-    }
-
-    template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect_ipopt(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
-      return curve_intersect_hpoly_ipopt_helper<MT, VT, Point, NT, bfunc>(t_prev, t0, eta, A, b, coeffs, phi, grad_phi);
-    }
-
-    // Compute intersection of H-polytope P := Ax <= b
-    // with curve p(t) = sum a_j phi_j(t) where phi_j are basis
-    // functions (e.g. polynomials)
-    // Uses Newton-Raphson to solve the transcendental equation
-    template <class bfunc>
-    std::tuple<NT, Point, int> curve_intersect_newton_raphson(NT t_prev, NT t0, NT eta, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
-
-      // Keep results in a vector (in case of multiple roots)
-      // The problem has O(m * len(coeffs)) solutions if phi's are polys
-      // due to the Fundamental Theorem of Algebra
-      // Some roots may be common for more than one hyperplanes
-
-
-      // Root
-      NT t = t_prev;
-      NT tu = eta > 0 ? t0 + eta : NT(maxNT);
-
-      Point dummy(coeffs[0].dimension());
-
-      for (unsigned int j = 0; j < coeffs.size(); j++) {
-        dummy += coeffs[j] * phi(tu, t0, j, coeffs.size());
-      }
-
-
-      std::tuple<NT, Point, int> result = std::make_tuple(tu, dummy, -1);
-
-      // Helper variables for Newton-Raphson
-      NT dot_u, num, den, den_tmp;
-
-      // Regularization for NR (e.g. at critical points where grad = 0)
-      NT reg = (NT) 1e-7;
-      VT Z;
-      int m = num_of_hyperplanes();
-
-      // Keeps constants A_i^T C_j
-      Z.resize(coeffs.size());
-
-      // Iterate over all hyperplanes
-      for (int i = 0; i < m; i++) {
-
-        // Calculate constants
-        start_iter: t_prev = t0 + reg;
-
-
-        for (unsigned int j = 0; j < coeffs.size(); j++) {
-          Z(j) = A.row(i) * coeffs[j].getCoefficients();
-        }
-
-
-        for (int tries = 0; tries < MAX_NR_TRIES; tries++) {
-
-          num = - b(i);
-          den = (NT) 0;
-
-          // Calculate numerator f(t) and denominator f'(t)
-          for (int j = 0; j < coeffs.size(); j++) {
-            num += Z(j) * phi(t_prev, t0, j, coeffs.size());
-
-            // Avoid ill-posed derivative (e.g. 0^{-1})
-            if (j > 0) den += Z(j) * grad_phi(t_prev, t0, j, coeffs.size());
-          }
-
-          // Regularize denominator if near 0
-          if (std::abs(den) < 10 * reg) den += reg;
-
-          // Newton-Raphson Iteration t = t_old - f(t) / f'(t)
-          t = t_prev - num / den;
-
-          if (t < 0 && t_prev < 0) continue;
-
-          if (std::abs(t - t_prev) < 1e-6 && t > t0) {
-            // Add root (as t) and facet
-
-
-            Point p = Point(coeffs[0].dimension());
-
-            for (unsigned int j = 0; j < coeffs.size(); j++) {
-              p += coeffs[j] * phi(t, t0, j, coeffs.size());
-            }
-
-            // TODO Keep smallest positive root
-            if (is_in(p) && t < std::get<0>(result)) result =  std::make_tuple(t, p, i);
-
-
-          }
-
-          t_prev = t;
-
-        }
-
-      }
-
-      return result;
-
-    }
-
-#endif
 
 };
 

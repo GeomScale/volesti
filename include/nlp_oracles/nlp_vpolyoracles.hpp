@@ -248,53 +248,72 @@ public:
 
 };
 
-template <typename MT, typename VT, typename Point, typename NT, class bfunc>
-std::tuple<NT, Point, int> curve_intersect_vpoly_ipopt_helper(NT t_prev, NT t0, NT eta, MT &V, std::vector<Point> &coeffs, bfunc phi, bfunc grad_phi) {
 
-  Problem nlp;
+template <typename Polytope, class bfunc>
+struct IpoptVPolyoracle {
+  typedef typename Polytope::MT MT;
+  typedef typename Polytope::VT VT;
+  typedef typename Polytope::NT NT;
+  typedef typename Polytope::PointType Point;
 
-  int m = V.rows();
+  std::tuple<NT, Point, int> apply(
+    NT t_prev,
+    NT t0,
+    NT eta,
+    MT &V,
+    Polytope &P,
+    std::vector<Point> &coeffs,
+    bfunc phi,
+    bfunc grad_phi,
+    int ignore_facet=-1) { // ignore facet not supported
 
-  std::shared_ptr<VPolyOracleVariableT<VT, NT>> vpolyoraclevariablet (new VPolyOracleVariableT<VT, NT>(t_prev, t0, eta));
-  std::shared_ptr<VPolyOracleVariableLambdas<VT, NT>> vpolyoraclevariable_lambdas (new VPolyOracleVariableLambdas<VT, NT>(m));
+    Problem nlp;
 
-  nlp.AddVariableSet(vpolyoraclevariablet);
-  nlp.AddVariableSet(vpolyoraclevariable_lambdas);
+    int m = V.rows();
 
-  std::shared_ptr<VPolyOracleCost<VT, NT>> vpolyoraclecost (new VPolyOracleCost<VT, NT>(m));
+    std::shared_ptr<VPolyOracleVariableT<VT, NT>> vpolyoraclevariablet (new VPolyOracleVariableT<VT, NT>(t_prev, t0, eta));
+    std::shared_ptr<VPolyOracleVariableLambdas<VT, NT>> vpolyoraclevariable_lambdas (new VPolyOracleVariableLambdas<VT, NT>(m));
 
-  nlp.AddCostSet(vpolyoraclecost);
+    nlp.AddVariableSet(vpolyoraclevariablet);
+    nlp.AddVariableSet(vpolyoraclevariable_lambdas);
 
-  std::shared_ptr<VPolyoracleFeasibilityLambdas<VT, NT>> vpolyoraclefeasibility_lambdas (new VPolyoracleFeasibilityLambdas<VT, NT>(m));
-  std::shared_ptr<VPolyOracleFeasibilityCurve<MT, VT, NT, Point, bfunc>> vpolyoraclefeasibility_curve (new VPolyOracleFeasibilityCurve<MT, VT, NT, Point, bfunc>(V, coeffs, t0, phi, grad_phi));
+    std::shared_ptr<VPolyOracleCost<VT, NT>> vpolyoraclecost (new VPolyOracleCost<VT, NT>(m));
 
-  nlp.AddConstraintSet(vpolyoraclefeasibility_lambdas);
-  nlp.AddConstraintSet(vpolyoraclefeasibility_curve);
+    nlp.AddCostSet(vpolyoraclecost);
 
-  nlp.PrintCurrent();
+    std::shared_ptr<VPolyoracleFeasibilityLambdas<VT, NT>> vpolyoraclefeasibility_lambdas (new VPolyoracleFeasibilityLambdas<VT, NT>(m));
+    std::shared_ptr<VPolyOracleFeasibilityCurve<MT, VT, NT, Point, bfunc>> vpolyoraclefeasibility_curve (new VPolyOracleFeasibilityCurve<MT, VT, NT, Point, bfunc>(V, coeffs, t0, phi, grad_phi));
 
-  IpoptSolver ipopt;
-  ipopt.SetOption("linear_solver", "mumps");
+    nlp.AddConstraintSet(vpolyoraclefeasibility_lambdas);
+    nlp.AddConstraintSet(vpolyoraclefeasibility_curve);
 
-  // TODO fix exact jacobian
-  ipopt.SetOption("jacobian_approximation", "finite-difference-values");
-  ipopt.SetOption("tol", 1e-7);
-  ipopt.SetOption("print_level", 0);
-  ipopt.SetOption("sb", "yes");
+    nlp.PrintCurrent();
 
-  ipopt.Solve(nlp);
+    IpoptSolver ipopt;
+    ipopt.SetOption("linear_solver", "mumps");
 
-  NT t = nlp.GetOptVariables()->GetValues()(0);
+    // TODO fix exact jacobian
+    ipopt.SetOption("jacobian_approximation", "finite-difference-values");
+    ipopt.SetOption("tol", 1e-7);
+    ipopt.SetOption("print_level", 0);
+    ipopt.SetOption("sb", "yes");
 
-  Point p(coeffs[0].dimension());
+    ipopt.Solve(nlp);
 
-  for (unsigned int i = 0; i < coeffs.size(); i++) {
-    p += phi(t, t0, i, coeffs.size()) * coeffs[i];
+    NT t = nlp.GetOptVariables()->GetValues()(0);
+
+    Point p(coeffs[0].dimension());
+
+    for (unsigned int i = 0; i < coeffs.size(); i++) {
+      p += phi(t, t0, i, coeffs.size()) * coeffs[i];
+    }
+
+    return std::make_tuple(t, p, NT(-1));
+
   }
 
-  return std::make_tuple(t, p, NT(-1));
 
-}
 
+};
 
 #endif
