@@ -9,12 +9,12 @@
 std::vector<std::vector<int> > MonomialsClass::constructAllMonomials(unsigned const max_degree,
                                                                      unsigned const num_variables) {
 
-    std::vector<std::vector<int>> to_return;
+    std::vector<std::vector<int>> monomial_vec;
     if (1 == num_variables) {
         for (unsigned i = 0; i <= max_degree; i++) {
-            to_return.push_back({(int) i});
+            monomial_vec.push_back({(int) i});
         }
-        return to_return;
+        return monomial_vec;
     }
 
     for (unsigned i = 0; i <= max_degree; i++) {
@@ -23,8 +23,8 @@ std::vector<std::vector<int> > MonomialsClass::constructAllMonomials(unsigned co
         for (unsigned j = 0; j < all_options_with_this_var_at_degree_i.size(); j++) {
             all_options_with_this_var_at_degree_i.at(j).insert(all_options_with_this_var_at_degree_i.at(j).begin(), i);
         }
-        to_return.insert(to_return.end(), all_options_with_this_var_at_degree_i.begin(),
-                         all_options_with_this_var_at_degree_i.end());
+        monomial_vec.insert(monomial_vec.end(), all_options_with_this_var_at_degree_i.begin(),
+                            all_options_with_this_var_at_degree_i.end());
     }
-    return to_return;
+    return monomial_vec;
 }
