@@ -1,3 +1,9 @@
+// VolEsti (volume computation and sampling library)
+//
+// Copyright (c) 2020 Bento Natura
+//
+// Licensed under GNU LGPL.3, see LICENCE filee
+
 #include "NonSymmetricIPM.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/fmt/ostr.h"

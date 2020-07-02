@@ -1,3 +1,9 @@
+// VolEsti (volume computation and sampling library)
+//
+// Copyright (c) 2020 Bento Natura
+//
+// Licensed under GNU LGPL.3, see LICENCE file
+
 #ifndef NONSYMMETRICCONICOPTIMIZATION_MONOMIALSCLASS_H
 #define NONSYMMETRICCONICOPTIMIZATION_MONOMIALSCLASS_H
 

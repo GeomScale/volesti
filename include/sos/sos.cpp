@@ -1,4 +1,10 @@
-//#include "NonSymmetricIPM.h"
+// VolEsti (volume computation and sampling library)
+//
+// Copyright (c) 2020 Bento Natura
+//
+// Licensed under GNU LGPL.3, see LICENCE file
+
+#include "NonSymmetricIPM.h"
 #include "MonomialsClass.h"
 #include "EnvelopeProblemSDP.h"
 #include "EnvelopeProblemSOS.h"

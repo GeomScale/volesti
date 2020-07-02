@@ -1,6 +1,8 @@
+// VolEsti (volume computation and sampling library)
 //
-// Created by Bento Natura on 11/06/2020.
+// Copyright (c) 2020 Bento Natura
 //
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H
 #define NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H

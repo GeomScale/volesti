@@ -1,3 +1,9 @@
+// VolEsti (volume computation and sampling library)
+//
+// Copyright (c) 2020 Bento Natura
+//
+// Licensed under GNU LGPL.3, see LICENCE file
+
 #ifndef SOS_UTILS_H
 #define SOS_UTILS_H
 

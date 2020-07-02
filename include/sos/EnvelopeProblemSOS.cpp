@@ -1,3 +1,9 @@
+// VolEsti (volume computation and sampling library)
+//
+// Copyright (c) 2020 Bento Natura
+//
+// Licensed under GNU LGPL.3, see LICENCE file
+
 #include "EnvelopeProblemSOS.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"

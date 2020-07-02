@@ -1,3 +1,9 @@
+// VolEsti (volume computation and sampling library)
+//
+// Copyright (c) 2020 Bento Natura
+//
+// Licensed under GNU LGPL.3, see LICENCE file
+
 #include "MonomialsClass.h"
 
 std::vector<std::vector<int> > MonomialsClass::constructAllMonomials(unsigned const max_degree,
