@@ -16,13 +16,6 @@
 #include <Eigen/Eigen>
 #include "lp_oracles/solve_lp.h"
 
-#ifndef DISABLE_NLP_ORACLES
-#include "nlp_oracles/nlp_hpolyoracles.hpp"
-#include "root_finders/root_finders.hpp"
-#define MAX_NR_TRIES 10000
-#endif
-
-
 //min and max values for the Hit and Run functions
 // H-polytope class
 template <typename Point>
@@ -497,21 +490,19 @@ public:
 
     void free_them_all() {}
 
-#ifndef DISABLE_NLP_ORACLES
-
-    template <class bfunc, class NonLinearOracle=MPSolveOracle<bfunc>>
+    template <class bfunc, class NonLinearOracle>
     std::tuple<NT, Point, int> curve_intersect(
-        NT t_prev,
-        NT t0,
-        NT eta,
-        std::vector<Point> &coeffs,
-        bfunc phi,
-        bfunc grad_phi,
-        NonLinearOracle &oracle) {
-        return oracle.apply(this, t_prev, t0, eta, coeffs, phi, grad_phi);
+      NT t_prev,
+      NT t0,
+      NT eta,
+      std::vector<Point> &coeffs,
+      bfunc phi,
+      bfunc grad_phi,
+      NonLinearOracle &oracle,
+      int ignore_facet=-1)
+    {
+        return oracle.apply(t_prev, t0, eta, A, b, *this, coeffs, phi, grad_phi, ignore_facet);
     }
-
-#endif
 
 };
 

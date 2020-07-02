@@ -210,18 +210,26 @@ public:
 
 };
 
-template <typename MT, typename VT, typename Point, typename NT, class bfunc>
+template <typename Polytope, class bfunc>
 struct IpoptOracle {
+  typedef typename Polytope::MT MT;
+  typedef typename Polytope::VT VT;
+  typedef typename Polytope::NT NT;
+  typedef typename Polytope::PointType Point;
+
+
   std::tuple<NT, Point, int> apply(
-      NT t_prev,
-      NT t0,
-      NT eta,
-      MT &A,
-      VT &b,
-      std::vector<Point> &coeffs,
-      bfunc phi,
-      bfunc grad_phi,
-      std::string solution="max_pos")
+    NT t_prev,
+    NT t0,
+    NT eta,
+    MT &A,
+    VT &b,
+    Polytope &P,
+    std::vector<Point> &coeffs,
+    bfunc phi,
+    bfunc grad_phi,
+    int ignore_facet=-1,
+    std::string solution="max_pos")
   {
 
     MT C, C_tmp;
@@ -332,8 +340,13 @@ struct IpoptOracle {
 // Compute intersection of H-polytope P := Ax <= b
 // with polynomial curve p(t) = sum a_j (t - t0)^j
 // Uses the MPsolve library
-template <typename MT, typename VT, typename Point, typename NT, class bfunc>
+template <typename Polytope, class bfunc>
 struct MPSolveOracle {
+
+  typedef typename Polytope::MT MT;
+  typedef typename Polytope::VT VT;
+  typedef typename Polytope::NT NT;
+  typedef typename Polytope::PointType Point;
 
   std::tuple<NT, Point, int> apply(
     NT t_prev,
@@ -341,9 +354,11 @@ struct MPSolveOracle {
     NT eta,
     MT &A,
     VT &b,
+    Polytope &P,
     std::vector<Point> &coeffs,
     bfunc phi,
-    bfunc grad)
+    bfunc grad_phi,
+    int ignore_facet=-1)
   {
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
@@ -367,6 +382,8 @@ struct MPSolveOracle {
 
     // Iterate over all hyperplanes
     for (int i = 0; i < m; i++) {
+
+      if (i == ignore_facet) continue;
 
       for (unsigned int j = 0; j < coeffs.size(); j++) {
         Z[j] = A.row(i) * coeffs[j].getCoefficients();
@@ -403,7 +420,7 @@ struct MPSolveOracle {
           #endif
 
           // Check if point satisfies Ax <= b up to some tolerance and change current solution
-          if (is_in(p, 1e-6)) {
+          if (P.is_in(p, 1e-6)) {
             result =  std::make_tuple(t, p, i);
           }
         }
@@ -420,8 +437,12 @@ struct MPSolveOracle {
 // with curve p(t) = sum a_j phi_j(t) where phi_j are basis
 // functions (e.g. polynomials)
 // Uses Newton-Raphson to solve the transcendental equation
-template <typename MT, typename VT, typename Point, typename NT, class bfunc>
+template <typename Polytope, class bfunc>
 struct NewtonRaphsonOracle {
+  typedef typename Polytope::MT MT;
+  typedef typename Polytope::VT VT;
+  typedef typename Polytope::NT NT;
+  typedef typename Polytope::PointType Point;
 
   std::tuple<NT, Point, int> apply(
     NT t_prev,
@@ -429,9 +450,11 @@ struct NewtonRaphsonOracle {
     NT eta,
     MT &A,
     VT &b,
+    Polytope &P,
     std::vector<Point> &coeffs,
     bfunc phi,
-    bfunc grad_phi)
+    bfunc grad_phi,
+    int ignore_facet=-1)
   {
 
     // Keep results in a vector (in case of multiple roots)
@@ -467,6 +490,8 @@ struct NewtonRaphsonOracle {
 
     // Iterate over all hyperplanes
     for (int i = 0; i < m; i++) {
+
+      if (i == ignore_facet) continue;
 
       // Calculate constants
       start_iter: t_prev = t0 + reg;
@@ -509,7 +534,7 @@ struct NewtonRaphsonOracle {
           }
 
           // TODO Keep smallest positive root
-          if (is_in(p) && t < std::get<0>(result)) result =  std::make_tuple(t, p, i);
+          if (P.is_in(p) && t < std::get<0>(result)) result =  std::make_tuple(t, p, i);
 
 
         }

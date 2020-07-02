@@ -31,6 +31,7 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 #include "generators/known_polytope_generators.h"
+#include "nlp_oracles/nlp_oracles.hpp"
 
 template <typename NT, class Point, class bfunc>
 void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, NT t_des, int facet_des) {
@@ -41,21 +42,24 @@ void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   NT tol = 1e-4;
 
   P = gen_cube<Hpolytope>(2, false);
+  NewtonRaphsonOracle<Hpolytope, bfunc> nr_oracle;
+  IpoptOracle<Hpolytope, bfunc> ipopt_oracle;
+  MPSolveOracle<Hpolytope, bfunc> mpsolve_oracle;
 
-  result res = P.curve_intersect<bfunc, NetwonRaphsonOracle>(0.01, 0, -1, coeffs, phi, grad_phi);
+  result res = P.curve_intersect(0.01, 0, -1, coeffs, phi, grad_phi, nr_oracle);
   NT t = std::get<0>(res);
   int facet = std::get<2>(res);
 
   // CHECK(facet == facet_des);
   CHECK(std::abs(t - t_des) / t_des < tol);
 
-  result res2 = P.curve_intersect<bfunc, IpoptOracle>(0.0, 0, -1, coeffs, phi, grad_phi);
+  result res2 = P.curve_intersect<bfunc, IpoptOracle<Hpolytope, bfunc>>(0.0, 0, -1, coeffs, phi, grad_phi, ipopt_oracle);
 
   t = std::get<0>(res2);
   facet = std::get<2>(res2);
   CHECK(std::abs(t - t_des) / t_des < tol);
 
-  res2 = P.curve_intersect<bfunc, MPSolveOracle>(0, 0, -1, coeffs);
+  res2 = P.curve_intersect<bfunc, MPSolveOracle<Hpolytope, bfunc>>(0, 0, -1, coeffs, mpsolve_oracle);
 
   t = std::get<0>(res2);
   // std::cout << "t is " << t << std::endl;
@@ -74,9 +78,10 @@ void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   NT tol = 1e-4;
 
   P = gen_cube<Vpolytope>(2, true);
+  IpoptOracle<Vpolytope, bfunc> ipopt_oracle;
 
 
-  result res2 = P.curve_intersect<bfunc, IpoptOracle>(0.01, 0, -1, coeffs, phi, grad_phi);
+  result res2 = P.curve_intersect<bfunc, IpoptOracle<Vpolytope, bfunc>>(0.01, 0, -1, coeffs, phi, grad_phi);
   NT t = std::get<0>(res2);
 
   std::cout << t << " " << t_des << std::endl;
@@ -167,6 +172,8 @@ void call_benchmark_oracles() {
 
   std::vector<Point> coeffs;
 
+  NewtonRaphsonOracle<Hpolytope, bfunc> nr_oracle;
+  IpoptOracle<Hpolytope, bfunc> ipopt_oracle;
 
   for (int dim = dims.first; dim <= dims.second; dim++) {
     Point p;
@@ -178,13 +185,13 @@ void call_benchmark_oracles() {
       coeffs.push_back(p);
 
       auto start = std::chrono::high_resolution_clock::now();
-      res = P.curve_intersect<bfunc, NewtonRaphsonOracle>(0.01, 0, -1, coeffs, poly_basis, poly_basis_grad);
+      res = P.curve_intersect<bfunc,  NewtonRaphsonOracle<Hpolytope, bfunc>>(0.01, 0, -1, coeffs, poly_basis, poly_basis_grad, nr_oracle);
       auto stop = std::chrono::high_resolution_clock::now();
 
       newton_runtime += (long) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
 
       start = std::chrono::high_resolution_clock::now();
-      P.curve_intersect<bfunc, IpoptOracle>(0, 0, -1, coeffs, poly_basis, poly_basis_grad);
+      P.curve_intersect<bfunc, IpoptOracle<Hpolytope, bfunc>>(0, 0, -1, coeffs, poly_basis, poly_basis_grad, ipopt_oracle);
       stop = std::chrono::high_resolution_clock::now();
       ipopt_runtime += (long) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
 

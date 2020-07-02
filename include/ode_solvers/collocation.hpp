@@ -21,10 +21,9 @@ template <
   class bfunc,
   class func=std::function <Point(std::vector<Point>, NT)>,
   class NontLinearOracle=MPSolveOracle<
-    typename Polytope::MT,
-    typename Polytope::VT,
-    Point, NT,
-    bfunc>
+    Polytope,
+    bfunc
+  >
 >
 class CollocationODESolver {
 public:
