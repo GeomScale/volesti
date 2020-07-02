@@ -28,6 +28,10 @@ int main(int const argc, char **argv) {
         }
     } else {
         file.open(argv[1]);
+        if(not file.is_open()){
+            console->error("Could not local file {}", argv[1]);
+            return 1;
+        }
     }
 
     bool run_tests = false;
