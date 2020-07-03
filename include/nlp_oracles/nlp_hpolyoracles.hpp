@@ -138,10 +138,20 @@ public:
   int m, M;
   std::string method;
   int index;
+  int ignore_facet;
 
-  HPolyOracleFeasibility(MT &C_, VT &b_, NT t0_, bfunc basis, bfunc basis_grad, std::string method_, int i) :
-    C(C_), b(b_), t0(t0_), phi(basis), grad_phi(basis_grad), ConstraintSet(C_.rows(), "h_poly_feasibility"),
-    method(method_), index(i) {
+  HPolyOracleFeasibility(
+    MT &C_,
+    VT &b_,
+    NT t0_,
+    bfunc basis,
+    bfunc basis_grad,
+    std::string method_,
+    int i,
+    int ignore_facet_=-1) :
+    C(C_), b(b_), t0(t0_), phi(basis), grad_phi(basis_grad),
+    ConstraintSet(C_.rows(), "h_poly_feasibility"),
+    method(method_), index(i), ignore_facet(ignore_facet_) {
       m = C_.rows();
       M = C_.cols();
     };
@@ -156,6 +166,11 @@ public:
       else {
         bounds.at(i) = Bounds((NT) (-inf), b(i));
       }
+
+      if (i == ignore_facet) {
+        bounds.at(i) = Bounds((NT) (-inf), (NT) (inf));
+      }
+
     }
     return bounds;
   }
@@ -251,7 +266,7 @@ struct IpoptHPolyoracle {
           hpolyoraclecost (new HPolyOracleCost<VT, NT>(solution));
         std::shared_ptr<HPolyOracleFeasibility<MT, VT, NT, bfunc>>
           hpolyoraclefeasibility (new HPolyOracleFeasibility<MT, VT, NT, bfunc>
-            (C, b, t0, phi, grad_phi, "max_pos", 0));
+            (C, b, t0, phi, grad_phi, "max_pos", 0, ignore_facet));
 
         nlp.AddVariableSet  (hpolyoraclevariables);
         nlp.AddCostSet      (hpolyoraclecost);
