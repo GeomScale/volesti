@@ -48,6 +48,12 @@ public:
   ptsm A;
   bool flag;
 
+  // Previous state boundary point
+  Point x_prev_bound;
+
+  // Previous state boundary facet
+  int prev_facet = -1;
+
   RichardsonExtrapolationODESolver(NT initial_time, NT step, pts initial_state,
     funcs oracles, bounds boundaries) :
     t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries) {
@@ -108,23 +114,32 @@ public:
 
           if (Ks[i] == NULL) {
             xs[i] = xs[i] + y;
+            if (prev_facet != -1) Ks[i]->compute_reflection(xs[i], x_prev_bound, prev_facet);
+            prev_facet = -1;
           }
           else {
+
             // Find intersection (assuming a line trajectory) between x and y
             do {
               // Find line intersection between xs[i] (new position) and y
               std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
-
               // If point is outside it would yield a negative param
               if (pbpair.first >= 0 && pbpair.first <= 1) {
                 // Advance to point on the boundary
                 xs[i] += (pbpair.first * 0.99) * y;
+
+                // Update facet for reflection of derivative
+                prev_facet = pbpair.second;
+                x_prev_bound = xs[i];
+
                 // Reflect ray y on the boundary point y now is the reflected ray
                 Ks[i]->compute_reflection(y, xs[i], pbpair.second);
                 // Add it to the existing (boundary) point and repeat
                 xs[i] += y;
+
               }
               else {
+                prev_facet = -1;
                 xs[i] += y;
               }
             } while (!Ks[i]->is_in(xs[i]));
