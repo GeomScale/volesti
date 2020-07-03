@@ -81,7 +81,8 @@ class HPolyOracleVariables : public VariableSet {
 public:
   NT t, tb, eta;
 
-  HPolyOracleVariables(NT t_prev, NT tb_, NT eta_=-1): VariableSet(1, "t"), t(t_prev), tb(tb_), eta(eta_) {};
+  HPolyOracleVariables(NT t_prev, NT tb_, NT eta_=-1):
+    VariableSet(1, "t"), t(t_prev), tb(tb_), eta(eta_) {};
 
   void SetVariables(const VT& T) override {
     t = T(0);
@@ -109,7 +110,8 @@ class HPolyOracleCost : public CostTerm {
 public:
   std::string method;
 
-  HPolyOracleCost(std::string method_) : CostTerm("h_poly_cost"), method(method_) {};
+  HPolyOracleCost(std::string method_) :
+    CostTerm("h_poly_cost"), method(method_) {};
 
   NT GetCost() const override {
     VectorXd T = GetVariables()->GetComponent("t")->GetValues();
@@ -527,16 +529,14 @@ struct NewtonRaphsonHPolyoracle {
         if (std::abs(t - t_prev) < 1e-6 && t > t0) {
           // Add root (as t) and facet
 
-
           Point p = Point(coeffs[0].dimension());
 
           for (unsigned int j = 0; j < coeffs.size(); j++) {
             p += coeffs[j] * phi(t, t0, j, coeffs.size());
           }
 
-          // TODO Keep smallest positive root
-          if (P.is_in(p) && t < std::get<0>(result)) result =  std::make_tuple(t, p, i);
-
+          if (P.is_in(p) && t < std::get<0>(result))
+            result =  std::make_tuple(t, p, i);
 
         }
 
