@@ -10,21 +10,36 @@
 #ifndef RAFTERY_HPP
 #define RAFTERY_HPP
 
+#include "raftery_subroutines/empquant.hpp"
+#include "raftery_subroutines/indtest.hpp"
+#include "raftery_subroutines/mctest.hpp"
+#include "raftery_subroutines/mcest.hpp"
+#include "raftery_subroutines/thin.hpp"
+#include "raftery_subroutines/ppnd.hpp"
+
 template <typename VT, typename MT, typename NT>
 std::pair<MT,VT> perform_raftery(MT samples2, NT q, NT r, NT s)
 {
+    typedef Eigen::Matrix<int,Eigen::Dynamic,Eigen::Dynamic> MTint;
+    typedef Eigen::Matrix<int,Eigen::Dynamic,1> VTint;
+
     MT samples = samples2.transpose();
     unsigned int n = samples.rows(), d = samples.cols(), kthin, kmind;
-    MT work(n,d), results(d,4);
-    VT tmp = VT::Zero(n), bic, epss, res(d);
-    std::pair<NT,VT> xy;
+    std::cout<<"n = "<<n<<", d = "<<d<<std::endl;
+    MT results(d,4);
+    VT res(d);
+    MTint work = MTint::Zero(n,d); 
+    VTint tmp = VTint::Zero(n);
+    std::pair<int,VTint> xy;
     std::pair<NT,NT> g2bic;
 
-    NT cutpt, alpha, beta, tcnt, g2;
+    NT cutpt, alpha, beta, g2, bic, epss;
+    int tcnt;
 
     for (int i =0; i<d; i++)
     {
-        cutpt = empquant(samples, q);
+        cutpt = empquant<VT>(samples, q);
+        std::cout<<"cutpt = "<<cutpt<<std::endl;
         for (int j = 0; j<n; j++)
         {
             for (int k = 0; k<d; k++)
@@ -36,31 +51,37 @@ std::pair<MT,VT> perform_raftery(MT samples2, NT q, NT r, NT s)
 
         while(bic > 0.0) 
         {
-            xy = thin(work, n, kthin);
+            xy = thin<VTint>(work, n, kthin);
             tcnt = xy.first;
+            std::cout<<"tcnt = "<<tcnt<<std::endl;
             tmp = xy.second;
 
-            g2bic = mctest(tmp, tcnt);
-            g2 = g2biv.first;
+            g2bic = mctest<MTint, NT>(tmp, tcnt);
+            g2 = g2bic.first;
             bic = g2bic.second;
+            std::cout<<"g2 = "<<g2<<", bic = "<<bic<<std::endl;
             kthin++;
+            std::cout<<"kthin = "<<kthin<<std::endl;
         }
         
-        kthin--:
-        g2bic = mcest(tmp, tcnt);
+        kthin--;
+        g2bic = mcest<MTint, NT>(tmp, tcnt);
         alpha = g2bic.first;
         beta = g2bic.second;
+        std::cout<<"alpha = "<<alpha<<", beta = "<<beta<<std::endl;
         kmind = kthin;
-        g2bic = indtest(tmp, tcnt);
+        g2bic = indtest<MTint, NT>(tmp, tcnt);
         g2 = g2bic.first;
         bic = g2bic.second;
+        std::cout<<"g2 = "<<g2<<", bic = "<<bic<<std::endl;
 
         while (bic> 0.0)
         {
-            xy = thin(woek, n, kmind);
-            g2bic = indtest(tmp, tcnt);
+            xy = thin<VTint>(work, n, kmind);
+            g2bic = indtest<MTint, NT>(tmp, tcnt);
             g2 = g2bic.first;
             bic = g2bic.second;
+            std::cout<<"g2 = "<<g2<<", bic = "<<bic<<std::endl;
             kmind++;
         }
 
@@ -76,7 +97,7 @@ std::pair<MT,VT> perform_raftery(MT samples2, NT q, NT r, NT s)
 
         results(i,0) = NT(kthin);
         results(i,1) = NT(nburn);
-        results(i,2) = NT(nburn)+nprec);
+        results(i,2) = NT(nburn)+nprec;
         results(i,3) = nmin;
 
         res(i) = irl;

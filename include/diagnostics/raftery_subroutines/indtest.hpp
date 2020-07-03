@@ -32,7 +32,8 @@ std::pair<NT,NT> indtest(VT d, int n)
             }//end;
         }//end; 
     }//end; 
-    g2 = g2*2.0; bic = g2 - std::log(dcm1);
+    g2 = g2*2.0; 
+    NT bic = g2 - std::log(dcm1);
 
     return std::pair<NT,NT>(g2, bic);
 }

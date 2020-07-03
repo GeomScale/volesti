@@ -12,14 +12,11 @@
 
 
 template <typename VT, typename MT, typename NT>
-NT (MT samples, NT q)
+NT empquant(MT samples, NT q)
 {
 
-    [n junk] = size(runs);  
+    //[n junk] = size(runs);  
     
-    Eigen::Map<VT>(&(*rpit).get_coeffs()[0], (*rpit).dimension());
-    std::vector<NT>(&a[0], a.data()+a.cols()*a.rows())
-
     unsigned int  n = samples.rows(), d = samples.cols();
     VT a(n);
     std::vector<NT> temp_col(n);
@@ -36,7 +33,7 @@ NT (MT samples, NT q)
    
 
     NT order = (n - 1)*q + 1.0;
-    NT fract = order % 1.0;
+    NT fract = order - NT(int(order));// % 1.0;
 
     int low = std::max(std::floor(order), 1.0);
     int high = std::min(low + 1.0, NT(n));

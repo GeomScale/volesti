@@ -11,10 +11,10 @@
 #define MCTEST_HPP
 
 
-template<typename NT, typename VT>
+template<typename MT, typename NT, typename VT>
 std::pair<NT,NT> mctest(VT d, int n)
 {
-     m1 = VT::Zero(2,2); m2 = VT::Zero(2,2);
+     MT m1 = MT::Zero(2,2), m2 = MT::Zero(2,2);
      NT g2 = 0.0, bic = 0.0;
      int i1, i2, i3, t1, t2, t3, t4, fitted, focus;
 
