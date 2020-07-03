@@ -28,7 +28,7 @@
 
 Copyright (c) 2012-2020 Vissarion Fisikopoulos  
 Copyright (c) 2018-2020 Apostolos Chalkis  
-Copyright (c) 2020-     Marios Papachristou
+Copyright (c) 2020-2020 Marios Papachristou
 
 You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.  
 
@@ -37,24 +37,6 @@ Main development started in 2012 by Vissarion Fisikopoulos while he was affiliat
 Later, Chalkis Apostolos affiliated with University of Athens (UoA, Greece) and mentored by V.F. and partially supported by GSoC'2018, 2019 programs enhanced volesti with more algorithms for sampling and volume as well as an `R` interface.       
 
 We acknowledge several contributions by the open-source community, most notably a `python` interface by Pedro Zuidberg Dos Martires affiliated with KU Leuven.
-
-#### Project Details
-
- * Timeline can be found [here](https://drive.google.com/file/d/1eshRaLnffTvHjajvDHmS6VRWaXMOlgVS/view?usp=sharing)
- * Virtual Talk on log-concave sampling at the Org can be found [here](https://github.com/papachristoumarios/papachristoumarios.github.io/raw/master/publications/presentations/log_concave_sampling/log_concave_sampling.pdf)
-
-#### Project Progress and Deliverables
-
-More information about what has been implemented can be found [here](https://github.com/papachristoumarios/papachristoumarios.github.io/raw/master/publications/presentations/log_concave_sampling/log_concave_sampling.pdf)
-
- * Completed (implementation, docs and testing)
-   * Euler ODE Solver
-   * RK Solvers (midpoints, RK4 etc.)
-   * Leapfrog Solver
-   * Bulirsch-Stoer-Richardson Solver
- * Ongoing
-   * Collocation Methods
-   * Boundary Oracles for general curves
 
 ### Publications
 

@@ -11,7 +11,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
-option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" OFF)
+option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -39,7 +39,7 @@ else()
     message(STATUS "Library gmp found: ${GMP}")
     message(STATUS "Library mpsolve found: ${MPSOLVE}")
 
-  endif(NOT IFOPT)  
+  endif(NOT IFOPT)
 
 endif(DISABLE_NLP_ORACLES)
 
