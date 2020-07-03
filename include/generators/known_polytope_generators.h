@@ -82,7 +82,6 @@ Polytope generate_cross(const unsigned int &dim, const bool &Vpoly) {
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
-    //Polytope P;
     MT A;
     VT b;
     if (!Vpoly) {
