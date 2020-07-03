@@ -50,10 +50,6 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
         rng.set_seed(seed2);
     }
 
-    Hpolytope HP;
-    Vpolytope VP;
-    zonotope ZP;
-
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;
 
@@ -64,32 +60,12 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
         walkL = 2;
     }
 
-    switch (type) {
-        case 1: {
-            // Hpolytope
-            HP = Hpolytope(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            InnerBall = HP.ComputeInnerBall();
-            break;
-        }
-        case 2: {
-            VP = Vpolytope(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            InnerBall = VP.ComputeInnerBall();
-            break;
-        }
-        case 3: {
-            // Zonotope
-            ZP = zonotope(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-            InnerBall = ZP.ComputeInnerBall();
-            break;
-        }
-        case 4: {
-            throw Rcpp::exception("volesti does not support rounding for this representation currently.");
-        }
-    }
-
     std::pair< std::pair<MT, VT>, NT > round_res;
     switch (type) {
         case 1: {
+            // Hpolytope
+            Hpolytope HP(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            InnerBall = HP.ComputeInnerBall();
             if (cdhr) {
                 round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
             } else {
@@ -99,6 +75,9 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
             break;
         }
         case 2: {
+            // Vpolytope
+            Vpolytope VP(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            InnerBall = VP.ComputeInnerBall();
             if (cdhr) {
                 round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
             } else {
@@ -108,6 +87,9 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
             break;
         }
         case 3: {
+            // Zonotope
+            zonotope ZP(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            InnerBall = ZP.ComputeInnerBall();
             if (cdhr) {
                 round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
             } else {
@@ -115,6 +97,9 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
             }
             Mat = extractMatPoly(ZP);
             break;
+        }
+        case 4: {
+            throw Rcpp::exception("volesti does not support rounding for this representation currently.");
         }
     }
 

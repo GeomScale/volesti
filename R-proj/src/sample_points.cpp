@@ -147,10 +147,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         rng.set_seed(seed2);
     }
 
-    Hpolytope HP;
-    Vpolytope VP;
-    zonotope ZP;
-    InterVP VPcVP;
+    //Hpolytope HP;
+    //Vpolytope VP;
+    //zonotope ZP;
+    //InterVP VPcVP;
 
     unsigned int numpoints, nburns = 0;
     NT radius = 1.0, L;
@@ -271,7 +271,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     switch(type) {
         case 1: {
             // Hpolytope
-            HP = Hpolytope(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
+            Hpolytope HP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                     Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
@@ -287,11 +287,13 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 HP.shift(mode.getCoefficients());
             }
+            sample_from_polytope(HP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
+                   set_L, cdhr, rdhr, billiard, ball_walk);
             break;
         }
         case 2: {
             // Vpolytope
-            VP = Vpolytope(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
+            Vpolytope VP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
@@ -305,11 +307,13 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 VP.shift(mode.getCoefficients());
             }
+            sample_from_polytope(VP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
+                                 set_L, cdhr, rdhr, billiard, ball_walk);
             break;
         }
         case 3: {
             // Zonotope
-            ZP = zonotope(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
+            zonotope ZP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
@@ -323,6 +327,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 ZP.shift(mode.getCoefficients());
             }
+            sample_from_polytope(ZP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
+                                 set_L, cdhr, rdhr, billiard, ball_walk);
             break;
         }
         case 4: {
@@ -331,7 +337,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                      VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
             Vpolytope VP2(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
                      VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
-            VPcVP = InterVP(VP1, VP2);
+            InterVP VPcVP(VP1, VP2);
 
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             InnerBall = VPcVP.ComputeInnerBall();
@@ -343,27 +349,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 VPcVP.shift(mode.getCoefficients());
             }
-            break;
-        }
-    }
-
-    switch (type) {
-        case 1: {
-            sample_from_polytope(HP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                   set_L, cdhr, rdhr, billiard, ball_walk);
-            break;
-        }
-        case 2: {
-            sample_from_polytope(VP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                                 set_L, cdhr, rdhr, billiard, ball_walk);
-            break;
-        }
-        case 3: {
-            sample_from_polytope(ZP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                                 set_L, cdhr, rdhr, billiard, ball_walk);
-            break;
-        }
-        case 4: {
             sample_from_polytope(VPcVP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
                                  set_L, cdhr, rdhr, billiard, ball_walk);
             break;
@@ -373,7 +358,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     if (numpoints % 2 == 1 && boundary) numpoints--;
     MT RetMat(dim, numpoints);
     unsigned int jj = 0;
-
 
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
         if (gaussian) {

@@ -41,10 +41,7 @@ private:
     int *colno, *colno_mem;
 
 public:
-    VPolytope():
-        conv_comb{nullptr}, conv_comb2{nullptr}, conv_mem{nullptr}, row{nullptr},
-        colno{nullptr}, colno_mem{nullptr}
-    {}
+    VPolytope() {}
 
     VPolytope(const unsigned int &dim, const MT &_V, const VT &_b):
             _d{dim}, V{_V}, b{_b},

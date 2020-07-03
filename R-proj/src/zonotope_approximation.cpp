@@ -63,7 +63,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
     MT Mat(2 * n, n + 1);
     Mat << Gred_ii, A.transpose() * svd.matrixU().transpose();
 
-    Hpolytope HP(n, A.transpose() * svd.matrixU().transpose(), Gred_ii);
+    //Hpolytope HP(n, A.transpose() * svd.matrixU().transpose(), Gred_ii);
 
     if (fit_ratio.isNotNull() && Rcpp::as<bool>(fit_ratio)) {
         NT vol_red = std::abs(svd.matrixU().determinant());

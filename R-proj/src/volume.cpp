@@ -36,11 +36,13 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 
     if (rounding) {
         std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
+        std::cout<<"hello1"<<std::endl;
 
         if (type == 1) {
             round_val = round_polytope<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng).second;
         } else {
             round_val = round_polytope<BilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            std::cout<<"hello2"<<std::endl;
         }
     }
 
@@ -61,7 +63,9 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         } else if (ball_walk) {
             vol = volume_cooling_balls<BallWalk>(P, rng, e, walk_length, win_len);
         } else {
+            std::cout<<"hello3"<<std::endl;
             vol = volume_cooling_balls<BilliardWalk>(P, rng, e, walk_length, win_len);
+            std::cout<<"hello4"<<std::endl;
         }
     } else {
         if (cdhr) {
@@ -74,6 +78,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
             vol = volume_sequence_of_balls<BilliardWalk>(P, rng, e, walk_length);
         }
     }
+
     vol *= round_val;
     return vol;
 }
