@@ -498,10 +498,11 @@ public:
       std::vector<Point> &coeffs,
       bfunc phi,
       bfunc grad_phi,
-      NonLinearOracle &oracle,
+      NonLinearOracle &intersection_oracle,
       int ignore_facet=-1)
     {
-        return oracle.apply(t_prev, t0, eta, A, b, *this, coeffs, phi, grad_phi, ignore_facet);
+        return intersection_oracle.apply(
+          t_prev, t0, eta, A, b, *this, coeffs, phi, grad_phi, ignore_facet);
     }
 
 };
