@@ -271,7 +271,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     switch(type) {
         case 1: {
             // Hpolytope
-            Hpolytope HP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
+            HP = Hpolytope(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                     Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
@@ -291,7 +291,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
         case 2: {
             // Vpolytope
-            Vpolytope VP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
+            VP = Vpolytope(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
@@ -309,7 +309,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
         case 3: {
             // Zonotope
-            zonotope ZP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
+            ZP = zonotope(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
@@ -331,7 +331,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                      VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
             Vpolytope VP2(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
                      VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
-            InterVP VPcVP(VP1, VP2);
+            VPcVP = InterVP(VP1, VP2);
 
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             InnerBall = VPcVP.ComputeInnerBall();
@@ -377,9 +377,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
         if (gaussian) {
-
             RetMat.col(jj) = rpit->getCoefficients() + mode.getCoefficients();
-
         } else {
             RetMat.col(jj) = (*rpit).getCoefficients();
         }

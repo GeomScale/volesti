@@ -31,8 +31,6 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
     typedef typename Polytope::VT VT;
     typedef typename Polytope::PointType Point;
 
-    typedef HPolytope<Point> Hpolytope;
-
     NT round_val = 1.0;
     unsigned int n = P.dimension();
 

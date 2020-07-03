@@ -67,18 +67,18 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
     switch (type) {
         case 1: {
             // Hpolytope
-            Hpolytope HP(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            HP = Hpolytope(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             InnerBall = HP.ComputeInnerBall();
             break;
         }
         case 2: {
-            Vpolytope VP(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            VP = Vpolytope(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
             break;
         }
         case 3: {
             // Zonotope
-            zonotope ZP(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            ZP = zonotope(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
             break;
         }
