@@ -48,8 +48,8 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
 
     /// Creates A LMI object
     /// \param[in] matrices The matrices A_0, A_i
-    LMI(std::vector<MT>& matrices) {
-        typename std::vector<MT>::iterator it = matrices.begin();
+    LMI(std::vector<MT> const & matrices) {
+        typename std::vector<MT>::const_iterator it = matrices.begin();
 
         while (it!=matrices.end()) {
             this->matrices.push_back(*it);
