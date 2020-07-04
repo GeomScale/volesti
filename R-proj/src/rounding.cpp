@@ -19,6 +19,7 @@
 #include "random_walks/random_walks.hpp"
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
+#include "preprocess/get_full_dimensional_polytope.hpp"
 #include "extractMatPoly.h"
 
 //' Internal rcpp function for the rounding of a convex polytope
@@ -46,12 +47,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
 
     bool cdhr = false;
     unsigned int n = P.field("dimension"), walkL, type = P.field("type");
-    std::string mthd = std::string("mve_ps");
-    if(method.isNotNull()) {
-        mthd =  Rcpp::as<std::string>(method);
-    }
-
-    std::string mthd = std::string("mve");
+    std::string mthd = std::string("mee");
     if(method.isNotNull()) {
         mthd =  Rcpp::as<std::string>(method);
     }
@@ -76,22 +72,23 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
         walkL = 2;
     }
 
-    MT N;
-    VT shift;
+    MT N = MT::Identity(n,n);
+    VT N_shift = VT::Zero(n);
+    NT svd_prod = 1.0;
     switch (type) {
         case 1: {
             // Hpolytope
-            if (Rcpp::as<MT>(P.field("A")).rows() == 0) {
+            if (Rcpp::as<MT>(P.field("Aeq")).rows() == 0) {
                 HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-                N = MT::Identity(n,n);
-                shift = VT::Zero(n);
             } else {
                 std::pair<Hpolytope, std::pair<MT, VT> > temp_res = get_full_dimensional_polytope<Hpolytope>(Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")),
                             Rcpp::as<MT>(P.field("Aeq")), Rcpp::as<VT>(P.field("b")));
                 HP = temp_res.first;
                 N = temp_res.second.first;
                 std::cout<<"N = "<<N<<std::endl;
-                shift = temp_res.second.second;
+                N_shift = temp_res.second.second;
+                Eigen::JacobiSVD<MT> svd(N, Eigen::ComputeThinU | Eigen::ComputeThinV);
+                svd_prod = svd.singularValues().prod();
                 //std::cout<<"shift = "<<shift<<std::endl;
             }
             HP.normalize();
@@ -101,16 +98,12 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
         case 2: {
             // Vpolytope
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            N = MT::Identity(n,n);
-            shift = VT::Zero(n);
             InnerBall = VP.ComputeInnerBall();
             break;
         }
         case 3: {
             // Zonotope
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
-            N = MT::Identity(n,n);
-            shift = VT::Zero(n);
             InnerBall = ZP.ComputeInnerBall();
             break;
         }
@@ -184,5 +177,8 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
 
     return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(round_res.first.first),
                               Rcpp::Named("shift") = Rcpp::wrap(round_res.first.second),
-                              Rcpp::Named("round_value") = round_res.second);
+                              Rcpp::Named("round_value") = round_res.second,
+                              Rcpp::Named("N") = Rcpp::wrap(N),
+                              Rcpp::Named("N_shift") = Rcpp::wrap(N_shift),
+                              Rcpp::Named("svd_prod") = svd_prod);
 }

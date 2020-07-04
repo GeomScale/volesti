@@ -9,7 +9,7 @@
 #' P = Hpolytope$new(A, b)
 #' listHpoly = round_polytope(P)
 #' @export
-get_dimensional_polytope <- function(P){
+get_full_dimensional_polytope <- function(P){
   
   ret_list = full_dimensional_polytope(P)
   

@@ -120,6 +120,17 @@ frustum_of_simplex <- function(a, z0) {
     .Call(`_volesti_frustum_of_simplex`, a, z0)
 }
 
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param P A low dimensional convex polytope in H-representation.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the product of the singular values of the matrix of linear map applied on the input polytope.
+full_dimensional_polytope <- function(P) {
+    .Call(`_volesti_full_dimensional_polytope`, P)
+}
+
 #' Compute an inscribed ball of a convex polytope
 #'
 #' For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }, this function computes the largest inscribed ball (Chebychev ball) by solving the corresponding linear program.
@@ -174,7 +185,7 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' Internal rcpp function for the rounding of a convex polytope
 #'
 #' @param P A convex polytope (H- or V-representation or zonotope).
-#' @param method Optional. The method to use for rounding, a) \code{'mve'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid.
+#' @param method Optional. The method to use for rounding, a) \code{'mve'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @keywords internal

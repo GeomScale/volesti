@@ -89,9 +89,11 @@ template <
         typename NT,
         typename RandomNumberGenerator
 >
-std::pair< std::pair<MT, VT>, NT > round_isotropy(Polytope &P, std::pair<Point,NT> &InnerBall,
-                                                  const unsigned int &walk_length,
-                                                  RandomNumberGenerator &rng)
+std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > round_isotropy(Polytope &P, std::pair<Point,NT> &InnerBall,
+                                                                             const unsigned int &walk_length,
+                                                                             RandomNumberGenerator &rng,
+                                                                             MT &N,
+                                                                             VT &N_shift)
 {
     NT tol = 0.00000001;
     NT R = std::pow(10,10), r = InnerBall.second;
@@ -159,6 +161,8 @@ std::pair< std::pair<MT, VT>, NT > round_isotropy(Polytope &P, std::pair<Point,N
             P.linear_transformIt(round_mat);
             T_shift += T * shift;
             T = T * round_mat;
+            N_shift = N_shift + N * shift;
+            N = N * round_mat;
         }
         if (round_it <= num_its && !fail) {
             done = true;
@@ -168,7 +172,20 @@ std::pair< std::pair<MT, VT>, NT > round_isotropy(Polytope &P, std::pair<Point,N
             P = P_old;
         }
     }
-    return std::pair< std::pair<MT, VT>, NT > (std::pair<MT, VT>(T, T_shift), T.determinant());
+
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result;
+
+    result.first.first.first = T;
+    result.first.first.second = shift;
+
+    result.first.second.first = N;
+    result.first.second.second = N_shift;
+
+    result.second = T.determinant();
+
+    return result;
+
+    //return std::pair< std::pair<MT, VT>, NT > (std::pair<MT, VT>(T, T_shift), T.determinant());
 }
 
 
@@ -188,7 +205,7 @@ std::pair< std::pair<MT, VT>, NT > round_isotropy(Polytope &P, std::pair<Point,N
     unsigned int d = P.dimension();
     MT N = MT::Identity(d,d);
     VT shift = VT::Zero(d);
-    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = round_isotropy(P, InnerBall, 
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = round_isotropy<WalkTypePolicy>(P, InnerBall, 
                                                                                     walk_length, rng, N, shift);
     std::pair< std::pair<MT, VT>, NT > res;
     res.first.first = result.first.first.first;
