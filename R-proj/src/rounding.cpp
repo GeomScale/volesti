@@ -23,7 +23,7 @@
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
-//' @param method Optional. The method to use for rounding, a) \code{'mve'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid.
+//' @param method Optional. The method to use for rounding, a) \code{'mve'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition.
 //' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @keywords internal
@@ -45,6 +45,10 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
 
     bool cdhr = false;
     unsigned int n = P.field("dimension"), walkL, type = P.field("type");
+    std::string mthd = std::string("mve_ps");
+    if(method.isNotNull()) {
+        mthd =  Rcpp::as<std::string>(method);
+    }
 
     std::string mthd = std::string("mve");
     if(method.isNotNull()) {
@@ -94,6 +98,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             break;
         }
         case 2: {
+            // Vpolytope
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             N = MT::Identity(n,n);
             shift = VT::Zero(n);
@@ -118,30 +123,58 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
         case 1: {
             if (mthd.compare(std::string("mve"))==0) {
                 round_res = mve_rounding<MT, VT>(HP, InnerBall, rng);
-            } else if (mthd.compare(std::string("mve_ps"))==0) {
+            } else if (mthd.compare(std::string("mee"))==0) {
                 if (cdhr) {
                     round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 } else {
                     round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 }
+            } else if (mthd.compare(std::string("svd"))==0) {
+                if (cdhr) {
+                    round_res = round_isotropy<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_isotropy<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                }
+            } else {
+                throw Rcpp::exception("Unknown method!");
             }
             Mat = extractMatPoly(HP);
             break;
         }
         case 2: {
-            if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+            if (mthd.compare(std::string("mee"))){
+                if (cdhr) {
+                    round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                }
+            } else if (mthd.compare(std::string("svd"))==0) {
+                if (cdhr) {
+                    round_res = round_isotropy<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_isotropy<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                }
             } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                throw Rcpp::exception("Unknown method!");
             }
             Mat = extractMatPoly(VP);
             break;
         }
         case 3: {
-            if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+            if (mthd.compare(std::string("mee"))){
+                if (cdhr) {
+                    round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                }
+            } else if (mthd.compare(std::string("svd"))==0) {
+                if (cdhr) {
+                    round_res = round_isotropy<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                } else {
+                    round_res = round_isotropy<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                }
             } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                throw Rcpp::exception("Unknown method!");
             }
             Mat = extractMatPoly(ZP);
             break;
@@ -151,5 +184,4 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
     return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(round_res.first.first),
                               Rcpp::Named("shift") = Rcpp::wrap(round_res.first.second),
                               Rcpp::Named("round_value") = round_res.second);
-
 }

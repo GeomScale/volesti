@@ -86,6 +86,10 @@ public:
         coeffs(i) = coord;
     }
 
+    void set_to_origin() {
+        coeffs.setZero(d);
+    }
+
     FT operator[] (const unsigned int i) const
     {
         return coeffs(i);

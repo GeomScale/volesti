@@ -30,9 +30,14 @@
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/zonoIntersecthpoly.h"
 #include "convex_bodies/vpolyintersectvpoly.h"
+<<<<<<< HEAD
 #include "volume/rounding.hpp"
 #include "preprocess/mve_rounding.hpp"
 #include "preprocess/get_full_dimensional_polytope.hpp"
+=======
+#include "preprocess/mve_ps_rounding.hpp"
+#include "preprocess/svd_rounding.hpp"
+>>>>>>> svd_rounding
 #include "random_walks/uniform_cdhr_walk.hpp"
 #include "sampling/random_point_generators.hpp"
 
