@@ -13,8 +13,6 @@
 template <typename VT, typename MT>
 std::pair<int,VT>  thin(MT work, unsigned int n, unsigned int kthin)
 {
-    //std::cout<<"kthin = "<<kthin<<std::endl;
-    //std::cout<<"(n-1) / kthin + 1 = "<<(n-1) / kthin + 1<<std::endl;
     VT y((n-1) / kthin + 1);
 
     int i = 0, j = 0;
@@ -25,7 +23,6 @@ std::pair<int,VT>  thin(MT work, unsigned int n, unsigned int kthin)
         i += kthin;
     }
 
-    //std::cout<<"y = "<<y.transpose()<<std::endl;
     return std::pair<int,VT>((n-1) / kthin + 1, y);
 }
 

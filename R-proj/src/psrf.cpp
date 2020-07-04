@@ -20,14 +20,13 @@
 //'
 //' @param samples The point set.
 //'
-//' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+//' @return The value of PSRF diagnostic.
 // [[Rcpp::export]]
-double psrf(Rcpp::NumericMatrix samples, Rcpp::Nullable<std::string> method = R_NilValue)
+double psrf(Rcpp::NumericMatrix samples)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;    
 
     return perform_psrf<NT, VT>(Rcpp::as<MT>(samples));
-
 }

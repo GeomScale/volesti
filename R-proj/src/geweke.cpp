@@ -20,6 +20,8 @@
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param samples The point set.
+//' @param frac1 Optional.
+//' @param frac2 Optional. 
 //'
 //' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 // [[Rcpp::export]]

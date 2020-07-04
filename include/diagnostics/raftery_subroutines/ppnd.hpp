@@ -30,11 +30,11 @@ NT ppnd(NT p)
         r = p; 
     } else{
         r = 1 - p;
-    }//end;     % end of if
+    }
     if (r <= 0.0){
         y = 0.0;
         return y;
-    }//end;     % end of if
+    }
  
     r = std::sqrt(-1.0 * std::log(r));
  
@@ -44,11 +44,11 @@ NT ppnd(NT p)
     } else{
         r = r - split2;
         y = (((e3*r+e2)*r+e1)*r+e0)/((f2*r+f1)*r+1.0);
-    }//end;      % end of if; 
+    }
  
     if (q < 0.0){
         y = -y;
-    }//end;      % end of if
+    }
 
     return y;
 }
