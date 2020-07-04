@@ -178,6 +178,18 @@ psrf <- function(samples, method = NULL) {
 
 #'  An internal Rccp function for the random rotation of a convex polytope
 #'
+#' @param samples The sampled points from a geometric random walk.
+#'
+#' @section warning:
+#' Do not use this function.
+#'
+#' @return A matrix that describes the rotated polytope
+raftery <- function(samples, q = NULL, r = NULL, s = NULL) {
+    .Call(`_volesti_raftery`, samples, q, r, s)
+}
+
+#'  An internal Rccp function for the random rotation of a convex polytope
+#'
 #' @param P A convex polytope (H-, V-polytope or a zonotope).
 #' @param T Optional. A rotation matrix.
 #' @param seed Optional. A fixed seed for the random linear map generator.
