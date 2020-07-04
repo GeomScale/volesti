@@ -28,8 +28,9 @@ template <
         typename NT,
         typename RandomNumberGenerator
 >
-std::pair< std::pair<MT, VT>, NT > mve_rounding(Polytope &P, std::pair<Point, NT> InnerBall,
-                                                RandomNumberGenerator &rng)
+std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(Polytope &P, 
+                                                std::pair<Point, NT> InnerBall,
+                                                RandomNumberGenerator &rng, MT &N, VT &N_shift)
 {
     std::pair<std::pair<MT, VT>, bool> iter_res;
     iter_res.second = false;
@@ -60,6 +61,8 @@ std::pair< std::pair<MT, VT>, NT > mve_rounding(Polytope &P, std::pair<Point, NT
 
         P.shift(iter_res.first.second);
         //MT L_1 = L.inverse();
+        N_shift = N_shift + N*iter_res.first.second;
+        N = N * L;
         shift = shift + T * iter_res.first.second;
         T = T * L;
         round_val *= L.transpose().determinant();
@@ -82,7 +85,41 @@ std::pair< std::pair<MT, VT>, NT > mve_rounding(Polytope &P, std::pair<Point, NT
         iter++;
     }
 
-    return std::pair< std::pair<MT, VT>, NT > (std::pair<MT, VT>(T, shift), round_val);
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result;
+
+    result.first.first.first = T;
+    result.first.first.second = shift;
+
+    result.first.second.first = N;
+    result.first.second.second = N_shift;
+
+    result.second = round_val;
+
+    return result;
+}
+
+template <
+        typename MT,
+        typename VT,
+        typename Polytope,
+        typename Point,
+        typename NT,
+        typename RandomNumberGenerator
+>
+std::pair< std::pair<MT, VT>, NT > mve_rounding(Polytope &P, std::pair<Point, NT> InnerBall,
+                                                RandomNumberGenerator &rng)
+{
+    unsigned int d = P.dimension();
+    MT N = MT::Identity(d,d);
+    VT shift = VT::Zero(d);
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = mve_rounding(P, InnerBall, rng, N, shift);
+
+    std::pair< std::pair<MT, VT>, NT > res;
+    res.first.first = result.first.first.first;
+    res.first.second = result.first.first.second;
+    res.second = result.second;
+
+    return res;
 }
 
 #endif

@@ -20,7 +20,12 @@
 #define ROUND_ISOTROPY_HPP
 
 
-template <typename WalkTypePolicy, typename Polytope, typename Point, typename MT, typename VT, typename RandomNumberGenerator>
+template <typename WalkTypePolicy,
+          typename Polytope,
+          typename Point,
+          typename MT, 
+          typename VT, 
+          typename RandomNumberGenerator>
 void round_svd(Polytope &P, Point &p, unsigned int const& num_rounding_steps, MT &V, VT &s, VT &Means,
             unsigned int const& walk_length, RandomNumberGenerator &rng)
 {
@@ -166,5 +171,31 @@ std::pair< std::pair<MT, VT>, NT > round_isotropy(Polytope &P, std::pair<Point,N
     return std::pair< std::pair<MT, VT>, NT > (std::pair<MT, VT>(T, T_shift), T.determinant());
 }
 
+
+template <
+        typename WalkTypePolicy,
+        typename MT,
+        typename VT,
+        typename Polytope,
+        typename Point,
+        typename NT,
+        typename RandomNumberGenerator
+>
+std::pair< std::pair<MT, VT>, NT > round_isotropy(Polytope &P, std::pair<Point,NT> &InnerBall,
+                                                  const unsigned int &walk_length,
+                                                  RandomNumberGenerator &rng)
+{
+    unsigned int d = P.dimension();
+    MT N = MT::Identity(d,d);
+    VT shift = VT::Zero(d);
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = round_isotropy(P, InnerBall, 
+                                                                                    walk_length, rng, N, shift);
+    std::pair< std::pair<MT, VT>, NT > res;
+    res.first.first = result.first.first.first;
+    res.first.second = result.first.first.second;
+    res.second = result.second;
+
+    return res;
+}
 
 #endif
