@@ -31,13 +31,13 @@ public:
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
+    unsigned int         _d;  //dimension
     MT                   V;  //matrix V. Each row contains a vertex
     VT                   b;  // vector b that contains first column of ine file
-    unsigned int         _d;  //dimension
     std::pair<Point, NT> _inner_ball;
 
     // TODO: Why don't we use std::vector<REAL>  and std::vector<int> for these pointers?
-    REAL *conv_comb, *row, *conv_comb2, *conv_mem;
+    REAL *conv_comb, *conv_comb2, *conv_mem, *row;
     int *colno, *colno_mem;
 
 public:
