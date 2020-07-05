@@ -334,6 +334,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::CharacterVector> file = R
         }else {
             throw Rcpp::exception("Wrong input!");
         }
+    } else if(Rcpp::as<std::string>(distribution).compare(std::string("boundary"))==0) {
+        p = Point(n);
+        boundary_rand_point_generator_spec(SP,
+                                   p,   // a point to start
+                                   NN/2,
+                                   walkL,
+                                   randPoints,
+                                   var);
     } else {
         throw Rcpp::exception("Wrong input!");
     }
