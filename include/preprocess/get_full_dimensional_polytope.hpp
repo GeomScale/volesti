@@ -11,24 +11,6 @@
 #ifndef GET_FULL_DIMENSIONAL_POLYTOPE
 #define GET_FULL_DIMENSIONAL_POLYTOPE
 
-/*template <typename MT>
-MT get_Q(MT A){
-    int n = A.cols();
-    int m = A.rows();
-    MT R_1(n,n);
-    MT Q_1(m,n);
-    for (int i = 0; i < n; ++i) {
-        R_1(i,i) = A.col(i).norm();
-        Q_1.col(i) = A.col(i) / R_1(i,i);
-        for (int j = i+1; j < n; ++j) {
-            R_1(i,j) = Q_1.col(i).transpose() * A.col(j);
-            A.col(j) = A.col(j) - (Q_1.col(i)*R_1(i,j));
-        }
-    }
-    return Q_1;
-}*/
-
-
 
 template <typename H_polytope, typename MT, typename VT>
 std::pair<H_polytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT b, MT Aeq, VT beq)
@@ -36,30 +18,24 @@ std::pair<H_polytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT
     typedef typename H_polytope::NT NT;
 
     VT p = Aeq.colPivHouseholderQr().solve(beq);
+    int rnk = Aeq.rows(), d = A.cols();
+    MT N(d, d-rnk);
+    MT Aeqtr = Aeq.transpose();
 
-    //std::cout<<"p = "<<p.transpose()<<std::endl;
+    Eigen::FullPivHouseholderQR<MT> qr2 = Aeqtr.fullPivHouseholderQr();
+    MT N2 = qr2.matrixQ();
 
-    //Eigen::FullPivLU<MT> lu(Aeq);
-    //MT N = lu.kernel();
-
-    Eigen::CompleteOrthogonalDecomposition<MT> cod;
-    cod.compute(Aeq);
-
-    Eigen::ColPivHouseholderQR<MT> qrdecomp(Aeq.transpose());
-    MT N = qrdecomp.householderQ();
-    //std::cout << "Q:\n" << Q << std::endl;
- 
-    // Find URV^T
-    //MT V = cod.matrixZ().transpose();
-    //MT N = V.block(0, cod.rank(),V.rows(), V.cols() - cod.rank());
-    //MT P = cod.colsPermutation();
-    //N = P * N; // Unpermute the columns
+    int col = 0;
+    for (int i = rnk; i<d; i++) {
+        N.col(col) = N2.col(i);
+        col++;
+    }
 
     b = b - A * p;
     A = A * N;
 
     H_polytope HP;
-    HP.init(A.cols(), A, b);
+    HP.init(d-rnk, A, b);
 
     return std::pair<H_polytope, std::pair<MT, VT> >(HP, std::pair<MT,VT>(N, p));
 

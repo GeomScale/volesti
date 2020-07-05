@@ -79,17 +79,26 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
         case 1: {
             // Hpolytope
             if (Rcpp::as<MT>(P.field("Aeq")).rows() == 0) {
+                // full dimensional
                 HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             } else {
+                // low dimensional
                 std::pair<Hpolytope, std::pair<MT, VT> > temp_res = get_full_dimensional_polytope<Hpolytope>(Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")),
-                            Rcpp::as<MT>(P.field("Aeq")), Rcpp::as<VT>(P.field("b")));
+                            Rcpp::as<MT>(P.field("Aeq")), Rcpp::as<VT>(P.field("beq")));
+
                 HP = temp_res.first;
                 N = temp_res.second.first;
-                std::cout<<"N = "<<N<<std::endl;
                 N_shift = temp_res.second.second;
+
                 Eigen::JacobiSVD<MT> svd(N, Eigen::ComputeThinU | Eigen::ComputeThinV);
                 svd_prod = svd.singularValues().prod();
-                //std::cout<<"shift = "<<shift<<std::endl;
+                walkL = 10 + 10*HP.dimension();
+              
+                rng = RNGType(HP.dimension());
+                if (seed.isNotNull()) {
+                    unsigned seed2 = Rcpp::as<double>(seed);
+                    rng.set_seed(seed2);
+                }
             }
             HP.normalize();
             InnerBall = HP.ComputeInnerBall();

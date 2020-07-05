@@ -46,7 +46,7 @@ round_polytope <- function(P, method = NULL, seed = NULL){
   }else if (type == 3) {
     PP = list("P" = Zonotope$new(A), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
   } else {
-    if (dim(P$Aeq)[1] == 0){
+    if (dim(P$Aeq)[1] > 0){
       PP = list("P" = Hpolytope$new(A,b), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value, "N" = ret_list$N, "N_shift" = ret_list$N_shift, "svd_prod" = ret_list$svd_prod)
     } else {
       PP = list("P" = Hpolytope$new(A,b), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)

@@ -35,7 +35,7 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(
     std::pair<std::pair<MT, VT>, bool> iter_res;
     iter_res.second = false;
 
-    VT x0 = InnerBall.first.getCoefficients();//, b = P.get_vec();
+    VT x0 = InnerBall.first.getCoefficients();
     MT E, L;
     unsigned int maxiter = 150, iter = 1, d = P.dimension();
 
@@ -46,8 +46,6 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(
 
     while ((R > 6.0 * r) && iter < 20)
     {
-        //std::cout<<"A = "<<P.get_mat()<<"\n"<<std::endl;
-        //std::cout<<"b = "<<P.get_vec()<<"\n"<<std::endl;
         iter_res = mve_computation(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
         E = iter_res.first.first;
         E = (E + E)/2.0;
