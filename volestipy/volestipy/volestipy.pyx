@@ -69,66 +69,38 @@ cdef class HPolytope:
       cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype=np.float64, order="C")
       
       if boundary == True:
-         # boundary = 'true'
-         # boundary = boundary.encode("UTF-8")
          boundary = 1
       else:
-         # boundary = 'false'
-         # boundary = boundary.encode("UTF-8")
          boundary = 0
       
       if cdhr == True:
-         # cdhr = 'true'
-         # cdhr = cdhr.encode("UTF-8")
          cdhr = 1
       else:
-         # cdhr = 'false'
-         # cdhr = cdhr.encode("UTF-8")
          cdhr = 0
          
       if rdhr == True:
-         # rdhr = 'true'
-         # rdhr = rdhr.encode("UTF-8")
          rdhr = 1
       else:
-         # rdhr = 'false'
-         # rdhr = rdhr.encode("UTF-8")
          rdhr = 0
       
       if gaussian == True:
-         # gaussian = 'true'
-         # gaussian = gaussian.encode("UTF-8")
          gaussian = 1
       else:
-         # gaussian = 'false'
-         # gaussian = gaussian.encode("UTF-8")
          gaussian = 0
       
       if set_L == True:
-         # set_L = 'true'
-         # set_L = set_L.encode("UTF-8")
          set_L = 1
       else:
-         # set_L = 'false'
-         # set_L = set_L.encode("UTF-8")
          set_L = 0
       
       if billiard == True:
-         # billiard = 'true'
-         # billiard = billiard.encode("UTF-8")
          billiard = 1
       else:
-         # billiard = 'false'
-         # billiard = billiard.encode("UTF-8")
          billiard = 0
       
       if ball_walk == True:
-         # ball_walk = 'true'
-         # ball_walk = ball_walk.encode("UTF-8")
          ball_walk = 1
       else:
-         # ball_walk = 'false'
-         # ball_walk = ball_walk.encode("UTF-8")
          ball_walk = 0
       
       print("volestipy.pyx: This is just before I call for the generate_samples function \n\n\n\n\n\n\n\n")
