@@ -1,7 +1,11 @@
+#!/usr/bin/python3.6
+
 import numpy as np
 import volestipy
 from volestipy import HPolytope
 
+
+print("I imported everything right!")
 
 if __name__ == "__main__":
     dim = 2
@@ -20,15 +24,24 @@ if __name__ == "__main__":
     print(p.b)
 
 
+# Run tests for the compute_volume() function
     volume_SoB = p.compute_volume(vol_method="sequence_of_balls", walk_method="uniform_ball", walk_len=5, epsilon=0.05, seed=volestipy.get_time_seed())
+    print("test1.py: Volume (sequence of balls): {}".format(volume_SoB))
+
     volume_GA  = p.compute_volume(vol_method = "cooling_gaussian", walk_method="gaussian_CDHR", walk_len=5, epsilon=0.05, seed=42)
+    print("test1.py: Volume (gaussian annealing): {}".format(volume_GA))
+
     test_volume = p.compute_volume()
-##    samples = p.generate_samples(walk_len=5, n_samples=80000, seed=42)
+    print("test1.py: Volume (test_volume): {}".format(test_volume))
+
+# Run tests for the generate_samples() function
+    print("test1.py: I am about to start SAMPLING! \n")
+
+    #samples = p.generate_samples(walk_len=5, number_of_points=80000,  number_of_points_to_burn=100)
+    samples = p.generate_samples(walk_len=1, number_of_points=1000, number_of_points_to_burn=100, boundary=True, cdhr=True, rdhr=False, gaussian=False, set_L=False, billiard=False, ball_walk=False, a=0, L=0)
+
+    print("test1.py: Samples:")
+    print(samples)
 
 
-    print("Volume (sequence of balls): {}".format(volume_SoB))
-    print("Volume (gaussian annealing): {}".format(volume_GA))
-    print("Volume (test_volume): {}".format(test_volume))
 
-#    print("Samples:")
- #   print(samples)
