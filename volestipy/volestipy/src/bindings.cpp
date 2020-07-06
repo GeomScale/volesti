@@ -87,17 +87,24 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
    
    //Point default_starting_point = HP.ComputeInnerBall().first;
    Point starting_point = HP.ComputeInnerBall().first;
- 
-  
+   
+      std::cout<<"starting point with getCoefficients = "<<starting_point.getCoefficients()<<std::endl;
+      std::cout<<"A = "<<HP.get_mat()<<std::endl;
+      std::cout<<"b = "<<HP.get_vec()<<std::endl;
+      std::cout<<"dimension = "<<HP.dimension()<<std::endl;
+     
+      std::cout<<"walk_len = "<<walk_len<<std::endl;
+      std::cout<<"number_of_points = "<<number_of_points<<std::endl;
+      //std::cout<<"starting_point = "<<starting_point<<std::endl;
+      std::cout<<"number_of_points_to_burn = "<<number_of_points_to_burn<<std::endl;
+      std::cout<<"walk_len = "<<walk_len<<std::endl; 
+      
+      std::cout<<"a = "<<a<<std::endl;
+      std::cout<<"L = "<<L<<std::endl;   
+   
+   
    if (boundary == 1) {      
-      if (cdhr == 1) {
-         cout<<"I am in the zone \n";
-         
-         std::cout<<"starting point = "<<starting_point.getCoefficients()<<std::endl;
-         std::cout<<"A = "<<HP.get_mat()<<std::endl;
-         std::cout<<"b = "<<HP.get_vec()<<std::endl;
-         std::cout<<"dimension = "<<HP.dimension()<<std::endl;
-         
+      if (cdhr == 1) {    
          uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
          } else {
             uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
@@ -137,8 +144,9 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
                uniform_sampling<BallWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
             }
         }
-        std::cout<<"sampling completed"<<std::endl;
    }
+   
+   std::cout<<"sampling completed"<<std::endl;
 
 // The following block of code should NOT be removed!
    auto n_si=0;
@@ -147,4 +155,5 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
          samples[n_si++] = (*it_s)[i];
       }
    }
+   
 }
