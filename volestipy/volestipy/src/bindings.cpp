@@ -92,6 +92,12 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
    if (boundary == 1) {      
       if (cdhr == 1) {
          cout<<"I am in the zone \n";
+         
+         std::cout<<"starting point = "<<starting_point.getCoefficients()<<std::endl;
+         std::cout<<"A = "<<HP.get_mat()<<std::endl;
+         std::cout<<"b = "<<HP.get_vec()<<std::endl;
+         std::cout<<"dimension = "<<HP.dimension()<<std::endl;
+         
          uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
          } else {
             uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
@@ -131,6 +137,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
                uniform_sampling<BallWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
             }
         }
+        std::cout<<"sampling completed"<<std::endl;
    }
 
 // The following block of code should NOT be removed!
