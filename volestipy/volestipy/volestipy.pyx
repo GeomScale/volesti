@@ -5,24 +5,34 @@
 
 import os
 import sys
-
 import numpy as np
 cimport numpy as np
-
 from libcpp cimport bool
-
+from cpython cimport bool
 
 def get_time_seed():
    import random
    import time
    return int(time.time())
 
+
+
+
+
+
 cdef extern from "bindings.h":
+   
    cdef cppclass HPolytopeCPP:
+   
       HPolytopeCPP() except +
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables) except +
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed); 
-      double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
+      
+      # double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
+      # double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bint boundary, bint cdhr, bint rdhr, bint gaussian, bint set_L, bint billiard, bint ball_walk, double a, double L);
+      # double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, char* boundary, char* cdhr, char* rdhr, char* gaussian, char* set_L, char* billiard, char* ball_walk, double a, double L);      
+      double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, int boundary, int cdhr, int rdhr, int gaussian, int set_L, int billiard, int ball_walk, double a, double L);
+
 
 # with respect to the "compute_volume" def
 volume_methods = ["sequence_of_balls".encode("UTF-8"), "cooling_gaussian".encode("UTF-8"), "cooling_balls".encode("UTF-8")]
@@ -34,7 +44,7 @@ cdef class HPolytope:
    cdef HPolytopeCPP polytope_cpp
    cdef double[:,::1] _A
    cdef double[::1] _b
-
+   
    def __cinit__(self, double[:,::1] A, double[::1] b):
       self._A = A
       self._b = b
@@ -57,9 +67,80 @@ cdef class HPolytope:
    def generate_samples(self, walk_len=1, number_of_points=1000, number_of_points_to_burn=100, boundary=True, cdhr=True, rdhr=False, gaussian=False, set_L=False, billiard=False, ball_walk=False, a=0, L=0):
       n_variables = self._A.shape[1]
       cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype=np.float64, order="C")
+      
+      if boundary == True:
+         # boundary = 'true'
+         # boundary = boundary.encode("UTF-8")
+         boundary = 1
+      else:
+         # boundary = 'false'
+         # boundary = boundary.encode("UTF-8")
+         boundary = 0
+      
+      if cdhr == True:
+         # cdhr = 'true'
+         # cdhr = cdhr.encode("UTF-8")
+         cdhr = 1
+      else:
+         # cdhr = 'false'
+         # cdhr = cdhr.encode("UTF-8")
+         cdhr = 0
+         
+      if rdhr == True:
+         # rdhr = 'true'
+         # rdhr = rdhr.encode("UTF-8")
+         rdhr = 1
+      else:
+         # rdhr = 'false'
+         # rdhr = rdhr.encode("UTF-8")
+         rdhr = 0
+      
+      if gaussian == True:
+         # gaussian = 'true'
+         # gaussian = gaussian.encode("UTF-8")
+         gaussian = 1
+      else:
+         # gaussian = 'false'
+         # gaussian = gaussian.encode("UTF-8")
+         gaussian = 0
+      
+      if set_L == True:
+         # set_L = 'true'
+         # set_L = set_L.encode("UTF-8")
+         set_L = 1
+      else:
+         # set_L = 'false'
+         # set_L = set_L.encode("UTF-8")
+         set_L = 0
+      
+      if billiard == True:
+         # billiard = 'true'
+         # billiard = billiard.encode("UTF-8")
+         billiard = 1
+      else:
+         # billiard = 'false'
+         # billiard = billiard.encode("UTF-8")
+         billiard = 0
+      
+      if ball_walk == True:
+         # ball_walk = 'true'
+         # ball_walk = ball_walk.encode("UTF-8")
+         ball_walk = 1
+      else:
+         # ball_walk = 'false'
+         # ball_walk = ball_walk.encode("UTF-8")
+         ball_walk = 0
+      
+      print("volestipy.pyx: This is just before I call for the generate_samples function \n\n\n\n\n\n\n\n")
+      print("ball_walk is of type :  ")
+      print(type(ball_walk))
+      print("\n")
+      print(boundary,cdhr,rdhr,gaussian,set_L,billiard,ball_walk)
+      
+      
       self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L)
       return np.asarray(samples)
-
+   
 
 
    @property
