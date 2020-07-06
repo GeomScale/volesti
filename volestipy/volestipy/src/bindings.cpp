@@ -23,15 +23,14 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
 
    HP.init(n_variables,A,b);
    CheBall = HP.ComputeInnerBall();
-   //dim = HP.dimension();
 }
 HPolytopeCPP::~HPolytopeCPP(){}
 
-//////////          This is where the "COMPUTE_VOLUME" class starts  
+
+//////////          start of "compute_volume"
 
 double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed){
   
-   //typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
    double volume;
    
    if (strcmp(vol_method,"sequence_of_balls")==0){ 
@@ -64,22 +63,13 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
    }
    return volume;
 }
-//////////          This is where the "COMPUTE_VOLUME" class ends  
+//////////         end of "compute_volume"  
 
-//////////          This is where the "GENERATE_SAMPLES" class starts
+//////////         start if "generate_samples"
 
-//double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L){
-//double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, char* boundary, char* cdhr, char* rdhr, char* gaussian, char* set_L, char* billiard, char* ball_walk, double a, double L){   
-double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, int boundary, int cdhr, int rdhr, int gaussian, int set_L, int billiard, int ball_walk, double a, double L, double* samples){
+double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian,   bool set_L, bool billiard, bool ball_walk, double a, double L, double* samples){
    
-   
-   cout<<"Hello friend\n";
-   
-   if (boundary == 1) {
-      cout<<"Friend your are doing well \n";
-   } else {
-      "What is wrong with you friend? \n";
-   }
+   cout<<"Hello friend. This is the generate_samples function you are in \n";
    
    //double* samples;
    RNGType rng(HP.dimension());
@@ -87,50 +77,51 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
    
    //Point default_starting_point = HP.ComputeInnerBall().first;
    Point starting_point = HP.ComputeInnerBall().first;
-   
-      std::cout<<"starting point with getCoefficients = "<<starting_point.getCoefficients()<<std::endl;
-      std::cout<<"A = "<<HP.get_mat()<<std::endl;
-      std::cout<<"b = "<<HP.get_vec()<<std::endl;
-      std::cout<<"dimension = "<<HP.dimension()<<std::endl;
-     
-      std::cout<<"walk_len = "<<walk_len<<std::endl;
-      std::cout<<"number_of_points = "<<number_of_points<<std::endl;
-      //std::cout<<"starting_point = "<<starting_point<<std::endl;
-      std::cout<<"number_of_points_to_burn = "<<number_of_points_to_burn<<std::endl;
-      std::cout<<"walk_len = "<<walk_len<<std::endl; 
+
+      // We could add some of the following to give some information regarding the running options
       
-      std::cout<<"a = "<<a<<std::endl;
-      std::cout<<"L = "<<L<<std::endl;   
+      //std::cout<<"starting point with getCoefficients = "<<starting_point.getCoefficients()<<std::endl;
+      //std::cout<<"A = "<<HP.get_mat()<<std::endl;
+      //std::cout<<"b = "<<HP.get_vec()<<std::endl;
+      //std::cout<<"dimension = "<<HP.dimension()<<std::endl;
+      //
+      //std::cout<<"walk_len = "<<walk_len<<std::endl;
+      //std::cout<<"number_of_points = "<<number_of_points<<std::endl;
+      //std::cout<<"number_of_points_to_burn = "<<number_of_points_to_burn<<std::endl;
+      //std::cout<<"walk_len = "<<walk_len<<std::endl; 
+      //
+      //std::cout<<"a = "<<a<<std::endl;
+      //std::cout<<"L = "<<L<<std::endl;   
    
    
-   if (boundary == 1) {      
-      if (cdhr == 1) {    
+   if (boundary == true) {      
+      if (cdhr == true) {    
          uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
          } else {
             uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
          }
-   } else if (cdhr == 1) {
-      if (gaussian == 1) {
+   } else if (cdhr == true) {
+      if (gaussian == true) {
          gaussian_sampling<GaussianCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
       } else {
          uniform_sampling<CDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
       }
-   } else if (rdhr == 1){
-      if (gaussian == 1) {
+   } else if (rdhr == true){
+      if (gaussian == true) {
          gaussian_sampling<GaussianRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
       } else {
          uniform_sampling<RDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
       }
-   } else if (billiard == 1) {
-      if (set_L == 1) {
+   } else if (billiard == true) {
+      if (set_L == true) {
          BilliardWalk WalkType(L);
          uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
       } else {
          uniform_sampling<BilliardWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
       }
    } else {
-      if (set_L == 1) {
-         if (gaussian == 1) {
+      if (set_L == true) {
+         if (gaussian == true) {
             GaussianBallWalk WalkType(L);
             gaussian_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
             } else {
@@ -138,7 +129,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
                uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
             }
         } else {
-            if (gaussian == 1) {
+            if (gaussian == true) {
                gaussian_sampling<GaussianBallWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
             } else {
                uniform_sampling<BallWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
@@ -155,5 +146,4 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
          samples[n_si++] = (*it_s)[i];
       }
    }
-   
 }
