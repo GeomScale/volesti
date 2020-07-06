@@ -70,7 +70,7 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
 
 //double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L){
 //double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, char* boundary, char* cdhr, char* rdhr, char* gaussian, char* set_L, char* billiard, char* ball_walk, double a, double L){   
-double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, int boundary, int cdhr, int rdhr, int gaussian, int set_L, int billiard, int ball_walk, double a, double L){
+double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, int boundary, int cdhr, int rdhr, int gaussian, int set_L, int billiard, int ball_walk, double a, double L, double* samples){
    
    
    cout<<"Hello friend\n";
@@ -81,7 +81,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
       "What is wrong with you friend? \n";
    }
    
-   double* samples;
+   //double* samples;
    RNGType rng(HP.dimension());
    std::list<Point> rand_points;
    
