@@ -37,20 +37,15 @@ class HPolytopeCPP{
       typedef typename Hpolytope::VT    VT;      
       typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
       
-      
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
 
       Hpolytope HP;
       std::pair<Point,NT> CheBall;
       ~HPolytopeCPP();
-      
-      
+            
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);        
-      double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, int boundary, int cdhr, int rdhr, int gaussian, int set_L, int billiard, int ball_walk, double a, double L,  double* samples); 
-
-      
-   
+      double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples); 
 
 };
 
