@@ -26,12 +26,8 @@ cdef extern from "bindings.h":
    
       HPolytopeCPP() except +
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables) except +
-      double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed); 
-      
-      # double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L);
-      # double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bint boundary, bint cdhr, bint rdhr, bint gaussian, bint set_L, bint billiard, bint ball_walk, double a, double L);
-      # double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, char* boundary, char* cdhr, char* rdhr, char* gaussian, char* set_L, char* billiard, char* ball_walk, double a, double L);      
-      double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, int boundary, int cdhr, int rdhr, int gaussian, int set_L, int billiard, int ball_walk, double a, double L);
+      double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);     
+      double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, int boundary, int cdhr, int rdhr, int gaussian, int set_L, int billiard, int ball_walk, double a, double L,  double* samples);
 
 
 # with respect to the "compute_volume" def
@@ -110,7 +106,7 @@ cdef class HPolytope:
       print(boundary,cdhr,rdhr,gaussian,set_L,billiard,ball_walk)
       
       
-      self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L)
+      self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L, &samples[0,0])
       return np.asarray(samples)
    
 
