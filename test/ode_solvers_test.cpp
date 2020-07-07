@@ -137,7 +137,6 @@ void test_leapfrog_constrained(){
 
     for (int i = 0; i < 1000; i++) {
       leapfrog_solver.step();
-      if (i > 500) leapfrog_solver.print_state();
       CHECK(leapfrog_solver.xs[0].dot(leapfrog_solver.xs[0]) < 1.1);
     }
 
