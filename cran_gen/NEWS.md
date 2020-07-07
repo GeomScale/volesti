@@ -24,3 +24,8 @@
 * Improved functionality for finance applications.
 * Improved names for functions and input variables.
 * Use exclusively Eigen/BH library for linear algebra.
+
+# volesti 1.1.1
+
+* Fix CRAN warnings about deprecated use of ftime
+
