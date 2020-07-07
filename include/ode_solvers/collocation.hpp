@@ -84,7 +84,8 @@ public:
 
   VT Ar, Av;
 
-  NontLinearOracle oracle;
+  int prev_facet = -1;
+  Point prev_point;
 
   CollocationODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
     bounds boundaries,  coeffs c_coeffs, bfunc basis, bfunc grad_basis) :
@@ -196,39 +197,48 @@ public:
         for (unsigned int ord = 0; ord < order(); ord++) {
           xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
         }
+
+        if (prev_facet != -1) Ks[i]->compute_reflection(xs[i], x_prev_bound, prev_facet);
+        prev_facet = -1;
+
       } else {
         std::tuple<NT, Point, int> result = Ks[i]->curve_intersect(t_prev, t_prev,
             eta, as[i], phi, grad_phi, oracle);
 
+        xs[i] = 0.99 * std::get<1>(result);
+        prev_facet = std::get<2>(reuslt);
+        prev_point = xs[i];
+
+
         // Point is inside polytope
-        if (std::get<2>(result) == -1 && Ks[i]->is_in(std::get<1>(result))) {
-          // std::cout << "Inside" << std::endl;
-          xs[i] = Point(xs[i].dimension());
-          for (unsigned int ord = 0; ord < order(); ord++) {
-            xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
-          }
-        }
-        else {
-          // std::cout << "outside" << std::endl;
-          // Compute ray
-          y = (0.95 * std::get<1>(result)) - xs_prev[i];
-          xs[i] = xs_prev[i];
+        // if (std::get<2>(result) == -1 && Ks[i]->is_in(std::get<1>(result))) {
+        //   // std::cout << "Inside" << std::endl;
+        //   xs[i] = Point(xs[i].dimension());
+        //   for (unsigned int ord = 0; ord < order(); ord++) {
+        //     xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
+        //   }
+        // }
+        // else {
+        //   // std::cout << "outside" << std::endl;
+        //   // Compute ray
+        //   y = (0.95 * std::get<1>(result)) - xs_prev[i];
+        //   xs[i] = xs_prev[i];
+        //
+        //   // Reflect ray along facet
+        //   Ks[i]->compute_reflection(y, xs_prev[i], std::get<2>(result));
+        //   xs[i] += y;
 
-          // Reflect ray along facet
-          Ks[i]->compute_reflection(y, xs_prev[i], std::get<2>(result));
-          xs[i] += y;
-
-          while (!Ks[i]->is_in(xs[i])) {
-            std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
-
-            if (pbpair.first >= 0 && pbpair.first <= 1) {
-              xs[i] += (pbpair.first * 0.95) * y;
-              Ks[i]->compute_reflection(y, xs[i], pbpair.second);
-              xs[i] += y;
-            }
-            else break;
-
-          }
+          // while (!Ks[i]->is_in(xs[i])) {
+          //   std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
+          //
+          //   if (pbpair.first >= 0 && pbpair.first <= 1) {
+          //     xs[i] += (pbpair.first * 0.95) * y;
+          //     Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+          //     xs[i] += y;
+          //   }
+          //   else break;
+          //
+          // }
         }
       }
     }
