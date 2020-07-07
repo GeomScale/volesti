@@ -69,7 +69,7 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
     VT dyc = dy, r1(m), r2(n), r4(m), r23(n + 1), AtDe(n), d(m);
     NT dt = NT(0), dtc = NT(0), tau0 = 0.995, tau, sigma0 = 0.2, r3, gap, prif, drif, rgap, total_err, alphap, alphad,
             ratio, sigma, mu, *vec_iter1, *vec_iter2, *vec_iter3, *vec_iter4, power_num = 5.0 * std::pow(10.0, 15.0),
-            t_prev = 1000.0 * t;
+            t_prev = 1000.0 * t + 100.0;
 
     MT B(n + 1, n + 1), AtD(n, m), R(n + 1, n + 1), eEye =
             std::pow(10, -14.0) * MT::Identity(n + 1, n + 1), A_trans = A.transpose();
@@ -97,17 +97,17 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
         total_err = std::max(total_err, rgap);
 
         // progress output & check stopping
-        if (total_err < tol || (t > 0 && ((std::abs(t - t_prev) <= tol * t && std::abs(t - t_prev) <= tol * t_prev)) ||
-                                (t_prev >= (1.0 - tol) * t ||
-                                 t <= (1.0 - tol) * t_prev))) {
+        if (total_err < tol || ( t > 0 && ( (std::abs(t - t_prev) <= tol * t && std::abs(t - t_prev) <= tol * t_prev) ||
+                                (t_prev >= (1.0 - tol) * t && i > 0) ||
+                                 (t <= (1.0 - tol) * t_prev && i > 0) ) ) ) {
             //std::cout << "converge\n" << std::endl;
-            std::cout << "iteration = " << i + 1 << "\n" << std::endl;
+            //std::cout << "iteration = " << i + 1 << "\n" << std::endl;
             break;
         }
 
         if (dt > 1000.0 * bnrm || t > 1000000.0 * bnrm) {
             //std::cout << "unbounded\n" << std::endl;
-            std::cout << "iteration = " << i + 1 << "\n" << std::endl;
+            //std::cout << "iteration = " << i + 1 << "\n" << std::endl;
             break; //unbounded
         }
 

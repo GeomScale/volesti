@@ -149,8 +149,8 @@ full_dimensional_polytope <- function(P) {
 #' P = gen_cube(3, 'V')
 #' ball_vec = inner_ball(P)
 #' @export
-inner_ball <- function(P) {
-    .Call(`_volesti_inner_ball`, P)
+inner_ball <- function(P, method = NULL) {
+    .Call(`_volesti_inner_ball`, P, method)
 }
 
 #' An internal Rccp function as a polytope generator

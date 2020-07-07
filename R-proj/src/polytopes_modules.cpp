@@ -87,7 +87,9 @@ RCPP_MODULE(polytopes){
     // expose the default constructor
     .constructor()
     .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector>()
+    .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::NumericMatrix, Rcpp::NumericVector>()
     .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector, double>()
+    .constructor<Rcpp::NumericMatrix, Rcpp::NumericVector, Rcpp::NumericMatrix, Rcpp::NumericVector, double>()
 
     .field( "A", &Hpolytope::A )
     .field( "b", &Hpolytope::b )
