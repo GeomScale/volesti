@@ -1,9 +1,9 @@
 #ifndef VOLESTIBINDINGS_H
 #define VOLESTIBINDINGS_H
 
-//// I think we could remove those...
-#include "Eigen/Eigen"
-#include "cartesian_kernel.h"
+////// I think we could remove those...
+//#include "Eigen/Eigen"
+//#include "cartesian_kernel.h"
 
 // from SOB volume - exactly the same for CG and CB methods 
 #include <fstream>
