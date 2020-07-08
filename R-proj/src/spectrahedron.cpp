@@ -15,8 +15,8 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "LMI.h"
-#include "spectrahedron.h"
+#include "convex_bodies/spectrahedra/LMI.h"
+#include "convex_bodies/spectrahedra/spectrahedron.h"
 #include "SDPAFormatManager.h"
 
 //' Write a SDPA format file
@@ -29,6 +29,7 @@
 //' @param outputFile Name of the output file
 //'
 //' @examples
+//' \dontrun{
 //' A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
 //' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 //' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
@@ -36,6 +37,7 @@
 //' S = Spectrahedron$new(lmi);
 //' objFunction = c(1,1)
 //' writeSdpaFormatFile(S, objFunction, "output.txt")
+//' }
 //' @export
 // [[Rcpp::export]]
 void writeSdpaFormatFile(Rcpp::Nullable<Rcpp::Reference> spectrahedron = R_NilValue,

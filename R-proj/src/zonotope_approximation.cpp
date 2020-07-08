@@ -63,8 +63,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
     MT Mat(2 * n, n + 1);
     Mat << Gred_ii, A.transpose() * svd.matrixU().transpose();
 
-    Hpolytope HP;
-    HP.init(n, A.transpose() * svd.matrixU().transpose(), Gred_ii);
+    //Hpolytope HP(n, A.transpose() * svd.matrixU().transpose(), Gred_ii);
 
     if (fit_ratio.isNotNull() && Rcpp::as<bool>(fit_ratio)) {
         NT vol_red = std::abs(svd.matrixU().determinant());
@@ -79,8 +78,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
         win_len = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("win_len")) ? 200 : Rcpp::as<int>(
                 Rcpp::as<Rcpp::List>(settings)["win_len"]);
 
-        zonotope ZP;
-        ZP.init(n, Rcpp::as<MT>(Z.field("G")), VT::Ones(Rcpp::as<MT>(Z.field("G")).rows()));
+        zonotope ZP(n, Rcpp::as<MT>(Z.field("G")), VT::Ones(Rcpp::as<MT>(Z.field("G")).rows()));
 
         if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("hpoly")) {
             hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["hpoly"]);

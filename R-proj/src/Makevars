@@ -1,4 +1,4 @@
-PKG_CPPFLAGS=-I../../external/boost -I../../external/LPsolve_src/run_headers -I../../external/minimum_ellipsoid -I../../include 
+PKG_CPPFLAGS= -I../../external/boost -I../../external/LPsolve_src/run_headers -I../../external/minimum_ellipsoid -I../../include 
 
 PKG_CXXFLAGS= -lm -ldl -Wno-ignored-attributes -DBOOST_NO_AUTO_PTR
 

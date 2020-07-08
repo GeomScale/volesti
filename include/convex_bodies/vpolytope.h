@@ -16,7 +16,7 @@
 #include <Eigen/Eigen>
 
 #include "lp_oracles/vpolyoracles.h"
-#include <minimum_ellipsoid/khach.h>
+#include <khach.h>
 
 
 //min and max values for the Hit and Run functions
@@ -31,20 +31,17 @@ public:
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
+    unsigned int         _d;  //dimension
     MT                   V;  //matrix V. Each row contains a vertex
     VT                   b;  // vector b that contains first column of ine file
-    unsigned int         _d;  //dimension
     std::pair<Point, NT> _inner_ball;
 
     // TODO: Why don't we use std::vector<REAL>  and std::vector<int> for these pointers?
-    REAL *conv_comb, *row, *conv_comb2, *conv_mem;
+    REAL *conv_comb, *conv_comb2, *conv_mem, *row;
     int *colno, *colno_mem;
 
 public:
-    VPolytope():
-        conv_comb{nullptr}, conv_comb2{nullptr}, conv_mem{nullptr}, row{nullptr},
-        colno{nullptr}, colno_mem{nullptr}
-    {}
+    VPolytope() {}
 
     VPolytope(const unsigned int &dim, const MT &_V, const VT &_b):
             _d{dim}, V{_V}, b{_b},

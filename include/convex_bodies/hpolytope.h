@@ -32,9 +32,9 @@ public:
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
+    unsigned int         _d; //dimension
     MT                   A; //matrix A
     VT                   b; // vector b, s.t.: Ax<=b
-    unsigned int         _d; //dimension
     std::pair<Point, NT> _inner_ball;
     // TODO: Why the following are not static or outside the class?
     NT                   maxNT = std::numeric_limits<NT>::max();

@@ -237,6 +237,7 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = 
 #' @param outputFile Name of the output file
 #'
 #' @examples
+#' \dontrun{
 #' A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
 #' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 #' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
@@ -244,6 +245,7 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = 
 #' S = Spectrahedron$new(lmi);
 #' objFunction = c(1,1)
 #' writeSdpaFormatFile(S, objFunction, "output.txt")
+#' }
 #' @export
 writeSdpaFormatFile <- function(spectrahedron = NULL, objectiveFunction = NULL, outputFile = NULL) {
     invisible(.Call(`_volesti_writeSdpaFormatFile`, spectrahedron, objectiveFunction, outputFile))

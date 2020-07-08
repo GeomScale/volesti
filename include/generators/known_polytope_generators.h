@@ -76,13 +76,12 @@ Polytope generate_cube(const unsigned int& dim, const bool& Vpoly) {
 
 
 template <typename Polytope>
-Polytope gen_cross(const unsigned int &dim, const bool &Vpoly) {
+Polytope generate_cross(const unsigned int &dim, const bool &Vpoly) {
 
     unsigned int m;
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
-    Polytope P;
     MT A;
     VT b;
     if (!Vpoly) {
@@ -137,7 +136,7 @@ Polytope gen_cross(const unsigned int &dim, const bool &Vpoly) {
 
 
 template <typename Polytope>
-Polytope gen_simplex(const unsigned int &dim, const bool &Vpoly){
+Polytope generate_simplex(const unsigned int &dim, const bool &Vpoly){
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
@@ -174,7 +173,7 @@ Polytope gen_simplex(const unsigned int &dim, const bool &Vpoly){
 
 
 template <typename Polytope>
-Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
+Polytope generate_prod_simplex(const unsigned int &dim, bool Vpoly = false){
 
     Polytope Perr;
     try
@@ -247,7 +246,7 @@ Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
 
 
 template <typename Polytope>
-Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
+Polytope generate_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
 
     Polytope Perr;
     try

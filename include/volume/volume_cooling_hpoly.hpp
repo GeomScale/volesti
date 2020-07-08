@@ -184,12 +184,12 @@ bool get_sequence_of_zonopolys(Zonotope &Z,
         return false;
     }
 
-    ZonoHP ZHP2;
+    //ZonoHP ZHP2;
     VT Zs_min = HP.get_vec();
 
     while (true) {
 
-        ZHP2 = ZonoHP(Z,HP2);
+        ZonoHP ZHP2(Z,HP2);
         q=Point(n);
         randPoints.clear();
         RandomPointGenerator::apply(ZHP2, q, N_times_nu, walk_length,
@@ -293,7 +293,7 @@ double volume_cooling_hpoly (Zonotope const& Pin,
     std::vector<HPolytope > HPolySet;
     std::vector<NT> ratios;
 
-    ZonoHP zb1, zb2;
+    //ZonoHP zb1, zb2;
     std::vector<NT> diams_inter;
 
     if ( !get_sequence_of_zonopolys<ZonoRandomPointGenerator, ZonoHP>
@@ -348,7 +348,7 @@ double volume_cooling_hpoly (Zonotope const& Pin,
         }
 
         for (int i = 0; i < HPolySet.size()-1; ++i) {
-            zb1 = ZonoHP(P,HPolySet[i]);
+            ZonoHP zb1(P,HPolySet[i]);
             b2 = HPolySet[i+1];
             if(!parameters.window2) {
                 vol = vol / estimate_ratio_interval<WalkType, Point>(zb1, b2, ratios[i], er1, parameters.win_len,
@@ -359,7 +359,7 @@ double volume_cooling_hpoly (Zonotope const& Pin,
             }
         }
 
-        zb1 = ZonoHP(P, HPolySet[HPolySet.size() - 1]);
+        ZonoHP zb1(P, HPolySet[HPolySet.size() - 1]);
         if (!parameters.window2) {
             vol = vol / estimate_ratio_interval<WalkType, Point>(zb1, HP, ratios[ratios.size() - 1], er1,
                                                                  parameters.win_len, N_times_nu, prob, walk_length,
@@ -370,7 +370,7 @@ double volume_cooling_hpoly (Zonotope const& Pin,
         }
     }
 
-    P.free_them_all();
+    //P.free_them_all();
 
     return vol;
 

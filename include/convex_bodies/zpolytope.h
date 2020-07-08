@@ -44,6 +44,40 @@ public:
 
     Zonotope() {}
 
+    Zonotope(unsigned int const dim, MT const& _V, VT const& _b)
+    {
+        _d = dim;
+        V = _V;
+        b = _b;
+        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
+        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
+        compute_eigenvectors(V.transpose());
+    }
+
+    Zonotope(std::vector<std::vector<NT> > const& Pin)
+    {
+        _d = Pin[0][1] - 1;
+        V.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (unsigned int i = 1; i < Pin.size(); i++)
+        {
+            b(i - 1) = Pin[i][0];
+            for (unsigned int j = 1; j < _d + 1; j++)
+            {
+                V(i - 1, j - 1) = Pin[i][j];
+            }
+        }
+        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
+        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
+        compute_eigenvectors(V.transpose());
+    }
+
     // return the dimension
     unsigned int dimension() const
     {
@@ -138,13 +172,11 @@ public:
         return V.rows();
     }
 
-
     // return the matrix V
     MT get_mat() const
     {
         return V;
     }
-
 
     // return the vector b
     VT get_vec() const
@@ -152,13 +184,11 @@ public:
         return b;
     }
 
-
     // change the matrix V
     void set_mat(MT const& V2)
     {
         V = V2;
     }
-
 
     // change the vector b
     void set_vec(VT const& b2)
@@ -179,7 +209,7 @@ public:
 
     // define zonotope using Eigen matrix V. Vector b is neded in order
     // the code to compatible with Hpolytope class
-    void init(unsigned int const dim, MT const& _V, VT const& _b)
+    /*void init(unsigned int const dim, MT const& _V, VT const& _b)
     {
         _d = dim;
         V = _V;
@@ -190,11 +220,11 @@ public:
         colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
         row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
         compute_eigenvectors(V.transpose());
-    }
+    }*/
 
 
     // Construct matrix V which contains the vertices row-wise
-    void init(std::vector<std::vector<NT> > const& Pin)
+    /*void init(std::vector<std::vector<NT> > const& Pin)
     {
         _d = Pin[0][1] - 1;
         V.resize(Pin.size() - 1, _d);
@@ -213,7 +243,7 @@ public:
         colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
         row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
         compute_eigenvectors(V.transpose());
-    }
+    }*/
 
 
     // print polytope in input format

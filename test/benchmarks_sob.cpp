@@ -133,7 +133,7 @@ int main()
 
 
     Vpolytope VP;
-    VP = gen_cross<Vpolytope>(10, true);
+    VP = generate_cross<Vpolytope>(10, true);
 
     // NEW IMPLEMENTATIOM
 

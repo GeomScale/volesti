@@ -97,11 +97,11 @@ void call_test_cross(){
     typedef VPolytope<Point> Vpolytope;
 
     std::cout << "--- Testing volume of V-cross5" << std::endl;
-    Vpolytope P1 = gen_cross<Vpolytope>(5, true);
+    Vpolytope P1 = generate_cross<Vpolytope>(5, true);
     test_volume(P1, 0.276845, 0.266666667);
 
     std::cout << "--- Testing volume of V-cross10" << std::endl;
-    Vpolytope P2 = gen_cross<Vpolytope>(10, true);
+    Vpolytope P2 = generate_cross<Vpolytope>(10, true);
     test_volume(P2, 0.000291003, 0.0002821869);
 }
 
@@ -115,7 +115,7 @@ void call_test_simplex() {
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-simplex5" << std::endl;
-    P = gen_simplex<Vpolytope>(5, true);
+    P = generate_simplex<Vpolytope>(5, true);
     test_volume(P, 0.00810133, 1.0 / factorial(5.0));
 
 

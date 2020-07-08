@@ -30,7 +30,6 @@ Polytope gen_zonotope_gaussian(int dim, int m, double seed = std::numeric_limits
     VT b;
     A.resize(m, dim);
     b.resize(m);
-    Polytope P;
     NT rand_gaus;
 
     for (unsigned int i = 0; i < m; ++i) {
@@ -48,7 +47,7 @@ Polytope gen_zonotope_gaussian(int dim, int m, double seed = std::numeric_limits
         }
     }
 
-    P.init(dim, A, b);
+    Polytope P(dim, A, b);
     return P;
 }
 
@@ -73,7 +72,6 @@ Polytope gen_zonotope_uniform(int dim, int m, double seed = std::numeric_limits<
     VT b;
     A.resize(m, dim);
     b.resize(m);
-    Polytope P;
 
     for (unsigned int i = 0; i < m; ++i) {
         b(i) = 1.0;
@@ -84,8 +82,9 @@ Polytope gen_zonotope_uniform(int dim, int m, double seed = std::numeric_limits<
         A.row(i) = A.row(i) * urdist1(rng);
     }
 
-    P.init(dim, A, b);
+    Polytope P(dim, A, b);
     return P;
+    
 }
 
 
@@ -109,7 +108,6 @@ Polytope gen_zonotope_exponential(int dim, int m, double seed = std::numeric_lim
     VT b;
     A.resize(m, dim);
     b.resize(m);
-    Polytope P;
     NT rand_exp;
 
     for (unsigned int i = 0; i < m; ++i) {
@@ -127,7 +125,7 @@ Polytope gen_zonotope_exponential(int dim, int m, double seed = std::numeric_lim
         }
     }
 
-    P.init(dim, A, b);
+    Polytope P(dim, A, b);
     return P;
 }
 
