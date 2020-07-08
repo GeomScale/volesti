@@ -3,7 +3,6 @@
 #include "bindings.h"
 
 using namespace std;
-//unsigned int dim;
 
 HPolytopeCPP::HPolytopeCPP() {}
 HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_variables){
@@ -77,22 +76,6 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
    
    //Point default_starting_point = HP.ComputeInnerBall().first;
    Point starting_point = HP.ComputeInnerBall().first;
-
-      // We could add some of the following to give some information regarding the running options
-      
-      //std::cout<<"starting point with getCoefficients = "<<starting_point.getCoefficients()<<std::endl;
-      //std::cout<<"A = "<<HP.get_mat()<<std::endl;
-      //std::cout<<"b = "<<HP.get_vec()<<std::endl;
-      //std::cout<<"dimension = "<<HP.dimension()<<std::endl;
-      //
-      //std::cout<<"walk_len = "<<walk_len<<std::endl;
-      //std::cout<<"number_of_points = "<<number_of_points<<std::endl;
-      //std::cout<<"number_of_points_to_burn = "<<number_of_points_to_burn<<std::endl;
-      //std::cout<<"walk_len = "<<walk_len<<std::endl; 
-      //
-      //std::cout<<"a = "<<a<<std::endl;
-      //std::cout<<"L = "<<L<<std::endl;   
-   
    
    if (boundary == true) {      
       if (cdhr == true) {    
