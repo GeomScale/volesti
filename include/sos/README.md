@@ -18,6 +18,8 @@ on the interval [-1,1].
 
 #### Next steps:
 
+* Create minimal example where high precision is needed 
+* Write report of weekly progress
 * Parameter tuning
 * Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
 * Higher order corrector steps
@@ -39,6 +41,17 @@ on the interval [-1,1].
 numbers immensely slow down the IPM
 * Generation of Chebyshev Points / Interpolant Basis dominates the runtime.
 * High degree polynomial (beginning at around degree 25) lead to oscillation near the boundary. But this might be an artifact from these polynomials as opposed to a bug or lack in precision.
+
+
+#### Weekly Progress
+
+
+* Week 1: Implementation of [1,2]. 
+* Week 2: Testing implementation with LP and SDP barrier, Debugging, Refactoring.
+* Week 3: Implementation of Interpolant-Barrier, Focus on speeding up implementation with dedicated libraries.
+* Week 4: Implementation of Toy Problem: Polynomial Envelope.
+* Week 5: Discovered [4], Understanding paper and draw ideas to implement more efficiently.
+* Week 6:
 
 #### References
 
