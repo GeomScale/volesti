@@ -8,7 +8,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/fmt/ostr.h"
-#include "ChebTools/Chebtools.h"
+#include "ChebTools/ChebTools.h"
 
 EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_) :
         _n(num_variables), _d(max_degree),
@@ -91,11 +91,11 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
 
     //Faster, cleverer Clenshaw-Curtis algorithm
 
-    get_CC_integrals();
+    get_clenshaw_curtis_integrals();
 
 }
 
-void EnvelopeProblemSOS::get_CC_integrals() {
+void EnvelopeProblemSOS::get_clenshaw_curtis_integrals() {
 
     //TODO: Check if _U even is necessary and how to fix for N odd
 
@@ -239,8 +239,13 @@ void EnvelopeProblemSOS::print_solution(Solution sol) {
         sol_seg_interp(i) = sol_seg(i);
     }
     InterpolantVector sol_vec = _polynomials_bounds[0] - sol_seg_interp;
-    InterpolantMatrix Q = get_transformation_matrix();
-    InterpolantVector solution = Q * sol_vec;
+    InterpolantVector solution(_U);
+    if (not _input_in_interpolant_basis) {
+        InterpolantMatrix Q = get_transformation_matrix();
+        InterpolantVector solution = Q * sol_vec;
+    } else {
+        solution = sol_vec;
+    }
 //    std::cout << "Solution polynomial is: " << solution.transpose() << std::endl;
 }
 
@@ -291,13 +296,18 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     std::vector<std::vector<double> > plots(poly_plots.size());
     for (unsigned poly_idx = 0; poly_idx < plots.size(); poly_idx++) {
         plots[poly_idx].resize(num_points);
-        InterpolantVector poly_in_standard_basis = Q_interp * poly_plots[poly_idx];
+        InterpolantVector poly_in_orig_basis(_U);
+        if (_input_in_interpolant_basis) {
+            poly_in_orig_basis = poly_plots[poly_idx];
+        } else {
+            poly_in_orig_basis = Q_interp * poly_plots[poly_idx];
+        }
         for (int i = 0; i < num_points; ++i) {
             //Evaluation of vector polynomial at a certain point. Extract method.
-            assert(poly_in_standard_basis.size() > 0);
-            InterpolantDouble eval = poly_in_standard_basis[0];
-            for (int j = 1; j < poly_in_standard_basis.size(); ++j) {
-                eval += poly_in_standard_basis[j] * pow(x[i], j);
+            assert(poly_in_orig_basis.size() > 0);
+            InterpolantDouble eval = poly_in_orig_basis[0];
+            for (int j = 1; j < poly_in_orig_basis.size(); ++j) {
+                eval += poly_in_orig_basis[j] * pow(x[i], j);
             }
             Double dummy_D;
             plots[poly_idx][i] = InterpolantDoubletoIPMDouble(eval, dummy_D);

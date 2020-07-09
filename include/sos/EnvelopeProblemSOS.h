@@ -83,7 +83,7 @@ private:
     //arbitrary polynomials plotted.
     bool _input_in_interpolant_basis = true;
 
-    void get_CC_integrals() ;
+    void get_clenshaw_curtis_integrals() ;
 };
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H

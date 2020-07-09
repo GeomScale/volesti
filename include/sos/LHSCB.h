@@ -10,6 +10,8 @@
 #include<iostream>
 #include <vector>
 #include "utils.cpp"
+#include "ChebTools/ChebTools.h"
+
 
 
 class LHSCB {
@@ -186,7 +188,6 @@ public:
         _num_variables = _U;
         _unisolvent_basis.resize(_U);
 
-        //Chebyshev points for standard interval [-1,1]
         for (unsigned i = 0; i < _unisolvent_basis.size(); ++i) {
             BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / (_U - 1));
             InterpolantDouble dummy_ipm;
@@ -194,7 +195,7 @@ public:
             _unisolvent_basis[i] = cos_val;
         }
 
-        InterpolantMatrix P_interp = InterpolantMatrix(_U, _L);
+//        InterpolantMatrix P_interp = InterpolantMatrix(_U, _L);
 
         //TODO: Figure out how choice of P could influence condition / stability of maps.
 
@@ -206,33 +207,59 @@ public:
         //TODO: This interpolant Matrix only needs to be found once and can then be reused;
         std::cout << "Construct interpolant point Matrix P..." << std::endl;
 
-        for (unsigned row = 0; row < P_interp.rows(); ++row) {
-            for (unsigned col = 0; col < P_interp.cols(); ++col) {
-                //TODO: make more efficient.
-                P_interp(row, col) = col == 0 ? InterpolantDouble(1.) : pow(_unisolvent_basis[row], col);
-            }
-        }
+        //Construct P_interp via Chebyshev basis.
+
+//        for (unsigned row = 0; row < P_interp.rows(); ++row) {
+//            for (unsigned col = 0; col < P_interp.cols(); ++col) {
+//                //TODO: make more efficient.
+//                P_interp(row, col) = col == 0 ? InterpolantDouble(1.) : pow(_unisolvent_basis[row], col);
+//            }
+//        }
+
+        //Alternative approach of finding _P via Chebyshev basis
+        Eigen::MatrixXd cheb_P = ChebTools::u_matrix_library.get(_U - 1).block(0,0,_U, _L);
+
+//        assert(cheb_P.cols() == _L and P_interp.cols() == _L);
+//        Eigen::MatrixXd P_double = InterpolantMatrixToMatrix(P_interp, cheb_P);
+
+//        std::cout << "P_double matrix is : \n" << P_double << std::endl;
+//        std::cout << "cheb_P matrix is: \n" << cheb_P << std::endl;
+
+//        Eigen::MatrixXd concat(P_double.rows(), 2 * _L);
+//        concat << P_double, cheb_P;
+
+//        Eigen::FullPivLU<Eigen::MatrixXd> lu_decomp(concat);
+//        auto rank = lu_decomp.rank();
+//        std::cout << "_L is " << _L << ", _U is " <<  _U << ", and rank is " << rank << std::endl;
+
+
+        //TODO: Option to compute cheb_P via InterpolantDouble;
 
         //TODO: Figure out whehter orthogonalization could be done in double precision to speed up initialisation.
         std::cout << "Constructed." << std::endl;
         std::cout << "Orthogonalize..." << std::endl;
         cxxtimer::Timer orth_timer;
         orth_timer.start();
-        if(not orthogonalize_in_ipm_double) {
-            InterpolantMatrix P_ortho = P_interp.householderQr().householderQ();
-            P_ortho.colwise().hnormalized();
-            InterpolantMatrix P_intermediate = P_ortho.block(0, 0, _U, _L);
-            _P = InterpolantMatrixToMatrix(P_intermediate, _P);
-        }
-        else {
-            Matrix P_tmp = InterpolantMatrixToMatrix(P_interp, _P);
+//        if(not orthogonalize_in_ipm_double) {
+//            InterpolantMatrix P_ortho = P_interp.householderQr().householderQ();
+//            P_ortho.colwise().hnormalized();
+//            InterpolantMatrix P_intermediate = P_ortho.block(0, 0, _U, _L);
+//            _P = InterpolantMatrixToMatrix(P_intermediate, _P);
+//        }
+//        else {
+//            Matrix P_tmp = InterpolantMatrixToMatrix(P_interp, _P);
+            Matrix P_tmp = cheb_P;
             Matrix P_ortho = P_tmp.householderQr().householderQ();
             P_ortho.colwise().hnormalized();
             _P = P_ortho.block(0,0,_U,_L);
-        }
+//        }
+
+//        std::cout << "Col product of cheb matrix: \n" << cheb_P.transpose() * cheb_P << std::endl;
+
         orth_timer.stop();
         std::cout << "Orthogonalization done in " << orth_timer.count<std::chrono::milliseconds>() / 1000.
                   << " seconds." << std::endl;
+
     };
 
     Vector gradient(Vector x) override;

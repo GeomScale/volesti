@@ -224,7 +224,7 @@ void NonSymmetricIPM::run_solver() {
         }
 //        test_hessian();
         //TODO: rewrite code. Currently concatenation is not very smooth. Pass values by reference to concat.
-        create_skajaa_ye_matrix();
+//        create_skajaa_ye_matrix();
 
         assert(centrality() < _beta);
 
@@ -550,8 +550,8 @@ void NonSymmetricIPM::print() {
     _logger->info(format_, "Predictor time (s)", _predictor_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Corrector time (s)", _corrector_timer.count<std::chrono::milliseconds>() / 1000.);
 
-//    _logger->info("Total andersen sys solve time: {} seconds.",
-//                  _andersen_sys_timer.count<std::chrono::seconds>());
+    _logger->info("Total andersen sys solve time: {} seconds.",
+                  _andersen_sys_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Calc centrality time (s)",
                   _centrality_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Time checking interior(s)",
