@@ -192,32 +192,37 @@ public:
 
     if (!exact) {
       for (int r = 0; r < (int) (eta / tol); r++) {
-        for (unsigned int ord = 1; ord < order(); ord++) {
-          for (unsigned int i = 0; i < xs.size(); i++) {
-            y = 0 * y;
-            for (unsigned int j = 1; j < order(); j++) {
-              y += as[i][ord] * grad_phi(t_prev + eta, t_prev, ord, order());
-            }
+        for (unsigned int i = 0; i < xs.size(); i++) {
+          xs[i] = Point(xs[i].dimension());
+          for (unsigned int ord = 0; ord < order(); ord++) {
+            xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
+          }
+        }
 
-            // Keep grads for matrix B
+        for (unsigned int i = 0; i < xs.size(); i++) {
+          for (int ord = 1; ord < order(); ord++) {
+            y = Fs[i](xs, cs[ord] * eta);
             Bs[i].row(ord-1) = y.getCoefficients().transpose();
           }
         }
+
+
+        // Solve linear systems
+        for (int i = 0; i < xs.size(); i++) {
+          // temp contains solution in decreasing order of bases
+          temps[i] = As[i].colPivHouseholderQr().solve(Bs[i]);
+
+          for (int j = 0; j < order() - 1; j++) {
+            // TODO Add vectorized implementation
+            // as[i][order() - j - 1] += temp(j);
+            for (int k = 0; k < xs[0].dimension(); k++) {
+              as[i][order() - j - 1].set_coord(k, temps[i](j, k));
+            }
+          }
+        }
+
       }
 
-      // Solve linear systems
-      // for (int i = 0; i < xs.size(); i++) {
-      //   // temp contains solution in decreasing order of bases
-      //   temps[i] = As[i].colPivHouseholderQr().solve(Bs[i]);
-      //
-      //   for (int j = 0; j < order() - 1; j++) {
-      //     // TODO Add vectorized implementation
-      //     // as[i][order() - j - 1] += temp(j);
-      //     for (int k = 0; k < xs[0].dimension(); k++) {
-      //       as[i][order() - j - 1].set_coord(k, temps[i](j, k));
-      //     }
-      //   }
-      // }
 
     }
 
@@ -225,10 +230,10 @@ public:
     // Compute next point
     for (unsigned int i = 0; i < xs.size(); i++) {
       if (Ks[i] == NULL) {
-        xs[i] = Point(xs[i].dimension());
-        for (unsigned int ord = 0; ord < order(); ord++) {
-          xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
-        }
+        // xs[i] = Point(xs[i].dimension());
+        // for (unsigned int ord = 0; ord < order(); ord++) {
+        //   xs[i] += as[i][ord] * phi(t_prev + eta, t_prev, ord, order());
+        // }
 
         if (prev_facet != -1) Ks[i]->compute_reflection(xs[i], prev_point, prev_facet);
         prev_facet = -1;
