@@ -358,7 +358,7 @@ void NonSymmetricIPM::initialize() {
 
     //Reinitialize with scaled values
 
-    _logger->info("Norm of x is {} and norm of s is {} before rescaling.",x.norm(), s.norm());
+    _logger->info("Norm of x is {} and norm of s is {} before rescaling.", x.norm(), s.norm());
 
     x = _barrier->initialize_x(scaling_delta);
     s = _barrier->initialize_s(scaling_delta);
@@ -550,7 +550,7 @@ void NonSymmetricIPM::print() {
     _logger->info(format_, "Predictor time (s)", _predictor_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Corrector time (s)", _corrector_timer.count<std::chrono::milliseconds>() / 1000.);
 
-    _logger->info("Total andersen sys solve time: {} seconds.",
+    _logger->info("Total andersen sys time: {} seconds.",
                   _andersen_sys_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Calc centrality time (s)",
                   _centrality_timer.count<std::chrono::milliseconds>() / 1000.);
@@ -575,11 +575,11 @@ bool NonSymmetricIPM::terminate_successfully() {
         return false;
     }
     //Primal feasibility
-    if (primal_error_rescaled()> _epsilon) {
+    if (primal_error_rescaled() > _epsilon) {
         return false;
     }
 
-    if(primal_error() > _epsilon){
+    if (primal_error() > _epsilon) {
         return false;
     }
 
@@ -588,7 +588,7 @@ bool NonSymmetricIPM::terminate_successfully() {
         return false;
     }
 
-    if(dual_error() > _epsilon){
+    if (dual_error() > _epsilon) {
         return false;
     }
 
@@ -636,6 +636,17 @@ bool NonSymmetricIPM::terminate() {
 IPMDouble NonSymmetricIPM::centrality() {
     _centrality_timer.start();
 
+    std::vector<IPMDouble> x_vec(x.rows());
+    Vector::Map(&x_vec[0], x.rows()) = x;
+    std::vector<IPMDouble> s_vec(s.rows());
+    Vector::Map(&s_vec[0], s.rows()) = s;
+
+    auto xs_pair = std::pair<std::vector<IPMDouble>, std::vector<IPMDouble> >(x_vec, s_vec);
+    auto it = _stored_centralities.find(xs_pair);
+    if (it != _stored_centralities.end()) {
+        return it->second;
+    }
+
     IPMDouble mu_d = mu();
     Vector psi_vec = psi(mu_d);
 
@@ -663,6 +674,7 @@ IPMDouble NonSymmetricIPM::centrality() {
 
 //    assert(centr_err2 - centr_err < 10e-5);
 
+    _stored_centralities[xs_pair] = centr_err_L;
     _centrality_timer.stop();
 
     return centr_err_L;

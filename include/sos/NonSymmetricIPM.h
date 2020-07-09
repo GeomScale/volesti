@@ -189,6 +189,9 @@ private:
 
     IPMDouble kappa, tau;
 
+    //TODO: Use smaller representation of Vectors; Or just use a FIFO queue.
+    std::map<std::pair<std::vector<IPMDouble>, std::vector<IPMDouble>>, IPMDouble> _stored_centralities;
+
     //Large neighborhood
     IPMDouble _beta;
     //Small neighborhood
