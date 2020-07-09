@@ -233,7 +233,6 @@ public:
         orth_timer.stop();
         std::cout << "Orthogonalization done in " << orth_timer.count<std::chrono::milliseconds>() / 1000.
                   << " seconds." << std::endl;
-//        std::cout << "Orthogonalized matrix P: \n" << _P << std::endl;
     };
 
     Vector gradient(Vector x) override;
@@ -262,7 +261,7 @@ private:
 
     //This variable sets whether the orthogonalisation of P should be done in either the Interpolant Double Type
     // or the IPM Basis Type
-    bool orthogonalize_in_ipm_double = false;
+    bool orthogonalize_in_ipm_double = true;
 };
 
 class ProductBarrier : public LHSCB {

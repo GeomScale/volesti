@@ -32,7 +32,8 @@ on the interval [-1,1].
     * Positive definite rescaling matrix for added stability and monotonicity 
     * Combining Predictor- and Corrector steps.
 * Write tests
-* Include ARPACK/LAPACK. 
+* Include ARPACK/LAPACK. Necessary for sparse Matrix computation. In particular the Polynomial Envelope problem is 
+sparse (2 nonzeros per row) which one should be able to exploit.
 * Interfaces for R (and Python)
     
 #### Current issues
@@ -42,9 +43,7 @@ numbers immensely slow down the IPM
 * Generation of Chebyshev Points / Interpolant Basis dominates the runtime.
 * High degree polynomial (beginning at around degree 25) lead to oscillation near the boundary. But this might be an artifact from these polynomials as opposed to a bug or lack in precision.
 
-
 #### Weekly Progress
-
 
 * Week 1: Implementation of [1,2]. 
 * Week 2: Testing implementation with LP and SDP barrier, Debugging, Refactoring.

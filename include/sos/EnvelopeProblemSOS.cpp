@@ -34,65 +34,37 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
     InterpolantDouble *cheb_ptr = &chebyshev_points[0];
     InterpolantVector cheb_vec = Eigen::Map<InterpolantVector>(cheb_ptr, chebyshev_points.size());
 
-//    _logger->info("The chebyshev points are: \n{}", cheb_vec.transpose());
-
-    Eigen::VectorXd empty_vec(_U);
-    ChebTools::ChebyshevExpansion cheb_exp(empty_vec);
-    Eigen::VectorXd chebtools_nodes = cheb_exp.get_nodes_n11();
-//    _logger->info("Chebtools nodes are: \n{}", chebtools_nodes.transpose());
-
-    Vector tmp_vec = InterpolantVectortoVector(cheb_vec, chebtools_nodes);
-    _logger->info("Delta in points is: {}", (chebtools_nodes - tmp_vec).norm());
-
-    Vector unit_vec_i = Vector::Zero(_U);
-    for (int i = 0; i < _U; ++i) {
-        unit_vec_i.setZero();
-        unit_vec_i(i) = 1.;
-        Vector chebtools_coeff_vec_i = cheb_exp.factoryf(_U - 1, unit_vec_i, -1, 1).coef();
-//        _logger->info("{}-th L vector is: \n{}", i, chebtools_coeff_vec_i.transpose());
-    }
-
-    for (int i = 0; i < _U; ++i) {
-        unit_vec_i.setZero();
-        unit_vec_i(i) = 1.;
-        ChebTools::ChebyshevExpansion cheb_tmp(unit_vec_i);
-        Vector chebtools_coeff_vec_i = cheb_tmp.get_node_function_values();
-//        _logger->info("{}-th U vector is: \n{}", i, chebtools_coeff_vec_i.transpose());
-    }
-
-    _logger->info("Construct interpolant polynomial basis...");
-
-    cxxtimer::Timer interp_basis_timer;
-    interp_basis_timer.start();
-    _basis_polynomials.resize(_U);
-    for (unsigned l = 0; l < _basis_polynomials.size(); ++l) {
-        _basis_polynomials[l] = InterpolantVector::Zero(_U);
-    }
-    InterpolantVector aux_vec(_U);
-    for (unsigned i = 0; i < _U; ++i) {
-        _logger->debug("Construct {}-th basis element.", i);
-        InterpolantVector &poly_i = _basis_polynomials[i];
-        poly_i(0) = 1;
-        InterpolantDouble denom = 1.;
-        for (unsigned j = 0; j < _U; ++j) {
-            if (i != j) {
-                denom *= chebyshev_points[i] - chebyshev_points[j];
-                aux_vec = -chebyshev_points[j] * poly_i;
-//                aux_vec(1) = 1.;
-                InterpolantVector shift(_U + 1);
-                shift << 0, poly_i;
-                poly_i = shift.segment(0, _U) + aux_vec;
-//                poly_i = prod_sos(poly_i, fac_j);
-            }
-        }
-        poly_i /= denom;
-//        _logger->info("{}-th self constructed interpolant polynomial is: \n{}", i, poly_i.transpose());
-
-//        _basis_polynomials[i] = poly_i;
-    }
-    interp_basis_timer.stop();
-    _logger->info("Finished construction in {} seconds.",
-                  interp_basis_timer.count<std::chrono::milliseconds>() / 1000.);
+//    cxxtimer::Timer interp_basis_timer;
+//    interp_basis_timer.start();
+//    _basis_polynomials.resize(_U);
+//    for (unsigned l = 0; l < _basis_polynomials.size(); ++l) {
+//        _basis_polynomials[l] = InterpolantVector::Zero(_U);
+//    }
+//    InterpolantVector aux_vec(_U);
+//    for (unsigned i = 0; i < _U; ++i) {
+//        _logger->debug("Construct {}-th basis element.", i);
+//        InterpolantVector &poly_i = _basis_polynomials[i];
+//        poly_i(0) = 1;
+//        InterpolantDouble denom = 1.;
+//        for (unsigned j = 0; j < _U; ++j) {
+//            if (i != j) {
+//                denom *= chebyshev_points[i] - chebyshev_points[j];
+//                aux_vec = -chebyshev_points[j] * poly_i;
+////                aux_vec(1) = 1.;
+//                InterpolantVector shift(_U + 1);
+//                shift << 0, poly_i;
+//                poly_i = shift.segment(0, _U) + aux_vec;
+////                poly_i = prod_sos(poly_i, fac_j);
+//            }
+//        }
+//        poly_i /= denom;
+////        _logger->info("{}-th self constructed interpolant polynomial is: \n{}", i, poly_i.transpose());
+//
+////        _basis_polynomials[i] = poly_i;
+//    }
+//    interp_basis_timer.stop();
+//    _logger->info("Finished construction in {} seconds.",
+//                  interp_basis_timer.count<std::chrono::milliseconds>() / 1000.);
 
 
     for (unsigned k = 0; k < _basis_polynomials.size(); ++k) {
@@ -103,24 +75,23 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
     }
 
     _logger->info("Construct objectives vector...");
-    _objectives_vector.resize(_U);
-    for (unsigned i = 0; i < _U; ++i) {
-        InterpolantVector &poly = _basis_polynomials[i];
-        InterpolantDouble obj = 0;
-        for (unsigned j = 0; j < _U; ++j) {
-            InterpolantDouble upper_bound_term = poly(j) * pow(_hyperRectangle[0].second, j + 1) / (j + 1);
-            InterpolantDouble lower_bound_term = poly(j) * pow(_hyperRectangle[0].first, j + 1) / (j + 1);
-            obj += upper_bound_term - lower_bound_term;
-        }
-        _objectives_vector(i) = -obj;
-    }
-//    _logger->info("Finished constructing objective vector, has norm {}.", _objectives_vector.norm());
-//    _logger->info("Objectives vector is: \n{}", _objectives_vector);
 
+    //Old way of computing the objective
+//    _objectives_vector.resize(_U);
+//    for (unsigned i = 0; i < _U; ++i) {
+//        InterpolantVector &poly = _basis_polynomials[i];
+//        InterpolantDouble obj = 0;
+//        for (unsigned j = 0; j < _U; ++j) {
+//            InterpolantDouble upper_bound_term = poly(j) * pow(_hyperRectangle[0].second, j + 1) / (j + 1);
+//            InterpolantDouble lower_bound_term = poly(j) * pow(_hyperRectangle[0].first, j + 1) / (j + 1);
+//            obj += upper_bound_term - lower_bound_term;
+//        }
+//        _objectives_vector(i) = -obj;
+//    }
 
     //Faster, cleverer Clenshaw-Curtis algorithm
 
-//    get_CC_integrals();
+    get_CC_integrals();
 
 }
 
@@ -145,7 +116,7 @@ void EnvelopeProblemSOS::get_CC_integrals() {
     FourierCoeff(_L - 1) = 1. / (1 - int((_U - 1) * (_U - 1)));
 
     for (int m = 1; m < _L - 1; ++m) {
-        FourierCoeff(m) = 2. / (1 - 2 * m  * 2 * m);
+        FourierCoeff(m) = 2. / (1 - 2 * m * 2 * m);
     }
 
     Vector ClenshawCurtisWeights(_U);
@@ -155,12 +126,17 @@ void EnvelopeProblemSOS::get_CC_integrals() {
     ClenshawCurtisWeights(_L - 1) *= 2;
 
     IPMDouble dummy_double;
-    InterpolantDouble obj_norm = _objectives_vector.norm();
-    ClenshawCurtisWeights *= InterpolantDoubletoIPMDouble(obj_norm, dummy_double) / ClenshawCurtisWeights.norm();
+//    InterpolantDouble obj_norm = _objectives_vector.norm();
+//    ClenshawCurtisWeights *= InterpolantDoubletoIPMDouble(obj_norm, dummy_double) / ClenshawCurtisWeights.norm();
 
-    Vector obj_double = InterpolantVectortoVector(_objectives_vector, ClenshawCurtisWeights);
+//    Vector obj_double = InterpolantVectortoVector(_objectives_vector, ClenshawCurtisWeights);
 
-    _logger->info("Objectives difference is {}", (ClenshawCurtisWeights + obj_double).norm());
+//    _logger->info("Objectives difference is {}", (ClenshawCurtisWeights + obj_double).norm());
+
+    _objectives_vector.resize(_U);
+    for (int i = 0; i < _objectives_vector.rows(); i++) {
+        _objectives_vector(i) = -ClenshawCurtisWeights(i);
+    }
 }
 
 void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
