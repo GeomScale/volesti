@@ -424,7 +424,12 @@ void test_collocation_constrained(){
     CollocationODESolver<Point, NT, Hpolytope, bfunc> c_solver =
       CollocationODESolver<Point, NT, Hpolytope, bfunc>
       (0, 0.05, q, Fs, Ks, cs, phi, grad_phi);
-    c_solver.steps(1000);
+    // c_solver.steps(1000);
+
+    for (int i = 0; i < 1000; i++) {
+      c_solver.step();
+      c_solver.print_state();
+    }
 
     NT err=0.1;
     NT target = 1.0;
