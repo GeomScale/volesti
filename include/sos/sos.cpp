@@ -12,7 +12,7 @@
 #include "spdlog/cfg/env.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <fstream>
-#include "tests.cpp"
+#include "misc/tests.cpp"
 
 int main(int const argc, char **argv) {
 
@@ -21,21 +21,41 @@ int main(int const argc, char **argv) {
     auto console = spdlog::stdout_color_mt("console");
     console->info("Logger level is {}", console->level());
 
-    std::ifstream file;
+    std::ifstream instance_file;
+    std::ifstream config_file;
+
     if (argc < 2) {
         console->info("No data file provided. The default file will be used instead.");
-        file.open("../config/default.txt");
-        if (not file.is_open()) {
-            file.open("config/default.txt");
+        instance_file.open("../config/instance.txt");
+        if (not instance_file.is_open()) {
+            instance_file.open("config/instance.txt");
         }
-        if (not file.is_open()) {
+        if (not instance_file.is_open()) {
             console->error("Could not locate file.");
             return 1;
         }
     } else {
-        file.open(argv[1]);
-        if(not file.is_open()){
-            console->error("Could not local file {}", argv[1]);
+        instance_file.open(argv[1]);
+        if(not instance_file.is_open()){
+            console->error("Could not locate file {}", argv[1]);
+            return 1;
+        }
+    }
+
+    if (argc < 3) {
+        console->info("No configuration file provided. The default file will be used instead.");
+        config_file.open("../config/config.txt");
+        if (not config_file.is_open()) {
+            config_file.open("config/config.txt");
+        }
+        if (not config_file.is_open()) {
+            console->error("Could not locate file.");
+            return 1;
+        }
+    } else {
+        config_file.open(argv[2]);
+        if(not config_file.is_open()){
+            console->error("Could not locate file {}", argv[2]);
             return 1;
         }
     }
@@ -57,7 +77,7 @@ int main(int const argc, char **argv) {
     }
 
     std::string line;
-    std::getline(file, line);
+    std::getline(instance_file, line);
     std::istringstream iss(line);
     int max_degree;
     iss >> max_degree;
@@ -70,7 +90,7 @@ int main(int const argc, char **argv) {
                                                              interval_upper_bound));
     EnvelopeProblemSOS envelopeProblemSos(1, max_degree, hyperRectangle);
 
-    while (std::getline(file, line)) {
+    while (std::getline(instance_file, line)) {
         std::istringstream poly_stream(line);
         InterpolantVector sos_poly = envelopeProblemSos.generate_zero_polynomial();
         IPMDouble val;
@@ -87,7 +107,7 @@ int main(int const argc, char **argv) {
 
     Instance instance_interp = envelopeProblemSos.construct_SOS_instance();
 
-    NonSymmetricIPM sos_solver_interp(instance_interp);
+    NonSymmetricIPM sos_solver_interp(instance_interp, config_file);
 
     sos_solver_interp.run_solver();
 

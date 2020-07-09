@@ -4,6 +4,7 @@
 //
 // Licensed under GNU LGPL.3, see LICENCE filee
 
+#include <spdlog/sinks/basic_file_sink.h>
 #include "NonSymmetricIPM.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/fmt/ostr.h"
@@ -46,8 +47,6 @@ Matrix NonSymmetricIPM::create_matrix_G() {
 
 std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen_subsystem(
         std::vector<std::pair<Vector, Vector> > &v) {
-//    assert(r1.rows() == A.rows());
-//    assert(r2.rows() == A.cols());
 
     Matrix mu_H_x = mu() * _barrier->hessian(x);
 
@@ -323,8 +322,15 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
 
     _logger = spdlog::get("NonSymmetricIPM");
     if (_logger == nullptr) {
-        _logger = spdlog::stdout_color_mt("NonSymmetricIPM");
+//        _logger = spdlog::stdout_color_mt("NonSymmetricIPM");
+//        _logger->set_level(spdlog::level::info);
+
+        std::vector<spdlog::sink_ptr> sinks;
+        sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+        sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/logfile.txt"));
+        _logger = std::make_shared<spdlog::logger>("NonSymmetricIPM", begin(sinks), end(sinks));
         _logger->set_level(spdlog::level::info);
+
     }
     initialize();
 }
@@ -352,15 +358,24 @@ void NonSymmetricIPM::initialize() {
 
     //Reinitialize with scaled values
 
+    _logger->info("Norm of x is {} and norm of s is {} before rescaling.",x.norm(), s.norm());
+
     x = _barrier->initialize_x(scaling_delta);
     s = _barrier->initialize_s(scaling_delta);
 
+    //For sake of stability force errors
+//    assert(primal_error() > 0 and dual_error() > 0);
+//    IPMDouble const primal_equality_rescale_factor = dual_error() / primal_error();
+//    A *= primal_equality_rescale_factor;
+//    b *= primal_equality_rescale_factor;
+
     _logger->info("Rescaled initial point by {}", scaling_delta);
+    _logger->info("Norm of c is {}, Norm of b is {} and norm of A is {} ", c.norm(), b.norm(), A.norm());
 
     assert(x.rows() == _barrier->getNumVariables());
 
-    _logger->debug("x is initialized as: {}", x.transpose());
-    _logger->debug("s is initialized as: {}", s.transpose());
+    _logger->info("Norm of x is initialized as: {}", x.norm());
+    _logger->info("Norm of s is initialized as: {}", s.norm());
 
     Matrix QR = A.transpose().householderQr().householderQ();
 
@@ -375,11 +390,8 @@ void NonSymmetricIPM::initialize() {
     _num_corrector_steps = 3;
     _beta = .99;
     _beta_small = 0.1;
-    IPMDouble epsilon = 0.5;
-    IPMDouble eta = _beta * pow(epsilon, _num_corrector_steps);
-    IPMDouble k_x = eta + sqrt(2 * eta * eta + _barrier->concordance_parameter(x) + 1);
 
-    _step_length_predictor = 0.020 / k_x;
+    _step_length_predictor = calc_step_length_predictor();
     //TODO: Figure out what good steplength is. Even .5 step-length led to issues.
     _step_length_corrector = 1;
 }
@@ -557,18 +569,29 @@ void NonSymmetricIPM::print() {
 //According to Skajaa-Ye
 
 bool NonSymmetricIPM::terminate_successfully() {
+    //TODO: use same criteria as in infeasilbe (i.e. scaling invariant and what is used in Skajaa-Ye)
     //Duality
     if (x.dot(s) > _epsilon * tau * tau) {
         return false;
     }
     //Primal feasibility
-    if ((A * x / tau - b).norm() > _epsilon) {
+    if (primal_error_rescaled()> _epsilon) {
         return false;
     }
+
+    if(primal_error() > _epsilon){
+        return false;
+    }
+
     //Dual feasibility
-    if ((A.transpose() * y / tau + s / tau - c).norm() > _epsilon) {
+    if (dual_error_rescaled() > _epsilon) {
         return false;
     }
+
+    if(dual_error() > _epsilon){
+        return false;
+    }
+
     return true;
 }
 
@@ -611,7 +634,6 @@ bool NonSymmetricIPM::terminate() {
 
 
 IPMDouble NonSymmetricIPM::centrality() {
-
     _centrality_timer.start();
 
     IPMDouble mu_d = mu();
@@ -621,7 +643,7 @@ IPMDouble NonSymmetricIPM::centrality() {
     Eigen::LLT<Matrix> LLT = _barrier->llt(x);
 
     if (LLT.info() == Eigen::NumericalIssue) {
-        _logger->error("Issue in LLT decompoosition. Terminate");
+        _logger->error("Issue in LLT decomposition. Terminate");
         exit(1);
     }
 

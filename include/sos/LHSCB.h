@@ -218,10 +218,18 @@ public:
         std::cout << "Orthogonalize..." << std::endl;
         cxxtimer::Timer orth_timer;
         orth_timer.start();
-        InterpolantMatrix P_ortho = P_interp.householderQr().householderQ();
-        P_ortho.colwise().hnormalized();
-        InterpolantMatrix P_intermediate = P_ortho.block(0, 0, _U, _L);
-        _P = InterpolantMatrixToMatrix(P_intermediate, _P);
+        if(not orthogonalize_in_ipm_double) {
+            InterpolantMatrix P_ortho = P_interp.householderQr().householderQ();
+            P_ortho.colwise().hnormalized();
+            InterpolantMatrix P_intermediate = P_ortho.block(0, 0, _U, _L);
+            _P = InterpolantMatrixToMatrix(P_intermediate, _P);
+        }
+        else {
+            Matrix P_tmp = InterpolantMatrixToMatrix(P_interp, _P);
+            Matrix P_ortho = P_tmp.householderQr().householderQ();
+            P_ortho.colwise().hnormalized();
+            _P = P_ortho.block(0,0,_U,_L);
+        }
         orth_timer.stop();
         std::cout << "Orthogonalization done in " << orth_timer.count<std::chrono::milliseconds>() / 1000.
                   << " seconds." << std::endl;
@@ -251,6 +259,10 @@ private:
     std::vector<InterpolantDouble> _unisolvent_basis;
     unsigned _L, _U;
     Matrix _P;
+
+    //This variable sets whether the orthogonalisation of P should be done in either the Interpolant Double Type
+    // or the IPM Basis Type
+    bool orthogonalize_in_ipm_double = false;
 };
 
 class ProductBarrier : public LHSCB {

@@ -15,8 +15,11 @@
 #include <cxxtimer.hpp>
 #include "spdlog/spdlog.h"
 
+#ifndef DIGITS_PRECISION
+#define DIGITS_PRECISION 50
+#endif
 
-typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<50> > BoostDouble;
+typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<DIGITS_PRECISION> > BoostDouble;
 typedef BoostDouble InterpolantDouble;
 
 typedef long double long_double;

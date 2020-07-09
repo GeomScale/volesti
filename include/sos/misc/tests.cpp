@@ -4,8 +4,8 @@
 //
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#include "utils.cpp"
-#include "NonSymmetricIPM.h"
+#include "../utils.cpp"
+#include "../NonSymmetricIPM.h"
 
 void test_speed_of_types(int max_degree) {//Test matrix inversion runtime
 

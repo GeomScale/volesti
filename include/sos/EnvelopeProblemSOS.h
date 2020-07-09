@@ -79,9 +79,11 @@ private:
     //This bool sets whether the transformation matrix from the
     //standard monomial basis to the Lagrange basis through the
     //Chebyshev points of second kind is calculated.
-    //Set to true if you want to save runtime but have arbitrary
+    //Set to true if you want to save runtime but have
     //arbitrary polynomials plotted.
-    bool _input_in_interpolant_basis = false;
+    bool _input_in_interpolant_basis = true;
+
+    void get_CC_integrals() ;
 };
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H

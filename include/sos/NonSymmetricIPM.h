@@ -10,6 +10,7 @@
 #include "LHSCB.h"
 #include <iostream>
 #include <cxxtimer.hpp>
+#include <fstream>
 
 
 class Instance {
@@ -47,13 +48,69 @@ public:
         _logger->set_level(spdlog::level::info);
     };
 
+    NonSymmetricIPM(Instance &instance, std::ifstream & config_file) : NonSymmetricIPM(instance){
+       //TODO: smoother file parsing
+       std::string line;
+       std::getline(config_file, line);
+       std::istringstream ss(line);
+       ss >> _epsilon;
+       _logger->info("Set epsilon to {}", _epsilon);
+
+       ss.clear();
+       std::getline(config_file, line);
+       ss.str(line);
+       ss >> _num_corrector_steps;
+       _logger->info("Set num corrector steps to {}", _num_corrector_steps);
+
+        ss.clear();
+        std::getline(config_file, line);
+        ss.str(line);
+        ss >> _beta;
+        _logger->info("Set large neighborhood to {}", _beta);
+
+        ss.clear();
+        std::getline(config_file, line);
+        ss.str(line);
+        ss >> _beta_small;
+        _logger->info("Set small neighborhood to {}", _beta_small);
+
+        ss.clear();
+        std::getline(config_file, line);
+        ss.str(line);
+        ss >> _param_step_length_predictor;
+        _logger->info("Set scale predictor step to {}", _param_step_length_predictor);
+
+        ss.clear();
+        std::getline(config_file, line);
+        ss.str(line);
+        ss >> _step_length_corrector;
+        _logger->info("Set scale corrector step to {}", _step_length_corrector);
+
+        _step_length_predictor = calc_step_length_predictor();
+    }
+
+    IPMDouble calc_step_length_predictor(){
+        IPMDouble const epsilon = .5;
+        IPMDouble const eta = _beta * pow(epsilon, _num_corrector_steps);
+        IPMDouble const k_x = eta + sqrt(2 * eta * eta + _barrier->concordance_parameter(x) + 1);
+        return _param_step_length_predictor / k_x;
+    }
+
     void run_solver();
 
-    inline IPMDouble primal_error() {
+    inline IPMDouble primal_error(){
+        return (A * x - tau * b ).norm();
+    }
+
+    inline IPMDouble dual_error(){
+        return (A.transpose() * y + s - tau * c).norm();
+    }
+
+    inline IPMDouble primal_error_rescaled() {
         return (A * x / tau - b).norm();
     }
 
-    inline IPMDouble dual_error() {
+    inline IPMDouble dual_error_rescaled() {
         return (A.transpose() * y / tau + s / tau - c).norm();
     }
 
@@ -65,10 +122,10 @@ public:
         if (not _barrier->in_interior(x)) {
             return false;
         }
-        if (primal_error() > precision) {
+        if (primal_error_rescaled() > precision) {
             return false;
         }
-        if (dual_error() > precision) {
+        if (dual_error_rescaled() > precision) {
             return false;
         }
 
@@ -108,6 +165,9 @@ private:
 
     unsigned _num_predictor_steps = 500;
     unsigned _num_corrector_steps;
+
+    IPMDouble _param_step_length_predictor = 0.02;
+
     IPMDouble _step_length_predictor;
     IPMDouble _step_length_corrector;
 
