@@ -4,7 +4,6 @@
 
 using namespace std;
 
-
 HPolytopeCPP::HPolytopeCPP() {}
 HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_variables){
    MT A;
@@ -24,88 +23,108 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
    HP.init(n_variables,A,b);
    CheBall = HP.ComputeInnerBall();
 }
-
 HPolytopeCPP::~HPolytopeCPP(){}
 
 
-double HPolytopeCPP::compute_volume(char* method, int walk_len, double epsilon, uint seed){
-   //Parameter setup
-   int n = HP.dimension();
-   int rnum;
-   NT C;
-   NT ratio;
-   int N;
-   int W;
+//////////          start of "compute_volume"
 
-   RNGType rng(seed);
-   // boost::normal_distribution<> rdist(0,1);
-   boost::random::uniform_real_distribution<>(urdist);
-   boost::random::uniform_real_distribution<> urdist1(-1,1);
-
-   Hpolytope HP_copy;
-   HP_copy.init(HP.dimension(), HP.get_mat(), HP.get_vec());
-   NT vol;
-
-   if (strcmp(method,"sequence_of_balls")==0){
-      rnum = std::pow(epsilon,-2) * 400 * n * std::log(n);
-      C=2;
-      ratio = 1.0-1.0/(NT(n));
-      N = 500 * ((int) C) + ((int) (n * n / 2));
-      W = 4*n*n+500;
-      vars<NT, RNGType> var1_SoB(rnum,n,walk_len,1,0,1,0,0,0,0,rng,
-         urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
-      vol = volume(HP_copy, var1_SoB, CheBall);
+double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed){
+  
+   double volume;
+   
+   if (strcmp(vol_method,"sequence_of_balls")==0){ 
+      if (strcmp(walk_method,"uniform_ball")==0){
+         volume = volume_sequence_of_balls<BallWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"CDHR")==0){
+         volume = volume_sequence_of_balls<CDHRWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"RDHR")==0){
+         volume = volume_sequence_of_balls<RDHRWalk, RNGType>(HP, epsilon, walk_len);
+      }
    }
-   else{//method=="gaussian_annealing"
-      rnum = std::pow(1,-2) * 400 * n * std::log(n);
-      C=2;
-      ratio = 1.0-1.0/(NT(n));
-      N = 500 * ((int) C) + ((int) (n * n / 2));
-      W = 4*n*n+500;
-      vars<NT, RNGType> var1_GA(rnum,n,walk_len,1,0,1,0,0,0,0,rng,
-         urdist,urdist1,-1.0,false,false,false,false,false,false,true,false);
-      vars_g<NT, RNGType> var2_GA(n,walk_len,N,W,1,epsilon,CheBall.second,rng,C,0.1,ratio,-1,false,
-         false,false,false,false,false,false,true,false);
-      vol = volume_cooling_gaussians(HP_copy, var2_GA, var1_GA, CheBall);
+   else if (strcmp(vol_method,"cooling_gaussian")==0){
+      if (strcmp(walk_method,"gaussian_ball")==0){
+         volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"gaussian_CDHR")==0){
+         volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(HP, epsilon, walk_len);
+      } else if (strcmp(walk_method,"gaussian_RDHR")==0){
+         volume = volume_cooling_gaussians<GaussianRDHRWalk, RNGType>(HP, epsilon, walk_len);
+      }
+   } else if (strcmp(vol_method,"cooling_balls")==0){
+       if (strcmp(walk_method,"uniform_ball")==0){
+         volume = volume_cooling_balls<BallWalk, RNGType>(HP, epsilon, walk_len);
+       } else if (strcmp(walk_method,"CDHR")==0){
+         volume = volume_cooling_balls<CDHRWalk, RNGType>(HP, epsilon, walk_len);
+       } else if (strcmp(walk_method,"RDHR")==0){
+         volume = volume_cooling_balls<RDHRWalk, RNGType>(HP, epsilon, walk_len);
+       } else if (strcmp(walk_method,"billiard")==0){
+         volume = volume_cooling_balls<BilliardWalk, RNGType>(HP, epsilon, walk_len);
+       }
    }
-   return (double)vol;
+   return volume;
 }
+//////////         end of "compute_volume"  
 
+//////////         start if "generate_samples"
 
+double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian,   bool set_L, bool billiard, bool ball_walk, double a, double L, double* samples){
+   
+   cout<<"Hello friend. This is the generate_samples function you are in \n";
+   
+   //double* samples;
+   RNGType rng(HP.dimension());
+   std::list<Point> rand_points;
+   
+   //Point default_starting_point = HP.ComputeInnerBall().first;
+   Point starting_point = HP.ComputeInnerBall().first;
+   
+   if (boundary == true) {      
+      if (cdhr == true) {    
+         uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         } else {
+            uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         }
+   } else if (cdhr == true) {
+      if (gaussian == true) {
+         gaussian_sampling<GaussianCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<CDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      }
+   } else if (rdhr == true){
+      if (gaussian == true) {
+         gaussian_sampling<GaussianRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<RDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      }
+   } else if (billiard == true) {
+      if (set_L == true) {
+         BilliardWalk WalkType(L);
+         uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<BilliardWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+      }
+   } else {
+      if (set_L == true) {
+         if (gaussian == true) {
+            GaussianBallWalk WalkType(L);
+            gaussian_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+            } else {
+               BallWalk WalkType(L);
+               uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+            }
+        } else {
+            if (gaussian == true) {
+               gaussian_sampling<GaussianBallWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+            } else {
+               uniform_sampling<BallWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+            }
+        }
+   }
+   
+   std::cout<<"sampling completed"<<std::endl;
 
-void HPolytopeCPP::generate_samples(int walk_len, int n_samples, double* samples, uint seed){
-   //Parameter setup
-   int n = HP.dimension();
-
-   int rnum = std::pow(1,-2) * 400 * n * std::log(n);
-   NT C=2;
-   NT ratio = 1.0-1.0/(NT(n));
-   int N = 500 * ((int) C) + ((int) (n * n / 2));
-   int W = 4*n*n+500;
-
-   double epsilon_dummy = 0.1;
-
-   RNGType rng(seed);
-   // boost::normal_distribution<> rdist(0,1);
-   boost::random::uniform_real_distribution<>(urdist);
-   boost::random::uniform_real_distribution<> urdist1(-1,1);
-
-
-   vars<NT, RNGType> var1(rnum,n,walk_len,1,0,1,0,0,0,CheBall.second,rng,
-      urdist,urdist1,-1,false,false,false,false,false,false,true,false);
-   vars_g<NT, RNGType> var2(n,walk_len,N,W,1,epsilon_dummy,CheBall.second,rng,
-      C,0.1,ratio,-1,false,false,false,false,false,false,false,true,false);
-
-   std::list <Point> randPoints;
-   bool gaussian_samples = false;
-   //make this a parameter once gaussian_samples if a parameter too and can be true also.
-   double a_dummy = 1.0;
-
-   uniform_sampling<Point>(randPoints, HP, walk_len, n_samples, gaussian_samples,
-                           a_dummy, CheBall.first, var1, var2);
-
+// The following block of code should NOT be removed!
    auto n_si=0;
-   for (auto it_s = randPoints.begin(); it_s != randPoints.end(); it_s++){
+   for (auto it_s = rand_points.begin(); it_s != rand_points.end(); it_s++){
       for (auto i = 0; i != it_s->dimension(); i++){
          samples[n_si++] = (*it_s)[i];
       }

@@ -7,3 +7,4 @@ Later, Chalkis Apostolos affiliated with University of Athens (NKUA, Greece) and
 We acknowledge several contributions by the open-source community most notably: 
 * Pedro Zuidberg Dos Martires (KU Leuven): `python` interface
 * Panagiotis Repouskos (NKUA, Greece): linear algebra operations with `eigen` 
+* Haris Zafeiropoulos (UoC, Greece): `python` interface

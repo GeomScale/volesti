@@ -1,3 +1,5 @@
+#!/usr/bin/python3.6
+
 import numpy as np
 from volestipy import HPolytope
 
@@ -32,9 +34,11 @@ if __name__ == "__main__":
     print("b vector:")
     print(p.b)
 
-    volume_SoB = p.compute_volume(walk_len=5, epsilon=0.05, method="sequence_of_balls", seed=42)
-    volume_GA = p.compute_volume(walk_len=5, epsilon=0.05, method="gaussian_annealing", seed=42)
-    samples = p.generate_samples(walk_len=5, n_samples=80000, seed=42)
+    volume_SoB = p.compute_volume(walk_len=5, epsilon=0.05, vol_method="sequence_of_balls", seed=42)
+    volume_GA = p.compute_volume(walk_len=5, epsilon=0.05, vol_method = "cooling_gaussian", seed=42)
+    samples = p.generate_samples(walk_len = 5, number_of_points = 80000, number_of_points_to_burn = 50, boundary = True, cdhr = True, rdhr = False, 
+              gaussian = False, set_L = False, billiard = False, ball_walk = False, a = 0, L = 0)
+
 
 
     print("Volume (sequence of balls): {}".format(volume_SoB))
