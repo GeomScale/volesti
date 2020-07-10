@@ -305,8 +305,9 @@ struct gaussian_annealing_parameters
 template
 <
     typename WalkTypePolicy,
-    typename RandomNumberGenerator,
-    typename Polytope
+    typename Polytope,
+    typename RandomNumberGenerator
+
 >
 double volume_cooling_gaussians(Polytope const& Pin,
                                 RandomNumberGenerator& rng,
@@ -450,7 +451,8 @@ double volume_cooling_gaussians(Polytope const& Pin,
                 done=true;
             }
 
-            index = index==W ? 0 : index%W + 1;
+            index = index%W + 1;
+            if (index == W) index = 0;
         }
 #ifdef VOLESTI_DEBUG
         std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)

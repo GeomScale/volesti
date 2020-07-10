@@ -25,8 +25,7 @@
 //' @param T Optional. A rotation matrix.
 //' @param seed Optional. A fixed seed for the random linear map generator.
 //'
-//' @section warning:
-//' Do not use this function.
+//' @keywords internal
 //'
 //' @return A matrix that describes the rotated polytope
 // [[Rcpp::export]]

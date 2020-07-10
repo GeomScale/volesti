@@ -80,25 +80,25 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
     return vol;
 }
 
-//' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope or a zonotope)
+//' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)
 //'
-//' For the volume approximation can be used two algorithms. Either SequenceOfBalls or CoolingGaussian. A H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{Ax\leq b}. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
+//' For the volume approximation can be used three algorithms. Either CoolingBodies (CB) or SequenceOfBalls (SOB) or CoolingGaussian (CG). An H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 //'
-//' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
+//' @param P A convex polytope. It is an object from class a) Hpolytope or b) Vpolytope or c) Zonotope or d) VpolytopeIntersection.
 //' @param settings Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
 //' \itemize{
-//' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'SoB'} for SequenceOfBalls or b) \code{'CG'} for CoolingGaussian or c) \code{'CB'} for cooling bodies. The defalut algorithm for H-polytopes is \code{'CB'} when \eqn{d\leq 200} and \code{'CG'} when \eqn{d>200}. For the other representations the default algorithm is \code{'CB'}.}
-//' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for \code{'SOB'} and \eqn{0.1} otherwise.}
-//' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. The default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations.}
+//' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'CB'} for CB algorithm, b) \code{'SoB'} for SOB algorithm or b) \code{'CG'} for CG algorithm. The defalut algorithm for H-polytopes is \code{'CB'} when \eqn{d\leq 200} and \code{'CG'} when \eqn{d>200}. For the other representations the default algorithm is \code{'CB'}.}
+//' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for SOB algorithm and \eqn{0.1} otherwise.}
+//' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. For CB and SOB algorithms the default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations. For CG algorithm the default walk is \code{'CDHR'} for H-polytopes and \code{'RDHR'} for the other representations.}
 //' \item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for \code{'SOB'} and \eqn{1} otherwise.}
-//' \item{\code{win_len} }{ The length of the sliding window for CG algorithm. The default value is \eqn{500+4dimension^2}.}
-//' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm. The default value is \code{FALSE}.}
+//' \item{\code{win_len} }{ The length of the sliding window for CB or CG algorithm. The default value is \eqn{400+3d^2} for CB or \eqn{500+4d^2} for CG.}
+//' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm when the input polytope is a zonotope. The default value is \code{TRUE} when the order of the zonotope is \eqn{<5}, otherwise it is \code{FALSE}.}
 //' }
 //' @param rounding Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.
 //' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @references \cite{I.Z.Emiris and V. Fisikopoulos,
-//' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2014.},
+//' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2018.},
 //' @references \cite{A. Chalkis and I.Z.Emiris and V. Fisikopoulos,
 //' \dQuote{Practical Volume Estimation by a New Annealing Schedule for Cooling Convex Bodies,} \emph{CoRR, abs/1905.05494,} 2019.},
 //' @references \cite{B. Cousins and S. Vempala, \dQuote{A practical volume algorithm,} \emph{Springer-Verlag Berlin Heidelberg and The Mathematical Programming Society,} 2015.}
@@ -106,17 +106,19 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 //'
 //' @return The approximation of the volume of a convex polytope.
 //' @examples
-//' # calling SOB algorithm for a H-polytope (2d unit simplex)
-//' P = gen_simplex(2,'H')
-//' vol = volume(P)
 //'
-//' # calling CG algorithm for a V-polytope (3d simplex)
-//' P = gen_simplex(2,'V')
-//' vol = volume(P, settings = list("algorithm" = "CG"))
+//' # calling SOB algorithm for a H-polytope (3d unit simplex)
+//' HP = gen_cube(3,'H')
+//' vol = volume(HP)
+//'
+//' # calling CG algorithm for a V-polytope (2d simplex)
+//' VP = gen_simplex(2,'V')
+//' vol = volume(VP, settings = list("algorithm" = "CG"))
 //'
 //' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 //' Z = gen_rand_zonotope(2, 4)
-//' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 5))
+//' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
+//'
 //' @export
 // [[Rcpp::export]]
 double volume (Rcpp::Reference P,
@@ -149,7 +151,7 @@ double volume (Rcpp::Reference P,
     NT e;
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("algorithm")) {
-        if (type == 2 || type == 3) {
+        if (type == 2 || type == 3 || type == 4) {
             CB = true;
         } else if (n <= 200) {
             CB = true;
@@ -289,7 +291,12 @@ double volume (Rcpp::Reference P,
             InterVP VPcVP;
             VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
             VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
-            VPcVP.init(VP1, VP2);
+            if (!seed.isNotNull()) {
+                VPcVP.init(VP1, VP2);
+            } else {
+                unsigned seed3 = Rcpp::as<double>(seed);
+                VPcVP.init(VP1, VP2, seed3);
+            }
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             return generic_volume(VPcVP, rng, walkL, e, CG, CB, win_len, round,
                                              cdhr, rdhr, ball_walk, billiard, type);

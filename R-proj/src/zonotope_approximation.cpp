@@ -24,8 +24,7 @@
 //' @param settings Optional. A list that declares the values of the parameters of CB algorithm.
 //' @param seed Optional. A fixed seed for the number generator.
 //'
-//' @section warning:
-//' Do not use this function.
+//' @keywords internal
 //'
 //' @return A List that contains a numerical matrix that describes the PCA approximation as a H-polytope and the ratio of fitness.
 // [[Rcpp::export]]

@@ -15,12 +15,12 @@ gen_cube(dimension, representation)
 A polytope class representing the unit \eqn{d}-dimensional hypercube in H- or V-representation.
 }
 \description{
-This function can be used to generate the \eqn{d}-dimensional unit hypercube \eqn{[-1,1]^d} in H- or V-representation.
+This function generates the \eqn{d}-dimensional unit hypercube \eqn{[-1,1]^d} in H- or V-representation.
 }
 \examples{
 # generate a 10-dimensional hypercube in H-representation
 P = gen_cube(10, 'H')
 
 # generate a 15-dimension hypercube in V-representation
-P = gen_cube(15, 'V')
+P = gen_cube(5, 'V')
 }

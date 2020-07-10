@@ -36,6 +36,7 @@ for (i in 1:2) {
   }
 
   test_that("Volume Zonotope_2_4", {
+    #skip_if(Sys.info()[["machine"]] %in% c("x86_32"))
     Z = gen_rand_zonotope(2, 4, seed = 127)
     res = Zruntest(Z, 'Zonotope_2_4', tol, num_of_exps, algo, 5)
     expect_equal(res, 1)

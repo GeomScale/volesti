@@ -44,6 +44,7 @@ else ()
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/misc)
   include_directories (BEFORE ../include/optimization)
+
   include_directories (BEFORE ../include/convex_bodies/spectrahedra)
 
   # for Eigen

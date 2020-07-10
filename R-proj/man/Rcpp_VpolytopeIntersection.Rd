@@ -20,6 +20,9 @@ An intersection of two V-polytopes, \eqn{P_1}, \eqn{P_2}, is defined by the inte
   
 \item{\code{type} }{ An integer that declares the representation of the polytope. For these kinf of polytopes the default value is 4.}
   
-\item{\code{dimension} }{ An integer that declares the dimension of the polytope.}
+\item{\code{dimension} }{ The dimension of the polytope.}
+
+\item{\code{volume} }{ The volume of the polytope, if it is known.}
  }
 }
+\keyword{internal}

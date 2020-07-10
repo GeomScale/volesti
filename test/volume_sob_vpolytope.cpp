@@ -99,11 +99,11 @@ void call_test_cross(){
 
     std::cout << "--- Testing volume of V-cross5" << std::endl;
     P = gen_cross<Vpolytope>(5, true);
-    test_volume(P, 0.271736, 0.266666667);
+    test_volume(P, 0.265422, 0.266666667);
 
     std::cout << "--- Testing volume of V-cross10" << std::endl;
     P = gen_cross<Vpolytope>(10, true);
-    test_volume(P, 0.000280621, 0.0002821869);
+    test_volume(P, 0.000283788, 0.0002821869);
 }
 
 template <typename NT>
@@ -117,7 +117,7 @@ void call_test_simplex() {
 
     std::cout << "--- Testing volume of V-simplex5" << std::endl;
     P = gen_simplex<Vpolytope>(5, true);
-    test_volume(P, 0.0100291, 1.0 / factorial(10.0));
+    test_volume(P, 0.00827958, 1.0 / factorial(10.0));
 
     // too slow for SoB
 //    std::cout << "--- Testing volume of V-simplex10" << std::endl;

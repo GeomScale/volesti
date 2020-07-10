@@ -38,11 +38,7 @@ private:
 
 public:
 
-    HPolytope()
-    {
-        typedef typename Point::FT NT;
-        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
-    }
+    HPolytope() {}
 
     std::pair<Point,NT> InnerBall() const
     {

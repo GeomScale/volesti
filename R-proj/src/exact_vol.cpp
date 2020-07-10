@@ -31,11 +31,14 @@ FT factorial(FT n)
 //'
 //' @param P A polytope
 //'
+//' @references \cite{E. Gover and N. Krikorian,
+//' \dQuote{Determinants and the Volumes of Parallelotopes and Zonotopes,} \emph{Linear Algebra and its Applications, 433(1), 28 - 40,} 2010.}
+//'
 //' @return The exact volume of the input polytope, for zonotopes, simplices in V-representation and polytopes with known exact volume
 //' @examples
 //'
 //' # compute the exact volume of a 5-dimensional zonotope defined by the Minkowski sum of 10 segments
-//' Z = gen_rand_zonotope(5, 10)
+//' Z = gen_rand_zonotope(2, 5)
 //' vol = exact_vol(Z)
 //'
 //' \donttest{# compute the exact volume of a 2-d arbitrary simplex

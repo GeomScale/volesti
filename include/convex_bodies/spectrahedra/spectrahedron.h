@@ -14,6 +14,7 @@
 #include "chrono"
 #include "random.hpp"
 
+
 /// This class manipulates a spectrahedron, described by a LMI
 /// \tparam NT Numeric Type
 /// \tparam MT Matrix Type
@@ -56,6 +57,7 @@ public:
             computed_XY = computed_C = computed_A = false;
         }
     };
+
 
     /// The dimension of the spectrahedron
     unsigned int d;
@@ -160,6 +162,7 @@ public:
         NT dot = 2 * incomingDirection.dot(grad);
         reflectedDirection = incomingDirection - dot * grad;
     }
+
 
     /// \return The dimension of the spectrahedron
     unsigned int dimension() const {

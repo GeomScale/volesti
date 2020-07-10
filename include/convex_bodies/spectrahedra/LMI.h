@@ -180,6 +180,7 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
         for (; it != matrices.end(); it++, i++)
             res.noalias() += x(i) * (*it);
 #else
+
         VT a = vectorMatrix * x;
         res.resize(m,m);
 
@@ -210,6 +211,7 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
             }
         }
 #endif
+
     }
 
     /// Compute the gradient of the determinant of the LMI at p
@@ -242,7 +244,6 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
             std::cout << *iter << "\n\n";
         }
     }
-
 
     /// check if the matrix is negative semidefinite
     /// \param matrix a matrix

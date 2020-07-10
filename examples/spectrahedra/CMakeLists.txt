@@ -51,8 +51,3 @@ ELSE()
     message(FATAL_ERROR "This program requires the openblas library, and will not be compiled.")
 ENDIF()
 
-
-
-
-
-
