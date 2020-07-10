@@ -50,7 +50,8 @@ numbers immensely slow down the IPM
 * Week 3: Implementation of Interpolant-Barrier, Focus on speeding up implementation with dedicated libraries.
 * Week 4: Implementation of Toy Problem: Polynomial Envelope.
 * Week 5: Discovered [4], Understanding paper and draw ideas to implement more efficiently.
-* Week 6:
+* Week 6: Debugging, Refactoring Code, Speeding up initialisation of "Polynomial Envelope" Problem
+ (non-trivial: properties of Chebyshev polynomials, Clenshaw-Curtis algorithm)
 
 #### References
 

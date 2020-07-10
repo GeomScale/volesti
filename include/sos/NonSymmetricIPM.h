@@ -178,6 +178,8 @@ private:
     cxxtimer::Timer _andersen_sys_timer;
     cxxtimer::Timer _centrality_timer;
 
+    std::vector<cxxtimer::Timer> _test_timers;
+
     cxxtimer::Timer _general_method_timer;
     cxxtimer::Timer _specific_method_timer;
 
@@ -189,8 +191,9 @@ private:
 
     IPMDouble kappa, tau;
 
-    //TODO: Use smaller representation of Vectors; Or just use a FIFO queue.
-    std::map<std::pair<std::vector<IPMDouble>, std::vector<IPMDouble>>, IPMDouble> _stored_centralities;
+    Vector _stored_x_centrality;
+    Vector _stored_s_centrality;
+    IPMDouble _stored_centrality_error;
 
     //Large neighborhood
     IPMDouble _beta;

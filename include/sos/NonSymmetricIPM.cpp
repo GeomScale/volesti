@@ -320,6 +320,11 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
         A(A_), b(b_), c(c_), kappa(1.), tau(1.), _barrier(barrier_) {
     y = Matrix::Zero(A.rows(), 1);
 
+    _stored_x_centrality.resize(c.rows());
+    _stored_s_centrality.resize(c.rows());
+
+    _test_timers.resize(10);
+
     _logger = spdlog::get("NonSymmetricIPM");
     if (_logger == nullptr) {
 //        _logger = spdlog::stdout_color_mt("NonSymmetricIPM");
@@ -550,12 +555,18 @@ void NonSymmetricIPM::print() {
     _logger->info(format_, "Predictor time (s)", _predictor_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Corrector time (s)", _corrector_timer.count<std::chrono::milliseconds>() / 1000.);
 
-    _logger->info("Total andersen sys time: {} seconds.",
+    _logger->info(format_, "Total andersen time (s)",
                   _andersen_sys_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Calc centrality time (s)",
                   _centrality_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Time checking interior(s)",
                   _barrier->_in_interior_timer.count<std::chrono::milliseconds>() / 1000.);
+
+    for(unsigned idx = 0; idx < _test_timers.size(); idx++){
+        std::string s = "Test timer " + std::to_string(idx);
+        _logger->info(format_, s,
+                      _test_timers[idx].count<std::chrono::milliseconds>() / 1000.);
+    }
 
 //    _logger->info("Total elapsed time in general method: {} seconds.",
 //                  _general_method_timer.count<std::chrono::seconds>());
@@ -634,35 +645,36 @@ bool NonSymmetricIPM::terminate() {
 
 
 IPMDouble NonSymmetricIPM::centrality() {
+
+    if (_stored_x_centrality == x and _stored_s_centrality == s) {
+        return _stored_centrality_error;
+    }
     _centrality_timer.start();
 
-    std::vector<IPMDouble> x_vec(x.rows());
-    Vector::Map(&x_vec[0], x.rows()) = x;
-    std::vector<IPMDouble> s_vec(s.rows());
-    Vector::Map(&s_vec[0], s.rows()) = s;
-
-    auto xs_pair = std::pair<std::vector<IPMDouble>, std::vector<IPMDouble> >(x_vec, s_vec);
-    auto it = _stored_centralities.find(xs_pair);
-    if (it != _stored_centralities.end()) {
-        return it->second;
-    }
-
     IPMDouble mu_d = mu();
+
+    _test_timers[0].start();
     Vector psi_vec = psi(mu_d);
+    _test_timers[0].stop();
+
 
 //    auto hess = _barrier->hessian(x);
+    _test_timers[1].start();
     Eigen::LLT<Matrix> LLT = _barrier->llt(x);
 
     if (LLT.info() == Eigen::NumericalIssue) {
         _logger->error("Issue in LLT decomposition. Terminate");
         exit(1);
     }
+    _test_timers[1].stop();
 
+    _test_timers[2].start();
     Vector LLT_sol = LLT.matrixL().solve(psi_vec.segment(0, psi_vec.rows() - 1));
     IPMDouble tau_kappa_entry = tau * psi_vec.segment(psi_vec.rows() - 1, 1).sum();
 
     Vector err_L(psi_vec.rows());
     err_L << LLT_sol, tau_kappa_entry;
+    _test_timers[2].stop();
 
     IPMDouble centr_err_L = err_L.norm() / mu_d;
 
@@ -674,7 +686,9 @@ IPMDouble NonSymmetricIPM::centrality() {
 
 //    assert(centr_err2 - centr_err < 10e-5);
 
-    _stored_centralities[xs_pair] = centr_err_L;
+    _stored_x_centrality = x;
+    _stored_s_centrality = s;
+    _stored_centrality_error = centr_err_L;
     _centrality_timer.stop();
 
     return centr_err_L;
