@@ -12,7 +12,7 @@
 #define RUNGE_KUTTA_H
 
 
-template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>, NT)>>
+template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>&, NT&)>>
 class RKODESolver {
 public:
   typedef std::vector<Point> pts;

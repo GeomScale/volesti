@@ -36,13 +36,13 @@ void test_euler(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
 
     funcs Fs;
-    func F = [](pts x, NT t) { return (-1.0) * x[0]; };
+    func F = [](pts &xs, NT &t) { return (-1.0) * xs[0]; };
     Fs.push_back(F);
     Point q0 = Point(1);
     q0.set_coord(0, 0.5);
@@ -61,13 +61,13 @@ void test_bs(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
 
     funcs Fs;
-    func F = [](pts x, NT t) { return (-1.0) * x[0]; };
+    func F = [](pts &xs, NT &t) { return (-1.0) * xs[0]; };
     Fs.push_back(F);
     Point q0 = Point(1);
     q0.set_coord(0, 0.5);
@@ -88,12 +88,12 @@ void test_rk4(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
-    func F = [](pts x, NT t) { return (-1.0) * x[0]; };
+    func F = [](pts &xs, NT &t) { return (-1.0) * xs[0]; };
     Fs.push_back(F);
     Point q0 = Point(1);
     q0.set_coord(0, 1.0);
@@ -114,12 +114,12 @@ void test_leapfrog_constrained(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
-    func F = [](pts x, NT t) { return (-2.0) * x[0]; };
+    func F = [](pts &xs, NT &t) { return (-2.0) * xs[0]; };
     Fs.push_back(F);
     Fs.push_back(F);
 
@@ -147,13 +147,13 @@ void test_leapfrog(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
 
     funcs Fs;
-    func F = [](pts x, NT t) { return (-1.0) * x[0]; };
+    func F = [](pts &xs, NT &t) { return (-1.0) * xs[0]; };
     Fs.push_back(F);
     Fs.push_back(F);
     Point x0 = Point(1);
@@ -177,13 +177,13 @@ void test_euler_constrained(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     bounds Ks;
-    func F = [](pts xs, NT t) { return xs[0]; };
+    func F = [](pts &xs, NT &t) { return xs[0]; };
     Fs.push_back(F);
 
     Hpolytope P = gen_cube<Hpolytope>(1, true);
@@ -208,13 +208,13 @@ void test_bs_constrained(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     bounds Ks;
-    func F = [](pts xs, NT t) { return xs[0]; };
+    func F = [](pts &xs, NT &t) { return xs[0]; };
     Fs.push_back(F);
 
     Hpolytope P = gen_cube<Hpolytope>(1, true);
@@ -240,12 +240,12 @@ void test_rk4_constrained(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
-    func F = [](pts x, NT t) { return  x[0]; };
+    func F = [](pts &xs, NT &t) { return  xs[0]; };
     Fs.push_back(F);
     Point q0 = Point(1);
     q0.set_coord(0, 0.2);
@@ -271,13 +271,13 @@ void test_euler_2d_constrained(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef HPolytope<Point>  Hpolytope;
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     bounds Ks;
-    func F = [](pts xs, NT t) {
+    func F = [](pts &xs, NT &t) {
         Point y(xs[0].dimension());
         // y.set_coord(0, 2 * (xs[0][0] - 1 / 3 * pow(xs[0][0], 3) - xs[0][1]));
         // y.set_coord(1, (1 / 2) * xs[0][0]);
@@ -351,7 +351,7 @@ void test_collocation(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
     typedef std::vector<NT> coeffs;
     typedef std::vector<func> funcs;
@@ -359,7 +359,7 @@ void test_collocation(){
     typedef std::vector<Hpolytope*> bounds;
 
     funcs Fs;
-    func F = [](pts x, NT t) { return (-1.0) * x[0]; };
+    func F = [](pts &xs, NT &t) { return (-1.0) * xs[0]; };
     Fs.push_back(F);
     Point q0 = Point(1);
     q0.set_coord(0, 1.0);
@@ -392,7 +392,7 @@ void test_collocation_constrained(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef std::function<Point(pts, NT)> func;
+    typedef std::function<Point(pts&, NT&)> func;
     typedef std::vector<func> funcs;
     typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
     typedef std::vector<NT> coeffs;
@@ -400,7 +400,7 @@ void test_collocation_constrained(){
     typedef std::vector<Hpolytope*> bounds;
     funcs Fs;
     bounds Ks;
-    func F = [](pts xs, NT t) { return xs[0]; };
+    func F = [](pts &xs, NT &t) { return xs[0]; };
     Fs.push_back(F);
 
     Hpolytope P = gen_cube<Hpolytope>(1, false);

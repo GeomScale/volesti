@@ -19,7 +19,7 @@ template <
   typename NT,
   class Polytope,
   class bfunc,
-  class func=std::function <Point(std::vector<Point>, NT)>,
+  class func=std::function <Point(std::vector<Point>&, NT&)>,
   class NontLinearOracle=MPSolveHPolyoracle<
     Polytope,
     bfunc
@@ -43,7 +43,7 @@ public:
   unsigned int dim;
 
   NT eta;
-  NT t, t_prev, dt;
+  NT t, t_prev, dt, t_temp;
   const NT tol = 1e-3;
 
   // If set to true the solver assumes linearity of the field
@@ -201,7 +201,8 @@ public:
 
         for (unsigned int i = 0; i < xs.size(); i++) {
           for (int ord = 1; ord < order(); ord++) {
-            y = Fs[i](xs, cs[ord] * eta);
+            t_temp = cs[ord] * eta;
+            y = Fs[i](xs, t_temp);
             Bs[i].row(ord-1) = y.getCoefficients().transpose();
           }
         }
