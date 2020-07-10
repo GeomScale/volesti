@@ -1,6 +1,5 @@
 # Examples for Spectrahedra
 
-<<<<<<< HEAD
 ## Table of contents
 1. [Compilation](#compilation)
     1. [Dependencies](#dependencies)
@@ -10,8 +9,6 @@
     3. [Randomized SDP Solver - solve_sdp.cpp](#randomized-sdp-solver---solve_sdpcpp)
 
 
-=======
->>>>>>> af41b5b11bf8aacb6e23bc86082b43305de17194
 ## Compilation
 In folder examples, first run cmake, to create the makefile:
 
@@ -25,7 +22,6 @@ Then, in folder examples/spectrahedra compile using the makefile:
 make
 ```
 
-<<<<<<< HEAD
 ### Dependencies
 To compile some programs in this folder, we need the libraries openblas, lapack and arpack. If you want to compile 
 using the provided cmakelists file, follow the next steps to install and link them. 
@@ -64,23 +60,12 @@ And copy the folder external back in folder examples/spectrahedra:
 
 ## Examples
 ### Read/write SDPA format files - read_write_sdpa_file.cpp
-=======
-## List of examples
-- Example 1: Read/write SDPA format files
-
-## Examples
-### Example 1: Read/write SDPA format files
->>>>>>> af41b5b11bf8aacb6e23bc86082b43305de17194
 
 In this example, we will read a semidefinite program from a SDPA format input file, print it
 and then write it to a new SDPA format file. Run the example with:
 
 ```bash
-<<<<<<< HEAD
 ./read_write_sdpa_file
-=======
-./readWriteSdpaFile
->>>>>>> af41b5b11bf8aacb6e23bc86082b43305de17194
 ```
 
 The input file is data/sdp_n2m3.txt. It contains a semidefinite program in SDPA format. A semidefinite program
@@ -119,7 +104,6 @@ It represents a spectrahedron in 2 dimensions, described by a linear matrix ineq
 - 0 -2  1: The second row of A0
 - 0  1 -2: The third row of A0
 - 1 -0 -0: The first row of A1
-<<<<<<< HEAD
 - and so on, till all 3 matrices are defined
 
 
@@ -200,6 +184,4 @@ NT min = solve_sdp(spectrahedron, objFunction, settings, initialPoint, sol ,verb
 - min: The estimated minimum value
 - sol: At which point in the spectrahedron (returned by the solver)
 - verbose: If true, print useful information.
-=======
-- and so on, till all 3 matrices are defined
->>>>>>> af41b5b11bf8aacb6e23bc86082b43305de17194
+
