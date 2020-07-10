@@ -54,11 +54,7 @@ It has two scripts that should easily install the libraries:
 ./install-arpack-ng.sh
 ```
 
-And copy the folder external back in folder examples:
-
-```bash
- cp -r external ../
-```
+And copy the folder external back in folder examples/spectrahedra:
 
 <br>
 
