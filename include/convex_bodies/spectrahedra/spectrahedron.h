@@ -12,7 +12,6 @@
 
 #include "LMI.h"
 #include "chrono"
-#include "random.hpp"
 
 
 /// This class manipulates a spectrahedron, described by a LMI
