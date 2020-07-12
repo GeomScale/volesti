@@ -9,7 +9,8 @@
 
 #include "doctest.h"
 #include "Eigen/Eigen"
-#include "vector"
+#include <vector>
+#include "random.hpp"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "spectrahedron.h"
 

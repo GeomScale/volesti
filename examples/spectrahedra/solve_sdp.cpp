@@ -15,6 +15,7 @@
 #include <fstream>
 #include <iostream>
 
+#include "random.hpp"
 #include "Eigen/Eigen"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/spectrahedra/spectrahedron.h"
