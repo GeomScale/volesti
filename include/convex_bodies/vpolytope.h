@@ -355,7 +355,7 @@ public:
         return line_positive_intersect(r, v);
     }
 
-    //------------------------------------------------------------------------------//
+    //-------------------------accelarated billiard--------------------------------//
     template <typename update_parameters>
     std::pair<NT, int> line_first_positive_intersect(Point const& r,
                                                      Point const& v,

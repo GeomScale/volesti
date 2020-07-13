@@ -7,8 +7,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef RANDOM_WALKS_UNIFORM_IMPROVED_BILLIARD_WALK_HPP
-#define RANDOM_WALKS_UNIFORM_IMPROVED_BILLIARD_WALK_HPP
+#ifndef RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
+#define RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
 
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"

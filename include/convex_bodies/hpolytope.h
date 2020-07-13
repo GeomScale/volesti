@@ -369,7 +369,7 @@ public:
     }
 
 
-    //------------------------------------------------------------------------------------
+    //---------------------------accelarated billiard----------------------------------
     // compute intersection point of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     template <typename update_parameters>

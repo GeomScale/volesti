@@ -135,7 +135,7 @@ public:
         return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
     }
 
-    //---------------------new billiard---------------------//
+    //---------------------aaccelerated billiard---------------------//
     template <typename update_parameters>
     std::pair<NT, int> line_first_positive_intersect(PointType const& r,
                                                      PointType const& v,
