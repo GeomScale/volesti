@@ -377,7 +377,7 @@ public:
                                                      Point const& v,
                                                      VT& Ar,
                                                      VT& Av,
-                                                     update_parameters &params) const
+                                                     update_parameters& params) const
     {
         NT lamda = 0, min_plus = NT(maxNT);
         VT sum_nom;
@@ -425,7 +425,7 @@ public:
                                                      VT& Av,
                                                      NT const& lambda_prev,
                                                      MT const& AA,
-                                                     update_parameters &params) const
+                                                     update_parameters& params) const
     {
         NT lamda = 0, min_plus = NT(maxNT);
         VT sum_nom;//
@@ -476,7 +476,7 @@ public:
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,
-                                               update_parameters &params) const
+                                               update_parameters& params) const
     {
         NT lamda = 0, min_plus = NT(maxNT);
         VT sum_nom;

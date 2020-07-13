@@ -20,13 +20,13 @@
 #include "volume/volume_cooling_balls.hpp"
 #include "volume/volume_cooling_hpoly.hpp"
 
-enum random_walks {ball_walk, rdhr, cdhr, billiard};
+enum random_walks {ball_walk, rdhr, cdhr, billiard, accelarated_billiard};
 enum volume_algorithms {CB, CG, SOB};
 
 template <typename Polytope,  typename RNGType,  typename NT>
 double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
                       volume_algorithms const& algo, unsigned int win_len,
-                      bool rounding, random_walks const& walk, int type)
+                      bool rounding, random_walks const& walk)
 {
     typedef typename Polytope::MT MT;
     typedef typename Polytope::VT VT;
@@ -39,11 +39,17 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 
     if (rounding) {
         std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
-
-        if (type == 1) {
+        switch (walk)
+        {
+        case cdhr:
             round_val = round_polytope<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng).second;
-        } else {
+            break;
+        case accelarated_billiard:
+            round_val = round_polytope<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            break;
+        default:
             round_val = round_polytope<BilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            break;
         }
     }
 
@@ -80,15 +86,10 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
             vol = volume_cooling_balls<BallWalk>(P, rng, e, walk_length, win_len);
             break;
         case billiard:
-            switch (type)
-            {
-            case 1:
-                vol = volume_cooling_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length, win_len);
-                break;
-            default:
-                vol = volume_cooling_balls<BilliardWalk>(P, rng, e, walk_length, win_len);
-                break;
-            }
+            vol = volume_cooling_balls<BilliardWalk>(P, rng, e, walk_length, win_len);
+            break;
+        case accelarated_billiard:
+            vol = volume_cooling_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length, win_len);
             break;
         default:
             throw Rcpp::exception("This random walk can not be used by CB algorithm!");
@@ -108,15 +109,10 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
             vol = volume_sequence_of_balls<BallWalk>(P, rng, e, walk_length);
             break;
         case billiard:
-            switch (type)
-            {
-            case 1:
-                vol = volume_sequence_of_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length);
-                break;
-            default:
-                vol = volume_sequence_of_balls<BilliardWalk>(P, rng, e, walk_length);
-                break;
-            }
+            vol = volume_sequence_of_balls<BilliardWalk>(P, rng, e, walk_length);
+            break;
+        case accelarated_billiard:
+            vol = volume_sequence_of_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length);
             break;
         default:
             throw Rcpp::exception("This random walk can not be used by CB algorithm!");
@@ -141,7 +137,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 //' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for SOB algorithm and \eqn{0.1} otherwise.}
 //' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. For CB algorithm the default walk is \code{'BiW'}. For CG and SOB algorithms the default walk is \code{'CDHR'} for H-polytopes and \code{'RDHR'} for the other representations.}
 //' \item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for \code{'SOB'} and \eqn{1} otherwise.}
-//' \item{\code{win_len} }{ The length of the sliding window for CB or CG algorithm. The default value is \eqn{200} for CB with BiW and \eqn{400+3d^2} for CB and any other random walk and \eqn{500+4d^2} for CG.}
+//' \item{\code{win_len} }{ The length of the sliding window for CB or CG algorithm. The default value is \eqn{250} for CB with BiW and \eqn{400+3d^2} for CB and any other random walk and \eqn{500+4d^2} for CG.}
 //' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm when the input polytope is a zonotope. The default value is \code{TRUE} when the order of the zonotope is \eqn{<5}, otherwise it is \code{FALSE}.}
 //' }
 //' @param rounding Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.
@@ -195,7 +191,7 @@ double volume (Rcpp::Reference P,
     }
 
     bool round = false, hpoly = false;
-    unsigned int win_len = 200;
+    unsigned int win_len = 250;
 
     random_walks walk;
     volume_algorithms algo;
@@ -236,7 +232,7 @@ double volume (Rcpp::Reference P,
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("random_walk")) {
         if (algo == CB) {
-            walk = billiard;
+            walk = (type == 1) ? accelarated_billiard : billiard;
         } else {
             win_len = 4*n*n+500;
             if (type == 1) {
@@ -264,7 +260,7 @@ double volume (Rcpp::Reference P,
                 walk = cdhr;
             }
         } else {
-            walk = billiard;
+            walk = (type == 1) ? accelarated_billiard : billiard;
         }
     }else {
         throw Rcpp::exception("Unknown walk type!");
@@ -282,7 +278,7 @@ double volume (Rcpp::Reference P,
 
     if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("win_len")) {
         win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["win_len"]);
-        if (algo == SOB) Rf_warning("flag 'win_len' can be used only for CG or CB algorithms.");
+        if (algo == SOB) Rf_warning("input 'win_len' can be used only for CG or CB algorithms.");
     }
 
     switch(type) {
@@ -290,13 +286,13 @@ double volume (Rcpp::Reference P,
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            return generic_volume(HP, rng, walkL, e, algo, win_len, round, walk, type);
+            return generic_volume(HP, rng, walkL, e, algo, win_len, round, walk);
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            return generic_volume(VP, rng, walkL, e, algo, win_len, round, walk, type);
+            return generic_volume(VP, rng, walkL, e, algo, win_len, round, walk);
         }
         case 3: {
             // Zonotope
@@ -322,7 +318,7 @@ double volume (Rcpp::Reference P,
                     return volume_cooling_hpoly<BilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
                 }
             }
-            return generic_volume(ZP, rng, walkL, e, algo, win_len, round, walk, type);
+            return generic_volume(ZP, rng, walkL, e, algo, win_len, round, walk);
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -338,7 +334,7 @@ double volume (Rcpp::Reference P,
                 VPcVP.init(VP1, VP2, seed3);
             }
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-            return generic_volume(VPcVP, rng, walkL, e, algo, win_len, round, walk, type);
+            return generic_volume(VPcVP, rng, walkL, e, algo, win_len, round, walk);
         }
     }
 

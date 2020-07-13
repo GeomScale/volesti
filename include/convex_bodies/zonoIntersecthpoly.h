@@ -149,13 +149,13 @@ public:
                                   facet);
     }
 
-    //---------------------new billiard---------------------//
+    //---------------------accelarated billiard---------------------//
     template <typename update_parameters>
     std::pair<NT, int> line_first_positive_intersect(PointType const& r,
                                                      PointType const& v,
                                                      VT& Ar,
                                                      VT& Av,
-                                                     update_parameters &params) const
+                                                     update_parameters& params) const
     {
         std::pair <NT, int> polypair = HP.line_first_positive_intersect(r, v, Ar, Av, params);
         std::pair <NT, int> zonopair = Z.line_positive_intersect(r, v, Ar, Av);
@@ -179,7 +179,7 @@ public:
                                                VT& Av,
                                                NT const& lambda_prev,
                                                MT const& AA,
-                                               update_parameters &params) const
+                                               update_parameters& params) const
     {
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev, params);
         std::pair <NT, int> zonopair = Z.line_positive_intersect(r, v, Ar, Av);
@@ -202,7 +202,7 @@ public:
                                                VT& Ar,
                                                VT& Av,
                                                NT const& lambda_prev,
-                                               update_parameters &params) const
+                                               update_parameters& params) const
     {
         std::pair <NT, int> polypair = HP.line_positive_intersect(r, v, Ar, Av, lambda_prev, params);
         std::pair <NT, int> zonopair = Z.line_positive_intersect(r, v, Ar, Av);

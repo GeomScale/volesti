@@ -68,7 +68,7 @@ struct AcceleratedBilliardWalk
         template <typename GenericPolytope>
         Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
         {
-            _update_params = update_parameters();
+            _update_parameters = update_parameters();
            _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
             _AA.noalias()= P.get_AA();
@@ -79,7 +79,7 @@ struct AcceleratedBilliardWalk
         Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng,
              parameters const& params)
         {
-            _update_params = update_parameters();
+            _update_parameters = update_parameters();
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
@@ -108,7 +108,7 @@ struct AcceleratedBilliardWalk
                 Point p0 = _p;
 
                 it = 0;
-                std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_params);
+                std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;
@@ -118,13 +118,13 @@ struct AcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
-                P.compute_reflection(_v, _p, _update_params);
+                P.compute_reflection(_v, _p, _update_parameters);
                 it++;
 
                 while (it < 100*n)
                 {
                     std::pair<NT, int> pbpair
-                            = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_params);
+                            = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
                     if (T <= pbpair.first) {
                         _p += (T * _v);
                         _lambda_prev = T;
@@ -133,7 +133,7 @@ struct AcceleratedBilliardWalk
                     _lambda_prev = dl * pbpair.first;
                     _p += (_lambda_prev * _v);
                     T -= _lambda_prev;
-                    P.compute_reflection(_v, _p, _update_params);
+                    P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
                 if (it == 100*n) _p = p0;
@@ -169,7 +169,7 @@ struct AcceleratedBilliardWalk
             int it = 0;
 
             std::pair<NT, int> pbpair
-                    = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_params);
+                    = P.line_first_positive_intersect(_p, _v, _lambdas, _Av, _update_parameters);
             if (T <= pbpair.first) {
                 _p += (T * _v);
                 _lambda_prev = T;
@@ -178,12 +178,12 @@ struct AcceleratedBilliardWalk
             _lambda_prev = dl * pbpair.first;
             _p += (_lambda_prev * _v);
             T -= _lambda_prev;
-            P.compute_reflection(_v, _p, _update_params);
+            P.compute_reflection(_v, _p, _update_parameters);
 
             while (it < 100*n)
             {
                 std::pair<NT, int> pbpair
-                        = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_params);
+                        = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;
@@ -196,7 +196,7 @@ struct AcceleratedBilliardWalk
                 _lambda_prev = dl * pbpair.first;
                 _p += (_lambda_prev * _v);
                 T -= _lambda_prev;
-                P.compute_reflection(_v, _p, _update_params);
+                P.compute_reflection(_v, _p, _update_parameters);
                 it++;
             }
         }
@@ -206,7 +206,7 @@ struct AcceleratedBilliardWalk
         Point _v;
         NT _lambda_prev;
         MT _AA;
-        update_parameters _update_params;
+        update_parameters _update_parameters;
         typename Point::Coeff _lambdas;
         typename Point::Coeff _Av;
     };
