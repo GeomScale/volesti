@@ -34,38 +34,39 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
     InterpolantDouble *cheb_ptr = &chebyshev_points[0];
     InterpolantVector cheb_vec = Eigen::Map<InterpolantVector>(cheb_ptr, chebyshev_points.size());
 
-//    cxxtimer::Timer interp_basis_timer;
-//    interp_basis_timer.start();
-//    _basis_polynomials.resize(_U);
-//    for (unsigned l = 0; l < _basis_polynomials.size(); ++l) {
-//        _basis_polynomials[l] = InterpolantVector::Zero(_U);
-//    }
-//    InterpolantVector aux_vec(_U);
-//    for (unsigned i = 0; i < _U; ++i) {
-//        _logger->debug("Construct {}-th basis element.", i);
-//        InterpolantVector &poly_i = _basis_polynomials[i];
-//        poly_i(0) = 1;
-//        InterpolantDouble denom = 1.;
-//        for (unsigned j = 0; j < _U; ++j) {
-//            if (i != j) {
-//                denom *= chebyshev_points[i] - chebyshev_points[j];
-//                aux_vec = -chebyshev_points[j] * poly_i;
-////                aux_vec(1) = 1.;
-//                InterpolantVector shift(_U + 1);
-//                shift << 0, poly_i;
-//                poly_i = shift.segment(0, _U) + aux_vec;
-////                poly_i = prod_sos(poly_i, fac_j);
-//            }
-//        }
-//        poly_i /= denom;
-////        _logger->info("{}-th self constructed interpolant polynomial is: \n{}", i, poly_i.transpose());
-//
-////        _basis_polynomials[i] = poly_i;
-//    }
-//    interp_basis_timer.stop();
-//    _logger->info("Finished construction in {} seconds.",
-//                  interp_basis_timer.count<std::chrono::milliseconds>() / 1000.);
+    if(not _input_in_interpolant_basis) {
+        _logger->info("Construct transformation matrix");
+        cxxtimer::Timer interp_basis_timer;
+        interp_basis_timer.start();
+        _basis_polynomials.resize(_U);
+        for (unsigned l = 0; l < _basis_polynomials.size(); ++l) {
+            _basis_polynomials[l] = InterpolantVector::Zero(_U);
+        }
+        InterpolantVector aux_vec(_U);
+        for (unsigned i = 0; i < _U; ++i) {
+            _logger->debug("Construct {}-th basis element.", i);
+            InterpolantVector &poly_i = _basis_polynomials[i];
+            poly_i(0) = 1;
+            InterpolantDouble denom = 1.;
+            for (unsigned j = 0; j < _U; ++j) {
+                if (i != j) {
+                    denom *= chebyshev_points[i] - chebyshev_points[j];
+                    aux_vec = -chebyshev_points[j] * poly_i;
+                    InterpolantVector shift(_U + 1);
+                    shift << 0, poly_i;
+                    poly_i = shift.segment(0, _U) + aux_vec;
+//                poly_i = prod_sos(poly_i, fac_j);
+                }
+            }
+            poly_i /= denom;
+//        _logger->info("{}-th self constructed interpolant polynomial is: \n{}", i, poly_i.transpose());
 
+        }
+        interp_basis_timer.stop();
+
+        _logger->info("Finished construction in {} seconds.",
+                      interp_basis_timer.count<std::chrono::milliseconds>() / 1000.);
+    }
 
     for (unsigned k = 0; k < _basis_polynomials.size(); ++k) {
         _logger->debug("The {}-th polynomial is:", k);

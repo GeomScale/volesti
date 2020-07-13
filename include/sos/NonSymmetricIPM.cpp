@@ -65,8 +65,8 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
     _test_timers[9].start();
     std::vector<std::pair<Vector, Vector> > results;
     for (unsigned i = 0; i < v.size(); i++) {
-        Vector & r1 = v[i].first;
-        Vector & r2 = v[i].second;
+        Vector &r1 = v[i].first;
+        Vector &r2 = v[i].second;
         auto new_s = solve(A_H_inv_A_top, A * normalized_inverse_hessian * r2 - r1);
         //TODO: might be more stable to formulate next line as linear system solve instead of using the inverse.
         auto new_t = normalized_inverse_hessian * (r2 + A.transpose() * new_s);
@@ -240,7 +240,7 @@ void NonSymmetricIPM::run_solver() {
         Vector predictor_direction = solve_predictor_system();
         _logger->trace("Finished solving predictor system");
 
-        _logger->debug("Applied RHS for predictor direction is {}", ((_M * predictor_direction)).transpose());
+//        _logger->debug("Applied RHS for predictor direction is {}", ((_M * predictor_direction)).transpose());
 
         DirectionDecomposition dir(_step_length_predictor * predictor_direction, x.rows(), y.rows());
         _logger->debug("Predictor direction is \n {}", dir);
@@ -542,19 +542,19 @@ void NonSymmetricIPM::print() {
     Double duality_gap_ = InterpolantDoubletoIPMDouble(duality_gap_ipm_, dummy_D);
     _logger->info(format_, "duality gap", duality_gap_);
 
-    IPMDouble primal_inf_ipm_ = (A * x / tau - b).norm();
+    IPMDouble primal_inf_ipm_ = primal_error();
     Double primal_inf_ = InterpolantDoubletoIPMDouble(primal_inf_ipm_, dummy_D);
     _logger->info(format_, "primal infeas. ", primal_inf_);
 
-    IPMDouble primal_inf_unscaled_ipm_ = (A * x - b * tau).norm();
+    IPMDouble primal_inf_unscaled_ipm_ = primal_error_rescaled();
     Double primal_inf_unscaled_ = InterpolantDoubletoIPMDouble(primal_inf_unscaled_ipm_, dummy_D);
     _logger->info(format_, "primal infeas. unscaled", primal_inf_unscaled_);
 
-    IPMDouble dual_inf_ipm_ = (A.transpose() * y / tau + s / tau - c).norm();
+    IPMDouble dual_inf_ipm_ = dual_error();
     Double dual_inf_ = InterpolantDoubletoIPMDouble(dual_inf_ipm_, dummy_D);
     _logger->info(format_, "dual infeas.", dual_inf_);
 
-    IPMDouble dual_inf_unscaled_ipm_ = (A.transpose() * y + s - c * tau).norm();
+    IPMDouble dual_inf_unscaled_ipm_ = dual_error_rescaled();
     Double dual_inf_unscaled_ = InterpolantDoubletoIPMDouble(dual_inf_unscaled_ipm_, dummy_D);
     _logger->info(format_, "dual infeas. unscaled", dual_inf_unscaled_);
 
@@ -570,7 +570,7 @@ void NonSymmetricIPM::print() {
     _logger->info(format_, "Time checking interior(s)",
                   _barrier->_in_interior_timer.count<std::chrono::milliseconds>() / 1000.);
 
-    for(unsigned idx = 0; idx < _test_timers.size(); idx++){
+    for (unsigned idx = 0; idx < _test_timers.size(); idx++) {
         std::string s = "Test timer " + std::to_string(idx);
         _logger->info(format_, s,
                       _test_timers[idx].count<std::chrono::milliseconds>() / 1000.);
@@ -671,8 +671,12 @@ IPMDouble NonSymmetricIPM::centrality() {
     Eigen::LLT<Matrix> LLT = _barrier->llt(x);
 
     if (LLT.info() == Eigen::NumericalIssue) {
-        _logger->error("Issue in LLT decomposition. Terminate");
-        exit(1);
+        _logger->warn("Issue in LLT decomposition. Try symmetrizing");
+        LLT = _barrier->llt(x, true);
+        _logger->error("Symmetrizing successful: {}", LLT.info() != Eigen::NumericalIssue);
+        if (LLT.info() == Eigen::NumericalIssue) {
+            exit(1);
+        }
     }
     _test_timers[1].stop();
 

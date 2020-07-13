@@ -1,7 +1,8 @@
 1e-5 //epsilon
 2 //num corrector steps
-.9 //large neighborhood
-.3 //small neighborhood
+.8 //large neighborhood
+.4 //small neighborhood
 .2 //scale predictor step
 1. //length corrector step
+1 //logger level. 1 = debug, 2 = info
 

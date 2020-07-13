@@ -87,6 +87,13 @@ public:
         _logger->info("Set scale corrector step to {}", _step_length_corrector);
 
         _step_length_predictor = calc_step_length_predictor();
+
+        ss.clear();
+        std::getline(config_file, line);
+        ss.str(line);
+        int logger_level;
+        ss >> logger_level;
+        _logger->set_level(spdlog::level::level_enum(logger_level));
     }
 
     IPMDouble calc_step_length_predictor(){

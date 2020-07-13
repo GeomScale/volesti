@@ -53,18 +53,33 @@ Eigen::LLT<Matrix> *LHSCB::find_LLT(Vector x) {
     return nullptr;
 }
 
-Eigen::LLT<Matrix> LHSCB::llt(Vector x) {
-    auto *llt_ptr = find_LLT(x);
+Eigen::LLT<Matrix> LHSCB::llt(Vector x, bool symmetrize) {
+
+    Eigen::LLT<Matrix> * llt_ptr = nullptr;
+
+    if (not symmetrize) {
+        llt_ptr = find_LLT(x);
+    }
+
     if (llt_ptr) {
         return *llt_ptr;
     }
-    auto *llt_var = new Eigen::LLT<Matrix>(hessian(x).llt());
+
+    Eigen::LLT<Matrix> * llt_var;
+
+    if(not symmetrize) {
+        llt_var = new Eigen::LLT<Matrix>(hessian(x).llt());
+    } else {
+        llt_var = new Eigen::LLT<Matrix>((hessian(x) + hessian(x).transpose()).llt());
+    }
+
     if (_stored_LLT.empty()) {
         _stored_LLT.resize(1);
     }
     _stored_LLT[0] = std::pair<Vector, Eigen::LLT<Matrix> >(x, *llt_var);
     return *llt_var;
 }
+
 
 //LP Standard Log Barrier
 

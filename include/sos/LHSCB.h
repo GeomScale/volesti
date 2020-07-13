@@ -24,7 +24,7 @@ public:
 
     virtual Matrix hessian(Vector x) = 0;
 
-    Eigen::LLT<Matrix> llt(Vector x);
+    Eigen::LLT<Matrix> llt(Vector x, bool symmetrize = 0);
 
     Vector *find_gradient(Vector x);
 
@@ -247,7 +247,7 @@ public:
 //        }
 //        else {
 //            Matrix P_tmp = InterpolantMatrixToMatrix(P_interp, _P);
-            Matrix P_tmp = cheb_P;
+            Matrix P_tmp = cheb_P.cast<IPMDouble>();
             Matrix P_ortho = P_tmp.householderQr().householderQ();
             P_ortho.colwise().hnormalized();
             _P = P_ortho.block(0,0,_U,_L);
