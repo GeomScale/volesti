@@ -373,8 +373,8 @@ void NonSymmetricIPM::initialize() {
 
     _logger->info("Norm of x is {} and norm of s is {} before rescaling.", x.norm(), s.norm());
 
-    x = _barrier->initialize_x(scaling_delta);
-    s = _barrier->initialize_s(scaling_delta);
+//    x = _barrier->initialize_x(scaling_delta);
+//    s = _barrier->initialize_s(scaling_delta);
 
     //For sake of stability force errors
 //    assert(primal_error() > 0 and dual_error() > 0);

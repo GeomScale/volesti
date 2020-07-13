@@ -7,7 +7,7 @@
 #ifndef SOS_UTILS_H
 #define SOS_UTILS_H
 
-#include <Eigen/Dense>
+#include <EigenNew/Dense>
 #include <iostream>
 
 #include <boost/math/constants/constants.hpp>
