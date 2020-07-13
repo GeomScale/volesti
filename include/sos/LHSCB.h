@@ -20,7 +20,6 @@ public:
 
     virtual ~LHSCB() {};
 
-
     virtual Vector gradient(Vector x) = 0;
 
     virtual Matrix hessian(Vector x) = 0;

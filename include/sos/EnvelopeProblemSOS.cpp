@@ -90,7 +90,6 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
 //    }
 
     //Faster, cleverer Clenshaw-Curtis algorithm
-
     get_clenshaw_curtis_integrals();
 
 }

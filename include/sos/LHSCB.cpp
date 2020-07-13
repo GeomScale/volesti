@@ -406,8 +406,6 @@ Vector InterpolantDualSOSBarrier::gradient(Vector x) {
     Matrix Q = V.transpose() * V;
     Vector grad = -Q.diagonal();
 
-
-
     //    const Vector & grad = -(_P * (_P.transpose() * x.asDiagonal() * _P).inverse() * _P.transpose()).diagonal();
     if (_stored_gradients.empty()) {
         _stored_gradients.resize(1);

@@ -35,6 +35,7 @@ on the interval [-1,1].
 * Include ARPACK/LAPACK. Necessary for sparse Matrix computation. In particular the Polynomial Envelope problem is 
 sparse (2 nonzeros per row) which one should be able to exploit.
 * Interfaces for R (and Python)
+
     
 #### Current issues
 

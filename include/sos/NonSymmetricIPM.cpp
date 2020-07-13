@@ -50,21 +50,29 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
 
     Matrix mu_H_x = mu() * _barrier->hessian(x);
 
+    Eigen::LLT<Matrix> LLT = _barrier->llt(x);
+
+
+
     //TODO: Can A(LL^\top)A^\top be computed faster?
     //TODO: Inverse maintenance, in particular for corrector steps.
 
+    _test_timers[8].start();
     Matrix normalized_inverse_hessian = _barrier->inverse_hessian(x) / mu();
     Matrix A_H_inv_A_top = -A * normalized_inverse_hessian * A.transpose();
+    _test_timers[8].stop();
 
+    _test_timers[9].start();
     std::vector<std::pair<Vector, Vector> > results;
     for (unsigned i = 0; i < v.size(); i++) {
-        auto r1 = v[i].first;
-        auto r2 = v[i].second;
+        Vector & r1 = v[i].first;
+        Vector & r2 = v[i].second;
         auto new_s = solve(A_H_inv_A_top, A * normalized_inverse_hessian * r2 - r1);
         //TODO: might be more stable to formulate next line as linear system solve instead of using the inverse.
         auto new_t = normalized_inverse_hessian * (r2 + A.transpose() * new_s);
         results.emplace_back(std::pair<Vector, Vector>(new_s, new_t));
     }
+    _test_timers[9].stop();
     return results;
 }
 
