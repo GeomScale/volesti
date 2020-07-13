@@ -1,0 +1,7 @@
+1e-5 //epsilon
+2 //num corrector steps
+.9 //large neighborhood
+.3 //small neighborhood
+.2 //scale predictor step
+1. //length corrector step
+
