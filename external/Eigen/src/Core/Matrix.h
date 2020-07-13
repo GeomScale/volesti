@@ -274,6 +274,8 @@ class Matrix
       : Base(std::move(other))
     {
       Base::_check_template_params();
+      if (RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic)
+        Base::_set_noalias(other);
     }
     EIGEN_DEVICE_FUNC
     Matrix& operator=(Matrix&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value)

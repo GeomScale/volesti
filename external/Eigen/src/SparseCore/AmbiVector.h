@@ -94,7 +94,7 @@ class AmbiVector
       Index allocSize = m_allocatedElements * sizeof(ListEl);
       allocSize = (allocSize + sizeof(Scalar) - 1)/sizeof(Scalar);
       Scalar* newBuffer = new Scalar[allocSize];
-      std::memcpy(newBuffer,  m_buffer,  copyElements * sizeof(ListEl));
+      memcpy(newBuffer,  m_buffer,  copyElements * sizeof(ListEl));
       delete[] m_buffer;
       m_buffer = newBuffer;
     }

@@ -137,13 +137,7 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,true,
     ei_declare_aligned_stack_constructed_variable(Scalar, blockA, sizeA, blocking.blockA());
     ei_declare_aligned_stack_constructed_variable(Scalar, blockB, sizeB, blocking.blockB());
 
-    // To work around an "error: member reference base type 'Matrix<...>
-    // (Eigen::internal::constructor_without_unaligned_array_assert (*)())' is
-    // not a structure or union" compilation error in nvcc (tested V8.0.61),
-    // create a dummy internal::constructor_without_unaligned_array_assert
-    // object to pass to the Matrix constructor.
-    internal::constructor_without_unaligned_array_assert a;
-    Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,LhsStorageOrder> triangularBuffer(a);
+    Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,LhsStorageOrder> triangularBuffer((internal::constructor_without_unaligned_array_assert()));
     triangularBuffer.setZero();
     if((Mode&ZeroDiag)==ZeroDiag)
       triangularBuffer.diagonal().setZero();
@@ -290,8 +284,7 @@ EIGEN_DONT_INLINE void product_triangular_matrix_matrix<Scalar,Index,Mode,false,
     ei_declare_aligned_stack_constructed_variable(Scalar, blockA, sizeA, blocking.blockA());
     ei_declare_aligned_stack_constructed_variable(Scalar, blockB, sizeB, blocking.blockB());
 
-    internal::constructor_without_unaligned_array_assert a;
-    Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,RhsStorageOrder> triangularBuffer(a);
+    Matrix<Scalar,SmallPanelWidth,SmallPanelWidth,RhsStorageOrder> triangularBuffer((internal::constructor_without_unaligned_array_assert()));
     triangularBuffer.setZero();
     if((Mode&ZeroDiag)==ZeroDiag)
       triangularBuffer.diagonal().setZero();
@@ -400,9 +393,7 @@ struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
 {
   template<typename Dest> static void run(Dest& dst, const Lhs &a_lhs, const Rhs &a_rhs, const typename Dest::Scalar& alpha)
   {
-    typedef typename Lhs::Scalar  LhsScalar;
-    typedef typename Rhs::Scalar  RhsScalar;
-    typedef typename Dest::Scalar Scalar;
+    typedef typename Dest::Scalar     Scalar;
     
     typedef internal::blas_traits<Lhs> LhsBlasTraits;
     typedef typename LhsBlasTraits::DirectLinearAccessType ActualLhsType;
@@ -414,9 +405,8 @@ struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
     typename internal::add_const_on_value_type<ActualLhsType>::type lhs = LhsBlasTraits::extract(a_lhs);
     typename internal::add_const_on_value_type<ActualRhsType>::type rhs = RhsBlasTraits::extract(a_rhs);
 
-    LhsScalar lhs_alpha = LhsBlasTraits::extractScalarFactor(a_lhs);
-    RhsScalar rhs_alpha = RhsBlasTraits::extractScalarFactor(a_rhs);
-    Scalar actualAlpha = alpha * lhs_alpha * rhs_alpha;
+    Scalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(a_lhs)
+                               * RhsBlasTraits::extractScalarFactor(a_rhs);
 
     typedef internal::gemm_blocking_space<(Dest::Flags&RowMajorBit) ? RowMajor : ColMajor,Scalar,Scalar,
               Lhs::MaxRowsAtCompileTime, Rhs::MaxColsAtCompileTime, Lhs::MaxColsAtCompileTime,4> BlockingType;
@@ -441,21 +431,6 @@ struct triangular_product_impl<Mode,LhsIsTriangular,Lhs,false,Rhs,false>
         &dst.coeffRef(0,0), dst.outerStride(),    // result info
         actualAlpha, blocking
       );
-
-    // Apply correction if the diagonal is unit and a scalar factor was nested:
-    if ((Mode&UnitDiag)==UnitDiag)
-    {
-      if (LhsIsTriangular && lhs_alpha!=LhsScalar(1))
-      {
-        Index diagSize = (std::min)(lhs.rows(),lhs.cols());
-        dst.topRows(diagSize) -= ((lhs_alpha-LhsScalar(1))*a_rhs).topRows(diagSize);
-      }
-      else if ((!LhsIsTriangular) && rhs_alpha!=RhsScalar(1))
-      {
-        Index diagSize = (std::min)(rhs.rows(),rhs.cols());
-        dst.leftCols(diagSize) -= (rhs_alpha-RhsScalar(1))*a_lhs.leftCols(diagSize);
-      }
-    }
   }
 };
 

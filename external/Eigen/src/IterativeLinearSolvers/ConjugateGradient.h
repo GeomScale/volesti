@@ -50,8 +50,7 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
     tol_error = 0;
     return;
   }
-  const RealScalar considerAsZero = (std::numeric_limits<RealScalar>::min)();
-  RealScalar threshold = numext::maxi(tol*tol*rhsNorm2,considerAsZero);
+  RealScalar threshold = tol*tol*rhsNorm2;
   RealScalar residualNorm2 = residual.squaredNorm();
   if (residualNorm2 < threshold)
   {
@@ -59,7 +58,7 @@ void conjugate_gradient(const MatrixType& mat, const Rhs& rhs, Dest& x,
     tol_error = sqrt(residualNorm2 / rhsNorm2);
     return;
   }
-
+  
   VectorType p(n);
   p = precond.solve(residual);      // initial search direction
 

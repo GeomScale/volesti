@@ -153,6 +153,8 @@ class Array
       : Base(std::move(other))
     {
       Base::_check_template_params();
+      if (RowsAtCompileTime!=Dynamic && ColsAtCompileTime!=Dynamic)
+        Base::_set_noalias(other);
     }
     EIGEN_DEVICE_FUNC
     Array& operator=(Array&& other) EIGEN_NOEXCEPT_IF(std::is_nothrow_move_assignable<Scalar>::value)
@@ -229,16 +231,10 @@ class Array
             : Base(other)
     { }
 
-  private:
-    struct PrivateType {};
-  public:
-
     /** \sa MatrixBase::operator=(const EigenBase<OtherDerived>&) */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const EigenBase<OtherDerived> &other,
-                              typename internal::enable_if<internal::is_convertible<typename OtherDerived::Scalar,Scalar>::value,
-                                                           PrivateType>::type = PrivateType())
+    EIGEN_STRONG_INLINE Array(const EigenBase<OtherDerived> &other)
       : Base(other.derived())
     { }
 

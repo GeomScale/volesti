@@ -577,10 +577,6 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       * while the AlignedMap() functions return aligned Map objects and thus should be called only with 16-byte-aligned
       * \a data pointers.
       *
-      * Here is an example using strides:
-      * \include Matrix_Map_stride.cpp
-      * Output: \verbinclude Matrix_Map_stride.out
-      *
       * \see class Map
       */
     //@{

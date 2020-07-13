@@ -296,7 +296,7 @@ template<typename Derived> class DenseBase
     EIGEN_DEVICE_FUNC
     Derived& operator=(const ReturnByValue<OtherDerived>& func);
 
-    /** \internal
+    /** \ínternal
       * Copies \a other into *this without evaluating other. \returns a reference to *this.
       * \deprecated */
     template<typename OtherDerived>
@@ -484,9 +484,9 @@ template<typename Derived> class DenseBase
       return derived().coeff(0,0);
     }
 
-    EIGEN_DEVICE_FUNC bool all() const;
-    EIGEN_DEVICE_FUNC bool any() const;
-    EIGEN_DEVICE_FUNC Index count() const;
+    bool all() const;
+    bool any() const;
+    Index count() const;
 
     typedef VectorwiseOp<Derived, Horizontal> RowwiseReturnType;
     typedef const VectorwiseOp<const Derived, Horizontal> ConstRowwiseReturnType;
