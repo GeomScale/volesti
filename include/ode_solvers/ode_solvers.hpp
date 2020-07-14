@@ -32,6 +32,11 @@
       4. Fs: A vector of oracles F_i for 1 <= i <= n
       5. eta: Step size
       6. t: Temporal variable
+  
+  TODO:
+      1. Change datastructure of boundaries (std::vector<Polytope*>)
+      2. Change std::function to functors
+
 */
 
 #include <iostream>
