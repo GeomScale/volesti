@@ -28,6 +28,5 @@
 
 Copyright (c) 2012-2020 Vissarion Fisikopoulos  
 Copyright (c) 2018-2020 Apostolos Chalkis  
-Copyright (c) 2020-2020 Marios Papachristou
 
 You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.  
