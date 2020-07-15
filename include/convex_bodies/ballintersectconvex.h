@@ -111,9 +111,7 @@ public:
 
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av);
         std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
-        int facet = P.num_of_hyperplanes();
-
-        if (polypair.first < ball_lambda.first ) facet = polypair.second;
+        int facet = (polypair.first < ball_lambda.first) ? polypair.second : P.num_of_hyperplanes();
 
         return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
     }
@@ -128,9 +126,7 @@ public:
 
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
-        int facet = P.num_of_hyperplanes();
-
-        if (polypair.first < ball_lambda.first ) facet = polypair.second;
+        int facet = (polypair.first < ball_lambda.first) ? polypair.second : P.num_of_hyperplanes();
 
         return std::pair<NT, int>(std::min(polypair.first, ball_lambda.first), facet);
     }
