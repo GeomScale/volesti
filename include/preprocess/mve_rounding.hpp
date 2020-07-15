@@ -25,12 +25,11 @@ template <
         typename VT,
         typename Polytope,
         typename Point,
-        typename NT,
-        typename RandomNumberGenerator
+        typename NT
 >
 std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(Polytope &P, 
                                                 std::pair<Point, NT> InnerBall,
-                                                RandomNumberGenerator &rng, MT &N, VT &N_shift)
+                                                MT &N, VT &N_shift)
 {
     std::pair<std::pair<MT, VT>, bool> iter_res;
     iter_res.second = false;
@@ -39,47 +38,42 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(
     MT E, L;
     unsigned int maxiter = 150, iter = 1, d = P.dimension();
 
-    NT R = 100.0, r = 1.0, tol = std::pow(10, -6.0), reg = std::pow(10, -4.0), round_val = 1.0;
+    NT R = 100.0, r = 1.0, tol = std::pow(10, -6.0), reg = std::pow(10, -3.0), round_val = 1.0;
 
     MT T = MT::Identity(d,d);
     VT shift = VT::Zero(d);
 
-    while ((R > 6.0 * r) && iter < 20)
+    while (true)
     {
         iter_res = mve_computation(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
         E = iter_res.first.first;
         E = (E + E)/2.0;
         E = E + MT::Identity(d,d)*std::pow(10,-8.0);
-        //std::cout<<"E = "<<E<<"\n"<<std::endl;
-        //std::cout<<"x0 = "<<iter_res.first.second<<"\n"<<std::endl;
 
         Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
         L = lltOfA.matrixL();
-        //std::cout<<"L = "<<L<<"\n"<<std::endl;
+
+        Eigen::SelfAdjointEigenSolver <MT> eigensolver(L);
+        r = eigensolver.eigenvalues().minCoeff();
+        R = eigensolver.eigenvalues().maxCoeff();
+
+        if(((R <= 6.0 * r && iter_res.second)  || iter >= 20) && iter>3){
+            //std::cout<<"R/r = "<<R/r<<", break"<<std::endl;
+            break;
+        }
 
         P.shift(iter_res.first.second);
-        //MT L_1 = L.inverse();
         N_shift = N_shift + N*iter_res.first.second;
         N = N * L;
         shift = shift + T * iter_res.first.second;
         T = T * L;
         round_val *= L.transpose().determinant();
-
         P.linear_transformIt(L);
 
         reg = std::max(reg / 10.0, std::pow(10, -10.0));
         P.normalize();
-
-        Eigen::EigenSolver<MT> eigensolver(E);
-        r = std::real(eigensolver.eigenvalues()[0]);
-        R = std::real(eigensolver.eigenvalues()[0]);
-        for(int i=1; i<d; i++) {
-            if (std::real(eigensolver.eigenvalues()[i]) < r) r = std::real(eigensolver.eigenvalues()[i]);
-            if (std::real(eigensolver.eigenvalues()[i]) > R) R = std::real(eigensolver.eigenvalues()[i]);
-        }
         x0 = VT::Zero(d);
-        //std::cout<<"R = "<<R<<std::endl;
-        //std::cout<<"r = "<<r<<std::endl;
+
         iter++;
     }
 
@@ -101,11 +95,9 @@ template <
         typename VT,
         typename Polytope,
         typename Point,
-        typename NT,
-        typename RandomNumberGenerator
+        typename NT
 >
-std::pair< std::pair<MT, VT>, NT > mve_rounding(Polytope &P, std::pair<Point, NT> InnerBall,
-                                                RandomNumberGenerator &rng)
+std::pair< std::pair<MT, VT>, NT > mve_rounding(Polytope &P, std::pair<Point, NT> InnerBall)
 {
     unsigned int d = P.dimension();
     MT N = MT::Identity(d,d);

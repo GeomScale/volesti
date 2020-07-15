@@ -125,7 +125,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
     switch (type) {
         case 1: {
             if (mthd.compare(std::string("mve"))==0) {
-                round_res = mve_rounding<MT, VT>(HP, InnerBall, rng);
+                round_res = mve_rounding<MT, VT>(HP, InnerBall);
             } else if (mthd.compare(std::string("mee"))==0) {
                 if (cdhr) {
                     round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
