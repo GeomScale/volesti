@@ -31,11 +31,12 @@ on the interval [-1,1].
 * Implementation/inspiration from  [4]. In particular interesting are:
     * Positive definite rescaling matrix for added stability and monotonicity 
     * Combining Predictor- and Corrector steps.
+* Higher order corrector steps as in [1]
 * Write tests
 * Include ARPACK/LAPACK. Necessary for sparse Matrix computation. In particular the Polynomial Envelope problem is 
 sparse (2 nonzeros per row) which one should be able to exploit.
+* Test different central path neighborhoods, e.g. measuring \psi in \infty norm. 
 * Interfaces for R (and Python)
-
     
 #### Current issues
 

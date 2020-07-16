@@ -8,6 +8,8 @@
 #define SOS_UTILS_H
 
 #include <EigenNew/Dense>
+#include <EigenNew/Sparse>
+
 #include <iostream>
 
 #include <boost/math/constants/constants.hpp>

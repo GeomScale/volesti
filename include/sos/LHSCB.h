@@ -24,7 +24,12 @@ public:
 
     virtual Matrix hessian(Vector x) = 0;
 
-    Eigen::LLT<Matrix> llt(Vector x, bool symmetrize = 0);
+    virtual Eigen::LLT<Matrix> llt(Vector x, bool symmetrize = 0);
+
+    virtual Matrix llt_solve(Vector x, const Matrix & rhs);
+
+    virtual Vector llt_L_solve(Vector x, Vector rhs);
+
 
     Vector *find_gradient(Vector x);
 
@@ -52,6 +57,7 @@ public:
     virtual Vector initialize_s() = 0;
 
     cxxtimer::Timer _in_interior_timer;
+
 
 protected:
     unsigned _num_variables;
@@ -261,11 +267,15 @@ public:
 
     };
 
+    void update_gradient_hessian_LLT(Vector x);
+
     Vector gradient(Vector x) override;
 
     Matrix hessian(Vector x) override;
 
-//    Matrix inverse_hessian(Vector x) override;
+    Eigen::LLT<Matrix> llt(Vector x, bool symmetrize = 0) override;
+
+    Matrix inverse_hessian(Vector x) override;
     bool in_interior(Vector x) override;
 
     //TODO: better solution for implementation concordance parameter;
@@ -303,6 +313,8 @@ public:
         }
     }
 
+
+
     void add_barrier(LHSCB *lhscb) {
         _barriers.push_back(lhscb);
         _num_vars_per_barrier.push_back(lhscb->getNumVariables());
@@ -323,6 +335,12 @@ public:
     Vector initialize_x() override;
 
     Vector initialize_s() override;
+
+    Eigen::LLT<Matrix> llt(Vector x, bool symmetrize = 0) override;
+
+    Matrix llt_solve(Vector x, const Matrix & rhs) override;
+
+    Vector llt_L_solve(Vector x, Vector rhs) override;
 
     Matrix inverse_hessian(Vector x) override;
 

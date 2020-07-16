@@ -17,55 +17,13 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
     //FIXME: for now only univariate polynomials.
     assert(_n == 1);
 
-    _logger = spdlog::get("EnvelopeProblemSOS");
-    if (_logger == nullptr) {
-        std::vector<spdlog::sink_ptr> sinks;
-        sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-        sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/logfile.txt"));
-        _logger = std::make_shared<spdlog::logger>("EnvelopeProblemSOS", begin(sinks), end(sinks));
-        _logger->set_level(spdlog::level::info);
-    }
+    initialize_loggers();
 
     _L = _d + 1;
     _U = 2 * _d + 1;
 
-    InterpolantDualSOSBarrier aux_interpolant_barrier(_d);
-    std::vector<InterpolantDouble> &chebyshev_points = aux_interpolant_barrier.get_basis();
-    InterpolantDouble *cheb_ptr = &chebyshev_points[0];
-    InterpolantVector cheb_vec = Eigen::Map<InterpolantVector>(cheb_ptr, chebyshev_points.size());
-
-    if(not _input_in_interpolant_basis) {
-        _logger->info("Construct transformation matrix");
-        cxxtimer::Timer interp_basis_timer;
-        interp_basis_timer.start();
-        _basis_polynomials.resize(_U);
-        for (unsigned l = 0; l < _basis_polynomials.size(); ++l) {
-            _basis_polynomials[l] = InterpolantVector::Zero(_U);
-        }
-        InterpolantVector aux_vec(_U);
-        for (unsigned i = 0; i < _U; ++i) {
-            _logger->debug("Construct {}-th basis element.", i);
-            InterpolantVector &poly_i = _basis_polynomials[i];
-            poly_i(0) = 1;
-            InterpolantDouble denom = 1.;
-            for (unsigned j = 0; j < _U; ++j) {
-                if (i != j) {
-                    denom *= chebyshev_points[i] - chebyshev_points[j];
-                    aux_vec = -chebyshev_points[j] * poly_i;
-                    InterpolantVector shift(_U + 1);
-                    shift << 0, poly_i;
-                    poly_i = shift.segment(0, _U) + aux_vec;
-//                poly_i = prod_sos(poly_i, fac_j);
-                }
-            }
-            poly_i /= denom;
-//        _logger->info("{}-th self constructed interpolant polynomial is: \n{}", i, poly_i.transpose());
-
-        }
-        interp_basis_timer.stop();
-
-        _logger->info("Finished construction in {} seconds.",
-                      interp_basis_timer.count<std::chrono::milliseconds>() / 1000.);
+    if (not _input_in_interpolant_basis) {
+        calculate_basis_polynomials();
     }
 
     for (unsigned k = 0; k < _basis_polynomials.size(); ++k) {
@@ -77,7 +35,7 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
 
     _logger->info("Construct objectives vector...");
 
-    //Old way of computing the objective
+//    Old way of computing the objective
 //    _objectives_vector.resize(_U);
 //    for (unsigned i = 0; i < _U; ++i) {
 //        InterpolantVector &poly = _basis_polynomials[i];
@@ -95,10 +53,57 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
 
 }
 
+void EnvelopeProblemSOS::initialize_loggers() {
+    _logger = spdlog::get("EnvelopeProblemSOS");
+    if (_logger == nullptr) {
+        std::__1::vector<spdlog::sink_ptr> sinks;
+        sinks.push_back(std::__1::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+        sinks.push_back(std::__1::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/logfile.txt", true));
+        _logger = std::__1::make_shared<spdlog::logger>("EnvelopeProblemSOS", begin(sinks), end(sinks));
+        _logger->set_level(spdlog::level::info);
+    }
+}
+
+void EnvelopeProblemSOS::calculate_basis_polynomials() {
+
+    InterpolantDualSOSBarrier aux_interpolant_barrier(_d);
+    std::vector<InterpolantDouble> &chebyshev_points = aux_interpolant_barrier.get_basis();
+    InterpolantDouble *cheb_ptr = &chebyshev_points[0];
+    InterpolantVector cheb_vec = Eigen::Map<InterpolantVector>(cheb_ptr, chebyshev_points.size());
+
+    _logger->info("Construct transformation matrix");
+    cxxtimer::Timer interp_basis_timer;
+    interp_basis_timer.start();
+    _basis_polynomials.resize(_U);
+    for (unsigned l = 0; l < _basis_polynomials.size(); ++l) {
+        _basis_polynomials[l] = InterpolantVector::Zero(_U);
+    }
+    InterpolantVector aux_vec(_U);
+    for (unsigned i = 0; i < _U; ++i) {
+        _logger->debug("Construct {}-th basis element.", i);
+        InterpolantVector &poly_i = _basis_polynomials[i];
+        poly_i(0) = 1;
+        InterpolantDouble denom = 1.;
+        for (unsigned j = 0; j < _U; ++j) {
+            if (i != j) {
+                denom *= chebyshev_points[i] - chebyshev_points[j];
+                aux_vec = -chebyshev_points[j] * poly_i;
+                InterpolantVector shift(_U + 1);
+                shift << 0, poly_i;
+                poly_i = shift.segment(0, _U) + aux_vec;
+            }
+        }
+        poly_i /= denom;
+    }
+    interp_basis_timer.stop();
+
+    _logger->info("Finished construction in {} seconds.",
+                  interp_basis_timer.count<std::chrono::milliseconds>() / 1000.);
+}
+
 void EnvelopeProblemSOS::get_clenshaw_curtis_integrals() {
 
     //TODO: Check if _U even is necessary and how to fix for N odd
-
     //TODO: Speedup by only computing lower / upper half
 
     Matrix D(_L, _L);
@@ -125,14 +130,6 @@ void EnvelopeProblemSOS::get_clenshaw_curtis_integrals() {
 
     ClenshawCurtisWeights(_L - 1) *= 2;
 
-    IPMDouble dummy_double;
-//    InterpolantDouble obj_norm = _objectives_vector.norm();
-//    ClenshawCurtisWeights *= InterpolantDoubletoIPMDouble(obj_norm, dummy_double) / ClenshawCurtisWeights.norm();
-
-//    Vector obj_double = InterpolantVectortoVector(_objectives_vector, ClenshawCurtisWeights);
-
-//    _logger->info("Objectives difference is {}", (ClenshawCurtisWeights + obj_double).norm());
-
     _objectives_vector.resize(_U);
     for (int i = 0; i < _objectives_vector.rows(); i++) {
         _objectives_vector(i) = -ClenshawCurtisWeights(i);
@@ -145,8 +142,6 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
     _logger->info("Transformation matrix has norm {}", Q.norm());
 
     if (_input_in_interpolant_basis) {
-        //Generate Random polynomial(Might help stability, have to check)
-//        polynomial = InterpolantVector::Random(polynomial.rows());
         _polynomials_bounds.push_back(polynomial);
         return;
     }
@@ -167,8 +162,6 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
     sys_solve_timer.stop();
     _logger->info("Solving system took {} seconds.",
                   sys_solve_timer.count<std::chrono::milliseconds>() / 1000.);
-
-
     _polynomials_bounds.push_back(inv_sol);
 }
 
@@ -202,9 +195,10 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
                 polynomial - InterpolantVectortoVector(_polynomials_bounds[0], constraints.b);
     }
 
-    std::cout << "Original SOS instance created." << std::endl;
-//    constraints.print();
-
+    _logger->info( "Original SOS instance created.");
+    if (_logger->level() == spdlog::level::trace) {
+        constraints.print();
+    }
     //Construct Barrier function
 
     ProductBarrier *productBarrier = new ProductBarrier;
@@ -220,15 +214,16 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
     instance.constraints = dual_constraints;
     instance.barrier = productBarrier;
 
-    std::cout << "Dual formulation created." << std::endl;
-//    instance.constraints.print();
-
+    _logger->info( "Dual formulation created.");
+    if (_logger->level() == spdlog::level::trace) {
+        instance.constraints.print();
+    }
     return instance;
-};
+}
 
 
 void EnvelopeProblemSOS::print_solution(Solution sol) {
-    //Note: the solution we are looking for is the RHS for the first polynomial - the SOS
+    // Note: the solution we are looking for is the RHS for the first polynomial - the SOS
     // polynomial in the first constraint
     assert(not _polynomials_bounds.empty());
     Vector dummy_vec;
@@ -246,7 +241,6 @@ void EnvelopeProblemSOS::print_solution(Solution sol) {
     } else {
         solution = sol_vec;
     }
-//    std::cout << "Solution polynomial is: " << solution.transpose() << std::endl;
 }
 
 void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
@@ -259,11 +253,6 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
 
     IPMDouble x_min = _hyperRectangle[0].first;
     IPMDouble x_max = _hyperRectangle[0].second;
-
-    //Cut off boundary because of oscillatory behaviour
-    const IPM_DOUBLE delta_x = x_max - x_min;
-    x_min += .3 * delta_x;
-    x_max -= .3 * delta_x;
 
     for (int j = 0; j < num_points; ++j) {
         IPMDouble d = x_min + j * (x_max - x_min) / (num_points - 1);
@@ -289,6 +278,11 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
 
     poly_plots.push_back(v);
 
+    if (_input_in_interpolant_basis) {
+        //Have to be computed now, as we delayed computation in initialisation (was not necessary to create the instance)
+        calculate_basis_polynomials();
+    }
+
     InterpolantMatrix Q_interp = get_transformation_matrix();
     Matrix dummy_matrix;
 //    Matrix Q = InterpolantMatrixToMatrix(Q_interp,dummy_matrix);
@@ -297,11 +291,7 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     for (unsigned poly_idx = 0; poly_idx < plots.size(); poly_idx++) {
         plots[poly_idx].resize(num_points);
         InterpolantVector poly_in_orig_basis(_U);
-        if (_input_in_interpolant_basis) {
-            poly_in_orig_basis = poly_plots[poly_idx];
-        } else {
-            poly_in_orig_basis = Q_interp * poly_plots[poly_idx];
-        }
+        poly_in_orig_basis = Q_interp * poly_plots[poly_idx];
         for (int i = 0; i < num_points; ++i) {
             //Evaluation of vector polynomial at a certain point. Extract method.
             assert(poly_in_orig_basis.size() > 0);
@@ -315,13 +305,11 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     }
 
     plt::figure_size(1200, 780);
-//        plt::xlim(x_min, x_max);
-//        plt::ylim(-700, 500);
 
     std::vector<double> &envelope_plot = plots[plots.size() - 1];
     std::vector<double> offset_envelope(envelope_plot.size());
 
-    //Get plotted min and max;
+    //Obtain plotted min and max.
 
     double y_min = std::numeric_limits<double>::max();
     double y_max = std::numeric_limits<double>::min();

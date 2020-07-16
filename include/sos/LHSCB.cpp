@@ -53,9 +53,46 @@ Eigen::LLT<Matrix> *LHSCB::find_LLT(Vector x) {
     return nullptr;
 }
 
+Eigen::LLT<Matrix> ProductBarrier::llt(Vector x, bool symmetrize) {
+    //TODO: Figure out how to write Eigen::LLT<Matrix> in Matrix form.
+    return LHSCB::llt(x, symmetrize);
+}
+
+//TODO: code resembles code for gradient and other methods. Find abstraction.
+Vector ProductBarrier::llt_L_solve(Vector x, Vector rhs) {
+    unsigned idx = 0;
+    Vector product_llt_solve(_num_variables);
+    for (unsigned i = 0; i < _barriers.size(); ++i) {
+        LHSCB *barrier = _barriers[i];
+        unsigned num_variables = _num_vars_per_barrier[i];
+        Vector x_seg = x.segment(idx, num_variables);
+        Vector rhs_seg = rhs.segment(idx, num_variables);
+        Vector lls_solve_seg = barrier->llt_L_solve(x_seg, rhs_seg);
+        product_llt_solve.segment(idx, num_variables) = lls_solve_seg;
+        idx += num_variables;
+    }
+    return product_llt_solve;
+}
+
+//TODO: code resembles code for gradient and other methods. Find abstraction.
+Matrix ProductBarrier::llt_solve(Vector x, const Matrix &rhs) {
+    unsigned idx = 0;
+    Matrix product_llt_solve = Matrix::Zero(rhs.rows(), rhs.cols());
+    for (unsigned i = 0; i < _barriers.size(); ++i) {
+        LHSCB *barrier = _barriers[i];
+        unsigned num_variables = _num_vars_per_barrier[i];
+        Vector x_seg = x.segment(idx, num_variables);
+        Matrix rhs_block = rhs.block(idx, 0, num_variables, rhs.cols());
+        Matrix lls_solve_block = barrier->llt_solve(x_seg, rhs_block);
+        product_llt_solve.block(idx, 0, num_variables, rhs.cols()) = lls_solve_block;
+        idx += num_variables;
+    }
+    return product_llt_solve;
+}
+
 Eigen::LLT<Matrix> LHSCB::llt(Vector x, bool symmetrize) {
 
-    Eigen::LLT<Matrix> * llt_ptr = nullptr;
+    Eigen::LLT<Matrix> *llt_ptr = nullptr;
 
     if (not symmetrize) {
         llt_ptr = find_LLT(x);
@@ -65,12 +102,12 @@ Eigen::LLT<Matrix> LHSCB::llt(Vector x, bool symmetrize) {
         return *llt_ptr;
     }
 
-    Eigen::LLT<Matrix> * llt_var;
+    Eigen::LLT<Matrix> *llt_var;
 
-    if(not symmetrize) {
+    if (not symmetrize) {
         llt_var = new Eigen::LLT<Matrix>(hessian(x).llt());
     } else {
-        llt_var = new Eigen::LLT<Matrix>((hessian(x) + hessian(x).transpose()).llt());
+        llt_var = new Eigen::LLT<Matrix>(((hessian(x) + hessian(x).transpose()) / 2).llt());
     }
 
     if (_stored_LLT.empty()) {
@@ -80,6 +117,13 @@ Eigen::LLT<Matrix> LHSCB::llt(Vector x, bool symmetrize) {
     return *llt_var;
 }
 
+Matrix LHSCB::llt_solve(Vector x, const Matrix &rhs) {
+    return llt(x).solve(rhs);
+}
+
+Vector LHSCB::llt_L_solve(Vector x, Vector rhs) {
+    return llt(x).matrixL().solve(rhs);
+}
 
 //LP Standard Log Barrier
 
@@ -408,75 +452,98 @@ Matrix DualSOSConeBarrier::Lambda(Vector x) {
     return M;
 }
 
-Vector InterpolantDualSOSBarrier::gradient(Vector x) {
-    auto *grad_ptr = find_gradient(x);
-    if (grad_ptr) {
-        return *grad_ptr;
-    }
 
+void InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x) {
     Matrix intermediate_matrix = _P.transpose() * x.asDiagonal() * _P;
     Eigen::LLT<Matrix> intermediate_LLT = intermediate_matrix.llt();
     //TODO: find way to invert lower triangular matrices more efficiently
-    Matrix V = intermediate_LLT.matrixL().toDenseMatrix().inverse() * _P.transpose();
+    Matrix V = intermediate_LLT.matrixL().solve(_P.transpose());
     Matrix Q = V.transpose() * V;
-    Vector grad = -Q.diagonal();
 
-    //    const Vector & grad = -(_P * (_P.transpose() * x.asDiagonal() * _P).inverse() * _P.transpose()).diagonal();
-    if (_stored_gradients.empty()) {
-        _stored_gradients.resize(1);
-    }
-    _stored_gradients[0] = std::pair<Vector, Vector>(x, grad);
-
-    //Update hessian as well.
+    Vector gradient = -Q.diagonal();
     Matrix hessian = Q.cwiseProduct(Q);
+    Eigen::LLT<Matrix> llt = hessian.llt();
 
     if (_stored_hessians.empty()) {
         _stored_hessians.resize(1);
     }
     _stored_hessians[0] = std::pair<Vector, Matrix>(x, hessian);
 
-    return grad;
+    if (_stored_gradients.empty()) {
+        _stored_gradients.resize(1);
+    }
+    _stored_gradients[0] = std::pair<Vector, Vector>(x, gradient);
+
+    if (_stored_LLT.empty()) {
+        _stored_LLT.resize(1);
+    }
+    _stored_LLT[0] = std::pair<Vector, Eigen::LLT<Matrix>>(x, llt);
 }
+
+Vector InterpolantDualSOSBarrier::gradient(Vector x) {
+    auto *grad_ptr = find_gradient(x);
+    if (grad_ptr) {
+        return *grad_ptr;
+    }
+    update_gradient_hessian_LLT(x);
+    return _stored_gradients[0].second;
+}
+
 
 Matrix InterpolantDualSOSBarrier::hessian(Vector x) {
     auto *hess_ptr = find_hessian(x);
     if (hess_ptr) {
         return *hess_ptr;
     }
-
-    Matrix intermediate_matrix = _P.transpose() * x.asDiagonal() * _P;
-    Eigen::LLT<Matrix> intermediate_LLT = intermediate_matrix.llt();
-    //TODO: find way to invert lower triangular matrices more efficiently
-    Matrix V = intermediate_LLT.matrixL().toDenseMatrix().inverse() * _P.transpose();
-    Matrix Q = V.transpose() * V;
-    Matrix hessian = Q.cwiseProduct(Q);
-
-//    auto Q = _P * (_P.transpose() * x.asDiagonal() * _P).inverse() * _P.transpose();
-//    auto hessian = Q.cwiseProduct(Q);
-    if (_stored_hessians.empty()) {
-        _stored_hessians.resize(1);
-    }
-    _stored_hessians[0] = std::pair<Vector, Matrix>(x, hessian);
-
-    //Update gradient as well
-
-    Vector grad = -Q.diagonal();
-
-    if (_stored_gradients.empty()) {
-        _stored_gradients.resize(1);
-    }
-    _stored_gradients[0] = std::pair<Vector, Vector>(x, grad);
-
-    return hessian;
+    update_gradient_hessian_LLT(x);
+    return _stored_hessians[0].second;
 }
 
+Eigen::LLT<Matrix> InterpolantDualSOSBarrier::llt(Vector x, bool) {
+    auto *llt_ptr = find_LLT(x);
+    if (llt_ptr) {
+        return *llt_ptr;
+    }
+    update_gradient_hessian_LLT(x);
+    return _stored_LLT[0].second;
+}
+
+Matrix InterpolantDualSOSBarrier::inverse_hessian(Vector x) {
+    //Not sure if correct method.
+    Matrix L_inv = llt(x).matrixL().toDenseMatrix().inverse();
+    Matrix inv = L_inv.transpose() * L_inv;
+    //TODO: delete for performance
+//    if((inv * hessian(x) - Matrix::Identity(x.rows(), x.rows())).norm() > 1e-2)
+//    {
+//        std::cout << "WARNING: error in inversion is " << (inv * hessian(x) - Matrix::Identity(x.rows(), x.rows())).norm()
+//        << std::endl;
+//        std::cout << "Hessian: \n" << hessian(x) << std::endl;
+//        std::cout << "LLT Hessian: \n" << hessian(x).llt().matrixLLT() << std::endl;
+//        std::cout << "LLT Hessian L: \n" << hessian(x).llt().matrixL().toDenseMatrix() << std::endl;
+//        std::cout << "LLT Hessian U: \n" << hessian(x).llt().matrixU().toDenseMatrix() << std::endl;
+//
+//    }
+    return inv;
+}
+
+
+//REMARK: Note that in_interior can return true, while llt or hessian could fail. This is due to numerical instabilities in these more complicated operations.
+//Currently fixed by disabling line search.
+//TODO: calculate gradient and hessian as we are alaready half way there and need to calculate the gradient for centrality anyway.
 bool InterpolantDualSOSBarrier::in_interior(Vector x) {
     Matrix Mat = _P.transpose() * x.asDiagonal() * _P;
     Eigen::LLT<Matrix> LLT = Mat.llt();
-    if (LLT.info() != Eigen::NumericalIssue) {
-        return true;
+    if (LLT.info() == Eigen::NumericalIssue) {
+        return false;
     }
-    return false;
+
+    //TODO: The following llt calls contains redundancies.
+    //At this point we could return true, but for numerical reasons let us return false if the hessian is not positive semidefinite.
+    auto LLT2 = llt(x);
+    if (LLT2.info() == Eigen::NumericalIssue) {
+        return false;
+    }
+    return true;
 }
 
 IPMDouble InterpolantDualSOSBarrier::concordance_parameter(Vector) {

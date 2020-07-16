@@ -48,28 +48,62 @@ Matrix NonSymmetricIPM::create_matrix_G() {
 std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen_subsystem(
         std::vector<std::pair<Vector, Vector> > &v) {
 
-    Matrix mu_H_x = mu() * _barrier->hessian(x);
 
+    _test_timers[3].start();
     Eigen::LLT<Matrix> LLT = _barrier->llt(x);
-
-
+    LLT.matrixL().toDenseMatrix().eval();
+    _test_timers[3].stop();
 
     //TODO: Can A(LL^\top)A^\top be computed faster?
     //TODO: Inverse maintenance, in particular for corrector steps.
 
     _test_timers[8].start();
-    Matrix normalized_inverse_hessian = _barrier->inverse_hessian(x) / mu();
-    Matrix A_H_inv_A_top = -A * normalized_inverse_hessian * A.transpose();
-    _test_timers[8].stop();
+    _test_timers[4].start();
+//    Matrix normalized_inverse_hessian = _barrier->inverse_hessian(x) / mu();
+//    normalized_inverse_hessian.eval();
 
+    //TODO: Turn into blockwise operation
+//    Matrix A_H_inv = A * normalized_inverse_hessian;
+    //TODO: double transposition. Figure out how to multiply solve from RHS.
+//    Matrix A_H_inv = LLT.solve(A.transpose()).transpose() / mu();
+    Matrix A_H_inv= _barrier->llt_solve(x, A.transpose()).transpose() / mu();
+//    A_H_inv.eval();
+    A_H_inv.eval();
+    _test_timers[4].stop();
+    //Note: Below is another valid version to compute A_H_inv_alt, but it appears to be slower.
+//    Matrix L_inv = LLT.matrixL().solve(Matrix::Identity(x.rows(),x.rows()));
+//    Matrix A_H_inv_alt = A_sparse * L_inv.transpose() *  L_inv.triangularView<Eigen::Lower>() / mu();
+//    Matrix A_H_inv_alt = LLT.matrixL().solve((A_sparse * L_inv.transpose()).transpose()).transpose() / mu();
+//    A_H_inv_alt.eval();
+
+//    std::cout << "A_H_inv is \n" << A_H_inv << std::endl;
+//    std::cout << "A_H_inv_alt is \n" << A_H_inv_alt << std::endl;
+
+    _test_timers[5].start();
+
+    //TODO: Use better method to sparsify A.
+    Matrix A_H_inv_A_top= A_H_inv * A_sparse.transpose();
+    A_H_inv_A_top.eval();
+
+    _test_timers[5].stop();
+    _test_timers[6].start();
+    Eigen::LLT<Matrix> A_H_inv_A_top_LLT = A_H_inv_A_top.llt();
+    A_H_inv_A_top.llt().matrixL().toDenseMatrix().eval();
+    _test_timers[6].stop();
+    _test_timers[8].stop();
     _test_timers[9].start();
+
     std::vector<std::pair<Vector, Vector> > results;
+    //TODO: might be possible to solve these system in batches! (But currently runtime of the loop is clearly dominated by previous parts)
+    //TODO: check whether Conjugate Gradient Method solves Normal Equations more efficiently.
     for (unsigned i = 0; i < v.size(); i++) {
         Vector &r1 = v[i].first;
         Vector &r2 = v[i].second;
-        auto new_s = solve(A_H_inv_A_top, A * normalized_inverse_hessian * r2 - r1);
+        Vector new_s_intermediate = A_H_inv_A_top_LLT.matrixL().solve(-(A_H_inv * r2 - r1));
+        Vector new_s = A_H_inv_A_top_LLT.matrixU().solve(new_s_intermediate);
         //TODO: might be more stable to formulate next line as linear system solve instead of using the inverse.
-        auto new_t = normalized_inverse_hessian * (r2 + A.transpose() * new_s);
+        Vector new_t_intermediate = LLT.matrixL().solve((r2 + A.transpose() * new_s) / mu());
+        Vector new_t = LLT.matrixU().solve(new_t_intermediate);
         results.emplace_back(std::pair<Vector, Vector>(new_s, new_t));
     }
     _test_timers[9].stop();
@@ -109,10 +143,10 @@ Vector NonSymmetricIPM::andersen_andersen_solve(Vector const rhs) {
     Vector new_u = ret[1].first;
     Vector new_v = ret[1].second;
 
-    Matrix K = Matrix::Zero(m + n, m + n);
-    K.block(0, m, m, n) = A;
-    K.block(m, 0, n, m) = -A.transpose();
-    K.block(m, m, n, n) = mu_H_x;
+//    Matrix K = Matrix::Zero(m + n, m + n);
+//    K.block(0, m, m, n) = A;
+//    K.block(m, 0, n, m) = -A.transpose();
+//    K.block(m, m, n, n) = mu_H_x;
 
     Vector rhs_pq(m + n);
     rhs_pq << b, -c;
@@ -152,6 +186,16 @@ Vector NonSymmetricIPM::andersen_andersen_solve(Vector const rhs) {
     sol << d_yx, d_tau_vec, d_s, d_kappa_vec;
 
     _andersen_sys_timer.stop();
+
+    //Check for dual error in this solution:
+
+    Vector dual_err = -A.transpose() * d_yx.segment(0, y.rows()) + d_tau * c - d_s - r_d;
+    IPMDouble rel_dual_error = dual_err.norm() / r_d.norm();
+
+    _logger->debug("relative dual error is {}", rel_dual_error);
+    if (rel_dual_error > 10e-2) {
+        _logger->warn("relative dual error is {}", rel_dual_error);
+    }
 
     return sol;
 }
@@ -218,6 +262,7 @@ void NonSymmetricIPM::run_solver() {
 
     unsigned total_num_line_steps = 0;
 
+    _test_timers[7].start();
     for (unsigned pred_iteration = 0; pred_iteration < _num_predictor_steps; ++pred_iteration) {
         _logger->debug("Begin predictor iteration {}", pred_iteration);
         _predictor_timer.start();
@@ -258,7 +303,7 @@ void NonSymmetricIPM::run_solver() {
             concat += _step_length_predictor * predictor_direction;
             apply_update(concat);
             Vector fallback_vec = concat;
-            while ((kappa > 0 and tau > 0 and _barrier->in_interior(x)) and centrality() < _beta and not terminate()
+            while (kappa > 0 and tau > 0 and _barrier->in_interior(x) and centrality() < _beta and not terminate()
                    and pow(2, num_line_steps) * _step_length_predictor <= .5) {
                 _logger->debug("Another iteration in line search...");
 //                print();
@@ -328,6 +373,9 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
         A(A_), b(b_), c(c_), kappa(1.), tau(1.), _barrier(barrier_) {
     y = Matrix::Zero(A.rows(), 1);
 
+    //TODO: use proper tolerance / reference.
+    A_sparse = A.sparseView(IPMDouble(1e-10), 1e-10);
+
     _stored_x_centrality.resize(c.rows());
     _stored_s_centrality.resize(c.rows());
 
@@ -335,9 +383,6 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
 
     _logger = spdlog::get("NonSymmetricIPM");
     if (_logger == nullptr) {
-//        _logger = spdlog::stdout_color_mt("NonSymmetricIPM");
-//        _logger->set_level(spdlog::level::info);
-
         std::vector<spdlog::sink_ptr> sinks;
         sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
         sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/logfile.txt"));
@@ -369,18 +414,10 @@ void NonSymmetricIPM::initialize() {
 
     IPMDouble const scaling_delta = sqrt(scaling_delta_dual * scaling_delta_primal);
 
-    //Reinitialize with scaled values
-
     _logger->info("Norm of x is {} and norm of s is {} before rescaling.", x.norm(), s.norm());
 
-//    x = _barrier->initialize_x(scaling_delta);
-//    s = _barrier->initialize_s(scaling_delta);
-
-    //For sake of stability force errors
-//    assert(primal_error() > 0 and dual_error() > 0);
-//    IPMDouble const primal_equality_rescale_factor = dual_error() / primal_error();
-//    A *= primal_equality_rescale_factor;
-//    b *= primal_equality_rescale_factor;
+    x = _barrier->initialize_x(scaling_delta);
+    s = _barrier->initialize_s(scaling_delta);
 
     _logger->info("Rescaled initial point by {}", scaling_delta);
     _logger->info("Norm of c is {}, Norm of b is {} and norm of A is {} ", c.norm(), b.norm(), A.norm());
@@ -425,8 +462,8 @@ Vector NonSymmetricIPM::create_predictor_RHS() {
 
 Vector NonSymmetricIPM::create_corrector_RHS() {
     Vector first_set_of_equalities = Matrix::Zero(_G.rows(), 1);
-    Vector rhs(first_set_of_equalities.rows() + s.rows() + 1);
     Vector second_set_of_equalities = -psi(mu());
+    Vector rhs(first_set_of_equalities.rows() + s.rows() + 1);
     rhs << first_set_of_equalities, second_set_of_equalities;
     _logger->debug("Corrector RHS is \n {}", rhs.transpose());
     return rhs;
@@ -447,57 +484,48 @@ Vector NonSymmetricIPM::psi(IPMDouble t) {
 
 Vector NonSymmetricIPM::solve_predictor_system() {
     Vector rhs = create_predictor_RHS();
-    _logger->debug("System RHS for predictor step is {}", rhs.transpose());
+    SPDLOG_LOGGER_DEBUG(_logger, "System RHS for predictor step is {}", rhs.transpose());
     Vector andersen_direction = andersen_andersen_solve(rhs);
     return andersen_direction;
 }
 
 Vector NonSymmetricIPM::solve_corrector_system() {
     Vector rhs = create_corrector_RHS();
-    _logger->debug("Psi is {}", psi(mu()).transpose());
-    _logger->debug("Barrier is {}", _barrier->gradient(x).transpose());
-    _logger->debug("s is {}", s.transpose());
-    _logger->debug("System RHS for corrector step is {}", rhs.transpose());
-    _logger->trace("Corrector matrix is: \n{}", _M);
+    SPDLOG_LOGGER_DEBUG(_logger, "Psi is {}", psi(mu()).transpose());
+    SPDLOG_LOGGER_DEBUG(_logger, "Barrier is {}", _barrier->gradient(x).transpose());
+    SPDLOG_LOGGER_DEBUG(_logger, "s is {}", s.transpose());
+    SPDLOG_LOGGER_DEBUG(_logger, "System RHS for corrector step is {}", rhs.transpose());
+    SPDLOG_LOGGER_TRACE(_logger, "Corrector matrix is: \n{}", _M);
 
     auto andersen_dir = andersen_andersen_solve(rhs);
 
     //Test in original system
+    if (_logger->level() == spdlog::level::trace) {
+        create_skajaa_ye_matrix();
+    }
 
-    create_skajaa_ye_matrix();
-    Matrix aux_sy(2, rhs.rows());
-    aux_sy.block(0, 0, 1, rhs.rows()) = rhs.transpose();
-    aux_sy.block(1, 0, 1, rhs.rows()) = (_M * andersen_dir).transpose();
-
-    _logger->trace("Compare solutions: \n{}", aux_sy);
+    if (_logger->level() <= spdlog::level::debug) {
+        Matrix aux_sy(2, rhs.rows());
+        aux_sy.block(0, 0, 1, rhs.rows()) = rhs.transpose();
+        aux_sy.block(1, 0, 1, rhs.rows()) = (_M * andersen_dir).transpose();
+        _logger->debug("Compare solutions: \n{}", aux_sy);
+    }
 
     //show that new psi vector is pretty close to 0
 
-    auto delta_s = andersen_dir.segment(A.rows() + A.cols() + 1, A.cols());
-    auto delta_x = andersen_dir.segment(A.rows(), A.cols());
+//    auto delta_s = andersen_dir.segment(A.rows() + A.cols() + 1, A.cols());
+//    auto delta_x = andersen_dir.segment(A.rows(), A.cols());
+//
+//    Vector tmp(s.rows() + 1);
+//    tmp.block(0, 0, s.rows(), 1) = s + mu() * _barrier->gradient(x);
+//    tmp(s.rows()) = kappa - mu() / tau;
 
-//    std::cout << "Check validity of solution: "
-//    << (mu() * _barrier->hessian(x) * delta_x + delta_x + psi(mu()).segment(0,delta_x.rows())).transpose() << std::endl;
-
-//    std::cout << "Validity of big solution"
-//    << (_M.block(A.cols() + A.rows() + 1, 0, A.cols(), _M.cols())
-//    * andersen_dir + psi(mu()).segment(0,delta_x.rows())).transpose()
-//    << std::endl;
-
-    Vector tmp(s.rows() + 1);
-    tmp.block(0, 0, s.rows(), 1) = s + mu() * _barrier->gradient(x);
-    tmp(s.rows()) = kappa - mu() / tau;
-//    std::cout << "Validity check of psi: " << (psi(mu()) - tmp).transpose() << std::endl;
-
-//    std::cout << "Current vectors are x: \n" << x.transpose() << std::endl << "delta x \n" << delta_x.transpose() << std::endl;
-//    std::cout << "Current vectors are s: \n" << s.transpose() << std::endl << "delta s \n" << delta_s.transpose() << std::endl;
-
-    Vector new_psi_vector = s + delta_s + mu() * _barrier->gradient(x + delta_x);
-    Matrix aux(2, new_psi_vector.rows());
-    Vector calculated_psi_vector = s + delta_s
-                                   + mu() * (_barrier->gradient(x) + _barrier->hessian(x) * delta_x);
-    aux.block(0, 0, 1, new_psi_vector.rows()) = new_psi_vector.transpose();
-    aux.block(1, 0, 1, new_psi_vector.rows()) = calculated_psi_vector.transpose();
+//    Vector new_psi_vector = s + delta_s + mu() * _barrier->gradient(x + delta_x);
+//    Matrix aux(2, new_psi_vector.rows());
+//    Vector calculated_psi_vector = s + delta_s
+//                                   + mu() * (_barrier->gradient(x) + _barrier->hessian(x) * delta_x);
+//    aux.block(0, 0, 1, new_psi_vector.rows()) = new_psi_vector.transpose();
+//    aux.block(1, 0, 1, new_psi_vector.rows()) = calculated_psi_vector.transpose();
 
 //    Vector dir = solve(_M, rhs);
     return andersen_dir;
@@ -512,8 +540,8 @@ void NonSymmetricIPM::print() {
     Double const step_length_predictor = InterpolantDoubletoIPMDouble(_step_length_predictor, dummy_D);
     Double const step_length_corrector = InterpolantDoubletoIPMDouble(_step_length_corrector, dummy_D);
 
-    _logger->info(format_, "alpha_predictor", step_length_predictor);
-    _logger->info(format_, "alpha_corrector", step_length_corrector);
+    _logger->debug(format_, "alpha_predictor", step_length_predictor);
+    _logger->debug(format_, "alpha_corrector", step_length_corrector);
 
     Matrix aux(2, x.rows());
     aux.block(0, 0, 1, x.rows()) = x.transpose();
@@ -528,15 +556,17 @@ void NonSymmetricIPM::print() {
 
     IPMDouble mu_ipm_scaled = mu() / (tau * tau);
     Double const mu_scaled = InterpolantDoubletoIPMDouble(mu_ipm_scaled, dummy_D);
-    _logger->info(format_, "mu scaled", mu_scaled);
+    _logger->debug(format_, "mu scaled", mu_scaled);
 
     IPMDouble mu_ipm = mu();
     Double const mu_ = InterpolantDoubletoIPMDouble(mu_ipm, dummy_D);
-    _logger->info(format_, "mu unscaled", mu_);
+    _logger->info(format_, "mu", boost::numeric_cast<double>(mu()));
 
-    IPMDouble centrality_ipm_ = centrality();
-    Double const centrality_ = InterpolantDoubletoIPMDouble(centrality_ipm_, dummy_D);
-    _logger->info(format_, "centrality error", centrality_);
+    if (_logger->level() <= spdlog::level::debug) {
+        IPMDouble centrality_ipm_ = centrality();
+        Double const centrality_ = InterpolantDoubletoIPMDouble(centrality_ipm_, dummy_D);
+        _logger->debug(format_, "centrality error", centrality_);
+    }
 
     IPMDouble duality_gap_ipm_ = kappa / tau;
     Double duality_gap_ = InterpolantDoubletoIPMDouble(duality_gap_ipm_, dummy_D);
@@ -548,7 +578,7 @@ void NonSymmetricIPM::print() {
 
     IPMDouble primal_inf_unscaled_ipm_ = primal_error_rescaled();
     Double primal_inf_unscaled_ = InterpolantDoubletoIPMDouble(primal_inf_unscaled_ipm_, dummy_D);
-    _logger->info(format_, "primal infeas. unscaled", primal_inf_unscaled_);
+    _logger->debug(format_, "primal infeas. unscaled", primal_inf_unscaled_);
 
     IPMDouble dual_inf_ipm_ = dual_error();
     Double dual_inf_ = InterpolantDoubletoIPMDouble(dual_inf_ipm_, dummy_D);
@@ -556,7 +586,7 @@ void NonSymmetricIPM::print() {
 
     IPMDouble dual_inf_unscaled_ipm_ = dual_error_rescaled();
     Double dual_inf_unscaled_ = InterpolantDoubletoIPMDouble(dual_inf_unscaled_ipm_, dummy_D);
-    _logger->info(format_, "dual infeas. unscaled", dual_inf_unscaled_);
+    _logger->debug(format_, "dual infeas. unscaled", dual_inf_unscaled_);
 
     _logger->trace("last predictor direction: {}", _last_predictor_direction.transpose());
 
@@ -565,6 +595,8 @@ void NonSymmetricIPM::print() {
 
     _logger->info(format_, "Total andersen time (s)",
                   _andersen_sys_timer.count<std::chrono::milliseconds>() / 1000.);
+    _logger->info(format_, "Specific method timer (s)",
+                  _specific_method_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Calc centrality time (s)",
                   _centrality_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Time checking interior(s)",
@@ -614,6 +646,9 @@ bool NonSymmetricIPM::terminate_successfully() {
     return true;
 }
 
+// Termination criteria taken from Skajaa - Ye "A Homogeneous Interior-Point Algorithm for
+// Nonsymmetric Convex Conic Optimization" https://web.stanford.edu/~yyye/nonsymmhsdimp.pdf page 15.
+
 bool NonSymmetricIPM::terminate_infeasible() {
 
     //TODO: Figure out if initialization scaling (delta) should influence the termination criteria.
@@ -642,7 +677,6 @@ bool NonSymmetricIPM::terminate_infeasible() {
     if (tau > _epsilon * 10e-2 * std::max(ipm_1, static_cast<IPMDouble>(kappa))) {
         return false;
     }
-
     return true;
 }
 
@@ -675,6 +709,7 @@ IPMDouble NonSymmetricIPM::centrality() {
         LLT = _barrier->llt(x, true);
         _logger->error("Symmetrizing successful: {}", LLT.info() != Eigen::NumericalIssue);
         if (LLT.info() == Eigen::NumericalIssue) {
+            _logger->error("In interior: {}", _barrier->in_interior(x));
             exit(1);
         }
     }
@@ -684,8 +719,14 @@ IPMDouble NonSymmetricIPM::centrality() {
     Vector LLT_sol = LLT.matrixL().solve(psi_vec.segment(0, psi_vec.rows() - 1));
     IPMDouble tau_kappa_entry = tau * psi_vec.segment(psi_vec.rows() - 1, 1).sum();
 
+    //Write alternative solution
+
+    Vector LLT_sol_alt = _barrier->llt_L_solve(x, psi_vec.segment(0, psi_vec.rows() - 1));
+
+//    assert((LLT_sol_alt - LLT_sol).norm()/LLT_sol.norm() < 1e-5);
+
     Vector err_L(psi_vec.rows());
-    err_L << LLT_sol, tau_kappa_entry;
+    err_L << LLT_sol_alt, tau_kappa_entry;
     _test_timers[2].stop();
 
     IPMDouble centr_err_L = err_L.norm() / mu_d;

@@ -63,6 +63,8 @@ public:
 
     void plot_polynomials_and_solution(const Solution &sol);
 
+    void calculate_basis_polynomials();
+
     InterpolantMatrix get_transformation_matrix();
 
 private:
@@ -81,9 +83,11 @@ private:
     //Chebyshev points of second kind is calculated.
     //Set to true if you want to save runtime but have
     //arbitrary polynomials plotted.
-    bool _input_in_interpolant_basis = false;
+    bool _input_in_interpolant_basis = true;
 
     void get_clenshaw_curtis_integrals() ;
+
+    void initialize_loggers();
 };
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H

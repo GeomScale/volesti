@@ -54,7 +54,7 @@ public:
        std::getline(config_file, line);
        std::istringstream ss(line);
        ss >> _epsilon;
-       _logger->info("Set epsilon to {}", _epsilon);
+       _logger->info("Set epsilon to {}", boost::numeric::converter<double, IPMDouble>::convert(_epsilon));
 
        ss.clear();
        std::getline(config_file, line);
@@ -66,25 +66,25 @@ public:
         std::getline(config_file, line);
         ss.str(line);
         ss >> _beta;
-        _logger->info("Set large neighborhood to {}", _beta);
+        _logger->info("Set large neighborhood to {}", boost::numeric::converter<double, IPMDouble>::convert(_beta));
 
         ss.clear();
         std::getline(config_file, line);
         ss.str(line);
         ss >> _beta_small;
-        _logger->info("Set small neighborhood to {}", _beta_small);
+        _logger->info("Set small neighborhood to {}", boost::numeric::converter<double, IPMDouble>::convert(_beta_small));
 
         ss.clear();
         std::getline(config_file, line);
         ss.str(line);
         ss >> _param_step_length_predictor;
-        _logger->info("Set scale predictor step to {}", _param_step_length_predictor);
+        _logger->info("Set scale predictor step to {}", boost::numeric::converter<double, IPMDouble>::convert(_param_step_length_predictor));
 
         ss.clear();
         std::getline(config_file, line);
         ss.str(line);
         ss >> _step_length_corrector;
-        _logger->info("Set scale corrector step to {}", _step_length_corrector);
+        _logger->info("Set scale corrector step to {}", boost::numeric::converter<double, IPMDouble>::convert(_step_length_corrector));
 
         _step_length_predictor = calc_step_length_predictor();
 
@@ -94,6 +94,12 @@ public:
         int logger_level;
         ss >> logger_level;
         _logger->set_level(spdlog::level::level_enum(logger_level));
+
+        ss.clear();
+        std::getline(config_file, line);
+        ss.str(line);
+        ss >> _use_line_search;
+        _logger->info("Use line search: {}", _use_line_search);
     }
 
     IPMDouble calc_step_length_predictor(){
@@ -160,6 +166,8 @@ private:
     Matrix A;
     Vector b;
     Vector c;
+
+    Eigen::SparseMatrix<IPMDouble> A_sparse;
 
     Matrix _basis_ker_A;
 
