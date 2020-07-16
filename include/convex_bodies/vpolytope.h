@@ -84,11 +84,6 @@ public:
         return b;
     }
 
-    MT get_AA() const {
-        MT N(0,0);
-        return N;
-    }
-
     // change the matrix V
     void set_mat(const MT &V2) {
         V = V2;

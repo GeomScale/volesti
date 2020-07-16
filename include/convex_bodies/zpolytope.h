@@ -145,11 +145,6 @@ public:
         return V;
     }
 
-    MT get_AA() const {
-        MT N(0,0);
-        return N;
-    }
-
     // return the vector b
     VT get_vec() const
     {

@@ -38,11 +38,6 @@ public:
         return c;
     }
 
-    MT get_AA() const {
-        MT N(0,0);
-        return N;
-    }
-
     NT squared_radius() const
     {
         return R;

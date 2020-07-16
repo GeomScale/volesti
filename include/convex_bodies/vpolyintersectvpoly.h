@@ -95,11 +95,6 @@ public:
         return P1.get_mat();
     }
 
-    MT get_AA() const {
-        MT N(0,0);
-        return N;
-    }
-
     VT get_vec() const {
         return P1.get_vec();
     }

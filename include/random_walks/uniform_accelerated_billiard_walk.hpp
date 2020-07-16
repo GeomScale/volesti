@@ -69,9 +69,9 @@ struct AcceleratedBilliardWalk
         Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
         {
             _update_parameters = update_parameters();
-           _L = compute_diameter<GenericPolytope>
+            _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
-            _AA.noalias()= P.get_AA();
+            _AA.noalias()= P.get_mat() * P.get_mat().transpose();
             initialize(P, p, rng);
         }
 
@@ -83,7 +83,7 @@ struct AcceleratedBilliardWalk
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
-            _AA.noalias()= P.get_AA();
+            _AA.noalias()= P.get_mat() * P.get_mat().transpose();
             initialize(P, p, rng);
         }
 

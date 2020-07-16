@@ -55,11 +55,6 @@ public:
         return HP.get_mat();
     }
 
-    MT get_AA() const {
-        MT N(0,0);
-        return N;
-    }
-
     MT get_T() const {
         return Z.get_mat();
     }

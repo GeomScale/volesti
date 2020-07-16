@@ -40,10 +40,6 @@ public:
         return P.get_mat();
     }
 
-    MT get_AA() const {
-        return P.get_AA();
-    }
-
     MT get_T() const {
         return P.get_mat();
     }
