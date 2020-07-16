@@ -21,7 +21,7 @@ std::pair<H_polytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT
     int r = Aeq.rows(), d = A.cols();
     MT V;
     
-    if (slow){ //typically when dimension <= 15
+    if (slow){ //typically better when dimension <= 15
         Eigen::JacobiSVD<MT> svd(Aeq, Eigen::ComputeFullV);
         V = svd.matrixV();
         s = svd.singularValues();
