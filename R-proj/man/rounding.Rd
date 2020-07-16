@@ -4,10 +4,12 @@
 \alias{rounding}
 \title{Internal rcpp function for the rounding of a convex polytope}
 \usage{
-rounding(P, seed = NULL)
+rounding(P, method = NULL, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope (H- or V-representation or zonotope).}
+
+\item{method}{Optional. The method to use for rounding, a) \code{'mee'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition.}
 
 \item{seed}{Optional. A fixed seed for the number generator.}
 }

@@ -50,8 +50,8 @@ void round_svd(Polytope &P, Point &p, unsigned int const& num_rounding_steps, MT
     for (int i = 0; i < N; ++i) {
         RetMat.row(i) = RetMat.row(i) - Means.transpose();
     }
-    //Point q(Means);
-    p -= Point(Means);//q;
+    Point q(Means);
+    p = p - q;
     P.shift(Means);
 
     Eigen::JacobiSVD<MT> svd(RetMat, Eigen::ComputeThinU | Eigen::ComputeThinV);

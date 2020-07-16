@@ -4,8 +4,7 @@
 \alias{sample_points}
 \title{Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).}
 \usage{
-sample_points(P, n, random_walk = NULL, distribution = NULL,
-  seed = NULL)
+sample_points(P, n, random_walk = NULL, distribution = NULL, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.}

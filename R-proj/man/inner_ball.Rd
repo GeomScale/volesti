@@ -4,7 +4,7 @@
 \alias{inner_ball}
 \title{Compute an inscribed ball of a convex polytope}
 \usage{
-inner_ball(P)
+inner_ball(P, method = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.}

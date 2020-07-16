@@ -185,7 +185,7 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' Internal rcpp function for the rounding of a convex polytope
 #'
 #' @param P A convex polytope (H- or V-representation or zonotope).
-#' @param method Optional. The method to use for rounding, a) \code{'mve'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition.
+#' @param method Optional. The method to use for rounding, a) \code{'mee'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @keywords internal

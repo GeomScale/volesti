@@ -4,7 +4,7 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-round_polytope(P, seed = NULL)
+round_polytope(P, method = NULL, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}

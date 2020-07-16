@@ -5,9 +5,10 @@
 #' @return A list with 4 elements: (a) a full-dimensional polytope in H-representation andd (b) the element "N" which is the matrix of the inverse linear transformation that is applied on the input polytope, (c)  the element "shift" which is the opposite vector of that which has shifted the input polytope, (d) the element "round_value" which is the determinant of the square matrix of the linear transformation that is applied on the input polytope.
 #'
 #' @examples
-#' # rotate a H-polytope (2d unit simplex)
-#' P = Hpolytope$new(A, b)
-#' listHpoly = round_polytope(P)
+#' P = gen_cube(10,'H')
+#' P$Aeq = gen_rand_hpoly(10,3)$A
+#' P$beq = rep(0,3)
+#' ret_list = get_full_dimensional_polytope(P)
 #' @export
 get_full_dimensional_polytope <- function(P){
   
