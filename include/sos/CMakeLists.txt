@@ -10,6 +10,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_DEBUG_CUST
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -DNDEBUG=1")
 set(CMAKE_CXX_FLAGS_RELEASE_DOUBLE "${CMAKE_CXX_FLAGS} -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -Wall -Wextra -O3 -Xclang -fopenmp -lomp -DNDEBUG=1 -DIPM_USE_DOUBLE -DDIGITS_PRECISION=250 -DIPM_DOUBLE=double")
 set(CMAKE_CXX_FLAGS_RELEASE_DOUBLE_AVX "${CMAKE_CXX_FLAGS} -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -Wall -Wextra -O3 -mavx -mfma -DNDEBUG=1 -DIPM_USE_DOUBLE -DDIGITS_PRECISION=250 -DIPM_DOUBLE=double")
+set(CMAKE_CXX_FLAGS_RELEASE_DOUBLE_AVX_OPENMP "${CMAKE_CXX_FLAGS} -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -Wall -Wextra -O3 -Xclang  -fopenmp -lomp -mavx -mfma -DNDEBUG=1 -DIPM_USE_DOUBLE -DDIGITS_PRECISION=250 -DIPM_DOUBLE=double")
 set(CMAKE_CXX_FLAGS_RELEASE_LONG_DOUBLE "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -openmp -DNDEBUG=1 -DIPM_USE_DOUBLE -DDIGITS_PRECISION=250 -DIPM_DOUBLE=long_double")
 
 file(GLOB TARGETS "*.h" "*.cpp")
@@ -32,6 +33,6 @@ if (NOT BOOST_DIR)
 else ()
     target_include_directories(NonSymmetricConicOptimization PRIVATE ${BOOST_DIR}
             ../../external include ${Python2_INCLUDE_DIRS} ${Python2_NumPy_INCLUDE_DIRS} ../../../Eigen/eigen /usr/local/include /usr/local/opt/llvm/include)
-    target_link_directories(NonSymmetricConicOptimization PRIVATE /usr/local/lib /usr/local/opt/llvm/lib)
+    target_link_directories(NonSymmetricConicOptimization PRIVATE /usr/local/lib /usr/local/opt/llvm/lib /usr/local/opt/libomp/lib/)
     target_link_libraries(NonSymmetricConicOptimization Python2::Python Python2::NumPy)
 endif ()

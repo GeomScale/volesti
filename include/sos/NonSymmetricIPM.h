@@ -196,7 +196,7 @@ private:
     std::vector<cxxtimer::Timer> _test_timers;
 
     cxxtimer::Timer _general_method_timer;
-    cxxtimer::Timer _specific_method_timer;
+    cxxtimer::Timer _total_runtime_timer;
 
     bool terminate();
     bool terminate_successfully();

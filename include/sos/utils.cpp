@@ -139,15 +139,38 @@ public:
         std::cout << b.transpose() << std::endl;
     }
 
+    //TODO: use optional argument to indicate sparseness.
     Constraints dual_system() {
+        std::cout << "Create dual system... " << std::endl;
         Constraints dual_constraints;
-        dual_constraints.c = A.colPivHouseholderQr().solve(b);
+//        dual_constraints.c = A.colPivHouseholderQr().solve(b);
 
-        Matrix QR = A.transpose().householderQr().householderQ();
-//        std::cout << "Q matrix \n" << QR;
+        //TODO: use proper tolerance / reference.
 
-        dual_constraints.A = QR.block(0, A.rows(), QR.rows(), QR.cols() - A.rows()).transpose();
+        Eigen::SparseMatrix<IPMDouble> A_top_sparse = A.transpose().sparseView(IPMDouble(1e-10), 1e-10);
+        Eigen::SparseMatrix<IPMDouble> A_sparse = A.sparseView(IPMDouble(1e-10), 1e-10);
+
+        A_top_sparse.makeCompressed();
+        A_sparse.makeCompressed();
+
+        Eigen::SparseQR<Eigen::SparseMatrix<IPMDouble>, Eigen::COLAMDOrdering<int> > QR_top_sparse;
+        Eigen::SparseQR<Eigen::SparseMatrix<IPMDouble>, Eigen::COLAMDOrdering<int> > QR_sparse;
+
+        QR_top_sparse.compute(A_top_sparse);
+        QR_sparse.compute(A_sparse);
+
+        dual_constraints.c = QR_sparse.solve(b);
+
+        Matrix QR_from_sparse(QR_top_sparse.matrixQ());
+//        Matrix QR = A.transpose().householderQr().householderQ();
+
+        dual_constraints.A = QR_from_sparse.block(0, A.rows(), QR_from_sparse.rows(), QR_from_sparse.cols() - A.rows()).transpose();
         dual_constraints.b = dual_constraints.A * c;
+
+//        std::cout << "QR from sparse \n" << QR_from_sparse << std::endl;
+//        std::cout << "QR orig: \n" << QR  << std::endl;
+
+        std::cout <<"Done." << std::endl;
 
         //TODO: use different measure to calculate centrality error
         assert((dual_constraints.A * A.transpose()).norm() < 10e-5);

@@ -9,6 +9,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/fmt/ostr.h"
 
+
 std::ostream &operator<<(std::ostream &os, const DirectionDecomposition &dir) {
     os << "x " << dir.x.transpose() << std::endl;
     os << "s: " << dir.s.transpose() << std::endl;
@@ -133,9 +134,7 @@ Vector NonSymmetricIPM::andersen_andersen_solve(Vector const rhs) {
 
     //TODO: runtime test of both methods to solve the subsystem. Currently both are performed, but eventually
     // we'll stick with the faster one.
-    _specific_method_timer.start();
     std::vector<std::pair<Vector, Vector> > ret = solve_andersen_andersen_subsystem(new_rhs_vectors);
-    _specific_method_timer.stop();
 
     Vector new_p = ret[0].first;
     Vector new_q = ret[0].second;
@@ -262,7 +261,7 @@ void NonSymmetricIPM::run_solver() {
 
     unsigned total_num_line_steps = 0;
 
-    _test_timers[7].start();
+    _total_runtime_timer.start();
     for (unsigned pred_iteration = 0; pred_iteration < _num_predictor_steps; ++pred_iteration) {
         _logger->debug("Begin predictor iteration {}", pred_iteration);
         _predictor_timer.start();
@@ -336,6 +335,7 @@ void NonSymmetricIPM::run_solver() {
         _corrector_timer.start();
 
         for (unsigned corr_iteration = 0; corr_iteration < _num_corrector_steps; ++corr_iteration) {
+            //TODO: figure out if this is already as expensive as running another corrector step. (probably not, as the crrent value can be used for next predictor step if true).
             if (centrality() < _beta_small) {
                 break;
             }
@@ -359,14 +359,17 @@ void NonSymmetricIPM::run_solver() {
                 print();
             }
 
-            assert(kappa > 0);
-            assert(tau > 0);
-            assert(_barrier->in_interior(x));
-            assert(centrality() < _beta);
+            if(_logger->level() <= spdlog::level::debug){
+                assert(kappa > 0);
+                assert(tau > 0);
+                assert(_barrier->in_interior(x));
+                assert(centrality() < _beta);
+            }
         }
 
         _corrector_timer.stop();
     }
+    _total_runtime_timer.stop();
 }
 
 NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barrier_) :
@@ -419,17 +422,26 @@ void NonSymmetricIPM::initialize() {
     x = _barrier->initialize_x(scaling_delta);
     s = _barrier->initialize_s(scaling_delta);
 
-    _logger->info("Rescaled initial point by {}", scaling_delta);
-    _logger->info("Norm of c is {}, Norm of b is {} and norm of A is {} ", c.norm(), b.norm(), A.norm());
+    _logger->debug("Rescaled initial point by {}", scaling_delta);
+    _logger->debug("Norm of c is {}, Norm of b is {} and norm of A is {} ", c.norm(), b.norm(), A.norm());
 
     assert(x.rows() == _barrier->getNumVariables());
 
-    _logger->info("Norm of x is initialized as: {}", x.norm());
-    _logger->info("Norm of s is initialized as: {}", s.norm());
+    _logger->debug("Norm of x is initialized as: {}", x.norm());
+    _logger->debug("Norm of s is initialized as: {}", s.norm());
 
+    //TODO: turn into sparse operation based on n number of nonzeros.
     Matrix QR = A.transpose().householderQr().householderQ();
 
-    _basis_ker_A = QR.block(0, A.rows(), QR.rows(), QR.cols() - A.rows());
+    Eigen::SparseQR<Eigen::SparseMatrix<IPMDouble>, Eigen::COLAMDOrdering<int> > QR_sparse;
+
+    Eigen::SparseMatrix<IPMDouble> tmp_sparse = A_sparse.transpose();
+    tmp_sparse.makeCompressed();
+    QR_sparse.compute(tmp_sparse);
+
+
+//    _basis_ker_A = QR.block(0, A.rows(), QR.rows(), QR.cols() - A.rows());
+    _basis_ker_A = Matrix(QR_sparse.matrixQ()).block(0, A.rows(), QR_sparse.rows(), QR_sparse.cols() - A.rows());
 
     _logger->trace("Matrix A is: \n {}", A);
     _logger->trace("Basis of ker A is: \n {}", _basis_ker_A);
@@ -595,8 +607,8 @@ void NonSymmetricIPM::print() {
 
     _logger->info(format_, "Total andersen time (s)",
                   _andersen_sys_timer.count<std::chrono::milliseconds>() / 1000.);
-    _logger->info(format_, "Specific method timer (s)",
-                  _specific_method_timer.count<std::chrono::milliseconds>() / 1000.);
+    _logger->info(format_, "Total runtime (s)",
+                  _total_runtime_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Calc centrality time (s)",
                   _centrality_timer.count<std::chrono::milliseconds>() / 1000.);
     _logger->info(format_, "Time checking interior(s)",
@@ -607,11 +619,6 @@ void NonSymmetricIPM::print() {
         _logger->info(format_, s,
                       _test_timers[idx].count<std::chrono::milliseconds>() / 1000.);
     }
-
-//    _logger->info("Total elapsed time in general method: {} seconds.",
-//                  _general_method_timer.count<std::chrono::seconds>());
-//    _logger->info("Total elapsed time in specific method: {} seconds.",
-//                  _specific_method_timer.count<std::chrono::seconds>());
 
     _logger->info("--------------------------------------------------------------------------------------");
 
@@ -699,45 +706,15 @@ IPMDouble NonSymmetricIPM::centrality() {
     Vector psi_vec = psi(mu_d);
     _test_timers[0].stop();
 
-
-//    auto hess = _barrier->hessian(x);
-    _test_timers[1].start();
-    Eigen::LLT<Matrix> LLT = _barrier->llt(x);
-
-    if (LLT.info() == Eigen::NumericalIssue) {
-        _logger->warn("Issue in LLT decomposition. Try symmetrizing");
-        LLT = _barrier->llt(x, true);
-        _logger->error("Symmetrizing successful: {}", LLT.info() != Eigen::NumericalIssue);
-        if (LLT.info() == Eigen::NumericalIssue) {
-            _logger->error("In interior: {}", _barrier->in_interior(x));
-            exit(1);
-        }
-    }
-    _test_timers[1].stop();
-
     _test_timers[2].start();
-    Vector LLT_sol = LLT.matrixL().solve(psi_vec.segment(0, psi_vec.rows() - 1));
     IPMDouble tau_kappa_entry = tau * psi_vec.segment(psi_vec.rows() - 1, 1).sum();
 
-    //Write alternative solution
-
-    Vector LLT_sol_alt = _barrier->llt_L_solve(x, psi_vec.segment(0, psi_vec.rows() - 1));
-
-//    assert((LLT_sol_alt - LLT_sol).norm()/LLT_sol.norm() < 1e-5);
-
+    Vector LLT_sol = _barrier->llt_L_solve(x, psi_vec.segment(0, psi_vec.rows() - 1));
     Vector err_L(psi_vec.rows());
-    err_L << LLT_sol_alt, tau_kappa_entry;
+    err_L << LLT_sol, tau_kappa_entry;
     _test_timers[2].stop();
 
     IPMDouble centr_err_L = err_L.norm() / mu_d;
-
-//    Matrix full_hessian = Matrix::Zero(A.cols() + 1, A.cols() + 1);
-//    full_hessian.block(0, 0, A.cols(), A.cols()) = _barrier->hessian(x);
-//    full_hessian.block(A.cols(), A.cols(), 1, 1) = 1 / (tau * tau) * Matrix::Identity(1, 1);
-//    auto sys_solve = solve(full_hessian, psi_vec);
-//    Double centr_err2 = boost::multiprecision::sqrt(boost::multiprecision::abs((psi_vec.transpose() * sys_solve).sum())) / mu_d;
-
-//    assert(centr_err2 - centr_err < 10e-5);
 
     _stored_x_centrality = x;
     _stored_s_centrality = s;

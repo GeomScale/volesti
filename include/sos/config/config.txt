@@ -5,5 +5,5 @@
 .2 //scale predictor step
 1. //length corrector step
 2 //logger level. 1 = debug, 2 = info
-0  //use line search
+1  //use line search
 

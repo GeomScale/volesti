@@ -1,6 +1,7 @@
 ### Sum of Squares optimization
 
 This subproject implements the algorithm(s) in [1,2,3]. Example of usage can be found [here](../../doc/cpp_interface.md). 
+
 #### Currently available:
 
 * The generic implementation of the algorithm in [1] with barrier methods for the following cones:
@@ -18,15 +19,15 @@ on the interval [-1,1].
 
 #### Next steps:
 
+* Dynamically switch between float -> double -> long double -> multiprecision when Matrices become ill-conditioned.
 * Create minimal example where high precision is needed 
-* Write report of weekly progress
 * Parameter tuning
 * Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
 * Higher order corrector steps
 * Add Weighted Sum-of-Squares (WSOS) support
 * Add multivariate support
 * Implement Lagrange polynomials more efficiently (or find C++ library with sufficient precision.)
-* Speed up with Intel MKL (considering it is not open source we miht not use it !?) or other high-performance library
+* Speed up with Intel MKL (considering it is not open source we might not use it !?) or other high-performance library
 * Benchmarking with alfonso, SOSTOOLS, MOSEK, SeDuMi 
 * Implementation/inspiration from  [4]. In particular interesting are:
     * Positive definite rescaling matrix for added stability and monotonicity 
@@ -54,6 +55,7 @@ numbers immensely slow down the IPM
 * Week 5: Discovered [4], Understanding paper and draw ideas to implement more efficiently.
 * Week 6: Debugging, Refactoring Code, Speeding up initialisation of "Polynomial Envelope" Problem
  (non-trivial: properties of Chebyshev polynomials, Clenshaw-Curtis algorithm)
+ * Week 7: Runtime speedups, more efficient (including experimentally) implementation.
 
 #### References
 

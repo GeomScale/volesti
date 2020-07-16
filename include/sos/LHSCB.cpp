@@ -452,17 +452,29 @@ Matrix DualSOSConeBarrier::Lambda(Vector x) {
     return M;
 }
 
+//TODO: if intermediate_LLT was calculated already in a check_interior_only call, restore it for the next call.
 
-void InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x) {
-    Matrix intermediate_matrix = _P.transpose() * x.asDiagonal() * _P;
-    Eigen::LLT<Matrix> intermediate_LLT = intermediate_matrix.llt();
-    //TODO: find way to invert lower triangular matrices more efficiently
+bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check_interior_only) {
+    Matrix intermediate_matrix = Matrix(_P.cols(),_P.cols());
+    intermediate_matrix.triangularView<Eigen::Lower>() = _P.transpose() * x.asDiagonal() * _P;
+    Eigen::LLT<Matrix> intermediate_LLT = intermediate_matrix.selfadjointView<Eigen::Lower>().llt();
+    if(intermediate_LLT.info() == Eigen::NumericalIssue){
+        return false;
+    }
+
+    if(check_interior_only){
+        return true;
+    }
+
     Matrix V = intermediate_LLT.matrixL().solve(_P.transpose());
-    Matrix Q = V.transpose() * V;
+    Matrix Q = Matrix(V.cols(), V.cols());
+    Q.triangularView<Eigen::Lower>() = V.transpose() * V;
+    Q = Q.selfadjointView<Eigen::Lower>();
 
     Vector gradient = -Q.diagonal();
+    //TODO: store hessian as self-adjoint
     Matrix hessian = Q.cwiseProduct(Q);
-    Eigen::LLT<Matrix> llt = hessian.llt();
+    Eigen::LLT<Matrix> llt = hessian.selfadjointView<Eigen::Lower>().llt();
 
     if (_stored_hessians.empty()) {
         _stored_hessians.resize(1);
@@ -478,6 +490,7 @@ void InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x) {
         _stored_LLT.resize(1);
     }
     _stored_LLT[0] = std::pair<Vector, Eigen::LLT<Matrix>>(x, llt);
+    return true;
 }
 
 Vector InterpolantDualSOSBarrier::gradient(Vector x) {
@@ -531,19 +544,7 @@ Matrix InterpolantDualSOSBarrier::inverse_hessian(Vector x) {
 //Currently fixed by disabling line search.
 //TODO: calculate gradient and hessian as we are alaready half way there and need to calculate the gradient for centrality anyway.
 bool InterpolantDualSOSBarrier::in_interior(Vector x) {
-    Matrix Mat = _P.transpose() * x.asDiagonal() * _P;
-    Eigen::LLT<Matrix> LLT = Mat.llt();
-    if (LLT.info() == Eigen::NumericalIssue) {
-        return false;
-    }
-
-    //TODO: The following llt calls contains redundancies.
-    //At this point we could return true, but for numerical reasons let us return false if the hessian is not positive semidefinite.
-    auto LLT2 = llt(x);
-    if (LLT2.info() == Eigen::NumericalIssue) {
-        return false;
-    }
-    return true;
+    return update_gradient_hessian_LLT(x, true);
 }
 
 IPMDouble InterpolantDualSOSBarrier::concordance_parameter(Vector) {

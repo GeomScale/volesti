@@ -267,7 +267,7 @@ public:
 
     };
 
-    void update_gradient_hessian_LLT(Vector x);
+    bool update_gradient_hessian_LLT(Vector x, bool check_interior_only = false);
 
     Vector gradient(Vector x) override;
 
