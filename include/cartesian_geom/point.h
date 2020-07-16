@@ -177,16 +177,13 @@ public:
         return this->coeffs.dot(coeffs);
     }
 
+    FT squared_length() const {
+        FT lsq = length();
+        return lsq * lsq;
+    }
 
-    FT squared_length() const
-    {
-
-        FT lsq = FT(0.0);
-
-        for (auto i=0u; i<d ; i++){
-            lsq += coeffs(i) * coeffs(i);
-        }
-        return lsq;
+    FT length() const {
+        return coeffs.norm();
     }
 
     void print() const

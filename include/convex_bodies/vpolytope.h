@@ -3,8 +3,9 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -73,24 +74,20 @@ public:
         return V.rows();
     }
 
-
     // return the matrix V
     MT get_mat() const {
         return V;
     }
-
 
     // return the vector b
     VT get_vec() const {
         return b;
     }
 
-
     // change the matrix V
     void set_mat(const MT &V2) {
         V = V2;
     }
-
 
     // change the vector b
     void set_vec(const VT &b2) {
@@ -353,6 +350,41 @@ public:
         return line_positive_intersect(r, v);
     }
 
+    //-------------------------accelarated billiard--------------------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters &params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters &params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters &params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+    //------------------------------------------------------------------------------//
+
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
@@ -420,6 +452,8 @@ public:
 
     void compute_reflection(Point &v, const Point &p, const int &facet) const {
 
+        //compute_reflection(v, p, 0.0);
+
         int count = 0, outvert;
         MT Fmat2(_d,_d);
         for (int j = 0; j < num_of_vertices(); ++j) {
@@ -433,6 +467,29 @@ public:
 
         VT a = Fmat2.colPivHouseholderQr().solve(VT::Ones(_d));
         if (a.dot(V.row(outvert)) > 1.0) a = -a;
+        a /= a.norm();
+
+        // compute reflection
+        a *= (-2.0 * v.dot(a));
+        v += a;
+    }
+
+    template <typename update_parameters>
+    void compute_reflection(Point &v, const Point &p, update_parameters const& params) const {
+
+        int count = 0, outvert;
+        MT Fmat2(_d,_d);
+        for (int j = 0; j < num_of_vertices(); ++j) {
+            if (*(conv_comb + j) > 0.0) {
+                Fmat2.row(count) = V.row(j);
+                count++;
+            } else {
+                outvert = j;
+            }
+        }
+
+        VT a = Fmat2.colPivHouseholderQr().solve(VT::Ones(_d));
+        if (a.dot(V.row(outvert)) > 1.0) a *= -1.0;
         a /= a.norm();
 
         // compute reflection

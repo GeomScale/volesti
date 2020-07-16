@@ -3,7 +3,9 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -20,6 +22,7 @@ public:
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
     Ball() {}
 
@@ -147,12 +150,20 @@ public:
         return 0;
     }
 
-    void compute_reflection (Point& v, Point const& p, const int &facet) const
+    void compute_reflection (Point& v, Point const& p) const
     {
         Point s = p;
         s *= (1.0 / std::sqrt(s.squared_length()));
         s *= (-2.0 * v.dot(s));
         v += s;
+    }
+
+    template <typename update_parameters>
+    void compute_reflection (Point &v, Point const& p, update_parameters &params) const {
+
+        params.ball_inner_norm = p.length();
+        params.inner_vi_ak = v.dot(p) / params.ball_inner_norm;
+        v += (p * (-2.0 * params.inner_vi_ak * (1.0 / params.ball_inner_norm)));
     }
 
 private:
