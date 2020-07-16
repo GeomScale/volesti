@@ -47,7 +47,7 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(
     {
         iter_res = mve_computation(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
         E = iter_res.first.first;
-        E = (E + E)/2.0;
+        E = (E + E.transpose())/2.0;
         E = E + MT::Identity(d,d)*std::pow(10,-8.0);
 
         Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
@@ -57,6 +57,7 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(
         r = eigensolver.eigenvalues().minCoeff();
         R = eigensolver.eigenvalues().maxCoeff();
 
+        //std::cout<<"R/r = "<<R/r<<", iter_res.second = "<<iter_res.second<<", reg = "<<reg<<std::endl;
         if(((R <= 6.0 * r && iter_res.second)  || iter >= 20) && iter>3){
             //std::cout<<"R/r = "<<R/r<<", break"<<std::endl;
             break;
@@ -102,7 +103,7 @@ std::pair< std::pair<MT, VT>, NT > mve_rounding(Polytope &P, std::pair<Point, NT
     unsigned int d = P.dimension();
     MT N = MT::Identity(d,d);
     VT shift = VT::Zero(d);
-    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = mve_rounding(P, InnerBall, rng, N, shift);
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = mve_rounding(P, InnerBall, N, shift);
 
     std::pair< std::pair<MT, VT>, NT > res;
     res.first.first = result.first.first.first;
