@@ -161,7 +161,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     Point mode(dim);
 
     numpoints = Rcpp::as<unsigned int>(n);
-    if (numpoints <= 0) throw Rcpp::exception("The number of samples has to be a positice integer!");
+    if (numpoints <= 0) throw Rcpp::exception("The number of samples has to be a positive integer!");
 
     if (!distribution.isNotNull() || !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("density")) {
         billiard = true;

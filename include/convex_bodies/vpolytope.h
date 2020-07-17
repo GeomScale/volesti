@@ -18,8 +18,6 @@
 #include "lp_oracles/vpolyoracles.h"
 #include "khach.h"
 
-//min and max values for the Hit and Run functions
-
 // V-Polytope class
 template <typename Point>
 class VPolytope{
@@ -306,7 +304,7 @@ public:
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(const Point &p) const {
+    int is_in(const Point &p, NT tol=NT(0)) const {
         if (memLP_Vpoly(V, p, conv_mem, colno_mem)){
             return -1;
         }
@@ -449,6 +447,20 @@ public:
         free(conv_mem);
     }
 
+        template <class bfunc, class NonLinearOracle>
+        std::tuple<NT, Point, int> curve_intersect(
+          NT t_prev,
+          NT t0,
+          NT eta,
+          std::vector<Point> &coeffs,
+          bfunc phi,
+          bfunc grad_phi,
+          NonLinearOracle &intersection_oracle,
+          int ignore_facet=-1)
+        {
+            return intersection_oracle.apply(
+              t_prev, t0, eta, V, *this, coeffs, phi, grad_phi, ignore_facet);
+        }
 };
 
 #endif
