@@ -84,7 +84,29 @@ IF (OPENBLAS_LIB)
         message( STATUS "ARPACK_LIB found: ${ARPACK_LIB}" )
 
         # Query gfortran to get the libgfortran path
-       FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran PATHS /usr/lib/gcc/x86_64-linux-gnu/8/)
+       #FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran PATHS /usr/lib/gcc/x86_64-linux-gnu/8/)
+
+        IF (CMAKE_Fortran_COMPILER)
+            EXECUTE_PROCESS(COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libgfortran.a
+                    OUTPUT_VARIABLE _libgfortran_path
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    )
+            IF (NOT EXISTS ${_libgfortran_path})
+                EXECUTE_PROCESS(COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libgfortran.so
+                        OUTPUT_VARIABLE _libgfortran_path
+                        OUTPUT_STRIP_TRAILING_WHITESPACE
+                        )
+            ENDIF ()
+        ENDIF()
+
+        IF(EXISTS ${_libgfortran_path})
+            get_filename_component(GFORTRAN_PATH ${_libgfortran_path} PATH)
+            find_library(GFORTRAN_LIB gfortran PATHS ${GFORTRAN_PATH})
+        ELSE()
+            # if libgfortran wasn't found at this point, the installation is probably broken
+            # Let's try to find the library nonetheless.
+            FIND_LIBRARY(GFORTRAN_LIB gfortran)
+        ENDIF()
 
         IF (GFORTRAN_LIB)
             message( STATUS "GFORTRAN_LIB found: ${GFORTRAN_LIB}" )
