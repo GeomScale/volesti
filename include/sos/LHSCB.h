@@ -313,8 +313,6 @@ public:
         }
     }
 
-
-
     void add_barrier(LHSCB *lhscb) {
         _barriers.push_back(lhscb);
         _num_vars_per_barrier.push_back(lhscb->getNumVariables());
@@ -347,6 +345,73 @@ public:
 private:
     std::vector<LHSCB *> _barriers;
     std::vector<unsigned> _num_vars_per_barrier;
+};
+
+//corresponds to intersection of cones.
+class SumBarrier : public LHSCB {
+
+public:
+    SumBarrier() : LHSCB() {}
+
+    SumBarrier(std::vector<LHSCB *> barriers_, unsigned num_variables_) {
+        _num_variables = num_variables_;
+        for (unsigned j = 0; j < barriers_.size(); ++j) {
+            assert(barriers_[j]->getNumVariables() == num_variables_);
+            _barriers.push_back(barriers_[j]);
+        }
+    }
+
+    void add_barrier(LHSCB *lhscb) {
+        _barriers.push_back(lhscb);
+    }
+
+    Vector gradient(Vector x) override {
+        Vector grad_vec = Vector::Zero(x.rows());
+        for(auto barrier : _barriers){
+            grad_vec += barrier->gradient(x);
+        }
+        return grad_vec;
+    }
+
+    Matrix hessian(Vector x) override {
+        Matrix hess_mat = Matrix::Zero(x.rows(), x.rows());
+        for(auto barrier : _barriers){
+            hess_mat += barrier->hessian(x);
+        }
+        return hess_mat;
+    }
+
+    bool in_interior(Vector x) override {
+        for(auto barrier : _barriers){
+            if(not barrier->in_interior(x)){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    //TODO: better solution for concordance parameter;
+    IPMDouble concordance_parameter(Vector x) override {
+        IPMDouble conc_par = 0.;
+        for(auto barrier : _barriers){
+            conc_par += barrier->concordance_parameter(x);
+        }
+        return conc_par;
+    }
+
+    Vector initialize_x() override {
+        for(auto barrier : _barriers) {
+            barrier->initialize_x();
+        }
+    }
+
+    Vector initialize_s() override {
+        for(auto barrier : _barriers){
+            barrier->initialize_s();
+        }
+    }
+private:
+    std::vector<LHSCB *> _barriers;
 };
 
 class DualSOSConeBarrier : public LHSCB {

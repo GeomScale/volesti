@@ -195,7 +195,7 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
                 polynomial - InterpolantVectortoVector(_polynomials_bounds[0], constraints.b);
     }
 
-    _logger->info( "Original SOS instance created.");
+    _logger->info("Original SOS instance created.");
     if (_logger->level() == spdlog::level::trace) {
         constraints.print();
     }
@@ -214,7 +214,7 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
     instance.constraints = dual_constraints;
     instance.barrier = productBarrier;
 
-    _logger->info( "Dual formulation created.");
+    _logger->info("Dual formulation created.");
     if (_logger->level() == spdlog::level::trace) {
         instance.constraints.print();
     }
@@ -314,11 +314,13 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     double y_min = std::numeric_limits<double>::max();
     double y_max = std::numeric_limits<double>::min();
 
-    for (unsigned plt_idx = 0; plt_idx < poly_plots.size() - 1; ++plt_idx) {
-        for (unsigned i = 0; i < plots[plt_idx].size(); ++i) {
+    for (unsigned i = 0; i < plots[0].size(); ++i) {
+        double local_y_min = std::numeric_limits<double>::max();
+        for (unsigned plt_idx = 0; plt_idx < poly_plots.size() - 1; ++plt_idx) {
             y_min = std::min(y_min, plots[plt_idx][i]);
-            y_max = std::max(y_max, plots[plt_idx][i]);
+            local_y_min = std::min(local_y_min, plots[plt_idx][i]);
         }
+        y_max = std::max(y_max, local_y_min);
     }
 
     for (unsigned k = 0; k < envelope_plot.size(); ++k) {

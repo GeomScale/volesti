@@ -20,7 +20,6 @@ on the interval [-1,1].
 #### Next steps:
 
 * Dynamically switch between float -> double -> long double -> multiprecision when Matrices become ill-conditioned.
-* Create minimal example where high precision is needed 
 * Parameter tuning
 * Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
 * Higher order corrector steps
