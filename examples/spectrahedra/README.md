@@ -32,13 +32,6 @@ First we will need a [Fortran compiler](https://gcc.gnu.org/wiki/GFortran) for G
 sudo apt install gfortran
 ```
 
-You may have to edit the path in following line in examples/spectrahedra/CMakeLists.txt
-
-```bash
-FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran.so PATHS /usr/lib/gcc/x86_64-linux-gnu/8/)
-```
-
-to point to your installation.
 Then we can install the openblas, lapack and arpack libraries (lapack is included in openblas). 
 In the folder "examples", clone this repo:
 
@@ -54,7 +47,10 @@ It has two scripts that should easily install the libraries:
 ./install-arpack-ng.sh
 ```
 
-And copy the folder external back in folder examples/spectrahedra:
+You can find in the [repo](https://github.com/m-reuter/arpackpp/blob/master/INSTALL.md) detailed
+info on installing openblas and arpack.
+
+Finally copy the folder external back in folder examples/spectrahedra:
 
 <br>
 
