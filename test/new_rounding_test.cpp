@@ -106,7 +106,7 @@ void call_test_skinny_cubes() {
     rounding_test(P, 0,
                   8.26497 * std::pow(10,7),
                   9.37982 * std::pow(10,7),
-                  1.02958 * std::pow(10,8),
+                  1.09218e+08,
                   104857600.0);
 }
 
