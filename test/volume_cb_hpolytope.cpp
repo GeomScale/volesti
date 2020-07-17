@@ -5,6 +5,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+
+// Edited by HZ on 11.06.2020 - mute doctest.h
 #include "doctest.h"
 #include <fstream>
 #include <iostream>
