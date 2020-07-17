@@ -18,8 +18,10 @@
 
 * [Using the R Interface](doc/r_interface.md)
 * [Using the C++ Interface](doc/cpp_interface.md)
+* [Using the Python Interface](volestipy/README.md)
 * [Wikipage with Tutorials and Demos](https://github.com/GeomScale/volume_approximation/wiki)
 * [Tutorial given to PyData meetup](https://vissarion.github.io/tutorials/volesti_tutorial_pydata.html)
+* [Contributing](CONTRIBUTING.md)
 
 ### Credits
 
