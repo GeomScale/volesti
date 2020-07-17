@@ -84,7 +84,7 @@ IF (OPENBLAS_LIB)
         message( STATUS "ARPACK_LIB found: ${ARPACK_LIB}" )
 
         # Query gfortran to get the libgfortran path
-       FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran.so PATHS /usr/lib/gcc/x86_64-linux-gnu/8/)
+       FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran PATHS /usr/lib/gcc/x86_64-linux-gnu/8/)
 
         IF (GFORTRAN_LIB)
             message( STATUS "GFORTRAN_LIB found: ${GFORTRAN_LIB}" )
