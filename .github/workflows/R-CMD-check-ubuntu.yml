@@ -48,29 +48,7 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@master
 
       - name: Install dependencies
-<<<<<<< HEAD:.github/workflows/R-CMD-check-ubuntu.yml
         run: Rscript -e "install.packages(c('devtools', dependencies=TRUE))" -e "install.packages(c('rcmdcheck', 'devtools', 'Rcpp', 'RcppEigen', 'BH', 'testthat'))";
-=======
-      run:
-              # sudo apt-get install flex bison libgmp-dev libeigen3-dev coinor-libipopt-dev;
-              # git clone https://github.com/ethz-adrl/ifopt.git;
-              # cd ifopt;
-              # mkdir build;
-              # cd build;
-              # cmake ..;
-              # make;
-              # sudo make install;
-              # cd ..;
-              # cd ..;
-              # git clone https://github.com/robol/MPSolve;
-              # cd MPSolve;
-              # ./autogen.sh;
-              # ./configure;
-              # make;
-              # sudo make install;
-              # cd ..;
-              Rscript -e "install.packages(c('devtools', dependencies=TRUE))" -e "install.packages(c('rcmdcheck', 'devtools', 'Rcpp', 'RcppEigen', 'BH', 'testthat'))";
->>>>>>> 9f8290c605ea35b997b03b7a75828cde0dc9e79e:.github/workflows/R-CMD-check-ubuntu.yml
 
       - name: Check
         env:
