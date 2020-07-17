@@ -92,12 +92,12 @@ IF (OPENBLAS_LIB)
             add_library(test_main OBJECT test_main.cpp)
 
             add_executable(test_solve_sdp test_solve_sdp.cpp $<TARGET_OBJECTS:test_main>)
-            TARGET_LINK_LIBRARIES(test_solve_sdp ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
             add_test(NAME test_solve_sdp COMMAND test_solve_sdp -tc=test_solve_sdp)
+            TARGET_LINK_LIBRARIES(test_solve_sdp ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
 
             add_executable(test_spec_oracles test_spec_oracles.cpp $<TARGET_OBJECTS:test_main>)
-            TARGET_LINK_LIBRARIES(test_spec_oracles ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
             add_test(NAME test_spec_oracles COMMAND test_spec_oracles -tc=test_spec_oracles)
+            TARGET_LINK_LIBRARIES(test_spec_oracles ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
 
         ELSE()
             MESSAGE(STATUS "gfortran is required but it could not be found")
