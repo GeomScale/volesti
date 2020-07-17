@@ -20,6 +20,7 @@
 //' For both zonotopes and V-polytopes the function computes the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
 //'
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
+//' @param method Optional. A string to declare the method to be used: (i) \code{'lpsolve'} to use lpsolve library, (ii) \code{'ipm'} to use an interior point method which solves the corresponding linear program. The default method is \code{'lpsolve'}.
 //'
 //' @return A \eqn{(d+1)}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
 //'
@@ -49,7 +50,7 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P,
     unsigned int n = P.field("dimension"), type = P.field("type");
 
     std::pair <Point, NT> InnerBall;
-    std::string mthd = (!method.isNotNull()) ? std::string("ipm") : Rcpp::as<std::string>(method);
+    std::string mthd = (!method.isNotNull()) ? std::string("lpsolve") : Rcpp::as<std::string>(method);
 
     switch (type) {
         case 1: {

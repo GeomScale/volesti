@@ -25,7 +25,7 @@
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
-//' @param method Optional. The method to use for rounding, a) \code{'mee'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition.
+//' @param method Optional. The method to use for rounding, a) \code{'mee'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition.  The default method is \code{'mee'} for all the representations.
 //' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @keywords internal
@@ -124,15 +124,15 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
     std::pair< std::pair<MT, VT>, NT > round_res;
     switch (type) {
         case 1: {
-            if (mthd.compare(std::string("mve"))==0) {
+            if (mthd.compare(std::string("mve")) == 0) {
                 round_res = mve_rounding<MT, VT>(HP, InnerBall);
-            } else if (mthd.compare(std::string("mee"))==0) {
+            } else if (mthd.compare(std::string("mee")) == 0) {
                 if (cdhr) {
                     round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 } else {
                     round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 }
-            } else if (mthd.compare(std::string("svd"))==0) {
+            } else if (mthd.compare(std::string("svd")) == 0) {
                 if (cdhr) {
                     round_res = round_isotropy<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 } else {
@@ -145,13 +145,13 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             break;
         }
         case 2: {
-            if (mthd.compare(std::string("mee"))){
+            if (mthd.compare(std::string("mee")) == 0){
                 if (cdhr) {
                     round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
                 } else {
                     round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
                 }
-            } else if (mthd.compare(std::string("svd"))==0) {
+            } else if (mthd.compare(std::string("svd")) == 0) {
                 if (cdhr) {
                     round_res = round_isotropy<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
                 } else {
@@ -164,13 +164,13 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             break;
         }
         case 3: {
-            if (mthd.compare(std::string("mee"))){
+            if (mthd.compare(std::string("mee")) == 0){
                 if (cdhr) {
                     round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
                 } else {
                     round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
                 }
-            } else if (mthd.compare(std::string("svd"))==0) {
+            } else if (mthd.compare(std::string("svd")) == 0) {
                 if (cdhr) {
                     round_res = round_isotropy<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
                 } else {
