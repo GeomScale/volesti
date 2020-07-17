@@ -16,7 +16,6 @@ void calcstep(MT const& A, MT const& A_trans, MT const& R, VT &s, VT &y, VT &r1,
         VT &dx, VT &ds, NT &dt, VT &dy, VT &tmp, VT &rhs)
 {
     int m = A.rows(), n = A.cols();
-    //VT tmp(m);// = (r1.cwiseProduct(y.cwiseInverse()) - r4).cwiseProduct(s.cwiseInverse());
     NT *vec_iter1 = tmp.data(), *vec_iter2 = y.data(), *vec_iter3 = s.data(), *vec_iter4 = r1.data(), *vec_iter5 = r4.data();
     for (int i = 0; i < m; ++i) {
         *vec_iter1 = ((*vec_iter4) / (*vec_iter2) - (*vec_iter5)) / (*vec_iter3);
@@ -32,10 +31,8 @@ void calcstep(MT const& A, MT const& A_trans, MT const& R, VT &s, VT &y, VT &r1,
     dt = dxdt(n);
     ds.noalias() = r1 - A*dx - VT::Ones(m) * dt;
     vec_iter1 = dy.data(); vec_iter2 = r4.data(); vec_iter3 = y.data(); vec_iter4 = ds.data(); vec_iter5 = s.data();
-    //dy = (r4 - y.cwiseProduct(ds)).cwiseProduct(s.cwiseInverse());
 
     for (int i = 0; i < m; ++i) {
-        //dy(i) = (r4(i) - y(i) * ds(i)) / s(i);
         *vec_iter1 = ((*vec_iter2) - (*vec_iter3) * (*vec_iter4)) / (*vec_iter5);
         vec_iter1++; vec_iter2++; vec_iter3++; vec_iter4++; vec_iter5++;
     }
@@ -67,8 +64,6 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
 
     for (unsigned int i = 0; i < maxiter; ++i) {
 
-        //std::cout << "iteration = " << i + 1 << "\n" << std::endl;
-
         // KKT residuals
         r1.noalias() = b - (A * x + s + t * e_m);
         r2.noalias() = -A_trans * y;
@@ -91,15 +86,13 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
         if (total_err < tol || ( t > 0 && ( (std::abs(t - t_prev) <= tol * t && std::abs(t - t_prev) <= tol * t_prev) ||
                                 (t_prev >= (1.0 - tol) * t && i > 0) ||
                                  (t <= (1.0 - tol) * t_prev && i > 0) ) ) ) {
-            //std::cout << "converge\n" << std::endl;
-            //std::cout << "iteration = " << i + 1 << "\n" << std::endl;
+            //converged
             break;
         }
 
         if (dt > 1000.0 * bnrm || t > 1000000.0 * bnrm) {
-            //std::cout << "unbounded\n" << std::endl;
-            //std::cout << "iteration = " << i + 1 << "\n" << std::endl;
-            break; //unbounded
+            //unbounded
+            break;
         }
 
         // Shur complement matrix

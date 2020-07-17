@@ -10,7 +10,7 @@ get_full_dimensional_polytope(P)
 \item{P}{A low-dimensional convex polytope in H-representation.}
 }
 \value{
-A list with 4 elements: (a) a full-dimensional polytope in H-representation andd (b) the element "N" which is the matrix of the inverse linear transformation that is applied on the input polytope, (c)  the element "shift" which is the opposite vector of that which has shifted the input polytope, (d) the element "round_value" which is the determinant of the square matrix of the linear transformation that is applied on the input polytope.
+A list with 4 elements: (a) a full-dimensional polytope in H-representation and (b) the element "N" which is the matrix of the inverse linear transformation that is applied on the input polytope, (c)  the element "shift" which is the opposite vector of that which has shifted the input polytope, (d) the element "svd_prod" which is the product of the singular values of the matrix N and it can be used for further volume estimations.
 }
 \description{
 Given a low-dimensional H-polytope, restrict it to its null space

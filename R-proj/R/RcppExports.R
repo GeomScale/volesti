@@ -120,7 +120,7 @@ frustum_of_simplex <- function(a, z0) {
     .Call(`_volesti_frustum_of_simplex`, a, z0)
 }
 
-#' Internal rcpp function for the rounding of a convex polytope
+#' Internal rcpp function to compute the full dimensional polytope when a low dimensional is given
 #'
 #' @param P A low dimensional convex polytope in H-representation.
 #'

@@ -12,6 +12,11 @@
 #' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2018.},
 #' @references \cite{Michael J. Todd and E. Alper Yildirim,
 #' \dQuote{On Khachiyan’s Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids,} \emph{Discrete Applied Mathematics,} 2007.}
+#' @references \cite{B. Cousins and S. Vempala,
+#' \dQuote{A practical volume algorithm,} \emph{Math. Prog. Comp.,} 2016.},
+#' @references \cite{H. Haraldsdottir and B. Cousins and I. Thiele and R. Fleming and S. Vempala,
+#' \dQuote{CHRR: coordinate hit-and-run with rounding for uniform sampling of constraint-based models,} \emph{Bioinformatics,} 2017.},
+#' 
 #'
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)

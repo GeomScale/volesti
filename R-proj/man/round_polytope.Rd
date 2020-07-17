@@ -40,4 +40,10 @@ ListZono = round_polytope(Z)
 
 \cite{Michael J. Todd and E. Alper Yildirim,
 \dQuote{On Khachiyan’s Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids,} \emph{Discrete Applied Mathematics,} 2007.}
+
+\cite{B. Cousins and S. Vempala,
+\dQuote{A practical volume algorithm,} \emph{Math. Prog. Comp.,} 2016.},
+
+\cite{H. Haraldsdottir and B. Cousins and I. Thiele and R. Fleming and S. Vempala,
+\dQuote{CHRR: coordinate hit-and-run with rounding for uniform sampling of constraint-based models,} \emph{Bioinformatics,} 2017.},
 }

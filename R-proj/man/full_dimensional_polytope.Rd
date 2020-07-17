@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{full_dimensional_polytope}
 \alias{full_dimensional_polytope}
-\title{Internal rcpp function for the rounding of a convex polytope}
+\title{Internal rcpp function to compute the full dimensional polytope when a low dimensional is given}
 \usage{
 full_dimensional_polytope(P)
 }
@@ -13,6 +13,6 @@ full_dimensional_polytope(P)
 A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the product of the singular values of the matrix of linear map applied on the input polytope.
 }
 \description{
-Internal rcpp function for the rounding of a convex polytope
+Internal rcpp function to compute the full dimensional polytope when a low dimensional is given
 }
 \keyword{internal}

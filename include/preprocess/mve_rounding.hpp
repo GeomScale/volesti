@@ -50,9 +50,7 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(
         r = eigensolver.eigenvalues().minCoeff();
         R = eigensolver.eigenvalues().maxCoeff();
 
-        //std::cout<<"R/r = "<<R/r<<", iter_res.second = "<<iter_res.second<<", reg = "<<reg<<std::endl;
-        if(((R <= 6.0 * r && iter_res.second)  || iter >= 20) && iter>3){
-            //std::cout<<"R/r = "<<R/r<<", break"<<std::endl;
+        if(((R <= 6.0 * r && iter_res.second) || iter >= 20) && iter>3){
             break;
         }
 

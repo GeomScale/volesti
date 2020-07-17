@@ -91,7 +91,7 @@ std::pair<std::pair<MT, VT>, bool> mve_computation(MT A, VT b, VT const& x0,
                 Rel / rel > 100.0 &&
                 reg > reg_lim) {
                 converged = false;
-                //std::cout << "Stopped making progress, stopping and restarting." << std::endl;
+                //Stopped making progress
                 break;
             }
             last_r2 = r2;
@@ -101,8 +101,7 @@ std::pair<std::pair<MT, VT>, bool> mve_computation(MT A, VT b, VT const& x0,
         if ((res < tol * (1.0 + bnrm) && rmu <= minmu) || (i > 100 && prev_obj != std::numeric_limits<NT>::lowest() &&
                                                            (prev_obj >= (1.0 - tol) * objval ||
                                                             objval <= (1.0 - tol) * prev_obj))) {
-            //std::cout<<"iteration = "<<i<<std::endl;
-            //std::cout << "converged!" << std::endl;
+            //converged
             x += x0;
             converged = true;
             break;
@@ -183,10 +182,6 @@ std::pair<std::pair<MT, VT>, bool> mve_computation(MT A, VT b, VT const& x0,
         z += astep*dz;
 
         bmAx -= astep * Adx;
-
-        if (reg > std::pow(10,-6.0) && i >= 10){
-            break;
-        }
 
         i++;
     }
