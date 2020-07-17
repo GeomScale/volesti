@@ -16,6 +16,7 @@
 #include <Eigen/Eigen>
 #include "lp_oracles/solve_lp.h"
 
+//min and max values for the Hit and Run functions
 // H-polytope class
 template <typename Point>
 class HPolytope{
@@ -209,21 +210,20 @@ public:
 
 
     //Check if Point p is in H-polytope P:= Ax<=b
-    int is_in(Point const& p) const
+    int is_in(Point const& p, NT tol=NT(0)) const
     {
         int m = A.rows();
         const NT* b_data = b.data();
 
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
-            if (*b_data - A.row(i) * p.getCoefficients() < NT(0))
+            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol))
                 return 0;
 
             b_data++;
         }
         return -1;
     }
-
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
@@ -489,6 +489,21 @@ public:
     }
 
     void free_them_all() {}
+
+    template <class bfunc, class NonLinearOracle>
+    std::tuple<NT, Point, int> curve_intersect(
+      NT t_prev,
+      NT t0,
+      NT eta,
+      std::vector<Point> &coeffs,
+      bfunc phi,
+      bfunc grad_phi,
+      NonLinearOracle &intersection_oracle,
+      int ignore_facet=-1)
+    {
+        return intersection_oracle.apply(
+          t_prev, t0, eta, A, b, *this, coeffs, phi, grad_phi, ignore_facet);
+    }
 
 };
 

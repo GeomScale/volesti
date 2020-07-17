@@ -11,6 +11,38 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
+option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
+
+if(DISABLE_NLP_ORACLES)
+  add_definitions(-DDISABLE_NLP_ORACLES)
+else()
+  find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
+  find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
+  find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+  find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
+  find_library(PTHREAD NAMES libpthread.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+
+  if (NOT IFOPT)
+
+    message(FATAL_ERROR "This program requires the ifopt library, and will not be compiled.")
+
+  elseif (NOT GMP)
+
+    message(FATAL_ERROR "This program requires the gmp library, and will not be compiled.")
+
+  elseif (NOT MPSOLVE)
+
+    message(FATAL_ERROR "This program requires the mpsolve library, and will not be compiled.")
+
+  else()
+    message(STATUS "Library ifopt found: ${IFOPT}")
+    message(STATUS "Library gmp found: ${GMP}")
+    message(STATUS "Library mpsolve found: ${MPSOLVE}")
+
+  endif(NOT IFOPT)
+
+endif(DISABLE_NLP_ORACLES)
+
 if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
@@ -30,7 +62,6 @@ if (NOT LP_SOLVE)
 else ()
 
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
-
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
   include_directories (BEFORE ../external/Eigen)
@@ -47,17 +78,20 @@ else ()
   include_directories (BEFORE ../include/convex_bodies)
   include_directories (BEFORE ../include/convex_bodies/spectrahedra)
   include_directories (BEFORE ../include/annealing)
+  include_directories (BEFORE ../include/ode_solvers)
+  include_directories (BEFORE ../include/root_finders)
   include_directories (BEFORE ../include/samplers)
   include_directories (BEFORE ../include/lp_oracles)
+  include_directories (BEFORE ../include/nlp_oracles)
   include_directories (BEFORE ../include/misc)
 
   #for Eigen
-  if (${CMAKE_VERSION} VERSION_LESS "3.12.0") 
+  if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
     add_compile_options(-D "EIGEN_NO_DEBUG")
   else ()
     add_compile_definitions("EIGEN_NO_DEBUG")
   endif ()
-  
+
   add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
   add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
   #add_definitions(${CMAKE_CXX_FLAGS} "-Wint-in-bool-context")
@@ -70,7 +104,7 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
- 
+
   add_executable (new_volume_example new_volume_example.cpp)
   add_executable (benchmarks_sob benchmarks_sob.cpp)
   add_executable (benchmarks_cg benchmarks_cg.cpp)
@@ -78,6 +112,19 @@ else ()
 
   add_library(test_main OBJECT test_main.cpp)
 
+  add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME ode_solvers_test_first_order
+          COMMAND ode_solvers_test -tc=first_order)
+  add_test(NAME ode_solvers_test_second_order
+          COMMAND ode_solvers_test -tc=second_order)
+
+  add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME root_finders_test_root_finders
+          COMMAND root_finders_test -tc=root_finders)
+
+  add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME boundary_oracles_test_h_poly_oracles
+    COMMAND boundary_oracles_test -tc=h_poly_oracles)
 
   add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
@@ -133,6 +180,8 @@ else ()
   add_test(NAME new_rounding_test_round_skinny_cube
            COMMAND new_rounding_test -tc=round_skinny_cube)
 
+
+
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE})
@@ -146,7 +195,8 @@ else ()
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE})
+  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE})
+  TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE})
 
 endif()
-
-
