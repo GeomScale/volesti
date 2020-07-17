@@ -17,6 +17,7 @@
 #include <Eigen/Eigen>
 #include "lp_oracles/solve_lp.h"
 
+//min and max values for the Hit and Run functions
 // H-polytope class
 template <typename Point>
 class HPolytope{
@@ -214,21 +215,20 @@ public:
 
 
     //Check if Point p is in H-polytope P:= Ax<=b
-    int is_in(Point const& p) const
+    int is_in(Point const& p, NT tol=NT(0)) const
     {
         int m = A.rows();
         const NT* b_data = b.data();
 
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
-            if (*b_data - A.row(i) * p.getCoefficients() < NT(0))
+            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol))
                 return 0;
 
             b_data++;
         }
         return -1;
     }
-
 
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
@@ -381,10 +381,7 @@ public:
     {
         NT lamda = 0, min_plus = NT(maxNT);
         VT sum_nom;
-        //unsigned int i, j;
-        unsigned int j;
         int m = num_of_hyperplanes(), facet;
-        //viterator rit, vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
         Ar.noalias() = A * r.getCoefficients();
         sum_nom.noalias() = b - Ar;
@@ -401,11 +398,8 @@ public:
                 lamda = *sum_nom_data / *Av_data;
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
-                    //if (pos){
                     facet = i;
-                    //facet_k = i;
                     params.inner_vi_ak = *Av_data;
-                    //}
                 }
             }
 
@@ -414,7 +408,6 @@ public:
         }
         params.facet_prev = facet;
         return std::pair<NT, int>(min_plus, facet);
-        //return line_intersect(r, v, Ar, Av, lambda_prev, true);
     }
 
 
@@ -427,22 +420,15 @@ public:
                                                      MT const& AA,
                                                      update_parameters& params) const
     {
-        NT lamda = 0, min_plus = NT(maxNT);
-        VT sum_nom;//
-        // , sum_denom, sum2;
-        //unsigned int i, j;
-        unsigned int j;
+        NT lamda = 0, min_plus = NT(maxNT), inner_prev = params.inner_vi_ak;
+        VT sum_nom;
         int m = num_of_hyperplanes(), facet;
-        NT inner_prev = params.inner_vi_ak;
-        //viterator vit, Ariter = Ar.begin(), Aviter = Av.begin();
 
-        //std::cout<<"[3]facet_k = "<<facet_k<<", inner_vi_ak = "<<inner_prev<<std::endl;
         Ar.noalias() += lambda_prev*Av;
         if(params.hit_ball) {
             Av.noalias() += (-2.0 * inner_prev) * (Ar / params.ball_inner_norm);
         } else {
             Av.noalias() += (-2.0 * inner_prev) * AA.col(params.facet_prev);
-            //sum2 = (-2.0 * inner_prev) * ((*Ariter)/params.ball_inner_norm);
         }
         sum_nom.noalias() = b - Ar;
 
@@ -458,7 +444,6 @@ public:
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     facet = i;
-                    //facet_k = i;
                     params.inner_vi_ak = *Av_data;
                 }
             }
@@ -499,7 +484,6 @@ public:
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     facet = i;
-                    //facet_k = i;
                     params.inner_vi_ak = *Av_data;
                 }
             }
@@ -645,6 +629,21 @@ public:
     }
 
     void free_them_all() {}
+
+    template <class bfunc, class NonLinearOracle>
+    std::tuple<NT, Point, int> curve_intersect(
+      NT t_prev,
+      NT t0,
+      NT eta,
+      std::vector<Point> &coeffs,
+      bfunc phi,
+      bfunc grad_phi,
+      NonLinearOracle &intersection_oracle,
+      int ignore_facet=-1)
+    {
+        return intersection_oracle.apply(
+          t_prev, t0, eta, A, b, *this, coeffs, phi, grad_phi, ignore_facet);
+    }
 
 };
 
