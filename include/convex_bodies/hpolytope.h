@@ -3,8 +3,9 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -79,6 +80,10 @@ public:
         return A;
     }
 
+
+    MT get_AA() const {
+        return A * A.transpose();
+    }
 
     // return the vector b
     VT get_vec() const
@@ -364,6 +369,134 @@ public:
     }
 
 
+    //---------------------------accelarated billiard----------------------------------
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters& params) const
+    {
+        NT lamda = 0, min_plus = NT(maxNT);
+        VT sum_nom;
+        int m = num_of_hyperplanes(), facet;
+
+        Ar.noalias() = A * r.getCoefficients();
+        sum_nom.noalias() = b - Ar;
+        Av.noalias() = A * v.getCoefficients();
+
+        NT* Av_data = Av.data();
+        NT* sum_nom_data = sum_nom.data();
+
+        for (int i = 0; i < m; i++) {
+            if (*Av_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *Av_data;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                    params.inner_vi_ak = *Av_data;
+                }
+            }
+
+            Av_data++;
+            sum_nom_data++;
+        }
+        params.facet_prev = facet;
+        return std::pair<NT, int>(min_plus, facet);
+    }
+
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     NT const& lambda_prev,
+                                                     MT const& AA,
+                                                     update_parameters& params) const
+    {
+        NT lamda = 0, min_plus = NT(maxNT), inner_prev = params.inner_vi_ak;
+        VT sum_nom;
+        int m = num_of_hyperplanes(), facet;
+
+        Ar.noalias() += lambda_prev*Av;
+        if(params.hit_ball) {
+            Av.noalias() += (-2.0 * inner_prev) * (Ar / params.ball_inner_norm);
+        } else {
+            Av.noalias() += (-2.0 * inner_prev) * AA.col(params.facet_prev);
+        }
+        sum_nom.noalias() = b - Ar;
+
+        NT* sum_nom_data = sum_nom.data();
+        NT* Av_data = Av.data();
+
+        for (int i = 0; i < m; i++) {
+            if (*Av_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *Av_data;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                    params.inner_vi_ak = *Av_data;
+                }
+            }
+            Av_data++;
+            sum_nom_data++;
+        }
+        params.facet_prev = facet;
+        return std::pair<NT, int>(min_plus, facet);
+    }
+
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters& params) const
+    {
+        NT lamda = 0, min_plus = NT(maxNT);
+        VT sum_nom;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet;
+
+        Ar.noalias() += lambda_prev*Av;
+        sum_nom.noalias() = b - Ar;
+        Av.noalias() = A * v.getCoefficients();
+
+        NT* sum_nom_data = sum_nom.data();
+        NT* Av_data = Av.data();
+
+        for (int i = 0; i < m; i++) {
+            if (*Av_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *Av_data;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                    params.inner_vi_ak = *Av_data;
+                }
+            }
+            Av_data++;
+            sum_nom_data++;
+        }
+        params.facet_prev = facet;
+        return std::pair<NT, int>(min_plus, facet);
+    }
+
+    //-----------------------------------------------------------------------------------//
+
+
     //First coordinate ray intersecting convex polytope
 
     std::pair<NT,NT> line_intersect_coord(Point const& r,
@@ -486,6 +619,13 @@ public:
     void compute_reflection(Point& v, Point const&, int const& facet) const
     {
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
+    }
+
+    template <typename update_parameters>
+    void compute_reflection(Point &v, const Point &, update_parameters const& params) const {
+
+            Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+            v += a;
     }
 
     void free_them_all() {}
