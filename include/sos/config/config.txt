@@ -4,6 +4,6 @@
 .2 //small neighborhood
 .2 //scale predictor step
 1. //length corrector step
-2 //logger level. 1 = debug, 2 = info
+2 //logger level. 1 == debug, 2 == info
 1  //use line search
 

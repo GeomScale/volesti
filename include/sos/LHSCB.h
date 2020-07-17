@@ -186,9 +186,15 @@ class InterpolantDualSOSBarrier : public LHSCB {
 public:
     InterpolantDualSOSBarrier() : LHSCB() {};
 
-    InterpolantDualSOSBarrier(unsigned max_polynomial_degree_) : _max_polynomial_degree(max_polynomial_degree_) {
+    InterpolantDualSOSBarrier(unsigned max_polynomial_degree_) :
+    InterpolantDualSOSBarrier(max_polynomial_degree_, Vector::Ones(1))
+    {};
 
-        _L = _max_polynomial_degree + 1;
+    InterpolantDualSOSBarrier(unsigned max_polynomial_degree_, Vector poly_g) : _max_polynomial_degree(max_polynomial_degree_) {
+
+        assert(poly_g.rows() <= max_polynomial_degree_ + 1);
+
+        _L = _max_polynomial_degree + 2 - poly_g.rows();
         _U = 2 * _max_polynomial_degree + 1;
         _num_variables = _U;
         _unisolvent_basis.resize(_U);
@@ -223,6 +229,15 @@ public:
 
         //Alternative approach of finding _P via Chebyshev basis
         Eigen::MatrixXd cheb_P = ChebTools::u_matrix_library.get(_U - 1).block(0,0,_U, _L);
+
+        _g = Vector::Zero(_U);
+        for (int p = 0; p < _U; ++p) {
+            _g(p) = poly_g(0);
+           for(int i = 1; i < poly_g.rows(); i++){
+               _g(p) += poly_g(i) * pow(_unisolvent_basis[p], i).convert_to<IPMDouble>();
+           }
+        }
+        _g_g_transpose = _g * _g.transpose();
 
 //        assert(cheb_P.cols() == _L and P_interp.cols() == _L);
 //        Eigen::MatrixXd P_double = InterpolantMatrixToMatrix(P_interp, cheb_P);
@@ -293,6 +308,8 @@ private:
     unsigned _max_polynomial_degree;
     std::vector<InterpolantDouble> _unisolvent_basis;
     unsigned _L, _U;
+    Vector _g;
+    Matrix _g_g_transpose;
     Matrix _P;
 
     //This variable sets whether the orthogonalisation of P should be done in either the Interpolant Double Type
@@ -351,7 +368,9 @@ private:
 class SumBarrier : public LHSCB {
 
 public:
-    SumBarrier() : LHSCB() {}
+    SumBarrier(unsigned num_variables_) : LHSCB() {
+        _num_variables = num_variables_;
+    }
 
     SumBarrier(std::vector<LHSCB *> barriers_, unsigned num_variables_) {
         _num_variables = num_variables_;
@@ -399,16 +418,18 @@ public:
         return conc_par;
     }
 
+    //TODO: verify that initialisation works for both primal and dual side in general.
     Vector initialize_x() override {
-        for(auto barrier : _barriers) {
-            barrier->initialize_x();
-        }
+        assert(!_barriers.empty());
+        return _barriers[0]->initialize_x();
     }
 
     Vector initialize_s() override {
+        Vector s_init = Vector::Zero(_num_variables);
         for(auto barrier : _barriers){
-            barrier->initialize_s();
+            s_init += barrier->initialize_s();
         }
+        return s_init;
     }
 private:
     std::vector<LHSCB *> _barriers;

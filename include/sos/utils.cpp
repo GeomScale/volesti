@@ -147,8 +147,8 @@ public:
 
         //TODO: use proper tolerance / reference.
 
-        Eigen::SparseMatrix<IPMDouble> A_top_sparse = A.transpose().sparseView(IPMDouble(1e-10), 1e-10);
-        Eigen::SparseMatrix<IPMDouble> A_sparse = A.sparseView(IPMDouble(1e-10), 1e-10);
+        Eigen::SparseMatrix<IPMDouble> A_top_sparse = A.transpose().sparseView(0, 1e-10);
+        Eigen::SparseMatrix<IPMDouble> A_sparse = A.sparseView(0, 1e-10);
 
         A_top_sparse.makeCompressed();
         A_sparse.makeCompressed();

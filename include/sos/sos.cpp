@@ -21,7 +21,6 @@ int main(int const argc, char **argv) {
     auto console = spdlog::stdout_color_mt("console");
     console->info("Logger level is {}", console->level());
 //    TODO: Set in environment variables. Does not work for now for some reason.
-//    Eigen::setNbThreads(4);
     console->info("Num threads: {}", Eigen::nbThreads());
 
     std::ifstream instance_file;

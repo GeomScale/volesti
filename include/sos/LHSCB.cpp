@@ -456,8 +456,9 @@ Matrix DualSOSConeBarrier::Lambda(Vector x) {
 
 bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check_interior_only) {
     Matrix intermediate_matrix = Matrix(_P.cols(),_P.cols());
-    intermediate_matrix.triangularView<Eigen::Lower>() = _P.transpose() * x.asDiagonal() * _P;
+    intermediate_matrix.triangularView<Eigen::Lower>() = _P.transpose() * _g.cwiseProduct(x).asDiagonal() * _P;
     Eigen::LLT<Matrix> intermediate_LLT = intermediate_matrix.selfadjointView<Eigen::Lower>().llt();
+
     if(intermediate_LLT.info() == Eigen::NumericalIssue){
         return false;
     }
@@ -471,9 +472,9 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
     Q.triangularView<Eigen::Lower>() = V.transpose() * V;
     Q = Q.selfadjointView<Eigen::Lower>();
 
-    Vector gradient = -Q.diagonal();
+    Vector gradient = -Q.diagonal().cwiseProduct(_g);
     //TODO: store hessian as self-adjoint
-    Matrix hessian = Q.cwiseProduct(Q);
+    Matrix hessian = _g_g_transpose.cwiseProduct(Q.cwiseProduct(Q));
     Eigen::LLT<Matrix> llt = hessian.selfadjointView<Eigen::Lower>().llt();
 
     if (_stored_hessians.empty()) {

@@ -173,6 +173,15 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
     unsigned const NUM_POLYNOMIALS = _polynomials_bounds.size();
     unsigned const VECTOR_LENGTH = _U;
 
+    if(NUM_POLYNOMIALS == 0){
+        _logger->error("Please provide a polynomial.");
+        exit(1);
+    }
+    if(NUM_POLYNOMIALS == 1){
+        _logger->warn("Instance trivial. Please detrivialize.");
+        exit(1);
+    }
+
     Constraints constraints;
     constraints.c = Vector::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH);
     constraints.c.block(0, 0, VECTOR_LENGTH, 1) = -InterpolantVectortoVector(_objectives_vector,
@@ -203,9 +212,28 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
 
     ProductBarrier *productBarrier = new ProductBarrier;
 
+    // Unweigthed barrier
+//    for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
+//        auto sos_barrier = new InterpolantDualSOSBarrier(_d);
+//        productBarrier->add_barrier(sos_barrier);
+//    }
+
+    // Weighted barrier
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
         auto sos_barrier = new InterpolantDualSOSBarrier(_d);
-        productBarrier->add_barrier(sos_barrier);
+
+        auto sum_barrier = new SumBarrier(_U);
+        sum_barrier->add_barrier(sos_barrier);
+
+        if (_use_weighted_polynomials) {
+            Vector weighted_vec(3);
+            //Add univariate polynomial 1 - x^2
+            weighted_vec << 1., 0., -1.;
+            auto sos_weighted_barrier = new InterpolantDualSOSBarrier(_d, weighted_vec);
+            sum_barrier->add_barrier(sos_weighted_barrier);
+        }
+
+        productBarrier->add_barrier(sum_barrier);
     }
 
     auto dual_constraints = constraints.dual_system();
@@ -253,6 +281,10 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
 
     IPMDouble x_min = _hyperRectangle[0].first;
     IPMDouble x_max = _hyperRectangle[0].second;
+
+    IPM_DOUBLE const delta_x = x_max - x_min;
+    x_min -= .05 * delta_x;
+    x_max += .05 * delta_x;
 
     for (int j = 0; j < num_points; ++j) {
         IPMDouble d = x_min + j * (x_max - x_min) / (num_points - 1);
@@ -304,7 +336,9 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
         }
     }
 
-    plt::figure_size(1200, 780);
+    const int w = 2000;
+    const int h = w * 2 / 3;
+    plt::figure_size(w, h);
 
     std::vector<double> &envelope_plot = plots[plots.size() - 1];
     std::vector<double> offset_envelope(envelope_plot.size());
@@ -315,6 +349,9 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     double y_max = std::numeric_limits<double>::min();
 
     for (unsigned i = 0; i < plots[0].size(); ++i) {
+        if(x[i] < _hyperRectangle[0].first or x[i] > _hyperRectangle[0].second){
+            continue;
+        }
         double local_y_min = std::numeric_limits<double>::max();
         for (unsigned plt_idx = 0; plt_idx < poly_plots.size() - 1; ++plt_idx) {
             y_min = std::min(y_min, plots[plt_idx][i]);
@@ -334,9 +371,22 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     }
     plt::named_plot("lower envelope", x, offset_envelope);
 
+    std::map<std::string,std::string> avx_keywords_string;
+    avx_keywords_string["linestyle"] = "--";
+    avx_keywords_string["color"] = "black";
+
+    std::map<std::string,double> avx_keywords_double;
+    avx_keywords_double["alpha"] = .5;
+    plt::axvline(_hyperRectangle[0].first, 0, 1, avx_keywords_string, avx_keywords_double);
+    plt::axvline(_hyperRectangle[0].second, 0, 1, avx_keywords_string, avx_keywords_double);
+
     // Plot a line whose name will show up as "log(x)" in the legend.
     // Add graph title
-    plt::title("Lower envelope");
+    std::string title_string = "Lower envelope";
+    title_string += _use_weighted_polynomials ? ", weighted" : ", unweighted";
+    title_string += ", degree " + std::to_string(_U - 1);
+    title_string += ".";
+    plt::title(title_string);
     // Enable legend.
     plt::legend();
     plt::save("plot");

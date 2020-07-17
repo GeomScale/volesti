@@ -1794,7 +1794,8 @@ inline void axis(const std::string &axisstr)
     Py_DECREF(res);
 }
 
-inline void axvline(double x, double ymin = 0., double ymax = 1., const std::map<std::string, std::string>& keywords = std::map<std::string, std::string>())
+inline void axvline(double x, double ymin = 0., double ymax = 1., const std::map<std::string, std::string>& keywords_string = std::map<std::string, std::string>(),
+                    const std::map<std::string, double>& keywords_double = std::map<std::string, double>())
 {
     detail::_interpreter::get();
 
@@ -1806,9 +1807,14 @@ inline void axvline(double x, double ymin = 0., double ymax = 1., const std::map
 
     // construct keyword args
     PyObject* kwargs = PyDict_New();
-    for(std::map<std::string, std::string>::const_iterator it = keywords.begin(); it != keywords.end(); ++it)
+    for(std::map<std::string, std::string>::const_iterator it = keywords_string.begin(); it != keywords_string.end(); ++it)
     {
         PyDict_SetItemString(kwargs, it->first.c_str(), PyString_FromString(it->second.c_str()));
+    }
+
+    for(std::map<std::string, double>::const_iterator it = keywords_double.begin(); it != keywords_double.end(); ++it)
+    {
+        PyDict_SetItemString(kwargs, it->first.c_str(), PyFloat_FromDouble(it->second));
     }
 
     PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_axvline, args, kwargs);

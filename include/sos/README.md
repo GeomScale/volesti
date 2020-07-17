@@ -66,3 +66,17 @@ numbers immensely slow down the IPM
 
 [4] R. Badenbroek and J. Dahl, [An Algorithm for Nonsymmetric Conic Optimization Inspired by MOSEK](https://arxiv.org/pdf/2003.01546.pdf). https://arxiv.org/pdf/2003.01546.pdf 
 
+## Advice on Implementation (Elias Talk Friday 17th July)
+
+* static polymorphism
+* set up experiment to compare runtimes with MATLAB(alfonso) (univariate or small bivariate):
+    * Script for profiling
+* FFT to speed up things?
+* Gaussian quadrature vs Clenshaw Curtis weight.
+
+* Expansion:
+    * DSOS 
+* Newton Polytop ("circuits polynomial")
+* SONC polynomials: there is no Barrier function. ()
+* Hyperbolic polynomials (Renegars algorithm)
+* Power cone (Primal and Dual have Barrier functions)

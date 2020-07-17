@@ -83,7 +83,9 @@ private:
     //Chebyshev points of second kind is calculated.
     //Set to true if you want to save runtime but have
     //arbitrary polynomials plotted.
-    bool _input_in_interpolant_basis = false;
+    bool _input_in_interpolant_basis = true;
+
+    bool _use_weighted_polynomials = true;
 
     void get_clenshaw_curtis_integrals() ;
 
