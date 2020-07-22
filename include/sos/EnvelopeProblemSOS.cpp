@@ -9,6 +9,8 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/fmt/ostr.h"
 #include "ChebTools/ChebTools.h"
+#include "barriers/InterpolantDualSOSBarrier.h"
+#include "barriers/ProductBarrier.h"
 
 EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_) :
         _n(num_variables), _d(max_degree),
@@ -142,7 +144,13 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
     _logger->info("Transformation matrix has norm {}", Q.norm());
 
     if (_input_in_interpolant_basis) {
-        _polynomials_bounds.push_back(polynomial);
+        InterpolantDualSOSBarrier aux_barrier(_d);
+        Matrix P =aux_barrier.get_P();
+        InterpolantVector pol = P.cast<InterpolantDouble>() * polynomial.segment(0, P.cols());
+        std::cout << "P rows is " << P.rows() << " pol rows is " << pol.rows() << " polynomial rows is "
+        << polynomial.rows() << std::endl;
+        _polynomials_bounds.push_back(pol);
+//        _polynomials_bounds.push_back(polynomial);
         return;
     }
 

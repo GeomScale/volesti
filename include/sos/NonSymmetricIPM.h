@@ -7,7 +7,7 @@
 #ifndef NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H
 #define NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H
 
-#include "LHSCB.h"
+#include "barriers/LHSCB.h"
 #include <iostream>
 #include <cxxtimer.hpp>
 #include <fstream>
@@ -188,6 +188,8 @@ private:
 
     IPMDouble _epsilon = 10e-5;
 
+    unsigned _total_num_line_steps;
+
     cxxtimer::Timer _predictor_timer;
     cxxtimer::Timer _corrector_timer;
     cxxtimer::Timer _andersen_sys_timer;
@@ -199,7 +201,11 @@ private:
     cxxtimer::Timer _total_runtime_timer;
 
     bool terminate();
+
+    bool terminate_successfully_wrapper();
     bool terminate_successfully();
+
+    bool terminate_infeasible_wrapper();
     bool terminate_infeasible();
 
     bool _use_line_search = true;

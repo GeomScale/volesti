@@ -6,6 +6,8 @@
 
 #include "../utils.cpp"
 #include "../NonSymmetricIPM.h"
+#include "../barriers/LPStandardBarrier.h"
+#include "../barriers/SDPStandardBarrier.h"
 
 void test_speed_of_types(int max_degree) {//Test matrix inversion runtime
 
@@ -15,7 +17,6 @@ void test_speed_of_types(int max_degree) {//Test matrix inversion runtime
     Eigen::MatrixXd inv_double = double_matrix.inverse();
     inv_double = inv_double.cwiseAbs();
     t1.stop();
-//    Matrix Double_matrix = Matrix::Random(max_degree, max_degree);
     cxxtimer::Timer t2;
     t2.start();
     Eigen::Matrix<double, Eigen::Dynamic, 1> sol = double_matrix.householderQr().solve

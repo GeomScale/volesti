@@ -67,7 +67,7 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
 //    Matrix A_H_inv = A * normalized_inverse_hessian;
     //TODO: double transposition. Figure out how to multiply solve from RHS.
 //    Matrix A_H_inv = LLT.solve(A.transpose()).transpose() / mu();
-    Matrix A_H_inv= _barrier->llt_solve(x, A.transpose()).transpose() / mu();
+    Matrix A_H_inv = _barrier->llt_solve(x, A.transpose()).transpose() / mu();
 //    A_H_inv.eval();
     A_H_inv.eval();
     _test_timers[4].stop();
@@ -83,7 +83,7 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
     _test_timers[5].start();
 
     //TODO: Use better method to sparsify A.
-    Matrix A_H_inv_A_top= A_H_inv * A_sparse.transpose();
+    Matrix A_H_inv_A_top = A_H_inv * A_sparse.transpose();
     A_H_inv_A_top.eval();
 
     _test_timers[5].stop();
@@ -163,8 +163,8 @@ Vector NonSymmetricIPM::andersen_andersen_solve(Vector const rhs) {
     Vector new_sol_uv(m + n);
     new_sol_uv << new_u, new_v;
 
-    _logger->trace("{}", new_sol_pq.segment(m, n).transpose());
-    _logger->trace("{}", new_q.transpose());
+    SPDLOG_TRACE("{}", new_sol_pq.segment(m, n).transpose());
+    SPDLOG_TRACE("{}", new_q.transpose());
 
     Vector rhs_uv(m + n);
     rhs_uv << r_p, r_d + r_xs;
@@ -259,18 +259,18 @@ void NonSymmetricIPM::run_solver() {
 
     print();
 
-    unsigned total_num_line_steps = 0;
+    _total_num_line_steps = 0;
 
     _total_runtime_timer.start();
     for (unsigned pred_iteration = 0; pred_iteration < _num_predictor_steps; ++pred_iteration) {
         _logger->debug("Begin predictor iteration {}", pred_iteration);
         _predictor_timer.start();
-        if (terminate_successfully()) {
+        if (terminate_successfully_wrapper()) {
             _logger->info("Interior point method terminated successfully with required proximity.");
             break;
         }
 
-        if (terminate_infeasible()) {
+        if (terminate_infeasible_wrapper()) {
             _logger->info("Interior point method terminated with infeasible solution.");
             break;
         }
@@ -321,12 +321,13 @@ void NonSymmetricIPM::run_solver() {
             _logger->debug("Applied {} line steps in iteration {}", num_line_steps, pred_iteration);
             apply_update(fallback_vec);
 
-            assert(terminate_successfully() or num_line_steps > 0);
+            //In this case we perform more corrector steps instead.
+//            assert(terminate_successfully() or num_line_steps > 0);
         }
 
-        total_num_line_steps += num_line_steps;
+        _total_num_line_steps += num_line_steps;
         _logger->info("End of predictor step {} with {} line steps and total num line steps {}:",
-                      pred_iteration, num_line_steps, total_num_line_steps);
+                      pred_iteration, num_line_steps, _total_num_line_steps);
         if (_logger->level() <= spdlog::level::info) {
             print();
         }
@@ -359,7 +360,7 @@ void NonSymmetricIPM::run_solver() {
                 print();
             }
 
-            if(_logger->level() <= spdlog::level::debug){
+            if (_logger->level() <= spdlog::level::debug) {
                 assert(kappa > 0);
                 assert(tau > 0);
                 assert(_barrier->in_interior(x));
@@ -511,35 +512,13 @@ Vector NonSymmetricIPM::solve_corrector_system() {
 
     auto andersen_dir = andersen_andersen_solve(rhs);
 
-    //Test in original system
-    if (_logger->level() == spdlog::level::trace) {
-        create_skajaa_ye_matrix();
-    }
-
     if (_logger->level() <= spdlog::level::debug) {
+        //Perform iterative refinement. Should not be too expensive as costs are dominated by other stuff.
         Matrix aux_sy(2, rhs.rows());
         aux_sy.block(0, 0, 1, rhs.rows()) = rhs.transpose();
         aux_sy.block(1, 0, 1, rhs.rows()) = (_M * andersen_dir).transpose();
         _logger->debug("Compare solutions: \n{}", aux_sy);
     }
-
-    //show that new psi vector is pretty close to 0
-
-//    auto delta_s = andersen_dir.segment(A.rows() + A.cols() + 1, A.cols());
-//    auto delta_x = andersen_dir.segment(A.rows(), A.cols());
-//
-//    Vector tmp(s.rows() + 1);
-//    tmp.block(0, 0, s.rows(), 1) = s + mu() * _barrier->gradient(x);
-//    tmp(s.rows()) = kappa - mu() / tau;
-
-//    Vector new_psi_vector = s + delta_s + mu() * _barrier->gradient(x + delta_x);
-//    Matrix aux(2, new_psi_vector.rows());
-//    Vector calculated_psi_vector = s + delta_s
-//                                   + mu() * (_barrier->gradient(x) + _barrier->hessian(x) * delta_x);
-//    aux.block(0, 0, 1, new_psi_vector.rows()) = new_psi_vector.transpose();
-//    aux.block(1, 0, 1, new_psi_vector.rows()) = calculated_psi_vector.transpose();
-
-//    Vector dir = solve(_M, rhs);
     return andersen_dir;
 }
 
@@ -614,6 +593,9 @@ void NonSymmetricIPM::print() {
     _logger->info(format_, "Time checking interior(s)",
                   _barrier->_in_interior_timer.count<std::chrono::milliseconds>() / 1000.);
 
+
+    _logger->info(format_, "Time per step: ",
+                  _total_runtime_timer.count<std::chrono::milliseconds>() / (1000. * _total_num_line_steps));
     for (unsigned idx = 0; idx < _test_timers.size(); idx++) {
         std::string s = "Test timer " + std::to_string(idx);
         _logger->info(format_, s,
@@ -625,6 +607,15 @@ void NonSymmetricIPM::print() {
 }
 
 //According to Skajaa-Ye
+
+bool NonSymmetricIPM::terminate_successfully_wrapper() {
+
+//    Eigen::internal::set_is_malloc_allowed(true);
+    bool result = terminate_successfully();
+//    Eigen::internal::set_is_malloc_allowed(false);
+    return result;
+
+}
 
 bool NonSymmetricIPM::terminate_successfully() {
     //TODO: use same criteria as in infeasilbe (i.e. scaling invariant and what is used in Skajaa-Ye)
@@ -656,6 +647,14 @@ bool NonSymmetricIPM::terminate_successfully() {
 // Termination criteria taken from Skajaa - Ye "A Homogeneous Interior-Point Algorithm for
 // Nonsymmetric Convex Conic Optimization" https://web.stanford.edu/~yyye/nonsymmhsdimp.pdf page 15.
 
+bool NonSymmetricIPM::terminate_infeasible_wrapper() {
+
+//    Eigen::internal::set_is_malloc_allowed(true);
+    bool result = terminate_infeasible();
+//    Eigen::internal::set_is_malloc_allowed(false);
+    return result;
+}
+
 bool NonSymmetricIPM::terminate_infeasible() {
 
     //TODO: Figure out if initialization scaling (delta) should influence the termination criteria.
@@ -685,11 +684,11 @@ bool NonSymmetricIPM::terminate_infeasible() {
         return false;
     }
     return true;
+
 }
 
-
 bool NonSymmetricIPM::terminate() {
-    return terminate_successfully() or terminate_infeasible();
+    return terminate_successfully_wrapper() or terminate_infeasible_wrapper();
 }
 
 

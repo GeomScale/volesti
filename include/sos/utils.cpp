@@ -7,6 +7,9 @@
 #ifndef SOS_UTILS_H
 #define SOS_UTILS_H
 
+//Preprocessor directive allows us to forbid Eigen to allocate memory. Temporariliy helps to debug where allocation might slow down the program.
+#define EIGEN_RUNTIME_NO_MALLOC
+
 #include <EigenNew/Dense>
 #include <EigenNew/Sparse>
 

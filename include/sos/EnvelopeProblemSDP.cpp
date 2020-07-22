@@ -5,6 +5,9 @@
 // Licensed under GNU LGPL.3, see LICENCE filee
 
 #include "EnvelopeProblemSDP.h"
+#include "barriers/FullSpaceBarrier.h"
+#include "barriers/SDPStandardBarrier.h"
+#include "barriers/ProductBarrier.h"
 
 EnvelopeProblemSDP::EnvelopeProblemSDP(int num_variables, int max_degree, HyperRectangle &hyperRectangle_) :
         monomialObject(num_variables, max_degree), _n(num_variables), _d(max_degree),

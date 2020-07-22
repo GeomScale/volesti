@@ -23,6 +23,7 @@ on the interval [-1,1].
 * Parameter tuning
 * Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
 * Higher order corrector steps
+* Make sure that no heap memory is allocated dynamically.
 * Add Weighted Sum-of-Squares (WSOS) support
 * Add multivariate support
 * Implement Lagrange polynomials more efficiently (or find C++ library with sufficient precision.)
