@@ -19,12 +19,12 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
     }
 
     _V.noalias() = _intermediate_LLT.matrixL().solve(_P.transpose());
+    //Experiments showed that using the triangularView slows the program down.
 //    _Q.triangularView<Eigen::Lower>() = _V.transpose() * _V;
 //    _Q = _Q.selfadjointView<Eigen::Lower>();
     _Q.noalias() = _V.transpose() * _V;
 
     //TODO: store hessian as self-adjoint
-
 
     if (_stored_hessians.empty()) {
         _stored_hessians.resize(1);
@@ -76,21 +76,11 @@ Eigen::LLT<Matrix> InterpolantDualSOSBarrier::llt(Vector x, bool) {
     return _stored_LLT[0].second;
 }
 
+//Should not be inveoked as it is slow.
 Matrix InterpolantDualSOSBarrier::inverse_hessian(Vector x) {
     //Not sure if correct method.
     Matrix L_inv = llt(x).matrixL().toDenseMatrix().inverse();
     Matrix inv = L_inv.transpose() * L_inv;
-    //TODO: delete for performance
-//    if((inv * hessian(x) - Matrix::Identity(x.rows(), x.rows())).norm() > 1e-2)
-//    {
-//        std::cout << "WARNING: error in inversion is " << (inv * hessian(x) - Matrix::Identity(x.rows(), x.rows())).norm()
-//        << std::endl;
-//        std::cout << "Hessian: \n" << hessian(x) << std::endl;
-//        std::cout << "LLT Hessian: \n" << hessian(x).llt().matrixLLT() << std::endl;
-//        std::cout << "LLT Hessian L: \n" << hessian(x).llt().matrixL().toDenseMatrix() << std::endl;
-//        std::cout << "LLT Hessian U: \n" << hessian(x).llt().matrixU().toDenseMatrix() << std::endl;
-//
-//    }
     return inv;
 }
 

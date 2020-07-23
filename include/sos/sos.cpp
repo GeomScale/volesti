@@ -113,8 +113,8 @@ int main(int const argc, char **argv) {
 
     sos_solver_interp.run_solver();
 
-//    envelopeProblemSos.print_solution(sos_solver_interp.get_solution());
-//    envelopeProblemSos.plot_polynomials_and_solution(sos_solver_interp.get_solution());
+    envelopeProblemSos.print_solution(sos_solver_interp.get_solution());
+    envelopeProblemSos.plot_polynomials_and_solution(sos_solver_interp.get_solution());
     return 0;
 }
 

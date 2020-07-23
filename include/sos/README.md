@@ -56,6 +56,7 @@ numbers immensely slow down the IPM
 * Week 6: Debugging, Refactoring Code, Speeding up initialisation of "Polynomial Envelope" Problem
  (non-trivial: properties of Chebyshev polynomials, Clenshaw-Curtis algorithm)
  * Week 7: Runtime speedups, more efficient (including experimentally) implementation.
+ * Week 8: Further speedup, Big code refactoring, Add Polynomial minimization, Create Benchmarks with alfonso.
 
 #### References
 

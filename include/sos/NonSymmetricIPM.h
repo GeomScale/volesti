@@ -169,6 +169,7 @@ private:
 
     Eigen::SparseMatrix<IPMDouble> A_sparse;
 
+    //Matrix whose columns are a basis of the kernel of A. Currently unused.
     Matrix _basis_ker_A;
 
     Vector x;

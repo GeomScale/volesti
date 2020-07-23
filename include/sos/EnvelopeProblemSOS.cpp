@@ -50,7 +50,7 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
 //        _objectives_vector(i) = -obj;
 //    }
 
-    //Faster, cleverer Clenshaw-Curtis algorithm
+    //Clenshaw-Curtis algorithm
     get_clenshaw_curtis_integrals();
 
 }
@@ -145,10 +145,10 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
 
     if (_input_in_interpolant_basis) {
         InterpolantDualSOSBarrier aux_barrier(_d);
-        Matrix P =aux_barrier.get_P();
+        Matrix P = aux_barrier.get_P();
         InterpolantVector pol = P.cast<InterpolantDouble>() * polynomial.segment(0, P.cols());
         std::cout << "P rows is " << P.rows() << " pol rows is " << pol.rows() << " polynomial rows is "
-        << polynomial.rows() << std::endl;
+                  << polynomial.rows() << std::endl;
         _polynomials_bounds.push_back(pol);
 //        _polynomials_bounds.push_back(polynomial);
         return;
@@ -181,11 +181,11 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
     unsigned const NUM_POLYNOMIALS = _polynomials_bounds.size();
     unsigned const VECTOR_LENGTH = _U;
 
-    if(NUM_POLYNOMIALS == 0){
+    if (NUM_POLYNOMIALS == 0) {
         _logger->error("Please provide a polynomial.");
         exit(1);
     }
-    if(NUM_POLYNOMIALS == 1){
+    if (NUM_POLYNOMIALS == 1) {
         _logger->warn("Instance trivial. Please detrivialize.");
         exit(1);
     }
@@ -220,7 +220,7 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
 
     ProductBarrier *productBarrier = new ProductBarrier;
 
-    // Unweigthed barrier
+    // Unweighted barrier
 //    for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
 //        auto sos_barrier = new InterpolantDualSOSBarrier(_d);
 //        productBarrier->add_barrier(sos_barrier);
@@ -357,7 +357,7 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     double y_max = std::numeric_limits<double>::min();
 
     for (unsigned i = 0; i < plots[0].size(); ++i) {
-        if(x[i] < _hyperRectangle[0].first or x[i] > _hyperRectangle[0].second){
+        if (x[i] < _hyperRectangle[0].first or x[i] > _hyperRectangle[0].second) {
             continue;
         }
         double local_y_min = std::numeric_limits<double>::max();
@@ -379,11 +379,11 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     }
     plt::named_plot("lower envelope", x, offset_envelope);
 
-    std::map<std::string,std::string> avx_keywords_string;
+    std::map<std::string, std::string> avx_keywords_string;
     avx_keywords_string["linestyle"] = "--";
     avx_keywords_string["color"] = "black";
 
-    std::map<std::string,double> avx_keywords_double;
+    std::map<std::string, double> avx_keywords_double;
     avx_keywords_double["alpha"] = .5;
     plt::axvline(_hyperRectangle[0].first, 0, 1, avx_keywords_string, avx_keywords_double);
     plt::axvline(_hyperRectangle[0].second, 0, 1, avx_keywords_string, avx_keywords_double);

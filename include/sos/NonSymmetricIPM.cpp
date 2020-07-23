@@ -9,7 +9,6 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/fmt/ostr.h"
 
-
 std::ostream &operator<<(std::ostream &os, const DirectionDecomposition &dir) {
     os << "x " << dir.x.transpose() << std::endl;
     os << "s: " << dir.s.transpose() << std::endl;
@@ -45,10 +44,11 @@ Matrix NonSymmetricIPM::create_matrix_G() {
 }
 
 //TODO:For sparse systems we might create a dense matrix in the LLS decomposition. Implement separate solver for this case
+//TODO: The method is not optimal yet regading computational complexity and memory allocation.
+// But its runtime is cominated by the calls to compute the Hessian anyway.
 
 std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen_subsystem(
         std::vector<std::pair<Vector, Vector> > &v) {
-
 
     _test_timers[3].start();
     Eigen::LLT<Matrix> LLT = _barrier->llt(x);
@@ -60,15 +60,12 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
 
     _test_timers[8].start();
     _test_timers[4].start();
-//    Matrix normalized_inverse_hessian = _barrier->inverse_hessian(x) / mu();
-//    normalized_inverse_hessian.eval();
 
     //TODO: Turn into blockwise operation
 //    Matrix A_H_inv = A * normalized_inverse_hessian;
     //TODO: double transposition. Figure out how to multiply solve from RHS.
 //    Matrix A_H_inv = LLT.solve(A.transpose()).transpose() / mu();
     Matrix A_H_inv = _barrier->llt_solve(x, A.transpose()).transpose() / mu();
-//    A_H_inv.eval();
     A_H_inv.eval();
     _test_timers[4].stop();
     //Note: Below is another valid version to compute A_H_inv_alt, but it appears to be slower.
@@ -95,7 +92,7 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
     _test_timers[9].start();
 
     std::vector<std::pair<Vector, Vector> > results;
-    //TODO: might be possible to solve these system in batches! (But currently runtime of the loop is clearly dominated by previous parts)
+    //TODO: might be possible to solve these system in batches!
     //TODO: check whether Conjugate Gradient Method solves Normal Equations more efficiently.
     for (unsigned i = 0; i < v.size(); i++) {
         Vector &r1 = v[i].first;
@@ -132,46 +129,29 @@ Vector NonSymmetricIPM::andersen_andersen_solve(Vector const rhs) {
     new_rhs_vectors.emplace_back(std::pair<Vector, Vector>(b, -c));
     new_rhs_vectors.emplace_back(std::pair<Vector, Vector>(r_p, r_d + r_xs));
 
-    //TODO: runtime test of both methods to solve the subsystem. Currently both are performed, but eventually
-    // we'll stick with the faster one.
     std::vector<std::pair<Vector, Vector> > ret = solve_andersen_andersen_subsystem(new_rhs_vectors);
 
-    Vector new_p = ret[0].first;
-    Vector new_q = ret[0].second;
+    Vector p = ret[0].first;
+    Vector q = ret[0].second;
 
-    Vector new_u = ret[1].first;
-    Vector new_v = ret[1].second;
+    Vector u = ret[1].first;
+    Vector v = ret[1].second;
 
-//    Matrix K = Matrix::Zero(m + n, m + n);
-//    K.block(0, m, m, n) = A;
-//    K.block(m, 0, n, m) = -A.transpose();
-//    K.block(m, m, n, n) = mu_H_x;
+    Vector pq(m + n);
+    pq << p, q;
 
-    Vector rhs_pq(m + n);
-    rhs_pq << b, -c;
+    Vector uv(m + n);
+    uv << u, v;
 
-    Vector aux_new_pq(new_p.rows() + new_q.rows());
-    aux_new_pq << new_p, new_q;
-
-//    _logger->info("Orig: {}, \n New {}", pq.segment(0, m).transpose(),
-//                   aux_new_pq.transpose());
-//    _logger->info("Diff: {}", (aux_new_pq - pq).norm());
-
-    Vector new_sol_pq(m + n);
-    new_sol_pq << new_p, new_q;
-
-    Vector new_sol_uv(m + n);
-    new_sol_uv << new_u, new_v;
-
-    SPDLOG_TRACE("{}", new_sol_pq.segment(m, n).transpose());
-    SPDLOG_TRACE("{}", new_q.transpose());
+    SPDLOG_TRACE("{}", pq.segment(m, n).transpose());
+    SPDLOG_TRACE("{}", q.transpose());
 
     Vector rhs_uv(m + n);
     rhs_uv << r_p, r_d + r_xs;
 
-    IPMDouble d_tau = (r_g.sum() + r_tk.sum() - rhs_pq.dot(new_sol_uv)) / (mu() / (tau * tau) + rhs_pq.dot(new_sol_pq));
+    IPMDouble d_tau = (r_g.sum() + r_tk.sum() - b.dot(u) + c.dot(v)) / (mu() / (tau * tau) + b.dot(p) - c.dot(q));
 
-    Vector d_yx = new_sol_uv + d_tau * new_sol_pq;
+    Vector d_yx = uv + d_tau * pq;
     Vector d_x = d_yx.segment(m, n);
     Vector d_s = r_xs - mu_H_x * d_x;
     IPMDouble d_kappa = r_tk.sum() - mu_H_tau * d_tau;
@@ -186,7 +166,7 @@ Vector NonSymmetricIPM::andersen_andersen_solve(Vector const rhs) {
 
     _andersen_sys_timer.stop();
 
-    //Check for dual error in this solution:
+    //Check for dual error in this solution and potentially run iterative refinement.
 
     Vector dual_err = -A.transpose() * d_yx.segment(0, y.rows()) + d_tau * c - d_s - r_d;
     IPMDouble rel_dual_error = dual_err.norm() / r_d.norm();
@@ -418,7 +398,7 @@ void NonSymmetricIPM::initialize() {
 
     IPMDouble const scaling_delta = sqrt(scaling_delta_dual * scaling_delta_primal);
 
-    _logger->info("Norm of x is {} and norm of s is {} before rescaling.", x.norm(), s.norm());
+    _logger->debug("Norm of x is {} and norm of s is {} before rescaling.", x.norm(), s.norm());
 
     x = _barrier->initialize_x(scaling_delta);
     s = _barrier->initialize_s(scaling_delta);
@@ -447,6 +427,7 @@ void NonSymmetricIPM::initialize() {
     _logger->trace("Matrix A is: \n {}", A);
     _logger->trace("Basis of ker A is: \n {}", _basis_ker_A);
     _logger->trace("Check correctness: \n {}", A * _basis_ker_A);
+
     //Not exactly 0 for numerical reasons.
 //    assert(A * _basis_ker_A == Matrix::Zero(A.rows(), A.cols() - A.rows()));
 

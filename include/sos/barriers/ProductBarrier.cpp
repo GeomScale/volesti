@@ -4,7 +4,6 @@
 
 #include "ProductBarrier.h"
 
-
 Eigen::LLT<Matrix> ProductBarrier::llt(Vector x, bool symmetrize) {
     //TODO: Figure out how to write Eigen::LLT<Matrix> in Matrix form.
     return LHSCB::llt(x, symmetrize);
@@ -77,14 +76,6 @@ Matrix LHSCB::llt_solve(Vector x, const Matrix &rhs) {
 Vector LHSCB::llt_L_solve(Vector x, Vector rhs) {
     return llt(x).matrixL().solve(rhs);
 }
-
-//LP Standard Log Barrier
-
-
-//SDP Standard Log Barrier
-
-//TODO: check whether implementation works correctly
-
 
 Matrix ProductBarrier::hessian(Vector x) {
     unsigned idx = 0;

@@ -88,7 +88,6 @@ public:
         orth_timer.stop();
         std::cout << "Orthogonalization done in " << orth_timer.count<std::chrono::milliseconds>() / 1000.
                   << " seconds." << std::endl;
-
     };
 
     bool update_gradient_hessian_LLT(Vector x, bool check_interior_only = false);
