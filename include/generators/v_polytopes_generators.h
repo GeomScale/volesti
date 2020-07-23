@@ -68,8 +68,6 @@ Polytope random_vpoly(unsigned int dim, unsigned int k, double seed = std::numer
 
     VT b = VT::Ones(k);
     return Polytope(dim, V, b);
-//    return VP;
-
 }
 
 
@@ -111,7 +109,6 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
     }
     if(k==d+1){
         return Polytope(d, V, b);
-        //return VP;
     }
 
     MT V2(k,d);
@@ -143,7 +140,6 @@ Polytope random_vpoly_incube(unsigned int d, unsigned int k, double seed = std::
         }
         if (indices.size()==0) {
             return Polytope(d, V, b);
-            //return VP;
         }
         V2.resize(k - indices.size(), d);
         count_row =0;
