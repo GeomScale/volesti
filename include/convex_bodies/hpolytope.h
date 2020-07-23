@@ -18,7 +18,7 @@
 
 //! H-polytope class
 /*!
-    A class for a polytopne in H-representaion
+    A class for a polytope in H-representaion
  */
 template <typename Point>
 class HPolytope {
@@ -36,55 +36,25 @@ private:
     MT                   A; //matrix A
     VT                   b; // vector b, s.t.: Ax<=b
     std::pair<Point, NT> _inner_ball;
-    // TODO: Why the following are not static or outside the class?
-    NT                   maxNT = std::numeric_limits<NT>::max();
-    NT                   minNT = std::numeric_limits<NT>::lowest();
 
 public:
     //TODO: the default implementation of the Big3 should be ok. Recheck.
     HPolytope() {}
 
-    HPolytope(unsigned d_, const MT& A_, const VT& b_) :
+    HPolytope(unsigned d_, MT const& A_, VT const& b_) :
         _d{d_}, A{A_}, b{b_}, _inner_ball{ComputeChebychevBall<NT, Point>(A, b)}
     {
     }
     // Copy constructor
-    HPolytope(const HPolytope<Point>& p) :
+    HPolytope(HPolytope<Point> const& p) :
             _d{p._d}, A{p.A}, b{p.b},  _inner_ball{p._inner_ball}
     {
     }
 
-    HPolytope(HPolytope&& p) :_d{p._d}
-    {
-        b = std::move(p.b);
-        _inner_ball = std::move(p._inner_ball);
-    }
 
-    HPolytope& operator=(const HPolytope& p)
-    {
-        if (this != &p) { // protect against invalid self-assignment
-            _d = p._d;
-            A = p.A;
-            b = p.b;
-            _inner_ball = p._inner_ball;
-        }
-        return *this;
-    }
-
-    HPolytope& operator=(HPolytope&& p)
-    {
-//        std::cout << __FUNCTION__ << "\n";
-        if (this != &p) {
-            _d = p._d;
-            A = std::move(p.A);
-            b = std::move(p.b);
-            _inner_ball = std::move(p._inner_ball);
-        }
-        return *this;
-    }
-
-    //define matrix A and vector b, s.t. Ax<=b and the dimension
-    HPolytope(const std::vector<std::vector<NT>>& Pin)
+    //define matrix A and vector b, s.t. Ax<=b,
+    // from a matrix that contains both A and b, i.e., [A | b ]
+    HPolytope(std::vector<std::vector<NT>> const& Pin)
     {
         _d = Pin[0][1] - 1;
         A.resize(Pin.size() - 1, _d);
@@ -269,7 +239,9 @@ public:
     std::pair<NT,NT> line_intersect(Point const& r, Point const& v) const
     {
 
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom, sum_denom;
         //unsigned int i, j;
         unsigned int j;
@@ -308,7 +280,9 @@ public:
                                     VT& Av,
                                     bool pos = false) const
     {
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
 
@@ -347,7 +321,9 @@ public:
                                     bool pos = false) const
     {
 
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
         VT  sum_nom;
         NT mult;
         //unsigned int i, j;
@@ -410,7 +386,9 @@ public:
                                           VT& lamdas) const
     {
 
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_denom;
 
         int m = num_of_hyperplanes();
@@ -446,7 +424,9 @@ public:
                                           unsigned int const& rand_coord_prev,
                                           VT& lamdas) const
     {
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
 
         int m = num_of_hyperplanes();
 
