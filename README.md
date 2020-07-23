@@ -12,7 +12,9 @@
 [![CircleCI develop](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
 [![gcc-test](https://github.com/GeomScale/volume_approximation/workflows/gcc-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Agcc-test)
 [![clang-test](https://github.com/GeomScale/volume_approximation/workflows/clang-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Aclang-test)
-[![R-CMD-check](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-check)
+[![R-CMD-check-ubuntu](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-ubuntu/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-check-ubuntu)
+[![R-CMD-check-macOS](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-macOS/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-check-macOS)
+[![R-CMD-check-windows](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-windows/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-check-windows)
 
 ###  Documentation
 
@@ -32,5 +34,3 @@ Copyright (c) 2012-2020 Vissarion Fisikopoulos
 Copyright (c) 2018-2020 Apostolos Chalkis  
 
 You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.  
-
-
