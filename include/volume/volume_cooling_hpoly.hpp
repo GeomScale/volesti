@@ -216,7 +216,7 @@ template
                 typename Zonotope,
                 typename HPolytope
         >
-HPolytope compute_hpoly_for_mmc(Zonotope &P) {
+HPolytope compute_hpoly_for_mmc(Zonotope const& P) {
 
     typedef typename Zonotope::PointType Point;
     typedef typename Zonotope::NT NT;
