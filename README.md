@@ -1,6 +1,4 @@
-<p align="center">
-  <img width=200 src="doc/logo/volesti_logo.jpg">
-</p>
+![logo](doc/logo/volesti_logo.jpg)
 
 **VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R` and limited `python` interface. **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
 
