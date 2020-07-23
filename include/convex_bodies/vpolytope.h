@@ -52,23 +52,11 @@ public:
             colno{new int[V.rows() + 1]},
             colno_mem{new int[V.rows()]} 
     {
-        //conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
-//        conv_comb2 = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb2));
-//        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
-//        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-//        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
-//        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
     }
 
     // Construct matrix V which contains the vertices row-wise
     // TODO: change rows;
-    VPolytope(const std::vector<std::vector<NT>>& Pin)
-//            conv_comb{new REAL[Pin.size()]},
-//            conv_comb2{new REAL[Pin.size()]},
-//            conv_mem{new REAL[Pin.size()-1]},
-//            row{new REAL[Pin.size()]},
-//            colno{new int[Pin.size()]},
-//            colno_mem{new int[Pin.size()-1]}
+    VPolytope(std::vector<std::vector<NT>> const& Pin)
     {
         _d = Pin[0][1] - 1;
         V.resize(Pin.size() - 1, _d);
@@ -128,13 +116,6 @@ public:
             row = other.row; other.row = nullptr;
             colno = other.colno; colno = nullptr;
             colno_mem = other.colno_mem; colno_mem = nullptr;
-
-            // conv_comb = std::move(other.conv_comb);  other.conv_comb = nullptr;
-            // conv_comb2 = std::move(other.conv_comb2);  other.conv_comb2 = nullptr;
-            // conv_mem = std::move(other.conv_mem);  other.conv_mem = nullptr;
-            // row = std::move(other.row); other.row = nullptr;
-            // colno = std::move(other.colno); colno = nullptr;
-            // colno_mem = std::move(other.colno_mem); colno_mem = nullptr;
         }
         return *this;
     }
@@ -242,18 +223,12 @@ public:
 
     // print polytope in input format
     void print() {
-//#ifdef VOLESTI_DEBUG
         std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
-//#endif
         for (unsigned int i = 0; i < V.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-//#ifdef VOLESTI_DEBUG
                 std::cout << V(i, j) << " ";
-//#endif
             }
-//#ifdef VOLESTI_DEBUG
             std::cout<<"\n";
-//#endif
         }
     }
 
@@ -545,23 +520,6 @@ public:
         a *= (-2.0 * v.dot(a));
         v += a;
     }
-
-//    void free_them_all() {
-//        delete [] conv_comb;
-//        delete [] conv_comb2;
-//        delete [] colno;
-//        delete [] colno_mem;
-//        delete [] row;
-//        delete [] conv_mem;
-//
-//        //free(conv_comb);
-////        free(row);
-////        free(colno);
-////
-////        free(colno_mem);
-////        free(conv_comb2);
-////        free(conv_mem);
-//    }
 
 };
 
