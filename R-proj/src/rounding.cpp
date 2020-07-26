@@ -19,6 +19,9 @@
 #include "random_walks/random_walks.hpp"
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
+#include "preprocess/min_ellipsoid_rounding.hpp"
+#include "preprocess/svd_rounding.hpp"
+#include "preprocess/max_ellipsoid_rounding.hpp"
 #include "preprocess/get_full_dimensional_polytope.hpp"
 #include "extractMatPoly.h"
 
@@ -47,15 +50,15 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
 
     bool cdhr = false;
     unsigned int n = P.field("dimension"), walkL, type = P.field("type");
-    std::string mthd = std::string("mee");
+    std::string method_rcpp = std::string("mee");
     if(method.isNotNull()) {
-        mthd =  Rcpp::as<std::string>(method);
+        method_rcpp =  Rcpp::as<std::string>(method);
     }
 
     RNGType rng(n);
     if (seed.isNotNull()) {
-        unsigned seed2 = Rcpp::as<double>(seed);
-        rng.set_seed(seed2);
+        unsigned seed_rcpp = Rcpp::as<double>(seed);
+        rng.set_seed(seed_rcpp);
     }
 
     Hpolytope HP;
@@ -83,21 +86,22 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
                 HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             } else {
                 // low dimensional
-                std::pair<Hpolytope, std::pair<MT, VT> > temp_res = get_full_dimensional_polytope<Hpolytope>(Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")),
-                            Rcpp::as<MT>(P.field("Aeq")), Rcpp::as<VT>(P.field("beq")));
+                std::pair<Hpolytope, std::pair<MT, VT> > temp_res = 
+                            get_full_dimensional_polytope<Hpolytope>(Rcpp::as<MT>(P.field("A")),
+                            Rcpp::as<VT>(P.field("b")), Rcpp::as<MT>(P.field("Aeq")), Rcpp::as<VT>(P.field("beq")));
 
                 HP = temp_res.first;
                 N = temp_res.second.first;
                 N_shift = temp_res.second.second;
 
-                Eigen::JacobiSVD<MT> svd(N, Eigen::ComputeThinU | Eigen::ComputeThinV);
+                Eigen::JacobiSVD<MT> svd(N);
                 svd_prod = svd.singularValues().prod();
-                walkL = 10 + 10*HP.dimension();
+                walkL = 10 + 10 * HP.dimension();
               
                 rng = RNGType(HP.dimension());
                 if (seed.isNotNull()) {
-                    unsigned seed2 = Rcpp::as<double>(seed);
-                    rng.set_seed(seed2);
+                    unsigned seed_rcpp = Rcpp::as<double>(seed);
+                    rng.set_seed(seed_rcpp);
                 }
             }
             HP.normalize();
@@ -124,19 +128,19 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
     std::pair< std::pair<MT, VT>, NT > round_res;
     switch (type) {
         case 1: {
-            if (mthd.compare(std::string("mve")) == 0) {
-                round_res = mve_rounding<MT, VT>(HP, InnerBall);
-            } else if (mthd.compare(std::string("mee")) == 0) {
+            if (method_rcpp.compare(std::string("mve")) == 0) {
+                round_res = max_ellipsoid_rounding<MT, VT>(HP, InnerBall);
+            } else if (method_rcpp.compare(std::string("mee")) == 0) {
                 if (cdhr) {
-                    round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                    round_res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 } else {
-                    round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                    round_res = min_ellipsoid_rounding<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 }
-            } else if (mthd.compare(std::string("svd")) == 0) {
+            } else if (method_rcpp.compare(std::string("svd")) == 0) {
                 if (cdhr) {
-                    round_res = round_isotropy<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                    round_res = svd_rounding<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 } else {
-                    round_res = round_isotropy<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                    round_res = svd_rounding<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 }
             } else {
                 throw Rcpp::exception("Unknown method!");
@@ -145,17 +149,17 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             break;
         }
         case 2: {
-            if (mthd.compare(std::string("mee")) == 0){
+            if (method_rcpp.compare(std::string("mee")) == 0){
                 if (cdhr) {
-                    round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                    round_res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
                 } else {
-                    round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                    round_res = min_ellipsoid_rounding<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
                 }
-            } else if (mthd.compare(std::string("svd")) == 0) {
+            } else if (method_rcpp.compare(std::string("svd")) == 0) {
                 if (cdhr) {
-                    round_res = round_isotropy<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                    round_res = svd_rounding<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
                 } else {
-                    round_res = round_isotropy<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
+                    round_res = svd_rounding<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
                 }
             } else {
                 throw Rcpp::exception("Unknown method!");
@@ -164,17 +168,17 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             break;
         }
         case 3: {
-            if (mthd.compare(std::string("mee")) == 0){
+            if (method_rcpp.compare(std::string("mee")) == 0){
                 if (cdhr) {
-                    round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                    round_res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
                 } else {
-                    round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                    round_res = min_ellipsoid_rounding<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
                 }
-            } else if (mthd.compare(std::string("svd")) == 0) {
+            } else if (method_rcpp.compare(std::string("svd")) == 0) {
                 if (cdhr) {
-                    round_res = round_isotropy<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                    round_res = svd_rounding<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
                 } else {
-                    round_res = round_isotropy<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+                    round_res = svd_rounding<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
                 }
             } else {
                 throw Rcpp::exception("Unknown method!");

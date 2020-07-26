@@ -47,7 +47,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
     Rcpp::NumericMatrix Mat;
     unsigned int n = P.field("dimension"), type = P.field("type");
 
-    int seed2 = (!seed.isNotNull()) ? std::chrono::system_clock::now()
+    int seed_rcpp = (!seed.isNotNull()) ? std::chrono::system_clock::now()
                                       .time_since_epoch().count()
                                     : Rcpp::as<int>(seed);
 
@@ -60,7 +60,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
                 TransorfMat = Rcpp::as<MT>(T);
                 HP.linear_transformIt(TransorfMat.inverse());
             } else {
-                TransorfMat = rotating < MT > (HP, seed2);
+                TransorfMat = rotating < MT > (HP, seed_rcpp);
             }
             Mat = extractMatPoly(HP);
             break;
@@ -73,7 +73,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
                 TransorfMat = Rcpp::as<MT>(T);
                 VP.linear_transformIt(TransorfMat.inverse());
             } else {
-                TransorfMat = rotating < MT > (VP, seed2);
+                TransorfMat = rotating < MT > (VP, seed_rcpp);
             }
             Mat = extractMatPoly(VP);
             break;
@@ -86,7 +86,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
                 TransorfMat = Rcpp::as<MT>(T);
                 ZP.linear_transformIt(TransorfMat.inverse());
             } else {
-                TransorfMat = rotating < MT > (ZP, seed2);
+                TransorfMat = rotating < MT > (ZP, seed_rcpp);
             }
             Mat = extractMatPoly(ZP);
             break;

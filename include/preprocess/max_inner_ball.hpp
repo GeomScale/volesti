@@ -11,6 +11,21 @@
 #ifndef MAX_INNER_BALL
 #define MAX_INNER_BALL
 
+/*
+    This implmentation computes the largest inscribed ball in a given convex polytope P.
+    The polytope has to be given in H-representation P = {x | Ax <= b} and the rows of A
+    has to be normalized. It solves the Linear program: max t, s.t. Ax + t*e <= b, where 
+    e is the vector of ones.
+
+    The implementation is based on Yin Zhang's Matlab implementation in https://github.com/Bounciness/Volume-and-Sampling/blob/1c7adfb46c2c01037e625db76ff00e73616441d4/external/mve11/mve_cobra/mve_presolve_cobra.m
+
+    Input: matrix A, vector b such that the polytope P = {x | Ax<=b}
+           tolerance parameter tol
+
+    Output: center of the ball x
+            radius r
+*/
+
 template <typename MT, typename VT, typename NT>
 void calcstep(MT const& A, MT const& A_trans, MT const& R, VT &s, VT &y, VT &r1, VT const& r2, NT const& r3, VT &r4,
         VT &dx, VT &ds, NT &dt, VT &dy, VT &tmp, VT &rhs)

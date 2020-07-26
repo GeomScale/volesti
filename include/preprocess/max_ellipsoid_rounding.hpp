@@ -8,19 +8,20 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef MVE_ROUNDING_HPP
-#define MVE_ROUNDING_HPP
+#ifndef MAX_ELLIPSOID_ROUNDING_HPP
+#define MAX_ELLIPSOID_ROUNDING_HPP
 
 #include "mve_computation.hpp"
 
-template <
-        typename MT,
-        typename VT,
-        typename Polytope,
-        typename Point,
-        typename NT
+template 
+<
+    typename MT,
+    typename VT,
+    typename Polytope,
+    typename Point,
+    typename NT
 >
-std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(Polytope &P, 
+std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > max_ellipsoid_rounding(Polytope &P, 
                                                 std::pair<Point, NT> InnerBall,
                                                 MT &N, VT &N_shift)
 {
@@ -38,10 +39,11 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(
 
     while (true)
     {
+        // compute the largest inscribed ellipsoid in P centered at x0
         iter_res = mve_computation(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
         E = iter_res.first.first;
         E = (E + E.transpose())/2.0;
-        E = E + MT::Identity(d,d)*std::pow(10,-8.0);
+        E = E + MT::Identity(d,d)*std::pow(10,-8.0); //normalize E
 
         Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
         L = lltOfA.matrixL();
@@ -50,10 +52,12 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(
         r = eigensolver.eigenvalues().minCoeff();
         R = eigensolver.eigenvalues().maxCoeff();
 
+        // check the roundness of the polytope
         if(((R <= 6.0 * r && iter_res.second) || iter >= 20) && iter>3){
             break;
         }
 
+        // shift polytope and apply the linear transformation on P
         P.shift(iter_res.first.second);
         N_shift = N_shift + N*iter_res.first.second;
         N = N * L;
@@ -82,19 +86,21 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > mve_rounding(
     return result;
 }
 
-template <
-        typename MT,
-        typename VT,
-        typename Polytope,
-        typename Point,
-        typename NT
+template 
+<
+    typename MT,
+    typename VT,
+    typename Polytope,
+    typename Point,
+    typename NT
 >
-std::pair< std::pair<MT, VT>, NT > mve_rounding(Polytope &P, std::pair<Point, NT> InnerBall)
+std::pair< std::pair<MT, VT>, NT > max_ellipsoid_rounding(Polytope &P, std::pair<Point, NT> InnerBall)
 {
     unsigned int d = P.dimension();
     MT N = MT::Identity(d,d);
     VT shift = VT::Zero(d);
-    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = mve_rounding(P, InnerBall, N, shift);
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = 
+                                                max_ellipsoid_rounding(P, InnerBall, N, shift);
 
     std::pair< std::pair<MT, VT>, NT > res;
     res.first.first = result.first.first.first;

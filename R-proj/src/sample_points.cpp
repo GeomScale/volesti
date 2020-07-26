@@ -161,8 +161,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
     RNGType rng(dim);
     if (seed.isNotNull()) {
-        unsigned seed2 = Rcpp::as<double>(seed);
-        rng.set_seed(seed2);
+        unsigned seed_rcpp = Rcpp::as<double>(seed);
+        rng.set_seed(seed_rcpp);
     }
 
     Hpolytope HP;

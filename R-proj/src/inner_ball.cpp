@@ -35,7 +35,7 @@
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericVector inner_ball(Rcpp::Reference P, 
-                                Rcpp::Nullable<std::string> method = R_NilValue) {
+                               Rcpp::Nullable<std::string> method = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -50,17 +50,17 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P,
     unsigned int n = P.field("dimension"), type = P.field("type");
 
     std::pair <Point, NT> InnerBall;
-    std::string mthd = (!method.isNotNull()) ? std::string("lpsolve") : Rcpp::as<std::string>(method);
+    std::string method_rcpp = (!method.isNotNull()) ? std::string("lpsolve") : Rcpp::as<std::string>(method);
 
     switch (type) {
         case 1: {
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            if(mthd.compare(std::string("lpsolve")) == 0) {
+            if(method_rcpp.compare(std::string("lpsolve")) == 0) {
                 InnerBall = HP.ComputeInnerBall();
                 break;
-            } else if(mthd.compare(std::string("ipm")) == 0) {
+            } else if(method_rcpp.compare(std::string("ipm")) == 0) {
                 NT tol = 0.00000001;
                 std::pair<VT, NT> res = compute_max_inner_ball(HP.get_mat(), HP.get_vec(), 150, tol);
                 InnerBall.second = res.second;

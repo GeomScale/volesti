@@ -16,7 +16,7 @@ public:
     Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, double volume) : A(_A), b(_b),
                 Aeq(Rcpp::NumericMatrix(0,0)), beq(Rcpp::NumericVector(0)), vol(volume), dimension(_A.ncol()), type(1) {}
     Hpolytope(Rcpp::NumericMatrix _A, Rcpp::NumericVector _b, Rcpp::NumericMatrix _Aeq, Rcpp::NumericVector _beq, 
-           double volume) : A(_A), b(_b), Aeq(_Aeq), beq(_beq), vol(volume), dimension(_A.ncol()), type(1) {}
+                double volume) : A(_A), b(_b), Aeq(_Aeq), beq(_beq), vol(volume), dimension(_A.ncol()), type(1) {}
     Rcpp::NumericMatrix A;
     Rcpp::NumericVector b;
     Rcpp::NumericMatrix Aeq;

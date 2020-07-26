@@ -42,13 +42,13 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         switch (walk)
         {
         case cdhr:
-            round_val = round_polytope<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng).second;
+            round_val = min_ellipsoid_rounding<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng).second;
             break;
         case accelarated_billiard:
-            round_val = round_polytope<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = min_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
             break;
         default:
-            round_val = round_polytope<BilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = min_ellipsoid_rounding<BilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
             break;
         }
     }
@@ -186,8 +186,8 @@ double volume (Rcpp::Reference P,
 
     RNGType rng(n);
     if (seed.isNotNull()) {
-        unsigned seed2 = Rcpp::as<double>(seed);
-        rng.set_seed(seed2);
+        unsigned seed_rcpp = Rcpp::as<double>(seed);
+        rng.set_seed(seed_rcpp);
     }
 
     bool round = false, hpoly = false;

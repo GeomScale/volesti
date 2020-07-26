@@ -27,7 +27,11 @@
 //'
 //' @keywords internal
 //'
-//' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the product of the singular values of the matrix of linear map applied on the input polytope.
+//' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse
+//'         linear transformation that is applied on the input polytope, the numerical vector - point that the
+//'         input polytope is shifted and the product of the singular values of the matrix of the linear map 
+//'         applied on the input polytope.
+//'
 // [[Rcpp::export]]
 Rcpp::List full_dimensional_polytope (Rcpp::Reference P)
 {
@@ -39,10 +43,8 @@ Rcpp::List full_dimensional_polytope (Rcpp::Reference P)
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
     NT svd_prod;
-    MT A = Rcpp::as<MT>(P.field("A"));
-    MT Aeq = Rcpp::as<MT>(P.field("Aeq"));
-    VT b = Rcpp::as<VT>(P.field("b"));
-    VT beq = Rcpp::as<VT>(P.field("beq"));
+    MT A = Rcpp::as<MT>(P.field("A")), Aeq = Rcpp::as<MT>(P.field("Aeq"));
+    VT b = Rcpp::as<VT>(P.field("b")), beq = Rcpp::as<VT>(P.field("beq"));
 
     std::pair<Hpolytope, std::pair<MT, VT> > result = get_full_dimensional_polytope<Hpolytope>(A, b, Aeq, beq);
 

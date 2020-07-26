@@ -126,7 +126,11 @@ frustum_of_simplex <- function(a, z0) {
 #'
 #' @keywords internal
 #'
-#' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the product of the singular values of the matrix of linear map applied on the input polytope.
+#' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse
+#'         linear transformation that is applied on the input polytope, the numerical vector - point that the
+#'         input polytope is shifted and the product of the singular values of the matrix of the linear map 
+#'         applied on the input polytope.
+#'
 full_dimensional_polytope <- function(P) {
     .Call(`_volesti_full_dimensional_polytope`, P)
 }

@@ -3,26 +3,29 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
+// Modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef ROUNDING_HPP
-#define ROUNDING_HPP
+#ifndef MIN_ELLIPSOID_ROUNDING_HPP
+#define MIN_ELLIPSOID_ROUNDING_HPP
 
 #include <Eigen/Eigen>
 #include "khach.h"
 #include "sampling/random_point_generators.hpp"
 #include "volume/sampling_policies.hpp"
 
-template <
-        typename WalkTypePolicy,
-        typename MT,
-        typename VT,
-        typename Polytope,
-        typename Point,
-        typename NT,
-        typename RandomNumberGenerator
-        >
-std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > round_polytope(Polytope &P,
+template 
+<
+    typename WalkTypePolicy,
+    typename MT,
+    typename VT,
+    typename Polytope,
+    typename Point,
+    typename NT,
+    typename RandomNumberGenerator
+>
+std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > min_ellipsoid_rounding(Polytope &P,
                                                                     std::pair<Point,NT> &InnerBall,
                                                                     const unsigned int &walk_length,
                                                                     RandomNumberGenerator &rng,
@@ -129,16 +132,17 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > round_polytop
 }
 
 
-template <
-        typename WalkTypePolicy,
-        typename MT,
-        typename VT,
-        typename Polytope,
-        typename Point,
-        typename NT,
-        typename RandomNumberGenerator
-        >
-std::pair< std::pair<MT, VT>, NT > round_polytope(Polytope &P,
+template 
+<
+    typename WalkTypePolicy,
+    typename MT,
+    typename VT,
+    typename Polytope,
+    typename Point,
+    typename NT,
+    typename RandomNumberGenerator
+>
+std::pair< std::pair<MT, VT>, NT > min_ellipsoid_rounding(Polytope &P,
                                                 std::pair<Point,NT> &InnerBall,
                                                 const unsigned int &walk_length,
                                                 RandomNumberGenerator &rng)
@@ -146,7 +150,7 @@ std::pair< std::pair<MT, VT>, NT > round_polytope(Polytope &P,
     unsigned int d = P.dimension();
     MT N = MT::Identity(d,d);
     VT shift = VT::Zero(d);
-    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = round_polytope<WalkTypePolicy>(P, InnerBall, walk_length,
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = min_ellipsoid_rounding<WalkTypePolicy>(P, InnerBall, walk_length,
                                                                                                 rng, N, shift);
     std::pair< std::pair<MT, VT>, NT > res;
     res.first.first = result.first.first.first;
@@ -156,4 +160,4 @@ std::pair< std::pair<MT, VT>, NT > round_polytope(Polytope &P,
     return res;
 }
 
-#endif // ROUNDING_HPP
+#endif // MIN_ELLIPSOID_ROUNDING_HPP

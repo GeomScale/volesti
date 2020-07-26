@@ -48,17 +48,17 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
     typedef VPolytope <Point> Vpolytope;
     typedef Zonotope <Point> zonotope;
 
-    double seed2 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
+    double seed_rcpp = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
 
     if (Zono_gen) {
         switch (kind_gen) {
 
             case 1:
-                return extractMatPoly(gen_zonotope_uniform<zonotope, RNGType>(dim_gen, m_gen, seed2));
+                return extractMatPoly(gen_zonotope_uniform<zonotope, RNGType>(dim_gen, m_gen, seed_rcpp));
             case 2:
-                return extractMatPoly(gen_zonotope_gaussian<zonotope, RNGType>(dim_gen, m_gen, seed2));
+                return extractMatPoly(gen_zonotope_gaussian<zonotope, RNGType>(dim_gen, m_gen, seed_rcpp));
             case 3:
-                return extractMatPoly(gen_zonotope_exponential<zonotope, RNGType>(dim_gen, m_gen, seed2));
+                return extractMatPoly(gen_zonotope_exponential<zonotope, RNGType>(dim_gen, m_gen, seed_rcpp));
 
         }
 
@@ -75,10 +75,10 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
                 return extractMatPoly(gen_simplex<Vpolytope>(dim_gen, true));
 
             case 4:
-                return extractMatPoly(random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen, seed2));
+                return extractMatPoly(random_vpoly<Vpolytope, RNGType>(dim_gen, m_gen, seed_rcpp));
 
             case 5:
-                return extractMatPoly(random_vpoly_incube<Vpolytope, RNGType>(dim_gen, m_gen, seed2));
+                return extractMatPoly(random_vpoly_incube<Vpolytope, RNGType>(dim_gen, m_gen, seed_rcpp));
 
         }
     } else {
@@ -100,7 +100,7 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
                 return extractMatPoly(gen_skinny_cube<Hpolytope>(dim_gen));
 
             case 6:
-                return extractMatPoly(random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen, seed2));
+                return extractMatPoly(random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen, seed_rcpp));
 
         }
     }

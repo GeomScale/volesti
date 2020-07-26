@@ -8,17 +8,20 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef ROUND_ISOTROPY_HPP
-#define ROUND_ISOTROPY_HPP
+#ifndef SVD_ROUNDING_HPP
+#define SVD_ROUNDING_HPP
 
 
-template <typename WalkTypePolicy,
-          typename Polytope,
-          typename Point,
-          typename MT, 
-          typename VT, 
-          typename RandomNumberGenerator>
-void round_svd(Polytope &P, Point &p, unsigned int const& num_rounding_steps, MT &V, VT &s, VT &Means,
+template 
+<
+    typename WalkTypePolicy,
+    typename Polytope,
+    typename Point,
+    typename MT, 
+    typename VT, 
+    typename RandomNumberGenerator
+>
+void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps, MT &V, VT &s, VT &Means,
             unsigned int const& walk_length, RandomNumberGenerator &rng)
 {
     typedef typename WalkTypePolicy::template Walk
@@ -71,20 +74,21 @@ void round_svd(Polytope &P, Point &p, unsigned int const& num_rounding_steps, MT
 }
 
 
-template <
-        typename WalkTypePolicy,
-        typename MT,
-        typename VT,
-        typename Polytope,
-        typename Point,
-        typename NT,
-        typename RandomNumberGenerator
+template 
+<
+    typename WalkTypePolicy,
+    typename MT,
+    typename VT,
+    typename Polytope,
+    typename Point,
+    typename NT,
+    typename RandomNumberGenerator
 >
-std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > round_isotropy(Polytope &P, std::pair<Point,NT> &InnerBall,
-                                                                             const unsigned int &walk_length,
-                                                                             RandomNumberGenerator &rng,
-                                                                             MT &N,
-                                                                             VT &N_shift)
+std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > svd_rounding(Polytope &P, std::pair<Point,NT> &InnerBall,
+                                                                                  const unsigned int &walk_length,
+                                                                                  RandomNumberGenerator &rng,
+                                                                                  MT &N,
+                                                                                  VT &N_shift)
 {
     NT tol = 0.00000001;
     NT R = std::pow(10,10), r = InnerBall.second;
@@ -120,7 +124,7 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > round_isotrop
         while (max_s > s_cutoff && round_it <= num_its) {
 
             p.set_to_origin();
-            round_svd<WalkTypePolicy>(P, p, num_rounding_steps, V, s, shift, walk_length, rng);
+            svd_on_sample<WalkTypePolicy>(P, p, num_rounding_steps, V, s, shift, walk_length, rng);
 
             rounding_samples = rounding_samples + num_rounding_steps;
             max_s = s.maxCoeff();
@@ -129,7 +133,7 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > round_isotrop
                 if (last_round_under_p) {
                     num_rounding_steps = num_rounding_steps * 2.0;
                     p.set_to_origin();
-                    round_svd<WalkTypePolicy>(P, p, num_rounding_steps, V, s, shift, walk_length, rng);
+                    svd_on_sample<WalkTypePolicy>(P, p, num_rounding_steps, V, s, shift, walk_length, rng);
                     max_s = s.maxCoeff();
                 } else {
                     last_round_under_p = true;
@@ -178,24 +182,27 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > round_isotrop
 }
 
 
-template <
-        typename WalkTypePolicy,
-        typename MT,
-        typename VT,
-        typename Polytope,
-        typename Point,
-        typename NT,
-        typename RandomNumberGenerator
+template 
+<
+    typename WalkTypePolicy,
+    typename MT,
+    typename VT,
+    typename Polytope,
+    typename Point,
+    typename NT,
+    typename RandomNumberGenerator
 >
-std::pair< std::pair<MT, VT>, NT > round_isotropy(Polytope &P, std::pair<Point,NT> &InnerBall,
+std::pair< std::pair<MT, VT>, NT > svd_rounding(Polytope &P, std::pair<Point,NT> &InnerBall,
                                                   const unsigned int &walk_length,
                                                   RandomNumberGenerator &rng)
 {
     unsigned int d = P.dimension();
-    MT N = MT::Identity(d,d);
+    MT N = MT::Identity(d, d);
     VT shift = VT::Zero(d);
-    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = round_isotropy<WalkTypePolicy>(P, InnerBall, 
-                                                                                    walk_length, rng, N, shift);
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = 
+                                            svd_rounding<WalkTypePolicy>(P, InnerBall, 
+                                                                           walk_length,
+                                                                           rng, N, shift);
     std::pair< std::pair<MT, VT>, NT > res;
     res.first.first = result.first.first.first;
     res.first.second = result.first.first.second;
