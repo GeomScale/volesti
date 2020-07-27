@@ -8,7 +8,7 @@ from volestipy import HPolytope
 print("I imported everything right!")
 
 if __name__ == "__main__":
-    dim = 2
+    dim = 5
     A = np.zeros((2*dim, dim), dtype=np.float)
     A[0:dim] = np.eye(dim)
     A[dim:] -=  np.eye(dim,dim, dtype=np.float)
@@ -20,8 +20,10 @@ if __name__ == "__main__":
     print("Dimensions: {}".format(p.dimensions))
     print("A matrix:")
     print(p.A)
+    print(type(p.A))
     print("b vector:")
     print(p.b)
+    print(type(p.b))
 
 
 # Run tests for the compute_volume() function

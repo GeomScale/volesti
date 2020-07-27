@@ -26,8 +26,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
 HPolytopeCPP::~HPolytopeCPP(){}
 
 
-//////////          start of "compute_volume"
-
+//////////          start of "compute_volume"          //////////
 double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed){
   
    double volume;
@@ -62,15 +61,12 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
    }
    return volume;
 }
-//////////         end of "compute_volume"  
+//////////           end of "compute_volume()"            //////////  
 
-//////////         start if "generate_samples"
 
+//////////         start of "generate_samples()"          //////////
 double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian,   bool set_L, bool billiard, bool ball_walk, double a, double L, double* samples){
-   
-   cout<<"Hello friend. This is the generate_samples function you are in \n";
-   
-   //double* samples;
+ 
    RNGType rng(HP.dimension());
    std::list<Point> rand_points;
    
@@ -119,8 +115,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
             }
         }
    }
-   
-   std::cout<<"sampling completed"<<std::endl;
+   std::cout<<"Sampling completed"<<std::endl;
 
 // The following block of code should NOT be removed!
    auto n_si=0;
@@ -130,3 +125,37 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
       }
    }
 }
+//////////         end of "generate_samples()"          //////////
+
+
+//////////         start of "rounding()"          //////////
+
+void HPolytopeCPP::rounding(int walk_len, bool billiard, int n_hyperplanes, int n_variables){
+   
+   typedef struct rounded_HPolytope{
+      MT new_A;
+      VT new_b;
+   };
+   
+   rounded_HPolytope rounded;
+   
+   rounded.new_A.resize(n_hyperplanes,n_variables);
+   rounded.new_b.resize(n_hyperplanes);
+    
+   std::pair< std::pair<MT, VT>, NT > round_res;
+    
+   RNGType rng(HP.dimension());
+
+   if (billiard == true){
+       round_res = round_polytope<BilliardWalk, MT, VT>(HP, CheBall, walk_len, rng);
+   } else {
+       round_res = round_polytope<CDHRWalk, MT, VT>(HP, CheBall, walk_len, rng);
+   }
+   
+   rounded.new_A = HP.get_mat();
+   rounded.new_b = HP.get_vec();
+   
+   return rounded;
+   
+}
+
