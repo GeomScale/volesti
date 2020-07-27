@@ -7,7 +7,7 @@ Vruntest <- function(P, name_string, exactvol, tol, num_of_exps, algorithm,seed)
   vol = 0
   for (j in 1:num_of_exps) {
     if (algorithm == "CB") {
-      vol = vol + volume(P, rounding = FALSE, seed = seed)
+      vol = vol + volume(P, rounding = "none", seed = seed)
     } else {
       vol = vol + volume(P, settings = list("algorithm" = "CG", "error" = 0.1), rounding = "none", seed = seed)
     }
