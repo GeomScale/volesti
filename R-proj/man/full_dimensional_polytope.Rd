@@ -10,7 +10,10 @@ full_dimensional_polytope(P)
 \item{P}{A low dimensional convex polytope in H-representation.}
 }
 \value{
-A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the product of the singular values of the matrix of linear map applied on the input polytope.
+A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse
+        linear transformation that is applied on the input polytope, the numerical vector - point that the
+        input polytope is shifted and the product of the singular values of the matrix of the linear map 
+        applied on the input polytope.
 }
 \description{
 Internal rcpp function to compute the full dimensional polytope when a low dimensional is given
