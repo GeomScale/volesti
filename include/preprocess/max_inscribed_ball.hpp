@@ -27,16 +27,17 @@
 */
 
 template <typename MT, typename VT, typename NT>
-void calcstep(MT const& A, MT const& A_trans, MT const& R, VT &s, VT &y, VT &r1, VT const& r2, NT const& r3, VT &r4,
-        VT &dx, VT &ds, NT &dt, VT &dy, VT &tmp, VT &rhs)
+void calcstep(MT const& A, MT const& A_trans, MT const& R, VT &s, 
+              VT &y, VT &r1, VT const& r2, NT const& r3, VT &r4,
+              VT &dx, VT &ds, NT &dt, VT &dy, VT &tmp, VT &rhs)
 {
     int m = A.rows(), n = A.cols();
-    NT *vec_iter1 = tmp.data(), *vec_iter2 = y.data(), *vec_iter3 = s.data(), *vec_iter4 = r1.data(), *vec_iter5 = r4.data();
+    NT *vec_iter1 = tmp.data(), *vec_iter2 = y.data(), *vec_iter3 = s.data(),
+       *vec_iter4 = r1.data(), *vec_iter5 = r4.data();
     for (int i = 0; i < m; ++i) {
         *vec_iter1 = ((*vec_iter4) / (*vec_iter2) - (*vec_iter5)) / (*vec_iter3);
         vec_iter1++; vec_iter2++; vec_iter3++; vec_iter4++; vec_iter5++;
     }
-
 
     rhs.block(0,0,n,1).noalias() = r2 + A_trans * tmp;
     rhs(n) = r3 + tmp.sum();
@@ -45,18 +46,19 @@ void calcstep(MT const& A, MT const& A_trans, MT const& R, VT &s, VT &y, VT &r1,
     dx = dxdt.block(0,0,n,1);
     dt = dxdt(n);
     ds.noalias() = r1 - A*dx - VT::Ones(m) * dt;
-    vec_iter1 = dy.data(); vec_iter2 = r4.data(); vec_iter3 = y.data(); vec_iter4 = ds.data(); vec_iter5 = s.data();
+    vec_iter1 = dy.data(); vec_iter2 = r4.data(); vec_iter3 = y.data();
+    vec_iter4 = ds.data(); vec_iter5 = s.data();
 
     for (int i = 0; i < m; ++i) {
         *vec_iter1 = ((*vec_iter2) - (*vec_iter3) * (*vec_iter4)) / (*vec_iter5);
         vec_iter1++; vec_iter2++; vec_iter3++; vec_iter4++; vec_iter5++;
     }
-
 }
 
 
 template <typename MT, typename VT, typename NT>
-std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT tol) {
+std::pair<VT, NT> max_inscribed_ball(MT A, VT b, unsigned int maxiter, NT tol) 
+{
     int m = A.rows(), n = A.cols();
 
     NT bnrm = b.norm();
@@ -70,12 +72,17 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
     VT dxc = dx, ds = o_m;
     VT dsc = ds, dy = o_m, mu_ds_dy(m), tmp(m), rhs(n + 1);
     VT dyc = dy, r1(m), r2(n), r4(m), r23(n + 1), AtDe(n), d(m);
-    NT dt = NT(0), dtc = NT(0), tau0 = 0.995, tau, sigma0 = 0.2, r3, gap, prif, drif, rgap, total_err, alphap, alphad,
-            ratio, sigma, mu, *vec_iter1, *vec_iter2, *vec_iter3, *vec_iter4, power_num = 5.0 * std::pow(10.0, 15.0),
-            t_prev = 1000.0 * t + 100.0;
 
-    MT B(n + 1, n + 1), AtD(n, m), R(n + 1, n + 1), eEye =
-            std::pow(10, -14.0) * MT::Identity(n + 1, n + 1), A_trans = A.transpose();
+    NT dt = NT(0), dtc = NT(0), tau, sigma0 = 0.2, r3, gap, 
+       prif, drif, rgap, total_err, alphap, alphad,
+       ratio, sigma, mu, t_prev = 1000.0 * t + 100.0;
+    
+    NT const tau0 = 0.995, power_num = 5.0 * std::pow(10.0, 15.0);
+    NT *vec_iter1, *vec_iter2, *vec_iter3, *vec_iter4;
+
+    MT B(n + 1, n + 1), AtD(n, m), R(n + 1, n + 1), 
+       eEye = std::pow(10.0, -14.0) * MT::Identity(n + 1, n + 1),
+       A_trans = A.transpose();
 
     for (unsigned int i = 0; i < maxiter; ++i) {
 
@@ -84,7 +91,6 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
         r2.noalias() = -A_trans * y;
         r3 = 1.0 - y.sum();
         r4 = -s.cwiseProduct(y);
-
 
         r23.block(0, 0, n, 1) = r2;
         r23(n) = r3;
@@ -98,14 +104,16 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
         total_err = std::max(total_err, rgap);
 
         // progress output & check stopping
-        if (total_err < tol || ( t > 0 && ( (std::abs(t - t_prev) <= tol * t && std::abs(t - t_prev) <= tol * t_prev) ||
-                                (t_prev >= (1.0 - tol) * t && i > 0) ||
-                                 (t <= (1.0 - tol) * t_prev && i > 0) ) ) ) {
+        if (total_err < tol || ( t > 0 && ( (std::abs(t - t_prev) <= tol * t && std::abs(t - t_prev) <= tol * t_prev) 
+                    || (t_prev >= (1.0 - tol) * t && i > 0) 
+                    || (t <= (1.0 - tol) * t_prev && i > 0) ) ) ) 
+        {
             //converged
             break;
         }
 
-        if (dt > 1000.0 * bnrm || t > 1000000.0 * bnrm) {
+        if (dt > 1000.0 * bnrm || t > 1000000.0 * bnrm) 
+        {
             //unbounded
             break;
         }
@@ -157,7 +165,7 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
         // determine mu
         ratio = (s + alphap * ds).dot((y + alphad * dy)) / gap;
         sigma = std::min(sigma0, ratio * ratio);
-        mu = (sigma * gap) / m;
+        mu = (sigma * gap) / NT(m);
 
         // corrector and combined step & length
         mu_ds_dy.noalias() = e_m * mu - ds.cwiseProduct(dy);
@@ -167,7 +175,6 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
         ds += dsc;
         dt += dtc;
         dy += dyc;
-
 
         alphap = -0.5;
         alphad = -0.5;
@@ -188,7 +195,7 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
         alphad = -1.0 / alphad;
 
         // update iterates
-        tau = std::max(tau0, 1.0 - gap / m);
+        tau = std::max(tau0, 1.0 - gap / NT(m));
         alphap = std::min(1.0, tau * alphap);
         alphad = std::min(1.0, tau * alphad);
 
@@ -200,8 +207,6 @@ std::pair<VT, NT> compute_max_inner_ball(MT A, VT b, unsigned int maxiter, NT to
     }
 
     return std::pair<VT, NT>(x, t);
-
 }
-
 
 #endif

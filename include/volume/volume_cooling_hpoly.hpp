@@ -10,7 +10,7 @@
 
 #include "volume/volume_cooling_gaussians.hpp"
 #include "sampling/random_point_generators.hpp"
-#include "preprocess/min_ellipsoid_rounding.hpp"
+#include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
 
 
 template
@@ -319,8 +319,9 @@ double volume_cooling_hpoly (Zonotope const& Pin,
 
     HPolytope HP2(HP);
     std::pair<Point, NT> InnerBall = HP2.ComputeInnerBall();
-    std::pair< std::pair<MT, VT>, NT > res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(HP2, InnerBall,
-                                                                              10 + 10 * n, rng);
+    std::pair< std::pair<MT, VT>, NT > res = 
+                        min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(HP2, InnerBall,
+                                                                                   10 + 10 * n, rng);
     
     NT vol = res.second * volume_cooling_gaussians<GaussianCDHRWalk>(HP2, rng, Her/2.0, 1);
 

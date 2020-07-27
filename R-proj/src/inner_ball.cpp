@@ -12,7 +12,7 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "volume/volume_sequence_of_balls.hpp"
-#include "preprocess/max_inner_ball.hpp"
+#include "preprocess/max_inscribed_ball.hpp"
 
 //' Compute an inscribed ball of a convex polytope
 //'
@@ -61,8 +61,9 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P,
                 InnerBall = HP.ComputeInnerBall();
                 break;
             } else if(method_rcpp.compare(std::string("ipm")) == 0) {
+                HP.normalize();
                 NT tol = 0.00000001;
-                std::pair<VT, NT> res = compute_max_inner_ball(HP.get_mat(), HP.get_vec(), 150, tol);
+                std::pair<VT, NT> res = max_inscribed_ball(HP.get_mat(), HP.get_vec(), 150, tol);
                 InnerBall.second = res.second;
                 InnerBall.first = Point(res.first);
             } else {         

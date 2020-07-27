@@ -22,7 +22,7 @@ template
     typename RandomNumberGenerator
 >
 void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps, MT &V, VT &s, VT &Means,
-            unsigned int const& walk_length, RandomNumberGenerator &rng)
+                   unsigned int const& walk_length, RandomNumberGenerator &rng)
 {
     typedef typename WalkTypePolicy::template Walk
             <
@@ -84,11 +84,11 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > svd_rounding(Polytope &P, std::pair<Point,NT> &InnerBall,
-                                                                                  const unsigned int &walk_length,
-                                                                                  RandomNumberGenerator &rng,
-                                                                                  MT &N,
-                                                                                  VT &N_shift)
+std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > svd_rounding(Polytope &P, 
+                                                                                std::pair<Point,NT> &InnerBall,
+                                                                                const unsigned int &walk_length,
+                                                                                RandomNumberGenerator &rng,
+                                                                                MT &N, VT &N_shift)
 {
     NT tol = 0.00000001;
     NT R = std::pow(10,10), r = InnerBall.second;
@@ -158,7 +158,7 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > svd_rounding(
             P.ComputeInnerBall();
             T_shift += T * shift;
             T = T * round_mat;
-            N_shift = N_shift + N * shift;
+            N_shift += N * shift;
             N = N * round_mat;
         }
         if (round_it <= num_its && !fail) {
@@ -194,17 +194,18 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-std::pair< std::pair<MT, VT>, NT > svd_rounding(Polytope &P, std::pair<Point,NT> &InnerBall,
-                                                  const unsigned int &walk_length,
-                                                  RandomNumberGenerator &rng)
+std::pair< std::pair<MT, VT>, NT > svd_rounding(Polytope &P, 
+                                                std::pair<Point,NT> &InnerBall,
+                                                const unsigned int &walk_length,
+                                                RandomNumberGenerator &rng)
 {
     unsigned int d = P.dimension();
     MT N = MT::Identity(d, d);
     VT shift = VT::Zero(d);
     std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = 
                                             svd_rounding<WalkTypePolicy>(P, InnerBall, 
-                                                                           walk_length,
-                                                                           rng, N, shift);
+                                                                         walk_length,
+                                                                         rng, N, shift);
     std::pair< std::pair<MT, VT>, NT > res;
     res.first.first = result.first.first.first;
     res.first.second = result.first.first.second;

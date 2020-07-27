@@ -25,12 +25,12 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > min_ellipsoid_rounding(Polytope &P,
-                                                                    std::pair<Point,NT> &InnerBall,
-                                                                    const unsigned int &walk_length,
-                                                                    RandomNumberGenerator &rng,
-                                                                    MT &N,
-                                                                    VT &N_shift)
+std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > min_sampling_covering_ellipsoid_rounding(Polytope &P,
+                                                                                                            std::pair<Point,NT> &InnerBall,
+                                                                                                            const unsigned int &walk_length,
+                                                                                                            RandomNumberGenerator &rng,
+                                                                                                            MT &N,
+                                                                                                            VT &N_shift)
 {
     typedef typename WalkTypePolicy::template Walk
             <
@@ -143,16 +143,18 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-std::pair< std::pair<MT, VT>, NT > min_ellipsoid_rounding(Polytope &P,
-                                                std::pair<Point,NT> &InnerBall,
-                                                const unsigned int &walk_length,
-                                                RandomNumberGenerator &rng)
+std::pair< std::pair<MT, VT>, NT > min_sampling_covering_ellipsoid_rounding(Polytope &P,
+                                                                            std::pair<Point,NT> &InnerBall,
+                                                                            const unsigned int &walk_length,
+                                                                            RandomNumberGenerator &rng)
 {
     unsigned int d = P.dimension();
     MT N = MT::Identity(d,d);
     VT shift = VT::Zero(d);
-    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = min_ellipsoid_rounding<WalkTypePolicy>(P, InnerBall, walk_length,
-                                                                                                rng, N, shift);
+    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = 
+                                            min_sampling_covering_ellipsoid_rounding<WalkTypePolicy>(P, InnerBall,
+                                                                                                    walk_length,
+                                                                                                    rng, N, shift);
     std::pair< std::pair<MT, VT>, NT > res;
     res.first.first = result.first.first.first;
     res.first.second = result.first.first.second;

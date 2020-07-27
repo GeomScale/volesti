@@ -11,7 +11,7 @@
 #ifndef MAX_ELLIPSOID_ROUNDING_HPP
 #define MAX_ELLIPSOID_ROUNDING_HPP
 
-#include "mve_computation.hpp"
+#include "max_inscribed_ellipsoid.hpp"
 
 template 
 <
@@ -21,9 +21,9 @@ template
     typename Point,
     typename NT
 >
-std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > max_ellipsoid_rounding(Polytope &P, 
-                                                std::pair<Point, NT> InnerBall,
-                                                MT &N, VT &N_shift)
+std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > max_inscribed_ellipsoid_rounding(Polytope &P, 
+                                                                                                    std::pair<Point, NT> InnerBall,
+                                                                                                    MT &N, VT &N_shift)
 {
     std::pair<std::pair<MT, VT>, bool> iter_res;
     iter_res.second = false;
@@ -34,13 +34,13 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > max_ellipsoid
 
     NT R = 100.0, r = 1.0, tol = std::pow(10, -6.0), reg = std::pow(10, -3.0), round_val = 1.0;
 
-    MT T = MT::Identity(d,d);
+    MT T = MT::Identity(d, d);
     VT shift = VT::Zero(d);
 
     while (true)
     {
         // compute the largest inscribed ellipsoid in P centered at x0
-        iter_res = mve_computation(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
+        iter_res = max_inscribed_ellipsoid(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
         E = iter_res.first.first;
         E = (E + E.transpose())/2.0;
         E = E + MT::Identity(d,d)*std::pow(10,-8.0); //normalize E
@@ -59,9 +59,9 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > max_ellipsoid
 
         // shift polytope and apply the linear transformation on P
         P.shift(iter_res.first.second);
-        N_shift = N_shift + N*iter_res.first.second;
+        N_shift += N * iter_res.first.second;
         N = N * L;
-        shift = shift + T * iter_res.first.second;
+        shift += T * iter_res.first.second;
         T = T * L;
         round_val *= L.transpose().determinant();
         P.linear_transformIt(L);
@@ -94,13 +94,13 @@ template
     typename Point,
     typename NT
 >
-std::pair< std::pair<MT, VT>, NT > max_ellipsoid_rounding(Polytope &P, std::pair<Point, NT> InnerBall)
+std::pair< std::pair<MT, VT>, NT > max_inscribed_ellipsoid_rounding(Polytope &P, std::pair<Point, NT> InnerBall)
 {
     unsigned int d = P.dimension();
     MT N = MT::Identity(d,d);
     VT shift = VT::Zero(d);
     std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = 
-                                                max_ellipsoid_rounding(P, InnerBall, N, shift);
+                                                max_inscribed_ellipsoid_rounding(P, InnerBall, N, shift);
 
     std::pair< std::pair<MT, VT>, NT > res;
     res.first.first = result.first.first.first;

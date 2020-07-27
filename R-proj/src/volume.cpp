@@ -19,7 +19,7 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 #include "volume/volume_cooling_hpoly.hpp"
-#include "preprocess/max_ellipsoid_rounding.hpp"
+#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
 
 enum random_walks {ball_walk, rdhr, cdhr, billiard, accelarated_billiard};
@@ -39,27 +39,29 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 
     NT round_val = 1.0;
     unsigned int n = P.dimension();
-     std::pair<Point, NT> InnerBall;
+    std::pair<Point, NT> InnerBall;
 
     switch (rounding)
     {
     case min_ellipsoid:
         InnerBall = P.ComputeInnerBall();
+        P.normalize();
         switch (walk)
         {
         case cdhr:
-            round_val = min_ellipsoid_rounding<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng).second;
+            round_val = min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng).second;
             break;
         case accelarated_billiard:
-            round_val = min_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = min_sampling_covering_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
             break;
         default:
-            round_val = min_ellipsoid_rounding<BilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = min_sampling_covering_ellipsoid_rounding<BilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
             break;
         }
         break;
     case svd:
         InnerBall = P.ComputeInnerBall();
+        P.normalize();
         switch (walk)
         {
         case cdhr:
@@ -75,7 +77,8 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         break;
     case max_ellipsoid:
         InnerBall = P.ComputeInnerBall();
-        round_val = max_ellipsoid_rounding<MT, VT>(P, InnerBall).second;
+        P.normalize();
+        round_val = max_inscribed_ellipsoid_rounding<MT, VT>(P, InnerBall).second;
         break;
     default:
         break;

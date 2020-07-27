@@ -19,11 +19,36 @@
 #include "random_walks/random_walks.hpp"
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
-#include "preprocess/min_ellipsoid_rounding.hpp"
+#include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
-#include "preprocess/max_ellipsoid_rounding.hpp"
+#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 #include "preprocess/get_full_dimensional_polytope.hpp"
 #include "extractMatPoly.h"
+
+template 
+<
+    typename MT,
+    typename VT, 
+    typename WalkType, 
+    typename Polytope, 
+    typename Point, 
+    typename NT, 
+    typename RNGType
+>
+std::pair< std::pair<MT, VT>, NT > apply_rounding(Polytope &P, std::string const& method_rcpp,
+                                                  unsigned int const& walkL, std::pair<Point, NT> &InnerBall, 
+                                                  RNGType &rng) 
+{
+    std::pair< std::pair<MT, VT>, NT > round_res;
+    if (method_rcpp.compare(std::string("min_ellipsoid")) == 0) {
+        round_res = min_sampling_covering_ellipsoid_rounding<WalkType, MT, VT>(P, InnerBall, walkL, rng);
+    } else if (method_rcpp.compare(std::string("svd")) == 0) {
+        round_res = svd_rounding<WalkType, MT, VT>(P, InnerBall, walkL, rng);
+    } else {
+        throw Rcpp::exception("Unknown method!");
+    }
+    return round_res;
+}
 
 //' Internal rcpp function for the rounding of a convex polytope
 //'
@@ -48,11 +73,13 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
-    bool cdhr = false;
-    unsigned int n = P.field("dimension"), walkL, type = P.field("type");
+    unsigned int n = P.field("dimension"), walkL = 2, type = P.field("type");
     std::string method_rcpp = std::string("min_ellipsoid");
     if(method.isNotNull()) {
         method_rcpp =  Rcpp::as<std::string>(method);
+        if (method_rcpp.compare(std::string("max_ellipsoid")) == 0 && type != 1) {
+            Rcpp::exception("This method can not be used for V- or Z-polytopes!");
+        }
     }
 
     RNGType rng(n);
@@ -68,16 +95,10 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;
 
-    if (type == 1) {
-        walkL = 10 + 10*n;
-        cdhr = true;
-    } else {
-        walkL = 2;
-    }
-
     MT N = MT::Identity(n,n);
     VT N_shift = VT::Zero(n);
     NT svd_prod = 1.0;
+    std::pair< std::pair<MT, VT>, NT > round_res;
     switch (type) {
         case 1: {
             // Hpolytope
@@ -96,7 +117,6 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
 
                 Eigen::JacobiSVD<MT> svd(N);
                 svd_prod = svd.singularValues().prod();
-                walkL = 10 + 10 * HP.dimension();
               
                 rng = RNGType(HP.dimension());
                 if (seed.isNotNull()) {
@@ -106,85 +126,32 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             }
             HP.normalize();
             InnerBall = HP.ComputeInnerBall();
+            if (method_rcpp.compare(std::string("max_ellipsoid")) == 0) {
+                round_res = max_inscribed_ellipsoid_rounding<MT, VT>(HP, InnerBall);
+            } else {
+                round_res = apply_rounding<MT, VT, AcceleratedBilliardWalk>(HP, method_rcpp, walkL, InnerBall, rng);
+            }
+            Mat = extractMatPoly(HP);
             break;
         }
         case 2: {
             // Vpolytope
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
+            round_res = apply_rounding<MT, VT, BilliardWalk>(VP, method_rcpp, walkL, InnerBall, rng);
+            Mat = extractMatPoly(VP);
             break;
         }
         case 3: {
             // Zonotope
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
+            round_res = apply_rounding<MT, VT, BilliardWalk>(ZP, method_rcpp, walkL, InnerBall, rng);
+            Mat = extractMatPoly(ZP);
             break;
         }
         case 4: {
             throw Rcpp::exception("volesti does not support rounding for this representation currently.");
-        }
-    }
-
-    std::pair< std::pair<MT, VT>, NT > round_res;
-    switch (type) {
-        case 1: {
-            if (method_rcpp.compare(std::string("max_ellipsoid")) == 0) {
-                round_res = max_ellipsoid_rounding<MT, VT>(HP, InnerBall);
-            } else if (method_rcpp.compare(std::string("min_ellipsoid")) == 0) {
-                if (cdhr) {
-                    round_res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
-                } else {
-                    round_res = min_ellipsoid_rounding<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
-                }
-            } else if (method_rcpp.compare(std::string("svd")) == 0) {
-                if (cdhr) {
-                    round_res = svd_rounding<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
-                } else {
-                    round_res = svd_rounding<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
-                }
-            } else {
-                throw Rcpp::exception("Unknown method!");
-            }
-            Mat = extractMatPoly(HP);
-            break;
-        }
-        case 2: {
-            if (method_rcpp.compare(std::string("min_ellipsoid")) == 0){
-                if (cdhr) {
-                    round_res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
-                } else {
-                    round_res = min_ellipsoid_rounding<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
-                }
-            } else if (method_rcpp.compare(std::string("svd")) == 0) {
-                if (cdhr) {
-                    round_res = svd_rounding<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
-                } else {
-                    round_res = svd_rounding<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
-                }
-            } else {
-                throw Rcpp::exception("Unknown method!");
-            }
-            Mat = extractMatPoly(VP);
-            break;
-        }
-        case 3: {
-            if (method_rcpp.compare(std::string("min_ellipsoid")) == 0){
-                if (cdhr) {
-                    round_res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
-                } else {
-                    round_res = min_ellipsoid_rounding<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
-                }
-            } else if (method_rcpp.compare(std::string("svd")) == 0) {
-                if (cdhr) {
-                    round_res = svd_rounding<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
-                } else {
-                    round_res = svd_rounding<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
-                }
-            } else {
-                throw Rcpp::exception("Unknown method!");
-            }
-            Mat = extractMatPoly(ZP);
-            break;
         }
     }
 

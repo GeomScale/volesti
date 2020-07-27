@@ -20,7 +20,7 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 
-#include "preprocess/min_ellipsoid_rounding.hpp"
+#include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
 
 #include "known_polytope_generators.h"
 
@@ -61,11 +61,11 @@ void rounding_test(Polytope &HP,
     RNGType rng(d);
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::pair< std::pair<MT, VT>, NT > res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(HP, InnerBall, 10 + 10 * d, rng);
+    std::pair< std::pair<MT, VT>, NT > res = min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(HP, InnerBall, 10 + 10 * d, rng);
 
     // Setup the parameters
     int walk_len = 1;
-    NT e=0.1;
+    NT e = 0.1;
 
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;

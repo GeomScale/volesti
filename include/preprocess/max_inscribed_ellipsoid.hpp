@@ -29,20 +29,30 @@
 */
 
 template <typename MT, typename VT, typename NT>
-std::pair<std::pair<MT, VT>, bool> mve_computation(MT A, VT b, VT const& x0,
-             unsigned int const& maxiter, NT const& tol, NT const& reg)
+std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(MT A, VT b, VT const& x0,
+                                                   unsigned int const& maxiter, 
+                                                   NT const& tol, NT const& reg)
 {
     int m = A.rows(), n = A.cols();
     bool converged = false;
 
-    NT bnrm = b.norm(), minmu = std::pow(10.0, -8.0), tau0 = 0.75, tau, last_r1 = std::numeric_limits<NT>::lowest(),
-        last_r2 = std::numeric_limits<NT>::lowest(), prev_obj = std::numeric_limits<NT>::lowest(), *vec_iter1,
-        *vec_iter2, *vec_iter3, gap, rmu, res, objval, r1, r2 ,r3, rel, Rel, astep, ax, ay, az,
-        reg_lim = std::pow(10.0, -10.0);
+    NT bnrm = b.norm(),
+       last_r1 = std::numeric_limits<NT>::lowest(),
+       last_r2 = std::numeric_limits<NT>::lowest(), 
+       prev_obj = std::numeric_limits<NT>::lowest(), 
+       gap, rmu, res, objval, r1, r2 ,r3, rel, Rel, 
+       astep, ax, ay, az, tau;
 
-    VT bmAx0 = b - A * x0, x = VT::Zero(n), y = VT::Ones(m), bmAx = VT::Ones(m), h(m), z(m), yz(m), yh(m), R1(n), R2(m),
-       R3(m), y2h(m), y2h_z(m), h_z(m), R3Dy(m), R23(m), dx(n), Adx(m), dyDy(m), dy(m), dz(m),
-       ones_m = VT::Ones(m);
+    NT const reg_lim = std::pow(10.0, -10.0), tau0 = 0.75, minmu = std::pow(10.0, -8.0);
+
+    NT *vec_iter1, *vec_iter2, *vec_iter3;
+
+    VT x = VT::Zero(n), y = VT::Ones(m), bmAx = VT::Ones(m),
+       h(m), z(m), yz(m), yh(m), R1(n), R2(m), R3(m), y2h(m), y2h_z(m), h_z(m), 
+       R3Dy(m), R23(m), dx(n), Adx(m), dyDy(m), dy(m), dz(m);
+
+    VT const bmAx0 = b - A * x0, ones_m = VT::Ones(m);
+
     MT Q(m, m), Y(m, m), E2(n, n), YQ(m,m), YA(m, n), G(m,m), T(m,n), ATP(n,m), ATP_A(n,n);
 
     A = (ones_m.cwiseProduct(bmAx0.cwiseInverse())).asDiagonal() * A, b = ones_m;
@@ -116,9 +126,9 @@ std::pair<std::pair<MT, VT>, bool> mve_computation(MT A, VT b, VT const& x0,
         }
 
         // stopping criterion
-        if ((res < tol * (1.0 + bnrm) && rmu <= minmu) || (i > 100 && prev_obj != std::numeric_limits<NT>::lowest() &&
-                                                           (prev_obj >= (1.0 - tol) * objval ||
-                                                            objval <= (1.0 - tol) * prev_obj))) {
+        if ((res < tol * (1.0 + bnrm) && rmu <= minmu) || 
+                (i > 100 && prev_obj != std::numeric_limits<NT>::lowest() &&
+                (prev_obj >= (1.0 - tol) * objval || objval <= (1.0 - tol) * prev_obj) ) ) {
             //converged
             x += x0;
             converged = true;
@@ -152,7 +162,7 @@ std::pair<std::pair<MT, VT>, bool> mve_computation(MT A, VT b, VT const& x0,
         vec_iter1 = R3.data();
         vec_iter2 = y.data();
         vec_iter3 = R3Dy.data();
-        for (int j = 0; j <m; ++j) {
+        for (int j = 0; j < m; ++j) {
             *vec_iter3 = (*vec_iter1) / (*vec_iter2);
             vec_iter1++;
             vec_iter2++;
@@ -186,7 +196,7 @@ std::pair<std::pair<MT, VT>, bool> mve_computation(MT A, VT b, VT const& x0,
         vec_iter1 = dz.data();
         vec_iter2 = z.data();
         az = -0.5;
-        for (int j = 0; j <m; ++j) {
+        for (int j = 0; j < m; ++j) {
             az = std::min(az, (*vec_iter1) / (*vec_iter2));
             vec_iter1++;
             vec_iter2++;
