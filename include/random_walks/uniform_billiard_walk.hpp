@@ -329,8 +329,6 @@ private :
             P.compute_reflection(_v, _p, pbpair.second);
             it++;
         }
-        //if (it == 30*n) _p = p0;
-
     }
 
     NT _Len;

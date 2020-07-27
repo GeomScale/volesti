@@ -154,6 +154,8 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > svd_rounding(
             prev_max_s = max_s;
 
             P.linear_transformIt(round_mat);
+            P.normalize();
+            P.ComputeInnerBall();
             T_shift += T * shift;
             T = T * round_mat;
             N_shift = N_shift + N * shift;

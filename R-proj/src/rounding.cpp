@@ -28,7 +28,7 @@
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
-//' @param method Optional. The method to use for rounding, a) \code{'mee'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition.  The default method is \code{'mee'} for all the representations.
+//' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
 //' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @keywords internal
@@ -50,7 +50,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
 
     bool cdhr = false;
     unsigned int n = P.field("dimension"), walkL, type = P.field("type");
-    std::string method_rcpp = std::string("mee");
+    std::string method_rcpp = std::string("min_ellipsoid");
     if(method.isNotNull()) {
         method_rcpp =  Rcpp::as<std::string>(method);
     }
@@ -128,9 +128,9 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
     std::pair< std::pair<MT, VT>, NT > round_res;
     switch (type) {
         case 1: {
-            if (method_rcpp.compare(std::string("mve")) == 0) {
+            if (method_rcpp.compare(std::string("max_ellipsoid")) == 0) {
                 round_res = max_ellipsoid_rounding<MT, VT>(HP, InnerBall);
-            } else if (method_rcpp.compare(std::string("mee")) == 0) {
+            } else if (method_rcpp.compare(std::string("min_ellipsoid")) == 0) {
                 if (cdhr) {
                     round_res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
                 } else {
@@ -149,7 +149,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             break;
         }
         case 2: {
-            if (method_rcpp.compare(std::string("mee")) == 0){
+            if (method_rcpp.compare(std::string("min_ellipsoid")) == 0){
                 if (cdhr) {
                     round_res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
                 } else {
@@ -168,7 +168,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             break;
         }
         case 3: {
-            if (method_rcpp.compare(std::string("mee")) == 0){
+            if (method_rcpp.compare(std::string("min_ellipsoid")) == 0){
                 if (cdhr) {
                     round_res = min_ellipsoid_rounding<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
                 } else {

@@ -190,7 +190,7 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' Internal rcpp function for the rounding of a convex polytope
 #'
 #' @param P A convex polytope (H- or V-representation or zonotope).
-#' @param method Optional. The method to use for rounding, a) \code{'mee'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition.  The default method is \code{'mee'} for all the representations.
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @keywords internal
@@ -294,7 +294,7 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
 #' \item{\code{win_len} }{ The length of the sliding window for CB or CG algorithm. The default value is \eqn{250} for CB with BiW and \eqn{400+3d^2} for CB and any other random walk and \eqn{500+4d^2} for CG.}
 #' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm when the input polytope is a zonotope. The default value is \code{TRUE} when the order of the zonotope is \eqn{<5}, otherwise it is \code{FALSE}.}
 #' }
-#' @param rounding Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.
+#' @param rounding Optional. A string parameter to request a rounding method to be applied in the input polytope before volume computation: a) \code{'min_ellipsoid'}, b) \code{'svd'}, c) \code{'max_ellipsoid'} and d) \code{'none'} for no rounding.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @references \cite{I.Z.Emiris and V. Fisikopoulos,

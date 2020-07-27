@@ -113,6 +113,7 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > min_ellipsoid
         N = N * L_1.transpose();
 
         P.linear_transformIt(L_1.transpose());
+        P.normalize();
         InnerBall = P.ComputeInnerBall();
         round_val *= L_1.determinant();
         ratio = Rel / rel;
