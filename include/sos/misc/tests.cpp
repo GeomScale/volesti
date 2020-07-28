@@ -9,39 +9,6 @@
 #include "../barriers/LPStandardBarrier.h"
 #include "../barriers/SDPStandardBarrier.h"
 
-void test_speed_of_types(int max_degree) {//Test matrix inversion runtime
-
-    Eigen::MatrixXd double_matrix = Eigen::MatrixXd::Random(max_degree, max_degree);
-    cxxtimer::Timer t1;
-    t1.start();
-    Eigen::MatrixXd inv_double = double_matrix.inverse();
-    inv_double = inv_double.cwiseAbs();
-    t1.stop();
-    cxxtimer::Timer t2;
-    t2.start();
-    Eigen::Matrix<double, Eigen::Dynamic, 1> sol = double_matrix.householderQr().solve
-            (Eigen::Matrix<double, Eigen::Dynamic, 1>::Random(double_matrix.rows()));
-    t2.stop();
-
-//    Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> long_double_matrix =
-//            Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic> ::Random(max_degree, max_degree);
-
-    cxxtimer::Timer t3;
-    t3.start();
-//    Eigen::Matrix<long double, Eigen::Dynamic, Eigen::Dynamic>  inv_long_double = long_double_matrix.inverse();
-//    inv_long_double = inv_long_double.cwiseAbs();
-    t3.stop();
-
-    std::cout << "double: " << std::numeric_limits<double>::max();
-    std::cout << "long double: " << std::numeric_limits<long double>::max();
-
-    std::cout << "Normal doubles took " << t1.count<std::chrono::milliseconds>() <<
-              " \nand high prec took " << t2.count<std::chrono::milliseconds>() <<
-              " \nand long double took " << t3.count<std::chrono::milliseconds>() <<
-              "\n for dim " << max_degree << std::endl;
-}
-
-
 Constraints convert_LP_to_SDP(Matrix &A, Vector &b, Vector &c) {
     const int m = A.rows();
     const int n = A.cols();
@@ -117,56 +84,61 @@ bool test_lp_solver_random(const int m, const int n) {
     return lp_solver.verify_solution(10e-5);
 }
 
-void test_sdp_solver() {
-//    PolynomialSDP poly1 = envelopeProblem.generate_zero_polynomial();
-//    poly1(0,0) = 1;
-//    poly1(1, 0) = 1;
-//    poly1(-0,1) = 1;
-//    poly1(1, 1) = 1;
-//    poly1(2,2) = -1;
-//    poly1(1,1) = 1;
+void test_sdp_solver(std::ifstream & config_file) {
+    HyperRectangle hyperRectangle;
+    hyperRectangle.emplace_back(std::pair<IPMDouble, IPMDouble>(-1,1));
+    const unsigned max_degree = 10;
+    const unsigned num_variables = 1;
+    EnvelopeProblemSDP envelopeProblemSDP(num_variables, max_degree, hyperRectangle);
+    PolynomialSDP poly1 = envelopeProblemSDP.generate_zero_polynomial();
+    poly1(0,0) = 1;
+    poly1(1, 0) = 1;
+    poly1(-0,1) = 1;
+    poly1(1, 1) = 1;
+    poly1(2,2) = -1;
+    poly1(1,1) = 1;
+
+    PolynomialSDP poly11 = envelopeProblemSDP.generate_zero_polynomial();
+    poly11(0,0) = 1;
+    poly11(1, 0) = -1;
+    poly11(-0,1) = -1;
+    poly11(1, 1) = 1;
+
+    envelopeProblemSDP.print_polynomial(poly1);
+    envelopeProblemSDP.add_polynomial(poly1);
+
+    envelopeProblemSDP.print_polynomial(poly11);
+    envelopeProblemSDP.add_polynomial(poly11);
+
+
+    PolynomialSDP p1 = Matrix::Zero(poly1.rows(), poly1.cols());
+    p1(1,1) = 10;
+    p1(0, 0) = -0;
+
+    PolynomialSDP p2 = Matrix::Zero(poly1.rows(), poly1.cols());
+    p2(0,0) = 10;
+    p2(0,1) = 10;
+    for (int i = 2; i <= max_degree; ++i) {
+        p2(i,i) = -.0001;
+    }
+    p2 = p2.eval() + p2.transpose().eval();
+    PolynomialSDP p3 = Matrix::Zero(poly1.rows(), poly1.cols());
+    p3(0,0) = 1;
+    p3(0,1) = -1;
+    p3 = p3.eval() + p3.transpose().eval();
 //
-//    Polynomial poly11 = envelopeProblem.generate_zero_polynomial();
-//    poly11(0,0) = 1;
-//    poly11(1, 0) = -1;
-//    poly11(-0,1) = -1;
-//    poly11(1, 1) = 1;
+//    envelopeProblemSDP.add_polynomial(p1);
+//    envelopeProblemSDP.add_polynomial(p2);
+    envelopeProblemSDP.add_polynomial(p3);
 //
-//    envelopeProblem.print_polynomial(poly1);
-//    envelopeProblem.add_polynomial(poly1);
-//
-//    envelopeProblem.print_polynomial(poly11);
-//    envelopeProblem.add_polynomial(poly11);
-//
-//
-//    PolynomialSDP p1 = Matrix::Zero(poly1.rows(), poly1.cols());
-//    p1(1,1) = 10;
-//    p1(0, 0) = -0;
-//
-//    PolynomialSDP p2 = Matrix::Zero(poly1.rows(), poly1.cols());
-//    p2(0,0) = 10;
-//    p2(0,1) = 10;
-//    for (int i = 2; i <= max_degree; ++i) {
-//        p2(i,i) = -.0001;
-//    }
-//    p2 = p2.eval() + p2.transpose().eval();
-//    PolynomialSDP p3 = Matrix::Zero(poly1.rows(), poly1.cols());
-//    p3(0,0) = 1;
-//    p3(0,1) = -1;
-//    p3 = p3.eval() + p3.transpose().eval();
-////
-//    envelopeProblem.add_polynomial(p1);
-//    envelopeProblem.add_polynomial(p2);
-//    envelopeProblem.add_polynomial(p3);
-////
-//    Instance instance = envelopeProblem.construct_SDP_instance();
-//
-//    std::cout << "Objectives Matrix: " << std::endl << envelopeProblem.get_objective_matrix() << std::endl;
-////
-//    NonSymmetricIPM sos_solver(instance);
-//    sos_solver.run_solver();
-//    envelopeProblem.print_solution(sos_solver.get_solution());
-//    envelopeProblem.plot_polynomials_and_solution(sos_solver.get_solution());
+    Instance instance = envelopeProblemSDP.construct_SDP_instance();
+
+    std::cout << "Objectives Matrix: " << std::endl << envelopeProblemSDP.get_objective_matrix() << std::endl;
+
+    NonSymmetricIPM sos_solver(instance, config_file);
+    sos_solver.run_solver();
+    envelopeProblemSDP.print_solution(sos_solver.get_solution());
+    envelopeProblemSDP.plot_polynomials_and_solution(sos_solver.get_solution());
 }
 
 

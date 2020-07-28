@@ -93,6 +93,7 @@ public:
         ss.str(line);
         int logger_level;
         ss >> logger_level;
+        _logger->info("Set log level to {}", spdlog::level::level_enum(logger_level));
         _logger->set_level(spdlog::level::level_enum(logger_level));
 
         ss.clear();
@@ -197,7 +198,7 @@ private:
     cxxtimer::Timer _andersen_sys_timer;
     cxxtimer::Timer _centrality_timer;
 
-    std::vector<cxxtimer::Timer> _test_timers;
+    std::vector<cxxtimer::Timer> _custom_timers;
 
     cxxtimer::Timer _general_method_timer;
     cxxtimer::Timer _total_runtime_timer;

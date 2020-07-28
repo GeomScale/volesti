@@ -57,51 +57,6 @@ typedef Eigen::Matrix<Double, Eigen::Dynamic, Eigen::Dynamic> DoubleMatrix;
 typedef Eigen::Matrix<Double, Eigen::Dynamic, 1> DoubleVector;
 
 
-//TODO: find nicer solution for type casting (does any of the built-in casts might work)
-
-//inline DoubleMatrix InterpolantMatrixToMatrix(BoostMatrix &M, DoubleMatrix &) {
-//    DoubleMatrix A(M.rows(), M.cols());
-//    for (int row = 0; row < M.rows(); ++row) {
-//        for (int col = 0; col < M.cols(); ++col) {
-//            A(row, col) = M(row, col).convert_to<Double>();
-//        }
-//    }
-//    return A;
-//}
-//
-//inline BoostMatrix InterpolantMatrixToMatrix(BoostMatrix &M, BoostMatrix &) {
-//    return M;
-//}
-
-//inline DoubleVector InterpolantVectortoVector(BoostVector &v, DoubleVector &) {
-//    DoubleVector w(v.rows());
-//    for (int i = 0; i < v.rows(); ++i) {
-//        w(i) = v(i).convert_to<Double>();
-//    }
-//    return w;
-//}
-
-//inline BoostVector InterpolantVectortoVector(BoostVector &v, BoostVector &) {
-//    return v;
-//}
-//
-//inline Double InterpolantDoubletoIPMDouble(BoostDouble &d, Double &) {
-//    return d.convert_to<Double>();
-//}
-//
-//inline BoostDouble InterpolantDoubletoIPMDouble(BoostDouble &d, BoostDouble &) {
-//    return d;
-//}
-//
-//inline Double InterpolantDoubletoIPMDouble(Double &d, Double &) {
-//    return d;
-//}
-//
-//template<class T>
-//inline T InterpolantDoubletoIPMDouble(Double &d, T) {
-//    return d;
-//}
-
 //Stack the columns of a square m x m  matrix to a vector of length m x m.
 inline Vector StackMatrixToVector(Matrix M) {
     assert(M.rows() == M.cols());

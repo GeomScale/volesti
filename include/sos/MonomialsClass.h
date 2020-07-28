@@ -35,7 +35,7 @@ public:
     void print_human_readable(Monomial m) const {
         assert(m.size() == _n);
         assert(_n >= 1);
-        unsigned last_non_zero = _n - 1;
+        int last_non_zero = _n - 1;
         while (last_non_zero >= 0 && m[last_non_zero] == 0) {
             last_non_zero--;
         }

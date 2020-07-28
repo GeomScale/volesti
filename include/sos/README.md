@@ -9,7 +9,7 @@ This subproject implements the algorithm(s) in [1,2,3]. Example of usage can be 
     * SDP cone
     * Dual of SOS cone with following bases:
         * monomial
-        * interpolant
+        * interpolant   
 * Generation of Lagrange polynomials for Chebyshev points of the second kind
 * Tool that approximates the polynomial lower envelope of any (stable to degree approx. 100) set of univariate polynomials 
 on the interval [-1,1].
@@ -19,12 +19,18 @@ on the interval [-1,1].
 
 #### Next steps:
 
+##### Conclusion Zoom Call 24/07:
+* Share report pdf file
+* Check if LAPACK would speed up runtimes
+* polish PR Request:
+	* Reduce external files, prompt the user to provide it
+
+##### General
 * Dynamically switch between float -> double -> long double -> multiprecision when Matrices become ill-conditioned.
 * Parameter tuning
 * Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
 * Higher order corrector steps
 * Make sure that no heap memory is allocated dynamically.
-* Add Weighted Sum-of-Squares (WSOS) support
 * Add multivariate support
 * Implement Lagrange polynomials more efficiently (or find C++ library with sufficient precision.)
 * Speed up with Intel MKL (considering it is not open source we might not use it !?) or other high-performance library
@@ -38,7 +44,9 @@ on the interval [-1,1].
 sparse (2 nonzeros per row) which one should be able to exploit.
 * Test different central path neighborhoods, e.g. measuring \psi in \infty norm. 
 * Interfaces for R (and Python)
-    
+* Store the gradient and Hessian of the previous iterate (for failing next step in predictor direction)
+    * Even better: For all the line steps, compute the new predictor/corrector direction. This is cheap, 
+    as we already have gradient and hessian, but might drastically improve performance.
 #### Current issues
 
 * Using double for polynomials of degree > 100 is unstable. On the other hand, high precision 
@@ -83,8 +91,3 @@ numbers immensely slow down the IPM
 * Hyperbolic polynomials (Renegars algorithm)
 * Power cone (Primal and Dual have Barrier functions)
 
-Conclusion Zoom Call 24/07:
-* Share report pdf file
-* Check if LAPACK would speed up runtimes
-* polish PR Request:
-	* Reduce external files, prompt the user to provide it

@@ -76,28 +76,29 @@ Instance EnvelopeProblemSDP::construct_SDP_instance() {
     unsigned const VECTOR_LENGTH = _objectives_matrix.rows() * _objectives_matrix.cols();
     unsigned const NUM_POLYNOMIALS = _polynomials_bounds.size();
     Constraints constraints;
-    constraints.c = Vector::Zero((NUM_POLYNOMIALS + 1) * VECTOR_LENGTH);
-    constraints.c.block(0, 0, VECTOR_LENGTH, 1) = StackMatrixToVector(_objectives_matrix);
+    constraints.c = Vector::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH);
+    constraints.c.block(0, 0, VECTOR_LENGTH, 1) = - StackMatrixToVector(_objectives_matrix);
 
-    constraints.A = Matrix::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH, (NUM_POLYNOMIALS + 1) * VECTOR_LENGTH);
-    constraints.b = Vector::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH);
+    constraints.A = Matrix::Zero((NUM_POLYNOMIALS - 1) * VECTOR_LENGTH, NUM_POLYNOMIALS * VECTOR_LENGTH);
+    constraints.b = Vector::Zero((NUM_POLYNOMIALS - 1) * VECTOR_LENGTH);
 
-    for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
+    for (unsigned poly_idx = 1; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
         PolynomialSDP polynomial = _polynomials_bounds[poly_idx];
+        PolynomialSDP polynomial_zero = _polynomials_bounds[0];
         Matrix poly_block = Vector::Ones(VECTOR_LENGTH).asDiagonal();
         //corresponds to X variables
-        constraints.A.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, VECTOR_LENGTH) = poly_block;
+        constraints.A.block((poly_idx - 1) * VECTOR_LENGTH, 0, VECTOR_LENGTH, VECTOR_LENGTH) = -poly_block;
         //corresponds to Y_i variables
-        constraints.A.block(poly_idx * VECTOR_LENGTH, (poly_idx + 1) * VECTOR_LENGTH, VECTOR_LENGTH,
+        constraints.A.block((poly_idx - 1) * VECTOR_LENGTH, poly_idx  * VECTOR_LENGTH, VECTOR_LENGTH,
                             VECTOR_LENGTH) = poly_block;
-        constraints.b.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, 1) = StackMatrixToVector(polynomial);
+        constraints.b.block((poly_idx - 1) * VECTOR_LENGTH, 0, VECTOR_LENGTH, 1) = StackMatrixToVector(polynomial) - StackMatrixToVector(polynomial_zero);
     }
 
     //Construct Barrier function
 
     ProductBarrier *productBarrier = new ProductBarrier;
-    auto X_barrier = new FullSpaceBarrier(VECTOR_LENGTH);
-    productBarrier->add_barrier(X_barrier);
+//    auto X_barrier = new FullSpaceBarrier(VECTOR_LENGTH);
+//    productBarrier->add_barrier(X_barrier);
 
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
         auto sdp_barrier = new SDPStandardBarrier(MATRIX_DIMENSION);
@@ -170,7 +171,6 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
         IPMDouble d = x_min + j * (x_max - x_min) / (num_plot_points - 1);
         Double dummy_D;
         x[j] = static_cast<double>(d);
-//        x[j] = InterpolantDoubletoIPMDouble(d, dummy_D);
     }
 
     std::vector<PolynomialSDP> poly_plots;
@@ -178,9 +178,12 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
         poly_plots.push_back(poly);
     }
 
+    //TODO: find better formulation
     Vector v = sol.x.segment(0, _objectives_matrix.rows() * _objectives_matrix.cols());
     PolynomialSDP sol_poly = UnstackVectorToMatrix(v, _objectives_matrix.rows());
+    sol_poly = _polynomials_bounds[0] - sol_poly;
 
+    //TODO: fix value here.
     std::cout << "Objective of solution is: " << _objectives_matrix.cwiseProduct(sol_poly).sum() << std::endl;
 
     poly_plots.push_back(sol_poly);
@@ -193,13 +196,10 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
             IPMDouble ipm_d = univariate_polynomial_evaluation(poly_plots[poly_idx], x[i]);
             Double dummy_D;
             plots[poly_idx][i] = static_cast<double>(ipm_d);
-//            plots[poly_idx][i] = InterpolantDoubletoIPMDouble(ipm_d, dummy_D);
         }
     }
 
     plt::figure_size(1200, 780);
-//        plt::xlim(x_min, x_max);
-//        plt::ylim(-700, 500);
 
     for (unsigned p_idx = 0; p_idx < poly_plots.size(); ++p_idx) {
         plt::plot(x, plots[p_idx]);
@@ -211,7 +211,7 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
     plt::title("Lower envelope");
     // Enable legend.
     plt::legend();
-    plt::save("plot");
+    plt::save("plot_sdp");
 }
 
 

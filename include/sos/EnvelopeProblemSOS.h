@@ -87,7 +87,7 @@ private:
 
     bool _use_weighted_polynomials = true;
 
-    void get_clenshaw_curtis_integrals() ;
+    void get_clenshaw_curtis_integrals();
 
     void initialize_loggers();
 };

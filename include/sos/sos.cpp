@@ -76,6 +76,10 @@ int main(int const argc, char **argv) {
         assert(test_sdp_solver_random_lp_formulation(2, 5));
         console->info("Tests completed.");
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        test_sdp_solver(config_file);
+        //Reset file to be read again by proper SOS solver.
+        config_file.clear();
+        config_file.seekg(0);
     }
 
     std::string line;
