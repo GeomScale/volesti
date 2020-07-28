@@ -1,12 +1,19 @@
+// VolEsti (volume computation and sampling library)
 //
-// Created by test Bento Natura on 22/07/2020.
+// Copyright (c) 2020 Bento Natura
 //
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #include "SDPStandardBarrier.h"
 
 bool SDPStandardBarrier::in_interior(Vector x) {
     Matrix X = toMatrix(x);
     auto LLT = X.llt();
+    if (LLT.info() != Eigen::NumericalIssue) {
+        return true;
+    }
+    std::cout << "Try symmetrizing" << std::endl;
+    LLT = ((X + X.transpose())/2).llt();
     if (LLT.info() != Eigen::NumericalIssue) {
         return true;
     }
@@ -62,7 +69,6 @@ Vector SDPStandardBarrier::initialize_s() {
     return initialize_x();
 }
 
-//TODO: Nicer implementation of all the product operations.
 
 
 

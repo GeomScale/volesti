@@ -1,9 +1,10 @@
+// VolEsti (volume computation and sampling library)
 //
-// Created by test Bento Natura on 22/07/2020.
+// Copyright (c) 2020 Bento Natura
 //
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #include "ZeroSpaceBarrier.h"
-
 
 Vector ZeroSpaceBarrier::gradient(Vector x) {
     //should not be used

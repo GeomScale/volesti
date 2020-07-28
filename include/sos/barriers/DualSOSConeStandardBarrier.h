@@ -1,13 +1,14 @@
+// VolEsti (volume computation and sampling library)
 //
-// Created by test Bento Natura on 22/07/2020.
+// Copyright (c) 2020 Bento Natura
 //
-
+// Licensed under GNU LGPL.3, see LICENCE file
 #ifndef NONSYMMETRICCONICOPTIMIZATION_DUALSOSCONESTANDARDBARRIER_H
 #define NONSYMMETRICCONICOPTIMIZATION_DUALSOSCONESTANDARDBARRIER_H
 
 #include "LHSCB.h"
 
-//Implementation for Standard Monomial Basis
+//Implementation for Standard Monomial Basis for the Dual SOS cone.
 class DualSOSConeStandardBarrier : public LHSCB {
 
 public:
@@ -20,22 +21,20 @@ public:
 
     Matrix hessian(Vector x) override;
 
-//    Matrix inverse_hessian(Vector x) override;
+    //Matrix inverse_hessian(Vector x) override;
     bool in_interior(Vector x) override;
 
-    //TODO: better solution for concordance parameter;
     IPMDouble concordance_parameter(Vector x) override;
 
     Vector initialize_x() override;
-
     Vector initialize_s() override;
 
+    //Lambda is the linear operator used in Proposition 1.1 in Papp & Yildiz "SOS
+    //without semidefinite programming. In particular, for the monomial basis it takes
+    //the form listed in section 3.1 of the same paper.
     Matrix Lambda(Vector x);
 
 private:
     unsigned _max_polynomial_degree;
 };
-
-
-
 #endif //NONSYMMETRICCONICOPTIMIZATION_DUALSOSCONESTANDARDBARRIER_H

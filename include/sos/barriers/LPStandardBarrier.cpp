@@ -1,6 +1,8 @@
+// VolEsti (volume computation and sampling library)
 //
-// Created by test Bento Natura on 22/07/2020.
+// Copyright (c) 2020 Bento Natura
 //
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #include "LPStandardBarrier.h"
 
@@ -18,10 +20,7 @@ Matrix LPStandardBarrier::hessian(Vector x) {
 }
 
 Matrix LPStandardBarrier::inverse_hessian(Vector x) {
-
-    const Matrix &inverse_hessian = x.array().pow(2).matrix().asDiagonal();
-//    std::cout << "Inverse hessian: " << std::endl << inverse_hessian << std::endl;
-    return inverse_hessian;
+    return hessian(x).inverse();
 }
 
 IPMDouble LPStandardBarrier::concordance_parameter(Vector x) {

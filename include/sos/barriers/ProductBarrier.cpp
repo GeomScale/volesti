@@ -1,6 +1,8 @@
+// VolEsti (volume computation and sampling library)
 //
-// Created by test Bento Natura on 22/07/2020.
+// Copyright (c) 2020 Bento Natura
 //
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #include "ProductBarrier.h"
 
@@ -41,42 +43,7 @@ Matrix ProductBarrier::llt_solve(Vector x, const Matrix &rhs) {
     return product_llt_solve;
 }
 
-Eigen::LLT<Matrix> LHSCB::llt(Vector x, bool symmetrize) {
-
-    Eigen::LLT<Matrix> *llt_ptr = nullptr;
-
-    if (not symmetrize) {
-        llt_ptr = find_LLT(x);
-    }
-
-    if (llt_ptr) {
-        return *llt_ptr;
-    }
-
-    Eigen::LLT<Matrix> *llt_var;
-
-    if (_stored_LLT.empty()) {
-        _stored_LLT.resize(1);
-    }
-
-    _stored_LLT[0].first = x;
-    if (not symmetrize) {
-        _stored_LLT[0].second = Eigen::LLT<Matrix>(hessian(x).llt());
-    } else {
-        _stored_LLT[0].second = Eigen::LLT<Matrix>(((hessian(x) + hessian(x).transpose()) / 2).llt());
-    }
-
-    return _stored_LLT[0].second;
-}
-
-Matrix LHSCB::llt_solve(Vector x, const Matrix &rhs) {
-    return llt(x).solve(rhs);
-}
-
-Vector LHSCB::llt_L_solve(Vector x, Vector rhs) {
-    return llt(x).matrixL().solve(rhs);
-}
-
+//Should not be used, as immense storage is needed.
 Matrix ProductBarrier::hessian(Vector x) {
     unsigned idx = 0;
     Matrix product_hessian = Matrix::Zero(_num_variables, _num_variables);

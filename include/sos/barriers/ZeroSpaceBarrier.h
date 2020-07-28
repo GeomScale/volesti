@@ -1,12 +1,16 @@
+// VolEsti (volume computation and sampling library)
 //
-// Created by test Bento Natura on 22/07/2020.
+// Copyright (c) 2020 Bento Natura
 //
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef NONSYMMETRICCONICOPTIMIZATION_ZEROSPACEBARRIER_H
 #define NONSYMMETRICCONICOPTIMIZATION_ZEROSPACEBARRIER_H
 
 #include "LHSCB.h"
 
+//This class models the 0-cone. Should not be used, so reformulate your
+//instance.
 class ZeroSpaceBarrier final : public LHSCB {
 
     Vector gradient(Vector x) override;

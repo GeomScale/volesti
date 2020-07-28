@@ -1,6 +1,8 @@
+// VolEsti (volume computation and sampling library)
 //
-// Created by test Bento Natura on 22/07/2020.
+// Copyright (c) 2020 Bento Natura
 //
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef NONSYMMETRICCONICOPTIMIZATION_FULLSPACEBARRIER_H
 #define NONSYMMETRICCONICOPTIMIZATION_FULLSPACEBARRIER_H
@@ -17,6 +19,10 @@ class FullSpaceBarrier final : public LHSCB {
 
     bool in_interior(Vector x) override;
 
+    Matrix llt_solve(Vector x, const Matrix &rhs) override;
+    Vector llt_L_solve(Vector x, Vector rhs) override;
+
+
     IPMDouble concordance_parameter(Vector x) override;
 
     Vector initialize_x() override;
@@ -28,6 +34,5 @@ public:
         _num_variables = num_variables_;
     }
 };
-
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_FULLSPACEBARRIER_H

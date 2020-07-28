@@ -1,6 +1,8 @@
+// VolEsti (volume computation and sampling library)
 //
-// Created by test Bento Natura on 22/07/2020.
+// Copyright (c) 2020 Bento Natura
 //
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef NONSYMMETRICCONICOPTIMIZATION_SDPSTANDARDBARRIER_H
 #define NONSYMMETRICCONICOPTIMIZATION_SDPSTANDARDBARRIER_H
@@ -38,7 +40,6 @@ public:
 private:
     unsigned _matrix_dimension;
 };
-
 
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_SDPSTANDARDBARRIER_H
