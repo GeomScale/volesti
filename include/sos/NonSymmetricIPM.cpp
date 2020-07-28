@@ -571,7 +571,7 @@ void NonSymmetricIPM::print() {
 
     _logger->info(format_, "Time per step: ",
                   _total_runtime_timer.count<std::chrono::milliseconds>() / (1000. * _total_num_line_steps));
-    if(_logger->level() <= spdlog::level::debug) {
+    if (_logger->level() <= spdlog::level::debug) {
         for (unsigned idx = 0; idx < _custom_timers.size(); idx++) {
             std::string s = "Custom timer " + std::to_string(idx);
             _logger->info(format_, s,

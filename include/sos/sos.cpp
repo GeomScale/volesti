@@ -38,7 +38,7 @@ int main(int const argc, char **argv) {
         }
     } else {
         instance_file.open(argv[1]);
-        if(not instance_file.is_open()){
+        if (not instance_file.is_open()) {
             console->error("Could not locate file {}", argv[1]);
             return 1;
         }
@@ -56,7 +56,7 @@ int main(int const argc, char **argv) {
         }
     } else {
         config_file.open(argv[2]);
-        if(not config_file.is_open()){
+        if (not config_file.is_open()) {
             console->error("Could not locate file {}", argv[2]);
             return 1;
         }

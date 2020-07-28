@@ -48,19 +48,19 @@ public:
         _logger->set_level(spdlog::level::info);
     };
 
-    NonSymmetricIPM(Instance &instance, std::ifstream & config_file) : NonSymmetricIPM(instance){
-       //TODO: smoother file parsing
-       std::string line;
-       std::getline(config_file, line);
-       std::istringstream ss(line);
-       ss >> _epsilon;
-       _logger->info("Set epsilon to {}", boost::numeric::converter<double, IPMDouble>::convert(_epsilon));
+    NonSymmetricIPM(Instance &instance, std::ifstream &config_file) : NonSymmetricIPM(instance) {
+        //TODO: smoother file parsing
+        std::string line;
+        std::getline(config_file, line);
+        std::istringstream ss(line);
+        ss >> _epsilon;
+        _logger->info("Set epsilon to {}", boost::numeric::converter<double, IPMDouble>::convert(_epsilon));
 
-       ss.clear();
-       std::getline(config_file, line);
-       ss.str(line);
-       ss >> _num_corrector_steps;
-       _logger->info("Set num corrector steps to {}", _num_corrector_steps);
+        ss.clear();
+        std::getline(config_file, line);
+        ss.str(line);
+        ss >> _num_corrector_steps;
+        _logger->info("Set num corrector steps to {}", _num_corrector_steps);
 
         ss.clear();
         std::getline(config_file, line);
@@ -72,19 +72,22 @@ public:
         std::getline(config_file, line);
         ss.str(line);
         ss >> _beta_small;
-        _logger->info("Set small neighborhood to {}", boost::numeric::converter<double, IPMDouble>::convert(_beta_small));
+        _logger->info("Set small neighborhood to {}",
+                      boost::numeric::converter<double, IPMDouble>::convert(_beta_small));
 
         ss.clear();
         std::getline(config_file, line);
         ss.str(line);
         ss >> _param_step_length_predictor;
-        _logger->info("Set scale predictor step to {}", boost::numeric::converter<double, IPMDouble>::convert(_param_step_length_predictor));
+        _logger->info("Set scale predictor step to {}",
+                      boost::numeric::converter<double, IPMDouble>::convert(_param_step_length_predictor));
 
         ss.clear();
         std::getline(config_file, line);
         ss.str(line);
         ss >> _step_length_corrector;
-        _logger->info("Set scale corrector step to {}", boost::numeric::converter<double, IPMDouble>::convert(_step_length_corrector));
+        _logger->info("Set scale corrector step to {}",
+                      boost::numeric::converter<double, IPMDouble>::convert(_step_length_corrector));
 
         _step_length_predictor = calc_step_length_predictor();
 
@@ -103,7 +106,7 @@ public:
         _logger->info("Use line search: {}", _use_line_search);
     }
 
-    IPMDouble calc_step_length_predictor(){
+    IPMDouble calc_step_length_predictor() {
         IPMDouble const epsilon = .5;
         IPMDouble const eta = _beta * pow(epsilon, _num_corrector_steps);
         IPMDouble const k_x = eta + sqrt(2 * eta * eta + _barrier->concordance_parameter(x) + 1);
@@ -112,11 +115,11 @@ public:
 
     void run_solver();
 
-    inline IPMDouble primal_error(){
-        return (A * x - tau * b ).norm();
+    inline IPMDouble primal_error() {
+        return (A * x - tau * b).norm();
     }
 
-    inline IPMDouble dual_error(){
+    inline IPMDouble dual_error() {
         return (A.transpose() * y + s - tau * c).norm();
     }
 
@@ -128,7 +131,7 @@ public:
         return (A.transpose() * y / tau + s / tau - c).norm();
     }
 
-    inline IPMDouble duality_gap(){
+    inline IPMDouble duality_gap() {
         return x.dot(s) / _barrier->concordance_parameter(x);
     }
 
@@ -206,9 +209,11 @@ private:
     bool terminate();
 
     bool terminate_successfully_wrapper();
+
     bool terminate_successfully();
 
     bool terminate_infeasible_wrapper();
+
     bool terminate_infeasible();
 
     bool _use_line_search = true;
@@ -232,7 +237,8 @@ private:
 
     Matrix create_skajaa_ye_matrix();
 
-    std::vector<std::pair<Vector, Vector> > solve_andersen_andersen_subsystem(std::vector<std::pair<Vector, Vector> > &);
+    std::vector<std::pair<Vector, Vector> >
+    solve_andersen_andersen_subsystem(std::vector<std::pair<Vector, Vector> > &);
 
     Vector andersen_andersen_solve(Vector const);
 

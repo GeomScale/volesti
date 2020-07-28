@@ -126,13 +126,14 @@ public:
         Matrix QR_from_sparse(QR_top_sparse.matrixQ());
 //        Matrix QR = A.transpose().householderQr().householderQ();
 
-        dual_constraints.A = QR_from_sparse.block(0, A.rows(), QR_from_sparse.rows(), QR_from_sparse.cols() - A.rows()).transpose();
+        dual_constraints.A = QR_from_sparse.block(0, A.rows(), QR_from_sparse.rows(),
+                                                  QR_from_sparse.cols() - A.rows()).transpose();
         dual_constraints.b = dual_constraints.A * c;
 
 //        std::cout << "QR from sparse \n" << QR_from_sparse << std::endl;
 //        std::cout << "QR orig: \n" << QR  << std::endl;
 
-        std::cout <<"Done." << std::endl;
+        std::cout << "Done." << std::endl;
 
         //TODO: use different measure to calculate centrality error
         assert((dual_constraints.A * A.transpose()).norm() < 10e-5);

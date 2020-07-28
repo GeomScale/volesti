@@ -47,6 +47,7 @@ sparse (2 nonzeros per row) which one should be able to exploit.
 * Store the gradient and Hessian of the previous iterate (for failing next step in predictor direction)
     * Even better: For all the line steps, compute the new predictor/corrector direction. This is cheap, 
     as we already have gradient and hessian, but might drastically improve performance.
+* Fix SDP solver. It returns feasible solutions but no optimal solutions yet.
 #### Current issues
 
 * Using double for polynomials of degree > 100 is unstable. On the other hand, high precision 
