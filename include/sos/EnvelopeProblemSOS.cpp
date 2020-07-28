@@ -147,10 +147,7 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
         InterpolantDualSOSBarrier aux_barrier(_d);
         Matrix P = aux_barrier.get_P();
         InterpolantVector pol = P.cast<InterpolantDouble>() * polynomial.segment(0, P.cols());
-        std::cout << "P rows is " << P.rows() << " pol rows is " << pol.rows() << " polynomial rows is "
-                  << polynomial.rows() << std::endl;
         _polynomials_bounds.push_back(pol);
-//        _polynomials_bounds.push_back(polynomial);
         return;
     }
 
@@ -162,8 +159,6 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
     _logger->info("Inversion took {} seconds.", invert_timer.count<std::chrono::milliseconds>() / 1000.);
     auto inv_error = (Q * Q_inv - InterpolantMatrix::Identity(Q.rows(), Q.cols())).norm();
     _logger->info("Inversion error is {}", inv_error);
-    //FIXME: sys solve below does not work. Figure out why.
-//    auto inv_sol = Q_inv * polynomial;
     cxxtimer::Timer sys_solve_timer;
     sys_solve_timer.start();
     InterpolantVector inv_sol = Q.colPivHouseholderQr().solve(polynomial);
@@ -192,24 +187,28 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
 
     Constraints constraints;
     constraints.c = Vector::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH);
-    constraints.c.block(0, 0, VECTOR_LENGTH, 1) = -InterpolantVectortoVector(_objectives_vector,
-                                                                             constraints.c);
+    constraints.c.block(0, 0, VECTOR_LENGTH, 1)
+            = -_objectives_vector.cast<IPMDouble>();
 
     constraints.A = Matrix::Zero((NUM_POLYNOMIALS - 1) * VECTOR_LENGTH, NUM_POLYNOMIALS * VECTOR_LENGTH);
     constraints.b = Vector::Zero((NUM_POLYNOMIALS - 1) * VECTOR_LENGTH);
 
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS - 1; ++poly_idx) {
-        PolynomialSOS dummy;
-        //dummy Polynomial to infer type.
-        PolynomialSOS polynomial = InterpolantVectortoVector(_polynomials_bounds[poly_idx + 1], dummy);
+        Vector polynomial = _polynomials_bounds[poly_idx + 1].cast<IPMDouble>();
         Matrix poly_block = Vector::Ones(VECTOR_LENGTH).asDiagonal();
         //corresponds to X variables
-        constraints.A.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, VECTOR_LENGTH) = -poly_block;
+        constraints.A.block(poly_idx * VECTOR_LENGTH, 0,
+                            VECTOR_LENGTH, VECTOR_LENGTH)
+                = -poly_block;
         //corresponds to Y_i variables
-        constraints.A.block(poly_idx * VECTOR_LENGTH, (poly_idx + 1) * VECTOR_LENGTH, VECTOR_LENGTH,
-                            VECTOR_LENGTH) = poly_block;
-        constraints.b.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, 1) =
-                polynomial - InterpolantVectortoVector(_polynomials_bounds[0], constraints.b);
+        constraints.A.block(poly_idx * VECTOR_LENGTH,
+                            (poly_idx + 1) * VECTOR_LENGTH, VECTOR_LENGTH,
+                            VECTOR_LENGTH)
+                = poly_block;
+        Vector casted_vec = _polynomials_bounds[0].cast<IPMDouble>();
+        constraints.b.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, 1)
+                =
+                polynomial - casted_vec;
     }
 
     _logger->info("Original SOS instance created.");
@@ -220,22 +219,16 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
 
     ProductBarrier *productBarrier = new ProductBarrier;
 
-    // Unweighted barrier
-//    for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
-//        auto sos_barrier = new InterpolantDualSOSBarrier(_d);
-//        productBarrier->add_barrier(sos_barrier);
-//    }
-
-    // Weighted barrier
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
         auto sos_barrier = new InterpolantDualSOSBarrier(_d);
 
         auto sum_barrier = new SumBarrier(_U);
         sum_barrier->add_barrier(sos_barrier);
 
+        // Weighted barrier
         if (_use_weighted_polynomials) {
             Vector weighted_vec(3);
-            //Add univariate polynomial 1 - x^2
+            //Add univariate polynomial 1 - x^2 which is non-negative for domain [-1,1]
             weighted_vec << 1., 0., -1.;
             auto sos_weighted_barrier = new InterpolantDualSOSBarrier(_d, weighted_vec);
             sum_barrier->add_barrier(sos_weighted_barrier);
@@ -297,7 +290,7 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     for (int j = 0; j < num_points; ++j) {
         IPMDouble d = x_min + j * (x_max - x_min) / (num_points - 1);
         Double dummy_D;
-        x[j] = InterpolantDoubletoIPMDouble(d, dummy_D);
+        x[j] = static_cast<Double>(d);
     }
 
     std::vector<InterpolantVector> poly_plots;
@@ -339,8 +332,7 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
             for (int j = 1; j < poly_in_orig_basis.size(); ++j) {
                 eval += poly_in_orig_basis[j] * pow(x[i], j);
             }
-            Double dummy_D;
-            plots[poly_idx][i] = InterpolantDoubletoIPMDouble(eval, dummy_D);
+            plots[poly_idx][i] = static_cast<Double>(eval);
         }
     }
 

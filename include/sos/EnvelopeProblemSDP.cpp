@@ -77,7 +77,7 @@ Instance EnvelopeProblemSDP::construct_SDP_instance() {
     unsigned const NUM_POLYNOMIALS = _polynomials_bounds.size();
     Constraints constraints;
     constraints.c = Vector::Zero((NUM_POLYNOMIALS + 1) * VECTOR_LENGTH);
-    constraints.c.block(0, 0, VECTOR_LENGTH, 1) = MatrixToVector(_objectives_matrix);
+    constraints.c.block(0, 0, VECTOR_LENGTH, 1) = StackMatrixToVector(_objectives_matrix);
 
     constraints.A = Matrix::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH, (NUM_POLYNOMIALS + 1) * VECTOR_LENGTH);
     constraints.b = Vector::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH);
@@ -90,7 +90,7 @@ Instance EnvelopeProblemSDP::construct_SDP_instance() {
         //corresponds to Y_i variables
         constraints.A.block(poly_idx * VECTOR_LENGTH, (poly_idx + 1) * VECTOR_LENGTH, VECTOR_LENGTH,
                             VECTOR_LENGTH) = poly_block;
-        constraints.b.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, 1) = MatrixToVector(polynomial);
+        constraints.b.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, 1) = StackMatrixToVector(polynomial);
     }
 
     //Construct Barrier function
@@ -114,7 +114,7 @@ Instance EnvelopeProblemSDP::construct_SDP_instance() {
 
 void EnvelopeProblemSDP::print_solution(const Solution &sol) {
     Vector v = sol.x.segment(0, _objectives_matrix.rows() * _objectives_matrix.cols());
-    Matrix M = VectorToSquareMatrix(v, _objectives_matrix.rows());
+    Matrix M = UnstackVectorToMatrix(v, _objectives_matrix.rows());
     print_polynomial(M);
 }
 
@@ -169,7 +169,8 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
     for (unsigned j = 0; j < num_plot_points; ++j) {
         IPMDouble d = x_min + j * (x_max - x_min) / (num_plot_points - 1);
         Double dummy_D;
-        x[j] = InterpolantDoubletoIPMDouble(d, dummy_D);
+        x[j] = static_cast<double>(d);
+//        x[j] = InterpolantDoubletoIPMDouble(d, dummy_D);
     }
 
     std::vector<PolynomialSDP> poly_plots;
@@ -178,7 +179,7 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
     }
 
     Vector v = sol.x.segment(0, _objectives_matrix.rows() * _objectives_matrix.cols());
-    PolynomialSDP sol_poly = VectorToSquareMatrix(v, _objectives_matrix.rows());
+    PolynomialSDP sol_poly = UnstackVectorToMatrix(v, _objectives_matrix.rows());
 
     std::cout << "Objective of solution is: " << _objectives_matrix.cwiseProduct(sol_poly).sum() << std::endl;
 
@@ -191,7 +192,8 @@ void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
             //TODO: if plots fail, check here first
             IPMDouble ipm_d = univariate_polynomial_evaluation(poly_plots[poly_idx], x[i]);
             Double dummy_D;
-            plots[poly_idx][i] = InterpolantDoubletoIPMDouble(ipm_d, dummy_D);
+            plots[poly_idx][i] = static_cast<double>(ipm_d);
+//            plots[poly_idx][i] = InterpolantDoubletoIPMDouble(ipm_d, dummy_D);
         }
     }
 

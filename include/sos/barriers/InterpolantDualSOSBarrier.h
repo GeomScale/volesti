@@ -36,7 +36,8 @@ public:
         for (unsigned i = 0; i < _unisolvent_basis.size(); ++i) {
             BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / (_U - 1));
             InterpolantDouble dummy_ipm;
-            InterpolantDouble cos_val = InterpolantDoubletoIPMDouble(cos_i, dummy_ipm);
+//            InterpolantDouble cos_val = InterpolantDoubletoIPMDouble(cos_i, dummy_ipm);
+            InterpolantDouble cos_val = static_cast<InterpolantDouble>(cos_i);
             _unisolvent_basis[i] = cos_val;
         }
 

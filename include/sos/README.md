@@ -82,3 +82,9 @@ numbers immensely slow down the IPM
 * SONC polynomials: there is no Barrier function. ()
 * Hyperbolic polynomials (Renegars algorithm)
 * Power cone (Primal and Dual have Barrier functions)
+
+Conclusion Zoom Call 24/07:
+* Share report pdf file
+* Check if LAPACK would speed up runtimes
+* polish PR Request:
+	* Reduce external files, prompt the user to provide it

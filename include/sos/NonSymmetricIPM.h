@@ -160,6 +160,7 @@ public:
     }
 
     std::shared_ptr<spdlog::logger> _logger;
+    std::shared_ptr<spdlog::logger> _benchmark_logger;
 
 private:
 

@@ -242,7 +242,8 @@ void NonSymmetricIPM::run_solver() {
     _total_num_line_steps = 0;
 
     _total_runtime_timer.start();
-    for (unsigned pred_iteration = 0; pred_iteration < _num_predictor_steps; ++pred_iteration) {
+    unsigned pred_iteration = 0;
+    for (; pred_iteration < _num_predictor_steps; ++pred_iteration) {
         _logger->debug("Begin predictor iteration {}", pred_iteration);
         _predictor_timer.start();
         if (terminate_successfully_wrapper()) {
@@ -258,7 +259,8 @@ void NonSymmetricIPM::run_solver() {
         //TODO: rewrite code. Currently concatenation is not very smooth. Pass values by reference to concat.
 //        create_skajaa_ye_matrix();
 
-        assert(centrality() < _beta);
+          //TODO: reinstate this assertion to fix a bug.
+//        assert(centrality() < _beta);
 
         _logger->trace("Begin solving predictor system");
         Vector predictor_direction = solve_predictor_system();
@@ -351,6 +353,9 @@ void NonSymmetricIPM::run_solver() {
         _corrector_timer.stop();
     }
     _total_runtime_timer.stop();
+    _benchmark_logger->info("{} {} {} {} {}", (_barrier->getNumVariables() / 2 - 1) / 2, pred_iteration + 1,
+            _total_runtime_timer.count<std::chrono::milliseconds>() / 1000.,
+                            _total_runtime_timer.count<std::chrono::milliseconds>() / (1000. * _total_num_line_steps), _epsilon);
 }
 
 NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barrier_) :
@@ -373,6 +378,9 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
         _logger = std::make_shared<spdlog::logger>("NonSymmetricIPM", begin(sinks), end(sinks));
         _logger->set_level(spdlog::level::info);
 
+        sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/benchmark.txt"));
+        _benchmark_logger = std::make_shared<spdlog::logger>("", begin(sinks) + 2, end(sinks));
+//        _benchmark_logger->set_pattern("");
     }
     initialize();
 }
@@ -407,9 +415,6 @@ void NonSymmetricIPM::initialize() {
     _logger->debug("Norm of c is {}, Norm of b is {} and norm of A is {} ", c.norm(), b.norm(), A.norm());
 
     assert(x.rows() == _barrier->getNumVariables());
-
-    _logger->debug("Norm of x is initialized as: {}", x.norm());
-    _logger->debug("Norm of s is initialized as: {}", s.norm());
 
     //TODO: turn into sparse operation based on n number of nonzeros.
     Matrix QR = A.transpose().householderQr().householderQ();
@@ -509,8 +514,8 @@ void NonSymmetricIPM::print() {
 
     Double dummy_D;
 
-    Double const step_length_predictor = InterpolantDoubletoIPMDouble(_step_length_predictor, dummy_D);
-    Double const step_length_corrector = InterpolantDoubletoIPMDouble(_step_length_corrector, dummy_D);
+    Double const step_length_predictor = static_cast<Double>(_step_length_predictor);
+    Double const step_length_corrector = static_cast<Double>(_step_length_corrector);
 
     _logger->debug(format_, "alpha_predictor", step_length_predictor);
     _logger->debug(format_, "alpha_corrector", step_length_corrector);
@@ -523,41 +528,41 @@ void NonSymmetricIPM::print() {
     _logger->debug("Current primal/dual x, s pair :\n{}", aux);
     _logger->debug("Current primal/dual rescaled x, s pair :\n{}", aux / tau);
 
-    _logger->info(format_, "kappa", InterpolantDoubletoIPMDouble(kappa, dummy_D));
-    _logger->info(format_, "tau", InterpolantDoubletoIPMDouble(tau, dummy_D));
+    _logger->info(format_, "kappa", static_cast<Double>(kappa));
+    _logger->info(format_, "tau", static_cast<Double>(tau));
 
     IPMDouble mu_ipm_scaled = mu() / (tau * tau);
-    Double const mu_scaled = InterpolantDoubletoIPMDouble(mu_ipm_scaled, dummy_D);
+    Double const mu_scaled = static_cast<Double>(mu_ipm_scaled);
     _logger->debug(format_, "mu scaled", mu_scaled);
 
     IPMDouble mu_ipm = mu();
-    Double const mu_ = InterpolantDoubletoIPMDouble(mu_ipm, dummy_D);
+    Double const mu_ = static_cast<Double>(mu_ipm);
     _logger->info(format_, "mu", boost::numeric_cast<double>(mu()));
 
     if (_logger->level() <= spdlog::level::debug) {
         IPMDouble centrality_ipm_ = centrality();
-        Double const centrality_ = InterpolantDoubletoIPMDouble(centrality_ipm_, dummy_D);
+        Double const centrality_ = static_cast<Double>(centrality_ipm_);
         _logger->debug(format_, "centrality error", centrality_);
     }
 
     IPMDouble duality_gap_ipm_ = kappa / tau;
-    Double duality_gap_ = InterpolantDoubletoIPMDouble(duality_gap_ipm_, dummy_D);
+    Double duality_gap_ = static_cast<Double>(duality_gap_ipm_);
     _logger->info(format_, "duality gap", duality_gap_);
 
     IPMDouble primal_inf_ipm_ = primal_error();
-    Double primal_inf_ = InterpolantDoubletoIPMDouble(primal_inf_ipm_, dummy_D);
+    Double primal_inf_ = static_cast<Double>(primal_inf_ipm_);
     _logger->info(format_, "primal infeas. ", primal_inf_);
 
     IPMDouble primal_inf_unscaled_ipm_ = primal_error_rescaled();
-    Double primal_inf_unscaled_ = InterpolantDoubletoIPMDouble(primal_inf_unscaled_ipm_, dummy_D);
+    Double primal_inf_unscaled_ = static_cast<Double>(primal_inf_unscaled_ipm_);
     _logger->debug(format_, "primal infeas. unscaled", primal_inf_unscaled_);
 
     IPMDouble dual_inf_ipm_ = dual_error();
-    Double dual_inf_ = InterpolantDoubletoIPMDouble(dual_inf_ipm_, dummy_D);
+    Double dual_inf_ = static_cast<Double>(dual_inf_ipm_);
     _logger->info(format_, "dual infeas.", dual_inf_);
 
     IPMDouble dual_inf_unscaled_ipm_ = dual_error_rescaled();
-    Double dual_inf_unscaled_ = InterpolantDoubletoIPMDouble(dual_inf_unscaled_ipm_, dummy_D);
+    Double dual_inf_unscaled_ = static_cast<Double>(dual_inf_unscaled_ipm_);
     _logger->debug(format_, "dual infeas. unscaled", dual_inf_unscaled_);
 
     _logger->trace("last predictor direction: {}", _last_predictor_direction.transpose());

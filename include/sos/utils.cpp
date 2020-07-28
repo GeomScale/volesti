@@ -24,7 +24,9 @@
 #define DIGITS_PRECISION 50
 #endif
 
-typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<DIGITS_PRECISION> > BoostDouble;
+typedef boost::multiprecision::cpp_dec_float<DIGITS_PRECISION> mp_backend;
+typedef boost::multiprecision::number<mp_backend, boost::multiprecision::et_on> BoostDouble;
+//typedef boost::multiprecision::number<boost::multiprecision::cpp_dec_float<DIGITS_PRECISION> > BoostDouble;
 typedef BoostDouble InterpolantDouble;
 
 typedef long double long_double;
@@ -57,56 +59,58 @@ typedef Eigen::Matrix<Double, Eigen::Dynamic, 1> DoubleVector;
 
 //TODO: find nicer solution for type casting (does any of the built-in casts might work)
 
-inline DoubleMatrix InterpolantMatrixToMatrix(BoostMatrix &M, DoubleMatrix &) {
-    DoubleMatrix A(M.rows(), M.cols());
-    for (int row = 0; row < M.rows(); ++row) {
-        for (int col = 0; col < M.cols(); ++col) {
-            A(row, col) = M(row, col).convert_to<Double>();
-        }
-    }
-    return A;
-}
+//inline DoubleMatrix InterpolantMatrixToMatrix(BoostMatrix &M, DoubleMatrix &) {
+//    DoubleMatrix A(M.rows(), M.cols());
+//    for (int row = 0; row < M.rows(); ++row) {
+//        for (int col = 0; col < M.cols(); ++col) {
+//            A(row, col) = M(row, col).convert_to<Double>();
+//        }
+//    }
+//    return A;
+//}
+//
+//inline BoostMatrix InterpolantMatrixToMatrix(BoostMatrix &M, BoostMatrix &) {
+//    return M;
+//}
 
-inline BoostMatrix InterpolantMatrixToMatrix(BoostMatrix &M, BoostMatrix &) {
-    return M;
-}
+//inline DoubleVector InterpolantVectortoVector(BoostVector &v, DoubleVector &) {
+//    DoubleVector w(v.rows());
+//    for (int i = 0; i < v.rows(); ++i) {
+//        w(i) = v(i).convert_to<Double>();
+//    }
+//    return w;
+//}
 
-inline DoubleVector InterpolantVectortoVector(BoostVector &v, DoubleVector &) {
-    DoubleVector w(v.rows());
-    for (int i = 0; i < v.rows(); ++i) {
-        w(i) = v(i).convert_to<Double>();
-    }
-    return w;
-}
+//inline BoostVector InterpolantVectortoVector(BoostVector &v, BoostVector &) {
+//    return v;
+//}
+//
+//inline Double InterpolantDoubletoIPMDouble(BoostDouble &d, Double &) {
+//    return d.convert_to<Double>();
+//}
+//
+//inline BoostDouble InterpolantDoubletoIPMDouble(BoostDouble &d, BoostDouble &) {
+//    return d;
+//}
+//
+//inline Double InterpolantDoubletoIPMDouble(Double &d, Double &) {
+//    return d;
+//}
+//
+//template<class T>
+//inline T InterpolantDoubletoIPMDouble(Double &d, T) {
+//    return d;
+//}
 
-inline BoostVector InterpolantVectortoVector(BoostVector &v, BoostVector &) {
-    return v;
-}
-
-inline Double InterpolantDoubletoIPMDouble(BoostDouble &d, Double &) {
-    return d.convert_to<Double>();
-}
-
-inline BoostDouble InterpolantDoubletoIPMDouble(BoostDouble &d, BoostDouble &) {
-    return d;
-}
-
-inline Double InterpolantDoubletoIPMDouble(Double &d, Double &) {
-    return d;
-}
-
-template<class T>
-inline T InterpolantDoubletoIPMDouble(Double &d, T) {
-    return d;
-}
-
-inline Vector MatrixToVector(Matrix M) {
+//Stack the columns of a square m x m  matrix to a vector of length m x m.
+inline Vector StackMatrixToVector(Matrix M) {
     assert(M.rows() == M.cols());
     Eigen::Map<Matrix> x(M.data(), M.rows() * M.cols(), 1);
     return x;
 }
 
-inline Matrix VectorToSquareMatrix(Vector v, unsigned matrix_dimension) {
+//Unstack vector
+inline Matrix UnstackVectorToMatrix(Vector v, unsigned matrix_dimension) {
     assert(v.rows() == matrix_dimension * matrix_dimension);
     Eigen::Map<Matrix> M(v.data(), matrix_dimension, matrix_dimension);
     return M;

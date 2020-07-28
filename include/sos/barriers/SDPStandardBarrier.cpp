@@ -44,12 +44,12 @@ IPMDouble SDPStandardBarrier::concordance_parameter(Vector) {
 
 Vector SDPStandardBarrier::toVector(Matrix X) {
     assert(X.rows() == _matrix_dimension and X.cols() == _matrix_dimension);
-    return MatrixToVector(X);
+    return StackMatrixToVector(X);
 }
 
 Matrix SDPStandardBarrier::toMatrix(Vector x) {
     assert(x.rows() == _matrix_dimension * _matrix_dimension);
-    return VectorToSquareMatrix(x, _matrix_dimension);
+    return UnstackVectorToMatrix(x, _matrix_dimension);
 }
 
 Vector SDPStandardBarrier::initialize_x() {
