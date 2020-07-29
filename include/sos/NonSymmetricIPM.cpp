@@ -55,9 +55,6 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
     LLT.matrixL().toDenseMatrix().eval();
     _custom_timers[3].stop();
 
-    //TODO: Can A(LL^\top)A^\top be computed faster?
-    //TODO: Inverse maintenance, in particular for corrector steps.
-
     _custom_timers[8].start();
     _custom_timers[4].start();
 
@@ -227,12 +224,10 @@ void NonSymmetricIPM::apply_update(Vector concat) {
 void NonSymmetricIPM::run_solver() {
 
     Matrix G = create_matrix_G();
-
     _logger->debug("G: \n {}", G);
-
     Matrix M = create_skajaa_ye_matrix();
-    _logger->debug("\n M has dimension ({}, {})", M.rows(), M.cols());
 
+    _logger->debug("\n M has dimension ({}, {})", M.rows(), M.cols());
     _logger->debug("b: {}", b.transpose());
     _logger->debug("c: {}", c.transpose());
     _logger->debug("gradient: {}", _barrier->gradient(x).transpose());
@@ -258,11 +253,9 @@ void NonSymmetricIPM::run_solver() {
         //TODO: reinstate this assertion to fix a bug.
         assert(centrality() < _beta);
 
-        _logger->trace("Begin solving predictor system");
+        _logger->trace("Solve predictor system...");
         Vector predictor_direction = solve_predictor_system();
         _logger->trace("Finished solving predictor system");
-
-//        _logger->debug("Applied RHS for predictor direction is {}", ((_M * predictor_direction)).transpose());
 
         DirectionDecomposition dir(_step_length_predictor * predictor_direction, x.rows(), y.rows());
         _logger->debug("Predictor direction is \n {}", dir);
