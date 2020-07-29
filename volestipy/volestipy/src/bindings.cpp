@@ -130,17 +130,8 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 //////////         start of "rounding()"          //////////
 
-void HPolytopeCPP::rounding(int walk_len, bool billiard, int n_hyperplanes, int n_variables){
+rounded_HPolytope HPolytopeCPP::rounding(int walk_len, bool billiard, &new_A, &new_b){
    
-   typedef struct rounded_HPolytope{
-      MT new_A;
-      VT new_b;
-   };
-   
-   rounded_HPolytope rounded;
-   
-   rounded.new_A.resize(n_hyperplanes,n_variables);
-   rounded.new_b.resize(n_hyperplanes);
     
    std::pair< std::pair<MT, VT>, NT > round_res;
     

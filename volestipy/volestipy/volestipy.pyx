@@ -19,7 +19,9 @@ def get_time_seed():
 # get main class from the bindings.h file
 cdef extern from "bindings.h":
    
+   
    cdef cppclass HPolytopeCPP:
+          
          
       HPolytopeCPP() except +
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables) except +
@@ -29,7 +31,7 @@ cdef extern from "bindings.h":
       double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, \
          bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
       
-      void rounding(int walk_len, bool billiard, int n_hyperplanes, int n_variables);
+      double rounding(int walk_len, bool billiard, double* new_A, double* new_b);
 
 # lists with the methods supported by volesti for volume approximation and random walk
 volume_methods = ["sequence_of_balls".encode("UTF-8"), "cooling_gaussian".encode("UTF-8"), "cooling_balls".encode("UTF-8")]
@@ -81,10 +83,23 @@ cdef class HPolytope:
 
 # this is the first function that was not included in the volestipy at all till now; the rounding() function    
    def rounding(self, walk_len = 1, billiard = False):
+      
+      
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
-      # cdef double[:,::1] new_A = np.zeros((n_hyperplanes, n_variables), dtype=np.float64, order="C")
-      # cdef double[::1] new_b = np.zeros((n_hyperplanes, 1), dtype=np.float64, order="C")
-      return self.polytope_cpp.rounding(walk_len, billiard, n_hyperplanes, n_variables)  # , &new_A, &new_b
+      cdef double[:,::1] new_A = np.zeros((n_hyperplanes, n_variables), dtype=np.float64, order="C")
+      cdef double[::1] new_b = np.zeros((n_hyperplanes, 1), dtype=np.float64, order="C")
+      
+      self.polytope_cpp.rounding(walk_len, billiard, &new_A[0,0], &new_b[0])
+      
+      p_new_A = np.asarray(new_A)
+      p_new_b = np.asarray(new_b)
+      
+      output = (p_new_A, p_new_b)
+      
+      return output
+      
+      
+      
 
     
    

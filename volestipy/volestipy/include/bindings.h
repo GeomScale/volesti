@@ -36,6 +36,13 @@ class HPolytopeCPP{
       typedef typename Hpolytope::MT    MT;
       typedef typename Hpolytope::VT    VT;
       typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
+      
+      typedef struct rounded{
+        MT new_A;
+        VT new_b;
+      } rounded_HPolytope;
+      
+      
              
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
@@ -52,7 +59,7 @@ class HPolytopeCPP{
        bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
       
 // the rounding() function
-      void rounding(int walk_len, bool billiard, int n_hyperplanes, int n_variables); 
+      rounded_HPolytope rounding(int walk_len, bool billiard, double* new_A, double* new_b); 
       
 };
 
