@@ -21,9 +21,8 @@ template
     typename Point,
     typename NT
 >
-std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > max_inscribed_ellipsoid_rounding(Polytope &P, 
-                                                                                                    std::pair<Point, NT> InnerBall,
-                                                                                                    MT &N, VT &N_shift)
+std::pair< std::pair<MT, VT>, NT > max_inscribed_ellipsoid_rounding(Polytope &P, 
+                                                                    std::pair<Point, NT> InnerBall)
 {
     std::pair<std::pair<MT, VT>, bool> iter_res;
     iter_res.second = false;
@@ -59,8 +58,6 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > max_inscribed
 
         // shift polytope and apply the linear transformation on P
         P.shift(iter_res.first.second);
-        N_shift += N * iter_res.first.second;
-        N = N * L;
         shift += T * iter_res.first.second;
         T = T * L;
         round_val *= L.transpose().determinant();
@@ -73,41 +70,14 @@ std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > max_inscribed
         iter++;
     }
 
-    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result;
+    std::pair< std::pair<MT, VT>, NT > result;
 
-    result.first.first.first = T;
-    result.first.first.second = shift;
+    result.first.first = T;
+    result.first.second = shift;
 
-    result.first.second.first = N;
-    result.first.second.second = N_shift;
-
-    result.second = round_val;
+    result.second = std::abs(round_val);
 
     return result;
-}
-
-template 
-<
-    typename MT,
-    typename VT,
-    typename Polytope,
-    typename Point,
-    typename NT
->
-std::pair< std::pair<MT, VT>, NT > max_inscribed_ellipsoid_rounding(Polytope &P, std::pair<Point, NT> InnerBall)
-{
-    unsigned int d = P.dimension();
-    MT N = MT::Identity(d,d);
-    VT shift = VT::Zero(d);
-    std::pair< std::pair< std::pair<MT, VT>, std::pair<MT, VT> >, NT > result = 
-                                                max_inscribed_ellipsoid_rounding(P, InnerBall, N, shift);
-
-    std::pair< std::pair<MT, VT>, NT > res;
-    res.first.first = result.first.first.first;
-    res.first.second = result.first.first.second;
-    res.second = result.second;
-
-    return res;
 }
 
 #endif
