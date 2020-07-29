@@ -172,7 +172,6 @@ Vector NonSymmetricIPM::andersen_andersen_solve(Vector const rhs) {
     if (rel_dual_error > 10e-2) {
         _logger->warn("relative dual error is {}", rel_dual_error);
     }
-
     return sol;
 }
 
@@ -335,7 +334,6 @@ void NonSymmetricIPM::run_solver() {
                 assert(centrality() < _beta);
             }
         }
-
         _corrector_timer.stop();
     }
     _total_runtime_timer.stop();

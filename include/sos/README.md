@@ -19,13 +19,8 @@ on the interval [-1,1].
 
 #### Next steps:
 
-##### Conclusion Zoom Call 24/07:
 * Share report pdf file
 * Check if LAPACK would speed up runtimes
-* polish PR Request:
-	* Reduce external files, prompt the user to provide it
-
-##### General
 * Dynamically switch between float -> double -> long double -> multiprecision when Matrices become ill-conditioned.
 * Parameter tuning
 * Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
@@ -34,7 +29,7 @@ on the interval [-1,1].
 * Add multivariate support
 * Implement Lagrange polynomials more efficiently (or find C++ library with sufficient precision.)
 * Speed up with Intel MKL (considering it is not open source we might not use it !?) or other high-performance library
-* Benchmarking with alfonso, SOSTOOLS, MOSEK, SeDuMi 
+* Benchmarking with alfonso, SOSTOOLS, MOSEK (SDP and the new Nonsymmetric cone solver), SeDuMi 
 * Implementation/inspiration from  [4]. In particular interesting are:
     * Positive definite rescaling matrix for added stability and monotonicity 
     * Combining Predictor- and Corrector steps.
@@ -48,6 +43,7 @@ sparse (2 nonzeros per row) which one should be able to exploit.
     * Even better: For all the line steps, compute the new predictor/corrector direction. This is cheap, 
     as we already have gradient and hessian, but might drastically improve performance.
 * Fix SDP solver. It returns feasible solutions but no optimal solutions yet.
+
 #### Current issues
 
 * Using double for polynomials of degree > 100 is unstable. On the other hand, high precision 
@@ -66,7 +62,7 @@ numbers immensely slow down the IPM
  (non-trivial: properties of Chebyshev polynomials, Clenshaw-Curtis algorithm)
  * Week 7: Runtime speedups, more efficient (including experimentally) implementation.
  * Week 8: Further speedup, Big code refactoring, Add Polynomial minimization, Create Benchmarks with alfonso.
-
+ * Week 9: Writing of documentation / report, more refactoring, add multivariate support.
 #### References
 
 [1] A. Skajaa and Y. Ye, [A homogeneous interior-point algorithm for nonsymmetric convex conic optimization](https://web.stanford.edu/~yyye/nonsymmhsdimp.pdf), Mathematical Programming Ser. A, 150 (2015), pp. 391-422. 
