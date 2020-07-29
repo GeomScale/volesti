@@ -20,7 +20,6 @@ int main(int const argc, char **argv) {
 
     auto console = spdlog::stdout_color_mt("console");
     console->info("Logger level is {}", console->level());
-//    TODO: Set in environment variables. Does not work for now for some reason.
     console->info("Num threads: {}", Eigen::nbThreads());
 
     std::ifstream instance_file;
@@ -82,41 +81,10 @@ int main(int const argc, char **argv) {
         config_file.seekg(0);
     }
 
-    std::string line;
-    std::getline(instance_file, line);
-    std::istringstream iss(line);
-    int max_degree;
-    iss >> max_degree;
-
-    HyperRectangle hyperRectangle;
-    //Note: Keep interval bounds for now.
-    IPMDouble const interval_lower_bound = -1.;
-    IPMDouble const interval_upper_bound = 1.;
-    hyperRectangle.push_back(std::pair<IPMDouble, IPMDouble>(interval_lower_bound,
-                                                             interval_upper_bound));
-    EnvelopeProblemSOS envelopeProblemSos(1, max_degree, hyperRectangle);
-
-    while (std::getline(instance_file, line)) {
-        std::istringstream poly_stream(line);
-        InterpolantVector sos_poly = envelopeProblemSos.generate_zero_polynomial();
-        IPMDouble val;
-        unsigned idx = 0;
-        while (poly_stream >> val) {
-            if (idx >= sos_poly.size()) {
-                return 1;
-            }
-            sos_poly[idx++] = val;
-        }
-        envelopeProblemSos.add_polynomial(sos_poly);
-        console->info("Polynomial added.");
-    }
-
+    EnvelopeProblemSOS envelopeProblemSos(instance_file);
     Instance instance_interp = envelopeProblemSos.construct_SOS_instance();
-
     NonSymmetricIPM sos_solver_interp(instance_interp, config_file);
-
     sos_solver_interp.run_solver();
-
     envelopeProblemSos.print_solution(sos_solver_interp.get_solution());
     envelopeProblemSos.plot_polynomials_and_solution(sos_solver_interp.get_solution());
     return 0;

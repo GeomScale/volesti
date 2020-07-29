@@ -18,23 +18,23 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
     assert(num_variables == hyperRectangle_.size());
     //FIXME: for now only univariate polynomials.
     assert(_n == 1);
-
     initialize_loggers();
+    initialize_problem();
+}
 
+void EnvelopeProblemSOS::initialize_problem() {
     _L = _d + 1;
     _U = 2 * _d + 1;
 
     if (not _input_in_interpolant_basis) {
         calculate_basis_polynomials();
     }
-
     for (unsigned k = 0; k < _basis_polynomials.size(); ++k) {
         _logger->debug("The {}-th polynomial is:", k);
         for (unsigned i = 0; i < _basis_polynomials[k].size(); ++i) {
             _logger->debug("{}", _basis_polynomials[k]);
         }
     }
-
     _logger->info("Construct objectives vector...");
 
 //    Old way of computing the objective
@@ -52,7 +52,46 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
 
     //Clenshaw-Curtis algorithm
     get_clenshaw_curtis_integrals();
+}
 
+EnvelopeProblemSOS::EnvelopeProblemSOS(std::ifstream & instance_file) {
+    std::string line;
+    std::getline(instance_file, line);
+    std::istringstream iss(line);
+    int max_degree;
+    iss >> max_degree;
+
+    HyperRectangle hyperRectangle;
+    //Note: Keep interval bounds for now.
+    IPMDouble const interval_lower_bound = -1.;
+    IPMDouble const interval_upper_bound = 1.;
+    //Univariate case for now.
+    const int num_variables = 1;
+    hyperRectangle.push_back(std::pair<IPMDouble, IPMDouble>(interval_lower_bound,
+                                                             interval_upper_bound));
+
+    _n = num_variables;
+    _d = max_degree;
+    _hyperRectangle = hyperRectangle;
+
+    initialize_loggers();
+    initialize_problem();
+
+    while (std::getline(instance_file, line)) {
+        std::istringstream poly_stream(line);
+        InterpolantVector sos_poly = generate_zero_polynomial();
+        IPMDouble val;
+        unsigned idx = 0;
+        while (poly_stream >> val) {
+            if (idx >= sos_poly.size()) {
+                _logger->error("Input date in wrong format.");
+                exit(1);
+            }
+            sos_poly[idx++] = val;
+        }
+        add_polynomial(sos_poly);
+        _logger->info("Polynomial added.");
+    }
 }
 
 void EnvelopeProblemSOS::initialize_loggers() {
@@ -361,7 +400,7 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     }
 
     for (unsigned k = 0; k < envelope_plot.size(); ++k) {
-        offset_envelope[k] = envelope_plot[k] - (y_max - y_min) / 100.;
+        offset_envelope[k] = envelope_plot[k] - (y_max - y_min) / 1000.;
     }
 
     auto y_bound_offset = (y_max - y_min) / 50;

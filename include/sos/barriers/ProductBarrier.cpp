@@ -7,7 +7,6 @@
 #include "ProductBarrier.h"
 
 Eigen::LLT<Matrix> ProductBarrier::llt(Vector x, bool symmetrize) {
-    //TODO: Figure out how to write Eigen::LLT<Matrix> in Matrix form.
     return LHSCB::llt(x, symmetrize);
 }
 

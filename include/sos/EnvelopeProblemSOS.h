@@ -22,6 +22,7 @@ typedef Vector PolynomialSOS;
 class EnvelopeProblemSOS {
 public:
     EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_);
+    EnvelopeProblemSOS(std::ifstream & instance_file);
 
     //FIXME: Rename as currently the degree of the polynomial remains unchanged.
     static InterpolantVector polynomial_product(InterpolantVector p1, InterpolantVector p2) {
@@ -90,6 +91,8 @@ private:
     void get_clenshaw_curtis_integrals();
 
     void initialize_loggers();
+
+    void initialize_problem();
 };
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H
