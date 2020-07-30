@@ -45,11 +45,11 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
 
     RNGType rng(n);
     if (seed.isNotNull()) {
-        unsigned seed2 = Rcpp::as<double>(seed);
-        rng.set_seed(seed2);
+        unsigned seed_rcpp = Rcpp::as<double>(seed);
+        rng.set_seed(seed_rcpp);
     }
 
-    NT e = 0.1, ratio = std::numeric_limits<double>::signaling_NaN();;
+    NT e = 0.1, ratio = std::numeric_limits<double>::signaling_NaN();
     bool hpoly = false;
 
     MT X(n, 2 * k);
@@ -62,9 +62,6 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
     A << -MT::Identity(n, n), MT::Identity(n, n);
     MT Mat(2 * n, n + 1);
     Mat << Gred_ii, A.transpose() * svd.matrixU().transpose();
-
-    Hpolytope HP;
-    HP.init(n, A.transpose() * svd.matrixU().transpose(), Gred_ii);
 
     if (fit_ratio.isNotNull() && Rcpp::as<bool>(fit_ratio)) {
         NT vol_red = std::abs(svd.matrixU().determinant());

@@ -30,9 +30,9 @@
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/zonoIntersecthpoly.h"
 #include "convex_bodies/vpolyintersectvpoly.h"
-#include "volume/rounding.hpp"
 #include "random_walks/uniform_cdhr_walk.hpp"
 #include "sampling/random_point_generators.hpp"
+#include "volume/sampling_policies.hpp"
 
 
 ////////////////////////////// Algorithms
