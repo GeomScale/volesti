@@ -4,8 +4,7 @@
 \alias{copula}
 \title{Construct a copula using uniform sampling from the unit simplex}
 \usage{
-copula(r1, r2 = NULL, sigma = NULL, m = NULL, n = NULL,
-  seed = NULL)
+copula(r1, r2 = NULL, sigma = NULL, m = NULL, n = NULL, seed = NULL)
 }
 \arguments{
 \item{r1}{The \eqn{d}-dimensional normal vector of the first family of parallel hyperplanes.}
