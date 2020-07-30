@@ -19,14 +19,17 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 #include "volume/volume_cooling_hpoly.hpp"
+#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/svd_rounding.hpp"
 
 enum random_walks {ball_walk, rdhr, cdhr, billiard, accelarated_billiard};
 enum volume_algorithms {CB, CG, SOB};
+enum rounding_type {none, min_ellipsoid, max_ellipsoid, svd};
 
 template <typename Polytope,  typename RNGType,  typename NT>
 double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
                       volume_algorithms const& algo, unsigned int win_len,
-                      bool rounding, random_walks const& walk)
+                      rounding_type const& rounding, random_walks const& walk)
 {
     typedef typename Polytope::MT MT;
     typedef typename Polytope::VT VT;
@@ -36,21 +39,49 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 
     NT round_val = 1.0;
     unsigned int n = P.dimension();
+    std::pair<Point, NT> InnerBall;
 
-    if (rounding) {
-        std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
+    switch (rounding)
+    {
+    case min_ellipsoid:
+        InnerBall = P.ComputeInnerBall();
+        P.normalize();
         switch (walk)
         {
         case cdhr:
-            round_val = round_polytope<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng).second;
+            round_val = std::get<2>(min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng));
             break;
         case accelarated_billiard:
-            round_val = round_polytope<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = std::get<2>(min_sampling_covering_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng));
             break;
         default:
-            round_val = round_polytope<BilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = std::get<2>(min_sampling_covering_ellipsoid_rounding<BilliardWalk, MT, VT>(P, InnerBall, 2, rng));
             break;
         }
+        break;
+    case svd:
+        InnerBall = P.ComputeInnerBall();
+        P.normalize();
+        switch (walk)
+        {
+        case cdhr:
+            round_val = std::get<2>(svd_rounding<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng));
+            break;
+        case accelarated_billiard:
+            round_val = std::get<2>(svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng));
+            break;
+        default:
+            round_val = std::get<2>(svd_rounding<BilliardWalk, MT, VT>(P, InnerBall, 2, rng));
+            break;
+        }
+        break;
+    case max_ellipsoid:
+        InnerBall = P.ComputeInnerBall();
+        P.normalize();
+        round_val = std::get<2>(max_inscribed_ellipsoid_rounding<MT, VT>(P, InnerBall));
+        break;
+    default:
+        break;
     }
 
     NT vol;
@@ -140,7 +171,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 //' \item{\code{win_len} }{ The length of the sliding window for CB or CG algorithm. The default value is \eqn{250} for CB with BiW and \eqn{400+3d^2} for CB and any other random walk and \eqn{500+4d^2} for CG.}
 //' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm when the input polytope is a zonotope. The default value is \code{TRUE} when the order of the zonotope is \eqn{<5}, otherwise it is \code{FALSE}.}
 //' }
-//' @param rounding Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.
+//' @param rounding Optional. A string parameter to request a rounding method to be applied in the input polytope before volume computation: a) \code{'min_ellipsoid'}, b) \code{'svd'}, c) \code{'max_ellipsoid'} and d) \code{'none'} for no rounding.
 //' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @references \cite{I.Z.Emiris and V. Fisikopoulos,
@@ -169,7 +200,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 // [[Rcpp::export]]
 double volume (Rcpp::Reference P,
                Rcpp::Nullable<Rcpp::List> settings = R_NilValue,
-               Rcpp::Nullable<bool> rounding = R_NilValue,
+               Rcpp::Nullable<std::string> rounding = R_NilValue,
                Rcpp::Nullable<double> seed = R_NilValue) {
 
     typedef double NT;
@@ -177,7 +208,7 @@ double volume (Rcpp::Reference P,
     typedef typename Kernel::Point    Point;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     typedef HPolytope <Point> Hpolytope;
-    typedef VPolytope<Point> Vpolytope;
+    typedef VPolytope <Point> Vpolytope;
     typedef Zonotope <Point> zonotope;
     typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -186,8 +217,8 @@ double volume (Rcpp::Reference P,
 
     RNGType rng(n);
     if (seed.isNotNull()) {
-        unsigned seed2 = Rcpp::as<double>(seed);
-        rng.set_seed(seed2);
+        unsigned seed_rcpp = Rcpp::as<double>(seed);
+        rng.set_seed(seed_rcpp);
     }
 
     bool round = false, hpoly = false;
@@ -195,6 +226,20 @@ double volume (Rcpp::Reference P,
 
     random_walks walk;
     volume_algorithms algo;
+    rounding_type rounding_method;
+
+    if (!rounding.isNotNull()) {
+        rounding_method = (type == 2) ? min_ellipsoid : none;
+    } else if (Rcpp::as<std::string>(rounding).compare(std::string("min_ellipsoid")) == 0) {
+        rounding_method = min_ellipsoid;
+    } else if (Rcpp::as<std::string>(rounding).compare(std::string("max_ellipsoid")) == 0) {
+        if (type != 1) throw Rcpp::exception("This rounding method can be used only for H-polytopes!");
+        rounding_method = max_ellipsoid;
+    } else if (Rcpp::as<std::string>(rounding).compare(std::string("svd")) == 0) {
+        rounding_method = svd;
+    } else if (Rcpp::as<std::string>(rounding).compare(std::string("none")) == 0) {
+        rounding_method = none;
+    }
     
     NT e;
 
@@ -210,31 +255,27 @@ double volume (Rcpp::Reference P,
                 Rcpp::as<Rcpp::List>(settings)["walk_length"]);
         e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 1.0 : Rcpp::as<NT>(
                 Rcpp::as<Rcpp::List>(settings)["error"]);
-
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["algorithm"]).compare(std::string("CG")) == 0) {
         algo = CG;
         walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
                 Rcpp::as<Rcpp::List>(settings)["walk_length"]);
         e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
                 Rcpp::as<Rcpp::List>(settings)["error"]);
-
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["algorithm"]).compare(std::string("CB")) == 0) {
         algo = CB;
         walkL = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) ? 1 : Rcpp::as<int>(
                 Rcpp::as<Rcpp::List>(settings)["walk_length"]);
         e = (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("error")) ? 0.1 : Rcpp::as<NT>(
                 Rcpp::as<Rcpp::List>(settings)["error"]);
-
     } else {
         throw Rcpp::exception("Unknown method!");
     }
-
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("random_walk")) {
         if (algo == CB) {
             walk = (type == 1) ? accelarated_billiard : billiard;
         } else {
-            win_len = 4*n*n+500;
+            win_len = 4 * n * n + 500;
             if (type == 1) {
                 walk = cdhr;
             } else {
@@ -270,12 +311,6 @@ double volume (Rcpp::Reference P,
         throw Rcpp::exception("The error parameter has to be a positive number!");
     }
 
-    if (!rounding.isNotNull() && type == 2){
-        round = true;
-    } else {
-        round = (!rounding.isNotNull()) ? false : Rcpp::as<bool>(rounding);
-    }
-
     if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("win_len")) {
         win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["win_len"]);
         if (algo == SOB) Rf_warning("input 'win_len' can be used only for CG or CB algorithms.");
@@ -286,13 +321,13 @@ double volume (Rcpp::Reference P,
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            return generic_volume(HP, rng, walkL, e, algo, win_len, round, walk);
+            return generic_volume(HP, rng, walkL, e, algo, win_len, rounding_method, walk);
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            return generic_volume(VP, rng, walkL, e, algo, win_len, round, walk);
+            return generic_volume(VP, rng, walkL, e, algo, win_len, rounding_method, walk);
         }
         case 3: {
             // Zonotope
@@ -318,7 +353,7 @@ double volume (Rcpp::Reference P,
                     return volume_cooling_hpoly<BilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
                 }
             }
-            return generic_volume(ZP, rng, walkL, e, algo, win_len, round, walk);
+            return generic_volume(ZP, rng, walkL, e, algo, win_len, rounding_method, walk);
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -334,7 +369,7 @@ double volume (Rcpp::Reference P,
                 VPcVP.init(VP1, VP2, seed3);
             }
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-            return generic_volume(VPcVP, rng, walkL, e, algo, win_len, round, walk);
+            return generic_volume(VPcVP, rng, walkL, e, algo, win_len, rounding_method, walk);
         }
     }
 

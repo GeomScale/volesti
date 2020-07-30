@@ -71,7 +71,7 @@ struct AcceleratedBilliardWalk
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
-            _AA.noalias()= P.get_mat() * P.get_mat().transpose();
+            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             initialize(P, p, rng);
         }
 
@@ -83,7 +83,7 @@ struct AcceleratedBilliardWalk
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
-            _AA.noalias()= P.get_mat() * P.get_mat().transpose();
+            _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             initialize(P, p, rng);
         }
 
@@ -156,7 +156,6 @@ struct AcceleratedBilliardWalk
                                Point const& p,
                                RandomNumberGenerator &rng)
         {
-            //std::cout<<
             unsigned int n = P.dimension();
             const NT dl = 0.995;
             _lambdas.setZero(P.num_of_hyperplanes());
@@ -180,7 +179,7 @@ struct AcceleratedBilliardWalk
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, _update_parameters);
 
-            while (it < 100*n)
+            while (it <= 100*n)
             {
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
