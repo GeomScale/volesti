@@ -17,13 +17,16 @@
 #include "diagnostics/geweke.hpp"
 
 
-//' Internal rcpp function for the rounding of a convex polytope
+//' Geweke MCMC diagnostic test
 //'
-//' @param samples The point set.
-//' @param frac1 Optional.
-//' @param frac2 Optional. 
+//' @param A matrix that contans column-wise the sampled points from a geometric random walk.
+//' @param frac1 Optional. A portion of the first in order points in matrix samples.
+//' @param frac2 Optional. A portion of the last in order points in matrix samples.
 //'
-//' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+//' @references \cite{Geweke, J.,
+//' \dQuote{Evaluating the accuracy of sampling-based approaches to the calculation of posterior moments,} \emph{ In Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
+//'
+//' @return A boolean to denote if the test is passes or fails
 // [[Rcpp::export]]
 bool geweke(Rcpp::NumericMatrix samples, Rcpp::Nullable<double> frac1 = R_NilValue, 
               Rcpp::Nullable<double> frac2 = R_NilValue)
@@ -38,5 +41,4 @@ bool geweke(Rcpp::NumericMatrix samples, Rcpp::Nullable<double> frac1 = R_NilVal
     frac_2 = (!frac1.isNotNull()) ? NT(0.5) : Rcpp::as<NT>(frac2);
 
     return perform_geweke<VT>(Rcpp::as<MT>(samples), frac_1, frac_2);
-
 }

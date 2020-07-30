@@ -120,15 +120,6 @@ frustum_of_simplex <- function(a, z0) {
     .Call(`_volesti_frustum_of_simplex`, a, z0)
 }
 
-#' Internal rcpp function for the rounding of a convex polytope
-#'
-#' @param samples The point set.
-#'
-#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
-geweke <- function(samples, frac1 = NULL, frac2 = NULL) {
-    .Call(`_volesti_geweke`, samples, frac1, frac2)
-}
-
 #' Internal rcpp function to compute the full dimensional polytope when a low dimensional is given
 #'
 #' @param P A low dimensional convex polytope in H-representation.
@@ -142,6 +133,20 @@ geweke <- function(samples, frac1 = NULL, frac2 = NULL) {
 #'
 full_dimensional_polytope <- function(P) {
     .Call(`_volesti_full_dimensional_polytope`, P)
+}
+
+#' Geweke MCMC diagnostic test
+#'
+#' @param A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @param frac1 Optional. A portion of the first in order points in matrix samples.
+#' @param frac2 Optional. A portion of the last in order points in matrix samples.
+#'
+#' @references \cite{Geweke, J.,
+#' \dQuote{Evaluating the accuracy of sampling-based approaches to the calculation of posterior moments,} \emph{ In Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
+#'
+#' @return A boolean to denote if the test is passes or fails
+geweke <- function(samples, frac1 = NULL, frac2 = NULL) {
+    .Call(`_volesti_geweke`, samples, frac1, frac2)
 }
 
 #' Compute an inscribed ball of a convex polytope
@@ -183,23 +188,29 @@ poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL)
     .Call(`_volesti_poly_gen`, kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed)
 }
 
-#' Internal rcpp function for the rounding of a convex polytope
+#' Gelman-Rubin Potential Scale Reduction Factor (PSRF)
 #'
-#' @param samples The point set.
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
 #'
-#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
-psrf <- function(samples, method = NULL) {
-    .Call(`_volesti_psrf`, samples, method)
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @return The value of PSRF diagnostic.
+psrf <- function(samples) {
+    .Call(`_volesti_psrf`, samples)
 }
 
-#'  An internal Rccp function for the random rotation of a convex polytope
+#' Raftery MCMC diagnostic test
 #'
-#' @param samples The sampled points from a geometric random walk.
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @param q Optional. The quantile of the quantity of interest. The default value is 0.025.
+#' @param r Optional. The level of precision desired. The default value is 0.01.
+#' @param s Optional. Thr probability associated with r. The default value is 0.95.
 #'
-#' @section warning:
-#' Do not use this function.
+#' @references \cite{Raftery, A. E. and Lewis, S. M.,
+#' \dQuote{How many iterations in the Gibbs sampler?,} \emph{Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 #'
-#' @return A matrix that describes the rotated polytope
+#' @return (i) The number of draws required for burn-in, (i) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992)
 raftery <- function(samples, q = NULL, r = NULL, s = NULL) {
     .Call(`_volesti_raftery`, samples, q, r, s)
 }

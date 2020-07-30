@@ -7,11 +7,13 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+//Based on Matlab version of coda package in http://www.spatial-econometrics.com/gibbs/
+
 #ifndef THIN_HPP
 #define THIN_HPP
 
 template <typename VT, typename MT>
-std::pair<int,VT>  thin(MT work, unsigned int n, unsigned int kthin)
+std::pair<int,VT>  thin(MT const& work, unsigned int const& n, unsigned int const& kthin)
 {
     VT y((n-1) / kthin + 1);
 
@@ -25,7 +27,6 @@ std::pair<int,VT>  thin(MT work, unsigned int n, unsigned int kthin)
 
     return std::pair<int,VT>((n-1) / kthin + 1, y);
 }
-
 
 
 #endif
