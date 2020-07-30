@@ -49,13 +49,13 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         switch (walk)
         {
         case cdhr:
-            round_val = min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng).second;
+            round_val = std::get<2>(min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng));
             break;
         case accelarated_billiard:
-            round_val = min_sampling_covering_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = std::get<2>(min_sampling_covering_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng));
             break;
         default:
-            round_val = min_sampling_covering_ellipsoid_rounding<BilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = std::get<2>(min_sampling_covering_ellipsoid_rounding<BilliardWalk, MT, VT>(P, InnerBall, 2, rng));
             break;
         }
         break;
@@ -65,20 +65,20 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         switch (walk)
         {
         case cdhr:
-            round_val = svd_rounding<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng).second;
+            round_val = std::get<2>(svd_rounding<CDHRWalk, MT, VT>(P, InnerBall, 10 + 10 * n, rng));
             break;
         case accelarated_billiard:
-            round_val = svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = std::get<2>(svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, InnerBall, 2, rng));
             break;
         default:
-            round_val = svd_rounding<BilliardWalk, MT, VT>(P, InnerBall, 2, rng).second;
+            round_val = std::get<2>(svd_rounding<BilliardWalk, MT, VT>(P, InnerBall, 2, rng));
             break;
         }
         break;
     case max_ellipsoid:
         InnerBall = P.ComputeInnerBall();
         P.normalize();
-        round_val = max_inscribed_ellipsoid_rounding<MT, VT>(P, InnerBall).second;
+        round_val = std::get<2>(max_inscribed_ellipsoid_rounding<MT, VT>(P, InnerBall));
         break;
     default:
         break;

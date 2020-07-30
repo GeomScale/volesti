@@ -84,10 +84,11 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-std::pair< std::pair<MT, VT>, NT > svd_rounding(Polytope &P, 
-                                                std::pair<Point,NT> &InnerBall,
-                                                const unsigned int &walk_length,
-                                                RandomNumberGenerator &rng)
+
+std::tuple<MT, VT, NT> svd_rounding(Polytope &P, 
+                                    std::pair<Point,NT> &InnerBall,
+                                    const unsigned int &walk_length,
+                                    RandomNumberGenerator &rng)
 {
     NT tol = 0.00000001;
     NT R = std::pow(10,10), r = InnerBall.second;
@@ -167,13 +168,7 @@ std::pair< std::pair<MT, VT>, NT > svd_rounding(Polytope &P,
         }
     }
 
-    std::pair< std::pair<MT, VT>, NT > result;
-
-    result.first.first = T;
-    result.first.second = shift;
-
-    result.second =  std::abs(T.determinant());
-
+    std::tuple<MT, VT, NT> result = std::make_tuple(T, shift, std::abs(T.determinant()));
     return result;
 }
 

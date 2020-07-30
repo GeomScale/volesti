@@ -44,6 +44,6 @@ ListZono = round_polytope(Z)
 \cite{B. Cousins and S. Vempala,
 \dQuote{A practical volume algorithm,} \emph{Math. Prog. Comp.,} 2016.},
 
-\cite{H. Haraldsdottir and B. Cousins and I. Thiele and R. Fleming and S. Vempala,
-\dQuote{CHRR: coordinate hit-and-run with rounding for uniform sampling of constraint-based models,} \emph{Bioinformatics,} 2017.},
+\cite{Yin Zhang and Liyan Gao,
+\dQuote{On Numerical Solution of the Maximum Volume Ellipsoid Problem,} \emph{SIAM Journal on Optimization,} 2003.},
 }

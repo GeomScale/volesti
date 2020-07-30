@@ -25,7 +25,7 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-std::pair< std::pair<MT, VT>, NT > min_sampling_covering_ellipsoid_rounding(Polytope &P,
+std::tuple<MT, VT, NT> min_sampling_covering_ellipsoid_rounding(Polytope &P,
                                                                             std::pair<Point,NT> &InnerBall,
                                                                             const unsigned int &walk_length,
                                                                             RandomNumberGenerator &rng)
@@ -115,13 +115,8 @@ std::pair< std::pair<MT, VT>, NT > min_sampling_covering_ellipsoid_rounding(Poly
         ratio = Rel / rel;
         iter++;
     }
-    std::pair< std::pair<MT, VT>, NT > result;
-
-    result.first.first = T;
-    result.first.second = shift;
-
-    result.second = std::abs(round_val);
-
+    
+    std::tuple<MT, VT, NT> result = std::make_tuple(T, shift, std::abs(round_val));
     return result;
 }
 

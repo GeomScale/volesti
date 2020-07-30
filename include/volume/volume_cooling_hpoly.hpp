@@ -319,11 +319,9 @@ double volume_cooling_hpoly (Zonotope const& Pin,
 
     HPolytope HP2(HP);
     std::pair<Point, NT> InnerBall = HP2.ComputeInnerBall();
-    std::pair< std::pair<MT, VT>, NT > res = 
-                        min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(HP2, InnerBall,
-                                                                                   10 + 10 * n, rng);
-    
-    NT vol = res.second * volume_cooling_gaussians<GaussianCDHRWalk>(HP2, rng, Her/2.0, 1);
+    std::tuple<MT, VT, NT> res = min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(HP2, InnerBall,
+                                                                                            10 + 10 * n, rng);
+    NT vol = std::get<2>(res) * volume_cooling_gaussians<GaussianCDHRWalk>(HP2, rng, Her/2.0, 1);
 
     if (!parameters.window2) {
         vol *= estimate_ratio_interval<CdhrWalk, Point>(HP, P, ratio, er0, parameters.win_len, 1200,

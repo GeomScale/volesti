@@ -14,8 +14,8 @@
 #' \dQuote{On Khachiyan’s Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids,} \emph{Discrete Applied Mathematics,} 2007.}
 #' @references \cite{B. Cousins and S. Vempala,
 #' \dQuote{A practical volume algorithm,} \emph{Math. Prog. Comp.,} 2016.},
-#' @references \cite{H. Haraldsdottir and B. Cousins and I. Thiele and R. Fleming and S. Vempala,
-#' \dQuote{CHRR: coordinate hit-and-run with rounding for uniform sampling of constraint-based models,} \emph{Bioinformatics,} 2017.},
+#' @references \cite{Yin Zhang and Liyan Gao,
+#' \dQuote{On Numerical Solution of the Maximum Volume Ellipsoid Problem,} \emph{SIAM Journal on Optimization,} 2003.},
 #' 
 #'
 #' @examples

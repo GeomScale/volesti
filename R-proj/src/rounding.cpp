@@ -35,11 +35,11 @@ template
     typename NT, 
     typename RNGType
 >
-std::pair< std::pair<MT, VT>, NT > apply_rounding(Polytope &P, std::string const& method_rcpp,
+std::tuple<MT, VT, NT> apply_rounding(Polytope &P, std::string const& method_rcpp,
                                                   unsigned int const& walkL, std::pair<Point, NT> &InnerBall, 
                                                   RNGType &rng) 
 {
-    std::pair< std::pair<MT, VT>, NT > round_res;
+    std::tuple<MT, VT, NT> round_res;
     if (method_rcpp.compare(std::string("min_ellipsoid")) == 0) {
         round_res = min_sampling_covering_ellipsoid_rounding<WalkType, MT, VT>(P, InnerBall, walkL, rng);
     } else if (method_rcpp.compare(std::string("svd")) == 0) {
@@ -94,11 +94,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
 
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;
-
-    MT N = MT::Identity(n,n);
-    VT N_shift = VT::Zero(n);
-    NT svd_prod = 1.0;
-    std::pair< std::pair<MT, VT>, NT > round_res;
+    std::tuple<MT, VT, NT> round_res;
     switch (type) {
         case 1: {
             // Hpolytope
@@ -107,22 +103,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
                 HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             } else {
                 // low dimensional
-                std::pair<Hpolytope, std::pair<MT, VT> > temp_res = 
-                            get_full_dimensional_polytope<Hpolytope>(Rcpp::as<MT>(P.field("A")),
-                            Rcpp::as<VT>(P.field("b")), Rcpp::as<MT>(P.field("Aeq")), Rcpp::as<VT>(P.field("beq")));
-
-                HP = temp_res.first;
-                N = temp_res.second.first;
-                N_shift = temp_res.second.second;
-
-                Eigen::JacobiSVD<MT> svd(N);
-                svd_prod = svd.singularValues().prod();
-              
-                rng = RNGType(HP.dimension());
-                if (seed.isNotNull()) {
-                    unsigned seed_rcpp = Rcpp::as<double>(seed);
-                    rng.set_seed(seed_rcpp);
-                }
+                throw Rcpp::exception("volesti supports rounding for full dimensional polytopes. Maybe call function get_full_dimensional_polytope()");
             }
             HP.normalize();
             InnerBall = HP.ComputeInnerBall();
@@ -155,10 +136,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
         }
     }
 
-    return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(round_res.first.first),
-                              Rcpp::Named("shift") = Rcpp::wrap(round_res.first.second),
-                              Rcpp::Named("round_value") = round_res.second,
-                              Rcpp::Named("N") = Rcpp::wrap(N),
-                              Rcpp::Named("N_shift") = Rcpp::wrap(N_shift),
-                              Rcpp::Named("svd_prod") = svd_prod);
+    return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(std::get<0>(round_res)),
+                              Rcpp::Named("shift") = Rcpp::wrap(std::get<1>(round_res)),
+                              Rcpp::Named("round_value") = std::get<2>(round_res));
 }
