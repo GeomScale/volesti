@@ -17,7 +17,7 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include "diagnostics/raftery.hpp"
 
-//' Raftery MCMC diagnostic test
+//' Raftery and Lewis MCMC diagnostic
 //'
 //' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
 //' @param q Optional. The quantile of the quantity of interest. The default value is 0.025.

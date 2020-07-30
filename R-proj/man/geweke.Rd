@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{geweke}
 \alias{geweke}
-\title{Geweke MCMC diagnostic test}
+\title{Geweke's MCMC diagnostic}
 \usage{
 geweke(samples, frac1 = NULL, frac2 = NULL)
 }
@@ -17,7 +17,7 @@ geweke(samples, frac1 = NULL, frac2 = NULL)
 A boolean to denote if the test is passes or fails
 }
 \description{
-Geweke MCMC diagnostic test
+Geweke's MCMC diagnostic
 }
 \references{
 \cite{Geweke, J.,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{raftery}
 \alias{raftery}
-\title{Raftery MCMC diagnostic test}
+\title{Raftery and Lewis MCMC diagnostic}
 \usage{
 raftery(samples, q = NULL, r = NULL, s = NULL)
 }
@@ -19,7 +19,7 @@ raftery(samples, q = NULL, r = NULL, s = NULL)
 (i) The number of draws required for burn-in, (i) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992)
 }
 \description{
-Raftery MCMC diagnostic test
+Raftery and Lewis MCMC diagnostic
 }
 \references{
 \cite{Raftery, A. E. and Lewis, S. M.,

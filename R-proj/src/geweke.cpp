@@ -17,7 +17,7 @@
 #include "diagnostics/geweke.hpp"
 
 
-//' Geweke MCMC diagnostic test
+//' Geweke's MCMC diagnostic
 //'
 //' @param A matrix that contans column-wise the sampled points from a geometric random walk.
 //' @param frac1 Optional. A portion of the first in order points in matrix samples.

@@ -135,7 +135,7 @@ full_dimensional_polytope <- function(P) {
     .Call(`_volesti_full_dimensional_polytope`, P)
 }
 
-#' Geweke MCMC diagnostic test
+#' Geweke's MCMC diagnostic
 #'
 #' @param A matrix that contans column-wise the sampled points from a geometric random walk.
 #' @param frac1 Optional. A portion of the first in order points in matrix samples.
@@ -200,7 +200,7 @@ psrf <- function(samples) {
     .Call(`_volesti_psrf`, samples)
 }
 
-#' Raftery MCMC diagnostic test
+#' Raftery and Lewis MCMC diagnostic
 #'
 #' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
 #' @param q Optional. The quantile of the quantity of interest. The default value is 0.025.

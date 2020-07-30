@@ -34,7 +34,6 @@ NT ppnd(NT const& p)
         r = 1 - p;
     }
     if (r <= 0.0){
-        //y = 0.0;
         return 0.0;
     }
  
@@ -49,8 +48,7 @@ NT ppnd(NT const& p)
     }
  
     if (q < 0.0) return -y;
-        //y = -y;
-    //}
+
     return y;
 }
 
