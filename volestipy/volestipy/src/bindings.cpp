@@ -6,6 +6,7 @@ using namespace std;
 
 HPolytopeCPP::HPolytopeCPP() {}
 HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_variables){
+
    MT A;
    VT b;
    A.resize(n_hyperplanes,n_variables);
@@ -130,9 +131,10 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 //////////         start of "rounding()"          //////////
 
-rounded_HPolytope HPolytopeCPP::rounding(int walk_len, bool billiard, &new_A, &new_b){
-   
+//double HPolytopeCPP::rounding(int walk_len, bool billiard, double* new_A, double* new_b, &round_val){
+double HPolytopeCPP::rounding(int walk_len, bool billiard, double* new_A, double* new_b){   
     
+   double round_val;
    std::pair< std::pair<MT, VT>, NT > round_res;
     
    RNGType rng(HP.dimension());
@@ -143,10 +145,11 @@ rounded_HPolytope HPolytopeCPP::rounding(int walk_len, bool billiard, &new_A, &n
        round_res = round_polytope<CDHRWalk, MT, VT>(HP, CheBall, walk_len, rng);
    }
    
-   rounded.new_A = HP.get_mat();
-   rounded.new_b = HP.get_vec();
+   //*new_A = HP.get_mat();
+   //*new_b = HP.get_vec();
+   round_val = round_res.second;
    
-   return rounded;
+   return round_val;
    
 }
 

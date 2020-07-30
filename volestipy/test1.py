@@ -8,7 +8,7 @@ from volestipy import HPolytope
 print("I imported everything right!")
 
 if __name__ == "__main__":
-    dim = 5
+    dim = 8
     A = np.zeros((2*dim, dim), dtype=np.float)
     A[0:dim] = np.eye(dim)
     A[dim:] -=  np.eye(dim,dim, dtype=np.float)
@@ -41,6 +41,11 @@ if __name__ == "__main__":
      gaussian = False, set_L = False, billiard = False, ball_walk = False, a = 0, L = 0)
     print("test1.py: Samples:")
     print(samples)
+
+
+    rounding = p.rounding(walk_len = 2, billiard = True)
+    print("rounding function ran ok\n")
+    print(rounding[2])
 
 
 

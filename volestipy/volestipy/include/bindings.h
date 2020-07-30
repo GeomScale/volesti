@@ -25,25 +25,34 @@
 #include "sampling/sampling.hpp"
 
 
+typedef double NT;
+typedef Cartesian<NT>    Kernel;
+typedef typename Kernel::Point    Point;
+typedef HPolytope<Point> Hpolytope;
+typedef typename Hpolytope::MT    MT;
+typedef typename Hpolytope::VT    VT;
+typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
+typedef struct rounded{
+   MT new_A;
+   VT new_b;
+}rounded_HPolytope;
 
 class HPolytopeCPP{
    public:
    
-      typedef double NT;
-      typedef Cartesian<NT>    Kernel;
-      typedef typename Kernel::Point    Point;
-      typedef HPolytope<Point> Hpolytope;
-      typedef typename Hpolytope::MT    MT;
-      typedef typename Hpolytope::VT    VT;
-      typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
-      
-      typedef struct rounded{
-        MT new_A;
-        VT new_b;
-      } rounded_HPolytope;
-      
-      
-             
+      //typedef double NT;
+      //typedef Cartesian<NT>    Kernel;
+      //typedef typename Kernel::Point    Point;
+      //typedef HPolytope<Point> Hpolytope;
+      //typedef typename Hpolytope::MT    MT;
+      //typedef typename Hpolytope::VT    VT;
+      //typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
+      //
+      //typedef struct rounded{
+      //   MT new_A;
+      //   VT new_b;
+      //}rounded_HPolytope;
+ 
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
         
@@ -59,9 +68,12 @@ class HPolytopeCPP{
        bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
       
 // the rounding() function
-      rounded_HPolytope rounding(int walk_len, bool billiard, double* new_A, double* new_b); 
+      double rounding(int walk_len, bool billiard, double* new_A, double* new_b); //, double* round_val
+
       
 };
+
+
 
 
 #endif
