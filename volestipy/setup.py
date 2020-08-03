@@ -21,10 +21,13 @@ source_directory_list = ['volestipy', join('volestipy','src')]
 compiler_args = [
  "-std=c++11",
  "-O3",
- "-lm",
+  "-DBOOST_NO_AUTO_PTR",
  "-ldl",
- "-DBOOST_NO_AUTO_PTR",
+ "-lm",
 ]
+
+
+link_args = ['-O3']
 
 
 extra_volesti_include_dirs = [
@@ -63,6 +66,7 @@ ext_module = Extension(
  include_dirs = extra_include_dirs + extra_volesti_include_dirs,
  libraries = library_includes,
  extra_compile_args = compiler_args,
+ extra_link_args = link_args,
 )
 print("The Extension function is OK.")
 
