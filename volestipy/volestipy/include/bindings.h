@@ -24,41 +24,47 @@
 #include <chrono>
 #include "sampling/sampling.hpp"
 
+// for rounding
+#include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
+#include "preprocess/svd_rounding.hpp"
+#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 
-typedef double NT;
-typedef Cartesian<NT>    Kernel;
-typedef typename Kernel::Point    Point;
-typedef HPolytope<Point> Hpolytope;
-typedef typename Hpolytope::MT    MT;
-typedef typename Hpolytope::VT    VT;
-typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
-typedef struct rounded{
-   MT new_A;
-   VT new_b;
-}rounded_HPolytope;
+//typedef double NT;
+//typedef Cartesian<NT>    Kernel;
+//typedef typename Kernel::Point    Point;
+//typedef HPolytope<Point> Hpolytope;
+//typedef typename Hpolytope::MT    MT;
+//typedef typename Hpolytope::VT    VT;
+//typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
+//typedef struct rounded{
+//   MT new_A;
+//   VT new_b;
+//}rounded_HPolytope;
 
 class HPolytopeCPP{
    public:
 
-      //typedef double NT;
-      //typedef Cartesian<NT>    Kernel;
-      //typedef typename Kernel::Point    Point;
-      //typedef HPolytope<Point> Hpolytope;
-      //typedef typename Hpolytope::MT    MT;
-      //typedef typename Hpolytope::VT    VT;
-      //typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
-      //
-      //typedef struct rounded{
-      //   MT new_A;
-      //   VT new_b;
-      //}rounded_HPolytope;
+      typedef double NT;
+      typedef Cartesian<NT>    Kernel;
+      typedef typename Kernel::Point    Point;
+      typedef HPolytope<Point> Hpolytope;
+      typedef typename Hpolytope::MT    MT;
+      typedef typename Hpolytope::VT    VT;
+      typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
+      
+      typedef std::tuple<MT, MT, VT, NT>    round_result;
+      
 
+// The class and its main specs
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
 
       Hpolytope HP;
       std::pair<Point,NT> CheBall;
       ~HPolytopeCPP();
+
+
+// The functions of the HPoltopeCPP class
 
 // the compute_volume() function
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);
@@ -68,7 +74,7 @@ class HPolytopeCPP{
        bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
 // the rounding() function
-      double rounding(int walk_len, bool billiard, double* new_A, double* new_b); //, double* round_val
+      double rounding(char* rounding_method, char* walk_type, double L, int walk_len, double* new_A, double* T_matrix, double* shift, double* round_val);
 
 
 };
