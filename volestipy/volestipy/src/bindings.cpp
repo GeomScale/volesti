@@ -66,7 +66,7 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
 
 
 //////////         start of "generate_samples()"          //////////
-double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian,   bool set_L, bool billiard, bool ball_walk, double a, double L, double* samples){
+double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L, double* samples){
 
    RNGType rng(HP.dimension());
    std::list<Point> rand_points;
@@ -130,31 +130,42 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 
 //////////         start of "rounding()"          //////////
+double HPolytopeCPP::rounding(char* rounding_method, char* walk_type, double L, int walk_len, double* new_A, double* T_matrix, double* shift, double* round_val){
 
-//double HPolytopeCPP::rounding(int walk_len, bool billiard, double* new_A, double* new_b, &round_val){
-double HPolytopeCPP::rounding(int walk_len, bool billiard, double* new_A, double* new_b){
 
    auto P(HP);
-   double round_val;
-   std::pair< std::pair<MT, VT>, NT > round_res;
-
    RNGType rng(HP.dimension());
    CheBall = HP.ComputeInnerBall();
 
    std::cout<<"CheBall Coefficient equals to = "<<HP.ComputeInnerBall().first.getCoefficients()<<std::endl;
    std::cout<<"CheBall second equals to = "<<HP.ComputeInnerBall().second<<std::endl;
-
-
-   if (billiard == true){
-       round_res = round_polytope<BilliardWalk, MT, VT>(P, CheBall, walk_len, rng);
-   } else {
-       round_res = round_polytope<CDHRWalk, MT, VT>(P, CheBall, walk_len, rng);
+   
+   round_result round_res;
+   
+   if (strcmp(walk_type,"billiard") == 0){
+      BilliardWalk WalkType(L);
+   } else if (strcmp(walk_type,"ball") == 0){
+      BallWalk WalkType(L);
+   } else if (strcmp(walk_type,"gaussian") == 0){
+      GaussianBallWalk WalkType(L);
    }
 
-   //*new_A = HP.get_mat();
-   //*new_b = HP.get_vec();
-   round_val = round_res.second;
 
-   return round_val;
+   if (strcmp(rounding_method,"min_ellipsoid") == 0){
+      round_res = min_sampling_covering_ellipsoid_rounding<WalkType, MT, VT>(P, CheBall, walk_len, rng);
+            
+   } else if (strcmp(rounding_method,"svd") == 0){      
+      round_res = svd_rounding<WalkType, MT, VT>(P, CheBall, walk_len, rng);
+
+   } else if (strcmp(rounding_method, "max_ellipsoid"){
+       round_res = max_inscribed_ellipsoid_rounding<MT, VT>(P, CheBall); 
+   }
+   
+   new_A = P.get_mat();   
+   T_matrix = round_res.T;
+   shift = round_res.shift;
+   round_val = round_res.round_val;
+
+   return 1.0;
 
 }
