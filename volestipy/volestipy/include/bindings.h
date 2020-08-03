@@ -5,7 +5,7 @@
 //#include "Eigen/Eigen"
 //#include "cartesian_kernel.h"
 
-// from SOB volume - exactly the same for CG and CB methods 
+// from SOB volume - exactly the same for CG and CB methods
 #include <fstream>
 #include <iostream>
 #include "random_walks.hpp"
@@ -39,7 +39,7 @@ typedef struct rounded{
 
 class HPolytopeCPP{
    public:
-   
+
       //typedef double NT;
       //typedef Cartesian<NT>    Kernel;
       //typedef typename Kernel::Point    Point;
@@ -52,25 +52,25 @@ class HPolytopeCPP{
       //   MT new_A;
       //   VT new_b;
       //}rounded_HPolytope;
- 
+
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
-        
+
       Hpolytope HP;
       std::pair<Point,NT> CheBall;
       ~HPolytopeCPP();
-        
+
 // the compute_volume() function
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);
 
-// the generate_samples() function      
+// the generate_samples() function
       double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, \
        bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
-      
+
 // the rounding() function
       double rounding(int walk_len, bool billiard, double* new_A, double* new_b); //, double* round_val
 
-      
+
 };
 
 

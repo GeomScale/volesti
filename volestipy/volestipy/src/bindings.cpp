@@ -31,8 +31,8 @@ HPolytopeCPP::~HPolytopeCPP(){}
 double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed){
   
    double volume;
-   
-   if (strcmp(vol_method,"sequence_of_balls")==0){ 
+
+   if (strcmp(vol_method,"sequence_of_balls")==0){
       if (strcmp(walk_method,"uniform_ball")==0){
          volume = volume_sequence_of_balls<BallWalk, RNGType>(HP, epsilon, walk_len);
       } else if (strcmp(walk_method,"CDHR")==0){
@@ -62,20 +62,20 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
    }
    return volume;
 }
-//////////           end of "compute_volume()"            //////////  
+//////////           end of "compute_volume()"            //////////
 
 
 //////////         start of "generate_samples()"          //////////
 double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian,   bool set_L, bool billiard, bool ball_walk, double a, double L, double* samples){
- 
+
    RNGType rng(HP.dimension());
    std::list<Point> rand_points;
-   
+
    //Point default_starting_point = HP.ComputeInnerBall().first;
    Point starting_point = HP.ComputeInnerBall().first;
-   
-   if (boundary == true) {      
-      if (cdhr == true) {    
+
+   if (boundary == true) {
+      if (cdhr == true) {
          uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
          } else {
             uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
@@ -133,29 +133,28 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 //double HPolytopeCPP::rounding(int walk_len, bool billiard, double* new_A, double* new_b, &round_val){
 double HPolytopeCPP::rounding(int walk_len, bool billiard, double* new_A, double* new_b){
-   
-   auto P(HP); 
+
+   auto P(HP);
    double round_val;
    std::pair< std::pair<MT, VT>, NT > round_res;
-    
+
    RNGType rng(HP.dimension());
    CheBall = HP.ComputeInnerBall();
-   
+
    std::cout<<"CheBall Coefficient equals to = "<<HP.ComputeInnerBall().first.getCoefficients()<<std::endl;
    std::cout<<"CheBall second equals to = "<<HP.ComputeInnerBall().second<<std::endl;
 
-    
+
    if (billiard == true){
        round_res = round_polytope<BilliardWalk, MT, VT>(P, CheBall, walk_len, rng);
    } else {
        round_res = round_polytope<CDHRWalk, MT, VT>(P, CheBall, walk_len, rng);
    }
-   
+
    //*new_A = HP.get_mat();
    //*new_b = HP.get_vec();
    round_val = round_res.second;
 
    return round_val;
-   
-}
 
+}

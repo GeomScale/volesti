@@ -37,7 +37,7 @@ if __name__ == "__main__":
     print("test1.py: Volume (test_volume): {}".format(test_volume))
 
 # Run tests for the generate_samples() function
-    samples = p.generate_samples(walk_len = 1, number_of_points = 1000, number_of_points_to_burn = 50, boundary = True, cdhr = True, rdhr = False, 
+    samples = p.generate_samples(walk_len = 1, number_of_points = 1000, number_of_points_to_burn = 50, boundary = True, cdhr = True, rdhr = False,
      gaussian = False, set_L = False, billiard = False, ball_walk = False, a = 0, L = 0)
     print("test1.py: Samples:")
     print(samples)
@@ -46,6 +46,3 @@ if __name__ == "__main__":
     rounding = p.rounding(walk_len = 2, billiard = True)
     print("rounding function ran ok\n")
     print(rounding[2])
-
-
-

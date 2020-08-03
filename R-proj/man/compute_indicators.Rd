@@ -4,8 +4,15 @@
 \alias{compute_indicators}
 \title{Compute an indicator for each time period that describes the state of a market.}
 \usage{
-compute_indicators(returns, win_length = NULL, m = NULL, n = NULL,
-  nwarning = NULL, ncrisis = NULL, seed = NULL)
+compute_indicators(
+  returns,
+  win_length = NULL,
+  m = NULL,
+  n = NULL,
+  nwarning = NULL,
+  ncrisis = NULL,
+  seed = NULL
+)
 }
 \arguments{
 \item{returns}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}

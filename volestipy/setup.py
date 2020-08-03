@@ -47,12 +47,12 @@ extra_volesti_include_dirs = [
  join("..","include","random_walks"),
  join("..","include","volume"),
  join("..","include","generators"),
- join("..","include","cartesian_geom"), 
+ join("..","include","cartesian_geom"),
 ]
 
 
 src_files = ["volestipy/volestipy.pyx","volestipy/src/bindings.cpp"]
-extra_include_dirs = [numpy.get_include()] 
+extra_include_dirs = [numpy.get_include()]
 # Return the directory that contains the NumPy *.h header files.
 # Extension modules that need to compile against NumPy should use this function to locate the appropriate include directory.
 

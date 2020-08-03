@@ -4,10 +4,12 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-round_polytope(P, seed = NULL)
+round_polytope(P, method = NULL, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
+
+\item{method}{Optional. The method to use for rounding, a) \code{'mee'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'mee'} for all the representations.}
 
 \item{seed}{Optional. A fixed seed for the number generator.}
 }
@@ -38,4 +40,10 @@ ListZono = round_polytope(Z)
 
 \cite{Michael J. Todd and E. Alper Yildirim,
 \dQuote{On Khachiyan’s Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids,} \emph{Discrete Applied Mathematics,} 2007.}
+
+\cite{B. Cousins and S. Vempala,
+\dQuote{A practical volume algorithm,} \emph{Math. Prog. Comp.,} 2016.},
+
+\cite{Yin Zhang and Liyan Gao,
+\dQuote{On Numerical Solution of the Maximum Volume Ellipsoid Problem,} \emph{SIAM Journal on Optimization,} 2003.},
 }

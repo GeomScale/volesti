@@ -120,12 +120,28 @@ frustum_of_simplex <- function(a, z0) {
     .Call(`_volesti_frustum_of_simplex`, a, z0)
 }
 
+#' Internal rcpp function to compute the full dimensional polytope when a low dimensional is given
+#'
+#' @param P A low dimensional convex polytope in H-representation.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse
+#'         linear transformation that is applied on the input polytope, the numerical vector - point that the
+#'         input polytope is shifted and the product of the singular values of the matrix of the linear map 
+#'         applied on the input polytope.
+#'
+full_dimensional_polytope <- function(P) {
+    .Call(`_volesti_full_dimensional_polytope`, P)
+}
+
 #' Compute an inscribed ball of a convex polytope
 #'
 #' For a H-polytope described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }, this function computes the largest inscribed ball (Chebychev ball) by solving the corresponding linear program.
 #' For both zonotopes and V-polytopes the function computes the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
 #'
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
+#' @param method Optional. A string to declare the method to be used: (i) \code{'lpsolve'} to use lpsolve library, (ii) \code{'ipm'} to use an interior point method which solves the corresponding linear program. The default method is \code{'lpsolve'}.
 #'
 #' @return A \eqn{(d+1)}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
 #'
@@ -138,8 +154,8 @@ frustum_of_simplex <- function(a, z0) {
 #' P = gen_cube(3, 'V')
 #' ball_vec = inner_ball(P)
 #' @export
-inner_ball <- function(P) {
-    .Call(`_volesti_inner_ball`, P)
+inner_ball <- function(P, method = NULL) {
+    .Call(`_volesti_inner_ball`, P, method)
 }
 
 #' An internal Rccp function as a polytope generator
@@ -174,13 +190,14 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' Internal rcpp function for the rounding of a convex polytope
 #'
 #' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @keywords internal
 #'
 #' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
-rounding <- function(P, seed = NULL) {
-    .Call(`_volesti_rounding`, P, seed)
+rounding <- function(P, method = NULL, seed = NULL) {
+    .Call(`_volesti_rounding`, P, method, seed)
 }
 
 #' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
@@ -192,8 +209,8 @@ rounding <- function(P, seed = NULL) {
 #' @param random_walk Optional. A list that declares the random walk and some related parameters as follows:
 #' \itemize{
 #' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
-#' \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
-#' \item{\code{nburns} }{ The number of points to burn before start sampling.}
+#' \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{1}.}
+#' \item{\code{nburns} }{ The number of points to burn before start sampling. The default value is \eqn{1}.}
 #' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 #' \item{\code{BaW_rad} }{ The radius for the ball walk.}
 #' \item{\code{L} }{ The maximum length of the billiard trajectory.}
@@ -237,6 +254,7 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = 
 #' @param outputFile Name of the output file
 #'
 #' @examples
+#' \dontrun{
 #' A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
 #' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 #' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
@@ -244,6 +262,7 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = 
 #' S = Spectrahedron$new(lmi);
 #' objFunction = c(1,1)
 #' writeSdpaFormatFile(S, objFunction, "output.txt")
+#' }
 #' @export
 writeSdpaFormatFile <- function(spectrahedron = NULL, objectiveFunction = NULL, outputFile = NULL) {
     invisible(.Call(`_volesti_writeSdpaFormatFile`, spectrahedron, objectiveFunction, outputFile))
@@ -270,14 +289,14 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
 #' @param P A convex polytope. It is an object from class a) Hpolytope or b) Vpolytope or c) Zonotope or d) VpolytopeIntersection.
 #' @param settings Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
 #' \itemize{
-#' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'CB'} for CB algorithm, b) \code{'SoB'} for SOB algorithm or b) \code{'CG'} for CG algorithm. The defalut algorithm for H-polytopes is \code{'CB'} when \eqn{d\leq 200} and \code{'CG'} when \eqn{d>200}. For the other representations the default algorithm is \code{'CB'}.}
+#' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'CB'} for CB algorithm, b) \code{'SoB'} for SOB algorithm or b) \code{'CG'} for CG algorithm. The defalut algorithm is \code{'CB'}.}
 #' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for SOB algorithm and \eqn{0.1} otherwise.}
-#' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. For CB and SOB algorithms the default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations. For CG algorithm the default walk is \code{'CDHR'} for H-polytopes and \code{'RDHR'} for the other representations.}
+#' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. For CB algorithm the default walk is \code{'BiW'}. For CG and SOB algorithms the default walk is \code{'CDHR'} for H-polytopes and \code{'RDHR'} for the other representations.}
 #' \item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for \code{'SOB'} and \eqn{1} otherwise.}
-#' \item{\code{win_len} }{ The length of the sliding window for CB or CG algorithm. The default value is \eqn{400+3d^2} for CB or \eqn{500+4d^2} for CG.}
+#' \item{\code{win_len} }{ The length of the sliding window for CB or CG algorithm. The default value is \eqn{250} for CB with BiW and \eqn{400+3d^2} for CB and any other random walk and \eqn{500+4d^2} for CG.}
 #' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm when the input polytope is a zonotope. The default value is \code{TRUE} when the order of the zonotope is \eqn{<5}, otherwise it is \code{FALSE}.}
 #' }
-#' @param rounding Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.
+#' @param rounding Optional. A string parameter to request a rounding method to be applied in the input polytope before volume computation: a) \code{'min_ellipsoid'}, b) \code{'svd'}, c) \code{'max_ellipsoid'} and d) \code{'none'} for no rounding.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @references \cite{I.Z.Emiris and V. Fisikopoulos,
