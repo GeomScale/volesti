@@ -80,18 +80,27 @@ cdef class HPolytope:
       cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype = np.float64, order = "C")
       
       self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L, &samples[0,0])     
+
       return np.asarray(samples)      # we need to build a Python function for getting a starting point depending on the polytope 
 
 
 
 # this is the first function that was not included in the volestipy at all till now; the rounding() function    
-   def rounding(self, walk_len = (10 + self._A.shape[1]/10) , billiard = False):
-      
+   def rounding(self, walk_len = -1, billiard = False):
+        
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
       cdef double[:,::1] new_A = np.zeros((n_hyperplanes, n_variables), dtype=np.float64, order="C")
       cdef double[::1] new_b = np.zeros((n_hyperplanes), dtype=np.float64, order="C")
       cdef double round_val
       
+      
+      if billiard == True:
+         walk_len = 2
+         
+      else:
+         if walk_len == -1:
+            walk_len = 10 + (n_variables/10)
+
       self.polytope_cpp.rounding(walk_len, billiard, &new_A[0,0], &new_b[0]) #, &round_val
       
       py_new_A = np.asarray(new_A)
