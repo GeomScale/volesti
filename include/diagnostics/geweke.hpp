@@ -52,9 +52,12 @@ bool perform_geweke(MT const& samples, NT const& frac1, NT const& frac2)
 
     NT U = ((NT(N1) + NT(N2) - NT(d) - 1.0) / ((NT(N1) + NT(N2) - 2.0) * NT(d))) * T2;
 
-    boost::math::fisher_f dist(d, N1 + N2 - d - 1);
+    boost::math::fisher_f dist(d, int(N1) + int(N2) - d - 1);
+    
+    NT F1 = boost::math::quantile(dist, alpha / 2.0);
+    NT F2 = boost::math::quantile(boost::math::complement(dist, alpha/2.0));
 
-    if (U > (boost::math::quantile(boost::math::complement(dist, alpha)))) {
+    if (U <= F1 || U > F2) {
         return false;
     }
     return true;

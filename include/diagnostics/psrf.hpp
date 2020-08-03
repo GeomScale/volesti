@@ -48,13 +48,13 @@ NT perform_psrf(MT const& points)
 
     B = B + (mean1 - mean00) * (mean1 - mean00).transpose();
     B = B + (mean2 - mean00) * (mean2 - mean00).transpose();
-    B = B * NT(N / 2.0);
+    //B = B * NT(N / 2.0);
 
     MT SB = S.inverse() * B;
     Eigen::SelfAdjointEigenSolver <MT> eigensolver(SB);
     NT l_max = eigensolver.eigenvalues().maxCoeff();
 
-    NT R = std::sqrt((NT(N1) - NT(1))/NT(N1) + 1.5 * (l_max) / NT(N1));
+    NT R = (NT(N1) - NT(1))/NT(N1) + 1.5 * l_max;
     return R;
 }
 

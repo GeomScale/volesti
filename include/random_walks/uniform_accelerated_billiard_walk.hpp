@@ -97,13 +97,13 @@ struct AcceleratedBilliardWalk
                           RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
-            NT T = -std::log(rng.sample_urdist()) * _L;
+            NT T;
             const NT dl = 0.995;
             int it;
 
             for (auto j=0u; j<walk_length; ++j)
             {
-                T = rng.sample_urdist() * _L;
+                T = -std::log(rng.sample_urdist()) * _L;
                 _v = GetDirection<Point>::apply(n, rng);
                 Point p0 = _p;
 
@@ -112,7 +112,7 @@ struct AcceleratedBilliardWalk
                 if (T <= pbpair.first) {
                     _p += (T * _v);
                     _lambda_prev = T;
-                    return;
+                    continue;
                 }
 
                 _lambda_prev = dl * pbpair.first;
