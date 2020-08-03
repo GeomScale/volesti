@@ -132,23 +132,29 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 //////////         start of "rounding()"          //////////
 
 //double HPolytopeCPP::rounding(int walk_len, bool billiard, double* new_A, double* new_b, &round_val){
-double HPolytopeCPP::rounding(int walk_len, bool billiard, double* new_A, double* new_b){   
-    
+double HPolytopeCPP::rounding(int walk_len, bool billiard, double* new_A, double* new_b){
+   
+   auto P(HP); 
    double round_val;
    std::pair< std::pair<MT, VT>, NT > round_res;
     
    RNGType rng(HP.dimension());
+   CheBall = HP.ComputeInnerBall();
+   
+   std::cout<<"CheBall Coefficient equals to = "<<HP.ComputeInnerBall().first.getCoefficients()<<std::endl;
+   std::cout<<"CheBall second equals to = "<<HP.ComputeInnerBall().second<<std::endl;
 
+    
    if (billiard == true){
-       round_res = round_polytope<BilliardWalk, MT, VT>(HP, CheBall, walk_len, rng);
+       round_res = round_polytope<BilliardWalk, MT, VT>(P, CheBall, walk_len, rng);
    } else {
-       round_res = round_polytope<CDHRWalk, MT, VT>(HP, CheBall, walk_len, rng);
+       round_res = round_polytope<CDHRWalk, MT, VT>(P, CheBall, walk_len, rng);
    }
    
    //*new_A = HP.get_mat();
    //*new_b = HP.get_vec();
    round_val = round_res.second;
-   
+
    return round_val;
    
 }
