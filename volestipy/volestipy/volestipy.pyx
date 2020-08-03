@@ -19,28 +19,26 @@ def get_time_seed():
 # get main class from the bindings.h file
 cdef extern from "bindings.h":
 
-
    cdef cppclass HPolytopeCPP:
-
 
       HPolytopeCPP() except +
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables) except +
 
+# compute volume
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);
 
+# random sampling
       double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, \
          bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
-      # void rounding(int walk_len, bool billiard, double* new_A, double* new_b, double* round_val);
-      double rounding(int walk_len, bool billiard, double* new_A, double* new_b);
-
-
-
+# rounding H-Polytope
+      double rounding(char* rounding_method, char* walk_type, double L, int walk_len, double* new_A, double* T_matrix, double* shift, double* round_val);
 
 # lists with the methods supported by volesti for volume approximation and random walk
 volume_methods = ["sequence_of_balls".encode("UTF-8"), "cooling_gaussian".encode("UTF-8"), "cooling_balls".encode("UTF-8")]
 walk_methods = ["uniform_ball".encode("UTF-8"), "CDHR".encode("UTF-8"), "RDHR".encode("UTF-8"), "gaussian_ball".encode("UTF-8"), \
                 "gaussian_CDHR".encode("UTF-8"), "gaussian_RDHR".encode("UTF-8"), "uniform_ball".encode("UTF-8"), "billiard".encode("UTF-8")]
+walk_types = ["billiard".encode("UTF-8"), "gaussian".encode("UTF-8"), "ball".encode("UTF-8")]
 
 
 # build the HPolytope class - the 'polytope_cpp' is an instance of the HPolytopeCPP class described on the 'bindings.cpp' file
@@ -63,7 +61,7 @@ cdef class HPolytope:
       vol_method = vol_method.encode("UTF-8")
       walk_method = walk_method.encode("UTF-8")
 
-      if vol_method  in volume_methods:
+      if vol_method in volume_methods:
          if walk_method in walk_methods:
             return self.polytope_cpp.compute_volume(vol_method, walk_method, walk_len, epsilon, seed)
          else:
@@ -96,27 +94,40 @@ cdef class HPolytope:
 
 
 # this is the first function that was not included in the volestipy at all till now; the rounding() function
-   def rounding(self, walk_len = -1, billiard = False):
+   def rounding(self, rounding_method = 'max_ellipsoid', walk_type = 'gaussian', L = 0, walk_len = -1):
 
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
-      cdef double[:,::1] new_A = np.zeros((n_hyperplanes, n_variables), dtype=np.float64, order="C")
-      cdef double[::1] new_b = np.zeros((n_hyperplanes), dtype=np.float64, order="C")
-      cdef double round_val
+      
+      cpdef double[:,::1] new_A = np.zeros((n_hyperplanes, n_variables), dtype=np.float64, order="C")
+      cpdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")    
+      cpdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
+      cpdef double round_val
+      
+      
+      
+      if rounding_method != "max_ellipsoid":
+         
+         if walk_type in walk_types:
 
-
-      if billiard == True:
-         walk_len = 2
-
+            if walk_len != "-1":
+               self.polytope_cpp.rounding(rounding_method, walk_type, L, walk_len, &T_matrix[0,0], &new_A[0,0], &shift[0], &round_val)
+            else:
+               raise Exception('Walk length cannot take negative values. Please, give another value in this parameter\n')
+         
+         else:
+            raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(walk_type, walk_types))
+         
       else:
-         if walk_len == -1:
-            walk_len = 10 + (n_variables/10)
+         self.polytope_cpp.rounding(rounding_method, walk_type, L, walk_len, &T_matrix[0,0], &new_A[0,0], &shift[0], &round_val)
 
-      self.polytope_cpp.rounding(walk_len, billiard, &new_A[0,0], &new_b[0]) #, &round_val
-
-      py_new_A = np.asarray(new_A)
-      py_new_b = np.asarray(new_b)
-      py_round_val = np.asarray(round_val)
-      output = (py_new_A, py_new_b, py_round_val)
+     
+                                 
+                                 
+      new_A = np.asarray(new_A)
+      T_matrix = np.asarray(T_matrix)
+      shift = np.asarray(shift)
+      round_val = np.asarray(round_val)
+      output = (new_A, T_matrix, shift, round_val)
 
       return output
 
