@@ -14,7 +14,7 @@
 #include <boost/math/distributions/fisher_f.hpp>
 
 template <typename VT, typename MT, typename NT>
-bool perform_geweke(MT const& samples, NT const& frac1, NT const& frac2)
+bool perform_geweke(MT const& samples, NT frac1 = 0.1, NT const& frac2 = 0.5)
 {
     unsigned int d = samples.rows(), N = samples.cols();
     unsigned int N1 = N * frac1;
@@ -24,6 +24,7 @@ bool perform_geweke(MT const& samples, NT const& frac1, NT const& frac2)
     VT mean1 = VT::Zero(d), mean2 = VT::Zero(d);
     NT alpha = 0.05;
 
+    // Compute sample means and covariances
     for (int i = 0; i < N1; ++i) {
         mean1 += samples.col(i);
     }
@@ -45,11 +46,16 @@ bool perform_geweke(MT const& samples, NT const& frac1, NT const& frac2)
     }
     sigma2 = sigma2 / (NT(N2) - 1.0);
 
+    // Compute the pooled covariance matrix
     MT S_pl = ((NT(N1) - 1.0)*sigma1 + (NT(N2) - 1.0)*sigma2) / (NT(N1) + NT(N2) - 2.0);
 
+    // T2 follows Hotelling's T-squared distribution under the assumption of 
+    // equal covariances and when the null hypothesis is true
     NT T2 = (mean1 - mean2).transpose() * S_pl.inverse() * (mean1 - mean2);
     T2 = ((NT(N1) * NT(N2))/(NT(N1) + NT(N2))) * T2;
 
+    // U follows Fischer distribution
+    // We use this transformation to check the null hypothesis more easily
     NT U = ((NT(N1) + NT(N2) - NT(d) - 1.0) / ((NT(N1) + NT(N2) - 2.0) * NT(d))) * T2;
 
     boost::math::fisher_f dist(d, int(N1) + int(N2) - d - 1);
@@ -57,10 +63,10 @@ bool perform_geweke(MT const& samples, NT const& frac1, NT const& frac2)
     NT F1 = boost::math::quantile(dist, alpha / 2.0);
     NT F2 = boost::math::quantile(boost::math::complement(dist, alpha/2.0));
 
-    if (U <= F1 || U > F2) {
+    if (U <= F1 || U > F2) { // reject null hypothesis
         return false;
     }
-    return true;
+    return true; // do not reject null hypothesis
 
 }
 

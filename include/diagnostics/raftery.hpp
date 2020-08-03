@@ -46,7 +46,7 @@ std::pair<MT,VT> perform_raftery(MT const& samples, NT const& q, NT const& r, NT
 
     for (int i = 0; i < d; i++)
     {
-        cutpt = empquant<VT>(samples, q);
+        cutpt = empquant<VT>(samples, q, i);
         for (int j = 0; j < n; j++)
         {
             for (int k = 0; k < d; k++)
@@ -82,6 +82,8 @@ std::pair<MT,VT> perform_raftery(MT const& samples, NT const& q, NT const& r, NT
         while (bic > 0.0)
         {
             xy = thin<VTint>(work, n, kmind);
+            tcnt = xy.first;
+            tmp = xy.second;
             g2bic = indtest<MTint, NT>(tmp, tcnt);
             g2 = g2bic.first;
             bic = g2bic.second;
