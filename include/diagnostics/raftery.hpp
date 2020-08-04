@@ -7,7 +7,11 @@
 
 //Licensed under GNU LGPL.3, see LICENCE file
 
-//Based on Matlab version of coda package in http://www.spatial-econometrics.com/gibbs/
+/*
+    This function implements a multivariate version of the raftery & Lewis diagnostic.
+    It is based on Matlab version of coda package in http://www.spatial-econometrics.com/gibbs/
+    and "How many iterations in the Gibbs sampler?, 1992" by A. Raftery and S. Lewis
+*/
 
 #ifndef RAFTERY_HPP
 #define RAFTERY_HPP
@@ -28,14 +32,15 @@ NT fix(NT x)
 
 
 template <typename VT, typename MT, typename NT>
-std::pair<MT,VT> perform_raftery(MT const& samples, NT const& q, NT const& r, NT const& s)
+MT perform_raftery(MT const& runs, NT const& q, NT const& r, NT const& s)
 {
+    MT samples = runs.transpose();
+
     typedef Eigen::Matrix<int,Eigen::Dynamic,Eigen::Dynamic> MTint;
     typedef Eigen::Matrix<int,Eigen::Dynamic,1> VTint;
 
     unsigned int n = samples.rows(), d = samples.cols(), kthin, kmind;
-    MT results(d, 5);
-    VT res(d);
+    MT results(d, 6);
     MTint work = MTint::Zero(n, d); 
     VTint tmp = VTint::Zero(n);
     std::pair<int, VTint> xy;
@@ -44,9 +49,21 @@ std::pair<MT,VT> perform_raftery(MT const& samples, NT const& q, NT const& r, NT
     NT cutpt, alpha, beta, g2, bic, epss;
     int tcnt;
 
+    MT sorted_samples(n, d);
+    VT a(n);
+    std::vector<NT> temp_col(n);
+
     for (int i = 0; i < d; i++)
     {
-        cutpt = empquant<VT>(samples, q, i);
+        a = samples.col(i);
+        temp_col = std::vector<NT>(&a[0], a.data() + a.cols() * a.rows());
+        std::sort(temp_col.begin(), temp_col.end());
+        sorted_samples.col(i) = Eigen::Map<VT>(&temp_col[0], temp_col.size());
+    }
+
+    for (int i = 0; i < d; i++)
+    {
+        cutpt = empquant<VT>(sorted_samples, q);
         for (int j = 0; j < n; j++)
         {
             for (int k = 0; k < d; k++)
@@ -97,9 +114,9 @@ std::pair<MT,VT> perform_raftery(MT const& samples, NT const& q, NT const& r, NT
         NT tmp1  = std::log(psum * epss / std::max(alpha, beta)) / std::log(std::abs(1.0 - psum));
         NT nburn = fix((tmp1 + 1.0) * NT(kthin));
         NT phi   = ppnd((s + 1.0) / 2.0);
-        NT tmp2  = (2.0 - psum) * alpha * beta * (phi * phi)/(psum * psum * psum * (r * r));
+        NT tmp2  = (2.0 - psum) * alpha * beta * (phi * phi) / (psum * psum * psum * (r * r));
         NT nprec = fix(tmp2 + 1.0) * kthin; 
-        NT nmin  = fix(((1.0 - q) * q * (phi * phi)/(r * r)) + 1.0);
+        NT nmin  = fix(((1.0 - q) * q * (phi * phi) / (r * r)) + 1.0);
         NT irl   = (nburn + nprec) / nmin; 
         NT kind  = std::max(fix(irl + 1.0), NT(kmind));
  
@@ -108,10 +125,9 @@ std::pair<MT,VT> perform_raftery(MT const& samples, NT const& q, NT const& r, NT
         results(i, 2) = kind;
         results(i, 3) = NT(nburn) + nprec;
         results(i, 4) = nmin;
-
-        res(i) = irl;
+        results(i, 5) = irl;
     }
-    return std::pair<MT,VT>(results, res);
+    return results;
 }
 
 

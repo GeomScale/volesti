@@ -16,7 +16,7 @@ raftery(samples, q = NULL, r = NULL, s = NULL)
 \item{s}{Optional. Thr probability associated with r. The default value is 0.95.}
 }
 \value{
-(i) The number of draws required for burn-in, (i) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992)
+(i) The number of draws required for burn-in, (ii) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992)
 }
 \description{
 Raftery and Lewis MCMC diagnostic

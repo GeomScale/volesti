@@ -126,11 +126,10 @@ void call_test_raftery(){
     NT _r = 0.01;
     NT _s = 0.95;
 
-    MT runs = samples.transpose();
-    std::pair<MT,VT> res = perform_raftery<VT>(runs, _q, _r, _s);
+    MT res = perform_raftery<VT>(samples, _q, _r, _s);
 
-    std::cout<<"raftery walk length to get indepedent samples, 1st coordinate = "<<res.first(0,2)<<std::endl;
-    CHECK(res.first(0,2) < 6);
+    std::cout<<"raftery walk length to get indepedent samples, 1st coordinate = "<<res(0,2)<<std::endl;
+    CHECK(res(0,2) < 6);
 }
 
 

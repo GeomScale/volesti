@@ -7,6 +7,13 @@
 
 //Licensed under GNU LGPL.3, see LICENCE file
 
+/*
+    This function implements a multivariate version of the Rubin & Gelman diagnostic.
+    It is based on "Inference from iterative simulation using multiple sequences, 1992" by D. B. Rubin and A. Gelman
+    and "General Methods for Monitoring Convergence of Iterative Simulations, 2012" by S. Brooks and A. Gelman
+
+    The sample is splitted into two parts. Then a multivariate psrf is computed as proposed by S. Brooks and A. Gelman
+*/
 
 #ifndef PSRF_HPP
 #define PSRF_HPP
@@ -48,7 +55,6 @@ NT perform_psrf(MT const& points)
 
     B = B + (mean1 - mean00) * (mean1 - mean00).transpose();
     B = B + (mean2 - mean00) * (mean2 - mean00).transpose();
-    //B = B * NT(N / 2.0);
 
     MT SB = S.inverse() * B;
     Eigen::SelfAdjointEigenSolver <MT> eigensolver(SB);

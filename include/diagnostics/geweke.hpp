@@ -7,6 +7,14 @@
 
 //Licensed under GNU LGPL.3, see LICENCE file
 
+/*
+    This function implements a multivariate version of the Geweke diagnostic.
+    It is reduced to Hotelling's Two Sample test, which is a multivariate 
+    extension of the common two sample Student's t-test.
+    It is based on "Evaluating the accuracy of sampling-based approaches
+                    to the calculation of posterior moments, 1992" by J. Geweke
+*/
+
 
 #ifndef GEWEKE_HPP
 #define GEWEKE_HPP

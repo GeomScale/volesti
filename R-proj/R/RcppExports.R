@@ -210,7 +210,7 @@ psrf <- function(samples) {
 #' @references \cite{Raftery, A. E. and Lewis, S. M.,
 #' \dQuote{How many iterations in the Gibbs sampler?,} \emph{Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 #'
-#' @return (i) The number of draws required for burn-in, (i) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992)
+#' @return (i) The number of draws required for burn-in, (ii) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992)
 raftery <- function(samples, q = NULL, r = NULL, s = NULL) {
     .Call(`_volesti_raftery`, samples, q, r, s)
 }
