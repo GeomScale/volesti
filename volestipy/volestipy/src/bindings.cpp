@@ -185,11 +185,11 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
    
    VT shift_to_copy = get<1>(round_res);
    for (int i = 0; i < new_n_hyperplanes; i++){
-      shift(i) = shift_to_copy[i];
+      shift[i] = shift_to_copy[i];
    }
    
    
-   round_val = get<2>(round_res);
+   //round_val = get<2>(round_res);
 
    return 1.0;
 
