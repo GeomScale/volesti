@@ -133,6 +133,9 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double* round_val){
 
 
+//  the initial function returns a tuple with the followings: (T, shift, std::abs(round_val))
+
+
    auto P(HP);
    RNGType rng(HP.dimension());
    CheBall = HP.ComputeInnerBall();
@@ -144,12 +147,14 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
    int walk_len = 2;
    
    if (strcmp(rounding_method,"min_ellipsoid") == 0){
-      round_res = min_sampling_covering_ellipsoid_rounding<WalkType, MT, VT>(P, CheBall, walk_len, rng);
-            
-   } else if (strcmp(rounding_method,"svd") == 0){      
-      round_res = svd_rounding<WalkType, MT, VT>(P, CheBall, walk_len, rng);
+      //round_res = min_sampling_covering_ellipsoid_rounding<WalkType, MT, VT>(P, CheBall, walk_len, rng);
+      round_res = min_sampling_covering_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, CheBall, walk_len, rng);      
 
-   } else if (strcmp(rounding_method, "max_ellipsoid"){
+   } else if (strcmp(rounding_method,"svd") == 0){      
+      //round_res = svd_rounding<WalkType, MT, VT>(P, CheBall, walk_len, rng);
+      round_res = svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, CheBall, walk_len, rng);
+      
+   } else if (strcmp(rounding_method, "max_ellipsoid") == 0){
        round_res = max_inscribed_ellipsoid_rounding<MT, VT>(P, CheBall); 
    }
    
@@ -159,7 +164,7 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
    int new_n_variables = P.dimension();
    
    auto n_si = 0;
-   for (int i = 0; i < new_n_hyperplanes.rows(); i++){
+   for (int i = 0; i < new_n_hyperplanes; i++){
       for (int j = 0; j < new_n_variables; j++){
          new_A[n_si++] = A_to_copy(i,j);
       }
@@ -167,10 +172,10 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
    
    VT b_to_copy = P.get_vec();
    for (int i=0; i < new_n_hyperplanes; i++){
-      new_b(i) = b_to_copy[i];   
-   
+      new_b[i] = b_to_copy[i];   
+   }
 
-   MT T_to_copy = round_res.T;
+   MT T_to_copy = get<0>(round_res);
    auto t_si = 0;
    for (int i = 0; i < new_n_hyperplanes; i++){
       for (int j = 0; j < new_n_variables; j++){
@@ -178,13 +183,13 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
       }
    }
    
-   VT shift_to_copy = round_res.shift;
+   VT shift_to_copy = get<1>(round_res);
    for (int i = 0; i < new_n_hyperplanes; i++){
-      shift(i) = shift_to_copy[i]
+      shift(i) = shift_to_copy[i];
    }
    
    
-   round_val = round_res.round_val;
+   round_val = get<2>(round_res);
 
    return 1.0;
 
