@@ -4,17 +4,17 @@
 \alias{geweke}
 \title{Geweke's MCMC diagnostic}
 \usage{
-geweke(samples, frac1 = NULL, frac2 = NULL)
+geweke(samples, frac_first = NULL, frac_last = NULL)
 }
 \arguments{
-\item{frac1}{Optional. A portion of the first in order points in matrix samples.}
+\item{frac_first}{Optional. The portion of the first in order points in matrix samples.}
 
-\item{frac2}{Optional. A portion of the last in order points in matrix samples.}
+\item{frac_last}{Optional. The portion of the last in order points in matrix samples.}
 
 \item{A}{matrix that contans column-wise the sampled points from a geometric random walk.}
 }
 \value{
-A boolean to denote if the test is passes or fails
+A boolean to denote if the result of Geweke diagnostic: (i)  false if the null hypothesis is rejected, (ii) true if the null hypothesis is not rejected.
 }
 \description{
 Geweke's MCMC diagnostic

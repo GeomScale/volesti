@@ -10,7 +10,7 @@ psrf(samples)
 \item{samples}{A matrix that contans column-wise the sampled points from a geometric random walk.}
 }
 \value{
-The value of PSRF diagnostic.
+The value of multivariate PSRF by S. Brooks and A. Gelman.
 }
 \description{
 Gelman-Rubin Potential Scale Reduction Factor (PSRF)
@@ -18,4 +18,7 @@ Gelman-Rubin Potential Scale Reduction Factor (PSRF)
 \references{
 \cite{Gelman, A. and Rubin, D. B.,
 \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+
+\cite{Brooks, S. and Gelman, A.,
+\dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
 }

@@ -10,18 +10,22 @@
 /*
     This function implements a multivariate version of the Rubin & Gelman diagnostic.
     It is based on "Inference from iterative simulation using multiple sequences, 1992" by D. B. Rubin and A. Gelman
-    and "General Methods for Monitoring Convergence of Iterative Simulations, 2012" by S. Brooks and A. Gelman
+    and "General Methods for Monitoring Convergence of Iterative Simulations, 1998" by S. Brooks and A. Gelman
 
     The sample is splitted into two parts. Then a multivariate psrf is computed as proposed by S. Brooks and A. Gelman
+
+    Inputs: samples, a matrix that contains sample points column-wise
+
+    Output: The value of multivariate PSRF by S. Brooks and A. Gelman
 */
 
 #ifndef PSRF_HPP
 #define PSRF_HPP
 
 template <typename NT, typename VT, typename MT>
-NT perform_psrf(MT const& points)
+NT perform_psrf(MT const& samples)
 {
-    unsigned int N = points.cols(), d = points.rows();
+    unsigned int N = samples.cols(), d = samples.rows();
     unsigned int N1 = N / 2;
     unsigned int N2 = N - N1;
 
@@ -29,13 +33,13 @@ NT perform_psrf(MT const& points)
     VT mean1 = VT::Zero(d), mean2 = VT::Zero(d);
 
     for (int i = 0; i < N1; ++i) {
-        mean1 += points.col(i);
-        chain1.col(i) = points.col(i);
+        mean1 += samples.col(i);
+        chain1.col(i) = samples.col(i);
     }
 
     for (int i = 0; i < N2; ++i) {
-        mean2 += points.col(i + N1);
-        chain2.col(i) = points.col(i + N1);
+        mean2 += samples.col(i + N1);
+        chain2.col(i) = samples.col(i + N1);
     }
 
     mean1 = mean1 / NT(N1); mean2 = mean2 / NT(N2);

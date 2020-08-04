@@ -20,16 +20,17 @@
 //' Geweke's MCMC diagnostic
 //'
 //' @param A matrix that contans column-wise the sampled points from a geometric random walk.
-//' @param frac1 Optional. A portion of the first in order points in matrix samples.
-//' @param frac2 Optional. A portion of the last in order points in matrix samples.
+//' @param frac_first Optional. The portion of the first in order points in matrix samples.
+//' @param frac_last Optional. The portion of the last in order points in matrix samples.
 //'
 //' @references \cite{Geweke, J.,
 //' \dQuote{Evaluating the accuracy of sampling-based approaches to the calculation of posterior moments,} \emph{ In Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 //'
-//' @return A boolean to denote if the test is passes or fails
+//' @return A boolean to denote if the result of Geweke diagnostic: (i)  false if the null hypothesis is rejected, (ii) true if the null hypothesis is not rejected.
 // [[Rcpp::export]]
-bool geweke(Rcpp::NumericMatrix samples, Rcpp::Nullable<double> frac1 = R_NilValue, 
-              Rcpp::Nullable<double> frac2 = R_NilValue)
+bool geweke(Rcpp::NumericMatrix samples, 
+            Rcpp::Nullable<double> frac_first = R_NilValue, 
+            Rcpp::Nullable<double> frac_last = R_NilValue)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -37,8 +38,8 @@ bool geweke(Rcpp::NumericMatrix samples, Rcpp::Nullable<double> frac1 = R_NilVal
 
     NT frac_1, frac_2;
 
-    frac_1 = (!frac1.isNotNull()) ? NT(0.1) : Rcpp::as<NT>(frac1);
-    frac_2 = (!frac1.isNotNull()) ? NT(0.5) : Rcpp::as<NT>(frac2);
+    frac_1 = (!frac_first.isNotNull()) ? NT(0.1) : Rcpp::as<NT>(frac_first);
+    frac_2 = (!frac_last.isNotNull()) ? NT(0.5) : Rcpp::as<NT>(frac_last);
 
     return perform_geweke<VT>(Rcpp::as<MT>(samples), frac_1, frac_2);
 }

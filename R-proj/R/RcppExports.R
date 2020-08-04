@@ -138,15 +138,15 @@ full_dimensional_polytope <- function(P) {
 #' Geweke's MCMC diagnostic
 #'
 #' @param A matrix that contans column-wise the sampled points from a geometric random walk.
-#' @param frac1 Optional. A portion of the first in order points in matrix samples.
-#' @param frac2 Optional. A portion of the last in order points in matrix samples.
+#' @param frac_first Optional. The portion of the first in order points in matrix samples.
+#' @param frac_last Optional. The portion of the last in order points in matrix samples.
 #'
 #' @references \cite{Geweke, J.,
 #' \dQuote{Evaluating the accuracy of sampling-based approaches to the calculation of posterior moments,} \emph{ In Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 #'
-#' @return A boolean to denote if the test is passes or fails
-geweke <- function(samples, frac1 = NULL, frac2 = NULL) {
-    .Call(`_volesti_geweke`, samples, frac1, frac2)
+#' @return A boolean to denote if the result of Geweke diagnostic: (i)  false if the null hypothesis is rejected, (ii) true if the null hypothesis is not rejected.
+geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
+    .Call(`_volesti_geweke`, samples, frac_first, frac_last)
 }
 
 #' Compute an inscribed ball of a convex polytope
@@ -195,7 +195,10 @@ poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL)
 #' @references \cite{Gelman, A. and Rubin, D. B.,
 #' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
 #'
-#' @return The value of PSRF diagnostic.
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return The value of multivariate PSRF by S. Brooks and A. Gelman.
 psrf <- function(samples) {
     .Call(`_volesti_psrf`, samples)
 }
@@ -205,12 +208,12 @@ psrf <- function(samples) {
 #' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
 #' @param q Optional. The quantile of the quantity of interest. The default value is 0.025.
 #' @param r Optional. The level of precision desired. The default value is 0.01.
-#' @param s Optional. Thr probability associated with r. The default value is 0.95.
+#' @param s Optional. The probability associated with r. The default value is 0.95.
 #'
 #' @references \cite{Raftery, A. E. and Lewis, S. M.,
 #' \dQuote{How many iterations in the Gibbs sampler?,} \emph{Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 #'
-#' @return (i) The number of draws required for burn-in, (ii) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992)
+#' @return (i) The number of draws required for burn-in, (ii) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992).
 raftery <- function(samples, q = NULL, r = NULL, s = NULL) {
     .Call(`_volesti_raftery`, samples, q, r, s)
 }

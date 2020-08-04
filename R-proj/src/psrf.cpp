@@ -23,7 +23,10 @@
 //' @references \cite{Gelman, A. and Rubin, D. B.,
 //' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
 //'
-//' @return The value of PSRF diagnostic.
+//' @references \cite{Brooks, S. and Gelman, A.,
+//' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+//'
+//' @return The value of multivariate PSRF by S. Brooks and A. Gelman.
 // [[Rcpp::export]]
 double psrf(Rcpp::NumericMatrix samples)
 {

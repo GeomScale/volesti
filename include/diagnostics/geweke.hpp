@@ -10,9 +10,20 @@
 /*
     This function implements a multivariate version of the Geweke diagnostic.
     It is reduced to Hotelling's Two Sample test, which is a multivariate 
-    extension of the common two sample Student's t-test.
+    extension of the common two sample Student's t-test. The null hypothesis
+    is that there is no difference between sample means.
+
     It is based on "Evaluating the accuracy of sampling-based approaches
                     to the calculation of posterior moments, 1992" by J. Geweke
+
+    Inputs: samples, a matrix that contains sample points column-wise
+            frac_first, the portion of the first in order points in matrix samples
+            frac_last, the portion of the last in order points in matrix samples
+            alpha, the confidence level for the statistical test
+
+    Output: A boolean to denote the result of Geweke diagnostic: 
+            (i)  false if the null hypothesis is rejected
+            (ii) true if the null hypothesis is not rejected
 */
 
 
@@ -22,15 +33,17 @@
 #include <boost/math/distributions/fisher_f.hpp>
 
 template <typename VT, typename MT, typename NT>
-bool perform_geweke(MT const& samples, NT frac1 = 0.1, NT const& frac2 = 0.5)
+bool perform_geweke(MT const& samples, 
+                    NT frac_first = 0.1,
+                    NT frac_last = 0.5,
+                    NT alpha = 0.05)
 {
     unsigned int d = samples.rows(), N = samples.cols();
-    unsigned int N1 = N * frac1;
-    unsigned int N2 = N * frac2;
+    unsigned int N1 = N * frac_first;
+    unsigned int N2 = N * frac_last;
 
     MT sigma1 = MT::Zero(d, d), sigma2 = MT::Zero(d, d);
     VT mean1 = VT::Zero(d), mean2 = VT::Zero(d);
-    NT alpha = 0.05;
 
     // Compute sample means and covariances
     for (int i = 0; i < N1; ++i) {

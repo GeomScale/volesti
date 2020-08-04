@@ -11,6 +11,18 @@
     This function implements a multivariate version of the raftery & Lewis diagnostic.
     It is based on Matlab version of coda package in http://www.spatial-econometrics.com/gibbs/
     and "How many iterations in the Gibbs sampler?, 1992" by A. Raftery and S. Lewis
+
+    Inputs: samples, a matrix that contains sample points column-wise
+            q, the quantile of the quantity of interest. The default value is 0.025.
+            r, the level of precision desired. The default value is 0.01.
+            s, the probability associated with r. The default value is 0.95.
+
+    Outputs: (i)   The number of draws required for burn-in
+             (ii)  The skip parameter for 1st-order Markov chain
+             (iii) The skip parameter sufficient to get independence chain
+             (iv)  The number of draws required to achieve r precision
+             (v)   The number of draws if the chain is white noise
+             (vi)  The I-statistic from Raftery and Lewis (1992)
 */
 
 #ifndef RAFTERY_HPP
@@ -32,14 +44,14 @@ NT fix(NT x)
 
 
 template <typename VT, typename MT, typename NT>
-MT perform_raftery(MT const& runs, NT const& q, NT const& r, NT const& s)
+MT perform_raftery(MT const& samples, NT const& q, NT const& r, NT const& s)
 {
-    MT samples = runs.transpose();
+    MT runs = samples.transpose();
 
     typedef Eigen::Matrix<int,Eigen::Dynamic,Eigen::Dynamic> MTint;
     typedef Eigen::Matrix<int,Eigen::Dynamic,1> VTint;
 
-    unsigned int n = samples.rows(), d = samples.cols(), kthin, kmind;
+    unsigned int n = runs.rows(), d = runs.cols(), kthin, kmind;
     MT results(d, 6);
     MTint work = MTint::Zero(n, d); 
     VTint tmp = VTint::Zero(n);
@@ -55,7 +67,7 @@ MT perform_raftery(MT const& runs, NT const& q, NT const& r, NT const& s)
 
     for (int i = 0; i < d; i++)
     {
-        a = samples.col(i);
+        a = runs.col(i);
         temp_col = std::vector<NT>(&a[0], a.data() + a.cols() * a.rows());
         std::sort(temp_col.begin(), temp_col.end());
         sorted_samples.col(i) = Eigen::Map<VT>(&temp_col[0], temp_col.size());
@@ -68,7 +80,7 @@ MT perform_raftery(MT const& runs, NT const& q, NT const& r, NT const& s)
         {
             for (int k = 0; k < d; k++)
             {
-                if (samples(j, k) <= cutpt) work(j, k) = 1;
+                if (runs(j, k) <= cutpt) work(j, k) = 1;
             }
         }
         kthin = 1; bic = 1.0; epss = 0.001;
