@@ -12,10 +12,10 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
    A.resize(n_hyperplanes,n_variables);
    b.resize(n_hyperplanes);
 
-   int index=0;
-   for (int i=0; i<n_hyperplanes; i++){
+   int index = 0;
+   for (int i = 0; i < n_hyperplanes; i++){
       b(i) = b_np[i];
-      for (int j=0; j<n_variables; j++){
+      for (int j=0; j < n_variables; j++){
          A(i,j) = A_np[index];
          index++;
       }
@@ -32,31 +32,31 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
   
    double volume;
 
-   if (strcmp(vol_method,"sequence_of_balls")==0){
-      if (strcmp(walk_method,"uniform_ball")==0){
+   if (strcmp(vol_method,"sequence_of_balls") == 0){
+      if (strcmp(walk_method,"uniform_ball") == 0){
          volume = volume_sequence_of_balls<BallWalk, RNGType>(HP, epsilon, walk_len);
-      } else if (strcmp(walk_method,"CDHR")==0){
+      } else if (strcmp(walk_method,"CDHR") == 0){
          volume = volume_sequence_of_balls<CDHRWalk, RNGType>(HP, epsilon, walk_len);
-      } else if (strcmp(walk_method,"RDHR")==0){
+      } else if (strcmp(walk_method,"RDHR") == 0){
          volume = volume_sequence_of_balls<RDHRWalk, RNGType>(HP, epsilon, walk_len);
       }
    }
-   else if (strcmp(vol_method,"cooling_gaussian")==0){
-      if (strcmp(walk_method,"gaussian_ball")==0){
+   else if (strcmp(vol_method,"cooling_gaussian") == 0){
+      if (strcmp(walk_method,"gaussian_ball") == 0){
          volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, epsilon, walk_len);
-      } else if (strcmp(walk_method,"gaussian_CDHR")==0){
+      } else if (strcmp(walk_method,"gaussian_CDHR") == 0){
          volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(HP, epsilon, walk_len);
-      } else if (strcmp(walk_method,"gaussian_RDHR")==0){
+      } else if (strcmp(walk_method,"gaussian_RDHR") == 0){
          volume = volume_cooling_gaussians<GaussianRDHRWalk, RNGType>(HP, epsilon, walk_len);
       }
-   } else if (strcmp(vol_method,"cooling_balls")==0){
-       if (strcmp(walk_method,"uniform_ball")==0){
+   } else if (strcmp(vol_method,"cooling_balls") == 0){
+       if (strcmp(walk_method,"uniform_ball") == 0){
          volume = volume_cooling_balls<BallWalk, RNGType>(HP, epsilon, walk_len);
-       } else if (strcmp(walk_method,"CDHR")==0){
+       } else if (strcmp(walk_method,"CDHR") == 0){
          volume = volume_cooling_balls<CDHRWalk, RNGType>(HP, epsilon, walk_len);
-       } else if (strcmp(walk_method,"RDHR")==0){
+       } else if (strcmp(walk_method,"RDHR") == 0){
          volume = volume_cooling_balls<RDHRWalk, RNGType>(HP, epsilon, walk_len);
-       } else if (strcmp(walk_method,"billiard")==0){
+       } else if (strcmp(walk_method,"billiard") == 0){
          volume = volume_cooling_balls<BilliardWalk, RNGType>(HP, epsilon, walk_len);
        }
    }
@@ -118,7 +118,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
    }
    std::cout<<"Sampling completed"<<std::endl;
 
-// The following block of code should NOT be removed!
+// The following block of code allows us to parse the matrix with the points we are making
    auto n_si=0;
    for (auto it_s = rand_points.begin(); it_s != rand_points.end(); it_s++){
       for (auto i = 0; i != it_s->dimension(); i++){
@@ -130,7 +130,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 
 //////////         start of "rounding()"          //////////
-double HPolytopeCPP::rounding(char* rounding_method, char* walk_type, double L, int walk_len, double* new_A, double* T_matrix, double* shift, double* round_val){
+double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double* round_val){
 
 
    auto P(HP);
@@ -141,16 +141,8 @@ double HPolytopeCPP::rounding(char* rounding_method, char* walk_type, double L, 
    std::cout<<"CheBall second equals to = "<<HP.ComputeInnerBall().second<<std::endl;
    
    round_result round_res;
+   int walk_len = 2;
    
-   if (strcmp(walk_type,"billiard") == 0){
-      BilliardWalk WalkType(L);
-   } else if (strcmp(walk_type,"ball") == 0){
-      BallWalk WalkType(L);
-   } else if (strcmp(walk_type,"gaussian") == 0){
-      GaussianBallWalk WalkType(L);
-   }
-
-
    if (strcmp(rounding_method,"min_ellipsoid") == 0){
       round_res = min_sampling_covering_ellipsoid_rounding<WalkType, MT, VT>(P, CheBall, walk_len, rng);
             
@@ -161,9 +153,37 @@ double HPolytopeCPP::rounding(char* rounding_method, char* walk_type, double L, 
        round_res = max_inscribed_ellipsoid_rounding<MT, VT>(P, CheBall); 
    }
    
-   new_A = P.get_mat();   
-   T_matrix = round_res.T;
-   shift = round_res.shift;
+   
+   MT A_to_copy = P.get_mat();
+   int new_n_hyperplanes = A_to_copy.rows();
+   int new_n_variables = P.dimension();
+   
+   auto n_si = 0;
+   for (int i = 0; i < new_n_hyperplanes.rows(); i++){
+      for (int j = 0; j < new_n_variables; j++){
+         new_A[n_si++] = A_to_copy(i,j);
+      }
+   }   
+   
+   VT b_to_copy = P.get_vec();
+   for (int i=0; i < new_n_hyperplanes; i++){
+      new_b(i) = b_to_copy[i];   
+   
+
+   MT T_to_copy = round_res.T;
+   auto t_si = 0;
+   for (int i = 0; i < new_n_hyperplanes; i++){
+      for (int j = 0; j < new_n_variables; j++){
+         T_matrix[t_si++] = T_to_copy(i,j);
+      }
+   }
+   
+   VT shift_to_copy = round_res.shift;
+   for (int i = 0; i < new_n_hyperplanes; i++){
+      shift(i) = shift_to_copy[i]
+   }
+   
+   
    round_val = round_res.round_val;
 
    return 1.0;
