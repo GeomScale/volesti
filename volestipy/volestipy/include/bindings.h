@@ -29,17 +29,6 @@
 #include "preprocess/svd_rounding.hpp"
 #include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 
-//typedef double NT;
-//typedef Cartesian<NT>    Kernel;
-//typedef typename Kernel::Point    Point;
-//typedef HPolytope<Point> Hpolytope;
-//typedef typename Hpolytope::MT    MT;
-//typedef typename Hpolytope::VT    VT;
-//typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
-//typedef struct rounded{
-//   MT new_A;
-//   VT new_b;
-//}rounded_HPolytope;
 
 class HPolytopeCPP{
    public:
@@ -52,7 +41,11 @@ class HPolytopeCPP{
       typedef typename Hpolytope::VT    VT;
       typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
       
+//      regarding the rounding step
       typedef std::tuple<MT, MT, VT, NT>    round_result;
+      typedef typename WalkTypePolicy::template Walk <Polytope,RandomNumberGenerator> WalkType;
+      
+      
       
 
 // The class and its main specs
@@ -74,7 +67,7 @@ class HPolytopeCPP{
        bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
 // the rounding() function
-      double rounding(char* rounding_method, char* walk_type, double L, int walk_len, double* new_A, double* T_matrix, double* shift, double* round_val);
+      double rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double* round_val);
 
 
 };
