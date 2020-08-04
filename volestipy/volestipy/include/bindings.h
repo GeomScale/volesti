@@ -13,7 +13,6 @@
 #include "misc.h"
 #include "known_polytope_generators.h"
 #include "random/uniform_int.hpp"
-#include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "volume/volume_sequence_of_balls.hpp"
@@ -28,6 +27,8 @@
 #include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
 #include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/get_full_dimensional_polytope.hpp"    // will be used after completing the rounding
+
 
 
 class HPolytopeCPP{
@@ -42,8 +43,7 @@ class HPolytopeCPP{
       typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
       
 //      regarding the rounding step
-      typedef std::tuple<MT, MT, VT, NT>    round_result;
-      typedef typename WalkTypePolicy::template Walk <Polytope,RandomNumberGenerator> WalkType;
+      typedef std::tuple<MT, VT, NT>    round_result;
       
       
       
