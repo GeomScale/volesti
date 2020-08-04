@@ -32,13 +32,17 @@ cdef extern from "bindings.h":
          bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
 # rounding H-Polytope
-      double rounding(char* rounding_method, char* walk_type, double L, int walk_len, double* new_A, double* T_matrix, double* shift, double* round_val);
+      double rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double* round_val);
+
+
+
+
 
 # lists with the methods supported by volesti for volume approximation and random walk
 volume_methods = ["sequence_of_balls".encode("UTF-8"), "cooling_gaussian".encode("UTF-8"), "cooling_balls".encode("UTF-8")]
 walk_methods = ["uniform_ball".encode("UTF-8"), "CDHR".encode("UTF-8"), "RDHR".encode("UTF-8"), "gaussian_ball".encode("UTF-8"), \
                 "gaussian_CDHR".encode("UTF-8"), "gaussian_RDHR".encode("UTF-8"), "uniform_ball".encode("UTF-8"), "billiard".encode("UTF-8")]
-walk_types = ["billiard".encode("UTF-8"), "gaussian".encode("UTF-8"), "ball".encode("UTF-8")]
+rounding_methods = ["min_ellipsoid".encode("UTF-8"), "svd".encode("UTF-8"), "max_ellipsoid".encode("UTF-8")]
 
 
 # build the HPolytope class - the 'polytope_cpp' is an instance of the HPolytopeCPP class described on the 'bindings.cpp' file
@@ -94,41 +98,28 @@ cdef class HPolytope:
 
 
 # this is the first function that was not included in the volestipy at all till now; the rounding() function
-   def rounding(self, rounding_method = 'max_ellipsoid', walk_type = 'gaussian', L = 0, walk_len = -1):
+   def rounding(self, rounding_method = 'max_ellipsoid'):
 
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
       
       cpdef double[:,::1] new_A = np.zeros((n_hyperplanes, n_variables), dtype=np.float64, order="C")
+      cpdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
       cpdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")    
       cpdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
       cpdef double round_val
-      
-      
-      
-      if rounding_method != "max_ellipsoid":
-         
-         if walk_type in walk_types:
-
-            if walk_len != "-1":
-               self.polytope_cpp.rounding(rounding_method, walk_type, L, walk_len, &T_matrix[0,0], &new_A[0,0], &shift[0], &round_val)
-            else:
-               raise Exception('Walk length cannot take negative values. Please, give another value in this parameter\n')
-         
-         else:
-            raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(walk_type, walk_types))
-         
+          
+      if rounding_method in rounding_methods:
+         self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], &round_val)          
       else:
-         self.polytope_cpp.rounding(rounding_method, walk_type, L, walk_len, &T_matrix[0,0], &new_A[0,0], &shift[0], &round_val)
+         raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(rounding_method, rounding_methods))
 
      
-                                 
-                                 
       new_A = np.asarray(new_A)
+      new_b = np.asarray(new_b)
       T_matrix = np.asarray(T_matrix)
       shift = np.asarray(shift)
       round_val = np.asarray(round_val)
-      output = (new_A, T_matrix, shift, round_val)
-
+      output = (new_A, new_b, T_matrix, shift, round_val)
       return output
 
 
