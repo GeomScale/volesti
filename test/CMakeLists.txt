@@ -112,6 +112,11 @@ else ()
 
   add_library(test_main OBJECT test_main.cpp)
 
+  add_executable (mcmc_diagnostics_test mcmc_diagnostics_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME test_psrf COMMAND test_psrf -tc=psrf)
+  add_test(NAME test_geweke COMMAND test_geweke -tc=geweke)
+  add_test(NAME test_raftery COMMAND test_raftery -tc=raftery)
+
   add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
           COMMAND ode_solvers_test -tc=first_order)
@@ -192,6 +197,7 @@ else ()
   TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
