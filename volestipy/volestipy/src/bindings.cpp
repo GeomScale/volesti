@@ -131,8 +131,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 //////////         start of "rounding()"          //////////
 
-void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_val){
-//  the initial function returns a tuple with the followings: (T, shift, std::abs(round_val))
+void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value){
 
    // make a copy of the initial HP which will be used for the rounding step
    auto P(HP);
@@ -167,27 +166,27 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    }   
    
    // create the new_b vector
-   VT b_to_copy = P.get_vec();
+   VT new_b_temp = P.get_vec();
    for (int i=0; i < new_n_hyperplanes; i++){
-      new_b[i] = b_to_copy[i];   
+      new_b[i] = new_b_temp[i];   
    }
 
    // create the T matrix   
-   MT T_to_copy = get<0>(round_res);
+   MT T_matrix_temp = get<0>(round_res);
    auto t_si = 0;
    for (int i = 0; i < new_n_variables; i++){
       for (int j = 0; j < new_n_variables; j++){
-         T_matrix[t_si++] = T_to_copy(i,j);
+         T_matrix[t_si++] = T_matrix_temp(i,j);
       }
    }
    
    // create the shift vector
-   VT shift_to_copy = get<1>(round_res);
+   VT shift_temp = get<1>(round_res);
    for (int i = 0; i < new_n_variables; i++){
-      shift[i] = shift_to_copy[i];
+      shift[i] = shift_temp[i];
    }
    
    // get the round val value from the rounding step and print int 
-   round_val = get<2>(round_res);
+   round_value = get<2>(round_res);
 
 }
