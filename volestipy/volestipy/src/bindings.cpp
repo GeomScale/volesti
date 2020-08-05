@@ -136,10 +136,10 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
 
    auto P(HP);
    RNGType rng(HP.dimension());
-   CheBall = HP.ComputeInnerBall();
+   CheBall = P.ComputeInnerBall();
 
-   std::cout<<"CheBall Coefficient equals to = "<<HP.ComputeInnerBall().first.getCoefficients()<<std::endl;
-   std::cout<<"CheBall second equals to = "<<HP.ComputeInnerBall().second<<std::endl;
+   std::cout<<"CheBall Coefficient equals to = "<<P.ComputeInnerBall().first.getCoefficients()<<std::endl;
+   std::cout<<"CheBall second equals to = "<<P.ComputeInnerBall().second<<std::endl;
    
    round_result round_res;
    double round_val;
@@ -185,7 +185,7 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
    
    round_val = get<2>(round_res);
 
-   std::cout<<"till here my memory is good.\n"<<std::endl;
+   std::cout<<"Till here my memory is good.\n"<<std::endl;
    std:cout<< round_val << endl;
 
    
