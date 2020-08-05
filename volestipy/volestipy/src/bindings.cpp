@@ -158,10 +158,6 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    MT A_to_copy = P.get_mat();
    int new_n_hyperplanes = A_to_copy.rows();
    int new_n_variables = A_to_copy.cols();
-   std::cout<<"# of rows in A_to_copy in C++:"<<std::endl;
-   std::cout<< new_n_hyperplanes << endl;
-   std::cout<<"# of columns in A_to_copy in C++:"<<std::endl;
-   std::cout<< new_n_variables << endl;   
    
    auto n_si = 0;
    for (int i = 0; i < new_n_hyperplanes; i++){
@@ -172,23 +168,12 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    
    // create the new_b vector
    VT b_to_copy = P.get_vec();
-   int b_to_copy_dim = b_to_copy.rows();   
-   std::cout<<"# of rows in b_to_copy in C++:"<<std::endl;
-   std::cout<< b_to_copy_dim << endl;
-   
    for (int i=0; i < new_n_hyperplanes; i++){
       new_b[i] = b_to_copy[i];   
    }
 
    // create the T matrix   
    MT T_to_copy = get<0>(round_res);
-   int T_rows = T_to_copy.rows();
-   int T_cols = T_to_copy.cols();
-   std::cout<<"# of rows in T_to_copy in C++:"<<std::endl;
-   std::cout<< T_rows << endl;
-   std::cout<<"# of columns in T_to_copy in C++:"<<std::endl;
-   std::cout<< T_cols << endl;      
-
    auto t_si = 0;
    for (int i = 0; i < new_n_variables; i++){
       for (int j = 0; j < new_n_variables; j++){
@@ -198,19 +183,11 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    
    // create the shift vector
    VT shift_to_copy = get<1>(round_res);
-   int shift_to_copy_rows = shift_to_copy.rows();   
-   std::cout<<"# of rows in shift_to_copy in C++:"<<std::endl;
-   std::cout<< shift_to_copy_rows << endl;   
-   
    for (int i = 0; i < new_n_variables; i++){
       shift[i] = shift_to_copy[i];
    }
    
    // get the round val value from the rounding step and print int 
    round_val = get<2>(round_res);
-   std:cout<< round_val << endl;
-   
-   // print a complete message
-   std::cout<<"Till here my memory is good.\n"<<std::endl;
 
 }
