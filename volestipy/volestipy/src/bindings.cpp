@@ -131,15 +131,15 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 //////////         start of "rounding()"          //////////
 
-double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_val){
+void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_val){
 //  the initial function returns a tuple with the followings: (T, shift, std::abs(round_val))
 
    auto P(HP);
    RNGType rng(HP.dimension());
    CheBall = P.ComputeInnerBall();
 
-   std::cout<<"CheBall Coefficient equals to = "<<P.ComputeInnerBall().first.getCoefficients()<<std::endl;
-   std::cout<<"CheBall second equals to = "<<P.ComputeInnerBall().second<<std::endl;
+   //std::cout<<"CheBall Coefficient equals to = "<<P.ComputeInnerBall().first.getCoefficients()<<std::endl;
+   //std::cout<<"CheBall second equals to = "<<P.ComputeInnerBall().second<<std::endl;
    
    round_result round_res;
    //double round_val;
@@ -157,6 +157,10 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
    MT A_to_copy = P.get_mat();
    int new_n_hyperplanes = A_to_copy.rows();
    int new_n_variables = P.dimension();
+   std::cout<<"# of rows in A_to_copy in C++:"<<std::endl;
+   std::cout<< new_n_hyperplanes << endl;
+   std::cout<<"# of columns in A_to_copy in C++:"<<std::endl;
+   std::cout<< new_n_variables << endl;   
    
    auto n_si = 0;
    for (int i = 0; i < new_n_hyperplanes; i++){
@@ -187,7 +191,5 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
 
    std::cout<<"Till here my memory is good.\n"<<std::endl;
    std:cout<< round_val << endl;
-   
-   return 1.0;
 
 }
