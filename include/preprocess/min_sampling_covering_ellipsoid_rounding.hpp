@@ -26,9 +26,9 @@ template
     typename RandomNumberGenerator
 >
 std::tuple<MT, VT, NT> min_sampling_covering_ellipsoid_rounding(Polytope &P,
-                                                                            std::pair<Point,NT> &InnerBall,
-                                                                            const unsigned int &walk_length,
-                                                                            RandomNumberGenerator &rng)
+                                                                std::pair<Point,NT> &InnerBall,
+                                                                const unsigned int &walk_length,
+                                                                RandomNumberGenerator &rng)
 {
     typedef typename WalkTypePolicy::template Walk
             <
