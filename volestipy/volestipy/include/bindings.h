@@ -42,7 +42,7 @@ class HPolytopeCPP{
       typedef typename Hpolytope::VT    VT;
       typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
       
-//      regarding the rounding step
+      // regarding the rounding step
       typedef std::tuple<MT, VT, NT>    round_result;
       
       
