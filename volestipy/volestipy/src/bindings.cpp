@@ -135,12 +135,9 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 //  the initial function returns a tuple with the followings: (T, shift, std::abs(round_val))
 
    auto P(HP);
-   RNGType rng(HP.dimension());
+   RNGType rng(P.dimension());
    CheBall = P.ComputeInnerBall();
 
-   //std::cout<<"CheBall Coefficient equals to = "<<P.ComputeInnerBall().first.getCoefficients()<<std::endl;
-   //std::cout<<"CheBall second equals to = "<<P.ComputeInnerBall().second<<std::endl;
-   
    round_result round_res;
    //double round_val;
    
