@@ -22,12 +22,29 @@ if __name__ == "__main__":
     print(p.b)
     print(type(p.b))
    
-    rounding = p.rounding(walk_len = 2, billiard = True)
-    print("rounding function ran ok\n")
-    print(rounding[2])
+# Run test for the rounding() function and its different methods
+    print("\n\n ***The rounding step is about to start*** \n\n")
+    p.rounding(rounding_method = "max_ellipsoid")
+    print("\n ***This is the output for the max_ellipsoid rounding method.***\n")
 
 
 
+#    for i in rounding_output_max_ellipsoid:
+#        print(i)
+#        print("\n\n*************\n\n")
+#
+#    rounding_output_svd = p.rounding(rounding_method = "svd")
+#    print("\n\nthis is the output for the svd rounding")
+#    for i in rounding_output_svd:
+#        print(i)
+#        print("\n\n*************\n\n")
+#
+#
+#    rounding_output_min_ellipsoid = p.rounding(rounding_method = "min_ellipsoid")
+#    print("\n this is the output for the max_ellipsoid rounding method\n")
+#    for i in rounding_output_min_ellipsoid:
+#        print(i)
+#        print("\n\n*************\n\n")
 
 
 
