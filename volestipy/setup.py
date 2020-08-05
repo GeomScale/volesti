@@ -14,7 +14,7 @@ description="volestipy: wrapper for the VolEsti library to sample from convex se
 author = "Pedro Zuidberg Dos Martires, Haris Zafeiropoulos"
 author_email="pedro.zuidbergdosmartires@cs.kuleuven.be, haris-zaf@hcmr.gr"
 name = 'volestipy'
-zip_safe=False
+zip_safe = False
 
 source_directory_list = ['volestipy', join('volestipy','src')]
 
