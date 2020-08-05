@@ -95,30 +95,12 @@ cdef class HPolytope:
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
       cdef double round_val
       
-      # print the dimensions of the input data types that we will feed with the C++ code
-      row = new_A.shape[0]
-      col = new_A.shape[1]
-      print("# of rows of new_A in cython: " + str(row) + "\n")
-      print("# of columns of new_A in cython: " + str(col) + "\n")
-      
-      rowb = new_b.shape[0]
-      print("# of rows of new_b in cython: " + str(rowb) + "\n")
-      
-      rowT = T_matrix.shape[0]
-      colT = T_matrix.shape[1]
-      print("# of rows of T_matrix in cython: " + str(rowT) + "\n")
-      print("# of columns of T_matrix in cython: " + str(colT) + "\n")      
-      
-      rows = shift.shape[0]
-      print("# of rows of shift in cython: " + str(rows) + "\n\n\n")
-      
       # transform the rounding_method variable to UTF-8 coding
       rounding_method = rounding_method.encode("UTF-8")
       
       # check whether the rounding method the user asked for, is actually among those volestipy supports		
       if rounding_method in rounding_methods:
          self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_val)
-         print("Cython: rounding ran ok.\n")
          return np.asarray(new_A),np.asarray(new_b),np.asarray(T_matrix),np.asarray(shift),np.asarray(round_val)
       else:
          raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(rounding_method, rounding_methods))
