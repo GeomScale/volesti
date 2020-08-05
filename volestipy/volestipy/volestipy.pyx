@@ -101,7 +101,7 @@ cdef class HPolytope:
       print("# of rows of new_A in cython: " + str(row) + "\n")
       print("# of columns of new_A in cython: " + str(col) + "\n")
       
-      rowb = new_b.shape[1]
+      rowb = new_b.shape[0]
       print("# of rows of new_b in cython: " + str(rowb) + "\n")
       
       rowT = T_matrix.shape[0]
@@ -109,7 +109,7 @@ cdef class HPolytope:
       print("# of rows of T_matrix in cython: " + str(rowT) + "\n")
       print("# of columns of T_matrix in cython: " + str(colT) + "\n")      
       
-      rows = shift.shape[1]
+      rows = shift.shape[0]
       print("# of rows of shift in cython: " + str(rows) + "\n\n\n")
       
       
