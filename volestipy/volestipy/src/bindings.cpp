@@ -130,11 +130,9 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 
 //////////         start of "rounding()"          //////////
-double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double* round_val){
 
-
+double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift){
 //  the initial function returns a tuple with the followings: (T, shift, std::abs(round_val))
-
 
    auto P(HP);
    RNGType rng(HP.dimension());
@@ -144,21 +142,18 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
    std::cout<<"CheBall second equals to = "<<HP.ComputeInnerBall().second<<std::endl;
    
    round_result round_res;
+   double round_val;
+   
    int walk_len = 2;
    
    if (strcmp(rounding_method,"min_ellipsoid") == 0){
-      //round_res = min_sampling_covering_ellipsoid_rounding<WalkType, MT, VT>(P, CheBall, walk_len, rng);
       round_res = min_sampling_covering_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, CheBall, walk_len, rng);      
-
    } else if (strcmp(rounding_method,"svd") == 0){      
-      //round_res = svd_rounding<WalkType, MT, VT>(P, CheBall, walk_len, rng);
-      round_res = svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, CheBall, walk_len, rng);
-      
+      round_res = svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, CheBall, walk_len, rng);   
    } else if (strcmp(rounding_method, "max_ellipsoid") == 0){
        round_res = max_inscribed_ellipsoid_rounding<MT, VT>(P, CheBall); 
    }
-   
-   
+      
    MT A_to_copy = P.get_mat();
    int new_n_hyperplanes = A_to_copy.rows();
    int new_n_variables = P.dimension();
@@ -188,9 +183,11 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
       shift[i] = shift_to_copy[i];
    }
    
+   round_val = get<2>(round_res);
+
+   std::cout<<"till here my memory is good.\n"<<std::endl;
+   std:cout<< round_val << endl;
+
    
-   //round_val = get<2>(round_res);
-
-   return 1.0;
-
+   return round_val;
 }
