@@ -93,7 +93,7 @@ cdef class HPolytope:
       cdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")    
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
-      cdef double round_val = 0
+      cdef double round_val
       
       # print the dimensions of the input data types that we will feed with the C++ code
       row = new_A.shape[0]
@@ -111,7 +111,6 @@ cdef class HPolytope:
       
       rows = shift.shape[0]
       print("# of rows of shift in cython: " + str(rows) + "\n\n\n")
-      
       
       # transform the rounding_method variable to UTF-8 coding
       rounding_method = rounding_method.encode("UTF-8")
