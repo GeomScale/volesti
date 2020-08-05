@@ -75,20 +75,16 @@ MT perform_raftery(MT const& samples, NT const& q, NT const& r, NT const& s)
 
     for (int i = 0; i < d; i++)
     {
-        cutpt = empquant<VT>(sorted_samples, q, i);
-        work = MTint::Zero(n, d);
+        cutpt = empquant<VT>(sorted_samples.col(i), q);
         for (int j = 0; j < n; j++)
         {
-            for (int k = 0; k < d; k++)
-            {
-                if (runs(j, k) <= cutpt) work(j, k) = 1;
-            }
+            if (runs(j, i) <= cutpt) work(j, i) = 1;
         }
         kthin = 1; bic = 1.0; epss = 0.001;
 
         while(bic > 0.0) 
         {
-            xy = thin<VTint>(work, n, kthin);
+            xy = thin<VTint>(work.col(i), n, kthin);
             tcnt = xy.first;
             tmp = xy.second;
             g2bic = mctest<MTint, NT>(tmp, tcnt);
@@ -111,7 +107,7 @@ MT perform_raftery(MT const& samples, NT const& q, NT const& r, NT const& s)
 
         while (bic > 0.0)
         {
-            xy = thin<VTint>(work, n, kmind);
+            xy = thin<VTint>(work.col(i), n, kmind);
             tcnt = xy.first;
             tmp = xy.second;
             g2bic = indtest<MTint, NT>(tmp, tcnt);

@@ -113,9 +113,9 @@ else ()
   add_library(test_main OBJECT test_main.cpp)
 
   add_executable (mcmc_diagnostics_test mcmc_diagnostics_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME test_psrf COMMAND test_psrf -tc=psrf)
-  add_test(NAME test_geweke COMMAND test_geweke -tc=geweke)
-  add_test(NAME test_raftery COMMAND test_raftery -tc=raftery)
+  add_test(NAME test_psrf COMMAND mcmc_diagnostics_test -tc=psrf)
+  add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
+  add_test(NAME test_raftery COMMAND mcmc_diagnostics_test -tc=raftery)
 
   add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
