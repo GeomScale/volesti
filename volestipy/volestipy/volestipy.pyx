@@ -93,7 +93,7 @@ cdef class HPolytope:
       cdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")    
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
-      cdef double round_val
+      cpdef double round_val
       
       # transform the rounding_method variable to UTF-8 coding
       rounding_method = rounding_method.encode("UTF-8")
@@ -103,6 +103,7 @@ cdef class HPolytope:
          rounding = self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0])          
       else:
          raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(rounding_method, rounding_methods))
+      
       round_val = np.asarray(rounding)
       output = (np.asarray(new_A), np.asarray(new_b), np.asarray(T_matrix), np.asarray(shift), np.asarray(round_val))
       return output
