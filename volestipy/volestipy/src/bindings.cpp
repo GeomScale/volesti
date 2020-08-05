@@ -146,6 +146,8 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    
    int walk_len = 2;
    
+   
+   // run the rounding method 
    if (strcmp(rounding_method,"min_ellipsoid") == 0){
       round_res = min_sampling_covering_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, CheBall, walk_len, rng);      
    } else if (strcmp(rounding_method,"svd") == 0){      
@@ -154,9 +156,10 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
        round_res = max_inscribed_ellipsoid_rounding<MT, VT>(P, CheBall); 
    }
       
+   // create the new_A matrix
    MT A_to_copy = P.get_mat();
    int new_n_hyperplanes = A_to_copy.rows();
-   int new_n_variables = P.dimension();
+   int new_n_variables = A_to_copy.cols();
    std::cout<<"# of rows in A_to_copy in C++:"<<std::endl;
    std::cout<< new_n_hyperplanes << endl;
    std::cout<<"# of columns in A_to_copy in C++:"<<std::endl;
@@ -169,12 +172,24 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
       }
    }   
    
+   // create the new_b vector
    VT b_to_copy = P.get_vec();
+   int b_to_copy_dim = b_to_copy.cols();   
+   std::cout<<"# of cols in b_to_copy in C++:"<<std::endl;
+   std::cout<< b_to_copy_dim << endl;
    for (int i=0; i < new_n_hyperplanes; i++){
       new_b[i] = b_to_copy[i];   
    }
 
+   // create the T matrix   
    MT T_to_copy = get<0>(round_res);
+   int T_rows = T_to_copy.rows();
+   int T_cols = T_to_copy.cols();
+   std::cout<<"# of rows in T_to_copy in C++:"<<std::endl;
+   std::cout<< T_rows << endl;
+   std::cout<<"# of columns in T_to_copy in C++:"<<std::endl;
+   std::cout<< T_cols << endl;      
+
    auto t_si = 0;
    for (int i = 0; i < new_n_hyperplanes; i++){
       for (int j = 0; j < new_n_variables; j++){
@@ -182,14 +197,19 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
       }
    }
    
+   // create the shift vector
    VT shift_to_copy = get<1>(round_res);
+   int shift_to_copy_cols = shift_to_copy.cols();   
+   std::cout<<"# of cols in shift_to_copy in C++:"<<std::endl;
+   std::cout<< shift_to_copy_cols << endl;   
    for (int i = 0; i < new_n_hyperplanes; i++){
       shift[i] = shift_to_copy[i];
    }
    
+   // get the round val value from the rounding step and print int 
    round_val = get<2>(round_res);
-
-   std::cout<<"Till here my memory is good.\n"<<std::endl;
    std:cout<< round_val << endl;
+   
+   std::cout<<"Till here my memory is good.\n"<<std::endl;
 
 }
