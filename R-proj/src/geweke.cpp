@@ -19,7 +19,7 @@
 
 //' Geweke's MCMC diagnostic
 //'
-//' @param A matrix that contans column-wise the sampled points from a geometric random walk.
+//' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
 //' @param frac_first Optional. The portion of the first in order points in matrix samples.
 //' @param frac_last Optional. The portion of the last in order points in matrix samples.
 //'

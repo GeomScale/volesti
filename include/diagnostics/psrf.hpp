@@ -29,39 +29,22 @@ NT perform_psrf(MT const& samples)
     unsigned int N1 = N / 2;
     unsigned int N2 = N - N1;
 
-    MT chain1(d, N1), chain2(d, N2), S1 = MT::Zero(d, d), S2 = MT::Zero(d, d), S(d, d), B = MT::Zero(d, d);
-    VT mean1 = VT::Zero(d), mean2 = VT::Zero(d);
+    VT mean1 = samples.block(0, 0, d, N1).rowwise().mean();
+    VT mean2 = samples.block(0, N1, d, N - N1).rowwise().mean();
 
-    for (int i = 0; i < N1; ++i) {
-        mean1 += samples.col(i);
-        chain1.col(i) = samples.col(i);
-    }
+    MT norm_chain1 = samples.block(0, 0, d, N1).colwise() - mean1;
+    MT norm_chain2 = samples.block(0, N1, d, N - N1).colwise() - mean2;
 
-    for (int i = 0; i < N2; ++i) {
-        mean2 += samples.col(i + N1);
-        chain2.col(i) = samples.col(i + N1);
-    }
-
-    mean1 = mean1 / NT(N1); mean2 = mean2 / NT(N2);
-
-    for (int i = 0; i < N1; ++i) {
-        S1 = S1 + (chain1.col(i) - mean1) * (chain1.col(i) - mean1).transpose();
-    }
-
-    for (int i = 0; i < N2; ++i) {
-        S2 = S2 + ((chain2.col(i) - mean2) * (chain2.col(i) - mean2).transpose());
-    }
-    S1 = S1 / (NT(N1) - 1.0); S2 = S2 / (NT(N2) - 1.0);
-
-    S = (S1 + S2) / 2.0;
+    MT W = ((norm_chain1 * norm_chain1.transpose()) / (NT(N1) - 1.0) + 
+            (norm_chain2 * norm_chain2.transpose()) / (NT(N2) - 1.0)) / NT(2);
 
     VT mean00 = (mean1 + mean2) / 2.0;
 
-    B = B + (mean1 - mean00) * (mean1 - mean00).transpose();
-    B = B + (mean2 - mean00) * (mean2 - mean00).transpose();
+    MT B = (mean1 - mean00) * (mean1 - mean00).transpose() + 
+           (mean2 - mean00) * (mean2 - mean00).transpose();
 
-    MT SB = S.inverse() * B;
-    Eigen::SelfAdjointEigenSolver <MT> eigensolver(SB);
+    MT WB = W.inverse() * B;
+    Eigen::SelfAdjointEigenSolver <MT> eigensolver(WB);
     NT l_max = eigensolver.eigenvalues().maxCoeff();
 
     NT R = (NT(N1) - NT(1))/NT(N1) + 1.5 * l_max;

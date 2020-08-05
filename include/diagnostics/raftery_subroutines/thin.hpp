@@ -20,12 +20,12 @@ std::pair<int,VT>  thin(MT const& work, unsigned int const& n, unsigned int cons
     int i = 0, j = 0;
     while (i < n)
     {
-        y(j) = work(i,0);
+        y(j) = work(i, 0);
         j++;
         i += kthin;
     }
 
-    return std::pair<int,VT>((n-1) / kthin + 1, y);
+    return std::pair<int, VT>((n-1) / kthin + 1, y);
 }
 
 
