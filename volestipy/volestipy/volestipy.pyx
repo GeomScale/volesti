@@ -32,7 +32,7 @@ cdef extern from "bindings.h":
          bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
 # rounding H-Polytope
-      double rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_val);
+      void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_val);
 
 
 # lists with the methods supported by volesti for volume approximation and random walk
@@ -94,21 +94,24 @@ cdef class HPolytope:
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")    
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
       cdef double round_val = 0
-
+      
+      row = new_A.shape[0]
+      col = new_A.shape[1]
+      print("# of rows of new_A in cython: " + str(row) + "\n")
+      print("# of columns of new_A in cython: " + str(col) + "\n")
       
       # transform the rounding_method variable to UTF-8 coding
       rounding_method = rounding_method.encode("UTF-8")
       
       # check whether the rounding method the user asked for, is actually among those volestipy supports		
       if rounding_method in rounding_methods:
-         self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_val)          
+         self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_val)
+         print("Cython: rounding ran ok.\n")
+         return np.asarray(new_A), np.asarray(new_b), np.asarray(T_matrix), np.asarray(shift),  np.asarray(round_val)
+      
       else:
          raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(rounding_method, rounding_methods))
-
-      output = (np.asarray(new_A), np.asarray(new_b), np.asarray(T_matrix), np.asarray(shift), round_val)
-      return output
-
-
+      
    @property
    def A(self):
       return np.asarray(self._A)
