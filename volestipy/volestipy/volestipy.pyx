@@ -55,7 +55,7 @@ cdef class HPolytope:
       n_hyperplanes, n_variables = A.shape[0], A.shape[1]
       self.polytope_cpp = HPolytopeCPP(&A[0,0], &b[0], n_hyperplanes, n_variables)
 
-# here is the first of the volesti functions included in the Python interface; the compute_volume()
+#  this is where the volesti functions are getting their python interface; first the compute_volume() function
    def compute_volume(self, walk_len = 2, epsilon = 0.05, vol_method = "sequence_of_balls", walk_method = "uniform_ball", \
       np.npy_int32 seed=get_time_seed()):
 
@@ -70,7 +70,7 @@ cdef class HPolytope:
       else:
          raise Exception('"{}" is not implemented to compute volume. Available methods are: {}'.format(vol_method, volume_methods))
 
-# now the second function; the generate_samples()
+# likewise, the generate_samples() function
    def generate_samples(self, walk_len = 1, number_of_points = 1000, number_of_points_to_burn = 100, boundary = False, cdhr=True, \
       rdhr = False, gaussian = False, set_L = False, billiard = False, ball_walk = False, a = 0, L = 0):
 
@@ -82,7 +82,7 @@ cdef class HPolytope:
       return np.asarray(samples)      # we need to build a Python function for getting a starting point depending on the polytope
 
 
-# this is the first function that was not included in the volestipy at all till now; the rounding() function
+# the rounding() function; like the compute_volume; there are more than one methods for this step
    def rounding(self, rounding_method = 'max_ellipsoid'):
       
       # get the dimensions of the items about to build
@@ -120,9 +120,9 @@ cdef class HPolytope:
          self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_val)
          print("Cython: rounding ran ok.\n")
          return np.asarray(new_A),np.asarray(new_b),np.asarray(T_matrix),np.asarray(shift),np.asarray(round_val)
-      
       else:
          raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(rounding_method, rounding_methods))
+
       
    @property
    def A(self):
@@ -133,16 +133,3 @@ cdef class HPolytope:
    @property
    def dimensions(self):
       return self._A.shape[1]
-
-
-
-
-# # we need to build a Python function for getting a starting point depending on the polytope
-#    def generate_samples(self, walk_len=1, number_of_points=1000, number_of_points_to_burn=100, boundary=False, cdhr=True, rdhr=False, gaussian=False, set_L=False, billiard=False, ball_walk=False, a=0, L=0):
-#       n_variables = self._A.shape[1]
-#       cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype=np.float64, order="C")
-# 
-#       print("volestipy.pyx: This is just before I call for the generate_samples function \n\n")
-# 
-#       self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L, &samples[0,0])
-#       return np.asarray(samples)
