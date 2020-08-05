@@ -131,7 +131,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 //////////         start of "rounding()"          //////////
 
-double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift){
+double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_val){
 //  the initial function returns a tuple with the followings: (T, shift, std::abs(round_val))
 
    auto P(HP);
@@ -142,7 +142,7 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
    std::cout<<"CheBall second equals to = "<<P.ComputeInnerBall().second<<std::endl;
    
    round_result round_res;
-   double round_val;
+   //double round_val;
    
    int walk_len = 2;
    
@@ -187,7 +187,7 @@ double HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_
 
    std::cout<<"Till here my memory is good.\n"<<std::endl;
    std:cout<< round_val << endl;
-
    
-   return round_val;
+   return 1.0;
+
 }
