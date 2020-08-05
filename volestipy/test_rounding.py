@@ -29,16 +29,14 @@ if __name__ == "__main__":
     # Case 1
     print(">Time for the 'max_ellipsoid' rounding method.")
     rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
-#    rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
 
+    print("\n ***This is the output for the max_ellipsoid rounding method.***\n")
+    print("the type of the rounding return is: \n")
+    print(type(rounding_output_max_ellipsoid))
 
-#    print("\n ***This is the output for the max_ellipsoid rounding method.***\n")
-#    print("the type of the rounding return is: \n")
-#    print(type(rounding_output_max_ellipsoid))
-
-#    for i in rounding_output_max_ellipsoid:
-#        print(i)
-#        print("\n")
+    for i in rounding_output_max_ellipsoid:
+        print(i)
+        print("\n")
 
 
 #    # Case 2
