@@ -5,7 +5,7 @@ import volestipy
 from volestipy import HPolytope
 
 if __name__ == "__main__":
-    dim = 8
+    dim = 9
     A = np.zeros((2*dim, dim), dtype=np.float)
     A[0:dim] = np.eye(dim)
     A[dim:] -=  np.eye(dim,dim, dtype=np.float)
@@ -13,6 +13,7 @@ if __name__ == "__main__":
 
 
     hp = HPolytope(A,b)
+
     print("The polytope:")
     print("Dimensions: {}".format(hp.dimensions))
     print("A matrix:")
@@ -25,13 +26,16 @@ if __name__ == "__main__":
 # Run test for the rounding() function and its different methods
     print("\n\n ***The rounding step is about to start.*** \n\n")
 
-#    print("\n\n >Time for the 'max_ellipsoid' rounding method. \n\n")
-#    rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
-#    print("\n ***This is the output for the max_ellipsoid rounding method.***\n")
-#    for i in rounding_output_max_ellipsoid:
-#        print(i)
-#        print("\n")
+    # Case 1
+    print("\n\n >Time for the 'max_ellipsoid' rounding method. \n\n")
+    rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
+    print("\n ***This is the output for the max_ellipsoid rounding method.***\n")
+    for i in rounding_output_max_ellipsoid:
+        print(i)
+        print("\n")
 
+
+#    # Case 2
 #    print("\n\n >Time for the 'svd' rounding method. \n\n")
 #    rounding_output_svd = hp.rounding(rounding_method = "svd")
 #    print("\n\n ***This is the output for the svd rounding.***\n")
@@ -39,12 +43,11 @@ if __name__ == "__main__":
 #        print(i)
 #        print("\n")
 
-    print("\n\n >Time for the 'min_ellipsoid' rounding method. \n\n")
-    rounding_output_min_ellipsoid = hp.rounding(rounding_method = "min_ellipsoid")
-    print("\n\n ***This is the output for the max_ellipsoid rounding method.*** \n\n")
 
-#    print(rounding_output_min_ellipsoid[1])
-#    print(rounding_output_min_ellipsoid[2])
-    print(rounding_output_min_ellipsoid[3])
-#    print(rounding_output_min_ellipsoid[4])
-#    print(rounding_output_min_ellipsoid[0])
+#    # Case 3
+#    print("\n\n >Time for the 'min_ellipsoid' rounding method. \n\n")
+#    rounding_output_min_ellipsoid = hp.rounding(rounding_method = "min_ellipsoid")
+#    print("\n\n ***This is the output for the max_ellipsoid rounding method.*** \n\n")
+#    for i in rounding_output_min_ellipsoid:
+#        print(i)
+#        print("\n")
