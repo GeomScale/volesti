@@ -190,7 +190,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    std::cout<< T_cols << endl;      
 
    auto t_si = 0;
-   for (int i = 0; i < new_n_hyperplanes; i++){
+   for (int i = 0; i < new_n_variables; i++){
       for (int j = 0; j < new_n_variables; j++){
          T_matrix[t_si++] = T_to_copy(i,j);
       }
@@ -202,7 +202,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    std::cout<<"# of rows in shift_to_copy in C++:"<<std::endl;
    std::cout<< shift_to_copy_rows << endl;   
    
-   for (int i = 0; i < new_n_hyperplanes; i++){
+   for (int i = 0; i < new_n_variables; i++){
       shift[i] = shift_to_copy[i];
    }
    
