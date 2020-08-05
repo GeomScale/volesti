@@ -153,7 +153,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    } else if (strcmp(rounding_method,"svd") == 0){      
       round_res = svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, CheBall, walk_len, rng);   
    } else if (strcmp(rounding_method, "max_ellipsoid") == 0){
-       round_res = max_inscribed_ellipsoid_rounding<MT, VT>(P, CheBall); 
+      round_res = max_inscribed_ellipsoid_rounding<MT, VT>(P, CheBall); 
    }
       
    // create the new_A matrix
@@ -174,9 +174,10 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    
    // create the new_b vector
    VT b_to_copy = P.get_vec();
-   int b_to_copy_dim = b_to_copy.cols();   
-   std::cout<<"# of cols in b_to_copy in C++:"<<std::endl;
+   int b_to_copy_dim = b_to_copy.rows();   
+   std::cout<<"# of rows in b_to_copy in C++:"<<std::endl;
    std::cout<< b_to_copy_dim << endl;
+   
    for (int i=0; i < new_n_hyperplanes; i++){
       new_b[i] = b_to_copy[i];   
    }
@@ -199,9 +200,10 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    
    // create the shift vector
    VT shift_to_copy = get<1>(round_res);
-   int shift_to_copy_cols = shift_to_copy.cols();   
-   std::cout<<"# of cols in shift_to_copy in C++:"<<std::endl;
-   std::cout<< shift_to_copy_cols << endl;   
+   int shift_to_copy_rows = shift_to_copy.rows();   
+   std::cout<<"# of rows in shift_to_copy in C++:"<<std::endl;
+   std::cout<< shift_to_copy_rows << endl;   
+   
    for (int i = 0; i < new_n_hyperplanes; i++){
       shift[i] = shift_to_copy[i];
    }
@@ -210,6 +212,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    round_val = get<2>(round_res);
    std:cout<< round_val << endl;
    
+   // print a complete message
    std::cout<<"Till here my memory is good.\n"<<std::endl;
 
 }
