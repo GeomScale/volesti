@@ -67,7 +67,7 @@ class HPolytopeCPP{
        bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
 // the rounding() function
-      double rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double* round_val);
+      double rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift);
 
 
 };
