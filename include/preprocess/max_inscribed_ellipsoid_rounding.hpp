@@ -22,7 +22,7 @@ template
     typename NT
 >
 std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P, 
-                                                                    std::pair<Point, NT> InnerBall)
+                                                        std::pair<Point, NT> InnerBall)
 {
     std::pair<std::pair<MT, VT>, bool> iter_res;
     iter_res.second = false;

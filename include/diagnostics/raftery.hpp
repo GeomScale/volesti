@@ -53,7 +53,7 @@ MT perform_raftery(MT const& samples, NT const& q, NT const& r, NT const& s)
 
     unsigned int n = runs.rows(), d = runs.cols(), kthin, kmind;
     MT results(d, 6);
-    MTint work = MTint::Zero(n, d); 
+    MTint work = MTint::Zero(n, d);
     VTint tmp = VTint::Zero(n);
     std::pair<int, VTint> xy;
     std::pair<NT, NT> g2bic;
@@ -75,7 +75,8 @@ MT perform_raftery(MT const& samples, NT const& q, NT const& r, NT const& s)
 
     for (int i = 0; i < d; i++)
     {
-        cutpt = empquant<VT>(sorted_samples, q);
+        cutpt = empquant<VT>(sorted_samples, q, i);
+        work = MTint::Zero(n, d);
         for (int j = 0; j < n; j++)
         {
             for (int k = 0; k < d; k++)
