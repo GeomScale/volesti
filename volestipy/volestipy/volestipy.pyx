@@ -32,7 +32,7 @@ cdef extern from "bindings.h":
          bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
 # rounding H-Polytope
-      double rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift);
+      double rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_val);
 
 
 # lists with the methods supported by volesti for volume approximation and random walk
@@ -93,19 +93,19 @@ cdef class HPolytope:
       cdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")    
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
-      cpdef double round_val
+      cdef double round_val = 0
+
       
       # transform the rounding_method variable to UTF-8 coding
       rounding_method = rounding_method.encode("UTF-8")
       
       # check whether the rounding method the user asked for, is actually among those volestipy supports		
       if rounding_method in rounding_methods:
-         rounding = self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0])          
+         self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_val)          
       else:
          raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(rounding_method, rounding_methods))
-      
-      round_val = np.asarray(rounding)
-      output = (np.asarray(new_A), np.asarray(new_b), np.asarray(T_matrix), np.asarray(shift), np.asarray(round_val))
+
+      output = (np.asarray(new_A), np.asarray(new_b), np.asarray(T_matrix), np.asarray(shift), round_val)
       return output
 
 
