@@ -134,15 +134,16 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_val){
 //  the initial function returns a tuple with the followings: (T, shift, std::abs(round_val))
 
+   // make a copy of the initial HP which will be used for the rounding step
    auto P(HP);
    RNGType rng(P.dimension());
    CheBall = P.ComputeInnerBall();
-
+   
+   // set the output variable of the rounding step
    round_result round_res;
-   //double round_val;
    
+   // walk length will always be equal to 2
    int walk_len = 2;
-   
    
    // run the rounding method 
    if (strcmp(rounding_method,"min_ellipsoid") == 0){
