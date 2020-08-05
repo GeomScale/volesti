@@ -24,23 +24,21 @@ if __name__ == "__main__":
 
 # Run test for the rounding() function and its different methods
     print("\n\n ***The rounding step is about to start*** \n\n")
-    hp.rounding(rounding_method = "max_ellipsoid")
+    rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
     print("\n ***This is the output for the max_ellipsoid rounding method.***\n")
-
-
 
     for i in rounding_output_max_ellipsoid:
         print(i)
         print("\n\n*************\n\n")
 
-    rounding_output_svd = p.rounding(rounding_method = "svd")
+    rounding_output_svd = hp.rounding(rounding_method = "svd")
     print("\n\nthis is the output for the svd rounding")
     for i in rounding_output_svd:
         print(i)
         print("\n\n*************\n\n")
 
 
-    rounding_output_min_ellipsoid = p.rounding(rounding_method = "min_ellipsoid")
+    rounding_output_min_ellipsoid = hp.rounding(rounding_method = "min_ellipsoid")
     print("\n this is the output for the max_ellipsoid rounding method\n")
     for i in rounding_output_min_ellipsoid:
         print(i)
