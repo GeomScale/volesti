@@ -25,17 +25,18 @@ if __name__ == "__main__":
 
     # Run test for the rounding() function and its different methods
     rounding_returns = ["new_A","new_b","T_matrix","shift","round_val"]
+    print("*** This is a test for th rounding() function of the volestipy library *** \n")
 
     # Case 1
     rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
-    print("\n ***This is the output for the max_ellipsoid rounding method.***\n")
+    print("\n >> This is the output for the max_ellipsoid rounding method <<")
     for i in range(len(rounding_output_max_ellipsoid)):
         print("\n" + rounding_returns[i] + ": ")
         print(rounding_output_max_ellipsoid[i])
 
     # Case 2
     rounding_output_svd = hp.rounding(rounding_method = "svd")
-    print("\n ***This is the output for the svd rounding method.***\n")
+    print("\n >> This is the output for the svd rounding method <<")
     for i in range(len(rounding_output_svd)):
         print("\n" + rounding_returns[i] + ": ")
         print(rounding_output_svd[i])
@@ -43,7 +44,7 @@ if __name__ == "__main__":
 
     # Case 3
     rounding_output_min_ellipsoid = hp.rounding(rounding_method = "min_ellipsoid")
-    print("\n ***This is the output for the min_ellipsoid rounding method.***\n")
+    print("\n >> This is the output for the min_ellipsoid rounding method <<")
     for i in range(len(rounding_output_min_ellipsoid)):
         print("\n" + rounding_returns[i] + ": ")
         print(rounding_output_min_ellipsoid[i])
