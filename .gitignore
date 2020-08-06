@@ -1,0 +1,5 @@
+
+test/Testing/Temporary/CTestCostData.txt
+*.log
+volestipy/*.ipynb
+volestipy/.ipynb_checkpoints/
