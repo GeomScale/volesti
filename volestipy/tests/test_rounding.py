@@ -5,7 +5,7 @@ import volestipy
 from volestipy import HPolytope
 
 if __name__ == "__main__":
-    dim = 9
+    dim = 5
     A = np.zeros((2*dim, dim), dtype=np.float)
     A[0:dim] = np.eye(dim)
     A[dim:] -=  np.eye(dim,dim, dtype=np.float)
