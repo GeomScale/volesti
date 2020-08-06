@@ -155,34 +155,34 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
       
    // create the new_A matrix
    MT A_to_copy = P.get_mat();
-   int new_n_hyperplanes = A_to_copy.rows();
-   int new_n_variables = A_to_copy.cols();
+   int n_hyperplanes = P.rows();
+   int n_variables = P.cols();
    
    auto n_si = 0;
-   for (int i = 0; i < new_n_hyperplanes; i++){
-      for (int j = 0; j < new_n_variables; j++){
+   for (int i = 0; i < n_hyperplanes; i++){
+      for (int j = 0; j < n_variables; j++){
          new_A[n_si++] = A_to_copy(i,j);
       }
    }   
    
    // create the new_b vector
    VT new_b_temp = P.get_vec();
-   for (int i=0; i < new_n_hyperplanes; i++){
+   for (int i=0; i < n_hyperplanes; i++){
       new_b[i] = new_b_temp[i];   
    }
 
    // create the T matrix   
    MT T_matrix_temp = get<0>(round_res);
    auto t_si = 0;
-   for (int i = 0; i < new_n_variables; i++){
-      for (int j = 0; j < new_n_variables; j++){
+   for (int i = 0; i < n_variables; i++){
+      for (int j = 0; j < n_variables; j++){
          T_matrix[t_si++] = T_matrix_temp(i,j);
       }
    }
    
    // create the shift vector
    VT shift_temp = get<1>(round_res);
-   for (int i = 0; i < new_n_variables; i++){
+   for (int i = 0; i < n_variables; i++){
       shift[i] = shift_temp[i];
    }
    
