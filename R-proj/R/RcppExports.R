@@ -172,6 +172,37 @@ inner_ball <- function(P, method = NULL) {
     .Call(`_volesti_inner_ball`, P, method)
 }
 
+#' Gelman-Rubin Potential Scale Reduction Factor (PSRF)
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return The value of multivariate PSRF by S. Brooks and A. Gelman.
+joint_psrf <- function(samples) {
+    .Call(`_volesti_joint_psrf`, samples)
+}
+
+#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return A vector that contains the values of PSRF for each coordinate
+marginal_psrf <- function(samples, method = NULL) {
+    .Call(`_volesti_marginal_psrf`, samples, method)
+}
+
 #' An internal Rccp function as a polytope generator
 #'
 #' @param kind_gen An integer to declare the type of the polytope.
@@ -186,21 +217,6 @@ inner_ball <- function(P, method = NULL) {
 #' @return A numerical matrix describing the requested polytope
 poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL) {
     .Call(`_volesti_poly_gen`, kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed)
-}
-
-#' Gelman-Rubin Potential Scale Reduction Factor (PSRF)
-#'
-#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
-#'
-#' @references \cite{Gelman, A. and Rubin, D. B.,
-#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
-#'
-#' @references \cite{Brooks, S. and Gelman, A.,
-#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
-#'
-#' @return The value of multivariate PSRF by S. Brooks and A. Gelman.
-psrf <- function(samples) {
-    .Call(`_volesti_psrf`, samples)
 }
 
 #' Raftery and Lewis MCMC diagnostic
