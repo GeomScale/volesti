@@ -4,3 +4,4 @@ dist
 *.so
 volestipy.cpp
 volestipy.egg-info
+*.ipynb
