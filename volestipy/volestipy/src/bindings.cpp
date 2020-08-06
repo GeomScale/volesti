@@ -155,8 +155,8 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
       
    // create the new_A matrix
    MT A_to_copy = P.get_mat();
-   int n_hyperplanes = P.rows();
-   int n_variables = P.cols();
+   int n_hyperplanes = P.num_of_hyperplanes();
+   int n_variables = P.dimension();
    
    auto n_si = 0;
    for (int i = 0; i < n_hyperplanes; i++){
