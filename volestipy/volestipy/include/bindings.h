@@ -13,7 +13,6 @@
 #include "misc.h"
 #include "known_polytope_generators.h"
 #include "random/uniform_int.hpp"
-#include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
 #include "volume/volume_sequence_of_balls.hpp"
@@ -23,6 +22,12 @@
 //from generate_samples, some extra headers not already included
 #include <chrono>
 #include "sampling/sampling.hpp"
+
+// for rounding
+#include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
+#include "preprocess/svd_rounding.hpp"
+#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/get_full_dimensional_polytope.hpp"    // will be used after completing the rounding
 
 
 typedef double NT;
@@ -40,18 +45,22 @@ typedef struct rounded{
 class HPolytopeCPP{
    public:
 
-      //typedef double NT;
-      //typedef Cartesian<NT>    Kernel;
-      //typedef typename Kernel::Point    Point;
-      //typedef HPolytope<Point> Hpolytope;
-      //typedef typename Hpolytope::MT    MT;
-      //typedef typename Hpolytope::VT    VT;
-      //typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
-      //
-      //typedef struct rounded{
-      //   MT new_A;
-      //   VT new_b;
-      //}rounded_HPolytope;
+
+      typedef double NT;
+      typedef Cartesian<NT>    Kernel;
+      typedef typename Kernel::Point    Point;
+      typedef HPolytope<Point> Hpolytope;
+      typedef typename Hpolytope::MT    MT;
+      typedef typename Hpolytope::VT    VT;
+      typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
+
+      // regarding the rounding step
+      typedef std::tuple<MT, VT, NT>    round_result;
+
+
+
+
+// The class and its main specs
 
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
@@ -68,8 +77,7 @@ class HPolytopeCPP{
        bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
 // the rounding() function
-      double rounding(int walk_len, bool billiard, double* new_A, double* new_b); //, double* round_val
-
+      void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value);
 
 };
 
