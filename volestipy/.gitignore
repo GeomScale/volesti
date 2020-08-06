@@ -4,4 +4,3 @@ dist
 *.so
 volestipy.cpp
 volestipy.egg-info
-metabolic_net_pipeline.ipynb
