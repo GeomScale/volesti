@@ -74,6 +74,9 @@ class lowDimHPolytopeCPP{
 
    public:
       
+      MT A,Aeq;
+      VT b,beq;
+      
       std::pair<Point,NT> CheBall;
       
       // regarding getting full dimensional polytope
