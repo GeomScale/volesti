@@ -16,11 +16,13 @@ def get_time_seed():
    import time
    return int(time.time())
 
-# get main class from the bindings.h file
+# get classes from the bindings.h file
 cdef extern from "bindings.h":
-
+   
+   # the HPolytopeCPP class along with its functions
    cdef cppclass HPolytopeCPP:
-
+    
+      # initialization 
       HPolytopeCPP() except +
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables) except +
 
@@ -34,14 +36,15 @@ cdef extern from "bindings.h":
       # rounding H-Polytope
       void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value);
       
-
-   cdef cppclass preHPolytopeCPP:
+   # the lowDimPolytopeCPP class along with its functions
+   cdef cppclass lowDimHPolytopeCPP:
       
-      preHPolytopeCPP() except +
-      preHPolytopeCPP(double *A, double *b, double *Aeq, double *beq, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq) #except +
-      # 
-      # # get full dimensional polytope
-      # void get_full_dimensiolal_polytope()
+      # initialization       
+      lowDimHPolytopeCPP() except +
+      lowDimHPolytopeCPP(double *A, double *b, double *Aeq, double *beq, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq) except +
+      
+      # get full dimensional polytope
+      void full_dimensiolal_polytope()
       
       
 
@@ -126,9 +129,10 @@ cdef class HPolytope:
 
 
 
-cdef class pre_HPolytope:
+cdef class low_dim_HPolytope:
 
-   cdef preHPolytopeCPP pre_polytope_cpp
+   cdef lowDimHPolytopeCPP low_dim_polytope_cpp
+
    cdef double[:,::1] _A
    cdef double[::1] _b
    cdef double [:,::1] _Aeq
@@ -143,20 +147,47 @@ cdef class pre_HPolytope:
       n_rows_of_A, n_cols_of_A = A.shape[0], A.shape[1] # should be like this: n_cols_of_A = 2* n_rows_of_A
       n_row_of_Aeq, n_cols_of_Aeq = Aeq.shape[0], Aeq.shape[1] # this is the S matrix (m*n)
       
-      self.pre_polytope_cpp = preHPolytopeCPP(&A[0,0], &b[0], &Aeq[0,0], &beq[0], n_rows_of_A, n_cols_of_A, n_row_of_Aeq, n_cols_of_Aeq)
+      self.low_dim_polytope_cpp = lowDimHPolytopeCPP(&A[0,0], &b[0], &Aeq[0,0], &beq[0], n_rows_of_A, n_cols_of_A, n_row_of_Aeq, n_cols_of_Aeq)
 
    
-   # # the get_full_dimensional_polytope() function(); that needs to run in case the user does not provide volestipy with a full dimensional polytope
-   # def check_if_full_dimensiolal_polytope(self):
-   #    
-   #    # the matrices we need here, depend on the dimensions of the S matrix (m*n) where m: metabolites and n: reactions
-   #    # input for the C++ function
-   #    cdef double[:,::1] A = np.zeros((2*n_reactions, n_reactions), dtype=np.float64, order="C")
-   #    cdef double[::1] b = np.zeros(2*n_reactions, dtype=np.float64, order="C")
-   #    cdef double[:,::1] Aeq = np.zeros((n_metabolites, n_reactions), dtype=np.float64, order="C")
-   #    cdef double[::1] beq = np.zeros(n_metabolites, dtype=np.float64, order="C")
-   #    
-   #    # input that we need to pass from the Python interface to the C++ code - output that we need to expect from the C++ code and return it here
-   #    cdef
+   # the get_full_dimensional_polytope() function(); that needs to run in case the user does not provide volestipy with a full dimensional polytope
+   def full_dimensiolal_polytope(self, A, b, Aeq, beq):
+      
+      # regarding the actual full_dimensional_polytope() output 
+      cdef double[:,::1] N
+      cdef double[::1] shift
+      cdef HP full_HP
+      
+      # regarding the data needed to build an HPolytopeCPP object with the A and b of the full dimensional polytope
+      cdef double[:,::1] full_A
+      cdef double[::1] full_b
+      
+      # regarding the actual dimensions of the matrices and vectors of the full dimensional polytope
+      cdef int n_of_row_in_N ; cdef int n_of_cols_in_N
+      cdef int n_of_row_in_shift ; cdef int n_of_cols_in_shift
    
-   
+      
+      full_HP, n_of_row_in_N = self.full_dimensiolal_polytope(A, b, Aeq, beq, &N[0,0],  &shift[0], &full_A[0,0], &full_b[0])
+      
+
+      delete[] N;  delete[] shift;    
+      return 
+
+
+
+
+   @property
+   def A(self):
+      return np.asarray(self._A)
+   @property
+   def b(self):
+      return np.asarray(self._b)
+   @property
+   def Aeq(self):
+      return np.asarray(self._Aeq)
+   @property
+   def beq(self):
+      return np.asarray(self._beq)   
+   @property
+   def dimensions(self):
+      return self._A.shape[1]   
