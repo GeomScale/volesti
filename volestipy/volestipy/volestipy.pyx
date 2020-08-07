@@ -24,16 +24,26 @@ cdef extern from "bindings.h":
       HPolytopeCPP() except +
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables) except +
 
-# compute volume
+      # compute volume
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);
 
-# random sampling
+      # random sampling
       double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, \
          bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
-# rounding H-Polytope
+      # rounding H-Polytope
       void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value);
+      
 
+   cdef cppclass preHPolytopeCPP:
+      
+      preHPolytopeCPP() except +
+      preHPolytopeCPP(double *A, double *b, double *Aeq, double *beq, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq) #except +
+      # 
+      # # get full dimensional polytope
+      # void get_full_dimensiolal_polytope()
+      
+      
 
 # lists with the methods supported by volesti for volume approximation and random walk
 volume_methods = ["sequence_of_balls".encode("UTF-8"), "cooling_gaussian".encode("UTF-8"), "cooling_balls".encode("UTF-8")]
@@ -44,6 +54,7 @@ rounding_methods = ["min_ellipsoid".encode("UTF-8"), "svd".encode("UTF-8"), "max
 
 # build the HPolytope class - the 'polytope_cpp' is an instance of the HPolytopeCPP class described on the 'bindings.cpp' file
 cdef class HPolytope:
+   
    cdef HPolytopeCPP polytope_cpp
    cdef double[:,::1] _A
    cdef double[::1] _b
@@ -78,9 +89,7 @@ cdef class HPolytope:
       cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype = np.float64, order = "C")
 
       self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L, &samples[0,0])
-
       return np.asarray(samples)      # we need to build a Python function for getting a starting point depending on the polytope
-
 
 # the rounding() function; like the compute_volume; there are more than one methods for this step
    def rounding(self, rounding_method = 'max_ellipsoid'):
@@ -105,7 +114,6 @@ cdef class HPolytope:
       else:
          raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(rounding_method, rounding_methods))
 
-
    @property
    def A(self):
       return np.asarray(self._A)
@@ -115,3 +123,40 @@ cdef class HPolytope:
    @property
    def dimensions(self):
       return self._A.shape[1]
+
+
+
+cdef class pre_HPolytope:
+
+   cdef preHPolytopeCPP pre_polytope_cpp
+   cdef double[:,::1] _A
+   cdef double[::1] _b
+   cdef double [:,::1] _Aeq
+   cdef double[::1] _beq
+
+# set the specs of the class
+   def __cinit__(self, double[:,::1] A, double[::1] b, double[:,::1] Aeq, double[::1] beq):
+      self._A = A
+      self._b = b
+      self._Aeq = Aeq
+      self._beq = beq
+      n_rows_of_A, n_cols_of_A = A.shape[0], A.shape[1] # should be like this: n_cols_of_A = 2* n_rows_of_A
+      n_row_of_Aeq, n_cols_of_Aeq = Aeq.shape[0], Aeq.shape[1] # this is the S matrix (m*n)
+      
+      self.pre_polytope_cpp = preHPolytopeCPP(&A[0,0], &b[0], &Aeq[0,0], &beq[0], n_rows_of_A, n_cols_of_A, n_row_of_Aeq, n_cols_of_Aeq)
+
+   
+   # # the get_full_dimensional_polytope() function(); that needs to run in case the user does not provide volestipy with a full dimensional polytope
+   # def check_if_full_dimensiolal_polytope(self):
+   #    
+   #    # the matrices we need here, depend on the dimensions of the S matrix (m*n) where m: metabolites and n: reactions
+   #    # input for the C++ function
+   #    cdef double[:,::1] A = np.zeros((2*n_reactions, n_reactions), dtype=np.float64, order="C")
+   #    cdef double[::1] b = np.zeros(2*n_reactions, dtype=np.float64, order="C")
+   #    cdef double[:,::1] Aeq = np.zeros((n_metabolites, n_reactions), dtype=np.float64, order="C")
+   #    cdef double[::1] beq = np.zeros(n_metabolites, dtype=np.float64, order="C")
+   #    
+   #    # input that we need to pass from the Python interface to the C++ code - output that we need to expect from the C++ code and return it here
+   #    cdef
+   
+   
