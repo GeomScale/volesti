@@ -203,8 +203,8 @@ lowDimHPolytopeCPP::lowDimHPolytopeCPP() {}
 // initialize the low dimensional polytope object
 lowDimHPolytopeCPP::lowDimHPolytopeCPP(double *A_np, double *b_np, double *A_aeq_np, double *b_aeq_np, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq){
 
-   MT A; VT b;
-   MT Aeq; VT beq;
+   //MT A; VT b;
+   //MT Aeq; VT beq;
    
    A.resize(n_rows_of_A,n_cols_of_A);
    b.resize(n_rows_of_A);
@@ -230,14 +230,13 @@ lowDimHPolytopeCPP::lowDimHPolytopeCPP(double *A_np, double *b_np, double *A_aeq
       }
    }   
    
-   
-   low_HP.init(n_cols_of_A,A,b);
-   CheBall = low_HP.ComputeInnerBall();
+   //low_HP.init(n_cols_of_A,A,b);
+   //CheBall = low_HP.ComputeInnerBall();
 }
 lowDimHPolytopeCPP::~lowDimHPolytopeCPP(){}
 
 
-double lowDimHPolytopeCPP::full_dimensiolal_polytope(A, b, Aeq, beq, double* N, double* shift, double* full_A, double* full_b){
+double lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N, double* shift, double* full_A, double* full_b){
    
    full_dim_pol_result result;
    
