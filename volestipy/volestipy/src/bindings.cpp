@@ -4,6 +4,9 @@
 
 using namespace std;
 
+// >>> This is the main HPolytopeCPP class where the compute_volume(), the rounding() and the sampling() volesti methods are included <<<
+
+// here is the initialization of the HPolytopeCPP class
 HPolytopeCPP::HPolytopeCPP() {}
 HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_variables){
 
@@ -24,8 +27,8 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
    HP.init(n_variables,A,b);
    CheBall = HP.ComputeInnerBall();
 }
+// after this we need to use a destructor for the HPolytopeCPP object
 HPolytopeCPP::~HPolytopeCPP(){}
-
 
 //////////          start of "compute_volume"          //////////
 double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed){
@@ -130,7 +133,6 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 
 //////////         start of "rounding()"          //////////
-
 void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value){
 
    // make a copy of the initial HP which will be used for the rounding step
@@ -190,3 +192,61 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    round_value = get<2>(round_res);
 
 }
+//////////         end of "rounding()"          //////////
+
+
+
+// >>> This is the preHPolytopeCPP class where the pre_processing() and the get_full_dimensional_polytope() volesti methods are included <<<
+
+preHPolytopeCPP::preHPolytopeCPP() {}
+preHPolytopeCPP::preHPolytopeCPP(double *A_np, double *b_np, double *A_aeq_np, double *b_aeq_np, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq){
+
+   MT A; VT b;
+   MT Aeq; VT beq;
+   
+   A.resize(n_rows_of_A,n_cols_of_A);
+   b.resize(n_rows_of_A);
+   
+   Aeq.resize(n_row_of_Aeq, n_cols_of_Aeq);
+   beq.resize(n_row_of_Aeq);
+
+   int index_1 = 0;
+   for (int i = 0; i < n_rows_of_A; i++){
+      b(i) = b_np[i];
+      for (int j=0; j < n_cols_of_A; j++){
+         A(i,j) = A_np[index_1];
+         index_1++;
+      }
+   }
+
+   int index_2 = 0;
+   for (int i = 0; i < n_row_of_Aeq; i++){
+      beq(i) = b_aeq_np[i];
+      for (int j=0; j < n_cols_of_Aeq; j++){
+         Aeq(i,j) = A_aeq_np[index_2];
+         index_2++;
+      }
+   }   
+   
+   
+   HP.init(n_cols_of_A,A,b);
+   CheBall = HP.ComputeInnerBall();
+}
+preHPolytopeCPP::~preHPolytopeCPP(){}
+
+
+//void preHPolytopeCPP::get_full_dimensiolal_polytope(){
+//   
+//   get_full_dim_pol_result result;
+//   
+//   MT A = HP.field("A");
+//   MT Aeq = HP.field("Aeq");
+//   VT b = HP.field("b");
+//   VT beq = HP.field("beq");
+//   
+//   result = get_full_dimensional_polytope<Hpolytope>(A, b, Aeq, beq);
+//
+//   Hpolytope full_HP = result.first;
+//   MT N = result.second.first;
+//   VT shift = result.second.second;
+//}
