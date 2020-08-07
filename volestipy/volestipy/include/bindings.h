@@ -70,7 +70,7 @@ class HPolytopeCPP{
 };
 
 // The preHPolytopeCPP class is responsible for the preprocess step of the polytope as well as for getting the full dimensional polytope 
-class preHPolytopeCPP{
+class lowDimHPolytopeCPP{
 
    public:
       
@@ -80,18 +80,15 @@ class preHPolytopeCPP{
       typedef std::pair<Hpolytope, std::pair<MT, VT> > get_full_dim_pol_result;
 
       // The class and its main specs
-      preHPolytopeCPP();
-      preHPolytopeCPP(double *A, double *b, double *Aeq, double *beq, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq);
-
-      Hpolytope HP;      
+      lowDimHPolytopeCPP();
+      lowDimHPolytopeCPP(double *A, double *b, double *Aeq, double *beq, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq);
+      Hpolytope low_HP;
       // Here we use the "~" destructor; this way we avoid a memory leak.
-      ~preHPolytopeCPP();
-      
+      ~lowDimHPolytopeCPP();
       
       // the get_full_dimensional_polytop() function
-      void get_full_dimensiolal_polytope();
+      void full_dimensiolal_polytope();
 
 };
-
 
 #endif
