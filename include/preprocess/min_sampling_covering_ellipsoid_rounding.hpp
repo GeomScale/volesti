@@ -109,7 +109,7 @@ std::tuple<MT, VT, NT> min_sampling_covering_ellipsoid_rounding(Polytope &P,
         T = T * L_1.transpose();
 
         P.linear_transformIt(L_1.transpose());
-        P.normalize();
+        //P.normalize();
         InnerBall = P.ComputeInnerBall();
         round_val *= L_1.determinant();
         ratio = Rel / rel;

@@ -304,7 +304,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             if (HP.is_in(StartingPoint) == 0) {
                 throw Rcpp::exception("The given point is not in the interior of the polytope!");
             }
-            HP.normalize();
             if (gaussian) {
                 StartingPoint = StartingPoint - mode;
                 HP.shift(mode.getCoefficients());

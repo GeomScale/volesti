@@ -57,7 +57,7 @@ void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps
     p = p - q;
     P.shift(Means);
 
-    Eigen::JacobiSVD<MT> svd(RetMat, Eigen::ComputeThinV);
+    Eigen::BDCSVD<MT> svd(RetMat, Eigen::ComputeFullV);
     s = svd.singularValues() / svd.singularValues().minCoeff();
 
     if (s.maxCoeff() >= 2.0) {
@@ -154,7 +154,7 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
             prev_max_s = max_s;
 
             P.linear_transformIt(round_mat);
-            P.normalize();
+            //P.normalize();
             P.ComputeInnerBall();
             T_shift += T * shift;
             T = T * round_mat;

@@ -15,6 +15,7 @@
 #include <limits>
 #include <iostream>
 #include <Eigen/Eigen>
+#include "preprocess/max_inscribed_ball.hpp"
 #include "lp_oracles/solve_lp.h"
 
 //min and max values for the Hit and Run functions
@@ -51,7 +52,16 @@ public:
     //Use LpSolve library
     std::pair<Point,NT> ComputeInnerBall()
     {
-        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+        normalize();
+        NT const tol = 0.00000001;
+        std::pair<VT, NT> inner_ball = max_inscribed_ball(A, b, 150, tol);
+        if (is_in(Point(inner_ball.first)) == 0 || inner_ball.second < NT(0)) { // TODO: check for NAN values
+            _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+        } else {
+            _inner_ball.first = Point(inner_ball.first);
+            _inner_ball.second = inner_ball.second;
+        }
+        
         return _inner_ball;
     }
 

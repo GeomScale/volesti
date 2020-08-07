@@ -155,7 +155,6 @@ geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
 #' For both zonotopes and V-polytopes the function computes the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
 #'
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
-#' @param method Optional. A string to declare the method to be used: (i) \code{'lpsolve'} to use lpsolve library, (ii) \code{'ipm'} to use an interior point method which solves the corresponding linear program. The default method is \code{'lpsolve'}.
 #'
 #' @return A \eqn{(d+1)}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
 #'

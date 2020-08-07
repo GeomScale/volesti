@@ -335,6 +335,7 @@ double volume_cooling_gaussians(Polytope const& Pin,
 
     // Consider Chebychev center as an internal point
     auto InnerBall = P.ComputeInnerBall();
+    
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
 

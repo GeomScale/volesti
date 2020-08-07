@@ -20,7 +20,6 @@
 //' For both zonotopes and V-polytopes the function computes the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
 //'
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
-//' @param method Optional. A string to declare the method to be used: (i) \code{'lpsolve'} to use lpsolve library, (ii) \code{'ipm'} to use an interior point method which solves the corresponding linear program. The default method is \code{'lpsolve'}.
 //'
 //' @return A \eqn{(d+1)}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
 //'
@@ -50,26 +49,13 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P,
     unsigned int n = P.field("dimension"), type = P.field("type");
 
     std::pair <Point, NT> InnerBall;
-    std::string method_rcpp = (!method.isNotNull()) ? std::string("lpsolve") : Rcpp::as<std::string>(method);
 
     switch (type) {
         case 1: {
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            if(method_rcpp.compare(std::string("lpsolve")) == 0) {
-                InnerBall = HP.ComputeInnerBall();
-                break;
-            } else if(method_rcpp.compare(std::string("ipm")) == 0) {
-                HP.normalize();
-                NT tol = 0.00000001;
-                std::pair<VT, NT> res = max_inscribed_ball(HP.get_mat(), HP.get_vec(), 150, tol);
-                InnerBall.second = res.second;
-                InnerBall.first = Point(res.first);
-            } else {         
-                throw Rcpp::exception("Unknown method!");
-            }
-            
+            InnerBall = HP.ComputeInnerBall();
             break;
         }
         case 2: {

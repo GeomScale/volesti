@@ -41,11 +41,11 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
     unsigned int n = P.dimension();
     std::pair<Point, NT> InnerBall;
 
+    if (rounding != none) InnerBall = P.ComputeInnerBall();
+
     switch (rounding)
     {
     case min_ellipsoid:
-        InnerBall = P.ComputeInnerBall();
-        P.normalize();
         switch (walk)
         {
         case cdhr:
@@ -60,8 +60,6 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         }
         break;
     case svd:
-        InnerBall = P.ComputeInnerBall();
-        P.normalize();
         switch (walk)
         {
         case cdhr:
@@ -76,8 +74,6 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         }
         break;
     case max_ellipsoid:
-        InnerBall = P.ComputeInnerBall();
-        P.normalize();
         round_val = std::get<2>(max_inscribed_ellipsoid_rounding<MT, VT>(P, InnerBall));
         break;
     default:
@@ -343,14 +339,26 @@ double volume (Rcpp::Reference P,
                 hpoly = false;
             }
             if (hpoly && algo == CB) {
-                if (cdhr) {
+                switch (walk)
+                {
+                case cdhr:
                     return volume_cooling_hpoly<CDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
-                } else if (rdhr) {
+                    break;
+                case rdhr:
                     return volume_cooling_hpoly<RDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
-                } else if (ball_walk) {
+                    break;
+                case ball_walk:
                     return volume_cooling_hpoly<BallWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
-                } else {
+                    break;
+                case billiard:
                     return volume_cooling_hpoly<BilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    break;
+                case accelarated_billiard:
+                    return volume_cooling_hpoly<AcceleratedBilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    break;
+                default:
+                    throw Rcpp::exception("This random walk can not be used by CB algorithm!");
+                    break;
                 }
             }
             return generic_volume(ZP, rng, walkL, e, algo, win_len, rounding_method, walk);

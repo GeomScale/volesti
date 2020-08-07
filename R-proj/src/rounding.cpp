@@ -3,7 +3,7 @@
 // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 20012-2020 Vissarion Fisikopoulos
-// Copyright (c) 2020 Apostolos Chalkis
+// Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
@@ -22,7 +22,6 @@
 #include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
 #include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
-#include "preprocess/get_full_dimensional_polytope.hpp"
 #include "extractMatPoly.h"
 
 template 
@@ -35,9 +34,11 @@ template
     typename NT, 
     typename RNGType
 >
-std::tuple<MT, VT, NT> apply_rounding(Polytope &P, std::string const& method_rcpp,
-                                                  unsigned int const& walkL, std::pair<Point, NT> &InnerBall, 
-                                                  RNGType &rng) 
+std::tuple<MT, VT, NT> apply_rounding(Polytope &P,
+                                      std::string const& method_rcpp,
+                                      unsigned int const& walkL,
+                                      std::pair<Point, NT> &InnerBall, 
+                                      RNGType &rng) 
 {
     std::tuple<MT, VT, NT> round_res;
     if (method_rcpp.compare(std::string("min_ellipsoid")) == 0) {
@@ -60,7 +61,8 @@ std::tuple<MT, VT, NT> apply_rounding(Polytope &P, std::string const& method_rcp
 //'
 //' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 // [[Rcpp::export]]
-Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_NilValue,
+Rcpp::List rounding (Rcpp::Reference P, 
+                     Rcpp::Nullable<std::string> method = R_NilValue,
                      Rcpp::Nullable<double> seed = R_NilValue){
 
     typedef double NT;
@@ -105,7 +107,6 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
                 // low dimensional
                 throw Rcpp::exception("volesti supports rounding for full dimensional polytopes. Maybe call function get_full_dimensional_polytope()");
             }
-            HP.normalize();
             InnerBall = HP.ComputeInnerBall();
             if (method_rcpp.compare(std::string("max_ellipsoid")) == 0) {
                 round_res = max_inscribed_ellipsoid_rounding<MT, VT>(HP, InnerBall);
