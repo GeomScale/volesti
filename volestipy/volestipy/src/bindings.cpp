@@ -24,7 +24,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
       }
    }
 
-   HP.init(n_variables,A,b);
+   HP.init(n_variables, A, b);
    CheBall = HP.ComputeInnerBall();
 }
 // after this we need to use a destructor for the HPolytopeCPP object
@@ -196,10 +196,12 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 
 
 
-// >>> This is the preHPolytopeCPP class where the pre_processing() and the get_full_dimensional_polytope() volesti methods are included <<<
+// >>> This is the lowDimHPolytopeCPP class where the pre_processing() and the get_full_dimensional_polytope() volesti methods are included <<<
 
-preHPolytopeCPP::preHPolytopeCPP() {}
-preHPolytopeCPP::preHPolytopeCPP(double *A_np, double *b_np, double *A_aeq_np, double *b_aeq_np, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq){
+lowDimHPolytopeCPP::lowDimHPolytopeCPP() {}
+
+// initialize the low dimensional polytope object
+lowDimHPolytopeCPP::lowDimHPolytopeCPP(double *A_np, double *b_np, double *A_aeq_np, double *b_aeq_np, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq){
 
    MT A; VT b;
    MT Aeq; VT beq;
@@ -229,24 +231,55 @@ preHPolytopeCPP::preHPolytopeCPP(double *A_np, double *b_np, double *A_aeq_np, d
    }   
    
    
-   HP.init(n_cols_of_A,A,b);
-   CheBall = HP.ComputeInnerBall();
+   low_HP.init(n_cols_of_A,A,b);
+   CheBall = low_HP.ComputeInnerBall();
 }
-preHPolytopeCPP::~preHPolytopeCPP(){}
+lowDimHPolytopeCPP::~lowDimHPolytopeCPP(){}
 
 
-//void preHPolytopeCPP::get_full_dimensiolal_polytope(){
-//   
-//   get_full_dim_pol_result result;
-//   
-//   MT A = HP.field("A");
-//   MT Aeq = HP.field("Aeq");
-//   VT b = HP.field("b");
-//   VT beq = HP.field("beq");
-//   
-//   result = get_full_dimensional_polytope<Hpolytope>(A, b, Aeq, beq);
-//
-//   Hpolytope full_HP = result.first;
-//   MT N = result.second.first;
-//   VT shift = result.second.second;
-//}
+double lowDimHPolytopeCPP::full_dimensiolal_polytope(A, b, Aeq, beq, double* N, double* shift, double* full_A, double* full_b){
+   
+   full_dim_pol_result result;
+   
+   result = full_dimensional_polytope<Hpolytope>(A, b, Aeq, beq);
+
+   // the outcome of the full_dimensional_polytope()
+   Hpolytope full_HP = result.first;
+   MT N_temp = result.second.first;
+   VT shift_temp = result.second.second;
+
+   // regarding the full dimensional polytope
+   full_HP_A = full_HP.get_mat()
+   full_HP_b = full_HP.get_vec()
+   
+   // return the N matrix to cython
+   auto t_si = 0;
+   for (int i = 0; i < N_temp.rows(); i++){
+      for (int j = 0; j < N_temp.cols(); j++){
+         N[t_si++] = N_temp(i,j);
+      }
+   }
+   
+   // return the shift vector to cython
+   for (int i=0; i < shift_temp.rows(); i++){
+      new_b[i] = shift_temp[i];
+   }
+
+   // return the full_A matrix to cython
+   auto a_si = 0;
+   for (int i = 0; i < full_A.rows(); i++){
+      for (int j = 0; j < full_A.cols(); j++){
+         shift[a_si++] = full_A(i,j);
+      }
+   }
+   
+   // return the full_b matrix to cython
+   for (int i=0; i < full_b.rows(); i++){
+      new_b[i] = new_b_temp[i];
+   }
+
+   
+
+return full_HP, N_temp.rows(), N_temp.cols(), shift_temp.rows(), shift_temp.cols()
+   
+}
