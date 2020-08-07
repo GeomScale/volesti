@@ -167,7 +167,7 @@ cdef class low_dim_HPolytope:
       cdef int n_of_row_in_shift ; cdef int n_of_cols_in_shift
    
       
-      full_HP, n_of_row_in_N = self.full_dimensiolal_polytope(A, b, Aeq, beq, &N[0,0],  &shift[0], &full_A[0,0], &full_b[0])
+      full_HP, n_of_row_in_N = self.full_dimensiolal_polytope(&N[0,0],  &shift[0], &full_A[0,0], &full_b[0])
       
 
       delete[] N;  delete[] shift;    
