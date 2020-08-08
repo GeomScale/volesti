@@ -108,6 +108,7 @@ Rcpp::List rounding (Rcpp::Reference P,
                 throw Rcpp::exception("volesti supports rounding for full dimensional polytopes. Maybe call function get_full_dimensional_polytope()");
             }
             InnerBall = HP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             if (method_rcpp.compare(std::string("max_ellipsoid")) == 0) {
                 round_res = max_inscribed_ellipsoid_rounding<MT, VT>(HP, InnerBall);
             } else {
@@ -120,6 +121,7 @@ Rcpp::List rounding (Rcpp::Reference P,
             // Vpolytope
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             round_res = apply_rounding<MT, VT, BilliardWalk>(VP, method_rcpp, walkL, InnerBall, rng);
             Mat = extractMatPoly(VP);
             break;
@@ -128,6 +130,7 @@ Rcpp::List rounding (Rcpp::Reference P,
             // Zonotope
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             round_res = apply_rounding<MT, VT, BilliardWalk>(ZP, method_rcpp, walkL, InnerBall, rng);
             Mat = extractMatPoly(ZP);
             break;

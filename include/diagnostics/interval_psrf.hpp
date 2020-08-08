@@ -11,8 +11,8 @@
     This function implements the interval diagnostic of Brooks & Gelman.
     It is based on  "General Methods for Monitoring Convergence of Iterative Simulations, 1998" by S. Brooks and A. Gelman
 
-     For each coordinate the sample is splitted into two parts. 
-     Then the psrf of S. Brooks and A. Gelman is computed for each coordinate.
+    For each coordinate the sample is splitted into two parts. 
+    Then the psrf of S. Brooks and A. Gelman is computed for each coordinate.
 
     Inputs: samples, a matrix that contains sample points column-wise
 
@@ -22,8 +22,8 @@
 #ifndef INTERVAL_PSRF_HPP
 #define INTERVAL_PSRF_HPP
 
-template <typename NT, typename VT, typename MT>
-VT interval_psrf(MT const& samples)
+template <typename VT, typename NT, typename MT>
+VT interval_psrf(MT const& samples, NT alpha = 0.05)
 {
     MT runs = samples.transpose();
     unsigned int N = samples.cols(), d = samples.rows();
@@ -31,7 +31,7 @@ VT interval_psrf(MT const& samples)
     unsigned int N2 = N - N1;
     VT sorted_samples(N), sorted_subsamples1(N1), sorted_subsamples2(N2), results(d);
     std::vector<NT> temp_col(N);
-    NT alpha = 0.05;
+    
     for (int i = 0; i < d; i++)
     {
         sorted_samples = runs.col(i);

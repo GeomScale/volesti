@@ -28,7 +28,7 @@
 //'
 //' @return The value of multivariate PSRF by S. Brooks and A. Gelman.
 // [[Rcpp::export]]
-double joint_psrf(Rcpp::NumericMatrix samples)
+double psrf_joint(Rcpp::NumericMatrix samples)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;

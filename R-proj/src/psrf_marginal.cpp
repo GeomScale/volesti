@@ -20,7 +20,7 @@
 //' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 //'
 //' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
-//' @method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
+//' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
 //'
 //' @references \cite{Gelman, A. and Rubin, D. B.,
 //' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
@@ -30,7 +30,7 @@
 //'
 //' @return A vector that contains the values of PSRF for each coordinate
 // [[Rcpp::export]]
-Rcpp::NumericVector marginal_psrf(Rcpp::NumericMatrix samples,
+Rcpp::NumericVector psrf_marginal(Rcpp::NumericMatrix samples,
                                   Rcpp::Nullable<std::string> method = R_NilValue)
 {
     typedef double NT;
@@ -47,7 +47,7 @@ Rcpp::NumericVector marginal_psrf(Rcpp::NumericMatrix samples,
     if (method_rcpp.compare(std::string("normal")) == 0) {
         scores = marginal_psrf<NT, VT>(Rcpp::as<MT>(samples));
     } else if(method_rcpp.compare(std::string("interval")) == 0) {
-        scores = interval_psrf<NT, VT>(Rcpp::as<MT>(samples));
+        scores = interval_psrf<VT, NT>(Rcpp::as<MT>(samples));
     } else {
         throw Rcpp::exception("Unknown method!");
     }

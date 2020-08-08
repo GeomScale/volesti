@@ -41,7 +41,10 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
     unsigned int n = P.dimension();
     std::pair<Point, NT> InnerBall;
 
-    if (rounding != none) InnerBall = P.ComputeInnerBall();
+    if (rounding != none){
+         InnerBall = P.ComputeInnerBall();
+         if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
+    }
 
     switch (rounding)
     {
@@ -150,6 +153,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         throw Rcpp::exception("Unknown algorithm!");
         break;
     }
+    if (vol < 0.0) throw Rcpp::exception("volesti failed to terminate.");
     return vol * round_val;
 }
 
