@@ -90,7 +90,7 @@ class lowDimHPolytopeCPP{
       ~lowDimHPolytopeCPP();
       
       // the get_full_dimensional_polytop() function
-      void full_dimensiolal_polytope();
+      int full_dimensiolal_polytope(double* N_extra, double* shift_extra, double* A_full_extra, double* b_full_extra);
 
 };
 
