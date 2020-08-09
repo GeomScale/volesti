@@ -11,6 +11,8 @@
 #include "ChebTools/ChebTools.h"
 #include "barriers/InterpolantDualSOSBarrier.h"
 #include "barriers/ProductBarrier.h"
+#include "barriers/SumBarrier.h"
+#include <boost/math/special_functions/binomial.hpp>
 
 EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_) :
         _n(num_variables), _d(max_degree),
@@ -20,38 +22,6 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
     assert(_n == 1);
     initialize_loggers();
     initialize_problem();
-}
-
-void EnvelopeProblemSOS::initialize_problem() {
-    _L = _d + 1;
-    _U = 2 * _d + 1;
-
-    if (not _input_in_interpolant_basis) {
-        calculate_basis_polynomials();
-    }
-    for (unsigned k = 0; k < _basis_polynomials.size(); ++k) {
-        _logger->debug("The {}-th polynomial is:", k);
-        for (unsigned i = 0; i < _basis_polynomials[k].size(); ++i) {
-            _logger->debug("{}", _basis_polynomials[k]);
-        }
-    }
-    _logger->info("Construct objectives vector...");
-
-//    Old way of computing the objective
-//    _objectives_vector.resize(_U);
-//    for (unsigned i = 0; i < _U; ++i) {
-//        InterpolantVector &poly = _basis_polynomials[i];
-//        InterpolantDouble obj = 0;
-//        for (unsigned j = 0; j < _U; ++j) {
-//            InterpolantDouble upper_bound_term = poly(j) * pow(_hyperRectangle[0].second, j + 1) / (j + 1);
-//            InterpolantDouble lower_bound_term = poly(j) * pow(_hyperRectangle[0].first, j + 1) / (j + 1);
-//            obj += upper_bound_term - lower_bound_term;
-//        }
-//        _objectives_vector(i) = -obj;
-//    }
-
-    //Clenshaw-Curtis algorithm
-    get_clenshaw_curtis_integrals();
 }
 
 EnvelopeProblemSOS::EnvelopeProblemSOS(std::ifstream & instance_file) {
@@ -93,6 +63,50 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(std::ifstream & instance_file) {
         _logger->info("Polynomial added.");
     }
 }
+
+void EnvelopeProblemSOS::initialize_problem() {
+    _L = static_cast<unsigned>(boost::math::binomial_coefficient<double>(_d + _n, _n));
+    _U = static_cast<unsigned>(boost::math::binomial_coefficient<double>(2 * _d + _n, _n));
+
+    //univariate case
+    if(_n == 1) {
+        if (not _input_in_interpolant_basis) {
+            calculate_basis_polynomials();
+        }
+        for (unsigned k = 0; k < _basis_polynomials.size(); ++k) {
+            _logger->debug("The {}-th polynomial is:", k);
+            for (unsigned i = 0; i < _basis_polynomials[k].size(); ++i) {
+                _logger->debug("{}", _basis_polynomials[k]);
+            }
+        }
+        _logger->info("Construct objectives vector...");
+
+//    Old way of computing the objective
+//    _objectives_vector.resize(_U);
+//    for (unsigned i = 0; i < _U; ++i) {
+//        InterpolantVector &poly = _basis_polynomials[i];
+//        InterpolantDouble obj = 0;
+//        for (unsigned j = 0; j < _U; ++j) {
+//            InterpolantDouble upper_bound_term = poly(j) * pow(_hyperRectangle[0].second, j + 1) / (j + 1);
+//            InterpolantDouble lower_bound_term = poly(j) * pow(_hyperRectangle[0].first, j + 1) / (j + 1);
+//            obj += upper_bound_term - lower_bound_term;
+//        }
+//        _objectives_vector(i) = -obj;
+//    }
+
+        //Clenshaw-Curtis algorithm
+        get_clenshaw_curtis_integrals();
+    } else if(_n == 2){//Padua points
+
+    }
+    //n >  2
+    else {
+        //Fekete points
+        assert(_n > 2);
+    }
+
+}
+
 
 void EnvelopeProblemSOS::initialize_loggers() {
     _logger = spdlog::get("EnvelopeProblemSOS");
@@ -259,7 +273,7 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
     ProductBarrier *productBarrier = new ProductBarrier;
 
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
-        auto sos_barrier = new InterpolantDualSOSBarrier(_d);
+        auto sos_barrier = new InterpolantDualSOSBarrier(_d, _n);
 
         auto sum_barrier = new SumBarrier(_U);
         sum_barrier->add_barrier(sos_barrier);
@@ -400,7 +414,7 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     }
 
     for (unsigned k = 0; k < envelope_plot.size(); ++k) {
-        offset_envelope[k] = envelope_plot[k] - (y_max - y_min) / 1000.;
+        offset_envelope[k] = envelope_plot[k] - (y_max - y_min) / 100.;
     }
 
     auto y_bound_offset = (y_max - y_min) / 50;

@@ -5,14 +5,23 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #include "InterpolantDualSOSBarrier.h"
+#include <boost/math/special_functions/binomial.hpp>
 
-InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_degree_, Vector poly_g)
-        : _max_polynomial_degree(max_polynomial_degree_) {
+InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_degree_, Vector poly_g, unsigned num_variable_symbols_)
+        : _max_polynomial_degree(max_polynomial_degree_), _num_variable_symbols(num_variable_symbols_) {
 
+    //TODO: Check if still true for multivariate case.
     assert(poly_g.rows() <= max_polynomial_degree_ + 1);
 
-    _L = _max_polynomial_degree + 2 - poly_g.rows();
-    _U = 2 * _max_polynomial_degree + 1;
+    //poly_g.rows() is degree + 1 of the polynomial g;
+    //TODO: setting _L using the number of rows only works for univariate polynomials
+    //
+    
+    //TODO: check if type cast is safe.
+    _L =  static_cast<unsigned>(boost::math::binomial_coefficient<double>(
+            _num_variable_symbols + _max_polynomial_degree  + 1 - (unsigned) poly_g.rows(), _num_variable_symbols));
+    _U =  static_cast<unsigned>(boost::math::binomial_coefficient<double>(
+            2 * _max_polynomial_degree + _num_variable_symbols, _num_variable_symbols));
 
     _preintermediate_matrix = Matrix(_U, _L);
     _intermediate_matrix = Matrix(_L, _L);
@@ -23,6 +32,18 @@ InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_deg
     _num_variables = _U;
     _unisolvent_basis.resize(_U);
 
+    if(_num_variable_symbols == 1) {
+        construct_univariate(poly_g);
+    } else if (_num_variable_symbols == 2){
+        construct_bivariate(poly_g);
+    } else {
+        construct_multivariate(poly_g);
+    }
+
+};
+
+void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g)
+{
     for (unsigned i = 0; i < _unisolvent_basis.size(); ++i) {
         BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / (_U - 1));
         InterpolantDouble dummy_ipm;
@@ -54,7 +75,7 @@ InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_deg
 
     //TODO: Option to compute cheb_P via InterpolantDouble;
 
-    //TODO: Figure out whehter orthogonalization could be done in double precision to speed up initialisation.
+    //TODO: Figure out whether orthogonalization could be done in double precision to speed up initialisation.
     std::cout << "Constructed." << std::endl;
     std::cout << "Orthogonalize..." << std::endl;
     cxxtimer::Timer orth_timer;
@@ -67,7 +88,16 @@ InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_deg
     orth_timer.stop();
     std::cout << "Orthogonalization done in " << orth_timer.count<std::chrono::milliseconds>() / 1000.
               << " seconds." << std::endl;
-};
+}
+
+void InterpolantDualSOSBarrier::construct_bivariate(Vector poly_g){
+
+}
+
+void InterpolantDualSOSBarrier::construct_multivariate(Vector poly_g){
+
+}
+
 
 bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check_interior_only) {
     _preintermediate_matrix.noalias() = _g.cwiseProduct(x).asDiagonal() * _P;

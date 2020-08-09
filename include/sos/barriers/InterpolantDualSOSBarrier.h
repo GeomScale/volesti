@@ -15,10 +15,10 @@ class InterpolantDualSOSBarrier : public LHSCB {
 public:
     InterpolantDualSOSBarrier() : LHSCB() {};
 
-    InterpolantDualSOSBarrier(unsigned max_polynomial_degree_) :
-            InterpolantDualSOSBarrier(max_polynomial_degree_, Vector::Ones(1)) {};
+    InterpolantDualSOSBarrier(unsigned max_polynomial_degree_, unsigned num_variables_ = 1) :
+            InterpolantDualSOSBarrier(max_polynomial_degree_, Vector::Ones(1), num_variables_) {};
 
-    InterpolantDualSOSBarrier(unsigned max_polynomial_degree_, Vector poly_g);
+    InterpolantDualSOSBarrier(unsigned max_polynomial_degree_, Vector poly_g, unsigned num_variable_symbols_ = 1);
 
     bool update_gradient_hessian_LLT(Vector x, bool check_interior_only = false);
 
@@ -49,6 +49,7 @@ public:
 
 private:
     unsigned _max_polynomial_degree;
+    unsigned _num_variable_symbols;
     std::vector<InterpolantDouble> _unisolvent_basis;
     Matrix _intermediate_matrix;
     Matrix _preintermediate_matrix;
@@ -56,6 +57,10 @@ private:
     Matrix _Q;
     Matrix _V;
     unsigned _L, _U;
+
+    void construct_univariate(Vector poly_g);
+    void construct_bivariate(Vector poly_g);
+    void construct_multivariate(Vector poly_g);
 
     //Weighted polynomials
     Vector _g;
