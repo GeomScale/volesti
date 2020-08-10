@@ -232,47 +232,48 @@ lowDimHPolytopeCPP::~lowDimHPolytopeCPP(){}
 
 
 // here is the class that returns the full dimensional polytope
-int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra, double* shift_extra, double* A_full_extra, double* b_full_extra){
+int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra_trans, double* shift, double* A_full_extra_trans, double* b_full){
    
-   full_dim_pol_result result;
+   get_full_dim_pol_result result;
    
    // we now run thi C++ function for getting the full dim pol
-   result = full_dimensional_polytope<Hpolytope>(A, b, Aeq, beq);
+   result = get_full_dimensional_polytope<Hpolytope>(A, b, Aeq, beq);
 
    // the outcome of the full_dimensional_polytope()
    Hpolytope full_HP = result.first;
-   full_HP_A = full_HP.get_mat()
-   full_HP_b = full_HP.get_vec()  
-   MT N_temp = result.second.first;
+   MT full_HP_A_trans = full_HP.get_mat().transpose();
+   VT full_HP_b = full_HP.get_vec();
+   MT N_temp_trans = result.second.first.transpose();
    VT shift_temp = result.second.second;   
    
    // Here is what we need to return the output in the Python interface
 
    // return the full_HP_A matrix to cython
-   for (int i = 0; i < full_HP_A.rows(); i++){
-      for (int j = 0; j < full_HP_A.cols(); j++){
-         A_full_extra[a_si++] = full_HP_A(i,j);
+   auto a_si = 0;
+   for (int i = 0; i < full_HP_A_trans.rows(); i++){
+      for (int j = 0; j < full_HP_A_trans.cols(); j++){
+         A_full_extra_trans[a_si++] = full_HP_A_trans(i,j);
       }
    }
    
    // return the full_b matrix to cython
-   for (int i=0; i < full_b.rows(); i++){
-      b_full_extra[i] = full_HP_b[i];
+   for (int i=0; i < full_HP_b.rows(); i++){
+      b_full[i] = full_HP_b[i];
    }
 
    // return the N matrix to cython
-   for (int i = 0; i < N_temp.rows(); i++){
-      for (int j = 0; j < N_temp.cols(); j++){
-         N_extra[t_si++] = N_temp(i,j);
+   auto t_si = 0;
+   for (int i = 0; i < N_temp_trans.rows(); i++){
+      for (int j = 0; j < N_temp_trans.cols(); j++){
+         N_extra_trans[t_si++] = N_temp_trans(i,j);
       }
    }
 
    // return the shift vector to cython
    for (int i=0; i < shift_temp.rows(); i++){
-      shift_extra[i] = shift_temp[i];
+      shift[i] = shift_temp[i];
    }   
    
 // as we know that N_temp.cols == full_HP_A.cols and likewise for their lines, we may return just one of those vars
-return N_temp.cols()
-   
+   return N_temp_trans.rows();
 }
