@@ -55,7 +55,7 @@ walk_methods = ["uniform_ball".encode("UTF-8"), "CDHR".encode("UTF-8"), "RDHR".e
 rounding_methods = ["min_ellipsoid".encode("UTF-8"), "svd".encode("UTF-8"), "max_ellipsoid".encode("UTF-8")]
 
 
-# build the HPolytope class - the 'polytope_cpp' is an instance of the HPolytopeCPP class described on the 'bindings.cpp' file
+# build the HPolytope class
 cdef class HPolytope:
    
    cdef HPolytopeCPP polytope_cpp
@@ -129,10 +129,11 @@ cdef class HPolytope:
 
 
 
+
+# build the low_dim_polytope_cpp class
 cdef class low_dim_HPolytope:
 
    cdef lowDimHPolytopeCPP low_dim_polytope_cpp
-
    cdef double[:,::1] _A
    cdef double[::1] _b
    cdef double [:,::1] _Aeq
@@ -158,30 +159,29 @@ cdef class low_dim_HPolytope:
       n = self._Aeq.shape[1]
       k = self._A.shape[0]
       
-      # regarding the actual full_dimensional_polytope() output 
-      cdef double[:,::1] N_extra_trans = np.zeros((n, n), dtype=np.float64, order="C")   # the number of lines here are at least n-m; but we do not know their exact number
+      # set the output variables
+      # the number of lines in the transpose N (columns in the actual matrix) are at least n-m; but we do not know their exact number
+      # so we initialize it with the maximum possible number of lines (n). the same is for the full A transpose matrix
+      # later, we will have to keep their actual dimension and remove these variables with the extra lines
+      cdef double[:,::1] N_extra_trans = np.zeros((n, n), dtype=np.float64, order="C")   
       cdef double[::1] shift = np.zeros((n), dtype=np.float64, order="C")
-      
-      # regarding the data needed to build an HPolytopeCPP object with the A and b of the full dimensional polytope
-      # that we do not know is the exact number of cols of the A_full and the N matrices, which is the same. As we get their transpose matrices from the .cpp code, that's why we see the unknown in the rows.
-      cdef double[:,::1] A_full_extra_trans = np.zeros((n,k), dtype=np.float64, order="C")    # like in the case of the N_trans matrix, we do not know the exact number of lines of this
+      cdef double[:,::1] A_full_extra_trans = np.zeros((n,k), dtype=np.float64, order="C")
       cdef double[::1] b_full = np.zeros((k), dtype=np.float64, order="C")
       
-      # regarding the actual dimensions of the matrices and vectors of the full dimensional polytope
+      # we need to keep the final number of columns of the N / full_A matrices
       cpdef int n_of_cols_in_N
    
       # call the C++ class to get the full_dimensional polytope
       n_of_cols_in_N = self.low_dim_polytope_cpp.full_dimensiolal_polytope(&N_extra_trans[0,0], &shift[0], &A_full_extra_trans[0,0], &b_full[0])
       
-      # get a matrix with exactly the number of lines and columns that N expands to
+      # get a matrix with exactly the number of lines and columns that N expands to and delete the one with the extra columns
       N = np.zeros((n, n_of_cols_in_N), dtype=np.float64, order="C")
       for i in range(n):
          for j in range(n_of_cols_in_N):
             N[i,j] = np.asarray(N_extra_trans[j,i])
       del N_extra_trans
          
-      # and now the full dimensional polytope's specs; A matrix
-      # the b vector has not dim issues as we know its length before running the get_full_dimensional_polytope() function
+      # likewise, for the A matrix of the full dimensional polytope
       A_full = np.zeros((k, n_of_cols_in_N), dtype=np.float64, order="C")
       for i in range(k):
          for j in range(n_of_cols_in_N):
@@ -191,17 +191,7 @@ cdef class low_dim_HPolytope:
       # finally, we need to build an HP object for the full dumensional polytope we got
       full_dimensional_polytope = HPolytope(A_full,b_full)
       
-      # and we print the shift and the N matrix and keep the full dim HP object as return
-      print("The shift vector is: ")
-      print(np.asarray(shift))
-      print("------------")
-
-      print("The N matrix is: \n")
-      print(np.asarray(N))
-      print("-------------")
-
-      return full_dimensional_polytope
-
+      return full_dimensional_polytope, np.asarray(N), np.asarray(shift)
 
 
    @property
