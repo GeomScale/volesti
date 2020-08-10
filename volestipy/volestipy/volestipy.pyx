@@ -174,10 +174,10 @@ cdef class low_dim_HPolytope:
       n_of_cols_in_N = self.low_dim_polytope_cpp.full_dimensiolal_polytope(&N_extra_trans[0,0], &shift[0], &A_full_extra_trans[0,0], &b_full[0])
       
       # get a matrix with exactly the number of lines and columns that N expands to
-      N = np.zeros(n, n_of_cols_in_N)
+      N = np.zeros((n, n_of_cols_in_N), dtype=np.float64, order="C")
       for i in range(n):
          for j in range(n_of_cols_in_N):
-            N[i,j] = np.asarray(N_extra_trans[i,j])
+            N[i,j] = np.asarray(N_extra_trans[j,i])
       del N_extra_trans
          
       # and now the full dimensional polytope's specs; A matrix
@@ -185,7 +185,7 @@ cdef class low_dim_HPolytope:
       A_full = np.zeros((k, n_of_cols_in_N), dtype=np.float64, order="C")
       for i in range(k):
          for j in range(n_of_cols_in_N):
-            A_full[i,j] = np.asarray(A_full_extra_trans[i,j])
+            A_full[i,j] = np.asarray(A_full_extra_trans[j,i])
       del A_full_extra_trans
       
       # finally, we need to build an HP object for the full dumensional polytope we got
