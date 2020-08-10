@@ -44,7 +44,7 @@ cdef extern from "bindings.h":
       lowDimHPolytopeCPP(double *A, double *b, double *Aeq, double *beq, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq) except +
       
       # get full dimensional polytope
-      int full_dimensiolal_polytope(double* N_extra, double* shift_extra, double* A_full, double* b_full)
+      int full_dimensiolal_polytope(double* N_extra_trans, double* shift, double* A_full_extra_trans, double* b_full)
       
       
 
@@ -144,67 +144,60 @@ cdef class low_dim_HPolytope:
       self._b = b
       self._Aeq = Aeq
       self._beq = beq
-      n_rows_of_A, n_cols_of_A = A.shape[0], A.shape[1] # should be like this: n_cols_of_A = 2* n_rows_of_A
-      n_row_of_Aeq, n_cols_of_Aeq = Aeq.shape[0], Aeq.shape[1] # this is the S matrix (m*n)
+      n_rows_of_A, n_cols_of_A = A.shape[0], A.shape[1] 
+      n_row_of_Aeq, n_cols_of_Aeq = Aeq.shape[0], Aeq.shape[1] 
       
       self.low_dim_polytope_cpp = lowDimHPolytopeCPP(&A[0,0], &b[0], &Aeq[0,0], &beq[0], n_rows_of_A, n_cols_of_A, n_row_of_Aeq, n_cols_of_Aeq)
 
    
    # the get_full_dimensional_polytope() function(); that needs to run in case the user does not provide volestipy with a full dimensional polytope
-   def full_dimensiolal_polytope(self, A, b, Aeq, beq):
+   def full_dimensiolal_polytope(self):
       
       # get dimensions of the initial S (Aeq) matrix
-      m = self.Aeq.shape[0]
+      m = self._Aeq.shape[0]
       n = self._Aeq.shape[1]
+      k = self._A.shape[0]
       
       # regarding the actual full_dimensional_polytope() output 
-      cpdef double[:,::1] N_extra = np.zeros((n, n-m), dtype=np.float64, order="C")
-      cpdef double[::1] shift_extra = np.zeros(n, dtype=np.float64, order="C")
+      cdef double[:,::1] N_extra_trans = np.zeros((n, n), dtype=np.float64, order="C")   # the number of lines here are at least n-m; but we do not know their exact number
+      cdef double[::1] shift = np.zeros((n), dtype=np.float64, order="C")
       
       # regarding the data needed to build an HPolytopeCPP object with the A and b of the full dimensional polytope
-      cpdef double[:,::1] A_full_extra = np.zeros((2*n, n-m), dtype=np.float64, order="C")
-      cpdef double[::1] b_full_extra = np.zeros(2*n, dtype=np.float64, order="C")
+      # that we do not know is the exact number of cols of the A_full and the N matrices, which is the same. As we get their transpose matrices from the .cpp code, that's why we see the unknown in the rows.
+      cdef double[:,::1] A_full_extra_trans = np.zeros((n,k), dtype=np.float64, order="C")    # like in the case of the N_trans matrix, we do not know the exact number of lines of this
+      cdef double[::1] b_full = np.zeros((k), dtype=np.float64, order="C")
       
       # regarding the actual dimensions of the matrices and vectors of the full dimensional polytope
-      cpdef int n_of_row_in_N ; cpdef int n_of_cols_in_N
-      cpdef int n_of_row_in_shift ; cpdef int n_of_cols_in_shift
+      cpdef int n_of_cols_in_N
    
       # call the C++ class to get the full_dimensional polytope
-      n_of_cols_in_N = self.full_dimensiolal_polytope(&N_extra[0,0],  &shift[0], &A_full_extra[0,0], &b_full_extra[0])
+      n_of_cols_in_N = self.low_dim_polytope_cpp.full_dimensiolal_polytope(&N_extra_trans[0,0], &shift[0], &A_full_extra_trans[0,0], &b_full[0])
       
       # get a matrix with exactly the number of lines and columns that N expands to
-      N = np.zeros(n_of_rows_in_N, n_of_cols_in_N)
-      for i in range(n_of_rows_in_N):
+      N = np.zeros(n, n_of_cols_in_N)
+      for i in range(n):
          for j in range(n_of_cols_in_N):
-            N[i,j] = N_extra[i,j]
-      del N_extra
-      
-      # likewise for the shift vector
-      shift = np.zeros(n_of_rows_in_shift, n_of_cols_in_shift)
-      for i in range(n_of_rows_in_shift):
-         shift[i] = shift_extra[i]
-      del shift_extra
-      
+            N[i,j] = np.asarray(N_extra_trans[i,j])
+      del N_extra_trans
+         
       # and now the full dimensional polytope's specs; A matrix
       # the b vector has not dim issues as we know its length before running the get_full_dimensional_polytope() function
-      A_full = np.zeros((2*n, n_of_cols_in_N), dtype=np.float64, order="C")
-      for i in range(2*n):
+      A_full = np.zeros((k, n_of_cols_in_N), dtype=np.float64, order="C")
+      for i in range(k):
          for j in range(n_of_cols_in_N):
-            A_full[i,j] = A_full_extra[i,j]
-      del A_full_extra
+            A_full[i,j] = np.asarray(A_full_extra_trans[i,j])
+      del A_full_extra_trans
       
-      b_full = b_full_extra
-      del b_full_extra
-
       # finally, we need to build an HP object for the full dumensional polytope we got
       full_dimensional_polytope = HPolytope(A_full,b_full)
       
+      # and we print the shift and the N matrix and keep the full dim HP object as return
       print("The shift vector is: ")
-      print(shift)
+      print(np.asarray(shift))
       print("------------")
 
       print("The N matrix is: \n")
-      print(N)
+      print(np.asarray(N))
       print("-------------")
 
       return full_dimensional_polytope
