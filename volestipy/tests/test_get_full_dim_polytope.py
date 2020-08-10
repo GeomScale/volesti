@@ -19,9 +19,7 @@ if __name__ == "__main__":
     print("This is the vector b: \n")
     print(b)
 
-    Aeq = np.zeros((m, n), dtype = np.float)
-    Aeq = np.random.normal(0, 1, n)
-
+    Aeq = np.random.normal(1, size=(m, n))
     print("This is the Aeq matrix: \n")
     print(Aeq)
 
