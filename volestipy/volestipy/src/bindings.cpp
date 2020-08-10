@@ -246,16 +246,7 @@ int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra_trans, double*
    MT N_temp_trans = result.second.first.transpose();
    VT shift_temp = result.second.second;   
    
-   // print the full_HP_A_trans and the N_temp_trans
-   std::cout<<"this is the full A transpose matrix in the C++ code"<<std::endl;
-   std::cout<<full_HP_A_trans<<std::endl;
-   std::cout<<"and this is the N transpose, again in the C++ code "<<std::endl;
-   std::cout<<N_temp_trans<<std::endl;
-   std::cout<<"finally this is the full b vector in the C++ code"<<std::endl;
-   std::cout<<full_HP_b<<std::endl;
-   
    // Here is what we need to return the output in the Python interface
-
    // return the full_HP_A matrix to cython
    auto a_si = 0;
    for (int i = 0; i < full_HP_A_trans.rows(); i++){
@@ -282,6 +273,6 @@ int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra_trans, double*
       shift[i] = shift_temp[i];
    }   
    
-// as we know that N_temp.cols == full_HP_A.cols and likewise for their lines, we may return just one of those vars
+   // as we know that N_temp.cols == full_HP_A.cols and likewise for their lines, we may return just one of those vars
    return N_temp_trans.rows();
 }
