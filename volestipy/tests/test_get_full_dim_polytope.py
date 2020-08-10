@@ -34,7 +34,15 @@ if __name__ == "__main__":
     get_full_hp = low_hp.full_dimensiolal_polytope()
 
     # print the output of the full_dimensiolal_polytope() function
-    print("\n this is the get_full_hp.A, meaning the A matrix of the full dimensional polytope:")
-    print(get_full_hp.A)
-    print("\n this is the get_full_hp.b, meaning the b vector of the full dimensional polytope:")
-    print(get_full_hp.b)
+    print("\n This is the get_full_hp.A, meaning the A matrix of the full dimensional polytope:")
+    print(get_full_hp[0].A)
+    print("And the full b vector as well:")
+    print(get_full_hp[0].b)
+
+    # print the N matrix
+    print("\n This is the N matrix:")
+    print(get_full_hp[1])
+
+    # print the shift vector
+    print("\n this is the shift vector:")
+    print(get_full_hp[2])
