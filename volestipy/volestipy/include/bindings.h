@@ -77,8 +77,6 @@ class lowDimHPolytopeCPP{
       MT A,Aeq;
       VT b,beq;
       
-      std::pair<Point,NT> CheBall;
-      
       // regarding getting full dimensional polytope
       typedef std::pair<Hpolytope, std::pair<MT, VT> > get_full_dim_pol_result;
 
@@ -86,6 +84,7 @@ class lowDimHPolytopeCPP{
       lowDimHPolytopeCPP();
       lowDimHPolytopeCPP(double *A, double *b, double *Aeq, double *beq, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq);
       Hpolytope low_HP;
+      
       // Here we use the "~" destructor; this way we avoid a memory leak.
       ~lowDimHPolytopeCPP();
       
