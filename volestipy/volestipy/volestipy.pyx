@@ -148,7 +148,22 @@ cdef class low_dim_HPolytope:
       n_rows_of_A, n_cols_of_A = A.shape[0], A.shape[1] 
       n_row_of_Aeq, n_cols_of_Aeq = Aeq.shape[0], Aeq.shape[1] 
       
-      self.low_dim_polytope_cpp = lowDimHPolytopeCPP(&A[0,0], &b[0], &Aeq[0,0], &beq[0], n_rows_of_A, n_cols_of_A, n_row_of_Aeq, n_cols_of_Aeq)
+      # if statements to check whether the user's input is valid for the low_dim_HPolytope class to run
+      if n_rows_of_A == b.shape[0]:
+         
+         if n_row_of_Aeq == beq.shape[0]:
+            
+            if n_cols_of_A == n_cols_of_Aeq:
+               
+               # run the constructor
+               self.low_dim_polytope_cpp = lowDimHPolytopeCPP(&A[0,0], &b[0], &Aeq[0,0], &beq[0], n_rows_of_A, n_cols_of_A, n_row_of_Aeq, n_cols_of_Aeq)
+            
+            else:
+               raise Exception('The number of columns of A equals to "{}" while those of Aeq {}. A and Aeq need to have the same number of columns'.format(n_cols_of_A, n_cols_of_Aeq))
+         else:
+            raise Exception('The number of rows of Aeq equals to "{}" while the elements of the beq vector are {}. The beq vector needs to have length equal to the number of rows of Aeq.'.format(n_row_of_Aeq, beq.shape[0]))
+      else:
+         raise Exception('The number of rows of A equals to "{}" while the elements of b are {}. The b vector needs to have length equal to the number of rows of A.'.format(n_rows_of_A, b.shape[0]))
 
    
    # the get_full_dimensional_polytope() function(); that needs to run in case the user does not provide volestipy with a full dimensional polytope
@@ -191,6 +206,11 @@ cdef class low_dim_HPolytope:
       # finally, we need to build an HP object for the full dumensional polytope we got
       full_dimensional_polytope = HPolytope(A_full,b_full)
       
+      # delete all non-needed vars
+      del A_full
+      del b_full
+      
+      # return a tuple whith the full dimensional HPolytope object in the first position ([0]) the N matrix and the shift vector
       return full_dimensional_polytope, np.asarray(N), np.asarray(shift)
 
 
