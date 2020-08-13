@@ -141,6 +141,87 @@ public:
     }
 };
 
+//Naive implementation
+class DegreeTuple {
+public:
+    DegreeTuple(const int num_vars, const int max_degree_) {
+        max_degree = max_degree_;
+        v.resize(num_vars, 0);
+    }
+
+    bool next() {
+        for (int i = v.size() - 1; i >= 0; i--) {
+            if (v[i] < max_degree) {
+                v[i]++;
+                return true;
+            }
+            v[i] = 0;
+        }
+        return false;
+    }
+
+    bool valid() {
+        int sum = 0;
+        for (auto el : v) {
+            sum += el;
+        }
+        return sum <= max_degree;
+    }
+
+    bool next_valid() {
+        if (!next()) {
+            return false;
+        }
+        while (not valid()) {
+            if (not next()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    std::vector<unsigned> &get_tuple() {
+        return v;
+    }
+
+    void print_tuple() {
+        for (auto el : v) {
+            std::cout << el << " ";
+        }
+        std::cout << std::endl;
+    }
+
+private:
+    int max_degree;
+    std::vector<unsigned> v;
+};
+
+class AllCombinationTuple {
+public:
+    AllCombinationTuple(std::vector<unsigned> const bounds_){
+
+        bounds = bounds_;
+        v.resize(bounds.size(), 0);
+    }
+
+    bool next(){
+       for(int i = v.size() - 1; i >= 0; i--){
+          if(bounds[i] > v[i]){
+              v[i]++;
+              return true;
+          }
+          v[i] = 0;
+       }
+       return false;
+    }
+
+    std::vector<unsigned> & get_combination(){
+        return v;
+    }
+    std::vector<unsigned> bounds;
+    std::vector<unsigned> v;
+};
+
 #endif //SOS_UTILS_H
 
 

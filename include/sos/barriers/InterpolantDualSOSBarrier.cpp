@@ -6,8 +6,10 @@
 
 #include "InterpolantDualSOSBarrier.h"
 #include <boost/math/special_functions/binomial.hpp>
+#include "../../../external/Padua/padua.h"
 
-InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_degree_, Vector poly_g, unsigned num_variable_symbols_)
+InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_degree_, Vector poly_g,
+                                                     unsigned num_variable_symbols_)
         : _max_polynomial_degree(max_polynomial_degree_), _num_variable_symbols(num_variable_symbols_) {
 
     //TODO: Check if still true for multivariate case.
@@ -16,11 +18,14 @@ InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_deg
     //poly_g.rows() is degree + 1 of the polynomial g;
     //TODO: setting _L using the number of rows only works for univariate polynomials
     //
-    
+
+    //For now no weights for multivariate case.
+    assert(_num_variable_symbols == 1 or poly_g == Vector::Ones(poly_g.rows()));
+
     //TODO: check if type cast is safe.
-    _L =  static_cast<unsigned>(boost::math::binomial_coefficient<double>(
-            _num_variable_symbols + _max_polynomial_degree  + 1 - (unsigned) poly_g.rows(), _num_variable_symbols));
-    _U =  static_cast<unsigned>(boost::math::binomial_coefficient<double>(
+    _L = static_cast<unsigned>(boost::math::binomial_coefficient<double>(
+            _num_variable_symbols + _max_polynomial_degree + 1 - (unsigned) poly_g.rows(), _num_variable_symbols));
+    _U = static_cast<unsigned>(boost::math::binomial_coefficient<double>(
             2 * _max_polynomial_degree + _num_variable_symbols, _num_variable_symbols));
 
     _preintermediate_matrix = Matrix(_U, _L);
@@ -32,9 +37,9 @@ InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_deg
     _num_variables = _U;
     _unisolvent_basis.resize(_U);
 
-    if(_num_variable_symbols == 1) {
+    if (_num_variable_symbols == 1) {
         construct_univariate(poly_g);
-    } else if (_num_variable_symbols == 2){
+    } else if (_num_variable_symbols == 2) {
         construct_bivariate(poly_g);
     } else {
         construct_multivariate(poly_g);
@@ -42,13 +47,12 @@ InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_deg
 
 };
 
-void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g)
-{
+void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g) {
     for (unsigned i = 0; i < _unisolvent_basis.size(); ++i) {
         BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / (_U - 1));
         InterpolantDouble dummy_ipm;
         InterpolantDouble cos_val = static_cast<InterpolantDouble>(cos_i);
-        _unisolvent_basis[i] = cos_val;
+        _unisolvent_basis[i].push_back(cos_val);
     }
 
     //TODO: Figure out how choice of P could influence condition / stability of maps.
@@ -62,13 +66,16 @@ void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g)
     spdlog::info("Construct interpolant point Matrix P...");
 
     //Alternative approach of finding _P via Chebyshev basis
+
+    //TODO:Make this library more precise
     Eigen::MatrixXd cheb_P = ChebTools::u_matrix_library.get(_U - 1).block(0, 0, _U, _L);
 
+    //Computing _g should be done with transformation matrix.
     _g = Vector::Zero(_U);
     for (int p = 0; p < _U; ++p) {
         _g(p) = poly_g(0);
         for (int i = 1; i < poly_g.rows(); i++) {
-            _g(p) += poly_g(i) * pow(_unisolvent_basis[p], i).convert_to<IPMDouble>();
+            _g(p) += poly_g(i) * pow(_unisolvent_basis[p][0], i).convert_to<IPMDouble>();
         }
     }
     _g_g_transpose = _g * _g.transpose();
@@ -90,12 +97,169 @@ void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g)
               << " seconds." << std::endl;
 }
 
-void InterpolantDualSOSBarrier::construct_bivariate(Vector poly_g){
+//Untested
+void InterpolantDualSOSBarrier::construct_bivariate(Vector poly_g) {
 
+    //Error waiting to happen. Here the unisolvent basis is correctly used for _L, but in the univariate
+    //case we use it for a basis or size _U.
+//    _unisolvent_basis.resize(_L);
+    //For now no weighted polynomials
+    assert(poly_g == Vector::Ones(1));
+    unsigned const corrected_d = 2 * _max_polynomial_degree + 1 - poly_g.size();
+    unsigned const corrected_d_plus_1 = corrected_d + 1;
+
+    //Order of bivariate unisolvent basis: first points according to Even x Odd, then Odd x Even.
+//    std::vector<InterpolantDouble> cos_values_d;
+//    std::vector<InterpolantDouble> cos_values_d_plus_1;
+//
+//    for (unsigned i = 0; i <= corrected_d; i++) {
+//        BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / corrected_d);
+//        InterpolantDouble cos_val = static_cast<InterpolantDouble>(cos_i);
+//        cos_values_d.push_back(cos_val);
+//    }
+//
+//    for (unsigned i = 0; i <= corrected_d_plus_1; i++) {
+//        BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / corrected_d_plus_1);
+//        InterpolantDouble cos_val = static_cast<InterpolantDouble>(cos_i);
+//        cos_values_d_plus_1.push_back(cos_val);
+//    }
+//
+//    unsigned idx = 0;
+//    for (int i = 0; i <= corrected_d; i+=2) {
+//       for(int j = 1; j <= corrected_d_plus_1; j+=2){
+//           _unisolvent_basis[idx++] = {cos_values_d[i], cos_values_d_plus_1[j]};
+//       }
+//    }
+//
+//    for (int i = 1; i <= corrected_d; i+=2) {
+//        for(int j = 0; j <= corrected_d_plus_1; j+=2){
+//            _unisolvent_basis[idx++] = {cos_values_d[i], cos_values_d_plus_1[j]};
+//        }
+//    }
+
+    double *pd_pts = padua::padua_points(_max_polynomial_degree + 1);
+
+    for (int i = 0; i < _U; i++) {
+        _unisolvent_basis[i] = {pd_pts[2 * i], pd_pts[2 * i + 1]};
+    }
+
+    //Set weight vector _g;
+    //TODO: do properly for weighted case.
+    _g = Vector::Ones(_U);
+    _g_g_transpose = _g * _g.transpose();
+
+    std::cout << "Construct Matrix P" << std::endl;
+
+    _P.resize(_U, _L);
+
+    //TODO: Make following loops more efficient OR find mathematical theory that simplifies expressions.
+    unsigned col_idx = 0;
+    for (int i = 0; i <= _max_polynomial_degree; i++) {
+        for (int j = 0; j + i <= _max_polynomial_degree; j++) {
+            Eigen::VectorXd vec_i = Eigen::VectorXd::Zero(i + 1);
+            vec_i(i) = 1;
+            Eigen::VectorXd vec_j = Eigen::VectorXd::Zero(j + 1);
+            vec_j(j) = 1;
+            ChebTools::ChebyshevExpansion cheb_i(vec_i);
+            ChebTools::ChebyshevExpansion cheb_j(vec_j);
+            for (int k = 0; k < _U; k++) {
+                double first_eval = cheb_i.y_recurrence(static_cast<double>(_unisolvent_basis[k][0]));
+                double second_eval = cheb_j.y_recurrence(static_cast<double>(_unisolvent_basis[k][1]));
+                _P(k, col_idx) = first_eval * second_eval;
+            }
+            col_idx++;
+        }
+    }
+
+    std::cout << "P before orthogonolisation: " << std::endl << _P << std::endl;
+
+    Matrix P_ortho = _P.householderQr().householderQ();
+    P_ortho.colwise().hnormalized();
+    _P = P_ortho.block(0, 0, _U, _L);
+    //end
 }
 
-void InterpolantDualSOSBarrier::construct_multivariate(Vector poly_g){
+//TODO: test
+void InterpolantDualSOSBarrier::construct_multivariate(Vector poly_g) {
+    assert(poly_g == Vector::Ones(1));
 
+    //Set weight vector _g;
+    //TODO: do properly for weighted case.
+    _g = Vector::Ones(_U);
+    _g_g_transpose = _g * _g.transpose();
+
+    _P.resize(_U, _L);
+
+    //just for testing.
+
+    int num_candidates = 1;
+    for (int i = 2 * _max_polynomial_degree + 1 + 1;
+         i <= 2 * _max_polynomial_degree + _num_variable_symbols + 1; i++) {
+        num_candidates *= i;
+    }
+
+    //generate Fekete candidates
+
+
+    std::vector<std::vector<double> > candidates;
+    std::vector<unsigned> comb_bound;
+    for (int i = 2 * _max_polynomial_degree + 1; i <= 2 * _max_polynomial_degree + _num_variable_symbols; i++) {
+        comb_bound.push_back(i);
+    }
+    AllCombinationTuple comb_tuple(comb_bound);
+
+    do {
+        std::vector<unsigned> &cheb_v = comb_tuple.get_combination();
+        std::vector<double> cand;
+        for (int i = 0; i < cheb_v.size(); i++) {
+            cand.push_back(cos((double) cheb_v[i] * boost::math::constants::pi<double>() / (double) comb_bound[i]));
+        }
+        candidates.push_back(cand);
+    } while (comb_tuple.next());
+
+    for (auto cand : candidates) {
+        for (auto c : cand) {
+            std::cout << c << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    assert(num_candidates == candidates.size());
+
+    //generate Fekete polynomials
+
+    Matrix candidate_matrix(_U, candidates.size());
+
+    DegreeTuple dt(_num_variable_symbols, 2*_max_polynomial_degree);
+    unsigned tup_idx = 0;
+    do {
+        //Compute chebyshev polynomial evaluation
+        std::vector<unsigned> &tup = dt.get_tuple();
+        for (int i = 0; i < candidates.size(); i++) {
+            double cheb_eval = 1.;
+            for (int j = 0; j < candidates[i].size(); j++) {
+                Eigen::VectorXd vec_j = Eigen::VectorXd::Zero(tup[j] + 1);
+                vec_j(tup[j]) = 1;
+                ChebTools::ChebyshevExpansion cheb_j(vec_j);
+                double eval_j = cheb_j.y_recurrence(static_cast<double>(candidates[i][j]));
+                cheb_eval *= eval_j;
+            }
+            candidate_matrix(tup_idx, i) = cheb_eval;
+        }
+        tup_idx++;
+    } while (dt.next_valid());
+
+
+    assert(tup_idx == _U);
+
+//    std::cout << "Candidate matrix is \n";
+//    std::cout << candidate_matrix << std::endl;
+
+
+    Matrix col_permutated_cand_matrix = candidate_matrix * candidate_matrix.colPivHouseholderQr().colsPermutation();
+//    std::cout << "And after permutation \n";
+//    std::cout << col_permutated_cand_matrix << std::endl;
+    _P = col_permutated_cand_matrix.block(0, 0, _U, _U).transpose();
 }
 
 

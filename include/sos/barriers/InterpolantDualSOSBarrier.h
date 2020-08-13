@@ -39,7 +39,7 @@ public:
 
     Vector initialize_s() override;
 
-    std::vector<InterpolantDouble> &get_basis() {
+    std::vector<std::vector<InterpolantDouble> > &get_basis() {
         return _unisolvent_basis;
     }
 
@@ -50,7 +50,8 @@ public:
 private:
     unsigned _max_polynomial_degree;
     unsigned _num_variable_symbols;
-    std::vector<InterpolantDouble> _unisolvent_basis;
+    //Turn _unisolvent_basis into Matrix
+    std::vector<std::vector<InterpolantDouble> > _unisolvent_basis;
     Matrix _intermediate_matrix;
     Matrix _preintermediate_matrix;
     Eigen::LLT<Matrix> _intermediate_LLT;

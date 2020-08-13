@@ -250,7 +250,7 @@ void NonSymmetricIPM::run_solver() {
         }
 
         //TODO: reinstate this assertion to fix a bug.
-        assert(centrality() < _beta);
+//        assert(centrality() < _beta);
 
         _logger->trace("Solve predictor system...");
         Vector predictor_direction = solve_predictor_system();

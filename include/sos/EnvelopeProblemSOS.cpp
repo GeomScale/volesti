@@ -13,6 +13,9 @@
 #include "barriers/ProductBarrier.h"
 #include "barriers/SumBarrier.h"
 #include <boost/math/special_functions/binomial.hpp>
+#include "../../external/Padua/padua.h"
+
+//TODO: use precompiled versions of padua.h and line_fekete_rule.h
 
 EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_) :
         _n(num_variables), _d(max_degree),
@@ -28,15 +31,17 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(std::ifstream & instance_file) {
     std::string line;
     std::getline(instance_file, line);
     std::istringstream iss(line);
+
     int max_degree;
     iss >> max_degree;
+
+    int num_variables;
+    iss >> num_variables;
 
     HyperRectangle hyperRectangle;
     //Note: Keep interval bounds for now.
     IPMDouble const interval_lower_bound = -1.;
     IPMDouble const interval_upper_bound = 1.;
-    //Univariate case for now.
-    const int num_variables = 1;
     hyperRectangle.push_back(std::pair<IPMDouble, IPMDouble>(interval_lower_bound,
                                                              interval_upper_bound));
 
@@ -54,7 +59,7 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(std::ifstream & instance_file) {
         unsigned idx = 0;
         while (poly_stream >> val) {
             if (idx >= sos_poly.size()) {
-                _logger->error("Input date in wrong format.");
+                _logger->error("Input data in wrong format.");
                 exit(1);
             }
             sos_poly[idx++] = val;
@@ -67,6 +72,8 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(std::ifstream & instance_file) {
 void EnvelopeProblemSOS::initialize_problem() {
     _L = static_cast<unsigned>(boost::math::binomial_coefficient<double>(_d + _n, _n));
     _U = static_cast<unsigned>(boost::math::binomial_coefficient<double>(2 * _d + _n, _n));
+
+    _objectives_vector.resize(_U);
 
     //univariate case
     if(_n == 1) {
@@ -95,16 +102,29 @@ void EnvelopeProblemSOS::initialize_problem() {
 //    }
 
         //Clenshaw-Curtis algorithm
-        get_clenshaw_curtis_integrals();
+        compute_clenshaw_curtis_integrals();
     } else if(_n == 2){//Padua points
-
+        double * pd_w = padua::padua_weights(_d + 1);
+        for(int i = 0; i < _U; i ++){
+            _objectives_vector(i) = -pd_w[i];
+        }
     }
     //n >  2
     else {
         //Fekete points
-        assert(_n > 2);
-    }
+        //TODO: how to do this? I do not understand what Papp and Yildiz are doing here, it seems they
+        //use just any objective that guaranteese boundedness.
+        //Here we just copy their implementation.
 
+        //TODO: test. Currently not working returning a feasible solution
+
+        InterpolantDualSOSBarrier tmp_interp(_d,_n);
+        Vector tmp_ones = Vector::Ones(tmp_interp.get_P().cols());
+        _objectives_vector = tmp_interp.get_P().colPivHouseholderQr().solve(tmp_ones).cast<InterpolantDouble>();
+        InterpolantVector tmp_zero = InterpolantVector::Zero(_objectives_vector.rows());
+        _objectives_vector.cwiseMax(tmp_zero);
+//        _objectives_vector = -_objectives_vector;
+    }
 }
 
 
@@ -121,8 +141,15 @@ void EnvelopeProblemSOS::initialize_loggers() {
 
 void EnvelopeProblemSOS::calculate_basis_polynomials() {
 
+    //Currently only in univariate case.
+    assert(_n == 1);
+
     InterpolantDualSOSBarrier aux_interpolant_barrier(_d);
-    std::vector<InterpolantDouble> &chebyshev_points = aux_interpolant_barrier.get_basis();
+    std::vector<std::vector<InterpolantDouble > > & cheb_vec_tmp = aux_interpolant_barrier.get_basis();
+    std::vector<InterpolantDouble> chebyshev_points;
+    for(auto vec : cheb_vec_tmp){
+        chebyshev_points.push_back(vec[0]);
+    }
     InterpolantDouble *cheb_ptr = &chebyshev_points[0];
     InterpolantVector cheb_vec = Eigen::Map<InterpolantVector>(cheb_ptr, chebyshev_points.size());
 
@@ -156,7 +183,7 @@ void EnvelopeProblemSOS::calculate_basis_polynomials() {
                   interp_basis_timer.count<std::chrono::milliseconds>() / 1000.);
 }
 
-void EnvelopeProblemSOS::get_clenshaw_curtis_integrals() {
+void EnvelopeProblemSOS::compute_clenshaw_curtis_integrals() {
 
     //TODO: Check if _U even is necessary and how to fix for N odd
     //TODO: Speedup by only computing lower / upper half
@@ -185,7 +212,6 @@ void EnvelopeProblemSOS::get_clenshaw_curtis_integrals() {
 
     ClenshawCurtisWeights(_L - 1) *= 2;
 
-    _objectives_vector.resize(_U);
     for (int i = 0; i < _objectives_vector.rows(); i++) {
         _objectives_vector(i) = -ClenshawCurtisWeights(i);
     }
@@ -197,7 +223,7 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
     _logger->info("Transformation matrix has norm {}", Q.norm());
 
     if (_input_in_interpolant_basis) {
-        InterpolantDualSOSBarrier aux_barrier(_d);
+        InterpolantDualSOSBarrier aux_barrier(_d, _n);
         Matrix P = aux_barrier.get_P();
         InterpolantVector pol = P.cast<InterpolantDouble>() * polynomial.segment(0, P.cols());
         _polynomials_bounds.push_back(pol);
@@ -224,6 +250,9 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
 InterpolantVector EnvelopeProblemSOS::generate_zero_polynomial() {
     return InterpolantVector::Zero(_U);
 }
+
+//TODO: it would be better to introduce barrier functions only in the IPM, not when constructing the instance.
+// Although we already have to declare cone membership here.
 
 Instance EnvelopeProblemSOS::construct_SOS_instance() {
     unsigned const NUM_POLYNOMIALS = _polynomials_bounds.size();

@@ -86,9 +86,9 @@ private:
     //arbitrary polynomials plotted.
     bool _input_in_interpolant_basis = true;
 
-    bool _use_weighted_polynomials = true;
+    bool _use_weighted_polynomials = false;
 
-    void get_clenshaw_curtis_integrals();
+    void compute_clenshaw_curtis_integrals();
 
     void initialize_loggers();
 
