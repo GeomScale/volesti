@@ -48,4 +48,3 @@ if __name__ == "__main__":
     for i in range(len(rounding_output_min_ellipsoid)):
         print("\n" + rounding_returns[i] + ": ")
         print(rounding_output_min_ellipsoid[i])
-
