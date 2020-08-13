@@ -20,6 +20,7 @@ int main(int const argc, char **argv) {
 
     auto console = spdlog::stdout_color_mt("console");
     console->info("Logger level is {}", console->level());
+//    Eigen::setNbThreads(1);
     console->info("Num threads: {}", Eigen::nbThreads());
 
     std::ifstream instance_file;

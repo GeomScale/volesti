@@ -4,7 +4,7 @@
 //
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#include "../utils.cpp"
+#include "../utils.h"
 #include "../NonSymmetricIPM.h"
 #include "../barriers/LPStandardBarrier.h"
 #include "../barriers/SDPStandardBarrier.h"

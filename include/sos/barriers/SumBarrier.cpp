@@ -22,35 +22,38 @@ void SumBarrier::add_barrier(LHSCB *lhscb) {
 
 Vector SumBarrier::gradient(Vector x) {
     Vector grad_vec = Vector::Zero(x.rows());
-    for (
-        auto barrier
-            : _barriers) {
-        grad_vec += barrier->
-                gradient(x);
+    std::vector<Vector> barrier_vec(_barriers.size());
+#pragma omp parallel for
+    for (int i = 0; i < _barriers.size(); i++){
+        barrier_vec[i] = _barriers[i]->gradient(x);
+    }
+    for(int i = 0; i < _barriers.size(); i++){
+        grad_vec += barrier_vec[i];
     }
     return grad_vec;
 }
 
 Matrix SumBarrier::hessian(Vector x) {
     Matrix hess_mat = Matrix::Zero(x.rows(), x.rows());
-    for (
-        auto barrier
-            : _barriers) {
-        hess_mat += barrier->
-                hessian(x);
+    std::vector<Matrix> barrier_vec(_barriers.size());
+#pragma omp parallel for
+    for (int i = 0; i < _barriers.size(); i++){
+        barrier_vec[i] = _barriers[i]->hessian(x);
     }
+    for(int i = 0; i < _barriers.size(); i++){
+        hess_mat += barrier_vec[i];
+    }
+
     return hess_mat;
 }
 
 bool SumBarrier::in_interior(Vector x) {
-    for (auto barrier : _barriers) {
-        if (not barrier->
-                in_interior(x)
-                ) {
-            return false;
-        }
+    std::vector<bool> barrier_vec(_barriers.size());
+#pragma omp parallel for
+    for (int i = 0; i < _barriers.size(); i++){
+        barrier_vec[i] = _barriers[i]->in_interior(x);
     }
-    return true;
+    return std::all_of(barrier_vec.begin(), barrier_vec.end(), [](bool b){return b;});
 }
 
 //TODO: better solution for concordance parameter;

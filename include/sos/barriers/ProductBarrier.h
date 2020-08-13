@@ -9,13 +9,20 @@
 
 #include "LHSCB.h"
 
+typedef Vector (LHSCB::*VectorFunc)(Vector);
+typedef Matrix (LHSCB::*MatrixFunc)(Vector);
+typedef Vector (LHSCB::*VoidFunc)();
+
 class ProductBarrier : public LHSCB {
 
 public:
-    ProductBarrier() : LHSCB() {}
+    ProductBarrier(unsigned num_threads = 1) : LHSCB() {
+        _num_threads = num_threads;
+    }
 
-    ProductBarrier(std::vector<LHSCB *> barriers_, std::vector<unsigned> num_variables_) {
+    ProductBarrier(std::vector<LHSCB *> barriers_, std::vector<unsigned> num_variables_, unsigned num_threads = 1) {
         assert(barriers_.size() == num_variables_.size());
+        _num_threads = num_threads;
         for (unsigned j = 0; j < barriers_.size(); ++j) {
             _barriers.push_back(barriers_[j]);
             _num_vars_per_barrier.push_back(num_variables_[j]);
@@ -51,9 +58,17 @@ public:
 
     Matrix inverse_hessian(Vector x) override;
 
+    void update_segments();
+
+    Vector evaluate(Vector x, VectorFunc func);
+    Matrix evaluate(Vector x, MatrixFunc func);
+    Vector evaluate(VoidFunc func);
+
 private:
     std::vector<LHSCB *> _barriers;
+    std::vector<std::pair<int ,int> > _segments;
     std::vector<unsigned> _num_vars_per_barrier;
+    unsigned _num_threads;
 };
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_PRODUCTBARRIER_H

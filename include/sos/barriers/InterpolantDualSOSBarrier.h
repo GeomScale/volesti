@@ -59,6 +59,8 @@ private:
     Matrix _V;
     unsigned _L, _U;
 
+    void compute_V_transpose_V();
+
     void construct_univariate(Vector poly_g);
     void construct_bivariate(Vector poly_g);
     void construct_multivariate(Vector poly_g);

@@ -16,6 +16,8 @@ on the interval [-1,1].
 * Visualisation via Matplotlib plot.
 * Support for several floating-point precision data types for the IPM 
 (Primitive Floating Point and boost:multiprecision floats)
+* Added multivariate support
+* Added multithreading, in particular for 
 
 #### Next steps:
 
@@ -26,7 +28,6 @@ on the interval [-1,1].
 * Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
 * Higher order corrector steps
 * Make sure that no heap memory is allocated dynamically.
-* Add multivariate support
 * Implement Lagrange polynomials more efficiently (or find C++ library with sufficient precision.)
 * Speed up with Intel MKL (considering it is not open source we might not use it !?) or other high-performance library
 * Benchmarking with alfonso, SOSTOOLS, MOSEK (SDP and the new Nonsymmetric cone solver), SeDuMi 
@@ -63,6 +64,9 @@ numbers immensely slow down the IPM
  * Week 7: Runtime speedups, more efficient (including experimentally) implementation.
  * Week 8: Further speedup, Big code refactoring, Add Polynomial minimization, Create Benchmarks with alfonso.
  * Week 9: Writing of documentation / report, more refactoring, add multivariate support.
+ * Week 10:
+ * Week 11: Added multivariate support, Added multithreading.
+ 
 #### References
 
 [1] A. Skajaa and Y. Ye, [A homogeneous interior-point algorithm for nonsymmetric convex conic optimization](https://web.stanford.edu/~yyye/nonsymmhsdimp.pdf), Mathematical Programming Ser. A, 150 (2015), pp. 391-422. 
@@ -73,18 +77,4 @@ numbers immensely slow down the IPM
 
 [4] R. Badenbroek and J. Dahl, [An Algorithm for Nonsymmetric Conic Optimization Inspired by MOSEK](https://arxiv.org/pdf/2003.01546.pdf). https://arxiv.org/pdf/2003.01546.pdf 
 
-## Advice on Implementation (Elias Talk Friday 17th July)
-
-* static polymorphism
-* set up experiment to compare runtimes with MATLAB(alfonso) (univariate or small bivariate):
-    * Script for profiling
-* FFT to speed up things?
-* Gaussian quadrature vs Clenshaw Curtis weight.
-
-* Expansion:
-    * DSOS 
-* Newton Polytop ("circuits polynomial")
-* SONC polynomials: there is no Barrier function. ()
-* Hyperbolic polynomials (Renegars algorithm)
-* Power cone (Primal and Dual have Barrier functions)
 

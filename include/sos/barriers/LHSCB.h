@@ -9,7 +9,7 @@
 
 #include<iostream>
 #include <vector>
-#include "../utils.cpp"
+#include "../utils.h"
 
 class LHSCB {
 public:

@@ -20,7 +20,7 @@ find_package(OpenMP REQUIRED)
 #find_package(spdlog REQUIRED)
 
 find_package(Python2 COMPONENTS Development NumPy)
-add_executable(NonSymmetricConicOptimization ${TARGETS})
+add_executable(NonSymmetricConicOptimization ${TARGETS} utils.cpp)
 
 if (NOT BOOST_DIR)
     find_package(Boost COMPONENTS *boost usr/local/)

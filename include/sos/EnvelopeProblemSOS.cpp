@@ -297,9 +297,16 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
     if (_logger->level() == spdlog::level::trace) {
         constraints.print();
     }
+
+    std::string num_prod_threads_str = getEnvVar("NUM_PRODUCT_THREADS");
+    unsigned num_prod_threads = 1;
+    if(num_prod_threads_str != ""){
+        num_prod_threads = std::stoi(num_prod_threads_str);
+    }
+
     //Construct Barrier function
 
-    ProductBarrier *productBarrier = new ProductBarrier;
+    ProductBarrier *productBarrier = new ProductBarrier(num_prod_threads);
 
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
         auto sos_barrier = new InterpolantDualSOSBarrier(_d, _n);

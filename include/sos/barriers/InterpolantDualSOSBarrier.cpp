@@ -262,6 +262,11 @@ void InterpolantDualSOSBarrier::construct_multivariate(Vector poly_g) {
     _P = col_permutated_cand_matrix.block(0, 0, _U, _U).transpose();
 }
 
+//For profiling purposes
+void InterpolantDualSOSBarrier::compute_V_transpose_V(){
+        _Q.noalias() = _V.transpose() * _V;
+        double test = _Q(1,1);
+}
 
 bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check_interior_only) {
     _preintermediate_matrix.noalias() = _g.cwiseProduct(x).asDiagonal() * _P;
@@ -279,7 +284,8 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
     _V.noalias() = _intermediate_LLT.matrixL().solve(_P.transpose());
     //Experiments showed that using the triangularView instead would slow down the program.
     //So we use the full Matrix _V to compute its product with the transpose.
-    _Q.noalias() = _V.transpose() * _V;
+
+    compute_V_transpose_V();
 
     //TODO: store hessian as self-adjoint
     if (_stored_hessians.empty()) {
