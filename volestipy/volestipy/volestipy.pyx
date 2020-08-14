@@ -3,6 +3,7 @@
 #cython: boundscheck=False
 #cython: wraparound=False
 
+# global dependencies
 import os
 import sys
 import numpy as np
@@ -10,11 +11,78 @@ cimport numpy as np
 from libcpp cimport bool
 from cpython cimport bool
 
+# for the preprocess step, we need the following dependencies
+import gurobipy as gp
+import scipy.sparse as sp
+
 # set the time
 def get_time_seed():
    import random
    import time
    return int(time.time())
+
+# build a Python function to pre-process the metabolic network; meaning to remove really "small" facets. This function will be implemented by making use of the Gurobi solver
+def pre_process(A, b, Aeq, beq):
+   
+   d = A.shape[1]
+      
+   Aeq_new = Aeq
+   beq_new = beq
+   
+   A_new = np.zeros((0,d))
+   b_new = []    # this need to be a vector; we do not know its length
+
+   try: 
+      # Create a new model
+      m = gp.Model("hpolytope")
+      
+      for (i in 1:dim(Aeq)[1]) {
+          lpSolveAPI::add.constraint(lps.model, Aeq[i,], "=", beq[i])
+      }
+
+
+
+      # Create variables
+      x = m.addMVar(shape = d , vtype = GRB_INTEGER , name ="x")
+      
+      # Set objective
+      obj = np.array ([1.0 , 1.0 , 2.0])
+      m.setObjective( obj @ x , GRB . MAXIMIZE )
+      
+      # Build ( sparse ) constraint matrix
+      data = np.array ([1.0 , 2.0 , 3.0 , -1.0 , -1.0])
+      row = np.array ([0 , 0 , 0 , 1 , 1])
+      col = np.array ([0 , 1 , 2 , 0 , 1])
+      
+      A = sp.csr_matrix (( data, (row,col)), shape = (2,3))
+      
+      # Build rhs vector
+      rhs = np.array ([4.0 , -1.0])
+      
+      # Add constraints
+      m.addConstr( A @ x <= rhs , name ="c")
+      
+      # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
+      
+      
+      # Optimize model
+      m.optimize ()
+      
+      print ( x.X )
+      print ("Obj: %g" % m.objVal)
+   
+   except gp . GurobiError as e :
+      print ("Error code " + str( e . errno ) + ": " + str( e ))
+   except AttributeError :
+      print ("Encountered an attribute error ")   
+   
+
+
+
+
+
+
+
 
 # get classes from the bindings.h file
 cdef extern from "bindings.h":
@@ -228,4 +296,5 @@ cdef class low_dim_HPolytope:
       return np.asarray(self._beq)   
    @property
    def dimensions(self):
-      return self._A.shape[1]   
+      return self._A.shape[1]
+   
