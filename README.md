@@ -2,7 +2,7 @@
 
 **VolEsti** is a C++ library for volume approximation and sampling of convex bodies with an *R* interface.  
 
-#### **This is a development branch that contains the supplementary code for paper "Sampling  the feasible sets of SDPs and volume approximation" submitted to ISSAC 2020.**   
+#### **This is a development branch that contains the supplementary code for the journal submission of the paper "Sampling  the feasible sets of SDPs and volume approximation".**   
 
 Authors:  
 - [Apostolos Chalkis](https://tolischal.github.io) <tolis.chal at gmail.com>  
