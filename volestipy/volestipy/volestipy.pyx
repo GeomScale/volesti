@@ -46,8 +46,8 @@ def pre_process(A, b, Aeq, beq):
 
       # Make sparse Aeq
       Aeq_sparse = sp.csr_matrix(Aeq)
-      print("\n this is Aeq sparse without setting shape\n")
-      print(Aeq_sparse)
+#      print("\n this is Aeq sparse without setting shape\n")
+#      print(Aeq_sparse)
 
 #      Aeq_sparse_2 = sp.csr_matrix(Aeq, shape = (m , n))
 #      print("\n this is Aeq sparse setting its shape by the dimensions of Aeq\n")
@@ -56,8 +56,8 @@ def pre_process(A, b, Aeq, beq):
 
       # Make A sparse
       A_sparse = sp.csr_matrix(A)
-      print("\n this is A sparse without setting its shape\n")
-      print(A_sparse)
+#      print("\n this is A sparse without setting its shape\n")
+#      print(A_sparse)
 
 #      A_sparse_2 = sp.csr_matrix(A, shape = (A.shape[0] , d))
 #      print("\n A_sparse as Haris did in the first place (setting its shape based on A's dimensions):\n")
@@ -85,10 +85,11 @@ def pre_process(A, b, Aeq, beq):
       # Loop through the lines of the A matrix, set objective function for each and run the model
       for i in range(A.shape[0]):
 
-         objective_function = np.array([A[1,]])
-         print("this is obj function from A matrix")
-         print(type(objective_function))
-         print(objective_function)
+         objective_function = np.array([A[i,]])
+#         print("this is obj function from A matrix")
+#         print(type(objective_function))
+#         print(objective_function)
+
 
 #         # this is an alternative obj function as Tolis mentioned for a test
 #         objective_function_2 = np.array(np.random.normal(0, 1, size=(1, n)))
@@ -96,55 +97,50 @@ def pre_process(A, b, Aeq, beq):
 #         print(type(objective_function_2))
 #         print(objective_function_2)
 
+
          model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
 
          # Optimize model
          model.optimize ()
          status = model.status
+#         print("this is the flux.X")
+#         print(flux_x.X)
+#         print ("Obj: %g" % model.objVal)
+#         print("status is: ")
+#         print(status)
+#         print(" GRB . OPTIMAL is equal to :")
+#         print(GRB.OPTIMAL)
 
-         print(flux_x.X)
-         print ("Obj: %g" % model.objVal)
-         print("status is: ")
-         print(status)
-         print(" GRB . OPTIMAL is equal to :")
-         print(GRB.OPTIMAL)
-         
-         max_objective = model.getObjective()
-         print("\n this is it for the MAX case")
-         print(max_objective.getValue())
+         max_objective = model.getObjective().getValue()
+#         print("\n this is it for the MAX case")
+#         print(max_objective)
 
          # Now for the minus
-         objective_function = np.asarray([-x for x in objective_function_2])
+         objective_function = np.asarray([-x for x in objective_function])
          model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
          model.optimize()
-         min_objective = model.getObjective()
-         print("\n this is it for the MIN case:")
-         print(min_objective.getValue())
-         
+         min_objective = model.getObjective().getValue()
+#         print("\n this is it for the MIN case:")
+#         print(min_objective)
+
          # Calculate the width
-         width = abs(max_objective + min_objective) / np.linalg.norm(A[i,]) 
+         width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
+#         print("the sum equals to:" + str(abs(max_objective + min_objective)))
+         print("** width equals to : " + str(width) + "\n")
 
          # Check whether we keep or not the equality
          if width < 1e-07:
-
-
-
-            Aeq_new = rbind(Aeq_new, A[j,])
-            beq_new = c(beq_new, max_dist)
+            Aeq_new = np.vstack((Aeq_new, A[i,]))
+            beq_new = np.append(beq_new, max_objective)
          else:
-            A_new = rbind(A_new, A[j,])
-            b_new =c(b_new, b[j])
+            A_new = np.vstack((A_new, A[i,]))
+            b_new = np.append(beq_new, b[i])
 
+      return A_new, b_new, Aeq_new, beq_new
 
-
-
-
-
-
-
-
-   except gp . GurobiError as e :
-      print ("Error code " + str( e . errno ) + ": " + str( e ))
+   # Raise an exception in case something went wrong
+   except gp.GurobiError as e :
+      print ("Error code " + str(e.errno ) + ": " + str( e ))
    except AttributeError :
       print ("Encountered an attribute error ") 
 
