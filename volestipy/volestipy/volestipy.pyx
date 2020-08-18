@@ -46,32 +46,16 @@ def pre_process(A, b, Aeq, beq):
 
       # Make sparse Aeq
       Aeq_sparse = sp.csr_matrix(Aeq)
-#      print("\n this is Aeq sparse without setting shape\n")
-#      print(Aeq_sparse)
-
-#      Aeq_sparse_2 = sp.csr_matrix(Aeq, shape = (m , n))
-#      print("\n this is Aeq sparse setting its shape by the dimensions of Aeq\n")
-#      print(Aeq_sparse_2)
-
 
       # Make A sparse
       A_sparse = sp.csr_matrix(A)
-#      print("\n this is A sparse without setting its shape\n")
-#      print(A_sparse)
-
-#      A_sparse_2 = sp.csr_matrix(A, shape = (A.shape[0] , d))
-#      print("\n A_sparse as Haris did in the first place (setting its shape based on A's dimensions):\n")
-#      print(A_sparse_2)
-
 
       # Set the b and beq vectors as numpy vectors
       b = np.array(b)
       beq = np.array(beq)
 
-
       # Add constraints
       model.addConstr(Aeq_sparse @ flux_x == beq, name = "c")
-
 
       #######################
       # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
@@ -79,70 +63,64 @@ def pre_process(A, b, Aeq, beq):
       #######################
 
       # Add constraints for the uneqalities of A
-      model.addConstr(A_sparse @ flux_x <= b, name = "c2")
+      model.addConstr(A_sparse @ flux_x <= b, name = "c")
 
 
       # Loop through the lines of the A matrix, set objective function for each and run the model
       for i in range(A.shape[0]):
 
+         # set the ith row of the A matrix as the objective function 
          objective_function = np.array([A[i,]])
-#         print("this is obj function from A matrix")
-#         print(type(objective_function))
-#         print(objective_function)
-
-
-#         # this is an alternative obj function as Tolis mentioned for a test
-#         objective_function_2 = np.array(np.random.normal(0, 1, size=(1, n)))
-#         print("this is obj function from Tolis")
-#         print(type(objective_function_2))
-#         print(objective_function_2)
-
-
          model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
 
          # Optimize model
          model.optimize ()
+
+         # if optimized, print the solution
          status = model.status
-#         print("this is the flux.X")
-#         print(flux_x.X)
-#         print ("Obj: %g" % model.objVal)
-#         print("status is: ")
-#         print(status)
-#         print(" GRB . OPTIMAL is equal to :")
-#         print(GRB.OPTIMAL)
+         if status == GRB.OPTIMAL:
+            solution = model.getAttr('x')
+            print("The solution for the MAX case is:")
+            print(solution)
 
+         # get the max objective value
          max_objective = model.getObjective().getValue()
-#         print("\n this is it for the MAX case")
-#         print(max_objective)
 
-         # Now for the minus
+         # Likewise, for the minimum
          objective_function = np.asarray([-x for x in objective_function])
          model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
          model.optimize()
+
+         # if optimized, print the solution
+         status = model.status
+         if status == GRB.OPTIMAL:
+            solution = model.getAttr('x')
+            print("The solution for the MIN case is:")
+            print(solution)
+
          min_objective = model.getObjective().getValue()
-#         print("\n this is it for the MIN case:")
-#         print(min_objective)
 
          # Calculate the width
          width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
-#         print("the sum equals to:" + str(abs(max_objective + min_objective)))
          print("** width equals to : " + str(width) + "\n")
 
          # Check whether we keep or not the equality
          if width < 1e-07:
             Aeq_new = np.vstack((Aeq_new, A[i,]))
             beq_new = np.append(beq_new, max_objective)
+
          else:
             A_new = np.vstack((A_new, A[i,]))
-            b_new = np.append(beq_new, b[i])
+            b_new = np.append(b_new, b[i])
+
 
       return A_new, b_new, Aeq_new, beq_new
 
-   # Raise an exception in case something went wrong
-   except gp.GurobiError as e :
-      print ("Error code " + str(e.errno ) + ": " + str( e ))
+
+   except gp . GurobiError as e :
+      print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
-      print ("Encountered an attribute error ") 
+      print ("Encountered an attribute error ")  
 
    
 
