@@ -43,7 +43,7 @@ def pre_process(A, b, Aeq, beq):
       flux_x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name ="x")
       
       # Set objective
-      objective_function = np.array(Aeq[1,])
+      objective_function = np.array(A[1,])
       model.setObjective ( objective_function @ flux_x, GRB.MINIMIZE )
             
       # Make sparse Aeq
