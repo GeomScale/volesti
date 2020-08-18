@@ -8,27 +8,36 @@ from gurobipy import GRB
 
 if __name__ == "__main__":
 
-    m = 4
-    n = 10
+   m = 4
+   n = 10
 
-    A = np.zeros((2*n, n), dtype=np.float)
-    A[0:n] = np.eye(n)
-    A[n:] -=  np.eye(n,n, dtype=np.float)
-    print("\n This is the A matrix: \n")
-    print(A)
+   A = np.zeros((2*n, n), dtype=np.float)
+   A[0:n] = np.eye(n)
+   A[n:] -=  np.eye(n,n, dtype=np.float)
+   print("\n This is the A matrix: \n")
+   print(A)
 
-    b = np.ones(2*n, dtype=np.float)
-    print("\n This is the vector b: \n")
-    print(b)
+   b = np.ones(2*n, dtype=np.float)
+   print("\n This is the vector b: \n")
+   print(b)
 
-    Aeq = np.random.normal(0, 1, size=(m, n))
-    print("\n This is the Aeq matrix: \n")
-    print(Aeq)
+   Aeq = np.random.normal(0, 1, size=(m, n))
+   print("\n This is the Aeq matrix: \n")
+   print(Aeq)
 
-    beq = np.zeros(m)
-    print("\n This is the vector beq: \n")
-    print(beq)
+   beq = np.zeros(m)
+   print("\n This is the vector beq: \n")
+   print(beq)
 
 
-    pre_process(A, b, Aeq, beq)
+   res = pre_process(A, b, Aeq, beq)
+   print("new A is:")
+   print(res[0])
+   print("new b is:")
+   print(res[1])
+   print("new Aeq is:")
+   print(res[2])
+   print("new beq is:")
+   print(res[3])
+
 
