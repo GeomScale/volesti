@@ -8,8 +8,8 @@ from gurobipy import GRB
 
 if __name__ == "__main__":
 
-    m = 2
-    n = 4
+    m = 4
+    n = 10
 
     A = np.zeros((2*n, n), dtype=np.float)
     A[0:n] = np.eye(n)
