@@ -28,55 +28,78 @@ def get_time_seed():
 def pre_process(A, b, Aeq, beq):
    
    d = A.shape[1] ; m = Aeq.shape[0] ; n = Aeq.shape[1]
-   
+
    Aeq_new = Aeq
    beq_new = beq
-   
+
    A_new = np.zeros((0,d))
    b_new = []    # this need to be a vector; we do not know its length
 
 
-   try: 
+   try:
 
       # Create a new model
       model = gp.Model("preProcHPol")
-      
+
       # Create variables
       flux_x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name ="x")
-      
+
       # Set objective
       objective_function = np.array(A[1,])
       model.setObjective ( objective_function @ flux_x, GRB.MINIMIZE )
-            
+
       # Make sparse Aeq
-      Aeq_sparse = sp.csr_matrix(Aeq, shape = (m , n))
-      
+      Aeq_sparse = sp.csr_matrix(Aeq)
+      print("\n this is Aeq sparse without setting shape\n")
+      print(Aeq_sparse)
+
+      Aeq_sparse_2 = sp.csr_matrix(Aeq, shape = (m , n))
+      print("\n this is Aeq sparse setting its shape by the dimensions of Aeq\n")
+      print(Aeq_sparse_2)
+
+
+      # Make A sparse
+      A_sparse = sp.csr_matrix(A)
+      print("\n this is A sparse without setting its shape\n")
+      print(A_sparse)
+
+
+      A_sparse_2 = sp.csr_matrix(A, shape = (A.shape[0] , d))
+      print("\n A_sparse as Haris did in the first place (setting its shape based on A's dimensions):\n")
+      print(A_sparse_2)
+
+
       # Build beq vector as np
       beq = np.array(beq)
-      
+
       # Add constraints
       model.addConstr(Aeq_sparse @ flux_x == beq, name = "c")
-      
 
+
+
+      #######################
       # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
       # to start with, avoid ObjBound and do that the same way as Aeq but with unequalities this time
-      
-      A_sparse = sp.csr_matrix(A, shape = (A.shape[0] , d))
+      #######################
+
+
+
+      # Set the b vector as numpy vector
       b = np.array(b)
-      
+
+      # Add constraints for the uneqalities of A
       model.addConstr(A_sparse @ flux_x <= b, name = "c")
-      
-      
+
       # Optimize model
       model.optimize ()
-      
+
       print(flux_x.X)
       print ("Obj: %g" % model.objVal)
-   
+
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
-      print ("Encountered an attribute error ")   
+      print ("Encountered an attribute error ") 
    
 
 
