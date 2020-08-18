@@ -26,7 +26,7 @@ def get_time_seed():
 
 # build a Python function to pre-process the metabolic network; meaning to remove really "small" facets. This function will be implemented by making use of the Gurobi solver
 def pre_process(A, b, Aeq, beq):
-   
+
    d = A.shape[1] ; m = Aeq.shape[0] ; n = Aeq.shape[1]
 
    Aeq_new = Aeq
@@ -44,18 +44,14 @@ def pre_process(A, b, Aeq, beq):
       # Create variables
       flux_x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name ="x")
 
-      # Set objective
-      objective_function = np.array(A[1,])
-      model.setObjective ( objective_function @ flux_x, GRB.MINIMIZE )
-
       # Make sparse Aeq
       Aeq_sparse = sp.csr_matrix(Aeq)
       print("\n this is Aeq sparse without setting shape\n")
       print(Aeq_sparse)
 
-      Aeq_sparse_2 = sp.csr_matrix(Aeq, shape = (m , n))
-      print("\n this is Aeq sparse setting its shape by the dimensions of Aeq\n")
-      print(Aeq_sparse_2)
+#      Aeq_sparse_2 = sp.csr_matrix(Aeq, shape = (m , n))
+#      print("\n this is Aeq sparse setting its shape by the dimensions of Aeq\n")
+#      print(Aeq_sparse_2)
 
 
       # Make A sparse
@@ -63,18 +59,18 @@ def pre_process(A, b, Aeq, beq):
       print("\n this is A sparse without setting its shape\n")
       print(A_sparse)
 
+#      A_sparse_2 = sp.csr_matrix(A, shape = (A.shape[0] , d))
+#      print("\n A_sparse as Haris did in the first place (setting its shape based on A's dimensions):\n")
+#      print(A_sparse_2)
 
-      A_sparse_2 = sp.csr_matrix(A, shape = (A.shape[0] , d))
-      print("\n A_sparse as Haris did in the first place (setting its shape based on A's dimensions):\n")
-      print(A_sparse_2)
 
-
-      # Build beq vector as np
+      # Set the b and beq vectors as numpy vectors
+      b = np.array(b)
       beq = np.array(beq)
+
 
       # Add constraints
       model.addConstr(Aeq_sparse @ flux_x == beq, name = "c")
-
 
 
       #######################
@@ -82,31 +78,82 @@ def pre_process(A, b, Aeq, beq):
       # to start with, avoid ObjBound and do that the same way as Aeq but with unequalities this time
       #######################
 
-
-
-      # Set the b vector as numpy vector
-      b = np.array(b)
-
       # Add constraints for the uneqalities of A
-      model.addConstr(A_sparse @ flux_x <= b, name = "c")
+      model.addConstr(A_sparse @ flux_x <= b, name = "c2")
 
-      # Optimize model
-      model.optimize ()
 
-      print(flux_x.X)
-      print ("Obj: %g" % model.objVal)
+      # Loop through the lines of the A matrix, set objective function for each and run the model
+      for i in range(A.shape[0]):
+
+         objective_function = np.array([A[1,]])
+         print("this is obj function from A matrix")
+         print(type(objective_function))
+         print(objective_function)
+
+#         # this is an alternative obj function as Tolis mentioned for a test
+#         objective_function_2 = np.array(np.random.normal(0, 1, size=(1, n)))
+#         print("this is obj function from Tolis")
+#         print(type(objective_function_2))
+#         print(objective_function_2)
+
+         model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
+
+         # Optimize model
+         model.optimize ()
+         status = model.status
+
+         print(flux_x.X)
+         print ("Obj: %g" % model.objVal)
+         print("status is: ")
+         print(status)
+         print(" GRB . OPTIMAL is equal to :")
+         print(GRB.OPTIMAL)
+         
+         max_objective = model.getObjective()
+         print("\n this is it for the MAX case")
+         print(max_objective.getValue())
+
+         # Now for the minus
+         objective_function = np.asarray([-x for x in objective_function_2])
+         model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
+         model.optimize()
+         min_objective = model.getObjective()
+         print("\n this is it for the MIN case:")
+         print(min_objective.getValue())
+         
+         # Calculate the width
+         width = abs(max_objective + min_objective) / np.linalg.norm(A[i,]) 
+
+         # Check whether we keep or not the equality
+         if width < 1e-07:
+
+
+
+            Aeq_new = rbind(Aeq_new, A[j,])
+            beq_new = c(beq_new, max_dist)
+         else:
+            A_new = rbind(A_new, A[j,])
+            b_new =c(b_new, b[j])
+
+
+
+
+
+
+
+
 
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
       print ("Encountered an attribute error ") 
+
    
 
 
-
-
-
-
+################################################################################
+#                This is where the wrapping part begins.                       #
+################################################################################
 
 
 # get classes from the bindings.h file
