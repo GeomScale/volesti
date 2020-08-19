@@ -93,6 +93,7 @@ def pre_process(A, b, Aeq, beq):
          # Likewise, for the minimum
          objective_function = np.asarray([-x for x in objective_function])
          model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
+         model.update()
          model.optimize()
 
          # if optimized, print the solution
