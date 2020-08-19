@@ -56,6 +56,8 @@ def pre_process(A, b, Aeq, beq):
 
       # Add constraints
       model.addConstr(Aeq_sparse @ flux_x == beq, name = "c")
+      model.update()
+      model.display()
 
       #######################
       # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
@@ -64,7 +66,8 @@ def pre_process(A, b, Aeq, beq):
 
       # Add constraints for the uneqalities of A
       model.addConstr(A_sparse @ flux_x <= b, name = "c")
-
+      model.update()
+      model.display()
 
       # Loop through the lines of the A matrix, set objective function for each and run the model
       for i in range(A.shape[0]):
@@ -72,6 +75,7 @@ def pre_process(A, b, Aeq, beq):
          # set the ith row of the A matrix as the objective function 
          objective_function = np.array([A[i,]])
          model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
+         model.update()
 
          # Optimize model
          model.optimize ()
@@ -102,6 +106,7 @@ def pre_process(A, b, Aeq, beq):
 
          # Calculate the width
          width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
+         print("np.linalg.norm equals to: " + str(np.linalg.norm(A[i,])) + "\n")
          print("** width equals to : " + str(width) + "\n")
 
          # Check whether we keep or not the equality
