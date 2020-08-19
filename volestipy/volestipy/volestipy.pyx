@@ -61,10 +61,10 @@ def pre_process(A, b, Aeq, beq):
 
       #######################
       # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
-      # to start with, avoid ObjBound and do that the same way as Aeq but with unequalities this time
+      # to start with, avoid ObjBound and do that the same way as Aeq but with inequalities this time
       #######################
 
-      # Add constraints for the uneqalities of A
+      # Add constraints for the inequalities of A
       model.addConstr(A_sparse @ flux_x <= b, name = "c")
       model.update()
       model.display()
