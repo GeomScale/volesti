@@ -131,7 +131,10 @@ public:
         for (unsigned int i = 1; i < Pin.size(); i++) {
             b(i - 1) = Pin[i][0];
             for (unsigned int j = 1; j < _d + 1; j++) {
-                A(i - 1, j - 1) = -Pin[i][j];
+                if(Pin[i][j]>1e-9 || Pin[i][j]<-(1e-9) )
+                    A(i - 1, j - 1) = -Pin[i][j];
+                else
+                    A(i - 1, j - 1) = Pin[i][j];
             }
         }
     }
