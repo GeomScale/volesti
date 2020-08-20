@@ -61,10 +61,10 @@ def pre_process(A, b, Aeq, beq):
 
       #######################
       # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
-      # to start with, avoid ObjBound and do that the same way as Aeq but with inequalities this time
+      # to start with, avoid ObjBound and do that the same way as Aeq but with unequalities this time
       #######################
 
-      # Add constraints for the inequalities of A
+      # Add constraints for the uneqalities of A
       model.addConstr(A_sparse @ flux_x <= b, name = "c")
       model.update()
       model.display()
@@ -74,6 +74,11 @@ def pre_process(A, b, Aeq, beq):
 
          # set the ith row of the A matrix as the objective function 
          objective_function = np.array([A[i,]])
+
+         print("this is the ith iteration : " + str(i))
+         print("this is the obj function under study:")
+         print(objective_function)
+
          model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
          model.update()
 
@@ -87,8 +92,8 @@ def pre_process(A, b, Aeq, beq):
             print("The solution for the MAX case is:")
             print(solution)
 
-         # get the max objective value
-         max_objective = model.getObjective().getValue()
+            # get the max objective value
+            max_objective = model.getObjective().getValue()
 
          # Likewise, for the minimum
          objective_function = np.asarray([-x for x in objective_function])
@@ -103,7 +108,8 @@ def pre_process(A, b, Aeq, beq):
             print("The solution for the MIN case is:")
             print(solution)
 
-         min_objective = model.getObjective().getValue()
+            # get the max objective value
+            min_objective = model.getObjective().getValue()
 
          # Calculate the width
          width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
@@ -126,7 +132,8 @@ def pre_process(A, b, Aeq, beq):
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
-      print ("Encountered an attribute error ")  
+      print ("Encountered an attribute error ") 
+  
 
    
 
