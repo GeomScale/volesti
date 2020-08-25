@@ -3,7 +3,7 @@
 #cython: boundscheck=False
 #cython: wraparound=False
 
-# global dependencies
+# Global dependencies
 import os
 import sys
 import numpy as np
@@ -11,30 +11,28 @@ cimport numpy as np
 from libcpp cimport bool
 from cpython cimport bool
 
-# for the preprocess step, we need the following dependencies
+# For the preprocess step, we need the following dependencies
 import scipy . sparse as sp
 import gurobipy as gp
 from gurobipy import GRB
 
 # ----------------------------------------------------------------------------------
 
-# set the time
+# Set the time
 def get_time_seed():
    import random
    import time
    return int(time.time())
 
-# build a Python function to pre-process the metabolic network; meaning to remove really "small" facets. This function will be implemented by making use of the Gurobi solver
+# Build a Python function to pre-process the metabolic network; meaning to remove really "small" facets.
+# This function will be implemented by making use of the Gurobi solver
 def pre_process(A, b, Aeq, beq):
 
    d = A.shape[1] ; m = Aeq.shape[0] ; n = Aeq.shape[1]
-
    Aeq_new = Aeq
    beq_new = beq
-
    A_new = np.zeros((0,d))
    b_new = []    # this need to be a vector; we do not know its length
-
 
    try:
 
@@ -55,11 +53,10 @@ def pre_process(A, b, Aeq, beq):
       beq = np.array(beq)
 
       # Add constraints
-#      model.addConstr(Aeq_sparse @ x == beq, name = "c")
       model.addMConstrs(Aeq_sparse, x, '=', beq, name = "c")
 
+      # Update the model to include the constraints added
       model.update()
-      model.display()
 
       #######################
       # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
@@ -67,72 +64,54 @@ def pre_process(A, b, Aeq, beq):
       #######################
 
       # Add constraints for the uneqalities of A
-#      model.addConstr(A_sparse @ x <= b, name = "d")
       model.addMConstrs(A_sparse, x, '<', b, name = "d")
+
+      # Update the model with the extra constraints and then print it
       model.update()
       model.display()
 
       # Loop through the lines of the A matrix, set objective function for each and run the model
       for i in range(A.shape[0]):
 
-         # set the ith row of the A matrix as the objective function 
-#         objective_function = np.array([A[i,]])
+         # Set the ith row of the A matrix as the objective function 
          objective_function = A[i,]
 
-         print("this is the ith iteration : " + str(i))
-         print("this is the obj function under study:")
-         print(objective_function)
-
          # Set the objective function in the model 
-#         model.setMObjective(objective_function @ x, GRB.MINIMIZE)
          model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
-
          model.update()
-#         print("\n --------------------------------------\n\n")
-#         print("here is the model after setting the obj function\n\n")
-         model.display()
 
          # Optimize model
          model.optimize ()
 
-         # if optimized, print the solution
+         # If optimized, print the solution
          status = model.status
          if status == GRB.OPTIMAL:
             solution = model.getAttr('x')
-            print("\n\n >>The solution for the MAX case is:")
+            print("\n\n***The solution for the MAX case is:")
             print(solution)
 
-            # get the max objective value
+            # Get the max objective value
             max_objective = model.getObjective().getValue()
 
          # Likewise, for the minimum
          objective_function = np.asarray([-x for x in objective_function])
-#         objective_function = [-x for x in objective_function]
-         print("this is the minus obj function under study:")
-         print(objective_function)
-
-
-#         model.setMObjective(objective_function @ x, GRB.MINIMIZE)
          model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
-
          model.update()
          model.optimize()
 
-         # if optimized, print the solution
+         # Again if optimized, print the solution
          status = model.status
          if status == GRB.OPTIMAL:
             solution = model.getAttr('x')
 
-            print("\n\n >>The solution for the MIN case is:")
+            print("\n\n***The solution for the MIN case is:")
             print(solution)
 
-            # get the max objective value
+            # Get the max objective value
             min_objective = model.getObjective().getValue()
 
          # Calculate the width
          width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
-         print("np.linalg.norm equals to: " + str(np.linalg.norm(A[i,])) + "\n")
-         print("** width equals to : " + str(width) + "\n")
 
          # Check whether we keep or not the equality
          if width < 1e-07:
@@ -143,21 +122,19 @@ def pre_process(A, b, Aeq, beq):
             A_new = np.vstack((A_new, A[i,]))
             b_new = np.append(b_new, b[i])
 
-
+      # Return a tupple including the new A, b, Aeq and beq
       return A_new, b_new, Aeq_new, beq_new
 
-
+   # Print error messages
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
       print ("Encountered an attribute error ")
 
 
-
 ################################################################################
-#                This is where the wrapping part begins.                       #
+#                  Classes for the volesti C++ code                            #
 ################################################################################
-
 
 # get classes from the bindings.h file
 cdef extern from "bindings.h":
