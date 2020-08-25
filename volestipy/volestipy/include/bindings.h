@@ -42,9 +42,9 @@ typedef BoostRandomNumberGenerator<boost::mt19937, double>    RNGType;
 class HPolytopeCPP{
 
    public:
-      
+
       std::pair<Point,NT> CheBall;
-      
+
       // regarding the rounding step
       typedef std::tuple<MT, VT, NT>    round_result;
 
@@ -53,7 +53,7 @@ class HPolytopeCPP{
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
 
-      Hpolytope HP;      
+      Hpolytope HP;
       // Here we use the "~" destructor; this way we avoid a memory leak.
       ~HPolytopeCPP();
 
@@ -69,14 +69,14 @@ class HPolytopeCPP{
       
 };
 
-// The preHPolytopeCPP class is responsible for the preprocess step of the polytope as well as for getting the full dimensional polytope 
+// The preHPolytopeCPP class is responsible for the preprocess step of the polytope as well as for getting the full dimensional polytope
 class lowDimHPolytopeCPP{
 
    public:
-      
+
       MT A,Aeq;
       VT b,beq;
-      
+
       // regarding getting full dimensional polytope
       typedef std::pair<Hpolytope, std::pair<MT, VT> > get_full_dim_pol_result;
 
@@ -84,10 +84,10 @@ class lowDimHPolytopeCPP{
       lowDimHPolytopeCPP();
       lowDimHPolytopeCPP(double *A, double *b, double *Aeq, double *beq, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq);
       Hpolytope low_HP;
-      
+
       // Here we use the "~" destructor; this way we avoid a memory leak.
       ~lowDimHPolytopeCPP();
-      
+
       // the get_full_dimensional_polytop() function
       int full_dimensiolal_polytope(double* N_extra_trans, double* shift, double* A_full_extra_trans, double* b_full);
 
