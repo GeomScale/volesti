@@ -42,7 +42,7 @@ def pre_process(A, b, Aeq, beq):
       model = gp.Model("preProcHPol")
 
       # Create variables
-      x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name ="x", lb=-100000.0, ub=GRB.INFINITY)
+      x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
 
       # Make sparse Aeq
       Aeq_sparse = sp.csr_matrix(Aeq)
@@ -76,14 +76,16 @@ def pre_process(A, b, Aeq, beq):
       for i in range(A.shape[0]):
 
          # set the ith row of the A matrix as the objective function 
-         objective_function = np.array([A[i,]])
+#         objective_function = np.array([A[i,]])
+         objective_function = A[i,]
+
          print("this is the ith iteration : " + str(i))
          print("this is the obj function under study:")
          print(objective_function)
 
          # Set the objective function in the model 
 #         model.setMObjective(objective_function @ x, GRB.MINIMIZE)
-         model.setMObjective(None, A[i,], 0.0, None, None, x, GRB.MINIMIZE)
+         model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
 
          model.update()
          print("\n --------------------------------------\n\n")
@@ -104,7 +106,9 @@ def pre_process(A, b, Aeq, beq):
             max_objective = model.getObjective().getValue()
 
          # Likewise, for the minimum
-         objective_function = np.asarray([-x for x in objective_function])
+#         objective_function = np.asarray([-x for x in objective_function])
+         objective_function = [-x for x in objective_function]
+
 #         model.setMObjective(objective_function @ x, GRB.MINIMIZE)
 #         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
          model.setMObjective(None, A[i,], 0.0, None, None, x, GRB.MINIMIZE)
@@ -144,7 +148,8 @@ def pre_process(A, b, Aeq, beq):
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
-      print ("Encountered an attribute error ")
+      print ("Encountered an attribute error ") 
+
 
 ################################################################################
 #                This is where the wrapping part begins.                       #
