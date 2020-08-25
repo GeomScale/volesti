@@ -4,6 +4,7 @@ import numpy as np
 import scipy.sparse as sp
 import gurobipy as gp
 from gurobipy import GRB
+from volestipy import *
 
 
 if __name__ == "__main__":
