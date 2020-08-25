@@ -96,7 +96,7 @@ def pre_process(A, b, Aeq, beq):
          model.update()
          model.optimize()
 
-         # Again if optimized, print the solution
+         # Again if optimized
          status = model.status
          if status == GRB.OPTIMAL:
 
@@ -342,4 +342,7 @@ cdef class low_dim_HPolytope:
    @property
    def dimensions(self):
       return self._A.shape[1]
+
+
+
 
