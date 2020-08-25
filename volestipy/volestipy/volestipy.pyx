@@ -42,7 +42,7 @@ def pre_process(A, b, Aeq, beq):
       model = gp.Model("preProcHPol")
 
       # Create variables
-      flux_x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name ="x")
+      x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name ="x")
 
       # Make sparse Aeq
       Aeq_sparse = sp.csr_matrix(Aeq)
@@ -55,7 +55,7 @@ def pre_process(A, b, Aeq, beq):
       beq = np.array(beq)
 
       # Add constraints
-      model.addConstr(Aeq_sparse @ flux_x == beq, name = "c")
+      model.addConstr(Aeq_sparse @ x == beq, name = "c")
       model.update()
       model.display()
 
@@ -65,7 +65,7 @@ def pre_process(A, b, Aeq, beq):
       #######################
 
       # Add constraints for the uneqalities of A
-      model.addConstr(A_sparse @ flux_x <= b, name = "c")
+      model.addConstr(A_sparse @ x <= b, name = "d")
       model.update()
       model.display()
 
@@ -74,12 +74,13 @@ def pre_process(A, b, Aeq, beq):
 
          # set the ith row of the A matrix as the objective function 
          objective_function = np.array([A[i,]])
-
          print("this is the ith iteration : " + str(i))
          print("this is the obj function under study:")
          print(objective_function)
 
-         model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
+         # Set the objective function in the model 
+#         model.setObjective(objective_function @ x, GRB.MINIMIZE)
+         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
          model.update()
 
          # Optimize model
@@ -88,8 +89,8 @@ def pre_process(A, b, Aeq, beq):
          # if optimized, print the solution
          status = model.status
          if status == GRB.OPTIMAL:
-            solution = model.getAttr('x')
-            print("The solution for the MAX case is:")
+            solution = model.getAttr('X')
+            print("\n\n >>The solution for the MAX case is:")
             print(solution)
 
             # get the max objective value
@@ -97,15 +98,17 @@ def pre_process(A, b, Aeq, beq):
 
          # Likewise, for the minimum
          objective_function = np.asarray([-x for x in objective_function])
-         model.setObjective(objective_function @ flux_x, GRB.MINIMIZE)
+#         model.setObjective(objective_function @ x, GRB.MINIMIZE)
+         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
          model.update()
          model.optimize()
 
          # if optimized, print the solution
          status = model.status
          if status == GRB.OPTIMAL:
-            solution = model.getAttr('x')
-            print("The solution for the MIN case is:")
+            solution = model.getAttr('X')
+
+            print("\n\n >>The solution for the MIN case is:")
             print(solution)
 
             # get the max objective value
@@ -132,7 +135,7 @@ def pre_process(A, b, Aeq, beq):
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
-      print ("Encountered an attribute error ") 
+      print ("Encountered an attribute error ")
   
 
    
