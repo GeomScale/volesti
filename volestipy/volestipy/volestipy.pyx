@@ -88,8 +88,8 @@ def pre_process(A, b, Aeq, beq):
          model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
 
          model.update()
-         print("\n --------------------------------------\n\n")
-         print("here is the model after setting the obj function\n\n")
+#         print("\n --------------------------------------\n\n")
+#         print("here is the model after setting the obj function\n\n")
          model.display()
 
          # Optimize model
@@ -106,12 +106,14 @@ def pre_process(A, b, Aeq, beq):
             max_objective = model.getObjective().getValue()
 
          # Likewise, for the minimum
-#         objective_function = np.asarray([-x for x in objective_function])
-         objective_function = [-x for x in objective_function]
+         objective_function = np.asarray([-x for x in objective_function])
+#         objective_function = [-x for x in objective_function]
+         print("this is the minus obj function under study:")
+         print(objective_function)
+
 
 #         model.setMObjective(objective_function @ x, GRB.MINIMIZE)
-#         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
-         model.setMObjective(None, A[i,], 0.0, None, None, x, GRB.MINIMIZE)
+         model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
 
          model.update()
          model.optimize()
@@ -148,7 +150,8 @@ def pre_process(A, b, Aeq, beq):
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
-      print ("Encountered an attribute error ") 
+      print ("Encountered an attribute error ")
+
 
 
 ################################################################################
