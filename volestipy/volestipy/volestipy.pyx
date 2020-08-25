@@ -42,7 +42,7 @@ def pre_process(A, b, Aeq, beq):
       model = gp.Model("preProcHPol")
 
       # Create variables
-      x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name ="x")
+      x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name ="x", lb=-100000.0, ub=GRB.INFINITY)
 
       # Make sparse Aeq
       Aeq_sparse = sp.csr_matrix(Aeq)
@@ -68,7 +68,7 @@ def pre_process(A, b, Aeq, beq):
 
       # Add constraints for the uneqalities of A
 #      model.addConstr(A_sparse @ x <= b, name = "d")
-      model.addMConstrs(A_sparse, x, '<=', b, name = "d")
+      model.addMConstrs(A_sparse, x, '<', b, name = "d")
       model.update()
       model.display()
 
@@ -82,9 +82,13 @@ def pre_process(A, b, Aeq, beq):
          print(objective_function)
 
          # Set the objective function in the model 
-         model.setObjective(objective_function @ x, GRB.MINIMIZE)
-#         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
+#         model.setMObjective(objective_function @ x, GRB.MINIMIZE)
+         model.setMObjective(None, A[i,], 0.0, None, None, x, GRB.MINIMIZE)
+
          model.update()
+         print("\n --------------------------------------\n\n")
+         print("here is the model after setting the obj function\n\n")
+         model.display()
 
          # Optimize model
          model.optimize ()
@@ -92,7 +96,7 @@ def pre_process(A, b, Aeq, beq):
          # if optimized, print the solution
          status = model.status
          if status == GRB.OPTIMAL:
-            solution = model.getAttr('X')
+            solution = model.getAttr('x')
             print("\n\n >>The solution for the MAX case is:")
             print(solution)
 
@@ -101,15 +105,17 @@ def pre_process(A, b, Aeq, beq):
 
          # Likewise, for the minimum
          objective_function = np.asarray([-x for x in objective_function])
-         model.setObjective(objective_function @ x, GRB.MINIMIZE)
+#         model.setMObjective(objective_function @ x, GRB.MINIMIZE)
 #         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
+         model.setMObjective(None, A[i,], 0.0, None, None, x, GRB.MINIMIZE)
+
          model.update()
          model.optimize()
 
          # if optimized, print the solution
          status = model.status
          if status == GRB.OPTIMAL:
-            solution = model.getAttr('X')
+            solution = model.getAttr('x')
 
             print("\n\n >>The solution for the MIN case is:")
             print(solution)
@@ -138,12 +144,7 @@ def pre_process(A, b, Aeq, beq):
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
-      print ("Encountered an attribute error ") 
-
-  
-
-   
-
+      print ("Encountered an attribute error ")
 
 ################################################################################
 #                This is where the wrapping part begins.                       #
