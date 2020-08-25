@@ -83,12 +83,9 @@ def pre_process(A, b, Aeq, beq):
          # Optimize model
          model.optimize ()
 
-         # If optimized, print the solution
+         # If optimized
          status = model.status
          if status == GRB.OPTIMAL:
-            solution = model.getAttr('x')
-            print("\n\n***The solution for the MAX case is:")
-            print(solution)
 
             # Get the max objective value
             max_objective = model.getObjective().getValue()
@@ -102,10 +99,6 @@ def pre_process(A, b, Aeq, beq):
          # Again if optimized, print the solution
          status = model.status
          if status == GRB.OPTIMAL:
-            solution = model.getAttr('x')
-
-            print("\n\n***The solution for the MIN case is:")
-            print(solution)
 
             # Get the max objective value
             min_objective = model.getObjective().getValue()
@@ -349,3 +342,4 @@ cdef class low_dim_HPolytope:
    @property
    def dimensions(self):
       return self._A.shape[1]
+
