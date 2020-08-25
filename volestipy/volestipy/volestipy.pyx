@@ -55,7 +55,9 @@ def pre_process(A, b, Aeq, beq):
       beq = np.array(beq)
 
       # Add constraints
-      model.addConstr(Aeq_sparse @ x == beq, name = "c")
+#      model.addConstr(Aeq_sparse @ x == beq, name = "c")
+      model.addMConstrs(Aeq_sparse, x, '=', beq, name = "c")
+
       model.update()
       model.display()
 
@@ -65,7 +67,8 @@ def pre_process(A, b, Aeq, beq):
       #######################
 
       # Add constraints for the uneqalities of A
-      model.addConstr(A_sparse @ x <= b, name = "d")
+#      model.addConstr(A_sparse @ x <= b, name = "d")
+      model.addMConstrs(A_sparse, x, '<=', b, name = "d")
       model.update()
       model.display()
 
@@ -79,8 +82,8 @@ def pre_process(A, b, Aeq, beq):
          print(objective_function)
 
          # Set the objective function in the model 
-#         model.setObjective(objective_function @ x, GRB.MINIMIZE)
-         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
+         model.setObjective(objective_function @ x, GRB.MINIMIZE)
+#         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
          model.update()
 
          # Optimize model
@@ -98,8 +101,8 @@ def pre_process(A, b, Aeq, beq):
 
          # Likewise, for the minimum
          objective_function = np.asarray([-x for x in objective_function])
-#         model.setObjective(objective_function @ x, GRB.MINIMIZE)
-         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
+         model.setObjective(objective_function @ x, GRB.MINIMIZE)
+#         model.setObjective(x.prod(A[i,]), GRB.MINIMIZE)
          model.update()
          model.optimize()
 
@@ -135,7 +138,8 @@ def pre_process(A, b, Aeq, beq):
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
-      print ("Encountered an attribute error ")
+      print ("Encountered an attribute error ") 
+
   
 
    
