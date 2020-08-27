@@ -48,63 +48,7 @@ public:
         _logger->set_level(spdlog::level::info);
     };
 
-    NonSymmetricIPM(Instance &instance, std::ifstream &config_file) : NonSymmetricIPM(instance) {
-        //TODO: smoother file parsing
-        std::string line;
-        std::getline(config_file, line);
-        std::istringstream ss(line);
-        ss >> _epsilon;
-        _logger->info("Set epsilon to {}", boost::numeric::converter<double, IPMDouble>::convert(_epsilon));
-
-        ss.clear();
-        std::getline(config_file, line);
-        ss.str(line);
-        ss >> _num_corrector_steps;
-        _logger->info("Set num corrector steps to {}", _num_corrector_steps);
-
-        ss.clear();
-        std::getline(config_file, line);
-        ss.str(line);
-        ss >> _beta;
-        _logger->info("Set large neighborhood to {}", boost::numeric::converter<double, IPMDouble>::convert(_beta));
-
-        ss.clear();
-        std::getline(config_file, line);
-        ss.str(line);
-        ss >> _beta_small;
-        _logger->info("Set small neighborhood to {}",
-                      boost::numeric::converter<double, IPMDouble>::convert(_beta_small));
-
-        ss.clear();
-        std::getline(config_file, line);
-        ss.str(line);
-        ss >> _param_step_length_predictor;
-        _logger->info("Set scale predictor step to {}",
-                      boost::numeric::converter<double, IPMDouble>::convert(_param_step_length_predictor));
-
-        ss.clear();
-        std::getline(config_file, line);
-        ss.str(line);
-        ss >> _step_length_corrector;
-        _logger->info("Set scale corrector step to {}",
-                      boost::numeric::converter<double, IPMDouble>::convert(_step_length_corrector));
-
-        _step_length_predictor = calc_step_length_predictor();
-
-        ss.clear();
-        std::getline(config_file, line);
-        ss.str(line);
-        int logger_level;
-        ss >> logger_level;
-        _logger->info("Set log level to {}", spdlog::level::level_enum(logger_level));
-        _logger->set_level(spdlog::level::level_enum(logger_level));
-
-        ss.clear();
-        std::getline(config_file, line);
-        ss.str(line);
-        ss >> _use_line_search;
-        _logger->info("Use line search: {}", _use_line_search);
-    }
+    NonSymmetricIPM(Instance &, std::string );
 
     IPMDouble calc_step_length_predictor() {
         IPMDouble const epsilon = .5;
@@ -184,6 +128,8 @@ private:
     Matrix _M;
     Matrix _G;
 
+    pt::ptree _config;
+
     unsigned _num_predictor_steps = 500;
     unsigned _num_corrector_steps;
 
@@ -205,6 +151,9 @@ private:
 
     cxxtimer::Timer _general_method_timer;
     cxxtimer::Timer _total_runtime_timer;
+
+
+    void set_configuration_variables();
 
     bool terminate();
 

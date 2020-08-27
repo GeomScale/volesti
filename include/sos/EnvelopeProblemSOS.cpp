@@ -27,16 +27,16 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
     initialize_problem();
 }
 
-EnvelopeProblemSOS::EnvelopeProblemSOS(std::ifstream & instance_file) {
-    std::string line;
-    std::getline(instance_file, line);
-    std::istringstream iss(line);
+EnvelopeProblemSOS::EnvelopeProblemSOS(std::string  instance_file, std::string config_json) {
+    initialize_loggers();
 
-    int max_degree;
-    iss >> max_degree;
+    pt::read_json(instance_file, _instance);
+    _n = _instance.get<int>("num_variables");
+    _d = _instance.get<int>("max_degree");
 
-    int num_variables;
-    iss >> num_variables;
+
+    _logger->info("Configure Envelope Problem with file {}", config_json);
+    pt::read_json(config_json, _config);
 
     HyperRectangle hyperRectangle;
     //Note: Keep interval bounds for now.
@@ -45,28 +45,37 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(std::ifstream & instance_file) {
     hyperRectangle.push_back(std::pair<IPMDouble, IPMDouble>(interval_lower_bound,
                                                              interval_upper_bound));
 
-    _n = num_variables;
-    _d = max_degree;
     _hyperRectangle = hyperRectangle;
 
-    initialize_loggers();
     initialize_problem();
 
-    while (std::getline(instance_file, line)) {
-        std::istringstream poly_stream(line);
-        InterpolantVector sos_poly = generate_zero_polynomial();
-        IPMDouble val;
+    for (pt::ptree::value_type &poly : _instance.get_child("polynomials"))
+    {
         unsigned idx = 0;
-        while (poly_stream >> val) {
-            if (idx >= sos_poly.size()) {
-                _logger->error("Input data in wrong format.");
-                exit(1);
-            }
-            sos_poly[idx++] = val;
+        InterpolantVector sos_poly = generate_zero_polynomial();
+        for (pt::ptree::value_type &cell : poly.second)
+        {
+            sos_poly[idx++] = cell.second.get_value<IPMDouble>();
         }
         add_polynomial(sos_poly);
-        _logger->info("Polynomial added.");
+        _logger->info("Polynomial added");
     }
+
+//    while (std::getline(instance_file, line)) {
+//        std::istringstream poly_stream(line);
+//        InterpolantVector sos_poly = generate_zero_polynomial();
+//        IPMDouble val;
+//        unsigned idx = 0;
+//        while (poly_stream >> val) {
+//            if (idx >= sos_poly.size()) {
+//                _logger->error("Input data in wrong format.");
+//                exit(1);
+//            }
+//            sos_poly[idx++] = val;
+//        }
+//        add_polynomial(sos_poly);
+//        _logger->info("Polynomial added.");
+//    }
 }
 
 void EnvelopeProblemSOS::initialize_problem() {
@@ -87,19 +96,6 @@ void EnvelopeProblemSOS::initialize_problem() {
             }
         }
         _logger->info("Construct objectives vector...");
-
-//    Old way of computing the objective
-//    _objectives_vector.resize(_U);
-//    for (unsigned i = 0; i < _U; ++i) {
-//        InterpolantVector &poly = _basis_polynomials[i];
-//        InterpolantDouble obj = 0;
-//        for (unsigned j = 0; j < _U; ++j) {
-//            InterpolantDouble upper_bound_term = poly(j) * pow(_hyperRectangle[0].second, j + 1) / (j + 1);
-//            InterpolantDouble lower_bound_term = poly(j) * pow(_hyperRectangle[0].first, j + 1) / (j + 1);
-//            obj += upper_bound_term - lower_bound_term;
-//        }
-//        _objectives_vector(i) = -obj;
-//    }
 
         //Clenshaw-Curtis algorithm
         compute_clenshaw_curtis_integrals();
@@ -310,6 +306,7 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
 
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
         auto sos_barrier = new InterpolantDualSOSBarrier(_d, _n);
+        sos_barrier->configure(_config.get_child("InterpolantBarrier"));
 
         auto sum_barrier = new SumBarrier(_U);
         sum_barrier->add_barrier(sos_barrier);
@@ -320,6 +317,7 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
             //Add univariate polynomial 1 - x^2 which is non-negative for domain [-1,1]
             weighted_vec << 1., 0., -1.;
             auto sos_weighted_barrier = new InterpolantDualSOSBarrier(_d, weighted_vec);
+            sos_weighted_barrier->configure(_config.get_child("InterpolantBarrier"));
             sum_barrier->add_barrier(sos_weighted_barrier);
         }
 

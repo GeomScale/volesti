@@ -26,11 +26,14 @@ int main(int const argc, char **argv) {
     std::ifstream instance_file;
     std::ifstream config_file;
 
+    std::string instance_file_str;
     if (argc < 2) {
         console->info("No data file provided. The default file will be used instead.");
-        instance_file.open("../config/instance.txt");
+        instance_file_str = "../config/instance.json";
+        instance_file.open(instance_file_str);
         if (not instance_file.is_open()) {
-            instance_file.open("config/instance.txt");
+            instance_file_str = "config/instance.json";
+            instance_file.open(instance_file_str);
         }
         if (not instance_file.is_open()) {
             console->error("Could not locate file.");
@@ -44,18 +47,22 @@ int main(int const argc, char **argv) {
         }
     }
 
+    std::string config_file_str;
     if (argc < 3) {
         console->info("No configuration file provided. The default file will be used instead.");
-        config_file.open("../config/config.txt");
+        config_file_str = "../config/config.json";
+        config_file.open(config_file_str);
         if (not config_file.is_open()) {
-            config_file.open("config/config.txt");
+            config_file_str = "config/config.json";
+            config_file.open(config_file_str);
         }
         if (not config_file.is_open()) {
             console->error("Could not locate file.");
             return 1;
         }
     } else {
-        config_file.open(argv[2]);
+        config_file_str = argv[2];
+        config_file.open(config_file_str);
         if (not config_file.is_open()) {
             console->error("Could not locate file {}", argv[2]);
             return 1;
@@ -76,15 +83,15 @@ int main(int const argc, char **argv) {
         assert(test_sdp_solver_random_lp_formulation(2, 5));
         console->info("Tests completed.");
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        test_sdp_solver(config_file);
+        test_sdp_solver(config_file_str);
         //Reset file to be read again by proper SOS solver.
         config_file.clear();
         config_file.seekg(0);
     }
 
-    EnvelopeProblemSOS envelopeProblemSos(instance_file);
+    EnvelopeProblemSOS envelopeProblemSos(instance_file_str, config_file_str);
     Instance instance_interp = envelopeProblemSos.construct_SOS_instance();
-    NonSymmetricIPM sos_solver_interp(instance_interp, config_file);
+    NonSymmetricIPM sos_solver_interp(instance_interp, config_file_str);
     sos_solver_interp.run_solver();
     envelopeProblemSos.print_solution(sos_solver_interp.get_solution());
     envelopeProblemSos.plot_polynomials_and_solution(sos_solver_interp.get_solution());

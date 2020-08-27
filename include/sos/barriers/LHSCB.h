@@ -53,7 +53,7 @@ public:
     virtual Vector initialize_s() = 0;
 
     cxxtimer::Timer _in_interior_timer;
-
+    std::vector<cxxtimer::Timer> _custom_timers;
 
 protected:
     unsigned _num_variables;

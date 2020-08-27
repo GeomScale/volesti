@@ -64,6 +64,9 @@ public:
     Matrix evaluate(Vector x, MatrixFunc func);
     Vector evaluate(VoidFunc func);
 
+    std::vector<LHSCB *> & get_barriers(){
+        return _barriers;
+    }
 private:
     std::vector<LHSCB *> _barriers;
     std::vector<std::pair<int ,int> > _segments;

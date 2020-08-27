@@ -22,7 +22,7 @@ typedef Vector PolynomialSOS;
 class EnvelopeProblemSOS {
 public:
     EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_);
-    EnvelopeProblemSOS(std::ifstream & instance_file);
+    EnvelopeProblemSOS(std::string instance_file, std::string config_file);
 
     //FIXME: Rename as currently the degree of the polynomial remains unchanged.
     static InterpolantVector polynomial_product(InterpolantVector p1, InterpolantVector p2) {
@@ -78,6 +78,9 @@ private:
     HyperRectangle _hyperRectangle;
     std::vector<InterpolantVector> _basis_polynomials;
     std::shared_ptr<spdlog::logger> _logger;
+
+    pt::ptree _config;
+    pt::ptree _instance;
 
     //This bool sets whether the transformation matrix from the
     //standard monomial basis to the Lagrange basis through the

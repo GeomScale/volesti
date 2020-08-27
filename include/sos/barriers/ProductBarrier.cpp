@@ -7,16 +7,20 @@
 
 #include "ProductBarrier.h"
 
-//TODO: figure out how these methods can be even more abstracted.
-
+//TODO: Figure out how to compute llt decomposition with diagonal blocks. There
+// does not seem to be a straightforward way with Eigen.
 Eigen::LLT<Matrix> ProductBarrier::llt(Vector x, bool symmetrize) {
     return LHSCB::llt(x, symmetrize);
 }
 
+//TODO: figure out how these methods can be even more abstracted.
+
 Vector ProductBarrier::llt_L_solve(Vector x, Vector rhs) {
     update_segments();
     Vector product_llt_solve(_num_variables);
+#ifdef PARALLELIZE_BARRIERS
 #pragma omp parallel for
+#endif
     for (unsigned i = 0; i < _barriers.size(); ++i) {
         std::pair<int, int> & seg = _segments[i];
         LHSCB *barrier = _barriers[i];
@@ -31,7 +35,9 @@ Vector ProductBarrier::llt_L_solve(Vector x, Vector rhs) {
 Matrix ProductBarrier::llt_solve(Vector x, const Matrix &rhs) {
     update_segments();
     Matrix product_llt_solve = Matrix::Zero(rhs.rows(), rhs.cols());
+#ifdef PARALLELIZE_BARRIERS
 #pragma omp parallel for
+#endif
     for (unsigned i = 0; i < _barriers.size(); ++i) {
         std::pair<int, int> & seg = _segments[i];
         LHSCB *barrier = _barriers[i];
@@ -52,7 +58,9 @@ bool ProductBarrier::in_interior(Vector x) {
     _in_interior_timer.start();
     update_segments();
     std::vector<bool> in_interior_vec(_barriers.size());
+#ifdef PARALLELIZE_BARRIERS
 #pragma omp parallel for
+#endif
     for (unsigned i = 0; i < _barriers.size(); ++i) {
         std::pair<int, int> & seg = _segments[i];
         LHSCB *barrier = _barriers[i];
@@ -106,7 +114,9 @@ void ProductBarrier::update_segments() {
 Vector ProductBarrier::evaluate(Vector x, VectorFunc func) {
     update_segments();
     Vector product_vector(_num_variables);
+#ifdef PARALLELIZE_BARRIERS
 #pragma omp parallel for
+#endif
     for (unsigned i = 0; i < _barriers.size(); ++i) {
         std::pair<int, int> &seg = _segments[i];
         LHSCB *barrier = _barriers[i];
@@ -120,7 +130,9 @@ Vector ProductBarrier::evaluate(Vector x, VectorFunc func) {
 Matrix ProductBarrier::evaluate(Vector x, MatrixFunc func) {
     update_segments();
     Matrix product_matrix = Matrix::Zero(_num_variables, _num_variables);
+#ifdef PARALLELIZE_BARRIERS
 #pragma omp parallel for
+#endif
     for (unsigned i = 0; i < _barriers.size(); ++i) {
         std::pair<int, int> &seg = _segments[i];
         LHSCB *barrier = _barriers[i];
@@ -134,7 +146,9 @@ Matrix ProductBarrier::evaluate(Vector x, MatrixFunc func) {
 Vector ProductBarrier::evaluate(VoidFunc func) {
     update_segments();
     Vector product_vector(_num_variables);
+#ifdef PARALLELIZE_BARRIERS
 #pragma omp parallel for
+#endif
     for (unsigned i = 0; i < _barriers.size(); ++i) {
         std::pair<int, int> &seg = _segments[i];
         LHSCB *barrier = _barriers[i];

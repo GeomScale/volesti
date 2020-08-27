@@ -10,6 +10,12 @@
 //Preprocessor directive allows us to forbid Eigen to allocate memory. Temporariliy helps to debug where allocation might slow down the program.
 #define EIGEN_RUNTIME_NO_MALLOC
 
+//Note MKL Macro is set in CmakeLists file.
+
+//#define EIGEN_USE_MKL_ALL
+//#define EIGEN_USE_BLAS
+//#define EIGEN_USE_LAPACKE
+
 #include <EigenNew/Dense>
 #include <EigenNew/Sparse>
 
@@ -19,6 +25,12 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include <cxxtimer.hpp>
 #include "spdlog/spdlog.h"
+#include <numeric>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
+#include "ChebTools/ChebTools.h"
+
 
 #ifndef DIGITS_PRECISION
 #define DIGITS_PRECISION 50
@@ -56,6 +68,7 @@ typedef Eigen::Matrix<InterpolantDouble, Eigen::Dynamic, 1> InterpolantVector;
 typedef Eigen::Matrix<Double, Eigen::Dynamic, Eigen::Dynamic> DoubleMatrix;
 typedef Eigen::Matrix<Double, Eigen::Dynamic, 1> DoubleVector;
 
+namespace pt = boost::property_tree;
 
 //Stack the columns of a square m x m  matrix to a vector of length m x m.
 inline Vector StackMatrixToVector(Matrix M) {
@@ -144,7 +157,7 @@ public:
 //Naive implementation
 class DegreeTuple {
 public:
-    DegreeTuple(const int num_vars, const int max_degree_) {
+    DegreeTuple(const int num_vars, const unsigned max_degree_) {
         max_degree = max_degree_;
         v.resize(num_vars, 0);
     }
@@ -192,43 +205,88 @@ public:
     }
 
 private:
-    int max_degree;
+    unsigned max_degree;
     std::vector<unsigned> v;
 };
 
 class AllCombinationTuple {
 public:
-    AllCombinationTuple(std::vector<unsigned> const bounds_){
+    AllCombinationTuple(std::vector<unsigned> const bounds_) {
 
         bounds = bounds_;
         v.resize(bounds.size(), 0);
     }
 
-    bool next(){
-       for(int i = v.size() - 1; i >= 0; i--){
-          if(bounds[i] > v[i]){
-              v[i]++;
-              return true;
-          }
-          v[i] = 0;
-       }
-       return false;
+    bool next() {
+        for (int i = v.size() - 1; i >= 0; i--) {
+            if (bounds[i] > v[i]) {
+                v[i]++;
+                return true;
+            }
+            v[i] = 0;
+        }
+        return false;
     }
 
-    std::vector<unsigned> & get_combination(){
+    std::vector<unsigned> &get_combination() {
         return v;
     }
+
     std::vector<unsigned> bounds;
     std::vector<unsigned> v;
 };
 
 
+//Implementation copied from https://stackoverflow.com/questions/1577475/c-sorting-and-keeping-track-of-indexes
+
+template<typename T>
+std::vector<size_t> sort_indexes(const std::vector<T> &v) {
+
+    // initialize original index locations
+    std::vector<size_t> idx(v.size());
+    std::iota(idx.begin(), idx.end(), 0);
+
+    // sort indexes based on comparing values in v
+    // using std::stable_sort instead of std::sort
+    // to avoid unnecessary index re-orderings
+    // when v contains elements of equal values
+    stable_sort(idx.begin(), idx.end(),
+                [&v](size_t i1, size_t i2) { return v[i1] < v[i2]; });
+
+    return idx;
+}
+
 //Access environment variables
 
-std::string getEnvVar( std::string const & key );
+std::string getEnvVar(std::string const &key);
+
+class OrthogonaPMatrixLibrary {
+private:
+    std::map<std::pair<int, int>, Matrix> matrices;
+
+    void build(int L, int U) {
+        Eigen::MatrixXd cheb_P = ChebTools::u_matrix_library.get(U - 1).block(0, 0, U, L);
+        Matrix P_tmp = cheb_P.cast<IPMDouble>();
+        Matrix P_ortho = P_tmp.householderQr().householderQ();
+        P_ortho.colwise().hnormalized();
+        matrices[std::pair<int, int>(L, U)] = P_ortho.block(0, 0, U, L);
+    }
+
+public:
+    /// Get the \f$\mathbf{U}\f$ matrix of degree N
+    const Eigen::MatrixXd &get(int L, int U) {
+        auto it = matrices.find(std::pair<int, int>(L, U));
+        if (it != matrices.end()) {
+            return it->second;
+        } else {
+            build(L, U);
+            return matrices.find(std::pair<int, int>(L, U))->second;
+        }
+    }
+};
+static OrthogonaPMatrixLibrary orthogonal_P_Matrix_library;
 
 #endif //SOS_UTILS_H
-
 
 
 

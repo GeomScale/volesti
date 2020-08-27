@@ -57,8 +57,6 @@ Eigen::LLT<Matrix> LHSCB::llt(Vector x, bool symmetrize) {
         return *llt_ptr;
     }
 
-    Eigen::LLT<Matrix> *llt_var;
-
     if (_stored_LLT.empty()) {
         _stored_LLT.resize(1);
     }
@@ -67,7 +65,8 @@ Eigen::LLT<Matrix> LHSCB::llt(Vector x, bool symmetrize) {
     if (not symmetrize) {
         _stored_LLT[0].second = Eigen::LLT<Matrix>(hessian(x).llt());
     } else {
-        _stored_LLT[0].second = Eigen::LLT<Matrix>(((hessian(x) + hessian(x).transpose()) / 2).llt());
+        Matrix hess_tmp = hessian(x);
+        _stored_LLT[0].second = Eigen::LLT<Matrix>(((hess_tmp+ hess_tmp.transpose()) / 2).llt());
     }
 
     return _stored_LLT[0].second;

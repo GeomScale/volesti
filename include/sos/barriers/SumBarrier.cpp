@@ -23,7 +23,9 @@ void SumBarrier::add_barrier(LHSCB *lhscb) {
 Vector SumBarrier::gradient(Vector x) {
     Vector grad_vec = Vector::Zero(x.rows());
     std::vector<Vector> barrier_vec(_barriers.size());
+#ifdef PARALLELIZE_BARRIERS
 #pragma omp parallel for
+#endif
     for (int i = 0; i < _barriers.size(); i++){
         barrier_vec[i] = _barriers[i]->gradient(x);
     }
@@ -36,7 +38,9 @@ Vector SumBarrier::gradient(Vector x) {
 Matrix SumBarrier::hessian(Vector x) {
     Matrix hess_mat = Matrix::Zero(x.rows(), x.rows());
     std::vector<Matrix> barrier_vec(_barriers.size());
+#ifdef PARALLELIZE_BARRIERS
 #pragma omp parallel for
+#endif
     for (int i = 0; i < _barriers.size(); i++){
         barrier_vec[i] = _barriers[i]->hessian(x);
     }

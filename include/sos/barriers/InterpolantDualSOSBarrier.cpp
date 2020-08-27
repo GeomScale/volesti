@@ -15,6 +15,8 @@ InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_deg
     //TODO: Check if still true for multivariate case.
     assert(poly_g.rows() <= max_polynomial_degree_ + 1);
 
+    _custom_timers.resize(10);
+
     //poly_g.rows() is degree + 1 of the polynomial g;
     //TODO: setting _L using the number of rows only works for univariate polynomials
     //
@@ -63,12 +65,10 @@ void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g) {
     // floating-point into the IPM floating point precision
 
     //TODO: This interpolant Matrix only needs to be found once and can then be reused;
-    spdlog::info("Construct interpolant point Matrix P...");
 
     //Alternative approach of finding _P via Chebyshev basis
 
     //TODO:Make this library more precise
-    Eigen::MatrixXd cheb_P = ChebTools::u_matrix_library.get(_U - 1).block(0, 0, _U, _L);
 
     //Computing _g should be done with transformation matrix.
     _g = Vector::Zero(_U);
@@ -83,15 +83,10 @@ void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g) {
     //TODO: Option to compute cheb_P via InterpolantDouble;
 
     //TODO: Figure out whether orthogonalization could be done in double precision to speed up initialisation.
-    std::cout << "Constructed." << std::endl;
-    std::cout << "Orthogonalize..." << std::endl;
+    spdlog::info("Construct orthogonal interpolant point Matrix P...");
     cxxtimer::Timer orth_timer;
     orth_timer.start();
-    Matrix P_tmp = cheb_P.cast<IPMDouble>();
-    Matrix P_ortho = P_tmp.householderQr().householderQ();
-    P_ortho.colwise().hnormalized();
-    _P = P_ortho.block(0, 0, _U, _L);
-
+    _P = orthogonal_P_Matrix_library.get(_L,_U);
     orth_timer.stop();
     std::cout << "Orthogonalization done in " << orth_timer.count<std::chrono::milliseconds>() / 1000.
               << " seconds." << std::endl;
@@ -230,7 +225,7 @@ void InterpolantDualSOSBarrier::construct_multivariate(Vector poly_g) {
 
     Matrix candidate_matrix(_U, candidates.size());
 
-    DegreeTuple dt(_num_variable_symbols, 2*_max_polynomial_degree);
+    DegreeTuple dt(_num_variable_symbols, 2 * _max_polynomial_degree);
     unsigned tup_idx = 0;
     do {
         //Compute chebyshev polynomial evaluation
@@ -263,49 +258,195 @@ void InterpolantDualSOSBarrier::construct_multivariate(Vector poly_g) {
 }
 
 //For profiling purposes
-void InterpolantDualSOSBarrier::compute_V_transpose_V(){
-        _Q.noalias() = _V.transpose() * _V;
-        double test = _Q(1,1);
+void InterpolantDualSOSBarrier::compute_V_transpose_V() {
+    _Q.noalias() = _V.transpose() * _V;
+}
+
+void InterpolantDualSOSBarrier::configure(pt::ptree & config){
+    if(config.find("use_low_rank_updates") != config.not_found()){
+        use_low_rank_updates = config.get<bool>("use_low_rank_updates");
+    }
 }
 
 bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check_interior_only) {
-    _preintermediate_matrix.noalias() = _g.cwiseProduct(x).asDiagonal() * _P;
-    _intermediate_matrix.noalias() = _P.transpose() * _preintermediate_matrix;
-    _intermediate_LLT.compute(_intermediate_matrix);
 
-    if (_intermediate_LLT.info() == Eigen::NumericalIssue) {
-        return false;
+    Matrix Q;
+    Eigen::LLT<Matrix> LLT;
+    IPMDouble stored_gx_norm;
+    Vector new_stored_x;
+
+    bool do_exact_computation = true;
+
+    if (use_low_rank_updates and not _stored_gradients.empty()) {
+        do_exact_computation = false;
+        _custom_timers[9].start();
+        stored_gx_norm = _g.cwiseProduct(_stored_gradients[0].first).norm();
+        Vector stored_scaled_gx = _g.cwiseProduct(_stored_gradients[0].first).normalized();
+        //TODO: Find best scaling to minimize number of adjusted variables.
+        Vector scaled_gx = _g.cwiseProduct(x).normalized();
+        Vector relative = scaled_gx - stored_scaled_gx;
+        Vector relative_abs = relative.cwiseAbs();
+//        TODO: Check if adding diagonal here makes sense. This corresponds to the gradient and the term occurs for the Sherman-Morrison update.
+//        relative_abs += _Q.diagonal();
+
+
+
+//        std::cout << "New vector is " << _g.cwiseProduct(x).transpose() << std::endl;
+//        std::cout << "New norm is " << _g.cwiseProduct(x).norm() << " old norm was "
+//                  << _stored_gradients[0].first.norm() << std::endl;
+
+        std::vector<IPMDouble> relative_vec(relative_abs.data(), relative_abs.data() + relative_abs.rows());
+
+        std::vector<size_t> relative_vec_sorted = sort_indexes(relative_vec);
+
+        std::reverse(relative_vec_sorted.begin(), relative_vec_sorted.end());
+
+//        std::cout << "Barrier " << this << " has top relative differences ";
+
+        for (int i = 0; i < sqrt(_U); i++) {
+//            std::cout << relative(relative_vec_sorted[i]) << " ";
+        }
+
+//        std::cout << std::endl;
+
+        Q = _Q;
+        LLT = _intermediate_LLT;
+        assert(_U == relative_vec_sorted.size());
+
+        new_stored_x = _stored_gradients[0].first;
+        for (int i = 0; i < _U; i++) {
+
+            //rank one updates
+
+            unsigned idx = relative_vec_sorted[i];
+
+            //TODO: find good threshold
+            if (relative_abs(idx) < 1e-10 * relative_abs(relative_vec_sorted[0])) {
+                std::cout << "break after " << i << " of " << _U << " updates"
+                << std::endl;
+                break;
+            }
+
+            //Q update
+            new_stored_x(idx) = x(idx);
+
+            _custom_timers[7].start();
+            Vector P_idx = _P.row(idx).transpose();
+            Vector tmp = LLT.solve(P_idx);
+            Vector rank_one_factor = _P * tmp;
+            Matrix Q_update =
+                    -rank_one_factor * rank_one_factor.transpose() /
+                    (1 / (stored_gx_norm * relative(idx)) + tmp.dot(P_idx));
+//            std::cout << "Q_update normed is \n" << Q_update  << std::endl;
+
+            Q += Q_update;
+            _custom_timers[7].stop();
+//            std::cout << "New Q for index " << i << " is\n" << Q << std::endl;
+//            Vector new_gx = stored_scaled_gx * stored_gx_norm;
+//            new_gx(idx) = scaled_gx(idx) * stored_gx_norm;
+//            Matrix calc_new_Q =  _P * (_P.transpose() * new_gx.asDiagonal() * _P).inverse()
+//                                 * _P.transpose();
+//            Matrix calc_Delta = calc_new_Q - _Q;
+//            std::cout << "calculated and normed Delta is \n" << calc_Delta;
+
+            //L update
+            _custom_timers[8].start();
+            //TODO: check if rankupdate returns new llt and keeps old.
+            LLT = LLT.rankUpdate(P_idx, stored_gx_norm * relative(idx));
+            if (LLT.info() == Eigen::NumericalIssue) {
+                //This means we should either change the order in which we apply the rank-1 updates
+                //or revert back to exact computation. Currently we just jump to exact computation.
+
+                do_exact_computation = true;
+                break;
+            }
+            _custom_timers[8].stop();
+        }
+        _custom_timers[9].stop();
+
+        if (not do_exact_computation) {
+//        std::cout << "Old matrix LLT \n" << LLT.matrixL().toDenseMatrix() << std::endl;
+            _intermediate_LLT.copy_and_scale(LLT, sqrt(_g.cwiseProduct(x).norm() / stored_gx_norm));
+//        std::cout << "Newly copied matrix \n"
+//        << _intermediate_LLT.matrixL().toDenseMatrix() / sqrt(_g.cwiseProduct(x).norm() / stored_gx_norm) << std::endl;
+            _Q = Q * stored_gx_norm / _g.cwiseProduct(x).norm();
+        }
     }
 
-    if (check_interior_only) {
-        return true;
+    if (do_exact_computation) {
+        new_stored_x = x;
+        _custom_timers[0].start();
+
+        _preintermediate_matrix.noalias() = _g.cwiseProduct(x).asDiagonal() * _P;
+        _intermediate_matrix.noalias() = _P.transpose() * _preintermediate_matrix;
+        _intermediate_LLT.compute(_intermediate_matrix);
+
+        _custom_timers[0].stop();
+
+        if (use_low_rank_updates and not _stored_gradients.empty()) {
+//        std::cout << "Vector g: " << _g.transpose() << std::endl;
+//        std::cout << "Compare solutions: Correct LLT: \n"
+//                  << _intermediate_LLT.matrixL().toDenseMatrix() << std::endl;
+//        std::cout << "Update LLT:\n" << sqrt(_g.cwiseProduct(x).norm() / stored_gx_norm) * LLT.matrixL().toDenseMatrix()
+//                  << std::endl;
+//            std::cout << "relative difference in intermediate LLT is "
+//                      << (LLT.reconstructedMatrix() * _g.cwiseProduct(x).norm() / stored_gx_norm -
+//                          _intermediate_matrix).norm() / _intermediate_matrix.norm()
+//                      << std::endl;
+        }
+
+        if (_intermediate_LLT.info() == Eigen::NumericalIssue) {
+            return false;
+        }
+
+        if (check_interior_only) {
+            return true;
+        }
+
+        _custom_timers[1].start();
+
+        _V.noalias() = _intermediate_LLT.matrixL().solve(_P.transpose());
+        //Experiments showed that using the triangularView instead would slow down the program.
+        //So we use the full Matrix _V to compute its product with the transpose.
+
+        _custom_timers[1].stop();
+
+        _custom_timers[2].start();
+        compute_V_transpose_V();
+        _custom_timers[2].stop();
+
+        if (use_low_rank_updates and not _stored_gradients.empty()) {
+//        std::cout << "Vector g: " << _g.transpose() << std::endl;
+//        std::cout << "Compare solutions: Correct Q: \n"
+//                  << _Q << std::endl;
+//        std::cout << "Update Q:\n" << Q * stored_gx_norm / _g.cwiseProduct(x).norm() << std::endl;
+//            std::cout << "Relative difference in Q norm is: "
+//                      << (Q * stored_gx_norm / _g.cwiseProduct(x).norm() - _Q).norm() / _Q.norm() << std::endl;
+
+        }
     }
-
-    _V.noalias() = _intermediate_LLT.matrixL().solve(_P.transpose());
-    //Experiments showed that using the triangularView instead would slow down the program.
-    //So we use the full Matrix _V to compute its product with the transpose.
-
-    compute_V_transpose_V();
 
     //TODO: store hessian as self-adjoint
     if (_stored_hessians.empty()) {
         _stored_hessians.resize(1);
     }
-    _stored_hessians[0].first = x;
+    _stored_hessians[0].first = new_stored_x;
     _stored_hessians[0].second.noalias() = _g_g_transpose.cwiseProduct(_Q.cwiseProduct(_Q));
 
     if (_stored_gradients.empty()) {
         _stored_gradients.resize(1);
     }
-    _stored_gradients[0].first = x;
+    _stored_gradients[0].first = new_stored_x;
     _stored_gradients[0].second.noalias() = -_Q.diagonal().cwiseProduct(_g);
 
     if (_stored_LLT.empty()) {
         _stored_LLT.resize(1);
     }
 
-    _stored_LLT[0].first = x;
+    _stored_LLT[0].first = new_stored_x;
+    _custom_timers[3].start();
     _stored_LLT[0].second.compute(_stored_hessians[0].second.selfadjointView<Eigen::Lower>());
+    _custom_timers[3].stop();
 
     return true;
 }

@@ -17,27 +17,23 @@ on the interval [-1,1].
 * Support for several floating-point precision data types for the IPM 
 (Primitive Floating Point and boost:multiprecision floats)
 * Added multivariate support
-* Added multithreading, in particular for 
+* Added multithreading.
+* Added LAPACK and BLAS support
+* Added MKL Support (system-dependent configuration necessary)
+#### Future steps:
 
-#### Next steps:
-
-* Share report pdf file
-* Check if LAPACK would speed up runtimes
+* Add switch to sparse computation (via counting nonzeros in A)
 * Dynamically switch between float -> double -> long double -> multiprecision when Matrices become ill-conditioned.
 * Parameter tuning
 * Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
-* Higher order corrector steps
 * Make sure that no heap memory is allocated dynamically.
 * Implement Lagrange polynomials more efficiently (or find C++ library with sufficient precision.)
-* Speed up with Intel MKL (considering it is not open source we might not use it !?) or other high-performance library
 * Benchmarking with alfonso, SOSTOOLS, MOSEK (SDP and the new Nonsymmetric cone solver), SeDuMi 
 * Implementation/inspiration from  [4]. In particular interesting are:
     * Positive definite rescaling matrix for added stability and monotonicity 
     * Combining Predictor- and Corrector steps.
 * Higher order corrector steps as in [1]
 * Write tests
-* Include ARPACK/LAPACK. Necessary for sparse Matrix computation. In particular the Polynomial Envelope problem is 
-sparse (2 nonzeros per row) which one should be able to exploit.
 * Test different central path neighborhoods, e.g. measuring \psi in \infty norm. 
 * Interfaces for R (and Python)
 * Store the gradient and Hessian of the previous iterate (for failing next step in predictor direction)
@@ -47,9 +43,6 @@ sparse (2 nonzeros per row) which one should be able to exploit.
 
 #### Current issues
 
-* Using double for polynomials of degree > 100 is unstable. On the other hand, high precision 
-numbers immensely slow down the IPM
-* Generation of Chebyshev Points / Interpolant Basis dominates the runtime.
 * High degree polynomial (beginning at around degree 25) lead to oscillation near the boundary. But this might be an artifact from these polynomials as opposed to a bug or lack in precision.
 
 #### Weekly Progress
@@ -64,8 +57,9 @@ numbers immensely slow down the IPM
  * Week 7: Runtime speedups, more efficient (including experimentally) implementation.
  * Week 8: Further speedup, Big code refactoring, Add Polynomial minimization, Create Benchmarks with alfonso.
  * Week 9: Writing of documentation / report, more refactoring, add multivariate support.
- * Week 10:
- * Week 11: Added multivariate support, Added multithreading.
+ * Week 10: Added multivariate support, Added multithreading.
+ * Week 11: Added low-rank updates to both Hessian and intermediate Cholesky decomposition
+ * Week 12:  
  
 #### References
 

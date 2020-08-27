@@ -31,6 +31,9 @@ public:
 
     Vector initialize_s() override;
 
+    std::vector<LHSCB *> & get_barriers(){
+        return _barriers;
+    }
 private:
     std::vector<LHSCB *> _barriers;
 };

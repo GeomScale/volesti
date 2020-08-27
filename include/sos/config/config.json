@@ -1,0 +1,15 @@
+{
+  "IPM": {
+    "epsilon": 1e-5,
+    "num_corrector_steps": 1,
+    "large_neighborhood": 0.2,
+    "small_neighborhood": 0.1,
+    "scale_predictor_step": 0.1,
+    "length_corrector_step": 2,
+    "logger_level": 2,
+    "use_line_search": true
+  },
+  "InterpolantBarrier": {
+    "use_low_rank_updates": false
+  }
+}

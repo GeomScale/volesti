@@ -8,6 +8,9 @@
 #include "NonSymmetricIPM.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/fmt/ostr.h"
+#include "barriers/ProductBarrier.h"
+#include "barriers/SumBarrier.h"
+#include "barriers/InterpolantDualSOSBarrier.h"
 
 std::ostream &operator<<(std::ostream &os, const DirectionDecomposition &dir) {
     os << "x " << dir.x.transpose() << std::endl;
@@ -15,6 +18,28 @@ std::ostream &operator<<(std::ostream &os, const DirectionDecomposition &dir) {
     os << "y: " << dir.y.transpose() << std::endl;
     os << "kappa: " << dir.kappa << ", tau: " << dir.tau << std::endl;
     return os;
+}
+
+NonSymmetricIPM::NonSymmetricIPM(Instance &instance, std::string config_json) : NonSymmetricIPM(instance) {
+
+    pt::read_json(config_json, _config);
+    _config = _config.get_child("IPM");
+    set_configuration_variables();
+}
+
+void NonSymmetricIPM::set_configuration_variables(){
+    _epsilon = _config.get<IPMDouble>("epsilon");
+    _num_corrector_steps = _config.get<int>("num_corrector_steps");
+    _beta = _config.get<IPMDouble>("large_neighborhood");
+    _beta_small = _config.get<IPMDouble>("small_neighborhood");
+    _param_step_length_predictor = _config.get<IPMDouble>("scale_predictor_step");
+    _step_length_predictor = calc_step_length_predictor();
+    _step_length_corrector = _config.get<IPMDouble>("length_corrector_step");
+
+    _logger->info("Set log level to {}", spdlog::level::level_enum(_config.get<int>("logger_level")));
+    _logger->set_level(spdlog::level::level_enum(_config.get<int>("logger_level")));
+
+    _use_line_search = _config.get<bool>("use_line_search");
 }
 
 Vector NonSymmetricIPM::solve(Matrix &M_, Vector const v_) {
@@ -50,30 +75,13 @@ Matrix NonSymmetricIPM::create_matrix_G() {
 std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen_subsystem(
         std::vector<std::pair<Vector, Vector> > &v) {
 
-    _custom_timers[3].start();
-    Eigen::LLT<Matrix> LLT = _barrier->llt(x);
-    LLT.matrixL().toDenseMatrix().eval();
-    _custom_timers[3].stop();
-
     _custom_timers[8].start();
     _custom_timers[4].start();
-
-    //TODO: Turn into blockwise operation
-//    Matrix A_H_inv = A * normalized_inverse_hessian;
     //TODO: double transposition. Figure out how to multiply solve from RHS.
 //    Matrix A_H_inv = LLT.solve(A.transpose()).transpose() / mu();
     Matrix A_H_inv = _barrier->llt_solve(x, A.transpose()).transpose() / mu();
     A_H_inv.eval();
     _custom_timers[4].stop();
-    //Note: Below is another valid version to compute A_H_inv_alt, but it appears to be slower.
-//    Matrix L_inv = LLT.matrixL().solve(Matrix::Identity(x.rows(),x.rows()));
-//    Matrix A_H_inv_alt = A_sparse * L_inv.transpose() *  L_inv.triangularView<Eigen::Lower>() / mu();
-//    Matrix A_H_inv_alt = LLT.matrixL().solve((A_sparse * L_inv.transpose()).transpose()).transpose() / mu();
-//    A_H_inv_alt.eval();
-
-//    std::cout << "A_H_inv is \n" << A_H_inv << std::endl;
-//    std::cout << "A_H_inv_alt is \n" << A_H_inv_alt << std::endl;
-
     _custom_timers[5].start();
 
     //TODO: Use better method to sparsify A.
@@ -83,7 +91,6 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
     _custom_timers[5].stop();
     _custom_timers[6].start();
     Eigen::LLT<Matrix> A_H_inv_A_top_LLT = A_H_inv_A_top.llt();
-    A_H_inv_A_top.llt().matrixL().toDenseMatrix().eval();
     _custom_timers[6].stop();
     _custom_timers[8].stop();
     _custom_timers[9].start();
@@ -94,11 +101,12 @@ std::vector<std::pair<Vector, Vector> > NonSymmetricIPM::solve_andersen_andersen
     for (unsigned i = 0; i < v.size(); i++) {
         Vector &r1 = v[i].first;
         Vector &r2 = v[i].second;
-        Vector new_s_intermediate = A_H_inv_A_top_LLT.matrixL().solve(-(A_H_inv * r2 - r1));
+        Vector r2_solve = A * _barrier->llt_solve(x, r2) / mu();
+        Vector new_s_intermediate = A_H_inv_A_top_LLT.matrixL().solve(-(r2_solve - r1));
         Vector new_s = A_H_inv_A_top_LLT.matrixU().solve(new_s_intermediate);
-        //TODO: might be more stable to formulate next line as linear system solve instead of using the inverse.
-        Vector new_t_intermediate = LLT.matrixL().solve((r2 + A.transpose() * new_s) / mu());
-        Vector new_t = LLT.matrixU().solve(new_t_intermediate);
+//        Vector new_t_intermediate = LLT.matrixL().solve((r2 + A.transpose() * new_s) / mu());
+//        Vector new_t = LLT.matrixU().solve(new_t_intermediate);
+        Vector new_t = _barrier->llt_solve(x, (r2 + A.transpose() * new_s) / mu());
         results.emplace_back(std::pair<Vector, Vector>(new_s, new_t));
     }
     _custom_timers[9].stop();
@@ -250,7 +258,7 @@ void NonSymmetricIPM::run_solver() {
         }
 
         //TODO: reinstate this assertion to fix a bug.
-//        assert(centrality() < _beta);
+        assert(centrality() < _beta);
 
         _logger->trace("Solve predictor system...");
         Vector predictor_direction = solve_predictor_system();
@@ -290,6 +298,7 @@ void NonSymmetricIPM::run_solver() {
             _logger->debug("Applied {} line steps in iteration {}", num_line_steps, pred_iteration);
             apply_update(fallback_vec);
 
+            //TODO: reenable assertion.
             assert(terminate_successfully() or num_line_steps > 0);
         }
 
@@ -306,6 +315,7 @@ void NonSymmetricIPM::run_solver() {
         for (unsigned corr_iteration = 0; corr_iteration < _num_corrector_steps; ++corr_iteration) {
             //TODO: figure out if this is already as expensive as running another corrector step. (probably not, as the crrent value can be used for next predictor step if true).
             if (centrality() < _beta_small) {
+                _logger->info("Central enough to skip corrector iteration {}", corr_iteration);
                 break;
             }
 
@@ -350,12 +360,15 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
     //TODO: use proper tolerance / reference.
     A_sparse = A.sparseView(IPMDouble(10e-10), 1e-10);
 
+
     _stored_x_centrality.resize(c.rows());
     _stored_s_centrality.resize(c.rows());
 
     _custom_timers.resize(10);
 
     _logger = spdlog::get("NonSymmetricIPM");
+
+
     if (_logger == nullptr) {
         std::vector<spdlog::sink_ptr> sinks;
         sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
@@ -366,6 +379,10 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
         sinks.push_back(std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/benchmark.txt"));
         _benchmark_logger = std::make_shared<spdlog::logger>("", begin(sinks) + 2, end(sinks));
     }
+
+    _logger->info("A has dimensions {} x {}", A.rows(), A.cols());
+    _logger->info("The number of non-zero entries is {}", A_sparse.nonZeros());
+
     initialize();
 }
 
@@ -562,11 +579,20 @@ void NonSymmetricIPM::print() {
 
     _logger->info(format_, "Time per step: ",
                   _total_runtime_timer.count<std::chrono::milliseconds>() / (1000. * _total_num_line_steps));
-    if (_logger->level() <= spdlog::level::debug) {
+    if (_logger->level() <= spdlog::level::info) {
         for (unsigned idx = 0; idx < _custom_timers.size(); idx++) {
             std::string s = "Custom timer " + std::to_string(idx);
             _logger->info(format_, s,
                           _custom_timers[idx].count<std::chrono::milliseconds>() / 1000.);
+        }
+        ProductBarrier *productBarrier = static_cast<ProductBarrier *>(_barrier);
+        SumBarrier *sumBarrier = static_cast<SumBarrier *>(productBarrier->get_barriers()[0]);
+        InterpolantDualSOSBarrier *interpBarrier = static_cast<InterpolantDualSOSBarrier *>(sumBarrier->get_barriers()[0]);
+        _logger->info("Runtimes for updating gradient/hessian/LLT");
+        for (unsigned idx = 0; idx < interpBarrier->_custom_timers.size(); idx++) {
+            std::string s = "Custom timer " + std::to_string(idx);
+            _logger->info(format_, s,
+                          interpBarrier->_custom_timers[idx].count<std::chrono::milliseconds>() / 1000.);
         }
     }
     _logger->info("--------------------------------------------------------------------------------------");

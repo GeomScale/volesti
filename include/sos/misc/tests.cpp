@@ -84,7 +84,7 @@ bool test_lp_solver_random(const int m, const int n) {
     return lp_solver.verify_solution(10e-5);
 }
 
-void test_sdp_solver(std::ifstream & config_file) {
+void test_sdp_solver(std::string & config_file_str) {
     HyperRectangle hyperRectangle;
     hyperRectangle.emplace_back(std::pair<IPMDouble, IPMDouble>(-1,1));
     const unsigned max_degree = 10;
@@ -135,7 +135,7 @@ void test_sdp_solver(std::ifstream & config_file) {
 
     std::cout << "Objectives Matrix: " << std::endl << envelopeProblemSDP.get_objective_matrix() << std::endl;
 
-    NonSymmetricIPM sos_solver(instance, config_file);
+    NonSymmetricIPM sos_solver(instance, config_file_str);
     sos_solver.run_solver();
     envelopeProblemSDP.print_solution(sos_solver.get_solution());
     envelopeProblemSDP.plot_polynomials_and_solution(sos_solver.get_solution());

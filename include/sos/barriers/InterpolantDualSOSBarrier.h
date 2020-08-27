@@ -8,7 +8,6 @@
 #define NONSYMMETRICCONICOPTIMIZATION_INTERPOLANTDUALSOSBARRIER_H
 
 #include "LHSCB.h"
-#include "ChebTools/ChebTools.h"
 
 class InterpolantDualSOSBarrier : public LHSCB {
 
@@ -47,6 +46,8 @@ public:
         return _P;
     }
 
+    void configure(pt::ptree & config);
+
 private:
     unsigned _max_polynomial_degree;
     unsigned _num_variable_symbols;
@@ -69,6 +70,10 @@ private:
     Vector _g;
     Matrix _g_g_transpose;
     Matrix _P;
+
+    //Usage of Woodburry matrix identity and simple heuristic for choice of variables
+    //to update.
+    bool use_low_rank_updates = true;
 };
 
 
