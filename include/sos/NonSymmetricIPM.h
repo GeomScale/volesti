@@ -52,7 +52,7 @@ public:
 
     IPMDouble calc_step_length_predictor() {
         IPMDouble const epsilon = .5;
-        IPMDouble const eta = _beta * pow(epsilon, _num_corrector_steps);
+        IPMDouble const eta = _large_neighborhood * pow(epsilon, _num_corrector_steps);
         IPMDouble const k_x = eta + sqrt(2 * eta * eta + _barrier->concordance_parameter(x) + 1);
         return _param_step_length_predictor / k_x;
     }
@@ -125,9 +125,6 @@ private:
     Vector y;
     Vector s;
 
-    Matrix _M;
-    Matrix _G;
-
     pt::ptree _config;
 
     unsigned _num_predictor_steps = 500;
@@ -174,9 +171,9 @@ private:
     IPMDouble _stored_centrality_error;
 
     //Large neighborhood
-    IPMDouble _beta;
+    IPMDouble _large_neighborhood;
     //Small neighborhood
-    IPMDouble _beta_small;
+    IPMDouble _small_neighborhood;
 
     IPMDouble mu();
 
@@ -184,16 +181,12 @@ private:
 
     LHSCB *_barrier;
 
-    Matrix create_skajaa_ye_matrix();
-
     std::vector<std::pair<Vector, Vector> >
     solve_andersen_andersen_subsystem(std::vector<std::pair<Vector, Vector> > &);
 
     Vector andersen_andersen_solve(Vector const);
 
     Vector solve(Matrix &, Vector const);
-
-    Matrix create_matrix_G();
 
     Vector create_predictor_RHS();
 
@@ -206,7 +199,7 @@ private:
     IPMDouble centrality();
 
 
-    void print();
+    void print_status();
 
     void apply_update(Vector concat);
 

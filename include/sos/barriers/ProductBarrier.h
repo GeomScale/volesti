@@ -59,6 +59,11 @@ public:
     Matrix inverse_hessian(Vector x) override;
 
     void update_segments();
+    std::vector<std::pair<int ,int> > & get_segments(){
+        return _segments;
+    };
+
+
 
     Vector evaluate(Vector x, VectorFunc func);
     Matrix evaluate(Vector x, MatrixFunc func);

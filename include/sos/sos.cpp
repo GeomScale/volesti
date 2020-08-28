@@ -85,8 +85,6 @@ int main(int const argc, char **argv) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         test_sdp_solver(config_file_str);
         //Reset file to be read again by proper SOS solver.
-        config_file.clear();
-        config_file.seekg(0);
     }
 
     EnvelopeProblemSOS envelopeProblemSos(instance_file_str, config_file_str);

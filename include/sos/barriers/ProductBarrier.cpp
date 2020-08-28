@@ -26,7 +26,8 @@ Vector ProductBarrier::llt_L_solve(Vector x, Vector rhs) {
         LHSCB *barrier = _barriers[i];
         Vector x_seg = x.segment(seg.first, seg.second - seg.first);
         Vector rhs_seg = rhs.segment(seg.first, seg.second - seg.first);
-        Vector lls_solve_seg = barrier->llt_L_solve(x_seg, rhs_seg);
+        Vector lls_solve_seg = rhs_seg.nonZeros() ? barrier->llt_L_solve(x_seg, rhs_seg)
+                : Vector::Zero(rhs_seg.rows());
         product_llt_solve.segment(seg.first , seg.second - seg.first) = lls_solve_seg;
     }
     return product_llt_solve;

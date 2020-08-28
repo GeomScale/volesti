@@ -20,6 +20,7 @@ on the interval [-1,1].
 * Added multithreading.
 * Added LAPACK and BLAS support
 * Added MKL Support (system-dependent configuration necessary)
+
 #### Future steps:
 
 * Add switch to sparse computation (via counting nonzeros in A)
@@ -59,7 +60,7 @@ on the interval [-1,1].
  * Week 9: Writing of documentation / report, more refactoring, add multivariate support.
  * Week 10: Added multivariate support, Added multithreading.
  * Week 11: Added low-rank updates to both Hessian and intermediate Cholesky decomposition
- * Week 12:  
+ * Week 12: MKL Support, JSON parsing of configuration. 
  
 #### References
 

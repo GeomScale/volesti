@@ -24,14 +24,17 @@ NonSymmetricIPM::NonSymmetricIPM(Instance &instance, std::string config_json) : 
 
     pt::read_json(config_json, _config);
     _config = _config.get_child("IPM");
+    std::cout << "NonSymmetricIPM configuration..." << std::endl;
+    pt::write_json(std::cout, _config);
     set_configuration_variables();
 }
 
-void NonSymmetricIPM::set_configuration_variables(){
+void NonSymmetricIPM::set_configuration_variables() {
     _epsilon = _config.get<IPMDouble>("epsilon");
+    _logger->info("epsilon set to {}", _epsilon);
     _num_corrector_steps = _config.get<int>("num_corrector_steps");
-    _beta = _config.get<IPMDouble>("large_neighborhood");
-    _beta_small = _config.get<IPMDouble>("small_neighborhood");
+    _large_neighborhood = _config.get<IPMDouble>("large_neighborhood");
+    _small_neighborhood = _config.get<IPMDouble>("small_neighborhood");
     _param_step_length_predictor = _config.get<IPMDouble>("scale_predictor_step");
     _step_length_predictor = calc_step_length_predictor();
     _step_length_corrector = _config.get<IPMDouble>("length_corrector_step");
@@ -45,27 +48,6 @@ void NonSymmetricIPM::set_configuration_variables(){
 Vector NonSymmetricIPM::solve(Matrix &M_, Vector const v_) {
     Vector sol = M_.colPivHouseholderQr().solve(v_);
     return sol;
-}
-
-Matrix NonSymmetricIPM::create_matrix_G() {
-    const int m = A.rows();
-    const int n = A.cols();
-
-    assert(b.rows() == m);
-    assert(c.rows() == n);
-
-    const int dim = m + n + 1;
-    Matrix G = Matrix::Zero(dim, dim);
-
-    G.block(0, m, m, n) = A;
-    G.block(0, m + n, m, 1) = -b;
-    G.block(m, 0, n, m) = -A.transpose();
-    G.block(m, m + n, n, 1) = c;
-    G.block(m + n, 0, 1, m) = b.transpose();
-    G.block(m + n, m, 1, n) = -c.transpose();
-
-    _G = G;
-    return G;
 }
 
 //TODO:For sparse systems we might create a dense matrix in the LLS decomposition. Implement separate solver for this case
@@ -183,37 +165,6 @@ Vector NonSymmetricIPM::andersen_andersen_solve(Vector const rhs) {
     return sol;
 }
 
-Matrix NonSymmetricIPM::create_skajaa_ye_matrix() {
-    _logger->trace("Begin creating skajaa ye matrix");
-    const int m = A.rows();
-    const int n = A.cols();
-    Matrix G = create_matrix_G();
-    const int dim = G.rows() + n + 1;
-    Matrix M = Matrix::Zero(dim, dim);
-    M.block(0, 0, G.rows(), G.cols()) = G;
-    M.block(m, G.cols(), n + 1, n + 1) = -Matrix::Identity(n + 1, n + 1);
-
-    //second set of inequalities
-    M.block(G.rows(), m, n, n) = mu() * _barrier->hessian(x);
-    M.block(G.rows(), m + n + 1, n, n) = Matrix::Identity(n, n);
-
-    //last row entry for kappa
-    M.block(G.rows() + n, m + n + 1 + n, 1, 1) = Matrix::Identity(1, 1);
-
-    //last row entry for tau
-    M.block(G.rows() + n, m + n, 1, 1) =
-            mu() / (tau * tau) * Matrix::Identity(1, 1);
-
-    _M = M;
-
-    _logger->trace("Hessian for vector is: \n{}", _barrier->hessian(x));
-    _logger->trace("Constraint matrix for system: \n{}", M);
-
-    _logger->trace("Finished creating skajaa ye matrix");
-    return M;
-}
-
-
 Vector NonSymmetricIPM::build_update_vector() {
     Vector concat(y.rows() + x.rows() + 1 + s.rows() + 1);
     concat << y, x, tau * Matrix::Identity(1, 1), s, kappa * Matrix::Identity(1, 1);
@@ -230,16 +181,11 @@ void NonSymmetricIPM::apply_update(Vector concat) {
 
 void NonSymmetricIPM::run_solver() {
 
-    Matrix G = create_matrix_G();
-    _logger->debug("G: \n {}", G);
-    Matrix M = create_skajaa_ye_matrix();
-
-    _logger->debug("\n M has dimension ({}, {})", M.rows(), M.cols());
     _logger->debug("b: {}", b.transpose());
     _logger->debug("c: {}", c.transpose());
     _logger->debug("gradient: {}", _barrier->gradient(x).transpose());
 
-    print();
+    print_status();
 
     _total_num_line_steps = 0;
     _total_runtime_timer.start();
@@ -257,8 +203,12 @@ void NonSymmetricIPM::run_solver() {
             break;
         }
 
-        //TODO: reinstate this assertion to fix a bug.
-        assert(centrality() < _beta);
+#ifndef NDEBUG
+        if (centrality() < _large_neighborhood) {
+            _logger->warn("Centrality at beginning of predictor step is {}, large neighborhood is {}", centrality(),
+                          _large_neighborhood);
+        }
+#endif
 
         _logger->trace("Solve predictor system...");
         Vector predictor_direction = solve_predictor_system();
@@ -280,7 +230,8 @@ void NonSymmetricIPM::run_solver() {
             concat += _step_length_predictor * predictor_direction;
             apply_update(concat);
             Vector fallback_vec = concat;
-            while (kappa > 0 and tau > 0 and _barrier->in_interior(x) and centrality() < _beta and not terminate()
+            while (kappa > 0 and tau > 0 and _barrier->in_interior(x) and centrality() < _large_neighborhood and
+                   not terminate()
                    and pow(2, num_line_steps) * _step_length_predictor <= .5) {
                 _logger->debug("Another iteration in line search...");
                 fallback_vec = concat;
@@ -292,21 +243,24 @@ void NonSymmetricIPM::run_solver() {
             _logger->debug("Reason for stopping: ");
             if (not _barrier->in_interior(x)) {
                 _logger->debug("Not in interior");
-            } else if (centrality() >= _beta) {
-                _logger->debug("Centrality {} is worse than neighborhood {}", centrality(), _beta);
+            } else if (centrality() >= _large_neighborhood) {
+                _logger->debug("Centrality {} is worse than neighborhood {}", centrality(), _large_neighborhood);
             }
             _logger->debug("Applied {} line steps in iteration {}", num_line_steps, pred_iteration);
             apply_update(fallback_vec);
 
-            //TODO: reenable assertion.
-            assert(terminate_successfully() or num_line_steps > 0);
+#ifndef NDEBUG
+            if(not terminate_successfully() and num_line_steps == 0){
+                _logger->warn("Could not perform a single predictor step");
+            }
+#endif
         }
 
         _total_num_line_steps += num_line_steps;
         _logger->info("End of predictor step {} with {} line steps and total num line steps {}:",
                       pred_iteration, num_line_steps, _total_num_line_steps);
         if (_logger->level() <= spdlog::level::info) {
-            print();
+            print_status();
         }
 
         _predictor_timer.stop();
@@ -314,7 +268,7 @@ void NonSymmetricIPM::run_solver() {
 
         for (unsigned corr_iteration = 0; corr_iteration < _num_corrector_steps; ++corr_iteration) {
             //TODO: figure out if this is already as expensive as running another corrector step. (probably not, as the crrent value can be used for next predictor step if true).
-            if (centrality() < _beta_small) {
+            if (centrality() < _small_neighborhood) {
                 _logger->info("Central enough to skip corrector iteration {}", corr_iteration);
                 break;
             }
@@ -325,7 +279,6 @@ void NonSymmetricIPM::run_solver() {
 
             Vector corrector_direction = solve_corrector_system();
 
-            _logger->debug("RHS for corrector direction is {}", ((_M * corrector_direction)).transpose());
             DirectionDecomposition dir(corrector_direction, x.rows(), y.rows());
             _logger->debug("Corrector direction is: \n{}", dir);
             Vector concat = build_update_vector();
@@ -334,14 +287,14 @@ void NonSymmetricIPM::run_solver() {
 
             _logger->info("End of corrector step {} :", corr_iteration);
             if (_logger->level() <= spdlog::level::info) {
-                print();
+                print_status();
             }
 
             if (_logger->level() <= spdlog::level::debug) {
                 assert(kappa > 0);
                 assert(tau > 0);
                 assert(_barrier->in_interior(x));
-                assert(centrality() < _beta);
+                assert(centrality() < _large_neighborhood);
             }
         }
         _corrector_timer.stop();
@@ -359,7 +312,6 @@ NonSymmetricIPM::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barr
 
     //TODO: use proper tolerance / reference.
     A_sparse = A.sparseView(IPMDouble(10e-10), 1e-10);
-
 
     _stored_x_centrality.resize(c.rows());
     _stored_s_centrality.resize(c.rows());
@@ -434,8 +386,8 @@ void NonSymmetricIPM::initialize() {
     _logger->trace("Check correctness: \n {}", A * _basis_ker_A);
 
     _num_corrector_steps = 3;
-    _beta = .99;
-    _beta_small = 0.1;
+    _large_neighborhood = .99;
+    _small_neighborhood = 0.1;
 
     _step_length_predictor = calc_step_length_predictor();
     _step_length_corrector = 1;
@@ -446,21 +398,19 @@ Vector NonSymmetricIPM::create_predictor_RHS() {
     v << y, x, tau * Matrix::Identity(1, 1), s, kappa * Matrix::Identity(1, 1);
     DirectionDecomposition cur_sol(v, x.rows(), y.rows());
     _logger->debug("Current vector is: \n{}", cur_sol);
-    const int sub_rows = _G.rows();
-    const int sub_cols = _M.cols();
-    //TODO: do without _M, don't even initialize M
-    Vector first_set_of_equalities = -_M.block(0, 0, sub_rows, sub_cols) * v;
-    _logger->debug("First set of equalities RHS for predictor: {} ", first_set_of_equalities.transpose());
-    Vector rhs(first_set_of_equalities.rows() + s.rows() + 1);
-    rhs << first_set_of_equalities, -s, -kappa * Matrix::Identity(1, 1);
+    Vector v1 = -(A * x - b * tau);
+    Vector v2 = -(-A.transpose() * y + c * tau - s);
+    Vector v3 = -(b.dot(y) - c.dot(x) - kappa) * Matrix::Identity(1, 1);
+    Vector rhs(v1.rows() + v2.rows() + v3.rows() + s.rows() + 1);
+    rhs << v1, v2, v3, -s, -kappa * Matrix::Identity(1, 1);
     return rhs;
 }
 
 Vector NonSymmetricIPM::create_corrector_RHS() {
-    Vector first_set_of_equalities = Matrix::Zero(_G.rows(), 1);
-    Vector second_set_of_equalities = -psi(mu());
-    Vector rhs(first_set_of_equalities.rows() + s.rows() + 1);
-    rhs << first_set_of_equalities, second_set_of_equalities;
+    Vector v1 = Vector::Zero(A.rows() + A.cols() + 1);
+    Vector v2 = -psi(mu());
+    Vector rhs(v1.rows() + s.rows() + 1);
+    rhs << v1, v2;
     _logger->debug("Corrector RHS is \n {}", rhs.transpose());
     return rhs;
 };
@@ -493,19 +443,13 @@ Vector NonSymmetricIPM::solve_corrector_system() {
     SPDLOG_LOGGER_DEBUG(_logger, "System RHS for corrector step is {}", rhs.transpose());
     SPDLOG_LOGGER_TRACE(_logger, "Corrector matrix is: \n{}", _M);
 
+    //TODO: check if iterative refinement makes sense
     auto andersen_dir = andersen_andersen_solve(rhs);
 
-    if (_logger->level() <= spdlog::level::debug) {
-        //Perform iterative refinement. Should not be too expensive as costs are dominated by other stuff.
-        Matrix aux_sy(2, rhs.rows());
-        aux_sy.block(0, 0, 1, rhs.rows()) = rhs.transpose();
-        aux_sy.block(1, 0, 1, rhs.rows()) = (_M * andersen_dir).transpose();
-        _logger->debug("Compare solutions: \n{}", aux_sy);
-    }
     return andersen_dir;
 }
 
-void NonSymmetricIPM::print() {
+void NonSymmetricIPM::print_status() {
 
     std::string format_ = "{:<25}:{:20.2}";
 
@@ -694,13 +638,23 @@ IPMDouble NonSymmetricIPM::centrality() {
     _logger->debug("Vector Psi is: {}", psi_vec.transpose());
 
     _custom_timers[0].stop();
-
     _custom_timers[2].start();
     IPMDouble tau_kappa_entry = tau * psi_vec.segment(psi_vec.rows() - 1, 1).sum();
 
     Vector LLT_sol = _barrier->llt_L_solve(x, psi_vec.segment(0, psi_vec.rows() - 1));
     Vector err_L(psi_vec.rows());
     err_L << LLT_sol, tau_kappa_entry;
+
+    ProductBarrier * pb = static_cast<ProductBarrier * >(_barrier);
+    auto & segs = pb->get_segments();
+    Vector seg_norms(segs.size() + 1);
+    for(int i = 0; i < segs.size(); i++){
+       seg_norms(i) = err_L.segment(segs[i].first, segs[i].second - segs[i].first).norm();
+    }
+    seg_norms(segs.size()) = tau_kappa_entry;
+    seg_norms/=mu_d;
+    _logger->info("Segments error norms are: {}",seg_norms.transpose());
+
     _logger->debug("Linear system error vector is {}", err_L.transpose());
     _custom_timers[2].stop();
 

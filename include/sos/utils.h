@@ -143,9 +143,6 @@ public:
                                                   QR_from_sparse.cols() - A.rows()).transpose();
         dual_constraints.b = dual_constraints.A * c;
 
-//        std::cout << "QR from sparse \n" << QR_from_sparse << std::endl;
-//        std::cout << "QR orig: \n" << QR  << std::endl;
-
         std::cout << "Done." << std::endl;
 
         //TODO: use different measure to calculate centrality error

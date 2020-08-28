@@ -375,15 +375,25 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
 
     if (do_exact_computation) {
         new_stored_x = x;
-        _custom_timers[0].start();
 
-        _preintermediate_matrix.noalias() = _g.cwiseProduct(x).asDiagonal() * _P;
-        _intermediate_matrix.noalias() = _P.transpose() * _preintermediate_matrix;
-        _intermediate_LLT.compute(_intermediate_matrix);
+        if(_stored_intermediate_LLT.empty()){
+            _stored_intermediate_LLT.resize(1);
+            _stored_intermediate_LLT[0].first = Vector::Zero(new_stored_x.rows());
+        }
 
-        _custom_timers[0].stop();
+        if(_stored_intermediate_LLT[0].first == new_stored_x){
+            _intermediate_LLT = _stored_intermediate_LLT[0].second;
+        } else {
 
-        if (use_low_rank_updates and not _stored_gradients.empty()) {
+            _custom_timers[0].start();
+
+            _preintermediate_matrix.noalias() = _g.cwiseProduct(x).asDiagonal() * _P;
+            _intermediate_matrix.noalias() = _P.transpose() * _preintermediate_matrix;
+            _intermediate_LLT.compute(_intermediate_matrix);
+
+            _custom_timers[0].stop();
+
+            if (use_low_rank_updates and not _stored_gradients.empty()) {
 //        std::cout << "Vector g: " << _g.transpose() << std::endl;
 //        std::cout << "Compare solutions: Correct LLT: \n"
 //                  << _intermediate_LLT.matrixL().toDenseMatrix() << std::endl;
@@ -393,10 +403,14 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
 //                      << (LLT.reconstructedMatrix() * _g.cwiseProduct(x).norm() / stored_gx_norm -
 //                          _intermediate_matrix).norm() / _intermediate_matrix.norm()
 //                      << std::endl;
-        }
+            }
 
-        if (_intermediate_LLT.info() == Eigen::NumericalIssue) {
-            return false;
+            if (_intermediate_LLT.info() == Eigen::NumericalIssue) {
+                return false;
+            } else {
+                _stored_intermediate_LLT[0].first = new_stored_x;
+                _stored_intermediate_LLT[0].second = _intermediate_LLT;
+            }
         }
 
         if (check_interior_only) {
@@ -488,7 +502,7 @@ Matrix InterpolantDualSOSBarrier::inverse_hessian(Vector x) {
 bool InterpolantDualSOSBarrier::in_interior(Vector x) {
     //The computational effort to calculate whether x is in the interior is nearly as high
     //as computing gradient and hessian. Therefore we just calculate them here as well.
-    bool check_interior_only = false;
+    bool check_interior_only = true;
     return update_gradient_hessian_LLT(x, check_interior_only);
 }
 

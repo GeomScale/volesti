@@ -60,6 +60,7 @@ protected:
     std::vector<std::pair<Vector, Vector> > _stored_gradients;
     std::vector<std::pair<Vector, Matrix> > _stored_hessians;
     std::vector<std::pair<Vector, Eigen::LLT<Matrix> > > _stored_LLT;
+    std::vector<std::pair<Vector, Eigen::LLT<Matrix> > > _stored_intermediate_LLT;
 
 public:
     unsigned int getNumVariables() const;
