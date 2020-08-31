@@ -243,19 +243,22 @@ See an example plot below.
 To parse a custom file invoke with added file argument:
 
 ```
-./NonSymmetricConicOptimization file.txt
+./NonSymmetricConicOptimization file.json
 ```
 
-where `file.txt` has format
+where `file.json` has format
+
+``` json
+{
+    "max_degree": 30,
+    "num_variables": 1,
+    "polynomials": [
+      [1,-1, 3, -4, 7],
+      [0.5,2, 8, -3, 5]
+    ]
+}
 
 ```
-d
-c_00 c_01 c_02 ...
-c_10 c_11 c_12 c_13 ...
-...
-```
 
-where "d" is the maximal degree of the approximation polynomial and c_ij are the coefficients for the 
-monomial x^j for the i-th constraint polynomial. An example can be found in "config/default.txt".
-
+Each array in "polynomials" stands for a polynomial. The entries of its array a are the coefficients of the first length(a) coefficients in standard monomial basis or Chebyshev basis. The basis choice can be adjusted in the configuration json file.
 

@@ -94,8 +94,9 @@ NonSymmetricIPM<IPMDouble>::solve_andersen_andersen_subsystem(
         Vector &r1 = v[i].first;
         Vector &r2 = v[i].second;
         Vector r2_solve = A * _barrier->llt_solve(x, r2) / mu();
-        Vector new_s_intermediate = A_H_inv_A_top_LLT.matrixL().solve(-(r2_solve - r1));
-        Vector new_s = A_H_inv_A_top_LLT.matrixU().solve(new_s_intermediate);
+//        Vector new_s_intermediate = A_H_inv_A_top_LLT.matrixL().solve(-(r2_solve - r1));
+//        Vector new_s = A_H_inv_A_top_LLT.matrixU().solve(new_s_intermediate);
+        Vector new_s = A_H_inv_A_top_LLT.solve(-(r2_solve - r1));
 //        Vector new_t_intermediate = LLT.matrixL().solve((r2 + A.transpose() * new_s) / mu());
 //        Vector new_t = LLT.matrixU().solve(new_t_intermediate);
         Vector new_t = _barrier->llt_solve(x, (r2 + A.transpose() * new_s) / mu());

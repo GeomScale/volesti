@@ -1,6 +1,7 @@
 ### Sum of Squares optimization
 
 This subproject implements the algorithm(s) in [1,2,3]. Example of usage can be found [here](../../doc/cpp_interface.md). 
+Supplementary material describing the mathematical theory behind the code can be found [here](http://personal.lse.ac.uk/natura/gsoc2020/supplementary.pdf)
 
 #### Implemented
 
@@ -22,6 +23,8 @@ on the interval [-1,1].
 * Added MKL Support (system-dependent configuration necessary)
 * Dynamically switch between float -> double -> long double -> multiprecision, when Matrices become ill-conditioned.
     Note that this feature currenlty only works for the InterpolantDualSOSBarrier, SumBarrier and ProductBarrier.
+* Dynamic step-length for predictor step and size of large neighborhood.
+* Input and configuration files in JSON format
 
 #### Roadmap 
 
