@@ -16,11 +16,15 @@
 
 namespace plt = matplotlibcpp;
 
-typedef std::vector<std::pair<IPMDouble, IPMDouble> > HyperRectangle;
-typedef Matrix PolynomialSDP;
 
-
+template <typename IPMDouble>
 class EnvelopeProblemSDP {
+
+    typedef std::vector<std::pair<IPMDouble, IPMDouble> > HyperRectangle;
+    typedef Matrix<IPMDouble> Matrix;
+    typedef Vector<IPMDouble> Vector;
+    typedef Matrix PolynomialSDP;
+
 public:
 
     EnvelopeProblemSDP(int num_variables, int max_degree, HyperRectangle &hyperRectangle_);
@@ -41,9 +45,9 @@ public:
     IPMDouble calculate_objective(Monomial m, unsigned var);
 
     //FIXME: Remove trivial rows. Also, the variables Y might not be necessary. The whole barrier can be applied to X itself;
-    Instance construct_SDP_instance();
+    Instance<IPMDouble> construct_SDP_instance();
 
-    void print_solution(const Solution &sol);
+    void print_solution(const Solution<IPMDouble> &sol);
 
     Monomial get_matrix_entry(unsigned const row, unsigned const col);
 
@@ -54,7 +58,7 @@ public:
 
     IPMDouble univariate_polynomial_evaluation(PolynomialSDP const poly, IPMDouble x);
 
-    void plot_polynomials_and_solution(const Solution &sol);
+    void plot_polynomials_and_solution(const Solution<IPMDouble> &sol);
 
     MonomialsClass monomialObject;
 
@@ -66,5 +70,7 @@ private:
     std::vector<PolynomialSDP> _polynomials_bounds;
     HyperRectangle _hyperRectangle;
 };
+
+#include "EnvelopeProblemSDP.tpp"
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSDP_H

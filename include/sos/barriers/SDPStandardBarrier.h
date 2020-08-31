@@ -9,13 +9,18 @@
 
 #include "LHSCB.h"
 
-class SDPStandardBarrier final : public LHSCB {
+template<typename IPMDouble>
+class SDPStandardBarrier final : public LHSCB<IPMDouble> {
 public:
+    using LHSCB = LHSCB<IPMDouble>;
+
+    typedef Vector<IPMDouble> Vector;
+    typedef Matrix<IPMDouble> Matrix;
 
     SDPStandardBarrier() : LHSCB() {};
 
     SDPStandardBarrier(unsigned matrix_dimension_) : _matrix_dimension(matrix_dimension_) {
-        _num_variables = _matrix_dimension * _matrix_dimension;
+        this->_num_variables = _matrix_dimension * _matrix_dimension;
     };
 
     Vector gradient(Vector x) override;
@@ -41,5 +46,6 @@ private:
     unsigned _matrix_dimension;
 };
 
+#include "SDPStandardBarrier.tpp"
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_SDPSTANDARDBARRIER_H

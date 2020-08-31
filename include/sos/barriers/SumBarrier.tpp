@@ -4,23 +4,27 @@
 
 #include "SumBarrier.h"
 
-SumBarrier::SumBarrier(unsigned num_variables_) : LHSCB() {
-    _num_variables = num_variables_;
+template<typename IPMDouble>
+SumBarrier<IPMDouble>::SumBarrier(unsigned num_variables_) : LHSCB<IPMDouble>() {
+    this->_num_variables = num_variables_;
 }
 
-SumBarrier::SumBarrier(std::vector<LHSCB *> barriers_, unsigned num_variables_) {
-    _num_variables = num_variables_;
+template<typename IPMDouble>
+SumBarrier<IPMDouble>::SumBarrier(std::vector<LHSCB<IPMDouble> *> barriers_, unsigned num_variables_) {
+    this->_num_variables = num_variables_;
     for (unsigned j = 0; j < barriers_.size(); ++j) {
         assert(barriers_[j]->getNumVariables() == num_variables_);
         _barriers.push_back(barriers_[j]);
     }
 }
 
-void SumBarrier::add_barrier(LHSCB *lhscb) {
+template<typename IPMDouble>
+void SumBarrier<IPMDouble>::add_barrier(LHSCB<IPMDouble> *lhscb) {
     _barriers.push_back(lhscb);
 }
 
-Vector SumBarrier::gradient(Vector x) {
+template<typename IPMDouble>
+Vector<IPMDouble> SumBarrier<IPMDouble>::gradient(Vector x) {
     Vector grad_vec = Vector::Zero(x.rows());
     std::vector<Vector> barrier_vec(_barriers.size());
 #ifdef PARALLELIZE_BARRIERS
@@ -35,7 +39,8 @@ Vector SumBarrier::gradient(Vector x) {
     return grad_vec;
 }
 
-Matrix SumBarrier::hessian(Vector x) {
+template<typename IPMDouble>
+Matrix<IPMDouble> SumBarrier<IPMDouble>::hessian(Vector x) {
     Matrix hess_mat = Matrix::Zero(x.rows(), x.rows());
     std::vector<Matrix> barrier_vec(_barriers.size());
 #ifdef PARALLELIZE_BARRIERS
@@ -51,7 +56,8 @@ Matrix SumBarrier::hessian(Vector x) {
     return hess_mat;
 }
 
-bool SumBarrier::in_interior(Vector x) {
+template<typename IPMDouble>
+bool SumBarrier<IPMDouble>::in_interior(Vector x) {
     std::vector<bool> barrier_vec(_barriers.size());
 #pragma omp parallel for
     for (int i = 0; i < _barriers.size(); i++){
@@ -61,7 +67,8 @@ bool SumBarrier::in_interior(Vector x) {
 }
 
 //TODO: better solution for concordance parameter;
-IPMDouble SumBarrier::concordance_parameter(Vector x) {
+template<typename IPMDouble>
+IPMDouble SumBarrier<IPMDouble>::concordance_parameter(Vector x) {
     IPMDouble conc_par = 0.;
     for (
         auto barrier
@@ -73,14 +80,17 @@ IPMDouble SumBarrier::concordance_parameter(Vector x) {
 }
 
 //TODO: verify that initialisation works for both primal and dual side in general.
-Vector SumBarrier::initialize_x() {
+template<typename IPMDouble>
+Vector<IPMDouble> SumBarrier<IPMDouble>::initialize_x() {
     assert(!_barriers.empty());
-    return _barriers[0]->initialize_x();
+    Vector rs = _barriers[0]->initialize_x();
+    return rs;
 
 }
 
-Vector SumBarrier::initialize_s() {
-    Vector s_init = Vector::Zero(_num_variables);
+template<typename IPMDouble>
+Vector<IPMDouble> SumBarrier<IPMDouble>::initialize_s() {
+    Vector s_init = Vector::Zero(this->_num_variables);
     for (
         auto barrier
             : _barriers) {

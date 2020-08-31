@@ -7,18 +7,21 @@
 #include<iostream>
 #include "LHSCB.h"
 
-Matrix LHSCB::inverse_hessian(Vector x) {
+template <typename IPMDouble>
+Matrix<IPMDouble> LHSCB<IPMDouble>::inverse_hessian(Vector x) {
     Eigen::LLT<Matrix> LLT = llt(x);
     Matrix L_inv = LLT.matrixL().toDenseMatrix().inverse();
     return L_inv.transpose() * L_inv;
 }
 
-unsigned int LHSCB::getNumVariables() const {
+template <typename IPMDouble>
+unsigned int LHSCB<IPMDouble>::getNumVariables() const {
     return _num_variables;
 }
 
 //TODO: use short queue instead.
-Vector *LHSCB::find_gradient(Vector x) {
+template <typename IPMDouble>
+Vector<IPMDouble> *LHSCB<IPMDouble>::find_gradient(Vector x) {
     for (int i = _stored_gradients.size() - 1; i >= 0; i--) {
         if (x == _stored_gradients[i].first) {
             return &_stored_gradients[i].second;
@@ -27,7 +30,8 @@ Vector *LHSCB::find_gradient(Vector x) {
     return nullptr;
 }
 
-Matrix *LHSCB::find_hessian(Vector x) {
+template <typename IPMDouble>
+Matrix<IPMDouble> *LHSCB<IPMDouble>::find_hessian(Vector x) {
     for (int i = _stored_hessians.size() - 1; i >= 0; i--) {
         if (x == _stored_hessians[i].first) {
             return &_stored_hessians[i].second;
@@ -36,7 +40,8 @@ Matrix *LHSCB::find_hessian(Vector x) {
     return nullptr;
 }
 
-Eigen::LLT<Matrix> *LHSCB::find_LLT(Vector x) {
+template <typename IPMDouble>
+Eigen::LLT<Matrix<IPMDouble> > *LHSCB<IPMDouble>::find_LLT(Vector x) {
     for (int i = _stored_LLT.size() - 1; i >= 0; i--) {
         if (x == _stored_LLT[i].first) {
             return &_stored_LLT[i].second;
@@ -45,7 +50,8 @@ Eigen::LLT<Matrix> *LHSCB::find_LLT(Vector x) {
     return nullptr;
 }
 
-Eigen::LLT<Matrix> LHSCB::llt(Vector x, bool symmetrize) {
+template <typename IPMDouble>
+Eigen::LLT<Matrix<IPMDouble> > LHSCB<IPMDouble>::llt(Vector x, bool symmetrize) {
 
     Eigen::LLT<Matrix> *llt_ptr = nullptr;
 
@@ -72,10 +78,12 @@ Eigen::LLT<Matrix> LHSCB::llt(Vector x, bool symmetrize) {
     return _stored_LLT[0].second;
 }
 
-Matrix LHSCB::llt_solve(Vector x, const Matrix &rhs) {
+template <typename IPMDouble>
+Matrix<IPMDouble> LHSCB<IPMDouble>::llt_solve(Vector x, const Matrix &rhs) {
     return llt(x).solve(rhs);
 }
 
-Vector LHSCB::llt_L_solve(Vector x, Vector rhs) {
+template <typename IPMDouble>
+Vector<IPMDouble> LHSCB<IPMDouble>::llt_L_solve(Vector x, Vector rhs) {
     return llt(x).matrixL().solve(rhs);
 }

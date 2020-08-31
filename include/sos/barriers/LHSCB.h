@@ -11,9 +11,24 @@
 #include <vector>
 #include "../utils.h"
 
+template <typename IPMDouble>
 class LHSCB {
+    typedef Vector<IPMDouble> Vector;
+    typedef Matrix<IPMDouble> Matrix;
 public:
     LHSCB() : _num_variables(0) {};
+
+    template <typename T>
+    void cast_members_from(const LHSCB<T> & other){
+       _num_variables = other._num_variables;
+    }
+
+    template<typename T>
+    LHSCB<T> * cast(){
+        LHSCB<T> * lhscb;
+        (*lhscb).template cast_members_from<IPMDouble>(*this);
+        return lhscb;
+    }
 
     virtual ~LHSCB() {};
 
@@ -55,8 +70,11 @@ public:
     cxxtimer::Timer _in_interior_timer;
     std::vector<cxxtimer::Timer> _custom_timers;
 
-protected:
     unsigned _num_variables;
+
+
+protected:
+
     std::vector<std::pair<Vector, Vector> > _stored_gradients;
     std::vector<std::pair<Vector, Matrix> > _stored_hessians;
     std::vector<std::pair<Vector, Eigen::LLT<Matrix> > > _stored_LLT;
@@ -65,5 +83,7 @@ protected:
 public:
     unsigned int getNumVariables() const;
 };
+
+#include "LHSCB.tpp"
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_LHSCB_H

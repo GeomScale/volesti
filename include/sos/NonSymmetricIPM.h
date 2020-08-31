@@ -8,20 +8,23 @@
 #define NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H
 
 #include "barriers/LHSCB.h"
+#include "barriers/ProductBarrier.h"
 #include <iostream>
 #include <cxxtimer.hpp>
 #include <fstream>
 
 
+template< class T>
 class Instance {
 public:
-    Constraints constraints;
-    LHSCB *barrier;
+    Constraints<T> constraints;
+    LHSCB<T> *barrier;
 };
 
+template< class T>
 class DirectionDecomposition {
 public:
-    DirectionDecomposition(Vector v, unsigned const n, unsigned const m) {
+    DirectionDecomposition(Vector<T> v, unsigned const n, unsigned const m) {
         assert(v.rows() == m + n + 1 + n + 1);
         y = v.block(0, 0, m, 1);
         x = v.block(m, 0, n, 1);
@@ -30,25 +33,111 @@ public:
         kappa = v.block(m + n + 1 + n, 0, 1, 1).sum();
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const DirectionDecomposition &dir);
+    friend std::ostream &operator<<(std::ostream &os, const DirectionDecomposition<T> &dir);
 
-    Vector y, x, s;
-    IPMDouble kappa, tau;
+    Vector<T> y, x, s;
+    T kappa, tau;
 };
 
+template <typename IPMDouble>
 class NonSymmetricIPM {
+
+    typedef Matrix<IPMDouble> Matrix;
+    typedef Vector<IPMDouble> Vector;
 
 public:
 
-    NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB *barrier_);
+    NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB<IPMDouble> *barrier_);
 
-    NonSymmetricIPM(Instance &instance) : NonSymmetricIPM(instance.constraints.A,
-                                                          instance.constraints.b, instance.constraints.c,
-                                                          instance.barrier) {
+    NonSymmetricIPM(Instance<IPMDouble> &instance) : NonSymmetricIPM(instance.constraints.A,
+                                                                     instance.constraints.b, instance.constraints.c,
+                                                                     instance.barrier) {
         _logger->set_level(spdlog::level::info);
     };
 
-    NonSymmetricIPM(Instance &, std::string );
+    NonSymmetricIPM(Instance<IPMDouble> &, std::string );
+
+
+    template <typename T>
+    void cast_members_from(const NonSymmetricIPM<T> & other){
+        A_sparse = other.A_sparse.template cast<IPMDouble>();
+        _basis_ker_A = other._basis_ker_A.template cast<IPMDouble>();
+        _config = other._config;
+
+        _num_predictor_steps = other._num_predictor_steps;
+        _num_corrector_steps = other._num_corrector_steps;
+        _param_step_length_predictor = boost::numeric_cast<IPMDouble>(other._param_step_length_predictor);
+        _step_length_predictor = boost::numeric_cast<IPMDouble>(other._step_length_predictor);
+        _step_length_corrector = boost::numeric_cast<IPMDouble>(other._step_length_corrector);
+        _epsilon = boost::numeric_cast<T>(other._epsilon);
+
+        _large_neighborhood = boost::numeric_cast<IPMDouble>(other._large_neighborhood);
+        _small_neighborhood = boost::numeric_cast<IPMDouble>(other._small_neighborhood);
+        //copy current solution
+
+        x = other.x.template cast<IPMDouble>();
+        y = other.y.template cast<IPMDouble>();
+        s = other.s.template cast<IPMDouble>();
+        kappa = boost::numeric_cast<IPMDouble>(other.kappa);
+        tau = boost::numeric_cast<IPMDouble>(other.tau);
+
+        _last_predictor_direction = other._last_predictor_direction.template cast<IPMDouble>();
+
+        //copy configuration;
+
+        _use_line_search = other._use_line_search;
+    }
+
+    template<typename T>
+    NonSymmetricIPM<T> * cast(){
+
+        //cast initialisatino data
+        Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> A_ = A.template cast<T>();
+        Eigen::Matrix<T, Eigen::Dynamic, 1> b_ = b.template cast<T>();
+        Eigen::Matrix<T, Eigen::Dynamic, 1> c_ = c.template cast<T>();
+
+        //TODO: High priority. Figure out how to undo the cast to the ProductBarrier.
+        ProductBarrier<T> * barrier_ = static_cast<ProductBarrier<IPMDouble>*>(_barrier)->template cast<T>();
+//        LHSCB<T> * barrier_ = _barrier->template cast<T>();
+
+        assert(barrier_ != nullptr);
+
+        NonSymmetricIPM<T> * nonSymmetricIPM = new NonSymmetricIPM<T>(A_, b_, c_, barrier_);
+
+        //cast more data
+
+        nonSymmetricIPM->template cast_members_from<IPMDouble>(*this);
+
+//        nonSymmetricIPM.A_sparse = A_sparse.template cast<T>();
+//        nonSymmetricIPM._basis_ker_A = _basis_ker_A.template cast<T>();
+//        nonSymmetricIPM._config = _config;
+//
+//        nonSymmetricIPM._num_predictor_steps = _num_predictor_steps;
+//        nonSymmetricIPM._num_corrector_steps = _num_corrector_steps;
+//        nonSymmetricIPM._param_step_length_predictor = boost::numeric_cast<T>(_param_step_length_predictor);
+//        nonSymmetricIPM._step_length_predictor = boost::numeric_cast<T>(_step_length_predictor);
+//        nonSymmetricIPM._step_length_corrector = boost::numeric_cast<T>(_step_length_corrector);
+//        nonSymmetricIPM._epsilon = boost::numeric_cast<T>(_epsilon);
+//
+//        nonSymmetricIPM._large_neighborhood = boost::numeric_cast<T>(_large_neighborhood);
+//        nonSymmetricIPM._small_neighborhood = boost::numeric_cast<T>(_small_neighborhood);
+//        //copy current solution
+//
+//        nonSymmetricIPM.x = x.template cast<T>();
+//        nonSymmetricIPM.y = y.template cast<T>();
+//        nonSymmetricIPM.s = s.template cast<T>();
+//        nonSymmetricIPM.kappa = boost::numeric_cast<T>(kappa);
+//        nonSymmetricIPM.tau = boost::numeric_cast<T>(tau);
+//
+//        nonSymmetricIPM._last_predictor_direction = _last_predictor_direction.template cast<T>();
+
+        //copy configuration;
+
+        assert(nonSymmetricIPM->x.rows() == nonSymmetricIPM->s.rows());
+        assert(nonSymmetricIPM->x.rows() == nonSymmetricIPM->c.rows());
+
+        return nonSymmetricIPM;
+    }
 
     IPMDouble calc_step_length_predictor() {
         IPMDouble const epsilon = .5;
@@ -97,8 +186,8 @@ public:
         return true;
     }
 
-    Solution get_solution() {
-        Solution sol;
+    Solution<IPMDouble> get_solution() {
+        Solution<IPMDouble> sol;
         assert(tau != 0);
         sol.x = x / tau;
         sol.s = s / tau;
@@ -110,7 +199,8 @@ public:
     std::shared_ptr<spdlog::logger> _logger;
     std::shared_ptr<spdlog::logger> _benchmark_logger;
 
-private:
+
+    //TODO:Figure out how to make these variables while being able to compile it.
 
     Matrix A;
     Vector b;
@@ -139,6 +229,23 @@ private:
 
     unsigned _total_num_line_steps;
 
+    //Large neighborhood
+    IPMDouble _large_neighborhood;
+    //Small neighborhood
+    IPMDouble _small_neighborhood;
+
+    bool _check_centrality_in_every_segment = true;
+
+    bool _use_line_search = true;
+
+    IPMDouble kappa, tau;
+
+    Vector _last_predictor_direction;
+
+    void initialize();
+
+private:
+
     cxxtimer::Timer _predictor_timer;
     cxxtimer::Timer _corrector_timer;
     cxxtimer::Timer _andersen_sys_timer;
@@ -162,24 +269,18 @@ private:
 
     bool terminate_infeasible();
 
-    bool _use_line_search = true;
-
-    IPMDouble kappa, tau;
 
     Vector _stored_x_centrality;
     Vector _stored_s_centrality;
     IPMDouble _stored_centrality_error;
 
-    //Large neighborhood
-    IPMDouble _large_neighborhood;
-    //Small neighborhood
-    IPMDouble _small_neighborhood;
+
 
     IPMDouble mu();
 
     Vector psi(IPMDouble t);
 
-    LHSCB *_barrier;
+    LHSCB<IPMDouble> *_barrier;
 
     std::vector<std::pair<Vector, Vector> >
     solve_andersen_andersen_subsystem(std::vector<std::pair<Vector, Vector> > &);
@@ -205,14 +306,11 @@ private:
 
     Vector build_update_vector();
 
-    Vector _last_predictor_direction;
-
-    void initialize();
-
     void test_gradient();
 
     void test_hessian();
 };
 
+#include "NonSymmetricIPM.tpp"
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H

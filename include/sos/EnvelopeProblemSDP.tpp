@@ -9,7 +9,8 @@
 #include "barriers/SDPStandardBarrier.h"
 #include "barriers/ProductBarrier.h"
 
-EnvelopeProblemSDP::EnvelopeProblemSDP(int num_variables, int max_degree, HyperRectangle &hyperRectangle_) :
+template <typename IPMDouble>
+EnvelopeProblemSDP<IPMDouble>::EnvelopeProblemSDP(int num_variables, int max_degree, HyperRectangle &hyperRectangle_) :
         monomialObject(num_variables, max_degree), _n(num_variables), _d(max_degree),
         _hyperRectangle(hyperRectangle_) {
     assert(num_variables == hyperRectangle_.size());
@@ -17,19 +18,23 @@ EnvelopeProblemSDP::EnvelopeProblemSDP(int num_variables, int max_degree, HyperR
     construct_objective_matrix();
 }
 
-Matrix EnvelopeProblemSDP::get_objective_matrix() const {
+template <typename IPMDouble>
+Matrix<IPMDouble> EnvelopeProblemSDP<IPMDouble>::get_objective_matrix() const {
     return _objectives_matrix;
 }
 
-void EnvelopeProblemSDP::add_polynomial(PolynomialSDP &polynomial) {
+template <typename IPMDouble>
+void EnvelopeProblemSDP<IPMDouble>::add_polynomial(PolynomialSDP &polynomial) {
     _polynomials_bounds.push_back(polynomial);
 }
 
-PolynomialSDP EnvelopeProblemSDP::generate_zero_polynomial() {
+template <typename IPMDouble>
+Matrix<IPMDouble> EnvelopeProblemSDP<IPMDouble>::generate_zero_polynomial() {
     return Matrix::Zero(_objectives_matrix.rows(), _objectives_matrix.cols());
 }
 
-void EnvelopeProblemSDP::construct_polynomial_matrix() {
+template <typename IPMDouble>
+void EnvelopeProblemSDP<IPMDouble>::construct_polynomial_matrix() {
     monomialObject = MonomialsClass(_n, _d);
 
     auto monomials = monomialObject.getMonomials();
@@ -46,7 +51,8 @@ void EnvelopeProblemSDP::construct_polynomial_matrix() {
     }
 }
 
-void EnvelopeProblemSDP::construct_objective_matrix() {
+template <typename IPMDouble>
+void EnvelopeProblemSDP<IPMDouble>::construct_objective_matrix() {
     _objectives_matrix.resize(_polynomial_product_matrix.size(), _polynomial_product_matrix.size());
     for (unsigned i = 0; i < _polynomial_product_matrix.size(); ++i) {
         for (unsigned j = 0; j < _polynomial_product_matrix.size(); ++j) {
@@ -56,11 +62,13 @@ void EnvelopeProblemSDP::construct_objective_matrix() {
     _objectives_matrix *= -1;
 }
 
-IPMDouble EnvelopeProblemSDP::calculate_objective(Monomial m) {
+template <typename IPMDouble>
+IPMDouble EnvelopeProblemSDP<IPMDouble>::calculate_objective(Monomial m) {
     return calculate_objective(m, 0);
 }
 
-IPMDouble EnvelopeProblemSDP::calculate_objective(Monomial m, unsigned var) {
+template <typename IPMDouble>
+IPMDouble EnvelopeProblemSDP<IPMDouble>::calculate_objective(Monomial m, unsigned var) {
     assert(0 <= var and var <= _n);
     if (var == _n) {
         return 1;
@@ -71,11 +79,12 @@ IPMDouble EnvelopeProblemSDP::calculate_objective(Monomial m, unsigned var) {
 }
 
 
-Instance EnvelopeProblemSDP::construct_SDP_instance() {
+template <typename IPMDouble>
+Instance<IPMDouble> EnvelopeProblemSDP<IPMDouble>::construct_SDP_instance() {
     unsigned const MATRIX_DIMENSION = _objectives_matrix.rows();
     unsigned const VECTOR_LENGTH = _objectives_matrix.rows() * _objectives_matrix.cols();
     unsigned const NUM_POLYNOMIALS = _polynomials_bounds.size();
-    Constraints constraints;
+    Constraints<IPMDouble> constraints;
     constraints.c = Vector::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH);
     constraints.c.block(0, 0, VECTOR_LENGTH, 1) = - StackMatrixToVector(_objectives_matrix);
 
@@ -96,16 +105,16 @@ Instance EnvelopeProblemSDP::construct_SDP_instance() {
 
     //Construct Barrier function
 
-    ProductBarrier *productBarrier = new ProductBarrier;
+    ProductBarrier<IPMDouble> *productBarrier = new ProductBarrier<IPMDouble>;
 //    auto X_barrier = new FullSpaceBarrier(VECTOR_LENGTH);
 //    productBarrier->add_barrier(X_barrier);
 
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
-        auto sdp_barrier = new SDPStandardBarrier(MATRIX_DIMENSION);
+        auto sdp_barrier = new SDPStandardBarrier<IPMDouble>(MATRIX_DIMENSION);
         productBarrier->add_barrier(sdp_barrier);
     }
 
-    Instance instance;
+    Instance<IPMDouble> instance;
     instance.constraints = constraints;
     instance.barrier = productBarrier;
     instance.constraints.print();
@@ -113,19 +122,22 @@ Instance EnvelopeProblemSDP::construct_SDP_instance() {
     return instance;
 }
 
-void EnvelopeProblemSDP::print_solution(const Solution &sol) {
+template <typename IPMDouble>
+void EnvelopeProblemSDP<IPMDouble>::print_solution(const Solution<IPMDouble> &sol) {
     Vector v = sol.x.segment(0, _objectives_matrix.rows() * _objectives_matrix.cols());
     Matrix M = UnstackVectorToMatrix(v, _objectives_matrix.rows());
     print_polynomial(M);
 }
 
-Monomial EnvelopeProblemSDP::get_matrix_entry(unsigned const row, unsigned const col) {
+template <typename IPMDouble>
+Monomial EnvelopeProblemSDP<IPMDouble>::get_matrix_entry(unsigned const row, unsigned const col) {
     assert(_polynomial_product_matrix.size() >= row);
     assert(_polynomial_product_matrix[row].size() >= col);
     return _polynomial_product_matrix[row][col];
 }
 
-void EnvelopeProblemSDP::print_polynomial(Matrix M) const {
+template <typename IPMDouble>
+void EnvelopeProblemSDP<IPMDouble>::print_polynomial(Matrix M) const {
     assert(M.cols() == _objectives_matrix.cols() and M.rows() == _objectives_matrix.rows());
     std::cout << "Polynomial is: " << std::endl;
     for (int row = 0; row < M.rows(); row++) {
@@ -142,14 +154,16 @@ void EnvelopeProblemSDP::print_polynomial(Matrix M) const {
 }
 
 //Assume that monomial is ordered as 1, x, x*x, ...
-IPMDouble EnvelopeProblemSDP::univariate_monomial_evaluation(Monomial const m, IPMDouble const x) {
+template <typename IPMDouble>
+IPMDouble EnvelopeProblemSDP<IPMDouble>::univariate_monomial_evaluation(Monomial const m, IPMDouble const x) {
     if (m[0] == 0) {
         return 1;
     }
     return pow(x, m[0]);
 }
 
-IPMDouble EnvelopeProblemSDP::univariate_polynomial_evaluation(PolynomialSDP const poly, IPMDouble x) {
+template <typename IPMDouble>
+IPMDouble EnvelopeProblemSDP<IPMDouble>::univariate_polynomial_evaluation(PolynomialSDP const poly, IPMDouble x) {
     IPMDouble eval = 0.;
     for (int row = 0; row < poly.rows(); ++row) {
         for (int col = 0; col < poly.cols(); ++col) {
@@ -159,7 +173,8 @@ IPMDouble EnvelopeProblemSDP::univariate_polynomial_evaluation(PolynomialSDP con
     return eval;
 }
 
-void EnvelopeProblemSDP::plot_polynomials_and_solution(const Solution &sol) {
+template <typename IPMDouble>
+void EnvelopeProblemSDP<IPMDouble>::plot_polynomials_and_solution(const Solution<IPMDouble> &sol) {
 
     unsigned num_plot_points = 1000;
     assert(num_plot_points > 1);

@@ -8,14 +8,15 @@
 #include <boost/math/special_functions/binomial.hpp>
 #include "../../../external/Padua/padua.h"
 
-InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_degree_, Vector poly_g,
-                                                     unsigned num_variable_symbols_)
+template <typename IPMDouble>
+InterpolantDualSOSBarrier<IPMDouble>::InterpolantDualSOSBarrier(
+        unsigned max_polynomial_degree_, Vector poly_g,unsigned num_variable_symbols_)
         : _max_polynomial_degree(max_polynomial_degree_), _num_variable_symbols(num_variable_symbols_) {
 
     //TODO: Check if still true for multivariate case.
     assert(poly_g.rows() <= max_polynomial_degree_ + 1);
 
-    _custom_timers.resize(10);
+    this->_custom_timers.resize(10);
 
     //poly_g.rows() is degree + 1 of the polynomial g;
     //TODO: setting _L using the number of rows only works for univariate polynomials
@@ -36,7 +37,7 @@ InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_deg
     _V = Matrix(_L, _U);
     _Q = Matrix(_V.cols(), _V.cols());
 
-    _num_variables = _U;
+    this->_num_variables = _U;
     _unisolvent_basis.resize(_U);
 
     if (_num_variable_symbols == 1) {
@@ -49,7 +50,8 @@ InterpolantDualSOSBarrier::InterpolantDualSOSBarrier(unsigned max_polynomial_deg
 
 };
 
-void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g) {
+template<typename IPMDouble>
+void InterpolantDualSOSBarrier<IPMDouble>::construct_univariate(Vector poly_g) {
     for (unsigned i = 0; i < _unisolvent_basis.size(); ++i) {
         BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / (_U - 1));
         InterpolantDouble dummy_ipm;
@@ -75,7 +77,7 @@ void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g) {
     for (int p = 0; p < _U; ++p) {
         _g(p) = poly_g(0);
         for (int i = 1; i < poly_g.rows(); i++) {
-            _g(p) += poly_g(i) * pow(_unisolvent_basis[p][0], i).convert_to<IPMDouble>();
+            _g(p) += poly_g(i) * pow(_unisolvent_basis[p][0], i).template convert_to<IPMDouble>();
         }
     }
     _g_g_transpose = _g * _g.transpose();
@@ -86,14 +88,15 @@ void InterpolantDualSOSBarrier::construct_univariate(Vector poly_g) {
     spdlog::info("Construct orthogonal interpolant point Matrix P...");
     cxxtimer::Timer orth_timer;
     orth_timer.start();
-    _P = orthogonal_P_Matrix_library.get(_L,_U);
+    _P = orthogonal_P_Matrix_library<IPMDouble>.get(_L,_U);
     orth_timer.stop();
     std::cout << "Orthogonalization done in " << orth_timer.count<std::chrono::milliseconds>() / 1000.
               << " seconds." << std::endl;
 }
 
 //Untested
-void InterpolantDualSOSBarrier::construct_bivariate(Vector poly_g) {
+template<typename IPMDouble>
+void InterpolantDualSOSBarrier<IPMDouble>::construct_bivariate(Vector poly_g) {
 
     //Error waiting to happen. Here the unisolvent basis is correctly used for _L, but in the univariate
     //case we use it for a basis or size _U.
@@ -175,7 +178,8 @@ void InterpolantDualSOSBarrier::construct_bivariate(Vector poly_g) {
 }
 
 //TODO: test
-void InterpolantDualSOSBarrier::construct_multivariate(Vector poly_g) {
+template<typename IPMDouble>
+void InterpolantDualSOSBarrier<IPMDouble>::construct_multivariate(Vector poly_g) {
     assert(poly_g == Vector::Ones(1));
 
     //Set weight vector _g;
@@ -258,38 +262,73 @@ void InterpolantDualSOSBarrier::construct_multivariate(Vector poly_g) {
 }
 
 //For profiling purposes
-void InterpolantDualSOSBarrier::compute_V_transpose_V() {
+template<typename IPMDouble>
+void InterpolantDualSOSBarrier<IPMDouble>::compute_V_transpose_V() {
     _Q.noalias() = _V.transpose() * _V;
 }
 
-void InterpolantDualSOSBarrier::configure(pt::ptree & config){
+template<typename IPMDouble>
+void InterpolantDualSOSBarrier<IPMDouble>::configure(pt::ptree & config){
     if(config.find("use_low_rank_updates") != config.not_found()){
         use_low_rank_updates = config.get<bool>("use_low_rank_updates");
     }
 }
 
-bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check_interior_only) {
+template<typename IPMDouble>
+bool InterpolantDualSOSBarrier<IPMDouble>::update_gradient_hessian_LLT(Vector x, bool check_interior_only) {
 
     Matrix Q;
     Eigen::LLT<Matrix> LLT;
     IPMDouble stored_gx_norm;
     Vector new_stored_x;
 
+    if(!this->_stored_gradients.empty()){
+        Vector stored_x = this->_stored_gradients[0].first;
+        stored_gx_norm = _g.cwiseProduct(stored_x).norm();
+        Matrix aux(2, x.rows());
+        IPMDouble relative_norm = stored_x.norm()/x.norm();
+//        std::cout << "relative norm is " << relative_norm << std::endl;
+        aux << stored_x.transpose(), x.transpose() * relative_norm;
+//        std::cout << "aux is\n" << aux << std::endl;
+        Vector rel = stored_x.cwiseProduct(x.cwiseInverse());
+        std::vector<IPMDouble> relative_vec(rel.data(), rel.data() + rel.rows());
+        sort(relative_vec.begin(), relative_vec.end());
+        IPMDouble mean = relative_vec[relative_vec.size() / 2];
+
+        unsigned small_variation_count_05 = 0;
+        unsigned small_variation_count_01 = 0;
+        for(IPMDouble i : relative_vec){
+            i/=mean;
+//            std::cout << i << " ";
+            if(abs(i-1) < .05){
+                small_variation_count_05++;
+            }
+            if(abs(i-1) < .01){
+                small_variation_count_01++;
+            }
+        }
+//        std::cout << std::endl;
+//        std::cout << small_variation_count_05 << "/" << relative_vec.size() << " have <.05 variation." << std::endl;
+//        std::cout << small_variation_count_01 << "/" << relative_vec.size() << " have <.01 variation." << std::endl;
+    }
+
     bool do_exact_computation = true;
 
-    if (use_low_rank_updates and not _stored_gradients.empty()) {
+    if (use_low_rank_updates and not this->_stored_gradients.empty()) {
         do_exact_computation = false;
-        _custom_timers[9].start();
-        stored_gx_norm = _g.cwiseProduct(_stored_gradients[0].first).norm();
-        Vector stored_scaled_gx = _g.cwiseProduct(_stored_gradients[0].first).normalized();
+        this->_custom_timers[9].start();
+        Vector stored_x = this->_stored_gradients[0].first;
+        stored_gx_norm = _g.cwiseProduct(stored_x).norm();
+        Matrix aux(2, x.rows());
+        aux << stored_x.transpose(), x.transpose();
+        std::cout << "aux is\n" << aux << std::endl;
+        Vector stored_scaled_gx = _g.cwiseProduct(stored_x).normalized();
         //TODO: Find best scaling to minimize number of adjusted variables.
         Vector scaled_gx = _g.cwiseProduct(x).normalized();
         Vector relative = scaled_gx - stored_scaled_gx;
         Vector relative_abs = relative.cwiseAbs();
 //        TODO: Check if adding diagonal here makes sense. This corresponds to the gradient and the term occurs for the Sherman-Morrison update.
 //        relative_abs += _Q.diagonal();
-
-
 
 //        std::cout << "New vector is " << _g.cwiseProduct(x).transpose() << std::endl;
 //        std::cout << "New norm is " << _g.cwiseProduct(x).norm() << " old norm was "
@@ -313,7 +352,7 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
         LLT = _intermediate_LLT;
         assert(_U == relative_vec_sorted.size());
 
-        new_stored_x = _stored_gradients[0].first;
+        new_stored_x = this->_stored_gradients[0].first;
         for (int i = 0; i < _U; i++) {
 
             //rank one updates
@@ -330,7 +369,7 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
             //Q update
             new_stored_x(idx) = x(idx);
 
-            _custom_timers[7].start();
+            this->_custom_timers[7].start();
             Vector P_idx = _P.row(idx).transpose();
             Vector tmp = LLT.solve(P_idx);
             Vector rank_one_factor = _P * tmp;
@@ -340,7 +379,7 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
 //            std::cout << "Q_update normed is \n" << Q_update  << std::endl;
 
             Q += Q_update;
-            _custom_timers[7].stop();
+            this->_custom_timers[7].stop();
 //            std::cout << "New Q for index " << i << " is\n" << Q << std::endl;
 //            Vector new_gx = stored_scaled_gx * stored_gx_norm;
 //            new_gx(idx) = scaled_gx(idx) * stored_gx_norm;
@@ -350,7 +389,7 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
 //            std::cout << "calculated and normed Delta is \n" << calc_Delta;
 
             //L update
-            _custom_timers[8].start();
+            this->_custom_timers[8].start();
             //TODO: check if rankupdate returns new llt and keeps old.
             LLT = LLT.rankUpdate(P_idx, stored_gx_norm * relative(idx));
             if (LLT.info() == Eigen::NumericalIssue) {
@@ -360,9 +399,9 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
                 do_exact_computation = true;
                 break;
             }
-            _custom_timers[8].stop();
+            this->_custom_timers[8].stop();
         }
-        _custom_timers[9].stop();
+        this->_custom_timers[9].stop();
 
         if (not do_exact_computation) {
 //        std::cout << "Old matrix LLT \n" << LLT.matrixL().toDenseMatrix() << std::endl;
@@ -376,24 +415,24 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
     if (do_exact_computation) {
         new_stored_x = x;
 
-        if(_stored_intermediate_LLT.empty()){
-            _stored_intermediate_LLT.resize(1);
-            _stored_intermediate_LLT[0].first = Vector::Zero(new_stored_x.rows());
+        if(this->_stored_intermediate_LLT.empty()){
+            this->_stored_intermediate_LLT.resize(1);
+            this->_stored_intermediate_LLT[0].first = Vector::Zero(new_stored_x.rows());
         }
 
-        if(_stored_intermediate_LLT[0].first == new_stored_x){
-            _intermediate_LLT = _stored_intermediate_LLT[0].second;
+        if(this->_stored_intermediate_LLT[0].first == new_stored_x){
+            _intermediate_LLT = this->_stored_intermediate_LLT[0].second;
         } else {
 
-            _custom_timers[0].start();
+            this->_custom_timers[0].start();
 
             _preintermediate_matrix.noalias() = _g.cwiseProduct(x).asDiagonal() * _P;
             _intermediate_matrix.noalias() = _P.transpose() * _preintermediate_matrix;
             _intermediate_LLT.compute(_intermediate_matrix);
 
-            _custom_timers[0].stop();
+            this->_custom_timers[0].stop();
 
-            if (use_low_rank_updates and not _stored_gradients.empty()) {
+            if (use_low_rank_updates and not this->_stored_gradients.empty()) {
 //        std::cout << "Vector g: " << _g.transpose() << std::endl;
 //        std::cout << "Compare solutions: Correct LLT: \n"
 //                  << _intermediate_LLT.matrixL().toDenseMatrix() << std::endl;
@@ -408,8 +447,8 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
             if (_intermediate_LLT.info() == Eigen::NumericalIssue) {
                 return false;
             } else {
-                _stored_intermediate_LLT[0].first = new_stored_x;
-                _stored_intermediate_LLT[0].second = _intermediate_LLT;
+                this->_stored_intermediate_LLT[0].first = new_stored_x;
+                this->_stored_intermediate_LLT[0].second = _intermediate_LLT;
             }
         }
 
@@ -417,19 +456,19 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
             return true;
         }
 
-        _custom_timers[1].start();
+        this->_custom_timers[1].start();
 
         _V.noalias() = _intermediate_LLT.matrixL().solve(_P.transpose());
         //Experiments showed that using the triangularView instead would slow down the program.
         //So we use the full Matrix _V to compute its product with the transpose.
 
-        _custom_timers[1].stop();
+        this->_custom_timers[1].stop();
 
-        _custom_timers[2].start();
+        this->_custom_timers[2].start();
         compute_V_transpose_V();
-        _custom_timers[2].stop();
+        this->_custom_timers[2].stop();
 
-        if (use_low_rank_updates and not _stored_gradients.empty()) {
+        if (use_low_rank_updates and not this->_stored_gradients.empty()) {
 //        std::cout << "Vector g: " << _g.transpose() << std::endl;
 //        std::cout << "Compare solutions: Correct Q: \n"
 //                  << _Q << std::endl;
@@ -441,80 +480,88 @@ bool InterpolantDualSOSBarrier::update_gradient_hessian_LLT(Vector x, bool check
     }
 
     //TODO: store hessian as self-adjoint
-    if (_stored_hessians.empty()) {
-        _stored_hessians.resize(1);
+    if (this->_stored_hessians.empty()) {
+        this->_stored_hessians.resize(1);
     }
-    _stored_hessians[0].first = new_stored_x;
-    _stored_hessians[0].second.noalias() = _g_g_transpose.cwiseProduct(_Q.cwiseProduct(_Q));
+    this->_stored_hessians[0].first = new_stored_x;
+    this->_stored_hessians[0].second.noalias() = _g_g_transpose.cwiseProduct(_Q.cwiseProduct(_Q));
 
-    if (_stored_gradients.empty()) {
-        _stored_gradients.resize(1);
+    if (this->_stored_gradients.empty()) {
+        this->_stored_gradients.resize(1);
     }
-    _stored_gradients[0].first = new_stored_x;
-    _stored_gradients[0].second.noalias() = -_Q.diagonal().cwiseProduct(_g);
+    this->_stored_gradients[0].first = new_stored_x;
+    this->_stored_gradients[0].second.noalias() = -_Q.diagonal().cwiseProduct(_g);
 
-    if (_stored_LLT.empty()) {
-        _stored_LLT.resize(1);
+    if (this->_stored_LLT.empty()) {
+        this->_stored_LLT.resize(1);
     }
 
-    _stored_LLT[0].first = new_stored_x;
-    _custom_timers[3].start();
-    _stored_LLT[0].second.compute(_stored_hessians[0].second.selfadjointView<Eigen::Lower>());
-    _custom_timers[3].stop();
+    this->_stored_LLT[0].first = new_stored_x;
+    this->_custom_timers[3].start();
+    this->_stored_LLT[0].second.compute(this->_stored_hessians[0].second.template selfadjointView<Eigen::Lower>());
+    this->_custom_timers[3].stop();
 
     return true;
 }
 
-Vector InterpolantDualSOSBarrier::gradient(Vector x) {
-    auto *grad_ptr = find_gradient(x);
+template<typename IPMDouble>
+Vector<IPMDouble> InterpolantDualSOSBarrier<IPMDouble>::gradient(Vector x) {
+    auto *grad_ptr = this->find_gradient(x);
     if (grad_ptr) {
         return *grad_ptr;
     }
     update_gradient_hessian_LLT(x);
-    return _stored_gradients[0].second;
+    return this->_stored_gradients[0].second;
 }
 
-Matrix InterpolantDualSOSBarrier::hessian(Vector x) {
-    auto *hess_ptr = find_hessian(x);
+template<typename IPMDouble>
+Matrix<IPMDouble> InterpolantDualSOSBarrier<IPMDouble>::hessian(Vector x) {
+    auto *hess_ptr = this->find_hessian(x);
     if (hess_ptr) {
         return *hess_ptr;
     }
     update_gradient_hessian_LLT(x);
-    return _stored_hessians[0].second;
+    return this->_stored_hessians[0].second;
 }
 
-Eigen::LLT<Matrix> InterpolantDualSOSBarrier::llt(Vector x, bool) {
-    auto *llt_ptr = find_LLT(x);
+template<typename IPMDouble>
+Eigen::LLT<Matrix<IPMDouble> > InterpolantDualSOSBarrier<IPMDouble>::llt(Vector x, bool) {
+    auto *llt_ptr = this->find_LLT(x);
     if (llt_ptr) {
         return *llt_ptr;
     }
     update_gradient_hessian_LLT(x);
-    return _stored_LLT[0].second;
+    return this->_stored_LLT[0].second;
 }
 
 //Should not be invoked as it is slow.
-Matrix InterpolantDualSOSBarrier::inverse_hessian(Vector x) {
+template<typename IPMDouble>
+Matrix<IPMDouble> InterpolantDualSOSBarrier<IPMDouble>::inverse_hessian(Vector x) {
     Matrix L_inv = llt(x).matrixL().toDenseMatrix().inverse();
     Matrix inv = L_inv.transpose() * L_inv;
     return inv;
 }
 
-bool InterpolantDualSOSBarrier::in_interior(Vector x) {
+template<typename IPMDouble>
+bool InterpolantDualSOSBarrier<IPMDouble>::in_interior(Vector x) {
     //The computational effort to calculate whether x is in the interior is nearly as high
     //as computing gradient and hessian. Therefore we just calculate them here as well.
     bool check_interior_only = true;
     return update_gradient_hessian_LLT(x, check_interior_only);
 }
 
-IPMDouble InterpolantDualSOSBarrier::concordance_parameter(Vector) {
+template<typename IPMDouble>
+IPMDouble InterpolantDualSOSBarrier<IPMDouble>::concordance_parameter(Vector) {
     return _L;
 }
 
-Vector InterpolantDualSOSBarrier::initialize_x() {
+template<typename IPMDouble>
+Vector<IPMDouble> InterpolantDualSOSBarrier<IPMDouble>::initialize_x() {
     return Vector::Ones(_U);
 }
 
-Vector InterpolantDualSOSBarrier::initialize_s() {
+template<typename IPMDouble>
+Vector<IPMDouble> InterpolantDualSOSBarrier<IPMDouble>::initialize_s() {
     return -gradient(initialize_x());
 }
 

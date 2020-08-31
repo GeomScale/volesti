@@ -51,13 +51,10 @@ typedef double Double;
 
 //Change typedef here to use different double type in interior point method.
 #ifdef IPM_USE_DOUBLE
-typedef Double IPMDouble;
+//typedef Double IPMDouble;
 #else
 typedef BoostDouble IPMDouble;
 #endif
-
-typedef Eigen::Matrix<IPMDouble, Eigen::Dynamic, Eigen::Dynamic> Matrix;
-typedef Eigen::Matrix<IPMDouble, Eigen::Dynamic, 1> Vector;
 
 typedef Eigen::Matrix<BoostDouble, Eigen::Dynamic, Eigen::Dynamic> BoostMatrix;
 typedef Eigen::Matrix<BoostDouble, Eigen::Dynamic, 1> BoostVector;
@@ -70,40 +67,61 @@ typedef Eigen::Matrix<Double, Eigen::Dynamic, 1> DoubleVector;
 
 namespace pt = boost::property_tree;
 
+template<typename T>
+using Matrix = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+
+template<typename T>
+using Vector = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+
 //Stack the columns of a square m x m  matrix to a vector of length m x m.
-inline Vector StackMatrixToVector(Matrix M) {
+template<typename T>
+Vector<T> StackMatrixToVector(Matrix<T> M) {
     assert(M.rows() == M.cols());
-    Eigen::Map<Matrix> x(M.data(), M.rows() * M.cols(), 1);
+    Eigen::Map<Matrix<T>> x(M.data(), M.rows() * M.cols(), 1);
     return x;
 }
 
 //Unstack vector
-inline Matrix UnstackVectorToMatrix(Vector v, unsigned matrix_dimension) {
+template<typename T>
+Matrix<T> UnstackVectorToMatrix(Vector<T> v, unsigned matrix_dimension) {
     assert(v.rows() == matrix_dimension * matrix_dimension);
-    Eigen::Map<Matrix> M(v.data(), matrix_dimension, matrix_dimension);
+    Eigen::Map<Matrix<T> > M(v.data(), matrix_dimension, matrix_dimension);
     return M;
 }
 
-class Constraints;
+//template <typename T>
+//class Constraints<T>;
 
+template<typename T>
 class Solution {
 public:
-    Vector x;
-    Vector s;
-    IPMDouble centrality;
-    IPMDouble gap;
+    template<typename U>
+    Solution<U> cast() {
+           Solution<U> sol;
+           sol.x = x.template cast<U>();
+           sol.s = s.template cast<U>();
+           sol.centrality = boost::numeric_cast<U>(centrality);
+           sol.gap= boost::numeric_cast<U>(gap);
+           return sol;
+    }
+
+    Vector<T> x;
+    Vector<T> s;
+    T centrality;
+    T gap;
 };
 
 //TODO: Need full row rank matrices for IPM. Also, is preprocessing A, e.g. row-echelon form useful?
+template<typename T>
 class Constraints {
 public:
-    Matrix A;
-    Vector b;
-    Vector c;
+    Matrix<T> A;
+    Vector<T> b;
+    Vector<T> c;
 
     Constraints() {};
 
-    Constraints(Matrix A_, Vector b_, Vector c_) : A(A_), b(b_), c(c_) {};
+    Constraints(Matrix<T> A_, Vector<T> b_, Vector<T> c_) : A(A_), b(b_), c(c_) {};
 
     void print() {
         std::cout << "Constraints are as follows. Constraint matrix is A: " << std::endl;
@@ -122,21 +140,21 @@ public:
 
         //TODO: use proper tolerance / reference.
 
-        Eigen::SparseMatrix<IPMDouble> A_top_sparse = A.transpose().sparseView(0, 1e-10);
-        Eigen::SparseMatrix<IPMDouble> A_sparse = A.sparseView(0, 1e-10);
+        Eigen::SparseMatrix<T> A_top_sparse = A.transpose().sparseView(0, 1e-10);
+        Eigen::SparseMatrix<T> A_sparse = A.sparseView(0, 1e-10);
 
         A_top_sparse.makeCompressed();
         A_sparse.makeCompressed();
 
-        Eigen::SparseQR<Eigen::SparseMatrix<IPMDouble>, Eigen::COLAMDOrdering<int> > QR_top_sparse;
-        Eigen::SparseQR<Eigen::SparseMatrix<IPMDouble>, Eigen::COLAMDOrdering<int> > QR_sparse;
+        Eigen::SparseQR<Eigen::SparseMatrix<T>, Eigen::COLAMDOrdering<int> > QR_top_sparse;
+        Eigen::SparseQR<Eigen::SparseMatrix<T>, Eigen::COLAMDOrdering<int> > QR_sparse;
 
         QR_top_sparse.compute(A_top_sparse);
         QR_sparse.compute(A_sparse);
 
         dual_constraints.c = QR_sparse.solve(b);
 
-        Matrix QR_from_sparse(QR_top_sparse.matrixQ());
+        Matrix<T> QR_from_sparse(QR_top_sparse.matrixQ());
 //        Matrix QR = A.transpose().householderQr().householderQ();
 
         dual_constraints.A = QR_from_sparse.block(0, A.rows(), QR_from_sparse.rows(),
@@ -257,21 +275,22 @@ std::vector<size_t> sort_indexes(const std::vector<T> &v) {
 
 std::string getEnvVar(std::string const &key);
 
+template<typename T>
 class OrthogonaPMatrixLibrary {
 private:
-    std::map<std::pair<int, int>, Matrix> matrices;
+    std::map<std::pair<int, int>, Matrix<T> > matrices;
 
     void build(int L, int U) {
         Eigen::MatrixXd cheb_P = ChebTools::u_matrix_library.get(U - 1).block(0, 0, U, L);
-        Matrix P_tmp = cheb_P.cast<IPMDouble>();
-        Matrix P_ortho = P_tmp.householderQr().householderQ();
+        Matrix<T> P_tmp = cheb_P.cast<T>();
+        Matrix<T> P_ortho = P_tmp.householderQr().householderQ();
         P_ortho.colwise().hnormalized();
         matrices[std::pair<int, int>(L, U)] = P_ortho.block(0, 0, U, L);
     }
 
 public:
     /// Get the \f$\mathbf{U}\f$ matrix of degree N
-    const Eigen::MatrixXd &get(int L, int U) {
+    const Matrix<T> &get(int L, int U) {
         auto it = matrices.find(std::pair<int, int>(L, U));
         if (it != matrices.end()) {
             return it->second;
@@ -281,7 +300,9 @@ public:
         }
     }
 };
-static OrthogonaPMatrixLibrary orthogonal_P_Matrix_library;
+
+template<typename T>
+static OrthogonaPMatrixLibrary<T> orthogonal_P_Matrix_library;
 
 #endif //SOS_UTILS_H
 

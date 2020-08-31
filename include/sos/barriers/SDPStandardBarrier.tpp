@@ -6,7 +6,8 @@
 
 #include "SDPStandardBarrier.h"
 
-bool SDPStandardBarrier::in_interior(Vector x) {
+template<typename IPMDouble>
+bool SDPStandardBarrier<IPMDouble>::in_interior(Vector x) {
     Matrix X = toMatrix(x);
     auto LLT = X.llt();
     if (LLT.info() != Eigen::NumericalIssue) {
@@ -20,7 +21,8 @@ bool SDPStandardBarrier::in_interior(Vector x) {
     return false;
 }
 
-Vector SDPStandardBarrier::gradient(Vector x) {
+template<typename IPMDouble>
+Vector<IPMDouble> SDPStandardBarrier<IPMDouble>::gradient(Vector x) {
     assert(in_interior(x));
     Matrix X = toMatrix(x);
     Matrix X_Inv = X.inverse();
@@ -28,7 +30,8 @@ Vector SDPStandardBarrier::gradient(Vector x) {
     return -x_inv;
 }
 
-Matrix SDPStandardBarrier::hessian(Vector x) {
+template<typename IPMDouble>
+Matrix<IPMDouble> SDPStandardBarrier<IPMDouble>::hessian(Vector x) {
     assert(in_interior(x));
     Matrix X = toMatrix(x);
     Matrix X_Inv = X.inverse();
@@ -45,27 +48,32 @@ Matrix SDPStandardBarrier::hessian(Vector x) {
 }
 
 //TODO: figure out what correct concordance for SDP is.
-IPMDouble SDPStandardBarrier::concordance_parameter(Vector) {
+template<typename IPMDouble>
+IPMDouble SDPStandardBarrier<IPMDouble>::concordance_parameter(Vector) {
     return _matrix_dimension;
 }
 
-Vector SDPStandardBarrier::toVector(Matrix X) {
+template<typename IPMDouble>
+Vector<IPMDouble> SDPStandardBarrier<IPMDouble>::toVector(Matrix X) {
     assert(X.rows() == _matrix_dimension and X.cols() == _matrix_dimension);
     return StackMatrixToVector(X);
 }
 
-Matrix SDPStandardBarrier::toMatrix(Vector x) {
+template<typename IPMDouble>
+Matrix<IPMDouble> SDPStandardBarrier<IPMDouble>::toMatrix(Vector x) {
     assert(x.rows() == _matrix_dimension * _matrix_dimension);
     return UnstackVectorToMatrix(x, _matrix_dimension);
 }
 
-Vector SDPStandardBarrier::initialize_x() {
+template<typename IPMDouble>
+Vector<IPMDouble> SDPStandardBarrier<IPMDouble>::initialize_x() {
     Matrix Id = Matrix::Identity(_matrix_dimension, _matrix_dimension);
     Eigen::Map<Matrix> Id_stacked(Id.data(), _matrix_dimension * _matrix_dimension, 1);
     return Id_stacked;
 }
 
-Vector SDPStandardBarrier::initialize_s() {
+template<typename IPMDouble>
+Vector<IPMDouble> SDPStandardBarrier<IPMDouble>::initialize_s() {
     return initialize_x();
 }
 

@@ -9,7 +9,13 @@
 
 #include "LHSCB.h"
 
-class FullSpaceBarrier final : public LHSCB {
+template<typename IPMDouble>
+class FullSpaceBarrier final : public LHSCB<IPMDouble>{
+
+    using LHSCB = LHSCB<IPMDouble>;
+
+    typedef Vector<IPMDouble> Vector;
+    typedef Matrix<IPMDouble> Matrix;
 
     Vector gradient(Vector x) override;
 
@@ -31,8 +37,10 @@ class FullSpaceBarrier final : public LHSCB {
 
 public:
     FullSpaceBarrier(unsigned num_variables_) {
-        _num_variables = num_variables_;
+        this->_num_variables = num_variables_;
     }
 };
+
+#include "FullSpaceBarrier.tpp"
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_FULLSPACEBARRIER_H

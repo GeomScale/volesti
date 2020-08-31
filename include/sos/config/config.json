@@ -1,15 +1,19 @@
 {
   "IPM": {
-    "epsilon": 1e-5,
-    "num_corrector_steps": 1,
-    "large_neighborhood": 10,
-    "small_neighborhood": 1,
-    "scale_predictor_step": 16,
+    "epsilon": 1e-8,
+    "num_corrector_steps": 4,
+    "large_neighborhood": 5,
+    "small_neighborhood": 0.1,
+    "scale_predictor_step": 1,
     "length_corrector_step": 1,
     "logger_level": 2,
-    "use_line_search": true
+    "use_line_search": true,
+    "check_centrality_in_every_segment": true
   },
   "InterpolantBarrier": {
     "use_low_rank_updates": false
-  }
+  },
+
+  "use_weighted_polynomials": false,
+  "input_in_interpolant_basis": true
 }

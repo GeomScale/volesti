@@ -11,7 +11,13 @@
 
 //This class models the 0-cone. Should not be used, so reformulate your
 //instance.
-class ZeroSpaceBarrier final : public LHSCB {
+template <typename IPMDouble>
+class ZeroSpaceBarrier final : public LHSCB<IPMDouble> {
+
+    using LHSCB = LHSCB<IPMDouble>;
+
+    typedef Vector<IPMDouble> Vector;
+    typedef Matrix<IPMDouble> Matrix;
 
     Vector gradient(Vector x) override;
 
@@ -29,9 +35,10 @@ class ZeroSpaceBarrier final : public LHSCB {
 
 public:
     ZeroSpaceBarrier(unsigned num_variables_) {
-        _num_variables = num_variables_;
+        this->_num_variables = num_variables_;
     }
 };
 
+#include "ZeroSpaceBarrier.tpp"
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ZEROSPACEBARRIER_H

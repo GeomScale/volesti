@@ -17,7 +17,8 @@
 
 //TODO: use precompiled versions of padua.h and line_fekete_rule.h
 
-EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_) :
+template <typename IPMDouble>
+EnvelopeProblemSOS<IPMDouble>::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_) :
         _n(num_variables), _d(max_degree),
         _hyperRectangle(hyperRectangle_) {
     assert(num_variables == hyperRectangle_.size());
@@ -27,7 +28,8 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(unsigned num_variables, unsigned max_degr
     initialize_problem();
 }
 
-EnvelopeProblemSOS::EnvelopeProblemSOS(std::string  instance_file, std::string config_json) {
+template <typename IPMDouble>
+EnvelopeProblemSOS<IPMDouble>::EnvelopeProblemSOS(std::string  instance_file, std::string config_json) {
     initialize_loggers();
 
     pt::read_json(instance_file, _instance);
@@ -37,6 +39,14 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(std::string  instance_file, std::string c
 
     _logger->info("Configure Envelope Problem with file {}", config_json);
     pt::read_json(config_json, _config);
+
+    if(_config.find("use_weighted_polynomials") != _config.not_found()){
+        _use_weighted_polynomials = _config.get<bool>("use_weighted_polynomials");
+    }
+
+    if(_config.find("input_in_interpolant_basis") != _config.not_found()){
+        _input_in_interpolant_basis = _config.get<bool>("input_in_interpolant_basis");
+    }
 
     HyperRectangle hyperRectangle;
     //Note: Keep interval bounds for now.
@@ -78,7 +88,8 @@ EnvelopeProblemSOS::EnvelopeProblemSOS(std::string  instance_file, std::string c
 //    }
 }
 
-void EnvelopeProblemSOS::initialize_problem() {
+template <typename IPMDouble>
+void EnvelopeProblemSOS<IPMDouble>::initialize_problem() {
     _L = static_cast<unsigned>(boost::math::binomial_coefficient<double>(_d + _n, _n));
     _U = static_cast<unsigned>(boost::math::binomial_coefficient<double>(2 * _d + _n, _n));
 
@@ -114,9 +125,9 @@ void EnvelopeProblemSOS::initialize_problem() {
 
         //TODO: test. Currently not working returning a feasible solution
 
-        InterpolantDualSOSBarrier tmp_interp(_d,_n);
+        InterpolantDualSOSBarrier<IPMDouble> tmp_interp(_d,_n);
         Vector tmp_ones = Vector::Ones(tmp_interp.get_P().cols());
-        _objectives_vector = tmp_interp.get_P().colPivHouseholderQr().solve(tmp_ones).cast<InterpolantDouble>();
+        _objectives_vector = tmp_interp.get_P().colPivHouseholderQr().solve(tmp_ones).template cast<InterpolantDouble>();
         InterpolantVector tmp_zero = InterpolantVector::Zero(_objectives_vector.rows());
         _objectives_vector.cwiseMax(tmp_zero);
 //        _objectives_vector = -_objectives_vector;
@@ -124,7 +135,8 @@ void EnvelopeProblemSOS::initialize_problem() {
 }
 
 
-void EnvelopeProblemSOS::initialize_loggers() {
+template <typename IPMDouble>
+void EnvelopeProblemSOS<IPMDouble>::initialize_loggers() {
     _logger = spdlog::get("EnvelopeProblemSOS");
     if (_logger == nullptr) {
         std::__1::vector<spdlog::sink_ptr> sinks;
@@ -135,12 +147,13 @@ void EnvelopeProblemSOS::initialize_loggers() {
     }
 }
 
-void EnvelopeProblemSOS::calculate_basis_polynomials() {
+template <typename IPMDouble>
+void EnvelopeProblemSOS<IPMDouble>::calculate_basis_polynomials() {
 
     //Currently only in univariate case.
     assert(_n == 1);
 
-    InterpolantDualSOSBarrier aux_interpolant_barrier(_d);
+    InterpolantDualSOSBarrier<IPMDouble> aux_interpolant_barrier(_d);
     std::vector<std::vector<InterpolantDouble > > & cheb_vec_tmp = aux_interpolant_barrier.get_basis();
     std::vector<InterpolantDouble> chebyshev_points;
     for(auto vec : cheb_vec_tmp){
@@ -179,7 +192,8 @@ void EnvelopeProblemSOS::calculate_basis_polynomials() {
                   interp_basis_timer.count<std::chrono::milliseconds>() / 1000.);
 }
 
-void EnvelopeProblemSOS::compute_clenshaw_curtis_integrals() {
+template <typename IPMDouble>
+void EnvelopeProblemSOS<IPMDouble>::compute_clenshaw_curtis_integrals() {
 
     //TODO: Check if _U even is necessary and how to fix for N odd
     //TODO: Speedup by only computing lower / upper half
@@ -213,15 +227,16 @@ void EnvelopeProblemSOS::compute_clenshaw_curtis_integrals() {
     }
 }
 
-void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
+template<typename IPMDouble>
+void EnvelopeProblemSOS<IPMDouble>::add_polynomial(InterpolantVector &polynomial) {
 
     InterpolantMatrix Q = get_transformation_matrix();
     _logger->info("Transformation matrix has norm {}", Q.norm());
 
     if (_input_in_interpolant_basis) {
-        InterpolantDualSOSBarrier aux_barrier(_d, _n);
+        InterpolantDualSOSBarrier<IPMDouble> aux_barrier(_d, _n);
         Matrix P = aux_barrier.get_P();
-        InterpolantVector pol = P.cast<InterpolantDouble>() * polynomial.segment(0, P.cols());
+        InterpolantVector pol = P.template cast<InterpolantDouble>() * polynomial.segment(0, P.cols());
         _polynomials_bounds.push_back(pol);
         return;
     }
@@ -243,14 +258,16 @@ void EnvelopeProblemSOS::add_polynomial(InterpolantVector &polynomial) {
     _polynomials_bounds.push_back(inv_sol);
 }
 
-InterpolantVector EnvelopeProblemSOS::generate_zero_polynomial() {
+template <typename IPMDouble>
+InterpolantVector EnvelopeProblemSOS<IPMDouble>::generate_zero_polynomial() {
     return InterpolantVector::Zero(_U);
 }
 
 //TODO: it would be better to introduce barrier functions only in the IPM, not when constructing the instance.
 // Although we already have to declare cone membership here.
 
-Instance EnvelopeProblemSOS::construct_SOS_instance() {
+template<typename IPMDouble>
+Instance<IPMDouble> EnvelopeProblemSOS<IPMDouble>::construct_SOS_instance() {
     unsigned const NUM_POLYNOMIALS = _polynomials_bounds.size();
     unsigned const VECTOR_LENGTH = _U;
 
@@ -263,16 +280,16 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
         exit(1);
     }
 
-    Constraints constraints;
+    Constraints<IPMDouble> constraints;
     constraints.c = Vector::Zero(NUM_POLYNOMIALS * VECTOR_LENGTH);
     constraints.c.block(0, 0, VECTOR_LENGTH, 1)
-            = -_objectives_vector.cast<IPMDouble>();
+            = -_objectives_vector.template cast<IPMDouble>();
 
     constraints.A = Matrix::Zero((NUM_POLYNOMIALS - 1) * VECTOR_LENGTH, NUM_POLYNOMIALS * VECTOR_LENGTH);
     constraints.b = Vector::Zero((NUM_POLYNOMIALS - 1) * VECTOR_LENGTH);
 
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS - 1; ++poly_idx) {
-        Vector polynomial = _polynomials_bounds[poly_idx + 1].cast<IPMDouble>();
+        Vector polynomial = _polynomials_bounds[poly_idx + 1].template cast<IPMDouble>();
         Matrix poly_block = Vector::Ones(VECTOR_LENGTH).asDiagonal();
         //corresponds to X variables
         constraints.A.block(poly_idx * VECTOR_LENGTH, 0,
@@ -283,7 +300,7 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
                             (poly_idx + 1) * VECTOR_LENGTH, VECTOR_LENGTH,
                             VECTOR_LENGTH)
                 = poly_block;
-        Vector casted_vec = _polynomials_bounds[0].cast<IPMDouble>();
+        Vector casted_vec = _polynomials_bounds[0].template cast<IPMDouble>();
         constraints.b.block(poly_idx * VECTOR_LENGTH, 0, VECTOR_LENGTH, 1)
                 =
                 polynomial - casted_vec;
@@ -302,13 +319,13 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
 
     //Construct Barrier function
 
-    ProductBarrier *productBarrier = new ProductBarrier(num_prod_threads);
+    ProductBarrier<IPMDouble> *productBarrier = new ProductBarrier<IPMDouble>(num_prod_threads);
 
     for (unsigned poly_idx = 0; poly_idx < NUM_POLYNOMIALS; ++poly_idx) {
-        auto sos_barrier = new InterpolantDualSOSBarrier(_d, _n);
+        auto sos_barrier = new InterpolantDualSOSBarrier<IPMDouble>(_d, _n);
         sos_barrier->configure(_config.get_child("InterpolantBarrier"));
 
-        auto sum_barrier = new SumBarrier(_U);
+        auto sum_barrier = new SumBarrier<IPMDouble>(_U);
         sum_barrier->add_barrier(sos_barrier);
 
         // Weighted barrier
@@ -316,7 +333,7 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
             Vector weighted_vec(3);
             //Add univariate polynomial 1 - x^2 which is non-negative for domain [-1,1]
             weighted_vec << 1., 0., -1.;
-            auto sos_weighted_barrier = new InterpolantDualSOSBarrier(_d, weighted_vec);
+            auto sos_weighted_barrier = new InterpolantDualSOSBarrier<IPMDouble>(_d, weighted_vec);
             sos_weighted_barrier->configure(_config.get_child("InterpolantBarrier"));
             sum_barrier->add_barrier(sos_weighted_barrier);
         }
@@ -326,7 +343,7 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
 
     auto dual_constraints = constraints.dual_system();
 
-    Instance instance;
+    Instance<IPMDouble> instance;
     instance.constraints = dual_constraints;
     instance.barrier = productBarrier;
 
@@ -338,7 +355,8 @@ Instance EnvelopeProblemSOS::construct_SOS_instance() {
 }
 
 
-void EnvelopeProblemSOS::print_solution(Solution sol) {
+template <typename IPMDouble>
+void EnvelopeProblemSOS<IPMDouble>::print_solution(Solution<IPMDouble> sol) {
     // Note: the solution we are looking for is the RHS for the first polynomial - the SOS
     // polynomial in the first constraint
     assert(not _polynomials_bounds.empty());
@@ -359,7 +377,8 @@ void EnvelopeProblemSOS::print_solution(Solution sol) {
     }
 }
 
-void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
+template <typename IPMDouble>
+void EnvelopeProblemSOS<IPMDouble>::plot_polynomials_and_solution(const Solution<IPMDouble> &sol) {
 
     std::cout << "Create picture of solution. Saved in plot.png..." << std::endl;
     int num_points = 1000;
@@ -481,7 +500,8 @@ void EnvelopeProblemSOS::plot_polynomials_and_solution(const Solution &sol) {
     std::cout << "Done." << std::endl;
 }
 
-InterpolantMatrix EnvelopeProblemSOS::get_transformation_matrix() {
+template <typename IPMDouble>
+InterpolantMatrix EnvelopeProblemSOS<IPMDouble>::get_transformation_matrix() {
     InterpolantMatrix Q(_basis_polynomials.size(), _basis_polynomials.size());
     for (int i = 0; i < Q.rows(); ++i) {
         for (int j = 0; j < Q.rows(); ++j)

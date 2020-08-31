@@ -16,10 +16,12 @@
 
 namespace plt = matplotlibcpp;
 
-typedef std::vector<std::pair<IPMDouble, IPMDouble> > HyperRectangle;
-typedef Vector PolynomialSOS;
-
+template <typename IPMDouble>
 class EnvelopeProblemSOS {
+    typedef std::vector<std::pair<IPMDouble, IPMDouble> > HyperRectangle;
+    typedef Vector<IPMDouble> Vector;
+    typedef Matrix<IPMDouble> Matrix;
+    typedef Vector PolynomialSOS;
 public:
     EnvelopeProblemSOS(unsigned num_variables, unsigned max_degree, HyperRectangle &hyperRectangle_);
     EnvelopeProblemSOS(std::string instance_file, std::string config_file);
@@ -58,11 +60,11 @@ public:
 
     void add_polynomial(InterpolantVector &polynomial);
 
-    Instance construct_SOS_instance();
+    Instance<IPMDouble> construct_SOS_instance();
 
-    void print_solution(Solution sol);
+    void print_solution(Solution<IPMDouble> sol);
 
-    void plot_polynomials_and_solution(const Solution &sol);
+    void plot_polynomials_and_solution(const Solution<IPMDouble> &sol);
 
     void calculate_basis_polynomials();
 
@@ -97,5 +99,7 @@ private:
 
     void initialize_problem();
 };
+
+#include "EnvelopeProblemSOS.tpp"
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H

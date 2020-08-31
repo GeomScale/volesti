@@ -9,12 +9,18 @@
 
 #include "LHSCB.h"
 
-class LPStandardBarrier final : public LHSCB {
+template <typename IPMDouble>
+class LPStandardBarrier final : public LHSCB<IPMDouble> {
+    using LHSCB = LHSCB<IPMDouble>;
+
+    typedef Vector<IPMDouble> Vector;
+    typedef Matrix<IPMDouble> Matrix;
+
 public:
     LPStandardBarrier() : LHSCB() {};
 
     LPStandardBarrier(unsigned num_variables_) {
-        _num_variables = num_variables_;
+        this->_num_variables = num_variables_;
     };
 
     Vector gradient(Vector x) override;
@@ -35,5 +41,7 @@ public:
 private:
 
 };
+
+#include "LPStandardBarrier.tpp"
 
 #endif //NONSYMMETRICCONICOPTIMIZATION_LPSTANDARDBARRIER_H

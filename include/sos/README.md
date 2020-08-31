@@ -20,11 +20,12 @@ on the interval [-1,1].
 * Added multithreading.
 * Added LAPACK and BLAS support
 * Added MKL Support (system-dependent configuration necessary)
+* Dynamically switch between float -> double -> long double -> multiprecision, when Matrices become ill-conditioned.
+    Note that this feature currenlty only works for the InterpolantDualSOSBarrier, SumBarrier and ProductBarrier.
 
 #### Future steps:
 
 * Add switch to sparse computation (via counting nonzeros in A)
-* Dynamically switch between float -> double -> long double -> multiprecision when Matrices become ill-conditioned.
 * Parameter tuning
 * Choose Method for QR Decompositions dynamically. Benchmarks can be found [here](https://eigen.tuxfamily.org/dox/group__DenseDecompositionBenchmark.html).
 * Make sure that no heap memory is allocated dynamically.

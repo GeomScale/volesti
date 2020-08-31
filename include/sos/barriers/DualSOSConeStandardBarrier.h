@@ -9,7 +9,13 @@
 #include "LHSCB.h"
 
 //Implementation for Standard Monomial Basis for the Dual SOS cone.
-class DualSOSConeStandardBarrier : public LHSCB {
+template <typename IPMDouble>
+class DualSOSConeStandardBarrier : public LHSCB<IPMDouble> {
+
+    using LHSCB = LHSCB<IPMDouble>;
+
+    typedef Vector<IPMDouble> Vector;
+    typedef Matrix<IPMDouble> Matrix;
 
 public:
     DualSOSConeStandardBarrier() : LHSCB() {};
@@ -37,4 +43,7 @@ public:
 private:
     unsigned _max_polynomial_degree;
 };
+
+#include "DualSOSConeStandardBarrier.tpp"
+
 #endif //NONSYMMETRICCONICOPTIMIZATION_DUALSOSCONESTANDARDBARRIER_H

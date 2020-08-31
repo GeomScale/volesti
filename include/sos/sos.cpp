@@ -79,20 +79,27 @@ int main(int const argc, char **argv) {
 
     if (run_tests) {
         console->info("Test LP and SDP solver");
-        assert(test_lp_solver_random(2, 5));
-        assert(test_sdp_solver_random_lp_formulation(2, 5));
+        assert(test_lp_solver_random<double>(2, 5));
+        assert(test_sdp_solver_random_lp_formulation<double>(2, 5));
         console->info("Tests completed.");
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        test_sdp_solver(config_file_str);
+        test_sdp_solver<double>(config_file_str);
         //Reset file to be read again by proper SOS solver.
     }
 
-    EnvelopeProblemSOS envelopeProblemSos(instance_file_str, config_file_str);
-    Instance instance_interp = envelopeProblemSos.construct_SOS_instance();
-    NonSymmetricIPM sos_solver_interp(instance_interp, config_file_str);
+    EnvelopeProblemSOS<double> envelopeProblemSos(instance_file_str, config_file_str);
+    Instance<double> instance_interp = envelopeProblemSos.construct_SOS_instance();
+    NonSymmetricIPM<double> sos_solver_interp(instance_interp, config_file_str);
+    NonSymmetricIPM<long double> * float_sos_solver = sos_solver_interp.cast<long double>();
     sos_solver_interp.run_solver();
-    envelopeProblemSos.print_solution(sos_solver_interp.get_solution());
-    envelopeProblemSos.plot_polynomials_and_solution(sos_solver_interp.get_solution());
+//    float_sos_solver->run_solver();
+//    EnvelopeProblemSOS<float> envelopeProblemSosfloat(instance_file_str, config_file_str);
+//    Instance<float> instance_interpfloat = envelopeProblemSosfloat.construct_SOS_instance();
+//    NonSymmetricIPM<float> sos_solver_interpfloat(instance_interpfloat, config_file_str);
+//    sos_solver_interpfloat.run_solver();
+//    Solution<long double> float_sol = sos_solver_interp.get_solution().cast<long double>();
+//    envelopeProblemSos.print_solution(float_sol.cast<double>());
+//    envelopeProblemSos.plot_polynomials_and_solution(float_sol.cast<double>());
     return 0;
 }
 
