@@ -146,7 +146,12 @@ public:
         return _param_step_length_predictor / k_x;
     }
 
-    void run_solver();
+    int run_solver();
+
+    enum Termination {
+        SUCCESS,
+        FAILURE
+    };
 
     inline IPMDouble primal_error() {
         return (A * x - tau * b).norm();
@@ -235,6 +240,8 @@ public:
     IPMDouble _small_neighborhood;
 
     bool _check_centrality_in_every_segment = true;
+
+    bool _type_cast_if_unsuccessful = true;
 
     bool _use_line_search = true;
 

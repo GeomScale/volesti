@@ -1,6 +1,6 @@
 {
   "IPM": {
-    "epsilon": 1e-8,
+    "epsilon": 1e-5,
     "num_corrector_steps": 4,
     "large_neighborhood": 5,
     "small_neighborhood": 0.1,
@@ -8,12 +8,14 @@
     "length_corrector_step": 1,
     "logger_level": 2,
     "use_line_search": true,
-    "check_centrality_in_every_segment": true
+    "check_centrality_in_every_segment": true,
+    "type_cast_if_unsuccessful": false
   },
   "InterpolantBarrier": {
     "use_low_rank_updates": false
   },
 
   "use_weighted_polynomials": false,
-  "input_in_interpolant_basis": true
+  "input_in_interpolant_basis": true,
+  "plot_threshold": 20
 }

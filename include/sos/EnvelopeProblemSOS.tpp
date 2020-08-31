@@ -48,6 +48,10 @@ EnvelopeProblemSOS<IPMDouble>::EnvelopeProblemSOS(std::string  instance_file, st
         _input_in_interpolant_basis = _config.get<bool>("input_in_interpolant_basis");
     }
 
+    if(_config.find("plot_threshold") != _config.not_found()) {
+        _plot_threshold = _config.get<int>("plot_threshold");
+    }
+
     HyperRectangle hyperRectangle;
     //Note: Keep interval bounds for now.
     IPMDouble const interval_lower_bound = -1.;
@@ -379,6 +383,10 @@ void EnvelopeProblemSOS<IPMDouble>::print_solution(Solution<IPMDouble> sol) {
 
 template <typename IPMDouble>
 void EnvelopeProblemSOS<IPMDouble>::plot_polynomials_and_solution(const Solution<IPMDouble> &sol) {
+
+    if(_d > _plot_threshold){
+        return;
+    }
 
     std::cout << "Create picture of solution. Saved in plot.png..." << std::endl;
     int num_points = 1000;

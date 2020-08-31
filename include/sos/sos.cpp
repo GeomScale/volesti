@@ -90,16 +90,23 @@ int main(int const argc, char **argv) {
     EnvelopeProblemSOS<double> envelopeProblemSos(instance_file_str, config_file_str);
     Instance<double> instance_interp = envelopeProblemSos.construct_SOS_instance();
     NonSymmetricIPM<double> sos_solver_interp(instance_interp, config_file_str);
-    NonSymmetricIPM<long double> * float_sos_solver = sos_solver_interp.cast<long double>();
-    sos_solver_interp.run_solver();
-//    float_sos_solver->run_solver();
-//    EnvelopeProblemSOS<float> envelopeProblemSosfloat(instance_file_str, config_file_str);
-//    Instance<float> instance_interpfloat = envelopeProblemSosfloat.construct_SOS_instance();
-//    NonSymmetricIPM<float> sos_solver_interpfloat(instance_interpfloat, config_file_str);
-//    sos_solver_interpfloat.run_solver();
-//    Solution<long double> float_sol = sos_solver_interp.get_solution().cast<long double>();
-//    envelopeProblemSos.print_solution(float_sol.cast<double>());
-//    envelopeProblemSos.plot_polynomials_and_solution(float_sol.cast<double>());
+    int outcome = sos_solver_interp.run_solver();
+
+    if(outcome == NonSymmetricIPM<double>::Termination::SUCCESS){
+        envelopeProblemSos.print_solution(sos_solver_interp.get_solution());
+        envelopeProblemSos.plot_polynomials_and_solution(sos_solver_interp.get_solution());
+    } else if (sos_solver_interp._type_cast_if_unsuccessful) {
+        NonSymmetricIPM<long double> *long_double_solver = sos_solver_interp.cast<long double>();
+        long_double_solver->run_solver();
+        EnvelopeProblemSOS<float> envelopeProblemSosfloat(instance_file_str, config_file_str);
+        Instance<float> instance_interpfloat = envelopeProblemSosfloat.construct_SOS_instance();
+        NonSymmetricIPM<float> sos_solver_interpfloat(instance_interpfloat, config_file_str);
+        sos_solver_interpfloat.run_solver();
+        Solution<long double> long_double_sol = sos_solver_interp.get_solution().cast<long double>();
+        envelopeProblemSos.print_solution(long_double_sol.cast<double>());
+        envelopeProblemSos.plot_polynomials_and_solution(long_double_sol.cast<double>());
+    }
+
     return 0;
 }
 

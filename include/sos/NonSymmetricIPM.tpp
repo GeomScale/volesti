@@ -12,7 +12,7 @@
 #include "barriers/SumBarrier.h"
 #include "barriers/InterpolantDualSOSBarrier.h"
 
-template <typename T>
+template<typename T>
 std::ostream &operator<<(std::ostream &os, const DirectionDecomposition<T> &dir) {
     os << "x " << dir.x.transpose() << std::endl;
     os << "s: " << dir.s.transpose() << std::endl;
@@ -22,8 +22,9 @@ std::ostream &operator<<(std::ostream &os, const DirectionDecomposition<T> &dir)
 }
 
 
-template <typename IPMDouble>
-NonSymmetricIPM<IPMDouble>::NonSymmetricIPM(Instance<IPMDouble> &instance, std::string config_json) : NonSymmetricIPM(instance) {
+template<typename IPMDouble>
+NonSymmetricIPM<IPMDouble>::NonSymmetricIPM(Instance<IPMDouble> &instance, std::string config_json) : NonSymmetricIPM(
+        instance) {
     pt::read_json(config_json, _config);
     _config = _config.get_child("IPM");
     std::cout << "NonSymmetricIPM configuration..." << std::endl;
@@ -32,7 +33,7 @@ NonSymmetricIPM<IPMDouble>::NonSymmetricIPM(Instance<IPMDouble> &instance, std::
     set_configuration_variables();
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 void NonSymmetricIPM<IPMDouble>::set_configuration_variables() {
     _epsilon = _config.get<IPMDouble>("epsilon");
     _logger->info("epsilon set to {}", _epsilon);
@@ -43,6 +44,7 @@ void NonSymmetricIPM<IPMDouble>::set_configuration_variables() {
     _step_length_predictor = calc_step_length_predictor();
     _step_length_corrector = _config.get<IPMDouble>("length_corrector_step");
     _check_centrality_in_every_segment = _config.get<bool>("check_centrality_in_every_segment");
+    _type_cast_if_unsuccessful = _config.get<bool>("type_cast_if_unsuccessful");
 
     _logger->info("Set log level to {}", spdlog::level::level_enum(_config.get<int>("logger_level")));
     _logger->set_level(spdlog::level::level_enum(_config.get<int>("logger_level")));
@@ -50,7 +52,7 @@ void NonSymmetricIPM<IPMDouble>::set_configuration_variables() {
     _use_line_search = _config.get<bool>("use_line_search");
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::solve(Matrix &M_, Vector const v_) {
     Vector sol = M_.colPivHouseholderQr().solve(v_);
     return sol;
@@ -60,8 +62,9 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::solve(Matrix &M_, Vector const v_)
 //TODO: The method is not optimal yet regading computational complexity and memory allocation.
 // But its runtime is cominated by the calls to compute the Hessian anyway.
 
-template <typename IPMDouble>
-std::vector<std::pair<Vector<IPMDouble>, Vector<IPMDouble> > > NonSymmetricIPM<IPMDouble>::solve_andersen_andersen_subsystem(
+template<typename IPMDouble>
+std::vector<std::pair<Vector<IPMDouble>, Vector<IPMDouble> > >
+NonSymmetricIPM<IPMDouble>::solve_andersen_andersen_subsystem(
         std::vector<std::pair<Vector, Vector> > &v) {
 
     _custom_timers[8].start();
@@ -102,7 +105,7 @@ std::vector<std::pair<Vector<IPMDouble>, Vector<IPMDouble> > > NonSymmetricIPM<I
     return results;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::andersen_andersen_solve(Vector const rhs) {
 
     _andersen_sys_timer.start();
@@ -173,14 +176,14 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::andersen_andersen_solve(Vector con
     return sol;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::build_update_vector() {
     Vector concat(y.rows() + x.rows() + 1 + s.rows() + 1);
     concat << y, x, tau * Matrix::Identity(1, 1), s, kappa * Matrix::Identity(1, 1);
     return concat;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 void NonSymmetricIPM<IPMDouble>::apply_update(Vector concat) {
     y = concat.block(0, 0, y.rows(), 1);
     x = concat.block(y.rows(), 0, x.rows(), 1);
@@ -190,19 +193,19 @@ void NonSymmetricIPM<IPMDouble>::apply_update(Vector concat) {
 }
 
 //Heuristic for steplength.
-template <typename IPMDouble>
-IPMDouble calc_new_alpha(int num_steps,IPMDouble step_length){
-   IPMDouble scale_fac = pow(2, num_steps) * step_length;
-   IPMDouble const threshold = .4;
-   if(scale_fac > threshold){
-       IPMDouble ratio = log2(scale_fac / threshold);
-       scale_fac  = 1. - (1 - threshold) / pow(2, ratio);
-   }
-   return scale_fac;
+template<typename IPMDouble>
+IPMDouble calc_new_alpha(int num_steps, IPMDouble step_length) {
+    IPMDouble scale_fac = pow(2, num_steps) * step_length;
+    IPMDouble const threshold = .4;
+    if (scale_fac > threshold) {
+        IPMDouble ratio = log2(scale_fac / threshold);
+        scale_fac = 1. - (1 - threshold) / pow(2, ratio);
+    }
+    return scale_fac;
 }
 
-template <typename IPMDouble>
-void NonSymmetricIPM<IPMDouble>::run_solver() {
+template<typename IPMDouble>
+int NonSymmetricIPM<IPMDouble>::run_solver() {
 
     _logger->info("Solver started.");
 
@@ -245,29 +248,29 @@ void NonSymmetricIPM<IPMDouble>::run_solver() {
 
         //Check predictor direction
 
-        IPMDouble err_primal = (A * pred_dir.x - b * pred_dir.tau + A * x  - b * tau).norm()
-                / (A * x - b * tau).norm();
+        IPMDouble err_primal = (A * pred_dir.x - b * pred_dir.tau + A * x - b * tau).norm()
+                               / (A * x - b * tau).norm();
         IPMDouble err_dual = (-A.transpose() * pred_dir.y + c * pred_dir.tau - pred_dir.s
-                - A.transpose() * y + c * tau - s).norm() / (A.transpose() * y - c * tau + s).norm();
+                              - A.transpose() * y + c * tau - s).norm() / (A.transpose() * y - c * tau + s).norm();
         IPMDouble err_opt = abs(b.dot(pred_dir.y) - c.dot(pred_dir.x) - pred_dir.kappa
-                + b.dot(y) - c.dot(x) - kappa)/abs(-b.dot(y) + c.dot(x) + kappa) ;
+                                + b.dot(y) - c.dot(x) - kappa) / abs(-b.dot(y) + c.dot(x) + kappa);
         IPMDouble err_cent = (pred_dir.s + mu() * _barrier->hessian(x) * pred_dir.x + s).norm() / s.norm();
-        IPMDouble err_cent2 = abs(pred_dir.kappa + mu() / (tau * tau) * pred_dir.tau + kappa)/kappa;
+        IPMDouble err_cent2 = abs(pred_dir.kappa + mu() / (tau * tau) * pred_dir.tau + kappa) / kappa;
 
         IPMDouble err_sum = err_primal + err_dual + err_opt + err_cent + err_cent2;
-        
-        if (_logger->level() <= spdlog::level::info) {
-            _logger->info("Errors in predictor direction {} {} {} {} {}", err_primal, err_dual, err_opt, err_cent,
-                          err_cent2);
+
+        if (_logger->level() <= spdlog::level::debug) {
+            _logger->debug("Errors in predictor direction {} {} {} {} {}", err_primal, err_dual, err_opt, err_cent,
+                           err_cent2);
         }
 
         const IPMDouble ERR_THRESHOLD = .1;
-        if(err_sum > ERR_THRESHOLD){
-           _logger->warn("Error in predictor direction too big. Terminate.");
-           _logger->info("Predictor direction: ");
-           std::cout << pred_dir.x.transpose() << std::endl << pred_dir.s.transpose() << std::endl;
+        if (err_sum > ERR_THRESHOLD) {
+            _logger->warn("Error in predictor direction too big. Terminate.");
+            _logger->info("Predictor direction: ");
+            std::cout << pred_dir.x.transpose() << std::endl << pred_dir.s.transpose() << std::endl;
             //TODO: Iterative refinement.
-            return;
+            return Termination::FAILURE;
         }
 
 
@@ -287,7 +290,7 @@ void NonSymmetricIPM<IPMDouble>::run_solver() {
             curr_vec = orig_vector + calc_new_alpha(num_line_steps, _step_length_predictor) * predictor_direction;
             apply_update(curr_vec);
             while (kappa > 0 and tau > 0 and _barrier->in_interior(x)
-            and (not _check_centrality_in_every_segment or (centrality() < _large_neighborhood))){
+                   and (not _check_centrality_in_every_segment or (centrality() < _large_neighborhood))) {
                 _logger->debug("Another iteration in line search...");
                 fallback_vec = curr_vec;
                 curr_vec = orig_vector + calc_new_alpha(num_line_steps, _step_length_predictor) * predictor_direction;
@@ -296,15 +299,15 @@ void NonSymmetricIPM<IPMDouble>::run_solver() {
             }
 
             //Dynamically adjust step length
-            if(num_line_steps == 0){
+            if (num_line_steps == 0) {
                 _step_length_predictor /= 2;
             }
 
-            if(num_line_steps > 3){
+            if (num_line_steps > 3) {
                 _step_length_predictor *= 2;
             }
 
-            if(num_line_steps == 0) {
+            if (num_line_steps == 0) {
                 _logger->info("Reason for stopping: ");
                 if (not _barrier->in_interior(x)) {
                     _logger->info("Not in interior");
@@ -353,7 +356,7 @@ void NonSymmetricIPM<IPMDouble>::run_solver() {
             concat += _step_length_corrector * corrector_direction;
             apply_update(concat);
 
-            if(centrality() > cur_centrality / 2){
+            if (centrality() > cur_centrality / 2) {
                 //In this case we are too far away from the central path. Revert back to and shrink large neighborhood
                 _logger->info("Shrink large neighborhood and use stored iterate, "
                               "because centering step converges too slowly.");
@@ -376,14 +379,16 @@ void NonSymmetricIPM<IPMDouble>::run_solver() {
         }
         _corrector_timer.stop();
     }
+
     _total_runtime_timer.stop();
     _benchmark_logger->info("{} {} {} {} {}", (_barrier->getNumVariables() / 2 - 1) / 2, pred_iteration + 1,
                             _total_runtime_timer.count<std::chrono::milliseconds>() / 1000.,
                             _total_runtime_timer.count<std::chrono::milliseconds>() / (1000. * _total_num_line_steps),
                             _epsilon);
+    return Termination::SUCCESS;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 NonSymmetricIPM<IPMDouble>::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, LHSCB<IPMDouble> *barrier_) :
         A(A_), b(b_), c(c_), kappa(1.), tau(1.), _barrier(barrier_) {
     y = Matrix::Zero(A.rows(), 1);
@@ -415,7 +420,7 @@ NonSymmetricIPM<IPMDouble>::NonSymmetricIPM(Matrix &A_, Vector &b_, Vector &c_, 
 
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 void NonSymmetricIPM<IPMDouble>::initialize() {
 
     //Rescale instance for stability/conditioning (See Papp & Yildiz paper)
@@ -471,7 +476,7 @@ void NonSymmetricIPM<IPMDouble>::initialize() {
     _step_length_corrector = 1;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::create_predictor_RHS() {
     Vector v(y.rows() + x.rows() + 1 + s.rows() + 1);
     v << y, x, tau * Matrix::Identity(1, 1), s, kappa * Matrix::Identity(1, 1);
@@ -485,7 +490,7 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::create_predictor_RHS() {
     return rhs;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::create_corrector_RHS() {
     Vector v1 = Vector::Zero(A.rows() + A.cols() + 1);
     Vector v2 = -psi(mu());
@@ -495,12 +500,12 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::create_corrector_RHS() {
     return rhs;
 };
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 IPMDouble NonSymmetricIPM<IPMDouble>::mu() {
     return (x.dot(s) + (tau * kappa)) / (_barrier->concordance_parameter(x) + 1);
 };
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::psi(IPMDouble t) {
     Vector v(s.rows());
     v = s + t * _barrier->gradient(x);
@@ -510,7 +515,7 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::psi(IPMDouble t) {
     return res;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::solve_predictor_system() {
     Vector rhs = create_predictor_RHS();
     SPDLOG_LOGGER_DEBUG(_logger, "System RHS for predictor step is {}", rhs.transpose());
@@ -518,7 +523,7 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::solve_predictor_system() {
     return andersen_direction;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::solve_corrector_system() {
     Vector rhs = create_corrector_RHS();
     SPDLOG_LOGGER_DEBUG(_logger, "Psi is {}", psi(mu()).transpose());
@@ -533,7 +538,7 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::solve_corrector_system() {
     return andersen_dir;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 void NonSymmetricIPM<IPMDouble>::print_status() {
 
     std::string format_ = "{:<25}:{:20.2}";
@@ -626,7 +631,7 @@ void NonSymmetricIPM<IPMDouble>::print_status() {
 
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 bool NonSymmetricIPM<IPMDouble>::terminate_successfully_wrapper() {
 //    Eigen::internal::set_is_malloc_allowed(true);
     bool result = terminate_successfully();
@@ -634,7 +639,7 @@ bool NonSymmetricIPM<IPMDouble>::terminate_successfully_wrapper() {
     return result;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 bool NonSymmetricIPM<IPMDouble>::terminate_successfully() {
     //TODO: use same criteria as in infeasilbe (i.e. scaling invariant and what is used in Skajaa-Ye)
     //Duality
@@ -665,7 +670,7 @@ bool NonSymmetricIPM<IPMDouble>::terminate_successfully() {
 // Termination criteria taken from Skajaa - Ye "A Homogeneous Interior-Point Algorithm for
 // Nonsymmetric Convex Conic Optimization" https://web.stanford.edu/~yyye/nonsymmhsdimp.pdf page 15.
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 bool NonSymmetricIPM<IPMDouble>::terminate_infeasible_wrapper() {
 
 //    Eigen::internal::set_is_malloc_allowed(true);
@@ -674,7 +679,7 @@ bool NonSymmetricIPM<IPMDouble>::terminate_infeasible_wrapper() {
     return result;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 bool NonSymmetricIPM<IPMDouble>::terminate_infeasible() {
 
     //TODO: Figure out if initialization scaling (delta) should influence the termination criteria.
@@ -710,13 +715,13 @@ bool NonSymmetricIPM<IPMDouble>::terminate_infeasible() {
 
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 bool NonSymmetricIPM<IPMDouble>::terminate() {
     return terminate_successfully_wrapper() or terminate_infeasible_wrapper();
 }
 
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 IPMDouble NonSymmetricIPM<IPMDouble>::centrality() {
 
     _centrality_timer.start();
@@ -737,15 +742,17 @@ IPMDouble NonSymmetricIPM<IPMDouble>::centrality() {
     Vector err_L(psi_vec.rows());
     err_L << LLT_sol, tau_kappa_entry;
 
-    ProductBarrier<IPMDouble> * pb = static_cast<ProductBarrier<IPMDouble> * >(_barrier);
-    auto & segs = pb->get_segments();
-    Vector seg_norms(segs.size() + 1);
-    for(int i = 0; i < segs.size(); i++){
-       seg_norms(i) = err_L.segment(segs[i].first, segs[i].second - segs[i].first).norm();
+    if (_logger->level() <= spdlog::level::debug) {
+        ProductBarrier<IPMDouble> *pb = static_cast<ProductBarrier<IPMDouble> * >(_barrier);
+        auto &segs = pb->get_segments();
+        Vector seg_norms(segs.size() + 1);
+        for (int i = 0; i < segs.size(); i++) {
+            seg_norms(i) = err_L.segment(segs[i].first, segs[i].second - segs[i].first).norm();
+        }
+        seg_norms(segs.size()) = tau_kappa_entry;
+        seg_norms /= mu_d;
+        _logger->info("Segments error norms are: {}", seg_norms.transpose());
     }
-    seg_norms(segs.size()) = tau_kappa_entry;
-    seg_norms/=mu_d;
-    _logger->info("Segments error norms are: {}",seg_norms.transpose());
 
     _logger->debug("Linear system error vector is {}", err_L.transpose());
     _custom_timers[2].stop();
@@ -759,7 +766,7 @@ IPMDouble NonSymmetricIPM<IPMDouble>::centrality() {
     return centr_err_L;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 void NonSymmetricIPM<IPMDouble>::test_hessian() {
     for (int i = 0; i < x.rows(); i++) {
         Vector dir = Vector::Zero(x.rows());

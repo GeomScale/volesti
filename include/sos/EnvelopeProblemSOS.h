@@ -93,6 +93,8 @@ private:
 
     bool _use_weighted_polynomials = true;
 
+    unsigned _plot_threshold = 100;
+
     void compute_clenshaw_curtis_integrals();
 
     void initialize_loggers();
