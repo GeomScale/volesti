@@ -204,6 +204,13 @@ template<typename _MatrixType, int _UpLo> class LLT
     void _solve_impl(const RhsType &rhs, DstType &dst) const;
     #endif
 
+   void copy_and_scale(const LLT & other, Scalar scalar){
+       m_matrix = other.m_matrix * scalar;
+       m_l1_norm = other.m_l1_norm;
+       m_isInitialized = other.m_isInitialized;
+       m_info = other.m_info;
+    }
+
   protected:
 
     static void check_template_parameters()

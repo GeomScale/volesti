@@ -16,8 +16,8 @@
 //#define EIGEN_USE_BLAS
 //#define EIGEN_USE_LAPACKE
 
-#include <EigenNew/Dense>
-#include <EigenNew/Sparse>
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 #include <iostream>
 
