@@ -12,7 +12,7 @@ from libcpp cimport bool
 from cpython cimport bool
 
 # For the preprocess step, we need the following dependencies
-import scipy . sparse as sp
+import scipy.sparse as sp
 import gurobipy as gp
 from gurobipy import GRB
 
@@ -24,7 +24,48 @@ def get_time_seed():
    import time
    return int(time.time())
 
-# Build a Python function to pre-process the metabolic network; meaning to remove really "small" facets.
+# Read a Bigg file and get the necessary A and b
+
+# The .json format case 
+
+def read_json_file(input_file):
+   
+   with open(input_file_json, 'r') as f:
+      distros_dict = json.load(f)
+      reactions = distros_dict['reactions']
+      metabolites_used = []
+      
+      for reaction in reactions:
+         
+         metabolites_dic = reaction['metabolites']
+         reaction_name = reaction['id']
+         
+         for metabolite in metabolites_dic.keys():
+            if metabolite not in metabolites_used:
+               metabolites_used.append(metabolite)
+   
+      list_of_reaction_lists = []
+      for reaction in reactions:
+         metabolites_dic = reaction['metabolites']
+         
+         reaction_vector = []
+         
+         for term in range(len(metabolites_used)):
+            
+            metabolite = metabolites_used[term]
+            
+            if metabolite in metabolites_dic.keys():
+               reaction_vector.append(metabolites_dic[metabolite])
+            else:
+               reaction_vector.append(0)
+               
+         list_of_reaction_lists.append(reaction_vector)
+   
+   np_aeq = np.asarray(list_of_reaction_lists)
+   print(np_aeq)
+   f.close()
+
+# Build a Python functionto pre-process the metabolic network; meaning to remove really "small" facets.
 # This function will be implemented by making use of the Gurobi solver
 def pre_process(A, b, Aeq, beq):
 
