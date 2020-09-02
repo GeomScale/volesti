@@ -37,37 +37,47 @@ def read_json_file(input_file):
    
       distros_dict = json.load(f)
    
-      reactions = distros_dict['reactions']
-      metabolites_used = []
+      reactions_list = distros_dict['reactions']
    
-      for reaction in reactions:   
+      metabolites = []
+      reactions = []
+   
+      for reaction in reactions_list:
+   
+         print(reaction)
+   
          metabolites_dic = reaction['metabolites']
          reaction_name = reaction['id']
+         reactions.append(reaction_name)
    
          for metabolite in metabolites_dic.keys():
-            if metabolite not in metabolites_used:
-               metabolites_used.append(metabolite)
+            if metabolite not in metabolites:
+               metabolites.append(metabolite)
    
       list_of_reaction_lists = []
       vector_of_ubs = []
       vector_of_lbs = []
-      for reaction in reactions:
+   
+      for reaction in reactions_list:
    
          ub = float(reaction['upper_bound']) ; vector_of_ubs.append(ub)
          lb = float(reaction['lower_bound']) ; vector_of_lbs.append(lb)
    
          metabolites_dic = reaction['metabolites']
          reaction_vector = []
-         for term in range(len(metabolites_used)):
    
-            metabolite = metabolites_used[term]
+         for term in range(len(metabolites)):
+   
+            metabolite = metabolites[term]
    
             if metabolite in metabolites_dic.keys():
+   
                reaction_vector.append(metabolites_dic[metabolite])
             else:
                reaction_vector.append(0)
    
          list_of_reaction_lists.append(reaction_vector)
+   
    f.close()
    
    # Build function's output; first the A matrix
@@ -82,12 +92,13 @@ def read_json_file(input_file):
    
    # The Aeq matrix
    Aeq = np.asarray(list_of_reaction_lists)
+   Aeq = np.transpose(Aeq)
    
    # And the beq vector
-   m = len(metabolites_used)
+   m = len(metabolites)
    beq = np.zeros(m)
    
-   return A, b, Aeq, beq
+   return A, b, Aeq, beq, metabolites, reactions
 
 
 
