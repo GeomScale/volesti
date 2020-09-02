@@ -31,39 +31,62 @@ def get_time_seed():
 def read_json_file(input_file):
    
    with open(input_file_json, 'r') as f:
+   
       distros_dict = json.load(f)
+   
       reactions = distros_dict['reactions']
       metabolites_used = []
-      
-      for reaction in reactions:
-         
+   
+      for reaction in reactions:   
          metabolites_dic = reaction['metabolites']
          reaction_name = reaction['id']
-         
+   
          for metabolite in metabolites_dic.keys():
             if metabolite not in metabolites_used:
                metabolites_used.append(metabolite)
    
       list_of_reaction_lists = []
+      vector_of_ubs = []
+      vector_of_lbs = []
       for reaction in reactions:
+   
+         ub = float(reaction['upper_bound']) ; vector_of_ubs.append(ub)
+         lb = float(reaction['lower_bound']) ; vector_of_lbs.append(lb)
+   
          metabolites_dic = reaction['metabolites']
-         
          reaction_vector = []
-         
          for term in range(len(metabolites_used)):
-            
+   
             metabolite = metabolites_used[term]
-            
+   
             if metabolite in metabolites_dic.keys():
                reaction_vector.append(metabolites_dic[metabolite])
             else:
                reaction_vector.append(0)
-               
-         list_of_reaction_lists.append(reaction_vector)
    
-   np_aeq = np.asarray(list_of_reaction_lists)
-   print(np_aeq)
+         list_of_reaction_lists.append(reaction_vector)
    f.close()
+   
+   # Build function's output; first the A matrix
+   n = len(list_of_reaction_lists)
+   A = np.zeros((2*n, n), dtype=np.float)
+   A[0:n] = np.eye(n)
+   A[n:] -=  np.eye(n,n, dtype=np.float)
+   
+   # Now, the b vector
+   vector_of_lbs = [-x for x in vector_of_lbs]
+   b = np.asarray(vector_of_ubs + vector_of_lbs)
+   
+   # The Aeq matrix
+   Aeq = np.asarray(list_of_reaction_lists)
+   
+   # And the beq vector
+   m = len(metabolites_used)
+   beq = np.zeros(m)
+   
+   return A, b, Aeq, beq
+
+
 
 # Build a Python functionto pre-process the metabolic network; meaning to remove really "small" facets.
 # This function will be implemented by making use of the Gurobi solver
