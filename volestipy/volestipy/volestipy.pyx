@@ -18,7 +18,7 @@ from gurobipy import GRB
 
 # For the read the json format BIGG files function
 import json
-
+import scipy.io
 # ----------------------------------------------------------------------------------
 
 # Set the time
@@ -96,6 +96,68 @@ def read_json_file(input_file):
    
    # And the beq vector
    m = len(metabolites)
+   beq = np.zeros(m)
+   
+   return A, b, Aeq, beq, metabolites, reactions
+
+
+def read_mat_file(input_file):
+
+   data_from_mat = scipy.io.loadmat(input_file)
+   
+   species_name = ''
+   for key in data_from_mat.keys():
+      if key[0] != "_":
+         species_name = key
+   
+   species = data_from_mat[species_name]
+   list_of_lists = species.tolist()
+   
+   counter = 0
+   
+   metabolites = []
+   
+   for element in list_of_lists[0][0]:
+   
+      if counter == 0:
+   
+         m =len(element)
+   
+         for i in element:
+   
+            metabolite = i[0][0]
+   
+            if metabolite not in metabolites:
+               metabolites.append(metabolite)
+   
+      if counter == 7:
+         reactions_list = element.tolist()
+         reactions = [reaction[0][0] for reaction in reactions_list]
+      if counter == 11:
+         lb_tmp = element
+         lb_tmp = lb_tmp.tolist()
+      if counter == 12:
+         ub_tmp = element
+      if counter == 10:
+         Aeq = element
+   
+      counter += 1
+      
+   # Build function's output; first the A matrix
+   n = len(ub_tmp)
+   A = np.zeros((2*n, n), dtype=np.float)
+   A[0:n] = np.eye(n)
+   A[n:] -=  np.eye(n,n, dtype=np.float)
+   
+   # Now, the b vector
+   ub = [i[0] for i in ub_tmp]
+   lb = [-x[0] for x in lb_tmp]
+   b = np.asarray(ub + lb)
+   
+   # The Aeq matrix
+   Aeq = np.asarray(Aeq)
+   
+   # And the beq vector
    beq = np.zeros(m)
    
    return A, b, Aeq, beq, metabolites, reactions
