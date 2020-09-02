@@ -16,6 +16,9 @@ import scipy.sparse as sp
 import gurobipy as gp
 from gurobipy import GRB
 
+# For the read the json format BIGG files function
+import json
+
 # ----------------------------------------------------------------------------------
 
 # Set the time
@@ -30,7 +33,7 @@ def get_time_seed():
 
 def read_json_file(input_file):
    
-   with open(input_file_json, 'r') as f:
+   with open(input_file, 'r') as f:
    
       distros_dict = json.load(f)
    
