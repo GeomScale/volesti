@@ -44,8 +44,6 @@ def read_json_file(input_file):
    
       for reaction in reactions_list:
    
-         print(reaction)
-   
          metabolites_dic = reaction['metabolites']
          reaction_name = reaction['id']
          reactions.append(reaction_name)
