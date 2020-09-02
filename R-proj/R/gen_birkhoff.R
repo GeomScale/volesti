@@ -7,13 +7,12 @@
 #' @return A polytope class representing the full dimensional \eqn{n}-Birkhoff polytope in H-representation.
 #' @examples 
 #' # generate the Birkhoff polytope of order 5
-#' P = gen_birkoff(5)
+#' P = gen_birkhoff(5)
 #' @export
 gen_birkhoff <- function(n) {
   
   kind_gen = 7
   m_gen = 0
-  
   
   Mat = poly_gen(kind_gen, FALSE, FALSE, n, m_gen)
   

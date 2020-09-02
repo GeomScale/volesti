@@ -29,12 +29,15 @@ VT interval_psrf(MT const& samples, NT alpha = 0.05)
     unsigned int N = samples.cols(), d = samples.rows();
     unsigned int N1 = N / 2;
     unsigned int N2 = N - N1;
-    VT sorted_samples(N), sorted_subsamples1(N1), sorted_subsamples2(N2), results(d);
+    VT sorted_samples(N), marginal_samples(N), sorted_subsamples1(N1), sorted_subsamples2(N2), results(d);
     std::vector<NT> temp_col(N);
     
     for (int i = 0; i < d; i++)
     {
         sorted_samples = runs.col(i);
+        marginal_samples = runs.col(i);
+        
+        temp_col.resize(N);
         temp_col = std::vector<NT>(&sorted_samples[0], sorted_samples.data() + sorted_samples.cols() * 
                                    sorted_samples.rows());
         std::sort(temp_col.begin(), temp_col.end());
@@ -44,14 +47,14 @@ VT interval_psrf(MT const& samples, NT alpha = 0.05)
 
         NT len_total_sequence_interval = sorted_samples(n2) - sorted_samples(n1);
 
-        sorted_subsamples1 = runs.block(0,0,N1,1);
+        sorted_subsamples1 = marginal_samples.block(0,0,N1,1);
         temp_col.resize(N1);
         temp_col = std::vector<NT>(&sorted_subsamples1[0], sorted_subsamples1.data() + 
                                    sorted_subsamples1.cols() * sorted_subsamples1.rows());
         std::sort(temp_col.begin(), temp_col.end());
         sorted_subsamples1 = Eigen::Map<VT>(&temp_col[0], temp_col.size());
 
-        sorted_subsamples2 = runs.block(N1,0,N2,1);
+        sorted_subsamples2 = marginal_samples.block(N1,0,N2,1);
         temp_col.resize(N2);
         temp_col = std::vector<NT>(&sorted_subsamples2[0], sorted_subsamples2.data() + 
                                    sorted_subsamples2.cols() * sorted_subsamples2.rows());

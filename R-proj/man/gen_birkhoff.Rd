@@ -17,5 +17,5 @@ This function can be used to generate the full dimensional \eqn{n}-Birkhoff poly
 }
 \examples{
 # generate the Birkhoff polytope of order 5
-P = gen_birkoff(5)
+P = gen_birkhoff(5)
 }

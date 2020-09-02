@@ -145,6 +145,8 @@ full_dimensional_polytope <- function(P) {
 #' \dQuote{Evaluating the accuracy of sampling-based approaches to the calculation of posterior moments,} \emph{ In Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 #'
 #' @return A boolean to denote if the result of Geweke diagnostic: (i)  false if the null hypothesis is rejected, (ii) true if the null hypothesis is not rejected.
+#'
+#' @export
 geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
     .Call(`_volesti_geweke`, samples, frac_first, frac_last)
 }
@@ -199,8 +201,10 @@ poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL)
 #' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
 #'
 #' @return The value of multivariate PSRF by S. Brooks and A. Gelman.
-psrf_joint <- function(samples) {
-    .Call(`_volesti_psrf_joint`, samples)
+#'
+#' @export
+psrf_multivariate <- function(samples) {
+    .Call(`_volesti_psrf_multivariate`, samples)
 }
 
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
@@ -215,8 +219,10 @@ psrf_joint <- function(samples) {
 #' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
 #'
 #' @return A vector that contains the values of PSRF for each coordinate
-psrf_marginal <- function(samples, method = NULL) {
-    .Call(`_volesti_psrf_marginal`, samples, method)
+#'
+#' @export
+psrf_univariate <- function(samples, method = NULL) {
+    .Call(`_volesti_psrf_univariate`, samples, method)
 }
 
 #' Raftery and Lewis MCMC diagnostic
@@ -230,6 +236,8 @@ psrf_marginal <- function(samples, method = NULL) {
 #' \dQuote{How many iterations in the Gibbs sampler?,} \emph{Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 #'
 #' @return (i) The number of draws required for burn-in, (ii) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992).
+#'
+#' @export
 raftery <- function(samples, q = NULL, r = NULL, s = NULL) {
     .Call(`_volesti_raftery`, samples, q, r, s)
 }

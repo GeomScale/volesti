@@ -14,7 +14,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "diagnostics/marginal_psrf.hpp"
+#include "diagnostics/univariate_psrf.hpp"
 #include "diagnostics/interval_psrf.hpp"
 
 //' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
@@ -29,8 +29,10 @@
 //' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
 //'
 //' @return A vector that contains the values of PSRF for each coordinate
+//'
+//' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector psrf_marginal(Rcpp::NumericMatrix samples,
+Rcpp::NumericVector psrf_univariate(Rcpp::NumericMatrix samples,
                                   Rcpp::Nullable<std::string> method = R_NilValue)
 {
     typedef double NT;
@@ -45,7 +47,7 @@ Rcpp::NumericVector psrf_marginal(Rcpp::NumericMatrix samples,
     }
 
     if (method_rcpp.compare(std::string("normal")) == 0) {
-        scores = marginal_psrf<NT, VT>(Rcpp::as<MT>(samples));
+        scores = univariate_psrf<NT, VT>(Rcpp::as<MT>(samples));
     } else if(method_rcpp.compare(std::string("interval")) == 0) {
         scores = interval_psrf<VT, NT>(Rcpp::as<MT>(samples));
     } else {

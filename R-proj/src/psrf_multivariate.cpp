@@ -27,8 +27,10 @@
 //' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
 //'
 //' @return The value of multivariate PSRF by S. Brooks and A. Gelman.
+//'
+//' @export
 // [[Rcpp::export]]
-double psrf_joint(Rcpp::NumericMatrix samples)
+double psrf_multivariate(Rcpp::NumericMatrix samples)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
