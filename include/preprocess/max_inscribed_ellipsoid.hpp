@@ -127,7 +127,7 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(MT A, VT b, VT const&
 
         // stopping criterion
         if ((res < tol * (1.0 + bnrm) && rmu <= minmu) || 
-                (i > 5 && prev_obj != std::numeric_limits<NT>::lowest() &&
+                (i > 4 && prev_obj != std::numeric_limits<NT>::lowest() &&
                 ((std::abs(objval - prev_obj) <= tol * objval && std::abs(objval - prev_obj) <= tol * prev_obj) ||
                 (prev_obj >= (1.0 - tol) * objval || objval <= (1.0 - tol) * prev_obj) ) ) ) {
             //converged

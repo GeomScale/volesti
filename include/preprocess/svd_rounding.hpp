@@ -33,7 +33,7 @@ void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps
     typedef RandomPointGenerator <walk> RandomPointGenerator;
     PushBackWalkPolicy push_back_policy;
 
-    unsigned int N = num_rounding_steps / (P.dimension()*P.dimension() + 1);
+    unsigned int N = num_rounding_steps;
 
     std::list<Point> randPoints;
     MT RetMat(N, P.dimension());
@@ -53,9 +53,9 @@ void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps
     for (int i = 0; i < N; ++i) {
         RetMat.row(i) = RetMat.row(i) - Means.transpose();
     }
-    Point q(Means);
-    p = p - q;
-    P.shift(Means);
+    //Point q(Means);
+    //p = p - q;
+    //P.shift(Means);
 
     Eigen::BDCSVD<MT> svd(RetMat, Eigen::ComputeFullV);
     s = svd.singularValues() / svd.singularValues().minCoeff();
@@ -104,8 +104,9 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
 
     bool done = false, last_round_under_p, fail;
 
-    unsigned int tries=0, num_rounding_steps=8*n*n*n, rounding_samples=0, round_it;
-    NT max_s, s_cutof, p_cutof, num_its, prev_max_s = std::numeric_limits<NT>::max(), s_cutoff, p_cutoff;
+    unsigned int tries=0, num_rounding_steps = 10 * n, rounding_samples = 0, round_it;
+    NT max_s, s_cutof, p_cutof, num_its, prev_max_s = std::numeric_limits<NT>::max(),
+       s_cutoff, p_cutoff;
     MT V(n,n), S(n,n);
 
     while (!done) {
@@ -115,16 +116,17 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
 
         round_it = 1;
         max_s = std::numeric_limits<NT>::max();
-        s_cutoff = 4.0;
-        p_cutoff = 8.0;
+        s_cutoff = 2.7;
+        p_cutoff = 10.0;
         last_round_under_p = false;
         fail = false;
-        num_its = std::max(std::log(R) / std::log(20.0), 2.0);
+        num_its = 20;
 
         while (max_s > s_cutoff && round_it <= num_its) {
 
-            p.set_to_origin();
-            svd_on_sample<WalkTypePolicy>(P, p, num_rounding_steps, V, s, shift, walk_length, rng);
+            p = InnerBall.first;
+            svd_on_sample<WalkTypePolicy>(P, p, num_rounding_steps, V, s,
+                                          shift, walk_length, rng);
 
             rounding_samples = rounding_samples + num_rounding_steps;
             max_s = s.maxCoeff();
@@ -132,8 +134,9 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
             if (max_s <= p_cutoff && max_s > s_cutoff) {
                 if (last_round_under_p) {
                     num_rounding_steps = num_rounding_steps * 2.0;
-                    p.set_to_origin();
-                    svd_on_sample<WalkTypePolicy>(P, p, num_rounding_steps, V, s, shift, walk_length, rng);
+                    p = InnerBall.first;
+                    svd_on_sample<WalkTypePolicy>(P, p, num_rounding_steps, V, s,
+                                                  shift, walk_length, rng);
                     max_s = s.maxCoeff();
                 } else {
                     last_round_under_p = true;
@@ -153,9 +156,10 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
             round_it++;
             prev_max_s = max_s;
 
+            P.shift(shift);
             P.linear_transformIt(round_mat);
             //P.normalize();
-            P.ComputeInnerBall();
+            InnerBall = P.ComputeInnerBall();
             T_shift += T * shift;
             T = T * round_mat;
         }

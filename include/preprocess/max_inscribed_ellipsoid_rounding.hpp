@@ -31,7 +31,7 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
     MT E, L;
     unsigned int maxiter = 150, iter = 1, d = P.dimension();
 
-    NT R = 100.0, r = 1.0, tol = std::pow(10, -6.0), reg = std::pow(10, -3.0), round_val = 1.0;
+    NT R = 100.0, r = 1.0, tol = std::pow(10, -6.0), reg = std::pow(10, -4.0), round_val = 1.0;
 
     MT T = MT::Identity(d, d);
     VT shift = VT::Zero(d);
@@ -41,8 +41,8 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         // compute the largest inscribed ellipsoid in P centered at x0
         iter_res = max_inscribed_ellipsoid(P.get_mat(), P.get_vec(), x0, maxiter, tol, reg);
         E = iter_res.first.first;
-        E = (E + E.transpose())/2.0;
-        E = E + MT::Identity(d,d)*std::pow(10,-8.0); //normalize E
+        E = (E + E.transpose()) / 2.0;
+        E = E + MT::Identity(d, d)*std::pow(10, -8.0); //normalize E
 
         Eigen::LLT<MT> lltOfA(E); // compute the Cholesky decomposition of E
         L = lltOfA.matrixL();
@@ -52,7 +52,7 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         R = eigensolver.eigenvalues().maxCoeff();
 
         // check the roundness of the polytope
-        if(((R <= 6.0 * r && iter_res.second) || iter >= 20) && iter>3){
+        if(((R / r <= 2.5 && iter_res.second) || iter >= 20) && iter>2){
             break;
         }
 
