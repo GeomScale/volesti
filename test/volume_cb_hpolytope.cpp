@@ -150,7 +150,7 @@ void call_test_birk()
     inp2.open("../R-proj/inst/extdata/birk4.ine",std::ifstream::in);
     read_pointset(inp2,Pin2);
     P.init(Pin2);
-    test_volume(P, 0.00112956, 0.000940414, 0.00108152, 0.00102286,
+    test_volume(P, 0.00106935, 0.00109593, 0.000783142, 0.000845192,
                 0.000970018);
 
     std::cout << "--- Testing volume of H-birk5" << std::endl;
@@ -160,10 +160,10 @@ void call_test_birk()
     read_pointset(inp3,Pin3);
     P.init(Pin3);
     test_volume(P,
-                1.97968e-07,
-                2.55884e-07,
+                9.47562e-08,
+                2.12236e-07,
                 2.5828e-07,
-                2.48026e-07,
+                2.58745e-07,
                 0.000000225);
 
     std::cout << "--- Testing volume of H-birk6" << std::endl;
@@ -173,10 +173,10 @@ void call_test_birk()
     read_pointset(inp4,Pin4);
     P.init(Pin4);
     test_volume(P,
-                7.84351e-13,
-                1.06044e-12,
-                1.08559e-12,
-                7.47561e-13,
+                1.95177e-14,
+                6.10158e-13,
+                2.26624e-13,
+                6.62349e-13,
                 9.455459196 * std::pow(10,-13));
 }
 
@@ -202,8 +202,8 @@ void call_test_prod_simplex() {
     test_volume(P,
                 6.83631 * std::pow(10,-14),
                 8.19581 * std::pow(10,-14),
-                7.42207 * std::pow(10,-14),
-                7.88691e-14,
+                9.35005e-14,
+                6.57309e-14,
                 std::pow(1.0 / factorial(10.0), 2));
 
     std::cout << "--- Testing volume of H-prod_simplex15" << std::endl;
@@ -211,7 +211,7 @@ void call_test_prod_simplex() {
     test_volume(P,
                 6.25978 * std::pow(10,-25),
                 9.33162 * std::pow(10,-25),
-                5.04617e-25,
+                4.82204e-25,
                 5.72542e-25,
                 std::pow(1.0 / factorial(15.0), 2));
 }

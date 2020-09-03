@@ -155,7 +155,7 @@ void call_test_birk() {
     read_pointset(inp3,Pin3);
     P.init(Pin3);
     test_volume(P,
-                4.83242e-07,
+                2.97522e-08,
                 2.00743e-07,
                 2.05779e-07,
                 2.25  * std::pow(10,-7));
@@ -167,9 +167,9 @@ void call_test_birk() {
     read_pointset(inp4,Pin4);
     P.init(Pin4);
     test_volume(P,
-                7.03792e-13,
+                3.66375e-19,
                 9.85929 * std::pow(10,-13),
-                7.85409e-13,
+                8.20587e-13,
                 9.455459196 * std::pow(10,-13));
 }
 
