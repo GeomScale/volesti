@@ -53,9 +53,6 @@ void svd_on_sample(Polytope &P, Point &p, unsigned int const& num_rounding_steps
     for (int i = 0; i < N; ++i) {
         RetMat.row(i) = RetMat.row(i) - Means.transpose();
     }
-    //Point q(Means);
-    //p = p - q;
-    //P.shift(Means);
 
     Eigen::BDCSVD<MT> svd(RetMat, Eigen::ComputeFullV);
     s = svd.singularValues() / svd.singularValues().minCoeff();
@@ -116,7 +113,7 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
 
         round_it = 1;
         max_s = std::numeric_limits<NT>::max();
-        s_cutoff = 2.7;
+        s_cutoff = 2.3;
         p_cutoff = 10.0;
         last_round_under_p = false;
         fail = false;
@@ -133,7 +130,7 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
 
             if (max_s <= p_cutoff && max_s > s_cutoff) {
                 if (last_round_under_p) {
-                    num_rounding_steps = num_rounding_steps * 2.0;
+                    num_rounding_steps = num_rounding_steps * 2;
                     p = InnerBall.first;
                     svd_on_sample<WalkTypePolicy>(P, p, num_rounding_steps, V, s,
                                                   shift, walk_length, rng);
@@ -158,7 +155,6 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
 
             P.shift(shift);
             P.linear_transformIt(round_mat);
-            //P.normalize();
             InnerBall = P.ComputeInnerBall();
             T_shift += T * shift;
             T = T * round_mat;
