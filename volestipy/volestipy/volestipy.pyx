@@ -174,88 +174,97 @@ def pre_process(A, b, Aeq, beq):
 
    try:
 
-      # Create a new model
-      model = gp.Model("preProcHPol")
-
-      # Create variables
-      x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
-
-      # Make sparse Aeq
-      Aeq_sparse = sp.csr_matrix(Aeq)
-
-      # Make A sparse
-      A_sparse = sp.csr_matrix(A)
-
-      # Set the b and beq vectors as numpy vectors
-      b = np.array(b)
-      beq = np.array(beq)
-
-      # Add constraints
-      model.addMConstrs(Aeq_sparse, x, '=', beq, name = "c")
-
-      # Update the model to include the constraints added
-      model.update()
-
-      #######################
-      # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
-      # to start with, avoid ObjBound and do that the same way as Aeq but with unequalities this time
-      #######################
-
-      # Add constraints for the uneqalities of A
-      model.addMConstrs(A_sparse, x, '<', b, name = "d")
-
-      # Update the model with the extra constraints and then print it
-      model.update()
-      model.display()
-
-      # Loop through the lines of the A matrix, set objective function for each and run the model
-      for i in range(A.shape[0]):
-
-         # Set the ith row of the A matrix as the objective function
-         objective_function = A[i,]
-
-         # Set the objective function in the model
-         model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
-         model.update()
-
-         # Optimize model
-         model.optimize ()
-
-         # If optimized
-         status = model.status
-         if status == GRB.OPTIMAL:
-
-            # Get the max objective value
-            max_objective = model.getObjective().getValue()
-
-         # Likewise, for the minimum
-         objective_function = np.asarray([-x for x in objective_function])
-         model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
-         model.update()
-         model.optimize()
-
-         # Again if optimized
-         status = model.status
-         if status == GRB.OPTIMAL:
-
-            # Get the max objective value
-            min_objective = model.getObjective().getValue()
-
-         # Calculate the width
-         width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
-
-         # Check whether we keep or not the equality
-         if width < 1e-07:
-            Aeq_new = np.vstack((Aeq_new, A[i,]))
-            beq_new = np.append(beq_new, max_objective)
-
-         else:
-            A_new = np.vstack((A_new, A[i,]))
-            b_new = np.append(b_new, b[i])
-
-      # Return a tupple including the new A, b, Aeq and beq
-      return A_new, b_new, Aeq_new, beq_new
-
+      # To avoid printint the output of the optimize() function of Gurobi, we need to set an environment like this
+      with gp.Env(empty=True) as env:
+          env.setParam('OutputFlag', 0)
+          env.start()
+          
+          with gp.Model(env=env) as model:
+      
+            # Create variables
+            x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
+      
+            # Make sparse Aeq
+            Aeq_sparse = sp.csr_matrix(Aeq)
+      
+            # Make A sparse
+            A_sparse = sp.csr_matrix(A)
+      
+            # Set the b and beq vectors as numpy vectors
+            b = np.array(b)
+            beq = np.array(beq)
+      
+            # Add constraints
+            model.addMConstrs(Aeq_sparse, x, '=', beq, name = "c")
+      
+            # Update the model to include the constraints added
+            model.update()
+      
+            #######################
+            # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
+            # to start with, avoid ObjBound and do that the same way as Aeq but with unequalities this time
+            #######################
+      
+            # Add constraints for the uneqalities of A
+            model.addMConstrs(A_sparse, x, '<', b, name = "d")
+      
+            # Update the model with the extra constraints and then print it
+            model.update()
+            model.display()
+      
+            # Loop through the lines of the A matrix, set objective function for each and run the model
+            for i in range(A.shape[0]):
+      
+               # Set the ith row of the A matrix as the objective function
+               objective_function = A[i,]
+      
+               # Set the objective function in the model
+               model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
+               model.update()
+      
+               # Optimize model
+               model.optimize ()
+      
+               # If optimized
+               status = model.status
+               if status == GRB.OPTIMAL:
+      
+                  # Get the max objective value
+                  max_objective = model.getObjective().getValue()
+      
+               # Likewise, for the minimum
+               objective_function = np.asarray([-x for x in objective_function])
+               model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
+               model.update()
+               model.optimize()
+      
+               # Again if optimized
+               status = model.status
+               if status == GRB.OPTIMAL:
+      
+                  # Get the max objective value
+                  min_objective = model.getObjective().getValue()
+      
+               # Calculate the width
+               width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
+      
+               # Check whether we keep or not the equality
+               if width < 1e-07:
+                  Aeq_new = np.vstack((Aeq_new, A[i,]))
+                  beq_new = np.append(beq_new, max_objective)
+      
+               else:
+                  A_new = np.vstack((A_new, A[i,]))
+                  b_new = np.append(b_new, b[i])
+                  
+            np.save('preprocessed_A.npy', A_new)
+            np.save('preprocessed_b.npy', b_new)
+            np.save('preprocessed_Aeq.npy', Aeq_new)
+            np.save('preprocessed_beq.npy', beq_new)
+            
+            # Return a tupple including the new A, b, Aeq and beq
+            return A_new, b_new, Aeq_new, beq_new
+      
    # Print error messages
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
@@ -296,7 +305,6 @@ cdef extern from "bindings.h":
 
       # get full dimensional polytope
       int full_dimensiolal_polytope(double* N_extra_trans, double* shift, double* A_full_extra_trans, double* b_full)
-
 
 
 # lists with the methods supported by volesti for volume approximation and random walk
@@ -377,8 +385,6 @@ cdef class HPolytope:
    @property
    def dimensions(self):
       return self._A.shape[1]
-
-
 
 
 # build the low_dim_polytope_cpp class
