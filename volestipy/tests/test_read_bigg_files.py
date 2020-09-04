@@ -6,8 +6,8 @@ import volestipy
 
 
 current_directory = os.getcwd()
-input_file_json = current_directory +  '/bigg_files/RECON1.json'
-input_file_mat = current_directory +  '/bigg_files/RECON1.mat'
+input_file_json = current_directory +  '/bigg_files/e_coli_core.json'
+input_file_mat = current_directory +  '/bigg_files/e_coli_core.mat'
 
 
 met_net = volestipy.read_json_file(input_file_json)
