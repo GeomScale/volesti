@@ -4,15 +4,43 @@
 
 ### Dependencies
 
-To compile the Python wrapper you first need to get the [liblpsolve55.so](https://sourceforge.net/projects/lpsolve/) library. Let's assume you have it under `/usr/lib/lpsolve/`.
+To compile the Python wrapper you first need to get the [liblpsolve55.so](https://sourceforge.net/projects/lpsolve/) library. 
+You may need to have a look [here](http://lpsolve.sourceforge.net/5.5/) to get this right. 
+Let's assume you have it under `/usr/lib/lpsolve/`.
+
+
 You also need `cython`, `numpy` and `setuptools`. In `debian` systems you can get then by
 ```
 sudo apt-get install cython python-numpy python-setuptools
 ```
 
-You also need to get the [Gurobi solver](https://www.gurobi.com/).
-Through the [Download center](https://www.gurobi.com/downloads/) you may download its Python interface along with a license.
+Finally, the [Gurobi solver](https://www.gurobi.com/) needs to be installed as well.
+Through the [Download center](https://www.gurobi.com/downloads/) you may download its Python interface along with a license; the latter is a text file called `gurobi.lic`.
 Without a license *gurobipy* will not be able to perform neither will *volestipy*. 
+
+You can follow the inscriptions described [here](https://support.gurobi.com/hc/en-us/articles/360044290292-Installing-Gurobi-for-Python) to get ```gurobipy```. 
+
+Once you complete these steps, make sure that `gurobipy` is now available for your Python environment. 
+
+```
+haris@XPS-13-9343:~$ python3
+Python 3.6.9 (default, Apr 18 2020, 01:56:04) 
+[GCC 8.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import gurobipy
+>>> gurobipy.
+gurobipy.AttrConstClass(     gurobipy.GenExpr(            gurobipy.QConstr(            gurobipy.atexit              gurobipy.gurobi(             gurobipy.multidict(          gurobipy.resetParams(
+gurobipy.Batch(              gurobipy.GurobiError(        gurobipy.QuadExpr(           gurobipy.bi                  gurobipy.help(               gurobipy.numbers             gurobipy.setParam(
+gurobipy.CallbackClass(      gurobipy.Iterable(           gurobipy.SOS(                gurobipy.dis                 gurobipy.inspect             gurobipy.operator            gurobipy.sys
+gurobipy.Column(             gurobipy.LinExpr(            gurobipy.StatusConstClass(   gurobipy.disposeDefaultEnv(  gurobipy.itertools           gurobipy.or_(                gurobipy.system(
+gurobipy.Constr(             gurobipy.MLinExpr(           gurobipy.TempConstr(         gurobipy.exprfactory(        gurobipy.izip(               gurobipy.os                  gurobipy.tupledict(
+gurobipy.Env(                gurobipy.MQuadExpr(          gurobipy.Var(                gurobipy.exprfactory_iter(   gurobipy.logging             gurobipy.paramHelp(          gurobipy.tuplelist(
+gurobipy.ErrorConstClass(    gurobipy.MVar(               gurobipy.abs_(               gurobipy.fnmatch             gurobipy.math                gurobipy.quicksum(           gurobipy.types
+gurobipy.GRB(                gurobipy.Model(              gurobipy.all_(               gurobipy.gc                  gurobipy.max_(               gurobipy.re                  gurobipy.writeParams(
+gurobipy.GRBStringIO(        gurobipy.ParamClass(         gurobipy.and_(               gurobipy.getParamInfo(       gurobipy.min_(               gurobipy.read(               
+gurobipy.GenConstr(          gurobipy.ParamConstClass(    gurobipy.any_(               gurobipy.glob                gurobipy.models(             gurobipy.readParams(         
+>>> gurobipy.
+```
 
 
 ### Install *volestipy*
