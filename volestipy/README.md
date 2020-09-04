@@ -8,9 +8,9 @@ To compile the Python wrapper you first need to get the [liblpsolve55.so](https:
 You may need to have a look [here](http://lpsolve.sourceforge.net/5.5/) to get this right. 
 Let's assume you have it under `/usr/lib/lpsolve/`.
 
-// # **Reminder**
-// # As I recall `lpsolve` is not that straightforward to get. 
-// # I think it would be useful to describe a *how to get it* thoroughly. 
+[//]: # (**Reminder**)
+[//]: (# As I recall `lpsolve` is not that straightforward to get. )
+[//]: (# I think it would be useful to describe a *how to get it* thoroughly. )
 
 
 You also need `cython`, `numpy` and `setuptools`. In `debian` systems you can get then by
