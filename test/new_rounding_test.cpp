@@ -80,7 +80,7 @@ void rounding_test(Polytope &HP,
     NT volume = std::get<2>(res) * volume_cooling_balls<CDHRWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedCDHR, exact);
 
-    volume = std::get<2>(res) * volume_cooling_balls<RDHRWalk, RNGType>(HP, e, walk_len);
+    volume = std::get<2>(res) * volume_cooling_balls<RDHRWalk, RNGType>(HP, e, 2*walk_len);
     test_values(volume, expectedRDHR, exact);
 
     volume = std::get<2>(res) * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len);

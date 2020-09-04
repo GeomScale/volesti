@@ -45,7 +45,8 @@ void test_volume(Polytope &HP,
                  double const& expectedBall,
                  double const& expectedCDHR,
                  double const& expectedRDHR,
-                 double const& exact)
+                 double const& exact,
+                 bool birk = false)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
@@ -53,14 +54,17 @@ void test_volume(Polytope &HP,
     // Setup the parameters
     int walk_len = 10 + HP.dimension()/10;
     NT e=0.1;
+    NT volume;
 
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 
     // TODO: low accuracy in high-dimensions
-    NT volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, e, walk_len);
-    test_values(volume, expectedBall, exact);
+    if (!birk) {
+        volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, e, walk_len);
+        test_values(volume, expectedBall, exact);
+    }
 
     volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedCDHR, exact);
@@ -134,7 +138,7 @@ void call_test_birk() {
     inp.open("../R-proj/inst/extdata/birk3.ine",std::ifstream::in);
     read_pointset(inp,Pin);
     P.init(Pin);
-    test_volume(P, 0.116678, 0.122104, 0.11326, 0.125);
+    test_volume(P, 0.116678, 0.122104, 0.11326, 0.125, true);
 
     std::cout << "--- Testing volume of H-birk4" << std::endl;
     std::ifstream inp2;
@@ -146,7 +150,8 @@ void call_test_birk() {
                 0.000450761,
                 0.00108943,
                 0.00110742,
-                0.000970018);
+                0.000970018,
+                 true);
 
     std::cout << "--- Testing volume of H-birk5" << std::endl;
     std::ifstream inp3;
@@ -158,7 +163,8 @@ void call_test_birk() {
                 2.97522e-08,
                 2.00743e-07,
                 2.05779e-07,
-                2.25  * std::pow(10,-7));
+                2.25  * std::pow(10,-7),
+                true);
 
     std::cout << "--- Testing volume of H-birk6" << std::endl;
     std::ifstream inp4;
@@ -170,7 +176,8 @@ void call_test_birk() {
                 3.66375e-19,
                 9.85929 * std::pow(10,-13),
                 8.20587e-13,
-                9.455459196 * std::pow(10,-13));
+                9.455459196 * std::pow(10,-13),
+                true);
 }
 
 template <typename NT>

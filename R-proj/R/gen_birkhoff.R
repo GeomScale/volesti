@@ -1,6 +1,7 @@
 #' Generator function for Birkhoff polytope
 #' 
 #' This function can be used to generate the full dimensional \eqn{n}-Birkhoff polytope in H-representation.
+#' The dimension of the generated polytope is \eqn{(n-1)^2}.
 #' 
 #' @param n The order of the Birkhoff polytope
 #' 

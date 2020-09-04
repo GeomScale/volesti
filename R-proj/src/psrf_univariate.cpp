@@ -33,7 +33,7 @@
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericVector psrf_univariate(Rcpp::NumericMatrix samples,
-                                  Rcpp::Nullable<std::string> method = R_NilValue)
+                                    Rcpp::Nullable<std::string> method = R_NilValue)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
