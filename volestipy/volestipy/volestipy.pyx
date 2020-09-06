@@ -257,10 +257,8 @@ def pre_process(A, b, Aeq, beq):
                   A_new = np.vstack((A_new, A[i,]))
                   b_new = np.append(b_new, b[i])
                   
-            np.save('preprocessed_A.npy', A_new)
-            np.save('preprocessed_b.npy', b_new)
-            np.save('preprocessed_Aeq.npy', Aeq_new)
-            np.save('preprocessed_beq.npy', beq_new)
+            np.save('A_preprocessed.npy', A_new) ; np.save('b_preprocessed.npy', b_new)
+            np.save('Aeq_preprocessed.npy', Aeq_new) ; np.save('beq_preprocessed.npy', beq_new)
             
             # Return a tupple including the new A, b, Aeq and beq
             return A_new, b_new, Aeq_new, beq_new
@@ -272,63 +270,112 @@ def pre_process(A, b, Aeq, beq):
       print ("Encountered an attribute error ")
 
 
+# This is a function to get the maximum ball included in the full dimensional polytope 
+def get_max_ball(A_full_dim, b_full_dim):
+   
+   extra_column = []
+   
+   for i in range(A_full_dim.shape[1]):
+      entry = np.linalg.norm(A[i,]
+      extra_column.append(entry)
+      
+   column = np.asarray(extra_column) 
+   np.append(A_full_dim, column, axis=1) 
+   
+   with gp.Env(empty=True) as env:
+      env.setParam('OutputFlag', 0)
+      env.start()
+       
+      d = A_full_dim.shape[1] 
+       
+      with gp.Model(env=env) as model:
+         
+         # Create variables
+         x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
+         
+         # Make A_full_dim sparse
+         A_full_dim_sparse = sp.csr_matrix(A_full_dim)
+         
+         # Add constraints
+         model.addMConstrs(A_full_dim_sparse, x, '<', b_full_dim, name = "c")
+         model.update()
+
+         for i in range(A_full_dim_sparse.shape[0]):
+   
+            # Set the ith row of the A matrix as the objective function
+            objective_function = A[i,]
+   
+            # Set the objective function in the model
+            model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MAXIMIZE)
+            model.update()
+   
+            # Optimize model
+            model.optimize ()
+
+
+
+
+
+
+
+
 ################################################################################
 #                  Classes for the volesti C++ code                            #
 ################################################################################
 
-# get classes from the bindings.h file
+# Get classes from the bindings.h file
 cdef extern from "bindings.h":
 
-   # the HPolytopeCPP class along with its functions
+   # The HPolytopeCPP class along with its functions
    cdef cppclass HPolytopeCPP:
 
-      # initialization
+      # Initialization
       HPolytopeCPP() except +
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables) except +
 
-      # compute volume
+      # Compute volume
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);
 
-      # random sampling
+      # Random sampling
       double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, \
          bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
-      # rounding H-Polytope
+      # Rounding H-Polytope
       void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value);
 
-   # the lowDimPolytopeCPP class along with its functions
+   # The lowDimPolytopeCPP class along with its functions
    cdef cppclass lowDimHPolytopeCPP:
 
-      # initialization
+      # Initialization
       lowDimHPolytopeCPP() except +
       lowDimHPolytopeCPP(double *A, double *b, double *Aeq, double *beq, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq) except +
 
-      # get full dimensional polytope
+      # Get full dimensional polytope
       int full_dimensiolal_polytope(double* N_extra_trans, double* shift, double* A_full_extra_trans, double* b_full)
 
 
-# lists with the methods supported by volesti for volume approximation and random walk
+# Lists with the methods supported by volesti for volume approximation and random walk
 volume_methods = ["sequence_of_balls".encode("UTF-8"), "cooling_gaussian".encode("UTF-8"), "cooling_balls".encode("UTF-8")]
 walk_methods = ["uniform_ball".encode("UTF-8"), "CDHR".encode("UTF-8"), "RDHR".encode("UTF-8"), "gaussian_ball".encode("UTF-8"), \
                 "gaussian_CDHR".encode("UTF-8"), "gaussian_RDHR".encode("UTF-8"), "uniform_ball".encode("UTF-8"), "billiard".encode("UTF-8")]
 rounding_methods = ["min_ellipsoid".encode("UTF-8"), "svd".encode("UTF-8"), "max_ellipsoid".encode("UTF-8")]
 
 
-# build the HPolytope class
+# Build the HPolytope class
 cdef class HPolytope:
 
    cdef HPolytopeCPP polytope_cpp
    cdef double[:,::1] _A
    cdef double[::1] _b
 
-# set the specs of the class
+# Set the specs of the class
    def __cinit__(self, double[:,::1] A, double[::1] b):
       self._A = A
       self._b = b
       n_hyperplanes, n_variables = A.shape[0], A.shape[1]
       self.polytope_cpp = HPolytopeCPP(&A[0,0], &b[0], n_hyperplanes, n_variables)
 
-#  this is where the volesti functions are getting their python interface; first the compute_volume() function
+#  This is where the volesti functions are getting their python interface; first the compute_volume() function
    def compute_volume(self, walk_len = 2, epsilon = 0.05, vol_method = "sequence_of_balls", walk_method = "uniform_ball", \
       np.npy_int32 seed=get_time_seed()):
 
@@ -343,7 +390,7 @@ cdef class HPolytope:
       else:
          raise Exception('"{}" is not implemented to compute volume. Available methods are: {}'.format(vol_method, volume_methods))
 
-# likewise, the generate_samples() function
+# Likewise, the generate_samples() function
    def generate_samples(self, walk_len = 1, number_of_points = 1000, number_of_points_to_burn = 100, boundary = False, cdhr=True, \
       rdhr = False, gaussian = False, set_L = False, billiard = False, ball_walk = False, a = 0, L = 0):
 
@@ -353,27 +400,36 @@ cdef class HPolytope:
       self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L, &samples[0,0])
       return np.asarray(samples)      # we need to build a Python function for getting a starting point depending on the polytope
 
-# the rounding() function; like the compute_volume; there are more than one methods for this step
+
+# The rounding() function; like the compute_volume; there are more than one methods for this step
    def rounding(self, rounding_method = 'max_ellipsoid'):
 
-      # get the dimensions of the items about to build
+      # Get the dimensions of the items about to build
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
 
-      # set the variables of those items; notice that they are all cdef type except of the last one which is about to be used both as a C++ and a Python variable
+      # Set the variables of those items; notice that they are all cdef type except of the last one which is about to be used both as a C++ and a Python variable
       cdef double[:,::1] new_A = np.zeros((n_hyperplanes, n_variables), dtype=np.float64, order="C")
       cdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
       cdef double round_value
 
-      # transform the rounding_method variable to UTF-8 coding
+      # Transform the rounding_method variable to UTF-8 coding
       rounding_method = rounding_method.encode("UTF-8")
 
-      # check whether the rounding method the user asked for, is actually among those volestipy supports
+      # Check whether the rounding method the user asked for, is actually among those volestipy supports
       if rounding_method in rounding_methods:
+         
          self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_value)
+         
+         np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
+         np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
+         np.savetxt('round_value.txt', np.asarray(round_value))
+         
          return np.asarray(new_A),np.asarray(new_b),np.asarray(T_matrix),np.asarray(shift),np.asarray(round_value)
+      
       else:
+         
          raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(rounding_method, rounding_methods))
 
    @property
@@ -387,7 +443,7 @@ cdef class HPolytope:
       return self._A.shape[1]
 
 
-# build the low_dim_polytope_cpp class
+# Build the low_dim_polytope_cpp class
 cdef class low_dim_HPolytope:
 
    cdef lowDimHPolytopeCPP low_dim_polytope_cpp
@@ -396,7 +452,7 @@ cdef class low_dim_HPolytope:
    cdef double [:,::1] _Aeq
    cdef double[::1] _beq
 
-# set the specs of the class
+# Set the specs of the class
    def __cinit__(self, double[:,::1] A, double[::1] b, double[:,::1] Aeq, double[::1] beq):
       self._A = A
       self._b = b
@@ -405,14 +461,14 @@ cdef class low_dim_HPolytope:
       n_rows_of_A, n_cols_of_A = A.shape[0], A.shape[1]
       n_row_of_Aeq, n_cols_of_Aeq = Aeq.shape[0], Aeq.shape[1]
 
-      # if statements to check whether the user's input is valid for the low_dim_HPolytope class to run
+      # If statements to check whether the user's input is valid for the low_dim_HPolytope class to run
       if n_rows_of_A == b.shape[0]:
 
          if n_row_of_Aeq == beq.shape[0]:
 
             if n_cols_of_A == n_cols_of_Aeq:
 
-               # run the constructor
+               # Run the constructor
                self.low_dim_polytope_cpp = lowDimHPolytopeCPP(&A[0,0], &b[0], &Aeq[0,0], &beq[0], n_rows_of_A, n_cols_of_A, n_row_of_Aeq, n_cols_of_Aeq)
 
             else:
@@ -423,51 +479,55 @@ cdef class low_dim_HPolytope:
          raise Exception('The number of rows of A equals to "{}" while the elements of b are {}. The b vector needs to have length equal to the number of rows of A.'.format(n_rows_of_A, b.shape[0]))
 
 
-   # the get_full_dimensional_polytope() function(); that needs to run in case the user does not provide volestipy with a full dimensional polytope
+   # The get_full_dimensional_polytope() function(); that needs to run in case the user does not provide volestipy with a full dimensional polytope
    def full_dimensiolal_polytope(self):
 
-      # get dimensions of the initial S (Aeq) matrix
+      # Get dimensions of the initial S (Aeq) matrix
       m = self._Aeq.shape[0]
       n = self._Aeq.shape[1]
       k = self._A.shape[0]
 
-      # set the output variables
-      # the number of lines in the transpose N (columns in the actual matrix) are at least n-m; but we do not know their exact number
-      # so we initialize it with the maximum possible number of lines (n). the same is for the full A transpose matrix
-      # later, we will have to keep their actual dimension and remove these variables with the extra lines
+      # Set the output variables
+      # The number of lines in the transpose N (columns in the actual matrix) are at least n-m; but we do not know their exact number
+      # So we initialize it with the maximum possible number of lines (n). the same is for the full A transpose matrix
+      # Later, we will have to keep their actual dimension and remove these variables with the extra lines
       cdef double[:,::1] N_extra_trans = np.zeros((n, n), dtype=np.float64, order="C")
       cdef double[::1] shift = np.zeros((n), dtype=np.float64, order="C")
       cdef double[:,::1] A_full_extra_trans = np.zeros((n,k), dtype=np.float64, order="C")
       cdef double[::1] b_full = np.zeros((k), dtype=np.float64, order="C")
 
-      # we need to keep the final number of columns of the N / full_A matrices
+      # We need to keep the final number of columns of the N / full_A matrices
       cpdef int n_of_cols_in_N
 
-      # call the C++ class to get the full_dimensional polytope
+      # Call the C++ class to get the full_dimensional polytope
       n_of_cols_in_N = self.low_dim_polytope_cpp.full_dimensiolal_polytope(&N_extra_trans[0,0], &shift[0], &A_full_extra_trans[0,0], &b_full[0])
 
-      # get a matrix with exactly the number of lines and columns that N expands to and delete the one with the extra columns
+      # Get a matrix with exactly the number of lines and columns that N expands to and delete the one with the extra columns
       N = np.zeros((n, n_of_cols_in_N), dtype=np.float64, order="C")
       for i in range(n):
          for j in range(n_of_cols_in_N):
             N[i,j] = np.asarray(N_extra_trans[j,i])
       del N_extra_trans
 
-      # likewise, for the A matrix of the full dimensional polytope
+      # Likewise, for the A matrix of the full dimensional polytope
       A_full = np.zeros((k, n_of_cols_in_N), dtype=np.float64, order="C")
       for i in range(k):
          for j in range(n_of_cols_in_N):
             A_full[i,j] = np.asarray(A_full_extra_trans[j,i])
       del A_full_extra_trans
 
-      # finally, we need to build an HP object for the full dumensional polytope we got
+      # Finally, we need to build an HP object for the full dumensional polytope we got
       full_dimensional_polytope = HPolytope(A_full,b_full)
 
-      # delete all non-needed vars
+      # Print all the output of the function in .npy files
+      np.save('A_full_dim.npy', A_ful) ; np.save('b_full_dim.npy', b_full)
+      np.save('N_full_dim.npy', N) ; np.save('shift_full_dim.npy',shift)
+
+      # Delete all non-needed vars
       del A_full
       del b_full
 
-      # return a tuple whith the full dimensional HPolytope object in the first position ([0]) the N matrix and the shift vector
+      # Return a tuple whith the full dimensional HPolytope object in the first position ([0]) the N matrix and the shift vector
       return full_dimensional_polytope, np.asarray(N), np.asarray(shift)
 
 
