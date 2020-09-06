@@ -4,10 +4,12 @@
 \alias{inner_ball}
 \title{Compute an inscribed ball of a convex polytope}
 \usage{
-inner_ball(P)
+inner_ball(P, lpsolve = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.}
+
+\item{lpsolve}{Optional. A boolean variable to compute the Chebychev ball of an H-polytope using the lpsolve library.}
 }
 \value{
 A \eqn{(d+1)}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.

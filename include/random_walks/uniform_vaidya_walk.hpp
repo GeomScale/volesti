@@ -60,7 +60,7 @@ struct VaidyaWalk
         {
             MT A = P.get_mat();
             VT b = P.get_vec(), _vec_point = VT::Zero(P.dimension()), p0 = p.getCoefficients();
-            NT r = P.ComputeInnerBall().second / NT(2);
+            NT r = P.ComputeInnerBall().second;
             vaidyaw = VaidyaWalker<NT>(p0, A, b, r);
         }
 
@@ -69,7 +69,7 @@ struct VaidyaWalk
             MT A = P.get_mat();
             VT b = P.get_vec(), _vec_point = VT::Zero(P.dimension()), p0 = p.getCoefficients();
             NT r = params.set_L ? params.m_L
-                          : P.ComputeInnerBall().second / NT(2);
+                          : P.ComputeInnerBall().second;
             vaidyaw = VaidyaWalker<NT>(p0, A, b, r);
         }
 

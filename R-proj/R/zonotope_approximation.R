@@ -40,4 +40,3 @@ zonotope_approximation <- function(Z, fit_ratio = NULL, settings = NULL, seed = 
   return(PP)
   
 }
-

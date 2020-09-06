@@ -284,4 +284,3 @@ call_test_skinny_cube<double>();
 //call_test_skinny_cube<float>();
 //call_test_skinny_cube<long double>();
 }
-

@@ -19,5 +19,6 @@
 #include "random_walks/uniform_dikin_walk.hpp"
 #include "random_walks/uniform_john_walk.hpp"
 #include "random_walks/uniform_vaidya_walk.hpp"
+#include "random_walks/uniform_accelerated_billiard_walk.hpp"
 
 #endif // RANDOM_WALKS_RANDOM_WALKS_HPP

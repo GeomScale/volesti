@@ -1,6 +1,6 @@
 // Code from https://github.com/rzrsk/vaidya-walk
 
-// Modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
+// Modified by Alexandros Manochis to be integrated in volesti, as part of Google Summer of Code 2020 program.
 
 #ifndef PWALK_DIKIN_WALKER_HPP_
 #define PWALK_DIKIN_WALKER_HPP_

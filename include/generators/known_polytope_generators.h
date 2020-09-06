@@ -305,60 +305,47 @@ Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
     return P;
 }
 
+template <typename Polytope>
+Polytope gen_birk(unsigned int const& n) {
 
-/*
- * ToDo: brkhoff polytope generator
-template <class Polytope>
-Polytope gen_birk(int n, bool Vpoly = false){
- int m = pow(n,2);
-  int d = pow(n-1,2)+1;
+    unsigned int m = n * n;
+    unsigned int d = n * n - 2 * n + 1;
 
-  std::cout << "birk_"<<n<<".ine\n";
-  std::cout << "H-representation\n";
-  std::cout << "begin\n";
-  std::cout << " " << m << " " << d << " integer\n";
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
 
-  std::cout << -1*(n-2) << " ";
-  for(int j=1; j< d; ++j)
-    std::cout << "1 ";
-  std::cout << "\n";
+    MT A = MT::Zero(m, d);
+    VT b(m);
 
-  for(int i=0; i<n-1; ++i){
-		std::cout << "1 ";
-		for(int j=1; j< d; ++j){
-			if(j%(n-1) == i){
-		    std::cout << "-1 ";
-		  }
-		  else std::cout << " 0 ";
-		}
-		std::cout << "\n";
-	}
+    b(d) = -1.0 * int(n - 2);
 
-	for(int i=0; i<n-1; ++i){
-		std::cout << "1 ";
-		for(int j=0; j< d-1; ++j){
-			if(j/(n-1) == i){
-		    std::cout << "-1 ";
-		  }
-		  else std::cout << " 0 ";
-		}
-		std::cout << "\n";
-	}
+    for (int i = 0; i < d; ++i) {
+        A(d, i) = -1;
+    }
 
-	for(int i=0; i<d-1; ++i){
-		std::cout << "0 ";
-		for(int j=0; j< d-1; ++j){
-			if(j == i){
-		    std::cout << " 1 ";
-		  }
-		  else std::cout << " 0 ";
-		}
-		std::cout << "\n";
-	}
-	std::cout << "end\ninput_incidence" << std::endl;
- }
+    for (int i = 0; i < d; ++i) {
+        b(i) = 0;
+        A(i, i) = -1;
+    }
 
+    for (int i = d+1; i < d+1+n-1; ++i) {
+        b(i) = 1;
+        for (int counter = 0; counter < n-1; ++counter) {
+            A(i, counter * (n-1) + (i-d-1)) = 1;
+        }
+    }
 
- */
+    for (int i = d+n; i < m; ++i) {
+        b(i) = 1;
+        for (int counter = 0; counter < n-1; ++counter) {
+            A(i, counter + (i-d-n) * (n-1)) = 1;
+        }
+    }
+
+    Polytope P;
+    P.init(d, A, b);
+
+    return P;
+}
 
 #endif

@@ -1,5 +1,7 @@
 // Code from https://github.com/rzrsk/vaidya-walk
 
+// Modified by Alexandros Manochis to be integrated in volesti, as part of Google Summer of Code 2020 program.
+
 #ifndef PWALK_UTIL_MATH_FUNCTIONS_HPP_
 #define PWALK_UTIL_MATH_FUNCTIONS_HPP_
 
