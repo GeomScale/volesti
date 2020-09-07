@@ -30,7 +30,6 @@ def get_time_seed():
 # Read a Bigg file and get the necessary A and b
 
 # The .json format case 
-
 def read_json_file(input_file):
    
    with open(input_file, 'r') as f:
@@ -98,7 +97,7 @@ def read_json_file(input_file):
    
    return A, b, Aeq, beq, metabolites, reactions
 
-
+# The .mat format case 
 def read_mat_file(input_file):
 
    data_from_mat = scipy.io.loadmat(input_file)
