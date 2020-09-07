@@ -256,7 +256,16 @@ def pre_process(A, b, Aeq, beq):
                else:
                   A_new = np.vstack((A_new, A[i,]))
                   b_new = np.append(b_new, b[i])
-                  
+            
+            # The np.vstack() creates issues on changing contiguous c orded of np arrays; here we fix this 
+            Aeq_new = np.ascontiguousarray(Aeq_new, dtype=np.dtype)
+            A_new = np.ascontiguousarray(A_new, dtype=np.dtype)
+            
+            # Furthremore, we need to have float64 in all numpy arrays
+            Aeq_new = Aeq_new.astype('float64')
+            A_new = A_new.astype('float64')
+            
+            # And now we export the pre-processed elements on .npy files to load and use them anytime
             np.save('A_preprocessed.npy', A_new) ; np.save('b_preprocessed.npy', b_new)
             np.save('Aeq_preprocessed.npy', Aeq_new) ; np.save('beq_preprocessed.npy', beq_new)
             
@@ -276,7 +285,7 @@ def get_max_ball(A_full_dim, b_full_dim):
    extra_column = []
    
    for i in range(A_full_dim.shape[1]):
-      entry = np.linalg.norm(A[i,]
+      entry = np.linalg.norm(A_full_dim[i,])
       extra_column.append(entry)
       
    column = np.asarray(extra_column) 
@@ -292,6 +301,10 @@ def get_max_ball(A_full_dim, b_full_dim):
          
          # Create variables
          x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
+         model.update()
+         
+         r = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
+         model.update()
          
          # Make A_full_dim sparse
          A_full_dim_sparse = sp.csr_matrix(A_full_dim)
@@ -300,17 +313,16 @@ def get_max_ball(A_full_dim, b_full_dim):
          model.addMConstrs(A_full_dim_sparse, x, '<', b_full_dim, name = "c")
          model.update()
 
-         for i in range(A_full_dim_sparse.shape[0]):
+         # Set the ith row of the A matrix as the objective function
+         null_part_of_obj_func = np.zeros(d)
+         objective_function = np.insert(null_part_of_obj_func, d, 1)
    
-            # Set the ith row of the A matrix as the objective function
-            objective_function = A[i,]
-   
-            # Set the objective function in the model
-            model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MAXIMIZE)
-            model.update()
-   
-            # Optimize model
-            model.optimize ()
+         # Set the objective function in the model
+         model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MAXIMIZE)
+         model.update()
+
+         # Optimize model
+         model.optimize ()
 
 
 
@@ -454,6 +466,7 @@ cdef class low_dim_HPolytope:
 
 # Set the specs of the class
    def __cinit__(self, double[:,::1] A, double[::1] b, double[:,::1] Aeq, double[::1] beq):
+      
       self._A = A
       self._b = b
       self._Aeq = Aeq
@@ -520,7 +533,7 @@ cdef class low_dim_HPolytope:
       full_dimensional_polytope = HPolytope(A_full,b_full)
 
       # Print all the output of the function in .npy files
-      np.save('A_full_dim.npy', A_ful) ; np.save('b_full_dim.npy', b_full)
+      np.save('A_full_dim.npy', A_full) ; np.save('b_full_dim.npy', b_full)
       np.save('N_full_dim.npy', N) ; np.save('shift_full_dim.npy',shift)
 
       # Delete all non-needed vars
