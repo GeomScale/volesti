@@ -286,22 +286,12 @@ def get_max_ball(A_full_dim, b_full_dim):
    m = A_full_dim.shape[0]
    n = A_full_dim.shape[1]
 
-   print("Here is the shape of A")
-   print("this is m: " + str(m))
-   print("this is n: " + str(n))
-
    for i in range(A_full_dim.shape[0]):
       entry = np.linalg.norm(A_full_dim[i,])
       extra_column.append(entry)
 
-   column = np.asarray(extra_column) 
+   column = np.asarray(extra_column)
    A_expand = np.c_[A_full_dim, column]
-
-   print("Here is the shape of A_exp")
-   print(A_expand.shape[0])
-   print(A_expand.shape[1])
-   print(A_expand)
-
 
    with gp.Env(empty=True) as env:
       env.setParam('OutputFlag', 1)
@@ -313,10 +303,7 @@ def get_max_ball(A_full_dim, b_full_dim):
 
          # Create variable
          x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
-#         print("\n\n >>this is x variable:")
-#         print(x)
          model.update()
-#         model.display()
 
          # Make A_full_dim sparse
          A_expand_sparse = sp.csr_matrix(A_expand)
@@ -331,42 +318,35 @@ def get_max_ball(A_full_dim, b_full_dim):
          a[:,:-1] = b
          objective_function = a[0]
 
-#         print("\nthis is the obj func:")
-#         print(objective_function)
-#         print("and this is its shape")
-#         print(objective_function.shape)
-
          # Set the objective function in the model
          model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MAXIMIZE)
          model.update()
-         print("\n ***Display the model to solve:")
-         model.display()
 
          # Optimize model
          model.optimize ()
 
          # Get the solution returned
-         max_obj = model.getObjective().getValue()
-         solution = model.printAttr('X')
-         print("Here is the soltuion")
-         print(type(solution))
-         print(solution)
+         model.printAttr('x')
+         model.getVars()
 
+         vars = model.getVars()
 
-
-         for v in model.getVars():
-            print('%s %g' % (v.varName, v.x))
-
+         solution = []
+         for i in range(len(vars)):
+            var = vars[i].varName
+            value = vars[i].x
+            solution.append(value)
 
          # Get the radius of max ball; the last element of the solution
          r = solution[-1]
-         
+
          # And check whether its value is negative
          if r < 0 :
             print ("The radius calculated has negative value. Thus, either the polytope is infeasible or something went wrong with the solver")
          else:
             point = solution[:-1]
             return point, r
+
 
 
 
