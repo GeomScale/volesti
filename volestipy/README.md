@@ -53,7 +53,7 @@ After getting the dependencies, download the *volesti* repository from GitHub an
 
 ```
 cd volestipy
-LDFLAGS="-L/usr/lib/lp_solve/" python3 setup.py install --user
+LDFLAGS="-L/usr/lib/lpsolve/" python3 setup.py install --user
 ```
 
 ## Run an example
