@@ -280,48 +280,94 @@ def pre_process(A, b, Aeq, beq):
 
 # This is a function to get the maximum ball included in the full dimensional polytope 
 def get_max_ball(A_full_dim, b_full_dim):
-   
+
    extra_column = []
-   
-   for i in range(A_full_dim.shape[1]):
+
+   m = A_full_dim.shape[0]
+   n = A_full_dim.shape[1]
+
+   print("Here is the shape of A")
+   print("this is m: " + str(m))
+   print("this is n: " + str(n))
+
+   for i in range(A_full_dim.shape[0]):
       entry = np.linalg.norm(A_full_dim[i,])
       extra_column.append(entry)
-      
+
    column = np.asarray(extra_column) 
-   np.append(A_full_dim, column, axis=1) 
-   
+   A_expand = np.c_[A_full_dim, column]
+
+   print("Here is the shape of A_exp")
+   print(A_expand.shape[0])
+   print(A_expand.shape[1])
+   print(A_expand)
+
+
    with gp.Env(empty=True) as env:
-      env.setParam('OutputFlag', 0)
+      env.setParam('OutputFlag', 1)
       env.start()
-       
-      d = A_full_dim.shape[1] 
-       
+
+      d = A_expand.shape[1]
+
       with gp.Model(env=env) as model:
-         
-         # Create variables
+
+         # Create variable
          x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
+#         print("\n\n >>this is x variable:")
+#         print(x)
          model.update()
-         
-         r = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
-         model.update()
-         
+#         model.display()
+
          # Make A_full_dim sparse
-         A_full_dim_sparse = sp.csr_matrix(A_full_dim)
-         
+         A_expand_sparse = sp.csr_matrix(A_expand)
+
          # Add constraints
-         model.addMConstrs(A_full_dim_sparse, x, '<', b_full_dim, name = "c")
+         model.addMConstrs(A_expand_sparse, x, '<', b_full_dim, name = "c")
          model.update()
 
          # Set the ith row of the A matrix as the objective function
-         null_part_of_obj_func = np.zeros(d)
-         objective_function = np.insert(null_part_of_obj_func, d, 1)
-   
+         a = np.ones((1,n+1))
+         b = np.zeros((1,n))
+         a[:,:-1] = b
+         objective_function = a[0]
+
+#         print("\nthis is the obj func:")
+#         print(objective_function)
+#         print("and this is its shape")
+#         print(objective_function.shape)
+
          # Set the objective function in the model
          model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MAXIMIZE)
          model.update()
+         print("\n ***Display the model to solve:")
+         model.display()
 
          # Optimize model
          model.optimize ()
+
+         # Get the solution returned
+         max_obj = model.getObjective().getValue()
+         solution = model.printAttr('X')
+         print("Here is the soltuion")
+         print(type(solution))
+         print(solution)
+
+
+
+         for v in model.getVars():
+            print('%s %g' % (v.varName, v.x))
+
+
+         # Get the radius of max ball; the last element of the solution
+         r = solution[-1]
+         
+         # And check whether its value is negative
+         if r < 0 :
+            print ("The radius calculated has negative value. Thus, either the polytope is infeasible or something went wrong with the solver")
+         else:
+            point = solution[:-1]
+            return point, r
+
 
 
 
@@ -435,7 +481,7 @@ cdef class HPolytope:
          
          np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
          np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
-         np.savetxt('round_value.txt', np.asarray(round_value))
+         np.save('round_value.npy', np.asarray(round_value))
          
          return np.asarray(new_A),np.asarray(new_b),np.asarray(T_matrix),np.asarray(shift),np.asarray(round_value)
       
