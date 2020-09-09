@@ -5,12 +5,11 @@ import gurobipy as gp
 from volestipy import *
 import sys
 
-input_file = 'e_coli_core.json'
+input_file = 'bigg_files/e_coli_core.json'
 
 
 # Read json
 read_ecoli_core = read_json_file(input_file)
-
 
 # Pre-process it
 A = read_ecoli_core[0]
@@ -33,7 +32,7 @@ get_fd_hp = low_hp.full_dimensiolal_polytope()
 A_fd = get_fd_hp[0].A
 b_fd = get_fd_hp[0].b
 
-
+print("\n\n *** This is the full dimensional polytope ***")
 print(A_fd)
 print(b_fd)
 
@@ -42,12 +41,21 @@ print(b_fd)
 
 # First, initialize an HPolytope using the full dimensional polytope features we got
 hp = HPolytope(A_fd, b_fd)
+print("An HP was built out of the full dimensional polytope features")
 
 ## Then use one of the volestipy functions for rounding
-#rounding_output_svd = hp.rounding(rounding_method = "svd")
-#
-#print("This is the shape of the full dimensional A: ")
-#print(A_fd[0].A.shape)
+print("\n\n Rounding is about to start")
+rounding_output_min_ellipsoid = hp.rounding(rounding_method = "min_ellipsoid")
 
+rounding_returns = ["new_A","new_b","T_matrix","shift","round_val"]
+for i in range(len(rounding_output_min_ellipsoid)):
+   print("\n" + rounding_returns[i] + ": ")
+   print(rounding_output_min_ellipsoid[i])
+
+# Check for the rest rounding methods
+rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
+for i in range(len(rounding_output_max_ellipsoid)):
+   print("\n" + rounding_returns[i] + ": ")
+   print(rounding_output_max_ellipsoid[i])
 
 
