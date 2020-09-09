@@ -501,7 +501,6 @@ cdef class low_dim_HPolytope:
       else:
          raise Exception('The number of rows of A equals to "{}" while the elements of b are {}. The b vector needs to have length equal to the number of rows of A.'.format(n_rows_of_A, b.shape[0]))
 
-
    # The get_full_dimensional_polytope() function(); that needs to run in case the user does not provide volestipy with a full dimensional polytope
    def full_dimensiolal_polytope(self):
 
