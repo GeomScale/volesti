@@ -4,7 +4,7 @@
 #cython: wraparound=False
 
 # Global dependencies
-import os
+import os, re
 import sys
 import numpy as np
 cimport numpy as np
@@ -27,8 +27,7 @@ def get_time_seed():
    import time
    return int(time.time())
 
-# Read a Bigg file and get the necessary A and b
-
+## Read a Bigg file and get the necessary A and b
 # The .json format case 
 def read_json_file(input_file):
    
@@ -159,8 +158,6 @@ def read_mat_file(input_file):
    
    return A, b, Aeq, beq, metabolites, reactions
 
-
-
 # Build a Python functionto pre-process the metabolic network; meaning to remove really "small" facets.
 # This function will be implemented by making use of the Gurobi solver
 def pre_process(A, b, Aeq, beq):
@@ -277,7 +274,6 @@ def pre_process(A, b, Aeq, beq):
    except AttributeError :
       print ("Encountered an attribute error ")
 
-
 # This is a function to get the maximum ball included in the full dimensional polytope 
 def get_max_ball(A_full_dim, b_full_dim):
 
@@ -294,7 +290,7 @@ def get_max_ball(A_full_dim, b_full_dim):
    A_expand = np.c_[A_full_dim, column]
 
    with gp.Env(empty=True) as env:
-      env.setParam('OutputFlag', 1)
+      env.setParam('OutputFlag', 0)
       env.start()
 
       d = A_expand.shape[1]
@@ -326,33 +322,22 @@ def get_max_ball(A_full_dim, b_full_dim):
          model.optimize ()
 
          # Get the solution returned
-         model.printAttr('x')
-         model.getVars()
-
          vars = model.getVars()
 
-         solution = []
+         # Get the center point and the radius of max ball from the solution of LP; its last element is the radius
+         point = []
          for i in range(len(vars)):
-            var = vars[i].varName
-            value = vars[i].x
-            solution.append(value)
-
-         # Get the radius of max ball; the last element of the solution
-         r = solution[-1]
-
+            if i == len(vars) - 1:
+               r = vars[i].x
+            else:
+               value = vars[i].x
+               point.append(value)
+         
          # And check whether its value is negative
          if r < 0 :
-            print ("The radius calculated has negative value. Thus, either the polytope is infeasible or something went wrong with the solver")
+            print ("The radius calculated has negative value. The polytope is infeasible or something went wrong with the solver")
          else:
-            point = solution[:-1]
             return point, r
-
-
-
-
-
-
-
 
 
 
