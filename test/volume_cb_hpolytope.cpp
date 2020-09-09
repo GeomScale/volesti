@@ -162,7 +162,7 @@ void call_test_birk()
     P = gen_birk<Hpolytope>(6);
     test_volume(P,
                 7.84351e-13,
-                6.10158e-13,
+                6.10783e-13,
                 2.26624e-13,
                 6.62349e-13,
                 9.455459196 * std::pow(10,-13), 
