@@ -8,10 +8,6 @@
 #'
 #' @return A polytope class. If the path corresponds to an ine file then the return value represents a H-polytope. If it corresponds to an ext file the return value represents a V-polytope (default choice) or a zonotope if the second argument is TRUE.
 #'
-#' @examples
-#' # give the path to birk4.ine
-#' path = system.file('extdata', package = 'volesti')
-#' P = file_to_polytope(paste0(path,'/birk4.ine'))
 #' @export
 #' @useDynLib volesti, .registration=TRUE
 #' @importFrom Rcpp evalCpp
@@ -20,7 +16,7 @@
 #' @importFrom "stats" "cov"
 #' @importFrom "methods" "new"
 #' @exportPattern "^[[:alpha:]]+"
-file_to_polytope <- function(path, zonotope){
+file_to_polytope <- function(path, zonotope = FALSE){
   
   ineorext=substr(path, start = nchar(path) - 2, stop = nchar(path))
   if(ineorext!="ine" && ineorext!="ext") {

@@ -26,7 +26,6 @@ Hruntest <- function(P, name_string, exactvol, tol, num_of_exps, alg, seed){
 }
 
 cran_only = TRUE
-path = system.file('extdata', package = 'volesti')
 
 for (i in 1:2) {
   
