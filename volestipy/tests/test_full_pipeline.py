@@ -37,6 +37,14 @@ print(A_fd)
 print(b_fd)
 
 
+
+# Get the max ball for the full dimensional polytope
+print("\n\n\n We are about to calculate max ball")
+max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+print("Max ball was found:")
+print(max_ball_center_point)
+print(max_ball_radius)
+
 ### Now we can use the full dimensional polytope; but before sampling on it, we need to round it
 
 # First, initialize an HPolytope using the full dimensional polytope features we got
