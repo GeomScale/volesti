@@ -4,7 +4,7 @@
 #cython: wraparound=False
 
 # Global dependencies
-import os, re
+import os
 import sys
 import numpy as np
 cimport numpy as np
