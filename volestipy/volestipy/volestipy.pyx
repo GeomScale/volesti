@@ -28,104 +28,104 @@ def get_time_seed():
    return int(time.time())
 
 ## Read a Bigg file and get the necessary A and b
-# The .json format case 
+# The .json format case
 def read_json_file(input_file):
-   
+
    with open(input_file, 'r') as f:
-   
+
       distros_dict = json.load(f)
-   
+
       reactions_list = distros_dict['reactions']
-   
+
       metabolites = []
       reactions = []
-   
+
       for reaction in reactions_list:
-   
+
          metabolites_dic = reaction['metabolites']
          reaction_name = reaction['id']
          reactions.append(reaction_name)
-   
+
          for metabolite in metabolites_dic.keys():
             if metabolite not in metabolites:
                metabolites.append(metabolite)
-   
+
       list_of_reaction_lists = []
       vector_of_ubs = []
       vector_of_lbs = []
-   
+
       for reaction in reactions_list:
-   
+
          ub = float(reaction['upper_bound']) ; vector_of_ubs.append(ub)
          lb = float(reaction['lower_bound']) ; vector_of_lbs.append(lb)
-   
+
          metabolites_dic = reaction['metabolites']
          reaction_vector = []
-   
+
          for term in range(len(metabolites)):
-   
+
             metabolite = metabolites[term]
-   
+
             if metabolite in metabolites_dic.keys():
-   
+
                reaction_vector.append(metabolites_dic[metabolite])
             else:
                reaction_vector.append(0)
-   
+
          list_of_reaction_lists.append(reaction_vector)
-   
+
    f.close()
-   
+
    # Build function's output; first the A matrix
    n = len(list_of_reaction_lists)
    A = np.zeros((2*n, n), dtype=np.float)
    A[0:n] = np.eye(n)
    A[n:] -=  np.eye(n,n, dtype=np.float)
-   
+
    # Now, the b vector
    vector_of_lbs = [-x for x in vector_of_lbs]
    b = np.asarray(vector_of_ubs + vector_of_lbs)
-   
+
    # The Aeq matrix
    Aeq = np.asarray(list_of_reaction_lists)
    Aeq = np.transpose(Aeq)
-   
+
    # And the beq vector
    m = len(metabolites)
    beq = np.zeros(m)
-   
+
    return A, b, Aeq, beq, metabolites, reactions
 
-# The .mat format case 
+# The .mat format case
 def read_mat_file(input_file):
 
    data_from_mat = scipy.io.loadmat(input_file)
-   
+
    species_name = ''
    for key in data_from_mat.keys():
       if key[0] != "_":
          species_name = key
-   
+
    species = data_from_mat[species_name]
    list_of_lists = species.tolist()
-   
+
    counter = 0
-   
+
    metabolites = []
-   
+
    for element in list_of_lists[0][0]:
-   
+
       if counter == 0:
-   
+
          m =len(element)
-   
+
          for i in element:
-   
+
             metabolite = i[0][0]
-   
+
             if metabolite not in metabolites:
                metabolites.append(metabolite)
-   
+
       if counter == 7:
          reactions_list = element.tolist()
          reactions = [reaction[0][0] for reaction in reactions_list]
@@ -136,26 +136,26 @@ def read_mat_file(input_file):
          ub_tmp = element
       if counter == 10:
          Aeq = element
-   
+
       counter += 1
-      
+
    # Build function's output; first the A matrix
    n = len(ub_tmp)
    A = np.zeros((2*n, n), dtype=np.float)
    A[0:n] = np.eye(n)
    A[n:] -=  np.eye(n,n, dtype=np.float)
-   
+
    # Now, the b vector
    ub = [i[0] for i in ub_tmp]
    lb = [-x[0] for x in lb_tmp]
    b = np.asarray(ub + lb)
-   
+
    # The Aeq matrix
    Aeq = np.asarray(Aeq)
-   
+
    # And the beq vector
    beq = np.zeros(m)
-   
+
    return A, b, Aeq, beq, metabolites, reactions
 
 # Build a Python functionto pre-process the metabolic network; meaning to remove really "small" facets.
@@ -174,107 +174,107 @@ def pre_process(A, b, Aeq, beq):
       with gp.Env(empty=True) as env:
           env.setParam('OutputFlag', 0)
           env.start()
-          
+
           with gp.Model(env=env) as model:
-      
+
             # Create variables
             x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
-      
+
             # Make sparse Aeq
             Aeq_sparse = sp.csr_matrix(Aeq)
-      
+
             # Make A sparse
             A_sparse = sp.csr_matrix(A)
-      
+
             # Set the b and beq vectors as numpy vectors
             b = np.array(b)
             beq = np.array(beq)
-      
+
             # Add constraints
             model.addMConstrs(Aeq_sparse, x, '=', beq, name = "c")
-      
+
             # Update the model to include the constraints added
             model.update()
-      
+
             #######################
             # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
             # to start with, avoid ObjBound and do that the same way as Aeq but with unequalities this time
             #######################
-      
+
             # Add constraints for the uneqalities of A
             model.addMConstrs(A_sparse, x, '<', b, name = "d")
-      
+
             # Update the model with the extra constraints and then print it
             model.update()
             model.display()
-      
+
             # Loop through the lines of the A matrix, set objective function for each and run the model
             for i in range(A.shape[0]):
-      
+
                # Set the ith row of the A matrix as the objective function
                objective_function = A[i,]
-      
+
                # Set the objective function in the model
                model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
                model.update()
-      
+
                # Optimize model
                model.optimize ()
-      
+
                # If optimized
                status = model.status
                if status == GRB.OPTIMAL:
-      
+
                   # Get the max objective value
                   max_objective = model.getObjective().getValue()
-      
+
                # Likewise, for the minimum
                objective_function = np.asarray([-x for x in objective_function])
                model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
                model.update()
                model.optimize()
-      
+
                # Again if optimized
                status = model.status
                if status == GRB.OPTIMAL:
-      
+
                   # Get the max objective value
                   min_objective = model.getObjective().getValue()
-      
+
                # Calculate the width
                width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
-      
+
                # Check whether we keep or not the equality
                if width < 1e-07:
                   Aeq_new = np.vstack((Aeq_new, A[i,]))
                   beq_new = np.append(beq_new, max_objective)
-      
+
                else:
                   A_new = np.vstack((A_new, A[i,]))
                   b_new = np.append(b_new, b[i])
-            
-            # The np.vstack() creates issues on changing contiguous c orded of np arrays; here we fix this 
+
+            # The np.vstack() creates issues on changing contiguous c orded of np arrays; here we fix this
             Aeq_new = np.ascontiguousarray(Aeq_new, dtype=np.dtype)
             A_new = np.ascontiguousarray(A_new, dtype=np.dtype)
-            
+
             # Furthremore, we need to have float64 in all numpy arrays
             Aeq_new = Aeq_new.astype('float64')
             A_new = A_new.astype('float64')
-            
+
             # And now we export the pre-processed elements on .npy files to load and use them anytime
             np.save('A_preprocessed.npy', A_new) ; np.save('b_preprocessed.npy', b_new)
             np.save('Aeq_preprocessed.npy', Aeq_new) ; np.save('beq_preprocessed.npy', beq_new)
-            
+
             # Return a tupple including the new A, b, Aeq and beq
             return A_new, b_new, Aeq_new, beq_new
-      
+
    # Print error messages
    except gp . GurobiError as e :
       print ("Error code " + str( e . errno ) + ": " + str( e ))
    except AttributeError :
       print ("Encountered an attribute error ")
 
-# This is a function to get the maximum ball included in the full dimensional polytope 
+# This is a function to get the maximum ball included in the full dimensional polytope
 def get_max_ball(A_full_dim, b_full_dim):
 
    extra_column = []
@@ -332,7 +332,7 @@ def get_max_ball(A_full_dim, b_full_dim):
             else:
                value = vars[i].x
                point.append(value)
-         
+
          # And check whether its value is negative
          if r < 0 :
             print ("The radius calculated has negative value. The polytope is infeasible or something went wrong with the solver")
@@ -441,17 +441,17 @@ cdef class HPolytope:
 
       # Check whether the rounding method the user asked for, is actually among those volestipy supports
       if rounding_method in rounding_methods:
-         
+
          self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_value)
-         
+
          np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
          np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
          np.save('round_value.npy', np.asarray(round_value))
-         
+
          return np.asarray(new_A),np.asarray(new_b),np.asarray(T_matrix),np.asarray(shift),np.asarray(round_value)
-      
+
       else:
-         
+
          raise Exception('"{}" is not implemented to walk types. Available methods are: {}'.format(rounding_method, rounding_methods))
 
    @property
@@ -476,7 +476,7 @@ cdef class low_dim_HPolytope:
 
 # Set the specs of the class
    def __cinit__(self, double[:,::1] A, double[::1] b, double[:,::1] Aeq, double[::1] beq):
-      
+
       self._A = A
       self._b = b
       self._Aeq = Aeq
@@ -568,4 +568,3 @@ cdef class low_dim_HPolytope:
    @property
    def dimensions(self):
       return self._A.shape[1]
-    

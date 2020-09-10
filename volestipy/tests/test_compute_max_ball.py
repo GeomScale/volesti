@@ -5,7 +5,7 @@ from gurobipy import GRB
 import scipy.sparse as sp
 
 if __name__ == "__main__":
-    
+
     m = 2
     n = 5
 
@@ -24,4 +24,3 @@ if __name__ == "__main__":
     print(max_ball[0])
     print("The radius of max ball equals to:")
     print(max_ball[1])
-
