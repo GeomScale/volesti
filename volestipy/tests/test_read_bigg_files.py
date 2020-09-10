@@ -51,4 +51,4 @@ print(met_net[4])
 print("-------------------------")
 print("Reactions are the following " + str(len(met_net[5])) + ":")
 print(met_net[5])
-
+ 

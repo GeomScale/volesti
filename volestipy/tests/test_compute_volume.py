@@ -33,3 +33,4 @@ if __name__ == "__main__":
 
     test_volume = p.compute_volume(vol_method = "cooling_balls", walk_method = "uniform_ball", walk_len = 5, epsilon = 0.05, seed = 42)
     print("Volume (test_volume): {}\n".format(test_volume))
+

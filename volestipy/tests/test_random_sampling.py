@@ -28,3 +28,4 @@ if __name__ == "__main__":
     print("\n >> This is the output for the CDHR random sampling algorithm using the boundary option <<\n")
     print("Samples:")
     print(samples)
+
