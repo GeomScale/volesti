@@ -276,3 +276,4 @@ int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra_trans, double*
    // as we know that N_temp.cols == full_HP_A.cols and likewise for their lines, we may return just one of those vars
    return N_temp_trans.rows();
 }
+

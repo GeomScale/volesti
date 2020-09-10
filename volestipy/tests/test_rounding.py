@@ -47,4 +47,6 @@ if __name__ == "__main__":
     print("\n >> This is the output for the min_ellipsoid rounding method <<")
     for i in range(len(rounding_output_min_ellipsoid)):
         print("\n" + rounding_returns[i] + ": ")
-        print(rounding_output_min_ellipsoid[i])
+        print(rounding_output_min_ellipsoid[i]) 
+
+
