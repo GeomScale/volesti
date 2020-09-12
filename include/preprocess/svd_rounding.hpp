@@ -155,6 +155,7 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
 
             P.shift(shift);
             P.linear_transformIt(round_mat);
+            P.normalize();
             InnerBall = P.ComputeInnerBall();
             T_shift += T * shift;
             T = T * round_mat;
