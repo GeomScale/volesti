@@ -31,7 +31,8 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
 HPolytopeCPP::~HPolytopeCPP(){}
 
 //////////          start of "compute_volume"          //////////
-double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed){
+double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, 
+                                    int walk_len, double epsilon, int seed){
 
    double volume;
 
@@ -69,7 +70,11 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, int wal
 
 
 //////////         start of "generate_samples()"          //////////
-double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L, double* samples){
+double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, 
+                                      int number_of_points_to_burn, bool boundary,
+                                      bool cdhr, bool rdhr, bool gaussian, bool set_L,
+                                      bool billiard, bool ball_walk, double a, double L,
+                                      double* samples){
 
    RNGType rng(HP.dimension());
    std::list<Point> rand_points;
@@ -79,43 +84,64 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
    if (boundary == true) {
       if (cdhr == true) {
-         uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         uniform_sampling_boundary<BCDHRWalk>(rand_points, HP, rng, walk_len,
+                                              number_of_points, starting_point,
+                                              number_of_points_to_burn);
          } else {
-            uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+            uniform_sampling_boundary<BRDHRWalk>(rand_points, HP, rng, walk_len, 
+                                                 number_of_points, starting_point, 
+                                                 number_of_points_to_burn);
          }
    } else if (cdhr == true) {
       if (gaussian == true) {
-         gaussian_sampling<GaussianCDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+         gaussian_sampling<GaussianCDHRWalk>(rand_points, HP, rng, walk_len, 
+                                             number_of_points, a, starting_point,
+                                             number_of_points_to_burn);
       } else {
-         uniform_sampling<CDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         uniform_sampling<CDHRWalk>(rand_points, HP, rng, walk_len, number_of_points,
+                                    starting_point, number_of_points_to_burn);
       }
    } else if (rdhr == true){
       if (gaussian == true) {
-         gaussian_sampling<GaussianRDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+         gaussian_sampling<GaussianRDHRWalk>(rand_points, HP, rng, walk_len, 
+                                             number_of_points, a, starting_point, 
+                                             number_of_points_to_burn);
       } else {
-         uniform_sampling<RDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         uniform_sampling<RDHRWalk>(rand_points, HP, rng, walk_len, number_of_points, 
+                                    starting_point, number_of_points_to_burn);
       }
    } else if (billiard == true) {
       if (set_L == true) {
          BilliardWalk WalkType(L);
-         uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points,
+                          starting_point, number_of_points_to_burn);
       } else {
-         uniform_sampling<BilliardWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+         uniform_sampling<BilliardWalk>(rand_points, HP, rng, walk_len, 
+                                        number_of_points, starting_point, 
+                                        number_of_points_to_burn);
       }
    } else {
       if (set_L == true) {
          if (gaussian == true) {
             GaussianBallWalk WalkType(L);
-            gaussian_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+            gaussian_sampling(rand_points, HP, rng, WalkType, walk_len,
+                              number_of_points, a, starting_point, 
+                              number_of_points_to_burn);
             } else {
                BallWalk WalkType(L);
-               uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+               uniform_sampling(rand_points, HP, rng, WalkType, walk_len,
+                                number_of_points, starting_point, 
+                                number_of_points_to_burn);
             }
         } else {
             if (gaussian == true) {
-               gaussian_sampling<GaussianBallWalk>(rand_points, HP, rng, walk_len, number_of_points, a, starting_point, number_of_points_to_burn);
+               gaussian_sampling<GaussianBallWalk>(rand_points, HP, rng, walk_len, 
+                                                   number_of_points, a, starting_point, 
+                                                   number_of_points_to_burn);
             } else {
-               uniform_sampling<BallWalk>(rand_points, HP, rng, walk_len, number_of_points, starting_point, number_of_points_to_burn);
+               uniform_sampling<BallWalk>(rand_points, HP, rng, walk_len,
+                                          number_of_points, starting_point, 
+                                          number_of_points_to_burn);
             }
         }
    }
@@ -133,7 +159,8 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, int nu
 
 
 //////////         start of "rounding()"          //////////
-void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value){
+void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
+                            double* T_matrix, double* shift, double &round_value){
 
    // make a copy of the initial HP which will be used for the rounding step
    auto P(HP);
@@ -148,11 +175,14 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 
    // run the rounding method
    if (strcmp(rounding_method,"min_ellipsoid") == 0){
-      round_res = min_sampling_covering_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P, CheBall, walk_len, rng);
+      round_res = min_sampling_covering_ellipsoid_rounding<AcceleratedBilliardWalk, MT, VT>(P,
+                                                                                            CheBall,
+                                                                                            walk_len,
+                                                                                            rng);
    } else if (strcmp(rounding_method,"svd") == 0){
       round_res = svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, CheBall, walk_len, rng);
    } else if (strcmp(rounding_method, "max_ellipsoid") == 0){
-      round_res = max_inscribed_ellipsoid_rounding<MT, VT>(P, CheBall);
+      round_res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, CheBall.first);
    }
 
    // create the new_A matrix
@@ -196,12 +226,15 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 
 
 
-// >>> This is the lowDimHPolytopeCPP class where the pre_processing() and the get_full_dimensional_polytope() volesti methods are included <<<
+// >>> This is the lowDimHPolytopeCPP class where the pre_processing() and 
+// the get_full_dimensional_polytope() volesti methods are included <<<
 
 lowDimHPolytopeCPP::lowDimHPolytopeCPP() {}
 
 // initialize the low dimensional polytope object
-lowDimHPolytopeCPP::lowDimHPolytopeCPP(double *A_np, double *b_np, double *A_aeq_np, double *b_aeq_np, int n_rows_of_A, int n_cols_of_A, int n_row_of_Aeq, int n_cols_of_Aeq){
+lowDimHPolytopeCPP::lowDimHPolytopeCPP(double *A_np, double *b_np, double *A_aeq_np,
+                                       double *b_aeq_np, int n_rows_of_A, int n_cols_of_A,
+                                       int n_row_of_Aeq, int n_cols_of_Aeq){
 
    A.resize(n_rows_of_A,n_cols_of_A);
    b.resize(n_rows_of_A);
@@ -232,7 +265,8 @@ lowDimHPolytopeCPP::~lowDimHPolytopeCPP(){}
 
 
 // here is the class that returns the full dimensional polytope
-int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra_trans, double* shift, double* A_full_extra_trans, double* b_full){
+int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra_trans, double* shift,
+                                                  double* A_full_extra_trans, double* b_full){
    
    get_full_dim_pol_result result;
    
@@ -273,7 +307,8 @@ int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra_trans, double*
       shift[i] = shift_temp[i];
    }   
    
-   // as we know that N_temp.cols == full_HP_A.cols and likewise for their lines, we may return just one of those vars
+   // as we know that N_temp.cols == full_HP_A.cols and likewise for their lines, 
+   // we may return just one of those vars
    return N_temp_trans.rows();
 }
 
