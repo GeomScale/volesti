@@ -73,8 +73,8 @@ else ()
 
     add_executable (generate ./test/generator.cpp)
     TARGET_LINK_LIBRARIES (generate ${LP_SOLVE})
-    add_executable (test_generators ./test/test_generators.cpp)
-    TARGET_LINK_LIBRARIES (test_generators ${LP_SOLVE})
+#    add_executable (test_generators ./test/test_generators.cpp)
+#    TARGET_LINK_LIBRARIES (test_generators ${LP_SOLVE})
 
     add_executable (new_volume_example ./test/new_volume_example.cpp)
 

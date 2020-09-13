@@ -130,7 +130,6 @@ void call_test_simplex() {
 TEST_CASE("cube") {
     //TODO: Runtime error, check ComputeInnerBall()
     call_test_cube<double>();
-    //call_test_cube_float<float>();
 }
 
 TEST_CASE("cross") {
