@@ -173,7 +173,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    if (max_ball == true ){
       
       // if yes, then read the inner point provided by the user and the radius
-      int d = P.dimension()
+      int d = P.dimension();
       VT inner_vec(d);
       
       for (int i = 0; i < d; i++){
