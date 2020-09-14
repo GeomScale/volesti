@@ -78,7 +78,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
     case max_ellipsoid:
         InnerBall = P.ComputeInnerBall();
         P.normalize();
-        round_val = std::get<2>(max_inscribed_ellipsoid_rounding<MT, VT>(P, InnerBall));
+        round_val = std::get<2>(max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, InnerBall.first));
         break;
     default:
         break;

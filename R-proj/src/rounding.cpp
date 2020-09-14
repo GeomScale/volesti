@@ -108,7 +108,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             HP.normalize();
             InnerBall = HP.ComputeInnerBall();
             if (method_rcpp.compare(std::string("max_ellipsoid")) == 0) {
-                round_res = max_inscribed_ellipsoid_rounding<MT, VT>(HP, InnerBall);
+                round_res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
             } else {
                 round_res = apply_rounding<MT, VT, AcceleratedBilliardWalk>(HP, method_rcpp, walkL, InnerBall, rng);
             }
