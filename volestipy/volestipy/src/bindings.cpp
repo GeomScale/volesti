@@ -77,6 +77,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
                                       double* samples){
 
    RNGType rng(HP.dimension());
+   HP.normalize();
    std::list<Point> rand_points;
 
    //Point default_starting_point = HP.ComputeInnerBall().first;
@@ -160,12 +161,32 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
 
 //////////         start of "rounding()"          //////////
 void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
-                            double* T_matrix, double* shift, double &round_value){
+                            double* T_matrix, double* shift, double &round_value,
+                            bool max_ball, double* inner_point, double radius){
 
    // make a copy of the initial HP which will be used for the rounding step
    auto P(HP);
    RNGType rng(P.dimension());
-   CheBall = P.ComputeInnerBall();
+   P.normalize();
+   
+   // check for max ball given
+   if (max_ball == true ){
+      
+      // if yes, then read the inner point provided by the user and the radius
+      int d = P.dimension()
+      VT inner_vec(d);
+      
+      for (int i = 0; i < d; i++){
+         inner_vec(i) = inner_point[i];
+      }
+      
+      std::pair<Point, double> CheBall;
+      CheBall = inner_vec, radius
+      
+   } else {
+      CheBall = P.ComputeInnerBall();
+   }
+   
 
    // set the output variable of the rounding step
    round_result round_res;
