@@ -363,7 +363,8 @@ cdef extern from "bindings.h":
          bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
 
       # Rounding H-Polytope
-      void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value);
+      void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value, \
+         bool max_ball, double* inner_point, double radius);
 
    # The lowDimPolytopeCPP class along with its functions
    cdef cppclass lowDimHPolytopeCPP:
@@ -435,14 +436,24 @@ cdef class HPolytope:
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
       cdef double round_value
-
+      
       # Transform the rounding_method variable to UTF-8 coding
       rounding_method = rounding_method.encode("UTF-8")
+      
+      
+      # Check whether a max ball has been given
+      if inner_point == '':
+         max_ball = False
+         inner_point = 0
+         radius = 0 
+      
+      else:
+         max_ball = True      
 
       # Check whether the rounding method the user asked for, is actually among those volestipy supports
       if rounding_method in rounding_methods:
 
-         self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_value)
+         self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_value, max_ball, &inner_point[0], radius)
 
          np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
          np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
