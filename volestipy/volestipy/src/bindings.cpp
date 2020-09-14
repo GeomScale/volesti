@@ -180,8 +180,8 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
          inner_vec(i) = inner_point[i];
       }
 
-      Point inner_point(inner_vec);
-      CheBall = std::pair<Point, NT>(inner_point, radius);
+      Point inner_point2(inner_vec);
+      CheBall = std::pair<Point, NT>(inner_point2, radius);
       
    } else {
       CheBall = P.ComputeInnerBall();
