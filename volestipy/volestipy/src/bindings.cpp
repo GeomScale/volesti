@@ -4,9 +4,9 @@
 
 using namespace std;
 
-// >>> This is the main HPolytopeCPP class where the compute_volume(), the rounding() and the sampling() volesti methods are included <<<
+// >>> Main HPolytopeCPP class; compute_volume(), rounding() and generate_samples() volesti methods are included <<<
 
-// here is the initialization of the HPolytopeCPP class
+// Here is the initialization of the HPolytopeCPP class
 HPolytopeCPP::HPolytopeCPP() {}
 HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_variables){
 
@@ -27,10 +27,10 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
    HP.init(n_variables, A, b);
    CheBall = HP.ComputeInnerBall();
 }
-// after this we need to use a destructor for the HPolytopeCPP object
+// Use a destructor for the HPolytopeCPP object
 HPolytopeCPP::~HPolytopeCPP(){}
 
-//////////          start of "compute_volume"          //////////
+//////////          Start of "compute_volume"          //////////
 double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method, 
                                     int walk_len, double epsilon, int seed){
 
@@ -66,22 +66,58 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method,
    }
    return volume;
 }
-//////////           end of "compute_volume()"            //////////
+//////////           End of "compute_volume()"            //////////
 
 
-//////////         start of "generate_samples()"          //////////
+//////////         Start of "generate_samples()"          //////////
 double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, 
                                       int number_of_points_to_burn, bool boundary,
                                       bool cdhr, bool rdhr, bool gaussian, bool set_L,
                                       bool billiard, bool ball_walk, double a, double L,
+                                      bool max_ball, double* inner_point, double radius,
                                       double* samples){
 
+   
    RNGType rng(HP.dimension());
    HP.normalize();
+   
+   Point starting_point;
+   double L_value; 
+   
+   // Check for max ball given
+   if (max_ball == true && set_L == false){
+      
+      // If yes, then read the inner point provided by the user and the radius
+      int d = HP.dimension();
+      VT inner_vec(d);
+      
+      for (int i = 0; i < d; i++){
+         inner_vec(i) = inner_point[i];
+      }
+
+      Point inner_point2(inner_vec);
+      CheBall = std::pair<Point, NT>(inner_point2, radius);
+      L_value = radius;
+      starting_point = CheBall.first;
+
+      
+   } else if (max_ball == false && set_L == true) {
+      
+      starting_point = HP.ComputeInnerBall().first;
+      L_value = L;
+
+   
+   } else {
+      
+      //Point default_starting_point = HP.ComputeInnerBall().first;
+      starting_point = HP.ComputeInnerBall().first;
+      L_value = L;
+   }   
+   
+   
    std::list<Point> rand_points;
 
-   //Point default_starting_point = HP.ComputeInnerBall().first;
-   Point starting_point = HP.ComputeInnerBall().first;
+
 
    if (boundary == true) {
       if (cdhr == true) {
@@ -113,7 +149,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
       }
    } else if (billiard == true) {
       if (set_L == true) {
-         BilliardWalk WalkType(L);
+         BilliardWalk WalkType(L_value);
          uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points,
                           starting_point, number_of_points_to_burn);
       } else {
@@ -124,12 +160,12 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
    } else {
       if (set_L == true) {
          if (gaussian == true) {
-            GaussianBallWalk WalkType(L);
+            GaussianBallWalk WalkType(L_value);
             gaussian_sampling(rand_points, HP, rng, WalkType, walk_len,
                               number_of_points, a, starting_point, 
                               number_of_points_to_burn);
             } else {
-               BallWalk WalkType(L);
+               BallWalk WalkType(L_value);
                uniform_sampling(rand_points, HP, rng, WalkType, walk_len,
                                 number_of_points, starting_point, 
                                 number_of_points_to_burn);
@@ -156,10 +192,10 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
       }
    }
 }
-//////////         end of "generate_samples()"          //////////
+//////////         End of "generate_samples()"          //////////
 
 
-//////////         start of "rounding()"          //////////
+//////////         Start of "rounding()"          //////////
 void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
                             double* T_matrix, double* shift, double &round_value,
                             bool max_ball, double* inner_point, double radius){
@@ -243,16 +279,15 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    round_value = get<2>(round_res);
 
 }
-//////////         end of "rounding()"          //////////
+//////////         End of "rounding()"          //////////
 
 
 
-// >>> This is the lowDimHPolytopeCPP class where the pre_processing() and 
-// the get_full_dimensional_polytope() volesti methods are included <<<
+// >>> The lowDimHPolytopeCPP class; the pre_processing() and the get_full_dimensional_polytope() volesti methods are included <<<
 
 lowDimHPolytopeCPP::lowDimHPolytopeCPP() {}
 
-// initialize the low dimensional polytope object
+// Initialize the low dimensional polytope object
 lowDimHPolytopeCPP::lowDimHPolytopeCPP(double *A_np, double *b_np, double *A_aeq_np,
                                        double *b_aeq_np, int n_rows_of_A, int n_cols_of_A,
                                        int n_row_of_Aeq, int n_cols_of_Aeq){
@@ -281,11 +316,11 @@ lowDimHPolytopeCPP::lowDimHPolytopeCPP(double *A_np, double *b_np, double *A_aeq
       }
    }   
 }
-// now we need a destructor! - never forget about this!
+// Destructor! - never forget about this!
 lowDimHPolytopeCPP::~lowDimHPolytopeCPP(){}
 
 
-// here is the class that returns the full dimensional polytope
+// Function to get the full dimensional polytope
 int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra_trans, double* shift,
                                                   double* A_full_extra_trans, double* b_full){
    
