@@ -360,7 +360,8 @@ cdef extern from "bindings.h":
 
       # Random sampling
       double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, \
-         bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
+         bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L, \
+         bool max_ball, double* inner_point, double radius, double* samples);
 
       # Rounding H-Polytope
       void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value, \
@@ -415,12 +416,28 @@ cdef class HPolytope:
 
 # Likewise, the generate_samples() function
    def generate_samples(self, walk_len = 1, number_of_points = 1000, number_of_points_to_burn = 100, boundary = False, cdhr=True, \
-      rdhr = False, gaussian = False, set_L = False, billiard = False, ball_walk = False, a = 0, L = 0):
+      rdhr = False, gaussian = False, set_L = False, billiard = False, ball_walk = False, a = 0, radius = 0, inner_point = [], L = 0):
 
       n_variables = self._A.shape[1]
       cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype = np.float64, order = "C")
+      cdef double[::1] inner_point_for_c = np.asarray(inner_point)
+      
+      # Check whether the user asks for a certai value of radius; this is of higher priority than having a radius from the corresponding function      
+      if L >= 0:
+         set_L = True
+      
+      if radius <= 0:        
+        max_ball = False
+        
+      # if inner_point
+        
 
-      self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L, &samples[0,0])
+    
+      
+      
+      
+
+      self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L, max_ball, &inner_point_for_c[0], radius, &samples[0,0])
       return np.asarray(samples)      # we need to build a Python function for getting a starting point depending on the polytope
 
 
