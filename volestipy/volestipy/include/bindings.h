@@ -61,8 +61,10 @@ class HPolytopeCPP{
       double compute_volume(char* vol_method, char* walk_method, int walk_len, double epsilon, int seed);
 
       // the generate_samples() function
-      double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, \
-       bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  double* samples);
+      double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, 
+       bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L,  
+       bool max_ball, double* inner_point, double radius,
+       double* samples);
 
       // the rounding() function
       void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value,
