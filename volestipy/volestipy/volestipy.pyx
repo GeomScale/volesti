@@ -443,9 +443,8 @@ cdef class HPolytope:
       rounding_method = rounding_method.encode("UTF-8")
             
       # Check whether a max ball has been given
-      if inner_point == 0:
+      if radius <= 0:
          max_ball = False
-         radius = 0 
       
       else:
          max_ball = True
