@@ -60,8 +60,12 @@ for i in range(len(rounding_output_min_ellipsoid)):
 
 # Check for the rest rounding methods
 rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
+print(rounding_output_max_ellipsoid)
+
 #for i in range(len(rounding_output_max_ellipsoid)):
 #   print("\n" + rounding_returns[i] + ": ")
 #   print(rounding_output_max_ellipsoid[i])
 
+
+# Finally, generate random samples from the full dimensional polytope
 
