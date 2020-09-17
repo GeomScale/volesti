@@ -81,42 +81,48 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
    RNGType rng(HP.dimension());
    HP.normalize();
    
+   int d = HP.dimension();
+   
    Point starting_point;
    double L_value; 
    
    // Check for max ball given
-   if (max_ball == true && set_L == false){
+   if (max_ball == true){
       
-      // If yes, then read the inner point provided by the user and the radius
-      int d = HP.dimension();
-      VT inner_vec(d);
+      if (set_L == false) {
+         
+         if (billiard == true){
+            L_value = 4*sqrt(d)*radius;
       
-      for (int i = 0; i < d; i++){
-         inner_vec(i) = inner_point[i];
-      }
+         } else if (gaussian == true){         
+            L_value = 4*(radius / sqrt(max(1, a)*d));
+            
+         }
+         /// to ball walk tote L = 4*(radius / sqrt(max(1, a)*d));
+         
+      } else {
+         
+         L_value = L
 
-      Point inner_point2(inner_vec);
-      CheBall = std::pair<Point, NT>(inner_point2, radius);
-      L_value = radius;
-      starting_point = CheBall.first;
-
-      
-   } else if (max_ball == false && set_L == true) {
-      
-      starting_point = HP.ComputeInnerBall().first;
-      L_value = L;
-
+         // If yes, then read the inner point provided by the user and the radius
+         VT inner_vec(d);
+         
+         for (int i = 0; i < d; i++){
+            inner_vec(i) = inner_point[i];
+         }
    
-   } else {
+         Point inner_point2(inner_vec); 
+         CheBall = std::pair<Point, NT>(inner_point2, radius); 
+         starting_point = CheBall.first; 
+      } 
       
+   } else if (max_ball == false && set_L == false) {
+
       //Point default_starting_point = HP.ComputeInnerBall().first;
       starting_point = HP.ComputeInnerBall().first;
-      L_value = L;
    }   
-   
-   
+      
    std::list<Point> rand_points;
-
 
 
    if (boundary == true) {
@@ -219,7 +225,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
       Point inner_point2(inner_vec);
       CheBall = std::pair<Point, NT>(inner_point2, radius);
       
-   } else {
+   } else if (max_ball == false ) {
       CheBall = P.ComputeInnerBall();
    }
    
