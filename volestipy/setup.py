@@ -1,5 +1,6 @@
-# from setuptools import setup
-# from setuptools import Extension
+
+# This is the setup Python script for building the volestipy Python module
+
 from distutils.core import setup
 from distutils.core import Extension
 from Cython.Build import cythonize
