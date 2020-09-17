@@ -47,6 +47,11 @@ public:
         return _inner_ball;
     }
 
+    void set_InnerBall(std::pair<Point,NT> const& innerball) const
+    {
+        _inner_ball = innerball;
+    }
+
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
     std::pair<Point,NT> ComputeInnerBall()

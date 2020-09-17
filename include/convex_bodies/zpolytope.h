@@ -133,6 +133,11 @@ public:
         return _inner_ball;
     }
 
+    void set_InnerBall(std::pair<Point,NT> const& innerball) const
+    {
+        _inner_ball = innerball;
+    }
+
     // return the number of generators
     int num_of_generators() const
     {
