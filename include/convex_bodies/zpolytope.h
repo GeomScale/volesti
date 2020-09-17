@@ -133,7 +133,7 @@ public:
         return _inner_ball;
     }
 
-    void set_InnerBall(std::pair<Point,NT> const& innerball) const
+    void set_InnerBall(std::pair<Point,NT> const& innerball) //const
     {
         _inner_ball = innerball;
     }
