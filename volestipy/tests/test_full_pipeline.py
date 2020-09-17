@@ -67,16 +67,12 @@ for i in range(len(rounding_output_max_ellipsoid)):
    print(rounding_output_max_ellipsoid[i])
 
 
+## Finally, generate random samples from the rounded full dimensional polytope
+# Build the rounded polytope
+rounded_polytope = HPolytope(rounding_output_max_ellipsoid[0], rounding_output_max_ellipsoid[1])
 
-
-
-## Rounding without setting max ball and by making use of the max_ellipsoid method
-#print("\n\n ***Try rounding without max ball \n\n")
-#rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
-#for i in range(len(rounding_output_max_ellipsoid)):
-#   print("\n" + rounding_returns[i] + ": ")
-#   print(rounding_output_max_ellipsoid[i])
-
-
-# Finally, generate random samples from the full dimensional polytope
-
+# Then, sample on it
+samples = rounded_polytope.generate_samples(walk_len = 5, number_of_points = 10000, number_of_points_to_burn = 50, radius = max_ball_radius, inner_point = max_ball_center_point )
+print("\n >> This is the output for random sampling algorithm using max ball on a rounded polytope <<\n")
+print("Samples:")
+print(samples)
