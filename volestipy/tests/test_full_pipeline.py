@@ -1,10 +1,10 @@
-#!/usr/bin/python3.6
+#!/usr/bin/python3
 
 import numpy as np
 import gurobipy as gp
 from volestipy import *
-import sys
 
+# Set a variable with the input / metabolic network file
 input_file = 'bigg_files/e_coli_core.json'
 
 # Read json
@@ -31,7 +31,7 @@ get_fd_hp = low_hp.full_dimensiolal_polytope()
 A_fd = get_fd_hp[0].A
 b_fd = get_fd_hp[0].b
 N = get_fd_hp[1]
-shift = get_fd_hp[2]
+N_shift = get_fd_hp[2]
 
 print("\n\n *** This is the full dimensional polytope ***")
 print(A_fd)
@@ -59,6 +59,9 @@ print("Rounding with max ball and max_ellipsoid \n")
 rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid", inner_point = max_ball_center_point, radius = max_ball_radius)
 rounded_A = rounding_output_max_ellipsoid[0]
 rounded_b = rounding_output_max_ellipsoid[1]
+rounded_T = rounding_output_max_ellipsoid[2]
+rounded_shift = rounding_output_max_ellipsoid[3]
+
 for i in range(len(rounding_output_max_ellipsoid)):
    print("\n" + rounding_returns[i] + ": ")
    print(rounding_output_max_ellipsoid[i])
@@ -77,3 +80,12 @@ samples = rounded_polytope.generate_samples(walk_len = 5, number_of_points = 100
 print("\n >> This is the output for random sampling algorithm using max ball on a rounded polytope <<\n")
 print("Samples:")
 print(samples)
+print(type(samples))
+
+
+# Now map the points retrieved to the initial polytope
+print("Points sampled are under mapping")
+final_output = map_samples_on_initial_polytope(samples, rounded_T, rounded_shift, N, N_shift)
+print("These are the final points")
+print(final_output)
+
