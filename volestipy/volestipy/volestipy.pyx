@@ -415,7 +415,7 @@ cdef class HPolytope:
          raise Exception('"{}" is not implemented to compute volume. Available methods are: {}'.format(vol_method, volume_methods))
 
 # Likewise, the generate_samples() function
-   def generate_samples(self, walk_len = 1, number_of_points = 1000, number_of_points_to_burn = 100, boundary = False, cdhr=False, \
+   def generate_samples(self, walk_len = 1, number_of_points = 1000, number_of_points_to_burn = 0, boundary = False, cdhr=False, \
       rdhr = False, gaussian = False, set_L = False, accelerated_billiard = True, billiard = False, ball_walk = False, a = 0, radius = 0, inner_point = [], L = 0):
 
       n_variables = self._A.shape[1]
