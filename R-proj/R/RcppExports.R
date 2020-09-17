@@ -163,7 +163,7 @@ geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
 #'
 #' @examples
 #' # compute the Chebychev ball of the 2d unit simplex
-#' P = gen_simplex(2,'H')
+#' P = gen_cube(10,'H')
 #' ball_vec = inner_ball(P)
 #'
 #' # compute an inscribed ball of the 3-dimensional unit cube in V-representation
