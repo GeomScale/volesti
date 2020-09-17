@@ -184,12 +184,12 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 //' @return The approximation of the volume of a convex polytope.
 //' @examples
 //'
-//' # calling SOB algorithm for a H-polytope (3d unit simplex)
-//' HP = gen_cube(3,'H')
+//' # calling SOB algorithm for a H-polytope (5d unit simplex)
+//' HP = gen_cube(5,'H')
 //' vol = volume(HP)
 //'
-//' # calling CG algorithm for a V-polytope (2d simplex)
-//' VP = gen_simplex(2,'V')
+//' # calling CG algorithm for a V-polytope (3d simplex)
+//' VP = gen_simplex(3,'V')
 //' vol = volume(VP, settings = list("algorithm" = "CG"))
 //'
 //' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
