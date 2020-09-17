@@ -31,7 +31,7 @@
 //'
 //' # compute an inscribed ball of the 3-dimensional unit cube in V-representation
 //' P = gen_cube(3, 'V')
-//' ball_vec = inner_ball(P)
+//' ball_vec = inner_ball(P, lpsolve = TRUE)
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericVector inner_ball(Rcpp::Reference P, 

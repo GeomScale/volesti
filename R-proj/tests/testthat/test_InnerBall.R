@@ -4,7 +4,7 @@ library(volesti)
 
 runCheTest <- function(P, name_string, radius, tol) {
   
-  vec_ball = inner_ball(P)
+  vec_ball = inner_ball(P, lpsolve = TRUE)
   rad = vec_ball[length(vec_ball)]
   
   error = abs(radius - rad) / radius
