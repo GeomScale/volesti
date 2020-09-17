@@ -422,27 +422,23 @@ cdef class HPolytope:
       cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype = np.float64, order = "C")
       cdef double[::1] inner_point_for_c = np.asarray(inner_point)
       
-      # Check whether the user asks for a certai value of radius; this is of higher priority than having a radius from the corresponding function      
-      if L >= 0:
-         set_L = True
-      
+      # Check whether the user asks for a certai value of radius; this is of higher priority than having a radius from the corresponding function
       if radius <= 0:        
         max_ball = False
-        
-      # if inner_point
-        
-
-    
+      else:
+         max_ball = True
+            
+      if L <= 0:
+         set_L = False
+      else:
+         set_L = True
       
-      
-      
-
       self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, billiard, ball_walk, a, L, max_ball, &inner_point_for_c[0], radius, &samples[0,0])
       return np.asarray(samples)      # we need to build a Python function for getting a starting point depending on the polytope
 
 
 # The rounding() function; like the compute_volume; there are more than one methods for this step
-   def rounding(self, rounding_method = 'max_ellipsoid', inner_point = [0.00, 0.00, 0.00], radius = 0):
+   def rounding(self, rounding_method = 'max_ellipsoid', inner_point = [], radius = 0):
 
       # Get the dimensions of the items about to build
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
@@ -458,14 +454,13 @@ cdef class HPolytope:
       
       # Transform the rounding_method variable to UTF-8 coding
       rounding_method = rounding_method.encode("UTF-8")
-            
+
       # Check whether a max ball has been given
-      if radius <= 0:
+      if radius > 0:
+         max_ball = True
+      else:
          max_ball = False
       
-      else:
-         max_ball = True
-
       # Check whether the rounding method the user asked for, is actually among those volestipy supports
       if rounding_method in rounding_methods:
 
