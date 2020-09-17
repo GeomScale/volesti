@@ -339,6 +339,20 @@ def get_max_ball(A_full_dim, b_full_dim):
          else:
             return point, r
 
+# Map the points samples on the (rounded) full dimensional polytope, back to the initial one
+def map_samples_on_initial_polytope(samples, T, T_shift, N, N_shift):
+
+   samples_T = samples.T
+
+   extra_1 = np.full((samples.shape[0],samples.shape[1]), T_shift) 
+   extra_2 = np.full((samples_T.shape[1], N.shape[0]), N_shift)
+
+   extra_T = extra_1.T
+   extra_N = extra_2.T
+
+   samples_on_initial_polytope = N.dot(T.dot(samples_T) + extra_T) + extra_N 
+
+   return samples_on_initial_polytope
 
 
 ################################################################################
@@ -377,13 +391,11 @@ cdef extern from "bindings.h":
       # Get full dimensional polytope
       int full_dimensiolal_polytope(double* N_extra_trans, double* shift, double* A_full_extra_trans, double* b_full)
 
-
 # Lists with the methods supported by volesti for volume approximation and random walk
 volume_methods = ["sequence_of_balls".encode("UTF-8"), "cooling_gaussian".encode("UTF-8"), "cooling_balls".encode("UTF-8")]
 walk_methods = ["uniform_ball".encode("UTF-8"), "CDHR".encode("UTF-8"), "RDHR".encode("UTF-8"), "gaussian_ball".encode("UTF-8"), \
                 "gaussian_CDHR".encode("UTF-8"), "gaussian_RDHR".encode("UTF-8"), "uniform_ball".encode("UTF-8"), "billiard".encode("UTF-8")]
 rounding_methods = ["min_ellipsoid".encode("UTF-8"), "svd".encode("UTF-8"), "max_ellipsoid".encode("UTF-8")]
-
 
 # Build the HPolytope class
 cdef class HPolytope:
@@ -485,7 +497,6 @@ cdef class HPolytope:
    @property
    def dimensions(self):
       return self._A.shape[1]
-
 
 # Build the low_dim_polytope_cpp class
 cdef class low_dim_HPolytope:
