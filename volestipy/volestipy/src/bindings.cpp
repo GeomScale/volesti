@@ -73,50 +73,32 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method,
 double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, 
                                       int number_of_points_to_burn, bool boundary,
                                       bool cdhr, bool rdhr, bool gaussian, bool set_L,
-                                      bool billiard, bool ball_walk, double a, double L,
-                                      bool max_ball, double* inner_point, double radius,
-                                      double* samples){
+                                      bool accelerated_billiard, bool billiard,
+                                      bool ball_walk, double a, double L, bool max_ball,
+                                      double* inner_point, double radius, double* samples){
 
    
    RNGType rng(HP.dimension());
    HP.normalize();
    
    int d = HP.dimension();
-   
-   Point starting_point;
-   double L_value; 
+   Point starting_point; 
    
    // Check for max ball given
    if (max_ball == true){
-      
-      if (set_L == false) {
-         
-         if (billiard == true){
-            L_value = 4*sqrt(d)*radius;
-      
-         } else if (gaussian == true){         
-            L_value = 4*(radius / sqrt(max(1, a)*d));
-            
-         }
-         /// to ball walk tote L = 4*(radius / sqrt(max(1, a)*d));
-         
-      } else {
-         
-         L_value = L
 
-         // If yes, then read the inner point provided by the user and the radius
-         VT inner_vec(d);
+      VT inner_vec(d);
          
-         for (int i = 0; i < d; i++){
-            inner_vec(i) = inner_point[i];
-         }
+      for (int i = 0; i < d; i++){
+         inner_vec(i) = inner_point[i];
+      }
    
-         Point inner_point2(inner_vec); 
-         CheBall = std::pair<Point, NT>(inner_point2, radius); 
-         starting_point = CheBall.first; 
-      } 
+      Point inner_point2(inner_vec); 
+      CheBall = std::pair<Point, NT>(inner_point2, radius);
+      HP.set_InnerBall(CheBall);
+      starting_point = inner_point2;
       
-   } else if (max_ball == false && set_L == false) {
+   } else {
 
       //Point default_starting_point = HP.ComputeInnerBall().first;
       starting_point = HP.ComputeInnerBall().first;
@@ -155,7 +137,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
       }
    } else if (billiard == true) {
       if (set_L == true) {
-         BilliardWalk WalkType(L_value);
+         BilliardWalk WalkType(L);
          uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points,
                           starting_point, number_of_points_to_burn);
       } else {
@@ -163,15 +145,25 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
                                         number_of_points, starting_point, 
                                         number_of_points_to_burn);
       }
+   } else if (accelerated_billiard == true) {
+      if (set_L == true) {
+         AcceleratedBilliardWalk WalkType(L);
+         uniform_sampling(rand_points, HP, rng, WalkType, walk_len, number_of_points,
+                          starting_point, number_of_points_to_burn);
+      } else {
+         uniform_sampling<AcceleratedBilliardWalk>(rand_points, HP, rng, walk_len, 
+                                        number_of_points, starting_point, 
+                                        number_of_points_to_burn);
+      }
    } else {
       if (set_L == true) {
          if (gaussian == true) {
-            GaussianBallWalk WalkType(L_value);
+            GaussianBallWalk WalkType(L);
             gaussian_sampling(rand_points, HP, rng, WalkType, walk_len,
                               number_of_points, a, starting_point, 
                               number_of_points_to_burn);
             } else {
-               BallWalk WalkType(L_value);
+               BallWalk WalkType(L);
                uniform_sampling(rand_points, HP, rng, WalkType, walk_len,
                                 number_of_points, starting_point, 
                                 number_of_points_to_burn);
