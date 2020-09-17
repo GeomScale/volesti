@@ -360,8 +360,8 @@ cdef extern from "bindings.h":
 
       # Random sampling
       double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, \
-         bool cdhr, bool rdhr, bool gaussian, bool set_L, bool billiard, bool ball_walk, double a, double L, \
-         bool max_ball, double* inner_point, double radius, double* samples);
+         bool cdhr, bool rdhr, bool gaussian, bool set_L, bool = accelerated_billiard, bool billiard, bool ball_walk, \
+         double a, double L, bool max_ball, double* inner_point, double radius, double* samples);
 
       # Rounding H-Polytope
       void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value, \

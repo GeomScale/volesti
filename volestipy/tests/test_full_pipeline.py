@@ -50,18 +50,29 @@ hp = HPolytope(A_fd, b_fd)
 print("An HP was built out of the full dimensional polytope features")
 
 ## Then use one of the volestipy functions for rounding
-print("\n\n Rounding is about to start")
-rounding_output_min_ellipsoid = hp.rounding(rounding_method = "min_ellipsoid", inner_point = max_ball_center_point, radius = max_ball_radius)
-
 rounding_returns = ["new_A","new_b","T_matrix","shift","round_val"]
+
+# Rounding by making use of max ball and the min_ellipsoid method
+rounding_output_min_ellipsoid = hp.rounding(rounding_method = "min_ellipsoid", inner_point = max_ball_center_point, radius = max_ball_radius)
 for i in range(len(rounding_output_min_ellipsoid)):
    print("\n" + rounding_returns[i] + ": ")
    print(rounding_output_min_ellipsoid[i])
 
-# Check for the rest rounding methods
-rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
-print(rounding_output_max_ellipsoid)
+print("\n\n ***Try rounding with max ball and max_ellipsoid \n\n")
 
+# Rounding by making use of max ball and the max_ellipsoid method
+rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid", inner_point = max_ball_center_point, radius = max_ball_radius)
+for i in range(len(rounding_output_max_ellipsoid)):
+   print("\n" + rounding_returns[i] + ": ")
+   print(rounding_output_max_ellipsoid[i])
+
+
+
+
+
+## Rounding without setting max ball and by making use of the max_ellipsoid method
+#print("\n\n ***Try rounding without max ball \n\n")
+#rounding_output_max_ellipsoid = hp.rounding(rounding_method = "max_ellipsoid")
 #for i in range(len(rounding_output_max_ellipsoid)):
 #   print("\n" + rounding_returns[i] + ": ")
 #   print(rounding_output_max_ellipsoid[i])
