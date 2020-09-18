@@ -3,7 +3,7 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
-// Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+// Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2019 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -38,7 +38,7 @@ struct compute_diameter<HPolytope<Point>>
 template <typename NT>
 static NT compute(HPolytope<Point> const& P)
 {
-    NT diameter = NT(4) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
+    NT diameter = NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
     return diameter;
 }
 };
@@ -329,8 +329,6 @@ private :
             P.compute_reflection(_v, _p, pbpair.second);
             it++;
         }
-        //if (it == 30*n) _p = p0;
-
     }
 
     NT _Len;

@@ -12,6 +12,7 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "volume/volume_sequence_of_balls.hpp"
+#include "preprocess/max_inscribed_ball.hpp"
 
 //' Compute an inscribed ball of a convex polytope
 //'
@@ -19,20 +20,22 @@
 //' For both zonotopes and V-polytopes the function computes the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
 //'
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
+//' @param lpsolve Optional. A boolean variable to compute the Chebychev ball of an H-polytope using the lpsolve library.
 //'
 //' @return A \eqn{(d+1)}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
 //'
 //' @examples
 //' # compute the Chebychev ball of the 2d unit simplex
-//' P = gen_simplex(2,'H')
+//' P = gen_cube(10,'H')
 //' ball_vec = inner_ball(P)
 //'
 //' # compute an inscribed ball of the 3-dimensional unit cube in V-representation
 //' P = gen_cube(3, 'V')
-//' ball_vec = inner_ball(P)
+//' ball_vec = inner_ball(P, lpsolve = TRUE)
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
+Rcpp::NumericVector inner_ball(Rcpp::Reference P, 
+                               Rcpp::Nullable<bool> lpsolve = R_NilValue) {
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -47,13 +50,19 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
     unsigned int n = P.field("dimension"), type = P.field("type");
 
     std::pair <Point, NT> InnerBall;
+    bool lp_solve = (lpsolve.isNotNull()) ? Rcpp::as<bool>(lpsolve) : false;
 
     switch (type) {
         case 1: {
             // Hpolytope
             Hpolytope HP;
             HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            InnerBall = HP.ComputeInnerBall();
+            if (lp_solve) {
+                InnerBall = ComputeChebychevBall<NT, Point>(HP.get_mat(), HP.get_vec());
+            } else {
+                InnerBall = HP.ComputeInnerBall();
+            }
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             break;
         }
         case 2: {
@@ -61,6 +70,7 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
             Vpolytope VP;
             VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             break;
         }
         case 3: {
@@ -69,6 +79,7 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
             InnerBall = ZP.ComputeInnerBall();
             ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             break;
         }
         case 4: {
@@ -81,6 +92,7 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
             VPcVP.init(VP1, VP2);
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             InnerBall = VPcVP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             break;
         }
     }

@@ -86,6 +86,15 @@ public:
         coeffs(i) = coord;
     }
 
+    void set_coeffs (const Coeff& coeffs2) {
+        d = coeffs2.rows();
+        coeffs = coeffs2;
+    }
+
+    void set_to_origin() {
+        coeffs.setZero(d);
+    }
+
     FT operator[] (const unsigned int i) const
     {
         return coeffs(i);
@@ -178,16 +187,13 @@ public:
         return this->coeffs.dot(coeffs);
     }
 
+    FT squared_length() const {
+        FT lsq = length();
+        return lsq * lsq;
+    }
 
-    FT squared_length() const
-    {
-
-        FT lsq = FT(0.0);
-
-        for (auto i=0u; i<d ; i++){
-            lsq += coeffs(i) * coeffs(i);
-        }
-        return lsq;
+    FT length() const {
+        return coeffs.norm();
     }
 
     void print() const
@@ -207,5 +213,3 @@ point<K> operator* (const typename K::FT& k, point<K> const& p)
 }
 
 #endif
-
-

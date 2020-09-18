@@ -4,8 +4,7 @@
 \alias{zonotope_approximation}
 \title{A function to over-approximate a zonotope with PCA method and to evaluate the approximation by computing a ratio of fitness.}
 \usage{
-zonotope_approximation(Z, fit_ratio = NULL, settings = NULL,
-  seed = NULL)
+zonotope_approximation(Z, fit_ratio = NULL, settings = NULL, seed = NULL)
 }
 \arguments{
 \item{Z}{A zonotope.}
@@ -30,7 +29,7 @@ For the evaluation of the PCA method the exact volume of the approximation body 
 }
 \examples{
 # over-approximate a 2-dimensional zonotope with 10 generators and compute the ratio of fitness
-Z = gen_rand_zonotope(2,8)
+Z = gen_rand_zonotope(2,12)
 retList = zonotope_approximation(Z = Z)
 
 }

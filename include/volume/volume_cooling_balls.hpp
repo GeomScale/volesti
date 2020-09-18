@@ -19,7 +19,6 @@
 #include "convex_bodies/zpolytope.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/vpolyintersectvpoly.h"
-#include "volume/rounding.hpp"
 #include "sampling/random_point_generators.hpp"
 
 
@@ -637,7 +636,7 @@ NT estimate_ratio_interval(ball const& B,
 
     do {
         p = GetPointInDsphere<Point>::apply(n, radius, rng);
-    }while (!estimate_ratio_interval_generic(Pb2, p, error, zp, ratio_parameters));
+    } while (!estimate_ratio_interval_generic(Pb2, p, error, zp, ratio_parameters));
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
 }
@@ -680,7 +679,7 @@ NT estimate_ratio_interval(PolyBall1 const& Pb1,
 
     do {
         walk.template apply(Pb1, p, walk_length, rng);
-    }while (!estimate_ratio_interval_generic(Pb2, p, error, zp, ratio_parameters));
+    } while (!estimate_ratio_interval_generic(Pb2, p, error, zp, ratio_parameters));
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
 }
@@ -715,7 +714,6 @@ double volume_cooling_balls(Polytope const& Pin,
     typedef RandomPointGenerator<WalkType> RandomPointGenerator;
 
     auto P(Pin);
-    //RandomNumberGenerator rng(P.dimension());
     cooling_ball_parameters<NT> parameters(win_len);
 
     int n = P.dimension();
@@ -723,15 +721,16 @@ double volume_cooling_balls(Polytope const& Pin,
     int N_times_nu = parameters.N * parameters.nu;
 
     auto InnerBall = P.ComputeInnerBall();
+    if (InnerBall.second < 0.0) return -1.0;
+    
     NT radius = InnerBall.second;
     Point c = InnerBall.first;
 
     std::vector<BallType> BallSet;
     std::vector<NT> ratios;
 
-    // Normalize and move the chebychev center to the origin
+    // move the chebychev center to the origin
     // and apply the same shifting to the polytope
-    P.normalize();
     P.shift(c.getCoefficients());
 
     if ( !get_sequence_of_polytopeballs

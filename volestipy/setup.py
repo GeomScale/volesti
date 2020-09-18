@@ -1,5 +1,6 @@
-# from setuptools import setup
-# from setuptools import Extension
+
+# This is the setup Python script for building the volestipy Python module
+
 from distutils.core import setup
 from distutils.core import Extension
 from Cython.Build import cythonize
@@ -14,17 +15,20 @@ description="volestipy: wrapper for the VolEsti library to sample from convex se
 author = "Pedro Zuidberg Dos Martires, Haris Zafeiropoulos"
 author_email="pedro.zuidbergdosmartires@cs.kuleuven.be, haris-zaf@hcmr.gr"
 name = 'volestipy'
-zip_safe=False
+zip_safe = False
 
 source_directory_list = ['volestipy', join('volestipy','src')]
 
 compiler_args = [
  "-std=c++11",
  "-O3",
- "-lm",
+  "-DBOOST_NO_AUTO_PTR",
  "-ldl",
- "-DBOOST_NO_AUTO_PTR",
+ "-lm",
 ]
+
+
+link_args = ['-O3']
 
 
 extra_volesti_include_dirs = [
@@ -44,12 +48,12 @@ extra_volesti_include_dirs = [
  join("..","include","random_walks"),
  join("..","include","volume"),
  join("..","include","generators"),
- join("..","include","cartesian_geom"), 
+ join("..","include","cartesian_geom"),
 ]
 
 
 src_files = ["volestipy/volestipy.pyx","volestipy/src/bindings.cpp"]
-extra_include_dirs = [numpy.get_include()] 
+extra_include_dirs = [numpy.get_include()]
 # Return the directory that contains the NumPy *.h header files.
 # Extension modules that need to compile against NumPy should use this function to locate the appropriate include directory.
 
@@ -63,6 +67,7 @@ ext_module = Extension(
  include_dirs = extra_include_dirs + extra_volesti_include_dirs,
  libraries = library_includes,
  extra_compile_args = compiler_args,
+ extra_link_args = link_args,
 )
 print("The Extension function is OK.")
 

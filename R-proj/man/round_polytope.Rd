@@ -4,10 +4,12 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-round_polytope(P, seed = NULL)
+round_polytope(P, method = NULL, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
+
+\item{method}{Optional. The method to use for rounding, a) \code{'mee'} for the method based on mimimmum volume enclosing ellipsoid of a dataset, b) \code{'mve'} for the method based on maximum volume enclosed ellipsoid, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'mee'} for all the representations.}
 
 \item{seed}{Optional. A fixed seed for the number generator.}
 }
@@ -18,17 +20,15 @@ A list with 4 elements: (a) a polytope of the same class as the input polytope c
 Given a convex H or V polytope or a zonotope as input this function brings the polytope in rounded position based on minimum volume enclosing ellipsoid of a pointset.
 }
 \examples{
-# rotate a H-polytope (2d unit simplex)
-A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
-b = c(0,0,1)
-P = Hpolytope$new(A, b)
+# round a 5d skinny cube
+P = gen_skinny_cube(5)
 listHpoly = round_polytope(P)
 
-# rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50
+# round a V-polytope (3d unit cube)
 P = gen_cube(3, 'V')
 ListVpoly = round_polytope(P)
 
-# round a 2-dimensional zonotope defined by 6 generators using ball walk
+# round a 2-dimensional zonotope defined by 6 generators
 Z = gen_rand_zonotope(2,6)
 ListZono = round_polytope(Z)
 }
@@ -38,4 +38,10 @@ ListZono = round_polytope(Z)
 
 \cite{Michael J. Todd and E. Alper Yildirim,
 \dQuote{On Khachiyan’s Algorithm for the Computation of Minimum Volume Enclosing Ellipsoids,} \emph{Discrete Applied Mathematics,} 2007.}
+
+\cite{B. Cousins and S. Vempala,
+\dQuote{A practical volume algorithm,} \emph{Math. Prog. Comp.,} 2016.},
+
+\cite{Yin Zhang and Liyan Gao,
+\dQuote{On Numerical Solution of the Maximum Volume Ellipsoid Problem,} \emph{SIAM Journal on Optimization,} 2003.},
 }

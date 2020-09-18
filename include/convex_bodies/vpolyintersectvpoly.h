@@ -3,8 +3,9 @@
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -81,10 +82,6 @@ public:
     int num_of_generators() const {
         return 0;
     }
-
-    //std::vector<Point> get_vertices() const {
-    //    return vecV;
-    //}
 
     NT getRad() const {
         return rad;
@@ -266,6 +263,41 @@ public:
         return line_positive_intersect(r, v);//, Ar, Av);
     }
 
+    //------------------------------accelarated billiard------------------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters& params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters& params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters& params) const
+    {
+        return line_positive_intersect(r, v);
+    }
+    //------------------------------------------------------------------------------//
+
 
     // Compute the intersection of a coordinate ray
     // with the V-polytope
@@ -336,6 +368,17 @@ public:
             P1.compute_reflection (v, p, facet);
         } else {
             P1.compute_reflection (v, p, facet);
+        }
+
+    }
+
+    template <typename update_parameters>
+    void compute_reflection (Point &v, const Point &p, update_parameters const& params) const {
+
+        if (params.facet_prev == 1) {
+            P1.compute_reflection (v, p, params);
+        } else {
+            P2.compute_reflection (v, p, params);
         }
 
     }

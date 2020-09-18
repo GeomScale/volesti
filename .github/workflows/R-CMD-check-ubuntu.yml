@@ -1,0 +1,66 @@
+##############################################################################
+# GitHub Actions Workflow to test the R interface of volesti
+#
+# Copyright (c) 2020 Vissarion Fisikopoulos
+#
+# Licensed under GNU LGPL.3, see LICENCE file
+##############################################################################
+
+on: [push, pull_request]
+
+name: R-CMD-check-ubuntu
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          # - {os: macOS-latest,   r: 'devel'}
+          # - {os: macOS-latest,   r: 'release'}
+          # - {os: windows-latest, r: 'devel'}
+          # - {os: windows-latest, r: 'release'}
+#          - {os: ubuntu-latest,  r: 'devel'} # error in "Run r-lib/actions/setup-r@master"
+#          - {os: ubuntu-latest,  r: 'release'} ##[error]Error in library(devtools) : there is no package called ‘devtools’
+#          - {os: ubuntu-18.04,   r: 'release'} ##[error]Error in library(devtools) : there is no package called ‘devtools’
+          - {os: ubuntu-16.04,   r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+          - {os: ubuntu-16.04,   r: 'oldrel',  rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+          - {os: ubuntu-16.04,   r: '3.5',     rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+          - {os: ubuntu-16.04,   r: '3.4',     rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+          - {os: ubuntu-16.04,   r: '3.3',     rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+
+    env:
+      R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
+      RSPM: ${{ matrix.config.rspm }}
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: r-lib/actions/setup-r@master
+        with:
+          r-version: ${{ matrix.config.r }}
+
+      - uses: r-lib/actions/setup-pandoc@master
+
+      - name: Install dependencies
+        run: Rscript -e "install.packages(c('devtools', dependencies=TRUE))" -e "install.packages(c('rcmdcheck', 'devtools', 'Rcpp', 'RcppEigen', 'BH', 'testthat'))";
+
+      - name: Check
+        env:
+          _R_CHECK_CRAN_INCOMING_REMOTE_: false
+        run: cd cran_gen/;
+             Rscript genCRANpkg.R;
+             cd cran_package;
+             Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual', '--as-cran'), error_on = 'warning', check_dir = 'check')"
+
+      - name: Upload check results
+        if: failure()
+        uses: actions/upload-artifact@master
+        with:
+          name: ${{ runner.os }}-r${{ matrix.config.r }}-results
+          path: check
