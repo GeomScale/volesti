@@ -48,7 +48,6 @@ class HPolytopeCPP{
       // regarding the rounding step
       typedef std::tuple<MT, VT, NT>    round_result;
 
-
       // The class and its main specs
       HPolytopeCPP();
       HPolytopeCPP(double *A, double *b, int n_hyperplanes, int n_variables);
