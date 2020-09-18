@@ -168,7 +168,7 @@ geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
 #'
 #' # compute an inscribed ball of the 3-dimensional unit cube in V-representation
 #' P = gen_cube(3, 'V')
-#' ball_vec = inner_ball(P)
+#' ball_vec = inner_ball(P, lpsolve = TRUE)
 #' @export
 inner_ball <- function(P, lpsolve = NULL) {
     .Call(`_volesti_inner_ball`, P, lpsolve)
@@ -276,12 +276,12 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #' @param n The number of points that the function is going to sample from the convex polytope.
 #' @param random_walk Optional. A list that declares the random walk and some related parameters as follows:
 #' \itemize{
-#' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
+#' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'aBiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution and H-polytopes and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes.}
 #' \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{1}.}
 #' \item{\code{nburns} }{ The number of points to burn before start sampling. The default value is \eqn{1}.}
 #' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 #' \item{\code{BaW_rad} }{ The radius for the ball walk.}
-#' \item{\code{L} }{ The maximum length of the billiard trajectory.}
+#' \item{\code{L} }{ The maximum length of the billiard trajectory or the radius for the step of dikin, vaidya or john walk.}
 #' }
 #' @param distribution Optional. A list that declares the target density and some related parameters as follows:
 #' \itemize{
@@ -290,6 +290,15 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
 #' }
 #' @param seed Optional. A fixed seed for the number generator.
+#'
+#' @references \cite{Robert L. Smith,
+#' \dQuote{Efficient Monte Carlo Procedures for Generating Points Uniformly Distributed Over Bounded Regions,} \emph{Operations Research,} 1984.},
+#'
+#' @references \cite{B.T. Polyak, E.N. Gryazina,
+#' \dQuote{Billiard walk - a new sampling algorithm for control and optimization,} \emph{IFAC Proceedings Volumes,} 2014.},
+#'
+#' @references \cite{Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
+#' \dQuote{Vaidya walk: A sampling algorithm based on the volumetric barrier,} \emph{55th Annual Allerton Conference on Communication, Control, and Computing,} 2017.}
 #'
 #' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples
@@ -377,12 +386,12 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
 #' @return The approximation of the volume of a convex polytope.
 #' @examples
 #'
-#' # calling SOB algorithm for a H-polytope (3d unit simplex)
-#' HP = gen_cube(3,'H')
+#' # calling SOB algorithm for a H-polytope (5d unit simplex)
+#' HP = gen_cube(5,'H')
 #' vol = volume(HP)
 #'
-#' # calling CG algorithm for a V-polytope (2d simplex)
-#' VP = gen_simplex(2,'V')
+#' # calling CG algorithm for a V-polytope (3d simplex)
+#' VP = gen_simplex(3,'V')
 #' vol = volume(VP, settings = list("algorithm" = "CG"))
 #'
 #' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
