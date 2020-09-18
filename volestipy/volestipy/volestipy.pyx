@@ -197,7 +197,8 @@ def pre_process(A, b, Aeq, beq):
             model.update()
 
             #######################
-            # After getting the constraints you need to add the bounds; ObjBound might work: https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
+            # After getting the constraints you need to add the bounds; ObjBound might work:
+            # https://www.gurobi.com/documentation/9.0/refman/objbound.html#attr:ObjBound
             # to start with, avoid ObjBound and do that the same way as Aeq but with unequalities this time
             #######################
 
@@ -428,7 +429,8 @@ cdef class HPolytope:
 
 # Likewise, the generate_samples() function
    def generate_samples(self, walk_len = 1, number_of_points = 1000, number_of_points_to_burn = 0, boundary = False, cdhr=False, \
-      rdhr = False, gaussian = False, set_L = False, accelerated_billiard = True, billiard = False, ball_walk = False, a = 0, radius = 0, inner_point = [], L = 0):
+      rdhr = False, gaussian = False, set_L = False, accelerated_billiard = True, billiard = False, ball_walk = False, a = 0, \
+      radius = 0, inner_point = [], L = 0):
 
       n_variables = self._A.shape[1]
       cdef double[:,::1] samples = np.zeros((number_of_points,  n_variables), dtype = np.float64, order = "C")
@@ -445,7 +447,8 @@ cdef class HPolytope:
       else:
          set_L = True
       
-      self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, accelerated_billiard, billiard, ball_walk, a, L, max_ball, &inner_point_for_c[0], radius, &samples[0,0])
+      self.polytope_cpp.generate_samples(walk_len, number_of_points, number_of_points_to_burn, boundary, cdhr, rdhr, gaussian, set_L, \
+                                 accelerated_billiard, billiard, ball_walk, a, L, max_ball, &inner_point_for_c[0], radius, &samples[0,0])
       return np.asarray(samples)      # we need to build a Python function for getting a starting point depending on the polytope
 
 
@@ -455,7 +458,8 @@ cdef class HPolytope:
       # Get the dimensions of the items about to build
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
 
-      # Set the variables of those items; notice that they are all cdef type except of the last one which is about to be used both as a C++ and a Python variable
+      # Set the variables of those items; notice that they are all cdef type except of the last one which is about to be used
+      # both as a C++ and a Python variable
       cdef double[:,::1] new_A = np.zeros((n_hyperplanes, n_variables), dtype=np.float64, order="C")
       cdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")
@@ -528,11 +532,14 @@ cdef class low_dim_HPolytope:
                self.low_dim_polytope_cpp = lowDimHPolytopeCPP(&A[0,0], &b[0], &Aeq[0,0], &beq[0], n_rows_of_A, n_cols_of_A, n_row_of_Aeq, n_cols_of_Aeq)
 
             else:
-               raise Exception('The number of columns of A equals to "{}" while those of Aeq {}. A and Aeq need to have the same number of columns'.format(n_cols_of_A, n_cols_of_Aeq))
+               raise Exception('The number of columns of A equals to "{}" while those of Aeq {}. \
+                               A and Aeq need to have the same number of columns'.format(n_cols_of_A, n_cols_of_Aeq))
          else:
-            raise Exception('The number of rows of Aeq equals to "{}" while the elements of the beq vector are {}. The beq vector needs to have length equal to the number of rows of Aeq.'.format(n_row_of_Aeq, beq.shape[0]))
+            raise Exception('The number of rows of Aeq equals to "{}" while the elements of the beq vector are {}. \
+                            The beq vector needs to have length equal to the number of rows of Aeq.'.format(n_row_of_Aeq, beq.shape[0]))
       else:
-         raise Exception('The number of rows of A equals to "{}" while the elements of b are {}. The b vector needs to have length equal to the number of rows of A.'.format(n_rows_of_A, b.shape[0]))
+         raise Exception('The number of rows of A equals to "{}" while the elements of b are {}. \
+                         The b vector needs to have length equal to the number of rows of A.'.format(n_rows_of_A, b.shape[0]))
 
    # The get_full_dimensional_polytope() function(); that needs to run in case the user does not provide volestipy with a full dimensional polytope
    def full_dimensiolal_polytope(self):
