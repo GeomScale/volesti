@@ -1,6 +1,13 @@
-// Code from https://github.com/rzrsk/vaidya-walk
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
+
+// Original C++ code from https://github.com/rzrsk/vaidya-walk by Raaz Dwivedi.
 
 // Modified by Alexandros Manochis to be integrated in volesti, as part of Google Summer of Code 2020 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef PWALK_UTIL_MATH_FUNCTIONS_HPP_
 #define PWALK_UTIL_MATH_FUNCTIONS_HPP_

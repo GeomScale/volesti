@@ -1,12 +1,18 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
+
 // Original C++ code from https://github.com/rzrsk/vaidya-walk by Raaz Dwivedi.
+
+// Modified by Alexandros Manochis to be integrated in volesti, as part of Google Summer of Code 2020 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
 
 // The implemented random walk is presented in the paper of 
 // Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu, 
-// "Vaidya walk: A sampling algorithm based on the volumetric barrier,"
-// 2017 55th Annual Allerton Conference on Communication, Control, and Computing (Allerton), 
-// Monticello, IL, 2017, pp. 1220-1227, doi: 10.1109/ALLERTON.2017.8262876.
-
-// Modified by Alexandros Manochis to be integrated in volesti, as part of Google Summer of Code 2020 program.
+// "Fast MCMC Sampling Algorithms on Polytopes",
+// Journal of Machine Learning Research, 2018.
 
 #ifndef PWALK_VAIDYA_WALKER_HPP_
 #define PWALK_VAIDYA_WALKER_HPP_

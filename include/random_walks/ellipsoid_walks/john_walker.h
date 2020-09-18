@@ -1,6 +1,18 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2020 Vissarion Fisikopoulos
+// Copyright (c) 2020 Apostolos Chalkis
+
 // Original C++ code from https://github.com/rzrsk/vaidya-walk by Raaz Dwivedi.
 
 // Modified by Alexandros Manochis to be integrated in volesti, as part of Google Summer of Code 2020 program.
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
+// The implemented random walk is presented in the paper of 
+// Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu, 
+// "Fast MCMC Sampling Algorithms on Polytopes",
+// Journal of Machine Learning Research, 2018.
 
 #ifndef PWALK_JOHN_WALKER_HPP_
 #define PWALK_JOHN_WALKER_HPP_
