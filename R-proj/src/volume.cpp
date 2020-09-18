@@ -41,11 +41,14 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
     unsigned int n = P.dimension();
     std::pair<Point, NT> InnerBall;
 
+    if (rounding != none){
+         InnerBall = P.ComputeInnerBall();
+         if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
+    }
+
     switch (rounding)
     {
     case min_ellipsoid:
-        InnerBall = P.ComputeInnerBall();
-        P.normalize();
         switch (walk)
         {
         case cdhr:
@@ -60,8 +63,6 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         }
         break;
     case svd:
-        InnerBall = P.ComputeInnerBall();
-        P.normalize();
         switch (walk)
         {
         case cdhr:
@@ -76,9 +77,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         }
         break;
     case max_ellipsoid:
-        InnerBall = P.ComputeInnerBall();
-        P.normalize();
-        round_val = std::get<2>(max_inscribed_ellipsoid_rounding<MT, VT>(P, InnerBall));
+        round_val = std::get<2>(max_inscribed_ellipsoid_rounding<MT, VT, NT>(P, InnerBall.first));
         break;
     default:
         break;
@@ -154,6 +153,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         throw Rcpp::exception("Unknown algorithm!");
         break;
     }
+    if (vol < 0.0) throw Rcpp::exception("volesti failed to terminate.");
     return vol * round_val;
 }
 
@@ -184,12 +184,12 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 //' @return The approximation of the volume of a convex polytope.
 //' @examples
 //'
-//' # calling SOB algorithm for a H-polytope (3d unit simplex)
-//' HP = gen_cube(3,'H')
+//' # calling SOB algorithm for a H-polytope (5d unit simplex)
+//' HP = gen_cube(5,'H')
 //' vol = volume(HP)
 //'
-//' # calling CG algorithm for a V-polytope (2d simplex)
-//' VP = gen_simplex(2,'V')
+//' # calling CG algorithm for a V-polytope (3d simplex)
+//' VP = gen_simplex(3,'V')
 //' vol = volume(VP, settings = list("algorithm" = "CG"))
 //'
 //' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
@@ -343,14 +343,26 @@ double volume (Rcpp::Reference P,
                 hpoly = false;
             }
             if (hpoly && algo == CB) {
-                if (cdhr) {
+                switch (walk)
+                {
+                case cdhr:
                     return volume_cooling_hpoly<CDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
-                } else if (rdhr) {
+                    break;
+                case rdhr:
                     return volume_cooling_hpoly<RDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
-                } else if (ball_walk) {
+                    break;
+                case ball_walk:
                     return volume_cooling_hpoly<BallWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
-                } else {
+                    break;
+                case billiard:
                     return volume_cooling_hpoly<BilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    break;
+                case accelarated_billiard:
+                    return volume_cooling_hpoly<AcceleratedBilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    break;
+                default:
+                    throw Rcpp::exception("This random walk can not be used by CB algorithm!");
+                    break;
                 }
             }
             return generic_volume(ZP, rng, walkL, e, algo, win_len, rounding_method, walk);
