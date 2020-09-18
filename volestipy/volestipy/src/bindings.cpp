@@ -76,7 +76,6 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
                                       bool accelerated_billiard, bool billiard,
                                       bool ball_walk, double a, double L, bool max_ball,
                                       double* inner_point, double radius, double* samples){
-
    
    RNGType rng(HP.dimension());
    HP.normalize();
@@ -88,7 +87,6 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
    if (max_ball == true){
 
       VT inner_vec(d);
-         
       for (int i = 0; i < d; i++){
          inner_vec(i) = inner_point[i];
       }
@@ -105,7 +103,6 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
    }   
       
    std::list<Point> rand_points;
-
 
    if (boundary == true) {
       if (cdhr == true) {
@@ -364,5 +361,5 @@ int lowDimHPolytopeCPP::full_dimensiolal_polytope(double* N_extra_trans, double*
    // as we know that N_temp.cols == full_HP_A.cols and likewise for their lines, 
    // we may return just one of those vars
    return N_temp_trans.rows();
-}
+} 
 
