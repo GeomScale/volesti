@@ -69,7 +69,7 @@ public:
         normalize();
         _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
 
-        if (_inner_ball.second < 0.0) {
+        /*if (_inner_ball.second < 0.0) {
 
             NT const tol = 0.00000001;
             std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
@@ -85,7 +85,7 @@ public:
                 _inner_ball.first = Point(std::get<0>(inner_ball));
                 _inner_ball.second = std::get<1>(inner_ball);
             }
-        }
+        }*/
         
         return _inner_ball;
     }
