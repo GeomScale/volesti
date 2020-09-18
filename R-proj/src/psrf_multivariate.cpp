@@ -14,7 +14,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "diagnostics/psrf.hpp"
+#include "diagnostics/multivariate_psrf.hpp"
 
 //' Gelman-Rubin Potential Scale Reduction Factor (PSRF)
 //'
@@ -27,12 +27,14 @@
 //' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
 //'
 //' @return The value of multivariate PSRF by S. Brooks and A. Gelman.
+//'
+//' @export
 // [[Rcpp::export]]
-double psrf(Rcpp::NumericMatrix samples)
+double psrf_multivariate(Rcpp::NumericMatrix samples)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;    
 
-    return perform_psrf<NT, VT>(Rcpp::as<MT>(samples));
+    return multivariate_psrf<NT, VT>(Rcpp::as<MT>(samples));
 }

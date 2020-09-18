@@ -49,7 +49,7 @@ struct Walk
     static inline NT compute_delta(GenericPolytope const& P, NT const& a)
     {
         //return ((P.InnerBall()).second * NT(4)) / NT(P.dimension());
-        return NT(4) * (P.InnerBall()).second / std::sqrt(std::max(NT(1), a) * NT(P.dimension()));
+        return (NT(4) * (P.InnerBall()).second) / std::sqrt(std::max(NT(1), a) * NT(P.dimension()));
     }
 
     Walk (Polytope const& P, Point const& p, NT const& a,
