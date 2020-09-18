@@ -1,4 +1,4 @@
-// Code from https://github.com/rzrsk/vaidya-walk
+// Original C++ code from https://github.com/rzrsk/vaidya-walk by Raaz Dwivedi.
 
 // Modified by Alexandros Manochis to be integrated in volesti, as part of Google Summer of Code 2020 program.
 

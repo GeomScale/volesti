@@ -154,6 +154,15 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 //' }
 //' @param seed Optional. A fixed seed for the number generator.
 //'
+//' @references \cite{Robert L. Smith,
+//' \dQuote{Efficient Monte Carlo Procedures for Generating Points Uniformly Distributed Over Bounded Regions,} \emph{Operations Research,} 1984.},
+//'
+//' @references \cite{B.T. Polyak, E.N. Gryazina,
+//' \dQuote{Billiard walk - a new sampling algorithm for control and optimization,} \emph{IFAC Proceedings Volumes,} 2014.},
+//'
+//' @references \cite{Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
+//' \dQuote{Vaidya walk: A sampling algorithm based on the volumetric barrier,} \emph{55th Annual Allerton Conference on Communication, Control, and Computing,} 2017.}
+//'
 //' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 //' @examples
 //' # uniform distribution from the 3d unit cube in H-representation using ball walk

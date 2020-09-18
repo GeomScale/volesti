@@ -163,12 +163,12 @@ geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
 #'
 #' @examples
 #' # compute the Chebychev ball of the 2d unit simplex
-#' P = gen_simplex(2,'H')
+#' P = gen_cube(10,'H')
 #' ball_vec = inner_ball(P)
 #'
 #' # compute an inscribed ball of the 3-dimensional unit cube in V-representation
 #' P = gen_cube(3, 'V')
-#' ball_vec = inner_ball(P)
+#' ball_vec = inner_ball(P, lpsolve = TRUE)
 #' @export
 inner_ball <- function(P, lpsolve = NULL) {
     .Call(`_volesti_inner_ball`, P, lpsolve)
@@ -291,6 +291,15 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #' }
 #' @param seed Optional. A fixed seed for the number generator.
 #'
+#' @references \cite{Robert L. Smith,
+#' \dQuote{Efficient Monte Carlo Procedures for Generating Points Uniformly Distributed Over Bounded Regions,} \emph{Operations Research,} 1984.},
+#'
+#' @references \cite{B.T. Polyak, E.N. Gryazina,
+#' \dQuote{Billiard walk - a new sampling algorithm for control and optimization,} \emph{IFAC Proceedings Volumes,} 2014.},
+#'
+#' @references \cite{Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
+#' \dQuote{Vaidya walk: A sampling algorithm based on the volumetric barrier,} \emph{55th Annual Allerton Conference on Communication, Control, and Computing,} 2017.}
+#'
 #' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples
 #' # uniform distribution from the 3d unit cube in H-representation using ball walk
@@ -377,12 +386,12 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
 #' @return The approximation of the volume of a convex polytope.
 #' @examples
 #'
-#' # calling SOB algorithm for a H-polytope (3d unit simplex)
-#' HP = gen_cube(3,'H')
+#' # calling SOB algorithm for a H-polytope (5d unit simplex)
+#' HP = gen_cube(5,'H')
 #' vol = volume(HP)
 #'
-#' # calling CG algorithm for a V-polytope (2d simplex)
-#' VP = gen_simplex(2,'V')
+#' # calling CG algorithm for a V-polytope (3d simplex)
+#' VP = gen_simplex(3,'V')
 #' vol = volume(VP, settings = list("algorithm" = "CG"))
 #'
 #' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments

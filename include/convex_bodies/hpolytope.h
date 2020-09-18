@@ -67,20 +67,25 @@ public:
     std::pair<Point,NT> ComputeInnerBall()
     {
         normalize();
-        NT const tol = 0.00000001;
-        std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
+        _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+
+        /*if (_inner_ball.second < 0.0) {
+
+            NT const tol = 0.00000001;
+            std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
         
-        // check if the solution is feasible
-        if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) || 
-               std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
-               !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
-        {
-            _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
-        } else 
-        { // use lpsolve library
-            _inner_ball.first = Point(std::get<0>(inner_ball));
-            _inner_ball.second = std::get<1>(inner_ball);
-        }
+            // check if the solution is feasible
+            if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) || 
+                std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
+                !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
+            {
+                _inner_ball.second = -1.0;
+            } else 
+            { 
+                _inner_ball.first = Point(std::get<0>(inner_ball));
+                _inner_ball.second = std::get<1>(inner_ball);
+            }
+        }*/
         
         return _inner_ball;
     }
@@ -161,7 +166,12 @@ public:
         for (unsigned int i = 1; i < Pin.size(); i++) {
             b(i - 1) = Pin[i][0];
             for (unsigned int j = 1; j < _d + 1; j++) {
-                A(i - 1, j - 1) = -Pin[i][j];
+                if(Pin[i][j] != 0){
+                    A(i - 1, j - 1) = -Pin[i][j];
+                }
+                else{
+                    A(i - 1, j - 1) = 0;
+                }
             }
         }
     }

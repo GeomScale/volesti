@@ -52,3 +52,13 @@ P = gen_rand_hpoly(2,20)
 points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
 
 }
+\references{
+\cite{Robert L. Smith,
+\dQuote{Efficient Monte Carlo Procedures for Generating Points Uniformly Distributed Over Bounded Regions,} \emph{Operations Research,} 1984.},
+
+\cite{B.T. Polyak, E.N. Gryazina,
+\dQuote{Billiard walk - a new sampling algorithm for control and optimization,} \emph{IFAC Proceedings Volumes,} 2014.},
+
+\cite{Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
+\dQuote{Vaidya walk: A sampling algorithm based on the volumetric barrier,} \emph{55th Annual Allerton Conference on Communication, Control, and Computing,} 2017.}
+}

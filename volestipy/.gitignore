@@ -4,3 +4,6 @@ dist
 *.so
 volestipy.cpp
 volestipy.egg-info
+*.npy
+*.json
+*.mat

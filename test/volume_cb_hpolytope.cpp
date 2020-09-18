@@ -38,8 +38,8 @@ void test_values(NT volume, NT expected, NT exact)
               << std::abs((volume-expected)/expected) << std::endl;
     std::cout << "Relative error (exact) = "
               << std::abs((volume-exact)/exact) << std::endl;
-    CHECK((std::abs((volume - exact)/exact) < 0.2 || 
-            std::abs((volume - expected)/expected) < 0.00001));
+    CHECK((std::abs((volume - exact)/exact) < 0.3 || 
+           std::abs((volume - expected)/expected) < 0.00001));
 }
 
 template <class Polytope>
@@ -140,28 +140,16 @@ void call_test_birk()
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 123> RNGType;
 
     std::cout << "--- Testing volume of H-birk3" << std::endl;
-    std::ifstream inp;
-    std::vector<std::vector<NT> > Pin;
-    inp.open("../R-proj/inst/extdata/birk3.ine",std::ifstream::in);
-    read_pointset(inp,Pin);
-    P.init(Pin);
+    P = gen_birk<Hpolytope>(3);
     test_volume(P, 0.114343, 0.125548, 0.113241, 0.112446, 0.125, true);
 
     std::cout << "--- Testing volume of H-birk4" << std::endl;
-    std::ifstream inp2;
-    std::vector<std::vector<NT> > Pin2;
-    inp2.open("../R-proj/inst/extdata/birk4.ine",std::ifstream::in);
-    read_pointset(inp2,Pin2);
-    P.init(Pin2);
+    P = gen_birk<Hpolytope>(4);
     test_volume(P, 0.00112956, 0.00109593, 0.00108152, 0.000845192,
                 0.000970018, true);
 
     std::cout << "--- Testing volume of H-birk5" << std::endl;
-    std::ifstream inp3;
-    std::vector<std::vector<NT> > Pin3;
-    inp3.open("../R-proj/inst/extdata/birk5.ine",std::ifstream::in);
-    read_pointset(inp3,Pin3);
-    P.init(Pin3);
+    P = gen_birk<Hpolytope>(5);
     test_volume(P,
                 1.97968e-07,
                 2.55884e-07,
@@ -171,15 +159,11 @@ void call_test_birk()
                 true);
 
     std::cout << "--- Testing volume of H-birk6" << std::endl;
-    std::ifstream inp4;
-    std::vector<std::vector<NT> > Pin4;
-    inp4.open("../R-proj/inst/extdata/birk6.ine",std::ifstream::in);
-    read_pointset(inp4,Pin4);
-    P.init(Pin4);
+    P = gen_birk<Hpolytope>(6);
     test_volume(P,
                 7.84351e-13,
-                6.10158e-13,
-                2.26624e-13,
+                6.10783e-13,
+                4.39192e-13,
                 6.62349e-13,
                 9.455459196 * std::pow(10,-13), 
                 true);
