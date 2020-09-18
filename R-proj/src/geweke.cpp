@@ -27,6 +27,8 @@
 //' \dQuote{Evaluating the accuracy of sampling-based approaches to the calculation of posterior moments,} \emph{ In Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 //'
 //' @return A boolean to denote if the result of Geweke diagnostic: (i)  false if the null hypothesis is rejected, (ii) true if the null hypothesis is not rejected.
+//'
+//' @export
 // [[Rcpp::export]]
 bool geweke(Rcpp::NumericMatrix samples, 
             Rcpp::Nullable<double> frac_first = R_NilValue, 

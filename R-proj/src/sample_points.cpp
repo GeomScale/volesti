@@ -297,6 +297,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                     Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
 
             InnerBall = HP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             if (!set_starting_point || (!set_mode && gaussian)) {
                 if (!set_starting_point) StartingPoint = InnerBall.first;
                 if (!set_mode && gaussian) mode = InnerBall.first;
@@ -304,7 +305,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             if (HP.is_in(StartingPoint) == 0) {
                 throw Rcpp::exception("The given point is not in the interior of the polytope!");
             }
-            HP.normalize();
             if (gaussian) {
                 StartingPoint = StartingPoint - mode;
                 HP.shift(mode.getCoefficients());
@@ -319,6 +319,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
 
             InnerBall = VP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             if (!set_starting_point || (!set_mode && gaussian)) {
                 if (!set_starting_point) StartingPoint = InnerBall.first;
                 if (!set_mode && gaussian) mode = InnerBall.first;
@@ -339,6 +340,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
 
             InnerBall = ZP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             if (!set_starting_point || (!set_mode && gaussian)) {
                 if (!set_starting_point) StartingPoint = InnerBall.first;
                 if (!set_mode && gaussian) mode = InnerBall.first;
@@ -365,6 +367,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             InnerBall = VPcVP.ComputeInnerBall();
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             if (!set_starting_point) StartingPoint = InnerBall.first;
             if (!set_mode && gaussian) mode = InnerBall.first;
             if (VPcVP.is_in(StartingPoint) == 0)

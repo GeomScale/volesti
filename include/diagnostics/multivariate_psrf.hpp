@@ -23,7 +23,7 @@
 #define PSRF_HPP
 
 template <typename NT, typename VT, typename MT>
-NT perform_psrf(MT const& samples)
+NT multivariate_psrf(MT const& samples)
 {
     unsigned int N = samples.cols(), d = samples.rows();
     unsigned int N1 = N / 2;

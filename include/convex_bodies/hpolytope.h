@@ -15,7 +15,22 @@
 #include <limits>
 #include <iostream>
 #include <Eigen/Eigen>
+#include "preprocess/max_inscribed_ball.hpp"
 #include "lp_oracles/solve_lp.h"
+
+
+// check if an Eigen vector contains NaN or infinite values
+template <typename VT>
+bool is_inner_point_nan_inf(VT const& p)
+{
+    typedef Eigen::Array<bool, Eigen::Dynamic, 1> VTint;
+    VTint a = p.array().isNaN();
+    for (int i = 0; i < p.rows(); i++) {
+        if (a(i) || std::isinf(p(i))){
+            return true;
+        }
+    }
+}
 
 //min and max values for the Hit and Run functions
 // H-polytope class
@@ -53,10 +68,30 @@ public:
     }
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
-    //Use LpSolve library
+    //Use LpSolve library as alternative
     std::pair<Point,NT> ComputeInnerBall()
     {
-        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+        normalize();
+        _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+
+        /*if (_inner_ball.second < 0.0) {
+
+            NT const tol = 0.00000001;
+            std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
+        
+            // check if the solution is feasible
+            if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) || 
+                std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
+                !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
+            {
+                _inner_ball.second = -1.0;
+            } else 
+            { 
+                _inner_ball.first = Point(std::get<0>(inner_ball));
+                _inner_ball.second = std::get<1>(inner_ball);
+            }
+        }*/
+        
         return _inner_ball;
     }
 

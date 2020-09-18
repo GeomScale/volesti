@@ -83,10 +83,6 @@ public:
         return 0;
     }
 
-    //std::vector<Point> get_vertices() const {
-    //    return vecV;
-    //}
-
     NT getRad() const {
         return rad;
     }

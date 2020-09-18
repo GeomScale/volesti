@@ -20,17 +20,15 @@ A list with 4 elements: (a) a polytope of the same class as the input polytope c
 Given a convex H or V polytope or a zonotope as input this function brings the polytope in rounded position based on minimum volume enclosing ellipsoid of a pointset.
 }
 \examples{
-# rotate a H-polytope (2d unit simplex)
-A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
-b = c(0,0,1)
-P = Hpolytope$new(A, b)
+# round a 5d skinny cube
+P = gen_skinny_cube(5)
 listHpoly = round_polytope(P)
 
-# rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50
+# round a V-polytope (3d unit cube)
 P = gen_cube(3, 'V')
 ListVpoly = round_polytope(P)
 
-# round a 2-dimensional zonotope defined by 6 generators using ball walk
+# round a 2-dimensional zonotope defined by 6 generators
 Z = gen_rand_zonotope(2,6)
 ListZono = round_polytope(Z)
 }

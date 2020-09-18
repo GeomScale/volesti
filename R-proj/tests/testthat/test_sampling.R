@@ -17,8 +17,6 @@ runsample <- function(P, name_string, dist){
   
 }
 
-path = system.file('extdata', package = 'volesti')
-
 for (i in 1:2) {
   
   if (i==1) {

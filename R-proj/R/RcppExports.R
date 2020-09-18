@@ -145,6 +145,8 @@ full_dimensional_polytope <- function(P) {
 #' \dQuote{Evaluating the accuracy of sampling-based approaches to the calculation of posterior moments,} \emph{ In Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 #'
 #' @return A boolean to denote if the result of Geweke diagnostic: (i)  false if the null hypothesis is rejected, (ii) true if the null hypothesis is not rejected.
+#'
+#' @export
 geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
     .Call(`_volesti_geweke`, samples, frac_first, frac_last)
 }
@@ -155,21 +157,21 @@ geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
 #' For both zonotopes and V-polytopes the function computes the minimum \eqn{r} s.t.: \eqn{ r e_i \in P} for all \eqn{i=1, \dots ,d}. Then the ball centered at the origin with radius \eqn{r/ \sqrt{d}} is an inscribed ball.
 #'
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
-#' @param method Optional. A string to declare the method to be used: (i) \code{'lpsolve'} to use lpsolve library, (ii) \code{'ipm'} to use an interior point method which solves the corresponding linear program. The default method is \code{'lpsolve'}.
+#' @param lpsolve Optional. A boolean variable to compute the Chebychev ball of an H-polytope using the lpsolve library.
 #'
 #' @return A \eqn{(d+1)}-dimensional vector that describes the inscribed ball. The first \eqn{d} coordinates corresponds to the center of the ball and the last one to the radius.
 #'
 #' @examples
 #' # compute the Chebychev ball of the 2d unit simplex
-#' P = gen_simplex(2,'H')
+#' P = gen_cube(10,'H')
 #' ball_vec = inner_ball(P)
 #'
 #' # compute an inscribed ball of the 3-dimensional unit cube in V-representation
 #' P = gen_cube(3, 'V')
 #' ball_vec = inner_ball(P)
 #' @export
-inner_ball <- function(P, method = NULL) {
-    .Call(`_volesti_inner_ball`, P, method)
+inner_ball <- function(P, lpsolve = NULL) {
+    .Call(`_volesti_inner_ball`, P, lpsolve)
 }
 
 #' An internal Rccp function as a polytope generator
@@ -199,8 +201,28 @@ poly_gen <- function(kind_gen, Vpoly_gen, Zono_gen, dim_gen, m_gen, seed = NULL)
 #' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
 #'
 #' @return The value of multivariate PSRF by S. Brooks and A. Gelman.
-psrf <- function(samples) {
-    .Call(`_volesti_psrf`, samples)
+#'
+#' @export
+psrf_multivariate <- function(samples) {
+    .Call(`_volesti_psrf_multivariate`, samples)
+}
+
+#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return A vector that contains the values of PSRF for each coordinate
+#'
+#' @export
+psrf_univariate <- function(samples, method = NULL) {
+    .Call(`_volesti_psrf_univariate`, samples, method)
 }
 
 #' Raftery and Lewis MCMC diagnostic
@@ -214,6 +236,8 @@ psrf <- function(samples) {
 #' \dQuote{How many iterations in the Gibbs sampler?,} \emph{Bayesian Statistics 4. Proceedings of the Fourth Valencia International Meeting,} 1992.}
 #'
 #' @return (i) The number of draws required for burn-in, (ii) the skip parameter for 1st-order Markov chain, (iii) the skip parameter sufficient to get independence chain, (iv) the number of draws required to achieve r precision, (v) the number of draws if the chain is white noise, (vi) the I-statistic from Raftery and Lewis (1992).
+#'
+#' @export
 raftery <- function(samples, q = NULL, r = NULL, s = NULL) {
     .Call(`_volesti_raftery`, samples, q, r, s)
 }
