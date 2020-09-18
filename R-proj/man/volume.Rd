@@ -31,7 +31,7 @@ For the volume approximation can be used three algorithms. Either CoolingBodies 
 }
 \examples{
 
-# calling SOB algorithm for a H-polytope (5d unit cube)
+# calling SOB algorithm for a H-polytope (5d unit simplex)
 HP = gen_cube(5,'H')
 vol = volume(HP)
 

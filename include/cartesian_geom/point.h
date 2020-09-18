@@ -86,6 +86,11 @@ public:
         coeffs(i) = coord;
     }
 
+    void set_coeffs (const Coeff& coeffs2) {
+        d = coeffs2.rows();
+        coeffs = coeffs2;
+    }
+
     void set_to_origin() {
         coeffs.setZero(d);
     }
