@@ -15,6 +15,8 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
    A.resize(n_hyperplanes,n_variables);
    b.resize(n_hyperplanes);
 
+   svd_parameters = svd_params(n_variables);
+
    int index = 0;
    for (int i = 0; i < n_hyperplanes; i++){
       b(i) = b_np[i];
@@ -275,6 +277,36 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 
 }
 //////////         End of "rounding()"          //////////
+
+void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
+                                     double* T_matrix, double* shift,
+                                     double* center, double radius,
+                                     svd_params &parameters) {
+
+   RNGType rng(HP.dimension());
+   HP.normalize();
+   
+   // check for max ball given
+   
+      
+   // if yes, then read the inner point provided by the user and the radius
+   int d = HP.dimension();
+   VT inner_vec(d);
+      
+   for (int i = 0; i < d; i++){
+      inner_vec(i) = inner_point[i];
+   }
+
+   Point inner_point(inner_vec);
+   CheBall = std::pair<Point, NT>(inner_point, radius);
+   
+   svd_rounding_single_step(Polytope &P,
+                                    std::pair<Point,NT> &InnerBall,
+                                    const unsigned int &walk_length,
+                                    parameters,
+                                    RandomNumberGenerator &rng);
+}
+
 
 
 
