@@ -88,11 +88,18 @@ def read_json_file(input_file):
 
    # The Aeq matrix
    Aeq = np.asarray(list_of_reaction_lists)
+   Aeq = np.ascontiguousarray(Aeq)
    Aeq = np.transpose(Aeq)
+   Aeq = np.ascontiguousarray(Aeq)
 
    # And the beq vector
    m = len(metabolites)
    beq = np.zeros(m)
+   
+   # Make everything C contigeous
+   A = np.ascontiguousarray(A, dtype=np.dtype) ; b = np.ascontiguousarray(b, dtype=np.dtype)
+   Aeq = np.ascontiguousarray(Aeq, dtype=np.dtype) ; beq = np.ascontiguousarray(beq, dtype=np.dtype)
+   Aeq = np.asarray(Aeq, order='C')
 
    return A, b, Aeq, beq, metabolites, reactions
 
@@ -167,6 +174,9 @@ def pre_process(A, b, Aeq, beq):
    beq_new = beq
    A_new = np.zeros((0,d))
    b_new = []    # this need to be a vector; we do not know its length
+   
+   min_fluxes = []
+   max_fluxes = []
 
    try:
 
@@ -228,6 +238,7 @@ def pre_process(A, b, Aeq, beq):
 
                   # Get the max objective value
                   max_objective = model.getObjective().getValue()
+                  max_fluxes.append(max_objective)
 
                # Likewise, for the minimum
                objective_function = np.asarray([-x for x in objective_function])
@@ -241,6 +252,7 @@ def pre_process(A, b, Aeq, beq):
 
                   # Get the max objective value
                   min_objective = model.getObjective().getValue()
+                  min_fluxes.append(min_objective)
 
                # Calculate the width
                width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
@@ -262,12 +274,16 @@ def pre_process(A, b, Aeq, beq):
             Aeq_new = Aeq_new.astype('float64')
             A_new = A_new.astype('float64')
 
+            # Make lists of fluxes numpy arrays
+            min_fluxes = np.asarray(min_fluxes) ; max_fluxes = np.asarray(max_fluxes)
+
             # And now we export the pre-processed elements on .npy files to load and use them anytime
             np.save('A_preprocessed.npy', A_new) ; np.save('b_preprocessed.npy', b_new)
             np.save('Aeq_preprocessed.npy', Aeq_new) ; np.save('beq_preprocessed.npy', beq_new)
-
+            np.save('min_fluxes.npy', min_fluxes), np.save('max_fluxes.npy', max_fluxes)
+            
             # Return a tupple including the new A, b, Aeq and beq
-            return A_new, b_new, Aeq_new, beq_new
+            return A_new, b_new, Aeq_new, beq_new, min_fluxes, max_fluxes
 
    # Print error messages
    except gp . GurobiError as e :
