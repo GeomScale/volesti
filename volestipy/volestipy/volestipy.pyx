@@ -88,18 +88,21 @@ def read_json_file(input_file):
 
    # The Aeq matrix
    Aeq = np.asarray(list_of_reaction_lists)
-   Aeq = np.ascontiguousarray(Aeq)
    Aeq = np.transpose(Aeq)
-   Aeq = np.ascontiguousarray(Aeq)
 
    # And the beq vector
    m = len(metabolites)
    beq = np.zeros(m)
    
    # Make everything C contigeous
-   A = np.ascontiguousarray(A, dtype=np.dtype) ; b = np.ascontiguousarray(b, dtype=np.dtype)
-   Aeq = np.ascontiguousarray(Aeq, dtype=np.dtype) ; beq = np.ascontiguousarray(beq, dtype=np.dtype)
-   Aeq = np.asarray(Aeq, order='C')
+   A = np.asarray(A, dtype = 'float')
+   A = np.ascontiguousarray(A, dtype='float')
+   b = np.asarray(b, dtype = 'float')
+   b = np.ascontiguousarray(b, dtype='float')
+   Aeq = np.asarray(Aeq, dtype = 'float')
+   Aeq = np.ascontiguousarray(Aeq, dtype='float')
+   beq = np.asarray(beq, dtype = 'float')
+   beq = np.ascontiguousarray(beq, dtype='float')
 
    return A, b, Aeq, beq, metabolites, reactions
 
@@ -191,10 +194,14 @@ def pre_process(A, b, Aeq, beq):
             x = model.addMVar(shape = d, vtype = GRB.CONTINUOUS , name = "x", lb = -GRB.INFINITY, ub = GRB.INFINITY)
 
             # Make sparse Aeq
+            # Aeq = np.array(Aeq, dtype=float)
+            # Aeq_sparse = sp.csr_matrix(Aeq.astype(np.float))
             Aeq_sparse = sp.csr_matrix(Aeq)
 
             # Make A sparse
-            A_sparse = sp.csr_matrix(A)
+            # A = np.array(A, dtype=float)
+            # A_sparse = sp.csr_matrix(A.astype(np.float))
+            A_sparse = sp.csr_matrix(A)            
 
             # Set the b and beq vectors as numpy vectors
             b = np.array(b)
@@ -319,7 +326,8 @@ def get_max_ball(A_full_dim, b_full_dim):
          model.update()
 
          # Make A_full_dim sparse
-         A_expand_sparse = sp.csr_matrix(A_expand)
+         # A_expand = np.array(A_expand, dtype=float)
+         A_expand_sparse = sp.csr_matrix(A_expand.astype(np.float))
 
          # Add constraints
          model.addMConstrs(A_expand_sparse, x, '<', b_full_dim, name = "c")
