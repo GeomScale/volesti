@@ -16,15 +16,26 @@ b = read_ecoli_core[1]
 Aeq = read_ecoli_core[2]
 beq = read_ecoli_core[3]
 
-# Pre-process it
-proc = pre_process(A, b, Aeq, beq)
-A_proc = proc[0]
-b_proc = proc[1]
-Aeq_proc = proc[2]
-beq_proc = proc[3]
+## Pre-process it
+#proc = pre_process(A, b, Aeq, beq)
+#A_proc = proc[0]
+#b_proc = proc[1]
+#Aeq_proc = proc[2]
+#beq_proc = proc[3]
+
+
+#A_proc = np.load('A_preprocessed.npy')
+#b_proc = np.load('b_preprocessed.npy')
+#Aeq_proc = np.load('Aeq_preprocessed.npy')
+#beq_proc = np.load('beq_preprocessed.npy')
+
+
+
 
 # Get an object for the low_dim_HPolytope class for the pre-processed polytope
-low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
+low_hp = low_dim_HPolytope(A, b, Aeq, beq)
+print("object ok")
+
 
 # And then get the full dimensional polytope
 get_fd_hp = low_hp.full_dimensiolal_polytope()
