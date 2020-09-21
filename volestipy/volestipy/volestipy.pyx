@@ -475,7 +475,44 @@ cdef class HPolytope:
                                  accelerated_billiard, billiard, ball_walk, a, L, max_ball, &inner_point_for_c[0], radius, &samples[0,0])
       return np.asarray(samples)      # we need to build a Python function for getting a starting point depending on the polytope
 
+   
+   def rounding_svd(self):
 
+      # Get the dimensions of the items about to build
+      n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
+
+      # Set the variables of those items; notice that they are all cdef type except of the last one which is about to be used
+      # both as a C++ and a Python variable
+      cdef double[:,::1] new_A = np.zeros((n_hyperplanes, n_variables), dtype=np.float64, order="C")
+      cdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
+      cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")
+      cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
+      
+      cdef double[::1] inner_point_for_c = np.asarray(inner_point)
+      
+      # Transform the rounding_method variable to UTF-8 coding
+      rounding_method = rounding_method.encode("UTF-8")
+
+      # Check whether a max ball has been given
+      if radius > 0:
+         max_ball = True
+      else:
+         max_ball = False
+      
+      # Check whether the rounding method the user asked for, is actually among those volestipy supports
+      
+
+      self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_value, max_ball, &inner_point_for_c[0], radius)
+
+      np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
+      np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
+      np.save('round_value.npy', np.asarray(round_value))
+
+      return np.asarray(new_A),np.asarray(new_b),np.asarray(T_matrix),np.asarray(shift),np.asarray(round_value)
+
+     
+
+   
 # The rounding() function; like the compute_volume; there are more than one methods for this step
    def rounding(self, rounding_method = 'max_ellipsoid', inner_point = [], radius = 0):
 
@@ -496,10 +533,7 @@ cdef class HPolytope:
       rounding_method = rounding_method.encode("UTF-8")
 
       # Check whether a max ball has been given
-      if radius > 0:
-         max_ball = True
-      else:
-         max_ball = False
+      point, r = get_max_ball(A,b)
       
       # Check whether the rounding method the user asked for, is actually among those volestipy supports
       if rounding_method in rounding_methods:
