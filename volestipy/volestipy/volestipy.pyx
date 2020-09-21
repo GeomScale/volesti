@@ -488,27 +488,23 @@ cdef class HPolytope:
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
       
-      cdef double[::1] inner_point_for_c = np.asarray(inner_point)
-      
-      # Transform the rounding_method variable to UTF-8 coding
-      rounding_method = rounding_method.encode("UTF-8")
+      #cdef double[::1] inner_point_for_c = np.asarray(inner_point)
 
-      # Check whether a max ball has been given
-      if radius > 0:
-         max_ball = True
-      else:
-         max_ball = False
+      inner_point_for_c, radius = get_max_ball(self._A, self._b)
       
       # Check whether the rounding method the user asked for, is actually among those volestipy supports
       
 
-      self.polytope_cpp.rounding(rounding_method, &new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], round_value, max_ball, &inner_point_for_c[0], radius)
+      while( True  ){
+      	if(self.polytope_cpp.rounding_svd_step(&new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], &inner_point_for_c[0], radius)) {
+		break
+	}
+      }
 
       np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
       np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
-      np.save('round_value.npy', np.asarray(round_value))
 
-      return np.asarray(new_A),np.asarray(new_b),np.asarray(T_matrix),np.asarray(shift),np.asarray(round_value)
+      return np.asarray(new_A), np.asarray(new_b), np.asarray(T_matrix), np.asarray(shift)
 
      
 
@@ -533,7 +529,10 @@ cdef class HPolytope:
       rounding_method = rounding_method.encode("UTF-8")
 
       # Check whether a max ball has been given
-      point, r = get_max_ball(A,b)
+      if radius > 0:
+         max_ball = True
+      else:
+         max_ball = False
       
       # Check whether the rounding method the user asked for, is actually among those volestipy supports
       if rounding_method in rounding_methods:

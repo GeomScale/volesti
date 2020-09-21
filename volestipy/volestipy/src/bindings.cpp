@@ -278,7 +278,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 }
 //////////         End of "rounding()"          //////////
 
-void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
+bool HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
                                      double* T_matrix, double* shift,
                                      double* center, double radius) {
 
@@ -303,7 +303,7 @@ void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
 
    if (svd_parameters.fail) {
       std::cout<<"method failed"<<std::endl;
-      return;
+      //return false;
    }
 
    MT A_to_copy = HP.get_mat();
@@ -338,7 +338,9 @@ void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
       for (int i = 0; i < n_variables; i++){
          shift[i] = shift_temp[i];
       }
+      return true;
    }
+   return false;
 
 }
 
