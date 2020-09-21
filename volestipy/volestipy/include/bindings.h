@@ -53,6 +53,7 @@ public:
         ,   converged(false)
         ,   last_round_under_p(false)
         ,   max_s(NT(0))
+        ,   prev_max_s(NT(0))
         ,   round_it(1)
     {}
 
@@ -63,6 +64,7 @@ public:
     bool converged;
     bool last_round_under_p;
     NT max_s;
+    NT prev_max_s;
     unsigned int round_it;
 };
 

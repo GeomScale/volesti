@@ -12,7 +12,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
 
    MT A;
    VT b;
-   A.resize(n_hyperplanes,n_variables);
+   A.resize(n_hyperplanes, n_variables);
    b.resize(n_hyperplanes);
 
    svd_parameters = svd_params(n_variables);
@@ -280,14 +280,10 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 
 void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
                                      double* T_matrix, double* shift,
-                                     double* center, double radius,
-                                     svd_params &parameters) {
+                                     double* center, double radius) {
 
    RNGType rng(HP.dimension());
    HP.normalize();
-   
-   // check for max ball given
-   
       
    // if yes, then read the inner point provided by the user and the radius
    int d = HP.dimension();
@@ -300,11 +296,50 @@ void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
    Point inner_point(inner_vec);
    CheBall = std::pair<Point, NT>(inner_point, radius);
    
-   svd_rounding_single_step(Polytope &P,
-                                    std::pair<Point,NT> &InnerBall,
-                                    const unsigned int &walk_length,
-                                    parameters,
-                                    RandomNumberGenerator &rng);
+   unsigned int walk_length = 2;
+
+   svd_rounding_single_step<AcceleratedBilliardWalk, MT, VT>(HP, CheBall, walk_length,
+                                                             svd_parameters, rng);
+
+   if (parameters.fail) {
+      std::cout<<"method failed"<<std::endl;
+      return;
+   }
+
+   MT A_to_copy = HP.get_mat();
+   int n_hyperplanes = HP.num_of_hyperplanes();
+   int n_variables = HP.dimension();
+
+   auto n_si = 0;
+   for (int i = 0; i < n_hyperplanes; i++){
+      for (int j = 0; j < n_variables; j++){
+         new_A[n_si++] = A_to_copy(i,j);
+      }
+   }
+
+   // create the new_b vector
+   VT new_b_temp = HP.get_vec();
+   for (int i=0; i < n_hyperplanes; i++){
+      new_b[i] = new_b_temp[i];
+   }
+
+   if (parameters.converged) {
+      // create the T matrix
+      MT T_matrix_temp = parameters.T;
+      auto t_si = 0;
+      for (int i = 0; i < n_variables; i++){
+         for (int j = 0; j < n_variables; j++){
+            T_matrix[t_si++] = T_matrix_temp(i,j);
+         }
+      }
+
+      // create the shift vector
+      VT shift_temp = parameters.T_shift;
+      for (int i = 0; i < n_variables; i++){
+         shift[i] = shift_temp[i];
+      }
+   }
+
 }
 
 
