@@ -26,6 +26,7 @@
 // for rounding
 #include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
+#include "preprocess/svd_rounding_step.hpp"
 #include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 #include "preprocess/get_full_dimensional_polytope.hpp"
 
@@ -53,7 +54,7 @@ public:
         ,   converged(false)
         ,   last_round_under_p(false)
         ,   max_s(NT(0))
-        ,   prev_max_s(NT(0))
+        ,   prev_max_s(std::numeric_limits<NT>::max())
         ,   round_it(1)
     {}
 

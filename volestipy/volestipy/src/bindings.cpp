@@ -288,7 +288,7 @@ void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
    // if yes, then read the inner point provided by the user and the radius
    int d = HP.dimension();
    VT inner_vec(d);
-      
+   
    for (int i = 0; i < d; i++){
       inner_vec(i) = inner_point[i];
    }
@@ -301,7 +301,7 @@ void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
    svd_rounding_single_step<AcceleratedBilliardWalk, MT, VT>(HP, CheBall, walk_length,
                                                              svd_parameters, rng);
 
-   if (parameters.fail) {
+   if (svd_parameters.fail) {
       std::cout<<"method failed"<<std::endl;
       return;
    }
@@ -323,9 +323,9 @@ void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
       new_b[i] = new_b_temp[i];
    }
 
-   if (parameters.converged) {
+   if (svd_parameters.converged) {
       // create the T matrix
-      MT T_matrix_temp = parameters.T;
+      MT T_matrix_temp = svd_parameters.T;
       auto t_si = 0;
       for (int i = 0; i < n_variables; i++){
          for (int j = 0; j < n_variables; j++){
@@ -334,7 +334,7 @@ void HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
       }
 
       // create the shift vector
-      VT shift_temp = parameters.T_shift;
+      VT shift_temp = svd_parameters.T_shift;
       for (int i = 0; i < n_variables; i++){
          shift[i] = shift_temp[i];
       }
