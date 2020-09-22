@@ -215,6 +215,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 
       Point inner_point2(inner_vec);
       CheBall = std::pair<Point, NT>(inner_point2, radius);
+      P.set_InnerBall(CheBall);
       
    } else if (max_ball == false ) {
       CheBall = P.ComputeInnerBall();
@@ -295,6 +296,7 @@ bool HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
 
    Point inner_point(inner_vec);
    CheBall = std::pair<Point, NT>(inner_point, radius);
+   HP.set_InnerBall(CheBall);
    
    unsigned int walk_length = 2;
 
