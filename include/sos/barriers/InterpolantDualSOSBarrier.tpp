@@ -332,7 +332,6 @@ bool InterpolantDualSOSBarrier<IPMDouble>::update_gradient_hessian_LLT(Vector x,
         Vector relative = scaled_gx - stored_scaled_gx;
         Vector relative_abs = relative.cwiseAbs();
 //        TODO: Check if adding diagonal here makes sense. This corresponds to the gradient and the term occurs for the Sherman-Morrison update.
-/
 
         std::vector<IPMDouble> relative_vec(relative_abs.data(), relative_abs.data() + relative_abs.rows());
         std::vector<size_t> relative_vec_sorted = sort_indexes(relative_vec);
