@@ -304,6 +304,25 @@ public:
 template<typename T>
 static OrthogonaPMatrixLibrary<T> orthogonal_P_Matrix_library;
 
+
+template<typename _MatrixType, int _UpLo> class CustomLLT : public Eigen::LLT<_MatrixType, _UpLo> {
+public:
+
+    typedef _MatrixType MatrixType;
+    typedef typename MatrixType::Scalar Scalar;
+
+    CustomLLT<_MatrixType, _UpLo>() :  Eigen::LLT<_MatrixType, _UpLo>() {};
+
+    CustomLLT<_MatrixType, _UpLo>(unsigned int n) :  Eigen::LLT<_MatrixType, _UpLo>(n) {};
+
+    void copy_and_scale(const CustomLLT<_MatrixType, _UpLo> & other, Scalar scalar){
+        this->m_matrix = other.m_matrix * scalar;
+        this->m_l1_norm = other.m_l1_norm;
+        this->m_isInitialized = other.m_isInitialized;
+        this->m_info = other.m_info;
+    }
+};
+
 #endif //SOS_UTILS_H
 
 

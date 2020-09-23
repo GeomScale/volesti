@@ -58,9 +58,8 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::solve(Matrix &M_, Vector const v_)
     return sol;
 }
 
-//TODO:For sparse systems we might create a dense matrix in the LLS decomposition. Implement separate solver for this case
-//TODO: The method is not optimal yet regading computational complexity and memory allocation.
-// But its runtime is cominated by the calls to compute the Hessian anyway.
+//TODO:For sparse systems we might create a dense matrix in the LLT decomposition. Implement separate solver for this case
+//TODO:make sure all memory is preallocated.
 
 template<typename IPMDouble>
 std::vector<std::pair<Vector<IPMDouble>, Vector<IPMDouble> > >
@@ -210,9 +209,9 @@ int NonSymmetricIPM<IPMDouble>::run_solver() {
 
     _logger->info("Solver started.");
 
-    _logger->debug("b: {}", b.transpose());
-    _logger->debug("c: {}", c.transpose());
-    _logger->debug("gradient: {}", _barrier->gradient(x).transpose());
+    _logger->trace("b: {}", b.transpose());
+    _logger->trace("c: {}", c.transpose());
+    _logger->trace("gradient: {}", _barrier->gradient(x).transpose());
 
     print_status();
 
@@ -234,7 +233,7 @@ int NonSymmetricIPM<IPMDouble>::run_solver() {
         }
 
 #ifndef NDEBUG
-        if (centrality() < _large_neighborhood) {
+        if (centrality() > _large_neighborhood) {
             _logger->warn("Centrality at beginning of predictor step is {}, large neighborhood is {}", centrality(),
                           _large_neighborhood);
         }
@@ -267,7 +266,8 @@ int NonSymmetricIPM<IPMDouble>::run_solver() {
 
         const IPMDouble ERR_THRESHOLD = .1;
         if (err_sum > ERR_THRESHOLD) {
-            _logger->warn("Error in predictor direction too big. Terminate.");
+            _logger->warn("Error in predictor direction too big. Terminate. (Error is {}. Threshold is {})",
+                          err_sum, ERR_THRESHOLD);
             _logger->info("Predictor direction: ");
             std::cout << pred_dir.x.transpose() << std::endl << pred_dir.s.transpose() << std::endl;
             //TODO: Iterative refinement.
@@ -352,7 +352,6 @@ int NonSymmetricIPM<IPMDouble>::run_solver() {
             Vector corrector_direction = solve_corrector_system();
 
             DirectionDecomposition<IPMDouble> dir(corrector_direction, x.rows(), y.rows());
-            _logger->debug("Corrector direction is: \n{}", dir);
             Vector concat = build_update_vector();
             concat += _step_length_corrector * corrector_direction;
             apply_update(concat);
@@ -429,6 +428,8 @@ void NonSymmetricIPM<IPMDouble>::initialize() {
     x = _barrier->initialize_x();
     s = _barrier->initialize_s();
 
+    _err_consts.set(A,b,c);
+
     IPMDouble scaling_delta_primal = 0;
     for (int i = 0; i < A.rows(); i++) {
         IPMDouble const row_ratio = (1. + abs(b(i))) / (1. + abs(A.row(i).sum()));
@@ -475,6 +476,9 @@ void NonSymmetricIPM<IPMDouble>::initialize() {
 
     _step_length_predictor = calc_step_length_predictor();
     _step_length_corrector = 1;
+
+
+
 }
 
 template<typename IPMDouble>
@@ -482,7 +486,6 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::create_predictor_RHS() {
     Vector v(y.rows() + x.rows() + 1 + s.rows() + 1);
     v << y, x, tau * Matrix::Identity(1, 1), s, kappa * Matrix::Identity(1, 1);
     DirectionDecomposition<IPMDouble> cur_sol(v, x.rows(), y.rows());
-    _logger->debug("Current vector is: \n{}", cur_sol);
     Vector v1 = -(A * x - b * tau);
     Vector v2 = -(-A.transpose() * y + c * tau - s);
     Vector v3 = -(b.dot(y) - c.dot(x) - kappa) * Matrix::Identity(1, 1);
@@ -497,7 +500,7 @@ Vector<IPMDouble> NonSymmetricIPM<IPMDouble>::create_corrector_RHS() {
     Vector v2 = -psi(mu());
     Vector rhs(v1.rows() + s.rows() + 1);
     rhs << v1, v2;
-    _logger->debug("Corrector RHS is \n {}", rhs.transpose());
+    _logger->trace("Corrector RHS is \n {}", rhs.transpose());
     return rhs;
 };
 
@@ -555,8 +558,10 @@ void NonSymmetricIPM<IPMDouble>::print_status() {
     aux.block(1, 0, 1, s.rows()) = s.transpose();
 
 
-    _logger->debug("Current primal/dual x, s pair :\n{}", aux);
-    _logger->debug("Current primal/dual rescaled x, s pair :\n{}", aux / tau);
+    if (_logger->level() <= spdlog::level::trace) {
+        _logger->trace("Current primal/dual x, s pair :\n{}", aux);
+        _logger->trace("Current primal/dual rescaled x, s pair :\n{}", aux / tau);
+    }
 
     _logger->info(format_, "kappa", static_cast<Double>(kappa));
     _logger->info(format_, "tau", static_cast<Double>(tau));
@@ -644,24 +649,28 @@ template<typename IPMDouble>
 bool NonSymmetricIPM<IPMDouble>::terminate_successfully() {
     //TODO: use same criteria as in infeasilbe (i.e. scaling invariant and what is used in Skajaa-Ye)
     //Duality
-    if (x.dot(s) > _epsilon * tau * tau) {
-        return false;
-    }
+//    if (x.dot(s) > _epsilon * tau * tau) {
+//        return false;
+//    }
     //Primal feasibility
-    if (primal_error_rescaled() > _epsilon) {
-        return false;
-    }
+//    if (primal_error_rescaled() > _epsilon) {
+//        return false;
+//    }
 
     if (primal_error() > _epsilon) {
         return false;
     }
+//
+//    //Dual feasibility
+//    if (dual_error_rescaled() > _epsilon) {
+//        return false;
+//    }
 
-    //Dual feasibility
-    if (dual_error_rescaled() > _epsilon) {
+    if (dual_error() > _epsilon) {
         return false;
     }
 
-    if (dual_error() > _epsilon) {
+    if (complementarity() > _epsilon){
         return false;
     }
 
@@ -733,7 +742,7 @@ IPMDouble NonSymmetricIPM<IPMDouble>::centrality() {
     _custom_timers[0].start();
     Vector const psi_vec = psi(mu_d);
 
-    _logger->debug("Vector Psi is: {}", psi_vec.transpose());
+    _logger->trace("Vector Psi is: {}", psi_vec.transpose());
 
     _custom_timers[0].stop();
     _custom_timers[2].start();
@@ -755,7 +764,9 @@ IPMDouble NonSymmetricIPM<IPMDouble>::centrality() {
         _logger->info("Segments error norms are: {}", seg_norms.transpose());
     }
 
-    _logger->debug("Linear system error vector is {}", err_L.transpose());
+    if (_logger->level() <= spdlog::level::trace) {
+        _logger->trace("Linear system error vector is {}", err_L.transpose());
+    }
     _custom_timers[2].stop();
 
     IPMDouble centr_err_L = err_L.norm() / mu_d;

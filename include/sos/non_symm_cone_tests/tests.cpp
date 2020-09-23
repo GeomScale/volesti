@@ -4,12 +4,13 @@
 //
 // Licensed under GNU LGPL.3, see LICENCE file
 
+#include "../../../test/doctest.h"
 #include "../utils.h"
 #include "../NonSymmetricIPM.h"
 #include "../barriers/LPStandardBarrier.h"
 #include "../barriers/SDPStandardBarrier.h"
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 Constraints<IPMDouble> convert_LP_to_SDP(Matrix<IPMDouble> &A, Vector<IPMDouble> &b, Vector<IPMDouble> &c) {
     const int m = A.rows();
     const int n = A.cols();
@@ -45,7 +46,7 @@ Constraints<IPMDouble> convert_LP_to_SDP(Matrix<IPMDouble> &A, Vector<IPMDouble>
     return SDP_constraints;
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 bool test_sdp_solver_random_lp_formulation(const int m, const int n) {
     Matrix<IPMDouble> A = Matrix<IPMDouble>::Random(m, n);
     Vector<IPMDouble> x0 = Vector<IPMDouble>::Random(n);
@@ -67,7 +68,7 @@ bool test_sdp_solver_random_lp_formulation(const int m, const int n) {
     return ipm_sdp_solver.verify_solution();
 }
 
-template <typename IPMDouble>
+template<typename IPMDouble>
 bool test_lp_solver_random(const int m, const int n) {
     Matrix<IPMDouble> A = Matrix<IPMDouble>::Random(m, n);
     Vector<IPMDouble> x0 = Vector<IPMDouble>::Random(n);
@@ -87,28 +88,28 @@ bool test_lp_solver_random(const int m, const int n) {
     return lp_solver.verify_solution(10e-5);
 }
 
-template <typename IPMDouble>
-void test_sdp_solver(std::string & config_file_str) {
+template<typename IPMDouble>
+void test_sdp_solver(std::string &config_file_str) {
 
     typedef std::vector<std::pair<IPMDouble, IPMDouble> > HyperRectangle;
 
     HyperRectangle hyperRectangle;
-    hyperRectangle.emplace_back(std::pair<IPMDouble, IPMDouble>(-1,1));
+    hyperRectangle.emplace_back(std::pair<IPMDouble, IPMDouble>(-1, 1));
     const unsigned max_degree = 10;
     const unsigned num_variables = 1;
-    EnvelopeProblemSDP<IPMDouble> envelopeProblemSDP(num_variables, max_degree, hyperRectangle);
+    EnvelopeProblemSDP <IPMDouble> envelopeProblemSDP(num_variables, max_degree, hyperRectangle);
     Matrix<IPMDouble> poly1 = envelopeProblemSDP.generate_zero_polynomial();
-    poly1(0,0) = 1;
+    poly1(0, 0) = 1;
     poly1(1, 0) = 1;
-    poly1(-0,1) = 1;
+    poly1(-0, 1) = 1;
     poly1(1, 1) = 1;
-    poly1(2,2) = -1;
-    poly1(1,1) = 1;
+    poly1(2, 2) = -1;
+    poly1(1, 1) = 1;
 
     Matrix<IPMDouble> poly11 = envelopeProblemSDP.generate_zero_polynomial();
-    poly11(0,0) = 1;
+    poly11(0, 0) = 1;
     poly11(1, 0) = -1;
-    poly11(-0,1) = -1;
+    poly11(-0, 1) = -1;
     poly11(1, 1) = 1;
 
     envelopeProblemSDP.print_polynomial(poly1);
@@ -119,19 +120,19 @@ void test_sdp_solver(std::string & config_file_str) {
 
 
     Matrix<IPMDouble> p1 = Matrix<IPMDouble>::Zero(poly1.rows(), poly1.cols());
-    p1(1,1) = 10;
+    p1(1, 1) = 10;
     p1(0, 0) = -0;
 
-    Matrix<IPMDouble>p2 = Matrix<IPMDouble>::Zero(poly1.rows(), poly1.cols());
-    p2(0,0) = 10;
-    p2(0,1) = 10;
+    Matrix<IPMDouble> p2 = Matrix<IPMDouble>::Zero(poly1.rows(), poly1.cols());
+    p2(0, 0) = 10;
+    p2(0, 1) = 10;
     for (int i = 2; i <= max_degree; ++i) {
-        p2(i,i) = -.0001;
+        p2(i, i) = -.0001;
     }
     p2 = p2.eval() + p2.transpose().eval();
     Matrix<IPMDouble> p3 = Matrix<IPMDouble>::Zero(poly1.rows(), poly1.cols());
-    p3(0,0) = 1;
-    p3(0,1) = -1;
+    p3(0, 0) = 1;
+    p3(0, 1) = -1;
     p3 = p3.eval() + p3.transpose().eval();
 //
 //    envelopeProblemSDP.add_polynomial(p1);
@@ -140,7 +141,7 @@ void test_sdp_solver(std::string & config_file_str) {
 //
     Instance<IPMDouble> instance = envelopeProblemSDP.construct_SDP_instance();
 
-    std::cout << "Objectives Matrix: " << std::endl << envelopeProblemSDP.get_objective_matrix() << std::endl;
+//    std::cout << "Objectives Matrix: " << std::endl << envelopeProblemSDP.get_objective_matrix() << std::endl;
 
     NonSymmetricIPM<IPMDouble> sos_solver(instance, config_file_str);
     sos_solver.run_solver();
@@ -148,4 +149,8 @@ void test_sdp_solver(std::string & config_file_str) {
     envelopeProblemSDP.plot_polynomials_and_solution(sos_solver.get_solution());
 }
 
-
+TEST_CASE ("nonsymmetric_cone_tests") {
+    std::cout << "--- Testing LP and SDP solver" << std::endl;
+    CHECK(test_lp_solver_random<double>(2, 5));
+    CHECK(test_sdp_solver_random_lp_formulation<double>(2, 5));
+}

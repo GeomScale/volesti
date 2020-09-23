@@ -3,7 +3,6 @@
 // Copyright (c) 2020 Bento Natura
 //
 // Licensed under GNU LGPL.3, see LICENCE file
-
 #ifndef NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H
 #define NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H
 
@@ -14,14 +13,14 @@
 #include <fstream>
 
 
-template< class T>
+template<class T>
 class Instance {
 public:
     Constraints<T> constraints;
     LHSCB<T> *barrier;
 };
 
-template< class T>
+template<class T>
 class DirectionDecomposition {
 public:
     DirectionDecomposition(Vector<T> v, unsigned const n, unsigned const m) {
@@ -39,7 +38,33 @@ public:
     T kappa, tau;
 };
 
-template <typename IPMDouble>
+template<class T>
+class ErrorConstants {
+public:
+
+    ErrorConstants() {};
+
+    template<class U>
+    ErrorConstants(const ErrorConstants<U> other) {
+        primal = boost::numeric_cast<T>(other.primal);
+        dual = boost::numeric_cast<T>(other.dual);
+        complementary = boost::numeric_cast<T>(other.complementary);
+    }
+
+    void set(Matrix<T> A, Vector<T> b, Vector<T> c) {
+        //Constant are used to conform with the implementation by Papp & Yildiz.
+        primal = std::max(T(1), sqrt(pow(A.norm(), 2) + pow(b.norm(), 2)));
+        Matrix<T> Id = Matrix<T>::Identity(A.cols(), A.cols());
+        dual = std::max(T(1), sqrt(pow(A.transpose().norm(), 2) + pow(Id.norm(), 2) + pow(c.norm(), 2)));
+        complementary = sqrt(pow(c.norm(), 2) + pow(b.norm(), 2) + 1);
+    }
+
+    T primal;
+    T dual;
+    T complementary;
+};
+
+template<typename IPMDouble>
 class NonSymmetricIPM {
 
     typedef Matrix<IPMDouble> Matrix;
@@ -55,11 +80,11 @@ public:
         _logger->set_level(spdlog::level::info);
     };
 
-    NonSymmetricIPM(Instance<IPMDouble> &, std::string );
+    NonSymmetricIPM(Instance<IPMDouble> &, std::string);
 
 
-    template <typename T>
-    void cast_members_from(const NonSymmetricIPM<T> & other){
+    template<typename T>
+    void cast_members_from(const NonSymmetricIPM<T> &other) {
         A_sparse = other.A_sparse.template cast<IPMDouble>();
         _basis_ker_A = other._basis_ker_A.template cast<IPMDouble>();
         _config = other._config;
@@ -83,13 +108,15 @@ public:
 
         _last_predictor_direction = other._last_predictor_direction.template cast<IPMDouble>();
 
+        _err_consts = ErrorConstants<IPMDouble>(other._err_consts);
+
         //copy configuration;
 
         _use_line_search = other._use_line_search;
     }
 
     template<typename T>
-    NonSymmetricIPM<T> * cast(){
+    NonSymmetricIPM<T> *cast_with_product_barrier() {
 
         //cast initialisatino data
         Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> A_ = A.template cast<T>();
@@ -97,39 +124,15 @@ public:
         Eigen::Matrix<T, Eigen::Dynamic, 1> c_ = c.template cast<T>();
 
         //TODO: High priority. Figure out how to undo the cast to the ProductBarrier.
-        ProductBarrier<T> * barrier_ = static_cast<ProductBarrier<IPMDouble>*>(_barrier)->template cast<T>();
-//        LHSCB<T> * barrier_ = _barrier->template cast<T>();
+        ProductBarrier<T> *barrier_ = static_cast<ProductBarrier<IPMDouble> *>(_barrier)->template cast<T>();
 
         assert(barrier_ != nullptr);
 
-        NonSymmetricIPM<T> * nonSymmetricIPM = new NonSymmetricIPM<T>(A_, b_, c_, barrier_);
+        NonSymmetricIPM<T> *nonSymmetricIPM = new NonSymmetricIPM<T>(A_, b_, c_, barrier_);
 
-        //cast more data
+        //cast members
 
         nonSymmetricIPM->template cast_members_from<IPMDouble>(*this);
-
-//        nonSymmetricIPM.A_sparse = A_sparse.template cast<T>();
-//        nonSymmetricIPM._basis_ker_A = _basis_ker_A.template cast<T>();
-//        nonSymmetricIPM._config = _config;
-//
-//        nonSymmetricIPM._num_predictor_steps = _num_predictor_steps;
-//        nonSymmetricIPM._num_corrector_steps = _num_corrector_steps;
-//        nonSymmetricIPM._param_step_length_predictor = boost::numeric_cast<T>(_param_step_length_predictor);
-//        nonSymmetricIPM._step_length_predictor = boost::numeric_cast<T>(_step_length_predictor);
-//        nonSymmetricIPM._step_length_corrector = boost::numeric_cast<T>(_step_length_corrector);
-//        nonSymmetricIPM._epsilon = boost::numeric_cast<T>(_epsilon);
-//
-//        nonSymmetricIPM._large_neighborhood = boost::numeric_cast<T>(_large_neighborhood);
-//        nonSymmetricIPM._small_neighborhood = boost::numeric_cast<T>(_small_neighborhood);
-//        //copy current solution
-//
-//        nonSymmetricIPM.x = x.template cast<T>();
-//        nonSymmetricIPM.y = y.template cast<T>();
-//        nonSymmetricIPM.s = s.template cast<T>();
-//        nonSymmetricIPM.kappa = boost::numeric_cast<T>(kappa);
-//        nonSymmetricIPM.tau = boost::numeric_cast<T>(tau);
-//
-//        nonSymmetricIPM._last_predictor_direction = _last_predictor_direction.template cast<T>();
 
         //copy configuration;
 
@@ -154,11 +157,11 @@ public:
     };
 
     inline IPMDouble primal_error() {
-        return (A * x - tau * b).norm();
+        return (A * x - tau * b).norm() / _err_consts.primal;
     }
 
     inline IPMDouble dual_error() {
-        return (A.transpose() * y + s - tau * c).norm();
+        return (A.transpose() * y + s - tau * c).norm() / _err_consts.dual;
     }
 
     inline IPMDouble primal_error_rescaled() {
@@ -171,6 +174,11 @@ public:
 
     inline IPMDouble duality_gap() {
         return x.dot(s) / _barrier->concordance_parameter(x);
+
+    }
+
+    inline IPMDouble complementarity() {
+        return abs(c.dot(x) - b.dot(y)) / _err_consts.complementary;
     }
 
     bool verify_solution(IPMDouble precision = 10e-5) {
@@ -249,6 +257,8 @@ public:
 
     Vector _last_predictor_direction;
 
+    ErrorConstants<IPMDouble> _err_consts;
+
     void initialize();
 
 private:
@@ -280,7 +290,6 @@ private:
     Vector _stored_x_centrality;
     Vector _stored_s_centrality;
     IPMDouble _stored_centrality_error;
-
 
 
     IPMDouble mu();

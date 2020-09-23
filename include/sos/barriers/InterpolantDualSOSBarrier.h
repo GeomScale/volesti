@@ -82,7 +82,7 @@ public:
     std::vector<std::vector<InterpolantDouble> > _unisolvent_basis;
     Matrix _intermediate_matrix;
     Matrix _preintermediate_matrix;
-    Eigen::LLT<Matrix> _intermediate_LLT;
+    CustomLLT<Matrix, Eigen::Lower> _intermediate_LLT;
     Matrix _Q;
     Matrix _V;
     unsigned _L, _U;

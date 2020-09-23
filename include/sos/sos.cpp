@@ -12,7 +12,6 @@
 #include "spdlog/cfg/env.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <fstream>
-#include "misc/tests.cpp"
 
 int main(int const argc, char **argv) {
 
@@ -22,6 +21,7 @@ int main(int const argc, char **argv) {
     console->info("Logger level is {}", console->level());
 //    Eigen::setNbThreads(1);
     console->info("Num threads: {}", Eigen::nbThreads());
+
 
     std::ifstream instance_file;
     std::ifstream config_file;
@@ -40,7 +40,8 @@ int main(int const argc, char **argv) {
             return 1;
         }
     } else {
-        instance_file.open(argv[1]);
+        instance_file_str = argv[1];
+        instance_file.open(std::string(instance_file_str));
         if (not instance_file.is_open()) {
             console->error("Could not locate file {}", argv[1]);
             return 1;
@@ -69,24 +70,6 @@ int main(int const argc, char **argv) {
         }
     }
 
-    bool run_tests = false;
-    for (unsigned i = 2; i < (unsigned) argc; i++) {
-        std::string arg_str(argv[i]);
-        if (arg_str == "run_tests") {
-            run_tests = true;
-        }
-    }
-
-    if (run_tests) {
-        console->info("Test LP and SDP solver");
-        assert(test_lp_solver_random<double>(2, 5));
-        assert(test_sdp_solver_random_lp_formulation<double>(2, 5));
-        console->info("Tests completed.");
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        test_sdp_solver<double>(config_file_str);
-        //Reset file to be read again by proper SOS solver.
-    }
-
     EnvelopeProblemSOS<double> envelopeProblemSos(instance_file_str, config_file_str);
     Instance<double> instance_interp = envelopeProblemSos.construct_SOS_instance();
     NonSymmetricIPM<double> sos_solver_interp(instance_interp, config_file_str);
@@ -96,13 +79,10 @@ int main(int const argc, char **argv) {
         envelopeProblemSos.print_solution(sos_solver_interp.get_solution());
         envelopeProblemSos.plot_polynomials_and_solution(sos_solver_interp.get_solution());
     } else if (sos_solver_interp._type_cast_if_unsuccessful) {
-        NonSymmetricIPM<long double> *long_double_solver = sos_solver_interp.cast<long double>();
+        console->error("Switch to more precise double type");
+        NonSymmetricIPM<long double> *long_double_solver = sos_solver_interp.cast_with_product_barrier<long double>();
         long_double_solver->run_solver();
-        EnvelopeProblemSOS<float> envelopeProblemSosfloat(instance_file_str, config_file_str);
-        Instance<float> instance_interpfloat = envelopeProblemSosfloat.construct_SOS_instance();
-        NonSymmetricIPM<float> sos_solver_interpfloat(instance_interpfloat, config_file_str);
-        sos_solver_interpfloat.run_solver();
-        Solution<long double> long_double_sol = sos_solver_interp.get_solution().cast<long double>();
+        Solution<long double> long_double_sol = long_double_solver->get_solution();
         envelopeProblemSos.print_solution(long_double_sol.cast<double>());
         envelopeProblemSos.plot_polynomials_and_solution(long_double_sol.cast<double>());
     }

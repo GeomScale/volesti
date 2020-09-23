@@ -74,22 +74,6 @@ EnvelopeProblemSOS<IPMDouble>::EnvelopeProblemSOS(std::string  instance_file, st
         add_polynomial(sos_poly);
         _logger->info("Polynomial added");
     }
-
-//    while (std::getline(instance_file, line)) {
-//        std::istringstream poly_stream(line);
-//        InterpolantVector sos_poly = generate_zero_polynomial();
-//        IPMDouble val;
-//        unsigned idx = 0;
-//        while (poly_stream >> val) {
-//            if (idx >= sos_poly.size()) {
-//                _logger->error("Input data in wrong format.");
-//                exit(1);
-//            }
-//            sos_poly[idx++] = val;
-//        }
-//        add_polynomial(sos_poly);
-//        _logger->info("Polynomial added.");
-//    }
 }
 
 template <typename IPMDouble>
@@ -502,6 +486,8 @@ void EnvelopeProblemSOS<IPMDouble>::plot_polynomials_and_solution(const Solution
     title_string += ".";
     plt::title(title_string);
     // Enable legend.
+    plt::ylim(-1,1);
+
     plt::legend();
     plt::save("plot");
 
