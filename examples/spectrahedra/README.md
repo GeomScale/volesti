@@ -32,6 +32,8 @@ First we will need a [Fortran compiler](https://gcc.gnu.org/wiki/GFortran) for G
 sudo apt install gfortran
 ```
 
+In `CMakeLists.txt` in folder `examples/spectrahedra` we use as the default path for `libgfortran.so` the ``/usr/lib/gcc/x86_64-linux-gnu/8/``. Of course, you could give a different path to `libgfortran.so`.  
+
 Then we can install the openblas, lapack and arpack libraries (lapack is included in openblas). 
 In the folder "examples", clone this repo:
 

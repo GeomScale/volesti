@@ -84,7 +84,7 @@ IF (OPENBLAS_LIB)
         message( STATUS "ARPACK_LIB found: ${ARPACK_LIB}" )
 
         # Query gfortran to get the libgfortran path
-       #FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran PATHS /usr/lib/gcc/x86_64-linux-gnu/8/)
+       FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran.so PATHS /usr/lib/gcc/x86_64-linux-gnu/8/)
 
         IF (CMAKE_Fortran_COMPILER)
             EXECUTE_PROCESS(COMMAND ${CMAKE_Fortran_COMPILER} -print-file-name=libgfortran.a
@@ -115,11 +115,11 @@ IF (OPENBLAS_LIB)
 
             add_executable(test_solve_sdp test_solve_sdp.cpp $<TARGET_OBJECTS:test_main>)
             add_test(NAME test_solve_sdp COMMAND test_solve_sdp -tc=test_solve_sdp)
-            TARGET_LINK_LIBRARIES(test_solve_sdp ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
+            TARGET_LINK_LIBRARIES(test_solve_sdp ${ARPACK_LIB} ${LAPACK_LIBRARIES} ${GFORTRAN_LIB})
 
             add_executable(test_spec_oracles test_spec_oracles.cpp $<TARGET_OBJECTS:test_main>)
             add_test(NAME test_spec_oracles COMMAND test_spec_oracles -tc=test_spec_oracles)
-            TARGET_LINK_LIBRARIES(test_spec_oracles ${GFORTRAN_LIB} ${ARPACK_LIB} ${LAPACK_LIBRARIES})
+            TARGET_LINK_LIBRARIES(test_spec_oracles ${ARPACK_LIB} ${LAPACK_LIBRARIES} ${GFORTRAN_LIB})
 
         ELSE()
             MESSAGE(STATUS "gfortran is required but it could not be found")
