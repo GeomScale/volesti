@@ -22,6 +22,8 @@ struct BoostRandomNumberGenerator;
 template <typename RNGType, typename NT>
 struct BoostRandomNumberGenerator<RNGType, NT>
 {
+    BoostRandomNumberGenerator() {}
+
     BoostRandomNumberGenerator(int d)
             :   _rng(std::chrono::system_clock::now().time_since_epoch().count())
             ,   _urdist(0, 1)
