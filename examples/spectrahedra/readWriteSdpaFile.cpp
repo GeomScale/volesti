@@ -15,6 +15,7 @@
 #include "vector"
 #include <fstream>
 #include "cartesian_geom/cartesian_kernel.h"
+#include "random.hpp"
 #include "spectrahedron.h"
 #include "SDPAFormatManager.h"
 #include "string"

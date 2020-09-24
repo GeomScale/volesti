@@ -118,6 +118,7 @@ public:
     void operator= (const Coeff& coeffs)
     {
         this->coeffs = coeffs;
+        d = coeffs.rows();
     }
 
     //TODO: avoid point construction in operators +,-,*
@@ -170,6 +171,10 @@ public:
         }
 
         return true;
+    }
+
+    FT distance(point const & p) {
+        return (this->coeffs - p.coeffs).norm();
     }
 
     FT dot(const point& p) const
