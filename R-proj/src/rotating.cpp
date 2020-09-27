@@ -93,8 +93,6 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
         }
     }
 
-    std::cout<<"rotation done"<<std::endl;
-
     TransorfMat.conservativeResize(n+1, n);
     TransorfMat.row(n) = VT::Ones(n);
     MT res(TransorfMat.rows(), Rcpp::as<MT>(Mat).rows()+n);
