@@ -28,14 +28,14 @@ public:
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
+    unsigned int         _d;  //dimension
     MT                   V;  //matrix V. Each row contains a vertex
     VT                   b;  // vector b that contains first column of ine file
-    unsigned int         _d;  //dimension
     std::pair<Point, NT> _inner_ball;
     NT                   maxNT = std::numeric_limits<NT>::max();
     NT                   minNT = std::numeric_limits<NT>::lowest();
 
-    REAL *conv_comb, *row, *row_mem;
+    REAL *conv_comb, *row_mem, *row;
     int                  *colno, *colno_mem;
     MT                   sigma;
     MT                   Q0;
