@@ -52,7 +52,7 @@ void test_volume(Polytope &HP, NT expected, NT tolerance=0.1)
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     NT vol = 0;
     unsigned int const num_of_exp = 10;
-    for (unsigned int i=0; i<num_of_exp; i++)
+    for (unsigned int i = 0; i < num_of_exp; i++)
     {
         CheBall = HP.ComputeInnerBall();
         vol += volume(HP,var,CheBall);
