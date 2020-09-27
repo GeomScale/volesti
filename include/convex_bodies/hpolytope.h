@@ -59,12 +59,12 @@ public:
         _d{d_}, A{A_}, b{b_}, _inner_ball{ComputeChebychevBall<NT, Point>(A, b)}
     {
     }
+
     // Copy constructor
     HPolytope(HPolytope<Point> const& p) :
-            _d{p._d}, A{p.A}, b{p.b},  _inner_ball{p._inner_ball}
+            _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}
     {
     }
-
 
     //define matrix A and vector b, s.t. Ax<=b,
     // from a matrix that contains both A and b, i.e., [A | b ]

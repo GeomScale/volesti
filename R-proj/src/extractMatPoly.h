@@ -30,6 +30,7 @@ Rcpp::NumericMatrix extractMatPoly(Polytope P) {
 
     MT Mat(P.get_mat().rows(), P.dimension()+1);
     Mat << P.get_vec(), P.get_mat();
+    std::cout<<"mat computed!"<<std::endl;
 
     return Rcpp::wrap(Mat);
 }
