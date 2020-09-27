@@ -721,15 +721,16 @@ double volume_cooling_balls(Polytope const& Pin,
     int N_times_nu = parameters.N * parameters.nu;
 
     auto InnerBall = P.ComputeInnerBall();
+    if (InnerBall.second < 0.0) return -1.0;
+    
     NT radius = InnerBall.second;
     Point c = InnerBall.first;
 
     std::vector<BallType> BallSet;
     std::vector<NT> ratios;
 
-    // Normalize and move the chebychev center to the origin
+    // move the chebychev center to the origin
     // and apply the same shifting to the polytope
-    P.normalize();
     P.shift(c.getCoefficients());
 
     if ( !get_sequence_of_polytopeballs

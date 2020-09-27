@@ -15,13 +15,25 @@
 #include <limits>
 #include <iostream>
 #include <Eigen/Eigen>
+#include "preprocess/max_inscribed_ball.hpp"
 #include "lp_oracles/solve_lp.h"
 
 
-//! H-polytope class
-/*!
-    A class for a polytope in H-representaion
- */
+// check if an Eigen vector contains NaN or infinite values
+/*template <typename VT>
+bool is_inner_point_nan_inf(VT const& p)
+{
+    typedef Eigen::Array<bool, Eigen::Dynamic, 1> VTint;
+    VTint a = p.array().isNaN();
+    for (int i = 0; i < p.rows(); i++) {
+        if (a(i) || std::isinf(p(i))){
+            return true;
+        }
+    }
+}*/
+
+//min and max values for the Hit and Run functions
+// H-polytope class
 template <typename Point>
 class HPolytope {
 public:
@@ -80,7 +92,27 @@ public:
     //Use LpSolve library
     std::pair<Point, NT> ComputeInnerBall()
     {
-        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+        normalize();
+        _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+
+        /*if (_inner_ball.second < 0.0) {
+
+            NT const tol = 0.00000001;
+            std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
+        
+            // check if the solution is feasible
+            if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) || 
+                std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
+                !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
+            {
+                _inner_ball.second = -1.0;
+            } else 
+            { 
+                _inner_ball.first = Point(std::get<0>(inner_ball));
+                _inner_ball.second = std::get<1>(inner_ball);
+            }
+        }*/
+        
         return _inner_ball;
     }
 
@@ -651,10 +683,25 @@ public:
     }
 
     template <typename update_parameters>
-    void compute_reflection(Point &v, const Point &, update_parameters const& params) const
-    {
+    void compute_reflection(Point &v, const Point &, update_parameters const& params) const {
+
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             v += a;
+    }
+
+    template <class bfunc, class NonLinearOracle>
+    std::tuple<NT, Point, int> curve_intersect(
+      NT t_prev,
+      NT t0,
+      NT eta,
+      std::vector<Point> &coeffs,
+      bfunc phi,
+      bfunc grad_phi,
+      NonLinearOracle &intersection_oracle,
+      int ignore_facet=-1)
+    {
+        return intersection_oracle.apply(t_prev, t0, eta, A, b, *this, 
+                                         coeffs, phi, grad_phi, ignore_facet);
     }
 };
 

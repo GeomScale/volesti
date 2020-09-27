@@ -79,6 +79,14 @@ public:
         compute_eigenvectors(V.transpose());
     }
 
+    ~Zonotope() {
+        delete [] conv_comb;
+        delete [] colno;
+        delete [] colno_mem;
+        delete [] row;
+        delete [] row_mem;
+    }
+
     // return the dimension
     unsigned int dimension() const
     {
@@ -497,14 +505,6 @@ public:
         // compute reflection
         a *= (-2.0 * v.dot(a));
         v += a;
-    }
-
-    void free_them_all() {
-        free(row);
-        free(colno);
-        free(conv_comb);
-        free(row_mem);
-        free(colno_mem);
     }
 
 };

@@ -101,6 +101,9 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
 
             case 6:
                 return extractMatPoly(random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen, seed_rcpp));
+            
+            case 7:
+                return extractMatPoly(generate_birkhoff<Hpolytope>(dim_gen));
 
         }
     }
