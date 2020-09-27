@@ -56,7 +56,7 @@ public:
     HPolytope() {}
 
     HPolytope(unsigned d_, MT const& A_, VT const& b_) :
-        _d{d_}, A{A_}, b{b_}, _inner_ball{ComputeChebychevBall<NT, Point>(A, b)}
+        _d{d_}, A{A_}, b{b_}
     {
     }
 
@@ -79,7 +79,7 @@ public:
                 A(i - 1, j - 1) = -Pin[i][j];
             }
         }
-        _inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+        //_inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
 
 
