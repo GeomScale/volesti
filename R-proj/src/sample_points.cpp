@@ -198,7 +198,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
-    unsigned int type = Rcpp::as<Rcpp::Reference>(P).field("type"),dim = Rcpp::as<Rcpp::Reference>(P).field("dimension"),
+    unsigned int type = Rcpp::as<Rcpp::Reference>(P).field("type"), dim = Rcpp::as<Rcpp::Reference>(P).field("dimension"),
           walkL = 1, numpoints, nburns = 0;
 
     RNGType rng(dim);
