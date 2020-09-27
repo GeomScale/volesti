@@ -45,18 +45,37 @@ public:
 
     Zonotope() {}
 
-    Zonotope(unsigned int const dim, MT const& _V, VT const& _b)
+    Zonotope(const unsigned int &dim, const MT &_V, const VT &_b):
+            _d{dim}, V{_V}, b{_b},
+            conv_comb{new REAL[V.rows() + 1]},
+            row_mem{new REAL[V.rows()]},
+            row{new REAL[V.rows() + 1]},
+            colno{new int[V.rows() + 1]},
+            colno_mem{new int[V.rows()]}
+    {
+        compute_eigenvectors(V.transpose());
+    }
+
+    /*Zonotope(unsigned int const dim, MT const& _V, VT const& _b)
     {
         _d = dim;
         V = _V;
         b = _b;
-        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
-        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
+
+        conv_comb = new REAL[V.rows()+1];
+        row_mem = new REAL[V.rows()];
+        row = new REAL[V.rows() + 1];
+        colno = new int[V.rows() + 1];
+        colno_mem = new int[V.rows()];
+
+        //conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        //colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        //row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        //colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
+        //row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
+        
         compute_eigenvectors(V.transpose());
-    }
+    }*/
 
     Zonotope(std::vector<std::vector<NT> > const& Pin)
     {
@@ -71,12 +90,92 @@ public:
                 V(i - 1, j - 1) = Pin[i][j];
             }
         }
-        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
-        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
+
+        conv_comb = new REAL[Pin.size()];
+        row_mem = new REAL[V.rows()];
+        row = new REAL[V.rows() + 1];
+        colno = new int[V.rows() + 1];
+        colno_mem = new int[V.rows()];
+
+        //conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        //colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        //row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        //colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
+        //row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
+        
         compute_eigenvectors(V.transpose());
+    }
+
+    template <typename T>
+    void copy_array(T* source, T* result, size_t count)
+    {
+        T* tarray;
+        tarray = new T[count];
+        std::copy_n(source, count, tarray);
+        delete [] result;
+        result = tarray;
+    }
+
+    Zonotope& operator=(const Zonotope& other)
+    {
+        if (this != &other) { // protect against invalid self-assignment
+            _d = other._d;
+            V = other.V;
+            b = other.b;
+            T = other.T;
+
+            copy_array(other.conv_comb, conv_comb, V.rows() + 1);
+            copy_array(other.row_mem, row_mem, V.rows());
+            copy_array(other.row, row, V.rows() + 1);
+            copy_array(other.colno, colno, V.rows() + 1);
+            copy_array(other.colno_mem, colno_mem, V.rows());
+        }
+        return *this;
+    }
+
+    Zonotope& operator=(Zonotope&& other)
+    {
+        if (this != &other) { // protect against invalid self-assignment
+            _d = other._d;
+            V = other.V;
+            b = other.b;
+            T = other.T;
+
+            conv_comb = other.conv_comb;  other.conv_comb = nullptr;
+            row_mem = other.row_mem;  other.row_mem = nullptr;
+            row = other.row; other.row = nullptr;
+            colno = other.colno; colno = nullptr;
+            colno_mem = other.colno_mem; colno_mem = nullptr;
+        }
+        return *this;
+    }
+
+
+    Zonotope(const Zonotope& other) :
+            _d{other._d}, V{other.V}, b{other.b}, T{other.T},
+            conv_comb{new REAL[V.rows() + 1]},
+            row_mem{new REAL[V.rows()]},
+            row{new REAL[V.rows() + 1]},
+            colno{new int[V.rows() + 1]},
+            colno_mem{new int[V.rows()]}
+    {
+        std::copy_n(other.conv_comb, V.rows() + 1, conv_comb);
+        std::copy_n(other.row_mem, V.rows(), row_mem);
+        std::copy_n(other.row, V.rows() + 1, row);
+        std::copy_n(other.colno, V.rows() + 1, colno);
+        std::copy_n(other.colno_mem, V.rows(), colno_mem);
+    }
+
+    Zonotope(Zonotope&& other) :
+            _d{other._d}, V{other.V}, b{other.b}, T{other.T},
+            conv_comb{nullptr}, row_mem{nullptr}, row{nullptr},
+            colno{nullptr}, colno_mem{nullptr}
+    {
+        conv_comb = other.conv_comb;  other.conv_comb = nullptr;
+        row_mem = other.row_mem;  other.row_mem = nullptr;
+        row = other.row; other.row = nullptr;
+        colno = other.colno; colno = nullptr;
+        colno_mem = other.colno_mem; colno_mem = nullptr;
     }
 
     ~Zonotope() {

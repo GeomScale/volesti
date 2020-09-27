@@ -40,7 +40,7 @@ bool get_first_poly(Zonotope &P,
     MT G = P.get_mat().transpose(), A = HP.get_mat();
     b_max = (A*G).cwiseAbs().rowwise().sum();
     VT b_min = HP.get_vec();
-    HPolytope HPiter=HP;
+    HPolytope HPiter(HP);
 
     int n = P.dimension(), m = b_max.size(), N = 1200, iter = 1, count = 0;
     Point q(n);
@@ -171,7 +171,7 @@ bool get_sequence_of_zonopolys(Zonotope &Z,
 
     RandomPointGenerator::apply(Z, q, N_times_nu, walk_length,
                                 randPoints, push_back_policy, rng);
-    HPolytope HP2 = HP;
+    HPolytope HP2(HP);
     if (check_convergence<Point>(HP, randPoints,
                                  too_few, ratio, parameters.nu,
                                  false, true, parameters)) {
@@ -280,8 +280,8 @@ double volume_cooling_hpoly (Zonotope const& Pin,
     NT prob = parameters.p, ratio;
     int N_times_nu = parameters.N * parameters.nu;
 
-    HPolytope HP = compute_hpoly_for_mmc<Zonotope, HPolytope>(P);
-    VT b_max(2*P.num_of_generators());
+    HPolytope HP(compute_hpoly_for_mmc<Zonotope, HPolytope>(P));
+    VT b_max(2 * P.num_of_generators());
     if ( !get_first_poly<CdhrRandomPointGenerator>(P, HP, ratio, parameters, rng, b_max) )
     {
         return -1.0;
@@ -289,8 +289,6 @@ double volume_cooling_hpoly (Zonotope const& Pin,
 
     std::vector<HPolytope > HPolySet;
     std::vector<NT> ratios;
-
-    //ZonoHP zb1, zb2;
     std::vector<NT> diams_inter;
 
     if ( !get_sequence_of_zonopolys<ZonoRandomPointGenerator, ZonoHP>
@@ -364,8 +362,6 @@ double volume_cooling_hpoly (Zonotope const& Pin,
                                                         N_times_nu, walk_length, rng);
         }
     }
-
-    //P.free_them_all();
 
     return vol;
 
