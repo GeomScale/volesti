@@ -13,32 +13,151 @@
 #define VPOLYTOPE_H
 
 #include <limits>
-
 #include <iostream>
 #include <Eigen/Eigen>
+
 #include "lp_oracles/vpolyoracles.h"
-#include "khach.h"
+#include <khach.h>
+
 
 // V-Polytope class
-template <typename Point>
-class VPolytope{
+template<typename Point>
+class VPolytope {
 public:
-    typedef Point PointType;
-    typedef typename Point::FT NT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Point                                             PointType;
+    typedef typename Point::FT                                NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
-    MT V;  //matrix V. Each row contains a vertex
-    VT b;  // vector b that contains first column of ine file
-    unsigned int _d;  //dimension
-    std::pair<Point,NT> _inner_ball;
+    unsigned int         _d;  //dimension
+    MT                   V;  //matrix V. Each row contains a vertex
+    VT                   b;  // vector b that contains first column of ine file
+    std::pair<Point, NT> _inner_ball;
 
-    REAL *conv_comb, *row, *conv_comb2, *conv_mem;
+    // TODO: Why don't we use std::vector<REAL>  and std::vector<int> for these pointers?
+    REAL *conv_comb, *conv_comb2, *conv_mem, *row;
     int *colno, *colno_mem;
 
 public:
     VPolytope() {}
+
+    VPolytope(const unsigned int &dim, const MT &_V, const VT &_b):
+            _d{dim}, V{_V}, b{_b},
+            conv_comb{new REAL[V.rows() + 1]},
+            conv_comb2{new REAL[V.rows() + 1]},
+            conv_mem{new REAL[V.rows()]},
+            row{new REAL[V.rows() + 1]},
+            colno{new int[V.rows() + 1]},
+            colno_mem{new int[V.rows()]} 
+    {
+    }
+
+    // Construct matrix V which contains the vertices row-wise
+    // TODO: change rows;
+    VPolytope(std::vector<std::vector<NT>> const& Pin)
+    {
+        _d = Pin[0][1] - 1;
+        V.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (unsigned int i = 1; i < Pin.size(); i++) {
+            b(i - 1) = Pin[i][0];
+            unsigned int j;
+            for (j = 1; j < _d + 1; j++) {
+                V(i - 1, j - 1) = Pin[i][j];
+            }
+        }
+        conv_comb = new REAL[Pin.size()];
+        conv_comb2 = new REAL[Pin.size()];
+        conv_mem = new REAL[V.rows()];
+        row = new REAL[V.rows() + 1];
+        colno = new int[V.rows() + 1];
+        colno_mem = new int[V.rows()];
+    }
+
+    template <typename T>
+    void copy_array(T* source, T* result, size_t count)
+    {
+        T* tarray;
+        tarray = new T[count];
+        std::copy_n(source, count, tarray);
+        delete [] result;
+        result = tarray;
+    }
+
+    VPolytope& operator=(const VPolytope& other)
+    {
+        if (this != &other) { // protect against invalid self-assignment
+            _d = other._d;
+            V = other.V;
+            b = other.b;
+
+            copy_array(other.conv_comb, conv_comb, V.rows() + 1);
+            copy_array(other.conv_comb2, conv_comb2, V.rows() + 1);
+            copy_array(other.conv_mem, conv_mem, V.rows());
+            copy_array(other.row, row, V.rows() + 1);
+            copy_array(other.colno, colno, V.rows() + 1);
+            copy_array(other.colno_mem, colno_mem, V.rows());
+        }
+        return *this;
+    }
+
+    VPolytope& operator=(VPolytope&& other)
+    {
+        if (this != &other) { // protect against invalid self-assignment
+            _d = other._d;
+            V = other.V;
+            b = other.b;
+
+            conv_comb = other.conv_comb;  other.conv_comb = nullptr;
+            conv_comb2 = other.conv_comb2;  other.conv_comb2 = nullptr;
+            conv_mem = other.conv_mem;  other.conv_mem = nullptr;
+            row = other.row; other.row = nullptr;
+            colno = other.colno; colno = nullptr;
+            colno_mem = other.colno_mem; colno_mem = nullptr;
+        }
+        return *this;
+    }
+
+
+    VPolytope(const VPolytope& other) :
+            _d{other._d}, V{other.V}, b{other.b},
+            conv_comb{new REAL[V.rows() + 1]},
+            conv_comb2{new REAL[V.rows() + 1]},
+            conv_mem{new REAL[V.rows()]},
+            row{new REAL[V.rows() + 1]},
+            colno{new int[V.rows() + 1]},
+            colno_mem{new int[V.rows()]}
+    {
+        std::copy_n(other.conv_comb, V.rows() + 1, conv_comb);
+        std::copy_n(other.conv_comb2, V.rows() + 1, conv_comb2);
+        std::copy_n(other.conv_mem, V.rows(), conv_mem);
+        std::copy_n(other.row, V.rows() + 1, row);
+        std::copy_n(other.colno, V.rows() + 1, colno);
+        std::copy_n(other.colno_mem, V.rows(), colno_mem);
+    }
+
+    VPolytope(VPolytope&& other) :
+            _d{other._d}, V{other.V}, b{other.b},
+            conv_comb{nullptr}, conv_comb2{nullptr}, conv_mem{nullptr}, row{nullptr},
+            colno{nullptr}, colno_mem{nullptr}
+    {
+        conv_comb = other.conv_comb;  other.conv_comb = nullptr;
+        conv_comb2 = other.conv_comb2;  other.conv_comb2 = nullptr;
+        conv_mem = other.conv_mem;  other.conv_mem = nullptr;
+        row = other.row; other.row = nullptr;
+        colno = other.colno; colno = nullptr;
+        colno_mem = other.colno_mem; colno_mem = nullptr;
+    }
+
+    ~VPolytope() {
+        delete [] conv_comb;
+        delete [] conv_comb2;
+        delete [] colno;
+        delete [] colno_mem;
+        delete [] row;
+        delete [] conv_mem;
+    }
 
     std::pair<Point,NT> InnerBall() const
     {
@@ -96,53 +215,15 @@ public:
         return V;
     }
 
-    void init(const unsigned int &dim, const MT &_V, const VT &_b) {
-        _d = dim;
-        V = _V;
-        b = _b;
-        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
-        conv_comb2 = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb2));
-        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-    }
-
-
-    // Construct matrix V which contains the vertices row-wise
-    void init(const std::vector<std::vector<NT> > &Pin) {
-        _d = Pin[0][1] - 1;
-        V.resize(Pin.size() - 1, _d);
-        b.resize(Pin.size() - 1);
-        for (unsigned int i = 1; i < Pin.size(); i++) {
-            b(i - 1) = Pin[i][0];
-            for (unsigned int j = 1; j < _d + 1; j++) {
-                V(i - 1, j - 1) = Pin[i][j];
-            }
-        }
-        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
-        conv_comb2 = (REAL *) malloc(Pin.size() * sizeof(*conv_comb2));
-        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
-        colno_mem = (int *) malloc(V.rows() * sizeof(*colno_mem));
-        conv_mem = (REAL *) malloc(V.rows() * sizeof(*conv_mem));
-        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
-    }
-
 
     // print polytope in input format
     void print() {
-#ifdef VOLESTI_DEBUG
         std::cout << " " << V.rows() << " " << _d << " float" << std::endl;
-#endif
         for (unsigned int i = 0; i < V.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-#ifdef VOLESTI_DEBUG
                 std::cout << V(i, j) << " ";
-#endif
             }
-#ifdef VOLESTI_DEBUG
             std::cout<<"\n";
-#endif
         }
     }
 
@@ -495,29 +576,22 @@ public:
         v += a;
     }
 
-    void free_them_all() {
-        free(row);
-        free(colno);
-        free(conv_comb);
-        free(colno_mem);
-        free(conv_comb2);
-        free(conv_mem);
+    template <class bfunc, class NonLinearOracle>
+    std::tuple<NT, Point, int> curve_intersect(
+        NT t_prev,
+        NT t0,
+        NT eta,
+        std::vector<Point> &coeffs,
+        bfunc phi,
+        bfunc grad_phi,
+        NonLinearOracle &intersection_oracle,
+        int ignore_facet=-1)
+    {
+        return intersection_oracle.apply(t_prev, t0, eta, V, *this, 
+                                         coeffs, phi, grad_phi, ignore_facet);
     }
 
-        template <class bfunc, class NonLinearOracle>
-        std::tuple<NT, Point, int> curve_intersect(
-          NT t_prev,
-          NT t0,
-          NT eta,
-          std::vector<Point> &coeffs,
-          bfunc phi,
-          bfunc grad_phi,
-          NonLinearOracle &intersection_oracle,
-          int ignore_facet=-1)
-        {
-            return intersection_oracle.apply(
-              t_prev, t0, eta, V, *this, coeffs, phi, grad_phi, ignore_facet);
-        }
+
 };
 
 #endif

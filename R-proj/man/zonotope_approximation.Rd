@@ -4,7 +4,8 @@
 \alias{zonotope_approximation}
 \title{A function to over-approximate a zonotope with PCA method and to evaluate the approximation by computing a ratio of fitness.}
 \usage{
-zonotope_approximation(Z, fit_ratio = NULL, settings = NULL, seed = NULL)
+zonotope_approximation(Z, fit_ratio = NULL, settings = NULL,
+  seed = NULL)
 }
 \arguments{
 \item{Z}{A zonotope.}

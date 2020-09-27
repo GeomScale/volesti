@@ -22,28 +22,70 @@
 template <typename Point>
 class Zonotope {
 public:
-    typedef Point PointType;
-    typedef typename Point::FT NT;
-    typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+    typedef Point                                             PointType;
+    typedef typename Point::FT                                NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
-    MT V;  //matrix V. Each row contains a vertex
-    VT b;  // vector b that contains first column of ine file
-    unsigned int _d;  //dimension
-    std::pair<Point,NT> _inner_ball;
-    NT maxNT = std::numeric_limits<NT>::max();
-    NT minNT = std::numeric_limits<NT>::lowest();
+    MT                   V;  //matrix V. Each row contains a vertex
+    VT                   b;  // vector b that contains first column of ine file
+    unsigned int         _d;  //dimension
+    std::pair<Point, NT> _inner_ball;
+    NT                   maxNT = std::numeric_limits<NT>::max();
+    NT                   minNT = std::numeric_limits<NT>::lowest();
 
     REAL *conv_comb, *row, *row_mem;
-    int *colno, *colno_mem;
-    MT sigma;
-    MT Q0;
-    MT T;
+    int                  *colno, *colno_mem;
+    MT                   sigma;
+    MT                   Q0;
+    MT                   T;
 
 public:
 
     Zonotope() {}
+
+    Zonotope(unsigned int const dim, MT const& _V, VT const& _b)
+    {
+        _d = dim;
+        V = _V;
+        b = _b;
+        conv_comb = (REAL *) malloc((V.rows()+1) * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
+        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
+        compute_eigenvectors(V.transpose());
+    }
+
+    Zonotope(std::vector<std::vector<NT> > const& Pin)
+    {
+        _d = Pin[0][1] - 1;
+        V.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (unsigned int i = 1; i < Pin.size(); i++)
+        {
+            b(i - 1) = Pin[i][0];
+            for (unsigned int j = 1; j < _d + 1; j++)
+            {
+                V(i - 1, j - 1) = Pin[i][j];
+            }
+        }
+        conv_comb = (REAL *) malloc(Pin.size() * sizeof(*conv_comb));
+        colno = (int *) malloc((V.rows()+1) * sizeof(*colno));
+        row = (REAL *) malloc((V.rows()+1) * sizeof(*row));
+        colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
+        row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
+        compute_eigenvectors(V.transpose());
+    }
+
+    ~Zonotope() {
+        delete [] conv_comb;
+        delete [] colno;
+        delete [] colno_mem;
+        delete [] row;
+        delete [] row_mem;
+    }
 
     // return the dimension
     unsigned int dimension() const
@@ -176,7 +218,7 @@ public:
 
     // define zonotope using Eigen matrix V. Vector b is neded in order
     // the code to compatible with Hpolytope class
-    void init(unsigned int const dim, MT const& _V, VT const& _b)
+    /*void init(unsigned int const dim, MT const& _V, VT const& _b)
     {
         _d = dim;
         V = _V;
@@ -187,11 +229,11 @@ public:
         colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
         row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
         compute_eigenvectors(V.transpose());
-    }
+    }*/
 
 
     // Construct matrix V which contains the vertices row-wise
-    void init(std::vector<std::vector<NT> > const& Pin)
+    /*void init(std::vector<std::vector<NT> > const& Pin)
     {
         _d = Pin[0][1] - 1;
         V.resize(Pin.size() - 1, _d);
@@ -210,7 +252,7 @@ public:
         colno_mem = (int *) malloc((V.rows()) * sizeof(*colno_mem));
         row_mem = (REAL *) malloc((V.rows()) * sizeof(*row_mem));
         compute_eigenvectors(V.transpose());
-    }
+    }*/
 
 
     // print polytope in input format
@@ -463,14 +505,6 @@ public:
         // compute reflection
         a *= (-2.0 * v.dot(a));
         v += a;
-    }
-
-    void free_them_all() {
-        free(row);
-        free(colno);
-        free(conv_comb);
-        free(row_mem);
-        free(colno_mem);
     }
 
 };

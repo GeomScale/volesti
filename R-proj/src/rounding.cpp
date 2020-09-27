@@ -90,23 +90,18 @@ Rcpp::List rounding (Rcpp::Reference P,
         rng.set_seed(seed_rcpp);
     }
 
-    Hpolytope HP;
-    Vpolytope VP;
-    zonotope ZP;
-
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;
+
     std::tuple<MT, VT, NT> round_res;
     switch (type) {
         case 1: {
             // Hpolytope
-            if (Rcpp::as<MT>(P.field("Aeq")).rows() == 0) {
-                // full dimensional
-                HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            } else {
-                // low dimensional
+
+            if (Rcpp::as<MT>(P.field("Aeq")).rows() > 0) {
                 throw Rcpp::exception("volesti supports rounding for full dimensional polytopes. Maybe call function get_full_dimensional_polytope()");
-            }
+            } 
+            Hpolytope HP(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             InnerBall = HP.ComputeInnerBall();
             if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             if (method_rcpp.compare(std::string("max_ellipsoid")) == 0) {
@@ -119,7 +114,7 @@ Rcpp::List rounding (Rcpp::Reference P,
         }
         case 2: {
             // Vpolytope
-            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            Vpolytope VP(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
             if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             round_res = apply_rounding<MT, VT, BilliardWalk>(VP, method_rcpp, walkL, InnerBall, rng);
@@ -128,7 +123,7 @@ Rcpp::List rounding (Rcpp::Reference P,
         }
         case 3: {
             // Zonotope
-            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            zonotope ZP(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
             if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             round_res = apply_rounding<MT, VT, BilliardWalk>(ZP, method_rcpp, walkL, InnerBall, rng);
@@ -143,4 +138,5 @@ Rcpp::List rounding (Rcpp::Reference P,
     return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(std::get<0>(round_res)),
                               Rcpp::Named("shift") = Rcpp::wrap(std::get<1>(round_res)),
                               Rcpp::Named("round_value") = std::get<2>(round_res));
+
 }

@@ -40,8 +40,9 @@ void test_volume(Polytope &P, double const& expected, double const& exact)
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    NT volume = volume_sequence_of_balls<BallWalk, RNGType>(P, e, walk_len);
+
+    Polytope P1(P.dimension(), P.get_mat(), P.get_vec());
+    NT volume = volume_sequence_of_balls<RDHRWalk, RNGType>(P1, e, walk_len);
 
     //TODO: test other walks
 
@@ -64,11 +65,11 @@ void call_test_cube(){
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cube10" << std::endl;
-    P = gen_cube<Vpolytope>(10, true);
+    P = generate_cube<Vpolytope>(10, true);
     test_volume(P, 1096.5089688155, 1024);
 
     std::cout << "--- Testing volume of V-cube20" << std::endl;
-    P = gen_cube<Vpolytope>(20, true);
+    P = generate_cube<Vpolytope>(20, true);
     test_volume(P, 967352.7854272256, 1048576);
 }
 
@@ -78,15 +79,14 @@ void call_test_cube_float(){
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937 RNGType;
     typedef VPolytope<Point> Vpolytope;
-    Vpolytope P;
 
     std::cout << "--- Testing volume of V-cube10 (float)" << std::endl;
-    P = gen_cube<Vpolytope>(10, false);
-    test_volume(P, 1000.55, 1024);
+    Vpolytope P1 = generate_cube<Vpolytope>(10, false);
+    test_volume(P1, 1000.55, 1024);
 
     std::cout << "--- Testing volume of V-cube20 (float)" << std::endl;
-    P = gen_cube<Vpolytope>(20, false);
-    test_volume(P, 1114192.7854272256, 1048576);
+    Vpolytope P2 = generate_cube<Vpolytope>(20, false);
+    test_volume(P2, 1114192.7854272256, 1048576);
 }
 
 template <typename NT>
@@ -95,15 +95,14 @@ void call_test_cross(){
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937 RNGType;
     typedef VPolytope<Point> Vpolytope;
-    Vpolytope P;
 
     std::cout << "--- Testing volume of V-cross5" << std::endl;
-    P = gen_cross<Vpolytope>(5, true);
-    test_volume(P, 0.265422, 0.266666667);
+    Vpolytope P1 = generate_cross<Vpolytope>(5, true);
+    test_volume(P1, 0.276845, 0.266666667);
 
     std::cout << "--- Testing volume of V-cross10" << std::endl;
-    P = gen_cross<Vpolytope>(10, true);
-    test_volume(P, 0.000283788, 0.0002821869);
+    Vpolytope P2 = generate_cross<Vpolytope>(10, true);
+    test_volume(P2, 0.000291003, 0.0002821869);
 }
 
 template <typename NT>
@@ -116,8 +115,9 @@ void call_test_simplex() {
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-simplex5" << std::endl;
-    P = gen_simplex<Vpolytope>(5, true);
-    test_volume(P, 0.00827958, 1.0 / factorial(10.0));
+    P = generate_simplex<Vpolytope>(5, true);
+    test_volume(P, 0.00810133, 1.0 / factorial(5.0));
+
 
     // too slow for SoB
 //    std::cout << "--- Testing volume of V-simplex10" << std::endl;
@@ -129,8 +129,7 @@ void call_test_simplex() {
 
 TEST_CASE("cube") {
     //TODO: Runtime error, check ComputeInnerBall()
-    //call_test_cube<double>();
-    //call_test_cube_float<float>();
+    call_test_cube<double>();
 }
 
 TEST_CASE("cross") {

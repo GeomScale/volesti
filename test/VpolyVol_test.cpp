@@ -75,11 +75,11 @@ void call_test_cube(){
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cube3" << std::endl;
-    P = gen_cube<Vpolytope>(3, true);
+    P = generate_cube<Vpolytope>(3, true);
     test_volume<NT, RNGType>(P, 8.0);
     if(typeid(NT)== typeid(double)) {
         std::cout << "--- Testing volume of V-cube4" << std::endl;
-        P = gen_cube<Vpolytope>(4, true);
+        P = generate_cube<Vpolytope>(4, true);
         test_volume<NT, RNGType>(P, 16.0);
 
     }

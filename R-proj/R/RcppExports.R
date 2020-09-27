@@ -298,7 +298,7 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #' \dQuote{Billiard walk - a new sampling algorithm for control and optimization,} \emph{IFAC Proceedings Volumes,} 2014.},
 #'
 #' @references \cite{Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
-#' \dQuote{Vaidya walk: A sampling algorithm based on the volumetric barrier,} \emph{55th Annual Allerton Conference on Communication, Control, and Computing,} 2017.}
+#' \dQuote{Fast MCMC Sampling Algorithms on Polytopes,} \emph{Journal of Machine Learning Research,} 2018.}
 #'
 #' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples
