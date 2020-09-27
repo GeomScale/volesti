@@ -72,7 +72,7 @@ void call_test_psrf(){
     unsigned int d = 10;
 
     std::cout << "--- Testing psrf on Billiard Walk and H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(d, false);
+    P = generate_cube<Hpolytope>(d, false);
     P.ComputeInnerBall();
 
     MT samples = get_samples<MT, AcceleratedBilliardWalk>(P);
@@ -94,7 +94,7 @@ void call_test_geweke(){
     unsigned int d = 10;
 
     std::cout << "--- Testing psrf on Billiard Walk and H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(d, false);
+    P = generate_cube<Hpolytope>(d, false);
     P.ComputeInnerBall();
 
     MT samples = get_samples<MT, AcceleratedBilliardWalk>(P);
@@ -117,7 +117,7 @@ void call_test_raftery(){
     unsigned int d = 10;
 
     std::cout << "--- Testing psrf on Billiard Walk and H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(d, false);
+    P = generate_cube<Hpolytope>(d, false);
     P.ComputeInnerBall();
 
     MT samples = get_samples<MT, AcceleratedBilliardWalk>(P);
