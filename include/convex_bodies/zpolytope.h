@@ -31,6 +31,7 @@ private:
     unsigned int         _d;  //dimension
     MT                   V;  //matrix V. Each row contains a vertex
     VT                   b;  // vector b that contains first column of ine file
+    MT                   T;
     std::pair<Point, NT> _inner_ball;
     NT                   maxNT = std::numeric_limits<NT>::max();
     NT                   minNT = std::numeric_limits<NT>::lowest();
@@ -39,7 +40,7 @@ private:
     int                  *colno, *colno_mem;
     MT                   sigma;
     MT                   Q0;
-    MT                   T;
+
 
 public:
 
