@@ -4,7 +4,7 @@ library(volesti)
 
 runCheTest <- function(P, name_string, radius, tol) {
   
-  vec_ball = inner_ball(P)
+  vec_ball = inner_ball(P, lpsolve = TRUE)
   rad = vec_ball[length(vec_ball)]
   
   error = abs(radius - rad) / radius
@@ -16,8 +16,6 @@ runCheTest <- function(P, name_string, radius, tol) {
   return(res)
 }
 
-
-path = system.file('extdata', package = 'volesti')
 tol = 0.00001
 
 test_that("Chebychev test", {
@@ -45,27 +43,27 @@ test_that("Chebychev test", {
 })
 
 test_that("Chebychev test", {
-  P = file_to_polytope(paste0(path,'/birk3.ine'))
+  P = gen_birkhoff(3)
   res = runCheTest(P, 'H-birk3', 0.207107, tol)
   expect_equal(res, 1)
 })
 
 
 test_that("Chebychev test", {
-  P = file_to_polytope(paste0(path,'/birk4.ine'))
+  P = gen_birkhoff(4)
   res = runCheTest(P, 'H-birk4', 0.122008, tol)
   expect_equal(res, 1)
 })
 
 
 test_that("Chebychev test", {
-  P = file_to_polytope(paste0(path,'/birk5.ine'))
+  P = gen_birkhoff(5)
   res = runCheTest(P, 'H-birk5', 0.0833333, tol)
   expect_equal(res, 1)
 })
 
 test_that("Chebychev test", {
-  P= file_to_polytope(paste0(path,'/birk6.ine'))
+  P = gen_birkhoff(6)
   res = runCheTest(P, 'H-birk6', 0.0618034, tol)
   expect_equal(res, 1)
 })

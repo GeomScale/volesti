@@ -24,7 +24,7 @@
 #include "known_polytope_generators.h"
 #include "sampling/sampling.hpp"
 
-#include "diagnostics/psrf.hpp"
+#include "diagnostics/multivariate_psrf.hpp"
 #include "diagnostics/geweke.hpp"
 #include "diagnostics/raftery.hpp"
 
@@ -77,7 +77,7 @@ void call_test_psrf(){
 
     MT samples = get_samples<MT, AcceleratedBilliardWalk>(P);
 
-    NT score = perform_psrf<NT, VT>(samples);
+    NT score = multivariate_psrf<NT, VT>(samples);
 
     std::cout<<"psrf = "<<score<<std::endl;
     CHECK(score < 1.1);

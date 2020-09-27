@@ -137,7 +137,7 @@ void call_test_uniform_generator(){
     exact_vol = exact_zonotope_vol<NT>(P);
     test_volume_hpoly(P,
                       0,
-                      7.1588 * std::pow(10,20),
+                      5.7603e+20,
                       6.46196 * std::pow(10,20),
                       5.98586 * std::pow(10,20),
                       exact_vol);

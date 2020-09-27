@@ -36,7 +36,8 @@ void test_values(NT volume, NT expected, NT exact)
               << std::abs((volume-expected)/expected) << std::endl;
     std::cout << "Relative error (exact) = "
               << std::abs((volume-exact)/exact) << std::endl;
-    CHECK(std::abs((volume - expected)/expected) < 0.00001);
+    CHECK((std::abs((volume - exact)/exact) < 0.2 || 
+           std::abs((volume - expected)/expected) < 0.00001));
 }
 
 template <class Polytope>
@@ -44,7 +45,8 @@ void test_volume(Polytope &HP,
                  double const& expectedBall,
                  double const& expectedCDHR,
                  double const& expectedRDHR,
-                 double const& exact)
+                 double const& exact,
+                 bool birk = false)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
@@ -52,14 +54,17 @@ void test_volume(Polytope &HP,
     // Setup the parameters
     int walk_len = 10 + HP.dimension()/10;
     NT e=0.1;
+    NT volume;
 
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 
     // TODO: low accuracy in high-dimensions
-    NT volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, e, walk_len);
-    test_values(volume, expectedBall, exact);
+    if (!birk) {
+        volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, e, walk_len);
+        test_values(volume, expectedBall, exact);
+    }
 
     volume = volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedCDHR, exact);
@@ -123,53 +128,40 @@ void call_test_birk() {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
+    Hpolytope P;
 
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 123> RNGType;
 
     std::cout << "--- Testing volume of H-birk3" << std::endl;
-    std::ifstream inp;
-    std::vector<std::vector<NT> > Pin;
-    inp.open("../R-proj/inst/extdata/birk3.ine",std::ifstream::in);
-    read_pointset(inp,Pin);
-    Hpolytope P1(Pin);
-    test_volume(P1, 0.116678, 0.122104, 0.11326, 0.125);
-
+    P = generate_birkhoff<Hpolytope>(3);
+    test_volume(P, 0.116678, 0.122104, 0.11326, 0.125, true);
 
     std::cout << "--- Testing volume of H-birk4" << std::endl;
-    std::ifstream inp2;
-    std::vector<std::vector<NT> > Pin2;
-    inp2.open("../R-proj/inst/extdata/birk4.ine",std::ifstream::in);
-    read_pointset(inp2,Pin2);
-    Hpolytope P2(Pin2);
-    test_volume(P2,
+    P = generate_birkhoff<Hpolytope>(4);
+    test_volume(P,
                 0.000450761,
                 0.00108943,
                 0.00110742,
-                0.000970018);
+                0.000970018,
+                true);
 
     std::cout << "--- Testing volume of H-birk5" << std::endl;
-    std::ifstream inp3;
-    std::vector<std::vector<NT> > Pin3;
-    inp3.open("../R-proj/inst/extdata/birk5.ine",std::ifstream::in);
-    read_pointset(inp3,Pin3);
-    Hpolytope P3(Pin3);
-    test_volume(P3,
+    P = generate_birkhoff<Hpolytope>(5);
+    test_volume(P,
                 2.97522e-08,
-                2.25982e-07,
-                2.24768e-07,
-                2.25  * std::pow(10,-7));
+                2.00743e-07,
+                2.05779e-07,
+                2.25  * std::pow(10,-7),
+                true);
 
     std::cout << "--- Testing volume of H-birk6" << std::endl;
-    std::ifstream inp4;
-    std::vector<std::vector<NT> > Pin4;
-    inp4.open("../R-proj/inst/extdata/birk6.ine",std::ifstream::in);
-    read_pointset(inp4,Pin4);
-    Hpolytope P4(Pin4);
-    test_volume(P4,
+    P = generate_birkhoff<Hpolytope>(6);
+    test_volume(P,
                 3.66375e-19,
-                9.85929e-13,
-                1.05038e-12,
-                9.455459196 * std::pow(10,-13));
+                9.85929 * std::pow(10,-13),
+                8.20587e-13,
+                9.455459196 * std::pow(10,-13),
+                true);
 }
 
 template <typename NT>
@@ -185,7 +177,7 @@ void call_test_prod_simplex() {
     test_volume(P,
                 6.3448 * std::pow(10,-5),
                 6.94695 * std::pow(10,-5),
-                6.57735e-05,
+                6.13242e-05,
                 std::pow(1.0 / factorial(5.0), 2));
 
     std::cout << "--- Testing volume of H-prod_simplex10" << std::endl;

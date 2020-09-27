@@ -553,6 +553,44 @@ public:
         v += a;
     }
 
+    template <typename update_parameters>
+    void compute_reflection(Point &v, const Point &p, update_parameters const& params) const {
+
+        int count = 0, outvert;
+        MT Fmat2(_d,_d);
+        for (int j = 0; j < num_of_vertices(); ++j) {
+            if (*(conv_comb + j) > 0.0) {
+                Fmat2.row(count) = V.row(j);
+                count++;
+            } else {
+                outvert = j;
+            }
+        }
+
+        VT a = Fmat2.colPivHouseholderQr().solve(VT::Ones(_d));
+        if (a.dot(V.row(outvert)) > 1.0) a *= -1.0;
+        a /= a.norm();
+
+        // compute reflection
+        a *= (-2.0 * v.dot(a));
+        v += a;
+    }
+
+    template <class bfunc, class NonLinearOracle>
+    std::tuple<NT, Point, int> curve_intersect(
+        NT t_prev,
+        NT t0,
+        NT eta,
+        std::vector<Point> &coeffs,
+        bfunc phi,
+        bfunc grad_phi,
+        NonLinearOracle &intersection_oracle,
+        int ignore_facet=-1)
+    {
+        return intersection_oracle.apply(t_prev, t0, eta, V, *this, 
+                                         coeffs, phi, grad_phi, ignore_facet);
+    }
+
 
 };
 

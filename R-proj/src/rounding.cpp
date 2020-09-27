@@ -3,7 +3,7 @@
 // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 20012-2020 Vissarion Fisikopoulos
-// Copyright (c) 2020 Apostolos Chalkis
+// Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
@@ -22,7 +22,6 @@
 #include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
 #include "preprocess/svd_rounding.hpp"
 #include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
-#include "preprocess/get_full_dimensional_polytope.hpp"
 #include "extractMatPoly.h"
 
 template 
@@ -35,9 +34,11 @@ template
     typename NT, 
     typename RNGType
 >
-std::tuple<MT, VT, NT> apply_rounding(Polytope &P, std::string const& method_rcpp,
-                                                  unsigned int const& walkL, std::pair<Point, NT> &InnerBall, 
-                                                  RNGType &rng) 
+std::tuple<MT, VT, NT> apply_rounding(Polytope &P,
+                                      std::string const& method_rcpp,
+                                      unsigned int const& walkL,
+                                      std::pair<Point, NT> &InnerBall, 
+                                      RNGType &rng) 
 {
     std::tuple<MT, VT, NT> round_res;
     if (method_rcpp.compare(std::string("min_ellipsoid")) == 0) {
@@ -60,7 +61,8 @@ std::tuple<MT, VT, NT> apply_rounding(Polytope &P, std::string const& method_rcp
 //'
 //' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 // [[Rcpp::export]]
-Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_NilValue,
+Rcpp::List rounding (Rcpp::Reference P, 
+                     Rcpp::Nullable<std::string> method = R_NilValue,
                      Rcpp::Nullable<double> seed = R_NilValue){
 
     typedef double NT;
@@ -91,23 +93,21 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;
 
-    if (type == 1) {
-        walkL = 10 + 10*n;
-        cdhr = true;
-    } else {
-        walkL = 2;
-    }
-
-    std::pair< std::pair<MT, VT>, NT > round_res;
+    std::tuple<MT, VT, NT> round_res;
     switch (type) {
         case 1: {
             // Hpolytope
+
+            if (Rcpp::as<MT>(P.field("Aeq")).rows() > 0) {
+                throw Rcpp::exception("volesti supports rounding for full dimensional polytopes. Maybe call function get_full_dimensional_polytope()");
+            } 
             Hpolytope HP(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             InnerBall = HP.ComputeInnerBall();
-            if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
+            if (method_rcpp.compare(std::string("max_ellipsoid")) == 0) {
+                round_res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
             } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
+                round_res = apply_rounding<MT, VT, AcceleratedBilliardWalk>(HP, method_rcpp, walkL, InnerBall, rng);
             }
             Mat = extractMatPoly(HP);
             break;
@@ -116,12 +116,8 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             // Vpolytope
             Vpolytope VP(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
-            if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
-            } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
-            }
-
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
+            round_res = apply_rounding<MT, VT, BilliardWalk>(VP, method_rcpp, walkL, InnerBall, rng);
             Mat = extractMatPoly(VP);
             break;
         }
@@ -129,11 +125,8 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
             // Zonotope
             zonotope ZP(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
-            if (cdhr) {
-                round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
-            } else {
-                round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
-            }
+            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
+            round_res = apply_rounding<MT, VT, BilliardWalk>(ZP, method_rcpp, walkL, InnerBall, rng);
             Mat = extractMatPoly(ZP);
             break;
         }
@@ -142,8 +135,8 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<std::string> method = R_N
         }
     }
 
-    return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(round_res.first.first),
-                              Rcpp::Named("shift") = Rcpp::wrap(round_res.first.second),
-                              Rcpp::Named("round_value") = round_res.second);
+    return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(std::get<0>(round_res)),
+                              Rcpp::Named("shift") = Rcpp::wrap(std::get<1>(round_res)),
+                              Rcpp::Named("round_value") = std::get<2>(round_res));
 
 }

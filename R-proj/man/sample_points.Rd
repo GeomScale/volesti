@@ -4,7 +4,8 @@
 \alias{sample_points}
 \title{Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).}
 \usage{
-sample_points(P, n, random_walk = NULL, distribution = NULL, seed = NULL)
+sample_points(P, n, random_walk = NULL, distribution = NULL,
+  seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.}
@@ -13,12 +14,12 @@ sample_points(P, n, random_walk = NULL, distribution = NULL, seed = NULL)
 
 \item{random_walk}{Optional. A list that declares the random walk and some related parameters as follows:
 \itemize{
-\item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
+\item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'aBiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution and H-polytopes and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes.}
 \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{1}.}
 \item{\code{nburns} }{ The number of points to burn before start sampling. The default value is \eqn{1}.}
 \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 \item{\code{BaW_rad} }{ The radius for the ball walk.}
-\item{\code{L} }{ The maximum length of the billiard trajectory.}
+\item{\code{L} }{ The maximum length of the billiard trajectory or the radius for the step of dikin, vaidya or john walk.}
 }}
 
 \item{distribution}{Optional. A list that declares the target density and some related parameters as follows:
@@ -51,4 +52,14 @@ points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "
 P = gen_rand_hpoly(2,20)
 points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
 
+}
+\references{
+\cite{Robert L. Smith,
+\dQuote{Efficient Monte Carlo Procedures for Generating Points Uniformly Distributed Over Bounded Regions,} \emph{Operations Research,} 1984.},
+
+\cite{B.T. Polyak, E.N. Gryazina,
+\dQuote{Billiard walk - a new sampling algorithm for control and optimization,} \emph{IFAC Proceedings Volumes,} 2014.},
+
+\cite{Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
+\dQuote{Fast MCMC Sampling Algorithms on Polytopes,} \emph{Journal of Machine Learning Research,} 2018.}
 }

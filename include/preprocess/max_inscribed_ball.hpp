@@ -57,9 +57,10 @@ void calcstep(MT const& A, MT const& A_trans, MT const& R, VT &s,
 
 
 template <typename MT, typename VT, typename NT>
-std::pair<VT, NT> max_inscribed_ball(MT A, VT b, unsigned int maxiter, NT tol) 
+std::tuple<VT, NT, bool>  max_inscribed_ball(MT const& A, VT const& b, unsigned int maxiter, NT tol) 
 {
     int m = A.rows(), n = A.cols();
+    bool converge;
 
     NT bnrm = b.norm();
     VT o_m = VT::Zero(m), o_n = VT::Zero(n), e_m = VT::Ones(m);
@@ -109,12 +110,14 @@ std::pair<VT, NT> max_inscribed_ball(MT A, VT b, unsigned int maxiter, NT tol)
                     || (t <= (1.0 - tol) * t_prev && i > 0) ) ) ) 
         {
             //converged
+            converge = true;
             break;
         }
 
         if (dt > 1000.0 * bnrm || t > 1000000.0 * bnrm) 
         {
             //unbounded
+            converge = false;
             break;
         }
 
@@ -206,7 +209,8 @@ std::pair<VT, NT> max_inscribed_ball(MT A, VT b, unsigned int maxiter, NT tol)
         y += alphad * dy;
     }
 
-    return std::pair<VT, NT>(x, t);
+    std::tuple<VT, NT, bool> result = std::make_tuple(x, t, converge);
+    return result;
 }
 
 #endif
