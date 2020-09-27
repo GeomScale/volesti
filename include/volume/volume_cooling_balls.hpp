@@ -324,7 +324,7 @@ bool get_sequence_of_polytopeballs(Polytope& P,
     while (true)
     {
         PolyBall zb_it(P, BallSet[BallSet.size()-1]);
-        q = Point(n);
+        q.set_to_origin();
         randPoints.clear();
 
         RandomPointGenerator::apply(zb_it, q, Ntot, walk_length,
@@ -814,7 +814,6 @@ double volume_cooling_balls(Polytope const& Pin,
                                                   rng);
     }
 
-    // P.free_them_all();
     return vol;
 }
 

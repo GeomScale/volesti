@@ -471,7 +471,6 @@ double volume_cooling_gaussians(Polytope const& Pin,
         std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
 #endif
 
-    //P.free_them_all();
     return vol;
 }
 
