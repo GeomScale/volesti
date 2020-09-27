@@ -318,7 +318,6 @@ double volume (Rcpp::Reference P,
     switch(type) {
         case 1: {
             // Hpolytope
-<<<<<<< HEAD
             Hpolytope HP(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             return generic_volume(HP, rng, walkL, e, CG, CB, win_len, round,
                                              cdhr, rdhr, ball_walk, billiard, type);
@@ -328,17 +327,6 @@ double volume (Rcpp::Reference P,
             Vpolytope VP(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
             return generic_volume(VP, rng, walkL, e, CG, CB, win_len, round,
                                              cdhr, rdhr, ball_walk, billiard, type);
-=======
-            Hpolytope HP;
-            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            return generic_volume(HP, rng, walkL, e, algo, win_len, rounding_method, walk);
-        }
-        case 2: {
-            // Vpolytope
-            Vpolytope VP;
-            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            return generic_volume(VP, rng, walkL, e, algo, win_len, rounding_method, walk);
->>>>>>> origin/develop
         }
         case 3: {
             // Zonotope

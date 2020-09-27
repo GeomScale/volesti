@@ -329,13 +329,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 VP.shift(mode.getCoefficients());
             }
-<<<<<<< HEAD
             sample_from_polytope(VP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
                                  set_L, cdhr, rdhr, billiard, ball_walk);
-=======
-            sample_from_polytope(VP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk);
->>>>>>> origin/develop
             break;
         }
         case 3: {
@@ -354,13 +349,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 ZP.shift(mode.getCoefficients());
             }
-<<<<<<< HEAD
             sample_from_polytope(ZP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
                                  set_L, cdhr, rdhr, billiard, ball_walk);
-=======
-            sample_from_polytope(ZP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, 
-                                 StartingPoint, nburns, set_L, walk);
->>>>>>> origin/develop
             break;
         }
         case 4: {
@@ -381,32 +371,19 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 VPcVP.shift(mode.getCoefficients());
             }
-<<<<<<< HEAD
             sample_from_polytope(VPcVP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
                                  set_L, cdhr, rdhr, billiard, ball_walk);
-=======
-            sample_from_polytope(VPcVP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk);
->>>>>>> origin/develop
             break;
         }
     }
 
-<<<<<<< HEAD
     if (numpoints % 2 == 1 && boundary) numpoints--;
-=======
-    if (numpoints % 2 == 1 && (walk == brdhr || walk == bcdhr)) numpoints--;
->>>>>>> origin/develop
     MT RetMat(dim, numpoints);
     unsigned int jj = 0;
 
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
         if (gaussian) {
-<<<<<<< HEAD
             RetMat.col(jj) = rpit->getCoefficients() + mode.getCoefficients();
-=======
-            RetMat.col(jj) = (*rpit).getCoefficients() + mode.getCoefficients();
->>>>>>> origin/develop
         } else {
             RetMat.col(jj) = (*rpit).getCoefficients();
         }

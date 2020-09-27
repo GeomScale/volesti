@@ -43,8 +43,7 @@ std::pair<H_polytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT
     N = V.block(0, r - r_count, d, d - r + r_count);
     b = b - A * p;
 
-    H_polytope HP;
-    HP.init(N.cols(), A * N, b);
+    H_polytope HP(N.cols(), A * N, b);
 
     return std::pair<H_polytope, std::pair<MT, VT> >(HP, std::pair<MT,VT>(N, p));
 }
