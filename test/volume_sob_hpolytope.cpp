@@ -98,11 +98,11 @@ void call_test_cube_float(){
     Hpolytope P;
 /*
     std::cout << "--- Testing volume of H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(10, false);
+    P = generate_cube<Hpolytope>(10, false);
     test_volume(P, 1000.55, 1024, 1024, 1024, 1024);
 
     std::cout << "--- Testing volume of H-cube20" << std::endl;
-    P = gen_cube<Hpolytope>(20, false);
+    P = generate_cube<Hpolytope>(20, false);
     test_volume(P,
                 1114192.7854272256,
                 1048576,

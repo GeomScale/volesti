@@ -156,7 +156,7 @@ int main()
     }
     HP.init(dim,A,b);
 
-    HP = gen_cube<Hpolytope>(10, false);
+    HP = generate_cube<Hpolytope>(10, false);
 
     //Compute chebychev ball
     std::pair<Point,NT> CheBall;
@@ -249,7 +249,7 @@ int main()
     Hpolytope P = gen_skinny_cube<Hpolytope>(5);
     P.ComputeInnerBall();
 
-    //Hpolytope P40 = gen_cube<Hpolytope>(40, false);
+    //Hpolytope P40 = generate_cube<Hpolytope>(40, false);
     //CheBall = P40.ComputeInnerBall();
 
     // Estimate the volume

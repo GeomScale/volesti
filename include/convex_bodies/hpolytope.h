@@ -393,7 +393,10 @@ public:
                                                      VT& Av,
                                                      update_parameters& params) const
     {
-        NT lamda = 0, min_plus = NT(maxNT);
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        
+        NT lamda = 0;
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
 
@@ -434,7 +437,12 @@ public:
                                                      MT const& AA,
                                                      update_parameters& params) const
     {
-        NT lamda = 0, min_plus = NT(maxNT), inner_prev = params.inner_vi_ak;
+
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+
+        NT lamda = 0;
+        NT inner_prev = params.inner_vi_ak;
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
 
@@ -477,7 +485,10 @@ public:
                                                NT const& lambda_prev,
                                                update_parameters& params) const
     {
-        NT lamda = 0, min_plus = NT(maxNT);
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+
+        NT lamda = 0;
         VT sum_nom;
         unsigned int j;
         int m = num_of_hyperplanes(), facet;
@@ -639,6 +650,12 @@ public:
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
 
+    template <typename update_parameters>
+    void compute_reflection(Point &v, const Point &, update_parameters const& params) const
+    {
+            Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+            v += a;
+    }
 };
 
 #endif
