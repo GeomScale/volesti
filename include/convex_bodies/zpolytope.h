@@ -3,8 +3,9 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
+//Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018-19 programs.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -346,6 +347,40 @@ public:
         return line_positive_intersect(r, v, Ar, Av);
     }
 
+    //---------------------------accelarated billiard-----------------------------//
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(Point const& r,
+                                                     Point const& v,
+                                                     VT& Ar,
+                                                     VT& Av,
+                                                     update_parameters& params) const
+    {
+        return line_positive_intersect(r, v, Ar, Av);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               MT const& AA,
+                                               update_parameters& params) const
+    {
+        return line_positive_intersect(r, v, Ar, Av);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av,
+                                               NT const& lambda_prev,
+                                               update_parameters& params) const
+    {
+        return line_positive_intersect(r, v, Ar, Av);
+    }
+    //------------------------------------------------------------------------------//
 
     // Compute the intersection of a coordinate ray
     // with the Zonotope
@@ -411,6 +446,8 @@ public:
 
     void compute_reflection(Point &v, Point const& p, int const& facet) const
     {
+        //compute_reflection(v, p, 0.0);
+
         int count = 0;
         MT Fmat(_d-1,_d);
         const NT e = 0.0000000001;
@@ -421,6 +458,31 @@ public:
                 ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) )
                                            > e*std::abs(*(conv_comb + j))))
             {
+                Fmat.row(count) = V.row(j);
+                count++;
+            }
+        }
+
+        VT a = Fmat.fullPivLu().kernel();
+
+        if(p.getCoefficients().dot(a) < 0.0) a *= -1.0;
+
+        a = a/a.norm();
+
+        // compute reflection
+        a *= (-2.0 * v.dot(a));
+        v += a;
+    }
+
+    template <typename update_parameters>
+    void compute_reflection(Point &v, const Point &p, update_parameters const& params) const {
+
+        int count = 0;
+        MT Fmat(_d-1,_d);
+        const NT e = 0.0000000001;
+        for (int j = 0; j < num_of_generators(); ++j) {
+            if (((1.0 - *(conv_comb + j) ) > e || (1.0 - *(conv_comb + j) ) > e*std::abs(*(conv_comb + j))) &&
+                ((1.0 + *(conv_comb + j) ) > e || (1.0 + *(conv_comb + j) ) > e*std::abs(*(conv_comb + j)))) {
                 Fmat.row(count) = V.row(j);
                 count++;
             }

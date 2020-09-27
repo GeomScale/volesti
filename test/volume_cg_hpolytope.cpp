@@ -144,7 +144,7 @@ void call_test_birk() {
     test_volume(P2,
                 0.000450761,
                 0.00108943,
-                0.00103573,
+                0.00110742,
                 0.000970018);
 
     std::cout << "--- Testing volume of H-birk5" << std::endl;
@@ -185,7 +185,7 @@ void call_test_prod_simplex() {
     test_volume(P,
                 6.3448 * std::pow(10,-5),
                 6.94695 * std::pow(10,-5),
-                6.2862 * std::pow(10,-5),
+                6.57735e-05,
                 std::pow(1.0 / factorial(5.0), 2));
 
     std::cout << "--- Testing volume of H-prod_simplex10" << std::endl;
@@ -193,7 +193,7 @@ void call_test_prod_simplex() {
     test_volume(P,
                 1.36206 * std::pow(10,-14),
                 8.48116 * std::pow(10,-14),
-                7.37191 * std::pow(10,-14),
+                6.90898e-14,
                 std::pow(1.0 / factorial(10.0), 2));
 
     std::cout << "--- Testing volume of H-prod_simplex15" << std::endl;
@@ -201,7 +201,7 @@ void call_test_prod_simplex() {
     test_volume(P,
                 1.93763 * std::pow(10,-26),
                 5.4624 * std::pow(10,-25),
-                4.99596 * std::pow(10,-25),
+                6.95082e-25,
                 std::pow(1.0 / factorial(15.0), 2));
 }
 
@@ -218,7 +218,7 @@ void call_test_simplex() {
     test_volume(P,
                 3.14369 * std::pow(10,-7),
                 2.70598 * std::pow(10,-7),
-                2.87717 * std::pow(10,-7),
+                2.53893e-07,
                 1.0 / factorial(10.0));
 
     std::cout << "--- Testing volume of H-simplex20" << std::endl;
@@ -226,7 +226,7 @@ void call_test_simplex() {
     test_volume(P,
                 1.12891 * std::pow(10,-23),
                 4.16845 * std::pow(10,-19),
-                3.93817 * std::pow(10,-19),
+                3.79918e-19,
                 1.0 / factorial(20.0));
 
     std::cout << "--- Testing volume of H-simplex30" << std::endl;
@@ -234,7 +234,7 @@ void call_test_simplex() {
     test_volume(P,
                 7.06547 * std::pow(10,-41),
                 4.02288 * std::pow(10,-33),
-                3.41361 * std::pow(10,-33),
+                3.47743e-33,
                 1.0 / factorial(30.0));
 }
 

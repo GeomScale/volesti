@@ -20,6 +20,8 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 
+#include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
+
 #include "known_polytope_generators.h"
 
 template <typename NT>
@@ -59,11 +61,12 @@ void rounding_test(Polytope &HP,
     RNGType rng(d);
 
     std::pair<Point, NT> InnerBall = HP.ComputeInnerBall();
-    std::pair< std::pair<MT, VT>, NT > res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, 10 + 10 * d, rng);
+    std::tuple<MT, VT, NT> res = min_sampling_covering_ellipsoid_rounding<CDHRWalk, MT, VT>(HP, InnerBall,
+                                                                                            10 + 10 * d, rng);
 
     // Setup the parameters
     int walk_len = 1;
-    NT e=0.1;
+    NT e = 0.1;
 
     // Estimate the volume
     std::cout << "Number type: " << typeid(NT).name() << std::endl;
@@ -73,13 +76,13 @@ void rounding_test(Polytope &HP,
     //NT volume = res.second * volume_cooling_balls<BallWalk, RNGType>(HP, e, walk_len);
     //test_values(volume, expectedBall, exact);
 
-    NT volume = res.second * volume_cooling_balls<CDHRWalk, RNGType>(HP, e, walk_len);
+    NT volume = std::get<2>(res) * volume_cooling_balls<CDHRWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedCDHR, exact);
 
-    volume = res.second * volume_cooling_balls<RDHRWalk, RNGType>(HP, e, walk_len);
+    volume = std::get<2>(res) * volume_cooling_balls<RDHRWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedRDHR, exact);
 
-    volume = res.second * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len);
+    volume = std::get<2>(res) * volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len);
     test_values(volume, expectedBilliard, exact);
 }
 
@@ -105,8 +108,8 @@ void call_test_skinny_cubes() {
     P = generate_skinny_cube<Hpolytope>(20);
     rounding_test(P, 0,
                   8.26497 * std::pow(10,7),
-                  9.37982 * std::pow(10,7),
-                  1.02958 * std::pow(10,8),
+                  8.23341 * std::pow(10,7),
+                  1.09218e+08,
                   104857600.0);
 }
 
