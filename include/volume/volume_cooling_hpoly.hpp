@@ -184,7 +184,6 @@ bool get_sequence_of_zonopolys(Zonotope &Z,
         return false;
     }
 
-    //ZonoHP ZHP2;
     VT Zs_min = HP.get_vec();
 
     while (true) {

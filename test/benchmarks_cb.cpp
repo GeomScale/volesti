@@ -179,7 +179,6 @@ int main()
               << volume_cooling_balls<RDHRWalk, RNG>(VP) << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
-    //VP.init(VP.dimension(), VP.get_mat(), VP.get_vec());
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "CDHR (cross) = "
               << volume_cooling_balls<CDHRWalk, RNG>(VP) << " , ";

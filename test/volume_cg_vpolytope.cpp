@@ -92,26 +92,6 @@ void call_test_cube(){
                 16.0);
 }
 
-/*template <typename NT>
-void call_test_cube_float(){
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef boost::mt19937 RNGType;
-    typedef VPolytope<Point> Vpolytope;
-    Vpolytope P;
-
-    std::cout << "--- Testing volume of V-cube10 (float)" << std::endl;
-    P = generate_cube<Vpolytope>(10, false);
-    test_volume(P, 1000.55, 1024, 1024, 1024);
-
-    std::cout << "--- Testing volume of V-cube20 (float)" << std::endl;
-    P = generate_cube<Vpolytope>(20, false);
-    test_volume(P, 1114192.7854272256,
-                1048576,
-                1048576,
-                1048576);
-}*/
-
 template <typename NT>
 void call_test_cross(){
     typedef Cartesian<NT>    Kernel;

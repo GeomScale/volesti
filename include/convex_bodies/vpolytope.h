@@ -368,9 +368,6 @@ public:
         std::pair<NT,NT> res;
         Point v(_d);
         for (unsigned int i = 0; i < _d; ++i) {
-            //temp.assign(_d,0);
-            //temp[i] = 1.0;
-            //Point v(_d,temp.begin(), temp.end());
             v.set_to_origin();
             v.set_coord(i, 1.0);
             res = intersect_double_line_Vpoly<NT>(V, center, v, row, colno);

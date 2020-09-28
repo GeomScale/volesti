@@ -56,17 +56,6 @@ public:
         return 0;
     }
 
-    /*void init(const VPolytope &P, const VPolytope &Q) {
-        P1 = P;
-        P2 = Q;
-        seed = std::chrono::system_clock::now().time_since_epoch().count();
-    }
-
-    void init(const VPolytope &P, const VPolytope &Q, unsigned &_seed) {
-        P1 = P;
-        P2 = Q;
-        seed = _seed;
-    }*/
 
     int num_of_hyperplanes() const {
         return 0;

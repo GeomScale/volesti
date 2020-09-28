@@ -293,7 +293,6 @@ bool get_sequence_of_polytopeballs(Polytope& P,
     std::list<Point> randPoints;
     ball B0;
     Point q(n);
-    //PolyBall zb_it;
 
     if ( !get_first_ball(P, B0, ratio, radius, parameters, rng) )
     {
@@ -762,7 +761,6 @@ double volume_cooling_balls(Polytope const& Pin,
                                                er0, parameters.win_len, 1200,
                                                prob, rng);
 
-    //PolyBall Pb;
     auto balliter = BallSet.begin();
     auto ratioiter = ratios.begin();
 
