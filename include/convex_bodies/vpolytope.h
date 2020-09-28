@@ -335,7 +335,7 @@ public:
 
 
     std::pair<Point,NT> ComputeInnerBall() {
-        std::vector<NT> temp(_d,0);
+        
         NT radius =  std::numeric_limits<NT>::max(), min_plus;
         Point center(_d);
 
@@ -366,10 +366,13 @@ public:
         }
 
         std::pair<NT,NT> res;
+        Point v(_d);
         for (unsigned int i = 0; i < _d; ++i) {
-            temp.assign(_d,0);
-            temp[i] = 1.0;
-            Point v(_d,temp.begin(), temp.end());
+            //temp.assign(_d,0);
+            //temp[i] = 1.0;
+            //Point v(_d,temp.begin(), temp.end());
+            v.set_to_origin();
+            v.set_coord(i, 1.0);
             res = intersect_double_line_Vpoly<NT>(V, center, v, row, colno);
             min_plus = std::min(res.first, -1.0*res.second);
             if (min_plus < radius) radius = min_plus;
@@ -470,10 +473,8 @@ public:
     std::pair<NT,NT> line_intersect_coord(const Point &r,
                                           const unsigned int rand_coord,
                                           const VT &lamdas) const {
-
-        std::vector<NT> temp(_d);
-        temp[rand_coord]=1.0;
-        Point v(_d,temp.begin(), temp.end());
+        Point v(_d);
+        v.set_coord(rand_coord, 1.0);
         return intersect_double_line_Vpoly<NT>(V, r, v,  row, colno);
     }
 

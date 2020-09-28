@@ -225,7 +225,6 @@ double volume_sequence_of_balls(Polytope const& Pin,
     std::cout<<"volume computed: "<<vol<<std::endl;
 #endif
 
-    // sP.free_them_all();
     return vol;
 }
 
