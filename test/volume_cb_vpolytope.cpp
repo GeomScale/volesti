@@ -59,20 +59,20 @@ void test_volume(Polytope &P,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
 
     //TODO: low accuracy in high dimensions
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    NT volume = volume_cooling_balls<BallWalk, RNGType>(P, e, walk_len);
+    Polytope P1(P.dimension(), P.get_mat(), P.get_vec());
+    NT volume = volume_cooling_balls<BallWalk, RNGType>(P1, e, walk_len);
     test_values(volume, expectedBall, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<CDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P2(P.dimension(), P.get_mat(), P.get_vec());
+    volume = volume_cooling_balls<CDHRWalk, RNGType>(P2, e, walk_len);
     test_values(volume, expectedCDHR, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<RDHRWalk, RNGType>(P, e, walk_len);
+    Polytope P3(P.dimension(), P.get_mat(), P.get_vec());
+    volume = volume_cooling_balls<RDHRWalk, RNGType>(P3, e, walk_len);
     test_values(volume, expectedRDHR, exact);
 
-    P.init(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(P, e, walk_len);
+    Polytope P4(P.dimension(), P.get_mat(), P.get_vec());
+    volume = volume_cooling_balls<BilliardWalk, RNGType>(P4, e, walk_len);
     test_values(volume, expectedBilliard, exact);
 }
 
@@ -82,15 +82,15 @@ void call_test_cube(){
     typedef typename Kernel::Point    Point;
     typedef boost::mt19937 RNGType;
     typedef VPolytope<Point> Vpolytope;
-    Vpolytope P;
+
 
     std::cout << "--- Testing volume of V-cube2" << std::endl;
-    P = gen_cube<Vpolytope>(2, true);
-    test_volume(P, 4.43443, 4.129, 4.43443, 4.40191, 4);
+    Vpolytope P1 = generate_cube<Vpolytope>(2, true);
+    test_volume(P1, 4.43443, 4.129, 4.43443, 4.40191, 4);
 
     std::cout << "--- Testing volume of V-cube5" << std::endl;
-    P = gen_cube<Vpolytope>(5, true);
-    test_volume(P, 32, 32, 32, 32, 32);
+    Vpolytope P2 = generate_cube<Vpolytope>(5, true);
+    test_volume(P2, 32, 32, 32, 32, 32);
 
 
 }
@@ -104,11 +104,11 @@ void call_test_cube_float(){
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cube10 (float)" << std::endl;
-    P = gen_cube<Vpolytope>(10, false);
+    P = generate_cube<Vpolytope>(10, true);
     test_volume(P, 1000.55, 1024, 1024, 1024, 1024);
 
     std::cout << "--- Testing volume of V-cube20 (float)" << std::endl;
-    P = gen_cube<Vpolytope>(20, false);
+    P = generate_cube<Vpolytope>(20, true);
     test_volume(P, 1114192.7854272256,
                 1048576,
                 1048576,
@@ -125,7 +125,7 @@ void call_test_cross(){
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-cross5" << std::endl;
-    P = gen_cross<Vpolytope>(5, true);
+    P = generate_cross<Vpolytope>(5, true);
     test_volume(P,
                 0.28425,
                 0.273255,
@@ -134,7 +134,7 @@ void call_test_cross(){
                 0.266666667);
 
     std::cout << "--- Testing volume of V-cross10" << std::endl;
-    P = gen_cross<Vpolytope>(10, true);
+    P = generate_cross<Vpolytope>(10, true);
     test_volume(P,
                 0.000283841,
                 0.00031188,
@@ -143,7 +143,7 @@ void call_test_cross(){
                 0.0002821869);
 
     std::cout << "--- Testing volume of V-cross20" << std::endl;
-    P = gen_cross<Vpolytope>(20, true);
+    P = generate_cross<Vpolytope>(20, true);
     test_volume(P,
                 4.16807 * std::pow(10,-13),
                 4.42692 * std::pow(10,-13),
@@ -162,7 +162,7 @@ void call_test_simplex() {
     Vpolytope P;
 
     std::cout << "--- Testing volume of V-simplex5" << std::endl;
-    P = gen_simplex<Vpolytope>(5, true);
+    P = generate_simplex<Vpolytope>(5, true);
     test_volume(P,
                 0.00846587,
                 0.0096107,
@@ -171,7 +171,7 @@ void call_test_simplex() {
                 1.0 / factorial(5.0));
 
     std::cout << "--- Testing volume of V-simplex10" << std::endl;
-    P = gen_simplex<Vpolytope>(10, true);
+    P = generate_simplex<Vpolytope>(10, true);
     test_volume(P,
                 2.35669 * std::pow(10,-7),
                 3.00778 * std::pow(10,-7),

@@ -70,15 +70,15 @@ void call_test_cube() {
     Hpolytope P;
 
     std::cout << "\n--- Testing Chebchev ball computation of H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(10, false);
+    P = generate_cube<Hpolytope>(10, false);
     cheb_test<NT, RNGType>(P, 1.0);
 
     std::cout << "\n--- Testing Chebchev ball computation of H-cube20" << std::endl;
-    P = gen_cube<Hpolytope>(20, false);
+    P = generate_cube<Hpolytope>(20, false);
     cheb_test<NT, RNGType>(P, 1.0);
 
     std::cout << "\n--- Testing Chebchev ball computation of H-cube30" << std::endl;
-    P = gen_cube<Hpolytope>(30, false);
+    P = generate_cube<Hpolytope>(30, false);
     cheb_test<NT, RNGType>(P, 1.0);
 
 }

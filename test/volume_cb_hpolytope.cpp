@@ -86,12 +86,12 @@ void call_test_cube(){
     Hpolytope P;
 
     std::cout << "--- Testing volume of H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(10, false);
-    test_volume(P, 1118.63, 1163.36, 1119.15, 1094.33, 1024);
+    P = generate_cube<Hpolytope>(10, false);
+    test_volume(P, 1118.63, 1163.36, 1119.15, 1100.73, 1024);
 
     std::cout << "--- Testing volume of H-cube20" << std::endl;
-    P = gen_cube<Hpolytope>(20, false);
-    test_volume(P, 965744, 1051230, 1006470, 987076, 1048576);
+    P = generate_cube<Hpolytope>(20, false);
+    test_volume(P, 965744, 1051230, 1006470, 1007020, 1048576);
 }
 
 template <typename NT>
@@ -102,11 +102,11 @@ void call_test_cube_float(){
     Hpolytope P;
 /*
     std::cout << "--- Testing volume of H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(10, false);
+    P = generate_cube<Hpolytope>(10, false);
     test_volume(P, 1000.55, 1024);
 
     std::cout << "--- Testing volume of H-cube20" << std::endl;
-    P = gen_cube<Hpolytope>(20, false);
+    P = generate_cube<Hpolytope>(20, false);
     test_volume(P, 1114192.7854272256, 1048576);
     */
 }
@@ -120,7 +120,7 @@ void call_test_cross(){
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 123> RNGType;
 
     std::cout << "--- Testing volume of H-cross10" << std::endl;
-    Hpolytope P = gen_cross<Hpolytope>(10, false);
+    Hpolytope P = generate_cross<Hpolytope>(10, false);
     test_volume(P,
                 0.000291034,
                 0.000281135,
@@ -140,16 +140,16 @@ void call_test_birk()
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 123> RNGType;
 
     std::cout << "--- Testing volume of H-birk3" << std::endl;
-    P = gen_birk<Hpolytope>(3);
+    P = generate_birkhoff<Hpolytope>(3);
     test_volume(P, 0.114343, 0.125548, 0.113241, 0.112446, 0.125, true);
 
     std::cout << "--- Testing volume of H-birk4" << std::endl;
-    P = gen_birk<Hpolytope>(4);
+    P = generate_birkhoff<Hpolytope>(4);
     test_volume(P, 0.00112956, 0.00109593, 0.00108152, 0.000845192,
                 0.000970018, true);
 
     std::cout << "--- Testing volume of H-birk5" << std::endl;
-    P = gen_birk<Hpolytope>(5);
+    P = generate_birkhoff<Hpolytope>(5);
     test_volume(P,
                 1.97968e-07,
                 2.55884e-07,
@@ -159,7 +159,7 @@ void call_test_birk()
                 true);
 
     std::cout << "--- Testing volume of H-birk6" << std::endl;
-    P = gen_birk<Hpolytope>(6);
+    P = generate_birkhoff<Hpolytope>(6);
     test_volume(P,
                 7.84351e-13,
                 6.10783e-13,
@@ -178,7 +178,7 @@ void call_test_prod_simplex() {
     Hpolytope P;
 
     std::cout << "--- Testing volume of H-prod_simplex5" << std::endl;
-    P = gen_prod_simplex<Hpolytope>(5);
+    P = generate_prod_simplex<Hpolytope>(5);
     test_volume(P,
                 6.40072 * std::pow(10,-5),
                 6.69062 * std::pow(10,-5),
@@ -187,7 +187,7 @@ void call_test_prod_simplex() {
                 std::pow(1.0 / factorial(5.0), 2));
 
     std::cout << "--- Testing volume of H-prod_simplex10" << std::endl;
-    P = gen_prod_simplex<Hpolytope>(10);
+    P = generate_prod_simplex<Hpolytope>(10);
     test_volume(P,
                 6.83631 * std::pow(10,-14),
                 8.19581 * std::pow(10,-14),
@@ -196,7 +196,7 @@ void call_test_prod_simplex() {
                 std::pow(1.0 / factorial(10.0), 2));
 
     std::cout << "--- Testing volume of H-prod_simplex15" << std::endl;
-    P = gen_prod_simplex<Hpolytope>(15);
+    P = generate_prod_simplex<Hpolytope>(15);
     test_volume(P,
                 6.25978 * std::pow(10,-25),
                 9.33162 * std::pow(10,-25),
@@ -214,7 +214,7 @@ void call_test_simplex() {
     Hpolytope P;
 
     std::cout << "--- Testing volume of H-simplex10" << std::endl;
-    P = gen_simplex<Hpolytope>(10, false);
+    P = generate_simplex<Hpolytope>(10, false);
     test_volume(P,
                 3.22432 * std::pow(10,-7),
                 2.90617 * std::pow(10,-7),
@@ -223,7 +223,7 @@ void call_test_simplex() {
                 1.0 / factorial(10.0));
 
     std::cout << "--- Testing volume of H-simplex20" << std::endl;
-    P = gen_simplex<Hpolytope>(20, false);
+    P = generate_simplex<Hpolytope>(20, false);
     test_volume(P,
                 4.03788 * std::pow(10,-19),
                 4.14182 * std::pow(10,-19),
@@ -232,7 +232,7 @@ void call_test_simplex() {
                 1.0 / factorial(20.0));
 
     std::cout << "--- Testing volume of H-simplex30" << std::endl;
-    P = gen_simplex<Hpolytope>(30, false);
+    P = generate_simplex<Hpolytope>(30, false);
     test_volume(P,
                 2.5776 * std::pow(10,-33),
                 3.5157 * std::pow(10,-33),

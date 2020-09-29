@@ -53,7 +53,7 @@ endif(COMMAND cmake_policy)
 #  message(STATUS "BOOST is DEFINED")
 #endif()
 
-find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
+find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
 
 if (NOT LP_SOLVE)
 

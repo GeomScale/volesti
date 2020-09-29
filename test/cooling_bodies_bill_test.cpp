@@ -112,15 +112,15 @@ void call_test_cube(){
     Hpolytope P;
 
     std::cout << "--- Testing volume of H-cube10" << std::endl;
-    P = gen_cube<Hpolytope>(10, false);
+    P = generate_cube<Hpolytope>(10, false);
     test_cool_bodies<NT, RNGType>(P, 1024.0);
 
     std::cout << "--- Testing volume of H-cube20" << std::endl;
-    P = gen_cube<Hpolytope>(20, false);
+    P = generate_cube<Hpolytope>(20, false);
     test_cool_bodies<NT, RNGType>(P, 1048576.0);
 
     std::cout << "--- Testing volume of H-cube30" << std::endl;
-    P = gen_cube<Hpolytope>(30, false);
+    P = generate_cube<Hpolytope>(30, false);
     test_cool_bodies<NT, RNGType>(P, 1073742000.0);
 }
 

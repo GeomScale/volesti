@@ -52,10 +52,7 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
         b(i) = 10.0;
     }
 
-    Polytope HP;
-    HP.init(dim, A, b);
-
-    return HP;
+    return Polytope(dim, A, b);
 }
 
 #endif
