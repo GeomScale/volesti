@@ -98,15 +98,16 @@ void call_test_skinny_cubes() {
     Hpolytope P;
 
     std::cout << "\n--- Testing rounding of H-skinny_cube5" << std::endl;
-    P = gen_skinny_cube<Hpolytope>(5);
+    P = generate_skinny_cube<Hpolytope>(5);
     rounding_test(P, 0, 3070.64, 3188.25, 3140.6, 3200.0);
 
     std::cout << "\n--- Testing rounding of H-skinny_cube10" << std::endl;
-    P = gen_skinny_cube<Hpolytope>(10);
+
+    P = generate_skinny_cube<Hpolytope>(10);
     rounding_test(P, 0, 122550, 108426, 105003.0, 102400.0);
 
     std::cout << "\n--- Testing rounding of H-skinny_cube20" << std::endl;
-    P = gen_skinny_cube<Hpolytope>(20);
+    P = generate_skinny_cube<Hpolytope>(20);
     rounding_test(P, 0,
                   8.26497 * std::pow(10,7),
                   8.94948+07,

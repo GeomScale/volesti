@@ -10,10 +10,10 @@
 #include "Eigen/Eigen"
 //#define VOLESTI_DEBUG
 #include <fstream>
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
 
 #include "random_walks/random_walks.hpp"
 
@@ -26,16 +26,16 @@
 
 int main()
 {
-    typedef double NT;
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef boost::mt19937    RNGType;
-    typedef HPolytope<Point> Hpolytope;
-    typedef VPolytope<Point> Vpolytope;
+    typedef double                 NT;
+    typedef Cartesian<NT>          Kernel;
+    typedef typename Kernel::Point Point;
+    typedef boost::mt19937         RNGType;
+    typedef HPolytope<Point>       Hpolytope;
+//   typedef VPolytope<Point> Vpolytope;
 
     std::cout << "Volume algorithm: Gaussian Annealing" << std::endl << std::endl;
 
-    Hpolytope HP = gen_cube<Hpolytope>(10, false);
+    Hpolytope HP = generate_cube<Hpolytope>(10, false);
 
     //Compute chebychev ball
     std::pair<Point,NT> CheBall;

@@ -41,7 +41,7 @@ void test_h_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   Hpolytope P;
   NT tol = 1e-4;
 
-  P = gen_cube<Hpolytope>(2, false);
+  P = generate_cube<Hpolytope>(2, false);
   NewtonRaphsonHPolyoracle<Hpolytope, bfunc> nr_oracle;
   IpoptHPolyoracle<Hpolytope, bfunc> ipopt_oracle;
   MPSolveHPolyoracle<Hpolytope, bfunc> mpsolve_oracle;
@@ -77,7 +77,7 @@ void test_v_poly_oracles(std::vector<Point> coeffs, bfunc phi, bfunc grad_phi, N
   Vpolytope P;
   NT tol = 1e-4;
 
-  P = gen_cube<Vpolytope>(2, true);
+  P = generate_cube<Vpolytope>(2, true);
   IpoptVPolyoracle<Vpolytope, bfunc> ipopt_oracle;
 
 
@@ -177,7 +177,7 @@ void call_benchmark_oracles() {
 
   for (int dim = dims.first; dim <= dims.second; dim++) {
     Point p;
-    P = gen_cube<Hpolytope>(dim, false);
+    P = generate_cube<Hpolytope>(dim, false);
 
     for (int order = orders.first; order <= orders.second; order++) {
       p = Point(dim);

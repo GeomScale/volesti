@@ -4,24 +4,26 @@
 // Copyright (c) 2018 Apostolos Chalkis
 
 // Licensed under GNU LGPL.3, see LICENCE file
-
-#include "Eigen/Eigen"
-#include <chrono>
-#include "cartesian_geom/cartesian_kernel.h"
-#include "random.hpp"
-#include "random/uniform_int.hpp"
-#include "random/normal_distribution.hpp"
-#include "random/uniform_real_distribution.hpp"
-#include "vpolyoracles.h"
-#include "hpolytope.h"
-#include "vpolytope.h"
-#include "zpolytope.h"
-#include "known_polytope_generators.h"
-#include "h_polytopes_generator.h"
-#include "v_polytopes_generators.h"
-#include "z_polytopes_generators.h"
 #include <fstream>
 #include <string>
+#include <chrono>
+
+#include <Eigen/Eigen>
+
+#include <boost/random.hpp>
+#include <boost/random/uniform_int.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/uniform_real_distribution.hpp>
+#include "cartesian_geom/cartesian_kernel.h"
+#include "lp_oracles/vpolyoracles.h"
+#include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
+#include "convex_bodies/zpolytope.h"
+#include "generators/known_polytope_generators.h"
+#include "generators/h_polytopes_generator.h"
+#include "generators/v_polytopes_generators.h"
+#include "generators/z_polytopes_generators.h"
+
 
 template <class MT, class VT>
 void create_txt(MT A, VT b, int kind, bool Vpoly, bool Zono) {
@@ -113,15 +115,15 @@ void create_txt(MT A, VT b, int kind, bool Vpoly, bool Zono) {
 
 int main(const int argc, const char** argv) {
     //Deafault values
-    typedef double NT;
-    typedef Cartesian <NT> Kernel;
-    typedef typename Kernel::Point Point;
-    typedef boost::mt19937 RNGType;
-    typedef HPolytope <Point> Hpolytope;
-    typedef VPolytope <Point, RNGType> Vpolytope;
-    typedef Zonotope <Point> Zonotope;
+    typedef double                    NT;
+    typedef Cartesian<NT>             Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef boost::mt19937            RNGType;
+    typedef HPolytope<Point>          Hpolytope;
+    typedef VPolytope<Point>          Vpolytope;
+    typedef Zonotope<Point>           Zonotope;
 
-    Vpolytope VP;
+    //Vpolytope VP;
 
     bool Hpoly = false, Vpoly = false, Zono = false, cube = false, cross = false, simplex = false, prod_simplex = false,
             skinny_cube = false, randv = false;
@@ -267,7 +269,7 @@ int main(const int argc, const char** argv) {
         Hpolytope HP;
         switch (kind) {
             case 1:
-                HP = gen_cube<Hpolytope>(d, false);
+                HP = std::move(generate_cube<Hpolytope>(d, false));
                 break;
             case 2:
                 HP = gen_cross<Hpolytope>(d, false);
@@ -294,47 +296,47 @@ int main(const int argc, const char** argv) {
                 exit(-1);
         }
         create_txt(HP.get_mat(), HP.get_vec(), kind, false, false);
-    } else if (Vpoly) {
-        Vpolytope VP;
-        switch (kind) {
-            case 1:
-                VP = gen_cube<Vpolytope>(d, true);
-                break;
-            case 2:
-                VP = gen_cross<Vpolytope>(d, true);
-                break;
-            case 3:
-                VP = gen_simplex<Vpolytope>(d, true);
-                break;
-            case 4:
-                if (!randv) {
-                    std::cout<<"No prod_simplex in V-representation can be generated, try -help"<<std::endl;
-                    exit(-1);
-                }
-                if (m > d) {
-                    VP = random_vpoly_incube<Vpolytope, RNGType>(d, m);
-                } else {
-                    std::cout << "The number of vertices has to be >=d+1" << std::endl;
-                    exit(-1);
-                }
-                break;
-            case 5:
-                if (!randv) {
-                    std::cout<<"No skinny_cube in V-representation can be generated, try -help"<<std::endl;
-                    exit(-1);
-                }
-                if (m > d) {
-                    VP = random_vpoly<Vpolytope, RNGType>(d, m);
-                } else {
-                    std::cout << "The number of vertices has to be >=d+1" << std::endl;
-                    exit(-1);
-                }
-                break;
-            default:
-                std::cout << "Wrong inputs, try -help" << std::endl;
-                exit(-1);
-        }
-        create_txt(VP.get_mat(), VP.get_vec(), kind, true, false);
+     } else if (Vpoly) {
+         Vpolytope VP;
+         switch (kind) {
+             case 1:
+                 VP = generate_cube<Vpolytope>(d, true);
+                 break;
+             case 2:
+                 VP = gen_cross<Vpolytope>(d, true);
+                 break;
+             case 3:
+                 VP = gen_simplex<Vpolytope>(d, true);
+                 break;
+             case 4:
+                 if (!randv) {
+                     std::cout<<"No prod_simplex in V-representation can be generated, try -help"<<std::endl;
+                     exit(-1);
+                 }
+                 if (m > d) {
+                     VP = random_vpoly_incube<Vpolytope, RNGType>(d, m);
+                 } else {
+                     std::cout << "The number of vertices has to be >=d+1" << std::endl;
+                     exit(-1);
+                 }
+                 break;
+             case 5:
+                 if (!randv) {
+                     std::cout<<"No skinny_cube in V-representation can be generated, try -help"<<std::endl;
+                     exit(-1);
+                 }
+                 if (m > d) {
+                     VP = random_vpoly<Vpolytope, RNGType>(d, m);
+                 } else {
+                     std::cout << "The number of vertices has to be >=d+1" << std::endl;
+                     exit(-1);
+                 }
+                 break;
+             default:
+                 std::cout << "Wrong inputs, try -help" << std::endl;
+                 exit(-1);
+         }
+         create_txt(VP.get_mat(), VP.get_vec(), kind, true, false);
     } else {
         std::cout << "Wrong inputs, try -help" << std::endl;
         exit(-1);

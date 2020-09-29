@@ -124,7 +124,7 @@ void test_leapfrog_constrained(){
     Fs.push_back(F);
 
     // Solve in P x R for
-    Hpolytope P = gen_cube<Hpolytope>(1, true);
+    Hpolytope P = generate_cube<Hpolytope>(1, true);
     bounds Ks{&P, NULL};
 
     Point x0 = Point(1);
@@ -186,7 +186,7 @@ void test_euler_constrained(){
     func F = [](pts &xs, NT &t) { return xs[0]; };
     Fs.push_back(F);
 
-    Hpolytope P = gen_cube<Hpolytope>(1, true);
+    Hpolytope P = generate_cube<Hpolytope>(1, true);
     Ks.push_back(&P);
 
     Point q0 = Point(1);
@@ -217,7 +217,7 @@ void test_bs_constrained(){
     func F = [](pts &xs, NT &t) { return xs[0]; };
     Fs.push_back(F);
 
-    Hpolytope P = gen_cube<Hpolytope>(1, true);
+    Hpolytope P = generate_cube<Hpolytope>(1, true);
     Ks.push_back(&P);
 
     Point q0 = Point(1);
@@ -252,7 +252,7 @@ void test_rk4_constrained(){
     pts q;
     q.push_back(q0);
 
-    Hpolytope P = gen_cube<Hpolytope>(1, true);
+    Hpolytope P = generate_cube<Hpolytope>(1, true);
 
     bounds Ks{&P};
     RKODESolver<Point, NT, Hpolytope> rk_solver = RKODESolver<Point, NT, Hpolytope>(0, 0.01, q, Fs, Ks);
@@ -289,7 +289,7 @@ void test_euler_2d_constrained(){
 
     Fs.push_back(F);
 
-    Hpolytope P = gen_cube<Hpolytope>(2, true);
+    Hpolytope P = generate_cube<Hpolytope>(2, true);
     Ks.push_back(&P);
 
     Point q0 = Point(2);
@@ -403,7 +403,7 @@ void test_collocation_constrained(){
     func F = [](pts &xs, NT &t) { return xs[0]; };
     Fs.push_back(F);
 
-    Hpolytope P = gen_cube<Hpolytope>(1, false);
+    Hpolytope P = generate_cube<Hpolytope>(1, false);
     Ks.push_back(&P);
 
     bfunc phi = [](NT t, NT t0, unsigned int j, unsigned int order) {
