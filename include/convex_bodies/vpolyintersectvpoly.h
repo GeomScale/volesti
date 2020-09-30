@@ -159,6 +159,11 @@ public:
 
     }
 
+    void set_InnerBall(std::pair<Point,NT> const& innerball) const
+    {
+        _inner_ball = innerball;
+    }
+
 /*
         unsigned int num_of_v = 0;
         unsigned int d = dimension();
