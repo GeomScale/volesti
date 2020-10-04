@@ -93,6 +93,7 @@ private:
 
     bool _use_weighted_polynomials = true;
 
+    //This bool sets the degree of variables up to which the solution of the envelope problem should be plotted.
     unsigned _plot_threshold = 100;
 
     void compute_clenshaw_curtis_integrals();

@@ -111,14 +111,16 @@ void EnvelopeProblemSOS<IPMDouble>::initialize_problem() {
         //use just any objective that guaranteese boundedness.
         //Here we just copy their implementation.
 
-        //TODO: test. Currently not working returning a feasible solution
+        //TODO: test. Currently not returning a feasible solution.
 
         InterpolantDualSOSBarrier<IPMDouble> tmp_interp(_d,_n);
         Vector tmp_ones = Vector::Ones(tmp_interp.get_P().cols());
         _objectives_vector = tmp_interp.get_P().colPivHouseholderQr().solve(tmp_ones).template cast<InterpolantDouble>();
         InterpolantVector tmp_zero = InterpolantVector::Zero(_objectives_vector.rows());
         _objectives_vector.cwiseMax(tmp_zero);
-//        _objectives_vector = -_objectives_vector;
+
+        //Terminate until code fixed.
+        exit(1);
     }
 }
 
@@ -410,13 +412,12 @@ void EnvelopeProblemSOS<IPMDouble>::plot_polynomials_and_solution(const Solution
     poly_plots.push_back(v);
 
     if (_input_in_interpolant_basis) {
-        //Have to be computed now, as we delayed computation in initialisation (was not necessary to create the instance)
+        //Have to be computed the basis now, as we did not computate it in initialisation (was not necessary to create the instance)
         calculate_basis_polynomials();
     }
 
     InterpolantMatrix Q_interp = get_transformation_matrix();
     Matrix dummy_matrix;
-//    Matrix Q = InterpolantMatrixToMatrix(Q_interp,dummy_matrix);
 
     std::vector<std::vector<double> > plots(poly_plots.size());
     for (unsigned poly_idx = 0; poly_idx < plots.size(); poly_idx++) {

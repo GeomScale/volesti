@@ -6,6 +6,7 @@
 
 #include "../../../test/doctest.h"
 #include "../utils.h"
+#include "../EnvelopeProblemSDP.h"
 #include "../NonSymmetricIPM.h"
 #include "../barriers/LPStandardBarrier.h"
 #include "../barriers/SDPStandardBarrier.h"

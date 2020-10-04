@@ -647,24 +647,9 @@ bool NonSymmetricIPM<IPMDouble>::terminate_successfully_wrapper() {
 
 template<typename IPMDouble>
 bool NonSymmetricIPM<IPMDouble>::terminate_successfully() {
-    //TODO: use same criteria as in infeasilbe (i.e. scaling invariant and what is used in Skajaa-Ye)
-    //Duality
-//    if (x.dot(s) > _epsilon * tau * tau) {
-//        return false;
-//    }
-    //Primal feasibility
-//    if (primal_error_rescaled() > _epsilon) {
-//        return false;
-//    }
-
     if (primal_error() > _epsilon) {
         return false;
     }
-//
-//    //Dual feasibility
-//    if (dual_error_rescaled() > _epsilon) {
-//        return false;
-//    }
 
     if (dual_error() > _epsilon) {
         return false;
