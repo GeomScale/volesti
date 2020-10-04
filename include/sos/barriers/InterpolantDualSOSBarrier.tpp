@@ -98,42 +98,10 @@ void InterpolantDualSOSBarrier<IPMDouble>::construct_univariate(Vector poly_g) {
 template<typename IPMDouble>
 void InterpolantDualSOSBarrier<IPMDouble>::construct_bivariate(Vector poly_g) {
 
-    //Error waiting to happen. Here the unisolvent basis is correctly used for _L, but in the univariate
-    //case we use it for a basis or size _U.
-//    _unisolvent_basis.resize(_L);
     //For now no weighted polynomials
     assert(poly_g == Vector::Ones(1));
     unsigned const corrected_d = 2 * _max_polynomial_degree + 1 - poly_g.size();
     unsigned const corrected_d_plus_1 = corrected_d + 1;
-
-    //Order of bivariate unisolvent basis: first points according to Even x Odd, then Odd x Even.
-//    std::vector<InterpolantDouble> cos_values_d;
-//    std::vector<InterpolantDouble> cos_values_d_plus_1;
-//
-//    for (unsigned i = 0; i <= corrected_d; i++) {
-//        BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / corrected_d);
-//        InterpolantDouble cos_val = static_cast<InterpolantDouble>(cos_i);
-//        cos_values_d.push_back(cos_val);
-//    }
-//
-//    for (unsigned i = 0; i <= corrected_d_plus_1; i++) {
-//        BoostDouble cos_i = boost::multiprecision::cos(i * boost::math::constants::pi<BoostDouble>() / corrected_d_plus_1);
-//        InterpolantDouble cos_val = static_cast<InterpolantDouble>(cos_i);
-//        cos_values_d_plus_1.push_back(cos_val);
-//    }
-//
-//    unsigned idx = 0;
-//    for (int i = 0; i <= corrected_d; i+=2) {
-//       for(int j = 1; j <= corrected_d_plus_1; j+=2){
-//           _unisolvent_basis[idx++] = {cos_values_d[i], cos_values_d_plus_1[j]};
-//       }
-//    }
-//
-//    for (int i = 1; i <= corrected_d; i+=2) {
-//        for(int j = 0; j <= corrected_d_plus_1; j+=2){
-//            _unisolvent_basis[idx++] = {cos_values_d[i], cos_values_d_plus_1[j]};
-//        }
-//    }
 
     double *pd_pts = padua::padua_points(_max_polynomial_degree + 1);
 

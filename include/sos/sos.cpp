@@ -6,7 +6,6 @@
 
 #include "NonSymmetricIPM.h"
 #include "MonomialsClass.h"
-#include "EnvelopeProblemSDP.h"
 #include "EnvelopeProblemSOS.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h"

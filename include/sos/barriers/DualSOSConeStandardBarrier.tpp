@@ -46,7 +46,9 @@ Matrix<IPMDouble> DualSOSConeStandardBarrier<IPMDouble>::hessian(Vector x) {
 template <typename IPMDouble>
 bool DualSOSConeStandardBarrier<IPMDouble>::in_interior(Vector x) {
     Matrix X = Lambda(x);
-    return X.determinant() > 0;
+    CustomLLT<Matrix, Eigen::Lower> llt_check;
+    llt_check.compute(X);
+    return llt_check.info() == ;
 }
 
 template <typename IPMDouble>
