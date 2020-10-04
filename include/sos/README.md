@@ -46,22 +46,50 @@ on the interval [-1,1].
     as we already have gradient and hessian, but might drastically improve performance.
 * Fix SDP solver. It returns feasible solutions but no optimal solutions yet.
 
-#### Weekly Progress
+## Usage the SOS-solver for Polynomial Envelope problems
 
-* Week 1: Implementation of [1,2]. 
-* Week 2: Testing implementation with LP and SDP barrier, Debugging, Refactoring.
-* Week 3: Implementation of Interpolant-Barrier, Focus on speeding up implementation with dedicated libraries.
-* Week 4: Implementation of Toy Problem: Polynomial Envelope.
-* Week 5: Debugging, Refactoring Code.
-* Week 6: Debugging, Refactoring Code, Speeding up initialisation of "Polynomial Envelope" Problem
- (non-trivial: properties of Chebyshev polynomials, Clenshaw-Curtis algorithm)
- * Week 7: Runtime speedups, more efficient (including experimentally) implementation.
- * Week 8: Further speedup, Big code refactoring, Add Polynomial minimization, Create Benchmarks with alfonso.
- * Week 9: Writing of documentation / report, more refactoring, add multivariate support.
- * Week 10: Improve multivariate support, Added multithreading.
- * Week 11: Added low-rank updates to both Hessian and intermediate Cholesky decomposition, templating algorithm.
- * Week 12: MKL Support, JSON parsing of configuration, templating algorithm  
- 
+For precise computation of Chebyshev Points and Lagrange Polynomials boost::multiprecision is used. The boost headers in this project do not contain the needed header files. Please provide the link to the boost files via thet `-DBOOST_DIR` flag. Also [spdlog](https://github.com/gabime/spdlog) is used. Please provide link to installed package via `-DSPDLOG_DIR` flag. (The link also provides manuals for installation with various package managers.)
+Navigate to the SOS solver and compile:
+
+```
+cd include/sos/
+cmake -DCMAKE_BUILD_TYPE=Release_double -DBOOST_DIR=your_boost_include_directory -DSPDLOG_DIR=your_spdlog_include_dir .
+make
+```
+
+Run 
+
+```
+./NonSymmetricConicOptimization
+```
+
+See an example plot below.
+![image](../include/sos/plot_saved.png "Example envelope")
+
+To parse a custom file invoke with added file argument:
+
+```
+./NonSymmetricConicOptimization file.json
+```
+
+where `file.json` has format
+
+``` json
+{
+    "max_degree": 30,
+    "num_variables": 1,
+    "polynomials": [
+      [1,-1, 3, -4, 7],
+      [0.5,2, 8, -3, 5]
+    ]
+}
+
+```
+
+Each array in "polynomials" stands for a polynomial. The entries of its array a are the coefficients of the first length(a) coefficients in standard monomial basis or Chebyshev basis. The basis choice can be adjusted in the configuration json file.
+
+
+
 #### References
 
 [1] A. Skajaa and Y. Ye, [A homogeneous interior-point algorithm for nonsymmetric convex conic optimization](https://web.stanford.edu/~yyye/nonsymmhsdimp.pdf), Mathematical Programming Ser. A, 150 (2015), pp. 391-422. 
