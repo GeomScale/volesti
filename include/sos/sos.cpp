@@ -5,7 +5,6 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #include "NonSymmetricIPM.h"
-#include "MonomialsClass.h"
 #include "EnvelopeProblemSOS.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h"

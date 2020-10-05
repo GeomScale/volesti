@@ -9,7 +9,6 @@
 
 //TODO: Separate the main two classes in this file.
 #include <vector>
-#include "MonomialsClass.h"
 #include "NonSymmetricIPM.h"
 
 #include "matplotlib-cpp/matplotlibcpp.h"

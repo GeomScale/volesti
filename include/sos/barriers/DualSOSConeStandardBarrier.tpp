@@ -48,7 +48,7 @@ bool DualSOSConeStandardBarrier<IPMDouble>::in_interior(Vector x) {
     Matrix X = Lambda(x);
     CustomLLT<Matrix, Eigen::Lower> llt_check;
     llt_check.compute(X);
-    return llt_check.info() == ;
+    return llt_check.info() != Eigen::NumericalIssue;
 }
 
 template <typename IPMDouble>

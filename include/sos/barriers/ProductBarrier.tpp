@@ -15,7 +15,6 @@ Eigen::LLT<Matrix<IPMDouble> > ProductBarrier<IPMDouble>::llt(Vector x, bool sym
 }
 
 //TODO: figure out how these methods can be even more abstracted.
-
 template<typename IPMDouble>
 Vector<IPMDouble> ProductBarrier<IPMDouble>::llt_L_solve(Vector x, Vector rhs) {
     update_segments();
