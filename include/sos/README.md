@@ -1,7 +1,51 @@
-### Sum of Squares optimization
+## Sum of Squares optimization
 
-This subproject implements the algorithm(s) in [1,2,3]. Example of usage can be found [here](../../doc/cpp_interface.md). 
+This subproject implements the algorithm(s) in [1,2,3].
 Supplementary material describing the mathematical theory behind the code can be found [here](http://personal.lse.ac.uk/natura/gsoc2020/supplementary.pdf)
+
+#### Usage the SOS-solver for Polynomial Envelope problems
+
+For precise computation of Chebyshev Points and Lagrange Polynomials boost::multiprecision is used. Boost is also
+used for the Property Tree in instances and configuration as well as for typecasting templated classes. The boost headers in this project do not contain the needed header files. Please provide the link to the boost files via thet `-DBOOST_DIR` flag. Also [spdlog](https://github.com/gabime/spdlog) is used. Please provide link to installed package via `-DSPDLOG_DIR` flag. (The link also provides manuals for installation with various package managers.)
+Navigate to the SOS solver and compile:
+
+```
+cd include/sos/
+cmake -DCMAKE_BUILD_TYPE=Release_double -DBOOST_DIR=your_boost_include_directory -DSPDLOG_DIR=your_spdlog_include_dir .
+make
+```
+
+Run 
+
+```
+./NonSymmetricConicOptimization
+```
+
+See an example plot below.
+![image](plot_saved.png "Example envelope")
+
+To parse a custom file invoke with added file argument:
+
+```
+./NonSymmetricConicOptimization file.json
+```
+
+where `file.json` has format
+
+``` json
+{
+    "max_degree": 30,
+    "num_variables": 1,
+    "polynomials": [
+      [1,-1, 3, -4, 7],
+      [0.5,2, 8, -3, 5]
+    ]
+}
+
+```
+
+Each array in "polynomials" stands for a polynomial. The entries of its array a are the coefficients of the first length(a) coefficients in standard monomial basis or Chebyshev basis. The basis choice can be adjusted in the configuration json file.
+
 
 #### Implemented
 
@@ -45,49 +89,6 @@ on the interval [-1,1].
     * Even better: For all the line steps, compute the new predictor/corrector direction. This is cheap, 
     as we already have gradient and hessian, but might drastically improve performance.
 * Fix SDP solver. It returns feasible solutions but no optimal solutions yet.
-
-## Usage the SOS-solver for Polynomial Envelope problems
-
-For precise computation of Chebyshev Points and Lagrange Polynomials boost::multiprecision is used. The boost headers in this project do not contain the needed header files. Please provide the link to the boost files via thet `-DBOOST_DIR` flag. Also [spdlog](https://github.com/gabime/spdlog) is used. Please provide link to installed package via `-DSPDLOG_DIR` flag. (The link also provides manuals for installation with various package managers.)
-Navigate to the SOS solver and compile:
-
-```
-cd include/sos/
-cmake -DCMAKE_BUILD_TYPE=Release_double -DBOOST_DIR=your_boost_include_directory -DSPDLOG_DIR=your_spdlog_include_dir .
-make
-```
-
-Run 
-
-```
-./NonSymmetricConicOptimization
-```
-
-See an example plot below.
-![image](../include/sos/plot_saved.png "Example envelope")
-
-To parse a custom file invoke with added file argument:
-
-```
-./NonSymmetricConicOptimization file.json
-```
-
-where `file.json` has format
-
-``` json
-{
-    "max_degree": 30,
-    "num_variables": 1,
-    "polynomials": [
-      [1,-1, 3, -4, 7],
-      [0.5,2, 8, -3, 5]
-    ]
-}
-
-```
-
-Each array in "polynomials" stands for a polynomial. The entries of its array a are the coefficients of the first length(a) coefficients in standard monomial basis or Chebyshev basis. The basis choice can be adjusted in the configuration json file.
-
 
 
 #### References

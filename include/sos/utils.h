@@ -65,6 +65,7 @@ typedef Eigen::Matrix<InterpolantDouble, Eigen::Dynamic, 1> InterpolantVector;
 typedef Eigen::Matrix<Double, Eigen::Dynamic, Eigen::Dynamic> DoubleMatrix;
 typedef Eigen::Matrix<Double, Eigen::Dynamic, 1> DoubleVector;
 
+//Note: Boost Dependency
 namespace pt = boost::property_tree;
 
 template<typename T>
@@ -100,6 +101,7 @@ public:
            Solution<U> sol;
            sol.x = x.template cast<U>();
            sol.s = s.template cast<U>();
+           //Note: Boost Dependency.
            sol.centrality = boost::numeric_cast<U>(centrality);
            sol.gap= boost::numeric_cast<U>(gap);
            return sol;

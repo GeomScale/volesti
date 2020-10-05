@@ -46,6 +46,7 @@ public:
 
     template<class U>
     ErrorConstants(const ErrorConstants<U> other) {
+        //Note: Boost Dependency
         primal = boost::numeric_cast<T>(other.primal);
         dual = boost::numeric_cast<T>(other.dual);
         complementary = boost::numeric_cast<T>(other.complementary);
