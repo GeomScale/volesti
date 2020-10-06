@@ -11,6 +11,7 @@
 #include "Eigen/Eigen"
 #include "vector"
 #include <fstream>
+#include "random.hpp"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "spectrahedron.h"
 #include "SDPAFormatManager.h"

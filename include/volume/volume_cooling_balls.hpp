@@ -293,7 +293,6 @@ bool get_sequence_of_polytopeballs(Polytope& P,
     std::list<Point> randPoints;
     ball B0;
     Point q(n);
-    PolyBall zb_it;
 
     if ( !get_first_ball(P, B0, ratio, radius, parameters, rng) )
     {
@@ -323,8 +322,8 @@ bool get_sequence_of_polytopeballs(Polytope& P,
 
     while (true)
     {
-        zb_it = PolyBall(P, BallSet[BallSet.size()-1]);
-        q = Point(n);
+        PolyBall zb_it(P, BallSet[BallSet.size()-1]);
+        q.set_to_origin();
         randPoints.clear();
 
         RandomPointGenerator::apply(zb_it, q, Ntot, walk_length,
@@ -695,7 +694,7 @@ template
 >
 double volume_cooling_balls(Polytope const& Pin,
                             RandomNumberGenerator &rng,
-                            double const& error = 1.0,
+                            double const& error = 0.1,
                             unsigned int const& walk_length = 1,
                             unsigned int const& win_len = 250)
 {
@@ -762,7 +761,6 @@ double volume_cooling_balls(Polytope const& Pin,
                                                er0, parameters.win_len, 1200,
                                                prob, rng);
 
-    PolyBall Pb;
     auto balliter = BallSet.begin();
     auto ratioiter = ratios.begin();
 
@@ -793,7 +791,7 @@ double volume_cooling_balls(Polytope const& Pin,
     }
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter)
     {
-        Pb = PolyBall(P, *balliter);
+        PolyBall Pb(P, *balliter);
         vol *= (!parameters.window2) ?
                     1 / estimate_ratio_interval
                                 <WalkType, Point>(Pb,
@@ -814,7 +812,6 @@ double volume_cooling_balls(Polytope const& Pin,
                                                   rng);
     }
 
-    P.free_them_all();
     return vol;
 }
 

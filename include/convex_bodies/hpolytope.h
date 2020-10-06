@@ -20,7 +20,7 @@
 
 
 // check if an Eigen vector contains NaN or infinite values
-template <typename VT>
+/*template <typename VT>
 bool is_inner_point_nan_inf(VT const& p)
 {
     typedef Eigen::Array<bool, Eigen::Dynamic, 1> VTint;
@@ -30,34 +30,60 @@ bool is_inner_point_nan_inf(VT const& p)
             return true;
         }
     }
-}
+}*/
 
 //min and max values for the Hit and Run functions
 // H-polytope class
 template <typename Point>
-class HPolytope{
+class HPolytope {
 public:
-    typedef Point PointType;
-    typedef typename Point::FT NT;
-    typedef typename std::vector<NT>::iterator viterator;
+    typedef Point                                             PointType;
+    typedef typename Point::FT                                NT;
+    typedef typename std::vector<NT>::iterator                viterator;
     //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
     //typedef RowMatrixXd MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
-    MT A; //matrix A
-    VT b; // vector b, s.t.: Ax<=b
-    unsigned int            _d; //dimension
-    std::pair<Point,NT> _inner_ball;
-    NT maxNT = std::numeric_limits<NT>::max();
-    NT minNT = std::numeric_limits<NT>::lowest();
+    unsigned int         _d; //dimension
+    MT                   A; //matrix A
+    VT                   b; // vector b, s.t.: Ax<=b
+    std::pair<Point, NT> _inner_ball;
 
 public:
-
+    //TODO: the default implementation of the Big3 should be ok. Recheck.
     HPolytope() {}
 
-    std::pair<Point,NT> InnerBall() const
+    HPolytope(unsigned d_, MT const& A_, VT const& b_) :
+        _d{d_}, A{A_}, b{b_}
+    {
+    }
+
+    // Copy constructor
+    HPolytope(HPolytope<Point> const& p) :
+            _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}
+    {
+    }
+
+    //define matrix A and vector b, s.t. Ax<=b,
+    // from a matrix that contains both A and b, i.e., [A | b ]
+    HPolytope(std::vector<std::vector<NT>> const& Pin)
+    {
+        _d = Pin[0][1] - 1;
+        A.resize(Pin.size() - 1, _d);
+        b.resize(Pin.size() - 1);
+        for (unsigned int i = 1; i < Pin.size(); i++) {
+            b(i - 1) = Pin[i][0];
+            for (unsigned int j = 1; j < _d + 1; j++) {
+                A(i - 1, j - 1) = -Pin[i][j];
+            }
+        }
+        //_inner_ball = ComputeChebychevBall<NT, Point>(A, b);
+    }
+
+
+    std::pair<Point, NT> InnerBall() const
     {
         return _inner_ball;
     }
@@ -68,8 +94,8 @@ public:
     }
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
-    //Use LpSolve library as alternative
-    std::pair<Point,NT> ComputeInnerBall()
+    //Use LpSolve library
+    std::pair<Point, NT> ComputeInnerBall()
     {
         normalize();
         _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
@@ -155,36 +181,10 @@ public:
         return 0.0;
     }
 
-    void init(unsigned int const& dim, MT const& _A, VT const& _b)
-    {
-        _d = dim;
-        A = _A;
-        b = _b;
-    }
-
-    //define matrix A and vector b, s.t. Ax<=b and the dimension
-    void init(std::vector<std::vector<NT> > const& Pin)
-    {
-        _d = Pin[0][1] - 1;
-        A.resize(Pin.size() - 1, _d);
-        b.resize(Pin.size() - 1);
-        for (unsigned int i = 1; i < Pin.size(); i++) {
-            b(i - 1) = Pin[i][0];
-            for (unsigned int j = 1; j < _d + 1; j++) {
-                if(Pin[i][j] != 0){
-                    A(i - 1, j - 1) = -Pin[i][j];
-                }
-                else{
-                    A(i - 1, j - 1) = 0;
-                }
-            }
-        }
-    }
-
 
     // print polytope in input format
     void print() {
-        std::cout << " " << A.rows() << " " << _d << " float" << std::endl;
+        std::cout << " " << A.rows() << " " << _d << " double" << std::endl;
         for (unsigned int i = 0; i < A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
                 std::cout << A(i, j) << " ";
@@ -280,7 +280,9 @@ public:
     std::pair<NT,NT> line_intersect(Point const& r, Point const& v) const
     {
 
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom, sum_denom;
         //unsigned int i, j;
         unsigned int j;
@@ -307,7 +309,7 @@ public:
             sum_nom_data++;
             sum_denom_data++;
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -319,7 +321,9 @@ public:
                                     VT& Av,
                                     bool pos = false) const
     {
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
 
@@ -346,8 +350,8 @@ public:
             Av_data++;
             sum_nom_data++;
         }
-        if (pos) return std::pair<NT, NT>(min_plus, facet);
-        return std::pair<NT, NT>(min_plus, max_minus);
+        if (pos) return std::make_pair(min_plus, facet);
+        return std::make_pair(min_plus, max_minus);
     }
 
     std::pair<NT,NT> line_intersect(Point const& r,
@@ -358,7 +362,9 @@ public:
                                     bool pos = false) const
     {
 
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
         VT  sum_nom;
         NT mult;
         //unsigned int i, j;
@@ -386,8 +392,8 @@ public:
             Av_data++;
             sum_nom_data++;
         }
-        if (pos) return std::pair<NT, NT>(min_plus, facet);
-        return std::pair<NT, NT>(min_plus, max_minus);
+        if (pos) return std::make_pair(min_plus, facet);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -424,7 +430,10 @@ public:
                                                      VT& Av,
                                                      update_parameters& params) const
     {
-        NT lamda = 0, min_plus = NT(maxNT);
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        
+        NT lamda = 0;
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
 
@@ -465,7 +474,12 @@ public:
                                                      MT const& AA,
                                                      update_parameters& params) const
     {
-        NT lamda = 0, min_plus = NT(maxNT), inner_prev = params.inner_vi_ak;
+
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+
+        NT lamda = 0;
+        NT inner_prev = params.inner_vi_ak;
         VT sum_nom;
         int m = num_of_hyperplanes(), facet;
 
@@ -508,7 +522,10 @@ public:
                                                NT const& lambda_prev,
                                                update_parameters& params) const
     {
-        NT lamda = 0, min_plus = NT(maxNT);
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+
+        NT lamda = 0;
         VT sum_nom;
         unsigned int j;
         int m = num_of_hyperplanes(), facet;
@@ -549,7 +566,9 @@ public:
                                           VT& lamdas) const
     {
 
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_denom;
 
         int m = num_of_hyperplanes();
@@ -574,7 +593,7 @@ public:
             lamda_data++;
             sum_denom_data++;
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -585,7 +604,9 @@ public:
                                           unsigned int const& rand_coord_prev,
                                           VT& lamdas) const
     {
-        NT lamda = 0, min_plus = NT(maxNT), max_minus = NT(minNT);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
 
         int m = num_of_hyperplanes();
 
@@ -607,7 +628,7 @@ public:
             }
             data++;
         }
-        return std::pair<NT, NT>(min_plus, max_minus);
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -673,8 +694,6 @@ public:
             v += a;
     }
 
-    void free_them_all() {}
-
     template <class bfunc, class NonLinearOracle>
     std::tuple<NT, Point, int> curve_intersect(
       NT t_prev,
@@ -686,10 +705,9 @@ public:
       NonLinearOracle &intersection_oracle,
       int ignore_facet=-1)
     {
-        return intersection_oracle.apply(
-          t_prev, t0, eta, A, b, *this, coeffs, phi, grad_phi, ignore_facet);
+        return intersection_oracle.apply(t_prev, t0, eta, A, b, *this, 
+                                         coeffs, phi, grad_phi, ignore_facet);
     }
-
 };
 
 #endif

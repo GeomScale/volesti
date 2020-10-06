@@ -38,10 +38,13 @@ else ()
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
   include_directories (BEFORE ../include/convex_bodies)
+  include_directories (BEFORE ../include/random_walks)
   include_directories (BEFORE ../include/annealing)
   include_directories (BEFORE ../include/samplers)
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/misc)
+  include_directories (BEFORE ../include/optimization)
+
   include_directories (BEFORE ../include/convex_bodies/spectrahedra)
 
   # for Eigen

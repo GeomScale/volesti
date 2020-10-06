@@ -10,8 +10,12 @@
 
 #include <exception>
 
-template <typename Polytope>
-Polytope gen_cube(const unsigned int &dim, const bool &Vpoly) {
+#include "convex_bodies/hpolytope.h"
+#include "convex_bodies/vpolytope.h"
+
+
+template <class Polytope>
+Polytope generate_cube(const unsigned int& dim, const bool& Vpoly) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -66,21 +70,18 @@ Polytope gen_cube(const unsigned int &dim, const bool &Vpoly) {
             }
         }
     }
-    Polytope P;
-    P.init(dim, A, b);
 
-    return P;
+    return Polytope(dim, A, b);
 }
 
 
 template <typename Polytope>
-Polytope gen_cross(const unsigned int &dim, const bool &Vpoly) {
+Polytope generate_cross(const unsigned int &dim, const bool &Vpoly) {
 
     unsigned int m;
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
-    Polytope P;
     MT A;
     VT b;
     if (!Vpoly) {
@@ -130,13 +131,12 @@ Polytope gen_cross(const unsigned int &dim, const bool &Vpoly) {
             }
         }
     }
-    P.init(dim, A, b);
-    return P;
+    return Polytope(dim, A, b);
 }
 
 
 template <typename Polytope>
-Polytope gen_simplex(const unsigned int &dim, const bool &Vpoly){
+Polytope generate_simplex(const unsigned int &dim, const bool &Vpoly){
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
 
@@ -167,15 +167,13 @@ Polytope gen_simplex(const unsigned int &dim, const bool &Vpoly){
             A(dim, j) = 0.0;
         }
     }
-    Polytope P;
-    P.init(dim, A, b);
 
-    return P;
+    return Polytope(dim, A, b);
 }
 
 
 template <typename Polytope>
-Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
+Polytope generate_prod_simplex(const unsigned int &dim, bool Vpoly = false){
 
     Polytope Perr;
     try
@@ -196,7 +194,7 @@ Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
     VT b;
     A.resize(2 * dim + 2, 2 * dim);
     b.resize(2 * dim + 2);
-    Polytope P;
+
 
     //first simplex
     for(unsigned int i=0; i<dim; ++i){
@@ -243,13 +241,12 @@ Polytope gen_prod_simplex(const unsigned int &dim, bool Vpoly = false){
         A(2 * dim +1, j + dim) = 0.0;
     }
 
-    P.init(2 * dim, A, b);
-    return P;
+    return Polytope(2 * dim, A, b);
 }
 
 
 template <typename Polytope>
-Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
+Polytope generate_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
 
     Polytope Perr;
     try
@@ -299,14 +296,11 @@ Polytope gen_skinny_cube(const unsigned int &dim, bool Vpoly = false) {
             }
         }
     }
-    Polytope P;
-    P.init(dim, A, b);
-
-    return P;
+    return Polytope(dim, A, b);
 }
 
 template <typename Polytope>
-Polytope gen_birk(unsigned int const& n) {
+Polytope generate_birkhoff(unsigned int const& n) {
 
     unsigned int m = n * n;
     unsigned int d = n * n - 2 * n + 1;
@@ -342,8 +336,7 @@ Polytope gen_birk(unsigned int const& n) {
         }
     }
 
-    Polytope P;
-    P.init(d, A, b);
+    Polytope P(d, A, b);
 
     return P;
 }

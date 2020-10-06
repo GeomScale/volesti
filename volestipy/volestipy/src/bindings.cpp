@@ -26,7 +26,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
       }
    }
 
-   HP.init(n_variables, A, b);
+   HP(Hpolytope(n_variables, A, b));
    CheBall = HP.ComputeInnerBall();
 }
 // Use a destructor for the HPolytopeCPP object
@@ -69,7 +69,6 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method,
    return volume;
 }
 //////////           End of "compute_volume()"            //////////
-
 
 //////////         Start of "generate_samples()"          //////////
 double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, 
@@ -216,6 +215,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
       Point inner_point2(inner_vec);
       CheBall = std::pair<Point, NT>(inner_point2, radius);
       P.set_InnerBall(CheBall);
+
       
    } else if (max_ball == false ) {
       CheBall = P.ComputeInnerBall();
@@ -345,9 +345,6 @@ bool HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
    return false;
 
 }
-
-
-
 
 // >>> The lowDimHPolytopeCPP class; the pre_processing() and the get_full_dimensional_polytope() volesti methods are included <<<
 
