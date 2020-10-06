@@ -12,8 +12,10 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
 
    MT A;
    VT b;
-   A.resize(n_hyperplanes,n_variables);
+   A.resize(n_hyperplanes, n_variables);
    b.resize(n_hyperplanes);
+
+   svd_parameters = svd_params(n_variables);
 
    int index = 0;
    for (int i = 0; i < n_hyperplanes; i++){
@@ -24,7 +26,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
       }
    }
 
-   HP.init(n_variables, A, b);
+   HP(Hpolytope(n_variables, A, b));
    CheBall = HP.ComputeInnerBall();
 }
 // Use a destructor for the HPolytopeCPP object
@@ -67,7 +69,6 @@ double HPolytopeCPP::compute_volume(char* vol_method, char* walk_method,
    return volume;
 }
 //////////           End of "compute_volume()"            //////////
-
 
 //////////         Start of "generate_samples()"          //////////
 double HPolytopeCPP::generate_samples(int walk_len, int number_of_points, 
@@ -213,6 +214,8 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 
       Point inner_point2(inner_vec);
       CheBall = std::pair<Point, NT>(inner_point2, radius);
+      P.set_InnerBall(CheBall);
+
       
    } else if (max_ball == false ) {
       CheBall = P.ComputeInnerBall();
@@ -276,7 +279,72 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 }
 //////////         End of "rounding()"          //////////
 
+bool HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
+                                     double* T_matrix, double* shift,
+                                     double* center, double radius) {
 
+   RNGType rng(HP.dimension());
+   HP.normalize();
+      
+   // if yes, then read the inner point provided by the user and the radius
+   int d = HP.dimension();
+   VT inner_vec(d);
+   
+   for (int i = 0; i < d; i++){
+      inner_vec(i) = inner_point[i];
+   }
+
+   Point inner_point(inner_vec);
+   CheBall = std::pair<Point, NT>(inner_point, radius);
+   HP.set_InnerBall(CheBall);
+   
+   unsigned int walk_length = 2;
+
+   svd_rounding_single_step<AcceleratedBilliardWalk, MT, VT>(HP, CheBall, walk_length,
+                                                             svd_parameters, rng);
+
+   if (svd_parameters.fail) {
+      std::cout<<"method failed"<<std::endl;
+      //return false;
+   }
+
+   MT A_to_copy = HP.get_mat();
+   int n_hyperplanes = HP.num_of_hyperplanes();
+   int n_variables = HP.dimension();
+
+   auto n_si = 0;
+   for (int i = 0; i < n_hyperplanes; i++){
+      for (int j = 0; j < n_variables; j++){
+         new_A[n_si++] = A_to_copy(i,j);
+      }
+   }
+
+   // create the new_b vector
+   VT new_b_temp = HP.get_vec();
+   for (int i=0; i < n_hyperplanes; i++){
+      new_b[i] = new_b_temp[i];
+   }
+
+   if (svd_parameters.converged) {
+      // create the T matrix
+      MT T_matrix_temp = svd_parameters.T;
+      auto t_si = 0;
+      for (int i = 0; i < n_variables; i++){
+         for (int j = 0; j < n_variables; j++){
+            T_matrix[t_si++] = T_matrix_temp(i,j);
+         }
+      }
+
+      // create the shift vector
+      VT shift_temp = svd_parameters.T_shift;
+      for (int i = 0; i < n_variables; i++){
+         shift[i] = shift_temp[i];
+      }
+      return true;
+   }
+   return false;
+
+}
 
 // >>> The lowDimHPolytopeCPP class; the pre_processing() and the get_full_dimensional_polytope() volesti methods are included <<<
 
