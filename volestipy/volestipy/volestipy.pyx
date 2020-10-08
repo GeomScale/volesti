@@ -405,6 +405,9 @@ cdef extern from "bindings.h":
       # Rounding H-Polytope
       void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value, \
          bool max_ball, double* inner_point, double radius);
+      
+      # Rounding svd step 
+      bool rounding_svd_step(double* new_A, double* new_b, double* T_matrix, double* shift, double* inner_point, double radius)
 
    # The lowDimPolytopeCPP class along with its functions
    cdef cppclass lowDimHPolytopeCPP:
@@ -489,17 +492,17 @@ cdef class HPolytope:
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
       
       #cdef double[::1] inner_point_for_c = np.asarray(inner_point)
+      cdef double[::1] inner_point_for_c
 
       inner_point_for_c, radius = get_max_ball(self._A, self._b)
       
-      # Check whether the rounding method the user asked for, is actually among those volestipy supports
-      
-
-      while( True  ){
-      	if(self.polytope_cpp.rounding_svd_step(&new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], &inner_point_for_c[0], radius)) {
-		break
-	}
-      }
+      # Build a while loop until for the rounding to converge
+      while True:
+         
+         if self.polytope_cpp.rounding_svd_step(&new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], &inner_point_for_c[0], radius):
+            break
+         
+         inner_point_for_c, radius = get_max_ball(new_A, new_b)
 
       np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
       np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
