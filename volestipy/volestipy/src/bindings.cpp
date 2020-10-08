@@ -26,7 +26,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
       }
    }
 
-   HP(Hpolytope(n_variables, A, b));
+   HP = Hpolytope(n_variables, A, b);
    CheBall = HP.ComputeInnerBall();
 }
 // Use a destructor for the HPolytopeCPP object
@@ -281,7 +281,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 
 bool HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
                                      double* T_matrix, double* shift,
-                                     double* center, double radius) {
+                                     double* inner_point, double radius) {
 
    RNGType rng(HP.dimension());
    HP.normalize();
@@ -293,9 +293,12 @@ bool HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
    for (int i = 0; i < d; i++){
       inner_vec(i) = inner_point[i];
    }
-
-   Point inner_point(inner_vec);
-   CheBall = std::pair<Point, NT>(inner_point, radius);
+   
+   Point inner_point2(inner_vec);
+   CheBall = std::pair<Point, NT>(inner_point2, radius);   
+   
+   
+   
    HP.set_InnerBall(CheBall);
    
    unsigned int walk_length = 2;
