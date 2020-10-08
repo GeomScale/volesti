@@ -105,6 +105,10 @@ class HPolytopeCPP{
       void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value,
        bool max_ball, double* inner_point, double radius);
       
+      // the rounding_svd_step() function
+      bool rounding_svd_step(double* new_A, double* new_b, double* T_matrix, double* shift,
+         double* inner_point, double radius);
+      
 };
 
 // The preHPolytopeCPP class is responsible for the preprocess step of the polytope as well as for getting the full dimensional polytope
