@@ -493,7 +493,10 @@ cdef class HPolytope:
       cdef double[::1] inner_point_for_c = np.zeros(n_variables, dtype=np.float64, order="C")
 
       # Get max ball for the initial polytope
-      inner_point_for_c, radius = np.asarray(get_max_ball(self._A, self._b))
+      print("working fine up to now")
+      temp_c, radius = get_max_ball(self._A, self._b)
+      print(temp_c)
+      inner_point_for_c = temp_c
       
       # Build a while loop until for the rounding to converge
       while True:
