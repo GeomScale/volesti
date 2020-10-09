@@ -490,18 +490,15 @@ cdef class HPolytope:
       cdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
-      
-      #cdef double[::1] inner_point_for_c = np.asarray(inner_point)
-      cdef double[::1] inner_point_for_c
+      cdef double[::1] inner_point_for_c = np.zeros(n_variables, dtype=np.float64, order="C")
 
-      inner_point_for_c, radius = get_max_ball(self._A, self._b)
+      # Get max ball for the initial polytope
+      inner_point_for_c, radius = np.asarray(get_max_ball(self._A, self._b))
       
       # Build a while loop until for the rounding to converge
       while True:
-         
          if self.polytope_cpp.rounding_svd_step(&new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], &inner_point_for_c[0], radius):
             break
-         
          inner_point_for_c, radius = get_max_ball(new_A, new_b)
 
       np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
