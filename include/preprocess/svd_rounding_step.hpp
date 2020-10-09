@@ -64,7 +64,7 @@ void svd_rounding_single_step(Polytope &P,
 
         //rounding_samples = rounding_samples + num_rounding_steps;
     parameters.max_s = s.maxCoeff();
-    //std::cout<<"[1] max_s = "<<parameters.max_s<<std::endl;
+    std::cout<<"[1] max_s = "<<parameters.max_s<<std::endl;
 
     if (parameters.max_s <= p_cutoff && parameters.max_s > s_cutoff) {
         if (parameters.last_round_under_p) {
@@ -73,7 +73,7 @@ void svd_rounding_single_step(Polytope &P,
             svd_on_sample<WalkTypePolicy>(P, p, parameters.num_rounding_steps, V, s,
                                           shift, walk_length, rng);
             parameters.max_s = s.maxCoeff();
-            //std::cout<<"[2] max_s = "<<parameters.max_s<<std::endl;
+            std::cout<<"[2] max_s = "<<parameters.max_s<<std::endl;
         } else {
             parameters.last_round_under_p = true;
         }
@@ -103,6 +103,7 @@ void svd_rounding_single_step(Polytope &P,
     if (parameters.max_s <= s_cutoff || parameters.round_it > num_its) {
         parameters.converged = true;
     }
+    std::cout<<"convergence = "<<parameters.converged<<std::endl;
     //}
         
 
