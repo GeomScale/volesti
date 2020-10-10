@@ -106,7 +106,7 @@ class HPolytopeCPP{
        bool max_ball, double* inner_point, double radius);
       
       // the rounding_svd_step() function
-      bool rounding_svd_step(double* new_A, double* new_b, double* T_matrix, double* shift,
+      double rounding_svd_step(double* new_A, double* new_b, double* T_matrix, double* shift,
          double* inner_point, double radius);
       
 };
