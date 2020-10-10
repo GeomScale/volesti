@@ -512,7 +512,7 @@ cdef class HPolytope:
          if check < 2.0 and check > 1.0:
             print("time to break!!")
             break
-         print(" i ran the svd step for the " + counterrr +"time \n")
+         print(" i ran the svd step for the " + str(counterrr) +"time \n")
          new_temp_c, radius = get_max_ball(new_A, new_b)
          # del inner_point_for_c
          inner_point_for_c = np.asarray(new_temp_c)
