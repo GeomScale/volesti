@@ -407,7 +407,7 @@ cdef extern from "bindings.h":
          bool max_ball, double* inner_point, double radius);
       
       # Rounding svd step 
-      bool rounding_svd_step(double* new_A, double* new_b, double* T_matrix, double* shift, double* inner_point, double radius)
+      double rounding_svd_step(double* new_A, double* new_b, double* T_matrix, double* shift, double* inner_point, double radius)
 
    # The lowDimPolytopeCPP class along with its functions
    cdef cppclass lowDimHPolytopeCPP:
@@ -490,19 +490,33 @@ cdef class HPolytope:
       cdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
-      cdef double[::1] inner_point_for_c = np.zeros(n_variables, dtype=np.float64, order="C")
+      # cdef double[::1] inner_point_for_c = np.zeros(n_variables, dtype=np.float64, order="C")
 
       # Get max ball for the initial polytope
       print("working fine up to now")
       temp_c, radius = get_max_ball(self._A, self._b)
-      print(temp_c)
-      inner_point_for_c = temp_c
+      print("temp_c:") ; print(temp_c)
+      print("radius: ") ; print(radius)
+      cdef double[::1] inner_point_for_c = np.asarray(temp_c)
+      print("point copied as np array")
       
       # Build a while loop until for the rounding to converge
+      counterrr = 0
       while True:
-         if self.polytope_cpp.rounding_svd_step(&new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], &inner_point_for_c[0], radius):
+         print("i am in the while loop ")
+         counterrr += 1
+         check = self.polytope_cpp.rounding_svd_step(&new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], &inner_point_for_c[0], radius)
+
+         print(check)
+         
+         if check < 2.0 and check > 1.0:
+            print("time to break!!")
             break
-         inner_point_for_c, radius = get_max_ball(new_A, new_b)
+         print(" i ran the svd step for the " + counterrr +"time \n")
+         new_temp_c, radius = get_max_ball(new_A, new_b)
+         # del inner_point_for_c
+         inner_point_for_c = np.asarray(new_temp_c)
+
 
       np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
       np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
