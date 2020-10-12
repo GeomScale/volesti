@@ -4,14 +4,15 @@
 \alias{gen_rand_hpoly}
 \title{Generator function for random H-polytopes}
 \usage{
-gen_rand_hpoly(dimension, nfacets, seed = NULL)
+gen_rand_hpoly(dimension, nfacets, generator = list(generator =
+  "sphere"))
 }
 \arguments{
 \item{dimension}{The dimension of the convex polytope.}
 
 \item{nfacets}{The number of the facets.}
 
-\item{seed}{Optional. A fixed seed for the generator.}
+\item{generator}{A list that could contain two elements: (a) 'generator', the constants \eqn{b_i} for each facets from: (i) 'sphere' from the surface of the unit hypersphere, (ii) 'ball' the interior of the unit hypersphere, the defalut value is 'sphere', and (b) 'seed' to set a spesific seed for the number generator.}
 }
 \value{
 A polytope class representing a H-polytope.

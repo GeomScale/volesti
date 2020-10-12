@@ -23,6 +23,12 @@
 #' market_states_and_indicators = compute_indicators(asset_returns, 10, 10, 10000, 2, 3)
 #'
 #' @export
+#' @useDynLib volesti, .registration=TRUE
+#' @importFrom Rcpp evalCpp
+#' @importFrom Rcpp loadModule
+#' @importFrom "utils" "read.csv"
+#' @importFrom "stats" "cov"
+#' @importFrom "methods" "new"
 compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, nwarning = NULL, ncrisis = NULL, seed = NULL) {
   
   if (is.null(win_length)) win_length = 60

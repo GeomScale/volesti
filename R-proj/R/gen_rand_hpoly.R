@@ -4,23 +4,33 @@
 #' 
 #' @param dimension The dimension of the convex polytope.
 #' @param nfacets The number of the facets.
-#' @param seed Optional. A fixed seed for the generator.
+#' @param generator A list that could contain two elements: (a) 'generator', the constants \eqn{b_i} for each facets from: (i) 'sphere' from the surface of the unit hypersphere, (ii) 'ball' the interior of the unit hypersphere, the defalut value is 'sphere', and (b) 'seed' to set a spesific seed for the number generator.
 #' 
 #' @return A polytope class representing a H-polytope.
 #' @examples 
 #' # generate a 10-dimensional polytope with 50 facets
 #' P = gen_rand_hpoly(10, 50)
 #' @export
-gen_rand_hpoly <- function(dimension, nfacets, seed = NULL) {
+gen_rand_hpoly <- function(dimension, nfacets, generator = list('generator' = 'sphere')) {
+  
+  seed = NULL
+  if (!is.null(generator$seed)) {
+    seed = generator$seed
+  }
   
   kind_gen = 6
+  if (generator$generator == 'ball'){
+    kind_gen = 7
+  } else if (generator$generator != 'sphere') {
+    stop("Wrong generator!")
+  }
   Vpoly_gen = FALSE
   
   Mat = poly_gen(kind_gen, Vpoly_gen, FALSE, dimension, nfacets, seed)
   
   # first column is the vector b
-  b = Mat[,1]
-  Mat = Mat[,-c(1)]
+  b = Mat[, 1]
+  Mat = Mat[, c(1), drop = FALSE]
   
   P = Hpolytope$new(Mat, b)
   

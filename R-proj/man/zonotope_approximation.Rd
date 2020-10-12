@@ -4,8 +4,8 @@
 \alias{zonotope_approximation}
 \title{A function to over-approximate a zonotope with PCA method and to evaluate the approximation by computing a ratio of fitness.}
 \usage{
-zonotope_approximation(Z, fit_ratio = NULL, settings = NULL,
-  seed = NULL)
+zonotope_approximation(Z, fit_ratio = FALSE, settings = list(error =
+  0.1, walk_length = 1, win_len = 250, hpoly = FALSE))
 }
 \arguments{
 \item{Z}{A zonotope.}
@@ -16,11 +16,10 @@ zonotope_approximation(Z, fit_ratio = NULL, settings = NULL,
 \itemize{
 \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{0.1}.}
 \item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{1}.}
-\item{\code{win_len} }{ The length of the sliding window for CB algorithm. The default value is \eqn{200}.}
+\item{\code{win_len} }{ The length of the sliding window for CB algorithm. The default value is \eqn{250}.}
 \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm. The default value is \code{TRUE} when the order of the zonotope is \eqn{<5}, otherwise it is \code{FALSE}.}
+\item{\code{seed} }{ Optional. A fixed seed for the number generator.}
 }}
-
-\item{seed}{Optional. A fixed seed for the number generator.}
 }
 \value{
 A list that contains the approximation body in H-representation and the ratio of fitness

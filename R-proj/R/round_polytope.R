@@ -35,10 +35,10 @@ round_polytope <- function(P, seed = NULL){
   Mat = ret_list$Mat
   
   # first column is the vector b
-  b = Mat[,1]
+  b = Mat[, 1]
   
   # remove first column
-  A = Mat[,-c(1)]
+  A = Mat[, -c(1), drop = FALSE]
   
   type = P$type
   if (type == 2) {

@@ -5,8 +5,7 @@
 #' 
 #' @param dimension The dimension of the zonotope.
 #' @param nsegments The number of segments that generate the zonotope.
-#' @param generator The distribution to pick the length of each segment from \eqn{[0,100]}: (a) 'uniform', (b) 'gaussian' or (c) 'exponential'.
-#' @param seed Optional. A fixed seed for the generator.
+#' @param generator A list that could contain two elements: (a) the distribution to pick the length of each segment from \eqn{[0,100]}: (i) 'uniform', (ii) 'gaussian' or (iii) 'exponential', the default value is 'uniform, and (b) 'seed' to set a spesific seed for the number generator.
 #'  
 #' @return A polytope class representing a zonotope.
 #'
@@ -14,25 +13,27 @@
 #' # generate a 10-dimensional zonotope defined by the Minkowski sum of 20 segments
 #' P = gen_rand_zonotope(10, 20)
 #' @export
-gen_rand_zonotope <- function(dimension, nsegments, generator = NULL, seed = NULL) {
+gen_rand_zonotope <- function(dimension, nsegments, generator = list('generator' = 'uniform')) {
+  
+  seed = NULL
+  if (!is.null(generator$seed)) {
+    seed = generator$seed
+  }
   
   kind_gen = 1
-  
-  if (!is.null(generator)) {
-    if (generator == 'gaussian') {
-      kind_gen = 2
-    } else if (generator == 'exponential') {
-      kind_gen = 3
-    } else if (generator != 'uniform'){
-      stop("Wrong generator!")
-    }
+  if (generator$generator == 'gaussian') {
+    kind_gen = 2
+  } else if (generator$generator == 'exponential') {
+    kind_gen = 3
+  } else if (generator$generator != 'uniform'){
+    stop("Wrong generator!")
   }
   
   Mat = poly_gen(kind_gen, FALSE, TRUE, dimension, nsegments, seed)
   
   # first column is the vector b
-  b = Mat[,1]
-  Mat = Mat[,-c(1)]
+  b = Mat[, 1]
+  Mat = Mat[, -c(1), drop = FALSE]
   
   P = Zonotope$new(Mat)
 
