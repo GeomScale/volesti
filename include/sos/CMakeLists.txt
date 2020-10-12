@@ -43,7 +43,7 @@ if (NOT BOOST_DIR)
     message(FATAL_ERROR "This program requires the boost library, and will not be compiled. Set with flag -BOOST_DIR.")
 else ()
     target_include_directories(NonSymmetricConicOptimization PRIVATE ${BOOST_DIR}
-            ../../external ${SPDLOG_DIR} include ${Python2_INCLUDE_DIRS} ${Python2_NumPy_INCLUDE_DIRS}
+            . ../../external  ${SPDLOG_DIR} include ${Python2_INCLUDE_DIRS} ${Python2_NumPy_INCLUDE_DIRS}
             ../../../Eigen/eigen
             /usr/local/include
             /usr/local/opt/llvm/include)

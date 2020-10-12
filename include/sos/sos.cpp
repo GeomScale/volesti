@@ -5,7 +5,7 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #include "NonSymmetricIPM.h"
-#include "EnvelopeProblemSOS.h"
+#include "../../examples/EnvelopeProblemSOS/EnvelopeProblemSOS.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/cfg/env.h"
 #include "spdlog/sinks/stdout_color_sinks.h"

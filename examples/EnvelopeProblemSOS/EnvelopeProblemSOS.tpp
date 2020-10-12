@@ -9,11 +9,11 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/fmt/ostr.h"
 #include "ChebTools/ChebTools.h"
-#include "barriers/InterpolantDualSOSBarrier.h"
-#include "barriers/ProductBarrier.h"
-#include "barriers/SumBarrier.h"
+#include "../include/sos/barriers/InterpolantDualSOSBarrier.h"
+#include "../include/sos/barriers/ProductBarrier.h"
+#include "../include/sos/barriers/SumBarrier.h"
 #include <boost/math/special_functions/binomial.hpp>
-#include "../../external/Padua/padua.h"
+#include "Padua/padua.h"
 
 //TODO: use precompiled versions of padua.h and line_fekete_rule.h
 

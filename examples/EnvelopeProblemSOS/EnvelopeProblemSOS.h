@@ -4,12 +4,12 @@
 //
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H
-#define NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H
+#ifndef EXAMPLES_ENVELOPEPROBLEMSOS_H
+#define EXAMPLES_ENVELOPEPROBLEMSOS_H
 
 //TODO: Separate the main two classes in this file.
 #include <vector>
-#include "NonSymmetricIPM.h"
+#include "../include/sos/NonSymmetricIPM.h"
 
 #include "matplotlib-cpp/matplotlibcpp.h"
 
@@ -104,4 +104,4 @@ private:
 
 #include "EnvelopeProblemSOS.tpp"
 
-#endif //NONSYMMETRICCONICOPTIMIZATION_ENVELOPEPROBLEMSOS_H
+#endif //EXAMPLES_ENVELOPEPROBLEMSOS_H

@@ -3,8 +3,8 @@
 // Copyright (c) 2020 Bento Natura
 //
 // Licensed under GNU LGPL.3, see LICENCE file
-#ifndef NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H
-#define NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H
+#ifndef SOS_NONSYMMETRICIPM_H
+#define SOS_NONSYMMETRICIPM_H
 
 #include "barriers/LHSCB.h"
 #include "barriers/ProductBarrier.h"
@@ -330,4 +330,4 @@ private:
 
 #include "NonSymmetricIPM.tpp"
 
-#endif //NONSYMMETRICCONICOPTIMIZATION_NONSYMMETRICIPM_H
+#endif //SOS_NONSYMMETRICIPM_H

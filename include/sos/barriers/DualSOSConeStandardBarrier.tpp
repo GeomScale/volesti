@@ -42,7 +42,6 @@ Matrix<IPMDouble> DualSOSConeStandardBarrier<IPMDouble>::hessian(Vector x) {
     return H;
 }
 
-//FIXME: Wrong implementation in in_interior method.
 template <typename IPMDouble>
 bool DualSOSConeStandardBarrier<IPMDouble>::in_interior(Vector x) {
     Matrix X = Lambda(x);

@@ -2,8 +2,8 @@
 // Created by test Bento Natura on 30/07/2020.
 //
 
-#ifndef NONSYMMETRICCONICOPTIMIZATION_SUMBARRIER_H
-#define NONSYMMETRICCONICOPTIMIZATION_SUMBARRIER_H
+#ifndef SOS_SUMBARRIER_H
+#define SOS_SUMBARRIER_H
 
 #include "LHSCB.h"
 #include "InterpolantDualSOSBarrier.h"
@@ -56,4 +56,4 @@ private:
 };
 
 #include "SumBarrier.tpp"
-#endif //NONSYMMETRICCONICOPTIMIZATION_SUMBARRIER_H
+#endif //SOS_SUMBARRIER_H

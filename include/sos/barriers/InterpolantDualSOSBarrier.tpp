@@ -6,7 +6,7 @@
 
 #include "InterpolantDualSOSBarrier.h"
 #include <boost/math/special_functions/binomial.hpp>
-#include "../../../external/Padua/padua.h"
+#include "Padua/padua.h"
 
 template <typename IPMDouble>
 InterpolantDualSOSBarrier<IPMDouble>::InterpolantDualSOSBarrier(

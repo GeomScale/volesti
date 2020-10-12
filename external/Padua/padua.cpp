@@ -1,3 +1,5 @@
+// Credit to https://people.sc.fsu.edu/~jburkardt/cpp_src/padua/padua.cpp
+
 # include <cmath>
 # include <cstdlib>
 # include <cstring>

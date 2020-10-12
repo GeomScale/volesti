@@ -4,12 +4,12 @@
 //
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef NONSYMMETRICCONICOPTIMIZATION_LHSCB_H
-#define NONSYMMETRICCONICOPTIMIZATION_LHSCB_H
+#ifndef SOS_LHSCB_H
+#define SOS_LHSCB_H
 
 #include<iostream>
 #include <vector>
-#include "../utils.h"
+#include "utils.h"
 
 template <typename IPMDouble>
 class LHSCB {
@@ -86,4 +86,4 @@ public:
 
 #include "LHSCB.tpp"
 
-#endif //NONSYMMETRICCONICOPTIMIZATION_LHSCB_H
+#endif //SOS_LHSCB_H
