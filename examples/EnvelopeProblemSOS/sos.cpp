@@ -49,10 +49,10 @@ int main(int const argc, char **argv) {
     std::string config_file_str;
     if (argc < 3) {
         console->info("No configuration file provided. The default file will be used instead.");
-        config_file_str = "../config/config.json";
+        config_file_str = "../../../include/sos/config/config.json";
         config_file.open(config_file_str);
         if (not config_file.is_open()) {
-            config_file_str = "config/config.json";
+            config_file_str = "../../include/sos/config/config.json";
             config_file.open(config_file_str);
         }
         if (not config_file.is_open()) {
@@ -63,7 +63,7 @@ int main(int const argc, char **argv) {
         config_file_str = argv[2];
         config_file.open(config_file_str);
         if (not config_file.is_open()) {
-            console->error("Could not locate file {}", argv[2]);
+            console->error("Could not locate config file {}", argv[2]);
             return 1;
         }
     }

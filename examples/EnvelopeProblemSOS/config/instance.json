@@ -1,9 +1,8 @@
 {
-    "max_degree": 100,
+    "max_degree": 10,
     "num_variables": 1,
     "polynomials": [
-      [0,0],
-      [0,1],
-      [0,0,1]
+      [1,0],
+      [0, 5, -3]
     ]
 }

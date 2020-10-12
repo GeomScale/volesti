@@ -16,6 +16,6 @@
   },
 
   "use_weighted_polynomials": true,
-  "input_in_interpolant_basis": false,
+  "input_in_interpolant_basis": true,
   "plot_threshold": 20
 }

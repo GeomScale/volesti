@@ -16,24 +16,25 @@ set(CMAKE_CXX_FLAGS_RELEASE_DOUBLE_AVX "${CMAKE_CXX_FLAGS} -DCMAKE_C_COMPILER=/u
 
 set(MKL_OPTIONS "-DMKL_LP64 -m64 -I${MKLROOT}/include -L${DYLD_LIBRARY_PATH} -L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lpthread -lm -ldl")
 
+#env: DYLD_LIBRARY_PATH=/opt/intel/compilers_and_libraries_2020.1.216/mac/tbb/lib:/opt/intel/compilers_and_libraries_2020.1.216/mac/compiler/lib:/opt/intel/compilers_and_libraries_2020.1.216/mac/mkl/lib;NLSPATH=/opt/intel/compilers_and_libraries_2020.1.216/mac/mkl/include;MKLROOT=/opt/intel/compilers_and_libraries_2020.1.216/mac/mkl;TK_SILENCE_DEPRECATION=1
+
 set(CMAKE_CXX_FLAGS_RELEASE_DOUBLE_AVX_OPENMP "${CMAKE_CXX_FLAGS} -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -Wall -Wextra -O3 -march=native -Xclang  -fopenmp -lomp -mavx -mfma -fno-math-errno -DNDEBUG=1 -DIPM_USE_DOUBLE -DDIGITS_PRECISION=250 -DIPM_DOUBLE=double -DEIGEN_USE_MKL_ALL=1 ${MKL_OPTIONS}")
 set(CMAKE_CXX_FLAGS_RELEASE_DOUBLE            "${CMAKE_CXX_FLAGS} -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -Wall -Wextra -O3 -march=native -Xclang  -fopenmp -lomp -mavx -mfma -fno-math-errno -DNDEBUG=1 -DIPM_USE_DOUBLE -DDIGITS_PRECISION=250 -DIPM_DOUBLE=double ${MKL_OPTIONS}")
 
-set(CMAKE_CXX_FLAGS_RELEASE_LONG_DOUBLE "${CMAKE_CXX_FLAGS} -Wall -Wextra -O3 -openmp -DNDEBUG=1 -DIPM_USE_DOUBLE -DDIGITS_PRECISION=250 -DIPM_DOUBLE=long_double")
-
-file(GLOB TARGETS "*.h" "*.cpp" "barriers/*.h" "barriers/*.cpp"
+file(GLOB TARGETS "*.h" "*.cpp" "../../include/sos/*.h" "../../include/sos/*.cpp" "../../include/barriers/*.h" "../../include/barriers/*.cpp"
         "../../external/ChebTools/*"
         "../../external/Padua/*"
+        "../../include/sos/utils.cpp"
         )
 
 find_package(OpenMP REQUIRED)
 #find_package(spdlog REQUIRED)
 
 find_package(Python2 COMPONENTS Development NumPy)
-add_executable(EnvelopeProblem ${TARGETS} ../../include/sos/utils.cpp)
+add_executable(EnvelopeProblem ${TARGETS} )
 
 if (NOT BOOST_DIR)
-    find_package(Boost COMPONENTS *boost usr/local/)
+    find_package(Boost 1.67.0 COMPONENTS *boost usr/local/)
     set(BOOST_DIR ${Boost_INCLUDE_DIRS})
     message("Boost found at ${Boost_INCLUDE_DIRS}")
 endif ()
