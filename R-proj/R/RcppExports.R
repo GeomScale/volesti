@@ -46,9 +46,9 @@ copula <- function(r1, r2 = NULL, sigma = NULL, m = NULL, n = NULL, seed = NULL)
 #' \item{\code{type} }{ A string that declares the type of the body for the exact sampling: a) \code{'unit_simplex'} for the unit simplex, b) \code{'canonical_simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
 #' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 #' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
+#' \item{\code{seed} }{ A fixed seed for the number generator.}
 #' }
 #' @param n The number of points that the function is going to sample.
-#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @references \cite{R.Y. Rubinstein and B. Melamed,
 #' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
@@ -60,8 +60,8 @@ copula <- function(r1, r2 = NULL, sigma = NULL, m = NULL, n = NULL, seed = NULL)
 #' # 100 uniform points from the 2-d unit ball
 #' points = direct_sampling(n = 100, body = list("type" = "ball", "dimension" = 2))
 #' @export
-direct_sampling <- function(body, n, seed = NULL) {
-    .Call(`_volesti_direct_sampling`, body, n, seed)
+direct_sampling <- function(body, n) {
+    .Call(`_volesti_direct_sampling`, body, n)
 }
 
 #' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex in V-representation or (c) if the volume is known and declared by the input object.

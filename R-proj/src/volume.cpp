@@ -135,6 +135,8 @@ double volume (Rcpp::Reference P,
     typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    //int nn = P.slot("dimension");
+    //std::cout<<"nn = "<<nn<<std::endl;
     unsigned int n = P.field("dimension"), walkL, type = P.field("type");
 
     RNGType rng(n);
