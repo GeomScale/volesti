@@ -197,6 +197,7 @@ rounding <- function(P, seed = NULL) {
 #' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 #' \item{\code{BaW_rad} }{ The radius for the ball walk.}
 #' \item{\code{L} }{ The maximum length of the billiard trajectory.}
+#' \item{\code{seed} }{ A fixed seed for the number generator.}
 #' }
 #' @param distribution Optional. A list that declares the target density and some related parameters as follows:
 #' \itemize{
@@ -204,7 +205,6 @@ rounding <- function(P, seed = NULL) {
 #' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
 #'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
 #' }
-#' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples
@@ -223,8 +223,8 @@ rounding <- function(P, seed = NULL) {
 #' points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
 #'
 #' @export
-sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = NULL) {
-    .Call(`_volesti_sample_points`, P, n, random_walk, distribution, seed)
+sample_points <- function(P, n, random_walk = NULL, distribution = NULL) {
+    .Call(`_volesti_sample_points`, P, n, random_walk, distribution)
 }
 
 #' Write a SDPA format file
@@ -245,7 +245,7 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = 
 #' objFunction = c(1,1)
 #' writeSdpaFormatFile(S, objFunction, "output.txt")
 #' @export
-writeSdpaFormatFile <- function(spectrahedron = NULL, objectiveFunction = NULL, outputFile = NULL) {
+writeSdpaFormatFile <- function(spectrahedron, objectiveFunction, outputFile) {
     invisible(.Call(`_volesti_writeSdpaFormatFile`, spectrahedron, objectiveFunction, outputFile))
 }
 
@@ -270,15 +270,15 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
 #' @param P A convex polytope. It is an object from class a) Hpolytope or b) Vpolytope or c) Zonotope or d) VpolytopeIntersection.
 #' @param settings Optional. A list that declares which algorithm, random walk and values of parameters to use, as follows:
 #' \itemize{
-#' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'CB'} for CB algorithm, b) \code{'SoB'} for SOB algorithm or b) \code{'CG'} for CG algorithm. The defalut algorithm for H-polytopes is \code{'CB'} when \eqn{d\leq 200} and \code{'CG'} when \eqn{d>200}. For the other representations the default algorithm is \code{'CB'}.}
+#' \item{\code{algorithm} }{ A string to set the algorithm to use: a) \code{'CB'} for CB algorithm, b) \code{'SoB'} for SOB algorithm or b) \code{'CG'} for CG algorithm. The defalut algorithm is \code{'CB'}.}
 #' \item{\code{error} }{ A numeric value to set the upper bound for the approximation error. The default value is \eqn{1} for SOB algorithm and \eqn{0.1} otherwise.}
 #' \item{\code{random_walk} }{ A string that declares the random walk method: a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, b) \code{'RDHR'} for Random Directions Hit-and-Run, c) \code{'BaW'} for Ball Walk, or \code{'BiW'} for Billiard walk. For CB and SOB algorithms the default walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the other representations. For CG algorithm the default walk is \code{'CDHR'} for H-polytopes and \code{'RDHR'} for the other representations.}
 #' \item{\code{walk_length} }{ An integer to set the number of the steps for the random walk. The default value is \eqn{\lfloor 10 + d/10\rfloor} for \code{'SOB'} and \eqn{1} otherwise.}
 #' \item{\code{win_len} }{ The length of the sliding window for CB or CG algorithm. The default value is \eqn{400+3d^2} for CB or \eqn{500+4d^2} for CG.}
 #' \item{\code{hpoly} }{ A boolean parameter to use H-polytopes in MMC of CB algorithm when the input polytope is a zonotope. The default value is \code{TRUE} when the order of the zonotope is \eqn{<5}, otherwise it is \code{FALSE}.}
+#' \item{\code{seed} }{ A fixed seed for the number generator.}
 #' }
-#' @param rounding Optional. A boolean parameter for rounding. The default value is \code{TRUE} for V-polytopes and \code{FALSE} otherwise.
-#' @param seed Optional. A fixed seed for the number generator.
+#' @param rounding A boolean parameter for rounding. The default value is \code{FALSE}.
 #'
 #' @references \cite{I.Z.Emiris and V. Fisikopoulos,
 #' \dQuote{Practical polytope volume approximation,} \emph{ACM Trans. Math. Soft.,} 2018.},
@@ -303,8 +303,8 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
 #' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
 #'
 #' @export
-volume <- function(P, settings = NULL, rounding = NULL, seed = NULL) {
-    .Call(`_volesti_volume`, P, settings, rounding, seed)
+volume <- function(P, settings = NULL, rounding = FALSE) {
+    .Call(`_volesti_volume`, P, settings, rounding)
 }
 
 #' An internal Rccp function for the over-approximation of a zonotope

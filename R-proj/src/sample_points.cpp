@@ -94,6 +94,7 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
 //' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 //' \item{\code{BaW_rad} }{ The radius for the ball walk.}
 //' \item{\code{L} }{ The maximum length of the billiard trajectory.}
+//' \item{\code{seed} }{ A fixed seed for the number generator.}
 //' }
 //' @param distribution Optional. A list that declares the target density and some related parameters as follows:
 //' \itemize{
@@ -101,7 +102,6 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
 //' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
 //'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
 //' }
-//' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 //' @examples
@@ -122,10 +122,9 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
 //' @export
 // [[Rcpp::export]]
 Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
-                                  Rcpp::Nullable<unsigned int> n,
+                                  int n,
                                   Rcpp::Nullable<Rcpp::List> random_walk = R_NilValue,
-                                  Rcpp::Nullable<Rcpp::List> distribution = R_NilValue,
-                                  Rcpp::Nullable<double> seed = R_NilValue){
+                                  Rcpp::Nullable<Rcpp::List> distribution = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -142,8 +141,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
           walkL = 10 + dim / 10;
 
     RNGType rng(dim);
-    if (seed.isNotNull()) {
-        unsigned seed2 = Rcpp::as<double>(seed);
+    if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("seed")) {
+        unsigned seed2 = Rcpp::as<double>(Rcpp::as<Rcpp::List>(random_walk)["seed"]);
         rng.set_seed(seed2);
     }
 
@@ -160,7 +159,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     std::pair<Point, NT> InnerBall;
     Point mode(dim);
 
-    numpoints = Rcpp::as<unsigned int>(n);
+    numpoints = n;
     if (numpoints <= 0) throw Rcpp::exception("The number of samples has to be a positice integer!");
 
     if (!distribution.isNotNull() || !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("density")) {

@@ -38,9 +38,9 @@
 //' writeSdpaFormatFile(S, objFunction, "output.txt")
 //' @export
 // [[Rcpp::export]]
-void writeSdpaFormatFile(Rcpp::Nullable<Rcpp::Reference> spectrahedron = R_NilValue,
-               Rcpp::Nullable<Rcpp::NumericVector> objectiveFunction = R_NilValue,
-               Rcpp::Nullable<std::string> outputFile = R_NilValue) {
+void writeSdpaFormatFile(Rcpp::Reference spectrahedron,
+                         Rcpp::NumericVector objectiveFunction,
+                         std::string outputFile) {
 
     typedef double NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
@@ -51,13 +51,13 @@ void writeSdpaFormatFile(Rcpp::Nullable<Rcpp::Reference> spectrahedron = R_NilVa
     typedef LMI<NT, MT, VT> LMI;
     typedef Spectrahedron<NT, MT, VT> Spectrahedron;
 
-    std::vector<MT> matrices = Rcpp::as<std::vector<MT> > (Rcpp::as<Rcpp::Reference> (spectrahedron).field("matrices"));
+    std::vector<MT> matrices = Rcpp::as<std::vector<MT> > (spectrahedron.field("matrices"));
     LMI lmi(matrices);
     Spectrahedron _spectrahedron(lmi);
     Point c(Rcpp::as<VT> (objectiveFunction));
 
     std::filebuf fb;
-    fb.open(Rcpp::as<std::string> (outputFile), std::ios::out);
+    fb.open(outputFile, std::ios::out);
     std::ostream os(&fb);
 
     SdpaFormatManager<NT> sdpaFormatManager;

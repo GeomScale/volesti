@@ -4,8 +4,7 @@
 \alias{sample_points}
 \title{Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).}
 \usage{
-sample_points(P, n, random_walk = NULL, distribution = NULL,
-  seed = NULL)
+sample_points(P, n, random_walk = NULL, distribution = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.}
@@ -20,6 +19,7 @@ sample_points(P, n, random_walk = NULL, distribution = NULL,
 \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 \item{\code{BaW_rad} }{ The radius for the ball walk.}
 \item{\code{L} }{ The maximum length of the billiard trajectory.}
+\item{\code{seed} }{ A fixed seed for the number generator.}
 }}
 
 \item{distribution}{Optional. A list that declares the target density and some related parameters as follows:
@@ -28,8 +28,6 @@ sample_points(P, n, random_walk = NULL, distribution = NULL,
 \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
 }}
-
-\item{seed}{Optional. A fixed seed for the number generator.}
 }
 \value{
 A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.

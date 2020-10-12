@@ -4,8 +4,7 @@
 \alias{writeSdpaFormatFile}
 \title{Write a SDPA format file}
 \usage{
-writeSdpaFormatFile(spectrahedron = NULL, objectiveFunction = NULL,
-  outputFile = NULL)
+writeSdpaFormatFile(spectrahedron, objectiveFunction, outputFile)
 }
 \arguments{
 \item{spectrahedron}{A spectrahedron in n dimensions; must be an object of class Spectrahedron}

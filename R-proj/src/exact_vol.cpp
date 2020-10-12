@@ -52,7 +52,7 @@ FT factorial(FT n)
 //' vol = exact_vol(P)
 //' @export
 // [[Rcpp::export]]
-double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
+double exact_vol(Rcpp::Reference P) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -60,7 +60,7 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
-    if (NT(Rcpp::as<Rcpp::Reference>(P).field("volume")) > 0.0) {
+    if (NT(P.field("volume")) > 0.0) {
         return NT(Rcpp::as<Rcpp::Reference>(P).field("volume"));
     }
 
@@ -69,12 +69,12 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
 
     if (type == 2) {
 
-        dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
+        dim = P.field("dimension");
 
-        if (Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows() ==
-            Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).cols() + 1) {
+        if (Rcpp::as<MT>(P.field("V")).rows() ==
+            Rcpp::as<MT>(P.field("V")).cols() + 1) {
 
-            MT V = Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).transpose(), V2(dim,dim);
+            MT V = Rcpp::as<MT>(P.field("V")).transpose(), V2(dim,dim);
             VT v0 = V.col(dim);
 
             for (int i = 0; i < dim; ++i) {
@@ -92,8 +92,8 @@ double exact_vol(Rcpp::Nullable<Rcpp::Reference> P) {
         zonotope ZP;
         dim = Rcpp::as<Rcpp::Reference>(P).field("dimension");
 
-        ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
-                VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
+        ZP.init(dim, Rcpp::as<MT>(P.field("G")),
+                VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
         vol = exact_zonotope_vol<NT>(ZP);
 
     } else {
