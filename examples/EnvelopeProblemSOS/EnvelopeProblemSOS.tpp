@@ -383,7 +383,7 @@ void EnvelopeProblemSOS<IPMDouble>::plot_polynomials_and_solution(const Solution
     IPMDouble x_min = _hyperRectangle[0].first;
     IPMDouble x_max = _hyperRectangle[0].second;
 
-    IPM_DOUBLE const delta_x = x_max - x_min;
+    IPMDouble const delta_x = x_max - x_min;
     x_min -= .05 * delta_x;
     x_max += .05 * delta_x;
 

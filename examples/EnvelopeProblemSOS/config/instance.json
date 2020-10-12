@@ -1,5 +1,5 @@
 {
-    "max_degree": 2,
+    "max_degree": 100,
     "num_variables": 1,
     "polynomials": [
       [0,0],
