@@ -9,7 +9,7 @@ import sys, datetime
 start = datetime.datetime.now()
 
 # Set a variable with the input / metabolic network file
-input_file = '../../bigg_files/iJN678.json'
+input_file = '../../bigg_files/iSDY_1059.json'
 
 # Read json
 read_ecoli_core = read_json_file(input_file)
@@ -19,6 +19,7 @@ A = read_ecoli_core[0]
 b = read_ecoli_core[1]
 Aeq = read_ecoli_core[2]
 beq = read_ecoli_core[3]
+
 
 # Pre-process it
 proc = pre_process(A, b, Aeq, beq)
@@ -41,7 +42,7 @@ N_shift = get_fd_hp[2]
 
 # Get the max ball for the full dimensional polytope
 max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-print("max ball for the full dimensional polytope has been calculated")
+print("max ball for the full dimensional polytope was calculated.")
 
 ### Now we can use the full dimensional polytope; but before sampling on it, we need to round it
 
@@ -57,7 +58,7 @@ rounded_A = rounding_output_svd[0]
 rounded_b = rounding_output_svd[1]
 rounded_T = rounding_output_svd[2]
 rounded_shift = rounding_output_svd[3]
-print("rounding has been completed")
+print("Rounding has been completed.")
 
 ## Finally, generate random samples from the rounded full dimensional polytope
 

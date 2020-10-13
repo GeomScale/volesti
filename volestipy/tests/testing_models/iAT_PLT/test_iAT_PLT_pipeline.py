@@ -9,7 +9,7 @@ import sys, datetime
 start = datetime.datetime.now()
 
 # Set a variable with the input / metabolic network file
-input_file = '../../bigg_files/.json'
+input_file = '../../bigg_files/iAT_PLT_636.json'
 
 # Read json
 read_ecoli_core = read_json_file(input_file)

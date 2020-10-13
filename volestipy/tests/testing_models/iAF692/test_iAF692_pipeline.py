@@ -34,8 +34,6 @@ max_fluxes = proc[5]
 
 # Get an object for the low_dim_HPolytope class for the pre-processed polytope
 low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
-#low_hp = low_dim_HPolytope(A, b, Aeq, beq)
-
 
 ## And then get the full dimensional polytope
 get_fd_hp = low_hp.full_dimensiolal_polytope()
@@ -46,6 +44,7 @@ N_shift = get_fd_hp[2]
 
 # Get the max ball for the full dimensional polytope
 max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+print("max ball was calculated for the full dimensional polytope")
 
 ### Now we can use the full dimensional polytope; but before sampling on it, we need to round it
 
@@ -61,7 +60,6 @@ rounded_A = rounding_output_svd[0]
 rounded_b = rounding_output_svd[1]
 rounded_T = rounding_output_svd[2]
 rounded_shift = rounding_output_svd[3]
-
 print("\n\n ** Rounding was completed. ** \n\n")
 
 ## Finally, generate random samples from the rounded full dimensional polytope

@@ -16,15 +16,12 @@ read_ecoli_core = read_json_file(input_file)
 
 # Pre-process it
 A = read_ecoli_core[0]
-print(A)
 b = read_ecoli_core[1]
 Aeq = read_ecoli_core[2]
 beq = read_ecoli_core[3]
 
-
 # Pre-process it
 proc = pre_process(A, b, Aeq, beq)
-
 A_proc = proc[0]
 b_proc = proc[1]
 Aeq_proc = proc[2]
@@ -34,8 +31,6 @@ max_fluxes = proc[5]
 
 # Get an object for the low_dim_HPolytope class for the pre-processed polytope
 low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
-#low_hp = low_dim_HPolytope(A, b, Aeq, beq)
-
 
 ## And then get the full dimensional polytope
 get_fd_hp = low_hp.full_dimensiolal_polytope()
@@ -48,9 +43,6 @@ N_shift = get_fd_hp[2]
 # Get the max ball for the full dimensional polytope
 max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
 print("max_ball for the full dimensional polytope was calculated.")
-
-
-
 
 ### Now we can use the full dimensional polytope; but before sampling on it, we need to round it
 
@@ -66,7 +58,6 @@ rounded_A = rounding_output_svd[0]
 rounded_b = rounding_output_svd[1]
 rounded_T = rounding_output_svd[2]
 rounded_shift = rounding_output_svd[3]
-
 print("Rounding has been completed")
 
 ## Finally, generate random samples from the rounded full dimensional polytope

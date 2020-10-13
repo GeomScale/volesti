@@ -41,12 +41,9 @@ b_fd = get_fd_hp[0].b
 N = get_fd_hp[1]
 N_shift = get_fd_hp[2]
 
-
-print("\n\n *** this is A_fd !  *** \n\n")
-print(A_fd)
-
 # Get the max ball for the full dimensional polytope
 max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+print("max ball calculated after for the full dimensional polytope")
 
 ### Now we can use the full dimensional polytope; but before sampling on it, we need to round it
 
@@ -62,6 +59,7 @@ rounded_A = rounding_output_svd[0]
 rounded_b = rounding_output_svd[1]
 rounded_T = rounding_output_svd[2]
 rounded_shift = rounding_output_svd[3]
+print("rounding has been completed")
 
 ## Finally, generate random samples from the rounded full dimensional polytope
 
