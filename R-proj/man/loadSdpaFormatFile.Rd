@@ -16,6 +16,8 @@ A list with two named items: an item "matrices" which is a list of the matrices 
 Read a SDPA format file
 }
 \examples{
+\dontrun{
 path = system.file('extdata', package = 'volesti')
 l = loadSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
+}
 }

@@ -29,6 +29,7 @@
 //' @param outputFile Name of the output file
 //'
 //' @examples
+//' \dontrun{
 //' A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
 //' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 //' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
@@ -36,6 +37,7 @@
 //' S = Spectrahedron(matrices = lmi);
 //' objFunction = c(1,1)
 //' writeSdpaFormatFile(S, objFunction, "output.txt")
+//' }
 //' @export
 // [[Rcpp::export]]
 void writeSdpaFormatFile(Rcpp::Reference spectrahedron,
@@ -75,8 +77,10 @@ void writeSdpaFormatFile(Rcpp::Reference spectrahedron,
 //' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
 //'
 //' @examples
+//' \dontrun{
 //' path = system.file('extdata', package = 'volesti')
 //' l = loadSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
+//' }
 //' @export
 // [[Rcpp::export]]
 Rcpp::List loadSdpaFormatFile(Rcpp::Nullable<std::string> inputFile = R_NilValue) {

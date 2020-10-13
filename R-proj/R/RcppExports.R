@@ -237,6 +237,7 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL) {
 #' @param outputFile Name of the output file
 #'
 #' @examples
+#' \dontrun{
 #' A0 = matrix(c(-1,0,0,0,-2,1,0,1,-2), nrow=3, ncol=3, byrow = TRUE)
 #' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 #' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
@@ -244,6 +245,7 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL) {
 #' S = Spectrahedron(matrices = lmi);
 #' objFunction = c(1,1)
 #' writeSdpaFormatFile(S, objFunction, "output.txt")
+#' }
 #' @export
 writeSdpaFormatFile <- function(spectrahedron, objectiveFunction, outputFile) {
     invisible(.Call(`_volesti_writeSdpaFormatFile`, spectrahedron, objectiveFunction, outputFile))
@@ -256,8 +258,10 @@ writeSdpaFormatFile <- function(spectrahedron, objectiveFunction, outputFile) {
 #' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
 #'
 #' @examples
+#' \dontrun{
 #' path = system.file('extdata', package = 'volesti')
 #' l = loadSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
+#' }
 #' @export
 loadSdpaFormatFile <- function(inputFile = NULL) {
     .Call(`_volesti_loadSdpaFormatFile`, inputFile)
