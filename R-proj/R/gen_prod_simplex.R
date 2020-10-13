@@ -22,7 +22,7 @@ gen_prod_simplex <- function(dimension) {
   b = Mat[, 1]
   Mat = Mat[, -c(1), drop = FALSE]
   
-  P = Hpolytope$new(-Mat, b, (1/prod(1:dimension))^2)
+  P = Hpolytope(A = -Mat, b = b, volume = (1/prod(1:dimension))^2)
   
   return(P)
   

@@ -16,7 +16,7 @@
 #' # rotate a H-polytope (2d unit simplex)
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
-#' P = Hpolytope$new(A, b)
+#' P = Hpolytope(A = A, b = b)
 #' listHpoly = round_polytope(P)
 #' 
 #' # rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50
@@ -40,13 +40,13 @@ round_polytope <- function(P, seed = NULL){
   # remove first column
   A = Mat[, -c(1), drop = FALSE]
   
-  type = P$type
-  if (type == 2) {
-    PP = list("P" = Vpolytope$new(A), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
-  }else if (type == 3) {
-    PP = list("P" = Zonotope$new(A), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
+  type = P@type
+  if (type == 'Vpolytope') {
+    PP = list("P" = Vpolytope(V = A), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
+  }else if (type == 'Zonotope') {
+    PP = list("P" = Zonotope(G = A), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
   } else {
-    PP = list("P" = Hpolytope$new(A,b), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
+    PP = list("P" = Hpolytope(A = A, b = b), "T" = ret_list$T, "shift" = ret_list$shift, "round_value" = ret_list$round_value)
   }
   return(PP)
 }

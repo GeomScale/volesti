@@ -21,7 +21,7 @@ Given a convex H or V polytope or a zonotope as input this function brings the p
 # rotate a H-polytope (2d unit simplex)
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
-P = Hpolytope$new(A, b)
+P = Hpolytope(A = A, b = b)
 listHpoly = round_polytope(P)
 
 # rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50

@@ -106,5 +106,4 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
     }
 
     throw Rcpp::exception("Wrong inputs!");
-
 }

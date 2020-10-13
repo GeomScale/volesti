@@ -18,10 +18,13 @@ gen_rand_vpoly <- function(dimension, nvertices, generator = list('generator' = 
     seed = generator$seed
   }
   
-  kind_gen = 4
-  if (generator$generator == 'cube'){
+  if (is.null(generator$generator)) {
+    kind_gen = 4
+  } else if (generator$generator == 'cube'){
     kind_gen = 5
-  } else if (generator$generator != 'sphere') {
+  } else if (generator$generator == 'sphere') {
+    kind_gen = 4
+  } else {
     stop("Wrong generator!")
   }
   
@@ -31,7 +34,7 @@ gen_rand_vpoly <- function(dimension, nvertices, generator = list('generator' = 
   b = Mat[, 1]
   Mat = Mat[, -c(1), drop = FALSE]
   
-  P = Vpolytope$new(Mat)
+  P = Vpolytope(V = Mat)
   
   return(P)
 }

@@ -34,7 +34,6 @@ rotate_polytope <- function(P, rotation = list()) {
     seed = rotation$seed
   }
   
-  d = P$dimension
   if (is.null(rotation$T)) {
     T = NULL
   } else {
@@ -44,25 +43,33 @@ rotate_polytope <- function(P, rotation = list()) {
   #call rcpp rotating function
   Mat = rotating(P, T, seed)
   
-  n = P$dimension
-  m=dim(Mat)[2] - n
+  type = P@type
+  
+  if (type == 'Vpolytope') {
+    n = dim(P@V)[2]
+  }else if (type == 'Zonotope') {
+    n = dim(P@G)[2]
+  } else {
+    n = dim(P@A)[2]
+  }
+  
+  m = dim(Mat)[2] - n
   Tr = Mat[, -c(1:(dim(Mat)[2]-n)), drop = FALSE]
   Tr = Tr[1:n, 1:n]
   Mat = t(Mat[, 1:m])
   
   # first column is the vector b
-  b = Mat[,1]
+  b = Mat[, 1]
   
   # remove first column
   A = Mat[, -c(1), drop = FALSE]
   
-  type = P$type
-  if (type == 2) {
-    PP = Vpolytope$new(A)
-  }else if (type == 3) {
-    PP = Zonotope$new(A)
+  if (type == 'Vpolytope') {
+    PP = Vpolytope(V = A)
+  }else if (type == 'Zonotope') {
+    PP = Zonotope(G = A)
   } else {
-    PP = Hpolytope$new(A, b)
+    PP = Hpolytope(A = A, b = b)
   }
   return(list("P" = PP, "T" = Tr))
 }

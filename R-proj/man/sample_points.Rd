@@ -43,7 +43,7 @@ points = sample_points(P, n = 100, random_walk = list("walk" = "BaW", "walk_leng
 # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
-P = Hpolytope$new(A,b)
+P = Hpolytope(A = A, b = b)
 points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "variance" = 2))
 
 # uniform points from the boundary of a 2-dimensional random H-polytope

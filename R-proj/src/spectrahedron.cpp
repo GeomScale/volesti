@@ -33,7 +33,7 @@
 //' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 //' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
 //' lmi = list(A0, A1, A2)
-//' S = Spectrahedron$new(lmi);
+//' S = Spectrahedron(matrices = lmi);
 //' objFunction = c(1,1)
 //' writeSdpaFormatFile(S, objFunction, "output.txt")
 //' @export
@@ -51,7 +51,7 @@ void writeSdpaFormatFile(Rcpp::Reference spectrahedron,
     typedef LMI<NT, MT, VT> LMI;
     typedef Spectrahedron<NT, MT, VT> Spectrahedron;
 
-    std::vector<MT> matrices = Rcpp::as<std::vector<MT> > (spectrahedron.field("matrices"));
+    std::vector<MT> matrices = Rcpp::as<std::vector<MT> > (spectrahedron.slot("matrices"));
     LMI lmi(matrices);
     Spectrahedron _spectrahedron(lmi);
     Point c(Rcpp::as<VT> (objectiveFunction));

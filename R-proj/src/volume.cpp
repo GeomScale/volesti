@@ -135,9 +135,25 @@ double volume (Rcpp::Reference P,
     typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    //int nn = P.slot("dimension");
-    //std::cout<<"nn = "<<nn<<std::endl;
-    unsigned int n = P.field("dimension"), walkL, type = P.field("type");
+ 
+    unsigned int n, walkL, type_num;
+    std::string type = Rcpp::as<std::string>(P.slot("type"));
+
+    if (type.compare(std::string("Hpolytope")) == 0) {
+        n = Rcpp::as<MT>(P.slot("A")).cols();
+        type_num = 1;
+    } else if (type.compare(std::string("Vpolytope")) == 0) {
+        n = Rcpp::as<MT>(P.slot("V")).cols();
+        type_num = 2;
+    } else if (type.compare(std::string("Zonotope")) == 0) {
+        n = Rcpp::as<MT>(P.slot("G")).cols();
+        type_num = 3;
+    } else if (type.compare(std::string("VpolytopeIntersection")) == 0) {
+        n = Rcpp::as<MT>(P.slot("V1")).cols();
+        type_num = 4;
+    } else {
+        throw Rcpp::exception("Unknown polytope representation!");
+    }
 
     RNGType rng(n);
     if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("seed")) {
@@ -152,7 +168,7 @@ double volume (Rcpp::Reference P,
     NT e;
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("algorithm")) {
-        if (type == 2 || type == 3 || type == 4) {
+        if (type_num == 2 || type_num == 3 || type_num == 4) {
             CB = true;
         } else if (n <= 200) {
             CB = true;
@@ -192,7 +208,7 @@ double volume (Rcpp::Reference P,
 
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("random_walk")) {
-        if ( type == 1 ){
+        if ( type_num == 1 ){
             cdhr = true;
             if (CB) win_len = 3*n*n+400;
         } else {
@@ -213,7 +229,7 @@ double volume (Rcpp::Reference P,
         ball_walk = true;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("BiW")) == 0) {
         if (CG) {
-            if (type !=1){
+            if (type_num !=1){
                 Rcpp::Rcout << "Billiard walk is not supported for CG algorithm. RDHR is used."<<std::endl;
                 rdhr = true;
             } else {
@@ -239,25 +255,25 @@ double volume (Rcpp::Reference P,
         if (!CB && !CG) Rf_warning("flag 'win_len' can be used only for CG or CB algorithms.");
     }
 
-    switch(type) {
+    switch(type_num) {
         case 1: {
             // Hpolytope
             Hpolytope HP;
-            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            HP.init(n, Rcpp::as<MT>(P.slot("A")), Rcpp::as<VT>(P.slot("b")));
             return generic_volume(HP, rng, walkL, e, CG, CB, win_len, rounding,
-                                             cdhr, rdhr, ball_walk, billiard, type);
+                                             cdhr, rdhr, ball_walk, billiard, type_num);
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
-            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            VP.init(n, Rcpp::as<MT>(P.slot("V")), VT::Ones(Rcpp::as<MT>(P.slot("V")).rows()));
             return generic_volume(VP, rng, walkL, e, CG, CB, win_len, rounding,
-                                             cdhr, rdhr, ball_walk, billiard, type);
+                                             cdhr, rdhr, ball_walk, billiard, type_num);
         }
         case 3: {
             // Zonotope
             zonotope ZP;
-            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            ZP.init(n, Rcpp::as<MT>(P.slot("G")), VT::Ones(Rcpp::as<MT>(P.slot("G")).rows()));
             if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("hpoly")) {
                 hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["hpoly"]);
                 if (hpoly && !CB)
@@ -279,15 +295,15 @@ double volume (Rcpp::Reference P,
                 }
             }
             return generic_volume(ZP, rng, walkL, e, CG, CB, win_len, round,
-                                             cdhr, rdhr, ball_walk, billiard, type);
+                                             cdhr, rdhr, ball_walk, billiard, type_num);
         }
         case 4: {
             // Intersection of two V-polytopes
             Vpolytope VP1;
             Vpolytope VP2;
             InterVP VPcVP;
-            VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
-            VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
+            VP1.init(n, Rcpp::as<MT>(P.slot("V1")), VT::Ones(Rcpp::as<MT>(P.slot("V1")).rows()));
+            VP2.init(n, Rcpp::as<MT>(P.slot("V2")), VT::Ones(Rcpp::as<MT>(P.slot("V2")).rows()));
             if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("seed")) {
                 unsigned seed3 = Rcpp::as<double>(Rcpp::as<Rcpp::List>(settings)["seed"]);
                 rng.set_seed(seed3);
@@ -297,7 +313,7 @@ double volume (Rcpp::Reference P,
             }
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             return generic_volume(VPcVP, rng, walkL, e, CG, CB, win_len, rounding,
-                                             cdhr, rdhr, ball_walk, billiard, type);
+                                             cdhr, rdhr, ball_walk, billiard, type_num);
         }
     }
 

@@ -32,9 +32,9 @@ gen_cross <- function(dimension, representation = 'H') {
   Mat = Mat[, -c(1), drop = FALSE]
   
   if (Vpoly_gen) {
-    P = Vpolytope$new(Mat, 2^dimension / prod(1:dimension))
+    P = Vpolytope(V = Mat, volume = 2^dimension / prod(1:dimension))
   } else {
-    P = Hpolytope$new(-Mat, b, 2^dimension / prod(1:dimension))
+    P = Hpolytope(A = -Mat, b = b, volume = 2^dimension / prod(1:dimension))
   }
   
   return(P)

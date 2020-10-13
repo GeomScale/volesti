@@ -18,10 +18,13 @@ gen_rand_hpoly <- function(dimension, nfacets, generator = list('generator' = 's
     seed = generator$seed
   }
   
-  kind_gen = 6
-  if (generator$generator == 'ball'){
+  if (is.null(generator$generator)) {
+    kind_gen = 6
+  } else if (generator$generator == 'ball'){
     kind_gen = 7
-  } else if (generator$generator != 'sphere') {
+  } else if (generator$generator == 'sphere') {
+    kind_gen = 6
+  } else {
     stop("Wrong generator!")
   }
   Vpoly_gen = FALSE
@@ -32,7 +35,7 @@ gen_rand_hpoly <- function(dimension, nfacets, generator = list('generator' = 's
   b = Mat[, 1]
   Mat = Mat[, c(1), drop = FALSE]
   
-  P = Hpolytope$new(Mat, b)
+  P = Hpolytope(A = Mat, b = b)
   
   return(P)
 }

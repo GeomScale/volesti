@@ -22,7 +22,7 @@ gen_skinny_cube <- function(dimension) {
   b = Mat[, 1]
   Mat = Mat[, -c(1), drop = FALSE]
   
-  P = Hpolytope$new(-Mat, b, 2^(dimension -1)*200)
+  P = Hpolytope(A = -Mat, b = b, volume = 2^(dimension -1)*200)
   
   return(P)
 }

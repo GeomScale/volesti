@@ -83,7 +83,7 @@ direct_sampling <- function(body, n) {
 #'
 #' \donttest{# compute the exact volume of a 2-d arbitrary simplex
 #' V = matrix(c(2,3,-1,7,0,0),ncol = 2, nrow = 3, byrow = TRUE)
-#' P = Vpolytope$new(V)
+#' P = Vpolytope(V = V)
 #' vol = exact_vol(P)
 #' }
 #'
@@ -215,7 +215,7 @@ rounding <- function(P, seed = NULL) {
 #' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 #' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 #' b = c(0,0,1)
-#' P = Hpolytope$new(A,b)
+#' P = Hpolytope(A = A, b = b)
 #' points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "variance" = 2))
 #'
 #' # uniform points from the boundary of a 2-dimensional random H-polytope
@@ -241,7 +241,7 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL) {
 #' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 #' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
 #' lmi = list(A0, A1, A2)
-#' S = Spectrahedron$new(lmi);
+#' S = Spectrahedron(matrices = lmi);
 #' objFunction = c(1,1)
 #' writeSdpaFormatFile(S, objFunction, "output.txt")
 #' @export

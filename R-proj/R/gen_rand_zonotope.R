@@ -20,12 +20,15 @@ gen_rand_zonotope <- function(dimension, nsegments, generator = list('generator'
     seed = generator$seed
   }
   
-  kind_gen = 1
-  if (generator$generator == 'gaussian') {
+  if (is.null(generator$generator)) {
+    kind_gen = 1
+  } else if (generator$generator == 'gaussian') {
     kind_gen = 2
   } else if (generator$generator == 'exponential') {
     kind_gen = 3
-  } else if (generator$generator != 'uniform'){
+  } else if (generator$generator == 'uniform'){
+    kind_gen = 1
+  } else {
     stop("Wrong generator!")
   }
   
@@ -35,7 +38,7 @@ gen_rand_zonotope <- function(dimension, nsegments, generator = list('generator'
   b = Mat[, 1]
   Mat = Mat[, -c(1), drop = FALSE]
   
-  P = Zonotope$new(Mat)
+  P = Zonotope(G = Mat)
 
   return(P)
 }

@@ -29,7 +29,7 @@ For the evaluation of the PCA method the exact volume of the approximation body 
 }
 \examples{
 # over-approximate a 2-dimensional zonotope with 10 generators and compute the ratio of fitness
-Z = gen_rand_zonotope(2,8)
+Z = gen_rand_zonotope(2, 8)
 retList = zonotope_approximation(Z = Z)
 
 }

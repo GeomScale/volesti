@@ -112,7 +112,7 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
 //' # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 //' A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 //' b = c(0,0,1)
-//' P = Hpolytope$new(A,b)
+//' P = Hpolytope(A = A, b = b)
 //' points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "variance" = 2))
 //'
 //' # uniform points from the boundary of a 2-dimensional random H-polytope
@@ -121,7 +121,7 @@ void sample_from_polytope(Polytope &P, RNGType &rng, PointList &randPoints, unsi
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
+Rcpp::NumericMatrix sample_points(Rcpp::Reference P,
                                   int n,
                                   Rcpp::Nullable<Rcpp::List> random_walk = R_NilValue,
                                   Rcpp::Nullable<Rcpp::List> distribution = R_NilValue){
@@ -137,8 +137,25 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
-    unsigned int type = Rcpp::as<Rcpp::Reference>(P).field("type"),dim = Rcpp::as<Rcpp::Reference>(P).field("dimension"),
-          walkL = 10 + dim / 10;
+    unsigned int dim, walkL = 10 + dim / 10, type_num;
+
+    std::string type = Rcpp::as<std::string>(P.slot("type"));
+
+    if (type.compare(std::string("Hpolytope")) == 0) {
+        dim = Rcpp::as<MT>(P.slot("A")).cols();
+        type_num = 1;
+    } else if (type.compare(std::string("Vpolytope")) == 0) {
+        dim = Rcpp::as<MT>(P.slot("V")).cols();
+        type_num = 2;
+    } else if (type.compare(std::string("Zonotope")) == 0) {
+        dim = Rcpp::as<MT>(P.slot("G")).cols();
+        type_num = 3;
+    } else if (type.compare(std::string("VpolytopeIntersection")) == 0) {
+        dim = Rcpp::as<MT>(P.slot("V1")).cols();
+        type_num = 4;
+    } else {
+        throw Rcpp::exception("Unknown polytope representation!");
+    }
 
     RNGType rng(dim);
     if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("seed")) {
@@ -197,7 +214,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
     if (!random_walk.isNotNull() || !Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("walk")) {
         if (gaussian) {
-            if (type == 1) {
+            if (type_num == 1) {
                 cdhr = true;
             } else {
                 rdhr = true;
@@ -267,11 +284,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
     }
 
-    switch(type) {
+    switch(type_num) {
         case 1: {
             // Hpolytope
-            HP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
-                    Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
+            HP.init(dim, Rcpp::as<MT>(P.slot("A")),
+                    Rcpp::as<VT>(P.slot("b")));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
                 InnerBall = HP.ComputeInnerBall();
@@ -290,8 +307,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
         case 2: {
             // Vpolytope
-            VP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
-                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
+            VP.init(dim, Rcpp::as<MT>(P.slot("V")),
+                    VT::Ones(Rcpp::as<MT>(P.slot("V")).rows()));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
                 InnerBall = VP.ComputeInnerBall();
@@ -308,8 +325,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
         case 3: {
             // Zonotope
-            ZP.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
-                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
+            ZP.init(dim, Rcpp::as<MT>(P.slot("G")),
+                    VT::Ones(Rcpp::as<MT>(P.slot("G")).rows()));
 
             if (!set_starting_point || (!set_mode && gaussian)) {
                 InnerBall = ZP.ComputeInnerBall();
@@ -328,10 +345,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             // Intersection of two V-polytopes
             Vpolytope VP1;
             Vpolytope VP2;
-            VP1.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
-                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
-            VP2.init(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
-                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
+            VP1.init(dim, Rcpp::as<MT>(P.slot("V1")),
+                     VT::Ones(Rcpp::as<MT>(P.slot("V1")).rows()));
+            VP2.init(dim, Rcpp::as<MT>(P.slot("V2")),
+                     VT::Ones(Rcpp::as<MT>(P.slot("V2")).rows()));
             VPcVP.init(VP1, VP2);
 
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
@@ -348,10 +365,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         }
     }
 
-    switch (type) {
+    switch (type_num) {
         case 1: {
             sample_from_polytope(HP, rng, randPoints, walkL, numpoints, gaussian, a, L, boundary, StartingPoint, nburns,
-                   set_L, cdhr, rdhr, billiard, ball_walk);
+                                 set_L, cdhr, rdhr, billiard, ball_walk);
             break;
         }
         case 2: {
@@ -374,7 +391,6 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     if (numpoints % 2 == 1 && boundary) numpoints--;
     MT RetMat(dim, numpoints);
     unsigned int jj = 0;
-
 
     for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) {
         if (gaussian) {
