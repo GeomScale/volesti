@@ -14,23 +14,23 @@ if __name__ == "__main__":
 
     hp = HPolytope(A,b)
 
-    print("The polytope:")
-    print("Dimensions: {}".format(hp.dimensions))
-    print("A matrix:")
-    print(hp.A)
-    print(type(hp.A))
-    print("b vector:")
-    print(hp.b)
-    print(type(hp.b))
+#    print("The polytope:")
+#    print("Dimensions: {}".format(hp.dimensions))
+#    print("A matrix:")
+#    print(hp.A)
+#    print(type(hp.A))
+#    print("b vector:")
+#    print(hp.b)
+#    print(type(hp.b))
 
     # Run test for the rounding() function and its different methods
     rounding_returns = ["new_A","new_b","T_matrix","shift","round_val"]
-    print("*** This is a test for th rounding() function of the volestipy library *** \n")
+#    print("*** This is a test for th rounding() function of the volestipy library *** \n")
 
     # Case 1
-    rounding_output_max_ellipsoid = hp.rounding_svd()
-    print("\n >> This is the output for the svd rounding method <<")
-    for i in range(len(rounding_output_max_ellipsoid)):
-        print("\n" + rounding_returns[i] + ": ")
-        print(rounding_output_max_ellipsoid[i])
+    rounding = hp.rounding_svd()
+#    print("\n >> This is the output for the svd rounding method <<")
+#    print(rounding_output_svd[0])
 
+
+    print(rounding[0])
