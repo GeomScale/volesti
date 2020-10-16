@@ -41,7 +41,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
     typedef Zonotope <Point> zonotope;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    int n, k = Rcpp::as<MT>(Z.field("G")).rows(), win_len = 250, walkL = 1;
+    int n, k = Rcpp::as<MT>(Z.slot("G")).rows(), win_len = 250, walkL = 1;
 
     std::string type = Rcpp::as<std::string>(Z.slot("type"));
 

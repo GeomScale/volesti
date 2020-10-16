@@ -27,8 +27,8 @@
 zonotope_approximation <- function(Z, fit_ratio = FALSE, settings = list('error' = 0.1, 'walk_length' = 1, 'win_len' = 250, 'hpoly' = FALSE)){
   
   seed = NULL
-  if (!is.null(generator$seed)) {
-    seed = generator$seed
+  if (!is.null(settings$seed)) {
+    seed = settings$seed
   }
   
   ret_list = zono_approx(Z, fit_ratio, settings, seed)
@@ -40,7 +40,7 @@ zonotope_approximation <- function(Z, fit_ratio = FALSE, settings = list('error'
   
   # remove first column
   A = Mat[, -c(1), drop = FALSE]
-  PP = list("P" = Hpolytope$new(A,b), "fit_ratio" = ret_list$fit_ratio)
+  PP = list("P" = Hpolytope(A = A, b = b), "fit_ratio" = ret_list$fit_ratio)
   
   return(PP)
   

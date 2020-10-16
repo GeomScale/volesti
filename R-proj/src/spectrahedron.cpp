@@ -77,10 +77,9 @@ void writeSdpaFormatFile(Rcpp::Reference spectrahedron,
 //' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
 //'
 //' @examples
-//' \dontrun{
 //' path = system.file('extdata', package = 'volesti')
 //' l = loadSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
-//' }
+//' 
 //' @export
 // [[Rcpp::export]]
 Rcpp::List loadSdpaFormatFile(Rcpp::Nullable<std::string> inputFile = R_NilValue) {

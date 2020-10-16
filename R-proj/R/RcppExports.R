@@ -258,10 +258,9 @@ writeSdpaFormatFile <- function(spectrahedron, objectiveFunction, outputFile) {
 #' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
 #'
 #' @examples
-#' \dontrun{
 #' path = system.file('extdata', package = 'volesti')
 #' l = loadSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
-#' }
+#' 
 #' @export
 loadSdpaFormatFile <- function(inputFile = NULL) {
     .Call(`_volesti_loadSdpaFormatFile`, inputFile)
