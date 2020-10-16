@@ -248,8 +248,6 @@ double volume (Rcpp::Reference P,
         throw Rcpp::exception("The error parameter has to be a positive number!");
     }
 
-    //round = rounding;
-
     if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("win_len")) {
         win_len = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["win_len"]);
         if (!CB && !CG) Rf_warning("flag 'win_len' can be used only for CG or CB algorithms.");
@@ -294,7 +292,7 @@ double volume (Rcpp::Reference P,
                     return volume_cooling_hpoly<BilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
                 }
             }
-            return generic_volume(ZP, rng, walkL, e, CG, CB, win_len, round,
+            return generic_volume(ZP, rng, walkL, e, CG, CB, win_len, rounding,
                                              cdhr, rdhr, ball_walk, billiard, type_num);
         }
         case 4: {

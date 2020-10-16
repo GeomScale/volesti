@@ -696,7 +696,7 @@ template
 >
 double volume_cooling_balls(Polytope const& Pin,
                             RandomNumberGenerator &rng,
-                            double const& error = 1.0,
+                            double const& error = 0.1,
                             unsigned int const& walk_length = 1,
                             unsigned int const& win_len = 250)
 {
