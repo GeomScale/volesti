@@ -248,11 +248,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Reference P,
         if (gaussian) throw Rcpp::exception("Gaussian sampling from the boundary is not supported!");
         rdhr = true;
         boundary = true;
-    }else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BCDHR")) == 0) {
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BCDHR")) == 0) {
         if (gaussian) throw Rcpp::exception("Gaussian sampling from the boundary is not supported!");
         cdhr = true;
         boundary = true;
-    }else {
+    } else {
         throw Rcpp::exception("Unknown walk type!");
     }
 

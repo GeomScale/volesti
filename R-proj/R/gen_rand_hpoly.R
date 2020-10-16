@@ -33,7 +33,7 @@ gen_rand_hpoly <- function(dimension, nfacets, generator = list('generator' = 's
   
   # first column is the vector b
   b = Mat[, 1]
-  Mat = Mat[, c(1), drop = FALSE]
+  Mat = Mat[, -c(1), drop = FALSE]
   
   P = Hpolytope(A = Mat, b = b)
   

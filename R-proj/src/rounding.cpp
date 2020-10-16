@@ -23,13 +23,16 @@
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
+//' @param settings A list to set the random walk and its walk length
 //' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @keywords internal
 //'
 //' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 // [[Rcpp::export]]
-Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue){
+Rcpp::List rounding (Rcpp::Reference P,
+                     Rcpp::Nullable<Rcpp::List> settings = R_NilValue,
+                     Rcpp::Nullable<double> seed = R_NilValue){
 
     typedef double NT;
     typedef Cartesian<NT>    Kernel;
@@ -41,7 +44,7 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
-    bool cdhr = false;
+    bool cdhr = false, rdhr = false;
     unsigned int n, walkL, type_num;
 
     std::string type = Rcpp::as<std::string>(P.slot("type"));
@@ -74,17 +77,37 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
     std::pair <Point, NT> InnerBall;
     Rcpp::NumericMatrix Mat;
 
-    if (type_num == 1) {
-        walkL = 10 + 10*n;
+    if (!settings.isNotNull() || !Rcpp::as<Rcpp::List>(settings).containsElementNamed("random_walk")) {
+        if (type_num == 1) {
+            walkL = 10 + 10 * n;
+            cdhr = true;
+        } else {
+            walkL = 2;
+        }
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("CDHR")) == 0) {
+        walkL = 10 + 10 * n;
         cdhr = true;
-    } else {
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("BiW")) == 0) {
         walkL = 2;
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(settings)["random_walk"]).compare(std::string("RDHR")) == 0) {
+        walkL = 10 + 10 * n;
+        rdhr = true;
+    } else {
+        throw Rcpp::exception("Unknown walk type!");
+    }
+
+    if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("walk_length")) {
+        walkL = Rcpp::as<int>(Rcpp::as<Rcpp::List>(settings)["walk_length"]);
+        if (walkL <= 0) {
+            throw Rcpp::exception("The walk length has to be a positive integer!");
+        }
     }
 
     switch (type_num) {
         case 1: {
             // Hpolytope
             HP.init(n, Rcpp::as<MT>(P.slot("A")), Rcpp::as<VT>(P.slot("b")));
+            HP.normalize();
             InnerBall = HP.ComputeInnerBall();
             break;
         }
@@ -110,6 +133,8 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
         case 1: {
             if (cdhr) {
                 round_res = round_polytope<CDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
+            } else if(rdhr) {
+                round_res = round_polytope<RDHRWalk, MT, VT>(HP, InnerBall, walkL, rng);
             } else {
                 round_res = round_polytope<BilliardWalk, MT, VT>(HP, InnerBall, walkL, rng);
             }
@@ -119,6 +144,8 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
         case 2: {
             if (cdhr) {
                 round_res = round_polytope<CDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
+            } else if(rdhr) {
+                round_res = round_polytope<RDHRWalk, MT, VT>(VP, InnerBall, walkL, rng);
             } else {
                 round_res = round_polytope<BilliardWalk, MT, VT>(VP, InnerBall, walkL, rng);
             }
@@ -128,6 +155,8 @@ Rcpp::List rounding (Rcpp::Reference P, Rcpp::Nullable<double> seed = R_NilValue
         case 3: {
             if (cdhr) {
                 round_res = round_polytope<CDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
+            } else if (rdhr) {
+                round_res = round_polytope<RDHRWalk, MT, VT>(ZP, InnerBall, walkL, rng);
             } else {
                 round_res = round_polytope<BilliardWalk, MT, VT>(ZP, InnerBall, walkL, rng);
             }

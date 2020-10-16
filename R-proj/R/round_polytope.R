@@ -3,7 +3,12 @@
 #' Given a convex H or V polytope or a zonotope as input this function brings the polytope in rounded position based on minimum volume enclosing ellipsoid of a pointset.
 #' 
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.
-#' @param seed Optional. A fixed seed for the number generator.
+#' @param settings Optional. A list to parameterize the method by the random walk. 
+#' \itemize{
+#' \item{\code{random_walk} }{  The random walk to sample uniformly distributed points: (a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, (b) \code{'RDHR'} for Random Directions Hit-and-Run or (c) \code{'BiW'} for Billiard walk. The default random walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the rest of the representations.}
+#' \item{\code{walk_length} }{ The walk length of the random walk. The default value is \eqn{10 + 10d} for \code{'CDHR'} or \code{'RDHR'} and 2 for \code{'BiW'}.}
+#' \item{\code{seed} }{ Optional. A fixed seed for the number generator.}
+#' }
 #' 
 #' @return A list with 4 elements: (a) a polytope of the same class as the input polytope class and (b) the element "T" which is the matrix of the inverse linear transformation that is applied on the input polytope, (c)  the element "shift" which is the opposite vector of that which has shifted the input polytope, (d) the element "round_value" which is the determinant of the square matrix of the linear transformation that is applied on the input polytope.
 #'
@@ -27,9 +32,14 @@
 #' Z = gen_rand_zonotope(2,6)
 #' ListZono = round_polytope(Z)
 #' @export
-round_polytope <- function(P, seed = NULL){
+round_polytope <- function(P, settings = list()){
   
-  ret_list = rounding(P, seed)
+  seed = NULL
+  if (!is.null(settings$seed)) {
+    seed = settings$seed
+  }
+  
+  ret_list = rounding(P, settings, seed)
   
   #get the matrix that describes the polytope
   Mat = ret_list$Mat

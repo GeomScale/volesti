@@ -70,6 +70,7 @@ round_polytope(Polytope &P,
             for (i=0 ; i<rpit->dimension(); i++){
                 Ap(i,j)=double((*rpit)[i]);
             }
+            std::cout<<(*rpit).getCoefficients().transpose()<<std::endl;
         }
         boost::numeric::ublas::matrix<double> Q(d,d); //TODO: remove dependence on ublas and copy to eigen
         boost::numeric::ublas::vector<double> c2(d);
@@ -107,6 +108,7 @@ round_polytope(Polytope &P,
         T = T * L_1.transpose();
 
         P.linear_transformIt(L_1.transpose());
+        P.normalize();
         InnerBall = P.ComputeInnerBall();
         round_val *= L_1.determinant();
         ratio = Rel / rel;
