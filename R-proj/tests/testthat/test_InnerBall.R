@@ -45,32 +45,6 @@ test_that("Chebychev test", {
 })
 
 test_that("Chebychev test", {
-  P = file_to_polytope(paste0(path,'/birk3.ine'))
-  res = runCheTest(P, 'H-birk3', 0.207107, tol)
-  expect_equal(res, 1)
-})
-
-
-test_that("Chebychev test", {
-  P = file_to_polytope(paste0(path,'/birk4.ine'))
-  res = runCheTest(P, 'H-birk4', 0.122008, tol)
-  expect_equal(res, 1)
-})
-
-
-test_that("Chebychev test", {
-  P = file_to_polytope(paste0(path,'/birk5.ine'))
-  res = runCheTest(P, 'H-birk5', 0.0833333, tol)
-  expect_equal(res, 1)
-})
-
-test_that("Chebychev test", {
-  P= file_to_polytope(paste0(path,'/birk6.ine'))
-  res = runCheTest(P, 'H-birk6', 0.0618034, tol)
-  expect_equal(res, 1)
-})
-
-test_that("Chebychev test", {
   P = gen_prod_simplex(5)
   res = runCheTest(P, 'H-prod_simplex_5_5', 0.138197, tol)
   expect_equal(res, 1)
