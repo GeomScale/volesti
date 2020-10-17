@@ -24,10 +24,10 @@ gen_rand_hpoly <- function(dimension, nfacets, generator = list('constants' = 's
   
   if (is.null(generator$constants)) {
     kind_gen = 6
-  } else if (generator$constants == 'ball'){
-    kind_gen = 7
-  } else if (generator$constants == 'uniform') {
+  } else if (generator$constants == 'sphere'){
     kind_gen = 6
+  } else if (generator$constants == 'uniform') {
+    kind_gen = 7
   } else {
     stop("Wrong generator!")
   }

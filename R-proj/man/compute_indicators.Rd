@@ -33,7 +33,7 @@ In particular, the periods over which the indicator is greater than 1 for more t
 \examples{
 # simple example on random asset returns
 asset_returns = replicate(10, rnorm(14))
-market_states_and_indicators = compute_indicators(asset_returns, 10, 10, 10000, 2, 3)
+market_states_and_indicators = compute_indicators(asset_returns,  parameters = list("win_length" = 10, "m" = 10, "n" = 10000, "nwarning" = 2, "ncrisis" = 3))
 
 }
 \references{
