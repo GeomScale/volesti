@@ -12,9 +12,9 @@ An H-polytope is a convex polytope defined by a set of linear inequalities or eq
 \describe{
    \item{A}{An \eqn{m\times d} numerical matrix.}
 
-\item{b}{An \eqn{m}-dimensional vector b.}
+   \item{b}{An \eqn{m}-dimensional vector b.}
 
-\item{volume}{The volume of the polytope if it is known, \eqn{NaN} otherwise by default.}
+   \item{volume}{The volume of the polytope if it is known, \eqn{NaN} otherwise by default.}
    
    \item{type}{A character with default value 'Hpolytope', to declare the representation of the polytope.}
 }

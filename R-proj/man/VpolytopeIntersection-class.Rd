@@ -14,7 +14,7 @@ An intersection of two V-polytopes is defined by the intersection of the two cor
    
    \item{V2}{An \eqn{q\times d} numerical matrix that contains the vertices of the second V-polytope (row-wise).}
 
-\item{volume}{The volume of the polytope if it is known, \eqn{NaN} otherwise by default.}
+   \item{volume}{The volume of the polytope if it is known, \eqn{NaN} otherwise by default.}
    
    \item{type}{A character with default value 'VpolytopeIntersection', to declare the representation of the polytope.}
 }

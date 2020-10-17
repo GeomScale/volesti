@@ -4,25 +4,29 @@
 #' 
 #' @param dimension The dimension of the convex polytope.
 #' @param nfacets The number of the facets.
-#' @param generator A list that could contain two elements: (a) 'generator', the constants \eqn{b_i} for each facets from: (i) 'sphere' from the surface of the unit hypersphere, (ii) 'ball' the interior of the unit hypersphere, the defalut value is 'sphere', and (b) 'seed' to set a spesific seed for the number generator.
-#' 
+#' @param generator A list that could contain two elements.
+#' \itemize{
+#' \item{constants }{ To declare how to set the constants \eqn{b_i} for each facets: (i) 'sphere', each hyperplane is tangent to the hypersphere of radius 10, (ii) 'uniform' for each \eqn{b_i} the generator picks a uniform number from \eqn{(0,1)}. The defalut value is 'sphere'.}
+#' \item{seed }{ Optional. A fixed seed for the number generator.}
+#' }
+#'  
 #' @return A polytope class representing a H-polytope.
 #' @examples 
 #' # generate a 10-dimensional polytope with 50 facets
 #' P = gen_rand_hpoly(10, 50)
 #' @export
-gen_rand_hpoly <- function(dimension, nfacets, generator = list('generator' = 'sphere')) {
+gen_rand_hpoly <- function(dimension, nfacets, generator = list('constants' = 'sphere')) {
   
   seed = NULL
   if (!is.null(generator$seed)) {
     seed = generator$seed
   }
   
-  if (is.null(generator$generator)) {
+  if (is.null(generator$constants)) {
     kind_gen = 6
-  } else if (generator$generator == 'ball'){
+  } else if (generator$constants == 'ball'){
     kind_gen = 7
-  } else if (generator$generator == 'sphere') {
+  } else if (generator$constants == 'uniform') {
     kind_gen = 6
   } else {
     stop("Wrong generator!")

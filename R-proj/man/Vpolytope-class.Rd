@@ -12,7 +12,7 @@ A V-polytope is a convex polytope defined by the set of its vertices.
 \describe{
    \item{V}{An \eqn{m\times d} numerical matrix that contains the vertices row-wise.}
 
-\item{volume}{The volume of the polytope if it is known, \eqn{NaN} otherwise by default.}
+   \item{volume}{The volume of the polytope if it is known, \eqn{NaN} otherwise by default.}
    
    \item{type}{A character with default value 'Vpolytope', to declare the representation of the polytope.}
 }

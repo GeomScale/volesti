@@ -12,7 +12,7 @@ A zonotope is a convex polytope defined by the Minkowski sum of \eqn{m} \eqn{d}-
 \describe{
    \item{G}{An \eqn{m\times d} numerical matrix that contains the segments (or generators) row-wise}
 
-\item{volume}{The volume of the polytope if it is known, \eqn{NaN} otherwise by default.}
+   \item{volume}{The volume of the polytope if it is known, \eqn{NaN} otherwise by default.}
    
    \item{type}{A character with default value 'Zonotope', to declare the representation of the polytope.}
 }
