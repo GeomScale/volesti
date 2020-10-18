@@ -521,7 +521,7 @@ def gmscale(A, iprint, scltol):
       print('\n  Row %6g %9.1e    Row %6g %9.1e' %(imin[0], rmin, imax[0], rmax))   
       print('\n  Row %6g %9.1e    Row %6g %9.1e' %(jmin[0], cmin, jmax[0], cmax))  
 
-   return 
+   return cscale, rscale
 
 
 ################################################################################
