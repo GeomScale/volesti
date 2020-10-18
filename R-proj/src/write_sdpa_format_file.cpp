@@ -25,8 +25,8 @@
 //' to a SDPA format file.
 //'
 //' @param spectrahedron A spectrahedron in n dimensions; must be an object of class Spectrahedron
-//' @param objectiveFunction A numerical vector of length n
-//' @param outputFile Name of the output file
+//' @param objective_function A numerical vector of length n
+//' @param output_file Name of the output file
 //'
 //' @examples
 //' \dontrun{
@@ -34,15 +34,15 @@
 //' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 //' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
 //' lmi = list(A0, A1, A2)
-//' S = Spectrahedron(matrices = lmi);
+//' S = Spectrahedron(matrices = lmi)
 //' objFunction = c(1,1)
-//' writeSdpaFormatFile(S, objFunction, "output.txt")
+//' write_sdpa_format_file(S, objFunction, "output.txt")
 //' }
 //' @export
 // [[Rcpp::export]]
-void writeSdpaFormatFile(Rcpp::Reference spectrahedron,
-                         Rcpp::NumericVector objectiveFunction,
-                         std::string outputFile) {
+void write_sdpa_format_file(Rcpp::Reference spectrahedron,
+                            Rcpp::NumericVector objective_function,
+                            std::string output_file) {
 
     typedef double NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
@@ -56,10 +56,10 @@ void writeSdpaFormatFile(Rcpp::Reference spectrahedron,
     std::vector<MT> matrices = Rcpp::as<std::vector<MT> > (spectrahedron.slot("matrices"));
     LMI lmi(matrices);
     Spectrahedron _spectrahedron(lmi);
-    Point c(Rcpp::as<VT> (objectiveFunction));
+    Point c(Rcpp::as<VT> (objective_function));
 
     std::filebuf fb;
-    fb.open(outputFile, std::ios::out);
+    fb.open(output_file, std::ios::out);
     std::ostream os(&fb);
 
     SdpaFormatManager<NT> sdpaFormatManager;
