@@ -4,7 +4,9 @@ import numpy as np
 import gurobipy as gp
 from volestipy import *
 import matplotlib.pyplot as plt
-import sys
+import sys, datetime
+
+start = datetime.datetime.now()
 
 # Set a variable with the input / metabolic network file
 input_file = '../../bigg_files/e_coli_core.json'
@@ -88,3 +90,8 @@ print("minimum values of each flux")
 print(min_fluxes)
 print("maximum values of each flux")
 print(max_fluxes)
+
+end = datetime.datetime.now()
+total_time = end - start
+print("Script totally ran for :", total_time)
+

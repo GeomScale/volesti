@@ -16,10 +16,10 @@ read_ecoli_core = read_json_file(input_file)
 
 # Pre-process it
 A = read_ecoli_core[0]
-print(A)
 b = read_ecoli_core[1]
 Aeq = read_ecoli_core[2]
 beq = read_ecoli_core[3]
+print(Aeq.shape)
 
 
 # Pre-process it
@@ -31,6 +31,7 @@ Aeq_proc = proc[2]
 beq_proc = proc[3]
 min_fluxes = proc[4]
 max_fluxes = proc[5]
+print(Aeq_proc.shape)
 
 # Get an object for the low_dim_HPolytope class for the pre-processed polytope
 low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
