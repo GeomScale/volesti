@@ -101,10 +101,11 @@ Rcpp::NumericMatrix poly_gen (int kind_gen, bool Vpoly_gen, bool Zono_gen, int d
 
             case 6:
                 return extractMatPoly(random_hpoly<Hpolytope, RNGType>(dim_gen, m_gen, seed2));
-
+                
+            case 7:
+                return extractMatPoly(random_hpoly_ball<Hpolytope, RNGType>(dim_gen, m_gen, seed2));
         }
     }
 
     throw Rcpp::exception("Wrong inputs!");
-
 }

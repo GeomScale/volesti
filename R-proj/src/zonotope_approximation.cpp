@@ -41,7 +41,15 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
     typedef Zonotope <Point> zonotope;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    int n = Rcpp::as<int>(Z.field("dimension")), k = Rcpp::as<MT>(Z.field("G")).rows(), win_len = 200, walkL = 1;
+    int n, k = Rcpp::as<MT>(Z.slot("G")).rows(), win_len = 250, walkL = 1;
+
+    std::string type = Rcpp::as<std::string>(Z.slot("type"));
+
+    if (type.compare(std::string("Zonotope")) == 0) {
+        n = Rcpp::as<MT>(Z.slot("G")).cols();
+    } else {
+        throw Rcpp::exception("This is not a zonotope.");
+    }
 
     RNGType rng(n);
     if (seed.isNotNull()) {
@@ -53,10 +61,10 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
     bool hpoly = false;
 
     MT X(n, 2 * k);
-    X << Rcpp::as<MT>(Z.field("G")).transpose(), -Rcpp::as<MT>(Z.field("G")).transpose();
+    X << Rcpp::as<MT>(Z.slot("G")).transpose(), -Rcpp::as<MT>(Z.slot("G")).transpose();
     Eigen::JacobiSVD <MT> svd(X * X.transpose(), Eigen::ComputeFullU | Eigen::ComputeFullV);
     MT G(k, 2 * n);
-    G << Rcpp::as<MT>(Z.field("G")) * svd.matrixU(), Rcpp::as<MT>(Z.field("G")) * svd.matrixU();
+    G << Rcpp::as<MT>(Z.slot("G")) * svd.matrixU(), Rcpp::as<MT>(Z.slot("G")) * svd.matrixU();
     VT Gred_ii = G.transpose().cwiseAbs().rowwise().sum();
     MT A(n, 2 * n);
     A << -MT::Identity(n, n), MT::Identity(n, n);
@@ -80,7 +88,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
                 Rcpp::as<Rcpp::List>(settings)["win_len"]);
 
         zonotope ZP;
-        ZP.init(n, Rcpp::as<MT>(Z.field("G")), VT::Ones(Rcpp::as<MT>(Z.field("G")).rows()));
+        ZP.init(n, Rcpp::as<MT>(Z.slot("G")), VT::Ones(Rcpp::as<MT>(Z.slot("G")).rows()));
 
         if (Rcpp::as<Rcpp::List>(settings).containsElementNamed("hpoly")) {
             hpoly = Rcpp::as<bool>(Rcpp::as<Rcpp::List>(settings)["hpoly"]);
@@ -100,5 +108,4 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
     }
 
     return Rcpp::List::create(Rcpp::Named("Mat") = Rcpp::wrap(Mat), Rcpp::Named("fit_ratio") = ratio);
-
 }

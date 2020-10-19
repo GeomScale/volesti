@@ -28,9 +28,9 @@
 //' \item{\code{type} }{ A string that declares the type of the body for the exact sampling: a) \code{'unit_simplex'} for the unit simplex, b) \code{'canonical_simplex'} for the canonical simplex, c) \code{'hypersphere'} for the boundary of a hypersphere centered at the origin, d) \code{'ball'} for the interior of a hypersphere centered at the origin.}
 //' \item{\code{dimension} }{ An integer that declares the dimension when exact sampling is enabled for a simplex or a hypersphere.}
 //' \item{\code{radius} }{ The radius of the \eqn{d}-dimensional hypersphere. The default value is \eqn{1}.}
+//' \item{\code{seed} }{ A fixed seed for the number generator.}
 //' }
 //' @param n The number of points that the function is going to sample.
-//' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @references \cite{R.Y. Rubinstein and B. Melamed,
 //' \dQuote{Modern simulation and modeling} \emph{ Wiley Series in Probability and Statistics,} 1998.}
@@ -43,9 +43,7 @@
 //' points = direct_sampling(n = 100, body = list("type" = "ball", "dimension" = 2))
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body,
-                                    Rcpp::Nullable<unsigned int> n,
-                                    Rcpp::Nullable<double> seed = R_NilValue) {
+Rcpp::NumericMatrix direct_sampling(Rcpp::List body, int n) {
 
     typedef double NT;
     typedef Cartesian <NT> Kernel;
@@ -59,54 +57,50 @@ Rcpp::NumericMatrix direct_sampling(Rcpp::Nullable<Rcpp::List> body,
     NT radius = 1.0;
     std::list<Point> randPoints;
 
-    if (!Rcpp::as<Rcpp::List>(body).containsElementNamed("dimension")) {
+    if (!body.containsElementNamed("dimension")) {
         throw Rcpp::exception("Dimension has to be given as input!");
     }
-    dim = Rcpp::as<int>(Rcpp::as<Rcpp::List>(body)["dimension"]);
+    dim = Rcpp::as<int>(body["dimension"]);
     if (dim <=1) throw Rcpp::exception("Dimension has to be larger than 1!");
-    RNGType rng(dim);
 
-    if (seed.isNotNull()) {
-        unsigned seed2 = Rcpp::as<double>(seed);
+    RNGType rng(dim);
+    if (body.containsElementNamed("seed")) {
+        unsigned seed2 = Rcpp::as<double>(body["seed"]);
         rng.set_seed(seed2);
     }
-    double seed3 = (!seed.isNotNull()) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(seed);
-    //RNGType rng2(5);
+    double seed3 = (!body.containsElementNamed("seed")) ? std::numeric_limits<double>::signaling_NaN() : Rcpp::as<double>(body["seed"]);
 
-    numpoints = (!n.isNotNull()) ? 100 : Rcpp::as<unsigned int>(n);
-
-    numpoints = Rcpp::as<unsigned int>(n);
+    numpoints = n;
     if (numpoints <= 0) throw Rcpp::exception("The number of samples has to be a positice integer!");
 
+    if (body.containsElementNamed("radius")) {
 
-    if (Rcpp::as<Rcpp::List>(body).containsElementNamed("radius")) {
-
-        radius = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(body)["radius"]);
+        radius = Rcpp::as<NT>(body["radius"]);
         if (radius <= NT(0)) throw Rcpp::exception("Radius has to be a positive number!");
 
     }
-    if (!Rcpp::as<Rcpp::List>(body).containsElementNamed("type")) {
+    if (!body.containsElementNamed("type")) {
 
         throw Rcpp::exception("The kind of body has to be given as input!");
 
     }
-    if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("hypersphere"))==0) {
+    if (Rcpp::as<std::string>(body["type"]).compare(std::string("hypersphere"))==0) {
 
         for (unsigned int k = 0; k < numpoints; ++k) {
             randPoints.push_back(GetPointOnDsphere<Point>::apply(dim, radius, rng));
         }
 
-    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("ball"))==0) {
+    } else if (Rcpp::as<std::string>(body["type"]).compare(std::string("ball"))==0) {
 
         for (unsigned int k = 0; k < numpoints; ++k) {
             randPoints.push_back(GetPointInDsphere<Point>::apply(dim, radius, rng));
         }
 
-    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("unit_simplex"))==0) {
+    } else if (Rcpp::as<std::string>(body["type"]).compare(std::string("unit_simplex"))==0) {
 
         Sam_Unit<NT, RNGType2 >(dim, numpoints, randPoints, seed3);
 
-    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(body)["type"]).compare(std::string("canonical_simplex"))==0) {
+    } else if (Rcpp::as<std::string>(body["type"]).compare(std::string("canonical_simplex"))==0) {
 
         Sam_Canon_Unit<NT, RNGType2 >(dim, numpoints, randPoints, seed3);
 

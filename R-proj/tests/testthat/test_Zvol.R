@@ -8,9 +8,9 @@ Zruntest <- function(P, name_string, tol, num_of_exps, algo, seed){
   vol = 0
   for (j in 1:num_of_exps) {
     if (algo == "CB") {
-      vol = vol + volume(P, settings = list("hpoly" = FALSE), rounding = FALSE, seed = seed)
+      vol = vol + volume(P, settings = list("hpoly" = FALSE, "seed" = seed), rounding = FALSE)
     } else {
-      vol = vol + volume(P, settings = list("algorithm" = "CG", "error" = 0.1), rounding = FALSE, seed = seed)
+      vol = vol + volume(P, settings = list("algorithm" = "CG", "error" = 0.1, "seed" = seed), rounding = FALSE)
     }
   }
   vol = vol / num_of_exps
@@ -36,8 +36,7 @@ for (i in 1:2) {
   }
 
   test_that("Volume Zonotope_2_4", {
-    #skip_if(Sys.info()[["machine"]] %in% c("x86_32"))
-    Z = gen_rand_zonotope(2, 4, seed = 127)
+    Z = gen_rand_zonotope(2, 4, generator = list("seed" = 5))
     res = Zruntest(Z, 'Zonotope_2_4', tol, num_of_exps, algo, 5)
     expect_equal(res, 1)
   })

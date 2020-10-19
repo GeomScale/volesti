@@ -45,17 +45,34 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
 
     MT TransorfMat;
     Rcpp::NumericMatrix Mat;
-    unsigned int n = P.field("dimension"), type = P.field("type");
+    unsigned int n, type_num;
+
+    std::string type = Rcpp::as<std::string>(P.slot("type"));
+
+    if (type.compare(std::string("Hpolytope")) == 0) {
+        n = Rcpp::as<MT>(P.slot("A")).cols();
+        type_num = 1;
+    } else if (type.compare(std::string("Vpolytope")) == 0) {
+        n = Rcpp::as<MT>(P.slot("V")).cols();
+        type_num = 2;
+    } else if (type.compare(std::string("Zonotope")) == 0) {
+        n = Rcpp::as<MT>(P.slot("G")).cols();
+        type_num = 3;
+    } else if (type.compare(std::string("VpolytopeIntersection")) == 0) {
+        throw Rcpp::exception("volesti does not support roatation of this kind of representation.");
+    } else {
+        throw Rcpp::exception("Unknown polytope representation!");
+    }
 
     int seed2 = (!seed.isNotNull()) ? std::chrono::system_clock::now()
                                       .time_since_epoch().count()
                                     : Rcpp::as<int>(seed);
 
-    switch (type) {
+    switch (type_num) {
         case 1: {
             // Hpolytope
             Hpolytope HP;
-            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            HP.init(n, Rcpp::as<MT>(P.slot("A")), Rcpp::as<VT>(P.slot("b")));
             if (T.isNotNull()) {
                 TransorfMat = Rcpp::as<MT>(T);
                 HP.linear_transformIt(TransorfMat.inverse());
@@ -68,7 +85,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
         case 2: {
             // Vpolytope
             Vpolytope VP;
-            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            VP.init(n, Rcpp::as<MT>(P.slot("V")), VT::Ones(Rcpp::as<MT>(P.slot("V")).rows()));
             if (T.isNotNull()) {
                 TransorfMat = Rcpp::as<MT>(T);
                 VP.linear_transformIt(TransorfMat.inverse());
@@ -81,7 +98,7 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
         case 3: {
             // Zonotope
             zonotope ZP;
-            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            ZP.init(n, Rcpp::as<MT>(P.slot("G")), VT::Ones(Rcpp::as<MT>(P.slot("G")).rows()));
             if (T.isNotNull()) {
                 TransorfMat = Rcpp::as<MT>(T);
                 ZP.linear_transformIt(TransorfMat.inverse());
@@ -96,12 +113,9 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
         }
     }
 
-
-
     TransorfMat.conservativeResize(n+1, n);
     TransorfMat.row(n) = VT::Ones(n);
     MT res(TransorfMat.rows(), Rcpp::as<MT>(Mat).rows()+n);
     res << Rcpp::as<MT>(Mat).transpose(), TransorfMat;
     return Rcpp::wrap(res);
-
 }

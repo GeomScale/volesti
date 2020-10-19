@@ -19,10 +19,10 @@ gen_prod_simplex <- function(dimension) {
   Mat = poly_gen(kind_gen, Vpoly_gen, FALSE, dimension, m_gen)
 
   # first column is the vector b
-  b = Mat[,1]
-  Mat = Mat[,-c(1)]
+  b = Mat[, 1]
+  Mat = Mat[, -c(1), drop = FALSE]
   
-  P = Hpolytope$new(-Mat, b, (1/prod(1:dimension))^2)
+  P = Hpolytope(A = -Mat, b = b, volume = (1/prod(1:dimension))^2)
   
   return(P)
   

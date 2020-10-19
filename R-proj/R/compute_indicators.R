@@ -5,12 +5,15 @@
 #' In particular, the periods over which the indicator is greater than 1 for more than 60 consecutive sliding windows are warnings and for more than 100 are crisis. The sliding window is shifted by one day.
 #'
 #' @param returns A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.
-#' @param win_length Optional. The length of the sliding window. The default value is 60.
-#' @param m Optional. The number of slices for the copula. The default value is 100.
-#' @param n Optional. The number of points to sample. The default value is \eqn{5\cdot 10^5}.
-#' @param nwarning Optional. The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.
-#' @param ncrisis Optional. The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.
-#' @param seed Optional. A fixed seed for the number generator.
+#' @param parameters A list to set a parameterization.
+#' \itemize{
+#' \item{win_length }{ The length of the sliding window. The default value is 60.}
+#' \item{m } { The number of slices for the copula. The default value is 100.}
+#' \item{n }{ The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
+#' \item{nwarning }{ The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.}
+#' \item{ncrisis }{ The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.}
+#' \item{seed }{ A fixed seed for the number generator.}
+#' }
 #'
 #' @references \cite{L. Cales, A. Chalkis, I.Z. Emiris, V. Fisikopoulos,
 #' \dQuote{Practical volume computation of structured convex bodies, and an application to modeling portfolio dependencies and financial crises,} \emph{Proc. of Symposium on Computational Geometry, Budapest, Hungary,} 2018.}
@@ -20,16 +23,42 @@
 #' @examples 
 #' # simple example on random asset returns
 #' asset_returns = replicate(10, rnorm(14))
-#' market_states_and_indicators = compute_indicators(asset_returns, 10, 10, 10000, 2, 3)
+#' market_states_and_indicators = compute_indicators(asset_returns,
+#'     parameters = list("win_length" = 10, "m" = 10, "n" = 10000, "nwarning" = 2, "ncrisis" = 3))
 #'
 #' @export
-compute_indicators <- function(returns, win_length = NULL, m = NULL, n = NULL, nwarning = NULL, ncrisis = NULL, seed = NULL) {
+#' @useDynLib volesti, .registration=TRUE
+#' @importFrom Rcpp evalCpp
+#' @importFrom Rcpp loadModule
+#' @importFrom "utils" "read.csv"
+#' @importFrom "stats" "cov"
+#' @importFrom "methods" "new"
+compute_indicators <- function(returns, parameters = list("win_length" = 60, "m" = 100, "n" = 500000, "nwarning" = 60, "ncrisis" = 100)) {
   
-  if (is.null(win_length)) win_length = 60
-  if (is.null(m)) m = 100
-  if (is.null(n)) n = 500000
-  if (is.null(nwarning)) nwarning = 60
-  if (is.null(ncrisis)) ncrisis = 100
+  win_length = 60
+  if (!is.null(parameters$win_length)) {
+    win_length = parameters$win_length
+  }
+  m=100
+  if (!is.null(parameters$m)){
+    m = parameters$m
+  }
+  n = 500000
+  if (!is.null(parameters$n)){
+    n = parameters$n
+  }
+  nwarning = 60
+  if (!is.null(parameters$nwarning)) {
+    nwarning = parameters$nwarning
+  }
+  ncrisis = 100
+  if (!is.null(parameters$ncrisis)) {
+    ncrisis = parameters$ncrisis
+  }
+  seed = NULL
+  if (!is.null(parameters$seed)) {
+    seed = parameters$seed
+  }
   
   nrows = dim(returns)[1]
   nassets = dim(returns)[2]

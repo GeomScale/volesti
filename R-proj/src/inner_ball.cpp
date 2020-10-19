@@ -44,22 +44,39 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
     typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    unsigned int n = P.field("dimension"), type = P.field("type");
+
+    unsigned int n, type_num;
+    std::string type = Rcpp::as<std::string>(P.slot("type"));
+
+    if (type.compare(std::string("Hpolytope")) == 0) {
+        n = Rcpp::as<MT>(P.slot("A")).cols();
+        type_num = 1;
+    } else if (type.compare(std::string("Vpolytope")) == 0) {
+        n = Rcpp::as<MT>(P.slot("V")).cols();
+        type_num = 2;
+    } else if (type.compare(std::string("Zonotope")) == 0) {
+        n = Rcpp::as<MT>(P.slot("G")).cols();
+        type_num = 3;
+    } else if (type.compare(std::string("VpolytopeIntersection")) == 0) {
+        n = Rcpp::as<MT>(P.slot("V1")).cols();
+        type_num = 4;
+    } else {
+        throw Rcpp::exception("Unknown polytope representation!");
+    }
 
     std::pair <Point, NT> InnerBall;
-
-    switch (type) {
+    switch (type_num) {
         case 1: {
             // Hpolytope
             Hpolytope HP;
-            HP.init(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
+            HP.init(n, Rcpp::as<MT>(P.slot("A")), Rcpp::as<VT>(P.slot("b")));
             InnerBall = HP.ComputeInnerBall();
             break;
         }
         case 2: {
             // Vpolytope
             Vpolytope VP;
-            VP.init(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
+            VP.init(n, Rcpp::as<MT>(P.slot("V")), VT::Ones(Rcpp::as<MT>(P.slot("V")).rows()));
             InnerBall = VP.ComputeInnerBall();
             break;
         }
@@ -67,7 +84,7 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
             // Zonotope
             zonotope ZP;
             InnerBall = ZP.ComputeInnerBall();
-            ZP.init(n, Rcpp::as<MT>(P.field("G")), VT::Ones(Rcpp::as<MT>(P.field("G")).rows()));
+            ZP.init(n, Rcpp::as<MT>(P.slot("G")), VT::Ones(Rcpp::as<MT>(P.slot("G")).rows()));
             InnerBall = ZP.ComputeInnerBall();
             break;
         }
@@ -76,8 +93,8 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
             Vpolytope VP1;
             Vpolytope VP2;
             InterVP VPcVP;
-            VP1.init(n, Rcpp::as<MT>(P.field("V1")), VT::Ones(Rcpp::as<MT>(P.field("V1")).rows()));
-            VP2.init(n, Rcpp::as<MT>(P.field("V2")), VT::Ones(Rcpp::as<MT>(P.field("V2")).rows()));
+            VP1.init(n, Rcpp::as<MT>(P.slot("V1")), VT::Ones(Rcpp::as<MT>(P.slot("V1")).rows()));
+            VP2.init(n, Rcpp::as<MT>(P.slot("V2")), VT::Ones(Rcpp::as<MT>(P.slot("V2")).rows()));
             VPcVP.init(VP1, VP2);
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
             InnerBall = VPcVP.ComputeInnerBall();
@@ -92,5 +109,4 @@ Rcpp::NumericVector inner_ball(Rcpp::Reference P) {
 
     vec[n] = InnerBall.second;
     return vec;
-
 }

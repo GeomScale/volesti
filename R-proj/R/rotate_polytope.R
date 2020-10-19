@@ -3,8 +3,7 @@
 #' Given a convex H- or V- polytope or a zonotope or an intersection of two V-polytopes as input, this function applies (a) a random rotation or (b) a given rotation by an input matrix \eqn{T}.
 #' 
 #' @param P A convex polytope. It is an object from class (a) Hpolytope, (b) Vpolytope, (c) Zonotope, (d) intersection of two V-polytopes.
-#' @param T Optional. A \eqn{d\times d} rotation matrix.
-#' @param seed Optional. A fixed seed for the random linear map generator.
+#' @param rotation A list that contains (a) the rotation matrix T and (b) the 'seed' to set a spesific seed for the number generator.
 #' 
 #' @return A list that contains the rotated polytope and the matrix \eqn{T} of the linear transformation.
 #'
@@ -17,7 +16,7 @@
 #' }
 #' @examples
 #' # rotate a H-polytope (2d unit simplex)
-#' P = gen_simplex(2,'H')
+#' P = gen_simplex(2, 'H')
 #' poly_matrix_list = rotate_polytope(P)
 #' 
 #' # rotate a V-polytope (3d cube)
@@ -25,33 +24,52 @@
 #' poly_matrix_list = rotate_polytope(P)
 #' 
 #' # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
-#' Z = gen_rand_zonotope(3,6)
+#' Z = gen_rand_zonotope(3, 6)
 #' poly_matrix_list = rotate_polytope(Z)
 #' @export
-rotate_polytope <- function(P, T = NULL, seed = NULL){
+rotate_polytope <- function(P, rotation = list()) {
+  
+  seed = NULL
+  if (!is.null(rotation$seed)) {
+    seed = rotation$seed
+  }
+  
+  if (is.null(rotation$T)) {
+    T = NULL
+  } else {
+    T = rotation$T
+  }
   
   #call rcpp rotating function
   Mat = rotating(P, T, seed)
   
-  n = P$dimension
-  m=dim(Mat)[2]-n
-  Tr = Mat[,-c(1:(dim(Mat)[2]-n))]
+  type = P@type
+  
+  if (type == 'Vpolytope') {
+    n = dim(P@V)[2]
+  }else if (type == 'Zonotope') {
+    n = dim(P@G)[2]
+  } else {
+    n = dim(P@A)[2]
+  }
+  
+  m = dim(Mat)[2] - n
+  Tr = Mat[, -c(1:(dim(Mat)[2]-n)), drop = FALSE]
   Tr = Tr[1:n, 1:n]
-  Mat = t(Mat[,1:m])
+  Mat = t(Mat[, 1:m])
   
   # first column is the vector b
-  b = Mat[,1]
+  b = Mat[, 1]
   
   # remove first column
-  A = Mat[,-c(1)]
+  A = Mat[, -c(1), drop = FALSE]
   
-  type = P$type
-  if (type == 2) {
-    PP = Vpolytope$new(A)
-  }else if (type == 3) {
-    PP = Zonotope$new(A)
+  if (type == 'Vpolytope') {
+    PP = Vpolytope(V = A)
+  }else if (type == 'Zonotope') {
+    PP = Zonotope(G = A)
   } else {
-    PP = Hpolytope$new(A, b)
+    PP = Hpolytope(A = A, b = b)
   }
   return(list("P" = PP, "T" = Tr))
 }

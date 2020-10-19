@@ -4,10 +4,12 @@
 \alias{rounding}
 \title{Internal rcpp function for the rounding of a convex polytope}
 \usage{
-rounding(P, seed = NULL)
+rounding(P, settings = NULL, seed = NULL)
 }
 \arguments{
 \item{P}{A convex polytope (H- or V-representation or zonotope).}
+
+\item{settings}{A list to set the random walk and its walk length}
 
 \item{seed}{Optional. A fixed seed for the number generator.}
 }

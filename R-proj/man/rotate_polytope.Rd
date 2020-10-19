@@ -4,14 +4,12 @@
 \alias{rotate_polytope}
 \title{Apply a random rotation to a convex polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)}
 \usage{
-rotate_polytope(P, T = NULL, seed = NULL)
+rotate_polytope(P, rotation = list())
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope, (b) Vpolytope, (c) Zonotope, (d) intersection of two V-polytopes.}
 
-\item{T}{Optional. A \eqn{d\times d} rotation matrix.}
-
-\item{seed}{Optional. A fixed seed for the random linear map generator.}
+\item{rotation}{A list that contains (a) the rotation matrix T and (b) the 'seed' to set a spesific seed for the number generator.}
 }
 \value{
 A list that contains the rotated polytope and the matrix \eqn{T} of the linear transformation.
@@ -30,7 +28,7 @@ Let \eqn{P} be the given polytope and \eqn{Q} the rotated one and \eqn{T} be the
 }
 \examples{
 # rotate a H-polytope (2d unit simplex)
-P = gen_simplex(2,'H')
+P = gen_simplex(2, 'H')
 poly_matrix_list = rotate_polytope(P)
 
 # rotate a V-polytope (3d cube)
@@ -38,6 +36,6 @@ P = gen_cube(3, 'V')
 poly_matrix_list = rotate_polytope(P)
 
 # rotate a 5-dimensional zonotope defined by the Minkowski sum of 15 segments
-Z = gen_rand_zonotope(3,6)
+Z = gen_rand_zonotope(3, 6)
 poly_matrix_list = rotate_polytope(Z)
 }

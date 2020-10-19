@@ -4,8 +4,7 @@
 \alias{sample_points}
 \title{Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).}
 \usage{
-sample_points(P, n, random_walk = NULL, distribution = NULL,
-  seed = NULL)
+sample_points(P, n, random_walk = NULL, distribution = NULL)
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.}
@@ -15,11 +14,12 @@ sample_points(P, n, random_walk = NULL, distribution = NULL,
 \item{random_walk}{Optional. A list that declares the random walk and some related parameters as follows:
 \itemize{
 \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or vi) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'BiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution.}
-\item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{5} for \code{'BiW'} and \eqn{\lfloor 10 + d/10\rfloor} otherwise.}
+\item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is 1.}
 \item{\code{nburns} }{ The number of points to burn before start sampling.}
 \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 \item{\code{BaW_rad} }{ The radius for the ball walk.}
 \item{\code{L} }{ The maximum length of the billiard trajectory.}
+\item{\code{seed} }{ A fixed seed for the number generator.}
 }}
 
 \item{distribution}{Optional. A list that declares the target density and some related parameters as follows:
@@ -28,8 +28,6 @@ sample_points(P, n, random_walk = NULL, distribution = NULL,
 \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
 }}
-
-\item{seed}{Optional. A fixed seed for the number generator.}
 }
 \value{
 A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
@@ -45,7 +43,7 @@ points = sample_points(P, n = 100, random_walk = list("walk" = "BaW", "walk_leng
 # gaussian distribution from the 2d unit simplex in H-representation with variance = 2
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
-P = Hpolytope$new(A,b)
+P = Hpolytope(A = A, b = b)
 points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "variance" = 2))
 
 # uniform points from the boundary of a 2-dimensional random H-polytope

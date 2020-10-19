@@ -20,7 +20,7 @@
 #' @exportPattern "^[[:alpha:]]+"
 readSdpaFormatFile <- function(path){
     l = loadSdpaFormatFile(path)
-    S = Spectrahedron$new(l$matrices)
+    S = Spectrahedron(matrices = l$matrices)
 
     return(list("spectrahedron"=S, "objFunction"= l$objFunction))
 }

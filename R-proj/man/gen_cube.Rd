@@ -4,12 +4,12 @@
 \alias{gen_cube}
 \title{Generator function for hypercubes}
 \usage{
-gen_cube(dimension, representation)
+gen_cube(dimension, representation = "H")
 }
 \arguments{
 \item{dimension}{The dimension of the hypercube}
 
-\item{representation}{A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation.}
+\item{representation}{A string to declare the representation. It has to be \code{'H'} for H-representation or \code{'V'} for V-representation. Default valus is 'H'.}
 }
 \value{
 A polytope class representing the unit \eqn{d}-dimensional hypercube in H- or V-representation.

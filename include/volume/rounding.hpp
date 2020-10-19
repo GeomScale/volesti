@@ -107,6 +107,7 @@ round_polytope(Polytope &P,
         T = T * L_1.transpose();
 
         P.linear_transformIt(L_1.transpose());
+        P.normalize();
         InnerBall = P.ComputeInnerBall();
         round_val *= L_1.determinant();
         ratio = Rel / rel;

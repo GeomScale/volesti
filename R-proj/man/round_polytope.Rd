@@ -4,12 +4,17 @@
 \alias{round_polytope}
 \title{Apply rounding to a convex polytope (H-polytope, V-polytope or a zonotope)}
 \usage{
-round_polytope(P, seed = NULL)
+round_polytope(P, settings = list())
 }
 \arguments{
 \item{P}{A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope.}
 
-\item{seed}{Optional. A fixed seed for the number generator.}
+\item{settings}{Optional. A list to parameterize the method by the random walk. 
+\itemize{
+\item{\code{random_walk} }{  The random walk to sample uniformly distributed points: (a) \code{'CDHR'} for Coordinate Directions Hit-and-Run, (b) \code{'RDHR'} for Random Directions Hit-and-Run or (c) \code{'BiW'} for Billiard walk. The default random walk is \code{'CDHR'} for H-polytopes and \code{'BiW'} for the rest of the representations.}
+\item{\code{walk_length} }{ The walk length of the random walk. The default value is \eqn{10 + 10d} for \code{'CDHR'} or \code{'RDHR'} and 2 for \code{'BiW'}.}
+\item{\code{seed} }{ Optional. A fixed seed for the number generator.}
+}}
 }
 \value{
 A list with 4 elements: (a) a polytope of the same class as the input polytope class and (b) the element "T" which is the matrix of the inverse linear transformation that is applied on the input polytope, (c)  the element "shift" which is the opposite vector of that which has shifted the input polytope, (d) the element "round_value" which is the determinant of the square matrix of the linear transformation that is applied on the input polytope.
@@ -21,7 +26,7 @@ Given a convex H or V polytope or a zonotope as input this function brings the p
 # rotate a H-polytope (2d unit simplex)
 A = matrix(c(-1,0,0,-1,1,1), ncol=2, nrow=3, byrow=TRUE)
 b = c(0,0,1)
-P = Hpolytope$new(A, b)
+P = Hpolytope(A = A, b = b)
 listHpoly = round_polytope(P)
 
 # rotate a V-polytope (3d unit cube) using Random Directions HnR with step equal to 50

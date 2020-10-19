@@ -4,23 +4,23 @@
 \alias{compute_indicators}
 \title{Compute an indicator for each time period that describes the state of a market.}
 \usage{
-compute_indicators(returns, win_length = NULL, m = NULL, n = NULL,
-  nwarning = NULL, ncrisis = NULL, seed = NULL)
+compute_indicators(
+  returns,
+  parameters = list(win_length = 60, m = 100, n = 5e+05, nwarning = 60, ncrisis = 100)
+)
 }
 \arguments{
 \item{returns}{A \eqn{d}-dimensional vector that describes the direction of the first family of parallel hyperplanes.}
 
-\item{win_length}{Optional. The length of the sliding window. The default value is 60.}
-
-\item{m}{Optional. The number of slices for the copula. The default value is 100.}
-
-\item{n}{Optional. The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
-
-\item{nwarning}{Optional. The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.}
-
-\item{ncrisis}{Optional. The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.}
-
-\item{seed}{Optional. A fixed seed for the number generator.}
+\item{parameters}{A list to set a parameterization.
+\itemize{
+\item{win_length }{ The length of the sliding window. The default value is 60.}
+\item{m } { The number of slices for the copula. The default value is 100.}
+\item{n }{ The number of points to sample. The default value is \eqn{5\cdot 10^5}.}
+\item{nwarning }{ The number of consecutive indicators larger than 1 required to declare a warning period. The default value is 60.}
+\item{ncrisis }{ The number of consecutive indicators larger than 1 required to declare a crisis period. The default value is 100.}
+\item{seed }{ A fixed seed for the number generator.}
+}}
 }
 \value{
 A list that contains the indicators and the corresponding vector that label each time period with respect to the market state: a) normal, b) crisis, c) warning.
@@ -33,7 +33,8 @@ In particular, the periods over which the indicator is greater than 1 for more t
 \examples{
 # simple example on random asset returns
 asset_returns = replicate(10, rnorm(14))
-market_states_and_indicators = compute_indicators(asset_returns, 10, 10, 10000, 2, 3)
+market_states_and_indicators = compute_indicators(asset_returns,
+    parameters = list("win_length" = 10, "m" = 10, "n" = 10000, "nwarning" = 2, "ncrisis" = 3))
 
 }
 \references{
