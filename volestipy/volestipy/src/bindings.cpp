@@ -27,8 +27,7 @@ HPolytopeCPP::HPolytopeCPP(double *A_np, double *b_np, int n_hyperplanes, int n_
    }
 
    HP = Hpolytope(n_variables, A, b);
-   std::cout<<"A = "<<HP.get_mat()<<"\n b= "<<HP.get_vec()<<std::endl;
-   //CheBall = HP.ComputeInnerBall();
+
 }
 
 // Use a destructor for the HPolytopeCPP object
@@ -79,9 +78,6 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
                                       bool accelerated_billiard, bool billiard,
                                       bool ball_walk, double a, double L, bool max_ball,
                                       double* inner_point, double radius, double* samples){
-   
-   
-   std::cout<<"A = "<<HP.get_mat()<<"\n b= "<<HP.get_vec()<<std::endl;
    
    RNGType rng(HP.dimension());
    HP.normalize();
@@ -183,7 +179,6 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
             }
         }
    }
-   std::cout<<"Sampling completed"<<std::endl;
 
 // The following block of code allows us to parse the matrix with the points we are making
    auto n_si=0;
@@ -308,8 +303,7 @@ double HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
                                                              svd_parameters, rng);
 
    if (svd_parameters.fail) {
-      std::cout<<"method failed"<<std::endl;
-      //return false;
+      return -1;
    }
 
    MT A_to_copy = HP.get_mat();
@@ -332,11 +326,9 @@ double HPolytopeCPP::rounding_svd_step(double* new_A, double* new_b,
 
    if (svd_parameters.converged) {
       
-      std::cout<<"converged !"<<std::endl;
-      
       // create the T matrix
       MT T_matrix_temp = svd_parameters.T;
-      std::cout<<"T_matrix_temp" << T_matrix_temp <<std::endl;
+
       auto t_si = 0;
       for (int i = 0; i < n_variables; i++){
          for (int j = 0; j < n_variables; j++){
