@@ -30,21 +30,14 @@ void svd_rounding_single_step(Polytope &P,
                               svd_params &parameters,
                               RandomNumberGenerator &rng)
 {
-    //NT tol = 0.00000001;
-    //NT R = std::pow(10,10), r = InnerBall.second;
 
-    int n = P.dimension();//, m = P.num_of_hyperplanes();
-
-    //Polytope P_old(P);
+    int n = P.dimension(); 
 
     MT round_mat, r_inv;
     VT shift(n), s(n);
 
     Point p(n);
 
-    //bool last_round_under_p;
-
-    //unsigned int round_it;
     NT num_its, prev_max_s = std::numeric_limits<NT>::max(),
        s_cutoff, p_cutoff;
     MT V(n,n), S(n,n);
@@ -53,18 +46,13 @@ void svd_rounding_single_step(Polytope &P,
     parameters.max_s = std::numeric_limits<NT>::max();
     s_cutoff = 2.3;
     p_cutoff = 10.0;
-    //last_round_under_p = false;
     num_its = 20;
-
-    //while (max_s > s_cutoff && round_it <= num_its) {
 
     p = InnerBall.first;
     svd_on_sample<WalkTypePolicy>(P, p, parameters.num_rounding_steps, V, s,
                                   shift, walk_length, rng);
 
-        //rounding_samples = rounding_samples + num_rounding_steps;
     parameters.max_s = s.maxCoeff();
-    std::cout<<"[1] max_s = "<<parameters.max_s<<std::endl;
 
     if (parameters.max_s <= p_cutoff && parameters.max_s > s_cutoff) {
         if (parameters.last_round_under_p) {
@@ -73,7 +61,6 @@ void svd_rounding_single_step(Polytope &P,
             svd_on_sample<WalkTypePolicy>(P, p, parameters.num_rounding_steps, V, s,
                                           shift, walk_length, rng);
             parameters.max_s = s.maxCoeff();
-            std::cout<<"[2] max_s = "<<parameters.max_s<<std::endl;
         } else {
             parameters.last_round_under_p = true;
         }
@@ -87,7 +74,6 @@ void svd_rounding_single_step(Polytope &P,
     if (parameters.round_it != 1 && parameters.max_s >= NT(4) * parameters.prev_max_s) {
         parameters.fail = true;
         return;
-        //break;
     }
 
     parameters.round_it++;
@@ -96,19 +82,12 @@ void svd_rounding_single_step(Polytope &P,
     P.shift(shift);
     P.linear_transformIt(round_mat);
     P.normalize();
-    //InnerBall = P.ComputeInnerBall();
     parameters.T_shift += parameters.T * shift;
     parameters.T = parameters.T * round_mat;
 
     if (parameters.max_s <= s_cutoff || parameters.round_it > num_its) {
         parameters.converged = true;
     }
-    std::cout<<"convergence = "<<parameters.converged<<std::endl;
-    //}
-        
-
-    //std::tuple<MT, VT, NT> result = std::make_tuple(T, shift, std::abs(T.determinant()));
-    //return result;
 }
 
 
