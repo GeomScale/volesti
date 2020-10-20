@@ -412,11 +412,7 @@ def gmscale(A, iprint, scltol):
 #                       `R` (inverse) `A` `C` (inverse) should have entries near 1.0,
 #                        where `R= diag(rscale)`, `C = diag(cscale)`.
 
-
-   if iprint > 0:
-      print('\ngmscale: Geometric-Mean scaling of matrix')
-      print('\n-------\n                 Max col ratio')
-   
+  
    m = A.shape[0] ; n = A.shape[1]
    A = np.abs(A)
    A_t = A.T     ##  Attention!!! We will work with the transpose matrix as numpy works row based while matlab is column based
@@ -452,10 +448,8 @@ def gmscale(A, iprint, scltol):
       sratio = np.max(cmax/cmin)
       
       if npass > 0:
-
          c_product = np.multiply(np.max((np.array((cmin.data, damp*cmax))), axis =0), cmax)
          cscale = np.sqrt(c_product)
-         print('\n  After %2g %19.2f' %(npass,sratio))
 
       check = aratio*scltol     
       
@@ -493,8 +487,7 @@ def gmscale(A, iprint, scltol):
    # End of main loop
    #----------------------------------------------------
 
-   # Reset column scales so the biggest element
-   # in each scaled column will be 1.
+   # Reset column scales so the biggest element in each scaled column will be 1.
    # Again, allow for empty rows and columns.
    rscale[rscale == 0] = 1
    sparse = sp.csr_matrix(1./rscale)
@@ -516,12 +509,19 @@ def gmscale(A, iprint, scltol):
       
       rmax = np.amax(rscale) ; imax = np.where(rscale == np.amax(rscale))
       cmax = np.amax(cscale) ; jmax = np.where(cscale == np.amax(cscale))
-         
-      print('\n\n  Min scale               Max scale')
-      print('\n  Row %6g %9.1e    Row %6g %9.1e' %(imin[0], rmin, imax[0], rmax))   
-      print('\n  Row %6g %9.1e    Row %6g %9.1e' %(jmin[0], cmin, jmax[0], cmax))  
-
+      
    return cscale, rscale
+
+def scaled_polytope(full_dim_polytope, cs, rs):
+   
+   m = rs.shape[0] ; n = cs.shape[0]
+   r_diagonal_matrix = diags(1/rs, shape = (m,m)).toarray()
+   c_diagonal_matrix = diags(1/cs, shape = (n,n)).toarray()   
+   
+   P_A = np.dot(r_diagonal_matrix, np.dot(full_dim_polytope.A, c_diagonal_matrix))
+   P_b = np.dot(r_diagonal_matrix, full_dim_polytope.b)
+   
+   return P_A, P_b, c_diagonal_matrix
 
 
 ################################################################################
@@ -622,8 +622,8 @@ cdef class HPolytope:
                                  accelerated_billiard, billiard, ball_walk, a, L, max_ball, &inner_point_for_c[0], radius, &samples[0,0])
       return np.asarray(samples)      # we need to build a Python function for getting a starting point depending on the polytope
 
-   
-   def rounding_svd(self):
+# Special rounding function for the SVD case 
+   def rounding_svd(self, scale = None):
 
       # Get the dimensions of the items about to build
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
@@ -634,44 +634,40 @@ cdef class HPolytope:
       cdef double[::1] new_b = np.zeros(n_hyperplanes, dtype=np.float64, order="C")
       cdef double[:,::1] T_matrix = np.zeros((n_variables, n_variables), dtype=np.float64, order="C")
       cdef double[::1] shift = np.zeros((n_variables), dtype=np.float64, order="C")
-      # cdef double[::1] inner_point_for_c = np.zeros(n_variables, dtype=np.float64, order="C")
 
       # Get max ball for the initial polytope
-      print("working fine up to now")
       temp_c, radius = get_max_ball(self._A, self._b)
-      print("temp_c:") ; print(temp_c)
-      print("radius: ") ; print(radius)
       cdef double[::1] inner_point_for_c = np.asarray(temp_c)
-      print("point copied as np array")
       
       # Build a while loop until for the rounding to converge
       counterrr = 0
       while True:
-         print("i am in the while loop ")
+
          counterrr += 1
          check = self.polytope_cpp.rounding_svd_step(&new_A[0,0], &new_b[0], &T_matrix[0,0], &shift[0], &inner_point_for_c[0], radius)
-
-         print(check)
          
          if check < 2.0 and check > 1.0:
-            print("time to break!!")
             break
-         print(" i ran the svd step for the " + str(counterrr) +"time \n")
-         new_temp_c, radius = get_max_ball(new_A, new_b)
-         # del inner_point_for_c
-         inner_point_for_c = np.asarray(new_temp_c)
 
+         new_temp_c, radius = get_max_ball(new_A, new_b)
+         inner_point_for_c = np.asarray(new_temp_c)
 
       np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
       np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
-
+      
+      try:
+         if scale.size != 0:
+            T_matrix = np.dot(scale, T_matrix)
+      except:
+         pass
+         
       return np.asarray(new_A), np.asarray(new_b), np.asarray(T_matrix), np.asarray(shift)
 
      
 
    
 # The rounding() function; like the compute_volume; there are more than one methods for this step
-   def rounding(self, rounding_method = 'max_ellipsoid', inner_point = [], radius = 0):
+   def rounding(self, rounding_method = 'max_ellipsoid', inner_point = [], radius = 0, scale = None):
 
       # Get the dimensions of the items about to build
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
@@ -703,6 +699,12 @@ cdef class HPolytope:
          np.save('A_rounded.npy', new_A) ; np.save('b_rounded.npy', new_b)
          np.save('T_rounded.npy', T_matrix) ; np.save('shift_rounded.npy', shift)
          np.save('round_value.npy', np.asarray(round_value))
+
+         try:
+            if scale.size != 0:
+               T_matrix = np.dot(scale, T_matrix)
+         except:
+            pass
 
          return np.asarray(new_A),np.asarray(new_b),np.asarray(T_matrix),np.asarray(shift),np.asarray(round_value)
 
