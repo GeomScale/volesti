@@ -269,12 +269,14 @@ def pre_process(A, b, Aeq, beq):
                      min_fluxes.append(min_objective)
    
                   # Calculate the width
-                  width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
+                  # width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
+                  width = abs(max_objective - min_objective)                  
    
                   # Check whether we keep or not the equality
                   if width < 1e-07:
                      Aeq_new = np.vstack((Aeq_new, A[i,]))
-                     beq_new = np.append(beq_new, max_objective)
+                     # beq_new = np.append(beq_new, max_objective)
+                     beq_new = np.append(beq_new, min(max_objective, min_objective))
    
                   else:
                      A_new = np.vstack((A_new, A[i,]))
@@ -394,25 +396,27 @@ def map_samples_on_initial_polytope(samples, T, T_shift, N, N_shift):
 
 def gmscale(A, iprint, scltol):
 
+   #--------------------------------------------------------------------------------------
+   #
+   # This function is a translation of a matlab cobra script you may find here:
+   # https://github.com/opencobra/cobratoolbox/blob/master/src/analysis/subspaces/gmscale.m 
+   #
+   # USAGE:
+   # cscale, rscale = gmscale(A, iprint, scltol)
 
-# This function is a translation of a matlab cobra script you may find here:
-# https://github.com/opencobra/cobratoolbox/blob/master/src/analysis/subspaces/gmscale.m 
-#
-# USAGE:
-# cscale, rscale = gmscale(A, iprint, scltol)
+   # INPUTS:
+   #     A:          is a (m*n) sparse matrix 
+   #     scltol:      should be in the range (0.0, 1.0).
+   #              Typically `scltol` = 0.9.  A bigger value like 0.99 asks
+   #              gmscale` to work a little harder (more passes).   
 
-# INPUTS:
-#     A:          is a (m*n) sparse matrix 
-#     scltol:      should be in the range (0.0, 1.0).
-#              Typically `scltol` = 0.9.  A bigger value like 0.99 asks
-#              gmscale` to work a little harder (more passes).   
-
-# OUTPUTS:
-#    cscale, rscale:    column vectors of column and row scales such that
-#                       `R` (inverse) `A` `C` (inverse) should have entries near 1.0,
-#                        where `R= diag(rscale)`, `C = diag(cscale)`.
-
-  
+   # OUTPUTS:
+   #    cscale, rscale:    column vectors of column and row scales such that
+   #                       `R` (inverse) `A` `C` (inverse) should have entries near 1.0,
+   #                        where `R= diag(rscale)`, `C = diag(cscale)`.
+   #
+   #--------------------------------------------------------------------------------------
+   
    m = A.shape[0] ; n = A.shape[1]
    A = np.abs(A)
    A_t = A.T     ##  Attention!!! We will work with the transpose matrix as numpy works row based while matlab is column based
