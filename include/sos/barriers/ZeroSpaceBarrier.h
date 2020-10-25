@@ -39,6 +39,6 @@ public:
     }
 };
 
-#include "ZeroSpaceBarrier.tpp"
+#include "ZeroSpaceBarrier.hpp"
 
 #endif //SOS_ZEROSPACEBARRIER_H

@@ -6,7 +6,7 @@ Supplementary material describing the mathematical theory behind the code can be
 #### Usage the SOS-solver for Polynomial Envelope problems
 
 For precise computation of Chebyshev Points and Lagrange Polynomials boost::multiprecision is used. Boost is also
-used for the Property Tree in instances and configuration as well as for typecasting templated classes. The boost headers in this project do not contain the needed header files. Please provide the link to the boost files via thet `-DBOOST_DIR` flag. Also [spdlog](https://github.com/gabime/spdlog) is used. Please provide link to installed package via `-DSPDLOG_DIR` flag. (The link also provides manuals for installation with various package managers.)
+used for the Property Tree in instances and configuration as well as for typecasting templated classes. The boost headers in this project do not contain the needed header files. Please provide the link to the boost files (version 1.67 or higher) via thet `-DBOOST_DIR` flag. Also [spdlog](https://github.com/gabime/spdlog) is used. Please provide link to installed package via `-DSPDLOG_DIR` flag. (The link also provides manuals for installation with various package managers.)
 Navigate to the SOS envelope example and and compile:
 
 ```

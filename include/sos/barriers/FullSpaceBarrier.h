@@ -41,6 +41,6 @@ public:
     }
 };
 
-#include "FullSpaceBarrier.tpp"
+#include "FullSpaceBarrier.hpp"
 
 #endif //SOS_FULLSPACEBARRIER_H

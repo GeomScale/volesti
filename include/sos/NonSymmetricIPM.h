@@ -328,6 +328,6 @@ private:
     void test_hessian();
 };
 
-#include "NonSymmetricIPM.tpp"
+#include "NonSymmetricIPM.hpp"
 
 #endif //SOS_NONSYMMETRICIPM_H

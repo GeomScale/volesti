@@ -108,6 +108,6 @@ private:
 
 };
 
-#include "InterpolantDualSOSBarrier.tpp"
+#include "InterpolantDualSOSBarrier.hpp"
 
 #endif //SOS_INTERPOLANTDUALSOSBARRIER_H

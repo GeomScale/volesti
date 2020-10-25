@@ -108,6 +108,6 @@ private:
 
 };
 
-#include "ProductBarrier.tpp"
+#include "ProductBarrier.hpp"
 
 #endif //SOS_PRODUCTBARRIER_H

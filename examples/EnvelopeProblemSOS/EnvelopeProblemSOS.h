@@ -102,6 +102,6 @@ private:
     void initialize_problem();
 };
 
-#include "EnvelopeProblemSOS.tpp"
+#include "EnvelopeProblemSOS.hpp"
 
 #endif //EXAMPLES_ENVELOPEPROBLEMSOS_H

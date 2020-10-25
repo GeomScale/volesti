@@ -84,6 +84,6 @@ public:
     unsigned int getNumVariables() const;
 };
 
-#include "LHSCB.tpp"
+#include "LHSCB.hpp"
 
 #endif //SOS_LHSCB_H

@@ -44,6 +44,6 @@ private:
     unsigned _max_polynomial_degree;
 };
 
-#include "DualSOSConeStandardBarrier.tpp"
+#include "DualSOSConeStandardBarrier.hpp"
 
 #endif //SOS_DUALSOSCONESTANDARDBARRIER_H

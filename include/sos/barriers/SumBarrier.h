@@ -55,5 +55,5 @@ private:
     std::vector<LHSCB<IPMDouble> *> _barriers;
 };
 
-#include "SumBarrier.tpp"
+#include "SumBarrier.hpp"
 #endif //SOS_SUMBARRIER_H

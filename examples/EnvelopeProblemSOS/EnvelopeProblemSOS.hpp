@@ -367,6 +367,7 @@ void EnvelopeProblemSOS<IPMDouble>::print_solution(Solution<IPMDouble> sol) {
     }
 }
 
+//TODO: Support plots in interpolant basis
 template <typename IPMDouble>
 void EnvelopeProblemSOS<IPMDouble>::plot_polynomials_and_solution(const Solution<IPMDouble> &sol) {
 
@@ -451,12 +452,20 @@ void EnvelopeProblemSOS<IPMDouble>::plot_polynomials_and_solution(const Solution
         if (x[i] < _hyperRectangle[0].first or x[i] > _hyperRectangle[0].second) {
             continue;
         }
-        double local_y_min = std::numeric_limits<double>::max();
-        for (unsigned plt_idx = 0; plt_idx < poly_plots.size() - 1; ++plt_idx) {
+        // To highlight the envelope:
+        // double local_y_min = std::numeric_limits<double>::max();
+        // for (unsigned plt_idx = 0; plt_idx < poly_plots.size() - 1; ++plt_idx) {
+        //     y_min = std::min(y_min, plots[plt_idx][i]);
+        //     local_y_min = std::min(local_y_min, plots[plt_idx][i]);
+        // }
+        // y_max = std::max(y_max, local_y_min);
+
+        //To highlight the polynomials:
+
+         for (unsigned plt_idx = 0; plt_idx < poly_plots.size() - 1; ++plt_idx) {
             y_min = std::min(y_min, plots[plt_idx][i]);
-            local_y_min = std::min(local_y_min, plots[plt_idx][i]);
+            y_max = std::max(y_max, plots[plt_idx][i]);
         }
-        y_max = std::max(y_max, local_y_min);
     }
 
     for (unsigned k = 0; k < envelope_plot.size(); ++k) {
@@ -487,11 +496,10 @@ void EnvelopeProblemSOS<IPMDouble>::plot_polynomials_and_solution(const Solution
     title_string += ".";
     plt::title(title_string);
     // Enable legend.
-    plt::ylim(-1,1);
 
     plt::legend();
-    plt::save("plot");
 
+    plt::save("plots/plot" + std::to_string(time (NULL) % 10000));
     std::cout << "Done." << std::endl;
 }
 

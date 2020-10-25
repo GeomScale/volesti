@@ -42,6 +42,6 @@ private:
 
 };
 
-#include "LPStandardBarrier.tpp"
+#include "LPStandardBarrier.hpp"
 
 #endif //SOS_LPSTANDARDBARRIER_H
