@@ -15,37 +15,41 @@
 template <typename H_polytope, typename MT, typename VT>
 std::pair<H_polytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT b, MT Aeq, VT beq, bool slow = false)
 {
-    typedef typename H_polytope::NT NT;
+   typedef typename H_polytope::NT NT;
 
-    VT p = Aeq.colPivHouseholderQr().solve(beq), s;
-    int r = Aeq.rows(), d = A.cols();
-    MT V;
+   VT p = Aeq.colPivHouseholderQr().solve(beq), s;
+   int r = Aeq.rows(), d = A.cols();
+   MT V;
     
-    if (slow){ //typically better when dimension <= 15
-        Eigen::JacobiSVD<MT> svd(Aeq, Eigen::ComputeFullV);
-        V = svd.matrixV();
-        s = svd.singularValues();
-    } else {
-        Eigen::BDCSVD<MT> bdcSvd(Aeq, Eigen::ComputeFullV);
-        V = bdcSvd.matrixV();
-        s = bdcSvd.singularValues();
-    }
+   if (slow){ //typically better when dimension <= 15
+      Eigen::JacobiSVD<MT> svd(Aeq, Eigen::ComputeFullV);
+      V = svd.matrixV();
+      s = svd.singularValues();
+   } else {
+      Eigen::BDCSVD<MT> bdcSvd(Aeq, Eigen::ComputeFullV);
+      V = bdcSvd.matrixV();
+      s = bdcSvd.singularValues();
+   }
 
-    const NT e = 0.0000000000001;
-    int r_count = 0;
-    for (int i=0 ; i<s.rows() ; i++) { // count zero singular values
-        if (std::abs(s(i)) <= e){
-            r_count++;
-        }
-    }
+   const NT e = 0.0000000000001;
+   int r_count = 0;
+   for (int i=0 ; i<s.rows() ; i++) { // count zero singular values
+      if (std::abs(s(i)) <= e){
+         r_count++;
+      }
+   }
 
-    MT N(d, d - r + r_count); // the null space is the columns of V that correspond to zero singular values
-    N = V.block(0, r - r_count, d, d - r + r_count);
-    b = b - A * p;
+   //MT N(d, d - r + r_count); // the null space is the columns of V that correspond to zero singular values
+   //N = V.block(0, r - r_count, d, d - r + r_count);
 
-    H_polytope HP(N.cols(), A * N, b);
+   MT N(d, r_count); // the null space is the columns of V that correspond to zero singular values
+   N = V.block(0, d - r_count, d, r_count);
 
-    return std::pair<H_polytope, std::pair<MT, VT> >(HP, std::pair<MT,VT>(N, p));
+   b = b - A * p;
+
+   H_polytope HP(N.cols(), A * N, b);
+
+   return std::pair<H_polytope, std::pair<MT, VT> >(HP, std::pair<MT,VT>(N, p));
 }
 
 #endif
