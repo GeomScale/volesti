@@ -17,7 +17,10 @@ std::pair<H_polytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT
 {
    typedef typename H_polytope::NT NT;
 
-   VT p = Aeq.colPivHouseholderQr().solve(beq), s;
+   //VT p = Aeq.colPivHouseholderQr().solve(beq), s;
+   MT AA = Aeq;
+   VT p = AA.colPivHouseholderQr().solve(beq), s;
+   
    int r = Aeq.rows(), d = A.cols();
    MT V;
     
