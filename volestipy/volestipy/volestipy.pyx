@@ -265,7 +265,7 @@ def pre_process(A, b, Aeq, beq):
                   if status == GRB.OPTIMAL:
    
                      # Get the max objective value
-                     max_objective = model.getObjective().getValue()
+                     max_objective = -model.getObjective().getValue()
                      max_fluxes.append(min_objective)
    
                   # Calculate the width
