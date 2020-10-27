@@ -250,7 +250,7 @@ def pre_process(A, b, Aeq, beq):
 
                   # Get the min objective value
                   min_objective = model.getObjective().getValue()
-                  min_fluxes.append(max_objective)
+                  min_fluxes.append(min_objective)
 
                # Likewise, for the maximum
                objective_function = np.asarray([-x for x in objective_function])
@@ -264,7 +264,7 @@ def pre_process(A, b, Aeq, beq):
 
                   # Get the max objective value
                   max_objective = -model.getObjective().getValue()
-                  max_fluxes.append(min_objective)
+                  max_fluxes.append(max_objective)
 
                # Calculate the width
                # width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
