@@ -229,10 +229,10 @@ def pre_process(A, b, Aeq, beq):
 
             # Update the model with the extra constraints and then print it
             model.update()
-            model.display()
+            # model.display()
 
             # Loop through the lines of the A matrix, set objective function for each and run the model
-            for i in range(A.shape[0]):
+            for i in range(A.shape[0]/2):
             
                if Aeq_new.shape[0] < Aeq_new.shape[1] - 10:
 
@@ -250,11 +250,11 @@ def pre_process(A, b, Aeq, beq):
                   status = model.status
                   if status == GRB.OPTIMAL:
    
-                     # Get the max objective value
-                     max_objective = model.getObjective().getValue()
-                     max_fluxes.append(max_objective)
+                     # Get the min objective value
+                     min_objective = model.getObjective().getValue()
+                     min_fluxes.append(max_objective)
    
-                  # Likewise, for the minimum
+                  # Likewise, for the maximum
                   objective_function = np.asarray([-x for x in objective_function])
                   model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
                   model.update()
@@ -265,8 +265,8 @@ def pre_process(A, b, Aeq, beq):
                   if status == GRB.OPTIMAL:
    
                      # Get the max objective value
-                     min_objective = model.getObjective().getValue()
-                     min_fluxes.append(min_objective)
+                     max_objective = model.getObjective().getValue()
+                     max_fluxes.append(min_objective)
    
                   # Calculate the width
                   # width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
