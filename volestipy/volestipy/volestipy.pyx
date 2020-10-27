@@ -234,57 +234,53 @@ def pre_process(A, b, Aeq, beq):
             # Loop through the lines of the A matrix, set objective function for each and run the model
             for i in range(A.shape[0]/2):
             
-               if Aeq_new.shape[0] < Aeq_new.shape[1] - 10:
+               # Set the ith row of the A matrix as the objective function
+               objective_function = A[i,]
 
-                  # Set the ith row of the A matrix as the objective function
-                  objective_function = A[i,]
-   
-                  # Set the objective function in the model
-                  model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
-                  model.update()
-   
-                  # Optimize model
-                  model.optimize ()
-   
-                  # If optimized
-                  status = model.status
-                  if status == GRB.OPTIMAL:
-   
-                     # Get the min objective value
-                     min_objective = model.getObjective().getValue()
-                     min_fluxes.append(max_objective)
-   
-                  # Likewise, for the maximum
-                  objective_function = np.asarray([-x for x in objective_function])
-                  model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
-                  model.update()
-                  model.optimize()
-   
-                  # Again if optimized
-                  status = model.status
-                  if status == GRB.OPTIMAL:
-   
-                     # Get the max objective value
-                     max_objective = -model.getObjective().getValue()
-                     max_fluxes.append(min_objective)
-   
-                  # Calculate the width
-                  # width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
-                  width = abs(max_objective - min_objective)                  
-   
-                  # Check whether we keep or not the equality
-                  if width < 1e-07:
-                     Aeq_new = np.vstack((Aeq_new, A[i,]))
-                     # beq_new = np.append(beq_new, max_objective)
-                     beq_new = np.append(beq_new, min(max_objective, min_objective))
-   
-                  else:
-                     A_new = np.vstack((A_new, A[i,]))
-                     b_new = np.append(b_new, b[i])
-                     
+               # Set the objective function in the model
+               model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
+               model.update()
+
+               # Optimize model
+               model.optimize ()
+
+               # If optimized
+               status = model.status
+               if status == GRB.OPTIMAL:
+
+                  # Get the min objective value
+                  min_objective = model.getObjective().getValue()
+                  min_fluxes.append(max_objective)
+
+               # Likewise, for the maximum
+               objective_function = np.asarray([-x for x in objective_function])
+               model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MINIMIZE)
+               model.update()
+               model.optimize()
+
+               # Again if optimized
+               status = model.status
+               if status == GRB.OPTIMAL:
+
+                  # Get the max objective value
+                  max_objective = -model.getObjective().getValue()
+                  max_fluxes.append(min_objective)
+
+               # Calculate the width
+               # width = abs(max_objective + min_objective) / np.linalg.norm(A[i,])
+               width = abs(max_objective - min_objective)                  
+
+               # Check whether we keep or not the equality
+               if width < 1e-07:
+                  Aeq_new = np.vstack((Aeq_new, A[i,]))
+                  # beq_new = np.append(beq_new, max_objective)
+                  beq_new = np.append(beq_new, min(max_objective, min_objective))
+
                else:
                   A_new = np.vstack((A_new, A[i,]))
-                  b_new = np.append(b_new, b[i])                  
+                  b_new = np.append(b_new, b[i])
+                  A_new = np.vstack((A_new, A[i+n,]))
+                  b_new = np.append(b_new, b[i+n])                                    
                
 
             # The np.vstack() creates issues on changing contiguous c orded of np arrays; here we fix this
@@ -304,7 +300,9 @@ def pre_process(A, b, Aeq, beq):
             np.save('min_fluxes.npy', min_fluxes), np.save('max_fluxes.npy', max_fluxes)
             
             # Return a tupple including the new A, b, Aeq and beq
-            return A_new, b_new, Aeq_new, beq_new, min_fluxes, max_fluxes
+            # return A_new, b_new, Aeq_new, beq_new, min_fluxes, max_fluxes 
+            return A, b, Aeq_new, beq_new, min_fluxes, max_fluxes
+
 
    # Print error messages
    except gp . GurobiError as e :
