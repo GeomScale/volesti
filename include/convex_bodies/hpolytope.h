@@ -20,7 +20,7 @@
 
 
 // check if an Eigen vector contains NaN or infinite values
-/*template <typename VT>
+template <typename VT>
 bool is_inner_point_nan_inf(VT const& p)
 {
     typedef Eigen::Array<bool, Eigen::Dynamic, 1> VTint;
@@ -30,57 +30,57 @@ bool is_inner_point_nan_inf(VT const& p)
             return true;
         }
     }
-}*/
+}
 
 //min and max values for the Hit and Run functions
 // H-polytope class
 template <typename Point>
 class HPolytope {
 public:
-    typedef Point                                             PointType;
-    typedef typename Point::FT                                NT;
-    typedef typename std::vector<NT>::iterator                viterator;
-    //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-    //typedef RowMatrixXd MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
+   typedef Point                                             PointType;
+   typedef typename Point::FT                                NT;
+   typedef typename std::vector<NT>::iterator                viterator;
+   //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+   //typedef RowMatrixXd MT;
+   typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+   typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
 private:
-    unsigned int         _d; //dimension
-    MT                   A; //matrix A
-    VT                   b; // vector b, s.t.: Ax<=b
-    std::pair<Point, NT> _inner_ball;
+   unsigned int         _d; //dimension
+   MT                   A; //matrix A
+   VT                   b; // vector b, s.t.: Ax<=b
+   std::pair<Point, NT> _inner_ball;
 
 public:
-    //TODO: the default implementation of the Big3 should be ok. Recheck.
-    HPolytope() {}
+   //TODO: the default implementation of the Big3 should be ok. Recheck.
+   HPolytope() {}
 
-    HPolytope(unsigned d_, MT const& A_, VT const& b_) :
-        _d{d_}, A{A_}, b{b_}
-    {
-    }
+   HPolytope(unsigned d_, MT const& A_, VT const& b_) :
+      _d{d_}, A{A_}, b{b_}
+   {
+   }
 
-    // Copy constructor
-    HPolytope(HPolytope<Point> const& p) :
-            _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}
-    {
-    }
+   // Copy constructor
+   HPolytope(HPolytope<Point> const& p) :
+          _d{p._d}, A{p.A}, b{p.b}, _inner_ball{p._inner_ball}
+   {
+   }
 
     //define matrix A and vector b, s.t. Ax<=b,
     // from a matrix that contains both A and b, i.e., [A | b ]
     HPolytope(std::vector<std::vector<NT>> const& Pin)
     {
-        _d = Pin[0][1] - 1;
-        A.resize(Pin.size() - 1, _d);
-        b.resize(Pin.size() - 1);
-        for (unsigned int i = 1; i < Pin.size(); i++) {
-            b(i - 1) = Pin[i][0];
-            for (unsigned int j = 1; j < _d + 1; j++) {
-                A(i - 1, j - 1) = -Pin[i][j];
-            }
-        }
+      _d = Pin[0][1] - 1;
+      A.resize(Pin.size() - 1, _d);
+      b.resize(Pin.size() - 1);
+      for (unsigned int i = 1; i < Pin.size(); i++) {
+         b(i - 1) = Pin[i][0];
+         for (unsigned int j = 1; j < _d + 1; j++) {
+            A(i - 1, j - 1) = -Pin[i][j];
+         }
+      }
         //_inner_ball = ComputeChebychevBall<NT, Point>(A, b);
-    }
+   }
 
    HPolytope& operator = (const HPolytope& other){
       if (this != &other){ // protect against invalid self-assignment
@@ -118,31 +118,63 @@ public:
 
     //Compute Chebyshev ball of H-polytope P:= Ax<=b
     //Use LpSolve library
-    std::pair<Point, NT> ComputeInnerBall()
-    {
-        normalize();
-        _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
 
-        /*if (_inner_ball.second < 0.0) {
 
-            NT const tol = 0.00000001;
-            std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
-        
-            // check if the solution is feasible
-            if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) || 
-                std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
-                !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
-            {
-                _inner_ball.second = -1.0;
-            } else 
-            { 
-                _inner_ball.first = Point(std::get<0>(inner_ball));
-                _inner_ball.second = std::get<1>(inner_ball);
-            }
-        }*/
-        
-        return _inner_ball;
-    }
+
+   std::pair<Point, NT> ComputeInnerBall()
+       {
+           normalize();
+           NT const tol = 0.00000001;
+           std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
+           
+   
+           //if (_inner_ball.second < 0.0) {
+               
+           
+           // check if the solution is feasible
+           if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) || 
+               std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
+               !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
+           {
+               std::cout<<"interior point failed, we use lpsolve for inner ball computation"<<std::endl;
+               _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+               //_inner_ball.second = -1.0;
+           } else 
+           { 
+               _inner_ball.first = Point(std::get<0>(inner_ball));
+               _inner_ball.second = std::get<1>(inner_ball);
+           }
+           //}
+           
+           return _inner_ball;
+       }
+
+
+    //std::pair<Point, NT> ComputeInnerBall()
+    //{
+    //    normalize();
+    //    _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+    //
+    //    /*if (_inner_ball.second < 0.0) {
+    //
+    //        NT const tol = 0.00000001;
+    //        std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
+    //    
+    //        // check if the solution is feasible
+    //        if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) || 
+    //            std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
+    //            !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
+    //        {
+    //            _inner_ball.second = -1.0;
+    //        } else 
+    //        { 
+    //            _inner_ball.first = Point(std::get<0>(inner_ball));
+    //            _inner_ball.second = std::get<1>(inner_ball);
+    //        }
+    //    }*/
+    //    
+    //    return _inner_ball;
+    //}
 
     // return dimension
     unsigned int dimension() const
