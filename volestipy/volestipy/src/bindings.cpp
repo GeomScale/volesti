@@ -202,7 +202,9 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    auto P(HP);
    RNGType rng(P.dimension());
    P.normalize();
-   
+
+   std::cout<<"max_ball is: "<< max_ball<<std::endl;   
+
    // check for max ball given
    if (max_ball == true ){
       
@@ -220,6 +222,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
 
       
    } else if (max_ball == false ) {
+      std::cout<<"I do not have max ball and i am about to compute it on my own"<<std::endl;   
       CheBall = P.ComputeInnerBall();
       std::cout<<CheBall.second<<std::endl;
 

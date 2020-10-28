@@ -671,7 +671,7 @@ cdef class HPolytope:
 
    
 # The rounding() function; like the compute_volume; there are more than one methods for this step
-   def rounding(self, rounding_method = 'max_ellipsoid', inner_point = [], radius = 0, scale = None):
+   def rounding(self, rounding_method = 'max_ellipsoid', inner_point = [], radius = -1, scale = None):
 
       # Get the dimensions of the items about to build
       n_hyperplanes, n_variables = self._A.shape[0], self._A.shape[1]
