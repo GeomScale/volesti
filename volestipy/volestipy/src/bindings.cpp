@@ -196,6 +196,8 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
                             double* T_matrix, double* shift, double &round_value,
                             bool max_ball, double* inner_point, double radius){
 
+   std::cout<<"start rounding in c++"<<std::endl;                         
+   
    // make a copy of the initial HP which will be used for the rounding step
    auto P(HP);
    RNGType rng(P.dimension());
@@ -219,6 +221,8 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
       
    } else if (max_ball == false ) {
       CheBall = P.ComputeInnerBall();
+      std::cout<<CheBall.second<<std::endl;
+
    }
    
 
