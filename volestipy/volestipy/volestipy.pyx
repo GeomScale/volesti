@@ -232,7 +232,7 @@ def pre_process(A, b, Aeq, beq):
             # model.display()
 
             # Loop through the lines of the A matrix, set objective function for each and run the model
-            for i in range(A.shape[0]/2):
+            for i in range(int(A.shape[0]/2)):
             
                # Set the ith row of the A matrix as the objective function
                objective_function = A[i,]
@@ -282,7 +282,6 @@ def pre_process(A, b, Aeq, beq):
                   A_new = np.vstack((A_new, A[i+n,]))
                   b_new = np.append(b_new, b[i+n])                                    
                
-
             # The np.vstack() creates issues on changing contiguous c orded of np arrays; here we fix this
             Aeq_new = np.ascontiguousarray(Aeq_new, dtype=np.dtype)
             A_new = np.ascontiguousarray(A_new, dtype=np.dtype)
@@ -324,6 +323,8 @@ def get_max_ball(A_full_dim, b_full_dim):
 
    column = np.asarray(extra_column)
    A_expand = np.c_[A_full_dim, column]
+   print("A_expand :") ; print(A_expand)
+   print("A_expand shape :") ; print(A_expand.shape)
 
    with gp.Env(empty=True) as env:
       env.setParam('OutputFlag', 0)
@@ -350,6 +351,7 @@ def get_max_ball(A_full_dim, b_full_dim):
          b = np.zeros((1,n))
          a[:,:-1] = b
          objective_function = a[0]
+         print("objective_function:") ; print(objective_function)
 
          # Set the objective function in the model
          model.setMObjective(None, objective_function, 0.0, None, None, x, GRB.MAXIMIZE)
@@ -359,15 +361,15 @@ def get_max_ball(A_full_dim, b_full_dim):
          model.optimize ()
 
          # Get the solution returned
-         vars = model.getVars()
+         varss = model.getVars()
 
          # Get the center point and the radius of max ball from the solution of LP; its last element is the radius
          point = []
-         for i in range(len(vars)):
-            if i == len(vars) - 1:
-               r = vars[i].x
+         for i in range(len(varss)):
+            if i == len(varss) - 1:
+               r = varss[i].x
             else:
-               value = vars[i].x
+               value = varss[i].x
                point.append(value)
 
          # And check whether its value is negative
