@@ -241,7 +241,7 @@ double volume (Rcpp::Reference P,
     } else if (Rcpp::as<std::string>(rounding).compare(std::string("none")) == 0) {
         rounding_method = none;
     }
-
+    
     NT e;
 
     if (!Rcpp::as<Rcpp::List>(settings).containsElementNamed("algorithm")) {

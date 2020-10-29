@@ -222,4 +222,4 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(MT A, VT b, VT const&
 }
 
 
-#endif 
+#endif
