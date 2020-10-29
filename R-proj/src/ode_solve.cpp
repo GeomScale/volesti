@@ -73,8 +73,6 @@ void run_ode_solver(
 //'
 //' @return A list which contains elements "x_1", ..., "x_n" representing each derivative results. Each "x_i" corresponds to a d x n matrix where each column represents a certain timestep of the solver.
 //'
-//' @examples
-//' Please visit the examples directory for examples
 //' @export
 // [[Rcpp::export]]
 Rcpp::List ode_solve(Rcpp::Nullable<unsigned int> n,

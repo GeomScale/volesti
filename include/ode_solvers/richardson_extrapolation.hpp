@@ -119,8 +119,8 @@ struct RichardsonExtrapolationODESolver {
           if (Ks[i] == NULL) {
             xs[i] = xs_prev[i] + y;
             if (prev_facet != -1 && i > 0) {
-							Ks[i-1]->compute_reflection(xs[i], x_prev_bound, prev_facet);
-						}
+				Ks[i-1]->compute_reflection(xs[i], x_prev_bound, prev_facet);
+			}
             prev_facet = -1;
           }
           else {
@@ -132,8 +132,6 @@ struct RichardsonExtrapolationODESolver {
               // If point is outside it would yield a negative param
               if (pbpair.first >= 0 && pbpair.first <= 1) {
 
-								std::cout << "inter" << std::endl;
-								// Advance to point on the boundary
                 xs_prev[i] += (pbpair.first * 0.95) * y;
 
                 // Update facet for reflection of derivative

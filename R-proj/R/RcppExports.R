@@ -188,8 +188,6 @@ inner_ball <- function(P, lpsolve = NULL) {
 #'
 #' @return A list which contains elements "x_1", ..., "x_n" representing each derivative results. Each "x_i" corresponds to a d x n matrix where each column represents a certain timestep of the solver.
 #'
-#' @examples
-#' Please visit the examples directory for examples
 #' @export
 ode_solve <- function(n, step_size, order, dimension, initial_time, F, method, domains = NULL, initial_conditions = NULL) {
     .Call(`_volesti_ode_solve`, n, step_size, order, dimension, initial_time, F, method, domains, initial_conditions)
