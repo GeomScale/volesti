@@ -74,4 +74,4 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
     return result;
 }
 
-#endif 
+#endif

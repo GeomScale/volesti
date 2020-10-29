@@ -35,7 +35,7 @@ public:
     {
         return P.InnerBall();
     }
-    
+
     MT get_mat() const {
         return P.get_mat();
     }
