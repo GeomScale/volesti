@@ -552,7 +552,7 @@ cdef extern from "bindings.h":
 
       # Rounding H-Polytope
       void rounding(char* rounding_method, double* new_A, double* new_b, double* T_matrix, double* shift, double &round_value, \
-         bool max_ball, double* inner_point, double radius);
+         double max_ball, double* inner_point, double radius);
       
       # Rounding svd step 
       double rounding_svd_step(double* new_A, double* new_b, double* T_matrix, double* shift, double* inner_point, double radius)
@@ -691,9 +691,12 @@ cdef class HPolytope:
 
       # Check whether a max ball has been given
       if radius > 0:
-         max_ball = True
+         max_ball = 2.5
       else:
-         max_ball = False
+         max_ball = 1.5
+      
+      print("radius in cython is: ") ; print(float(radius))
+      print("max ball in cython is:") ; print(max_ball)
       
       # Check whether the rounding method the user asked for, is actually among those volestipy supports
       if rounding_method in rounding_methods:

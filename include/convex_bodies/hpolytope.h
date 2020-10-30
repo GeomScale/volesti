@@ -127,6 +127,7 @@ public:
            NT const tol = 0.00000001;
            std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
            
+           std::cout<<"interior point method radius = "<<std::get<1>(inner_ball)<<std::endl;
    
            //if (_inner_ball.second < 0.0) {
                

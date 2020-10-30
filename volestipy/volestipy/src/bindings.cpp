@@ -194,7 +194,7 @@ double HPolytopeCPP::generate_samples(int walk_len, int number_of_points,
 //////////         Start of "rounding()"          //////////
 void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
                             double* T_matrix, double* shift, double &round_value,
-                            bool max_ball, double* inner_point, double radius){
+                            double max_ball, double* inner_point, double radius){
 
    std::cout<<"start rounding in c++"<<std::endl;                         
    
@@ -206,7 +206,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
    std::cout<<"max_ball is: "<< max_ball<<std::endl;   
 
    // check for max ball given
-   if (max_ball == true ){
+   if (max_ball > 2.0 ){
       
       // if yes, then read the inner point provided by the user and the radius
       int d = P.dimension();
@@ -221,7 +221,7 @@ void HPolytopeCPP::rounding(char* rounding_method, double* new_A, double* new_b,
       P.set_InnerBall(CheBall);
 
       
-   } else if (max_ball == false ) {
+   } else if (max_ball < 2.0 ) {
       std::cout<<"I do not have max ball and i am about to compute it on my own"<<std::endl;   
       CheBall = P.ComputeInnerBall();
       std::cout<<CheBall.second<<std::endl;
