@@ -59,15 +59,15 @@ A_fd = np.dot(A_proc,N)
 hp = HPolytope(A_fd, b_fd)
 
 # And scale it
-cscale, rscale = gmscale(A_fd, 5, 0.9)
-scaled_A, scaled_b, diag_matrix = scaled_polytope(hp, cscale, rscale)
+#cscale, rscale = gmscale(A_fd, 5, 0.9)
+#scaled_A, scaled_b, diag_matrix = scaled_polytope(hp, cscale, rscale)
 
 # Now build a new object for the scaled full dimensional polytope
-hp_scaled = HPolytope(scaled_A, scaled_b)
+#hp_scaled = HPolytope(scaled_A, scaled_b)
 
 # Get the max ball for the full dimensional polytope
 print("Computing max ball...")
-max_ball_center_point, max_ball_radius = get_max_ball(scaled_A, scaled_b)
+#max_ball_center_point, max_ball_radius = get_max_ball(scaled_A, scaled_b)
 max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
 
 
@@ -76,8 +76,8 @@ rounding_returns = ["new_A","new_b","T_matrix","shift","round_val"]
 
 # Rounding by making use of max ball and the max_ellipsoid method
 print("Rounding is about to start")
-rounding_output_svd = hp.rounding_svd(scale = diag_matrix)
-#rounding_output_svd = hp.rounding_svd()
+#rounding_output_svd = hp.rounding_svd(scale = diag_matrix)
+rounding_output_svd = hp.rounding_svd()
 #rounding_output_svd = hp.rounding(rounding_method = 'max_ellipsoid')
 
 rounded_A = rounding_output_svd[0]
