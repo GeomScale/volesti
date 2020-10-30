@@ -57,37 +57,7 @@ points = sample_points(P, n = 100, distribution = list("density" = "gaussian", "
 P = gen_rand_hpoly(2,20)
 points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
 
-# sample from logconcave density (also see the examples directory)
-norm_vec <- function(x) sqrt(sum(x^2))
-
-# Negative log-probability oracle
-f <- function(x) (norm_vec(x)^2 + sum(x))
-
-# Negative log-probability gradient oracle
-grad_f <- function(x) (2 * x + 1)
-
-# Interval [-1, 1]
-A = matrix(c(1, -1), ncol=1, nrow=2, byrow=TRUE)
-b = c(2,1)
-
-# Create domain of truncation
-P <- volesti::Hpolytope$new(A, b)
-
-# Mode of logconcave density
-x_min <- c(-0.5)
-
-# Smoothness and strong-convexity
-L <- 2
-m <- 2
-
-# Warm start point from truncated Gaussian
-warm_start <- sample_points(P, n = 1, random_walk = list("nburns" = 5000), distribution = list("density" = "gaussian", "variance" = 1/L, "mode" = x_min))
-
-# Sample pointspt
-n_samples <- 20000
-n_burns <- n_samples / 2
-
-pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "HMC", "nburns" = n_burns, "walk_length" = 1, "solver" = "leapfrog", "starting_point" = warm_start[,1]), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = 1, "m" = 1))
+# For sampling from logconcave densities see the examples directory
 
 }
 \references{
