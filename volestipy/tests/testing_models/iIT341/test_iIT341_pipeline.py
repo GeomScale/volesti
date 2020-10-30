@@ -27,7 +27,7 @@ A_proc = proc[0] ; b_proc = proc[1] ; Aeq_proc = proc[2] ; beq_proc = proc[3] ; 
 
 print("Aeq_proc shape: " ) ; print(Aeq_proc.shape)
 print("beq_proc shape: ") ; print(beq_proc.shape)
-
+print("b_proc type is: ") ; print(type(b_proc))
 
 ## Get an object for the low_dim_HPolytope class for the pre-processed polytope
 # low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
@@ -35,35 +35,85 @@ print("beq_proc shape: ") ; print(beq_proc.shape)
 ## And then get the full dimensional polytope
 # get_fd_hp = low_hp.full_dimensiolal_polytope()
 
+
+
 # N = get_fd_hp[1]
 N = linalg.null_space(Aeq_proc)
 print("N shape is :") ; print(N.shape)
 
+
+
 # N_shift = get_fd_hp[2]
 # N_shift = np.linalg.solve(Aeq_proc, beq_proc)
-N_shift = np.zeros(Aeq_proc.shape[1])
-print("N_shift shape is :") ; print(N_shift.shape)
+# N_shift = np.zeros(Aeq_proc.shape[1])
+N_shift = np.linalg.lstsq(Aeq_proc, beq_proc, rcond=None)[0]
+print("N_shift is :") ; print(type(N_shift))
+
+
 
 # A_fd = get_fd_hp[0].A
 A_fd = np.dot(A_proc,N)
 print("A_fd shape is :") ; print(A_fd.shape)
 
 # b_fd = get_fd_hp[0].b
-# b_fd = b_proc - Aeq_proc*N_shift
-b_fd = b_proc
+
+
+print("**************************************************")
+print("A_proc.shape: ") ; print(A_proc.shape)
+print("**************************************************")
+print("N_shift type: ") ; print(type(N_shift))
+print("N_shift.shape: ") ; print(N_shift.shape)
+print("N_shift: ") ; print(N_shift)
+print("**************************************************")
+print("b_proc.shape: ") ; print(b_proc.shape)
+print("**************************************************")
+print("beq_proc type: ") ; print(type(beq_proc))
+print("beq_proc shape: ") ; print(beq_proc.shape)
+print("beq_proc: ") ; print(beq_proc)
+print("**************************************************")
+
+try:
+   b_fd = b_proc
+   # Build an object of the full dimensional polytope
+   hp = HPolytope(A_fd, b_fd)
+   
+   # Get the max ball for the full dimensional polytope
+   max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+   print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
+   print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
+
+except:
+   print("Cannot get max ball with b_fd = b_proc") 
+
+try:
+   product = np.dot(A_proc, N_shift)
+   b_fd = b_proc - product
+   print("b_fd shape is with product is:") ; print(b_fd.shape)
+   print("b_fd is with product is:") ; print(b_fd)
+   b_fd = np.subtract(b_proc, product)
+   print("AGAINNN")
+   print("b_fd shape is with product is:") ; print(b_fd.shape)
+   print("b_fd is with product is:") ; print(b_fd)   
+   # Build an object of the full dimensional polytope
+   hp = HPolytope(A_fd, b_fd)
+   
+   # Get the max ball for the full dimensional polytope
+   max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+   print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
+   print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
+
+except Exception:
+   print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
+
+
+sys.exit(0)
+
 print("b_fd shape is :") ; print(b_fd.shape)
 
-# Build an object of the full dimensional polytope
-hp = HPolytope(A_fd, b_fd)
 
-# Get the max ball for the full dimensional polytope
-max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
-print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
    
 # Check whether the max_ball_center_point is a zero-array and if yes it is try with scaling it
-max_ball_center_point_array = np.array(max_ball_center_point)
-if not max_ball_center_point_array.any():
+if max_ball_radius <= 0:
 
    try:
        
