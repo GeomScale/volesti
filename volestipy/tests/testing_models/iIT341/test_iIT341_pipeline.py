@@ -23,58 +23,83 @@ beq = read_ecoli_core[3]
 
 # Pre-process it
 proc = pre_process(A, b, Aeq, beq)
+A_proc = proc[0] ; b_proc = proc[1] ; Aeq_proc = proc[2] ; beq_proc = proc[3] ; min_fluxes = proc[4] ; max_fluxes = proc[5]
 
-A_proc = proc[0]
-b_proc = proc[1]
-Aeq_proc = proc[2]
-beq_proc = proc[3]
-min_fluxes = proc[4]
-max_fluxes = proc[5]
 print("Aeq_proc shape: " ) ; print(Aeq_proc.shape)
 print("beq_proc shape: ") ; print(beq_proc.shape)
 
 
-# Get an object for the low_dim_HPolytope class for the pre-processed polytope
-low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
+## Get an object for the low_dim_HPolytope class for the pre-processed polytope
+# low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
 
 ## And then get the full dimensional polytope
 # get_fd_hp = low_hp.full_dimensiolal_polytope()
-# A_fd = get_fd_hp[0].A
-# b_fd = get_fd_hp[0].b
-# N = get_fd_hp[1]
-# N_shift = get_fd_hp[2]
 
-#N_shift = np.linalg.solve(Aeq_proc, beq_proc)
-N_shift = np.zeros(Aeq_proc.shape[1])
-#b_fd = b_proc - Aeq_proc*N_shift
-b_fd = b_proc
+# N = get_fd_hp[1]
 N = linalg.null_space(Aeq_proc)
 print("N shape is :") ; print(N.shape)
+
+# N_shift = get_fd_hp[2]
+# N_shift = np.linalg.solve(Aeq_proc, beq_proc)
+N_shift = np.zeros(Aeq_proc.shape[1])
+print("N_shift shape is :") ; print(N_shift.shape)
+
+# A_fd = get_fd_hp[0].A
 A_fd = np.dot(A_proc,N)
 print("A_fd shape is :") ; print(A_fd.shape)
+
+# b_fd = get_fd_hp[0].b
+# b_fd = b_proc - Aeq_proc*N_shift
+b_fd = b_proc
+print("b_fd shape is :") ; print(b_fd.shape)
 
 # Build an object of the full dimensional polytope
 hp = HPolytope(A_fd, b_fd)
 
-# And scale it
-#cscale, rscale = gmscale(A_fd, 5, 0.9)
-#scaled_A, scaled_b, diag_matrix = scaled_polytope(hp, cscale, rscale)
-
-# Now build a new object for the scaled full dimensional polytope
-#hp_scaled = HPolytope(scaled_A, scaled_b)
-
 # Get the max ball for the full dimensional polytope
-print("Computing max ball...")
-#max_ball_center_point, max_ball_radius = get_max_ball(scaled_A, scaled_b)
 max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-print("max ball before rounding is: ") ; print(max_ball_center_point)
+print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
+print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
+   
+# Check whether the max_ball_center_point is a zero-array and if yes it is try with scaling it
+max_ball_center_point_array = np.array(max_ball_center_point)
+if not max_ball_center_point_array.any():
+
+   try:
+       
+      # And scale it
+      cscale, rscale = gmscale(A_fd, 5, 0.99)
+      scaled_A, scaled_b, diag_matrix = scaled_polytope(hp, cscale, rscale)
+      
+      print("scaled_A: ") ; print(scaled_A)
+      print("scaled_b: ") ; print(scaled_b)
+      
+      # Now build a new object for the scaled full dimensional polytope
+      hp_scaled = HPolytope(scaled_A, scaled_b)
+      
+      # Get the max ball for the full dimensional polytope
+      print("Computing max ball...")
+      scaled_max_ball_center_point, scaled_max_ball_radius = get_max_ball(scaled_A, scaled_b)
+      
+      
+      print("max ball center pointer for scaled polytope before rounding is: ") ; print(scaled_max_ball_center_point)
+      print("max ball radius for scaled polytope  before rounding is: ") ; print(scaled_max_ball_radius)
+
+   except:
+      print("Sorry. I cannot deal with this metabolic network.")
+
+sys.exit(0)
+
+
+
+
 
 ## Then use one of the volestipy functions for rounding
 rounding_returns = ["new_A","new_b","T_matrix","shift","round_val"]
 
 # Rounding by making use of max ball and the max_ellipsoid method
 print("Rounding is about to start")
-#rounding_output_svd = hp.rounding_svd(scale = diag_matrix)
+rounding_output_svd = hp_scaled.rounding_svd(scale = diag_matrix)
 rounding_output_svd = hp.rounding_svd()
 #rounding_output_svd = hp.rounding(rounding_method = 'max_ellipsoid')
 
