@@ -20,9 +20,6 @@ A = read_ecoli_core[0]
 b = read_ecoli_core[1]
 Aeq = read_ecoli_core[2]
 beq = read_ecoli_core[3]
-#print("A: ") ; print(A)
- 
-#print("beq is: ") ; print(beq)
 
 # Pre-process it
 proc = pre_process(A, b, Aeq, beq)
@@ -33,8 +30,8 @@ Aeq_proc = proc[2]
 beq_proc = proc[3]
 min_fluxes = proc[4]
 max_fluxes = proc[5]
-print("Aeq shape after pre-processing: " ) ; print(Aeq_proc.shape)
-print("beq_proc is: ") ; print(beq_proc)
+print("Aeq_proc shape: " ) ; print(Aeq_proc.shape)
+print("beq_proc shape: ") ; print(beq_proc.shape)
 
 
 # Get an object for the low_dim_HPolytope class for the pre-processed polytope
@@ -52,8 +49,9 @@ N_shift = np.zeros(Aeq_proc.shape[1])
 #b_fd = b_proc - Aeq_proc*N_shift
 b_fd = b_proc
 N = linalg.null_space(Aeq_proc)
+print("N shape is :") ; print(N.shape)
 A_fd = np.dot(A_proc,N)
-
+print("A_fd shape is :") ; print(A_fd.shape)
 
 # Build an object of the full dimensional polytope
 hp = HPolytope(A_fd, b_fd)
@@ -69,7 +67,7 @@ hp = HPolytope(A_fd, b_fd)
 print("Computing max ball...")
 #max_ball_center_point, max_ball_radius = get_max_ball(scaled_A, scaled_b)
 max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-
+print("max ball before rounding is: ") ; print(max_ball_center_point)
 
 ## Then use one of the volestipy functions for rounding
 rounding_returns = ["new_A","new_b","T_matrix","shift","round_val"]
