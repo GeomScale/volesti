@@ -20,7 +20,9 @@ A = read_ecoli_core[0]
 b = read_ecoli_core[1]
 Aeq = read_ecoli_core[2]
 beq = read_ecoli_core[3]
-
+#print("A: ") ; print(A)
+ 
+#print("beq is: ") ; print(beq)
 
 # Pre-process it
 proc = pre_process(A, b, Aeq, beq)
@@ -32,6 +34,9 @@ beq_proc = proc[3]
 min_fluxes = proc[4]
 max_fluxes = proc[5]
 print("Aeq shape after pre-processing: " ) ; print(Aeq_proc.shape)
+print("beq_proc is: ") ; print(beq_proc)
+
+
 # Get an object for the low_dim_HPolytope class for the pre-processed polytope
 low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
 
@@ -42,26 +47,28 @@ low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
 # N = get_fd_hp[1]
 # N_shift = get_fd_hp[2]
 
-N_shift = np.linalg.solve(Aeq_proc, beq_proc)
-b_fd = b - Aeq_proc*N_shift
-N = null_space(Aeq_proc)
-A_fd = A_proc * N
+#N_shift = np.linalg.solve(Aeq_proc, beq_proc)
+N_shift = np.zeros(Aeq_proc.shape[1])
+#b_fd = b_proc - Aeq_proc*N_shift
+b_fd = b_proc
+N = linalg.null_space(Aeq_proc)
+A_fd = np.dot(A_proc,N)
 
 
 # Build an object of the full dimensional polytope
 hp = HPolytope(A_fd, b_fd)
 
 # And scale it
-#cscale, rscale = gmscale(A_fd, 5, 0.9)
-#scaled_A, scaled_b, diag_matrix = scaled_polytope(hp, cscale, rscale)
+cscale, rscale = gmscale(A_fd, 5, 0.9)
+scaled_A, scaled_b, diag_matrix = scaled_polytope(hp, cscale, rscale)
 
 # Now build a new object for the scaled full dimensional polytope
-#hp_scaled = HPolytope(scaled_A, scaled_b)
+hp_scaled = HPolytope(scaled_A, scaled_b)
 
 # Get the max ball for the full dimensional polytope
-#print("Computing max ball...")
-#max_ball_center_point, max_ball_radius = get_max_ball(scaled_A, scaled_b)
-#max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+print("Computing max ball...")
+max_ball_center_point, max_ball_radius = get_max_ball(scaled_A, scaled_b)
+max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
 
 
 ## Then use one of the volestipy functions for rounding
@@ -69,10 +76,9 @@ rounding_returns = ["new_A","new_b","T_matrix","shift","round_val"]
 
 # Rounding by making use of max ball and the max_ellipsoid method
 print("Rounding is about to start")
-#rounding_output_svd = hp.rounding_svd(scale = diag_matrix)
+rounding_output_svd = hp.rounding_svd(scale = diag_matrix)
 #rounding_output_svd = hp.rounding_svd()
-
-rounding_output_svd = hp.rounding(rounding_method = 'max_ellipsoid')
+#rounding_output_svd = hp.rounding(rounding_method = 'max_ellipsoid')
 
 rounded_A = rounding_output_svd[0]
 rounded_b = rounding_output_svd[1]
