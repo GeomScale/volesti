@@ -5,6 +5,7 @@ import gurobipy as gp
 from volestipy import *
 import matplotlib.pyplot as plt
 import sys, datetime
+from scipy import linalg 
 
 start = datetime.datetime.now()
 
@@ -35,11 +36,17 @@ print("Aeq shape after pre-processing: " ) ; print(Aeq_proc.shape)
 low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
 
 ## And then get the full dimensional polytope
-get_fd_hp = low_hp.full_dimensiolal_polytope()
-A_fd = get_fd_hp[0].A
-b_fd = get_fd_hp[0].b
-N = get_fd_hp[1]
-N_shift = get_fd_hp[2]
+# get_fd_hp = low_hp.full_dimensiolal_polytope()
+# A_fd = get_fd_hp[0].A
+# b_fd = get_fd_hp[0].b
+# N = get_fd_hp[1]
+# N_shift = get_fd_hp[2]
+
+N_shift = np.linalg.solve(Aeq_proc, beq_proc)
+b_fd = b - Aeq_proc*N_shift
+N = null_space(Aeq_proc)
+A_fd = A_proc * N
+
 
 # Build an object of the full dimensional polytope
 hp = HPolytope(A_fd, b_fd)
