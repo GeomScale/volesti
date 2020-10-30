@@ -32,8 +32,8 @@ struct RcppFunctor {
   struct parameters {
     NT L; // Lipschitz constant of gradient
     NT m; // Strong-convexity parameter
-    NT kappa; // Condition number
     NT eta; // Step-size (if defined by user)
+    NT kappa; // Condition number
     unsigned int order; // Order of ODE functor
 
     parameters(
@@ -45,8 +45,8 @@ struct RcppFunctor {
       L(L_),
       m(m_),
       eta(eta_),
-      order(order_),
-      kappa(L_ / m_)
+      kappa(L_ / m_),
+      order(order_)
     {}
   };
 
