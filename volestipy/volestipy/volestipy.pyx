@@ -300,7 +300,7 @@ def pre_process(A, b, Aeq, beq):
             
             # Return a tupple including the new A, b, Aeq and beq
             # return A_new, b_new, Aeq_new, beq_new, min_fluxes, max_fluxes 
-            return A, b, Aeq_new, beq_new, min_fluxes, max_fluxes
+            return A_new, b_new, Aeq_new, beq_new, min_fluxes, max_fluxes
 
 
    # Print error messages
