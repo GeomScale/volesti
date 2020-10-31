@@ -8,7 +8,7 @@ import sys, datetime
 from scipy import linalg 
 
 
-np.set_printoptions(threshold=sys.maxsize)
+# np.set_printoptions(threshold=sys.maxsize)
 
 start = datetime.datetime.now()
 
@@ -23,7 +23,6 @@ A = read_ecoli_core[0]
 b = read_ecoli_core[1]
 Aeq = read_ecoli_core[2]
 beq = read_ecoli_core[3]
-print("b: ") ; print(b)
 
 # Pre-process it
 proc = pre_process(A, b, Aeq, beq)
@@ -40,11 +39,9 @@ A_proc = proc[0] ; b_proc = proc[1] ; Aeq_proc = proc[2] ; beq_proc = proc[3] ; 
 # get_fd_hp = low_hp.full_dimensiolal_polytope()
 
 
-
 # N = get_fd_hp[1]
 N = linalg.null_space(Aeq_proc)
 print("N shape is :") ; print(N.shape)
-
 
 
 # N_shift = get_fd_hp[2]
@@ -92,7 +89,7 @@ except:
 
 try:
 
-   print("A_proc: ") ; print(A_proc)
+   N_shift = np.zeros(N_shift.shape[0])
    print("N_shift: ") ; print(N_shift)
 
    product = np.dot(A_proc, N_shift)
@@ -103,7 +100,11 @@ try:
    b_fd = np.subtract(b_proc, product)
    print("b_fd shape is with product is:") ; print(b_fd.shape)
    print("b_fd is with product is:") ; print(b_fd)   
+   
 
+   print("A_fd") ; print(A_fd)
+   A_fd = 0.7 * A_fd
+   print("multiplied A_fd") ; print(A_fd)
 
    # Build an object of the full dimensional polytope
    hp = HPolytope(A_fd, b_fd)
@@ -115,6 +116,7 @@ try:
 
 except Exception:
    print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
+
 
 
 sys.exit(0)
