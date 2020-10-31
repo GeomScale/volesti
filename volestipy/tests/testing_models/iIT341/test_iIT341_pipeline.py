@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import sys, datetime
 from scipy import linalg 
 
+
+np.set_printoptions(threshold=sys.maxsize)
+
 start = datetime.datetime.now()
 
 # Set a variable with the input / metabolic network file
@@ -20,14 +23,15 @@ A = read_ecoli_core[0]
 b = read_ecoli_core[1]
 Aeq = read_ecoli_core[2]
 beq = read_ecoli_core[3]
+print("b: ") ; print(b)
 
 # Pre-process it
 proc = pre_process(A, b, Aeq, beq)
 A_proc = proc[0] ; b_proc = proc[1] ; Aeq_proc = proc[2] ; beq_proc = proc[3] ; min_fluxes = proc[4] ; max_fluxes = proc[5]
 
-print("Aeq_proc shape: " ) ; print(Aeq_proc.shape)
-print("beq_proc shape: ") ; print(beq_proc.shape)
-print("b_proc type is: ") ; print(type(b_proc))
+# print("Aeq_proc shape: " ) ; print(Aeq_proc.shape)
+# print("beq_proc shape: ") ; print(beq_proc.shape)
+# print("b_proc type is: ") ; print(type(b_proc))
 
 ## Get an object for the low_dim_HPolytope class for the pre-processed polytope
 # low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
@@ -47,30 +51,31 @@ print("N shape is :") ; print(N.shape)
 # N_shift = np.linalg.solve(Aeq_proc, beq_proc)
 # N_shift = np.zeros(Aeq_proc.shape[1])
 N_shift = np.linalg.lstsq(Aeq_proc, beq_proc, rcond=None)[0]
-print("N_shift is :") ; print(type(N_shift))
+# print("N_shift is :") ; print(type(N_shift))
 
 
 
 # A_fd = get_fd_hp[0].A
 A_fd = np.dot(A_proc,N)
-print("A_fd shape is :") ; print(A_fd.shape)
+# print("A_fd shape is :") ; print(A_fd.shape)
 
 # b_fd = get_fd_hp[0].b
 
 
-print("**************************************************")
-print("A_proc.shape: ") ; print(A_proc.shape)
-print("**************************************************")
-print("N_shift type: ") ; print(type(N_shift))
-print("N_shift.shape: ") ; print(N_shift.shape)
-print("N_shift: ") ; print(N_shift)
-print("**************************************************")
-print("b_proc.shape: ") ; print(b_proc.shape)
-print("**************************************************")
-print("beq_proc type: ") ; print(type(beq_proc))
-print("beq_proc shape: ") ; print(beq_proc.shape)
-print("beq_proc: ") ; print(beq_proc)
-print("**************************************************")
+# print("**************************************************")
+# print("A_proc.shape: ") ; print(A_proc.shape)
+# print("**************************************************")
+# print("N_shift type: ") ; print(type(N_shift))
+# print("N_shift.shape: ") ; print(N_shift.shape)
+# # print("N_shift: ") ; print(N_shift)
+# print("**************************************************")
+# print("b_proc.shape: ") ; print(b_proc.shape)
+# print("b_proc is: ") ; print(b_proc)
+# print("**************************************************")
+# print("beq_proc type: ") ; print(type(beq_proc))
+# print("beq_proc shape: ") ; print(beq_proc.shape)
+# # print("beq_proc: ") ; print(beq_proc)
+# print("**************************************************")
 
 try:
    b_fd = b_proc
@@ -79,28 +84,34 @@ try:
    
    # Get the max ball for the full dimensional polytope
    max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-   print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
-   print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
+   # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
+   # print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
 
 except:
    print("Cannot get max ball with b_fd = b_proc") 
 
 try:
+
+   print("A_proc: ") ; print(A_proc)
+   print("N_shift: ") ; print(N_shift)
+
    product = np.dot(A_proc, N_shift)
-   b_fd = b_proc - product
-   print("b_fd shape is with product is:") ; print(b_fd.shape)
-   print("b_fd is with product is:") ; print(b_fd)
+   print("product A_proc * N_shift : ") ; print(product)
+
+   print("b_proc : ") ; print(b_proc)
+
    b_fd = np.subtract(b_proc, product)
-   print("AGAINNN")
    print("b_fd shape is with product is:") ; print(b_fd.shape)
    print("b_fd is with product is:") ; print(b_fd)   
+
+
    # Build an object of the full dimensional polytope
    hp = HPolytope(A_fd, b_fd)
    
    # Get the max ball for the full dimensional polytope
    max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-   print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
-   print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
+   # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
+   # print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
 
 except Exception:
    print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
@@ -108,7 +119,6 @@ except Exception:
 
 sys.exit(0)
 
-print("b_fd shape is :") ; print(b_fd.shape)
 
 
    
