@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import sys, datetime
 from scipy import linalg 
 
-
 np.set_printoptions(threshold=sys.maxsize)
 
 start = datetime.datetime.now()
@@ -48,12 +47,14 @@ N = linalg.null_space(Aeq_proc)
 # N_shift = np.linalg.solve(Aeq_proc, beq_proc)
 # N_shift = np.zeros(Aeq_proc.shape[1])
 N_shift = np.linalg.lstsq(Aeq_proc, beq_proc, rcond=None)[0]
+
+dim_Aeq = Aeq_proc.shape[1]
+# N_shift = np.linalg.solve(Aeq_proc[:dim_Aeq,:], beq_proc[:dim_Aeq])
+
+
 # print("N_shift is :") ; print(type(N_shift))
+   
 
-
-
-# A_fd = get_fd_hp[0].A
-A_fd = np.dot(A_proc,N)
 # print("A_fd shape is :") ; print(A_fd.shape)
 
 # b_fd = get_fd_hp[0].b
@@ -76,16 +77,41 @@ A_fd = np.dot(A_proc,N)
 
 
 
+
+
+
+
 try:
 
    N_shift_zeros = np.zeros(N_shift.shape[0])
    product = np.dot(A_proc, N_shift)
    product_for_zero_n_shift = np.dot(A_proc, N_shift_zeros)
-
    b_fd = np.subtract(b_proc, product)
    b_fd_zeros = np.subtract(b_proc, product_for_zero_n_shift)
 
-   print(b_fd_zeros == b_proc)   
+
+   A_fd = np.dot(A_proc,N)
+   lines = []
+   b_elements = []
+   
+   for i in range(A_fd.shape[0]):
+         entry = np.linalg.norm(A_fd[i,])
+   
+         if entry < 1e-06:
+            continue
+         else:
+            lines.append(A_fd[i,:])
+            b_elements.append(b_fd[i])
+            
+   A_fd_true = np.array(lines)
+   b_fd_true = np.array(b_elements)
+
+   print("A_fd.shape: ") ; print(A_fd.shape)
+   print("A_fd_true.shape: ") ; print(A_fd_true.shape)
+   print(b_fd_true.shape)
+
+
+   # print(b_fd_zeros == b_proc)   
    
    # print("b_fd shape is with product is:") ; print(b_fd.shape)
    # print("b_fd is with product is:") ; print(b_fd)   
@@ -93,38 +119,23 @@ try:
    # print("b_fd_zeros shape is with product is:") ; print(b_fd.shape)
    # print("b_fd_zeros is ") ; print(b_fd_zeros)   
 
-
-
-   sys.exit(0)
-
-   A_fd = 0.7 * A_fd
+   # A_fd = 0.82 * A_fd
 
 
    # Build an object of the full dimensional polytope
-   hp = HPolytope(A_fd, b_fd)
+   hp = HPolytope(A_fd_true, b_fd_true)
    
    # Get the max ball for the full dimensional polytope
-   max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+   max_ball_center_point, max_ball_radius = get_max_ball(A_fd_true, b_fd_true)
    print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
    print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
-
+   print(A_fd.shape[1])
+   
 except Exception:
    print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
 
 sys.exit(0)
 
-try:
-   b_fd = b_proc
-   # Build an object of the full dimensional polytope
-   hp = HPolytope(A_fd, b_fd)
-   
-   # Get the max ball for the full dimensional polytope
-   max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-   # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
-   # print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
-
-except:
-   print("Cannot get max ball with b_fd = b_proc") 
 
 
 
@@ -157,7 +168,18 @@ if max_ball_radius <= 0:
 
 sys.exit(0)
 
+try:
+   b_fd = b_proc
+   # Build an object of the full dimensional polytope
+   hp = HPolytope(A_fd, b_fd)
+   
+   # Get the max ball for the full dimensional polytope
+   max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+   # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
+   # print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
 
+except:
+   print("Cannot get max ball with b_fd = b_proc") 
 
 
 
