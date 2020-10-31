@@ -8,7 +8,7 @@ import sys, datetime
 from scipy import linalg 
 
 
-# np.set_printoptions(threshold=sys.maxsize)
+np.set_printoptions(threshold=sys.maxsize)
 
 start = datetime.datetime.now()
 
@@ -41,7 +41,7 @@ A_proc = proc[0] ; b_proc = proc[1] ; Aeq_proc = proc[2] ; beq_proc = proc[3] ; 
 
 # N = get_fd_hp[1]
 N = linalg.null_space(Aeq_proc)
-print("N shape is :") ; print(N.shape)
+# print("N shape is :") ; print(N.shape)
 
 
 # N_shift = get_fd_hp[2]
@@ -74,6 +74,45 @@ A_fd = np.dot(A_proc,N)
 # # print("beq_proc: ") ; print(beq_proc)
 # print("**************************************************")
 
+
+
+try:
+
+   N_shift_zeros = np.zeros(N_shift.shape[0])
+   product = np.dot(A_proc, N_shift)
+   product_for_zero_n_shift = np.dot(A_proc, N_shift_zeros)
+
+   b_fd = np.subtract(b_proc, product)
+   b_fd_zeros = np.subtract(b_proc, product_for_zero_n_shift)
+
+   print(b_fd_zeros == b_proc)   
+   
+   # print("b_fd shape is with product is:") ; print(b_fd.shape)
+   # print("b_fd is with product is:") ; print(b_fd)   
+   # 
+   # print("b_fd_zeros shape is with product is:") ; print(b_fd.shape)
+   # print("b_fd_zeros is ") ; print(b_fd_zeros)   
+
+
+
+   sys.exit(0)
+
+   A_fd = 0.7 * A_fd
+
+
+   # Build an object of the full dimensional polytope
+   hp = HPolytope(A_fd, b_fd)
+   
+   # Get the max ball for the full dimensional polytope
+   max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+   print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
+   print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
+
+except Exception:
+   print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
+
+sys.exit(0)
+
 try:
    b_fd = b_proc
    # Build an object of the full dimensional polytope
@@ -86,40 +125,6 @@ try:
 
 except:
    print("Cannot get max ball with b_fd = b_proc") 
-
-try:
-
-   N_shift = np.zeros(N_shift.shape[0])
-   print("N_shift: ") ; print(N_shift)
-
-   product = np.dot(A_proc, N_shift)
-   print("product A_proc * N_shift : ") ; print(product)
-
-   print("b_proc : ") ; print(b_proc)
-
-   b_fd = np.subtract(b_proc, product)
-   print("b_fd shape is with product is:") ; print(b_fd.shape)
-   print("b_fd is with product is:") ; print(b_fd)   
-   
-
-   print("A_fd") ; print(A_fd)
-   A_fd = 0.7 * A_fd
-   print("multiplied A_fd") ; print(A_fd)
-
-   # Build an object of the full dimensional polytope
-   hp = HPolytope(A_fd, b_fd)
-   
-   # Get the max ball for the full dimensional polytope
-   max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-   # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
-   # print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
-
-except Exception:
-   print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
-
-
-
-sys.exit(0)
 
 
 
