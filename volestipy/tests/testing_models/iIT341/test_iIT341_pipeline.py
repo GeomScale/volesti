@@ -67,8 +67,8 @@ try:
    
    # Get the max ball for the full dimensional polytope
    max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-   # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
-   # print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
+   print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
+   print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
 
 except:
    print("Cannot get max ball with b_fd = b_proc") 
@@ -81,8 +81,8 @@ try:
   
    # Get the max ball for the full dimensional polytope
    max_ball_center_point, max_ball_radius = get_max_ball(A_fd_true, b_fd_true)
-   print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
-   print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
+   print("max ball center pointer for NON-scaled TRUE polytope before rounding is: ") ; print(max_ball_center_point)
+   print("max ball radius for NON-scaled TRUE polytope before rounding is: ") ; print(max_ball_radius)
    print(A_fd.shape[1]) 
    
 except Exception:
@@ -109,8 +109,8 @@ try:
    print("Computing max ball...")
    scaled_max_ball_center_point, scaled_max_ball_radius = get_max_ball(scaled_A, scaled_b)
    
-   print("max ball center pointer for scaled polytope before rounding is: ") ; print(scaled_max_ball_center_point)
-   print("max ball radius for scaled polytope  before rounding is: ") ; print(scaled_max_ball_radius)
+   print("max ball center pointer for scaled TRUE polytope before rounding is: ") ; print(scaled_max_ball_center_point)
+   print("max ball radius for scaled TRUE polytope before rounding is: ") ; print(scaled_max_ball_radius)
 
 except:
    print("Sorry. I cannot deal with this metabolic network.")
