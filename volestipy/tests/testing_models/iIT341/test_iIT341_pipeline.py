@@ -12,7 +12,9 @@ np.set_printoptions(threshold=sys.maxsize)
 start = datetime.datetime.now()
 
 # Set a variable with the input / metabolic network file
-input_file = '../../bigg_files/iIT341.json'
+input_file = '../../bigg_files/iSDY_1059.json'
+print("input_file is: ") ; print(input_file)
+
 
 # Read json
 read_ecoli_core = read_json_file(input_file)
@@ -27,146 +29,36 @@ beq = read_ecoli_core[3]
 proc = pre_process(A, b, Aeq, beq)
 A_proc = proc[0] ; b_proc = proc[1] ; Aeq_proc = proc[2] ; beq_proc = proc[3] ; min_fluxes = proc[4] ; max_fluxes = proc[5]
 
-# print("Aeq_proc shape: " ) ; print(Aeq_proc.shape)
-# print("beq_proc shape: ") ; print(beq_proc.shape)
-# print("b_proc type is: ") ; print(type(b_proc))
-
-## Get an object for the low_dim_HPolytope class for the pre-processed polytope
-# low_hp = low_dim_HPolytope(A_proc, b_proc, Aeq_proc, beq_proc)
-
-## And then get the full dimensional polytope
-# get_fd_hp = low_hp.full_dimensiolal_polytope()
-
-
-# N = get_fd_hp[1]
 N = linalg.null_space(Aeq_proc)
-# print("N shape is :") ; print(N.shape)
-
-
-# N_shift = get_fd_hp[2]
-# N_shift = np.linalg.solve(Aeq_proc, beq_proc)
-# N_shift = np.zeros(Aeq_proc.shape[1])
 N_shift = np.linalg.lstsq(Aeq_proc, beq_proc, rcond=None)[0]
 
-dim_Aeq = Aeq_proc.shape[1]
-# N_shift = np.linalg.solve(Aeq_proc[:dim_Aeq,:], beq_proc[:dim_Aeq])
+product = np.dot(A_proc, N_shift)
+b_fd = np.subtract(b_proc, product)
 
+A_fd = np.dot(A_proc,N)
+lines = []
+b_elements = []
 
-# print("N_shift is :") ; print(type(N_shift))
-   
+for i in range(A_fd.shape[0]):
+      entry = np.linalg.norm(A_fd[i,])
 
-# print("A_fd shape is :") ; print(A_fd.shape)
+      if entry < 1e-06:
+         continue
+      else:
+         lines.append(A_fd[i,:])
+         b_elements.append(b_fd[i])
 
-# b_fd = get_fd_hp[0].b
+A_fd_true = np.array(lines)
+b_fd_true = np.array(b_elements)
 
+np.save('recon_A_fd_true.npy', A_fd_true)
+np.save('recon_b_fd_true.npy', b_fd_true)
+np.save('recon_n_shift.npy', N_shift)
 
-# print("**************************************************")
-# print("A_proc.shape: ") ; print(A_proc.shape)
-# print("**************************************************")
-# print("N_shift type: ") ; print(type(N_shift))
-# print("N_shift.shape: ") ; print(N_shift.shape)
-# # print("N_shift: ") ; print(N_shift)
-# print("**************************************************")
-# print("b_proc.shape: ") ; print(b_proc.shape)
-# print("b_proc is: ") ; print(b_proc)
-# print("**************************************************")
-# print("beq_proc type: ") ; print(type(beq_proc))
-# print("beq_proc shape: ") ; print(beq_proc.shape)
-# # print("beq_proc: ") ; print(beq_proc)
-# print("**************************************************")
+# Build an object of the full dimensional polytope
+hp_true = HPolytope(A_fd_true, b_fd_true)
 
-
-
-
-
-
-
-try:
-
-   N_shift_zeros = np.zeros(N_shift.shape[0])
-   product = np.dot(A_proc, N_shift)
-   product_for_zero_n_shift = np.dot(A_proc, N_shift_zeros)
-   b_fd = np.subtract(b_proc, product)
-   b_fd_zeros = np.subtract(b_proc, product_for_zero_n_shift)
-
-
-   A_fd = np.dot(A_proc,N)
-   lines = []
-   b_elements = []
-   
-   for i in range(A_fd.shape[0]):
-         entry = np.linalg.norm(A_fd[i,])
-   
-         if entry < 1e-06:
-            continue
-         else:
-            lines.append(A_fd[i,:])
-            b_elements.append(b_fd[i])
-            
-   A_fd_true = np.array(lines)
-   b_fd_true = np.array(b_elements)
-
-   print("A_fd.shape: ") ; print(A_fd.shape)
-   print("A_fd_true.shape: ") ; print(A_fd_true.shape)
-   print(b_fd_true.shape)
-
-
-   # print(b_fd_zeros == b_proc)   
-   
-   # print("b_fd shape is with product is:") ; print(b_fd.shape)
-   # print("b_fd is with product is:") ; print(b_fd)   
-   # 
-   # print("b_fd_zeros shape is with product is:") ; print(b_fd.shape)
-   # print("b_fd_zeros is ") ; print(b_fd_zeros)   
-
-   # A_fd = 0.82 * A_fd
-
-
-   # Build an object of the full dimensional polytope
-   hp = HPolytope(A_fd_true, b_fd_true)
-   
-   # Get the max ball for the full dimensional polytope
-   max_ball_center_point, max_ball_radius = get_max_ball(A_fd_true, b_fd_true)
-   print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
-   print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
-   print(A_fd.shape[1])
-   
-except Exception:
-   print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
-
-sys.exit(0)
-
-
-
-
-   
-# Check whether the max_ball_center_point is a zero-array and if yes it is try with scaling it
-if max_ball_radius <= 0:
-
-   try:
-       
-      # And scale it
-      cscale, rscale = gmscale(A_fd, 5, 0.99)
-      scaled_A, scaled_b, diag_matrix = scaled_polytope(hp, cscale, rscale)
-      
-      print("scaled_A: ") ; print(scaled_A)
-      print("scaled_b: ") ; print(scaled_b)
-      
-      # Now build a new object for the scaled full dimensional polytope
-      hp_scaled = HPolytope(scaled_A, scaled_b)
-      
-      # Get the max ball for the full dimensional polytope
-      print("Computing max ball...")
-      scaled_max_ball_center_point, scaled_max_ball_radius = get_max_ball(scaled_A, scaled_b)
-      
-      
-      print("max ball center pointer for scaled polytope before rounding is: ") ; print(scaled_max_ball_center_point)
-      print("max ball radius for scaled polytope  before rounding is: ") ; print(scaled_max_ball_radius)
-
-   except:
-      print("Sorry. I cannot deal with this metabolic network.")
-
-sys.exit(0)
+####        FIRST APPROACH
 
 try:
    b_fd = b_proc
@@ -180,6 +72,57 @@ try:
 
 except:
    print("Cannot get max ball with b_fd = b_proc") 
+
+print("\n\n\n-----------------------------------------------------------\n\n\n\n")
+
+####        SECOND APPROACH
+
+try:
+  
+   # Get the max ball for the full dimensional polytope
+   max_ball_center_point, max_ball_radius = get_max_ball(A_fd_true, b_fd_true)
+   print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)
+   print("max ball radius for NON-scaled polytope  before rounding is: ") ; print(max_ball_radius)
+   print(A_fd.shape[1]) 
+   
+except Exception:
+   print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
+
+print("\n\n\n-----------------------------------------------------------\n\n\n\n")
+
+####        THIRD APPROACH
+   
+# Check whether the max_ball_center_point is a zero-array and if yes it is try with scaling it
+
+# if max_ball_radius <= 0:
+
+try:
+    
+   # And scale it
+   cscale, rscale = gmscale(A_fd_true, 5, 0.90)
+   scaled_A, scaled_b, diag_matrix = scaled_polytope(hp_true, cscale, rscale)
+   
+   # Now build a new object for the scaled full dimensional polytope
+   hp_scaled = HPolytope(scaled_A, scaled_b)
+   
+   # Get the max ball for the full dimensional polytope
+   print("Computing max ball...")
+   scaled_max_ball_center_point, scaled_max_ball_radius = get_max_ball(scaled_A, scaled_b)
+   
+   print("max ball center pointer for scaled polytope before rounding is: ") ; print(scaled_max_ball_center_point)
+   print("max ball radius for scaled polytope  before rounding is: ") ; print(scaled_max_ball_radius)
+
+except:
+   print("Sorry. I cannot deal with this metabolic network.")
+
+sys.exit(0)
+
+
+
+
+
+
+
 
 
 
