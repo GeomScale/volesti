@@ -12,7 +12,7 @@ np.set_printoptions(threshold=sys.maxsize)
 start = datetime.datetime.now()
 
 # Set a variable with the input / metabolic network file
-input_file = '../../bigg_files/iSDY_1059.json'
+input_file = '../../bigg_files/iJN746.json'
 print("input_file is: ") ; print(input_file)
 
 
@@ -78,13 +78,28 @@ print("\n\n\n-----------------------------------------------------------\n\n\n\n
 ####        SECOND APPROACH
 
 try:
-  
+
    # Get the max ball for the full dimensional polytope
+
    max_ball_center_point, max_ball_radius = get_max_ball(A_fd_true, b_fd_true)
-   print("max ball center pointer for NON-scaled TRUE polytope before rounding is: ") ; print(max_ball_center_point)
+
+   print("this is the max_radius of the true polytope! \n\n") ;
+   print(max_ball_radius)
+
+   # Test if we have an error that does not make our program to fail 
+   b_check = b_fd_true - np.dot(A_fd_true,max_ball_center_point)
+
+   A_check = A_fd_true * ( 1 / ( (1 / max_ball_radius ) ** ( 1 /A_fd_true.shape[1] ))) 
+
+   check_center_scaled, check_radius_scaled = get_max_ball(A_check, b_check)
+
+   print("***** HERE IS THE PRRooOF! \n\n") ; print("This is the check scaled radius:\n") ; print(check_radius_scaled)
+
+   print("\n\nmax ball center pointer for NON-scaled TRUE polytope before rounding is: ") ; print(max_ball_center_point)
    print("max ball radius for NON-scaled TRUE polytope before rounding is: ") ; print(max_ball_radius)
-   print(A_fd.shape[1]) 
-   
+
+   print(A_fd.shape[1])
+
 except Exception:
    print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
 
