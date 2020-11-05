@@ -30,6 +30,7 @@ if __name__ == '__main__':
     argparser.add_argument('--name', type=str, default='hmc_plot', help='Plot name')
     argparser.add_argument('--limits', type=str, default='auto', help='Plot limits for scatter plots')
     argparser.add_argument('--save', action='store_true', help='Save output figures')
+    argparser.add_argument('--max_marginals', default=-1, type=int, help='Plot the maximum number of marginals')
     args = argparser.parse_args()
 
     temp = StringIO(sys.stdin.read())
@@ -38,7 +39,10 @@ if __name__ == '__main__':
     if len(data.shape) != 2:
         data = data.reshape(data.shape[-1], 1)
 
-    dims = data.shape[-1]
+    if args.max_marginals > 0:
+        dims = min(data.shape[-1], args.max_marginals)
+    else:
+        dims = data.shape[-1]
 
     print('Number of dimensions: {}'.format(dims))
 

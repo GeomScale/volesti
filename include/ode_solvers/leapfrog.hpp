@@ -44,15 +44,17 @@ struct LeapfrogODESolver {
   unsigned long long num_reflections = 0;
   unsigned long long num_steps = 0;
 
-  LeapfrogODESolver(NT initial_time, NT step, pts initial_state, func oracle, bounds boundaries) :
-  eta(step), eta0(step), t(initial_time), F(oracle), Ks(boundaries), xs(initial_state) {
+  bool adaptive = true;
+
+  LeapfrogODESolver(NT initial_time, NT step, pts initial_state, func oracle, bounds boundaries, bool adaptive_=true) :
+  eta(step), eta0(step), t(initial_time), F(oracle), Ks(boundaries), xs(initial_state), adaptive(adaptive_) {
     dim = xs[0].dimension();
   };
 
   void step() {
     num_steps++;
 
-    eta = (eta0 * num_steps) / (num_steps + num_reflections);
+    if (adaptive) eta = (eta0 * num_steps) / (num_steps + num_reflections);
 
     xs_prev = xs;
     unsigned int x_index, v_index, it;
