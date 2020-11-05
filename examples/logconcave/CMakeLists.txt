@@ -109,5 +109,5 @@ else ()
   add_executable (simple_ode simple_ode.cpp)
   add_executable (simple_uld simple_uld.cpp)
   add_executable (simple_sde simple_sde.cpp)
-
+  add_executable (high_dimensional_hmc high_dimensional_hmc.cpp)
 endif()
