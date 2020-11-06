@@ -15,11 +15,15 @@
 #include <unistd.h>
 #include <string>
 #include <typeinfo>
+#include <fstream>
 
 #include "doctest.h"
 #include "Eigen/Eigen"
 
 #include "ode_solvers.hpp"
+#include "diagnostics/geweke.hpp"
+#include "diagnostics/multivariate_psrf.hpp"
+#include "diagnostics/raftery.hpp"
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
@@ -29,6 +33,70 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 #include "generators/known_polytope_generators.h"
+#include "misc/misc.h"
+
+struct InnerBallFunctor {
+
+  // Custom density with neg log prob equal to c^T x
+  template <
+      typename NT,
+      typename Point
+  >
+  struct parameters {
+    unsigned int order;
+    NT L; // Lipschitz constant for gradient
+    NT m; // Strong convexity constant
+    NT kappa; // Condition number
+    Point x0;
+
+    parameters(Point x0_) : order(2), L(1), m(1), kappa(1), x0(x0_) {};
+
+  };
+
+  template
+  <
+      typename Point
+  >
+  struct GradientFunctor {
+    typedef typename Point::FT NT;
+    typedef std::vector<Point> pts;
+
+    parameters<NT, Point> &params;
+
+    GradientFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
+      if (i == params.order - 1) {
+        Point y = (-1.0) * (xs[0] - params.x0);
+        return y;
+      } else {
+        return xs[i + 1]; // returns derivative
+      }
+    }
+
+  };
+
+  template
+  <
+    typename Point
+  >
+  struct FunctionFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point> &params;
+
+    FunctionFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    NT operator() (Point const& x) const {
+      Point y = x - params.x0;
+      return 0.5 * y.dot(y);
+    }
+
+  };
+
+};
 
 struct CustomFunctor {
 
@@ -253,6 +321,72 @@ void test_uld(){
 }
 
 template <typename NT>
+void benchmark_netlib() {
+
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef std::vector<Point> pts;
+    typedef HPolytope<Point> Hpolytope;
+    typedef boost::mt19937 RNGType;
+    typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+    typedef InnerBallFunctor::GradientFunctor<Point> NegativeGradientFunctor;
+    typedef InnerBallFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+    typedef LeapfrogODESolver<Point, NT, Hpolytope, NegativeGradientFunctor> Solver;
+    typedef typename HPolytope<Point>::MT MT;
+    typedef typename HPolytope<Point>::VT VT;
+
+    std::ifstream inp;
+    std::vector<std::vector<NT> > Pin;
+
+
+    inp.open("./netlib/afiro.ine",std::ifstream::in);
+    read_pointset(inp, Pin);
+    Hpolytope P(Pin);
+
+    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
+
+    // Chebyshev center
+    Point x0 = inner_ball.first;
+    unsigned int dim = x0.dimension();
+
+    InnerBallFunctor::parameters<NT, Point> params(x0);
+
+    NegativeGradientFunctor F(params);
+    NegativeLogprobFunctor f(params);
+
+    RandomNumberGenerator rng(1);
+
+    HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
+
+    HamiltonianMonteCarloWalk::Walk
+      <Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
+      hmc(&P, x0, F, f, hmc_params);
+
+    int n_samples = 80000;
+    int n_burns = 0;
+
+    MT samples;
+    samples.resize(dim, n_samples - n_burns);
+
+    // hmc.solver->eta0 = 0.5;
+
+    for (int i = 0; i < n_samples; i++) {
+      if (i % 1000 == 0) std::cerr << ".";
+      hmc.apply(rng, 3);
+      if (i >= n_burns) {
+          samples.col(i - n_burns) = hmc.x.getCoefficients();
+      }
+    }
+    std::cerr << std::endl;
+
+    std::cout << "Step size (final): " << hmc.solver->eta << std::endl;
+    std::cout << "Discard Ratio: " << hmc.discard_ratio << std::endl;
+    std::cout << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
+    std::cout << "PSRF: " <<  multivariate_psrf<NT, VT, MT>(samples) << std::endl;
+
+}
+
+template <typename NT>
 void call_test_hmc() {
   std::cout << "--- Testing Hamiltonian Monte Carlo" << std::endl;
   test_hmc<NT>();
@@ -269,6 +403,12 @@ void call_test_benchmark_hmc(bool truncated) {
   benchmark_hmc<NT>(truncated);
 }
 
+template <typename NT>
+void call_test_benchmark_netlib() {
+    std::cout << " --- Benchmarking netlib polytopes " << std::endl;
+    benchmark_netlib<NT>();
+}
+
 TEST_CASE("hmc") {
   call_test_hmc<double>();
 }
@@ -283,4 +423,8 @@ TEST_CASE("benchmark_hmc") {
 
 TEST_CASE("benchmark_hmc_truncated") {
   call_test_benchmark_hmc<double>(true);
+}
+
+TEST_CASE("benchmark_netlib") {
+    call_test_benchmark_netlib<double>();
 }
