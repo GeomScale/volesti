@@ -138,7 +138,7 @@ def run_pipeline(input_file):
    
    print("\n\n\n-----------------------------------------------------------\n\n\n\n")
    
-      
+
    ####        THIRD APPROACH - scale and true 
 
    try:
@@ -155,9 +155,9 @@ def run_pipeline(input_file):
 
       # Test if we have an error that does not make our program to fail
       b_check = scaled_b - np.dot(scaled_A, scaled_max_ball_center_point)
-      product = ( 1 / ( (1 / scaled_max_ball_radius ) ** ( 1 /scaled_A.shape[1] )))
+      product_2 = ( 1 / ( (1 / scaled_max_ball_radius ) ** ( 1 / scaled_A.shape[1] )))
    
-      A_check = scaled_A * ( 1 / ( (1 / scaled_max_ball_radius ) ** ( 1 / scaled_A.shape[1] )))
+      A_check = scaled_A * product_2
       check_center_scaled, check_radius_scaled = get_max_ball(A_check, b_check)
    
       A_check_half = scaled_A * 0.5
@@ -177,12 +177,21 @@ def run_pipeline(input_file):
       print("Sorry. I cannot deal with this metabolic network.")
    
 
+   ####
+   ####  Investigating for max_ball has been completed !!! move to rounding step. 
+   ####
+
    # Rounding using the greatest approach
 
    if approach_3 == True:
       
       rounding_svd_output = hp_scaled.rounding_svd(scale = diag_matrix)
       rounded_A = rounding_svd_output[0] ; rounded_b = rounding_svd_output[1] ; rounded_T = rounding_svd_output[2] ; rounded_shift = rounding_svd_output[3]
+      
+      rounded_shift = rounded_shift + scaled_max_ball_center_point
+      rounded_T = rounded_T * product_2
+     
+      
       
       print("model " + name_of_met_net + "SVD rounding completed with approach 3. \n")
 
@@ -237,6 +246,10 @@ def run_pipeline(input_file):
 # Run the pipeline at last! 
 for model in onlyfiles:
    run_pipeline(model)
+
+
+
+
 
 
 
