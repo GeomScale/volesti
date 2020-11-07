@@ -78,33 +78,33 @@ def run_pipeline(input_file):
    
    ## -------- 3 approaches to get max ball ------
    
-   approach_1 = True ; approach_2 = True ; approach_3 = True
+   approach_1 = False ; approach_2 = True ; approach_3 = True # approach_1 is False in terms of not having the approach 1 running in this test
    
    ####        FIRST APPROACH - no scale , no true polytope
    
-   try:
-      low_hp = low_dim_HPolytope(A, b, Aeq, beq)
-      get_fd_hp = low_hp.full_dimensiolal_polytope()
-      A_fd = get_fd_hp[0].A
-      b_fd = get_fd_hp[0].b
-      N = get_fd_hp[1]
-      N_shift = get_fd_hp[2]
-      
-      # Make b full dimensional equal to the processed one
-      b_fd = b_proc
-      
-      # Get the max ball for the full dimensional polytope
-      max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-
-      # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)      
-      print("Approach 1: no scale, no true polytope, b_fd = b_proc")
-      print("max ball radius for NON-scaled polytope, NO true polytope, with b_fd = b_proc: ") ; print(max_ball_radius)
-   
-   except:
-      approach_1 = False
-      print("Cannot get max ball with b_fd = b_proc") 
-   
-   print("\n\n\n-----------------------------------------------------------\n\n\n\n")
+   # try:
+   #    low_hp = low_dim_HPolytope(A, b, Aeq, beq)
+   #    get_fd_hp = low_hp.full_dimensiolal_polytope()
+   #    A_fd = get_fd_hp[0].A
+   #    b_fd = get_fd_hp[0].b
+   #    N = get_fd_hp[1]
+   #    N_shift = get_fd_hp[2]
+   #    
+   #    # Make b full dimensional equal to the processed one
+   #    b_fd = b_proc
+   #    
+   #    # Get the max ball for the full dimensional polytope
+   #    max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+   # 
+   #    # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)      
+   #    print("Approach 1: no scale, no true polytope, b_fd = b_proc")
+   #    print("max ball radius for NON-scaled polytope, NO true polytope, with b_fd = b_proc: ") ; print(max_ball_radius)
+   # 
+   # except:
+   #    approach_1 = False
+   #    print("Cannot get max ball with b_fd = b_proc") 
+   # 
+   # print("\n\n\n-----------------------------------------------------------\n\n\n\n")
    
    ####        SECOND APPROACH - no scale, true polytope
    
@@ -114,21 +114,22 @@ def run_pipeline(input_file):
       max_ball_center_point, max_ball_radius = get_max_ball(A_fd_true, b_fd_true)
    
       # Test if we have an error that does not make our program to fail
-      b_check = b_fd_true - np.dot(A_fd_true,max_ball_center_point)
+      b_check = b_fd_true - np.dot(A_fd_true, max_ball_center_point)
       product = ( 1 / ( (1 / max_ball_radius ) ** ( 1 /A_fd_true.shape[1] )))
    
-      A_check = A_fd_true * ( 1 / ( (1 / max_ball_radius ) ** ( 1 /A_fd_true.shape[1] )))
-      check_center_scaled, check_radius_scaled = get_max_ball(A_check, b_check)
+      A_check = A_fd_true * ( 1 / ( (1 / max_ball_radius ) ** ( 1 / A_fd_true.shape[1] )))
+      check_center, check_radius = get_max_ball(A_check, b_check)
    
       A_check_half = A_fd_true * 0.5
-      check_center_scaled_half, check_radius_scaled_half = get_max_ball(A_check, b_check)
+      check_center_half, check_radius_half = get_max_ball(A_check, b_check)
       
       # print("\n\nmax ball center pointer for NON-scaled TRUE polytope before rounding is: ") ; print(max_ball_center_point)
       print("Approach 2: no scale, true polytope")
-      print("product is: ") ; print(product)
-      print("max ball radius for NON-scaled TRUE polytope before rounding is: ") ; print(max_ball_radius)      
-      print("check_radius_scaled") ; print(check_radius_scaled)
-      print("check_half_radius: ") ; print(check_radius_scaled_half)
+      print("product is: ") ; print(product)     
+      print("check_radius") ; print(check_radius)
+      print("check_half_radius: ") ; print(check_radius_half)
+      
+      print("Actual radius returned: ") ; print(max_ball_radius)
    
    
    except Exception:
@@ -152,9 +153,24 @@ def run_pipeline(input_file):
       # Get the max ball for the full dimensional polytope
       scaled_max_ball_center_point, scaled_max_ball_radius = get_max_ball(scaled_A, scaled_b)
 
-      # print("max ball center pointer for scaled TRUE polytope before rounding is: ") ; print(scaled_max_ball_center_point)
+      # Test if we have an error that does not make our program to fail
+      b_check = b_fd_true - np.dot(A_fd_true, scaled_max_ball_center_point)
+      product = ( 1 / ( (1 / scaled_max_ball_radius ) ** ( 1 /A_fd_true.shape[1] )))
+   
+      A_check = A_fd_true * ( 1 / ( (1 / scaled_max_ball_radius ) ** ( 1 / A_fd_true.shape[1] )))
+      check_center_scaled, check_radius_scaled = get_max_ball(A_check, b_check)
+   
+      A_check_half = A_fd_true * 0.5
+      check_center_scaled_half, check_radius_scaled_half = get_max_ball(A_check, b_check)
+      
+      
+      print(scaled_max_ball_center_point)
       print("Approach 3: scaled and true")
-      print("max ball radius for scaled TRUE polytope before rounding is: ") ; print(scaled_max_ball_radius)
+      print("product is: ") ; print(product)
+      print("check_radius") ; print(check_radius_scaled)
+      print("check_radius_scaled_half: ") ; print(check_radius_scaled_half)
+
+      print("Actual radius returned: ") ; print(max_ball_radius)
    
    except:
       approach_3 = False
