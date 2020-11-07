@@ -154,13 +154,13 @@ def run_pipeline(input_file):
       scaled_max_ball_center_point, scaled_max_ball_radius = get_max_ball(scaled_A, scaled_b)
 
       # Test if we have an error that does not make our program to fail
-      b_check = b_fd_true - np.dot(A_fd_true, scaled_max_ball_center_point)
-      product = ( 1 / ( (1 / scaled_max_ball_radius ) ** ( 1 /A_fd_true.shape[1] )))
+      b_check = scaled_b - np.dot(scaled_A, scaled_max_ball_center_point)
+      product = ( 1 / ( (1 / scaled_max_ball_radius ) ** ( 1 /scaled_A.shape[1] )))
    
-      A_check = A_fd_true * ( 1 / ( (1 / scaled_max_ball_radius ) ** ( 1 / A_fd_true.shape[1] )))
+      A_check = scaled_A * ( 1 / ( (1 / scaled_max_ball_radius ) ** ( 1 / scaled_A.shape[1] )))
       check_center_scaled, check_radius_scaled = get_max_ball(A_check, b_check)
    
-      A_check_half = A_fd_true * 0.5
+      A_check_half = scaled_A * 0.5
       check_center_scaled_half, check_radius_scaled_half = get_max_ball(A_check, b_check)
       
       
