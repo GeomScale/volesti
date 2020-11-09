@@ -21,6 +21,8 @@ def run_pipeline(input_file):
    output_dir = output_dir + '/volestipy_output/'
    output_dir_net = output_dir + name_of_met_net
    
+   print(name_of_met_net)
+   
    # Check if directories already made   
    if os.path.isdir(output_dir) == False:
       os.mkdir(output_dir, exist_ok=True)
@@ -42,7 +44,6 @@ def run_pipeline(input_file):
    proc = pre_process(A, b, Aeq, beq)
    A_proc = proc[0] ; b_proc = proc[1] ; Aeq_proc = proc[2] ; beq_proc = proc[3]
    
-
    # [ATTENTION!] New part on the pipeline - replacing the get full dimensional function
    
    N = linalg.null_space(Aeq_proc)
@@ -67,10 +68,8 @@ def run_pipeline(input_file):
    A_fd_true = np.array(lines)
    b_fd_true = np.array(b_elements)
 
-   np.save(os.path.join(output_dir_net,'A_fd_true.npy'), A_fd_true)
-   np.save(os.path.join(output_dir_net,'b_fd_true.npy'), b_fd_true)
-   np.save(os.path.join(output_dir_net,'n_shift.npy'), N_shift)
-   np.save(os.path.join(output_dir_net,'n.npy'), N)   
+   np.save(os.path.join(output_dir_net,'A_fd_true.npy'), A_fd_true) ; np.save(os.path.join(output_dir_net,'b_fd_true.npy'), b_fd_true)
+   np.save(os.path.join(output_dir_net,'n_shift.npy'), N_shift) ; np.save(os.path.join(output_dir_net,'n.npy'), N)   
    
    # Build an object of the full dimensional polytope
    hp_true = HPolytope(A_fd_true, b_fd_true)
@@ -78,33 +77,35 @@ def run_pipeline(input_file):
    
    ## -------- 3 approaches to get max ball ------
    
-   approach_1 = False ; approach_2 = True ; approach_3 = True # approach_1 is False in terms of not having the approach 1 running in this test
+   approach_1 = True ; approach_2 = True ; approach_3 = True # approach_1 is False in terms of not having the approach 1 running in this test
    
    ####        FIRST APPROACH - no scale , no true polytope
    
-   # try:
-   #    low_hp = low_dim_HPolytope(A, b, Aeq, beq)
-   #    get_fd_hp = low_hp.full_dimensiolal_polytope()
-   #    A_fd = get_fd_hp[0].A
-   #    b_fd = get_fd_hp[0].b
-   #    N = get_fd_hp[1]
-   #    N_shift = get_fd_hp[2]
-   #    
-   #    # Make b full dimensional equal to the processed one
-   #    b_fd = b_proc
-   #    
-   #    # Get the max ball for the full dimensional polytope
-   #    max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
-   # 
-   #    # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)      
-   #    print("Approach 1: no scale, no true polytope, b_fd = b_proc")
-   #    print("max ball radius for NON-scaled polytope, NO true polytope, with b_fd = b_proc: ") ; print(max_ball_radius)
-   # 
-   # except:
-   #    approach_1 = False
-   #    print("Cannot get max ball with b_fd = b_proc") 
-   # 
-   # print("\n\n\n-----------------------------------------------------------\n\n\n\n")
+   try:
+      low_hp = low_dim_HPolytope(A, b, Aeq, beq)
+      get_fd_hp = low_hp.full_dimensiolal_polytope()
+      A_fd = get_fd_hp[0].A
+      b_fd = get_fd_hp[0].b
+      N = get_fd_hp[1]
+      N_shift = get_fd_hp[2]
+      
+      # Make b full dimensional equal to the processed one
+      b_fd = b_proc
+      
+      # Get the max ball for the full dimensional polytope
+      max_ball_center_point, max_ball_radius = get_max_ball(A_fd, b_fd)
+   
+      # print("max ball center pointer for NON-scaled polytope before rounding is: ") ; print(max_ball_center_point)      
+      print("Approach 1: no scale, no true polytope, b_fd = b_proc")
+      print("max ball radius for NON-scaled polytope, NO true polytope, with b_fd = b_proc: ") ; print(max_ball_radius)
+   
+   except:
+      approach_1 = False
+      print("Sorry. Cannot get max ball with approach 1.\n") 
+   
+   print("\n\n\n-----------------------------------------------------------\n\n\n\n")
+   
+   
    
    ####        SECOND APPROACH - no scale, true polytope
    
@@ -134,7 +135,7 @@ def run_pipeline(input_file):
    
    except Exception:
       approach_2 = False
-      print("Cannot get max ball with  b_proc - product where product = np.dot(A_proc, N_shift) ") 
+      print("Sorry. Cannot get max ball with approach 2.\n") 
    
    print("\n\n\n-----------------------------------------------------------\n\n\n\n")
    
@@ -174,9 +175,12 @@ def run_pipeline(input_file):
    
    except:
       approach_3 = False
-      print("Sorry. I cannot deal with this metabolic network.")
+      print("Sorry. Cannot get max ball with approach 3.\n")
    
-
+   
+   
+   print("Investigation for getting the initial max ball has been completed.\n")
+   
    ####
    ####  Investigating for max_ball has been completed !!! move to rounding step. 
    ####
@@ -184,19 +188,19 @@ def run_pipeline(input_file):
    # Rounding using the greatest approach
 
    if approach_3 == True:
-      
+
+      print("Rounding using max ball from approach 3 is about to start.\n")      
       rounding_svd_output = hp_scaled.rounding_svd(scale = diag_matrix)
       rounded_A = rounding_svd_output[0] ; rounded_b = rounding_svd_output[1] ; rounded_T = rounding_svd_output[2] ; rounded_shift = rounding_svd_output[3]
       
       rounded_shift = rounded_shift + scaled_max_ball_center_point
       rounded_T = rounded_T * product_2
      
-      
-      
       print("model " + name_of_met_net + "SVD rounding completed with approach 3. \n")
 
    elif approach_2 == True and approach_1 == False: 
 
+      print("Rounding using max ball from approach 2 is about to start.\n")
       rounding_svd_output = hp_true.rounding_svd()
       rounded_A = rounding_svd_output[0]
       rounded_b = rounding_svd_output[1]
@@ -206,14 +210,17 @@ def run_pipeline(input_file):
       
    elif approach_1 == True:
       
-      hp = HPolytope(A_fd, b_fd)
-      
+      print("Rounding using max ball from approach 1 is about to start.\n")
+      hp = HPolytope(A_fd, b_fd)      
       roundign_svd_output = hp.rounding_svd()
       rounded_A = rounding_svd_output[0]
       rounded_b = rounding_svd_output[1]
       rounded_T = rounding_svd_output[2]
       rounded_shift = rounding_svd_output[3]
       print("model " + name_of_met_net + "SVD rounding completed with approach 1. \n")
+   
+   
+# ----------------------------------------------------------------------   
    
    
    ## Finally, generate random samples from the rounded full dimensional polytope
@@ -235,6 +242,12 @@ def run_pipeline(input_file):
    
    # Now map the points retrieved to the initial polytope
    print("Points sampled are under mapping")
+   
+   print(samples.shape)
+   print(rounded_T.shape)
+   print(rounded_shift.shape)
+   print(N.shape)
+   print(N_shift.shape)
    final_output = map_samples_on_initial_polytope(samples, rounded_T, rounded_shift, N, N_shift)
    print("These are the final points")
    print(final_output)
@@ -246,6 +259,20 @@ def run_pipeline(input_file):
 # Run the pipeline at last! 
 for model in onlyfiles:
    run_pipeline(model)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
