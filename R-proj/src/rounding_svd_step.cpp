@@ -96,7 +96,7 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
     //max_s = std::numeric_limits<NT>::max();
     s_cutoff = 4.0;
     p_cutoff = 12.0;
-    int num_its = 20;
+    int num_its = 40;
 
     p = InnerBall.first;
     svd_on_sample<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,

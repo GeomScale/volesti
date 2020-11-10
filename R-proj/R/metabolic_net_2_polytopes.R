@@ -1,4 +1,4 @@
-metabolic_net_2_polytope <- function(path) {
+metabolic_net_2_polytope <- function(path, remove_biomass = FALSE) {
 
 modelmat = R.matlab::readMat(path)
 modelmat = modelmat[1]
@@ -16,7 +16,13 @@ Aeq = modelmat[[el]]
 lb = as.vector(modelmat[[el+1]])
 ub = as.vector(modelmat[[el+2]])
 beq = as.vector(modelmat[[el+3]])
-c = as.vector(modelmat[[el+4]])
+obj = as.vector(modelmat[[el+4]])
+
+if (remove_biomass) {
+  biomass_col = which(obj == 1)
+  Aeq = Aeq[, -c(biomass_col)]
+  A = A[, -c(biomass_col)]
+}
 
 d = dim(Aeq)[2]
 
@@ -25,5 +31,6 @@ b = c(ub, -lb)
 
 HP = Hpolytope$new(A = A, b = b, Aeq = Aeq, beq = beq)
 return(HP)
+
 }
 

@@ -1,7 +1,8 @@
-library(volesti)
-library(Matrix)
-library(Rmosek)
+
 if(FALSE) {
+  library(volesti)
+  library(Matrix)
+  library(Rmosek)
 path_mets = "/home/tolis/data/metabolic"
 file.names <- dir(path_mets, pattern =".mat")
 
