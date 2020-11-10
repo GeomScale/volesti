@@ -1,4 +1,4 @@
-get_max_inner_ball <- function(A, b) {
+get_max_inner_ball <- function(A, b, sparseness = FALSE) {
   
   m = dim(A)[1]
   d = dim(A)[2]
@@ -7,17 +7,26 @@ get_max_inner_ball <- function(A, b) {
   col_ind = c()
   values = c()
   
-  for (i in 1:m) {
-    for (j in 1:d) {
-      if (A[i, j] != 0) {
-        row_ind = c(row_ind, i)
-        col_ind = c(col_ind, j)
-        values = c(values, A[i, j])
+  if (sparseness){
+    for (i in 1:m) {
+      for (j in 1:d) {
+        if (A[i, j] != 0) {
+          row_ind = c(row_ind, i)
+          col_ind = c(col_ind, j)
+          values = c(values, A[i, j])
+        }
       }
+      row_ind = c(row_ind, i)
+      col_ind = c(col_ind, d+1)
+      values = c(values, sqrt(sum(A[i,]^2)))
     }
-    row_ind = c(row_ind, i)
-    col_ind = c(col_ind, d+1)
-    values = c(values, sqrt(sum(A[i,]^2)))
+  } else {
+    for (i in 1:m) {
+      row_ind = c(row_ind, rep(i, d+1))
+    }
+    col_ind = rep(1:(d+1), m)
+    A = cbind(A, sqrt(rowSums(A^2)))
+    values = as.vector(t(A))
   }
   
   prob <- list()
