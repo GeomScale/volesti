@@ -265,6 +265,7 @@ struct Walk
                 it++;
             }
             if (it == 50*n){
+                std::cout<<"reflection limit reached"<<std::endl;
                 _p = p0;
             }
         }

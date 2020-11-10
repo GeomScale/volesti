@@ -94,8 +94,8 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
 
     //round_it = 1;
     //max_s = std::numeric_limits<NT>::max();
-    s_cutoff = 2.3;
-    p_cutoff = 10.0;
+    s_cutoff = 4.0;
+    p_cutoff = 12.0;
     int num_its = 20;
 
     p = InnerBall.first;
