@@ -10,8 +10,9 @@ from scipy import linalg
 
 
 # Make a list with all the BIGG model files
-mypath = '/home/haris/Documents/GitHub/volesti_fork/volestipy/tests/bigg_files/'
+mypath = '/home/tolis/data/metabolic_json/'
 onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+#onlyfiles = '/home/tolis/data/metabolic_json/e_coli_core.json'
 
 
 def run_pipeline(input_file):
