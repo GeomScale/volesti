@@ -24,13 +24,13 @@
 #include "known_polytope_generators.h"
 #include "sampling/sampling.hpp"
 
+#include "diagnostics/effective_sample_size.hpp"
 #include "diagnostics/multivariate_psrf.hpp"
 #include "diagnostics/geweke.hpp"
 #include "diagnostics/raftery.hpp"
 
-
-template 
-<   
+template
+<
     typename MT,
     typename WalkType,
     typename Polytope
@@ -41,7 +41,7 @@ MT get_samples(Polytope &P)
     typedef typename Polytope::NT NT;
 
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
-    
+
     unsigned int walkL = 10, numpoints = 10000, nburns = 0, d = P.dimension();
     RNGType rng(d);
     Point StartingPoint(d);
@@ -53,7 +53,7 @@ MT get_samples(Polytope &P)
     MT samples(d, numpoints);
     unsigned int jj = 0;
 
-    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) 
+    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++)
     {
         samples.col(jj) = (*rpit).getCoefficients();
     }
@@ -132,6 +132,22 @@ void call_test_raftery(){
     CHECK(res(0,2) < 6);
 }
 
+template <typename NT>
+void call_test_effective_sample_size() {
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+
+    unsigned int N = 10;
+    unsigned int min_ess = N + 1;
+    MT samples;
+    samples.resize(1, N);
+
+    for (int i = 0; i < N; i++) samples(0, i) = NT(i);
+
+    effective_sample_size<NT, VT, MT>(samples, min_ess);
+
+    CHECK(min_ess < 5.9);
+}
 
 TEST_CASE("psrf") {
     call_test_psrf<double>();
@@ -143,4 +159,8 @@ TEST_CASE("geweke") {
 
 TEST_CASE("raftery") {
     call_test_raftery<double>();
+}
+
+TEST_CASE("effective_sample_size") {
+    call_test_effective_sample_size<double>();
 }
