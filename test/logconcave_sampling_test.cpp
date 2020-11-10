@@ -21,9 +21,8 @@
 #include "Eigen/Eigen"
 
 #include "ode_solvers.hpp"
-#include "diagnostics/geweke.hpp"
-#include "diagnostics/multivariate_psrf.hpp"
-#include "diagnostics/raftery.hpp"
+#include "diagnostics/diagnostics.hpp"
+
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
@@ -33,11 +32,12 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 #include "generators/known_polytope_generators.h"
+#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 #include "misc/misc.h"
 
-struct InnerBallFunctor {
+struct LogisticRegressionFunctor {
 
-  // Custom density with neg log prob equal to c^T x
+  // Sample from linear program c^T x (exponential density)
   template <
       typename NT,
       typename Point
@@ -47,9 +47,12 @@ struct InnerBallFunctor {
     NT L; // Lipschitz constant for gradient
     NT m; // Strong convexity constant
     NT kappa; // Condition number
-    Point x0;
+    std::vector<Point> &x_data; // X-values of datapoints
+    std::vector<Point> &y_data; // Y-values of datapoints
 
-    parameters(Point x0_) : order(2), L(1), m(1), kappa(1), x0(x0_) {};
+    // Function is not strongly convex
+    parameters(std::vector<Point> x_data_, std::vector<Point> y_data_)
+        : order(2), L(1), m(1), kappa(1), x_data(x_data_), y_data(y_data) {};
 
   };
 
@@ -68,7 +71,133 @@ struct InnerBallFunctor {
     // The index i represents the state vector index
     Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
       if (i == params.order - 1) {
-        Point y = (-1.0) * (xs[0] - params.x0);
+        Point y(params.c);
+        return (-1.0) * y;
+      } else {
+        return xs[i + 1]; // returns derivative
+      }
+    }
+
+  };
+
+  template
+  <
+    typename Point
+  >
+  struct FunctionFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point> &params;
+
+    FunctionFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    NT operator() (Point const& x) const {
+      return x.dot(params.c);
+    }
+
+  };
+
+};
+
+struct LinearProgramFunctor {
+
+  // Sample from linear program c^T x (exponential density)
+  template <
+      typename NT,
+      typename Point
+  >
+  struct parameters {
+    unsigned int order;
+    NT L; // Lipschitz constant for gradient
+    NT m; // Strong convexity constant
+    NT kappa; // Condition number
+    Point c; // Coefficients of LP objective
+
+    parameters(Point c_) : order(2), L(1), m(1), kappa(1), c(c_) {};
+
+  };
+
+  template
+  <
+      typename Point
+  >
+  struct GradientFunctor {
+    typedef typename Point::FT NT;
+    typedef std::vector<Point> pts;
+
+    parameters<NT, Point> &params;
+
+    GradientFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
+      if (i == params.order - 1) {
+        Point y(params.c);
+        return (-1.0) * y;
+      } else {
+        return xs[i + 1]; // returns derivative
+      }
+    }
+
+  };
+
+  template
+  <
+    typename Point
+  >
+  struct FunctionFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point> &params;
+
+    FunctionFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    NT operator() (Point const& x) const {
+      return x.dot(params.c);
+    }
+
+  };
+
+};
+
+struct InnerBallFunctor {
+
+  // Gaussian density centered at the inner ball center
+  template <
+      typename NT,
+      typename Point
+  >
+  struct parameters {
+    unsigned int order;
+    NT L; // Lipschitz constant for gradient
+    NT m; // Strong convexity constant
+    NT kappa; // Condition number
+    NT R0;
+    NT sigma;
+    Point x0;
+
+    parameters(Point x0_, NT R0_) : order(2), L(1), m(1), kappa(1), x0(x0_), R0(R0_), sigma(1) {};
+
+  };
+
+  template
+  <
+      typename Point
+  >
+  struct GradientFunctor {
+    typedef typename Point::FT NT;
+    typedef std::vector<Point> pts;
+
+    parameters<NT, Point> &params;
+
+    GradientFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
+      if (i == params.order - 1) {
+        Point y = (-1.0 / pow(params.sigma, 2)) * (xs[0] - params.x0);
         return y;
       } else {
         return xs[i + 1]; // returns derivative
@@ -91,7 +220,7 @@ struct InnerBallFunctor {
     // The index i represents the state vector index
     NT operator() (Point const& x) const {
       Point y = x - params.x0;
-      return 0.5 * y.dot(y);
+      return 1.0 / (2 * pow(params.sigma, 2)) * y.dot(y);
     }
 
   };
@@ -164,6 +293,13 @@ struct CustomFunctor {
   };
 
 };
+
+template <typename NT, typename VT, typename MT>
+void check_interval_psrf(MT const& samples, NT target=NT(1.2)) {
+    VT intv_psrf = interval_psrf<VT, NT, MT>(samples);
+    unsigned int d = intv_psrf.rows();
+    std::cout << intv_psrf << std::endl;
+}
 
 template <typename Sampler, typename RandomNumberGenerator, typename NT, typename Point>
 void check_ergodic_mean_norm(
@@ -320,36 +456,31 @@ void test_uld(){
 
 }
 
-template <typename NT>
-void benchmark_netlib() {
-
+template <typename NT, typename Polytope>
+void benchmark_polytope(Polytope &P, NT eta=NT(-1), bool rounding=true, int max_draws=80000, int num_burns=20000) {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
-    typedef HPolytope<Point> Hpolytope;
     typedef boost::mt19937 RNGType;
     typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
     typedef InnerBallFunctor::GradientFunctor<Point> NegativeGradientFunctor;
     typedef InnerBallFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
-    typedef LeapfrogODESolver<Point, NT, Hpolytope, NegativeGradientFunctor> Solver;
-    typedef typename HPolytope<Point>::MT MT;
-    typedef typename HPolytope<Point>::VT VT;
-
-    std::ifstream inp;
-    std::vector<std::vector<NT> > Pin;
-
-
-    inp.open("./netlib/afiro.ine",std::ifstream::in);
-    read_pointset(inp, Pin);
-    Hpolytope P(Pin);
+    typedef LeapfrogODESolver<Point, NT, Polytope, NegativeGradientFunctor> Solver;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
 
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
 
     // Chebyshev center
     Point x0 = inner_ball.first;
+    NT R0 = inner_ball.second;
     unsigned int dim = x0.dimension();
 
-    InnerBallFunctor::parameters<NT, Point> params(x0);
+    if (rounding) {
+        max_inscribed_ellipsoid_rounding<MT, VT, NT, Polytope, Point>(P, x0);
+    }
+
+    InnerBallFunctor::parameters<NT, Point> params(x0, R0);
 
     NegativeGradientFunctor F(params);
     NegativeLogprobFunctor f(params);
@@ -359,31 +490,57 @@ void benchmark_netlib() {
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
 
     HamiltonianMonteCarloWalk::Walk
-      <Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
+      <Point, Polytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
       hmc(&P, x0, F, f, hmc_params);
 
-    int n_samples = 80000;
-    int n_burns = 0;
+    int max_actual_draws = max_draws - num_burns;
+    unsigned int min_ess = 0;
 
     MT samples;
-    samples.resize(dim, n_samples - n_burns);
+    samples.resize(dim, max_actual_draws);
 
-    // hmc.solver->eta0 = 0.5;
+    if (eta > 0) hmc.solver->eta = eta;
 
-    for (int i = 0; i < n_samples; i++) {
-      if (i % 1000 == 0) std::cerr << ".";
+    std::cout << "Burn-in" << std::endl;
+
+    for (int i = 0; i < num_burns; i++) {
+      if (i % 1000 == 0) std::cout << ".";
       hmc.apply(rng, 3);
-      if (i >= n_burns) {
-          samples.col(i - n_burns) = hmc.x.getCoefficients();
-      }
     }
-    std::cerr << std::endl;
 
+    std::cout << std::endl;
+    std::cout << "Sampling" << std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < max_actual_draws; i++) {
+      hmc.apply(rng, 3);
+      samples.col(i) = hmc.x.getCoefficients();
+      if (i % 1000 == 0 && i > 0) std::cout << ".";
+    }
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    NT ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+
+    std::cout << std::endl;
+    print_diagnostics<NT, VT, MT>(samples, min_ess, std::cout);
+    std::cout << "Average time per sample: " << ETA / max_actual_draws << "us" << std::endl;
+    std::cout << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
+    std::cout << "Average number of reflections: " <<
+        (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
     std::cout << "Step size (final): " << hmc.solver->eta << std::endl;
     std::cout << "Discard Ratio: " << hmc.discard_ratio << std::endl;
     std::cout << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
-    std::cout << "PSRF: " <<  multivariate_psrf<NT, VT, MT>(samples) << std::endl;
 
+}
+
+template <typename Polytope, typename NT>
+Polytope read_polytope(std::string filename) {
+    std::ifstream inp;
+    std::vector<std::vector<NT> > Pin;
+    inp.open(filename,std::ifstream::in);
+    read_pointset(inp, Pin);
+    Polytope P(Pin);
+    return P;
 }
 
 template <typename NT>
@@ -404,9 +561,89 @@ void call_test_benchmark_hmc(bool truncated) {
 }
 
 template <typename NT>
-void call_test_benchmark_netlib() {
+void call_test_benchmark_netlib(bool small=true, bool medium=false, bool large=false) {
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+
+    Hpolytope P;
+
     std::cout << " --- Benchmarking netlib polytopes " << std::endl;
-    benchmark_netlib<NT>();
+
+    if (small) {
+        std::cout << " - afiro" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/afiro.ine");
+
+        std::cout << " - beaconfd" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/agg.ine");
+
+        std::cout << " - blend" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/blend.ine");
+
+        std::cout << " - etamacro" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/etamacro.ine");
+
+        std::cout << " - scorpion" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/scorpion.ine");
+
+        std::cout << " - degen2" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/degen2.ine");
+    }
+
+    if (medium) {
+        std::cout << " - degen3" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/degen3.ine");
+
+        std::cout << " - 25fv47" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/25fv47.ine");
+
+        std::cout << " - sierra" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/sierra.ine");
+    }
+
+    if (large) {
+        std::cout << " - truss" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/truss.ine");
+
+        std::cout << " - 80bau3b" << std::endl;
+        P = read_polytope<Hpolytope, NT>("./netlib/80bau3b.ine");
+    }
+}
+
+template <typename NT>
+void call_test_benchmark_standard_polytopes() {
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+
+    Hpolytope P;
+
+    std::cout << " --- Benchmarking standard polytopes " << std::endl;
+
+    std::cout << " - 10-H-Cube" << std::endl;
+    P = generate_cube<Hpolytope>(10, false);
+    benchmark_polytope<NT, Hpolytope>(P, 0.3);
+
+    std::cout << " - 100-H-Cube" << std::endl;
+    P = generate_cube<Hpolytope>(100, false);
+    benchmark_polytope<NT, Hpolytope>(P, 0.3);
+
+    std::cout << " - 1000-H-Cube" << std::endl;
+    P = generate_cube<Hpolytope>(1000, false);
+    benchmark_polytope<NT, Hpolytope>(P, 0.03);
+
+    std::cout << " - 10-Birkhoff" << std::endl;
+    P = generate_birkhoff<Hpolytope>(10);
+    benchmark_polytope<NT, Hpolytope>(P, 0.3);
+
+    std::cout << " - 200-Simplex" << std::endl;
+    P = generate_simplex<Hpolytope>(200, false);
+    benchmark_polytope<NT, Hpolytope>(P, 0.3);
+
+    std::cout << " - 10-Cross" << std::endl;
+    P = generate_cross<Hpolytope>(10, false);
+    benchmark_polytope<NT, Hpolytope>(P, 0.3);
+
 }
 
 TEST_CASE("hmc") {
@@ -427,4 +664,8 @@ TEST_CASE("benchmark_hmc_truncated") {
 
 TEST_CASE("benchmark_netlib") {
     call_test_benchmark_netlib<double>();
+}
+
+TEST_CASE("benchmark_standard_polytopes") {
+    call_test_benchmark_standard_polytopes<double>();
 }
