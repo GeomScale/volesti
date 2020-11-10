@@ -15,7 +15,7 @@ Version: 1.1.2
 Date: 2020-09-24
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
 Depends: RcppArmadillo
-Imports: methods, stats
+Imports: methods, stats, Matrix, Rmosek, R.matlab
 LinkingTo: RcppArmadillo, Rcpp, RcppEigen, BH
 Suggests: testthat
 Encoding: UTF-8

@@ -39,11 +39,15 @@ get_max_inner_ball <- function(A, b) {
   stopifnot(identical(r$response$code, 0))
   radius = prob$c %*% r$sol$itr$xx
   
-  print(paste0("sol = ", r$sol$itr$xx))
+  #print(paste0("sol = ", r$sol$itr$xx))
   
   ret_list = list()
   ret_list$center = r$sol$itr$xx[1:d]
   ret_list$radius = radius
+  
+  if (radius <=0 ){
+    stop("negative radius")
+  }
   
   return(ret_list)
   

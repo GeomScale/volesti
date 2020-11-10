@@ -46,8 +46,7 @@
 //    unsigned int round_it;
 
 // [[Rcpp::export]]
-Rcpp::List rounding_svd_step (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br,
-                              Rcpp::NumericVector center, double radius, int walk_length,
+Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int walk_length,
                               Rcpp::List parameters){
 
     typedef double NT;
@@ -60,8 +59,8 @@ Rcpp::List rounding_svd_step (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br,
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
-    MT T = Rcpp::as<MT>(parameters["T"]), A = Rcpp::as<MT>(Ar);
-    VT b = Rcpp::as<VT>(br), T_shift = Rcpp::as<VT>(parameters["T_shift"]);
+    MT T = Rcpp::as<MT>(parameters["T"]), A = Rcpp::as<MT>(parameters["A"]);
+    VT b = Rcpp::as<VT>(parameters["b"]), T_shift = Rcpp::as<VT>(parameters["T_shift"]);
 
     int round_it = parameters["round_it"], num_rounding_steps = parameters["num_rounding_steps"];
     NT max_s = parameters["max_s"], prev_max_s = parameters["prev_max_s"];
@@ -77,6 +76,11 @@ Rcpp::List rounding_svd_step (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br,
 
     int n = P.dimension(); 
 
+    std::cout<<"round_it = "<<round_it<<std::endl;
+    //std::cout<<"center = "<<Rcpp::as<VT>(center).transpose()<<std::endl;
+    std::cout<<"radius = "<<radius<<std::endl;
+    std::cout<<"num_rounding_steps = "<<num_rounding_steps<<std::endl;
+
     //typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     RNGType rng(n);
 
@@ -88,8 +92,8 @@ Rcpp::List rounding_svd_step (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br,
     NT s_cutoff, p_cutoff;
     MT V(n,n), S(n,n);
 
-    round_it = 1;
-    max_s = std::numeric_limits<NT>::max();
+    //round_it = 1;
+    //max_s = std::numeric_limits<NT>::max();
     s_cutoff = 2.3;
     p_cutoff = 10.0;
     int num_its = 20;
@@ -99,6 +103,7 @@ Rcpp::List rounding_svd_step (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br,
                                   shift, walk_length, rng);
 
     max_s = s.maxCoeff();
+    std::cout<<"[1]max_s = "<<max_s<<std::endl;
 
     if (max_s <= p_cutoff && max_s > s_cutoff) {
         if (last_round_under_p) {
@@ -107,6 +112,7 @@ Rcpp::List rounding_svd_step (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br,
             svd_on_sample<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
                                           shift, walk_length, rng);
             max_s = s.maxCoeff();
+            std::cout<<"[2]max_s = "<<max_s<<std::endl;
         } else {
             last_round_under_p = true;
         }
@@ -120,7 +126,7 @@ Rcpp::List rounding_svd_step (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br,
     if (round_it != 1 && max_s >= NT(4) * prev_max_s) {
         fail = true;
     }
-
+    
     round_it++;
     prev_max_s = max_s;
 
@@ -134,6 +140,8 @@ Rcpp::List rounding_svd_step (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br,
         converged = true;
     }
 
+    A = P.get_mat();
+    b = P.get_vec();
     return Rcpp::List::create(Rcpp::Named("A") = Rcpp::wrap(A),
                               Rcpp::Named("b") = Rcpp::wrap(b),
                               Rcpp::Named("T") = Rcpp::wrap(T),

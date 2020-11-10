@@ -88,7 +88,7 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
                                     RandomNumberGenerator &rng)
 {
     NT tol = 0.00000001;
-    NT R = std::pow(10,10), r = InnerBall.second;
+    NT R = std::pow(10, 10), r = InnerBall.second;
 
     int n = P.dimension(), m = P.num_of_hyperplanes();
 

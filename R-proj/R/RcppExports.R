@@ -283,8 +283,8 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 NULL
 
-rounding_svd_step <- function(Ar, br, center, radius, walk_length, parameters) {
-    .Call(`_volesti_rounding_svd_step`, Ar, br, center, radius, walk_length, parameters)
+rounding_svd_step <- function(center, radius, walk_length, parameters) {
+    .Call(`_volesti_rounding_svd_step`, center, radius, walk_length, parameters)
 }
 
 #' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
