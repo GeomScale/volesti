@@ -281,6 +281,19 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #' @keywords internal
 #'
 #' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+rounding_max_ellipsoid_step <- function(Ar, br, center, radius) {
+    .Call(`_volesti_rounding_max_ellipsoid_step`, Ar, br, center, radius)
+}
+
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
+#' @param seed Optional. A fixed seed for the number generator.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 NULL
 
 rounding_svd_step <- function(center, radius, walk_length, parameters) {

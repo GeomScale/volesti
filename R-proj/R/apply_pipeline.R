@@ -1,8 +1,11 @@
-apply_pipeline <- function(path, remove_biomass = FALSE) {
+apply_pipeline <- function(path, remove_biomass = FALSE, save_files = FALSE) {
   
   P = metabolic_net_2_polytope(path, remove_biomass)
   print("compute min and max Fluxes")
   pre_proc_list = fast_preprocess_with_mosek(P)
+  if (save_files) {
+    save(pre_proc_list, file = paste0(path,"preprocess_matrices.RData"))
+  }
   
   print("Compute the null space to constraint")
   rr = full_dimensional_polytope_with_arma(pre_proc_list$Aeq, pre_proc_list$beq)
@@ -34,47 +37,27 @@ apply_pipeline <- function(path, remove_biomass = FALSE) {
   T_scale = sc$T_scale
   scale_shift = sc$scale_shift
   
-  #z=get_max_inner_ball(A, b)
-  #reduce_factor = 1
-  #done = FALSE
-  #max_iter = ceiling(log10(1/(z$radius[1,1]))) - 1
-  #iter = 0
-  #T_scale = diag(d)
-  #scale_shift = rep(0, d)
-  #while(!done & max_iter > 0) {
-  #  iter = iter + 1
-  #  print(paste0("iter = ",iter,", max_iter = ", max_iter))
-  #  scale_shift = z$center
-  #  brep = b - A %*% scale_shift
-  #  scale_factor = 1/(z$radius[1,1]) 
-  #  scale_factor = scale_factor / reduce_factor
-  #  brep2 = brep * (scale_factor)
-  #  a = try(get_max_inner_ball(A, brep2))
-  #  if (class(a)=="list") {
-  #    print(a$radius)
-  #    print(scale_factor)
-  #    if (a$radius > z$radius) {
-  #      done = TRUE
-  #      b = brep2
-  #      T_scale = diag(d) * scale_factor
-  #    } else {
-  #      reduce_factor = reduce_factor * 10
-  #    }
-  #  } else {
-  #    reduce_factor = reduce_factor * 10
-  #  }
-  #  if (iter == max_iter) {
-  #    T_scale = diag(d)
-  #    scale_shift = rep(0, d)
-  #    print("we exceed maximmum number of iterations for scaling")
-  #    break
-  #  }
-  #}
-  ###----scaling ends here----##
   
   print("Rounding the polytope")
+  T_total = diag(d)
+  T_shift_total = rep(0, d)
+  
+  if (d > 400) {
+    z=get_max_inner_ball(A, b)
+    res_list = rounding_max_ellipsoid_step(A, b, z$center, z$radius)
+    A = res_list$A
+    b = res_list$b
+    T_total = res_list$T
+    T_shift_total = res_list$shift
+  }
+  
   HP = Hpolytope$new(A = A, b = b)
   ret_list = rounding_isotropic(HP)
+  if (save_files) {
+    save(ret_list, file = paste0(path,"rounding_matrices.RData"))
+  }
+  T_total = T_total %*% ret_list$T
+  T_shift_total = T_shift_total + ret_list$T_shift
   
   HP = Hpolytope$new(A = ret_list$A, b = ret_list$b)
   z=get_max_inner_ball(HP$A, HP$b)
@@ -84,8 +67,8 @@ apply_pipeline <- function(path, remove_biomass = FALSE) {
   samples =  sample_points(HP, random_walk = list("walk" = "aBiW", "starting_point" = z$center,
                            "walk_length" = 1, "L" = 4*sqrt(d)*z$radius), n = N)
   
-  samples = ret_list$T %*% samples + 
-                  kronecker(matrix(1, 1, N), matrix(ret_list$T_shift, ncol = 1))
+  samples = T_total %*% samples + 
+                  kronecker(matrix(1, 1, N), matrix(T_shift_total, ncol = 1))
   
   samples = T_scale %*% samples + 
                   kronecker(matrix(1, 1, N), matrix(scale_shift, ncol = 1))

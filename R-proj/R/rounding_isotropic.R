@@ -11,14 +11,15 @@ rounding_isotropic <- function(P) {
   parameters$b = b
   parameters$T = diag(d)
   parameters$T_shift = rep(0, d)
-  parameters$num_rounding_steps = 10 * d
+  parameters$num_rounding_steps = 20 * d
   parameters$round_it = 1
   parameters$max_s = 1e+50
   parameters$prev_max_s = 1e+50
   parameters$fail = FALSE
   parameters$converged = FALSE
   parameters$last_round_under_p = FALSE
-  walk_length = 2
+  walk_length = 1
+  print(paste0("walk_length = ", walk_length))
   
   while (!parameters$converged) {
     ball = get_max_inner_ball(parameters$A, parameters$b)
@@ -28,10 +29,18 @@ rounding_isotropic <- function(P) {
   }
   
   result_list = list()
-  result_list$A = parameters$A
-  result_list$b = parameters$b
-  result_list$T = parameters$T
-  result_list$T_shift = parameters$T_shift
+  
+  if (!parameters$fail) {
+    result_list$A = parameters$A
+    result_list$b = parameters$b
+    result_list$T = parameters$T
+    result_list$T_shift = parameters$T_shift
+  } else {
+    result_list$A = P$A
+    result_list$b = P$b
+    result_list$T = diag(d)
+    result_list$T_shift = rep(0, d)
+  }
   
   return(result_list)
 }

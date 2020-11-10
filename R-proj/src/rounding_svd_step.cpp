@@ -96,7 +96,7 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
     //max_s = std::numeric_limits<NT>::max();
     s_cutoff = 4.0;
     p_cutoff = 12.0;
-    int num_its = 40;
+    int num_its = 25;
 
     p = InnerBall.first;
     svd_on_sample<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
@@ -124,7 +124,7 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
     r_inv = VT::Ones(n).cwiseProduct(s.cwiseInverse()).asDiagonal() * V.transpose();
 
     if (round_it != 1 && max_s >= NT(4) * prev_max_s) {
-        fail = true;
+        num_rounding_steps = num_rounding_steps * 2;
     }
     
     round_it++;
@@ -138,6 +138,9 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
 
     if (max_s <= s_cutoff || round_it > num_its) {
         converged = true;
+        if (round_it > num_its) {
+            fail = true;
+        }
     }
 
     A = P.get_mat();
