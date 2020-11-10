@@ -1,12 +1,13 @@
-apply_pipeline <- function(path) {
+apply_pipeline <- function(path, remove_biomass = FALSE) {
   
-  P = metabolic_net_2_polytope(path)
+  P = metabolic_net_2_polytope(path, remove_biomass)
   print("compute min and max Fluxes")
-  pre_proc_list = preprocess_with_mosek(P)
+  pre_proc_list = fast_preprocess_with_mosek(P)
   
   print("Compute the null space to constraint")
   rr = full_dimensional_polytope_with_arma(pre_proc_list$Aeq, pre_proc_list$beq)
   
+  print("Get full dimensional polytope")
   A = P$A 
   b = P$b
   b = b - A %*% rr$N_shift
@@ -24,7 +25,16 @@ apply_pipeline <- function(path) {
     A = A[-rows_to_del, ]
     b = b[-rows_to_del]
   }
+  print(paste0(length(rows_to_del), "facets removed"))
   
+  print("Compute scaling for numerical stability")
+  z=get_max_inner_ball(A, b)
+  scale_shift = z$center
+  b = b - A%*%scale_shift
+  b = b * (1/(z$radius[1,1]))
+  T_scale = diag(d) * (z$radius[1,1])
+  
+  print("Rounding the polytope")
   HP = Hpolytope$new(A = A, b = b)
   ret_list = rounding_isotropic(HP)
   
@@ -38,6 +48,9 @@ apply_pipeline <- function(path) {
   
   samples = ret_list$T %*% samples + 
                   kronecker(matrix(1, 1, N), matrix(ret_list$T_shift, ncol = 1))
+  
+  samples = T_scale %*% samples + 
+                  kronecker(matrix(1, 1, N), matrix(scale_shift, ncol = 1))
   
   steady_states = rr$N %*% samples + 
                   kronecker(matrix(1, 1, N), matrix(rr$N_shift, ncol = 1))
