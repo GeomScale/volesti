@@ -13,10 +13,6 @@
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
-#include "convex_bodies/zpolytope.h"
-#include "convex_bodies/zonoIntersecthpoly.h"
 #include "generators/boost_random_number_generator.hpp"
 
 // Random directions hit-and-run walk with uniform target distribution

@@ -11,7 +11,6 @@
 #include <exception>
 
 #include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
 
 
 template <class Polytope>

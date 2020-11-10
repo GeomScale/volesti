@@ -15,10 +15,6 @@
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
-#include "convex_bodies/zpolytope.h"
-#include "convex_bodies/zonoIntersecthpoly.h"
 #include "generators/boost_random_number_generator.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "sampling/sphere.hpp"
@@ -91,8 +87,6 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
     typedef HPolytope<Point> Hpolytope;
-    typedef Zonotope<Point> zonotope;
-    typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 

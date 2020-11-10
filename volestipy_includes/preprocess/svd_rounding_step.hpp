@@ -42,7 +42,7 @@ void svd_rounding_single_step(Polytope &P,
        s_cutoff, p_cutoff;
     MT V(n,n), S(n,n);
 
-    parameters.round_it = 1;
+    //parameters.round_it = 1;
     parameters.max_s = std::numeric_limits<NT>::max();
     s_cutoff = 2.3;
     p_cutoff = 10.0;

@@ -16,7 +16,7 @@
 #include <iostream>
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
-#include "lp_oracles/solve_lp.h"
+//#include "lp_oracles/solve_lp.h"
 
 
 // check if an Eigen vector contains NaN or infinite values
@@ -132,8 +132,8 @@ public:
                !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
            {
                std::cout<<"interior point failed, we use lpsolve for inner ball computation"<<std::endl;
-               _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
-               //_inner_ball.second = -1.0;
+               //_inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+               _inner_ball.second = -1.0;
            } else 
            { 
                _inner_ball.first = Point(std::get<0>(inner_ball));
