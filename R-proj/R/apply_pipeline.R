@@ -25,14 +25,52 @@ apply_pipeline <- function(path, remove_biomass = FALSE) {
     A = A[-rows_to_del, ]
     b = b[-rows_to_del]
   }
-  print(paste0(length(rows_to_del), "facets removed"))
+  print(paste0(length(rows_to_del), " facets removed"))
   
   print("Compute scaling for numerical stability")
-  z=get_max_inner_ball(A, b)
-  scale_shift = z$center
-  b = b - A%*%scale_shift
-  b = b * (1/(z$radius[1,1]))
-  T_scale = diag(d) * (z$radius[1,1])
+  sc = central_scaling(A, b)
+  A = sc$A
+  b = sc$b
+  T_scale = sc$T_scale
+  scale_shift = sc$scale_shift
+  
+  #z=get_max_inner_ball(A, b)
+  #reduce_factor = 1
+  #done = FALSE
+  #max_iter = ceiling(log10(1/(z$radius[1,1]))) - 1
+  #iter = 0
+  #T_scale = diag(d)
+  #scale_shift = rep(0, d)
+  #while(!done & max_iter > 0) {
+  #  iter = iter + 1
+  #  print(paste0("iter = ",iter,", max_iter = ", max_iter))
+  #  scale_shift = z$center
+  #  brep = b - A %*% scale_shift
+  #  scale_factor = 1/(z$radius[1,1]) 
+  #  scale_factor = scale_factor / reduce_factor
+  #  brep2 = brep * (scale_factor)
+  #  a = try(get_max_inner_ball(A, brep2))
+  #  if (class(a)=="list") {
+  #    print(a$radius)
+  #    print(scale_factor)
+  #    if (a$radius > z$radius) {
+  #      done = TRUE
+  #      b = brep2
+  #      T_scale = diag(d) * scale_factor
+  #    } else {
+  #      reduce_factor = reduce_factor * 10
+  #    }
+  #  } else {
+  #    reduce_factor = reduce_factor * 10
+  #  }
+  #  if (iter == max_iter) {
+  #    T_scale = diag(d)
+  #    scale_shift = rep(0, d)
+  #    print("we exceed maximmum number of iterations for scaling")
+  #    break
+  #  }
+  #}
+  ###----scaling ends here----##
   
   print("Rounding the polytope")
   HP = Hpolytope$new(A = A, b = b)
@@ -44,7 +82,7 @@ apply_pipeline <- function(path, remove_biomass = FALSE) {
   N = 3000
   print("Sample points from full diemnsional polytope")
   samples =  sample_points(HP, random_walk = list("walk" = "aBiW", "starting_point" = z$center,
-                           "walk_length" = 1, "L" = 2*d*z$radius), n = N)
+                           "walk_length" = 1, "L" = 4*sqrt(d)*z$radius), n = N)
   
   samples = ret_list$T %*% samples + 
                   kronecker(matrix(1, 1, N), matrix(ret_list$T_shift, ncol = 1))
@@ -62,6 +100,8 @@ apply_pipeline <- function(path, remove_biomass = FALSE) {
   result_list$N_shift = rr$N_shift
   result_list$T = ret_list$T
   result_list$T_shift = ret_list$T_shift
+  result_list$minFluxes = pre_proc_list$minFluxes
+  result_list$maxFluxes = pre_proc_list$maxFluxes
   
   return(result_list)
 }
