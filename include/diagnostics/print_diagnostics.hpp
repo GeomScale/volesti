@@ -1,12 +1,11 @@
 #ifndef PRINT_DIAGNOSTICS_HPP
 #define PRINT_DIAGNOSTICS_HPP
 
-template <typename NT, typename VT, typename MT>
-void print_diagnostics(MT const& samples) {
+template <typename NT, typename VT, typename MT, typename StreamType>
+void print_diagnostics(MT const& samples, unsigned int &min_ess, StreamType &stream) {
 
     unsigned int d = samples.rows();
     unsigned int N = samples.cols();
-    unsigned int min_ess = 0;
 
     VariadicTable<unsigned int, NT, NT, NT, NT> vt(
             {"Dimension",
@@ -35,14 +34,11 @@ void print_diagnostics(MT const& samples) {
         for (int j = 0; j < N; j++) {
             row_std += pow(samples(i, j) - row_mean, 2);
         }
-
         row_std = sqrt(row_std / N);
-
         vt.addRow(i + 1, row_mean, row_std, ess(i), intv_psrf(i));
-
     }
 
-    vt.print(std::cerr);
+    vt.print(stream);
 }
 
 

@@ -11,6 +11,7 @@
 #ifndef DIAGNOSTICS_HPP
 #define DIAGNOSTICS_HPP
 
+#include "misc/print_table.hpp"
 #include "diagnostics/multivariate_psrf.hpp"
 #include "diagnostics/univariate_psrf.hpp"
 #include "diagnostics/interval_psrf.hpp"
@@ -18,5 +19,6 @@
 #include "diagnostics/raftery.hpp"
 #include "diagnostics/effective_sample_size.hpp"
 #include "diagnostics/thin_samples.hpp"
+#include "diagnostics/print_diagnostics.hpp"
 
 #endif
