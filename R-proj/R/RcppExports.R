@@ -135,6 +135,10 @@ full_dimensional_polytope <- function(P) {
     .Call(`_volesti_full_dimensional_polytope`, P)
 }
 
+full_dimensional_polytope_with_arma <- function(Ar, br) {
+    .Call(`_volesti_full_dimensional_polytope_with_arma`, Ar, br)
+}
+
 #' Geweke's MCMC diagnostic
 #'
 #' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
@@ -266,6 +270,21 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
 rounding <- function(P, method = NULL, seed = NULL) {
     .Call(`_volesti_rounding`, P, method, seed)
+}
+
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
+#' @param seed Optional. A fixed seed for the number generator.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+NULL
+
+rounding_svd_step <- function(Ar, br, center, radius, walk_length, parameters) {
+    .Call(`_volesti_rounding_svd_step`, Ar, br, center, radius, walk_length, parameters)
 }
 
 #' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).

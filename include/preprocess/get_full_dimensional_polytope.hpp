@@ -47,14 +47,19 @@ std::pair<H_polytope, std::pair<MT, VT> > get_full_dimensional_polytope(MT A, VT
       }
    }
 
+   
+
    //MT N(d, d - r + r_count); // the null space is the columns of V that correspond to zero singular values
    //N = V.block(0, r - r_count, d, d - r + r_count);
    
    std::cout<<"r_count = "<<r_count<<"\n"<<std::endl;
 
+   std::cout<<"V = "<<V<<"\n"<<std::endl;
+
 
    MT N(d, r_count); // the null space is the columns of V that correspond to zero singular values
    N = V.block(0, d - r_count, d, r_count);
+   std::cout<<"N = "<<N<<"\n"<<std::endl;
 
    b = b - A * p;
 

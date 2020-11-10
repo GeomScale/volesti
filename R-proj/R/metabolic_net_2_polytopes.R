@@ -4,14 +4,19 @@ modelmat = R.matlab::readMat(path)
 modelmat = modelmat[1]
 modelmat = modelmat[[1]]
 
-Aeq = modelmat[[11]]
+el = 11
+if(dim(modelmat[[11]])[1] > dim(modelmat[[11]])[2]) {
+  el = el -1
+}
+
+Aeq = modelmat[[el]]
 
 #Aeq=matrix(Aeq,ncol = ncol(Aeq), nrow = nrow(Aeq))
 
-lb = as.vector(modelmat[[12]])
-ub = as.vector(modelmat[[13]])
-beq = as.vector(modelmat[[14]])
-c = as.vector(modelmat[[15]])
+lb = as.vector(modelmat[[el+1]])
+ub = as.vector(modelmat[[el+2]])
+beq = as.vector(modelmat[[el+3]])
+c = as.vector(modelmat[[el+4]])
 
 d = dim(Aeq)[2]
 

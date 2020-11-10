@@ -1,4 +1,5 @@
 // [[Rcpp::depends(BH)]]
+// [[ Rcpp :: depends ( RcppArmadillo )]]
 
 // VolEsti (volume computation and sampling library)
 
@@ -7,7 +8,8 @@
 
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
-#include <Rcpp.h>
+//#include <Rcpp.h>
+#include <RcppArmadillo.h>
 #include <RcppEigen.h>
 #include <chrono>
 #include "cartesian_geom/cartesian_kernel.h"
@@ -59,3 +61,51 @@ Rcpp::List full_dimensional_polytope (Rcpp::Reference P)
                               Rcpp::Named("shift") = Rcpp::wrap(result.second.second),
                               Rcpp::Named("svd_prod") = svd_prod);
 }
+
+
+// [[Rcpp::export]]
+Rcpp::List full_dimensional_polytope_with_arma (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br)
+{
+    typedef double NT;
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+
+    MT Aeq = Rcpp::as<MT>(Ar);
+    VT beq = Rcpp::as<VT>(br);
+
+    VT p = Aeq.fullPivLu().solve(beq);
+    //b = b - A * p;
+
+    arma::mat Arm = Rcpp::as<arma::mat>(Ar);
+    arma::mat N = arma::null(Arm);
+
+    return Rcpp::List::create(Rcpp::Named("N") = Rcpp::wrap(N),
+                              Rcpp::Named("N_shift") = Rcpp::wrap(p));
+}
+
+/*Rcpp::List full_dimensional_polytope_with_arma_sparse (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br)
+{
+    typedef double NT;
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+
+    MT Aeq = Rcpp::as<MT>(Ar);
+    VT beq = Rcpp::as<VT>(br);
+
+    VT p = Aeq.colPivHouseholderQr().solve(beq);
+    //b = b - A * p;
+
+    arma::mat Arm = Rcpp::as<arma::mat>(Ar);
+    arma::SpMat<double> Arm_sp(Arm);
+    arma::SpMat<double> NN = arma::null(Arm_sp);
+    arma::mat N(NN);
+
+    return Rcpp::List::create(Rcpp::Named("N") = Rcpp::wrap(N),
+                              Rcpp::Named("N_shift") = Rcpp::wrap(p));
+}*/

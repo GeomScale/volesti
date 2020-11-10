@@ -14,9 +14,9 @@ Description: Provides an R interface for 'volesti' C++ package. 'volesti' comput
 Version: 1.1.2
 Date: 2020-09-24
 Maintainer: Vissarion Fisikopoulos <vissarion.fisikopoulos@gmail.com>
-Depends: Rcpp (>= 0.12.17)
+Depends: RcppArmadillo
 Imports: methods, stats
-LinkingTo: Rcpp, RcppEigen, BH
+LinkingTo: RcppArmadillo, Rcpp, RcppEigen, BH
 Suggests: testthat
 Encoding: UTF-8
 RoxygenNote: 7.1.0
