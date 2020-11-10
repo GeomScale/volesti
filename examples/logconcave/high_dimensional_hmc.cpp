@@ -135,11 +135,12 @@ void run_main() {
 
     int n_samples = 80000;
     int n_burns = 0;
+    unsigned int min_ess;
 
     MT samples;
     samples.resize(dim, n_samples - n_burns);
 
-    hmc.solver->eta0 = 0.03;
+    hmc.solver->eta0 = 0.3;
 
     for (int i = 0; i < n_samples; i++) {
       if (i % 1000 == 0) std::cerr << ".";
@@ -151,7 +152,7 @@ void run_main() {
     }
     std::cerr << std::endl;
 
-    print_diagnostics<NT, VT, MT>(samples);
+    print_diagnostics<NT, VT, MT>(samples, min_ess, std::cerr);
 
     std::cerr << "Average number of reflections: " <<
         (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
