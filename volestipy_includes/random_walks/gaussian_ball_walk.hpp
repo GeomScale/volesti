@@ -8,6 +8,7 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_BALL_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_BALL_WALK_HPP
 
+#include <cmath>
 #include "sampling/sphere.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 
