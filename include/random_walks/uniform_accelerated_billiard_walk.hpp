@@ -136,7 +136,10 @@ struct AcceleratedBilliardWalk
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
-                if (it == 100*n) _p = p0;
+                if (it == 100*n){
+                    std::cout<<"reflection limit reached"<<std::endl;
+                    _p = p0;
+                } 
             }
             p = _p;
         }
