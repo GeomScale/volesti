@@ -12,17 +12,13 @@
 #define THIN_SAMPLES_HPP
 
 template <typename NT, typename VT, typename MT>
-MT thin_samples(MT const& samples) {
-
+MT thin_samples(MT const& samples, NT const& min_ess) {
 
     // Sample matrix is provided as d x n_samples
     unsigned int d = samples.rows();
     unsigned int N = samples.cols();
-    unsigned int min_ess = N + 1;
     unsigned int gap;
     unsigned int N_gap;
-
-    effective_sample_size<NT, VT, MT>(samples, min_ess);
 
     // Thin samples are the initial samples which are N / min_ess apart
     gap = N / min_ess;
