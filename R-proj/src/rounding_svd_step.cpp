@@ -46,7 +46,7 @@
 //    unsigned int round_it;
 
 // [[Rcpp::export]]
-Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int walk_length,
+Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius,
                               Rcpp::List parameters){
 
     typedef double NT;
@@ -62,7 +62,8 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
     MT T = Rcpp::as<MT>(parameters["T"]), A = Rcpp::as<MT>(parameters["A"]);
     VT b = Rcpp::as<VT>(parameters["b"]), T_shift = Rcpp::as<VT>(parameters["T_shift"]);
 
-    int round_it = parameters["round_it"], num_rounding_steps = parameters["num_rounding_steps"];
+    int round_it = parameters["round_it"], num_rounding_steps = parameters["num_rounding_steps"], 
+        walk_length = parameters["walk_length"];
     NT max_s = parameters["max_s"], prev_max_s = parameters["prev_max_s"];
     bool fail = parameters["fail"], converged = parameters["converged"],
          last_round_under_p = parameters["last_round_under_p"];
@@ -96,10 +97,10 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
     //max_s = std::numeric_limits<NT>::max();
     s_cutoff = 4.0;
     p_cutoff = 12.0;
-    int num_its = 25;
+    int num_its = 20;
 
     p = InnerBall.first;
-    svd_on_sample<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
+    svd_on_sample_psrf<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
                                   shift, walk_length, rng);
 
     max_s = s.maxCoeff();
@@ -109,7 +110,7 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
         if (last_round_under_p) {
             num_rounding_steps = num_rounding_steps * 2;
             p = InnerBall.first;
-            svd_on_sample<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
+            svd_on_sample_psrf<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
                                           shift, walk_length, rng);
             max_s = s.maxCoeff();
             std::cout<<"[2]max_s = "<<max_s<<std::endl;
@@ -124,7 +125,8 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
     r_inv = VT::Ones(n).cwiseProduct(s.cwiseInverse()).asDiagonal() * V.transpose();
 
     if (round_it != 1 && max_s >= NT(4) * prev_max_s) {
-        num_rounding_steps = num_rounding_steps * 2;
+        walk_length += 2;
+        //num_rounding_steps = num_rounding_steps * 2;
     }
     
     round_it++;
@@ -155,7 +157,8 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius, int wal
                               Rcpp::Named("prev_max_s") = prev_max_s,
                               Rcpp::Named("fail") = fail,
                               Rcpp::Named("converged") = converged,
-                              Rcpp::Named("last_round_under_p") = last_round_under_p);
+                              Rcpp::Named("last_round_under_p") = last_round_under_p,
+                              Rcpp::Named("walk_length") = walk_length);
 
 }
 

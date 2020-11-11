@@ -11,21 +11,24 @@ rounding_isotropic <- function(P) {
   parameters$b = b
   parameters$T = diag(d)
   parameters$T_shift = rep(0, d)
-  parameters$num_rounding_steps = 20 * d
+  parameters$num_rounding_steps = 10 * d
   parameters$round_it = 1
   parameters$max_s = 1e+50
   parameters$prev_max_s = 1e+50
   parameters$fail = FALSE
   parameters$converged = FALSE
   parameters$last_round_under_p = FALSE
-  walk_length = 1
-  print(paste0("walk_length = ", walk_length))
+  parameters$walk_length = 2
+  if (d > 350) {
+    parameters$walk_length = 5
+  }
+  print(paste0("walk_length = ", parameters$walk_length))
   
   while (!parameters$converged) {
     ball = get_max_inner_ball(parameters$A, parameters$b)
     center = ball$center
     r = ball$radius
-    parameters = rounding_svd_step(center, r, walk_length, parameters)
+    parameters = rounding_svd_step(center, r, parameters)
   }
   
   result_list = list()

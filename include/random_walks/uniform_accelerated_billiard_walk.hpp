@@ -121,7 +121,7 @@ struct AcceleratedBilliardWalk
                 P.compute_reflection(_v, _p, _update_parameters);
                 it++;
 
-                while (it < 200*n)
+                while (it < 250*n)
                 {
                     std::pair<NT, int> pbpair
                             = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -136,7 +136,7 @@ struct AcceleratedBilliardWalk
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
-                if (it == 200*n){
+                if (it == 250*n){
                     std::cout<<"reflection limit reached"<<std::endl;
                     _p = p0;
                 } 

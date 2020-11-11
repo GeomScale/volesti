@@ -42,7 +42,7 @@ apply_pipeline <- function(path, remove_biomass = FALSE, save_files = FALSE) {
   T_total = diag(d)
   T_shift_total = rep(0, d)
   
-  if (d > 400) {
+  if (d > 400 & FALSE) {
     z=get_max_inner_ball(A, b)
     res_list = rounding_max_ellipsoid_step(A, b, z$center, z$radius)
     A = res_list$A

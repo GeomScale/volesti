@@ -11,6 +11,93 @@
 #ifndef SVD_ROUNDING_HPP
 #define SVD_ROUNDING_HPP
 
+#include "diagnostics/univariate_psrf.hpp"
+
+template
+<
+    typename WalkTypePolicy,
+    typename Polytope,
+    typename Point,
+    typename MT,
+    typename VT,
+    typename RandomNumberGenerator
+>
+void svd_on_sample_psrf(Polytope &P, Point &p, unsigned int const& num_rounding_steps, MT &V, VT &s, VT &Means,
+                   unsigned int const& walk_length, RandomNumberGenerator &rng)
+{
+    typedef typename WalkTypePolicy::template Walk
+            <
+                    Polytope,
+                    RandomNumberGenerator
+            > walk;
+
+    typedef RandomPointGenerator <walk> RandomPointGenerator;
+    PushBackWalkPolicy push_back_policy;
+
+    unsigned int N = num_rounding_steps, pointer = 0;
+
+    std::list<Point> randPoints;
+    MT RetMat;
+    RetMat.resize(N, P.dimension());
+    bool done = false;
+    int it = 1, n = P.dimension();
+    std::vector<double> temp_col(n);
+
+    while(!done) 
+    {
+        RandomPointGenerator::apply(P, p, N, walk_length, randPoints,
+                                    push_back_policy, rng);
+
+        int jj = 0;
+        for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++)
+        {
+            RetMat.row(pointer + jj) = (*rpit).getCoefficients().transpose();
+        }
+
+        MT samples_psrf = RetMat.transpose();
+        std::cout<<"samples_psrf.rows() = "<<samples_psrf.rows()<<"samples_psrf.cols() = "<<samples_psrf.cols()<<std::endl;
+        VT psrf_vals = univariate_psrf<double, VT>(samples_psrf);
+
+        temp_col.resize(n);
+        temp_col = std::vector<double>(&psrf_vals[0], psrf_vals.data() + psrf_vals.cols() * 
+                                   psrf_vals.rows());
+        std::sort(temp_col.begin(), temp_col.end());
+        psrf_vals = Eigen::Map<VT>(&temp_col[0], temp_col.size());
+        if (psrf_vals(int(n*0.9)) < 2.0 || it == 5) {
+            done = true;
+        } else {
+            it++;
+            pointer = (it - 1) * N;
+            RetMat.conservativeResize(it * N, P.dimension());
+            randPoints.clear();
+        }
+        std::cout<<"samples_psrf.max() = "<<psrf_vals.maxCoeff()<<", it = "<<it<<std::endl;
+    }
+
+    for (int i = 0; i < P.dimension(); ++i) {
+        Means(i) = RetMat.col(i).mean();
+    }
+
+    for (int i = 0; i < it * N; ++i) {
+        RetMat.row(i) = RetMat.row(i) - Means.transpose();
+    }
+
+    Eigen::BDCSVD<MT> svd(RetMat, Eigen::ComputeFullV);
+    s = svd.singularValues() / svd.singularValues().minCoeff();
+
+    if (s.maxCoeff() >= 2.0) {
+        for (int i = 0; i < s.size(); ++i) {
+            if (s(i) < 2.0) {
+                s(i) = 1.0;
+            }
+        }
+        V = svd.matrixV();
+    } else {
+        s = VT::Ones(P.dimension());
+        V = MT::Identity(P.dimension(), P.dimension());
+    }
+}
+
 
 template
 <
