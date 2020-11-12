@@ -9,12 +9,32 @@ You have to specify the path to `liblpsolve55.so/dll/dylib`, by running, in fold
 ```bash
 mkdir -p test/build && cd test/build
 cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ ..
-# e.g. on linux: cmake -DLP_SOLVE=/usr/lib/lp_solve/liblpsolve55.so ..
 make
 ```
 For example:  `-DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so`  
 
 You can run the tests by `cmake test` or `ctest -jK` where `K` the number of `CPU` threads. By adding the option `--verbose` to `ctest` you get more information about the tests, *e.g.* time per test, volume computed and the name of the polytope or convex body. 
+
+##### Development environment from Docker container
+
+It is possible to setup a docker contaner with development environment. Here is how a Dockerfile can be written
+```
+FROM ubuntu:18.04
+
+RUN apt-get update && apt-get install -y g++ cmake lp-solve && \
+    rm -rf /var/lib/apt/lists/*
+```
+Please, create `Dockerfile.dev` with above content inside a temporary folder (e.g. `docker`)
+and to create an image and run a container:
+```bash
+# build docker image
+cd docker
+docker build -t volesti:dev -f Dockerfile.dev .
+# check built image
+docker images | grep volesti
+# run a container in an interactive mode from volesti source folder
+docker run -it -v $PWD:/volesti -w /volesti --name=volesti-dev volesti:dev /bin/bash
+```
 
 #### Polytope input  
 
