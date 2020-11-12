@@ -32,7 +32,7 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 #include "generators/known_polytope_generators.h"
-#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+#include "preprocess/svd_rounding.hpp"
 #include "misc/misc.h"
 
 
@@ -231,10 +231,10 @@ struct CustomFunctor {
 };
 
 template <typename NT, typename VT, typename MT>
-void check_interval_psrf(MT const& samples, NT target=NT(1.2)) {
+void check_interval_psrf(MT &samples, NT target=NT(1.2)) {
     VT intv_psrf = interval_psrf<VT, NT, MT>(samples);
     unsigned int d = intv_psrf.rows();
-    std::cout << intv_psrf << std::endl;
+    for (unsigned int i = 0; i < d; i++) CHECK(intv_psrf(i) < target);
 }
 
 template <typename Sampler, typename RandomNumberGenerator, typename NT, typename Point>
@@ -328,7 +328,7 @@ void benchmark_hmc(bool truncated) {
 }
 
 template <typename NT>
-void test_hmc(){
+void test_hmc() {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
@@ -360,7 +360,7 @@ void test_hmc(){
 
 
 template <typename NT>
-void test_uld(){
+void test_uld() {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
@@ -393,7 +393,13 @@ void test_uld(){
 }
 
 template <typename NT, typename Polytope>
-void benchmark_polytope(Polytope &P, NT eta=NT(-1), bool rounding=true, int max_draws=80000, int num_burns=20000) {
+void benchmark_polytope(
+    Polytope &P,
+    NT eta=NT(-1),
+    unsigned int walk_length=3,
+    bool rounding=true,
+    int max_draws=80000,
+    int num_burns=20000) {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef std::vector<Point> pts;
@@ -407,21 +413,31 @@ void benchmark_polytope(Polytope &P, NT eta=NT(-1), bool rounding=true, int max_
 
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
 
+    // Random number generator
+    RandomNumberGenerator rng(1);
+
     // Chebyshev center
     Point x0 = inner_ball.first;
     NT R0 = inner_ball.second;
     unsigned int dim = x0.dimension();
 
     if (rounding) {
-        max_inscribed_ellipsoid_rounding<MT, VT, NT, Polytope, Point>(P, x0);
+        std::cout << "SVD Rounding" << std::endl;
+        svd_rounding<AcceleratedBilliardWalk, MT, VT>(P, inner_ball, walk_length, rng);
     }
 
+    // Declare oracles
     InnerBallFunctor::parameters<NT, Point> params(x0, R0);
 
     NegativeGradientFunctor F(params);
     NegativeLogprobFunctor f(params);
 
-    RandomNumberGenerator rng(1);
+    GaussianRDHRWalk::Walk<Polytope, RandomNumberGenerator> gaussian_walk(P, x0, params.L, rng);
+    int n_warmstart_samples = 100;
+
+    for (int i = 0; i < n_warmstart_samples; i++) {
+        gaussian_walk.apply(P, x0, params.L, walk_length, rng);
+    }
 
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
 
@@ -441,7 +457,7 @@ void benchmark_polytope(Polytope &P, NT eta=NT(-1), bool rounding=true, int max_
 
     for (int i = 0; i < num_burns; i++) {
       if (i % 1000 == 0) std::cout << ".";
-      hmc.apply(rng, 3);
+      hmc.apply(rng, walk_length);
     }
 
     std::cout << std::endl;
@@ -449,7 +465,7 @@ void benchmark_polytope(Polytope &P, NT eta=NT(-1), bool rounding=true, int max_
 
     auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < max_actual_draws; i++) {
-      hmc.apply(rng, 3);
+      hmc.apply(rng, walk_length);
       samples.col(i) = hmc.x.getCoefficients();
       if (i % 1000 == 0 && i > 0) std::cout << ".";
     }
@@ -466,6 +482,9 @@ void benchmark_polytope(Polytope &P, NT eta=NT(-1), bool rounding=true, int max_
     std::cout << "Step size (final): " << hmc.solver->eta << std::endl;
     std::cout << "Discard Ratio: " << hmc.discard_ratio << std::endl;
     std::cout << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
+    std::cout << std::endl;
+
+    check_interval_psrf<NT, VT, MT>(samples);
 
 }
 
@@ -507,23 +526,28 @@ void call_test_benchmark_netlib(bool small=true, bool medium=false, bool large=f
     std::cout << " --- Benchmarking netlib polytopes " << std::endl;
 
     if (small) {
-        std::cout << " - afiro" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib/afiro.ine");
+        // std::cout << " - afiro" << std::endl;
+        // P = read_polytope<Hpolytope, NT>("./netlib/afiro.ine");
+        // benchmark_polytope<NT, Hpolytope>(P, 0.03);
 
         std::cout << " - beaconfd" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib/agg.ine");
+        P = read_polytope<Hpolytope, NT>("./netlib/beaconfd.ine");
+        benchmark_polytope<NT, Hpolytope>(P, 0.03, 3, false);
 
-        std::cout << " - blend" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib/blend.ine");
-
-        std::cout << " - etamacro" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib/etamacro.ine");
-
-        std::cout << " - scorpion" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib/scorpion.ine");
-
-        std::cout << " - degen2" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib/degen2.ine");
+        // std::cout << " - blend" << std::endl;
+        // P = read_polytope<Hpolytope, NT>("./netlib/blend.ine");
+        // benchmark_polytope<NT, Hpolytope>(P, 0.3);
+        //
+        // std::cout << " - etamacro" << std::endl;
+        // P = read_polytope<Hpolytope, NT>("./netlib/etamacro.ine");
+        // benchmark_polytope<NT, Hpolytope>(P, 0.3);
+        //
+        // std::cout << " - scorpion" << std::endl;
+        // P = read_polytope<Hpolytope, NT>("./netlib/scorpion.ine");
+        // benchmark_polytope<NT, Hpolytope>(P, 0.3);
+        //
+        // std::cout << " - degen2" << std::endl;
+        // P = read_polytope<Hpolytope, NT>("./netlib/degen2.ine");
     }
 
     if (medium) {
@@ -558,28 +582,27 @@ void call_test_benchmark_standard_polytopes() {
 
     std::cout << " - 10-H-Cube" << std::endl;
     P = generate_cube<Hpolytope>(10, false);
-    benchmark_polytope<NT, Hpolytope>(P, 0.3);
+    benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
 
     std::cout << " - 100-H-Cube" << std::endl;
     P = generate_cube<Hpolytope>(100, false);
-    benchmark_polytope<NT, Hpolytope>(P, 0.3);
-
-    std::cout << " - 1000-H-Cube" << std::endl;
-    P = generate_cube<Hpolytope>(1000, false);
-    benchmark_polytope<NT, Hpolytope>(P, 0.03);
+    benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
 
     std::cout << " - 10-Birkhoff" << std::endl;
     P = generate_birkhoff<Hpolytope>(10);
-    benchmark_polytope<NT, Hpolytope>(P, 0.3);
+    benchmark_polytope<NT, Hpolytope>(P);
 
     std::cout << " - 200-Simplex" << std::endl;
     P = generate_simplex<Hpolytope>(200, false);
-    benchmark_polytope<NT, Hpolytope>(P, 0.3);
+    benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
 
     std::cout << " - 10-Cross" << std::endl;
     P = generate_cross<Hpolytope>(10, false);
-    benchmark_polytope<NT, Hpolytope>(P, 0.3);
+    benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
 
+    std::cout << " - 1000-H-Cube" << std::endl;
+    P = generate_cube<Hpolytope>(1000, false);
+    benchmark_polytope<NT, Hpolytope>(P, 0.03, 3);
 }
 
 TEST_CASE("hmc") {
@@ -599,7 +622,7 @@ TEST_CASE("benchmark_hmc_truncated") {
 }
 
 TEST_CASE("benchmark_netlib") {
-    call_test_benchmark_netlib<double>();
+    call_test_benchmark_netlib<double>(true, false, false);
 }
 
 TEST_CASE("benchmark_standard_polytopes") {

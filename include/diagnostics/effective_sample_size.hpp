@@ -94,14 +94,14 @@ VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
         }
 
         // Calculate minimum autocorrelation
-        for (int j = 0; j < N_even / 2; j++) {
-            min_auto_correlation[j] = autocorrelation[j] + autocorrelation[j + 1];
+        for (int j = 0; j < N_even; j += 2) {
+            min_auto_correlation[j/2] = autocorrelation[j] + autocorrelation[j + 1];
         }
 
         gap = NT(0);
         cummulative_minimum(min_auto_correlation);
 
-        for (int j = 0; j < N_even ; j++) {
+        for (int j = 0; j < N_even / 2; j++) {
             if (min_auto_correlation[j] > 0) gap += min_auto_correlation[j];
         }
 

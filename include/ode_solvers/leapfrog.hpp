@@ -38,6 +38,7 @@ struct LeapfrogODESolver {
   // Contains the sub-states
   pts xs;
   pts xs_prev;
+  pts xs_prev_backup;
 
   std::pair<NT, int> pbpair;
 
@@ -57,10 +58,12 @@ struct LeapfrogODESolver {
     if (adaptive) eta = (eta0 * num_steps) / (num_steps + num_reflections);
 
     xs_prev = xs;
+    xs_prev_backup = xs;
+
     unsigned int x_index, v_index, it;
     t += eta;
-    for (unsigned int i = 1; i < xs.size(); i += 2) {
 
+    for (unsigned int i = 1; i < xs.size(); i += 2) {
       x_index = i - 1;
       v_index = i;
 
@@ -78,13 +81,16 @@ struct LeapfrogODESolver {
       }
       else {
         // Find intersection (assuming a line trajectory) between x and y
+        it = 0;
         do {
-
+          if (it > 100 * dim) {
+            xs = xs_prev_backup;
+            return;
+          }
           pbpair = Ks[x_index]->line_positive_intersect(xs_prev[x_index], y, Ar, Av);
 
           if (pbpair.first >= 0 && pbpair.first <= 1) {
-            num_reflections++;
-
+            it++;
             xs_prev[x_index] += (pbpair.first * 0.95) * y;
             Ks[x_index]->compute_reflection(y, xs_prev[x_index], pbpair.second);
             xs[x_index] = xs_prev[x_index] + y;
@@ -97,6 +103,8 @@ struct LeapfrogODESolver {
           }
         } while (!Ks[x_index]->is_in(xs[x_index]));
       }
+
+      num_reflections += it;
 
       // tilde v <- v + eta / 2 F(tilde x)
       z = F(v_index, xs, t);

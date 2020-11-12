@@ -146,7 +146,7 @@ void call_test_effective_sample_size() {
 
     effective_sample_size<NT, VT, MT>(samples, min_ess);
     // std::cout << min_ess << std::endl;
-    CHECK(min_ess < 3);
+    CHECK(min_ess == 3);
 }
 
 TEST_CASE("psrf") {
