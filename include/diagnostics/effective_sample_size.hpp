@@ -37,16 +37,17 @@ VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
     ess.resize(d);
 
     // Autocorrelation vector
+    std::vector<NT> autocorrelation(N_even, NT(0));
     std::vector<NT> min_auto_correlation(N_even / 2, NT(0));
 
 
     // Z-normalized samples
-    std::vector<NT> normalized_sample_row(N);
+    std::vector<NT> normalized_sample_row(2 * N);
 
     // FFT vector
-    std::vector<CNT> fft_vec(N);
-    std::vector<CNT> fft_inv_vec(N);
-    std::vector<CNT> psd(N);
+    std::vector<CNT> fft_vec(2 * N);
+    std::vector<CNT> fft_inv_vec(2 * N);
+    std::vector<CNT> psd(2 * N);
 
     // Helper variables
     NT row_mean;
@@ -60,6 +61,8 @@ VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
 
         for (int j = 0; j < N; j++) {
             normalized_sample_row[j] = samples(i, j) - row_mean;
+            // Zero-padding
+            normalized_sample_row[j + N] = NT(0);
         }
 
         variance = NT(0);
@@ -78,7 +81,7 @@ VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
         fft.fwd(fft_vec, normalized_sample_row);
 
         // Calculate PSD which is the norm squared of the FFT of the sequence
-        for (int j = 0; j < N; j++) {
+        for (int j = 0; j < 2 * N; j++) {
             psd[j].real(std::norm(fft_vec[j]));
             psd[j].imag(NT(0));
         }
@@ -86,17 +89,19 @@ VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
         // Invert fft to get autocorrelation function
         fft.inv(fft_inv_vec, psd);
 
+        for (unsigned int j = 0; j < N_even; j++) {
+            autocorrelation[j] = std::real(fft_inv_vec[j]) / N;
+        }
+
         // Calculate minimum autocorrelation
-        for (int j = 0; j < N_even; j += 2) {
-            min_auto_correlation[j / 2] =
-                (1.0 / N) * (std::real(fft_inv_vec[j + 1]) +
-                std::real(fft_inv_vec[j]));
+        for (int j = 0; j < N_even / 2; j++) {
+            min_auto_correlation[j] = autocorrelation[j] + autocorrelation[j + 1];
         }
 
         gap = NT(0);
         cummulative_minimum(min_auto_correlation);
 
-        for (int j = 0; j < N_even / 2; j++) {
+        for (int j = 0; j < N_even ; j++) {
             if (min_auto_correlation[j] > 0) gap += min_auto_correlation[j];
         }
 
@@ -107,8 +112,8 @@ VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
 
         // Store minimum effective sample size as integer (in general ess is not int)
         // for the thinning process
-        if (i == 0) min_ess = (unsigned int)ess(i);
-        else if ((unsigned int)ess(i) < min_ess) min_ess = (unsigned int)ess(i);
+        if (i == 0) min_ess = (unsigned int) ceil(ess(i));
+        else if ((unsigned int)ceil(ess(i)) < min_ess) min_ess = (unsigned int)ceil(ess(i));
 
     }
 
