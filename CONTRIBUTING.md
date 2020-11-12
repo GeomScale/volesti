@@ -45,19 +45,17 @@ Clone the repository,
 
 the last command should tell you that you are in `develop` branch.
 
-To compile the `C++` code you have to specify the path to external library `liblpsolve55.so`, by running, in folder test:
+To compile the `C++` code you have to specify the path to external library `liblpsolve55.so/dll/dylib` (see [here](doc/cpp_interface.md) more detail), by running, in folder test:
 
-    cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ .  
-    make  
+    mkdir -p test/build && cd test/build
+    cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ ..
+    # e.g. on linux: cmake -DLP_SOLVE=/usr/lib/lp_solve/liblpsolve55.so ..
+    make
 
 Run the tests, 
-    
-    cmake test 
-
-or 
 
     ctest -jK 
-    
+
 where `K`  is the number of CPU threads. By adding the option `--verbose` to `ctest` you get more information about the tests, 
 *e.g.* time per test, volume computed and the name of the polytope or convex body.
 
@@ -65,7 +63,7 @@ where `K`  is the number of CPU threads. By adding the option `--verbose` to `ct
 
 If everything works for you, you may move forward.
 
-## Fork  volesti repository (this is your repo now!)
+## Fork volesti repository (this is your repo now!)
 
 You can't work directly in the original volesti repository, therefore you should create your fork of this library. 
 This way you can modify the code and when the job is done send a pull request to merge your changes with the original 
