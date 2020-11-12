@@ -17,7 +17,8 @@ You can run the tests by `cmake test` or `ctest -jK` where `K` the number of `CP
 
 ##### Development environment from Docker container
 
-It is possible to setup a docker contaner with development environment. Here is how a Dockerfile can be written
+Optionally, it is possible to setup a docker contaner with development environment. To get started with docker, see 
+[here](https://docs.docker.com/get-started/). Below, here is how a Dockerfile can be written
 ```
 FROM ubuntu:18.04
 
