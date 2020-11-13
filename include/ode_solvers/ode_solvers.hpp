@@ -29,13 +29,12 @@
       1. Ks: A vector of domains K_i for 1 <= i <= n
       2. xs: A vector of substates x_i for 1 <= i <= n
       3. xs_prev: The previous state of the solver
-      4. Fs: A vector of oracles F_i for 1 <= i <= n
+      4. F: A functor of oracles F_i for 1 <= i <= n
       5. eta: Step size
       6. t: Temporal variable
-  
+
   TODO:
       1. Change datastructure of boundaries (std::vector<Polytope*>)
-      2. Change std::function to functors
 
 */
 
@@ -44,13 +43,17 @@
 #include <functional>
 #include <vector>
 
-#include "euler.hpp"
-#include "runge_kutta.hpp"
-#include "leapfrog.hpp"
-#include "richardson_extrapolation.hpp"
+#include "ode_solvers/euler.hpp"
+#include "ode_solvers/runge_kutta.hpp"
+#include "ode_solvers/leapfrog.hpp"
+#include "ode_solvers/richardson_extrapolation.hpp"
+#include "ode_solvers/oracle_functors.hpp"
+#include "ode_solvers/randomized_midpoint.hpp"
 
 #ifndef DISABLE_NLP_ORACLES
-#include "collocation.hpp"
+#include "ode_solvers/collocation.hpp"
+#include "ode_solvers/basis.hpp"
+#include "ode_solvers/integral_collocation.hpp"
 #endif
 
 #ifndef ODE_SOLVERS_HPP

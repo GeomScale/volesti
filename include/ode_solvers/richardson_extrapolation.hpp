@@ -12,11 +12,16 @@
 #define RICHARDSON_EXTRAPOLATION_HPP
 
 
-template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>&, NT&)>>
-class RichardsonExtrapolationODESolver {
-public:
+template <
+		typename Point,
+		typename NT,
+		typename Polytope,
+		typename func
+>
+struct RichardsonExtrapolationODESolver {
+
   typedef std::vector<Point> pts;
-  typedef std::vector<func> funcs;
+
   typedef std::vector<Polytope*> bounds;
   typedef std::vector<NT> coeffs;
   typedef std::vector<coeffs> scoeffs;
@@ -36,9 +41,9 @@ public:
   Point num, y;
   VT Ar, Av;
 
-  RKODESolver<Point, NT, Polytope> *solver;
+  RKODESolver<Point, NT, Polytope, func> *solver;
 
-  funcs Fs;
+  func F;
   bounds Ks;
 
   // Contains the sub-states
@@ -55,15 +60,15 @@ public:
   int prev_facet = -1;
 
   RichardsonExtrapolationODESolver(NT initial_time, NT step, pts initial_state,
-    funcs oracles, bounds boundaries) :
-    t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries) {
+    func oracle, bounds boundaries) :
+    eta(step), t(initial_time), F(oracle), Ks(boundaries), xs(initial_state) {
       dim = xs[0].dimension();
       A = ptsm(MAX_TRIES+1, ptsv(MAX_TRIES+1, pts(xs.size())));
       initialize_solver();
     };
 
   void initialize_solver() {
-    solver = new RKODESolver<Point, NT, Polytope>(t, eta, xs, Fs, bounds{NULL});
+    solver = new RKODESolver<Point, NT, Polytope, func>(t, eta, xs, F, bounds{NULL});
   }
 
   void step() {
@@ -108,13 +113,14 @@ public:
       }
 
       if (error < tol || j == MAX_TRIES - 1) {
-
         for (unsigned int i = 0; i < xs.size(); i++) {
           y = A[j+1][j+1][i] - xs[i];
 
           if (Ks[i] == NULL) {
-            xs[i] = xs[i] + y;
-            if (prev_facet != -1) Ks[i]->compute_reflection(xs[i], x_prev_bound, prev_facet);
+            xs[i] = xs_prev[i] + y;
+            if (prev_facet != -1 && i > 0) {
+				Ks[i-1]->compute_reflection(xs[i], x_prev_bound, prev_facet);
+			}
             prev_facet = -1;
           }
           else {
@@ -122,25 +128,25 @@ public:
             // Find intersection (assuming a line trajectory) between x and y
             do {
               // Find line intersection between xs[i] (new position) and y
-              std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
+              std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs_prev[i], y, Ar, Av);
               // If point is outside it would yield a negative param
               if (pbpair.first >= 0 && pbpair.first <= 1) {
-                // Advance to point on the boundary
-                xs[i] += (pbpair.first * 0.99) * y;
+
+                xs_prev[i] += (pbpair.first * 0.95) * y;
 
                 // Update facet for reflection of derivative
                 prev_facet = pbpair.second;
-                x_prev_bound = xs[i];
+                x_prev_bound = xs_prev[i];
 
                 // Reflect ray y on the boundary point y now is the reflected ray
-                Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+                Ks[i]->compute_reflection(y, xs_prev[i], pbpair.second);
                 // Add it to the existing (boundary) point and repeat
-                xs[i] += y;
+                xs[i] = xs_prev[i] + y;
 
               }
               else {
                 prev_facet = -1;
-                xs[i] += y;
+                xs[i] = xs_prev[i] + y;
               }
             } while (!Ks[i]->is_in(xs[i]));
 
@@ -175,6 +181,7 @@ public:
   void set_state(int index, Point p) {
     xs[index] = p;
   }
+
 };
 
 

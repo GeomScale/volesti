@@ -2,7 +2,7 @@
 
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.

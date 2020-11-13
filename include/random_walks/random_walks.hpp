@@ -20,5 +20,7 @@
 #include "random_walks/uniform_john_walk.hpp"
 #include "random_walks/uniform_vaidya_walk.hpp"
 #include "random_walks/uniform_accelerated_billiard_walk.hpp"
+#include "random_walks/hamiltonian_monte_carlo_walk.hpp"
+#include "random_walks/langevin_walk.hpp"
 
 #endif // RANDOM_WALKS_RANDOM_WALKS_HPP

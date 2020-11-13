@@ -105,6 +105,10 @@ public:
         return coeffs.data();
     }
 
+    FT sum() const {
+        return coeffs.sum();
+    }
+
     void operator+= (const point& p)
     {
         coeffs += p.getCoefficients();
@@ -202,6 +206,12 @@ public:
             std::cout<<coeffs(i)<<" ";
         }
         std::cout<<"\n";
+    }
+
+    static point all_ones(int dim) {
+      point p(dim);
+      for (int i = 0; i < dim; i++) p.set_coord(i, 1.0);
+      return p;
     }
 
 };

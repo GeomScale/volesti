@@ -2,7 +2,7 @@
 
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2020 Vissarion Fisikopoulos
+// Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 and 2019 program.
@@ -20,17 +20,41 @@
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "sampling/sampling.hpp"
+#include "ode_solvers/ode_solvers.hpp"
+#include "ode_solvers/oracle_functors_rcpp.hpp"
 
 
-enum random_walks {ball_walk, rdhr, cdhr, billiard, accelarated_billiard, 
-                   dikin_walk, vaidya_walk, john_walk, brdhr, bcdhr};
+enum random_walks {
+  ball_walk,
+  rdhr,
+  cdhr,
+  billiard,
+  accelarated_billiard,
+  dikin_walk,
+  vaidya_walk,
+  john_walk,
+  brdhr,
+  bcdhr,
+  hmc,
+  uld
+};
 
-template <typename Polytope, typename RNGType, typename PointList, typename NT, typename Point>
+template <
+        typename Polytope,
+        typename RNGType,
+        typename PointList,
+        typename NT,
+        typename Point,
+        typename NegativeGradientFunctor,
+        typename NegativeLogprobFunctor
+>
 void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPoints,
         unsigned int const& walkL, unsigned int const& numpoints,
         bool const& gaussian, NT const& a, NT const& L,
         Point const& StartingPoint, unsigned int const& nburns,
-        bool const& set_L, random_walks walk)
+        bool const& set_L, random_walks walk,
+        NegativeGradientFunctor *F=NULL, NegativeLogprobFunctor *f=NULL,
+        ode_solvers solver_type = no_solver)
 {
     switch (walk)
     {
@@ -126,31 +150,96 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
             }
         }
         break;
+    case hmc:
+      switch (solver_type) {
+          case leapfrog:
+            logconcave_sampling <
+              PointList,
+              Polytope,
+              RNGType,
+              HamiltonianMonteCarloWalk,
+              NT,
+              Point,
+              NegativeGradientFunctor,
+              NegativeLogprobFunctor,
+              LeapfrogODESolver <
+                Point,
+                NT,
+                Polytope,
+                NegativeGradientFunctor
+              >
+            >(randPoints, P, rng, walkL, numpoints, StartingPoint, nburns, *F, *f);
+            break;
+          case euler:
+            logconcave_sampling <
+              PointList,
+              Polytope,
+              RNGType,
+              HamiltonianMonteCarloWalk,
+              NT,
+              Point,
+              NegativeGradientFunctor,
+              NegativeLogprobFunctor,
+              EulerODESolver <
+                Point,
+                NT,
+                Polytope,
+                NegativeGradientFunctor
+              >
+            >(randPoints, P, rng, walkL, numpoints, StartingPoint, nburns, *F, *f);
+            break;
+      }
+
+      break;
+    case uld:
+
+      logconcave_sampling <
+        PointList,
+        Polytope,
+        RNGType,
+        UnderdampedLangevinWalk,
+        NT,
+        Point,
+        NegativeGradientFunctor,
+        NegativeLogprobFunctor,
+        LeapfrogODESolver <
+          Point,
+          NT,
+          Polytope,
+          NegativeGradientFunctor
+        >
+      >(randPoints, P, rng, walkL, numpoints, StartingPoint, nburns, *F, *f);
+
+      break;
     default:
         throw Rcpp::exception("Unknown random walk!");
     }
 }
 
-//' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
-//'
-//' Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- as the target distribution.
+//' Sample uniformly, normally distributed, or logconcave distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
 //'
 //' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
 //' @param n The number of points that the function is going to sample from the convex polytope.
 //' @param random_walk Optional. A list that declares the random walk and some related parameters as follows:
 //' \itemize{
-//' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'aBiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution and H-polytopes and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes.}
+//' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR x) \code{'HMC'} for Hamiltonian Monte Carlo (logconcave) xi) \code{'ULD'} for Underdamped Langevin Dynamics using the Randomized Midpoint Method. The default walk is \code{'aBiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution and H-polytopes and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes.}
 //' \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{1}.}
 //' \item{\code{nburns} }{ The number of points to burn before start sampling. The default value is \eqn{1}.}
 //' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 //' \item{\code{BaW_rad} }{ The radius for the ball walk.}
 //' \item{\code{L} }{ The maximum length of the billiard trajectory or the radius for the step of dikin, vaidya or john walk.}
+//' \item{\code{solver}} {Specify ODE solver for logconcave sampling. Options are i) leapfrog, ii) euler iii) runge-kutta iv) richardson}
+//' \item{\code{step_size} {Optionally chosen step size for logconcave sampling. Defaults to a theoretical value if not provided.}}
 //' }
 //' @param distribution Optional. A list that declares the target density and some related parameters as follows:
 //' \itemize{
-//' \item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
+//' \item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform. c) Logconcave with form proportional to exp(-f(x)) where f(x) is L-smooth and m-strongly-convex. }
 //' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
-//'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
+//' \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
+//' \item{\code{L_}} { Smoothness constant (for logconcave). }
+//' \item{\code{m}} { Strong-convexity constant (for logconcave). }
+//' \item{\code{negative_logprob}} { Negative log-probability (for logconcave). }
+//' \item{\code{negative_logprob_gradient}} { Negative log-probability gradient (for logconcave). }
 //' }
 //' @param seed Optional. A fixed seed for the number generator.
 //'
@@ -162,6 +251,12 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 //'
 //' @references \cite{Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
 //' \dQuote{Fast MCMC Sampling Algorithms on Polytopes,} \emph{Journal of Machine Learning Research,} 2018.}
+//'
+//' @references \cite{Lee, Yin Tat, Ruoqi Shen, and Kevin Tian,
+//' \dQuote{"Logsmooth Gradient Concentration and Tighter Runtimes for Metropolized Hamiltonian Monte Carlo,"} \emph{arXiv preprint arXiv:2002.04121}, 2020.}
+//'
+//' @references \cite{Shen, Ruoqi, and Yin Tat Lee,
+//' \dQuote{"The randomized midpoint method for log-concave sampling.",} \emph{Advances in Neural Information Processing Systems}, 2019.}
 //'
 //' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 //' @examples
@@ -178,6 +273,8 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
 //' # uniform points from the boundary of a 2-dimensional random H-polytope
 //' P = gen_rand_hpoly(2,20)
 //' points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
+//'
+//' # For sampling from logconcave densities see the examples directory
 //'
 //' @export
 // [[Rcpp::export]]
@@ -201,6 +298,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     unsigned int type = Rcpp::as<Rcpp::Reference>(P).field("type"), dim = Rcpp::as<Rcpp::Reference>(P).field("dimension"),
           walkL = 1, numpoints, nburns = 0;
 
+    RcppFunctor::GradientFunctor<Point> *F = NULL;
+    RcppFunctor::FunctionFunctor<Point> *f = NULL;
+
+
     RNGType rng(dim);
     if (seed.isNotNull()) {
         unsigned seed_rcpp = Rcpp::as<double>(seed);
@@ -208,9 +309,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     }
 
     NT radius = 1.0, L;
-    bool set_mode = false, gaussian = false, set_starting_point = false, set_L = false;
+    bool set_mode = false, gaussian = false, logconcave = false,
+                    set_starting_point = false, set_L = false;
 
     random_walks walk;
+    ode_solvers solver; // Used only for logconcave sampling
 
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
@@ -227,12 +330,15 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     } else if (
             Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("gaussian")) == 0) {
         gaussian = true;
+    } else if (
+            Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(distribution)["density"]).compare(std::string("logconcave")) == 0) {
+        logconcave = true;
     } else {
         throw Rcpp::exception("Wrong distribution!");
     }
 
     if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("mode")) {
-        if (!gaussian) throw Rcpp::exception("Mode is given only for Gaussian sampling!");
+        if (!(gaussian || logconcave)) throw Rcpp::exception("Mode is given only for Gaussian/logconcave sampling!");
         if (Rcpp::as<VT>(Rcpp::as<Rcpp::List>(distribution)["mode"]).size() != dim) {
             throw Rcpp::exception("Mode has to be a point in the same dimension as the polytope P");
         } else {
@@ -251,6 +357,63 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             throw Rcpp::exception("The variance has to be positive!");
         }
     }
+
+    if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("negative_logprob") &&
+        Rcpp::as<Rcpp::List>(distribution).containsElementNamed("negative_logprob_gradient")) {
+
+        if (!logconcave) {
+          throw Rcpp::exception("The negative logprob and its gradient can be set only for logconcave sampling!");
+        }
+
+        // Parse arguments
+        Rcpp::Function negative_logprob = Rcpp::as<Rcpp::List>(distribution)["negative_logprob"];
+        Rcpp::Function negative_logprob_gradient = Rcpp::as<Rcpp::List>(distribution)["negative_logprob_gradient"];
+
+        NT L_, m, eta;
+
+        if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("L_")) {
+            L_ = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["L_"]);
+        } else {
+            throw Rcpp::exception("The smoothness constant is absent");
+        }
+
+        if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("m")) {
+            m = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["m"]);
+        } else {
+            throw Rcpp::exception("The strong-convexity constant is absent");
+        }
+
+
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("step_size")) {
+            eta = NT(Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["step_size"]));
+            if (eta <= NT(0)) {
+                throw Rcpp::exception("Step size must be positive");
+            }
+        } else {
+            eta = NT(-1);
+        }
+
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("solver")) {
+          std::string solver_str = Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["solver"]);
+          if (solver_str == "leapfrog") {
+            solver = leapfrog;
+          } else if (solver_str == "euler") {
+            solver = euler;
+          } else {
+            throw Rcpp::exception("Invalid ODE solver specified. Aborting.");
+          }
+         } else {
+          Rcpp::warning("Solver set to leapfrog.");
+          solver = leapfrog;
+        }
+
+        // Create functors
+        RcppFunctor::parameters<NT> rcpp_functor_params(L_, m, eta, 2);
+        F = new RcppFunctor::GradientFunctor<Point>(rcpp_functor_params, negative_logprob_gradient);
+        f = new RcppFunctor::FunctionFunctor<Point>(rcpp_functor_params, negative_logprob);
+
+    }
+
 
     if (!random_walk.isNotNull() || !Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("walk")) {
         if (gaussian) {
@@ -320,6 +483,12 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BCDHR")) == 0) {
         if (gaussian) throw Rcpp::exception("Gaussian sampling from the boundary is not supported!");
         walk = bcdhr;
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("HMC")) == 0) {
+        if (!logconcave) throw Rcpp::exception("HMC is not supported for non first-order sampling");
+      walk = hmc;
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("ULD")) == 0) {
+      if (!logconcave) throw Rcpp::exception("ULD is not supported for non first-order sampling");
+      walk = uld;
     } else {
         throw Rcpp::exception("Unknown walk type!");
     }
@@ -369,7 +538,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 HP.shift(mode.getCoefficients());
             }
             sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk);
+                                 StartingPoint, nburns, set_L, walk, F, f, solver);
             break;
         }
         case 2: {
@@ -390,7 +559,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 VP.shift(mode.getCoefficients());
             }
             sample_from_polytope(VP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk);
+                                 StartingPoint, nburns, set_L, walk, F, f, solver);
             break;
         }
         case 3: {
@@ -411,7 +580,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 ZP.shift(mode.getCoefficients());
             }
             sample_from_polytope(ZP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk);
+                                 StartingPoint, nburns, set_L, walk, F, f, solver);
             break;
         }
         case 4: {
@@ -434,7 +603,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 VPcVP.shift(mode.getCoefficients());
             }
             sample_from_polytope(VPcVP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk);
+                                 StartingPoint, nburns, set_L, walk, F, f, solver);
             break;
         }
     }

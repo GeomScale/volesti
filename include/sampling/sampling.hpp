@@ -214,5 +214,65 @@ void gaussian_sampling(PointList &randPoints,
 
 }
 
+template <
+        typename PointList,
+        typename Polytope,
+        typename RandomNumberGenerator,
+        typename WalkTypePolicy,
+        typename NT,
+        typename Point,
+        typename NegativeGradientFunctor,
+        typename NegativeLogprobFunctor,
+        typename Solver
+        >
+void logconcave_sampling(PointList &randPoints,
+                       Polytope &P,
+                       RandomNumberGenerator &rng,
+                       const unsigned int &walk_len,
+                       const unsigned int &rnum,
+                       const Point &starting_point,
+                       unsigned int const& nburns,
+                       NegativeGradientFunctor &F,
+                       NegativeLogprobFunctor &f)
+{
+    typedef typename WalkTypePolicy::template Walk
+            <
+                    Point,
+                    Polytope,
+                    RandomNumberGenerator,
+                    NegativeGradientFunctor,
+                    NegativeLogprobFunctor,
+                    Solver
+            > walk;
+
+    typedef typename WalkTypePolicy::template parameters
+            <
+                    NT,
+                    NegativeGradientFunctor
+            > walk_params;
+
+    // Initialize random walk parameters
+    unsigned int dim = starting_point.dimension();
+    walk_params params(F, dim);
+
+    if (F.params.eta > 0) {
+        params.eta = F.params.eta;
+    }
+
+    PushBackWalkPolicy push_back_policy;
+
+    Point p = starting_point;
+
+    typedef LogconcaveRandomPointGenerator<walk> RandomPointGenerator;
+    RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
+                                push_back_policy, rng, F, f, params);
+
+    randPoints.clear();
+    RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
+                                push_back_policy, rng, F, f, params);
+
+}
+
+
 
 #endif

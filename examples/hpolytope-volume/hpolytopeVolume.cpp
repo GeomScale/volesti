@@ -1,6 +1,6 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 20012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
 // Contributed and/or modified by Vaibhav Thakkar
@@ -47,7 +47,7 @@ void calculateVolumes(const HPOLYTOPE &HP) {
 
 int main(int argc, char* argv[]) {
 	// Generating a 4-dimensional cube centered at origin
-	HPOLYTOPE HP1 = gen_cube<HPOLYTOPE>(4, false);
+	HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(4, false);
 	std::cout<<"Polytope HP1: \n";
 	HP1.print();
 	std::cout<<"\n";
@@ -64,8 +64,7 @@ int main(int argc, char* argv[]) {
 	inp.open(fileName, std::ifstream::in);
 	read_pointset(inp,Pin);
 
-	HPOLYTOPE HP2;
-	HP2.init(Pin);
+	HPOLYTOPE HP2(Pin);
 	std::cout<<"Polytope HP2: \n";
 	HP2.print();
 	std::cout<<"\n";

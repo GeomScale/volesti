@@ -1,5 +1,5 @@
 # VolEsti (volume computation and sampling library)
-# Copyright (c) 20012-2018 Vissarion Fisikopoulos
+# Copyright (c) 2012-2018 Vissarion Fisikopoulos
 # Copyright (c) 2018 Apostolos Chalkis
 # Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 # Licensed under GNU LGPL.3, see LICENCE file
@@ -11,7 +11,7 @@ add_executable (read_write_sdpa_file read_write_sdpa_file.cpp)
 # Find LAPACK and BLAS
 # OPENBLAS or ( ( SystemOpenblas or BLAS) and LAPACK)
 ## prefer local openblas
-find_library(OPENBLAS_LIB openblas PATHS external NO_DEFAULT_PATH)
+find_library(OPENBLAS_LIB openblas PATHS external /usr/lib/gcc/x86_64-linux-gnu/)
 IF (OPENBLAS_LIB)
     set(LAPACK_LIBRARIES ${OPENBLAS_LIB}) #local openblas has lapack build in
 
@@ -21,7 +21,7 @@ IF (OPENBLAS_LIB)
 
 
     # ARPACK
-    find_library(ARPACK_LIB arpack PATHS external NO_DEFAULT_PATH)
+    find_library(ARPACK_LIB arpack PATHS external /usr/lib/gcc/x86_64-linux-gnu/)
     IF (ARPACK_LIB)
         message( STATUS "ARPACK_LIB found: ${ARPACK_LIB}" )
 
@@ -75,4 +75,3 @@ IF (OPENBLAS_LIB)
 ELSE()
     message(FATAL_ERROR "This program requires the openblas library, and will not be compiled.")
 ENDIF()
-

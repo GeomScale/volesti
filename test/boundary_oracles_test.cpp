@@ -95,7 +95,7 @@ void call_test_poly_oracles(char typ) {
   typedef Cartesian<NT>    Kernel;
   typedef typename Kernel::Point    Point;
   typedef std::vector<Point> pts;
-  typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
+  typedef PolynomialBasis<NT> bfunc;
 
   std::cout << "--- Testing intersection of 2D cube with p(t) = (t, t)" << std::endl;
 
@@ -106,13 +106,8 @@ void call_test_poly_oracles(char typ) {
 
   pts line_coeffs{a0, a1};
 
-  bfunc poly_basis = [](NT t, NT t0, unsigned int j, unsigned int order) {
-    return pow(t - t0, (NT) j);
-  };
-
-  bfunc poly_basis_grad = [](NT t, NT t0, unsigned int j, unsigned int order) {
-    return ((NT) j) * pow(t - t0, (NT) (j - 1));
-  };
+  bfunc poly_basis(FUNCTION);
+  bfunc poly_basis_grad(DERIVATIVE);
 
   NT t_des_line = NT(1);
   int facet_des_line = 0;
@@ -150,7 +145,7 @@ void call_benchmark_oracles() {
   typedef boost::mt19937    RNGType;
   typedef HPolytope<Point> Hpolytope;
   typedef std::tuple<NT, Point, int> result;
-  typedef std::function<NT(NT, NT, unsigned int, unsigned int)> bfunc;
+  typedef PolynomialBasis<NT> bfunc;
   Hpolytope P;
   NT tol = 1e-4;
   std::pair<int, int>dims = std::make_pair(2, 10);
@@ -161,14 +156,8 @@ void call_benchmark_oracles() {
   long newton_runtime = 0L;
   long ipopt_runtime = 0L;
 
-  bfunc poly_basis = [](NT t, NT t0, unsigned int j, unsigned int order) {
-    return pow(t - t0, (NT) j);
-  };
-
-  bfunc poly_basis_grad = [](NT t, NT t0, unsigned int j, unsigned int order) {
-    return ((NT) j) * pow(t - t0, (NT) (j - 1));
-  };
-
+  bfunc poly_basis(FUNCTION);
+  bfunc poly_basis_grad(DERIVATIVE);
 
   std::vector<Point> coeffs;
 

@@ -12,12 +12,17 @@
 #define RUNGE_KUTTA_H
 
 
-template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>&, NT&)>>
-class RKODESolver {
-public:
+template <
+		typename Point,
+		typename NT,
+		typename Polytope,
+		typename func
+>
+struct RKODESolver {
+
   typedef std::vector<Point> pts;
   typedef std::vector<pts> ptsv;
-  typedef std::vector<func> funcs;
+
   typedef std::vector<Polytope*> bounds;
   typedef std::vector<NT> coeffs;
   typedef std::vector<coeffs> scoeffs;
@@ -31,7 +36,7 @@ public:
 
   VT Ar, Av;
 
-  funcs Fs;
+  func F;
   bounds Ks;
 
   // Contains the sub-states
@@ -49,9 +54,9 @@ public:
   coeffs cs, bs;
 
 
-  RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
+  RKODESolver(NT initial_time, NT step, pts initial_state, func oracle,
     bounds boundaries) :
-    t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries) {
+    eta(step), t(initial_time), F(oracle), Ks(boundaries), xs(initial_state) {
       dim = xs[0].dimension();
       // If no coefficients are given the RK4 method is assumed
       cs = coeffs{0, 0.5, 0.5, 1};
@@ -65,9 +70,9 @@ public:
     };
 
 
-  // RKODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
+  // RKODESolver(NT initial_time, NT step, pts initial_state, func oracle,
   //   bounds boundaries, scoeffs a_coeffs, coeffs b_coeffs, coeffs c_coeffs) :
-  //   t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries),
+  //   t(initial_time), xs(initial_state), F(oracle), eta(step), Ks(boundaries),
   //   as(a_coeffs), bs(b_coeffs), cs(c_coeffs) {
   //     dim = xs[0].dimension();
   //   };
@@ -96,13 +101,14 @@ public:
 
       for (unsigned int i = 0; i < xs.size(); i++) {
         // Calculate k_i s
-        y = Fs[i](ks[ord], t);
+        y = F(i,ks[ord], t);
         ks[ord][i] = y;
         y = (eta * bs[i]) * y;
 
         if (Ks[i] == NULL) {
           xs[i] = xs[i] + y;
-          if (prev_facet != -1) Ks[i]->compute_reflection(xs[i], x_prev_bound, prev_facet);
+          if (prev_facet != -1 && i > 0)
+						Ks[i-1]->compute_reflection(xs[i], x_prev_bound, prev_facet);
           prev_facet = -1;
         }
         else {
@@ -159,6 +165,7 @@ public:
   void set_state(int index, Point p) {
     xs[index] = p;
   }
+
 };
 
 

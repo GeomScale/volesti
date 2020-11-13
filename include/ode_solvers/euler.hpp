@@ -11,11 +11,15 @@
 #ifndef EULER_HPP
 #define EULER_HPP
 
-template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>&, NT&)>>
-class EulerODESolver {
-public:
+template <
+		typename Point,
+		typename NT,
+		typename Polytope,
+		typename func
+>
+struct EulerODESolver {
+
   typedef std::vector<Point> pts;
-  typedef std::vector<func> funcs;
   typedef std::vector<Polytope*> bounds;
   typedef typename Polytope::VT VT;
 
@@ -25,7 +29,7 @@ public:
   NT t;
   VT Ar, Av;
 
-  funcs Fs;
+  func F;
   bounds Ks;
 
   // Contains the sub-states
@@ -38,56 +42,58 @@ public:
   // Previous state boundary facet
   int prev_facet = -1;
 
-  EulerODESolver(NT initial_time, NT step, pts initial_state, funcs oracles,
+  EulerODESolver(NT initial_time, NT step, pts initial_state, func oracle,
     bounds boundaries) :
-    t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries) {
+    eta(step), t(initial_time), F(oracle), Ks(boundaries), xs(initial_state) {
       dim = xs[0].dimension();
     };
 
 
   void step() {
     xs_prev = xs;
-    t += eta;
-
+		t += eta;
     for (unsigned int i = 0; i < xs.size(); i++) {
-      Point y = Fs[i](xs_prev, t);
+      Point y = F(i, xs_prev, t);
       y = eta * y;
 
       if (Ks[i] == NULL) {
-        xs[i] = xs[i] + y;
-        if (prev_facet != -1) Ks[i]->compute_reflection(xs[i], x_prev_bound, prev_facet);
-        prev_facet = -1;
+        xs[i] = xs_prev[i] + y;
+        if (prev_facet != -1 && i > 0) {
+					Ks[i-1]->compute_reflection(xs[i], x_prev_bound, prev_facet);
+				}
+
       }
       else {
 
         // Find intersection (assuming a line trajectory) between x and y
         do {
           // Find line intersection between xs[i] (new position) and y
-          std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs[i], y, Ar, Av);
-          // If point is outside it would yield a negative param
+          std::pair<NT, int> pbpair = Ks[i]->line_positive_intersect(xs_prev[i], y, Ar, Av);
+
           if (pbpair.first >= 0 && pbpair.first <= 1) {
             // Advance to point on the boundary
-            xs[i] += (pbpair.first * 0.99) * y;
+            xs_prev[i] += (pbpair.first * 0.95) * y;
 
             // Update facet for reflection of derivative
             prev_facet = pbpair.second;
-            x_prev_bound = xs[i];
+            x_prev_bound = xs_prev[i];
 
             // Reflect ray y on the boundary point y now is the reflected ray
-            Ks[i]->compute_reflection(y, xs[i], pbpair.second);
+            Ks[i]->compute_reflection(y, xs_prev[i], pbpair.second);
             // Add it to the existing (boundary) point and repeat
-            xs[i] += y;
+            xs[i] = xs_prev[i] + y;
 
           }
           else {
             prev_facet = -1;
-            xs[i] += y;
+            xs[i] = xs_prev[i] + y;
           }
         } while (!Ks[i]->is_in(xs[i]));
 
       }
 
     }
+
   }
 
   void print_state() {
@@ -110,6 +116,7 @@ public:
   void set_state(int index, Point p) {
     xs[index] = p;
   }
+
 };
 
 #endif

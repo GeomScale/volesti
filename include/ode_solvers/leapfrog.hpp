@@ -11,11 +11,16 @@
 #ifndef LEAPFROG_HPP
 #define LEAPFROG_HPP
 
-template <typename Point, typename NT, class Polytope, class func=std::function <Point(std::vector<Point>&, NT&)>>
-class LeapfrogODESolver {
-public:
+template <
+typename Point,
+typename NT,
+typename Polytope,
+typename func
+>
+struct LeapfrogODESolver {
+
   typedef std::vector<Point> pts;
-  typedef std::vector<func> funcs;
+
   typedef std::vector<Polytope*> bounds;
   typedef typename Polytope::VT VT;
 
@@ -24,31 +29,43 @@ public:
   VT Ar, Av;
 
   NT eta;
+  NT eta0;
   NT t;
 
-  funcs Fs;
+  func F;
   bounds Ks;
 
   // Contains the sub-states
   pts xs;
   pts xs_prev;
 
-  LeapfrogODESolver(NT initial_time, NT step, pts initial_state, funcs oracles, bounds boundaries) :
-    t(initial_time), xs(initial_state), Fs(oracles), eta(step), Ks(boundaries) {
-      dim = xs[0].dimension();
-    };
+  std::pair<NT, int> pbpair;
+
+  unsigned long long num_reflections = 0;
+  unsigned long long num_steps = 0;
+
+  bool adaptive = true;
+
+  LeapfrogODESolver(NT initial_time, NT step, pts initial_state, func oracle, bounds boundaries, bool adaptive_=true) :
+  eta(step), eta0(step), t(initial_time), F(oracle), Ks(boundaries), xs(initial_state), adaptive(adaptive_) {
+    dim = xs[0].dimension();
+  };
 
   void step() {
+    num_steps++;
+
+    if (adaptive) eta = (eta0 * num_steps) / (num_steps + num_reflections);
+
     xs_prev = xs;
+    unsigned int x_index, v_index, it;
     t += eta;
-    unsigned int x_index, v_index;
     for (unsigned int i = 1; i < xs.size(); i += 2) {
 
       x_index = i - 1;
       v_index = i;
 
       // v' <- v + eta / 2 F(x)
-      Point z = Fs[v_index](xs_prev, t);
+      Point z = F(v_index, xs_prev, t);
       z = (eta / 2) * z;
       xs[v_index] = xs[v_index] + z;
 
@@ -56,32 +73,35 @@ public:
       Point y = xs[v_index];
       y = (eta) * y;
 
-      // tilde v <- v + eta / 2 F(x)
-      z = Fs[v_index](xs, t);
-      z = (eta / 2) * z;
-      xs[v_index] = xs[v_index] + z;
-
       if (Ks[x_index] == NULL) {
-        xs[x_index] = xs[x_index] + y;
+        xs[x_index] = xs_prev[x_index] + y;
       }
       else {
         // Find intersection (assuming a line trajectory) between x and y
         do {
-          std::pair<NT, int> pbpair = Ks[x_index]->line_positive_intersect(xs[x_index], y, Ar, Av);
+
+          pbpair = Ks[x_index]->line_positive_intersect(xs_prev[x_index], y, Ar, Av);
 
           if (pbpair.first >= 0 && pbpair.first <= 1) {
-            xs[x_index] += (pbpair.first * 0.99) * y;
-            Ks[x_index]->compute_reflection(y, xs[x_index], pbpair.second);
-            xs[x_index] += y;
+            num_reflections++;
+
+            xs_prev[x_index] += (pbpair.first * 0.95) * y;
+            Ks[x_index]->compute_reflection(y, xs_prev[x_index], pbpair.second);
+            xs[x_index] = xs_prev[x_index] + y;
 
             // Reflect velocity
             Ks[x_index]->compute_reflection(xs[v_index], xs[x_index], pbpair.second);
           }
           else {
-            xs[x_index] += y;
+            xs[x_index] = xs_prev[x_index] + y;
           }
         } while (!Ks[x_index]->is_in(xs[x_index]));
       }
+
+      // tilde v <- v + eta / 2 F(tilde x)
+      z = F(v_index, xs, t);
+      z = (eta / 2) * z;
+      xs[v_index] = xs[v_index] + z;
 
     }
 

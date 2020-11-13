@@ -361,7 +361,8 @@ struct MPSolveHPolyoracle {
     std::vector<Point> &coeffs,
     bfunc phi,
     bfunc grad_phi,
-    int ignore_facet=-1)
+    int ignore_facet=-1,
+    bool positive_real=true)
   {
     NT maxNT = std::numeric_limits<NT>::max();
     NT minNT = std::numeric_limits<NT>::lowest();
@@ -399,7 +400,7 @@ struct MPSolveHPolyoracle {
       // Find point projection on m-th hyperplane
       Z[0] -= b(i);
 
-      std::vector<std::pair<NT, NT>> solutions = mpsolve<NT>(Z, true);
+      std::vector<std::pair<NT, NT>> solutions = mpsolve<NT>(Z, positive_real);
 
       for(std::pair<NT, NT> sol: solutions) {
 

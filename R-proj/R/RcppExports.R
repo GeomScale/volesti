@@ -174,6 +174,28 @@ inner_ball <- function(P, lpsolve = NULL) {
     .Call(`_volesti_inner_ball`, P, lpsolve)
 }
 
+#' Solve an ODE of the form dx^n / dt^n = F(x, t)
+#'
+#' @param n The number of steps.
+#' @param step_size The step size.
+#' @param order The ODE order (default is n = 1)
+#' @param dimension The dimension of each derivative
+#' @param initial_time The initial time
+#' @param F The function oracle F(x, t) in the ODE.
+#' @param method The method to be used
+#' @param initial_conditions The initial conditions provided to the solver. Must be provided in a list with keys "x_1", ..., "x_n" and column vectors as values. The state "x_n" represents the (n-1)-th order derivative with respect to time
+#' @param domains A list of n H-polytopes with keys "P_1", "P_2", ..., "P_n" that correspond to each derivative's domain
+#'
+#' @return A list which contains elements "x_1", ..., "x_n" representing each derivative results. Each "x_i" corresponds to a d x n matrix where each column represents a certain timestep of the solver.
+#'
+#' @examples
+#' # Please visit the examples directory on examples demonstrating usage of the ODE solvers. 
+#'
+#' @export
+ode_solve <- function(n, step_size, order, dimension, initial_time, F, method, domains = NULL, initial_conditions = NULL) {
+    .Call(`_volesti_ode_solve`, n, step_size, order, dimension, initial_time, F, method, domains, initial_conditions)
+}
+
 #' An internal Rccp function as a polytope generator
 #'
 #' @param kind_gen An integer to declare the type of the polytope.
@@ -268,26 +290,30 @@ rounding <- function(P, method = NULL, seed = NULL) {
     .Call(`_volesti_rounding`, P, method, seed)
 }
 
-#' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
-#'
-#' Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- as the target distribution.
+#' Sample uniformly, normally distributed, or logconcave distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
 #'
 #' @param P A convex polytope. It is an object from class (a) Hpolytope or (b) Vpolytope or (c) Zonotope or (d) VpolytopeIntersection.
 #' @param n The number of points that the function is going to sample from the convex polytope.
 #' @param random_walk Optional. A list that declares the random walk and some related parameters as follows:
 #' \itemize{
-#' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR. The default walk is \code{'aBiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution and H-polytopes and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes.}
+#' \item{\code{walk} }{ A string to declare the random walk: i) \code{'CDHR'} for Coordinate Directions Hit-and-Run, ii) \code{'RDHR'} for Random Directions Hit-and-Run, iii) \code{'BaW'} for Ball Walk, iv) \code{'BiW'} for Billiard walk, v) \code{'dikin'} for dikin walk, vi) \code{'vaidya'} for vaidya walk, vii) \code{'john'} for john walk, viii) \code{'BCDHR'} boundary sampling by keeping the extreme points of CDHR or ix) \code{'BRDHR'} boundary sampling by keeping the extreme points of RDHR x) \code{'HMC'} for Hamiltonian Monte Carlo (logconcave) xi) \code{'ULD'} for Underdamped Langevin Dynamics using the Randomized Midpoint Method. The default walk is \code{'aBiW'} for the uniform distribution or \code{'CDHR'} for the Gaussian distribution and H-polytopes and \code{'BiW'} or \code{'RDHR'} for the same distributions and V-polytopes and zonotopes.}
 #' \item{\code{walk_length} }{ The number of the steps per generated point for the random walk. The default value is \eqn{1}.}
 #' \item{\code{nburns} }{ The number of points to burn before start sampling. The default value is \eqn{1}.}
 #' \item{\code{starting_point} }{ A \eqn{d}-dimensional numerical vector that declares a starting point in the interior of the polytope for the random walk. The default choice is the center of the ball as that one computed by the function \code{inner_ball()}.}
 #' \item{\code{BaW_rad} }{ The radius for the ball walk.}
 #' \item{\code{L} }{ The maximum length of the billiard trajectory or the radius for the step of dikin, vaidya or john walk.}
+#' \item{\code{solver}} {Specify ODE solver for logconcave sampling. Options are i) leapfrog, ii) euler iii) runge-kutta iv) richardson}
+#' \item{\code{step_size} {Optionally chosen step size for logconcave sampling. Defaults to a theoretical value if not provided.}}
 #' }
 #' @param distribution Optional. A list that declares the target density and some related parameters as follows:
 #' \itemize{
-#' \item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform.}
+#' \item{\code{density} }{ A string: (a) \code{'uniform'} for the uniform distribution or b) \code{'gaussian'} for the multidimensional spherical distribution. The default target distribution is uniform. c) Logconcave with form proportional to exp(-f(x)) where f(x) is L-smooth and m-strongly-convex. }
 #' \item{\code{variance} }{ The variance of the multidimensional spherical gaussian. The default value is 1.}
-#'  \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
+#' \item{\code{mode} }{ A \eqn{d}-dimensional numerical vector that declares the mode of the Gaussian distribution. The default choice is the center of the as that one computed by the function \code{inner_ball()}.}
+#' \item{\code{L_}} { Smoothness constant (for logconcave). }
+#' \item{\code{m}} { Strong-convexity constant (for logconcave). }
+#' \item{\code{negative_logprob}} { Negative log-probability (for logconcave). }
+#' \item{\code{negative_logprob_gradient}} { Negative log-probability gradient (for logconcave). }
 #' }
 #' @param seed Optional. A fixed seed for the number generator.
 #'
@@ -299,6 +325,12 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #'
 #' @references \cite{Y. Chen, R. Dwivedi, M. J. Wainwright and B. Yu,
 #' \dQuote{Fast MCMC Sampling Algorithms on Polytopes,} \emph{Journal of Machine Learning Research,} 2018.}
+#'
+#' @references \cite{Lee, Yin Tat, Ruoqi Shen, and Kevin Tian,
+#' \dQuote{"Logsmooth Gradient Concentration and Tighter Runtimes for Metropolized Hamiltonian Monte Carlo,"} \emph{arXiv preprint arXiv:2002.04121}, 2020.}
+#'
+#' @references \cite{Shen, Ruoqi, and Yin Tat Lee,
+#' \dQuote{"The randomized midpoint method for log-concave sampling.",} \emph{Advances in Neural Information Processing Systems}, 2019.}
 #'
 #' @return A \eqn{d\times n} matrix that contains, column-wise, the sampled points from the convex polytope P.
 #' @examples
@@ -315,6 +347,8 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #' # uniform points from the boundary of a 2-dimensional random H-polytope
 #' P = gen_rand_hpoly(2,20)
 #' points = sample_points(P, n = 100, random_walk = list("walk" = "BRDHR"))
+#'
+#' # For sampling from logconcave densities see the examples directory
 #'
 #' @export
 sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = NULL) {

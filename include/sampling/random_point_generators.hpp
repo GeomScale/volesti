@@ -8,7 +8,6 @@
 #ifndef SAMPLERS_RANDOM_POINT_GENERATORS_HPP
 #define SAMPLERS_RANDOM_POINT_GENERATORS_HPP
 
-
 template
 <
     typename Walk
@@ -156,6 +155,50 @@ struct BoundaryRandomPointGenerator
             walk.template apply(P, p1, p2, walk_length, rng);
             policy.apply(randPoints, p1);
             policy.apply(randPoints, p2);
+        }
+    }
+};
+
+
+template
+<
+    typename Walk
+>
+struct LogconcaveRandomPointGenerator
+{
+
+    template
+    <
+            typename Polytope,
+            typename Point,
+            typename PointList,
+            typename WalkPolicy,
+            typename RandomNumberGenerator,
+            typename NegativeGradientFunctor,
+            typename NegativeLogprobFunctor,
+            typename Parameters
+    >
+    static void apply(Polytope &P,
+                      Point &p,   // a point to start
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      PointList &randPoints,
+                      WalkPolicy &policy,
+                      RandomNumberGenerator &rng,
+                      NegativeGradientFunctor &F,
+                      NegativeLogprobFunctor &f,
+                      Parameters &parameters)
+    {
+        typedef double NT;
+        Walk walk(&P, p, F, f, parameters);
+
+        for (unsigned int i = 0; i < rnum; ++i)
+        {
+            // Gather one sample
+            walk.apply(rng, walk_length);
+
+            // Use PushBackWalkPolicy
+            policy.apply(randPoints, walk.x);
         }
     }
 };
