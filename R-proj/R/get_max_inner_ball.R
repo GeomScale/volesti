@@ -55,7 +55,7 @@ get_max_inner_ball <- function(A, b, sparseness = FALSE) {
   ret_list$radius = radius
   
   if (radius <=0 ){
-    stop("negative radius")
+    #stop("negative radius")
   }
   
   return(ret_list)

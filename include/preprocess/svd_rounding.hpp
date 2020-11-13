@@ -71,7 +71,7 @@ void svd_on_sample_psrf(Polytope &P, Point &p, unsigned int const& num_rounding_
             RetMat.conservativeResize(it * N, P.dimension());
             randPoints.clear();
         }
-        std::cout<<"samples_psrf.max() = "<<psrf_vals.maxCoeff()<<", it = "<<it<<std::endl;
+        std::cout<<"samples_psrf.max() = "<<psrf_vals(int(n*0.9))<<", it = "<<it<<std::endl;
     }
 
     for (int i = 0; i < P.dimension(); ++i) {

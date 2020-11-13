@@ -70,6 +70,9 @@ fast_preprocess_with_mosek <- function(P) {
   ret_list$beq = beq
   ret_list$minFluxes = minFluxes
   ret_list$maxFluxes = maxFluxes
+  ret_list$row_ind = row_ind
+  ret_list$col_ind = col_ind
+  ret_list$values = values
   
   return(ret_list)
 }

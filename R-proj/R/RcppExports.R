@@ -178,6 +178,25 @@ inner_ball <- function(P, lpsolve = NULL) {
     .Call(`_volesti_inner_ball`, P, lpsolve)
 }
 
+#' Internal rcpp function to compute the full dimensional polytope when a low dimensional is given
+#'
+#' @param P A low dimensional convex polytope in H-representation.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse
+#'         linear transformation that is applied on the input polytope, the numerical vector - point that the
+#'         input polytope is shifted and the product of the singular values of the matrix of the linear map 
+#'         applied on the input polytope.
+#'
+solve_overdetermined_linear_system <- function(row_ind, col_ind, values, b, m, d) {
+    .Call(`_volesti_solve_overdetermined_linear_system`, row_ind, col_ind, values, b, m, d)
+}
+
+null_space_SparseQR <- function(row_ind, col_ind, values, m, d) {
+    .Call(`_volesti_null_space_SparseQR`, row_ind, col_ind, values, m, d)
+}
+
 #' An internal Rccp function as a polytope generator
 #'
 #' @param kind_gen An integer to declare the type of the polytope.

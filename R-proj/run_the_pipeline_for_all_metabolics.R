@@ -7,7 +7,7 @@ file.names <- dir(path_mets, pattern =".mat")
 
 time_vec = c()
 
-for (i in 11:length(file.names)) {
+for (i in 1:length(file.names)) {
   
   path = paste0(path_mets, "/", file.names[i])
   print(path)

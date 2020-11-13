@@ -8,7 +8,11 @@ apply_pipeline <- function(path, remove_biomass = FALSE, save_files = FALSE) {
   }
   
   print("Compute the null space to constraint")
-  rr = full_dimensional_polytope_with_arma(pre_proc_list$Aeq, pre_proc_list$beq)
+  #rr = full_dimensional_polytope_with_arma(pre_proc_list$Aeq, pre_proc_list$beq)
+  rr = null_space_and_shift(pre_proc_list$row_ind, pre_proc_list$col_ind, pre_proc_list$values, pre_proc_list$Aeq, pre_proc_list$beq)
+  if (save_files) {
+    save(rr, file = paste0(path,"null_space_matrices.RData"))
+  }
   
   print("Get full dimensional polytope")
   A = P$A 

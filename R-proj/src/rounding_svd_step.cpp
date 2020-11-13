@@ -100,7 +100,7 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius,
     int num_its = 20;
 
     p = InnerBall.first;
-    svd_on_sample_psrf<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
+    svd_on_sample<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
                                   shift, walk_length, rng);
 
     max_s = s.maxCoeff();
@@ -110,7 +110,7 @@ Rcpp::List rounding_svd_step (Rcpp::NumericVector center, double radius,
         if (last_round_under_p) {
             num_rounding_steps = num_rounding_steps * 2;
             p = InnerBall.first;
-            svd_on_sample_psrf<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
+            svd_on_sample<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
                                           shift, walk_length, rng);
             max_s = s.maxCoeff();
             std::cout<<"[2]max_s = "<<max_s<<std::endl;
