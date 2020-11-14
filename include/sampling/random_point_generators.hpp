@@ -8,6 +8,67 @@
 #ifndef SAMPLERS_RANDOM_POINT_GENERATORS_HPP
 #define SAMPLERS_RANDOM_POINT_GENERATORS_HPP
 
+template
+<
+    typename Walk
+>
+struct RandomPointEfficientGenerator
+{
+    template
+    <
+        typename Polytope,
+        typename VT,
+        typename MT,
+        typename RandomNumberGenerator,
+        typename Parameters
+    >
+    static void apply(Polytope& P,
+                      VT &p,   // a point to start
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      MT &randPoints,
+                      unsigned int const& nburns,
+                      RandomNumberGenerator &rng,
+                      Parameters const& parameters)
+    {
+        Walk walk(P, p, rng, parameters);
+        bool done = false;
+        unsigned int pointer = 0, i = 0; 
+        while (i < rnum) 
+        {
+            walk.template apply(P, walk_length, rng);
+            randPoints.col(i) = walk.template get_curr_sample();
+            i++;
+        }
+    }
+
+    template
+    <
+            typename Polytope,
+            typename VT,
+            typename MT,
+            typename RandomNumberGenerator
+    >
+    static void apply(Polytope& P,
+                      VT &p,   // a point to start
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      MT &randPoints,
+                      unsigned int const& nburns,
+                      RandomNumberGenerator &rng)
+    {
+        Walk walk(P, p, rng);
+        bool done = false;
+        unsigned int pointer = 0, i = 0; 
+        while (i < rnum) 
+        {
+            walk.template apply(P, walk_length, rng);
+            randPoints.col(i) = walk.template get_curr_sample();
+            i++;
+        }
+    }
+};
+
 
 template
 <

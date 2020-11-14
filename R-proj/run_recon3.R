@@ -1,13 +1,14 @@
 library(volesti)
 library(Matrix)
 library(Rmosek)
+library(pracma)
 
 path_mets = "/home/tolis/data/metabolic_mat/Recon3D_301.mat"
 name = "recon3_"
 
 
 tim = system.time({
-  P = metabolic_net_2_polytope(path, FALSE, TRUE, FALSE)
+  P = metabolic_net_2_polytope(path, FALSE, FALSE, TRUE)
   print("compute min and max Fluxes")
   pre_proc_list = fast_preprocess_with_mosek(P) })
 

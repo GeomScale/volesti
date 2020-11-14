@@ -1,18 +1,21 @@
 library(volesti)
 library(Matrix)
 library(Rmosek)
+library(pracma)
 
 path_mets = "/home/tolis/data/metabolic_mat/Recon2.v04.mat"
 name = "recon2_"
+P = metabolic_net_2_polytope(path_mets, FALSE, TRUE, FALSE)
 
+#tim = system.time({
+#P = metabolic_net_2_polytope(path_mets, FALSE, TRUE, FALSE)
+#print("compute min and max Fluxes")
+#pre_proc_list = fast_preprocess_with_mosek(P) })
 
-tim = system.time({
-P = metabolic_net_2_polytope(path, FALSE, TRUE, FALSE)
-print("compute min and max Fluxes")
-pre_proc_list = fast_preprocess_with_mosek(P) })
+#save(pre_proc_list, file = paste0(name,"preprocess_matrices.RData"))
+#save(tim, file = paste0(name,"preprocess_time.RData"))
 
-save(pre_proc_list, file = paste0(name,"preprocess_matrices.RData"))
-save(as.numeric(tim)[3], file = paste0(name,"preprocess_time.RData"))
+load("~/volume_approximation/R-proj/recon2_preprocess_matrices.RData")
 
 
 tim = system.time({
@@ -39,7 +42,7 @@ if (length(rows_to_del) > 0) {
 print(paste0(length(rows_to_del), " facets removed"))
 })
 save(rr, file = paste0(name,"null_space_matrices.RData"))
-save(as.numeric(tim)[3], file = paste0(name,"null_space_time.RData"))
+save(tim, file = paste0(name,"null_space_time.RData"))
 
 
 tim = system.time({
@@ -51,7 +54,7 @@ T_scale = sc$T_scale
 scale_shift = sc$scale_shift
 })
 save(sc, file = paste0(name,"scaling.RData"))
-save(as.numeric(tim)[3], file = paste0(name,"scaling_time.RData"))
+save(tim, file = paste0(name,"scaling_time.RData"))
 
 
 tim = system.time({
@@ -62,7 +65,7 @@ HP = Hpolytope$new(A = A, b = b)
 ret_list = rounding_isotropic(HP)
 })
 save(ret_list, file = paste0(name,"rounding_matrices.RData"))
-save(as.numeric(tim)[3], file = paste0(name,"rounding_time.RData"))
+save(tim, file = paste0(name,"rounding_time.RData"))
 
 
 tim = system.time({
@@ -98,6 +101,6 @@ result_list$minFluxes = pre_proc_list$minFluxes
 result_list$maxFluxes = pre_proc_list$maxFluxes
 
 save(result_list, file = paste0(name,"final_results.RData"))
-save(as.numeric(tim)[3], file = paste0(name,"sampling_time.RData"))
+save(tim, file = paste0(name,"sampling_time.RData"))
 
 

@@ -744,6 +744,13 @@ public:
             v += a;
     }
 
+    template <typename update_parameters>
+    void compute_reflection(VT &v, const VT &, update_parameters const& params) const {
+
+            //Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+            v += ((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+    }
+
     template <class bfunc, class NonLinearOracle>
     std::tuple<NT, Point, int> curve_intersect(
       NT t_prev,
