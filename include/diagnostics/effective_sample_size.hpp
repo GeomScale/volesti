@@ -22,6 +22,8 @@
 #ifndef EFFECTIVE_SAMPLE_SIZE_HPP
 #define EFFECTIVE_SAMPLE_SIZE_HPP
 
+#include "ESS_stan.hpp"
+
 template <typename NT, typename VT, typename MT>
 VT eff_univariate(MT samples)
 {
@@ -63,12 +65,12 @@ VT eff_univariate(MT samples)
             if (k%2 == 1 && k > 1) {
                 curr_sum = rhat_prev + rhat_curr;
                 if (curr_sum > 0.0) {
-                    if (curr_sum > prev_sum) {
+                    //if (curr_sum > prev_sum) {
                         sum_rhats += (curr_sum);
-                    } else {
+                    //} else {
                         //std::cout<<"[NO monotonic] k = "<<k<<", rhat_prev + rhat_curr = "<<rhat_prev + rhat_curr<<", rhat = "<<rhat<<std::endl;
-                        break;
-                    }
+                        //break;
+                    //}
                 } else {
                     //std::cout<<"[NO positive] k = "<<k<<", rhat_prev + rhat_curr = "<<rhat_prev + rhat_curr<<", rhat = "<<rhat<<std::endl;
                     break;
@@ -79,7 +81,32 @@ VT eff_univariate(MT samples)
             }
             rhat_prev = rhat_curr;
         }
+        // Convert Geyer's initial positive sequence into an initial
+        // monotone sequence
+        //for (int s = 1; s <= max_s - 3; s += 2) {
+        //    if (rho_hat_s(s + 1) + rho_hat_s(s + 2) > rho_hat_s(s - 1) + rho_hat_s(s)) {
+        //    rho_hat_s(s + 1) = (rho_hat_s(s - 1) + rho_hat_s(s)) / 2;
+        //    rho_hat_s(s + 2) = rho_hat_s(s + 1);
+        //    }
+        //}
         results(i) = int(NT(N) / (1.0 + 2.0 * sum_rhats));
+    }
+    return results;
+}
+
+
+template <typename NT, typename VT, typename MT>
+VT ess_univariate_fft(MT samples)
+{
+    MT runs = samples.transpose();
+    unsigned int N = samples.cols(), d = samples.rows();
+    VT coord_samples(N), results(d);
+    //VT mean_mat = samples.rowwise().mean();
+
+    for (int i = 0; i < d; i++)
+    {
+        coord_samples = samples.row(i);
+        results(i) = compute_effective_sample_size(coord_samples);
     }
     return results;
 }

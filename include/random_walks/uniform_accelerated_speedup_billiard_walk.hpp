@@ -72,8 +72,11 @@ struct AcceleratedSpeedpBilliardWalk
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
+            std::cout<<"computing AA..."<<std::endl;
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            std::cout<<"AA computed!"<<std::endl;
             initialize(P, p, rng);
+            std::cout<<"Initialization of the random walk done!"<<std::endl;
         }
 
         template <typename GenericPolytope>
@@ -84,8 +87,11 @@ struct AcceleratedSpeedpBilliardWalk
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
+            std::cout<<"computing AA..."<<std::endl;
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            std::cout<<"AA computed!"<<std::endl;
             initialize(P, p, rng);
+            std::cout<<"Initialization of the random walk done!"<<std::endl;
         }
 
         template
@@ -152,6 +158,128 @@ struct AcceleratedSpeedpBilliardWalk
                 } 
             }
             //p = _p;
+        }
+
+        inline double get_max_distance(std::vector<VT> &pointset, VT const& q) 
+        {
+            double dis = -1.0, temp_dis;
+            for (auto vecit = pointset.begin(); vecit!=pointset.end(); vecit++) 
+            {
+                temp_dis = (q - (*vecit)).norm();
+                if (temp_dis > dis) {
+                    dis = temp_dis;
+                }
+            }
+            return dis;
+        }
+
+        template
+                <
+                        typename GenericPolytope
+                >
+        inline void burnin(GenericPolytope const& P,
+                           VT const& center,
+                           unsigned int const& num_points,
+                           unsigned int const& walk_length,
+                           RandomNumberGenerator &rng)
+        {
+            unsigned int n = P.dimension();
+            NT T, Lmax = _L, max_dist;
+            const NT dl = 0.995;
+            int it;
+            std::vector<VT> pointset;
+            pointset.push_back(_p);
+            pointset.push_back(center);
+            //_p0 = _p;
+
+            for (int i = 0; i<num_points; i++) {
+                for (auto j=0u; j<walk_length; ++j)
+                {
+                    update_delta(Lmax);
+                    T = -std::log(rng.sample_urdist()) * _L;
+                    GetDirectionVT<VT>::apply(_v, rng);
+                    _p0 = _p;
+
+                    it = 0;
+                    std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                    if (pbpair.first > Lmax) {
+                        Lmax = pbpair.first;
+                        std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                    }
+                    if (T <= pbpair.first) {
+                        _p += (T * _v);
+                        max_dist = get_max_distance(pointset, _p);
+                        if (max_dist > Lmax) {
+                            Lmax = max_dist;
+                            std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                        }
+                        pointset.push_back(_p);
+                        _lambda_prev = T;
+                        continue;
+                    }
+
+                    _lambda_prev = dl * pbpair.first;
+                    _p += (_lambda_prev * _v);
+                    T -= _lambda_prev;
+                    P.compute_reflection(_v, _p, _update_parameters);
+                    it++;
+
+                    while (it < 250*n)
+                    {
+                        std::pair<NT, int> pbpair
+                                = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
+                        std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                        if (pbpair.first > Lmax) {
+                            Lmax = pbpair.first;
+                            std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                            //update_delta(Lmax);
+                        }
+                        if (T <= pbpair.first) {
+                            _p += (T * _v);
+                            _lambda_prev = T;
+                            max_dist = get_max_distance(pointset, _p);
+                            if (max_dist > Lmax) {
+                                Lmax = max_dist;
+                                std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                            }
+                            pointset.push_back(_p);
+                            break;
+                        }
+                        _lambda_prev = dl * pbpair.first;
+                        _p += (_lambda_prev * _v);
+                        T -= _lambda_prev;
+                        P.compute_reflection(_v, _p, _update_parameters);
+                        it++;
+                    }
+                    if (it == 250*n){
+                        std::cout<<"reflection limit reached"<<std::endl;
+                        std::pair<NT, int> pbpair
+                                = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
+                        if (pbpair.first > Lmax) {
+                            Lmax = pbpair.first;
+                            std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                            //update_delta(Lmax);
+                        }
+                        if (T <= pbpair.first) {
+                            _p += (T * _v);
+                            _lambda_prev = T;
+                            //break;
+                        } else {
+                            _lambda_prev = rng.sample_urdist() * pbpair.first;
+                            _p += (_lambda_prev * _v);
+                        }
+                        max_dist = get_max_distance(pointset, _p);
+                        if (max_dist > Lmax) {
+                            Lmax = max_dist;
+                            std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                        }
+                        pointset.push_back(_p);
+                        //_p = _p0;
+                    } 
+                }
+                //p = _p;
+            }
+            pointset.clear();
         }
 
         inline void update_delta(NT L)

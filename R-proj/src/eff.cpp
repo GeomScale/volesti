@@ -40,3 +40,13 @@ Rcpp::NumericVector eff(Rcpp::NumericMatrix samples)
     return Rcpp::wrap(eff_univariate<NT, VT>(Rcpp::as<MT>(samples)));
 }
 
+// [[Rcpp::export]]
+Rcpp::NumericVector ESS_fft(Rcpp::NumericMatrix samples)
+{
+    typedef double NT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+                              
+    return Rcpp::wrap(ess_univariate_fft<NT, VT>(Rcpp::as<MT>(samples)));
+}
+

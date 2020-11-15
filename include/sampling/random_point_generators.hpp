@@ -35,6 +35,8 @@ struct RandomPointEfficientGenerator
     {
         typedef double NT;
         Walk walk(P, p, rng, parameters);
+        int num_points = 100 + 2*int( std::sqrt(NT(P.dimension())) );
+        walk.template burnin(P, p, num_points, walk_length, rng);
         bool done = false;
         unsigned int pointer = 0, i = 0, num_samples = rnum, total_samples = 0;
         int min_eff_samples;
@@ -45,11 +47,14 @@ struct RandomPointEfficientGenerator
             {
                 walk.template apply(P, walk_length, rng);
                 randPoints.col(pointer + i) = walk.template get_curr_sample();
+                if (i%100 == 0) {
+                    std::cout<<"number of sample points = "<<i<<std::endl;
+                }
             }
             total_samples += num_samples;
             pointer = total_samples;
             std::cout<<"total_samples = "<<total_samples<<std::endl;
-            min_eff_samples = eff_univariate<NT, VT>(randPoints).minCoeff();
+            min_eff_samples = ess_univariate_fft<NT, VT>(randPoints).minCoeff();
             if (min_eff_samples >= rnum) {
                 std::cout<<"[Complete] min_eff_samples = "<<min_eff_samples<<std::endl;
                 return;
@@ -92,7 +97,7 @@ struct RandomPointEfficientGenerator
             total_samples += num_samples;
             pointer = total_samples;
             std::cout<<"total_samples = "<<total_samples<<std::endl;
-            min_eff_samples = eff_univariate<NT, VT>(randPoints).minCoeff();
+            min_eff_samples = ess_univariate_fft<NT, VT>(randPoints).minCoeff();
             if (min_eff_samples >= rnum) {
                 std::cout<<"[Complete] min_eff_samples = "<<min_eff_samples<<std::endl;
                 return;
