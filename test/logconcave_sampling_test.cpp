@@ -581,7 +581,7 @@ void call_test_benchmark_standard_polytopes() {
     std::cout << " --- Benchmarking standard polytopes " << std::endl;
 
     std::cout << " - 50-Simplex " << std::endl;
-    P = generate_simplex<Hpolytope>(50, false);
+    P = generate_simplex<Hpolytope>(100, false);
     benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
     //
     // std::cout << " - 10-H-Cube" << std::endl;

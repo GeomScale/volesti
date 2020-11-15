@@ -111,7 +111,7 @@ void run_main() {
     NegativeLogprobFunctor f(params);
 
     RandomNumberGenerator rng(1);
-    unsigned int dim = 100;
+    unsigned int dim = 1000;
 
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
 
@@ -140,7 +140,7 @@ void run_main() {
     MT samples;
     samples.resize(dim, n_samples - n_burns);
 
-    hmc.solver->eta0 = 0.3;
+    hmc.solver->eta0 = 0.05;
 
     for (int i = 0; i < n_samples; i++) {
       if (i % 1000 == 0) std::cerr << ".";
