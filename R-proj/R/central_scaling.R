@@ -7,6 +7,20 @@ central_scaling <- function(A, b) {
   T_scale = diag(d)
   scale_shift = rep(0, d)
   
+  if (z$radius > 1e-05) {
+    result_list = list()
+    result_list$A = A
+    result_list$b = b
+    result_list$T_scale = T_scale
+    result_list$scale_shift = scale_shift
+    result_list$center = z$center
+    result_list$radius = z$radius
+    
+    return(result_list)
+  }
+  
+  R =  z$radius
+  CENTER = z$center
   reduce_factor = 1
   done = FALSE
   max_iter = ceiling(log10(1/(z$radius[1,1]))) - 1
@@ -25,9 +39,11 @@ central_scaling <- function(A, b) {
       print(a$radius)
       print(scale_factor)
       if (a$radius > z$radius) {
-        done = TRUE
         b = brep2
         T_scale = diag(d) * scale_factor
+        R =  a$radius
+        CENTER = a$center
+        break
       } else {
         reduce_factor = reduce_factor * 10
       }
@@ -47,6 +63,8 @@ central_scaling <- function(A, b) {
   result_list$b = b
   result_list$T_scale = T_scale
   result_list$scale_shift = scale_shift
+  result_list$center = CENTER
+  result_list$radius = R
   
   return(result_list)
 }

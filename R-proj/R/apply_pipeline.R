@@ -43,36 +43,41 @@ apply_pipeline <- function(path, remove_biomass = FALSE, save_files = FALSE) {
   
   
   print("Rounding the polytope")
-  T_total = diag(d)
-  T_shift_total = rep(0, d)
+  #T_total = diag(d)
+  #T_shift_total = rep(0, d)
   
-  if (d > 400 & FALSE) {
-    z=get_max_inner_ball(A, b)
-    res_list = rounding_max_ellipsoid_step(A, b, z$center, z$radius)
-    A = res_list$A
-    b = res_list$b
-    T_total = res_list$T
-    T_shift_total = res_list$shift
-  }
+  #if (d > 400 & FALSE) {
+  #  z=get_max_inner_ball(A, b)
+  #  res_list = rounding_max_ellipsoid_step(A, b, z$center, z$radius)
+  #  A = res_list$A
+  #  b = res_list$b
+  #  T_total = res_list$T
+  #  T_shift_total = res_list$shift
+  #}
   
   HP = Hpolytope$new(A = A, b = b)
-  ret_list = rounding_isotropic(HP)
-  if (save_files) {
-    save(ret_list, file = paste0(path,"rounding_matrices.RData"))
-  }
-  T_total = T_total %*% ret_list$T
-  T_shift_total = T_shift_total + ret_list$T_shift
+  #ret_list = rounding_isotropic(HP)
+  #if (save_files) {
+  #  save(ret_list, file = paste0(path,"rounding_matrices.RData"))
+  #}
+  #T_total = T_total %*% ret_list$T
+  #T_shift_total = T_shift_total + ret_list$T_shift
   
-  HP = Hpolytope$new(A = ret_list$A, b = ret_list$b)
-  z=get_max_inner_ball(HP$A, HP$b)
+  #HP = Hpolytope$new(A = ret_list$A, b = ret_list$b)
+  #z=get_max_inner_ball(HP$A, HP$b)
+  
+  #z$center = sc$center
+  #z$radius = sc$radius
   
   N = 3000
   print("Sample points from full diemnsional polytope")
-  samples =  sample_points(HP, random_walk = list("walk" = "aBiW", "starting_point" = z$center,
-                           "walk_length" = 1, "L" = 4*sqrt(d)*z$radius), n = N)
+  samples =  sample_points(HP, random_walk = list("walk" = "mBiW", 
+                          "starting_point" = sc$center, "walk_length" = 1, 
+                          "L" = 4*sqrt(d)*sc$radius), n = N)
+  N = dim(samples)[2]
   
-  samples = T_total %*% samples + 
-                  kronecker(matrix(1, 1, N), matrix(T_shift_total, ncol = 1))
+  #samples = T_total %*% samples + 
+  #                kronecker(matrix(1, 1, N), matrix(T_shift_total, ncol = 1))
   
   samples = T_scale %*% samples + 
                   kronecker(matrix(1, 1, N), matrix(scale_shift, ncol = 1))
@@ -85,8 +90,8 @@ apply_pipeline <- function(path, remove_biomass = FALSE, save_files = FALSE) {
   result_list$steady_states = steady_states
   result_list$N = rr$N
   result_list$N_shift = rr$N_shift
-  result_list$T = ret_list$T
-  result_list$T_shift = ret_list$T_shift
+  #result_list$T = ret_list$T
+  #result_list$T_shift = ret_list$T_shift
   result_list$minFluxes = pre_proc_list$minFluxes
   result_list$maxFluxes = pre_proc_list$maxFluxes
   

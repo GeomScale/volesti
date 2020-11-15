@@ -8,6 +8,8 @@
 #ifndef SAMPLERS_RANDOM_POINT_GENERATORS_HPP
 #define SAMPLERS_RANDOM_POINT_GENERATORS_HPP
 
+#include "diagnostics/effective_sample_size.hpp"
+
 template
 <
     typename Walk
@@ -31,14 +33,31 @@ struct RandomPointEfficientGenerator
                       RandomNumberGenerator &rng,
                       Parameters const& parameters)
     {
+        typedef double NT;
         Walk walk(P, p, rng, parameters);
         bool done = false;
-        unsigned int pointer = 0, i = 0; 
-        while (i < rnum) 
+        unsigned int pointer = 0, i = 0, num_samples = rnum, total_samples = 0;
+        int min_eff_samples;
+        
+        while (!done) 
         {
-            walk.template apply(P, walk_length, rng);
-            randPoints.col(i) = walk.template get_curr_sample();
-            i++;
+            for (int i = 0; i < num_samples; i++)
+            {
+                walk.template apply(P, walk_length, rng);
+                randPoints.col(pointer + i) = walk.template get_curr_sample();
+            }
+            total_samples += num_samples;
+            pointer = total_samples;
+            std::cout<<"total_samples = "<<total_samples<<std::endl;
+            min_eff_samples = eff_univariate<NT, VT>(randPoints).minCoeff();
+            if (min_eff_samples >= rnum) {
+                std::cout<<"[Complete] min_eff_samples = "<<min_eff_samples<<std::endl;
+                return;
+            }
+            std::cout<<"min_eff_samples = "<<min_eff_samples<<std::endl;
+            num_samples = NT(total_samples) * (NT(rnum) / NT(min_eff_samples)) + 200 - total_samples;
+            std::cout<<"num_samples = "<<num_samples<<std::endl;
+            randPoints.conservativeResize(P.dimension(), randPoints.cols() + num_samples);
         }
     }
 
@@ -57,14 +76,31 @@ struct RandomPointEfficientGenerator
                       unsigned int const& nburns,
                       RandomNumberGenerator &rng)
     {
+        typedef double NT;
         Walk walk(P, p, rng);
         bool done = false;
-        unsigned int pointer = 0, i = 0; 
-        while (i < rnum) 
+        unsigned int pointer = 0, i = 0, num_samples = rnum, total_samples = 0;
+        int min_eff_samples;
+        
+        while (!done) 
         {
-            walk.template apply(P, walk_length, rng);
-            randPoints.col(i) = walk.template get_curr_sample();
-            i++;
+            for (int i = 0; i < num_samples; i++)
+            {
+                walk.template apply(P, walk_length, rng);
+                randPoints.col(pointer + i) = walk.template get_curr_sample();
+            }
+            total_samples += num_samples;
+            pointer = total_samples;
+            std::cout<<"total_samples = "<<total_samples<<std::endl;
+            min_eff_samples = eff_univariate<NT, VT>(randPoints).minCoeff();
+            if (min_eff_samples >= rnum) {
+                std::cout<<"[Complete] min_eff_samples = "<<min_eff_samples<<std::endl;
+                return;
+            }
+            std::cout<<"min_eff_samples = "<<min_eff_samples<<std::endl;
+            num_samples = NT(total_samples) * (NT(rnum) / NT(min_eff_samples)) + 200 - total_samples;
+            std::cout<<"num_samples = "<<num_samples<<std::endl;
+            randPoints.conservativeResize(P.dimension(), randPoints.cols() + num_samples);
         }
     }
 };
