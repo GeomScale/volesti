@@ -136,6 +136,7 @@ template <typename NT>
 void call_test_effective_sample_size() {
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    std::cout << " --- Testing effective sample size on [1, ..., 10] sequence" << std::endl;
 
     unsigned int N = 10;
     unsigned int min_ess = N + 1;

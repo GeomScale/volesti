@@ -83,10 +83,6 @@ struct LeapfrogODESolver {
         // Find intersection (assuming a line trajectory) between x and y
         it = 0;
         do {
-          if (it > 100 * dim) {
-            xs = xs_prev_backup;
-            return;
-          }
           pbpair = Ks[x_index]->line_positive_intersect(xs_prev[x_index], y, Ar, Av);
 
           if (pbpair.first >= 0 && pbpair.first <= 1) {
@@ -100,6 +96,10 @@ struct LeapfrogODESolver {
           }
           else {
             xs[x_index] = xs_prev[x_index] + y;
+            if (!Ks[x_index]->is_in(xs[x_index])) {
+                std::cout << "Value of t is " << pbpair.first << " and point is out of polytope" << std::endl;
+            }
+
           }
         } while (!Ks[x_index]->is_in(xs[x_index]));
       }

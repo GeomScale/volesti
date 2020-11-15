@@ -580,29 +580,30 @@ void call_test_benchmark_standard_polytopes() {
 
     std::cout << " --- Benchmarking standard polytopes " << std::endl;
 
-    std::cout << " - 10-H-Cube" << std::endl;
-    P = generate_cube<Hpolytope>(10, false);
+    std::cout << " - 50-Simplex " << std::endl;
+    P = generate_simplex<Hpolytope>(50, false);
     benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
-
-    std::cout << " - 100-H-Cube" << std::endl;
-    P = generate_cube<Hpolytope>(100, false);
-    benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
-
-    std::cout << " - 10-Birkhoff" << std::endl;
-    P = generate_birkhoff<Hpolytope>(10);
-    benchmark_polytope<NT, Hpolytope>(P);
-
-    std::cout << " - 200-Simplex" << std::endl;
-    P = generate_simplex<Hpolytope>(200, false);
-    benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
-
-    std::cout << " - 10-Cross" << std::endl;
-    P = generate_cross<Hpolytope>(10, false);
-    benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
-
-    std::cout << " - 1000-H-Cube" << std::endl;
-    P = generate_cube<Hpolytope>(1000, false);
-    benchmark_polytope<NT, Hpolytope>(P, 0.03, 3);
+    //
+    // std::cout << " - 10-H-Cube" << std::endl;
+    // P = generate_cube<Hpolytope>(10, false);
+    // benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
+    //
+    // std::cout << " - 100-H-Cube" << std::endl;
+    // P = generate_cube<Hpolytope>(100, false);
+    // benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
+    //
+    //
+    // std::cout << " - 10-Birkhoff" << std::endl;
+    // P = generate_birkhoff<Hpolytope>(10);
+    // benchmark_polytope<NT, Hpolytope>(P, 0.003, 3);
+    //
+    // std::cout << " - 10-Cross" << std::endl;
+    // P = generate_cross<Hpolytope>(10, false);
+    // benchmark_polytope<NT, Hpolytope>(P, 0.3, 3);
+    //
+    // std::cout << " - 1000-H-Cube" << std::endl;
+    // P = generate_cube<Hpolytope>(1000, false);
+    // benchmark_polytope<NT, Hpolytope>(P, 0.03, 3);
 }
 
 TEST_CASE("hmc") {
