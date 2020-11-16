@@ -28,8 +28,12 @@ struct RandomPointEfficientGenerator
                       VT &p,   // a point to start
                       unsigned int const& rnum,
                       unsigned int const& walk_length,
+                      unsigned int &min_skip,
+                      unsigned int &window,
                       MT &randPoints,
+                      MT &winPoints,
                       unsigned int const& nburns,
+                      bool rounding_requested,
                       RandomNumberGenerator &rng,
                       Parameters const& parameters)
     {
@@ -38,26 +42,34 @@ struct RandomPointEfficientGenerator
         int num_points = 100 + 2*int( std::sqrt(NT(P.dimension())) );
         walk.template burnin(P, p, num_points, walk_length, rng);
         bool done = false;
-        unsigned int pointer = 0, i = 0, num_samples = rnum, total_samples = 0;
-        int min_eff_samples;
+        unsigned int pointer = 0, total_samples = 0;
+        int min_eff_samples, min_window = window;
         
         while (!done) 
         {
-            for (int i = 0; i < num_samples; i++)
+            for (int i = 0; i < min_window; i++)
             {
                 walk.template apply(P, walk_length, rng);
-                randPoints.col(pointer + i) = walk.template get_curr_sample();
-                if (i%100 == 0) {
+                winPoints.col(pointer + i) = walk.template get_curr_sample();
+                if ((i+1)%100 == 0) {
                     std::cout<<"number of sample points = "<<i<<std::endl;
                 }
             }
-            total_samples += num_samples;
-            pointer = total_samples;
-            std::cout<<"total_samples = "<<total_samples<<std::endl;
-            min_eff_samples = ess_univariate_fft<NT, VT>(randPoints).minCoeff();
-            if (min_eff_samples >= rnum) {
+            min_eff_samples = int(ess_univariate_fft<NT, VT>(randPoints).minCoeff());
+            std::cout<<"min_eff_samples = "<<min_eff_samples<<std::endl;
+            if (min_eff_samples <= 0) {
                 std::cout<<"[Complete] min_eff_samples = "<<min_eff_samples<<std::endl;
-                return;
+                winPoints.conservativeResize(P.dimension(), winPoints.cols() + window);
+                pointer += window;
+                //return;
+            } else {
+                total_samples += min_eff_samples;
+                if (winPoints.cols() / min_eff_samples = )
+                for (int i = 0; i < ; i++)
+                {
+                    /* code */
+                }
+                
             }
             std::cout<<"min_eff_samples = "<<min_eff_samples<<std::endl;
             num_samples = NT(total_samples) * (NT(rnum) / NT(min_eff_samples)) + 200 - total_samples;

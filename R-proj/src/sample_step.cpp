@@ -59,8 +59,8 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
-    MT T = Rcpp::as<MT>(parameters["T"]), A = Rcpp::as<MT>(parameters["A"]);
-    VT b = Rcpp::as<VT>(parameters["b"]), T_shift = Rcpp::as<VT>(parameters["T_shift"]);
+    MT T = Rcpp::as<MT>(parameters["T"]);
+    VT T_shift = Rcpp::as<VT>(parameters["T_shift"]);
 
     int round_it = parameters["round_it"], num_rounding_steps = parameters["num_rounding_steps"], 
         walk_length = parameters["walk_length"];
@@ -72,7 +72,7 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     InnerBall.first = Point(Rcpp::as<VT>(center));
     InnerBall.second = radius;
 
-    Hpolytope P(A.cols(), A, b);
+    Hpolytope P(Rcpp::as<MT>(parameters["A"]).cols(), Rcpp::as<MT>(parameters["A"]), Rcpp::as<VT>(parameters["b"]));
     P.set_InnerBall(InnerBall);
 
     int n = P.dimension(); 
@@ -145,10 +145,10 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
         }
     }
 
-    A = P.get_mat();
-    b = P.get_vec();
-    return Rcpp::List::create(Rcpp::Named("A") = Rcpp::wrap(A),
-                              Rcpp::Named("b") = Rcpp::wrap(b),
+    //A = P.get_mat();
+    //b = P.get_vec();
+    return Rcpp::List::create(Rcpp::Named("A") = Rcpp::wrap(P.get_mat()),
+                              Rcpp::Named("b") = Rcpp::wrap(P.get_vec()),
                               Rcpp::Named("T") = Rcpp::wrap(T),
                               Rcpp::Named("T_shift") = Rcpp::wrap(T_shift),
                               Rcpp::Named("round_it") = round_it,
