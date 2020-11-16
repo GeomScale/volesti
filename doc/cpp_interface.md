@@ -3,14 +3,39 @@
 
 ####  Compile C++ sources and run tests 
 
-To compile the C++ code you need the [lp_solve](http://lpsolve.sourceforge.net/5.5/) library. For example, for Unix/Linux you need `liblpsolve55.so` (this is available from the library's [webpage](http://lpsolve.sourceforge.net/5.5/) as well as a package in several linux distributions e.g. [debian](https://packages.debian.org/stretch/liblpsolve55-dev)). You have to specify the path to `liblpsolve55.so`, by running, in folder test:  
-```
-cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ .  
-make  
+To compile the C++ code you need the [lp_solve](http://lpsolve.sourceforge.net/5.5/) library. For example, for Unix/Linux you need `liblpsolve55.so`. This is available from the library's [webpage](http://lpsolve.sourceforge.net/5.5/) as well as a package in several linux distributions e.g. [debian](https://packages.debian.org/stretch/liblpsolve55-dev) `sudo apt-get install lp-solve`. 
+
+You have to specify the path to `liblpsolve55.so/dll/dylib`, by running, in folder test:  
+```bash
+mkdir -p test/build && cd test/build
+cmake -DLP_SOLVE=_PATH_TO_LIB_FILE_ ..
+make
 ```
 For example:  `-DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so`  
 
 You can run the tests by `cmake test` or `ctest -jK` where `K` the number of `CPU` threads. By adding the option `--verbose` to `ctest` you get more information about the tests, *e.g.* time per test, volume computed and the name of the polytope or convex body. 
+
+##### Development environment from Docker container
+
+Optionally, it is possible to setup a docker contaner with development environment. To get started with docker, see 
+[here](https://docs.docker.com/get-started/). Below, here is how a Dockerfile can be written
+```
+FROM ubuntu:18.04
+
+RUN apt-get update && apt-get install -y g++ cmake lp-solve && \
+    rm -rf /var/lib/apt/lists/*
+```
+Please, create `Dockerfile.dev` with above content inside a temporary folder (e.g. `docker`)
+and to create an image and run a container:
+```bash
+# build docker image
+cd docker
+docker build -t volesti:dev -f Dockerfile.dev .
+# check built image
+docker images | grep volesti
+# run a container in an interactive mode from volesti source folder
+docker run -it -v $PWD:/volesti -w /volesti --name=volesti-dev volesti:dev /bin/bash
+```
 
 #### Polytope input  
 
