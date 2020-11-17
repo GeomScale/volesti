@@ -20,6 +20,7 @@
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "sampling/sampling.hpp"
+#include "sampling/sampling_multi.hpp"
 
 
 enum random_walks {ball_walk, rdhr, cdhr, billiard, accelarated_billiard, accelarated_billiard_metabolic,
@@ -382,15 +383,34 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             }
             if(walk == accelarated_billiard_metabolic) {
                 std::cout<<"hi"<<std::endl;
-                MT sample_points;
+                MT EssRandPoints, winPoints, TotalRandPoints;
+                unsigned int window = 100, nburns_ = 100 + 2*int( std::sqrt(NT(dim)) ), Neff;
+                bool complete = false, round_req = false;
                 if(set_L) {
                     AcceleratedSpeedpBilliardWalk WalkType(L);
-                    uniform_sampling_speedup(sample_points, HP, rng, WalkType, walkL, numpoints, StartingPoint.getCoefficients(), nburns);
+                    uniform_sampling_speedup(HP, rng, walkL, numpoints, window, 
+                                             EssRandPoints, Neff, TotalRandPoints,
+                                             round_req, complete,
+                                             StartingPoint.getCoefficients(), nburns_, WalkType);
                 } else {
-                    uniform_sampling_speedup<AcceleratedSpeedpBilliardWalk>(sample_points, HP, rng, walkL, numpoints,
-                                                                            StartingPoint.getCoefficients(), nburns);
+                    uniform_sampling_speedup<AcceleratedSpeedpBilliardWalk>(HP, rng, walkL, numpoints, window, 
+                                                                            EssRandPoints, Neff, TotalRandPoints,
+                                                                            round_req, complete,
+                                                                            StartingPoint.getCoefficients(), nburns_);
                 }
-                return Rcpp::wrap(sample_points);
+                   /*Polytope &P,
+                   RandomNumberGenerator &rng,
+                   const unsigned int &walk_len,
+                   const unsigned int &rnum,
+                   unsigned int &window,
+                   MT &EssRandPoints,
+                   MT &winPoints,
+                   MT &TotalRandPoints,
+                   bool rounding_requested,
+                   bool &complete,
+                   const VT &starting_point,
+                   unsigned int const& nburns*/
+                return Rcpp::wrap(EssRandPoints);
             }
             sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
                                  StartingPoint, nburns, set_L, walk);

@@ -1,3 +1,4 @@
+
 #ifndef ESS_STAN_HPP
 #define ESS_STAN_HPP
 
@@ -12,7 +13,7 @@
 #include <cmath>
 #include <limits>
 
-size_t fft_next_good_size(size_t N) {
+inline size_t get_good_size_2(size_t N) {
   // Find the optimal next size for the FFT so that
   // a minimum number of zeros are padded.
   
@@ -67,7 +68,7 @@ template <typename T, typename DerivedA, typename DerivedB>
 void autocorrelation(const Eigen::MatrixBase<DerivedA>& y,
                      Eigen::MatrixBase<DerivedB>& ac, Eigen::FFT<T>& fft) {
   size_t N = y.size();
-  size_t M = fft_next_good_size(N);
+  size_t M = get_good_size_2(N);
   size_t Mt2 = 2 * M;
 
   // centered_signal = y-mean(y) followed by N zeros

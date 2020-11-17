@@ -228,7 +228,7 @@ struct AcceleratedSpeedpBilliardWalk
                     {
                         std::pair<NT, int> pbpair
                                 = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
-                        std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
+                        //std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
                         if (pbpair.first > Lmax) {
                             Lmax = pbpair.first;
                             std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;

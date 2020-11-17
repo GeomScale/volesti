@@ -24,6 +24,19 @@
 
 #include "ESS_stan.hpp"
 
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/variance.hpp>
+#include <unsupported/Eigen/FFT>
+#include <complex>
+#include <vector>
+#include <boost/math/special_functions/fpclassify.hpp>
+#include <algorithm>
+#include <cmath>
+#include <limits>
+
+
+
 template <typename NT, typename VT, typename MT>
 VT eff_univariate(MT samples)
 {

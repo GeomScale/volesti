@@ -181,7 +181,7 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
 
     Polytope P_old(P);
 
-    MT old_A(m,n), A = P.get_mat(), T = MT::Identity(n,n), round_mat, r_inv;
+    MT old_A(m,n), A = P.get_mat(), T = MT::Identity(n,n), round_mat;
     VT T_shift = VT::Zero(n), shift(n), s(n);
 
     Point p(n);
@@ -230,7 +230,7 @@ std::tuple<MT, VT, NT> svd_rounding(Polytope &P,
             }
             S = s.asDiagonal();
             round_mat = V * S;
-            r_inv = VT::Ones(n).cwiseProduct(s.cwiseInverse()).asDiagonal() * V.transpose();
+            //r_inv = VT::Ones(n).cwiseProduct(s.cwiseInverse()).asDiagonal() * V.transpose();
 
             if (round_it != 1 && max_s >= NT(4) * prev_max_s) {
                 fail = true;

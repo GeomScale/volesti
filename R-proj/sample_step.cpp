@@ -23,6 +23,7 @@
 #include "preprocess/svd_rounding.hpp"
 #include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 #include "extractMatPoly.h"
+#include "sampling/sampling_multi.hpp"
 
 
 //' Internal rcpp function for the rounding of a convex polytope
@@ -54,8 +55,6 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     typedef typename Kernel::Point    Point;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     typedef HPolytope<Point> Hpolytope;
-    typedef VPolytope<Point> Vpolytope;
-    typedef Zonotope<Point> zonotope;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
@@ -63,10 +62,9 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     VT T_shift = Rcpp::as<VT>(parameters["T_shift"]);
 
     int round_it = parameters["round_it"], num_rounding_steps = parameters["num_rounding_steps"], 
-        walk_length = parameters["walk_length"];
-    NT max_s = parameters["max_s"], prev_max_s = parameters["prev_max_s"];
-    bool fail = parameters["fail"], converged = parameters["converged"],
-         last_round_under_p = parameters["last_round_under_p"];
+        walk_length = parameters["walk_length"], num_its = 20, Neff = parameters["Neff"];
+    NT max_s, L = parameters["L"], s_cutoff = 4.0;
+    bool complete = parameters["complete"], request_rounding = parameters["request_rounding"];
  
     std::pair<Point, NT> InnerBall;
     InnerBall.first = Point(Rcpp::as<VT>(center));
@@ -75,7 +73,7 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     Hpolytope P(Rcpp::as<MT>(parameters["A"]).cols(), Rcpp::as<MT>(parameters["A"]), Rcpp::as<VT>(parameters["b"]));
     P.set_InnerBall(InnerBall);
 
-    int n = P.dimension(); 
+    int n = P.dimension(), nburns = 100 + 2*int( std::sqrt(NT(n)) ); 
 
     std::cout<<"round_it = "<<round_it<<std::endl;
     //std::cout<<"center = "<<Rcpp::as<VT>(center).transpose()<<std::endl;
@@ -85,80 +83,69 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     //typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     RNGType rng(n);
 
-    MT round_mat, r_inv;
-    VT shift(n), s(n);
-
-    Point p(n);
-
-    NT s_cutoff, p_cutoff;
-    MT V(n,n), S(n,n);
-
-    //round_it = 1;
-    //max_s = std::numeric_limits<NT>::max();
-    s_cutoff = 4.0;
-    p_cutoff = 12.0;
-    int num_its = 20;
-
-    p = InnerBall.first;
-    svd_on_sample<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
-                                  shift, walk_length, rng);
-
-    max_s = s.maxCoeff();
-    std::cout<<"[1]max_s = "<<max_s<<std::endl;
-
-    if (max_s <= p_cutoff && max_s > s_cutoff) {
-        if (last_round_under_p) {
-            num_rounding_steps = num_rounding_steps * 2;
-            p = InnerBall.first;
-            svd_on_sample<AcceleratedBilliardWalk>(P, p, num_rounding_steps, V, s,
-                                          shift, walk_length, rng);
-            max_s = s.maxCoeff();
-            std::cout<<"[2]max_s = "<<max_s<<std::endl;
-        } else {
-            last_round_under_p = true;
-        }
-    } else {
-        last_round_under_p = false;
-    }
-    S = s.asDiagonal();
-    round_mat = V * S;
-    r_inv = VT::Ones(n).cwiseProduct(s.cwiseInverse()).asDiagonal() * V.transpose();
-
-    if (round_it != 1 && max_s >= NT(4) * prev_max_s) {
-        walk_length += 2;
-        //num_rounding_steps = num_rounding_steps * 2;
-    }
+    AcceleratedSpeedpBilliardWalk WalkType(L);
+    int Neff_sampled;
+    uniform_sampling_speedup(P, rng, walkL, numpoints, window, 
+                             EssRandPoints, Neff_sampled, TotalRandPoints,
+                             request_rounding, complete,
+                             StartingPoint.getCoefficients(), nburns, WalkType);
     
-    round_it++;
-    prev_max_s = max_s;
+    Neff = Neff_sampled;
+    if (!complete) {
+        if (request_rounding) {
+            VT shift(n), s(n);
+            MT V(n,n), S(n,n), round_mat;
+            for (int i = 0; i < P.dimension(); ++i) {
+                shift(i) = TotalRandPoints.col(i).mean();
+            }
 
-    P.shift(shift);
-    P.linear_transformIt(round_mat);
-    P.normalize();
-    T_shift += T * shift;
-    T = T * round_mat;
+            for (int i = 0; i < N; ++i) {
+                TotalRandPoints.row(i) = TotalRandPoints.row(i) - shift.transpose();
+            }
 
-    if (max_s <= s_cutoff || round_it > num_its) {
-        converged = true;
-        if (round_it > num_its) {
-            fail = true;
+            Eigen::BDCSVD<MT> svd(TotalRandPoints, Eigen::ComputeFullV);
+            s = svd.singularValues() / svd.singularValues().minCoeff();
+
+            if (s.maxCoeff() >= 2.0) {
+                for (int i = 0; i < s.size(); ++i) {
+                    if (s(i) < 2.0) {
+                        s(i) = 1.0;
+                    }
+                }
+                V = svd.matrixV();
+            } else {
+                s = VT::Ones(P.dimension());
+                V = MT::Identity(P.dimension(), P.dimension());
+            }
+            max_s = s.maxCoeff();
+            S = s.asDiagonal();
+            round_mat = V * S;
+            //r_inv = VT::Ones(n).cwiseProduct(s.cwiseInverse()).asDiagonal() * V.transpose();
+
+            round_it++;
+            prev_max_s = max_s;
+
+            P.shift(shift);
+            P.linear_transformIt(round_mat);
+            //InnerBall = P.ComputeInnerBall();
+            T_shift += T * shift;
+            T = T * round_mat;
+
+            if (max_s <= s_cutoff || round_it > num_its) {
+                request_rounding = false;
+            }
         }
     }
 
-    //A = P.get_mat();
-    //b = P.get_vec();
     return Rcpp::List::create(Rcpp::Named("A") = Rcpp::wrap(P.get_mat()),
                               Rcpp::Named("b") = Rcpp::wrap(P.get_vec()),
                               Rcpp::Named("T") = Rcpp::wrap(T),
                               Rcpp::Named("T_shift") = Rcpp::wrap(T_shift),
                               Rcpp::Named("round_it") = round_it,
                               Rcpp::Named("num_rounding_steps") = num_rounding_steps,
-                              Rcpp::Named("max_s") = max_s,
-                              Rcpp::Named("prev_max_s") = prev_max_s,
-                              Rcpp::Named("fail") = fail,
-                              Rcpp::Named("converged") = converged,
-                              Rcpp::Named("last_round_under_p") = last_round_under_p,
-                              Rcpp::Named("walk_length") = walk_length);
+                              Rcpp::Named("Neff") = Neff,
+                              Rcpp::Named("effective_samples") = Rcpp::wrap(EssRandPoints),
+                              Rcpp::Named("complete") = complete);
 
 }
 

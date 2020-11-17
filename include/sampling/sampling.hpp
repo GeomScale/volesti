@@ -221,75 +221,7 @@ void gaussian_sampling(PointList &randPoints,
 
 
 
-template <typename WalkTypePolicy,
-        typename MT,
-        typename Polytope,
-        typename RandomNumberGenerator,
-        typename VT
->
-void uniform_sampling_speedup(MT &randPoints,
-                   Polytope &P,
-                   RandomNumberGenerator &rng,
-                   const unsigned int &walk_len,
-                   const unsigned int &rnum,
-                   const VT &starting_point,
-                   unsigned int const& nburns)
-{
-    typedef typename WalkTypePolicy::template Walk
-            <
-                    Polytope,
-                    RandomNumberGenerator
-            > walk;
 
-    //RandomNumberGenerator rng(P.dimension());
-    //PushBackWalkPolicy push_back_policy;
-    typedef RandomPointEfficientGenerator<walk> RandomPointGenerator;
-
-    VT p = starting_point;
-
-    //RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
-    //                            push_back_policy, rng, WalkType.param);
-    randPoints.setZero(P.dimension(), rnum);
-    RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
-                                nburns, rng);
-}
-
-
-template <
-        typename MT,
-        typename Polytope,
-        typename RandomNumberGenerator,
-        typename WalkTypePolicy,
-        typename VT
->
-void uniform_sampling_speedup(MT &randPoints,
-                   Polytope &P,
-                   RandomNumberGenerator &rng,
-                   WalkTypePolicy &WalkType,
-                   const unsigned int &walk_len,
-                   const unsigned int &rnum,
-                   const VT &starting_point,
-                   unsigned int const& nburns)
-{
-        
-    typedef typename WalkTypePolicy::template Walk
-            <
-                    Polytope,
-                    RandomNumberGenerator
-            > walk;
-
-    //RandomNumberGenerator rng(P.dimension());
-    //PushBackWalkPolicy push_back_policy;
-    typedef RandomPointEfficientGenerator<walk> RandomPointGenerator;
-
-    VT p = starting_point;
-
-    //RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
-    //                            push_back_policy, rng, WalkType.param);
-    randPoints.setZero(P.dimension(), rnum);
-    RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
-                                nburns, rng, WalkType.param);
-}
 
 
 #endif
