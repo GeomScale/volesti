@@ -50,3 +50,15 @@ Rcpp::NumericVector ESS_fft(Rcpp::NumericMatrix samples)
     return Rcpp::wrap(ess_univariate_fft<NT, VT>(Rcpp::as<MT>(samples)));
 }
 
+// [[Rcpp::export]]
+double multiESS_fft(Rcpp::NumericMatrix samples)
+{
+    typedef double NT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+                              
+    NT Neff = compute_effective_sample_size_multichain(Rcpp::as<MT>(samples));
+    //std::cout<<"[2]Neff = "<<Neff<<std::endl;
+    return Neff;
+}
+

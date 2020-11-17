@@ -257,6 +257,168 @@ inline double compute_effective_sample_size(VT draws){
 
 
 
+template<typename VT>
+double comp_var(VT vec) {
+
+  double mu = vec.mean(), sum = 0.0;
+
+  for (int i = 0; i < vec.size(); i++)
+  {
+    sum += (vec.coeff(i) - mu) * (vec.coeff(i) - mu);
+  }
+
+  
+  return sum/(vec.size()-1);
+}
+
+/**
+ * Computes the effective sample size (ESS) for the specified
+ * parameter across all kept samples.  The value returned is the
+ * minimum of ESS and the number_total_draws *
+ * log10(number_total_draws).
+ *
+ * See more details in Stan reference manual section "Effective
+ * Sample Size". http://mc-stan.org/users/documentation
+ *
+ * Current implementation assumes draws are stored in contiguous
+ * blocks of memory.  Chains are trimmed from the back to match the
+ * length of the shortest chain.  Note that the effective sample size
+ * can not be estimated with less than four draws.
+ *
+ * @param draws stores pointers to arrays of chains
+ * @param sizes stores sizes of chains
+ * @return effective sample size for the specified parameter
+ */
+template<typename MT>
+double compute_effective_sample_size_multichain(MT _draws) {
+
+  int num_chains = _draws.cols();
+  size_t num_draws = _draws.rows();
+  //std::cout<<"num_chains = "<<num_chains<<std::endl;
+  //std::cout<<"num_draws = "<<num_draws<<std::endl;
+  //for (int chain = 1; chain < num_chains; ++chain) {
+  //  num_draws = std::min(num_draws, sizes[chain]);
+  //}
+
+  //if (num_draws < 4) {
+  //  return std::numeric_limits<double>::quiet_NaN();
+  //}
+
+  
+
+  Eigen::Matrix<Eigen::VectorXd, Eigen::Dynamic, 1> acov(num_chains);
+  Eigen::VectorXd chain_mean(num_chains);
+  Eigen::VectorXd chain_var(num_chains);
+  for (int chain = 0; chain < num_chains; ++chain) {
+    Eigen::Matrix<double, Eigen::Dynamic, 1> draw = _draws.col(chain);
+        //draws[chain], sizes[chain]);
+    autocovariance<double>(draw, acov(chain));
+    chain_mean(chain) = draw.mean();
+    chain_var(chain) = acov(chain)(0) * num_draws / (num_draws - 1);
+  }
+
+  double mean_var = chain_var.mean();
+  double var_plus = mean_var * (num_draws - 1) / num_draws;
+  if (num_chains > 1) {
+    //var_plus += boost::math::variance(chain_mean);
+    var_plus += comp_var(chain_mean);
+  }
+  Eigen::VectorXd rho_hat_s(num_draws);
+  rho_hat_s.setZero();
+  Eigen::VectorXd acov_s(num_chains);
+  for (int chain = 0; chain < num_chains; ++chain)
+    acov_s(chain) = acov(chain)(1);
+  double rho_hat_even = 1.0;
+  rho_hat_s(0) = rho_hat_even;
+  double rho_hat_odd = 1 - (mean_var - acov_s.mean()) / var_plus;
+  rho_hat_s(1) = rho_hat_odd;
+
+  // Convert raw autocovariance estimators into Geyer's initial
+  // positive sequence. Loop only until num_draws - 4 to
+  // leave the last pair of autocorrelations as a bias term that
+  // reduces variance in the case of antithetical chains.
+  size_t s = 1;
+  while (s < (num_draws - 4) && (rho_hat_even + rho_hat_odd) > 0) {
+    for (int chain = 0; chain < num_chains; ++chain)
+      acov_s(chain) = acov(chain)(s + 1);
+    rho_hat_even = 1 - (mean_var - acov_s.mean()) / var_plus;
+    for (int chain = 0; chain < num_chains; ++chain)
+      acov_s(chain) = acov(chain)(s + 2);
+    rho_hat_odd = 1 - (mean_var - acov_s.mean()) / var_plus;
+    if ((rho_hat_even + rho_hat_odd) >= 0) {
+      rho_hat_s(s + 1) = rho_hat_even;
+      rho_hat_s(s + 2) = rho_hat_odd;
+    }
+    s += 2;
+  }
+
+  int max_s = s;
+  // this is used in the improved estimate, which reduces variance
+  // in antithetic case -- see tau_hat below
+  if (rho_hat_even > 0)
+    rho_hat_s(max_s + 1) = rho_hat_even;
+
+  // Convert Geyer's initial positive sequence into an initial
+  // monotone sequence
+  for (int s = 1; s <= max_s - 3; s += 2) {
+    if (rho_hat_s(s + 1) + rho_hat_s(s + 2) > rho_hat_s(s - 1) + rho_hat_s(s)) {
+      rho_hat_s(s + 1) = (rho_hat_s(s - 1) + rho_hat_s(s)) / 2;
+      rho_hat_s(s + 2) = rho_hat_s(s + 1);
+    }
+  }
+
+  double num_total_draws = num_chains * num_draws;
+  //std::cout<<"num_total_draws = "<<num_total_draws<<std::endl;
+  // Geyer's truncated estimator for the asymptotic variance
+  // Improved estimate reduces variance in antithetic case
+  double tau_hat = -1 + 2 * rho_hat_s.head(max_s).sum() + rho_hat_s(max_s + 1);
+  //std::cout<<"tau_hat = "<<tau_hat<<std::endl;
+  double Neff = double(num_total_draws) / tau_hat;
+  //std::cout<<"Neff = "<<Neff<<std::endl;
+  return Neff;
+  //return std::min(num_total_draws / tau_hat,
+  //                num_total_draws * std::log10(num_total_draws));
+}
+
+
+
+template <typename NT, typename VT, typename MT>
+class ESSestimator {
+public:
+   //typedef Point                                             PointType;
+   //typedef typename Point::FT                                NT;
+   //typedef typename std::vector<NT>::iterator                viterator;
+   //using RowMatrixXd = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+   //typedef RowMatrixXd MT;
+   //typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+   //typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
+
+private:
+   unsigned int         num_chains, num_draws, max_s, s, max_num_chains; 
+   VT                   chain_mean, chain_var, acov, acov_s, rho_hat_s; 
+   NT                   rho_hat_odd, rho_hat_even, mean_var, var_plus;
+   
+public:
+   ESSestimator() {}
+
+   ESSestimator(unsigned int const& _ndraws, unsigned int const& _max_num_chains) {
+     num_draws = _ndraws;
+     max_num_chains = _max_num_chains;
+
+     chain_mean.setZeros(max_num_chains);
+     chain_var.setZeros(max_num_chains);
+     acov.setZeros(max_num_chains);
+     acov_s.setZeros(max_num_chains);
+     rho_hat_s.setZeros(num_draws);
+   }
+
+
+
+
+
+
+
+};
 
 
 #endif
