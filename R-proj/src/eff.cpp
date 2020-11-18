@@ -62,3 +62,27 @@ double multiESS_fft(Rcpp::NumericMatrix samples)
     return Neff;
 }
 
+// [[Rcpp::export]]
+Rcpp::NumericVector multiESS_win(Rcpp::NumericMatrix samples)
+{
+    typedef double NT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+
+    MT runs = Rcpp::as<MT>(samples), subruns;
+    int d = runs.rows(), ndraws = runs.cols();
+    ESSestimator<NT, VT, MT> estimator(100, d);
+
+    for (int i = 0; i < ndraws; i+=100)
+    {
+        subruns = runs.block(0, i, d, 100);
+        estimator.update_estimator(subruns);
+        if(i>2) estimator.estimate_effective_sample_size();
+    }
+
+    
+    estimator.estimate_effective_sample_size();                       
+    VT Neff = estimator.get_effective_sample_size();
+    //std::cout<<"[2]Neff = "<<Neff<<std::endl;
+    return Rcpp::wrap(Neff);
+}

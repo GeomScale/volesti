@@ -90,6 +90,10 @@ multiESS_fft <- function(samples) {
     .Call(`_volesti_multiESS_fft`, samples)
 }
 
+multiESS_win <- function(samples) {
+    .Call(`_volesti_multiESS_win`, samples)
+}
+
 #' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex in V-representation or (c) if the volume is known and declared by the input object.
 #'
 #' Given a zonotope (as an object of class Zonotope), this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices of the \eqn{m\times d} matrix \eqn{G} that contains row-wise the \eqn{m} \eqn{d}-dimensional segments that define the zonotope.
