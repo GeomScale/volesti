@@ -33,6 +33,10 @@ struct OptimizationFunctor {
             f(f_),
             neg_grad_f(neg_grad_f_)
         {};
+
+        update_temperature() {
+            T = T * (1.0 + 1.0 / sqrt(dim));
+        }
     };
 
     template
@@ -52,7 +56,7 @@ struct OptimizationFunctor {
         // The index i represents the state vector index
         Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
           if (i == params.order - 1) {
-            return params.neg_grad_f(i, xs, t) / params.T; // returns - a*x
+            return params.neg_grad_f(i, xs, t) * params.T; // returns - a*x
           } else {
             return xs[i + 1]; // returns derivative
           }
@@ -72,7 +76,7 @@ struct OptimizationFunctor {
         FunctionFunctor(parameters<NT, Functor, GradFunctor> &params_) : params(params_) {};
 
         NT operator() (Point const& x) const {
-            return params.f(x) / params.T;
+            return params.f(x) * params.T;
         }
     };
 };
