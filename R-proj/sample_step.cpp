@@ -62,7 +62,8 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     VT T_shift = Rcpp::as<VT>(parameters["T_shift"]);
 
     int round_it = parameters["round_it"], num_rounding_steps = parameters["num_rounding_steps"], 
-        walk_length = parameters["walk_length"], num_its = 20, Neff = parameters["Neff"];
+        walk_length = parameters["walk_length"], num_its = 20, Neff = parameters["Neff"], 
+        window = parameters["window"] ;
     NT max_s, L = parameters["L"], s_cutoff = 4.0;
     bool complete = parameters["complete"], request_rounding = parameters["request_rounding"];
  
@@ -84,13 +85,14 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     RNGType rng(n);
 
     AcceleratedSpeedpBilliardWalk WalkType(L);
-    int Neff_sampled;
-    uniform_sampling_speedup(P, rng, walkL, numpoints, window, 
-                             EssRandPoints, Neff_sampled, TotalRandPoints,
-                             request_rounding, complete,
-                             StartingPoint.getCoefficients(), nburns, WalkType);
+    unsigned int Neff_sampled;
+    MT TotalRandPoints;
+    uniform_sampling_speedup(P, rng, walk_length, Neff, window, 
+                             Neff_sampled, TotalRandPoints,
+                             complete, InnerBall.first.getCoefficients(), 
+                             nburns, WalkType);
     
-    Neff = Neff_sampled;
+    //Neff = Neff_sampled;
     if (!complete) {
         if (request_rounding) {
             VT shift(n), s(n);
@@ -143,8 +145,13 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
                               Rcpp::Named("T_shift") = Rcpp::wrap(T_shift),
                               Rcpp::Named("round_it") = round_it,
                               Rcpp::Named("num_rounding_steps") = num_rounding_steps,
+                              Rcpp::Named("walk_length") = walk_length,
+                              Rcpp::Named("L") = L,
+                              Rcpp::Named("window") = window,
                               Rcpp::Named("Neff") = Neff,
-                              Rcpp::Named("effective_samples") = Rcpp::wrap(EssRandPoints),
+                              Rcpp::Named("Neff_sampled") = Neff_sampled,
+                              Rcpp::Named("request_rounding") = request_rounding,
+                              Rcpp::Named("correlated_samples") = Rcpp::wrap(TotalRandPoints),
                               Rcpp::Named("complete") = complete);
 
 }

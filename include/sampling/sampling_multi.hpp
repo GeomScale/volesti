@@ -15,10 +15,8 @@ void uniform_sampling_speedup(Polytope &P,
                    const unsigned int &walk_len,
                    const unsigned int &Neff,
                    unsigned int &window,
-                   MT &EssRandPoints,
                    unsigned int &Neff_sampled,
                    MT &TotalRandPoints,
-                   bool rounding_requested,
                    bool &complete,
                    const VT &starting_point,
                    unsigned int const& nburns)
@@ -37,10 +35,9 @@ void uniform_sampling_speedup(Polytope &P,
 
     //RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
     //                            push_back_policy, rng, WalkType.param);
-    EssRandPoints.setZero(P.dimension(), Neff);
-    if (rounding_requested) TotalRandPoints.setZero(20*P.dimension(), P.dimension());
-    unsigned int min_skip = 2;
-    RandomPointGenerator::apply(P, p, Neff, walk_len, min_skip, window, EssRandPoints, Neff_sampled, TotalRandPoints,
+    TotalRandPoints.setZero(20*P.dimension(), P.dimension());
+    //unsigned int min_skip = 2;
+    RandomPointGenerator::apply(P, p, Neff, walk_len, window, EssRandPoints, Neff_sampled, TotalRandPoints,
                                 nburns, rounding_requested, complete, rng);
 }
 
