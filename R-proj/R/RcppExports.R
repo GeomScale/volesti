@@ -165,6 +165,10 @@ full_dimensional_polytope <- function(P) {
     .Call(`_volesti_full_dimensional_polytope`, P)
 }
 
+solve_undetermined_system_lu <- function(Ar, br) {
+    .Call(`_volesti_solve_undetermined_system_lu`, Ar, br)
+}
+
 full_dimensional_polytope_with_arma <- function(Ar, br) {
     .Call(`_volesti_full_dimensional_polytope_with_arma`, Ar, br)
 }

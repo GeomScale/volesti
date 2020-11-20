@@ -2,7 +2,7 @@ library(volesti)
 library(Matrix)
 library(Rmosek)
 
-path_mets = "/home/tolis/data/metabolic_mat"
+path_mets = "/home/tolis/data/metabolic_mat/mat_socg/homo"
 file.names <- dir(path_mets, pattern =".mat")
 
 time_vec = c()

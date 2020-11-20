@@ -103,7 +103,7 @@ struct AcceleratedSpeedpBilliardWalk
                           RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
-            NT T;
+            NT T;//, avg_ref = 0.0;
             const NT dl = 0.995;
             int it;
 
@@ -142,6 +142,7 @@ struct AcceleratedSpeedpBilliardWalk
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
+                //avg_ref += NT(it);
                 if (it == 250*n){
                     std::cout<<"reflection limit reached"<<std::endl;
                     std::pair<NT, int> pbpair
@@ -157,6 +158,8 @@ struct AcceleratedSpeedpBilliardWalk
                     //_p = _p0;
                 } 
             }
+            //avg_ref *= (1.0 / (NT(walk_length)));
+            //std::cout<<"avg_ref = "<<avg_ref<<std::endl;
             //p = _p;
         }
 
@@ -303,18 +306,18 @@ struct AcceleratedSpeedpBilliardWalk
                                                                           _update_parameters);
                     if (pbpair.first > Lmax) {
                         Lmax = pbpair.first;
-                        std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                        //std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
                     }
                     if (T <= pbpair.first) {
                         _p += (T * _v);
                         max_dist = get_max_distance(pointset, _p, rad);
                         if (max_dist > Lmax) {
                             Lmax = max_dist;
-                            std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                            //std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
                         }
                         if (2.0*rad > Lmax) {
                             Lmax = 2.0*rad;
-                            std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                            //std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
                         }
                         pointset.push_back(_p);
                         _lambda_prev = T;
@@ -334,7 +337,7 @@ struct AcceleratedSpeedpBilliardWalk
                                                             _AA, _update_parameters);
                         if (pbpair.first > Lmax) {
                             Lmax = pbpair.first;
-                            std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                            //std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
                             //update_delta(Lmax);
                         }
                         if (T <= pbpair.first) {
@@ -343,11 +346,11 @@ struct AcceleratedSpeedpBilliardWalk
                             max_dist = get_max_distance(pointset, _p, rad);
                             if (max_dist > Lmax) {
                                 Lmax = max_dist;
-                                std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                                //std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
                             }
                             if (2.0*rad > Lmax) {
                                 Lmax = 2.0*rad;
-                                std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                                //std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
                             }
                             pointset.push_back(_p);
                             break;
@@ -360,13 +363,13 @@ struct AcceleratedSpeedpBilliardWalk
                     }
                     avg_ref += NT(it);
                     if (it == 250*n){
-                        std::cout<<"reflection limit reached"<<std::endl;
+                        //std::cout<<"reflection limit reached"<<std::endl;
                         std::pair<NT, int> pbpair
                                 = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, 
                                                             _AA, _update_parameters);
                         if (pbpair.first > Lmax) {
                             Lmax = pbpair.first;
-                            std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                            //std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
                             //update_delta(Lmax);
                         }
                         if (T <= pbpair.first) {
@@ -380,18 +383,23 @@ struct AcceleratedSpeedpBilliardWalk
                         max_dist = get_max_distance(pointset, _p, rad);
                         if (max_dist > Lmax) {
                             Lmax = max_dist;
-                            std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                            //std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
+                        }
+                        if (2.0*rad > Lmax) {
+                            Lmax = 2.0*rad;
+                            //std::cout<<"L updated, Lmax = "<<Lmax<<std::endl;
                         }
                         pointset.push_back(_p);
                         //_p = _p0;
                     } 
                 }
                 //starting_points.col(i) = _p;
-                std::cout<<"[burnin], _p is_in = "<<P.is_in(_p)<<std::endl;
+                //std::cout<<"[burnin], _p is_in = "<<P.is_in(_p)<<std::endl;
                 //p = _p;
             }
             avg_ref *= (1.0 / (NT(num_points) * NT(walk_length)));
             if (Lmax > _L) {
+                std::cout<<"we now update L with the velue: "<<Lmax<<std::endl;
                 update_delta(Lmax);
             }
             pointset.clear();

@@ -6,6 +6,7 @@ central_scaling <- function(A, b) {
   z=get_max_inner_ball(A, b)
   T_scale = diag(d)
   scale_shift = rep(0, d)
+  scale_applied = TRUE
   
   if (z$radius > 1e-05) {
     result_list = list()
@@ -15,6 +16,8 @@ central_scaling <- function(A, b) {
     result_list$scale_shift = scale_shift
     result_list$center = z$center
     result_list$radius = z$radius
+    scale_applied = FALSE
+    result_list$scale_applied = scale_applied
     
     return(result_list)
   }
@@ -53,6 +56,7 @@ central_scaling <- function(A, b) {
     if (iter == max_iter) {
       T_scale = diag(d)
       scale_shift = rep(0, d)
+      scale_applied = FALSE
       print("we exceed maximmum number of iterations for scaling")
       break
     }
@@ -65,6 +69,7 @@ central_scaling <- function(A, b) {
   result_list$scale_shift = scale_shift
   result_list$center = CENTER
   result_list$radius = R
+  result_list$scale_applied = scale_applied
   
   return(result_list)
 }
