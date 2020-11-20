@@ -381,7 +381,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 HP.shift(mode.getCoefficients());
             }
-            if(walk == accelarated_billiard_metabolic) {
+            /*if(walk == accelarated_billiard_metabolic) {
                 std::cout<<"hi"<<std::endl;
                 MT EssRandPoints, winPoints, TotalRandPoints;
                 unsigned int window = 100, nburns_ = 100 + 2*int( std::sqrt(NT(dim)) ), Neff;
@@ -398,7 +398,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                                                                             round_req, complete,
                                                                             StartingPoint.getCoefficients(), nburns_);
                 }
-                   /*Polytope &P,
+                   Polytope &P,
                    RandomNumberGenerator &rng,
                    const unsigned int &walk_len,
                    const unsigned int &rnum,
@@ -409,9 +409,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                    bool rounding_requested,
                    bool &complete,
                    const VT &starting_point,
-                   unsigned int const& nburns*/
+                   unsigned int const& nburns
                 return Rcpp::wrap(EssRandPoints);
-            }
+            }*/
             sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
                                  StartingPoint, nburns, set_L, walk);
             break;

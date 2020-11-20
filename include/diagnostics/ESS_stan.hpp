@@ -447,15 +447,18 @@ public:
 
   void estimate_effective_sample_size()
   {
-    if (num_chains <= 1) {
-      ess = VT::Zero(d);
-      return;
-    }
+    //if (num_chains <= 1) {
+    //  ess = VT::Zero(d);
+    //  return;
+    //}
     rho_hat_s.setZero(num_draws, d);
-    VT cm_var_temp = cm_var * (1.0 / (NT(num_chains)-1.0));
+    
 
     var_plus = cv_mean * (NT(num_draws) - 1.0) / NT(num_draws);
-    var_plus += cm_var_temp;
+    if (num_chains > 1) {
+      VT cm_var_temp = cm_var * (1.0 / (NT(num_chains)-1.0));
+      var_plus += cm_var_temp;
+    }
 
     
     for (int i = 0; i < d; i++)

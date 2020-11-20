@@ -12,14 +12,15 @@
 #define SAMPLERS_SPHERE_HPP
 
 
+
+
 template <typename VT>
 struct GetDirectionVT
 {
     typedef double NT;
 
     template <typename RandomNumberGenerator>
-    inline static void apply(VT &v,
-                              RandomNumberGenerator &rng)
+    inline static void apply(VT &v, RandomNumberGenerator &rng)
     {
         NT normal = NT(0);
         unsigned int dim = v.size();
@@ -34,6 +35,23 @@ struct GetDirectionVT
 
         normal = NT(1)/std::sqrt(normal);
         v *= normal;
+    }
+};
+
+template <typename VT>
+struct GetPointInDsphereVT
+{
+    template <typename NT, typename RandomNumberGenerator>
+    inline static VT apply(unsigned int const& dim,
+                              NT const& radius,
+                              RandomNumberGenerator &rng)
+    {
+        VT p(dim);
+        GetDirectionVT<VT>::apply(p, rng);
+        NT U = rng.sample_urdist();
+        U = std::pow(U, NT(1)/(NT(dim)));
+        p *= (radius * U);
+        return p;
     }
 };
 

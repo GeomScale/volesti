@@ -47,7 +47,7 @@
 //    unsigned int round_it;
 
 // [[Rcpp::export]]
-Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
+Rcpp::List sample_step(Rcpp::NumericVector center, double radius,
                               Rcpp::List parameters){
 
     typedef double NT;
@@ -61,11 +61,17 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     MT T = Rcpp::as<MT>(parameters["T"]);
     VT T_shift = Rcpp::as<VT>(parameters["T_shift"]);
 
-    int round_it = parameters["round_it"], num_rounding_steps = parameters["num_rounding_steps"], 
+    unsigned int round_it = parameters["round_it"], num_rounding_steps = parameters["num_rounding_steps"], 
         walk_length = parameters["walk_length"], num_its = 20, Neff = parameters["Neff"], 
-        window = parameters["window"] ;
+        window = parameters["window"], max_num_samples = parameters["max_num_samples"], total_samples;
     NT max_s, L = parameters["L"], s_cutoff = 4.0;
-    bool complete = parameters["complete"], request_rounding = parameters["request_rounding"];
+    bool complete = parameters["complete"], request_rounding = parameters["request_rounding"],
+         rounding_completed = parameters["rounding_completed"];
+    bool req_round_temp = request_rounding;
+    if (request_rounding && rounding_completed) {
+        req_round_temp = false;
+    }
+    
  
     std::pair<Point, NT> InnerBall;
     InnerBall.first = Point(Rcpp::as<VT>(center));
@@ -73,13 +79,22 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
 
     Hpolytope P(Rcpp::as<MT>(parameters["A"]).cols(), Rcpp::as<MT>(parameters["A"]), Rcpp::as<VT>(parameters["b"]));
     P.set_InnerBall(InnerBall);
+    P.normalize();
 
-    int n = P.dimension(), nburns = 100 + 2*int( std::sqrt(NT(n)) ); 
+    int n = P.dimension(), nburns;
+    
+    if (req_round_temp) {
+        nburns = num_rounding_steps / window + 1;
+    } else {
+        nburns = max_num_samples / window + 1;
+    }
 
     std::cout<<"round_it = "<<round_it<<std::endl;
     //std::cout<<"center = "<<Rcpp::as<VT>(center).transpose()<<std::endl;
     std::cout<<"radius = "<<radius<<std::endl;
     std::cout<<"num_rounding_steps = "<<num_rounding_steps<<std::endl;
+    std::cout<<"nburns = "<<nburns<<std::endl;
+    std::cout<<"L = "<<L<<std::endl;
 
     //typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     RNGType rng(n);
@@ -87,14 +102,31 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
     AcceleratedSpeedpBilliardWalk WalkType(L);
     unsigned int Neff_sampled;
     MT TotalRandPoints;
-    uniform_sampling_speedup(P, rng, walk_length, Neff, window, 
-                             Neff_sampled, TotalRandPoints,
+    uniform_sampling_speedup(P, rng, walk_length, Neff, max_num_samples, window, 
+                             Neff_sampled, total_samples, num_rounding_steps, TotalRandPoints,
                              complete, InnerBall.first.getCoefficients(), 
-                             nburns, WalkType);
-    
-    //Neff = Neff_sampled;
+                             nburns, req_round_temp, WalkType); //num_sampled TODO!
+
+                             /*Polytope &P,
+                   RandomNumberGenerator &rng,
+                   const unsigned int &walk_len,
+                   const unsigned int &Neff,
+                   unsigned int const& max_num_samples,
+                   unsigned int &window,
+                   unsigned int &Neff_sampled,
+                   unsigned int const& num_rounding_steps,
+                   MT &TotalRandPoints,
+                   bool &complete,
+                   const VT &starting_point,
+                   unsigned int const& nburns,
+                   bool request_rounding,
+                   WalkTypePolicy &WalkType*/
+
+    int N = TotalRandPoints.rows();
+    MT Samples = TotalRandPoints.transpose(); //do not copy TODO!
+    std::cout<<"TotalRandPoints.rows() = "<<TotalRandPoints.rows()<<", TotalRandPoints.cols() = "<<TotalRandPoints.cols()<<std::endl;
     if (!complete) {
-        if (request_rounding) {
+        if (request_rounding && !rounding_completed) {
             VT shift(n), s(n);
             MT V(n,n), S(n,n), round_mat;
             for (int i = 0; i < P.dimension(); ++i) {
@@ -120,12 +152,13 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
                 V = MT::Identity(P.dimension(), P.dimension());
             }
             max_s = s.maxCoeff();
+            std::cout<<"max_s = "<<max_s<<std::endl;
             S = s.asDiagonal();
             round_mat = V * S;
             //r_inv = VT::Ones(n).cwiseProduct(s.cwiseInverse()).asDiagonal() * V.transpose();
 
             round_it++;
-            prev_max_s = max_s;
+            //prev_max_s = max_s;
 
             P.shift(shift);
             P.linear_transformIt(round_mat);
@@ -134,7 +167,7 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
             T = T * round_mat;
 
             if (max_s <= s_cutoff || round_it > num_its) {
-                request_rounding = false;
+                rounding_completed = true;
             }
         }
     }
@@ -150,9 +183,13 @@ Rcpp::List sample_step (Rcpp::NumericVector center, double radius,
                               Rcpp::Named("window") = window,
                               Rcpp::Named("Neff") = Neff,
                               Rcpp::Named("Neff_sampled") = Neff_sampled,
+                              Rcpp::Named("total_samples") = total_samples,
                               Rcpp::Named("request_rounding") = request_rounding,
-                              Rcpp::Named("correlated_samples") = Rcpp::wrap(TotalRandPoints),
-                              Rcpp::Named("complete") = complete);
+                              Rcpp::Named("correlated_samples") = Rcpp::wrap(Samples),
+                              Rcpp::Named("complete") = complete,
+                              Rcpp::Named("request_rounding") = request_rounding,
+                              Rcpp::Named("max_num_samples") = max_num_samples,
+                              Rcpp::Named("rounding_completed") = rounding_completed);
 
 }
 

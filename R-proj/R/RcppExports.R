@@ -402,6 +402,21 @@ sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = 
     .Call(`_volesti_sample_points`, P, n, random_walk, distribution, seed)
 }
 
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
+#' @param seed Optional. A fixed seed for the number generator.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+NULL
+
+sample_step <- function(center, radius, parameters) {
+    .Call(`_volesti_sample_step`, center, radius, parameters)
+}
+
 #' Write a SDPA format file
 #'
 #' Outputs a spectrahedron (the matrices defining a linear matrix inequality) and a vector (the objective function)

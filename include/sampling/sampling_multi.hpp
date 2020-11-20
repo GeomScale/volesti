@@ -14,12 +14,16 @@ void uniform_sampling_speedup(Polytope &P,
                    RandomNumberGenerator &rng,
                    const unsigned int &walk_len,
                    const unsigned int &Neff,
+                   unsigned int const& max_num_samples,
                    unsigned int &window,
                    unsigned int &Neff_sampled,
+                   unsigned int & total_samples,
+                   unsigned int const& num_rounding_steps,
                    MT &TotalRandPoints,
                    bool &complete,
                    const VT &starting_point,
-                   unsigned int const& nburns)
+                   unsigned int const& nburns,
+                   bool request_rounding)
 {
     typedef typename WalkTypePolicy::template Walk
             <
@@ -35,10 +39,16 @@ void uniform_sampling_speedup(Polytope &P,
 
     //RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
     //                            push_back_policy, rng, WalkType.param);
-    TotalRandPoints.setZero(20*P.dimension(), P.dimension());
+    std::cout<<"[2] num_rounding_steps = "<<num_rounding_steps<<std::endl;
+    if (request_rounding) {
+        TotalRandPoints.setZero(num_rounding_steps, P.dimension());
+    } else {
+        TotalRandPoints.setZero(max_num_samples, P.dimension());
+    }
     //unsigned int min_skip = 2;
-    RandomPointGenerator::apply(P, p, Neff, walk_len, window, EssRandPoints, Neff_sampled, TotalRandPoints,
-                                nburns, rounding_requested, complete, rng);
+    RandomPointGenerator::apply(P, p, Neff, max_num_samples, walk_len, window, 
+                                Neff_sampled, total_samples, TotalRandPoints, nburns, complete, 
+                                request_rounding, rng);
 }
 
 
@@ -53,14 +63,16 @@ void uniform_sampling_speedup(Polytope &P,
                    RandomNumberGenerator &rng,
                    const unsigned int &walk_len,
                    const unsigned int &Neff,
+                   unsigned int const& max_num_samples,
                    unsigned int &window,
-                   MT &EssRandPoints,
                    unsigned int &Neff_sampled,
+                   unsigned int & total_samples,
+                   unsigned int const& num_rounding_steps,
                    MT &TotalRandPoints,
-                   bool rounding_requested,
                    bool &complete,
                    const VT &starting_point,
                    unsigned int const& nburns,
+                   bool request_rounding,
                    WalkTypePolicy &WalkType)
 {
         
@@ -78,11 +90,30 @@ void uniform_sampling_speedup(Polytope &P,
 
     //RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
     //                            push_back_policy, rng, WalkType.param);
-    EssRandPoints.setZero(P.dimension(), Neff);
-    if (rounding_requested) TotalRandPoints.setZero(20*P.dimension(), P.dimension());
-    unsigned int min_skip = 2;
-    RandomPointGenerator::apply(P, p, Neff, walk_len, min_skip, window, EssRandPoints, Neff_sampled, TotalRandPoints,
-                                nburns, rounding_requested, complete, rng, WalkType.param);
+    std::cout<<"[2] num_rounding_steps = "<<num_rounding_steps<<std::endl;
+    if (request_rounding) {
+        TotalRandPoints.setZero(num_rounding_steps, P.dimension());
+    } else {
+        TotalRandPoints.setZero(max_num_samples, P.dimension());
+    }
+    //unsigned int min_skip = 2;
+    RandomPointGenerator::apply(P, p, Neff, max_num_samples, walk_len, window,
+                                Neff_sampled, total_samples, TotalRandPoints, nburns, complete,
+                                rng, request_rounding, WalkType.param);
+
+                                /*Polytope& P,
+                      VT &p,   // a point to start
+                      unsigned int const& rnum,
+                      unsigned int const& max_num_samples,
+                      unsigned int const& walk_length,
+                      unsigned int &window,
+                      unsigned int &Neff_sampled,
+                      MT &TotalRandPoints,
+                      unsigned int const& nburns,
+                      bool &complete,
+                      RandomNumberGenerator &rng,
+                      bool request_rounding,
+                      Parameters const& parameters*/
 
 }
 
