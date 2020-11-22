@@ -64,6 +64,36 @@ direct_sampling <- function(body, n, seed = NULL) {
     .Call(`_volesti_direct_sampling`, body, n, seed)
 }
 
+#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return A vector that contains the values of PSRF for each coordinate
+#'
+#' @export
+eff <- function(samples) {
+    .Call(`_volesti_eff`, samples)
+}
+
+ESS_fft <- function(samples) {
+    .Call(`_volesti_ESS_fft`, samples)
+}
+
+multiESS_fft <- function(samples) {
+    .Call(`_volesti_multiESS_fft`, samples)
+}
+
+multiESS_win <- function(samples) {
+    .Call(`_volesti_multiESS_win`, samples)
+}
+
 #' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex in V-representation or (c) if the volume is known and declared by the input object.
 #'
 #' Given a zonotope (as an object of class Zonotope), this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices of the \eqn{m\times d} matrix \eqn{G} that contains row-wise the \eqn{m} \eqn{d}-dimensional segments that define the zonotope.
@@ -135,6 +165,14 @@ full_dimensional_polytope <- function(P) {
     .Call(`_volesti_full_dimensional_polytope`, P)
 }
 
+solve_undetermined_system_lu <- function(Ar, br) {
+    .Call(`_volesti_solve_undetermined_system_lu`, Ar, br)
+}
+
+full_dimensional_polytope_with_arma <- function(Ar, br) {
+    .Call(`_volesti_full_dimensional_polytope_with_arma`, Ar, br)
+}
+
 #' Geweke's MCMC diagnostic
 #'
 #' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
@@ -172,6 +210,25 @@ geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
 #' @export
 inner_ball <- function(P, lpsolve = NULL) {
     .Call(`_volesti_inner_ball`, P, lpsolve)
+}
+
+#' Internal rcpp function to compute the full dimensional polytope when a low dimensional is given
+#'
+#' @param P A low dimensional convex polytope in H-representation.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse
+#'         linear transformation that is applied on the input polytope, the numerical vector - point that the
+#'         input polytope is shifted and the product of the singular values of the matrix of the linear map 
+#'         applied on the input polytope.
+#'
+solve_overdetermined_linear_system <- function(row_ind, col_ind, values, b, m, d) {
+    .Call(`_volesti_solve_overdetermined_linear_system`, row_ind, col_ind, values, b, m, d)
+}
+
+null_space_SparseQR <- function(row_ind, col_ind, values, m, d) {
+    .Call(`_volesti_null_space_SparseQR`, row_ind, col_ind, values, m, d)
 }
 
 #' An internal Rccp function as a polytope generator
@@ -268,6 +325,34 @@ rounding <- function(P, method = NULL, seed = NULL) {
     .Call(`_volesti_rounding`, P, method, seed)
 }
 
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
+#' @param seed Optional. A fixed seed for the number generator.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+rounding_max_ellipsoid_step <- function(Ar, br, center, radius) {
+    .Call(`_volesti_rounding_max_ellipsoid_step`, Ar, br, center, radius)
+}
+
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
+#' @param seed Optional. A fixed seed for the number generator.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+NULL
+
+rounding_svd_step <- function(center, radius, parameters) {
+    .Call(`_volesti_rounding_svd_step`, center, radius, parameters)
+}
+
 #' Sample uniformly or normally distributed points from a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes).
 #'
 #' Sample n points with uniform or multidimensional spherical gaussian -with a mode at any point- as the target distribution.
@@ -319,6 +404,21 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #' @export
 sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = NULL) {
     .Call(`_volesti_sample_points`, P, n, random_walk, distribution, seed)
+}
+
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
+#' @param seed Optional. A fixed seed for the number generator.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+NULL
+
+sample_step <- function(center, radius, parameters) {
+    .Call(`_volesti_sample_step`, center, radius, parameters)
 }
 
 #' Write a SDPA format file

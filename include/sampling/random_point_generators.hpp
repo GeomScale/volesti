@@ -9,6 +9,8 @@
 #define SAMPLERS_RANDOM_POINT_GENERATORS_HPP
 
 
+
+
 template
 <
     typename Walk

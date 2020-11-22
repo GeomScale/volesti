@@ -38,7 +38,7 @@ struct compute_diameter<HPolytope<Point>>
 template <typename NT>
 static NT compute(HPolytope<Point> const& P)
 {
-    NT diameter = NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
+    NT diameter = NT(8) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
     return diameter;
 }
 };
@@ -265,6 +265,7 @@ struct Walk
                 it++;
             }
             if (it == 50*n){
+                std::cout<<"reflection limit reached"<<std::endl;
                 _p = p0;
             }
         }

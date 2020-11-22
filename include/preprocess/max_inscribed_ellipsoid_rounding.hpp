@@ -22,7 +22,7 @@ template
     typename Point   
 >
 std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P, 
-                                                        Point const& InnerPoint)
+                                                        Point const& InnerPoint, int iter_max = 20)
 {
     std::pair<std::pair<MT, VT>, bool> iter_res;
     iter_res.second = false;
@@ -52,7 +52,8 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         R = eigensolver.eigenvalues().maxCoeff();
 
         // check the roundness of the polytope
-        if(((std::abs(R / r) <= 2.3 && iter_res.second) || iter >= 20) && iter>2){
+        std::cout<<"R/r = "<<std::abs(R / r)<<std::endl;
+        if(((std::abs(R / r) <= 4.0 && iter_res.second) || iter >= 20) && iter>2){
             break;
         }
 
@@ -66,6 +67,10 @@ std::tuple<MT, VT, NT> max_inscribed_ellipsoid_rounding(Polytope &P,
         reg = std::max(reg / 10.0, std::pow(10, -10.0));
         P.normalize();
         x0 = VT::Zero(d);
+
+        if (iter == iter_max) {
+            break;
+        }
 
         iter++;
     }

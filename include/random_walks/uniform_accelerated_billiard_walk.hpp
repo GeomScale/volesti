@@ -121,7 +121,7 @@ struct AcceleratedBilliardWalk
                 P.compute_reflection(_v, _p, _update_parameters);
                 it++;
 
-                while (it < 100*n)
+                while (it < 250*n)
                 {
                     std::pair<NT, int> pbpair
                             = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -136,7 +136,10 @@ struct AcceleratedBilliardWalk
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
-                if (it == 100*n) _p = p0;
+                if (it == 250*n){
+                    std::cout<<"reflection limit reached"<<std::endl;
+                    _p = p0;
+                } 
             }
             p = _p;
         }
@@ -179,7 +182,7 @@ struct AcceleratedBilliardWalk
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, _update_parameters);
 
-            while (it <= 100*n)
+            while (it <= 200*n)
             {
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -187,7 +190,7 @@ struct AcceleratedBilliardWalk
                     _p += (T * _v);
                     _lambda_prev = T;
                     break;
-                } else if (it == 100*n) {
+                } else if (it == 200*n) {
                     _lambda_prev = rng.sample_urdist() * pbpair.first;
                     _p += (_lambda_prev * _v);
                     break;

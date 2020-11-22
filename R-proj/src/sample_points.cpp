@@ -20,9 +20,10 @@
 #include "volume/volume_sequence_of_balls.hpp"
 #include "volume/volume_cooling_gaussians.hpp"
 #include "sampling/sampling.hpp"
+#include "sampling/sampling_multi.hpp"
 
 
-enum random_walks {ball_walk, rdhr, cdhr, billiard, accelarated_billiard, 
+enum random_walks {ball_walk, rdhr, cdhr, billiard, accelarated_billiard, accelarated_billiard_metabolic,
                    dikin_walk, vaidya_walk, john_walk, brdhr, bcdhr};
 
 template <typename Polytope, typename RNGType, typename PointList, typename NT, typename Point>
@@ -314,6 +315,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             set_L = true;
             if (L <= 0.0) throw Rcpp::exception("L must be a postitive number!");
         }
+    } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("mBiW")) == 0) {
+        if (gaussian) throw Rcpp::exception("Billiard walk can be used only for uniform sampling!");
+        walk = accelarated_billiard_metabolic;
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("L")) {
+            L = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["L"]);
+            set_L = true;
+            if (L <= 0.0) throw Rcpp::exception("L must be a postitive number!");
+        }
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("BRDHR")) == 0) {
         if (gaussian) throw Rcpp::exception("Gaussian sampling from the boundary is not supported!");
         walk = brdhr;
@@ -355,12 +364,16 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             Hpolytope HP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                     Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
 
-            InnerBall = HP.ComputeInnerBall();
-            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
+            //InnerBall = HP.ComputeInnerBall();
+            //if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
             if (!set_starting_point || (!set_mode && gaussian)) {
+                InnerBall = HP.ComputeInnerBall();
+                if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
                 if (!set_starting_point) StartingPoint = InnerBall.first;
                 if (!set_mode && gaussian) mode = InnerBall.first;
-            }
+            }// else {
+            HP.normalize();
+            //}
             if (HP.is_in(StartingPoint) == 0) {
                 throw Rcpp::exception("The given point is not in the interior of the polytope!");
             }
@@ -368,6 +381,37 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 HP.shift(mode.getCoefficients());
             }
+            /*if(walk == accelarated_billiard_metabolic) {
+                std::cout<<"hi"<<std::endl;
+                MT EssRandPoints, winPoints, TotalRandPoints;
+                unsigned int window = 100, nburns_ = 100 + 2*int( std::sqrt(NT(dim)) ), Neff;
+                bool complete = false, round_req = false;
+                if(set_L) {
+                    AcceleratedSpeedpBilliardWalk WalkType(L);
+                    uniform_sampling_speedup(HP, rng, walkL, numpoints, window, 
+                                             EssRandPoints, Neff, TotalRandPoints,
+                                             round_req, complete,
+                                             StartingPoint.getCoefficients(), nburns_, WalkType);
+                } else {
+                    uniform_sampling_speedup<AcceleratedSpeedpBilliardWalk>(HP, rng, walkL, numpoints, window, 
+                                                                            EssRandPoints, Neff, TotalRandPoints,
+                                                                            round_req, complete,
+                                                                            StartingPoint.getCoefficients(), nburns_);
+                }
+                   Polytope &P,
+                   RandomNumberGenerator &rng,
+                   const unsigned int &walk_len,
+                   const unsigned int &rnum,
+                   unsigned int &window,
+                   MT &EssRandPoints,
+                   MT &winPoints,
+                   MT &TotalRandPoints,
+                   bool rounding_requested,
+                   bool &complete,
+                   const VT &starting_point,
+                   unsigned int const& nburns
+                return Rcpp::wrap(EssRandPoints);
+            }*/
             sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
                                  StartingPoint, nburns, set_L, walk);
             break;

@@ -49,8 +49,8 @@ void uniform_sampling(PointList &randPoints,
     Point p = starting_point;
 
     typedef RandomPointGenerator <walk> RandomPointGenerator;
-    RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
-                                push_back_policy, rng);
+    //RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
+    //                            push_back_policy, rng);
     randPoints.clear();
     RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
                                 push_back_policy, rng);
@@ -86,8 +86,8 @@ void uniform_sampling(PointList &randPoints,
 
     Point p = starting_point;
 
-    RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
-                                push_back_policy, rng, WalkType.param);
+    //RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
+    //                            push_back_policy, rng, WalkType.param);
     randPoints.clear();
     RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
                                 push_back_policy, rng, WalkType.param);
@@ -213,6 +213,15 @@ void gaussian_sampling(PointList &randPoints,
 
 
 }
+
+
+
+
+
+
+
+
+
 
 
 #endif
