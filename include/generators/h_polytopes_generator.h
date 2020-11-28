@@ -55,4 +55,35 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
     return Polytope(dim, A, b);
 }
 
+
+template <class Polytope, class RNGType>
+Polytope random_sparse_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
+
+    typedef typename Polytope::MT    MT;
+    typedef typename Polytope::MT    VT;
+    typedef typename Polytope::NT    NT;
+    typedef typename Polytope::PointType Point;
+    typedef Eigen::Triplet<NT>       TR;
+
+    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
+    RNGType rng(rng_seed);
+    if (!isnan(seed)) {
+        unsigned rng_seed = seed;
+        rng.seed(rng_seed);
+    }
+
+    MT A(m, dim);
+    VT b(m, 1);
+
+    for (int i = 0; i < m; ++i) {
+        boost::normal_distribution<> rdist(0, 1);
+        for (int j = 0; j < dim; j++) {
+            A.coeffRef(i, j) = rdist(rng);
+        }
+        b.coeffRef(i, 1) = rdist(rng);
+    }
+
+    return Polytope(dim, A, b);
+}
+
 #endif

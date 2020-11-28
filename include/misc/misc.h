@@ -10,9 +10,9 @@
 #include <iostream>
 #include <vector>
 
-//function to print rounding to double coordinates 
+//function to print rounding to double coordinates
 template <class T>
-void round_print(T p) { 
+void round_print(T p) {
     std::cout<<"test version.."<<std::endl;
    // for(typename T::Cartesian_const_iterator cit=p.cartesian_begin();
    //     cit!=p.cartesian_end(); ++cit)
@@ -140,7 +140,7 @@ void print_polymake_volfile2(T &P,
 template <typename NT>
 void read_pointset(std::istream &is,
                   std::vector<std::vector<NT> > &Input){
-    
+
     std::string point;
 
     while(!std::getline(is, point, '\n').eof()) {
@@ -180,6 +180,12 @@ void read_pointset(std::istream &is,
         Input.push_back(input);
         //std::cout<<std::endl;
     }
+}
+
+template <typename NT>
+void read_objective(std::istream &is, std::vector<NT> &obj) {
+    NT element;
+    while (getline(is, element, ' ')) obj.push_back(element);
 }
 
 #endif //MISC_H

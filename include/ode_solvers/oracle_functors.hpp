@@ -22,6 +22,10 @@ struct OptimizationFunctor {
         unsigned int dim; // Dimension
         Functor f;
         GradFunctor neg_grad_f;
+        NT L;
+        NT m;
+        NT kappa;
+        unsigned int order;
 
         parameters(
             NT T_,
@@ -31,10 +35,14 @@ struct OptimizationFunctor {
             T(T_),
             dim(dim_),
             f(f_),
-            neg_grad_f(neg_grad_f_)
+            neg_grad_f(neg_grad_f_),
+            L(1),
+            m(1),
+            kappa(1),
+            order(2)
         {};
 
-        update_temperature() {
+        void update_temperature() {
             T = T * (1.0 + 1.0 / sqrt(dim));
         }
     };
@@ -225,6 +233,69 @@ struct IsotropicLinearFunctor {
         NT operator() (Point const& x) const {
             return params.alpha * x.sum();
         }
+
+  };
+
+};
+
+
+struct LinearProgramFunctor {
+
+  // Sample from linear program c^T x (exponential density)
+  template <
+      typename NT,
+      typename Point
+  >
+  struct parameters {
+    unsigned int order;
+    NT L; // Lipschitz constant for gradient
+    NT m; // Strong convexity constant
+    NT kappa; // Condition number
+    Point c; // Coefficients of LP objective
+
+    parameters(Point c_) : order(2), L(1), m(1), kappa(1), c(c_) {};
+
+  };
+
+  template
+  <
+      typename Point
+  >
+  struct GradientFunctor {
+    typedef typename Point::FT NT;
+    typedef std::vector<Point> pts;
+
+    parameters<NT, Point> &params;
+
+    GradientFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
+      if (i == params.order - 1) {
+        Point y(params.c);
+        return (-1.0) * y;
+      } else {
+        return xs[i + 1]; // returns derivative
+      }
+    }
+
+  };
+
+  template
+  <
+    typename Point
+  >
+  struct FunctionFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point> &params;
+
+    FunctionFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    NT operator() (Point const& x) const {
+      return x.dot(params.c);
+    }
 
   };
 

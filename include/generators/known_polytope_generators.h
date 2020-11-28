@@ -12,6 +12,7 @@
 
 #include "convex_bodies/hpolytope.h"
 #include "convex_bodies/vpolytope.h"
+#include "convex_bodies/sparse_hpolytope.h"
 
 
 template <class Polytope>

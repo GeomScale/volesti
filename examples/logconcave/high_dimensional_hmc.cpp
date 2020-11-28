@@ -111,7 +111,7 @@ void run_main() {
     NegativeLogprobFunctor f(params);
 
     RandomNumberGenerator rng(1);
-    unsigned int dim = 1000;
+    unsigned int dim = 100;
 
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
 

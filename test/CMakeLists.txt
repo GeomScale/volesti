@@ -10,8 +10,11 @@ enable_testing()
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+set(MKLROOT $ENV{HOME}/intel/mkl)
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
+option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
+option(USE_MKL "Use MKL library to build eigen" ON)
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -70,8 +73,20 @@ else ()
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-  # include_directories (BEFORE ../external/Eigen)
-  include_directories(BEFORE /usr/include/eigen3)
+
+  if (BUILTIN_EIGEN)
+      include_directories (BEFORE ../external/Eigen)
+  else ()
+      include_directories(BEFORE /usr/include/eigen3)
+  endif(BUILTIN_EIGEN)
+
+  if (USE_MKL)
+    find_library(BLAS NAME libblas.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+    include_directories (BEFORE ${MKLROOT}/include)
+    set(PROJECT_LIBS ${BLAS_LIBRARIES})
+    add_definitions(-DEIGEN_USE_MKL_ALL)
+  endif(USE_MKL)
+
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
   #include_directories (BEFORE ../include/cartesian_geom)
@@ -216,6 +231,6 @@ else ()
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
-  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
+  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
 
 endif()
