@@ -59,3 +59,21 @@ Rcpp::List full_dimensional_polytope (Rcpp::Reference P)
                               Rcpp::Named("shift") = Rcpp::wrap(result.second.second),
                               Rcpp::Named("svd_prod") = svd_prod);
 }
+
+// [[Rcpp::export]]
+Rcpp::NumericVector solve_undetermined_system_lu (Rcpp::NumericMatrix Ar, Rcpp::NumericVector br)
+{
+    typedef double NT;
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+
+    MT Aeq = Rcpp::as<MT>(Ar);
+    VT beq = Rcpp::as<VT>(br);
+
+    VT p = Aeq.fullPivLu().solve(beq);
+    
+    return Rcpp::wrap(p);
+}

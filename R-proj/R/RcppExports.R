@@ -135,6 +135,10 @@ full_dimensional_polytope <- function(P) {
     .Call(`_volesti_full_dimensional_polytope`, P)
 }
 
+solve_undetermined_system_lu <- function(Ar, br) {
+    .Call(`_volesti_solve_undetermined_system_lu`, Ar, br)
+}
+
 #' Geweke's MCMC diagnostic
 #'
 #' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
@@ -172,6 +176,21 @@ geweke <- function(samples, frac_first = NULL, frac_last = NULL) {
 #' @export
 inner_ball <- function(P, lpsolve = NULL) {
     .Call(`_volesti_inner_ball`, P, lpsolve)
+}
+
+#' Internal rcpp function for the rounding of a convex polytope
+#'
+#' @param P A convex polytope (H- or V-representation or zonotope).
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
+#' @param seed Optional. A fixed seed for the number generator.
+#'
+#' @keywords internal
+#'
+#' @return A numerical matrix that describes the rounded polytope, a numerical matrix of the inverse linear transofmation that is applied on the input polytope, the numerical vector the the input polytope is shifted and the determinant of the matrix of the linear transformation that is applied on the input polytope.
+NULL
+
+mmcs_phase <- function(center, radius, parameters) {
+    .Call(`_volesti_mmcs_phase`, center, radius, parameters)
 }
 
 #' Solve an ODE of the form dx^n / dt^n = F(x, t)
