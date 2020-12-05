@@ -682,7 +682,7 @@ public:
         }
     }
 
-    void compute_reflection(Point& v, Point const&, int const& facet) const
+    void compute_reflection(Point& v, Point const&, int const& facet) 
     {
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
@@ -714,11 +714,19 @@ public:
       return total;
     }
     
+
     template <typename update_parameters>
     void compute_reflection(Point &v, const Point &, update_parameters const& params) const {
 
             Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
             v += a;
+    }
+
+    template <typename update_parameters>
+    void compute_reflection(VT &v, const VT &, update_parameters const& params) const {
+
+            //Point a((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
+            v += ((-2.0 * params.inner_vi_ak) * A.row(params.facet_prev));
     }
 
     template <class bfunc, class NonLinearOracle>
