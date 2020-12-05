@@ -2,7 +2,9 @@
 
 **VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R` and limited `python` interface. **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
 
-This is a development branch that contains the supplementary code for the submission of the paper "Geometric algorithms for sampling the flux space of metabolic networks" at the 37th International Symposium on Computational Geometry 2021 (SoCG 21).
+This is a development branch that contains the supplementary code for the submission of the paper "Geometric algorithms for sampling the flux space of metabolic networks" at the 37th International Symposium on Computational Geometry 2021 (SoCG 21).  
+
+Authors: Apostolos Chalkis, Vissarion Fisikopoulos, Elias Tsigaridas, Haris Zafeiropoulos.  
 
 ###  Dependencies
 
