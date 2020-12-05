@@ -8,4 +8,3 @@
 ## a load action, so this does not have to be placed in .onLoad() or evalqOnLoad().
 
 loadModule("polytopes", TRUE)
-loadModule("spectrahedron", TRUE)

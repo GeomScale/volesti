@@ -523,13 +523,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
             // Hpolytope
             Hpolytope HP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("A")),
                     Rcpp::as<VT>(Rcpp::as<Rcpp::Reference>(P).field("b")));
-
-            InnerBall = HP.ComputeInnerBall();
-            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
-            if (!set_starting_point || (!set_mode && gaussian)) {
+                    
+            if (!set_starting_point || (!set_mode && gaussian) || !set_L) {
+                InnerBall = HP.ComputeInnerBall();
+                if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
                 if (!set_starting_point) StartingPoint = InnerBall.first;
                 if (!set_mode && gaussian) mode = InnerBall.first;
             }
+            HP.normalize();
             if (HP.is_in(StartingPoint) == 0) {
                 throw Rcpp::exception("The given point is not in the interior of the polytope!");
             }

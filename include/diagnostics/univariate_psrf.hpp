@@ -57,7 +57,7 @@ VT univariate_psrf(MT const& samples)
 
         B = (mean1 - mean00) * (mean1 - mean00) + (mean2 - mean00) * (mean2 - mean00);
         sigma = ((NT(N1) - NT(1)) / NT(N1)) * W + B;
-        R = std::sqrt(sigma / W);
+        R = std::sqrt(1.5 * sigma / W - ((NT(N1) - 1.0) / 2.0)/NT(N1));
         
         results(i) = R;
     }

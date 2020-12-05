@@ -72,11 +72,11 @@ struct AcceleratedSpeedpBilliardWalk
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
-            std::cout<<"computing AA..."<<std::endl;
+            //std::cout<<"computing AA..."<<std::endl;
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            std::cout<<"AA computed!"<<std::endl;
+            //std::cout<<"AA computed!"<<std::endl;
             initialize(P, p, rng);
-            std::cout<<"Initialization of the random walk done!"<<std::endl;
+            //std::cout<<"Initialization of the random walk done!"<<std::endl;
         }
 
         template <typename GenericPolytope>
@@ -87,11 +87,11 @@ struct AcceleratedSpeedpBilliardWalk
             _L = params.set_L ? params.m_L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
-            std::cout<<"computing AA..."<<std::endl;
+            //std::cout<<"computing AA..."<<std::endl;
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            std::cout<<"AA computed!"<<std::endl;
+            //std::cout<<"AA computed!"<<std::endl;
             initialize(P, p, rng);
-            std::cout<<"Initialization of the random walk done!"<<std::endl;
+            //std::cout<<"Initialization of the random walk done!"<<std::endl;
         }
 
         template
@@ -144,7 +144,7 @@ struct AcceleratedSpeedpBilliardWalk
                 }
                 //avg_ref += NT(it);
                 if (it == 250*n){
-                    std::cout<<"reflection limit reached"<<std::endl;
+                    //std::cout<<"reflection limit reached"<<std::endl;
                     std::pair<NT, int> pbpair
                             = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
                     if (T <= pbpair.first) {
@@ -246,7 +246,7 @@ struct AcceleratedSpeedpBilliardWalk
                         it++;
                     }
                     if (it == 250*n){
-                        std::cout<<"reflection limit reached"<<std::endl;
+                        //std::cout<<"reflection limit reached"<<std::endl;
                         std::pair<NT, int> pbpair
                                 = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, 
                                                             _AA, _update_parameters);
@@ -261,11 +261,10 @@ struct AcceleratedSpeedpBilliardWalk
                         //_p = _p0;
                     } 
                 }
-                
-                std::cout<<"[starting_point], _p is_in = "<<P.is_in(_p)<<std::endl;
+                //std::cout<<"[starting_point], _p is_in = "<<P.is_in(_p)<<std::endl;
                 //p = _p;
             }
-            std::cout<<"get q"<<std::endl;
+            //std::cout<<"get q"<<std::endl;
             q = _p;
         }
 
@@ -399,7 +398,7 @@ struct AcceleratedSpeedpBilliardWalk
             }
             avg_ref *= (1.0 / (NT(num_points) * NT(walk_length)));
             if (Lmax > _L) {
-                std::cout<<"we now update L with the velue: "<<Lmax<<std::endl;
+                //std::cout<<"we now update L with the velue: "<<Lmax<<std::endl;
                 if (n <= 2500) {
                     update_delta(Lmax);
                 }

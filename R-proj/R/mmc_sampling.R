@@ -27,15 +27,16 @@ mmc_sampling <- function(A, b, max_ball, n, num_rounding_samples,
   neff_sampled = 0
   do_update = TRUE
   
-  phase = 1
+  phase = 0
   while (!parameters$complete) {
-    print(paste0("phase = ", phase))
+    phase = phase + 1
     parameters = mmcs_phase(max_ball$center, max_ball$radius, parameters)
+    #print(paste0("phase = ", phase,' performed'))
     N = dim(parameters$correlated_samples)[2]
     neff_sampled = neff_sampled + parameters$Neff_sampled
     
     parameters$Neff = parameters$Neff - parameters$Neff_sampled
-    print(paste0("Neff = ",  parameters$Neff ))
+    #print(paste0("Neff = ",  parameters$Neff ))
     
     if (parameters$request_rounding) {
       p = T_curr %*% parameters$correlated_samples[, 1:parameters$total_samples] + 

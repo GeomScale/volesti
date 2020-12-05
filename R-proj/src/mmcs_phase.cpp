@@ -89,12 +89,12 @@ Rcpp::List mmcs_phase(Rcpp::NumericVector center, double radius,
         nburns = max_num_samples / window + 1;
     }
 
-    std::cout<<"round_it = "<<round_it<<std::endl;
+    //std::cout<<"round_it = "<<round_it<<std::endl;
     //std::cout<<"center = "<<Rcpp::as<VT>(center).transpose()<<std::endl;
-    std::cout<<"radius = "<<radius<<std::endl;
-    std::cout<<"num_rounding_steps = "<<num_rounding_steps<<std::endl;
-    std::cout<<"nburns = "<<nburns<<std::endl;
-    std::cout<<"L = "<<L<<std::endl;
+    //std::cout<<"radius = "<<radius<<std::endl;
+    //std::cout<<"num_rounding_steps = "<<num_rounding_steps<<std::endl;
+    //std::cout<<"nburns = "<<nburns<<std::endl;
+    //std::cout<<"L = "<<L<<std::endl;
 
     //typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     RNGType rng(n);
@@ -124,7 +124,7 @@ Rcpp::List mmcs_phase(Rcpp::NumericVector center, double radius,
 
     int N = TotalRandPoints.rows();
     MT Samples = TotalRandPoints.transpose(); //do not copy TODO!
-    std::cout<<"TotalRandPoints.rows() = "<<TotalRandPoints.rows()<<", TotalRandPoints.cols() = "<<TotalRandPoints.cols()<<std::endl;
+    //std::cout<<"TotalRandPoints.rows() = "<<TotalRandPoints.rows()<<", TotalRandPoints.cols() = "<<TotalRandPoints.cols()<<std::endl;
     if (!complete) {
         if (request_rounding && !rounding_completed) {
             VT shift(n), s(n);
@@ -152,7 +152,7 @@ Rcpp::List mmcs_phase(Rcpp::NumericVector center, double radius,
                 V = MT::Identity(P.dimension(), P.dimension());
             }
             max_s = s.maxCoeff();
-            std::cout<<"max_s = "<<max_s<<std::endl;
+            //std::cout<<"max_s = "<<max_s<<std::endl;
             S = s.asDiagonal();
             round_mat = V * S;
             //r_inv = VT::Ones(n).cwiseProduct(s.cwiseInverse()).asDiagonal() * V.transpose();

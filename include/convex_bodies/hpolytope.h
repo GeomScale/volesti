@@ -682,10 +682,10 @@ public:
         }
     }
 
-    void compute_reflection(Point& v, Point const&, int const& facet) 
-    {
-        v += -2 * v.dot(A.row(facet)) * A.row(facet);
-    }
+    //void compute_reflection(Point& v, Point const&, int const& facet) 
+    //{
+    //    v += -2 * v.dot(A.row(facet)) * A.row(facet);
+   // }
 
     NT log_barrier(Point &x, NT t = NT(100)) const {
       int m = num_of_hyperplanes();
@@ -714,6 +714,11 @@ public:
       return total;
     }
     
+
+    void compute_reflection(Point& v, Point const&, int const& facet) const
+    {
+        v += -2 * v.dot(A.row(facet)) * A.row(facet);
+    }
 
     template <typename update_parameters>
     void compute_reflection(Point &v, const Point &, update_parameters const& params) const {

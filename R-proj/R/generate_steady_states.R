@@ -1,18 +1,11 @@
-generate_steady_states <- function(path, n = 1000, Recon2D = FALSE, Recon3D = FALSE) {
+generate_steady_states <- function(path, n = 1000, Recon2D_v04 = FALSE, Recon3D_301 = FALSE) {
   
-  P = metabolic_net_2_polytope(path, Recon2D, Recon3D)
-  print("compute min and max Fluxes")
+  P = metabolic_net_2_polytope(path, Recon2D_v04, Recon3D_301)
+  print("computing min and max Fluxes")
   pre_proc_list = fast_preprocess_with_mosek(P)
-  #if (save_files) {
-  #  save(pre_proc_list, file = paste0(path,"preprocess_matrices.RData"))
-  #}
   
-  print("Compute the null space of the Stoichiometric matrix")
-  #rr = full_dimensional_polytope_with_arma(pre_proc_list$Aeq, pre_proc_list$beq)
+  print("Computing the null space of the Stoichiometric matrix")
   rr = null_space_and_shift(pre_proc_list$row_ind, pre_proc_list$col_ind, pre_proc_list$values, pre_proc_list$Aeq, pre_proc_list$beq)
-  #if (save_files) {
-  #  save(rr, file = paste0(path,"null_space_matrices.RData"))
-  #}
   
   A = P$A 
   b = P$b
@@ -31,20 +24,21 @@ generate_steady_states <- function(path, n = 1000, Recon2D = FALSE, Recon3D = FA
     A = A[-rows_to_del, ]
     b = b[-rows_to_del]
   }
-  print(paste0(length(rows_to_del), " facets removed"))
+  print('Full dimensional polytope computed!')
   
+  print("Computing the Chebychev ball of the full dimensional polytipe")
   max_ball = get_max_inner_ball(A, b)
-  
   
   d = dim(A)[2]
   m = dim(A)[1]
-  N = 1000
   
+  print("Call MMCS method")
   tim = system.time({ samples_list = mmc_sampling(A = A, b = b, 
-                                                         max_ball = max_ball, n = N,
+                                                         max_ball = max_ball, n = n,
                                                          num_rounding_samples = 20*d, 
                                                          max_num_samples = 100*d, 
                                                          rounding = TRUE) })
+  print('Steady states computed!')
   
   N = dim(samples_list$samples)[2]
   samples = samples_list$samples
@@ -56,6 +50,7 @@ generate_steady_states <- function(path, n = 1000, Recon2D = FALSE, Recon3D = FA
   
   result_list = list()
   result_list$HP_rounded = HP
+  result_list$samples = samples
   result_list$steady_states = steady_states
   result_list$N = rr$N
   result_list$N_shift = rr$N_shift

@@ -2,39 +2,32 @@
 
 **VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R` and limited `python` interface. **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
 
-[![CRAN status](https://www.r-pkg.org/badges/version/volesti)](https://cran.r-project.org/package=volesti)
-[![CRAN downloads](https://cranlogs.r-pkg.org/badges/volesti)](https://cran.r-project.org/package=volesti)
-![CRAN/METACRAN](https://img.shields.io/cran/l/volesti)
-[![Chat](https://badges.gitter.im/boostorg/geometry.png)](https://gitter.im/GeomScale/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link)
+This is a development branch that contains the supplementary code for the submission of the paper "Geometric algorithms for sampling the flux space of metabolic networks" at the 37th International Symposium on Computational Geometry 2021 (SoCG 21).
 
-### Test results
+###  Dependencies
 
-[![CRAN check](https://cranchecks.info/badges/worst/volesti)](https://cran.r-project.org/web/checks/check_results_volesti.html)
-[![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/master.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/master)
-[![CircleCI develop](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
-[![gcc-test](https://github.com/GeomScale/volume_approximation/workflows/gcc-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Agcc-test)
-[![clang-test](https://github.com/GeomScale/volume_approximation/workflows/clang-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Aclang-test)
+To run the code you need R 3.6.3 and you have to install the following R packages:  
 
-[![R-CMD-ubuntu](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-ubuntu/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-ubuntu)
-[![R-CMD-macOS](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-macOS/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-macOS)
-[![R-CMD-windows](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-windows/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-windows)
+1. `volesti` dependencies (see the DESCRIPTION file)  
+2. `Rmosek` (a) [mosek installation guide](https://docs.mosek.com/9.2/install/installation.html) and (b) [Rmosek installation guide](https://docs.mosek.com/9.2/rmosek/install-interface.html)  
+3. `pracma`
+4. `Matrix`
 
-###  Documentation
+###  Installation
 
-* [Using the R Interface](doc/r_interface.md)
-* [Using the C++ Interface](doc/cpp_interface.md)
-* [Using the Python Interface](volestipy/README.md)
-* [Wikipage with Tutorials and Demos](https://github.com/GeomScale/volume_approximation/wiki)
-* [Tutorial given to PyData meetup](https://vissarion.github.io/tutorials/volesti_tutorial_pydata.html)
-* [Tutorial on (truncated) logconcave sampling (R and C++)](https://papachristoumarios.github.io/2020/07/21/Sampling-from-high-dimensional-truncated-log-concave-densities-with-volesti)
-* [Contributing](CONTRIBUTING.md)
+To install volesti of the current branch, in folder `/root/R-proj` run:  
+```r
+Rcpp::compileAttributes()  
+devtools::install()  
+library(volesti)  
+```
 
-### Credits
+### Sample steady states
 
-* [Contributors and Package History](doc/credits.md)
-* [List of Publications](doc/publications.md)
+First you have to download the mat file of the model you wish to sample from [Bigg](http://bigg.ucsd.edu/models) or the Recon2D_v04, Recon_d_301 from [VMH](https://www.vmh.life/) and save it to the folder `root/R-proj/metabolic_mat_files`.  
 
-Copyright (c) 2012-2020 Vissarion Fisikopoulos  
-Copyright (c) 2018-2020 Apostolos Chalkis  
+Then follow the script `root/R-proj/example.R`. In that script we sample from the simplest model of the Escherichia Coli (the mat file is already saved in `root/R-proj/metabolic_mat_files`).  
 
-You may redistribute or modify the software under the GNU Lesser General Public License as published by Free Software Foundation, either version 3 of the License, or (at your option) any later version. It is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY.  
+If you execute it you shall get the following histogram that approximates the flux distribution of the reaction `Acetate kinase`.  
+
+![acetate_kinase](doc/histograms/acetate_kinase.png)
