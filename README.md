@@ -30,4 +30,4 @@ Then follow the script `root/R-proj/example.R`. In that script we sample from th
 
 If you execute it you shall get the following histogram that approximates the flux distribution of the reaction `Acetate kinase`.  
 
-![acetate_kinase](doc/histograms/acetate_kinase.png)
+![histograms](doc/histograms/acetate_kinase.png)
