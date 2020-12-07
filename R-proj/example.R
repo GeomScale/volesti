@@ -1,7 +1,9 @@
 library(volesti)
 
 ## give the path to your mat file that represents the model
-path = '~/volume_approximation/R-proj/metabolic_mat_files/e_coli_core.mat'
+## assuming that your working directory is R-proj the following command will work
+## alternatively you could set your absolute path to the mat file
+path = 'metabolic_mat_files/e_coli_core.mat'
 
 ## request effectiveness n = 1000 and sample steady states
 ## If you would like to sample the Recon2D_v04 or the Recon3D_301 
