@@ -16,12 +16,15 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include "cartesian_geom/cartesian_kernel.h"
+#include "convex_bodies/hpolytope.h"
 #include "random_walks/random_walks.hpp"
-#include "volume/volume_sequence_of_balls.hpp"
-#include "volume/volume_cooling_gaussians.hpp"
+
+//#include "volume/volume_sequence_of_balls.hpp"
+//#include "volume/volume_cooling_gaussians.hpp"
 #include "sampling/sampling.hpp"
-#include "ode_solvers/ode_solvers.hpp"
-#include "ode_solvers/oracle_functors_rcpp.hpp"
+//#include "ode_solvers/ode_solvers.hpp"
+//#include "ode_solvers/oracle_functors_rcpp.hpp"
 
 
 enum random_walks {
@@ -44,17 +47,13 @@ template <
         typename RNGType,
         typename PointList,
         typename NT,
-        typename Point,
-        typename NegativeGradientFunctor,
-        typename NegativeLogprobFunctor
+        typename Point
 >
 void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPoints,
         unsigned int const& walkL, unsigned int const& numpoints,
         bool const& gaussian, NT const& a, NT const& L,
         Point const& StartingPoint, unsigned int const& nburns,
-        bool const& set_L, random_walks walk,
-        NegativeGradientFunctor *F=NULL, NegativeLogprobFunctor *f=NULL,
-        ode_solvers solver_type = no_solver)
+        bool const& set_L, random_walks walk)
 {
     switch (walk)
     {
@@ -150,67 +149,6 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
             }
         }
         break;
-    case hmc:
-      switch (solver_type) {
-          case leapfrog:
-            logconcave_sampling <
-              PointList,
-              Polytope,
-              RNGType,
-              HamiltonianMonteCarloWalk,
-              NT,
-              Point,
-              NegativeGradientFunctor,
-              NegativeLogprobFunctor,
-              LeapfrogODESolver <
-                Point,
-                NT,
-                Polytope,
-                NegativeGradientFunctor
-              >
-            >(randPoints, P, rng, walkL, numpoints, StartingPoint, nburns, *F, *f);
-            break;
-          case euler:
-            logconcave_sampling <
-              PointList,
-              Polytope,
-              RNGType,
-              HamiltonianMonteCarloWalk,
-              NT,
-              Point,
-              NegativeGradientFunctor,
-              NegativeLogprobFunctor,
-              EulerODESolver <
-                Point,
-                NT,
-                Polytope,
-                NegativeGradientFunctor
-              >
-            >(randPoints, P, rng, walkL, numpoints, StartingPoint, nburns, *F, *f);
-            break;
-      }
-
-      break;
-    case uld:
-
-      logconcave_sampling <
-        PointList,
-        Polytope,
-        RNGType,
-        UnderdampedLangevinWalk,
-        NT,
-        Point,
-        NegativeGradientFunctor,
-        NegativeLogprobFunctor,
-        LeapfrogODESolver <
-          Point,
-          NT,
-          Polytope,
-          NegativeGradientFunctor
-        >
-      >(randPoints, P, rng, walkL, numpoints, StartingPoint, nburns, *F, *f);
-
-      break;
     default:
         throw Rcpp::exception("Unknown random walk!");
     }
@@ -289,17 +227,17 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
     typedef typename Kernel::Point    Point;
     typedef HPolytope <Point> Hpolytope;
-    typedef VPolytope<Point> Vpolytope;
-    typedef Zonotope <Point> zonotope;
-    typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
+    //typedef VPolytope<Point> Vpolytope;
+    //typedef Zonotope <Point> zonotope;
+    //typedef IntersectionOfVpoly<Vpolytope, RNGType> InterVP;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
     unsigned int type = Rcpp::as<Rcpp::Reference>(P).field("type"), dim = Rcpp::as<Rcpp::Reference>(P).field("dimension"),
           walkL = 1, numpoints, nburns = 0;
 
-    RcppFunctor::GradientFunctor<Point> *F = NULL;
-    RcppFunctor::FunctionFunctor<Point> *f = NULL;
+    //RcppFunctor::GradientFunctor<Point> *F = NULL;
+    //RcppFunctor::FunctionFunctor<Point> *f = NULL;
 
 
     RNGType rng(dim);
@@ -313,7 +251,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                     set_starting_point = false, set_L = false;
 
     random_walks walk;
-    ode_solvers solver; // Used only for logconcave sampling
+    //ode_solvers solver; // Used only for logconcave sampling
 
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
@@ -369,48 +307,15 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         Rcpp::Function negative_logprob = Rcpp::as<Rcpp::List>(distribution)["negative_logprob"];
         Rcpp::Function negative_logprob_gradient = Rcpp::as<Rcpp::List>(distribution)["negative_logprob_gradient"];
 
-        NT L_, m, eta;
-
-        if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("L_")) {
-            L_ = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["L_"]);
-        } else {
-            throw Rcpp::exception("The smoothness constant is absent");
-        }
-
-        if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("m")) {
-            m = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["m"]);
-        } else {
-            throw Rcpp::exception("The strong-convexity constant is absent");
-        }
+    
 
 
-        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("step_size")) {
-            eta = NT(Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["step_size"]));
-            if (eta <= NT(0)) {
-                throw Rcpp::exception("Step size must be positive");
-            }
-        } else {
-            eta = NT(-1);
-        }
-
-        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("solver")) {
-          std::string solver_str = Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["solver"]);
-          if (solver_str == "leapfrog") {
-            solver = leapfrog;
-          } else if (solver_str == "euler") {
-            solver = euler;
-          } else {
-            throw Rcpp::exception("Invalid ODE solver specified. Aborting.");
-          }
-         } else {
-          Rcpp::warning("Solver set to leapfrog.");
-          solver = leapfrog;
-        }
+        
 
         // Create functors
-        RcppFunctor::parameters<NT> rcpp_functor_params(L_, m, eta, 2);
-        F = new RcppFunctor::GradientFunctor<Point>(rcpp_functor_params, negative_logprob_gradient);
-        f = new RcppFunctor::FunctionFunctor<Point>(rcpp_functor_params, negative_logprob);
+        //RcppFunctor::parameters<NT> rcpp_functor_params(L_, m, eta, 2);
+        //F = new RcppFunctor::GradientFunctor<Point>(rcpp_functor_params, negative_logprob_gradient);
+        //f = new RcppFunctor::FunctionFunctor<Point>(rcpp_functor_params, negative_logprob);
 
     }
 
@@ -539,74 +444,11 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 HP.shift(mode.getCoefficients());
             }
             sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk, F, f, solver);
+                                 StartingPoint, nburns, set_L, walk);
             break;
         }
-        case 2: {
-            // Vpolytope
-            Vpolytope VP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")),
-                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V")).rows()));
-
-            InnerBall = VP.ComputeInnerBall();
-            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
-            if (!set_starting_point || (!set_mode && gaussian)) {
-                if (!set_starting_point) StartingPoint = InnerBall.first;
-                if (!set_mode && gaussian) mode = InnerBall.first;
-            }
-            if (VP.is_in(StartingPoint) == 0)
-                throw Rcpp::exception("The given point is not in the interior of the polytope!");
-            if (gaussian) {
-                StartingPoint = StartingPoint - mode;
-                VP.shift(mode.getCoefficients());
-            }
-            sample_from_polytope(VP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk, F, f, solver);
-            break;
-        }
-        case 3: {
-            // Zonotope
-            zonotope ZP(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")),
-                    VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("G")).rows()));
-
-            InnerBall = ZP.ComputeInnerBall();
-            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
-            if (!set_starting_point || (!set_mode && gaussian)) {
-                if (!set_starting_point) StartingPoint = InnerBall.first;
-                if (!set_mode && gaussian) mode = InnerBall.first;
-            }
-            if (ZP.is_in(StartingPoint) == 0)
-                throw Rcpp::exception("The given point is not in the interior of the polytope!");
-            if (gaussian) {
-                StartingPoint = StartingPoint - mode;
-                ZP.shift(mode.getCoefficients());
-            }
-            sample_from_polytope(ZP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk, F, f, solver);
-            break;
-        }
-        case 4: {
-            // Intersection of two V-polytopes
-            Vpolytope VP1(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")),
-                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V1")).rows()));
-            Vpolytope VP2(dim, Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")),
-                     VT::Ones(Rcpp::as<MT>(Rcpp::as<Rcpp::Reference>(P).field("V2")).rows()));
-            InterVP VPcVP(VP1, VP2);
-
-            if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-            InnerBall = VPcVP.ComputeInnerBall();
-            if (InnerBall.second < 0.0) throw Rcpp::exception("Unable to compute a feasible point.");
-            if (!set_starting_point) StartingPoint = InnerBall.first;
-            if (!set_mode && gaussian) mode = InnerBall.first;
-            if (VPcVP.is_in(StartingPoint) == 0)
-                throw Rcpp::exception("The given point is not in the interior of the polytope!");
-            if (gaussian) {
-                StartingPoint = StartingPoint - mode;
-                VPcVP.shift(mode.getCoefficients());
-            }
-            sample_from_polytope(VPcVP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                                 StartingPoint, nburns, set_L, walk, F, f, solver);
-            break;
-        }
+        default:
+        throw Rcpp::exception("Unknown convex body!");
     }
 
     if (numpoints % 2 == 1 && (walk == brdhr || walk == bcdhr)) numpoints--;

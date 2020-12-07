@@ -1,7 +1,7 @@
 library(volesti)
 
 ## give the path to your mat file that represents the model
-path = '~/volume_approximation/R-proj/metabolic_mat_files/e_coli_core.mat'
+path = '~/snap/volume_approximation/R-proj/metabolic_mat_files/e_coli_core.mat'
 
 ## request effectiveness n = 1000 and sample steady states
 ## If you would like to sample the Recon2D_v04 or the Recon3D_301 
@@ -39,3 +39,4 @@ samples_in_P0 = result_list$T %*% more_samples +
 ## compute the steady states
 more_steady_states = result_list$N %*% samples_in_P0 + 
   kronecker(matrix(1, 1, N), matrix(result_list$N_shift, ncol = 1))
+
