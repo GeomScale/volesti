@@ -1,10 +1,12 @@
+This is a branch of **VolEsti** that contains the supplementary code for the submission of the paper *"Geometric algorithms for sampling the flux space of metabolic networks"* at the *37th International Symposium on Computational Geometry 2021 (SoCG 21)*.  
+
+Authors: Apostolos Chalkis, Vissarion Fisikopoulos, Elias Tsigaridas, Haris Zafeiropoulos.  
+
+---
+
 ![logo](doc/logo/volesti_logo.jpg)
 
 **VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R` and limited `python` interface. **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
-
-This is a development branch that contains the supplementary code for the submission of the paper "Geometric algorithms for sampling the flux space of metabolic networks" at the 37th International Symposium on Computational Geometry 2021 (SoCG 21).  
-
-Authors: Apostolos Chalkis, Vissarion Fisikopoulos, Elias Tsigaridas, Haris Zafeiropoulos.  
 
 ###  Dependencies
 
@@ -33,4 +35,4 @@ Then follow the script `root/R-proj/example.R`. In that script we sample from th
 
 If you execute it you shall get the following histogram that approximates the flux distribution of the reaction `Acetate kinase`.  
 
-![histogram](doc/histograms/acetate_kinase.png)
+![histogram](doc/histograms/acetate_kinase.png
