@@ -1,7 +1,9 @@
 library(volesti)
 
 ## give the path to your mat file that represents the model
-path = '~/snap/volume_approximation/R-proj/metabolic_mat_files/e_coli_core.mat'
+## assuming that your working directory is R-proj the following command will work
+## alternatively you could set your absolute path to the mat file
+path = 'metabolic_mat_files/e_coli_core.mat'
 
 ## request effectiveness n = 1000 and sample steady states
 ## If you would like to sample the Recon2D_v04 or the Recon3D_301 
@@ -40,3 +42,16 @@ samples_in_P0 = result_list$T %*% more_samples +
 more_steady_states = result_list$N %*% samples_in_P0 + 
   kronecker(matrix(1, 1, N), matrix(result_list$N_shift, ncol = 1))
 
+
+## to compute a better density estimation
+## approximate the flux distribution of the reaction "Acetate kinase"
+## using the total number of steady states we have generated
+h2 = hist(c(result_list$steady_states[12,], more_steady_states[12, ]), 
+          main="Acetate kinase", 
+          xlab="Flux (mmol/gDW/h)", 
+          border="black", 
+          col="blue", 
+          xlim=c(min(c(result_list$steady_states[12,], more_steady_states[12, ])), max(c(result_list$steady_states[12,], more_steady_states[12, ]))), 
+          las=1, 
+          breaks=50, 
+          prob = TRUE)

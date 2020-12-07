@@ -13,7 +13,7 @@ Authors: Apostolos Chalkis, Vissarion Fisikopoulos, Elias Tsigaridas, Haris Zafe
 To run the code you need `R 3.6.3` and you have to install the following `R` packages:  
 
 1. `volesti` dependencies (see the DESCRIPTION file in folder `root/R-proj`)  
-2. `Rmosek` (a) [mosek installation guide](https://docs.mosek.com/9.2/install/installation.html) and (b) [Rmosek installation guide](https://docs.mosek.com/9.2/rmosek/install-interface.html)  
+2. `Rmosek` first complete the (a) [mosek installation guide](https://docs.mosek.com/9.2/install/installation.html) and then proceed to (b) [Rmosek installation guide](https://docs.mosek.com/9.2/rmosek/install-interface.html)  
 3. `pracma`
 4. `Matrix`
 5. `R.matlab`
