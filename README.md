@@ -10,7 +10,7 @@ Authors: Apostolos Chalkis, Vissarion Fisikopoulos, Elias Tsigaridas, Haris Zafe
 
 ###  Dependencies
 
-To run the code you need R 3.6.3 and you have to install the following R packages:  
+To run the code you need `R 3.6.3` and you have to install the following `R` packages:  
 
 1. `volesti` dependencies (see the DESCRIPTION file in folder `root/R-proj`)  
 2. `Rmosek` (a) [mosek installation guide](https://docs.mosek.com/9.2/install/installation.html) and (b) [Rmosek installation guide](https://docs.mosek.com/9.2/rmosek/install-interface.html)  
@@ -20,7 +20,7 @@ To run the code you need R 3.6.3 and you have to install the following R package
 
 ###  Installation
 
-To install volesti of the current branch, in folder `/root/R-proj` run:  
+To install volesti of the current branch, in folder `/root/R-proj` run the following command in `R`:  
 ```r
 Rcpp::compileAttributes()  
 devtools::install()  
@@ -35,4 +35,4 @@ Then follow the script `root/R-proj/example.R`. In that script we sample from th
 
 If you execute it you shall get the following histogram that approximates the flux distribution of the reaction `Acetate kinase`.  
 
-![histogram](doc/histograms/acetate_kinase.png
+![histogram](doc/histograms/acetate_kinase.png)
