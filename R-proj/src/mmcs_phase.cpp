@@ -11,17 +11,19 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
-#include "cartesian_geom/cartesian_kernel.h"
+
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include "cartesian_geom/cartesian_kernel.h"
+#include "convex_bodies/hpolytope.h"
 #include "random_walks/random_walks.hpp"
-#include "volume/volume_sequence_of_balls.hpp"
-#include "volume/volume_cooling_gaussians.hpp"
-#include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
-#include "preprocess/svd_rounding.hpp"
-#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
+//#include "volume/volume_sequence_of_balls.hpp"
+//#include "volume/volume_cooling_gaussians.hpp"
+//#include "preprocess/min_sampling_covering_ellipsoid_rounding.hpp"
+//#include "preprocess/svd_rounding.hpp"
+//#include "preprocess/max_inscribed_ellipsoid_rounding.hpp"
 #include "extractMatPoly.h"
 #include "sampling/sampling_multi.hpp"
 

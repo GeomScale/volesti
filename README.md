@@ -1,24 +1,26 @@
+This is a branch of **VolEsti** that contains the supplementary code for the manuscript of the paper *"Geometric algorithms for sampling the flux space of metabolic networks"*.  
+
+Authors: Apostolos Chalkis, Vissarion Fisikopoulos, Elias Tsigaridas, Haris Zafeiropoulos.  
+
+---
+
 ![logo](doc/logo/volesti_logo.jpg)
 
 **VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R` and limited `python` interface. **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
 
-This is a development branch that contains the supplementary code of the manuscript "Geometric algorithms for sampling the flux space of metabolic networks".  
-
-Authors: Apostolos Chalkis, Vissarion Fisikopoulos, Elias Tsigaridas, Haris Zafeiropoulos.
-
 ###  Dependencies
 
-To run the code you need R 3.6.3 and you have to install the following R packages:  
+To run the code you need `R 3.6.3` and you have to install the following `R` packages:  
 
 1. `volesti` dependencies (see the DESCRIPTION file in folder `root/R-proj`)  
-2. `Rmosek` (a) [mosek installation guide](https://docs.mosek.com/9.2/install/installation.html) and (b) [Rmosek installation guide](https://docs.mosek.com/9.2/rmosek/install-interface.html)  
+2. `Rmosek` first complete the (a) [mosek installation guide](https://docs.mosek.com/9.2/install/installation.html) and then proceed to (b) [Rmosek installation guide](https://docs.mosek.com/9.2/rmosek/install-interface.html)  
 3. `pracma`
 4. `Matrix`
 5. `R.matlab`
 
 ###  Installation
 
-To install volesti of the current branch, in folder `/root/R-proj` run:  
+To install volesti of the current branch, in folder `/root/R-proj` run the following command in `R`:  
 ```r
 Rcpp::compileAttributes()  
 devtools::install()  
