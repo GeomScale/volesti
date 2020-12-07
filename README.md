@@ -1,4 +1,4 @@
-This is a branch of **VolEsti** that contains the supplementary code for the manuscript of the paper *"Geometric algorithms for sampling the flux space of metabolic networks"*.  
+This is a branch of **VolEsti** that contains the supplementary code for the manuscript *"Geometric algorithms for sampling the flux space of metabolic networks"*.  
 
 Authors: Apostolos Chalkis, Vissarion Fisikopoulos, Elias Tsigaridas, Haris Zafeiropoulos.  
 
