@@ -26,7 +26,6 @@ public:
     typedef Point                                             PointType;
     typedef typename Point::FT                                NT;
     typedef typename std::vector<NT>::iterator                viterator;
-    typedef Eigen::SparseMatrix<NT, Eigen::RowMajor>::InnerIterator row_iterator;
     typedef Eigen::SparseMatrix<NT> MT;
     typedef Eigen::Triplet<NT>                                      TR;
 

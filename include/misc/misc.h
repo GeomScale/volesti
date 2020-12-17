@@ -185,7 +185,22 @@ void read_pointset(std::istream &is,
 template <typename NT>
 void read_objective(std::istream &is, std::vector<NT> &obj) {
     NT element;
-    while (getline(is, element, ' ')) obj.push_back(element);
+    while (is >> element) obj.push_back(element);
+
+}
+
+template <typename NT, typename Point>
+std::pair<Point, NT> read_inner_ball(std::istream &is) {
+    std::vector<NT> obj;
+    read_objective<NT>(is, obj);
+    unsigned int dim = obj.size() - 1;
+    Point center(dim);
+    NT radius = obj[dim];
+    for (unsigned int i = 0; i < dim; i++) {
+        center.set_coord(i, obj[i]);
+    }
+
+    return std::make_pair(center, radius);
 }
 
 #endif //MISC_H
