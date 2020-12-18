@@ -26,11 +26,13 @@ struct LeapfrogODESolver {
 
   unsigned int dim;
 
-  VT Ar, Av;
+  std::vector<VT> Ar, Av;
+  std::vector<NT> lambda_prev;
 
   NT eta;
   NT eta0;
   NT t;
+  NT dl = 0.95;
 
   func F;
   bounds Ks;
@@ -49,7 +51,22 @@ struct LeapfrogODESolver {
   LeapfrogODESolver(NT initial_time, NT step, pts initial_state, func oracle, bounds boundaries, bool adaptive_=true) :
   eta(step), eta0(step), t(initial_time), F(oracle), Ks(boundaries), xs(initial_state), adaptive(adaptive_) {
     dim = xs[0].dimension();
+    initialize();
   };
+
+  void initialize() {
+      for (unsigned int i = 0; i < xs.size(); i++) {
+          VT ar, av;
+          if (Ks[i] != NULL) {
+              ar.setZero(Ks[i]->num_of_hyperplanes());
+              av.setZero(Ks[i]->num_of_hyperplanes());
+          }
+          Ar.push_back(ar);
+          Av.push_back(av);
+          lambda_prev.push_back(NT(0));
+      }
+      step();
+  }
 
   void step() {
     num_steps++;
@@ -60,7 +77,7 @@ struct LeapfrogODESolver {
     unsigned int x_index, v_index, it;
     t += eta;
     for (unsigned int i = 1; i < xs.size(); i += 2) {
-
+        pbpair.second  = -1;
       x_index = i - 1;
       v_index = i;
 
@@ -78,24 +95,29 @@ struct LeapfrogODESolver {
       }
       else {
         // Find intersection (assuming a line trajectory) between x and y
+        unsigned int it = 0;
         do {
-
-          pbpair = Ks[x_index]->line_positive_intersect(xs_prev[x_index], y, Ar, Av);
+          pbpair = Ks[x_index]->line_positive_intersect(xs_prev[x_index], y, Ar[x_index], Av[x_index]);
 
           if (pbpair.first >= 0 && pbpair.first <= 1) {
             num_reflections++;
 
-            xs_prev[x_index] += (pbpair.first * 0.95) * y;
+            xs_prev[x_index] += (pbpair.first * dl) * y;
+            lambda_prev[x_index] = dl * pbpair.first;
             Ks[x_index]->compute_reflection(y, xs_prev[x_index], pbpair.second);
+
+            y = (1 - dl * pbpair.first) * y;
             xs[x_index] = xs_prev[x_index] + y;
 
             // Reflect velocity
             Ks[x_index]->compute_reflection(xs[v_index], xs[x_index], pbpair.second);
+            xs[v_index] = (1 - dl * pbpair.first) * xs[v_index];
           }
           else {
             xs[x_index] = xs_prev[x_index] + y;
+            break;
           }
-        } while (!Ks[x_index]->is_in(xs[x_index]));
+      } while (!Ks[x_index]->is_in(xs[x_index]));
       }
 
       // tilde v <- v + eta / 2 F(tilde x)

@@ -19,9 +19,8 @@
 #include "Eigen/Eigen"
 
 #include "ode_solvers/ode_solvers.hpp"
-#include "diagnostics/geweke.hpp"
-#include "diagnostics/multivariate_psrf.hpp"
-#include "diagnostics/raftery.hpp"
+#include "diagnostics/diagnostics.hpp"
+
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
@@ -120,6 +119,14 @@ void run_main() {
 
     Point x0 = -0.25 * Point::all_ones(dim);
 
+    GaussianRDHRWalk::Walk<Hpolytope, RandomNumberGenerator> walk(P, x0, params.L, rng);
+    int n_warmstart_samples = 100;
+    unsigned int walk_length = 30;
+
+    for (int i = 0; i < n_warmstart_samples; i++) {
+        walk.apply(P, x0, params.L, walk_length, rng);
+    }
+
     // In the first argument put in the address of an H-Polytope
     // for truncated sampling and NULL for untruncated
     HamiltonianMonteCarloWalk::Walk
@@ -128,6 +135,7 @@ void run_main() {
 
     int n_samples = 80000;
     int n_burns = 0;
+    unsigned int min_ess;
 
     MT samples;
     samples.resize(dim, n_samples - n_burns);
@@ -144,11 +152,14 @@ void run_main() {
     }
     std::cerr << std::endl;
 
+    print_diagnostics<NT, VT, MT>(samples, min_ess, std::cerr);
 
+    std::cerr << "Average number of reflections: " <<
+        (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
     std::cerr << "Step size (final): " << hmc.solver->eta << std::endl;
     std::cerr << "Discard Ratio: " << hmc.discard_ratio << std::endl;
     std::cerr << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
-    std::cerr << "PSRF: " <<  multivariate_psrf<NT, VT, MT>(samples) << std::endl;
+
 }
 
 int main() {
