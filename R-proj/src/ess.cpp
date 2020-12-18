@@ -31,7 +31,6 @@
 //'
 //' @export
 // [[Rcpp::export]]
-// [[Rcpp::export]]
 Rcpp::NumericVector ess(Rcpp::NumericMatrix samples)
 {
     typedef double NT;
