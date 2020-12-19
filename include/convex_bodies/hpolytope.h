@@ -712,7 +712,7 @@ public:
       total = (1.0 / t) * total;
       return total;
     }
-
+    
     template <typename update_parameters>
     void compute_reflection(Point &v, const Point &, update_parameters const& params) const {
 
