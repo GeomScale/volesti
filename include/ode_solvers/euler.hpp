@@ -117,6 +117,14 @@ struct EulerODESolver {
     xs[index] = p;
   }
 
+  void disable_adaptive() {
+      // TODO Implement
+  }
+
+  void enable_adaptive() {
+      // TODO Implement
+  }
+
 };
 
 #endif

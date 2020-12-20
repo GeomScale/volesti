@@ -9,7 +9,7 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 // References
-// Shen, Ruoqi, and Yin Tat Lee. "The randomized midpoint method for 
+// Shen, Ruoqi, and Yin Tat Lee. "The randomized midpoint method for
 // log-concave sampling." Advances in Neural Information Processing Systems. 2019.
 
 #ifndef LANGEVIN_WALK_HPP
@@ -140,6 +140,13 @@ struct UnderdampedLangevinWalk {
       return f(pos) + 1.0 / (2 * params.u) * vel.dot(vel);
     }
 
+    void disable_adaptive() {
+        // TODO Implement
+    }
+
+    void enable_adaptive() {
+        // TODO Implement
+    }
   };
 };
 
