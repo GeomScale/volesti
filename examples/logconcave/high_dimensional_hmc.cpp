@@ -115,7 +115,8 @@ void run_main() {
 
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
 
-    Hpolytope P = generate_cube<Hpolytope>(dim, false);
+    // Hpolytope P = generate_cube<Hpolytope>(dim, false);
+    Hpolytope P = generate_simplex<Hpolytope>(dim, false);
 
     Point x0 = -0.25 * Point::all_ones(dim);
 
@@ -134,17 +135,18 @@ void run_main() {
       hmc(&P, x0, F, f, hmc_params);
 
     int n_samples = 80000;
-    int n_burns = 0;
+    int n_burns = 20000;
     unsigned int min_ess;
 
     MT samples;
     samples.resize(dim, n_samples - n_burns);
 
-    hmc.solver->eta0 = 0.05;
+    hmc.solver->eta0 = 0.07;
 
     for (int i = 0; i < n_samples; i++) {
       if (i % 1000 == 0) std::cerr << ".";
       hmc.apply(rng, 3);
+      if (i == n_burns) hmc.disable_adaptive();
       if (i >= n_burns) {
           samples.col(i - n_burns) = hmc.x.getCoefficients();
           std::cout << hmc.x.getCoefficients().transpose() << std::endl;

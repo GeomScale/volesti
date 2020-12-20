@@ -710,33 +710,18 @@ void call_test_benchmark_metabolic(bool small=true, bool medium=false, bool larg
     Hpolytope P;
 
     std::cout << " --- Benchmarking metabolic polytopes " << std::endl;
-    //
+
+    std::cout << " - iAB-RBC-283" << std::endl;
+    P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine");
+    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
+
     std::cout << " - iAT-PLT-636" << std::endl;
     P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine");
     benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
-    // //
-    // std::cout << " - iSDY-1059" << std::endl;
-    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iSDY_1059.ine");
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
 
-    // std::cout << " - iAB-RBC-283" << std::endl;
-    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine");
-    // std::pair<Point, NT> inner_b = read_inner_ball_<NT, Point>("./metabolic_full_dim/polytope_iAB_RBC_283.inner_ball");
-    //
-    // MT A = P.get_mat();
-    // MT b = P.get_vec();
-    // VT x = inner_b.first.getCoefficients();
-    //
-    // VT c =  A * x - b;
-    // for (unsigned int i = 0; i < inner_b.first.dimension(); i++) {
-    //     b(i) += (c(i) + 1);
-    // }
-    //
-    // P.set_vec(b);
-    //
-    // std::cout << P.is_in(x) << std::endl;
-
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3);
+    std::cout << " - iSDY-1059" << std::endl;
+    P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iSDY_1059.ine");
+    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
 
 }
 
@@ -749,26 +734,26 @@ void call_test_benchmark_standard_polytopes() {
     Hpolytope P;
 
     std::cout << " --- Benchmarking standard polytopes " << std::endl;
-    //
-    // std::cout << " - 10-H-Cube" << std::endl;
-    // P = generate_cube<Hpolytope>(10, false);
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 10);
 
-    // std::cout << " - 100-H-Cube" << std::endl;
-    // P = generate_cube<Hpolytope>(100, false);
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 20);
+    std::cout << " - 10-H-Cube" << std::endl;
+    P = generate_cube<Hpolytope>(10, false);
+    benchmark_polytope_sampling<NT, Hpolytope>(P, 2.0, 8 * pow(P.dimension(), 1));
+
+    std::cout << " - 100-H-Cube" << std::endl;
+    P = generate_cube<Hpolytope>(100, false);
+    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
 
     std::cout << " - 10-Birkhoff" << std::endl;
     P = generate_birkhoff<Hpolytope>(10);
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 10);
+    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
 
     std::cout << " - 10-Cross" << std::endl;
     P = generate_cross<Hpolytope>(10, false);
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 10);
+    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
 
     std::cout << " - 200-Simplex " << std::endl;
     P = generate_simplex<Hpolytope>(200, false);
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, false);
+    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 8 * pow(P.dimension(), 1), false);
 
     // std::cout << " - 1000-H-Cube" << std::endl;
     // P = generate_cube<Hpolytope>(1000, false);

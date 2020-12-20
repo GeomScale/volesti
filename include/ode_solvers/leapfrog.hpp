@@ -68,6 +68,14 @@ struct LeapfrogODESolver {
       step();
   }
 
+  void disable_adaptive() {
+      adaptive = false;
+  }
+
+  void enable_adaptive() {
+      adaptive = true;
+  }
+
   void step() {
     num_steps++;
 

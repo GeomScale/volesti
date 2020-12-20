@@ -161,6 +161,14 @@ struct HamiltonianMonteCarloWalk {
       return f(pos) + 0.5 * vel.dot(vel);
     }
 
+
+    void disable_adaptive() {
+      solver->disable_adaptive();
+    }
+
+    void enable_adaptive() {
+      solver->enable_adaptive();
+    }
   };
 };
 
