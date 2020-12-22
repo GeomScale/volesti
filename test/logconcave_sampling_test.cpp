@@ -40,6 +40,34 @@
 #include "preprocess/svd_rounding.hpp"
 #include "misc/misc.h"
 
+template <typename NT>
+struct SimulationStats {
+    std::string method;
+    unsigned int walk_length;
+    unsigned int min_ess = 0;
+    NT max_psrf = NT(0);
+    NT time_per_draw = NT(0);
+    NT time_per_independent_sample = NT(0);
+    NT average_acceptance_log_prob = NT(0);
+    NT average_number_of_reflections = NT(0);
+    NT step_size = NT(0);
+
+
+    friend std::ostream& operator<< (std::ostream& out, const SimulationStats &stats) {
+        out << stats.method << ","
+            << stats.walk_length << ","
+            << stats.min_ess << ","
+            << stats.max_psrf << ","
+            << stats.time_per_draw << ","
+            << stats.time_per_independent_sample << ","
+            << stats.average_acceptance_log_prob << ","
+            << stats.average_number_of_reflections << ","
+            << stats.step_size
+            << std::endl;
+        return out;
+    }
+};
+
 struct InnerBallFunctor {
 
   // Gaussian density centered at the inner ball center
@@ -173,10 +201,15 @@ struct CustomFunctor {
 };
 
 template <typename NT, typename VT, typename MT>
-void check_interval_psrf(MT &samples, NT target=NT(1.2)) {
+NT check_interval_psrf(MT &samples, NT target=NT(1.2)) {
+    NT max_psrf = NT(0);
     VT intv_psrf = interval_psrf<VT, NT, MT>(samples);
     unsigned int d = intv_psrf.rows();
-    for (unsigned int i = 0; i < d; i++) CHECK(intv_psrf(i) < target);
+    for (unsigned int i = 0; i < d; i++) {
+        CHECK(intv_psrf(i) < target);
+        if (intv_psrf(i) > max_psrf) max_psrf = intv_psrf(i);
+    }
+    return max_psrf;
 }
 
 template <typename Sampler, typename RandomNumberGenerator, typename NT, typename Point>
@@ -335,11 +368,11 @@ void test_uld() {
 }
 
 template <typename NT, typename Polytope>
-void benchmark_polytope_sampling(
+std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
     Polytope &P,
     NT eta=NT(-1),
     unsigned int walk_length=3,
-    bool rounding=true,
+    bool rounding=false,
     unsigned int max_draws=80000,
     unsigned int num_burns=20000) {
     typedef Cartesian<NT>    Kernel;
@@ -352,6 +385,9 @@ void benchmark_polytope_sampling(
     typedef LeapfrogODESolver<Point, NT, Polytope, NegativeGradientFunctor> Solver;
     typedef typename Polytope::MT MT;
     typedef typename Polytope::VT VT;
+
+    SimulationStats<NT> rdhr_stats;
+    SimulationStats<NT> hmc_stats;
 
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
 
@@ -413,7 +449,14 @@ void benchmark_polytope_sampling(
     std::cout << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
     std::cout << std::endl;
 
-    check_interval_psrf<NT, VT, MT>(samples);
+    NT max_psrf = check_interval_psrf<NT, VT, MT>(samples);
+
+    rdhr_stats.method = "RDHR";
+    rdhr_stats.walk_length = walk_length;
+    rdhr_stats.min_ess = min_ess;
+    rdhr_stats.max_psrf = max_psrf;
+    rdhr_stats.time_per_draw = ETA / max_actual_draws;
+    rdhr_stats.time_per_independent_sample = ETA / min_ess;
 
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
 
@@ -460,6 +503,16 @@ void benchmark_polytope_sampling(
 
     check_interval_psrf<NT, VT, MT>(samples);
 
+    hmc_stats.method = "HMC";
+    hmc_stats.walk_length = walk_length;
+    hmc_stats.min_ess = min_ess;
+    hmc_stats.max_psrf = max_psrf;
+    hmc_stats.time_per_draw = ETA / max_actual_draws;
+    hmc_stats.time_per_independent_sample = ETA / min_ess;
+    hmc_stats.average_number_of_reflections = (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps;
+    hmc_stats.step_size = hmc.solver->eta;
+
+    return std::vector<SimulationStats<NT>>{rdhr_stats, hmc_stats};
 }
 
 
@@ -762,6 +815,33 @@ void call_test_benchmark_standard_polytopes() {
 }
 
 template <typename NT>
+void call_test_benchmark_standard_polytopes_param_search() {
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+
+    Hpolytope P;
+
+    std::cout << " --- Benchmarking standard polytopes " << std::endl;
+
+    std::vector<SimulationStats<NT>> results;
+    P = generate_cube<Hpolytope>(100, false);
+
+    std::ofstream outfile;
+    outfile.open("results.txt");
+
+    for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length++) {
+        for (NT step_size = NT(0.1); step_size <= NT(1); step_size += NT(0.1)) {
+            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length);
+            outfile << results[0];
+            outfile << results[1];
+        }
+    }
+
+    outfile.close();
+}
+
+template <typename NT>
 void call_test_optimization() {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
@@ -805,4 +885,8 @@ TEST_CASE("benchmark_metabolic") {
 
 TEST_CASE("benchmark_standard_polytopes") {
     call_test_benchmark_standard_polytopes<double>();
+}
+
+TEST_CASE("benchmark_standard_polytopes_param_search") {
+    call_test_benchmark_standard_polytopes_param_search<double>();
 }
