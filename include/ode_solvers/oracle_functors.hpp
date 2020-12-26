@@ -301,4 +301,69 @@ struct LinearProgramFunctor {
 
 };
 
+
+struct GaussianFunctor {
+
+  template <
+      typename NT,
+      typename Point
+  >
+  struct parameters {
+    unsigned int order;
+    NT L; // Lipschitz constant for gradient
+    NT m; // Strong convexity constant
+    NT kappa; // Condition number
+    NT a;
+    NT eta;
+    Point x0;
+
+    parameters(Point x0_, NT a_, NT eta_) : order(2), L(2 * a_), m(2 * a_), kappa(1), x0(x0_), a(a_), eta(eta_) {};
+
+  };
+
+  template
+  <
+      typename Point
+  >
+  struct GradientFunctor {
+    typedef typename Point::FT NT;
+    typedef std::vector<Point> pts;
+
+    parameters<NT, Point> &params;
+
+    GradientFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
+      if (i == params.order - 1) {
+        Point y = (-2.0 * params.a) * (xs[0] - params.x0);
+        return y;
+      } else {
+        return xs[i + 1]; // returns derivative
+      }
+    }
+
+  };
+
+  template
+  <
+    typename Point
+  >
+  struct FunctionFunctor {
+    typedef typename Point::FT NT;
+
+    parameters<NT, Point> &params;
+
+    FunctionFunctor(parameters<NT, Point> &params_) : params(params_) {};
+
+    // The index i represents the state vector index
+    NT operator() (Point const& x) const {
+      Point y = x - params.x0;
+      return params.a * y.dot(y);
+    }
+
+  };
+
+};
+
 #endif

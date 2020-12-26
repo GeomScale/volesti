@@ -501,7 +501,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
     std::cout << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
     std::cout << std::endl;
 
-    check_interval_psrf<NT, VT, MT>(samples);
+    max_psrf = check_interval_psrf<NT, VT, MT>(samples);
 
     hmc_stats.method = "HMC";
     hmc_stats.walk_length = walk_length;
@@ -819,20 +819,25 @@ void call_test_benchmark_standard_polytopes_param_search() {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
+    typedef boost::mt19937 RNGType;
 
     Hpolytope P;
 
     std::cout << " --- Benchmarking standard polytopes " << std::endl;
 
     std::vector<SimulationStats<NT>> results;
-    P = generate_cube<Hpolytope>(100, false);
+    // P = generate_cube<Hpolytope>(10, false);
+    // P = generate_cross<Hpolytope>(10, false);
+    // P = generate_cube<Hpolytope>(100, false);
+    // P = random_hpoly<Hpolytope, RNGType>(10, 75, 10);
+    P = generate_prod_simplex<Hpolytope>(50);
 
     std::ofstream outfile;
     outfile.open("results.txt");
 
-    for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length++) {
+    for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
         for (NT step_size = NT(0.1); step_size <= NT(1); step_size += NT(0.1)) {
-            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length);
+            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false);
             outfile << results[0];
             outfile << results[1];
         }

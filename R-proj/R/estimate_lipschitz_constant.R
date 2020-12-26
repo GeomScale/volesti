@@ -1,5 +1,3 @@
-library(fitdistrplus)
-
 dinvweibull_with_loc <- function (x, k, lambda, theta) {
   return ((k / lambda) * ((x - theta) / lambda)^(k - 1) * exp(- ((x - theta) / lambda)^k) * as.double(x >= 0))
 }
