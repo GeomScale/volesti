@@ -22,12 +22,13 @@ norm_vec <- function(x) sqrt(sum(x^2))
 
 
 # Load polytopes from mat file
-metabolic_polytope_mat <- readMat('../test/metabolic_full_dim/polytope_iAB_RBC_283.mat')
+#metabolic_polytope_mat <- readMat('../test/metabolic_full_dim/polytope_iAB_RBC_283.mat')
+metabolic_polytope_mat <- readMat('/home/marios/workspace/volume_approximation/test/metabolic_full_dim/polytope_iSDY_1059.mat')
 A <- as.matrix(metabolic_polytope_mat$polytope[[1]])
 b <- as.matrix(metabolic_polytope_mat$polytope[[2]])
 center <- as.matrix(metabolic_polytope_mat$polytope[[3]])
 radius <- as.numeric(metabolic_polytope_mat$polytope[[4]])
-sigma <- radius / 3
+sigma <- 1
 dimension <- dim(A)[2]
 
 
@@ -46,19 +47,19 @@ m <- 1 / sigma^2
 b_new <- b - A %*% center
 
 # Create volesti polytope
-H <- Hpolytope$new(A = A, b = c(b_new))
+P <- Hpolytope$new(A = A, b = c(b_new))
 
 # Rounding
-Tr <- rounding(H)
+#Tr <- rounding(H)
 
-P <- Hpolytope$new(A = Tr$Mat[1:nrow(Tr$Mat), 2:ncol(Tr$Mat)], b = Tr$Mat[,1])
+#P <- Hpolytope$new(A = Tr$Mat[1:nrow(Tr$Mat), 2:ncol(Tr$Mat)], b = Tr$Mat[,1])
 
 # Center is origin (after shift)
 x_min = matrix(0, dimension, 1)
 
 # Generate samples with HNR
 start_time <- Sys.time()
-rdhr_samples <- sample_points(P, n = 140000, random_walk = list("walk" = "RDHR", "nburns" = 40000, "walk_length" = 1), distribution = list("density" = "gaussian", "variance" = 1/L, "mode" = x_min))
+rdhr_samples <- sample_points(P, n = 10, random_walk = list("walk" = "RDHR", "nburns" = 10, "walk_length" = 1), distribution = list("density" = "gaussian", "variance" = 1/L, "mode" = x_min))
 end_time <- Sys.time()
 
 # Calculate Effective Sample size
@@ -85,4 +86,27 @@ outfile <- '/home/marios/samples_hnr_iAB_PLT_283.txt'
 
 write.table(rdhr_samples, file=outfile, row.names=FALSE, col.names=FALSE)
 
-pts <- sample_points(P, n = 10000, random_walk = list("walk" = "HMC", "step_size" = 0.07, "nburns" = 5000, "walk_length" = 1, "solver" = "leapfrog", "starting_point" = rdhr_samples[, ncol(rdhr_samples)]), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
+start_time <- Sys.time()
+hmc_samples <- sample_points(P, n = 10, random_walk = list("walk" = "HMC", "step_size" = 0.07, "nburns" = 10, "walk_length" = 30, "solver" = "leapfrog", "starting_point" = rdhr_samples[, ncol(rdhr_samples)]), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
+end_time <- Sys.time()
+
+# Calculate Effective Sample size
+hmc_ess = ess(hmc_samples)
+min_ess <- min(hmc_ess)
+
+# Calculate PSRF
+hmc_psrfs = psrf_univariate(hmc_samples)
+max_psrf = max(hmc_psrfs)
+elapsed_time <- end_time - start_time
+
+# Print results
+cat('HMC\n')
+cat('Min Effective Sample Size: ')
+cat(min_ess)
+cat('\n')
+cat('Maximum PSRF: ')
+cat(max_psrf)
+cat('\n')
+cat('Time per independent sample: ')
+cat(elapsed_time / min_ess)
+cat('sec')

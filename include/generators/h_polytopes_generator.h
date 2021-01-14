@@ -16,7 +16,7 @@
 #endif
 
 template <class Polytope, class RNGType>
-Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
+Polytope random_hpoly(unsigned int dim, unsigned int m, bool skinny=false, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -49,7 +49,8 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numer
         normal = 1.0 / std::sqrt(normal);
         p *= normal;
         A.row(i) = p.getCoefficients();
-        b(i) = 10.0;
+	if (skinny) b(i) = rdist(rng) * normal;
+	else b(i) = 10.0;
     }
 
     return Polytope(dim, A, b);

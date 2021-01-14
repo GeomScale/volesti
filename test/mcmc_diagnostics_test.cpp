@@ -146,7 +146,7 @@ void call_test_effective_sample_size() {
     for (int i = 0; i < N; i++) samples(0, i) = NT(i);
 
     effective_sample_size<NT, VT, MT>(samples, min_ess);
-    // std::cout << min_ess << std::endl;
+    std::cout << min_ess << std::endl;
     CHECK(min_ess == 3);
 }
 

@@ -373,6 +373,8 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
     NT eta=NT(-1),
     unsigned int walk_length=3,
     bool rounding=false,
+    bool centered=false,
+    bool warmstart=true,
     unsigned int max_draws=80000,
     unsigned int num_burns=20000) {
     typedef Cartesian<NT>    Kernel;
@@ -389,7 +391,14 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
     SimulationStats<NT> rdhr_stats;
     SimulationStats<NT> hmc_stats;
 
-    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
+
+    std::pair<Point, NT> inner_ball;
+    if (centered) {
+        inner_ball.first = Point(P.dimension());
+        inner_ball.second = NT(1);
+    } else {
+        P.ComputeInnerBall();
+    }
 
     // Random number generator
     RandomNumberGenerator rng(1);
@@ -398,9 +407,6 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
     Point x0 = inner_ball.first;
     NT R0 = inner_ball.second;
     unsigned int dim = x0.dimension();
-
-    std::cout << R0 << std::endl;
-    std::cout << x0.getCoefficients().transpose() << std::endl;
 
     if (rounding) {
         std::cout << "SVD Rounding" << std::endl;
@@ -420,43 +426,50 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
 
     MT samples;
     samples.resize(dim, max_actual_draws);
+    NT ETA;
+    NT max_psrf;
 
-    std::cout << "Gaussian Hit and Run" << std::endl;
+    std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
 
-    std::cout << "Burn-in" << std::endl;
+    if (warmstart) {
+        std::cout << "Gaussian Hit and Run" << std::endl;
 
-    for (unsigned int i = 0; i < num_burns; i++) {
-      if (i % 1000 == 0) std::cout << ".";
-      gaussian_walk.apply(P, x0, params.L, walk_length, rng);
+        std::cout << "Burn-in" << std::endl;
+
+        for (unsigned int i = 0; i < num_burns; i++) {
+          if (i % 1000 == 0) std::cout << ".";
+          gaussian_walk.apply(P, x0, params.L, walk_length, rng);
+          // std::cout << x0.getCoefficients() << std::endl;
+        }
+
+        std::cout << std::endl;
+        std::cout << "Sampling" << std::endl;
+
+        start = std::chrono::high_resolution_clock::now();
+        for (unsigned int i = 0; i < max_actual_draws; i++) {
+          gaussian_walk.apply(P, x0, params.L, walk_length, rng);
+          samples.col(i) = x0.getCoefficients();
+          if (i % 1000 == 0 && i > 0) std::cout << ".";
+        }
+        stop = std::chrono::high_resolution_clock::now();
+
+        ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+
+        std::cout << std::endl;
+        print_diagnostics<NT, VT, MT>(samples, min_ess, std::cout);
+        std::cout << "Average time per sample: " << ETA / max_actual_draws << "us" << std::endl;
+        std::cout << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
+        std::cout << std::endl;
+
+        max_psrf = check_interval_psrf<NT, VT, MT>(samples);
+
+        rdhr_stats.method = "RDHR";
+        rdhr_stats.walk_length = walk_length;
+        rdhr_stats.min_ess = min_ess;
+        rdhr_stats.max_psrf = max_psrf;
+        rdhr_stats.time_per_draw = ETA / max_actual_draws;
+        rdhr_stats.time_per_independent_sample = ETA / min_ess;
     }
-
-    std::cout << std::endl;
-    std::cout << "Sampling" << std::endl;
-
-    auto start = std::chrono::high_resolution_clock::now();
-    for (unsigned int i = 0; i < max_actual_draws; i++) {
-      gaussian_walk.apply(P, x0, params.L, walk_length, rng);
-      samples.col(i) = x0.getCoefficients();
-      if (i % 1000 == 0 && i > 0) std::cout << ".";
-    }
-    auto stop = std::chrono::high_resolution_clock::now();
-
-    NT ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
-
-    std::cout << std::endl;
-    print_diagnostics<NT, VT, MT>(samples, min_ess, std::cout);
-    std::cout << "Average time per sample: " << ETA / max_actual_draws << "us" << std::endl;
-    std::cout << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
-    std::cout << std::endl;
-
-    NT max_psrf = check_interval_psrf<NT, VT, MT>(samples);
-
-    rdhr_stats.method = "RDHR";
-    rdhr_stats.walk_length = walk_length;
-    rdhr_stats.min_ess = min_ess;
-    rdhr_stats.max_psrf = max_psrf;
-    rdhr_stats.time_per_draw = ETA / max_actual_draws;
-    rdhr_stats.time_per_independent_sample = ETA / min_ess;
 
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
 
@@ -763,18 +776,22 @@ void call_test_benchmark_metabolic(bool small=true, bool medium=false, bool larg
     Hpolytope P;
 
     std::cout << " --- Benchmarking metabolic polytopes " << std::endl;
+    //
+    // std::cout << " - Recon-1" << std::endl;
+    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_recon1.ine");
+    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 1, false, true, true);
 
-    std::cout << " - iAB-RBC-283" << std::endl;
-    P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine");
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
-
-    std::cout << " - iAT-PLT-636" << std::endl;
-    P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine");
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
-
-    std::cout << " - iSDY-1059" << std::endl;
-    P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iSDY_1059.ine");
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
+    // std::cout << " - iAB-RBC-283" << std::endl;
+    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine");
+    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
+    //
+    // std::cout << " - iAT-PLT-636" << std::endl;
+    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine");
+    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
+    //
+    // std::cout << " - iSDY-1059" << std::endl;
+    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iSDY_1059.ine");
+    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
 
 }
 
@@ -788,25 +805,25 @@ void call_test_benchmark_standard_polytopes() {
 
     std::cout << " --- Benchmarking standard polytopes " << std::endl;
 
-    std::cout << " - 10-H-Cube" << std::endl;
-    P = generate_cube<Hpolytope>(10, false);
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 2.0, 8 * pow(P.dimension(), 1));
-
-    std::cout << " - 100-H-Cube" << std::endl;
-    P = generate_cube<Hpolytope>(100, false);
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
-
-    std::cout << " - 10-Birkhoff" << std::endl;
-    P = generate_birkhoff<Hpolytope>(10);
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
-
-    std::cout << " - 10-Cross" << std::endl;
-    P = generate_cross<Hpolytope>(10, false);
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
-
-    std::cout << " - 200-Simplex " << std::endl;
-    P = generate_simplex<Hpolytope>(200, false);
-    benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 8 * pow(P.dimension(), 1), false);
+    // std::cout << " - 10-H-Cube" << std::endl;
+    // P = generate_cube<Hpolytope>(10, false);
+    // benchmark_polytope_sampling<NT, Hpolytope>(P, 2.0, 8 * pow(P.dimension(), 1));
+    //
+    // std::cout << " - 100-H-Cube" << std::endl;
+    // P = generate_cube<Hpolytope>(100, false);
+    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
+    //
+    // std::cout << " - 10-Birkhoff" << std::endl;
+    // P = generate_birkhoff<Hpolytope>(10);
+    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
+    //
+    // std::cout << " - 10-Cross" << std::endl;
+    // P = generate_cross<Hpolytope>(10, false);
+    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
+    //
+    // std::cout << " - 200-Simplex " << std::endl;
+    // P = generate_simplex<Hpolytope>(200, false);
+    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 8 * pow(P.dimension(), 1), false);
 
     // std::cout << " - 1000-H-Cube" << std::endl;
     // P = generate_cube<Hpolytope>(1000, false);
@@ -829,18 +846,23 @@ void call_test_benchmark_standard_polytopes_param_search() {
     // P = generate_cube<Hpolytope>(10, false);
     // P = generate_cross<Hpolytope>(10, false);
     // P = generate_cube<Hpolytope>(100, false);
-    // P = random_hpoly<Hpolytope, RNGType>(10, 75, 10);
-    P = generate_prod_simplex<Hpolytope>(50);
+    // P = random_hpoly<Hpolytope, RNGType>(100, 250, 600);
+    //P = generate_skinny_cube<Hpolytope>(100, false);
+    // P = generate_prod_simplex<Hpolytope>(50);
+    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine");
+    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine");
+    P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_recon1.ine");
 
     std::ofstream outfile;
     outfile.open("results.txt");
 
     for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
-        for (NT step_size = NT(0.1); step_size <= NT(1); step_size += NT(0.1)) {
-            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false);
+        // for (NT step_size = NT(0.01); step_size <= NT(0.1); step_size += NT(0.01)) {
+            NT step_size = 0.01;
+	    results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, true);
             outfile << results[0];
             outfile << results[1];
-        }
+        // }
     }
 
     outfile.close();

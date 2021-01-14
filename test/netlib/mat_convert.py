@@ -19,6 +19,7 @@ if form == 'canonical':
     b = mat['polytope']['b'][0, 0]
     center = mat['polytope']['center'][0, 0]
     radius = mat['polytope']['radius'][0, 0]
+    b = b - A @ center
 
     C = np.hstack((b, - A))
 
@@ -63,5 +64,5 @@ with open(outfile, 'w+') as f:
 outfile_inner_ball = os.path.splitext(filename)[0] + '.inner_ball'
 
 with open(outfile_inner_ball, 'w+') as f:
-    np.savetxt(f, center, fmt="%.8f")
-    np.savetxt(f, radius, fmt="%.8f")
+    np.savetxt(f, center, fmt="%.10f")
+    np.savetxt(f, radius, fmt="%.10f")
