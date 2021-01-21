@@ -391,13 +391,12 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
     SimulationStats<NT> rdhr_stats;
     SimulationStats<NT> hmc_stats;
 
-
     std::pair<Point, NT> inner_ball;
     if (centered) {
         inner_ball.first = Point(P.dimension());
-        inner_ball.second = NT(1);
+        inner_ball.second = NT(1); // dummy radius (not correct one)
     } else {
-        P.ComputeInnerBall();
+        inner_ball = P.ComputeInnerBall();
     }
 
     // Random number generator
@@ -845,7 +844,7 @@ void call_test_benchmark_standard_polytopes_param_search() {
     std::vector<SimulationStats<NT>> results;
 
     std::vector<std::pair<Hpolytope, std::string>> polytopes{
-        std::make_pair(generate_cube<Hpolytope>(100, false), "100_cube"),
+        // std::make_pair(generate_cube<Hpolytope>(100, false), "100_cube"),
         std::make_pair(generate_simplex<Hpolytope>(100, false), "100_simplex"),
         std::make_pair(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex"),
         std::make_pair(generate_birkhoff<Hpolytope>(10), "10_birkhoff"),
@@ -865,7 +864,7 @@ void call_test_benchmark_standard_polytopes_param_search() {
         inner_ball = P.ComputeInnerBall();
         step_size = inner_ball.second / 10;
         for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
-            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, true);
+            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, false);
             outfile << results[0];
             outfile << results[1];
         }

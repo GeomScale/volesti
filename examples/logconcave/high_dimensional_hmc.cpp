@@ -46,9 +46,9 @@ void run_main() {
     typedef typename HPolytope<Point>::VT VT;
 
     RandomNumberGenerator rng(1);
-    unsigned int dim = 10;
+    unsigned int dim = 1000;
 
-    Hpolytope P = generate_birkhoff<Hpolytope>(10);
+    Hpolytope P = generate_simplex<Hpolytope>(dim, false);
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
 
     Point x0 = inner_ball.first;
@@ -57,7 +57,7 @@ void run_main() {
     GaussianFunctor::parameters<NT, Point> params(x0, 2 / (r * r), NT(-1));
     GaussianRDHRWalk::Walk<Hpolytope, RandomNumberGenerator> walk(P, x0, params.L, rng);
     int n_warmstart_samples = 0;
-    unsigned int walk_length = 30;
+    unsigned int walk_length = 200;
 
     for (int i = 0; i < n_warmstart_samples; i++) {
         walk.apply(P, x0, params.L, walk_length, rng);
@@ -71,33 +71,47 @@ void run_main() {
     // In the first argument put in the address of an H-Polytope
     // for truncated sampling and NULL for untruncated
     HamiltonianMonteCarloWalk::Walk
-      <Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
-      hmc(&P, x0, F, f, hmc_params);
+    <Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
+    hmc(&P, x0, F, f, hmc_params);
 
-    int n_samples = 80000;
+    int max_actual_draws = 80000;
     int n_burns = 20000;
     unsigned int min_ess;
 
     MT samples;
-    samples.resize(dim, n_samples - n_burns);
+    samples.resize(dim, max_actual_draws - n_burns);
 
     hmc.solver->eta0 = inner_ball.second / 10;
 
-    for (int i = 0; i < n_samples; i++) {
-      if (i % 1000 == 0) std::cerr << ".";
-      hmc.apply(rng, 100);
-      if (i == n_burns) hmc.disable_adaptive();
-      if (i >= n_burns) {
-          samples.col(i - n_burns) = hmc.x.getCoefficients();
-          std::cout << hmc.x.getCoefficients().transpose() << std::endl;
-      }
+    for (int i = 0; i < max_actual_draws; i++) {
+        if (i % 1000 == 0) std::cerr << ".";
+        hmc.apply(rng, walk_length);
     }
+
+    hmc.disable_adaptive();
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (int i = n_burns; i < max_actual_draws; i++) {
+        if (i % 1000 == 0) std::cerr << ".";
+        hmc.apply(rng, walk_length);
+        if (i >= n_burns) {
+            samples.col(i - n_burns) = hmc.x.getCoefficients();
+            std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+        }
+    }
+    auto stop = std::chrono::high_resolution_clock::now();
+
     std::cerr << std::endl;
 
     print_diagnostics<NT, VT, MT>(samples, min_ess, std::cerr);
 
+    NT ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+
+    std::cerr << std::endl;
+    std::cerr << "Average time per sample: " << ETA / max_actual_draws << "us" << std::endl;
+    std::cerr << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
     std::cerr << "Average number of reflections: " <<
-        (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
+    (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
     std::cerr << "Step size (final): " << hmc.solver->eta << std::endl;
     std::cerr << "Discard Ratio: " << hmc.discard_ratio << std::endl;
     std::cerr << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
@@ -105,6 +119,6 @@ void run_main() {
 }
 
 int main() {
-  run_main<double>();
-  return 0;
+    run_main<double>();
+    return 0;
 }
