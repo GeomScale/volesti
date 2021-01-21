@@ -20,33 +20,30 @@ library(volesti)
 norm_vec <- function(x) sqrt(sum(x^2))
 
 # Negative log-probability oracle
-f <- function(x) (norm_vec(x)^2 + sum(x))
+f <- function(x) (0.5 * norm_vec(x)^2)
 
 # Negative log-probability gradient oracle
-grad_f <- function(x) (2 * x + 1)
+grad_f <- function(x) (x)
 
-# Interval [-1, 1]
-A = matrix(c(1, -1), ncol=1, nrow=2, byrow=TRUE)
-b = c(2,1)
-
-# Create domain of truncation
-P <- volesti::Hpolytope$new(A, b)
+# Generate polytope
+P <- gen_cube(10, 'H')
+d <- dim(P$A)[2]
 
 # Mode of logconcave density
-x_min <- c(-0.5)
+x_min <- 0 * c(1:d)
 
 # Smoothness and strong-convexity
-L <- 2
-m <- 2
+L <- 1
+m <- 1
 
 # Warm start point from truncated Gaussian
 warm_start <- sample_points(P, n = 1, random_walk = list("nburns" = 5000), distribution = list("density" = "gaussian", "variance" = 1/L, "mode" = x_min))
 
 # Sample points
-n_samples <- 20000
+n_samples <- 80000
 n_burns <- n_samples / 2
 
-pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "HMC", "step_size" = 0.3, "nburns" = n_burns, "walk_length" = 3, "solver" = "leapfrog", "starting_point" = warm_start[,1]), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
+pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "HMC", "step_size" = 0.03, "nburns" = n_burns, "walk_length" = 50, "solver" = "leapfrog", "starting_point" = warm_start[,1]), distribution = list("density" = "logconcave", "negative_logprob" = f, "negative_logprob_gradient" = grad_f, "L_" = L, "m" = m))
 # pts <- sample_points(P, n = n_samples, random_walk = list("walk" = "HMC", "step_size" = 0.3, "nburns" = n_burns, "walk_length" = 3, "solver" = "leapfrog", "starting_point" = warm_start[,1]), distribution = list("density" = "logconcave", "mode" = x_min, "variance" = 1))
 
 # Plot histogram

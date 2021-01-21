@@ -116,6 +116,7 @@ struct HamiltonianMonteCarloWalk {
       bool metropolis_filter=true)
     {
 
+      for (int i = 0; i < walk_length; i++) {
       num_runs++;
 
       // Pick a random velocity
@@ -125,7 +126,7 @@ struct HamiltonianMonteCarloWalk {
       solver->set_state(1, v);
 
       // Get proposals
-      solver->steps(walk_length);
+      solver->steps(1);
       x_tilde = solver->get_state(0);
       v_tilde = solver->get_state(1);
 
@@ -155,6 +156,7 @@ struct HamiltonianMonteCarloWalk {
       discard_ratio = (1.0 * total_discarded_samples) / num_runs;
       average_acceptance_log_prob = total_acceptance_log_prob / num_runs;
 
+      }	
     }
 
     inline NT hamiltonian(Point &pos, Point &vel) const {

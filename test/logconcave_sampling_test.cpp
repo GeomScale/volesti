@@ -490,6 +490,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
       hmc.apply(rng, walk_length);
     }
 
+    hmc.disable_adaptive();
     std::cout << std::endl;
     std::cout << "Sampling" << std::endl;
 
@@ -524,6 +525,7 @@ std::vector<SimulationStats<NT>> benchmark_polytope_sampling(
     hmc_stats.time_per_independent_sample = ETA / min_ess;
     hmc_stats.average_number_of_reflections = (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps;
     hmc_stats.step_size = hmc.solver->eta;
+    hmc_stats.average_acceptance_log_prob  = exp(hmc.average_acceptance_log_prob);
 
     return std::vector<SimulationStats<NT>>{rdhr_stats, hmc_stats};
 }
@@ -838,34 +840,38 @@ void call_test_benchmark_standard_polytopes_param_search() {
     typedef HPolytope<Point> Hpolytope;
     typedef boost::mt19937 RNGType;
 
-    Hpolytope P;
-
     std::cout << " --- Benchmarking standard polytopes " << std::endl;
 
     std::vector<SimulationStats<NT>> results;
-    // P = generate_cube<Hpolytope>(10, false);
-    // P = generate_cross<Hpolytope>(10, false);
-    // P = generate_cube<Hpolytope>(100, false);
-    // P = random_hpoly<Hpolytope, RNGType>(100, 250, 600);
-    //P = generate_skinny_cube<Hpolytope>(100, false);
-    // P = generate_prod_simplex<Hpolytope>(50);
-    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine");
-    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine");
-    P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_recon1.ine");
 
+    std::vector<std::pair<Hpolytope, std::string>> polytopes{
+        std::make_pair(generate_cube<Hpolytope>(100, false), "100_cube"),
+        std::make_pair(generate_simplex<Hpolytope>(100, false), "100_simplex"),
+        std::make_pair(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex"),
+        std::make_pair(generate_birkhoff<Hpolytope>(10), "10_birkhoff"),
+        std::make_pair(generate_cross<Hpolytope>(10, false), "10_cross"),
+
+    };
+    Hpolytope P;
+    std::string name;
     std::ofstream outfile;
-    outfile.open("results.txt");
+    NT step_size = 0;
+    std::pair<Point, NT> inner_ball;
 
-    for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
-        // for (NT step_size = NT(0.01); step_size <= NT(0.1); step_size += NT(0.01)) {
-            NT step_size = 0.01;
-	    results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, true);
+    for (std::pair<Hpolytope, std::string> polytope_pair : polytopes) {
+        P = polytope_pair.first;
+        name = polytope_pair.second;
+        outfile.open("results_" + name + "_new.txt");
+        inner_ball = P.ComputeInnerBall();
+        step_size = inner_ball.second / 10;
+        for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
+            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, true);
             outfile << results[0];
             outfile << results[1];
-        // }
+        }
+        outfile.close();
     }
 
-    outfile.close();
 }
 
 template <typename NT>

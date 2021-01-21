@@ -113,8 +113,10 @@ else ()
   add_executable (simple_sde simple_sde.cpp)
   add_executable (high_dimensional_hmc high_dimensional_hmc.cpp)
   add_executable (high_dimensional_hmc_rand_poly high_dimensional_hmc_rand_poly.cpp)
+  add_executable (adaptive_step_size adaptive_step_size.cpp)
 
   TARGET_LINK_LIBRARIES(high_dimensional_hmc_rand_poly ${LP_SOLVE})
-
+  TARGET_LINK_LIBRARIES(high_dimensional_hmc ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(adaptive_step_size ${LP_SOLVE})
 
 endif()
