@@ -119,7 +119,6 @@ struct LeapfrogODESolver {
 
             // Reflect velocity
             Ks[x_index]->compute_reflection(xs[v_index], xs[x_index], pbpair.second);
-            xs[v_index] = (1 - dl * pbpair.first) * xs[v_index];
           }
           else {
             xs[x_index] = xs_prev[x_index] + y;

@@ -46,9 +46,9 @@ void run_main() {
     typedef typename HPolytope<Point>::VT VT;
 
     RandomNumberGenerator rng(1);
-    unsigned int dim = 1000;
+    unsigned int dim = 50;
 
-    Hpolytope P = generate_simplex<Hpolytope>(dim, false);
+    Hpolytope P = generate_cube<Hpolytope>(dim, false);
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
 
     Point x0 = inner_ball.first;
@@ -57,7 +57,7 @@ void run_main() {
     GaussianFunctor::parameters<NT, Point> params(x0, 2 / (r * r), NT(-1));
     GaussianRDHRWalk::Walk<Hpolytope, RandomNumberGenerator> walk(P, x0, params.L, rng);
     int n_warmstart_samples = 0;
-    unsigned int walk_length = 200;
+    unsigned int walk_length = 100;
 
     for (int i = 0; i < n_warmstart_samples; i++) {
         walk.apply(P, x0, params.L, walk_length, rng);
