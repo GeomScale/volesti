@@ -46,9 +46,9 @@ void run_main() {
     typedef typename HPolytope<Point>::VT VT;
 
     RandomNumberGenerator rng(1);
-    unsigned int dim = 50;
+    unsigned int dim = 100;
 
-    Hpolytope P = generate_cube<Hpolytope>(dim, false);
+    Hpolytope P = generate_simplex<Hpolytope>(dim, false);
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
 
     Point x0 = inner_ball.first;

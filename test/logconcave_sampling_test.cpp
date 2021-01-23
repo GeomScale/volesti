@@ -842,21 +842,21 @@ void call_test_benchmark_standard_polytopes_param_search() {
     std::cout << " --- Benchmarking standard polytopes " << std::endl;
 
     std::vector<SimulationStats<NT>> results;
-    //
-    // std::vector<std::pair<Hpolytope, std::string>> polytopes{
-    //     std::make_pair(generate_cube<Hpolytope>(100, false), "100_cube"),
-    //     std::make_pair(generate_simplex<Hpolytope>(100, false), "100_simplex"),
-    //     std::make_pair(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex"),
-    //     std::make_pair(generate_birkhoff<Hpolytope>(10), "10_birkhoff"),
-    //     std::make_pair(generate_cross<Hpolytope>(10, false), "10_cross"),
-    //
+
+    //std::vector<std::pair<Hpolytope, std::string>> polytopes{
+    //    std::make_pair(generate_cross<Hpolytope>(10, false), "10_cross"),
+    //    std::make_pair(generate_simplex<Hpolytope>(100, false), "100_simplex"),
+    //    std::make_pair(generate_cube<Hpolytope>(100, false), "100_cube"),
+    //    std::make_pair(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex"),
+    //    std::make_pair(generate_birkhoff<Hpolytope>(10), "10_birkhoff"),
+
     // };
 
-
+    
     std::vector<std::pair<Hpolytope, std::string>> polytopes{
-        // std::make_pair(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283"),
-        // std::make_pair(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636"),
-        std::make_pair(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli")
+    //     std::make_pair(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283"),
+         std::make_pair(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636"),
+    //     std::make_pair(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli")
     };
 
 
@@ -871,7 +871,7 @@ void call_test_benchmark_standard_polytopes_param_search() {
         name = polytope_pair.second;
         outfile.open("results_" + name + "_new.txt");
         inner_ball = P.ComputeInnerBall();
-        step_size = inner_ball.second / 10;
+        step_size = inner_ball.second / 50;
         for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
             results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, true);
             outfile << results[0];
