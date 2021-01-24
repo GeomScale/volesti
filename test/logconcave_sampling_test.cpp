@@ -18,6 +18,7 @@
 #include <fstream>
 #include <thread>
 #include <atomic>
+#include <tuple>
 
 #include "doctest.h"
 #include "Eigen/Eigen"
@@ -843,22 +844,16 @@ void call_test_benchmark_standard_polytopes_param_search() {
 
     std::vector<SimulationStats<NT>> results;
 
-    //std::vector<std::pair<Hpolytope, std::string>> polytopes{
-    //    std::make_pair(generate_cross<Hpolytope>(10, false), "10_cross"),
-    //    std::make_pair(generate_simplex<Hpolytope>(100, false), "100_simplex"),
-    //    std::make_pair(generate_cube<Hpolytope>(100, false), "100_cube"),
-    //    std::make_pair(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex"),
-    //    std::make_pair(generate_birkhoff<Hpolytope>(10), "10_birkhoff"),
-
-    // };
-
-    
-    std::vector<std::pair<Hpolytope, std::string>> polytopes{
-    //     std::make_pair(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283"),
-         std::make_pair(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636"),
-    //     std::make_pair(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli")
+    std::vector<std::tuple<Hpolytope, std::string, bool>> polytopes{
+       // std::make_tuple(generate_cross<Hpolytope>(10, false), "10_cross", false),
+       // std::make_tuple(generate_simplex<Hpolytope>(100, false), "100_simplex", false),
+       // std::make_tuple(generate_cube<Hpolytope>(100, false), "100_cube", false),
+       // std::make_tuple(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex", false),
+       // std::make_tuple(generate_birkhoff<Hpolytope>(10), "10_birkhoff", false),
+       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283", true),
+       // std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636", true),
+       // std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true)
     };
-
 
     Hpolytope P;
     std::string name;
@@ -866,14 +861,14 @@ void call_test_benchmark_standard_polytopes_param_search() {
     NT step_size = 0;
     std::pair<Point, NT> inner_ball;
 
-    for (std::pair<Hpolytope, std::string> polytope_pair : polytopes) {
-        P = polytope_pair.first;
-        name = polytope_pair.second;
+    for (std::tuple<Hpolytope, std::string, bool> polytope_tuple : polytopes) {
+        P = std::get<0>(polytope_tuple);
+        name = std::get<1>(polytope_tuple);
         outfile.open("results_" + name + "_new.txt");
         inner_ball = P.ComputeInnerBall();
         step_size = inner_ball.second / 50;
         for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
-            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, true);
+            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, std::get<2>(polytope_tuple));
             outfile << results[0];
             outfile << results[1];
         }

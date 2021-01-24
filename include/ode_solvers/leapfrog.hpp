@@ -11,6 +11,8 @@
 #ifndef LEAPFROG_HPP
 #define LEAPFROG_HPP
 
+
+
 template <
 typename Point,
 typename NT,
@@ -19,7 +21,22 @@ typename func
 >
 struct LeapfrogODESolver {
 
+  struct update_parameters
+{
+        update_parameters()
+                :   facet_prev(0), hit_ball(false), inner_vi_ak(0.0), ball_inner_norm(0.0)
+        {}
+        int facet_prev;
+        bool hit_ball;
+        double inner_vi_ak;
+        double ball_inner_norm;
+};
+
+  update_parameters _update_parameters;
+
   typedef std::vector<Point> pts;
+
+  typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
   typedef std::vector<Polytope*> bounds;
   typedef typename Polytope::VT VT;
@@ -32,7 +49,7 @@ struct LeapfrogODESolver {
   NT eta;
   NT eta0;
   NT t;
-  NT dl = 0.95;
+  NT dl = 0.995;
 
   func F;
   bounds Ks;
@@ -40,6 +57,8 @@ struct LeapfrogODESolver {
   // Contains the sub-states
   pts xs;
   pts xs_prev;
+
+  MT _AA;
 
   std::pair<NT, int> pbpair;
 
@@ -51,21 +70,26 @@ struct LeapfrogODESolver {
   LeapfrogODESolver(NT initial_time, NT step, pts initial_state, func oracle, bounds boundaries, bool adaptive_=true) :
   eta(step), eta0(step), t(initial_time), F(oracle), Ks(boundaries), xs(initial_state), adaptive(adaptive_) {
     dim = xs[0].dimension();
+    _update_parameters = update_parameters();
     initialize();
   };
+
+
 
   void initialize() {
       for (unsigned int i = 0; i < xs.size(); i++) {
           VT ar, av;
           if (Ks[i] != NULL) {
               ar.setZero(Ks[i]->num_of_hyperplanes());
+              ar = Ks[i]->get_mat() * xs[i].getCoefficients();
               av.setZero(Ks[i]->num_of_hyperplanes());
+              _AA.noalias() = Ks[i]->get_mat() * Ks[i]->get_mat().transpose();
           }
           Ar.push_back(ar);
           Av.push_back(av);
           lambda_prev.push_back(NT(0));
       }
-      step();
+      //step();
   }
 
   void disable_adaptive() {
@@ -76,7 +100,11 @@ struct LeapfrogODESolver {
       adaptive = true;
   }
 
-  void step() {
+  void initialize_step(){
+
+  }
+
+  void step(int k, bool accepted) {
     num_steps++;
 
     if (adaptive) eta = (eta0 * num_steps) / (num_steps + num_reflections);
@@ -85,7 +113,7 @@ struct LeapfrogODESolver {
     unsigned int x_index, v_index, it;
     t += eta;
     for (unsigned int i = 1; i < xs.size(); i += 2) {
-        pbpair.second  = -1;
+        //pbpair.second  = -1;
       x_index = i - 1;
       v_index = i;
 
@@ -96,35 +124,52 @@ struct LeapfrogODESolver {
 
       // x <- x + eta v'
       Point y = xs[v_index];
-      y = (eta) * y;
 
       if (Ks[x_index] == NULL) {
-        xs[x_index] = xs_prev[x_index] + y;
+        xs[x_index] = xs_prev[x_index] + eta*y;
       }
       else {
         // Find intersection (assuming a line trajectory) between x and y
-        unsigned int it = 0;
-        do {
-          pbpair = Ks[x_index]->line_positive_intersect(xs_prev[x_index], y, Ar[x_index], Av[x_index]);
+        bool step_completed = false;
+        NT T = eta;
+        if (k == 0 && !accepted) {
+          Ar[x_index] = Ks[x_index]->get_mat() * xs_prev[x_index].getCoefficients();
+          lambda_prev[x_index] = 0.0;
+        }
 
-          if (pbpair.first >= 0 && pbpair.first <= 1) {
-            num_reflections++;
+        pbpair =  Ks[x_index]->line_positive_intersect(xs_prev[x_index], y, Ar[x_index], Av[x_index],
+                                                       lambda_prev[x_index], _update_parameters);
+        if (T <= pbpair.first) {
+          xs[x_index] = xs_prev[x_index] + T * y;
+          xs[v_index] = y;
+          lambda_prev[x_index] = T;
+          step_completed = true;
+        }
 
-            xs_prev[x_index] += (pbpair.first * dl) * y;
+        if (!step_completed) {
+          lambda_prev[x_index] = dl * pbpair.first;
+          xs_prev[x_index] = xs_prev[x_index] + lambda_prev[x_index] * y;
+          T -= lambda_prev[x_index];
+          Ks[x_index]->compute_reflection(y, xs_prev[x_index], _update_parameters);
+          num_reflections++;
+
+          while (true)
+          {
+            pbpair =  Ks[x_index]->line_positive_intersect(xs_prev[x_index], y, Ar[x_index], Av[x_index],
+                                                           lambda_prev[x_index], _AA, _update_parameters);
+            if (T <= pbpair.first) {
+              xs[x_index] = xs_prev[x_index] + T * y;
+              xs[v_index] = y;
+              lambda_prev[x_index] = T;
+              break;
+            }
             lambda_prev[x_index] = dl * pbpair.first;
-            Ks[x_index]->compute_reflection(y, xs_prev[x_index], pbpair.second);
-
-            y = (1 - dl * pbpair.first) * y;
-            xs[x_index] = xs_prev[x_index] + y;
-
-            // Reflect velocity
-            Ks[x_index]->compute_reflection(xs[v_index], xs[x_index], pbpair.second);
+            xs_prev[x_index] = xs_prev[x_index] + lambda_prev[x_index] * y;
+            T -= lambda_prev[x_index];
+            Ks[x_index]->compute_reflection(y, xs_prev[x_index], _update_parameters);
+            num_reflections++;
           }
-          else {
-            xs[x_index] = xs_prev[x_index] + y;
-            break;
-          }
-      } while (!Ks[x_index]->is_in(xs[x_index]));
+        }
       }
 
       // tilde v <- v + eta / 2 F(tilde x)
@@ -145,8 +190,8 @@ struct LeapfrogODESolver {
     std::cout << std::endl;
   }
 
-  void steps(int num_steps) {
-    for (int i = 0; i < num_steps; i++) step();
+  void steps(int num_steps, bool accepted) {
+    for (int i = 0; i < num_steps; i++) step(i, accepted);
   }
 
   Point get_state(int index) {
