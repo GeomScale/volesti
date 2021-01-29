@@ -67,7 +67,7 @@ void run_main(){
     int n_steps = 1000;
 
     for (int i = 0; i < n_steps; i++) {
-      leapfrog_solver.step();
+      leapfrog_solver.step(i, true);
       leapfrog_solver.print_state();
     }
 

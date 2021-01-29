@@ -48,7 +48,7 @@ void run_main() {
     RandomNumberGenerator rng(1);
     unsigned int dim = 100;
 
-    Hpolytope P = generate_simplex<Hpolytope>(dim, false);
+    Hpolytope P = generate_cube<Hpolytope>(dim, false);
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
 
     Point x0 = inner_ball.first;
@@ -57,7 +57,7 @@ void run_main() {
     GaussianFunctor::parameters<NT, Point> params(x0, 2 / (r * r), NT(-1));
     GaussianRDHRWalk::Walk<Hpolytope, RandomNumberGenerator> walk(P, x0, params.L, rng);
     int n_warmstart_samples = 0;
-    unsigned int walk_length = 100;
+    unsigned int walk_length = 300;
 
     for (int i = 0; i < n_warmstart_samples; i++) {
         walk.apply(P, x0, params.L, walk_length, rng);
@@ -74,8 +74,8 @@ void run_main() {
     <Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
     hmc(&P, x0, F, f, hmc_params);
 
-    int max_actual_draws = 80000;
-    int n_burns = 20000;
+    int max_actual_draws = 40000;
+    int n_burns = 5000;
     unsigned int min_ess;
 
     MT samples;
@@ -83,7 +83,7 @@ void run_main() {
 
     hmc.solver->eta0 = inner_ball.second / 10;
 
-    for (int i = 0; i < max_actual_draws; i++) {
+    for (int i = 0; i < n_burns; i++) {
         if (i % 1000 == 0) std::cerr << ".";
         hmc.apply(rng, walk_length);
     }
@@ -96,7 +96,7 @@ void run_main() {
         hmc.apply(rng, walk_length);
         if (i >= n_burns) {
             samples.col(i - n_burns) = hmc.x.getCoefficients();
-            std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+            // std::cout << hmc.x.getCoefficients().transpose() << std::endl;
         }
     }
     auto stop = std::chrono::high_resolution_clock::now();
@@ -115,6 +115,7 @@ void run_main() {
     std::cerr << "Step size (final): " << hmc.solver->eta << std::endl;
     std::cerr << "Discard Ratio: " << hmc.discard_ratio << std::endl;
     std::cerr << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
+    std::cerr << "Min ESS" << min_ess << std::endl;
 
 }
 

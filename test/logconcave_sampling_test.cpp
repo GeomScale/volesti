@@ -710,149 +710,27 @@ void call_test_benchmark_hmc(bool truncated) {
 }
 
 template <typename NT>
-void call_test_benchmark_netlib(bool small=true, bool medium=false, bool large=false) {
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef HPolytope<Point> Hpolytope;
-
-    Hpolytope P;
-
-    std::cout << " --- Benchmarking netlib polytopes " << std::endl;
-
-    if (small) {
-        // std::cout << " - afiro" << std::endl;
-        // P = read_polytope<Hpolytope, NT>("./netlib_full_dim/polytope_afiro.ine");
-        // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
-
-        // std::cout << " - degen2" << std::endl;
-        // P = read_polytope<Hpolytope, NT>("./netlib_full_dim/degen2.ine");
-        // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, false);
-        //
-        // std::cout << " - beaconfd" << std::endl;
-        // P = read_polytope<Hpolytope, NT>("./netlib_full_dim/beaconfd.ine");
-        // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, false);
-
-        // std::cout << " - scorpion" << std::endl;
-        // P = read_polytope<Hpolytope, NT>("./netlib_full_dim/scorpion.ine");
-        // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.3, 3, false);
-
-        std::cout << " - blend" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib_polytopes/polytope_blend.ine");
-        benchmark_polytope_sampling<NT, Hpolytope>(P, 0.3, 3, true);
-        //
-        // std::cout << " - etamacro" << std::endl;
-        // P = read_polytope<Hpolytope, NT>("./netlib_full_dim/polytope_etamacro.ine");
-        // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.003, 3, false);
-
-    }
-
-    if (medium) {
-        std::cout << " - degen3" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib_full_dim/polytope_degen3.ine");
-
-        std::cout << " - 25fv47" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib_full_dim/polytope_25fv47.ine");
-
-        std::cout << " - sierra" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib_full_dim/polytope_sierra.ine");
-    }
-
-    if (large) {
-        std::cout << " - truss" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib_full_dim/polytope_truss.ine");
-
-        std::cout << " - 80bau3b" << std::endl;
-        P = read_polytope<Hpolytope, NT>("./netlib_full_dim/polytope_80bau3b.ine");
-    }
-}
-
-
-template <typename NT>
-void call_test_benchmark_metabolic(bool small=true, bool medium=false, bool large=false) {
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef HPolytope<Point> Hpolytope;
-    typedef typename HPolytope<Point>::MT MT;
-    typedef typename HPolytope<Point>::VT VT;
-
-    Hpolytope P;
-
-    std::cout << " --- Benchmarking metabolic polytopes " << std::endl;
-    //
-    // std::cout << " - Recon-1" << std::endl;
-    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_recon1.ine");
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 1, false, true, true);
-
-    // std::cout << " - iAB-RBC-283" << std::endl;
-    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine");
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
-    //
-    // std::cout << " - iAT-PLT-636" << std::endl;
-    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine");
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
-    //
-    // std::cout << " - iSDY-1059" << std::endl;
-    // P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iSDY_1059.ine");
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3, true);
-
-}
-
-template <typename NT>
-void call_test_benchmark_standard_polytopes() {
-    typedef Cartesian<NT>    Kernel;
-    typedef typename Kernel::Point    Point;
-    typedef HPolytope<Point> Hpolytope;
-
-    Hpolytope P;
-
-    std::cout << " --- Benchmarking standard polytopes " << std::endl;
-
-    // std::cout << " - 10-H-Cube" << std::endl;
-    // P = generate_cube<Hpolytope>(10, false);
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 2.0, 8 * pow(P.dimension(), 1));
-    //
-    // std::cout << " - 100-H-Cube" << std::endl;
-    // P = generate_cube<Hpolytope>(100, false);
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
-    //
-    // std::cout << " - 10-Birkhoff" << std::endl;
-    // P = generate_birkhoff<Hpolytope>(10);
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
-    //
-    // std::cout << " - 10-Cross" << std::endl;
-    // P = generate_cross<Hpolytope>(10, false);
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.7, 8 * pow(P.dimension(), 1));
-    //
-    // std::cout << " - 200-Simplex " << std::endl;
-    // P = generate_simplex<Hpolytope>(200, false);
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 8 * pow(P.dimension(), 1), false);
-
-    // std::cout << " - 1000-H-Cube" << std::endl;
-    // P = generate_cube<Hpolytope>(1000, false);
-    // benchmark_polytope_sampling<NT, Hpolytope>(P, 0.03, 3);
-
-}
-
-template <typename NT>
-void call_test_benchmark_standard_polytopes_param_search() {
+void call_test_benchmark_polytopes_grid_search() {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
     typedef boost::mt19937 RNGType;
 
-    std::cout << " --- Benchmarking standard polytopes " << std::endl;
+    std::cout << " --- Grid search on polytopes " << std::endl;
 
     std::vector<SimulationStats<NT>> results;
 
     std::vector<std::tuple<Hpolytope, std::string, bool>> polytopes{
-       // std::make_tuple(generate_cross<Hpolytope>(10, false), "10_cross", false),
-       // std::make_tuple(generate_simplex<Hpolytope>(100, false), "100_simplex", false),
-       // std::make_tuple(generate_cube<Hpolytope>(100, false), "100_cube", false),
-       // std::make_tuple(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex", false),
-       // std::make_tuple(generate_birkhoff<Hpolytope>(10), "10_birkhoff", false),
+       std::make_tuple(generate_skinny_cube<Hpolytope>(100, false), "100_skinny_cube", false),
+       std::make_tuple(generate_cross<Hpolytope>(10, false), "10_cross", false),
+       std::make_tuple(generate_simplex<Hpolytope>(100, false), "100_simplex", false),
+       std::make_tuple(generate_cube<Hpolytope>(100, false), "100_cube", false),
+       std::make_tuple(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex", false),
+       std::make_tuple(generate_birkhoff<Hpolytope>(10), "10_birkhoff", false),
        std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283", true),
-       // std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636", true),
-       // std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true)
+       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_recon2.ine"), "recon2", true)
     };
 
     Hpolytope P;
@@ -864,11 +742,13 @@ void call_test_benchmark_standard_polytopes_param_search() {
     for (std::tuple<Hpolytope, std::string, bool> polytope_tuple : polytopes) {
         P = std::get<0>(polytope_tuple);
         name = std::get<1>(polytope_tuple);
+        std::cout << name << std::endl;
         outfile.open("results_" + name + "_new.txt");
+        P.normalize();
         inner_ball = P.ComputeInnerBall();
-        step_size = inner_ball.second / 50;
-        for (unsigned int walk_length = 1; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
-            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, std::get<2>(polytope_tuple));
+        step_size = inner_ball.second / 10;
+        for (unsigned int walk_length = 500; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
+            results = benchmark_polytope_sampling<NT, Hpolytope>(P, step_size, walk_length, false, std::get<2>(polytope_tuple), false);
             outfile << results[0];
             outfile << results[1];
         }
@@ -911,18 +791,6 @@ TEST_CASE("benchmark_hmc_truncated") {
     call_test_benchmark_hmc<double>(true);
 }
 
-TEST_CASE("benchmark_netlib") {
-    call_test_benchmark_netlib<double>(true, false, false);
-}
-
-TEST_CASE("benchmark_metabolic") {
-    call_test_benchmark_metabolic<double>();
-}
-
-TEST_CASE("benchmark_standard_polytopes") {
-    call_test_benchmark_standard_polytopes<double>();
-}
-
-TEST_CASE("benchmark_standard_polytopes_param_search") {
-    call_test_benchmark_standard_polytopes_param_search<double>();
+TEST_CASE("benchmark_polytopes_grid_search") {
+    call_test_benchmark_polytopes_grid_search<double>();
 }
