@@ -64,7 +64,7 @@ std::tuple<MT, VT, NT> min_sampling_covering_ellipsoid_rounding(Polytope &P,
         }
 
         // Store points in a matrix to call Khachiyan algorithm for the minimum volume enclosing ellipsoid
-        boost::numeric::ublas::matrix<double> Ap(d, randPoints.size());
+        MT Ap(d, randPoints.size());
         typename std::list<Point>::iterator rpit=randPoints.begin();
 
         j = 0;
@@ -73,8 +73,8 @@ std::tuple<MT, VT, NT> min_sampling_covering_ellipsoid_rounding(Polytope &P,
                 Ap(i,j)=double((*rpit)[i]);
             }
         }
-        boost::numeric::ublas::matrix<double> Q(d,d); //TODO: remove dependence on ublas and copy to eigen
-        boost::numeric::ublas::vector<double> c2(d);
+        MT Q(d,d); //TODO: remove dependence on ublas and copy to eigen
+        VT c2(d);
         size_t w=1000;
         KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 

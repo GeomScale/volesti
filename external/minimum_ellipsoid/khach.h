@@ -22,15 +22,8 @@
 #define KHACH_H
 
 #include <set>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-
 #include <iostream>
-#include <boost/numeric/ublas/io.hpp>
+#include <Eigen/Eigen>
 
 //#include "khach1.h"
 //#include "mcpoint1.h"
@@ -42,34 +35,38 @@
 
 //namespace Minim {
 
-  namespace ublas=boost::numeric::ublas;
+  template <class NT>
+  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+
+  template <class NT>
+  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 
   struct KhachiyanEllipsoid
   {
-      ublas::matrix<double> Q;
-      ublas::vector<double> c;
+      Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> Q;
+      Eigen::Matrix<double, Eigen::Dynamic, 1>              c;
   };
 
-  template<class T>
-  bool InvertMatrix(const ublas::matrix<T> &input,
-                    ublas::matrix<T> &inverse)
+  template<typename Derived>
+  inline bool is_nan(const Eigen::MatrixBase<Derived>& x)
   {
-    using namespace boost::numeric::ublas;
-    typedef permutation_matrix<std::size_t> pmatrix;
-    matrix<T> A(input);
-    pmatrix pm(A.size1());
-    int res = lu_factorize(A,pm);
-    if( res != 0 ) return false;
-    inverse.assign(ublas::identity_matrix<T>(A.size1()));
-    lu_substitute(A, pm, inverse);
-    return true;
+  return ((x.array() == x.array())).all();
+  }
+
+  template<class T>
+  bool InvertMatrix(const MT<T> &input,
+                    MT<T> &inverse)
+  {
+    inverse = input.inverse();
+    return !is_nan(inverse);
+    // return true;
   }
 
 
-  inline void InvertLP(const ublas::matrix<double> &Lambdap,
-                ublas::matrix<double> &LpInv)
+  inline void InvertLP(const MT<double> &Lambdap,
+                MT<double> &LpInv)
   {
-    bool res=InvertMatrix(Lambdap, LpInv);
+    bool res = InvertMatrix(Lambdap, LpInv);
     if (not res)
     {
      // throw an error of your choice here!
@@ -78,61 +75,51 @@
     }
   }
 
-  inline void Lift(const ublas::matrix<double> &A,
-            ublas::matrix<double> &Ap)
+  inline void Lift(const MT<double> &A, MT<double> &Ap)
   {
-    Ap.resize(A.size1()+1,
-              A.size2());
-    ublas::matrix_range<ublas::matrix<double> >
-      sub(Ap,
-          ublas::range(0, A.size1()),
-          ublas::range(0, A.size2()));
-    sub.assign(A);
-    ublas::row(Ap, Ap.size1()-1)=ublas::scalar_vector<double>(A.size2(),1.0);
-
+    Ap.resize(A.rows()+1, A.cols());
+    Ap.topLeftCorner(A.rows(), A.cols()) = A;
+    Ap.row(Ap.rows()-1).setConstant(1.0); 
   }
 
-  inline void genDiag(const ublas::vector<double> &p,
-               ublas::matrix<double> &res)
+  inline void genDiag(const VT<double> &p, MT<double> &res)
   {
-    res.assign(ublas::zero_matrix<double>(p.size(),
-                                          p.size()));
-    for(size_t i=0; i<p.size(); ++i)
+    res.setZero();
+
+    for(size_t i=0; i<p.rows(); ++i)
     {
       res(i,i)=p(i);
     }
   }
 
-  inline void KaLambda(const ublas::matrix<double> &Ap,
-                const ublas::vector<double> &p,
-                ublas::matrix<double> &Lambdap)
+  inline void KaLambda(const MT<double> &Ap,
+                const VT<double> &p,
+                MT<double> &Lambdap)
   {
 
-    ublas::matrix<double> dp(p.size(), p.size());
+    MT<double> dp(p.size(), p.size());
     genDiag(p, dp);
 
-    dp=ublas::prod(dp, ublas::trans(Ap));
-    Lambdap=ublas::prod(Ap,
-                        dp);
+    dp = dp * Ap.transpose();
+    Lambdap.noalias() = Ap * dp;
   }
 
-  inline double KhachiyanIter(const ublas::matrix<double> &Ap,
-                       ublas::vector<double> &p)
+  inline double KhachiyanIter(const MT<double> &Ap, VT<double> &p)
   {
     /// Dimensionality of the problem
-    const size_t d=Ap.size1()-1;
+    const size_t d = Ap.rows()-1;
 
-    ublas::matrix<double> Lp;
-    ublas::matrix<double> M;
+    MT<double> Lp;
+    MT<double> M;
     KaLambda(Ap, p, Lp);
-    ublas::matrix<double> ILp(Lp.size1(), Lp.size2());
+    MT<double> ILp(Lp.rows(), Lp.cols());
     InvertLP(Lp, ILp);
-    M=ublas::prod(ILp, Ap);
-    M=ublas::prod(ublas::trans(Ap), M);
+    M.noalias() = ILp * Ap;
+    M = Ap.transpose() * M;
 
     double maxval=0;
     size_t maxi=0;
-    for(size_t i=0; i<M.size1(); ++i)
+    for(size_t i=0; i<M.rows(); ++i)
     {
       if (M(i,i) > maxval)
       {
@@ -141,49 +128,51 @@
       }
     }
     const double step_size=(maxval -d - 1)/((d+1)*(maxval-1));
-    ublas::vector<double> newp=p*(1-step_size);
+    VT<double> newp = p*(1-step_size);
     newp(maxi) += step_size;
 
-    const double err= ublas::norm_2(newp-p);
-    p=newp;
+    const double err= (newp-p).norm();
+    p = newp;
     return err;
 
   }
 
-  inline void KaInvertDual(const ublas::matrix<double> &A,
-                    const ublas::vector<double> &p,
-                    ublas::matrix<double> &Q,
-                    ublas::vector<double> &c
-                    )
+  inline void KaInvertDual(const MT<double> &A, 
+                      const VT<double> &p, 
+                      MT<double> &Q, 
+                      VT<double> &c)
   {
-    const size_t d=A.size1();
-    ublas::matrix<double> dp(p.size(), p.size());
+    const size_t d = A.rows();
+    MT<double> dp(p.size(), p.size());
     genDiag(p, dp);
 
-    ublas::matrix<double> PN=ublas::prod(dp, ublas::trans(A));
-    PN=ublas::prod(A, PN);
+    MT<double> PN;
+    PN.noalias() = dp * A.transpose();
+    PN = A * PN;
 
-    ublas::vector<double> M2=ublas::prod(A, p);
-    ublas::matrix<double> M3=ublas::outer_prod(M2, M2);
+    MT<double> M2;
+    M2.noalias() = A * p;
+    
+    MT<double> M3;
+    M3.noalias() = M2 * M2;
 
-    ublas::matrix<double> invert(PN.size1(), PN.size2());
+    MT<double> invert(PN.rows(), PN.cols());
     InvertLP(PN- M3, invert);
-
-    Q.assign( 1.0/d *invert);
-    c=ublas::prod(A, p);
-
+    Q = 1.0/d * invert;
+    c.noalias() = A * p;
 
   }
 
-  inline double KhachiyanAlgo(const ublas::matrix<double> &A,
+  inline double KhachiyanAlgo(const MT<double> &A,
                        double eps,
                        size_t maxiter,
-                       ublas::matrix<double> &Q,
-                       ublas::vector<double> &c)
+                       MT<double> &Q,
+                       VT<double> &c)
   {
-    ublas::vector<double> p=ublas::scalar_vector<double>(A.size2(), 1.0)*(1.0/A.size2());
+    VT<double> p(A.cols());
+    p.setConstant(1.0/A.cols());
 
-    ublas::matrix<double> Ap;
+    MT<double> Ap;
     Lift(A, Ap);
 
     double ceps=eps*2;
@@ -205,8 +194,7 @@
                        KhachiyanEllipsoid &res)
   {
     const size_t d=ss.begin()->p.size();
-    ublas::matrix<double> A(d,
-                            ss.size());
+    MT<double> A(d, ss.size());
 
     size_t j=0;
     for (std::set<MCPoint>::const_iterator i=ss.begin();
@@ -218,8 +206,8 @@
       ++j;
     }
 
-    ublas::matrix<double> Q(d,d);
-    ublas::vector<double> c(d);
+    MT<double> Q(d,d);
+    VT<double> c(d);
 
     const double ceps=KhachiyanAlgo(A, eps, maxiter,
                                     Q, c);
