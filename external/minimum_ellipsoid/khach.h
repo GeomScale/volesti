@@ -57,9 +57,9 @@
   bool InvertMatrix(const MT<T> &input,
                     MT<T> &inverse)
   {
+    inverse.setIdentity(input.rows(), input.cols());
     inverse = input.inverse();
     return !is_nan(inverse);
-    // return true;
   }
 
 
@@ -86,7 +86,7 @@
   {
     res.setZero();
 
-    for(size_t i=0; i<p.rows(); ++i)
+    for(size_t i=0; i<p.size(); ++i)
     {
       res(i,i)=p(i);
     }
@@ -154,7 +154,7 @@
     M2.noalias() = A * p;
     
     MT<double> M3;
-    M3.noalias() = M2 * M2;
+    M3.noalias() = M2 * M2.transpose();
 
     MT<double> invert(PN.rows(), PN.cols());
     InvertLP(PN- M3, invert);
