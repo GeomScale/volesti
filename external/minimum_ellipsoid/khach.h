@@ -57,7 +57,6 @@
   bool InvertMatrix(const MT<T> &input,
                     MT<T> &inverse)
   {
-    inverse.setIdentity(input.rows(), input.cols());
     inverse = input.inverse();
     return !is_nan(inverse);
   }
@@ -84,7 +83,7 @@
 
   inline void genDiag(const VT<double> &p, MT<double> &res)
   {
-    res.setZero();
+    res.setZero(p.size(), p.size());
 
     for(size_t i=0; i<p.size(); ++i)
     {
@@ -150,7 +149,7 @@
     PN.noalias() = dp * A.transpose();
     PN = A * PN;
 
-    MT<double> M2;
+    VT<double> M2;
     M2.noalias() = A * p;
     
     MT<double> M3;
@@ -158,7 +157,7 @@
 
     MT<double> invert(PN.rows(), PN.cols());
     InvertLP(PN- M3, invert);
-    Q = 1.0/d * invert;
+    Q.noalias() = (invert/d);
     c.noalias() = A * p;
 
   }
