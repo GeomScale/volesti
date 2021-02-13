@@ -1,11 +1,11 @@
 ##############################################################################
 # GitHub Actions Workflow for volesti to build tests with GCC
 #
-# Copyright (c) 2020 Vissarion Fisikopoulos
+# Copyright (c) 2020-2021 Vissarion Fisikopoulos
 #
 # Licensed under GNU LGPL.3, see LICENCE file
 ##############################################################################
-name: clang-test
+name: cmake-clang
 
 on: [push, pull_request]
 
@@ -15,12 +15,12 @@ jobs:
     strategy:
           fail-fast: false
           matrix:
-            compilers: [clang++-6.0, clang++-7, clang++-8, clang++-9]
+            compilers: [clang++-6.0, clang++-7, clang++-8, clang++-9, clang++-10]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - run: sudo apt-get update || true;
-             sudo apt-get install clang-6.0 clang-7 clang-8 clang-9 lp-solve;
+             sudo apt-get install clang-6.0 clang-7 clang-8 clang-9 clang-10 lp-solve;
              rm -rf build;
              mkdir build;
              cd build;
