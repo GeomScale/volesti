@@ -45,10 +45,9 @@
 version: 2
 jobs:
   build:
-    docker: # See https://docs.docker.com/get-started/#docker-concepts if you are new to Docker.
-    #    - image: circleci/ruby:2.4.1-jessie
-        - image: circleci/ruby:2.6-rc
-    parallelism: 4
+    machine:
+      image: ubuntu-2004:202010-01 # recommended linux image
+    resource_class: medium
     steps:
        - checkout
        - run:
