@@ -1,4 +1,12 @@
-name: gcc-test-SDP
+##############################################################################
+# GitHub Actions Workflow for volesti to build SDP tests with GCC
+#
+# Copyright (c) 2020 Vissarion Fisikopoulos
+#
+# Licensed under GNU LGPL.3, see LICENCE file
+##############################################################################
+
+name: cmake-gcc-SDP
 
 on: [push, pull_request]
 
