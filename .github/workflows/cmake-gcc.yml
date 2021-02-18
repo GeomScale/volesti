@@ -1,11 +1,11 @@
 ##############################################################################
 # GitHub Actions Workflow for volesti to build tests with GCC
 #
-# Copyright (c) 2020 Vissarion Fisikopoulos
+# Copyright (c) 2020-2021 Vissarion Fisikopoulos
 #
 # Licensed under GNU LGPL.3, see LICENCE file
 ##############################################################################
-name: gcc-test
+name: cmake-gcc
 
 on: [push, pull_request]
 
@@ -15,7 +15,7 @@ jobs:
     strategy:
           fail-fast: false
           matrix:
-            compilers: [g++-4.8, g++-5, g++-6, g++-7, g++-8, g++-9]
+            compilers: [g++-4.8, g++-5, g++-6, g++-7, g++-8, g++-9, g++-10]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -26,3 +26,4 @@ jobs:
              cd build;
              cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} -D DISABLE_NLP_ORACLES=ON ../test;
              make;
+             ctest --verbose;

@@ -20,7 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macOS-latest,   r: 'devel'}
+          - {os: macOS-latest,   r: '3.6'}
+#          - {os: macOS-latest,   r: 'devel'} # Error in library(devtools) : there is no package called ‘devtools’
           - {os: macOS-latest,   r: 'release'}
 
     env:
@@ -46,7 +47,7 @@ jobs:
         run: cd cran_gen/;
              Rscript genCRANpkg.R;
              cd cran_package;
-             Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual', '--as-cran'), error_on = 'warning', check_dir = 'check')"
+             Rscript -e "library(rcmdcheck)" -e "rcmdcheck::rcmdcheck(args = c('--no-manual'), error_on = 'warning', check_dir = 'check')"
 
       - name: Upload check results
         if: failure()
