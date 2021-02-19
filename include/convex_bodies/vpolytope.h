@@ -349,7 +349,7 @@ public:
             center = get_mean_of_vertices();
         } else {
 
-            boost::numeric::ublas::matrix<double> Ap(_d,randPoints.size());
+            MT Ap(_d,randPoints.size());
             typename std::list<Point>::iterator rpit=randPoints.begin();
 
             unsigned int i, j = 0;
@@ -361,9 +361,10 @@ public:
                     point_data++;
                 }
             }
-            boost::numeric::ublas::matrix<double> Q(_d, _d);
-            boost::numeric::ublas::vector<double> c2(_d);
+            MT Q(_d, _d);
+            VT c2(_d);
             size_t w=1000;
+            
             KhachiyanAlgo(Ap,0.01,w,Q,c2); // call Khachiyan algorithm
 
             //Get ellipsoid matrix and center as Eigen objects
