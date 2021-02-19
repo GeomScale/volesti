@@ -7,7 +7,7 @@ project( VolEsti )
 
 enable_testing()
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
@@ -59,6 +59,9 @@ endif(COMMAND cmake_policy)
 #  message(STATUS "BOOST is DEFINED")
 #endif()
 
+include("Eigen.cmake")
+GetEigen()
+
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
 
 if (NOT LP_SOLVE)
@@ -70,7 +73,6 @@ else ()
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-  include_directories (BEFORE ../external/Eigen)
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
   #include_directories (BEFORE ../include/cartesian_geom)
