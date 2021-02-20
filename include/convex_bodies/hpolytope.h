@@ -16,11 +16,14 @@
 #include <iostream>
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
-#include "lp_oracles/solve_lp.h"
+#ifndef VOLESTIPY
+    #include "lp_oracles/solve_lp.h"
+#endif
+
 
 
 // check if an Eigen vector contains NaN or infinite values
-/*template <typename VT>
+template <typename VT>
 bool is_inner_point_nan_inf(VT const& p)
 {
     typedef Eigen::Array<bool, Eigen::Dynamic, 1> VTint;
@@ -30,7 +33,7 @@ bool is_inner_point_nan_inf(VT const& p)
             return true;
         }
     }
-}*/
+}
 
 //min and max values for the Hit and Run functions
 // H-polytope class
@@ -97,26 +100,29 @@ public:
     //Use LpSolve library
     std::pair<Point, NT> ComputeInnerBall()
     {
-        normalize();
-        _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+       normalize();
+        #ifndef VOLESTIPY
+            _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+        #else
 
-        /*if (_inner_ball.second < 0.0) {
+            if (_inner_ball.second < 0.0) {
 
-            NT const tol = 0.00000001;
-            std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
+                NT const tol = 0.00000001;
+                std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);
 
-            // check if the solution is feasible
-            if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) ||
-                std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
-                !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
-            {
-                _inner_ball.second = -1.0;
-            } else
-            {
-                _inner_ball.first = Point(std::get<0>(inner_ball));
-                _inner_ball.second = std::get<1>(inner_ball);
+                // check if the solution is feasible
+                if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) ||
+                    std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
+                    !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
+                {
+                    _inner_ball.second = -1.0;
+                } else
+                {
+                    _inner_ball.first = Point(std::get<0>(inner_ball));
+                    _inner_ball.second = std::get<1>(inner_ball);
+                }
             }
-        }*/
+        #endif
 
         return _inner_ball;
     }

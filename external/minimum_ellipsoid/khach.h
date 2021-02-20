@@ -36,10 +36,10 @@
 //namespace Minim {
 
   template <class NT>
-  using MT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
+  using MTT = Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>;
 
   template <class NT>
-  using VT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
+  using VTT = Eigen::Matrix<NT, Eigen::Dynamic, 1>;
 
   struct KhachiyanEllipsoid
   {
@@ -54,16 +54,16 @@
   }
 
   template<class T>
-  bool InvertMatrix(const MT<T> &input,
-                    MT<T> &inverse)
+  bool InvertMatrix(const MTT<T> &input,
+                    MTT<T> &inverse)
   {
     inverse = input.inverse();
     return !is_nan(inverse);
   }
 
 
-  inline void InvertLP(const MT<double> &Lambdap,
-                MT<double> &LpInv)
+  inline void InvertLP(const MTT<double> &Lambdap,
+                MTT<double> &LpInv)
   {
     bool res = InvertMatrix(Lambdap, LpInv);
     if (not res)
@@ -74,14 +74,14 @@
     }
   }
 
-  inline void Lift(const MT<double> &A, MT<double> &Ap)
+  inline void Lift(const MTT<double> &A, MTT<double> &Ap)
   {
     Ap.resize(A.rows()+1, A.cols());
     Ap.topLeftCorner(A.rows(), A.cols()) = A;
     Ap.row(Ap.rows()-1).setConstant(1.0); 
   }
 
-  inline void genDiag(const VT<double> &p, MT<double> &res)
+  inline void genDiag(const VTT<double> &p, MTT<double> &res)
   {
     res.setZero(p.size(), p.size());
 
@@ -91,27 +91,27 @@
     }
   }
 
-  inline void KaLambda(const MT<double> &Ap,
-                const VT<double> &p,
-                MT<double> &Lambdap)
+  inline void KaLambda(const MTT<double> &Ap,
+                const VTT<double> &p,
+                MTT<double> &Lambdap)
   {
 
-    MT<double> dp(p.size(), p.size());
+    MTT<double> dp(p.size(), p.size());
     genDiag(p, dp);
 
     dp = dp * Ap.transpose();
     Lambdap.noalias() = Ap * dp;
   }
 
-  inline double KhachiyanIter(const MT<double> &Ap, VT<double> &p)
+  inline double KhachiyanIter(const MTT<double> &Ap, VTT<double> &p)
   {
     /// Dimensionality of the problem
     const size_t d = Ap.rows()-1;
 
-    MT<double> Lp;
-    MT<double> M;
+    MTT<double> Lp;
+    MTT<double> M;
     KaLambda(Ap, p, Lp);
-    MT<double> ILp(Lp.rows(), Lp.cols());
+    MTT<double> ILp(Lp.rows(), Lp.cols());
     InvertLP(Lp, ILp);
     M.noalias() = ILp * Ap;
     M = Ap.transpose() * M;
@@ -127,7 +127,7 @@
       }
     }
     const double step_size=(maxval -d - 1)/((d+1)*(maxval-1));
-    VT<double> newp = p*(1-step_size);
+    VTT<double> newp = p*(1-step_size);
     newp(maxi) += step_size;
 
     const double err= (newp-p).norm();
@@ -136,42 +136,42 @@
 
   }
 
-  inline void KaInvertDual(const MT<double> &A, 
-                      const VT<double> &p, 
-                      MT<double> &Q, 
-                      VT<double> &c)
+  inline void KaInvertDual(const MTT<double> &A, 
+                      const VTT<double> &p, 
+                      MTT<double> &Q, 
+                      VTT<double> &c)
   {
     const size_t d = A.rows();
-    MT<double> dp(p.size(), p.size());
+    MTT<double> dp(p.size(), p.size());
     genDiag(p, dp);
 
-    MT<double> PN;
+    MTT<double> PN;
     PN.noalias() = dp * A.transpose();
     PN = A * PN;
 
-    VT<double> M2;
+    VTT<double> M2;
     M2.noalias() = A * p;
     
-    MT<double> M3;
+    MTT<double> M3;
     M3.noalias() = M2 * M2.transpose();
 
-    MT<double> invert(PN.rows(), PN.cols());
+    MTT<double> invert(PN.rows(), PN.cols());
     InvertLP(PN- M3, invert);
     Q.noalias() = (invert/d);
     c.noalias() = A * p;
 
   }
 
-  inline double KhachiyanAlgo(const MT<double> &A,
+  inline double KhachiyanAlgo(const MTT<double> &A,
                        double eps,
                        size_t maxiter,
-                       MT<double> &Q,
-                       VT<double> &c)
+                       MTT<double> &Q,
+                       VTT<double> &c)
   {
-    VT<double> p(A.cols());
+    VTT<double> p(A.cols());
     p.setConstant(1.0/A.cols());
 
-    MT<double> Ap;
+    MTT<double> Ap;
     Lift(A, Ap);
 
     double ceps=eps*2;
@@ -193,7 +193,7 @@
                        KhachiyanEllipsoid &res)
   {
     const size_t d=ss.begin()->p.size();
-    MT<double> A(d, ss.size());
+    MTT<double> A(d, ss.size());
 
     size_t j=0;
     for (std::set<MCPoint>::const_iterator i=ss.begin();
@@ -205,8 +205,8 @@
       ++j;
     }
 
-    MT<double> Q(d,d);
-    VT<double> c(d);
+    MTT<double> Q(d,d);
+    VTT<double> c(d);
 
     const double ceps=KhachiyanAlgo(A, eps, maxiter,
                                     Q, c);

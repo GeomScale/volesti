@@ -5,13 +5,15 @@
 //#include "Eigen/Eigen"
 //#include "cartesian_kernel.h"
 
+#define VOLESTIPY
+#include <cmath>
 // from SOB volume - exactly the same for CG and CB methods
 #include <fstream>
 #include <iostream>
 #include "random_walks.hpp"
 #include "random.hpp"
-#include "misc.h"
-#include "known_polytope_generators.h"
+//#include "misc.h"
+//#include "known_polytope_generators.h"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"

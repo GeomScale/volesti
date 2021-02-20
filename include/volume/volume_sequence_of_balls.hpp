@@ -24,12 +24,14 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "generators/boost_random_number_generator.hpp"
 #include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/zpolytope.h"
+#ifndef VOLESTIPY
+    #include "convex_bodies/vpolytope.h"
+    #include "convex_bodies/zpolytope.h"
+    #include "convex_bodies/zonoIntersecthpoly.h"
+    #include "convex_bodies/vpolyintersectvpoly.h"
+#endif
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
-#include "convex_bodies/zonoIntersecthpoly.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
 #include "random_walks/uniform_cdhr_walk.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "volume/sampling_policies.hpp"

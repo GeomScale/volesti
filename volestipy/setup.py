@@ -33,17 +33,18 @@ link_args = ['-O3']
 
 extra_volesti_include_dirs = [
 # inside the volestipy directory, there is an extra volestipy folder containing a "include" folder; we add those as included dirs; the bindings.h file is located there
- join("volestipy","include"),
+ join("volestipy", "include"),
 
 # the volesti code uses some external classes. these are located on the "external" directory and we need to add them as well
  join("..","external"),
  join("..","external","minimum_ellipsoid"),
- join("..","external","LPsolve_src","run_headers"),
+ #join("..","external","LPsolve_src","run_headers"),
  join("..","external","boost"),
 
 # we also move back and include and add the directories on the "include" directory (generatorors, random_walks, sampling etc)
  join("..","include"),
  join("..","include","convex"),
+ join("..","include","diagnostics"),
  join("..","include","misc"),
  join("..","include","random_walks"),
  join("..","include","volume"),
@@ -58,14 +59,14 @@ extra_include_dirs = [numpy.get_include()]
 # Extension modules that need to compile against NumPy should use this function to locate the appropriate include directory.
 
 # here I need to check how it is actually included this library
-library_includes = ["lpsolve55"]
+#library_includes = ["lpsolve55"]
 
 ext_module = Extension(
  "volestipy",
  language = "c++",
  sources = src_files,
  include_dirs = extra_include_dirs + extra_volesti_include_dirs,
- libraries = library_includes,
+ #libraries = library_includes,
  extra_compile_args = compiler_args,
  extra_link_args = link_args,
 )
