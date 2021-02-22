@@ -10,8 +10,9 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_RDHR_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_RDHR_WALK_HPP
 
-#include "generators/boost_random_number_generator.hpp"
 #include "random_walks/gaussian_helpers.hpp"
+#include "generators/boost_random_number_generator.hpp"
+
 
 // Pick a point from the distribution exp(-a_i||x||^2) on the chord
 template

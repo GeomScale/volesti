@@ -1,10 +1,6 @@
 #ifndef VOLESTIBINDINGS_H
 #define VOLESTIBINDINGS_H
 
-////// I think we could remove those...
-//#include "Eigen/Eigen"
-//#include "cartesian_kernel.h"
-
 #define VOLESTIPY
 #include <cmath>
 // from SOB volume - exactly the same for CG and CB methods
@@ -12,8 +8,6 @@
 #include <iostream>
 #include "random_walks.hpp"
 #include "random.hpp"
-//#include "misc.h"
-//#include "known_polytope_generators.h"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
 #include "random/uniform_real_distribution.hpp"
@@ -63,6 +57,12 @@ class HPolytopeCPP{
 
       // the generate_samples() function
       double generate_samples(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, 
+       bool cdhr, bool rdhr, bool gaussian, bool set_L, bool accelerated_billiard, bool billiard, bool ball_walk, double a, double L,  
+       bool max_ball, double* inner_point, double radius,
+       double* samples);
+
+      // mmcs_step() impelments a single step of mmcs
+      double mmcs_step(int walk_len, int number_of_points, int number_of_points_to_burn, bool boundary, 
        bool cdhr, bool rdhr, bool gaussian, bool set_L, bool accelerated_billiard, bool billiard, bool ball_walk, double a, double L,  
        bool max_ball, double* inner_point, double radius,
        double* samples);
