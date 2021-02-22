@@ -15,10 +15,12 @@
 
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/zpolytope.h"
+#ifndef VOLESTIPY
+    #include "convex_bodies/vpolytope.h"
+    #include "convex_bodies/zpolytope.h"
+    #include "convex_bodies/vpolyintersectvpoly.h"
+#endif
 #include "convex_bodies/ballintersectconvex.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
 #include "sampling/random_point_generators.hpp"
 
 

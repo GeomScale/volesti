@@ -10,13 +10,7 @@
 #ifndef RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
 #define RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_HPP
 
-#include "convex_bodies/ball.h"
-#include "convex_bodies/ballintersectconvex.h"
-#include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
-#include "convex_bodies/zpolytope.h"
-#include "convex_bodies/zonoIntersecthpoly.h"
+#include "sampling/sphere.hpp"
 
 
 // Billiard walk which accelarates each step for uniform distribution

@@ -8,6 +8,7 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_CDHR_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_CDHR_WALK_HPP
 
+#include "sampling/sphere.hpp"
 #include "generators/boost_random_number_generator.hpp"
 #include "random_walks/gaussian_helpers.hpp"
 

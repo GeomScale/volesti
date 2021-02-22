@@ -15,13 +15,15 @@
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
-#include "convex_bodies/zpolytope.h"
-#include "convex_bodies/zonoIntersecthpoly.h"
+#ifndef VOLESTIPY
+    #include "convex_bodies/vpolytope.h"
+    #include "convex_bodies/vpolyintersectvpoly.h"
+    #include "convex_bodies/zpolytope.h"
+    #include "convex_bodies/zonoIntersecthpoly.h"
+#endif
+#include "sampling/sphere.hpp"
 #include "generators/boost_random_number_generator.hpp"
 #include "sampling/random_point_generators.hpp"
-#include "sampling/sphere.hpp"
 #include "volume/sampling_policies.hpp"
 
 template <typename GenericPolytope>
@@ -43,6 +45,7 @@ static NT compute(HPolytope<Point> const& P)
 }
 };
 
+#ifndef VOLESTIPY
 template <typename Point>
 struct compute_diameter<VPolytope<Point>>
 {
@@ -109,17 +112,6 @@ static NT compute(IntersectionOfVpoly<VPolytope<Point>, RandomNumberGenerator> c
 }
 };
 
-template <typename Polytope, typename Point>
-struct compute_diameter<BallIntersectPolytope<Polytope, Ball<Point>>>
-{
-template <typename NT>
-static NT compute(BallIntersectPolytope<Polytope, Ball<Point>> const& P)
-{
-    NT diameter = NT(2) * P.radius();
-    return diameter;
-}
-};
-
 template <typename Point>
 struct compute_diameter<ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>>>
 {
@@ -172,6 +164,21 @@ static NT compute(ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>> const& P
 }
 };
 
+#endif
+
+template <typename Polytope, typename Point>
+struct compute_diameter<BallIntersectPolytope<Polytope, Ball<Point>>>
+{
+template <typename NT>
+static NT compute(BallIntersectPolytope<Polytope, Ball<Point>> const& P)
+{
+    NT diameter = NT(2) * P.radius();
+    return diameter;
+}
+};
+
+
+
 
 // Billiard walk for uniform distribution
 
@@ -206,11 +213,6 @@ struct Walk
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
-    typedef HPolytope<Point> Hpolytope;
-    typedef Zonotope<Point> zonotope;
-    typedef ZonoIntersectHPoly <zonotope, Hpolytope> ZonoHPoly;
-    typedef Ball<Point> BallType;
-    typedef BallIntersectPolytope<Polytope,BallType> BallPolytope;
 
     template <typename GenericPolytope>
     Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)

@@ -10,13 +10,6 @@
 #ifndef RANDOM_WALKS_DIKIN_WALK_HPP
 #define RANDOM_WALKS_DIKIN_WALK_HPP
 
-#include "convex_bodies/ball.h"
-#include "convex_bodies/ballintersectconvex.h"
-#include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
-#include "convex_bodies/zpolytope.h"
-#include "convex_bodies/zonoIntersecthpoly.h"
 #include "ellipsoid_walks/dikin_walker.h"
 
 
