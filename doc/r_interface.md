@@ -3,16 +3,18 @@
 
 ####  Install Rcpp package  
  
-* Install package-dependencies: `Rcpp`, `RcppEigen`, `BH`, `lpSolveAPI`.  
+* Install package-dependencies: `Rcpp`, `RcppEigen`, `BH`.  
 
-1. Then use devtools package to install `volesti` Rcpp package. In folder /root/R-proj Run:
+1. Then use devtools package to install `volesti` Rcpp package. From terminal go to folder /root/R-proj and run in `R`:  
 ```r
 Rcpp::compileAttributes()  
-library(devtools)  
-devtools::build()  
-devtools::install()  
-library(volesti)  
+```  
+  
+Then, exit `R` and run:  
 ```
+R CMD INSTALL --no-multiarch --with-keep.source R-proj  
+```
+
 2. You can use Rstudio as well to open `volesti.Rproj` and then click `build source Package` and then `Install and Restart` in `Build` at the menu bar.  
 
 #### Generate CRAN version
