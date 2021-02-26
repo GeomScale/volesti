@@ -11,11 +11,8 @@
 #ifndef LEAPFROG_HPP
 #define LEAPFROG_HPP
 
-<<<<<<< HEAD
-=======
 
 
->>>>>>> 6ac32990... Squash commits into one
 template <
 typename Point,
 typename NT,
@@ -24,10 +21,6 @@ typename func
 >
 struct LeapfrogODESolver {
 
-<<<<<<< HEAD
-  typedef std::vector<Point> pts;
-
-=======
   struct update_parameters
 {
         update_parameters()
@@ -45,26 +38,18 @@ struct LeapfrogODESolver {
 
   typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
->>>>>>> 6ac32990... Squash commits into one
   typedef std::vector<Polytope*> bounds;
   typedef typename Polytope::VT VT;
 
   unsigned int dim;
 
-<<<<<<< HEAD
-  VT Ar, Av;
-=======
   std::vector<VT> Ar, Av;
   std::vector<NT> lambda_prev;
->>>>>>> 6ac32990... Squash commits into one
 
   NT eta;
   NT eta0;
   NT t;
-<<<<<<< HEAD
-=======
   NT dl = 0.995;
->>>>>>> 6ac32990... Squash commits into one
 
   func F;
   bounds Ks;
@@ -73,11 +58,8 @@ struct LeapfrogODESolver {
   pts xs;
   pts xs_prev;
 
-<<<<<<< HEAD
-=======
   MT _AA;
 
->>>>>>> 6ac32990... Squash commits into one
   std::pair<NT, int> pbpair;
 
   unsigned long long num_reflections = 0;

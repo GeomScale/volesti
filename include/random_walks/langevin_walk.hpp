@@ -140,8 +140,6 @@ struct UnderdampedLangevinWalk {
       return f(pos) + 1.0 / (2 * params.u) * vel.dot(vel);
     }
 
-<<<<<<< HEAD
-=======
     void disable_adaptive() {
         // TODO Implement
     }
@@ -149,7 +147,6 @@ struct UnderdampedLangevinWalk {
     void enable_adaptive() {
         // TODO Implement
     }
->>>>>>> 6ac32990... Squash commits into one
   };
 };
 
