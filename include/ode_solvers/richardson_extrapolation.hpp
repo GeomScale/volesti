@@ -71,7 +71,7 @@ struct RichardsonExtrapolationODESolver {
     solver = new RKODESolver<Point, NT, Polytope, func>(t, eta, xs, F, bounds{NULL});
   }
 
-  void step() {
+  void step(int k, bool accepted) {
     xs_prev = xs;
     eta_temp = eta;
     flag = true;
@@ -80,7 +80,7 @@ struct RichardsonExtrapolationODESolver {
     solver->xs = xs_prev;
     solver->t = t;
     solver->eta = eta_temp;
-    solver->steps(1);
+    solver->steps(1, false);
     A[1][1] = solver->xs;
 
 
@@ -92,7 +92,7 @@ struct RichardsonExtrapolationODESolver {
       solver->xs = xs_prev;
       solver->t = t;
       solver->eta = eta_temp;
-      solver->steps(2*j);
+      solver->steps(2*j, false);
       A[j+1][1] = solver->xs;
 
       // Perform Richardson extrapolation
@@ -170,8 +170,8 @@ struct RichardsonExtrapolationODESolver {
     std::cout << std::endl;
   }
 
-  void steps(int num_steps) {
-    for (int i = 0; i < num_steps; i++) step();
+  void steps(int num_steps, bool accepted) {
+    for (int i = 0; i < num_steps; i++) step(i, accepted);
   }
 
   Point get_state(int index) {

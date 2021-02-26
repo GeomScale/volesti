@@ -78,7 +78,7 @@ double volume_sequence_of_balls(Polytope const& Pin,
     //Compute the Chebychev ball (largest inscribed ball) with center and radius
     auto InnerBall = P.ComputeInnerBall();
     if (InnerBall.second < 0.0) return -1.0;
-    
+
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
 

@@ -81,7 +81,7 @@ struct RKODESolver {
     return bs.size();
   }
 
-  void step() {
+  void step(int k, bool accepted) {
     ks = ptsv(order(), xs);
     t_prev = t;
 
@@ -154,8 +154,8 @@ struct RKODESolver {
     std::cout << std::endl;
   }
 
-  void steps(int num_steps) {
-    for (int i = 0; i < num_steps; i++) step();
+  void steps(int num_steps, bool accepted) {
+    for (int i = 0; i < num_steps; i++) step(i, accepted);
   }
 
   Point get_state(int index) {

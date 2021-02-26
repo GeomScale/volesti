@@ -10,6 +10,47 @@ enable_testing()
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+set(MKLROOT $ENV{HOME}/intel/mkl)
+
+option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
+option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
+option(USE_MKL "Use MKL library to build eigen" ON)
+
+if(DISABLE_NLP_ORACLES)
+  add_definitions(-DDISABLE_NLP_ORACLES)
+else()
+  find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
+  find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
+  find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+  find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
+  find_library(PTHREAD NAMES libpthread.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+  find_library(FFTW3 NAMES libfftw3.so.3 PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+
+  if (NOT IFOPT)
+
+    message(FATAL_ERROR "This program requires the ifopt library, and will not be compiled.")
+
+  elseif (NOT GMP)
+
+    message(FATAL_ERROR "This program requires the gmp library, and will not be compiled.")
+
+  elseif (NOT MPSOLVE)
+
+    message(FATAL_ERROR "This program requires the mpsolve library, and will not be compiled.")
+
+  elseif (NOT FFTW3)
+
+    message(FATAL_ERROR "This program requires the fftw3 library, and will not be compiled.")
+
+  else()
+    message(STATUS "Library ifopt found: ${IFOPT}")
+    message(STATUS "Library gmp found: ${GMP}")
+    message(STATUS "Library mpsolve found: ${MPSOLVE}")
+    message(STATUS "Library fftw3 found:" ${FFTW3})
+
+  endif(NOT IFOPT)
+
+endif(DISABLE_NLP_ORACLES)
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 
@@ -72,6 +113,20 @@ else ()
 
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+
+
+  if (BUILTIN_EIGEN)
+      include_directories (BEFORE ../external/Eigen)
+  else ()
+      include_directories(BEFORE /usr/include/eigen3)
+  endif(BUILTIN_EIGEN)
+
+  if (USE_MKL)
+    find_library(BLAS NAME libblas.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+    include_directories (BEFORE ${MKLROOT}/include)
+    set(PROJECT_LIBS ${BLAS_LIBRARIES})
+    add_definitions(-DEIGEN_USE_MKL_ALL)
+  endif(USE_MKL)
 
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
@@ -217,6 +272,7 @@ else ()
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
-  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
+  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+
 
 endif()
