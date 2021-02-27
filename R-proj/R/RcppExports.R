@@ -146,7 +146,7 @@ frustum_of_simplex <- function(a, z0) {
 #'
 #' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse
 #'         linear transformation that is applied on the input polytope, the numerical vector - point that the
-#'         input polytope is shifted and the product of the singular values of the matrix of the linear map
+#'         input polytope is shifted and the product of the singular values of the matrix of the linear map 
 #'         applied on the input polytope.
 #'
 full_dimensional_polytope <- function(P) {
@@ -468,3 +468,4 @@ volume <- function(P, settings = NULL, rounding = NULL, seed = NULL) {
 zono_approx <- function(Z, fit_ratio = NULL, settings = NULL, seed = NULL) {
     .Call(`_volesti_zono_approx`, Z, fit_ratio, settings, seed)
 }
+
