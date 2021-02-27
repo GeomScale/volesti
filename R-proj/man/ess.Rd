@@ -8,8 +8,6 @@ ess(samples)
 }
 \arguments{
 \item{samples}{A matrix that contans column-wise the sampled points from a geometric random walk.}
-
-\item{method}{A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.}
 }
 \value{
 A vector that contains the values of PSRF for each coordinate

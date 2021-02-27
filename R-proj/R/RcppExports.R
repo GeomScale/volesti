@@ -67,7 +67,6 @@ direct_sampling <- function(body, n, seed = NULL) {
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 #'
 #' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
-#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
 #'
 #' @references \cite{Gelman, A. and Rubin, D. B.,
 #' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
