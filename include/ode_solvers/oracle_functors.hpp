@@ -309,15 +309,16 @@ struct GaussianFunctor {
       typename Point
   >
   struct parameters {
+    Point x0;
+    NT a;
+    NT eta;
     unsigned int order;
     NT L; // Lipschitz constant for gradient
     NT m; // Strong convexity constant
     NT kappa; // Condition number
-    NT a;
-    NT eta;
-    Point x0;
 
-    parameters(Point x0_, NT a_, NT eta_) : order(2), L(2 * a_), m(2 * a_), kappa(1), x0(x0_), a(a_), eta(eta_) {};
+    parameters(Point x0_, NT a_, NT eta_) :
+        x0(x0_), a(a_), eta(eta_), order(2), L(2 * a_), m(2 * a_), kappa(1) {};
 
   };
 
