@@ -16,7 +16,7 @@
 #endif
 
 template <class Polytope, class RNGType>
-Polytope random_hpoly(unsigned int dim, unsigned int m, bool skinny=false, double seed = std::numeric_limits<double>::signaling_NaN()) {
+Polytope random_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
 
     typedef typename Polytope::MT    MT;
     typedef typename Polytope::VT    VT;
@@ -49,39 +49,7 @@ Polytope random_hpoly(unsigned int dim, unsigned int m, bool skinny=false, doubl
         normal = 1.0 / std::sqrt(normal);
         p *= normal;
         A.row(i) = p.getCoefficients();
-	if (skinny) b(i) = rdist(rng) * normal;
-	else b(i) = 10.0;
-    }
-
-    return Polytope(dim, A, b);
-}
-
-
-template <class Polytope, class RNGType>
-Polytope random_sparse_hpoly(unsigned int dim, unsigned int m, double seed = std::numeric_limits<double>::signaling_NaN()) {
-
-    typedef typename Polytope::MT    MT;
-    typedef typename Polytope::MT    VT;
-    typedef typename Polytope::NT    NT;
-    typedef typename Polytope::PointType Point;
-    typedef Eigen::Triplet<NT>       TR;
-
-    unsigned rng_seed = std::chrono::system_clock::now().time_since_epoch().count();
-    RNGType rng(rng_seed);
-    if (!isnan(seed)) {
-        unsigned rng_seed = seed;
-        rng.seed(rng_seed);
-    }
-
-    MT A(m, dim);
-    VT b(m, 1);
-
-    for (int i = 0; i < m; ++i) {
-        boost::normal_distribution<> rdist(0, 1);
-        for (int j = 0; j < dim; j++) {
-            A.coeffRef(i, j) = rdist(rng);
-        }
-        b.coeffRef(i, 1) = rdist(rng);
+        b(i) = 10.0;
     }
 
     return Polytope(dim, A, b);
