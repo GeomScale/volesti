@@ -638,6 +638,106 @@ public:
     }
 
 
+    //------------------------------oracles for exponential sampling---------------//////
+
+    // compute intersection points of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                    Point const& v,
+                                    VT const& Ac,
+                                    NT const& T,
+                                    VT& Ar,
+                                    VT& Av) const
+    {
+        NT lamda = 0, num, alpha, Delta;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        VT sum_nom;
+        int m = num_of_hyperplanes(), facet;
+
+        Ar.noalias() = A * r.getCoefficients();
+        sum_nom = Ar - b;
+        Av.noalias() = A * v.getCoefficients();;
+
+
+        NT* Av_data = Av.data();
+        NT* sum_nom_data = sum_nom.data();
+
+        for (int i = 0; i < m; i++) {
+            if (*Av_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                alpha = -(Ac.coeff(i) / (2.0 * T));
+                Delta = (*Av_data) * (*Av_data) - 4.0 * alpha * (*sum_nom_data);
+                num = - (*Av_data) - std::sqrt(Delta);
+                if (num > 0.0) {
+                    lamda = (num / (2.0 * alpha)); 
+                } else {
+                    lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
+                }
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                }
+            }
+
+            Av_data++;
+            sum_nom_data++;
+        }
+        return std::make_pair(min_plus, facet);
+    }
+
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
+                                    Point const& v,
+                                    VT const& Ac,
+                                    NT const& T,
+                                    VT& Ar,
+                                    VT& Av,
+                                    NT const& lambda_prev) const
+    {
+
+        NT lamda = 0, alpha, Delta, num;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        VT  sum_nom;
+        NT mult;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet;
+
+        Ar.noalias() += (lambda_prev * lambda_prev / (-2.0*T)) * Ac + lambda_prev * Av;
+        sum_nom = Ar - b;
+        Av.noalias() = A * v.getCoefficients();
+
+        NT* sum_nom_data = sum_nom.data();
+        NT* Av_data = Av.data();
+
+        for (int i = 0; i < m; i++) {
+            if (*Av_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                alpha = -(Ac.coeff(i) / (2.0 * T));
+                Delta = (*Av_data) * (*Av_data) - 4.0 * alpha * (*sum_nom_data);
+                num = - (*Av_data) - std::sqrt(Delta);
+                if (num > 0.0) {
+                    lamda = (num / (2.0 * alpha)); 
+                } else {
+                    lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
+                }
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                }
+            }
+            Av_data++;
+            sum_nom_data++;
+        }
+        return std::make_pair(min_plus, facet);
+    }
+
+
+
     // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
     void linear_transformIt(MT const& T)
     {
