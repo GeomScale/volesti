@@ -647,13 +647,14 @@ public:
                                     VT const& Ac,
                                     NT const& T,
                                     VT& Ar,
-                                    VT& Av) const
+                                    VT& Av,
+                                    int& facet_prev) const
     {
         NT lamda = 0, num, alpha, Delta;
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
-        int m = num_of_hyperplanes(), facet;
+        int m = num_of_hyperplanes(), facet = -1;
 
         Ar.noalias() = A * r.getCoefficients();
         sum_nom = Ar - b;
@@ -670,21 +671,39 @@ public:
             } else {
                 alpha = -(Ac.coeff(i) / (2.0 * T));
                 Delta = (*Av_data) * (*Av_data) - 4.0 * alpha * (*sum_nom_data);
-                num = - (*Av_data) - std::sqrt(Delta);
-                if (num > 0.0) {
-                    lamda = (num / (2.0 * alpha)); 
-                } else {
-                    lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
-                }
-                if (lamda < min_plus && lamda > 0) {
-                    min_plus = lamda;
-                    facet = i;
+                
+                if (Delta >= NT(0)) {
+                    //num = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
+
+                    if (*Av_data >= NT(0)){
+                        lamda = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
+                        if (lamda < NT(0)) {
+                            lamda = (2.0*(*sum_nom_data)) / (- (*Av_data) - std::sqrt(Delta));
+                        }
+                    } else {
+                        lamda = (2.0*(*sum_nom_data)) / (- (*Av_data) + std::sqrt(Delta));
+                        if (lamda < NT(0)) {
+                            lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
+                        }
+                    }
+
+                    /*if (num > NT(0)) {
+                        lamda = num; 
+                    } else {
+                        lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
+                    }*/
+                
+                    if (lamda < min_plus && lamda > 0) {
+                        min_plus = lamda;
+                        facet = i;
+                    }
                 }
             }
 
             Av_data++;
             sum_nom_data++;
         }
+        facet_prev = facet;
         return std::make_pair(min_plus, facet);
     }
 
@@ -694,7 +713,8 @@ public:
                                     NT const& T,
                                     VT& Ar,
                                     VT& Av,
-                                    NT const& lambda_prev) const
+                                    NT const& lambda_prev,
+                                    int& facet_prev) const
     {
 
         NT lamda = 0, alpha, Delta, num;
@@ -703,7 +723,7 @@ public:
         VT  sum_nom;
         NT mult;
         unsigned int j;
-        int m = num_of_hyperplanes(), facet;
+        int m = num_of_hyperplanes(), facet = -1;
 
         Ar.noalias() += (lambda_prev * lambda_prev / (-2.0*T)) * Ac + lambda_prev * Av;
         sum_nom = Ar - b;
@@ -719,20 +739,38 @@ public:
             } else {
                 alpha = -(Ac.coeff(i) / (2.0 * T));
                 Delta = (*Av_data) * (*Av_data) - 4.0 * alpha * (*sum_nom_data);
-                num = - (*Av_data) - std::sqrt(Delta);
-                if (num > 0.0) {
-                    lamda = (num / (2.0 * alpha)); 
-                } else {
-                    lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
-                }
-                if (lamda < min_plus && lamda > 0) {
-                    min_plus = lamda;
-                    facet = i;
+
+                if (Delta >= NT(0)) {
+                    //num = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
+
+                    if (*Av_data >= NT(0)){
+                        lamda = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
+                        if (lamda < NT(0) || facet_prev == i) {
+                            lamda = (2.0*(*sum_nom_data)) / (- (*Av_data) - std::sqrt(Delta));
+                        }
+                    } else {
+                        lamda = (2.0*(*sum_nom_data)) / (- (*Av_data) + std::sqrt(Delta));
+                        if (lamda < NT(0) || facet_prev == i) {
+                            lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
+                        }
+                    }
+
+                    /*if (num > NT(0) && facet_prev != i) {
+                        lamda = num; 
+                    } else {
+                        lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
+                    }*/
+                
+                    if (lamda < min_plus && lamda > 0) {
+                        min_plus = lamda;
+                        facet = i;
+                    }
                 }
             }
             Av_data++;
             sum_nom_data++;
         }
+        facet_prev = facet;
         return std::make_pair(min_plus, facet);
     }
 

@@ -93,13 +93,13 @@ struct Walk
             while (it < 100*n)
             {
                 auto pbpair = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas,
-                                                             _Av, _lambda_prev);
-                if (T <= pbpair.first) {
+                                                             _Av, _lambda_prev, _facet_prev);
+                if (T <= pbpair.first || pbpair.second < 0) {
                     _p += (T * T / (-2.0*_Temp)) *_c + (T * _v);
                     _lambda_prev = T;
                     break;
                 }
-                _lambda_prev = dl * pbpair.first;
+                _lambda_prev = pbpair.first;
                 _p += (_lambda_prev * _lambda_prev / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
                 T -= _lambda_prev;
                 _v += (-_lambda_prev/_Temp) * _c;
@@ -140,13 +140,13 @@ private :
         int it = 0;
 
         std::pair<NT, int> pbpair
-                = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas, _Av);
-        if (T <= pbpair.first) {
+                = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas, _Av, _facet_prev);
+        if (T <= pbpair.first || pbpair.second < 0) {
             _p += (T * T / (-2.0*_Temp)) *_c + (T * _v);
             _lambda_prev = T;
             return;
         }
-        _lambda_prev = dl * pbpair.first;
+        _lambda_prev = pbpair.first;
         _p += (_lambda_prev * _lambda_prev / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
         _v += (-_lambda_prev/_Temp) * _c;
         T -= _lambda_prev;
@@ -155,8 +155,8 @@ private :
         while (it <= 100*n)
         {
             std::pair<NT, int> pbpair
-                    = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas, _Av, _lambda_prev);
-            if (T <= pbpair.first) {
+                    = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas, _Av, _lambda_prev, _facet_prev);
+            if (T <= pbpair.first || pbpair.second < 0) {
                 _p += (T * T / (-2.0*_Temp)) *_c + (T * _v);
                 _lambda_prev = T;
                 break;
@@ -165,7 +165,7 @@ private :
                 _p += (_lambda_prev * _lambda_prev / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
                 break;
             }
-            _lambda_prev = dl * pbpair.first;
+            _lambda_prev = pbpair.first;
             _p += (_lambda_prev * _lambda_prev / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
             _v += (-_lambda_prev/_Temp) * _c;
             T -= _lambda_prev;
@@ -181,6 +181,7 @@ private :
     Point _c;
     NT _Temp;
     NT _lambda_prev;
+    int _facet_prev;
     typename Point::Coeff _lambdas;
     typename Point::Coeff _Av;
 };

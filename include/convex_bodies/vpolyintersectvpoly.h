@@ -331,7 +331,8 @@ public:
                                     VT const& Ac,
                                     NT const& T,
                                     VT& Ar,
-                                    VT& Av) const
+                                    VT& Av,
+                                    int& facet_prev) const
     {
         return std::make_pair(0, 0);
     }
@@ -342,7 +343,8 @@ public:
                                     NT const& T,
                                     VT& Ar,
                                     VT& Av,
-                                    NT const& lambda_prev) const
+                                    NT const& lambda_prev,
+                                    int& facet_prev) const
     {
         return std::make_pair(0, 0);
     }

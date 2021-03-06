@@ -51,7 +51,7 @@ template <
 >
 void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPoints,
         unsigned int const& walkL, unsigned int const& numpoints,
-        bool const& gaussian, NT const& a, NT const& L,
+        bool const& gaussian, NT const& a, NT const& L, Point const& c,
         Point const& StartingPoint, unsigned int const& nburns,
         bool const& set_L, random_walks walk,
         NegativeGradientFunctor *F=NULL, NegativeLogprobFunctor *f=NULL,
@@ -318,6 +318,8 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         rng.set_seed(seed_rcpp);
     }
 
+    Point c(dim);
+
     NT radius = 1.0, L;
     bool set_mode = false, gaussian = false, logconcave = false,
                     set_starting_point = false, set_L = false;
@@ -364,7 +366,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     NT a = 0.5;
     if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("variance")) {
         a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]));
-        if (walk == exphmc) a = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]);
+        if (walk == exponential_hmc) a = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]);
         if (!gaussian && walk != exponential_hmc) {
             Rcpp::warning("The variance can be set only for Gaussian sampling!");
         } else if (a <= 0.0) {
@@ -555,7 +557,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 HP.shift(mode.getCoefficients());
             }
-            sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
+            sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
                                  StartingPoint, nburns, set_L, walk, F, f, solver);
             break;
         }
@@ -576,7 +578,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 VP.shift(mode.getCoefficients());
             }
-            sample_from_polytope(VP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
+            sample_from_polytope(VP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
                                  StartingPoint, nburns, set_L, walk, F, f, solver);
             break;
         }
@@ -597,7 +599,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 ZP.shift(mode.getCoefficients());
             }
-            sample_from_polytope(ZP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
+            sample_from_polytope(ZP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
                                  StartingPoint, nburns, set_L, walk, F, f, solver);
             break;
         }
@@ -620,7 +622,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 VPcVP.shift(mode.getCoefficients());
             }
-            sample_from_polytope(VPcVP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
+            sample_from_polytope(VPcVP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
                                  StartingPoint, nburns, set_L, walk, F, f, solver);
             break;
         }
