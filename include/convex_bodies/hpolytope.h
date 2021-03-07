@@ -16,6 +16,7 @@
 #include <iostream>
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
+#include "root_finders/quadratic_polynomial.hpp"
 #ifndef VOLESTIPY
     #include "lp_oracles/solve_lp.h"
 #endif
@@ -650,7 +651,7 @@ public:
                                     VT& Av,
                                     int& facet_prev) const
     {
-        NT lamda = 0, num, alpha, Delta;
+        NT lamda = 0, lamda2 =0, lamda1 =0, num, alpha, Delta;
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
@@ -676,15 +677,16 @@ public:
                     //num = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
 
                     if (*Av_data >= NT(0)){
-                        lamda = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
-                        if (lamda < NT(0)) {
-                            lamda = (2.0*(*sum_nom_data)) / (- (*Av_data) - std::sqrt(Delta));
-                        }
+                        lamda1 = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
+                        lamda2 = (2.0*(*sum_nom_data)) / (- (*Av_data) - std::sqrt(Delta));
                     } else {
-                        lamda = (2.0*(*sum_nom_data)) / (- (*Av_data) + std::sqrt(Delta));
-                        if (lamda < NT(0)) {
-                            lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
-                        }
+                        lamda1 = (2.0*(*sum_nom_data)) / (- (*Av_data) + std::sqrt(Delta));
+                        lamda2 = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
+                    }
+                    if (lamda1*lamda2 < NT(0)) {
+                        lamda = std::max(lamda1, lamda2);
+                    } else {
+                        lamda = std::min(lamda1, lamda2);
                     }
 
                     /*if (num > NT(0)) {
@@ -717,13 +719,14 @@ public:
                                     int& facet_prev) const
     {
 
-        NT lamda = 0, alpha, Delta, num;
+        NT lamda = 0, lamda2 =0, lamda1 =0, alpha, Delta, num, num2, x1,x2;
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT  sum_nom;
         NT mult;
         unsigned int j;
         int m = num_of_hyperplanes(), facet = -1;
+        bool real;
 
         Ar.noalias() += (lambda_prev * lambda_prev / (-2.0*T)) * Ac + lambda_prev * Av;
         sum_nom = Ar - b;
@@ -739,21 +742,38 @@ public:
             } else {
                 alpha = -(Ac.coeff(i) / (2.0 * T));
                 Delta = (*Av_data) * (*Av_data) - 4.0 * alpha * (*sum_nom_data);
-
+                std::cout<<"a = "<<alpha<<", b = "<<(*Av_data)<<", c = "<<(*sum_nom_data)<<std::endl;
+                std::cout<<"Delta = "<<Delta<<std::endl;
                 if (Delta >= NT(0)) {
-                    //num = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
+                    num = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
+                    num2 = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
 
                     if (*Av_data >= NT(0)){
-                        lamda = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
-                        if (lamda < NT(0) || facet_prev == i) {
-                            lamda = (2.0*(*sum_nom_data)) / (- (*Av_data) - std::sqrt(Delta));
-                        }
+                        lamda1 = (- (*Av_data) - std::sqrt(Delta)) / (2.0 * alpha);
+                        lamda2 = (2.0*(*sum_nom_data)) / (- (*Av_data) - std::sqrt(Delta));
                     } else {
-                        lamda = (2.0*(*sum_nom_data)) / (- (*Av_data) + std::sqrt(Delta));
-                        if (lamda < NT(0) || facet_prev == i) {
-                            lamda = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
-                        }
+                        lamda1 = (2.0*(*sum_nom_data)) / (- (*Av_data) + std::sqrt(Delta));
+                        lamda2 = (- (*Av_data) + std::sqrt(Delta)) / (2.0 * alpha);
                     }
+                    if (lamda1*lamda2 < NT(0)){//} || facet_prev == i) {
+                        lamda = std::max(lamda1, lamda2);
+                    } else {
+                        lamda = std::min(lamda1, lamda2);
+                    }
+                    //if (facet_prev == i){
+                        std::cout<<"facet = "<<i<<std::endl;
+                        std::cout<<"lamda1 = "<<lamda1<<", lamda2 = "<<lamda2<<", lamda = "<<lamda<<std::endl;
+                        std::cout<<"num1 = "<<num<<", num2 = "<<num2<<std::endl;
+                        solve_qudratic_polynomial(alpha, (*Av_data), (*sum_nom_data), x1, x2, real);
+                        if (real){
+                            std::cout<<"x1 = "<<x1<<", x2 = "<<x2<<std::endl;
+                        }
+                    if (x1*x2 < NT(0)){//} || facet_prev == i) {
+                        lamda = std::max(x1, x2);
+                    } else {
+                        lamda = std::min(x1, x2);
+                    }
+                    //}
 
                     /*if (num > NT(0) && facet_prev != i) {
                         lamda = num; 
@@ -763,6 +783,7 @@ public:
                 
                     if (lamda < min_plus && lamda > 0) {
                         min_plus = lamda;
+                        std::cout<<"min_plus = "<<min_plus<<std::endl;
                         facet = i;
                     }
                 }
@@ -770,6 +791,7 @@ public:
             Av_data++;
             sum_nom_data++;
         }
+        std::cout<<"min_plus = "<<min_plus<<", facet = "<<facet<<"\n"<<std::endl;
         facet_prev = facet;
         return std::make_pair(min_plus, facet);
     }

@@ -45,6 +45,7 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
     typedef typename Polytope::MT MT;
+    typedef typename Polytope::VT VT;
     //typedef HPolytope<Point> Hpolytope;
 
     template <typename GenericPolytope>
@@ -83,6 +84,15 @@ struct Walk
         unsigned int n = P.dimension();
         NT T;// = rng.sample_urdist() * _Len;
         const NT dl = 0.995;
+        int fp = _facet_prev, counter=0;
+        MT A = P.get_mat();
+        VT b = P.get_vec();
+
+        if ( P.is_in(_p) == 0){
+            std::cout<<"out init, fp = "<<fp<<std::endl;
+            //std::cout<<"pbpair.second = "<<pbpair.second<<std::endl;
+            exit(-1);
+        }
 
         for (auto j=0u; j<walk_length; ++j)
         {
@@ -92,15 +102,34 @@ struct Walk
             int it = 0;
             while (it < 100*n)
             {
+                fp = _facet_prev;
                 auto pbpair = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas,
                                                              _Av, _lambda_prev, _facet_prev);
                 if (T <= pbpair.first || pbpair.second < 0) {
                     _p += (T * T / (-2.0*_Temp)) *_c + (T * _v);
+                    if ( P.is_in(_p) == 0){
+                        std::cout<<"Ax-b = "<<(A*_p.getCoefficients() - b).transpose()<<std::endl;
+                        std::cout<<"b-Ax = "<<(b-A*_p.getCoefficients() ).transpose()<<std::endl;
+                        std::cout<<"fp = "<<fp<<std::endl;
+                        counter++;
+                        if(counter ==2){
+                            exit(-1);
+                        }
+                    }
                     _lambda_prev = T;
                     break;
                 }
-                _lambda_prev = pbpair.first;
+                _lambda_prev = dl*pbpair.first;
                 _p += (_lambda_prev * _lambda_prev / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
+                if ( P.is_in(_p) == 0){
+                    std::cout<<"Ax-b = "<<(A*_p.getCoefficients() - b).transpose()<<std::endl;
+                    std::cout<<"b-Ax = "<<(b-A*_p.getCoefficients() ).transpose()<<std::endl;
+                    std::cout<<"fp = "<<fp<<std::endl;
+                    counter++;
+                    if(counter ==2){
+                        exit(-1);
+                    }
+                }
                 T -= _lambda_prev;
                 _v += (-_lambda_prev/_Temp) * _c;
                 P.compute_reflection(_v, _p, pbpair.second);
@@ -134,6 +163,9 @@ private :
         _Av.setZero(P.num_of_hyperplanes());
         _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
+        int counter = 0;
+        MT A = P.get_mat();
+        VT b = P.get_vec();
 
         NT T = -std::log(rng.sample_urdist()) * _Len;
         Point p0 = _p;
@@ -146,7 +178,7 @@ private :
             _lambda_prev = T;
             return;
         }
-        _lambda_prev = pbpair.first;
+        _lambda_prev = dl*pbpair.first;
         _p += (_lambda_prev * _lambda_prev / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
         _v += (-_lambda_prev/_Temp) * _c;
         T -= _lambda_prev;
@@ -158,15 +190,42 @@ private :
                     = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas, _Av, _lambda_prev, _facet_prev);
             if (T <= pbpair.first || pbpair.second < 0) {
                 _p += (T * T / (-2.0*_Temp)) *_c + (T * _v);
+                if ( P.is_in(_p) == 0){
+                    std::cout<<"Ax-b = "<<(A*_p.getCoefficients() - b).transpose()<<std::endl;
+                    std::cout<<"b-Ax = "<<(b-A*_p.getCoefficients() ).transpose()<<std::endl;
+                    //std::cout<<"fp = "<<fp<<std::endl;
+                    counter++;
+                    if(counter ==2){
+                        exit(-1);
+                    }
+                }
                 _lambda_prev = T;
                 break;
             }else if (it == 100*n) {
                 _lambda_prev = rng.sample_urdist() * pbpair.first;
                 _p += (_lambda_prev * _lambda_prev / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
+                if ( P.is_in(_p) == 0){
+                    std::cout<<"Ax-b = "<<(A*_p.getCoefficients() - b).transpose()<<std::endl;
+                    std::cout<<"b-Ax = "<<(b-A*_p.getCoefficients() ).transpose()<<std::endl;
+                    //std::cout<<"fp = "<<fp<<std::endl;
+                    counter++;
+                    if(counter ==2){
+                        exit(-1);
+                    }
+                }
                 break;
             }
-            _lambda_prev = pbpair.first;
+            _lambda_prev = dl*pbpair.first;
             _p += (_lambda_prev * _lambda_prev / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
+            if ( P.is_in(_p) == 0){
+                    std::cout<<"Ax-b = "<<(A*_p.getCoefficients() - b).transpose()<<std::endl;
+                    std::cout<<"b-Ax = "<<(b-A*_p.getCoefficients() ).transpose()<<std::endl;
+                    //std::cout<<"fp = "<<fp<<std::endl;
+                    counter++;
+                    if(counter ==2){
+                        exit(-1);
+                    }
+                }
             _v += (-_lambda_prev/_Temp) * _c;
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, pbpair.second);
