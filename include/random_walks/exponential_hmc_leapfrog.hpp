@@ -17,8 +17,8 @@
 
 struct HMCLeafrogExponential
 {
-    HMCLeafrogExponential(double L)
-            :   param(L, true)
+    HMCLeafrogExponential(double steps)
+            :   param(steps, true)
     {}
 
     HMCLeafrogExponential()
@@ -27,11 +27,11 @@ struct HMCLeafrogExponential
 
     struct parameters
     {
-        parameters(double L, bool set)
-                :   m_L(L), set_L(set)
+        parameters(double steps, bool set)
+                :   nsteps(steps), set_steps(set)
         {}
-        double m_L;
-        bool set_L;
+        double nsteps;
+        bool set_steps;
     };
 
     struct update_parameters
@@ -68,6 +68,7 @@ struct HMCLeafrogExponential
                     ::template compute<NT>(P);
             _steps = int(L / eta);
             _eta = eta;
+            _c = c;
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             _Ac = P.get_mat() * c.getCoefficients();
             initialize(P, p, rng);
@@ -86,10 +87,8 @@ struct HMCLeafrogExponential
                         ::template compute<NT>(P);
                 _steps = int(L / _eta);
             }
-            _L = params.set_L ? params.m_L
-                              : compute_diameter<GenericPolytope>
-                                ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _c = c;
             _Ac = P.get_mat() * c.getCoefficients();
             initialize(P, p, rng);
         }
@@ -98,7 +97,7 @@ struct HMCLeafrogExponential
                 <
                         typename GenericPolytope
                 >
-        inline void apply(GenericPolytope const& P,
+        inline bool apply(GenericPolytope const& P,
                           Point &p,   // a point to start
                           unsigned int const& walk_length,
                           RandomNumberGenerator &rng)
@@ -110,42 +109,66 @@ struct HMCLeafrogExponential
 
             for (auto j=0u; j<walk_length; ++j)
             {
-                T = -std::log(rng.sample_urdist()) * _L;
-                _v = GetDirection<Point>::apply(n, rng);
-                Point p0 = _p;
-
-                it = 0;
-                std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _update_parameters);
-                if (T <= pbpair.first) {
-                    _p += (T * _v);
-                    _lambda_prev = T;
-                    continue;
-                }
-
-                _lambda_prev = dl * pbpair.first;
-                _p += (_lambda_prev * _v);
-                T -= _lambda_prev;
-                P.compute_reflection(_v, _p, _update_parameters);
-                it++;
-
-                while (it < 100*n)
+                _v = GetDirection<Point>::apply(n, rng, false);
+                _p0 = p;
+                _H = _c.dot(_p) + _v.dot(_v);
+                for (auto k=0u; k<_steps; ++j)
                 {
-                    std::pair<NT, int> pbpair
-                            = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
+                    T = _eta;
+                    _v -= (_eta / 2.0) * _c;
+
+                    it = 0;
+                    std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, 
+                                                                          _lambda_prev, _update_parameters);
                     if (T <= pbpair.first) {
                         _p += (T * _v);
+                        _v -= (_eta / 2.0) * _c;
                         _lambda_prev = T;
-                        break;
+                        continue;
                     }
+
                     _lambda_prev = dl * pbpair.first;
                     _p += (_lambda_prev * _v);
                     T -= _lambda_prev;
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
+
+                    while (it < 500*n)
+                    {
+                        std::pair<NT, int> pbpair
+                                = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, 
+                                                            _AA, _update_parameters);
+                        if (T <= pbpair.first) {
+                            _p += (T * _v);
+                            _v -= (_eta / 2.0) * _c;
+                            _lambda_prev = T;
+                            break;
+                        }
+                        _lambda_prev = dl * pbpair.first;
+                        _p += (_lambda_prev * _v);
+                        T -= _lambda_prev;
+                        P.compute_reflection(_v, _p, _update_parameters);
+                        it++;
+                    }
                 }
-                if (it == 100*n) _p = p0;
+                _Htilde = _c.dot(_p) + _v.dot(_v);
+
+                NT log_prob = _H - _Htilde < 0 ? _H - _Htilde : 0;
+                NT u_logprob = log(rng.sample_urdist());
+
+                if (u_logprob > log_prob) {
+                    _p = _p0;
+                    _Av = _Av_prev;
+                    _lambda_prev = _lambda_prev_0;
+                    _lambdas = _lambdas_prev;
+                } else {
+                    _Av_prev = _Av;
+                    _lambda_prev_0 = _lambda_prev;
+                    _lambdas_prev = _lambdas;
+                }
             }
             p = _p;
+            return true;
         }
 
         inline void update_delta(NT L)
@@ -164,14 +187,13 @@ struct HMCLeafrogExponential
                                RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
-            const NT dl = 0.995;
+            const NT dl = 0.995, T = _eta;
             _lambdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
-            _v = GetDirection<Point>::apply(n, rng);
+            _v = GetDirection<Point>::apply(n, rng, false);
+            _v -= (_eta / 2.0) * _c;
 
-            NT T = -std::log(rng.sample_urdist()) * _L;
-            Point p0 = _p;
             int it = 0;
 
             std::pair<NT, int> pbpair
@@ -186,7 +208,7 @@ struct HMCLeafrogExponential
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, _update_parameters);
 
-            while (it <= 100*n)
+            while (it <= 500*n)
             {
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -194,7 +216,7 @@ struct HMCLeafrogExponential
                     _p += (T * _v);
                     _lambda_prev = T;
                     break;
-                } else if (it == 100*n) {
+                } else if (it == 500*n) {
                     _lambda_prev = rng.sample_urdist() * pbpair.first;
                     _p += (_lambda_prev * _v);
                     break;
@@ -205,15 +227,18 @@ struct HMCLeafrogExponential
                 P.compute_reflection(_v, _p, _update_parameters);
                 it++;
             }
+            _Av_prev = _Av;
+            _lambda_prev_0 = _lambda_prev;
+            _lambdas_prev = _lambdas;
         }
 
-        Point _p;
-        Point _v;
-        NT _lambda_prev, _eta, _steps;
+
+        Point _p, _v, _c, _p0;
+        NT _lambda_prev, _lambda_prev_0, _eta, _steps, _H, _Htilde;
         MT _AA;
         update_parameters _update_parameters;
-        typename Point::Coeff _lambdas;
-        typename Point::Coeff _Av;
+        typename Point::Coeff _lambdas, _lambdas_prev;
+        typename Point::Coeff _Av, _Av_prev;
     };
 
 };
