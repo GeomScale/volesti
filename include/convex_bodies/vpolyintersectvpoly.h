@@ -50,7 +50,7 @@ public:
         return _inner_ball;
     }
 
-    int is_in(const Point &p) const {
+    int is_in(const Point &p, NT tol=NT(0)) const {
         if(P1.is_in(p)==-1)
             return P2.is_in(p);
         return 0;

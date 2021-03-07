@@ -336,7 +336,7 @@ public:
 
 
     // check if point p belongs to the convex hull of V-Polytope P
-    int is_in(Point const& p) const
+    int is_in(Point const& p, NT tol=NT(0)) const
     {
         if(memLP_Zonotope(V, p, row_mem, colno_mem))
         {
