@@ -1,4 +1,4 @@
-/ VolEsti (volume computation and sampling library)
+// VolEsti (volume computation and sampling library)
 // Copyright (c) 2021 Vissarion Fisikopoulos
 // Copyright (c) 2021 Apostolos Chalkis
 

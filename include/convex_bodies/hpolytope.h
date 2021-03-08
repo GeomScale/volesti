@@ -757,6 +757,61 @@ public:
     }
 
 
+    //------------oracle for exact hmc spherical gaussian sampling---------------//
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> trigonometric_positive_intersect(Point const& r, Point const& v,
+                                                        NT const& omega) const
+    {
+
+        NT lamda = 0, C, Phi, t1, t2, tmin;
+        NT min_plus = std::numeric_limits<NT>::max(), t = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        VT sum_nom, sum_denom;
+        unsigned int j;
+        int m = num_of_hyperplanes(), facet;
+
+
+        sum_nom.noalias() = A * r.getCoefficients();
+        sum_denom.noalias() = A * v.getCoefficients();
+
+        NT* sum_nom_data = sum_nom.data();
+        NT* sum_denom_data = sum_denom.data();
+        const NT* b_data = b.data();
+
+        for (int i = 0; i < m; i++) {
+
+            C = std::sqrt((*sum_nom_data)* (*sum_nom_data) + ((*sum_denom_data) * (*sum_denom_data)) / (omega * omega));
+            Phi = std::atan((-(*sum_denom_data)) / ((*sum_nom_data) * omega));
+            if ((*sum_denom_data) < 0.0 && Phi < 0.0) {
+                Phi += M_PI;
+            } else if ((*sum_denom_data) > 0.0 && Phi > 0.0) {
+                Phi -= M_PI;
+            }
+
+            if (C > (*b_data)) {
+
+                t1 = (std::acos((*b_data) / C) - Phi) / omega;
+                t1 += (t1 < 0.0) ? (2.0 * M_PI) / omega : 0.0;
+
+                t2 = (-std::acos((*b_data) / C) - Phi) / omega;
+                t2 += (t2 < 0.0) ? (2.0 * M_PI) / omega : 0.0;
+
+                tmin = std::min(t1, t2);
+                if (tmin < t) {
+                    facet = i;
+                    t = tmin;
+                }
+            }
+
+            sum_nom_data++;
+            sum_denom_data++;
+            b_data++;
+        }
+        return std::make_pair(t, facet);
+    }
+
     // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
     void linear_transformIt(MT const& T)
     {

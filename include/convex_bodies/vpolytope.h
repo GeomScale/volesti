@@ -521,6 +521,14 @@ public:
     }
 
 
+    //------------oracle for exact hmc spherical gaussian sampling---------------//
+    std::pair<NT, int> trigonometric_positive_intersect(Point const& r, Point const& v,
+                                                      NT const& omega) const
+    {
+        return std::make_pair(0, 0);
+    }
+
+
     // shift polytope by a point c
     void shift(const VT &c) {
         MT V2 = V.transpose().colwise() - c;

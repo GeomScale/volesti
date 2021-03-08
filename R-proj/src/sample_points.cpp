@@ -550,7 +550,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     } else if(Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("ExactHMC")) == 0) {
         if (!exponential && !gaussian) throw Rcpp::exception("Exact HMC is supported only for exponential or spherical Gaussian sampling.");
         if(exponential){
-             walk = exponential_hmc;
+            walk = exponential_hmc;
         } else {
             walk = gaussian_hmc;
         }
