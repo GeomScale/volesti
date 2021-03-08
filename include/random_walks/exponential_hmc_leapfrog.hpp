@@ -13,11 +13,11 @@
 #include "sampling/sphere.hpp"
 
 
-// Billiard walk which accelarates each step for uniform distribution
+// Hamiltonian Monte Carlo with leapfrog for sampling from the exponential distribution
 
 struct HMCLeafrogExponential
 {
-    HMCLeafrogExponential(double steps)
+    HMCLeafrogExponential(unsigned int steps)
             :   param(steps, true)
     {}
 
@@ -27,10 +27,10 @@ struct HMCLeafrogExponential
 
     struct parameters
     {
-        parameters(double steps, bool set)
+        parameters(unsigned int steps, bool set)
                 :   nsteps(steps), set_steps(set)
         {}
-        double nsteps;
+        unsigned int nsteps;
         bool set_steps;
     };
 
@@ -61,13 +61,14 @@ struct HMCLeafrogExponential
 
         template <typename GenericPolytope>
         Walk(GenericPolytope const& P, Point const& p, Point const& c, NT const& T, 
-             RandomNumberGenerator &rng, NT const& eta)
+             NT const& eta, RandomNumberGenerator &rng)
         {
             _update_parameters = update_parameters();
             NT L = compute_diameter<GenericPolytope>
                     ::template compute<NT>(P);
             _steps = int(L / eta);
             _eta = eta;
+            _Temp = T;
             _c = c;
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             _Ac = P.get_mat() * c.getCoefficients();
@@ -75,11 +76,12 @@ struct HMCLeafrogExponential
         }
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, Point const& p, Point const& c, NT const& T, RandomNumberGenerator &rng,
-             parameters const& params)
+        Walk(GenericPolytope const& P, Point const& p, Point const& c, NT const& T, 
+             NT const& eta, RandomNumberGenerator &rng, parameters const& params)
         {
             _update_parameters = update_parameters();
-            _eta = params.eta;
+            _eta = eta;
+            _Temp = T;
             if (params.set_steps) {
                 _steps = params.step;
             } else {
@@ -115,14 +117,14 @@ struct HMCLeafrogExponential
                 for (auto k=0u; k<_steps; ++j)
                 {
                     T = _eta;
-                    _v -= (_eta / 2.0) * _c;
+                    _v -= (_eta / (2.0 * _Temp)) * _c;
 
                     it = 0;
                     std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, 
                                                                           _lambda_prev, _update_parameters);
                     if (T <= pbpair.first) {
                         _p += (T * _v);
-                        _v -= (_eta / 2.0) * _c;
+                        _v -= (_eta / (2.0 * _Temp)) * _c;
                         _lambda_prev = T;
                         continue;
                     }
@@ -140,7 +142,7 @@ struct HMCLeafrogExponential
                                                             _AA, _update_parameters);
                         if (T <= pbpair.first) {
                             _p += (T * _v);
-                            _v -= (_eta / 2.0) * _c;
+                            _v -= (_eta / (2.0 * _Temp)) * _c;
                             _lambda_prev = T;
                             break;
                         }
@@ -192,7 +194,7 @@ struct HMCLeafrogExponential
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
             _v = GetDirection<Point>::apply(n, rng, false);
-            _v -= (_eta / 2.0) * _c;
+            _v -= (_eta / (2.0 * _Temp)) * _c;
 
             int it = 0;
 
@@ -234,7 +236,7 @@ struct HMCLeafrogExponential
 
 
         Point _p, _v, _c, _p0;
-        NT _lambda_prev, _lambda_prev_0, _eta, _steps, _H, _Htilde;
+        NT _lambda_prev, _lambda_prev_0, _eta, _steps, _H, _Htilde, _Temp;
         MT _AA;
         update_parameters _update_parameters;
         typename Point::Coeff _lambdas, _lambdas_prev;
