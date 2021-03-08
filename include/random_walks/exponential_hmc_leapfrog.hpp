@@ -71,7 +71,6 @@ struct HMCLeafrogExponential
             _Temp = T;
             _c = c;
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            _Ac = P.get_mat() * c.getCoefficients();
             initialize(P, p, rng);
         }
 
@@ -83,7 +82,7 @@ struct HMCLeafrogExponential
             _eta = eta;
             _Temp = T;
             if (params.set_steps) {
-                _steps = params.step;
+                _steps = params.nsteps;
             } else {
                 NT L = compute_diameter<GenericPolytope>
                         ::template compute<NT>(P);
@@ -91,7 +90,6 @@ struct HMCLeafrogExponential
             }
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             _c = c;
-            _Ac = P.get_mat() * c.getCoefficients();
             initialize(P, p, rng);
         }
 
@@ -113,18 +111,18 @@ struct HMCLeafrogExponential
             {
                 _v = GetDirection<Point>::apply(n, rng, false);
                 _p0 = p;
-                _H = _c.dot(_p) + _v.dot(_v);
-                for (auto k=0u; k<_steps; ++j)
+                _H = _c.dot(_p) + 0.5 * _v.dot(_v);
+                for (auto k=0u; k<_steps; ++k)
                 {
                     T = _eta;
-                    _v -= (_eta / (2.0 * _Temp)) * _c;
+                    _v += (_eta / (-2.0 * _Temp)) * _c;
 
                     it = 0;
                     std::pair<NT, int> pbpair = P.line_positive_intersect(_p, _v, _lambdas, _Av, 
                                                                           _lambda_prev, _update_parameters);
                     if (T <= pbpair.first) {
                         _p += (T * _v);
-                        _v -= (_eta / (2.0 * _Temp)) * _c;
+                        _v += (_eta / (-2.0 * _Temp)) * _c;
                         _lambda_prev = T;
                         continue;
                     }
@@ -142,7 +140,7 @@ struct HMCLeafrogExponential
                                                             _AA, _update_parameters);
                         if (T <= pbpair.first) {
                             _p += (T * _v);
-                            _v -= (_eta / (2.0 * _Temp)) * _c;
+                            _v += (_eta / (-2.0 * _Temp)) * _c;
                             _lambda_prev = T;
                             break;
                         }
@@ -153,7 +151,7 @@ struct HMCLeafrogExponential
                         it++;
                     }
                 }
-                _Htilde = _c.dot(_p) + _v.dot(_v);
+                _Htilde = _c.dot(_p) + 0.5 * _v.dot(_v);
 
                 NT log_prob = _H - _Htilde < 0 ? _H - _Htilde : 0;
                 NT u_logprob = log(rng.sample_urdist());
@@ -172,11 +170,6 @@ struct HMCLeafrogExponential
             p = _p;
         }
 
-        inline void update_delta(NT L)
-        {
-            _L = L;
-        }
-
     private :
 
         template
@@ -188,12 +181,13 @@ struct HMCLeafrogExponential
                                RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
-            const NT dl = 0.995, T = _eta;
+            const NT dl = 0.995;
+            NT T = _eta;
             _lambdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
             _v = GetDirection<Point>::apply(n, rng, false);
-            _v -= (_eta / (2.0 * _Temp)) * _c;
+            _v += (_eta / (-2.0 * _Temp)) * _c;
 
             int it = 0;
 
@@ -202,6 +196,10 @@ struct HMCLeafrogExponential
             if (T <= pbpair.first) {
                 _p += (T * _v);
                 _lambda_prev = T;
+
+                _Av_prev = _Av;
+                _lambda_prev_0 = _lambda_prev;
+                _lambdas_prev = _lambdas;
                 return;
             }
             _lambda_prev = dl * pbpair.first;
@@ -235,7 +233,8 @@ struct HMCLeafrogExponential
 
 
         Point _p, _v, _c, _p0;
-        NT _lambda_prev, _lambda_prev_0, _eta, _steps, _H, _Htilde, _Temp;
+        NT _lambda_prev, _lambda_prev_0, _eta, _H, _Htilde, _Temp;
+        unsigned int _steps;
         MT _AA;
         update_parameters _update_parameters;
         typename Point::Coeff _lambdas, _lambdas_prev;

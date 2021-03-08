@@ -274,15 +274,7 @@ struct ExponentialRandomPointGenerator
             policy.apply(randPoints, p);
         }
     }
-};
 
-
-template
-<
-    typename Walk
->
-struct ExponentialRandomPointGenerator
-{
     template
     <
         typename Polytope,

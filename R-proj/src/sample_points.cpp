@@ -338,6 +338,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     random_walks walk;
     ode_solvers solver; // Used only for logconcave sampling
 
+    NT eta;
     std::list<Point> randPoints;
     std::pair<Point, NT> InnerBall;
     Point mode(dim);
@@ -378,9 +379,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     NT a = 0.5;
     if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("variance")) {
         a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]));
-        if (walk == exponential_hmc) a = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]);
-        if (!gaussian && walk != exponential_hmc) {
-            Rcpp::warning("The variance can be set only for Gaussian sampling!");
+        if (exponential) a = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]);
+        if (!gaussian && !exponential) {
+            Rcpp::warning("The variance can be set only for Gaussian and exponential sampling!");
         } else if (a <= 0.0) {
             throw Rcpp::exception("The variance has to be positive!");
         }
@@ -539,7 +540,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         if (!exponential) throw Rcpp::exception("Exact HMC is supported only for exponential sampling.");
         walk = exponential_hmc;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("HMC")) == 0) {
-        if (!logconcave || !exponential) throw Rcpp::exception("HMC is not supported for non first-order sampling");
+        if (!logconcave && !exponential) throw Rcpp::exception("HMC is not supported for non first-order sampling");
         if (exponential) {
             if (!set_eta) throw Rcpp::exception("You have to set the step size");
             walk = exponential_hmc_leapfrog;
