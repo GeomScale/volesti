@@ -5,8 +5,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef RANDOM_WALKS_GAUSSIAN_HMC_WALK_HPP
-#define RANDOM_WALKS_GAUSSIAN_HMC_WALK_HPP
+#ifndef RANDOM_WALKS_GAUSSIAN_EXACT_HMC_WALK_HPP
+#define RANDOM_WALKS_GAUSSIAN_EXACT_HMC_WALK_HPP
 
 #include "sampling/sphere.hpp"
 
