@@ -762,7 +762,7 @@ public:
     // compute intersection point of ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT, int> trigonometric_positive_intersect(Point const& r, Point const& v,
-                                                        NT const& omega) const
+                                                        NT const& omega, int &facet_prev) const
     {
 
         NT lamda = 0, C, Phi, t1, t2, tmin;
@@ -770,7 +770,7 @@ public:
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom, sum_denom;
         unsigned int j;
-        int m = num_of_hyperplanes(), facet;
+        int m = num_of_hyperplanes(), facet = -1;
 
 
         sum_nom.noalias() = A * r.getCoefficients();
@@ -782,7 +782,7 @@ public:
 
         for (int i = 0; i < m; i++) {
 
-            C = std::sqrt((*sum_nom_data)* (*sum_nom_data) + ((*sum_denom_data) * (*sum_denom_data)) / (omega * omega));
+            C = std::sqrt((*sum_nom_data) * (*sum_nom_data) + ((*sum_denom_data) * (*sum_denom_data)) / (omega * omega));
             Phi = std::atan((-(*sum_denom_data)) / ((*sum_nom_data) * omega));
             if ((*sum_denom_data) < 0.0 && Phi < 0.0) {
                 Phi += M_PI;
@@ -793,13 +793,21 @@ public:
             if (C > (*b_data)) {
 
                 t1 = (std::acos((*b_data) / C) - Phi) / omega;
-                t1 += (t1 < 0.0) ? (2.0 * M_PI) / omega : 0.0;
-
+                if (facet_prev == i && std::abs(t1) < 1e-10){
+                    t1 = (2.0 * M_PI) / omega;
+                }
+                    
                 t2 = (-std::acos((*b_data) / C) - Phi) / omega;
-                t2 += (t2 < 0.0) ? (2.0 * M_PI) / omega : 0.0;
+                if (facet_prev == i && std::abs(t2) < 1e-10){
+                    t2 = (2.0 * M_PI) / omega;
+                }
+
+                t1 += (t1 < NT(0)) ? (2.0 * M_PI) / omega : NT(0);
+                t2 += (t2 < NT(0)) ? (2.0 * M_PI) / omega : NT(0);
 
                 tmin = std::min(t1, t2);
-                if (tmin < t) {
+
+                if (tmin < t && tmin > NT(0)) {
                     facet = i;
                     t = tmin;
                 }
@@ -809,8 +817,10 @@ public:
             sum_denom_data++;
             b_data++;
         }
+        facet_prev = facet;
         return std::make_pair(t, facet);
     }
+
 
     // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
     void linear_transformIt(MT const& T)

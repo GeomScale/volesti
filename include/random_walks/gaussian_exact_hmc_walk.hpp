@@ -80,7 +80,6 @@ struct Walk
     {
         unsigned int n = P.dimension();
         NT T;
-        const NT dl = 0.995;
 
         for (auto j=0u; j<walk_length; ++j)
         {
@@ -88,20 +87,20 @@ struct Walk
             _v = GetDirection<Point>::apply(n, rng, false);
             Point p0 = _p;
             int it = 0;
-            while (it < 100*n)
+            while (it < 200*n)
             {
-                auto pbpair = P.trigonometric_positive_intersect(_p, _v, _omega);
+                auto pbpair = P.trigonometric_positive_intersect(_p, _v, _omega, _facet_prev);
                 if (T <= pbpair.first) {
                     update_position(_p, _v, T, _omega);
                     break;
                 }
-                _lambda_prev = dl * pbpair.first;
+                _lambda_prev = pbpair.first;
                 T -= _lambda_prev;
                 update_position(_p, _v, _lambda_prev, _omega);
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
-            if (it == 100*n){
+            if (it == 200*n){
                 _p = p0;
             }
         }
@@ -125,27 +124,26 @@ private :
                            RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
-        const NT dl = 0.995;
+        _facet_prev = -1;
         _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
 
         NT T = rng.sample_urdist() * _Len;
-        Point p0 = _p;
         int it = 0;
 
-        while (it <= 100*n)
+        while (it <= 200*n)
         {
             auto pbpair
-                    = P.trigonometric_positive_intersect(_p, _v, _omega);
+                    = P.trigonometric_positive_intersect(_p, _v, _omega, _facet_prev);
             if (T <= pbpair.first) {
                 update_position(_p, _v, T, _omega);
                 break;
-            }else if (it == 100*n) {
+            }else if (it == 200*n) {
                 _lambda_prev = rng.sample_urdist() * pbpair.first;
                 update_position(_p, _v, _lambda_prev, _omega);
                 break;
             }
-            _lambda_prev = dl * pbpair.first;
+            _lambda_prev = pbpair.first;
             update_position(_p, _v, _lambda_prev, _omega);
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, pbpair.second);
@@ -171,6 +169,7 @@ private :
         
     }
 
+    int _facet_prev;
     NT _Len;
     Point _p;
     Point _v;
