@@ -277,5 +277,72 @@ struct ExponentialRandomPointGenerator
 };
 
 
+template
+<
+    typename Walk
+>
+struct ExponentialRandomPointGenerator
+{
+    template
+    <
+        typename Polytope,
+        typename Point,
+        typename NT,
+        typename PointList,
+        typename WalkPolicy,
+        typename RandomNumberGenerator
+    >
+    static void apply(Polytope const& P,
+                      Point &p,   // a point to start
+                      Point const& c,   // bias function
+                      NT const& T, // temperature/variance
+                      NT const& eta,
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      PointList &randPoints,
+                      WalkPolicy &policy,
+                      RandomNumberGenerator &rng)
+    {
+        Walk walk(P, p, c, T, eta, rng);
+        for (unsigned int i=0; i<rnum; ++i)
+        {
+            walk.template apply(P, p, walk_length, rng);
+            policy.apply(randPoints, p);
+        }
+    }
+
+    template
+    <
+            typename Polytope,
+            typename Point,
+            typename NT,
+            typename PointList,
+            typename WalkPolicy,
+            typename RandomNumberGenerator,
+            typename Parameters
+    >
+    static void apply(Polytope const& P,
+                      Point &p,   // a point to start
+                      Point const& c,   // bias function
+                      NT const& T, // temperature/variance
+                      NT const& eta,
+                      unsigned int const& rnum,
+                      unsigned int const& walk_length,
+                      PointList &randPoints,
+                      WalkPolicy &policy,
+                      RandomNumberGenerator &rng,
+                      Parameters const& parameters)
+    {
+        Walk walk(P, p, c, T, eta, rng, parameters);
+
+        for (unsigned int i=0; i<rnum; ++i)
+        {
+            walk.template apply(P, p, walk_length, rng);
+            policy.apply(randPoints, p);
+        }
+    }
+};
+
+
 
 #endif // SAMPLERS_RANDOM_POINT_GENERATORS_HPP

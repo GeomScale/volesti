@@ -364,4 +364,88 @@ void exponential_sampling(PointList &randPoints,
 }
 
 
+template
+<
+        typename WalkTypePolicy,
+        typename PointList,
+        typename Polytope,
+        typename RandomNumberGenerator,
+        typename NT,
+        typename Point
+>
+void exponential_sampling(PointList &randPoints,
+                       Polytope &P,
+                       RandomNumberGenerator &rng,
+                       const unsigned int &walk_len,
+                       const unsigned int &rnum,
+                       const Point &c,
+                       const NT &a,
+                       const NT &eta,
+                       const Point &starting_point,
+                       unsigned int const& nburns)
+{
+
+    typedef typename WalkTypePolicy::template Walk
+            <
+                    Polytope,
+                    RandomNumberGenerator
+            > walk;
+
+    PushBackWalkPolicy push_back_policy;
+
+    Point p = starting_point;
+
+    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
+    if (nburns > 0) {
+        RandomPointGenerator::apply(P, p, c, a, eta, nburns, walk_len, randPoints,
+                                    push_back_policy, rng);
+        randPoints.clear();
+    }
+    RandomPointGenerator::apply(P, p, c, a, eta, rnum, walk_len, randPoints,
+                                push_back_policy, rng);
+}
+
+
+template <
+        typename PointList,
+        typename Polytope,
+        typename RandomNumberGenerator,
+        typename WalkTypePolicy,
+        typename NT,
+        typename Point
+        >
+void exponential_sampling(PointList &randPoints,
+                       Polytope &P,
+                       RandomNumberGenerator &rng,
+                       WalkTypePolicy &WalkType,
+                       const unsigned int &walk_len,
+                       const unsigned int &rnum,
+                       const Point &c,
+                       const NT &a,
+                       const NT &eta,
+                       const Point &starting_point,
+                       unsigned int const& nburns)
+{
+
+    typedef typename WalkTypePolicy::template Walk
+            <
+                    Polytope,
+                    RandomNumberGenerator
+            > walk;
+
+    PushBackWalkPolicy push_back_policy;
+
+    Point p = starting_point;
+
+    typedef ExponentialRandomPointGenerator <walk> RandomPointGenerator;
+    if (nburns > 0) {
+        RandomPointGenerator::apply(P, p, c, a, eta, nburns, walk_len, randPoints,
+                                    push_back_policy, rng, WalkType.param);
+        randPoints.clear();
+    }
+    RandomPointGenerator::apply(P, p, c, a, eta, rnum, walk_len, randPoints,
+                                push_back_policy, rng, WalkType.param);
+}
+
+
 #endif

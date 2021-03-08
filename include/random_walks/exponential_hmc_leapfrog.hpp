@@ -99,7 +99,7 @@ struct HMCLeafrogExponential
                 <
                         typename GenericPolytope
                 >
-        inline bool apply(GenericPolytope const& P,
+        inline void apply(GenericPolytope const& P,
                           Point &p,   // a point to start
                           unsigned int const& walk_length,
                           RandomNumberGenerator &rng)
@@ -170,7 +170,6 @@ struct HMCLeafrogExponential
                 }
             }
             p = _p;
-            return true;
         }
 
         inline void update_delta(NT L)
