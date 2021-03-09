@@ -335,7 +335,7 @@ public:
                                     int& facet_prev) const
     {
         #ifndef RVOLESTI
-            throw std::exception("Quadratic polynomial trajectories are supported only for H-polytopes");
+            throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
         #else
             throw Rcpp::exception("Quadratic polynomial trajectories are supported only for H-polytopes");
         #endif
@@ -352,7 +352,7 @@ public:
                                     int& facet_prev) const
     {
         #ifndef RVOLESTI
-            throw std::exception("Quadratic polynomial trajectories are supported only for H-polytopes");
+            throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
         #else
             throw Rcpp::exception("Quadratic polynomial trajectories are supported only for H-polytopes");
         #endif
