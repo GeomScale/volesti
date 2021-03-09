@@ -7,6 +7,8 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 and 2019 program.
 
+#define RVOLESTI
+
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>

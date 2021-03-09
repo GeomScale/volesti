@@ -505,7 +505,12 @@ public:
                                     VT& Av,
                                     int& facet_prev) const
     {
-        return std::make_pair(0, 0);
+        #ifndef RVOLESTI
+            throw std::exception("Quadratic polynomial trajectories are supported only for H-polytopes");
+        #else
+            throw Rcpp::exception("Quadratic polynomial trajectories are supported only for H-polytopes");
+        #endif
+        //return std::make_pair(0, 0);
     }
 
     std::pair<NT, int> quadratic_positive_intersect(Point const& r,
@@ -517,7 +522,12 @@ public:
                                     NT const& lambda_prev,
                                     int& facet_prev) const
     {
-        return std::make_pair(0, 0);
+        #ifndef RVOLESTI
+            throw std::exception("Quadratic polynomial trajectories are supported only for H-polytopes");
+        #else
+            throw Rcpp::exception("Quadratic polynomial trajectories are supported only for H-polytopes");
+        #endif
+        //return std::make_pair(0, 0);
     }
 
 

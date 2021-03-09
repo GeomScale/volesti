@@ -9,6 +9,8 @@
 
 // Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
+#define RVOLESTI
+
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
@@ -132,10 +134,10 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
         break;
     case exponential_hmc:
         if (set_L) {
-            HMCExponentialWalk WalkType(L);
+            ExponentialHamiltonianMonteCarloExactWalk WalkType(L);
             exponential_sampling(randPoints, P, rng, WalkType, walkL, numpoints, c, a, StartingPoint, nburns);
         } else {
-            exponential_sampling<HMCExponentialWalk>(randPoints, P, rng, walkL, numpoints, c, a,
+            exponential_sampling<ExponentialHamiltonianMonteCarloExactWalk>(randPoints, P, rng, walkL, numpoints, c, a,
                                                      StartingPoint, nburns);
         }
         break;
@@ -506,10 +508,10 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         walk = bcdhr;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("HMC")) == 0) {
         if (!logconcave) throw Rcpp::exception("HMC is not supported for non first-order sampling");
-      walk = hmc;
+        walk = hmc;
     } else if (Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["walk"]).compare(std::string("ULD")) == 0) {
-      if (!logconcave) throw Rcpp::exception("ULD is not supported for non first-order sampling");
-      walk = uld;
+        if (!logconcave) throw Rcpp::exception("ULD is not supported for non first-order sampling");
+        walk = uld;
     } else {
         throw Rcpp::exception("Unknown walk type!");
     }

@@ -19,12 +19,20 @@ template <typename T> int sgn(T val)
 template <typename NT>
 void solve_quadratic_polynomial(NT a, NT b, NT c, NT &x1, NT &x2, bool &real) {
 
+    real = true;
+
+    if (a == NT(0)) {
+        x1 = -c / b;
+        x2 = x1;
+        return;
+    }
+
     NT Delta = b * b - 4.0 * a * c;
     if (Delta < NT(0)) {
         real = false;
         return;
     }
-    real = true;
+
     if (b >= NT(0)){
         x1 = (- b - std::sqrt(Delta)) / (2.0 * a);
         x2 = (2.0 * c) / (- b - std::sqrt(Delta));
@@ -41,6 +49,11 @@ template <typename NT>
 void solve_qudratic_polynomial_stable(NT a, NT b, NT c, NT &x1, NT &x2, bool &real)
 {
     real = true;
+
+    if (a == NT(0)) {
+        x1 = x2 = -c / b;
+        return;
+    }
 
     if (c == NT(0)) {
         x1 = NT(0);
