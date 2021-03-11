@@ -8,6 +8,7 @@
 #define ESS_UPDATER_HPP
 
 #include "ess_updater_utils.hpp"
+#include "effective_sample_size.hpp"
 
 
 
@@ -26,27 +27,30 @@ public:
 
    ESSestimator(unsigned int const& _ndraws, unsigned int const& _dim) 
    {
-     num_draws = _ndraws;
-     d = _dim;
-     num_chains = 0;
+        num_draws = _ndraws;
+        d = _dim;
+        num_chains = 0;
 
-     cm_mean.setZero(d);
-     cm_var.setZero(d);
-     cv_mean.setZero(d);
-     var_plus.setZero(d);
-     ess.setZero(d);
-     draws.setZero(num_draws);
-     acov_s_mean.setZero(num_draws-3, d);
-     rho_hat_s.setZero(num_draws, d);
-     acov = Eigen::Matrix<Eigen::VectorXd, Eigen::Dynamic, 1>(1);
+        cm_mean.setZero(d);
+        cm_var.setZero(d);
+        cv_mean.setZero(d);
+        var_plus.setZero(d);
+        ess.setZero(d);
+        draws.setZero(num_draws);
+        acov_s_mean.setZero(num_draws-3, d);
+        rho_hat_s.setZero(num_draws, d);
+        acov = Eigen::Matrix<Eigen::VectorXd, Eigen::Dynamic, 1>(1);
    }
 
   void update_estimator(MT const& samples) 
   {
     num_chains++;
+    unsigned int min_ess;
+    effective_sample_size<NT, VT>(samples, min_ess);
     for (int i = 0; i < d; i++)
     {
       draws = samples.row(i).transpose();
+      
       autocovariance<double>(draws, acov(0));
 
       new_elem = draws.mean();

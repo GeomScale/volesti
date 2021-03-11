@@ -78,6 +78,7 @@ void autocorrelation(const Eigen::MatrixBase<DerivedA>& y,
                      Eigen::MatrixBase<DerivedB>& ac, Eigen::FFT<T>& fft) {
   size_t N = y.size();
   size_t M = get_good_size_2(N);
+  std::cout<<"M = "<<M<<std::endl;
   size_t Mt2 = 2 * M;
 
   // centered_signal = y-mean(y) followed by N zeros
@@ -92,10 +93,12 @@ void autocorrelation(const Eigen::MatrixBase<DerivedA>& y,
 
   Eigen::Matrix<std::complex<T>, Eigen::Dynamic, 1> ac_tmp(Mt2);
   fft.inv(ac_tmp, freqvec);
+  std::cout<<"ac_tmp = "<<ac_tmp.real().transpose()<<std::endl;
 
   // use "biased" estimate as recommended by Geyer (1992)
   ac = ac_tmp.head(N).real().array() / (N * N * 2);
   ac /= ac(0);
+  std::cout<<"ac = "<<ac.transpose()<<"\n"<<std::endl;
 }
 
 /**
@@ -123,16 +126,23 @@ void autocovariance(const Eigen::MatrixBase<DerivedA>& y,
                     Eigen::MatrixBase<DerivedB>& acov) {
   Eigen::FFT<T> fft;
   autocorrelation(y, acov, fft);
+  std::cout<<"acov.zize() = "<<acov.size()<<std::endl;
+  std::cout<<"y = "<<y.transpose()<<std::endl;
 
   using boost::accumulators::accumulator_set;
   using boost::accumulators::stats;
   using boost::accumulators::tag::variance;
 
   accumulator_set<double, stats<variance>> acc;
+  accumulator_set<double, stats<boost::accumulators::tag::moment<2> > > acc2;
   for (int n = 0; n < y.size(); ++n) {
     acc(y(n));
+    acc2(y(n));
   }
-
+  //std::cout<<"acc = "<<acc<<std::endl;
+  std::cout<<"boost::accumulators::variance(acc) = "<<boost::accumulators::variance(acc)<<"\n"<<std::endl;
+  std::cout<<"accumulators::moment<2>(acc2) = "<<boost::accumulators::moment<2>(acc2)<<"\n"<<std::endl;
+  
   acov = acov.array() * boost::accumulators::variance(acc);
 }
 
