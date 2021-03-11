@@ -7,6 +7,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+#define RVOLESTI
+
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>

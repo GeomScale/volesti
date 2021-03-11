@@ -643,17 +643,19 @@ public:
 
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
-                                    Point const& v,
-                                    VT& Ac,
-                                    NT const& T,
-                                    VT& Ar,
-                                    VT& Av,
-                                    int& facet_prev) const
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r, //current poistion
+                                                    Point const& v, // current velocity
+                                                    VT& Ac, // the product Ac where c is the bias vector of the exponential distribution
+                                                    NT const& T, // the variance of the exponential distribution
+                                                    VT& Ar, // the product Ar 
+                                                    VT& Av, // the product Av
+                                                    int& facet_prev) const //the facet that the trajectory hit in the previous reflection
     {
-        NT lamda = 0, lamda2 =0, lamda1 =0, alpha;
+        NT lamda = 0;
+        NT lamda2 =0;
+        NT lamda1 =0;
+        NT alpha;
         NT min_plus  = std::numeric_limits<NT>::max();
-        NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
         bool real;
         int m = num_of_hyperplanes(), facet = -1;
@@ -670,7 +672,7 @@ public:
             alpha = -((*Ac_data) / (2.0 * T));
             solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1, lamda2, real);
             if (real) {
-                lamda = pick_intersection_time(lamda1, lamda2, i, facet_prev);
+                lamda = pick_first_intersection_time_with_boundary(lamda1, lamda2, i, facet_prev);
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     facet = i;
@@ -684,21 +686,21 @@ public:
         return std::make_pair(min_plus, facet);
     }
 
-    std::pair<NT, int> quadratic_positive_intersect(Point const& r,
-                                    Point const& v,
-                                    VT& Ac,
-                                    NT const& T,
-                                    VT& Ar,
-                                    VT& Av,
-                                    NT const& lambda_prev,
-                                    int& facet_prev) const
+    std::pair<NT, int> quadratic_positive_intersect(Point const& r, //current poistion
+                                                    Point const& v, // current velocity
+                                                    VT& Ac,  // the product Ac where c is the bias vector of the exponential distribution
+                                                    NT const& T, // the variance of the exponential distribution
+                                                    VT& Ar, // the product Ar 
+                                                    VT& Av, // the product Av
+                                                    NT const& lambda_prev, // the intersection time of the previous reflection
+                                                    int& facet_prev) const //the facet that the trajectory hit in the previous reflection
     {
-
-        NT lamda = 0, lamda2 =0, lamda1 =0, alpha;
+        NT lamda = 0;
+        NT lamda2 =0;
+        NT lamda1 =0;
+        NT alpha;
         NT min_plus  = std::numeric_limits<NT>::max();
-        NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
-        NT mult;
         unsigned int j;
         int m = num_of_hyperplanes(), facet = -1;
         bool real;
@@ -715,7 +717,7 @@ public:
             alpha = -((*Ac_data) / (2.0 * T));
             solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1, lamda2, real);
             if (real) {
-                lamda = pick_intersection_time(lamda1, lamda2, i, facet_prev);
+                lamda = pick_first_intersection_time_with_boundary(lamda1, lamda2, i, facet_prev);
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     facet = i;
@@ -729,12 +731,16 @@ public:
         return std::make_pair(min_plus, facet);
     }
 
-    NT pick_intersection_time(NT lamda1, NT lamda2, int current_facet, int previous_facet) const
+    NT pick_first_intersection_time_with_boundary(NT lamda1, NT lamda2, int current_facet, int previous_facet) const
     {
+        if (lamda1 == lamda2){
+            return lamda1;
+        }
         NT lamda;
+        const double tol = 1e-10;
         if (lamda1 * lamda2 < NT(0)) {
             if (previous_facet == current_facet) {
-                if (std::max(lamda1, lamda2) < 1e-10) {
+                if (std::max(lamda1, lamda2) < NT(tol)) {
                     lamda = std::min(lamda1, lamda2);
                 } else {
                     lamda = std::max(lamda1, lamda2);
@@ -744,7 +750,7 @@ public:
             }
         } else {
             if (previous_facet == current_facet) {
-                if (std::min(lamda1, lamda2) >= NT(0) && std::min(lamda1, lamda2) < 1e-10) {
+                if (std::min(lamda1, lamda2) >= NT(0) && std::min(lamda1, lamda2) < NT(tol)) {
                     lamda = std::max(lamda1, lamda2);
                 } else {
                     lamda = std::min(lamda1, lamda2);

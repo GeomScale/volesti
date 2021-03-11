@@ -334,7 +334,7 @@ public:
                                     VT& Av,
                                     int& facet_prev) const
     {
-        return std::make_pair(0, 0);
+        throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
     }
 
     std::pair<NT, int> quadratic_positive_intersect(Point const& r,
@@ -346,7 +346,7 @@ public:
                                     NT const& lambda_prev,
                                     int& facet_prev) const
     {
-        return std::make_pair(0, 0);
+        throw std::runtime_error("Quadratic polynomial trajectories are supported only for H-polytopes");
     }
 
     //------------oracle for exact hmc spherical gaussian sampling---------------//

@@ -5,21 +5,21 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef RANDOM_WALKS_EXPONENTIAL_HMC_WALK_HPP
-#define RANDOM_WALKS_EXPONENTIAL_HMC_WALK_HPP
+#ifndef RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
+#define RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
 
 #include "sampling/sphere.hpp"
 
 
 // Exact HMC for sampling from the Exponential distribution restricted to a convex polytope
 
-struct HMCExponentialWalk
+struct ExponentialHamiltonianMonteCarloExactWalk
 {
-    HMCExponentialWalk(double L)
+    ExponentialHamiltonianMonteCarloExactWalk(double L)
             :   param(L, true)
     {}
 
-    HMCExponentialWalk()
+    ExponentialHamiltonianMonteCarloExactWalk()
             :   param(0, false)
     {}
 
@@ -83,24 +83,25 @@ struct Walk
         unsigned int n = P.dimension();
         NT T;
         int failures = 0, it;
-        Point p0;
+        Point p0 = _p;
 
         for (auto j=0u; j<walk_length; ++j)
         {
             do {
+                _p = p0;
                 failures++;
                 if (failures == 1000) {
                     return false;
                 }
-                T = -std::log(rng.sample_urdist()) * _Len;
+                T = rng.sample_urdist() * _Len;
                 _v = GetDirection<Point>::apply(n, rng, false);
-                p0 = _p;
+                
                 it = 0;
-                while (it < 200*n)
+                while (it < 100*n)
                 {
                     auto pbpair = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas,
                                                              _Av, _lambda_prev, _facet_prev);
-                    if (T <= pbpair.first || pbpair.second < 0) {
+                    if (T <= pbpair.first) {
                         _p += ((T * T) / (-2.0*_Temp)) *_c + (T * _v);
                         _lambda_prev = T;
                         break;
@@ -114,7 +115,7 @@ struct Walk
                 }
                 
             } while (P.is_in(_p, _tol) == 0);
-            if (it == 200*n){
+            if (it == 100*n){
                 _p = p0;
             }
         }
@@ -122,10 +123,68 @@ struct Walk
         return true;
     }
 
+
+    template
+    <
+        typename GenericPolytope
+    >
+    inline void get_starting_point(GenericPolytope const& P,
+                                   Point const& center,
+                                   Point &q,
+                                   unsigned int const& walk_length,
+                                   RandomNumberGenerator &rng)
+    {
+        unsigned int n = P.dimension();
+        NT T, Lmax = _Len, max_dist, rad = 0.0, radius = P.InnerBall().second;
+
+        q = GetPointInDsphere<Point>::apply(n, radius, rng);
+        q += center;
+        initialize(P, q, rng);
+
+        apply(P, q, walk_length, rng);
+    }
+
+
+    template
+    <
+        typename GenericPolytope
+    >
+    inline void parameters_burnin(GenericPolytope const& P, 
+                                  Point const& center,
+                                  unsigned int const& num_points,
+                                  unsigned int const& walk_length,
+                                  RandomNumberGenerator &rng)
+    {
+        Point p = center;
+        std::vector<Point> pointset;
+        pointset.push_back(center);
+        pointset.push_back(_p);
+        NT rad = NT(0), max_dist, Lmax;
+
+        for (int i = 0; i < num_points; i++) 
+        {
+            apply(P, p, walk_length, rng);
+            max_dist = get_max_distance(pointset, p, rad);
+            if (max_dist > Lmax) {
+                Lmax = max_dist;
+            }
+            pointset.push_back(p);
+        }
+
+        if (Lmax > _Len) {
+            if (P.dimension() <= 2500) {
+                update_delta(Lmax);
+            }
+        }
+        pointset.clear();
+    }
+
+
     inline void update_delta(NT L)
     {
         _Len = L;
     }
+
 
 private :
 
@@ -141,12 +200,11 @@ private :
         NT T;
         _lambdas.setZero(P.num_of_hyperplanes());
         _Av.setZero(P.num_of_hyperplanes());
-        _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
         
         do {
-            T = -std::log(rng.sample_urdist()) * _Len;
-            Point p0 = _p;
+            _p = p;
+            T = rng.sample_urdist()* _Len;
             int it = 0;
 
             std::pair<NT, int> pbpair
@@ -184,6 +242,27 @@ private :
             }
         } while (P.is_in(_p, _tol) == 0);
     }
+
+
+    inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad) 
+    {
+        double dis = -1.0, temp_dis;
+        int jj = 0;
+        for (auto vecit = pointset.begin(); vecit!=pointset.end(); vecit++, jj++) 
+        {
+            temp_dis = (q.getCoefficients() - (*vecit).getCoefficients()).norm();
+            if (temp_dis > dis) {
+                dis = temp_dis;
+            }
+            if (jj == 0) {
+                if (temp_dis > rad) {
+                    rad = temp_dis;
+                }
+            }
+        }
+        return dis;
+    }
+
 
     NT _Len;
     VT _Ac;
