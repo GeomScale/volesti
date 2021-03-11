@@ -83,24 +83,25 @@ struct Walk
         unsigned int n = P.dimension();
         NT T;
         int failures = 0, it;
-        Point p0;
+        Point p0 = _p;
 
         for (auto j=0u; j<walk_length; ++j)
         {
             do {
+                _p = p0;
                 failures++;
                 if (failures == 1000) {
                     return false;
                 }
-                T = -std::log(rng.sample_urdist()) * _Len;
+                T = rng.sample_urdist() * _Len;
                 _v = GetDirection<Point>::apply(n, rng, false);
-                p0 = _p;
+                
                 it = 0;
-                while (it < 200*n)
+                while (it < 100*n)
                 {
                     auto pbpair = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas,
                                                              _Av, _lambda_prev, _facet_prev);
-                    if (T <= pbpair.first || pbpair.second < 0) {
+                    if (T <= pbpair.first) {
                         _p += ((T * T) / (-2.0*_Temp)) *_c + (T * _v);
                         _lambda_prev = T;
                         break;
@@ -114,7 +115,7 @@ struct Walk
                 }
                 
             } while (P.is_in(_p, _tol) == 0);
-            if (it == 200*n){
+            if (it == 100*n){
                 _p = p0;
             }
         }
@@ -141,12 +142,11 @@ private :
         NT T;
         _lambdas.setZero(P.num_of_hyperplanes());
         _Av.setZero(P.num_of_hyperplanes());
-        _p = p;
         _v = GetDirection<Point>::apply(n, rng, false);
         
         do {
-            T = -std::log(rng.sample_urdist()) * _Len;
-            Point p0 = _p;
+            _p = p;
+            T = rng.sample_urdist()* _Len;
             int it = 0;
 
             std::pair<NT, int> pbpair
