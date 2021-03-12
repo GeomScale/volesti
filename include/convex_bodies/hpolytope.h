@@ -657,8 +657,8 @@ public:
         NT alpha;
         NT min_plus  = std::numeric_limits<NT>::max();
         VT sum_nom;
-        bool real;
-        int m = num_of_hyperplanes(), facet = -1;
+        int m = num_of_hyperplanes();
+        int facet = -1;
 
         Ar.noalias() = A * r.getCoefficients();
         sum_nom = Ar - b;
@@ -668,12 +668,14 @@ public:
         NT* sum_nom_data = sum_nom.data();
         NT* Ac_data = Ac.data();
 
-        for (int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++) 
+        {
             alpha = -((*Ac_data) / (2.0 * T));
-            solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1, lamda2, real);
-            if (real) {
+            if (solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1, lamda2)) 
+            {
                 lamda = pick_first_intersection_time_with_boundary(lamda1, lamda2, i, facet_prev);
-                if (lamda < min_plus && lamda > 0) {
+                if (lamda < min_plus && lamda > 0) 
+                {
                     min_plus = lamda;
                     facet = i;
                 }
@@ -702,8 +704,8 @@ public:
         NT min_plus  = std::numeric_limits<NT>::max();
         VT sum_nom;
         unsigned int j;
-        int m = num_of_hyperplanes(), facet = -1;
-        bool real;
+        int m = num_of_hyperplanes();
+        int facet = -1;
 
         Ar.noalias() += ((lambda_prev * lambda_prev) / (-2.0*T)) * Ac + lambda_prev * Av;
         sum_nom = Ar - b;
@@ -713,12 +715,14 @@ public:
         NT* Av_data = Av.data();
         NT* Ac_data = Ac.data();
 
-        for (int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++) 
+        {
             alpha = -((*Ac_data) / (2.0 * T));
-            solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1, lamda2, real);
-            if (real) {
+            if (solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1, lamda2)) 
+            {
                 lamda = pick_first_intersection_time_with_boundary(lamda1, lamda2, i, facet_prev);
-                if (lamda < min_plus && lamda > 0) {
+                if (lamda < min_plus && lamda > 0) 
+                {
                     min_plus = lamda;
                     facet = i;
                 }
@@ -731,31 +735,45 @@ public:
         return std::make_pair(min_plus, facet);
     }
 
-    NT pick_first_intersection_time_with_boundary(NT lamda1, NT lamda2, int current_facet, int previous_facet) const
+    NT pick_first_intersection_time_with_boundary(NT const& lamda1, NT const& lamda2, int const& current_facet, int const& previous_facet) const
     {
-        if (lamda1 == lamda2){
+        if (lamda1 == lamda2)
+        {
             return lamda1;
         }
         NT lamda;
         const double tol = 1e-10;
-        if (lamda1 * lamda2 < NT(0)) {
-            if (previous_facet == current_facet) {
-                if (std::max(lamda1, lamda2) < NT(tol)) {
+        if (lamda1 * lamda2 < NT(0)) 
+        {
+            if (previous_facet == current_facet) 
+            {
+                if (std::max(lamda1, lamda2) < NT(tol)) 
+                {
                     lamda = std::min(lamda1, lamda2);
-                } else {
+                } 
+                else 
+                {
                     lamda = std::max(lamda1, lamda2);
                 }
             } else {
                 lamda = std::max(lamda1, lamda2);
             }
-        } else {
-            if (previous_facet == current_facet) {
-                if (std::min(lamda1, lamda2) >= NT(0) && std::min(lamda1, lamda2) < NT(tol)) {
+        } 
+        else 
+        {
+            if (previous_facet == current_facet) 
+            {
+                if (std::min(lamda1, lamda2) >= NT(0) && std::min(lamda1, lamda2) < NT(tol)) 
+                {
                     lamda = std::max(lamda1, lamda2);
-                } else {
+                } 
+                else 
+                {
                     lamda = std::min(lamda1, lamda2);
                 }
-            } else {
+            } 
+            else 
+            {
                 lamda = std::min(lamda1, lamda2);
             }
         }
