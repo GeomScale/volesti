@@ -100,10 +100,6 @@ struct LeapfrogODESolver {
       adaptive = true;
   }
 
-  void initialize_step(){
-
-  }
-
   void step(int k, bool accepted) {
     num_steps++;
 

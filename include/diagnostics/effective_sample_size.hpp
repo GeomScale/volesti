@@ -22,7 +22,7 @@ void cummulative_minimum(std::vector<NT> &v) {
 }
 
 template <typename NT, typename VT, typename MT>
-VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
+VT effective_sample_size(MT& samples, unsigned int &min_ess) {
     typedef Eigen::FFT<NT> EigenFFT;
     typedef std::complex<NT> CNT;
     EigenFFT fft;

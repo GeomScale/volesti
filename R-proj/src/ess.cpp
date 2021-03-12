@@ -14,6 +14,7 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
+#include "diagnostics/effective_sample_size.hpp"
 
 //' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 //'
@@ -35,19 +36,9 @@ Rcpp::NumericVector ess(Rcpp::NumericMatrix samples)
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
-    MT runs = Rcpp::as<MT>(samples), subruns;
-    unsigned int ndraws = runs.cols() / 2;
-    unsigned int d = runs.rows();
-    ESSestimator<NT, VT, MT> estimator(ndraws, d);
-
-    subruns = runs.block(0, 0, d, ndraws);
-    estimator.update_estimator(subruns);
-
-    subruns = runs.block(0, ndraws, d, ndraws);
-    estimator.update_estimator(subruns);
-
-    estimator.estimate_effective_sample_size();
-    VT Neff = estimator.get_effective_sample_size();
+    MT samples_ = Rcpp::as<MT>(samples);
+    unsigned int min_ess = 0;
+    VT Neff = effective_sample_size<NT, VT, MT>(samples_, min_ess);
 
     return Rcpp::wrap(Neff);
 }
