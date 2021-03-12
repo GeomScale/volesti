@@ -33,6 +33,32 @@ NT get_abs(NT &x) {
     return x;
 }
 
+inline size_t get_good_size_22(size_t N) {
+  // Find the optimal next size for the FFT so that
+  // a minimum number of zeros are padded.
+  
+  if (N <= 2) {
+    return(2);
+  }
+  size_t m;
+  while (true) {
+    m = N;
+    while ((m % 2) == 0){ 
+      m = m / 2;
+    }
+    while ((m % 3) == 0){
+       m = m / 3;
+    }
+    while ((m % 5) == 0) { 
+      m = m / 5;
+    }
+    if (m <= 1) {
+      return(N);
+    }
+    N = N + 1;
+  }
+}
+
 template <typename NT, typename VT, typename MT>
 VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
     typedef Eigen::FFT<NT> EigenFFT;
@@ -49,7 +75,7 @@ VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
     ess.resize(d);
 
     // Autocorrelation vector
-    std::vector<NT> autocorrelation(N_even, NT(0));
+    std::vector<NT> autocorrelation(N, NT(0));
     std::vector<NT> min_auto_correlation(N_even / 2, NT(0));
 
 
@@ -103,14 +129,14 @@ VT effective_sample_size(MT const& samples, unsigned int &min_ess) {
         fft.inv(fft_inv_vec, psd);
 
         std::cout<<"fft_inv_vec = ";
-        for (unsigned int j = 0; j < N_even; j++) {
+        for (unsigned int j = 0; j < N; j++) {
             std::cout<<" "<<std::real(fft_inv_vec[j])<<" ";
             autocorrelation[j] = std::real(fft_inv_vec[j]) / N;
         }
         std::cout<<"\n";
 
         std::cout<<"autocorrelation = ";
-        for (unsigned int j = 0; j < N_even; j++) {
+        for (unsigned int j = 0; j < N; j++) {
             std::cout<<" "<<autocorrelation[j]<<" ";
             //autocorrelation[j] = std::real(fft_inv_vec[j]) / N;
         }

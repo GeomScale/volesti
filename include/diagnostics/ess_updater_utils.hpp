@@ -78,7 +78,8 @@ void autocorrelation(const Eigen::MatrixBase<DerivedA>& y,
                      Eigen::MatrixBase<DerivedB>& ac, Eigen::FFT<T>& fft) {
   size_t N = y.size();
   size_t M = get_good_size_2(N);
-  std::cout<<"M = "<<M<<std::endl;
+  //std::cout<<"N = "<<N<<std::endl;
+  //std::cout<<"M = "<<M<<std::endl;
   size_t Mt2 = 2 * M;
 
   // centered_signal = y-mean(y) followed by N zeros
@@ -93,12 +94,12 @@ void autocorrelation(const Eigen::MatrixBase<DerivedA>& y,
 
   Eigen::Matrix<std::complex<T>, Eigen::Dynamic, 1> ac_tmp(Mt2);
   fft.inv(ac_tmp, freqvec);
-  std::cout<<"ac_tmp = "<<ac_tmp.real().transpose()<<std::endl;
+  //std::cout<<"ac_tmp = "<<ac_tmp.real().transpose()<<std::endl;
 
   // use "biased" estimate as recommended by Geyer (1992)
   ac = ac_tmp.head(N).real().array() / (N * N * 2);
   ac /= ac(0);
-  std::cout<<"ac = "<<ac.transpose()<<"\n"<<std::endl;
+  //std::cout<<"ac = "<<ac.transpose()<<"\n"<<std::endl;
 }
 
 /**
@@ -126,8 +127,8 @@ void autocovariance(const Eigen::MatrixBase<DerivedA>& y,
                     Eigen::MatrixBase<DerivedB>& acov) {
   Eigen::FFT<T> fft;
   autocorrelation(y, acov, fft);
-  std::cout<<"acov.zize() = "<<acov.size()<<std::endl;
-  std::cout<<"y = "<<y.transpose()<<std::endl;
+  //std::cout<<"acov.zize() = "<<acov.size()<<std::endl;
+  //std::cout<<"y = "<<y.transpose()<<std::endl;
 
   using boost::accumulators::accumulator_set;
   using boost::accumulators::stats;
@@ -140,12 +141,52 @@ void autocovariance(const Eigen::MatrixBase<DerivedA>& y,
     acc2(y(n));
   }
   //std::cout<<"acc = "<<acc<<std::endl;
-  std::cout<<"boost::accumulators::variance(acc) = "<<boost::accumulators::variance(acc)<<"\n"<<std::endl;
-  std::cout<<"accumulators::moment<2>(acc2) = "<<boost::accumulators::moment<2>(acc2)<<"\n"<<std::endl;
+  //std::cout<<"boost::accumulators::variance(acc) = "<<boost::accumulators::variance(acc)<<"\n"<<std::endl;
+  //std::cout<<"accumulators::moment<2>(acc2) = "<<boost::accumulators::moment<2>(acc2)<<"\n"<<std::endl;
   
   acov = acov.array() * boost::accumulators::variance(acc);
 }
 
 
+template <typename NT, typename VT>
+void compute_autocovariance(VT const& samples, VT &auto_cov) 
+{
+    typedef Eigen::FFT<NT> EigenFFT;
+    typedef Eigen::Matrix<std::complex<NT>, Eigen::Dynamic, 1> CVT;
+    EigenFFT fft;
+
+    unsigned int N = samples.size();
+    NT samples_mean = samples.mean();
+    auto_cov.setZero(N);
+
+    // compute normalized samples
+    VT normalized_sample_row(2 * N);
+    normalized_sample_row.setZero();
+    normalized_sample_row.head(N) = samples.array() - samples_mean;
+
+    NT variance = (normalized_sample_row.cwiseProduct(normalized_sample_row)).sum();
+    variance *= (1.0 / N);
+    variance += NT(1e-16)*(samples_mean*samples_mean);
+    normalized_sample_row.head(N) = normalized_sample_row.head(N).array() / sqrt(variance);
+
+    // Perform FFT on 2N points
+    CVT frequency(2 * N);
+    fft.fwd(frequency, normalized_sample_row);
+
+    // Invert fft to get autocorrelation function
+    CVT auto_cov_tmp(2 * N);
+    frequency = frequency.cwiseAbs2();
+    fft.inv(auto_cov_tmp, frequency);
+
+    auto_cov = auto_cov_tmp.head(N).real().array() / N;
+
+    boost::accumulators::accumulator_set<NT, boost::accumulators::stats<boost::accumulators::tag::variance>> accumulator;
+    for (int i = 0; i < samples.size(); ++i) 
+    {
+        accumulator(samples.coeff(i));
+    }
+  
+    auto_cov = auto_cov.array() * boost::accumulators::variance(accumulator);
+}
 
 #endif
