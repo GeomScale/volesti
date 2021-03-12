@@ -38,18 +38,18 @@ void compute_autocovariance(VT const& samples, VT &auto_cov)
     auto_cov.setZero(N);
 
     // compute normalized samples
-    VT normalized_sample_row(2 * N);
-    normalized_sample_row.setZero();
-    normalized_sample_row.head(N) = samples.array() - samples_mean;
+    VT normalized_samples(2 * N);
+    normalized_samples.setZero();
+    normalized_samples.head(N) = samples.array() - samples_mean;
 
-    NT variance = (normalized_sample_row.cwiseProduct(normalized_sample_row)).sum();
+    NT variance = (normalized_samples.cwiseProduct(normalized_samples)).sum();
     variance *= (1.0 / N);
     variance += NT(1e-16)*(samples_mean*samples_mean);
-    normalized_sample_row.head(N) = normalized_sample_row.head(N).array() / sqrt(variance);
+    normalized_samples.head(N) = normalized_samples.head(N).array() / sqrt(variance);
 
     // Perform FFT on 2N points
     CVT frequency(2 * N);
-    fft.fwd(frequency, normalized_sample_row);
+    fft.fwd(frequency, normalized_samples);
 
     // Invert fft to get autocorrelation function
     CVT auto_cov_tmp(2 * N);
