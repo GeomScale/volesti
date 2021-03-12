@@ -8,10 +8,20 @@
 #define ESS_UPDATER_HPP
 
 #include "ess_updater_utils.hpp"
-#include "effective_sample_size.hpp"
 
 
+/**
+   This is a class that updates the effective sample size (ess) of a sample given a new chain
+   using Welford's algorithm to update the average values and the variance estimates where needed.
+   The chains has to be of the same length. The ess estimation exploits Geyer's stable estimator
+   for the autocovariance and the Geyer's conversion to a monotone sequence, given in,
 
+   Charles J. Geyer, Practical Markov Chain Monte Carlo, Statistical Science 1992.
+
+ * @tparam NT number type
+ * @tparam VT vector type
+ * @tparam MT matrix type
+*/
 template <typename NT, typename VT, typename MT>
 class ESSestimator {
 
@@ -22,10 +32,10 @@ private:
    MT                   acov_s_mean, rho_hat_s;
    
 public:
-   ESSestimator() {}
+    ESSestimator() {}
 
-   ESSestimator(unsigned int const& _ndraws, unsigned int const& _dim) 
-   {
+    ESSestimator(unsigned int const& _ndraws, unsigned int const& _dim) 
+    {
         num_draws = _ndraws;
         d = _dim;
         num_chains = 0;
@@ -111,7 +121,8 @@ public:
 
             max_s = s;
             // this is used in the improved estimate
-            if (rho_hat_even > 0) {
+            if (rho_hat_even > 0) 
+            {
                 rho_hat_s(max_s + 1, i) = rho_hat_even;
             }
 
@@ -130,6 +141,7 @@ public:
         }
     }
 
+
     VT get_effective_sample_size() 
     {
       return ess;
@@ -139,3 +151,4 @@ public:
 
 
 #endif
+

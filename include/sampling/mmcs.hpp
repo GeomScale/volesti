@@ -9,7 +9,20 @@
 
 #include "diagnostics/ess_window_updater.hpp"
 
-template <
+/**
+   The class implements a single step of the Multiphase Monte Carlo Sampling algorithm
+   given in,
+
+   A. Chalkis, V. Fisikopoulos, E. Tsigaridas, H. Zafeiropoulos, Geometric algorithms for sampling the flux space of metabolic networks, SoCG 21.
+
+ * @tparam Polytope convex polytope type
+ * @tparam RandomNumberGenerator random number generator type
+ * @tparam MT matrix type
+ * @tparam Point cartensian point type
+ * @tparam WalkTypePolicy random walk type
+*/
+template 
+<
         typename Polytope,
         typename RandomNumberGenerator,
         typename MT,
@@ -17,22 +30,21 @@ template <
         typename WalkTypePolicy
 >
 void perform_mmcs_step(Polytope &P,
-                   RandomNumberGenerator &rng,
-                   const unsigned int &walk_length,
-                   const unsigned int &target_ess,
-                   unsigned int const& max_num_samples,
-                   unsigned int const& window,
-                   unsigned int &Neff_sampled,
-                   unsigned int &total_samples,
-                   unsigned int const& num_rounding_steps,
-                   MT &TotalRandPoints,
-                   bool &complete,
-                   const Point &starting_point,
-                   unsigned int const& nburns,
-                   bool request_rounding,
-                   WalkTypePolicy &WalkType)
-{       
-
+                       RandomNumberGenerator &rng,
+                       const unsigned int &walk_length,
+                       const unsigned int &target_ess,
+                       unsigned int const& max_num_samples,
+                       unsigned int const& window,
+                       unsigned int &Neff_sampled,
+                       unsigned int &total_samples,
+                       unsigned int const& num_rounding_steps,
+                       MT &TotalRandPoints,
+                       bool &complete,
+                       const Point &starting_point,
+                       unsigned int const& nburns,
+                       bool request_rounding,
+                       WalkTypePolicy &WalkType)
+{
     typedef typename Polytope::NT NT;
     typedef typename Polytope::VT VT;
     typedef typename WalkTypePolicy::template Walk
@@ -53,7 +65,9 @@ void perform_mmcs_step(Polytope &P,
     if (request_rounding) 
     {
         TotalRandPoints.setZero(num_rounding_steps, P.dimension());
-    } else {
+    } 
+    else 
+    {
         TotalRandPoints.setZero(max_num_samples, P.dimension());
     }
         
@@ -102,7 +116,9 @@ void perform_mmcs_step(Polytope &P,
             if (min_eff_samples > 0) 
             {
                 points_to_sample += (total_samples / min_eff_samples) * (target_ess - min_eff_samples) + 100;
-            } else {
+            } 
+            else 
+            {
                 points_to_sample = total_samples + 100;
             }
         }
@@ -110,3 +126,4 @@ void perform_mmcs_step(Polytope &P,
 }
 
 #endif
+
