@@ -14,7 +14,6 @@
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
-#include "diagnostics/ESS_stan.hpp"
 
 //' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 //'
@@ -47,7 +46,7 @@ Rcpp::NumericVector ess(Rcpp::NumericMatrix samples)
     subruns = runs.block(0, ndraws, d, ndraws);
     estimator.update_estimator(subruns);
 
-    estimator.estimate_effective_sample_size();                       
+    estimator.estimate_effective_sample_size();
     VT Neff = estimator.get_effective_sample_size();
 
     return Rcpp::wrap(Neff);
