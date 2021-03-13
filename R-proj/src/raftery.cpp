@@ -7,7 +7,9 @@
 
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
-#define RVOLESTI
+#ifndef RVOLESTI
+    #define RVOLESTI
+#endif
 
 #include <Rcpp.h>
 #include <RcppEigen.h>

@@ -2,7 +2,9 @@
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-#define RVOLESTI
+#ifndef RVOLESTI
+    #define RVOLESTI
+#endif
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
