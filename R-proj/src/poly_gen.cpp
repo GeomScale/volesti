@@ -7,7 +7,9 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
-#define RVOLESTI
+#ifndef RVOLESTI
+    #define RVOLESTI
+#endif
 
 #include <Rcpp.h>
 #include <RcppEigen.h>

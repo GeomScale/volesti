@@ -7,7 +7,9 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#define RVOLESTI
+#ifndef RVOLESTI
+    #define RVOLESTI
+#endif
 
 #include <Rcpp.h>
 #include <RcppEigen.h>

@@ -9,7 +9,9 @@
 
 // Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
-#define RVOLESTI
+#ifndef RVOLESTI
+    #define RVOLESTI
+#endif
 
 #include <Rcpp.h>
 #include <RcppEigen.h>
@@ -86,6 +88,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
         } else {
             uniform_sampling<RDHRWalk>(randPoints, P, rng, walkL, numpoints,
                                        StartingPoint, nburns);
+<<<<<<< HEAD
         }
         break;
     case gaussian_hmc:
@@ -95,6 +98,8 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
         } else {
             gaussian_sampling<GaussianHamiltonianMonteCarloExactWalk>(randPoints, P, rng, walkL, numpoints, a,
                                                                       StartingPoint, nburns);
+=======
+>>>>>>> hmc_exponential
         }
         break;
     case vaidya_walk:
