@@ -65,28 +65,28 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
     {
     case bcdhr:
         uniform_sampling_boundary <BCDHRWalk>(randPoints, P, rng, walkL, numpoints,
-                     StartingPoint, nburns);
+                                              StartingPoint, nburns);
         break;
     case brdhr:
         uniform_sampling_boundary <BRDHRWalk>(randPoints, P, rng, walkL, numpoints,
-                     StartingPoint, nburns);
+                                              StartingPoint, nburns);
         break;
     case cdhr:
         if(gaussian) {
             gaussian_sampling<GaussianCDHRWalk>(randPoints, P, rng, walkL, numpoints,
-                                             a, StartingPoint, nburns);
+                                                a, StartingPoint, nburns);
         } else {
             uniform_sampling<CDHRWalk>(randPoints, P, rng, walkL, numpoints,
-                                             StartingPoint, nburns);
+                                       StartingPoint, nburns);
         }
         break;
     case rdhr:
         if(gaussian) {
             gaussian_sampling<GaussianRDHRWalk>(randPoints, P, rng, walkL, numpoints,
-                                             a, StartingPoint, nburns);
+                                                a, StartingPoint, nburns);
         } else {
             uniform_sampling<RDHRWalk>(randPoints, P, rng, walkL, numpoints,
-                                             StartingPoint, nburns);
+                                       StartingPoint, nburns);
         }
         break;
     case vaidya_walk:
@@ -95,7 +95,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
         } else {
             uniform_sampling<VaidyaWalk>(randPoints, P, rng, walkL, numpoints,
-                                     StartingPoint, nburns);
+                                         StartingPoint, nburns);
         }
         break;
     case dikin_walk:
@@ -104,7 +104,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
         } else {
             uniform_sampling<DikinWalk>(randPoints, P, rng, walkL, numpoints,
-                                     StartingPoint, nburns);
+                                        StartingPoint, nburns);
         }
         break;
     case john_walk:
@@ -113,7 +113,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
         } else {
             uniform_sampling<JohnWalk>(randPoints, P, rng, walkL, numpoints,
-                                    StartingPoint, nburns);
+                                       StartingPoint, nburns);
         }
         break;
     case billiard:
@@ -122,7 +122,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
         } else {
             uniform_sampling<BilliardWalk>(randPoints, P, rng, walkL, numpoints,
-                     StartingPoint, nburns);
+                                           StartingPoint, nburns);
         }
         break;
     case accelarated_billiard:
@@ -131,7 +131,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
             uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints, StartingPoint, nburns);
         } else {
             uniform_sampling<AcceleratedBilliardWalk>(randPoints, P, rng, walkL, numpoints,
-                     StartingPoint, nburns);
+                                                      StartingPoint, nburns);
         }
         break;
     case exponential_hmc:
@@ -140,7 +140,7 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
             exponential_sampling(randPoints, P, rng, WalkType, walkL, numpoints, c, a, StartingPoint, nburns);
         } else {
             exponential_sampling<ExponentialHamiltonianMonteCarloExactWalk>(randPoints, P, rng, walkL, numpoints, c, a,
-                                                     StartingPoint, nburns);
+                                                                            StartingPoint, nburns);
         }
         break;
     case ball_walk:
@@ -148,19 +148,19 @@ void sample_from_polytope(Polytope &P, int type, RNGType &rng, PointList &randPo
             if (gaussian) {
                 GaussianBallWalk WalkType(L);
                 gaussian_sampling(randPoints, P, rng, WalkType, walkL, numpoints, a,
-                                       StartingPoint, nburns);
+                                  StartingPoint, nburns);
             } else {
                 BallWalk WalkType(L);
                 uniform_sampling(randPoints, P, rng, WalkType, walkL, numpoints,
-                                       StartingPoint, nburns);
+                                 StartingPoint, nburns);
             }
         } else {
             if(gaussian) {
                 gaussian_sampling<GaussianBallWalk>(randPoints, P, rng, walkL, numpoints,
-                                                 a, StartingPoint, nburns);
+                                                    a, StartingPoint, nburns);
             } else {
                 uniform_sampling<BallWalk>(randPoints, P, rng, walkL, numpoints,
-                                                 StartingPoint, nburns);
+                                           StartingPoint, nburns);
             }
         }
         break;
