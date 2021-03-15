@@ -8,10 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef LEAPFROG_HPP
-#define LEAPFROG_HPP
-
-
+#ifndef ODE_SOLVERS_LEAPFROG_HPP
+#define ODE_SOLVERS_LEAPFROG_HPP
 
 template <
 typename Point,

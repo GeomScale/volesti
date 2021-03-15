@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef ORACLE_FUNCTORS_RCPP_HPP
-#define ORACLE_FUNCTORS_RCPP_HPP
+#ifndef ODE_SOLVERS_ORACLE_FUNCTORS_RCPP_HPP
+#define ODE_SOLVERS_ORACLE_FUNCTORS_RCPP_HPP
 
 enum ode_solvers {
   no_solver,

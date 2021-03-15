@@ -11,7 +11,7 @@
     This function implements the Rubin & Gelman diagnostic.
     It is based on "Inference from iterative simulation using multiple sequences, 1992" by D. B. Rubin and A. Gelman
 
-    For each coordinate the sample is splitted into two parts. 
+    For each coordinate the sample is splitted into two parts.
     Then the psrf of D.B. Rubin and A. Gelman is computed for each coordinate
 
     Inputs: samples, a matrix that contains sample points column-wise
@@ -19,8 +19,8 @@
     Output: The value of PSRF of D.B. Rubin and A. Gelman for each coordinate
 */
 
-#ifndef MARGINAL_PSRF_HPP
-#define MARGINAL_PSRF_HPP
+#ifndef DIAGNOSTICS_MARGINAL_PSRF_HPP
+#define DIAGNOSTICS_MARGINAL_PSRF_HPP
 
 template <typename NT, typename VT, typename MT>
 VT univariate_psrf(MT const& samples)
@@ -58,7 +58,7 @@ VT univariate_psrf(MT const& samples)
         B = (mean1 - mean00) * (mean1 - mean00) + (mean2 - mean00) * (mean2 - mean00);
         sigma = ((NT(N1) - NT(1)) / NT(N1)) * W + B;
         R = std::sqrt(sigma / W);
-        
+
         results(i) = R;
     }
     return results;

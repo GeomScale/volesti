@@ -23,6 +23,8 @@ endif(COMMAND cmake_policy)
 
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
+option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
+option(USE_MKL "Use MKL library to build eigen" ON)
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -60,8 +62,11 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-
-include_directories(BEFORE /usr/include/eigen3)
+if (BUILTIN_EIGEN)
+    include_directories (BEFORE ../external/Eigen)
+else ()
+    include_directories(BEFORE /usr/include/eigen3)
+endif(BUILTIN_EIGEN)
 
 if (USE_MKL)
   find_library(BLAS NAME libblas.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)

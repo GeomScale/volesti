@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef THIN_SAMPLES_HPP
-#define THIN_SAMPLES_HPP
+#ifndef DIAGNOSTICS_THIN_SAMPLES_HPP
+#define DIAGNOSTICS_THIN_SAMPLES_HPP
 
 template <typename NT, typename VT, typename MT>
 MT thin_samples(MT const& samples, NT const& min_ess) {

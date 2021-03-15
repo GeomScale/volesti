@@ -17,6 +17,8 @@ endif(COMMAND cmake_policy)
 
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
+option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
+
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -65,7 +67,13 @@ else ()
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-  include_directories (BEFORE ../usr/include/eigen3)
+
+  if (BUILTIN_EIGEN)
+      include_directories (BEFORE ../external/Eigen)
+  else ()
+      include_directories(BEFORE /usr/include/eigen3)
+  endif(BUILTIN_EIGEN)
+
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
   #include_directories (BEFORE ../include/cartesian_geom)

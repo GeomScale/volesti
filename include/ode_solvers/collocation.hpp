@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef COLLOCATION_HPP
-#define COLLOCATION_HPP
+#ifndef ODE_SOLVERS_COLLOCATION_HPP
+#define ODE_SOLVERS_COLLOCATION_HPP
 
 #include "nlp_oracles/nlp_hpolyoracles.hpp"
 #include "nlp_oracles/nlp_vpolyoracles.hpp"

@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef EULER_HPP
-#define EULER_HPP
+#ifndef ODE_SOLVERS_EULER_HPP
+#define ODE_SOLVERS_EULER_HPP
 
 template <
 		typename Point,

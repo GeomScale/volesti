@@ -10,8 +10,8 @@
 
 #include <unsupported/Eigen/FFT>
 
-#ifndef EFFECTIVE_SAMPLE_SIZE_HPP
-#define EFFECTIVE_SAMPLE_SIZE_HPP
+#ifndef DIAGNOSTICS_EFFECTIVE_SAMPLE_SIZE_HPP
+#define DIAGNOSTICS_EFFECTIVE_SAMPLE_SIZE_HPP
 
 template <typename NT>
 void cummulative_minimum(std::vector<NT> &v) {

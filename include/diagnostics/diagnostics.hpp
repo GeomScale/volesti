@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef DIAGNOSTICS_HPP
-#define DIAGNOSTICS_HPP
+#ifndef DIAGNOSTICS_DIAGNOSTICS_HPP
+#define DIAGNOSTICS_DIAGNOSTICS_HPP
 
 #include "misc/print_table.hpp"
 #include "diagnostics/multivariate_psrf.hpp"

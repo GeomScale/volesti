@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef RUNGE_KUTTA_H
-#define RUNGE_KUTTA_H
+#ifndef ODE_SOLVERS_RUNGE_KUTTA_H
+#define ODE_SOLVERS_RUNGE_KUTTA_H
 
 
 template <

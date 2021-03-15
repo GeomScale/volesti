@@ -23,7 +23,6 @@
 #define CARTESIAN_KERNEL_H
 
 #include "point.h"
-#include "sparse_point.h"
 
 template <typename K>
 class Cartesian
@@ -32,16 +31,6 @@ public:
   typedef Cartesian<K> Self;
   typedef K                    FT;
   typedef point<Self>              Point;
-
-};
-
-template <typename K>
-class SparseCartesian
-{
-public:
-  typedef SparseCartesian<K> Self;
-  typedef K                    FT;
-  typedef sparse_point<Self>              Point;
 
 };
 

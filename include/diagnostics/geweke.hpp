@@ -9,7 +9,7 @@
 
 /*
     This function implements a multivariate version of the Geweke diagnostic.
-    It is reduced to Hotelling's Two Sample test, which is a multivariate 
+    It is reduced to Hotelling's Two Sample test, which is a multivariate
     extension of the common two sample Student's t-test. The null hypothesis
     is that there is no difference between sample means.
 
@@ -21,19 +21,19 @@
             frac_last, the portion of the last in order points in matrix samples
             alpha, the confidence level for the statistical test
 
-    Output: A boolean to denote the result of Geweke diagnostic: 
+    Output: A boolean to denote the result of Geweke diagnostic:
             (i)  false if the null hypothesis is rejected
             (ii) true if the null hypothesis is not rejected
 */
 
 
-#ifndef GEWEKE_HPP
-#define GEWEKE_HPP
+#ifndef DIAGNOSTICS_GEWEKE_HPP
+#define DIAGNOSTICS_GEWEKE_HPP
 
 #include <boost/math/distributions/fisher_f.hpp>
 
 template <typename VT, typename MT, typename NT>
-bool perform_geweke(MT const& samples, 
+bool perform_geweke(MT const& samples,
                     NT frac_first = 0.1,
                     NT frac_last = 0.5,
                     NT alpha = 0.05)
@@ -55,7 +55,7 @@ bool perform_geweke(MT const& samples,
     // Compute the pooled covariance matrix
     MT S_pl = ((NT(N1) - NT(1)) * sigma1 + (NT(N2) - 1.0) * sigma2) / (NT(N1) + NT(N2) - NT(2));
 
-    // T2 follows Hotelling's T-squared distribution under the assumption of 
+    // T2 follows Hotelling's T-squared distribution under the assumption of
     // equal covariances and when the null hypothesis is true
     NT T2 = (mean1 - mean2).transpose() * S_pl.inverse() * (mean1 - mean2);
     T2 = ((NT(N1) * NT(N2)) / (NT(N1) + NT(N2))) * T2;
@@ -65,7 +65,7 @@ bool perform_geweke(MT const& samples,
     NT U = ((NT(N1) + NT(N2) - NT(d) - 1.0) / ((NT(N1) + NT(N2) - 2.0) * NT(d))) * T2;
 
     boost::math::fisher_f dist(d, int(N1) + int(N2) - d - 1);
-    
+
     NT F1 = boost::math::quantile(dist, alpha / 2.0);
     NT F2 = boost::math::quantile(boost::math::complement(dist, alpha / 2.0));
 

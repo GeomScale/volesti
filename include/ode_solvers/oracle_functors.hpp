@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef ORACLE_FUNCTORS_HPP
-#define ORACLE_FUNCTORS_HPP
+#ifndef ODE_SOLVERS_ORACLE_FUNCTORS_HPP
+#define ODE_SOLVERS_ORACLE_FUNCTORS_HPP
 
 struct OptimizationFunctor {
     template <

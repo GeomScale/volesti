@@ -1,4 +1,7 @@
-// Header file from: https://github.com/friedmud/variadic_table/blob/master/include/VariadicTable.h
+/*
+    Header file from: https://github.com/friedmud/variadic_table/blob/master/include/VariadicTable.h
+    Source project: https://github.com/friedmud/variadic_table
+*/
 
 #include <iostream>
 #include <iomanip>
