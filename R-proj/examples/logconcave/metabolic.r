@@ -22,8 +22,7 @@ norm_vec <- function(x) sqrt(sum(x^2))
 
 
 # Load polytopes from mat file
-#metabolic_polytope_mat <- readMat('../test/metabolic_full_dim/polytope_iAB_RBC_283.mat')
-metabolic_polytope_mat <- readMat('/home/marios/workspace/volume_approximation/test/metabolic_full_dim/polytope_iSDY_1059.mat')
+metabolic_polytope_mat <- readMat('./data/polytope_e_coli.mat')
 A <- as.matrix(metabolic_polytope_mat$polytope[[1]])
 b <- as.matrix(metabolic_polytope_mat$polytope[[2]])
 center <- as.matrix(metabolic_polytope_mat$polytope[[3]])
