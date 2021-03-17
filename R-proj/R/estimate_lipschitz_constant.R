@@ -1,7 +1,13 @@
+#' Inverse weibull distribution PDF with location parameter
+#' 
+#' @export
 dinvweibull_with_loc <- function (x, k, lambda, theta) {
   return ((k / lambda) * ((x - theta) / lambda)^(k - 1) * exp(- ((x - theta) / lambda)^k) * as.double(x >= 0))
 }
 
+#' Inverse weibull distribution CDF with location parameter
+#' 
+#' @export
 pinvweibull_with_loc <- function (q, k, lambda, theta) {
   return ((1 - exp(-((q - theta) / lambda)^k)) * as.double(q >= 0))
 }
