@@ -4,7 +4,21 @@
 \alias{estimtate_lipschitz_constant}
 \title{Estimate the Lipschitz Constant of a function f}
 \usage{
-estimtate_lipschitz_constant(f, P, n, m = 1)
+estimtate_lipschitz_constant(f, P, n)
+}
+\arguments{
+\item{f}{Function whose Lipschitz constant is to be estimated}
+
+\item{P}{Domain of f (a convex polytope)}
+
+\item{n}{Number of samples to take
+
+The procedure draws n uniform samples from P and evaluates the Lipschitz
+constant at subsequent samples (where the sampler moves to a new point),
+It then returns the maximum observation}
+}
+\value{
+An estimate of the Lipschitz constant
 }
 \description{
 Estimate the Lipschitz Constant of a function f

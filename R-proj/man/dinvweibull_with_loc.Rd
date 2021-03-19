@@ -6,6 +6,18 @@
 \usage{
 dinvweibull_with_loc(x, k, lambda, theta)
 }
+\arguments{
+\item{x}{The argument of the PDF}
+
+\item{k}{The shape parameter}
+
+\item{lambda}{The scale parameter}
+
+\item{theta}{The location parameter}
+}
+\value{
+The value of the PDF of an Inverse Weibull distribution with parameters k, lambda, theta evaluated at x
+}
 \description{
 Inverse weibull distribution PDF with location parameter
 }

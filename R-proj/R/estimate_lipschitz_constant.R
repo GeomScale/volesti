@@ -1,12 +1,22 @@
 #' Inverse weibull distribution PDF with location parameter
+#' @param x The argument of the PDF
+#' @param k The shape parameter
+#' @param lambda The scale parameter
+#' @param theta The location parameter
 #' 
+#' @return The value of the PDF of an Inverse Weibull distribution with parameters k, lambda, theta evaluated at x
 #' @export
 dinvweibull_with_loc <- function (x, k, lambda, theta) {
   return ((k / lambda) * ((x - theta) / lambda)^(k - 1) * exp(- ((x - theta) / lambda)^k) * as.double(x >= 0))
 }
 
 #' Inverse weibull distribution CDF with location parameter
+#' @param x The argument of the CDF
+#' @param k The shape parameter
+#' @param lambda The scale parameter
+#' @param theta The location parameter
 #' 
+#' @return The value of the CDF of an Inverse Weibull distribution with parameters k, lambda, theta evaluated at x
 #' @export
 pinvweibull_with_loc <- function (q, k, lambda, theta) {
   return ((1 - exp(-((q - theta) / lambda)^k)) * as.double(q >= 0))
@@ -14,9 +24,19 @@ pinvweibull_with_loc <- function (q, k, lambda, theta) {
 
 
 #' Estimate the Lipschitz Constant of a function f
-#'
-#' @export
-estimtate_lipschitz_constant <- function (f, P, n, m=1) {
+#' 
+#' @param f Function whose Lipschitz constant is to be estimated
+#' @param P Domain of f (a convex polytope)
+#' @param n Number of samples to take
+#' 
+#' The procedure draws n uniform samples from P and evaluates the Lipschitz
+#' constant at subsequent samples (where the sampler moves to a new point),
+#' It then returns the maximum observation
+#' 
+#' @return An estimate of the Lipschitz constant
+#' 
+#' @export 
+estimtate_lipschitz_constant <- function (f, P, n) {
   points = volesti::sample_points(P, n = 1000, random_walk = list("walk" = "BaW", "walk_length" = 1))
   l = matrix(0, 1, n-1)
 
@@ -27,21 +47,7 @@ estimtate_lipschitz_constant <- function (f, P, n, m=1) {
   na_cols <- is.nan(l[1,])
 
   l <- as.matrix(l[1, !na_cols])
-
+  
+  # TODO Implement weibull distribution fitting method to estimate the Lipschitz constant
   return(max(l))
-
-  # TODO Fit reverse weibull distribution on bucketed maxima
-  # n_new <- length(l)
-  #
-  # n_buckets <- n_new %/% m
-  #
-  # results <- matrix(0, n_buckets, 1)
-  #
-  # for (i in 1:n_buckets) {
-  #   lo <- (i - 1)* m + 1
-  #   hi <- i * m
-  #   results[i, 1] <- max(l[lo:hi, 1])
-  # }
-  #
-  # return(results)
 }
