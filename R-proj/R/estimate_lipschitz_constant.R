@@ -11,12 +11,12 @@ dinvweibull_with_loc <- function (x, k, lambda, theta) {
 }
 
 #' Inverse weibull distribution CDF with location parameter
-#' @param x The argument of the CDF
+#' @param q The argument of the CDF
 #' @param k The shape parameter
 #' @param lambda The scale parameter
 #' @param theta The location parameter
 #' 
-#' @return The value of the CDF of an Inverse Weibull distribution with parameters k, lambda, theta evaluated at x
+#' @return The value of the CDF of an Inverse Weibull distribution with parameters k, lambda, theta evaluated at q
 #' @export
 pinvweibull_with_loc <- function (q, k, lambda, theta) {
   return ((1 - exp(-((q - theta) / lambda)^k)) * as.double(q >= 0))
