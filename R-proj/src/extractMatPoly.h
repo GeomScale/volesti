@@ -18,9 +18,6 @@
 // Public License.  If you did not receive this file along with HeaDDaCHe,
 // see <http://www.gnu.org/licenses/>.
 
-#ifndef RVOLESTI
-    #define RVOLESTI
-#endif
 
 #ifndef EXTRACTMATPOLY_H
 #define EXTRACTMATPOLY_H

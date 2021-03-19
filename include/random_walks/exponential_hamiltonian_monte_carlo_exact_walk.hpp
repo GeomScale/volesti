@@ -270,7 +270,7 @@ private :
     Point _v;
     Point _c;
     NT _Temp;
-    const double _tol = 1e-10;
+    static const double _tol = 1e-10;
     NT _lambda_prev;
     int _facet_prev;
     typename Point::Coeff _lambdas;
