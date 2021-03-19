@@ -8,11 +8,14 @@
 #ifndef RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
 #define RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
 
+#ifndef TOL
+#define TOL 1e-10
+#endif
+
 #include "sampling/sphere.hpp"
 
 
 // Exact HMC for sampling from the Exponential distribution restricted to a convex polytope
-
 struct ExponentialHamiltonianMonteCarloExactWalk
 {
     ExponentialHamiltonianMonteCarloExactWalk(double L)
@@ -33,6 +36,7 @@ struct ExponentialHamiltonianMonteCarloExactWalk
     };
 
     parameters param;
+    static const double _tol;;
 
 
 template
@@ -114,7 +118,7 @@ struct Walk
                     it++;
                 }
                 
-            } while (P.is_in(_p, _tol) == 0);
+            } while (P.is_in(_p, TOL) == 0);
             if (it == 100*n){
                 _p = p0;
             }
@@ -240,7 +244,7 @@ private :
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
-        } while (P.is_in(_p, _tol) == 0);
+        } while (P.is_in(_p, TOL) == 0);
     }
 
 
@@ -270,7 +274,6 @@ private :
     Point _v;
     Point _c;
     NT _Temp;
-    const double _tol = 1e-10;
     NT _lambda_prev;
     int _facet_prev;
     typename Point::Coeff _lambdas;
