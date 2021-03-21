@@ -10,7 +10,15 @@ enable_testing()
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
-set(MKLROOT $ENV{HOME}/intel/mkl)
+
+# Locate Intel MKL root (in case it is enabled)
+
+if (APPLE)
+	set(MKLROOT /opt/intel/oneapi/mkl/latest)
+elseif(UNIX)
+	set(MKLROOT $ENV{HOME}/intel/mkl)
+endif()
+
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
@@ -94,16 +102,15 @@ if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
-#if(NOT DEFINED BOOST)
-#  message(FATAL_ERROR "This program requires the boost library, and will not be compiled.")
-#else()
-#  message(STATUS "BOOST is DEFINED")
-#endif()
-
+# Download Eigen if it does not exist in filesystem
 include("Eigen.cmake")
 GetEigen()
 
-find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
+find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
+
+if(LAPACK) 
+	message(STATUS "Wooo")
+endif()
 
 if (NOT LP_SOLVE)
 
@@ -122,9 +129,11 @@ else ()
   endif(BUILTIN_EIGEN)
 
   if (USE_MKL)
-    find_library(BLAS NAME libblas.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+    find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/lib)
+    find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
+    find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib) 
     include_directories (BEFORE ${MKLROOT}/include)
-    set(PROJECT_LIBS ${BLAS_LIBRARIES})
+    set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
     add_definitions(-DEIGEN_USE_MKL_ALL)
   endif(USE_MKL)
 
@@ -259,9 +268,9 @@ else ()
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_cg_hpolytope ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_cg_vpolytope ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(volume_cg_vpolytope ${LP_SOLVE} ${BLAS} ${LAPACK} ${GFORTRAN})
   TARGET_LINK_LIBRARIES(volume_cb_hpolytope ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_cb_vpolytope ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(volume_cb_vpolytope ${LP_SOLVE} ${BLAS} ${LAPACK} ${GFORTRAN})
   TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE})
