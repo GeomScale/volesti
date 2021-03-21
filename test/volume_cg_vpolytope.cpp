@@ -86,7 +86,7 @@ void call_test_cube(){
     std::cout << "--- Testing volume of V-cube4" << std::endl;
     P = generate_cube<Vpolytope>(4, true);
     test_volume(P,
-                15.5448,
+                24.8598,
                 15.4739,
                 15.1616,
                 16.0);
@@ -103,8 +103,8 @@ void call_test_cross(){
     std::cout << "--- Testing volume of V-cross5" << std::endl;
     P = generate_cross<Vpolytope>(5, true);
     test_volume(P,
-                0.281565,
-                0.23355,
+                0.239694,
+                0.353566,
                 0.254434,
                 0.266666667);
 
