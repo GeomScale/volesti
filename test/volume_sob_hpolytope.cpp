@@ -161,16 +161,16 @@ void call_test_birk() {
     std::cout << "--- Testing volume of H-birk5" << std::endl;
     P = generate_birkhoff<Hpolytope>(5);
     test_volume(P,
-                1.8241 * std::pow(10,-7),
+                1.75176 * std::pow(10,-7),
                 2.07943 * std::pow(10,-7),
-                2.47519e-07,
-                2.47519e-07,
+                2.80779e-07,
+                2.80779e-07,
                 0.000000225);
 
     std::cout << "--- Testing volume of H-birk6" << std::endl;
     P = generate_birkhoff<Hpolytope>(6);
     test_volume(P,
-                5.27883 * std::pow(10,-13),
+                5.71076 * std::pow(10,-13),
                 9.48912 * std::pow(10,-13),
                 6.96476e-13,
                 6.96476e-13,

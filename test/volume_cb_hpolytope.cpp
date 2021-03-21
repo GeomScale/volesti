@@ -152,9 +152,9 @@ void call_test_birk()
     P = generate_birkhoff<Hpolytope>(5);
     test_volume(P,
                 1.97968e-07,
-                2.55884e-07,
+                1.73729e-07,
                 1.39042e-07,
-                2.11924e-07,
+                2.95428e-07,
                 0.000000225, 
                 true);
 
@@ -163,7 +163,7 @@ void call_test_birk()
     test_volume(P,
                 7.84351e-13,
                 6.10783e-13,
-                4.39192e-13,
+                5.61469e-13,
                 6.62349e-13,
                 9.455459196 * std::pow(10,-13), 
                 true);
@@ -200,7 +200,7 @@ void call_test_prod_simplex() {
     test_volume(P,
                 6.25978 * std::pow(10,-25),
                 9.33162 * std::pow(10,-25),
-                5.04617e-25,
+                3.95891e-25,
                 5.72542e-25,
                 std::pow(1.0 / factorial(15.0), 2));
 }
@@ -216,7 +216,7 @@ void call_test_simplex() {
     std::cout << "--- Testing volume of H-simplex10" << std::endl;
     P = generate_simplex<Hpolytope>(10, false);
     test_volume(P,
-                3.22432 * std::pow(10,-7),
+                3.83885 * std::pow(10,-7),
                 2.90617 * std::pow(10,-7),
                 2.93392 * std::pow(10,-7),
                 3.00286e-07,
