@@ -138,14 +138,14 @@ void call_test_uniform_generator(){
     test_volume_hpoly(P,
                       0,
                       5.7603e+20,
-                      6.46196 * std::pow(10,20),
+                      7.27889 * std::pow(10,20),
                       5.98586 * std::pow(10,20),
                       exact_vol);
     test_volume_balls(P,
                       0,
-                      7.41071 * std::pow(10,20),
-                      7.64101 * std::pow(10,20),
-                      5.3287 * std::pow(10,20),
+                      3.98317 * std::pow(10,20),
+                      5.72727 * std::pow(10,20),
+                      7.12503 * std::pow(10,20),
                       exact_vol);
 }
 
