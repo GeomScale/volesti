@@ -4,10 +4,10 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef ESS_UPDATER_HPP
-#define ESS_UPDATER_HPP
+#ifndef DIAGNOSTICS_ESS_UPDATER_HPP
+#define DIAGNOSTICS_ESS_UPDATER_HPP
 
-#include "ess_updater_utils.hpp"
+#include "ess_updater_autocovariance.hpp"
 
 
 /**

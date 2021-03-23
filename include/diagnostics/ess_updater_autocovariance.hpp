@@ -5,8 +5,8 @@
 // Licensed under GNU LGPL.3, see LICENCE file
 
 
-#ifndef ESS_UPDATER_UTILS_HPP
-#define ESS_UPDATER_UTILS_HPP
+#ifndef DIAGNOSTICS_ESS_UPDATER_AUTOCOVARIANCE_HPP
+#define DIAGNOSTICS_ESS_UPDATER_AUTOCOVARIANCE_HPP
 
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>

@@ -55,6 +55,11 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
+include("Eigen.cmake")
+GetEigen()
+
+include("Boost.cmake")
+GetBoost()
 
 # Find lpsolve library
 find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)

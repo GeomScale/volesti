@@ -52,7 +52,7 @@ void run_main()
     
     MT S;
 
-    std::cout<<"target effective sample size = "<<Neff<<"\n"<<std::endl;
+    std::cout << "target effective sample size = " << Neff << "\n" << std::endl;
  
     while(true) 
     {
@@ -83,7 +83,7 @@ void run_main()
                           nburns, req_round_temp, WalkType);
 
         Neff -= Neff_sampled;
-        std::cout<<"phase "<<phase<<": number of correlated samples = "<<total_samples<<", effective sample size = "<<Neff_sampled;//<<std::endl;
+        std::cout << "phase " << phase << ": number of correlated samples = " << total_samples << ", effective sample size = " << Neff_sampled;
         total_neff += Neff_sampled;
         Neff_sampled = 0;
         
@@ -141,7 +141,7 @@ void run_main()
                 T_shift += T * shift;
                 T = T * round_mat;
 
-                std::cout<<", ratio of the maximum singilar value over the minimum singular value = "<<max_s<<std::endl;
+                std::cout << ", ratio of the maximum singilar value over the minimum singular value = " << max_s << std::endl;
 
                 if (max_s <= s_cutoff || round_it > num_its) 
                 {
