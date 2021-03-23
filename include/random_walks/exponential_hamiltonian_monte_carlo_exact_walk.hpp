@@ -19,24 +19,29 @@
 struct ExponentialHamiltonianMonteCarloExactWalk
 {
     ExponentialHamiltonianMonteCarloExactWalk(double L)
-            :   param(L, true)
+            :   param(L, true, 0, false)
+    {}
+
+    ExponentialHamiltonianMonteCarloExactWalk(double L, unsigned int rho)
+            :   param(L, true, rho, true)
     {}
 
     ExponentialHamiltonianMonteCarloExactWalk()
-            :   param(0, false)
+            :   param(0, false, 0, false)
     {}
 
     struct parameters
     {
-        parameters(double L, bool set)
-                :   m_L(L), set_L(set)
+        parameters(double L, bool set, unsigned int _rho, bool _set_rho)
+                :   m_L(L), set_L(set), rho(_rho), set_rho(_set_rho)
         {}
         double m_L;
         bool set_L;
+        unsigned int rho;
+        bool set_rho;
     };
 
     parameters param;
-    static const double _tol;;
 
 
 template
@@ -59,6 +64,7 @@ struct Walk
         _Ac = P.get_mat() * c.getCoefficients();
         _Temp = T;
         _c = c;
+        _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
         initialize(P, p, rng);
     }
 
@@ -72,6 +78,7 @@ struct Walk
         _Ac = P.get_mat() * c.getCoefficients();
         _Temp = T;
         _c = c;
+        _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
         initialize(P, p, rng);
     }
 
@@ -94,14 +101,14 @@ struct Walk
             do {
                 _p = p0;
                 failures++;
-                if (failures == 1000) {
+                if (failures == 1000) { // if the number of failures exceeds 1000 then stop
                     return false;
                 }
                 T = rng.sample_urdist() * _Len;
                 _v = GetDirection<Point>::apply(n, rng, false);
                 
                 it = 0;
-                while (it < 100*n)
+                while (it < _rho)
                 {
                     auto pbpair = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas,
                                                              _Av, _lambda_prev, _facet_prev);
@@ -119,7 +126,7 @@ struct Walk
                 }
                 
             } while (P.is_in(_p, TOL) == 0);
-            if (it == 100*n){
+            if (it == _rho) {
                 _p = p0;
             }
         }
@@ -208,7 +215,7 @@ private :
         
         do {
             _p = p;
-            T = rng.sample_urdist()* _Len;
+            T = rng.sample_urdist() * _Len;
             int it = 0;
 
             std::pair<NT, int> pbpair
@@ -224,7 +231,7 @@ private :
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, pbpair.second);
 
-            while (it <= 100*n)
+            while (it <= _rho)
             {
                 std::pair<NT, int> pbpair
                         = P.quadratic_positive_intersect(_p, _v, _Ac, _Temp, _lambdas, _Av, _lambda_prev, _facet_prev);
@@ -232,7 +239,7 @@ private :
                     _p += ((T * T) / (-2.0*_Temp)) *_c + (T * _v);
                     _lambda_prev = T;
                     break;
-                }else if (it == 100*n) {
+                }else if (it == _rho) {
                     _lambda_prev = rng.sample_urdist() * pbpair.first;
                     _p += ((_lambda_prev * _lambda_prev) / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
                     break;
@@ -276,6 +283,7 @@ private :
     NT _Temp;
     NT _lambda_prev;
     int _facet_prev;
+    unsigned int _rho;
     typename Point::Coeff _lambdas;
     typename Point::Coeff _Av;
 };
