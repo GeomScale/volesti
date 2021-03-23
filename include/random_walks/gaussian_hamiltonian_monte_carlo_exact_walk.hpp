@@ -16,22 +16,28 @@
 
 struct GaussianHamiltonianMonteCarloExactWalk
 {
+    GaussianHamiltonianMonteCarloExactWalk(double L, unsigned int _rho)
+            :   param(L, true, _rho, true)
+    {}
+    
     GaussianHamiltonianMonteCarloExactWalk(double L)
-            :   param(L, true)
+            :   param(L, true, 0, false)
     {}
 
     GaussianHamiltonianMonteCarloExactWalk()
-            :   param(0, false)
+            :   param(0, false, 0, false)
     {}
 
     
     struct parameters
     {
-        parameters(double L, bool set)
-                :   m_L(L), set_L(set)
+        parameters(double L, bool set, unsigned int _rho, bool _set_rho)
+                :   m_L(L), set_L(set), rho(_rho), set_rho(_set_rho)
         {}
         double m_L;
         bool set_L;
+        unsigned int rho;
+        bool set_rho;
     };
 
     parameters param;
@@ -54,6 +60,7 @@ struct Walk
         _Len = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
         _omega = std::sqrt(NT(2) * a_i);
+        _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
         initialize(P, p, a_i, rng);
     }
 
@@ -65,6 +72,7 @@ struct Walk
                           : compute_diameter<GenericPolytope>
                             ::template compute<NT>(P);
         _omega = std::sqrt(NT(2) * a_i);
+        _rho = 100 * P.dimension(); // upper bound for the number of reflections (experimental)
         initialize(P, p, a_i, rng);
     }
 
@@ -87,7 +95,7 @@ struct Walk
             _v = GetDirection<Point>::apply(n, rng, false);
             Point p0 = _p;
             int it = 0;
-            while (it < 200*n)
+            while (it < _rho)
             {
                 auto pbpair = P.trigonometric_positive_intersect(_p, _v, _omega, _facet_prev);
                 if (T <= pbpair.first) {
@@ -100,7 +108,7 @@ struct Walk
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
-            if (it == 200*n){
+            if (it == _rho){
                 _p = p0;
             }
         }
@@ -187,14 +195,14 @@ private :
         NT T = rng.sample_urdist() * _Len;
         int it = 0;
 
-        while (it <= 200*n)
+        while (it <= _rho)
         {
             auto pbpair
                     = P.trigonometric_positive_intersect(_p, _v, _omega, _facet_prev);
             if (T <= pbpair.first) {
                 update_position(_p, _v, T, _omega);
                 break;
-            }else if (it == 200*n) {
+            }else if (it == _rho) {
                 _lambda_prev = rng.sample_urdist() * pbpair.first;
                 update_position(_p, _v, _lambda_prev, _omega);
                 break;
@@ -245,6 +253,7 @@ private :
     }
 
     int _facet_prev;
+    unsigned int _rho;
     NT _Len;
     Point _p;
     Point _v;
