@@ -28,11 +28,11 @@
 */
 template 
 <
+        typename WalkTypePolicy,
         typename Polytope,
         typename RandomNumberGenerator,
         typename MT,
         typename Point,
-        typename WalkTypePolicy
         typename NT
 >
 void perform_parallel_mmcs_step(Polytope &P,
@@ -50,7 +50,6 @@ void perform_parallel_mmcs_step(Polytope &P,
                        unsigned int const& nburns,
                        unsigned int const& num_threads,
                        bool request_rounding,
-                       WalkTypePolicy &WalkType,
                        NT L)
 {
     //typedef typename Polytope::NT NT;
@@ -64,8 +63,7 @@ void perform_parallel_mmcs_step(Polytope &P,
     typedef typename WalkTypePolicy::template thread_parameters
     <
         NT,
-        Point,
-        VT
+        Point
     > thread_parameters;
 
     omp_set_num_threads(num_threads);
@@ -85,7 +83,6 @@ void perform_parallel_mmcs_step(Polytope &P,
     }
 
     std::vector<MT> winPoints_per_thread(num_threads, MT::Zero(d, window));
-    //std::vector<Point> starting_point_per_thread(num_threads, Point(d));
     std::vector<MT> TotalRandPoints_per_thread(num_threads);
     std::vector<thread_parameters> walk_parameters_per_thread(num_threads);
 
@@ -95,8 +92,6 @@ void perform_parallel_mmcs_step(Polytope &P,
     unsigned int points_to_sample = target_ess;
     int min_eff_samples;
     total_samples = 0;
-    //MT winPoints(P.dimension(), window);
-    //Point q(P.dimension());
 
     Point pp = starting_point;
     for (unsigned int i = 0; i < num_threads; i++)
@@ -114,7 +109,7 @@ void perform_parallel_mmcs_step(Polytope &P,
         upper_bound_on_total_num_of_samples = max_num_samples;
     }
     TotalRandPoints.resize(0, 0);
-    Walk walk(P, rng, L);
+    Walk walk(P, L);
     
     walk.template parameters_burnin(P, pp, 10 + int(std::log(NT(d))), 10, rng, walk_parameters_per_thread[0]);
     Point const p = pp;
