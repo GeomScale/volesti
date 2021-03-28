@@ -17,12 +17,7 @@
 
 struct AcceleratedBilliardWalkParallel
 {
-    AcceleratedBilliardWalkParallel(double L)
-            :   param(L, true)
-    {}
-
     AcceleratedBilliardWalkParallel()
-            :   param(0, false)
     {}
 
 
@@ -37,7 +32,7 @@ struct AcceleratedBilliardWalkParallel
         double ball_inner_norm;
     };
 
-    template<NT, Point>
+    template<typename NT, typename Point>
     struct thread_parameters
     {
         thread_parameters(unsigned int d, unsigned int m)
@@ -45,8 +40,8 @@ struct AcceleratedBilliardWalkParallel
             update_step_parameters = update_parameters();
             p = Point(d);
             v = Point(d);
-            _lambdas.setZero(m);
-            _Av.setZero(m);
+            lambdas.setZero(m);
+            Av.setZero(m);
             lambda_prev = NT(0);
         }
 
@@ -54,8 +49,8 @@ struct AcceleratedBilliardWalkParallel
         Point p;
         Point v;
         NT lambda_prev;
-        typename Point::Coeff _lambdas;
-        typename Point::Coeff _Av;
+        typename Point::Coeff lambdas;
+        typename Point::Coeff Av;
     };
 
 
@@ -76,17 +71,17 @@ struct AcceleratedBilliardWalkParallel
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            _p0 = Point(P.dimesnion());
+            _p0 = Point(P.dimension());
         }
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, Point const& p, NT const& L)
+        Walk(GenericPolytope const& P, NT const& L)
         {
             _L = L > NT(0) ? L
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            _p0 = Point(P.dimesnion());
+            _p0 = Point(P.dimension());
         }
 
         template
@@ -120,7 +115,7 @@ struct AcceleratedBilliardWalkParallel
                 }
 
                 params.lambda_prev = dl * pbpair.first;
-                params.p += (_lambda_prev * params.v);
+                params.p += (params.lambda_prev * params.v);
                 T -= params.lambda_prev;
                 P.compute_reflection(params.v, params.p, params.update_step_parameters);
                 it++;

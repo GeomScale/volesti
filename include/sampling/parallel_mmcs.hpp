@@ -19,11 +19,11 @@
 
    A. Chalkis, V. Fisikopoulos, E. Tsigaridas, H. Zafeiropoulos, Geometric algorithms for sampling the flux space of metabolic networks, SoCG 21.
 
+ * @tparam WalkTypePolicy random walk type
  * @tparam Polytope convex polytope type
  * @tparam RandomNumberGenerator random number generator type
  * @tparam MT matrix type
  * @tparam Point cartensian point type
- * @tparam WalkTypePolicy random walk type
  * @tparam NT number type
 */
 template 
@@ -52,8 +52,7 @@ void perform_parallel_mmcs_step(Polytope &P,
                        bool request_rounding,
                        NT L)
 {
-    //typedef typename Polytope::NT NT;
-    typedef typename Polytope::VT VT;
+    typedef typename Polytope::VT VT; // vector type
     typedef typename WalkTypePolicy::template Walk
     <
         Polytope,
@@ -64,7 +63,7 @@ void perform_parallel_mmcs_step(Polytope &P,
     <
         NT,
         Point
-    > thread_parameters;
+    > _thread_parameters;
 
     omp_set_num_threads(num_threads);
     std::vector<int> num_starting_points_per_thread(num_threads, 0);
@@ -84,7 +83,6 @@ void perform_parallel_mmcs_step(Polytope &P,
 
     std::vector<MT> winPoints_per_thread(num_threads, MT::Zero(d, window));
     std::vector<MT> TotalRandPoints_per_thread(num_threads);
-    std::vector<thread_parameters> walk_parameters_per_thread(num_threads);
 
     ESSestimator<NT, VT, MT> estimator(window, P.dimension());
 
@@ -97,7 +95,6 @@ void perform_parallel_mmcs_step(Polytope &P,
     for (unsigned int i = 0; i < num_threads; i++)
     {
         TotalRandPoints_per_thread[i].setZero(bound_on_num_points_per_thread[i], d);
-        walk_parameters_per_thread[i] = thread_parameters(d, m);
     }
     unsigned int upper_bound_on_total_num_of_samples;
     if (request_rounding) 
@@ -111,12 +108,16 @@ void perform_parallel_mmcs_step(Polytope &P,
     TotalRandPoints.resize(0, 0);
     Walk walk(P, L);
     
-    walk.template parameters_burnin(P, pp, 10 + int(std::log(NT(d))), 10, rng, walk_parameters_per_thread[0]);
+    _thread_parameters random_walk_parameters(d, m);
+    walk.template parameters_burnin(P, pp, 10 + int(std::log(NT(d))), 10, rng, random_walk_parameters);
     Point const p = pp;
 
+    std::cout<<"\n";
     #pragma omp parallel
     {
         int thread_index = omp_get_thread_num();
+        _thread_parameters thread_random_walk_parameters(d, m);
+        std::cout << "Hello world from thread: " << omp_get_thread_num() << std::endl;
 
         for (unsigned int it = 0; it < num_starting_points_per_thread[thread_index]; it++)    
         {
@@ -124,18 +125,18 @@ void perform_parallel_mmcs_step(Polytope &P,
             {
                 break;
             }
-            walk.template get_starting_point(P, p, walk_parameters_per_thread[thread_index], 10, rng);
+            walk.template get_starting_point(P, p, thread_random_walk_parameters, 10, rng);
             for (int i = 0; i < window; i++)
             {
-                walk.template apply(P, walk_parameters_per_thread[thread_index], walk_length, rng);
-                winPoints_per_thread[thread_index].col(i) = walk_parameters_per_thread.p.getCoefficients();
+                walk.template apply(P, thread_random_walk_parameters, walk_length, rng);
+                winPoints_per_thread[thread_index].col(i) = thread_random_walk_parameters.p.getCoefficients();
             }
             estimator.update_estimator(winPoints_per_thread[thread_index]);
             num_generated_points_per_thread[thread_index] += window;
             total_samples += window;
             if (total_samples >= upper_bound_on_total_num_of_samples && thread_index == 0) 
             {
-                    done = true;
+                done = true;
             }
             TotalRandPoints_per_thread[thread_index].block(num_generated_points_per_thread[thread_index] - window, 0, window, d) = winPoints_per_thread[thread_index].transpose();
             if ((done || total_samples >= points_to_sample) && thread_index == 0) 
