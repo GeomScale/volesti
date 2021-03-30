@@ -28,29 +28,29 @@
 */
 template 
 <
-        typename WalkTypePolicy,
-        typename Polytope,
-        typename RandomNumberGenerator,
-        typename MT,
-        typename Point,
-        typename NT
+    typename WalkTypePolicy,
+    typename Polytope,
+    typename RandomNumberGenerator,
+    typename MT,
+    typename Point,
+    typename NT
 >
 void perform_parallel_mmcs_step(Polytope &P,
-                       RandomNumberGenerator &rng,
-                       const unsigned int &walk_length,
-                       const unsigned int &target_ess,
-                       unsigned int const& max_num_samples,
-                       unsigned int const& window,
-                       unsigned int &Neff_sampled,
-                       unsigned int &total_samples,
-                       unsigned int const& num_rounding_steps,
-                       MT &TotalRandPoints,
-                       bool &complete,
-                       const Point &starting_point,
-                       unsigned int const& nburns,
-                       unsigned int const& num_threads,
-                       bool request_rounding,
-                       NT L)
+                                RandomNumberGenerator &rng,
+                                const unsigned int &walk_length,
+                                const unsigned int &target_ess,
+                                unsigned int const& max_num_samples,
+                                unsigned int const& window,
+                                unsigned int &Neff_sampled,
+                                unsigned int &total_samples,
+                                unsigned int const& num_rounding_steps,
+                                MT &TotalRandPoints,
+                                bool &complete,
+                                const Point &starting_point,
+                                unsigned int const& nburns,
+                                unsigned int const& num_threads,
+                                bool request_rounding,
+                                NT L)
 {
     typedef typename Polytope::VT VT; // vector type
     typedef typename WalkTypePolicy::template Walk
@@ -112,12 +112,10 @@ void perform_parallel_mmcs_step(Polytope &P,
     walk.template parameters_burnin(P, pp, 10 + int(std::log(NT(d))), 10, rng, random_walk_parameters);
     Point const p = pp;
 
-    std::cout<<"\n";
     #pragma omp parallel
     {
         int thread_index = omp_get_thread_num();
         _thread_parameters thread_random_walk_parameters(d, m);
-        std::cout << "Hello world from thread: " << omp_get_thread_num() << std::endl;
 
         for (unsigned int it = 0; it < num_starting_points_per_thread[thread_index]; it++)    
         {

@@ -3,8 +3,6 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
-// Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
-
 // Licensed under GNU LGPL.3, see LICENCE file
 
 #ifndef RANDOM_WALKS_ACCELERATED_IMPROVED_BILLIARD_WALK_PARALLEL_HPP
@@ -13,7 +11,7 @@
 #include "sampling/sphere.hpp"
 
 
-// Billiard walk which accelarates each step for uniform distribution
+// Billiard walk which accelarates each step for uniform distribution and can be used for a parallel use by threads
 
 struct AcceleratedBilliardWalkParallel
 {
@@ -72,6 +70,7 @@ struct AcceleratedBilliardWalkParallel
                 ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             _p0 = Point(P.dimension());
+            _rho = 1000 * P.dimension();
         }
 
         template <typename GenericPolytope>
@@ -82,13 +81,14 @@ struct AcceleratedBilliardWalkParallel
                                 ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
             _p0 = Point(P.dimension());
+            _rho = 1000 * P.dimension();
         }
 
         template
-                <
-                        typename GenericPolytope,
-                        typename thread_params
-                >
+        <
+            typename GenericPolytope,
+            typename thread_params
+        >
         inline void apply(GenericPolytope const& P,
                           thread_params &params,   // a point to start
                           unsigned int const& walk_length,
@@ -108,7 +108,8 @@ struct AcceleratedBilliardWalkParallel
                 it = 0;
                 std::pair<NT, int> pbpair = P.line_positive_intersect(params.p, params.v, params.lambdas, params.Av, 
                                                                       params.lambda_prev, params.update_step_parameters);
-                if (T <= pbpair.first) {
+                if (T <= pbpair.first) 
+                {
                     params.p += (T * params.v);
                     params.lambda_prev = T;
                     continue;
@@ -120,7 +121,7 @@ struct AcceleratedBilliardWalkParallel
                 P.compute_reflection(params.v, params.p, params.update_step_parameters);
                 it++;
 
-                while (it < 1000*n)
+                while (it < _rho)
                 {
                     std::pair<NT, int> pbpair
                             = P.line_positive_intersect(params.p, params.v, params.lambdas, params.Av, 
@@ -136,7 +137,7 @@ struct AcceleratedBilliardWalkParallel
                     P.compute_reflection(params.v, params.p, params.update_step_parameters);
                     it++;
                 }
-                if (it == 1000*n) params.p = _p0;
+                if (it == _rho) params.p = _p0;
             }
         }
 
@@ -147,10 +148,10 @@ struct AcceleratedBilliardWalkParallel
             typename thread_params
         >
         inline void get_starting_point(GenericPolytope const& P,
-                           Point const& center,
-                           thread_params &params,
-                           unsigned int const& walk_length,
-                           RandomNumberGenerator &rng)
+                                       Point const& center,
+                                       thread_params &params,
+                                       unsigned int const& walk_length,
+                                       RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
             NT T, Lmax = _L, max_dist, rad = 0.0, radius = P.InnerBall().second;
@@ -169,11 +170,11 @@ struct AcceleratedBilliardWalkParallel
             typename thread_params
         >
         inline void parameters_burnin(GenericPolytope const& P, 
-                                     Point const& center,
-                                     unsigned int const& num_points,
-                                     unsigned int const& walk_length,
-                                     RandomNumberGenerator &rng,
-                                     thread_params &params)
+                                      Point const& center,
+                                      unsigned int const& num_points,
+                                      unsigned int const& walk_length,
+                                      RandomNumberGenerator &rng,
+                                      thread_params &params)
         {
             std::vector<Point> pointset;
             pointset.push_back(center);
@@ -193,7 +194,8 @@ struct AcceleratedBilliardWalkParallel
                 pointset.push_back(params.p);
             }
 
-            if (Lmax > _L) {
+            if (Lmax > _L) 
+            {
                 if (P.dimension() <= 2500) 
                 {
                     update_delta(Lmax);
@@ -212,10 +214,10 @@ struct AcceleratedBilliardWalkParallel
     private :
 
         template
-                <
-                        typename GenericPolytope,
-                        typename thread_params
-                >
+        <
+            typename GenericPolytope,
+            typename thread_params
+        >
         inline void initialize(GenericPolytope const& P,
                                thread_params &params,
                                RandomNumberGenerator &rng)
@@ -240,7 +242,7 @@ struct AcceleratedBilliardWalkParallel
             T -= params.lambda_prev;
             P.compute_reflection(params.v, params.p, params.update_step_parameters);
 
-            while (it <= 1000*n)
+            while (it <= _rho)
             {
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(params.p, params.v, params.lambdas, params.Av, 
@@ -249,7 +251,7 @@ struct AcceleratedBilliardWalkParallel
                     params.p += (T * params.v);
                     params.lambda_prev = T;
                     break;
-                } else if (it == 1000*n) {
+                } else if (it == _rho) {
                     params.lambda_prev = rng.sample_urdist() * pbpair.first;
                     params.p += (params.lambda_prev * params.v);
                     break;
@@ -284,6 +286,7 @@ struct AcceleratedBilliardWalkParallel
         NT _L;
         MT _AA;
         Point _p0;
+        unsigned int _rho;
     };
 
 };
