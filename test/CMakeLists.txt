@@ -57,13 +57,22 @@ endif(COMMAND cmake_policy)
 include("Eigen.cmake")
 GetEigen()
 
+#if(NOT DEFINED BOOST)
+#  message(FATAL_ERROR "This program requires the boost library, and will not be compiled.")
+#else()
+#  message(STATUS "BOOST is DEFINED")
+#endif()
+
+include("lp_solver.cmake")
+Get_LP_Solver()
+
 include("Boost.cmake")
 GetBoost()
 
 include("lp_solver.cmake")
 Get_LP_Solver()
 
-#find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
+find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
 
 if (NOT LP_SOLVE)
 
@@ -71,15 +80,13 @@ if (NOT LP_SOLVE)
 
 else ()
 
+  message(STATUS "Library lp_solve found: ${LP_SOLVE}")
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
-  #include_directories (BEFORE ../include/cartesian_geom)
-  #include_directories (BEFORE ../include/convex_bodies)
-  include_directories (BEFORE _deps/lpsolve-src)
-  include_directories (BEFORE ../external/boost)
-  #include_directories (BEFORE BOOST)
+  include_directories (BEFORE ../external/LPsolve_src/run_headers)
+  include_directories (BEFORE build/_deps/lpsolve-src)
   include_directories (BEFORE ../include/generators)
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
