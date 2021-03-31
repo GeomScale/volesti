@@ -60,6 +60,9 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
+include("CodeCoverage.cmake")
+APPEND_COVERAGE_COMPILER_FLAGS()
+
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
 
 if (NOT LP_SOLVE)

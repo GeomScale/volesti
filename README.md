@@ -18,6 +18,8 @@
 [![R-CMD-ubuntu](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-ubuntu/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-ubuntu)
 [![R-CMD-macOS](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-macOS/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-macOS)
 [![R-CMD-windows](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-windows/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-windows)
+[![codecov](https://codecov.io/gh/codecov/sourcegraph-codecov/branch/master/graph/badge.svg)](https://codecov.io/gh/GeomScale/volume_approximation)
+ 
 
 ###  Documentation
 

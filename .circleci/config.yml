@@ -43,6 +43,9 @@
 # Licensed under GNU LGPL.3, see LICENCE file
 
 version: 2
+orbs:
+  codecov: codecov/codecov@dev:alpha
+  orb-tools: circleci/orb-tools@9.0
 jobs:
   build:
     machine:
@@ -59,3 +62,4 @@ jobs:
             cmake -DDISABLE_NLP_ORACLES=ON ../test;
             make;
             ctest -j8 --verbose;
+            bash <(curl -s https://codecov.io/bash)
