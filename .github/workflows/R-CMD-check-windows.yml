@@ -30,7 +30,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+      - uses: codecov/codecov-action@v1
+        with:
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
       - uses: r-lib/actions/setup-r@master
         with:
           r-version: ${{ matrix.config.r }}

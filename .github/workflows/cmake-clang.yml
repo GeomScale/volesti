@@ -19,6 +19,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - uses: codecov/codecov-action@v1
+        with:
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true
       - run: sudo apt-get update || true;
              sudo apt-get install clang-6.0 clang-7 clang-8 clang-9 clang-10 lp-solve;
              rm -rf build;
