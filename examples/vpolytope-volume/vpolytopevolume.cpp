@@ -19,7 +19,6 @@
 #include "misc.h"
 #include <limits>
 
-#include "volume_sequence_of_balls.hpp"
 #include "volume_cooling_gaussians.hpp"
 #include "volume_cooling_balls.hpp"
 
@@ -37,17 +36,16 @@ void calculateVolumes(const VPOLYTOPE &VP) {
 	// Calculating volume of the passed polytope
 	NT volume1 = volume_cooling_balls<BallWalk, RNGType, VPOLYTOPE>(VP, e, walk_len);
 	NT volume2 = volume_cooling_gaussians<GaussianBallWalk, RNGType>(VP, e, walk_len);
-	NT volume3 = volume_sequence_of_balls<BallWalk, RNGType>(VP, e, walk_len);
 
 	std::cout<<"\t Using Cooling Balls method: "<<volume1<<"\n";
 	std::cout<<"\t Using Cooling Gaussians method: "<<volume2<<"\n";
-	std::cout<<"\t Using Sequence of Balls method: "<<volume3<<"\n";
 }
 
 
 int main(int argc, char* argv[]) {
+
 	// Generating a 4-dimensional VPolytope
-	VPOLYTOPE VP1 = generate_cube<VPOLYTOPE>(4, true);
+	VPOLYTOPE VP1 = generate_cross<VPOLYTOPE>(4, true);
 	std::cout<<"Polytope VP1: \n";
 	VP1.print();
 	std::cout<<"\n";
@@ -55,17 +53,7 @@ int main(int argc, char* argv[]) {
 	std::cout<<"Volume of VP1: \n";
 	calculateVolumes(VP1);
 
-	// Generating a 7-dimensional VPolytope 
-	VPOLYTOPE VP2 = generate_cube<VPOLYTOPE>(7, true);
-	std::cout<<"Polytope VP2: \n";
-	VP2.print();
-	std::cout<<"\n";
-
-	std::cout<<"Volume of VP2: \n";
-	calculateVolumes(VP2);
-
-
-	// Reading a VPolytope from ine file
+	// Reading a VPolytope from ext file
 	std::string fileName("data/cross_10.ext");
 	std::cout<<"Reading input from file..."<<std::endl;
 	std::ifstream inp;
@@ -73,13 +61,13 @@ int main(int argc, char* argv[]) {
 	inp.open(fileName, std::ifstream::in);
 	read_pointset(inp,Pin);
 
-	VPOLYTOPE VP3(Pin);
-	std::cout<<"Polytope VP3: \n";
-	VP3.print();
+	VPOLYTOPE VP2(Pin);
+	std::cout<<"Polytope VP2: \n";
+	VP2.print();
 	std::cout<<"\n";
 
-	std::cout<<"Volume of VP3: \n";
-	calculateVolumes(VP3);
+	std::cout<<"Volume of VP2: \n";
+	calculateVolumes(VP2);
 
 	return 0;
 }
