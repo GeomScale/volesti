@@ -110,5 +110,6 @@ else ()
   add_subdirectory(logconcave)
   add_subdirectory(spectrahedra)
   add_subdirectory(hpolytope-volume)
+  add_subdirectory(vpolytope-volume)
 
 endif()
