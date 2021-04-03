@@ -1,7 +1,7 @@
 # VolEsti (volume computation and sampling library)
 # Copyright (c) 2012-2020 Vissarion Fisikopoulos
 # Copyright (c) 2018-2020 Apostolos Chalkis
-# Contributed and/or modified by Vaibhav Thakkar
+# Contributed and/or modified by Vaibhav Thakkar, Suraj Choubey
 # Licensed under GNU LGPL.3, see LICENCE file
 
 project( VolEsti )
@@ -60,157 +60,155 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
-find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
+include("LP_Solve.cmake")
+GetLPSolve()
 
-if (NOT LP_SOLVE)
+set(LP_SOLVE ${CMAKE_CURRENT_SOURCE_DIR}/build/_deps/lpsolve-src/)
+add_custom_target(LP_SOLVE STATIC IMPORTED)
 
-  message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
+include_directories (BEFORE ../external)
+include_directories (BEFORE ../external/minimum_ellipsoid)
+include_directories (BEFORE ../external/LPsolve_src/run_headers)
+include_directories (BEFORE ../include/generators)
+include_directories (BEFORE ../include/volume)
+include_directories (BEFORE ../include)
+include_directories (BEFORE ../include/convex_bodies)
+include_directories (BEFORE ../include/convex_bodies/spectrahedra)
+include_directories (BEFORE ../include/random_walks)
+include_directories (BEFORE ../include/annealing)
+include_directories (BEFORE ../include/ode_solvers)
+include_directories (BEFORE ../include/root_finders)
+include_directories (BEFORE ../include/samplers)
+include_directories (BEFORE ../include/lp_oracles)
+include_directories (BEFORE ../include/nlp_oracles)
+include_directories (BEFORE ../include/misc)
+include_directories (BEFORE ../include/optimization)
+include_directories (BEFORE ../include/convex_bodies/spectrahedra)
+
+#for Eigen
+if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
+  add_compile_options(-D "EIGEN_NO_DEBUG")
 else ()
+  add_compile_definitions("EIGEN_NO_DEBUG")
+endif ()
 
-  message(STATUS "Library lp_solve found: ${LP_SOLVE}")
-  set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
+add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
+#add_definitions(${CMAKE_CXX_FLAGS} "-Wint-in-bool-context")
+#add_definitions(${CMAKE_CXX_FLAGS} "-Wall")
 
-  include_directories (BEFORE ../external)
-  include_directories (BEFORE ../external/minimum_ellipsoid)
-  include_directories (BEFORE ../external/LPsolve_src/run_headers)
-  include_directories (BEFORE ../include/generators)
-  include_directories (BEFORE ../include/volume)
-  include_directories (BEFORE ../include)
-  include_directories (BEFORE ../include/convex_bodies)
-  include_directories (BEFORE ../include/convex_bodies/spectrahedra)
-  include_directories (BEFORE ../include/annealing)
-  include_directories (BEFORE ../include/ode_solvers)
-  include_directories (BEFORE ../include/root_finders)
-  include_directories (BEFORE ../include/samplers)
-  include_directories (BEFORE ../include/lp_oracles)
-  include_directories (BEFORE ../include/nlp_oracles)
-  include_directories (BEFORE ../include/misc)
+add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
+#add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
+add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
+add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
+add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
+#add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
+#add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
-  #for Eigen
-  if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
-    add_compile_options(-D "EIGEN_NO_DEBUG")
-  else ()
-    add_compile_definitions("EIGEN_NO_DEBUG")
-  endif ()
+add_executable (new_volume_example new_volume_example.cpp)
+add_executable (benchmarks_sob benchmarks_sob.cpp)
+add_executable (benchmarks_cg benchmarks_cg.cpp)
+add_executable (benchmarks_cb benchmarks_cb.cpp)
 
-  add_definitions(${CMAKE_CXX_FLAGS} "-std=c++11")  # enable C++11 standard
-  add_definitions(${CMAKE_CXX_FLAGS} "-g")  # enable debuger
-  #add_definitions(${CMAKE_CXX_FLAGS} "-Wint-in-bool-context")
-  #add_definitions(${CMAKE_CXX_FLAGS} "-Wall")
+add_library(test_main OBJECT test_main.cpp)
 
-  add_definitions(${CMAKE_CXX_FLAGS} "-O3")  # optimization of the compiler
-  #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgsl")
-  add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
-  add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
-  add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
-  #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
-  #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
+add_executable (mcmc_diagnostics_test mcmc_diagnostics_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_psrf COMMAND mcmc_diagnostics_test -tc=psrf)
+add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
+add_test(NAME test_rPUBLICy COMMAND mcmc_diagnostics_test -tc=rPUBLICy)
 
-  add_executable (new_volume_example new_volume_example.cpp)
-  add_executable (benchmarks_sob benchmarks_sob.cpp)
-  add_executable (benchmarks_cg benchmarks_cg.cpp)
-  add_executable (benchmarks_cb benchmarks_cb.cpp)
+add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME ode_solvers_test_first_order
+        COMMAND ode_solvers_test -tc=first_order)
+add_test(NAME ode_solvers_test_second_order
+        COMMAND ode_solvers_test -tc=second_order)
 
-  add_library(test_main OBJECT test_main.cpp)
+add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME root_finders_test_root_finders
+        COMMAND root_finders_test -tc=root_finders)
 
-  add_executable (mcmc_diagnostics_test mcmc_diagnostics_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME test_psrf COMMAND mcmc_diagnostics_test -tc=psrf)
-  add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
-  add_test(NAME test_raftery COMMAND mcmc_diagnostics_test -tc=raftery)
+add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME boundary_oracles_test_h_poly_oracles
+  COMMAND boundary_oracles_test -tc=h_poly_oracles)
 
-  add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME ode_solvers_test_first_order
-          COMMAND ode_solvers_test -tc=first_order)
-  add_test(NAME ode_solvers_test_second_order
-          COMMAND ode_solvers_test -tc=second_order)
+add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
 
-  add_executable (root_finders_test root_finders_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME root_finders_test_root_finders
-          COMMAND root_finders_test -tc=root_finders)
+add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)
+add_test(NAME volume_sob_hpolytope_cross COMMAND volume_sob_hpolytope -tc=cross)
+add_test(NAME volume_sob_hpolytope_birkhoff COMMAND volume_sob_hpolytope -tc=birk)
+add_test(NAME volume_sob_hpolytope_prod_simplex COMMAND volume_sob_hpolytope -tc=prod_simplex)
+add_test(NAME volume_sob_hpolytope_simplex COMMAND volume_sob_hpolytope -tc=simplex)
+add_test(NAME volume_sob_hpolytope_skinny_cube COMMAND volume_sob_hpolytope -tc=skinny_cube)
 
-  add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME boundary_oracles_test_h_poly_oracles
-    COMMAND boundary_oracles_test -tc=h_poly_oracles)
+add_executable (volume_sob_vpolytope volume_sob_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME volume_sob_vpolytope_cube COMMAND volume_sob_vpolytope -tc=cube)
+add_test(NAME volume_sob_vpolytope_cross COMMAND volume_sob_vpolytope -tc=cross)
+add_test(NAME volume_sob_vpolytope_simplex COMMAND volume_sob_vpolytope -tc=simplex)
 
-  add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
+add_executable (volume_cg_hpolytope volume_cg_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME volume_cg_hpolytope_cube COMMAND volume_cg_hpolytope -tc=cube)
+add_test(NAME volume_cg_hpolytope_cross COMMAND volume_cg_hpolytope -tc=cross)
+add_test(NAME volume_cg_hpolytope_birkhoff COMMAND volume_cg_hpolytope -tc=birk)
+add_test(NAME volume_cg_hpolytope_prod_simplex COMMAND volume_cg_hpolytope -tc=prod_simplex)
+add_test(NAME volume_cg_hpolytope_simplex COMMAND volume_cg_hpolytope -tc=simplex)
+add_test(NAME volume_cg_hpolytope_skinny_cube COMMAND volume_cg_hpolytope -tc=skinny_cube)
 
-  add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)
-  add_test(NAME volume_sob_hpolytope_cross COMMAND volume_sob_hpolytope -tc=cross)
-  add_test(NAME volume_sob_hpolytope_birkhoff COMMAND volume_sob_hpolytope -tc=birk)
-  add_test(NAME volume_sob_hpolytope_prod_simplex COMMAND volume_sob_hpolytope -tc=prod_simplex)
-  add_test(NAME volume_sob_hpolytope_simplex COMMAND volume_sob_hpolytope -tc=simplex)
-  add_test(NAME volume_sob_hpolytope_skinny_cube COMMAND volume_sob_hpolytope -tc=skinny_cube)
+add_executable (volume_cg_vpolytope volume_cg_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME volume_cg_vpolytope_cube COMMAND volume_cg_vpolytope -tc=cube)
+add_test(NAME volume_cg_vpolytope_cross COMMAND volume_cg_vpolytope -tc=cross)
+add_test(NAME volume_cg_vpolytope_simplex COMMAND volume_cg_vpolytope -tc=simplex)
 
-  add_executable (volume_sob_vpolytope volume_sob_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME volume_sob_vpolytope_cube COMMAND volume_sob_vpolytope -tc=cube)
-  add_test(NAME volume_sob_vpolytope_cross COMMAND volume_sob_vpolytope -tc=cross)
-  add_test(NAME volume_sob_vpolytope_simplex COMMAND volume_sob_vpolytope -tc=simplex)
+add_executable (volume_cb_hpolytope volume_cb_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME volume_cb_hpolytope_cube COMMAND volume_cb_hpolytope -tc=cube)
+add_test(NAME volume_cb_hpolytope_cross COMMAND volume_cb_hpolytope -tc=cross)
+add_test(NAME volume_cb_hpolytope_birkhoff COMMAND volume_cb_hpolytope -tc=birk)
+add_test(NAME volume_cb_hpolytope_prod_simplex COMMAND volume_cb_hpolytope -tc=prod_simplex)
+add_test(NAME volume_cb_hpolytope_simplex COMMAND volume_cb_hpolytope -tc=simplex)
+add_test(NAME volume_cb_hpolytope_skinny_cube COMMAND volume_cb_hpolytope -tc=skinny_cube)
 
-  add_executable (volume_cg_hpolytope volume_cg_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME volume_cg_hpolytope_cube COMMAND volume_cg_hpolytope -tc=cube)
-  add_test(NAME volume_cg_hpolytope_cross COMMAND volume_cg_hpolytope -tc=cross)
-  add_test(NAME volume_cg_hpolytope_birkhoff COMMAND volume_cg_hpolytope -tc=birk)
-  add_test(NAME volume_cg_hpolytope_prod_simplex COMMAND volume_cg_hpolytope -tc=prod_simplex)
-  add_test(NAME volume_cg_hpolytope_simplex COMMAND volume_cg_hpolytope -tc=simplex)
-  add_test(NAME volume_cg_hpolytope_skinny_cube COMMAND volume_cg_hpolytope -tc=skinny_cube)
+add_executable (volume_cb_vpolytope volume_cb_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME volume_cb_vpolytope_cube COMMAND volume_cb_vpolytope -tc=cube)
+add_test(NAME volume_cb_vpolytope_cross COMMAND volume_cb_vpolytope -tc=cross)
+add_test(NAME volume_cb_vpolytope_simplex COMMAND volume_cb_vpolytope -tc=simplex)
 
-  add_executable (volume_cg_vpolytope volume_cg_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME volume_cg_vpolytope_cube COMMAND volume_cg_vpolytope -tc=cube)
-  add_test(NAME volume_cg_vpolytope_cross COMMAND volume_cg_vpolytope -tc=cross)
-  add_test(NAME volume_cg_vpolytope_simplex COMMAND volume_cg_vpolytope -tc=simplex)
+add_executable (volume_cb_zonotopes volume_cb_zonotopes.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME volume_cb_zonotopes_uniform_zonotopes
+          COMMAND volume_cb_zonotopes -tc=uniform_zonotopes)
 
-  add_executable (volume_cb_hpolytope volume_cb_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME volume_cb_hpolytope_cube COMMAND volume_cb_hpolytope -tc=cube)
-  add_test(NAME volume_cb_hpolytope_cross COMMAND volume_cb_hpolytope -tc=cross)
-  add_test(NAME volume_cb_hpolytope_birkhoff COMMAND volume_cb_hpolytope -tc=birk)
-  add_test(NAME volume_cb_hpolytope_prod_simplex COMMAND volume_cb_hpolytope -tc=prod_simplex)
-  add_test(NAME volume_cb_hpolytope_simplex COMMAND volume_cb_hpolytope -tc=simplex)
-  add_test(NAME volume_cb_hpolytope_skinny_cube COMMAND volume_cb_hpolytope -tc=skinny_cube)
+add_executable (volume_cb_vpoly_intersection_vpoly volume_cb_vpoly_intersection_vpoly.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME volume_cb_vpoly_intersection_vpoly_random_vpoly_sphere
+          COMMAND volume_cb_vpoly_intersection_vpoly -tc=random_vpoly_sphere)
 
-  add_executable (volume_cb_vpolytope volume_cb_vpolytope.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME volume_cb_vpolytope_cube COMMAND volume_cb_vpolytope -tc=cube)
-  add_test(NAME volume_cb_vpolytope_cross COMMAND volume_cb_vpolytope -tc=cross)
-  add_test(NAME volume_cb_vpolytope_simplex COMMAND volume_cb_vpolytope -tc=simplex)
+add_executable (new_rounding_test new_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME new_rounding_test_round_skinny_cube
+          COMMAND new_rounding_test -tc=round_skinny_cube)
 
-  add_executable (volume_cb_zonotopes volume_cb_zonotopes.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME volume_cb_zonotopes_uniform_zonotopes
-           COMMAND volume_cb_zonotopes -tc=uniform_zonotopes)
-
-  add_executable (volume_cb_vpoly_intersection_vpoly volume_cb_vpoly_intersection_vpoly.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME volume_cb_vpoly_intersection_vpoly_random_vpoly_sphere
-           COMMAND volume_cb_vpoly_intersection_vpoly -tc=random_vpoly_sphere)
-
-  add_executable (new_rounding_test new_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME new_rounding_test_round_skinny_cube
-           COMMAND new_rounding_test -tc=round_skinny_cube)
-
-  add_executable (logconcave_sampling_test logconcave_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME logconcave_sampling_test_hmc
-          COMMAND logconcave_sampling_test -tc=hmc)
-  add_test(NAME logconcave_sampling_test_uld
-          COMMAND logconcave_sampling_test -tc=uld)
+add_executable (logconcave_sampling_test logconcave_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
+add_test(NAME logconcave_sampling_test_hmc
+        COMMAND logconcave_sampling_test -tc=hmc)
+add_test(NAME logconcave_sampling_test_uld
+        COMMAND logconcave_sampling_test -tc=uld)
 
 
-  TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_cg_hpolytope ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_cg_vpolytope ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_cb_hpolytope ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_cb_vpolytope ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
-  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
-  TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
-  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
-
-endif()
+TARGET_INCLUDE_DIRECTORIES(new_volume_example PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(volume_sob_hpolytope PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(volume_sob_vpolytope PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(volume_cg_hpolytope PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(volume_cg_vpolytope PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(volume_cb_hpolytope PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(volume_cb_vpolytope PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(volume_cb_zonotopes PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(volume_cb_vpoly_intersection_vpoly PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(new_rounding_test PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(mcmc_diagnostics_test PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(benchmarks_sob PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(benchmarks_cg PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(benchmarks_cb PUBLIC ${LP_SOLVE})
+TARGET_INCLUDE_DIRECTORIES(ode_solvers_test PUBLIC ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
+TARGET_INCLUDE_DIRECTORIES(boundary_oracles_test PUBLIC ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
+TARGET_INCLUDE_DIRECTORIES(root_finders_test PUBLIC ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
+TARGET_INCLUDE_DIRECTORIES(logconcave_sampling_test PUBLIC ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
