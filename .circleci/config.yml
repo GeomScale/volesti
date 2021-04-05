@@ -52,7 +52,7 @@ jobs:
        - checkout
        - run:
             sudo apt-get update || true;
-            sudo apt-get install cmake 3.11 
+            sudo apt-get install cmake 3.11;
             sudo apt-get install lp-solve;
             rm -rf build;
             mkdir build;
