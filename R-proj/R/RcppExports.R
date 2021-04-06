@@ -64,6 +64,23 @@ direct_sampling <- function(body, n, seed = NULL) {
     .Call(`_volesti_direct_sampling`, body, n, seed)
 }
 
+#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return A vector that contains the values of PSRF for each coordinate
+#'
+#' @export
+ess <- function(samples) {
+    .Call(`_volesti_ess`, samples)
+}
+
 #' Compute the exact volume of (a) a zonotope (b) an arbitrary simplex in V-representation or (c) if the volume is known and declared by the input object.
 #'
 #' Given a zonotope (as an object of class Zonotope), this function computes the sum of the absolute values of the determinants of all the \eqn{d \times d} submatrices of the \eqn{m\times d} matrix \eqn{G} that contains row-wise the \eqn{m} \eqn{d}-dimensional segments that define the zonotope.
@@ -189,7 +206,7 @@ inner_ball <- function(P, lpsolve = NULL) {
 #' @return A list which contains elements "x_1", ..., "x_n" representing each derivative results. Each "x_i" corresponds to a d x n matrix where each column represents a certain timestep of the solver.
 #'
 #' @examples
-#' # Please visit the examples directory on examples demonstrating usage of the ODE solvers. 
+#' # Please visit the examples directory on examples demonstrating usage of the ODE solvers.
 #'
 #' @export
 ode_solve <- function(n, step_size, order, dimension, initial_time, F, method, domains = NULL, initial_conditions = NULL) {

@@ -84,6 +84,8 @@ struct HamiltonianMonteCarloWalk {
     // Gradient function
     NegativeGradientFunctor &F;
 
+    bool accepted;
+
     // Helper variables
     NT H, H_tilde, log_prob, u_logprob;
 
@@ -105,6 +107,8 @@ struct HamiltonianMonteCarloWalk {
       // Starting point is provided from outside
       x = p;
 
+      accepted = false;
+
       // Initialize solver
       solver = new Solver(0, params.eta, pts{x, x}, F, bounds{P, NULL});
 
@@ -125,7 +129,7 @@ struct HamiltonianMonteCarloWalk {
       solver->set_state(1, v);
 
       // Get proposals
-      solver->steps(walk_length);
+      solver->steps(walk_length, accepted);
       x_tilde = solver->get_state(0);
       v_tilde = solver->get_state(1);
 
@@ -144,9 +148,11 @@ struct HamiltonianMonteCarloWalk {
         total_acceptance_log_prob += log_prob;
         if (u_logprob < log_prob) {
           x = x_tilde;
+          accepted = true;
         }
         else {
           total_discarded_samples++;
+          accepted = false;
         }
       } else {
         x = x_tilde;
@@ -161,6 +167,13 @@ struct HamiltonianMonteCarloWalk {
       return f(pos) + 0.5 * vel.dot(vel);
     }
 
+    void disable_adaptive() {
+      solver->disable_adaptive();
+    }
+
+    void enable_adaptive() {
+      solver->enable_adaptive();
+    }
   };
 };
 

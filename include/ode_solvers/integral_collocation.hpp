@@ -14,8 +14,8 @@
 // logconcave densities." arXiv preprint arXiv:1812.06243 (2018).
 
 
-#ifndef INTEGRAL_COLLOCATION_HPP
-#define INTEGRAL_COLLOCATION_HPP
+#ifndef ODE_SOLVERS_INTEGRAL_COLLOCATION_HPP
+#define ODE_SOLVERS_INTEGRAL_COLLOCATION_HPP
 
 #include "nlp_oracles/nlp_hpolyoracles.hpp"
 #include "nlp_oracles/nlp_vpolyoracles.hpp"
@@ -253,7 +253,7 @@ struct IntegralCollocationODESolver {
         // 7. Find roots using MPSolve
         // Project the computed coefficients to each of the polytopes normals and
         // calculate the complex roots of the resulting equations.
-        // Then keep the smallest positive rational part. 
+        // Then keep the smallest positive rational part.
       }
 
     }

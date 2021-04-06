@@ -19,8 +19,8 @@
     Output: The value of multivariate PSRF by S. Brooks and A. Gelman
 */
 
-#ifndef PSRF_HPP
-#define PSRF_HPP
+#ifndef DIAGNOSTICS_PSRF_HPP
+#define DIAGNOSTICS_PSRF_HPP
 
 template <typename NT, typename VT, typename MT>
 NT multivariate_psrf(MT const& samples)
@@ -35,12 +35,12 @@ NT multivariate_psrf(MT const& samples)
     MT norm_chain1 = samples.block(0, 0, d, N1).colwise() - mean1;
     MT norm_chain2 = samples.block(0, N1, d, N - N1).colwise() - mean2;
 
-    MT W = ((norm_chain1 * norm_chain1.transpose()) / (NT(N1) - 1.0) + 
+    MT W = ((norm_chain1 * norm_chain1.transpose()) / (NT(N1) - 1.0) +
             (norm_chain2 * norm_chain2.transpose()) / (NT(N2) - 1.0)) / NT(2);
 
     VT mean00 = (mean1 + mean2) / 2.0;
 
-    MT B = (mean1 - mean00) * (mean1 - mean00).transpose() + 
+    MT B = (mean1 - mean00) * (mean1 - mean00).transpose() +
            (mean2 - mean00) * (mean2 - mean00).transpose();
 
     MT WB = W.inverse() * B;
