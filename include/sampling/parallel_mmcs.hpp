@@ -130,17 +130,9 @@ void perform_parallel_mmcs_step(Polytope &P,
                 winPoints_per_thread[thread_index].col(i) = thread_random_walk_parameters.p.getCoefficients();
             }
 
-            while (true) 
-            {
-                if (door)
-                {
-                    door = false;
-                    estimator.update_estimator(winPoints_per_thread[thread_index]);
-                    door = true;
-                    break;
-                }
-                
-            }
+            door = false;
+            estimator.update_estimator(winPoints_per_thread[thread_index]);
+            door = true;
 
             num_generated_points_per_thread[thread_index] += window;
             total_samples += window;
@@ -155,9 +147,7 @@ void perform_parallel_mmcs_step(Polytope &P,
                 {
                     if (door)
                     {
-                        door = false;
                         estimator.estimate_effective_sample_size();
-                        door = true;
                         break;
                     }
                 }
