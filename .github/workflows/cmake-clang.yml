@@ -24,6 +24,6 @@ jobs:
              rm -rf build;
              mkdir build;
              cd build;
-             cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} -D CMAKE_CXX_FLAGS=-fsanitize=memory -D CMAKE_CXX_FLAGS=-fsanitize=undefined -D CMAKE_CXX_FLAGS=-g -D DISABLE_NLP_ORACLES=ON ../test;
+             cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} -D CMAKE_CXX_FLAGS=-fsanitize=memory -D CMAKE_CXX_FLAGS=-fsanitize=undefined -D CMAKE_CXX_FLAGS=-g -D DISABLE_NLP_ORACLES=ON -D USE_MKL=OFF ../test;
              make;
              ctest --verbose;

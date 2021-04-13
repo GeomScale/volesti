@@ -24,13 +24,13 @@
 #include "known_polytope_generators.h"
 #include "sampling/sampling.hpp"
 
+#include "diagnostics/effective_sample_size.hpp"
 #include "diagnostics/multivariate_psrf.hpp"
 #include "diagnostics/geweke.hpp"
 #include "diagnostics/raftery.hpp"
 
-
-template 
-<   
+template
+<
     typename MT,
     typename WalkType,
     typename Polytope
@@ -41,7 +41,7 @@ MT get_samples(Polytope &P)
     typedef typename Polytope::NT NT;
 
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
-    
+
     unsigned int walkL = 10, numpoints = 10000, nburns = 0, d = P.dimension();
     RNGType rng(d);
     Point StartingPoint(d);
@@ -53,7 +53,7 @@ MT get_samples(Polytope &P)
     MT samples(d, numpoints);
     unsigned int jj = 0;
 
-    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++) 
+    for (typename std::list<Point>::iterator rpit = randPoints.begin(); rpit!=randPoints.end(); rpit++, jj++)
     {
         samples.col(jj) = (*rpit).getCoefficients();
     }

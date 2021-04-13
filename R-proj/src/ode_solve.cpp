@@ -45,7 +45,7 @@ void run_ode_solver(
     for (unsigned int j = 0; j < order; j++) {
       results_temp[j].col(i) = solver.xs[j].getCoefficients();
     }
-    solver.step();
+    solver.step(i, true);
   }
 
   for (unsigned int i = 0; i < order; i++) {
@@ -74,7 +74,7 @@ void run_ode_solver(
 //' @return A list which contains elements "x_1", ..., "x_n" representing each derivative results. Each "x_i" corresponds to a d x n matrix where each column represents a certain timestep of the solver.
 //'
 //' @examples
-//' # Please visit the examples directory on examples demonstrating usage of the ODE solvers. 
+//' # Please visit the examples directory on examples demonstrating usage of the ODE solvers.
 //'
 //' @export
 // [[Rcpp::export]]

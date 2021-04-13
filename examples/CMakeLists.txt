@@ -17,6 +17,8 @@ endif(COMMAND cmake_policy)
 
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
+option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
+
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -110,5 +112,8 @@ else ()
   add_subdirectory(logconcave)
   add_subdirectory(spectrahedra)
   add_subdirectory(hpolytope-volume)
+  
+  add_executable (vpolytopevolume vpolytope-volume/vpolytopevolume.cpp)
+  TARGET_LINK_LIBRARIES(vpolytopevolume ${LP_SOLVE})
 
 endif()
