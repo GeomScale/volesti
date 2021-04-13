@@ -191,6 +191,9 @@ struct AcceleratedBilliardWalkParallel
                 {
                     Lmax = max_dist;
                 }
+                if (2.0*rad > Lmax) {
+                    Lmax = 2.0*rad;
+                }
                 pointset.push_back(params.p);
             }
 
