@@ -117,8 +117,8 @@ Get_LP_Solver()
 include("Boost.cmake")
 GetBoost()
 
-include("lp_solver.cmake")
-Get_LP_Solver()
+include("lpSolver.cmake")
+GetLPsolver()
 
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
 
@@ -148,8 +148,6 @@ else ()
 
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
-  include_directories (BEFORE ../external/LPsolve_src/run_headers)
-  include_directories (BEFORE build/_deps/lpsolve-src)
   include_directories (BEFORE ../include/generators)
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
