@@ -107,15 +107,15 @@ void test_volume_balls(Polytope &P,
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 5> RNGType;
 
     Polytope P1(dim, G, b);
-    volume = volume_cooling_balls<CDHRWalk, RNGType>(P1, e, walk_len);
+    volume = volume_cooling_balls<CDHRWalk, RNGType>(P1, e, walk_len).second;
     test_values(volume, expectedCDHR, exact);
 
     Polytope P2(dim, G, b);
-    volume = volume_cooling_balls<RDHRWalk, RNGType>(P2, e, walk_len);
+    volume = volume_cooling_balls<RDHRWalk, RNGType>(P2, e, walk_len).second;
     test_values(volume, expectedRDHR, exact);
 
     Polytope P3(dim, G, b);
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(P3, e, walk_len);
+    volume = volume_cooling_balls<BilliardWalk, RNGType>(P3, e, walk_len).second;
     test_values(volume, expectedBilliard, exact);
 }
 

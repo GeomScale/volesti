@@ -64,17 +64,17 @@ void test_volume(Polytope &HP,
 
     //TODO: low accuracy in high dimensions
     if (!birk) {
-        volume = volume_cooling_balls<BallWalk, RNGType>(HP, e, walk_len);
+        volume = volume_cooling_balls<BallWalk, RNGType>(HP, e, walk_len).second;
         test_values(volume, expectedBall, exact);
     }
 
-    volume = volume_cooling_balls<CDHRWalk, RNGType>(HP, e, walk_len);
+    volume = volume_cooling_balls<CDHRWalk, RNGType>(HP, e, walk_len).second;
     test_values(volume, expectedCDHR, exact);
 
-    volume = volume_cooling_balls<RDHRWalk, RNGType>(HP, e, walk_len);
+    volume = volume_cooling_balls<RDHRWalk, RNGType>(HP, e, walk_len).second;
     test_values(volume, expectedRDHR, exact);
 
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len);
+    volume = volume_cooling_balls<BilliardWalk, RNGType>(HP, e, walk_len).second;
     test_values(volume, expectedBilliard, exact);
 }
 

@@ -698,16 +698,16 @@ template
 <
     typename WalkTypePolicy,
     typename Polytope,
-    typename RandomNumberGenerator,
-    typename NT
+    typename RandomNumberGenerator
 >
-std::pair<NT, NT> volume_cooling_balls(Polytope const& Pin,
+std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
                                        RandomNumberGenerator &rng,
-                                       NT const& error = 0.1,
+                                       double const& error = 0.1,
                                        unsigned int const& walk_length = 1,
                                        unsigned int const& win_len = 300)
 {
     typedef typename Polytope::PointType Point;
+    typedef typename Point::FT NT;
     typedef Ball<Point> BallType;
     typedef BallIntersectPolytope <Polytope, BallType> PolyBall;
     typedef typename Polytope::VT VT;
@@ -829,11 +829,10 @@ template
     typename WalkTypePolicy = CDHRWalk,
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b,
                                                                 double>,
-    typename Polytope,
-    typename NT
+    typename Polytope
 >
-std::pair<NT, NT> volume_cooling_balls(Polytope const& Pin,
-                                               NT const& error = 0.1,
+std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
+                                               double const& error = 0.1,
                                                unsigned int const& walk_length = 1)
 {
     RandomNumberGenerator rng(Pin.dimension());
