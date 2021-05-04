@@ -8,11 +8,11 @@ Hruntest <- function(P, name_string, exactvol, tol, num_of_exps, alg, seed){
   vol = 0
   for (j in 1:num_of_exps) {
     if (alg == "CB") {
-      vol = vol + volume(P, seed = seed)
+      vol = vol + volume(P, seed = seed)$volume
     } else if (alg == "SOB") {
-      vol = vol + volume(P, settings = list("algorithm" = "SOB"), seed = seed)
+      vol = vol + volume(P, settings = list("algorithm" = "SOB"), seed = seed)$volume
     } else {
-      vol = vol + volume(P, settings = list("algorithm" = "CG"), seed = seed)
+      vol = vol + volume(P, settings = list("algorithm" = "CG"), seed = seed)$volume
     }
   }
   vol = vol / num_of_exps
