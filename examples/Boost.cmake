@@ -4,8 +4,8 @@ function(GetBoost)
 
 	if (NOT BOOST_DIR) 
   
-    set(BOOST_URL "https://dl.bintray.com/boostorg/release/1.75.0/source/boost_1_75_0.tar.bz2" CACHE STRING "Boost download URL")
-    set(BOOST_URL_SHA256 "953db31e016db7bb207f11432bef7df100516eeb746843fa0486a222e3fd49cb" CACHE STRING "Boost download URL SHA256 checksum")
+    set(BOOST_URL "https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.bz2" CACHE STRING "Boost download URL")
+    set(BOOST_URL_SHA256 "f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41" CACHE STRING "Boost download URL SHA256 checksum")
 
     include(FetchContent)
     FetchContent_Declare(
