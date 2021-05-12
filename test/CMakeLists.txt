@@ -102,6 +102,9 @@ if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+include("lpSolver.cmake")
+GetLPsolver()
+
 include("Eigen.cmake")
 GetEigen()
 
@@ -111,14 +114,8 @@ GetEigen()
 #  message(STATUS "BOOST is DEFINED")
 #endif()
 
-include("lp_solver.cmake")
-Get_LP_Solver()
-
 include("Boost.cmake")
 GetBoost()
-
-include("lpSolver.cmake")
-GetLPsolver()
 
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
 
