@@ -24,10 +24,10 @@
 
 enum random_walks {ball_walk, rdhr, cdhr, billiard, accelarated_billiard};
 enum volume_algorithms {CB, CG, SOB};
-enum rounding_type {none, min_ellipsoid, max_ellipsoid, svd};
+enum rounding_type {none, min_ellipsoid, max_ellipsoid, isotropy};
 
 template <typename Polytope,  typename RNGType,  typename NT>
-double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
+std::pair<double, double> generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
                       volume_algorithms const& algo, unsigned int win_len,
                       rounding_type const& rounding, random_walks const& walk)
 {
@@ -62,7 +62,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
             break;
         }
         break;
-    case svd:
+    case isotropy:
         switch (walk)
         {
         case cdhr:
@@ -84,6 +84,7 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
     }
 
     NT vol;
+    std::pair<double, double> pair_vol;
     switch (algo)
     {
     case CG:
@@ -91,12 +92,15 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         {
         case cdhr:
             vol = volume_cooling_gaussians<GaussianCDHRWalk>(P, rng, e, walk_length);
+            pair_vol = std::pair<double, double> (std::log(vol), vol);
             break;
         case rdhr:
             vol = volume_cooling_gaussians<GaussianRDHRWalk>(P, rng, e, walk_length);
+            pair_vol = std::pair<double, double> (std::log(vol), vol);
             break;
         case ball_walk:
             vol = volume_cooling_gaussians<GaussianBallWalk>(P, rng, e, walk_length);
+            pair_vol = std::pair<double, double> (std::log(vol), vol);
             break;
         default:
             throw Rcpp::exception("This random walk can not be used by CG algorithm!");
@@ -107,19 +111,19 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         switch (walk)
         {
         case cdhr:
-            vol = volume_cooling_balls<CDHRWalk>(P, rng, e, walk_length, win_len);
+            pair_vol = volume_cooling_balls<CDHRWalk>(P, rng, e, walk_length, win_len);
             break;
         case rdhr:
-            vol = volume_cooling_balls<RDHRWalk>(P, rng, e, walk_length, win_len);
+            pair_vol = volume_cooling_balls<RDHRWalk>(P, rng, e, walk_length, win_len);
             break;
         case ball_walk:
-            vol = volume_cooling_balls<BallWalk>(P, rng, e, walk_length, win_len);
+            pair_vol = volume_cooling_balls<BallWalk>(P, rng, e, walk_length, win_len);
             break;
         case billiard:
-            vol = volume_cooling_balls<BilliardWalk>(P, rng, e, walk_length, win_len);
+            pair_vol = volume_cooling_balls<BilliardWalk>(P, rng, e, walk_length, win_len);
             break;
         case accelarated_billiard:
-            vol = volume_cooling_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length, win_len);
+            pair_vol = volume_cooling_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length, win_len);
             break;
         default:
             throw Rcpp::exception("This random walk can not be used by CB algorithm!");
@@ -131,18 +135,22 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         {
         case cdhr:
             vol = volume_sequence_of_balls<CDHRWalk>(P, rng, e, walk_length);
+            pair_vol = std::pair<double, double> (std::log(vol), vol);
             break;
         case rdhr:
             vol = volume_sequence_of_balls<RDHRWalk>(P, rng, e, walk_length);
+            pair_vol = std::pair<double, double> (std::log(vol), vol);
             break;
         case ball_walk:
             vol = volume_sequence_of_balls<BallWalk>(P, rng, e, walk_length);
+            pair_vol = std::pair<double, double> (std::log(vol), vol);
             break;
         case billiard:
             vol = volume_sequence_of_balls<BilliardWalk>(P, rng, e, walk_length);
             break;
         case accelarated_billiard:
             vol = volume_sequence_of_balls<AcceleratedBilliardWalk>(P, rng, e, walk_length);
+            pair_vol = std::pair<double, double> (std::log(vol), vol);
             break;
         default:
             throw Rcpp::exception("This random walk can not be used by CB algorithm!");
@@ -153,12 +161,13 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
         throw Rcpp::exception("Unknown algorithm!");
         break;
     }
-    if (vol < 0.0) throw Rcpp::exception("volesti failed to terminate.");
-    vol *= round_val;
-    return vol;
+    if (pair_vol.second < 0.0) throw Rcpp::exception("volesti failed to terminate.");
+    pair_vol.first += std::log(round_val);
+    pair_vol.second *= round_val;
+    return pair_vol;
 }
 
-//' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)
+//' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes). It returns a list with two elements: (a) the logarithm of the estimated volume and (b) the estimated volume
 //'
 //' For the volume approximation can be used three algorithms. Either CoolingBodies (CB) or SequenceOfBalls (SOB) or CoolingGaussian (CG). An H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 //'
@@ -187,19 +196,19 @@ double generic_volume(Polytope& P, RNGType &rng, unsigned int walk_length, NT e,
 //'
 //' # calling SOB algorithm for a H-polytope (5d unit simplex)
 //' HP = gen_cube(5,'H')
-//' vol = volume(HP)
+//' pair_vol = volume(HP)
 //'
 //' # calling CG algorithm for a V-polytope (3d simplex)
 //' VP = gen_simplex(3,'V')
-//' vol = volume(VP, settings = list("algorithm" = "CG"))
+//' pair_vol = volume(VP, settings = list("algorithm" = "CG"))
 //'
 //' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 //' Z = gen_rand_zonotope(2, 4)
-//' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
+//' pair_vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
 //'
 //' @export
 // [[Rcpp::export]]
-double volume (Rcpp::Reference P,
+Rcpp::List volume (Rcpp::Reference P,
                Rcpp::Nullable<Rcpp::List> settings = R_NilValue,
                Rcpp::Nullable<std::string> rounding = R_NilValue,
                Rcpp::Nullable<double> seed = R_NilValue) {
@@ -223,7 +232,7 @@ double volume (Rcpp::Reference P,
     }
 
     bool round = false, hpoly = false;
-    unsigned int win_len = 250;
+    unsigned int win_len = 300;
 
     random_walks walk;
     volume_algorithms algo;
@@ -236,8 +245,8 @@ double volume (Rcpp::Reference P,
     } else if (Rcpp::as<std::string>(rounding).compare(std::string("max_ellipsoid")) == 0) {
         if (type != 1) throw Rcpp::exception("This rounding method can be used only for H-polytopes!");
         rounding_method = max_ellipsoid;
-    } else if (Rcpp::as<std::string>(rounding).compare(std::string("svd")) == 0) {
-        rounding_method = svd;
+    } else if (Rcpp::as<std::string>(rounding).compare(std::string("isotropy")) == 0) {
+        rounding_method = isotropy;
     } else if (Rcpp::as<std::string>(rounding).compare(std::string("none")) == 0) {
         rounding_method = none;
     }
@@ -317,16 +326,21 @@ double volume (Rcpp::Reference P,
         if (algo == SOB) Rf_warning("input 'win_len' can be used only for CG or CB algorithms.");
     }
 
+    std::pair<NT, NT> pair_vol;
+    NT vol;
+
     switch(type) {
         case 1: {
             // Hpolytope
             Hpolytope HP(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
-            return generic_volume(HP, rng, walkL, e, algo, win_len, rounding_method, walk);
+            pair_vol = generic_volume(HP, rng, walkL, e, algo, win_len, rounding_method, walk);
+            break;
         }
         case 2: {
             // Vpolytope
             Vpolytope VP(n, Rcpp::as<MT>(P.field("V")), VT::Ones(Rcpp::as<MT>(P.field("V")).rows()));
-            return generic_volume(VP, rng, walkL, e, algo, win_len, rounding_method, walk);
+            pair_vol = generic_volume(VP, rng, walkL, e, algo, win_len, rounding_method, walk);
+            break;
         }
         case 3: {
             // Zonotope
@@ -344,26 +358,32 @@ double volume (Rcpp::Reference P,
                 switch (walk)
                 {
                 case cdhr:
-                    return volume_cooling_hpoly<CDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    vol = volume_cooling_hpoly<CDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    pair_vol = std::pair<NT, NT> (std::log(vol), vol);
                     break;
                 case rdhr:
-                    return volume_cooling_hpoly<RDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    vol = volume_cooling_hpoly<RDHRWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    pair_vol = std::pair<NT, NT> (std::log(vol), vol);
                     break;
                 case ball_walk:
-                    return volume_cooling_hpoly<BallWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    vol = volume_cooling_hpoly<BallWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    pair_vol = std::pair<NT, NT> (std::log(vol), vol);
                     break;
                 case billiard:
-                    return volume_cooling_hpoly<BilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    vol = volume_cooling_hpoly<BilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    pair_vol = std::pair<NT, NT> (std::log(vol), vol);
                     break;
                 case accelarated_billiard:
-                    return volume_cooling_hpoly<AcceleratedBilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    vol = volume_cooling_hpoly<AcceleratedBilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
+                    pair_vol = std::pair<NT, NT> (std::log(vol), vol);
                     break;
                 default:
                     throw Rcpp::exception("This random walk can not be used by CB algorithm!");
                     break;
                 }
             }
-            return generic_volume(ZP, rng, walkL, e, algo, win_len, rounding_method, walk);
+            pair_vol = generic_volume(ZP, rng, walkL, e, algo, win_len, rounding_method, walk);
+            break;
         }
         case 4: {
             // Intersection of two V-polytopes
@@ -377,10 +397,11 @@ double volume (Rcpp::Reference P,
                 InterVP VPcVP(VP1, VP2, seed3);
             }
             if (!VPcVP.is_feasible()) throw Rcpp::exception("Empty set!");
-            return generic_volume(VPcVP, rng, walkL, e, algo, win_len, rounding_method, walk);
+            pair_vol = generic_volume(VPcVP, rng, walkL, e, algo, win_len, rounding_method, walk);
+            break;
         }
     }
 
-    return 0;
+    return Rcpp::List::create(Rcpp::Named("log_volume") = pair_vol.first, Rcpp::Named("volume") = pair_vol.second);
 }
 

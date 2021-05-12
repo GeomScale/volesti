@@ -110,7 +110,7 @@ else ()
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
   add_subdirectory(logconcave)
-  add_subdirectory(spectrahedra)
+  #add_subdirectory(spectrahedra)
   add_subdirectory(hpolytope-volume)
   
   add_executable (vpolytopevolume vpolytope-volume/vpolytopevolume.cpp)

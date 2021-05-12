@@ -34,7 +34,7 @@ void calculateVolumes(const VPOLYTOPE &VP) {
 	NT e=0.1;
 
 	// Calculating volume of the passed polytope
-	NT volume1 = volume_cooling_balls<BallWalk, RNGType, VPOLYTOPE>(VP, e, walk_len);
+	NT volume1 = volume_cooling_balls<BallWalk, RNGType, VPOLYTOPE>(VP, e, walk_len).second;
 	NT volume2 = volume_cooling_gaussians<GaussianBallWalk, RNGType>(VP, e, walk_len);
 
 	std::cout<<"\t Using Cooling Balls method: "<<volume1<<"\n";
