@@ -109,6 +109,9 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
+include("LpSolve.cmake")
+GetLpSolve()
+
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
 
 if (NOT LP_SOLVE)
@@ -277,5 +280,5 @@ else ()
 
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} ${MKL_LINK})
   TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS})
- 
+
 endif()
