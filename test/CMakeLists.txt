@@ -124,7 +124,7 @@ else ()
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
   if (USE_MKL)
-    find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/lib)
+    find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/lib /usr/local/Cellar/lapack/3.9.0_1/lib)
     find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
     find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib)
     find_library(OPENMP NAME libiomp5.dylib PATHS /opt/intel/oneapi/compiler/2021.1.1/mac/compiler/lib)
@@ -278,7 +278,8 @@ else ()
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK})
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK})
 
-  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS})
+	TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
+
+  # TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} ${MKL_LINK})
 
 endif()

@@ -37,6 +37,7 @@
 
 #include "generators/known_polytope_generators.h"
 #include "generators/h_polytopes_generator.h"
+#include "generators/convex_bodies_generator.h"
 
 #include "preprocess/svd_rounding.hpp"
 #include "misc/misc.h"
@@ -771,6 +772,115 @@ void call_test_optimization() {
 
 }
 
+template <typename NT>
+void call_test_benchmark_convex_body_ball() {
+  typedef Cartesian<NT>    Kernel;
+  typedef typename Kernel::Point    Point;
+  typedef ConvexBody<Point> Convexbody;
+  typedef boost::mt19937 RNGType;
+  typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+  typedef InnerBallFunctor::GradientFunctor<Point> NegativeGradientFunctor;
+  typedef InnerBallFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+  typedef GeneralizedLeapfrogODESolver<Point, NT, Convexbody, NegativeGradientFunctor> Solver;
+  typedef typename Convexbody::MT MT;
+  typedef typename Convexbody::VT VT;
+
+  unsigned int dim = 2;
+  Convexbody P = generate_unit_ball<Convexbody>(dim);
+
+  unsigned int max_draws = 20000;
+  unsigned int num_burns = max_draws / 3;
+
+  Point x0(dim);
+  NT R0 = NT(1);
+
+  unsigned int walk_length = 10;
+
+  SimulationStats<NT> hmc_stats;
+
+  // Random number generator
+  RandomNumberGenerator rng(1);
+
+  // Declare oracles
+  InnerBallFunctor::parameters<NT, Point> params(x0, R0);
+
+  NegativeGradientFunctor F(params);
+  NegativeLogprobFunctor f(params);
+
+  int max_actual_draws = max_draws - num_burns;
+  unsigned int min_ess = 0;
+
+  MT samples;
+  samples.resize(dim, max_actual_draws);
+  NT ETA;
+  NT max_psrf;
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> start, stop;
+
+  std::cerr << std::endl;
+  std::cerr << "HMC Sampling" << std::endl;
+
+
+  HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
+
+  HamiltonianMonteCarloWalk::Walk
+    <Point, Convexbody, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
+    hmc(&P, x0, F, f, hmc_params);
+
+  min_ess = 0;
+
+  std::cerr << "Hamiltonian Monte Carlo (Gaussian Density)" << std::endl;
+
+  hmc.solver->eta = 0.001;
+
+  std::cerr << "Burn-in" << std::endl;
+
+  for (unsigned int i = 0; i < num_burns; i++) {
+    if (i % 1000 == 0) std::cerr << ".";
+    hmc.apply(rng, walk_length);
+  }
+
+  hmc.disable_adaptive();
+  std::cerr << std::endl;
+  std::cerr << "Sampling" << std::endl;
+
+  start = std::chrono::high_resolution_clock::now();
+  for (unsigned int i = 0; i < max_actual_draws; i++) {
+    hmc.apply(rng, walk_length);
+    std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+
+    samples.col(i) = hmc.x.getCoefficients();
+    if (i % 1000 == 0 && i > 0) std::cerr << ".";
+  }
+  stop = std::chrono::high_resolution_clock::now();
+
+  ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+
+  std::cerr << std::endl;
+  print_diagnostics<NT, VT, MT>(samples, min_ess, std::cerr);
+  std::cerr << "Average time per sample: " << ETA / max_actual_draws << "us" << std::endl;
+  std::cerr << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
+  std::cerr << "Average number of reflections: " <<
+      (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
+  std::cerr << "Step size (final): " << hmc.solver->eta << std::endl;
+  std::cerr << "Discard Ratio: " << hmc.discard_ratio << std::endl;
+  std::cerr << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
+  std::cerr << std::endl;
+
+  max_psrf = check_interval_psrf<NT, VT, MT>(samples);
+
+  hmc_stats.method = "HMC";
+  hmc_stats.walk_length = walk_length;
+  hmc_stats.min_ess = min_ess;
+  hmc_stats.max_psrf = max_psrf;
+  hmc_stats.time_per_draw = ETA / max_actual_draws;
+  hmc_stats.time_per_independent_sample = ETA / min_ess;
+  hmc_stats.average_number_of_reflections = (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps;
+  hmc_stats.step_size = hmc.solver->eta;
+  hmc_stats.average_acceptance_log_prob  = exp(hmc.average_acceptance_log_prob);
+
+}
+
 TEST_CASE("hmc") {
     call_test_hmc<double>();
 }
@@ -793,4 +903,8 @@ TEST_CASE("benchmark_hmc_truncated") {
 
 TEST_CASE("benchmark_polytopes_grid_search") {
     call_test_benchmark_polytopes_grid_search<double>();
+}
+
+TEST_CASE("benchmark_convex_body_ball") {
+    call_test_benchmark_convex_body_ball<double>();
 }
