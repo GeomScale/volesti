@@ -785,7 +785,7 @@ void call_test_benchmark_convex_body_ball() {
   typedef typename Convexbody::MT MT;
   typedef typename Convexbody::VT VT;
 
-  unsigned int dim = 2;
+  unsigned int dim = 100;
   Convexbody P = generate_unit_ball<Convexbody>(dim);
 
   unsigned int max_draws = 20000;
