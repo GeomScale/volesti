@@ -82,6 +82,7 @@ struct LeapfrogODESolver {
               ar = Ks[i]->get_mat() * xs[i].getCoefficients();
               av.setZero(Ks[i]->num_of_hyperplanes());
               _AA.noalias() = Ks[i]->get_mat() * Ks[i]->get_mat().transpose();
+              Ks[i].resetFlags();
           }
           Ar.push_back(ar);
           Av.push_back(av);

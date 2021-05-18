@@ -692,6 +692,8 @@ public:
         v += -2 * v.dot(A.row(facet)) * A.row(facet);
     }
 
+    void resetFlags() {}
+
     NT log_barrier(Point &x, NT t = NT(100)) const {
       int m = num_of_hyperplanes();
       NT total = NT(0);
