@@ -24,6 +24,8 @@ private:
     std::vector<func>   gs; // convex functions defining the convex body
     std::vector<grad>   grad_gs; // convex function gradients
     unsigned int m;
+    NT tol = NT(1e-4);
+
 
 public:
 
@@ -59,8 +61,7 @@ public:
 
     NT binary_search(Point const &x, Point const &v, func const& f) const {
         NT t_min = NT(0);
-        NT t_max = std::numeric_limits<NT>::max();
-        NT tol = NT(1e-6);
+        NT t_max = NT(1);
         NT t;
         NT value;
 

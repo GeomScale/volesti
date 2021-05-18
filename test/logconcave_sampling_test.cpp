@@ -785,16 +785,17 @@ void call_test_benchmark_convex_body_ball() {
   typedef typename Convexbody::MT MT;
   typedef typename Convexbody::VT VT;
 
-  unsigned int dim = 100;
-  Convexbody P = generate_unit_ball<Convexbody>(dim);
+  unsigned int dim = 500;
+  // Convexbody P = generate_unit_ball<Convexbody>(dim);
+  Convexbody P = generate_unit_ball_intersect_logsumexp<Convexbody>(dim);
 
-  unsigned int max_draws = 20000;
+  unsigned int max_draws = 80000;
   unsigned int num_burns = max_draws / 3;
 
   Point x0(dim);
   NT R0 = NT(1);
 
-  unsigned int walk_length = 10;
+  unsigned int walk_length = 50;
 
   SimulationStats<NT> hmc_stats;
 
