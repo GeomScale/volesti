@@ -773,7 +773,7 @@ void call_test_optimization() {
 }
 
 template <typename NT>
-void call_test_benchmark_convex_body_ball() {
+void call_test_benchmark_convex_body() {
   typedef Cartesian<NT>    Kernel;
   typedef typename Kernel::Point    Point;
   typedef ConvexBody<Point> Convexbody;
@@ -785,17 +785,17 @@ void call_test_benchmark_convex_body_ball() {
   typedef typename Convexbody::MT MT;
   typedef typename Convexbody::VT VT;
 
-  unsigned int dim = 500;
+  unsigned int dim = 1000;
   // Convexbody P = generate_unit_ball<Convexbody>(dim);
   Convexbody P = generate_unit_ball_intersect_logsumexp<Convexbody>(dim);
 
-  unsigned int max_draws = 80000;
+  unsigned int max_draws = 40000;
   unsigned int num_burns = max_draws / 3;
 
   Point x0(dim);
-  NT R0 = NT(1);
+  NT R0 = NT(dim);
 
-  unsigned int walk_length = 50;
+  unsigned int walk_length = 1000;
 
   SimulationStats<NT> hmc_stats;
 
@@ -867,6 +867,7 @@ void call_test_benchmark_convex_body_ball() {
   std::cerr << "Discard Ratio: " << hmc.discard_ratio << std::endl;
   std::cerr << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
   std::cerr << std::endl;
+  std::cerr << "Min ESS" << min_ess << std::endl;
 
   max_psrf = check_interval_psrf<NT, VT, MT>(samples);
 
@@ -906,6 +907,6 @@ TEST_CASE("benchmark_polytopes_grid_search") {
     call_test_benchmark_polytopes_grid_search<double>();
 }
 
-TEST_CASE("benchmark_convex_body_ball") {
-    call_test_benchmark_convex_body_ball<double>();
+TEST_CASE("benchmark_convex_body") {
+    call_test_benchmark_convex_body<double>();
 }
