@@ -36,7 +36,7 @@ void test_values(NT volume, NT expected, NT exact)
               << std::abs((volume-expected)/expected) << std::endl;
     std::cout << "Relative error (exact) = "
               << std::abs((volume-exact)/exact) << std::endl;
-    CHECK(std::abs((volume - exact)/exact) < 0.155);
+    CHECK(std::abs((volume - exact)/exact) < 0.2);
 }
 
 template <class Polytope>
@@ -60,19 +60,19 @@ void test_volume(Polytope &P,
 
     //TODO: low accuracy in high dimensions
     Polytope P1(P.dimension(), P.get_mat(), P.get_vec());
-    NT volume = volume_cooling_balls<BallWalk, RNGType>(P1, e, walk_len);
+    NT volume = volume_cooling_balls<BallWalk, RNGType>(P1, e, walk_len).second;
     test_values(volume, expectedBall, exact);
 
     Polytope P2(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<CDHRWalk, RNGType>(P2, e, walk_len);
+    volume = volume_cooling_balls<CDHRWalk, RNGType>(P2, e, walk_len).second;
     test_values(volume, expectedCDHR, exact);
 
     Polytope P3(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<RDHRWalk, RNGType>(P3, e, walk_len);
+    volume = volume_cooling_balls<RDHRWalk, RNGType>(P3, e, walk_len).second;
     test_values(volume, expectedRDHR, exact);
 
     Polytope P4(P.dimension(), P.get_mat(), P.get_vec());
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(P4, e, walk_len);
+    volume = volume_cooling_balls<BilliardWalk, RNGType>(P4, e, walk_len).second;
     test_values(volume, expectedBilliard, exact);
 }
 

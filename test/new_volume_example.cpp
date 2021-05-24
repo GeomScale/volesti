@@ -53,7 +53,7 @@ int main()
     // VP2.init(VP2.dimension(), VP2.get_mat(), VP2.get_vec());
     double tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Cube-v cb = "
-              << volume_cooling_balls<>(VP2) << " , ";
+              << volume_cooling_balls<>(VP2).second << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
 
@@ -69,7 +69,7 @@ int main()
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball CB = "
-              << volume_cooling_balls<>(HPoly) << " , ";
+              << volume_cooling_balls<>(HPoly).second << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
     //
@@ -85,7 +85,7 @@ int main()
 
     tstart = (double)clock()/(double)CLOCKS_PER_SEC;
     std::cout << "Ball CB = "
-              << volume_cooling_balls<CDHRWalk, RNG>(HPoly) << " , ";
+              << volume_cooling_balls<CDHRWalk, RNG>(HPoly).second << " , ";
     std::cout << (double)clock()/(double)CLOCKS_PER_SEC - tstart << std::endl;
 
 

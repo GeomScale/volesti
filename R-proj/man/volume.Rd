@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{volume}
 \alias{volume}
-\title{The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)}
+\title{The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes). It returns a list with two elements: (a) the logarithm of the estimated volume and (b) the estimated volume}
 \usage{
 volume(P, settings = NULL, rounding = NULL, seed = NULL)
 }
@@ -33,15 +33,15 @@ For the volume approximation can be used three algorithms. Either CoolingBodies 
 
 # calling SOB algorithm for a H-polytope (5d unit simplex)
 HP = gen_cube(5,'H')
-vol = volume(HP)
+pair_vol = volume(HP)
 
 # calling CG algorithm for a V-polytope (3d simplex)
 VP = gen_simplex(3,'V')
-vol = volume(VP, settings = list("algorithm" = "CG"))
+pair_vol = volume(VP, settings = list("algorithm" = "CG"))
 
 # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 Z = gen_rand_zonotope(2, 4)
-vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
+pair_vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
 
 }
 \references{
