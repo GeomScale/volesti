@@ -1106,7 +1106,8 @@ TEST_CASE("benchmark_polytopes_grid_search") {
 
 TEST_CASE("benchmark_convex_body") {
     call_test_benchmark_convex_body<double>();
-    
+}
+
 TEST_CASE("benchmark_spectrahedra_grid_search") {
     call_test_benchmark_spectrahedra_grid_search<double>();
 }
