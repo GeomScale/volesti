@@ -23,7 +23,7 @@ endif()
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
-option(USE_MKL "Use MKL library to build eigen" ON)
+option(USE_MKL "Use MKL library to build eigen" OFF)
 
 if(DISABLE_NLP_ORACLES)
   add_definitions(-DDISABLE_NLP_ORACLES)
@@ -109,9 +109,6 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
-include("LpSolve.cmake")
-GetLpSolve()
-
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
 
 if (NOT LP_SOLVE)
@@ -123,18 +120,22 @@ else ()
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
+
+  if (BUILTIN_EIGEN)
+      include_directories (BEFORE ../external/Eigen)
+  else ()
+      include_directories(BEFORE /usr/include/eigen3)
+  endif(BUILTIN_EIGEN)
+
   if (USE_MKL)
     find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/lib /usr/local/opt/openblas/lib)
     find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
-    find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib /usr/local/opt/lapack/lib) 
+    find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib /usr/local/opt/lapack/lib)
     find_library(OPENMP NAME libiomp5.dylib PATHS /opt/intel/oneapi/compiler/2021.1.1/mac/compiler/lib)
 
     include_directories (BEFORE ${MKLROOT}/include)
     set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
-    set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
     add_definitions(-DEIGEN_USE_MKL_ALL)
-  else()
-    set(MKL_LINK "")
   endif(USE_MKL)
 
   include_directories (BEFORE ../external)
@@ -199,8 +200,8 @@ else ()
   add_test(NAME boundary_oracles_test_h_poly_oracles
     COMMAND boundary_oracles_test -tc=h_poly_oracles)
 
-  add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
+  #add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
+  #add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
 
   add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)

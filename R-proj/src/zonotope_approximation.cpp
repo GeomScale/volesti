@@ -90,7 +90,7 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
 
         NT vol;
         if (!hpoly) {
-            vol = volume_cooling_balls<BilliardWalk>(ZP, rng, e, walkL, win_len);
+            vol = volume_cooling_balls<BilliardWalk>(ZP, rng, e, walkL, win_len).second;
         } else {
             vol = volume_cooling_hpoly<BilliardWalk, Hpolytope>(ZP, rng, e, walkL, win_len);
         }
