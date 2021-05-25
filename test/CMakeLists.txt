@@ -109,6 +109,9 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
+include("LPSolve.cmake")
+GetLPSolve()
+
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
 
 if (NOT LP_SOLVE)
