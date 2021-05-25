@@ -16,7 +16,8 @@ function(GetLPSolve)
             FetchContent_Populate(lpsolve)
         endif()
         
-        set(LP_SOLVE_DIR "${lpsolve_SOURCE_DIR}/src")
+        set(LP_SOLVE_SRC_DIR "${lpsolve_SOURCE_DIR}/src")
+        set(LP_SOLVE_R_DIR "${lpsolve_SOURCE_DIR}/R")
         message(STATUS "Using downloaded lp_solve at: ${LP_SOLVE_DIR}")
 
     else()
@@ -25,6 +26,7 @@ function(GetLPSolve)
     
     endif()
 
-    include_directories(${LP_SOLVE_DIR})
+    include_directories(${LP_SOLVE_SRC_DIR})
+    include_directories(${LP_SOLVE_R_DIR})
         
 endfunction()
