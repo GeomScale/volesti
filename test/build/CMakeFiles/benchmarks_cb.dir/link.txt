@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/benchmarks_cb.dir/benchmarks_cb.cpp.o  -o benchmarks_cb  -Wl,-rpath,/usr/lib/lp_solve /usr/lib/lp_solve/liblpsolve55.so 

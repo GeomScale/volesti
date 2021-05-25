@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/volume_cg_hpolytope.dir/volume_cg_hpolytope.cpp.o CMakeFiles/test_main.dir/test_main.cpp.o  -o volume_cg_hpolytope  -Wl,-rpath,/usr/lib/lp_solve /usr/lib/lp_solve/liblpsolve55.so 

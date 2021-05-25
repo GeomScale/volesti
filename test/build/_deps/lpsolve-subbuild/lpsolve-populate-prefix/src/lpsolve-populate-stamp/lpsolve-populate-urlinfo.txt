@@ -1,3 +1,0 @@
-repository='external project URL'
-module='https://cran.r-project.org/src/contrib/lpSolve_5.6.15.tar.gz'
-tag='MD5=3b8d780f703e0da2e4863939add164bc'

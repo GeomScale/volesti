@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/root_finders_test.dir/root_finders_test.cpp.o CMakeFiles/test_main.dir/test_main.cpp.o  -o root_finders_test 

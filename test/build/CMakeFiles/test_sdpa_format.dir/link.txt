@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/test_sdpa_format.dir/test_sdpa_format.cpp.o CMakeFiles/test_main.dir/test_main.cpp.o  -o test_sdpa_format 

@@ -1,3 +1,0 @@
-repository='https://gitlab.com/libeigen/eigen.git'
-module=''
-tag='origin'
