@@ -62,8 +62,11 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
+include("LPSolve.cmake")
+GetLPSolve()
+
 # Find lpsolve library
-find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
+# find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
 
 if (NOT LP_SOLVE)
   message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
@@ -74,7 +77,6 @@ else ()
 
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
-  include_directories (BEFORE ../external/LPsolve_src/run_headers)
   include_directories (BEFORE ../include/generators)
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
