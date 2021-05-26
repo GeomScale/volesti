@@ -141,7 +141,7 @@ else ()
 
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
-  include_directories (BEFORE ../external/LPsolve_src/run_headers)
+  #include_directories (BEFORE ../external/LPsolve_src/run_headers)
   include_directories (BEFORE ../include/generators)
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
