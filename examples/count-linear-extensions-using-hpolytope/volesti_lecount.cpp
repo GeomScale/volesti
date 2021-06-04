@@ -103,7 +103,7 @@ NT calculateLinearExtension(ArgOptions& args) {
 bool parseArgs(int argc, char* argv[], ArgOptions& args) {
 	if(argc < 3) {
 		std::cerr << "Too few arguments";
-		std::cerr << "Usage: ./lecount INSTANCE VOLUME_METHOD ROUNDING_METHOD(optional) ";
+		std::cerr << "Usage: ./volesti_lecount INSTANCE VOLUME_METHOD ROUNDING_METHOD(optional) ";
 		return false;
 	}
 
@@ -202,11 +202,11 @@ bool parseArgs(int argc, char* argv[], ArgOptions& args) {
 
 /**
  
- Usage: ./lecount INSTANCE VOLUME_METHOD ROUNDING_METHOD 
+ Usage: ./volesti_lecount INSTANCE VOLUME_METHOD ROUNDING_METHOD 
 		(ROUNDING_METHOD is optional) 
 
  example: for (volume method = sequence of balls, rounding method = SVD)
-	./lecount instances/bipartite_0.5_008_0.txt sob SVD
+	./volesti_lecount instances/bipartite_0.5_008_0.txt sob SVD
 
 */
 int main(int argc, char* argv[]) {
