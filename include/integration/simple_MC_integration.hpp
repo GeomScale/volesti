@@ -45,7 +45,7 @@ typedef std::vector<NT> Vect;
 NT normSquared(VT vt){
     NT sum=0;
     for( int i=0; i < vt.cols() ; i++ ){
-        sum = sum + vt(0,i)*vt(0,i);
+        sum = sum + vt(i)*vt(i);
     }
     return sum;
 }
