@@ -144,27 +144,23 @@ void SimpleMCPolytopeIntegrate(Functor Fx, Uint dim, Uint N ,VT newOrigin=Origin
     const bool &shiftedOrigin = (newOrigin.rows()==0 )? false : true ;
 
     // Evaluation of sampled points
-    // NT sum = 0;
-    // if(shiftedOrigin){
-    //     if(newOrigin.rows() == dim){
-    //         for (int i = 0; i < N; i++ ) {
-    //         sum = sum + Fx(samples.row(i)+newOrigin);
-    //         }
-    //     }else{
-    //         std::cout << "Dimensions should match to the new origin!"
-    //     }
-    // }else{
-    //     for (int i = 0; i < N; i++ ) {
-    //     sum = sum + Fx(samples.row(i));
-    //     }
-    // }
-
-    for (int i = 0; i < N; i++ ) {
-        std::cout << i << " " << normSquared(samples.row(i)) << std::endl ;
+    NT sum = 0;
+    if(shiftedOrigin){
+        if(newOrigin.rows() == dim){
+            for (int i = 0; i < N; i++ ) {
+            sum = sum + Fx(samples.row(i)+newOrigin);
+            }
+        }else{
+            std::cout << "Dimensions should match to the new origin!"
+        }
+    }else{
+        for (int i = 0; i < N; i++ ) {
+        sum = sum + Fx(samples.row(i));
+        }
     }
 
     // Final step for integration
-    //std::cout << "Integral Value over H-Polytope: " << volume * sum / N << "\n";    
+    std::cout << "Integral Value over H-Polytope: " << volume * sum / N << "\n";    
 
 }
 
