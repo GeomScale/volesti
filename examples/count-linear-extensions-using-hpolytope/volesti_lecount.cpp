@@ -55,7 +55,7 @@ struct ArgOptions {
 			case CG:
 				return volume_cooling_gaussians<GaussianCDHRWalk, RNGType>(P, e, walk_len);
 			case CB:
-				return volume_cooling_balls<CDHRWalk, RNGType>(P, e, walk_len).second;;
+				return volume_cooling_balls<CDHRWalk, RNGType>(P, e, 2*walk_len).second;;
 		}
 
 		return -1;
@@ -79,11 +79,10 @@ NT calculateLinearExtension(ArgOptions& args) {
 	unsigned int d = (args.HP)->dimension();
 	unsigned int walk_len = 10 + d/10;
 	NT e=0.1;
-
 	// calculate volume of the order polytope
 	NT round_multiply = 1.0;
 	if (args.with_rounding) {
-		walk_len = 1;
+		//walk_len = 1;
 
 		RNGType rng(d);
 		std::pair<Point, NT> InnerBall = (args.HP)->ComputeInnerBall();
