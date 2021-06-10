@@ -39,29 +39,28 @@ typedef typename HPolytope<Point>::MT MT;
 typedef typename HPolytope<Point>::VT VT;
 
 typedef const unsigned int Uint; // positive constant value for no of samples & dimensions
-typedef std::vector<NT> Vect;
 
 // To return ||X||^2 for a VT
-NT normSquared(VT vt){
+NT normSquared(VT X){
     NT sum=0;
-    for( int i=0; i < vt.cols() ; i++ ){
-        sum = sum + vt(i)*vt(i);
+    for( int i=0; i < X.rows() ; i++ ){
+        sum = sum + X(i)*X(i);
     }
     return sum;
 }
 
 // To check if two n-dimensional points ensure proper limits in integration 
 bool legitLimits(VT LL, VT UL){
-   if( UL.cols() == LL.cols() ) {
-       for ( int i = 0 ; i< LL.size() ; i++){
+   if( UL.rows() == LL.rows() ) {
+       for ( int i = 0 ; i< LL.rows() ; i++){
            if( LL(i) > UL(i) ){
-               std::cout << "Enter limits correctly!\n";
+               std::cout << "Invalid integration limits\n";
                return false;
             }
        }
        return true;
    }else{
-       std::cout << "Enter limits correctly!\n";
+       std::cout << "Invalid integration limits\n";
        return false;
    }
 }
@@ -70,7 +69,7 @@ bool legitLimits(VT LL, VT UL){
 NT hyperRectVolume(VT LL, VT UL){
     NT product=1;
     if(legitLimits(LL,UL)){
-        for(int i=0; i<LL.size(); ++i){
+        for(int i=0; i<LL.rows(); ++i){
             product = product * abs(UL(i) - LL(i));
         }
         return product;
@@ -80,8 +79,8 @@ NT hyperRectVolume(VT LL, VT UL){
 
 // To sample a point between two n-dimensional points
 VT samplerBWLimits(VT LL, VT UL){
-    VT sample_point(LL.cols()); NT x;
-    for(int i=0; i<LL.cols(); ++i){
+    VT sample_point(LL.rows()); NT x;
+    for(int i=0; i<LL.rows(); ++i){
         sample_point(i) = LL(i) + (NT)(rand()) / ((NT)(RAND_MAX/(UL(i) - LL(i))));      
     }
     return sample_point;
@@ -97,7 +96,7 @@ void SimpleMCIntegrate(Functor Fx, Uint N ,VT LL, VT UL){
         }    
         std::cout << "Integral Value: " << hyperRectVolume(LL,UL) * sum / N << "\n";
     }else{
-        std::cout << "Enter integration limits properly\n";
+        std::cout << "Invalid integration limits\n";
     }
 }
 
@@ -141,7 +140,7 @@ void SimpleMCPolytopeIntegrate(Functor Fx, Uint dim, Uint N ,VT newOrigin=Origin
     }
 
     // Check if origin is shifted
-    const bool &shiftedOrigin = (newOrigin.rows()==0 )? false : true ;
+    const bool &shiftedOrigin = ( newOrigin.rows()==0 )? false : true ;
 
     // Evaluation of sampled points
     NT sum = 0;
