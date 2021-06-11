@@ -37,6 +37,8 @@ typedef GaussianFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
 typedef LeapfrogODESolver<Point, NT, HPOLYTOPE , NegativeGradientFunctor> Solver;
 typedef typename HPolytope<Point>::MT MT;
 typedef typename HPolytope<Point>::VT VT;
+enum volumeType { CB , CG , SOB }; // Volume type for polytope
+VT Origin(0); // undefined 0 dimensional VT
 
 typedef const unsigned int Uint; // positive constant value for no of samples & dimensions
 
@@ -70,7 +72,7 @@ NT hyperRectVolume(VT LL, VT UL){
     NT product=1;
     if(legitLimits(LL,UL)){
         for(int i=0; i<LL.rows(); ++i){
-            product = product * abs(UL(i) - LL(i));
+            product = product * ( UL(i) - LL(i) );
         }
         return product;
     }
@@ -88,7 +90,7 @@ VT samplerBWLimits(VT LL, VT UL){
 
 // Simple MC Integration over Hyper-Rectangles
 template < typename Functor >
-void SimpleMCIntegrate(Functor Fx, Uint N ,VT LL, VT UL){
+void SimpleMCIntegrate(Functor &Fx, Uint N ,VT LL, VT UL){
     NT sum = 0;
     if(legitLimits(LL,UL)){
         for (int i = 1; i < N; i++ ) {
@@ -100,23 +102,31 @@ void SimpleMCIntegrate(Functor Fx, Uint N ,VT LL, VT UL){
     }
 }
 
-VT Origin(0);
-template < typename Functor >
-void SimpleMCPolytopeIntegrate(Functor Fx, Uint dim, Uint N ,VT newOrigin=Origin){
+template < typename Functor , typename Polytope >
+void SimpleMCPolytopeIntegrate(Functor &Fx, Polytope &P, Uint N,VT newOrigin=Origin,volumeType vType=CB){
 
     // Polytope volumetric calculation params
+    Uint dim = P.dimensions();
     int walk_length = 10 + dim/10; 
     NT e=0.1;
     NT volume=0;
 
-    // Creating a HPolytope and calculating the volume
-    HPOLYTOPE HP = generate_cube<HPOLYTOPE>(dim, false);
-    //HPOLYTOPE HP = generate_simplex<HPOLYTOPE>(dimensions, false);
-
     // Volume calculation for HPolytope
-    volume = volume_cooling_balls<BallWalk, RNGType, HPOLYTOPE>(HP, e, walk_length).second;
-    // volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, e, walk_len);
-    // volume = volume_sequence_of_balls<BallWalk, RNGType>(HP, e, walk_len);
+    switch(vType)
+    {
+    case CB:     
+        volume = volume_cooling_balls<BallWalk, RNGType, HPOLYTOPE>(P, e, walk_length).second;
+        break;
+    case CG: 
+        volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(P, e, walk_length);
+        break;
+    case SOB: 
+        volume = volume_sequence_of_balls<BallWalk, RNGType>(P, e, walk_length);
+        break;    
+    default:  
+        volume = 0;
+        break;
+    }
     
     // For implementation of ReHMC walks
     std::pair<Point, NT> inner_ball = HP.ComputeInnerBall();
@@ -124,38 +134,41 @@ void SimpleMCPolytopeIntegrate(Functor Fx, Uint dim, Uint N ,VT newOrigin=Origin
     Point x0 = inner_ball.first;
     NT r = inner_ball.second;
     GaussianFunctor::parameters<NT, Point> params(x0, 2 / (r * r), NT(-1));
-    GaussianRDHRWalk::Walk<HPOLYTOPE, RNGType> walk(HP, x0, params.L, rng);
+    GaussianRDHRWalk::Walk<HPOLYTOPE, RNGType> walk(P, x0, params.L, rng);
     NegativeGradientFunctor F(params);
     NegativeLogprobFunctor f(params);
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
     HamiltonianMonteCarloWalk::Walk
     <Point,HPOLYTOPE, RNGType, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
-    hmc( &HP , x0, F, f, hmc_params);
-
-    // Taking samples using ReHMC walks
-    MT samples(N,dim);
-    for (int i = 0; i < N; i++ ) {
-        hmc.apply(rng, walk_length);
-        samples.row(i) = hmc.x.getCoefficients();
-    }
+    hmc( &P , x0, F, f, hmc_params);
 
     // Check if origin is shifted
     const bool &shiftedOrigin = ( newOrigin.rows()==0 )? false : true ;
 
+    // Taking samples using ReHMC walks
+    MT samples(N,dim);
+    switch(shiftedOrigin){
+        case true:
+            for (int i = 0; i < N; i++ ) {
+                hmc.apply(rng, walk_length);
+                samples.row(i) = hmc.x.getCoefficients() + newOrigin;
+            }
+        break;
+        case false:
+            for (int i = 0; i < N; i++ ) {
+                hmc.apply(rng, walk_length);
+                samples.row(i) = hmc.x.getCoefficients();
+            }
+        break;
+        default: 
+            std::cout << "Some error with bool:shiftedOrigin pls check\n";
+        break;
+    }
+
     // Evaluation of sampled points
     NT sum = 0;
-    if(shiftedOrigin){
-        if(newOrigin.rows() == dim){
-            for (int i = 0; i < N; i++ ) {
-            sum = sum + Fx(samples.row(i)+newOrigin);
-            }
-        }else{
-            std::cout << "Dimensions should match to the new origin!"
-        }
-    }else{
-        for (int i = 0; i < N; i++ ) {
+    for (int i = 0; i < N; i++ ) {
         sum = sum + Fx(samples.row(i));
-        }
     }
 
     // Final step for integration
