@@ -33,49 +33,49 @@ int main(){
 
     srand(time(0)); // Mandatory code DO NOT REMOVE
 
-    // //TESTS FOR RETURNING VALUE OF normSquared() FUNCTION
-    // VT normSq(7);
-    // normSq << 2,24,36,4,23,43,53;
-    // std::cout << normSquared(normSq, 7) << "\n";
-    // VT normSq1(4);
-    // normSq1 << 21,2,32,4;
-    // std::cout << normSquared(normSq1, 4) << "\n";
+    //TESTS FOR RETURNING VALUE OF normSquared() FUNCTION
+    VT normSq(7);
+    normSq << 2,24,36,4,23,43,53;
+    std::cout << normSquared(normSq, 7) << "\n";
+    VT normSq1(4);
+    normSq1 << 21,2,32,4;
+    std::cout << normSquared(normSq1, 4) << "\n";
 
-    // // TESTS FOR LEGITIMATE LIMITS
+    // TESTS FOR LEGITIMATE LIMITS
     VT LL0(6),UL0(6);
-    // LL0 << 1.2, 3.4, -5.8, 1.9, -2.01, 2.8;
-    // UL0 << 1.3, 3.9, 5.89, 3.1, 2.5, 2.91;
-    // std::cout << legitLimits(LL0,UL0) <<"\n";
+    LL0 << 1.2, 3.4, -5.8, 1.9, -2.01, 2.8;
+    UL0 << 1.3, 3.9, 5.89, 3.1, 2.5, 2.91;
+    std::cout << legitLimits(LL0,UL0) <<"\n";
 
-    // VT LL1(6),UL1(6);
-    // LL1 << 1.3, -3.9, 5.89, -3.1, 2.5, 2.91;
-    // UL1 << 1.2, 3.4, 5.8, 1.9, 2.01, 2.8;
-    // std::cout << legitLimits(LL1,UL1) <<"\n";
+    VT LL1(6),UL1(6);
+    LL1 << 1.3, -3.9, 5.89, -3.1, 2.5, 2.91;
+    UL1 << 1.2, 3.4, 5.8, 1.9, 2.01, 2.8;
+    std::cout << legitLimits(LL1,UL1) <<"\n";
 
-    // VT LL2(4),UL2(6);
-    // LL2 << 1.2, 3.4, 5.8, 1.9;
-    // UL2 << 1.3, 3.9, 5.89, 3.1, 2.5, 2.91;
-    // std::cout << legitLimits(LL2,UL2) <<"\n";
+    VT LL2(4),UL2(6);
+    LL2 << 1.2, 3.4, 5.8, 1.9;
+    UL2 << 1.3, 3.9, 5.89, 3.1, 2.5, 2.91;
+    std::cout << legitLimits(LL2,UL2) <<"\n";
 
-    // // TESTS FOR HYPER-RECTANGULAR VOLUME BETWEEN TWO N-DIMENSIONAL POINTS
-    // LL0 << 1.2, 3.4, -5.8, 1.9, -2.01, 2.8;
-    // UL0 << 1.3, 3.9, 5.89, 3.1, 2.5, 2.91;
-    // std::cout << hyperRectVolume(LL0,UL0)<<"\n";
+    // TESTS FOR HYPER-RECTANGULAR VOLUME BETWEEN TWO N-DIMENSIONAL POINTS
+    LL0 << 1.2, 3.4, -5.8, 1.9, -2.01, 2.8;
+    UL0 << 1.3, 3.9, 5.89, 3.1, 2.5, 2.91;
+    std::cout << hyperRectVolume(LL0,UL0)<<"\n";
 
-    // LL1 << 1.3, -3.9, 5.89, -3.1, 2.5, 2.91;
-    // UL1 << 1.2, 3.4, 5.8, 1.9, 2.01, 2.8;
-    // std::cout << hyperRectVolume(LL1,UL1)<<"\n";
+    LL1 << 1.3, -3.9, 5.89, -3.1, 2.5, 2.91;
+    UL1 << 1.2, 3.4, 5.8, 1.9, 2.01, 2.8;
+    std::cout << hyperRectVolume(LL1,UL1)<<"\n";
 
-    // // TESTS FOR SAMPLER BETWEEN N-DIMENSIONAL POINTS
-    // LL0 << 1.2, 3.4, -5.8, 1.9, -2.01, 2.8;
-    // UL0 << 1.3, 3.9, 5.89, 3.1, 2.5, 2.91;
-    // for(int i =0 ; i<20 ; i++) samplerBWLimits(LL0,UL0);
+    // TESTS FOR SAMPLER BETWEEN N-DIMENSIONAL POINTS
+    LL0 << 1.2, 3.4, -5.8, 1.9, -2.01, 2.8;
+    UL0 << 1.3, 3.9, 5.89, 3.1, 2.5, 2.91;
+    for(int i =0 ; i<20 ; i++) samplerBWLimits(LL0,UL0);
 
     // TESTS FOR SIMPLE MC INTEGRATION OVER HYPER-RECTANGLES USING INBUILT RANDOM SAMPLING
-    // VT LL(2),UL(2) ;
-    // LL << -1.5, 0.5;
-    // UL << 2.5 , 3.6;
-    // SimpleMCIntegrate(expXYsquared,10000,LL,UL);
+    VT LL(2),UL(2) ;
+    LL << -1.5, 0.5;
+    UL << 2.5 , 3.6;
+    SimpleMCIntegrate(expXYsquared,10000,LL,UL);
 
     // TESTS FOR SIMPLE MC INTEGRATION OVER H-POLYTOPES USING ReHMC SAMPLING
 
