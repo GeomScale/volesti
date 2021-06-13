@@ -66,7 +66,7 @@ include("LPSolve.cmake")
 GetLPSolve()
 
 # Find lpsolve library
-# find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
+find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
 
 if (NOT LP_SOLVE)
   message(FATAL_ERROR "This program requires the lp_solve library, and will not be compiled.")
@@ -111,7 +111,7 @@ else ()
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
-  add_subdirectory(logconcave)
+#  add_subdirectory(logconcave)
   #add_subdirectory(spectrahedra)
   add_subdirectory(hpolytope-volume)
   add_subdirectory(count-linear-extensions-using-hpolytope)
