@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: windows-latest, r: 'devel'}
+#           - {os: windows-latest, r: 'devel'} # Error in library(devtools) : there is no package called ‘devtools’
           - {os: windows-latest, r: 'release'}
 
     env:
