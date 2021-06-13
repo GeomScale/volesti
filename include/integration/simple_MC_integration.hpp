@@ -43,7 +43,7 @@ VT Origin(0); // undefined 0 dimensional VT
 typedef const unsigned int Uint; // positive constant value for no of samples & dimensions
 
 // To return ||X||^2 for a VT
-NT normSquared(VT X){
+NT normSquared(VT& X){
     NT sum=0;
     for( int i=0; i < X.rows() ; i++ ){
         sum = sum + X(i)*X(i);
@@ -53,18 +53,20 @@ NT normSquared(VT X){
 
 // To check if two n-dimensional points ensure proper limits in integration 
 bool legitLimits(VT LL, VT UL){
-   if( UL.rows() == LL.rows() ) {
-       for ( int i = 0 ; i< LL.rows() ; i++){
-           if( LL(i) > UL(i) ){
-               std::cout << "Invalid integration limits\n";
-               return false;
+    std:: cout << "\nLL.rows() = " << LL.rows() << LL.transpose() <<"\n";
+    std:: cout << "UL.rows() = " << UL.rows() << UL.transpose() << "\n";
+    if( UL.rows() == LL.rows() ) {
+        for ( int i = 0 ; i< LL.rows() ; i++){
+            if( LL(i) > UL(i) ){
+                std::cout << "Invalid integration limits\n";
+                return false;
             }
-       }
-       return true;
-   }else{
-       std::cout << "Invalid integration limits\n";
-       return false;
-   }
+        }
+        return true;
+    }else{
+        std::cout << "Invalid integration limits\n";
+        return false;
+    }
 }
 
 // Hyper-Rectangle volume calculator in n-dimensions
@@ -83,7 +85,7 @@ NT hyperRectVolume(VT LL, VT UL){
 VT samplerBWLimits(VT LL, VT UL){
     VT sample_point(LL.rows()); NT x;
     for(int i=0; i<LL.rows(); ++i){
-        sample_point(i) = LL(i) + (NT)(rand()) / ((NT)(RAND_MAX/(UL(i) - LL(i))));      
+            sample_point(i) = LL(i) + (NT)(rand()) / ((NT)(RAND_MAX/(UL(i) - LL(i))));     
     }
     return sample_point;
 }
@@ -103,10 +105,10 @@ void SimpleMCIntegrate(Functor &Fx, Uint N ,VT LL, VT UL){
 }
 
 template < typename Functor , typename Polytope >
-void SimpleMCPolytopeIntegrate(Functor &Fx, Polytope &P, Uint N,VT newOrigin=Origin,volumeType vType=CB){
+void SimpleMCPolytopeIntegrate(Functor &Fx, Polytope &P, Uint N,volumeType vType=CB,VT newOrigin=Origin){
 
     // Polytope volumetric calculation params
-    Uint dim = P.dimensions();
+    Uint dim = P.dimension();
     int walk_length = 10 + dim/10; 
     NT e=0.1;
     NT volume=0;
@@ -125,11 +127,12 @@ void SimpleMCPolytopeIntegrate(Functor &Fx, Polytope &P, Uint N,VT newOrigin=Ori
         break;    
     default:  
         volume = 0;
+        std::cout << "Error in enum:vType\n";
         break;
     }
     
     // For implementation of ReHMC walks
-    std::pair<Point, NT> inner_ball = HP.ComputeInnerBall();
+    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
     RNGType rng(1);
     Point x0 = inner_ball.first;
     NT r = inner_ball.second;
@@ -147,22 +150,21 @@ void SimpleMCPolytopeIntegrate(Functor &Fx, Polytope &P, Uint N,VT newOrigin=Ori
 
     // Taking samples using ReHMC walks
     MT samples(N,dim);
-    switch(shiftedOrigin){
-        case true:
+    if(shiftedOrigin){
+        if(newOrigin.rows() == dim){
             for (int i = 0; i < N; i++ ) {
                 hmc.apply(rng, walk_length);
                 samples.row(i) = hmc.x.getCoefficients() + newOrigin;
             }
-        break;
-        case false:
-            for (int i = 0; i < N; i++ ) {
-                hmc.apply(rng, walk_length);
-                samples.row(i) = hmc.x.getCoefficients();
-            }
-        break;
-        default: 
-            std::cout << "Some error with bool:shiftedOrigin pls check\n";
-        break;
+        }else{
+            volume = 0;
+            std::cout << "Error in Polytope & shiftedOrigin dimensions do not match\n";
+        }
+    }else{
+        for (int i = 0; i < N; i++ ) {
+            hmc.apply(rng, walk_length);
+            samples.row(i) = hmc.x.getCoefficients();
+        }
     }
 
     // Evaluation of sampled points
