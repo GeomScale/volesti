@@ -102,8 +102,8 @@ dir_eigen = paste0(path,'/cran_gen/cran_package/src/external/Eigen')
 unlink(dir_eigen, recursive = TRUE)
 
 # delete lpsolve from external
-# dir_lpsolve = paste0(path,'/cran_gen/cran_package/src/external/LPsolve_src')
-# unlink(dir_lpsolve, recursive = TRUE)
+dir_lpsolve = paste0(path,'/cran_gen/cran_package/src/external/LPsolve_src')
+unlink(dir_lpsolve, recursive = TRUE)
 
 # delete misc.h from include
 dir_misc = paste0(path,'/cran_gen/cran_package/src/include/misc.h')
