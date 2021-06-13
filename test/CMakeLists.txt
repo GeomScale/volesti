@@ -178,7 +178,6 @@ else ()
   add_executable (benchmarks_sob benchmarks_sob.cpp)
   add_executable (benchmarks_cg benchmarks_cg.cpp)
   add_executable (benchmarks_cb benchmarks_cb.cpp)
-  add_executable (simple_mc_integration simple_mc_integration.cpp)
 
   add_library(test_main OBJECT test_main.cpp)
 
@@ -261,6 +260,7 @@ else ()
   add_test(NAME logconcave_sampling_test_uld
           COMMAND logconcave_sampling_test -tc=uld)
 
+  add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
@@ -275,7 +275,7 @@ else ()
   TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
-  target_link_libraries(simple_mc_integration ${LP_SOLVE})  
+  TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE})  
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})

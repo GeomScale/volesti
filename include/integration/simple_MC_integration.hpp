@@ -53,8 +53,6 @@ NT normSquared(VT& X){
 
 // To check if two n-dimensional points ensure proper limits in integration 
 bool legitLimits(VT LL, VT UL){
-    std:: cout << "\nLL.rows() = " << LL.rows() << LL.transpose() <<"\n";
-    std:: cout << "UL.rows() = " << UL.rows() << UL.transpose() << "\n";
     if( UL.rows() == LL.rows() ) {
         for ( int i = 0 ; i< LL.rows() ; i++){
             if( LL(i) > UL(i) ){
