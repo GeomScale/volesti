@@ -152,7 +152,6 @@ else ()
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/nlp_oracles)
   include_directories (BEFORE ../include/misc)
-  include_directories (BEFORE /home/agentperry/Downloads/ifopt)
 
   #for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
