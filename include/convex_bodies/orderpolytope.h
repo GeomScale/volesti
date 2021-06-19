@@ -1,5 +1,10 @@
 #include <iostream>
 #include "poset.h"
+#include <Eigen/Eigen>
+#include "preprocess/max_inscribed_ball.hpp"
+#ifndef VOLESTIPY
+    #include "lp_oracles/solve_lp.h"
+#endif
 
 
 template <typename Point>
@@ -14,31 +19,38 @@ private:
     Poset poset;
     unsigned int _d;    // dimension
     
-    VT _b;
+    VT b;
+    VT row_norms;
     MT _A;  // representing as Ax <= b for ComputeInnerBall and printing
 
     unsigned int _num_hyperplanes;
+    bool _normalized;
 
 public:
     OrderPolytope(const Poset& _poset) : poset(_poset)
     {
         _d = poset.num_elem();
         _num_hyperplanes = 2*_d + poset.num_relations(); // 2*d are for >=0 and <=1 constraints
-        _b = Eigen::MatrixXd::Zero(_num_hyperplanes, 1);
+        b = Eigen::MatrixXd::Zero(_num_hyperplanes, 1);
+        row_norms = Eigen::MatrixXd::Constant(_num_hyperplanes, 1, 1.0);
 
         // first add (ai >= 0) or (-ai <= 0) rows    
         _A.topLeftCorner(_d, _d) = -Eigen::MatrixXd::Identity(_d, _d);
 
         // next add (ai <= 1) rows
         _A.block(_d, 0, _d, _d) = Eigen::MatrixXd::Identity(_d, _d);
-        _b.block(_d, 0, _d, _d) = Eigen::MatrixXd::Constant(_d, 1, 1.0);
+        b.block(_d, 0, _d, 1) = Eigen::MatrixXd::Constant(_d, 1, 1.0);
 
         // next add the relations
-        for(int idx=0; idx<poset.num_relations(); ++idx) {
+        unsigned int num_relations = poset.num_relations();
+        for(int idx=0; idx<num_relations; ++idx) {
             std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(idx);
             _A(2*_d + idx, curr_relation.first)  = 1;
             _A(2*_d + idx, curr_relation.second) = -1;
         }
+        row_norms.block(2*_d, 0, num_relations, 1) = Eigen::MatrixXd::Constant(num_relations, 1, sqrt(2));
+
+        _normalized = false;
     }
 
 
@@ -62,10 +74,67 @@ public:
         std::cout << " " << _A.rows() << " " << _d << " double" << std::endl;
         for (unsigned int i = 0; i < _A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                std::cout << _A(i, j) << " ";
+                if (!_normalized)
+                    std::cout << _A(i, j) << " ";
+                else
+                    std::cout << _A(i, j) / row_norms(i) << " ";
             }
-            std::cout << "<= " << _b(i) << std::endl;
+            std::cout << "<= " << b(i) << std::endl;
         }
+    }
+
+
+    /** multiply the sparse matrix A of the order polytope by a vector x
+     *  if transpose = false     : return Ax
+     *  else if transpose = true : return (A^T)x
+     */
+    VT vec_mult(const VT& x, bool transpose=false) {
+        unsigned int rows = _num_of_hyperplanes;
+        unsigned int i = 0;
+        VT res;
+        if (!transpose) res = Eigen::MatrixXd::Zero(rows, 1);
+        else            res = Eigen::MatrixXd::Zero(_d, 1);
+
+        // ------- no effect of normalize on first 2*_d rows, norm = 1 ---------
+        // first _d rows of >=0 constraints
+        for(; i < _d; ++i) {
+            res(i) = (-1.0) * x(i);
+        }
+
+        // next _d rows of <=1 constraints
+        for(; i < 2*_d; ++i) {
+            if (!transpose) {
+                res(i) = (1.0) * x(i - _d);
+            }
+            else {
+                res(i - _d) += (1.0) * x(i);
+            }
+        }
+        // -----------------------------------------------------------------
+
+        // next rows are for order relations
+        for(; i < rows; ++i) {
+            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(i - 2*_d);
+
+            if (!transpose) {
+                if (! _normalized)
+                    res(i) = x(curr_relation.first) - x(curr_relation.second);
+                else
+                    res(i) = (x(curr_relation.first) - x(curr_relation.second)) / row_norms(i);
+            }
+            else {
+                if (! _normalized) {
+                    res(curr_relation.first)  += x(i);
+                    res(curr_relation.second) -= x(i);    
+                }
+                else {
+                    res(curr_relation.first)  += x(i) / row_norms(i);
+                    res(curr_relation.second) -= x(i) / row_norms(i);
+                }
+            }
+        }
+
+        return res;
     }
 
 
@@ -91,35 +160,40 @@ public:
     }
 
 
-    //Compute Chebyshev ball of H-polytope P:= Ax<=b
+    //Compute Chebyshev ball of the polytope P:= Ax<=b
     //Use LpSolve library
     std::pair<Point, NT> ComputeInnerBall()
     {
        normalize();
-        #ifndef VOLESTIPY
-            _inner_ball = ComputeChebychevBall<NT, Point>(_A, _b); // use lpsolve library
+
+        // change entries of A, doing here as won't be required in 
+        // optimized volume calculation of order-polytope
+        MT A = _A.rowwise().normalized();
+
+        #ifndef VOLESTIPY   // as _A is never normalized in closed form
+            _innerball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
         #else
 
-            if (_inner_ball.second < 0.0) {
+            if (_innerball.second < 0.0) {
 
                 NT const tol = 0.00000001;
-                std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(_A, _b, 150, tol);
+                std::tuple<VT, NT, bool> innerball = max_inscribedball(A, b, 150, tol);
 
                 // check if the solution is feasible
-                if (is_in(Point(std::get<0>(inner_ball))) == 0 || std::get<1>(inner_ball) < NT(0) ||
-                    std::isnan(std::get<1>(inner_ball)) || std::isinf(std::get<1>(inner_ball)) ||
-                    !std::get<2>(inner_ball) || is_inner_point_nan_inf(std::get<0>(inner_ball)))
+                if (is_in(Point(std::get<0>(innerball))) == 0 || std::get<1>(innerball) < NT(0) ||
+                    std::isnan(std::get<1>(innerball)) || std::isinf(std::get<1>(innerball)) ||
+                    !std::get<2>(innerball) || is_inner_point_nan_inf(std::get<0>(innerball)))
                 {
-                    _inner_ball.second = -1.0;
+                    _innerball.second = -1.0;
                 } else
                 {
-                    _inner_ball.first = Point(std::get<0>(inner_ball));
-                    _inner_ball.second = std::get<1>(inner_ball);
+                    _innerball.first = Point(std::get<0>(innerball));
+                    _innerball.second = std::get<1>(innerball);
                 }
             }
         #endif
 
-        return _inner_ball;
+        return _innerball;
     }
 
 
@@ -134,17 +208,20 @@ public:
         
         unsigned int i = 0;
         int rows = _num_of_hyperplanes, facet;
-        VT r_coeffs = r.getCoefficients();
-        VT v_coeffs = v.getCoefficients();
-        NT sum_nom_data, sum_denom_data;
+        
+        sum_nom.noalias() = b - vec_mult(r.getCoefficients());
+        sum_denom.noalias() = vec_mult(v.getCoefficients());
 
-        // first _d rows of >=0 constraints
-        for(; i < _d; ++i) {
-            sum_nom_data   = b(i) - (-1.0)*r_coeffs(i);
-            sum_denom_data = (-1.0)*v_coeffs(i);
+        NT* sum_nom_data = sum_nom.data();
+        NT* sum_denom_data = sum_denom.data();
 
-            if (sum_denom_data != NT(0)) {
-                lamda = sum_nom_data / sum_denom_data;
+        // iterate over all hyperplanes
+        for(; i<rows; ++i) {
+            if (*sum_denom_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
                     min_plus = lamda;
                     if (pos) facet = i;
@@ -153,42 +230,9 @@ public:
                     max_minus = lamda;
                 }
             }
-        }
 
-        // next _d rows of <=1 constraints
-        for(; i < 2*_d; ++i) {
-            sum_nom_data   = b(i) - (1.0)*r_coeffs(i - _d);
-            sum_denom_data = (1.0)*v_coeffs(i - _d);
-
-            if (sum_denom_data != NT(0)) {
-                lamda = sum_nom_data / sum_denom_data;
-                if (lamda < min_plus && lamda > 0) {
-                    min_plus = lamda;
-                    if (pos) facet = i;
-                }
-                else if (lamda > max_minus && lamda < 0) {
-                    max_minus = lamda;
-                }
-            }
-        }
-
-        // next rows are for order relations
-        for(; i < rows; ++i) {
-            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(i - 2*_d);
-            
-            sum_nom_data = b(i) - ((1.0)*r_coeffs(curr_relation.first) - (1.0)*r_coeffs(curr_relation.second));
-            sum_denom_data = (1.0)*v_coeffs(curr_relation.first) - (1.0)*v_coeffs(curr_relation.second);
-
-            if (sum_denom_data != NT(0)) {
-                lamda = sum_nom_data / sum_denom_data;
-                if (lamda < min_plus && lamda > 0) {
-                    min_plus = lamda;
-                    if (pos) facet = i;
-                }
-                else if (lamda > max_minus && lamda < 0) {
-                    max_minus = lamda;
-                }
-            }
+            sum_nom_data++;
+            sum_denom_data++;
         }
 
         if (pos) 
@@ -269,4 +313,151 @@ public:
     }
     //------------------------------------------------------------------------------//
 
+
+    // Compute the intersection of a coordinate ray
+    // with the order polytope
+    std::pair<NT,NT> line_intersect_coord(Point const& r,
+                                          unsigned int const& rand_coord,
+                                          VT& lamdas) const
+    {
+        Point v(_d);
+        v.set_coord(rand_coord, 1.0);
+        return line_intersect<NT>(r, v);
+    }
+
+
+    std::pair<NT,NT> line_intersect_coord(const Point &r,
+                                          const Point &r_prev,
+                                          const unsigned int rand_coord,
+                                          const unsigned int rand_coord_prev,
+                                          const VT &lamdas) const {
+        return line_intersect_coord(r, rand_coord, lamdas);
+    }
+
+
+
+    // REMOVED: as this destroys sparsity
+    // // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
+    // void linear_transformIt(MT const& T)
+    // {
+    //     _A = _A * T;
+    // }
+
+    
+    // no points given for the rounding, you have to sample from the polytope
+    template <typename T>
+    bool get_points_for_rounding (T const& /*randPoints*/)
+    {
+        return false;
+    }
+
+
+    // shift polytope by a point c
+    void shift(const VT &c)
+    {
+        b -= vec_mult(c);
+    }
+
+
+    void normalize()
+    {
+        if (_normalized = true)
+            return;
+
+        // for b and _A, first 2*_d rows are already normalized, for 
+        _normalized = true; // -> will be used to make changes in entries of _A
+        for (unsigned int i = 0; i < _num_hyperplanes; ++i)
+        {
+            b(i) = b(i) / row_norms(i);
+        }
+    }
+
+
+    // return for each facet the distance from the origin
+    std::vector<NT> get_dists(NT const& radius) const
+    {        
+        std::vector <NT> dists(_num_hyperplanes, NT(0));
+
+        for (unsigned int i = 0; i < _num_hyperplanes; ++i) {
+            if (_normalized)
+                dists(i) = b(i);
+            else
+                dists(i) = b(i) / row_norms(i);
+        }
+
+        return dists;
+    }
+
+
+    // compute reflection in O(1) time for order polytope
+    void compute_reflection(Point& v, Point const&, int const& facet) const
+    {
+        NT dot_prod;
+        if (facet < _d) {
+            dot_prod = -v[facet];
+        }
+        else if (facet < 2*_d)  {
+            dot_prod = v[facet - _d];
+        }
+        else {
+            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(facet - 2*_d);
+            dot_prod = v[curr_relation.first] - v[curr_relation.second];
+            dot_prod = dot_prod / row_norms(facet - 2*_d);
+        }
+
+        // calculating -> v += -2 * dot_prod * A.row(facet);
+        if (facet < _d) {
+            v.set_coord(facet, v[facet] - 2 * dot_prod * (-1.0));
+        }
+        else if (facet < 2*_d)  {
+            v.set_coord(facet-_d, v[facet-_d] - 2 * dot_prod * (1.0));
+        }
+        else {
+            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(facet - 2*_d);
+            v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0));
+            v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0));
+        }
+    }
+
+
+    template <typename update_parameters>
+    void compute_reflection(Point &v, const Point &, update_parameters const& params) const 
+    {
+        NT dot_prod = params.inner_vi_ak;
+        int facet = params.facet_prev;
+
+        // calculating -> v += -2 * dot_prod * A.row(facet);
+        if (facet < _d) {
+            v.set_coord(facet, v[facet] - 2 * dot_prod * (-1.0));
+        }
+        else if (facet < 2*_d)  {
+            v.set_coord(facet-_d, v[facet-_d] - 2 * dot_prod * (1.0));
+        }
+        else {
+            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(facet - 2*_d);
+            v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0));
+            v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0));
+        }
+    }
+
+
+    NT log_barrier(Point &x, NT t = NT(100)) const
+    {
+      VT slack_vec = b - vec_mult(x.getCoefficients());
+      NT total = slack_vec.log().sum();
+                                        
+      return total / t;
+    }
+
+
+    // calculated -ve grad log barrier
+    Point grad_log_barrier(Point &x, NT t = NT(100)) 
+    {
+      VT slack_vec = b - vec_mult(x.getCoefficients());
+      VT total_vec = vec_mult(slack_vec.inverse(), true);
+      Point total(total_vec);
+
+      total = (1.0 / t) * total;
+      return total;
+    }
 };
