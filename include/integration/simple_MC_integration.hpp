@@ -37,27 +37,18 @@ typedef GaussianFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
 typedef LeapfrogODESolver<Point, NT, HPOLYTOPE , NegativeGradientFunctor> Solver;
 typedef typename HPolytope<Point>::MT MT;
 typedef typename HPolytope<Point>::VT VT;
+
 enum volumeType { CB , CG , SOB }; // Volume type for polytope
+typedef const unsigned int Uint; // positive constant value for no of samples & dimensions
 VT Origin(0); // undefined 0 dimensional VT
 
-typedef const unsigned int Uint; // positive constant value for no of samples & dimensions
-
-// To return ||X||^2 for a VT
-NT normSquared(VT& X){
-    NT sum=0;
-    for( int i=0; i < X.rows() ; i++ ){
-        sum = sum + X(i)*X(i);
-    }
-    return sum;
-}
-
-// To check if two n-dimensional points ensure proper limits in integration 
-bool legitLimits(VT LL, VT UL){
+// To check if two n-dimensional points ensure valid limits in integration 
+bool validLimits(VT LL, VT UL){
     if( UL.rows() == LL.rows() ) {
         for ( int i = 0 ; i< LL.rows() ; i++){
             if( LL(i) > UL(i) ){
-                std::cout << "Invalid integration limits\n";
-                return false;
+            std::cout << "Invalid integration limits\n";
+            return false;
             }
         }
         return true;
@@ -70,7 +61,7 @@ bool legitLimits(VT LL, VT UL){
 // Hyper-Rectangle volume calculator in n-dimensions
 NT hyperRectVolume(VT LL, VT UL){
     NT product=1;
-    if(legitLimits(LL,UL)){
+    if(validLimits(LL,UL)){
         for(int i=0; i<LL.rows(); ++i){
             product = product * ( UL(i) - LL(i) );
         }
@@ -83,16 +74,16 @@ NT hyperRectVolume(VT LL, VT UL){
 VT samplerBWLimits(VT LL, VT UL){
     VT sample_point(LL.rows()); NT x;
     for(int i=0; i<LL.rows(); ++i){
-            sample_point(i) = LL(i) + (NT)(rand()) / ((NT)(RAND_MAX/(UL(i) - LL(i))));     
+        sample_point(i) = LL(i) + (NT)(rand()) / ((NT)(RAND_MAX/(UL(i) - LL(i))));     
     }
     return sample_point;
 }
 
 // Simple MC Integration over Hyper-Rectangles
 template < typename Functor >
-void SimpleMCIntegrate(Functor &Fx, Uint N ,VT LL, VT UL){
+void simple_mc_integrate(Functor Fx, Uint N ,VT LL, VT UL){
     NT sum = 0;
-    if(legitLimits(LL,UL)){
+    if(validLimits(LL,UL)){
         for (int i = 1; i < N; i++ ) {
             sum = sum + Fx(samplerBWLimits(LL,UL));
         }    
@@ -103,7 +94,7 @@ void SimpleMCIntegrate(Functor &Fx, Uint N ,VT LL, VT UL){
 }
 
 template < typename Functor , typename Polytope >
-void SimpleMCPolytopeIntegrate(Functor &Fx, Polytope &P, Uint N,volumeType vType=CB,VT newOrigin=Origin){
+void simple_mc_polytope_integrate(Functor Fx, Polytope &P, Uint N,volumeType vType=CB,VT newOrigin=Origin){
 
     // Polytope volumetric calculation params
     Uint dim = P.dimension();
@@ -112,21 +103,20 @@ void SimpleMCPolytopeIntegrate(Functor &Fx, Polytope &P, Uint N,volumeType vType
     NT volume=0;
 
     // Volume calculation for HPolytope
-    switch(vType)
-    {
-    case CB:     
-        volume = volume_cooling_balls<BallWalk, RNGType, HPOLYTOPE>(P, e, walk_length).second;
-        break;
-    case CG: 
-        volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(P, e, walk_length);
-        break;
-    case SOB: 
-        volume = volume_sequence_of_balls<BallWalk, RNGType>(P, e, walk_length);
-        break;    
-    default:  
-        volume = 0;
-        std::cout << "Error in enum:vType\n";
-        break;
+    switch(vType){
+        case CB:     
+            volume = volume_cooling_balls<BallWalk, RNGType, HPOLYTOPE>(P, e, walk_length).second;
+            break;
+        case CG: 
+            volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(P, e, walk_length);
+            break;
+        case SOB: 
+            volume = volume_sequence_of_balls<BallWalk, RNGType>(P, e, walk_length);
+            break;    
+        default:  
+            volume = 0;
+            std::cout << "Error in enum:vType\n";
+            break;
     }
     
     // For implementation of ReHMC walks
@@ -172,7 +162,7 @@ void SimpleMCPolytopeIntegrate(Functor &Fx, Polytope &P, Uint N,volumeType vType
     }
 
     // Final step for integration
-    std::cout << "Integral Value over H-Polytope: " << volume * sum / N << "\n";    
+    std::cout << "Integral Value over H-Polytope: " << volume* sum / N << "\n";    
 
 }
 
