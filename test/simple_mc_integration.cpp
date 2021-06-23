@@ -5,6 +5,8 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "hpolytope.h"
 #include "known_polytope_generators.h"
+#include "ode_solvers/oracle_functors.hpp"
+#include "random_walks/random_walks.hpp"
 #include <iostream>
 #include <fstream>
 #include "misc.h"
@@ -12,39 +14,43 @@
 typedef double NT;
 typedef Cartesian<NT> Kernel;
 typedef typename Kernel::Point Point;
-typedef std::vector<Point> pts;
 typedef HPolytope<Point> HPOLYTOPE;
-typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
+typedef boost::mt19937 RNGType;
+typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
 typedef typename HPolytope<Point>::MT MT;
 typedef typename HPolytope<Point>::VT VT;
 
-NT exp_N_Dim(VT X){
-	return exp( -X.squaredNorm() );
+NT exp_N_Dim(Point X){
+	return exp(-X.squared_length()) ;
 }
 
 void call_test_simple_mc_over_hyperrectangle(){
 	srand(time(0));
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER HYPER-RECTANGLES USING INBUILT RANDOM SAMPLING\n";
-	VT LL(1),UL(1) ;
-	LL << -1;
-	UL << 1 ;
-	simple_mc_integrate(&exp_N_Dim,10000,LL,UL);
+
+	std::vector<NT> ll{-1};
+	std::vector<NT> ul{1};
+	Point LL(1,ll),UL(1,ul);
+	simple_mc_integrate(exp_N_Dim,10000,LL,UL);
+	// Point LL1(2),UL1(2) ;
+	// simple_mc_integrate(exp_N_Dim,10000,LL1,UL1);
+	// Point LL2(3),UL2(3) ;
+	// simple_mc_integrate(exp_N_Dim,10000,LL2,UL2);
 }
 
 void call_test_simple_mc_over_polytope(){
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER H-POLYTOPES USING ReHMC SAMPLING\n";
 
 	// Polytope Integration Test:1 for 2D Polytope around the origin
-	HPOLYTOPE HP = generate_cube<HPOLYTOPE>(1, false);
-	HP.print();
-	simple_mc_polytope_integrate(exp_N_Dim, HP, 10000);
+	HPOLYTOPE HP = generate_cube<HPOLYTOPE>(3, false);
+	simple_mc_polytope_integrate(exp_N_Dim, HP, 10);
 
 	// Polytope Integration Test:2 Shifting Polytope relative to origin
-	VT newOrigin(4);
-	newOrigin << 0.2, -0.7, 0.96, -0.79;
-	HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(4, false);
-	simple_mc_polytope_integrate(exp_N_Dim, HP1, 15000, SOB , newOrigin);
-	simple_mc_polytope_integrate(exp_N_Dim, HP1, 15000, CG);
+	// HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(2, false);
+	// simple_mc_polytope_integrate(exp_N_Dim, HP1, 100000);
+	// HPOLYTOPE HP2 = generate_cube<HPOLYTOPE>(3, false);
+	// simple_mc_polytope_integrate(exp_N_Dim, HP2, 100000);
+	//simple_mc_polytope_integrate(exp_N_Dim, HP1, 15000, CG);
 
 	// Polytope Integration Test:3 Reading a HPolytope from ine file for 20 Dimensions
 	// std::string fileName("cube10.ine");
@@ -53,7 +59,7 @@ void call_test_simple_mc_over_polytope(){
 	// inp.open(fileName, std::ifstream::in);
 	// read_pointset(inp,Pin);
 	// HPOLYTOPE HP2(Pin);
-	// SimpleMCPolytopeIntegrate(expXY20D, HP2, 15000, SOB);
+	// SimpleMCPolytopeIntegrate(exp_N_dim, HP2, 15000, SOB);
 	// inp.close();
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
