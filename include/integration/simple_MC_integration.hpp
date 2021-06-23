@@ -28,7 +28,7 @@
 typedef double NT;
 typedef Cartesian<NT> Kernel;
 typedef typename Kernel::Point Point;
-typedef std::vector<Point> pts;
+typedef std::vector<Point> Points;
 typedef HPolytope<Point> HPOLYTOPE;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
@@ -105,7 +105,7 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vTyp
 
     // Polytope volumetric calculation params
     Uint dim = P.dimension();
-    int walk_length = 1; 
+    int walk_length = 10 + dim/10; 
     NT e=0.1;
     NT volume=0;
 
@@ -134,18 +134,29 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vTyp
 
     std::cout << volume << std::endl;
 
-    // For implementing Uniform Ball Walk Billiards
+    // For implementing Uniform Walks
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
     RandomNumberGenerator rng(1);
     Point x0 = inner_ball.first;
     typename WalkType::template Walk<Polytope, RandomNumberGenerator> walk(P,x0,rng);
 
+    // Applying and walking through Uniform Walks + Storing Points
+    Points points;
     NT sum=0;
+
     for (int i = 0; i < N; i++ ){
         walk.apply(P,x0,walk_length,rng);
-        //x0.print();
         sum = sum + Fx(x0+Origin);
+
+        // For storing points in Vector<Point>
+        // points.push_back(x0+Origin);
+        // (x0+Origin).print();
     }
+
+    // To print sampled points
+    // for(auto i_th_point : points){
+    //     i_th_point.print();
+    // }
 
     // Final step for integration
     std::cout << "Integral Value over H-Polytope: " << volume * sum / N << "\n";   

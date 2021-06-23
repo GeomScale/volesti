@@ -46,12 +46,12 @@ void call_test_simple_mc_over_polytope(){
 
 	// Polytope Integration Test:1 for 2D Polytope around the origin
 	HPOLYTOPE HP = generate_cube<HPOLYTOPE>(2, false);
-	simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 100000, SOB);
+	simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 100, SOB);
 
 	// Polytope Integration Test:2 for 2D Polytope shifted to (1,1) from origin
-	std::vector<NT> origin{1,1};
-	Point newOrigin(2,origin);
-	simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 100000, SOB, newOrigin);
+	// std::vector<NT> origin{1,1};
+	// Point newOrigin(2,origin);
+	// simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 100, SOB, newOrigin);
 
 	// Polytope Integration Test:2 Shifting Polytope relative to origin
 	// HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(2, false);
