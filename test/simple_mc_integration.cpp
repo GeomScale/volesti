@@ -28,22 +28,30 @@ void call_test_simple_mc_over_hyperrectangle(){
 	srand(time(0));
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER HYPER-RECTANGLES USING INBUILT RANDOM SAMPLING\n";
 
-	std::vector<NT> ll{-1};
-	std::vector<NT> ul{1};
-	Point LL(1,ll),UL(1,ul);
+	std::vector<NT> ll{-1,-1};
+	std::vector<NT> ul{1,1};
+	Point LL(2,ll), UL(2,ul);
 	simple_mc_integrate(exp_N_Dim,10000,LL,UL);
-	// Point LL1(2),UL1(2) ;
-	// simple_mc_integrate(exp_N_Dim,10000,LL1,UL1);
-	// Point LL2(3),UL2(3) ;
-	// simple_mc_integrate(exp_N_Dim,10000,LL2,UL2);
+
+	std::vector<NT> ll1{0,0};
+	std::vector<NT> ul1{2,2};
+	Point LL1(2,ll1), UL1(2,ul1);
+	simple_mc_integrate(exp_N_Dim,10000,LL1,UL1);
+
+
 }
 
 void call_test_simple_mc_over_polytope(){
-	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER H-POLYTOPES USING ReHMC SAMPLING\n";
+	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER H-POLYTOPES USING UNIFORM SAMPLING\n";
 
 	// Polytope Integration Test:1 for 2D Polytope around the origin
-	HPOLYTOPE HP = generate_cube<HPOLYTOPE>(3, false);
-	simple_mc_polytope_integrate(exp_N_Dim, HP, 10);
+	HPOLYTOPE HP = generate_cube<HPOLYTOPE>(2, false);
+	simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 100000, SOB);
+
+	// Polytope Integration Test:2 for 2D Polytope shifted to (1,1) from origin
+	std::vector<NT> origin{1,1};
+	Point newOrigin(2,origin);
+	simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 100000, SOB, newOrigin);
 
 	// Polytope Integration Test:2 Shifting Polytope relative to origin
 	// HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(2, false);

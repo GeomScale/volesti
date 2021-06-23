@@ -33,11 +33,10 @@ typedef HPolytope<Point> HPOLYTOPE;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
 typedef typename HPolytope<Point>::MT MT;
-typedef typename HPolytope<Point>::VT VT;
+typedef typename HPolytope<Point>::VT VT; 
 
-//enum volumeType { CB , CG , SOB }; // Volume type for polytope
-typedef const unsigned int Uint; // positive constant value for no of samples & dimensions
-//VT Origin(0); // undefined 0 dimensional VT
+typedef const unsigned int Uint;  // positive constant value for no of samples & dimensions
+enum volumeType { CB , CG , SOB }; // Volume type for polytope
 
 // To check if two n-dimensional points ensure valid limits in integration 
 bool validLimits(Point LL, Point UL){
@@ -77,7 +76,10 @@ Point samplerBWLimits(Point LL, Point UL){
 }
 
 // Simple MC Integration over Hyper-Rectangles
-template < typename Functor >
+template
+<
+    typename Functor
+>
 void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL){
     NT sum = 0;
     if(validLimits(LL,UL)){
@@ -90,79 +92,64 @@ void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL){
     }
 }
 
-template < typename Functor , typename HPolytope>
-void simple_mc_polytope_integrate(Functor Fx, HPolytope &P, Uint N) {//volumeType vType=CB,VT newOrigin=Origin){
+// Simple MC Integration Over Polytopes
+Point origin(0);
+template 
+<
+    typename WalkType=BallWalk,
+    //typename VolumeType, TODO:: To remove switch interface in volume computation type i.e. for CB / CG / SOB 
+    typename Functor,
+    typename Polytope
+>
+void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vType=CB,Point Origin=origin){
 
     // Polytope volumetric calculation params
     Uint dim = P.dimension();
-    int walk_length = 10 + dim/10; 
+    int walk_length = 1; 
     NT e=0.1;
     NT volume=0;
+
+    // Check if origin is shifted
+    if(Origin.dimension() == 0 ){
+        Origin.set_dimension(dim); 
+        Origin.set_to_origin();
+    }
     
-    // For implementing Uniform Ball Walk Billiard
+    // Volume calculation for HPolytope
+    switch(vType){
+        case CB:     
+            volume = volume_cooling_balls<BallWalk, RandomNumberGenerator, HPOLYTOPE>(P, e, walk_length).second;
+            break;
+        case CG: 
+            volume = volume_cooling_gaussians<GaussianBallWalk, RandomNumberGenerator>(P, e, walk_length);
+            break;
+        case SOB: 
+            volume = volume_sequence_of_balls<BallWalk, RandomNumberGenerator>(P, e, walk_length);
+            break;    
+        default:  
+            volume = 0;
+            std::cout << "Error in enum:vType\n";
+            break;
+    }    
+
+    std::cout << volume << std::endl;
+
+    // For implementing Uniform Ball Walk Billiards
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
     RandomNumberGenerator rng(1);
     Point x0 = inner_ball.first;
-    BilliardWalk::Walk<HPolytope, RandomNumberGenerator> walk(P, x0, rng);
+    typename WalkType::template Walk<Polytope, RandomNumberGenerator> walk(P,x0,rng);
 
-    MT samples(N,dim);
+    NT sum=0;
     for (int i = 0; i < N; i++ ){
         walk.apply(P,x0,walk_length,rng);
-        // samples.row(i) = walk.getCoefficients();
-        x0.print();
+        //x0.print();
+        sum = sum + Fx(x0+Origin);
     }
 
+    // Final step for integration
+    std::cout << "Integral Value over H-Polytope: " << volume * sum / N << "\n";   
 
 }
 
 #endif
-
-
-    // Volume calculation for HPolytope
-    // switch(vType){
-    //     case CB:     
-    //         volume = volume_cooling_balls<BallWalk, RNGType, HPOLYTOPE>(P, e, walk_length).second;
-    //         break;
-    //     case CG: 
-    //         volume = volume_cooling_gaussians<GaussianBallWalk, RNGType>(P, e, walk_length);
-    //         break;
-    //     case SOB: 
-    //         volume = volume_sequence_of_balls<BallWalk, RNGType>(P, e, walk_length);
-    //         break;    
-    //     default:  
-    //         volume = 0;
-    //         std::cout << "Error in enum:vType\n";
-    //         break;
-    // }
-
-    // // Check if origin is shifted
-    // const bool &shiftedOrigin = ( newOrigin.rows()==0 )? false : true ;
-
-    // // Taking samples using ReHMC walks
-    // MT samples(N,dim);
-    // if(shiftedOrigin){
-    //     if(newOrigin.rows() == dim){
-    //         for (int i = 0; i < N; i++ ) {
-    //             hmc.apply(rng, walk_length);
-    //             samples.row(i) = hmc.x.getCoefficients() + newOrigin;
-    //         }
-    //     }else{
-    //         volume = 0;
-    //         std::cout << "Error in Polytope & shiftedOrigin dimensions do not match\n";
-    //     }
-    // }else{
-    //     for (int i = 0; i < N; i++ ) {
-    //         hmc.apply(rng, walk_length);
-    //         samples.row(i) = hmc.x.getCoefficients();
-    //     }
-    // }
-
-    // // Evaluation of sampled points
-    // NT sum = 0;
-    // for (int i = 0; i < N; i++ ) {
-    //     sum = sum + Fx(samples.row(i));
-    //     //std::cout << samples.row(i).transpose() << std::endl;
-    // }
-
-    // Final step for integration
-    // std::cout << "Integral Value over H-Polytope: " << sum / N << "\n";    
