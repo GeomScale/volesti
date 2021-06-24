@@ -32,8 +32,8 @@ typedef std::vector<Point> Points;
 typedef HPolytope<Point> HPOLYTOPE;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
-// typedef typename HPolytope<Point>::MT MT;
-// typedef typename HPolytope<Point>::VT VT; 
+typedef typename HPolytope<Point>::MT MT;
+typedef typename HPolytope<Point>::VT VT; 
 
 typedef const unsigned int Uint;  // positive constant value for no of samples & dimensions
 enum volumeType { CB , CG , SOB }; // Volume type for polytope
@@ -66,25 +66,49 @@ NT hyperRectVolume(Point LL, Point UL){
     else return 0;
 }
 
-// To sample a point between two n-dimensional points
-Point samplerBWLimits(Point LL, Point UL){
-    Point sample_point(LL.dimension()); NT x;
-    for(int i=0; i<LL.dimension(); ++i){
-        sample_point.set_coord(i , LL[i] + (NT)(rand()) / ((NT)(RAND_MAX/(UL[i] - LL[i]))) );
-    }
-    return sample_point;
-}
+// To sample a point between two n-dimensional points using inbuilt random sampling
+// Point samplerBWLimits(Point LL, Point UL){
+//     Point sample_point(LL.dimension());
+//     for(int i=0; i<LL.dimension(); ++i){
+//         sample_point.set_coord(i , LL[i] + (NT)(rand()) / ((NT)(RAND_MAX/(UL[i] - LL[i]))) );
+//     }
+//     return sample_point;
+// }
 
 // Simple MC Integration over Hyper-Rectangles
 template
 <
+    typename WalkType=BallWalk,
     typename Functor
 >
 void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL){
+    Uint dim=LL.dimension();
     NT sum = 0;
     if(validLimits(LL,UL)){
+
+        // Creating an MT & VT for HPolytope(Hyperrectangle) for integration limits using LL & UL
+        MT mt(dim*2,dim);
+        VT vt(dim*2);
+        for(int i=0 ; i<dim ; i++){
+            mt(i,i)=1;
+            vt(i)=UL[i];
+            mt(dim+i,i)=-1;
+            vt(dim+i)=LL[i]*-1;
+        }
+
+        // Initialization of H-Polytope and setting up params for random walks
+        HPOLYTOPE P(dim,mt,vt);
+        // P.print();
+        int walk_length = 10 + dim/10; 
+        NT e=0.1;
+        std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
+        RandomNumberGenerator rng(1);
+        Point x0 = inner_ball.first;
+        typename WalkType::template Walk<HPOLYTOPE, RandomNumberGenerator> walk(P,x0,rng);
+        
         for (int i = 0; i <=N; i++ ) {
-            sum = sum + Fx(samplerBWLimits(LL,UL));
+            walk.apply(P,x0,walk_length,rng);
+            sum = sum + Fx(x0);
         }    
         std::cout << "Integral Value: " << hyperRectVolume(LL,UL) * sum / N << "\n"; 
     }else{
@@ -145,12 +169,11 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vTyp
     Points points; // For storing sampled points
     NT sum=0;
 
-    // Applying and walking through Uniform Walks + Storing Points
+    // Applying and walking through Uniform Walks + Storing Points in Vector<Point>
     for (int i = 0; i < N; i++ ){
         walk.apply(P,x0,walk_length,rng);
-        sum = sum + Fx(x0+Origin);
+        sum+=Fx(x0+Origin);
 
-        // For storing points in Vector<Point>
         // points.push_back(x0+Origin);
         // (x0+Origin).print();
     }
@@ -161,7 +184,7 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vTyp
     // }
 
     /*
-    The very core idea of Monte Carlo Integration used here : https://en.wikipedia.org/wiki/Monte_Carlo_integration#Overview
+    Core idea of Monte Carlo Integration algorithm used here : https://en.wikipedia.org/wiki/Monte_Carlo_integration#Overview
     */
 
     // Integration Value

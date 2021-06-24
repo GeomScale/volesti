@@ -26,7 +26,7 @@ NT exp_N_Dim(Point X){
 
 void call_test_simple_mc_over_hyperrectangle(){
 	srand(time(0));
-	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER HYPER-RECTANGLES USING INBUILT RANDOM SAMPLING\n";
+	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER HYPER-RECTANGLES USING UNIFORM WALKS\n";
 
 	std::vector<NT> ll{-1,-1};
 	std::vector<NT> ul{1,1};
