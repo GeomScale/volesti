@@ -32,8 +32,8 @@ typedef std::vector<Point> Points;
 typedef HPolytope<Point> HPOLYTOPE;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
-typedef typename HPolytope<Point>::MT MT;
-typedef typename HPolytope<Point>::VT VT; 
+// typedef typename HPolytope<Point>::MT MT;
+// typedef typename HPolytope<Point>::VT VT; 
 
 typedef const unsigned int Uint;  // positive constant value for no of samples & dimensions
 enum volumeType { CB , CG , SOB }; // Volume type for polytope
@@ -97,6 +97,7 @@ Point origin(0);
 template 
 <
     typename WalkType=BallWalk,
+    typename PolytopeType=HPOLYTOPE,
     //typename VolumeType, TODO:: To remove switch interface in volume computation type i.e. for CB / CG / SOB 
     typename Functor,
     typename Polytope
@@ -118,7 +119,7 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vTyp
     // Volume calculation for HPolytope
     switch(vType){
         case CB:     
-            volume = volume_cooling_balls<BallWalk, RandomNumberGenerator, HPOLYTOPE>(P, e, walk_length).second;
+            volume = volume_cooling_balls<BallWalk, RandomNumberGenerator, PolytopeType>(P, e, walk_length).second;
             break;
         case CG: 
             volume = volume_cooling_gaussians<GaussianBallWalk, RandomNumberGenerator>(P, e, walk_length);
@@ -132,7 +133,8 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vTyp
             break;
     }    
 
-    std::cout << volume << std::endl;
+    // Volume of the Polytope
+    std::cout << "Volume of the Polytope = " << volume << std::endl;
 
     // For implementing Uniform Walks
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
@@ -140,10 +142,10 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vTyp
     Point x0 = inner_ball.first;
     typename WalkType::template Walk<Polytope, RandomNumberGenerator> walk(P,x0,rng);
 
-    // Applying and walking through Uniform Walks + Storing Points
-    Points points;
+    Points points; // For storing sampled points
     NT sum=0;
 
+    // Applying and walking through Uniform Walks + Storing Points
     for (int i = 0; i < N; i++ ){
         walk.apply(P,x0,walk_length,rng);
         sum = sum + Fx(x0+Origin);
@@ -158,8 +160,12 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vTyp
     //     i_th_point.print();
     // }
 
-    // Final step for integration
-    std::cout << "Integral Value over H-Polytope: " << volume * sum / N << "\n";   
+    /*
+    The very core idea of Monte Carlo Integration used here : https://en.wikipedia.org/wiki/Monte_Carlo_integration#Overview
+    */
+
+    // Integration Value
+    std::cout << "Integral Value over Polytope = " << volume * sum / N << std::endl;   
 
 }
 

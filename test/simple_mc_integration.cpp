@@ -14,11 +14,11 @@
 typedef double NT;
 typedef Cartesian<NT> Kernel;
 typedef typename Kernel::Point Point;
+typedef std::vector<Point> Points;
 typedef HPolytope<Point> HPOLYTOPE;
+typedef VPolytope<Point> VPOLYTOPE;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
-typedef typename HPolytope<Point>::MT MT;
-typedef typename HPolytope<Point>::VT VT;
 
 NT exp_N_Dim(Point X){
 	return exp(-X.squared_length()) ;
@@ -44,21 +44,22 @@ void call_test_simple_mc_over_hyperrectangle(){
 void call_test_simple_mc_over_polytope(){
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER H-POLYTOPES USING UNIFORM SAMPLING\n";
 
-	// Polytope Integration Test:1 for 2D Polytope around the origin
+	// H-Polytope Integration Test:1 for 2D Polytope around the origin
 	HPOLYTOPE HP = generate_cube<HPOLYTOPE>(2, false);
-	simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 100, SOB);
+	simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 10000, SOB);
 
-	// Polytope Integration Test:2 for 2D Polytope shifted to (1,1) from origin
-	// std::vector<NT> origin{1,1};
-	// Point newOrigin(2,origin);
-	// simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 100, SOB, newOrigin);
+	// H-Polytope Integration Test:2 for 2D Polytope shifted to (1,1) from origin
+	std::vector<NT> origin{1,1};
+	Point newOrigin(2,origin);
+	simple_mc_polytope_integrate<BallWalk>(exp_N_Dim, HP, 10000, SOB, newOrigin);
 
-	// Polytope Integration Test:2 Shifting Polytope relative to origin
-	// HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(2, false);
-	// simple_mc_polytope_integrate(exp_N_Dim, HP1, 100000);
-	// HPOLYTOPE HP2 = generate_cube<HPOLYTOPE>(3, false);
-	// simple_mc_polytope_integrate(exp_N_Dim, HP2, 100000);
-	//simple_mc_polytope_integrate(exp_N_Dim, HP1, 15000, CG);
+	// H-Polytope Integration Test:3
+	HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(7, false);
+	simple_mc_polytope_integrate<BilliardWalk,HPOLYTOPE>(exp_N_Dim, HP1, 10000, SOB);
+
+	// V-Polytope Integration Test:4
+	VPOLYTOPE VP = generate_cross<VPOLYTOPE>(2, true);
+	simple_mc_polytope_integrate<BilliardWalk,VPOLYTOPE>(exp_N_Dim, VP, 10000, CB);
 
 	// Polytope Integration Test:3 Reading a HPolytope from ine file for 20 Dimensions
 	// std::string fileName("cube10.ine");
