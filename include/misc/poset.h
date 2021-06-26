@@ -77,7 +77,7 @@ public:
     }
 
     template <typename NT>
-    bool is_in(const std::vector<NT>& pt_coeffs, NT tol=NT(0))
+    bool is_in(const std::vector<NT>& pt_coeffs, NT tol=NT(0)) const
     {
         for (int i = 0; i < order_relations.size(); i++) {
             unsigned int a = order_relations[i].first;

@@ -167,7 +167,8 @@ public:
         }
 
         // check violations of order relations
-        if (!poset.is_in(pt_coeffs, tol)) {
+        std::vector<NT> pt_coeffs_vector(pt_coeffs.data(), pt_coeffs.data() + pt_coeffs.size());
+        if (!poset.is_in(pt_coeffs_vector, tol)) {
             return 0;
         }
 
