@@ -36,7 +36,7 @@ typedef typename HPolytope<Point>::MT MT;
 typedef typename HPolytope<Point>::VT VT; 
 
 typedef const unsigned int Uint;  // positive constant value for no of samples & dimensions
-enum volumeType { CB , CG , SOB }; // Volume type for polytope
+enum volType { CB , CG , SOB }; // Volume type for polytope
 
 // To check if two n-dimensional points ensure valid limits in integration 
 bool validLimits(Point LL, Point UL){
@@ -81,12 +81,12 @@ template
     typename WalkType=BallWalk,
     typename Functor
 >
-void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL){
+void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL, int walk_length=10, NT e=0.1){
     Uint dim=LL.dimension();
     NT sum = 0;
     if(validLimits(LL,UL)){
 
-        // Creating an MT & VT for HPolytope(Hyperrectangle) for integration limits using LL & UL
+        // Creating an MT & VT for HPolytope(Hyper-Rectangle) for integration limits using LL & UL
         MT mt(dim*2,dim);
         VT vt(dim*2);
         for(int i=0 ; i<dim ; i++){
@@ -99,8 +99,6 @@ void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL){
         // Initialization of H-Polytope and setting up params for random walks
         HPOLYTOPE P(dim,mt,vt);
         // P.print();
-        int walk_length = 10 + dim/10; 
-        NT e=0.1;
         std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
         RandomNumberGenerator rng(1);
         Point x0 = inner_ball.first;
@@ -110,29 +108,27 @@ void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL){
             walk.apply(P,x0,walk_length,rng);
             sum = sum + Fx(x0);
         }    
-        std::cout << "Integral Value: " << hyperRectVolume(LL,UL) * sum / N << "\n"; 
+        NT volume = hyperRectVolume(LL,UL);
+        std::cout << "Volume of the subspace: " << volume << std::endl;
+        std::cout << "Integral Value: " << volume * sum / N << "\n"; 
     }else{
         std::cout << "Invalid integration limits\n";
     }
 }
 
+
 // Simple MC Integration Over Polytopes
-Point origin(0);
+const Point origin(0);
 template 
 <
     typename WalkType=BallWalk,
-    typename PolytopeType=HPOLYTOPE,
-    //typename VolumeType, TODO:: To remove switch interface in volume computation type i.e. for CB / CG / SOB 
-    typename Functor,
-    typename Polytope
+    typename Polytope=HPOLYTOPE,
+    typename RNG=RandomNumberGenerator,
+    typename Functor
 >
-void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vType=CB,Point Origin=origin){
+void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N, volType vT=SOB, int walk_length=1, NT e=0.1 ,Point Origin=origin){
 
-    // Polytope volumetric calculation params
     Uint dim = P.dimension();
-    int walk_length = 10 + dim/10; 
-    NT e=0.1;
-    NT volume=0;
 
     // Check if origin is shifted
     if(Origin.dimension() == 0 ){
@@ -141,32 +137,35 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N,volumeType vTyp
     }
     
     // Volume calculation for HPolytope
-    switch(vType){
-        case CB:     
-            volume = volume_cooling_balls<BallWalk, RandomNumberGenerator, PolytopeType>(P, e, walk_length).second;
-            break;
-        case CG: 
-            volume = volume_cooling_gaussians<GaussianBallWalk, RandomNumberGenerator>(P, e, walk_length);
-            break;
-        case SOB: 
-            volume = volume_sequence_of_balls<BallWalk, RandomNumberGenerator>(P, e, walk_length);
-            break;    
-        default:  
-            volume = 0;
-            std::cout << "Error in enum:vType\n";
-            break;
-    }    
+    NT volume=0;
+    
+    switch(vT){
+    case CB:     
+        volume = volume_cooling_balls<BallWalk, RNG, Polytope>(P, e, walk_length).second; 
+        break;
+    case CG: 
+        volume = volume_cooling_gaussians<GaussianBallWalk, RNG, Polytope>(P, e, walk_length);
+        break;
+    case SOB: 
+        volume = volume_sequence_of_balls<BallWalk, RNG, Polytope>(P, e, walk_length);
+        break;
+    default:
+        std::cout << "Error in volume type: CB / SOB / CG" << std::endl;
+        volume = 0;
+        break;
+    }
 
     // Volume of the Polytope
     std::cout << "Volume of the Polytope = " << volume << std::endl;
 
     // For implementing Uniform Walks
+    RNG rng(1);
     std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
-    RandomNumberGenerator rng(1);
     Point x0 = inner_ball.first;
-    typename WalkType::template Walk<Polytope, RandomNumberGenerator> walk(P,x0,rng);
+    typename WalkType::template Walk<Polytope,RNG> walk(P,x0,rng);
 
-    Points points; // For storing sampled points
+    // For storing sampled points
+    Points points; 
     NT sum=0;
 
     // Applying and walking through Uniform Walks + Storing Points in Vector<Point>
