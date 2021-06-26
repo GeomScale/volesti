@@ -8,6 +8,9 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
+#ifndef ORDER_POLYTOPE_H
+#define ORDER_POLYTOPE_H
+
 #include <iostream>
 #include "poset.h"
 #include <Eigen/Eigen>
@@ -37,11 +40,12 @@ private:
     bool _normalized;
 
 public:
-    OrderPolytope(const Poset& _poset) : poset(_poset)
+    OrderPolytope(Poset const& _poset) : poset(_poset)
     {
         _d = poset.num_elem();
         _num_hyperplanes = 2*_d + poset.num_relations(); // 2*d are for >=0 and <=1 constraints
         b = Eigen::MatrixXd::Zero(_num_hyperplanes, 1);
+        _A = Eigen::MatrixXd::Zero(_num_hyperplanes, _d);
         row_norms = Eigen::MatrixXd::Constant(_num_hyperplanes, 1, 1.0);
 
         // first add (ai >= 0) or (-ai <= 0) rows    
@@ -98,8 +102,9 @@ public:
      *  if transpose = false     : return Ax
      *  else if transpose = true : return (A^T)x
      */
-    VT vec_mult(const VT& x, bool transpose=false) {
-        unsigned int rows = _num_of_hyperplanes;
+    VT vec_mult(const VT& x, bool transpose=false) const 
+    {
+        unsigned int rows = num_hyperplanes();
         unsigned int i = 0;
         VT res;
         if (!transpose) res = Eigen::MatrixXd::Zero(rows, 1);
@@ -162,7 +167,7 @@ public:
         }
 
         // check violations of order relations
-        if (!poset.is_in(pt_coeffs, tol) {
+        if (!poset.is_in(pt_coeffs, tol)) {
             return 0;
         }
 
@@ -179,7 +184,8 @@ public:
         // change entries of A, doing here as won't be required in 
         // optimized volume calculation of order-polytope
         MT A = _A.rowwise().normalized();
-
+        std::pair<Point, NT> _innerball;
+        
         #ifndef VOLESTIPY   // as _A is never normalized in closed form
             _innerball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
         #else
@@ -217,7 +223,7 @@ public:
         VT sum_nom, sum_denom;
         
         unsigned int i = 0;
-        int rows = _num_of_hyperplanes, facet;
+        int rows = num_hyperplanes(), facet;
         
         sum_nom.noalias() = b - vec_mult(r.getCoefficients());
         sum_denom.noalias() = vec_mult(v.getCoefficients());
@@ -332,7 +338,7 @@ public:
     {
         Point v(_d);
         v.set_coord(rand_coord, 1.0);
-        return line_intersect<NT>(r, v);
+        return line_intersect(r, v);
     }
 
 
@@ -371,7 +377,7 @@ public:
 
     void normalize()
     {
-        if (_normalized = true)
+        if (_normalized == true)
             return;
 
         // for b and _A, first 2*_d rows are already normalized, for 
@@ -390,9 +396,9 @@ public:
 
         for (unsigned int i = 0; i < _num_hyperplanes; ++i) {
             if (_normalized)
-                dists(i) = b(i);
+                dists[i] = b(i);
             else
-                dists(i) = b(i) / row_norms(i);
+                dists[i] = b(i) / row_norms(i);
         }
 
         return dists;
@@ -400,7 +406,7 @@ public:
 
 
     // compute reflection in O(1) time for order polytope
-    void compute_reflection(Point& v, Point const&, int const& facet) const
+    void compute_reflection(Point& v, Point const&, unsigned int facet) const
     {
         NT dot_prod;
         if (facet < _d) {
@@ -412,7 +418,7 @@ public:
         else {
             std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(facet - 2*_d);
             dot_prod = v[curr_relation.first] - v[curr_relation.second];
-            dot_prod = dot_prod / row_norms(facet - 2*_d);
+            dot_prod = dot_prod / row_norms(facet);
         }
 
         // calculating -> v += -2 * dot_prod * A.row(facet);
@@ -424,8 +430,8 @@ public:
         }
         else {
             std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(facet - 2*_d);
-            v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0));
-            v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0));
+            v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0 / row_norms(facet)));
+            v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0 / row_norms(facet)));
         }
     }
 
@@ -471,3 +477,5 @@ public:
       return total;
     }
 };
+
+#endif
