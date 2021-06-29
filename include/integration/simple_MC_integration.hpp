@@ -55,7 +55,7 @@ bool validLimits(Point LL, Point UL){
 }
 
 // Hyper-Rectangle volume calculator in n-dimensions
-NT hyperRectVolume(Point LL, Point UL){
+NT hyper_rect_volume(Point LL, Point UL){
     NT product=1;
     if(validLimits(LL,UL)){
         for(int i=0; i<LL.dimension(); ++i){
@@ -67,13 +67,13 @@ NT hyperRectVolume(Point LL, Point UL){
 }
 
 // To sample a point between two n-dimensional points using inbuilt random sampling
-// Point samplerBWLimits(Point LL, Point UL){
-//     Point sample_point(LL.dimension());
-//     for(int i=0; i<LL.dimension(); ++i){
-//         sample_point.set_coord(i , LL[i] + (NT)(rand()) / ((NT)(RAND_MAX/(UL[i] - LL[i]))) );
-//     }
-//     return sample_point;
-// }
+Point samplerBWLimits(Point LL, Point UL){
+    Point sample_point(LL.dimension());
+    for(int i=0; i<LL.dimension(); ++i){
+        sample_point.set_coord(i , LL[i] + (NT)(rand()) / ((NT)(RAND_MAX/(UL[i] - LL[i]))) );
+    }
+    return sample_point;
+}
 
 // Simple MC Integration over Hyper-Rectangles
 template
@@ -81,7 +81,7 @@ template
     typename WalkType=BallWalk,
     typename Functor
 >
-void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL, int walk_length=10, NT e=0.1){
+NT simple_mc_integrate(Functor Fx ,Uint N ,Point LL ,Point UL ,int walk_length=10, NT e=0.1){
     Uint dim=LL.dimension();
     NT sum = 0;
     if(validLimits(LL,UL)){
@@ -96,9 +96,11 @@ void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL, int walk_length
             vt(dim+i)=LL[i]*-1;
         }
 
-        // Initialization of H-Polytope and setting up params for random walks
+        // Initialization of H-Polytope
         HPOLYTOPE P(dim,mt,vt);
         // P.print();
+    
+        // Setting up params for random walks
         std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
         RandomNumberGenerator rng(1);
         Point x0 = inner_ball.first;
@@ -107,12 +109,19 @@ void simple_mc_integrate(Functor Fx, Uint N ,Point LL, Point UL, int walk_length
         for (int i = 0; i <=N; i++ ) {
             walk.apply(P,x0,walk_length,rng);
             sum = sum + Fx(x0);
+            // sum2 = sum2 + Fx(samplerBWLimits(LL,UL));
         }    
-        NT volume = hyperRectVolume(LL,UL);
-        std::cout << "Volume of the subspace: " << volume << std::endl;
-        std::cout << "Integral Value: " << volume * sum / N << "\n"; 
+        NT volume = hyper_rect_volume(LL,UL);
+        // std::cout << volume << std::endl;
+
+        NT integration_value = volume * sum / N ;
+        return integration_value;
+
     }else{
+
         std::cout << "Invalid integration limits\n";
+        return 0;
+
     }
 }
 
@@ -126,9 +135,10 @@ template
     typename RNG=RandomNumberGenerator,
     typename Functor
 >
-void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N, volType vT=SOB, int walk_length=1, NT e=0.1 ,Point Origin=origin){
+NT simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N, volType vT=SOB, int walk_length=1, NT e=0.1 ,Point Origin=origin){
 
     Uint dim = P.dimension();
+    // P.print();
 
     // Check if origin is shifted
     if(Origin.dimension() == 0 ){
@@ -156,7 +166,7 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N, volType vT=SOB
     }
 
     // Volume of the Polytope
-    std::cout << "Volume of the Polytope = " << volume << std::endl;
+    // std::cout << "Volume of the Polytope = " << volume << std::endl;
 
     // For implementing Uniform Walks
     RNG rng(1);
@@ -187,7 +197,8 @@ void simple_mc_polytope_integrate(Functor Fx,Polytope &P, Uint N, volType vT=SOB
     */
 
     // Integration Value
-    std::cout << "Integral Value over Polytope = " << volume * sum / N << std::endl;   
+    NT integration_value = volume * sum / N ;
+    return integration_value;
 
 }
 
