@@ -20,9 +20,31 @@
 
 
 template <typename NT>
-void call_test_reflection()
-{
+void call_test_reflection() {
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point Point;
+    typedef typename OrderPolytope<Point>::VT VT;
+    typedef typename Poset::RT RT;
+    typedef typename Poset::RV RV;
+
+    // Create Poset, 4 elements, a0 <= a1, a0 <= a2, a1 <= a3
+    RV poset_data{{0, 1}, {0, 2}, {1, 3}};
+    Poset poset(4, poset_data);
     
+    // Initialize order polytope from the poset
+    OrderPolytope<Point> OP(poset);
+    unsigned int d = OP.dimension(), m = OP.num_hyperplanes();
+
+    // no need to explicitly normalize the Polytope's matrix, it is handled inside the function itself
+    std::cout << "compute reflection of an incident ray with the facet number 2d (the first relation facet)" << std::endl;
+    Point ray = Point::all_ones(OP.dimension());
+    ray.set_coord(0, 1.5);
+    
+    Point expected_reflected_ray = Point::all_ones(OP.dimension());
+    expected_reflected_ray.set_coord(1, 1.5);
+
+    OP.compute_reflection(ray, Point(), 2*OP.dimension());
+    CHECK( (expected_reflected_ray == ray) );
 }
 
 
@@ -50,7 +72,8 @@ void call_test_line_intersect() {
     Point direction = expected_intersection - start_point;
     std::pair<double, double> curr_res = OP.line_intersect(start_point, direction, true);
     Point intersect_point = start_point + curr_res.first * direction;
-    CHECK (intersect_point == expected_intersection);
+
+    CHECK( (intersect_point == expected_intersection) );
 }
 
 template <typename NT>
@@ -128,11 +151,11 @@ TEST_CASE("basics") {
 }
 
 TEST_CASE("line_intersect") {
-    // call_test_line_intersect<double>();
+    call_test_line_intersect<double>();
 }
 
 TEST_CASE("reflection") {
-    // call_test_reflection<double>();
+    call_test_reflection<double>();
 }
 
 TEST_CASE("vec_mult") {
