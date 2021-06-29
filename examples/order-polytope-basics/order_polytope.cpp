@@ -86,11 +86,12 @@ int main(int argc, char const *argv[]) {
     std::cout << "\n\n";
 
 
-    std::cout << "compute reflection (requires normalization) of all 1-vector with the facet number 2d (the first relation facet)" << std::endl;
+    std::cout << "compute reflection (requires normalization) of an incident ray with the facet number 2d (the first relation facet)" << std::endl;
     Point ray = Point::all_ones(OP.dimension());
     ray.set_coord(0, 1.5);
     std::cout << "incident ray: ";
     ray.print();
+    
     OP.compute_reflection(ray, Point(), 2*OP.dimension());
     std::cout << "reflected ray: ";
     ray.print();
