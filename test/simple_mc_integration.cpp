@@ -50,52 +50,35 @@ void test_values(NT computed, NT expected, NT exact)
 }
 
 void call_test_simple_mc_over_hyperrectangle(){
+	
 	NT integration_value;
-	// Experiment to check integration values for exp_normsq over [-1,1]^n for n=1,2,...,10
-	for(int i=1 ; i<=10 ; i++){
-		Point LL1(i), UL1(i);
-		for( int j=0; j<i ; j++) LL1.set_coord(j,-1);
-		for( int j=0; j<i ; j++) UL1.set_coord(j,1);
-		std::cout << "For dimension " << i << std::endl;
-		integration_value = simple_mc_integrate<BilliardWalk>(exp_normsq,100000, LL1, UL1, 10, 0.01);
-		std::cout << "Integration value by Billiard Walks: " << integration_value << std::endl;
-		NT sum=0; Uint N=100000;
-		for(int i=0; i < N ; i++){
-			sum=sum+exp_normsq(samplerBWLimits(LL1,UL1));
-		}
-		std::cout << "Integration value of C++ <random> sampling: " << sum/N * hyper_rect_volume(LL1,UL1) << std::endl;
-	}
-
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER DEFINED INTEGRATION LIMITS USING UNIFORM RANDOM WALKS\n";
 
-	std::vector<NT> ll{-1,-1,-1};
-	std::vector<NT> ul{1,1,1};
-	Point LL(3,ll), UL(3,ul);
-	integration_value = simple_mc_integrate(exp_normsq, 100000, LL, UL);
-	test_values(integration_value, 3.31, 3.332);
+	integration_value = simple_mc_integrate(exp_normsq, 10, 100000);
+	test_values(integration_value, 54.8, 55.25);
 
-	std::vector<NT> ll1{-1,-1,-1,-1,-1};
-	std::vector<NT> ul1{1,1,1,1,1};
-	Point LL1(5,ll1), UL1(5,ul1);
-	integration_value = simple_mc_integrate(exp_normsq, 100000, LL1, UL1);
+	integration_value = simple_mc_integrate(exp_normsq, 8, 100000);
+	test_values(integration_value, 24.8, 24.76);
+	
+	integration_value = simple_mc_integrate(exp_normsq, 5, 100000);
 	test_values(integration_value, 7.49, 7.46);
 
 	std::vector<NT> ll2{-1};
 	std::vector<NT> ul2{6};
 	Point LL2(1, ll2), UL2(1, ul2);
-	integration_value = simple_mc_integrate(simple_polynomial_1D, 100000, LL2, UL2);
+	integration_value = simple_mc_integrate(simple_polynomial_1D, 1, 100000, LL2, UL2);
 	test_values(integration_value, 39.7, 40.25);
 
 	std::vector<NT> ll3{0.5};
 	std::vector<NT> ul3{10};
 	Point LL3(1, ll3), UL3(1, ul3);
-	integration_value = simple_mc_integrate(logx_natural_1D, 100000, LL3, UL3);
+	integration_value = simple_mc_integrate(logx_natural_1D, 1, 100000, LL3, UL3);
 	test_values(integration_value, 13.65, 13.872);
 
 	std::vector<NT> ll4{-1,-1};
 	std::vector<NT> ul4{1,1};
 	Point LL4(2, ll4), UL4(2, ul4);
-	integration_value = simple_mc_integrate(rooted_squaresum_2D, 100000, LL4, UL4);
+	integration_value = simple_mc_integrate(rooted_squaresum_2D, 2, 100000, LL4, UL4);
 	test_values(integration_value, 2.99, 3.0607);
 
 }
@@ -103,31 +86,32 @@ void call_test_simple_mc_over_hyperrectangle(){
 void call_test_simple_mc_over_polytope(){
 
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER CONVEX-BODIES USING UNIFORM RANDOM WALKS\n";
+
 	NT integration_value;
 	// H-Polytope Integration Test:1 for 2D Polytope around the origin
 	HPOLYTOPE HP = generate_cube<HPOLYTOPE>(2, false);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk,HPOLYTOPE>(exp_normsq, HP, 100000, SOB, 10, 0.01);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 2, HP, 100000, SOB, 10, 0.01);
 	test_values(integration_value, 2.20, 2.230);
 
 	// H-Polytope Integration Test:2 for 2D Polytope shifted to (1,1) from origin
 	std::vector<NT> origin{1,1};
 	Point newOrigin(2,origin);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk,HPOLYTOPE>(exp_normsq, HP, 100000, SOB, 1, 0.01, newOrigin);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 2, HP, 100000, SOB, 1, 0.01, newOrigin);
 	test_values(integration_value, 0.78, 0.777);
 
 	// H-Polytope Integration Test:3
 	HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(6, false);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk,HPOLYTOPE>(exp_normsq, HP1, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 6,  HP1, 100000, SOB);
 	test_values(integration_value, 10.9, 11.102);
 
 	// H-Polytope Integration Test:4
 	HPOLYTOPE HP2 = generate_cube<HPOLYTOPE>(8, false);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk,HPOLYTOPE>(exp_normsq, HP2, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 8, HP2, 100000, SOB);
 	test_values(integration_value, 24.9, 24.76);
 
 	// H-Polytope Integration Test:5
 	HPOLYTOPE HP3 = generate_cube<HPOLYTOPE>(10, false);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk,HPOLYTOPE>(exp_normsq, HP3, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 10, HP3, 100000, SOB);
 	test_values(integration_value, 54.7, 55.25);
 
 	// V-Polytope Integration Test:6
