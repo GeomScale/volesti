@@ -261,9 +261,9 @@ else ()
 
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits 
-          COMMAND simple_mc_integration_test -tc=hyperrectangles)
+          COMMAND simple_mc_integration -tc=hyperrectangles)
   add_test(NAME simple_mc_integration_over_polytopes 
-          COMMAND simple_mc_integration_test -tc=polytopes)
+          COMMAND simple_mc_integration -tc=polytopes)
 
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
