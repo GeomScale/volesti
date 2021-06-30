@@ -452,8 +452,8 @@ public:
         }
         else {
             std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(facet - 2*_d);
-            v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0));
-            v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0));
+            v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0 / row_norms(facet)));
+            v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0 / row_norms(facet)));
         }
     }
 
