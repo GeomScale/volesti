@@ -98,12 +98,12 @@ void call_test_simple_mc_over_polytope(){
 
 	// H-Polytope Integration Test:3
 	HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(10, false);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 10,  HP1, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 10, HP1, 100000, SOB);
 	test_values(integration_value, 54.7, 55.25);
 
 	// H-Polytope Integration Test:4
 	HPOLYTOPE HP2 = generate_cube<HPOLYTOPE>(15, false);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 20, HP2, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 15, HP2, 100000, SOB);
 	test_values(integration_value, 405.9, 410.690);
 
 	// H-Polytope Integration Test:5
