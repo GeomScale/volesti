@@ -65,7 +65,7 @@ void rounding_test(Polytope &HP,
     std::tuple<MT, VT, NT> res = max_inscribed_ellipsoid_rounding<MT, VT, NT>(HP, InnerBall.first);
 
     // Setup the parameters
-    int walk_len = 5;
+    int walk_len = 10;
     NT e = 0.1;
 
     // Estimate the volume
@@ -109,7 +109,7 @@ void call_test_skinny_cubes() {
     P = generate_skinny_cube<Hpolytope>(20);
     rounding_test(P, 0,
                   8.26497 * std::pow(10,7),
-                  8.94948+07,
+                  8.94948e+07,
                   1.09218e+08,
                   104857600.0);
 }
