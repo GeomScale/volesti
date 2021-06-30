@@ -54,31 +54,28 @@ void call_test_simple_mc_over_hyperrectangle(){
 	NT integration_value;
 	std::cout << "\nTESTS FOR SIMPLE MC INTEGRATION OVER DEFINED INTEGRATION LIMITS USING UNIFORM RANDOM WALKS\n";
 
-	integration_value = simple_mc_integrate(exp_normsq, 10, 100000);
+	integration_value = simple_mc_integrate<BallWalk>(exp_normsq, 10, 100000);
 	test_values(integration_value, 54.8, 55.25);
 
-	integration_value = simple_mc_integrate(exp_normsq, 8, 100000);
+	integration_value = simple_mc_integrate<BilliardWalk>(exp_normsq, 8, 100000);
 	test_values(integration_value, 24.8, 24.76);
 	
-	integration_value = simple_mc_integrate(exp_normsq, 5, 100000);
+	integration_value = simple_mc_integrate<BilliardWalk>(exp_normsq, 5, 100000);
 	test_values(integration_value, 7.49, 7.46);
 
-	std::vector<NT> ll2{-1};
-	std::vector<NT> ul2{6};
-	Point LL2(1, ll2), UL2(1, ul2);
-	integration_value = simple_mc_integrate(simple_polynomial_1D, 1, 100000, LL2, UL2);
+	Limit LL{-1};
+	Limit UL{6};
+	integration_value = simple_mc_integrate(simple_polynomial_1D, 1, 100000, LL, UL);
 	test_values(integration_value, 39.7, 40.25);
 
-	std::vector<NT> ll3{0.5};
-	std::vector<NT> ul3{10};
-	Point LL3(1, ll3), UL3(1, ul3);
-	integration_value = simple_mc_integrate(logx_natural_1D, 1, 100000, LL3, UL3);
+	Limit LL1{0.5};
+	Limit UL1{10};
+	integration_value = simple_mc_integrate(logx_natural_1D, 1, 100000, LL1, UL1);
 	test_values(integration_value, 13.65, 13.872);
 
-	std::vector<NT> ll4{-1,-1};
-	std::vector<NT> ul4{1,1};
-	Point LL4(2, ll4), UL4(2, ul4);
-	integration_value = simple_mc_integrate(rooted_squaresum_2D, 2, 100000, LL4, UL4);
+	Limit LL2{-1, -1};
+	Limit UL2{1, 1};
+	integration_value = simple_mc_integrate(rooted_squaresum_2D, 2, 100000, LL2, UL2);
 	test_values(integration_value, 2.99, 3.0607);
 
 }
@@ -100,19 +97,19 @@ void call_test_simple_mc_over_polytope(){
 	test_values(integration_value, 0.78, 0.777);
 
 	// H-Polytope Integration Test:3
-	HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(6, false);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 6,  HP1, 100000, SOB);
-	test_values(integration_value, 10.9, 11.102);
+	HPOLYTOPE HP1 = generate_cube<HPOLYTOPE>(10, false);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 10,  HP1, 100000, SOB);
+	test_values(integration_value, 54.7, 55.25);
 
 	// H-Polytope Integration Test:4
-	HPOLYTOPE HP2 = generate_cube<HPOLYTOPE>(8, false);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 8, HP2, 100000, SOB);
-	test_values(integration_value, 24.9, 24.76);
+	HPOLYTOPE HP2 = generate_cube<HPOLYTOPE>(15, false);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 20, HP2, 100000, SOB);
+	test_values(integration_value, 405.9, 410.690);
 
 	// H-Polytope Integration Test:5
-	HPOLYTOPE HP3 = generate_cube<HPOLYTOPE>(10, false);
-	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 10, HP3, 100000, SOB);
-	test_values(integration_value, 54.7, 55.25);
+	HPOLYTOPE HP3 = generate_cube<HPOLYTOPE>(20, false);
+	integration_value = simple_mc_polytope_integrate<BilliardWalk, HPOLYTOPE>(exp_normsq, 20, HP3, 100000, SOB);
+	test_values(integration_value, 3050.0, 3052.71);
 
 	// V-Polytope Integration Test:6
 	// VPOLYTOPE VP = generate_cross<VPOLYTOPE>(2, true);
@@ -131,10 +128,10 @@ void call_test_simple_mc_over_polytope(){
 	// inp.close();
 }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
-TEST_CASE("simple_mc_integration_over_hyperrectangles") {
+TEST_CASE("hyperrectangles") {
     call_test_simple_mc_over_hyperrectangle();
 }
 
-TEST_CASE("simple_mc_integration_over_polytopes") {
+TEST_CASE("polytopes") {
     call_test_simple_mc_over_polytope();
 }

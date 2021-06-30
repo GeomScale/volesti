@@ -38,7 +38,8 @@ typedef typename HPolytope<Point>::VT VT;
 typedef const unsigned int Uint;  // positive constant value for no of samples & dimensions
 enum volType { CB , CG , SOB }; // Volume type for polytope
 const Point pt(0); // Required to initialize points in function params
-typedef std::pair<Point, Point> Limits;
+typedef typename std::vector<NT> Limit; // Standard way for user to use limits E.g. Limits LL{0.5, 1.5, 2.5} , Limits UL{1.2, 1.8 , 2.8 }
+Limit lt{0};
 
 // To check if two n-dimensional points ensure valid limits in integration 
 bool validLimits(Point LL, Point UL){
@@ -57,7 +58,12 @@ bool validLimits(Point LL, Point UL){
 }
 
 // Initialize Limit Point
-Point initLimit(NT L[], Uint dim){
+template
+<
+    typename Point,
+    typename NT
+>
+Point init_limit(Limit L, Uint dim){
     Point pt(dim);
     for(int i=0 ; i<dim ; i++){
         pt.set_coord(i, L[i]);
@@ -66,7 +72,7 @@ Point initLimit(NT L[], Uint dim){
 }
 
 //Initialize to [-1,1]^n
-void initiateLimits(Point& LL, Point& UL, int dim){
+void initiate_unit_limits(Point& LL, Point& UL, int dim){
     LL.set_dimension(dim);
     UL.set_dimension(dim);
     LL.set_to_origin();
@@ -90,7 +96,7 @@ NT hyper_rect_volume(Point LL, Point UL){
 }
 
 // To sample a point between two n-dimensional points using inbuilt random sampling
-Point samplerBWLimits(Point LL, Point UL){
+Point sampler_bw_limits(Point LL, Point UL){
     Point sample_point(LL.dimension());
     for(int i=0; i<LL.dimension(); ++i){
         sample_point.set_coord(i , LL[i] + (NT)(rand()) / ((NT)(RAND_MAX/(UL[i] - LL[i]))) );
@@ -104,12 +110,22 @@ template
     typename WalkType=BallWalk,
     typename Functor
 >
-NT simple_mc_integrate(Functor Fx, Uint dim, Uint N ,Point LL=pt ,Point UL=pt ,int walk_length=10, NT e=0.1){
+NT simple_mc_integrate(Functor Fx, Uint dim, Uint N, Limit LowLimit=lt, Limit UpLimit=lt, int walk_length=10, NT e=0.1){
+
+    // Setting up integration limits
+    Point LL, UL;
+    if(LowLimit.size()==1 && UpLimit.size()==1 && LowLimit[0]==0 && UpLimit[0]==0){ 
+        initiate_unit_limits(LL, UL, dim); 
+    }else if( LowLimit.size() == UpLimit.size() && LowLimit.size()==dim ){ 
+        LL = init_limit<Point, NT>(LowLimit, dim); 
+        UL = init_limit<Point, NT>(UpLimit, dim); 
+    }else{ 
+        std::cerr<<"Invalid limits entered"; 
+        return 0; 
+    }
  
     NT sum = 0;
     if(validLimits(LL,UL)){
-
-        if(LL.dimension()==0 && UL.dimension()==0 ) initiateLimits(LL, UL, dim);
 
         // Creating an MT & VT for HPolytope(Hyper-Rectangle) for integration limits using LL & UL
         MT mt(dim*2,dim); 
