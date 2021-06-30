@@ -260,6 +260,11 @@ else ()
           COMMAND logconcave_sampling_test -tc=uld)
 
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME simple_mc_integration_over_limits 
+          COMMAND simple_mc_integration_test -tc=hyperrectangles)
+  add_test(NAME simple_mc_integration_over_polytopes 
+          COMMAND simple_mc_integration_test -tc=polytopes)
+
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
