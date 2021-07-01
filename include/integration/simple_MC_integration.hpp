@@ -37,9 +37,9 @@ typedef typename HPolytope<Point>::VT VT;
 
 typedef const unsigned int Uint;  // positive constant value for no of samples & dimensions
 enum volType { CB , CG , SOB }; // Volume type for polytope
-const Point pt(0); // Required to initialize points in function params
+const Point pt(0); // To initialize points in function params
 typedef typename std::vector<NT> Limit; // Standard way for user to use limits E.g. Limits LL{0.5, 1.5, 2.5} , Limits UL{1.2, 1.8 , 2.8 }
-Limit lt{0};
+Limit lt{0}; // To initialize non-initialized limits
 
 // To check if two n-dimensional points ensure valid limits in integration 
 bool validLimits(Point LL, Point UL){
@@ -110,7 +110,7 @@ template
     typename WalkType=BallWalk,
     typename Functor
 >
-NT simple_mc_integrate(Functor Fx, Uint dim, Uint N, Limit LowLimit=lt, Limit UpLimit=lt, int walk_length=10, NT e=0.1){
+NT simple_mc_integrate(Functor Fx, Uint dim, Uint N=10000, Limit LowLimit=lt, Limit UpLimit=lt, int walk_length=10, NT e=0.1){
 
     // Setting up integration limits
     Point LL, UL;
@@ -180,11 +180,17 @@ NT simple_mc_polytope_integrate(Functor Fx, Uint dim, Polytope &P, Uint N=10000,
     // P.print();
 
     // Check if origin is shifted
-    if(Origin.dimension() == 0 ){
+    if(Origin.dimension() == 0){
         Origin.set_dimension(dim); 
         Origin.set_to_origin();
-    }else if(Origin.dimension() != dim){
-        std::cerr << "Enter Polytope sample point shift properly" << std::endl;
+    }
+    
+    // Checking if Origin dimensions, Polytope dimensions and dim match
+    if(Origin.dimension() != dim){
+        std::cerr << "Polytope sample point shift invalid, does not match the dimensions" << std::endl;
+        return 0;
+    }else if(P.dimension() != dim){
+        std::cerr << "Polytope dimensions do not match" << std::endl;
         return 0;
     }
 
