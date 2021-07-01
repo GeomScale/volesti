@@ -175,7 +175,7 @@ template
     typename RNG=RandomNumberGenerator,
     typename Functor
 >
-NT simple_mc_polytope_integrate(Functor Fx, Uint dim, Polytope &P, Uint N=10000, volType vT=SOB, int walk_length=1, NT e=0.1 ,Point Origin=pt){
+NT simple_mc_polytope_integrate(Functor Fx, Uint dim, Polytope &P, Uint N=10000, volType vT=SOB, int walk_length=1, NT e=0.1, Point Origin=pt){
 
     // P.print();
 
@@ -186,11 +186,8 @@ NT simple_mc_polytope_integrate(Functor Fx, Uint dim, Polytope &P, Uint N=10000,
     }
     
     // Checking if Origin dimensions, Polytope dimensions and dim match
-    if(Origin.dimension() != dim){
-        std::cerr << "Polytope sample point shift invalid, does not match the dimensions" << std::endl;
-        return 0;
-    }else if(P.dimension() != dim){
-        std::cerr << "Polytope dimensions do not match" << std::endl;
+    if(Origin.dimension() != dim && P.dimension() != dim){
+        std::cerr << "Polytope sample shift point's dimension and its own dimension should match to entered dimension" << std::endl;
         return 0;
     }
 
