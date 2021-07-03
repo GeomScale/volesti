@@ -37,17 +37,17 @@ typedef typename HPolytope<Point>::VT VT;
 
 typedef const unsigned int Uint;  // positive constant value for no of samples & dimensions
 enum volType { CB , CG , SOB }; // Volume type for polytope
+typedef typename std::vector<NT> Limit; // Standard way for user to use limits E.g. Limits LL{0.5, 1.5, 2.5} ; Limits UL{1.2, 1.8 , 2.8 } ;
 const Point pt(0); // To initialize points in function params
-typedef typename std::vector<NT> Limit; // Standard way for user to use limits E.g. Limits LL{0.5, 1.5, 2.5} , Limits UL{1.2, 1.8 , 2.8 }
 Limit lt{0}; // To initialize non-initialized limits
 
 // To check if two n-dimensional points ensure valid limits in integration 
-bool validLimits(Point LL, Point UL){
+bool valid_limits(Point LL, Point UL){
     if( UL.dimension() == LL.dimension() ) {
-        for ( int i = 0 ; i< LL.dimension() ; i++){
-            if( LL[i] > UL[i]){
-            std::cerr << "Invalid integration limits\n";
-            return false;
+        for (int i = 0 ; i<LL.dimension() ; i++){
+            if( LL[i] > UL[i]) {
+                std::cerr << "Invalid integration limits\n";
+                return false;
             }
         }
         return true;
@@ -73,10 +73,12 @@ Point init_limit(Limit L, Uint dim){
 
 //Initialize to [-1,1]^n
 void initiate_unit_limits(Point& LL, Point& UL, int dim){
+
     LL.set_dimension(dim);
     UL.set_dimension(dim);
     LL.set_to_origin();
     UL.set_to_origin();
+
     for(int i=0 ; i<dim ; i++){
         LL.set_coord(i,-1);
         UL.set_coord(i,1);
@@ -84,21 +86,30 @@ void initiate_unit_limits(Point& LL, Point& UL, int dim){
 }
 
 // Hyper-Rectangle volume calculator in n-dimensions
+template
+<
+    typename Point=Point,
+    typename NT=NT
+>
 NT hyper_rect_volume(Point LL, Point UL){
+
     NT product=1;
-    if(validLimits(LL,UL)){
-        for(int i=0; i<LL.dimension(); ++i){
-            product = product * ( UL[i] - LL[i] );
+    if(valid_limits(LL, UL)){
+        for(int i=0; i<LL.dimension() ; ++i) {
+            product = product * (UL[i] - LL[i]);
         }
         return product;
     }
     else return 0;
+
 }
 
 // To sample a point between two n-dimensional points using inbuilt random sampling
-Point sampler_bw_limits(Point LL, Point UL){
+// Please use `srand(time(0));` while invoking this function
+Point sample_point_bw_limits(Point LL, Point UL) {
+    
     Point sample_point(LL.dimension());
-    for(int i=0; i<LL.dimension(); ++i){
+    for(int i=0; i<LL.dimension() ; ++i) {
         sample_point.set_coord(i , LL[i] + (NT)(rand()) / ((NT)(RAND_MAX/(UL[i] - LL[i]))) );
     }
     return sample_point;
@@ -108,47 +119,47 @@ Point sampler_bw_limits(Point LL, Point UL){
 template
 <
     typename WalkType=BallWalk,
+    typename RNG=RandomNumberGenerator,
     typename Functor
 >
-NT simple_mc_integrate(Functor Fx, Uint dim, Uint N=10000, Limit LowLimit=lt, Limit UpLimit=lt, int walk_length=10, NT e=0.1){
+NT simple_mc_integrate(Functor Fx, Uint dim, Uint N=10000, Limit LowLimit=lt, Limit UpLimit=lt, int walk_length=10, NT e=0.1) {
 
     // Setting up integration limits
     Point LL, UL;
-    if(LowLimit.size()==1 && UpLimit.size()==1 && LowLimit[0]==0 && UpLimit[0]==0){ 
+    if( LowLimit.size()==1 && UpLimit.size()==1 && LowLimit[0]==0 && UpLimit[0]==0 ) { 
         initiate_unit_limits(LL, UL, dim); 
-    }else if( LowLimit.size() == UpLimit.size() && LowLimit.size()==dim ){ 
-        LL = init_limit<Point, NT>(LowLimit, dim); 
-        UL = init_limit<Point, NT>(UpLimit, dim); 
-    }else{ 
-        std::cerr<<"Invalid limits entered"; 
+    } else if( LowLimit.size() == UpLimit.size() && LowLimit.size()==dim ) { 
+        LL = init_limit <Point, NT> (LowLimit, dim); 
+        UL = init_limit <Point, NT> (UpLimit, dim); 
+    } else { 
+        std::cerr << "Invalid limits entered"; 
         return 0; 
     }
  
     NT sum = 0;
-    if(validLimits(LL,UL)){
-
+    if(valid_limits(LL, UL)) {
         // Creating an MT & VT for HPolytope(Hyper-Rectangle) for integration limits using LL & UL
-        MT mt(dim*2,dim); 
+        MT mt(dim*2, dim); 
         mt.setZero();
         VT vt(dim*2); 
         vt.setZero();
 
-        for(int i=0 ; i<dim ; i++){
-            mt(i,i)=1;
-            vt(i)= UL[i];
-            mt(dim+i,i)=-1;
-            vt(dim+i)=LL[i]*(-1);
+        for(int i=0 ; i<dim ; i++) {
+            mt(i,i) = 1;
+            vt(i) = UL[i];
+            mt(dim+i,i) = -1;
+            vt(dim+i) = LL[i]*(-1);
         }
 
         // Initialization of H-Polytope
-        HPOLYTOPE P(dim,mt,vt);
+        HPOLYTOPE P(dim, mt, vt);
         // P.print();
     
         // Setting up params for random walks
-        std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
-        RandomNumberGenerator rng(1);
+        std::pair <Point, NT> inner_ball = P.ComputeInnerBall();
+        RNG rng(1);
         Point x0 = inner_ball.first;
-        typename WalkType::template Walk<HPOLYTOPE, RandomNumberGenerator> walk(P, x0, rng);
+        typename WalkType::template Walk <HPOLYTOPE, RNG> walk(P, x0, rng);
         
         for (int i = 0; i <=N; i++ ) {
             walk.apply(P, x0, walk_length, rng);
@@ -160,7 +171,7 @@ NT simple_mc_integrate(Functor Fx, Uint dim, Uint N=10000, Limit LowLimit=lt, Li
 
         NT integration_value = volume * sum / N ;
         return integration_value;
-    }else{
+    } else {
         std::cerr << "Invalid integration limits\n";
         return 0;
     }
@@ -180,7 +191,7 @@ NT simple_mc_polytope_integrate(Functor Fx, Uint dim, Polytope &P, Uint N=10000,
     // P.print();
 
     // Check if origin is shifted
-    if(Origin.dimension() == 0){
+    if(Origin.dimension() == 0) {
         Origin.set_dimension(dim); 
         Origin.set_to_origin();
     }
@@ -215,18 +226,18 @@ NT simple_mc_polytope_integrate(Functor Fx, Uint dim, Polytope &P, Uint N=10000,
 
     // For implementing Uniform Walks
     RNG rng(1);
-    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
+    std::pair <Point, NT> inner_ball = P.ComputeInnerBall();
     Point x0 = inner_ball.first;
     typename WalkType::template Walk<Polytope,RNG> walk(P, x0, rng);
 
     // For storing sampled points
     Points points; 
-    NT sum=0;
+    NT sum = 0;
 
     // Applying and walking through Uniform Walks + Storing Points in Vector<Point>
-    for (int i = 0; i < N; i++ ){
+    for(int i = 0; i < N; i++ ){
         walk.apply(P, x0, walk_length, rng);
-        sum+=Fx(x0+Origin);
+        sum += Fx(x0 + Origin);
 
         // points.push_back(x0+Origin);
         // (x0+Origin).print();
