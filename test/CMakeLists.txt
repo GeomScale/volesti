@@ -261,10 +261,17 @@ else ()
 
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits 
-          COMMAND simple_mc_integration -tc=hyperrectangles)
-  add_test(NAME simple_mc_integration_over_polytopes 
-          COMMAND simple_mc_integration -tc=polytopes)
-
+          COMMAND simple_mc_integration -tc=rectangles)
+  add_test(NAME simple_mc_integration_over_cubes 
+          COMMAND simple_mc_integration -tc=cubes)
+  add_test(NAME simple_mc_integration_over_simplices 
+          COMMAND simple_mc_integration -tc=simplices)
+  add_test(NAME simple_mc_integration_over_product_simplices
+		  COMMAND simple_mc_integration -tc=prod_simplices)
+  add_test(NAME simple_mc_integration_over_cross_polytopes
+		  COMMAND simple_mc_integration -tc=cross)
+  add_test(NAME simple_mc_integration_over_birkhoff_polytopes
+		  COMMAND simple_mc_integration -tc=birkhoff)
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
