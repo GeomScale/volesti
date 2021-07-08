@@ -45,7 +45,7 @@ NT rooted_squaresum(Point X) {
 	return sqrt(X.squared_length());
 }
 
-NT one_rtsqsum(Point X) {
+NT one_sqsum(Point X) {
 	return 1 - X.squared_length();
 }
 
@@ -77,16 +77,16 @@ void call_test_simple_mc_integration_over_rectangles() {
 
 	Limit LL2{-1, -1};
 	Limit UL2{1, 1};
-	integration_value = simple_mc_integrate <DikinWalk> (rooted_squaresum, 2, 100000, SOB, LL2, UL2);
+	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (rooted_squaresum, 2, 100000, SOB, LL2, UL2);
 	test_values(integration_value, 2.99, 3.0607);
 
-	integration_value = simple_mc_integrate <JohnWalk> (exp_normsq, 5, 100000, SOB);
+	integration_value = simple_mc_integrate <BilliardWalk> (exp_normsq, 5, 100000, SOB);
 	test_values(integration_value, 7.49, 7.46);
 
-	integration_value = simple_mc_integrate <RDHRWalk> (exp_normsq, 8, 100000, SOB);
+	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (exp_normsq, 8, 100000, SOB);
 	test_values(integration_value, 24.8, 24.76);
 
-	integration_value = simple_mc_integrate <VaidyaWalk> (exp_normsq, 10, 100000, SOB);
+	integration_value = simple_mc_integrate <BilliardWalk> (exp_normsq, 10, 100000, SOB);
 	test_values(integration_value, 54.8, 55.25);
 
 }
@@ -106,19 +106,19 @@ void call_test_simple_mc_integration_over_cubes() {
 	// For 2D Polytope shifted to (1,1) from origin
 	std::vector<NT> Origin{1, 1};
 	Point newOrigin(2, Origin);
-	integration_value = simple_mc_polytope_integrate <JohnWalk, HPOLYTOPE> (exp_normsq, HP, 100000, SOB, 1, 0.01, newOrigin);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (exp_normsq, HP, 100000, SOB, 1, 0.01, newOrigin);
 	test_values(integration_value, 0.78, 0.777);
 
 	HP = generate_cube <HPOLYTOPE> (10, false);
-	integration_value = simple_mc_polytope_integrate <VaidyaWalk, HPOLYTOPE> (exp_normsq, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq, HP, 100000, SOB);
 	test_values(integration_value, 54.7, 55.25);
 
 	HP = generate_cube <HPOLYTOPE> (15, false);
-	integration_value = simple_mc_polytope_integrate <RDHRWalk, HPOLYTOPE> (exp_normsq, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (exp_normsq, HP, 100000, SOB);
 	test_values(integration_value, 405.9, 410.690);
 
 	HP = generate_cube <HPOLYTOPE> (20, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (exp_normsq, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (exp_normsq, HP, 100000, SOB);
 	test_values(integration_value, 3050.0, 3052.71);
 
 	// Reading a H-Polytope from *.ine file for 20 Dimensions
@@ -143,23 +143,23 @@ void call_test_simple_mc_integration_over_simplices() {
 	HPOLYTOPE HP;
 
 	HP = generate_simplex <HPOLYTOPE> (1, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, CB, 10, 0.01);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, CB, 10, 0.01);
 	test_values(integration_value, 0.67, 0.666);
 	
 	HP = generate_simplex <HPOLYTOPE> (2, false);
-	integration_value = simple_mc_polytope_integrate <JohnWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB, 10, 0.01);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB, 10, 0.01);
 	test_values(integration_value, 0.34, 0.333);
 
 	HP = generate_simplex <HPOLYTOPE> (3, false);
-	integration_value = simple_mc_polytope_integrate <VaidyaWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.116, 0.1166);
 
 	HP = generate_simplex <HPOLYTOPE> (5, false);
-	integration_value = simple_mc_polytope_integrate <RDHRWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.00656, 0.0063492);
 
 	HP = generate_simplex <HPOLYTOPE> (7, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.000159, 0.000159832);
 
 }
@@ -173,23 +173,23 @@ void call_test_simple_mc_integration_over_product_simplices() {
 	HPOLYTOPE HP;
 
 	HP = generate_prod_simplex <HPOLYTOPE> (1, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, CB, 10, 0.01);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, CB, 10, 0.01);
 	test_values(integration_value, 0.334, 0.333);
 	
 	HP = generate_prod_simplex <HPOLYTOPE> (2, false);
-	integration_value = simple_mc_polytope_integrate <JohnWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.0834, 0.0833);
 
 	HP = generate_prod_simplex <HPOLYTOPE> (3, false);
-	integration_value = simple_mc_polytope_integrate <VaidyaWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.0110, 0.01111);
 
 	HP = generate_prod_simplex <HPOLYTOPE> (5, false);
-	integration_value = simple_mc_polytope_integrate <RDHRWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.36e-4, 0.36375e-4);
 
 	HP = generate_prod_simplex <HPOLYTOPE> (7, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_rtsqsum,  HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum,  HP, 100000, SOB);
 	test_values(integration_value, 0.235e-7, 0.24079e-7);
 
 }
@@ -203,23 +203,23 @@ void call_test_simple_mc_integration_over_cross_polytopes() {
 	HPOLYTOPE HP;
 
 	HP = generate_cross <HPOLYTOPE> (1, false);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, CB, 10, 0.01);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, CB, 10, 0.01);
 	test_values(integration_value, 1.334, 1.333333);
 	
 	HP = generate_cross <HPOLYTOPE> (2, false);
-	integration_value = simple_mc_polytope_integrate <JohnWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB, 10, 0.01);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB, 10, 0.01);
 	test_values(integration_value, 1.334, 1.33333);
 
 	HP = generate_cross <HPOLYTOPE> (3, false);
-	integration_value = simple_mc_polytope_integrate <VaidyaWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.935000, 0.933333);
 
 	HP = generate_cross <HPOLYTOPE> (5, false);
-	integration_value = simple_mc_polytope_integrate <RDHRWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.200000, 0.203174);
 
 	HP = generate_cross <HPOLYTOPE> (7, false);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.020000, 0.020458);
 
 }
@@ -233,15 +233,15 @@ void call_test_simple_mc_integration_over_birkhoff_polytopes() {
 	HPOLYTOPE HP;
 
 	HP = generate_birkhoff <HPOLYTOPE> (2);
-	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, CB, 10, 0.01);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, CB, 10, 0.01);
 	test_values(integration_value, 0.67, 0.6666);
 
 	HP = generate_birkhoff <HPOLYTOPE> (3);
-	integration_value = simple_mc_polytope_integrate <JohnWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.0470, 0.04722);
 	
 	HP = generate_birkhoff <HPOLYTOPE> (4);
-	integration_value = simple_mc_polytope_integrate <AcceleratedBilliardWalk, HPOLYTOPE> (one_rtsqsum, HP, 100000, SOB);
+	integration_value = simple_mc_polytope_integrate <BilliardWalk, HPOLYTOPE> (one_sqsum, HP, 100000, SOB);
 	test_values(integration_value, 0.000150, 0.000164);
 
 }
