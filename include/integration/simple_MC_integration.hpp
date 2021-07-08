@@ -214,7 +214,7 @@ NT simple_mc_integrate (Functor Fx,
         VT vt(dim*2); 
         vt.setZero();
 
-        for (int i=0 ; i<dim; i++) {
+        for (int i=0; i<dim; i++) {
             mt(i,i) = 1;
             vt(i) = UL[i];
             mt(dim+i,i) = -1;
