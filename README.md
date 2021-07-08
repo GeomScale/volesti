@@ -1,12 +1,4 @@
-This is a branch of **VolEsti** that contains the supplementary code for the manuscript *"Geometric algorithms for sampling the flux space of metabolic networks"*.  
-
-Authors: Apostolos Chalkis, Vissarion Fisikopoulos, Elias Tsigaridas, Haris Zafeiropoulos.  
-
----
-
-![logo](doc/logo/volesti_logo.jpg)
-
-**VolEsti** is a `C++` library for volume approximation and sampling of convex bodies (*e.g.* polytopes) with an `R` and limited `python` interface. **VolEsti** is part of the [GeomScale](https://geomscale.github.io) project.
+This is an R package based on [VolEsti](https://github.com/GeomScale/volume_approximation) library that serves as supplementary code for the paper [*"Geometric algorithms for sampling the flux space of metabolic networks"*](https://arxiv.org/abs/2012.05503).
 
 ###  Dependencies
 
