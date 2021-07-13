@@ -29,3 +29,19 @@
 
 * Fix CRAN warnings about deprecated use of ftime
 
+# volesti 1.1.2
+
+- Improve functionality of R function.
+- Use lower case and "_" separated names for the volesti's functions.
+- Use R classes for the convex polytopes
+
+# volesti 1.1.3
+
+- Remove loadSdpaFormatFile() function.
+
+
+
+
+
+
+
