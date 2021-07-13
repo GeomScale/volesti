@@ -302,28 +302,13 @@ volume <- function(P, settings = NULL, rounding = FALSE) {
 #' A1 = matrix(c(-1,0,0,0,0,1,0,1,0), nrow=3, ncol=3, byrow = TRUE)
 #' A2 = matrix(c(0,0,-1,0,0,0,-1,0,0), nrow=3, ncol=3, byrow = TRUE)
 #' lmi = list(A0, A1, A2)
-#' S = Spectrahedron(matrices = lmi);
+#' S = Spectrahedron(matrices = lmi)
 #' objFunction = c(1,1)
 #' write_sdpa_format_file(S, objFunction, "output.txt")
 #' }
 #' @export
 write_sdpa_format_file <- function(spectrahedron, objective_function, output_file) {
     invisible(.Call(`_volesti_write_sdpa_format_file`, spectrahedron, objective_function, output_file))
-}
-
-#' Read a SDPA format file
-#'
-#' @param inputFile Name of the input file
-#'
-#' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
-#'
-#' @examples
-#' path = system.file('extdata', package = 'volesti')
-#' l = loadSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
-#' 
-#' @export
-loadSdpaFormatFile <- function(inputFile = NULL) {
-    .Call(`_volesti_loadSdpaFormatFile`, inputFile)
 }
 
 #' An internal Rccp function for the over-approximation of a zonotope

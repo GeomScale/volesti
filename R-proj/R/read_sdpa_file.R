@@ -9,7 +9,7 @@
 #'
 #' @examples
 #' path = system.file('extdata', package = 'volesti')
-#' l = readSdpaFormatFile(paste0(path,'/sdpa_n2m3.txt'))
+#' l = read_sdpa_format_file(paste0(path,'/sdpa_n2m3.txt'))
 #' Spectrahedron = l$spectrahedron
 #' objFunction = l$objFunction
 #' @export
@@ -18,8 +18,8 @@
 #' @importFrom Rcpp loadModule
 #' @importFrom "methods" "new"
 #' @exportPattern "^[[:alpha:]]+"
-readSdpaFormatFile <- function(path){
-    l = loadSdpaFormatFile(path)
+read_sdpa_format_file <- function(path){
+    l = load_sdpa_format_file(path)
     S = Spectrahedron(matrices = l$matrices)
 
     return(list("spectrahedron"=S, "objFunction"= l$objFunction))
