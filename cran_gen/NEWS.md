@@ -35,13 +35,8 @@
 - Use lower case and "_" separated names for the volesti's functions.
 - Use R classes for the convex polytopes
 
-# volesti 1.1.3
+# volesti 1.1.2-2
 
-- Remove loadSdpaFormatFile() function.
-
-
-
-
-
+- Remove `loadSdpaFormatFile()` and `readSdpaFormatFile()` functions.
 
 
