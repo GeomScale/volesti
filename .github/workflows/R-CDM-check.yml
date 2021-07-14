@@ -20,9 +20,9 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macOS-latest,   r: 'devel'}
+#          - {os: macOS-latest,   r: 'devel'}
           - {os: macOS-latest,   r: 'release'}
-          - {os: windows-latest, r: 'devel'}
+#          - {os: windows-latest, r: 'devel'}
           - {os: windows-latest, r: 'release'}
 #          - {os: ubuntu-latest,  r: 'devel'} # error in "Run r-lib/actions/setup-r@master"
 #          - {os: ubuntu-latest,  r: 'release'} ##[error]Error in library(devtools) : there is no package called ‘devtools’

@@ -19,17 +19,13 @@
 #include "convex_bodies/spectrahedra/spectrahedron.h"
 #include "SDPAFormatManager.h"
 
-//' Read a SDPA format file
+//'  An internal Rccp function to read a SDPA format file
 //'
 //' @param input_file Name of the input file
 //'
-//' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
+//' @keywords internal
 //'
-//' @examples
-//' path = system.file('extdata', package = 'volesti')
-//' l = load_sdpa_format_file(paste0(path,'/sdpa_n2m3.txt'))
-//' 
-//' @export
+//' @return A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
 // [[Rcpp::export]]
 Rcpp::List load_sdpa_format_file(Rcpp::Nullable<std::string> input_file = R_NilValue) {
 
