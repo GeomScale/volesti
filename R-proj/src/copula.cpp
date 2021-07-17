@@ -63,7 +63,7 @@ Rcpp::NumericMatrix copula (Rcpp::Nullable<Rcpp::NumericVector> r1,
     typedef boost::mt19937    RNGType;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
-    typedef copula_ellipsoid<Point, MT, VT> CopEll;
+    typedef Ellipsoid<Point, MT> CopEll;
     unsigned int num_slices = 100, numpoints = 500000;
 
     if (m.isNotNull()) {
