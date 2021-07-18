@@ -35,17 +35,29 @@ private:
     MT A;
     Point c;
 
-    MT L;   // LL' = A
+    // MT L;   // LL' = A
     unsigned int dim;
+
+    // eigen vectors and values
+    VT eigen_values;
+    MT eigen_vecs;
 
 public:
 
     Ellipsoid(MT& Ain) : A(Ain) {
-        Eigen::LLT<Eigen::MatrixXd> lltOfA(A); // compute the Cholesky decomposition of Ain
-        if(lltOfA.info() == Eigen::NumericalIssue) {
-            throw std::runtime_error("Possibly non semi-positive definitie matrix!");
+        // Eigen::LLT<Eigen::MatrixXd> lltOfA(A); // compute the Cholesky decomposition of Ain
+        // if(lltOfA.info() == Eigen::NumericalIssue) {
+        //     throw std::runtime_error("Possibly non semi-positive definitie matrix!");
+        // }
+        // L = lltOfA.matrixL();
+
+        Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
+        if (eigensolver.info() != Success) {
+            throw std::runtime_error("Eigen solver returned error!");
         }
-        L = lltOfA.matrixL();
+
+        eigen_values = eigensolver.eigenvalues();
+        eigen_vecs = eigensolver.eigenvectors();
 
         dim = A.rows();
         c = Point(dim);
@@ -54,11 +66,14 @@ public:
 
 
     Ellipsoid(MT& Ain, Point& center) : A(Ain), c(center) {
-        Eigen::LLT<Eigen::MatrixXd> lltOfA(A); // compute the Cholesky decomposition of Ain
-        if(lltOfA.info() == Eigen::NumericalIssue) {
-            throw std::runtime_error("Possibly non semi-positive definitie matrix!");
-        }
-        L = lltOfA.matrixL();
+        // Eigen::LLT<Eigen::MatrixXd> lltOfA(A); // compute the Cholesky decomposition of Ain
+        // if(lltOfA.info() == Eigen::NumericalIssue) {
+        //     throw std::runtime_error("Possibly non semi-positive definitie matrix!");
+        // }
+        // L = lltOfA.matrixL();
+
+        eigen_values = eigensolver.eigenvalues();
+        eigen_vecs = eigensolver.eigenvectors();
 
         dim = A.rows();
     }
@@ -74,10 +89,41 @@ public:
             }
         }
 
+        eigen_values = eigensolver.eigenvalues();
+        eigen_vecs = eigensolver.eigenvectors();
+
         dim = A.rows();
         c = Point(dim);
         c.set_to_origin();
     }
+
+
+    VT eigenvals() {
+        return eigen_values;
+    }
+
+
+    MT eigenvecs() {
+        return eigen_vecs;
+    }
+
+
+    unsigned int dimensions() const {
+        return dim;
+    }
+
+
+    VT eigenvals() {
+        
+    }
+
+
+    void print() {
+        std::cout << "Ellipse is in the form: (x-c)' A (x-c) <= 1 \n";
+        std::cout << "c = \n" << c.print();
+        std::cout << "A = \n" << A;
+    }
+
 
 
     NT mat_mult(Point const& p) {
@@ -94,7 +140,7 @@ public:
     
     NT log_volume () {
         NT ball_log_vol = (NT(n)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(n) / NT(2) + 1);
-        NT det_factor = - std::log( A.determinant() );
+        NT det_factor = - 0.5 * std::log( A.determinant() );
 
         return det_factor + ball_log_vol;
     }
@@ -103,7 +149,7 @@ public:
     void scale(NT scale_factor) {
         assert (scale_factor > 0);
 
-        L = (1.0 / scale_factor) * L;
+        // L = (1.0 / scale_factor) * L;
         A = (1.0 / (scale_factor * scale_factor)) * A;
     }
 
