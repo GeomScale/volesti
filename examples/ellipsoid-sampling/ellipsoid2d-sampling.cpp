@@ -30,9 +30,6 @@ int main(int argc, char const *argv[]) {
 
     for (int i=0; i<num_points; ++i) {
         p = GetPointInDellipsoid<Point>::apply<NT>(dim, ell.eigenvals(), ell.eigenvecs(), rng);
-        // std::cout << ell.eigenvals() << std::endl;
-        // std::cout << ell.eigenvecs() << std::endl;
-        // p = GetPointInDsphere<Point>::apply(dim, 1.0, rng);
         p += c;
         p.print();
     }
