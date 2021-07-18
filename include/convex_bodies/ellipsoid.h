@@ -2,9 +2,11 @@
 
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
+// Copyright (c) 2021- Vaibhav Thakkar
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+//Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -30,6 +32,7 @@ class Ellipsoid{
 private:
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
     // representation is (x - c)' A (x - c) <= 1
     MT A;
@@ -52,7 +55,7 @@ public:
         // L = lltOfA.matrixL();
 
         Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
-        if (eigensolver.info() != Success) {
+        if (eigensolver.info() != Eigen::Success) {
             throw std::runtime_error("Eigen solver returned error!");
         }
 
@@ -72,6 +75,11 @@ public:
         // }
         // L = lltOfA.matrixL();
 
+        Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
+        if (eigensolver.info() != Eigen::Success) {
+            throw std::runtime_error("Eigen solver returned error!");
+        }
+
         eigen_values = eigensolver.eigenvalues();
         eigen_vecs = eigensolver.eigenvectors();
 
@@ -89,6 +97,11 @@ public:
             }
         }
 
+        Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
+        if (eigensolver.info() != Eigen::Success) {
+            throw std::runtime_error("Eigen solver returned error!");
+        }
+
         eigen_values = eigensolver.eigenvalues();
         eigen_vecs = eigensolver.eigenvectors();
 
@@ -98,23 +111,18 @@ public:
     }
 
 
-    VT eigenvals() {
+    VT eigenvals() const {
         return eigen_values;
     }
 
 
-    MT eigenvecs() {
+    MT eigenvecs() const {
         return eigen_vecs;
     }
 
 
     unsigned int dimensions() const {
         return dim;
-    }
-
-
-    VT eigenvals() {
-        
     }
 
 
@@ -128,8 +136,8 @@ public:
 
     NT mat_mult(Point const& p) {
         NT res = NT(0);
-        for (i=0; i<dim; i++) {
-            for (j = i; j<dim; j++) {
+        for (size_t i=0; i<dim; i++) {
+            for (size_t j = i; j<dim; j++) {
                 res += 2*A(i, j)*p[i]*p[j];
             }
         }
@@ -139,7 +147,7 @@ public:
 
     
     NT log_volume () {
-        NT ball_log_vol = (NT(n)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(n) / NT(2) + 1);
+        NT ball_log_vol = (NT(dim)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(dim) / NT(2) + 1);
         NT det_factor = - 0.5 * std::log( A.determinant() );
 
         return det_factor + ball_log_vol;
@@ -165,13 +173,13 @@ public:
 
 
     // compute intersection point of ray starting from r and pointing to v
-    std::pair<NT, NT> line_intersect(Point const& r, Point const& v) const
+    std::pair<NT, NT> line_intersect(Point& r, Point& v) const {
         // constants of a quadratic equation
         NT a_q = mat_mult(v);
         NT b_q = 2 * (r - c).getCoefficients().dot(A * v.getCoefficients());
         NT c_q = mat_mult(r - c);
         
-        D = std::pow(b_q, 2) - 4*a_q*c_q;
+        NT D = std::pow(b_q, 2) - 4*a_q*c_q;
         return std::pair<NT, NT> ( (-b_q + std::sqrt(D))/(2*a_q) , (-b_q - std::sqrt(D))/(2*a_q) );
     }
 
@@ -182,7 +190,7 @@ public:
         NT b_q = 2 * (r - c).getCoefficients().dot(A.col(rand_coord));
         NT c_q = mat_mult(r - c);
         
-        D = std::pow(b_q, 2) - 4*a_q*c_q;
+        NT D = std::pow(b_q, 2) - 4*a_q*c_q;
         return std::pair<NT, NT> ( (-b_q + std::sqrt(D))/(2*a_q) , (-b_q - std::sqrt(D))/(2*a_q) );
     }
 };
