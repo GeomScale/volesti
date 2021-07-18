@@ -11,23 +11,23 @@
 #define SAMPLERS_ELLIPSOID_HPP
 
 #include "sphere.hpp"
+#include "Eigen/Eigen"
 
 
 template <typename Point>
 struct GetPointInDellipsoid
 {
-    template <typename NT, typename RandomNumberGenerator, typename MT, typename VT>
+    template <typename NT, typename VT, typename MT, typename RandomNumberGenerator>
     inline static Point apply(unsigned int const& dim,
                               VT const& eigenvals,    // eigenvals of matrix A in (x'Ax <= 1)
                               MT const& EigenVecs,    // eigenvecs of matrix A in (x'Ax <= 1)
                               RandomNumberGenerator &rng)
     {
-        // Generate a point on a sphere of radius drawn uniformly from (0, 1)
-        NT U = rng.sample_urdist();
-        Point p = GetPointOnDsphere<Point>::apply(dim, U, rng);
+        // Generate a point inside a sphere of radius 1.0
+        Point p = GetPointInDsphere<Point>::apply(dim, NT(1.0), rng);
 
         // scale points to the ellipsoid using the eigenvalues
-        VT scaled_vec = p.getCoefficients().cwiseProduct(eigenvals.sqrt().inverse());
+        VT scaled_vec = p.getCoefficients().cwiseProduct(eigenvals.array().sqrt().inverse().matrix());
 
         // rotate with the eigenvectors
         return Point(EigenVecs * scaled_vec);
