@@ -43,6 +43,8 @@ private:
 
     // eigen vectors and values
     VT eigen_values;
+    VT eigen_values_inv;
+    VT eigen_values_inv_sqrt;
     MT eigen_vecs;
 
 public:
@@ -61,6 +63,9 @@ public:
 
         eigen_values = eigensolver.eigenvalues();
         eigen_vecs = eigensolver.eigenvectors();
+
+        eigen_values_inv = eigen_values.array().inverse().matrix();
+        eigen_values_inv_sqrt = eigen_values_inv.array().sqrt().matrix();
 
         dim = A.rows();
         c = Point(dim);
@@ -82,6 +87,9 @@ public:
 
         eigen_values = eigensolver.eigenvalues();
         eigen_vecs = eigensolver.eigenvectors();
+
+        eigen_values_inv = eigen_values.array().inverse().matrix();
+        eigen_values_inv_sqrt = eigen_values_inv.array().sqrt().matrix();
 
         dim = A.rows();
     }
@@ -105,6 +113,9 @@ public:
         eigen_values = eigensolver.eigenvalues();
         eigen_vecs = eigensolver.eigenvectors();
 
+        eigen_values_inv = eigen_values.array().inverse().matrix();
+        eigen_values_inv_sqrt = eigen_values_inv.array().sqrt().matrix();
+
         dim = A.rows();
         c = Point(dim);
         c.set_to_origin();
@@ -113,6 +124,16 @@ public:
 
     VT eigenvals() const {
         return eigen_values;
+    }
+
+
+    VT eigenvals_inv() const {
+        return eigen_values_inv;
+    }
+
+
+    VT eigenvals_inv_sqrt() const {
+        return eigen_values_inv_sqrt;
     }
 
 

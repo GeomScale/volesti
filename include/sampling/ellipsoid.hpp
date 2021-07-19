@@ -19,15 +19,15 @@ struct GetPointInDellipsoid
 {
     template <typename NT, typename VT, typename MT, typename RandomNumberGenerator>
     inline static Point apply(unsigned int const& dim,
-                              VT const& eigenvals,    // eigenvals of matrix A in (x'Ax <= 1)
-                              MT const& EigenVecs,    // eigenvecs of matrix A in (x'Ax <= 1)
+                              VT const& eigenvals_inv_sqrt, // sqrt of inverse of eigenvals of matrix A in (x'Ax <= 1)
+                              MT const& EigenVecs,          // eigenvecs of matrix A in (x'Ax <= 1)
                               RandomNumberGenerator &rng)
     {
         // Generate a point inside a sphere of radius 1.0
         Point p = GetPointInDsphere<Point>::apply(dim, NT(1.0), rng);
 
         // scale points to the ellipsoid using the eigenvalues
-        VT scaled_vec = p.getCoefficients().cwiseProduct(eigenvals.array().sqrt().inverse().matrix());
+        VT scaled_vec = p.getCoefficients().cwiseProduct(eigenvals_inv_sqrt);
 
         // rotate with the eigenvectors
         return Point(EigenVecs * scaled_vec);
