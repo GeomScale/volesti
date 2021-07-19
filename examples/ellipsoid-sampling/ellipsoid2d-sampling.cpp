@@ -23,7 +23,6 @@ int main(int argc, char const *argv[]) {
 
     Ellipsoid<Point, MT> ell(A, c);
     
-    
     int num_points = 1000;
     Point p(dim);
     RNGType rng(dim);
