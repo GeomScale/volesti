@@ -76,14 +76,14 @@ public:
 
 
     // return number of hyperplanes
-    unsigned int num_hyperplanes() const 
+    unsigned int num_of_hyperplanes() const 
     {
         return _num_hyperplanes;
     }
 
 
     // get ith column of A
-    VT get_col (unsigned int i) {
+    VT get_col (unsigned int i) const {
         VT res = _A.col(i);
         if (_normalized) {
             return res.array() / row_norms.array();
@@ -115,7 +115,7 @@ public:
      */
     VT vec_mult(const VT& x, bool transpose=false) const 
     {
-        unsigned int rows = num_hyperplanes();
+        unsigned int rows = num_of_hyperplanes();
         unsigned int i = 0;
         VT res;
         if (!transpose) res = Eigen::MatrixXd::Zero(rows, 1);
@@ -234,7 +234,7 @@ public:
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom, sum_denom;
         
-        int rows = num_hyperplanes(), facet;
+        int rows = num_of_hyperplanes(), facet;
         
         sum_nom.noalias() = b - vec_mult(r.getCoefficients());
         sum_denom.noalias() = vec_mult(v.getCoefficients());
@@ -282,7 +282,7 @@ public:
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
 
-        int rows = num_hyperplanes(), facet;
+        int rows = num_of_hyperplanes(), facet;
         
         Ar.noalias() = vec_mult(r.getCoefficients());
         Av.noalias() = vec_mult(v.getCoefficients());
@@ -333,7 +333,7 @@ public:
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
         
-        int rows = num_hyperplanes(), facet;
+        int rows = num_of_hyperplanes(), facet;
         
         Ar.noalias() += lambda_prev*Av;
         Av.noalias() = vec_mult(v.getCoefficients());
@@ -407,7 +407,7 @@ public:
         NT min_plus  = std::numeric_limits<NT>::max();
         VT sum_nom;
         
-        int rows = num_hyperplanes(), facet;
+        int rows = num_of_hyperplanes(), facet;
         
         Ar.noalias() = vec_mult(r.getCoefficients());
         Av.noalias() = vec_mult(v.getCoefficients());
@@ -452,7 +452,7 @@ public:
         NT min_plus  = std::numeric_limits<NT>::max();
         VT sum_nom;
         
-        int rows = num_hyperplanes(), facet;
+        int rows = num_of_hyperplanes(), facet;
         NT inner_prev = params.inner_vi_ak;
         
         Ar.noalias() += lambda_prev*Av;
@@ -500,7 +500,7 @@ public:
         NT min_plus  = std::numeric_limits<NT>::max();
         VT sum_nom;
 
-        int rows = num_hyperplanes(), facet;
+        int rows = num_of_hyperplanes(), facet;
         
         Ar.noalias() += lambda_prev*Av;
         Av.noalias() = vec_mult(v.getCoefficients());
@@ -545,7 +545,7 @@ public:
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_denom;
                 
-        int rows = num_hyperplanes();
+        int rows = num_of_hyperplanes();
         
         sum_denom = get_col(rand_coord);
         lamdas = b - vec_mult(r.getCoefficients());
@@ -576,16 +576,17 @@ public:
     }
 
 
-    std::pair<NT,NT> line_intersect_coord(const Point &r,
-                                          const Point &r_prev,
-                                          const unsigned int rand_coord,
-                                          const unsigned int rand_coord_prev,
-                                          const VT &lamdas) const {
+    std::pair<NT,NT> line_intersect_coord(Point const& r,
+                                          Point const& r_prev,
+                                          unsigned int const& rand_coord,
+                                          unsigned int const& rand_coord_prev,
+                                          VT& lamdas) const
+    {
         NT lamda = 0;
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
                 
-        int rows = num_hyperplanes();
+        int rows = num_of_hyperplanes();
         
         lamdas.noalias() += get_col(rand_coord)
                         * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
