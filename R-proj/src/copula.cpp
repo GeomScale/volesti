@@ -10,7 +10,7 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
-#include "convex_bodies/ellipsoids.h"
+#include "convex_bodies/ellipsoid.h"
 #include "cartesian_geom/cartesian_kernel.h"
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
