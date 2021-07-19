@@ -82,6 +82,17 @@ public:
     }
 
 
+    // get ith column of A
+    VT get_col (unsigned int i) {
+        VT res = _A.col(i);
+        if (_normalized) {
+            return res.array() / row_norms.array();
+        }
+
+        return res;
+    }
+
+
     // print polytope in Ax <= b format
     void print()
     {
@@ -223,7 +234,6 @@ public:
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom, sum_denom;
         
-        unsigned int i = 0;
         int rows = num_hyperplanes(), facet;
         
         sum_nom.noalias() = b - vec_mult(r.getCoefficients());
@@ -233,7 +243,7 @@ public:
         NT* sum_denom_data = sum_denom.data();
 
         // iterate over all hyperplanes
-        for(; i<rows; ++i) {
+        for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
                 //std::cout<<"div0"<<std::endl;
                 ;
@@ -261,30 +271,118 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the order-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-            const VT &Av) const 
+    std::pair<NT,NT> line_intersect(const Point &r, 
+                                    const Point &v, 
+                                    const VT &Ar,
+                                    const VT &Av, 
+                                    bool pos = false) const 
     {
-        return line_intersect(r, v);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        VT sum_nom;
+
+        int rows = num_hyperplanes(), facet;
+        
+        Ar.noalias() = vec_mult(r.getCoefficients());
+        Av.noalias() = vec_mult(v.getCoefficients());
+
+        sum_nom.noalias() = b - Ar;
+
+        NT* sum_nom_data = sum_nom.data();
+        NT* sum_denom_data = Av.data();
+
+        // iterate over all hyperplanes
+        for(unsigned int i = 0; i<rows; ++i) {
+            if (*sum_denom_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *sum_denom_data;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    if (pos) facet = i;
+                }
+                else if (lamda > max_minus && lamda < 0) {
+                    max_minus = lamda;
+                }
+            }
+
+            sum_nom_data++;
+            sum_denom_data++;
+        }
+
+        if (pos) 
+            return std::make_pair(min_plus, facet);
+
+        return std::make_pair(min_plus, max_minus);
     }
 
 
     // compute intersection point of ray starting from r and pointing to v
     // with the order-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, const Point &v, const VT &Ar,
-            const VT &Av, const NT &lambda_prev) const         
+    std::pair<NT,NT> line_intersect(Point const& r,
+                                    Point const& v,
+                                    VT &Ar,
+                                    VT &Av, 
+                                    NT const& lambda_prev,
+                                    bool pos = false) const
     {
-        return line_intersect(r, v);
-    }
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        VT sum_nom;
+        
+        int rows = num_hyperplanes(), facet;
+        
+        Ar.noalias() += lambda_prev*Av;
+        Av.noalias() = vec_mult(v.getCoefficients());
 
+        sum_nom.noalias() = b - Ar;
 
-    std::pair<NT, int> line_positive_intersect(const Point &r, const Point &v, const VT &Ar,
-                                               const VT &Av, const NT &lambda_prev) const {
-        return line_positive_intersect(r, v);
+        NT* sum_nom_data = sum_nom.data();
+        NT* sum_denom_data = Av.data();
+
+        // iterate over all hyperplanes
+        for(unsigned int i = 0; i<rows; ++i) {
+            if (*sum_denom_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *sum_denom_data;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    if (pos) facet = i;
+                }
+                else if (lamda > max_minus && lamda < 0) {
+                    max_minus = lamda;
+                }
+            }
+
+            sum_nom_data++;
+            sum_denom_data++;
+        }
+
+        if (pos) 
+            return std::make_pair(min_plus, facet);
+
+        return std::make_pair(min_plus, max_minus);
     }
 
 
     // compute intersection point of a ray starting from r and pointing to v
-    // with polytope discribed by A and b
+    // with the order-polytope
+    std::pair<NT, int> line_positive_intersect(Point const& r,
+                                               Point const& v,
+                                               VT& Ar,
+                                               VT& Av) const
+    {
+        return line_intersect(r, v, Ar, Av, true);
+    }
+
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with the order-polytope
     std::pair<NT, int> line_positive_intersect(Point const& r,
                                                Point const& v,
                                                VT& Ar,
@@ -296,6 +394,8 @@ public:
 
 
     //-------------------------accelarated billiard--------------------------------//
+    // compute intersection point of a ray starting from r and pointing to v
+    // with the order-polytope
     template <typename update_parameters>
     std::pair<NT, int> line_first_positive_intersect(Point const& r,
                                                      Point const& v,
@@ -303,7 +403,40 @@ public:
                                                      VT& Av,
                                                      update_parameters &params) const
     {
-        return line_positive_intersect(r, v);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        VT sum_nom;
+        
+        int rows = num_hyperplanes(), facet;
+        
+        Ar.noalias() = vec_mult(r.getCoefficients());
+        Av.noalias() = vec_mult(v.getCoefficients());
+
+        sum_nom.noalias() = b - Ar;
+
+        NT* sum_nom_data = sum_nom.data();
+        NT* sum_denom_data = Av.data();
+
+        // iterate over all hyperplanes
+        for(unsigned int i = 0; i<rows; ++i) {
+            if (*sum_denom_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *sum_denom_data;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                    params.inner_vi_ak = *sum_denom_data;
+                }
+            }
+
+            sum_nom_data++;
+            sum_denom_data++;
+        }
+
+        params.facet_prev = facet;
+        return std::make_pair(min_plus, facet);
     }
 
     template <typename update_parameters>
@@ -315,7 +448,44 @@ public:
                                                MT const& AA,
                                                update_parameters &params) const
     {
-        return line_positive_intersect(r, v);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        VT sum_nom;
+        
+        int rows = num_hyperplanes(), facet;
+        NT inner_prev = params.inner_vi_ak;
+        
+        Ar.noalias() += lambda_prev*Av;
+        if(params.hit_ball) {
+            Av.noalias() += (-2.0 * inner_prev) * (Ar / params.ball_inner_norm);
+        } else {
+            Av.noalias() += (-2.0 * inner_prev) * AA.col(params.facet_prev);
+        }
+        sum_nom.noalias() = b - Ar;
+
+        NT* sum_nom_data = sum_nom.data();
+        NT* sum_denom_data = Av.data();
+
+        // iterate over all hyperplanes
+        for(unsigned int i = 0; i<rows; ++i) {
+            if (*sum_denom_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *sum_denom_data;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                    params.inner_vi_ak = *sum_denom_data;
+                }
+            }
+
+            sum_nom_data++;
+            sum_denom_data++;
+        }
+
+        params.facet_prev = facet;
+        return std::make_pair(min_plus, facet);
     }
 
     template <typename update_parameters>
@@ -326,7 +496,40 @@ public:
                                                NT const& lambda_prev,
                                                update_parameters &params) const
     {
-        return line_positive_intersect(r, v);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        VT sum_nom;
+
+        int rows = num_hyperplanes(), facet;
+        
+        Ar.noalias() += lambda_prev*Av;
+        Av.noalias() = vec_mult(v.getCoefficients());
+
+        sum_nom.noalias() = b - Ar;
+
+        NT* sum_nom_data = sum_nom.data();
+        NT* sum_denom_data = Av.data();
+
+        // iterate over all hyperplanes
+        for(unsigned int i = 0; i<rows; ++i) {
+            if (*sum_denom_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *sum_denom_data;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                    facet = i;
+                    params.inner_vi_ak = *sum_denom_data;
+                }
+            }
+
+            sum_nom_data++;
+            sum_denom_data++;
+        }
+
+        params.facet_prev = facet;
+        return std::make_pair(min_plus, facet);
     }
     //------------------------------------------------------------------------------//
 
@@ -337,9 +540,39 @@ public:
                                           unsigned int const& rand_coord,
                                           VT& lamdas) const
     {
-        Point v(_d);
-        v.set_coord(rand_coord, 1.0);
-        return line_intersect(r, v);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        VT sum_denom;
+                
+        int rows = num_hyperplanes();
+        
+        sum_denom = get_col(rand_coord);
+        lamdas = b - vec_mult(r.getCoefficients());
+
+        NT* sum_nom_data = lamdas.data();
+        NT* sum_denom_data = sum_denom.data();
+
+        // iterate over all hyperplanes
+        for(unsigned int i = 0; i<rows; ++i) {
+            if (*sum_denom_data == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / *sum_denom_data;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                }
+                else if (lamda > max_minus && lamda < 0) {
+                    max_minus = lamda;
+                }
+            }
+
+            sum_nom_data++;
+            sum_denom_data++;
+        }
+
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -348,7 +581,40 @@ public:
                                           const unsigned int rand_coord,
                                           const unsigned int rand_coord_prev,
                                           const VT &lamdas) const {
-        return line_intersect_coord(r, rand_coord, lamdas);
+        NT lamda = 0;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+                
+        int rows = num_hyperplanes();
+        
+        lamdas.noalias() += get_col(rand_coord)
+                        * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
+        NT* sum_nom_data = lamdas.data();
+
+        // iterate over all hyperplanes
+        for(unsigned int i = 0; i<rows; ++i) {
+            NT a = _A(i, rand_coord);
+            if(_normalized) {
+                a = a / row_norms(i);
+            }
+
+            if (a == NT(0)) {
+                //std::cout<<"div0"<<std::endl;
+                ;
+            } else {
+                lamda = *sum_nom_data / a;
+                if (lamda < min_plus && lamda > 0) {
+                    min_plus = lamda;
+                }
+                else if (lamda > max_minus && lamda < 0) {
+                    max_minus = lamda;
+                }
+            }
+
+            sum_nom_data++;
+        }
+
+        return std::make_pair(min_plus, max_minus);
     }
 
 
@@ -455,27 +721,6 @@ public:
             v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0 / row_norms(facet)));
             v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0 / row_norms(facet)));
         }
-    }
-
-
-    NT log_barrier(Point &x, NT t = NT(100)) const
-    {
-      VT slack_vec = b - vec_mult(x.getCoefficients());
-      NT total = slack_vec.log().sum();
-                                        
-      return total / t;
-    }
-
-
-    // calculated -ve grad log barrier
-    Point grad_log_barrier(Point &x, NT t = NT(100)) 
-    {
-      VT slack_vec = b - vec_mult(x.getCoefficients());
-      VT total_vec = vec_mult(slack_vec.inverse(), true);
-      Point total(total_vec);
-
-      total = (1.0 / t) * total;
-      return total;
     }
 };
 
