@@ -178,8 +178,16 @@ public:
     void scale(NT scale_factor) {
         assert (scale_factor > 0);
 
-        // L = (1.0 / scale_factor) * L;
-        A = (1.0 / (scale_factor * scale_factor)) * A;
+        NT scale_factor_sq = scale_factor * scale_factor;
+        NT inv_scale_factor = (NT(1.0) / scale_factor);
+        NT inv_scale_factor_sq = (NT(1.0) / scale_factor_sq);
+
+        // L = mult_factor * L;
+        eigen_values = inv_scale_factor_sq * eigen_values;
+        eigen_values_inv = scale_factor_sq * eigen_values_inv;
+        eigen_values_inv_sqrt = scale_factor * eigen_values_inv_sqrt;
+
+        A = inv_scale_factor_sq * A; // as volume depends on square root of it's determinant
     }
 
 
@@ -205,6 +213,51 @@ public:
     }
 
 
+    std::pair<NT,NT> line_intersect(Point const& r,
+                                    Point const& v,
+                                    const VT &Ar,
+                                    const VT &Av) const
+    {
+        return line_intersect(r, v);
+    }
+
+
+    std::pair<NT,NT> line_intersect(Point const& r,
+                                    Point const& v,
+                                    const VT &Ar,
+                                    const VT &Av,
+                                    NT &lambda_prev) const
+    {
+        return line_intersect(r, v);
+    }
+
+
+    std::pair<NT,int> line_positive_intersect(Point const& r,
+                                              Point const& v) const
+    {
+        return std::pair<NT,NT>(line_intersect(r, v).first, 0);
+    }
+
+
+    std::pair<NT,int> line_positive_intersect(Point const& r,
+                                              Point const& v,
+                                              const VT &Ar,
+                                              const VT &Av) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+
+    std::pair<NT,int> line_positive_intersect(Point const& r,
+                                              Point const& v,
+                                              const VT &Ar,
+                                              const VT &Av,
+                                              NT &lambda_prev) const
+    {
+        return line_positive_intersect(r, v);
+    }
+
+
     // Compute the intersection of a coordinate ray
     std::pair<NT,NT> line_intersect_coord(const Point &r, const unsigned int rand_coord) const {
         NT a_q = A(rand_coord, rand_coord);
@@ -213,6 +266,24 @@ public:
         
         NT D = std::pow(b_q, 2) - 4*a_q*c_q;
         return std::pair<NT, NT> ( (-b_q + std::sqrt(D))/(2*a_q) , (-b_q - std::sqrt(D))/(2*a_q) );
+    }
+
+
+    std::pair<NT,NT> line_intersect_coord(Point const& r,
+                                          unsigned int const& rand_coord,
+                                          const VT &lamdas) const
+    {
+        return line_intersect_coord(r, rand_coord);
+    }
+
+
+    std::pair<NT,NT> line_intersect_coord(Point const& r,
+                                          Point const& r_prev,
+                                          unsigned int const& rand_coord,
+                                          unsigned int const& rand_coord_prev,
+                                          const VT &lamdas) const
+    {
+        return line_intersect_coord(r, rand_coord);
     }
 };
 
