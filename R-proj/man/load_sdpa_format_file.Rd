@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{load_sdpa_format_file}
 \alias{load_sdpa_format_file}
-\title{Read a SDPA format file}
+\title{An internal Rccp function to read a SDPA format file}
 \usage{
 load_sdpa_format_file(input_file = NULL)
 }
@@ -13,10 +13,6 @@ load_sdpa_format_file(input_file = NULL)
 A list with two named items: an item "matrices" which is a list of the matrices and an vector "objFunction"
 }
 \description{
-Read a SDPA format file
+An internal Rccp function to read a SDPA format file
 }
-\examples{
-path = system.file('extdata', package = 'volesti')
-l = load_sdpa_format_file(paste0(path,'/sdpa_n2m3.txt'))
-
-}
+\keyword{internal}
