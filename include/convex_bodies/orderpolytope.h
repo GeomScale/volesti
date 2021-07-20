@@ -170,12 +170,18 @@ public:
         assert(p.dimension() == _d);
         
         VT pt_coeffs = p.getCoefficients();
+        NT diff;
 
         for (int i = 0; i < _d; i++) {
             // DON'T JUST check violation of point between 0 and 1
             // as b will change for shifted polytope
-            if ((-pt_coeffs(i) - b(i)) > NT(tol) || (pt_coeffs(i) - b(i + _d)) > NT(tol))
-                return 0;
+            diff = -pt_coeffs(i) - b(i);
+            if (_normalized)    diff /= row_norms(i);
+            if (diff > NT(tol)) return 0;
+
+            diff = pt_coeffs(i) - b(i + _d);
+            if (_normalized)    diff /= row_norms(i + _d);
+            if (diff > NT(tol)) return 0;
         }
 
         // check violations of order relations
@@ -183,7 +189,10 @@ public:
         unsigned int num_relations = poset.num_relations();
         for(int idx=0; idx<num_relations; ++idx) {
             std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(idx);
-            if((pt_coeffs(curr_relation.first) - pt_coeffs(curr_relation.second) - b(idx + 2*_d)) > NT(tol))
+            diff = (pt_coeffs(curr_relation.first) - pt_coeffs(curr_relation.second));
+
+            if (_normalized) diff /= row_norms(idx + 2*_d);
+            if((diff - b(idx + 2*_d)) > NT(tol))
                 return 0;
         }
 
