@@ -172,15 +172,19 @@ public:
         VT pt_coeffs = p.getCoefficients();
 
         for (int i = 0; i < _d; i++) {
-            // check violation of point between 0 and 1
-            if (pt_coeffs(i) < NT(-tol) || (pt_coeffs(i) - 1.0) > NT(tol))
+            // DON'T JUST check violation of point between 0 and 1
+            // as b will change for shifted polytope
+            if ((-pt_coeffs(i) - b(i)) > NT(tol) || (pt_coeffs(i) - b(i + _d)) > NT(tol))
                 return 0;
         }
 
         // check violations of order relations
-        std::vector<NT> pt_coeffs_vector(pt_coeffs.data(), pt_coeffs.data() + pt_coeffs.size());
-        if (!poset.is_in(pt_coeffs_vector, tol)) {
-            return 0;
+        // again note that b can be arbitrary because of shifting 
+        unsigned int num_relations = poset.num_relations();
+        for(int idx=0; idx<num_relations; ++idx) {
+            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(idx);
+            if((pt_coeffs(curr_relation.first) - pt_coeffs(curr_relation.second) - b(idx + 2*_d)) > NT(tol))
+                return 0;
         }
 
         return -1;
@@ -271,11 +275,11 @@ public:
 
     // compute intersection point of ray starting from r and pointing to v
     // with the order-polytope
-    std::pair<NT,NT> line_intersect(const Point &r, 
-                                    const Point &v, 
-                                    const VT &Ar,
-                                    const VT &Av, 
-                                    bool pos = false) const 
+    std::pair<NT,NT> line_intersect(Point const& r,
+                                    Point const& v,
+                                    VT& Ar,
+                                    VT& Av,
+                                    bool pos = false) const
     {
         NT lamda = 0;
         NT min_plus  = std::numeric_limits<NT>::max();
@@ -588,7 +592,7 @@ public:
                 
         int rows = num_of_hyperplanes();
         
-        lamdas.noalias() += get_col(rand_coord)
+        lamdas.noalias() += get_col(rand_coord_prev)
                         * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
         NT* sum_nom_data = lamdas.data();
 

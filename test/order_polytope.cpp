@@ -33,7 +33,7 @@ void call_test_reflection() {
     
     // Initialize order polytope from the poset
     OrderPolytope<Point> OP(poset);
-    unsigned int d = OP.dimension(), m = OP.num_hyperplanes();
+    unsigned int d = OP.dimension(), m = OP.num_of_hyperplanes();
 
     // no need to explicitly normalize the Polytope's matrix, it is handled inside the function itself
     std::cout << "compute reflection of an incident ray with the facet number 2d (the first relation facet)" << std::endl;
@@ -62,7 +62,7 @@ void call_test_line_intersect() {
     
     // Initialize order polytope from the poset
     OrderPolytope<Point> OP(poset);
-    unsigned int d = OP.dimension(), m = OP.num_hyperplanes();
+    unsigned int d = OP.dimension(), m = OP.num_of_hyperplanes();
 
     // intersection of the order polytope with ray from (0.5, 0.5, 0.5) and parallel to x-axis
     Point start_point(OP.dimension(), std::vector<double>(OP.dimension(), 0.5));
@@ -90,7 +90,7 @@ void call_test_vec_mult() {
     
     // Initialize order polytope from the poset
     OrderPolytope<Point> OP(poset);
-    unsigned int d = OP.dimension(), m = OP.num_hyperplanes();
+    unsigned int d = OP.dimension(), m = OP.num_of_hyperplanes();
     
     // multiply by all 1-vector (Ax)
     VT x = Eigen::MatrixXd::Constant(d, 1, 1.0);                            // d x 1 vector
@@ -128,7 +128,7 @@ void call_test_basics() {
     
     // Initialize order polytope from the poset
     OrderPolytope<Point> OP(poset);
-    unsigned int d = OP.dimension(), m = OP.num_hyperplanes();
+    unsigned int d = OP.dimension(), m = OP.num_of_hyperplanes();
     CHECK(d == 4);
     CHECK(m == 2*4 + 3);
 

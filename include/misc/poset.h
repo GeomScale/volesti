@@ -59,13 +59,13 @@ public:
     }
 
 
-    unsigned int num_elem()
+    unsigned int num_elem() const
     {
         return n;
     }
 
 
-    unsigned int num_relations()
+    unsigned int num_relations() const
     {
         return order_relations.size();
     }
