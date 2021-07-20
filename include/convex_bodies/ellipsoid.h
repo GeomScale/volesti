@@ -290,8 +290,7 @@ public:
     void compute_reflection (Point& v, Point const& p) const
     {
         // normal vector is Ap
-        Point s(A * p.getCoefficients());
-
+        Point s(A * (p-c).getCoefficients());
         s *= (1.0 / std::sqrt(s.squared_length()));
         s *= (-2.0 * v.dot(s));
         v += s;
