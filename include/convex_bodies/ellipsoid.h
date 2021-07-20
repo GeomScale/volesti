@@ -156,14 +156,21 @@ public:
 
 
     NT mat_mult(Point const& p) {
-        NT res = NT(0);
-        for (size_t i=0; i<dim; i++) {
-            for (size_t j = i; j<dim; j++) {
-                res += 2*A(i, j)*p[i]*p[j];
-            }
-        }
+        VT x = p.getCoefficients();
 
-        return res;
+        if (dim < 15) {
+            NT sum = 0;
+            for (Eigen::Index i = 0; i < dim; ++i) {
+                const auto x_i = x[i];
+                sum += A(i, i) * x_i * x_i;
+                for (Eigen::Index j = 0; j < i; ++j) {
+                    sum += 2 * A(j, i) * x_i * x[j];
+                }
+            }
+            return sum;
+        }
+        
+        return x.transpose() * A.template selfadjointView<Eigen::Upper>() * x;
     }
 
     
