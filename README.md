@@ -15,7 +15,7 @@ Authors:
 ------------
 
 ####  Install Rcpp package  
- 
+
 * Install package-dependencies: `Rcpp`, `RcppEigen`, `BH`.  
 
 1. Then use devtools package to install `volesti` Rcpp package. In folder `/root/R-prog` Run:
@@ -116,7 +116,6 @@ The function prints the volume.
 `
 ./vol -file <filename> -sample
 `
-  
 - The default settings are: `100` uniformly distributed points from the uniform distribution using billiard walk with walk length `1`.  
 - You can use the following flags: i) `-walk_length <walk_length>` to set the walk length of the random walk, ii) `-N <number_of_points>` to set the number of points to sample, iii) `-boltz` to sample from the Boltzmann distribution, iv) `-rdhr` to sample with random directions Hit and Run, `-cdhr` to sample with coordinate directions Hit and Run, `-hmc` to sample with Hamiltonian Monte Carlo with reflections, `-temperature <variance_of_boltzmann_distribution>` to set the variance of the Boltzmann distribution.  
 
@@ -130,10 +129,16 @@ The function prints the sampled points.
 ./vol -file <filename> -sdp
 `
 - The default settings are: `20` iterations are performed, with HMC sampling with walk length equal to `1`.  
+
 - You can use the following flags: i) `-N <number_of_iterations>` to set the number of iterations, ii) `-walk_length  <walk_length>` to set the walk length of the random walk iii) `-rdhr` to sample with random directions Hit and Run, `-hmc` to sample with Hamiltonian Monte Carlo with reflections.  
 
 - Example:  
-`./generate -n 10 -m 16`  
-`./vol -file sdp_prob_10_16.txt -sdp -N 30 -hmc -walk_length 3`  
-The function prints the values of the objective function of each iteration.
+  `./generate -n 10 -m 16`  
+  `./vol -file sdp_prob_10_16.txt -sdp -N 30 -hmc -walk_length 3`  
+  The function prints the values of the objective function of each iteration.
 
+  
+
+## Volume estimation of correlation matrices (matlab code)
+
+In folder `matlab_code` we include the matlab code to estimate the volume of correlation matrices. To use the main function `volume` use the script `volume_example`. 
