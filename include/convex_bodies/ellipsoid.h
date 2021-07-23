@@ -138,9 +138,9 @@ public:
             NT sum = 0;
             for (Eigen::Index i = 0; i < dim; ++i) {
                 const auto x_i = x[i];
-                sum += A(i, i) * x_i * x_i;
+                sum += A.coeff(i, i) * x_i * x_i;
                 for (Eigen::Index j = 0; j < i; ++j) {
-                    sum += 2 * A(j, i) * x_i * x[j];
+                    sum += 2 * A.coeff(j, i) * x_i * x[j];
                 }
             }
             return sum;
