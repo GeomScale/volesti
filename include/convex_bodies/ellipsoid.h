@@ -2,7 +2,7 @@
 
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
-// Copyright (c) 2021- Vaibhav Thakkar
+// Copyright (c) 2021 Vaibhav Thakkar
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 //Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
@@ -20,7 +20,7 @@
 
 
 template <typename NT>
-NT log_gamma_function(NT x) 
+NT log_gamma_function(NT x)
 {
     if (x <= NT(100)) return std::log(tgamma(x));
     return (std::log(x - NT(1)) + log_gamma_function(x - NT(1)));
@@ -34,7 +34,7 @@ private:
     typedef typename std::vector<NT>::iterator viterator;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
-    // representation is (x - c)' A (x - c) <= 1
+    // representation is (x - c)' A (x - c) <= 1, center is assumed to be origin for now
     MT A;
     Point c;
 
@@ -69,29 +69,6 @@ public:
 
         dim = A.rows();
         c = Point(dim);
-        c.set_to_origin();
-    }
-
-
-    Ellipsoid(MT& Ain, Point& center) : A(Ain), c(center) {
-        // Eigen::LLT<Eigen::MatrixXd> lltOfA(A); // compute the Cholesky decomposition of Ain
-        // if(lltOfA.info() == Eigen::NumericalIssue) {
-        //     throw std::runtime_error("Possibly non semi-positive definitie matrix!");
-        // }
-        // L = lltOfA.matrixL();
-
-        Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
-        if (eigensolver.info() != Eigen::Success) {
-            throw std::runtime_error("Eigen solver returned error!");
-        }
-
-        eigen_values = eigensolver.eigenvalues();
-        eigen_vecs = eigensolver.eigenvectors();
-
-        eigen_values_inv = eigen_values.array().inverse().matrix();
-        eigen_values_inv_sqrt = eigen_values_inv.array().sqrt().matrix();
-
-        dim = A.rows();
     }
 
 
@@ -118,7 +95,6 @@ public:
 
         dim = A.rows();
         c = Point(dim);
-        c.set_to_origin();
     }
 
 
@@ -148,7 +124,7 @@ public:
 
 
     void print() {
-        std::cout << "Ellipse is in the form: (x-c)' A (x-c) <= 1 \n";
+        std::cout << "Ellipse is in the form: x' A x <= 1, (center is assumed to be origin always) \n";
         std::cout << "c = \n" << c.print();
         std::cout << "A = \n" << A;
     }
@@ -169,11 +145,11 @@ public:
             }
             return sum;
         }
-        
+
         return x.transpose() * A.template selfadjointView<Eigen::Upper>() * x;
     }
 
-    
+
     NT log_volume () {
         NT ball_log_vol = (NT(dim)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(dim) / NT(2) + 1);
         NT det_factor = - 0.5 * std::log( A.determinant() );
@@ -199,7 +175,7 @@ public:
 
 
     int is_in(Point const& p){
-        NT val = mat_mult(p - c);
+        NT val = mat_mult(p);
         if (val > 1) {
             return 0;
         }
@@ -212,9 +188,9 @@ public:
     std::pair<NT, NT> line_intersect(Point& r, Point& v) const {
         // constants of a quadratic equation
         NT a_q = mat_mult(v);
-        NT b_q = 2 * (r - c).getCoefficients().dot(A * v.getCoefficients());
-        NT c_q = mat_mult(r - c);
-        
+        NT b_q = 2 * r.getCoefficients().dot(A * v.getCoefficients());
+        NT c_q = mat_mult(r);
+
         NT D = std::pow(b_q, 2) - 4*a_q*c_q;
         return std::pair<NT, NT> ( (-b_q + std::sqrt(D))/(2*a_q) , (-b_q - std::sqrt(D))/(2*a_q) );
     }
@@ -268,9 +244,9 @@ public:
     // Compute the intersection of a coordinate ray
     std::pair<NT,NT> line_intersect_coord(const Point &r, const unsigned int rand_coord) const {
         NT a_q = A(rand_coord, rand_coord);
-        NT b_q = 2 * (r - c).getCoefficients().dot(A.col(rand_coord));
-        NT c_q = mat_mult(r - c);
-        
+        NT b_q = 2 * r.getCoefficients().dot(A.col(rand_coord));
+        NT c_q = mat_mult(r);
+
         NT D = std::pow(b_q, 2) - 4*a_q*c_q;
         return std::pair<NT, NT> ( (-b_q + std::sqrt(D))/(2*a_q) , (-b_q - std::sqrt(D))/(2*a_q) );
     }
@@ -297,7 +273,7 @@ public:
     void compute_reflection (Point& v, Point const& p) const
     {
         // normal vector is Ap
-        Point s(A * (p-c).getCoefficients());
+        Point s(A * p.getCoefficients());
         s *= (1.0 / std::sqrt(s.squared_length()));
         s *= (-2.0 * v.dot(s));
         v += s;

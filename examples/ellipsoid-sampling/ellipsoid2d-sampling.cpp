@@ -19,10 +19,9 @@ int main(int argc, char const *argv[]) {
     L << 0.5, 0,
          1.5, 1.0;
     MT A = L * L.transpose();
-    Point c(dim, {2, 2});
 
-    Ellipsoid<Point, MT> ell(A, c);
-    
+    Ellipsoid<Point, MT> ell(A);    // origin centered ellipsoid
+
     int num_points = 1000;
     Point p(dim);
     RNGType rng(dim);
@@ -31,7 +30,6 @@ int main(int argc, char const *argv[]) {
 
     for (int i=0; i<num_points; ++i) {
         p = GetPointInDellipsoid<Point>::apply<NT>(dim, eigenvals_inv_sqrt, eigenvecs, rng);
-        p += c;
         p.print();
     }
     return 0;
