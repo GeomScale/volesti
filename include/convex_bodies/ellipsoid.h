@@ -150,6 +150,11 @@ public:
     }
 
 
+    VT vec_mult(VT& b) {
+        return A.template selfadjointView<Eigen::Upper>()*b;
+    }
+
+
     NT log_volume () {
         NT ball_log_vol = (NT(dim)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(dim) / NT(2) + 1);
         NT det_factor = - 0.5 * std::log( A.determinant() );
@@ -188,7 +193,7 @@ public:
     std::pair<NT, NT> line_intersect(Point& r, Point& v) const {
         // constants of a quadratic equation
         NT a_q = mat_mult(v);
-        NT b_q = 2 * r.getCoefficients().dot(A * v.getCoefficients());
+        NT b_q = 2 * r.getCoefficients().dot(vec_mult(v.getCoefficients()));
         NT c_q = mat_mult(r);
 
         NT D = std::pow(b_q, 2) - 4*a_q*c_q;
@@ -273,7 +278,7 @@ public:
     void compute_reflection (Point& v, Point const& p) const
     {
         // normal vector is Ap
-        Point s(A * p.getCoefficients());
+        Point s(vec_mult(p.getCoefficients()));
         s *= (1.0 / std::sqrt(s.squared_length()));
         s *= (-2.0 * v.dot(s));
         v += s;
