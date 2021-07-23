@@ -2,7 +2,7 @@
 
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
-// Copyright (c) 2021-     Vaibhav Thakkar
+// Copyright (c) 2021 Vaibhav Thakkar
 
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 //Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
@@ -17,7 +17,7 @@
 #include <Eigen/Eigen>
 
 
-/* 
+/*
     Implementation of the interior point method to compute the largest inscribed ellipsoid in a
     given convex polytope by "Yin Zhang, An Interior-Point Algorithm for the Maximum-Volume Ellipsoid
     Problem (1999)".
@@ -37,19 +37,19 @@
 // using Custom_MT as to deal with both dense and sparse matrices, MT will be the type of result matrix
 template <typename MT, typename Custom_MT, typename VT, typename NT>
 std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT const& x0,
-                                                   unsigned int const& maxiter, 
-                                                   NT const& tol, NT const& reg)
+                                                            unsigned int const& maxiter,
+                                                            NT const& tol, NT const& reg)
 {
-    typedef Eigen::DiagonalMatrix<NT, Eigen::Dynamic> DT;
+    typedef Eigen::DiagonalMatrix<NT, Eigen::Dynamic> Diagonal_MT;
 
     int m = A.rows(), n = A.cols();
     bool converged = false;
 
     NT bnrm = b.norm(),
        last_r1 = std::numeric_limits<NT>::lowest(),
-       last_r2 = std::numeric_limits<NT>::lowest(), 
-       prev_obj = std::numeric_limits<NT>::lowest(), 
-       gap, rmu, res, objval, r1, r2 ,r3, rel, Rel, 
+       last_r2 = std::numeric_limits<NT>::lowest(),
+       prev_obj = std::numeric_limits<NT>::lowest(),
+       gap, rmu, res, objval, r1, r2 ,r3, rel, Rel,
        astep, ax, ay, az, tau;
 
     NT const reg_lim = std::pow(10.0, -10.0), tau0 = 0.75, minmu = std::pow(10.0, -8.0);
@@ -57,13 +57,13 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
     NT *vec_iter1, *vec_iter2, *vec_iter3;
 
     VT x = VT::Zero(n), y = VT::Ones(m), bmAx = VT::Ones(m),
-       h(m), z(m), yz(m), yh(m), R1(n), R2(m), R3(m), y2h(m), y2h_z(m), h_z(m), 
+       h(m), z(m), yz(m), yh(m), R1(n), R2(m), R3(m), y2h(m), y2h_z(m), h_z(m),
        R3Dy(m), R23(m), dx(n), Adx(m), dyDy(m), dy(m), dz(m);
 
     VT const bmAx0 = b - A * x0, ones_m = VT::Ones(m);
 
-    MT Q(m, m), E2(n, n), YQ(m,m), G(m,m), T(m,n), ATP(n,m), ATP_A(n,n); 
-    DT Y(m);
+    MT Q(m, m), E2(n, n), YQ(m,m), G(m,m), T(m,n), ATP(n,m), ATP_A(n,n);
+    Diagonal_MT Y(m);
     Custom_MT YA(m, n);
 
     A = (ones_m.cwiseProduct(bmAx0.cwiseInverse())).asDiagonal() * A, b = ones_m;
@@ -72,12 +72,12 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
     int i = 1;
     while (i <= maxiter) {
 
-        Y = y.asDiagonal(); 
-        
+        Y = y.asDiagonal();
+
         E2.noalias() = MT(A_trans * Y * A).inverse();
 
         Q.noalias() = A * E2 * A_trans;
-        h = Q.diagonal();             
+        h = Q.diagonal();
         h = h.cwiseSqrt();
 
         if (i == 1) {
@@ -137,7 +137,7 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
         }
 
         // stopping criterion
-        if ((res < tol * (1.0 + bnrm) && rmu <= minmu) || 
+        if ((res < tol * (1.0 + bnrm) && rmu <= minmu) ||
                 (i > 4 && prev_obj != std::numeric_limits<NT>::lowest() &&
                 ((std::abs(objval - prev_obj) <= tol * objval && std::abs(objval - prev_obj) <= tol * prev_obj) ||
                 (prev_obj >= (1.0 - tol) * objval || objval <= (1.0 - tol) * prev_obj) ) ) ) {
@@ -233,4 +233,4 @@ std::pair<std::pair<MT, VT>, bool> max_inscribed_ellipsoid(Custom_MT A, VT b, VT
 }
 
 
-#endif 
+#endif
