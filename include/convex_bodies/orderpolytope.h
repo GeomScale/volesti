@@ -27,11 +27,11 @@ public:
     typedef typename Point::FT NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    
+
 private:
     Poset poset;
     unsigned int _d;    // dimension
-    
+
     VT b;
     VT row_norms;
     MT _A;  // representing as Ax <= b for ComputeInnerBall and printing
@@ -48,7 +48,7 @@ public:
         _A = Eigen::MatrixXd::Zero(_num_hyperplanes, _d);
         row_norms = Eigen::MatrixXd::Constant(_num_hyperplanes, 1, 1.0);
 
-        // first add (ai >= 0) or (-ai <= 0) rows    
+        // first add (ai >= 0) or (-ai <= 0) rows
         _A.topLeftCorner(_d, _d) = -Eigen::MatrixXd::Identity(_d, _d);
 
         // next add (ai <= 1) rows
@@ -76,7 +76,7 @@ public:
 
 
     // return number of hyperplanes
-    unsigned int num_of_hyperplanes() const 
+    unsigned int num_of_hyperplanes() const
     {
         return _num_hyperplanes;
     }
@@ -113,7 +113,7 @@ public:
      *  if transpose = false     : return Ax
      *  else if transpose = true : return (A^T)x
      */
-    VT vec_mult(const VT& x, bool transpose=false) const 
+    VT vec_mult(const VT& x, bool transpose=false) const
     {
         unsigned int rows = num_of_hyperplanes();
         unsigned int i = 0;
@@ -151,7 +151,7 @@ public:
             else {
                 if (! _normalized) {
                     res(curr_relation.first)  += x(i);
-                    res(curr_relation.second) -= x(i);    
+                    res(curr_relation.second) -= x(i);
                 }
                 else {
                     res(curr_relation.first)  += x(i) / row_norms(i);
@@ -168,7 +168,7 @@ public:
     int is_in(Point const& p, NT tol=NT(0)) const
     {
         assert(p.dimension() == _d);
-        
+
         VT pt_coeffs = p.getCoefficients();
         NT diff;
 
@@ -185,7 +185,7 @@ public:
         }
 
         // check violations of order relations
-        // again note that b can be arbitrary because of shifting 
+        // again note that b can be arbitrary because of shifting
         unsigned int num_relations = poset.num_relations();
         for(int idx=0; idx<num_relations; ++idx) {
             std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(idx);
@@ -206,11 +206,11 @@ public:
     {
        normalize();
 
-        // change entries of A, doing here as won't be required in 
+        // change entries of A, doing here as won't be required in
         // optimized volume calculation of order-polytope
         MT A = _A.rowwise().normalized();
         std::pair<Point, NT> _innerball;
-        
+
         #ifndef VOLESTIPY   // as _A is never normalized in closed form
             _innerball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
         #else
@@ -246,9 +246,9 @@ public:
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom, sum_denom;
-        
+
         int rows = num_of_hyperplanes(), facet;
-        
+
         sum_nom.noalias() = b - vec_mult(r.getCoefficients());
         sum_denom.noalias() = vec_mult(v.getCoefficients());
 
@@ -275,7 +275,7 @@ public:
             sum_denom_data++;
         }
 
-        if (pos) 
+        if (pos)
             return std::make_pair(min_plus, facet);
 
         return std::make_pair(min_plus, max_minus);
@@ -296,7 +296,7 @@ public:
         VT sum_nom;
 
         int rows = num_of_hyperplanes(), facet;
-        
+
         Ar.noalias() = vec_mult(r.getCoefficients());
         Av.noalias() = vec_mult(v.getCoefficients());
 
@@ -325,7 +325,7 @@ public:
             sum_denom_data++;
         }
 
-        if (pos) 
+        if (pos)
             return std::make_pair(min_plus, facet);
 
         return std::make_pair(min_plus, max_minus);
@@ -337,7 +337,7 @@ public:
     std::pair<NT,NT> line_intersect(Point const& r,
                                     Point const& v,
                                     VT &Ar,
-                                    VT &Av, 
+                                    VT &Av,
                                     NT const& lambda_prev,
                                     bool pos = false) const
     {
@@ -345,9 +345,9 @@ public:
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_nom;
-        
+
         int rows = num_of_hyperplanes(), facet;
-        
+
         Ar.noalias() += lambda_prev*Av;
         Av.noalias() = vec_mult(v.getCoefficients());
 
@@ -376,7 +376,7 @@ public:
             sum_denom_data++;
         }
 
-        if (pos) 
+        if (pos)
             return std::make_pair(min_plus, facet);
 
         return std::make_pair(min_plus, max_minus);
@@ -419,9 +419,9 @@ public:
         NT lamda = 0;
         NT min_plus  = std::numeric_limits<NT>::max();
         VT sum_nom;
-        
+
         int rows = num_of_hyperplanes(), facet;
-        
+
         Ar.noalias() = vec_mult(r.getCoefficients());
         Av.noalias() = vec_mult(v.getCoefficients());
 
@@ -464,10 +464,10 @@ public:
         NT lamda = 0;
         NT min_plus  = std::numeric_limits<NT>::max();
         VT sum_nom;
-        
+
         int rows = num_of_hyperplanes(), facet;
         NT inner_prev = params.inner_vi_ak;
-        
+
         Ar.noalias() += lambda_prev*Av;
         if(params.hit_ball) {
             Av.noalias() += (-2.0 * inner_prev) * (Ar / params.ball_inner_norm);
@@ -514,7 +514,7 @@ public:
         VT sum_nom;
 
         int rows = num_of_hyperplanes(), facet;
-        
+
         Ar.noalias() += lambda_prev*Av;
         Av.noalias() = vec_mult(v.getCoefficients());
 
@@ -557,9 +557,9 @@ public:
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
         VT sum_denom;
-                
+
         int rows = num_of_hyperplanes();
-        
+
         sum_denom = get_col(rand_coord);
         lamdas = b - vec_mult(r.getCoefficients());
 
@@ -598,9 +598,9 @@ public:
         NT lamda = 0;
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
-                
+
         int rows = num_of_hyperplanes();
-        
+
         lamdas.noalias() += get_col(rand_coord_prev)
                         * (r_prev[rand_coord_prev] - r[rand_coord_prev]);
         NT* sum_nom_data = lamdas.data();
@@ -640,7 +640,7 @@ public:
     //     _A = _A * T;
     // }
 
-    
+
     // no points given for the rounding, you have to sample from the polytope
     template <typename T>
     bool get_points_for_rounding (T const& /*randPoints*/)
@@ -661,7 +661,7 @@ public:
         if (_normalized == true)
             return;
 
-        // for b and _A, first 2*_d rows are already normalized, for 
+        // for b and _A, first 2*_d rows are already normalized, for
         _normalized = true; // -> will be used to make changes in entries of _A
         for (unsigned int i = 0; i < _num_hyperplanes; ++i)
         {
@@ -672,7 +672,7 @@ public:
 
     // return for each facet the distance from the origin
     std::vector<NT> get_dists(NT const& radius) const
-    {        
+    {
         std::vector <NT> dists(_num_hyperplanes, NT(0));
 
         for (unsigned int i = 0; i < _num_hyperplanes; ++i) {
@@ -718,7 +718,7 @@ public:
 
 
     template <typename update_parameters>
-    void compute_reflection(Point &v, const Point &, update_parameters const& params) const 
+    void compute_reflection(Point &v, const Point &, update_parameters const& params) const
     {
         NT dot_prod = params.inner_vi_ak;
         int facet = params.facet_prev;
