@@ -39,13 +39,13 @@ private:
     Point c;
 
     // MT L;   // LL' = A
-    unsigned int dim;
+    unsigned int _dim;
 
     // eigen vectors and values
-    VT eigen_values;
-    VT eigen_values_inv;
-    VT eigen_values_inv_sqrt;
-    MT eigen_vecs;
+    VT _eigen_values;
+    VT _eigen_values_inv;
+    VT _eigen_values_inv_sqrt;
+    MT _eigen_vecs;
 
 public:
 
@@ -61,21 +61,21 @@ public:
             throw std::runtime_error("Eigen solver returned error!");
         }
 
-        eigen_values = eigensolver.eigenvalues();
-        eigen_vecs = eigensolver.eigenvectors();
+        _eigen_values = eigensolver.eigenvalues();
+        _eigen_vecs = eigensolver.eigenvectors();
 
-        eigen_values_inv = eigen_values.array().inverse().matrix();
-        eigen_values_inv_sqrt = eigen_values_inv.array().sqrt().matrix();
+        _eigen_values_inv = _eigen_values.array().inverse().matrix();
+        _eigen_values_inv_sqrt = _eigen_values_inv.array().sqrt().matrix();
 
-        dim = A.rows();
-        c = Point(dim);
+        _dim = A.rows();
+        c = Point(_dim);
     }
 
 
     // Constructor for copula ellipsoid
     Ellipsoid(std::vector<std::vector<NT> >& Ain) {
-        dim = Ain.size();
-        A.resize(dim, dim);
+        _dim = Ain.size();
+        A.resize(_dim, _dim);
         for (unsigned int i = 0; i < Ain.size(); i++) {
             for (unsigned int j = 0; j < Ain.size(); j++) {
                 A(i,j) = Ain[i][j];
@@ -87,39 +87,39 @@ public:
             throw std::runtime_error("Eigen solver returned error!");
         }
 
-        eigen_values = eigensolver.eigenvalues();
-        eigen_vecs = eigensolver.eigenvectors();
+        _eigen_values = eigensolver.eigenvalues();
+        _eigen_vecs = eigensolver.eigenvectors();
 
-        eigen_values_inv = eigen_values.array().inverse().matrix();
-        eigen_values_inv_sqrt = eigen_values_inv.array().sqrt().matrix();
+        _eigen_values_inv = _eigen_values.array().inverse().matrix();
+        _eigen_values_inv_sqrt = _eigen_values_inv.array().sqrt().matrix();
 
-        dim = A.rows();
-        c = Point(dim);
+        _dim = A.rows();
+        c = Point(_dim);
     }
 
 
     VT eigenvals() const {
-        return eigen_values;
+        return _eigen_values;
     }
 
 
     VT eigenvals_inv() const {
-        return eigen_values_inv;
+        return _eigen_values_inv;
     }
 
 
     VT eigenvals_inv_sqrt() const {
-        return eigen_values_inv_sqrt;
+        return _eigen_values_inv_sqrt;
     }
 
 
     MT eigenvecs() const {
-        return eigen_vecs;
+        return _eigen_vecs;
     }
 
 
     unsigned int dimensions() const {
-        return dim;
+        return _dim;
     }
 
 
@@ -134,9 +134,9 @@ public:
     NT mat_mult(Point const& p) {
         VT x = p.getCoefficients();
 
-        if (dim < 15) {
+        if (_dim < 15) {
             NT sum = 0;
-            for (Eigen::Index i = 0; i < dim; ++i) {
+            for (Eigen::Index i = 0; i < _dim; ++i) {
                 const auto x_i = x[i];
                 sum += A.coeff(i, i) * x_i * x_i;
                 for (Eigen::Index j = 0; j < i; ++j) {
@@ -156,7 +156,7 @@ public:
 
 
     NT log_volume () {
-        NT ball_log_vol = (NT(dim)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(dim) / NT(2) + 1);
+        NT ball_log_vol = (NT(_dim)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(_dim) / NT(2) + 1);
         NT det_factor = - 0.5 * std::log( A.determinant() );
 
         return det_factor + ball_log_vol;
@@ -171,9 +171,9 @@ public:
         NT inv_scale_factor_sq = (NT(1.0) / scale_factor_sq);
 
         // L = mult_factor * L;
-        eigen_values = inv_scale_factor_sq * eigen_values;
-        eigen_values_inv = scale_factor_sq * eigen_values_inv;
-        eigen_values_inv_sqrt = scale_factor * eigen_values_inv_sqrt;
+        _eigen_values = inv_scale_factor_sq * _eigen_values;
+        _eigen_values_inv = scale_factor_sq * _eigen_values_inv;
+        _eigen_values_inv_sqrt = scale_factor * _eigen_values_inv_sqrt;
 
         A = inv_scale_factor_sq * A; // as volume depends on square root of it's determinant
     }
