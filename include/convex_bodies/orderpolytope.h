@@ -258,7 +258,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                throw std::runtime_error("Error: division by 0");
+                // throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -307,7 +307,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                throw std::runtime_error("Error: division by 0");
+                // throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -357,7 +357,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                throw std::runtime_error("Error: division by 0");
+                // throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -430,7 +430,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                throw std::runtime_error("Error: division by 0");
+                // throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -478,7 +478,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                throw std::runtime_error("Error: division by 0");
+                // throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -521,7 +521,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                throw std::runtime_error("Error: division by 0");
+                // throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -563,7 +563,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                throw std::runtime_error("Error: division by 0");
+                // throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -606,7 +606,7 @@ public:
             }
 
             if (a == NT(0)) {
-                throw std::runtime_error("Error: division by 0");
+                // throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / a;
                 if (lamda < min_plus && lamda > 0) {
@@ -670,7 +670,8 @@ public:
 
 
     // compute reflection given dot product and facet
-    void compute_reflection(Point& v, NT dot_prod, unsigned int facet) {
+    void compute_reflection(Point& v, NT dot_prod, unsigned int facet) const
+    {
         // calculating -> v += -2 * dot_prod * A.row(facet);
         if (facet < _d) {
             v.set_coord(facet, v[facet] - 2 * dot_prod * (-1.0));
@@ -702,7 +703,7 @@ public:
             dot_prod = dot_prod / _row_norms(facet);
         }
 
-        compute_reflection(v, dot_prod, facet)
+        compute_reflection(v, dot_prod, facet);
     }
 
 
@@ -711,7 +712,7 @@ public:
     {
         NT dot_prod = params.inner_vi_ak;
         unsigned int facet = params.facet_prev;
-        compute_reflection(v, dot_prod, facet)
+        compute_reflection(v, dot_prod, facet);
     }
 };
 
