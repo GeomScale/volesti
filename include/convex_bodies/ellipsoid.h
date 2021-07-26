@@ -50,12 +50,6 @@ private:
 public:
 
     Ellipsoid(MT& Ain) : A(Ain) {
-        // Eigen::LLT<Eigen::MatrixXd> lltOfA(A); // compute the Cholesky decomposition of Ain
-        // if(lltOfA.info() == Eigen::NumericalIssue) {
-        //     throw std::runtime_error("Possibly non semi-positive definitie matrix!");
-        // }
-        // L = lltOfA.matrixL();
-
         Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
         if (eigensolver.info() != Eigen::Success) {
             throw std::runtime_error("Eigen solver returned error!");
@@ -131,7 +125,7 @@ public:
 
 
 
-    NT mat_mult(Point const& p) {
+    NT mat_mult(Point const& p) const {
         VT x = p.getCoefficients();
 
         if (_dim < 15) {
@@ -150,12 +144,12 @@ public:
     }
 
 
-    VT vec_mult(VT& b) {
+    VT vec_mult(VT const& b) const {
         return A.template selfadjointView<Eigen::Upper>()*b;
     }
 
 
-    NT log_volume () {
+    NT log_volume() const {
         NT ball_log_vol = (NT(_dim)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(_dim) / NT(2) + 1);
         NT det_factor = - 0.5 * std::log( A.determinant() );
 
@@ -179,7 +173,7 @@ public:
     }
 
 
-    int is_in(Point const& p){
+    int is_in(Point const& p) const {
         NT val = mat_mult(p);
         if (val > 1) {
             return 0;
@@ -190,7 +184,7 @@ public:
 
 
     // compute intersection point of ray starting from r and pointing to v
-    std::pair<NT, NT> line_intersect(Point& r, Point& v) const {
+    std::pair<NT, NT> line_intersect(Point const& r, Point const& v) const {
         // constants of a quadratic equation
         NT a_q = mat_mult(v);
         NT b_q = 2 * r.getCoefficients().dot(vec_mult(v.getCoefficients()));
@@ -212,8 +206,8 @@ public:
 
     std::pair<NT,NT> line_intersect(Point const& r,
                                     Point const& v,
-                                    const VT &Ar,
-                                    const VT &Av,
+                                    VT& Ar,
+                                    VT& Av,
                                     NT &lambda_prev) const
     {
         return line_intersect(r, v);
@@ -229,8 +223,8 @@ public:
 
     std::pair<NT,int> line_positive_intersect(Point const& r,
                                               Point const& v,
-                                              const VT &Ar,
-                                              const VT &Av) const
+                                              VT& Ar,
+                                              VT& Av) const
     {
         return line_positive_intersect(r, v);
     }
@@ -238,16 +232,16 @@ public:
 
     std::pair<NT,int> line_positive_intersect(Point const& r,
                                               Point const& v,
-                                              const VT &Ar,
-                                              const VT &Av,
-                                              NT &lambda_prev) const
+                                              VT& Ar,
+                                              VT& Av,
+                                              NT const& lambda_prev) const
     {
         return line_positive_intersect(r, v);
     }
 
 
     // Compute the intersection of a coordinate ray
-    std::pair<NT,NT> line_intersect_coord(const Point &r, const unsigned int rand_coord) const {
+    std::pair<NT,NT> line_intersect_coord(Point const& r, const unsigned int rand_coord) const {
         NT a_q = A(rand_coord, rand_coord);
         NT b_q = 2 * r.getCoefficients().dot(A.col(rand_coord));
         NT c_q = mat_mult(r);
@@ -259,7 +253,7 @@ public:
 
     std::pair<NT,NT> line_intersect_coord(Point const& r,
                                           unsigned int const& rand_coord,
-                                          const VT &lamdas) const
+                                          VT& lamdas) const
     {
         return line_intersect_coord(r, rand_coord);
     }
@@ -269,7 +263,7 @@ public:
                                           Point const& r_prev,
                                           unsigned int const& rand_coord,
                                           unsigned int const& rand_coord_prev,
-                                          const VT &lamdas) const
+                                          VT& lamdas) const
     {
         return line_intersect_coord(r, rand_coord);
     }

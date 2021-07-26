@@ -21,7 +21,7 @@ struct GetPointInDellipsoid
     inline static Point apply(unsigned int const& dim,
                               VT const& eigenvals_inv_sqrt, // sqrt of inverse of eigenvals of matrix A in (x'Ax <= 1)
                               MT const& EigenVecs,          // eigenvecs of matrix A in (x'Ax <= 1)
-                              RandomNumberGenerator &rng)
+                              RandomNumberGenerator& rng)
     {
         // Generate a point inside a sphere of radius 1.0
         Point p = GetPointInDsphere<Point>::apply(dim, NT(1.0), rng);
