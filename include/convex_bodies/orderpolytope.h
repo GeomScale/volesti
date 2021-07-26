@@ -33,7 +33,7 @@ private:
     unsigned int _d;    // dimension
 
     VT b;
-    VT row_norms;
+    VT _row_norms;
     MT _A;  // representing as Ax <= b for ComputeInnerBall and printing
 
     unsigned int _num_hyperplanes;
@@ -46,7 +46,7 @@ public:
         _num_hyperplanes = 2*_d + _poset.num_relations(); // 2*d are for >=0 and <=1 constraints
         b = Eigen::MatrixXd::Zero(_num_hyperplanes, 1);
         _A = Eigen::MatrixXd::Zero(_num_hyperplanes, _d);
-        row_norms = Eigen::MatrixXd::Constant(_num_hyperplanes, 1, 1.0);
+        _row_norms = Eigen::MatrixXd::Constant(_num_hyperplanes, 1, 1.0);
 
         // first add (ai >= 0) or (-ai <= 0) rows
         _A.topLeftCorner(_d, _d) = -Eigen::MatrixXd::Identity(_d, _d);
@@ -62,7 +62,7 @@ public:
             _A(2*_d + idx, curr_relation.first)  = 1;
             _A(2*_d + idx, curr_relation.second) = -1;
         }
-        row_norms.block(2*_d, 0, num_relations, 1) = Eigen::MatrixXd::Constant(num_relations, 1, sqrt(2));
+        _row_norms.block(2*_d, 0, num_relations, 1) = Eigen::MatrixXd::Constant(num_relations, 1, sqrt(2));
 
         _normalized = false;
     }
@@ -86,7 +86,7 @@ public:
     VT get_col (unsigned int i) const {
         VT res = _A.col(i);
         if (_normalized) {
-            return res.array() / row_norms.array();
+            return res.array() / _row_norms.array();
         }
 
         return res;
@@ -102,7 +102,7 @@ public:
                 if (!_normalized)
                     std::cout << _A(i, j) << " ";
                 else
-                    std::cout << _A(i, j) / row_norms(i) << " ";
+                    std::cout << _A(i, j) / _row_norms(i) << " ";
             }
             std::cout << "<= " << b(i) << std::endl;
         }
@@ -146,7 +146,7 @@ public:
                 if (! _normalized)
                     res(i) = x(curr_relation.first) - x(curr_relation.second);
                 else
-                    res(i) = (x(curr_relation.first) - x(curr_relation.second)) / row_norms(i);
+                    res(i) = (x(curr_relation.first) - x(curr_relation.second)) / _row_norms(i);
             }
             else {
                 if (! _normalized) {
@@ -154,8 +154,8 @@ public:
                     res(curr_relation.second) -= x(i);
                 }
                 else {
-                    res(curr_relation.first)  += x(i) / row_norms(i);
-                    res(curr_relation.second) -= x(i) / row_norms(i);
+                    res(curr_relation.first)  += x(i) / _row_norms(i);
+                    res(curr_relation.second) -= x(i) / _row_norms(i);
                 }
             }
         }
@@ -176,11 +176,11 @@ public:
             // DON'T JUST check violation of point between 0 and 1
             // as b will change for shifted polytope
             diff = -pt_coeffs(i) - b(i);
-            if (_normalized)    diff /= row_norms(i);
+            if (_normalized)    diff /= _row_norms(i);
             if (diff > NT(tol)) return 0;
 
             diff = pt_coeffs(i) - b(i + _d);
-            if (_normalized)    diff /= row_norms(i + _d);
+            if (_normalized)    diff /= _row_norms(i + _d);
             if (diff > NT(tol)) return 0;
         }
 
@@ -191,7 +191,7 @@ public:
             std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(idx);
             diff = (pt_coeffs(curr_relation.first) - pt_coeffs(curr_relation.second));
 
-            if (_normalized) diff /= row_norms(idx + 2*_d);
+            if (_normalized) diff /= _row_norms(idx + 2*_d);
             if((diff - b(idx + 2*_d)) > NT(tol))
                 return 0;
         }
@@ -602,7 +602,7 @@ public:
         for(unsigned int i = 0; i<rows; ++i) {
             NT a = _A(i, rand_coord);
             if(_normalized) {
-                a = a / row_norms(i);
+                a = a / _row_norms(i);
             }
 
             if (a == NT(0)) {
@@ -648,7 +648,7 @@ public:
         _normalized = true; // -> will be used to make changes in entries of _A
         for (unsigned int i = 0; i < _num_hyperplanes; ++i)
         {
-            b(i) = b(i) / row_norms(i);
+            b(i) = b(i) / _row_norms(i);
         }
     }
 
@@ -662,10 +662,27 @@ public:
             if (_normalized)
                 dists[i] = b(i);
             else
-                dists[i] = b(i) / row_norms(i);
+                dists[i] = b(i) / _row_norms(i);
         }
 
         return dists;
+    }
+
+
+    // compute reflection given dot product and facet
+    void compute_reflection(Point& v, NT dot_prod, unsigned int facet) {
+        // calculating -> v += -2 * dot_prod * A.row(facet);
+        if (facet < _d) {
+            v.set_coord(facet, v[facet] - 2 * dot_prod * (-1.0));
+        }
+        else if (facet < 2*_d)  {
+            v.set_coord(facet-_d, v[facet-_d] - 2 * dot_prod * (1.0));
+        }
+        else {
+            std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(facet - 2*_d);
+            v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0 / _row_norms(facet)));
+            v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0 / _row_norms(facet)));
+        }
     }
 
 
@@ -682,21 +699,10 @@ public:
         else {
             std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(facet - 2*_d);
             dot_prod = v[curr_relation.first] - v[curr_relation.second];
-            dot_prod = dot_prod / row_norms(facet);
+            dot_prod = dot_prod / _row_norms(facet);
         }
 
-        // calculating -> v += -2 * dot_prod * A.row(facet);
-        if (facet < _d) {
-            v.set_coord(facet, v[facet] - 2 * dot_prod * (-1.0));
-        }
-        else if (facet < 2*_d)  {
-            v.set_coord(facet-_d, v[facet-_d] - 2 * dot_prod * (1.0));
-        }
-        else {
-            std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(facet - 2*_d);
-            v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0 / row_norms(facet)));
-            v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0 / row_norms(facet)));
-        }
+        compute_reflection(v, dot_prod, facet)
     }
 
 
@@ -704,20 +710,8 @@ public:
     void compute_reflection(Point &v, Point const&, update_parameters const& params) const
     {
         NT dot_prod = params.inner_vi_ak;
-        int facet = params.facet_prev;
-
-        // calculating -> v += -2 * dot_prod * A.row(facet);
-        if (facet < _d) {
-            v.set_coord(facet, v[facet] - 2 * dot_prod * (-1.0));
-        }
-        else if (facet < 2*_d)  {
-            v.set_coord(facet-_d, v[facet-_d] - 2 * dot_prod * (1.0));
-        }
-        else {
-            std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(facet - 2*_d);
-            v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0 / row_norms(facet)));
-            v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0 / row_norms(facet)));
-        }
+        unsigned int facet = params.facet_prev;
+        compute_reflection(v, dot_prod, facet)
     }
 };
 
