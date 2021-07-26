@@ -25,15 +25,14 @@ private:
     RV order_relations;     // pairs of form a <= b
 
 public:
-    Poset(unsigned int _n, RV& _order_relations) : 
+    Poset(unsigned int _n, RV& _order_relations) :
         n(_n), order_relations(verify(_order_relations, n))
-    {
-    }
+    {}
 
 
     // verify if the relations are valid
     static RV verify(const RV& relations, unsigned int n)
-    { 
+    {
         for (int i = 0; i < relations.size(); i++) {
             if (relations[i].first < 0 || relations[i].first >= n)
                 throw "invalid elements in order relations";
@@ -43,7 +42,7 @@ public:
         }
 
         // TODO: Check if corresponding DAG is actually acyclic
-        
+
         return relations;
     }
 
@@ -82,7 +81,7 @@ public:
         for (int i = 0; i < order_relations.size(); i++) {
             unsigned int a = order_relations[i].first;
             unsigned int b = order_relations[i].second;
-            
+
             if (! (pt_coeffs[a] - pt_coeffs[b] <= tol) ) {
                 return false;
             }
