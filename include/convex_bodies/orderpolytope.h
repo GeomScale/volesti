@@ -29,7 +29,7 @@ public:
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
 private:
-    Poset poset;
+    Poset _poset;
     unsigned int _d;    // dimension
 
     VT b;
@@ -40,10 +40,10 @@ private:
     bool _normalized;
 
 public:
-    OrderPolytope(Poset const& _poset) : poset(_poset)
+    OrderPolytope(Poset const& poset) : _poset(poset)
     {
-        _d = poset.num_elem();
-        _num_hyperplanes = 2*_d + poset.num_relations(); // 2*d are for >=0 and <=1 constraints
+        _d = _poset.num_elem();
+        _num_hyperplanes = 2*_d + _poset.num_relations(); // 2*d are for >=0 and <=1 constraints
         b = Eigen::MatrixXd::Zero(_num_hyperplanes, 1);
         _A = Eigen::MatrixXd::Zero(_num_hyperplanes, _d);
         row_norms = Eigen::MatrixXd::Constant(_num_hyperplanes, 1, 1.0);
@@ -56,9 +56,9 @@ public:
         b.block(_d, 0, _d, 1) = Eigen::MatrixXd::Constant(_d, 1, 1.0);
 
         // next add the relations
-        unsigned int num_relations = poset.num_relations();
+        unsigned int num_relations = _poset.num_relations();
         for(int idx=0; idx<num_relations; ++idx) {
-            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(idx);
+            std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(idx);
             _A(2*_d + idx, curr_relation.first)  = 1;
             _A(2*_d + idx, curr_relation.second) = -1;
         }
@@ -113,7 +113,7 @@ public:
      *  if transpose = false     : return Ax
      *  else if transpose = true : return (A^T)x
      */
-    VT vec_mult(const VT& x, bool transpose=false) const
+    VT vec_mult(VT const& x, bool transpose=false) const
     {
         unsigned int rows = num_of_hyperplanes();
         unsigned int i = 0;
@@ -140,7 +140,7 @@ public:
 
         // next rows are for order relations
         for(; i < rows; ++i) {
-            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(i - 2*_d);
+            std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(i - 2*_d);
 
             if (!transpose) {
                 if (! _normalized)
@@ -186,9 +186,9 @@ public:
 
         // check violations of order relations
         // again note that b can be arbitrary because of shifting
-        unsigned int num_relations = poset.num_relations();
+        unsigned int num_relations = _poset.num_relations();
         for(int idx=0; idx<num_relations; ++idx) {
-            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(idx);
+            std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(idx);
             diff = (pt_coeffs(curr_relation.first) - pt_coeffs(curr_relation.second));
 
             if (_normalized) diff /= row_norms(idx + 2*_d);
@@ -258,8 +258,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
+                throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -308,8 +307,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
+                throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -359,8 +357,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
+                throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -433,8 +430,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
+                throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -482,8 +478,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
+                throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -526,8 +521,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
+                throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -569,8 +563,7 @@ public:
         // iterate over all hyperplanes
         for(unsigned int i = 0; i<rows; ++i) {
             if (*sum_denom_data == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
+                throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / *sum_denom_data;
                 if (lamda < min_plus && lamda > 0) {
@@ -613,8 +606,7 @@ public:
             }
 
             if (a == NT(0)) {
-                //std::cout<<"div0"<<std::endl;
-                ;
+                throw std::runtime_error("Error: division by 0");
             } else {
                 lamda = *sum_nom_data / a;
                 if (lamda < min_plus && lamda > 0) {
@@ -632,15 +624,6 @@ public:
     }
 
 
-
-    // REMOVED: as this destroys sparsity
-    // // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
-    // void linear_transformIt(MT const& T)
-    // {
-    //     _A = _A * T;
-    // }
-
-
     // no points given for the rounding, you have to sample from the polytope
     template <typename T>
     bool get_points_for_rounding (T const& /*randPoints*/)
@@ -650,7 +633,7 @@ public:
 
 
     // shift polytope by a point c
-    void shift(const VT &c)
+    void shift(VT const& c)
     {
         b -= vec_mult(c);
     }
@@ -697,7 +680,7 @@ public:
             dot_prod = v[facet - _d];
         }
         else {
-            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(facet - 2*_d);
+            std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(facet - 2*_d);
             dot_prod = v[curr_relation.first] - v[curr_relation.second];
             dot_prod = dot_prod / row_norms(facet);
         }
@@ -710,7 +693,7 @@ public:
             v.set_coord(facet-_d, v[facet-_d] - 2 * dot_prod * (1.0));
         }
         else {
-            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(facet - 2*_d);
+            std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(facet - 2*_d);
             v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0 / row_norms(facet)));
             v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0 / row_norms(facet)));
         }
@@ -718,7 +701,7 @@ public:
 
 
     template <typename update_parameters>
-    void compute_reflection(Point &v, const Point &, update_parameters const& params) const
+    void compute_reflection(Point &v, Point const&, update_parameters const& params) const
     {
         NT dot_prod = params.inner_vi_ak;
         int facet = params.facet_prev;
@@ -731,7 +714,7 @@ public:
             v.set_coord(facet-_d, v[facet-_d] - 2 * dot_prod * (1.0));
         }
         else {
-            std::pair<unsigned int, unsigned int> curr_relation = poset.get_relation(facet - 2*_d);
+            std::pair<unsigned int, unsigned int> curr_relation = _poset.get_relation(facet - 2*_d);
             v.set_coord(curr_relation.first, v[curr_relation.first] - 2 * dot_prod * (1.0 / row_norms(facet)));
             v.set_coord(curr_relation.second, v[curr_relation.second] - 2 * dot_prod * (-1.0 / row_norms(facet)));
         }
