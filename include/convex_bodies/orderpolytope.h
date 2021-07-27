@@ -238,6 +238,7 @@ public:
     }
 
 
+    // TODO: This can be removed as only modified Accelerated Billiard Walk will be used with Order Polytope
     // compute intersection point of ray starting from r and pointing to v
     // with the order polytope
     std::pair<NT,NT> line_intersect(Point const& r, Point const& v, bool pos = false) const
@@ -281,6 +282,7 @@ public:
     }
 
 
+    // TODO: This can be removed as only modified Accelerated Billiard Walk will be used with Order Polytope
     // compute intersection point of ray starting from r and pointing to v
     // with the order-polytope
     std::pair<NT,NT> line_intersect(Point const& r,
@@ -330,6 +332,7 @@ public:
     }
 
 
+    // TODO: This can be removed as only modified Accelerated Billiard Walk will be used with Order Polytope
     // compute intersection point of ray starting from r and pointing to v
     // with the order-polytope
     std::pair<NT,NT> line_intersect(Point const& r,
@@ -380,6 +383,7 @@ public:
     }
 
 
+    // TODO: This can be removed as only modified Accelerated Billiard Walk will be used with Order Polytope
     // compute intersection point of a ray starting from r and pointing to v
     // with the order-polytope
     std::pair<NT, int> line_positive_intersect(Point const& r,
@@ -391,6 +395,7 @@ public:
     }
 
 
+    // TODO: This can be removed as only modified Accelerated Billiard Walk will be used with Order Polytope
     // compute intersection point of a ray starting from r and pointing to v
     // with the order-polytope
     std::pair<NT, int> line_positive_intersect(Point const& r,
@@ -496,6 +501,7 @@ public:
         return std::make_pair(min_plus, facet);
     }
 
+
     template <typename update_parameters>
     std::pair<NT, int> line_positive_intersect(Point const& r,
                                                Point const& v,
@@ -541,6 +547,7 @@ public:
     //------------------------------------------------------------------------------//
 
 
+    // TODO: This can be removed as only modified Accelerated Billiard Walk will be used with Order Polytope
     // Compute the intersection of a coordinate ray
     // with the order polytope
     std::pair<NT,NT> line_intersect_coord(Point const& r,
@@ -582,6 +589,7 @@ public:
     }
 
 
+    // TODO: This can be removed as only modified Accelerated Billiard Walk will be used with Order Polytope
     std::pair<NT,NT> line_intersect_coord(Point const& r,
                                           Point const& r_prev,
                                           unsigned int const& rand_coord,
