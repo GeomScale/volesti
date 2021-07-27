@@ -174,12 +174,7 @@ public:
 
 
     int is_in(Point const& p) const {
-        NT val = mat_mult(p);
-        if (val > 1) {
-            return 0;
-        }
-
-        return -1;
+        return mat_mult(p) > 1 ? 0 : -1;
     }
 
 
