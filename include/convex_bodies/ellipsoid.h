@@ -45,7 +45,7 @@ private:
     VT _eigen_values;
     VT _eigen_values_inv;
     VT _eigen_values_inv_sqrt;
-    MT _eigen_vecs;
+    MT _Eigen_Vectors;
 
 public:
 
@@ -56,7 +56,7 @@ public:
         }
 
         _eigen_values = eigensolver.eigenvalues();
-        _eigen_vecs = eigensolver.eigenvectors();
+        _Eigen_Vectors = eigensolver.eigenvectors();
 
         _eigen_values_inv = _eigen_values.array().inverse().matrix();
         _eigen_values_inv_sqrt = _eigen_values_inv.array().sqrt().matrix();
@@ -82,7 +82,7 @@ public:
         }
 
         _eigen_values = eigensolver.eigenvalues();
-        _eigen_vecs = eigensolver.eigenvectors();
+        _Eigen_Vectors = eigensolver.eigenvectors();
 
         _eigen_values_inv = _eigen_values.array().inverse().matrix();
         _eigen_values_inv_sqrt = _eigen_values_inv.array().sqrt().matrix();
@@ -92,23 +92,23 @@ public:
     }
 
 
-    VT eigenvals() const {
+    VT eigenvalues() const {
         return _eigen_values;
     }
 
 
-    VT eigenvals_inv() const {
+    VT eigenvalues_inv() const {
         return _eigen_values_inv;
     }
 
 
-    VT eigenvals_inv_sqrt() const {
+    VT eigenvalues_inv_sqrt() const {
         return _eigen_values_inv_sqrt;
     }
 
 
-    MT eigenvecs() const {
-        return _eigen_vecs;
+    MT eigenvectors() const {
+        return _Eigen_Vectors;
     }
 
 

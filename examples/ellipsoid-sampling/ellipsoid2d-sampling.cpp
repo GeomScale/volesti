@@ -25,11 +25,11 @@ int main(int argc, char const *argv[]) {
     int num_points = 1000;
     Point p(dim);
     RNGType rng(dim);
-    VT eigenvals_inv_sqrt = ell.eigenvals_inv_sqrt();
-    MT eigenvecs = ell.eigenvecs();
+    VT eigenvalues_inv_sqrt = ell.eigenvalues_inv_sqrt();
+    MT EigenVectors = ell.eigenvectors();
 
     for (int i=0; i<num_points; ++i) {
-        p = GetPointInDellipsoid<Point>::apply<NT>(dim, eigenvals_inv_sqrt, eigenvecs, rng);
+        p = GetPointInDellipsoid<Point>::apply<NT>(dim, eigenvalues_inv_sqrt, EigenVectors, rng);
         p.print();
     }
     return 0;
