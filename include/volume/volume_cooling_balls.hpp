@@ -22,6 +22,7 @@
 #endif
 #include "convex_bodies/ballintersectconvex.h"
 #include "sampling/random_point_generators.hpp"
+#include "math_helpers.h"
 
 
 ////////////////////////////////////
@@ -684,15 +685,6 @@ NT estimate_ratio_interval(PolyBall1 const& Pb1,
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
 }
-
-
-template <typename NT>
-NT log_gamma_function(NT x) 
-{
-    if (x <= NT(100)) return std::log(tgamma(x));
-    return (std::log(x - NT(1)) + log_gamma_function(x - NT(1)));
-}
-
 
 template
 <
