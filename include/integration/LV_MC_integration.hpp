@@ -99,8 +99,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
       hmc(&P, x0, grad_g, g, hmc_params);
 
     // Check and evaluate for all samples breaks when variance > 1, i.e. a > 1
-    int i = 1;
-    while ( i++ <= m ) {
+    for (int i = 1; i <= m && alpha < 1; i++ ) {
 
         alpha *= (1 + 1 / sqrt(n)); // variance sequence algorithm stops when variance > 1
         W_current = 0;
