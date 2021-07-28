@@ -127,19 +127,6 @@ public:
 
     NT mat_mult(Point const& p) const {
         VT x = p.getCoefficients();
-
-        if (_dim < 15) {
-            NT sum = 0;
-            for (Eigen::Index i = 0; i < _dim; ++i) {
-                const auto x_i = x[i];
-                sum += A.coeff(i, i) * x_i * x_i;
-                for (Eigen::Index j = 0; j < i; ++j) {
-                    sum += 2 * A.coeff(j, i) * x_i * x[j];
-                }
-            }
-            return sum;
-        }
-
         return x.transpose() * A.template selfadjointView<Eigen::Upper>() * x;
     }
 
