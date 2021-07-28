@@ -15,6 +15,7 @@
 #include "Eigen/Eigen"
 #include "doctest.h"
 #include "LV_MC_integration.hpp"
+#include "ode_solvers/oracle_functors.hpp"
 #include "generators/known_polytope_generators.h"
 #include "boost_random_number_generator.hpp"
 #include "cartesian_geom/cartesian_kernel.h"
@@ -23,6 +24,16 @@
 #include "volume/volume_cooling_gaussians.hpp"
 #include "volume/volume_cooling_balls.hpp"
 #include "misc.h"
+
+typedef double NT;
+typedef Cartesian<NT> Kernel;
+typedef typename Kernel::Point Point;
+typedef std::vector<Point> Points;
+typedef HPolytope<Point> HPOLYTOPE;
+typedef boost::mt19937 RNGType;
+typedef typename HPolytope<Point>::MT MT;
+typedef typename HPolytope<Point>::VT VT;
+typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
 
 template <typename NT>
 void test_values (NT computed){ //, NT expected, NT exact) {
@@ -101,30 +112,38 @@ struct CustomFunctor {
 
 };
 
-template <typename NT>
+template <typename NT = NT>
 void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test function
 
-	typedef CustomFunctor::FunctionFunctor<Point> EvaluationFunctor;
-	typedef CustomFunctor::GradientFunctor<Point> GradientFunctor;
+  typedef CustomFunctor::FunctionFunctor <Point> EvaluationFunctor;
+	typedef CustomFunctor::GradientFunctor <Point> GradientFunctor;
 
-	EvaluationFunctor g;
-	GradientFunctor grad_g;
+  CustomFunctor::parameters<NT> params;
+
+  GradientFunctor grad_g;
+  EvaluationFunctor g;
 	HPOLYTOPE HP;
 
 	HP = generate_cube <HPOLYTOPE> (2, false);
-	std::vector<NT> Origin{0, 0};
+
+  std::vector<NT> Origin{0, 0};
 	Point x0(2, Origin);
-	NT beta = 1;
+  std::vector<NT> Corner{1, 1};
+	Point x1(2, Corner);
+
+	NT beta = 1; //log(exp(-g(x0))) / exp(-g(x1));
 	unsigned int n = HP.dimension();
-	NT B = 2*n + 2*log(1/0.1) + n*log( 1 / beta);
-	NT integral_value = lovasz_vempala_integrate<EvaluationFunctor, GradientFunctor, BilliardWalk, HPOLYTOPE, RandomNumberGenerator, MT, VT, NT>
+	NT B = log( exp(-g(x0)) / exp( -g(x1)) ) ; // 2*n + 2*log(1/0.1) + n*log( 1 / beta);
+
+	NT integral_value = lovasz_vempala_integrate <EvaluationFunctor, GradientFunctor,BilliardWalk, HPOLYTOPE, Point, NT>
 	  (g, grad_g, HP, x0, B, 10, 0.1);
-	test_values(integral_value);
+	
+  test_values(integral_value);
 
 }
 
 TEST_CASE("cubes"){
-    call_cubes_test_lovasz_vempala_integrate <double> ();
+    call_cubes_test_lovasz_vempala_integrate();
 }
 
 /*
@@ -132,7 +151,7 @@ TEST_CASE("cubes"){
     g(x) returns ||x||^2
     f(x) return exp(-g(x))
 
-    NT result1 = lovasz_vempala_integrate <> ( ... )
+    NT result1 = simple_mc_integrate <> ( ... )
     NT result2 = lovasz_vempala_integrate <> ( ... )
 
     Polytope K ; // eg use a cube
