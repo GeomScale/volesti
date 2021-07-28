@@ -58,7 +58,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
     unsigned int n = P.dimension();
     unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
     unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B));
-    // std::cout << "n = " << n << " m = " << m << " k = " << k << std::endl;
+    std::cout << "n = " << n << " m = " << m << " k = " << k << std::endl;
 
     NT volume = volume_sequence_of_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
     NT alpha = (NT) 1 / B;
@@ -68,23 +68,27 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 
     RandomNumberGenerator rng(1);
 
-    // Initialize ReHMC using OptimizationFunctor
+    // Initialize HMC walks using OptimizationFunctor <CustomFunctor::GradientFunctor , CustomFunctor::FunctionFunctor>
+    /*
     typedef OptimizationFunctor::GradientFunctor
       <Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
     typedef OptimizationFunctor::FunctionFunctor
       <NT, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-    // typedef LeapfrogODESolver<Point, NT, Polytope, NegativeGradientOptimizationFunctor> Solver;
+    typedef LeapfrogODESolver<Point, NT, Polytope, NegativeGradientOptimizationFunctor> Solver;
 
     OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> opt_params(1, n, g, grad_g);
 
-    // NegativeLogprobOptimizationFunctor f(opt_params); // Error shows up right here
-    // NegativeGradientOptimizationFunctor F(opt_params); // Error show up right here
+    NegativeLogprobOptimizationFunctor f(opt_params); // Error shows up right here
+    NegativeGradientOptimizationFunctor F(opt_params); // Error shows up right here
       
-    // HamiltonianMonteCarloWalk::parameters <NT, NegativeGradientOptimizationFunctor> hmc_params(F, n);
+    HamiltonianMonteCarloWalk::parameters <NT, NegativeGradientOptimizationFunctor> hmc_params(F, n);
 
-    // HamiltonianMonteCarloWalk::Walk
-    //   <Point, Polytope, RandomNumberGenerator, NegativeGradientOptimizationFunctor, NegativeLogprobOptimizationFunctor, Solver>
-    //   hmc(&P, x0, F, f, hmc_params);
+    HamiltonianMonteCarloWalk::Walk
+      <Point, Polytope, RandomNumberGenerator, NegativeGradientOptimizationFunctor, NegativeLogprobOptimizationFunctor, Solver>
+      hmc(&P, x0, F, f, hmc_params);
+    */
+
+    // Initialize HMC walks using CustomFunctor::FunctionFunctor , CustomFunctor::GradientFunctor directly
 
     typedef LeapfrogODESolver<Point, NT, Polytope, GradientFunctor> Solver;
 
@@ -96,7 +100,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 
     // Check and evaluate for all samples breaks when variance > 1, i.e. a > 1
     int i = 1;
-    while ( i++ <= m && alpha < 1 ) {
+    while ( i++ <= m ) {
 
         alpha *= (1 + 1 / sqrt(n)); // variance sequence algorithm stops when variance > 1
         W_current = 0;
