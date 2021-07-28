@@ -16,30 +16,25 @@
 
 #include <iostream>
 #include <Eigen/Eigen>
-#include <boost/math/special_functions/gamma.hpp>
+#include "math_helpers.h"
 
 
-template <typename NT>
-NT log_gamma_function(NT x)
-{
-    if (x <= NT(100)) return std::log(tgamma(x));
-    return (std::log(x - NT(1)) + log_gamma_function(x - NT(1)));
-}
-
-
-template <class Point, class MT>
+template <class Point>
 class Ellipsoid{
-private:
+public:
+typedef Point PointType;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
+private:
     // representation is (x - c)' A (x - c) <= 1, center is assumed to be origin for now
     MT A;
     Point c;
 
-    // MT L;   // LL' = A
     unsigned int _dim;
+    MT _L_cov;   // LL' = inv(A) for sampling procedures
 
     // eigen vectors and values
     VT _eigen_values;
@@ -48,6 +43,8 @@ private:
     MT _Eigen_Vectors;
 
 public:
+
+    Ellipsoid() {}
 
     Ellipsoid(MT& Ain) : A(Ain) {
         Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
@@ -63,6 +60,8 @@ public:
 
         _dim = A.rows();
         c = Point(_dim);
+
+        _L_cov = eigen_vecs * eigen_values_inv_sqrt.asDiagonal();
     }
 
 
@@ -89,6 +88,13 @@ public:
 
         _dim = A.rows();
         c = Point(_dim);
+
+        _L_cov = eigen_vecs * eigen_values_inv_sqrt.asDiagonal();
+    }
+
+
+    NT radius() const {
+        return eigen_values_inv_sqrt(dim-1);
     }
 
 
@@ -117,9 +123,14 @@ public:
     }
 
 
-    void print() {
+    MT Lcov() const {
+        return _L_cov;
+    }
+
+
+    void print() const {
         std::cout << "Ellipse is in the form: x' A x <= 1, (center is assumed to be origin always) \n";
-        std::cout << "c = \n" << c.print();
+        std::cout << "c = \n"; c.print();
         std::cout << "A = \n" << A;
     }
 
@@ -151,10 +162,10 @@ public:
         NT inv_scale_factor = (NT(1.0) / scale_factor);
         NT inv_scale_factor_sq = (NT(1.0) / scale_factor_sq);
 
-        // L = mult_factor * L;
         _eigen_values = inv_scale_factor_sq * _eigen_values;
         _eigen_values_inv = scale_factor_sq * _eigen_values_inv;
         _eigen_values_inv_sqrt = scale_factor * _eigen_values_inv_sqrt;
+        _L_cov = scale_factor * _L_cov;
 
         A = inv_scale_factor_sq * A; // as volume depends on square root of it's determinant
     }
@@ -199,7 +210,8 @@ public:
     std::pair<NT,int> line_positive_intersect(Point const& r,
                                               Point const& v) const
     {
-        return std::pair<NT,NT>(line_intersect(r, v).first, 0);
+        NT res = line_intersect(r, v).first;
+        return std::pair<NT,int>(res, 0);
     }
 
 
@@ -255,9 +267,21 @@ public:
     {
         // normal vector is Ap
         Point s(vec_mult(p.getCoefficients()));
-        s *= (1.0 / std::sqrt(s.squared_length()));
+        s *= (1.0 / s.length());
         s *= (-2.0 * v.dot(s));
         v += s;
+    }
+
+
+    template <typename update_parameters>
+    void compute_reflection (Point& v, Point const& p, update_parameters &params) const
+    {
+        // normal vector is Ap
+        Point s(vec_mult(p.getCoefficients()));
+        params.ball_inner_norm = s.length();
+
+        params.inner_vi_ak = v.dot(s) / params.ball_inner_norm;
+        v += (s * (-2.0 * params.inner_vi_ak * (1.0 / params.ball_inner_norm)));
     }
 };
 

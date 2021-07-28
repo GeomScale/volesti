@@ -2,7 +2,7 @@
 
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
-// Copyright (c) 2021- Vaibhav Thakkar
+// Copyright (c) 2021 Vaibhav Thakkar
 
 //Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
 
@@ -17,7 +17,9 @@
 template <typename Point>
 struct GetPointInDellipsoid
 {
-    template <typename NT, typename VT, typename MT, typename RandomNumberGenerator>
+    typedef typename Point::FT NT;
+
+    template <typename VT, typename MT, typename RandomNumberGenerator>
     inline static Point apply(unsigned int const& dim,
                               VT const& eigenvalues_inv_sqrt, // sqrt of inverse of eigenvalues of matrix A in (x'Ax <= 1)
                               MT const& EigenVectors,         // eigenvectors of matrix A in (x'Ax <= 1)
@@ -35,7 +37,6 @@ struct GetPointInDellipsoid
 };
 
 
-// Note: can also be used for sampling points on the surface of ellipsoid using normalize = false
 template <typename Point>
 struct GetGaussianDirection
 {
@@ -52,13 +53,29 @@ struct GetGaussianDirection
         Point p = GetDirection<Point>::apply(dim ,rng);
 
         // Multiply with cholesky matrix
-        VT gaussian_vec = L * p.getCoefficients();
+        VT gaussian_vec = L.template triangularView<Eigen::Lower>() * p.getCoefficients();
         if (normalize) {
             gaussian_vec.normalize();
         }
 
         // convert to point
         return Point(gaussian_vec);
+    }
+};
+
+
+template <typename Point>
+struct GetPointOnDellipsoid
+{
+    typedef typename Point::FT NT;
+    typedef typename Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+
+    template <typename MT, typename RandomNumberGenerator>
+    inline static Point apply(unsigned int const& dim,
+                              MT const& L, // cholesky matrix L of the covariance matrix, LL' = Sigma
+                              RandomNumberGenerator &rng)
+    {
+        return GetGaussianDirection<Point>::apply(dim, L, rng, false);
     }
 };
 

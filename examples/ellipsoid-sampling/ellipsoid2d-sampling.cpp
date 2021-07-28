@@ -20,7 +20,7 @@ int main(int argc, char const *argv[]) {
          1.5, 1.0;
     MT A = L * L.transpose();
 
-    Ellipsoid<Point, MT> ell(A);    // origin centered ellipsoid
+    Ellipsoid<Point> ell(A);    // origin centered ellipsoid
 
     int num_points = 1000;
     Point p(dim);
