@@ -13,6 +13,7 @@
 
 #include <iostream>
 #include <vector>
+#include <queue>
 
 
 class Poset {
@@ -25,6 +26,8 @@ private:
     RV order_relations;     // pairs of form a <= b
 
 public:
+    Poset() {}
+
     Poset(unsigned int _n, RV& _order_relations) :
         n(_n), order_relations(verify(_order_relations, n))
     {}
@@ -88,6 +91,40 @@ public:
         }
 
         return true;
+    }
+
+
+    std::vector<unsigned int> topologically_sorted_list() const
+    {
+        std::vector<std::vector<unsigned int> > adjList(n);
+        std::vector<unsigned int> indegree(n, 0);
+
+        for(auto x: order_relations) {
+            adjList[x.first].push_back(x.second);
+            indegree[x.second] += 1;
+        }
+
+        std::queue<unsigned int> q;
+        for(unsigned int i=0; i<n; ++i) {
+            if(indegree[i] == 0)
+                q.push(i);
+        }
+
+        std::vector<unsigned int> res;
+        while(!q.empty()) {
+            unsigned int curr = q.front();
+            res.push_back(curr);
+            q.pop();
+
+            for(unsigned int i=0; i<adjList[curr].size(); ++i) {
+                unsigned int adj_idx = adjList[curr][i];
+                indegree[adj_idx] -= 1;
+                if(indegree[adj_idx] == 0)
+                    q.push(adj_idx);
+            }
+        }
+
+        return res;
     }
 };
 

@@ -9,6 +9,8 @@
 
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include "poset.h"
 
 //function to print rounding to double coordinates
 template <class T>
@@ -201,6 +203,69 @@ std::pair<Point, NT> read_inner_ball(std::istream &is) {
     }
 
     return std::make_pair(center, radius);
+}
+
+/* read a poset given in the following format:
+    - First line contains a single positive integer 'n' - number of elements
+    - Next `m` lines follow containing a pair 'i j' in each line to signify A_i <= A_j
+        i.e i_th element is less than or equal to the j_th element
+*/
+Poset read_poset_from_file(std::string filename) {
+    typedef typename Poset::RT RT;
+    typedef typename Poset::RV RV;
+
+    std::ifstream data_file;
+    data_file.open(filename);
+
+    // read number of elements
+    unsigned int n;
+    data_file >> n;
+
+    // read relations line by line
+    RT curr_relation;
+    RV relations;
+    while(data_file >> curr_relation.first >> curr_relation.second)
+        relations.push_back(curr_relation);
+
+    return Poset(n, relations);
+}
+
+
+// read a poset given as an adjacency matrix
+std::pair<bool, Poset> read_poset_from_file_adj_matrix(std::string filename) {
+    typedef typename Poset::RV RV;
+
+    std::ifstream in;
+    in.open(filename);
+    RV edges;
+    unsigned int x, n = 0;
+
+    // read a single line
+    std::string line;
+    std::getline(in, line);
+    std::stringstream line_ss(line);
+    while(line_ss >> x) {
+        if(x) {
+            edges.emplace_back(0, n);
+        }
+        ++n;
+    }
+
+    // read rest of the lines
+    for(unsigned int a = 1; a < n; ++a) {
+        for(unsigned int b = 0; b < n; ++b) {
+            if(!(in >> x)) {
+                std::cerr << "Invalid adjacency matrix";
+                return std::pair<bool, Poset>(false, Poset());
+            }
+
+            if(x) {
+                edges.emplace_back(a, b);
+            }
+        }
+    }
+
+    return std::pair<bool, Poset>(true, Poset(n, edges));
 }
 
 #endif //MISC_H
