@@ -93,6 +93,18 @@ public:
     }
 
 
+    Eigen::SparseMatrix<NT> get_mat() const
+    {
+        return _A.sparseView();
+    }
+
+
+    VT get_vec() const
+    {
+        return b;
+    }
+
+
     // print polytope in Ax <= b format
     void print()
     {
@@ -644,6 +656,34 @@ public:
     void shift(VT const& c)
     {
         b -= vec_mult(c);
+    }
+
+
+    // get a point inside the order polytope,
+    // NOTE: the current implementation only works for non shifted order polytope
+    VT inner_point()
+    {
+        // get topologically sorted list of indices
+        std::vector<unsigned int> sorted_list = poset.topologically_sorted_list();
+
+        // vector to hold n linearly spaced values between 0-1
+        std::vector<NT> lin_space_values(_d);
+        NT start = 0.05, end = 0.95;
+        NT h = (end - start)/static_cast<NT>(_d-1);
+        NT val = start;
+        for(auto x=lin_space_values.begin(); x!=lin_space_values.end(); ++x) {
+            *x = val;
+            val += h;
+        }
+
+        // final result vector
+        VT res(_d);
+        for(int i=0; i<_d; ++i) {
+            unsigned int curr_idx = sorted_list[i];
+            res(curr_idx) = lin_space_values[i];
+        }
+
+        return res;
     }
 
 
