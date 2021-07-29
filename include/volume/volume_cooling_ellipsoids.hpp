@@ -16,11 +16,11 @@
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/ellipsoid.h"
 #include "sampling/random_point_generators.hpp"
-
-#include "random_walks.hpp"
+#include "random_walks/gaussian_accelerated_billiard_walk.hpp"
 #include "preprocess/max_inscribed_ellipsoid.hpp"
-#include "math_helpers.h"
-#include "volume_cooling_balls.hpp"
+#include "volume/math_helpers.h"
+#include "volume/sampling_policies.hpp"
+#include "volume/volume_cooling_balls.hpp"
 
 
 ////////////////////////////////////
@@ -191,7 +191,7 @@ std::pair<NT, NT> get_first_ellipsoid(Polytope const& P,
                                      true, false, parameters)) {
             // ! B0 = Ball(Point(n), q_mid * q_mid);
             E0.scale(q_mid);
-            return std::pair<NT, NT> (q_mid, q_max);
+            return std::pair<NT, NT> (q_mid, q_m);
         }
 
         if (too_few) {
