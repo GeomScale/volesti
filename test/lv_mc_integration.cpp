@@ -139,7 +139,7 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
   Point x0 = inner_ball.first;
 
 	NT integral_value = lovasz_vempala_integrate <EvaluationFunctor, GradientFunctor,BilliardWalk, HPOLYTOPE, Point, NT>
-	  (g, grad_g, HP, x2, B, 10, 0.1);
+	  (g, grad_g, HP, x0, B, 10, 0.1);
 	
   test_values(integral_value);
 
