@@ -124,6 +124,11 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
   EvaluationFunctor g;
 	HPOLYTOPE HP;
 
+  NT B;
+  NT integral_value;
+  unsigned int n;
+  std::pair <Point, NT> inner_ball;
+
 	HP = generate_cube <HPOLYTOPE> (2, false);
 
   std::vector<NT> Origin{0,0};
@@ -132,14 +137,33 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
 	Point x2(2, Corner);
 
 	// NT beta = 1;
-	unsigned int n = HP.dimension();
-	NT B = log( exp(-g(x1)) / exp(-g(x2)) ) ; // 2*n + 2*log(1/0.1) + n*log( 1 / beta);
+	n = HP.dimension();
+	B = log( exp(-g(x1)) / exp(-g(x2)) ) ; // 2*n + 2*log(1/0.1) + n*log( 1 / beta);
 
-  std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();
+  inner_ball = HP.ComputeInnerBall();
   Point x0 = inner_ball.first;
 
-	NT integral_value = lovasz_vempala_integrate <EvaluationFunctor, GradientFunctor,BilliardWalk, HPOLYTOPE, Point, NT>
+	integral_value = lovasz_vempala_integrate <EvaluationFunctor, GradientFunctor,BilliardWalk, HPOLYTOPE, Point, NT>
 	  (g, grad_g, HP, x0, B, 10, 0.1);
+	
+  test_values(integral_value);
+
+  HP = generate_cube <HPOLYTOPE> (3, false);
+
+  std::vector<NT> Origin1{0,0,0};
+	Point x1_1(3, Origin1);
+  std::vector<NT> Corner1{1,1,1};
+	Point x2_1(3, Corner1);
+
+	// NT beta = 1;
+	n = HP.dimension();
+	B = log( exp(-g(x1_1)) / exp(-g(x2_1)) ) ; // 2*n + 2*log(1/0.1) + n*log( 1 / beta);
+
+  inner_ball = HP.ComputeInnerBall();
+  Point x0_1 = inner_ball.first;
+
+	integral_value = lovasz_vempala_integrate <EvaluationFunctor, GradientFunctor,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, HP, x0_1, B, 10, 0.1);
 	
   test_values(integral_value);
 
