@@ -84,12 +84,7 @@ public:
 
     // get ith column of A
     VT get_col (unsigned int i) const {
-        VT res = _A.col(i);
-        if (_normalized) {
-            return res.array() / _row_norms.array();
-        }
-
-        return res;
+        return _A.col(i);
     }
 
 
@@ -188,11 +183,11 @@ public:
             // DON'T JUST check violation of point between 0 and 1
             // as b will change for shifted polytope
             diff = -pt_coeffs(i) - b(i);
-            if (_normalized)    diff /= _row_norms(i);
+            // if (_normalized)    diff /= _row_norms(i); // row_norm is 1
             if (diff > NT(tol)) return 0;
 
             diff = pt_coeffs(i) - b(i + _d);
-            if (_normalized)    diff /= _row_norms(i + _d);
+            // if (_normalized)    diff /= _row_norms(i + _d);  // row_norm is 1
             if (diff > NT(tol)) return 0;
         }
 
@@ -696,6 +691,7 @@ public:
         _normalized = true; // -> will be used to make changes in entries of _A
         for (unsigned int i = 0; i < _num_hyperplanes; ++i)
         {
+             _A.row(i) /= _row_norms(i);
             b(i) = b(i) / _row_norms(i);
         }
     }
