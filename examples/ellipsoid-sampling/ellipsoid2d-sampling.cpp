@@ -29,7 +29,7 @@ int main(int argc, char const *argv[]) {
     MT EigenVectors = ell.eigenvectors();
 
     for (int i=0; i<num_points; ++i) {
-        p = GetPointInDellipsoid<Point>::apply<NT>(dim, eigenvalues_inv_sqrt, EigenVectors, rng);
+        p = GetPointInDellipsoid<Point>::apply(dim, eigenvalues_inv_sqrt, EigenVectors, rng);
         p.print();
     }
     return 0;
