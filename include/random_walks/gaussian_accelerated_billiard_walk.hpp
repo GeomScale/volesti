@@ -11,8 +11,12 @@
 #ifndef RANDOM_WALKS_GAUSSIAN_ACCELERATED_BILLIARD_WALK_HPP
 #define RANDOM_WALKS_GAUSSIAN_ACCELERATED_BILLIARD_WALK_HPP
 
-#include "ellipsoid.h"
+#include "convex_bodies/orderpolytope.h"
+#include "convex_bodies/ellipsoid.h"
+#include "convex_bodies/ballintersectconvex.h"
+#include "generators/boost_random_number_generator.hpp"
 #include "sampling/ellipsoid.hpp"
+#include "random_walks/uniform_billiard_walk.hpp"
 
 template <typename Point>
 struct compute_diameter<OrderPolytope<Point>>
