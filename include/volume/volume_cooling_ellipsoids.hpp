@@ -143,8 +143,8 @@ std::pair<NT, NT> get_first_ellipsoid(Polytope const& P,
     NT q1 = 1.0;
     // ! NT radius1 = radius_input;
 
-    VT eigenvals_inv_sqrt = inscribed_ellipsoid.eigenvals_inv_sqrt();
-    MT eigenvecs = inscribed_ellipsoid.eigenvecs();
+    VT eigenvals_inv_sqrt = inscribed_ellipsoid.eigenvalues_inv_sqrt();
+    MT eigenvecs = inscribed_ellipsoid.eigenvectors();
 
     q_max = 2 * sqrt_n;   // 2 * sqrt_n times the inscribed ellipsoid
     VT temp_eigenvals_inv_sqrt = eigenvals_inv_sqrt;
@@ -508,11 +508,11 @@ NT estimate_ratio_ellipsoid(Ellipsoid const& E,
                             RNG& rng)
 {
     estimate_ratio_parameters<NT> ratio_parameters(W, Ntot, ratio);
-    unsigned int n = E.dimension();
+    unsigned int n = E.dimensions();
     Point p(n);
 
-    typename Ellipsoid::VT eigenvals_inv_sqrt = E.eigenvals_inv_sqrt();
-    typename Ellipsoid::MT eigenvecs = E.eigenvecs();
+    typename Ellipsoid::VT eigenvals_inv_sqrt = E.eigenvalues_inv_sqrt();
+    typename Ellipsoid::MT eigenvecs = E.eigenvectors();
 
     do
     {
@@ -648,8 +648,8 @@ NT estimate_ratio_interval_ellipsoid(Ellipsoid const& E,
     NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0));
 
     // for sampling from ellipsoid
-    typename Ellipsoid::VT eigenvals_inv_sqrt = E.eigenvals_inv_sqrt();
-    typename Ellipsoid::MT eigenvecs = E.eigenvecs();
+    typename Ellipsoid::VT eigenvals_inv_sqrt = E.eigenvalues_inv_sqrt();
+    typename Ellipsoid::MT eigenvecs = E.eigenvectors();
 
     unsigned int n = Pe2.dimension();
     Point p(n);

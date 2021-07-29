@@ -61,7 +61,7 @@ public:
         _dim = A.rows();
         c = Point(_dim);
 
-        _L_cov = eigen_vecs * eigen_values_inv_sqrt.asDiagonal();
+        _L_cov = _Eigen_Vectors * _eigen_values_inv_sqrt.asDiagonal();
     }
 
 
@@ -89,12 +89,12 @@ public:
         _dim = A.rows();
         c = Point(_dim);
 
-        _L_cov = eigen_vecs * eigen_values_inv_sqrt.asDiagonal();
+        _L_cov = _Eigen_Vectors * _eigen_values_inv_sqrt.asDiagonal();
     }
 
 
     NT radius() const {
-        return eigen_values_inv_sqrt(dim-1);
+        return _eigen_values_inv_sqrt(_dim-1);
     }
 
 
