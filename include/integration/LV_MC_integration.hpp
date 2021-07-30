@@ -9,6 +9,9 @@
 
 // Integration and Optimization algorithm used here : https://www.cc.gatech.edu/~vempala/acg/www/www/papers/integration.pdf
 
+#ifndef LOVASZ_VEMPALA_MC_INTEGRATION_HPP
+#define LOVASZ_VEMPALA_MC_INTEGRATION_HPP
+
 #include <iostream>
 #include <fstream>
 #include <random>
@@ -82,6 +85,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
     for (int i = 1; i <= m && alpha < 1; i++ ) {
 
         alpha *= (1 + 1 / sqrt(n));
+        params.set_temperature(alpha);
         params.update_temperature();
         W_current = 0;
 
@@ -95,11 +99,13 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
         W_current /= k;
         log_W += log(W_current);
         alpha_prev = alpha;
-		std::cerr << "After i_th round | alpha = " << alpha << " | W = " << W_current << std::endl;
+		std::cerr << "After i_th round | alpha = " << alpha << " | W_current = " << W_current << std::endl;
     }
 
     return exp(log_W);    
 }
+
+#endif
 
 /*
 include/ode_solvers/oracle_functors 
