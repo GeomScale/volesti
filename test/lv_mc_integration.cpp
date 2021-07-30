@@ -132,7 +132,7 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
 	NegativeLogprobOptimizationFunctor f(opt_params);
 	NegativeGradientOptimizationFunctor grad_f(opt_params);
 
-  std::vector<NT> Origin{0,0}; Point x1(2, Origin);
+	std::vector<NT> Origin{0,0}; Point x1(2, Origin);
 	std::vector<NT> Corner{1,1}; Point x2(2, Corner);
 
 	NT B = log( exp(-g(x1)) / exp(-g(x2)) ) ; // 2*n + 2*log(1/0.1) + n*log( 1 / beta);;

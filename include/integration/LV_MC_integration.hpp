@@ -33,7 +33,7 @@ typedef HPolytope<Point> HPOLYTOPE;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
 
-enum volumetype { CB ,CG ,SOB }; // Volume type for polytope
+enum volumetype { CB,CG,SOB }; // Volume type for polytope
 
 
 template
@@ -45,8 +45,8 @@ template
     typename Point,
     typename NT
 >
-NT lovasz_vempala_integrate(EvaluationFunctor &f,
-                            GradientFunctor &grad_f,
+NT lovasz_vempala_integrate(EvaluationFunctor &g,
+                            GradientFunctor &grad_g,
 							Parameters &params,
                             Polytope &P,
                             Point x0,
@@ -72,30 +72,30 @@ NT lovasz_vempala_integrate(EvaluationFunctor &f,
 
 	typedef LeapfrogODESolver<Point, NT, Polytope, GradientFunctor> Solver;
 
-	HamiltonianMonteCarloWalk::parameters <NT, GradientFunctor> hmc_params(grad_f, n);
+	HamiltonianMonteCarloWalk::parameters <NT, GradientFunctor> hmc_params(grad_g, n);
 
 	HamiltonianMonteCarloWalk::Walk
 	  <Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
-	  hmc(&P, x0, grad_f, f, hmc_params);
+	  hmc(&P, x0, grad_g, g, hmc_params);
 
     // Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
     for (int i = 1; i <= m && alpha < 1; i++ ) {
 
         alpha *= (1 + 1 / sqrt(n));
+        params.update_temperature();
         W_current = 0;
 
         for (unsigned int j = 1; j <= k ; j++) {
 
             hmc.apply(rng, walk_length);
-            W_current += exp(-f(hmc.x) * (alpha - alpha_prev));
-
+            W_current += exp(-g(hmc.x) * (alpha - alpha_prev));
+            
         }
 
         W_current /= k;
         log_W += log(W_current);
         alpha_prev = alpha;
-		params.update_temperature();
-		std::cerr << "Value of alpha after i_th round " << alpha << std::endl;
+		std::cerr << "After i_th round | alpha = " << alpha << " | W = " << W_current << std::endl;
     }
 
     return exp(log_W);    
