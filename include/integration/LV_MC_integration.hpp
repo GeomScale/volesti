@@ -49,13 +49,13 @@ template
 	typename NT
 >
 NT lovasz_vempala_integrate(EvaluationFunctor &g,
-                            GradientFunctor &grad_g,
-                            Parameters &params,
-                    		Polytope &P,
-                            Point x0,
-                            NT B,
-                            unsigned int walk_length = 10,
-                            NT epsilon = 0.1)
+							GradientFunctor &grad_g,
+							Parameters &params,
+							Polytope &P,
+							Point x0,
+							NT B,
+							unsigned int walk_length = 10,
+							NT epsilon = 0.1)
 {
 	unsigned int n = P.dimension();
 	unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
@@ -124,9 +124,9 @@ https://github.com/GeomScale/volume_approximation/tree/develop/examples/logconca
   RNG rng(1);    
   MT points(n,k); // n rows(dimension) * k columns(number of points)
   typename WalkType::template Walk <Polytope, RNG> walk(P, x0, rng);
-      
+	  
   for (int i = 0; i < k; i++) {
-      walk.apply(P, x0, walk_length, rng);
-      points.col(i) = x0.getCoefficients();
+	  walk.apply(P, x0, walk_length, rng);
+	  points.col(i) = x0.getCoefficients();
   }
 */

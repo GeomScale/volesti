@@ -42,64 +42,64 @@ struct CustomFunctor {
   // Custom density with neg log prob equal to || x ||^2 + 1^T x
   template 
   <
-      typename NT
+	  typename NT
   >
   struct parameters {
-    unsigned int order;
-    NT L; // Lipschitz constant for gradient
-    NT m; // Strong convexity constant
-    NT kappa; // Condition number
+	unsigned int order;
+	NT L; // Lipschitz constant for gradient
+	NT m; // Strong convexity constant
+	NT kappa; // Condition number
 
-    parameters() : order(2), L(2), m(2), kappa(1) {};
+	parameters() : order(2), L(2), m(2), kappa(1) {};
 
-    parameters(unsigned int order_) :
-      order(order),
-      L(2),
-      m(2),
-      kappa(1)
-    {}
+	parameters(unsigned int order_) :
+	  order(order),
+	  L(2),
+	  m(2),
+	  kappa(1)
+	{}
   };
 
   template
   <
-      typename Point
+	  typename Point
   >
   struct GradientFunctor {
-    typedef typename Point::FT NT;
-    typedef std::vector<Point> pts;
+	typedef typename Point::FT NT;
+	typedef std::vector<Point> pts;
 
-    parameters<NT> params;
+	parameters<NT> params;
 
-    GradientFunctor() {};
+	GradientFunctor() {};
 
-    // The index i represents the state vector index
-    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
-      if (i == params.order - 1) {
-        Point y = (-1.0) * Point::all_ones(xs[0].dimension());
-        y = y + (-2.0) * xs[0];
-        return y;
-      } else {
-        return xs[i + 1]; // returns derivative
-      }
-    }
+	// The index i represents the state vector index
+	Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
+	  if (i == params.order - 1) {
+		Point y = (-1.0) * Point::all_ones(xs[0].dimension());
+		y = y + (-2.0) * xs[0];
+		return y;
+	  } else {
+		return xs[i + 1]; // returns derivative
+	  }
+	}
 
   };
 
   template
   <
-    typename Point
+	typename Point
   >
   struct FunctionFunctor {
-    typedef typename Point::FT NT;
+	typedef typename Point::FT NT;
 
-    parameters<NT> params;
+	parameters<NT> params;
 
-    FunctionFunctor() {};
+	FunctionFunctor() {};
 
-    // The index i represents the state vector index
-    NT operator() (Point const& x) const {
-      return x.dot(x) + x.sum();
-    }
+	// The index i represents the state vector index
+	NT operator() (Point const& x) const {
+	  return x.dot(x) + x.sum();
+	}
 
   };
 
@@ -149,5 +149,5 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
 }
 
 TEST_CASE("cubes") {
-    call_cubes_test_lovasz_vempala_integrate<double>();
+	call_cubes_test_lovasz_vempala_integrate<double>();
 }
