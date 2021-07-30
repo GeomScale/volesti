@@ -42,9 +42,13 @@ struct OptimizationFunctor {
             order(2)
         {};
 
-        void update_temperature() {
-            T = T * (1.0 + 1.0 / sqrt(dim));
-        }
+		void set_temperature(NT T_) {
+			T = T_;
+		}
+
+		void update_temperature() {
+			T = T * (1.0 + 1.0 / sqrt(dim));
+		}
     };
 
     template
