@@ -41,68 +41,68 @@ enum volumetype { CB,CG,SOB }; // Volume type for polytope
 
 template
 <
-    typename EvaluationFunctor,
-    typename GradientFunctor,
+	typename EvaluationFunctor,
+	typename GradientFunctor,
 	typename Parameters,
-    typename Polytope = HPOLYTOPE,
-    typename Point,
-    typename NT
+	typename Polytope = HPOLYTOPE,
+	typename Point,
+	typename NT
 >
 NT lovasz_vempala_integrate(EvaluationFunctor &g,
                             GradientFunctor &grad_g,
-							Parameters &params,
-                            Polytope &P,
+                            Parameters &params,
+                    		Polytope &P,
                             Point x0,
                             NT B,
                             unsigned int walk_length = 10,
                             NT epsilon = 0.1)
 {
-    unsigned int n = P.dimension();
-    unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
-    unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B));
+	unsigned int n = P.dimension();
+	unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
+	unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B));
 
-    NT volume = volume_sequence_of_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
-    NT alpha_prev = (NT) 1 / B;
-    NT alpha = (NT) 1 / B;
-    NT log_W = log(volume);
-    NT W_current = (NT) 0;
+	NT volume = volume_sequence_of_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
+	NT alpha_prev = (NT) 1 / B;
+	NT alpha = (NT) 1 / B;
+	NT log_W = log(volume);
+	NT W_current = (NT) 0;
 
-    RandomNumberGenerator rng(1);
+	RandomNumberGenerator rng(1);
 	std::cerr << "n = " << n << " m = " << m << " k = " << k << " volume = " << volume << " log_W = " << log_W  << std::endl;
 	std::cerr << "alpha = " << alpha << " alpha_prev = " << alpha_prev << " W_current = " << W_current << std::endl << std::endl;
 
-    // Initialize HMC walks using EvaluationFunctor and GradientFunctor
+	// Initialize HMC walks using EvaluationFunctor and GradientFunctor
 
 	typedef LeapfrogODESolver<Point, NT, Polytope, GradientFunctor> Solver;
 
 	HamiltonianMonteCarloWalk::parameters <NT, GradientFunctor> hmc_params(grad_g, n);
 
 	HamiltonianMonteCarloWalk::Walk
-	  <Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
-	  hmc(&P, x0, grad_g, g, hmc_params);
+		<Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
+		hmc(&P, x0, grad_g, g, hmc_params);
 
-    // Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
-    for (int i = 1; i <= m && alpha < 1; i++ ) {
+	// Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
+	for (int i = 1; i <= m && alpha < 1; i++ ) {
 
-        alpha *= (1 + 1 / sqrt(n));
-        params.set_temperature(alpha);
-        params.update_temperature();
-        W_current = 0;
+		alpha *= (1 + 1 / sqrt(n));
+		params.set_temperature(alpha);
+		params.update_temperature();
+		W_current = 0;
 
-        for (unsigned int j = 1; j <= k ; j++) {
+		for (unsigned int j = 1; j <= k ; j++) {
 
-            hmc.apply(rng, walk_length);
-            W_current += exp(-g(hmc.x) * (alpha - alpha_prev));
-            
-        }
+			hmc.apply(rng, walk_length);
+			W_current += exp(-g(hmc.x) * (alpha - alpha_prev));
+			
+		}
 
-        W_current /= k;
-        log_W += log(W_current);
-        alpha_prev = alpha;
+		W_current /= k;
+		log_W += log(W_current);
+		alpha_prev = alpha;
 		std::cerr << "After i_th round | alpha = " << alpha << " | W_current = " << W_current << std::endl;
-    }
+	}
 
-    return exp(log_W);    
+	return exp(log_W);    
 }
 
 #endif
