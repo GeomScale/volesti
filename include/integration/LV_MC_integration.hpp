@@ -29,12 +29,10 @@
 typedef double NT;
 typedef Cartesian<NT> Kernel;
 typedef typename Kernel::Point Point;
-typedef std::vector<Point> Points;
 typedef HPolytope<Point> HPOLYTOPE;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
 
-typedef const unsigned int Uint;  // Positive constant value for no of samples & dimensions
 enum volumetype { CB ,CG ,SOB }; // Volume type for polytope
 
 
@@ -42,13 +40,14 @@ template
 <
     typename EvaluationFunctor,
     typename GradientFunctor,
-    typename WalkType,
+	typename Parameters,
     typename Polytope = HPOLYTOPE,
     typename Point,
     typename NT
 >
-NT lovasz_vempala_integrate(EvaluationFunctor &g,
-                            GradientFunctor &grad_g,
+NT lovasz_vempala_integrate(EvaluationFunctor &f,
+                            GradientFunctor &grad_f,
+							Parameters &params,
                             Polytope &P,
                             Point x0,
                             NT B,
@@ -58,54 +57,48 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
     unsigned int n = P.dimension();
     unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
     unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B));
-    std::cout << "n = " << n << " m = " << m << " k = " << k << std::endl;
 
     NT volume = volume_sequence_of_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
+    NT alpha_prev = (NT) 1 / B;
     NT alpha = (NT) 1 / B;
-    NT alpha_prev = 0;
     NT log_W = log(volume);
     NT W_current = (NT) 0;
 
     RandomNumberGenerator rng(1);
+	std::cerr << "n = " << n << " m = " << m << " k = " << k << " volume = " << volume << " log_W = " << log_W  << std::endl;
+	std::cerr << "alpha = " << alpha << " alpha_prev = " << alpha_prev << " W_current = " << W_current << std::endl << std::endl;
 
-    // Initialize HMC walks using OptimizationFunctor <CustomFunctor::GradientFunctor , CustomFunctor::FunctionFunctor>
-    typedef OptimizationFunctor::GradientFunctor
-      <Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-    typedef OptimizationFunctor::FunctionFunctor
-      <Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-    typedef LeapfrogODESolver<Point, NT, Polytope, NegativeGradientOptimizationFunctor> Solver;
+    // Initialize HMC walks using EvaluationFunctor and GradientFunctor
 
-    OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> opt_params(1, n, g, grad_g);
+	typedef LeapfrogODESolver<Point, NT, Polytope, GradientFunctor> Solver;
 
-    NegativeLogprobOptimizationFunctor f(opt_params);
-    NegativeGradientOptimizationFunctor F(opt_params);
-      
-    HamiltonianMonteCarloWalk::parameters <NT, NegativeGradientOptimizationFunctor> hmc_params(F, n);
+	HamiltonianMonteCarloWalk::parameters <NT, GradientFunctor> hmc_params(grad_f, n);
 
-    HamiltonianMonteCarloWalk::Walk
-      <Point, Polytope, RandomNumberGenerator, NegativeGradientOptimizationFunctor, NegativeLogprobOptimizationFunctor, Solver>
-      hmc(&P, x0, F, f, hmc_params);
+	HamiltonianMonteCarloWalk::Walk
+	  <Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
+	  hmc(&P, x0, grad_f, f, hmc_params);
 
-    // Check and evaluate for all samples breaks when variance > 1, i.e. a > 1
+    // Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
     for (int i = 1; i <= m && alpha < 1; i++ ) {
 
-        alpha *= (1 + 1 / sqrt(n)); // variance sequence algorithm stops when variance > 1
+        alpha *= (1 + 1 / sqrt(n));
         W_current = 0;
 
         for (unsigned int j = 1; j <= k ; j++) {
 
             hmc.apply(rng, walk_length);
-            W_current += exp(-g(hmc.x) * (alpha - alpha_prev));
+            W_current += exp(-f(hmc.x) * (alpha - alpha_prev));
 
         }
 
         W_current /= k;
         log_W += log(W_current);
         alpha_prev = alpha;
+		params.update_temperature();
+		std::cerr << "Value of alpha after i_th round " << alpha << std::endl;
     }
 
-    return exp(log_W);
-    
+    return exp(log_W);    
 }
 
 /*

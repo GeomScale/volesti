@@ -26,14 +26,6 @@
 #include "misc.h"
 
 typedef double NT;
-typedef Cartesian<NT> Kernel;
-typedef typename Kernel::Point Point;
-typedef std::vector<Point> Points;
-typedef HPolytope<Point> HPOLYTOPE;
-typedef boost::mt19937 RNGType;
-typedef typename HPolytope<Point>::MT MT;
-typedef typename HPolytope<Point>::VT VT;
-typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
 
 template <typename NT>
 void test_values (NT computed){ //, NT expected, NT exact) {
@@ -42,13 +34,14 @@ void test_values (NT computed){ //, NT expected, NT exact) {
 	// std::cout << "Exact integration value = " << exact << std::endl;
 	// std::cout << "Relative error (expected) = " << std::abs((computed - expected)/expected) << std::endl;
 	// std::cout << "Relative error (exact) = " << std::abs((computed - exact)/exact) << std::endl ;
-    // CHECK(((std::abs((computed - expected)/expected) < 0.00001) || (std::abs((computed - exact)/exact) < 0.2)));
+	// CHECK(((std::abs((computed - expected)/expected) < 0.00001) || (std::abs((computed - exact)/exact) < 0.2)));
 }
 
 struct CustomFunctor {
 
   // Custom density with neg log prob equal to || x ||^2 + 1^T x
-  template <
+  template 
+  <
       typename NT
   >
   struct parameters {
@@ -112,80 +105,49 @@ struct CustomFunctor {
 
 };
 
-template <typename NT = NT>
+template <typename NT>
 void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test function
 
-  typedef CustomFunctor::FunctionFunctor <Point> EvaluationFunctor;
+	typedef Cartesian<NT> Kernel;
+	typedef typename Kernel::Point Point;
+	typedef HPolytope<Point> HPOLYTOPE;
+	typedef boost::mt19937 RNGType;
+	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+
+	typedef CustomFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef CustomFunctor::GradientFunctor <Point> GradientFunctor;
+	typedef OptimizationFunctor::GradientFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
+	typedef OptimizationFunctor::FunctionFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
+	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
 
-  CustomFunctor::parameters<NT> params;
+	GradientFunctor grad_g;
+	EvaluationFunctor g;
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (2, false);
+	// HP.print();
 
-  GradientFunctor grad_g;
-  EvaluationFunctor g;
-	HPOLYTOPE HP;
+	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
 
-  NT B;
-  NT integral_value;
-  unsigned int n;
-  std::pair <Point, NT> inner_ball;
+	NegativeLogprobOptimizationFunctor f(opt_params);
+	NegativeGradientOptimizationFunctor grad_f(opt_params);
 
-	HP = generate_cube <HPOLYTOPE> (2, false);
+  std::vector<NT> Origin{0,0}; Point x1(2, Origin);
+	std::vector<NT> Corner{1,1}; Point x2(2, Corner);
 
-  std::vector<NT> Origin{0,0};
-	Point x1(2, Origin);
-  std::vector<NT> Corner{1,1};
-	Point x2(2, Corner);
+	NT B = log( exp(-g(x1)) / exp(-g(x2)) ) ; // 2*n + 2*log(1/0.1) + n*log( 1 / beta);;
+	NT integral_value;
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
+	Point x0 = inner_ball.first;
 
-	// NT beta = 1;
-	n = HP.dimension();
-	B = log( exp(-g(x1)) / exp(-g(x2)) ) ; // 2*n + 2*log(1/0.1) + n*log( 1 / beta);
-
-  inner_ball = HP.ComputeInnerBall();
-  Point x0 = inner_ball.first;
-
-	integral_value = lovasz_vempala_integrate <EvaluationFunctor, GradientFunctor,BilliardWalk, HPOLYTOPE, Point, NT>
-	  (g, grad_g, HP, x0, B, 10, 0.1);
+	integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B, 10, 0.1);
 	
-  test_values(integral_value);
-
-  HP = generate_cube <HPOLYTOPE> (3, false);
-
-  std::vector<NT> Origin1{0,0,0};
-	Point x1_1(3, Origin1);
-  std::vector<NT> Corner1{1,1,1};
-	Point x2_1(3, Corner1);
-
-	// NT beta = 1;
-	n = HP.dimension();
-	B = log( exp(-g(x1_1)) / exp(-g(x2_1)) ) ; // 2*n + 2*log(1/0.1) + n*log( 1 / beta);
-
-  inner_ball = HP.ComputeInnerBall();
-  Point x0_1 = inner_ball.first;
-
-	integral_value = lovasz_vempala_integrate <EvaluationFunctor, GradientFunctor,BilliardWalk, HPOLYTOPE, Point, NT>
-	  (g, grad_g, HP, x0_1, B, 10, 0.1);
-	
-  test_values(integral_value);
+	test_values(integral_value);
 
 }
 
-TEST_CASE("cubes"){
-    call_cubes_test_lovasz_vempala_integrate();
+TEST_CASE("cubes") {
+    call_cubes_test_lovasz_vempala_integrate<double>();
 }
-
-/*
-    e.g. use the function f(x) = exp( -g(x))
-    g(x) returns ||x||^2
-    f(x) return exp(-g(x))
-
-    NT result1 = simple_mc_integrate <> ( ... )
-    NT result2 = lovasz_vempala_integrate <> ( ... )
-
-    Polytope K ; // eg use a cube
-    Max_f = exp( -g(0) );
-    Min_f = exp( -g(point at the corner) );
-    B = ...
-    Point x0 = K.inner_ball();
-
-    CHECK ( relation_error(result1, result2) is small )
-*/
