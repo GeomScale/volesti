@@ -75,8 +75,8 @@ struct CustomFunctor {
 	// The index i represents the state vector index
 	Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
 	  if (i == params.order - 1) {
-		Point y = (-1.0) * Point::all_ones(xs[0].dimension());
-		y = y + (-2.0) * xs[0];
+		Point y(xs[0].dimension());
+		y = y + (-2.0) * xs[i];
 		return y;
 	  } else {
 		return xs[i + 1]; // returns derivative
@@ -98,7 +98,7 @@ struct CustomFunctor {
 
 	// The index i represents the state vector index
 	NT operator() (Point const& x) const {
-	  return x.dot(x) + x.sum();
+	  return x.dot(x);
 	}
 
   };
@@ -132,16 +132,21 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
 	NegativeLogprobOptimizationFunctor f(opt_params);
 	NegativeGradientOptimizationFunctor grad_f(opt_params);
 
-	std::vector<NT> Origin{0,0}; Point x1(2, Origin);
-	std::vector<NT> Corner{1,1}; Point x2(2, Corner);
+	std::vector<NT> Maximum{0,0}; Point max(2, Maximum);
+	std::vector<NT> Minimum{1,1}; Point min(2, Minimum);
+	std::cout << "Maximum x = " ; max.print();
+	std::cout << "Minimum x = " ; min.print();
+	std::cout << "Maximum f(x) = " << exp(-g(max)) << " Minimum f(x) = " << exp(-g(min)) << std::endl;
 
-	NT B = log( exp(-g(x1)) / exp(-g(x2)) ) ; // 2*n + 2*log(1/0.1) + n*log( 1 / beta);;
-	NT integral_value;
 	unsigned int n = HP.dimension();;
 	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
+	x0.print();
 
-	integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, HPOLYTOPE, Point, NT>
+	NT B = log( exp(-g(max)) / exp(-g(min)) ); //2 * n + 2 * log(1/0.1) + n * log( 1 / beta);
+	x0 = inner_ball.first;
+
+	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, HPOLYTOPE, Point, NT>
 	  (f, grad_f, opt_params, HP, x0, B, 10, 0.1);
 	
 	test_values(integral_value);

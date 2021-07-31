@@ -58,7 +58,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 							NT epsilon = 0.1)
 {
 	unsigned int n = P.dimension();
-	unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
+	unsigned int m = 15; // (unsigned int) ceil(sqrt(n) * log(B));
 	unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B));
 
 	NT volume = volume_sequence_of_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
@@ -86,13 +86,13 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 
 		alpha *= (1 + 1 / sqrt(n));
 		params.set_temperature(alpha);
-		params.update_temperature();
 		W_current = 0;
 
 		for (unsigned int j = 1; j <= k ; j++) {
 
 			hmc.apply(rng, walk_length);
 			W_current += exp(-g(hmc.x) * (alpha - alpha_prev));
+			// std::cerr << hmc.x.getCoefficients().transpose() << std::endl;
 			
 		}
 
