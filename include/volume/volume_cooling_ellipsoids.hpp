@@ -123,7 +123,6 @@ std::pair<NT, NT> get_first_ellipsoid(Polytope const& P,
                     Ellipsoid& E0,
                     NT& ratio,
                     Ellipsoid const& inscribed_ellipsoid,
-                    // ! NT const& radius_input,
                     cooling_ellipsoid_parameters<NT> const& parameters,
                     RNG& rng) {
     typedef typename Ellipsoid::VT VT;
@@ -141,13 +140,7 @@ std::pair<NT, NT> get_first_ellipsoid(Polytope const& P,
     NT q_max = parameters.q_max;
     NT sqrt_n = std::sqrt(NT(n));
     NT q1 = 1.0;
-    // ! NT radius1 = radius_input;
-
-    VT eigenvals_inv_sqrt = inscribed_ellipsoid.eigenvalues_inv_sqrt();
-    MT eigenvecs = inscribed_ellipsoid.eigenvectors();
-
     q_max = 2 * sqrt_n;   // 2 * sqrt_n times the inscribed ellipsoid
-    VT temp_eigenvals_inv_sqrt = eigenvals_inv_sqrt;
 
     E0 = inscribed_ellipsoid;
 
@@ -155,17 +148,14 @@ std::pair<NT, NT> get_first_ellipsoid(Polytope const& P,
         randPoints.clear();
         too_few = false;
 
-        temp_eigenvals_inv_sqrt = q_max * eigenvals_inv_sqrt;
+        E0.scale(q_max/q1);
         for (int i = 0; i < 1200; ++i) {
-            randPoints.push_back(GetPointInDellipsoid<Point>::apply(n, temp_eigenvals_inv_sqrt, eigenvecs, rng));
+            randPoints.push_back(GetPointInDellipsoid<Point>::apply(n, E0, rng));
         }
 
         if (check_convergence<Point>(P, randPoints, too_few, ratio, 10,
                                      true, false, parameters)) {
-            // ! B0 = Ball(Point(n), q_max * q_max);
-            E0.scale(q_max);
             return std::pair<NT, NT> (q_max, q_max);
-            // ! return true;
         }
 
         if (too_few) break;
@@ -176,21 +166,21 @@ std::pair<NT, NT> get_first_ellipsoid(Polytope const& P,
     NT q_mid;
     NT q0 = q1;
     NT q_m = q_max;
+    NT q_scale_prev = q_max;
 
     while (iter <= max_iterarions) {
         q_mid = 0.5 * (q1 + q_max);
         randPoints.clear();
         too_few = false;
 
-        temp_eigenvals_inv_sqrt = q_mid * eigenvals_inv_sqrt;
+        E0.scale(q_mid/q_scale_prev);
+        q_scale_prev = q_mid;
         for (int i = 0; i < 1200; ++i) {
-            randPoints.push_back(GetPointInDellipsoid<Point>::apply(n, temp_eigenvals_inv_sqrt, eigenvecs, rng));
+            randPoints.push_back(GetPointInDellipsoid<Point>::apply(n, E0, rng));
         }
 
         if (check_convergence<Point>(P, randPoints, too_few, ratio, 10,
                                      true, false, parameters)) {
-            // ! B0 = Ball(Point(n), q_mid * q_mid);
-            E0.scale(q_mid);
             return std::pair<NT, NT> (q_mid, q_m);
         }
 
@@ -217,7 +207,6 @@ NT get_next_ellipsoid(std::vector<Ellipsoid>& EllipsoidSet,
                            Ellipsoid const& inscribed_ellipsoid,
                            NT q_min,
                            NT q_max,
-                        // !   NT const& rad_min,
                            std::vector<NT>& ratios,
                            cooling_ellipsoid_parameters<NT> const& parameters)
 {
@@ -226,18 +215,8 @@ NT get_next_ellipsoid(std::vector<Ellipsoid>& EllipsoidSet,
     int n = (*randPoints.begin()).dimension();
     int iter = 1;
     bool too_few;
-    // ! NT q_max = NT(0);
-    // ! NT radmin = rad_min;
-    // ! NT q_min = 1.0;
-
-    // ! for (auto rpit = randPoints.begin();  rpit!=randPoints.end(); ++rpit)
-    // ! {
-    // !    NT pnorm = (*rpit).squared_length();
-    // !    if (pnorm > radmax) q_max = pnorm;
-    // ! }
 
     Ellipsoid Eiter = inscribed_ellipsoid;
-    // ! q_max = std::sqrt(q_max);
     NT q_min_init = q_min;
     NT q_max_init = q_max;
 
@@ -247,8 +226,6 @@ NT get_next_ellipsoid(std::vector<Ellipsoid>& EllipsoidSet,
         NT q = 0.5 * (q_min + q_max);
         Eiter.scale(q/q_prev);
         q_prev = q;
-
-        // ! Eiter = ellipsoid(Point(n), q * q);     // TODO: Create new ellipsoid
         too_few = false;
 
         NT ratio;
@@ -316,9 +293,8 @@ bool get_sequence_of_polytope_ellipsoids(Polytope& P,
 
     ratio0 = ratio;
 
-    typename Ellipsoid::MT L_cov = inscribed_ellipsoid.Lcov();
     PushBackWalkPolicy push_back_policy;
-    RandomPointGenerator::apply(P, x0, L_cov, Ntot, walk_length,
+    RandomPointGenerator::apply(P, x0, inscribed_ellipsoid, Ntot, walk_length,
                                 randPoints, push_back_policy, rng);
 
     if (check_convergence<Point>(E0, randPoints,
@@ -347,7 +323,7 @@ bool get_sequence_of_polytope_ellipsoids(Polytope& P,
         x0.set_to_origin();
         randPoints.clear();
 
-        RandomPointGenerator::apply(zb_it, x0, L_cov, Ntot, walk_length,
+        RandomPointGenerator::apply(zb_it, x0, inscribed_ellipsoid, Ntot, walk_length,
                                     randPoints, push_back_policy, rng);
         if (check_convergence<Point>(E0, randPoints, fail, ratio, parameters.nu,
                                      false, true, parameters))
@@ -367,111 +343,19 @@ bool get_sequence_of_polytope_ellipsoids(Polytope& P,
 }
 
 
-////////////////////////////////////
-///
-/// ratio estimation
-
-// template <typename NT>
-// bool is_max_error(NT const& a, NT const& b, NT const& error)
-// {
-//     return ((b-a)/a<error/2.0) ? true : false;
-// }
-
-// template <typename NT>
-// struct estimate_ratio_parameters
-// {
-// public:
-
-//     estimate_ratio_parameters(unsigned int W_len, unsigned int N, NT ratio)
-//         :   min_val(std::numeric_limits<NT>::lowest())
-//         ,   max_val(std::numeric_limits<NT>::max())
-//         ,   max_iterations_estimation(10000000)
-//         ,   min_index(W_len-1)
-//         ,   max_index(W_len-1)
-//         ,   W(W_len)
-//         ,   index(0)
-//         ,   tot_count(N)
-//         ,   count_in(N * ratio)
-//         ,   iter(0)
-//         ,   last_W(std::vector<NT>(W_len))
-//         ,   minmaxIt(last_W.begin())
-//     {}
-
-//     NT min_val;
-//     NT max_val;
-//     const unsigned int max_iterations_estimation;
-//     unsigned int min_index;
-//     unsigned int max_index;
-//     unsigned int W;
-//     unsigned int index;
-//     size_t tot_count;
-//     size_t count_in;
-//     unsigned int iter;
-//     std::vector<NT> last_W;
-//     typename std::vector<NT>::iterator minmaxIt;
-// };
-
-// template <typename PolyEllipsoid, typename Point, typename NT>
-// bool estimate_ratio_generic(PolyEllipsoid const& Pe2, Point const& p, NT const& error,
-//        estimate_ratio_parameters<NT> &ratio_parameters)
-// {
-//     if (ratio_parameters.iter++ <= ratio_parameters.max_iterations_estimation)
-//     {
-//         if (Pe2.is_in(p) == -1) ratio_parameters.count_in = ratio_parameters.count_in + 1.0;
-
-//         ratio_parameters.tot_count = ratio_parameters.tot_count + 1.0;
-//         NT val = NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
-//         ratio_parameters.last_W[ratio_parameters.index] = val;
-
-//         if (val <= ratio_parameters.min_val)
-//         {
-//             ratio_parameters.min_val = val;
-//             ratio_parameters.min_index = ratio_parameters.index;
-//         } else if (ratio_parameters.min_index == ratio_parameters.index)
-//         {
-//             ratio_parameters.minmaxIt = std::min_element(ratio_parameters.last_W.begin(), ratio_parameters.last_W.end());
-//             ratio_parameters.min_val = (*ratio_parameters.minmaxIt);
-//             ratio_parameters.min_index = std::distance(ratio_parameters.last_W.begin(), ratio_parameters.minmaxIt);
-//         }
-
-//         if (val >= ratio_parameters.max_val)
-//         {
-//             ratio_parameters.max_val = val;
-//             ratio_parameters.max_index = ratio_parameters.index;
-//         } else if (ratio_parameters.max_index == ratio_parameters.index)
-//         {
-//             ratio_parameters.minmaxIt = std::max_element(ratio_parameters.last_W.begin(), ratio_parameters.last_W.end());
-//             ratio_parameters.max_val = (*ratio_parameters.minmaxIt);
-//             ratio_parameters.max_index = std::distance(ratio_parameters.last_W.begin(), ratio_parameters.minmaxIt);
-//         }
-
-//         if ( (ratio_parameters.max_val - ratio_parameters.min_val) / ratio_parameters.max_val <= error/2.0 )
-//         {
-//             return true;
-//         }
-
-//         ratio_parameters.index = ratio_parameters.index % ratio_parameters.W + 1;
-//         if (ratio_parameters.index == ratio_parameters.W) ratio_parameters.index = 0;
-
-//         return false;
-//     }
-//     return true;
-// }
-
-
 template
 <
         typename WalkType,
         typename Point,
         typename PolyEllipsoid1,
         typename PolyEllipsoid2,
-        typename MT,
+        typename Ellipsoid,
         typename NT,
         typename RNG
 >
 NT estimate_ratio_ellipsoid(PolyEllipsoid1 const& Pe1,
                             PolyEllipsoid2 const& Pe2,
-                            MT const& L_cov,
+                            Ellipsoid const& E,
                             NT const& ratio,
                             NT const& error,
                             unsigned int const& W,
@@ -482,11 +366,11 @@ NT estimate_ratio_ellipsoid(PolyEllipsoid1 const& Pe1,
     estimate_ratio_parameters<NT> ratio_parameters(W, Ntot, ratio);
     unsigned int n = Pe1.dimension();
     Point p(n);
-    WalkType walk(Pe1, p, L_cov, rng);
+    WalkType walk(Pe1, p, E, rng);
 
     do
     {
-        walk.template apply(Pe1, p, L_cov, walk_length, rng);
+        walk.template apply(Pe1, p, E, walk_length, rng);
     } while(!estimate_ratio_generic(Pe2, p, error, ratio_parameters));
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
@@ -511,120 +395,14 @@ NT estimate_ratio_ellipsoid(Ellipsoid const& E,
     unsigned int n = E.dimensions();
     Point p(n);
 
-    typename Ellipsoid::VT eigenvals_inv_sqrt = E.eigenvalues_inv_sqrt();
-    typename Ellipsoid::MT eigenvecs = E.eigenvectors();
-
     do
     {
-        p = GetPointInDellipsoid<Point>::apply(n, eigenvals_inv_sqrt, eigenvecs, rng);
+        p = GetPointInDellipsoid<Point>::apply(n, E, rng);
     } while(!estimate_ratio_generic(Pe2, p, error, ratio_parameters));
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
 }
 
-//--------------------------------------------------------------------------
-
-// template <typename NT>
-// struct estimate_ratio_interval_parameters
-// {
-// public:
-//     estimate_ratio_interval_parameters(unsigned int W_len,
-//                                        unsigned int N,
-//                                        NT ratio)
-//         :    mean(0)
-//         ,    sum_sq(0)
-//         ,    sum(0)
-//         ,    s(0)
-//         ,    max_iterations_estimation(10000000)
-//         ,    W(W_len)
-//         ,    index(0)
-//         ,    tot_count(N)
-//         ,    count_in(N * ratio)
-//         ,    iter(0)
-//         ,    last_W(std::vector<NT>(W_len))
-//     {}
-
-//     NT mean;
-//     NT sum_sq;
-//     NT sum;
-//     NT s;
-//     const unsigned int max_iterations_estimation;
-//     unsigned int W;
-//     unsigned int index;
-//     size_t tot_count;
-//     size_t count_in;
-//     unsigned int iter;
-//     std::vector<NT> last_W;
-// };
-
-// template <typename PolyEllipsoid, typename Point, typename NT>
-// void full_sliding_window(PolyEllipsoid const& Pe2,
-//                          Point const& p,
-//                          estimate_ratio_interval_parameters<NT>& ratio_parameters)
-// {
-//     if (Pe2.is_in(p) == -1) ratio_parameters.count_in = ratio_parameters.count_in + 1.0;
-
-//     ratio_parameters.tot_count = ratio_parameters.tot_count + 1.0;
-//     NT val = NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
-//     ratio_parameters.sum += val;
-//     ratio_parameters.sum_sq += val * val;
-//     ratio_parameters.last_W[ratio_parameters.index] = val;
-//     ratio_parameters.index = ratio_parameters.index % ratio_parameters.W + 1;
-//     if (ratio_parameters.index == ratio_parameters.W) ratio_parameters.index = 0;
-// }
-
-// template <typename PolyEllipsoid, typename Point, typename NT>
-// bool estimate_ratio_interval_generic(PolyEllipsoid const& Pe2,
-//                                      Point const& p,
-//                                      NT const& error,
-//                                      NT const& zp,
-//                                      estimate_ratio_interval_parameters
-//                                      <NT>& ratio_parameters)
-// {
-//     if (ratio_parameters.iter++ <= ratio_parameters.max_iterations_estimation)
-//     {
-//         if (Pe2.is_in(p) == -1) ratio_parameters.count_in = ratio_parameters.count_in + 1.0;
-
-//         ratio_parameters.tot_count = ratio_parameters.tot_count + 1.0;
-//         NT val = NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
-
-//         ratio_parameters.mean = (ratio_parameters.mean
-//                              - ratio_parameters.last_W[ratio_parameters.index] /
-//                 NT(ratio_parameters.W)) + val / NT(ratio_parameters.W);
-
-//         ratio_parameters.sum_sq = (ratio_parameters.sum_sq -
-//                 ratio_parameters.last_W[ratio_parameters.index]
-//                 * ratio_parameters.last_W[ratio_parameters.index])
-//                 + val * val;
-
-//         ratio_parameters.sum = (ratio_parameters.sum
-//                                 - ratio_parameters.last_W[ratio_parameters.index])
-//                                + val;
-
-//         ratio_parameters.s = std::sqrt((ratio_parameters.sum_sq + NT(ratio_parameters.W) *
-//                 ratio_parameters.mean * ratio_parameters.mean - NT(2)
-//                                       * ratio_parameters.mean
-//                                       * ratio_parameters.sum) /
-//                                        NT(ratio_parameters.W));
-
-//         ratio_parameters.last_W[ratio_parameters.index] = val;
-
-//         ratio_parameters.index = ratio_parameters.index % ratio_parameters.W + 1;
-//         if (ratio_parameters.index == ratio_parameters.W)
-//         {
-//             ratio_parameters.index = 0;
-//         }
-
-//         if (is_max_error(val - zp * ratio_parameters.s,
-//                          val + zp * ratio_parameters.s,
-//                          error))
-//         {
-//             return true;
-//         }
-//         return false;
-//     }
-//     return true;
-// }
 
 template
 <
@@ -647,23 +425,19 @@ NT estimate_ratio_interval_ellipsoid(Ellipsoid const& E,
     boost::math::normal dist(0.0, 1.0);
     NT zp = boost::math::quantile(boost::math::complement(dist, (1.0 - prob)/2.0));
 
-    // for sampling from ellipsoid
-    typename Ellipsoid::VT eigenvals_inv_sqrt = E.eigenvalues_inv_sqrt();
-    typename Ellipsoid::MT eigenvecs = E.eigenvectors();
-
     unsigned int n = Pe2.dimension();
     Point p(n);
 
     for (int i = 0; i < ratio_parameters.W; ++i)
     {
-        p = GetPointInDellipsoid<Point>::apply(n, eigenvals_inv_sqrt, eigenvecs, rng);
+        p = GetPointInDellipsoid<Point>::apply(n, E, rng);
         full_sliding_window(Pe2, p, ratio_parameters);
     }
 
     ratio_parameters.mean = ratio_parameters.sum / NT(ratio_parameters.W);
 
     do {
-        p = GetPointInDellipsoid<Point>::apply(n, eigenvals_inv_sqrt, eigenvecs, rng);
+        p = GetPointInDellipsoid<Point>::apply(n, E, rng);
     } while (!estimate_ratio_interval_generic(Pe2, p, error, zp, ratio_parameters));
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
@@ -676,13 +450,13 @@ template
         typename Point,
         typename PolyEllipsoid1,
         typename PolyEllipsoid2,
-        typename MT,
+        typename Ellipsoid,
         typename NT,
         typename RNG
 >
 NT estimate_ratio_interval_ellipsoid(PolyEllipsoid1 const& Pe1,
                                      PolyEllipsoid2 const& Pe2,
-                                     MT const& L_cov,
+                                     Ellipsoid const& E,
                                      NT const& ratio,
                                      NT const& error,
                                      int const& W,
@@ -697,18 +471,18 @@ NT estimate_ratio_interval_ellipsoid(PolyEllipsoid1 const& Pe1,
 
     unsigned int n = Pe1.dimension();
     Point p(n);
-    WalkType walk(Pe1, p, L_cov, rng);
+    WalkType walk(Pe1, p, E, rng);
 
     for (int i = 0; i < ratio_parameters.W; ++i)
     {
-        walk.template apply(Pe1, p, L_cov, walk_length, rng);
+        walk.template apply(Pe1, p, E, walk_length, rng);
         full_sliding_window(Pe2, p, ratio_parameters);
     }
 
     ratio_parameters.mean = ratio_parameters.sum / NT(ratio_parameters.W);
 
     do {
-        walk.template apply(Pe1, p, L_cov, walk_length, rng);
+        walk.template apply(Pe1, p, E, walk_length, rng);
     } while (!estimate_ratio_interval_generic(Pe2, p, error, zp, ratio_parameters));
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
@@ -792,7 +566,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
         return std::pair<NT, NT> (-1.0, 0.0);
     }
 
-    // ! NT vol = (NT(n)/NT(2) * std::log(M_PI)) + NT(n)*std::log((*(BallSet.end() - 1)).radius()) - log_gamma_function(NT(n) / NT(2) + 1);
+
     NT vol = (*(EllipsoidSet.end() - 1)).log_volume();
 
     int mm = EllipsoidSet.size() + 1;
@@ -820,7 +594,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                std::log(NT(1) / estimate_ratio_interval_ellipsoid
                     <WalkType, Point>(P,
                                       *ellipsoiditer,
-                                      L_cov,
+                                      inscribed_ellipsoid,
                                       *ratioiter,
                                       er1,
                                       parameters.win_len,
@@ -831,7 +605,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
             : std::log(NT(1) / estimate_ratio_ellipsoid
                     <WalkType, Point>(P,
                                       *ellipsoiditer,
-                                      L_cov,
+                                      inscribed_ellipsoid,
                                       *ratioiter,
                                       er1,
                                       parameters.win_len,
@@ -847,7 +621,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                     std::log(NT(1) / estimate_ratio_interval_ellipsoid
                                 <WalkType, Point>(Pe,
                                                   *(ellipsoiditer + 1),
-                                                  L_cov,
+                                                  inscribed_ellipsoid,
                                                   *(ratioiter + 1),
                                                   er1, parameters.win_len,
                                                   N_times_nu,
@@ -856,7 +630,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                   : std::log(NT(1) / estimate_ratio_ellipsoid
                                 <WalkType, Point>(Pe,
                                                   *ellipsoiditer,
-                                                  L_cov,
+                                                  inscribed_ellipsoid,
                                                   *ratioiter,
                                                   er1,
                                                   parameters.win_len,

@@ -76,7 +76,7 @@ struct MultivariateGaussianRandomPointGenerator
     <
         typename Polytope,
         typename Point,
-        typename MT,
+        typename Ellipsoid,
         typename PointList,
         typename WalkPolicy,
         typename RandomNumberGenerator,
@@ -84,7 +84,7 @@ struct MultivariateGaussianRandomPointGenerator
     >
     static void apply(Polytope& P,
                       Point &p,   // a point to start
-                      MT const& L, // cholesky matrix of covariance matrix
+                      Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
                       unsigned int const& rnum,
                       unsigned int const& walk_length,
                       PointList &randPoints,
@@ -92,10 +92,10 @@ struct MultivariateGaussianRandomPointGenerator
                       RandomNumberGenerator &rng,
                       Parameters const& parameters)
     {
-        Walk walk(P, p, L, rng, parameters);
+        Walk walk(P, p, E, rng, parameters);
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.template apply(P, p, L, walk_length, rng);
+            walk.template apply(P, p, E, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }
@@ -104,24 +104,24 @@ struct MultivariateGaussianRandomPointGenerator
     <
             typename Polytope,
             typename Point,
-            typename MT,
+            typename Ellipsoid,
             typename PointList,
             typename WalkPolicy,
             typename RandomNumberGenerator
     >
     static void apply(Polytope& P,
                       Point &p,   // a point to start
-                      MT const& L, // cholesky matrix of covariance matrix
+                      Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
                       unsigned int const& rnum,
                       unsigned int const& walk_length,
                       PointList &randPoints,
                       WalkPolicy &policy,
                       RandomNumberGenerator &rng)
     {
-        Walk walk(P, p, L, rng);
+        Walk walk(P, p, E, rng);
         for (unsigned int i=0; i<rnum; ++i)
         {
-            walk.template apply(P, p, L, walk_length, rng);
+            walk.template apply(P, p, E, walk_length, rng);
             policy.apply(randPoints, p);
         }
     }

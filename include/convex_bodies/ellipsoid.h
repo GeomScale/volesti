@@ -128,6 +128,12 @@ public:
     }
 
 
+    // return L_cov * x
+    VT mult_Lcov(VT const& x) const {
+        return _L_cov * x;
+    }
+
+
     void print() const {
         std::cout << "Ellipse is in the form: x' A x <= 1, (center is assumed to be origin always) \n";
         std::cout << "c = \n"; c.print();

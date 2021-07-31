@@ -21,15 +21,15 @@ int main(int argc, char const *argv[]) {
     MT A = L * L.transpose();
 
     Ellipsoid<Point> ell(A);    // origin centered ellipsoid
+    Ellipsoid<Point> ell2 = ell;
+    ell2.scale(2.0);
 
     int num_points = 1000;
     Point p(dim);
     RNGType rng(dim);
-    VT eigenvalues_inv_sqrt = ell.eigenvalues_inv_sqrt();
-    MT EigenVectors = ell.eigenvectors();
 
     for (int i=0; i<num_points; ++i) {
-        p = GetPointInDellipsoid<Point>::apply(dim, eigenvalues_inv_sqrt, EigenVectors, rng);
+        p = GetPointInDellipsoid<Point>::apply(dim, ell, rng);
         p.print();
     }
     return 0;

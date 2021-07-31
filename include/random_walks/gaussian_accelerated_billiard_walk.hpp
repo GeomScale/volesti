@@ -88,10 +88,10 @@ struct GaussianAcceleratedBilliardWalk
         // typedef typename Polytope::MT MT;
         typedef typename Point::FT NT;
 
-        template <typename GenericPolytope, typename MT>
+        template <typename GenericPolytope, typename Ellipsoid>
         Walk(GenericPolytope const& P,
              Point const& p,
-             MT const& L,   // cholesky matrix for Gaussian Direction
+             Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
              RandomNumberGenerator &rng)
         {
             _update_parameters = update_parameters();
@@ -100,13 +100,13 @@ struct GaussianAcceleratedBilliardWalk
 
             // Removed as will be used for sparse matrices only
             // _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            initialize(P, p, L, rng);
+            initialize(P, p, E, rng);
         }
 
-        template <typename GenericPolytope, typename MT>
+        template <typename GenericPolytope, typename Ellipsoid>
         Walk(GenericPolytope const& P,
              Point const& p,
-             MT const& L,   // cholesky matrix for Gaussian Direction
+             Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
              RandomNumberGenerator &rng,
              parameters const& params)
         {
@@ -117,17 +117,17 @@ struct GaussianAcceleratedBilliardWalk
 
             // Removed as will be used for sparse matrices only
             // _AA.noalias() = P.get_mat() * P.get_mat().transpose();
-            initialize(P, p, L, rng);
+            initialize(P, p, E, rng);
         }
 
         template
                 <
                         typename GenericPolytope,
-                        typename MT
+                        typename Ellipsoid
                 >
         inline void apply(GenericPolytope const& P,
                           Point &p,       // a point to return the result
-                          MT const& L,    // cholesky matrix for Gaussian Direction
+                          Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
                           unsigned int const& walk_length,
                           RandomNumberGenerator &rng)
         {
@@ -139,8 +139,9 @@ struct GaussianAcceleratedBilliardWalk
             for (auto j=0u; j<walk_length; ++j)
             {
                 T = -std::log(rng.sample_urdist()) * _Len;
-                _v = GetGaussianDirection<Point>::apply(n, L, rng);
+                _v = GetGaussianDirection<Point>::apply(n, E, rng);
                 Point p0 = _p;
+                Point v0 = _v;
 
                 it = 0;
                 while (it < 100*n)
@@ -158,7 +159,20 @@ struct GaussianAcceleratedBilliardWalk
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
-                if (it == 100*n) _p = p0;
+                if (it == 100*n)
+                {
+                    _p = p0;
+                }
+                // else
+                // {
+                //     // metropolis filter
+                //     NT u_logprob = log(rng.sample_urdist());
+                //     NT accept_logprob = 0.5*(E.mat_mult(v0) - E.mat_mult(_v));
+                //     if(u_logprob > accept_logprob) {
+                //         // reject
+                //         _p = p0;
+                //     }
+                // }
             }
             p = _p;
         }
@@ -173,11 +187,11 @@ struct GaussianAcceleratedBilliardWalk
         template
                 <
                         typename GenericPolytope,
-                        typename MT
+                        typename Ellipsoid
                 >
         inline void initialize(GenericPolytope const& P,
                                Point const& p,  // a point to start
-                               MT const& L,    // cholesky matrix for Gaussian Direction
+                               Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
                                RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
@@ -185,7 +199,7 @@ struct GaussianAcceleratedBilliardWalk
             _lambdas.setZero(P.num_of_hyperplanes());
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
-            _v = GetGaussianDirection<Point>::apply(n, L, rng);
+            _v = GetGaussianDirection<Point>::apply(n, E, rng);
 
             NT T = -std::log(rng.sample_urdist()) * _Len;
             Point p0 = _p;
