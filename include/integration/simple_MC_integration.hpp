@@ -30,14 +30,12 @@
 typedef double NT;
 typedef Cartesian<NT> Kernel;
 typedef typename Kernel::Point Point;
-typedef std::vector<Point> Points;
-typedef HPolytope<Point> HPOLYTOPE;
+typedef HPolytope<Point> Hpolytope;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
 typedef typename HPolytope<Point>::MT MT;
 typedef typename HPolytope<Point>::VT VT; 
 
-typedef const unsigned int Uint;  // Positive constant value for no of samples & dimensions
 enum volumetype {CB ,CG ,SOB}; // Volume type for polytope
 typedef typename std::vector<NT> Limit; // Standard way for user to use limits 
 // E.g. Limits LL{0.5, 1.5, 2.5} ; Limits UL{1.2, 1.8 , 2.8 } ;
@@ -53,7 +51,7 @@ template
 >
 bool valid_limits(Point LL, Point UL) {
     if (UL.dimension() == LL.dimension()) {
-        for (int i = 0; i<LL.dimension(); i++) {
+        for (int i = 0; i < LL.dimension(); i++) {
             if (LL[i] > UL[i]) {
                 std::cerr << "Invalid integration limits\n";
                 return false;
@@ -72,9 +70,9 @@ template
     typename Point = Point,
     typename NT = NT
 >
-Point init_limit(Limit L, Uint dim) {
+Point init_limit(Limit L, int dim) {
     Point pt(dim);
-    for (int i=0; i<dim; i++) {
+    for (int i = 0; i < dim; i++) {
         pt.set_coord(i, L[i]);
     }
     return pt;
@@ -92,7 +90,7 @@ void initiate_unit_limits(Point& LL, Point& UL, int dim) {
     LL.set_to_origin();
     UL.set_to_origin();
 
-    for (int i=0 ; i<dim; i++) {
+    for (int i = 0 ; i < dim ; i++) {
         LL.set_coord(i, -1);
         UL.set_coord(i, 1);
     }
@@ -102,21 +100,22 @@ void initiate_unit_limits(Point& LL, Point& UL, int dim) {
 template 
 <
     typename WalkType = BallWalk,
-    typename Polytope = HPOLYTOPE,
+    typename Polytope = Hpolytope,
+    typename VolumeWalkType = BallWalk,
     typename RNG = RandomNumberGenerator,
     typename NT = NT,
     typename Functor
 >
 NT simple_mc_polytope_integrate(Functor Fx, 
                                 Polytope &P, 
-                                Uint N = 10000, 
+                                int N = 10000, 
                                 volumetype voltype = SOB, 
                                 int walk_length = 1, 
                                 NT e = 0.1, 
                                 Point Origin = pt) 
 {
 
-    Uint dim = P.dimension();
+    int dim = P.dimension();
     // P.print();
 
     // Check if ShiftPoint is shifted with accurate dimensions
@@ -136,13 +135,13 @@ NT simple_mc_polytope_integrate(Functor Fx,
     
     switch (voltype) {
     case CB:     
-        volume = volume_cooling_balls <BallWalk, RNG, Polytope> (P, e, walk_length).second; 
+        volume = volume_cooling_balls <VolumeWalkType, RNG, Polytope> (P, e, walk_length).second; 
         break;
     case CG: 
         volume = volume_cooling_gaussians <GaussianBallWalk, RNG, Polytope> (P, e, walk_length);
         break;
     case SOB: 
-        volume = volume_sequence_of_balls <BallWalk, RNG, Polytope> (P, e, walk_length);
+        volume = volume_sequence_of_balls <VolumeWalkType, RNG, Polytope> (P, e, walk_length);
         break;
     default:
         std::cerr << "Error in volume type: CB / SOB / CG" << std::endl;
@@ -157,8 +156,6 @@ NT simple_mc_polytope_integrate(Functor Fx,
     Point x0 = inner_ball.first;
     typename WalkType::template Walk<Polytope, RNG> walk(P, x0, rng);
 
-    // For storing sampled points
-    Points points; 
     NT sum = 0;
 
     // Applying and walking through Uniform Walks + Storing Points in Vector<Point>
@@ -183,8 +180,8 @@ template
     typename Functor
 >
 NT simple_mc_integrate (Functor Fx, 
-                        Uint dim, 
-                        Uint N = 10000, 
+                        int dim, 
+                        int N = 10000, 
                         volumetype voltype = SOB, 
                         Limit LowLimit = lt, 
                         Limit UpLimit = lt, 
@@ -222,10 +219,10 @@ NT simple_mc_integrate (Functor Fx,
         }
 
         // Initialization of H-Polytope
-        HPOLYTOPE P(dim, mt, vt);
+        Hpolytope P(dim, mt, vt);
         // P.print();
 
-        NT integration_value = simple_mc_polytope_integrate <WalkType, HPOLYTOPE> (Fx, P, N, voltype, walk_length, e);
+        NT integration_value = simple_mc_polytope_integrate <WalkType, Hpolytope> (Fx, P, N, voltype, walk_length, e);
         return integration_value;
 
     } else {
@@ -235,49 +232,3 @@ NT simple_mc_integrate (Functor Fx,
 }
 
 #endif
-
-// Hyper-Rectangle volume calculator in n-dimensions
-// template
-// <
-//     typename Point = Point,
-//     typename NT = NT
-// >
-// NT hyper_rect_volume (Point LL, Point UL) {
-
-//     NT product = 1;
-//     if( valid_limits(LL, UL) ) {
-//         for(int i=0; i<LL.dimension() ; ++i) {
-//             product = product * (UL[i] - LL[i]);
-//         }
-//         return product;
-//     }
-//     else return -1;
-// }
-
-// To sample a point between two n-dimensional points using inbuilt random sampling
-// Please use `srand(time(0));` while invoking this function
-// Point sample_point_bw_limits (Point LL, Point UL) {
-    
-//     Point sample_point(LL.dimension());
-//     for (int i=0; i<LL.dimension() ; ++i) {
-//         sample_point.set_coord(i, LL[i] + (NT)(rand()) / ((NT)(RAND_MAX/(UL[i] - LL[i]))));
-//     }
-//     return sample_point;
-// }
-
-// Setting up params for random walks
-// std::pair <Point, NT> inner_ball = P.ComputeInnerBall();
-// RNG rng(1);
-// Point x0 = inner_ball.first;
-// typename WalkType::template Walk <HPOLYTOPE, RNG> walk(P, x0, rng);
-
-// for (int i = 0; i<=N; i++) {
-//     walk.apply(P, x0, walk_length, rng);
-//     sum += Fx(x0);
-// }    
-
-// NT volume = hyper_rect_volume(LL,UL);
-// std::cout << volume << std::endl;
-
-// NT integration_value = volume * sum / N ;
-// return integration_value;
