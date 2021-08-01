@@ -59,7 +59,7 @@ void test_values (NT computed, NT expected, NT exact) {
 }
 
 template <typename NT>
-void call_test_simple_mc_integration_over_rectangles() {
+void  call_test_simple_mc_integration_over_rectangles() {
 
 	typedef Cartesian<NT> Kernel;
 	typedef typename Kernel::Point Point;
@@ -73,7 +73,7 @@ void call_test_simple_mc_integration_over_rectangles() {
 
 	Limit LL{-1};
 	Limit UL{6};
-	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (simple_polynomial_1D<NT>, 1, 1000, CB, LL, UL);
+	integration_value = simple_mc_integrate <AcceleratedBilliardWalk> (simple_polynomial_1D<NT>, 1, 100000, CB, LL, UL);
 	test_values(integration_value, 39.7, 40.25);
 
 	Limit LL1{0.5};
