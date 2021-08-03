@@ -44,6 +44,7 @@ template
 	typename EvaluationFunctor,
 	typename GradientFunctor,
 	typename Parameters,
+	typename WalkType,
 	typename Polytope = HPOLYTOPE,
 	typename Point,
 	typename NT
@@ -54,21 +55,44 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 							Polytope &P,
 							Point x0,
 							NT B,
+							volumetype voltype = SOB,
 							unsigned int walk_length = 10,
 							NT epsilon = 0.1)
 {
 	unsigned int n = P.dimension();
-	unsigned int m = 15; // (unsigned int) ceil(sqrt(n) * log(B));
+	unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
 	unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B));
 
-	NT volume = volume_sequence_of_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
+	NT volume = 0;
+
+	switch (voltype) {
+    case CB:     
+        volume = volume_cooling_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length).second; 
+        break;
+    case CG: 
+        volume = volume_cooling_gaussians <GaussianBallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
+        break;
+    case SOB: 
+        volume = volume_sequence_of_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
+        break;
+    default:
+        std::cerr << "Error in volume type: CB / SOB / CG" << std::endl;
+        return -1;
+    }
+
 	NT alpha_prev = (NT) 1 / B;
 	NT alpha = (NT) 1 / B;
 	NT log_W = log(volume);
 	NT W_current = (NT) 0;
 
 	RandomNumberGenerator rng(1);
-	std::cerr << "n = " << n << " m = " << m << " k = " << k << " volume = " << volume << " log_W = " << log_W  << std::endl;
+
+	typename WalkType::template Walk <Polytope, RandomNumberGenerator> walk(P, x0, rng);	  
+	for (int i = 1; i <= k; i++) {
+		walk.apply(P, x0, walk_length, rng);
+	}
+
+	std::cerr << "B = " << B << " n = " << n << " m = " << m << " k = " << k << " volume = " << volume << " log_W = " << log_W  << std::endl;
 	std::cerr << "alpha = " << alpha << " alpha_prev = " << alpha_prev << " W_current = " << W_current << std::endl << std::endl;
 
 	// Initialize HMC walks using EvaluationFunctor and GradientFunctor
@@ -82,7 +106,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 		hmc(&P, x0, grad_g, g, hmc_params);
 
 	// Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
-	for (int i = 1; i <= m && alpha < 1; i++ ) {
+	for (int i = 1; i <= m && alpha <= 1; i++ ) {
 
 		alpha *= (1 + 1 / sqrt(n));
 		params.set_temperature(alpha);
@@ -92,7 +116,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 
 			hmc.apply(rng, walk_length);
 			W_current += exp(-g(hmc.x) * (alpha - alpha_prev));
-			// std::cerr << hmc.x.getCoefficients().transpose() << std::endl;
+			// std::cout << hmc.x.getCoefficients().transpose() << std::endl;
 			
 		}
 
@@ -117,16 +141,4 @@ https://github1s.com/GeomScale/volume_approximation/blob/develop/test/logconcave
 
 HMC examples/logconcave
 https://github.com/GeomScale/volume_approximation/tree/develop/examples/logconcave
-*/
-
-/*
-  MT points = uniform sample points in ` n rows * k columns ` ( k is the number of points )
-  RNG rng(1);    
-  MT points(n,k); // n rows(dimension) * k columns(number of points)
-  typename WalkType::template Walk <Polytope, RNG> walk(P, x0, rng);
-	  
-  for (int i = 0; i < k; i++) {
-	  walk.apply(P, x0, walk_length, rng);
-	  points.col(i) = x0.getCoefficients();
-  }
 */

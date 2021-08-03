@@ -29,81 +29,13 @@ typedef double NT;
 
 template <typename NT>
 void test_values (NT computed){ //, NT expected, NT exact) {
-	std::cout << "Computed integration value = " << computed << std::endl;
-	// std::cout << "Expected integration value = " << expected << std::endl;
-	// std::cout << "Exact integration value = " << exact << std::endl;
-	// std::cout << "Relative error (expected) = " << std::abs((computed - expected)/expected) << std::endl;
-	// std::cout << "Relative error (exact) = " << std::abs((computed - exact)/exact) << std::endl ;
+	std::cerr << "----------------------------------------------------------------Computed integration value = " << computed << std::endl;
+	// std::cerr << "Expected integration value = " << expected << std::endl;
+	// std::cerr << "Exact integration value = " << exact << std::endl;
+	// std::cerr << "Relative error (expected) = " << std::abs((computed - expected)/expected) << std::endl;
+	// std::cerr << "Relative error (exact) = " << std::abs((computed - exact)/exact) << std::endl ;
 	// CHECK(((std::abs((computed - expected)/expected) < 0.00001) || (std::abs((computed - exact)/exact) < 0.2)));
 }
-
-struct CustomFunctor {
-
-  // Custom density with neg log prob equal to || x ||^2 + 1^T x
-  template 
-  <
-	  typename NT
-  >
-  struct parameters {
-	unsigned int order;
-	NT L; // Lipschitz constant for gradient
-	NT m; // Strong convexity constant
-	NT kappa; // Condition number
-
-	parameters() : order(2), L(2), m(2), kappa(1) {};
-
-	parameters(unsigned int order_) :
-	  order(order),
-	  L(2),
-	  m(2),
-	  kappa(1)
-	{}
-  };
-
-  template
-  <
-	  typename Point
-  >
-  struct GradientFunctor {
-	typedef typename Point::FT NT;
-	typedef std::vector<Point> pts;
-
-	parameters<NT> params;
-
-	GradientFunctor() {};
-
-	// The index i represents the state vector index
-	Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
-	  if (i == params.order - 1) {
-		Point y(xs[0].dimension());
-		y = y + (-2.0) * xs[i];
-		return y;
-	  } else {
-		return xs[i + 1]; // returns derivative
-	  }
-	}
-
-  };
-
-  template
-  <
-	typename Point
-  >
-  struct FunctionFunctor {
-	typedef typename Point::FT NT;
-
-	parameters<NT> params;
-
-	FunctionFunctor() {};
-
-	// The index i represents the state vector index
-	NT operator() (Point const& x) const {
-	  return x.dot(x);
-	}
-
-  };
-
-};
 
 template <typename NT>
 void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test function
@@ -114,18 +46,74 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
 	typedef boost::mt19937 RNGType;
 	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
 
-	typedef CustomFunctor::FunctionFunctor <Point> EvaluationFunctor;
-	typedef CustomFunctor::GradientFunctor <Point> GradientFunctor;
+	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
+	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
 	typedef OptimizationFunctor::GradientFunctor
 	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
 	typedef OptimizationFunctor::FunctionFunctor
 	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
 	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
 
-	GradientFunctor grad_g;
-	EvaluationFunctor g;
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (1, false);
+	// HP.print();
+
+	IsotropicQuadraticFunctor::parameters<NT> params;
+	params.alpha = (NT)2;
+
+	GradientFunctor grad_g(params);
+	EvaluationFunctor g(params);
+
+	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
+
+	NegativeLogprobOptimizationFunctor f(opt_params);
+	NegativeGradientOptimizationFunctor grad_f(opt_params);
+
+	std::vector<NT> Maximum{0}; Point max(1, Maximum);
+	std::vector<NT> Minimum{1}; Point min(1, Minimum);
+	// std::cerr << "Maximum x = " ; max.print();
+	// std::cerr << "Minimum x = " ; min.print();
+	// std::cerr << "Maximum f(x) = " << exp(-g(max)) << " Minimum f(x) = " << exp(-g(min)) << std::endl;
+
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
+	Point x0 = inner_ball.first;
+	std::cerr << "Center " ;x0.print();
+
+	NT beta = 1.0;
+	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
+
+	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B, CB, 5, 0.1);
+	
+	test_values(integral_value);
+
+}
+
+template <typename NT>
+void call_cubes_test_lovasz_vempala_integrate2() { // or inside the previous test function
+
+	typedef Cartesian<NT> Kernel;
+	typedef typename Kernel::Point Point;
+	typedef HPolytope<Point> HPOLYTOPE;
+	typedef boost::mt19937 RNGType;
+	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+
+	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
+	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
+	typedef OptimizationFunctor::GradientFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
+	typedef OptimizationFunctor::FunctionFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
+	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+
 	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (2, false);
 	// HP.print();
+
+	IsotropicQuadraticFunctor::parameters<NT> params;
+	params.alpha = (NT)2;
+
+	GradientFunctor grad_g(params);
+	EvaluationFunctor g(params);
 
 	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
 
@@ -134,25 +122,198 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
 
 	std::vector<NT> Maximum{0,0}; Point max(2, Maximum);
 	std::vector<NT> Minimum{1,1}; Point min(2, Minimum);
-	std::cout << "Maximum x = " ; max.print();
-	std::cout << "Minimum x = " ; min.print();
-	std::cout << "Maximum f(x) = " << exp(-g(max)) << " Minimum f(x) = " << exp(-g(min)) << std::endl;
+	// std::cerr << "Maximum x = " ; max.print();
+	// std::cerr << "Minimum x = " ; min.print();
+	// std::cerr << "Maximum f(x) = " << exp(-g(max)) << " Minimum f(x) = " << exp(-g(min)) << std::endl;
 
 	unsigned int n = HP.dimension();;
 	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
-	x0.print();
+	std::cerr << "Center " ;x0.print();
 
-	NT B = log( exp(-g(max)) / exp(-g(min)) ); //2 * n + 2 * log(1/0.1) + n * log( 1 / beta);
-	x0 = inner_ball.first;
+	NT beta = 1.0;
+	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
 
-	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, B, 10, 0.1);
+	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B, SOB, 5, 0.1);
 	
 	test_values(integral_value);
 
 }
 
-TEST_CASE("cubes") {
+template <typename NT>
+void call_cubes_test_lovasz_vempala_integrate3() { // or inside the previous test function
+
+	typedef Cartesian<NT> Kernel;
+	typedef typename Kernel::Point Point;
+	typedef HPolytope<Point> HPOLYTOPE;
+	typedef boost::mt19937 RNGType;
+	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+
+	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
+	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
+	typedef OptimizationFunctor::GradientFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
+	typedef OptimizationFunctor::FunctionFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
+	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (3, false);
+	// HP.print();
+
+	IsotropicQuadraticFunctor::parameters<NT> params;
+	params.alpha = (NT)2;
+
+	GradientFunctor grad_g(params);
+	EvaluationFunctor g(params);
+
+	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
+
+	NegativeLogprobOptimizationFunctor f(opt_params);
+	NegativeGradientOptimizationFunctor grad_f(opt_params);
+
+	std::vector<NT> Maximum{0,0,0}; Point max(3, Maximum);
+	std::vector<NT> Minimum{1,1,1}; Point min(3, Minimum);
+	// std::cerr << "Maximum x = " ; max.print();
+	// std::cerr << "Minimum x = " ; min.print();
+	// std::cerr << "Maximum f(x) = " << exp(-g(max)) << " Minimum f(x) = " << exp(-g(min)) << std::endl;
+
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
+	Point x0 = inner_ball.first;
+	std::cerr << "Center " ;x0.print();
+
+	NT beta = 1.0;
+	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
+
+	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B, SOB, 5, 0.1);
+	
+	test_values(integral_value);
+
+}
+
+template <typename NT>
+void call_cubes_test_lovasz_vempala_integrate4() { // or inside the previous test function
+
+	typedef Cartesian<NT> Kernel;
+	typedef typename Kernel::Point Point;
+	typedef HPolytope<Point> HPOLYTOPE;
+	typedef boost::mt19937 RNGType;
+	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+
+	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
+	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
+	typedef OptimizationFunctor::GradientFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
+	typedef OptimizationFunctor::FunctionFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
+	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (4, false);
+	// HP.print();
+
+	IsotropicQuadraticFunctor::parameters<NT> params;
+	params.alpha = (NT)2;
+
+	GradientFunctor grad_g(params);
+	EvaluationFunctor g(params);
+
+	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
+
+	NegativeLogprobOptimizationFunctor f(opt_params);
+	NegativeGradientOptimizationFunctor grad_f(opt_params);
+
+	std::vector<NT> Maximum{0,0,0,0}; Point max(4, Maximum);
+	std::vector<NT> Minimum{1,1,1,1}; Point min(4, Minimum);
+	// std::cerr << "Maximum x = " ; max.print();
+	// std::cerr << "Minimum x = " ; min.print();
+	// std::cerr << "Maximum f(x) = " << exp(-g(max)) << " Minimum f(x) = " << exp(-g(min)) << std::endl;
+
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
+	Point x0 = inner_ball.first;
+	std::cerr << "Center " ;x0.print();
+
+	NT beta = 1.0;
+	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
+
+	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B, SOB, 5, 0.1);
+	
+	test_values(integral_value);
+
+}
+
+template <typename NT>
+void call_cubes_test_lovasz_vempala_integrate5() { // or inside the previous test function
+
+	typedef Cartesian<NT> Kernel;
+	typedef typename Kernel::Point Point;
+	typedef HPolytope<Point> HPOLYTOPE;
+	typedef boost::mt19937 RNGType;
+	typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
+
+	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
+	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
+	typedef OptimizationFunctor::GradientFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
+	typedef OptimizationFunctor::FunctionFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
+	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (5, false);
+	// HP.print();
+
+	IsotropicQuadraticFunctor::parameters<NT> params;
+	params.alpha = (NT)2;
+
+	GradientFunctor grad_g(params);
+	EvaluationFunctor g(params);
+
+	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
+
+	NegativeLogprobOptimizationFunctor f(opt_params);
+	NegativeGradientOptimizationFunctor grad_f(opt_params);
+
+	std::vector<NT> Maximum{0,0,0,0,0}; Point max(5, Maximum);
+	std::vector<NT> Minimum{1,1,1,1,1}; Point min(5, Minimum);
+	// std::cerr << "Maximum x = " ; max.print();
+	// std::cerr << "Minimum x = " ; min.print();
+	// std::cerr << "Maximum f(x) = " << exp(-g(max)) << " Minimum f(x) = " << exp(-g(min)) << std::endl;
+
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
+	Point x0 = inner_ball.first;
+	std::cerr << "Center " ;x0.print();
+
+	NT beta = 1.0;
+	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
+
+	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B, SOB, 5, 0.1);
+	
+	test_values(integral_value);
+
+}
+
+
+TEST_CASE("iso") {
 	call_cubes_test_lovasz_vempala_integrate<double>();
+}
+
+TEST_CASE("iso2") {
+	call_cubes_test_lovasz_vempala_integrate2<double>();
+}
+
+TEST_CASE("iso3") {
+	call_cubes_test_lovasz_vempala_integrate3<double>();
+}
+
+TEST_CASE("iso4") {
+	call_cubes_test_lovasz_vempala_integrate4<double>();
+}
+
+TEST_CASE("iso5") {
+	call_cubes_test_lovasz_vempala_integrate5<double>();
 }
