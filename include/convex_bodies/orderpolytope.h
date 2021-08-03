@@ -12,7 +12,7 @@
 #define ORDER_POLYTOPE_H
 
 #include <iostream>
-#include "poset.h"
+#include "misc/poset.h"
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
 #ifndef VOLESTIPY

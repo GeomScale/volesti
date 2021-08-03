@@ -2,8 +2,8 @@
 #include <vector>
 #include "cartesian_geom/cartesian_kernel.h"
 #include "orderpolytope.h"
- #include "random_walks/gaussian_accelerated_billiard_walk.hpp"
- #include "generators/boost_random_number_generator.hpp"
+#include "random_walks/gaussian_accelerated_billiard_walk.hpp"
+#include "generators/boost_random_number_generator.hpp"
 #include "volume_cooling_ellipsoids.hpp"
 
 #include <iostream>
