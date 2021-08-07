@@ -82,6 +82,9 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
 	NT beta = 1.0;
 	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
 
+	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B);
+
 	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
 	  (f, grad_f, opt_params, HP, x0, B, CB, 5, 0.1);
 	
@@ -134,8 +137,11 @@ void call_cubes_test_lovasz_vempala_integrate2() { // or inside the previous tes
 	NT beta = 1.0;
 	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
 
+	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B);
+
 	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, B, SOB, 5, 0.1);
+	  (f, grad_f, opt_params, HP, x0, B, CB, 5, 0.1);
 	
 	test_values(integral_value);
 
@@ -186,8 +192,11 @@ void call_cubes_test_lovasz_vempala_integrate3() { // or inside the previous tes
 	NT beta = 1.0;
 	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
 
+	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B);
+
 	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, B, SOB, 5, 0.1);
+	  (f, grad_f, opt_params, HP, x0, B, CB, 5, 0.1);
 	
 	test_values(integral_value);
 
@@ -238,8 +247,11 @@ void call_cubes_test_lovasz_vempala_integrate4() { // or inside the previous tes
 	NT beta = 1.0;
 	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
 
+	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B);
+
 	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, B, SOB, 5, 0.1);
+	  (f, grad_f, opt_params, HP, x0, B, CB, 5, 0.1);
 	
 	test_values(integral_value);
 
@@ -290,8 +302,11 @@ void call_cubes_test_lovasz_vempala_integrate5() { // or inside the previous tes
 	NT beta = 1.0;
 	NT B = 2 * n + 2 * log(1/0.1) + n * log( 1 / beta); // log( exp(-g(max)) / exp(-g(min)) );
 
+	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
+	  (f, grad_f, opt_params, HP, x0, B);
+
 	NT integral_value = lovasz_vempala_integrate <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, B, SOB, 5, 0.1);
+	  (f, grad_f, opt_params, HP, x0, B, CB, 5, 0.1);
 	
 	test_values(integral_value);
 
