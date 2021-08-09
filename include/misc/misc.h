@@ -212,7 +212,7 @@ std::pair<Point, NT> read_inner_ball(std::istream &is) {
     - Next `m` lines follow containing a pair 'i j' in each line to signify A_i <= A_j
         i.e i_th element is less than or equal to the j_th element
 */
-Poset read_poset_from_file(std::ifstream &data_file) {
+Poset read_poset_from_file(std::istream &data_file) {
     typedef typename Poset::RT RT;
     typedef typename Poset::RV RV;
 
@@ -231,7 +231,7 @@ Poset read_poset_from_file(std::ifstream &data_file) {
 
 
 // read a poset given as an adjacency matrix
-std::pair<bool, Poset> read_poset_from_file_adj_matrix(std::ifstream &in) {
+std::pair<bool, Poset> read_poset_from_file_adj_matrix(std::istream &in) {
     typedef typename Poset::RV RV;
 
     RV edges;

@@ -19,7 +19,7 @@
 #include "misc/poset.h"
 #include "random_walks/gaussian_accelerated_billiard_walk.hpp"
 #include "volume/volume_cooling_ellipsoids.hpp"
-#include "generators/order_polytope/order_polytope_generator.h"
+#include "generators/order_polytope_generator.h"
 
 template <typename NT>
 NT factorial(NT n)
@@ -84,8 +84,8 @@ void call_test_bipartite(){
     typedef OrderPolytope<Point> Orderpolytope;
 
     std::cout << "--- Testing volume of OrderPolytope-biparitite_0.5_008_0" << std::endl;
-    std::string filepath = "../../include/generators/order_polytope/instances/bipartite_0.5_008_0.txt";
-    Orderpolytope OP = generate_orderpoly<Orderpolytope>(filepath);
+    std::string instance = "bipartite_0.5_008_0";
+    Orderpolytope OP = generate_orderpoly<Orderpolytope>(instance);
     OP.normalize();
     test_volume(OP, 0.0382686, 1504.0/factorial(8));    // 1504 is the number of linear extensions of this poset
 }
@@ -97,8 +97,8 @@ void call_test_andes(){
     typedef OrderPolytope<Point> Orderpolytope;
 
     std::cout << "--- Testing volume of OrderPolytope-bayesiannetwork_andes_008_0" << std::endl;
-    std::string filepath = "../../include/generators/order_polytope/instances/bayesiannetwork_andes_008_0.txt";
-    Orderpolytope OP = generate_orderpoly<Orderpolytope>(filepath);
+    std::string instance = "bayesiannetwork_andes_008_0";
+    Orderpolytope OP = generate_orderpoly<Orderpolytope>(instance);
     OP.normalize();
     test_volume(OP, 0.000741068, 28.0/factorial(8));    // 28 is the number of linear extensions of this poset
 }
