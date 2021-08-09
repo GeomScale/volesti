@@ -46,7 +46,9 @@ NT calculateLinearExtension(ORDER_POLYTOPE const& OP) {
 */
 int main(int argc, char* argv[]) {
     std::string filename (argv[1]);
-    std::pair<bool, Poset> read_poset = read_poset_from_file_adj_matrix(filename);
+    std::ifstream in;
+    in.open(filename);
+    std::pair<bool, Poset> read_poset = read_poset_from_file_adj_matrix(in);
 
     if( !read_poset.first ) {
         std::cerr << "error in reading data from file" << std::endl;

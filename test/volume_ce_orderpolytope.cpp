@@ -84,8 +84,8 @@ void call_test_bipartite(){
     typedef OrderPolytope<Point> Orderpolytope;
 
     std::cout << "--- Testing volume of OrderPolytope-biparitite_0.5_008_0" << std::endl;
-    std::string filename = "bipartite_0.5_008_0.txt";
-    Orderpolytope OP = generate_orderpoly<Orderpolytope>(filename);
+    std::string filepath = "../../include/generators/order_polytope/instances/bipartite_0.5_008_0.txt";
+    Orderpolytope OP = generate_orderpoly<Orderpolytope>(filepath);
     OP.normalize();
     test_volume(OP, 0.0382686, 1504.0/factorial(8));    // 1504 is the number of linear extensions of this poset
 }
@@ -97,8 +97,8 @@ void call_test_andes(){
     typedef OrderPolytope<Point> Orderpolytope;
 
     std::cout << "--- Testing volume of OrderPolytope-bayesiannetwork_andes_008_0" << std::endl;
-    std::string filename = "bayesiannetwork_andes_008_0.txt";
-    Orderpolytope OP = generate_orderpoly<Orderpolytope>(filename);
+    std::string filepath = "../../include/generators/order_polytope/instances/bayesiannetwork_andes_008_0.txt";
+    Orderpolytope OP = generate_orderpoly<Orderpolytope>(filepath);
     OP.normalize();
     test_volume(OP, 0.000741068, 28.0/factorial(8));    // 28 is the number of linear extensions of this poset
 }
