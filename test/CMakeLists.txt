@@ -270,6 +270,10 @@ else ()
   add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
 
+  add_executable (volume_ce_orderpolytope volume_ce_orderpolytope.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME volume_ce_orderpolytope_cube COMMAND volume_ce_orderpolytope -tc=cube)
+  add_test(NAME volume_ce_orderpolytope_bipartite COMMAND volume_ce_orderpolytope -tc=bipartite)
+  add_test(NAME volume_ce_orderpolytope_andes COMMAND volume_ce_orderpolytope -tc=andes)
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
