@@ -35,7 +35,6 @@ typedef typename Kernel::Point Point;
 typedef HPolytope<Point> HPOLYTOPE;
 typedef boost::mt19937 RNGType;
 typedef BoostRandomNumberGenerator<RNGType, NT> RandomNumberGenerator;
-typedef std::pair<Point, NT> PairFunctor;
 
 enum volumetype { CB,CG,SOB }; // Volume type for polytope
 
@@ -45,7 +44,7 @@ template
 	typename GradientFunctor,
 	typename Parameters,
 	typename WalkType,
-	typename Polytope = HPOLYTOPE,
+	typename Polytope,
 	typename Point,
 	typename NT
 >
@@ -54,12 +53,13 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 							Parameters &params,
 							Polytope &P,
 							Point x0,
-							NT B,
+							NT beta = 1.0,
 							volumetype voltype = SOB,
 							unsigned int walk_length = 10,
 							NT epsilon = 0.1)
 {
 	unsigned int n = P.dimension();
+	NT B = 2 * n + 2 * log(1 / epsilon) + n * log(1 / beta);
 	unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
 	unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B));
 
@@ -92,23 +92,21 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 	for (int i = 1; i <= k; i++) {
 		walk.apply(P, x0, walk_length, rng);
 	}
+	
 	std::cout << "Print x0: " ; x0.print();
-
 	std::cerr << "B = " << B << " n = " << n << " m = " << m << " k = " << k << " volume = " << volume << " log_W = " << log_W  << std::endl;
 	std::cerr << "alpha = " << alpha << " alpha_prev = " << alpha_prev << " W_current = " << W_current << std::endl << std::endl;
 
 	// Initialize HMC walks using EvaluationFunctor and GradientFunctor
-
 	typedef LeapfrogODESolver<Point, NT, Polytope, GradientFunctor> Solver;
-
 	HamiltonianMonteCarloWalk::parameters <NT, GradientFunctor> hmc_params(grad_g, n);
-
-	HamiltonianMonteCarloWalk::Walk
-		<Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
-		hmc(&P, x0, grad_g, g, hmc_params);
+	HamiltonianMonteCarloWalk::Walk <Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
+	  hmc(&P, x0, grad_g, g, hmc_params);
 
 	// Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
-	while(alpha <= 1) {
+
+	// for (int i = 1; i <= m; i++) { 					// for exact m outer loop runs
+	while (alpha < 1) {									// for making the loop exit at alpha > 1
 
 		alpha *= (1 + 1 / sqrt(n));
 		params.set_temperature(alpha);
@@ -124,8 +122,8 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 
 		W_current /= k;
 		log_W += log(W_current);
+		std::cerr << "After i_th round | alpha = " << alpha << " | alpha_prev = " << alpha_prev << " | W_current = " << W_current << " | exp(log_W) = " << exp(log_W) << std::endl;
 		alpha_prev = alpha;
-		std::cerr << "After i_th round | alpha = " << alpha << " | exp(log_W) = " << exp(log_W) << std::endl;
 	}
 
 	return exp(log_W);    
@@ -137,24 +135,29 @@ template
 	typename GradientFunctor,
 	typename Parameters,
 	typename WalkType,
-	typename Polytope = HPOLYTOPE,
+	typename Polytope,
 	typename Point,
+	typename MT,
+	typename VT,
 	typename NT
 >
 std::pair<Point, NT> lovasz_vempala_optimize(EvaluationFunctor &g,
-											 GradientFunctor &grad_g,
-											 Parameters &params,
-											 Polytope &P,
-											 Point x0,
-											 NT B,
-											 NT C0 = 1,
-											 unsigned int walk_length = 10,
-											 NT delta = 1,
-											 NT epsilon = 0.1)
+											GradientFunctor &grad_g,
+											Parameters &params,
+											Polytope &P,
+											Point x0,
+											NT beta = 1.0,
+											NT C0 = 1,
+											unsigned int walk_length = 10,
+											NT delta = 1,
+											NT epsilon = 0.1)
 {
 	unsigned int n = P.dimension();
+	NT B = (NT) n * log(2 / beta);
 	unsigned int m = (unsigned int)	ceil(sqrt(n) * log(2 * B * (n + log(1 / delta)) / epsilon ));
 	unsigned int k = (unsigned int) ceil(C0 * n * pow(log(n), 5));
+
+	std::cerr << "n = " << n << " m = " << m << " k = " << k << " B = " << B <<  std::endl;
 
 	RandomNumberGenerator rng(1);
 	
@@ -165,29 +168,31 @@ std::pair<Point, NT> lovasz_vempala_optimize(EvaluationFunctor &g,
 	}
 
 	// Initialize HMC walks using EvaluationFunctor and GradientFunctor
-
 	typedef LeapfrogODESolver<Point, NT, Polytope, GradientFunctor> Solver;
-
 	HamiltonianMonteCarloWalk::parameters <NT, GradientFunctor> hmc_params(grad_g, n);
-
-	HamiltonianMonteCarloWalk::Walk
-		<Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
-		hmc(&P, x0, grad_g, g, hmc_params);
+	HamiltonianMonteCarloWalk::Walk<Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
+	  hmc(&P, x0, grad_g, g, hmc_params);
 
 	
-	NT alpha = 1 / B;
-	Point calculated_point = x0, max_point = x0;
-	NT calculated_value = exp(-g(hmc.x)), max_value = calculated_value;
+	NT alpha = (NT) 1 / B;
+	Point max_point = x0;
+	NT calculated_value = exp(-g(hmc.x));
+	NT max_value = calculated_value;
+	MT hmc_points(n, k); // n(=dimension) rows * k(=no. of points) columns 
 
 	// Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
-	for (int i = 1; i <= m ; i++) {
 
-		alpha *= (1 + 1 / sqrt(n));
-		params.set_temperature(alpha);
+	// for (int i = 1; i <= m; i++) { 					// for exact m outer loop runs
+	while (alpha < 1) {									// for making the loop exit at alpha > 1
 
-		for (unsigned int j = 1; j <= k ; j++) {
+		// alpha *= (1 + 1 / sqrt(n));
+		// params.set_temperature(alpha);		
+
+		for (int j = 1; j <= k ; j++) {
 
 			hmc.apply(rng, walk_length);
+			hmc_points.col(j-1) = hmc.x.getCoefficients();
+
 			calculated_value = exp(-g(hmc.x));
 			if (calculated_value > max_value) {
 				max_point = hmc.x;
@@ -196,27 +201,30 @@ std::pair<Point, NT> lovasz_vempala_optimize(EvaluationFunctor &g,
 			
 		}
 	
+		// MT manipulation for covariance matrix
+		MT mean = hmc_points.rowwise().mean();
+		for (int j = 1; j <= k ; j++) hmc_points.col(j-1) -= mean;
+		
+		Eigen::BDCSVD<MT> svd(hmc_points, Eigen::ComputeThinU);
+		MT sigma = svd.singularValues().array().matrix().asDiagonal();
+
+		MT covariance_matrix_inv = (1/(NT)k * svd.matrixU() * sigma * sigma * svd.matrixU().transpose()).inverse();
+		VT eigen_values = covariance_matrix_inv.eigenvalues().real().array();
+
+		NT L = eigen_values.maxCoeff();
+		NT M = eigen_values.minCoeff();
+		NT kappa = L/M;
+
+		// params.update_covariance_matrix(covariance_matrix_inv, L , M, kappa)
+
 	}
 
-	std::pair<Point, NT> values(max_point, max_value);
-	// values.insert(std::pair<int, int>(0, 42));    
-	std::cout << "Max point check = " ; values.first.print();
-	std::cout << "Max value check = " << values.second << std::endl;
+	std::pair<Point, NT> values(max_point, max_value); 
+	std::cerr << "Max point check = " ; values.first.print();
+	std::cerr << "Max value check = " << values.second << std::endl;
 
-	return values;  // (Point)values.first = X s.t. max_f = max(exp(-g(X))), (NT)values.second = max_f
+	return values;  // (Point)values.first = X s.t. max_f = max( exp(-g(X)) ), (NT)values.second = max_f
 
 }
 
 #endif
-
-/*
-include/ode_solvers/oracle_functors 
-To see how to define oracle_functors and gradient functors
-https://github1s.com/GeomScale/volume_approximation/blob/develop/include/ode_solvers/oracle_functors.hpp
-
-test/logconcave_sampling_test.cpp
-https://github1s.com/GeomScale/volume_approximation/blob/develop/test/logconcave_sampling_test.cpp
-
-HMC examples/logconcave
-https://github.com/GeomScale/volume_approximation/tree/develop/examples/logconcave
-*/
