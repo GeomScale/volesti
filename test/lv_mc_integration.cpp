@@ -20,16 +20,13 @@
 #include "boost_random_number_generator.hpp"
 #include "cartesian_geom/cartesian_kernel.h"
 #include "random_walks/random_walks.hpp"
-#include "volume/volume_sequence_of_balls.hpp"
-#include "volume/volume_cooling_gaussians.hpp"
-#include "volume/volume_cooling_balls.hpp"
 #include "misc.h"
 
 typedef double NT;
 
 template <typename NT>
 void test_values (NT computed){ //, NT expected, NT exact) {
-	std::cout << "-----------------------------------------------------------------------------------------------------Computed integration value = " << computed << std::endl;
+	std::cout << "----------------------------------------------------------Computed integration value = " << computed << std::endl;
 	// std::cout << "Expected integration value = " << expected << std::endl;
 	// std::cout << "Exact integration value = " << exact << std::endl;
 	// std::cout << "Relative error (expected) = " << std::abs((computed - expected)/expected) << std::endl;
@@ -74,13 +71,6 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
 	Point x0 = inner_ball.first;
 
 	NT beta = 1.0;
-
-	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, MT, VT, NT>
-	  (f, grad_f, opt_params, HP, x0, beta);
-
-	if (exp(-g(x0)) > pow(beta,n) * pair_functor.second ) std::cout << "exp(f(x0) >= beta ^ n * max_f satisfies " << std::endl; 
-	else std::cout << "Doesn't satisfy exp(f(x0) >= beta ^ n * max_f" << std::endl;
 
 	NT integral_value = lovasz_vempala_integrate 
 	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
@@ -128,13 +118,6 @@ void call_cubes_test_lovasz_vempala_integrate2() { // or inside the previous tes
 
 	NT beta = 1.0;
 
-	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, MT, VT, NT>
-	  (f, grad_f, opt_params, HP, x0, beta);
-
-	if (exp(-g(x0)) > pow(beta, n) * pair_functor.second ) std::cout << "exp(f(x0) >= beta ^ n * max_f satisfies " << std::endl; 
-	else std::cout << "Doesn't satisfy exp(f(x0) >= beta ^ n * max_f" << std::endl;
-
 	NT integral_value = lovasz_vempala_integrate 
 	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
 	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
@@ -180,13 +163,6 @@ void call_cubes_test_lovasz_vempala_integrate3() { // or inside the previous tes
 	Point x0 = inner_ball.first;
 
 	NT beta = 1.0;
-
-	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, MT, VT, NT>
-	  (f, grad_f, opt_params, HP, x0, beta);
-
-	if (exp(-g(x0)) > pow(beta,n) * pair_functor.second ) std::cout << "exp(f(x0) >= beta ^ n * max_f satisfies " << std::endl; 
-	else std::cout << "Doesn't satisfy exp(f(x0) >= beta ^ n * max_f" << std::endl;
 
 	NT integral_value = lovasz_vempala_integrate 
 	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
@@ -234,13 +210,6 @@ void call_cubes_test_lovasz_vempala_integrate4() { // or inside the previous tes
 
 	NT beta = 1.0;
 
-	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, MT, VT, NT>
-	  (f, grad_f, opt_params, HP, x0, beta);
-	
-	if (exp(-g(x0)) > pow(beta,n) * pair_functor.second ) std::cout << "exp(f(x0) >= beta ^ n * max_f satisfies " << std::endl; 
-	else std::cout << "Doesn't satisfy exp(f(x0) >= beta ^ n * max_f" << std::endl;
-
 	NT integral_value = lovasz_vempala_integrate 
 	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
 	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
@@ -281,18 +250,11 @@ void call_cubes_test_lovasz_vempala_integrate5() { // or inside the previous tes
 	NegativeLogprobOptimizationFunctor f(opt_params);
 	NegativeGradientOptimizationFunctor grad_f(opt_params);
 
-	unsigned int n = HP.dimension();;
-	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
+	unsigned int n = HP.dimension();
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();
 	Point x0 = inner_ball.first;
 
 	NT beta = 1.0;
-
-	std::pair<Point, NT> pair_functor = lovasz_vempala_optimize 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, MT, VT, NT>
-	  (f, grad_f, opt_params, HP, x0, beta);
-
-	if (exp(-g(x0)) > pow(beta,n) * pair_functor.second ) std::cout << "exp(f(x0) >= beta ^ n * max_f satisfies " << std::endl; 
-	else std::cout << "Doesn't satisfy exp(f(x0) >= beta ^ n * max_f" << std::endl;
 
 	NT integral_value = lovasz_vempala_integrate 
 	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
