@@ -11,6 +11,8 @@
 #ifndef ODE_SOLVERS_ORACLE_FUNCTORS_HPP
 #define ODE_SOLVERS_ORACLE_FUNCTORS_HPP
 
+#include "Eigen/Eigen"
+
 struct OptimizationFunctor {
     template <
         typename NT,
@@ -308,14 +310,14 @@ struct LinearProgramFunctor {
 
 struct GaussianFunctor {
 
-  template <
-	  typename MT,
-      typename NT,
-      typename Point
+  template 
+  <
+	typename MT,
+	typename NT,
+	typename Point
   >
   struct parameters {
     Point x0;
-    NT a;
     NT eta;
     unsigned int order;
     NT L; // Lipschitz constant for gradient
@@ -323,27 +325,29 @@ struct GaussianFunctor {
     NT kappa; // Condition number
     MT covariance_matrix;
 
-	parameters(Point x0_, NT a_, NT eta_) :
-		x0(x0_), a(a_), eta(eta_), order(2), L(2 * a_), m(2 * a_), kappa(1) {};
+	parameters(Point x0_, NT eta_) :
+		x0(x0_), eta(eta_), order(2) {};
 
-	void update_covariance_matrix(MT &covariance_matrix_, NT L_, NT m_, NT kappa_) {
-		covariance_matrix = covariance_matrix_;
-		L = L_;
-		m = m_;
-		kappa = kappa_;
+	void update_covariance_matrix(MT &covariance_matrix_) {
+	  covariance_matrix = covariance_matrix_.inverse();
+	  Eigen::SelfAdjointEigenSolver<MT> eigensolver(covariance_matrix);
+	  MT eigen_values = eigensolver.eigenvalues();
+
+	  L = eigen_values.maxCoeff();
+	  m = eigen_values.minCoeff();
+	  kappa = L/m;
 	}
 
   };
 
-  template
+  template 
   <
-      typename Point
+	typename MT,
+	typename NT,
+	typename Point
   >
   struct GradientFunctor {
-	typedef typename Point::FT NT;
-	typedef typename Point::FT MT;
 	typedef std::vector<Point> pts;
-
     parameters<MT ,NT, Point> &params;
 
     GradientFunctor(parameters<MT, NT, Point> &params_) : params(params_) {};
@@ -351,8 +355,9 @@ struct GaussianFunctor {
     // The index i represents the state vector index
     Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
       if (i == params.order - 1) {
-        Point y = (-2.0 * params.a) * (xs[0] - params.x0);
-        return y;
+		MT x_minus_mu = xs[0].getCoefficients();
+		Point y((-params.covariance_matrix * x_minus_mu).col(0)); // Point(results in n * 1 matrix)
+		return y;
       } else {
         return xs[i + 1]; // returns derivative
       }
@@ -360,13 +365,13 @@ struct GaussianFunctor {
 
   };
 
-  template
+  template 
   <
-    typename Point
+	typename MT,
+	typename NT,
+	typename Point
   >
   struct FunctionFunctor {
-    typedef typename Point::FT NT;
-	typedef typename Point::FT MT;
 
     parameters<MT ,NT, Point> &params;
 
@@ -374,8 +379,9 @@ struct GaussianFunctor {
 
     // The index i represents the state vector index
     NT operator() (Point const& x) const {
-      Point y = x - params.x0;
-      return params.a * y.dot(y);
+	  MT x_minus_mu = x.getCoefficients();
+      NT value = (0.5 * x_minus_mu.transpose() * params.covariance_matrix * x_minus_mu)(0,0); // results in 1 * 1 matrix
+	  return value;
     }
 
   };
