@@ -139,9 +139,15 @@ struct GaussianAcceleratedBilliardWalk
             for (auto j=0u; j<walk_length; ++j)
             {
                 T = -std::log(rng.sample_urdist()) * _Len;
-                _v = GetGaussianDirection<Point>::apply(n, E, rng);
+                _v = GetGaussianDirection<Point>::apply(n, E, rng, false);
+                NT norm_v = _v.length();
+                _v /= norm_v;
+
                 Point p0 = _p;
                 Point v0 = _v;
+                typename Point::Coeff lambdas0 = _lambdas;
+                typename Point::Coeff Av0 = _Av;
+                NT lambda_prev0 = _lambda_prev;
 
                 it = 0;
                 while (it < 100*n)
@@ -162,17 +168,23 @@ struct GaussianAcceleratedBilliardWalk
                 if (it == 100*n)
                 {
                     _p = p0;
+                    _lambdas = lambdas0;
+                    _Av = Av0;
+                    _lambda_prev = lambda_prev0;
                 }
-                // else
-                // {
-                //     // metropolis filter
-                //     NT u_logprob = log(rng.sample_urdist());
-                //     NT accept_logprob = 0.5*(E.mat_mult(v0) - E.mat_mult(_v));
-                //     if(u_logprob > accept_logprob) {
-                //         // reject
-                //         _p = p0;
-                //     }
-                // }
+                else
+                {
+                    // metropolis filter
+                    NT u_logprob = log(rng.sample_urdist());
+                    NT accept_logprob = 0.5 * (norm_v * norm_v) * (E.mat_mult(v0) - E.mat_mult(_v));
+                    if(u_logprob > accept_logprob) {
+                        // reject
+                        _p = p0;
+                        _lambdas = lambdas0;
+                        _Av = Av0;
+                        _lambda_prev = lambda_prev0;
+                    }
+                }
             }
             p = _p;
         }
@@ -200,6 +212,8 @@ struct GaussianAcceleratedBilliardWalk
             _Av.setZero(P.num_of_hyperplanes());
             _p = p;
             _v = GetGaussianDirection<Point>::apply(n, E, rng);
+            NT norm_v = _v.length();
+            _v /= norm_v;
 
             NT T = -std::log(rng.sample_urdist()) * _Len;
             Point p0 = _p;
