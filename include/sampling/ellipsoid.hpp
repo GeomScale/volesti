@@ -42,17 +42,13 @@ struct GetGaussianDirection
     template <typename Ellipsoid, typename RandomNumberGenerator>
     inline static Point apply(unsigned int const& dim,
                               Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
-                              RandomNumberGenerator &rng,
-                              bool normalize=true)
+                              RandomNumberGenerator &rng)
     {
         // Generate a point inside a sphere of radius 1.0
         Point p = GetDirection<Point>::apply(dim ,rng, false);
 
         // Multiply with cholesky matrix
         VT gaussian_vec = E.mult_Lcov(p.getCoefficients());
-        if (normalize) {
-            gaussian_vec.normalize();
-        }
 
         // convert to point
         return Point(gaussian_vec);
@@ -71,7 +67,14 @@ struct GetPointOnDellipsoid
                               Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
                               RandomNumberGenerator &rng)
     {
-        return GetGaussianDirection<Point>::apply(dim, E, rng, false);
+        // Generate a point inside a sphere of radius 1.0
+        Point p = GetDirection<Point>::apply(dim ,rng, true);
+
+        // Multiply with cholesky matrix
+        VT gaussian_vec = E.mult_Lcov(p.getCoefficients());
+
+        // convert to point
+        return Point(gaussian_vec);
     }
 };
 

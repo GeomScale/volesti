@@ -139,7 +139,7 @@ struct GaussianAcceleratedBilliardWalk
             for (auto j=0u; j<walk_length; ++j)
             {
                 T = -std::log(rng.sample_urdist()) * _Len;
-                _v = GetGaussianDirection<Point>::apply(n, E, rng, false);
+                _v = GetGaussianDirection<Point>::apply(n, E, rng);
                 NT norm_v = _v.length();
                 _v /= norm_v;
 
