@@ -46,7 +46,7 @@ struct GetGaussianDirection
                               bool normalize=true)
     {
         // Generate a point inside a sphere of radius 1.0
-        Point p = GetDirection<Point>::apply(dim ,rng);
+        Point p = GetDirection<Point>::apply(dim ,rng, false);
 
         // Multiply with cholesky matrix
         VT gaussian_vec = E.mult_Lcov(p.getCoefficients());

@@ -38,7 +38,7 @@ struct cooling_ellipsoid_parameters
         ,   win_len(win_len)
         ,   N(125)
         ,   nu(10)
-        ,   window2(false)
+        ,   window2(true)
     {}
 
     NT lb;
@@ -292,11 +292,11 @@ bool get_sequence_of_polytope_ellipsoids(Polytope& P,
     }
 
     ratio0 = ratio;
-
     PushBackWalkPolicy push_back_policy;
     RandomPointGenerator::apply(P, x0, inscribed_ellipsoid, Ntot, walk_length,
                                 randPoints, push_back_policy, rng);
 
+    std::cout << "radius of E0: " << E0.radius() << std::endl;
     if (check_convergence<Point>(E0, randPoints,
                                  fail, ratio, parameters.nu,
                                  false, true, parameters))
@@ -499,7 +499,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                                        RandomNumberGenerator &rng,
                                        double const& error = 0.1,
                                        unsigned int const& walk_length = 1,
-                                       unsigned int const& win_len = 300)
+                                       unsigned int const& win_len = 600)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
@@ -566,6 +566,8 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
         return std::pair<NT, NT> (-1.0, 0.0);
     }
 
+    std::cout << "Number of ellipsoids: " << EllipsoidSet.size() << std::endl;
+
 
     NT vol = (*(EllipsoidSet.end() - 1)).log_volume();
 
@@ -590,6 +592,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
 
     if (*ratioiter != 1)
     {
+        std::cout << "reached ratioiter != 1 " << std::endl;
         vol += (!parameters.window2) ?
                std::log(NT(1) / estimate_ratio_interval_ellipsoid
                     <WalkType, Point>(P,
@@ -653,10 +656,11 @@ template
 >
 std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                                                double const& error = 0.1,
-                                               unsigned int const& walk_length = 1)
+                                               unsigned int const& walk_length = 1,
+                                               unsigned int const& win_length = 600)
 {
     RandomNumberGenerator rng(Pin.dimension());
-    return volume_cooling_ellipsoids<WalkTypePolicy>(Pin, rng, error, walk_length);
+    return volume_cooling_ellipsoids<WalkTypePolicy>(Pin, rng, error, walk_length, win_length);
 }
 
 

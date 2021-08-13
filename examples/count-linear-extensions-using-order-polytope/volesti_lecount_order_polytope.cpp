@@ -15,17 +15,18 @@
 typedef double NT;
 typedef Cartesian <NT> Kernel;
 typedef typename Kernel::Point Point;
-typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
+typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
 typedef OrderPolytope<Point> ORDER_POLYTOPE;
 
 
 NT calculateLinearExtension(ORDER_POLYTOPE const& OP) {
     // Setup parameters for calculating volume and rounding
     unsigned int d = OP.dimension();
-    unsigned int walk_len = 10 + d/10;
+    unsigned int walk_len = 1;
+    unsigned int win_len = 1500;
     NT e=0.1;
 
-    NT volume = volume_cooling_ellipsoids<GaussianAcceleratedBilliardWalk, RNGType>(OP, e, 2*walk_len).second;
+    NT volume = volume_cooling_ellipsoids<GaussianAcceleratedBilliardWalk, RNGType>(OP, e, walk_len, win_len).second;
 
     // multiplying by d factorial, d = number of elements
     for(NT i=(NT)d; i>1; i-=1) {

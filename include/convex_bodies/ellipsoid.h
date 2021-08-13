@@ -187,7 +187,7 @@ public:
         // constants of a quadratic equation
         NT a_q = mat_mult(v);
         NT b_q = 2 * r.getCoefficients().dot(vec_mult(v.getCoefficients()));
-        NT c_q = mat_mult(r);
+        NT c_q = mat_mult(r) - 1;
 
         NT D = std::pow(b_q, 2) - 4*a_q*c_q;
         return std::pair<NT, NT> ( (-b_q + std::sqrt(D))/(2*a_q) , (-b_q - std::sqrt(D))/(2*a_q) );
@@ -244,7 +244,7 @@ public:
     std::pair<NT,NT> line_intersect_coord(Point const& r, const unsigned int rand_coord) const {
         NT a_q = A(rand_coord, rand_coord);
         NT b_q = 2 * r.getCoefficients().dot(A.col(rand_coord));
-        NT c_q = mat_mult(r);
+        NT c_q = mat_mult(r) - 1;
 
         NT D = std::pow(b_q, 2) - 4*a_q*c_q;
         return std::pair<NT, NT> ( (-b_q + std::sqrt(D))/(2*a_q) , (-b_q - std::sqrt(D))/(2*a_q) );
