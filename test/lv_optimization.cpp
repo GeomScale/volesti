@@ -57,6 +57,8 @@ void call_test_lv_optimization() {
       <EvaluationFunctor, GradientFunctor, Parameters, BilliardWalk, HPOLYTOPE, Point, MT, NT>
       (g, grad_g, gaussian_params, HP, x0);
 
+    std::cout << "X_max = "; pair_functor.first.print();
+    std::cout << "f(X_max) = " << pair_functor.second << std::endl;
 }
 
 TEST_CASE("optimize") {

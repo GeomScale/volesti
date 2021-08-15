@@ -332,9 +332,8 @@ struct GaussianFunctor {
 	  covariance_matrix = covariance_matrix_.inverse();
 	  Eigen::SelfAdjointEigenSolver<MT> eigensolver(covariance_matrix);
 	  MT eigen_values = eigensolver.eigenvalues();
-
-	  L = eigen_values.maxCoeff();
-	  m = eigen_values.minCoeff();
+	  L = (NT) eigen_values.col(0).array().maxCoeff();
+	  m = (NT) eigen_values.col(0).array().minCoeff();
 	  kappa = L/m;
 	}
 
@@ -347,7 +346,7 @@ struct GaussianFunctor {
 	typename Point
   >
   struct GradientFunctor {
-	typedef std::vector<Point> pts;
+	  typedef std::vector<Point> pts;
     parameters<MT ,NT, Point> &params;
 
     GradientFunctor(parameters<MT, NT, Point> &params_) : params(params_) {};
@@ -355,9 +354,9 @@ struct GaussianFunctor {
     // The index i represents the state vector index
     Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
       if (i == params.order - 1) {
-		MT x_minus_mu = xs[0].getCoefficients();
-		Point y((-params.covariance_matrix * x_minus_mu).col(0)); // Point(results in n * 1 matrix)
-		return y;
+  	    MT x_minus_mu = xs[0].getCoefficients();
+  	    Point y((-params.covariance_matrix * x_minus_mu).col(0)); // Point(results in n * 1 matrix)
+        return y;
       } else {
         return xs[i + 1]; // returns derivative
       }
@@ -379,9 +378,9 @@ struct GaussianFunctor {
 
     // The index i represents the state vector index
     NT operator() (Point const& x) const {
-	  MT x_minus_mu = x.getCoefficients();
+      MT x_minus_mu = x.getCoefficients();
       NT value = (0.5 * x_minus_mu.transpose() * params.covariance_matrix * x_minus_mu)(0,0); // results in 1 * 1 matrix
-	  return value;
+      return value;
     }
 
   };

@@ -63,7 +63,7 @@ template
 	typename MT,
 	typename NT
 >
-std::pair<Point, NT> lovasz_vempala_optimize(EvaluationFunctor &g,
+std::pair<Point,NT> lovasz_vempala_optimize(EvaluationFunctor &g,
 											GradientFunctor &grad_g,
 											Parameters &params,
 											Polytope &P,
@@ -108,18 +108,16 @@ std::pair<Point, NT> lovasz_vempala_optimize(EvaluationFunctor &g,
 
 	// Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
 
-	for (int i = 1; i <= m; i++) { 					// for exact m outer loop runs
-	// while (alpha < 1) {							// for making the loop exit at alpha > 1
-
-		// alpha *= (1 + 1 / sqrt(n));
-		// params.set_temperature(alpha);		
+	for (int i = 1; i <= m; i++) {
 
 		for (int j = 1; j <= k ; j++) {
 
 			hmc.apply(rng, walk_length);
+			hmc.x.print(); std::cout << std::endl;
 			points_matrix.col(j-1) = hmc.x.getCoefficients();
 
 			calculated_value = exp(-g(hmc.x));
+
 			if (calculated_value > max_value) {
 				max_point = hmc.x;
 				max_value = calculated_value;
@@ -132,13 +130,15 @@ std::pair<Point, NT> lovasz_vempala_optimize(EvaluationFunctor &g,
 	}
 
 	std::pair<Point, NT> values(max_point, max_value); 
+	
+	/*
 	std::cerr << "Max point check = " ; values.first.print();
 	std::cerr << "Max value check = " << values.second << std::endl;
-	
-	/*	
-		(Point)values.first = X s.t. max_f = max( exp(-g(X)) )
-		(NT)values.second = max_f
+		
+	(Point) values.first = X s.t. max_f = max( exp(-g(X)) )
+	(NT) values.second = max_f
 	*/
+
 	return values;  
 }
 
