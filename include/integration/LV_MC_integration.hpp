@@ -80,7 +80,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
         return -1;
     }
 
-	NT alpha_prev = (NT) 1 / B;
+	NT alpha_prev = (NT) 0;
 	NT alpha = (NT) 1 / B;
 	NT log_W = log(volume);
 	NT W_current = (NT) 0;
@@ -105,11 +105,12 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 
 	// Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
 
-	// for (int i = 1; i <= m; i++) { 					// for exact m outer loop runs
+	// for (int i = 1; i <= 10; i++) {					// for exact m outer loop runs
 	while (alpha < 1) {									// for making the loop exit at alpha > 1
 
 		alpha *= (1 + 1 / sqrt(n));
-		params.set_temperature(alpha);
+		if (alpha > 1) alpha = 1;
+		params.set_temperature(alpha_prev);
 		W_current = 0;
 
 		for (unsigned int j = 1; j <= k ; j++) {
