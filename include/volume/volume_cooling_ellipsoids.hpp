@@ -526,7 +526,10 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
     // ----------- Get inscribed ellipsoid --------------------------------
     unsigned int max_iter = 150;
     NT tol = std::pow(10, -6.0), reg = std::pow(10, -4.0);
-    VT x0 = P.inner_point();
+
+    std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
+    if (InnerBall.second < 0.0) return std::pair<NT, NT> (-1.0, 0.0);
+    VT x0 = InnerBall.first.getCoefficients();
     std::pair<std::pair<MT, VT>, bool> inscribed_ellipsoid_res = max_inscribed_ellipsoid<MT>(P.get_mat(),
                                                                                              P.get_vec(),
                                                                                              x0,
@@ -541,12 +544,6 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
     MT L_cov = inscribed_ellipsoid.Lcov();
     Point c = inscribed_ellipsoid_res.first.second;
     // --------------------------------------------------------------------
-
-    // ! std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
-    // ! if (InnerBall.second < 0.0) return std::pair<NT, NT> (-1.0, 0.0);
-
-    // ! NT radius = InnerBall.second;
-    // ! Point c = InnerBall.first;
 
     std::vector<EllipsoidType> EllipsoidSet;
     std::vector<NT> ratios;

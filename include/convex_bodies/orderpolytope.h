@@ -211,15 +211,11 @@ public:
     //Use LpSolve library
     std::pair<Point, NT> ComputeInnerBall()
     {
-       normalize();
-
-        // change entries of A, doing here as won't be required in
-        // optimized volume calculation of order-polytope
-        MT A = _A.rowwise().normalized();
+        normalize();
         std::pair<Point, NT> _innerball;
 
         #ifndef VOLESTIPY   // as _A is never normalized in closed form
-            _innerball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+            _innerball = ComputeChebychevBall<NT, Point>(_A, b); // use lpsolve library
         #else
 
             if (_innerball.second < 0.0) {
