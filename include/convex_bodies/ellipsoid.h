@@ -46,6 +46,7 @@ public:
 
     Ellipsoid() {}
 
+    // TODO(vaithak): Add a flag for telling whether the matrix passed is already inverse
     Ellipsoid(MT& Ain) : A(Ain) {
         Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
         if (eigensolver.info() != Eigen::Success) {
@@ -61,7 +62,11 @@ public:
         _dim = A.rows();
         c = Point(_dim);
 
-        _L_cov = _Eigen_Vectors * _eigen_values_inv_sqrt.asDiagonal();
+        Eigen::LLT<MT> lltOfA(A.inverse()); // compute the Cholesky decomposition of inv(A)
+        if (lltOfA.info() != Eigen::Success) {
+            throw std::runtime_error("Cholesky decomposition failed!");
+        }
+        _L_cov = lltOfA.matrixL();
     }
 
 
@@ -89,7 +94,11 @@ public:
         _dim = A.rows();
         c = Point(_dim);
 
-        _L_cov = _Eigen_Vectors * _eigen_values_inv_sqrt.asDiagonal();
+        Eigen::LLT<MT> lltOfA(A.inverse()); // compute the Cholesky decomposition of inv(A)
+        if (lltOfA.info() != Eigen::Success) {
+            throw std::runtime_error("Cholesky decomposition failed!");
+        }
+        _L_cov = lltOfA.matrixL();
     }
 
 
@@ -130,7 +139,7 @@ public:
 
     // return L_cov * x
     VT mult_Lcov(VT const& x) const {
-        return _L_cov * x;
+        return _L_cov.template triangularView<Eigen::Lower>() * x;
     }
 
 
