@@ -177,6 +177,7 @@ struct GaussianAcceleratedBilliardWalk
                     // metropolis filter
                     NT u_logprob = log(rng.sample_urdist());
                     NT accept_logprob = 0.5 * (norm_v * norm_v) * (E.mat_mult(v0) - E.mat_mult(_v));
+                    std::cout << "diff: " << (accept_logprob - u_logprob) << std::endl;
                     if(u_logprob > accept_logprob) {
                         // reject
                         _p = p0;
