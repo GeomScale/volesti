@@ -67,35 +67,26 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 
 	switch (voltype) {
     case CB:     
-        volume = volume_cooling_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length).second; 
+        volume = volume_cooling_balls <AcceleratedBilliardWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length).second; 
         break;
     case CG: 
         volume = volume_cooling_gaussians <GaussianBallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
         break;
     case SOB: 
-        volume = volume_sequence_of_balls <BallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
+        volume = volume_sequence_of_balls <CDHRWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
         break;
     default:
         std::cerr << "Error in volume type: CB / SOB / CG" << std::endl;
         return -1;
     }
 
-	NT alpha_prev = (NT) 0;
-	NT alpha = (NT) 1 / B;
+	std::cout << "Volume = " << volume << std::endl;
+	NT alpha = (NT) 1/B;
+	NT alpha_prev = alpha;
 	NT log_W = log(volume);
 	NT W_current = (NT) 0;
 
 	RandomNumberGenerator rng(1);
-
-	// Burning samples for proper mixing
-	typename WalkType::template Walk <Polytope, RandomNumberGenerator> walk(P, x0, rng);	  
-	for (int i = 1; i <= k; i++) {
-		walk.apply(P, x0, walk_length, rng);
-	}
-	
-	std::cout << "Print x0: " ; x0.print();
-	std::cerr << "B = " << B << " n = " << n << " m = " << m << " k = " << k << " volume = " << volume << " log_W = " << log_W  << std::endl;
-	std::cerr << "alpha = " << alpha << " alpha_prev = " << alpha_prev << " W_current = " << W_current << std::endl << std::endl;
 
 	// Initialize HMC walks using EvaluationFunctor and GradientFunctor
 	typedef LeapfrogODESolver<Point, NT, Polytope, GradientFunctor> Solver;
@@ -103,28 +94,38 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 	HamiltonianMonteCarloWalk::Walk <Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
 	  hmc(&P, x0, grad_g, g, hmc_params);
 
-	// Check and evaluate for all samples breaks when variance > 1, i.e. alpha > 1
+	// Burning samples for proper mixing
+	alpha *= (1 + 1 / sqrt(n));
+	params.set_temperature(alpha - alpha_prev);
+	typename WalkType::template Walk <Polytope, RandomNumberGenerator> walk(P, x0, rng);	  
+	for (int i = 1; i <= k; i++) {
+		walk.apply(P, x0, walk_length, rng);
+		W_current += exp(-g(hmc.x));
+	}
+	W_current /= k;
+	log_W += log(W_current);
 
-	// for (int i = 1; i <= 10; i++) {					// for exact m outer loop runs
-	while (alpha < 1) {									// for making the loop exit at alpha > 1
-
+	// exit loop at alpha > 1
+	bool loop_run = true;
+	while (loop_run) {
+		
 		alpha *= (1 + 1 / sqrt(n));
-		if (alpha > 1) alpha = 1;
-		params.set_temperature(alpha_prev);
+		if (alpha > 1) { alpha = 1; loop_run = false; }
+
+		params.set_temperature(alpha - alpha_prev);
 		W_current = 0;
 
 		for (unsigned int j = 1; j <= k ; j++) {
 
 			hmc.apply(rng, walk_length);
-			W_current += exp(-g(hmc.x) * (alpha - alpha_prev));
-			// std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+			W_current += exp(-g(hmc.x));
 			
 		}
-
+		std::cerr << "After i_th round | alpha = " << alpha << " | alpha_prev = " << alpha_prev << " | W_current = " << W_current << " | exp(log_W) = " << exp(log_W) << std::endl;	
 		W_current /= k;
 		log_W += log(W_current);
-		std::cerr << "After i_th round | alpha = " << alpha << " | alpha_prev = " << alpha_prev << " | W_current = " << W_current << " | exp(log_W) = " << exp(log_W) << std::endl;
 		alpha_prev = alpha;
+		
 	}
 
 	return exp(log_W);    
