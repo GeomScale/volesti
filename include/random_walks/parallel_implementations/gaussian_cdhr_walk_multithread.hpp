@@ -7,16 +7,21 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef RANDOM_WALKS_UNIFORM_CDHR_WALK_MULTITHREAD_HPP
-#define RANDOM_WALKS_UNIFORM_CDHR_WALK_MULTITHREAD_HPP
+#ifndef RANDOM_WALKS_GAUSSIAN_CDHR_WALK_MULTITHREAD_HPP
+#define RANDOM_WALKS_GAUSSIAN_CDHR_WALK_MULTITHREAD_HPP
 
 #include "sampling/sphere.hpp"
+#include "generators/boost_random_number_generator.hpp"
+#include "random_walks/gaussian_helpers.hpp"
+#include "random_walks/gaussian_cdhr_walk.hpp"
 
-// coordinate directions hit-and-run walk with uniform target distribution
-// Parallel version
 
-struct CDHRWalk_multithread
+// Coordinate directions hit-and-run walk with spherical Gaussian target distribution
+// Multithred version
+
+struct GaussianCDHRWalk_multithread
 {
+
     template<typename NT, typename Point>
     struct thread_parameters
     {
@@ -44,12 +49,14 @@ struct Walk
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
 
-    template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, thread_params &parameters, RandomNumberGenerator& rng)
+    Walk(Polytope const& P,
+         thread_params &params,
+         NT const& a_i,
+         RandomNumberGenerator &rng)
     {
-        initialize(P, parameters, rng);
+        initialize(P, params, a_i, rng);
     }
-
+    
 
     template
     <
@@ -57,22 +64,24 @@ struct Walk
     >
     inline void apply(BallPolytope const& P,
                       thread_params &params, // parameters 
+                      NT const& a_i,
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
     {
-        for (auto j=0u; j<walk_length; ++j)
+        for (auto j = 0u; j < walk_length; ++j)
         {
             params.rand_coord_prev = params.rand_coord;
             params.rand_coord = rng.sample_uidist();
-            NT kapa = rng.sample_urdist();
-            std::pair<NT, NT> bpair = P.line_intersect_coord(params.p,
-                                                             params.p_prev,
-                                                             params.rand_coord,
-                                                             params.rand_coord_prev,
-                                                             params.lamdas);
+            std::pair <NT, NT> bpair =
+                    P.line_intersect_coord(params.p, params.p_prev, params.rand_coord,
+                                           params.rand_coord_prev, params.lamdas);
+            NT dis = chord_random_point_generator_exp_coord
+                        (params.p[params.rand_coord] + bpair.second,
+                         params.p[params.rand_coord] + bpair.first,
+                         a_i,
+                         rng);
             params.p_prev = params.p;
-            params.p.set_coord(params.rand_coord, params.p[params.rand_coord] + bpair.first + kapa
-                         * (bpair.second - bpair.first));
+            params.p.set_coord(params.rand_coord, dis);
         }
     }
 
@@ -81,21 +90,23 @@ private :
     template <typename BallPolytope>
     inline void initialize(BallPolytope const& P,
                            thread_params &params, // parameters 
+                           NT const& a_i,
                            RandomNumberGenerator &rng)
     {
         params.lamdas.setZero(P.num_of_hyperplanes());
         params.rand_coord = rng.sample_uidist();
-        NT kapa = rng.sample_urdist();
 
-        std::pair<NT, NT> bpair = P.line_intersect_coord(params.p, params.rand_coord, params.lamdas);
+        std::pair <NT, NT> bpair = P.line_intersect_coord(params.p, params.rand_coord, params.lamdas);
+        NT dis = chord_random_point_generator_exp_coord
+                    (params.p[params.rand_coord] + bpair.second,
+                     params.p[params.rand_coord] + bpair.first,
+                     a_i, rng);
         params.p_prev = params.p;
-        params.p.set_coord(params.rand_coord, params.p[params.rand_coord] + bpair.first + kapa
-                    * (bpair.second - bpair.first));
+        params.p.set_coord(params.rand_coord, dis);
     }
 
 };
 
 };
 
-
-#endif // RANDOM_WALKS_UNIFORM_CDHR_WALK_MULTITHREAD_HPP
+#endif // RANDOM_WALKS_GAUSSIAN_CDHR_WALK_MULTITHREAD_HPP
