@@ -3,7 +3,7 @@
 // Copyright (c) 2012-2020 Vissarion Fisikopoulos
 // Copyright (c) 2018-2020 Apostolos Chalkis
 
-// Contributed and/or modified by Konstantinos Pallikaris, as part of Google Summer of Code 2019 program.
+// Contributed and/or modified by Konstantinos Pallikaris, as part of Google Summer of Code 2021 program.
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
