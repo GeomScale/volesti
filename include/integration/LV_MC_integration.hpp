@@ -63,6 +63,16 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 	unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
 	unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B));
 
+	typedef OptimizationFunctor::GradientFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
+	typedef OptimizationFunctor::FunctionFunctor
+	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
+	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+
+	OptimizationParameters opt_params(1, P.dimension(), g, grad_g);
+	NegativeLogprobOptimizationFunctor f(opt_params);
+	NegativeGradientOptimizationFunctor grad_f(opt_params);
+
 	NT volume = 0;
 
 	switch (voltype) {
@@ -82,49 +92,46 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 
 	std::cout << "Volume = " << volume << std::endl;
 	NT alpha = (NT) 1/B;
-	NT alpha_prev = alpha;
+	NT alpha_prev = (NT) 0;
 	NT log_W = log(volume);
 	NT W_current = (NT) 0;
 
 	RandomNumberGenerator rng(1);
 
 	// Initialize HMC walks using EvaluationFunctor and GradientFunctor
-	typedef LeapfrogODESolver<Point, NT, Polytope, GradientFunctor> Solver;
-	HamiltonianMonteCarloWalk::parameters <NT, GradientFunctor> hmc_params(grad_g, n);
-	HamiltonianMonteCarloWalk::Walk <Point, Polytope, RandomNumberGenerator, GradientFunctor, EvaluationFunctor, Solver>
-	  hmc(&P, x0, grad_g, g, hmc_params);
+	typedef LeapfrogODESolver<Point, NT, Polytope, NegativeGradientOptimizationFunctor> Solver;
+	HamiltonianMonteCarloWalk::parameters <NT, NegativeGradientOptimizationFunctor> hmc_params(grad_f, n);
+	HamiltonianMonteCarloWalk::Walk <Point, Polytope, RandomNumberGenerator, NegativeGradientOptimizationFunctor, NegativeLogprobOptimizationFunctor, Solver>
+	  hmc(&P, x0, grad_f, f, hmc_params);
 
 	// Burning samples for proper mixing
-	alpha *= (1 + 1 / sqrt(n));
-	params.set_temperature(alpha - alpha_prev);
 	typename WalkType::template Walk <Polytope, RandomNumberGenerator> walk(P, x0, rng);	  
 	for (int i = 1; i <= k; i++) {
 		walk.apply(P, x0, walk_length, rng);
-		W_current += exp(-g(hmc.x));
 	}
-	W_current /= k;
-	log_W += log(W_current);
+	// W_current /= k;
+	// log_W += log(W_current);
 
 	// exit loop at alpha > 1
 	bool loop_run = true;
 	while (loop_run) {
 		
-		alpha *= (1 + 1 / sqrt(n));
 		if (alpha > 1) { alpha = 1; loop_run = false; }
 
-		params.set_temperature(alpha - alpha_prev);
+		opt_params.set_temperature(alpha_prev);
 		W_current = 0;
 
 		for (unsigned int j = 1; j <= k ; j++) {
 
 			hmc.apply(rng, walk_length);
-			W_current += exp(-g(hmc.x));
+			W_current += exp(-g(hmc.x) * (alpha - alpha_prev));
 			
 		}
-		std::cerr << "After i_th round | alpha = " << alpha << " | alpha_prev = " << alpha_prev << " | W_current = " << W_current << " | exp(log_W) = " << exp(log_W) << std::endl;	
+		std::cerr << "i_th round | alpha = " << alpha << " | alpha_prev = " << alpha_prev << " | W_current = " << W_current << " | exp(log_W) = " << exp(log_W) << std::endl;	
 		W_current /= k;
 		log_W += log(W_current);
 		alpha_prev = alpha;
+		alpha *= (1 + 1 / sqrt(n));
 		
 	}
 

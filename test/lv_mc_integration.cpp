@@ -47,34 +47,23 @@ void call_cubes_test_lovasz_vempala_integrate() { // or inside the previous test
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (1, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (1, false);
 	unsigned int n = HP.dimension();;
 	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
-	NT beta = 0.01;
+	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, CB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, CB, 5, 0.1);
 	
 	test_values(integral_value, 1.49364);
 
@@ -93,34 +82,23 @@ void call_cubes_test_lovasz_vempala_integrate2() { // or inside the previous tes
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (2, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (2, false);
 	unsigned int n = HP.dimension();;
 	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
-	NT beta = 0.01;
+	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, SOB, 5, 0.1);
 	
 	test_values(integral_value, 2.23);
 
@@ -139,34 +117,23 @@ void call_cubes_test_lovasz_vempala_integrate3() { // or inside the previous tes
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (3, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (3, false);
 	unsigned int n = HP.dimension();;
 	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
-	NT beta = 0.01;
+	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, SOB, 5, 0.1);
 	
 	test_values(integral_value, 3.33);
 
@@ -185,34 +152,23 @@ void call_cubes_test_lovasz_vempala_integrate4() { // or inside the previous tes
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (4, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (4, false);
 	unsigned int n = HP.dimension();;
-	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
-	NT beta = 0.01;
+	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, SOB, 5, 0.1);
 	
 	test_values(integral_value, 4.977);
 
@@ -231,36 +187,25 @@ void call_cubes_test_lovasz_vempala_integrate5() { // or inside the previous tes
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (5, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
-	unsigned int n = HP.dimension();
-	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (5, false);
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
 	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, SOB, 5, 0.1);
 	
-	test_values(integral_value, 7.434);
+	test_values(integral_value, 7.43);
 
 }
 
@@ -277,34 +222,23 @@ void call_cubes_test_lovasz_vempala_integrate6() { // or inside the previous tes
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (6, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
-	unsigned int n = HP.dimension();
-	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (6, false);
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
 	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, SOB, 5, 0.1);
 	
 	test_values(integral_value, 11.1039);
 
@@ -323,34 +257,23 @@ void call_cubes_test_lovasz_vempala_integrate7() { // or inside the previous tes
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (7, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
-	unsigned int n = HP.dimension();
-	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (7, false);
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
 	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, SOB, 5, 0.1);
 	
 	test_values(integral_value, 16.58);
 
@@ -369,34 +292,23 @@ void call_cubes_test_lovasz_vempala_integrate8() { // or inside the previous tes
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (8, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
-	unsigned int n = HP.dimension();
-	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (8, false);
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
 	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, SOB, 5, 0.1);
 	
 	test_values(integral_value, 24.77);
 
@@ -415,34 +327,23 @@ void call_cubes_test_lovasz_vempala_integrate9() { // or inside the previous tes
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (9, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
-	unsigned int n = HP.dimension();
-	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (9, false);
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
 	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, SOB, 5, 0.1);
 	
 	test_values(integral_value, 37.001);
 
@@ -461,39 +362,27 @@ void call_cubes_test_lovasz_vempala_integrate10() { // or inside the previous te
 
 	typedef IsotropicQuadraticFunctor::FunctionFunctor <Point> EvaluationFunctor;
 	typedef IsotropicQuadraticFunctor::GradientFunctor <Point> GradientFunctor;
-	typedef OptimizationFunctor::GradientFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
-	typedef OptimizationFunctor::FunctionFunctor
-	<Point, EvaluationFunctor, GradientFunctor> NegativeLogprobOptimizationFunctor;
-	typedef OptimizationFunctor::parameters<NT, EvaluationFunctor, GradientFunctor> OptimizationParameters;
+	typedef IsotropicQuadraticFunctor::parameters<NT> iso_parameters;
 
-	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (10, false);
-
-	IsotropicQuadraticFunctor::parameters<NT> params;
+	iso_parameters params;
 	params.alpha = (NT) 2;
-
 	GradientFunctor grad_g(params);
 	EvaluationFunctor g(params);
 
-	OptimizationParameters opt_params(1, HP.dimension(), g, grad_g);
-
-	NegativeLogprobOptimizationFunctor f(opt_params);
-	NegativeGradientOptimizationFunctor grad_f(opt_params);
-
-	unsigned int n = HP.dimension();
-	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();
+	HPOLYTOPE HP = generate_cube <HPOLYTOPE> (10, false);
+	unsigned int n = HP.dimension();;
+	std::pair <Point, NT> inner_ball = HP.ComputeInnerBall();;
 	Point x0 = inner_ball.first;
 
 	NT beta = 1.0;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <NegativeLogprobOptimizationFunctor, NegativeGradientOptimizationFunctor, OptimizationParameters, BilliardWalk, HPOLYTOPE, Point, NT>
-	  (f, grad_f, opt_params, HP, x0, beta, SOB, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, IsotropicQuadraticFunctor::parameters<NT>,BilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, params, HP, x0, beta, SOB, 5, 0.1);
 	
 	test_values(integral_value, 55.266);
 
 }
-
 
 TEST_CASE("iso") {
 	call_cubes_test_lovasz_vempala_integrate<double>();
