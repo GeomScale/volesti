@@ -261,9 +261,8 @@ else ()
           COMMAND logconcave_sampling_test -tc=uld)
 
   add_executable(lv_mc_integration lv_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
-
-  add_executable(lv_optimization lv_optimization.cpp $<TARGET_OBJECTS:test_main>)
-
+  add_test(NAME lv_mc_integration
+          COMMAND lv_mc_integration -tc=cubes)
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
@@ -273,7 +272,6 @@ else ()
   TARGET_LINK_LIBRARIES(volume_cb_hpolytope ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_cb_vpolytope ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(lv_mc_integration ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(lv_optimization ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE})
