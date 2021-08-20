@@ -14,9 +14,9 @@
 /// Eigen solver for generalized eigenvalue problem
 //#define EIGEN_EIGENVALUES_SOLVER
 /// Spectra standard eigenvalue problem
-//#define SPECTRA_EIGENVALUES_SOLVER
+#define SPECTRA_EIGENVALUES_SOLVER
 /// ARPACK++ standard eigenvalues solver
-#define ARPACK_EIGENVALUES_SOLVER
+//#define ARPACK_EIGENVALUES_SOLVER
 
 #include <../../external/arpack++/include/arssym.h>
 #include <../../external/Spectra/include/Spectra/SymEigsSolver.h>
