@@ -90,7 +90,6 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
         return -1;
     }
 
-	std::cout << "Volume = " << volume << std::endl;
 	NT alpha = (NT) 1/B;
 	NT alpha_prev = (NT) 0;
 	NT log_W = log(volume);
@@ -109,15 +108,12 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 	for (int i = 1; i <= k; i++) {
 		walk.apply(P, x0, walk_length, rng);
 	}
-	// W_current /= k;
-	// log_W += log(W_current);
 
 	// exit loop at alpha > 1
 	bool loop_run = true;
 	while (loop_run) {
 		
 		if (alpha > 1) { alpha = 1; loop_run = false; }
-
 		opt_params.set_temperature(alpha_prev);
 		W_current = 0;
 
@@ -127,12 +123,11 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 			W_current += exp(-g(hmc.x) * (alpha - alpha_prev));
 			
 		}
-		std::cerr << "i_th round | alpha = " << alpha << " | alpha_prev = " << alpha_prev << " | W_current = " << W_current << " | exp(log_W) = " << exp(log_W) << std::endl;	
+		
 		W_current /= k;
 		log_W += log(W_current);
 		alpha_prev = alpha;
-		alpha *= (1 + 1 / sqrt(n));
-		
+		alpha *= (1 + 1 / sqrt(n));		
 	}
 
 	return exp(log_W);    
