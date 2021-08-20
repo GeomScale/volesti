@@ -14,6 +14,40 @@
 #include "chrono"
 
 
+template <typename MT>
+struct PrecomputedValuesLineIntersection {
+    
+};
+
+
+template <typename NT>
+struct PrecomputedValuesLineIntersection<Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>> {
+
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+
+    /// These flags indicate whether the corresponding matrices are computed
+    /// if yes, we can use them and not compute them fro scratch
+    bool computed_B = false;
+    bool computed_C = false;
+
+    MT B, C;
+    VT eigenvector;
+
+    /// Sets all flags to false
+    void resetFlags() {
+        computed_C = computed_B = false;
+    }
+
+    void set_mat_size(int const& m) 
+    {
+        B.setZero(m, m);
+        C.setZero(m, m);
+        eigenvector.setZero(m);
+    }
+};
+
+
 /// This class manipulates a spectrahedron, described by a LMI
 /// \tparam NT Numeric Type
 /// \tparam MT Matrix Type
@@ -26,6 +60,9 @@ public:
     typedef NT NUMERIC_TYPE;
     typedef MT MATRIX_TYPE;
     typedef VT VECTOR_TYPE;
+
+    typedef Cartesian <NT> Kernel;
+    typedef typename Kernel::Point PointType;
 
     /// The type of a pair of NT
     typedef std::pair<NT, NT> pairNT;
@@ -57,9 +94,13 @@ public:
         }
     };
 
+    typedef PrecomputedValuesLineIntersection<MT> PrecomputedValuesLine;
+    PrecomputedValuesLine precomputedVals;
+
 
     /// The dimension of the spectrahedron
     unsigned int d;
+    VT grad;
 
     /// The linear matrix inequality that describes the spectrahedron
     LMI<NT, MT, VT> lmi;
@@ -70,6 +111,9 @@ public:
     /// \param[in] lmi The linear matrix inequality that describes the spectrahedron
     Spectrahedron(const LMI<NT, MT, VT>& lmi) : lmi(lmi) {
         d = lmi.dimension();
+        grad.setZero(d);
+        precomputedVals.resetFlags();
+        precomputedVals.set_mat_size(lmi.sizeOfMatrices());
     }
 
 
@@ -80,7 +124,7 @@ public:
     /// \param[in] c Input vector
     /// \param[in, out] precomputedValues Holds matrices A, C
     void createMatricesForPositiveIntersection(const VT& a, const VT& b, const VT& c,
-            PrecomputedValues& precomputedValues) {
+                                               PrecomputedValues& precomputedValues) {
         // check if matrices A, C are ready
         // if not compute them
         if (!precomputedValues.computed_A) {
@@ -95,6 +139,18 @@ public:
         lmi.evaluateWithoutA0(b, precomputedValues.B);
     }
 
+
+     void createMatricesForPositiveIntersection(const VT& p, const VT& v) {
+        
+        // check if matrices B, C are ready if not compute them
+        if (!precomputedValues.computed_C) 
+        {
+            lmi.evaluate(p, precomputedValues.C);
+        }
+
+        lmi.evaluateWithoutA0(v, precomputedValues.B);
+    }
+
     /// Computes the distance d we must travel on the parametrized polynomial curve \[at^2 + bt + c \],
     /// assuming we start at t=0, and we start increasing t.
     /// We construct the quadratic eigenvalue problem \[At^2 + Bt + C \],
@@ -106,7 +162,8 @@ public:
     /// \param[in] c Input Vector, the constant term
     /// \param[in, out] precomputedValues Data we move between successive method calls
     /// \returns The distance d
-    NT positiveIntersection(VT const & a, VT const & b, VT const & c, PrecomputedValues& precomputedValues) {
+    NT positiveIntersection(VT const & a, VT const & b, VT const & c, PrecomputedValues& precomputedValues) 
+    {
         unsigned int matrixDim = lmi.sizeOfMatrices();
 
         // create matrices A, B, C
@@ -119,10 +176,55 @@ public:
                                                                             precomputedValues.Y,
                                                                             precomputedValues.eigenvector,
                                                                             precomputedValues.computed_XY);
-
         return distance;
     }
 
+
+    NT positiveIntersection(VT const & p, VT const & v) 
+    {
+        createMatricesForPositiveIntersection(p, v);
+        EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
+        NT distance = EigenvaluesProblem.minPosLinearEigenvalue(precomputedVals.C, precomputedVals.B,
+                                                                precomputedVals.eigenvector);
+        return distance;
+    }
+
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType& r,
+                                               PointType& v,
+                                               VT&,
+                                               VT& ,
+                                               NT&,
+                                               update_parameters&) 
+    {
+        NT pos_inter = positiveIntersection(r.getCoefficients(), v.getCoefficients());
+        return std::pair<NT, int> (pos_inter, -1);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType& r,
+                                               PointType& v,
+                                               VT& ,
+                                               VT& ,
+                                               NT &,
+                                               MT& ,
+                                               update_parameters& ) 
+    {
+        NT pos_inter = positiveIntersection(r.getCoefficients(), v.getCoefficients());
+        return std::pair<NT, int> (pos_inter, -1);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_first_positive_intersect(PointType& r,
+                                                     PointType& v,
+                                                     VT& ,
+                                                     VT& ,
+                                                     update_parameters&)
+    {
+        NT pos_inter = positiveIntersection(r.getCoefficients(), v.getCoefficients());
+        return std::pair<NT, int> (pos_inter, -1);
+    }
 
     /// Computes the distance d one must travel on the line a + tb,
     /// assuming we start at t=0 and that b has zero everywhere and 1 in its i-th coordinate.
@@ -160,6 +262,31 @@ public:
 
         NT dot = 2 * incomingDirection.dot(grad);
         reflectedDirection = incomingDirection - dot * grad;
+    }
+
+    template <typename update_parameters>
+    void compute_reflection(PointType &v, const PointType &r, update_parameters& ) {
+
+        lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
+
+        // compute reflected direction
+        // if v is original direction and s the surface normal,
+        // reflected direction = v - 2 <v,s>*s
+
+        NT dot = 2 * v.dot(grad);
+        v += -dot * PointType(grad);
+    }
+
+    void compute_reflection(PointType &v, const PointType &r, int&) {
+
+        lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
+
+        // compute reflected direction
+        // if v is original direction and s the surface normal,
+        // reflected direction = v - 2 <v,s>*s
+
+        NT dot = 2 * v.dot(grad);
+        v += -dot * PointType(grad);
     }
 
 

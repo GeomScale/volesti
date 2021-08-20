@@ -161,6 +161,33 @@ public:
         return {lambdaMinPositive, lambdaMaxNegative};
     }
 
+    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) 
+    {
+        int matrixDim = A.rows();
+        double lambdaMinPositive;
+
+        Spectra::DenseSymMatProd<NT> op(B);
+        Spectra::DenseCholesky<NT> Bop(-A);
+
+        // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
+        Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
+            geigs(&op, &Bop, 1, 15 < matrixDim ? 15 : matrixDim);
+
+        // Initialize and compute
+        geigs.init();
+        int nconv = geigs.compute();
+
+        VT evalues;
+        if (geigs.info() == Spectra::SUCCESSFUL) {
+            evalues = geigs.eigenvalues();
+            eigvec = geigs.eigenvectors().col(0);
+        }
+
+        lambdaMinPositive = 1 / evalues(0);
+
+        return lambdaMinPositive;
+    }
+
     /// Finds the minimum positive real eigenvalue of the generalized eigenvalue problem A + lB and
     /// the corresponding eigenvector.
     /// If the macro EIGEN_EIGENVALUES_SOLVER is defined, the Generalized Solver of Eigen is used.
