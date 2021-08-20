@@ -840,4 +840,22 @@ std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
 }
 
 
+template
+<
+    typename WalkTypePolicy = CDHRWalk,
+    typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b,
+                                                                double>,
+    typename Polytope,
+    typename Point
+>
+std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
+                                               Point const& interior_point,
+                                               double const& error = 0.1,
+                                               unsigned int const& walk_length = 1)
+{
+    RandomNumberGenerator rng(Pin.dimension());
+    Pin.set_interior_point(interior_point);
+    return volume_cooling_balls<WalkTypePolicy>(Pin, rng, error, walk_length);
+}
+
 #endif // VOLUME_COOLING_BALLS_HPP

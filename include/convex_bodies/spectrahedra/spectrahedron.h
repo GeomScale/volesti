@@ -64,6 +64,8 @@ public:
     typedef Cartesian <NT> Kernel;
     typedef typename Kernel::Point PointType;
 
+    double maxDouble = std::numeric_limits<double>::max();
+
     /// The type of a pair of NT
     typedef std::pair<NT, NT> pairNT;
 
@@ -101,6 +103,7 @@ public:
     /// The dimension of the spectrahedron
     unsigned int d;
     VT grad;
+    std::pair<PointType, NT> _inner_ball;
 
     /// The linear matrix inequality that describes the spectrahedron
     LMI<NT, MT, VT> lmi;
@@ -114,6 +117,32 @@ public:
         grad.setZero(d);
         precomputedVals.resetFlags();
         precomputedVals.set_mat_size(lmi.sizeOfMatrices());
+    }
+
+    void set_interior_point(PointType const& r)
+    {
+        _inner_ball.first = r;
+    }
+
+    std::pair<PointType, NT> ComputeInnerBall() {
+
+        NT radius = maxDouble;
+
+        PointType v(dimension());
+
+        for (unsigned int i = 0; i < dimension(); ++i) {
+            v = PointType(dimension());
+            v.set_coord(i, 1.0);
+            PrecomputedValues precomp;
+            std::pair<NT, NT> min_max = coordinateIntersection(_inner_ball.first.getCoefficients(), i, precomp);
+            if (min_max.first < radius) radius = min_max.first;
+            if (-min_max.second < radius) radius = -min_max.second;
+        }
+
+        radius = radius / std::sqrt(NT(dimension()));
+        _inner_ball.second = radius;
+
+        return std::pair<PointType, NT>(_inner_ball.first.getCoefficients(), radius);
     }
 
 
@@ -242,6 +271,21 @@ public:
 
         EigenvaluesProblems<NT, MT, VT> eigenvaluesProblems;
         return eigenvaluesProblems.symGeneralizedProblem(precomputedValues.A, *(lmi.getMatrix(coordinate)));
+    }
+
+    void shift(VT e) {
+        MT A0 = getLMI().getA0();
+        std::vector<MT> matrices = getLMI().getMatrices();
+
+        int d = matrices.size();
+
+        for (int i = 0; i < d; ++i) {
+            A0 = A0 + e(i)*matrices[i];
+        }
+
+        lmi.set_A0(A0);
+
+        _inner_ball.first = PointType(dimension());
     }
 
     /// Computes the reflected direction at a point on the boundary of the spectrahedron.
