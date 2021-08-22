@@ -103,7 +103,7 @@ public:
 
 
     NT radius() const {
-        return _eigen_values_inv_sqrt(_dim-1);
+        return _eigen_values_inv_sqrt(0);
     }
 
 
@@ -164,7 +164,7 @@ public:
 
     NT log_volume() const {
         NT ball_log_vol = (NT(_dim)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(_dim) / NT(2) + 1);
-        NT det_factor = - 0.5 * std::log( A.determinant() );
+        NT det_factor = std::log( _eigen_values_inv_sqrt.prod() );
 
         return det_factor + ball_log_vol;
     }
