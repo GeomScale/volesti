@@ -42,7 +42,6 @@ template
 <
 	typename EvaluationFunctor,
 	typename GradientFunctor,
-	typename Parameters,
 	typename WalkType,
 	typename Polytope,
 	typename Point,
@@ -50,7 +49,6 @@ template
 >
 NT lovasz_vempala_integrate(EvaluationFunctor &g,
 							GradientFunctor &grad_g,
-							Parameters &params,
 							Polytope &P,
 							Point x0,
 							NT beta = 1.0,

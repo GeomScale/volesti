@@ -60,8 +60,8 @@ void cubes_test_lovasz_vempala_integrate (const int dimension, NT expected, NT e
 	Point x0 = inner_ball.first;
 
 	NT integral_value = lovasz_vempala_integrate 
-	  <EvaluationFunctor, GradientFunctor, IsoParameters, AcceleratedBilliardWalk, HPOLYTOPE, Point, NT>
-	  (g, grad_g, params, HP, x0, beta, voltype, 5, 0.1);
+	  <EvaluationFunctor, GradientFunctor, AcceleratedBilliardWalk, HPOLYTOPE, Point, NT>
+	  (g, grad_g, HP, x0, beta, voltype, 5, 0.1);
 	
 	test_values(integral_value, expected, exact);
 }
