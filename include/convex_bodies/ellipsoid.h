@@ -70,7 +70,7 @@ public:
     }
 
 
-    // Constructor for copula ellipsoid
+    // Constructor for copula ellipsoid only
     Ellipsoid(std::vector<std::vector<NT> >& Ain) {
         _dim = Ain.size();
         A.resize(_dim, _dim);
@@ -79,26 +79,6 @@ public:
                 A(i,j) = Ain[i][j];
             }
         }
-
-        Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
-        if (eigensolver.info() != Eigen::Success) {
-            throw std::runtime_error("Eigen solver returned error!");
-        }
-
-        _eigen_values = eigensolver.eigenvalues();
-        _Eigen_Vectors = eigensolver.eigenvectors();
-
-        _eigen_values_inv = _eigen_values.array().inverse().matrix();
-        _eigen_values_inv_sqrt = _eigen_values_inv.array().sqrt().matrix();
-
-        _dim = A.rows();
-        c = Point(_dim);
-
-        Eigen::LLT<MT> lltOfA(A.inverse()); // compute the Cholesky decomposition of inv(A)
-        if (lltOfA.info() != Eigen::Success) {
-            throw std::runtime_error("Cholesky decomposition failed!");
-        }
-        _L_cov = lltOfA.matrixL();
     }
 
 
