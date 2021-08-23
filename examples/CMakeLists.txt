@@ -116,6 +116,7 @@ else ()
   add_subdirectory(count-linear-extensions-using-order-polytope)
   add_subdirectory(ellipsoid-sampling)
   add_subdirectory(order-polytope-basics)
+  add_subdirectory(sampling-hpolytope-with-billiard-walks)
 
   add_executable (vpolytopevolume vpolytope-volume/vpolytopevolume.cpp)
   TARGET_LINK_LIBRARIES(vpolytopevolume ${LP_SOLVE})

@@ -30,11 +30,11 @@ for filename in filenames:
     x1_vec, x2_vec = np.meshgrid(np.linspace(-1, 30, 100), np.linspace(-1, 30, 100))
     vals = get_polytope_vals(x1_vec.ravel(), x2_vec.ravel())
     vals = vals.reshape(x1_vec.shape)
-    plt.contourf(x1_vec, x2_vec, vals, levels=[-100, 0], cmap="Greys_r", alpha=0.5)
+    plt.contourf(x1_vec, x2_vec, vals, levels=[-100, 0], cmap="Greys_r", alpha=0.3)
 
     # plot points
     data = np.genfromtxt(filename, delimiter=' ')
-    plt.plot(data[:, 0], data[:, 1], 'x', c='g')
+    plt.plot(data[:, 0], data[:, 1], 'x')
     plt.xlim(-2, 30)
     plt.ylim(-2, 30)
     plt.title(filename[:-4])
