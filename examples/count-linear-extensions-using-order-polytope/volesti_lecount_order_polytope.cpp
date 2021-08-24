@@ -23,7 +23,7 @@ NT calculateLinearExtension(ORDER_POLYTOPE const& OP) {
     // Setup parameters for calculating volume and rounding
     unsigned int d = OP.dimension();
     unsigned int walk_len = 10 + d/10;
-    unsigned int win_len = 600;
+    unsigned int win_len = 300;
     NT e=0.1;
 
     NT volume = volume_cooling_ellipsoids<GaussianAcceleratedBilliardWalk, RNGType>(OP, e, walk_len, win_len).second;

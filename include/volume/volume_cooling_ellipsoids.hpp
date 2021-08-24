@@ -38,7 +38,7 @@ struct cooling_ellipsoid_parameters
         ,   win_len(win_len)
         ,   N(125)
         ,   nu(10)
-        ,   window2(true)
+        ,   window2(false)
     {}
 
     NT lb;
@@ -142,6 +142,7 @@ std::pair<NT, NT> get_first_ellipsoid(Polytope const& P,
     NT q1 = 1.0;
     q_max = 2 * sqrt_n;   // 2 * sqrt_n times the inscribed ellipsoid
 
+    std::cout << "in_ell radius: " << inscribed_ellipsoid.radius() << std::endl;
     E0 = inscribed_ellipsoid;
 
     while (!bisection_int) {
@@ -217,6 +218,7 @@ NT get_next_ellipsoid(std::vector<Ellipsoid>& EllipsoidSet,
     bool too_few;
 
     Ellipsoid Eiter = inscribed_ellipsoid;
+    std::cout << "q_min: " << q_min << ", q_max: " << q_max << std::endl;
     NT q_min_init = q_min;
     NT q_max_init = q_max;
 
@@ -234,6 +236,8 @@ NT get_next_ellipsoid(std::vector<Ellipsoid>& EllipsoidSet,
         {
             EllipsoidSet.push_back(Eiter);
             ratios.push_back(ratio);
+            std::cout << "selected q: " << q << std::endl;
+            std::cout << "E_iter radius: " << Eiter.radius() << std::endl;
             return q;
         }
 
@@ -316,6 +320,7 @@ bool get_sequence_of_polytope_ellipsoids(Polytope& P,
     {
         return false;
     }
+    std::cout << "Got second ellipsoid" << std::endl;
 
     while (true)
     {
@@ -544,6 +549,13 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
     MT L_cov = inscribed_ellipsoid.Lcov();
     Point c = inscribed_ellipsoid_res.first.second;
     // --------------------------------------------------------------------
+    // // ---------------------- Inner ball as inscribed_ellipsoid --------------
+    // std::pair<Point, NT> InnerBall = P.ComputeInnerBall();
+    // if (InnerBall.second < 0.0) return std::pair<NT, NT> (-1.0, 0.0);
+    // Point c = InnerBall.first;
+    // MT A_ell = (NT(1.0)/(InnerBall.second*InnerBall.second)) * Eigen::MatrixXd::Identity(P.dimension(), P.dimension());
+    // EllipsoidType inscribed_ellipsoid(A_ell);
+    // // -----------------------------------------------------------------------
 
     std::vector<EllipsoidType> EllipsoidSet;
     std::vector<NT> ratios;
@@ -567,6 +579,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
 
 
     NT vol = (*(EllipsoidSet.end() - 1)).log_volume();
+    std::cout << "vol: " << vol << std::endl;
 
     int mm = EllipsoidSet.size() + 1;
     prob = std::pow(prob, 1.0 / NT(mm));
@@ -581,6 +594,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                                                                   P, *(ratios.end() - 1),
                                                                   er0, parameters.win_len, 1200,
                                                                   prob, rng));
+    std::cout << "vol: " << vol << std::endl;
 
     auto ellipsoiditer = EllipsoidSet.begin();
     auto ratioiter = ratios.begin();
@@ -613,6 +627,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                                       walk_length,
                                       rng));
     }
+    std::cout << "vol: " << vol << std::endl;
 
     for ( ; ellipsoiditer < EllipsoidSet.end() - 1; ++ellipsoiditer, ++ratioiter)
     {
@@ -637,6 +652,7 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                                                   N_times_nu,
                                                   walk_length,
                                                   rng));
+        std::cout << "vol: " << vol << std::endl;
     }
 
     return std::pair<NT, NT> (vol, std::exp(vol));
