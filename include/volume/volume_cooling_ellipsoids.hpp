@@ -142,7 +142,9 @@ std::pair<NT, NT> get_first_ellipsoid(Polytope const& P,
     NT q1 = 1.0;
     q_max = 2 * sqrt_n;   // 2 * sqrt_n times the inscribed ellipsoid
 
-    std::cout << "in_ell radius: " << inscribed_ellipsoid.radius() << std::endl;
+    #ifdef VOLESTI_DEBUG
+	    std::cout << "in_ell radius: " << inscribed_ellipsoid.radius() << std::endl;
+    #endif
     E0 = inscribed_ellipsoid;
 
     while (!bisection_int) {
@@ -218,7 +220,9 @@ NT get_next_ellipsoid(std::vector<Ellipsoid>& EllipsoidSet,
     bool too_few;
 
     Ellipsoid Eiter = inscribed_ellipsoid;
-    std::cout << "q_min: " << q_min << ", q_max: " << q_max << std::endl;
+    #ifdef VOLESTI_DEBUG
+	    std::cout << "q_min: " << q_min << ", q_max: " << q_max << std::endl;
+    #endif
     NT q_min_init = q_min;
     NT q_max_init = q_max;
 
@@ -236,8 +240,12 @@ NT get_next_ellipsoid(std::vector<Ellipsoid>& EllipsoidSet,
         {
             EllipsoidSet.push_back(Eiter);
             ratios.push_back(ratio);
-            std::cout << "selected q: " << q << std::endl;
-            std::cout << "E_iter radius: " << Eiter.radius() << std::endl;
+            #ifdef VOLESTI_DEBUG
+	            std::cout << "selected q: " << q << std::endl;
+            #endif
+            #ifdef VOLESTI_DEBUG
+	            std::cout << "E_iter radius: " << Eiter.radius() << std::endl;
+            #endif
             return q;
         }
 
@@ -300,7 +308,9 @@ bool get_sequence_of_polytope_ellipsoids(Polytope& P,
     RandomPointGenerator::apply(P, x0, inscribed_ellipsoid, Ntot, walk_length,
                                 randPoints, push_back_policy, rng);
 
-    std::cout << "radius of E0: " << E0.radius() << std::endl;
+    #ifdef VOLESTI_DEBUG
+	    std::cout << "radius of E0: " << E0.radius() << std::endl;
+    #endif
     if (check_convergence<Point>(E0, randPoints,
                                  fail, ratio, parameters.nu,
                                  false, true, parameters))
@@ -320,7 +330,9 @@ bool get_sequence_of_polytope_ellipsoids(Polytope& P,
     {
         return false;
     }
-    std::cout << "Got second ellipsoid" << std::endl;
+    #ifdef VOLESTI_DEBUG
+	    std::cout << "Got second ellipsoid" << std::endl;
+    #endif
 
     while (true)
     {
@@ -575,11 +587,15 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
         return std::pair<NT, NT> (-1.0, 0.0);
     }
 
-    std::cout << "Number of ellipsoids: " << EllipsoidSet.size() << std::endl;
+    #ifdef VOLESTI_DEBUG
+	    std::cout << "Number of ellipsoids: " << EllipsoidSet.size() << std::endl;
+    #endif
 
 
     NT vol = (*(EllipsoidSet.end() - 1)).log_volume();
-    std::cout << "vol: " << vol << std::endl;
+    #ifdef VOLESTI_DEBUG
+	    std::cout << "vol: " << vol << std::endl;
+    #endif
 
     int mm = EllipsoidSet.size() + 1;
     prob = std::pow(prob, 1.0 / NT(mm));
@@ -594,7 +610,9 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                                                                   P, *(ratios.end() - 1),
                                                                   er0, parameters.win_len, 1200,
                                                                   prob, rng));
-    std::cout << "vol: " << vol << std::endl;
+    #ifdef VOLESTI_DEBUG
+	    std::cout << "vol: " << vol << std::endl;
+    #endif
 
     auto ellipsoiditer = EllipsoidSet.begin();
     auto ratioiter = ratios.begin();
@@ -603,7 +621,9 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
 
     if (*ratioiter != 1)
     {
-        std::cout << "reached ratioiter != 1 " << std::endl;
+        #ifdef VOLESTI_DEBUG
+	        std::cout << "reached ratioiter != 1 " << std::endl;
+        #endif
         vol += (!parameters.window2) ?
                std::log(NT(1) / estimate_ratio_interval_ellipsoid
                     <WalkType, Point>(P,
@@ -627,7 +647,9 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                                       walk_length,
                                       rng));
     }
-    std::cout << "vol: " << vol << std::endl;
+    #ifdef VOLESTI_DEBUG
+	    std::cout << "vol: " << vol << std::endl;
+    #endif
 
     for ( ; ellipsoiditer < EllipsoidSet.end() - 1; ++ellipsoiditer, ++ratioiter)
     {
@@ -652,7 +674,9 @@ std::pair<double, double> volume_cooling_ellipsoids(Polytope const& Pin,
                                                   N_times_nu,
                                                   walk_length,
                                                   rng));
-        std::cout << "vol: " << vol << std::endl;
+        #ifdef VOLESTI_DEBUG
+	        std::cout << "vol: " << vol << std::endl;
+        #endif
     }
 
     return std::pair<NT, NT> (vol, std::exp(vol));
