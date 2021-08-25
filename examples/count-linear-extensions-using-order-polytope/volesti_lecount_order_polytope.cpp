@@ -22,7 +22,7 @@ typedef OrderPolytope<Point> ORDER_POLYTOPE;
 NT calculateLinearExtension(ORDER_POLYTOPE const& OP) {
     // Setup parameters for calculating volume and rounding
     unsigned int d = OP.dimension();
-    unsigned int walk_len = 10 + d/10;
+    unsigned int walk_len = 1;
     unsigned int win_len = 300;
     NT e=0.1;
 
