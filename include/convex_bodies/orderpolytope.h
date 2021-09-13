@@ -106,7 +106,7 @@ public:
 
 
     // print polytope in Ax <= b format
-    void print()
+    void print() const
     {
         std::cout << " " << _A.rows() << " " << _d << " double" << std::endl;
         for (unsigned int i = 0; i < _A.rows(); i++) {
@@ -664,7 +664,7 @@ public:
     VT inner_point()
     {
         // get topologically sorted list of indices
-        std::vector<unsigned int> sorted_list = poset.topologically_sorted_list();
+        std::vector<unsigned int> sorted_list = _poset.topologically_sorted_list();
 
         // vector to hold n linearly spaced values between 0-1
         std::vector<NT> lin_space_values(_d);
