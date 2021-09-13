@@ -1,6 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2021 Vaibhav Thakkar
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -211,12 +212,9 @@ std::pair<Point, NT> read_inner_ball(std::istream &is) {
     - Next `m` lines follow containing a pair 'i j' in each line to signify A_i <= A_j
         i.e i_th element is less than or equal to the j_th element
 */
-Poset read_poset_from_file(std::string filename) {
+Poset read_poset_from_file(std::istream &data_file) {
     typedef typename Poset::RT RT;
     typedef typename Poset::RV RV;
-
-    std::ifstream data_file;
-    data_file.open(filename);
 
     // read number of elements
     unsigned int n;
@@ -233,11 +231,9 @@ Poset read_poset_from_file(std::string filename) {
 
 
 // read a poset given as an adjacency matrix
-std::pair<bool, Poset> read_poset_from_file_adj_matrix(std::string filename) {
+std::pair<bool, Poset> read_poset_from_file_adj_matrix(std::istream &in) {
     typedef typename Poset::RV RV;
 
-    std::ifstream in;
-    in.open(filename);
     RV edges;
     unsigned int x, n = 0;
 

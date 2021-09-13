@@ -16,23 +16,17 @@
 
 #include <iostream>
 #include <Eigen/Eigen>
-#include <boost/math/special_functions/gamma.hpp>
+#include "volume/math_helpers.h"
 
 
-template <typename NT>
-NT log_gamma_function(NT x)
-{
-    if (x <= NT(100)) return std::log(tgamma(x));
-    return (std::log(x - NT(1)) + log_gamma_function(x - NT(1)));
-}
-
-
-template <class Point, class MT>
+template <class Point>
 class Ellipsoid{
-private:
+public:
+typedef Point PointType;
     typedef typename Point::FT NT;
     typedef typename std::vector<NT>::iterator viterator;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
     // representation is (x - c)' A (x - c) <= 1, center is assumed to be origin for now
     MT A;
@@ -66,7 +60,7 @@ public:
     }
 
 
-    // Constructor for copula ellipsoid
+    // Constructor for copula ellipsoid only
     Ellipsoid(std::vector<std::vector<NT> >& Ain) {
         _dim = Ain.size();
         A.resize(_dim, _dim);
@@ -75,20 +69,6 @@ public:
                 A(i,j) = Ain[i][j];
             }
         }
-
-        Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
-        if (eigensolver.info() != Eigen::Success) {
-            throw std::runtime_error("Eigen solver returned error!");
-        }
-
-        _eigen_values = eigensolver.eigenvalues();
-        _Eigen_Vectors = eigensolver.eigenvectors();
-
-        _eigen_values_inv = _eigen_values.array().inverse().matrix();
-        _eigen_values_inv_sqrt = _eigen_values_inv.array().sqrt().matrix();
-
-        _dim = A.rows();
-        c = Point(_dim);
     }
 
 
