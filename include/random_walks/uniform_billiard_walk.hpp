@@ -22,6 +22,7 @@
     #include "convex_bodies/zonoIntersecthpoly.h"
 #endif
 #include "sampling/sphere.hpp"
+#include "random_walks/boundary_cdhr_walk.hpp"
 #include "generators/boost_random_number_generator.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "volume/sampling_policies.hpp"

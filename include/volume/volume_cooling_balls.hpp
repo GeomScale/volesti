@@ -20,6 +20,8 @@
     #include "convex_bodies/zpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
 #endif
+#include "random_walks/uniform_cdhr_walk.hpp"
+#include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "sampling/random_point_generators.hpp"
 #include "math_helpers.h"

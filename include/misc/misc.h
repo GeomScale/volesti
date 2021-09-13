@@ -10,6 +10,7 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <sstream>
 #include "poset.h"
 
 //function to print rounding to double coordinates
