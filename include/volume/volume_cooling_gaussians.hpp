@@ -23,7 +23,7 @@
 #include "random_walks/gaussian_ball_walk.hpp"
 #include "random_walks/gaussian_cdhr_walk.hpp"
 #include "sampling/random_point_generators.hpp"
-#include "math_helpers.h"
+#include "volume/math_helpers.hpp"
 
 
 /////////////////// Helpers for random walks

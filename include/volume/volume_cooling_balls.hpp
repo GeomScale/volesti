@@ -24,7 +24,7 @@
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "sampling/random_point_generators.hpp"
-#include "math_helpers.h"
+#include "volume/math_helpers.hpp"
 
 
 ////////////////////////////////////

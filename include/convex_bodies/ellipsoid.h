@@ -16,7 +16,7 @@
 
 #include <iostream>
 #include <Eigen/Eigen>
-#include "volume/math_helpers.h"
+#include "volume/math_helpers.hpp"
 
 
 template <class Point>
