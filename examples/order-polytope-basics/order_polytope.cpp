@@ -20,26 +20,14 @@ std::vector<T> linspace(T a, T b, size_t N) {
 typedef typename Poset::RT RT;
 typedef typename Poset::RV RV;
 
-Poset read_poset_from_file(std::string filename) {
-    std::ifstream data_file;
-    data_file.open(filename);
-
-    unsigned int n;
-    data_file >> n;
-
-    RT curr_relation;
-    RV relations;
-    while(data_file >> curr_relation.first >> curr_relation.second)
-        relations.push_back(curr_relation);
-
-    return Poset(n, relations);
-}
-
 
 int main(int argc, char const *argv[]) {
     std::cout << "\nPoset operations: \n";
     //  ----------- basic poset operations -----------
-    Poset poset = read_poset_from_file(std::string(argv[1]));
+    std::string filename (argv[1]);
+    std::ifstream data_file;
+    data_file.open(filename);
+    Poset poset = read_poset_from_file(data_file);
     poset.print();
 
     std::cout << "Checking if a sample Point (linearly spaced coordinates) lies inside the poset: ";
@@ -91,11 +79,11 @@ int main(int argc, char const *argv[]) {
     ray.set_coord(0, 1.5);
     std::cout << "incident ray: ";
     ray.print();
-    
+
     OP.compute_reflection(ray, Point(), 2*OP.dimension());
     std::cout << "reflected ray: ";
     ray.print();
-    // ---------------------------------------------    
+    // ---------------------------------------------
 
     return 0;
 }
