@@ -12,7 +12,7 @@
 #define ORDER_POLYTOPE_H
 
 #include <iostream>
-#include "poset.h"
+#include "misc/poset.h"
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
 #ifndef VOLESTIPY
@@ -84,12 +84,7 @@ public:
 
     // get ith column of A
     VT get_col (unsigned int i) const {
-        VT res = _A.col(i);
-        if (_normalized) {
-            return res.array() / _row_norms.array();
-        }
-
-        return res;
+        return _A.col(i);
     }
 
 
@@ -111,10 +106,7 @@ public:
         std::cout << " " << _A.rows() << " " << _d << " double" << std::endl;
         for (unsigned int i = 0; i < _A.rows(); i++) {
             for (unsigned int j = 0; j < _d; j++) {
-                if (!_normalized)
-                    std::cout << _A(i, j) << " ";
-                else
-                    std::cout << _A(i, j) / _row_norms(i) << " ";
+                std::cout << _A(i, j) << " ";
             }
             std::cout << "<= " << b(i) << std::endl;
         }
@@ -188,11 +180,11 @@ public:
             // DON'T JUST check violation of point between 0 and 1
             // as b will change for shifted polytope
             diff = -pt_coeffs(i) - b(i);
-            if (_normalized)    diff /= _row_norms(i);
+            // if (_normalized)    diff /= _row_norms(i); // row_norm is 1
             if (diff > NT(tol)) return 0;
 
             diff = pt_coeffs(i) - b(i + _d);
-            if (_normalized)    diff /= _row_norms(i + _d);
+            // if (_normalized)    diff /= _row_norms(i + _d);  // row_norm is 1
             if (diff > NT(tol)) return 0;
         }
 
@@ -216,21 +208,16 @@ public:
     //Use LpSolve library
     std::pair<Point, NT> ComputeInnerBall()
     {
-       normalize();
-
-        // change entries of A, doing here as won't be required in
-        // optimized volume calculation of order-polytope
-        MT A = _A.rowwise().normalized();
+        normalize();
         std::pair<Point, NT> _innerball;
 
-        #ifndef VOLESTIPY   // as _A is never normalized in closed form
-            _innerball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
+        #ifndef VOLESTIPY
+            _innerball = ComputeChebychevBall<NT, Point>(_A, b); // use lpsolve library
         #else
-
             if (_innerball.second < 0.0) {
 
                 NT const tol = 0.00000001;
-                std::tuple<VT, NT, bool> innerball = max_inscribedball(A, b, 150, tol);
+                std::tuple<VT, NT, bool> innerball = max_inscribedball(_A, b, 150, tol);
 
                 // check if the solution is feasible
                 if (is_in(Point(std::get<0>(innerball))) == 0 || std::get<1>(innerball) < NT(0) ||
@@ -420,7 +407,7 @@ public:
     }
 
 
-    //-------------------------accelarated billiard--------------------------------//
+    //-------------------------accelerated billiard--------------------------------//
     // compute intersection point of a ray starting from r and pointing to v
     // with the order-polytope
     template <typename update_parameters>
@@ -693,10 +680,11 @@ public:
             return;
 
         // for b and _A, first 2*_d rows are already normalized, for
-        _normalized = true; // -> will be used to make changes in entries of _A
+        _normalized = true; // -> will be used to make normalization idempotent
         for (unsigned int i = 0; i < _num_hyperplanes; ++i)
         {
-            b(i) = b(i) / _row_norms(i);
+            _A.row(i) /= _row_norms(i);
+            b(i) /= _row_norms(i);
         }
     }
 
