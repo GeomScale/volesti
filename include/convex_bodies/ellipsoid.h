@@ -16,7 +16,7 @@
 
 #include <iostream>
 #include <Eigen/Eigen>
-#include "volume/math_helpers.hpp"
+#include "volume/math_helpers.h"
 
 
 template <class Point>
@@ -28,12 +28,13 @@ typedef Point PointType;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
+private:
     // representation is (x - c)' A (x - c) <= 1, center is assumed to be origin for now
     MT A;
     Point c;
 
-    // MT L;   // LL' = A
     unsigned int _dim;
+    MT _L_cov;   // LL' = inv(A) for sampling procedures
 
     // eigen vectors and values
     VT _eigen_values;
@@ -43,6 +44,9 @@ typedef Point PointType;
 
 public:
 
+    Ellipsoid() {}
+
+    // TODO(vaithak): Add a flag for telling whether the matrix passed is already inverse
     Ellipsoid(MT& Ain) : A(Ain) {
         Eigen::SelfAdjointEigenSolver<MT> eigensolver(A);
         if (eigensolver.info() != Eigen::Success) {
@@ -57,6 +61,12 @@ public:
 
         _dim = A.rows();
         c = Point(_dim);
+
+        Eigen::LLT<MT> lltOfA(A.inverse()); // compute the Cholesky decomposition of inv(A)
+        if (lltOfA.info() != Eigen::Success) {
+            throw std::runtime_error("Cholesky decomposition failed!");
+        }
+        _L_cov = lltOfA.matrixL();
     }
 
 
@@ -69,6 +79,11 @@ public:
                 A(i,j) = Ain[i][j];
             }
         }
+    }
+
+
+    NT radius() const {
+        return _eigen_values_inv_sqrt(0);
     }
 
 
@@ -97,9 +112,20 @@ public:
     }
 
 
-    void print() {
+    MT Lcov() const {
+        return _L_cov;
+    }
+
+
+    // return L_cov * x
+    VT mult_Lcov(VT const& x) const {
+        return _L_cov.template triangularView<Eigen::Lower>() * x;
+    }
+
+
+    void print() const {
         std::cout << "Ellipse is in the form: x' A x <= 1, (center is assumed to be origin always) \n";
-        std::cout << "c = \n" << c.print();
+        std::cout << "c = \n"; c.print();
         std::cout << "A = \n" << A;
     }
 
@@ -118,7 +144,7 @@ public:
 
     NT log_volume() const {
         NT ball_log_vol = (NT(_dim)/NT(2) * std::log(M_PI)) - log_gamma_function(NT(_dim) / NT(2) + 1);
-        NT det_factor = - 0.5 * std::log( A.determinant() );
+        NT det_factor = std::log( _eigen_values_inv_sqrt.prod() );
 
         return det_factor + ball_log_vol;
     }
@@ -131,10 +157,10 @@ public:
         NT inv_scale_factor = (NT(1.0) / scale_factor);
         NT inv_scale_factor_sq = (NT(1.0) / scale_factor_sq);
 
-        // L = mult_factor * L;
         _eigen_values = inv_scale_factor_sq * _eigen_values;
         _eigen_values_inv = scale_factor_sq * _eigen_values_inv;
         _eigen_values_inv_sqrt = scale_factor * _eigen_values_inv_sqrt;
+        _L_cov = scale_factor * _L_cov;
 
         A = inv_scale_factor_sq * A; // as volume depends on square root of it's determinant
     }
@@ -150,7 +176,7 @@ public:
         // constants of a quadratic equation
         NT a_q = mat_mult(v);
         NT b_q = 2 * r.getCoefficients().dot(vec_mult(v.getCoefficients()));
-        NT c_q = mat_mult(r);
+        NT c_q = mat_mult(r) - 1;
 
         NT D = std::pow(b_q, 2) - 4*a_q*c_q;
         return std::pair<NT, NT> ( (-b_q + std::sqrt(D))/(2*a_q) , (-b_q - std::sqrt(D))/(2*a_q) );
@@ -179,7 +205,8 @@ public:
     std::pair<NT,int> line_positive_intersect(Point const& r,
                                               Point const& v) const
     {
-        return std::pair<NT,NT>(line_intersect(r, v).first, 0);
+        NT res = line_intersect(r, v).first;
+        return std::pair<NT,int>(res, 0);
     }
 
 
@@ -206,7 +233,7 @@ public:
     std::pair<NT,NT> line_intersect_coord(Point const& r, const unsigned int rand_coord) const {
         NT a_q = A(rand_coord, rand_coord);
         NT b_q = 2 * r.getCoefficients().dot(A.col(rand_coord));
-        NT c_q = mat_mult(r);
+        NT c_q = mat_mult(r) - 1;
 
         NT D = std::pow(b_q, 2) - 4*a_q*c_q;
         return std::pair<NT, NT> ( (-b_q + std::sqrt(D))/(2*a_q) , (-b_q - std::sqrt(D))/(2*a_q) );
@@ -235,9 +262,21 @@ public:
     {
         // normal vector is Ap
         Point s(vec_mult(p.getCoefficients()));
-        s *= (1.0 / std::sqrt(s.squared_length()));
+        s *= (1.0 / s.length());
         s *= (-2.0 * v.dot(s));
         v += s;
+    }
+
+
+    template <typename update_parameters>
+    void compute_reflection (Point& v, Point const& p, update_parameters &params) const
+    {
+        // normal vector is Ap
+        Point s(vec_mult(p.getCoefficients()));
+        params.ball_inner_norm = s.length();
+
+        params.inner_vi_ak = v.dot(s) / params.ball_inner_norm;
+        v += (s * (-2.0 * params.inner_vi_ak * (1.0 / params.ball_inner_norm)));
     }
 };
 
