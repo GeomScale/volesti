@@ -1,7 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
-// Copyright (c) 2012-2020 Vissarion Fisikopoulos
-// Copyright (c) 2018-2020 Apostolos Chalkis
+// Copyright (c) 2012-2021 Vissarion Fisikopoulos
+// Copyright (c) 2018-2021 Apostolos Chalkis
 // Copyright (c) 2021 Vaibhav Thakkar
 
 //Contributed and/or modified by Vaibhav Thakkar, as part of Google Summer of Code 2021 program.
@@ -42,18 +42,13 @@ struct GetGaussianDirection
     template <typename Ellipsoid, typename RandomNumberGenerator>
     inline static Point apply(unsigned int const& dim,
                               Ellipsoid const& E,   // ellipsoid representing the Gaussian distribution
-                              RandomNumberGenerator &rng,
-                              bool normalized=false)
+                              RandomNumberGenerator &rng)
     {
         // Generate a point inside a sphere of radius 1.0
-        Point p = GetDirection<Point>::apply(dim ,rng, false);
+        Point p = GetDirection<Point>::apply(dim, rng, false);
 
         // Multiply with cholesky matrix
         VT gaussian_vec = E.mult_Lcov(p.getCoefficients());
-
-        if (normalized) {
-            gaussian_vec.normalize();
-        }
 
         // convert to point
         return Point(gaussian_vec);
@@ -73,7 +68,7 @@ struct GetPointOnDellipsoid
                               RandomNumberGenerator &rng)
     {
         // Generate a point inside a sphere of radius 1.0
-        Point p = GetDirection<Point>::apply(dim ,rng, true);
+        Point p = GetDirection<Point>::apply(dim, rng, true);
 
         // Multiply with cholesky matrix
         VT gaussian_vec = E.mult_Lcov(p.getCoefficients());

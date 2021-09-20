@@ -29,9 +29,8 @@ typedef Point PointType;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
 private:
-    // representation is (x - c)' A (x - c) <= 1, center is assumed to be origin for now
+    // representation is x'A x <= 1, i.e center is always assumed to be origin.
     MT A;
-    Point c;
 
     unsigned int _dim;
     MT _L_cov;   // LL' = inv(A) for sampling procedures
@@ -60,7 +59,6 @@ public:
         _eigen_values_inv_sqrt = _eigen_values_inv.array().sqrt().matrix();
 
         _dim = A.rows();
-        c = Point(_dim);
 
         Eigen::LLT<MT> lltOfA(A.inverse()); // compute the Cholesky decomposition of inv(A)
         if (lltOfA.info() != Eigen::Success) {
@@ -125,7 +123,6 @@ public:
 
     void print() const {
         std::cout << "Ellipse is in the form: x' A x <= 1, (center is assumed to be origin always) \n";
-        std::cout << "c = \n"; c.print();
         std::cout << "A = \n" << A;
     }
 
