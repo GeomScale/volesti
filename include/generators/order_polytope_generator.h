@@ -1,3 +1,14 @@
+// VolEsti (volume computation and sampling library)
+
+// Copyright (c) 2012-2021 Vissarion Fisikopoulos
+// Copyright (c) 2018-2021 Apostolos Chalkis
+// Copyright (c) 2021 Vaibhav Thakkar
+
+// Licensed under GNU LGPL.3, see LICENCE file
+
+#ifndef ORDER_POLYTOPES_GEN_H
+#define ORDER_POLYTOPES_GEN_H
+
 #include <sstream>
 #include <unordered_map>
 #include "misc.h"
@@ -27,8 +38,8 @@ static const std::unordered_map<std::string, std::string> instances =
 
 };
 
-// generates an Order Polytope from an instance file containing the adjacency matrix
-// of the corresponding DAG
+// generates an Order Polytope from the instance name provided among the
+// possible instances in the map above.
 template <class Polytope>
 Polytope generate_orderpoly(std::string& instance_name) {
     std::stringstream in_ss(instances.at(instance_name));
@@ -46,3 +57,5 @@ Polytope generate_cube_orderpoly(unsigned int dim) {
     Polytope OP(poset);
     return OP;
 }
+
+#endif

@@ -178,13 +178,11 @@ public:
 
         for (int i = 0; i < _d; i++) {
             // DON'T JUST check violation of point between 0 and 1
-            // as b will change for shifted polytope
+            // as b will change for shifted polytope.
             diff = -pt_coeffs(i) - b(i);
-            // if (_normalized)    diff /= _row_norms(i); // row_norm is 1
             if (diff > NT(tol)) return 0;
 
             diff = pt_coeffs(i) - b(i + _d);
-            // if (_normalized)    diff /= _row_norms(i + _d);  // row_norm is 1
             if (diff > NT(tol)) return 0;
         }
 
@@ -209,31 +207,7 @@ public:
     std::pair<Point, NT> ComputeInnerBall()
     {
         normalize();
-        std::pair<Point, NT> _innerball;
-
-        #ifndef VOLESTIPY
-            _innerball = ComputeChebychevBall<NT, Point>(_A, b); // use lpsolve library
-        #else
-            if (_innerball.second < 0.0) {
-
-                NT const tol = 0.00000001;
-                std::tuple<VT, NT, bool> innerball = max_inscribedball(_A, b, 150, tol);
-
-                // check if the solution is feasible
-                if (is_in(Point(std::get<0>(innerball))) == 0 || std::get<1>(innerball) < NT(0) ||
-                    std::isnan(std::get<1>(innerball)) || std::isinf(std::get<1>(innerball)) ||
-                    !std::get<2>(innerball) || is_inner_point_nan_inf(std::get<0>(innerball)))
-                {
-                    _innerball.second = -1.0;
-                } else
-                {
-                    _innerball.first = Point(std::get<0>(innerball));
-                    _innerball.second = std::get<1>(innerball);
-                }
-            }
-        #endif
-
-        return _innerball;
+        return ComputeChebychevBall<NT, Point>(_A, b);
     }
 
 
