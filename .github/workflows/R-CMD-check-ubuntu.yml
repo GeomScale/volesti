@@ -20,18 +20,9 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          # - {os: macOS-latest,   r: 'devel'}
-          # - {os: macOS-latest,   r: 'release'}
-          # - {os: windows-latest, r: 'devel'}
-          # - {os: windows-latest, r: 'release'}
-#          - {os: ubuntu-latest,  r: 'devel'} # error in "Run r-lib/actions/setup-r@master"
-#          - {os: ubuntu-latest,  r: 'release'} ##[error]Error in library(devtools) : there is no package called ‘devtools’
-#          - {os: ubuntu-18.04,   r: 'release'} ##[error]Error in library(devtools) : there is no package called ‘devtools’
-          - {os: ubuntu-16.04,   r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
-          - {os: ubuntu-16.04,   r: 'oldrel',  rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
-          - {os: ubuntu-16.04,   r: '3.5',     rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
-          - {os: ubuntu-16.04,   r: '3.4',     rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
-          - {os: ubuntu-16.04,   r: '3.3',     rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+         - {os: ubuntu-latest,  r: 'devel'} # error in "Run r-lib/actions/setup-r@master"
+         - {os: ubuntu-latest,  r: 'release'}
+         - {os: ubuntu-18.04,   r: 'release'}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
