@@ -31,7 +31,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - run: sudo apt install build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev;
+      - run: sudo apt-get update || true;
+             sudo apt install build-essential libcurl4-gnutls-dev libxml2-dev libssl-dev;
 
       - uses: r-lib/actions/setup-r@master
         with:
