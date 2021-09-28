@@ -171,7 +171,7 @@ struct AcceleratedBilliardWalk
             std::vector<Point> pointset;
             pointset.push_back(center);
             pointset.push_back(_p);
-            NT rad = NT(0), max_dist, Lmax = _L, radius = P.InnerBall().second;
+            NT rad = NT(0), max_dist, Lmax = get_delta(), radius = P.InnerBall().second;
 
             for (int i = 0; i < num_points; i++) 
             {
@@ -186,7 +186,7 @@ struct AcceleratedBilliardWalk
                     Lmax = max_dist;
                 }
                 if (2.0*rad > Lmax) {
-                    Lmax = 2.0*rad;
+                    Lmax = 2.0 * rad;
                 }
                 pointset.push_back(p);
             }
@@ -210,7 +210,7 @@ struct AcceleratedBilliardWalk
             _L = L;
         }
 
-        NT get_delta(NT L)
+        NT get_delta()
         {
             return _L;
         }

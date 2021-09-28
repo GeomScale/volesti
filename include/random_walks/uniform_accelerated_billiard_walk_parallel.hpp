@@ -154,7 +154,7 @@ struct AcceleratedBilliardWalkParallel
                                        RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
-            NT T, Lmax = _L, max_dist, rad = 0.0, radius = P.InnerBall().second;
+            NT radius = P.InnerBall().second;
 
             params.p = GetPointInDsphere<Point>::apply(n, radius, rng);
             params.p += center;
@@ -178,13 +178,16 @@ struct AcceleratedBilliardWalkParallel
         {
             std::vector<Point> pointset;
             pointset.push_back(center);
-            params.p = center;
-            initialize(P, params, rng);
-            pointset.push_back(params.p);
-            NT rad = NT(0), max_dist, Lmax;
+
+            params.p = Point(P.dimension());
+            NT rad = NT(0), max_dist, Lmax = get_delta();
 
             for (int i = 0; i < num_points; i++) 
             {
+                params.p = GetPointInDsphere<Point>::apply(n, radius, rng);
+                params.p += center;
+                initialize(P, params, rng);
+
                 apply(P, params, walk_length, rng);
                 max_dist = get_max_distance(pointset, params.p, rad);
                 if (max_dist > Lmax) 
@@ -192,7 +195,7 @@ struct AcceleratedBilliardWalkParallel
                     Lmax = max_dist;
                 }
                 if (2.0*rad > Lmax) {
-                    Lmax = 2.0*rad;
+                    Lmax = 2.0 * rad;
                 }
                 pointset.push_back(params.p);
             }
@@ -203,6 +206,9 @@ struct AcceleratedBilliardWalkParallel
                 {
                     update_delta(Lmax);
                 }
+                else{
+                    update_delta(2.0 * get_delta());
+                }
             }
             pointset.clear();
         }
@@ -212,6 +218,11 @@ struct AcceleratedBilliardWalkParallel
         inline void update_delta(NT L)
         {
             _L = L;
+        }
+
+        NT get_delta()
+        {
+            return _L;
         }
 
     private :
