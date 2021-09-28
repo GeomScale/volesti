@@ -115,7 +115,7 @@ struct AcceleratedBilliardWalk
                 P.compute_reflection(_v, _p, _update_parameters);
                 it++;
 
-                while (it < 100*n)
+                while (it < 1000*n)
                 {
                     std::pair<NT, int> pbpair
                             = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -130,7 +130,7 @@ struct AcceleratedBilliardWalk
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
-                if (it == 100*n) _p = p0;
+                if (it == 1000*n) _p = p0;
             }
             p = _p;
         }
@@ -147,7 +147,7 @@ struct AcceleratedBilliardWalk
                            RandomNumberGenerator &rng)
         {
             unsigned int n = P.dimension();
-            NT T, Lmax = _L, max_dist, rad = 0.0, radius = P.InnerBall().second;
+            NT radius = P.InnerBall().second;
 
             q = GetPointInDsphere<Point>::apply(n, radius, rng);
             q += center;
@@ -167,14 +167,18 @@ struct AcceleratedBilliardWalk
                                      unsigned int const& walk_length,
                                      RandomNumberGenerator &rng)
         {
-            Point p = center;
+            Point p(P.dimension());
             std::vector<Point> pointset;
             pointset.push_back(center);
             pointset.push_back(_p);
-            NT rad = NT(0), max_dist, Lmax;
+            NT rad = NT(0), max_dist, Lmax = _L, radius = P.InnerBall().second;
 
             for (int i = 0; i < num_points; i++) 
             {
+                Point p = GetPointInDsphere<Point>::apply(P.dimension(), radius, rng);
+                p += center;
+                initialize(P, p, rng);
+
                 apply(P, p, walk_length, rng);
                 max_dist = get_max_distance(pointset, p, rad);
                 if (max_dist > Lmax) 
@@ -192,6 +196,9 @@ struct AcceleratedBilliardWalk
                 {
                     update_delta(Lmax);
                 }
+                else{
+                    update_delta(2.0 * get_delta());
+                }
             }
             pointset.clear();
         }
@@ -201,6 +208,11 @@ struct AcceleratedBilliardWalk
         inline void update_delta(NT L)
         {
             _L = L;
+        }
+
+        NT get_delta(NT L)
+        {
+            return _L;
         }
 
     private :
@@ -236,7 +248,7 @@ struct AcceleratedBilliardWalk
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, _update_parameters);
 
-            while (it <= 100*n)
+            while (it <= 1000*n)
             {
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -244,7 +256,7 @@ struct AcceleratedBilliardWalk
                     _p += (T * _v);
                     _lambda_prev = T;
                     break;
-                } else if (it == 100*n) {
+                } else if (it == 1000*n) {
                     _lambda_prev = rng.sample_urdist() * pbpair.first;
                     _p += (_lambda_prev * _v);
                     break;
