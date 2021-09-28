@@ -180,11 +180,11 @@ struct AcceleratedBilliardWalkParallel
             pointset.push_back(center);
 
             params.p = Point(P.dimension());
-            NT rad = NT(0), max_dist, Lmax = get_delta();
+            NT rad = NT(0), max_dist, Lmax = get_delta(), radius = P.InnerBall().second;
 
             for (int i = 0; i < num_points; i++) 
             {
-                params.p = GetPointInDsphere<Point>::apply(n, radius, rng);
+                params.p = GetPointInDsphere<Point>::apply(P.dimension(), radius, rng);
                 params.p += center;
                 initialize(P, params, rng);
 
