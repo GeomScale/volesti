@@ -86,7 +86,7 @@ void perform_parallel_mmcs_step(Polytope &P,
 
     ESSestimator<NT, VT, MT> estimator(window, P.dimension());
 
-    bool done = false, done_all = false, door = true;
+    bool done = false, done_all = false;
     unsigned int points_to_sample = target_ess;
     int min_eff_samples;
     total_samples = 0;
@@ -130,48 +130,51 @@ void perform_parallel_mmcs_step(Polytope &P,
                 winPoints_per_thread[thread_index].col(i) = thread_random_walk_parameters.p.getCoefficients();
             }
 
-            door = false;
-            estimator.update_estimator(winPoints_per_thread[thread_index]);
-            door = true;
-
-            num_generated_points_per_thread[thread_index] += window;
-            total_samples += window;
-            if (total_samples >= upper_bound_on_total_num_of_samples && thread_index == 0) 
+            #pragma omp critical
             {
-                done = true;
+                estimator.update_estimator(winPoints_per_thread[thread_index]);
+            }
+            
+            num_generated_points_per_thread[thread_index] += window;
+
+            #pragma omp critical
+            {
+                total_samples += window;
+            }
+            #pragma omp single
+            {
+                if (total_samples >= upper_bound_on_total_num_of_samples)
+                {
+                    done = true;
+                }
             }
             TotalRandPoints_per_thread[thread_index].block(num_generated_points_per_thread[thread_index] - window, 0, window, d) = winPoints_per_thread[thread_index].transpose();
-            if ((done || total_samples >= points_to_sample) && thread_index == 0) 
+            #pragma omp single
             {
-                while (true) 
-                {
-                    if (door)
+                if (done || (total_samples >= points_to_sample))
+                {                
+                    estimator.estimate_effective_sample_size();
+                
+                    min_eff_samples = int(estimator.get_effective_sample_size().minCoeff());
+                    if (done && min_eff_samples < target_ess) 
                     {
-                        estimator.estimate_effective_sample_size();
-                        break;
+                        Neff_sampled = min_eff_samples;
+                        done_all = true;
                     }
-                }
-                min_eff_samples = int(estimator.get_effective_sample_size().minCoeff());
-                if (done && min_eff_samples < target_ess) 
-                {
-                    Neff_sampled = min_eff_samples;
-                    done_all = true;
-                    continue;
-                }
-                if (min_eff_samples >= target_ess) 
-                {
-                    complete = true;
-                    Neff_sampled = min_eff_samples;
-                    done_all = true;
-                    continue;
-                }
-                if (min_eff_samples > 0) 
-                {
-                    points_to_sample += (total_samples / min_eff_samples) * (target_ess - min_eff_samples) + 100;
-                } 
-                else 
-                {
-                    points_to_sample = total_samples + 100;
+                    if (min_eff_samples >= target_ess) 
+                    {
+                        complete = true;
+                        Neff_sampled = min_eff_samples;
+                        done_all = true;
+                    }
+                    if (min_eff_samples > 0 && !done_all) 
+                    {
+                        points_to_sample += (total_samples / min_eff_samples) * (target_ess - min_eff_samples) + 100;
+                    } 
+                    else if (!done_all)
+                    {
+                        points_to_sample = total_samples + 100;
+                    }
                 }
             }
         }
