@@ -1,6 +1,8 @@
 # VolEsti (volume computation and sampling library)
 # Copyright (c) 2012-2020 Vissarion Fisikopoulos
 # Copyright (c) 2018-2020 Apostolos Chalkis
+# Copyright (c) 2021 Vaibhav Thakkar
+
 # Contributed and/or modified by Vaibhav Thakkar
 # Licensed under GNU LGPL.3, see LICENCE file
 
@@ -253,6 +255,10 @@ else ()
   add_test(NAME new_rounding_test_round_skinny_cube
            COMMAND new_rounding_test -tc=round_skinny_cube)
 
+  add_executable (max_ellipsoid_rounding_test max_ellipsoid_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME max_ellipsoid_rounding_test_round_skinny_cube
+           COMMAND max_ellipsoid_rounding_test -tc=round_skinny_cube)
+
   add_executable (logconcave_sampling_test logconcave_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME logconcave_sampling_test_hmc
           COMMAND logconcave_sampling_test -tc=hmc)
@@ -273,6 +279,12 @@ else ()
   add_test(NAME simple_mc_integration_over_birkhoff_polytopes
 		  COMMAND simple_mc_integration -tc=birkhoff)
 
+  add_executable (order_polytope order_polytope.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME order_polytope_basics COMMAND order_polytope -tc=basics)
+  add_test(NAME order_polytope_line_intersect COMMAND order_polytope -tc=line_intersect)
+  add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
+  add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
+
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE})
@@ -283,6 +295,7 @@ else ()
   TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(max_ellipsoid_rounding_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
@@ -297,6 +310,8 @@ else ()
   else()
       TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS})
   endif()
+
+  TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE})
 
 
 endif()
