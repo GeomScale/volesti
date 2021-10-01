@@ -13,9 +13,9 @@ testRound <- function(P, exactvol, tol, name_string, num_of_exps, algo, rotation
   vol = 0
   for (j in 1:num_of_exps) {
     if (algo == "CB") {
-      vol = vol + listHpoly$round_value * volume(listHpoly$P, seed = seed)
+      vol = vol + listHpoly$round_value * volume(listHpoly$P, seed = seed)$volume
     } else {
-      vol = vol + listHpoly$round_value * volume(listHpoly$P, settings=list("algorithm"="CG", "error"=0.1), seed = seed)
+      vol = vol + listHpoly$round_value * volume(listHpoly$P, settings=list("algorithm"="CG", "error"=0.1), seed = seed)$volume
     }
   }
   vol = vol / num_of_exps

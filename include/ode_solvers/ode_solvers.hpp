@@ -56,7 +56,7 @@
 #include "ode_solvers/integral_collocation.hpp"
 #endif
 
-#ifndef ODE_SOLVERS_HPP
-#define ODE_SOLVERS_HPP
+#ifndef ODE_SOLVERS_ODE_SOLVERS_HPP
+#define ODE_SOLVERS_ODE_SOLVERS_HPP
 
 #endif

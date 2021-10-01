@@ -42,6 +42,6 @@ A list which contains elements "x_1", ..., "x_n" representing each derivative re
 Solve an ODE of the form dx^n / dt^n = F(x, t)
 }
 \examples{
-# Please visit the examples directory on examples demonstrating usage of the ODE solvers. 
+# Please visit the examples directory on examples demonstrating usage of the ODE solvers.
 
 }

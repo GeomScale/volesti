@@ -15,7 +15,7 @@
 #include "sampling/random_point_generators.hpp"
 #include "volume/sampling_policies.hpp"
 
-template 
+template
 <
     typename WalkTypePolicy,
     typename MT,
@@ -114,7 +114,7 @@ std::tuple<MT, VT, NT> min_sampling_covering_ellipsoid_rounding(Polytope &P,
         ratio = Rel / rel;
         iter++;
     }
-    
+
     std::tuple<MT, VT, NT> result = std::make_tuple(T, shift, std::abs(round_val));
     return result;
 }

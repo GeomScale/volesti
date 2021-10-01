@@ -35,7 +35,7 @@ void calculateVolumes(const HPOLYTOPE &HP) {
 	NT e=0.1;
 
 	// Calculating volume of the passed polytope
-	NT volume1 = volume_cooling_balls<BallWalk, RNGType, HPOLYTOPE>(HP, e, walk_len);
+	NT volume1 = volume_cooling_balls<BallWalk, RNGType, HPOLYTOPE>(HP, e, walk_len).second;
 	NT volume2 = volume_cooling_gaussians<GaussianBallWalk, RNGType>(HP, e, walk_len);
 	NT volume3 = volume_sequence_of_balls<BallWalk, RNGType>(HP, e, walk_len);
 

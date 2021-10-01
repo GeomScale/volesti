@@ -269,15 +269,18 @@ void logconcave_sampling(PointList &randPoints,
 
     Point p = starting_point;
 
-    typedef LogconcaveRandomPointGenerator<walk> RandomPointGenerator;
-    if (nburns > 0) {
-        RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
-                                    push_back_policy, rng, F, f, params);
+    walk logconcave_walk(&P, p, F, f, params);
 
-        randPoints.clear();
-    }
+    typedef LogconcaveRandomPointGenerator<walk> RandomPointGenerator;
+
+    RandomPointGenerator::apply(P, p, nburns, walk_len, randPoints,
+                                push_back_policy, rng, F, f, params, logconcave_walk);
+
+    logconcave_walk.disable_adaptive();
+    randPoints.clear();
+
     RandomPointGenerator::apply(P, p, rnum, walk_len, randPoints,
-                                push_back_policy, rng, F, f, params);
+                                push_back_policy, rng, F, f, params, logconcave_walk);
 
 }
 

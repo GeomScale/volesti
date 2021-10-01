@@ -31,7 +31,7 @@ public:
   typedef Cartesian<K> Self;
   typedef K                    FT;
   typedef point<Self>              Point;
-    
+
 };
 
 #endif

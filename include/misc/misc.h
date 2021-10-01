@@ -1,6 +1,7 @@
 // VolEsti (volume computation and sampling library)
 
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
+// Copyright (c) 2021 Vaibhav Thakkar
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
@@ -9,10 +10,13 @@
 
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <sstream>
+#include "poset.h"
 
-//function to print rounding to double coordinates 
+//function to print rounding to double coordinates
 template <class T>
-void round_print(T p) { 
+void round_print(T p) {
     std::cout<<"test version.."<<std::endl;
    // for(typename T::Cartesian_const_iterator cit=p.cartesian_begin();
    //     cit!=p.cartesian_end(); ++cit)
@@ -140,7 +144,7 @@ void print_polymake_volfile2(T &P,
 template <typename NT>
 void read_pointset(std::istream &is,
                   std::vector<std::vector<NT> > &Input){
-    
+
     std::string point;
 
     while(!std::getline(is, point, '\n').eof()) {
@@ -180,6 +184,85 @@ void read_pointset(std::istream &is,
         Input.push_back(input);
         //std::cout<<std::endl;
     }
+}
+
+template <typename NT>
+void read_objective(std::istream &is, std::vector<NT> &obj) {
+    NT element;
+    while (is >> element) obj.push_back(element);
+
+}
+
+template <typename NT, typename Point>
+std::pair<Point, NT> read_inner_ball(std::istream &is) {
+    std::vector<NT> obj;
+    read_objective<NT>(is, obj);
+    unsigned int dim = obj.size() - 1;
+    Point center(dim);
+    NT radius = obj[dim];
+    for (unsigned int i = 0; i < dim; i++) {
+        center.set_coord(i, obj[i]);
+    }
+
+    return std::make_pair(center, radius);
+}
+
+/* read a poset given in the following format:
+    - First line contains a single positive integer 'n' - number of elements
+    - Next `m` lines follow containing a pair 'i j' in each line to signify A_i <= A_j
+        i.e i_th element is less than or equal to the j_th element
+*/
+Poset read_poset_from_file(std::istream &data_file) {
+    typedef typename Poset::RT RT;
+    typedef typename Poset::RV RV;
+
+    // read number of elements
+    unsigned int n;
+    data_file >> n;
+
+    // read relations line by line
+    RT curr_relation;
+    RV relations;
+    while(data_file >> curr_relation.first >> curr_relation.second)
+        relations.push_back(curr_relation);
+
+    return Poset(n, relations);
+}
+
+
+// read a poset given as an adjacency matrix
+std::pair<bool, Poset> read_poset_from_file_adj_matrix(std::istream &in) {
+    typedef typename Poset::RV RV;
+
+    RV edges;
+    unsigned int x, n = 0;
+
+    // read a single line
+    std::string line;
+    std::getline(in, line);
+    std::stringstream line_ss(line);
+    while(line_ss >> x) {
+        if(x) {
+            edges.emplace_back(0, n);
+        }
+        ++n;
+    }
+
+    // read rest of the lines
+    for(unsigned int a = 1; a < n; ++a) {
+        for(unsigned int b = 0; b < n; ++b) {
+            if(!(in >> x)) {
+                std::cerr << "Invalid adjacency matrix";
+                return std::pair<bool, Poset>(false, Poset());
+            }
+
+            if(x) {
+                edges.emplace_back(a, b);
+            }
+        }
+    }
+
+    return std::pair<bool, Poset>(true, Poset(n, edges));
 }
 
 #endif //MISC_H

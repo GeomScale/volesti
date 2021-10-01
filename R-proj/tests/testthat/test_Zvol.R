@@ -8,9 +8,9 @@ Zruntest <- function(P, name_string, tol, num_of_exps, algo, seed){
   vol = 0
   for (j in 1:num_of_exps) {
     if (algo == "CB") {
-      vol = vol + volume(P, settings = list("hpoly" = FALSE), rounding = "none", seed = seed)
+      vol = vol + volume(P, settings = list("hpoly" = FALSE), rounding = "none", seed = seed)$volume
     } else {
-      vol = vol + volume(P, settings = list("algorithm" = "CG", "error" = 0.1), rounding = "none", seed = seed)
+      vol = vol + volume(P, settings = list("algorithm" = "CG", "error" = 0.1), rounding = "none", seed = seed)$volume
     }
   }
   vol = vol / num_of_exps

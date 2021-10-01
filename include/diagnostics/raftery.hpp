@@ -25,8 +25,8 @@
              (vi)  The I-statistic from Raftery and Lewis (1992)
 */
 
-#ifndef RAFTERY_HPP
-#define RAFTERY_HPP
+#ifndef DIAGNOSTICS_RAFTERY_HPP
+#define DIAGNOSTICS_RAFTERY_HPP
 
 template <typename NT>
 NT fix(NT x)
@@ -82,7 +82,7 @@ MT perform_raftery(MT const& samples, NT const& q, NT const& r, NT const& s)
         }
         kthin = 1; bic = 1.0; epss = 0.001;
 
-        while(bic > 0.0) 
+        while(bic > 0.0)
         {
             xy = thin<VTint>(work.col(i), n, kthin);
             tcnt = xy.first;
@@ -95,7 +95,7 @@ MT perform_raftery(MT const& samples, NT const& q, NT const& r, NT const& s)
                 break;
             }
         }
-        
+
         kthin--;
         g2bic = mcest<MTint, NT>(tmp, tcnt);
         alpha = g2bic.first;
@@ -124,11 +124,11 @@ MT perform_raftery(MT const& samples, NT const& q, NT const& r, NT const& s)
         NT nburn = fix((tmp1 + 1.0) * NT(kthin));
         NT phi   = ppnd((s + 1.0) / 2.0);
         NT tmp2  = (2.0 - psum) * alpha * beta * (phi * phi) / (psum * psum * psum * (r * r));
-        NT nprec = fix(tmp2 + 1.0) * kthin; 
+        NT nprec = fix(tmp2 + 1.0) * kthin;
         NT nmin  = fix(((1.0 - q) * q * (phi * phi) / (r * r)) + 1.0);
-        NT irl   = (nburn + nprec) / nmin; 
+        NT irl   = (nburn + nprec) / nmin;
         NT kind  = std::max(fix(irl + 1.0), NT(kmind));
- 
+
         results(i, 0) = NT(kthin);
         results(i, 1) = NT(nburn);
         results(i, 2) = kind;

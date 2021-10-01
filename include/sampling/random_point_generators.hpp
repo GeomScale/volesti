@@ -187,10 +187,10 @@ struct LogconcaveRandomPointGenerator
                       RandomNumberGenerator &rng,
                       NegativeGradientFunctor &F,
                       NegativeLogprobFunctor &f,
-                      Parameters &parameters)
+                      Parameters &parameters,
+                      Walk &walk)
     {
         typedef double NT;
-        Walk walk(&P, p, F, f, parameters);
 
         for (unsigned int i = 0; i < rnum; ++i)
         {

@@ -1,0 +1,30 @@
+name: gcc-test-SDP
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.compilers }}
+    strategy:
+          fail-fast: false
+          matrix:
+            compilers: [g++-4.8, g++-5, g++-6, g++-7, g++-8, g++-9]    
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - run: sudo apt-get update || true;
+             sudo apt-get install ${{ matrix.compilers }} lp-solve; 
+             sudo apt install gfortran libopenblas-dev liblapack-dev libarpack2-dev;
+             sudo apt install git;
+             sudo apt install libpthread-stubs0-dev;
+             git clone https://github.com/m-reuter/arpackpp;
+             cd arpackpp;
+             ./install-openblas.sh;
+             ./install-arpack-ng.sh;
+             cp -r external ../test/SDP;
+             cd ../;
+             rm -rf buildSDP;
+             mkdir buildSDP; 
+             cd buildSDP;
+             cmake -D CMAKE_CXX_COMPILER=${{ matrix.compilers }} ../test/SDP;
+             make;

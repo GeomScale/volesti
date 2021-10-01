@@ -319,7 +319,6 @@ public:
         return std::make_pair(min_plus, max_minus);
     }
 
-
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT,NT> line_intersect(Point const& r,
@@ -927,7 +926,7 @@ public:
       total = (1.0 / t) * total;
       return total;
     }
-    
+
     template <typename update_parameters>
     void compute_reflection(Point &v, const Point &, update_parameters const& params) const {
 
