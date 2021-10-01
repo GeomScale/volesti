@@ -8,7 +8,7 @@
 #ifndef RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
 #define RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
 
-#define IN_INSIDE_BODY_TOLLERANCE 1e-10
+#define INSIDE_BODY_TOLLERANCE 1e-10
 
 #include "sampling/sphere.hpp"
 
@@ -123,7 +123,7 @@ struct Walk
                     it++;
                 }
                 
-            } while (P.is_in(_p, IN_INSIDE_BODY_TOLLERANCE) == 0);
+            } while (P.is_in(_p, INSIDE_BODY_TOLLERANCE) == 0);
             if (it == _rho) {
                 _p = p0;
             }
@@ -249,7 +249,7 @@ private :
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
-        } while (P.is_in(_p, IN_INSIDE_BODY_TOLLERANCE) == 0);
+        } while (P.is_in(_p, INSIDE_BODY_TOLLERANCE) == 0);
     }
 
 

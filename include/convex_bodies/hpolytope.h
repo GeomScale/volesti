@@ -641,6 +641,52 @@ public:
 
     //------------------------------oracles for exponential sampling---------------//////
 
+    std::pair<NT, int> get_positive_quadratic_root(Point const& r, //current poistion
+                                                   Point const& v, // current velocity
+                                                   VT& Ac, // the product Ac where c is the bias vector of the exponential distribution
+                                                   NT const& T, // the variance of the exponential distribution
+                                                   VT& Ar, // the product Ar 
+                                                   VT& Av, // the product Av
+                                                   int& facet_prev) const //the facet that the trajectory hit in the previous reflection 
+    {
+        NT lamda = 0;
+        NT lamda2 =0;
+        NT lamda1 =0;
+        NT alpha;
+        NT min_plus  = std::numeric_limits<NT>::max();
+        VT sum_nom;
+        int m = num_of_hyperplanes();
+        int facet = -1;
+
+        //Ar.noalias() = A * r.getCoefficients();
+        sum_nom = Ar - b;
+        //Av.noalias() = A * v.getCoefficients();;
+
+        NT* Av_data = Av.data();
+        NT* sum_nom_data = sum_nom.data();
+        NT* Ac_data = Ac.data();
+
+        for (int i = 0; i < m; i++) 
+        {
+            alpha = -((*Ac_data) / (2.0 * T));
+            if (solve_quadratic_polynomial(alpha, (*Av_data), (*sum_nom_data), lamda1, lamda2)) 
+            {
+                lamda = pick_first_intersection_time_with_boundary(lamda1, lamda2, i, facet_prev);
+                if (lamda < min_plus && lamda > 0) 
+                {
+                    min_plus = lamda;
+                    facet = i;
+                }
+            }
+            Av_data++;
+            sum_nom_data++;
+            Ac_data++;
+        }
+        facet_prev = facet;
+        return std::make_pair(min_plus, facet);
+    }
+    }
+
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
     std::pair<NT, int> quadratic_positive_intersect(Point const& r, //current poistion
@@ -651,7 +697,10 @@ public:
                                                     VT& Av, // the product Av
                                                     int& facet_prev) const //the facet that the trajectory hit in the previous reflection
     {
-        NT lamda = 0;
+        Ar.noalias() = A * r.getCoefficients();
+        return get_positive_quadratic_root(r, v, Ac, T, Ar, Av, facet_prev);
+        
+        /*NT lamda = 0;
         NT lamda2 =0;
         NT lamda1 =0;
         NT alpha;
@@ -685,7 +734,7 @@ public:
             Ac_data++;
         }
         facet_prev = facet;
-        return std::make_pair(min_plus, facet);
+        return std::make_pair(min_plus, facet);*/
     }
 
     std::pair<NT, int> quadratic_positive_intersect(Point const& r, //current poistion
@@ -697,6 +746,9 @@ public:
                                                     NT const& lambda_prev, // the intersection time of the previous reflection
                                                     int& facet_prev) const //the facet that the trajectory hit in the previous reflection
     {
+        Ar.noalias() += ((lambda_prev * lambda_prev) / (-2.0*T)) * Ac + lambda_prev * Av;
+        return get_positive_quadratic_root(r, v, Ac, T, Ar, Av, facet_prev);
+    /*
         NT lamda = 0;
         NT lamda2 =0;
         NT lamda1 =0;
@@ -732,7 +784,7 @@ public:
             Ac_data++;
         }
         facet_prev = facet;
-        return std::make_pair(min_plus, facet);
+        return std::make_pair(min_plus, facet);*/
     }
 
     NT pick_first_intersection_time_with_boundary(NT const& lamda1, NT const& lamda2, int const& current_facet, int const& previous_facet) const
@@ -743,9 +795,26 @@ public:
         }
         NT lamda;
         const double tol = 1e-10;
+        std::pair<NT, NT> minmax_values = std::minmax(lamda1, lamda2);
+
+        lamda = (previous_facet == current_facet) 
+            ? minmax_values.second < NT(tol) ? minmax_values.first : minmax_values.second
+            : minmax_values.second;
+        
         if (lamda1 * lamda2 < NT(0)) 
         {
-            if (previous_facet == current_facet) 
+            lamda = (previous_facet == current_facet) 
+            ? (minmax_values.second < NT(tol)) ? minmax_values.first : minmax_values.second
+            : minmax_values.second;
+        }
+        else
+        {
+            lamda = (previous_facet == current_facet) 
+            ? (minmax_values.first >= NT(0) && minmax_values.first < NT(tol)) 
+            ? minmax_values.second : minmax_values.first
+            : minmax_values.first;
+        }
+        /*    if (previous_facet == current_facet) 
             {
                 if (std::max(lamda1, lamda2) < NT(tol)) 
                 {
@@ -776,7 +845,7 @@ public:
             {
                 lamda = std::min(lamda1, lamda2);
             }
-        }
+        }*/
         return lamda;
     }
 
@@ -815,13 +884,13 @@ public:
             }
 
             if (C > (*b_data)) {
-
-                t1 = (std::acos((*b_data) / C) - Phi) / omega;
+                NT acos_b = std::acos((*b_data) / C);
+                t1 = (acos_b - Phi) / omega;
                 if (facet_prev == i && std::abs(t1) < 1e-10){
                     t1 = (2.0 * M_PI) / omega;
                 }
                     
-                t2 = (-std::acos((*b_data) / C) - Phi) / omega;
+                t2 = (-acos_b - Phi) / omega;
                 if (facet_prev == i && std::abs(t2) < 1e-10){
                     t2 = (2.0 * M_PI) / omega;
                 }

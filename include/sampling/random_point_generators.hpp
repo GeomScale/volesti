@@ -235,7 +235,8 @@ struct ExponentialRandomPointGenerator
         {
             success = walk.template apply(P, p, walk_length, rng);
             if (!success) {
-                return;
+                //return;
+                throw std::range_error("A generated point is outside polytope");
             }
             policy.apply(randPoints, p);
         }
@@ -269,7 +270,8 @@ struct ExponentialRandomPointGenerator
         {
             success = walk.template apply(P, p, walk_length, rng);
             if (!success) {
-                return;
+                //return;
+                throw std::range_error("A generated point is outside polytope");
             }
             policy.apply(randPoints, p);
         }
