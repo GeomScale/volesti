@@ -127,7 +127,7 @@ struct Walk
                                    RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
-        NT T, Lmax = _Len, max_dist, rad = 0.0, radius = P.InnerBall().second;
+        NT radius = P.InnerBall().second;
 
         q = GetPointInDsphere<Point>::apply(n, radius, rng);
         q += center;
@@ -147,26 +147,35 @@ struct Walk
                                   unsigned int const& walk_length,
                                   RandomNumberGenerator &rng)
     {
-        Point p = center;
+        unsigned int n = P.dimension();
+        Point p(n);
         std::vector<Point> pointset;
         pointset.push_back(center);
         pointset.push_back(_p);
-        NT rad = NT(0), max_dist, Lmax;
+        NT rad = NT(0), max_dist, Lmax = NT(0), radius = P.InnerBall().second;
 
         for (int i = 0; i < num_points; i++) 
         {
+            p = GetPointInDsphere<Point>::apply(n, radius, rng);
+            p += center;
+            initialize(P, p, rng);
+
             apply(P, p, walk_length, rng);
             max_dist = get_max_distance(pointset, p, rad);
-            if (max_dist > Lmax) {
+            if (max_dist > Lmax) 
+            {
                 Lmax = max_dist;
+            }
+            if (2.0*rad > Lmax) 
+            {
+                Lmax = 2.0 * rad;
             }
             pointset.push_back(p);
         }
 
-        if (Lmax > _Len) {
-            if (P.dimension() <= 2500) {
-                update_delta(Lmax);
-            }
+        if (Lmax > _Len) 
+        {
+            update_delta(Lmax);
         }
         pointset.clear();
     }
@@ -202,7 +211,7 @@ private :
             if (T <= pbpair.first) {
                 update_position(_p, _v, T, _omega);
                 break;
-            }else if (it == _rho) {
+            } else if (it == _rho) {
                 _lambda_prev = rng.sample_urdist() * pbpair.first;
                 update_position(_p, _v, _lambda_prev, _omega);
                 break;
@@ -243,10 +252,8 @@ private :
             if (temp_dis > dis) {
                 dis = temp_dis;
             }
-            if (jj == 0) {
-                if (temp_dis > rad) {
-                    rad = temp_dis;
-                }
+            if (jj == 0 && temp_dis > rad) {
+                rad = temp_dis;
             }
         }
         return dis;

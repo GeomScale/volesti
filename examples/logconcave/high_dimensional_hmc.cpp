@@ -15,13 +15,13 @@
 #include <unistd.h>
 #include <string>
 #include <typeinfo>
+#include <fstream>
 
 #include "Eigen/Eigen"
 
 #include "ode_solvers/ode_solvers.hpp"
-#include "diagnostics/geweke.hpp"
-#include "diagnostics/multivariate_psrf.hpp"
-#include "diagnostics/raftery.hpp"
+#include "diagnostics/diagnostics.hpp"
+
 #include "random.hpp"
 #include "random/uniform_int.hpp"
 #include "random/normal_distribution.hpp"
@@ -32,67 +32,6 @@
 #include "volume/volume_cooling_balls.hpp"
 #include "generators/known_polytope_generators.h"
 
-struct CustomFunctor {
-
-  // Custom density with neg log prob equal to 2 * || x ||^2 + 1^T x
-  template <
-      typename NT
-  >
-  struct parameters {
-    unsigned int order;
-    NT L; // Lipschitz constant for gradient
-    NT m; // Strong convexity constant
-    NT kappa; // Condition number
-
-    parameters() : order(2), L(4), m(4), kappa(1) {};
-
-  };
-
-  template
-  <
-      typename Point
-  >
-  struct GradientFunctor {
-    typedef typename Point::FT NT;
-    typedef std::vector<Point> pts;
-
-    parameters<NT> &params;
-
-    GradientFunctor(parameters<NT> &params_) : params(params_) {};
-
-    // The index i represents the state vector index
-    Point operator() (unsigned int const& i, pts const& xs, NT const& t) const {
-      if (i == params.order - 1) {
-        Point y = (-1.0) * Point::all_ones(xs[0].dimension());
-        y = y + (-4.0) * xs[0];
-        return y;
-      } else {
-        return xs[i + 1]; // returns derivative
-      }
-    }
-
-  };
-
-  template
-  <
-    typename Point
-  >
-  struct FunctionFunctor {
-    typedef typename Point::FT NT;
-
-    parameters<NT> &params;
-
-    FunctionFunctor(parameters<NT> &params_) : params(params_) {};
-
-    // The index i represents the state vector index
-    NT operator() (Point const& x) const {
-      return 2 * x.dot(x) + x.sum();
-    }
-
-  };
-
-};
-
 template <typename NT>
 void run_main() {
     typedef Cartesian<NT>    Kernel;
@@ -100,58 +39,87 @@ void run_main() {
     typedef std::vector<Point> pts;
     typedef HPolytope<Point> Hpolytope;
     typedef BoostRandomNumberGenerator<boost::mt19937, NT> RandomNumberGenerator;
-    typedef CustomFunctor::GradientFunctor<Point> NegativeGradientFunctor;
-    typedef CustomFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
+    typedef GaussianFunctor::GradientFunctor<Point> NegativeGradientFunctor;
+    typedef GaussianFunctor::FunctionFunctor<Point> NegativeLogprobFunctor;
     typedef LeapfrogODESolver<Point, NT, Hpolytope, NegativeGradientFunctor> Solver;
     typedef typename HPolytope<Point>::MT MT;
     typedef typename HPolytope<Point>::VT VT;
 
-    CustomFunctor::parameters<NT> params;
+    RandomNumberGenerator rng(1);
+    unsigned int dim = 100;
+
+    Hpolytope P = generate_cube<Hpolytope>(dim, false);
+    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
+
+    Point x0 = inner_ball.first;
+    NT r = inner_ball.second;
+
+    GaussianFunctor::parameters<NT, Point> params(x0, 2 / (r * r), NT(-1));
+    GaussianRDHRWalk::Walk<Hpolytope, RandomNumberGenerator> walk(P, x0, params.L, rng);
+    int n_warmstart_samples = 0;
+    unsigned int walk_length = 300;
+
+    for (int i = 0; i < n_warmstart_samples; i++) {
+        walk.apply(P, x0, params.L, walk_length, rng);
+    }
 
     NegativeGradientFunctor F(params);
     NegativeLogprobFunctor f(params);
 
-    RandomNumberGenerator rng(1);
-    unsigned int dim = 100;
-
     HamiltonianMonteCarloWalk::parameters<NT, NegativeGradientFunctor> hmc_params(F, dim);
-
-    Hpolytope P = generate_cube<Hpolytope>(dim, false);
-
-    Point x0 = -0.25 * Point::all_ones(dim);
 
     // In the first argument put in the address of an H-Polytope
     // for truncated sampling and NULL for untruncated
     HamiltonianMonteCarloWalk::Walk
-      <Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
-      hmc(&P, x0, F, f, hmc_params);
+    <Point, Hpolytope, RandomNumberGenerator, NegativeGradientFunctor, NegativeLogprobFunctor, Solver>
+    hmc(&P, x0, F, f, hmc_params);
 
-    int n_samples = 80000;
-    int n_burns = 0;
+    int max_actual_draws = 40000;
+    int n_burns = 5000;
+    unsigned int min_ess;
 
     MT samples;
-    samples.resize(dim, n_samples - n_burns);
+    samples.resize(dim, max_actual_draws - n_burns);
 
-    hmc.solver->eta0 = 0.05;
+    hmc.solver->eta0 = inner_ball.second / 10;
 
-    for (int i = 0; i < n_samples; i++) {
-      if (i % 1000 == 0) std::cerr << ".";
-      hmc.apply(rng, 3);
-      if (i >= n_burns) {
-          samples.col(i - n_burns) = hmc.x.getCoefficients();
-          std::cout << hmc.x.getCoefficients().transpose() << std::endl;
-      }
+    for (int i = 0; i < n_burns; i++) {
+        if (i % 1000 == 0) std::cerr << ".";
+        hmc.apply(rng, walk_length);
     }
+
+    hmc.disable_adaptive();
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (int i = n_burns; i < max_actual_draws; i++) {
+        if (i % 1000 == 0) std::cerr << ".";
+        hmc.apply(rng, walk_length);
+        if (i >= n_burns) {
+            samples.col(i - n_burns) = hmc.x.getCoefficients();
+            // std::cout << hmc.x.getCoefficients().transpose() << std::endl;
+        }
+    }
+    auto stop = std::chrono::high_resolution_clock::now();
+
     std::cerr << std::endl;
 
+    print_diagnostics<NT, VT, MT>(samples, min_ess, std::cerr);
 
+    NT ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
+
+    std::cerr << std::endl;
+    std::cerr << "Average time per sample: " << ETA / max_actual_draws << "us" << std::endl;
+    std::cerr << "Average time per independent sample: " << ETA / min_ess << "us" << std::endl;
+    std::cerr << "Average number of reflections: " <<
+    (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
     std::cerr << "Step size (final): " << hmc.solver->eta << std::endl;
     std::cerr << "Discard Ratio: " << hmc.discard_ratio << std::endl;
     std::cerr << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
-    std::cerr << "PSRF: " <<  multivariate_psrf<NT, VT, MT>(samples) << std::endl;
+    std::cerr << "Min ESS" << min_ess << std::endl;
+
 }
 
 int main() {
-  run_main<double>();
-  return 0;
+    run_main<double>();
+    return 0;
 }

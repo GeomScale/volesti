@@ -325,6 +325,9 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
 
     RcppFunctor::GradientFunctor<Point> *F = NULL;
     RcppFunctor::FunctionFunctor<Point> *f = NULL;
+    GaussianFunctor::GradientFunctor<Point> *G = NULL;
+    GaussianFunctor::FunctionFunctor<Point> *g = NULL;
+    bool functor_defined = true;
 
 
     RNGType rng(dim);
@@ -384,7 +387,7 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     if (Rcpp::as<Rcpp::List>(distribution).containsElementNamed("variance")) {
         a = 1.0 / (2.0 * Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]));
         if (exponential) a = Rcpp::as<NT>(Rcpp::as<Rcpp::List>(distribution)["variance"]);
-        if (!gaussian && !exponential) {
+        if (!(gaussian || logconcave || exponential)) {
             Rcpp::warning("The variance can be set only for Gaussian and exponential sampling!");
         } else if (a <= 0.0) {
             throw Rcpp::exception("The variance has to be positive!");
@@ -447,6 +450,43 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
         RcppFunctor::parameters<NT> rcpp_functor_params(L_, m, eta, 2);
         F = new RcppFunctor::GradientFunctor<Point>(rcpp_functor_params, negative_logprob_gradient);
         f = new RcppFunctor::FunctionFunctor<Point>(rcpp_functor_params, negative_logprob);
+
+    }
+
+    else if (logconcave && !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("negative_logprob") &&
+        !Rcpp::as<Rcpp::List>(distribution).containsElementNamed("negative_logprob_gradient")) {
+
+        functor_defined = false;
+
+        NT eta;
+
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("step_size")) {
+            eta = NT(Rcpp::as<NT>(Rcpp::as<Rcpp::List>(random_walk)["step_size"]));
+            if (eta <= NT(0)) {
+                throw Rcpp::exception("Step size must be positive");
+            }
+        } else {
+            eta = NT(-1);
+        }
+
+        if (Rcpp::as<Rcpp::List>(random_walk).containsElementNamed("solver")) {
+          std::string solver_str = Rcpp::as<std::string>(Rcpp::as<Rcpp::List>(random_walk)["solver"]);
+          if (solver_str == "leapfrog") {
+            solver = leapfrog;
+          } else if (solver_str == "euler") {
+            solver = euler;
+          } else {
+            throw Rcpp::exception("Invalid ODE solver specified. Aborting.");
+          }
+         } else {
+          Rcpp::warning("Solver set to leapfrog.");
+          solver = leapfrog;
+        }
+
+        // Create functors
+        GaussianFunctor::parameters<NT, Point> gaussian_functor_params(mode, a, eta);
+        G = new GaussianFunctor::GradientFunctor<Point>(gaussian_functor_params);
+        g = new GaussianFunctor::FunctionFunctor<Point>(gaussian_functor_params);
 
     }
 
@@ -584,8 +624,14 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 StartingPoint = StartingPoint - mode;
                 HP.shift(mode.getCoefficients());
             }
-            sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
-                                 StartingPoint, nburns, set_L, eta, walk, F, f, solver);
+            if (functor_defined) {
+                sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
+                    StartingPoint, nburns, set_L, eta, walk, F, f, solver);
+            }
+            else {
+                sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
+                    StartingPoint, nburns, set_L, eta, walk, G, g, solver);
+            }
             break;
         }
         case 2: {

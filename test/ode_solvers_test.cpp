@@ -37,10 +37,10 @@ void check_norm(Solver &solver, int num_steps, NT target, NT tol=1e-4) {
   auto start = std::chrono::high_resolution_clock::now();
 
   #ifndef VOLESTI_DEBUG
-    solver.steps(num_steps);
+    solver.steps(num_steps, true);
   #else
     for (int i = 0; i < num_steps; i++) {
-      solver.step();
+      solver.step(i, true);
       solver.print_state();
     }
   #endif
@@ -81,7 +81,7 @@ void check_index_norm_ub(Solver &solver, int num_steps, int index, NT target, NT
   auto start = std::chrono::high_resolution_clock::now();
 
   for (int i = 0; i < num_steps; i++) {
-    solver.step();
+    solver.step(i, true);
     #ifdef VOLESTI_DEBUG
       solver.print_state();
     #endif
@@ -167,7 +167,7 @@ void test_rk4(){
     q.push_back(q0);
     RKODESolver<Point, NT, Hpolytope, func> rk_solver =
       RKODESolver<Point, NT, Hpolytope, func>(0, 0.1, q, F, bounds{NULL});
-    rk_solver.steps(1000);
+    rk_solver.steps(1000, true);
 
     check_norm(rk_solver, 1000, NT(0));
 
@@ -250,7 +250,7 @@ void test_euler_constrained(){
       EulerODESolver<Point, NT, Hpolytope, func>(0, 0.01, pts{x0, v0}, F, bounds{&P, NULL});
 
     for (int i = 0; i < 1000; i++) {
-      euler_solver.step();
+      euler_solver.step(i, true);
       // CHECK(euler_solver.xs[0].dot(euler_solver.xs[0]) < 1.1 * dim);
     }
 

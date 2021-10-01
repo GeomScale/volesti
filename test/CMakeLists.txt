@@ -1,6 +1,8 @@
 # VolEsti (volume computation and sampling library)
 # Copyright (c) 2012-2020 Vissarion Fisikopoulos
 # Copyright (c) 2018-2020 Apostolos Chalkis
+# Copyright (c) 2021- Vaibhav Thakkar
+
 # Contributed and/or modified by Vaibhav Thakkar
 # Licensed under GNU LGPL.3, see LICENCE file
 
@@ -11,6 +13,55 @@ enable_testing()
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+
+# Locate Intel MKL root (in case it is enabled)
+
+if (APPLE)
+	set(MKLROOT /opt/intel/oneapi/mkl/latest)
+elseif(UNIX)
+	set(MKLROOT $ENV{HOME}/intel/mkl)
+endif()
+
+
+option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
+option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
+option(USE_MKL "Use MKL library to build eigen" OFF)
+
+if(DISABLE_NLP_ORACLES)
+  add_definitions(-DDISABLE_NLP_ORACLES)
+else()
+  find_library(IFOPT NAMES libifopt_core.so PATHS /usr/local/lib)
+  find_library(IFOPT_IPOPT NAMES libifopt_ipopt.so PATHS /usr/local/lib)
+  find_library(GMP NAMES libgmp.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+  find_library(MPSOLVE NAMES libmps.so PATHS /usr/local/lib)
+  find_library(PTHREAD NAMES libpthread.so PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+  find_library(FFTW3 NAMES libfftw3.so.3 PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu)
+
+  if (NOT IFOPT)
+
+    message(FATAL_ERROR "This program requires the ifopt library, and will not be compiled.")
+
+  elseif (NOT GMP)
+
+    message(FATAL_ERROR "This program requires the gmp library, and will not be compiled.")
+
+  elseif (NOT MPSOLVE)
+
+    message(FATAL_ERROR "This program requires the mpsolve library, and will not be compiled.")
+
+  elseif (NOT FFTW3)
+
+    message(FATAL_ERROR "This program requires the fftw3 library, and will not be compiled.")
+
+  else()
+    message(STATUS "Library ifopt found: ${IFOPT}")
+    message(STATUS "Library gmp found: ${GMP}")
+    message(STATUS "Library mpsolve found: ${MPSOLVE}")
+    message(STATUS "Library fftw3 found:" ${FFTW3})
+
+  endif(NOT IFOPT)
+
+endif(DISABLE_NLP_ORACLES)
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
 
@@ -60,7 +111,7 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
-find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /opt/local/lib)
+find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
 
 if (NOT LP_SOLVE)
 
@@ -70,6 +121,22 @@ else ()
 
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
+
+
+  if (BUILTIN_EIGEN)
+      include_directories (BEFORE ../external/Eigen)
+  else ()
+      include_directories(BEFORE /usr/include/eigen3)
+  endif(BUILTIN_EIGEN)
+
+  if (USE_MKL)
+    find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/lib)
+    find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
+    find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib)
+    include_directories (BEFORE ${MKLROOT}/include)
+    set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
+    add_definitions(-DEIGEN_USE_MKL_ALL)
+  endif(USE_MKL)
 
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
@@ -187,11 +254,21 @@ else ()
   add_test(NAME new_rounding_test_round_skinny_cube
            COMMAND new_rounding_test -tc=round_skinny_cube)
 
+  add_executable (max_ellipsoid_rounding_test max_ellipsoid_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME max_ellipsoid_rounding_test_round_skinny_cube
+           COMMAND max_ellipsoid_rounding_test -tc=round_skinny_cube)
+
   add_executable (logconcave_sampling_test logconcave_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME logconcave_sampling_test_hmc
           COMMAND logconcave_sampling_test -tc=hmc)
   add_test(NAME logconcave_sampling_test_uld
           COMMAND logconcave_sampling_test -tc=uld)
+
+  add_executable (order_polytope order_polytope.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME order_polytope_basics COMMAND order_polytope -tc=basics)
+  add_test(NAME order_polytope_line_intersect COMMAND order_polytope -tc=line_intersect)
+  add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
+  add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
 
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
@@ -204,6 +281,7 @@ else ()
   TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE})
+  TARGET_LINK_LIBRARIES(max_ellipsoid_rounding_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
@@ -211,6 +289,14 @@ else ()
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
   TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
-  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
+
+  if (USE_MKL)
+      TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  else()
+      TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS})
+  endif()
+
+  TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE})
+
 
 endif()

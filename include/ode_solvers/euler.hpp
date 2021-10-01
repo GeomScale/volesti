@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef EULER_HPP
-#define EULER_HPP
+#ifndef ODE_SOLVERS_EULER_HPP
+#define ODE_SOLVERS_EULER_HPP
 
 template <
 		typename Point,
@@ -49,7 +49,7 @@ struct EulerODESolver {
     };
 
 
-  void step() {
+  void step(int k, bool accepted) {
     xs_prev = xs;
 		t += eta;
     for (unsigned int i = 0; i < xs.size(); i++) {
@@ -105,8 +105,8 @@ struct EulerODESolver {
     std::cout << std::endl;
   }
 
-  void steps(int num_steps) {
-    for (int i = 0; i < num_steps; i++) step();
+  void steps(int num_steps, bool accepted) {
+    for (int i = 0; i < num_steps; i++) step(i, accepted);
   }
 
   Point get_state(int index) {
@@ -115,6 +115,14 @@ struct EulerODESolver {
 
   void set_state(int index, Point p) {
     xs[index] = p;
+  }
+
+  void disable_adaptive() {
+      // TODO Implement
+  }
+
+  void enable_adaptive() {
+      // TODO Implement
   }
 
 };

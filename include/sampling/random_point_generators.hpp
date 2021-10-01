@@ -187,10 +187,10 @@ struct LogconcaveRandomPointGenerator
                       RandomNumberGenerator &rng,
                       NegativeGradientFunctor &F,
                       NegativeLogprobFunctor &f,
-                      Parameters &parameters)
+                      Parameters &parameters,
+                      Walk &walk)
     {
         typedef double NT;
-        Walk walk(&P, p, F, f, parameters);
 
         for (unsigned int i = 0; i < rnum; ++i)
         {
@@ -235,7 +235,8 @@ struct ExponentialRandomPointGenerator
         {
             success = walk.template apply(P, p, walk_length, rng);
             if (!success) {
-                return;
+                //return;
+                throw std::range_error("A generated point is outside polytope");
             }
             policy.apply(randPoints, p);
         }
@@ -269,7 +270,8 @@ struct ExponentialRandomPointGenerator
         {
             success = walk.template apply(P, p, walk_length, rng);
             if (!success) {
-                return;
+                //return;
+                throw std::range_error("A generated point is outside polytope");
             }
             policy.apply(randPoints, p);
         }

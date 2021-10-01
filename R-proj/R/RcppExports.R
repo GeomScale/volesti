@@ -207,7 +207,7 @@ inner_ball <- function(P, lpsolve = NULL) {
 #' @return A list which contains elements "x_1", ..., "x_n" representing each derivative results. Each "x_i" corresponds to a d x n matrix where each column represents a certain timestep of the solver.
 #'
 #' @examples
-#' # Please visit the examples directory on examples demonstrating usage of the ODE solvers. 
+#' # Please visit the examples directory on examples demonstrating usage of the ODE solvers.
 #'
 #' @export
 ode_solve <- function(n, step_size, order, dimension, initial_time, F, method, domains = NULL, initial_conditions = NULL) {
@@ -298,7 +298,7 @@ rotating <- function(P, T = NULL, seed = NULL) {
 #' Internal rcpp function for the rounding of a convex polytope
 #'
 #' @param P A convex polytope (H- or V-representation or zonotope).
-#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
+#' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'isotropy'} for the method based on isotropy. The default method is \code{'min_ellipsoid'} for all the representations.
 #' @param seed Optional. A fixed seed for the number generator.
 #'
 #' @keywords internal
@@ -415,7 +415,7 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
     .Call(`_volesti_loadSdpaFormatFile`, inputFile)
 }
 
-#' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes)
+#' The main function for volume approximation of a convex Polytope (H-polytope, V-polytope, zonotope or intersection of two V-polytopes). It returns a list with two elements: (a) the logarithm of the estimated volume and (b) the estimated volume
 #'
 #' For the volume approximation can be used three algorithms. Either CoolingBodies (CB) or SequenceOfBalls (SOB) or CoolingGaussian (CG). An H-polytope with \eqn{m} facets is described by a \eqn{m\times d} matrix \eqn{A} and a \eqn{m}-dimensional vector \eqn{b}, s.t.: \eqn{P=\{x\ |\  Ax\leq b\} }. A V-polytope is defined as the convex hull of \eqn{m} \eqn{d}-dimensional points which correspond to the vertices of P. A zonotope is desrcibed by the Minkowski sum of \eqn{m} \eqn{d}-dimensional segments.
 #'
@@ -444,15 +444,15 @@ loadSdpaFormatFile <- function(inputFile = NULL) {
 #'
 #' # calling SOB algorithm for a H-polytope (5d unit simplex)
 #' HP = gen_cube(5,'H')
-#' vol = volume(HP)
+#' pair_vol = volume(HP)
 #'
 #' # calling CG algorithm for a V-polytope (3d simplex)
 #' VP = gen_simplex(3,'V')
-#' vol = volume(VP, settings = list("algorithm" = "CG"))
+#' pair_vol = volume(VP, settings = list("algorithm" = "CG"))
 #'
 #' # calling CG algorithm for a 2-dimensional zonotope defined as the Minkowski sum of 4 segments
 #' Z = gen_rand_zonotope(2, 4)
-#' vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
+#' pair_vol = volume(Z, settings = list("random_walk" = "RDHR", "walk_length" = 2))
 #'
 #' @export
 volume <- function(P, settings = NULL, rounding = NULL, seed = NULL) {

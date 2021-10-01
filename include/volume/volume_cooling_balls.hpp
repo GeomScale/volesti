@@ -15,13 +15,16 @@
 
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/zpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
 #endif
+#include "random_walks/uniform_cdhr_walk.hpp"
+#include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "sampling/random_point_generators.hpp"
+#include "volume/math_helpers.hpp"
 
 
 ////////////////////////////////////
@@ -685,20 +688,17 @@ NT estimate_ratio_interval(PolyBall1 const& Pb1,
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
 }
 
-
-
 template
 <
     typename WalkTypePolicy,
     typename Polytope,
     typename RandomNumberGenerator
-
 >
-double volume_cooling_balls(Polytope const& Pin,
-                            RandomNumberGenerator &rng,
-                            double const& error = 0.1,
-                            unsigned int const& walk_length = 1,
-                            unsigned int const& win_len = 250)
+std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
+                                       RandomNumberGenerator &rng,
+                                       double const& error = 0.1,
+                                       unsigned int const& walk_length = 1,
+                                       unsigned int const& win_len = 300)
 {
     typedef typename Polytope::PointType Point;
     typedef typename Point::FT NT;
@@ -722,8 +722,8 @@ double volume_cooling_balls(Polytope const& Pin,
     int N_times_nu = parameters.N * parameters.nu;
 
     auto InnerBall = P.ComputeInnerBall();
-    if (InnerBall.second < 0.0) return -1.0;
-    
+    if (InnerBall.second < 0.0) return std::pair<NT, NT> (-1.0, 0.0);
+
     NT radius = InnerBall.second;
     Point c = InnerBall.first;
 
@@ -742,26 +742,24 @@ double volume_cooling_balls(Polytope const& Pin,
             N_times_nu, radius, walk_length,
             parameters, rng) )
     {
-        return -1.0;
+        return std::pair<NT, NT> (-1.0, 0.0);
     }
 
-    NT vol = (std::pow(M_PI, n / 2.0)
-              * (std::pow((*(BallSet.end() - 1)).radius(), n)))
-            / (tgamma(n / 2.0 + 1));
+    NT vol = (NT(n)/NT(2) * std::log(M_PI)) + NT(n)*std::log((*(BallSet.end() - 1)).radius()) - log_gamma_function(NT(n) / NT(2) + 1);
 
     int mm = BallSet.size() + 1;
     prob = std::pow(prob, 1.0 / NT(mm));
     NT er0 = error / (2.0 * std::sqrt(NT(mm)));
     NT er1 = (error * std::sqrt(4.0 * NT(mm) - 1)) / (2.0 * std::sqrt(NT(mm)));
 
-    vol *= (parameters.window2) ?
-                estimate_ratio<Point>(*(BallSet.end() - 1),
-                                      P, *(ratios.end() - 1),
-                                      er0, parameters.win_len, 1200, rng)
-              : estimate_ratio_interval<Point>(*(BallSet.end() - 1),
+    vol += (parameters.window2) ?
+                std::log(estimate_ratio<Point>(*(BallSet.end() - 1),
                                                P, *(ratios.end() - 1),
-                                               er0, parameters.win_len, 1200,
-                                               prob, rng);
+                                               er0, parameters.win_len, 1200, rng))
+              : std::log(estimate_ratio_interval<Point>(*(BallSet.end() - 1),
+                                                        P, *(ratios.end() - 1),
+                                                        er0, parameters.win_len, 1200,
+                                                        prob, rng));
 
     auto balliter = BallSet.begin();
     auto ratioiter = ratios.begin();
@@ -770,8 +768,8 @@ double volume_cooling_balls(Polytope const& Pin,
 
     if (*ratioiter != 1)
     {
-        vol *= (!parameters.window2) ?
-               1 / estimate_ratio_interval
+        vol += (!parameters.window2) ?
+               std::log(NT(1) / estimate_ratio_interval
                     <WalkType, Point>(P,
                                       *balliter,
                                       *ratioiter,
@@ -780,8 +778,8 @@ double volume_cooling_balls(Polytope const& Pin,
                                       N_times_nu,
                                       prob,
                                       walk_length,
-                                      rng)
-            : 1 / estimate_ratio
+                                      rng))
+            : std::log(NT(1) / estimate_ratio
                     <WalkType, Point>(P,
                                       *balliter,
                                       *ratioiter,
@@ -789,21 +787,22 @@ double volume_cooling_balls(Polytope const& Pin,
                                       parameters.win_len,
                                       N_times_nu,
                                       walk_length,
-                                      rng);
+                                      rng));
     }
+
     for ( ; balliter < BallSet.end() - 1; ++balliter, ++ratioiter)
     {
         PolyBall Pb(P, *balliter);
-        vol *= (!parameters.window2) ?
-                    1 / estimate_ratio_interval
+        vol += (!parameters.window2) ?
+                    std::log(NT(1) / estimate_ratio_interval
                                 <WalkType, Point>(Pb,
                                                   *(balliter + 1),
                                                   *(ratioiter + 1),
                                                   er1, parameters.win_len,
                                                   N_times_nu,
                                                   prob, walk_length,
-                                                  rng)
-                  : 1 / estimate_ratio
+                                                  rng))
+                  : std::log(NT(1) / estimate_ratio
                                 <WalkType, Point>(Pb,
                                                   *balliter,
                                                   *ratioiter,
@@ -811,10 +810,10 @@ double volume_cooling_balls(Polytope const& Pin,
                                                   parameters.win_len,
                                                   N_times_nu,
                                                   walk_length,
-                                                  rng);
+                                                  rng));
     }
 
-    return vol;
+    return std::pair<NT, NT> (vol, std::exp(vol));
 }
 
 
@@ -826,9 +825,9 @@ template
                                                                 double>,
     typename Polytope
 >
-double volume_cooling_balls(Polytope const& Pin,
-                            double const& error = 0.1,
-                            unsigned int const& walk_length = 1)
+std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
+                                               double const& error = 0.1,
+                                               unsigned int const& walk_length = 1)
 {
     RandomNumberGenerator rng(Pin.dimension());
     return volume_cooling_balls<WalkTypePolicy>(Pin, rng, error, walk_length);

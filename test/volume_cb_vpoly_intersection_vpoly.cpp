@@ -64,25 +64,25 @@ void test_volume(Polytope &P1, Polytope &P2,
     unsigned seed = 105;
     //TODO: low accuracy in high dimensions
     VpIntVp P(P1, P2, seed);
-    NT volume = volume_cooling_balls<BallWalk, RNGType>(P, e/2.0, walk_len);
+    NT volume = volume_cooling_balls<BallWalk, RNGType>(P, e/2.0, walk_len).second;
     test_values(volume, expectedBall, exact);
 
     Polytope P11(P1.dimension(), P1.get_mat(), P1.get_vec());
     Polytope P21(P2.dimension(), P2.get_mat(), P2.get_vec());
     VpIntVp P111(P11, P21, seed);
-    volume = volume_cooling_balls<CDHRWalk, RNGType>(P111, e/2.0, walk_len);
+    volume = volume_cooling_balls<CDHRWalk, RNGType>(P111, e/2.0, walk_len).second;
     test_values(volume, expectedCDHR, exact);
 
     Polytope P12(P1.dimension(), P1.get_mat(), P1.get_vec());
     Polytope P22(P2.dimension(), P2.get_mat(), P2.get_vec());
     VpIntVp P222(P12, P22, seed);
-    volume = volume_cooling_balls<RDHRWalk, RNGType>(P222, e/2.0, walk_len);
+    volume = volume_cooling_balls<RDHRWalk, RNGType>(P222, e/2.0, walk_len).second;
     test_values(volume, expectedRDHR, exact);
 
     Polytope P13(P1.dimension(), P1.get_mat(), P1.get_vec());
     Polytope P23(P2.dimension(), P2.get_mat(), P2.get_vec());
     VpIntVp P3(P13, P23, seed);
-    volume = volume_cooling_balls<BilliardWalk, RNGType>(P3, e/2.0, walk_len);
+    volume = volume_cooling_balls<BilliardWalk, RNGType>(P3, e/2.0, walk_len).second;
     test_values(volume, expectedBilliard, exact);
 }
 

@@ -8,7 +8,7 @@
 #ifndef RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
 #define RANDOM_WALKS_EXPONENTIAL_EXACT_HMC_WALK_HPP
 
-#define IN_INSIDE_BODY_TOLLERANCE 1e-10
+#define INSIDE_BODY_TOLLERANCE 1e-10
 
 #include "sampling/sphere.hpp"
 
@@ -123,7 +123,7 @@ struct Walk
                     it++;
                 }
                 
-            } while (P.is_in(_p, IN_INSIDE_BODY_TOLLERANCE) == 0);
+            } while (P.is_in(_p, INSIDE_BODY_TOLLERANCE) == 0);
             if (it == _rho) {
                 _p = p0;
             }
@@ -144,7 +144,7 @@ struct Walk
                                    RandomNumberGenerator &rng)
     {
         unsigned int n = P.dimension();
-        NT T, Lmax = _Len, max_dist, rad = 0.0, radius = P.InnerBall().second;
+        NT radius = P.InnerBall().second;
 
         q = GetPointInDsphere<Point>::apply(n, radius, rng);
         q += center;
@@ -164,26 +164,35 @@ struct Walk
                                   unsigned int const& walk_length,
                                   RandomNumberGenerator &rng)
     {
-        Point p = center;
+        unsigned int n = P.dimension();
+        Point p(n);
         std::vector<Point> pointset;
         pointset.push_back(center);
         pointset.push_back(_p);
-        NT rad = NT(0), max_dist, Lmax;
+        NT rad = NT(0), max_dist, Lmax = NT(0), radius = P.InnerBall().second;
 
         for (int i = 0; i < num_points; i++) 
         {
+            p = GetPointInDsphere<Point>::apply(n, radius, rng);
+            p += center;
+            initialize(P, p, rng);
+
             apply(P, p, walk_length, rng);
             max_dist = get_max_distance(pointset, p, rad);
-            if (max_dist > Lmax) {
+            if (max_dist > Lmax) 
+            {
                 Lmax = max_dist;
+            }
+            if (2.0 * rad > Lmax) 
+            {
+                Lmax = 2.0 * rad;
             }
             pointset.push_back(p);
         }
 
-        if (Lmax > _Len) {
-            if (P.dimension() <= 2500) {
-                update_delta(Lmax);
-            }
+        if (Lmax > _Len) 
+        {
+            update_delta(Lmax);
         }
         pointset.clear();
     }
@@ -237,7 +246,7 @@ private :
                     _p += ((T * T) / (-2.0*_Temp)) *_c + (T * _v);
                     _lambda_prev = T;
                     break;
-                }else if (it == _rho) {
+                } else if (it == _rho) {
                     _lambda_prev = rng.sample_urdist() * pbpair.first;
                     _p += ((_lambda_prev * _lambda_prev) / (-2.0*_Temp)) *_c + (_lambda_prev * _v);
                     break;
@@ -249,7 +258,7 @@ private :
                 P.compute_reflection(_v, _p, pbpair.second);
                 it++;
             }
-        } while (P.is_in(_p, IN_INSIDE_BODY_TOLLERANCE) == 0);
+        } while (P.is_in(_p, INSIDE_BODY_TOLLERANCE) == 0);
     }
 
 
@@ -263,10 +272,8 @@ private :
             if (temp_dis > dis) {
                 dis = temp_dis;
             }
-            if (jj == 0) {
-                if (temp_dis > rad) {
-                    rad = temp_dis;
-                }
+            if (jj == 0 && temp_dis > rad) {
+                rad = temp_dis;
             }
         }
         return dis;

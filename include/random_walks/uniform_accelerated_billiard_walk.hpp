@@ -302,5 +302,3 @@ struct AcceleratedBilliardWalk
 
 
 #endif
-
-

@@ -8,8 +8,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef BASIS_HPP
-#define BASIS_HPP
+#ifndef ODE_SOLVERS_BASIS_HPP
+#define ODE_SOLVERS_BASIS_HPP
 
 enum BasisType {
   DERIVATIVE = 0,

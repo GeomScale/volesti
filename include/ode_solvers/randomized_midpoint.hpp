@@ -10,8 +10,8 @@
 
 // Based on https://papers.nips.cc/paper/8483-the-randomized-midpoint-method-for-log-concave-sampling.pdf
 
-#ifndef RANDOMIZED_MIDPOINT_HPP
-#define RANDOMIZED_MIDPOINT_HPP
+#ifndef ODE_SOLVERS_RANDOMIZED_MIDPOINT_HPP
+#define ODE_SOLVERS_RANDOMIZED_MIDPOINT_HPP
 
 template <
 typename Point,

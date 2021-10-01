@@ -44,7 +44,7 @@ std::tuple<MT, VT, NT> apply_rounding(Polytope &P,
     std::tuple<MT, VT, NT> round_res;
     if (method_rcpp.compare(std::string("min_ellipsoid")) == 0) {
         round_res = min_sampling_covering_ellipsoid_rounding<WalkType, MT, VT>(P, InnerBall, walkL, rng);
-    } else if (method_rcpp.compare(std::string("svd")) == 0) {
+    } else if (method_rcpp.compare(std::string("isotropy")) == 0) {
         round_res = svd_rounding<WalkType, MT, VT>(P, InnerBall, walkL, rng);
     } else {
         throw Rcpp::exception("Unknown method!");
@@ -55,7 +55,7 @@ std::tuple<MT, VT, NT> apply_rounding(Polytope &P,
 //' Internal rcpp function for the rounding of a convex polytope
 //'
 //' @param P A convex polytope (H- or V-representation or zonotope).
-//' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'svd'} for the method based on svd decomposition. The default method is \code{'min_ellipsoid'} for all the representations.
+//' @param method Optional. The method to use for rounding, a) \code{'min_ellipsoid'} for the method based on mimimmum volume enclosing ellipsoid of a uniform sample from P, b) \code{'max_ellipsoid'} for the method based on maximum volume enclosed ellipsoid in P, (c) \code{'isotropy'} for the method based on isotropy. The default method is \code{'min_ellipsoid'} for all the representations.
 //' @param seed Optional. A fixed seed for the number generator.
 //'
 //' @keywords internal
@@ -77,7 +77,7 @@ Rcpp::List rounding (Rcpp::Reference P,
     typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
 
     unsigned int n = P.field("dimension"), walkL = 2, type = P.field("type");
-    std::string method_rcpp = std::string("min_ellipsoid");
+    std::string method_rcpp = std::string("isotropy");
     if(method.isNotNull()) {
         method_rcpp =  Rcpp::as<std::string>(method);
         if (method_rcpp.compare(std::string("max_ellipsoid")) == 0 && type != 1) {

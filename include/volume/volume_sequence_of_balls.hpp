@@ -24,7 +24,7 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "generators/boost_random_number_generator.hpp"
 #include "convex_bodies/hpolytope.h"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/zpolytope.h"
     #include "convex_bodies/zonoIntersecthpoly.h"
@@ -78,7 +78,7 @@ double volume_sequence_of_balls(Polytope const& Pin,
     //Compute the Chebychev ball (largest inscribed ball) with center and radius
     auto InnerBall = P.ComputeInnerBall();
     if (InnerBall.second < 0.0) return -1.0;
-    
+
     Point c = InnerBall.first;
     NT radius = InnerBall.second;
 
