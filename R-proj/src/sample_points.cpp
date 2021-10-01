@@ -625,12 +625,12 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
                 HP.shift(mode.getCoefficients());
             }
             if (functor_defined) {
-                sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                    StartingPoint, nburns, set_L, walk, F, f, solver);
+                sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
+                    StartingPoint, nburns, set_L, eta, walk, F, f, solver);
             }
             else {
-                sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L,
-                    StartingPoint, nburns, set_L, walk, G, g, solver);
+                sample_from_polytope(HP, type, rng, randPoints, walkL, numpoints, gaussian, a, L, c,
+                    StartingPoint, nburns, set_L, eta, walk, G, g, solver);
             }
             break;
         }

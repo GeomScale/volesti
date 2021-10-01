@@ -685,7 +685,7 @@ public:
         facet_prev = facet;
         return std::make_pair(min_plus, facet);
     }
-    }
+    
 
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
