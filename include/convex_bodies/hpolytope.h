@@ -17,7 +17,7 @@
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
 #include "root_finders/quadratic_polynomial_solvers.hpp"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "lp_oracles/solve_lp.h"
 #endif
 
@@ -83,6 +83,7 @@ public:
                 A(i - 1, j - 1) = -Pin[i][j];
             }
         }
+        _inner_ball.second = -1;
         //_inner_ball = ComputeChebychevBall<NT, Point>(A, b);
     }
 
@@ -101,12 +102,12 @@ public:
     //Use LpSolve library
     std::pair<Point, NT> ComputeInnerBall()
     {
-       normalize();
-        #ifndef VOLESTIPY
+        normalize();
+        #ifndef DISABLE_LPSOLVE
             _inner_ball = ComputeChebychevBall<NT, Point>(A, b); // use lpsolve library
         #else
 
-            if (_inner_ball.second < 0.0) {
+            if (_inner_ball.second <= NT(0)) {
 
                 NT const tol = 0.00000001;
                 std::tuple<VT, NT, bool> inner_ball = max_inscribed_ball(A, b, 150, tol);

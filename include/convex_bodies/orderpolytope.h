@@ -15,7 +15,7 @@
 #include "misc/poset.h"
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "lp_oracles/solve_lp.h"
 #endif
 
