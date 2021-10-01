@@ -5,7 +5,6 @@
 // Copyright (c) 2012-2019 Vissarion Fisikopoulos
 // Copyright (c) 2018-2019 Apostolos Chalkis
 
-
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>

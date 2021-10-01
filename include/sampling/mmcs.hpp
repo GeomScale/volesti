@@ -1,4 +1,5 @@
 // VolEsti (volume computation and sampling library)
+
 // Copyright (c) 2021 Vissarion Fisikopoulos
 // Copyright (c) 2021 Apostolos Chalkis
 
@@ -23,23 +24,22 @@
 */
 template 
 <
-        typename Polytope,
-        typename RandomNumberGenerator,
-        typename MT,
-        typename Point,
-        typename WalkTypePolicy
+    typename Polytope,
+    typename RandomNumberGenerator,
+    typename MT,
+    typename Point,
+    typename WalkTypePolicy
 >
-void perform_mmcs_step(Polytope &P,
+bool perform_mmcs_step(Polytope &P,
                        RandomNumberGenerator &rng,
-                       const unsigned int &walk_length,
-                       const unsigned int &target_ess,
+                       unsigned int const& walk_length,
+                       unsigned int const& target_ess,
                        unsigned int const& max_num_samples,
                        unsigned int const& window,
                        unsigned int &Neff_sampled,
                        unsigned int &total_samples,
                        unsigned int const& num_rounding_steps,
                        MT &TotalRandPoints,
-                       bool &complete,
                        const Point &starting_point,
                        unsigned int const& nburns,
                        bool request_rounding,
@@ -105,13 +105,12 @@ void perform_mmcs_step(Polytope &P,
             if (done && min_eff_samples < target_ess) 
             {
                 Neff_sampled = min_eff_samples;
-                return;
+                return false;
             }
             if (min_eff_samples >= target_ess) 
             {
-                complete = true;
                 Neff_sampled = min_eff_samples;
-                return;
+                return true;
             }
             if (min_eff_samples > 0) 
             {
@@ -126,4 +125,3 @@ void perform_mmcs_step(Polytope &P,
 }
 
 #endif
-

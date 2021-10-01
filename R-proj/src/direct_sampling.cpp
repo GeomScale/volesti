@@ -7,7 +7,6 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 and 2019 program.
 
-
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
@@ -18,7 +17,6 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include "volume/volume_sequence_of_balls.hpp"
 #include "sampling/simplex.hpp"
-
 
 //' Sample perfect uniformly distributed points from well known convex bodies: (a) the unit simplex, (b) the canonical simplex, (c) the boundary of a hypersphere or (d) the interior of a hypersphere.
 //'

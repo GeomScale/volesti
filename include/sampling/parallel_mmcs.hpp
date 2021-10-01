@@ -35,17 +35,16 @@ template
     typename Point,
     typename NT
 >
-void perform_parallel_mmcs_step(Polytope &P,
+bool perform_parallel_mmcs_step(Polytope &P,
                                 RandomNumberGenerator &rng,
-                                const unsigned int &walk_length,
-                                const unsigned int &target_ess,
+                                unsigned int const& walk_length,
+                                unsigned int const& target_ess,
                                 unsigned int const& max_num_samples,
                                 unsigned int const& window,
                                 unsigned int &Neff_sampled,
                                 unsigned int &total_samples,
                                 unsigned int const& num_rounding_steps,
                                 MT &TotalRandPoints,
-                                bool &complete,
                                 const Point &starting_point,
                                 unsigned int const& nburns,
                                 unsigned int const& num_threads,
@@ -70,6 +69,7 @@ void perform_parallel_mmcs_step(Polytope &P,
     std::vector<int> bound_on_num_points_per_thread(num_threads, 0);
     std::vector<int> num_generated_points_per_thread(num_threads, 0);
     unsigned int jj = 0, d = P.dimension(), m = P.num_of_hyperplanes();
+    bool complete = false;
 
     while (jj < nburns) 
     {
@@ -196,8 +196,8 @@ void perform_parallel_mmcs_step(Polytope &P,
         current_num_samples += num_generated_points_per_thread[i];
         TotalRandPoints_per_thread[i].resize(0, 0);
     }
-    
+
+    return complete;
 }
 
 #endif
-

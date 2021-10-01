@@ -8,7 +8,6 @@
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
-
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
@@ -139,5 +138,4 @@ Rcpp::List rounding (Rcpp::Reference P,
     return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(std::get<0>(round_res)),
                               Rcpp::Named("shift") = Rcpp::wrap(std::get<1>(round_res)),
                               Rcpp::Named("round_value") = std::get<2>(round_res));
-
 }

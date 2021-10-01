@@ -76,10 +76,9 @@ void run_main()
 
         unsigned int Neff_sampled;
         MT TotalRandPoints;
-        perform_mmcs_step(P, rng, walk_length, Neff, max_num_samples, window, 
-                          Neff_sampled, total_samples, num_rounding_steps, TotalRandPoints,
-                          complete, InnerBall.first, 
-                          nburns, req_round_temp, WalkType);
+        complete = perform_mmcs_step(P, rng, walk_length, Neff, max_num_samples, window, 
+                                     Neff_sampled, total_samples, num_rounding_steps, TotalRandPoints,
+                                     InnerBall.first, nburns, req_round_temp, WalkType);
 
         Neff -= Neff_sampled;
         std::cout << "phase " << phase << ": number of correlated samples = " << total_samples << ", effective sample size = " << Neff_sampled;

@@ -66,6 +66,7 @@ struct AcceleratedBilliardWalk
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
 
@@ -78,6 +79,7 @@ struct AcceleratedBilliardWalk
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
 
@@ -115,7 +117,7 @@ struct AcceleratedBilliardWalk
                 P.compute_reflection(_v, _p, _update_parameters);
                 it++;
 
-                while (it < 1000*n)
+                while (it < _rho)
                 {
                     std::pair<NT, int> pbpair
                             = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -130,7 +132,7 @@ struct AcceleratedBilliardWalk
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
-                if (it == 1000*n) _p = p0;
+                if (it == _rho) _p = p0;
             }
             p = _p;
         }
@@ -248,7 +250,7 @@ struct AcceleratedBilliardWalk
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, _update_parameters);
 
-            while (it <= 1000*n)
+            while (it <= _rho)
             {
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -256,7 +258,7 @@ struct AcceleratedBilliardWalk
                     _p += (T * _v);
                     _lambda_prev = T;
                     break;
-                } else if (it == 1000*n) {
+                } else if (it == _rho) {
                     _lambda_prev = rng.sample_urdist() * pbpair.first;
                     _p += (_lambda_prev * _v);
                     break;
@@ -293,6 +295,7 @@ struct AcceleratedBilliardWalk
         Point _v;
         NT _lambda_prev;
         MT _AA;
+        unsigned int _rho;
         update_parameters _update_parameters;
         typename Point::Coeff _lambdas;
         typename Point::Coeff _Av;

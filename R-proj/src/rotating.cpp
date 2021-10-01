@@ -7,7 +7,6 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 program.
 
-
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
@@ -99,5 +98,4 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
     MT res(TransorfMat.rows(), Rcpp::as<MT>(Mat).rows()+n);
     res << Rcpp::as<MT>(Mat).transpose(), TransorfMat;
     return Rcpp::wrap(res);
-
 }

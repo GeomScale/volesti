@@ -9,7 +9,6 @@
 
 // Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
-
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
@@ -23,7 +22,6 @@
 #include "sampling/sampling.hpp"
 #include "ode_solvers/ode_solvers.hpp"
 #include "ode_solvers/oracle_functors_rcpp.hpp"
-
 
 enum random_walks {
   ball_walk,
@@ -714,5 +712,4 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     }
 
     return Rcpp::wrap(RetMat);
-
 }

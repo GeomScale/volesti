@@ -77,10 +77,9 @@ void run_main()
 
         unsigned int Neff_sampled, num_threads = 2;
         MT TotalRandPoints;
-        perform_parallel_mmcs_step<AcceleratedBilliardWalkParallel>(P, rng, walk_length, Neff, max_num_samples, window, 
-                                                                    Neff_sampled, total_samples, num_rounding_steps, TotalRandPoints,
-                                                                    complete, InnerBall.first, nburns, num_threads, req_round_temp, L);
-
+        complete = perform_parallel_mmcs_step<AcceleratedBilliardWalkParallel>(P, rng, walk_length, Neff, max_num_samples, window, 
+                                                                               Neff_sampled, total_samples, num_rounding_steps, TotalRandPoints,
+                                                                               InnerBall.first, nburns, num_threads, req_round_temp, L);
         Neff -= Neff_sampled;
         std::cout << "phase " << phase << ": number of correlated samples = " << total_samples << ", effective sample size = " << Neff_sampled;
         total_neff += Neff_sampled;

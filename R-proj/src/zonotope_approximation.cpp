@@ -5,7 +5,6 @@
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <boost/random.hpp>
@@ -99,5 +98,4 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
     }
 
     return Rcpp::List::create(Rcpp::Named("Mat") = Rcpp::wrap(Mat), Rcpp::Named("fit_ratio") = ratio);
-
 }

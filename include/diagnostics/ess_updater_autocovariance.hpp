@@ -4,7 +4,6 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-
 #ifndef DIAGNOSTICS_ESS_UPDATER_AUTOCOVARIANCE_HPP
 #define DIAGNOSTICS_ESS_UPDATER_AUTOCOVARIANCE_HPP
 
@@ -14,7 +13,6 @@
 #include <unsupported/Eigen/FFT>
 #include <complex>
 #include <cmath>
-
 
 /**
     Compute autocovariance estimates for every lag for the input sequence
@@ -29,6 +27,7 @@
 template <typename NT, typename VT>
 void compute_autocovariance(VT const& samples, VT &auto_cov) 
 {
+    const NT eps = 1e-16;
     typedef Eigen::FFT<NT> EigenFFT;
     typedef Eigen::Matrix<std::complex<NT>, Eigen::Dynamic, 1> CVT;
     EigenFFT fft;
@@ -44,7 +43,7 @@ void compute_autocovariance(VT const& samples, VT &auto_cov)
 
     NT variance = (normalized_samples.cwiseProduct(normalized_samples)).sum();
     variance *= (1.0 / N);
-    variance += NT(1e-16)*(samples_mean*samples_mean);
+    variance += eps * (samples_mean*samples_mean);
     normalized_samples.head(N) = normalized_samples.head(N).array() / sqrt(variance);
 
     // Perform FFT on 2N points
