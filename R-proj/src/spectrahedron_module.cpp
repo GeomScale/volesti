@@ -20,7 +20,6 @@ public:
     Spectrahedron(Rcpp::List _matrices) : matrices(_matrices) {}
 };
 
-
 RCPP_MODULE(spectrahedron){
         using namespace Rcpp ;
 

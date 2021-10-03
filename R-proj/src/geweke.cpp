@@ -17,7 +17,6 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include "diagnostics/geweke.hpp"
 
-
 //' Geweke's MCMC diagnostic
 //'
 //' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.

@@ -24,7 +24,6 @@
 #include "ode_solvers/ode_solvers.hpp"
 #include "ode_solvers/oracle_functors_rcpp.hpp"
 
-
 enum random_walks {
   ball_walk,
   rdhr,
@@ -714,5 +713,4 @@ Rcpp::NumericMatrix sample_points(Rcpp::Nullable<Rcpp::Reference> P,
     }
 
     return Rcpp::wrap(RetMat);
-
 }

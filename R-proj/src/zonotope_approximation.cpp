@@ -99,5 +99,4 @@ Rcpp::List zono_approx (Rcpp::Reference Z,
     }
 
     return Rcpp::List::create(Rcpp::Named("Mat") = Rcpp::wrap(Mat), Rcpp::Named("fit_ratio") = ratio);
-
 }

@@ -139,5 +139,4 @@ Rcpp::List rounding (Rcpp::Reference P,
     return Rcpp::List::create(Rcpp::Named("Mat") = Mat, Rcpp::Named("T") = Rcpp::wrap(std::get<0>(round_res)),
                               Rcpp::Named("shift") = Rcpp::wrap(std::get<1>(round_res)),
                               Rcpp::Named("round_value") = std::get<2>(round_res));
-
 }

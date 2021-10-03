@@ -405,4 +405,3 @@ Rcpp::List volume (Rcpp::Reference P,
 
     return Rcpp::List::create(Rcpp::Named("log_volume") = pair_vol.first, Rcpp::Named("volume") = pair_vol.second);
 }
-

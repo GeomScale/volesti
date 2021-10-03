@@ -99,5 +99,4 @@ Rcpp::NumericMatrix rotating (Rcpp::Reference P, Rcpp::Nullable<Rcpp::NumericMat
     MT res(TransorfMat.rows(), Rcpp::as<MT>(Mat).rows()+n);
     res << Rcpp::as<MT>(Mat).transpose(), TransorfMat;
     return Rcpp::wrap(res);
-
 }

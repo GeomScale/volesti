@@ -19,7 +19,6 @@
 #include "volume/volume_sequence_of_balls.hpp"
 #include "sampling/simplex.hpp"
 
-
 //' Sample perfect uniformly distributed points from well known convex bodies: (a) the unit simplex, (b) the canonical simplex, (c) the boundary of a hypersphere or (d) the interior of a hypersphere.
 //'
 //' The \eqn{d}-dimensional unit simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i\leq 1}, \eqn{x_i\geq 0}. The \eqn{d}-dimensional canonical simplex is the set of points \eqn{\vec{x}\in \R^d}, s.t.: \eqn{\sum_i x_i = 1}, \eqn{x_i\geq 0}.
