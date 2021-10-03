@@ -15,7 +15,7 @@
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
     #include "convex_bodies/zpolytope.h"
@@ -46,7 +46,7 @@ static NT compute(HPolytope<Point> const& P)
 }
 };
 
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
 template <typename Point>
 struct compute_diameter<VPolytope<Point>>
 {

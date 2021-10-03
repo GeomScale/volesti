@@ -129,6 +129,9 @@ else ()
   add_executable (simple_sde simple_sde.cpp)
   add_executable (high_dimensional_hmc high_dimensional_hmc.cpp)
   add_executable (high_dimensional_hmc_rand_poly high_dimensional_hmc_rand_poly.cpp)
+  add_executable (exponential_exact_hmc exponential_exact_hmc.cpp)
+  add_executable (gaussian_exact_hmc gaussian_exact_hmc.cpp)
+
   #add_executable (adaptive_step_size adaptive_step_size.cpp)
 
   TARGET_LINK_LIBRARIES(high_dimensional_hmc_rand_poly ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
@@ -138,5 +141,6 @@ else ()
   TARGET_LINK_LIBRARIES(simple_sde ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   TARGET_LINK_LIBRARIES(simple_uld ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
   TARGET_LINK_LIBRARIES(simple_hmc ${LP_SOLVE} ${BLAS}  "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+
 
 endif()
