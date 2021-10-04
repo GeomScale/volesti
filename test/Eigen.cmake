@@ -6,7 +6,7 @@ function(GetEigen)
     FetchContent_Declare(
       eigen
       GIT_REPOSITORY https://gitlab.com/cantonios/eigen.git
-      GIT_TAG 3.4.0
+      GIT_TAG 3.3.9
     )
 
     FetchContent_GetProperties(eigen)
