@@ -13,9 +13,11 @@
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
-#include "convex_bodies/vpolytope.h"
-#include "convex_bodies/vpolyintersectvpoly.h"
-#include "convex_bodies/zpolytope.h"
+#ifndef DISABLE_LPSOLVE
+    #include "convex_bodies/vpolytope.h"
+    #include "convex_bodies/vpolyintersectvpoly.h"
+    #include "convex_bodies/zpolytope.h"
+#endif
 #include "convex_bodies/zonoIntersecthpoly.h"
 #include "ellipsoid_walks/dikin_walker.h"
 
