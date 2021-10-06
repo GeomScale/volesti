@@ -10,21 +10,21 @@
 ### Test results
 
 [![CRAN check](https://cranchecks.info/badges/worst/volesti)](https://cran.r-project.org/web/checks/check_results_volesti.html)
-[![CircleCI master](https://circleci.com/gh/GeomScale/volesti/tree/master.svg?style=shield)](https://circleci.com/gh/GeomScale/volesti/tree/master)
-[![CircleCI develop](https://circleci.com/gh/GeomScale/volesti/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volesti/tree/develop)
-[![gcc-test](https://github.com/GeomScale/volesti/workflows/gcc-test/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3Agcc-test)
-[![clang-test](https://github.com/GeomScale/volesti/workflows/clang-test/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3Aclang-test)
+[![CircleCI master](https://circleci.com/gh/GeomScale/volume_approximation/tree/master.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/master)
+[![CircleCI develop](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volume_approximation/tree/develop)
+[![gcc-test](https://github.com/GeomScale/volume_approximation/workflows/gcc-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Agcc-test)
+[![clang-test](https://github.com/GeomScale/volume_approximation/workflows/clang-test/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3Aclang-test)
 
-[![R-CMD-ubuntu](https://github.com/GeomScale/volesti/workflows/R-CMD-check-ubuntu/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3AR-CMD-ubuntu)
-[![R-CMD-macOS](https://github.com/GeomScale/volesti/workflows/R-CMD-check-macOS/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3AR-CMD-macOS)
-[![R-CMD-windows](https://github.com/GeomScale/volesti/workflows/R-CMD-check-windows/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3AR-CMD-windows)
+[![R-CMD-ubuntu](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-ubuntu/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-ubuntu)
+[![R-CMD-macOS](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-macOS/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-macOS)
+[![R-CMD-windows](https://github.com/GeomScale/volume_approximation/workflows/R-CMD-check-windows/badge.svg)](https://github.com/GeomScale/volume_approximation/actions?query=workflow%3AR-CMD-windows)
 
 ###  Documentation
 
 * [Using the R Interface](doc/r_interface.md)
 * [Using the C++ Interface](doc/cpp_interface.md)
 * [Using the Python Interface](volestipy/README.md)
-* [Wikipage with Tutorials and Demos](https://github.com/GeomScale/volesti/wiki)
+* [Wikipage with Tutorials and Demos](https://github.com/GeomScale/volume_approximation/wiki)
 * [Tutorial given to PyData meetup](https://vissarion.github.io/tutorials/volesti_tutorial_pydata.html)
 * [Tutorial on (truncated) logconcave sampling (R and C++)](https://papachristoumarios.github.io/2020/07/21/Sampling-from-high-dimensional-truncated-log-concave-densities-with-volesti)
 * [Contributing](CONTRIBUTING.md)
