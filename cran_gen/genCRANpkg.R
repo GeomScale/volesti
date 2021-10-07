@@ -15,6 +15,7 @@ lp_dist = paste0(path,"/R-proj/src/Rproj_externals")
 file.copy(dir_lp, lp_dist, recursive=TRUE)
 
 # fix ftime deprecation, taken from: https://github.com/GeomScale/volesti/pull/89/files
+library(xfun)
 gsub_file(
     paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
     "struct timeb buf", "struct timeval buf", 
