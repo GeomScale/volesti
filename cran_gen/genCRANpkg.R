@@ -6,7 +6,7 @@ path = substr(path, start=1, stop=nchar(path)-9)
 
 # download lpSolveAPI and crate src/Rproj_externals/lp_solve
 library(downloader)
-download("https://cran.r-project.org/src/contrib/Archive/lpSolveAPI/lpSolveAPI_5.5.2.0-17.tar.gz", dest="lpSolve.tar.gz", mode="wb")
+download("https://cran.r-project.org/src/contrib/Archive/lpSolveAPI/lpSolveAPI_5.5.2.0-17.6.tar.gz", dest="lpSolve.tar.gz", mode="wb")
 untar("lpSolve.tar.gz", exdir = path)
 unlink("lpSolve.tar.gz")
 dir.create(paste0(path,"/R-proj/src/Rproj_externals"))
