@@ -18,16 +18,16 @@ file.copy(dir_lp, lp_dist, recursive=TRUE)
 library(xfun)
 gsub_file(
     paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "struct timeb buf", "struct timeval buf", 
+    "struct timeb buf;", "", 
     fixed=TRUE)
 gsub_file(
     paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "ftime(&buf)", "gettimeofday(&buf, NULL)", 
+    "ftime(&buf);", "", 
     fixed=TRUE)
 gsub_file(
     paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
-    "return((double)buf.time+((double) buf.millitm)/1000.0)", 
-    "return((double)buf.tv_sec+(double) buf.tv_usec)", 
+    "return((double)buf.time+((double) buf.millitm)/1000.0);", 
+    "return((double)0);", 
     fixed=TRUE)
 
 # add lpsolve header files in external
