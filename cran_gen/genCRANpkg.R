@@ -14,6 +14,21 @@ dir_lp = paste0(path,"/lpSolveAPI/src/lp_solve")
 lp_dist = paste0(path,"/R-proj/src/Rproj_externals")
 file.copy(dir_lp, lp_dist, recursive=TRUE)
 
+# fix ftime deprecation, taken from: https://github.com/GeomScale/volesti/pull/89/files
+gsub_file(
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
+    "struct timeb buf", "struct timeval buf", 
+    fixed=TRUE)
+gsub_file(
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
+    "ftime(&buf)", "gettimeofday(&buf, NULL)", 
+    fixed=TRUE)
+gsub_file(
+    paste0(path,"/R-proj/src/Rproj_externals/lp_solve/commonlib.c"), 
+    "return((double)buf.time+((double) buf.millitm)/1000.0)", 
+    "return((double)buf.tv_sec+(double) buf.tv_usec)", 
+    fixed=TRUE)
+
 # add lpsolve header files in external
 library(downloader)
 download("https://cran.r-project.org/src/contrib/lpSolve_5.6.15.tar.gz", dest="lpSolve.tar.gz", mode="wb")
