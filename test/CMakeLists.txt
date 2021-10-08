@@ -111,6 +111,9 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
+include("LPSolve.cmake")
+GetLPSolve()
+
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
 
 if (NOT LP_SOLVE)
@@ -140,7 +143,6 @@ else ()
 
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
-  include_directories (BEFORE ../external/LPsolve_src/run_headers)
   include_directories (BEFORE ../include/generators)
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
@@ -266,11 +268,11 @@ else ()
           COMMAND logconcave_sampling_test -tc=uld)
 
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME simple_mc_integration_over_limits 
+  add_test(NAME simple_mc_integration_over_limits
           COMMAND simple_mc_integration -tc=rectangle)
-  add_test(NAME simple_mc_integration_over_cubes 
+  add_test(NAME simple_mc_integration_over_cubes
           COMMAND simple_mc_integration -tc=cube)
-  add_test(NAME simple_mc_integration_over_simplices 
+  add_test(NAME simple_mc_integration_over_simplices
           COMMAND simple_mc_integration -tc=simplex)
   add_test(NAME simple_mc_integration_over_product_simplices
 		  COMMAND simple_mc_integration -tc=prod_simplex)
@@ -299,7 +301,7 @@ else ()
   TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE})
-  TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE})  
+  TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
   TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3})
