@@ -110,7 +110,7 @@ void call_test_skinny_cubes() {
     P = generate_skinny_cube<Hpolytope>(20);
     rounding_test(P, 0,
                   8.26497 * std::pow(10,7),
-                  8.94948e+07,
+                  8.28811e+07,
                   1.09218e+08,
                   104857600.0);
 }

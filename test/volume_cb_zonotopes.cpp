@@ -39,7 +39,8 @@ void test_values(NT volume, NT expected, NT exact)
               << std::abs((volume-expected)/expected) << std::endl;
     std::cout << "Relative error (exact) = "
               << std::abs((volume-exact)/exact) << std::endl;
-    CHECK(std::abs((volume - expected)/expected) < 0.2);
+    CHECK((std::abs((volume - exact)/exact) < 0.2 || 
+            std::abs((volume - expected)/expected) < 0.00001));
 }
 
 template <class Polytope>
