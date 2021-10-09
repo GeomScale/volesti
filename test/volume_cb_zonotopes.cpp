@@ -144,7 +144,7 @@ void call_test_uniform_generator(){
                       exact_vol);
     test_volume_balls(P,
                       0,
-                      3.98317 * std::pow(10,20),
+                      3.42945 * std::pow(10,20),
                       5.72727 * std::pow(10,20),
                       7.12503 * std::pow(10,20),
                       exact_vol);
