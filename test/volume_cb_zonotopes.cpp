@@ -39,7 +39,8 @@ void test_values(NT volume, NT expected, NT exact)
               << std::abs((volume-expected)/expected) << std::endl;
     std::cout << "Relative error (exact) = "
               << std::abs((volume-exact)/exact) << std::endl;
-    CHECK(std::abs((volume - expected)/expected) < 0.2);
+    CHECK((std::abs((volume - exact)/exact) < 0.2 || 
+           std::abs((volume - expected)/expected) < 0.00001));
 }
 
 template <class Polytope>
@@ -137,15 +138,15 @@ void call_test_uniform_generator(){
     exact_vol = exact_zonotope_vol<NT>(P);
     test_volume_hpoly(P,
                       0,
-                      5.7603e+20,
+                      6.95342e+20,
                       7.27889 * std::pow(10,20),
                       7.18605 * std::pow(10,20),
                       exact_vol);
     test_volume_balls(P,
                       0,
                       3.42945 * std::pow(10,20),
-                      5.72727 * std::pow(10,20),
-                      7.12503 * std::pow(10,20),
+                      4.68065 * std::pow(10,20),
+                      6.45698 * std::pow(10,20),
                       exact_vol);
 }
 
