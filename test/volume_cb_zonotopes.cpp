@@ -139,7 +139,7 @@ void call_test_uniform_generator(){
                       0,
                       5.7603e+20,
                       7.27889 * std::pow(10,20),
-                      5.98586 * std::pow(10,20),
+                      7.18605 * std::pow(10,20),
                       exact_vol);
     test_volume_balls(P,
                       0,
