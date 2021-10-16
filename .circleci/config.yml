@@ -61,6 +61,6 @@ jobs:
             cmake -DDISABLE_NLP_ORACLES=ON -DUSE_MKL=OFF -DCODE_COVERAGE=ON ../test;
             make;
             ctest -j8 --verbose;
-            gcovr -r ../ . --xml -o coverage.xml;
+            gcovr -r ../include . --xml -o coverage.xml;
        - codecov/upload:
             file: './build/coverage.xml'
