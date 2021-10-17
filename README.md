@@ -14,6 +14,7 @@
 [![CircleCI develop](https://circleci.com/gh/GeomScale/volesti/tree/develop.svg?style=shield)](https://circleci.com/gh/GeomScale/volesti/tree/develop)
 [![gcc-test](https://github.com/GeomScale/volesti/workflows/gcc-test/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3Agcc-test)
 [![clang-test](https://github.com/GeomScale/volesti/workflows/clang-test/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3Aclang-test)
+[![codecov](https://codecov.io/gh/GeomScale/volesti/branch/develop/graph/badge.svg)](https://codecov.io/gh/GeomScale/volesti)
 
 [![R-CMD-ubuntu](https://github.com/GeomScale/volesti/workflows/R-CMD-check-ubuntu/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3AR-CMD-ubuntu)
 [![R-CMD-macOS](https://github.com/GeomScale/volesti/workflows/R-CMD-check-macOS/badge.svg)](https://github.com/GeomScale/volesti/actions?query=workflow%3AR-CMD-macOS)

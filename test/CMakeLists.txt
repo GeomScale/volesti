@@ -121,10 +121,9 @@ option(CODE_COVERAGE "Enable coverage reporting" OFF)
 if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   # Add required flags (GCC & LLVM/Clang)
   target_compile_options(coverage_config INTERFACE
-    -O1        # O0 (or no) optimization takes too much time and cause CircleCI test failure.
+    -O1        # O0 (or no) optimization takes too much time and causes CircleCI test failure.
     -g         # generate debug info
     --coverage # sets all required flags
-    -fno-inline
   )
   if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
     target_link_options(coverage_config INTERFACE --coverage)
