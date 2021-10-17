@@ -88,7 +88,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
         return -1;
     }
 
-	std::cout << "Volume of the convex body = " << volume << std::endl;
+	// std::cerr << "Volume of the convex body = " << volume << std::endl;
 
 	NT alpha = (NT) 1/B;
 	NT alpha_prev = (NT) 0;

@@ -35,8 +35,7 @@ void test_values (NT computed, NT expected, NT exact) {
 	std::cout << "Exact integration value = " << exact << std::endl;
 	std::cout << "Relative error (expected) = " << std::abs((computed - expected)/expected) << std::endl;
 	std::cout << "Relative error (exact) = " << std::abs((computed - exact)/exact) << std::endl ;
-	// CHECK(((std::abs((computed - expected)/expected) < 0.00001) || (std::abs((computed - exact)/exact) < 0.2)));
-	std::cout << "\n";
+	CHECK(((std::abs((computed - expected)/expected) < 0.00001) || (std::abs((computed - exact)/exact) < 0.2)));
 }
 
 template <typename NT>
@@ -167,9 +166,8 @@ void call_cubes_test_lovasz_vempala_integrate() {
 	cubes_test_lovasz_vempala_integrate <NT> (5, 7.50, 7.4325);
 	cubes_test_lovasz_vempala_integrate <NT> (7, 16.59, 16.5852);
 	// cubes_test_lovasz_vempala_integrate <NT> (10, 55.3, 55.26);
-	// cubes_test_lovasz_vempala_integrate <NT> (15, 55.3, 55.26);
-	// cubes_test_lovasz_vempala_integrate <NT> (20, 55.3, 55.26);
-	// cubes_test_lovasz_vempala_integrate <NT> (25, 55.3, 55.26);
+	// cubes_test_lovasz_vempala_integrate <NT> (15, 410.8554, 405);
+	// cubes_test_lovasz_vempala_integrate <NT> (20, 3054.3493, 3050);
 }
 
 template<typename NT>
