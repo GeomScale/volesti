@@ -261,8 +261,11 @@ else ()
           COMMAND logconcave_sampling_test -tc=uld)
 
   add_executable(lv_mc_integration lv_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME lv_mc_integration
-          COMMAND lv_mc_integration -tc=cubes)
+  add_test(NAME lv_mc_integration_cubes COMMAND lv_mc_integration -tc=cubes)
+  add_test(NAME lv_mc_integration_simplices COMMAND lv_mc_integration -tc=simplices)
+  add_test(NAME lv_mc_integration_prod_simplices COMMAND lv_mc_integration -tc=prod_simplices)
+  add_test(NAME lv_mc_integration_cross COMMAND lv_mc_integration -tc=cross)
+  add_test(NAME lv_mc_integration_birkhoff COMMAND lv_mc_integration -tc=birkhoff)
 
   TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE})
   TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE})

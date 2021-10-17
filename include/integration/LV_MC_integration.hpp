@@ -43,7 +43,7 @@ template
 	typename EvaluationFunctor,
 	typename GradientFunctor,
 	typename WalkType,
-	typename Polytope,
+	typename Polytope = HPOLYTOPE,
 	typename Point,
 	typename NT
 >
@@ -59,7 +59,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 	unsigned int n = P.dimension();
 	NT B = 2 * n + 2 * log(1 / epsilon) + n * log(1 / beta);
 	unsigned int m = (unsigned int) ceil(sqrt(n) * log(B));
-	unsigned int k = (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B));
+	unsigned int k = 10000; // (unsigned int) ceil(512 / pow(epsilon,2) * sqrt(n) * log(B))/1000;
 
 	typedef OptimizationFunctor::GradientFunctor
 	<Point, EvaluationFunctor, GradientFunctor> NegativeGradientOptimizationFunctor;
@@ -71,7 +71,7 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
 	NegativeLogprobOptimizationFunctor f(opt_params);
 	NegativeGradientOptimizationFunctor grad_f(opt_params);
 
-	NT volume = 0;
+	NT volume;
 
 	switch (voltype) {
     case CB:     
@@ -81,12 +81,14 @@ NT lovasz_vempala_integrate(EvaluationFunctor &g,
         volume = volume_cooling_gaussians <GaussianBallWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
         break;
     case SOB: 
-        volume = volume_sequence_of_balls <CDHRWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
+        volume = volume_sequence_of_balls <AcceleratedBilliardWalk, RandomNumberGenerator, Polytope> (P, epsilon, walk_length);
         break;
     default:
         std::cerr << "Error in volume type: CB / SOB / CG" << std::endl;
         return -1;
     }
+
+	std::cout << "Volume of the convex body = " << volume << std::endl;
 
 	NT alpha = (NT) 1/B;
 	NT alpha_prev = (NT) 0;
