@@ -70,6 +70,38 @@ struct GetPointOnDsphere
     }
 };
 
+template <typename Point>
+struct GetDirectionTangentPlane
+{
+    typedef typename Point::FT NT;
+    typedef typename Point::Coeff VT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
+    template <typename RandomNumberGenerator>
+    inline static Point apply(Point const& p,
+                              RandomNumberGenerator &rng,
+                              bool normalize=true)
+    {
+        unsigned int dim = p.dimension();
+        NT normal = NT(0);
+        Point ut(dim);
+        NT* data = ut.pointerToData();
+
+        for (unsigned int i=0; i<dim; ++i)
+        {
+            *data = rng.sample_ndist();
+            normal += *data * *data;
+            data++;
+        }
+
+        normal = NT(1)/std::sqrt(normal);
+        ut *= normal;
+
+        VT u = (MT::Identity(dim, dim) - p.getCoefficients().transpose() * p.getCoefficients()) * ut.getCoefficients();
+        u = u / u.norm();
+        Point q(u);
+        return q;
+    }
+};
 
 #endif // SPHERE_HPP

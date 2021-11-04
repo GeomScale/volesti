@@ -14,6 +14,7 @@
 
 #include <limits>
 #include <iostream>
+#include <cmath>
 #include <Eigen/Eigen>
 #include "preprocess/max_inscribed_ball.hpp"
 #include "root_finders/quadratic_polynomial_solvers.hpp"
@@ -402,6 +403,242 @@ public:
         if (pos) return std::make_pair(min_plus, facet);
         return std::make_pair(min_plus, max_minus);
     }
+
+
+    int is_in_component(Point const& p, NT tol=NT(0)) const
+    {
+        int m = A.rows();
+        const NT* b_data = b.data();
+
+        for (int i = 0; i < m; i++) {
+            //Check if corresponding hyperplane is violated
+            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol))
+                return 0;
+
+            b_data++;
+        }
+
+        Point v = p - x0;
+        std::pair<NT,NT> pair_root = line_intersect(p, v);
+        Point r = p + (pair_root.second * v);
+
+        int n = V.cols();
+
+        for (int i = 0; i < n; i++)
+        {
+            v = 
+        }
+
+        return -1;
+    }
+
+    // compute intersection points of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT,NT> gc_intersect(Point const& r,
+                                  Point const& v,
+                                  VT& Ar,
+                                  VT& Av) const
+    {
+        NT D, C1, C2, eval, max_root = std::numeric_limits<NT>::lowest(), min_root = std::numeric_limits<NT>::max();
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        VT sum_nom;
+        int m = num_of_hyperplanes();
+        bool set_negative_root = false, set_positive_root = false, pos_D = false;
+
+        Ar.noalias() = A * r.getCoefficients();
+        Av.noalias() = A * v.getCoefficients();
+
+        NT* Av_data = Av.data();
+        NT* Ar_data = Ar.data();
+        const NT* b_data = b.data();
+
+        for (int i = 0; i < m; i++) {
+            D = (*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data) - (*b_data)*(*b_data);
+            if (D > NT(0)) 
+            {
+                pos_D = true;
+
+                C1 = asin((((*Av_data)*(*b_data)) + ((*Ar_data).*sqrt(D))) / ((*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data)));
+                C2 = asin((((*Av_data)*(*b_data)) - ((*Ar_data).*sqrt(D))) / ((*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data)));
+
+                eval = (*Ar_data) * cos(C1) + (*Av_data) * sin(C1) - (*b_data);
+                if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
+                {
+                    C1 = M_PI - C1;
+                }
+                if (C1 < min_plus && C1 > 0) {
+                    min_plus = C1;
+                    set_positive_root = true;
+                }else if (C1 > max_minus && C1 < 0){
+                    max_minus = C1;
+                    set_negative_root = true;
+                }
+                if (C1 > max_root && C1 < NT(2)*M_PI)
+                {
+                    max_root = C1;
+                }
+                if (C1 < min_root && C1 > (-NT(2)*M_PI))
+                {
+                    min_root = C1;
+                }
+
+                eval = (*Ar_data) * cos(C2) + (*Av_data) * sin(C2) - (*b_data);
+                if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
+                {
+                    C2 = M_PI - C2;
+                }
+                if (C2 < min_plus && C2 > 0) {
+                    min_plus = C2;
+                    set_positive_root = true;
+                }else if (C2 > max_minus && C2 < 0){
+                    max_minus = C2;
+                    set_negative_root = true;
+                }
+                if (C2 > max_root && C2 < NT(2)*M_PI)
+                {
+                    max_root = C2;
+                }
+                if (C2 < min_root && C2 > (-NT(2)*M_PI))
+                {
+                    min_root = C2;
+                }
+            }
+
+            if (!set_negative_root)
+            {
+                if (pos_D)
+                {
+                    max_minus = max_root - NT(2) * M_PI;
+                }
+                else
+                {
+                    max_minus = NT(0);
+                }
+            }
+            if (!set_positive_root)
+            {
+                if (pos_D)
+                {
+                    min_plus = min_root + NT(2) * M_PI;
+                }
+                else
+                {
+                    min_plus = NT(2) * M_PI;
+                }
+            }
+
+            Av_data++;
+            Ar_data++;
+            b_data++;
+        }
+        return std::make_pair(min_plus, max_minus);
+    }
+
+    
+    std::pair<NT,NT> gc_intersect(Point const& r,
+                                    Point const& v,
+                                    VT& Ar,
+                                    VT& Av,
+                                    NT const& lambda_prev) const
+    {
+
+        NT D, C1, C2, eval, max_root = std::numeric_limits<NT>::lowest(), min_root = std::numeric_limits<NT>::max();
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        VT sum_nom;
+        int m = num_of_hyperplanes();
+        bool set_negative_root = false, set_positive_root = false, pos_D = false;
+
+        Ar.noalias() += lambda_prev*Av;
+        Av.noalias() = A * v.getCoefficients();
+
+        NT* Av_data = Av.data();
+        NT* Ar_data = Ar.data();
+        const NT* b_data = b.data();
+
+        for (int i = 0; i < m; i++) {
+            D = (*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data) - (*b_data)*(*b_data);
+            if (D > NT(0)) 
+            {
+                pos_D = true;
+
+                C1 = asin((((*Av_data)*(*b_data)) + ((*Ar_data).*sqrt(D))) / ((*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data)));
+                C2 = asin((((*Av_data)*(*b_data)) - ((*Ar_data).*sqrt(D))) / ((*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data)));
+
+                eval = (*Ar_data) * cos(C1) + (*Av_data) * sin(C1) - (*b_data);
+                if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
+                {
+                    C1 = M_PI - C1;
+                }
+                if (C1 < min_plus && C1 > 0) {
+                    min_plus = C1;
+                    set_positive_root = true;
+                }else if (C1 > max_minus && C1 < 0){
+                    max_minus = C1;
+                    set_negative_root = true;
+                }
+                if (C1 > max_root && C1 < NT(2)*M_PI)
+                {
+                    max_root = C1;
+                }
+                if (C1 < min_root && C1 > (-NT(2)*M_PI))
+                {
+                    min_root = C1;
+                }
+
+                eval = (*Ar_data) * cos(C2) + (*Av_data) * sin(C2) - (*b_data);
+                if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
+                {
+                    C2 = M_PI - C2;
+                }
+                if (C2 < min_plus && C2 > 0) {
+                    min_plus = C2;
+                    set_positive_root = true;
+                }else if (C2 > max_minus && C2 < 0){
+                    max_minus = C2;
+                    set_negative_root = true;
+                }
+                if (C2 > max_root && C2 < NT(2)*M_PI)
+                {
+                    max_root = C2;
+                }
+                if (C2 < min_root && C2 > (-NT(2)*M_PI))
+                {
+                    min_root = C2;
+                }
+            }
+
+            if (!set_negative_root)
+            {
+                if (pos_D)
+                {
+                    max_minus = max_root - NT(2) * M_PI;
+                }
+                else
+                {
+                    max_minus = NT(0);
+                }
+            }
+            if (!set_positive_root)
+            {
+                if (pos_D)
+                {
+                    min_plus = min_root + NT(2) * M_PI;
+                }
+                else
+                {
+                    min_plus = NT(2) * M_PI;
+                }
+            }
+
+            Av_data++;
+            Ar_data++;
+            b_data++;
+        }
+        return std::make_pair(min_plus, max_minus);
+    }
+
 
 
     // compute intersection point of a ray starting from r and pointing to v
