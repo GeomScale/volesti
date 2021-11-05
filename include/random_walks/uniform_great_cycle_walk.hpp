@@ -28,17 +28,18 @@ template
 >
 struct Walk
 {
-    typedef typename Polytope::PointType Point;
-    typedef typename Point::FT NT;
+    typedef typename Polytope::VT VT;
+    typedef typename Polytope::MT MT;
+    typedef typename Polytope::NT NT;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point& p, RandomNumberGenerator& rng)
+    Walk(GenericPolytope const& P, VT& p, RandomNumberGenerator& rng)
     {
         initialize(P, p, rng);
     }
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point& p,
+    Walk(GenericPolytope const& P, VT& p,
          RandomNumberGenerator& rng, parameters const& params)
     {
         initialize(P, p, rng);
@@ -49,13 +50,13 @@ struct Walk
         typename BallPolytope
     >
     inline void apply(BallPolytope const& P,
-                      Point& p,   // a point to start
+                      VT& p,   // a point to start
                       unsigned int const& walk_length,
                       RandomNumberGenerator& rng)
     {
         for (auto j=0u; j<walk_length; ++j)
         {
-            Point v = GetDirectionTangentPlane<Point>::apply(p, rng);
+            VT v = GetDirectionTangentPlane<VT>::apply(p, rng);
             std::pair<NT, NT> bpair = P.gc_intersect(p, v, _lamdas, _Av,
                                                        _lambda);
             _lambda = rng.sample_urdist() * (bpair.first - bpair.second)
@@ -69,13 +70,13 @@ private :
 
     template <typename BallPolytope>
     inline void initialize(BallPolytope const& P,
-                           Point& p,
+                           VT& p,
                            RandomNumberGenerator &rng)
     {
         _lamdas.setZero(P.num_of_hyperplanes());
         _Av.setZero(P.num_of_hyperplanes());
 
-        Point v = GetDirectionTangentPlane<Point>::apply(p, rng);
+        VT v = GetDirectionTangentPlane<VT>::apply(p, rng);
         std::pair<NT, NT> bpair = P.gc_intersect(p, v, _lamdas, _Av);
         _lambda = rng.sample_urdist() * (bpair.first - bpair.second) + bpair.second;
         p = (cos(_lambda) * p) + (sin(_lambda) * v);
@@ -83,8 +84,8 @@ private :
 
     //Point _p;
     NT _lambda;
-    typename Point::Coeff _lamdas;
-    typename Point::Coeff _Av;
+    VT _lamdas;
+    VT _Av;
 };
 
 };

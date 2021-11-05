@@ -70,21 +70,19 @@ struct GetPointOnDsphere
     }
 };
 
-template <typename Point>
+template <typename VT>
 struct GetDirectionTangentPlane
 {
-    typedef typename Point::FT NT;
-    typedef typename Point::Coeff VT;
+    typedef double NT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
     template <typename RandomNumberGenerator>
-    inline static Point apply(Point const& p,
-                              RandomNumberGenerator &rng,
-                              bool normalize=true)
+    inline static VT apply(VT const& p,
+                              RandomNumberGenerator &rng)
     {
-        unsigned int dim = p.dimension();
+        unsigned int dim = p.rows();
         NT normal = NT(0);
-        Point ut(dim);
+        VT ut(dim);
         NT* data = ut.pointerToData();
 
         for (unsigned int i=0; i<dim; ++i)
@@ -97,10 +95,10 @@ struct GetDirectionTangentPlane
         normal = NT(1)/std::sqrt(normal);
         ut *= normal;
 
-        VT u = (MT::Identity(dim, dim) - p.getCoefficients().transpose() * p.getCoefficients()) * ut.getCoefficients();
+        VT u = (MT::Identity(dim, dim) - p.dot(p)) * ut; //optimize it
         u = u / u.norm();
-        Point q(u);
-        return q;
+        //Point q(u);
+        return u;
     }
 };
 

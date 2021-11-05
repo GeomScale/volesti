@@ -408,14 +408,14 @@ public:
     int is_in_component(Point const& p, NT tol=NT(0)) const
     {
         int m = A.rows();
-        const NT* b_data = b.data();
-
+        VT temp = A * p.getCoefficients() - b, temp2(_d);
+        const NT* Ax_b_data = temp.data();
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
-            if (*b_data - A.row(i) * p.getCoefficients() < NT(-tol))
+            if ((*Ax_b_data) < NT(-tol))
                 return 0;
 
-            b_data++;
+            Ax_b_data++;
         }
 
         Point v = p - x0;
@@ -426,10 +426,36 @@ public:
 
         for (int i = 0; i < n; i++)
         {
-            v = 
-        }
+            temp = V.col(i) - r.getCoefficients();
+            temp2 = r.getCoefficients() - x0.getCoefficients();
 
-        return -1;
+            NT a = temp.dot(temp);
+            NT b = NT(2) * (temp2.dot(temp));
+            NT g = temp2.dot(temp2) - NT(1);
+
+            NT D = b*b - NT(4) * a * g;
+
+            if (D < NT(0))
+            {
+                return -1;
+            }
+
+            NT tmin = (-b - sqrt(D)) / (NT(2)*a);
+            NT tmax = (-b + sqrt(D)) / (NT(2)*a);
+
+            if (tmin < 1 && tmin > 0){
+                continue;
+            }
+            else if (tmax < 1 && tmax > 0)
+            {
+                continue;
+            }
+            else
+            {
+                return -1;
+            }
+        }
+        return 0;
     }
 
     // compute intersection points of a ray starting from r and pointing to v
