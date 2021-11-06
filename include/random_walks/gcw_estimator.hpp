@@ -7,8 +7,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef RANDOM_WALKS_UNIFORM_GCW_WALK_HPP
-#define RANDOM_WALKS_UNIFORM_GCW_WALK_HPP
+#ifndef RANDOM_WALKS_UNIFORM_GCW_ESTIMATOR_HPP
+#define RANDOM_WALKS_UNIFORM_GCW_ESTIMATOR_HPP
 
 
 #include "sampling/sphere.hpp"
@@ -73,10 +73,11 @@ struct Walk
         typename BallPolytope
     >
     inline PointList estimate(BallPolytope const& P1,
-                              BallPolytope const& P1,
+                              BallPolytope const& P2,
                               VT& p,   // a point to start
                               unsigned int const& walk_length,
-                              NT &val.
+                              NT const& error,
+                              NT &val,
                               const int &W,
                               const int &Ntot,
                               const NT &ratio,
@@ -88,6 +89,8 @@ struct Walk
         size_t totCount = Ntot, countIn = Ntot * ratio;
         typename std::vector<NT>::iterator minmaxIt;
         NT min_val = std::numeric_limits<NT>::lowest(), max_val = std::numeric_limits<NT>::max();
+        VT v(P1.dimension());
+        bool verbose = true;
 
         P2.is_in_optimized(p, _lamdas, _Av, _lambda); //preprocessing
 

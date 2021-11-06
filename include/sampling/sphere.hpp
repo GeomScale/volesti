@@ -83,7 +83,7 @@ struct GetDirectionTangentPlane
         unsigned int dim = p.rows();
         NT normal = NT(0);
         VT ut(dim);
-        NT* data = ut.pointerToData();
+        NT* data = ut.data();
 
         for (unsigned int i=0; i<dim; ++i)
         {
@@ -95,7 +95,7 @@ struct GetDirectionTangentPlane
         normal = NT(1)/std::sqrt(normal);
         ut *= normal;
 
-        VT u = (MT::Identity(dim, dim) - p.dot(p)) * ut; //optimize it
+        VT u = (MT::Identity(dim, dim) - p * p.transpose()) * ut; //optimize it
         u = u / u.norm();
         //Point q(u);
         return u;

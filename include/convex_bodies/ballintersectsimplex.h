@@ -21,7 +21,7 @@
 
 //min and max values for the Hit and Run functions
 // H-polytope class
-template <typename NT, typename VT, typename MT>
+template <typename NTT, typename VTT, typename MTT>
 class UnitBallIntersectSimplex {
 public:
     //typedef Point                                             PointType;
@@ -31,6 +31,9 @@ public:
     //typedef RowMatrixXd MT;
     //typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     //typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
+    typedef NTT NT;
+    typedef VTT VT;
+    typedef MTT MT;
 
 private:
     unsigned int         _d; //dimension
@@ -50,7 +53,7 @@ public:
     }
 
     // Copy constructor
-    UnitBallIntersectSimplex(HPolytope<Point> const& p) :
+    UnitBallIntersectSimplex(UnitBallIntersectSimplex<NT, VT, MT> const& p) :
             _d{p._d}, A{p.A}, b{p.b}, V{p.V}, x0{p.x0}, Vnorms{p.Vnorms}
     {
     }
@@ -120,21 +123,27 @@ public:
 
     int is_in(VT const& p, NT tol=NT(0)) const
     {
+        //std::cout<<"V = "<<V<<"\n\n"<<std::endl;
+        //std::cout<<"b = "<<b.transpose()<<"\n"<<std::endl;
+        //std::cout<<"x0 = "<<x0.transpose()<<"\n"<<std::endl;
+        //std::cout<<"p = "<<p.transpose()<<"\n"<<std::endl;
         int m = A.rows();
-        VT temp = A * p - b;
+        VT temp = b - A * p;
         //VT temp2(_d);
         const NT* Ax_b_data = temp.data();
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
-            if ((*Ax_b_data) < NT(-tol))
+            if ((*Ax_b_data) < NT(-tol)){
+                std::cout<<"Ax-b>0"<<std::endl;
                 return 0;
+            }
 
             Ax_b_data++;
         }
 
         VT v = p - x0;
         std::pair<NT,NT> pair_root = line_intersect(p, v);
-        VT r = p + (pair_root.second * v);
+        VT r = p + (pair_root.first * v);
 
         int n = V.cols();
 
@@ -148,6 +157,7 @@ public:
             NT g = r.dot(r) - NT(1);
 
             NT D = b*b - NT(4) * a * g;
+            //std::cout<<"a = "<<a<<", b = "<<b<<", g = "<<g<<", D = "<<D<<"\n"<<"-------"<<std::endl;
 
             if (D < NT(0))
             {
@@ -156,6 +166,8 @@ public:
 
             NT tmin = (-b - sqrt(D)) / (NT(2)*a);
             NT tmax = (-b + sqrt(D)) / (NT(2)*a);
+
+            //std::cout<<"tmin = "<<tmin<<", tmax = "<<tmax<<"\n"<<"-------"<<std::endl;
 
             if (tmin < 1 && tmin > 0){
                 continue;
@@ -187,7 +199,7 @@ public:
 
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
-            if ((*Ar_data) - (*b_data)< NT(-tol))
+            if ((*b_data) - (*Ar_data)< NT(-tol))
                 return 0;
 
             NT lamda = ((*b_data) - (*Ar_data)) / (*Ar_data);
@@ -197,15 +209,17 @@ public:
             }
             Ar_data++;
             b_data++;
-            b_Ax_data++;
+            //b_Ax_data++;
         }
 
-        VT r = p + (min_plus * v);
+        VT r = p + (min_plus * p), v(dimension());
 
         int n = V.cols();
 
         for (int i = 0; i < n; i++)
         {
+            v = V.col(i);
+
             NT r_v = r.dot(v);
             NT r_r = r.dot(r);
 
@@ -364,38 +378,38 @@ public:
    
     // compute intersection points of a ray starting from r and pointing to v
     // with polytope discribed by A and b
-    std::pair<NT,NT> gc_intersect(Point const& r,
-                                  Point const& v,
+    std::pair<NT,NT> gc_intersect(VT const& r,
+                                  VT const& v,
                                   VT& Ar,
                                   VT& Av) const
     {
-        Ar.noalias() = A * r.getCoefficients();
-        Av.noalias() = A * v.getCoefficients();
+        Ar.noalias() = A * r;
+        Av.noalias() = A * v;
 
         return compute_intersections(Ar, Av);
     }
 
     
-    std::pair<NT,NT> gc_intersect(Point const& r,
-                                    Point const& v,
+    std::pair<NT,NT> gc_intersect(VT const& r,
+                                    VT const& v,
                                     VT& Ar,
                                     VT& Av,
                                     NT const& lambda_prev) const
     {
         Ar.noalias() = cos(lambda_prev)*Ar + sin(lambda_prev)*Av;
-        Av.noalias() = A * v.getCoefficients();
+        Av.noalias() = A * v;
 
         return compute_intersections(Ar, Av);
     }
 
-    std::pair<NT,NT> gc_intersect_optimized(Point const& r,
-                                            Point const& v,
+    std::pair<NT,NT> gc_intersect_optimized(VT const& r,
+                                            VT const& v,
                                             VT& Ar,
                                             VT& Av,
                                             NT const& lambda_prev) const
     {
         //Ar.noalias() = cos(lambda_prev)*Ar + sin(lambda_prev)*Av;
-        Av.noalias() = A * v.getCoefficients();
+        Av.noalias() = A * v;
 
         return compute_intersections(Ar, Av);
     }
@@ -407,6 +421,8 @@ public:
         NT max_minus = std::numeric_limits<NT>::lowest();
         int m = num_of_hyperplanes();
         bool set_negative_root = false, set_positive_root = false, pos_D = false;
+
+        //NT eval2;
 
         NT* Av_data = Av.data();
         NT* Ar_data = Ar.data();
@@ -422,6 +438,9 @@ public:
                 C2 = asin((((*Av_data)*(*b_data)) - ((*Ar_data)*sqrt(D))) / ((*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data)));
 
                 eval = (*Ar_data) * cos(C1) + (*Av_data) * sin(C1) - (*b_data);
+                //std::cout<<"eval C1 := "<<eval<<std::endl;
+                //eval2 = (*Ar_data) * cos(M_PI - C1) + (*Av_data) * sin(M_PI - C1) - (*b_data);
+                //std::cout<<"eval (Pi-C1) := "<<eval2<<"\n"<<std::endl;
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
                 {
                     C1 = M_PI - C1;
@@ -443,6 +462,9 @@ public:
                 }
 
                 eval = (*Ar_data) * cos(C2) + (*Av_data) * sin(C2) - (*b_data);
+                //std::cout<<"eval C2 := "<<eval<<std::endl;
+                //eval2 = (*Ar_data) * cos(M_PI - C2) + (*Av_data) * sin(M_PI - C2) - (*b_data);
+                //std::cout<<"eval (Pi-C2) := "<<eval2<<"\n----------"<<std::endl;
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
                 {
                     C2 = M_PI - C2;
