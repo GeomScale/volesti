@@ -35,14 +35,21 @@
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
-                                     Rcpp::NumericVector b,
-                                     Rcpp::NumericVector x,
-                                     unsigned int N,
-                                     unsigned int walk_length,
-                                     Rcpp::NumericVector x0,
-                                     Rcpp::NumericMatrix V,
-                                     Rcpp::NumericVector Vnorms)
+Rcpp::NumericMatrix estimate_component(Rcpp::NumericMatrix A,
+                                       Rcpp::NumericVector b,
+                                       Rcpp::NumericVector x,
+                                       unsigned int N,
+                                       unsigned int walk_length,
+                                       unsigned int win_len,
+                                       Rcpp::NumericVector x0,
+                                       Rcpp::NumericMatrix V,
+                                       Rcpp::NumericVector Vnorms,
+                                       double c1,
+                                       double c2,
+                                       double error,
+                                       double ratio,
+                                       unsigned int Ntot,
+                                       bool storing)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -51,68 +58,28 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
     typedef UnitBallIntersectSimplex <NT, VT, MT> Body;
 
     unsigned int d = A.ncol();
-    VT b2 = Rcpp::as<VT>(b) + Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
-
-    Body BS(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), Rcpp::as<MT>(V), Rcpp::as<VT>(x0), Rcpp::as<VT>(Vnorms));
-
-    Body BS2(d, Rcpp::as<MT>(A), b2, Rcpp::as<MT>(V), Rcpp::as<VT>(x0), Rcpp::as<VT>(Vnorms));
-
-    MT VV = Rcpp::as<MT>(V);
-    VT Vnorms_shifted(VV.cols());
-    for (int i =0; i<VV.cols(); i++)
-    {
-        VV.col(i) = VV.col(i) - Rcpp::as<VT>(x0);
-        Vnorms_shifted(i) = VV.col(i).norm() * VV.col(i).norm();
-    }
-    std::cout<<VV<<"\n"<<std::endl;
-
-    Body BS3(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), VV, VT::Zero(d), Vnorms_shifted);
-
     RNGType rng(d);
+
+    VT b1 = c1 * Rcpp::as<VT>(b) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
+    VT b2 = c2 * Rcpp::as<VT>(b) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
+
+    MT V2 = c2 * Rcpp::as<MT>(V);
+    V2 = V2.colwise() - Rcpp::as<VT>(x0);
+    VT Vnorms_shifted = V2.colwise().norm();
+
+    //for (int i =0; i<V2.cols(); i++)
+    //{
+    //    V2.col(i) = V2.col(i) - Rcpp::as<VT>(x0);
+    //    Vnorms_shifted(i) = V.col(i).dot(V.col(i));
+    //}
+
+    Body BS1(d, Rcpp::as<MT>(A), b1, c1 * Rcpp::as<MT>(V), VT::Zero(d), Vnorms_shifted);
+    Body BS2(d, Rcpp::as<MT>(A), b2, V2, VT::Zero(d), Vnorms_shifted);
+
     VT p = Rcpp::as<VT>(x), center = Rcpp::as<VT>(x0), y(d);
-
-    if (BS2.is_in((p+center)) == 0)
-    {
-        std::cout<<"BS2 initial point outside"<<std::endl;
-        exit(-1);
-    }
-
-    if (BS3.is_in(p) == 0)
-    {
-        std::cout<<"BS3 initial point outside"<<std::endl;
-        exit(-1);
-    }
-    //exit(-1);
-
-    typedef GCWalk::template Walk
-            <
-                Body,
-                RNGType
-            > CGWalk;
-    
-    CGWalk walk(BS, p, rng);
-
-    MT samples(d, N);
-
-
-    for (int i = 0; i < N; i++)
-    {
-        walk.template apply(BS, p, walk_length, rng);
-        y = p + center;
-        if (BS2.is_in(y) == 0)
-        {
-            std::cout<<"BS2 point outside"<<std::endl;
-            exit(-1);
-        }
-        if (BS3.is_in(p) == 0)
-        {
-            std::cout<<"BS3 point outside"<<std::endl;
-            exit(-1);
-        }
-        samples.col(i) = p + center;
-    }
+    p -= center;
+   
     typedef std::vector<VT> PointList;
-
     typedef GCWEstimator::template Walk
             <
                 Body,
@@ -120,27 +87,30 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
                 RNGType
             > CGEstimator;
     
-    CGEstimator estimator(BS3, p, rng);
-    estimator.activate_storing();
-    NT val = 0, Ntot = 1000, ratio = 1;
-    unsigned int W = 1000;
+    CGEstimator estimator(BS1, p, rng);
+    if(storing)
+    {
+        estimator.activate_storing();
+    }
+    NT val = 0;
     
-    PointList list_of_points = estimator.estimate(BS3,
-                       BS3,
+    PointList list_of_points = estimator.estimate(BS1,
+                       BS2,
                        p,
                        walk_length,
-                       0.1,
+                       error,
                        val,
-                       W,
+                       win_len,
                        Ntot,
                        ratio,
                        rng);
     std::cout<<"val = "<<val<<std::endl;
     std::cout<<"list_of_points.size() = "<<list_of_points.size()<<std::endl;
     int counter1 = 0, counter2 = 0;
+    MT samples(d, list_of_points.size());
     for (int i =0; i<list_of_points.size(); i++)
     {
-        y = list_of_points[i] + center;
+        y = list_of_points[i];
         if (BS2.is_in(y) == 0)
         {
             std::cout<<"BS2 point outside"<<std::endl;
@@ -148,14 +118,7 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
         }
         else{
             counter1++;
-        }
-        if (BS3.is_in(list_of_points[i]) == 0)
-        {
-            std::cout<<"BS3 point outside"<<std::endl;
-            exit(-1);
-        }
-        else{
-            counter2++;
+            samples.col(i) = y;
         }
     }
     std::cout<<"counter1 = "<<counter1<<", counter2 = "<<counter2<<std::endl;

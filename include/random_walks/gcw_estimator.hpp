@@ -78,8 +78,8 @@ struct Walk
                               unsigned int const& walk_length,
                               NT const& error,
                               NT &val,
-                              const int &W,
-                              const int &Ntot,
+                              const unsigned int &W,
+                              const unsigned int &Ntot,
                               const NT &ratio,
                               RandomNumberGenerator& rng)
     {
