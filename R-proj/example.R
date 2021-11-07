@@ -7,9 +7,10 @@ x = c(R.matlab::readMat('x.mat')[[1]])
 x0 = c(R.matlab::readMat('x0.mat')[[1]])
 Vnorms = c(R.matlab::readMat('Vnorms.mat')[[1]])
 
-N=1000
-walk_length = 5
+N=20000
+walk_length = 1
 
 b2 = b - A%*%x0
-samples = sample_component(A, b2, x-x0, N, walk_length, x0, V, Vnorms, 1, 1)
-
+samples = sample_component(A, b2, x-x0, N, walk_length, x0, V, Vnorms)
+q=psrf_univariate(samples)
+print(q)

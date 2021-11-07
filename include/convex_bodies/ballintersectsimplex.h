@@ -134,7 +134,7 @@ public:
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
             if ((*Ax_b_data) < NT(-tol)){
-                std::cout<<"Ax-b>0"<<std::endl;
+                std::cout<<"Ax-b>0: "<< (*Ax_b_data) <<std::endl;
                 return 0;
             }
 
@@ -428,6 +428,8 @@ public:
         NT* Ar_data = Ar.data();
         const NT* b_data = b.data();
 
+        //std::cout<<"\n STARTING! \n"<<std::endl;
+
         for (int i = 0; i < m; i++) {
             D = (*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data) - (*b_data)*(*b_data);
             if (D > NT(0)) 
@@ -440,11 +442,13 @@ public:
                 eval = (*Ar_data) * cos(C1) + (*Av_data) * sin(C1) - (*b_data);
                 //std::cout<<"eval C1 := "<<eval<<std::endl;
                 //eval2 = (*Ar_data) * cos(M_PI - C1) + (*Av_data) * sin(M_PI - C1) - (*b_data);
-                //std::cout<<"eval (Pi-C1) := "<<eval2<<"\n"<<std::endl;
+                //std::cout<<"eval (Pi-C1) := "<<eval2<<std::endl;
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
                 {
                     C1 = M_PI - C1;
                 }
+                //eval = (*Ar_data) * cos(C1) + (*Av_data) * sin(C1) - (*b_data);
+                //std::cout<<"final eval C1 := "<<eval<<"\n"<<std::endl;
                 if (C1 < min_plus && C1 > 0) {
                     min_plus = C1;
                     set_positive_root = true;
@@ -456,7 +460,7 @@ public:
                 {
                     max_root = C1;
                 }
-                if (C1 < min_root && C1 > (-NT(2)*M_PI))
+                if ((C1 < min_root) && (C1 > (-NT(2)*M_PI)))
                 {
                     min_root = C1;
                 }
@@ -464,11 +468,13 @@ public:
                 eval = (*Ar_data) * cos(C2) + (*Av_data) * sin(C2) - (*b_data);
                 //std::cout<<"eval C2 := "<<eval<<std::endl;
                 //eval2 = (*Ar_data) * cos(M_PI - C2) + (*Av_data) * sin(M_PI - C2) - (*b_data);
-                //std::cout<<"eval (Pi-C2) := "<<eval2<<"\n----------"<<std::endl;
+                //std::cout<<"eval (Pi-C2) := "<<eval2<<std::endl;
                 if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
                 {
                     C2 = M_PI - C2;
                 }
+                //eval = (*Ar_data) * cos(C2) + (*Av_data) * sin(C2) - (*b_data);
+                //std::cout<<"final eval C2 := "<<eval<<"\n"<<std::endl;
                 if (C2 < min_plus && C2 > 0) {
                     min_plus = C2;
                     set_positive_root = true;
@@ -486,33 +492,42 @@ public:
                 }
             }
 
-            if (!set_negative_root)
-            {
-                if (pos_D)
-                {
-                    max_minus = max_root - NT(2) * M_PI;
-                }
-                else
-                {
-                    max_minus = NT(0);
-                }
-            }
-            if (!set_positive_root)
-            {
-                if (pos_D)
-                {
-                    min_plus = min_root + NT(2) * M_PI;
-                }
-                else
-                {
-                    min_plus = NT(2) * M_PI;
-                }
-            }
+            
 
             Av_data++;
             Ar_data++;
             b_data++;
         }
+
+        if (!set_negative_root)
+        {
+            //std::cout<<"negative not set, pos_D: "<<pos_D<<std::endl;
+            if (pos_D)
+            {
+                max_minus = max_root - NT(2) * M_PI;
+            }
+            else
+            {
+                max_minus = NT(0);
+            }
+            //std::cout<<"max_minus: "<<max_minus<<std::endl;
+        }
+        if (!set_positive_root)
+        {
+            //std::cout<<"positive not set, pos_D: "<<pos_D<<std::endl;
+            if (pos_D)
+            {
+                 min_plus = min_root + NT(2) * M_PI;
+            }
+            else
+            {
+                min_plus = NT(2) * M_PI;
+            }
+            //std::cout<<"min_plus: "<<min_plus<<std::endl;
+        }
+        //std::cout<<"min_root = "<<min_root<<", max_root: "<<max_root<<std::endl;
+        //std::cout<<"max_minus: "<<max_minus<<", min_plus = "<<min_plus<<"\n----------"<<std::endl;
+
         return std::make_pair(min_plus, max_minus);
     }
 

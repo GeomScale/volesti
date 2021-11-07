@@ -62,6 +62,15 @@ struct Walk
             _lambda = rng.sample_urdist() * (bpair.first - bpair.second)
                     + bpair.second;
             p = (cos(_lambda) * p) + (sin(_lambda) * v);
+            VT q = P.get_mat()*p - P.get_vec();
+            for (int i=0; i<P.num_of_hyperplanes(); i++)
+            {
+                if (q(i)>NT(0))
+                {
+                    std::cout<<"outside from sampling, q: "<<q(i)<<std::endl;
+                    exit(-1);
+                }
+            }
         }
         //p = _p;
     }

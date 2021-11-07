@@ -94,21 +94,25 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
 
     MT samples(d, N);
 
-
+    bool outside = false;
     for (int i = 0; i < N; i++)
-    {
+    {   
+
         walk.template apply(BS, p, walk_length, rng);
         y = p + center;
         if (BS2.is_in(y) == 0)
         {
             std::cout<<"BS2 point outside"<<std::endl;
-            exit(-1);
+            outside = true;
+            //exit(-1);
         }
         if (BS3.is_in(p) == 0)
         {
             std::cout<<"BS3 point outside"<<std::endl;
-            exit(-1);
+            outside = true;
+            //exit(-1);
         }
+        if (outside) exit(-1);
         samples.col(i) = p + center;
     }
     typedef std::vector<VT> PointList;
@@ -123,7 +127,7 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
     CGEstimator estimator(BS3, p, rng);
     estimator.activate_storing();
     NT val = 0, Ntot = 1000, ratio = 1;
-    unsigned int W = 1000;
+    unsigned int W = 10000;
     
     PointList list_of_points = estimator.estimate(BS3,
                        BS3,
