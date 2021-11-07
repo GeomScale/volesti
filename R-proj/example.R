@@ -11,6 +11,12 @@ N=20000
 walk_length = 1
 
 b2 = b - A%*%x0
-samples = sample_component(A, b2, x-x0, N, walk_length, x0, V, Vnorms)
+samples = sample_component(A, b, x, N, walk_length, x0, V)
 q=psrf_univariate(samples)
 print(q)
+
+X = estimate_component(A, b, x, 1, 2000, x0,V,1.01,1,0.1,1,1200,TRUE)
+
+Y = check_convergence(A,b,V,x0,samples,10,0.1,0.1,FALSE)
+
+print(Y)

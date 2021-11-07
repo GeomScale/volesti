@@ -57,12 +57,12 @@ struct Walk
     {
         for (auto j=0u; j<walk_length; ++j)
         {
-            VT v = GetDirectionTangentPlane<VT>::apply(p, rng);
-            std::pair<NT, NT> bpair = P.gc_intersect(p, v, _lamdas, _Av,
+            GetDirectionTangentPlane<VT>::apply(p, _v, rng);
+            std::pair<NT, NT> bpair = P.gc_intersect(p, _v, _lamdas, _Av,
                                                        _lambda);
             _lambda = rng.sample_urdist() * (bpair.first - bpair.second)
                     + bpair.second;
-            p = (cos(_lambda) * p) + (sin(_lambda) * v);
+            p = (cos(_lambda) * p) + (sin(_lambda) * _v);
         }
         //p = _p;
     }
@@ -89,18 +89,20 @@ struct Walk
         size_t totCount = Ntot, countIn = Ntot * ratio;
         typename std::vector<NT>::iterator minmaxIt;
         NT min_val = std::numeric_limits<NT>::lowest(), max_val = std::numeric_limits<NT>::max();
-        VT v(P1.dimension());
+        //VT v(P1.dimension());
         bool verbose = true;
-
+        //std::cout<<"[3] BS2 point outside"<<std::endl;
         P2.is_in_optimized(p, _lamdas, _Av, _lambda); //preprocessing
+        //std::cout<<"[4] BS2 point outside"<<std::endl;
 
         while(iter <= MAX_ITER_ESTI){
             iter++;
 
-            v = GetDirectionTangentPlane<VT>::apply(p, rng);
-            std::pair<NT, NT> bpair = P1.gc_intersect_optimized(p, v, _lamdas, _Av, _lambda);
+            GetDirectionTangentPlane<VT>::apply(p, _v, rng);
+            //std::cout<<"p'v = "<<p.dot(_v)<<", v.norm() = "<<_v.norm()<<std::endl;
+            std::pair<NT, NT> bpair = P1.gc_intersect_optimized(p, _v, _lamdas, _Av, _lambda);
             _lambda = rng.sample_urdist() * (bpair.first - bpair.second) + bpair.second;
-            p = (cos(_lambda) * p) + (sin(_lambda) * v);
+            p = (cos(_lambda) * p) + (sin(_lambda) * _v);
 
             if(P2.is_in_optimized(p, _lamdas, _Av, _lambda)==-1){
                 countIn++;
@@ -163,19 +165,23 @@ private :
                            VT& p,
                            RandomNumberGenerator &rng)
     {
+        //std::cout<<"[3.5] BS2 point outside"<<std::endl;
         _lamdas.setZero(P.num_of_hyperplanes());
         _Av.setZero(P.num_of_hyperplanes());
+        _v.setZero(P.dimension());
 
-        VT v = GetDirectionTangentPlane<VT>::apply(p, rng);
-        std::pair<NT, NT> bpair = P.gc_intersect(p, v, _lamdas, _Av);
+        GetDirectionTangentPlane<VT>::apply(p, _v, rng);
+        //std::cout<<"p'v = "<<p.dot(_v)<<", v.norm() = "<<_v.norm()<<std::endl;
+        std::pair<NT, NT> bpair = P.gc_intersect(p, _v, _lamdas, _Av);
         _lambda = rng.sample_urdist() * (bpair.first - bpair.second) + bpair.second;
-        p = (cos(_lambda) * p) + (sin(_lambda) * v);
+        p = (cos(_lambda) * p) + (sin(_lambda) * _v);
     }
 
     //Point _p;
     NT _lambda;
     VT _lamdas;
     VT _Av;
+    VT _v;
     bool store_points = false;
     const unsigned int MAX_ITER_ESTI = 80000000;
 };

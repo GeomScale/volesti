@@ -47,15 +47,19 @@ public:
     //TODO: the default implementation of the Big3 should be ok. Recheck.
     UnitBallIntersectSimplex() {}
 
-    UnitBallIntersectSimplex(unsigned d_, MT const& A_, VT const& b_, MT _V, VT _x0, VT _Vnorms) :
-        _d{d_}, A{A_}, b{b_}, V{_V}, x0{_x0}, Vnorms{_Vnorms}
+    UnitBallIntersectSimplex(unsigned d_, MT const& A_, VT const& b_, MT _V, VT _x0) :
+        _d{d_}, A{A_}, b{b_}, V{_V}, x0{_x0}
     {
+        Vnorms = _V.colwise().norm();
+        Vnorms = Vnorms.cwiseProduct(Vnorms);
     }
 
     // Copy constructor
     UnitBallIntersectSimplex(UnitBallIntersectSimplex<NT, VT, MT> const& p) :
-            _d{p._d}, A{p.A}, b{p.b}, V{p.V}, x0{p.x0}, Vnorms{p.Vnorms}
+            _d{p._d}, A{p.A}, b{p.b}, V{p.V}, x0{p.x0}
     {
+        Vnorms = V.colwise().norm();
+        Vnorms = Vnorms.cwiseProduct(Vnorms);
     }
 
 
@@ -212,15 +216,15 @@ public:
             //b_Ax_data++;
         }
 
-        VT r = p + (min_plus * p), v(dimension());
+        VT r = p + (min_plus * p);//, v(dimension());
 
         int n = V.cols();
 
         for (int i = 0; i < n; i++)
         {
-            v = V.col(i);
+            //v = V.col(i);
 
-            NT r_v = r.dot(v);
+            NT r_v = r.dot(V.col(i));
             NT r_r = r.dot(r);
 
             NT a = Vnorms(i) - NT(2) * r_v + r_r;

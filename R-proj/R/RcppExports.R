@@ -37,8 +37,8 @@ ess <- function(samples) {
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
-estimate_component <- function(A, b, x, N, walk_length, win_len, x0, V, Vnorms, c1, c2, error, ratio, Ntot, storing) {
-    .Call(`_volesti_estimate_component`, A, b, x, N, walk_length, win_len, x0, V, Vnorms, c1, c2, error, ratio, Ntot, storing)
+estimate_component <- function(A, b, x, walk_length, win_len, x0, V, c1, c2, error, ratio, Ntot, storing) {
+    .Call(`_volesti_estimate_component`, A, b, x, walk_length, win_len, x0, V, c1, c2, error, ratio, Ntot, storing)
 }
 
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
@@ -73,7 +73,7 @@ psrf_univariate <- function(samples, method = NULL) {
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
-sample_component <- function(A, b, x, N, walk_length, x0, V, Vnorms) {
-    .Call(`_volesti_sample_component`, A, b, x, N, walk_length, x0, V, Vnorms)
+sample_component <- function(A, b, x, N, walk_length, x0, V) {
+    .Call(`_volesti_sample_component`, A, b, x, N, walk_length, x0, V)
 }
 

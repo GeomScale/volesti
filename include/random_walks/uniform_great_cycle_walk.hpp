@@ -56,12 +56,13 @@ struct Walk
     {
         for (auto j=0u; j<walk_length; ++j)
         {
-            VT v = GetDirectionTangentPlane<VT>::apply(p, rng);
-            std::pair<NT, NT> bpair = P.gc_intersect(p, v, _lamdas, _Av,
+            GetDirectionTangentPlane<VT>::apply(p, _v, rng);
+            //std::cout<<"p'v = "<<p.dot(_v)<<", v.norm() = "<<_v.norm()<<std::endl;
+            std::pair<NT, NT> bpair = P.gc_intersect(p, _v, _lamdas, _Av,
                                                        _lambda);
             _lambda = rng.sample_urdist() * (bpair.first - bpair.second)
                     + bpair.second;
-            p = (cos(_lambda) * p) + (sin(_lambda) * v);
+            p = (cos(_lambda) * p) + (sin(_lambda) * _v);
             VT q = P.get_mat()*p - P.get_vec();
             for (int i=0; i<P.num_of_hyperplanes(); i++)
             {
@@ -84,17 +85,20 @@ private :
     {
         _lamdas.setZero(P.num_of_hyperplanes());
         _Av.setZero(P.num_of_hyperplanes());
+        _v.setZero(P.dimension());
 
-        VT v = GetDirectionTangentPlane<VT>::apply(p, rng);
-        std::pair<NT, NT> bpair = P.gc_intersect(p, v, _lamdas, _Av);
+        GetDirectionTangentPlane<VT>::apply(p, _v, rng);
+        //std::cout<<"p'v = "<<p.dot(_v)<<", v.norm() = "<<_v.norm()<<std::endl;
+        std::pair<NT, NT> bpair = P.gc_intersect(p, _v, _lamdas, _Av);
         _lambda = rng.sample_urdist() * (bpair.first - bpair.second) + bpair.second;
-        p = (cos(_lambda) * p) + (sin(_lambda) * v);
+        p = (cos(_lambda) * p) + (sin(_lambda) * _v);
     }
 
     //Point _p;
     NT _lambda;
     VT _lamdas;
     VT _Av;
+    VT _v;
 };
 
 };

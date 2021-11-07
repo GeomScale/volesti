@@ -35,15 +35,13 @@
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::NumericMatrix estimate_component(Rcpp::NumericMatrix A,
+Rcpp::List estimate_component(Rcpp::NumericMatrix A,
                                        Rcpp::NumericVector b,
                                        Rcpp::NumericVector x,
-                                       unsigned int N,
                                        unsigned int walk_length,
                                        unsigned int win_len,
                                        Rcpp::NumericVector x0,
                                        Rcpp::NumericMatrix V,
-                                       Rcpp::NumericVector Vnorms,
                                        double c1,
                                        double c2,
                                        double error,
@@ -63,9 +61,10 @@ Rcpp::NumericMatrix estimate_component(Rcpp::NumericMatrix A,
     VT b1 = c1 * Rcpp::as<VT>(b) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
     VT b2 = c2 * Rcpp::as<VT>(b) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
 
-    MT V2 = c2 * Rcpp::as<MT>(V);
-    V2 = V2.colwise() - Rcpp::as<VT>(x0);
-    VT Vnorms_shifted = V2.colwise().norm();
+    //MT V2 = c2 * Rcpp::as<MT>(V);
+    //V2 = V2.colwise() - Rcpp::as<VT>(x0);
+    //VT Vnorms_shifted = V2.colwise().norm();
+    //Vnorms_shifted = Vnorms_shifted.cwiseProduct(Vnorms_shifted);
 
     //for (int i =0; i<V2.cols(); i++)
     //{
@@ -73,8 +72,11 @@ Rcpp::NumericMatrix estimate_component(Rcpp::NumericMatrix A,
     //    Vnorms_shifted(i) = V.col(i).dot(V.col(i));
     //}
 
-    Body BS1(d, Rcpp::as<MT>(A), b1, c1 * Rcpp::as<MT>(V), VT::Zero(d), Vnorms_shifted);
-    Body BS2(d, Rcpp::as<MT>(A), b2, V2, VT::Zero(d), Vnorms_shifted);
+    //std::cout<<V2<<"\n\n"<<std::endl;
+    //std::cout<<(c2 * Rcpp::as<MT>(V)).colwise() - Rcpp::as<VT>(x0)<<"\n\n"<<std::endl;
+
+    Body BS1(d, Rcpp::as<MT>(A), b1, (c1 * Rcpp::as<MT>(V)).colwise() - Rcpp::as<VT>(x0), VT::Zero(d));
+    Body BS2(d, Rcpp::as<MT>(A), b2, (c2 * Rcpp::as<MT>(V)).colwise() - Rcpp::as<VT>(x0), VT::Zero(d));
 
     VT p = Rcpp::as<VT>(x), center = Rcpp::as<VT>(x0), y(d);
     p -= center;
@@ -86,14 +88,14 @@ Rcpp::NumericMatrix estimate_component(Rcpp::NumericMatrix A,
                 PointList,
                 RNGType
             > CGEstimator;
-    
+    //std::cout<<"[1] BS2 point outside"<<std::endl;
     CGEstimator estimator(BS1, p, rng);
     if(storing)
     {
         estimator.activate_storing();
     }
     NT val = 0;
-    
+    //std::cout<<"BS2 point outside"<<std::endl;
     PointList list_of_points = estimator.estimate(BS1,
                        BS2,
                        p,
@@ -104,8 +106,8 @@ Rcpp::NumericMatrix estimate_component(Rcpp::NumericMatrix A,
                        Ntot,
                        ratio,
                        rng);
-    std::cout<<"val = "<<val<<std::endl;
-    std::cout<<"list_of_points.size() = "<<list_of_points.size()<<std::endl;
+    //std::cout<<"val = "<<val<<std::endl;
+    //std::cout<<"list_of_points.size() = "<<list_of_points.size()<<std::endl;
     int counter1 = 0, counter2 = 0;
     MT samples(d, list_of_points.size());
     for (int i =0; i<list_of_points.size(); i++)
@@ -118,10 +120,10 @@ Rcpp::NumericMatrix estimate_component(Rcpp::NumericMatrix A,
         }
         else{
             counter1++;
-            samples.col(i) = y;
+            samples.col(i) = y + center;
         }
     }
-    std::cout<<"counter1 = "<<counter1<<", counter2 = "<<counter2<<std::endl;
+    //std::cout<<"counter1 = "<<counter1<<", counter2 = "<<counter2<<std::endl;
 
-    return Rcpp::wrap(samples);
+    return Rcpp::List::create(Rcpp::Named("ratio") = val, Rcpp::Named("samples") = Rcpp::wrap(samples));
 }

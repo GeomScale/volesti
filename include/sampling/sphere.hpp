@@ -77,28 +77,30 @@ struct GetDirectionTangentPlane
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
 
     template <typename RandomNumberGenerator>
-    inline static VT apply(VT const& p,
+    inline static void apply(VT const& p, VT &v,
                               RandomNumberGenerator &rng)
     {
         unsigned int dim = p.rows();
-        NT normal = NT(0);
-        VT ut(dim);
-        NT* data = ut.data();
+        //NT normal = NT(0);
+        //VT ut(dim);
+        NT* data = v.data();
 
         for (unsigned int i=0; i<dim; ++i)
         {
             *data = rng.sample_ndist();
-            normal += *data * *data;
+            //normal += *data * *data;
             data++;
         }
 
-        normal = NT(1)/std::sqrt(normal);
-        ut *= normal;
+        //normal = NT(1)/std::sqrt(normal);
+        //v *= normal;
+        //std::cout<<"I-v = "<<((MT::Identity(dim, dim) - p * p.transpose()) * v).transpose()<<std::endl;
 
-        VT u = (MT::Identity(dim, dim) - p * p.transpose()) * ut; //optimize it
-        u = u / u.norm();
+        v = ((MT::Identity(dim, dim) - p * p.transpose()) * v).eval(); //optimize it
+        //std::cout<<"v = "<<v.transpose()<<"\n"<<std::endl;
+        v *= (NT(1) / v.norm());
         //Point q(u);
-        return u;
+        //return u;
     }
 };
 
