@@ -1,0 +1,78 @@
+nu = parameters.nu;
+    lb = parameters.lb;
+    ub = parameters.ub;
+    Nu = parameters.Nu;
+    W = parameters.W;
+    
+    n = size(sigma, 2);
+
+    A = -eye(n);
+    b = zeros(n,1);
+
+    Aeq = ones(1,n);
+    beq = [1];
+    
+    %[sigma, ~] = covCor(Rets);
+    %sigma = sigma / c;
+
+    N = null(Aeq);
+
+    x0 = (ones(n,1)*(1/n));
+    b = b - A * x0;
+    A = A * N;
+    V = eye(n);
+    V = V - repmat(x0, [1 n]);
+    V = N' * V;
+    x0 = zeros(n-1, 1);
+
+    sigma_proj = N' * sigma * N;
+    center = -inv(sigma_proj) * (N' * sigma) * (ones(n,1)*(1/n));
+    
+    R = c + center'*sigma_proj*center - (ones(n,1)*(1/n))'*sigma*(ones(n,1)*(1/n));
+    sigma_proj = sigma_proj / R;
+    
+    b = b - A * center; % shift ellipsoid's center to origin
+    x0 = x0 - center;
+    V = V - repmat(center, [1 n]);
+    center_2 = zeros(n-1, 1);
+    
+    Tinv = chol(inv(sigma_proj))';
+    T = inv(Tinv);
+
+    A = A * Tinv;
+    x0_2 = T * x0;
+    V = T * V;
+    
+    b = b - A * x0_2;
+    center_2 = center_2 - x0_2;
+    V = V - repmat(x0_2, [1 n]);
+
+    AV = get_AV(A, b, V);
+    
+    [tree, single_node, empty_tree, S, S_Vindices] = get_tree_of_components(V, AV, A, b, center_2, lb, ub, nu, Nu, W);
+                                 %(V, AV, A, b, center_2, lb, ub, nu, N, W)
+    %[ratios, Xs] = get_tree_of_components(V, AV, A, b, center_2, lb, ub, nu, N, W);
+    %[ratios, Xs] = GetTreeOfComponents(x, sigma, c1, c2, V, A, b, lb, ub);
+
+    % mapping back to simplex
+    % y = N*((x+x02) + (ones(n,1)*(1/n)))
+    samples = [];
+    if (single_node)
+        if (isempty(tree.children))
+            node = tree;
+            samples = sample_from_hypersphere(A, b-A*center_2, node.x0-center_2, 5000, 1) + repmat(center_2, [1 5000]);
+            weights = NaN;
+            volumes = NaN;
+            %return
+        else
+            samples = get_samples_from_leaf(tree, A, b, center_2, V, Nu);
+        end
+    end
+    
+    NN = size(samples, 2);
+    samples = Tinv * (samples - repmat(center_2, [1 NN]));
+    samples = N * (samples + repmat(center, [1 NN])) + repmat((ones(n,1)*(1/n)), [1 NN]);
+
+    %samples = [];
+    weights = [];
+    volumes = [];

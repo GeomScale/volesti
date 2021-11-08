@@ -54,3 +54,4 @@ Rcpp::List check_convergence(Rcpp::NumericMatrix A,
                               Rcpp::Named("ratio") = res.second.first, Rcpp::Named("x") = res.second.second);
 
 }
+
