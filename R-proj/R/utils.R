@@ -1,7 +1,34 @@
 
 #' @export
+get_sequence_of_volatilities <- function(sigma, m) {
+  
+  n = dim(sigma)[2]
+  
+  NN1 = 55000
+  NN2 = 50000
+  X = Sampling_simplex(n, NN1)
+  
+  Sx = sigma%*%X
+  xSx = rep(0,NN1)
+  
+  for (j in 1:NN1) {
+    xSx[j] = (t(X[,j]) %*% Sx[,j])[1]
+  }
+  I2 = order(xSx)
+  Cs = rep(0,m)
+  
+  for (j in 1:m) {
+    range = j*floor(NN2/m)
+    Cs[j] = xSx[I2[range]]
+  }
+  return(Cs)
+}
+
+
+#' @export
 check_correctness <- function(samples, sigma, c) {
   correctness = TRUE
+  q = colSums(samples)
   if (length(q[which(q>1+1e-07 || q<1-1e-07)]) > 0) {
     print(length(q[which(q>1+1e-07 || q<1-1e-07)]))
     correctness = FALSE
@@ -27,10 +54,12 @@ get_parameters <- function(d) {
   parameters$nu = 10
   parameters$lb = 0.1
   parameters$ub = 0.15
-  parameters$Nu = 1000 + floor(d^2/2) + (10 - (1000 + floor(d^2/2)) %% 10)
+  parameters$Nu = 1200 + floor(d^2/2) + (10 - (1200 + floor(d^2/2)) %% 10)
   parameters$W = 1
-  parameters$W_to_sample = 10 + floor(d/10)
+  #parameters$W_to_sample = 10 + floor(d/10)
+  parameters$W_to_sample = 1
   parameters$Win_len = 4*d^2 + 500
+  parameters$psrf_target = 1.2
   
   return(parameters)
   
@@ -332,6 +361,23 @@ count_num_of_leaves <- function(tree, num_leaves) {
   return(num_leaves)
 }
 
+#' @export
+count_height_of_tree <- function(node) {
+  
+  num_leaves = 0
+  while(TRUE) {
+    
+    if (node$number_of_leaves > 0) {
+      break
+    } else {
+      node = node$children[[1]]
+      num_leaves = num_leaves + 1
+    }
+  }
+  
+  return(num_leaves)
+}
+
 
 #' @export
 IsInBall <- function(x, x0, r) {
@@ -427,6 +473,34 @@ check_convergence_interface <- function(A, b, V, Sind, x0, X, nu, lb, ub, last_r
   
   return(check_convergence(A, b, VV, x0, X, nu, lb, ub, last_round, single_column))
 }
+
+
+#' export
+return_first_inside_interface <- function(A, b, V, cols, x0, X) {
+  
+  VV = V[, cols]
+  single_column = FALSE
+  
+  if (length(cols) == 1){
+    VV = cbind(VV, VV)
+    single_column = TRUE
+  }
+  
+  return(return_first_inside(A, b, VV, x0, X, single_column))
+  
+}
+
+
+#' export
+Sampling_simplex <- function(d, N) {
+  
+  Y = matrix( rexp(d*N, 1), d, N)
+  T = colSums(Y)
+  return(Y/matrix(rep(T, d), ncol=N, byrow=T))
+  
+}
+
+
 
 
 

@@ -40,8 +40,7 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
                                      Rcpp::NumericVector x,
                                      unsigned int N,
                                      unsigned int walk_length,
-                                     Rcpp::NumericVector x0,
-                                     Rcpp::NumericMatrix V)
+                                     Rcpp::NumericVector x0)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -62,8 +61,8 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
     //    Vnorms_shifted(i) = VV.col(i).norm() * VV.col(i).norm();
     //}
 
-    MT V2 = Rcpp::as<MT>(V);
-    V2 = V2.colwise() - Rcpp::as<VT>(x0);
+    MT V2;// = Rcpp::as<MT>(V);
+    //V2 = V2.colwise() - Rcpp::as<VT>(x0);
     //VT Vnorms_shifted = V2.colwise().norm();
     //Vnorms_shifted = Vnorms_shifted.cwiseProduct(Vnorms_shifted);
 
@@ -78,24 +77,24 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
 
     Body BS(d, Rcpp::as<MT>(A), b2, V2, VT::Zero(d));
 
-    Body BS2(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), Rcpp::as<MT>(V), Rcpp::as<VT>(x0));
+    //Body BS2(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), Rcpp::as<MT>(V), Rcpp::as<VT>(x0));
 
     //Body BS3(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), VV, VT::Zero(d), Vnorms_shifted);
 
     RNGType rng(d);
     VT p = Rcpp::as<VT>(x), center = Rcpp::as<VT>(x0), y(d);
+    p -= center;
+    //if (BS2.is_in((p)) == 0)
+    //{
+    //    std::cout<<"BS2 initial point outside"<<std::endl;
+    //    exit(-1);
+    //}
 
-    if (BS2.is_in((p)) == 0)
-    {
-        std::cout<<"BS2 initial point outside"<<std::endl;
-        exit(-1);
-    }
-
-    if (BS.is_in(p-center) == 0)
-    {
-        std::cout<<"BS initial point outside"<<std::endl;
-        exit(-1);
-    }
+    //if (BS.is_in(p) == 0)
+    //{
+    //    std::cout<<"BS initial point outside"<<std::endl;
+    //    exit(-1);
+    //}
     //exit(-1);
 
     typedef GCWalk::template Walk
@@ -103,83 +102,32 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
                 Body,
                 RNGType
             > CGWalk;
-    p -= center;
+    
     CGWalk walk(BS, p, rng);
 
     MT samples(d, N);
 
-    bool outside = false;
+    //bool outside = false;
     for (int i = 0; i < N; i++)
     {   
 
         walk.template apply(BS, p, walk_length, rng);
-        y = p + center;
-        if (BS2.is_in(y) == 0)
-        {
-            std::cout<<"BS2 point outside"<<std::endl;
-            outside = true;
+        //y = p + center;
+        //if (BS2.is_in(y) == 0)
+        //{
+         //   std::cout<<"BS2 point outside"<<std::endl;
+        //    outside = true;
+        //    //exit(-1);
+        //}
+        //if (BS.is_in(p) == 0)
+        //{
+        //    std::cout<<"BS point outside"<<std::endl;
+        //    outside = true;
             //exit(-1);
-        }
-        if (BS.is_in(p) == 0)
-        {
-            std::cout<<"BS point outside"<<std::endl;
-            outside = true;
-            //exit(-1);
-        }
-        if (outside) exit(-1);
+        //}
+        //if (outside) exit(-1);
         samples.col(i) = p + center;
     }
 
-    return Rcpp::wrap(samples);
-    
-    /*typedef std::vector<VT> PointList;
-
-    typedef GCWEstimator::template Walk
-            <
-                Body,
-                PointList,
-                RNGType
-            > CGEstimator;
-    
-    CGEstimator estimator(BS, p, rng);
-    estimator.activate_storing();
-    NT val = 0, Ntot = 1000, ratio = 1;
-    unsigned int W = 10000;
-    
-    PointList list_of_points = estimator.estimate(BS,
-                       BS,
-                       p,
-                       walk_length,
-                       0.1,
-                       val,
-                       W,
-                       Ntot,
-                       ratio,
-                       rng);
-    std::cout<<"val = "<<val<<std::endl;
-    std::cout<<"list_of_points.size() = "<<list_of_points.size()<<std::endl;
-    int counter1 = 0, counter2 = 0;
-    for (int i =0; i<list_of_points.size(); i++)
-    {
-        y = list_of_points[i] + center;
-        if (BS2.is_in(y) == 0)
-        {
-            std::cout<<"BS2 point outside"<<std::endl;
-            exit(-1);
-        }
-        else{
-            counter1++;
-        }
-        if (BS.is_in(list_of_points[i]) == 0)
-        {
-            std::cout<<"BS point outside"<<std::endl;
-            exit(-1);
-        }
-        else{
-            counter2++;
-        }
-    }
-    std::cout<<"counter1 = "<<counter1<<", counter2 = "<<counter2<<std::endl;*/
-
-    
+    return Rcpp::wrap(samples);    
 }

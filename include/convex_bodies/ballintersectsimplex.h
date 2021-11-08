@@ -496,8 +496,6 @@ public:
                 }
             }
 
-            
-
             Av_data++;
             Ar_data++;
             b_data++;

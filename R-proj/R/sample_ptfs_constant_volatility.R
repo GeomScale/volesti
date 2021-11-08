@@ -7,7 +7,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
   Nu = parameters$Nu
   W = parameters$W
   
-  n <- (dim(sigma)[2])
+  n <- dim(sigma)[2]
   
   A <- -diag(n)
   b <- rep(0, 1)
@@ -37,7 +37,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
   V = V - kronecker(matrix(1, 1, n), matrix(center, ncol = 1))
   center_2 = rep(0, n-1)
   
-  Tinv = t(chol(MASS::ginv(sigma_proj)))
+  Tinv = t(chol(Matrix::nearPD(MASS::ginv(sigma_proj))$mat))
   T = MASS::ginv(Tinv)
 
   A = A %*% Tinv
@@ -53,7 +53,12 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
   tree = res$tree
   single_node = res$single_node
   
-  samples = get_samples_from_tree(tree, single_node, A, b, center_2, V, M, parameters$W_to_sample)
+  if( single_node) {
+    print('height of tree')
+    print(count_height_of_tree(tree))
+  }
+  
+  samples = get_samples_from_tree(tree, single_node, A, b, center_2, V, M, parameters$W_to_sample, parameters$psrf_target)
   
   NN = dim(samples)[2]
   print(dim(samples))

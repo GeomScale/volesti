@@ -108,19 +108,23 @@ Rcpp::List estimate_component(Rcpp::NumericMatrix A,
                        rng);
     //std::cout<<"val = "<<val<<std::endl;
     //std::cout<<"list_of_points.size() = "<<list_of_points.size()<<std::endl;
-    int counter1 = 0, counter2 = 0;
-    MT samples(d, list_of_points.size());
-    for (int i =0; i<list_of_points.size(); i++)
+    //int counter1 = 0, counter2 = 0;
+    MT samples;
+    if (storing)
     {
-        y = list_of_points[i];
-        if (BS2.is_in(y) == 0)
+        samples.setZero(d, list_of_points.size());
+        for (int i =0; i<list_of_points.size(); i++)
         {
-            std::cout<<"BS2 point outside"<<std::endl;
-            exit(-1);
-        }
-        else{
-            counter1++;
-            samples.col(i) = y + center;
+            //y = list_of_points[i];
+            //if (BS2.is_in(y) == 0)
+            //{
+            //    std::cout<<"BS2 point outside"<<std::endl;
+            //    exit(-1);
+            //}
+            //else{
+                //counter1++;
+            samples.col(i) = list_of_points[i] + center;
+            //}
         }
     }
     //std::cout<<"counter1 = "<<counter1<<", counter2 = "<<counter2<<std::endl;

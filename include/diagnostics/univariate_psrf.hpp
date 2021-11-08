@@ -41,14 +41,14 @@ VT univariate_psrf(MT const& samples)
         sum = NT(0);
         for (int j = 0; j < N1; j++)
         {
-            sum += (coord_samples(j) - mean1) * (coord_samples(j) - mean1);
+            sum += (coord_samples.coeff(j) - mean1) * (coord_samples.coeff(j) - mean1);
         }
         W = sum / (NT(N1) - NT(1));
 
         sum = NT(0);
         for (int j = N1; j < N; j++)
         {
-            sum += (coord_samples(j) - mean2) * (coord_samples(j) - mean2);
+            sum += (coord_samples.coeff(j) - mean2) * (coord_samples.coeff(j) - mean2);
         }
         W += (sum / (NT(N2) - NT(1)));
         W = W / NT(2);

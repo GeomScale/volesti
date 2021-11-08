@@ -60,8 +60,8 @@ psrf_univariate <- function(samples, method = NULL) {
 }
 
 #' @export
-return_first_inside <- function(A, b, V, x0, samples) {
-    .Call(`_volesti_return_first_inside`, A, b, V, x0, samples)
+return_first_inside <- function(A, b, V, x0, samples, single_col_V) {
+    .Call(`_volesti_return_first_inside`, A, b, V, x0, samples, single_col_V)
 }
 
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
@@ -78,7 +78,7 @@ return_first_inside <- function(A, b, V, x0, samples) {
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
-sample_component <- function(A, b, x, N, walk_length, x0, V) {
-    .Call(`_volesti_sample_component`, A, b, x, N, walk_length, x0, V)
+sample_component <- function(A, b, x, N, walk_length, x0) {
+    .Call(`_volesti_sample_component`, A, b, x, N, walk_length, x0)
 }
 

@@ -18,7 +18,8 @@ Rcpp::NumericVector return_first_inside(Rcpp::NumericMatrix A,
                                         Rcpp::NumericVector b,
                                         Rcpp::NumericMatrix V,
                                         Rcpp::NumericVector x0,
-                                        Rcpp::NumericMatrix samples)
+                                        Rcpp::NumericMatrix samples,
+                                        bool single_col_V)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -29,7 +30,12 @@ Rcpp::NumericVector return_first_inside(Rcpp::NumericMatrix A,
     unsigned int d = A.ncol();
     RNGType rng(d);
 
-    Body BS(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), Rcpp::as<MT>(V), Rcpp::as<VT>(x0));
+    MT VV = Rcpp::as<MT>(V);
+    if (single_col_V) {
+        VV = VV.col(0);
+    }
+
+    Body BS(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), VV, Rcpp::as<VT>(x0));
     MT X = Rcpp::as<MT>(samples);
     int NN = X.cols();
     VT x = VT::Zero(d);

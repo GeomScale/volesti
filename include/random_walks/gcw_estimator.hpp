@@ -90,7 +90,7 @@ struct Walk
         typename std::vector<NT>::iterator minmaxIt;
         NT min_val = std::numeric_limits<NT>::lowest(), max_val = std::numeric_limits<NT>::max();
         //VT v(P1.dimension());
-        bool verbose = true;
+        //bool verbose = true;
         //std::cout<<"[3] BS2 point outside"<<std::endl;
         P2.is_in_optimized(p, _lamdas, _Av, _lambda); //preprocessing
         //std::cout<<"[4] BS2 point outside"<<std::endl;
@@ -136,7 +136,7 @@ struct Walk
             }
 
             if( (max_val-min_val)/max_val<=error/2.0 ){
-                if (verbose) std::cout << "final rejection ratio = " << val << " | total points = " << totCount << std::endl;
+                //if (verbose) std::cout << "final rejection ratio = " << val << " | total points = " << totCount << std::endl;
                 return list_of_samples;
             }
 
