@@ -22,7 +22,8 @@ Rcpp::List check_convergence(Rcpp::NumericMatrix A,
                              unsigned int nu,
                              double lb,
                              double ub,
-                             bool last_round)
+                             bool last_round,
+                             bool single_col_V)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -36,7 +37,12 @@ Rcpp::List check_convergence(Rcpp::NumericMatrix A,
     NT ratio, alpha = 0.1;
     RNGType rng(d);
 
-    Body BS(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), Rcpp::as<MT>(V), Rcpp::as<VT>(x0));
+    MT VV = Rcpp::as<MT>(V);
+    if (single_col_V) {
+        VV = VV.col(0);
+    }
+
+    Body BS(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), VV, Rcpp::as<VT>(x0));
     MT X = Rcpp::as<MT>(samples);
 
     std::pair< std::pair<bool,bool>, std::pair<NT, VT> > res = check_convergence_test<VT>(BS,

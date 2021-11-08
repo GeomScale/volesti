@@ -32,12 +32,12 @@ Rcpp::NumericVector return_first_inside(Rcpp::NumericMatrix A,
     Body BS(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), Rcpp::as<MT>(V), Rcpp::as<VT>(x0));
     MT X = Rcpp::as<MT>(samples);
     int NN = X.cols();
-    VT x;
+    VT x = VT::Zero(d);
 
     for (int i=0; i<NN; i++)
     {
         x = X.col(i);
-        if (BP.is_in(x)==-1)
+        if (BS.is_in(x)==-1)
         {
             break;
         }

@@ -138,7 +138,7 @@ public:
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
             if ((*Ax_b_data) < NT(-tol)){
-                std::cout<<"Ax-b>0: "<< (*Ax_b_data) <<std::endl;
+                //std::cout<<"Ax-b>0: "<< (*Ax_b_data) <<std::endl;
                 return 0;
             }
 

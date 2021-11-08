@@ -2,8 +2,8 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @export
-check_convergence <- function(A, b, V, x0, samples, nu, lb, ub, last_round) {
-    .Call(`_volesti_check_convergence`, A, b, V, x0, samples, nu, lb, ub, last_round)
+check_convergence <- function(A, b, V, x0, samples, nu, lb, ub, last_round, single_col_V) {
+    .Call(`_volesti_check_convergence`, A, b, V, x0, samples, nu, lb, ub, last_round, single_col_V)
 }
 
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
@@ -57,6 +57,11 @@ estimate_component <- function(A, b, x, walk_length, win_len, x0, V, c1, c2, err
 #' @export
 psrf_univariate <- function(samples, method = NULL) {
     .Call(`_volesti_psrf_univariate`, samples, method)
+}
+
+#' @export
+return_first_inside <- function(A, b, V, x0, samples) {
+    .Call(`_volesti_return_first_inside`, A, b, V, x0, samples)
 }
 
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal

@@ -1,3 +1,42 @@
+
+#' @export
+check_correctness <- function(samples, sigma, c) {
+  correctness = TRUE
+  if (length(q[which(q>1+1e-07 || q<1-1e-07)]) > 0) {
+    print(length(q[which(q>1+1e-07 || q<1-1e-07)]))
+    correctness = FALSE
+  }
+  
+  N = dim(samples)[2]
+  
+  for (i in 1:N) {
+    vol = (samples[,100] %*%sigma%*%samples[,100])[1]
+    if (vol < (c - 1e-07) || vol > (c + 1e-07)){
+      print(i)
+      correctness = FALSE
+    }
+  }
+  return(correctness)
+}
+
+
+#' @export
+get_parameters <- function(d) {
+  
+  parameters = list()
+  parameters$nu = 10
+  parameters$lb = 0.1
+  parameters$ub = 0.15
+  parameters$Nu = 1000 + floor(d^2/2) + (10 - (1000 + floor(d^2/2)) %% 10)
+  parameters$W = 1
+  parameters$W_to_sample = 10 + floor(d/10)
+  parameters$Win_len = 4*d^2 + 500
+  
+  return(parameters)
+  
+}
+
+
 #' @export
 get_c_upper_bound <- function(A, b, x0) {
 
@@ -59,7 +98,7 @@ compute_interior_point_in_node_eff <- function(S_Vindices, V_ind_out, V, x0, A, 
     v = centroid - x1
 
     ball_line_res = ball_line_intersection(x1, v, x0, 1)
-    if (!ball_line_res$intersection || ((ball_line_res$tmin>1 || ball_line_res$tmin<0) & (ball_line_res$tmax>1 || ball_line_res$tmax<0))) {
+    if (!ball_line_res$intersect || ((ball_line_res$tmin>1 || ball_line_res$tmin<0) & (ball_line_res$tmax>1 || ball_line_res$tmax<0))) {
   
       v = centroid - x2
 
@@ -92,7 +131,7 @@ GenerateNode <- function(c, x, V, indices, ratio) {
   node$V = V
   node$V_indices = indices
   node$ratio = ratio
-  node$isLeaf = false
+  node$isLeaf = FALSE
   node$number_of_leaves = 0
   node$ratio_of_leaves = c()
   node$S_ind_to_esti = c()
@@ -124,7 +163,7 @@ remove_leaf <- function(S, S_Vindices, S_ind_to_esti) {
   counter = 1
   for (i in 1:n) {
     if (!(i %in% S_ind_to_esti)){
-      S_new{counter} = S[[i]]
+      S_new[[counter]] = S[[i]]
       S_Vindices_new[[counter]] = S_Vindices[[i]]
       counter = counter + 1;
     }
@@ -178,7 +217,7 @@ remove_leaves_from_node <- function(S, S_Vindices, node) {
   for (i in 1:n) {
     sind = S_Vindices[[i]]
     if (sum(node_indx %in% sind) == 0) {
-      S_new{counter} = S[[i]]
+      S_new[[counter]] = S[[i]]
       S_Vindices_new[[counter]] = S_Vindices[[i]]
       counter = counter + 1
     }
@@ -218,7 +257,7 @@ keep_important_components <- function(S_Vindices_loop, S_Vindices, V) {
   
   n1 = length(S_Vindices_loop)
   n2 = length(S_Vindices)
-  m = length(V)
+  #m = length(V)
   Simp = matrix(list(), 0, 1)
   S_Vindices_imp = matrix(list(), 0, 1)
   counter = 1;
@@ -276,7 +315,7 @@ count_num_of_leaves <- function(tree, num_leaves) {
   
   node = tree
   
-  if (node.number_of_leaves > 0) {
+  if (node$number_of_leaves > 0) {
     num_leaves = num_leaves + node$number_of_leaves
   }
   
@@ -327,14 +366,16 @@ find_components_new_vertices <- function(V, x0) {
     }
     
     for (j in (i+1):n) {
-      
+      if (j > n) {
+        break
+      }
       v = V[, j]
       if (IsInBall(v, x0, 1)) {
         next
       }
       v = v - x
       ball_res = ball_line_intersection(x, v, x0, 1)
-      if (!ball_res$intersection) {
+      if (!ball_res$intersect) {
         A[i, j] = 1
         A[j, i] = 1
         next
@@ -357,17 +398,35 @@ find_components_new_vertices <- function(V, x0) {
     if (sum(i %in% bins[cols_out]) > 0) {
       next
     }
-    q = which(bins == components(i))
+    q = which(bins == components[i])
     S[[counter]] = V[, q]
     indices_in = c(indices_in, q)
-    S_Vindices[[counter]] = q[q<=n]
+    S_Vindices[[counter]] = q
     counter = counter + 1
   }
   
   res$S = S
   res$S_Vindices = S_Vindices
   res$V_ind_out = cols_out
+  #print(cols_out)
   
   return(res)
 }
+
+
+#' export
+check_convergence_interface <- function(A, b, V, Sind, x0, X, nu, lb, ub, last_round) {
+  
+  VV = V[, Sind]
+  single_column = FALSE
+  
+  if (length(Sind) == 1){
+    VV = cbind(VV, VV)
+    single_column = TRUE
+  }
+  
+  return(check_convergence(A, b, VV, x0, X, nu, lb, ub, last_round, single_column))
+}
+
+
 

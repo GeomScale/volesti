@@ -1,5 +1,5 @@
 #' @export
-sample_ptfs_constant_volatility <- function(sigma, c, parameters) {
+sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
   
   nu = parameters$nu
   lb = parameters$lb
@@ -12,7 +12,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, parameters) {
   A <- -diag(n)
   b <- rep(0, 1)
   
-  Aeq <- rep(1, n)
+  Aeq <- matrix(rep(1, n), nrow = 1, ncol = n)
   beq <- c(1)
   
   N = pracma::nullspace(Aeq)
@@ -28,7 +28,8 @@ sample_ptfs_constant_volatility <- function(sigma, c, parameters) {
   sigma_proj = t(N) %*% sigma %*% N
   center = -MASS::ginv(sigma_proj) %*% (t(N) %*% sigma) %*% (rep(1,n)/n)
   
-  R = c + center%*%sigma_proj%*%center - (rep(1,n)/n)%*%sigma%*%(rep(1,n)/n)
+  R = c + t(center)%*%sigma_proj%*%center - (rep(1,n)/n)%*%sigma%*%(rep(1,n)/n)
+  R = R[1]
   sigma_proj = sigma_proj / R
   
   b = b - A %*% center # shift ellipsoid's center to origin
@@ -52,11 +53,19 @@ sample_ptfs_constant_volatility <- function(sigma, c, parameters) {
   tree = res$tree
   single_node = res$single_node
   
-  samples = get_samples_from_tree(tree, single_node, A, b, center_2, Nu, W)
+  samples = get_samples_from_tree(tree, single_node, A, b, center_2, V, M, parameters$W_to_sample)
   
   NN = dim(samples)[2]
+  print(dim(samples))
   samples = Tinv %*% (samples - kronecker(matrix(1, 1, NN), matrix(center_2, ncol = 1)))
-  samples = N * (samples + kronecker(matrix(1, 1, NN), matrix(center, ncol = 1))) + kronecker(matrix(1, 1, NN), matrix(rep(1,n)/n, ncol = 1))
+  #print(dim(samples))
+  #print(dim(N))
+  #print(length(center))
+  #print(n)
+  #print(dim(kronecker(matrix(1, 1, NN), matrix(center, ncol = 1))))
+  samples = N %*% (samples + kronecker(matrix(1, 1, NN), matrix(center, ncol = 1))) + kronecker(matrix(1, 1, NN), matrix(rep(1,n)/n, ncol = 1))
+  #print(dim(samples))
+  #samples = samples 
   
   return(samples)
 }

@@ -1,7 +1,24 @@
 
+#' @export
+is_child <- function(S_indices, node_indices) {
+  
+  ischild = FALSE
+  
+  n = length(S_indices)
+  
+  for (i in 1:n) {
+    indx = S_indices[i]
+  
+    if (sum(indx %in% node_indices) > 0) {
+      ischild = TRUE
+      return(ischild)
+    }
+  }
+  return(ischild)
+}
 
 #' @export
-is_leaf <- function(node, X, S, S_Vindices, V, AV, A, b, x0, lb, ub, nu) {
+is_leaf <- function(node, X, S, S_Vindices, V, A, b, x0, lb, ub, nu) {
   
   res = list()
   isleaf = TRUE
@@ -17,7 +34,7 @@ is_leaf <- function(node, X, S, S_Vindices, V, AV, A, b, x0, lb, ub, nu) {
     Sind = S_Vindices[[i]]
     conv = FALSE
     if (is_child(S_Vindices[[i]], node$V_indices)) {
-      check_res = check_convergence(A, b, V[,Sind], x0, X, nu, lb, ub, TRUE)
+      check_res = check_convergence_interface(A, b, V, Sind, x0, X, nu, lb, ub, TRUE)
       all_ratios = c(all_ratios, check_res$ratio)
     }
     if (!check_res$conv) {
@@ -53,7 +70,7 @@ get_next_child <- function(node, X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub,
   while(!converged & !last_round) {
   
     if (iter == 20) {
-      last_round = true
+      last_round = TRUE
     }
     
     cmed = (cmax_temp + cmin_temp) / 2
@@ -77,7 +94,7 @@ get_next_child <- function(node, X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub,
     for (i in 1:num_of_components) {
       
       Sind = S_Vindices_med[[i]]
-      check_res = check_convergence(A, b_med, Vmed[, Sind], x0, X, nu, lb, ub, last_round)
+      check_res = check_convergence_interface(A, b_med, Vmed, Sind, x0, X, nu, lb, ub, last_round)
 
       too_small_ratios = c(too_small_ratios, check_res$too_few)
       converges = c(converges, check_res$conv)
@@ -87,13 +104,13 @@ get_next_child <- function(node, X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub,
     
     indx = which.min(ratios)
     
-    if (too_small_ratios(indx)) {
+    if (too_small_ratios[indx]) {
       cmin_temp = cmed
       iter = iter+1
       next
     }
-    if (converges(indx)) {
-      converged = true
+    if (converges[indx]) {
+      converged = TRUE
       break
     } else {
       cmax_temp = cmed
@@ -101,7 +118,7 @@ get_next_child <- function(node, X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub,
     iter = iter+1
   }
   
-  if ((converged && (ratios[indx] < 0.9)) || (~converged && last_round && (ratios[indx] > 0.03))) {
+  if ((converged && (ratios[indx] < 0.9)) || (!converged && last_round && (ratios[indx] > 0.03))) {
     next_node = GenerateNode(cmed, Xs[,indx], S_med[[indx]], S_Vindices_med[[indx]], ratios[indx])
   } else {
     next_node = list()
@@ -134,10 +151,11 @@ build_tree <- function(node, X, cmin, cmax, A, b, S, S_Vindices, V, x0, lb, ub, 
     
       indx = which.min(is_leaf_res$all_ratios)
       remove_leaf_res = remove_leaf(S, S_Vindices, indx)
-      S = remove_leaf$S
-      S_Vindices = remove_leaf$S_Vindices
-    next
+      S = remove_leaf_res$S
+      S_Vindices = remove_leaf_res$S_Vindices
+      next
     }
+    
     Y = sample_component(A, next_node$c*b, next_node$x0, N, W, x0, next_node$c*V[,next_node$V_indices])
     
     is_leaf_res = is_leaf(next_node, Y, S, S_Vindices, V, A, b, x0, lb, ub, nu)
@@ -148,13 +166,15 @@ build_tree <- function(node, X, cmin, cmax, A, b, S, S_Vindices, V, x0, lb, ub, 
       next_node$ratio_of_leaves = is_leaf_res$ratios
       next_node$S_Vindices_leaves = is_leaf_res$S_Vindices_leaves
     
-      if (is_leaf_res$isleaf) {
+      if (is_leaf_res$is_leaf) {
         next_node$IsLeaf = TRUE
       }
-    
-      remove_leaf_res = remove_leaf(S, S_Vindices, S_ind_to_esti)
-      S = remove_leaf$S
-      S_Vindices = remove_leaf$S_Vindices
+      
+      remove_leaf_res = remove_leaf(S, S_Vindices, is_leaf_res$S_ind_to_esti)
+      
+      S = remove_leaf_res$S
+      S_Vindices = remove_leaf_res$S_Vindices
+
       if (length(S) == 0) {
         node$children[[length(node$children)+1]] = next_node
         tree = node
@@ -167,7 +187,7 @@ build_tree <- function(node, X, cmin, cmax, A, b, S, S_Vindices, V, x0, lb, ub, 
     }
     
     cmax = next_node$c
-    if (isleaf) {
+    if (is_leaf_res$is_leaf) {
       next
     } else {
       if(is_father_of_a_leaf(next_node, S_Vindices)) {
@@ -177,9 +197,11 @@ build_tree <- function(node, X, cmin, cmax, A, b, S, S_Vindices, V, x0, lb, ub, 
         S_Vindices2 = leaves_from_node_res$S_Vindices
         
         subtree = build_tree(next_node, Y, cmin, cmax, A, b, S2, S_Vindices2, V, x0, lb, ub, nu, N, W)
+
         node$children[[length(node$children)]] = subtree
         
         remove_leaf_res = remove_leaves_from_node(S, S_Vindices, next_node)
+        
         S = remove_leaf_res$S
         S_Vindices = remove_leaf_res$S_Vindices
       }
@@ -202,10 +224,14 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
   components_res = find_components_new_vertices(V, x0)
   S = components_res[[1]]
   S_Vindices = components_res[[2]]
-  V_ind_out = components_res[[3]]
+  if(length(components_res) > 2){
+    V_ind_out = components_res[[3]]
+  } else {
+    V_ind_out = c()
+  }
   
   if (length(S_Vindices) == 0) {
-    empty = true
+    empty = TRUE
     res$single_node = single_node
     tree = list()
     res$empty = empty
@@ -214,7 +240,7 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
   }
   
   if (length(S) == 1){
-    single_node = true
+    single_node = TRUE
     interior_res = compute_interior_point_in_node_eff(S_Vindices[[1]], V_ind_out, V, x0, A, b)
     if (interior_res$found) {
       tree = GenerateNode(1, interior_res$x, S[[1]], S_Vindices[[1]], NaN)
@@ -233,7 +259,7 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
   node = GenerateNode(cmax, X[,1], cmax*V, 1:n, 1)
   
   is_leaf_res = is_leaf(node, X, S, S_Vindices, V, A, b, x0, lb, ub, nu)
-  node$isLeaf = is_leaf_res$isleaf
+  node$isLeaf = is_leaf_res$is_leaf
   
   if (is_leaf_res$number_of_leaves > 0) {
     node$S_ind_to_esti = is_leaf_res$S_ind_to_esti
@@ -246,12 +272,12 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
     S_Vindices = remove_leaf_res$S_Vindices
   }
   
-  if (!node.isLeaf) {
+  if (!node$isLeaf) {
     tree = build_tree(node, X, cmin, cmax, A, b, S, S_Vindices, V, x0, lb, ub, nu, N, W)
     num_leaves = count_num_of_leaves(tree, 0)
     
     if (num_leaves == 1) {
-      single_node = true;
+      single_node = TRUE
     }
   } else {
     tree = node
@@ -267,7 +293,7 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
 #' @export
 get_samples_from_leaf <- function(node, A, b, x0, V, N, W) {
   
-  while(true) {
+  while(TRUE) {
     
     node = node$children[[1]]
     if (node$number_of_leaves > 0) {
@@ -277,11 +303,13 @@ get_samples_from_leaf <- function(node, A, b, x0, V, N, W) {
   
   X = sample_component(A, node$c*b, node$x0, 1000, 10, x0, V[,node$V_indices])
   
-  x = return_first_inside(A, b, V[, node$S_Vindices_leaves[[1]]], x0, X)
+  cols = node$S_Vindices_leaves[[1]]
   
-  node = GenerateNode(1, x, V, node$S_Vindices_leaves[[1]], node$ratio_of_leaves[[1]])
+  x = return_first_inside(A, b, V[, cols], x0, X)
   
-  samples = sample_component(A, b, node$x0, N, W, x0, V[, node$S_Vindices_leaves[[1]]])
+  node = GenerateNode(1, x, V, cols, node$ratio_of_leaves[[1]])
+  
+  samples = sample_component(A, b, node$x0, N, W, x0, V[, cols])
   
   return(samples)
 }
@@ -293,7 +321,7 @@ get_samples_from_tree <- function(tree, single_node, A, b, x0, V, N, W) {
   samples = matrix(,0,0)
   
   if (single_node) {
-    if (length(tree.children) == 0) {
+    if (length(tree$children) == 0) {
       node = tree
       samples = sample_component(A, b, node$x0, N, W, x0, V[,node$V_indices])
     } else {
