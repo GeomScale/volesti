@@ -11,9 +11,9 @@ Run the followings:
 `Rcpp::compileAttributes()`  
 `R CMD INSTALL --no-multiarch --with-keep.source R-proj`  
 
-## Use the code
+## How to use the code
 
-See the script `run_data.R`.  
+To run the pipeline using data of assets returns, see the script `run_data.R`.  
   
 To sample `M` long-only portfolios with volatily `c`, when the covariance matrix is `sigma`, run:  
   
