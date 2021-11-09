@@ -76,7 +76,7 @@ struct Walk
         //p = _p;
     }
 
-private :
+
 
     template <typename BallPolytope>
     inline void initialize(BallPolytope const& P,
@@ -93,6 +93,8 @@ private :
         _lambda = rng.sample_urdist() * (bpair.first - bpair.second) + bpair.second;
         p = (cos(_lambda) * p) + (sin(_lambda) * _v);
     }
+
+private :
 
     //Point _p;
     NT _lambda;

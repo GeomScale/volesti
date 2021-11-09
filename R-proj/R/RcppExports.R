@@ -55,6 +55,24 @@ estimate_component <- function(A, b, x, walk_length, win_len, x0, V, c1, c2, err
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
+find_point_in_component <- function(A, b, x0, V, cmin, cmax, x, single_col_V) {
+    .Call(`_volesti_find_point_in_component`, A, b, x0, V, cmin, cmax, x, single_col_V)
+}
+
+#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return A vector that contains the values of PSRF for each coordinate
+#'
+#' @export
 psrf_univariate <- function(samples, method = NULL) {
     .Call(`_volesti_psrf_univariate`, samples, method)
 }
@@ -80,5 +98,23 @@ return_first_inside <- function(A, b, V, x0, samples, single_col_V) {
 #' @export
 sample_component <- function(A, b, x, N, walk_length, x0) {
     .Call(`_volesti_sample_component`, A, b, x, N, walk_length, x0)
+}
+
+#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return A vector that contains the values of PSRF for each coordinate
+#'
+#' @export
+sample_component_psrf <- function(A, b, x, N, walk_length, x0, psrf_target) {
+    .Call(`_volesti_sample_component_psrf`, A, b, x, N, walk_length, x0, psrf_target)
 }
 

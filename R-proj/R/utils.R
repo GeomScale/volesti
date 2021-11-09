@@ -367,6 +367,8 @@ count_height_of_tree <- function(node) {
   num_leaves = 0
   while(TRUE) {
     
+    print(node$number_of_leaves)
+    print(length(node$children))
     if (node$number_of_leaves > 0) {
       break
     } else {
@@ -500,6 +502,110 @@ Sampling_simplex <- function(d, N) {
   
 }
 
+
+#' export
+is_in_component <- function(x, x0, A, b, V, Sind, full_check) {
+  
+  is_in = FALSE
+  
+  if (full_check) {
+    q = A%*%x - b
+    if (sum(q>0) > 0) {
+      return(is_in)
+    }
+  }
+  
+  v = x - x0
+  lambdas =  A %*% v / (b - A%*%x)
+  l_max = max(lambdas)
+  l_max = 1 / l_max
+  
+  p = x + l_max * v
+  
+  Vi = V[, Sind]
+  mm = dim(Vi)[2]
+  
+  for (i in 1:mm) {
+    
+    v = Vi[, i] - p
+    
+    p = p - x0
+    a = t(v) %*% v
+    b = 2 * (t(p) %*% v)
+    g = t(p) %*% p - 1
+        
+    D = b^2 - 4 * a * g
+    #print(D)
+    
+    if (D < 0) {
+      is_in = TRUE
+      return(is_in)
+    }
+    
+    tmin = (-b - sqrt(D)) / (2*a)
+    tmax = (-b + sqrt(D)) / (2*a)
+    
+    if (tmin < 1 & tmin > 0) {
+      next
+      #is_in = false;
+      #return;
+    } else if(tmax < 1 & tmax > 0) {
+      next
+      #is_in = false;
+      #return;
+    } else {
+      is_in = TRUE
+      return(is_in)
+    }
+    
+  }
+  
+  return(is_in)
+}
+
+
+#' export
+get_fast_interior_point <- function(A, b, x0, V, Sind, cmin, cmax) {
+  
+  m = dim(A)[1]
+  full_check = TRUE
+  sc = cmax
+  d = length(x0)
+  
+  X = boundary_randsphere(d, 2) + kronecker(matrix(1, 1, 2), matrix(x0, ncol = 1))
+  x = X[, 1]
+  
+  while (TRUE) {
+    
+    bb = sc*b
+    X = sample_component(A, bb, x, 1200 + floor(d^2/4), 1, x0)
+    AX_b = A %*% X - kronecker(matrix(1, 1, 1200 + floor(d^2/4)), matrix(bb, ncol = 1))
+    #+dim(A)[2]^2/4
+    #q = colSums(sign(AX_b))
+  
+    #pos = which(q == -m)
+    #AX_b_pos = AX_b[, pos]
+  
+    #pos = which(AX_b_pos == max(AX_b_pos), arr.ind = TRUE)
+    pos = which(AX_b == min(colMaxs(AX_b, na.rm = TRUE)), arr.ind = TRUE)
+    
+    #print((A[pos[1],]%*%X[, pos[2]] - bb[pos[1]]))
+    sc2 = (1.03 * (A[pos[1],]%*%X[, pos[2]] / b[pos[1]]))[1] #check this
+    #print(is_in_component(X[, pos[2]], x0, A, sc2*b, V, Sind, full_check))
+    x = X[, pos[2]]
+    #print(sc2)
+    sc=sc2
+     
+    if (is_in_component(x, x0, A, b, V, Sind, full_check)) {
+      find_point_in_component(A, b, x0, V, cmin, cmax, x, FALSE) #just to check
+      return(x)
+    }
+  }
+  
+  
+    
+  
+}
 
 
 

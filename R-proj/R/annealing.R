@@ -239,11 +239,20 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
     return(res)
   }
   #print(length(S))
+  #print(length(S_Vindices[[1]]))
   if (length(S) == 1){
     single_node = TRUE
     interior_res = compute_interior_point_in_node_eff(S_Vindices[[1]], V_ind_out, V, x0, A, b)
     if (interior_res$found) {
       tree = GenerateNode(1, interior_res$x, S[[1]], S_Vindices[[1]], NaN)
+      res$single_node = single_node
+      res$tree = tree
+      res$empty = FALSE
+      return(res)
+    } else {
+      #X = boundary_randsphere(d, N) + kronecker(matrix(1, 1, N), matrix(x0, ncol = 1))
+      fast_res = get_fast_interior_point(A, b, x0, V, S_Vindices[[1]], cmin, cmax)
+      tree = GenerateNode(1, fast_res, S[[1]], S_Vindices[[1]], NaN)
       res$single_node = single_node
       res$tree = tree
       res$empty = FALSE
@@ -298,14 +307,13 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
 
 
 #' @export
-get_samples_from_leaf <- function(node, A, b, x0, V, N, W) {
+get_samples_from_leaf <- function(node, A, b, x0, V, N, W, target_psrf) {
   
   while(TRUE) {
-    
-    node = node$children[[1]]
     if (node$number_of_leaves > 0) {
       break
     }
+    node = node$children[[1]]
   }
   
   X = sample_component(A, node$c*b, node$x0, 1000, 10, x0)
@@ -316,7 +324,8 @@ get_samples_from_leaf <- function(node, A, b, x0, V, N, W) {
   
   node = GenerateNode(1, x, V, cols, node$ratio_of_leaves[[1]])
   
-  samples = sample_component(A, b, node$x0, N, W, x0)
+  #samples = sample_component(A, b, node$x0, N, W, x0)
+  samples = sample_with_psrf(node, A, b, x0, N, W, psrf_target)
   
   return(samples)
 }
@@ -333,8 +342,8 @@ get_samples_from_tree <- function(tree, single_node, A, b, x0, V, N, W, psrf_tar
       #samples = sample_component(A, b, node$x0, N, W, x0)
       samples = sample_with_psrf(node, A, b, x0, N, W, psrf_target)
     } else {
-      #samples = get_samples_from_leaf(tree, A, b, x0, V, N, W)
-      samples = sample_with_psrf(tree, A, b, x0, N, W, psrf_target)
+      samples = get_samples_from_leaf(tree, A, b, x0, V, N, W, psrf_target)
+      #samples = sample_with_psrf(tree, A, b, x0, N, W, psrf_target)
     }
   } else {
     print(paste0('No single_node'))
@@ -346,6 +355,23 @@ get_samples_from_tree <- function(tree, single_node, A, b, x0, V, N, W, psrf_tar
 #' @export
 sample_with_psrf <- function(node, A, b, x0, N, W, psrf_target) {
   
+  samples = sample_component_psrf(A,b,node$x0,2*N,W,x0,psrf_target)
+  #print(psrf_univariate(samples))
+  
+  if (dim(samples)[2] > N) {
+    indx <- sample(1:dim(samples)[2], N)
+    samples = samples[,indx]
+  }
+  
+  return(samples)
+}
+
+
+#' @export
+sample_with_psrf_2 <- function(node, A, b, x0, N, W, psrf_target) {
+  
+  #samples = sample_component_psrf(A,b,node$x0,2*N,20,x0,psrf_target)
+  #print(psrf_univariate(samples))
   MAX_ITER = 1000
   iter = 1
   psrf_val = 2 * psrf_target

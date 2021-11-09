@@ -3,6 +3,8 @@
 export(check_convergence)
 export(ess)
 export(estimate_component)
+export(find_point_in_component)
+export(sample_component_psrf)
 export(psrf_univariate)
 export(return_first_inside)
 export(sample_component)

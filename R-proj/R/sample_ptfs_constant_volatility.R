@@ -53,15 +53,15 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
   tree = res$tree
   single_node = res$single_node
   
-  if( single_node) {
-    print('height of tree')
-    print(count_height_of_tree(tree))
-  }
+  #if( single_node) {
+  #  print('height of tree')
+  #  print(count_height_of_tree(tree))
+  #}
   
   samples = get_samples_from_tree(tree, single_node, A, b, center_2, V, M, parameters$W_to_sample, parameters$psrf_target)
   
   NN = dim(samples)[2]
-  print(dim(samples))
+  
   samples = Tinv %*% (samples - kronecker(matrix(1, 1, NN), matrix(center_2, ncol = 1)))
   #print(dim(samples))
   #print(dim(N))

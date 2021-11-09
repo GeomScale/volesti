@@ -40,13 +40,13 @@ std::pair< std::pair<bool,bool>, std::pair<NT, VT> > check_convergence_test(Conv
 {
     //NT alpha = parameters.alpha;
     std::pair< std::pair<bool,bool>, std::pair<NT, VT> > res;
-    std::vector<NT> ratios(nu);
+    std::vector<NT> ratios;
     std::pair<NT,NT> mv;
     int NN = randPoints.cols();
-    int m = NN/nu, counter=0;
+    int m = NN/nu;
     NT T;
     NT rs;
-    //NT alpha_check = 0.01;
+    NT alpha_check = 0.01;
     size_t countsIn = 0, countsIn_total = 0;
     bool precheck = false;
     
@@ -63,9 +63,29 @@ std::pair< std::pair<bool,bool>, std::pair<NT, VT> > check_convergence_test(Conv
         }
         if ((i+1) % m == 0)
         {
-            ratios[counter] = NT(countsIn)/m;
+            ratios.push_back(NT(countsIn)/m);
             countsIn = 0;
-            counter++;
+            //counter++;
+            if (ratios.size() > 2 && !lastball)
+            {
+                boost::math::students_t dist(ratios.size() - 1);
+                mv = get_mean_variance(ratios);
+                ratio = mv.first;
+                rs = std::sqrt(mv.second);
+                T = rs * (boost::math::quantile
+                            (boost::math::complement(dist, alpha_check / 2.0))
+                          / std::sqrt(NT(ratios.size())));
+                if (ratio + T < lb)
+                {
+                    too_few = true;
+                    res.first.second = too_few;
+                    res.first.first = false;
+                    return res;
+                } else if (ratio - T > ub){
+                    res.first.first = false;
+                    return res;
+                }
+            }
         }
     }
 
