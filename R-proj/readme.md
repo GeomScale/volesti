@@ -6,7 +6,9 @@ To install `graph` use `BiocManager::install("graph")`.
 
 ## Installation
 
-`Rcpp::compileAttributes()`
+Run the followings:  
+  
+`Rcpp::compileAttributes()`  
 `R CMD INSTALL --no-multiarch --with-keep.source R-proj`
 
 
