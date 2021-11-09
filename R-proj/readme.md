@@ -11,6 +11,8 @@ Run the followings:
 `Rcpp::compileAttributes()`  
 `R CMD INSTALL --no-multiarch --with-keep.source R-proj`  
 
+Or use the command `Build -> Install and Restart` in Rstudio.  
+
 ## How to use the code
 
 To run the pipeline using data of assets returns, see the script `run_data.R`.  
