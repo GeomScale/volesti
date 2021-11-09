@@ -23,7 +23,7 @@ for (i in 1:(k-win+1)) {
   #sigma = rWishart::rWishart(1, 100, diag(n), covariance = TRUE)[, , 1] #sample a covariance from wishart distribution
   
   #we need a new function to generate the sequence of volatilities
-  Cs = get_sequence_of_volatilities(sigma, m) #get m level of volatilities
+  Cs = get_sequence_of_volatilities_2(sigma, m) #get m level of volatilities
   
   for (j in 1:m) {
     c = Cs[j]

@@ -238,6 +238,10 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
     res$tree = tree
     return(res)
   }
+  if (length(S) > 1){
+    print(length(S))
+    warning('more than one component')
+  }
   #print(length(S))
   #print(length(S_Vindices[[1]]))
   if (length(S) == 1){
@@ -325,14 +329,14 @@ get_samples_from_leaf <- function(node, A, b, x0, V, N, W, target_psrf) {
   node = GenerateNode(1, x, V, cols, node$ratio_of_leaves[[1]])
   
   #samples = sample_component(A, b, node$x0, N, W, x0)
-  samples = sample_with_psrf(node, A, b, x0, N, W, psrf_target)
+  samples = sample_with_psrf(node, A, b, x0, N, W, target_psrf)
   
   return(samples)
 }
 
 
 #' @export
-get_samples_from_tree <- function(tree, single_node, A, b, x0, V, N, W, psrf_target) {
+get_samples_from_tree <- function(tree, single_node, A, b, x0, V, N, W, psrf_target, error, win_len) {
   
   samples = matrix(,0,0)
   
@@ -347,6 +351,10 @@ get_samples_from_tree <- function(tree, single_node, A, b, x0, V, N, W, psrf_tar
     }
   } else {
     print(paste0('No single_node'))
+    tree_to_estimate = get_target_estimation_errors(tree, error)
+    nodes_and_weights = compute_node_weights(tree_to_estimate, A, b, x0, V, win_len)
+    
+    samples = get_samples_from_several_components(nodes_and_weights, A, b, x0, N, W)
   }
   return(samples)
 }

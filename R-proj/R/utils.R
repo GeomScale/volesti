@@ -1,5 +1,95 @@
 
 #' @export
+min_variance <- function(Dmat) {
+  
+  Amat <- matrix(0, nrow = ncol(Dmat) * 2 + 1, ncol = ncol(Dmat),
+                 dimnames = list(NULL, colnames(Dmat)) )
+  Amat[1, ] <- 1
+  Amat[2:(ncol(Dmat)+1), ] <- diag(ncol(Dmat))
+  Amat[(ncol(Dmat)+2):nrow(Amat), ] <- -diag(ncol(Dmat))
+  Amat <- t(Amat)
+  bvec <- c(1, rep(0, ncol(Dmat)), rep(-1, ncol(Dmat)) )
+  dvec <- rep(0, ncol(Dmat))
+  
+  opt <- quadprog::solve.QP( Dmat = Dmat,
+                             dvec = dvec,
+                             Amat = Amat,
+                             bvec = bvec,
+                             meq  = 1 )
+  
+  x = opt$solution
+  
+  min_var = t(x) %*% sigma %*% x
+  
+  return(min_var[1])
+}
+
+
+#' @export
+max_variance <- function(sigma) {
+  
+  diag_sigma = diag(sigma)
+  pos = which(diag_sigma == max(diag_sigma))
+  x = rep(0, ncol(sigma))
+  x[pos] = 1
+  max_var = t(x) %*% sigma %*% x
+  
+  return(max_var[1])
+}
+
+
+
+get_sequence_of_volatilities_CB <- function( sigma, m, ignore_cov = TRUE )
+{
+  if ( isTRUE(ignore_cov) ) {
+    # Override covariance coefficients with zero to ensure that
+    # the output (m portfolio variances) are monotonely increasing
+
+    sigma[upper.tri(sigma)] <- 0
+    sigma[lower.tri(sigma)] <- 0
+  }
+  
+  # Sort by increasing variances
+  sds <- diag( sigma )
+  ordering <- order(sds)
+  
+  # Estimate the variance of an equally-weighted portfolio within
+  # each vola-quantile
+  
+  portfolio_variances <- numeric(m)
+  
+  for ( i in 1:m ) {
+    k <- ceiling( length(ordering) / m )
+    
+    if ( i < m ) {
+      idx <- ordering[(i*k-k+1):(i*k)]
+    } else {
+      idx <- ordering[(i*k-k+1):length(ordering)]
+    }
+    
+    wghts <- rep(1/length(idx), length(idx))
+    portfolio_variances[i] <- t(wghts) %*% sigma[idx, idx] %*% wghts
+  }
+  
+  return( portfolio_variances )
+}
+
+
+#' @export
+get_sequence_of_volatilities_2 <- function(sigma, m) {
+  
+  min_var = min_variance(sigma)
+  max_var = max_variance(sigma)
+  
+  step = (max_var - min_var)/(m+2)
+  Cs = seq(from=min_var, to = max_var, by=step)
+  Cs = Cs[2:(length(Cs)-1)]
+  
+  return(Cs)
+}
+
+
+#' @export
 get_sequence_of_volatilities <- function(sigma, m) {
   
   n = dim(sigma)[2]
