@@ -70,6 +70,7 @@ get_next_child <- function(node, X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub,
   while(!converged & !last_round) {
   
     if (iter == 15) {
+      print('last_round')
       last_round = TRUE
     }
     
@@ -118,9 +119,16 @@ get_next_child <- function(node, X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub,
     iter = iter+1
   }
   
-  if ((converged && (ratios[indx] < 0.9)) || (!converged && last_round && (ratios[indx] > 0.03))) {
+  if ((converged && (ratios[indx] < 0.9)) || (!converged && last_round && (ratios[indx] > 0.05))) {
+    if(last_round) {
+      print('cinverged')
+      print(ratios[indx])
+    }
     next_node = GenerateNode(cmed, Xs[,indx], S_med[[indx]], S_Vindices_med[[indx]], ratios[indx])
   } else {
+    print('not converged')
+    print(ratios[indx])
+    
     next_node = list()
   }
   
@@ -156,7 +164,7 @@ build_tree <- function(node, X, cmin, cmax, A, b, S, S_Vindices, V, x0, lb, ub, 
       next
     }
     
-    Y = sample_component(A, next_node$c*b, next_node$x0, N, W, x0)
+    Y = sample_component(A, next_node$c*b, next_node$x0, 100*N, W, x0)
     
     is_leaf_res = is_leaf(next_node, Y, S, S_Vindices, V, A, b, x0, lb, ub, nu)
     
@@ -352,9 +360,9 @@ get_samples_from_tree <- function(tree, single_node, A, b, x0, V, N, W, psrf_tar
   } else {
     print(paste0('No single_node'))
     tree_to_estimate = get_target_estimation_errors(tree, error)
-    nodes_and_weights = compute_node_weights(tree_to_estimate, A, b, x0, V, win_len)
+    nodes_and_weights = compute_node_weights(tree_to_estimate, A, b, x0, V, win_len, N)
     
-    samples = get_samples_from_several_components(nodes_and_weights, A, b, x0, N, W)
+    samples = sample_from_leaves(nodes_and_weights, A, b, x0, N, W, psrf_target)
   }
   return(samples)
 }

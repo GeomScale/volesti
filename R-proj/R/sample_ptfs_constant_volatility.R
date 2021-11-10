@@ -57,7 +57,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
     print('height of tree')
     #print(count_height_of_tree(tree))
   }
-  samples = get_samples_from_tree(tree, single_node, A, b, center_2, V, M, parameters$W_to_sample, parameters$psrf_target)
+  samples = get_samples_from_tree(tree, single_node, A, b, center_2, V, M, parameters$W_to_sample, parameters$psrf_target, parameters$error, parameters$win_len)
                                  #(tree, single_node, A, b, x0, V, N, W, psrf_target)
   
   NN = dim(samples)[2]

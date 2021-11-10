@@ -148,7 +148,8 @@ get_parameters <- function(d) {
   parameters$W = 1
   #parameters$W_to_sample = 10 + floor(d/10)
   parameters$W_to_sample = 1
-  parameters$Win_len = 4*d^2 + 500
+  parameters$win_len = 4*d^2 + 500
+  parameters$error = 0.1
   parameters$psrf_target = 1.2
   
   return(parameters)
@@ -256,6 +257,10 @@ GenerateNode <- function(c, x, V, indices, ratio) {
   node$S_ind_to_esti = c()
   node$S_Vindices_leaves = matrix(list(), 0, 1)
   node$children = matrix(list(), 0, 1)
+  node$error_to_leaf = NaN
+  node$error_to_estimate = NaN
+  node$max_depth = 0
+  node$depth = 0
   
   return(node)
   
@@ -435,6 +440,7 @@ count_num_of_leaves <- function(tree, num_leaves) {
   node = tree
   
   if (node$number_of_leaves > 0) {
+    print('HI')
     num_leaves = num_leaves + node$number_of_leaves
   }
   
@@ -527,7 +533,11 @@ find_components_new_vertices <- function(V, x0) {
   }
   
   bins = ggm::conComp(A)
+  #print(bins)
+  #print(cols_out)
+  #print(A)
   components = unique(bins)
+  #print(components)
   
   k = length(components)
   counter = 1

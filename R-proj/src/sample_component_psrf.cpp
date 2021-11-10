@@ -115,10 +115,12 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
     VT psrf_values(d);
     NT psrf_val;
     VT p0 = p;
+    unsigned int countsIn_total = 0;
 
     //bool outside = false;
     while (iter <= MAX_ITER)
     {
+        countsIn_total = 0;
         p = p0;
         walk.template initialize(BS, p, rng);
 
@@ -126,6 +128,12 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
         {   
             walk.template apply(BS, p, walk_length, rng);
             samples.col((iter-1)*N + i) = p + center;
+            countsIn_total++;
+
+            if (rng.sample_urdist() < (NT(1) / countsIn_total))
+            {
+                p0 = p;
+            }
         }
         //psrf_values = univariate_psrf<NT, VT>(samples);
         //std::cout<<"[1]psrf_values = "<<psrf_values.transpose()<<std::endl;

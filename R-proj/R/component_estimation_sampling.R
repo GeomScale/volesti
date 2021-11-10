@@ -37,6 +37,7 @@ compute_node_weights <- function(node, A, b, x0, V, win_len, N, ratio_estimated 
   leaves$ratio_leaves = c()
   leaves$Xs = matrix(,d,0)
   leaves$leaf_verts = matrix(list(), 0, 1)
+  storing = FALSE
   
   if (node$number_of_leaves > 0) {
     for (i in 1:node$number_of_leaves) {
@@ -61,4 +62,42 @@ compute_node_weights <- function(node, A, b, x0, V, win_len, N, ratio_estimated 
   
   return(all_leaves_info)
 }
+
+
+#' export
+sample_from_leaves <- function(all_leaves_info, A, b, x0, N, W, psrf_target) {
+  
+  n = length(all_leaves_info)
+  print(n)
+  d = length(x0)
+  samples = matrix(list(), 0, 1)
+  final_samples = matrix(0, d, N)
+  sample_lens = c()
+  ratios = c()
+  
+  for (i in 1:n) {
+    leaf = all_leaves_info[[i]]
+    for (j in 1:length(leaf$ratio_leaves)) {
+      ratios = c(ratios, leaf$ratio_leaves[j])
+      x = leaf$Xs[,j]
+      X = sample_component_psrf(A,b,x,2*N,W,x0,psrf_target)
+      sample_lens = c(sample_lens, dim(X)[2])
+      samples[[length(samples) + 1]] = X
+    }
+  }
+  
+  rel_ratios = ratios / sum(ratios)
+  Us = runif(N, 0, 1)
+  cum_sum_ratios = cumsum(rel_ratios)
+  
+  for (i in 1:N) {
+    indx = which(Us[i] < cum_sum_ratios)[1]
+    indx_col <- sample(1:sample_lens[indx], 1)
+    final_samples[, i] = (samples[[indx]])[, indx_col]
+  }
+  
+  return(final_samples)
+}
+
+
 
