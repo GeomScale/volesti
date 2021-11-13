@@ -1,8 +1,9 @@
 function(GetLPSolve)
-    find_path(LP_SOLVE_DIR NAMES LPsolve_src PATHS ../../external)
+    find_path(LP_SOLVE_DIR NAMES src PATHS ${CMAKE_SOURCE_DIR}/../external/_deps/lpsolve-src)
 
     if (NOT LP_SOLVE_DIR)
         include(FetchContent)
+        set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/../external/_deps")
         FetchContent_Declare(
             lpsolve
             URL https://cran.r-project.org/src/contrib/lpSolve_5.6.15.tar.gz
@@ -16,7 +17,7 @@ function(GetLPSolve)
             FetchContent_Populate(lpsolve)
         endif()
 
-        set(LP_SOLVE_DIR "${lpsolve_SOURCE_DIR}/src")
+        set(LP_SOLVE_DIR "${lpsolve_SOURCE_DIR}")
         message(STATUS "Using downloaded lp_solve at: ${LP_SOLVE_DIR}")
 
     else()
@@ -25,6 +26,6 @@ function(GetLPSolve)
 
     endif()
 
-    include_directories(${LP_SOLVE_DIR})
+    include_directories(${LP_SOLVE_DIR}/src)
 
 endfunction()

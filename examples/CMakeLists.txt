@@ -56,13 +56,13 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-include("Eigen.cmake")
+include("../external/cmake-files/Eigen.cmake")
 GetEigen()
 
-include("Boost.cmake")
+include("../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("LPSolve.cmake")
+include("../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
 # Find lpsolve library
@@ -111,15 +111,35 @@ else ()
   #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
   #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
-  add_subdirectory(logconcave)
-  #add_subdirectory(spectrahedra)
-  add_subdirectory(hpolytope-volume)
-  add_subdirectory(mmcs_method)
-  add_subdirectory(count-linear-extensions-using-hpolytope)
-  add_subdirectory(ellipsoid-sampling)
-  add_subdirectory(order-polytope-basics)
+  if ("logconcave" IN_LIST EXAMPLES)
+    add_subdirectory(logconcave)
+  endif()
 
-  add_executable (vpolytopevolume vpolytope-volume/vpolytopevolume.cpp)
-  TARGET_LINK_LIBRARIES(vpolytopevolume ${LP_SOLVE})
+  #add_subdirectory(spectrahedra)
+
+  if ("hpolytope-volume" IN_LIST EXAMPLES)
+    add_subdirectory(hpolytope-volume)
+  endif()
+
+  if ("mmcs_method" IN_LIST EXAMPLES)
+    add_subdirectory(mmcs_method)
+  endif()
+
+  if ("count-linear-extensions-using-hpolytope" IN_LIST EXAMPLES)
+    add_subdirectory(count-linear-extensions-using-hpolytope)
+  endif()
+
+  if ("ellipsoid-sampling" IN_LIST EXAMPLES)
+    add_subdirectory(ellipsoid-sampling)
+  endif()
+  
+  if ("order-polytope-basics" IN_LIST EXAMPLES)
+    add_subdirectory(order-polytope-basics)
+  endif()
+
+  if ("vpolytopevolume" IN_LIST EXAMPLES)
+    add_executable (vpolytopevolume vpolytope-volume/vpolytopevolume.cpp)
+    TARGET_LINK_LIBRARIES(vpolytopevolume ${LP_SOLVE})
+  endif()
 
 endif()

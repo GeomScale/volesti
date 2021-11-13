@@ -1,6 +1,5 @@
 function(GetBoost)
-
-	find_path(BOOST_DIR NAMES boost PATHS ../external/)
+	find_path(BOOST_DIR NAMES boost PATHS ${CMAKE_SOURCE_DIR}/../external/_deps/boost-src)
 
 	if (NOT BOOST_DIR) 
   
@@ -8,6 +7,7 @@ function(GetBoost)
     set(BOOST_URL_SHA256 "f0397ba6e982c4450f27bf32a2a83292aba035b827a5623a14636ea583318c41" CACHE STRING "Boost download URL SHA256 checksum")
 
     include(FetchContent)
+    set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/../external/_deps")
     FetchContent_Declare(
       Boost
       URL ${BOOST_URL}
