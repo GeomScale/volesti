@@ -39,8 +39,8 @@ Rcpp::NumericMatrix find_point_in_component(Rcpp::NumericMatrix A,
                                             Rcpp::NumericVector b,
                                             Rcpp::NumericVector x0,
                                             Rcpp::NumericMatrix V,
-                                            double cmin,
-                                            double cmax,
+                                            Rcpp::NumericVector cmin,
+                                            Rcpp::NumericVector cmax,
                                             Rcpp::NumericVector x,
                                             bool single_col_V)
 {

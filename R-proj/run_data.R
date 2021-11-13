@@ -5,7 +5,7 @@ Ret = msci_ci$X_est
 
 n = dim(Ret)[2] #number of assets
 
-#n = 100 #for synthetic data
+#n = 3 #for synthetic data
 
 k = dim(Ret)[1] #number of weekly returns
 win = 40 #window length

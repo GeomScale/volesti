@@ -150,6 +150,8 @@ public:
         VT r = p + (pair_root.first * v);
 
         int n = V.cols();
+        //std::cout<<"V = "<<V<<"\n"<<std::endl;
+        //std::cout<<"n = "<<n<<std::endl;
 
         for (int i = 0; i < n; i++)
         {

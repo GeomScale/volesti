@@ -66,7 +66,7 @@ std::pair< std::pair<bool,bool>, std::pair<NT, VT> > check_convergence_test(Conv
             ratios.push_back(NT(countsIn)/m);
             countsIn = 0;
             //counter++;
-            if (ratios.size() > 2 && !lastball)
+            /*if (ratios.size() > 2 && !lastball)
             {
                 boost::math::students_t dist(ratios.size() - 1);
                 mv = get_mean_variance(ratios);
@@ -85,7 +85,7 @@ std::pair< std::pair<bool,bool>, std::pair<NT, VT> > check_convergence_test(Conv
                     res.first.first = false;
                     return res;
                 }
-            }
+            }*/
         }
     }
 

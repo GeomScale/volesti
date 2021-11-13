@@ -39,8 +39,9 @@ Rcpp::List check_convergence(Rcpp::NumericMatrix A,
 
     MT VV = Rcpp::as<MT>(V);
     if (single_col_V) {
-        VV = VV.col(0);
+        VV = VV.col(1);
     }
+    //std::cout<<VV<<std::endl;
 
     Body BS(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), VV, Rcpp::as<VT>(x0));
     MT X = Rcpp::as<MT>(samples);

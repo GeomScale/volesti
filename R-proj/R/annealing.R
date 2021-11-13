@@ -58,6 +58,168 @@ is_leaf <- function(node, X, S, S_Vindices, V, A, b, x0, lb, ub, nu) {
   return(res)
 }
 
+
+#'export
+more_detailed_binary_search <- function(X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub, nu) {
+  
+  cmax_global = cmax
+  m = length(cmax)
+  current_facet = 1
+  b_med = cmax*b
+  first_check = TRUE
+  
+  ordering = get_distances(A, b_med, x0)
+  #print(paste0('[FD, first check] ordering = ',as.character(ordering)))
+  #print(ordering)
+  
+  for (current_facet in ordering) {
+    
+    print(paste0('[FD] current_facet = ',as.character(current_facet)))
+    if (first_check) {
+      b_med[current_facet] = cmin[current_facet]*b[current_facet]
+      Vmed = get_vertices(A, b_med)
+      
+      find_components_res = find_components_new_vertices(Vmed, x0)
+      S_med = find_components_res$S
+      S_Vindices_med = find_components_res$S_Vindices
+      
+      important_res = keep_important_components(S_Vindices_med, S_Vindices, Vmed)
+      S_med = important_res$S
+      S_Vindices_med = important_res$S_Vindices
+      
+      num_of_components = length(S_med)
+      ratios = c()
+      converges = c()
+      Xs = matrix(, nrow=length(x0), ncol=0)
+      too_small_ratios = c()
+      
+      for (i in 1:num_of_components) {
+        
+        Sind = S_Vindices_med[[i]]
+        check_res = check_convergence_interface(A, b_med, Vmed, Sind, x0, X, nu, lb, ub, TRUE)
+        
+        too_small_ratios = c(too_small_ratios, check_res$too_few)
+        converges = c(converges, check_res$conv)
+        ratios = c(ratios, check_res$ratio)
+        #print(paste0('[FD, first check] ratios = ',as.character(ratios)))
+        Xs = cbind(Xs, check_res$x)
+      }
+      
+      indx = which.min(ratios)
+      print(paste0('[FD, first check] converges[indx] = ',as.character(converges[indx])))
+      
+      if (converges[indx]) {
+        #current_facet = current_facet + 1
+        next
+        #cmax[current_facet] = cmed
+        #next_node = GenerateNode(cmax, Xs[,indx], S_med[[indx]], S_Vindices_med[[indx]], ratios[indx])
+        #return(next_node)
+      } else {
+        first_check = FALSE
+        b_med[current_facet] = cmax[current_facet]*b[current_facet]
+        #cmax[current_facet] = cmed
+      }
+      
+      
+    }
+    
+    cmin_temp = cmin[current_facet]
+    cmax_temp = cmax[current_facet]
+    converged = FALSE
+    iter = 1
+    last_round = FALSE
+    cmax_temp2 = cmax[current_facet]
+    
+    while(!converged & !last_round) {
+      
+      if (iter == 15) {
+        #print('[FD] last_round')
+        last_round = TRUE
+      }
+    
+      cmed = (cmax_temp + cmin_temp) / 2
+      #print(paste0('[FD] cmed = ',as.character(cmed)))
+      
+      b_med[current_facet] = cmed*b[current_facet]
+      Vmed = get_vertices(A, b_med)
+    
+      find_components_res = find_components_new_vertices(Vmed, x0)
+      S_med = find_components_res$S
+      S_Vindices_med = find_components_res$S_Vindices
+    
+      important_res = keep_important_components(S_Vindices_med, S_Vindices, Vmed)
+      S_med = important_res$S
+      S_Vindices_med = important_res$S_Vindices
+      
+      num_of_components = length(S_med)
+      ratios = c()
+      converges = c()
+      Xs = matrix(, nrow=length(x0), ncol=0)
+      too_small_ratios = c()
+      
+      for (i in 1:num_of_components) {
+        
+        Sind = S_Vindices_med[[i]]
+        check_res = check_convergence_interface(A, b_med, Vmed, Sind, x0, X, nu, lb, ub, last_round)
+        
+        too_small_ratios = c(too_small_ratios, check_res$too_few)
+        converges = c(converges, check_res$conv)
+        ratios = c(ratios, check_res$ratio)
+        #
+        Xs = cbind(Xs, check_res$x)
+      }
+      print(paste0('[FD] ratios = ',as.character(ratios)))
+      
+      indx = which.min(ratios)
+      print(paste0('[FD] converges[indx] = ',as.character(converges[indx])))
+      
+      if (too_small_ratios[indx]) {
+        cmin_temp = cmed
+        iter = iter+1
+        next
+      }
+      if (converges[indx]) {
+        converged = TRUE
+        break
+      } else {
+        cmax_temp = cmed
+        cmax_temp2 = cmed
+      }
+      iter = iter+1
+    }
+    
+    cmax[current_facet] = cmed
+    
+    if ((converged && (ratios[indx] < 0.9)) || (!converged && last_round && (ratios[indx] > 0.09))) {
+      if(last_round) {
+        #print('[FD] cinverged')
+        #print(ratios)
+        #print(ratios[indx])
+      }
+      next_node = GenerateNode(cmax, Xs[,indx], S_med[[indx]], S_Vindices_med[[indx]], ratios[indx])
+      return(next_node)
+    } else {
+      cmax[current_facet] = cmax_temp2
+      b_med[current_facet] = cmax[current_facet] * b[current_facet]
+      #print('[FD] not converged')
+      #print(ratios)
+      #print(ratios[indx])
+      #res = more_detailed_binary_search(X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub, nu)
+      next_node = list()
+    }
+    
+    #print(paste0('[FD] m = ',as.character(m)))
+    #current_facet = current_facet + 1
+    first_check = TRUE
+  }
+  
+  #print(paste0('[FD] len(next_node) = ',as.character(length(next_node))))
+  return(next_node)
+  
+  
+}
+
+
 #' @export
 get_next_child <- function(node, X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub, nu) {
   
@@ -70,13 +232,16 @@ get_next_child <- function(node, X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub,
   while(!converged & !last_round) {
   
     if (iter == 15) {
-      print('last_round')
+      #print('last_round')
       last_round = TRUE
     }
     
     cmed = (cmax_temp + cmin_temp) / 2
-    Vmed = cmed * V
+    #Vmed = cmed * V
+    #print(cmed[1]*V)
     b_med = cmed * b
+    Vmed = get_vertices(A, b_med)
+    #print(Vmed)
     
     find_components_res = find_components_new_vertices(Vmed, x0)
     S_med = find_components_res$S
@@ -119,18 +284,26 @@ get_next_child <- function(node, X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub,
     iter = iter+1
   }
   
-  if ((converged && (ratios[indx] < 0.9)) || (!converged && last_round && (ratios[indx] > 0.05))) {
-    if(last_round) {
-      print('cinverged')
-      print(ratios[indx])
-    }
-    next_node = GenerateNode(cmed, Xs[,indx], S_med[[indx]], S_Vindices_med[[indx]], ratios[indx])
+  if (last_round && !converges[indx]) {
+    print('[1] not converged, calling facet wise anealing')
+    next_node = more_detailed_binary_search(X, cmin, cmax, S_Vindices, A, b, V, x0, lb, ub, nu)
   } else {
-    print('not converged')
-    print(ratios[indx])
-    
-    next_node = list()
+    #print('[1] converged')
+    next_node = GenerateNode(cmed, Xs[,indx], S_med[[indx]], S_Vindices_med[[indx]], ratios[indx])
   }
+  
+  #if ((converged && (ratios[indx] < 0.9)) || (!converged && last_round && (ratios[indx] > 0.05))) {
+  #  if(last_round) {
+  #    print('cinverged')
+  #    print(ratios[indx])
+  #  }
+  #  next_node = GenerateNode(cmed, Xs[,indx], S_med[[indx]], S_Vindices_med[[indx]], ratios[indx])
+  #} else {
+  #  print('not converged')
+  #  print(ratios[indx])
+  #  res = more_detailed_binary_search()
+  #  next_node = list()
+  #}
   
   return(next_node)
 }
@@ -227,8 +400,13 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
   res = list()
   single_node = FALSE
   empty = FALSE
+  
   cmax = get_c_upper_bound(A, b, x0)
   cmin = 1
+  
+  cmax = rep(cmax, dim(A)[1])
+  cmin = rep(cmin, dim(A)[1])
+  
   components_res = find_components_new_vertices(V, x0)
   S = components_res[[1]]
   S_Vindices = components_res[[2]]
@@ -295,7 +473,7 @@ get_tree_of_components <- function(V, A, b, x0, lb, ub, nu, N, W) {
     node$ratio_of_leaves = is_leaf_res$ratios
     node$S_Vindices_leaves = is_leaf_res$S_Vindices_leaves
   
-    remove_leaf_res = remove_leaf(S, S_Vindices, S_ind_to_esti)
+    remove_leaf_res = remove_leaf(S, S_Vindices, is_leaf_res$S_ind_to_esti)
     S = remove_leaf_res$S
     S_Vindices = remove_leaf_res$S_Vindices
   }

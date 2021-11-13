@@ -11,6 +11,7 @@
 #ifndef SAMPLERS_SPHERE_HPP
 #define SAMPLERS_SPHERE_HPP
 
+#include <Eigen/Eigen>
 
 template <typename Point>
 struct GetDirection
@@ -97,6 +98,43 @@ struct GetDirectionTangentPlane
         //std::cout<<"I-v = "<<((MT::Identity(dim, dim) - p * p.transpose()) * v).transpose()<<std::endl;
 
         v = ((MT::Identity(dim, dim) - p * p.transpose()) * v).eval(); //optimize it
+        //std::cout<<"v = "<<v.transpose()<<"\n"<<std::endl;
+        v *= (NT(1) / v.norm());
+        //Point q(u);
+        //return u;
+    }
+};
+
+
+template <typename VT>
+struct GetGaussianDirectionTangentPlane
+{
+    typedef double NT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+
+    template <typename RandomNumberGenerator>
+    inline static void apply(VT const& p, VT &v, MT const& L_chol, MT const& sigma,
+                              RandomNumberGenerator &rng)
+    {
+        unsigned int dim = p.rows();
+        //NT normal = NT(0);
+        //VT ut(dim);
+        NT* data = v.data();
+
+        for (unsigned int i=0; i<dim; ++i)
+        {
+            *data = rng.sample_ndist();
+            //normal += *data * *data;
+            data++;
+        }
+        v = (L_chol.template triangularView<Eigen::Lower>() * v).eval();
+        VT sigma_p = sigma*p;
+        NT a = (-p.dot(v)) / (p.dot(sigma_p));
+        //normal = NT(1)/std::sqrt(normal);
+        v += (a*sigma_p);
+        //std::cout<<"I-v = "<<((MT::Identity(dim, dim) - p * p.transpose()) * v).transpose()<<std::endl;
+
+        //v = ((MT::Identity(dim, dim) - p * p.transpose()) * v).eval(); //optimize it
         //std::cout<<"v = "<<v.transpose()<<"\n"<<std::endl;
         v *= (NT(1) / v.norm());
         //Point q(u);

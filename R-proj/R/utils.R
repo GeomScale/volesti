@@ -440,7 +440,7 @@ count_num_of_leaves <- function(tree, num_leaves) {
   node = tree
   
   if (node$number_of_leaves > 0) {
-    print('HI')
+    #print('HI')
     num_leaves = num_leaves + node$number_of_leaves
   }
   
@@ -570,7 +570,7 @@ check_convergence_interface <- function(A, b, V, Sind, x0, X, nu, lb, ub, last_r
   
   if (length(Sind) == 1){
     VV = cbind(VV, VV)
-    single_column = TRUE
+    single_column = FALSE
   }
   
   return(check_convergence(A, b, VV, x0, X, nu, lb, ub, last_round, single_column))
@@ -585,7 +585,7 @@ return_first_inside_interface <- function(A, b, V, cols, x0, X) {
   
   if (length(cols) == 1){
     VV = cbind(VV, VV)
-    single_column = TRUE
+    single_column = FALSE
   }
   
   return(return_first_inside(A, b, VV, x0, X, single_column))
@@ -619,11 +619,13 @@ is_in_component <- function(x, x0, A, b, V, Sind, full_check) {
   lambdas =  A %*% v / (b - A%*%x)
   l_max = max(lambdas)
   l_max = 1 / l_max
+  #print(l_max)
   
   p = x + l_max * v
   
   Vi = V[, Sind]
-  mm = dim(Vi)[2]
+  #print(Vi)
+  mm = length(Sind)
   
   for (i in 1:mm) {
     
@@ -702,10 +704,45 @@ get_fast_interior_point <- function(A, b, x0, V, Sind, cmin, cmax) {
     }
   }
   
-  
-    
-  
 }
+
+
+#' export
+get_vertices <- function(A, b) {
+  
+  m = dim(A)[1]
+  d = m-1
+  V = matrix(0, d, d+1)
+  
+  
+  for (i in 1:m) {
+    V[, i] = solve(A[-c(i),], b[-c(i)])
+  }
+  return(V)
+}
+
+
+#' export
+get_distances <- function(A, b, x0) {
+  
+  m = dim(A)[1]
+  dists = rep(0, m)
+  
+  for (i in 1:m) {
+    dists[i] = abs(A[i,] %*% x0 - b[i]) / sqrt(sum(A[i,]^2))
+  }
+  #print(dists)
+  #return(c(order(dists[dists>1], decreasing=TRUE), order(dists[dists<1])))
+  return(order(dists, decreasing=TRUE))
+}
+
+
+
+
+
+
+
+
 
 
 

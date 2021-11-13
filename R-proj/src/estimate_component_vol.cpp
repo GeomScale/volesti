@@ -42,8 +42,8 @@ Rcpp::List estimate_component(Rcpp::NumericMatrix A,
                                        unsigned int win_len,
                                        Rcpp::NumericVector x0,
                                        Rcpp::NumericMatrix V,
-                                       double c1,
-                                       double c2,
+                                       Rcpp::NumericVector c11,
+                                       Rcpp::NumericVector c22,
                                        double error,
                                        double ratio,
                                        unsigned int Ntot,
@@ -58,8 +58,10 @@ Rcpp::List estimate_component(Rcpp::NumericMatrix A,
     unsigned int d = A.ncol();
     RNGType rng(d);
 
-    VT b1 = c1 * Rcpp::as<VT>(b) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
-    VT b2 = c2 * Rcpp::as<VT>(b) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
+    VT c1 = Rcpp::as<VT>(c11), c2 = Rcpp::as<VT>(c22);
+
+    VT b1 = c1.cwiseProduct(Rcpp::as<VT>(b)) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
+    VT b2 = c2.cwiseProduct(Rcpp::as<VT>(b)) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
 
     //MT V2 = c2 * Rcpp::as<MT>(V);
     //V2 = V2.colwise() - Rcpp::as<VT>(x0);
