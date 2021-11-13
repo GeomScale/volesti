@@ -1,8 +1,8 @@
 # Running the Examples
+Build the example by running the following commands in this directory.
 
-Compile the examples via
 ```
-cmake ..
+cmake .. -DEXAMPLES=logconcave
 make
 ```
 

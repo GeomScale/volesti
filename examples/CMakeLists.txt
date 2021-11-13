@@ -137,9 +137,8 @@ else ()
     add_subdirectory(order-polytope-basics)
   endif()
 
-  if ("vpolytopevolume" IN_LIST EXAMPLES)
-    add_executable (vpolytopevolume vpolytope-volume/vpolytopevolume.cpp)
-    TARGET_LINK_LIBRARIES(vpolytopevolume ${LP_SOLVE})
+  if ("vpolytope-volume" IN_LIST EXAMPLES)
+    add_subdirectory(vpolytope-volume)
   endif()
 
 endif()

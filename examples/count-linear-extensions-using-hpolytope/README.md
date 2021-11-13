@@ -1,13 +1,8 @@
 ## Compilation
-In folder examples, first run cmake, to create the makefile:
+Build the example by running the following commands in this directory.
 
 ```bash
-cmake .
-```
-
-Then, in folder examples/count-linear-extensions-using-hpolytope compile and build using the makefile:
-
-```bash
+cmake .. -DEXAMPLES=count-linear-extensions-using-hpolytope
 make
 ```
 

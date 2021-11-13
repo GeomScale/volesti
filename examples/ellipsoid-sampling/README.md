@@ -1,13 +1,8 @@
 ## Compilation
-In folder examples, first run cmake, to create the makefile:
+Build the example by running the following commands in this directory.
 
 ```bash
-cmake .
-```
-
-Then, in folder examples/ellipsoid-sampling compile and build using the makefile:
-
-```bash
+cmake .. -DEXAMPLES=ellipsoid-sampling
 make
 ```
 
