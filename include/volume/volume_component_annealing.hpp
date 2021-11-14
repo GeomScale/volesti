@@ -10,7 +10,7 @@
 #include <chrono>
 #include <cmath>
 
-#include "gaussian_great_cycle_walk.hpp"
+//#include "gaussian_great_cycle_walk.hpp"
 
 
 template <typename NT, typename VT>
@@ -20,10 +20,10 @@ std::pair<NT, NT> get_mean_variance_vt(VT const& vec)
     NT M2 = 0;
     NT variance = 0;
     NT delta;
-    NT* vec_data = vec.data();
+    const NT* vec_data = vec.data();
 
     unsigned int M = vec.rows();
-    for (int i=0; i<N; i++)
+    for (int i=0; i<M; i++)
     {
         delta = (*vec_data) - mean;
         mean += delta / (i + 1);
@@ -48,7 +48,8 @@ NT get_first_two_gaussian(const MT &samples,
                           const VT &mu)
 {
     NT a = NT(1), ratio;
-    int N = Samples.cols();
+    int N = samples.cols();
+    bool done = false;
     VT p;
     VT fn(N), fn2(N);//,NT(0.0));
 
@@ -56,7 +57,7 @@ NT get_first_two_gaussian(const MT &samples,
     for (int i=0; i<N; i++)
     {
         p = samples.col(i);
-        *fnit = p.dot(sigma*p));
+        *fnit = p.dot(sigma*p);
         fnit++;
     }
 
@@ -70,7 +71,7 @@ NT get_first_two_gaussian(const MT &samples,
             *fnit = exp((*fnit));
             fnit++;
         }
-        std::pair<NT, NT> mv = get_mean_variance_vt(fn2);
+        std::pair<NT, NT> mv = get_mean_variance_vt<NT>(fn2);
 
         // Compute a_{i+1}
         if (mv.second/(mv.first * mv.first)<=NT(1))// || mv.first/last_ratio>1.0-tol)
@@ -116,28 +117,28 @@ std::pair<NT, bool> get_next_gaussian(Body const& P,
     NT k = 1.0;
     const NT tol = 0.00001;
     bool done = false;
-    std::vector<NT> fn(N,NT(0.0));
-    std::list<Point> randPoints;
+    //std::vector<NT> fn(N,NT(0.0));
+    //std::list<Point> randPoints;
     typedef typename std::vector<NT>::iterator viterator;
     unsigned int d = P.dimension();
 
     typedef typename GCWalk::template Walk
             <
                 Body,
-                RNGType,
+                RandomNumberGenerator,
                 Eigen::LLT<MT>
             > CGwalk;
     
-    CGwalk walk(P, p, mu, sigma, a, rng);
+    CGwalk walk(P, p, mu, sigma, a, 5, rng);
     MT samples(d, N);
     VT fn(N), fn2(N);
 
     NT* fnit = fn.data();
     for (int i=0; i<N; i++)
     {
-        walk.template apply(P, p, walk_length, rng);
+        walk.template apply(P, p, a, walk_length, rng);
         samples.col(i) = p;
-        *fnit = p.dot(sigma*p));
+        *fnit = p.dot(sigma*p);
         fnit++;
     }
 
@@ -154,7 +155,7 @@ std::pair<NT, bool> get_next_gaussian(Body const& P,
             *fnit = exp((*fnit));
             fnit++;
         }
-        std::pair<NT, NT> mv = get_mean_variance_vt(fn);
+        std::pair<NT, NT> mv = get_mean_variance_vt<NT>(fn);
 
         // Compute a_{i+1}
         if (mv.second/(mv.first * mv.first)>=C || mv.first/last_ratio<1.0-tol)
@@ -188,10 +189,9 @@ void compute_annealing_schedule(Body const& P,
                                 VT &p,
                                 const VT &mu,
                                 const MT &sigma,
-                                MT &samples,
+                                MT const& samples,
                                 NT const& ratio,
                                 NT const& C,
-                                NT const& frac,
                                 unsigned int const& N,
                                 unsigned int const& walk_length,
                                 NT const& error,
@@ -204,8 +204,8 @@ void compute_annealing_schedule(Body const& P,
     NT a2 = get_first_two_gaussian(samples, C, sigma, mu);
 
     NT a1 = 0.0, a_next, ratio_it;
-    const NT tol = 0.001;
-    unsigned int it = 0;
+    //const NT tol = 0.001;
+    unsigned int it = 1;
     unsigned int n = P.dimension();
     //const unsigned int totalSteps = ((int)150/((1.0 - frac) * error))+1;
 
@@ -217,9 +217,10 @@ void compute_annealing_schedule(Body const& P,
     while (true)
     {
         // Compute the next gaussian
-        res = get_next_gaussian<WalkType>(P, p, mu, sigma, a, N, ratio, C, walk_length, ratio_it, rng);
+        res = get_next_gaussian<WalkType>(P, p, mu, sigma, a_vals[it], N, ratio, C, walk_length, ratio_it, rng);
         ratios.push_back(ratio_it);
         a_vals.push_back(res.first);
+        it++;
 
         if (res.second)
         {
@@ -255,15 +256,15 @@ template
     typename VT,
     typename NT,
     typename RandomNumberGenerator
-
 >
-NT volume_cooling_gaussians(Body const& P,
-                            VT &p,
-                            VT mu,
-                            MT sigma,
-                            RandomNumberGenerator& rng,
-                            NT const& error = 0.1,
-                            unsigned int const& walk_length = 1)
+NT volume_component_cooling_gaussians(Body const& P,
+                                      VT &p,
+                                      VT const& mu,
+                                      MT const& sigma,
+                                      MT const& samples,
+                                      RandomNumberGenerator& rng,
+                                      NT const& error = 0.1,
+                                      unsigned int const& walk_length = 1)
 {
     //const NT maxNT = std::numeric_limits<NT>::max();//1.79769e+308;
     //const NT minNT = std::numeric_limits<NT>::min();//-1.79769e+308;
@@ -272,7 +273,7 @@ NT volume_cooling_gaussians(Body const& P,
     unsigned int n = P.dimension();
     //unsigned int m = P.num_of_hyperplanes();
     gaussian_annealing_parameters<NT> parameters(P.dimension());
-    RandomNumberGenerator rng(n);
+    //RandomNumberGenerator rng(n);
 
     // Initialization for the schedule annealing
     std::vector<NT> a_vals;
@@ -281,9 +282,9 @@ NT volume_cooling_gaussians(Body const& P,
     NT eval;
     unsigned int N = parameters.N;
 
-    compute_annealing_schedule<WalkType>(P, p, mu, sigma, samples, ratio, C, frac, N, walk_length, error, a_vals, rng);
+    compute_annealing_schedule<WalkType>(P, p, mu, sigma, samples, ratio, C, N, walk_length, error, a_vals, rng);
 
-//#ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
     std::cout<<"All the variances of schedule_annealing computed in = "
             << (double)clock()/(double)CLOCKS_PER_SEC-tstart2<<" sec"<<std::endl;
     auto j=0;
@@ -292,7 +293,7 @@ NT volume_cooling_gaussians(Body const& P,
         std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
     }
     std::cout<<std::endl<<std::endl;
-//#endif
+#endif
 
     // Initialization for the approximation of the ratios
     unsigned int W = parameters.W;
@@ -335,14 +336,14 @@ NT volume_cooling_gaussians(Body const& P,
         p = mu;
 
         // Set the radius for the ball walk
-       typedef typename GCWalk::template Walk
+       typedef typename WalkType::template Walk
         <
             Body,
-            RNGType,
+            RandomNumberGenerator,
             Eigen::LLT<MT>
         > CGwalk;
     
-        CGwalk walk(P, p, mu, sigma, *avalsIt, rng);
+        CGwalk walk(P, p, mu, sigma, *avalsIt, 5, rng);
 
         //update_delta<WalkType>
         //        ::apply(walk, 4.0 * radius
