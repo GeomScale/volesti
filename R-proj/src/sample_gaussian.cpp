@@ -95,7 +95,7 @@ Rcpp::NumericMatrix sample_gaussian(Rcpp::NumericMatrix A,
     for (int i = 0; i < N; i++)
     {   
 
-        walk.template apply(BS, p, k, walk_length, rng);
+        walk.template apply_with_check(BS, p, k, walk_length, rng);
         //y = p + center;
         //if (BS2.is_in(y) == 0)
         //{
@@ -112,6 +112,11 @@ Rcpp::NumericMatrix sample_gaussian(Rcpp::NumericMatrix A,
         //if (outside) exit(-1);
         samples.col(i) = p + center;
     }
+
+    bool is_not_last = walk.is_outside();
+    NT ratio_outside = walk.ratio_outside();
+
+    std::cout<<"ratio_outside = "<<ratio_outside<<std::endl;
 
     return Rcpp::wrap(samples);    
 }

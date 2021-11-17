@@ -146,6 +146,7 @@ get_parameters <- function(d) {
   parameters$ub = 0.15
   parameters$Nu = 1200 + floor(d^2/2) + (10 - (1200 + floor(d^2/2)) %% 10)
   parameters$W = 1
+  parameters$WW = 5
   #parameters$W_to_sample = 10 + floor(d/10)
   parameters$W_to_sample = 1
   parameters$win_len = 4*d^2 + 500
@@ -629,7 +630,12 @@ is_in_component <- function(x, x0, A, b, V, Sind, full_check) {
   
   for (i in 1:mm) {
     
-    v = Vi[, i] - p
+    if (mm==1){
+      v = Vi - p
+    } else{
+      v = Vi[, i] - p
+    }
+    
     
     p = p - x0
     a = t(v) %*% v

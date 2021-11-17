@@ -33,6 +33,24 @@ compute_component_volume <- function(A, b, mu_, sigma_, x0, samples_, W, error) 
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
+compute_related_volume <- function(A, b, mu_, sigma_, x0, a_min, a_max, W, error) {
+    .Call(`_volesti_compute_related_volume`, A, b, mu_, sigma_, x0, a_min, a_max, W, error)
+}
+
+#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return A vector that contains the values of PSRF for each coordinate
+#'
+#' @export
 psrf_univariate <- function(samples, method = NULL) {
     .Call(`_volesti_psrf_univariate`, samples, method)
 }

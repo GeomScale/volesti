@@ -35,12 +35,13 @@
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::List compute_component_volume(Rcpp::NumericMatrix A,
+double compute_related_volume(Rcpp::NumericMatrix A,
                                     Rcpp::NumericVector b,
                                     Rcpp::NumericVector mu_,
                                     Rcpp::NumericMatrix sigma_,
                                     Rcpp::NumericVector x0,
-                                    Rcpp::NumericMatrix samples_,
+                                    double a_min,
+                                    double a_max,
                                     unsigned int W,
                                     double error)
 {
@@ -53,7 +54,7 @@ Rcpp::List compute_component_volume(Rcpp::NumericMatrix A,
     unsigned int d = A.ncol();
     VT b2 = Rcpp::as<VT>(b) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
 
-    MT samples = Rcpp::as<MT>(samples_), V2;
+    MT V2;
 
     Body BS(d, Rcpp::as<MT>(A), b2, V2, VT::Zero(d));
 
@@ -67,8 +68,8 @@ Rcpp::List compute_component_volume(Rcpp::NumericMatrix A,
     MT sigma = Rcpp::as<MT>(sigma_);
     p -= center;
 
-    std::pair<NT, NT> res = volume_component_cooling_gaussians<GaussianGCWalk>(BS, p, mu, sigma, samples, rng, W, error);
+    NT ratio = related_volume_gaussian<GaussianGCWalk>(BS, p, mu, sigma, a_min, a_max, rng, W, error);
 
 
-    return Rcpp::List::create(Rcpp::Named("ratio") = res.first, Rcpp::Named("last_variance") = res.second);   
+    return ratio;   
 }

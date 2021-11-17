@@ -17,8 +17,8 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include "generators/boost_random_number_generator.hpp"
 #include "convex_bodies/ballintersectsimplex.h"
-#include "random_walks/gaussian_great_cycle_walk.hpp"
-#include "volume/volume_component_annealing.hpp"
+#include "random_walks/fischer_gcw_walk.hpp"
+#include "volume/volume_component_fischer.hpp"
 
 //' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 //'
@@ -35,7 +35,7 @@
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::List compute_component_volume(Rcpp::NumericMatrix A,
+Rcpp::List compute_fischer_volume(Rcpp::NumericMatrix A,
                                     Rcpp::NumericVector b,
                                     Rcpp::NumericVector mu_,
                                     Rcpp::NumericMatrix sigma_,
@@ -67,7 +67,7 @@ Rcpp::List compute_component_volume(Rcpp::NumericMatrix A,
     MT sigma = Rcpp::as<MT>(sigma_);
     p -= center;
 
-    std::pair<NT, NT> res = volume_component_cooling_gaussians<GaussianGCWalk>(BS, p, mu, sigma, samples, rng, W, error);
+    std::pair<NT, NT> res = volume_component_cooling_fischer<FischerGCWalk>(BS, p, mu, sigma, samples, rng, W, error);
 
 
     return Rcpp::List::create(Rcpp::Named("ratio") = res.first, Rcpp::Named("last_variance") = res.second);   

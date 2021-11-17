@@ -17,8 +17,7 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include "generators/boost_random_number_generator.hpp"
 #include "convex_bodies/ballintersectsimplex.h"
-#include "random_walks/gaussian_great_cycle_walk.hpp"
-#include "volume/volume_component_annealing.hpp"
+#include "random_walks/fischer_gcw_walk.hpp"
 
 //' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 //'
@@ -35,14 +34,15 @@
 //'
 //' @export
 // [[Rcpp::export]]
-Rcpp::List compute_component_volume(Rcpp::NumericMatrix A,
-                                    Rcpp::NumericVector b,
-                                    Rcpp::NumericVector mu_,
-                                    Rcpp::NumericMatrix sigma_,
-                                    Rcpp::NumericVector x0,
-                                    Rcpp::NumericMatrix samples_,
-                                    unsigned int W,
-                                    double error)
+Rcpp::NumericMatrix sample_fischer(Rcpp::NumericMatrix A,
+                                     Rcpp::NumericVector b,
+                                     Rcpp::NumericVector x,
+                                     Rcpp::NumericVector mu_,
+                                     double k,
+                                     unsigned int W,
+                                     unsigned int N,
+                                     unsigned int walk_length,
+                                     Rcpp::NumericVector x0)
 {
     typedef double NT;
     typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
@@ -53,7 +53,7 @@ Rcpp::List compute_component_volume(Rcpp::NumericMatrix A,
     unsigned int d = A.ncol();
     VT b2 = Rcpp::as<VT>(b) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
 
-    MT samples = Rcpp::as<MT>(samples_), V2;
+    MT V2;
 
     Body BS(d, Rcpp::as<MT>(A), b2, V2, VT::Zero(d));
 
@@ -62,13 +62,60 @@ Rcpp::List compute_component_volume(Rcpp::NumericMatrix A,
     //Body BS3(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), VV, VT::Zero(d), Vnorms_shifted);
 
     RNGType rng(d);
-    VT p = Rcpp::as<VT>(mu_), center = Rcpp::as<VT>(x0);
+    VT p = Rcpp::as<VT>(x), center = Rcpp::as<VT>(x0), y(d);
     VT mu = Rcpp::as<VT>(mu_) - center;
     MT sigma = Rcpp::as<MT>(sigma_);
     p -= center;
+    //if (BS2.is_in((p)) == 0)
+    //{
+    //    std::cout<<"BS2 initial point outside"<<std::endl;
+    //    exit(-1);
+    //}
 
-    std::pair<NT, NT> res = volume_component_cooling_gaussians<GaussianGCWalk>(BS, p, mu, sigma, samples, rng, W, error);
+    //if (BS.is_in(p) == 0)
+    //{
+    //    std::cout<<"BS initial point outside"<<std::endl;
+    //    exit(-1);
+    //}
+    //exit(-1);
 
+    typedef FischerGCWalk::template Walk
+            <
+                Body,
+                RNGType,
+                Eigen::LLT<MT>
+            > CGWalk;
+    
+    CGWalk walk(BS, p, mu, k, W, rng);
 
-    return Rcpp::List::create(Rcpp::Named("ratio") = res.first, Rcpp::Named("last_variance") = res.second);   
+    MT samples(d, N);
+
+    //bool outside = false;
+    for (int i = 0; i < N; i++)
+    {   
+
+        walk.template apply_with_check(BS, p, k, walk_length, rng);
+        //y = p + center;
+        //if (BS2.is_in(y) == 0)
+        //{
+         //   std::cout<<"BS2 point outside"<<std::endl;
+        //    outside = true;
+        //    //exit(-1);
+        //}
+        //if (BS.is_in(p) == 0)
+        //{
+        //    std::cout<<"BS point outside"<<std::endl;
+        //    outside = true;
+            //exit(-1);
+        //}
+        //if (outside) exit(-1);
+        samples.col(i) = p + center;
+    }
+
+    bool is_not_last = walk.is_outside();
+    NT ratio_outside = walk.ratio_outside();
+
+    std::cout<<"ratio_outside = "<<ratio_outside<<std::endl;
+
+    return Rcpp::wrap(samples);    
 }
