@@ -144,9 +144,9 @@ get_parameters <- function(d) {
   parameters$nu = 10
   parameters$lb = 0.1
   parameters$ub = 0.15
-  parameters$Nu = 1200 + floor(d^2/2) + (10 - (1200 + floor(d^2/2)) %% 10)
+  parameters$Nu = 1000 + floor(d^2/2)
   parameters$W = 1
-  parameters$WW = 5
+  parameters$WW = 7
   #parameters$W_to_sample = 10 + floor(d/10)
   parameters$W_to_sample = 1
   parameters$win_len = 4*d^2 + 500

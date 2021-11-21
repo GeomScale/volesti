@@ -10,7 +10,7 @@ NT sample_sigma_gaussian_segment(NT const& t1, NT const& t2, NT const& a, NT con
                                  RandomNumberGenerator &rng)
 {
 
-    NT t = (t1+t2)*0.5;
+    NT t = NT(0);
     NT L = (0.33*(t2-t1))*0.5;
     NT t_cos, t_sin, t_next, py, l;
 
@@ -55,7 +55,7 @@ std::pair<NT, bool> sample_sigma_gaussian_segment_with_check(NT const& t1, NT co
                                             RandomNumberGenerator &rng)
 {
 
-    NT t = (t1+t2)*0.5;
+    NT t = NT(0);
     NT L = (0.33*(t2-t1))*0.5;
     NT t_cos, t_sin, t_next, py, l;
     bool got_outside = false;
@@ -70,8 +70,6 @@ std::pair<NT, bool> sample_sigma_gaussian_segment_with_check(NT const& t1, NT co
         l = rng.sample_urdist();
         t_next = l * (t + L) + (1 - l) * (t - L);
 
-        
-
         if (t_next>t2 || t_next<t1)
         {
             if (!got_outside)
@@ -80,7 +78,7 @@ std::pair<NT, bool> sample_sigma_gaussian_segment_with_check(NT const& t1, NT co
                 t_sin = sin(t_next);
 
                 py = a*(t_cos*t_cos) + b*(t_sin*t_sin) + c*t_cos*t_sin + d*t_sin + e*t_cos;
-            
+                
                 if (log(rng.sample_urdist()) < -k*(py-px))
                 {
                     got_outside = true;
@@ -103,6 +101,107 @@ std::pair<NT, bool> sample_sigma_gaussian_segment_with_check(NT const& t1, NT co
 
     return std::pair<NT, bool>(t, got_outside);
 }
+
+
+
+
+
+
+template <typename NT, typename RandomNumberGenerator>
+NT sample_fischer_segment(NT const& t1, NT const& t2, NT const& mu_p, NT const& mu_v,
+                          unsigned int const& W, NT const &k, RandomNumberGenerator &rng)
+{
+
+    NT t = NT(0);
+    NT L = (0.33*(t2-t1))*0.5;
+    NT t_cos, t_sin, t_next, py, l;
+
+    t_cos = cos(t);
+    t_sin = sin(t);
+
+    NT px = mu_p*t_cos + mu_v*t_sin;
+
+    for (int i=0; i<W; i++)
+    {
+        l = rng.sample_urdist();
+        t_next = l * (t + L) + (1 - l) * (t - L);
+
+        if (t_next>t2 || t_next<t1)
+        {
+            continue;
+        }
+
+        t_cos = cos(t_next);
+        t_sin = sin(t_next);
+
+        py = mu_p*t_cos + mu_v*t_sin;
+
+        if (log(rng.sample_urdist()) < k*(py-px))
+        {
+            t = t_next;
+            px = py;
+        }
+    }
+
+    return t;
+}
+
+
+
+
+template <typename NT, typename RandomNumberGenerator>
+std::pair<NT, bool> sample_fischer_segment_with_check(NT const& t1, NT const& t2, NT const& mu_p, NT const& mu_v,
+                                     unsigned int const& W, NT const &k, RandomNumberGenerator &rng)
+{
+
+    NT t = NT(0);
+    NT L = (0.33*(t2-t1))*0.5;
+    NT t_cos, t_sin, t_next, py, l;
+    bool got_outside = false;
+
+    t_cos = cos(t);
+    t_sin = sin(t);
+
+    NT px = mu_p*t_cos + mu_v*t_sin;
+
+    for (int i=0; i<W; i++)
+    {
+        l = rng.sample_urdist();
+        t_next = l * (t + L) + (1 - l) * (t - L);
+
+        if (t_next>t2 || t_next<t1)
+        {
+            if (!got_outside)
+            {
+                t_cos = cos(t_next);
+                t_sin = sin(t_next);
+
+                py = mu_p*t_cos + mu_v*t_sin;
+                
+                if (log(rng.sample_urdist()) < k*(py-px))
+                {
+                    got_outside = true;
+                }
+            }
+            continue;
+        }
+
+        t_cos = cos(t_next);
+        t_sin = sin(t_next);
+
+        py = mu_p*t_cos + mu_v*t_sin;
+
+        if (log(rng.sample_urdist()) < k*(py-px))
+        {
+            t = t_next;
+            px = py;
+        }
+    }
+
+    return std::pair<NT, bool>(t, got_outside);
+}
+
+
 
 
 #endif

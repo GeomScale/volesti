@@ -7,8 +7,8 @@
 
 // Licensed under GNU LGPL.3, see LICENCE file
 
-#ifndef RANDOM_WALKS_GAUSSIAN_GCW_WALK_HPP
-#define RANDOM_WALKS_GAUSSIAN_GCW_WALK_HPP
+#ifndef RANDOM_WALKS_FISCHER_GCW_WALK_HPP
+#define RANDOM_WALKS_FISCHER_GCW_WALK_HPP
 
 
 #include "sampling/sphere.hpp"
@@ -17,7 +17,7 @@
 
 // Random directions hit-and-run walk with uniform target distribution
 
-struct GaussianGCWalk
+struct FischerGCWalk
 {
     struct parameters {};
     parameters param;
@@ -35,14 +35,12 @@ struct Walk
     typedef typename Polytope::NT NT;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, VT& p, VT const& mu, MT const& sigma, NT const& k, unsigned int const& W, RandomNumberGenerator& rng)
+    Walk(GenericPolytope const& P, VT& p, VT const& mu, NT const& k, unsigned int const& W, RandomNumberGenerator& rng)
     {
         _mu = mu;
-        _sigma_inv = sigma.inverse();
-        _sigma = sigma;
-        _lltOfSigma = LltDecomposition(sigma);
+        _sigma = MT::Identity(P.dimension(), P.dimension());
+        _lltOfSigma = LltDecomposition(_sigma);
         _L_cov = _lltOfSigma.matrixL();
-        _sigma_inv_mu = _sigma_inv * mu;
         _W = W;
         _k = k;
         initialize(P, p, k, rng);
@@ -53,11 +51,11 @@ struct Walk
          RandomNumberGenerator& rng, parameters const& params)
     {
         _mu = mu;
-        _sigma_inv = sigma.inverse();
-        _sigma = sigma;
-        _lltOfSigma = LltDecomposition(sigma);
+        _sigma = MT::Identity(P.dimension(), P.dimension());
+        _lltOfSigma = LltDecomposition(_sigma);
         _L_cov = _lltOfSigma.matrixL();
-        _sigma_inv_mu = _sigma_inv * mu;
+        _W = W;
+        _k = k;
         initialize(P, p, k, rng);
     }
 
@@ -74,25 +72,14 @@ struct Walk
         for (auto j=0u; j<walk_length; ++j)
         {
             GetGaussianDirectionTangentPlane<VT>::apply(p, _v, _L_cov, _sigma, rng);
-            _sigma_inv_v = _sigma_inv * _v;
+            
             //std::cout<<"p'v = "<<p.dot(_v)<<", v.norm() = "<<_v.norm()<<std::endl;
             std::pair<NT, NT> bpair = P.gc_intersect(p, _v, _lamdas, _Av, _lambda);
 
-            a = a*cos(_lambda)*cos(_lambda) + c*cos(_lambda)*sin(_lambda) + b*sin(_lambda)*sin(_lambda);
-            b = _v.dot(_sigma_inv_v);
-            c = NT(2) * (p.dot(_sigma_inv_v));
-            d = -NT(2) * (_v.dot(_sigma_inv_mu));
-            e = -NT(2) * (p.dot(_sigma_inv_mu)); // todo: optize it
+            _mu_p = _mu_p*cos(_lambda) + _mu_v*sin(_lambda);
+            _mu_v = _mu.dot(_v);
 
-            //std::cout<<"a1 = "<<a<<", a2 = "<<p.dot(_sigma_inv*p)<<::std::endl;
-            //std::cout<<"b1 = "<<b<<", b2 = "<<_v.dot(_sigma_inv*_v)<<::std::endl;
-            //std::cout<<"c1 = "<<c<<", c2 = "<<NT(2)*p.dot(_sigma_inv*_v)<<::std::endl;
-            //std::cout<<"d1 = "<<d<<", d2 = "<<-NT(2)*_v.dot(_sigma_inv*_mu)<<::std::endl;
-            //std::cout<<"e1 = "<<e<<", e2 = "<<-NT(2)*p.dot(_sigma_inv*_mu)<<::std::endl;
-
-            //std::cout<<"-------------"<<"\n"<<::std::endl;
-
-            _lambda = sample_sigma_gaussian_segment(bpair.second, bpair.first, a, b, c, d, e, _W, k, rng);
+            _lambda = sample_fischer_segment(bpair.second, bpair.first, _mu_p, _mu_v, _W, k, rng);
 
             p = (cos(_lambda) * p) + (sin(_lambda) * _v);
             VT q = P.get_mat()*p - P.get_vec();
@@ -121,20 +108,17 @@ struct Walk
     {
         for (auto j=0u; j<walk_length; ++j)
         {
-            GetGaussianDirectionTangentPlane<VT>::apply(p, _v, _L_cov, _sigma, rng);
-            _sigma_inv_v = _sigma_inv * _v;
+            GetDirectionTangentPlane<VT>::apply(p, _v, rng);
+            //_sigma_inv_v = _sigma_inv * _v;
             //std::cout<<"p'v = "<<p.dot(_v)<<", v.norm() = "<<_v.norm()<<std::endl;
             std::pair<NT, NT> bpair = P.gc_intersect(p, _v, _lamdas, _Av, _lambda);
 
-            a = a*cos(_lambda)*cos(_lambda) + c*cos(_lambda)*sin(_lambda) + b*sin(_lambda)*sin(_lambda);
-            b = _v.dot(_sigma_inv_v);
-            c = NT(2) * (p.dot(_sigma_inv_v));
-            d = -NT(2) * (_v.dot(_sigma_inv_mu));
-            e = -NT(2) * (p.dot(_sigma_inv_mu)); // todo: optize it
+            _mu_p = _mu_p*cos(_lambda) + _mu_v*sin(_lambda);
+            _mu_v = _mu.dot(_v);
 
             
 
-            _res = sample_sigma_gaussian_segment_with_check(bpair.second, bpair.first, a, b, c, d, e, _W, k, rng);
+            _res = sample_fischer_segment_with_check(bpair.second, bpair.first, _mu_p, _mu_v, _W, k, rng);
             _lambda = _res.first;
             _total_calls++;
 
@@ -145,17 +129,15 @@ struct Walk
             }
 
             p = (cos(_lambda) * p) + (sin(_lambda) * _v);
-            //VT q = P.get_mat()*p - P.get_vec();
-            //for (int i=0; i<P.num_of_hyperplanes(); i++)
-            //{
-            //    if (q(i)>NT(0))
-            //   {
-            //        std::cout<<"outside from sampling, q: "<<q(i)<<std::endl;
-            //        exit(-1);
-            //    }
-            //}
         }
         //p = _p;
+    }
+
+    inline void set_sigma(MT const& sigma)
+    {
+        _sigma = sigma;
+        _lltOfSigma = LltDecomposition(_sigma);
+        _L_cov = _lltOfSigma.matrixL();
     }
 
     inline bool is_outside()
@@ -181,13 +163,8 @@ struct Walk
         _total_calls = 0;
         got_outside = false;
 
-        _sigma_inv_v = _sigma_inv * _v;
-        //_sigma_inv_p = _sigma_inv * p;
-        a = p.dot(_sigma_inv * p);
-        b = _v.dot(_sigma_inv_v);
-        c = NT(2) * (p.dot(_sigma_inv_v));
-        d = -NT(2) * (_v.dot(_sigma_inv_mu));
-        e = -NT(2) * (p.dot(_sigma_inv_mu));
+        _mu_v = _mu.dot(_v);
+        _mu_p = _mu.dot(p);
 
         //_sigma_p = _sigma * p;
 
@@ -195,7 +172,7 @@ struct Walk
 
         //std::cout<<"p'v = "<<p.dot(_v)<<", v.norm() = "<<_v.norm()<<std::endl;
         std::pair<NT, NT> bpair = P.gc_intersect(p, _v, _lamdas, _Av);
-        _lambda = sample_sigma_gaussian_segment(bpair.second, bpair.first, a, b, c, d, e, _W, k, rng);
+        _lambda = sample_fischer_segment(bpair.second, bpair.first, _mu_p, _mu_v, _W, k, rng);
         p = (cos(_lambda) * p) + (sin(_lambda) * _v);
     }
 
@@ -207,12 +184,10 @@ private :
     VT _Av;
     VT _v;
     VT _mu;
-    VT _sigma_inv_mu;
-    VT _sigma_inv_v;
-    //VT _sigma_inv_p;
-    MT _sigma_inv;
+    NT _mu_p;
+    NT _mu_v;
     MT _sigma;
-    NT a, b, c, d, e, _k;
+    NT _k;
     unsigned int _W, _is_out, _total_calls;
     bool got_outside = false;
     std::pair<NT, bool> _res;

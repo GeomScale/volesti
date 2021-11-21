@@ -1,7 +1,7 @@
 
 
-#ifndef VOLUME_COOLING_GAUSSIANS_HPP
-#define VOLUME_COOLING_GAUSSIANS_HPP
+#ifndef VOLUME_COOLING_FISCHER_HPP
+#define VOLUME_COOLING_FISCHER_HPP
 
 
 #include <iterator>
@@ -14,7 +14,7 @@
 
 
 template <typename NT, typename VT>
-std::pair<NT, NT> get_mean_variance_vt(VT const& vec)
+std::pair<NT, NT> get_mean_variance_fischer_vt(VT const& vec)
 {
     NT mean = 0;
     NT M2 = 0;
@@ -42,11 +42,11 @@ template
     typename NT,
     typename VT
 >
-NT get_first_two_gaussian(const MT &samples,
+NT get_first_two_fischer(const MT &samples,
                           const NT &C,
                           const NT &Cmin,
-                          const MT &inv_sigma,
-                          const VT &mu)
+                          const VT &mu,
+                          NT &ratio_it)
 {
     NT a = NT(1), ratio, a1, a2;
     int N = samples.cols();
@@ -58,7 +58,7 @@ NT get_first_two_gaussian(const MT &samples,
     for (int i=0; i<N; i++)
     {
         p = samples.col(i) - mu;
-        *fnit = p.dot(inv_sigma*p);
+        *fnit = p.dot(p);
         fnit++;
     }
     int counter = 0;
@@ -77,7 +77,7 @@ NT get_first_two_gaussian(const MT &samples,
             fnit++;
         }
         //std::cout<<"fn2 = "<<fn2.transpose()<<"\n"<<std::endl;
-        std::pair<NT, NT> mv = get_mean_variance_vt<NT>(fn2);
+        std::pair<NT, NT> mv = get_mean_variance_fischer_vt<NT>(fn2);
         std::cout<<"[1] a = "<<a<<std::endl;
         std::cout<<"[1] mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
 
@@ -86,6 +86,7 @@ NT get_first_two_gaussian(const MT &samples,
         if (mv.second/(mv.first * mv.first)<=C && mv.second/(mv.first * mv.first)>=Cmin)// || mv.first/last_ratio>1.0-tol)
         {
             done = true;
+            ratio_it = mv.first;
             break;
         } else if (mv.second/(mv.first * mv.first)<Cmin)
         {
@@ -114,13 +115,14 @@ NT get_first_two_gaussian(const MT &samples,
             fnit++;
         }
         //std::cout<<"fn2 = "<<fn2.transpose()<<"\n"<<std::endl;
-        std::pair<NT, NT> mv = get_mean_variance_vt<NT>(fn2);
+        std::pair<NT, NT> mv = get_mean_variance_fischer_vt<NT>(fn2);
         std::cout<<"[1][BS] mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
 
         // Compute a_{i+1}
         std::cout<<"[1][BS] var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
         if (mv.second/(mv.first * mv.first)<=C && mv.second/(mv.first * mv.first)>=Cmin)// || mv.first/last_ratio>1.0-tol)
         {
+            ratio_it = mv.first;
             break;
         } else if (mv.second/(mv.first * mv.first)<Cmin)
         {
@@ -139,17 +141,15 @@ NT get_first_two_gaussian(const MT &samples,
 template
 <
     typename GCWalk,
+    typename MT,
     typename Body,
     typename VT,
-    typename MT,
     typename NT,
     typename RandomNumberGenerator
 >
-std::pair<NT, NT> get_next_gaussian(Body const& P,
+std::pair<NT, NT> get_next_fischer(Body const& P,
                                       VT &p,
                                       const VT &mu,
-                                      const MT &sigma,
-                                      const MT &inv_sigma,
                                       NT const& a,
                                       const unsigned int &N,
                                       const NT &ratio,
@@ -158,7 +158,8 @@ std::pair<NT, NT> get_next_gaussian(Body const& P,
                                       const unsigned int& walk_length,
                                       NT &ratio_it,
                                       unsigned int const& W,
-                                      RandomNumberGenerator& rng)
+                                      RandomNumberGenerator& rng, 
+                                      bool check_last = true)
 {
     NT last_a = a;
     NT last_ratio = 10;
@@ -178,17 +179,17 @@ std::pair<NT, NT> get_next_gaussian(Body const& P,
                 Eigen::LLT<MT>
             > CGwalk;
     
-    CGwalk walk(P, p, mu, sigma, a, W, rng);
+    CGwalk walk(P, p, mu, a, W, rng);
     //MT samples(d, N);
-    VT fn(N), fn2(N), p_mu(d);
+    VT fn(N), fn2(N), p_mu;
 
     NT* fnit = fn.data();
     for (int i=0; i<N; i++)
     {
-        walk.template apply_with_check(P, p, a, walk_length, rng);
+        walk.template apply_with_check(P, p, NT(2)*a, walk_length, rng);
         p_mu = p - mu;
         //samples.col(i) = p;
-        *fnit = p_mu.dot(inv_sigma*p_mu);
+        *fnit = p_mu.dot(p_mu);
         fnit++;
     }
 
@@ -196,9 +197,11 @@ std::pair<NT, NT> get_next_gaussian(Body const& P,
     NT ratio_outside = walk.template ratio_outside();
     NT new_a;
 
+    std::cout<<"mu = "<<mu.transpose()<<std::endl;
+    std::cout<<"N = "<<N<<std::endl;
     std::cout<<"ratio_outside = "<<ratio_outside<<std::endl;
 
-    if (!is_not_last) {
+    if (!is_not_last && check_last) {
         if (ratio_outside < ratio_tol){
             return std::pair<NT, NT> (a, ratio_outside);
         }
@@ -221,12 +224,13 @@ std::pair<NT, NT> get_next_gaussian(Body const& P,
             fnit++;
         }
         //std::cout<<"fn2 = "<<fn2.transpose()<<"\n"<<std::endl;
-        std::pair<NT, NT> mv = get_mean_variance_vt<NT>(fn2);
+        std::pair<NT, NT> mv = get_mean_variance_fischer_vt<NT>(fn2);
         std::cout<<"mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
 
         // Compute a_{i+1}
         std::cout<<"var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
         std::cout<<"mv.first/last_ratio = "<<mv.first/last_ratio<<std::endl;
+        //exit(-1);
         //std::cout<<"C = "<<C<<std::endl;
         //std::cout<<"ratio = "<<ratio<<std::endl;
 
@@ -236,9 +240,9 @@ std::pair<NT, NT> get_next_gaussian(Body const& P,
             //{
             //    k = k / 2;
             //}
+            ratio_it = mv.first;
             done = true;
         } else {
-            ratio_it = mv.first;
             k = 2 * k;
         }
         last_ratio = mv.first;
@@ -246,8 +250,13 @@ std::pair<NT, NT> get_next_gaussian(Body const& P,
 
     NT k1 = k/2, k2 = k;
 
+    //counter = 0;
     while(true) 
     {
+        //counter++;
+        //if (counter >10){
+        //    exit(-1);
+        //}
         k = (k1+k2)/NT(2);
         new_a = last_a * std::pow(ratio,k);
         std::cout<<"new_a = "<<new_a<<std::endl;
@@ -260,12 +269,13 @@ std::pair<NT, NT> get_next_gaussian(Body const& P,
             fnit++;
         }
         //std::cout<<"fn2 = "<<fn2.transpose()<<"\n"<<std::endl;
-        std::pair<NT, NT> mv = get_mean_variance_vt<NT>(fn2);
+        std::pair<NT, NT> mv = get_mean_variance_fischer_vt<NT>(fn2);
         std::cout<<"[BS] mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
 
         // Compute a_{i+1}
         std::cout<<"[BS] var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
         std::cout<<"[BS] mv.first/last_ratio = "<<mv.first/last_ratio<<std::endl;
+        //exit(-1);
         //std::cout<<"C = "<<C<<std::endl;
         //std::cout<<"ratio = "<<ratio<<std::endl;
 
@@ -275,6 +285,7 @@ std::pair<NT, NT> get_next_gaussian(Body const& P,
             //{
             //    k = k / 2;
             //}
+            ratio_it = mv.first;
             break;
         } else if (mv.second/(mv.first * mv.first)>C) {
             k2 = k;
@@ -299,29 +310,28 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-void compute_annealing_schedule(Body const& P,
+void compute_annealing_schedule_fischer(Body const& P,
                                 VT &p,
                                 const VT &mu,
-                                const MT &sigma,
-                                const MT &inv_sigma,
                                 MT const& samples,
                                 NT const& ratio,
                                 NT const& C,
                                 NT const& Cmin,
                                 unsigned int const& N,
                                 unsigned int const& walk_length,
-                                NT const& error,
                                 std::vector<NT>& a_vals,
                                 std::vector<NT> &ratios,
                                 unsigned int const& W,
                                 RandomNumberGenerator& rng)
 {
     std::pair<NT, bool> res;
-    
+    NT ratio_it;
     // Compute the first gaussian
-    NT a2 = get_first_two_gaussian(inv_sigma, C, Cmin, sigma, mu);
-
-    NT a1 = 0.0, a_next, ratio_it;
+    NT a2 = get_first_two_fischer(samples, C, Cmin, mu, ratio_it);
+    ratios.push_back(ratio_it);
+    std::cout<<"ratio = "<<ratio_it<<std::endl;
+    std::cout<<"first two computed"<<"\n"<<std::endl;
+    NT a1 = 0.0, a_next;
     //const NT tol = 0.001;
     unsigned int it = 1;
     unsigned int n = P.dimension();
@@ -337,17 +347,17 @@ void compute_annealing_schedule(Body const& P,
     {
         // Compute the next gaussian
         p=p0;
-        res = get_next_gaussian<WalkType>(P, p, mu, sigma, inv_sigma, a_vals[it], N, ratio, C, Cmin, walk_length, ratio_it, W, rng);
+        res = get_next_fischer<WalkType, MT>(P, p, mu, a_vals[it], N, ratio, C, Cmin, walk_length, ratio_it, W, rng);
 
         if (res.second < 0.01)
         {
             break;
         }
         
-        ratios.push_back(NT(1) / ratio_it);
+        ratios.push_back(ratio_it);
         a_vals.push_back(res.first);
         std::cout<<"a_next = "<<res.first<<std::endl;
-        std::cout<<"1/ratio = "<<1.0/ratio_it<<std::endl;
+        std::cout<<"ratio = "<<ratio_it<<std::endl;
         std::cout<<"num of phases = "<<a_vals.size()<<"\n"<<std::endl;
         //if(a_vals.size()>30){
         //    exit(-1);
@@ -366,7 +376,7 @@ struct gaussian_annealing_parameters
         ,   C(NT(2))
         ,   Cmin(NT(1))
         ,   N(500 * ((int) C) + ((int) (d * d / 2)))
-        ,   W(4*d*d+500)
+        ,   W(4*d*d+1000)
     {}
 
     NT frac;
@@ -377,6 +387,40 @@ struct gaussian_annealing_parameters
     unsigned int W;
 };
 
+
+template <typename MT, typename VT>
+MT estimate_cov(std::vector<VT> &points_temp, unsigned int const& d)
+{
+    VT avg, temp(d);
+    MT sigma;
+
+    typedef typename std::vector<VT>::iterator viterator;
+    sigma.setZero(d,d);
+    avg.setZero(d);
+    unsigned int N = 0;
+
+    for (viterator fnIt = points_temp.begin();
+         fnIt != points_temp.end();
+         fnIt++)
+    {
+        avg += (*fnIt);
+        N++;
+    }
+    avg *= (1.0/double(N));
+
+    for (viterator fnIt = points_temp.begin();
+         fnIt != points_temp.end();
+         fnIt++)
+    {
+        temp = (*fnIt) - avg;
+        sigma += temp * temp.transpose();
+    }
+    sigma *= (1.0/double(N));
+
+    return sigma;
+}
+
+
 template
 <
     typename WalkType,
@@ -386,7 +430,7 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-std::pair<NT, NT> volume_component_cooling_gaussians(Body const& P,
+std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
                                       VT &p,
                                       VT const& mu,
                                       MT const& sigma,
@@ -411,12 +455,11 @@ std::pair<NT, NT> volume_component_cooling_gaussians(Body const& P,
     NT C = parameters.C;
     NT Cmin = parameters.Cmin;
     NT eval;
-    VT p_mu(n);
-    MT inv_sigma = sigma.inverse();
+    VT p_mu;
     unsigned int N = parameters.N;
     std::vector<NT> ratios;
 
-    compute_annealing_schedule<WalkType>(P, p, mu, sigma, inv_sigma, samples, ratio, C, Cmin, N, walk_length, error, a_vals, ratios, WW, rng);
+    compute_annealing_schedule_fischer<WalkType>(P, p, mu, samples, ratio, C, Cmin, N, walk_length, a_vals, ratios, WW, rng);
 
     int j=0;
     for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++)
@@ -425,15 +468,15 @@ std::pair<NT, NT> volume_component_cooling_gaussians(Body const& P,
     }
     std::cout<<std::endl<<std::endl;
 
-    std::sort(a_vals.begin(), a_vals.end(), std::greater<NT>());
+    //std::sort(a_vals.begin(), a_vals.end(), std::greater<NT>());
 
 //#ifdef VOLESTI_DEBUG
     //std::cout<<"All the variances of schedule_annealing computed in = "
             //<< (double)clock()/(double)CLOCKS_PER_SEC-tstart2<<" sec"<<std::endl;
     j=0;
-    for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++)
+    for (auto avalIt = ratios.begin(); avalIt!=ratios.end(); avalIt++, j++)
     {
-        std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
+        std::cout<<"r_"<<j<<" = "<<*avalIt<<" ";
     }
     std::cout<<std::endl<<std::endl;
 //#endif
@@ -467,7 +510,9 @@ std::pair<NT, NT> volume_component_cooling_gaussians(Body const& P,
             Eigen::LLT<MT>
         > CGwalk;
 
-    CGwalk walk(P, p, mu, sigma, *avalsIt, 5, rng);
+    CGwalk walk(P, p, mu, NT(2)*(*avalsIt), WW, rng);
+    std::vector<VT> points;
+    MT sigma_temp = sigma;
 
     //iterate over the number of ratios
     for (viterator fnIt = fn.begin();
@@ -483,6 +528,7 @@ std::pair<NT, NT> volume_component_cooling_gaussians(Body const& P,
         unsigned int max_index = W-1;
         unsigned int index = 0;
         unsigned int min_steps = 10000000;
+        std::vector<VT> points_temp = points;
         std::vector<NT> last_W = last_W2;
 
         p = mu;
@@ -490,7 +536,8 @@ std::pair<NT, NT> volume_component_cooling_gaussians(Body const& P,
         // Set the radius for the ball walk
        
     
-        walk.template initialize(P, p, *avalsIt, rng);
+        walk.template set_sigma(sigma_temp);
+        walk.template initialize(P, p, NT(2)*(*avalsIt), rng);
 
         //update_delta<WalkType>
         //        ::apply(walk, 4.0 * radius
@@ -498,9 +545,10 @@ std::pair<NT, NT> volume_component_cooling_gaussians(Body const& P,
 
         while (!done && (*itsIt)<min_steps)
         {
-            walk.template apply(P, p, *avalsIt, walk_length, rng);
+            walk.template apply(P, p, NT(2)*(*avalsIt), walk_length, rng);
+            points_temp.push_back(p);
             p_mu.noalias() = p - mu;
-            eval = p_mu.dot(inv_sigma * p_mu);
+            eval = p_mu.dot(p_mu);
 
             *itsIt = *itsIt + 1.0;
             *fnIt = *fnIt + exp( ( (*avalsIt) - (*(avalsIt+1)) ) * eval);
@@ -539,9 +587,12 @@ std::pair<NT, NT> volume_component_cooling_gaussians(Body const& P,
         }
 //#ifdef VOLESTI_DEBUG
         std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
-                  << " N_" << i << " = " << *itsIt << std::endl;
+                  << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
 //#endif
         vol *= ((*fnIt) / (*itsIt));
+        if (i<mm-1) {
+            sigma_temp = estimate_cov<MT>(points_temp, n);
+        }
     }
 
 //#ifdef VOLESTI_DEBUG
@@ -553,7 +604,227 @@ std::pair<NT, NT> volume_component_cooling_gaussians(Body const& P,
         std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
 //#endif
 
-    return std::pair<NT, NT>(vol, a_vals[0]);
+    return std::pair<NT, NT>(vol, a_vals[a_vals.size()-1]);
+}
+
+
+
+template
+<
+    typename WalkType,
+    typename NT,
+    typename Body,
+    typename VT,
+    typename MT,
+    typename RandomNumberGenerator
+>
+std::pair<VT, VT> compute_annealing_fischer(Body const& P,
+                                      VT &p,
+                                      VT const& mu,
+                                      MT const& sigma,
+                                      MT const& samples,
+                                      RandomNumberGenerator& rng,
+                                      unsigned int const& WW,
+                                      unsigned int const& walk_length = 1)
+{
+    //const NT maxNT = std::numeric_limits<NT>::max();//1.79769e+308;
+    //const NT minNT = std::numeric_limits<NT>::min();//-1.79769e+308;
+
+    //auto P(Pin); //copy and work with P because we are going to shift
+    unsigned int n = P.dimension();
+    //unsigned int m = P.num_of_hyperplanes();
+    gaussian_annealing_parameters<NT> parameters(P.dimension());
+    //RandomNumberGenerator rng(n);
+
+    // Initialization for the schedule annealing
+    std::vector<NT> a_vals;
+    NT ratio = parameters.ratio;
+    NT C = parameters.C;
+    NT Cmin = parameters.Cmin;
+    unsigned int N = parameters.N;
+    std::vector<NT> ratios;
+
+    compute_annealing_schedule_fischer<WalkType>(P, p, mu, samples, ratio, C, Cmin, N, walk_length, a_vals, ratios, WW, rng);
+
+    VT a_sequence(a_vals.size());
+    int j=0;
+    for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++)
+    {
+        a_sequence(j) = (*avalIt);
+        std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
+    }
+    std::cout<<std::endl<<std::endl;
+
+    //std::sort(a_vals.begin(), a_vals.end(), std::greater<NT>());
+
+//#ifdef VOLESTI_DEBUG
+    //std::cout<<"All the variances of schedule_annealing computed in = "
+            //<< (double)clock()/(double)CLOCKS_PER_SEC-tstart2<<" sec"<<std::endl;
+    VT ratios_vt(ratios.size());
+    j=0;
+    for (auto avalIt = ratios.begin(); avalIt!=ratios.end(); avalIt++, j++)
+    {
+        ratios_vt(j) = (*avalIt);
+        std::cout<<"r_"<<j<<" = "<<*avalIt<<" ";
+    }
+    std::cout<<std::endl<<std::endl;
+//#endif
+
+    return std::pair<VT, VT>(a_sequence, ratios_vt);
+}
+
+
+template
+<
+    typename WalkType,
+    typename MT,
+    typename Body,
+    typename VT,
+    typename NT,
+    typename RandomNumberGenerator
+>
+NT estimate_ratios_fischer(Body const& P,
+                                          VT &p,
+                                          VT const& mu,
+                                          MT const& sigma,
+                                          MT const& samples,
+                                          VT const& a_vals,
+                                          VT &ratios,
+                                          unsigned int& N,
+                                          RandomNumberGenerator& rng,
+                                          unsigned int const& WW,
+                                          NT const& error = 0.1,
+                                          unsigned int const& walk_length = 1)
+{
+    unsigned int n = P.dimension();
+    gaussian_annealing_parameters<NT> parameters(P.dimension());
+    // Initialization for the approximation of the ratios
+    unsigned int W = parameters.W;
+    unsigned int mm = a_vals.rows()-1;
+    std::vector<NT> last_W2(W,0);
+    
+    std::vector<NT> its(mm,N);
+    ratios *= NT(N);
+    VT fn = ratios, p_mu;
+    //VT lamdas;
+    //lamdas.setZero(m);
+    NT log_vol = NT(0), eval;
+    //Point p(n); // The origin is the Chebychev center of the Polytope
+    unsigned int i=0;
+
+    typedef typename std::vector<NT>::iterator viterator;
+    viterator itsIt = its.begin();
+    const NT* avalsIt = a_vals.data();
+    const NT* ratioIt = ratios.data();
+    NT* fnIt = fn.data();
+    viterator minmaxIt;
+
+//#ifdef VOLESTI_DEBUG
+    //std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
+    std::cout<<"computing ratios..\n"<<std::endl;
+//#endif
+
+    typedef typename WalkType::template Walk
+        <
+            Body,
+            RandomNumberGenerator,
+            Eigen::LLT<MT>
+        > CGwalk;
+
+    CGwalk walk(P, p, mu, NT(2)*(*avalsIt), WW, rng);
+    std::vector<VT> points;
+    MT sigma_temp = sigma;
+
+    //iterate over the number of ratios
+    for (int i=0; i<mm; i++, fnIt++, itsIt++, ratioIt++, avalsIt++)
+    {
+        //initialize convergence test
+        bool done = false;
+        NT curr_eps = error/std::sqrt((NT(mm)));
+        NT min_val = std::numeric_limits<NT>::min();
+        NT max_val = std::numeric_limits<NT>::max();
+        unsigned int min_index = W-1;
+        unsigned int max_index = W-1;
+        unsigned int index = 0;
+        unsigned int min_steps = 10000000;
+        std::vector<VT> points_temp = points;
+        std::vector<NT> last_W = last_W2;
+
+        p = mu;
+
+        // Set the radius for the ball walk
+        
+        walk.template set_sigma(sigma_temp);
+        walk.template initialize(P, p, NT(2)*(*avalsIt), rng);
+
+        //update_delta<WalkType>
+        //        ::apply(walk, 4.0 * radius
+        //                 / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n)));
+
+        while (!done && (*itsIt)<min_steps)
+        {
+            walk.template apply(P, p, NT(2)*(*avalsIt), walk_length, rng);
+            points_temp.push_back(p);
+            p_mu.noalias() = p - mu;
+            eval = p_mu.dot(p_mu);
+
+            *itsIt = *itsIt + 1.0;
+            *fnIt = *fnIt + exp( ( (*avalsIt) - (*(avalsIt+1)) ) * eval);
+            NT val = (*fnIt) / (*itsIt);
+
+            last_W[index] = val;
+            if (val <= min_val)
+            {
+                min_val = val;
+                min_index = index;
+            } else if (min_index == index)
+            {
+                minmaxIt = std::min_element(last_W.begin(), last_W.end());
+                min_val = *minmaxIt;
+                min_index = std::distance(last_W.begin(), minmaxIt);
+            }
+
+            if (val >= max_val)
+            {
+                max_val = val;
+                max_index = index;
+            } else if (max_index == index)
+            {
+                minmaxIt = std::max_element(last_W.begin(), last_W.end());
+                max_val = *minmaxIt;
+                max_index = std::distance(last_W.begin(), minmaxIt);
+            }
+
+            if ( (max_val-min_val)/max_val <= curr_eps/2.0 )
+            {
+                done=true;
+            }
+
+            index = index%W + 1;
+            if (index == W) index = 0;
+        }
+//#ifdef VOLESTI_DEBUG
+        std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
+                  << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
+//#endif
+        log_vol += std::log((*fnIt) / (*itsIt));
+        //vol *= ((*fnIt) / (*itsIt));
+        if (i<mm-1) {
+            sigma_temp = estimate_cov<MT>(points_temp, n);
+        }
+    }
+
+//#ifdef VOLESTI_DEBUG
+        NT sum_of_steps = 0.0;
+        for(viterator it = its.begin(); it != its.end(); ++it) {
+            sum_of_steps += *it;
+        }
+        auto steps= int(sum_of_steps);
+        std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
+        //std::cout<<"\nvol = "<<vol<<"\n"<<std::endl;
+//#endif
+
+    return log_vol;
 }
 
 
@@ -570,12 +841,14 @@ template
     typename NT,
     typename RandomNumberGenerator
 >
-NT related_volume_gaussian(Body const& P,
+std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
                                       VT &p,
                                       VT const& mu,
                                       MT const& sigma,
-                                      NT const& a_min,
                                       NT const& a_max,
+                                      NT const& a_min,
+                                      NT &ratio_min,
+                                      NT &ratio_max,
                                       RandomNumberGenerator& rng,
                                       unsigned int const& WW,
                                       NT const& error = 0.1,
@@ -586,7 +859,6 @@ NT related_volume_gaussian(Body const& P,
 
     //auto P(Pin); //copy and work with P because we are going to shift
     unsigned int n = P.dimension(), it = 0;
-    std::pair<NT, bool> res;
     //unsigned int m = P.num_of_hyperplanes();
     gaussian_annealing_parameters<NT> parameters(P.dimension());
     //RandomNumberGenerator rng(n);
@@ -596,39 +868,41 @@ NT related_volume_gaussian(Body const& P,
     NT ratio = parameters.ratio;
     NT C = parameters.C;
     NT Cmin = parameters.Cmin;
-    NT eval;
-    VT p_mu(n);
-    MT inv_sigma = sigma.inverse();
+    NT eval, ratio_it;
+    VT p_mu;
     unsigned int N = parameters.N;
     std::vector<NT> ratios;
-    NT ratio_it;
+
+    //compute_annealing_schedule_fischer<WalkType>(P, p, mu, samples, ratio, C, Cmin, N, walk_length, a_vals, ratios, WW, rng);
 
     a_vals.push_back(a_min);
-    VT p0=p;
+    //a_vals.push_back(a2);
+    VT p0 = p;
+    NT ratio_min_temp = ratio_min;
+    NT ratio_max_temp = ratio_max;
 
     while (true)
     {
         // Compute the next gaussian
-        p=p0;
-        res = get_next_gaussian<WalkType>(P, p, mu, sigma, inv_sigma, a_vals[it], N, ratio, C, Cmin, walk_length, ratio_it, WW, rng);
+        p = p0;
+        res = get_next_fischer<WalkType, MT>(P, p, mu, a_vals[it], N, ratio, C, Cmin, walk_length, ratio_it, WW, rng, false);
         
-        //ratios.push_back(NT(1) / ratio_it);
-        if (res.first < a_max){
+        ratios.push_back(ratio_it);
+        ratio_max_temp *= ratio_it;
+
+        std::cout<<"a_next = "<<res.first<<std::endl;
+        std::cout<<"ratio = "<<ratio_it<<std::endl;
+        std::cout<<"num of phases = "<<a_vals.size()<<"\n"<<std::endl;
+
+        if (res.first < a_max) {
             a_vals.push_back(res.first);
         } else {
             a_vals.push_back(a_max);
             break;
         }
-        std::cout<<"a_next = "<<res.first<<std::endl;
-        //std::cout<<"1/ratio = "<<1.0/ratio_it<<std::endl;
-        std::cout<<"num of phases = "<<a_vals.size()<<"\n"<<std::endl;
-        //if(a_vals.size()>30){
-        //    exit(-1);
-        //}
+
         it++;        
     }
-
-    //compute_annealing_schedule<WalkType>(P, p, mu, sigma, inv_sigma, samples, ratio, C, Cmin, N, walk_length, error, a_vals, ratios, WW, rng);
 
     int j=0;
     for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++)
@@ -637,18 +911,17 @@ NT related_volume_gaussian(Body const& P,
     }
     std::cout<<std::endl<<std::endl;
 
-    std::sort(a_vals.begin(), a_vals.end(), std::greater<NT>());
-
-//#ifdef VOLESTI_DEBUG
-    //std::cout<<"All the variances of schedule_annealing computed in = "
-            //<< (double)clock()/(double)CLOCKS_PER_SEC-tstart2<<" sec"<<std::endl;
     j=0;
-    for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++)
+    for (auto avalIt = ratios.begin(); avalIt!=ratios.end(); avalIt++, j++)
     {
-        std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
+        std::cout<<"r_"<<j<<" = "<<*avalIt<<" ";
     }
     std::cout<<std::endl<<std::endl;
-//#endif
+
+    if (ratio_max_temp / ratio_min_temp < 0.001 || ratio_max_temp / ratio_min_temp > 1000){
+        return std::pair<NT, NT> (ratio_min_temp, ratio_max_temp);
+    } 
+    ratio_max_temp = ratio_max;
 
     // Initialization for the approximation of the ratios
     unsigned int W = parameters.W;
@@ -679,7 +952,9 @@ NT related_volume_gaussian(Body const& P,
             Eigen::LLT<MT>
         > CGwalk;
 
-    CGwalk walk(P, p, mu, sigma, *avalsIt, 5, rng);
+    CGwalk walk(P, p, mu, NT(2)*(*avalsIt), WW, rng);
+    std::vector<VT> points;
+    MT sigma_temp = sigma;
 
     //iterate over the number of ratios
     for (viterator fnIt = fn.begin();
@@ -695,6 +970,7 @@ NT related_volume_gaussian(Body const& P,
         unsigned int max_index = W-1;
         unsigned int index = 0;
         unsigned int min_steps = 10000000;
+        std::vector<VT> points_temp = points;
         std::vector<NT> last_W = last_W2;
 
         p = mu;
@@ -702,7 +978,8 @@ NT related_volume_gaussian(Body const& P,
         // Set the radius for the ball walk
        
     
-        walk.template initialize(P, p, *avalsIt, rng);
+        walk.template set_sigma(sigma_temp);
+        walk.template initialize(P, p, NT(2)*(*avalsIt), rng);
 
         //update_delta<WalkType>
         //        ::apply(walk, 4.0 * radius
@@ -710,9 +987,10 @@ NT related_volume_gaussian(Body const& P,
 
         while (!done && (*itsIt)<min_steps)
         {
-            walk.template apply(P, p, *avalsIt, walk_length, rng);
+            walk.template apply(P, p, NT(2)*(*avalsIt), walk_length, rng);
+            points_temp.push_back(p);
             p_mu.noalias() = p - mu;
-            eval = p_mu.dot(inv_sigma * p_mu);
+            eval = p_mu.dot(p_mu);
 
             *itsIt = *itsIt + 1.0;
             *fnIt = *fnIt + exp( ( (*avalsIt) - (*(avalsIt+1)) ) * eval);
@@ -751,9 +1029,13 @@ NT related_volume_gaussian(Body const& P,
         }
 //#ifdef VOLESTI_DEBUG
         std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
-                  << " N_" << i << " = " << *itsIt << std::endl;
+                  << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
 //#endif
-        vol *= ((*fnIt) / (*itsIt));
+        //vol *= ((*fnIt) / (*itsIt));
+        ratio_max_temp *= ((*fnIt) / (*itsIt));
+        if (i<mm-1) {
+            sigma_temp = estimate_cov<MT>(points_temp, n);
+        }
     }
 
 //#ifdef VOLESTI_DEBUG
@@ -765,11 +1047,7 @@ NT related_volume_gaussian(Body const& P,
         std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
 //#endif
 
-    return vol;
+    return std::pair<NT, NT> (ratio_min_temp, ratio_max_temp);
 }
-
-
-
-
 
 #endif
