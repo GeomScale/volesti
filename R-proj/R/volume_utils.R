@@ -244,7 +244,7 @@ remove_small_components <- function(A, b, mus, center_2, WW, error, a_vals, rati
   inds = inds[-c(a_min_ind)]
   ratio_min = ratios[[a_min_ind]]
   
-  ratios_min = c()
+  ratios_min = c(1)
   ratios_volumes = rep(0, n)
   ratios_volumes[a_min_ind] = 1
     
@@ -304,14 +304,16 @@ log_volume_n_sphere <- function(d) {
 
 
 #' export
-get_samples <- function(XX, relative_vols, M) {
+get_samples_2 <- function(XX, relative_vols, M) {
   
-  d=dim(XX[[1]])[2]
+  d=dim(XX[[1]])[1]
+  #print(relative_vols)
   cumsum_w = cumsum(relative_vols)
   samples = matrix(,d,0)
   for (i in 1:M) {
-    r = runif(1, 0, 1)
-    X = XX[[which(cumsum_w > r)]]
+    r = runif(1, min = 0, max = 1)
+    pos = which(cumsum_w > r)
+    X = XX[[pos[1]]]
     indx <- sample(1:dim(X)[2], 1)
     samples = cbind(samples, X[,indx])
   }

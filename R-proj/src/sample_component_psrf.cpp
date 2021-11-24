@@ -135,7 +135,7 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
     MT samples;//(d, N);
     MT sigma;
     samples.resize(d, N);
-    unsigned int iter = 1, MAX_ITER = 2000;
+    unsigned int iter = 1, MAX_ITER = 1000;
     VT psrf_values(d);
     NT psrf_val;
     VT p0 = p;
@@ -160,12 +160,12 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
             }
         }
         //psrf_values = univariate_psrf<NT, VT>(samples);
-        //std::cout<<"[1]psrf_values = "<<psrf_values.transpose()<<std::endl;
+        //std::cout<<"[1]psrf_values = "<<psrf_values.maxCoeff()<<std::endl;
 
         psrf_estimator.update_estimator(samples);
         psrf_estimator.estimate_psrf();
         psrf_values = psrf_estimator.get_psrf();
-        //std::cout<<"[2]psrf_values = "<<psrf_estimator.get_psrf().transpose()<<"\n"<<std::endl;
+        //std::cout<<"[2]psrf_values = "<<psrf_estimator.get_psrf().maxCoeff()<<"\n"<<std::endl;
 
         psrf_val = psrf_values.maxCoeff();
         if (psrf_val <= psrf_target) {
@@ -174,6 +174,9 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
         } else if (psrf_val <= NT(1.3)) {
             sigma = estimate_covariance<VT, NT>(samples);
             break;
+        }
+        if (iter == MAX_ITER) {
+            return Rcpp::wrap(samples);
         }
         iter++;
         samples.conservativeResize(d, iter*N);
@@ -199,7 +202,7 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
 
     while (iter <= MAX_ITER)
     {
-        //countsIn_total = 0;
+        countsIn_total = 0;
         p = p0;
         cov_walk.template initialize(BS, p, rng);
 
@@ -215,17 +218,20 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
             }
         }
         //psrf_values = univariate_psrf<NT, VT>(samples);
-        //std::cout<<"[1]psrf_values = "<<psrf_values.transpose()<<std::endl;
+        //std::cout<<"[1]psrf_values = "<<psrf_values.maxCoeff()<<std::endl;
 
         psrf_estimator.update_estimator(samples);
         psrf_estimator.estimate_psrf();
         psrf_values = psrf_estimator.get_psrf();
-        //std::cout<<"[2]psrf_values = "<<psrf_estimator.get_psrf().transpose()<<"\n"<<std::endl;
+        //std::cout<<"[2]psrf_values = "<<psrf_estimator.get_psrf().maxCoeff()<<"\n"<<std::endl;
 
         psrf_val = psrf_values.maxCoeff();
         if (psrf_val <= psrf_target) {
             //std::cout<<"psrf_val = "<<psrf_val<<std::endl;
             break;
+        }
+        if (iter == MAX_ITER) {
+            return Rcpp::wrap(samples);
         }
         iter++;
         samples.conservativeResize(d, iter*N);

@@ -67,6 +67,8 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
   cmax = get_c_upper_bound(A, b, center_2)
   cmin = 1
   
+  #print(S_Vindices)
+  
   if (length(S) == 1){
     interior_res = compute_interior_point_in_node_eff(S_Vindices[[1]], V_ind_out, V, center_2, A, b)
     if (interior_res$found) {
@@ -133,14 +135,14 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
     }
     relative_vols = relative_vols / sum(relative_vols)
   } else {
-    X = sample_component_psrf(A, b, mus[[indx]], 10000, W, center_2, psrf_target)
+    X = sample_component_psrf(A, b, mus[[indx]], 2000, W, center_2, psrf_target)
     XX[[length(XX)+1]] = X
     relative_vols = c(1)
   }
   
   
   #relative_vols = get_rel_volumes(a_vals, ratios, dim(A)[2])
-  samples = get_samples(XX, relative_vols, M)
+  samples = get_samples_2(XX, relative_vols, M)
   
   NN = dim(samples)[2]
   samples = Tinv %*% (samples - kronecker(matrix(1, 1, NN), matrix(center_2, ncol = 1)))

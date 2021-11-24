@@ -46,8 +46,8 @@ compute_interior_point_single_component <- function(A, b, x0) {
                   A = A,
                   b = bb )
   x = c(res0$solution) + c(x0)
-  print(sum(eval_g0(x,A,b)>0))
-  print(sqrt(sum((x-x0)^2)))
+  #print(sum(eval_g0(x,A,b)>0))
+  #print(sqrt(sum((x-x0)^2)))
   #NLOPT_LD_SLSQP
   #NLOPT_LN_COBYLA
   return(x)
