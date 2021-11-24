@@ -192,17 +192,21 @@ get_points_on_components_imp <- function(A, b, x0, V, S, S_Vindices) {
       if (!res_int$intersect) {
         stop('no intersection')
       }
-    
-      if (res_int$tmin < 1 && res_int$tmin > 0) {
-        x = y + res_int$tmin[1]*v
-      } else if(res_int$tmax < 1 && res_int$tmax > 0) {
-        x = y + res_int$tmax[1]*v
-      } else if (res_int$tmin < 0) {
-        x = y + res_int$tmin[1]*v
-      } else if (res_int$tmax < 0) {
+      if (is_in_component(y, x0, A, b, V, ind_verts, TRUE)) {
+        print('isin')
         x = y + res_int$tmax[1]*v
       } else {
-        stop('false intersection')
+        if (res_int$tmin < 1 && res_int$tmin > 0) {
+          x = y + res_int$tmin[1]*v
+        } else if(res_int$tmax < 1 && res_int$tmax > 0) {
+          x = y + res_int$tmax[1]*v
+        } else if (res_int$tmin < 0) {
+          x = y + res_int$tmin[1]*v
+        } else if (res_int$tmax < 0) {
+          x = y + res_int$tmax[1]*v
+        } else {
+          stop('false intersection')
+        }
       }
     
       if (!is_in_component(x, x0, A, b, V, ind_verts, TRUE)) {

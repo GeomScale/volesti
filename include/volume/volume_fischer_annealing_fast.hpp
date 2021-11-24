@@ -78,11 +78,11 @@ NT get_first_two_fischer(const MT &samples,
         }
         //std::cout<<"fn2 = "<<fn2.transpose()<<"\n"<<std::endl;
         std::pair<NT, NT> mv = get_mean_variance_fischer_vt<NT>(fn2);
-        std::cout<<"[1] a = "<<a<<std::endl;
-        std::cout<<"[1] mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
+        //std::cout<<"[1] a = "<<a<<std::endl;
+        //std::cout<<"[1] mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
 
         // Compute a_{i+1}
-        std::cout<<"[1] var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
+        //std::cout<<"[1] var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
         if ((mv.second/(mv.first * mv.first)<=C && mv.second/(mv.first * mv.first)>=Cmin) || (mv.first < 0.05))// || mv.first/last_ratio>1.0-tol)
         {
             done = true;
@@ -116,10 +116,10 @@ NT get_first_two_fischer(const MT &samples,
         }
         //std::cout<<"fn2 = "<<fn2.transpose()<<"\n"<<std::endl;
         std::pair<NT, NT> mv = get_mean_variance_fischer_vt<NT>(fn2);
-        std::cout<<"[1][BS] mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
+        //std::cout<<"[1][BS] mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
 
         // Compute a_{i+1}
-        std::cout<<"[1][BS] var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
+        //std::cout<<"[1][BS] var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
         if (mv.second/(mv.first * mv.first)<=C && mv.second/(mv.first * mv.first)>=Cmin)// || mv.first/last_ratio>1.0-tol)
         {
             ratio_it = mv.first;
@@ -197,9 +197,9 @@ std::pair<NT, NT> get_next_fischer(Body const& P,
     NT ratio_outside = walk.template ratio_outside();
     NT new_a;
 
-    std::cout<<"mu = "<<mu.transpose()<<std::endl;
-    std::cout<<"N = "<<N<<std::endl;
-    std::cout<<"ratio_outside = "<<ratio_outside<<std::endl;
+    //std::cout<<"mu = "<<mu.transpose()<<std::endl;
+    //std::cout<<"N = "<<N<<std::endl;
+    //std::cout<<"ratio_outside = "<<ratio_outside<<std::endl;
 
     if (check_last) {
         if (ratio_outside < ratio_tol){
@@ -214,7 +214,7 @@ std::pair<NT, NT> get_next_fischer(Body const& P,
         //    exit(-1);
         //}
         new_a = last_a * std::pow(ratio,k);
-        std::cout<<"new_a = "<<new_a<<std::endl;
+        //std::cout<<"new_a = "<<new_a<<std::endl;
         fn2 = (last_a - new_a) * fn;
 
         fnit = fn2.data();
@@ -225,11 +225,11 @@ std::pair<NT, NT> get_next_fischer(Body const& P,
         }
         //std::cout<<"fn2 = "<<fn2.transpose()<<"\n"<<std::endl;
         std::pair<NT, NT> mv = get_mean_variance_fischer_vt<NT>(fn2);
-        std::cout<<"mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
+        //std::cout<<"mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
 
         // Compute a_{i+1}
-        std::cout<<"var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
-        std::cout<<"mv.first/last_ratio = "<<mv.first/last_ratio<<std::endl;
+        //std::cout<<"var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
+        //std::cout<<"mv.first/last_ratio = "<<mv.first/last_ratio<<std::endl;
         //exit(-1);
         //std::cout<<"C = "<<C<<std::endl;
         //std::cout<<"ratio = "<<ratio<<std::endl;
@@ -257,7 +257,7 @@ std::pair<NT, NT> get_next_fischer(Body const& P,
         
         k = (k1+k2)/NT(2);
         new_a = last_a * std::pow(ratio,k);
-        std::cout<<"new_a = "<<new_a<<std::endl;
+        //std::cout<<"new_a = "<<new_a<<std::endl;
         fn2 = (last_a - new_a) * fn;
 
         fnit = fn2.data();
@@ -268,11 +268,11 @@ std::pair<NT, NT> get_next_fischer(Body const& P,
         }
         //std::cout<<"fn2 = "<<fn2.transpose()<<"\n"<<std::endl;
         std::pair<NT, NT> mv = get_mean_variance_fischer_vt<NT>(fn2);
-        std::cout<<"[BS] mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
+        //std::cout<<"[BS] mean = "<<mv.first<<", variance = "<<mv.second<<std::endl;
 
         // Compute a_{i+1}
-        std::cout<<"[BS] var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
-        std::cout<<"[BS] mv.first/last_ratio = "<<mv.first/last_ratio<<std::endl;
+        //std::cout<<"[BS] var / m^2 = "<<mv.second/(mv.first * mv.first)<<std::endl;
+        //std::cout<<"[BS] mv.first/last_ratio = "<<mv.first/last_ratio<<std::endl;
         //exit(-1);
         //std::cout<<"C = "<<C<<std::endl;
         //std::cout<<"ratio = "<<ratio<<std::endl;
@@ -331,8 +331,8 @@ void compute_annealing_schedule_fischer(Body const& P,
     // Compute the first gaussian
     NT a2 = get_first_two_fischer(samples, C, Cmin, mu, ratio_it);
     ratios.push_back(ratio_it);
-    std::cout<<"ratio = "<<ratio_it<<std::endl;
-    std::cout<<"first two computed"<<"\n"<<std::endl;
+    //std::cout<<"ratio = "<<ratio_it<<std::endl;
+    //std::cout<<"first two computed"<<"\n"<<std::endl;
     NT a1 = 0.0, a_next;
     //const NT tol = 0.001;
     unsigned int it = 1;
@@ -358,9 +358,9 @@ void compute_annealing_schedule_fischer(Body const& P,
         
         ratios.push_back(ratio_it);
         a_vals.push_back(res.first);
-        std::cout<<"a_next = "<<res.first<<std::endl;
-        std::cout<<"ratio = "<<ratio_it<<std::endl;
-        std::cout<<"num of phases = "<<a_vals.size()<<"\n"<<std::endl;
+        //std::cout<<"a_next = "<<res.first<<std::endl;
+        //std::cout<<"ratio = "<<ratio_it<<std::endl;
+        //std::cout<<"num of phases = "<<a_vals.size()<<"\n"<<std::endl;
         //if(a_vals.size()>30){
          //   exit(-1);
         //}
@@ -479,7 +479,7 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
 
     compute_annealing_schedule_fischer<WalkType>(P, p, mu, samples, ratio, C, Cmin, N, walk_length, a_vals, ratios, WW, rng);
 
-    int j=0, MM = samples.cols();
+    /*int j=0, MM = samples.cols();
     for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++)
     {
         std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
@@ -496,7 +496,7 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
     {
         std::cout<<"r_"<<j<<" = "<<*avalIt<<" ";
     }
-    std::cout<<std::endl<<std::endl;
+    std::cout<<std::endl<<std::endl;*/
 //#endif
 
     // Initialization for the approximation of the ratios
@@ -518,7 +518,7 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
 
 //#ifdef VOLESTI_DEBUG
     //std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
-    std::cout<<"computing ratios..\n"<<std::endl;
+    //std::cout<<"computing ratios..\n"<<std::endl;
 //#endif
 
     typedef typename WalkType::template Walk
@@ -611,24 +611,24 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
             index = index%W + 1;
             if (index == W) index = 0;
         }
-//#ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
         std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
                   << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
-//#endif
+#endif
         vol *= ((*fnIt) / (*itsIt));
         if (i<mm-1) {
             sigma_temp = estimate_cov<MT>(points_temp, n);
         }
     }
 
-//#ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
         NT sum_of_steps = 0.0;
         for(viterator it = its.begin(); it != its.end(); ++it) {
             sum_of_steps += *it;
         }
         auto steps= int(sum_of_steps);
         std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
-//#endif
+#endif
 
     return std::pair<NT, NT>(vol, a_vals[a_vals.size()-1]);
 }
@@ -691,9 +691,9 @@ std::pair<VT, VT> compute_annealing_fischer(Body const& P,
     for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++)
     {
         a_sequence(j) = (*avalIt);
-        std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
+        //std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
     }
-    std::cout<<std::endl<<std::endl;
+    //std::cout<<std::endl<<std::endl;
 
     //std::sort(a_vals.begin(), a_vals.end(), std::greater<NT>());
 
@@ -705,9 +705,9 @@ std::pair<VT, VT> compute_annealing_fischer(Body const& P,
     for (auto avalIt = ratios.begin(); avalIt!=ratios.end(); avalIt++, j++)
     {
         ratios_vt(j) = (*avalIt);
-        std::cout<<"r_"<<j<<" = "<<*avalIt<<" ";
+        //std::cout<<"r_"<<j<<" = "<<*avalIt<<" ";
     }
-    std::cout<<std::endl<<std::endl;
+    //std::cout<<std::endl<<std::endl;
 //#endif
 
     return std::pair<VT, VT>(a_sequence, ratios_vt);
@@ -760,7 +760,7 @@ NT estimate_ratios_fischer(Body const& P,
 
 //#ifdef VOLESTI_DEBUG
     //std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
-    std::cout<<"computing ratios..\n"<<std::endl;
+    //std::cout<<"computing ratios..\n"<<std::endl;
 //#endif
 
     typedef typename WalkType::template Walk
@@ -860,8 +860,8 @@ NT estimate_ratios_fischer(Body const& P,
             if (index == W) index = 0;
         }
 //#ifdef VOLESTI_DEBUG
-        std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
-                  << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
+        //std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
+                 // << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
 //#endif
         vol *= (*fnIt) / (*itsIt);
         //vol *= ((*fnIt) / (*itsIt));
@@ -870,15 +870,15 @@ NT estimate_ratios_fischer(Body const& P,
         }
     }
 
-//#ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
         NT sum_of_steps = 0.0;
         for(viterator it = its.begin(); it != its.end(); ++it) {
             sum_of_steps += *it;
         }
         auto steps= int(sum_of_steps);
-        std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
+       // std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
         //std::cout<<"\nvol = "<<vol<<"\n"<<std::endl;
-//#endif
+#endif
 
     return vol;
 }
@@ -946,9 +946,9 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
         ratios.push_back(ratio_it);
         ratio_min_temp *= (NT(1) / ratio_it);
 
-        std::cout<<"a_next = "<<res.first<<std::endl;
-        std::cout<<"ratio = "<<ratio_it<<std::endl;
-        std::cout<<"num of phases = "<<a_vals.size()<<"\n"<<std::endl;
+        //std::cout<<"a_next = "<<res.first<<std::endl;
+        //std::cout<<"ratio = "<<ratio_it<<std::endl;
+        //std::cout<<"num of phases = "<<a_vals.size()<<"\n"<<std::endl;
 
         if (res.first < a_max) {
             a_vals.push_back(res.first);
@@ -960,7 +960,7 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
         it++;        
     }
 
-    int j=0;
+    /*int j=0;
     for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++)
     {
         std::cout<<"a_"<<j<<" = "<<*avalIt<<" ";
@@ -972,10 +972,10 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
     {
         std::cout<<"r_"<<j<<" = "<<*avalIt<<" ";
     }
-    std::cout<<std::endl<<std::endl;
+    std::cout<<std::endl<<std::endl;*/
 
     if ((ratio_min_temp*ratio_min) / ratio_max_temp < 1e-05 || (ratio_min_temp*ratio_min) / ratio_max_temp > 1e05){
-        std::cout<<"ratio_min_temp / ratio_max_temp = "<<(ratio_min_temp*ratio_min) / ratio_max_temp<<std::endl;
+        //std::cout<<"ratio_min_temp / ratio_max_temp = "<<(ratio_min_temp*ratio_min) / ratio_max_temp<<std::endl;
         return std::pair<NT, NT> (ratio_min_temp, ratio_max_temp);
     } 
     ratio_max_temp = ratio_max;
@@ -1000,7 +1000,7 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
 
 //#ifdef VOLESTI_DEBUG
     //std::cout<<"volume of the first gaussian = "<<vol<<"\n"<<std::endl;
-    std::cout<<"computing ratios..\n"<<std::endl;
+    //std::cout<<"computing ratios..\n"<<std::endl;
 //#endif
 
     typedef typename WalkType::template Walk
@@ -1085,8 +1085,8 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
             if (index == W) index = 0;
         }
 //#ifdef VOLESTI_DEBUG
-        std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
-                  << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
+       // std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
+                //  << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
 //#endif
         //vol *= ((*fnIt) / (*itsIt));
         ratio_min_temp *= ((*fnIt) / (*itsIt));
@@ -1095,14 +1095,14 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
         //}
     }
 
-//#ifdef VOLESTI_DEBUG
+#ifdef VOLESTI_DEBUG
         NT sum_of_steps = 0.0;
         for(viterator it = its.begin(); it != its.end(); ++it) {
             sum_of_steps += *it;
         }
         auto steps= int(sum_of_steps);
         std::cout<<"\nTotal number of steps = "<<steps<<"\n"<<std::endl;
-//#endif
+#endif
 
     return std::pair<NT, NT> (ratio_min_temp, ratio_max_temp);
 }
