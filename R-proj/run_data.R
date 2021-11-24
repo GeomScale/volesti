@@ -13,7 +13,7 @@ M = 5000 #portfolios to generate for each level of volatility
 m = 5 #levels of volatility for time period
 something_went_wong = matrix(,0,2) #structure to store the instances where the method failed
 
-for (i in 1:(k-win+1)) {
+for (i in 125:(k-win+1)) {
 #for (i in 1:1) {
   
   R = Ret[i:(i+win-1),] #consider the returns of this sliding window

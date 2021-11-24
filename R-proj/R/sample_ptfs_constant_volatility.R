@@ -76,11 +76,11 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
     } else {
       x = compute_interior_point_single_component(A, b, center_2)
     }
-    samples = sample_component_psrf(A, b, x, Nu, W, center_2, psrf_target)
+    samples = sample_component_psrf(A, b, x, M, W, center_2, psrf_target)
     
-    if (dim(samples)[2] > Nu) {
-      indx <- sample(1:dim(samples)[2], Nu)
-      samples = samples[,indx]
+    if (dim(samples)[2] > M) {
+      indx <- sample(1:dim(samples)[2], M)
+      samples = samples[, indx]
     }
     NN = dim(samples)[2]
     samples = Tinv %*% (samples - kronecker(matrix(1, 1, NN), matrix(center_2, ncol = 1)))
