@@ -17,8 +17,9 @@
 #include <boost/random/uniform_real_distribution.hpp>
 #include "generators/boost_random_number_generator.hpp"
 #include "convex_bodies/ballintersectsimplex.h"
+#include "random_walks/uniform_great_cycle_walk.hpp"
 #include "random_walks/fischer_gcw_walk.hpp"
-#include "volume/volume_component_fischer.hpp"
+#include "volume/volume_fischer_annealing_fast.hpp"
 
 //' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 //'
@@ -38,9 +39,7 @@
 Rcpp::List compute_fischer_volume(Rcpp::NumericMatrix A,
                                     Rcpp::NumericVector b,
                                     Rcpp::NumericVector mu_,
-                                    Rcpp::NumericMatrix sigma_,
                                     Rcpp::NumericVector x0,
-                                    Rcpp::NumericMatrix samples_,
                                     unsigned int W,
                                     double error)
 {
@@ -53,7 +52,7 @@ Rcpp::List compute_fischer_volume(Rcpp::NumericMatrix A,
     unsigned int d = A.ncol();
     VT b2 = Rcpp::as<VT>(b) - Rcpp::as<MT>(A)*Rcpp::as<VT>(x0);
 
-    MT samples = Rcpp::as<MT>(samples_), V2;
+    MT V2;
 
     Body BS(d, Rcpp::as<MT>(A), b2, V2, VT::Zero(d));
 
@@ -64,10 +63,9 @@ Rcpp::List compute_fischer_volume(Rcpp::NumericMatrix A,
     RNGType rng(d);
     VT p = Rcpp::as<VT>(mu_), center = Rcpp::as<VT>(x0);
     VT mu = Rcpp::as<VT>(mu_) - center;
-    MT sigma = Rcpp::as<MT>(sigma_);
     p -= center;
 
-    std::pair<NT, NT> res = volume_component_cooling_fischer<FischerGCWalk>(BS, p, mu, sigma, samples, rng, W, error);
+    std::pair<NT, NT> res = volume_component_cooling_fischer<GCWalk, FischerGCWalk, MT>(BS, p, mu, rng, W, error);
 
 
     return Rcpp::List::create(Rcpp::Named("ratio") = res.first, Rcpp::Named("last_variance") = res.second);   

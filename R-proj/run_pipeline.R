@@ -26,6 +26,8 @@ mu = mu[[1]]
 
 d = 3
 
+X = sample_component_psrf(A,b,Xs[,1],10000,1,x0,1.2)
+
 counter = 0
 N=100000
 Y = boundary_randsphere(d, N) + kronecker(matrix(1, 1, N), matrix(x0, ncol = 1))
@@ -38,9 +40,9 @@ for (i in 1:N) {
 }
 log_vol = log_volume_n_sphere(d) + log(counter/N)
 vol = exp(log_vol)
-#res = get_max_cap(X, A, b, x0, V, Sind, 2000)
+res = get_max_cap(X, A, b, x0, V, Sind, 2000)
 
-#mu = res$center
+mu = res$center
 sigma = cov(t(X))
 
 Y0 = sample_fischer(A,b,mu,mu,50,20,1000,5,x0)

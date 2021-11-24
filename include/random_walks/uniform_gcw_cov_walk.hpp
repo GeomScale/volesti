@@ -43,7 +43,7 @@ struct Walk
     }
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, VT& p,
+    Walk(GenericPolytope const& P, VT& p, MT &sigma,
          RandomNumberGenerator& rng, parameters const& params)
     {
         _sigma = sigma;

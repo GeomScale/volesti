@@ -19,8 +19,31 @@
 #include "convex_bodies/ballintersectsimplex.h"
 //#include "random_walks/gcw_estimator.hpp"
 #include "random_walks/uniform_great_cycle_walk.hpp"
+#include "random_walks/uniform_gcw_cov_walk.hpp"
 #include "diagnostics/psrf_updater.hpp"
 #include "diagnostics/univariate_psrf.hpp"
+
+
+template <typename VT, typename NT, typename MT>
+MT estimate_covariance(MT samples)
+{
+    int d = samples.rows();
+    int N = samples.cols();
+    MT sigma;
+    sigma.setZero(d, d);
+
+    VT m = samples.rowwise().mean(), p;
+    samples = samples.colwise() - m;
+
+    for (int i=0; i<N; i++)
+    {
+        p = samples.col(i);
+        sigma.noalias() += p * p.transpose();
+    }
+
+    sigma *= (NT(1)/NT(N));
+    return sigma;
+}
 
 //' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 //'
@@ -110,8 +133,9 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
     CGWalk walk(BS, p, rng);
 
     MT samples;//(d, N);
+    MT sigma;
     samples.resize(d, N);
-    unsigned int iter = 1, MAX_ITER = 200;
+    unsigned int iter = 1, MAX_ITER = 2000;
     VT psrf_values(d);
     NT psrf_val;
     VT p0 = p;
@@ -146,6 +170,9 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
         psrf_val = psrf_values.maxCoeff();
         if (psrf_val <= psrf_target) {
             //std::cout<<"psrf_val = "<<psrf_val<<std::endl;
+            return Rcpp::wrap(samples);
+        } else if (psrf_val <= NT(1.3)) {
+            sigma = estimate_covariance<VT, NT>(samples);
             break;
         }
         iter++;
@@ -153,5 +180,57 @@ Rcpp::NumericMatrix sample_component_psrf(Rcpp::NumericMatrix A,
         
     }
 
-    return Rcpp::wrap(samples);    
+    //if (psrf_val >= psrf_target) {
+    //    return Rcpp::wrap(samples);
+    //}
+
+    iter++;
+    samples.conservativeResize(d, iter*N);
+
+    typedef GCCovWalk::template Walk
+            <
+                Body,
+                RNGType,
+                Eigen::LLT<MT>
+            > CGCOVWalk;
+    
+    CGCOVWalk cov_walk(BS, p0, sigma, rng);
+
+
+    while (iter <= MAX_ITER)
+    {
+        //countsIn_total = 0;
+        p = p0;
+        cov_walk.template initialize(BS, p, rng);
+
+        for (int i = 0; i < N; i++)
+        {   
+            cov_walk.template apply(BS, p, walk_length, rng);
+            samples.col((iter-1)*N + i) = p + center;
+            countsIn_total++;
+
+            if (rng.sample_urdist() < (NT(1) / countsIn_total))
+            {
+                p0 = p;
+            }
+        }
+        //psrf_values = univariate_psrf<NT, VT>(samples);
+        //std::cout<<"[1]psrf_values = "<<psrf_values.transpose()<<std::endl;
+
+        psrf_estimator.update_estimator(samples);
+        psrf_estimator.estimate_psrf();
+        psrf_values = psrf_estimator.get_psrf();
+        //std::cout<<"[2]psrf_values = "<<psrf_estimator.get_psrf().transpose()<<"\n"<<std::endl;
+
+        psrf_val = psrf_values.maxCoeff();
+        if (psrf_val <= psrf_target) {
+            //std::cout<<"psrf_val = "<<psrf_val<<std::endl;
+            break;
+        }
+        iter++;
+        samples.conservativeResize(d, iter*N);
+        
+    }
+
+    return Rcpp::wrap(samples);
 }

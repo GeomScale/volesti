@@ -145,12 +145,12 @@ get_parameters <- function(d) {
   parameters$lb = 0.1
   parameters$ub = 0.15
   parameters$Nu = 1000 + floor(d^2/2)
-  parameters$W = 1
+  parameters$W = 10 + floor(d/10)
   parameters$WW = 7
   #parameters$W_to_sample = 10 + floor(d/10)
   parameters$W_to_sample = 1
   parameters$win_len = 4*d^2 + 500
-  parameters$error = 0.1
+  parameters$error = 0.2
   parameters$psrf_target = 1.2
   
   return(parameters)
@@ -637,10 +637,10 @@ is_in_component <- function(x, x0, A, b, V, Sind, full_check) {
     }
     
     
-    p = p - x0
+    p0 = p - x0
     a = t(v) %*% v
-    b = 2 * (t(p) %*% v)
-    g = t(p) %*% p - 1
+    b = 2 * (t(p0) %*% v)
+    g = t(p0) %*% p0 - 1
         
     D = b^2 - 4 * a * g
     #print(D)
@@ -667,7 +667,6 @@ is_in_component <- function(x, x0, A, b, V, Sind, full_check) {
     }
     
   }
-  
   return(is_in)
 }
 
@@ -678,6 +677,8 @@ get_fast_interior_point <- function(A, b, x0, V, Sind, cmin, cmax) {
   m = dim(A)[1]
   full_check = TRUE
   sc = cmax
+  sc_prev=0
+  rr = 2
   d = length(x0)
   
   X = boundary_randsphere(d, 2) + kronecker(matrix(1, 1, 2), matrix(x0, ncol = 1))
@@ -685,9 +686,24 @@ get_fast_interior_point <- function(A, b, x0, V, Sind, cmin, cmax) {
   
   while (TRUE) {
     
+    if(abs(sc-sc_prev)/sc_prev < 0.01){
+      rr=rr+1
+      print(paste0('rr = ',as.character(rr)))
+    }
     bb = sc*b
-    X = sample_component(A, bb, x, 1200 + floor(d^2/4), 1, x0)
-    AX_b = A %*% X - kronecker(matrix(1, 1, 1200 + floor(d^2/4)), matrix(bb, ncol = 1))
+    NN = dim(X)[2]
+    counter=0
+    for (i in 1:NN) {
+     y=X[,i] 
+    
+      if (is_in_component(y, x0, A, bb, V, Sind, full_check)) {
+        counter=counter+1
+        x=y
+      }
+    }
+    print(counter)
+    X = sample_component(A, bb, x, 1200 + rr*floor(d^2), 1, x0)
+    AX_b = A %*% X - kronecker(matrix(1, 1, 1200 + rr*floor(d^2)), matrix(bb, ncol = 1))
     #+dim(A)[2]^2/4
     #q = colSums(sign(AX_b))
   
@@ -695,17 +711,19 @@ get_fast_interior_point <- function(A, b, x0, V, Sind, cmin, cmax) {
     #AX_b_pos = AX_b[, pos]
   
     #pos = which(AX_b_pos == max(AX_b_pos), arr.ind = TRUE)
-    pos = which(AX_b == min(colMaxs(AX_b, na.rm = TRUE)), arr.ind = TRUE)
+    pos = which(AX_b == min(matrixStats::colMaxs(AX_b, na.rm = FALSE)), arr.ind = TRUE)
     
     #print((A[pos[1],]%*%X[, pos[2]] - bb[pos[1]]))
-    sc2 = (1.03 * (A[pos[1],]%*%X[, pos[2]] / b[pos[1]]))[1] #check this
+    sc2 = (1.0000001 * (A[pos[1],]%*%X[, pos[2]] / b[pos[1]]))[1] #check this
     #print(is_in_component(X[, pos[2]], x0, A, sc2*b, V, Sind, full_check))
     x = X[, pos[2]]
-    #print(sc2)
+    print(sc2)
+    print(' ')
+    sc_prev = sc
     sc=sc2
      
     if (is_in_component(x, x0, A, b, V, Sind, full_check)) {
-      find_point_in_component(A, b, x0, V, cmin, cmax, x, FALSE) #just to check
+      #find_point_in_component(A, b, x0, V, cmin, cmax, x, FALSE) #just to check
       return(x)
     }
   }

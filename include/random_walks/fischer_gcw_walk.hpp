@@ -82,15 +82,52 @@ struct Walk
             _lambda = sample_fischer_segment(bpair.second, bpair.first, _mu_p, _mu_v, _W, k, rng);
 
             p = (cos(_lambda) * p) + (sin(_lambda) * _v);
-            VT q = P.get_mat()*p - P.get_vec();
-            for (int i=0; i<P.num_of_hyperplanes(); i++)
-            {
-                if (q(i)>NT(0))
-               {
-                    std::cout<<"outside from sampling, q: "<<q(i)<<std::endl;
-                    exit(-1);
-                }
-            }
+            //VT q = P.get_mat()*p - P.get_vec();
+            //for (int i=0; i<P.num_of_hyperplanes(); i++)
+            //{
+            //    if (q(i)>NT(0))
+            //   {
+             //       std::cout<<"outside from sampling, q: "<<q(i)<<std::endl;
+            //        exit(-1);
+            //    }
+            //}
+        }
+        //p = _p;
+    }
+
+
+    template
+    <
+        typename BallPolytope
+    >
+    inline void apply_ratio_esti(BallPolytope const& P,
+                      VT& p,   // a point to start
+                      NT const &k,
+                      unsigned int const& walk_length,
+                      RandomNumberGenerator& rng)
+    {
+        for (auto j=0u; j<walk_length; ++j)
+        {
+            GetDirectionTangentPlane<VT>::apply(p, _v, rng);
+            
+            //std::cout<<"p'v = "<<p.dot(_v)<<", v.norm() = "<<_v.norm()<<std::endl;
+            std::pair<NT, NT> bpair = P.gc_intersect(p, _v, _lamdas, _Av, _lambda);
+
+            _mu_p = _mu_p*cos(_lambda) + _mu_v*sin(_lambda);
+            _mu_v = _mu.dot(_v);
+
+            _lambda = sample_fischer_segment(bpair.second, bpair.first, _mu_p, _mu_v, _W, k, rng);
+
+            p = (cos(_lambda) * p) + (sin(_lambda) * _v);
+            //VT q = P.get_mat()*p - P.get_vec();
+            //for (int i=0; i<P.num_of_hyperplanes(); i++)
+            //{
+            //    if (q(i)>NT(0))
+            //   {
+             //       std::cout<<"outside from sampling, q: "<<q(i)<<std::endl;
+            //        exit(-1);
+            //    }
+            //}
         }
         //p = _p;
     }

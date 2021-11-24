@@ -5,13 +5,12 @@ Ret = msci_ci$X_est
 
 #n = dim(Ret)[2] #number of assets
 
-n = 4 #for synthetic data
+n = 100 #for synthetic data
 
-k = dim(Ret)[1] #number of weekly returns
+#k = dim(Ret)[1] #number of weekly returns
 win = 40 #window length
 M = 5000 #portfolios to generate for each level of volatility
 m = 5 #levels of volatility for time period
-parameters = get_parameters(n-1) #parameters of the simulated annealing algorithm
 something_went_wong = matrix(,0,2) #structure to store the instances where the method failed
 
 for (i in 1:(k-win+1)) {
@@ -28,7 +27,7 @@ for (i in 1:(k-win+1)) {
   for (j in 1:m) {
     c = Cs[j]
     print(paste0('i = ',as.character(i), ' j = ', as.character(j)))
-    samples = sample_ptfs_constant_volatility(sigma, c, M, parameters) #sample M points, with c volatility when the cov. matrix is sigma
+    samples = sample_ptfs_constant_volatility(sigma, c, M) #sample M points, with c volatility when the cov. matrix is sigma
     correctness = check_correctness(samples, sigma, c) # check if the points lie in the simplex and have the requested value of volatility
     print(dim(samples))
     print(correctness)

@@ -1,5 +1,9 @@
 #' @export
-sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
+sample_ptfs_constant_volatility <- function(sigma, c, M) {
+  
+  n <- dim(sigma)[2]
+  
+  parameters = get_parameters(n-1)
   
   nu = parameters$nu
   lb = parameters$lb
@@ -9,8 +13,6 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
   psrf_target = parameters$psrf_target
   error = parameters$error
   WW = parameters$WW
-  
-  n <- dim(sigma)[2]
   
   A <- -diag(n)
   b <- rep(0, 1)
@@ -51,7 +53,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
   center_2 = center_2 - x0_2
   V = V - kronecker(matrix(1, 1, n), matrix(x0_2, ncol = 1))
   
-  find_components_new_vertices(V, center_2)
+  components_res=find_components_new_vertices(V, center_2)
   
   S = components_res[[1]]
   S_Vindices = components_res[[2]]
@@ -62,14 +64,17 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
     V_ind_out = c()
   }
   
+  cmax = get_c_upper_bound(A, b, center_2)
+  cmin = 1
+  
   if (length(S) == 1){
     interior_res = compute_interior_point_in_node_eff(S_Vindices[[1]], V_ind_out, V, center_2, A, b)
     if (interior_res$found) {
       x = interior_res$x
     } else {
-      x = get_fast_interior_point(A, b, center_2, V, S_Vindices[[1]], cmin, cmax)
+      x = compute_interior_point_single_component(A, b, center_2)
     }
-    samples = sample_component_psrf(A, b, x, 2*Nu, W, center_2, psrf_target)
+    samples = sample_component_psrf(A, b, x, Nu, W, center_2, psrf_target)
     
     if (dim(samples)[2] > Nu) {
       indx <- sample(1:dim(samples)[2], Nu)
@@ -81,7 +86,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
     return(samples)
   }
   
-  Xs = get_points_on_components(A, b, center_2, V, S, S_Vindices, V_ind_out)
+  Xs = get_points_on_components_imp(A, b, center_2, V, S, S_Vindices)
   
   nn = length(S)
   a_vals = matrix(list(), 0, 1)
@@ -89,42 +94,53 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
   mus = matrix(list(), 0, 1)
   sigmas = matrix(list(), 0, 1)
   XX = matrix(list(), 0, 1)
-  log_vols = c()
+  vols = c()
   
   for (i in 1:nn) {
-    X = sample_component_psrf(A, b, Xs[,i], 2*Nu, W, center_2, psrf_target)
-    XX[[length(XX)+1]] = X
-    
-    if (50*n < dim(X)[2]){
-      NN = 50*n
-    } else {
-      NN = dim(X)[2]
-    }
-    
-    res = get_max_cap(X, A, b, center_2, V, S_Vindices[[i]], NN)
-    mu = res$center
+    mu = Xs[,i]
     mus[[length(mus) + 1]] = mu 
-    sigma = cov(t(X))
-    sigmas[[length(sigmas) + 1]] = sigma
+    #sigma = cov(t(X))
+    #sigmas[[length(sigmas) + 1]] = sigma
     
-    res1 = compute_fischer_annealing(A, b, mu, sigma, center_2, X, WW)
+    res1 = compute_fischer_annealing(A, b, mu, center_2, WW)
     a_vals[[length(a_vals) + 1]] = res1$variances
     ratios[[length(ratios) + 1]] = res1$ratios
   }
   
-  indices = remove_small_components(a_vals, ratios, dim(A)[2])
+  res_rem = remove_small_components(A, b, mus, center_2, WW, error, a_vals, ratios)
+  ratios_volumes = res_rem$ratios_volumes
+  indx = res_rem$index
+  ratios_min = res_rem$ratios_min
   
-  for (i in indices) {
-    res2 = compute_fischer_ratios(A, b, mus[[i]], sigmas[[i]], center_2, Xs[[i]], a_vals[[i]], ratios[[i]], Nu, WW, error/sqrt(nn))
-    log_vols = c(log_vols, res2)
+  indices = which(ratios_volumes>1e-05 & ratios_volumes<1e05)
+  
+  if (length(indices) > 1) {
+    relative_vols = c()
+    for (i in indices) {
+      res2 = compute_fischer_ratios(A, b, mus[[i]], center_2, a_vals[[i]], ratios[[i]], Nu, WW, error/sqrt(length(indices)))
+      vols = c(vols, res2)
+      
+      X = sample_component_psrf(A, b, mus[[i]], 10000, W, center_2, psrf_target)
+      XX[[length(XX)+1]] = X
+    }
+    vol_min = 1/vols[indices[which(indices==indx)]]
+    for (i in 1:length(indices)) {
+      if (indx == indices[i]) {
+        relative_vols = c(relative_vols, 1)
+        next
+      }
+      relative_vols = c(relative_vols, (1/vols[i]) / (ratios_min[indices[i]]*vol_min))
+    }
+    relative_vols = relative_vols / sum(relative_vols)
+  } else {
+    X = sample_component_psrf(A, b, mus[[indx]], 10000, W, center_2, psrf_target)
+    XX[[length(XX)+1]] = X
+    relative_vols = c(1)
   }
   
-  XX = XX[[indices]]
-  a_vals = a_vals[[indices]]
-  ratios = ratios[[indices]]
   
-  relative_vols = get_rel_volumes(a_vals, ratios, dim(A)[2])
-  samples = get_samples(Xs, relative_vols, Nu)
+  #relative_vols = get_rel_volumes(a_vals, ratios, dim(A)[2])
+  samples = get_samples(XX, relative_vols, M)
   
   NN = dim(samples)[2]
   samples = Tinv %*% (samples - kronecker(matrix(1, 1, NN), matrix(center_2, ncol = 1)))
@@ -132,3 +148,5 @@ sample_ptfs_constant_volatility <- function(sigma, c, M, parameters) {
   
   return(samples)
 }
+
+

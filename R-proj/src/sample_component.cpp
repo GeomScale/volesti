@@ -38,6 +38,7 @@
 Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
                                      Rcpp::NumericVector b,
                                      Rcpp::NumericVector x,
+                                     Rcpp::NumericMatrix V,
                                      unsigned int N,
                                      unsigned int walk_length,
                                      Rcpp::NumericVector x0)
@@ -53,13 +54,13 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
 
     
 
-    //MT VV = Rcpp::as<MT>(V);
+    MT VV = Rcpp::as<MT>(V);
     //VT Vnorms_shifted(VV.cols());
-    //for (int i =0; i<VV.cols(); i++)
-    //{
-    //    VV.col(i) = VV.col(i) - Rcpp::as<VT>(x0);
-    //    Vnorms_shifted(i) = VV.col(i).norm() * VV.col(i).norm();
-    //}
+    for (int i =0; i<VV.cols(); i++)
+    {
+        VV.col(i) = VV.col(i) - Rcpp::as<VT>(x0);
+        //Vnorms_shifted(i) = VV.col(i).norm() * VV.col(i).norm();
+    }
 
     MT V2;// = Rcpp::as<MT>(V);
     //V2 = V2.colwise() - Rcpp::as<VT>(x0);
@@ -75,7 +76,7 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
     //std::cout<<Vnorms_shifted<<"\n\n"<<std::endl;
     //std::cout<<Vnorms_shifted2<<"\n\n"<<std::endl;
 
-    Body BS(d, Rcpp::as<MT>(A), b2, V2, VT::Zero(d));
+    Body BS(d, Rcpp::as<MT>(A), b2, VV, VT::Zero(d));
 
     //Body BS2(d, Rcpp::as<MT>(A), Rcpp::as<VT>(b), Rcpp::as<MT>(V), Rcpp::as<VT>(x0));
 
@@ -122,8 +123,10 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
         //if (BS.is_in(p) == 0)
         //{
         //    std::cout<<"BS point outside"<<std::endl;
-        //    outside = true;
-            //exit(-1);
+            //outside = true;
+        //    exit(-1);
+        //}else{
+        //    std::cout<<"inside"<<std::endl;
         //}
         //if (outside) exit(-1);
         samples.col(i) = p + center;

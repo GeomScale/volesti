@@ -15,24 +15,6 @@
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
-compute_bessel <- function(d, k) {
-    .Call(`_volesti_compute_bessel`, d, k)
-}
-
-#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
-#'
-#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
-#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
-#'
-#' @references \cite{Gelman, A. and Rubin, D. B.,
-#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
-#'
-#' @references \cite{Brooks, S. and Gelman, A.,
-#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
-#'
-#' @return A vector that contains the values of PSRF for each coordinate
-#'
-#' @export
 compute_component_volume <- function(A, b, mu_, sigma_, x0, samples_, W, error) {
     .Call(`_volesti_compute_component_volume`, A, b, mu_, sigma_, x0, samples_, W, error)
 }
@@ -51,8 +33,8 @@ compute_component_volume <- function(A, b, mu_, sigma_, x0, samples_, W, error) 
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
-compute_fischer_annealing <- function(A, b, mu_, sigma_, x0, samples_, W) {
-    .Call(`_volesti_compute_fischer_annealing`, A, b, mu_, sigma_, x0, samples_, W)
+compute_fischer_annealing <- function(A, b, mu_, x0, W) {
+    .Call(`_volesti_compute_fischer_annealing`, A, b, mu_, x0, W)
 }
 
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
@@ -69,26 +51,8 @@ compute_fischer_annealing <- function(A, b, mu_, sigma_, x0, samples_, W) {
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
-compute_fischer_volume <- function(A, b, mu_, sigma_, x0, samples_, W, error) {
-    .Call(`_volesti_compute_fischer_volume`, A, b, mu_, sigma_, x0, samples_, W, error)
-}
-
-#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
-#'
-#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
-#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
-#'
-#' @references \cite{Gelman, A. and Rubin, D. B.,
-#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
-#'
-#' @references \cite{Brooks, S. and Gelman, A.,
-#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
-#'
-#' @return A vector that contains the values of PSRF for each coordinate
-#'
-#' @export
-compute_log_bessel <- function(d, k) {
-    .Call(`_volesti_compute_log_bessel`, d, k)
+compute_fischer_volume <- function(A, b, mu_, x0, W, error) {
+    .Call(`_volesti_compute_fischer_volume`, A, b, mu_, x0, W, error)
 }
 
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
@@ -123,8 +87,26 @@ compute_related_volume <- function(A, b, mu_, sigma_, x0, a_min, a_max, W, error
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
-compute_fischer_ratios <- function(A, b, mu_, sigma_, x0, samples_, a_vals, ratios, N, W, error) {
-    .Call(`_volesti_compute_fischer_ratios`, A, b, mu_, sigma_, x0, samples_, a_vals, ratios, N, W, error)
+compute_fischer_ratios <- function(A, b, mu_, x0, a_vals, ratios, N, W, error) {
+    .Call(`_volesti_compute_fischer_ratios`, A, b, mu_, x0, a_vals, ratios, N, W, error)
+}
+
+#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return A vector that contains the values of PSRF for each coordinate
+#'
+#' @export
+estimate_related_ratio_fischer <- function(A, b, mu_, x0, a_min, a_max, ratio_min, ratio_max, W, error) {
+    .Call(`_volesti_estimate_related_ratio_fischer`, A, b, mu_, x0, a_min, a_max, ratio_min, ratio_max, W, error)
 }
 
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
@@ -164,8 +146,8 @@ return_first_inside <- function(A, b, V, x0, samples, single_col_V) {
 #' @return A vector that contains the values of PSRF for each coordinate
 #'
 #' @export
-sample_component <- function(A, b, x, N, walk_length, x0) {
-    .Call(`_volesti_sample_component`, A, b, x, N, walk_length, x0)
+sample_component <- function(A, b, x, V, N, walk_length, x0) {
+    .Call(`_volesti_sample_component`, A, b, x, V, N, walk_length, x0)
 }
 
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal

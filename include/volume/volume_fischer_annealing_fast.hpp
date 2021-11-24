@@ -1,7 +1,7 @@
 
 
-#ifndef VOLUME_COOLING_FISCHER_HPP
-#define VOLUME_COOLING_FISCHER_HPP
+#ifndef VOLUME_FISCHER_ANNEALING_FAST_HPP
+#define VOLUME_FISCHER_ANNEALING_FAST_HPP
 
 
 #include <iterator>
@@ -201,11 +201,11 @@ std::pair<NT, NT> get_next_fischer(Body const& P,
     std::cout<<"N = "<<N<<std::endl;
     std::cout<<"ratio_outside = "<<ratio_outside<<std::endl;
 
-    //if (!is_not_last && check_last) {
+    if (check_last) {
         if (ratio_outside < ratio_tol){
             return std::pair<NT, NT> (a, ratio_outside);
         }
-    //}
+    }
     int counter = 0;
     while (!done)
     {
@@ -425,6 +425,7 @@ MT estimate_cov(std::vector<VT> &points_temp, unsigned int const& d)
 
 template
 <
+    typename UniformWalkType,
     typename WalkType,
     typename MT,
     typename Body,
@@ -435,8 +436,6 @@ template
 std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
                                       VT &p,
                                       VT const& mu,
-                                      MT const& sigma,
-                                      MT const& samples,
                                       RandomNumberGenerator& rng,
                                       unsigned int const& WW,
                                       NT const& error = 0.1,
@@ -460,9 +459,25 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
     VT p_mu;
     unsigned int N = parameters.N;
     std::vector<NT> ratios;
-    MT samples_part = samples.block(0, 0, n, N);
+    MT samples(n, N);
+    VT p0 = p;
 
-    compute_annealing_schedule_fischer<WalkType>(P, p, mu, samples_part, ratio, C, Cmin, N, walk_length, a_vals, ratios, WW, rng);
+    typedef typename UniformWalkType::template Walk
+        <
+            Body,
+            RandomNumberGenerator
+        > CGWalk;
+    CGWalk Uwalk(P, p, rng);
+
+
+    for (int jj=0; jj<N; jj++)
+    {
+        Uwalk.template apply(P, p, walk_length, rng);
+        samples.col(jj) = p;
+    }
+    p = p0;
+
+    compute_annealing_schedule_fischer<WalkType>(P, p, mu, samples, ratio, C, Cmin, N, walk_length, a_vals, ratios, WW, rng);
 
     int j=0, MM = samples.cols();
     for (auto avalIt = a_vals.begin(); avalIt!=a_vals.end(); avalIt++, j++)
@@ -494,7 +509,7 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
     //lamdas.setZero(m);
     NT vol = NT(1);
     //Point p(n); // The origin is the Chebychev center of the Polytope
-    unsigned int i=0;
+    unsigned int i=0, n_max = 50*n*n;
 
     typedef typename std::vector<NT>::iterator viterator;
     viterator itsIt = its.begin();
@@ -515,8 +530,10 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
 
     CGwalk walk(P, p, mu, NT(2)*(*avalsIt), WW, rng);
     std::vector<VT> points;
-    MT sigma_temp = sigma;
-    int count;
+    MT sigma_temp = MT::Identity(n,n);
+
+    p0 = mu;
+    Uwalk.template initialize(P, p0, rng);
 
     //iterate over the number of ratios
     for (viterator fnIt = fn.begin();
@@ -539,24 +556,24 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
 
         // Set the radius for the ball walk
        
-    
         walk.template set_sigma(sigma_temp);
         walk.template initialize(P, p, NT(2)*(*avalsIt), rng);
 
-        //update_delta<WalkType>
-        //        ::apply(walk, 4.0 * radius
-        //                 / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n)));
-        count = 0;
         while (!done && (*itsIt)<min_steps)
         {
             if (i==0) {
-                p = samples.col(N + count);
-                count++;
+                Uwalk.template apply(P, p0, walk_length, rng);
+                if ((*itsIt) <= NT(n_max)) {
+                    points_temp.push_back(p0);
+                }
+                p_mu.noalias() = p0 - mu;
             } else {
                 walk.template apply(P, p, NT(2)*(*avalsIt), walk_length, rng);
+                if ((*itsIt) <= NT(n_max)) {
+                    points_temp.push_back(p);
+                }
+                p_mu.noalias() = p - mu;
             }
-            points_temp.push_back(p);
-            p_mu.noalias() = p - mu;
             eval = p_mu.dot(p_mu);
 
             *itsIt = *itsIt + 1.0;
@@ -599,7 +616,7 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
                   << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
 //#endif
         vol *= ((*fnIt) / (*itsIt));
-        if (i<mm-1 && i > 0) {
+        if (i<mm-1) {
             sigma_temp = estimate_cov<MT>(points_temp, n);
         }
     }
@@ -620,18 +637,17 @@ std::pair<NT, NT> volume_component_cooling_fischer(Body const& P,
 
 template
 <
+    typename UniformWalkType,
     typename WalkType,
+    typename MT,
     typename NT,
     typename Body,
     typename VT,
-    typename MT,
     typename RandomNumberGenerator
 >
 std::pair<VT, VT> compute_annealing_fischer(Body const& P,
                                       VT &p,
                                       VT const& mu,
-                                      MT const& sigma,
-                                      MT const& samples,
                                       RandomNumberGenerator& rng,
                                       unsigned int const& WW,
                                       unsigned int const& walk_length = 1)
@@ -652,9 +668,23 @@ std::pair<VT, VT> compute_annealing_fischer(Body const& P,
     NT Cmin = parameters.Cmin;
     unsigned int N = parameters.N;
     std::vector<NT> ratios;
-    MT samples_part = samples.block(0, 0, n, N);
+    MT samples(n, N);
+    VT p0=p;
 
-    compute_annealing_schedule_fischer<WalkType>(P, p, mu, samples_part, ratio, C, Cmin, N, walk_length, a_vals, ratios, WW, rng);
+    typedef typename UniformWalkType::template Walk
+        <
+            Body,
+            RandomNumberGenerator
+        > CGWalk;
+    CGWalk walk(P, p, rng);
+
+    for (int jj=0; jj<N; jj++)
+    {
+        walk.template apply(P, p, walk_length, rng);
+        samples.col(jj) = p;
+    }
+    p = p0;
+    compute_annealing_schedule_fischer<WalkType>(P, p, mu, samples, ratio, C, Cmin, N, walk_length, a_vals, ratios, WW, rng);
 
     VT a_sequence(a_vals.size());
     int j=0;
@@ -686,6 +716,7 @@ std::pair<VT, VT> compute_annealing_fischer(Body const& P,
 
 template
 <
+    typename UniformWalkType,
     typename WalkType,
     typename MT,
     typename Body,
@@ -696,8 +727,6 @@ template
 NT estimate_ratios_fischer(Body const& P,
                                           VT &p,
                                           VT const& mu,
-                                          MT const& sigma,
-                                          MT const& samples,
                                           VT const& a_vals,
                                           VT &ratios,
                                           unsigned int& N,
@@ -713,20 +742,20 @@ NT estimate_ratios_fischer(Body const& P,
     unsigned int mm = a_vals.rows()-1;
     std::vector<NT> last_W2(W,0);
     
-    std::vector<NT> its(mm,N);
+    std::vector<NT> its(mm,0);
     ratios *= NT(N);
-    VT fn = ratios, p_mu;
+    VT p_mu;
+    std::vector<NT> fn(mm,0);
     //VT lamdas;
     //lamdas.setZero(m);
-    NT log_vol = NT(0), eval;
+    NT vol = NT(1), eval;
     //Point p(n); // The origin is the Chebychev center of the Polytope
-    unsigned int i=0, count;
+    unsigned int i=0, count, n_max = 50*n*n;
 
     typedef typename std::vector<NT>::iterator viterator;
     viterator itsIt = its.begin();
     const NT* avalsIt = a_vals.data();
-    const NT* ratioIt = ratios.data();
-    NT* fnIt = fn.data();
+    //NT* fnIt = fn.data();
     viterator minmaxIt;
 
 //#ifdef VOLESTI_DEBUG
@@ -742,11 +771,22 @@ NT estimate_ratios_fischer(Body const& P,
         > CGwalk;
 
     CGwalk walk(P, p, mu, NT(2)*(*avalsIt), WW, rng);
+
+    VT p0 = mu;
+    typedef typename UniformWalkType::template Walk
+        <
+            Body,
+            RandomNumberGenerator
+        > CGWalk;
+    CGWalk Uwalk(P, p0, rng);
+
     std::vector<VT> points;
-    MT sigma_temp = sigma;
+    MT sigma_temp = MT::Identity(n, n);
 
     //iterate over the number of ratios
-    for (int i=0; i<mm; i++, fnIt++, itsIt++, ratioIt++, avalsIt++)
+    for (viterator fnIt = fn.begin();
+         fnIt != fn.end();
+         fnIt++, itsIt++, avalsIt++, i++)
     {
         //initialize convergence test
         bool done = false;
@@ -767,20 +807,21 @@ NT estimate_ratios_fischer(Body const& P,
         walk.template set_sigma(sigma_temp);
         walk.template initialize(P, p, NT(2)*(*avalsIt), rng);
 
-        //update_delta<WalkType>
-        //        ::apply(walk, 4.0 * radius
-        //                 / std::sqrt(std::max(NT(1.0), *avalsIt) * NT(n)));
-        count = 0;
         while (!done && (*itsIt)<min_steps)
         {
             if (i==0) {
-                p = samples.col(count);
-                count++;
+                Uwalk.template apply(P, p0, walk_length, rng);
+                if ((*itsIt) <= NT(n_max)) {
+                    points_temp.push_back(p0);
+                }
+                p_mu.noalias() = p0 - mu;
             } else {
                 walk.template apply(P, p, NT(2)*(*avalsIt), walk_length, rng);
+                if ((*itsIt) <= NT(n_max)) {
+                    points_temp.push_back(p);
+                }
+                p_mu.noalias() = p - mu;
             }
-            points_temp.push_back(p);
-            p_mu.noalias() = p - mu;
             eval = p_mu.dot(p_mu);
 
             *itsIt = *itsIt + 1.0;
@@ -822,9 +863,9 @@ NT estimate_ratios_fischer(Body const& P,
         std::cout << "ratio " << i << " = " << (*fnIt) / (*itsIt)
                   << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
 //#endif
-        log_vol += std::log((*fnIt) / (*itsIt));
+        vol *= (*fnIt) / (*itsIt);
         //vol *= ((*fnIt) / (*itsIt));
-        if (i<mm-1 && i>0) {
+        if (i<mm-1) {
             sigma_temp = estimate_cov<MT>(points_temp, n);
         }
     }
@@ -839,7 +880,7 @@ NT estimate_ratios_fischer(Body const& P,
         //std::cout<<"\nvol = "<<vol<<"\n"<<std::endl;
 //#endif
 
-    return log_vol;
+    return vol;
 }
 
 
@@ -859,7 +900,6 @@ template
 std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
                                       VT &p,
                                       VT const& mu,
-                                      MT const& sigma,
                                       NT const& a_max,
                                       NT const& a_min,
                                       NT &ratio_min,
@@ -893,7 +933,7 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
     a_vals.push_back(a_min);
     //a_vals.push_back(a2);
     VT p0 = p;
-    NT ratio_min_temp = ratio_min;
+    NT ratio_min_temp = NT(1);
     NT ratio_max_temp = ratio_max;
     std::pair<NT,bool> res;
 
@@ -904,7 +944,7 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
         res = get_next_fischer<WalkType, MT>(P, p, mu, a_vals[it], N, ratio, C, Cmin, walk_length, ratio_it, WW, rng, false);
         
         ratios.push_back(ratio_it);
-        ratio_max_temp *= ratio_it;
+        ratio_min_temp *= (NT(1) / ratio_it);
 
         std::cout<<"a_next = "<<res.first<<std::endl;
         std::cout<<"ratio = "<<ratio_it<<std::endl;
@@ -934,10 +974,12 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
     }
     std::cout<<std::endl<<std::endl;
 
-    if (ratio_max_temp / ratio_min_temp < 0.001 || ratio_max_temp / ratio_min_temp > 1000){
+    if ((ratio_min_temp*ratio_min) / ratio_max_temp < 1e-05 || (ratio_min_temp*ratio_min) / ratio_max_temp > 1e05){
+        std::cout<<"ratio_min_temp / ratio_max_temp = "<<(ratio_min_temp*ratio_min) / ratio_max_temp<<std::endl;
         return std::pair<NT, NT> (ratio_min_temp, ratio_max_temp);
     } 
     ratio_max_temp = ratio_max;
+    ratio_min_temp = NT(1);
 
     // Initialization for the approximation of the ratios
     unsigned int W = parameters.W;
@@ -970,7 +1012,6 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
 
     CGwalk walk(P, p, mu, NT(2)*(*avalsIt), WW, rng);
     std::vector<VT> points;
-    MT sigma_temp = sigma;
 
     //iterate over the number of ratios
     for (viterator fnIt = fn.begin();
@@ -986,7 +1027,7 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
         unsigned int max_index = W-1;
         unsigned int index = 0;
         unsigned int min_steps = 10000000;
-        std::vector<VT> points_temp = points;
+        //std::vector<VT> points_temp = points;
         std::vector<NT> last_W = last_W2;
 
         p = mu;
@@ -994,7 +1035,7 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
         // Set the radius for the ball walk
        
     
-        walk.template set_sigma(sigma_temp);
+        //walk.template set_sigma(sigma_temp);
         walk.template initialize(P, p, NT(2)*(*avalsIt), rng);
 
         //update_delta<WalkType>
@@ -1003,8 +1044,8 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
 
         while (!done && (*itsIt)<min_steps)
         {
-            walk.template apply(P, p, NT(2)*(*avalsIt), walk_length, rng);
-            points_temp.push_back(p);
+            walk.template apply_ratio_esti(P, p, NT(2)*(*avalsIt), walk_length, rng);
+            //points_temp.push_back(p);
             p_mu.noalias() = p - mu;
             eval = p_mu.dot(p_mu);
 
@@ -1048,10 +1089,10 @@ std::pair<NT, NT> related_volume_cooling_fischer(Body const& P,
                   << " N_" << i << " = " << *itsIt << ", mm = " << mm << std::endl;
 //#endif
         //vol *= ((*fnIt) / (*itsIt));
-        ratio_max_temp *= ((*fnIt) / (*itsIt));
-        if (i<mm-1) {
-            sigma_temp = estimate_cov<MT>(points_temp, n);
-        }
+        ratio_min_temp *= ((*fnIt) / (*itsIt));
+        //if (i<mm-1) {
+        //    sigma_temp = estimate_cov<MT>(points_temp, n);
+        //}
     }
 
 //#ifdef VOLESTI_DEBUG
