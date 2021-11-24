@@ -193,7 +193,7 @@ get_points_on_components_imp <- function(A, b, x0, V, S, S_Vindices) {
         stop('no intersection')
       }
       if (is_in_component(y, x0, A, b, V, ind_verts, TRUE)) {
-        #print("isin")
+        print("isin")
         inds = 1:n
         inds = inds[-c(i)]
         ind_verts_temp = S_Vindices[[ inds[1] ]]

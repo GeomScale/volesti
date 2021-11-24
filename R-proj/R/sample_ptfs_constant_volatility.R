@@ -76,7 +76,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
     } else {
       x = compute_interior_point_single_component(A, b, center_2)
     }
-    samples = sample_component_psrf(A, b, x, M, W, center_2, psrf_target)
+    samples = sample_component_psrf(A, b, x, 2000, W, center_2, psrf_target)
     
     if (dim(samples)[2] > M) {
       indx <- sample(1:dim(samples)[2], M)
@@ -122,7 +122,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
       res2 = compute_fischer_ratios(A, b, mus[[i]], center_2, a_vals[[i]], ratios[[i]], Nu, WW, error/sqrt(length(indices)))
       vols = c(vols, res2)
       
-      X = sample_component_psrf(A, b, mus[[i]], 10000, W, center_2, psrf_target)
+      X = sample_component_psrf(A, b, mus[[i]], 2000, W, center_2, psrf_target)
       XX[[length(XX)+1]] = X
     }
     vol_min = 1/vols[indices[which(indices==indx)]]
