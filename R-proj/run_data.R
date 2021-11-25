@@ -3,7 +3,7 @@ library(volesti)
 msci_ci <- readRDS("~/volume_approximation/R-proj/data/msci_ci.rds")
 Ret = msci_ci$X_est
 
-n = dim(Ret)[2] #number of assets
+#n = dim(Ret)[2] #number of assets
 
 n = 70 #for synthetic data
 

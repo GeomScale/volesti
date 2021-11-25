@@ -121,53 +121,6 @@ get_rad_cap <- function(x, A, b, x0) {
 
 
 #' export
-get_points_on_components <- function(A, b, x0, V, S, S_Vindices, V_ind_out) {
-  
-  n = length(S)
-  d = length(x0)
-  
-  y = rep(0, d)
-  
-  Xs = matrix(, d, 0)
-  
-  for (i in 1:n) {
-    
-    Verts = V[,S_Vindices[[i]]]
-    if (is.null(dim(Verts))) {
-      v = Verts - y
-    } else {
-      v = Verts[, 1] - y
-    }
-    res_int = ball_line_intersection(y, v, x0, 1)
-    
-    if (!res_int$intersect) {
-      stop('no intersection')
-    }
-    
-    if (res_int$tmin < 1 && res_int$tmin > 0) {
-      x = y + res_int$tmin[1]*v
-    } else if(res_int$tmax < 1 && res_int$tmax > 0) {
-      x = y + res_int$tmax[1]*v
-    } else if (res_int$tmin < 0) {
-      x = y + res_int$tmin[1]*v
-    } else if (res_int$tmax < 0) {
-      x = y + res_int$tmax[1]*v
-    } else {
-      stop('false intersection')
-    }
-    
-    if (!is_in_component(x, x0, A, b, V, S_Vindices[[i]], TRUE)) {
-      stop('point outside')
-    }
-    
-    Xs = cbind(Xs,x)
-    
-  }
-  return(Xs)
-}
-
-
-#' export
 get_points_on_components_imp <- function(A, b, x0, V, S, S_Vindices) {
   
   n = length(S)
@@ -192,25 +145,32 @@ get_points_on_components_imp <- function(A, b, x0, V, S, S_Vindices) {
       if (!res_int$intersect) {
         stop('no intersection')
       }
-      if (is_in_component(y, x0, A, b, V, ind_verts, TRUE)) {
-        print("isin")
+      if (is_in_component(y, x0, A, b, V, ind_verts, TRUE) && sqrt(sum((y-x0)^2)) > 1) {
+        #print("isin")
         inds = 1:n
         inds = inds[-c(i)]
         ind_verts_temp = S_Vindices[[ inds[1] ]]
         v = V[, ind_verts_temp[1]] - y
         res_int = ball_line_intersection(y, v, x0, 1)
-        x = y + res_int$tmin[1]*v
+        #x = y + res_int$tmin[1]*v
+        if (res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
+          x = y + res_int$tmin[1]*v
+        } else if(res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
+          x = y + res_int$tmax[1]*v
+        }
+      } else if(sqrt(sum((y-x0)^2)) < 1) {
+        #x = y + res_int$tmin[1]*v
+        if (res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
+          x = y + res_int$tmin[1]*v
+        } else if(res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
+          x = y + res_int$tmax[1]*v
+        }
       } else {
-        if (res_int$tmin < 1 && res_int$tmin > 0) {
+        #x = y + res_int$tmin[1]*v
+        if (res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
           x = y + res_int$tmin[1]*v
-        } else if(res_int$tmax < 1 && res_int$tmax > 0) {
+        } else if(res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
           x = y + res_int$tmax[1]*v
-        } else if (res_int$tmin < 0) {
-          x = y + res_int$tmin[1]*v
-        } else if (res_int$tmax < 0) {
-          x = y + res_int$tmax[1]*v
-        } else {
-          stop('false intersection')
         }
       }
     
@@ -304,6 +264,14 @@ log_gamma_function <- function(x) {
 
 
 #' export
+volume_n_sphere <- function(d) {
+  
+  vol = ((2*pi)^(d/2)) / gamma(d/2)
+  
+  return(vol)
+}
+
+#' export
 log_volume_n_sphere <- function(d) {
   
   log_vol = (d/2)*log(2*pi) - log_gamma_function(d/2)
@@ -389,13 +357,23 @@ get_intersection_points <- function(V, Sind, x0) {
 
 
 #' export
-sample_component_psrf_interface <- function(A, b, x, N, M, W, x0, psrf_target, V, Sind) {
+sample_component_psrf_interface <- function(A, b, x, M, W, x0, psrf_target, V, Sind) {
+  
+  L = get_L(A, b, V, Sind, x0, x)/2
+  X = sample_component_psrf_billiard(A, b, x, M, W, x0, psrf_target, L)
+  return(X)
+}
+
+
+#' export
+sample_component_psrf_interface_old <- function(A, b, x, N, M, W, x0, psrf_target, V, Sind) {
   
   L = get_L(A, b, V, Sind, x0, x)/2
   N0 = N
   d = length(x)
   XX = matrix(,d,0)
   while(TRUE) {
+    print(N0)
     X = sample_component_psrf_billiard(A, b, x, N0, W, x0, psrf_target, L)
     XX = cbind(XX, X)
     if (dim(XX)[2] < M) {
@@ -406,6 +384,8 @@ sample_component_psrf_interface <- function(A, b, x, N, M, W, x0, psrf_target, V
     } else {
       break
     }
+    indx = sample(1:dim(X)[2], 1)
+    x = X[,indx]
   }
   
   return(XX)

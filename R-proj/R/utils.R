@@ -415,9 +415,9 @@ ball_line_intersection <- function(x, v, x0, R) {
   res = list()
   intersect = TRUE
   x = x - x0
-  a = t(v) %*% v
-  b = 2 * (t(x) %*% v)
-  g = t(x) %*% x - R
+  a = (t(v) %*% v)[1]
+  b = 2 * (t(x) %*% v)[1]
+  g = (t(x) %*% x)[1] - R
     
   D = b^2 - 4 * a * g
     
