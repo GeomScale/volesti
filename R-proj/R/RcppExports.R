@@ -150,3 +150,21 @@ sample_component_psrf <- function(A, b, x, N, walk_length, x0, psrf_target) {
     .Call(`_volesti_sample_component_psrf`, A, b, x, N, walk_length, x0, psrf_target)
 }
 
+#' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
+#'
+#' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
+#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
+#'
+#' @references \cite{Gelman, A. and Rubin, D. B.,
+#' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
+#'
+#' @references \cite{Brooks, S. and Gelman, A.,
+#' \dQuote{General Methods for Monitoring Convergence of Iterative Simulations,} \emph{Journal of Computational and Graphical Statistics,} 1998.}
+#'
+#' @return A vector that contains the values of PSRF for each coordinate
+#'
+#' @export
+sample_component_psrf_billiard <- function(A, b, x, N, walk_length, x0, psrf_target, L) {
+    .Call(`_volesti_sample_component_psrf_billiard`, A, b, x, N, walk_length, x0, psrf_target, L)
+}
+

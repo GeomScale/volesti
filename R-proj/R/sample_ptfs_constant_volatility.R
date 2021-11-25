@@ -68,6 +68,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
   cmin = 1
   
   #print(S_Vindices)
+  #print(W)
   
   if (length(S) == 1){
     interior_res = compute_interior_point_in_node_eff(S_Vindices[[1]], V_ind_out, V, center_2, A, b)
@@ -76,7 +77,8 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
     } else {
       x = compute_interior_point_single_component(A, b, center_2)
     }
-    samples = sample_component_psrf(A, b, x, 2000, W, center_2, psrf_target)
+    #samples = sample_component_psrf(A, b, x, 2000, W, center_2, psrf_target)
+    samples = sample_component_psrf_interface(A, b, x, 2000, M, W, center_2, psrf_target, V, S_Vindices[[1]])
     
     if (dim(samples)[2] > M) {
       indx <- sample(1:dim(samples)[2], M)
@@ -122,7 +124,8 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
       res2 = compute_fischer_ratios(A, b, mus[[i]], center_2, a_vals[[i]], ratios[[i]], Nu, WW, error/sqrt(length(indices)))
       vols = c(vols, res2)
       
-      X = sample_component_psrf(A, b, mus[[i]], 2000, W, center_2, psrf_target)
+      #X = sample_component_psrf(A, b, mus[[i]], 2000, W, center_2, psrf_target)
+      X = sample_component_psrf_interface(A, b, mus[[i]], 2000, M, W, center_2, psrf_target, V, S_Vindices[[i]])
       XX[[length(XX)+1]] = X
     }
     vol_min = 1/vols[indices[which(indices==indx)]]
@@ -135,7 +138,8 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
     }
     relative_vols = relative_vols / sum(relative_vols)
   } else {
-    X = sample_component_psrf(A, b, mus[[indx]], 2000, W, center_2, psrf_target)
+    #X = sample_component_psrf(A, b, mus[[indx]], 2000, W, center_2, psrf_target)
+    X = sample_component_psrf_interface(A, b, mus[[indx]], 2000, M, W, center_2, psrf_target, V, S_Vindices[[indx]])
     XX[[length(XX)+1]] = X
     relative_vols = c(1)
   }

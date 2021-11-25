@@ -145,13 +145,14 @@ get_parameters <- function(d) {
   parameters$lb = 0.1
   parameters$ub = 0.15
   parameters$Nu = 1000 + floor(d^2/2)
-  parameters$W = floor((d+1)/2) + 10
+  #parameters$W = floor((d+1)/2) + 10
+  parameters$W = 1
   parameters$WW = 7
   #parameters$W_to_sample = 10 + floor(d/10)
   parameters$W_to_sample = 1
   parameters$win_len = 4*d^2 + 500
   parameters$error = 0.2
-  parameters$psrf_target = 1.3
+  parameters$psrf_target = 1.2
   
   return(parameters)
   

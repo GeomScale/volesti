@@ -142,4 +142,43 @@ struct GetGaussianDirectionTangentPlane
     }
 };
 
+
+
+
+
+template <typename VT, typename MT>
+struct GetDirectionTangentPlaneOpt
+{
+    typedef double NT;
+    //typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+
+    template <typename RandomNumberGenerator>
+    inline static void apply(VT const& p, VT &v, MT const& p_p,
+                              RandomNumberGenerator &rng)
+    {
+        unsigned int dim = p.rows();
+        //NT normal = NT(0);
+        //VT ut(dim);
+        NT* data = v.data();
+
+        for (unsigned int i=0; i<dim; ++i)
+        {
+            *data = rng.sample_ndist();
+            //normal += *data * *data;
+            data++;
+        }
+
+        //normal = NT(1)/std::sqrt(normal);
+        //v *= normal;
+        //std::cout<<"p_p = "<<p_p<<"\n"<<std::endl;
+        //std::cout<<"v = "<<v.transpose()<<"\n"<<std::endl;
+
+        v = (p_p * v).eval(); //optimize it
+        //std::cout<<"v = "<<v.transpose()<<"\n"<<std::endl;
+        v *= (NT(1) / v.norm());
+        //Point q(u);
+        //return u;
+    }
+};
+
 #endif // SPHERE_HPP

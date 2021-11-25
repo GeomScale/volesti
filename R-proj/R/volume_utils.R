@@ -331,3 +331,116 @@ get_samples_2 <- function(XX, relative_vols, M) {
 
 
 
+#' export
+get_L <- function(A, b, V, Sind, x0, mu) {
+  
+  Y = get_intersection_points(V, Sind, x0)
+  
+  if (is.null(Y)) {
+    L = get_L_small(A, b, x0)
+    return(L)
+  }
+  
+  n = dim(Y)[2]
+  L = 0
+  
+  for (i in 1:(n-1)) {
+    for (j in (i+1):n) {
+      dist = acos( t(Y[,i]-x0) %*% (Y[,j] - x0) )
+      if (dist < pi/2 & ( (t(Y[,i]-x0) %*% (mu-x0) < 0) || (t(Y[,j]-x0) %*% (mu-x0) < 0)) ) {
+        dist = 2*pi - dist
+      }
+      if (dist > L) {
+        L = dist
+      }
+    }
+  }
+  return(L)
+}
+
+
+#' export
+get_intersection_points <- function(V, Sind, x0) {
+  
+  d = length(x0)
+  Y = matrix(, d, 0)
+  
+  out_inds = 1:(d+1)
+  out_inds = out_inds[-c(Sind)]
+  if (length(out_inds) == 0){
+    Y=c()
+    return(Y)
+  }
+  
+  for (i in 1:length(Sind)) {
+    x = V[, Sind[i]]
+    for (j in 1:length(out_inds)) {
+      v = V[, out_inds[j]] - x
+      
+      ball_res = ball_line_intersection(x, v, x0, 1)
+      if (!ball_res$intersect) {
+        stop('does not intersect')
+      }
+      Y = cbind(Y, x+ball_res$tmin[1]*v)
+    }
+  }
+  return(Y)
+}
+
+
+#' export
+sample_component_psrf_interface <- function(A, b, x, N, M, W, x0, psrf_target, V, Sind) {
+  
+  L = get_L(A, b, V, Sind, x0, x)/2
+  N0 = N
+  d = length(x)
+  XX = matrix(,d,0)
+  while(TRUE) {
+    X = sample_component_psrf_billiard(A, b, x, N0, W, x0, psrf_target, L)
+    XX = cbind(XX, X)
+    if (dim(XX)[2] < M) {
+      N0 = M-dim(XX)[2]
+      if (N0 > N) {
+        N0 = N
+      }
+    } else {
+      break
+    }
+  }
+  
+  return(XX)
+}
+
+
+#' export
+get_L_small <- function(A, b, x0) {
+  
+  b = b - A%*%x0
+  m = dim(A)[2]
+  
+  row_norms = sqrt(rowSums(A^2))
+  A = diag(1/row_norms)%*%A
+  b = diag(1/row_norms)%*%b
+  
+  rad = 0
+  
+  for (i in 1:m) {
+    
+    bi = b[i]
+    if (abs(bi) > 1) {
+      next
+    }
+    
+    rad_temp = sqrt(1-bi^2)
+    if ( rad_temp > rad ) {
+      rad = rad_temp
+    }
+  }
+  if (rad == 0) {
+    error('ball inside simpelx')
+  }
+  L = pi*rad
+  return(L)
+}
+
+
