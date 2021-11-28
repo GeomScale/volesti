@@ -152,7 +152,7 @@ get_parameters <- function(d) {
   parameters$W_to_sample = 1
   parameters$win_len = 4*d^2 + 500
   parameters$error = 0.2
-  parameters$psrf_target = 1.2
+  parameters$psrf_target = 1.1
   
   return(parameters)
   

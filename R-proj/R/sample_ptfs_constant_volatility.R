@@ -99,6 +99,25 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
   sigmas = matrix(list(), 0, 1)
   XX = matrix(list(), 0, 1)
   vols = c()
+  num_verts=c()
+  
+  for (i in 1:nn) {
+    num_verts = c(num_verts, length(S_Vindices[[i]]))
+  }
+  num_verts2 = sort(num_verts)
+  tails_v = tail(num_verts2, 2)
+  #print(paste0('num_verts = ',as.character(num_verts)))
+  #print(paste0('num_verts2 = ',as.character(num_verts2)))
+  #print(paste0('tails_v = ',as.character(tails_v)))
+  if (tails_v[2] > tails_v[1]+1) {
+    indices = which(num_verts == max(num_verts))
+    #print(indices)
+    indx = which(num_verts == max(num_verts))
+    for (i in 1:nn) {
+      mu = Xs[,i]
+      mus[[length(mus) + 1]] = mu 
+    }
+  } else {
   
   for (i in 1:nn) {
     mu = Xs[,i]
@@ -117,6 +136,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
   ratios_min = res_rem$ratios_min
   
   indices = which(ratios_volumes>1e-05 & ratios_volumes<1e05)
+  }
   
   if (length(indices) > 1) {
     relative_vols = c()
