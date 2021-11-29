@@ -143,7 +143,8 @@ get_points_on_components_imp <- function(A, b, x0, V, S, S_Vindices) {
       res_int = ball_line_intersection(y, v, x0, 1)
     
       if (!res_int$intersect) {
-        stop('no intersection')
+        next
+        #stop('no intersection')
       }
       if (is_in_component(y, x0, A, b, V, ind_verts, TRUE) && sqrt(sum((y-x0)^2)) > 1) {
         #print("isin")
@@ -160,17 +161,17 @@ get_points_on_components_imp <- function(A, b, x0, V, S, S_Vindices) {
         }
       } else if(sqrt(sum((y-x0)^2)) < 1) {
         #x = y + res_int$tmin[1]*v
-        if (res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
-          x = y + res_int$tmin[1]*v
-        } else if(res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
+        if (res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
           x = y + res_int$tmax[1]*v
+        } else if(res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
+          x = y + res_int$tminx[1]*v
         }
       } else {
         #x = y + res_int$tmin[1]*v
-        if (res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
-          x = y + res_int$tmin[1]*v
-        } else if(res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
+        if (res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
           x = y + res_int$tmax[1]*v
+        } else if(res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
+          x = y + res_int$tmin[1]*v
         }
       }
     
