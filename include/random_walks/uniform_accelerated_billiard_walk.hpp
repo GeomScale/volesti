@@ -66,6 +66,7 @@ struct AcceleratedBilliardWalk
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
 
@@ -78,6 +79,7 @@ struct AcceleratedBilliardWalk
                               : compute_diameter<GenericPolytope>
                                 ::template compute<NT>(P);
             _AA.noalias() = P.get_mat() * P.get_mat().transpose();
+            _rho = 1000 * P.dimension(); // upper bound for the number of reflections (experimental)
             initialize(P, p, rng);
         }
 
@@ -115,7 +117,7 @@ struct AcceleratedBilliardWalk
                 P.compute_reflection(_v, _p, _update_parameters);
                 it++;
 
-                while (it < 100*n)
+                while (it < _rho)
                 {
                     std::pair<NT, int> pbpair
                             = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -130,14 +132,89 @@ struct AcceleratedBilliardWalk
                     P.compute_reflection(_v, _p, _update_parameters);
                     it++;
                 }
-                if (it == 100*n) _p = p0;
+                if (it == _rho) _p = p0;
             }
             p = _p;
         }
 
+
+        template
+        <
+            typename GenericPolytope
+        >
+        inline void get_starting_point(GenericPolytope const& P,
+                           Point const& center,
+                           Point &q,
+                           unsigned int const& walk_length,
+                           RandomNumberGenerator &rng)
+        {
+            unsigned int n = P.dimension();
+            NT radius = P.InnerBall().second;
+
+            q = GetPointInDsphere<Point>::apply(n, radius, rng);
+            q += center;
+            initialize(P, q, rng);
+
+            apply(P, q, walk_length, rng);
+        }
+
+
+        template
+        <
+            typename GenericPolytope
+        >
+        inline void parameters_burnin(GenericPolytope const& P, 
+                                     Point const& center,
+                                     unsigned int const& num_points,
+                                     unsigned int const& walk_length,
+                                     RandomNumberGenerator &rng)
+        {
+            Point p(P.dimension());
+            std::vector<Point> pointset;
+            pointset.push_back(center);
+            pointset.push_back(_p);
+            NT rad = NT(0), max_dist, Lmax = get_delta(), radius = P.InnerBall().second;
+
+            for (int i = 0; i < num_points; i++) 
+            {
+                Point p = GetPointInDsphere<Point>::apply(P.dimension(), radius, rng);
+                p += center;
+                initialize(P, p, rng);
+
+                apply(P, p, walk_length, rng);
+                max_dist = get_max_distance(pointset, p, rad);
+                if (max_dist > Lmax) 
+                {
+                    Lmax = max_dist;
+                }
+                if (2.0*rad > Lmax) {
+                    Lmax = 2.0 * rad;
+                }
+                pointset.push_back(p);
+            }
+
+            if (Lmax > _L) {
+                if (P.dimension() <= 2500) 
+                {
+                    update_delta(Lmax);
+                }
+                else{
+                    update_delta(2.0 * get_delta());
+                }
+            }
+            pointset.clear();
+        }
+
+        
+
         inline void update_delta(NT L)
         {
             _L = L;
+        }
+
+        NT get_delta()
+        {
+            return _L;
         }
 
     private :
@@ -173,7 +250,7 @@ struct AcceleratedBilliardWalk
             T -= _lambda_prev;
             P.compute_reflection(_v, _p, _update_parameters);
 
-            while (it <= 100*n)
+            while (it <= _rho)
             {
                 std::pair<NT, int> pbpair
                         = P.line_positive_intersect(_p, _v, _lambdas, _Av, _lambda_prev, _AA, _update_parameters);
@@ -181,7 +258,7 @@ struct AcceleratedBilliardWalk
                     _p += (T * _v);
                     _lambda_prev = T;
                     break;
-                } else if (it == 100*n) {
+                } else if (it == _rho) {
                     _lambda_prev = rng.sample_urdist() * pbpair.first;
                     _p += (_lambda_prev * _v);
                     break;
@@ -194,11 +271,31 @@ struct AcceleratedBilliardWalk
             }
         }
 
+        inline double get_max_distance(std::vector<Point> &pointset, Point const& q, double &rad) 
+        {
+            double dis = -1.0, temp_dis;
+            int jj = 0;
+            for (auto vecit = pointset.begin(); vecit!=pointset.end(); vecit++, jj++) 
+            {
+                temp_dis = (q.getCoefficients() - (*vecit).getCoefficients()).norm();
+                if (temp_dis > dis) {
+                    dis = temp_dis;
+                }
+                if (jj == 0) {
+                    if (temp_dis > rad) {
+                        rad = temp_dis;
+                    }
+                }
+            }
+            return dis;
+        }
+
         double _L;
         Point _p;
         Point _v;
         NT _lambda_prev;
         MT _AA;
+        unsigned int _rho;
         update_parameters _update_parameters;
         typename Point::Coeff _lambdas;
         typename Point::Coeff _Av;

@@ -1,6 +1,6 @@
 # VolEsti (volume computation and sampling library)
-# Copyright (c) 2012-2018 Vissarion Fisikopoulos
-# Copyright (c) 2018 Apostolos Chalkis
+# Copyright (c) 2012-2021 Vissarion Fisikopoulos
+# Copyright (c) 2018-2021 Apostolos Chalkis
 # Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 # Licensed under GNU LGPL.3, see LICENCE file
 
@@ -62,6 +62,9 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
+include("LPSolve.cmake")
+GetLPSolve()
+
 # Find lpsolve library
 find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
 
@@ -74,7 +77,6 @@ else ()
 
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
-  include_directories (BEFORE ../external/LPsolve_src/run_headers)
   include_directories (BEFORE ../include/generators)
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
@@ -112,7 +114,11 @@ else ()
   add_subdirectory(logconcave)
   #add_subdirectory(spectrahedra)
   add_subdirectory(hpolytope-volume)
-  
+  add_subdirectory(mmcs_method)
+  add_subdirectory(count-linear-extensions-using-hpolytope)
+  add_subdirectory(ellipsoid-sampling)
+  add_subdirectory(order-polytope-basics)
+
   add_executable (vpolytopevolume vpolytope-volume/vpolytopevolume.cpp)
   TARGET_LINK_LIBRARIES(vpolytopevolume ${LP_SOLVE})
 

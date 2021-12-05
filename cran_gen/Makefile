@@ -21,5 +21,3 @@ liblp_solve.a: $(LP_SOLVE_OBJECTS)
 
 clean:
 	rm -rf $(LP_SOLVE_OBJECTS) liblp_solve.a
-
-

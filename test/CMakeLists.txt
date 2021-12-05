@@ -1,6 +1,8 @@
 # VolEsti (volume computation and sampling library)
 # Copyright (c) 2012-2020 Vissarion Fisikopoulos
 # Copyright (c) 2018-2020 Apostolos Chalkis
+# Copyright (c) 2021 Vaibhav Thakkar
+
 # Contributed and/or modified by Vaibhav Thakkar
 # Licensed under GNU LGPL.3, see LICENCE file
 
@@ -109,8 +111,27 @@ GetEigen()
 include("Boost.cmake")
 GetBoost()
 
-include("LpSolve.cmake")
-GetLpSolve()
+
+include("LPSolve.cmake")
+GetLPSolve()
+
+# Code Coverage Configuration
+add_library(coverage_config INTERFACE)
+
+option(CODE_COVERAGE "Enable coverage reporting" OFF)
+if(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  # Add required flags (GCC & LLVM/Clang)
+  target_compile_options(coverage_config INTERFACE
+    -O1        # O0 (or no) optimization takes too much time and causes CircleCI test failure.
+    -g         # generate debug info
+    --coverage # sets all required flags
+  )
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+    target_link_options(coverage_config INTERFACE --coverage)
+  else()
+    target_link_libraries(coverage_config INTERFACE --coverage)
+  endif()
+endif(CODE_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 
 find_library(LP_SOLVE NAMES liblpsolve55.so liblpsolve55.dylib PATHS /usr/lib/lp_solve /usr/local/lib)
 
@@ -139,10 +160,10 @@ else ()
 
   include_directories (BEFORE ../external)
   include_directories (BEFORE ../external/minimum_ellipsoid)
-  include_directories (BEFORE ../external/LPsolve_src/run_headers)
   include_directories (BEFORE ../include/generators)
   include_directories (BEFORE ../include/volume)
   include_directories (BEFORE ../include)
+  include_directories (BEFORE ../include/integration)
   include_directories (BEFORE ../include/convex_bodies)
   include_directories (BEFORE ../include/convex_bodies/spectrahedra)
   include_directories (BEFORE ../include/annealing)
@@ -250,33 +271,63 @@ else ()
   add_test(NAME new_rounding_test_round_skinny_cube
            COMMAND new_rounding_test -tc=round_skinny_cube)
 
+  add_executable (max_ellipsoid_rounding_test max_ellipsoid_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME max_ellipsoid_rounding_test_round_skinny_cube
+           COMMAND max_ellipsoid_rounding_test -tc=round_skinny_cube)
+
   add_executable (logconcave_sampling_test logconcave_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME logconcave_sampling_test_hmc
           COMMAND logconcave_sampling_test -tc=hmc)
   add_test(NAME logconcave_sampling_test_uld
           COMMAND logconcave_sampling_test -tc=uld)
 
+  add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME simple_mc_integration_over_limits
+          COMMAND simple_mc_integration -tc=rectangle)
+  add_test(NAME simple_mc_integration_over_cubes
+          COMMAND simple_mc_integration -tc=cube)
+  add_test(NAME simple_mc_integration_over_simplices
+          COMMAND simple_mc_integration -tc=simplex)
+  add_test(NAME simple_mc_integration_over_product_simplices
+		  COMMAND simple_mc_integration -tc=prod_simplex)
+  add_test(NAME simple_mc_integration_over_cross_polytopes
+		  COMMAND simple_mc_integration -tc=cross)
+  add_test(NAME simple_mc_integration_over_birkhoff_polytopes
+		  COMMAND simple_mc_integration -tc=birkhoff)
 
-  TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(volume_cg_hpolytope ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(volume_cg_vpolytope ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(volume_cb_hpolytope ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(volume_cb_vpolytope ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK})
-  TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK})
+  add_executable (order_polytope order_polytope.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME order_polytope_basics COMMAND order_polytope -tc=basics)
+  add_test(NAME order_polytope_line_intersect COMMAND order_polytope -tc=line_intersect)
+  add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
+  add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
 
-	# TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} "-llapack -lblas" )
+  TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(volume_cg_hpolytope ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(volume_cg_vpolytope ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(volume_cb_hpolytope ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(volume_cb_vpolytope ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(max_ellipsoid_rounding_test ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} coverage_config)
+  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} coverage_config)
+  TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} coverage_config)
 
-  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} "-lblas -llapack" ${MKL_LINK})
+  if (USE_MKL)
+      TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} coverage_config "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
+  else()
+      TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} coverage_config)
+  endif()
+
+  TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
 
 endif()
+
