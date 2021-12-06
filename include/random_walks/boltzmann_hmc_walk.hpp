@@ -73,7 +73,7 @@ public:
             /// \return An instance of this struct
             template <typename Point>
             Settings(const int walkLength, const RandomNumberGenerator &randomNumberGenerator, const Point &c, const NT temperature, const NT diameter,
-                     unsigned int reflectionsBound = 10, NT dl = 0.995) : walk_length(walkLength), randomNumberGenerator(randomNumberGenerator),
+                     unsigned int reflectionsBound = 100, NT dl = 0.995) : walk_length(walkLength), randomNumberGenerator(randomNumberGenerator),
                                                                           c(c.getCoefficients()),
                                                                           temperature(temperature),
                                                                           diameter(diameter),
@@ -197,7 +197,7 @@ public:
 
                 // we are at point p and the trajectory a*t^2 + vt + p
                 // find how long we can walk till we hit the boundary
-                NT lambda = spectrahedron.positiveIntersection(a, v, p, precomputedValues);
+                NT lambda = spectrahedron.positiveQuadIntersection(a, v, p);
 
                 // We just solved a quadratic polynomial eigenvalue system At^2 + Bt + C,
                 // where A = lmi(a) - A0, B = lmi(v) - A0 and C = lmi(p)
@@ -208,9 +208,7 @@ public:
                 // C := A*lambda^2 + B*lambda + C
                 // X, Y will be updated in class Spectrahedron
                 // Set the flags
-                precomputedValues.computed_A = true;
-                precomputedValues.computed_C = true;
-                precomputedValues.computed_XY = true;
+                spectrahedron.set_flags(true);
 
                 // if we can walk the remaining distance without reaching he boundary
                 if (T <= lambda) {
@@ -218,7 +216,8 @@ public:
                     p += (T * T) * a + T * v;
 
                     // update matrix C
-                    precomputedValues.C += (T * T) * precomputedValues.A + T * precomputedValues.B;
+                    spectrahedron.update_C(T);
+                    //precomputedValues.C += (T * T) * precomputedValues.A + T * precomputedValues.B;
                     return;
                 }
 
@@ -234,7 +233,8 @@ public:
                 T -= lambda;
 
                 // update matrix C
-                precomputedValues.C += (lambda * lambda) * precomputedValues.A + lambda * precomputedValues.B;
+                spectrahedron.update_C(lambda);
+                //precomputedValues.C += (lambda * lambda) * precomputedValues.A + lambda * precomputedValues.B;
 
                 // Set v to have the direction of the trajectory at t = lambda
                 // i.e. the gradient of at^2 + vt + p, for t = lambda
@@ -242,13 +242,14 @@ public:
 
                 // compute reflected direction
                 VT reflectedTrajectory;
-                spectrahedron.computeReflection(p, v, reflectedTrajectory, precomputedValues);
+                spectrahedron.computeReflection(p, v, reflectedTrajectory);
                 v = reflectedTrajectory;
             }
 
             // if the #reflections exceeded the limit, don't move
-            if (reflectionsNum == reflectionsNumBound)
+            if (reflectionsNum == reflectionsNumBound) {
                 p = p0;
+            }
         }
 
         /// Sets the temperature in the distribution

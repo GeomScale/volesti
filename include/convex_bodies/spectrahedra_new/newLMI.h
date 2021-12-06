@@ -154,9 +154,6 @@ class LMI {
             it++;
         }
 
-        
-        
-        //setVectorMatrix();
         lmi_evaluator.setVectorMatrix(m, d, matrices);
     }
 
@@ -198,7 +195,6 @@ class LMI {
             }
             return;
         }
-        //evaluateWithoutA0(x, ret);
 
         // add A0
         ret += matrices[0];
