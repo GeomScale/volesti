@@ -682,6 +682,189 @@ public:
     }
 
 
+    // compute intersection points of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<VT, VT> gc_intersect_all_roots(VT const& r,
+                                  VT const& v,
+                                  VT& Ar,
+                                  VT& Av) const
+    {
+        Ar.noalias() = A * r;
+        Av.noalias() = A * v;
+
+        return compute_intersections_all_roots(Ar, Av);
+    }
+
+    
+    std::pair<VT, VT> gc_intersect_all_roots(VT const& r,
+                                             VT const& v,
+                                             VT& Ar,
+                                             VT& Av,
+                                             NT const& lambda_prev) const
+    {
+        Ar.noalias() = cos(lambda_prev)*Ar + sin(lambda_prev)*Av;
+        Av.noalias() = A * v;
+
+        return compute_intersections_all_roots(Ar, Av);
+    }
+
+
+    std::pair<VT, VT> compute_intersections_all_roots(VT& Ar, VT& Av) const
+    {
+        NT D, C1, C2, eval, max_root = std::numeric_limits<NT>::lowest(), min_root = std::numeric_limits<NT>::max();
+        NT min_plus  = std::numeric_limits<NT>::max();
+        NT max_minus = std::numeric_limits<NT>::lowest();
+        int m = num_of_hyperplanes();
+        bool set_negative_root = false, set_positive_root = false, pos_D = false;
+        std::vector<NT> neg_roots, pos_roots;
+
+        //NT eval2;
+
+        NT* Av_data = Av.data();
+        NT* Ar_data = Ar.data();
+        const NT* b_data = b.data();
+
+        //std::cout<<"\n STARTING! \n"<<std::endl;
+
+        for (int i = 0; i < m; i++) {
+            D = (*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data) - (*b_data)*(*b_data);
+            if (D > NT(0)) 
+            {
+                pos_D = true;
+
+                C1 = asin((((*Av_data)*(*b_data)) + ((*Ar_data)*sqrt(D))) / ((*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data)));
+                C2 = asin((((*Av_data)*(*b_data)) - ((*Ar_data)*sqrt(D))) / ((*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data)));
+
+                eval = (*Ar_data) * cos(C1) + (*Av_data) * sin(C1) - (*b_data);
+                //std::cout<<"eval C1 := "<<eval<<std::endl;
+                //eval2 = (*Ar_data) * cos(M_PI - C1) + (*Av_data) * sin(M_PI - C1) - (*b_data);
+                //std::cout<<"eval (Pi-C1) := "<<eval2<<std::endl;
+                if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
+                {
+                    C1 = M_PI - C1;
+                }
+                if ((C1 > -M_PI) && (C1 < NT(0)) {
+                    neg_roots.push_back(C1);
+                } else if ((C1 < M_PI) && (C1 > NT(0)) {
+                    pos_roots.push_back(C1);
+                }
+                C11 = (C1 < NT(0)) ? C1 + NT(2)*M_PI : C1 - NT(2)*M_PI;
+                if ((C11 > -M_PI) && (C11 < NT(0)) {
+                    neg_roots.push_back(C11);
+                } else if ((C11 < M_PI) && (C11 > NT(0)) {
+                    pos_roots.push_back(C11);
+                }
+                
+                //eval = (*Ar_data) * cos(C1) + (*Av_data) * sin(C1) - (*b_data);
+                //std::cout<<"final eval C1 := "<<eval<<"\n"<<std::endl;
+                if (C1 < min_plus && C1 > 0) {
+                    min_plus = C1;
+                    set_positive_root = true;
+                }else if (C1 > max_minus && C1 < 0){
+                    max_minus = C1;
+                    set_negative_root = true;
+                }
+                /*if (C1 > max_root && C1 < NT(2)*M_PI)
+                {
+                    max_root = C1;
+                }
+                if ((C1 < min_root) && (C1 > (-NT(2)*M_PI)))
+                {
+                    min_root = C1;
+                }*/
+
+                eval = (*Ar_data) * cos(C2) + (*Av_data) * sin(C2) - (*b_data);
+                //std::cout<<"eval C2 := "<<eval<<std::endl;
+                //eval2 = (*Ar_data) * cos(M_PI - C2) + (*Av_data) * sin(M_PI - C2) - (*b_data);
+                //std::cout<<"eval (Pi-C2) := "<<eval2<<std::endl;
+                if (!(eval > -NT(1e-05) && eval < NT(1e-05)))
+                {
+                    C2 = M_PI - C2;
+                }
+                if ((C2 > -M_PI) && (C2 < NT(0)) {
+                    neg_roots.push_back(C2);
+                } else if ((C2 < M_PI) && (C2 > NT(0)) {
+                    pos_roots.push_back(C2);
+                }
+
+                C22 = (C2 < NT(0)) ? C2 + NT(2)*M_PI : C2 - NT(2)*M_PI;
+                if ((C22 > -M_PI) && (C22 < NT(0)) {
+                    neg_roots.push_back(C22);
+                } else if ((C22 < M_PI) && (C22 > NT(0)) {
+                    pos_roots.push_back(C22);
+                }
+                
+                //eval = (*Ar_data) * cos(C2) + (*Av_data) * sin(C2) - (*b_data);
+                //std::cout<<"final eval C2 := "<<eval<<"\n"<<std::endl;
+                if (C2 < min_plus && C2 > 0) {
+                    min_plus = C2;
+                    set_positive_root = true;
+                }else if (C2 > max_minus && C2 < 0){
+                    max_minus = C2;
+                    set_negative_root = true;
+                }
+                /*if (C2 > max_root && C2 < NT(2)*M_PI)
+                {
+                    max_root = C2;
+                }
+                if (C2 < min_root && C2 > (-NT(2)*M_PI))
+                {
+                    min_root = C2;
+                }*/
+            }
+
+            Av_data++;
+            Ar_data++;
+            b_data++;
+        }
+
+        if (!set_negative_root)
+        {
+            //std::cout<<"negative not set, pos_D: "<<pos_D<<std::endl;
+            if (pos_D)
+            {
+                max_minus = max_root - NT(2) * M_PI;
+            }
+            else
+            {
+                max_minus = NT(0);
+            }
+            //std::cout<<"max_minus: "<<max_minus<<std::endl;
+        }
+        if (!set_positive_root)
+        {
+            //std::cout<<"positive not set, pos_D: "<<pos_D<<std::endl;
+            if (pos_D)
+            {
+                 min_plus = min_root + NT(2) * M_PI;
+            }
+            else
+            {
+                min_plus = NT(2) * M_PI;
+            }
+            //std::cout<<"min_plus: "<<min_plus<<std::endl;
+        }
+        std::cout<<"max_minus: "<<max_minus<<std::endl;
+        std::cout<<"min_plus: "<<min_plus<<std::endl;
+        if (!pos_D) {
+            min_plus = M_PI;
+            max_minus = -M_PI;
+        }
+        //std::cout<<"min_root = "<<min_root<<", max_root: "<<max_root<<std::endl;
+        //std::cout<<"max_minus: "<<max_minus<<", min_plus = "<<min_plus<<"\n----------"<<std::endl;
+
+        std::sort(pos_roots.begin(), pos_roots.end());
+        VT _pos_roots = Eigen::Map<VT>(&pos_roots[0], pos_roots.size());
+
+        std::sort(neg_roots.begin(), neg_roots.end());
+        VT _neg_roots = Eigen::Map<VT>(&neg_roots[0], neg_roots.size());
+
+        std::cout<<"_neg_roots: "<<_neg_roots.transpose()<<std::endl;
+        std::cout<<"_pos_roots: "<<_pos_roots.transpose()<<std::endl;
+
+        return std::make_pair(_neg_roots, _pos_roots);
+    }
+
 
     // Apply linear transformation, of square matrix T^{-1}, in H-polytope P:= Ax<=b
     void linear_transformIt(MT const& T)
