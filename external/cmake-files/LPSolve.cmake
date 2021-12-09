@@ -1,9 +1,10 @@
+set(LP_SOLVE_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 function(GetLPSolve)
-  find_path(LP_SOLVE_DIR NAMES lpsolve.h PATHS ${CMAKE_SOURCE_DIR}/../external/_deps/lpsolve-src)
+  find_path(LP_SOLVE_DIR NAMES lpsolve.h PATHS ${LP_SOLVE_CMAKE_DIR}/../_deps/lpsolve-src)
 
   if (NOT LP_SOLVE_DIR)
       include(FetchContent)
-      set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/../external/_deps")
+      set(FETCHCONTENT_BASE_DIR "${LP_SOLVE_CMAKE_DIR}/../_deps")
       FetchContent_Declare(
           lpsolve
           URL https://webwerks.dl.sourceforge.net/project/lpsolve/lpsolve/5.5.2.11/lp_solve_5.5.2.11_source.tar.gz

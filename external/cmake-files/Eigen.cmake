@@ -1,9 +1,10 @@
+set(EIGEN_CMAKE_DIR ${CMAKE_CURRENT_LIST_DIR})
 function(GetEigen)
-  find_path(EIGEN_DIR NAMES Eigen PATHS ${CMAKE_SOURCE_DIR}/../external/_deps/eigen-src)
+  find_path(EIGEN_DIR NAMES Eigen PATHS ${EIGEN_CMAKE_DIR}/../_deps/eigen-src)
 
   if (NOT EIGEN_DIR) 
     include(FetchContent)
-    set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/../external/_deps")
+    set(FETCHCONTENT_BASE_DIR "${EIGEN_CMAKE_DIR}/../_deps")
     FetchContent_Declare(
       eigen
       GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
