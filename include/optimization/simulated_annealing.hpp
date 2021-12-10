@@ -89,8 +89,6 @@ double solve_sdp(_Spectrahedron & spectrahedron, Point const & objectiveFunction
     RNGType rng(spectrahedron.dimension());
     typename HMC::Settings hmc_settings = typename HMC::Settings(settings.walkLength, rng, objectiveFunction, temperature, diameter);
     HMC hmcRandomWalk = HMC(hmc_settings);
-    // this data structure help us move computations between function calls
-    //typename HMC::PrecomputedValues hmcPrecomputedValues;
     NT previous_min = objectiveFunction.dot(solution);
 
     /******** solve *********/
@@ -113,7 +111,6 @@ double solve_sdp(_Spectrahedron & spectrahedron, Point const & objectiveFunction
                 if (verbose) std::cout << "Sampled point outside the spectrahedron.\n";
                 randPoints.clear();
                 spectrahedron.resetFlags();
-                //hmcPrecomputedValues.resetFlags();
             }
             else {
                 // update values;

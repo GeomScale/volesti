@@ -21,16 +21,6 @@ public:
     struct parameters {};
     parameters param;
 
-    /// The implementation of the walk
-    /// Currently implemented only for spectrahedra
-    /// with template specialization
-    ///@tparam ConvexBody a convex body
-    ///@tparam RandomNumberGenerator
-    //template <typename ConvexBody, typename RandomNumberGenerator>
-    //struct Walk {
-    //};
-
-
 
     /// The implementation of the walk
     /// Currently implemented only for spectrahedra
@@ -182,7 +172,6 @@ public:
 
                     // update matrix C
                     spectrahedron.update_C(T);
-                    //precomputedValues.C += (T * T) * precomputedValues.A + T * precomputedValues.B;
                     return;
                 }
 

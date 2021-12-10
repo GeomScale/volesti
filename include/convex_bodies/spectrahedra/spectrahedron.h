@@ -14,16 +14,11 @@
 #include "chrono"
 
 
-
-
 /// Among successive calls of this class methods, we may need to pass data
 /// from one call to the next, to avoid repeating computations, or to efficiently update values
 /// Warning: this struct assists in many methods; perhaps for different methods use different instances
 template <typename NT, typename MT, typename VT>
 struct PrecomputationOfValues {
-
-    //typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    //typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
     /// These flags indicate whether the corresponding matrices are computed
     /// if yes, we can use them and not compute them fro scratch
@@ -80,8 +75,8 @@ public:
     typedef PrecomputationOfValues<NT, MT, VT> _PrecomputationOfValues;
 
     _PrecomputationOfValues precomputedValues;
+    
     EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
-    //VT grad;
 
     /// The dimension of the spectrahedron
     unsigned int d;

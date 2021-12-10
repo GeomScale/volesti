@@ -26,7 +26,6 @@ public:
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
     MT vectorMatrix;
-    //VT a;
 
     int _m, _d;
 
@@ -76,7 +75,6 @@ public:
         #else
 
             VT a = vectorMatrix * x;
-            //res.setZero(_m, _m); //check if we can avoid it
 
             double *data = res.data();
             double *v = a.data();
@@ -121,10 +119,6 @@ public:
 template<typename NT, typename MT, typename VT>
 class LMI {
     public:
-    /// Eigen matrix type
-    //typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
-    /// Eigen vector type
-    //typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
 
     evaluate_lmi<MT> lmi_evaluator;
 
