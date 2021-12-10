@@ -14,19 +14,16 @@
 #include "chrono"
 
 
-template <typename MT>
-struct PrecomputationOfValues {
-    
-};
+
 
 /// Among successive calls of this class methods, we may need to pass data
 /// from one call to the next, to avoid repeating computations, or to efficiently update values
 /// Warning: this struct assists in many methods; perhaps for different methods use different instances
-template <typename NT>
-struct PrecomputationOfValues<Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic>> {
+template <typename NT, typename MT, typename VT>
+struct PrecomputationOfValues {
 
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
-    typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
+    //typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    //typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
 
     /// These flags indicate whether the corresponding matrices are computed
     /// if yes, we can use them and not compute them fro scratch
@@ -80,11 +77,11 @@ public:
     /// The type of a pair of NT
     typedef std::pair<NT, NT> pairNT;
 
-    typedef PrecomputationOfValues<MT> _PrecomputationOfValues;
+    typedef PrecomputationOfValues<NT, MT, VT> _PrecomputationOfValues;
 
     _PrecomputationOfValues precomputedValues;
     EigenvaluesProblems<NT, MT, VT> EigenvaluesProblem;
-    VT grad;
+    //VT grad;
 
     /// The dimension of the spectrahedron
     unsigned int d;
@@ -98,7 +95,7 @@ public:
     /// \param[in] lmi The linear matrix inequality that describes the spectrahedron
     Spectrahedron(const LMI<NT, MT, VT>& lmi) : lmi(lmi) {
         d = lmi.dimension();
-        grad.setZero(d);
+        //grad.setZero(d);
         precomputedValues.resetFlags();
         precomputedValues.set_mat_size(lmi.sizeOfMatrices());
     }
@@ -157,7 +154,7 @@ public:
         createMatricesForPositiveQuadIntersection(a, b, c);
 
         // get the minimum positive eigenvalue of At^2 + Bt + C
-        NT distance = quadraticEigenvaluesProblem.minPosQuadraticEigenvalue(precomputedValues.A, precomputedValues.B,
+        NT distance = EigenvaluesProblem.minPosQuadraticEigenvalue(precomputedValues.A, precomputedValues.B,
                                                                             precomputedValues.C, precomputedValues.X,
                                                                             precomputedValues.Y,
                                                                             precomputedValues.eigenvector,
@@ -188,16 +185,31 @@ public:
         if (!precomputedValues.computed_A)
             lmi.evaluate(a, precomputedValues.A);
 
-        return eigenvaluesProblems.symGeneralizedProblem(precomputedValues.A, *(lmi.getMatrix(coordinate)));
+        return EigenvaluesProblem.symGeneralizedProblem(precomputedValues.A, *(lmi.getMatrix(coordinate)));
     }
 
-    template <typename update_parameters>
-    std::pair<NT, int> line_positive_intersect(PointType& r,
-                                                     PointType& v,
-                                                     VT&,
-                                                     VT& ,
-                                                     NT&,
-                                                     update_parameters&) 
+    //First coordinate ray intersecting convex polytope
+    std::pair<NT,NT> line_intersect_coord(Point &r,
+                                          unsigned int const& rand_coord,
+                                          VT&)
+    {
+        return coordinateIntersection(r.getCoefficients(), rand_coord);
+    }
+
+    //Not the first coordinate ray intersecting convex
+    std::pair<NT,NT> line_intersect_coord(PointType &r,
+                                          PointType&,
+                                          unsigned int const& rand_coord,
+                                          unsigned int&,
+                                          VT&)
+    {
+        return coordinateIntersection(r.getCoefficients(), rand_coord);
+    }
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(PointType &r,
+                                               PointType &v)
     {
         NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
         return std::pair<NT, int> (pos_inter, -1);
@@ -206,25 +218,98 @@ public:
     template <typename update_parameters>
     std::pair<NT, int> line_positive_intersect(PointType& r,
                                                PointType& v,
+                                               VT&,
                                                VT& ,
-                                               VT& ,
-                                               NT &,
-                                               MT& ,
-                                               update_parameters& ) 
+                                               NT&,
+                                               update_parameters&)
     {
-        NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
-        return std::pair<NT, int> (pos_inter, -1);
+        return line_positive_intersect(r, v);
+    }
+
+    template <typename update_parameters>
+    std::pair<NT, int> line_positive_intersect(PointType& r,
+                                               PointType& v,
+                                               VT&,
+                                               VT&,
+                                               NT&,
+                                               MT&,
+                                               update_parameters& )
+    {
+        return line_positive_intersect(r, v);
     }
 
     template <typename update_parameters>
     std::pair<NT, int> line_first_positive_intersect(PointType& r,
                                                      PointType& v,
-                                                     VT& ,
-                                                     VT& ,
+                                                     VT&,
+                                                     VT&,
                                                      update_parameters&)
     {
+        return line_positive_intersect(r, v);
+    }
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(PointType &r,
+                                               PointType &v,
+                                               VT&,
+                                               VT&)
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    // compute intersection point of a ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT, int> line_positive_intersect(PointType &r,
+                                               PointType &v,
+                                               VT&,
+                                               VT&,
+                                               NT&)
+    {
+        return line_positive_intersect(r, v);
+    }
+
+    // compute intersection point of ray starting from r and pointing to v
+    // with polytope discribed by A and b
+    std::pair<NT,NT> line_intersect(PointType &r, PointType &v)
+    {
         NT pos_inter = positiveLinearIntersection(r.getCoefficients(), v.getCoefficients());
-        return std::pair<NT, int> (pos_inter, -1);
+        NT neg_inter = positiveLinearIntersection(r.getCoefficients(), NT(-1)*v.getCoefficients());
+
+        return std::make_pair(pos_inter, neg_inter);
+    }
+
+
+    std::pair<NT,NT> line_intersect(PointType &r,
+                                    PointType &v,
+                                    VT&,
+                                    VT&)
+    {
+        return line_intersect(r, v);
+    }
+
+    std::pair<NT,NT> line_intersect(PointType &r,
+                                    PointType &v,
+                                    VT&,
+                                    VT&,
+                                    NT&)
+    {
+        return line_intersect(r, v);
+    }
+
+    void update_position_internal(NT &t){
+        precomputedValues.C += t * precomputedValues.B;
+        precomputedValues.computed_C = true;
+    }
+
+    MT get_mat() const
+    {
+        return MT::Identity(lmi.dimension(), lmi.dimension());
+    }
+
+    void resetFlags()
+    {
+        precomputedValues.resetFlags();
     }
 
     void set_flags(bool bool_flag)
@@ -234,31 +319,56 @@ public:
         precomputedValues.computed_XY = bool_flag;
     }
 
+    MT get_C() const
+    {
+        return precomputedValues.C;
+    }
+
     void update_C(NT const& lambda)
     {
         precomputedValues.C += (lambda * lambda) * precomputedValues.A + lambda * precomputedValues.B;
     }
 
-    //void update_position_internal(NT &t){
-    //    precomputedValues.C += t * precomputedValues.B;
-    //    precomputedValues.computed_C = true;
-    //}
+    // return the number of facets
+    int num_of_hyperplanes() const
+    {
+        return 0;
+    }
 
     /// Computes the reflected direction at a point on the boundary of the spectrahedron.
-    /// \param[in] point A point on the boundary of the spectrahedron
-    /// \param[in] incomingDirection The direction of the trajectory as it hits the boundary
+    /// \param[in] r A point on the boundary of the spectrahedron
+    /// \param[in] v The direction of the trajectory as it hits the boundary
     /// \param[out] reflectedDirection The reflected direction
-    void computeReflection(VT const & point, VT const & incomingDirection, VT& reflectedDirection) {
-
-        // get the gradient of the determinant of the lmi at point
-        lmi.normalizedDeterminantGradient(point, precomputedValues.eigenvector, grad);
+    template <typename update_parameters>
+    void compute_reflection(PointType &v, PointType &r, update_parameters& ) const 
+    {
+        VT grad(d);
+        lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
 
         // compute reflected direction
         // if v is original direction and s the surface normal,
         // reflected direction = v - 2 <v,s>*s
 
-        NT dot = 2 * incomingDirection.dot(grad);
-        reflectedDirection = incomingDirection - dot * grad;
+        NT dot = 2 * v.dot(grad);
+        v += -dot * PointType(grad);
+    }
+
+
+    /// Computes the reflected direction at a point on the boundary of the spectrahedron.
+    /// \param[in] r A point on the boundary of the spectrahedron
+    /// \param[in] v The direction of the trajectory as it hits the boundary
+    /// \param[out] reflectedDirection The reflected direction
+    void compute_reflection(VT &v, VT &r) const 
+    {
+        VT grad(d);
+        lmi.normalizedDeterminantGradient(r, precomputedValues.eigenvector, grad);
+
+        // compute reflected direction
+        // if v is original direction and s the surface normal,
+        // reflected direction = v - 2 <v,s>*s
+
+        NT dot = 2 * v.dot(grad);
+        v += -dot * grad;
     }
 
 
@@ -277,8 +387,7 @@ public:
     /// \tparam Point
     /// \param[in] numPoints The number of points to sample for the estimation
     /// \return An estimation of the diameter of the spectrahedron
-    template<class Point>
-    NT estimateDiameter(int const numPoints, Point const & interiorPoint) {
+    NT estimateDiameter(int const numPoints, PointType const & interiorPoint) {
         typedef boost::mt19937 RNGType;
 
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();

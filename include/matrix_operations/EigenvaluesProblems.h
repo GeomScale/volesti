@@ -292,7 +292,7 @@ public:
     /// \param[in] A Input matrix
     /// \param[in] B Input matrix
     /// \return The pair (minimum positive, maximum negative) of eigenvalues
-    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) 
+    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) const
     {
         int matrixDim = A.rows();
         double lambdaMinPositive;

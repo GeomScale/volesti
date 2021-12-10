@@ -567,7 +567,6 @@ public:
 
 
     //First coordinate ray intersecting convex polytope
-
     std::pair<NT,NT> line_intersect_coord(Point const& r,
                                           unsigned int const& rand_coord,
                                           VT& lamdas) const

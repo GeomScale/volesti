@@ -26,24 +26,25 @@ public:
     /// with template specialization
     ///@tparam ConvexBody a convex body
     ///@tparam RandomNumberGenerator
+    //template <typename ConvexBody, typename RandomNumberGenerator>
+    //struct Walk {
+    //};
+
+
+
+    /// The implementation of the walk
+    /// Currently implemented only for spectrahedra
+    /// with template specialization
+    ///@tparam ConvexBody a convex body
+    ///@tparam RandomNumberGenerator
     template <typename ConvexBody, typename RandomNumberGenerator>
     struct Walk {
-    };
-
-
-
-    /// The implementation of the walk for spectrahedra
-    template <typename NT, typename RandomNumberGenerator>
-    struct Walk<Spectrahedron<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,Eigen::Dynamic,1> >, RandomNumberGenerator> {
-
-        /// The type of the spectrahedron
-        typedef Spectrahedron<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,Eigen::Dynamic,1>> SPECTRAHEDRON;
-        /// Type for internal structure of class Spectrahedron
-        typedef typename SPECTRAHEDRON::PrecomputedValues PrecomputedValues;
 
         /// The matrix/vector types we use
-        typedef typename SPECTRAHEDRON::MATRIX_TYPE MT;
-        typedef typename SPECTRAHEDRON::VECTOR_TYPE VT;
+        typedef typename ConvexBody::PointType Point;
+        typedef typename ConvexBody::MT MT;
+        typedef typename ConvexBody::VT VT;
+        typedef typename Point::FT NT;
 
         /// A struct containing the parameters for the random walk
         struct Settings {
@@ -97,7 +98,6 @@ public:
             this->settings = settings;
         }
 
-
         /// Samples random points from the spectrahedron from the Boltzmann distribution
         /// \param[in] spectrahedron A spectrahedron
         /// \param[in] interiorPoint A point in the interior of the spectrahedron
@@ -105,40 +105,10 @@ public:
         /// \param[out] points The list of the sampled points
         /// \tparam Point class Point with NT and VT as declared above in this class
         template <typename Point>
-        void apply(SPECTRAHEDRON &spectrahedron, Point const & interiorPoint, const unsigned int pointsNum,
+        void apply(ConvexBody &spectrahedron, Point const & interiorPoint, const unsigned int pointsNum,
                     std::list<Point> &points) {
             // store intermediate results between successive calls of methods
             // of the class spectrahedron, to avoid repeating computations
-            PrecomputedValues precomputedValues;
-            VT p = interiorPoint.getCoefficients();
-
-            // sample #pointsNum points
-            for (unsigned int i = 1; i <= pointsNum; ++i) {
-                // burn #walk_length points to get one sample
-                for (unsigned int j = 0; j < settings.walk_length; ++j) {
-                    getNextPoint<Point>(spectrahedron, p, precomputedValues);
-                }
-
-                // add the sample in the return list
-                points.push_back(Point(p));
-            }
-
-            // the data in preComputedValues may be out of date in the next call
-            precomputedValues.resetFlags();
-        }
-
-        /// Samples random points from the spectrahedron from the Boltzmann distribution
-        /// \param[in] spectrahedron A spectrahedron
-        /// \param[in] interiorPoint A point in the interior of the spectrahedron
-        /// \param[in] pointsNum The number of points to sample
-        /// \param[out] points The list of the sampled points
-        /// \param[in, out] precomputedValues transfer data between sucessive calls
-        /// \tparam Point class Point with NT and VT as declared above in this class
-        template <typename Point>
-        void apply(SPECTRAHEDRON &spectrahedron, Point const & interiorPoint, const unsigned int pointsNum,
-                    std::list<Point> &points, PrecomputedValues &precomputedValues) {
-            // store intermediate results between successive calls of methods
-            // of the class spectrahedron, to avoid repeating computations
 
             VT p = interiorPoint.getCoefficients();
 
@@ -146,16 +116,12 @@ public:
             for (unsigned int i = 1; i <= pointsNum; ++i) {
                 // burn #walk_length points to get one sample
                 for (unsigned int j = 0; j < settings.walk_length; ++j) {
-                    getNextPoint<Point>(spectrahedron, p, precomputedValues);
+                    getNextPoint<Point>(spectrahedron, p);
                 }
 
                 // add the sample in the return list
                 points.push_back(Point(p));
             }
-
-            // the data in preComputedValues may be out of date in the next call
-            precomputedValues.resetFlags();
-            precomputedValues.computed_C = true;
         }
 
 
@@ -163,10 +129,9 @@ public:
         /// If it hits the boundary, the trajectory is reflected. If #reflections < reflectionsBound * dimension, it returns the same point
         /// \param[in] spectrahedron A spectrahedron
         /// \param[in, out] p An interior point, and the next point in the random walk
-        /// \param[in, out] precomputedValues Data for the methods of the class Spectrahedron
         /// \tparam Point
         template <typename Point>
-        void getNextPoint(SPECTRAHEDRON &spectrahedron, VT &p, PrecomputedValues &precomputedValues) {
+        void getNextPoint(ConvexBody &spectrahedron, VT &p) {
 
             // initialize
             RandomNumberGenerator &rng = settings.randomNumberGenerator;
@@ -241,14 +206,13 @@ public:
                 v += (lambda * 2) * a;
 
                 // compute reflected direction
-                VT reflectedTrajectory;
-                spectrahedron.computeReflection(p, v, reflectedTrajectory);
-                v = reflectedTrajectory;
+                spectrahedron.compute_reflection(v, p);
             }
 
             // if the #reflections exceeded the limit, don't move
             if (reflectionsNum == reflectionsNumBound) {
                 p = p0;
+                spectrahedron.set_flags(false);
             }
         }
 

@@ -113,80 +113,20 @@ public:
 };
 
 
-
-/// This class handles a linear matrix inequality of the form \[A_0 +  \sum x_i A_i <= 0\],
-/// where <= denotes negative definiteness
+/// This class handles a linear matrix inequality of the form \[A_0 +  \sum x_i A_i\]
+/// A template specialization for dense Eigen matrices and vectors
 /// @tparam NT Numeric Type
 /// @tparam MT Matrix Type
 /// @tparam VT Vector Type
 template<typename NT, typename MT, typename VT>
 class LMI {
-    /// The matrices A_0, A_i
-    std::vector<MT> matrices;
-
-    evaluate_lmi<MT> lmi_evaluator;
-    EigenvaluesProblems<NT, MT, VT> eigs;
-
-    /// The dimension of the vector x
-    unsigned int d;
-
-    /// The size of the matrices A_i
-    unsigned int m;
-
-
-    /// Creates A LMI object
-    /// \param[in] matrices The matrices A_0, A_i
-    LMI(std::vector<MT>& matrices) {
-        typename std::vector<MT>::iterator it = matrices.begin();
-
-        while (it!=matrices.end()) {
-            this->matrices.push_back(*it);
-        }
-
-        d = matrices.size() - 1;
-        m = matrices[0].rows();
-    }
-
-    /// \returns The dimension of vector x
-    unsigned int dimension() const {
-        return d;
-    }
-
-    /// \returns The size of the matrices
-    unsigned int sizeOfMatrices() const {
-        return m;
-    }
-
-    /// Evaluate \[A_0 + \sum x_i A_i \]
-    /// \param[in] x The input vector
-    /// \param[out] ret The output matrix
-    void evaluate(const VT& x, MT& ret) const {
-    }
-
-    /// Compute  \[x_1*A_1 + ... + x_n A_n]
-    /// \param[in] x Input vector
-    /// \param[out] res Output matrix
-    void evaluateWithoutA0(const VT& x, MT& ret) const {
-    }
-
-    /// Compute the gradient of the determinant of the LMI at p
-    /// \param[in] p Input parameter
-    /// \param[in] Input vector: lmi(p)*e = 0, e != 0
-    /// \param[out] ret The normalized gradient of the determinant of the LMI at p
-    void normalizedDeterminantGradient(const VT& p, const VT& e, VT& ret) {}
-};
-
-
-/// This class handles a linear matrix inequality of the form \[A_0 +  \sum x_i A_i\]
-/// A template specialization for dense Eigen matrices and vectors
-/// @tparam NT Numeric Type
-template<typename NT>
-class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,Eigen::Dynamic,1> > {
     public:
     /// Eigen matrix type
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    //typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
     /// Eigen vector type
-    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    //typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+
+    evaluate_lmi<MT> lmi_evaluator;
 
     /// The matrices A_0, A_i
     std::vector<MT> matrices;
@@ -237,7 +177,7 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
     /// \param[in] x The input vector
     /// \param[out] ret The output matrix
     void evaluate(VT const & x, MT& ret, bool complete_mat = false) const {
-        lmi_evaluator.evaluateWithoutA0(x, res, complete_mat);
+        lmi_evaluator.evaluateWithoutA0(x, ret, complete_mat);
 
         // add A0
         ret += matrices[0];
@@ -254,7 +194,7 @@ class LMI<NT, Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic>, Eigen::Matrix<NT,
     /// \param[in] p Input parameter
     /// \param[in] Input vector: lmi(p)*e = 0, e != 0
     /// \param[out] ret The normalized gradient of the determinant of the LMI at p
-    void normalizedDeterminantGradient(const VT& p, const VT& e, VT& ret) {
+    void normalizedDeterminantGradient(VT r, VT const& e, VT &ret) const {
         NT* ret_data = ret.data();
         NT sum_sqqrt_sq = NT(0);
         for (int i = 0; i < d; i++) {
