@@ -292,15 +292,13 @@ public:
     /// \param[in] A Input matrix
     /// \param[in] B Input matrix
     /// \return The pair (minimum positive, maximum negative) of eigenvalues
-    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) 
+    NT minPosLinearEigenvalue(MT const & A, MT const & B, VT &eigvec) const
     {
         int matrixDim = A.rows();
         double lambdaMinPositive;
 
         Spectra::DenseSymMatProd<NT> op(B);
         Spectra::DenseCholesky<NT> Bop(-A);
-        //std::cout<<"A = "<<Eigen::MatrixXd(A)<<"\n\n"<<std::endl;
-        //std::cout<<"B = "<<Eigen::MatrixXd(B)<<"\n\n"<<std::endl;
 
         // Construct generalized eigen solver object, requesting the largest three generalized eigenvalues
         Spectra::SymGEigsSolver<NT, Spectra::LARGEST_ALGE,  Spectra::DenseSymMatProd<NT>, Spectra::DenseCholesky<NT>, Spectra::GEIGS_CHOLESKY> 
@@ -312,7 +310,6 @@ public:
 
         // Retrieve results
         VT evalues;
-        //Eigen::MatrixXd evecs;
 
         if (geigs.info() == Spectra::SUCCESSFUL) {
             evalues = geigs.eigenvalues();
@@ -320,12 +317,6 @@ public:
         }
 
         lambdaMinPositive = 1 / evalues(0);
-
-        //std::cout<<"lambdaMinPositive = "<<lambdaMinPositive<<std::endl;
-        //std::cout<<"eigvec = "<<eigvec.transpose()<<"\n\n"<<std::endl;
-
-        //std::cout<<"lBx = "<<lambdaMinPositive*(B.template selfadjointView< Eigen::Lower >()*eigvec).transpose()<<"\n"<<std::endl;
-        //std::cout<<"Ax = "<<(((-A).template selfadjointView< Eigen::Lower >()*eigvec).transpose())<<"\n\n"<<std::endl;
 
         return lambdaMinPositive;
     }

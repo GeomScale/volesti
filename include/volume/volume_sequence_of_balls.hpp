@@ -24,7 +24,7 @@
 #include "cartesian_geom/cartesian_kernel.h"
 #include "generators/boost_random_number_generator.hpp"
 #include "convex_bodies/hpolytope.h"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/zpolytope.h"
     #include "convex_bodies/zonoIntersecthpoly.h"

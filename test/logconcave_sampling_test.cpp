@@ -44,7 +44,7 @@
 
 #include "matrix_operations/EigenvaluesProblems.h"
 #include "SDPAFormatManager.h"
-#include "convex_bodies/spectrahedra_new/newSpectrahedron.h"
+#include "convex_bodies/spectrahedra/spectrahedron.h"
 
 template <typename NT>
 struct SimulationStats {
@@ -888,7 +888,7 @@ void call_test_benchmark_spectrahedra_grid_search() {
     typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef Cartesian<NT> Kernel;
     typedef typename Kernel::Point    Point;
-    typedef Spectrahedron <NT, MT, VT> SPECTRAHEDRON;
+    typedef Spectrahedron <Point> SPECTRAHEDRON;
     typedef boost::mt19937 RNGType;
 
     std::cout << " --- Grid search on spectrahedra " << std::endl;

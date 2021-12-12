@@ -39,7 +39,7 @@ In the folder "examples", clone this repo:
 
 ```bash
 git clone https://github.com/m-reuter/arpackpp
-cd arpackcpp
+cd arpackpp
 ```
 
 It has two scripts that should easily install the libraries:
@@ -88,7 +88,7 @@ The contents of the file are:
  1 -0 -0
 ```
 
- 
+
 It represents a spectrahedron in 2 dimensions, described by a linear matrix inequality with
 3x3 matrices, and a linear objective function. 
 

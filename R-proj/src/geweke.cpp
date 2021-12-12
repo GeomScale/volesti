@@ -7,6 +7,7 @@
 
 //Contributed and/or modified by Alexandros Manochis, as part of Google Summer of Code 2020 program.
 
+
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
@@ -15,7 +16,6 @@
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "diagnostics/geweke.hpp"
-
 
 //' Geweke's MCMC diagnostic
 //'
