@@ -18,7 +18,7 @@
 #include "generators/boost_random_number_generator.hpp"
 #include "convex_bodies/ballintersectsimplex.h"
 #include "random_walks/gcw_estimator.hpp"
-#include "random_walks/uniform_great_cycle_walk.hpp"
+#include "random_walks/uniform_non_convex_great_cycle_walk.hpp"
 
 //' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 //'
@@ -85,11 +85,11 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
     RNGType rng(d);
     VT p = Rcpp::as<VT>(x), center = Rcpp::as<VT>(x0), y(d);
     p -= center;
-    //if (BS2.is_in((p)) == 0)
-    //{
-    //    std::cout<<"BS2 initial point outside"<<std::endl;
-    //    exit(-1);
-    //}
+    if (BS.is_in((p)) == 0)
+    {
+        std::cout<<"BS2 initial point outside"<<std::endl;
+        exit(-1);
+    }
 
     //if (BS.is_in(p) == 0)
     //{
@@ -98,7 +98,7 @@ Rcpp::NumericMatrix sample_component(Rcpp::NumericMatrix A,
     //}
     //exit(-1);
 
-    typedef GCWalk::template Walk
+    typedef GCWalkOpt::template Walk
             <
                 Body,
                 RNGType

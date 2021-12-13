@@ -138,7 +138,7 @@ public:
         for (int i = 0; i < m; i++) {
             //Check if corresponding hyperplane is violated
             if ((*Ax_b_data) < NT(-tol)){
-                //std::cout<<"Ax-b>0: "<< (*Ax_b_data) <<std::endl;
+                std::cout<<"Ax-b>0: "<< (*Ax_b_data) <<std::endl;
                 return 0;
             }
 
@@ -711,7 +711,7 @@ public:
 
     std::pair<VT, VT> compute_intersections_all_roots(VT& Ar, VT& Av) const
     {
-        NT D, C1, C2, eval, max_root = std::numeric_limits<NT>::lowest(), min_root = std::numeric_limits<NT>::max();
+        NT D, C1, C2, C11, C22, eval, max_root = std::numeric_limits<NT>::lowest(), min_root = std::numeric_limits<NT>::max();
         NT min_plus  = std::numeric_limits<NT>::max();
         NT max_minus = std::numeric_limits<NT>::lowest();
         int m = num_of_hyperplanes();
@@ -728,7 +728,8 @@ public:
 
         for (int i = 0; i < m; i++) {
             D = (*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data) - (*b_data)*(*b_data);
-            if (D > NT(0)) 
+            NT zz = (*b_data) / ((*Ar_data)*(*Ar_data) + (*Av_data)*(*Av_data));
+            if (D > NT(0))// && (zz>=-1 && zz<=1)) 
             {
                 pos_D = true;
 
@@ -743,17 +744,31 @@ public:
                 {
                     C1 = M_PI - C1;
                 }
-                if ((C1 > -M_PI) && (C1 < NT(0)) {
+                if (C1>M_PI)
+                {
+                    C1 -= 2*M_PI;
+                    //std::cout<<"C1 = "<<C1<<std::endl;
+                    //exit(-1);
+                } else if (C1 < -M_PI)
+                {
+                    C1 += 2*M_PI;
+                }
+                if ((C1 > -M_PI) && (C1 < NT(0))) {
                     neg_roots.push_back(C1);
-                } else if ((C1 < M_PI) && (C1 > NT(0)) {
+                } else if ((C1 < M_PI) && (C1 > NT(0))) {
                     pos_roots.push_back(C1);
                 }
-                C11 = (C1 < NT(0)) ? C1 + NT(2)*M_PI : C1 - NT(2)*M_PI;
-                if ((C11 > -M_PI) && (C11 < NT(0)) {
-                    neg_roots.push_back(C11);
-                } else if ((C11 < M_PI) && (C11 > NT(0)) {
-                    pos_roots.push_back(C11);
+                eval = (*Ar_data) * cos(C1) + (*Av_data) * sin(C1) - (*b_data);
+                if (!(eval > -NT(1e-05) && eval < NT(1e-05))){
+                    std::cout<<"eval = "<<eval<<std::endl;
+                    exit(-1);
                 }
+                /*C11 = (C1 < NT(0)) ? C1 + NT(2)*M_PI : C1 - NT(2)*M_PI;
+                if ((C11 > -M_PI) && (C11 < NT(0))) {
+                    neg_roots.push_back(C11);
+                } else if ((C11 < M_PI) && (C11 > NT(0))) {
+                    pos_roots.push_back(C11);
+                }*/
                 
                 //eval = (*Ar_data) * cos(C1) + (*Av_data) * sin(C1) - (*b_data);
                 //std::cout<<"final eval C1 := "<<eval<<"\n"<<std::endl;
@@ -781,25 +796,38 @@ public:
                 {
                     C2 = M_PI - C2;
                 }
-                if ((C2 > -M_PI) && (C2 < NT(0)) {
+                if (C2>M_PI)
+                {
+                    C2 -= 2*M_PI;
+                    //std::cout<<"C1 = "<<C1<<std::endl;
+                    //exit(-1);
+                } else if (C2 < -M_PI)
+                {
+                    C2 += 2*M_PI;
+                }
+                if ((C2 > -M_PI) && (C2 < NT(0))) {
                     neg_roots.push_back(C2);
-                } else if ((C2 < M_PI) && (C2 > NT(0)) {
+                } else if ((C2 < M_PI) && (C2 > NT(0))) {
                     pos_roots.push_back(C2);
                 }
-
-                C22 = (C2 < NT(0)) ? C2 + NT(2)*M_PI : C2 - NT(2)*M_PI;
-                if ((C22 > -M_PI) && (C22 < NT(0)) {
-                    neg_roots.push_back(C22);
-                } else if ((C22 < M_PI) && (C22 > NT(0)) {
-                    pos_roots.push_back(C22);
+                eval = (*Ar_data) * cos(C2) + (*Av_data) * sin(C2) - (*b_data);
+                if (!(eval > -NT(1e-05) && eval < NT(1e-05))){
+                    std::cout<<"eval = "<<eval<<std::endl;
+                    exit(-1);
                 }
+                /*C22 = (C2 < NT(0)) ? C2 + NT(2)*M_PI : C2 - NT(2)*M_PI;
+                if ((C22 > -M_PI) && (C22 < NT(0))) {
+                    neg_roots.push_back(C22);
+                } else if ((C22 < M_PI) && (C22 > NT(0))) {
+                    pos_roots.push_back(C22);
+                }*/
                 
                 //eval = (*Ar_data) * cos(C2) + (*Av_data) * sin(C2) - (*b_data);
                 //std::cout<<"final eval C2 := "<<eval<<"\n"<<std::endl;
                 if (C2 < min_plus && C2 > 0) {
                     min_plus = C2;
                     set_positive_root = true;
-                }else if (C2 > max_minus && C2 < 0){
+                } else if (C2 > max_minus && C2 < 0){
                     max_minus = C2;
                     set_negative_root = true;
                 }
@@ -859,8 +887,23 @@ public:
         std::sort(neg_roots.begin(), neg_roots.end());
         VT _neg_roots = Eigen::Map<VT>(&neg_roots[0], neg_roots.size());
 
-        std::cout<<"_neg_roots: "<<_neg_roots.transpose()<<std::endl;
-        std::cout<<"_pos_roots: "<<_pos_roots.transpose()<<std::endl;
+        std::cout<<"_neg_roots: "<<_neg_roots.transpose()<<"\n"<<std::endl;
+        std::cout<<"_neg_roots: "<<(_neg_roots +VT::Ones(_neg_roots.rows())*(2*M_PI)).transpose()<<"\n"<<std::endl;
+        std::cout<<"_pos_roots: "<<_pos_roots.transpose()<<"\n"<<std::endl;
+
+        std::vector<NT> all_roots;
+
+        for (int i=0; i<_neg_roots.rows(); i++)
+        {
+            all_roots.push_back(_neg_roots(i)+2*M_PI);
+        }
+        for (int i=0; i<_pos_roots.rows(); i++)
+        {
+            all_roots.push_back(_pos_roots(i));
+        }
+        std::sort(all_roots.begin(), all_roots.end());
+        VT _all_roots = Eigen::Map<VT>(&all_roots[0], all_roots.size());
+        std::cout<<"_all_roots: "<<_all_roots.transpose()<<"\n"<<std::endl;
 
         return std::make_pair(_neg_roots, _pos_roots);
     }

@@ -67,4 +67,5 @@ Rcpp::List compute_fischer_annealing(Rcpp::NumericMatrix A,
     std::pair<VT, VT> res = compute_annealing_fischer<GCWalk, FischerGCWalk, MT, NT>(BS, p, mu, rng, W);
 
     return Rcpp::List::create(Rcpp::Named("variances") = Rcpp::wrap(res.first), Rcpp::Named("ratios") = Rcpp::wrap(res.second));   
+
 }

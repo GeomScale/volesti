@@ -1,7 +1,7 @@
 library(volesti)
 
 #dm_covariance_matrices_70d <- readRDS("~/volume_approximation/R-proj/dm_covariance_matrices_70d.rds")
-europe_ex_ch_covariance_matrices_small <- readRDS("~/temporal_repos/volume_approximation/R-proj/europe_ex_ch_covariance_matrices_small.rds")
+europe_ex_ch_covariance_matrices_small <- readRDS("~/volume_approximation/R-proj/europe_ex_ch_covariance_matrices_small.rds")
 N = length(europe_ex_ch_covariance_matrices_small$lCov)
 
 all_samples_smallest_21_80 = matrix(list(), 0, 1)
