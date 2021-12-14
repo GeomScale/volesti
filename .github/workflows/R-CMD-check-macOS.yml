@@ -20,7 +20,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macOS-latest,   r: '3.6'}
+          - {os: macOS-latest,   r: '4.1.2'}
 #          - {os: macOS-latest,   r: 'devel'} # Error in library(devtools) : there is no package called ‘devtools’
           - {os: macOS-latest,   r: 'release'}
 

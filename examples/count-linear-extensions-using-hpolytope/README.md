@@ -1,15 +1,12 @@
 ## Compilation
-In folder examples, first run cmake, to create the makefile:
+Build the example by running the following commands in this directory.
 
 ```bash
-cmake .
-```
-
-Then, in folder examples/count-linear-extensions-using-hpolytope compile and build using the makefile:
-
-```bash
+cmake . -DLP_SOLVE=_PATH_TO_LIB_FILE
 make
-```
+```  
+You have to specify the path to liblpsolve55.so/dll/dylib.  
+For example: -DLP_SOLVE=/usr/lib/lpsolve/liblpsolve55.so
 
 ## Usage:
 ```bash
