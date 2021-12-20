@@ -697,9 +697,11 @@ template <typename NT, typename Polytope, typename Point>
 void benchmark_polytope_linear_program_optimization(
     Point &coeffs,
     Polytope &P,
+    int max_phases=-1,
     NT eta=NT(-1),
     unsigned int walk_length=3,
-    bool rounding=true,
+    bool rounding=false,
+    bool centered=true,
     unsigned int max_draws=80000,
     unsigned int num_burns=20000) {
     typedef Cartesian<NT>    Kernel;
@@ -717,15 +719,20 @@ void benchmark_polytope_linear_program_optimization(
     typedef typename Polytope::MT MT;
     typedef typename Polytope::VT VT;
 
-    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
 
     // Random number generator
     RandomNumberGenerator rng(1);
+    unsigned int dim = P.dimension();
+    Point x0(dim);
+    NT R0 = NT(1);
+    std::pair<Point, NT> inner_ball = std::make_pair(x0, R0);
 
-    // Chebyshev center
-    Point x0 = inner_ball.first;
-    NT R0 = inner_ball.second;
-    unsigned int dim = x0.dimension();
+    if (!centered) {
+        inner_ball = P.ComputeInnerBall();
+        // Chebyshev center
+        x0 = inner_ball.first;
+        R0 = inner_ball.second;
+    }
 
     if (rounding) {
         std::cout << "SVD Rounding" << std::endl;
@@ -777,7 +784,7 @@ void benchmark_polytope_linear_program_optimization(
     std::cout << "Optimizing" << std::endl;
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (unsigned int j = 0; j < (unsigned int) 4 * ceil(sqrt(dim)); j++) {
+    for (unsigned int j = 0; j < (max_phases == -1 ? ((unsigned int) 4 * ceil(sqrt(dim))) : (unsigned int) max_phases); j++) {
         std::cout << "Temperature " << opt_params.T << std::endl;
         for (unsigned int i = 0; i < max_actual_draws; i++) {
             hmc.apply(rng, walk_length);
@@ -797,7 +804,6 @@ void benchmark_polytope_linear_program_optimization(
     std::cout << "Point: " << minimum.getCoefficients().transpose() << std::endl;
 }
 
-
 template <typename Polytope, typename NT>
 Polytope read_polytope(std::string filename) {
     std::ifstream inp;
@@ -805,6 +811,19 @@ Polytope read_polytope(std::string filename) {
     inp.open(filename,std::ifstream::in);
     read_pointset(inp, Pin);
     Polytope P(Pin);
+    return P;
+}
+
+template <typename NT, typename Point>
+Point read_linear_objective(std::string filename) {
+    std::ifstream inp;
+    std::vector<NT> P_temp;
+    inp.open(filename,std::ifstream::in);
+    read_objective(inp, P_temp);
+    Point P(P_temp.size());
+    for (unsigned int i = 0; i < P_temp.size(); i++) {
+        P.set_coord(i, P_temp[i]);
+    }
     return P;
 }
 
@@ -961,11 +980,13 @@ void call_test_optimization() {
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
 
-    Hpolytope P = generate_cube<Hpolytope>(100, false);
+    // Hpolytope P = generate_cube<Hpolytope>(100, false);
 
-    Point coeffs = Point::all_ones(100);
+    Hpolytope P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine");
+    P.normalize();
+    Point coeffs = Point::all_ones(P.dimension());
 
-    benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P);
+    benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P, -1, NT(-1), 3, false);
 
 }
 
