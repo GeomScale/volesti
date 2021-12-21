@@ -1003,13 +1003,25 @@ void call_test_optimization() {
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
 
-    Hpolytope P = generate_cube<Hpolytope>(10, false);
+    std::vector<std::tuple<Hpolytope, std::string, bool>> polytopes{
+       std::make_tuple(generate_cube<Hpolytope>(100, false), "100_cube", false),
+       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true),
+    };
 
-    // Hpolytope P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine");
-    P.normalize();
-    Point coeffs = Point::all_ones(P.dimension());
+    Hpolytope P;
+    std::string name;
+    std::ofstream outfile;
 
-    benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P, 0, NT(-1), 3, false);
+    for (std::tuple<Hpolytope, std::string, bool> polytope_tuple : polytopes) {
+        P = std::get<0>(polytope_tuple);
+        name = std::get<1>(polytope_tuple);
+        std::cerr << name << std::endl;
+        P.normalize();
+        Point coeffs = Point::all_ones(P.dimension());
+        for (unsigned int walk_length = 500; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
+            benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P, 0, NT(-1), walk_length, false);
+        }
+    }
 
 }
 
