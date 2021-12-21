@@ -697,7 +697,7 @@ template <typename NT, typename Polytope, typename Point>
 void benchmark_polytope_linear_program_optimization(
     Point &coeffs,
     Polytope &P,
-    int max_phases=-1,
+    unsigned int max_phases=0,
     NT eta=NT(-1),
     unsigned int walk_length=3,
     bool rounding=false,
@@ -767,7 +767,15 @@ void benchmark_polytope_linear_program_optimization(
       hmc(&P, x0, F, f, hmc_params);
 
     int max_actual_draws = max_draws - num_burns;
-    unsigned int min_ess = 0;
+    unsigned int total_min_ess = 0;
+    unsigned int temp_min_ess = 0;
+    NT total_max_psrf = 0;
+    MT samples;
+    samples.resize(dim, max_actual_draws);
+
+    if (max_phases == 0) {
+        max_phases = (unsigned int) 4 * ceil(sqrt(dim));
+    }
 
     Point minimum = x0;
 
@@ -782,26 +790,41 @@ void benchmark_polytope_linear_program_optimization(
 
     std::cout << std::endl;
     std::cout << "Optimizing" << std::endl;
+    unsigned int num_phases = 0;
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (unsigned int j = 0; j < (max_phases == -1 ? ((unsigned int) 4 * ceil(sqrt(dim))) : (unsigned int) max_phases); j++) {
+    for (unsigned int j = 0; j < max_phases; j++) {
+        num_phases++;
         std::cout << "Temperature " << opt_params.T << std::endl;
         for (unsigned int i = 0; i < max_actual_draws; i++) {
             hmc.apply(rng, walk_length);
             if (f_lp(minimum) >= f_lp(hmc.x)) {
                 minimum = hmc.x;
-                std::cout << "Current value: " << f_lp(minimum) << std::endl;
             }
+            samples.col(i) = hmc.x.getCoefficients();
             if (i % 1000 == 0 && i > 0) std::cout << ".";
         }
-        opt_params.update_temperature();
+        total_max_psrf += check_interval_psrf<NT, VT, MT>(samples, NT(1.2));
+        effective_sample_size<NT, VT, MT>(samples, temp_min_ess);
+        total_min_ess += temp_min_ess;
+        opt_params.update_temperature(0.5, 1);
     }
     auto stop = std::chrono::high_resolution_clock::now();
 
     NT ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
 
-    std::cout << "LP Value: " << f_lp(minimum) << std::endl;
-    std::cout << "Point: " << minimum.getCoefficients().transpose() << std::endl;
+    std::cerr << "Min LP Value: " << f_lp(minimum) << std::endl;
+    std::cerr << "Argmin: " << minimum.getCoefficients().transpose() << std::endl;
+    std::cerr << "Average ETA: " << ETA / (NT) num_phases << std::endl;
+    std::cerr << "Average Max PSRF: " << total_max_psrf / (NT) num_phases << std::endl;
+    std::cerr << "Average Min ESS: " << total_min_ess / (NT) num_phases << std::endl;
+    std::cerr << "Average number of reflections: " <<
+        (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
+    std::cerr << "Step size (final): " << hmc.solver->eta << std::endl;
+    std::cerr << "Discard Ratio: " << hmc.discard_ratio << std::endl;
+    std::cerr << "Average Acceptance Probability: " << exp(hmc.average_acceptance_log_prob) << std::endl;
+    std::cerr << std::endl;
+
 }
 
 template <typename Polytope, typename NT>
@@ -980,13 +1003,13 @@ void call_test_optimization() {
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
 
-    // Hpolytope P = generate_cube<Hpolytope>(100, false);
+    Hpolytope P = generate_cube<Hpolytope>(10, false);
 
-    Hpolytope P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine");
+    // Hpolytope P = read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine");
     P.normalize();
     Point coeffs = Point::all_ones(P.dimension());
 
-    benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P, -1, NT(-1), 3, false);
+    benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P, 0, NT(-1), 3, false);
 
 }
 
