@@ -105,14 +105,13 @@ if(COMMAND cmake_policy)
        cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
-include("Eigen.cmake")
+include("../external/cmake-files/Eigen.cmake")
 GetEigen()
 
-include("Boost.cmake")
+include("../external/cmake-files/Boost.cmake")
 GetBoost()
 
-
-include("LPSolve.cmake")
+include("../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
 # Code Coverage Configuration

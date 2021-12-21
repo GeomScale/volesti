@@ -62,8 +62,17 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
+include("../../external/cmake-files/Eigen.cmake")
+GetEigen()
+
+include("../../external/cmake-files/Boost.cmake")
+GetBoost()
+
+include("../../external/cmake-files/LPSolve.cmake")
+GetLPSolve()
+
 if (BUILTIN_EIGEN)
-    include_directories (BEFORE ../external/Eigen)
+    include_directories (BEFORE ../../external/_deps/Eigen)
 else ()
     include_directories(BEFORE /usr/include/eigen3)
 endif(BUILTIN_EIGEN)
@@ -87,11 +96,6 @@ else ()
 
   include_directories (BEFORE ../../external)
   include_directories (BEFORE ../../external/minimum_ellipsoid)
-  #include_directories (BEFORE ../../include/cartesian_geom)
-  #include_directories (BEFORE ../../include/convex_bodies)
-  include_directories (BEFORE ../../external/LPsolve_src/run_headers)
-  include_directories (BEFORE ../../external/boost)
-  #include_directories (BEFORE BOOST)
   include_directories (BEFORE ../../include/generators)
   include_directories (BEFORE ../../include/volume)
   include_directories (BEFORE ../../include)
