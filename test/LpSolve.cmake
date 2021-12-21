@@ -1,41 +1,30 @@
-function(GetLpSolve)
-    find_path(LPSOLVE_DIR NAMES lp_solve_5.5 PATHS ../../external)
+function(GetLPSolve)
+    find_path(LP_SOLVE_DIR NAMES LPsolve_src PATHS ../../external)
 
-    if(NOT LPSOLVE_DIR)
-
+    if (NOT LP_SOLVE_DIR)
         include(FetchContent)
-            FetchContent_Declare(
-                lpSolve
-                URL https://sourceforge.net/projects/lpsolve/files/lpsolve/5.5.2.0/lp_solve_5.5.2.0_source.tar.gz/download
-            )
+        FetchContent_Declare(
+            lpsolve
+            URL https://cran.r-project.org/src/contrib/lpSolve_5.6.15.tar.gz
+            URL_HASH MD5=3b8d780f703e0da2e4863939add164bc
+        )
 
-            FetchContent_GetProperties(lpSolve)
+        FetchContent_GetProperties(lpsolve)
 
-            if(NOT lpSolve_POPULATE)
-                message(STATUS "Downloading lp_solve.")
-                FetchContent_Populate(lpSolve)
-                message(STATUS "Download complete")
+        if(NOT lpsolve_POPULATED)
+            message(STATUS "lp_solve library not found locally, downloading it.")
+            FetchContent_Populate(lpsolve)
+        endif()
 
-                set(LPSOLVE_DIR ${lpSolve_SOURCE_DIR})
-                message(STATUS "Using downloaded lp_solve at: ${LPSOLVE_DIR}")
+        set(LP_SOLVE_DIR "${lpsolve_SOURCE_DIR}/src")
+        message(STATUS "Using downloaded lp_solve at: ${LP_SOLVE_DIR}")
 
-            else()
-                message(STATUS "lp_solve found:  ${LPSOLVE_DIR}")
+    else()
 
-            endif()
-
-            set(LPSOLVE_DIR "_deps/lpsolve-src")
-            message(STATUS "Using downloaded lp_solve at: ${LPSOLVE_DIR}")
-
-            # target bar is only build when `make bar` is issued
-            add_custom_target(liblpsolve55.dylib
-                COMMAND sh ccc.osx
-                WORKING_DIRECTORY ${LP_SOLVE_DIR}/lpsolve55
-            )
-
+        message(STATUS "lp_solve library found: ${LP_SOLVE_DIR}")
 
     endif()
 
-        include_directories(${LPSOLVE_DIR})
+    include_directories(${LP_SOLVE_DIR})
 
 endfunction()
