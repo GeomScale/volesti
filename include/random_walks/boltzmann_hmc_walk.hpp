@@ -10,7 +10,6 @@
 #ifndef VOLESTI_BOLTZMANN_HMC_WALK_HPP
 #define VOLESTI_BOLTZMANN_HMC_WALK_HPP
 
-#include "spectrahedron.h"
 #include "generators/boost_random_number_generator.hpp"
 #include "../sampling/sphere.hpp"
 
@@ -46,7 +45,7 @@ public:
             VT c;
             /// The T in the distribution
             NT temperature;
-            /// The diameter of the spectrahedron
+            /// The diameter of the body
             NT diameter;
             /// Set the number of allowed reflections at each step: #reflections < reflectionsBound * dimension
             unsigned int reflectionsBound;
@@ -58,7 +57,7 @@ public:
             /// \param[in] rng For generating random numbers
             /// \param[in] c The c in the distribution
             /// \param[in] temperature The T in the distribution
-            /// \param[in] diameter The diameter of the spectrahedron
+            /// \param[in] diameter The diameter of the convexbody
             /// \param[in] reflectionsBound at each iteration allow reflectionsBound*dimension reflections at most
             /// \param[in] dl approach the boundary with a factor of dl, for numerical stability
             /// \return An instance of this struct
@@ -88,17 +87,17 @@ public:
             this->settings = settings;
         }
 
-        /// Samples random points from the spectrahedron from the Boltzmann distribution
-        /// \param[in] spectrahedron A spectrahedron
-        /// \param[in] interiorPoint A point in the interior of the spectrahedron
+        /// Samples random points from the convexbody from the Boltzmann distribution
+        /// \param[in] convexbody A convexbody
+        /// \param[in] interiorPoint A point in the interior of the convexbody
         /// \param[in] pointsNum The number of points to sample
         /// \param[out] points The list of the sampled points
         /// \tparam Point class Point with NT and VT as declared above in this class
         template <typename Point>
-        void apply(ConvexBody &spectrahedron, Point const & interiorPoint, const unsigned int pointsNum,
+        void apply(ConvexBody &convexbody, Point const & interiorPoint, const unsigned int pointsNum,
                     std::list<Point> &points) {
             // store intermediate results between successive calls of methods
-            // of the class spectrahedron, to avoid repeating computations
+            // of the class convexbody, to avoid repeating computations
 
             VT p = interiorPoint.getCoefficients();
 
@@ -106,7 +105,7 @@ public:
             for (unsigned int i = 1; i <= pointsNum; ++i) {
                 // burn #walk_length points to get one sample
                 for (unsigned int j = 0; j < settings.walk_length; ++j) {
-                    getNextPoint<Point>(spectrahedron, p);
+                    getNextPoint<Point>(convexbody, p);
                 }
 
                 // add the sample in the return list
@@ -117,17 +116,17 @@ public:
 
         /// A single step of the HMC random walk: choose a direction and walk on the trajectory for a random distance.
         /// If it hits the boundary, the trajectory is reflected. If #reflections < reflectionsBound * dimension, it returns the same point
-        /// \param[in] spectrahedron A spectrahedron
+        /// \param[in] convexbody A convexbody
         /// \param[in, out] p An interior point, and the next point in the random walk
         /// \tparam Point
         template <typename Point>
-        void getNextPoint(ConvexBody &spectrahedron, VT &p) {
+        void getNextPoint(ConvexBody &convexbody, VT &p) {
 
             // initialize
             RandomNumberGenerator &rng = settings.randomNumberGenerator;
             boost::random::uniform_real_distribution<> urdist(0, 1);
             const NT dl = settings.dl;
-            unsigned int n = spectrahedron.dimension();
+            unsigned int n = convexbody.dimension();
             int reflectionsNum = 0;
             int reflectionsNumBound = settings.reflectionsBound * n;
             VT previousPoint;
@@ -152,7 +151,7 @@ public:
 
                 // we are at point p and the trajectory a*t^2 + vt + p
                 // find how long we can walk till we hit the boundary
-                NT lambda = spectrahedron.positiveQuadIntersection(a, v, p);
+                NT lambda = convexbody.positiveQuadIntersection(a, v, p);
 
                 // We just solved a quadratic polynomial eigenvalue system At^2 + Bt + C,
                 // where A = lmi(a) - A0, B = lmi(v) - A0 and C = lmi(p)
@@ -161,9 +160,9 @@ public:
                 // but can efficiently update them.
                 // A remains the same
                 // C := A*lambda^2 + B*lambda + C
-                // X, Y will be updated in class Spectrahedron
+                // X, Y will be updated in class convexbody
                 // Set the flags
-                spectrahedron.set_flags(true);
+                convexbody.set_flags(true);
 
                 // if we can walk the remaining distance without reaching he boundary
                 if (T <= lambda) {
@@ -171,7 +170,7 @@ public:
                     p += (T * T) * a + T * v;
 
                     // update matrix C
-                    spectrahedron.update_C(T);
+                    convexbody.update_C(T);
                     return;
                 }
 
@@ -187,7 +186,7 @@ public:
                 T -= lambda;
 
                 // update matrix C
-                spectrahedron.update_C(lambda);
+                convexbody.update_C(lambda);
                 //precomputedValues.C += (lambda * lambda) * precomputedValues.A + lambda * precomputedValues.B;
 
                 // Set v to have the direction of the trajectory at t = lambda
@@ -195,13 +194,13 @@ public:
                 v += (lambda * 2) * a;
 
                 // compute reflected direction
-                spectrahedron.compute_reflection(v, p);
+                convexbody.compute_reflection(v, p);
             }
 
             // if the #reflections exceeded the limit, don't move
             if (reflectionsNum == reflectionsNumBound) {
                 p = p0;
-                spectrahedron.set_flags(false);
+                convexbody.set_flags(false);
             }
         }
 
