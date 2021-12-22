@@ -295,14 +295,14 @@ template
         typename Point
 >
 void exponential_sampling(PointList &randPoints,
-                       Polytope &P,
-                       RandomNumberGenerator &rng,
-                       const unsigned int &walk_len,
-                       const unsigned int &rnum,
-                       const Point &c,
-                       const NT &a,
-                       const Point &starting_point,
-                       unsigned int const& nburns)
+                          Polytope &P,
+                          RandomNumberGenerator &rng,
+                          const unsigned int &walk_len,
+                          const unsigned int &rnum,
+                          const Point &c,
+                          const NT &a,
+                          const Point &starting_point,
+                          unsigned int const& nburns)
 {
 
     typedef typename WalkTypePolicy::template Walk

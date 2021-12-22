@@ -122,6 +122,7 @@ bool perform_mmcs_step(Polytope &P,
             }
         }
     }
+    return false;
 }
 
 #endif
