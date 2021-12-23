@@ -22,6 +22,7 @@ struct PrecomputationOfValues {
 
     /// These flags indicate whether the corresponding matrices are computed
     /// if yes, we can use them and not compute them fro scratch
+    // TODO: avoid the use of flags
     bool computed_A = false;
     bool computed_C = false;
     bool computed_XY = false;
@@ -150,10 +151,10 @@ public:
 
         // get the minimum positive eigenvalue of At^2 + Bt + C
         NT distance = EigenvaluesProblem.minPosQuadraticEigenvalue(precomputedValues.A, precomputedValues.B,
-                                                                            precomputedValues.C, precomputedValues.X,
-                                                                            precomputedValues.Y,
-                                                                            precomputedValues.eigenvector,
-                                                                            precomputedValues.computed_XY);
+                                                                   precomputedValues.C, precomputedValues.X,
+                                                                   precomputedValues.Y,
+                                                                   precomputedValues.eigenvector,
+                                                                   precomputedValues.computed_XY);
         return distance;
     }
 

@@ -1,7 +1,7 @@
 # VolEsti (volume computation and sampling library)
 # Copyright (c) 2012-2021 Vissarion Fisikopoulos
 # Copyright (c) 2018-2021 Apostolos Chalkis
-# Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
+# Contributed and/or modified by Vaibhav Thakkar
 # Licensed under GNU LGPL.3, see LICENCE file
 
 project( VolEsti )
@@ -12,12 +12,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
 if(COMMAND cmake_policy)
-       cmake_policy(SET CMP0003 NEW)
+  cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
 
 option(DISABLE_NLP_ORACLES "Disable non-linear oracles (used in collocation)" ON)
-option(BUILTIN_EIGEN "Use eigen from ../external" OFF)
+option(BUILTIN_EIGEN "Use eigen from ../../external" OFF)
 
 
 if(DISABLE_NLP_ORACLES)
@@ -56,13 +56,13 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-include("Eigen.cmake")
+include("../../external/cmake-files/Eigen.cmake")
 GetEigen()
 
-include("Boost.cmake")
+include("../../external/cmake-files/Boost.cmake")
 GetBoost()
 
-include("LPSolve.cmake")
+include("../../external/cmake-files/LPSolve.cmake")
 GetLPSolve()
 
 # Find lpsolve library
@@ -75,24 +75,21 @@ else ()
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-  include_directories (BEFORE ../external)
-  include_directories (BEFORE ../external/minimum_ellipsoid)
-  include_directories (BEFORE ../include/generators)
-  include_directories (BEFORE ../include/volume)
-  include_directories (BEFORE ../include)
-  include_directories (BEFORE ../include/convex_bodies)
-  include_directories (BEFORE ../include/convex_bodies/spectrahedra)
-  include_directories (BEFORE ../include/random_walks)
-  include_directories (BEFORE ../include/annealing)
-  include_directories (BEFORE ../include/ode_solvers)
-  include_directories (BEFORE ../include/root_finders)
-  include_directories (BEFORE ../include/samplers)
-  include_directories (BEFORE ../include/lp_oracles)
-  include_directories (BEFORE ../include/nlp_oracles)
-  include_directories (BEFORE ../include/misc)
-  include_directories (BEFORE ../include/optimization)
-
-  include_directories (BEFORE ../include/convex_bodies/spectrahedra)
+  include_directories (BEFORE ../../external)
+  include_directories (BEFORE ../../external/minimum_ellipsoid)
+  include_directories (BEFORE ../../include/generators)
+  include_directories (BEFORE ../../include/volume)
+  include_directories (BEFORE ../../include)
+  include_directories (BEFORE ../../include/convex_bodies)
+  include_directories (BEFORE ../../include/random_walks)
+  include_directories (BEFORE ../../include/annealing)
+  include_directories (BEFORE ../../include/ode_solvers)
+  include_directories (BEFORE ../../include/root_finders)
+  include_directories (BEFORE ../../include/samplers)
+  include_directories (BEFORE ../../include/lp_oracles)
+  include_directories (BEFORE ../../include/nlp_oracles)
+  include_directories (BEFORE ../../include/misc)
+  include_directories (BEFORE ../../include/optimization)
 
   # for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
@@ -108,18 +105,8 @@ else ()
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lm")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-ldl")
   add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-DBOOST_NO_AUTO_PTR")
-  #add_definitions(${CXX_COVERAGE_COMPILE_FLAGS} "-lgslcblas")
-  #add_definitions( "-O3 -lgsl -lm -ldl -lgslcblas" )
 
-  add_subdirectory(logconcave)
-  #add_subdirectory(spectrahedra)
-  add_subdirectory(hpolytope-volume)
-  add_subdirectory(mmcs_method)
-  add_subdirectory(count-linear-extensions-using-hpolytope)
-  add_subdirectory(ellipsoid-sampling)
-  add_subdirectory(order-polytope-basics)
-
-  add_executable (vpolytopevolume vpolytope-volume/vpolytopevolume.cpp)
-  TARGET_LINK_LIBRARIES(vpolytopevolume ${LP_SOLVE})
+  add_executable (vpolytopeVolume vpolytopeVolume.cpp)
+  TARGET_LINK_LIBRARIES(vpolytopeVolume ${LP_SOLVE})
 
 endif()

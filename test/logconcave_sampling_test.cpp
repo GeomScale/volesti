@@ -928,59 +928,59 @@ template <typename NT>
 void call_test_benchmark_spectrahedra_grid_search() {
 
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1> VT;
-    typedef Eigen::Matrix <NT, Eigen::Dynamic, Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef Cartesian<NT> Kernel;
     typedef typename Kernel::Point    Point;
-    typedef Spectrahedron <Point> SPECTRAHEDRON;
+    typedef Spectrahedron<Point> spectrahedron;
     typedef boost::mt19937 RNGType;
 
     std::cout << " --- Grid search on spectrahedra " << std::endl;
 
     std::vector<SimulationStats<NT>> results;
-    std::vector<std::tuple<SPECTRAHEDRON, std::string, bool>> spectrahedra;
+    std::vector<std::tuple<spectrahedron, std::string, bool>> spectrahedra;
 
     Point objFunction;
 
     SdpaFormatManager<NT> sdpaFormatManager;
 
     std::ifstream in1;
-    SPECTRAHEDRON spectrahedron1;
+    spectrahedron spectrahedron1;
     in1.open("spectra_data/sdp_prob_200_15.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in1, spectrahedron1, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron1, "S_200_15", true));
 
     std::ifstream in2;
-    SPECTRAHEDRON spectrahedron2;
+    spectrahedron spectrahedron2;
     in2.open("spectra_data/sdp_prob_400_20.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in2, spectrahedron2, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron2, "S_400_20", true));
 
     std::ifstream in3;
-    SPECTRAHEDRON spectrahedron3;
+    spectrahedron spectrahedron3;
     in3.open("spectra_data/sdp_prob_600_25.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in3, spectrahedron3, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron3, "S_600_25", true));
 
     std::ifstream in4;
-    SPECTRAHEDRON spectrahedron4;
+    spectrahedron spectrahedron4;
     in4.open("spectra_data/sdp_prob_800_30.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in4, spectrahedron4, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron4, "S_800_30", true));
 
     std::ifstream in5;
-    SPECTRAHEDRON spectrahedron5;
+    spectrahedron spectrahedron5;
     in5.open("spectra_data/sdp_prob_1000_35.txt", std::ifstream::in);
     sdpaFormatManager.loadSDPAFormatFile(in5, spectrahedron5, objFunction);
     spectrahedra.push_back(std::make_tuple(spectrahedron5, "S_1000_35", true));
 
 
-    SPECTRAHEDRON P;
+    spectrahedron P;
     std::string name;
     std::ofstream outfile;
     NT step_size = 0;
     std::pair<Point, NT> inner_ball;
 
-    for (std::tuple<SPECTRAHEDRON, std::string, bool> spectrahedron_tuple : spectrahedra) {
+    for (std::tuple<spectrahedron, std::string, bool> spectrahedron_tuple : spectrahedra) {
         P = std::get<0>(spectrahedron_tuple);
         name = std::get<1>(spectrahedron_tuple);
         std::cout << name << std::endl;
@@ -989,7 +989,7 @@ void call_test_benchmark_spectrahedra_grid_search() {
         //inner_ball = P.ComputeInnerBall();
         step_size = 0.5;
         for (unsigned int walk_length = P.dimension()/2; walk_length <= P.dimension(); walk_length += P.dimension() / 2) {
-            results = benchmark_spectrahedron_sampling<NT, SPECTRAHEDRON>(P, step_size, walk_length, std::get<2>(spectrahedron_tuple));
+            results = benchmark_spectrahedron_sampling<NT, spectrahedron>(P, step_size, walk_length, std::get<2>(spectrahedron_tuple));
             outfile << results[0];
             outfile << results[1];
         }
