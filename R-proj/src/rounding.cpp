@@ -100,7 +100,7 @@ Rcpp::List rounding (Rcpp::Reference P,
             // Hpolytope
 
             if (Rcpp::as<MT>(P.field("Aeq")).rows() > 0) {
-                throw Rcpp::exception("volesti supports rounding for full dimensional polytopes. Maybe call function get_full_dimensional_polytope()");
+                throw Rcpp::exception("volesti supports rounding for full dimensional polytopes");
             } 
             Hpolytope HP(n, Rcpp::as<MT>(P.field("A")), Rcpp::as<VT>(P.field("b")));
             InnerBall = HP.ComputeInnerBall();
