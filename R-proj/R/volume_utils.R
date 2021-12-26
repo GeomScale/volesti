@@ -424,4 +424,77 @@ get_L_small <- function(A, b, x0) {
   return(L)
 }
 
+#' export
+get_points_on_component <- function(A, b, x0, V, Sind) {
+  
+  n = length(S)
+  d = length(x0)
+  
+  y = rep(0, d)
+  
+  Xs = matrix(, d, 0)
+  
+  for (i in 1:n) {
+    
+    ind_verts = S_Vindices[[i]]
+    n_verts = length(ind_verts)
+    rad_max = 0
+    p=c()
+    
+    for (j in 1:n_verts) {
+      
+      v = V[,ind_verts[j]] - y
+      res_int = ball_line_intersection(y, v, x0, 1)
+      
+      if (!res_int$intersect) {
+        next
+        #stop('no intersection')
+      }
+      if (is_in_component(y, x0, A, b, V, ind_verts, TRUE) && sqrt(sum((y-x0)^2)) > 1) {
+        #print("isin")
+        inds = 1:n
+        inds = inds[-c(i)]
+        ind_verts_temp = S_Vindices[[ inds[1] ]]
+        v = V[, ind_verts_temp[1]] - y
+        res_int = ball_line_intersection(y, v, x0, 1)
+        #x = y + res_int$tmin[1]*v
+        if (res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
+          x = y + res_int$tmin[1]*v
+        } else if(res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
+          x = y + res_int$tmax[1]*v
+        }
+      } else if(sqrt(sum((y-x0)^2)) < 1) {
+        #x = y + res_int$tmin[1]*v
+        if (res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
+          x = y + res_int$tmax[1]*v
+        } else if(res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
+          x = y + res_int$tminx[1]*v
+        }
+      } else {
+        #x = y + res_int$tmin[1]*v
+        if (res_int$tmax[1] < 1 && res_int$tmax[1] > 0) {
+          x = y + res_int$tmax[1]*v
+        } else if(res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
+          x = y + res_int$tmin[1]*v
+        }
+      }
+      
+      if (!is_in_component(x, x0, A, b, V, ind_verts, TRUE)) {
+        stop('point outside')
+      }
+      
+      rad = get_rad_cap(x, A, b, x0)
+      if(rad>rad_max) {
+        rad_max = rad
+        p = x
+      }
+    }
+    Xs = cbind(Xs,p)
+    
+  }
+  return(Xs)
+}
+
+
+
 
