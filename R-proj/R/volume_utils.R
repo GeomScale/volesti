@@ -315,8 +315,8 @@ get_L <- function(A, b, V, Sind, x0, mu) {
   
   for (i in 1:(n-1)) {
     for (j in (i+1):n) {
-      dist = acos( t(Y[,i]-x0) %*% (Y[,j] - x0) )
-      if (dist < pi/2 & ( (t(Y[,i]-x0) %*% (mu-x0) < 0) || (t(Y[,j]-x0) %*% (mu-x0) < 0)) ) {
+      dist = acos( (t(Y[,i]-x0) %*% (Y[,j] - x0))[1] )
+      if (dist < pi/2 & ( ((t(Y[,i]-x0) %*% (mu-x0))[1] < 0) || ((t(Y[,j]-x0) %*% (mu-x0))[1] < 0)) ) {
         dist = 2*pi - dist
       }
       if (dist > L) {
@@ -360,7 +360,10 @@ get_intersection_points <- function(V, Sind, x0) {
 #' export
 sample_component_psrf_interface <- function(A, b, x, M, W, x0, psrf_target, V, Sind) {
   
-  L = get_L(A, b, V, Sind, x0, x)/2
+  #print("computing L...")
+  #L = get_L(A, b, V, Sind, x0, x)/4
+  #print("L computed")
+  L=0
   X = sample_component_psrf_billiard(A, b, x, M, W, x0, psrf_target, L)
   return(X)
 }

@@ -4,16 +4,16 @@ library(volesti)
 europe_ex_ch_covariance_matrices_small <- readRDS("~/volume_approximation/R-proj/europe_ex_ch_covariance_matrices_small.rds")
 N = length(europe_ex_ch_covariance_matrices_small$lCov)
 
-all_samples_smallest_21_80 = matrix(list(), 0, 1)
+all_samples_smallest_1_20 = matrix(list(), 0, 1)
 
 n = dim(europe_ex_ch_covariance_matrices_small$lCov[[1]])[2] #number of assets
 
 win = 40 #window length
-M = 1000 #portfolios to generate for each level of volatility
+M = 5000 #portfolios to generate for each level of volatility
 something_went_wong_smallest = matrix(,0,2) #structure to store the instances where the method failed
 
 #for (i in 125:(k-win+1)) {
-for (i in 21:N) {
+for (i in 1:20) {
   
   vol_level_samples = matrix(list(), 0, 1)
   
@@ -37,8 +37,8 @@ for (i in 21:N) {
       something_went_wong_smallest = rbind(something_went_wong_smallest, c(i,j))
     }
   }
-  all_samples_smallest_21_80[[length(all_samples_smallest_21_80) + 1]] = vol_level_samples
-  saveRDS(all_samples_smallest_21_80, file = "all_samples_europe_smallest_21_80.rds")
+  all_samples_smallest_1_20[[length(all_samples_smallest_1_20) + 1]] = vol_level_samples
+  saveRDS(all_samples_smallest_1_20, file = "all_samples_europe_smallest_1_20.rds")
   saveRDS(something_went_wong_smallest, file = "something_went_wong_smallest.rds")
 }
 

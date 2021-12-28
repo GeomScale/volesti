@@ -11,6 +11,7 @@
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <chrono>
+#include <cmath>
 #include <boost/random.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/normal_distribution.hpp>
@@ -19,6 +20,7 @@
 #include "convex_bodies/ballintersectsimplex.h"
 //#include "random_walks/gcw_estimator.hpp"
 #include "random_walks/uniform_billiard_gcw_walk.hpp"
+#include "random_walks/uniform_gcw_billiard_L.hpp"
 #include "diagnostics/psrf_updater.hpp"
 #include "diagnostics/univariate_psrf.hpp"
 
@@ -110,7 +112,7 @@ Rcpp::NumericMatrix sample_component_psrf_billiard(Rcpp::NumericMatrix A,
                 RNGType
             > CGWalk;
     
-    CGWalk walk(BS, p, L, rng);
+    
 
     MT samples;//(d, N);
     MT sigma;
@@ -118,18 +120,45 @@ Rcpp::NumericMatrix sample_component_psrf_billiard(Rcpp::NumericMatrix A,
     unsigned int iter = 1, MAX_ITER = 1000;
     VT psrf_values(d);
     NT psrf_val;
-    VT p0 = p;
+    
     unsigned int countsIn_total = 0;
+
+    typedef GCWalkL::template Walk
+            <
+                Body,
+                RNGType
+            > CGWalkL;
+    CGWalkL walkL(BS, p, rng);
+
+    for (int i=0; i<100*d; i++) {
+        walkL.template apply(BS, p, walk_length, rng);
+    }
+    
+    NT max_theta = walkL.get_max_theta();
+    //std::cout<<"max_theta = "<<max_theta<<std::endl;
+    L = 10*max_theta;
+    if (L > NT(2)*M_PI) {
+        L = NT(2)*M_PI;
+    }
+
+    VT p0 = p;
+
+    CGWalk walk(BS, p, L, rng);
 
     //bool outside = false;
     while (iter <= MAX_ITER)
     {
         countsIn_total = 0;
         p = p0;
+        //std::cout<<"initializing..."<<std::endl;
         walk.template initialize(BS, p, rng);
-
+        //std::cout<<"initialized done..."<<std::endl;
+        std::cout<<"sampling..."<<std::endl;
         for (int i = 0; i < N; i++)
         {   
+            if ((i+1)%1000 == 0) {
+                std::cout<<"i = "<<i<<std::endl;
+            }
             walk.template apply(BS, p, walk_length, rng);
             samples.col((iter-1)*N + i) = p + center;
             countsIn_total++;
@@ -145,7 +174,7 @@ Rcpp::NumericMatrix sample_component_psrf_billiard(Rcpp::NumericMatrix A,
         psrf_estimator.update_estimator(samples);
         psrf_estimator.estimate_psrf();
         psrf_values = psrf_estimator.get_psrf();
-        //std::cout<<"[2]psrf_values = "<<psrf_estimator.get_psrf().maxCoeff()<<"\n"<<std::endl;
+        std::cout<<"[2]psrf_values = "<<psrf_estimator.get_psrf().maxCoeff()<<"\n"<<std::endl;
 
         psrf_val = psrf_values.maxCoeff();
         if (psrf_val <= psrf_target) {

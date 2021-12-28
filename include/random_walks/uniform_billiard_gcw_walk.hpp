@@ -88,7 +88,7 @@ struct Walk
             GetDirectionTangentPlaneOpt<VT, MT>::apply(p, _v, _p_p_tr, rng);
             _p0 = p;
             int it = 0;
-            while (it < 50000*n)
+            while (it < 500000*n)
             {
                 _pbpair = P.gc_intersect_positive(p, _v, _lambdas, _Av, _lambda);
                 if (T <= _pbpair.first || _pbpair.second < 0) {
@@ -118,7 +118,7 @@ struct Walk
             //    std::cout<<"point out"<<std::endl;
             //    exit(-1);
             //}
-            if (it == 50000*n){
+            if (it == 500000*n){
                 p = _p0;
             }
         }
@@ -174,7 +174,7 @@ struct Walk
          //   exit(-1);
         //}
 
-        while (it <= 50000*n)
+        while (it <= 500000*n)
         {
             _v = (_p_p_tr * _v).eval();
             _v *= (NT(1)/_v.norm());
@@ -185,7 +185,7 @@ struct Walk
                 p = (cos(T) * p) + (sin(T) * _v);
                 _lambda = T;
                 break;
-            }else if (it == 50000*n) {
+            } else if (it == 500000*n) {
                 _lambda = rng.sample_urdist() * _pbpair.first;
                 p = (cos(_lambda) * p) + (sin(_lambda) * _v);
                 break;

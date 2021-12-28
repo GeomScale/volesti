@@ -67,8 +67,8 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
   cmax = get_c_upper_bound(A, b, center_2)
   cmin = 1
   
-  #print(S_Vindices)
-  #print(W)
+  print(S_Vindices)
+  print(W)
   
   if (length(S) == 1){
     interior_res = compute_interior_point_in_node_eff(S_Vindices[[1]], V_ind_out, V, center_2, A, b)
@@ -108,7 +108,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
   tails_v = tail(num_verts2, 2)
   #print(paste0('num_verts = ',as.character(num_verts)))
   #print(paste0('num_verts2 = ',as.character(num_verts2)))
-  #print(paste0('tails_v = ',as.character(tails_v)))
+  print(paste0('tails_v = ',as.character(tails_v)))
   if (tails_v[2] > tails_v[1]+1) {
     indices = which(num_verts == max(num_verts))
     #print(indices)
@@ -119,23 +119,23 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
     }
   } else {
   
-  for (i in 1:nn) {
-    mu = Xs[,i]
-    mus[[length(mus) + 1]] = mu 
-    #sigma = cov(t(X))
-    #sigmas[[length(sigmas) + 1]] = sigma
+    for (i in 1:nn) {
+      mu = Xs[,i]
+      mus[[length(mus) + 1]] = mu 
+      #sigma = cov(t(X))
+      #sigmas[[length(sigmas) + 1]] = sigma
     
-    res1 = compute_fischer_annealing(A, b, mu, center_2, WW)
-    a_vals[[length(a_vals) + 1]] = res1$variances
-    ratios[[length(ratios) + 1]] = res1$ratios
-  }
+      res1 = compute_fischer_annealing(A, b, mu, center_2, WW)
+      a_vals[[length(a_vals) + 1]] = res1$variances
+      ratios[[length(ratios) + 1]] = res1$ratios
+    }
   
-  res_rem = remove_small_components(A, b, mus, center_2, WW, error, a_vals, ratios)
-  ratios_volumes = res_rem$ratios_volumes
-  indx = res_rem$index
-  ratios_min = res_rem$ratios_min
+    res_rem = remove_small_components(A, b, mus, center_2, WW, error, a_vals, ratios)
+    ratios_volumes = res_rem$ratios_volumes
+    indx = res_rem$index
+    ratios_min = res_rem$ratios_min
   
-  indices = which(ratios_volumes>1e-05 & ratios_volumes<1e05)
+    indices = which(ratios_volumes>1e-05 & ratios_volumes<1e05)
   }
   
   if (length(indices) > 1) {
@@ -159,9 +159,28 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
     relative_vols = relative_vols / sum(relative_vols)
   } else {
     #X = sample_component_psrf(A, b, mus[[indx]], 2000, W, center_2, psrf_target)
-    X = sample_component_psrf_interface(A, b, mus[[indx]], M, W, center_2, psrf_target, V, S_Vindices[[indx]])
-    XX[[length(XX)+1]] = X
-    relative_vols = c(1)
+    print("sample from one component")
+    print(paste0("indx = ",as.character(indx)))
+    Xs = get_points_on_component_imp(A, b, center_2, V, S_Vindices[[indx]])
+    nnn = dim(Xs)[2]
+    print(paste0("number of starting points = ",as.character(nnn)))
+    d = length(center_2)
+    samples = matrix(,d,0)
+    for (ii in 1:nnn) {
+      X = sample_component_psrf_interface(A, b, Xs[,ii], M, W, center_2, psrf_target, V, S_Vindices[[indx]])
+      if (dim(X)[2] > M) {
+        indxes <- sample(1:dim(X)[2], M)
+        X = X[, indxes]
+      }
+      samples = cbind(samples, X)
+    }
+    
+    NN = dim(samples)[2]
+    print(paste0("num_samples = ",as.character(NN),", num_vertices = ", as.character(length(S_Vindices[[indx]])),", Mxnv = ",M*length(S_Vindices[[indx]])))
+    samples = Tinv %*% (samples - kronecker(matrix(1, 1, NN), matrix(center_2, ncol = 1)))
+    samples = N %*% (samples + kronecker(matrix(1, 1, NN), matrix(center, ncol = 1))) + kronecker(matrix(1, 1, NN), matrix(rep(1,n)/n, ncol = 1))
+    
+    return(samples)
   }
   
   
