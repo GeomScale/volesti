@@ -143,20 +143,18 @@ else ()
   message(STATUS "Library lp_solve found: ${LP_SOLVE}")
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-
-  if (BUILTIN_EIGEN)
-      include_directories (BEFORE ../external/Eigen)
-  else ()
-      include_directories(BEFORE /usr/include/eigen3)
-  endif(BUILTIN_EIGEN)
-
   if (USE_MKL)
-    find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/lib)
+    find_library(BLAS NAMES libblas.so libblas.dylib PATHS /usr/local/Cellar/lapack/3.9.1_1/lib /usr/lib/x86_64-linux-gnu /usr/lib/i386-linux-gnu /usr/local/Cellar/openblas/0.3.15_1/lib /usr/lib)
     find_library(GFORTRAN NAME libgfortran.dylib PATHS /usr/local/Cellar/gcc/10.2.0_4/lib/gcc/10)
     find_library(LAPACK NAME liblapack.dylib PATHS /usr/lib)
+    find_library(OPENMP NAME libiomp5.dylib PATHS /opt/intel/oneapi/compiler/2021.1.1/mac/compiler/lib)
+
     include_directories (BEFORE ${MKLROOT}/include)
     set(PROJECT_LIBS ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${GFORTRAN_LIBRARIES})
+    set(MKL_LINK "-L${MKLROOT}/lib -Wl,-rpath,${MKLROOT}/lib -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl")
     add_definitions(-DEIGEN_USE_MKL_ALL)
+  else()
+    set(MKL_LINK "")
   endif(USE_MKL)
 
   include_directories (BEFORE ../external)
@@ -204,8 +202,24 @@ else ()
 
   add_executable (mcmc_diagnostics_test mcmc_diagnostics_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME test_psrf COMMAND mcmc_diagnostics_test -tc=psrf)
+  add_test(NAME test_univariate_psrf COMMAND mcmc_diagnostics_test -tc=univariate_psrf)
+  add_test(NAME test_interval_psrf COMMAND mcmc_diagnostics_test -tc=interval_psrf)
+  add_test(NAME test_ess COMMAND mcmc_diagnostics_test -tc=ess)
   add_test(NAME test_geweke COMMAND mcmc_diagnostics_test -tc=geweke)
   add_test(NAME test_raftery COMMAND mcmc_diagnostics_test -tc=raftery)
+  
+  add_executable (sampling_test sampling_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME test_dikin COMMAND sampling_test -tc=dikin)
+  add_test(NAME test_john COMMAND sampling_test -tc=john)
+  add_test(NAME test_vaidya COMMAND sampling_test -tc=vaidya)
+  add_test(NAME test_brdhr COMMAND sampling_test -tc=brdhr)
+  add_test(NAME test_bcdhr COMMAND sampling_test -tc=bcdhr)
+  add_test(NAME test_grdhr COMMAND sampling_test -tc=grdhr)
+  add_test(NAME test_gbaw COMMAND sampling_test -tc=gbaw)
+  add_test(NAME test_ghmc COMMAND sampling_test -tc=ghmc)
+  
+  add_executable (mmcs_test mmcs_test.cpp $<TARGET_OBJECTS:test_main>)
+  add_test(NAME test_mmcs COMMAND mmcs_test -tc=mmcs)
 
   add_executable (ode_solvers_test ode_solvers_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME ode_solvers_test_first_order
@@ -220,9 +234,6 @@ else ()
   add_executable (boundary_oracles_test boundary_oracles_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME boundary_oracles_test_h_poly_oracles
     COMMAND boundary_oracles_test -tc=h_poly_oracles)
-
-  add_executable(test_sdpa_format test_sdpa_format.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME test_sdpa_format COMMAND test_sdpa_format -tc=sdpa_format_parser)
 
   add_executable (volume_sob_hpolytope volume_sob_hpolytope.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME volume_sob_hpolytope_cube COMMAND volume_sob_hpolytope -tc=cube)
@@ -272,12 +283,12 @@ else ()
            COMMAND volume_cb_vpoly_intersection_vpoly -tc=random_vpoly_sphere)
 
   add_executable (new_rounding_test new_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME new_rounding_test_round_skinny_cube
-           COMMAND new_rounding_test -tc=round_skinny_cube)
-
-  add_executable (max_ellipsoid_rounding_test max_ellipsoid_rounding_test.cpp $<TARGET_OBJECTS:test_main>)
-  add_test(NAME max_ellipsoid_rounding_test_round_skinny_cube
-           COMMAND max_ellipsoid_rounding_test -tc=round_skinny_cube)
+  add_test(NAME test_round_min_ellipsoid
+           COMMAND new_rounding_test -tc=round_min_ellipsoid)
+  add_test(NAME test_round_max_ellipsoid
+           COMMAND new_rounding_test -tc=round_max_ellipsoid)
+  add_test(NAME test_round_svd
+           COMMAND new_rounding_test -tc=round_svd)
 
   add_executable (logconcave_sampling_test logconcave_sampling_test.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME logconcave_sampling_test_hmc
@@ -305,32 +316,30 @@ else ()
   add_test(NAME order_polytope_reflection COMMAND order_polytope -tc=reflection)
   add_test(NAME order_polytope_vec_mult COMMAND order_polytope -tc=vec_mult)
 
-  TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(volume_cg_hpolytope ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(volume_cg_vpolytope ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(volume_cb_hpolytope ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(volume_cb_vpolytope ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(max_ellipsoid_rounding_test ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} coverage_config)
-  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} coverage_config)
-  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} coverage_config)
-  TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} coverage_config)
 
-  if (USE_MKL)
-      TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} coverage_config "-L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_intel_ilp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl")
-  else()
-      TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${BLAS} coverage_config)
-  endif()
-
+  TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} ${MKL_LINK} coverage_config)
+	TARGET_LINK_LIBRARIES(new_volume_example ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(volume_sob_hpolytope ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(volume_sob_vpolytope ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(volume_cg_hpolytope ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(volume_cg_vpolytope ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(volume_cb_hpolytope ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(volume_cb_vpolytope ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(volume_cb_zonotopes ${LP_SOLVE} coverage_config)
+	TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE} coverage_config)
+  TARGET_LINK_LIBRARIES(volume_cb_vpoly_intersection_vpoly ${LP_SOLVE} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(new_rounding_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(mcmc_diagnostics_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(sampling_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(mmcs_test ${LP_SOLVE} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(benchmarks_sob ${LP_SOLVE} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(benchmarks_cg ${LP_SOLVE} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(benchmarks_cb ${LP_SOLVE} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(simple_mc_integration ${LP_SOLVE} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(ode_solvers_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(boundary_oracles_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(root_finders_test ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
+  TARGET_LINK_LIBRARIES(logconcave_sampling_test ${LP_SOLVE} ${IFOPT} ${IFOPT_IPOPT} ${PTHREAD} ${GMP} ${MPSOLVE} ${FFTW3} ${MKL_LINK} coverage_config)
   TARGET_LINK_LIBRARIES(order_polytope ${LP_SOLVE} coverage_config)
 
 

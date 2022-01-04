@@ -4,9 +4,30 @@
 # Contributed and/or modified by Repouskos Panagiotis, as part of Google Summer of Code 2019 program.
 # Licensed under GNU LGPL.3, see LICENCE file
 
+cmake_minimum_required(VERSION 3.16)
+
+if(COMMAND cmake_policy)
+      cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
+
 
 add_executable (read_write_sdpa_file read_write_sdpa_file.cpp)
 
+include("Eigen.cmake")
+GetEigen()
+
+include("Boost.cmake")
+GetBoost()
+
+include_directories (BEFORE ../../external)
+include_directories (BEFORE ../../include/generators)
+include_directories (BEFORE ../../include/volume)
+include_directories (BEFORE ../../include)
+include_directories (BEFORE ../../include/convex_bodies)
+include_directories (BEFORE ../../include/convex_bodies/spectrahedra)
+include_directories (BEFORE ../../include/annealing)
+include_directories (BEFORE ../../include/samplers)
+include_directories (BEFORE ../../include/misc)
 
 # Find LAPACK and BLAS
 # OPENBLAS or ( ( SystemOpenblas or BLAS) and LAPACK)
@@ -26,7 +47,7 @@ IF (OPENBLAS_LIB)
         message( STATUS "ARPACK_LIB found: ${ARPACK_LIB}" )
 
         # Query gfortran to get the libgfortran path
-        FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran.so PATHS /usr/lib/gcc/x86_64-linux-gnu/8/)
+        FIND_LIBRARY(GFORTRAN_LIB NAMES libgfortran.so PATHS /usr/lib/gcc/x86_64-linux-gnu/9/)
 
         # Find libgfortran (static preferred)
         # Query gfortran to get the libgfortran path
@@ -61,7 +82,7 @@ IF (OPENBLAS_LIB)
             TARGET_LINK_LIBRARIES(boltzmann_hmc_walk ${ARPACK_LIB} ${LAPACK_LIBRARIES} ${GFORTRAN_LIB})
 
             add_executable (solve_sdp solve_sdp.cpp)
-            TARGET_LINK_LIBRARIES(solve_sdp ${ARPACK_LIB} ${LAPACK_LIBRARIES} ${GFORTRAN_LIB})
+            TARGET_LINK_LIBRARIES(solve_sdp ${GFORTRAN_LIB} ${LAPACK_LIBRARIES} ${ARPACK_LIB})
 
         ELSE()
             MESSAGE(STATUS "gfortran is required but it could not be found")

@@ -67,7 +67,6 @@ direct_sampling <- function(body, n, seed = NULL) {
 #' Gelman-Rubin and Brooks-Gelman Potential Scale Reduction Factor (PSRF) for each marginal
 #'
 #' @param samples A matrix that contans column-wise the sampled points from a geometric random walk.
-#' @param method A string to reauest diagnostic: (i) \code{'normal'} for psrf of Gelman-Rubin and (ii) \code{'interval'} for psrf of Brooks-Gelman.
 #'
 #' @references \cite{Gelman, A. and Rubin, D. B.,
 #' \dQuote{Inference from iterative simulation using multiple sequences,} \emph{Statistical Science,} 1992.}
@@ -136,21 +135,6 @@ exact_vol <- function(P) {
 #' @export
 frustum_of_simplex <- function(a, z0) {
     .Call(`_volesti_frustum_of_simplex`, a, z0)
-}
-
-#' Internal rcpp function to compute the full dimensional polytope when a low dimensional is given
-#'
-#' @param P A low dimensional convex polytope in H-representation.
-#'
-#' @keywords internal
-#'
-#' @return A numerical matrix that describes the full dimensional polytope, a numerical matrix of the inverse
-#'         linear transformation that is applied on the input polytope, the numerical vector - point that the
-#'         input polytope is shifted and the product of the singular values of the matrix of the linear map 
-#'         applied on the input polytope.
-#'
-full_dimensional_polytope <- function(P) {
-    .Call(`_volesti_full_dimensional_polytope`, P)
 }
 
 #' Geweke's MCMC diagnostic
@@ -375,6 +359,11 @@ rounding <- function(P, method = NULL, seed = NULL) {
 #' @export
 sample_points <- function(P, n, random_walk = NULL, distribution = NULL, seed = NULL) {
     .Call(`_volesti_sample_points`, P, n, random_walk, distribution, seed)
+}
+
+#' @export
+sample_spectra <- function(file = NULL, N = NULL, walk_length = NULL) {
+    .Call(`_volesti_sample_spectra`, file, N, walk_length)
 }
 
 #' Write a SDPA format file
