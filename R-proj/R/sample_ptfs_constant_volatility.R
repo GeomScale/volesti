@@ -70,7 +70,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
   print(S_Vindices)
   print(W)
   
-  if (length(S) == 1){
+  if (length(S) == 1 && length(S_Vindices[[1]]) == dim(V)[2]){
     interior_res = compute_interior_point_in_node_eff(S_Vindices[[1]], V_ind_out, V, center_2, A, b)
     if (interior_res$found) {
       x = interior_res$x
@@ -109,7 +109,15 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
   #print(paste0('num_verts = ',as.character(num_verts)))
   #print(paste0('num_verts2 = ',as.character(num_verts2)))
   print(paste0('tails_v = ',as.character(tails_v)))
-  if (tails_v[2] > tails_v[1]+1) {
+  if (length(tails_v) == 1) {
+    indices = which(num_verts == max(num_verts))
+    #print(indices)
+    indx = which(num_verts == max(num_verts))
+    for (i in 1:nn) {
+      mu = Xs[,i]
+      mus[[length(mus) + 1]] = mu 
+    }
+  } else if (tails_v[2] > tails_v[1]+1) {
     indices = which(num_verts == max(num_verts))
     #print(indices)
     indx = which(num_verts == max(num_verts))
