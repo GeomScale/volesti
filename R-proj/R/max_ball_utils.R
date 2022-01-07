@@ -85,7 +85,7 @@ compute_max_ball <- function(A, b, x0, x) {
 #' export
 get_point_on_component <- function(A, b, x0, V, Sind) {
   
-  #n = length(Sind)
+  n = dim(V)[2]
   d = length(x0)
   
   y = rep(0, d)
@@ -111,8 +111,8 @@ get_point_on_component <- function(A, b, x0, V, Sind) {
       if (is_in_component(y, x0, A, b, V, ind_verts, TRUE) && sqrt(sum((y-x0)^2)) > 1) {
         #print("isin")
         inds = 1:n
-        inds = inds[-c(i)]
-        ind_verts_temp = S_Vindices[[ inds[1] ]]
+        inds = inds[-Sind]
+        ind_verts_temp = inds
         v = V[, ind_verts_temp[1]] - y
         res_int = ball_line_intersection(y, v, x0, 1)
         #x = y + res_int$tmin[1]*v
@@ -186,7 +186,7 @@ get_center_max_ball <- function(A, b, x0, V, Sind) {
 get_points_on_component_imp <- function(A, b, x0, V, Sind) {
   
   xc = get_center_max_ball(A, b, x0, V, Sind)
-  n = length(Sind)
+  n = dim(V)[2]
   d = length(x0)
   
   
@@ -219,8 +219,8 @@ get_points_on_component_imp <- function(A, b, x0, V, Sind) {
         if (is_in_component(y, x0, A, b, V, ind_verts, TRUE) && sqrt(sum((y-x0)^2)) > 1) {
           #print("isin")
           inds = 1:n
-          inds = inds[-c(i)]
-          ind_verts_temp = S_Vindices[[ inds[1] ]]
+          inds = inds[-Sind]
+          ind_verts_temp = inds
           v = V[, ind_verts_temp[1]] - y
           res_int = ball_line_intersection(y, v, x0, 1)
           #x = y + res_int$tmin[1]*v
