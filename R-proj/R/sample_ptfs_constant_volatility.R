@@ -183,8 +183,14 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
       samples = cbind(samples, X)
     }
     
+    MM = 50000
+    if (dim(samples)[2] > MM) {
+      indxes <- sample(1:dim(samples)[2], MM)
+      samples = samples[, indxes]
+    }
+    
     NN = dim(samples)[2]
-    print(paste0("num_samples = ",as.character(NN),", num_vertices = ", as.character(length(S_Vindices[[indx]])),", Mxnv = ",M*length(S_Vindices[[indx]])))
+    #print(paste0("num_samples = ",as.character(NN),", num_vertices = ", as.character(length(S_Vindices[[indx]])),", Mxnv = ",M*length(S_Vindices[[indx]])))
     samples = Tinv %*% (samples - kronecker(matrix(1, 1, NN), matrix(center_2, ncol = 1)))
     samples = N %*% (samples + kronecker(matrix(1, 1, NN), matrix(center, ncol = 1))) + kronecker(matrix(1, 1, NN), matrix(rep(1,n)/n, ncol = 1))
     

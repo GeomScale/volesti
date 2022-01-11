@@ -68,7 +68,7 @@ compute_max_ball <- function(A, b, x0, x) {
                           #ub = rep(600, d+1),
                           eval_g_ineq = eval_g0_2,
                           #eval_jac_g_ineq = eval_jac_g0_2,
-                          opts = list("algorithm" = "NLOPT_LN_COBYLA", "xtol_rel"=1.0e-5, maxeval = 10000),
+                          opts = list("algorithm" = "NLOPT_LN_COBYLA", "xtol_rel"=1.0e-6, maxeval = 10000),
                           A = A,
                           b = b )
   y = c(res0$solution)
@@ -174,7 +174,10 @@ get_center_max_ball <- function(A, b, x0, V, Sind) {
   if(sum(q>0) > 0){
     stop("[max_ball] center outside simplex")
   }
-  if (sqrt(sum((xc-x0)^2))+y[d+1]-1 > 0) {
+  print(xc)
+  print(y[d+1])
+  print(sqrt(sum((xc-x0)^2))+y[d+1]-1)
+  if (abs(sqrt(sum((xc-x0)^2))+y[d+1]-1) > 1e+06) {
     stop("[max_ball] too big interior ball")
   }
   

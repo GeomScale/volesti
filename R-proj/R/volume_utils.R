@@ -148,10 +148,18 @@ get_points_on_components_imp <- function(A, b, x0, V, S, S_Vindices) {
       }
       if (is_in_component(y, x0, A, b, V, ind_verts, TRUE) && sqrt(sum((y-x0)^2)) > 1) {
         #print("isin")
-        inds = 1:n
-        inds = inds[-c(i)]
-        ind_verts_temp = S_Vindices[[ inds[1] ]]
-        v = V[, ind_verts_temp[1]] - y
+        if (n>1) {
+          inds = 1:n
+          inds = inds[-c(i)]
+          ind_verts_temp = S_Vindices[[ inds[1] ]]
+          v = V[, ind_verts_temp[1]] - y
+        } else {
+          inds = 1:n
+          Sind = S_Vindices[[1]]
+          inds = inds[-Sind]
+          ind_verts_temp = inds
+          v = V[, ind_verts_temp[1]] - y
+        }
         res_int = ball_line_intersection(y, v, x0, 1)
         #x = y + res_int$tmin[1]*v
         if (res_int$tmin[1] < 1 && res_int$tmin[1] > 0) {
