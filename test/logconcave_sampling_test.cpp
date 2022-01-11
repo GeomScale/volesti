@@ -816,7 +816,7 @@ void benchmark_polytope_linear_program_optimization(
     std::cerr << "Min LP Value: " << f_lp(minimum) << std::endl;
     std::cerr << "Argmin: " << minimum.getCoefficients().transpose() << std::endl;
     std::cerr << "Average ETA: " << ETA / (NT) num_phases << std::endl;
-    std::cerr << "Average Time per Independent sample: " << total_min_ess / ETA << std::endl;
+    std::cerr << "Average Time per Independent sample: " <<  ETA / total_min_ess << std::endl;
     std::cerr << "Average Max PSRF: " << total_max_psrf / (NT) num_phases << std::endl;
     std::cerr << "Average Min ESS: " << total_min_ess / (NT) num_phases << std::endl;
     std::cerr << "Average number of reflections: " <<
