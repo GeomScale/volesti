@@ -18,14 +18,12 @@
 /// ARPACK++ standard eigenvalues solver
 //#define ARPACK_EIGENVALUES_SOLVER
 
-//#include <../../external/arpack++/include/arssym.h>
 #include <../../external/Spectra/include/Spectra/SymEigsSolver.h>
 #include "DenseProductMatrix.h"
 #include "EigenDenseMatrix.h"
 
 #include "../../external/Spectra/include/Spectra/SymGEigsSolver.h"
 #include "../../external/Spectra/include/Spectra/GenEigsSolver.h"
-//#include "../../external/arpack++/include/arsnsym.h"
 
 /// Solve eigenvalues problems
 /// \tparam NT Numeric Type

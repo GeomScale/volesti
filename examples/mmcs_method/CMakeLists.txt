@@ -1,14 +1,13 @@
 # VolEsti (volume computation and sampling library)
-# Copyright (c) 2012-2018 Vissarion Fisikopoulos
-# Copyright (c) 2018 Apostolos Chalkis
+# Copyright (c) 2012-2021 Vissarion Fisikopoulos
+# Copyright (c) 2018-2021 Apostolos Chalkis
 # Contributed and/or modified by Marios Papachristou, as part of Google Summer of Code 2020 program.
 # Licensed under GNU LGPL.3, see LICENCE file
-
 
 project( VolEsti )
 
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.4.5)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.11)
 
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
@@ -55,11 +54,14 @@ else()
 
 endif(DISABLE_NLP_ORACLES)
 
-include("Eigen.cmake")
+include("../../external/cmake-files/Eigen.cmake")
 GetEigen()
 
-include("Boost.cmake")
+include("../../external/cmake-files/Boost.cmake")
 GetBoost()
+
+include("../../external/cmake-files/LPSolve.cmake")
+GetLPSolve()
 
 # Find lpsolve library
 find_library(LP_SOLVE NAMES liblpsolve55.so PATHS /usr/lib/lp_solve)
@@ -71,14 +73,8 @@ else ()
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
-  include_directories (BEFORE ../../external/Eigen)
   include_directories (BEFORE ../../external)
   include_directories (BEFORE ../../external/minimum_ellipsoid)
-  #include_directories (BEFORE ../../include/cartesian_geom)
-  #include_directories (BEFORE ../../include/convex_bodies)
-  include_directories (BEFORE ../../external/LPsolve_src/run_headers)
-  include_directories (BEFORE ../../external/boost)
-  #include_directories (BEFORE BOOST)
   include_directories (BEFORE ../../include/generators)
   include_directories (BEFORE ../../include/volume)
   include_directories (BEFORE ../../include)
