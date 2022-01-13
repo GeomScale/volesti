@@ -154,7 +154,8 @@ get_points_on_components_imp <- function(A, b, x0, V, S, S_Vindices) {
           ind_verts_temp = S_Vindices[[ inds[1] ]]
           v = V[, ind_verts_temp[1]] - y
         } else {
-          inds = 1:n
+          zz = dim(V)[2]
+          inds = 1:zz
           Sind = S_Vindices[[1]]
           inds = inds[-Sind]
           ind_verts_temp = inds

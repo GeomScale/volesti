@@ -1,8 +1,9 @@
 library(volesti)
 
 #dm_covariance_matrices_70d <- readRDS("~/volume_approximation/R-proj/dm_covariance_matrices_70d.rds")
-europe_ex_ch_covariance_matrices_large <- readRDS("~/volume_approximation/R-proj/europe_ex_ch_covariance_matrices_large.rds")
+europe_ex_ch_covariance_matrices_large <- readRDS("~/temporal_repos/just_one/volume_approximation/R-proj/europe_ex_ch_covariance_matrices_large.rds")
 N = length(europe_ex_ch_covariance_matrices_large$lCov)
+print(N)
 
 all_samples_largest_1_81 = matrix(list(), 0, 1)
 
@@ -37,7 +38,7 @@ for (i in 1:N) {
     }
   }
   all_samples_largest_1_81[[length(all_samples_largest_1_81) + 1]] = vol_level_samples
-  saveRDS(all_samples_largest_1_81, file = "all_samples_europe_largest_1_81.rds")
+  saveRDS(all_samples_largest_1_81, file = "all_samples_europe_largest_81_81.rds")
   saveRDS(something_went_wong_smallest, file = "something_went_wong_largest.rds")
 }
 
