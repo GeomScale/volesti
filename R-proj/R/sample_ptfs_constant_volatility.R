@@ -91,6 +91,7 @@ sample_ptfs_constant_volatility <- function(sigma, c, M) {
   }
   
   Xs = get_points_on_components_imp(A, b, center_2, V, S, S_Vindices)
+
   
   nn = length(S)
   a_vals = matrix(list(), 0, 1)

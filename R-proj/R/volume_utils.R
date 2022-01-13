@@ -143,6 +143,7 @@ get_points_on_components_imp <- function(A, b, x0, V, S, S_Vindices) {
       res_int = ball_line_intersection(y, v, x0, 1)
     
       if (!res_int$intersect) {
+        #print('next')
         next
         #stop('no intersection')
       }

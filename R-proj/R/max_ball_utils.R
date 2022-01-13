@@ -157,6 +157,16 @@ get_point_on_component <- function(A, b, x0, V, Sind) {
 get_center_max_ball <- function(A, b, x0, V, Sind) {
   
   x = get_point_on_component(A, b, x0, V, Sind)
+  if (is.null(x)){
+    V_ind_out = 1:dim(V)[2]
+    V_ind_out = V_ind_out[-Sind]
+    interior_res = compute_interior_point_in_node_eff(Sind, V_ind_out, V, x0, A, b)
+    if (interior_res$found) {
+      x = interior_res$x
+    } else {
+      x = compute_interior_point_single_component(A, b, x0)
+    }
+  }
   v = x0 - x
   lambdas =  A %*% v / (b - A%*%x)
   l_max = max(lambdas)
@@ -174,10 +184,10 @@ get_center_max_ball <- function(A, b, x0, V, Sind) {
   if(sum(q>0) > 0){
     stop("[max_ball] center outside simplex")
   }
-  print(xc)
-  print(y[d+1])
-  print(sqrt(sum((xc-x0)^2))+y[d+1]-1)
-  if (abs(sqrt(sum((xc-x0)^2))+y[d+1]-1) > 1e+06) {
+  #print(xc)
+  #print(y[d+1])
+  #print(sqrt(sum((xc-x0)^2))+y[d+1]-1)
+  if (sqrt(sum((xc-x0)^2))+y[d+1]-1 > 1e-03) {
     stop("[max_ball] too big interior ball")
   }
   

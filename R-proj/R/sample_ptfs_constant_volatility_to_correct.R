@@ -74,34 +74,35 @@ sample_ptfs_constant_volatility_to_correct <- function(sigma, c, M) {
   
   if (length(S) == 1 && length(S_Vindices[[1]]) != dim(V)[2]){
     
-    Xs = get_points_on_components_imp(A, b, center_2, V, S, S_Vindices)
+    #Xs = get_points_on_components_imp(A, b, center_2, V, S, S_Vindices)
     
-    nn = length(S)
-    a_vals = matrix(list(), 0, 1)
-    ratios =  matrix(list(), 0, 1)
-    mus = matrix(list(), 0, 1)
-    sigmas = matrix(list(), 0, 1)
-    XX = matrix(list(), 0, 1)
-    vols = c()
-    num_verts=c()
+    #nn = length(S)
+    #a_vals = matrix(list(), 0, 1)
+    #ratios =  matrix(list(), 0, 1)
+    #mus = matrix(list(), 0, 1)
+    #sigmas = matrix(list(), 0, 1)
+    #XX = matrix(list(), 0, 1)
+    #vols = c()
+    #num_verts=c()
     
-    for (i in 1:nn) {
-      num_verts = c(num_verts, length(S_Vindices[[i]]))
-    }
-    num_verts2 = sort(num_verts)
-    tails_v = tail(num_verts2, 2)
+    #for (i in 1:nn) {
+    #  num_verts = c(num_verts, length(S_Vindices[[i]]))
+    #}
+    #num_verts2 = sort(num_verts)
+    #tails_v = tail(num_verts2, 2)
     #print(paste0('num_verts = ',as.character(num_verts)))
     #print(paste0('num_verts2 = ',as.character(num_verts2)))
-    print(paste0('tails_v = ',as.character(tails_v)))
+    #print(paste0('tails_v = ',as.character(tails_v)))
     
-    indices = which(num_verts == max(num_verts))
+    #indices = which(num_verts == max(num_verts))
     #print(indices)
-    indx = which(num_verts == max(num_verts))
-    for (i in 1:nn) {
-      mu = Xs[,i]
-      mus[[length(mus) + 1]] = mu 
-    }
+    #indx = which(num_verts == max(num_verts))
+    #for (i in 1:nn) {
+    #  mu = Xs[,i]
+    #  mus[[length(mus) + 1]] = mu 
+    #}
     
+    indx = 1
     print("sample from one component")
     print(paste0("indx = ",as.character(indx)))
     Xs = get_points_on_component_imp(A, b, center_2, V, S_Vindices[[indx]])
