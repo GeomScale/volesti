@@ -8,9 +8,9 @@ all_samples_smallest_1_81 = matrix(list(), 0, 1)
 
 n = dim(europe_ex_ch_covariance_matrices_small$lCov[[1]])[2] #number of assets
 
-win = 40 #window length
 M = 5000 #portfolios to generate for each level of volatility
 something_went_wong_smallest = matrix(,0,2) #structure to store the instances where the method failed
+ignore_smallest_components = TRUE
 
 for (i in 1:N) {
   
@@ -24,7 +24,7 @@ for (i in 1:N) {
   for (j in 1:m) {
     c = Cs[j]
     print(paste0('i = ',as.character(i), ' j = ', as.character(j)))
-    samples = sample_ptfs_constant_volatility(sigma, c, M) #sample M points, with c volatility when the cov. matrix is sigma
+    samples = sample_ptfs_constant_volatility(sigma, c, M, ignore_smallest_components) #sample M points, with c volatility when the cov. matrix is sigma
     
     correctness = check_correctness(samples, sigma, c) # check if the points lie in the simplex and have the requested value of volatility
     print(dim(samples))
