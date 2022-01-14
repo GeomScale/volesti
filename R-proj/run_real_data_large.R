@@ -1,7 +1,7 @@
 library(volesti)
 
 #dm_covariance_matrices_70d <- readRDS("~/volume_approximation/R-proj/dm_covariance_matrices_70d.rds")
-europe_ex_ch_covariance_matrices_large <- readRDS("~/temporal_repos/just_one/volume_approximation/R-proj/europe_ex_ch_covariance_matrices_large.rds")
+europe_ex_ch_covariance_matrices_large <- readRDS("~/volume_approximation/R-proj/europe_ex_ch_covariance_matrices_large.rds")
 N = length(europe_ex_ch_covariance_matrices_large$lCov)
 print(N)
 
@@ -25,13 +25,20 @@ for (i in 1:N) {
   for (j in 1:m) {
     c = Cs[j]
     print(paste0('i = ',as.character(i), ' j = ', as.character(j)))
-    samples = sample_ptfs_constant_volatility(sigma, c, M) #sample M points, with c volatility when the cov. matrix is sigma
+    res = sample_ptfs_constant_volatility(sigma, c, M) #sample M points, with c volatility when the cov. matrix is sigma
     
-    correctness = check_correctness(samples, sigma, c) # check if the points lie in the simplex and have the requested value of volatility
-    print(dim(samples))
-    print(correctness)
+    nn = length(res$overall_samples)
+    print(paste0("nn = ",as.character(nn)))
+    for (ii in 1:nn) {
+      indxs = res$num_verts
+      print(indxs)
+      samples = res$overall_samples[[ii]]
+      correctness = check_correctness(samples, sigma, c) # check if the points lie in the simplex and have the requested value of volatility
+      print(dim(samples))
+      print(correctness)
+    }
     
-    vol_level_samples[[length(vol_level_samples) + 1]] = samples
+    vol_level_samples[[length(vol_level_samples) + 1]] = res
     
     if (!correctness) {
       something_went_wong_smallest = rbind(something_went_wong_smallest, c(i,j))

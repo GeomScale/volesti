@@ -196,13 +196,13 @@ get_center_max_ball <- function(A, b, x0, V, Sind) {
 
 
 #' export
-get_points_on_component_imp <- function(A, b, x0, V, Sind) {
+get_points_on_component_imp <- function(A, b, x0, V, Sind, xc = NULL) {
   
-  xc = get_center_max_ball(A, b, x0, V, Sind)
+  if (is.null(xc)) {
+    xc = get_center_max_ball(A, b, x0, V, Sind)
+  }
   n = dim(V)[2]
   d = length(x0)
-  
-  
   
   Xs = matrix(, d, 0)
   
