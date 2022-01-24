@@ -120,16 +120,24 @@ check_correctness <- function(samples, sigma, c) {
   correctness = TRUE
   q = colSums(samples)
   if (length(q[which(q>1+1e-07 || q<1-1e-07)]) > 0) {
-    print(length(q[which(q>1+1e-07 || q<1-1e-07)]))
+    #print(length(q[which(q>1+1e-07 || q<1-1e-07)]))
     correctness = FALSE
   }
   
   N = dim(samples)[2]
   
   for (i in 1:N) {
-    vol = (samples[,100] %*%sigma%*%samples[,100])[1]
+    q = samples[, i]
+    if (sum(q<0) >0){
+      #print(i)
+      correctness = FALSE
+    }
+  }
+  
+  for (i in 1:N) {
+    vol = (samples[,i] %*%sigma%*%samples[,i])[1]
     if (vol < (c - 1e-07) || vol > (c + 1e-07)){
-      print(i)
+      #print(i)
       correctness = FALSE
     }
   }

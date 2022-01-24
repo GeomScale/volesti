@@ -33,8 +33,9 @@ eval_jac_g0 <- function(x, A, b) {
 compute_interior_point_single_component <- function(A, b, x0) {
   
   bb = b - A%*%x0
-  p = -x0
   d=length(x0)
+  p = rep(0,d)
+  
   res0 <- nloptr::nloptr( x0=p,
                   eval_f=eval_f0,
                   eval_grad_f=eval_grad_f0,
@@ -47,8 +48,23 @@ compute_interior_point_single_component <- function(A, b, x0) {
                   b = bb )
   x = c(res0$solution) + c(x0)
   #print(sum(eval_g0(x,A,b)>0))
-  #print(sqrt(sum((x-x0)^2)))
+  num_facets_valid = sum(eval_g0(x,A,b)<0)
+  if (num_facets_valid != dim(A)[1]) {
+    stop('interior point outside [single component case!')
+  }
+  #print(sum(eval_g0(x,A,b)==0))
+  #rad = sqrt(sum((x-x0)^2))
   #NLOPT_LD_SLSQP
   #NLOPT_LN_COBYLA
   return(x)
 }
+
+
+
+###export
+#compute_interior_point_single_component <- function(A, b, x0) {
+  
+#  x = compute_interior_point_single_component_preprocess(A, b, x0)
+  
+#}
+
