@@ -36,19 +36,43 @@ compute_interior_point_single_component <- function(A, b, x0) {
   d=length(x0)
   p = rep(0,d) - x0
   
-  lb_coord = -10
-  ub_coord = 10
-  if (max(p) > ub_coord){
-    ub_coord = 2*max(p)
+  rad = Inf
+  
+  for (i in 1:m) {
+    q = A[i,]
+    rad_temp = abs(b[i]) / sqrt(sum(q^2))
+    if (rad_temp < rad) {
+      rad = rad_temp
+    }
   }
-  if (min(p) < lb_coord){
-    lb_coord = 2*min(p)
-  }
-  #print(max(p))
-  #print(min(p))
+  #print(paste0('rad = ',as.character(rad)))
+    
+  while(TRUE) {
+    
+    p = boundary_randsphere(d,1)[,1]
+    U = runif(1, 0, 1)
+    U = U^(1/d)
+    p = (rad*U)*c(p) - c(x0)
+    
+    y = A%*%p - bb
+    if (sum(y>0) > 0) {
+      stop('sampled point outside')
+    }
+    
+    lb_coord = -10
+    ub_coord = 10
+    if (max(p) > ub_coord){
+      ub_coord = 2*max(p)
+    }
+    if (min(p) < lb_coord){
+      lb_coord = 2*min(p)
+    }
+  
+    #print(max(p))
+    #print(min(p))
   
   
-  res0 <- nloptr::nloptr( x0=p,
+    res0 <- nloptr::nloptr( x0=p,
                   eval_f=eval_f0,
                   eval_grad_f=eval_grad_f0,
                   lb = rep(lb_coord, d),
@@ -58,11 +82,15 @@ compute_interior_point_single_component <- function(A, b, x0) {
                   opts = list("algorithm" = "NLOPT_LD_MMA", "xtol_rel"=1.0e-8, maxeval = 50000),
                   A = A,
                   b = bb )
-  x = c(res0$solution) + c(x0)
-  #print(sum(eval_g0(x,A,b)>0))
-  num_facets_valid = sum(eval_g0(x,A,b)<0)
-  if (num_facets_valid != dim(A)[1]) {
-    stop('interior point outside [single component case!')
+    x = c(res0$solution) + c(x0)
+    #print(sum(eval_g0(x,A,b)>0))
+    num_facets_valid = sum(eval_g0(x,A,b)<0)
+    if (num_facets_valid != dim(A)[1]) {
+      next
+      print('interior point outside [single component case!')
+    } else {
+      break
+    }
   }
   #stop('stop')
   #print(sum(eval_g0(x,A,b)==0))
