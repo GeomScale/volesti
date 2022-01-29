@@ -34,13 +34,25 @@ compute_interior_point_single_component <- function(A, b, x0) {
   
   bb = b - A%*%x0
   d=length(x0)
-  p = rep(0,d)
+  p = rep(0,d) - x0
+  
+  lb_coord = -10
+  ub_coord = 10
+  if (max(p) > ub_coord){
+    ub_coord = 2*max(p)
+  }
+  if (min(p) < lb_coord){
+    lb_coord = 2*min(p)
+  }
+  #print(max(p))
+  #print(min(p))
+  
   
   res0 <- nloptr::nloptr( x0=p,
                   eval_f=eval_f0,
                   eval_grad_f=eval_grad_f0,
-                  lb = rep(-6, d),
-                  ub = rep(6, d),
+                  lb = rep(lb_coord, d),
+                  ub = rep(ub_coord, d),
                   eval_g_ineq = eval_g0,
                   eval_jac_g_ineq = eval_jac_g0,
                   opts = list("algorithm" = "NLOPT_LD_MMA", "xtol_rel"=1.0e-8, maxeval = 50000),
@@ -52,6 +64,7 @@ compute_interior_point_single_component <- function(A, b, x0) {
   if (num_facets_valid != dim(A)[1]) {
     stop('interior point outside [single component case!')
   }
+  #stop('stop')
   #print(sum(eval_g0(x,A,b)==0))
   #rad = sqrt(sum((x-x0)^2))
   #NLOPT_LD_SLSQP
