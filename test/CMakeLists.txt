@@ -295,6 +295,12 @@ else ()
           COMMAND logconcave_sampling_test -tc=hmc)
   add_test(NAME logconcave_sampling_test_uld
           COMMAND logconcave_sampling_test -tc=uld)
+  add_test(NAME logconcave_sampling_test_e_coli_biomass
+          COMMAND logconcave_sampling_test -tc=e_coli_biomass)
+  #add_test(NAME logconcave_sampling_test_iAT_PTL_636_biomass
+  #        COMMAND logconcave_sampling_test -tc=iAT_PTL_636_biomass)
+  #add_test(NAME logconcave_sampling_test_recon1_biomass
+  #        COMMAND logconcave_sampling_test -tc=recon1_biomass)
 
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits
