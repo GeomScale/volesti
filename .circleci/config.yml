@@ -57,6 +57,7 @@ jobs:
             sudo apt-get install cmake lp-solve gcovr;
             rm -rf build;
             mkdir build;
+            cp -R /metabolic_full_dim /build
             cd build;
             cmake -DDISABLE_NLP_ORACLES=ON -DUSE_MKL=OFF -DCODE_COVERAGE=ON ../test;
             make;
