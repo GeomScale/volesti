@@ -1029,7 +1029,7 @@ inline bool exists_check (const std::string& name) {
 }
 
 template <typename NT>
-void call_test_optimization() {
+void call_test_exp_sampling() {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
@@ -1193,7 +1193,7 @@ TEST_CASE("uld") {
 }
 
 TEST_CASE("exponential_biomass_sampling") {
-    call_test_optimization<double>();
+    call_test_exp_sampling<double>();
 }
 
 TEST_CASE("benchmark_hmc") {
