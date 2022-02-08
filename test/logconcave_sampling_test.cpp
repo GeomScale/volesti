@@ -703,7 +703,7 @@ void benchmark_polytope_linear_program_optimization(
     bool rounding=false,
     bool centered=true,
     unsigned int max_draws=80000,
-    unsigned int num_burns=20000) {
+    unsigned int num_burns=10000) {
     typedef Cartesian<NT>    Kernel;
     typedef std::vector<Point> pts;
     typedef boost::mt19937 RNGType;
@@ -756,6 +756,8 @@ void benchmark_polytope_linear_program_optimization(
     GaussianRDHRWalk::Walk<Polytope, RandomNumberGenerator> gaussian_walk(P, x0, lp_params.L, rng);
     int n_warmstart_samples = 100;
 
+    std::cout << "Warm start" << std::endl;
+
     for (int i = 0; i < n_warmstart_samples; i++) {
         gaussian_walk.apply(P, x0, lp_params.L, walk_length, rng);
     }
@@ -788,14 +790,15 @@ void benchmark_polytope_linear_program_optimization(
       hmc.apply(rng, walk_length);
     }
 
+    hmc.solver->eta = hmc.solver->eta*NT(10);
+    hmc.disable_adaptive();
+
     std::cout << std::endl;
-    std::cout << "Optimizing" << std::endl;
-    unsigned int num_phases = 0;
+    std::cout << "Sampling" << std::endl;
+    unsigned int num_phases = 1;
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (unsigned int j = 0; j < max_phases; j++) {
-        num_phases++;
-        std::cout << "Temperature " << opt_params.T << std::endl;
+    for (unsigned int j = 0; j < 1; j++) {
         for (unsigned int i = 0; i < max_actual_draws; i++) {
             hmc.apply(rng, walk_length);
             if (f_lp(minimum) >= f_lp(hmc.x)) {
@@ -813,12 +816,12 @@ void benchmark_polytope_linear_program_optimization(
 
     NT ETA = (NT) std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count();
 
-    std::cerr << "Min LP Value: " << f_lp(minimum) << std::endl;
+    std::cerr << "Min biomass Value: " << f_lp(minimum) << std::endl;
     std::cerr << "Argmin: " << minimum.getCoefficients().transpose() << std::endl;
-    std::cerr << "Average ETA: " << ETA / (NT) num_phases << std::endl;
-    std::cerr << "Average Time per Independent sample: " <<  ETA / total_min_ess << std::endl;
-    std::cerr << "Average Max PSRF: " << total_max_psrf / (NT) num_phases << std::endl;
-    std::cerr << "Average Min ESS: " << total_min_ess / (NT) num_phases << std::endl;
+    std::cerr << "ETA: " << ETA / (NT) num_phases << std::endl;
+    std::cerr << "Time per Independent sample: " <<  total_min_ess / ETA << std::endl;
+    std::cerr << "Max PSRF: " << total_max_psrf / (NT) num_phases << std::endl;
+    std::cerr << "Min ESS: " << total_min_ess / (NT) num_phases << std::endl;
     std::cerr << "Average number of reflections: " <<
         (1.0 * hmc.solver->num_reflections) / hmc.solver->num_steps << std::endl;
     std::cerr << "Step size (final): " << hmc.solver->eta << std::endl;
@@ -893,10 +896,10 @@ void call_test_benchmark_polytopes_grid_search() {
        std::make_tuple(generate_cube<Hpolytope>(100, false), "100_cube", false),
        std::make_tuple(generate_prod_simplex<Hpolytope>(50, false), "50_prod_simplex", false),
        std::make_tuple(generate_birkhoff<Hpolytope>(10), "10_birkhoff", false),
-       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283", true),
-       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636", true),
-       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true),
-       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_recon2.ine"), "recon2", true)
+       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAB_RBC_283.ine"), "iAB_RBC_283", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAT_PLT_636.ine"), "iAT_PLT_636", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true),
+       std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_recon2.ine"), "recon2", true)
     };
 
     Hpolytope P;
@@ -998,30 +1001,74 @@ void call_test_benchmark_spectrahedra_grid_search() {
 
 }
 
+template <typename Point, typename NT>
+Point load_biomass_function(std::string name)
+{
+  std::vector<double> v1;
+  std::string line;
+  NT element;
+
+  std::ifstream myFile(name);
+  while(std::getline(myFile, line))
+  {
+    std::istringstream lineStream(line);
+
+    while(lineStream >> element) {
+      v1.push_back(element);
+    }
+  }
+  Point biomass_function = Point(v1.size(), v1);
+  NT length = biomass_function.length();
+  biomass_function *= (NT(1) / length);
+  return biomass_function;
+}
+
+inline bool exists_check (const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
+}
+
 template <typename NT>
-void call_test_optimization() {
+void call_test_exp_sampling() {
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
     typedef HPolytope<Point> Hpolytope;
+    std::string name;
+    std::vector<std::tuple<Hpolytope, Point, std::string, bool>> polytopes;
+    
+    
+    if (exists_check("metabolic_full_dim/e_coli_biomass_function.txt") && exists_check("metabolic_full_dim/polytope_e_coli.ine")){
+      Point biomass_function_e_coli = load_biomass_function<Point, NT>("metabolic_full_dim/e_coli_biomass_function.txt");
+      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_e_coli.ine"), biomass_function_e_coli, "e_coli", true));
+    }
 
-    std::vector<std::tuple<Hpolytope, std::string, bool>> polytopes{
-       std::make_tuple(generate_cube<Hpolytope>(100, false), "100_cube", false),
-       std::make_tuple(read_polytope<Hpolytope, NT>("./metabolic_full_dim/polytope_e_coli.ine"), "e_coli", true),
-    };
+    if (exists_check("metabolic_full_dim/iAT_PTL_636_biomass_function.txt") && exists_check("metabolic_full_dim/polytope_iAT_PTL_636.ine")){
+      Point biomass_function_iAT = load_biomass_function<Point, NT>("metabolic_full_dim/iAT_PTL_636_biomass_function.txt");
+      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_iAT_PTL_636.ine"), biomass_function_iAT, "iAT_PTL_636", true));
+    }
+
+    if (exists_check("metabolic_full_dim/recon1_function.txt") && exists_check("metabolic_full_dim/polytope_recon1.ine")){
+      Point biomass_function_recon1 = load_biomass_function<Point, NT>("metabolic_full_dim/recon1_biomass_function.txt");
+      polytopes.push_back(std::make_tuple(read_polytope<Hpolytope, NT>("metabolic_full_dim/polytope_recon1.ine"), biomass_function_recon1, "recon1", true));
+    }
 
     Hpolytope P;
-    std::string name;
     std::ofstream outfile;
+    typedef BoostRandomNumberGenerator<boost::mt19937, NT> RNGType;
 
-    for (std::tuple<Hpolytope, std::string, bool> polytope_tuple : polytopes) {
-        P = std::get<0>(polytope_tuple);
-        name = std::get<1>(polytope_tuple);
-        std::cerr << name << std::endl;
-        P.normalize();
-        Point coeffs = Point::all_ones(P.dimension());
-        for (unsigned int walk_length = 500; walk_length <= P.dimension(); walk_length += P.dimension() / 10) {
-            benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P, 0, NT(-1), walk_length, false);
-        }
+    for (std::tuple<Hpolytope, Point, std::string, bool> polytope_tuple : polytopes) {
+      P = std::get<0>(polytope_tuple);
+      name = std::get<2>(polytope_tuple);
+
+      std::cerr << "Model: " + name << std::endl;
+      std::cout<< "Dimension of " + name + ": " <<P.dimension()<<std::endl;
+
+      P.normalize();
+      RNGType rng(P.dimension());
+      Point coeffs = std::get<1>(polytope_tuple);
+      for (unsigned int walk_length = P.dimension(); walk_length <= 2*P.dimension(); walk_length += P.dimension()) {
+        benchmark_polytope_linear_program_optimization<NT, Hpolytope>(coeffs, P, 0, NT(-1), walk_length, false);
+      }
     }
 
 }
@@ -1145,8 +1192,8 @@ TEST_CASE("uld") {
     call_test_uld<double>();
 }
 
-TEST_CASE("optimization") {
-    call_test_optimization<double>();
+TEST_CASE("exponential_biomass_sampling") {
+    call_test_exp_sampling<double>();
 }
 
 TEST_CASE("benchmark_hmc") {

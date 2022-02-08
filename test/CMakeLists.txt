@@ -172,6 +172,7 @@ else ()
   include_directories (BEFORE ../include/lp_oracles)
   include_directories (BEFORE ../include/nlp_oracles)
   include_directories (BEFORE ../include/misc)
+  include_directories (BEFORE ../test)
 
   #for Eigen
   if (${CMAKE_VERSION} VERSION_LESS "3.12.0")
@@ -295,6 +296,8 @@ else ()
           COMMAND logconcave_sampling_test -tc=hmc)
   add_test(NAME logconcave_sampling_test_uld
           COMMAND logconcave_sampling_test -tc=uld)
+  add_test(NAME logconcave_sampling_test_exponential_biomass_sampling
+          COMMAND logconcave_sampling_test -tc=exponential_biomass_sampling)
 
   add_executable (simple_mc_integration simple_mc_integration.cpp $<TARGET_OBJECTS:test_main>)
   add_test(NAME simple_mc_integration_over_limits
