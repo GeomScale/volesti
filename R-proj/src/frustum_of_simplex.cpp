@@ -3,7 +3,6 @@
 // Copyright (c) 2012-2018 Vissarion Fisikopoulos
 // Copyright (c) 2018 Apostolos Chalkis
 
-
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include "volume/exact_vols.h"
@@ -39,5 +38,4 @@ double frustum_of_simplex(Rcpp::NumericVector a, double z0){
     std::vector<double> hyp = Rcpp::as<std::vector<double> >(a);
 
     return vol_Ali(hyp, -z0, dim);
-
 }

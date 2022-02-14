@@ -1,4 +1,7 @@
-
+test/build
+external/_deps
+examples/build
+.vscode
 test/Testing/Temporary/CTestCostData.txt
 *.log
 .Rproj.user

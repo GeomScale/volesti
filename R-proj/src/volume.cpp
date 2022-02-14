@@ -7,6 +7,7 @@
 
 //Contributed and/or modified by Apostolos Chalkis, as part of Google Summer of Code 2018 and 2019 program.
 
+
 #include <Rcpp.h>
 #include <RcppEigen.h>
 #include <boost/random.hpp>
@@ -404,4 +405,3 @@ Rcpp::List volume (Rcpp::Reference P,
 
     return Rcpp::List::create(Rcpp::Named("log_volume") = pair_vol.first, Rcpp::Named("volume") = pair_vol.second);
 }
-

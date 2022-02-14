@@ -15,13 +15,14 @@
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
     #include "convex_bodies/zpolytope.h"
     #include "convex_bodies/zonoIntersecthpoly.h"
 #endif
 #include "sampling/sphere.hpp"
+#include "random_walks/boundary_cdhr_walk.hpp"
 #include "generators/boost_random_number_generator.hpp"
 #include "sampling/random_point_generators.hpp"
 #include "volume/sampling_policies.hpp"
@@ -45,7 +46,7 @@ static NT compute(HPolytope<Point> const& P)
 }
 };
 
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
 template <typename Point>
 struct compute_diameter<VPolytope<Point>>
 {

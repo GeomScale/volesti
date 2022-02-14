@@ -26,6 +26,9 @@
 
 #include "diagnostics/effective_sample_size.hpp"
 #include "diagnostics/multivariate_psrf.hpp"
+#include "diagnostics/univariate_psrf.hpp"
+#include "diagnostics/interval_psrf.hpp"
+#include "diagnostics/effective_sample_size.hpp"
 #include "diagnostics/geweke.hpp"
 #include "diagnostics/raftery.hpp"
 
@@ -84,6 +87,73 @@ void call_test_psrf(){
 }
 
 template <typename NT>
+void call_test_univariate_psrf(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    Hpolytope P;
+    unsigned int d = 10;
+
+    std::cout << "--- Testing psrf on Billiard Walk and H-cube10" << std::endl;
+    P = generate_cube<Hpolytope>(d, false);
+    P.ComputeInnerBall();
+
+    MT samples = get_samples<MT, AcceleratedBilliardWalk>(P);
+
+    VT score = univariate_psrf<NT, VT>(samples);
+
+    std::cout<<"univariate psrf = "<<score.transpose()<<std::endl;
+    CHECK(score.maxCoeff() < 1.1);
+}
+
+template <typename NT>
+void call_test_interval_psrf(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    Hpolytope P;
+    unsigned int d = 10;
+    NT alpha = 0.05;
+
+    std::cout << "--- Testing psrf on Billiard Walk and H-cube10" << std::endl;
+    P = generate_cube<Hpolytope>(d, false);
+    P.ComputeInnerBall();
+
+    MT samples = get_samples<MT, AcceleratedBilliardWalk>(P);
+
+    VT score = interval_psrf<VT>(samples, alpha);
+
+    std::cout<<"interval psrfs = "<<score.transpose()<<std::endl;
+    CHECK(score.maxCoeff() < 1.1);
+}
+
+template <typename NT>
+void call_test_ess(){
+    typedef Cartesian<NT>    Kernel;
+    typedef typename Kernel::Point    Point;
+    typedef HPolytope<Point> Hpolytope;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,Eigen::Dynamic> MT;
+    typedef Eigen::Matrix<NT,Eigen::Dynamic,1> VT;
+    Hpolytope P;
+    unsigned int d = 10, min_ess;
+
+    std::cout << "--- Testing psrf on Billiard Walk and H-cube10" << std::endl;
+    P = generate_cube<Hpolytope>(d, false);
+    P.ComputeInnerBall();
+
+    MT samples = get_samples<MT, AcceleratedBilliardWalk>(P);
+
+    VT score = effective_sample_size<NT, VT>(samples, min_ess);
+
+    std::cout<<"ess = "<<score.transpose()<<std::endl;
+    CHECK(score.minCoeff() > 100);
+}
+
+template <typename NT>
 void call_test_geweke(){
     typedef Cartesian<NT>    Kernel;
     typedef typename Kernel::Point    Point;
@@ -135,6 +205,18 @@ void call_test_raftery(){
 
 TEST_CASE("psrf") {
     call_test_psrf<double>();
+}
+
+TEST_CASE("univariate_psrf") {
+    call_test_univariate_psrf<double>();
+}
+
+TEST_CASE("interval_psrf") {
+    call_test_interval_psrf<double>();
+}
+
+TEST_CASE("ess") {
+    call_test_ess<double>();
 }
 
 TEST_CASE("geweke") {

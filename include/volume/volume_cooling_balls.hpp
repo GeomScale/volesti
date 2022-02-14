@@ -15,13 +15,16 @@
 
 #include "cartesian_geom/cartesian_kernel.h"
 #include "convex_bodies/hpolytope.h"
-#ifndef VOLESTIPY
+#ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/zpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
 #endif
+#include "random_walks/uniform_cdhr_walk.hpp"
+#include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "sampling/random_point_generators.hpp"
+#include "volume/math_helpers.hpp"
 
 
 ////////////////////////////////////
@@ -684,15 +687,6 @@ NT estimate_ratio_interval(PolyBall1 const& Pb1,
 
     return NT(ratio_parameters.count_in) / NT(ratio_parameters.tot_count);
 }
-
-
-template <typename NT>
-NT log_gamma_function(NT x) 
-{
-    if (x <= NT(100)) return std::log(tgamma(x));
-    return (std::log(x - NT(1)) + log_gamma_function(x - NT(1)));
-}
-
 
 template
 <
