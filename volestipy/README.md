@@ -13,9 +13,17 @@ Let's assume you have it under `/usr/lib/lpsolve/`.
 [//]: # (I think it would be useful to describe a *how to get it* thoroughly. )
 
 
-You also need `cython`, `numpy` and `setuptools`. In `debian` systems you can get then by
+You also need `cython`, `numpy` and `setuptools`. We need to install pip to be able to download these modules. If you do not have pip already you can check it out [here](https://pip.pypa.io/en/stable/installation/)
+
+To download the packages
 ```
-sudo apt-get install cython python-numpy python-setuptools
+pip install Cython
+```
+```
+pip install numpy
+```
+```
+pip install setuptools
 ```
 
 Finally, the [Gurobi solver](https://www.gurobi.com/) needs to be installed as well.
