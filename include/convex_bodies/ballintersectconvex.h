@@ -102,9 +102,8 @@ public:
     std::pair<NT,int> line_positive_intersect(PointType const& r,
                                               PointType const& v,
                                               VT &Ar,
-                                              VT &Av) const
+                                              VT &Av)
     {
-
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av);
         std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
         int facet = (polypair.first < ball_lambda.first) ? polypair.second : P.num_of_hyperplanes();
@@ -117,9 +116,8 @@ public:
                                               PointType const& v,
                                               VT &Ar,
                                               VT &Av,
-                                              NT &lambda_prev) const
+                                              NT &lambda_prev)
     {
-
         std::pair <NT, int> polypair = P.line_positive_intersect(r, v, Ar, Av, lambda_prev);
         std::pair <NT, int> ball_lambda = B.line_positive_intersect(r, v);
         int facet = (polypair.first < ball_lambda.first) ? polypair.second : P.num_of_hyperplanes();
@@ -218,7 +216,7 @@ public:
                                  std::max(polypair.second, ballpair.second));
     }
 
-    void compute_reflection (PointType& v, PointType const& p, int &facet) const
+    void compute_reflection (PointType& v, PointType const& p, int &facet)
     {
 
         if (facet == P.num_of_hyperplanes()) {
@@ -230,7 +228,7 @@ public:
     }
 
     template <typename update_parameters>
-    void compute_reflection (PointType &v, PointType const& p, update_parameters &params) const
+    void compute_reflection (PointType &v, PointType const& p, update_parameters &params)
     {
         if (params.hit_ball) {
             B.compute_reflection(v, p, params);

@@ -64,7 +64,7 @@ struct AcceleratedBilliardWalkParallel
         typedef typename Point::FT NT;
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P)
+        Walk(GenericPolytope &P)
         {
             _L = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
@@ -74,7 +74,7 @@ struct AcceleratedBilliardWalkParallel
         }
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, NT const& L)
+        Walk(GenericPolytope &P, NT const& L)
         {
             _L = L > NT(0) ? L
                               : compute_diameter<GenericPolytope>
@@ -89,7 +89,7 @@ struct AcceleratedBilliardWalkParallel
             typename GenericPolytope,
             typename thread_params
         >
-        inline void apply(GenericPolytope const& P,
+        inline void apply(GenericPolytope &P,
                           thread_params &params,   // a point to start
                           unsigned int const& walk_length,
                           RandomNumberGenerator &rng)
@@ -147,7 +147,7 @@ struct AcceleratedBilliardWalkParallel
             typename GenericPolytope,
             typename thread_params
         >
-        inline void get_starting_point(GenericPolytope const& P,
+        inline void get_starting_point(GenericPolytope &P,
                                        Point const& center,
                                        thread_params &params,
                                        unsigned int const& walk_length,
@@ -169,7 +169,7 @@ struct AcceleratedBilliardWalkParallel
             typename GenericPolytope,
             typename thread_params
         >
-        inline void parameters_burnin(GenericPolytope const& P, 
+        inline void parameters_burnin(GenericPolytope &P, 
                                       Point const& center,
                                       unsigned int const& num_points,
                                       unsigned int const& walk_length,
@@ -232,7 +232,7 @@ struct AcceleratedBilliardWalkParallel
             typename GenericPolytope,
             typename thread_params
         >
-        inline void initialize(GenericPolytope const& P,
+        inline void initialize(GenericPolytope &P,
                                thread_params &params,
                                RandomNumberGenerator &rng)
         {

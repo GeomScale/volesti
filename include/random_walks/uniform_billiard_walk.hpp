@@ -31,7 +31,7 @@ template <typename GenericPolytope>
 struct compute_diameter
 {
     template <typename NT>
-    static NT compute(GenericPolytope) {}
+    static NT compute(GenericPolytope) {return NT(0);}
 };
 
 
@@ -39,7 +39,7 @@ template <typename Point>
 struct compute_diameter<HPolytope<Point>>
 {
 template <typename NT>
-static NT compute(HPolytope<Point> const& P)
+static NT compute(HPolytope<Point> &P)
 {
     NT diameter = NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
     return diameter;
@@ -51,7 +51,7 @@ template <typename Point>
 struct compute_diameter<VPolytope<Point>>
 {
 template <typename NT>
-static NT compute(VPolytope<Point> const& P)
+static NT compute(VPolytope<Point> &P)
 {
     typedef typename VPolytope<Point>::MT MT;
     NT diameter = NT(0), diam_iter;
@@ -72,7 +72,7 @@ template <typename Point>
 struct compute_diameter<Zonotope<Point>>
 {
 template <typename NT>
-static NT compute(Zonotope<Point> const& P)
+static NT compute(Zonotope<Point> &P)
 {
     typedef typename Zonotope<Point>::MT MT;
     typedef typename Zonotope<Point>::VT VT;
@@ -106,7 +106,7 @@ template <typename Point, typename RandomNumberGenerator>
 struct compute_diameter<IntersectionOfVpoly<VPolytope<Point>, RandomNumberGenerator>>
 {
 template <typename NT>
-static NT compute(IntersectionOfVpoly<VPolytope<Point>, RandomNumberGenerator> const& P)
+static NT compute(IntersectionOfVpoly<VPolytope<Point>, RandomNumberGenerator> &P)
 {
     NT diameter = NT(2) * NT(P.dimension()) * P.InnerBall().second;
     return diameter;
@@ -117,7 +117,7 @@ template <typename Point>
 struct compute_diameter<ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>>>
 {
 template <typename NT>
-static NT compute(ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>> const& P)
+static NT compute(ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>> &P)
 {
     typedef typename ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>>::VT VT;
     typedef typename ZonoIntersectHPoly<Zonotope<Point>, HPolytope<Point>>::MT MT;
@@ -171,7 +171,7 @@ template <typename Polytope, typename Point>
 struct compute_diameter<BallIntersectPolytope<Polytope, Ball<Point>>>
 {
 template <typename NT>
-static NT compute(BallIntersectPolytope<Polytope, Ball<Point>> const& P)
+static NT compute(BallIntersectPolytope<Polytope, Ball<Point>> &P)
 {
     NT diameter = NT(2) * P.radius();
     return diameter;
@@ -216,7 +216,7 @@ struct Walk
     typedef typename Point::FT NT;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
+    Walk(GenericPolytope &P, Point const& p, RandomNumberGenerator &rng)
     {
         _Len = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
@@ -224,7 +224,7 @@ struct Walk
     }
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng,
+    Walk(GenericPolytope &P, Point const& p, RandomNumberGenerator &rng,
          parameters const& params)
     {
         _Len = params.set_L ? params.m_L
@@ -237,7 +237,7 @@ struct Walk
     <
         typename GenericPolytope
     >
-    inline void apply(GenericPolytope const& P,
+    inline void apply(GenericPolytope &P,
                       Point& p,   // a point to start
                       unsigned int const& walk_length,
                       RandomNumberGenerator &rng)
@@ -285,7 +285,7 @@ private :
     <
         typename GenericPolytope
     >
-    inline void initialize(GenericPolytope const& P,
+    inline void initialize(GenericPolytope &P,
                            Point const& p,
                            RandomNumberGenerator &rng)
     {

@@ -232,7 +232,7 @@ template
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
-double volume_sequence_of_balls(Polytope const& Pin,
+double volume_sequence_of_balls(Polytope &Pin,
                                 double const& error = 1.0,
                                 unsigned int const& walk_length = 1,
                                 unsigned int const& n_threads = 1)
@@ -247,13 +247,12 @@ template
 <
     typename WalkTypePolicy = CDHRWalk,
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
-    typename Polytope,
-    typename Point
+    typename Polytope
 >
-double volume_sequence_of_balls(Polytope const& Pin,
-                                Point const& interior_point,
-                                double const& error = 1.0,
+double volume_sequence_of_balls(Polytope &Pin,
+                                Cartesian<double>::Point const& interior_point,
                                 unsigned int const& walk_length = 1,
+                                double const& error = 1.0,
                                 unsigned int const& n_threads = 1)
 {
     RandomNumberGenerator rng(Pin.dimension());

@@ -461,7 +461,7 @@ template
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
     typename Polytope
 >
-double volume_cooling_gaussians(Polytope const& Pin,
+double volume_cooling_gaussians(Polytope &Pin,
                                  double const& error = 0.1,
                                  unsigned int const& walk_length = 1)
 {
@@ -474,13 +474,12 @@ template
 <
     typename WalkTypePolicy = GaussianCDHRWalk,
     typename RandomNumberGenerator = BoostRandomNumberGenerator<boost::mt11213b, double>,
-    typename Polytope,
-    typename Point
+    typename Polytope
 >
-double volume_cooling_gaussians(Polytope const& Pin,
-                                Point const& interior_point,
-                                double const& error = 0.1,
-                                unsigned int const& walk_length = 1)
+double volume_cooling_gaussians(Polytope &Pin,
+                                Cartesian<double>::Point const& interior_point,
+                                unsigned int const& walk_length = 1,
+                                double const& error = 0.1)
 {
     RandomNumberGenerator rng(Pin.dimension());
     Pin.set_interior_point(interior_point);

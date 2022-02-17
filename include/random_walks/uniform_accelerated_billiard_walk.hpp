@@ -60,7 +60,7 @@ struct AcceleratedBilliardWalk
         typedef typename Point::FT NT;
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng)
+        Walk(GenericPolytope &P, Point const& p, RandomNumberGenerator &rng)
         {
             _update_parameters = update_parameters();
             _L = compute_diameter<GenericPolytope>
@@ -71,7 +71,7 @@ struct AcceleratedBilliardWalk
         }
 
         template <typename GenericPolytope>
-        Walk(GenericPolytope const& P, Point const& p, RandomNumberGenerator &rng,
+        Walk(GenericPolytope &P, Point const& p, RandomNumberGenerator &rng,
              parameters const& params)
         {
             _update_parameters = update_parameters();
@@ -87,7 +87,7 @@ struct AcceleratedBilliardWalk
                 <
                         typename GenericPolytope
                 >
-        inline void apply(GenericPolytope const& P,
+        inline void apply(GenericPolytope &P,
                           Point &p,   // a point to start
                           unsigned int const& walk_length,
                           RandomNumberGenerator &rng)
@@ -142,7 +142,7 @@ struct AcceleratedBilliardWalk
         <
             typename GenericPolytope
         >
-        inline void get_starting_point(GenericPolytope const& P,
+        inline void get_starting_point(GenericPolytope &P,
                            Point const& center,
                            Point &q,
                            unsigned int const& walk_length,
@@ -163,7 +163,7 @@ struct AcceleratedBilliardWalk
         <
             typename GenericPolytope
         >
-        inline void parameters_burnin(GenericPolytope const& P, 
+        inline void parameters_burnin(GenericPolytope &P, 
                                      Point const& center,
                                      unsigned int const& num_points,
                                      unsigned int const& walk_length,
@@ -223,7 +223,7 @@ struct AcceleratedBilliardWalk
                 <
                         typename GenericPolytope
                 >
-        inline void initialize(GenericPolytope const& P,
+        inline void initialize(GenericPolytope &P,
                                Point const& p,
                                RandomNumberGenerator &rng)
         {

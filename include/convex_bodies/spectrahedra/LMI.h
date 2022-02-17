@@ -208,6 +208,14 @@ class LMI {
         return &(matrices[i]);
     }
 
+    MT get_A0() {
+        return matrices[0];
+    }
+
+    void set_A0(MT const& A0) {
+        matrices[0] = A0;
+    }
+
     /// Prints the matrices A0, ..., An
     void print() const {
         int i = 0;

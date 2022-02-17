@@ -181,6 +181,11 @@ public:
         delete [] row_mem;
     }
 
+    void set_interior_point(Point const& r)
+    {
+        _inner_ball.first = r;
+    }
+
     // return the dimension
     unsigned int dimension() const
     {
