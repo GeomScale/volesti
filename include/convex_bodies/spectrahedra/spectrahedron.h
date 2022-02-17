@@ -70,9 +70,6 @@ public:
     typedef Eigen::Matrix<NT, Eigen::Dynamic, Eigen::Dynamic> MT;
     typedef Eigen::Matrix<NT, Eigen::Dynamic, 1>              VT;
 
-    //typedef Cartesian <NT> Kernel;
-    //typedef typename Kernel::Point PointType;
-
     double maxDouble = std::numeric_limits<double>::max();
 
     /// The type of a pair of NT
@@ -112,13 +109,10 @@ public:
 
         NT radius = maxDouble;
 
-        PointType v(dimension());
-
         for (unsigned int i = 0; i < dimension(); ++i) {
-            v = PointType(dimension());
-            v.set_coord(i, 1.0);
-            //_PrecomputationOfValues precomp;
-            std::pair<NT, NT> min_max = coordinateIntersection(_inner_ball.first.getCoefficients(), i);
+
+            std::pair<NT, NT> min_max = coordinateIntersection(_inner_ball.first.getCoefficients(), i+1);
+
             if (min_max.first < radius) radius = min_max.first;
             if (-min_max.second < radius) radius = -min_max.second;
         }
@@ -126,7 +120,7 @@ public:
         radius = radius / std::sqrt(NT(dimension()));
         _inner_ball.second = radius;
 
-        return std::pair<PointType, NT>(_inner_ball.first.getCoefficients(), radius);
+        return std::pair<PointType, NT>(_inner_ball.first, radius);
     }
 
     /// Construct the quadratic eigenvalue problem \[At^2 + Bt + C \] for positive_intersect.
@@ -382,8 +376,8 @@ public:
 
         int d = matrices.size();
 
-        for (int i = 0; i < d; ++i) {
-            A0 = A0 + e(i)*matrices[i];
+        for (int i = 1; i < d; ++i) {
+            A0 = A0 + e(i-1)*matrices[i];
         }
 
         lmi.set_A0(A0);
@@ -408,50 +402,6 @@ public:
         NT dot = 2 * v.dot(grad);
         v += -dot * PointType(grad);
     }
-
-    /*
-    /// Computes the reflected direction at a point on the boundary of the spectrahedron.
-    /// \param[in] r A point on the boundary of the spectrahedron
-    /// \param[in] v The direction of the trajectory as it hits the boundary
-    /// \param[out] reflectedDirection The reflected direction
-    template <typename update_parameters>
-    void compute_reflection(PointType &v, const PointType &r, update_parameters& ) 
-    {
-        VT grad(d);
-        lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
-
-        // compute reflected direction
-        // if v is orivginal direction and s the surface normal,
-        // reflected direction = v - 2 <v,s>*s
-
-        NT dot = 2 * v.dot(grad);
-        v += -dot * grad;
-    }*/
-
-    /*template <typename update_parameters>
-    void compute_reflection(PointType &v, const PointType &r, update_parameters& ) {
-
-        lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
-
-        // compute reflected direction
-        // if v is original direction and s the surface normal,
-        // reflected direction = v - 2 <v,s>*s
-
-        NT dot = 2 * v.dot(grad);
-        v += -dot * PointType(grad);
-    }
-
-    void compute_reflection(PointType &v, const PointType &r, int&) {
-
-        lmi.normalizedDeterminantGradient(r.getCoefficients(), precomputedValues.eigenvector, grad);
-
-        // compute reflected direction
-        // if v is original direction and s the surface normal,
-        // reflected direction = v - 2 <v,s>*s
-
-        NT dot = 2 * v.dot(grad);
-        v += -dot * PointType(grad);
-    }*/
 
 
     /// \return The dimension of the spectrahedron
@@ -523,9 +473,12 @@ public:
         return maxDistance;
     }
 
-    bool is_in(PointType const& p, NT tol=NT(0))
+    int is_in(PointType const& p, NT tol=NT(0))
     {
-        return (!isExterior(p.getCoefficients()));
+        if (isExterior(p.getCoefficients())) {
+            return 0;
+        }
+        return -1;
     }
     
     /// Find out is lmi(current position) = mat is in the exterior of the spectrahedron

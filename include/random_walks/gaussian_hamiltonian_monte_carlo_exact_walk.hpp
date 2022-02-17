@@ -55,7 +55,7 @@ struct Walk
     typedef typename Polytope::VT VT;
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p, NT const& a_i, RandomNumberGenerator &rng)
+    Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng)
     {
         _Len = compute_diameter<GenericPolytope>
                 ::template compute<NT>(P);
@@ -65,7 +65,7 @@ struct Walk
     }
 
     template <typename GenericPolytope>
-    Walk(GenericPolytope const& P, Point const& p, NT const& a_i, RandomNumberGenerator &rng,
+    Walk(GenericPolytope &P, Point const& p, NT const& a_i, RandomNumberGenerator &rng,
          parameters const& params)
     {
         _Len = params.set_L ? params.m_L

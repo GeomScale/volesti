@@ -85,11 +85,17 @@ void call_test_volume(){
     NT e = 0.1, volume;
     Point interior_point(spectra.dimension());
     typedef BoostRandomNumberGenerator<boost::mt19937, NT, 3> RNGType;
+
+    //NT diam = spectra.estimateDiameter(1000, interior_point);
+    //std::cout<<"diam = "<<diam<<std::endl;
+    
+    //std::pair<Point, NT> inner_ball = spectra.ComputeInnerBall();
+    //std::cout<<"radius = "<<inner_ball.second<<std::endl;
     
     std::cout << "--- Testing spectrahedron 20_20" << std::endl;
     volume = volume_cooling_balls<BilliardWalk, RNGType>(spectra, interior_point, walk_len, e).second;
-    //test_volume(spectra, 1118.63, 1118.63);
-    //test_values(volume, 0, 0);
+    
+    test_values(volume, 16.4119, 16.4119);
 }
 
 

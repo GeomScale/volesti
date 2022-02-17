@@ -289,7 +289,6 @@ bool get_sequence_of_polytopeballs(Polytope &P,
                                    cooling_ball_parameters<NT> const& parameters,
                                    RNG& rng)
 {
-
     typedef typename Polytope::PointType Point;
     bool fail;
     int n = P.dimension();
@@ -761,7 +760,6 @@ std::pair<double, double> volume_cooling_balls(Polytope const& Pin,
                                                         P, *(ratios.end() - 1),
                                                         er0, parameters.win_len, 1200,
                                                         prob, rng));
-
     auto balliter = BallSet.begin();
     auto ratioiter = ratios.begin();
 

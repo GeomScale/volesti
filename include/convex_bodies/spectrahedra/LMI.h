@@ -240,7 +240,9 @@ class LMI {
     /// \return true is LMI(pos) is negative semidefinite
     bool isNegativeSemidefinite(VT const & pos) const {
         MT mat;
-        evaluate(pos, mat);
+        mat.setZero(m, m);
+        
+        evaluate(pos, mat, true);
         return isNegativeSemidefinite(mat);
     }
 

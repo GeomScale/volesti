@@ -15,6 +15,7 @@
 #include "convex_bodies/ball.h"
 #include "convex_bodies/ballintersectconvex.h"
 #include "convex_bodies/hpolytope.h"
+#include "convex_bodies/spectrahedra/spectrahedron.h"
 #ifndef DISABLE_LPSOLVE
     #include "convex_bodies/vpolytope.h"
     #include "convex_bodies/vpolyintersectvpoly.h"
@@ -42,6 +43,18 @@ template <typename NT>
 static NT compute(HPolytope<Point> &P)
 {
     NT diameter = NT(2) * std::sqrt(NT(P.dimension())) * P.InnerBall().second;
+    return diameter;
+}
+};
+
+template <typename Point>
+struct compute_diameter<Spectrahedron<Point>>
+{
+template <typename NT>
+static NT compute(Spectrahedron<Point> &P)
+{
+    std::pair<Point, NT> inner_ball = P.ComputeInnerBall();
+    NT diameter = NT(6) * NT(P.dimension()) * inner_ball.second;
     return diameter;
 }
 };
